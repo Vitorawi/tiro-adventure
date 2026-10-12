@@ -37,7 +37,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
     levels/house/    Casa (HouseRoom): monta a sala de data/rooms/house.json, navegação, toque, câmera
     entities/dog_world/  Tiro pequeno com IA autônoma (anda pelo caminho calculado)
   scripts/state/     DogState, Inventory, StationState (dados + to_dict/from_dict)
-  scripts/ui/        SheetBuilder (conteúdo dos painéis)
+  scripts/ui/        UiKit (peças: ícone, chip, cartão, botão, barra) e SheetBuilder (conteúdo dos painéis)
   assets/            sprites/(characters,areas,tiles,ui,fx), theme/, audio/, fonts/, icons/ (PWA)
   tests/             testes (excluídos do export)
 ```
@@ -48,7 +48,9 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Novo item / receita / ajuste de números | `game/data/*.json` (sem mexer em código) |
 | Nova ação do jogo (ex.: plantar)      | método em `game/autoload/game_state.gd` + estado em `game/scripts/state/` |
 | Novo móvel / mudar layout da casa     | `game/data/rooms/house.json` (sprite, pos, footprint, action) + ação em `_on_object_tapped` de `house.gd` |
-| Novo menu de objeto                   | função em `game/scripts/ui/sheet_builder.gd` + `Events.sheet_requested` |
+| Novo menu de objeto                   | função em `game/scripts/ui/sheet_builder.gd` (montar com `UiKit`) + `Events.sheet_requested` |
+| Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: PrimaryButton, TabButton, CloseButton, CardPanel, ReadyCardPanel, ChipPanel, SheetPanel, TopBarPanel, TitleLabel, SectionLabel, SmallLabel, BarLabel, ToastLabel) |
+| Ícone de item/necessidade             | PNG 32 px em `game/assets/sprites/ui/icons/` + campo `"icon"` no JSON (`items.json`, `needs` do `config.json`) |
 | Adicionar dado que deve ser salvo     | `game/autoload/game_state.gd` (campo + `to_dict`/`from_dict`/`reset`) |
 | Mudar formato do save                 | `game/autoload/save_manager.gd` (`SAVE_VERSION` + `_migrate`) |
 | Comunicar sistemas desacoplados       | sinal novo em `game/autoload/events.gd` |

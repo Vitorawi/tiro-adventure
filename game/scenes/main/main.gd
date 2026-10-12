@@ -33,6 +33,7 @@ func _ready() -> void:
 		if button and button.pressed:
 			PwaUpdater.apply_update())
 	_toast.modulate.a = 0.0
+	UiKit.tint_bar(%XpBar, Color(1, 0.82, 0.3))
 	_refresh_top_bar()
 	show_screen(&"pet")
 
@@ -44,8 +45,10 @@ func show_screen(id: StringName) -> void:
 
 
 func _refresh_top_bar() -> void:
-	_level_label.text = "Nível %d  (%d/%d XP)" % [GameState.level, GameState.xp, GameState.xp_to_next_level()]
-	_coins_label.text = "%d moedas" % GameState.coins
+	_level_label.text = "Nível %d" % GameState.level
+	%XpBar.max_value = GameState.xp_to_next_level()
+	%XpBar.value = GameState.xp
+	_coins_label.text = str(GameState.coins)
 
 
 func _show_toast(text: String) -> void:

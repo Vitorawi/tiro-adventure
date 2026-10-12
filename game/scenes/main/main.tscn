@@ -1,25 +1,23 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pet_screen/pet_screen.tscn" id="2_pet"]
 [ext_resource type="PackedScene" path="res://scenes/levels/house/house.tscn" id="3_house"]
 [ext_resource type="PackedScene" path="res://scenes/ui/sheet/sheet.tscn" id="4_sheet"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/xp.png" id="5_xp"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/coin.png" id="6_coin"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_pet.png" id="7_tab_pet"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_house.png" id="8_tab_house"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_tabs"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toast"]
-bg_color = Color(0.1, 0.1, 0.15, 0.9)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
-content_margin_left = 14.0
-content_margin_top = 8.0
-content_margin_right = 14.0
-content_margin_bottom = 8.0
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_update"]
 bg_color = Color(1, 0.82, 0.35, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 5
+border_color = Color(0.29, 0.18, 0.13, 1)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
@@ -42,7 +40,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.11, 0.12, 0.18, 1)
+color = Color(0.24, 0.15, 0.1, 1)
 
 [node name="Layout" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -53,31 +51,72 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 0
 
-[node name="TopBar" type="MarginContainer" parent="Layout"]
-custom_minimum_size = Vector2(0, 48)
+[node name="TopBar" type="PanelContainer" parent="Layout"]
+custom_minimum_size = Vector2(0, 52)
 layout_mode = 2
-theme_override_constants/margin_left = 14
-theme_override_constants/margin_right = 14
+theme_type_variation = &"TopBarPanel"
 
 [node name="HBox" type="HBoxContainer" parent="Layout/TopBar"]
 layout_mode = 2
+theme_override_constants/separation = 6
 
-[node name="LevelLabel" type="Label" parent="Layout/TopBar/HBox"]
+[node name="XpIcon" type="TextureRect" parent="Layout/TopBar/HBox"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("5_xp")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="LevelBox" type="VBoxContainer" parent="Layout/TopBar/HBox"]
+custom_minimum_size = Vector2(110, 0)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 2
+
+[node name="LevelLabel" type="Label" parent="Layout/TopBar/HBox/LevelBox"]
 unique_name_in_owner = true
 layout_mode = 2
+theme_type_variation = &"BarLabel"
+theme_override_font_sizes/font_size = 22
+text = "Nível 1"
+
+[node name="XpBar" type="ProgressBar" parent="Layout/TopBar/HBox/LevelBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+show_percentage = false
+
+[node name="Spacer" type="Control" parent="Layout/TopBar/HBox"]
+layout_mode = 2
 size_flags_horizontal = 3
+mouse_filter = 2
 
 [node name="VersionLabel" type="Label" parent="Layout/TopBar/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 0
-theme_override_colors/font_color = Color(0.55, 0.57, 0.65, 1)
-theme_override_font_sizes/font_size = 11
+theme_override_colors/font_color = Color(0.62, 0.52, 0.42, 1)
+theme_override_font_sizes/font_size = 14
+
+[node name="CoinIcon" type="TextureRect" parent="Layout/TopBar/HBox"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("6_coin")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="CoinsLabel" type="Label" parent="Layout/TopBar/HBox"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(36, 0)
 layout_mode = 2
+theme_type_variation = &"BarLabel"
 theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+theme_override_font_sizes/font_size = 28
+text = "50"
 
 [node name="Screens" type="Control" parent="Layout"]
 clip_contents = true
@@ -102,17 +141,23 @@ theme_override_constants/separation = 0
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"TabButton"
+theme_override_font_sizes/font_size = 26
 toggle_mode = true
 button_group = SubResource("ButtonGroup_tabs")
 text = "Tiro"
+icon = ExtResource("7_tab_pet")
 
 [node name="HouseTab" type="Button" parent="Layout/Tabs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+theme_type_variation = &"TabButton"
+theme_override_font_sizes/font_size = 26
 toggle_mode = true
 button_group = SubResource("ButtonGroup_tabs")
 text = "Casa"
+icon = ExtResource("8_tab_house")
 
 [node name="Sheet" parent="." instance=ExtResource("4_sheet")]
 layout_mode = 1
@@ -125,11 +170,10 @@ layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0
 offset_left = 12.0
-offset_top = 54.0
+offset_top = 58.0
 offset_right = -12.0
-offset_bottom = 102.0
+offset_bottom = 106.0
 grow_horizontal = 2
-theme_override_colors/font_color = Color(0.12, 0.1, 0.05, 1)
 theme_override_styles/normal = SubResource("StyleBoxFlat_update")
 theme_override_styles/hover = SubResource("StyleBoxFlat_update")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_update")
@@ -143,11 +187,12 @@ anchor_left = 0.5
 anchor_top = 0.0
 anchor_right = 0.5
 offset_left = -160.0
-offset_top = 60.0
+offset_top = 64.0
 offset_right = 160.0
-offset_bottom = 100.0
+offset_bottom = 104.0
 grow_horizontal = 2
 mouse_filter = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_toast")
+theme_type_variation = &"ToastLabel"
 horizontal_alignment = 1
+vertical_alignment = 1
 autowrap_mode = 3

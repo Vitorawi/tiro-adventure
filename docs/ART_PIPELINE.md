@@ -83,3 +83,15 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 - Prévia ampliada de assets: gerar pranchas em `build/preview/` (ignorado no git) antes de aprovar.
 - Animações: preferir `skeleton-v3` (mantém a identidade do personagem); `v3` para ações customizadas.
 - Ícones do PWA atuais são placeholders.
+
+## Interface (UI)
+- **Fonte:** Jersey 10 (Google Fonts, licença OFL em `assets/fonts/Jersey10_OFL.txt`), importada sem
+  antialiasing. Números claros e acentos. Tamanho base 22 (é estreita). Descartadas: Pixelify Sans
+  (o "5" parece "S") e Fredoka.
+- **Tema:** `assets/theme/main_theme.tres` — creme `#fff4dc`, contorno marrom `#4a2e21` grosso,
+  botões laranja/verde com "degrau" embaixo que afunda ao tocar.
+- **Ícones 32x32** (`create_image_pixen`, 1 geração cada, contorno preto, estilo fofinho) em
+  `sprites/ui/icons/`: `item_<id>`, `need_<id>`, `action_play/bathe/sleep/wake`, `coin`, `xp`, `timer`,
+  `tab_pet`, `tab_house`. Exibir em 32 ou 64 px (escala inteira). Prompt base:
+  "game inventory icon: <coisa>, cute, bold outline", outline "single color black outline".
+  Cenoura e petisco refeitos para não se confundirem (petisco = biscoito em forma de osso).

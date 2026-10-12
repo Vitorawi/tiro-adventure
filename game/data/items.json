@@ -1,8 +1,8 @@
 {
-  "dog_food": { "name": "Ração", "category": "food", "feed": { "hunger": 25 } },
-  "carrot_snack": { "name": "Petisco de cenoura", "category": "food", "feed": { "hunger": 20, "happiness": 15 } },
-  "pumpkin_mash": { "name": "Papinha de abóbora", "category": "food", "feed": { "hunger": 45, "happiness": 10 } },
-  "carrot": { "name": "Cenoura", "category": "crop", "feed": { "hunger": 6 } },
-  "pumpkin": { "name": "Abóbora", "category": "crop" },
-  "potato": { "name": "Batata", "category": "crop" }
+  "dog_food": { "name": "Ração", "category": "food", "icon": "res://assets/sprites/ui/icons/item_dog_food.png", "feed": { "hunger": 25 } },
+  "carrot_snack": { "name": "Petisco de cenoura", "category": "food", "icon": "res://assets/sprites/ui/icons/item_carrot_snack.png", "feed": { "hunger": 20, "happiness": 15 } },
+  "pumpkin_mash": { "name": "Papinha de abóbora", "category": "food", "icon": "res://assets/sprites/ui/icons/item_pumpkin_mash.png", "feed": { "hunger": 45, "happiness": 10 } },
+  "carrot": { "name": "Cenoura", "category": "crop", "icon": "res://assets/sprites/ui/icons/item_carrot.png", "feed": { "hunger": 6 } },
+  "pumpkin": { "name": "Abóbora", "category": "crop", "icon": "res://assets/sprites/ui/icons/item_pumpkin.png" },
+  "potato": { "name": "Batata", "category": "crop", "icon": "res://assets/sprites/ui/icons/item_potato.png" }
 }

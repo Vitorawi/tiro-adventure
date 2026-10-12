@@ -10,7 +10,11 @@ const MOOD_TEXTS := {
 	"hygiene": "Preciso de um banho!",
 }
 
+const LOW_COLOR := Color(0.85, 0.27, 0.22)
+
 var _bars: Dictionary = {}  # need_id -> ProgressBar
+var _sleep_icon: TextureRect
+var _sleep_text: Label
 
 @onready var _needs_grid: GridContainer = %NeedsGrid
 @onready var _mood_label: Label = %MoodLabel
@@ -20,6 +24,12 @@ var _bars: Dictionary = {}  # need_id -> ProgressBar
 
 func _ready() -> void:
 	_build_need_bars()
+	_dress_button(%FeedButton, Database.item_icon("dog_food"), "Comer")
+	_dress_button(%PlayButton, UiKit.ui_icon("action_play"), "Brincar")
+	_dress_button(%BatheButton, UiKit.ui_icon("action_bathe"), "Banho")
+	var sleep_parts := _dress_button(_sleep_button, UiKit.ui_icon("action_sleep"), "Dormir")
+	_sleep_icon = sleep_parts[0]
+	_sleep_text = sleep_parts[1]
 	%DogArea.draw.connect(_draw_dog_shadow)
 	_dog_sprite.gui_input.connect(_on_dog_input)
 	%FeedButton.pressed.connect(func() -> void:
@@ -35,23 +45,36 @@ func _ready() -> void:
 	_refresh()
 
 
+## Uma célula por necessidade: ícone + nome + barra na cor dela.
 func _build_need_bars() -> void:
 	for id: String in Database.needs:
-		var box := VBoxContainer.new()
+		var row := UiKit.hbox(6)
+		row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(UiKit.icon(Database.need_icon(id), 32))
+		var box := UiKit.vbox(2)
 		box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var label := Label.new()
-		label.text = Database.needs[id].get("name", id)
-		var bar := ProgressBar.new()
-		bar.custom_minimum_size = Vector2(0, 14)
-		bar.show_percentage = false
-		var fill := StyleBoxFlat.new()
-		fill.bg_color = Color(0.45, 0.8, 0.4)
-		fill.set_corner_radius_all(4)
-		bar.add_theme_stylebox_override("fill", fill)
-		box.add_child(label)
+		box.add_child(UiKit.label(Database.needs[id].get("name", id), &"SmallLabel"))
+		var bar := UiKit.bar(100.0, Database.need_color(id), 14)
 		box.add_child(bar)
-		_needs_grid.add_child(box)
+		row.add_child(box)
+		_needs_grid.add_child(row)
 		_bars[id] = bar
+
+
+## Botão grande com ícone (2x, nítido) em cima e texto embaixo.
+func _dress_button(button: Button, texture: Texture2D, text: String) -> Array:
+	button.text = ""
+	var box := UiKit.vbox(2)
+	box.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	var picture := UiKit.icon(texture, 64)
+	box.add_child(picture)
+	var caption := UiKit.label(text)
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption.autowrap_mode = TextServer.AUTOWRAP_OFF
+	box.add_child(caption)
+	button.add_child(box)
+	return [picture, caption]
 
 
 func _refresh() -> void:
@@ -61,9 +84,13 @@ func _refresh() -> void:
 		var value := dog.get_need(id, now)
 		var bar: ProgressBar = _bars[id]
 		bar.value = value
-		bar.modulate = Color(1, 0.45, 0.45) if value < MOOD_LOW else Color.WHITE
+		var low := value < MOOD_LOW
+		if bar.get_meta("low", false) != low:
+			bar.set_meta("low", low)
+			UiKit.tint_bar(bar, LOW_COLOR if low else Database.need_color(id))
 
-	_sleep_button.text = "Acordar" if dog.sleeping else "Dormir"
+	_sleep_text.text = "Acordar" if dog.sleeping else "Dormir"
+	_sleep_icon.texture = UiKit.ui_icon("action_wake" if dog.sleeping else "action_sleep")
 	_dog_sprite.modulate = Color(0.55, 0.55, 0.75) if dog.sleeping else Color.WHITE
 
 	if dog.sleeping:

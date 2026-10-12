@@ -13,6 +13,8 @@ func _initialize() -> void:
 
 func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://" + OUT_DIR))
+	# Começa de um jogo novo (save local de desenvolvimento) para os prints serem previsíveis.
+	root.get_node("/root/GameState").call("reset")
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	await _frames(30)
@@ -34,14 +36,26 @@ func _run() -> void:
 	await _frames(5)
 	_save("house_zoom")
 	root.get_node("/root/GameState").call("set_sleeping", false)
-	# Fogão cozinhando (animação) e cozinha de perto.
+	# Fogão cozinhando (animação) e cozinha de perto: uma receita em preparo e outra na fila.
 	print("cozinhar: ", root.get_node("/root/GameState").call("cook", "carrot_snack"))
+	print("cozinhar: ", root.get_node("/root/GameState").call("cook", "pumpkin_mash"))
 	house.call("_zoom_at", Vector2(180, 250), 2.0)
 	var content: Control = house.get_node("Content")
 	content.position = house.size / 2.0 - Vector2(270, 150) * 2.0
 	house.call("_clamp_content")
 	await _seconds(0.5)
 	_save("house_kitchen")
+	# Painéis com o fogão cozinhando, geladeira e comida.
+	for action: String in ["stove", "fridge", "bowl"]:
+		house.call("_on_object_tapped", action)
+		await _seconds(0.5)
+		_save("sheet_" + action)
+		if action == "stove":
+			var scroll: ScrollContainer = main.find_child("Scroll", true, false)
+			scroll.scroll_vertical = 10000
+			await _seconds(0.2)
+			_save("sheet_stove_recipes")
+		root.get_node("/root/Events").emit_signal("sheet_close_requested")
 	quit()
 
 

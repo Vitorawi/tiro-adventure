@@ -1,9 +1,9 @@
 {
   "needs": {
-    "hunger": { "name": "Barriga", "decay_per_hour": 8 },
-    "happiness": { "name": "Felicidade", "decay_per_hour": 5 },
-    "energy": { "name": "Energia", "decay_per_hour": 6, "sleep_regen_per_hour": 40 },
-    "hygiene": { "name": "Higiene", "decay_per_hour": 3 }
+    "hunger": { "name": "Barriga", "decay_per_hour": 8, "icon": "res://assets/sprites/ui/icons/need_hunger.png", "color": "#f0a04b" },
+    "happiness": { "name": "Felicidade", "decay_per_hour": 5, "icon": "res://assets/sprites/ui/icons/need_happiness.png", "color": "#ef6f8f" },
+    "energy": { "name": "Energia", "decay_per_hour": 6, "sleep_regen_per_hour": 40, "icon": "res://assets/sprites/ui/icons/need_energy.png", "color": "#f2cf4a" },
+    "hygiene": { "name": "Higiene", "decay_per_hour": 3, "icon": "res://assets/sprites/ui/icons/need_hygiene.png", "color": "#5fb3e8" }
   },
   "actions": {
     "pet": { "happiness": 3 },

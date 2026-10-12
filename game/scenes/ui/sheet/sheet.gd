@@ -21,7 +21,22 @@ func open(title: String, content: Control) -> void:
 		child.queue_free()
 	_title.text = title
 	_content_holder.add_child(content)
+	var was_open := visible
 	show()
+	if not was_open:
+		_slide_in()
+
+
+## Painel sobe de baixo e o fundo escurece.
+func _slide_in() -> void:
+	var panel: Control = %Panel
+	await get_tree().process_frame  # espera o layout calcular a posição final
+	var final_y := panel.position.y
+	panel.position.y = size.y
+	_dim.modulate.a = 0.0
+	var tween := create_tween().set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(panel, "position:y", final_y, 0.28)
+	tween.tween_property(_dim, "modulate:a", 1.0, 0.2)
 
 
 func close() -> void:

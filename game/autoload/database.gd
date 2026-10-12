@@ -37,6 +37,23 @@ func item_name(id: String) -> String:
 	return items.get(id, {}).get("name", id)
 
 
+## Ícone do item (campo "icon" em items.json); null se não tiver.
+func item_icon(id: String) -> Texture2D:
+	return _texture(items.get(id, {}).get("icon", ""))
+
+
+func need_icon(id: String) -> Texture2D:
+	return _texture(needs.get(id, {}).get("icon", ""))
+
+
+func need_color(id: String) -> Color:
+	return Color.from_string(needs.get(id, {}).get("color", ""), Color(0.45, 0.8, 0.4))
+
+
+func _texture(path: String) -> Texture2D:
+	return load(path) if path != "" and ResourceLoader.exists(path) else null
+
+
 func recipes_for(station_id: String) -> Array[String]:
 	var result: Array[String] = []
 	for id: String in recipes:
