@@ -52,6 +52,11 @@ jobs:
           mkdir -p "$TPL"
           cp ~/godot/templates/* "$TPL/"
 
+      - name: Gravar versão
+        run: |
+          echo "{ \"version\": \"$(git rev-parse --short HEAD)\", \"date\": \"$(TZ=America/Sao_Paulo date '+%d/%m %H:%M')\" }" > game/data/version.json
+          cat game/data/version.json
+
       - name: Exportar Web
         run: |
           mkdir -p build/web
@@ -59,6 +64,14 @@ jobs:
           ~/godot/godot --headless --path game --export-release "Web" "$GITHUB_WORKSPACE/build/web/index.html"
           test -f build/web/index.html
           touch build/web/.nojekyll
+
+      - name: Service worker sem cache HTTP
+        # O SW do Godot instala a versão nova com cache.addAll(), que pode pegar arquivos
+        # antigos do cache HTTP (o Pages manda guardar por 10 min). Força baixar do servidor.
+        run: |
+          SW=build/web/index.service.worker.js
+          sed -i "s/cache.addAll(CACHED_FILES)/cache.addAll(CACHED_FILES.map((f) => new Request(f, { cache: 'reload' })))/" "$SW"
+          grep -q "cache: 'reload'" "$SW"
 
       - uses: actions/upload-pages-artifact@v3
         with:

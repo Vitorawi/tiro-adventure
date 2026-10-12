@@ -11,6 +11,8 @@ var actions: Dictionary = {}
 var stations: Dictionary = {}
 var xp: Dictionary = {}
 var start: Dictionary = {}
+## Versão publicada (commit + data), gravada pelo deploy em data/version.json.
+var version: Dictionary = {}
 
 
 func _init() -> void:
@@ -23,6 +25,7 @@ func _init() -> void:
 	stations = config.get("stations", {})
 	xp = config.get("xp", {})
 	start = config.get("start", {})
+	version = _load("res://data/version.json")
 
 
 ## Layout de um ambiente (fundo, piso, móveis, pontos): game/data/rooms/<id>.json

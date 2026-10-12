@@ -39,5 +39,13 @@ no iPhone. Por isso existe o autoload `PwaUpdater` (`game/autoload/pwa_updater.g
   **"Nova versão! Toque para atualizar"**;
 - o toque salva o jogo e chama `JavaScriptBridge.pwa_update()` (ativa a versão nova e recarrega).
 
+Dois ajustes no build (no workflow e em `tools/export_web.ps1`):
+- **Service worker sem cache HTTP:** o SW do Godot instala a versão nova com
+  `cache.addAll(CACHED_FILES)`, que pode pegar arquivos antigos do cache HTTP do navegador
+  (o Pages manda guardar por 10 min) — a "atualização" vinha com o jogo velho. O build troca
+  por `new Request(f, { cache: 'reload' })`.
+- **Versão visível:** o deploy grava `game/data/version.json` (commit + data/hora de Brasília),
+  mostrado em cinza na barra superior. Local: `vdev`. Use para confirmar o que está rodando.
+
 O save (IndexedDB) não é afetado. **Nunca** orientar o jogador a remover o app da tela inicial
 para atualizar: no iPhone isso apaga o save junto.

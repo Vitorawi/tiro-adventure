@@ -27,4 +27,9 @@ Write-Host "Exportando preset Web..."
 & $Godot --headless --path $GameDir --export-release "Web" (Join-Path $OutDir "index.html")
 if ($LASTEXITCODE -ne 0) { throw "Falha no export (codigo $LASTEXITCODE)." }
 
+# Mesmo ajuste do deploy: o service worker instala a versao nova ignorando o cache HTTP.
+$Sw = Join-Path $OutDir "index.service.worker.js"
+$SwText = [IO.File]::ReadAllText($Sw).Replace("cache.addAll(CACHED_FILES)", "cache.addAll(CACHED_FILES.map((f) => new Request(f, { cache: 'reload' })))")
+[IO.File]::WriteAllText($Sw, $SwText, (New-Object Text.UTF8Encoding $false))
+
 Write-Host "Build pronto em $OutDir"

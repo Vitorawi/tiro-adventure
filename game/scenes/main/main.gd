@@ -26,6 +26,7 @@ func _ready() -> void:
 	Events.update_available.connect(%UpdateBanner.show)
 	%UpdateBanner.pressed.connect(PwaUpdater.apply_update)
 	%UpdateBanner.visible = PwaUpdater.update_ready
+	%VersionLabel.text = "v%s %s  " % [Database.version.get("version", "?"), Database.version.get("date", "")]
 	_toast.modulate.a = 0.0
 	_refresh_top_bar()
 	show_screen(&"pet")
