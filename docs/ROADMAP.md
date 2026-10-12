@@ -4,12 +4,12 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **12/10/2026, Claude Code**.
 
-**Tarefas v2 — fase 4/6 concluída (Codex, 12/10/2026).**
+**Tarefas v2 — fase 5/6 concluída (Codex, 12/10/2026).**
 História com 28 passos em oito capítulos e nove secundárias, recompensas e dicas de atributos.
 Vila abre após first_harvest; Trilha no capítulo 3. Campanha completa 37 missões em 296 ciclos,
 sem recursos artificiais. Todos os testes passaram, incluindo content_test e tasks_test.
 Ajustes ao esboço: oficina/tecidos ficam em secundárias após comprar a estação; capítulo 8
-prepara fibras e Construção antes do ateliê. Destinos dos objetivos implementados e validados (mundo, lugar e acesso), incluindo go/hint e aba Tiro. Tarefas v2, História, secundárias por NPC e Atributos implementados. Cartão inicial verificado em 360×780. Próximo: fase 5, comemoração e guia inicial. Sem push.
+prepara fibras e Construção antes do ateliê. Destinos dos objetivos implementados e validados (mundo, lugar e acesso), incluindo go/hint e aba Tiro. Tarefas v2, História, secundárias por NPC e Atributos implementados. Cartão inicial verificado em 360×780. Comemoração modal, faixa/toast de próximo passo, guia inicial e badge sem duplicação implementados. Próximo: fase 6, DEV, toque e documentação final. Sem push.
 
 **Rodada 2 (12/10/2026, Claude Code): navegação intuitiva + mini mundos**
 - Pedido do Vitor: "tá difícil achar rotas, vender, missões; deixar os menus intuitivos" e

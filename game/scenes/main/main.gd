@@ -22,6 +22,10 @@ extends Control
 var _toast_tween: Tween
 var _current_screen: StringName = &""
 var _tasks_badge: Label
+var _tasks_pulse: Tween
+var _celebration: CanvasLayer
+var _worlds_open: Dictionary = {}
+var _new_worlds: PackedStringArray = []
 
 
 func _ready() -> void:
@@ -35,7 +39,15 @@ func _ready() -> void:
 		_tabs[id].add_theme_font_size_override("font_size", 18)
 	Events.screen_requested.connect(show_screen)
 	Events.world_requested.connect(_on_world_requested)
+	_celebration = load("res://scenes/ui/celebration/celebration.tscn").instantiate()
+	add_child(_celebration)
+	for world: String in Database.worlds:
+		_worlds_open[world] = Places.world_error(world) == ""
+	Events.quest_completed.connect(_on_quest_completed)
+	Events.chapter_completed.connect(_on_chapter_completed)
+	Events.state_changed.connect(_refresh_guide)
 	_build_tasks_badge()
+	_refresh_guide()
 	Events.toast_requested.connect(_show_toast)
 	Events.state_changed.connect(_refresh_top_bar)
 	Events.update_available.connect(%UpdateBanner.show)
@@ -99,9 +111,14 @@ func _build_tasks_badge() -> void:
 
 
 func _refresh_tasks_badge() -> void:
-	var count := 0
-	for world_id: String in Database.worlds:
-		count += Places.world_alerts(world_id).size()
+	var count := GameState.ready_quest_count()
+	for i in GameState.accessible_plots():
+		if GameState.plot_status(i) == "ready":
+			count += 1
+	for station_id: String in GameState.stations:
+		count += GameState.station(station_id).ready_count(GameState.now())
+	if not GameState.progress.activity.is_empty() and GameState.activity_remaining() == 0:
+		count += 1
 	_tasks_badge.text = str(count)
 	_tasks_badge.visible = count > 0
 
@@ -121,3 +138,36 @@ func _show_toast(text: String) -> void:
 	_toast_tween = create_tween()
 	_toast_tween.tween_interval(1.6)
 	_toast_tween.tween_property(_toast, "modulate:a", 0.0, 0.4)
+
+
+func _refresh_guide() -> void:
+	_refresh_tasks_badge()
+	if GameState.progress.claimed_quests.has("welcome"):
+		if _tasks_pulse:
+			_tasks_pulse.kill()
+			_tasks_pulse = null
+		%TasksTab.modulate = Color.WHITE
+		%TasksTab.tooltip_text = ""
+	elif not _tasks_pulse:
+		%TasksTab.tooltip_text = "Comece por aqui!"
+		_tasks_pulse = create_tween().set_loops()
+		_tasks_pulse.tween_property(%TasksTab, "modulate", Color(1.0, 0.72, 0.32), 0.7)
+		_tasks_pulse.tween_property(%TasksTab, "modulate", Color.WHITE, 0.7)
+
+
+func _on_quest_completed(id: String) -> void:
+	for world: String in Database.worlds:
+		if not _worlds_open.get(world, false) and Places.world_error(world) == "":
+			_worlds_open[world] = true
+			_new_worlds.append(Database.worlds[world].name)
+	var text := "Missão concluída!"
+	if Database.quests[id].get("kind", "side") == "main":
+		var next := GameState.progress.current_main_quest()
+		text += " Próximo: " + str(Database.quests[next].name) if next != "" else " História completa!"
+	_show_toast.call_deferred(text)
+
+
+func _on_chapter_completed(index: int) -> void:
+	Events.sheet_close_requested.emit()
+	_celebration.call_deferred("show_chapter", index, _new_worlds.duplicate())
+	_new_worlds.clear()

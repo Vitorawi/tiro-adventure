@@ -47,7 +47,12 @@ func _run() -> void:
 			match str(goal.type):
 				"stat": state.get("progress").stats[goal.key] = int(goal.get("target", 1))
 				"owned": state.get("progress").owned[goal.key] = true
+		var before_reward: int = state.get("coins")
 		check(state.call("claim_quest", id) == "", "Receber passo " + id)
+		var expected: int = int(database.get("quests")[id].rewards.get("coins", 0))
+		if id == first.back():
+			expected += int(database.get("progression").chapters[0].get("rewards", {}).get("coins", 0))
+		check(state.get("coins") == before_reward + expected, "Pagamento exato do passo e capítulo")
 	check(quest_signals.size() == first.size() and chapter_signals == [1], "Sinais de passos e capítulo uma vez")
 	var coins: int = state.get("coins")
 	check(state.call("claim_quest", first.back()) != "" and state.get("coins") == coins, "Capítulo não paga duas vezes")
@@ -74,10 +79,21 @@ func _ui_check() -> void:
 	await create_timer(0.2).timeout
 	var card: Control = main.find_child("StoryCard", true, false)
 	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
+	check(main.get("_tasks_pulse") != null, "Guia pulsa no começo")
+	state.get("progress").stats["feed"] = 1
+	root.get_node("Events").emit_signal("state_changed")
+	check(main.get("_tasks_badge").text == "1", "Badge conta a principal pronta uma vez")
+	state.get("progress").stats["feed"] = 0
+	root.get_node("Events").emit_signal("state_changed")
+	await create_timer(0.2).timeout
 	_shot("tasks_start")
 	state.call("dev_jump_to_chapter", 3)
-	await create_timer(0.2).timeout
+	await create_timer(2.2).timeout
+	main.get_node("Celebration").hide()
+	await process_frame
+	await process_frame
 	main.call("show_screen", &"tasks")
+	check(main.get("_tasks_pulse") == null, "Guia para após welcome")
 	_shot("tasks_middle")
 	var ui: Script = load("res://scripts/ui/progression_ui.gd")
 	var events: Node = root.get_node("Events")
@@ -88,9 +104,16 @@ func _ui_check() -> void:
 	events.emit_signal("sheet_requested", "Missões secundárias", ui.call("side_panel"))
 	await create_timer(0.3).timeout
 	_shot("tasks_side")
+	main.get_node("Celebration").call("show_chapter", 2, PackedStringArray(["Trilha do riacho"]))
+	await create_timer(0.2).timeout
+	_shot("tasks_celebration")
+	main.get_node("Celebration").hide()
 	events.emit_signal("sheet_close_requested")
 	state.call("dev_unlock_everything")
-	await create_timer(0.2).timeout
+	await create_timer(2.2).timeout
+	main.get_node("Celebration").hide()
+	await process_frame
+	await process_frame
 	main.call("show_screen", &"tasks")
 	_shot("tasks_end")
 	main.queue_free()

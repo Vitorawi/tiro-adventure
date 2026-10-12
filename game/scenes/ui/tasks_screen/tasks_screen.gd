@@ -1,11 +1,16 @@
 extends PanelContainer
 ## História principal, ajuda para evoluir e missões opcionais.
 
+var _completed_text: String = ""
+
 func _ready() -> void:
+	Events.quest_completed.connect(_on_quest_completed)
 	%Holder.add_child(SheetBuilder.LiveBox.new(_build))
 
 
 func _build(box: VBoxContainer) -> void:
+	if _completed_text != "":
+		UiKit.card(box, &"ReadyCardPanel").add_child(UiKit.label(_completed_text, &"SmallLabel", UiKit.GOOD))
 	_story_card(box)
 	_evolve_card(box)
 	_ready_now(box)
@@ -121,3 +126,10 @@ func _go_button(text: String, world_id: String, place: String, variation: String
 	return UiKit.button(text, func() -> void:
 		Events.sheet_close_requested.emit()
 		Events.world_requested.emit(world_id, place), variation)
+
+
+func _on_quest_completed(id: String) -> void:
+	if Database.quests[id].get("kind", "side") != "main":
+		return
+	var next := GameState.progress.current_main_quest()
+	_completed_text = "Missão concluída! Próximo: " + str(Database.quests[next].name) if next != "" else "Missão concluída! História completa!"

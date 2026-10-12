@@ -124,6 +124,9 @@ func _draw_dog_shadow() -> void:
 	area.draw_circle(Vector2.ZERO, _dog_sprite.size.x * 0.26, Color(0.25, 0.12, 0.05, 0.3), true, -1.0, false)
 	area.draw_set_transform(Vector2.ZERO)
 
+	if not GameState.progress.claimed_quests.has("welcome"):
+		_mood_label.text = "Veja suas tarefas aqui embaixo!"
+
 
 func _on_play_pressed() -> void:
 	if GameState.play():
