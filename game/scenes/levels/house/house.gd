@@ -15,6 +15,9 @@ const TAP_SLOP := 12.0
 const NAV_CELL := 8
 const SAME_FINGER_DISTANCE := 24.0
 const TOUCH_STALE_MS := 1000
+const SLICE_WIDTH := 4
+## Quadros por segundo das animações de móveis (ex.: fogão cozinhando).
+const OBJECT_FPS := 8.0
 
 var _room: Dictionary = {}
 var _zoom := 1.0
@@ -26,6 +29,7 @@ var _nav := AStarGrid2D.new()
 var _walkable: Array[Vector2i] = []
 var _press_position := Vector2.ZERO
 var _dragged := false
+var _object_frame := 0
 
 @onready var _content: Control = %Content
 @onready var _background: TextureRect = %Background
@@ -44,6 +48,11 @@ func _ready() -> void:
 	%ZoomOut.pressed.connect(func() -> void: _zoom_at(size / 2.0, _zoom / ZOOM_STEP))
 	resized.connect(_on_resized)
 	_show_whole_room.call_deferred()
+	var timer := Timer.new()
+	timer.wait_time = 1.0 / OBJECT_FPS
+	timer.timeout.connect(_animate_objects)
+	add_child(timer)
+	timer.start()
 
 
 # --- Navegação (usada pelo DogWorld) -----------------------------------------
@@ -101,6 +110,9 @@ func _nearest_walkable(point: Vector2) -> Vector2i:
 
 func _spawn_objects() -> void:
 	for data: Dictionary in _room.get("objects", []):
+		if data.get("slice", false):
+			_spawn_sliced(load(data["sprite"]), _vec(data["pos"]))
+			continue
 		var sprite := Sprite2D.new()
 		sprite.name = data["id"]
 		sprite.texture = load(data["sprite"])
@@ -109,8 +121,63 @@ func _spawn_objects() -> void:
 		sprite.offset = -Vector2(sprite.texture.get_width() / 2.0, sprite.texture.get_height())
 		sprite.position = _vec(data["pos"])
 		sprite.set_meta("action", data.get("action", ""))
+		if data.has("busy_frames"):
+			# Estação com animação enquanto produz (ex.: fogão cozinhando).
+			sprite.set_meta("station", data["station"])
+			sprite.set_meta("base_texture", sprite.texture)
+			sprite.set_meta("busy_frames", _load_frames(data["busy_frames"]))
 		_world.add_child(sprite)
 		_objects.append(sprite)
+
+
+## PNGs de uma pasta, em ordem de nome (frame_00.png, frame_01.png...).
+func _load_frames(folder: String) -> Array[Texture2D]:
+	var files := Array(ResourceLoader.list_directory(folder))
+	files.sort()
+	var frames: Array[Texture2D] = []
+	for file: String in files:
+		if file.ends_with(".png"):
+			frames.append(load(folder + file))
+	return frames
+
+
+## Troca o quadro dos móveis animados; parados mostram a imagem base.
+func _animate_objects() -> void:
+	if not is_visible_in_tree():
+		return
+	_object_frame += 1
+	for sprite in _objects:
+		if not sprite.has_meta("busy_frames"):
+			continue
+		var frames: Array[Texture2D] = sprite.get_meta("busy_frames")
+		var busy := GameState.station(sprite.get_meta("station")).is_busy(GameState.now())
+		sprite.texture = frames[_object_frame % frames.size()] if busy and not frames.is_empty() else sprite.get_meta("base_texture")
+
+
+## Peça comprida em diagonal (ex.: ilha recortada do fundo): um único ponto de
+## ordenação erraria de um lado. Fatia em colunas, cada uma ordenada pela própria
+## base, para o Tiro passar atrás/na frente certo. Não é tocável.
+func _spawn_sliced(texture: Texture2D, pos: Vector2) -> void:
+	var image := texture.get_image()
+	var top_left := pos - Vector2(texture.get_width() / 2.0, texture.get_height())
+	for x0 in range(0, image.get_width(), SLICE_WIDTH):
+		var width := mini(SLICE_WIDTH, image.get_width() - x0)
+		var base := -1
+		for x in range(x0, x0 + width):
+			for y in range(image.get_height() - 1, base, -1):
+				if image.get_pixel(x, y).a > 0.1:
+					base = y
+					break
+		if base < 0:
+			continue  # coluna vazia
+		var strip := Sprite2D.new()
+		strip.texture = texture
+		strip.centered = false
+		strip.region_enabled = true
+		strip.region_rect = Rect2(x0, 0, width, image.get_height())
+		strip.position = top_left + Vector2(x0, base)
+		strip.offset = Vector2(0, -base)
+		_world.add_child(strip)
 
 
 func _spawn_dog() -> void:
@@ -291,6 +358,16 @@ func _zoom_at(pivot: Vector2, new_zoom: float) -> void:
 	_content.scale = Vector2.ONE * _zoom
 	_content.position = pivot - room_point * _zoom
 	_clamp_content()
+	_update_filter()
+
+
+## Pixel art em escala quebrada (ex.: 1,9 pixel de tela por pixel) com filtro "nearest"
+## fica serrilhada: uns pixels saem com 1 de largura e outros com 2. Nesses casos usa
+## filtro suave (com mipmaps ao reduzir); em escala inteira mantém os pixels nítidos.
+func _update_filter() -> void:
+	var screen_scale := _zoom * get_viewport().get_final_transform().get_scale().x
+	var whole := absf(screen_scale - roundf(screen_scale)) < 0.05 and screen_scale >= 1.0
+	_content.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if whole else CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 
 
 func _on_resized() -> void:

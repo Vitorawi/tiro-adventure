@@ -14,6 +14,14 @@ func enqueue(recipe_id: String, seconds: float, now: float) -> void:
 	queue.append({ "recipe": recipe_id, "ready_at": start + seconds })
 
 
+## Tem receita em preparo (ainda não pronta)?
+func is_busy(now: float) -> bool:
+	for entry in queue:
+		if float(entry["ready_at"]) > now:
+			return true
+	return false
+
+
 func ready_count(now: float) -> int:
 	var total := 0
 	for entry in queue:

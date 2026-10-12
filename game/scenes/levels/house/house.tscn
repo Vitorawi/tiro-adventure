@@ -20,7 +20,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.17, 0.15, 0.2, 1)
+color = Color(0.137, 0.114, 0.173, 1)
 
 [node name="Content" type="Control" parent="."]
 unique_name_in_owner = true

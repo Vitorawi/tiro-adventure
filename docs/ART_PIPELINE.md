@@ -42,9 +42,13 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 | Tiro mundo v1 | personagem `cc74ce02-1c93-4dc7-8a72-a359265ad497` | standard, 32px, 4 dir | (substituído) | descartado: pouco detalhe |
 | Tiro pet v2 (sentado, frente) | imagem pro, job `ee0ec478-c066-4b6c-ade9-fc8608809abe` (candidato 0 de 4), refs: pose da referência + rotação sul do Tiro mundo v2 | 160px | `characters/tiro_pet/tiro_pet_idle_front.png` | ativo |
 | Tiro pet v1 | imagem pixen | 128px | (substituído) | descartado |
-| Sala vazia (casa) | imagem pro, job `161a0ff4-3f83-4944-ac04-41875e2e730b` + inpaint `5d257f6d-…` (remover cão) + fundo externo transparente | 624x416 | `areas/house/room.png` | ativo |
+| Sala v2 (apê sala+cozinha em L, ilha, porta de vidro, varanda) | imagem pro, job `ee8724e1-1418-4118-9542-c4f50c46d362` (asset `ae1087d7-…`), ref: `docs/references/apartamento_sala_cozinha.jpg` sem o título | 632x395 | `areas/house/room.png` | ativo |
+| Ilha (recorte da sala v2) | polígono recortado do próprio fundo, fatiado em colunas para ordenação | 140x151 | `areas/house/island.png` | ativo |
+| Sala v1 | imagem pro, job `161a0ff4-…` + inpaint | 624x416 | (substituída) | descartado |
+| Building Kits isométricos (tiles) | tiles pro `e2cb8281-…` (interior), `d0b32603-…` (varanda) | 64px | — | descartado: piso quadriculado e paredes em blocos, muito pior que imagem única |
 | Geladeira | objeto pro flash `c68d8da4-9352-43b5-bc4f-09d1be4151c9` (estilo: recorte da referência) | 47x103 (recortado) | `areas/house/fridge.png` | ativo |
-| Fogão | objeto pro flash `6d20f34d-ef1b-42ff-8025-ca1c83db1e9a` | 62x67 | `areas/house/stove.png` | ativo |
+| Fogão (`casa_fogao`, base) | objeto `6d20f34d-ef1b-42ff-8025-ca1c83db1e9a` | 96x96 recortado em (16,0,62,80) | `areas/house/stove.png` | ativo |
+| ↳ estado "cozinhando" (feito pelo usuário) | objeto `8e72756c-679d-447d-94fb-0a5a508f794a`, animação `1b34e943-884d-4122-9020-b946c4ec47f0` (9 quadros) | mesmo recorte da base | `areas/house/stove_cooking/frame_XX.png` | ativo |
 | Tigela | objeto pro flash `63a97314-eaeb-43f7-b957-f0c131aaa463` | 26x20 | `areas/house/bowl.png` | ativo |
 | Sofá | imagem pro, job `96402901-fe28-4f4a-80a9-0a45f34d7f2d` (candidato 3) | 132x102 | `areas/house/sofa.png` | ativo |
 | Sofá (de frente) | objetos `e97f7943-…`, `85c6e34e-…` | | — | descartado: não isométrico |
@@ -58,6 +62,13 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 - Móveis em diagonal (ex.: sofá virado para sudoeste): pro flash desenha de frente; usar
   `create_image_pro` com o recorte da referência + a sala como referências (4 candidatos).
 - Sempre recortar bordas transparentes (`Invoke-TrimSprite`) antes de posicionar.
+- **Imagem única > tiles** para ambientes bonitos: os kits de tiles do PixelLab ficaram com
+  piso quadriculado e paredes em blocos. Peças arquitetônicas que o Tiro contorna (ilha) podem
+  vir no fundo e ser **recortadas** como sobreposição com `"slice": true` no JSON da sala.
+- `create_image_pro` aceita no máximo 632x424; gerar sem fundo transparente (`no_background=false`)
+  e casar a cor do `Void` de `house.tscn` com o fundo escuro da imagem.
+- Serrilhado: a sala aparece em escala quebrada no celular; `house.gd` troca para filtro suave
+  com mipmaps nessas escalas (`_update_filter`). Texturas da casa importadas com mipmaps.
 
 ## Padrões visuais
 - Tiro no mundo: 64px (modo pro), exibido 1x (`SPRITE_SCALE` em `dog_world.gd`); o fundo

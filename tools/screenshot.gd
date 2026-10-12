@@ -34,6 +34,14 @@ func _run() -> void:
 	await _frames(5)
 	_save("house_zoom")
 	root.get_node("/root/GameState").call("set_sleeping", false)
+	# Fogão cozinhando (animação) e cozinha de perto.
+	print("cozinhar: ", root.get_node("/root/GameState").call("cook", "carrot_snack"))
+	house.call("_zoom_at", Vector2(180, 250), 2.0)
+	var content: Control = house.get_node("Content")
+	content.position = house.size / 2.0 - Vector2(270, 150) * 2.0
+	house.call("_clamp_content")
+	await _seconds(0.5)
+	_save("house_kitchen")
 	quit()
 
 

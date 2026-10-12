@@ -78,7 +78,10 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 - **Ambientes (salas):** fundo vazio (piso + paredes) + cada móvel como sprite separado, tudo
   descrito em `game/data/rooms/<id>.json`. Coordenadas em pixels do fundo; `pos` = meio da base
   do sprite (usado na ordenação por Y); `footprint` = polígono no chão que bloqueia o caminho;
-  `zones` = partes tocáveis do fundo (ex.: porta). O piso vira uma grade `AStarGrid2D` (8 px)
+  `zones` = partes tocáveis do fundo (ex.: porta); `"slice": true` = peça recortada do fundo
+  (ex.: ilha), fatiada em colunas para o Tiro passar atrás/na frente, sem toque;
+  `"station"` + `"busy_frames"` (pasta de PNGs) = móvel que anima enquanto a estação produz
+  (ex.: fogão cozinhando). Quadros de animação usam o MESMO recorte da imagem base. O piso vira uma grade `AStarGrid2D` (8 px)
   e o Tiro anda por ela. Para posicionar móveis, gere prévias com `tools/pixel_tools.ps1`.
 - **Toque:** a sala trata toque curto = clique (teste por pixel opaco do sprite) e arrastar =
   câmera. Eventos de toque chegam como mouse (`emulate_mouse_from_touch`): trate `InputEventMouse*`.

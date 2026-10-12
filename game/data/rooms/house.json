@@ -1,38 +1,46 @@
 {
   "background": "res://assets/sprites/areas/house/room.png",
-  "floor": [[40, 282], [238, 192], [352, 244], [462, 193], [592, 253], [292, 398]],
+  "floor": [[45, 284], [336, 138], [390, 164], [402, 238], [452, 215], [592, 285], [415, 382], [310, 334], [205, 382]],
   "objects": [
+    {
+      "id": "island",
+      "sprite": "res://assets/sprites/areas/house/island.png",
+      "pos": [335, 286],
+      "slice": true,
+      "footprint": [[266, 258], [364, 208], [404, 230], [306, 284]]
+    },
     {
       "id": "fridge", "action": "fridge",
       "sprite": "res://assets/sprites/areas/house/fridge.png",
-      "pos": [151, 254],
-      "footprint": [[126, 244], [170, 224], [190, 234], [148, 255]]
+      "pos": [245, 177],
+      "footprint": [[222, 174], [268, 150], [278, 165], [230, 188]]
     },
     {
-      "id": "stove", "action": "stove",
+      "id": "stove", "action": "stove", "station": "stove",
       "sprite": "res://assets/sprites/areas/house/stove.png",
-      "pos": [207, 236],
-      "footprint": [[176, 222], [234, 195], [254, 205], [196, 233]]
+      "busy_frames": "res://assets/sprites/areas/house/stove_cooking/",
+      "pos": [300, 149],
+      "footprint": [[270, 150], [330, 120], [342, 138], [280, 168]]
     },
     {
       "id": "bowl", "action": "bowl",
       "sprite": "res://assets/sprites/areas/house/bowl.png",
-      "pos": [200, 305]
+      "pos": [215, 238]
     },
     {
       "id": "sofa", "action": "sofa",
       "sprite": "res://assets/sprites/areas/house/sofa.png",
-      "pos": [492, 282],
-      "footprint": [[432, 226], [462, 192], [590, 252], [528, 274]]
+      "pos": [470, 330],
+      "footprint": [[410, 274], [440, 240], [568, 300], [506, 322]]
     }
   ],
   "zones": [
-    { "id": "door", "action": "door", "polygon": [[33, 135], [88, 118], [88, 250], [33, 275]] }
+    { "id": "door", "action": "door", "polygon": [[166, 218], [218, 192], [218, 40], [166, 64]] }
   ],
   "points": {
-    "dog_start": [260, 320],
-    "bowl": [174, 304],
-    "sleep": [488, 240],
-    "sleep_approach": [462, 268]
+    "dog_start": [330, 310],
+    "bowl": [190, 238],
+    "sleep": [466, 288],
+    "sleep_approach": [440, 316]
   }
 }
