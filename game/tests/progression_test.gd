@@ -50,7 +50,9 @@ func _run() -> void:
 	var bond_before: int = int(state.get("progress").skills.get("bond", 0))
 	state.call("feed", "dog_food")
 	_check(int(state.get("progress").skills.get("bond", 0)) == bond_before, "Cuidado repetido não pode farmar XP")
-	_check(state.call("start_activity", "lane") == "", "Rota inicial deve estar aberta")
+	_check(state.call("start_activity", "lane") != "", "Trilha fechada antes do capítulo 3")
+	state.call("dev_jump_to_chapter", 2)
+	_check(state.call("start_activity", "lane") == "", "Rota abre no capítulo 3")
 	_check(state.call("collect_activity") != "" and state.call("start_activity", "lane") != "", "Atividade não pode ser antecipada ou sobreposta")
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
 	state.call("from_dict", saved)
@@ -80,6 +82,7 @@ func _campaign() -> Dictionary:
 		state.get("progress").cooldowns.clear()
 		state.get("dog").updated_at -= 3600.0
 		state.call("emergency_food")
+		state.call("bathe")
 		for item: String in database.get("items"):
 			if database.get("items")[item].has("feed") and state.get("inventory").count(item) > 0:
 				state.call("feed", item)
@@ -102,7 +105,7 @@ func _campaign() -> Dictionary:
 				continue # Guarda os materiais dos próximos pedidos para construir.
 			state.call("fulfill_order", id)
 		for id: String in recipes:
-			if state.get("inventory").count(recipes[id].output) >= 15:
+			if state.get("inventory").count(recipes[id].output) >= 12:
 				continue
 			if state.call("cook", id) == "":
 				var station: RefCounted = state.call("station", recipes[id].station)

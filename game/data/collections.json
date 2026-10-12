@@ -40,5 +40,20 @@
     "description": "Conquista do primeiro ateliê.",
     "icon": "item_fabric",
     "sprite": ""
+  },
+  "merchant_apron": {
+    "name": "Avental da feira",
+    "description": "Uma lembrança de uma missão secundária.",
+    "icon": "coin"
+  },
+  "miner_helmet": {
+    "name": "Capacete de explorador",
+    "description": "Uma lembrança de uma missão secundária.",
+    "icon": "item_stone"
+  },
+  "clean_bow": {
+    "name": "Laço de banho",
+    "description": "Uma lembrança de uma missão secundária.",
+    "icon": "action_bathe"
   }
 }

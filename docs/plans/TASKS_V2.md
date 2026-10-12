@@ -253,7 +253,7 @@ Reescrever `_build` nesta ordem, um método por bloco (manter o padrão `LiveBox
 
 ## 9. Checklist de entrega
 - [x] Fase 1 — dados/regras + migração v5 + `tasks_test`
-- [ ] Fase 2 — conteúdo da história + secundárias + `content_test`
+- [x] Fase 2 — conteúdo da história + secundárias + `content_test`
 - [ ] Fase 3 — `goal_target` (todo objetivo com Ir)
 - [ ] Fase 4 — Tarefas v2, História, Atributos
 - [ ] Fase 5 — comemoração, toast, aba pulsando, badge

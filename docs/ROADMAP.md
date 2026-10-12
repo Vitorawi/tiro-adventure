@@ -4,11 +4,12 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **12/10/2026, Claude Code**.
 
-**Tarefas v2 — fase 1/6 concluída (Codex, 12/10/2026).**
-Sequência principal derivada das missões recebidas, objetivos coins/have/chapter, sinais
-e migração v5 implementados. Save v4 com fogão/geladeira/sítio abre no capítulo 4 sem
-recompensas extras. Todos os testes passaram (farm, campanha, DEV/prod, tasks).
-Próximo: fase 2, conteúdo completo e validação dos JSON. Sem push.
+**Tarefas v2 — fase 2/6 concluída (Codex, 12/10/2026).**
+História com 28 passos em oito capítulos e nove secundárias, recompensas e dicas de atributos.
+Vila abre após first_harvest; Trilha no capítulo 3. Campanha completa 37 missões em 296 ciclos,
+sem recursos artificiais. Todos os testes passaram, incluindo content_test e tasks_test.
+Ajustes ao esboço: oficina/tecidos ficam em secundárias após comprar a estação; capítulo 8
+prepara fibras e Construção antes do ateliê. Próximo: fase 3, destinos dos objetivos. Sem push.
 
 **Rodada 2 (12/10/2026, Claude Code): navegação intuitiva + mini mundos**
 - Pedido do Vitor: "tá difícil achar rotas, vender, missões; deixar os menus intuitivos" e

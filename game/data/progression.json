@@ -32,43 +32,50 @@
       "name": "Agricultura",
       "description": "Colha e descubra novas culturas. Libera sementes, pomar e estufa.",
       "icon": "tab_farm",
-      "color": "#79ac4b"
+      "color": "#79ac4b",
+      "how_to": "Plante e colha nos canteiros. Uma cultura nova vale XP em dobro."
     },
     "cooking": {
       "name": "Culinária",
       "description": "Prepare receitas. Pratos elaborados dão mais experiência.",
       "icon": "item_carrot_snack",
-      "color": "#eea24c"
+      "color": "#eea24c",
+      "how_to": "Cozinhe e recolha receitas no Fogão. Receita nova vale XP em dobro."
     },
     "building": {
       "name": "Construção",
       "description": "Construa melhorias e fabrique materiais na bancada.",
       "icon": "item_plank",
-      "color": "#bb9568"
+      "color": "#bb9568",
+      "how_to": "Fabrique tábuas e tijolos na Bancada."
     },
     "commerce": {
       "name": "Comércio",
       "description": "Venda produtos e entregue pedidos para abrir novos negócios.",
       "icon": "coin",
-      "color": "#dbb442"
+      "color": "#dbb442",
+      "how_to": "Venda excedentes e entregue encomendas na Vila."
     },
     "walking": {
       "name": "Passeio",
       "description": "Explore caminhos com o Tiro para encontrar sementes e materiais.",
       "icon": "action_play",
-      "color": "#70ada4"
+      "color": "#70ada4",
+      "how_to": "Complete passeios na Trilha."
     },
     "mining": {
       "name": "Mineração",
       "description": "Extraia pedra, cobre e cristais para equipamentos avançados.",
       "icon": "item_crystal",
-      "color": "#a497ca"
+      "color": "#a497ca",
+      "how_to": "Explore a Mina e recolha os minérios."
     },
     "bond": {
       "name": "Vínculo",
       "description": "Cuide do Tiro quando ele precisar. Desbloqueia trilhas e lembranças.",
       "icon": "need_happiness",
-      "color": "#df829c"
+      "color": "#df829c",
+      "how_to": "Alimente, brinque e cuide do Tiro. Espere a recarga entre cuidados."
     }
   },
   "upgrades": {
@@ -311,7 +318,9 @@
       "place": "walk",
       "description": "Um passeio tranquilo com o Tiro. Sempre disponível.",
       "seconds": 60,
-      "requirements": {},
+      "requirements": {
+        "chapter": 3
+      },
       "rewards": {
         "coins": 8,
         "items": {
@@ -332,7 +341,8 @@
       "requirements": {
         "skills": {
           "walking": 2
-        }
+        },
+        "chapter": 3
       },
       "rewards": {
         "coins": 15,
@@ -355,7 +365,8 @@
       "requirements": {
         "owned": [
           "pickaxe"
-        ]
+        ],
+        "chapter": 3
       },
       "rewards": {
         "items": {
@@ -379,7 +390,8 @@
         ],
         "skills": {
           "mining": 2
-        }
+        },
+        "chapter": 3
       },
       "rewards": {
         "items": {
@@ -404,7 +416,8 @@
         "skills": {
           "mining": 3,
           "walking": 3
-        }
+        },
+        "chapter": 3
       },
       "rewards": {
         "items": {
@@ -447,7 +460,8 @@
         "skills": {
           "walking": 4,
           "bond": 3
-        }
+        },
+        "chapter": 3
       },
       "rewards": {
         "items": {
@@ -468,7 +482,11 @@
       "inputs": {
         "carrot": 4
       },
-      "requirements": {},
+      "requirements": {
+        "quests": [
+          "first_harvest"
+        ]
+      },
       "rewards": {
         "coins": 18,
         "skill_xp": {
@@ -485,6 +503,9 @@
       "requirements": {
         "owned": [
           "stove"
+        ],
+        "quests": [
+          "first_harvest"
         ]
       },
       "rewards": {
@@ -503,6 +524,9 @@
       "requirements": {
         "owned": [
           "fridge"
+        ],
+        "quests": [
+          "first_harvest"
         ]
       },
       "rewards": {
@@ -522,6 +546,9 @@
       "requirements": {
         "owned": [
           "stall"
+        ],
+        "quests": [
+          "first_harvest"
         ]
       },
       "rewards": {
@@ -542,6 +569,9 @@
         "owned": [
           "stall",
           "oven"
+        ],
+        "quests": [
+          "first_harvest"
         ]
       },
       "rewards": {
@@ -561,6 +591,9 @@
         "owned": [
           "atelier",
           "stall"
+        ],
+        "quests": [
+          "first_harvest"
         ]
       },
       "rewards": {
@@ -576,42 +609,98 @@
     {
       "name": "Um novo começo",
       "description": "Cuide do Tiro, colha no canteiro emprestado e conquiste seu fogão.",
-      "target": "stove"
+      "target": "stove",
+      "rewards": {
+        "coins": 20,
+        "skill_xp": {
+          "bond": 20
+        }
+      },
+      "unlocks_text": "Avance para o próximo capítulo"
     },
     {
       "name": "Nossa primeira cozinha",
       "description": "Cozinhe, entregue pedidos e compre a geladeira.",
-      "target": "fridge"
+      "target": "fridge",
+      "rewards": {
+        "coins": 40,
+        "skill_xp": {
+          "cooking": 20
+        }
+      },
+      "unlocks_text": "Libera a Trilha do riacho"
     },
     {
       "name": "Um pedacinho de terra",
       "description": "Faça sua primeira venda e compre o sítio.",
-      "target": "farm"
+      "target": "farm",
+      "rewards": {
+        "coins": 60,
+        "skill_xp": {
+          "agriculture": 20
+        }
+      },
+      "unlocks_text": "Avance para o próximo capítulo"
     },
     {
       "name": "Construindo o futuro",
       "description": "Explore, junte materiais e monte a bancada.",
-      "target": "workbench"
+      "target": "workbench",
+      "rewards": {
+        "coins": 80,
+        "skill_xp": {
+          "building": 20
+        }
+      },
+      "unlocks_text": "Avance para o próximo capítulo"
     },
     {
       "name": "Uma produção de verdade",
       "description": "Domine a cozinha e construa o forno.",
-      "target": "oven"
+      "target": "oven",
+      "rewards": {
+        "coins": 100,
+        "skill_xp": {
+          "cooking": 20
+        }
+      },
+      "unlocks_text": "Avance para o próximo capítulo"
     },
     {
       "name": "Nosso lugar na vila",
       "description": "Abra a banca e atenda grandes encomendas.",
-      "target": "stall"
+      "target": "stall",
+      "rewards": {
+        "coins": 120,
+        "skill_xp": {
+          "commerce": 20
+        }
+      },
+      "unlocks_text": "Avance para o próximo capítulo"
     },
     {
       "name": "Um mundo de possibilidades",
       "description": "Monte a estufa e descubra culturas especiais.",
-      "target": "greenhouse"
+      "target": "greenhouse",
+      "rewards": {
+        "coins": 140,
+        "skill_xp": {
+          "agriculture": 20
+        }
+      },
+      "unlocks_text": "Avance para o próximo capítulo"
     },
     {
       "name": "Feito por nós",
       "description": "Construa o ateliê e produza acessórios.",
-      "target": "atelier"
+      "target": "atelier",
+      "rewards": {
+        "coins": 160,
+        "skill_xp": {
+          "building": 20
+        }
+      },
+      "unlocks_text": "História completa! Continue suas missões secundárias."
     }
   ],
   "final_chapter": {
