@@ -4,6 +4,10 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **12/10/2026, Claude Code**.
 
+**PRÓXIMA TAREFA (para o Codex): executar `docs/plans/TASKS_V2.md`** — história principal em passos,
+missões secundárias separadas, "o que evoluir", comemorações e mundos liberados aos poucos.
+O plano tem fases, formatos de dados, testes obrigatórios e checklist.
+
 **Rodada 2 (12/10/2026, Claude Code): navegação intuitiva + mini mundos**
 - Pedido do Vitor: "tá difícil achar rotas, vender, missões; deixar os menus intuitivos" e
   "vão ter vários mini mundinhos, cada um com seus NPCs".

@@ -23,6 +23,7 @@ a cada push na `main` (versão publicada em `/` e versão dev em `/dev/`). Progr
 - Progressão (atributos, construções, missões, NPCs, versão dev): `docs/PROGRESSION.md`
 - Mundos, navegação e **como criar um mundo novo**: `docs/WORLDS.md`
 - Fases, **estado atual e próximas tarefas**: `docs/ROADMAP.md`
+- Planos detalhados prontos para executar: `docs/plans/` (ex.: `TASKS_V2.md`)
 
 ## Trabalho em dupla (Claude Code + Codex)
 O projeto é desenvolvido alternando **Claude Code** (lê `CLAUDE.md`) e **Codex** (lê `AGENTS.md`).
@@ -35,7 +36,7 @@ O projeto é desenvolvido alternando **Claude Code** (lê `CLAUDE.md`) e **Codex
 ```
 CLAUDE.md / AGENTS.md  este mapa (mesmo conteúdo)
 README.md            descrição pública + link do jogo
-docs/                documentação (design, progressão, arquitetura, arte, deploy, roadmap)
+docs/                documentação (design, progressão, arquitetura, arte, deploy, roadmap); plans/ = planos a executar
 tools/               export_web.ps1 (prod + dev), serve_local.ps1, touch_test.ps1, screenshot.gd, pixel_tools.ps1
 .github/workflows/   deploy.yml: build Web (prod em /, dev em /dev/) + GitHub Pages
 build/               saída do export e screenshots (gerada, ignorada no git)
