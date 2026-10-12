@@ -6,7 +6,7 @@
 - [x] Autoloads `Events`, `GameState`, `SaveManager`
 - [x] Preset Web PWA single-thread + scripts de export/servidor local
 - [x] Workflow de deploy no GitHub Pages
-- [ ] Repositório no GitHub + primeiro deploy
+- [x] Repositório no GitHub + primeiro deploy
 - [ ] Testar instalação PWA e save no iPhone e no Android
 
 ## Fase 1 — Design
