@@ -160,11 +160,13 @@ text = "Casa"
 icon = ExtResource("8_tab_house")
 
 [node name="Sheet" parent="." instance=ExtResource("4_sheet")]
+z_index = 10
 layout_mode = 1
 
 [node name="UpdateBanner" type="Button" parent="."]
 unique_name_in_owner = true
 visible = false
+z_index = 11
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 1
 anchors_preset = -1
@@ -181,6 +183,7 @@ text = "Nova versão! Toque para atualizar"
 
 [node name="Toast" type="Label" parent="."]
 unique_name_in_owner = true
+z_index = 12
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.5

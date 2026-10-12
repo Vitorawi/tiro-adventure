@@ -96,7 +96,8 @@ func _idle_moment() -> void:
 
 
 ## Em cima do sofá o Tiro é desenhado na frente dele (z_index), inclusive
-## enquanto sobe e desce pelo ponto da frente.
+## enquanto sobe e desce pelo ponto da frente. Atenção: z_index vale para a tela
+## toda; por isso painéis, avisos e botões por cima da casa têm z_index maior (5+).
 func _set_on_sofa(value: bool) -> void:
 	_on_sofa = value
 	z_index = 1 if value else 0

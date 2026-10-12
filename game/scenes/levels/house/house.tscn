@@ -38,6 +38,7 @@ unique_name_in_owner = true
 y_sort_enabled = true
 
 [node name="ZoomControls" type="VBoxContainer" parent="."]
+z_index = 5
 layout_mode = 1
 anchors_preset = 3
 anchor_left = 1.0

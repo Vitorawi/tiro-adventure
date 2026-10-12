@@ -35,6 +35,11 @@ func _run() -> void:
 	house.call("_zoom_at", Vector2(250, 330), 1.6)
 	await _frames(5)
 	_save("house_zoom")
+	# Menu aberto com o Tiro no sofá: o painel tem que ficar na frente dele.
+	house.call("_on_object_tapped", "fridge")
+	await _seconds(0.5)
+	_save("sheet_over_dog")
+	root.get_node("/root/Events").emit_signal("sheet_close_requested")
 	root.get_node("/root/GameState").call("set_sleeping", false)
 	# Fogão cozinhando (animação) e cozinha de perto: uma receita em preparo e outra na fila.
 	print("cozinhar: ", root.get_node("/root/GameState").call("cook", "carrot_snack"))
