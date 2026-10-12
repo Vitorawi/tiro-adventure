@@ -13,10 +13,12 @@ const MAX_ZOOM := 2.0
 const ZOOM_STEP := 1.25
 const TAP_SLOP := 12.0
 const NAV_CELL := 8
+const SAME_FINGER_DISTANCE := 24.0
+const TOUCH_STALE_MS := 1000
 
 var _room: Dictionary = {}
 var _zoom := 1.0
-var _touches: Dictionary = {}  # índice do dedo -> posição (para a pinça)
+var _touches: Dictionary = {}  # índice do dedo -> { "pos": Vector2, "time": ms } (para a pinça)
 var _pinch_distance := 0.0
 var _objects: Array[Sprite2D] = []
 var _dog: DogWorld
@@ -125,35 +127,82 @@ func _spawn_dog() -> void:
 # --- Toque e câmera ----------------------------------------------------------
 
 ## Pinça com dois dedos. Toques chegam aqui antes do _gui_input.
+##
+## O rastreio é defensivo porque navegadores (Safari/iOS) podem avisar o mesmo
+## dedo duas vezes ou soltar com outro identificador; um dedo "fantasma" na
+## lista transformaria todo arrastar em zoom e bloquearia os toques.
 func _input(event: InputEvent) -> void:
 	if not is_visible_in_tree():
 		return
 	var touch := event as InputEventScreenTouch
 	if touch:
-		if touch.pressed and get_global_rect().has_point(touch.position):
-			_touches[touch.index] = touch.position
-		else:
+		_prune_stale_touches()
+		if touch.pressed:
+			_erase_touch_near(touch.position, SAME_FINGER_DISTANCE)  # mesmo dedo avisado de novo
+			if get_global_rect().has_point(touch.position):
+				_set_touch(touch.index, touch.position)
+		elif _touches.has(touch.index):
 			_touches.erase(touch.index)
-		if _touches.size() >= 2:
+		else:
+			_erase_touch_near(touch.position, INF)  # soltou com outro identificador
+		if _is_pinching():
 			_dragged = true  # pinça não conta como toque
 		_pinch_distance = _current_pinch_distance()
 		return
 	var drag := event as InputEventScreenDrag
-	if drag and _touches.has(drag.index):
-		_touches[drag.index] = drag.position
-		if _touches.size() >= 2:
+	if drag and (_touches.has(drag.index) or get_global_rect().has_point(drag.position)):
+		if not _touches.has(drag.index):
+			_erase_touch_near(drag.position, SAME_FINGER_DISTANCE)  # é o mesmo dedo com outro id
+		_set_touch(drag.index, drag.position)
+		if _is_pinching():
 			var distance := _current_pinch_distance()
 			if _pinch_distance > 0.0:
-				var center: Vector2 = (_touches.values()[0] + _touches.values()[1]) / 2.0
-				_zoom_at(center - global_position, _zoom * distance / _pinch_distance)
+				var points := _touch_positions()
+				_zoom_at((points[0] + points[1]) / 2.0 - global_position, _zoom * distance / _pinch_distance)
 			_pinch_distance = distance
 
 
+func _is_pinching() -> bool:
+	return _touches.size() >= 2
+
+
+func _set_touch(index: int, position_on_screen: Vector2) -> void:
+	_touches[index] = { "pos": position_on_screen, "time": Time.get_ticks_msec() }
+
+
+func _touch_positions() -> Array[Vector2]:
+	var result: Array[Vector2] = []
+	for entry: Dictionary in _touches.values():
+		result.append(entry["pos"])
+	return result
+
+
+## Remove o dedo registrado mais perto de `point` (até `max_distance`).
+func _erase_touch_near(point: Vector2, max_distance: float) -> void:
+	var nearest: Variant = null
+	var best := max_distance
+	for index: int in _touches:
+		var distance: float = (_touches[index]["pos"] as Vector2).distance_to(point)
+		if distance <= best:
+			best = distance
+			nearest = index
+	if nearest != null:
+		_touches.erase(nearest)
+
+
+## Dedos sem notícia há muito tempo provavelmente já saíram da tela.
+func _prune_stale_touches() -> void:
+	var now := Time.get_ticks_msec()
+	for index: int in _touches.keys():
+		if now - int(_touches[index]["time"]) > TOUCH_STALE_MS:
+			_touches.erase(index)
+
+
 func _current_pinch_distance() -> float:
-	if _touches.size() < 2:
+	if not _is_pinching():
 		return 0.0
-	var points := _touches.values()
-	return (points[0] as Vector2).distance_to(points[1])
+	var points := _touch_positions()
+	return points[0].distance_to(points[1])
 
 
 func _gui_input(event: InputEvent) -> void:
@@ -162,7 +211,7 @@ func _gui_input(event: InputEvent) -> void:
 		var factor := ZOOM_STEP if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / ZOOM_STEP
 		_zoom_at(button.position, _zoom * factor)
 		return
-	if _touches.size() >= 2:
+	if _is_pinching():
 		return  # durante a pinça, não arrasta nem toca
 	if button and button.button_index == MOUSE_BUTTON_LEFT:
 		if button.pressed:

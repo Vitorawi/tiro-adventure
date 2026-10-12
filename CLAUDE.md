@@ -100,5 +100,7 @@ powershell -ExecutionPolicy Bypass -File tools\export_web.ps1   # build Web em b
 powershell -ExecutionPolicy Bypass -File tools\serve_local.ps1  # http://localhost:8000
 & $env:GODOT_BIN --headless --path game --quit-after 60         # checar erros de script
 & $env:GODOT_BIN --path game --resolution 360x780 -s ../tools/screenshot.gd  # PNGs em build/screenshots/
+# Teste de TOQUE real (Chrome headless em modo celular): exporte, rode serve_local.ps1 e então
+powershell -ExecutionPolicy Bypass -File tools\touch_test.ps1 [-Steps roteiro.json]  # tap/drag/pinch/ghost_drag/shot
 ```
 Deploy: `git push` na `main` → GitHub Actions → GitHub Pages.
