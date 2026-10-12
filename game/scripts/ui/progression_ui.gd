@@ -68,7 +68,7 @@ static func quest_card(box: VBoxContainer, id: String) -> void:
 		_text(card, "%s · %d/%d" % [goal.label, value, target], true)
 		card.add_child(UiKit.bar(100.0 * value / maxi(1, target), UiKit.GOOD, 8))
 	_text(card, "Recompensa: " + rewards_text(quest.rewards), true)
-	_action(card, "Receber recompensa" if ready else "Concluir missão", func() -> String: return GameState.claim_quest(id), GameState.quest_error(id), "Missão concluída!")
+	quest_action(card, id)
 
 
 # --- Construir --------------------------------------------------------------------
@@ -212,6 +212,14 @@ static func skills_panel() -> Control:
 			var card := UiKit.card(box)
 			_title(card, data.icon, "%s · nível %d" % [data.name, int(info.level)])
 			_text(card, data.description, true)
+			_text(card, data.get("how_to", ""), true)
+			for chapter in range(GameState.progress.chapter_index(), Database.progression.chapters.size() + 1):
+				var needed := 0
+				for quest in GameState.progress.main_quests(chapter):
+					needed = maxi(needed, int(quest_skills(quest).get(id, 0)))
+				if needed > int(info.level):
+					_text(card, "A história pede nível %d no capítulo %d" % [needed, chapter], true)
+					break
 			card.add_child(UiKit.bar(100 if info.max else float(info.xp) / float(info.needed) * 100, Color(data.color)))
 			_text(card, "Nível máximo" if info.max else "%d / %d XP para o próximo nível" % [int(info.xp), int(info.needed)], true)
 			var next := _next_milestone(id, int(info.level))
@@ -300,3 +308,110 @@ static func _amounts(card: VBoxContainer, amounts: Dictionary) -> void:
 		var need := int(amounts[id])
 		row.add_child(UiKit.chip(Database.item_icon(id), "%d/%d %s" % [have, need, Database.item_name(id)], UiKit.GOOD if have >= need else UiKit.BAD))
 	card.add_child(row)
+
+
+## Requisitos de atributo diretos e da construção do passo.
+static func quest_skills(id: String) -> Dictionary:
+	var result := {}
+	for goal: Dictionary in Database.quests[id].goals:
+		if goal.type == "skill":
+			result[goal.key] = maxi(int(result.get(goal.key, 0)), int(goal.target))
+		if goal.type == "owned":
+			for skill: String in Database.progression.upgrades[goal.key].get("requirements", {}).get("skills", {}):
+				result[skill] = maxi(int(result.get(skill, 0)), int(Database.progression.upgrades[goal.key].requirements.skills[skill]))
+	return result
+
+
+static func quest_action(box: VBoxContainer, id: String) -> void:
+	var ready := GameState.quest_error(id) == ""
+	box.add_child(UiKit.button("Receber recompensa" if ready else "Ir", func() -> void:
+		if ready:
+			var error := GameState.claim_quest(id)
+			if error != "":
+				Events.toast_requested.emit(error)
+		else:
+			Places.go(Places.quest_target(id)), &"PrimaryButton"))
+
+
+static func quest_fraction(id: String) -> float:
+	var total := 0.0
+	var goals: Array = Database.quests[id].goals
+	for goal: Dictionary in goals:
+		total += minf(1.0, float(GameState.goal_value(goal)) / maxi(1, int(goal.get("target", 1))))
+	return total / maxi(1, goals.size())
+
+
+static func side_quests() -> Array[String]:
+	var ids: Array[String] = []
+	for id: String in Database.quests:
+		if Database.quests[id].get("kind", "side") == "side" and GameState.quest_unlocked(id) and not GameState.progress.claimed_quests.has(id):
+			ids.append(id)
+	ids.sort_custom(func(a: String, b: String) -> bool:
+		var a_ready := GameState.quest_error(a) == ""
+		var b_ready := GameState.quest_error(b) == ""
+		if a_ready != b_ready:
+			return a_ready
+		if not is_equal_approx(quest_fraction(a), quest_fraction(b)):
+			return quest_fraction(a) > quest_fraction(b)
+		return a < b)
+	return ids
+
+
+static func side_card(box: VBoxContainer, id: String) -> void:
+	var q: Dictionary = Database.quests[id]
+	var card := UiKit.card(box, &"ReadyCardPanel" if GameState.quest_error(id) == "" else &"CardPanel")
+	var row := UiKit.hbox(8)
+	row.add_child(UiKit.icon(npc_portrait(q.npc), 40))
+	var info := UiKit.vbox(2)
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_child(UiKit.label(q.name))
+	var category: Dictionary = Database.progression.skills.get(q.get("category", ""), {})
+	info.add_child(UiKit.label(category.get("name", Database.npcs[q.npc].name), &"SmallLabel", Color(category.get("color", "#62764d"))))
+	row.add_child(info)
+	card.add_child(row)
+	for goal: Dictionary in q.goals:
+		card.add_child(UiKit.label("%s · %d/%d" % [goal.label, mini(GameState.goal_value(goal), int(goal.get("target", 1))), int(goal.get("target", 1))], &"SmallLabel"))
+	card.add_child(UiKit.label(rewards_text(q.rewards), &"SmallLabel"))
+	quest_action(card, id)
+
+
+static func side_panel() -> Control:
+	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		var ids := side_quests()
+		for npc: String in Database.npcs:
+			var header := false
+			for id in ids:
+				if Database.quests[id].npc == npc:
+					if not header:
+						box.add_child(UiKit.label(Database.npcs[npc].name, &"SectionLabel"))
+						header = true
+					side_card(box, id)
+		var completed := UiKit.vbox()
+		completed.visible = false
+		var count := 0
+		for id: String in Database.quests:
+			if Database.quests[id].get("kind", "side") == "side" and GameState.progress.claimed_quests.has(id):
+				count += 1
+				completed.add_child(UiKit.label("✓ " + str(Database.quests[id].name), &"SmallLabel", UiKit.GOOD))
+		box.add_child(UiKit.button("Concluídas (%d)" % count, func() -> void: completed.visible = not completed.visible))
+		box.add_child(completed)
+	)
+
+
+static func story_panel() -> Control:
+	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		var current := GameState.progress.chapter_index()
+		for i in Database.progression.chapters.size():
+			var chapter: Dictionary = Database.progression.chapters[i]
+			var index: int = i + 1
+			var card := UiKit.card(box, &"ReadyCardPanel" if index == current else &"CardPanel")
+			card.add_child(UiKit.label("%s %d · %s" % ["✓" if index < current else ("▶" if index == current else "?"), index, chapter.name], &"SectionLabel"))
+			if index < current:
+				card.add_child(UiKit.label("Recompensas recebidas · " + rewards_text(chapter.get("rewards", {})), &"SmallLabel", UiKit.GOOD))
+			elif index == current:
+				for id in GameState.progress.main_quests(index):
+					var claimed := GameState.progress.claimed_quests.has(id)
+					card.add_child(UiKit.label(("✓ " if claimed else "○ ") + str(Database.quests[id].name), &"SmallLabel"))
+					if id == GameState.progress.current_main_quest():
+						quest_action(card, id)
+	)

@@ -61,5 +61,45 @@ func _run() -> void:
 		check(state.get("coins") == coins, "Objetivo não consome moedas")
 		check(state.get("inventory").count("carrot") == before - (1 if kind == "deliver" else 0), "Consumo de " + kind)
 	database.get("quests").erase("test_goal")
+	await _ui_check()
 	print("TASKS TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(0 if failures == 0 else 1)
+
+
+func _ui_check() -> void:
+	state.call("reset")
+	var main: Node = load("res://scenes/main/main.tscn").instantiate()
+	root.add_child(main)
+	main.call("show_screen", &"tasks")
+	await create_timer(0.2).timeout
+	var card: Control = main.find_child("StoryCard", true, false)
+	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
+	_shot("tasks_start")
+	state.call("dev_jump_to_chapter", 3)
+	await create_timer(0.2).timeout
+	main.call("show_screen", &"tasks")
+	_shot("tasks_middle")
+	var ui: Script = load("res://scripts/ui/progression_ui.gd")
+	var events: Node = root.get_node("Events")
+	events.emit_signal("sheet_requested", "História", ui.call("story_panel"))
+	await create_timer(0.3).timeout
+	_shot("tasks_story")
+	events.emit_signal("sheet_close_requested")
+	events.emit_signal("sheet_requested", "Missões secundárias", ui.call("side_panel"))
+	await create_timer(0.3).timeout
+	_shot("tasks_side")
+	events.emit_signal("sheet_close_requested")
+	state.call("dev_unlock_everything")
+	await create_timer(0.2).timeout
+	main.call("show_screen", &"tasks")
+	_shot("tasks_end")
+	main.queue_free()
+	await process_frame
+
+
+func _shot(file_name: String) -> void:
+	if not "--screenshots" in OS.get_cmdline_user_args():
+		return
+	var folder := ProjectSettings.globalize_path("res://../build/screenshots/")
+	DirAccess.make_dir_recursive_absolute(folder)
+	root.get_texture().get_image().save_png(folder + file_name + ".png")
