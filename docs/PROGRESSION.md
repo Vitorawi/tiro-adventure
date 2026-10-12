@@ -28,7 +28,7 @@ petisco → biscoito → caixa de petiscos → encomenda especial).
 | **Feira** | `progression.json` → `orders` + `sell_price` em `items.json` | Encomendas com recarga + venda direta. |
 | **Capítulos** | `progression.json` → `chapters` (+ `final_chapter`) | A "história": cada capítulo termina ao comprar seu `target`. Aparece em Jornada → Hoje. |
 | **Missões** | `quests.json` | Por NPC, em sequência (`requires`). Objetivos + recompensas. |
-| **NPCs** | `npcs.json` | Bloblo, Guia da trilha, Feirante, Artesã. `portrait` = foto/retrato (vazio = usa `icon`). |
+| **NPCs** | `npcs.json` (+ mundo em `worlds.json`) | Bloblo (Sítio), Guia da trilha (Trilha), Feirante e Laís, a artesã (Vila). `portrait` = retrato (hoje provisórios do PixelLab; trocar pelas fotos), `services` = atalhos para lugares. |
 | **Coleção** | `collections.json` | Roupas/apetrechos ganhos em missões (`slot`: head/neck/body; `sprite` para vestir no futuro). |
 | **Sítio** | `config.json` → `farm` | 1 canteiro emprestado antes da escritura; depois 3 iniciais e expansão até 9 (`unlock_costs`). |
 
@@ -88,15 +88,13 @@ O `progression_test.gd` joga uma **campanha simulada** do zero (só ações reai
 falha se alguma construção ou missão ficar inalcançável. Rode-o depois de mexer em números.
 
 ## Interface
-- Aba **Jornada** (`scenes/ui/progression_screen/`): Hoje (capítulo, rota em andamento, missões
-  prontas, ajuda de comida), Atributos (próximos marcos de cada um), Missões (por NPC), Construir,
-  Rotas, Feira (encomendas + venda direta), Produção (estações), Coleção.
-- Páginas montadas por `scripts/ui/progression_ui.gd` (caixas `LiveBox` que se refazem a cada
-  mudança de estado e a cada segundo).
+Desde a reorganização da navegação, a progressão não fica mais num menu único: cada coisa mora
+num lugar de um mundo (vender e encomendas na Vila, passeios e mina na Trilha, construir em cada
+mundo) e a aba **Tarefas** mostra o próximo passo, o que está pronto e as missões, sempre com
+botão **Ir**. Detalhes em **`docs/WORLDS.md`**. Painéis em `scripts/ui/progression_ui.gd`.
 - Casa: móveis com `"upgrade"` em `rooms/house.json` só aparecem depois de comprados; antes há um
   marcador "+" que abre a compra. Sítio: canteiros bloqueados mostram "Sítio" (antes da escritura)
   ou o preço do próximo terreno.
-- Bloblo (casinha no sítio) abre as missões dela.
 - **Ajuda de comida:** sem nenhuma comida na mochila, a Bloblo dá ração grátis (recarga de 5 min)
   — o cuidado com o Tiro nunca trava por falta de moedas.
 

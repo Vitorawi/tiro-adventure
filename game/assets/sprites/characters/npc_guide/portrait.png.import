@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://ol2ycrp51diy"
-path="res://.godot/imported/tab_journey.png-72706597847be0119a5aaec9ee8badeb.ctex"
+uid="uid://bhq764emvd33n"
+path="res://.godot/imported/portrait.png-79732ea1777a180d68ded13f87603597.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/sprites/ui/icons/tab_journey.png"
-dest_files=["res://.godot/imported/tab_journey.png-72706597847be0119a5aaec9ee8badeb.ctex"]
+source_file="res://assets/sprites/characters/npc_guide/portrait.png"
+dest_files=["res://.godot/imported/portrait.png-79732ea1777a180d68ded13f87603597.ctex"]
 
 [params]
 

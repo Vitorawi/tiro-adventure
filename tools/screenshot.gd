@@ -2,7 +2,7 @@ extends SceneTree
 ## Captura telas do jogo para revisão visual (usado pelo Claude e por humanos).
 ## Uso (na raiz do repositório):
 ##   & $env:GODOT_BIN --path game --resolution 360x780 -s ../tools/screenshot.gd
-## Gera build/screenshots/pet.png e build/screenshots/house.png.
+## Gera PNGs da aba Tiro, da casa (com todos os móveis) e do sítio em build/screenshots/
 
 const OUT_DIR := "../build/screenshots/"
 
@@ -15,16 +15,17 @@ func _run() -> void:
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://" + OUT_DIR))
 	# Começa de um jogo novo (save local de desenvolvimento) para os prints serem previsíveis.
 	root.get_node("/root/GameState").call("reset")
+	root.get_node("/root/GameState").call("dev_unlock_everything")  # casa com todos os móveis
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	await _frames(30)
 	_save("pet")
-	main.show_screen(&"house")
+	main.call("_on_world_requested", "house", "")
 	await _frames(90)
 	_save("house")
 	# Chamadas dinâmicas: referenciar classes do jogo aqui quebra a compilação no modo -s.
-	var house: Node = main.find_child("House")
-	house.call("_on_object_tapped", "stove")
+	var house: Node = main.find_child("World_house", true, false)
+	house.call("_on_object_tapped", "place:stove")
 	await _frames(10)
 	_save("stove_sheet")
 	root.get_node("/root/Events").emit_signal("sheet_close_requested")
@@ -36,7 +37,7 @@ func _run() -> void:
 	await _frames(5)
 	_save("house_zoom")
 	# Menu aberto com o Tiro no sofá: o painel tem que ficar na frente dele.
-	house.call("_on_object_tapped", "fridge")
+	house.call("_on_object_tapped", "place:fridge")
 	await _seconds(0.5)
 	_save("sheet_over_dog")
 	root.get_node("/root/Events").emit_signal("sheet_close_requested")
@@ -52,7 +53,7 @@ func _run() -> void:
 	_save("house_kitchen")
 	# Painéis com o fogão cozinhando, geladeira e comida.
 	for action: String in ["stove", "fridge", "bowl"]:
-		house.call("_on_object_tapped", action)
+		house.call("_on_object_tapped", "place:" + action)
 		await _seconds(0.5)
 		_save("sheet_" + action)
 		if action == "stove":
@@ -62,10 +63,10 @@ func _run() -> void:
 			_save("sheet_stove_recipes")
 		root.get_node("/root/Events").emit_signal("sheet_close_requested")
 	# Sítio: canteiros vazios, crescendo e prontos; painel de sementes.
-	main.show_screen(&"farm")
+	main.call("_on_world_requested", "farm", "")
 	await _frames(20)
 	_save("farm")
-	var farm: Node = main.find_child("Farm")
+	var farm: Node = main.find_child("World_farm", true, false)
 	farm.call("_on_object_tapped", "plot", farm.find_child("plot_0", true, false))
 	await _seconds(0.5)
 	_save("sheet_seeds")

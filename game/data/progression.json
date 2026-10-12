@@ -74,6 +74,7 @@
   "upgrades": {
     "stove": {
       "name": "Fogão simples",
+      "world": "house",
       "description": "A primeira cozinha: prepara petiscos e refeições.",
       "cost": 40,
       "requirements": {},
@@ -84,6 +85,7 @@
     },
     "fridge": {
       "name": "Geladeira",
+      "world": "house",
       "description": "Libera preparos conservados e a receita de caldo de legumes.",
       "cost": 75,
       "requirements": {
@@ -98,6 +100,7 @@
     },
     "farm": {
       "name": "Escritura do sítio",
+      "world": "farm",
       "description": "O terreno passa a ser seu: três canteiros e espaço para expandir.",
       "cost": 180,
       "requirements": {
@@ -112,6 +115,7 @@
     },
     "sofa": {
       "name": "Sofá do Tiro",
+      "world": "house",
       "description": "Um lugar confortável para as sonecas, na sala.",
       "cost": 90,
       "requirements": {
@@ -126,6 +130,7 @@
     },
     "workbench": {
       "name": "Bancada de trabalho",
+      "world": "farm",
       "description": "Transforma madeira e pedra em peças de construção.",
       "cost": 120,
       "materials": {
@@ -145,6 +150,7 @@
     },
     "pickaxe": {
       "name": "Picareta",
+      "world": "village",
       "description": "Permite explorar a pedreira e encontrar minérios.",
       "cost": 80,
       "materials": {
@@ -163,6 +169,7 @@
     },
     "stove_queue": {
       "name": "Cozinha organizada",
+      "world": "house",
       "description": "Mais dois espaços na fila do fogão.",
       "cost": 180,
       "materials": {
@@ -184,6 +191,7 @@
     },
     "oven": {
       "name": "Forno",
+      "world": "house",
       "description": "Produz biscoitos e caixas de petiscos para encomendas.",
       "cost": 240,
       "materials": {
@@ -207,6 +215,7 @@
     },
     "orchard": {
       "name": "Pomar",
+      "world": "farm",
       "description": "Libera a rota de colheita de maçãs e novos preparos.",
       "cost": 300,
       "materials": {
@@ -227,6 +236,7 @@
     },
     "greenhouse": {
       "name": "Estufa",
+      "world": "farm",
       "description": "Libera ervas aromáticas e culturas especializadas.",
       "cost": 480,
       "materials": {
@@ -250,6 +260,7 @@
     },
     "stall": {
       "name": "Banca da feira",
+      "world": "village",
       "description": "Abre contratos maiores de alimentos e materiais.",
       "cost": 350,
       "materials": {
@@ -271,6 +282,7 @@
     },
     "atelier": {
       "name": "Ateliê",
+      "world": "village",
       "description": "Fabrica tecidos e conjuntos de acessórios.",
       "cost": 600,
       "materials": {
@@ -296,6 +308,7 @@
   "activities": {
     "lane": {
       "name": "Volta pelo bairro",
+      "place": "walk",
       "description": "Um passeio tranquilo com o Tiro. Sempre disponível.",
       "seconds": 60,
       "requirements": {},
@@ -313,6 +326,7 @@
     },
     "trail": {
       "name": "Trilha do riacho",
+      "place": "walk",
       "description": "Recolha madeira e pedras para as primeiras construções.",
       "seconds": 180,
       "requirements": {
@@ -335,6 +349,7 @@
     },
     "quarry": {
       "name": "Pedreira",
+      "place": "mine",
       "description": "Extraia pedra para a oficina e suas melhorias.",
       "seconds": 180,
       "requirements": {
@@ -355,6 +370,7 @@
     },
     "copper_vein": {
       "name": "Veio de cobre",
+      "place": "mine",
       "description": "O minério abastece fornos e ferramentas.",
       "seconds": 360,
       "requirements": {
@@ -378,6 +394,7 @@
     },
     "crystal_cave": {
       "name": "Gruta dos cristais",
+      "place": "mine",
       "description": "Cristais para instalações especiais.",
       "seconds": 600,
       "requirements": {
@@ -403,6 +420,7 @@
     },
     "orchard_harvest": {
       "name": "Colher no pomar",
+      "place": "orchard",
       "description": "Cuide das árvores e volte com maçãs.",
       "seconds": 300,
       "requirements": {
@@ -422,6 +440,7 @@
     },
     "meadow": {
       "name": "Prado das fibras",
+      "place": "walk",
       "description": "Colete fibras para transformar em tecido.",
       "seconds": 420,
       "requirements": {

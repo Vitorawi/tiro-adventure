@@ -4,7 +4,25 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **12/10/2026, Claude Code**.
 
-**Feito nesta rodada**
+**Rodada 2 (12/10/2026, Claude Code): navegação intuitiva + mini mundos**
+- Pedido do Vitor: "tá difícil achar rotas, vender, missões; deixar os menus intuitivos" e
+  "vão ter vários mini mundinhos, cada um com seus NPCs".
+- Abas novas: **Tiro · Mapa · Tarefas · Mochila** (a aba Jornada com 8 sub-botões foi removida).
+  Cada função mora num lugar de um mundo; Tarefas mostra próximo passo, prontos agora e missões com "Ir".
+- Mundos orientados a dados (`data/worlds.json`): Casa, Sítio, **Vila** (Feirante, Laís: vender,
+  encomendas, ateliê, lojas) e **Trilha** (Guia: passeios, mina). Vila e Trilha ganharam cena própria
+  (PixelLab) com zonas tocáveis e etiquetas. Receita para criar mundos em `docs/WORLDS.md`.
+- Mochila com detalhe do item (como conseguir, onde usar, vender). Retratos provisórios dos 4 NPCs.
+- Testes passando; teste de toque no Chrome confirmou Tarefas → Ir → Trilha → Guia.
+
+**Próximos passos (rodada 2)**
+1. Trocar os retratos provisórios pelas fotos do Vitor (`npcs.json → portrait`). Feito: **Laís** (artesã da Vila).
+   Receita em `docs/ART_PIPELINE.md`.
+2. NPCs pequenos dentro das cenas (sprite no mundo, além do botão no cabeçalho).
+3. Novos mundos seguindo `docs/WORLDS.md` (ex.: parque, praia, clínica).
+4. Tutorial curto no primeiro acesso apontando as abas (Tarefas → Ir).
+
+**Rodada 1 — feito**
 - Progressão completa (**Jornada**), criada pelo Codex: casa quase vazia no começo, canteiro emprestado,
   7 atributos, 12 construções, 7 rotas, feira (venda + 6 encomendas), 8 capítulos, 15 missões de 4 NPCs,
   6 itens de coleção. Save v4 com migração. Ver `docs/PROGRESSION.md`.
@@ -65,6 +83,7 @@
 - [x] Horta: Sítio da Bloblo (aba Sítio + porta da casa), cenoura/batata/abóbora (`crops.json`)
 - [x] Progressão do sítio: canteiro emprestado, escritura, expansão até 9 em posições fixas, moedas por colheita, indicadores de crescimento e painel Meu sítio
 - [x] Jornada: atributos, construções, rotas, feira (venda + encomendas), capítulos, missões de NPCs, coleção (`docs/PROGRESSION.md`)
+- [x] Navegação intuitiva: abas Tiro/Mapa/Tarefas/Mochila, mundos em `worlds.json` (Casa, Sítio, Vila, Trilha) com NPCs (`docs/WORLDS.md`)
 - [x] Versão dev em `/dev/` com save separado e Ferramentas DEV
 - [ ] Bloblo como personagem no mundo (sprite + retrato); Tiro passeando no sítio
 - [ ] Tutor dentro de casa (sprite pequeno + retrato detalhado + diálogo) com missões

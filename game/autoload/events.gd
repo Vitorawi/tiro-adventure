@@ -23,8 +23,11 @@ signal toast_requested(text: String)
 signal sheet_requested(title: String, content: Control)
 ## Pede para fechar o painel inferior.
 signal sheet_close_requested
-## Pede para trocar de tela ("pet" ou "house").
+## Pede para trocar de aba ("pet", "map", "tasks", "bag").
 signal screen_requested(screen: StringName)
+## Pede para ir a um mundo (aba Mapa) e, se `place` vier, abrir um lugar ("stove")
+## ou personagem ("npc:bloblo") dele. Usado pelos botões "Ir" das Tarefas e da Mochila.
+signal world_requested(world: String, place: String)
 ## Emitido pelo PwaUpdater quando há uma versão nova do jogo pronta para instalar.
 signal update_available
 

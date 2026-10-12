@@ -72,7 +72,7 @@ func _screenshots(state: Node) -> void:
 	state.get("progress").skills["agriculture"] = 500
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
-	main.call("show_screen", &"farm")
+	main.call("_on_world_requested", "farm", "")
 	state.call("plant", 0, "carrot")
 	state.call("plant", 1, "potato")
 	state.call("plant", 2, "pumpkin")
@@ -85,7 +85,7 @@ func _screenshots(state: Node) -> void:
 	plots[2]["ready_at"] = now - 1
 	await create_timer(0.5).timeout
 	_shot("farm_progress")
-	var farm: Node = main.find_child("Farm")
+	var farm: Node = main.find_child("World_farm", true, false)
 	farm.call("_zoom_at", Vector2(180, 330), 1.5)
 	var content: Control = farm.get_node("Content")
 	content.position = farm.get("size") / 2.0 - Vector2(275, 245) * 1.5
@@ -100,8 +100,7 @@ func _screenshots(state: Node) -> void:
 	await create_timer(0.4).timeout
 	_shot("farm_growth_sheet")
 	root.get_node("Events").emit_signal("sheet_close_requested")
-	var farm_button: Button = farm.get("_farm_button")
-	farm_button.pressed.emit()
+	main.find_child("WorldsScreen").call("enter", "farm", "plots")
 	await create_timer(0.4).timeout
 	_shot("farm_summary")
 

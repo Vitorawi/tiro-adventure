@@ -37,36 +37,92 @@ static func food_picker() -> Control:
 				Events.toast_requested.emit(error if error != "" else "Comida recebida!"), &"PrimaryButton")))
 
 
-## Conteúdo da geladeira (inventário completo) em grade.
+const CATEGORIES := {"food": "Comidas", "crop": "Colheitas", "material": "Materiais", "product": "Produtos"}
+
+
+## Mochila (também é a geladeira): itens por categoria; tocar abre o detalhe do item.
 static func inventory_view() -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		if GameState.inventory.counts.is_empty():
-			_empty_message(box, "Mochila vazia.", "Plante no sítio ou explore uma rota na Jornada.")
+			_empty_message(box, "Mochila vazia.", "Plante no Sítio ou passeie na Trilha (aba Mapa).")
 			return
-		var grid := GridContainer.new()
-		grid.columns = 3
-		grid.mouse_filter = Control.MOUSE_FILTER_PASS
-		grid.add_theme_constant_override("h_separation", 8)
-		grid.add_theme_constant_override("v_separation", 8)
-		for id: String in GameState.inventory.counts:
-			var tile := UiKit.card(grid)
-			tile.alignment = BoxContainer.ALIGNMENT_CENTER
-			var picture := UiKit.icon(Database.item_icon(id), 64)
-			tile.add_child(picture)
-			var count := UiKit.label("x%d" % GameState.inventory.count(id))
-			count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			tile.add_child(count)
-			var item_name := UiKit.label(Database.item_name(id), &"SmallLabel")
-			item_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			tile.add_child(item_name)
-		box.add_child(grid))
+		box.add_child(UiKit.label("Toque num item para ver para que ele serve.", &"SmallLabel"))
+		for category: String in CATEGORIES:
+			var ids: Array[String] = []
+			for id: String in GameState.inventory.counts:
+				if Database.items.get(id, {}).get("category", "product") == category:
+					ids.append(id)
+			if ids.is_empty():
+				continue
+			box.add_child(UiKit.label(CATEGORIES[category], &"SectionLabel"))
+			var grid := GridContainer.new()
+			grid.columns = 3
+			grid.mouse_filter = Control.MOUSE_FILTER_PASS
+			grid.add_theme_constant_override("h_separation", 8)
+			grid.add_theme_constant_override("v_separation", 8)
+			for id in ids:
+				grid.add_child(_item_tile(id))
+			box.add_child(grid))
+
+
+static func _item_tile(id: String) -> Button:
+	var tile := UiKit.button("%s\nx%d" % [Database.item_name(id), GameState.inventory.count(id)], func() -> void:
+		Events.sheet_requested.emit(Database.item_name(id), item_detail(id)), &"", Database.item_icon(id))
+	tile.custom_minimum_size = Vector2(0, 112)
+	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tile.expand_icon = true
+	tile.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tile.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	tile.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tile.add_theme_constant_override("icon_max_width", 48)
+	tile.add_theme_font_size_override("font_size", 16)
+	return tile
+
+
+## Detalhe do item: o que faz, como conseguir, onde usar e quanto vale.
+static func item_detail(id: String) -> Control:
+	return LiveBox.new(func(box: VBoxContainer) -> void:
+		var item: Dictionary = Database.items.get(id, {})
+		var top := UiKit.hbox(10)
+		top.add_child(UiKit.icon(Database.item_icon(id), 64))
+		var info := UiKit.vbox(4)
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.add_child(UiKit.label(Database.item_name(id), &"SectionLabel"))
+		info.add_child(UiKit.label("Você tem %d" % GameState.inventory.count(id)))
+		top.add_child(info)
+		box.add_child(top)
+		if item.has("feed"):
+			box.add_child(UiKit.effect_chips(item.feed))
+			var give := UiKit.button("Dar ao Tiro", func() -> void:
+				if GameState.feed(id):
+					Events.toast_requested.emit("Nhac! %s" % Database.item_name(id)), &"PrimaryButton")
+			give.disabled = GameState.inventory.count(id) == 0
+			box.add_child(give)
+		_list_section(box, "Como conseguir", Database.sources_of(id))
+		_list_section(box, "Usado em", Database.uses_of(id))
+		var price := int(item.get("sell_price", 0))
+		if price > 0:
+			box.add_child(UiKit.label("Vale %d moedas na feira da Vila." % price, &"SmallLabel"))
+			var place := Database.place_with_panel("sell")
+			if place[0] != "" and GameState.inventory.count(id) > 0:
+				box.add_child(UiKit.button("Ir vender", func() -> void:
+					Events.sheet_close_requested.emit()
+					Events.world_requested.emit(place[0], place[1]), &"", UiKit.ui_icon("coin"))))
+
+
+static func _list_section(box: VBoxContainer, title: String, lines: PackedStringArray) -> void:
+	if lines.is_empty():
+		return
+	box.add_child(UiKit.label(title, &"SectionLabel"))
+	for line in lines:
+		box.add_child(UiKit.label("• " + line, &"SmallLabel"))
 
 
 ## Estação de produção (fogão): espaços de preparo + receitas em cartões.
 static func station_view(station_id: String) -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		if not GameState.has_upgrade(station_id):
-			box.add_child(UiKit.label("Adquira esta estação em Jornada → Construir."))
+			ProgressionUi.upgrade_card(box, station_id)
 			return
 		var target := GameState.station(station_id)
 		var now := GameState.now()

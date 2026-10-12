@@ -54,7 +54,11 @@ Utilitários (`game/scripts/util/`): `BuildInfo` (canal prod/dev e arquivo de sa
 - Atenção: o PWA instalado no iPhone e o Safari normal têm armazenamentos **separados**.
 
 ## Cenas
-- `scenes/main/main.tscn` — casca: barra superior (nível, moedas, selo DEV), telas Tiro/Casa/Sítio/Jornada, Sheet, toast.
+- `scenes/main/main.tscn` — casca: barra superior (nível, moedas, selo DEV), abas Tiro/Mapa/Tarefas/Mochila, Sheet, toast.
+- `scenes/ui/worlds_screen/` — aba Mapa: mundos de `data/worlds.json`; cada um é um `RoomView` (sala) criado na
+  primeira visita. Lugares e personagens abertos por `Places` (`scripts/ui/places.gd`). Ver `docs/WORLDS.md`.
+- `scenes/ui/tasks_screen/`, `scenes/ui/bag_screen/` — abas Tarefas e Mochila.
+- `Events.world_requested(mundo, lugar)` — botões "Ir até lá" de qualquer tela.
 
 ### Planejado (ver `GAME_DESIGN.md`)
 ```

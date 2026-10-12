@@ -138,26 +138,47 @@ func _screenshots(final_save: Dictionary) -> void:
 	state.call("reset")
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
-	main.call("show_screen", &"house")
+	var events: Node = root.get_node("Events")
+	var worlds: Node = main.find_child("WorldsScreen")
+	# Começo do jogo: casa vazia, mapa, tarefas.
+	main.call("_on_world_requested", "house", "")
 	await create_timer(0.4).timeout
-	_shot("journey_new_house")
-	main.call("show_screen", &"farm")
+	_shot("ui_world_house_new")
+	main.call("show_screen", &"map")
+	worlds.call("show_map")
 	await create_timer(0.3).timeout
-	_shot("journey_borrowed_plot")
-	main.call("show_screen", &"journey")
-	var screen: Node = main.find_child("ProgressionScreen")
-	for page: String in ["today", "skills", "quests", "shop", "routes", "market", "production", "collection"]:
-		screen.call("show_page", page)
-		await create_timer(0.15).timeout
-		_shot("journey_" + page)
+	_shot("ui_map")
+	main.call("show_screen", &"tasks")
+	await create_timer(0.3).timeout
+	_shot("ui_tasks_new")
+	# Meio do jogo: save final da campanha.
 	state.call("from_dict", final_save)
-	for page: String in ["skills", "market", "production", "collection"]:
-		screen.call("show_page", page)
-		await create_timer(0.2).timeout
-		_shot("journey_advanced_" + page)
-	main.call("show_screen", &"house")
+	for world_id: String in ["farm", "village", "trail"]:
+		main.call("_on_world_requested", world_id, "")
+		await create_timer(0.4).timeout
+		_shot("ui_world_" + world_id)
+	main.call("_on_world_requested", "village", "")
+	worlds.get_node("%PlacesButton").emit_signal("pressed")
+	await create_timer(0.4).timeout
+	_shot("ui_places_village")
+	events.emit_signal("sheet_close_requested")
+	main.call("_on_world_requested", "village", "place:sell")
+	await create_timer(0.4).timeout
+	_shot("ui_sell")
+	events.emit_signal("sheet_close_requested")
+	main.call("_on_world_requested", "village", "npc:artisan")
+	await create_timer(0.4).timeout
+	_shot("ui_npc_lais")
+	events.emit_signal("sheet_close_requested")
+	main.call("show_screen", &"tasks")
 	await create_timer(0.3).timeout
-	_shot("journey_equipped_house")
+	_shot("ui_tasks_late")
+	main.call("show_screen", &"bag")
+	await create_timer(0.3).timeout
+	_shot("ui_bag")
+	events.emit_signal("sheet_requested", "Tábua", load("res://scripts/ui/sheet_builder.gd").call("item_detail", "plank"))
+	await create_timer(0.4).timeout
+	_shot("ui_item_detail")
 
 
 func _shot(file_name: String) -> void:

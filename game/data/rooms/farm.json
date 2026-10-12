@@ -13,7 +13,7 @@
     { "id": "plot_8", "action": "plot", "plot": 8, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [274, 324] }
   ],
   "zones": [
-    { "id": "bloblo_house", "action": "bloblo_house", "polygon": [[140, 85], [250, 30], [305, 85], [305, 135], [220, 178], [145, 150]] }
+    { "id": "bloblo_house", "action": "npc:bloblo", "label": "Bloblo", "label_pos": [222, 22], "polygon": [[140, 85], [250, 30], [305, 85], [305, 135], [220, 178], [145, 150]] }
   ],
   "points": {}
 }

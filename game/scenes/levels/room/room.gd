@@ -3,7 +3,8 @@ extends Control
 ## Um ambiente do Mundo (casa, sítio...), montado a partir de data/rooms/<room_id>.json:
 ## fundo + objetos separados (PixelLab), cada um com uma área no chão (footprint)
 ## que o Tiro contorna. Objetos com "plot" são canteiros de horta.
-## O Tiro só aparece se a sala tiver o ponto "dog_start".
+## O Tiro só aparece se a sala tiver o ponto "dog_start"; sem "floor" não há caminho
+## (sala só de toques, ex.: vila). Ações: "plot" ou "place:<id>"/"npc:<id>" (Places).
 ##
 ## Arrastar move a câmera; tocar num objeto abre o menu dele (toque preciso no
 ## desenho, não num retângulo); tocar no Tiro abre a Tela do Pet.
@@ -11,6 +12,8 @@ extends Control
 
 ## Qual sala montar (nome do arquivo em data/rooms/).
 @export var room_id := "house"
+## Mundo dono da sala (data/worlds.json), usado para abrir os lugares ("place:<id>"). Vazio = room_id.
+@export var world_id := ""
 
 const MAX_ZOOM := 2.0
 const ZOOM_STEP := 1.25
@@ -33,8 +36,8 @@ var _walkable: Array[Vector2i] = []
 var _press_position := Vector2.ZERO
 var _dragged := false
 var _object_frame := 0
-var _farm_button: Button
 var _owned_snapshot: Dictionary = {}
+var _labels: Array[Label] = []
 
 @onready var _content: Control = %Content
 @onready var _background: TextureRect = %Background
@@ -49,16 +52,11 @@ func _ready() -> void:
 	_spawn_objects()
 	_build_navigation()
 	_spawn_dog()
+	if world_id == "":
+		world_id = room_id
+	_spawn_labels()
 	Events.state_changed.connect(_refresh_ownership)
 	_refresh_ownership()
-	if room_id == "farm":
-		_farm_button = UiKit.button("", func() -> void:
-			Events.sheet_requested.emit("Meu sítio", SheetBuilder.farm_view()))
-		_farm_button.position = Vector2(12, 12)
-		_farm_button.z_index = 5
-		add_child(_farm_button)
-		Events.state_changed.connect(_refresh_farm_button)
-		_refresh_farm_button()
 	%ZoomIn.pressed.connect(func() -> void: _zoom_at(size / 2.0, _zoom * ZOOM_STEP))
 	%ZoomOut.pressed.connect(func() -> void: _zoom_at(size / 2.0, _zoom / ZOOM_STEP))
 	resized.connect(_on_resized)
@@ -82,6 +80,8 @@ func random_floor_point() -> Vector2:
 
 
 func _build_navigation() -> void:
+	if not _room.has("floor"):
+		return  # sala sem chão andável (ex.: vila e trilha): só toques
 	var cells := Vector2i((_background.size / NAV_CELL).ceil())
 	_nav.region = Rect2i(Vector2i.ZERO, cells)
 	_nav.cell_size = Vector2.ONE * NAV_CELL
@@ -229,10 +229,6 @@ func _update_plot(sprite: Sprite2D) -> void:
 	(sprite.get_node("Indicator") as PlotIndicator).refresh()
 
 
-func _refresh_farm_button() -> void:
-	_farm_button.text = "Meu sítio  %d/%d" % [GameState.unlocked_plots, int(Database.farm.get("plots", 0))] if GameState.has_upgrade("farm") else "Sítio · canteiro emprestado"
-
-
 func _refresh_ownership() -> void:
 	if _owned_snapshot == GameState.progress.owned and has_meta("ownership_ready"):
 		return
@@ -246,6 +242,42 @@ func _refresh_ownership() -> void:
 	_build_navigation()
 	if _dog:
 		_dog.sleep_point = _point("sleep") if GameState.has_upgrade("sofa") else _point("sleep_approach")
+
+
+## Etiquetas sobre o que dá para tocar ("label" + "label_pos" em zonas e objetos):
+## mostram ao jogador onde fica cada coisa sem precisar adivinhar.
+func _spawn_labels() -> void:
+	for data: Dictionary in _room.get("zones", []) + _room.get("objects", []):
+		if not data.has("label"):
+			continue
+		var tag := Label.new()
+		tag.text = data.label
+		tag.add_theme_font_size_override("font_size", 16)
+		tag.add_theme_color_override("font_color", Color("fff4dc"))
+		var box := StyleBoxFlat.new()
+		box.bg_color = Color(0.29, 0.18, 0.13, 0.85)
+		box.border_color = Color("edc56b")
+		box.set_border_width_all(1)
+		box.set_corner_radius_all(6)
+		box.content_margin_left = 6
+		box.content_margin_right = 6
+		tag.add_theme_stylebox_override("normal", box)
+		tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		tag.z_index = 4
+		tag.z_as_relative = false
+		tag.set_meta("anchor", _vec(data.get("label_pos", data.get("pos", [0, 0]))))
+		_world.add_child(tag)
+		tag.reset_size()
+		_labels.append(tag)
+	_place_labels()
+
+
+## Etiquetas mantêm o mesmo tamanho na tela em qualquer zoom (escala 1/zoom),
+## centradas no ponto "label_pos".
+func _place_labels() -> void:
+	for tag in _labels:
+		tag.scale = Vector2.ONE / _zoom
+		tag.position = (tag.get_meta("anchor") as Vector2) - tag.size * tag.scale / 2.0
 
 
 ## Pulinho de "ficou pronto".
@@ -452,26 +484,10 @@ func _hits(sprite: Sprite2D, local: Vector2) -> bool:
 ## `target` é o sprite tocado (quando houver), para ações que dependem dele (canteiros).
 func _on_object_tapped(action: String, target: Node = null) -> void:
 	match action:
-		"fridge":
-			Events.sheet_requested.emit("Geladeira", SheetBuilder.inventory_view())
-		"stove":
-			Events.sheet_requested.emit("Fogão", SheetBuilder.station_view("stove"))
-		"bowl":
-			Events.sheet_requested.emit("Tigela do Tiro", SheetBuilder.food_picker())
-		"sofa":
-			var sleeping := not GameState.dog.sleeping
-			GameState.set_sleeping(sleeping)
-			Events.toast_requested.emit("Hora da soneca!" if sleeping else "Tiro acordou!")
-		"door":
-			Events.screen_requested.emit(&"farm")
-		"home":
-			Events.screen_requested.emit(&"house")
-		"bloblo_house":
-			Events.sheet_requested.emit("Bloblo", ProgressionUi.npc_view("bloblo"))
 		"plot":
 			_on_plot_tapped(int(target.get_meta("plot")) if target else 0)
 		_:
-			Events.toast_requested.emit("Em breve!")
+			Places.run(world_id, action)  # "place:<id>" ou "npc:<id>" (data/worlds.json)
 
 
 func _flash(sprite: Sprite2D) -> void:
@@ -499,6 +515,7 @@ func _zoom_at(pivot: Vector2, new_zoom: float) -> void:
 	_content.position = pivot - room_point * _zoom
 	_clamp_content()
 	_update_filter()
+	_place_labels()
 
 
 ## Pixel art em escala quebrada (ex.: 1,9 pixel de tela por pixel) com filtro "nearest"

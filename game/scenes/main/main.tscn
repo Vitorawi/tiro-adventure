@@ -1,16 +1,17 @@
-[gd_scene load_steps=15 format=3]
+[gd_scene load_steps=16 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pet_screen/pet_screen.tscn" id="2_pet"]
-[ext_resource type="PackedScene" path="res://scenes/levels/room/room.tscn" id="3_room"]
+[ext_resource type="PackedScene" path="res://scenes/ui/worlds_screen/worlds_screen.tscn" id="3_worlds"]
 [ext_resource type="PackedScene" path="res://scenes/ui/sheet/sheet.tscn" id="4_sheet"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/xp.png" id="5_xp"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/coin.png" id="6_coin"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_pet.png" id="7_tab_pet"]
-[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_house.png" id="8_tab_house"]
-[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_farm.png" id="9_tab_farm"]
-[ext_resource type="PackedScene" path="res://scenes/ui/progression_screen/progression_screen.tscn" id="10_progress"]
-[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_journey.png" id="11_tab_journey"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_map.png" id="8_tab_map"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_tasks.png" id="9_tab_tasks"]
+[ext_resource type="PackedScene" path="res://scenes/ui/tasks_screen/tasks_screen.tscn" id="10_tasks"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_bag.png" id="11_tab_bag"]
+[ext_resource type="PackedScene" path="res://scenes/ui/bag_screen/bag_screen.tscn" id="12_bag"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_tabs"]
 
@@ -158,19 +159,17 @@ size_flags_vertical = 3
 unique_name_in_owner = true
 layout_mode = 1
 
-[node name="House" parent="Layout/Screens" instance=ExtResource("3_room")]
+[node name="WorldsScreen" parent="Layout/Screens" instance=ExtResource("3_worlds")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
-room_id = "house"
 
-[node name="Farm" parent="Layout/Screens" instance=ExtResource("3_room")]
+[node name="TasksScreen" parent="Layout/Screens" instance=ExtResource("10_tasks")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
-room_id = "farm"
 
-[node name="ProgressionScreen" parent="Layout/Screens" instance=ExtResource("10_progress")]
+[node name="BagScreen" parent="Layout/Screens" instance=ExtResource("12_bag")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
@@ -191,37 +190,35 @@ button_group = SubResource("ButtonGroup_tabs")
 text = "Tiro"
 icon = ExtResource("7_tab_pet")
 
-[node name="HouseTab" type="Button" parent="Layout/Tabs"]
+[node name="MapTab" type="Button" parent="Layout/Tabs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"TabButton"
-theme_override_font_sizes/font_size = 26
 toggle_mode = true
 button_group = SubResource("ButtonGroup_tabs")
-text = "Casa"
-icon = ExtResource("8_tab_house")
+text = "Mapa"
+icon = ExtResource("8_tab_map")
 
-[node name="FarmTab" type="Button" parent="Layout/Tabs"]
+[node name="TasksTab" type="Button" parent="Layout/Tabs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"TabButton"
-theme_override_font_sizes/font_size = 26
 toggle_mode = true
 button_group = SubResource("ButtonGroup_tabs")
-text = "Sítio"
-icon = ExtResource("9_tab_farm")
+text = "Tarefas"
+icon = ExtResource("9_tab_tasks")
 
-[node name="JourneyTab" type="Button" parent="Layout/Tabs"]
+[node name="BagTab" type="Button" parent="Layout/Tabs"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_type_variation = &"TabButton"
 toggle_mode = true
 button_group = SubResource("ButtonGroup_tabs")
-text = "Jornada"
-icon = ExtResource("11_tab_journey")
+text = "Mochila"
+icon = ExtResource("11_tab_bag")
 
 [node name="Sheet" parent="." instance=ExtResource("4_sheet")]
 z_index = 10

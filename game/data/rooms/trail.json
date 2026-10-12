@@ -1,0 +1,11 @@
+{
+  "background": "res://assets/sprites/areas/trail/banner.png",
+  "objects": [],
+  "zones": [
+    { "id": "mine", "action": "place:mine", "label": "Mina", "label_pos": [368, 32],
+      "polygon": [[290, 90], [340, 45], [420, 40], [452, 100], [440, 152], [380, 152], [300, 122]] },
+    { "id": "path", "action": "place:walks", "label": "Passeios", "label_pos": [296, 168],
+      "polygon": [[190, 252], [262, 196], [330, 148], [372, 146], [368, 178], [300, 218], [232, 268]] }
+  ],
+  "points": {}
+}

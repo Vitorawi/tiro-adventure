@@ -21,6 +21,8 @@ var progression: Dictionary = {}
 var quests: Dictionary = {}
 var npcs: Dictionary = {}
 var collections: Dictionary = {}
+## Mundos (casa, sítio, vila...): lugares, personagens e requisitos (data/worlds.json).
+var worlds: Dictionary = {}
 
 
 func _init() -> void:
@@ -40,6 +42,25 @@ func _init() -> void:
 	quests = _load("res://data/quests.json")
 	npcs = _load("res://data/npcs.json")
 	collections = _load("res://data/collections.json")
+	worlds = _load("res://data/worlds.json")
+
+
+## Mundo onde o personagem mora ("" se nenhum).
+func npc_world(npc_id: String) -> String:
+	for id: String in worlds:
+		if npc_id in worlds[id].get("npcs", []):
+			return id
+	return ""
+
+
+## Lugar do mundo que abre um painel (ex.: "station:stove" -> "stove" na casa). Devolve [mundo, lugar].
+func place_with_panel(panel: String) -> Array[String]:
+	for world_id: String in worlds:
+		var places: Dictionary = worlds[world_id].get("places", {})
+		for place_id: String in places:
+			if places[place_id].get("panel", "") == panel:
+				return [world_id, place_id]
+	return ["", ""]
 
 
 ## Layout de um ambiente (fundo, piso, móveis, pontos): game/data/rooms/<id>.json
@@ -84,6 +105,48 @@ func recipes_for(station_id: String) -> Array[String]:
 		if recipes[id].get("station") == station_id:
 			result.append(id)
 	return result
+
+
+## De onde vem um item (para o detalhe da Mochila): culturas, receitas, rotas, recompensas.
+func sources_of(item_id: String) -> PackedStringArray:
+	var lines: PackedStringArray = []
+	for id: String in crops:
+		if crops[id].get("yield", {}).has(item_id):
+			lines.append("Plantar e colher no Sítio")
+			break
+	for id: String in recipes:
+		if recipes[id].get("output", "") == item_id:
+			lines.append("%s: %s" % [stations.get(recipes[id].station, {}).get("name", ""), describe_amounts(recipes[id].get("inputs", {}))])
+	for id: String in progression.get("activities", {}):
+		if progression.activities[id].get("rewards", {}).get("items", {}).has(item_id):
+			lines.append("Rota: " + str(progression.activities[id].name))
+	for id: String in quests:
+		if quests[id].get("rewards", {}).get("items", {}).has(item_id):
+			lines.append("Missão: " + str(quests[id].name))
+	if item_id == "dog_food":
+		lines.append("A Bloblo ajuda quando a comida acaba (Tigela)")
+	return lines
+
+
+## Onde um item é usado: receitas, construções, encomendas e entregas de missão.
+func uses_of(item_id: String) -> PackedStringArray:
+	var lines: PackedStringArray = []
+	for id: String in recipes:
+		if recipes[id].get("inputs", {}).has(item_id):
+			lines.append("%s: %s" % [stations.get(recipes[id].station, {}).get("name", ""), item_name(recipes[id].output)])
+	for id: String in progression.get("upgrades", {}):
+		if progression.upgrades[id].get("materials", {}).has(item_id):
+			lines.append("Construir: " + str(progression.upgrades[id].name))
+	for id: String in progression.get("orders", {}):
+		if progression.orders[id].get("inputs", {}).has(item_id):
+			lines.append("Encomenda: " + str(progression.orders[id].name))
+	for id: String in quests:
+		for goal: Dictionary in quests[id].get("goals", []):
+			if goal.get("type", "") == "deliver" and goal.get("key", "") == item_id:
+				lines.append("Missão: " + str(quests[id].name))
+	if items.get(item_id, {}).has("feed"):
+		lines.append("Comida para o Tiro")
+	return lines
 
 
 ## Texto "2x Cenoura, 1x Batata" a partir de um dicionário item -> quantidade.

@@ -101,6 +101,17 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
   `tab_pet`, `tab_house`. Exibir em 32 ou 64 px (escala inteira). Prompt base:
   "game inventory icon: <coisa>, cute, bold outline", outline "single color black outline".
   Cenoura e petisco refeitos para não se confundirem (petisco = biscoito em forma de osso).
+- Navegação (12/10/2026): `tab_map` (era `tab_journey`), `tab_tasks` (job 8dfc6c5b), `tab_bag` (job f1e1e2df).
+- Cenas da Vila e da Trilha: `create_image_pro` 632x395 com `farm.png` como referência de estilo
+  (jobs 36b8c28a e 8331aed1), em `areas/village/banner.png` e `areas/trail/banner.png`; usadas como
+  fundo das salas `rooms/village.json` e `rooms/trail.json`. Prompt: "...on a floating isometric island
+  block with dirt edge, same style as reference ..., dark empty background, no people".
+- Retratos PROVISÓRIOS dos NPCs (pixen 64x64): `characters/npc_<id>/portrait.png` (bloblo 297c5b5f,
+  guide 38b1560a, merchant 6a56128f). Serão trocados pelas fotos do Vitor.
+- **Laís** (NPC `artisan`, a artesã da Vila): retrato feito A PARTIR DE FOTOS (frente + perfil) com
+  `create_image_pro` 64x64, refs: foto de frente (rosto/sardas), foto de perfil (cabelo) e o retrato
+  provisório (estilo). Job f7aa7f29, candidato 0 de 16. Receita para os próximos NPCs com foto: mesma
+  chamada, trocando a descrição; escolher numa prancha 4x (as 16 opções lado a lado).
 - Ícones da Jornada (12/10/2026, pixen 32x32, 1 geração cada, mesmo prompt base): `item_wood`,
   `item_stone`, `item_copper`, `item_crystal`, `item_plank`, `item_brick`, `item_fiber`, `item_fabric`,
   `item_apple`, `item_herbs`, `item_vegetable_soup`, `item_apple_biscuit`, `item_treat_box`,

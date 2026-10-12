@@ -1,0 +1,13 @@
+{
+  "background": "res://assets/sprites/areas/village/banner.png",
+  "objects": [],
+  "zones": [
+    { "id": "stall", "action": "place:sell", "label": "Vender", "label_pos": [228, 72],
+      "polygon": [[165, 120], [245, 85], [290, 140], [290, 190], [215, 222], [162, 196]] },
+    { "id": "workshop", "action": "npc:artisan", "label": "Laís", "label_pos": [425, 32],
+      "polygon": [[345, 90], [430, 38], [500, 95], [500, 162], [420, 192], [345, 152]] },
+    { "id": "crates", "action": "place:orders", "label": "Encomendas", "label_pos": [350, 262],
+      "polygon": [[316, 282], [360, 268], [388, 294], [362, 326], [318, 322]] }
+  ],
+  "points": {}
+}

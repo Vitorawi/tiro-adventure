@@ -11,7 +11,8 @@ https://vitorawi.github.io/tiro-adventure/ (versão de testes: `.../tiro-adventu
 Celular **em pé**, tela inteira, **100% toque**: o jogador não controla o movimento do cachorro
 (ele anda sozinho), só toca nos objetos (geladeira, horta, fogão...) e arrasta para mover a câmera.
 Começa com a casa quase vazia e vai comprando fogão, geladeira, sítio, oficina... com 7 atributos
-que evoluem e missões de personagens (aba **Jornada**).
+que evoluem e missões de personagens. Abas: **Tiro · Mapa** (mini mundos: Casa, Sítio, Vila, Trilha,
+cada um com seus personagens e lugares) **· Tarefas** (o que fazer agora, com botão "Ir") **· Mochila**.
 
 Jogo 2D em **Godot 4.7.2** (GDScript), exportado para **Web** e instalado no celular como **PWA**
 ("Adicionar à tela inicial" no iPhone/Android). Publicado automaticamente no **GitHub Pages**
@@ -20,6 +21,7 @@ a cada push na `main` (versão publicada em `/` e versão dev em `/dev/`). Progr
 
 - Ideia/regras do jogo: `docs/GAME_DESIGN.md`
 - Progressão (atributos, construções, missões, NPCs, versão dev): `docs/PROGRESSION.md`
+- Mundos, navegação e **como criar um mundo novo**: `docs/WORLDS.md`
 - Fases, **estado atual e próximas tarefas**: `docs/ROADMAP.md`
 
 ## Trabalho em dupla (Claude Code + Codex)
@@ -43,16 +45,20 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
                        items.json, recipes.json, crops.json, config.json (necessidades, estações, sítio, XP, início)
                        progression.json (atributos, construções, rotas, pedidos, capítulos)
                        quests.json, npcs.json, collections.json (missões, personagens, roupas/apetrechos)
-                       rooms/<id>.json (layout das salas), version.json (versão + canal prod/dev, gravado no deploy)
+                       worlds.json (mundos: lugares, personagens, requisitos)
+                       rooms/<id>.json (cena de cada mundo: fundo, móveis, zonas tocáveis), version.json (versão + canal prod/dev, gravado no deploy)
   scenes/            cenas, uma pasta por cena (.tscn + .gd juntos)
-    main/            casca: barra superior (selo DEV), abas Tiro/Casa/Sítio/Jornada, Sheet, toast
+    main/            casca: barra superior (selo DEV), abas Tiro/Mapa/Tarefas/Mochila, Sheet, toast
     ui/pet_screen/   Tela do Pet (Tiro grande, necessidades, ações)
-    ui/progression_screen/  aba Jornada (Hoje, Atributos, Missões, Construir, Rotas, Feira, Produção, Coleção)
+    ui/worlds_screen/  aba Mapa: lista de mundos + mundo atual (cabeçalho com Mapa, Lugares e personagens)
+    ui/tasks_screen/   aba Tarefas (próximo passo, prontos agora, missões, atributos, coleção; botões "Ir")
+    ui/bag_screen/     aba Mochila (itens por categoria; detalhe: para que serve, onde usar, vender)
     ui/sheet/        painel inferior genérico (menus de objetos)
-    levels/room/     RoomView genérico (`room_id`): monta data/rooms/<id>.json (casa, sítio), canteiros, navegação, toque, câmera
+    levels/room/     RoomView genérico (`room_id`, `world_id`): monta data/rooms/<id>.json (casa, sítio, vila, trilha), canteiros, etiquetas, navegação, toque, câmera
     entities/dog_world/  Tiro pequeno com IA autônoma (anda pelo caminho calculado)
   scripts/state/     DogState, Inventory, StationState, ProgressionState (dados + to_dict/from_dict)
-  scripts/ui/        UiKit (peças), SheetBuilder (painéis), ProgressionUi (páginas da Jornada),
+  scripts/ui/        UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
+                     ProgressionUi (painéis: personagem, construir, vender, encomendas, rotas, atributos, coleção),
                      DevPanel (ferramentas DEV), PlotIndicator, PetAnimator (animações do Tiro na aba Tiro)
   scripts/util/      BuildInfo (canal prod/dev, arquivo de save), TimeText (texto de duração)
   assets/            sprites/(characters,areas,tiles,ui,fx), theme/, audio/, fonts/, icons/ (PWA)
@@ -64,14 +70,16 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 |---------------------------------------|---------|
 | Novo item / receita / ajuste de números | `game/data/*.json` (sem mexer em código) |
 | Nova construção, rota, pedido, capítulo ou atributo | `game/data/progression.json` (formato em `docs/PROGRESSION.md`) |
-| Nova missão / personagem (NPC) / roupa | `quests.json` / `npcs.json` (campo `portrait` para a foto) / `collections.json` |
+| Novo mundo (mini mundinho)            | `data/worlds.json` + `data/rooms/<id>.json` + arte (receita em `docs/WORLDS.md`; sem código) |
+| Novo lugar tocável num mundo          | `places` em `worlds.json` + zona/objeto com `"action": "place:<id>"` (e `label`) em `rooms/<id>.json` |
+| Nova missão / personagem (NPC) / roupa | `quests.json` / `npcs.json` (`portrait`, `services`) + mundo dele em `worlds.json` → `npcs` / `collections.json` |
 | Requisitos de conteúdo (nível, compra, missão) | campo `"requirements"` no JSON; validados por `ProgressionState.requirement_error` |
 | Nova ação do jogo (ex.: plantar)      | método em `game/autoload/game_state.gd` + estado em `game/scripts/state/` |
-| Novo móvel / mudar layout da casa     | `game/data/rooms/house.json` (sprite, pos, footprint, action, `upgrade`) + ação em `_on_object_tapped` de `room.gd` |
+| Novo móvel / mudar layout da casa     | `game/data/rooms/house.json` (sprite, pos, footprint, `"action": "place:<id>"`, `upgrade`) + lugar em `worlds.json` |
 | Nova planta da horta / tempo / colheita | `game/data/crops.json` (tempo, itens, moedas, XP, requisitos; ícone em `items.json`); terrenos em `config.json` → `farm` |
-| Novo ambiente (sala)                  | `game/data/rooms/<id>.json` + instância de `levels/room/room.tscn` com `room_id` em `main.tscn` (+ aba em `main.gd`) |
-| Novo menu de objeto                   | função em `game/scripts/ui/sheet_builder.gd` (montar com `UiKit`) + `Events.sheet_requested` |
-| Nova página da Jornada                | `game/scripts/ui/progression_ui.gd` + botão em `progression_screen.gd` |
+| Novo tipo de painel de lugar          | caso em `Places._panel` (`scripts/ui/places.gd`) + função que monta o painel (`SheetBuilder`/`ProgressionUi`, com `UiKit`) |
+| Botão "Ir até lá"                     | `Events.world_requested.emit(mundo, "<lugar>" | "npc:<id>" | "buy:<construção>")` |
+| Mudar a aba Tarefas / Mochila         | `scenes/ui/tasks_screen/tasks_screen.gd` / `SheetBuilder.inventory_view` e `item_detail` |
 | Nova ferramenta de teste (dev)        | `GameState.dev_*()` (com guarda `BuildInfo.is_dev()`) + botão em `scripts/ui/dev_panel.gd` |
 | Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: PrimaryButton, TabButton, CloseButton, CardPanel, ReadyCardPanel, ChipPanel, SheetPanel, TopBarPanel, TitleLabel, SectionLabel, SmallLabel, BarLabel, ToastLabel) |
 | Ícone de item/necessidade/atributo    | PNG 32 px em `game/assets/sprites/ui/icons/` + campo `"icon"` no JSON (caminho em `items.json`/`needs`; nome do arquivo sem `.png` em `progression.json`, `npcs.json`, `collections.json`) |
@@ -96,6 +104,9 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 - **Classes de estado** (`scripts/state/`): só dados + consultas puras + `to_dict`/`from_dict`.
   O estado não depende da UI (ex.: texto de tempo vem de `TimeText`, não do `SheetBuilder`).
 - **Sinais globais só em `Events`.** Sinais locais ficam na cena.
+- **Navegação intuitiva:** cada função mora num lugar de um mundo (`worlds.json`); toda tela que
+  sugere algo (Tarefas, Mochila, personagem) tem botão que leva até lá (`Events.world_requested`).
+  Nada de menus genéricos escondidos: um lugar novo entra no mundo onde faria sentido.
 - **Versão dev x publicada:** `BuildInfo.is_dev()` (canal em `data/version.json`; o executável do
   Godot é sempre dev). A dev usa `user://save_dev.json`, mostra o selo **DEV** e libera as
   ferramentas de teste. Toda ferramenta `GameState.dev_*` começa com a guarda `if not BuildInfo.is_dev(): return`.
@@ -117,6 +128,8 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   `"station"` + `"busy_frames"` (pasta de PNGs) = móvel que anima enquanto a estação produz
   (ex.: fogão cozinhando). Quadros de animação usam o MESMO recorte da imagem base.
   `"upgrade": "<id>"` = móvel só aparece depois de comprado (antes: marcador "+" que abre a compra).
+  `"action"`: `"place:<id>"` (lugar do mundo em `worlds.json`), `"npc:<id>"` ou `"plot"`; `"label"` +
+  `"label_pos"` = etiqueta flutuante mostrando que dá para tocar. Sala sem `"floor"` = só toques (vila, trilha).
   `"plot": N` = canteiro N da horta (estado em `GameState.plots`; broto/planta madura por cima).
   `GameState.unlocked_plots` guarda os terrenos comprados em ordem fixa; `buy_plot` valida a compra.
   `PlotIndicator` desenha ícone, tempo e barra sobre a planta; `SheetBuilder` monta os painéis do sítio.

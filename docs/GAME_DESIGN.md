@@ -131,6 +131,11 @@ desbloquear áreas, estações, receitas, itens e personagens
 - O botão “Meu sítio” mostra terrenos adquiridos, saldo, próxima expansão e acesso aos canteiros.
 - Saves antigos preservam seus terrenos e plantações. Crescimento continua com o app fechado.
 
+## Mundos e navegação (implementado)
+Abas Tiro · Mapa · Tarefas · Mochila. Mini mundos (Casa, Sítio da Bloblo, Vila, Trilha do riacho),
+cada um com personagens e lugares tocáveis; a aba Tarefas diz o que fazer e leva até lá.
+Ver [WORLDS.md](WORLDS.md).
+
 ## Progressão — Jornada (implementada)
 Casa quase vazia no começo, 7 atributos (Agricultura, Culinária, Construção, Comércio, Passeio,
 Mineração, Vínculo), construções compradas, rotas de passeio/mineração, feira, capítulos, missões
