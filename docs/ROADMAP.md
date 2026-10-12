@@ -28,7 +28,8 @@
 - [ ] Barra de segurança no topo para notch do iPhone
 
 ## Iteração 2
-- [ ] Horta (plantar/colher) + porta da casa leva até ela
+- [x] Horta: Sítio da Bloblo (aba Sítio + porta da casa), 6 canteiros, cenoura/batata/abóbora (`crops.json`)
+- [ ] Bloblo como personagem (retrato + missões); Tiro passeando no sítio
 - [ ] Tutor dentro de casa (sprite pequeno + retrato detalhado + diálogo) com missões
 - [ ] Moedas: vender produtos
 

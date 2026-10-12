@@ -21,7 +21,7 @@ const SHADOW_RADIUS := 17.0
 const SHADOW_SQUASH := 0.4
 const SHADOW_COLOR := Color(0.12, 0.05, 0.02, 0.5)
 
-var room: HouseRoom
+var room: RoomView
 var bowl_point := Vector2.ZERO
 ## Lugar de dormir (em cima do sofá) e o ponto no chão, na frente dele, por onde sobe/desce.
 var sleep_point := Vector2.ZERO

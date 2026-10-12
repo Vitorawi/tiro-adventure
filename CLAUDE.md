@@ -31,10 +31,10 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   autoload/          Events (sinais), Database (lê data/*.json), GameState (estado + ações), SaveManager
   data/              CONTEÚDO em JSON: items.json, recipes.json, config.json (necessidades, ações, XP, início)
   scenes/            cenas, uma pasta por cena (.tscn + .gd juntos)
-    main/            casca: barra superior, abas Tiro/Casa, Sheet, toast
+    main/            casca: barra superior, abas Tiro/Casa/Sítio, Sheet, toast
     ui/pet_screen/   Tela do Pet (Tiro grande, necessidades, ações)
     ui/sheet/        painel inferior genérico (menus de objetos)
-    levels/house/    Casa (HouseRoom): monta a sala de data/rooms/house.json, navegação, toque, câmera
+    levels/room/     RoomView genérico (`room_id`): monta data/rooms/<id>.json (casa, sítio), canteiros, navegação, toque, câmera
     entities/dog_world/  Tiro pequeno com IA autônoma (anda pelo caminho calculado)
   scripts/state/     DogState, Inventory, StationState (dados + to_dict/from_dict)
   scripts/ui/        UiKit (peças: ícone, chip, cartão, botão, barra) e SheetBuilder (conteúdo dos painéis)
@@ -47,7 +47,9 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 |---------------------------------------|---------|
 | Novo item / receita / ajuste de números | `game/data/*.json` (sem mexer em código) |
 | Nova ação do jogo (ex.: plantar)      | método em `game/autoload/game_state.gd` + estado em `game/scripts/state/` |
-| Novo móvel / mudar layout da casa     | `game/data/rooms/house.json` (sprite, pos, footprint, action) + ação em `_on_object_tapped` de `house.gd` |
+| Novo móvel / mudar layout da casa     | `game/data/rooms/house.json` (sprite, pos, footprint, action) + ação em `_on_object_tapped` de `room.gd` |
+| Nova planta da horta / tempo / colheita | `game/data/crops.json` (+ ícone do item em `items.json`); nº de canteiros em `config.json` → `farm` |
+| Novo ambiente (sala)                  | `game/data/rooms/<id>.json` + instância de `levels/room/room.tscn` com `room_id` em `main.tscn` (+ aba em `main.gd`) |
 | Novo menu de objeto                   | função em `game/scripts/ui/sheet_builder.gd` (montar com `UiKit`) + `Events.sheet_requested` |
 | Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: PrimaryButton, TabButton, CloseButton, CardPanel, ReadyCardPanel, ChipPanel, SheetPanel, TopBarPanel, TitleLabel, SectionLabel, SmallLabel, BarLabel, ToastLabel) |
 | Ícone de item/necessidade             | PNG 32 px em `game/assets/sprites/ui/icons/` + campo `"icon"` no JSON (`items.json`, `needs` do `config.json`) |
@@ -83,7 +85,9 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   `zones` = partes tocáveis do fundo (ex.: porta); `"slice": true` = peça recortada do fundo
   (ex.: ilha), fatiada em colunas para o Tiro passar atrás/na frente, sem toque;
   `"station"` + `"busy_frames"` (pasta de PNGs) = móvel que anima enquanto a estação produz
-  (ex.: fogão cozinhando). Quadros de animação usam o MESMO recorte da imagem base. O piso vira uma grade `AStarGrid2D` (8 px)
+  (ex.: fogão cozinhando). Quadros de animação usam o MESMO recorte da imagem base.
+  `"plot": N` = canteiro N da horta (estado em `GameState.plots`; broto/planta madura por cima).
+  O Tiro só aparece na sala que tiver o ponto `dog_start`. O piso vira uma grade `AStarGrid2D` (8 px)
   e o Tiro anda por ela. Para posicionar móveis, gere prévias com `tools/pixel_tools.ps1`.
 - **Toque:** a sala trata toque curto = clique (teste por pixel opaco do sprite) e arrastar =
   câmera. Eventos de toque chegam como mouse (`emulate_mouse_from_touch`): trate `InputEventMouse*`.

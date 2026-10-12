@@ -94,7 +94,7 @@ static func _slot_card(entry: Dictionary, now: float) -> Control:
 		return _slot_frame(texture, "Pronto!", 1.0, true, false)
 	if remaining > seconds:
 		return _slot_frame(texture, "Na fila", 0.0, false, false)
-	return _slot_frame(texture, _format_time(int(ceil(remaining))), 1.0 - remaining / seconds, false, false)
+	return _slot_frame(texture, format_time(int(ceil(remaining))), 1.0 - remaining / seconds, false, false)
 
 
 static func _slot_frame(texture: Texture2D, text: String, progress: float, done: bool, empty: bool) -> Control:
@@ -131,7 +131,7 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 	var qty := int(recipe.get("qty", 1))
 	info.add_child(UiKit.label(Database.item_name(output) + ("  x%d" % qty if qty > 1 else "")))
 	var details := UiKit.flow()
-	details.add_child(UiKit.chip(UiKit.ui_icon("timer"), _format_time(int(recipe["seconds"]))))
+	details.add_child(UiKit.chip(UiKit.ui_icon("timer"), format_time(int(recipe["seconds"]))))
 	var feed: Dictionary = Database.items.get(output, {}).get("feed", {})
 	for need_id: String in feed:
 		details.add_child(UiKit.chip(Database.need_icon(need_id), "%+d" % int(feed[need_id]), UiKit.GOOD))
@@ -162,6 +162,35 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 	body.add_child(cook)
 
 
+## Sementes para um canteiro vazio: o que nasce, quanto tempo leva e quanto rende.
+static func seed_picker(plot_index: int) -> Control:
+	return LiveBox.new(func(box: VBoxContainer) -> void:
+		box.add_child(UiKit.label("A Bloblo empresta as sementes. Escolha o que plantar:", &"SmallLabel"))
+		for crop_id: String in Database.crops:
+			var crop: Dictionary = Database.crops[crop_id]
+			var body := UiKit.card(box)
+			var row := UiKit.hbox(10)
+			row.add_child(UiKit.icon(Database.item_icon(crop_id), 64))
+			var info := UiKit.vbox(4)
+			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			info.add_child(UiKit.label(Database.item_name(crop_id)))
+			var details := UiKit.flow()
+			details.add_child(UiKit.chip(UiKit.ui_icon("timer"), format_time(int(crop["seconds"]))))
+			var harvest: Dictionary = crop.get("yield", {})
+			for item_id: String in harvest:
+				details.add_child(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), UiKit.GOOD))
+			info.add_child(details)
+			row.add_child(info)
+			var plant := UiKit.button("Plantar", func() -> void:
+				var error := GameState.plant(plot_index, crop_id)
+				Events.toast_requested.emit(error if error != "" else "Plantou %s!" % Database.item_name(crop_id))
+				Events.sheet_close_requested.emit(), &"PrimaryButton")
+			plant.custom_minimum_size = Vector2(96, 52)
+			plant.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			row.add_child(plant)
+			body.add_child(row))
+
+
 static func _empty_message(box: VBoxContainer, title: String, hint: String) -> void:
 	var body := UiKit.card(box)
 	var text := UiKit.label(title)
@@ -173,7 +202,7 @@ static func _empty_message(box: VBoxContainer, title: String, hint: String) -> v
 		body.add_child(small)
 
 
-static func _format_time(seconds: int) -> String:
+static func format_time(seconds: int) -> String:
 	if seconds >= 60 and seconds % 60 == 0:
 		return "%d min" % (seconds / 60)
 	if seconds >= 60:

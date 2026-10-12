@@ -2,12 +2,13 @@
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pet_screen/pet_screen.tscn" id="2_pet"]
-[ext_resource type="PackedScene" path="res://scenes/levels/house/house.tscn" id="3_house"]
+[ext_resource type="PackedScene" path="res://scenes/levels/room/room.tscn" id="3_room"]
 [ext_resource type="PackedScene" path="res://scenes/ui/sheet/sheet.tscn" id="4_sheet"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/xp.png" id="5_xp"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/coin.png" id="6_coin"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_pet.png" id="7_tab_pet"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_house.png" id="8_tab_house"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_farm.png" id="9_tab_farm"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_tabs"]
 
@@ -127,10 +128,17 @@ size_flags_vertical = 3
 unique_name_in_owner = true
 layout_mode = 1
 
-[node name="House" parent="Layout/Screens" instance=ExtResource("3_house")]
+[node name="House" parent="Layout/Screens" instance=ExtResource("3_room")]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
+room_id = "house"
+
+[node name="Farm" parent="Layout/Screens" instance=ExtResource("3_room")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+room_id = "farm"
 
 [node name="Tabs" type="HBoxContainer" parent="Layout"]
 custom_minimum_size = Vector2(0, 64)
@@ -158,6 +166,17 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_tabs")
 text = "Casa"
 icon = ExtResource("8_tab_house")
+
+[node name="FarmTab" type="Button" parent="Layout/Tabs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TabButton"
+theme_override_font_sizes/font_size = 26
+toggle_mode = true
+button_group = SubResource("ButtonGroup_tabs")
+text = "Sítio"
+icon = ExtResource("9_tab_farm")
 
 [node name="Sheet" parent="." instance=ExtResource("4_sheet")]
 z_index = 10

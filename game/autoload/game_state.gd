@@ -9,6 +9,8 @@ extends Node
 var dog := DogState.new()
 var inventory := Inventory.new()
 var stations: Dictionary = {}  # station_id -> StationState
+## Canteiros do sítio: { "crop": id ou "", "ready_at": unix }. Quantidade em config "farm.plots".
+var plots: Array[Dictionary] = []
 var coins: int = 0
 var xp: int = 0
 var level: int = 1
@@ -27,6 +29,8 @@ func reset() -> void:
 		inventory.add(id, int(start_items[id]))
 	stations = {}
 	_ensure_stations()
+	plots = []
+	_ensure_plots()
 	coins = int(Database.start.get("coins", 0))
 	xp = 0
 	level = 1
@@ -109,6 +113,50 @@ func collect(station_id: String) -> Dictionary:
 	return received
 
 
+# --- Horta (sítio) ---------------------------------------------------------
+
+func plot(index: int) -> Dictionary:
+	_ensure_plots()
+	return plots[index]
+
+
+## "empty", "growing" ou "ready".
+func plot_status(index: int) -> String:
+	var target := plot(index)
+	if target["crop"] == "":
+		return "empty"
+	return "ready" if float(target["ready_at"]) <= now() else "growing"
+
+
+## Planta no canteiro. Retorna "" se deu certo ou o motivo da falha.
+func plant(index: int, crop_id: String) -> String:
+	if not Database.crops.has(crop_id):
+		return "Semente desconhecida"
+	if plot_status(index) != "empty":
+		return "Canteiro ocupado"
+	plots[index] = { "crop": crop_id, "ready_at": now() + float(Database.crops[crop_id].get("seconds", 60)) }
+	_changed()
+	return ""
+
+
+## Colhe um canteiro pronto. Retorna os itens recebidos (vazio se não estava pronto).
+func harvest(index: int) -> Dictionary:
+	if plot_status(index) != "ready":
+		return {}
+	var received: Dictionary = Database.crops[plot(index)["crop"]].get("yield", {})
+	for item_id: String in received:
+		inventory.add(item_id, int(received[item_id]))
+	plots[index] = { "crop": "", "ready_at": 0.0 }
+	_gain_xp("harvest")
+	_changed()
+	return received
+
+
+func _ensure_plots() -> void:
+	while plots.size() < int(Database.farm.get("plots", 0)):
+		plots.append({ "crop": "", "ready_at": 0.0 })
+
+
 # --- Progressão ------------------------------------------------------------
 
 func xp_to_next_level() -> int:
@@ -133,6 +181,7 @@ func to_dict() -> Dictionary:
 		"dog": dog.to_dict(),
 		"inventory": inventory.to_dict(),
 		"stations": station_data,
+		"plots": plots,
 		"coins": coins,
 		"xp": xp,
 		"level": level,
@@ -154,6 +203,11 @@ func from_dict(data: Dictionary) -> void:
 		loaded.from_dict(station_data[id])
 		stations[id] = loaded
 	_ensure_stations()
+	# "plots" chegou depois da v2 do save: saves antigos simplesmente começam com canteiros vazios.
+	plots = []
+	for entry: Dictionary in data.get("plots", []):
+		plots.append({ "crop": str(entry.get("crop", "")), "ready_at": float(entry.get("ready_at", 0.0)) })
+	_ensure_plots()
 	coins = int(data.get("coins", 0))
 	xp = int(data.get("xp", 0))
 	level = int(data.get("level", 1))

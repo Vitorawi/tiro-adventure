@@ -1,14 +1,17 @@
-class_name HouseRoom
+class_name RoomView
 extends Control
-## Casa do Tiro (primeiro ambiente do Mundo), montada a partir de data/rooms/house.json:
-## fundo vazio (piso + paredes) + móveis separados (PixelLab), cada um com uma
-## área no chão (footprint) que o Tiro contorna.
+## Um ambiente do Mundo (casa, sítio...), montado a partir de data/rooms/<room_id>.json:
+## fundo + objetos separados (PixelLab), cada um com uma área no chão (footprint)
+## que o Tiro contorna. Objetos com "plot" são canteiros de horta.
+## O Tiro só aparece se a sala tiver o ponto "dog_start".
 ##
-## Arrastar move a câmera; tocar num móvel abre o menu dele (toque preciso no
+## Arrastar move a câmera; tocar num objeto abre o menu dele (toque preciso no
 ## desenho, não num retângulo); tocar no Tiro abre a Tela do Pet.
 ## Coordenadas do JSON estão em pixels da imagem de fundo.
 
-const ROOM_ID := "house"
+## Qual sala montar (nome do arquivo em data/rooms/).
+@export var room_id := "house"
+
 const MAX_ZOOM := 2.0
 const ZOOM_STEP := 1.25
 const TAP_SLOP := 12.0
@@ -37,7 +40,7 @@ var _object_frame := 0
 
 
 func _ready() -> void:
-	_room = Database.room(ROOM_ID)
+	_room = Database.room(room_id)
 	_background.texture = load(_room["background"])
 	_background.size = _background.texture.get_size()
 	_content.size = _background.size
@@ -126,6 +129,14 @@ func _spawn_objects() -> void:
 			sprite.set_meta("station", data["station"])
 			sprite.set_meta("base_texture", sprite.texture)
 			sprite.set_meta("busy_frames", _load_frames(data["busy_frames"]))
+		if data.has("plot"):
+			# Canteiro: a planta (broto ou pronta) é um sprite por cima do solo.
+			sprite.set_meta("plot", int(data["plot"]))
+			var crop := Sprite2D.new()
+			crop.name = "Crop"
+			crop.position = Vector2(0, -sprite.texture.get_height() / 2.0 + float(data.get("crop_offset", 0)))
+			crop.offset = Vector2(0, -8)
+			sprite.add_child(crop)
 		_world.add_child(sprite)
 		_objects.append(sprite)
 
@@ -147,11 +158,35 @@ func _animate_objects() -> void:
 		return
 	_object_frame += 1
 	for sprite in _objects:
+		if sprite.has_meta("plot"):
+			_update_plot(sprite)
 		if not sprite.has_meta("busy_frames"):
 			continue
 		var frames: Array[Texture2D] = sprite.get_meta("busy_frames")
 		var busy := GameState.station(sprite.get_meta("station")).is_busy(GameState.now())
 		sprite.texture = frames[_object_frame % frames.size()] if busy and not frames.is_empty() else sprite.get_meta("base_texture")
+
+
+## Mostra o broto enquanto cresce e a planta madura quando dá para colher.
+func _update_plot(sprite: Sprite2D) -> void:
+	var index: int = sprite.get_meta("plot")
+	var crop: Sprite2D = sprite.get_node("Crop")
+	var texture: Texture2D = null
+	match GameState.plot_status(index):
+		"growing":
+			texture = Database.farm_texture("sprout")
+		"ready":
+			texture = Database.crop_texture(GameState.plot(index)["crop"])
+	if crop.texture != texture:
+		crop.texture = texture
+		if texture and GameState.plot_status(index) == "ready":
+			_pop(crop)
+
+
+## Pulinho de "ficou pronto".
+func _pop(node: Node2D) -> void:
+	node.scale = Vector2(0.6, 0.6)
+	create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT).tween_property(node, "scale", Vector2.ONE, 0.35)
 
 
 ## Peça comprida em diagonal (ex.: ilha recortada do fundo): um único ponto de
@@ -181,6 +216,8 @@ func _spawn_sliced(texture: Texture2D, pos: Vector2) -> void:
 
 
 func _spawn_dog() -> void:
+	if not _room.get("points", {}).has("dog_start"):
+		return  # sala sem o Tiro (ex.: sítio, por enquanto)
 	_dog = DogWorld.new()
 	_dog.name = "Tiro"
 	_dog.room = self
@@ -297,17 +334,16 @@ func _gui_input(event: InputEvent) -> void:
 
 
 func _handle_tap(point: Vector2) -> void:
-	if _dog.hit_test(point):
+	if _dog and _dog.hit_test(point):
 		Events.screen_requested.emit(&"pet")
 		return
 	# Do mais à frente (maior Y) para o mais ao fundo.
 	var ordered := _objects.duplicate()
 	ordered.sort_custom(func(a: Sprite2D, b: Sprite2D) -> bool: return a.position.y > b.position.y)
 	for sprite: Sprite2D in ordered:
-		var local := point - sprite.position
-		if sprite.get_rect().has_point(local) and sprite.is_pixel_opaque(local):
+		if _hits(sprite, point - sprite.position) or (sprite.has_node("Crop") and _hits(sprite.get_node("Crop"), point - sprite.position - sprite.get_node("Crop").position)):
 			_flash(sprite)
-			_on_object_tapped(sprite.get_meta("action"))
+			_on_object_tapped(sprite.get_meta("action"), sprite)
 			return
 	# Zonas: partes tocáveis do próprio fundo (ex.: porta).
 	for zone: Dictionary in _room.get("zones", []):
@@ -316,7 +352,27 @@ func _handle_tap(point: Vector2) -> void:
 			return
 
 
-func _on_object_tapped(action: String) -> void:
+## Canteiro vazio abre as sementes; crescendo mostra quanto falta; pronto colhe.
+func _on_plot_tapped(index: int) -> void:
+	match GameState.plot_status(index):
+		"empty":
+			Events.sheet_requested.emit("Canteiro", SheetBuilder.seed_picker(index))
+		"growing":
+			var plot := GameState.plot(index)
+			var remaining := int(ceil(float(plot["ready_at"]) - GameState.now()))
+			Events.toast_requested.emit("%s fica pronta em %s" % [Database.item_name(plot["crop"]), SheetBuilder.format_time(remaining)])
+		"ready":
+			var received := GameState.harvest(index)
+			Events.toast_requested.emit("Colheu " + Database.describe_amounts(received) + "!")
+
+
+## Toque preciso: dentro do retângulo e num pixel não transparente do desenho.
+func _hits(sprite: Sprite2D, local: Vector2) -> bool:
+	return sprite.texture != null and sprite.get_rect().has_point(local) and sprite.is_pixel_opaque(local)
+
+
+## `target` é o sprite tocado (quando houver), para ações que dependem dele (canteiros).
+func _on_object_tapped(action: String, target: Node = null) -> void:
 	match action:
 		"fridge":
 			Events.sheet_requested.emit("Geladeira", SheetBuilder.inventory_view())
@@ -329,7 +385,13 @@ func _on_object_tapped(action: String) -> void:
 			GameState.set_sleeping(sleeping)
 			Events.toast_requested.emit("Hora da soneca!" if sleeping else "Tiro acordou!")
 		"door":
-			Events.toast_requested.emit("A Horta abre no nível 2!")
+			Events.screen_requested.emit(&"farm")
+		"home":
+			Events.screen_requested.emit(&"house")
+		"bloblo_house":
+			Events.toast_requested.emit("A Bloblo foi à feira. Volte mais tarde!")
+		"plot":
+			_on_plot_tapped(int(target.get_meta("plot")) if target else 0)
 		_:
 			Events.toast_requested.emit("Em breve!")
 

@@ -61,6 +61,29 @@ func _run() -> void:
 			await _seconds(0.2)
 			_save("sheet_stove_recipes")
 		root.get_node("/root/Events").emit_signal("sheet_close_requested")
+	# Sítio: canteiros vazios, crescendo e prontos; painel de sementes.
+	main.show_screen(&"farm")
+	await _frames(20)
+	_save("farm")
+	var farm: Node = main.find_child("Farm")
+	farm.call("_on_object_tapped", "plot", farm.find_child("plot_0", true, false))
+	await _seconds(0.5)
+	_save("sheet_seeds")
+	root.get_node("/root/Events").emit_signal("sheet_close_requested")
+	var game_state: Node = root.get_node("/root/GameState")
+	game_state.call("plant", 0, "carrot")
+	game_state.call("plant", 1, "potato")
+	game_state.call("plant", 2, "pumpkin")
+	game_state.call("plant", 4, "carrot")
+	var plots: Array = game_state.get("plots")
+	plots[1]["ready_at"] = 0.0
+	plots[2]["ready_at"] = 0.0
+	plots[4]["ready_at"] = 0.0
+	await _seconds(0.5)
+	_save("farm_growing")
+	farm.call("_zoom_at", Vector2(180, 330), 2.0)
+	await _seconds(0.5)
+	_save("farm_zoom")
 	quit()
 
 

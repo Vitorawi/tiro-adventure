@@ -1,14 +1,16 @@
 extends Control
-## Casca do jogo: barra superior (nível/moedas), telas (Pet e Casa),
+## Casca do jogo: barra superior (nível/moedas), telas (Pet, Casa e Sítio),
 ## abas inferiores, painel inferior (Sheet) e mensagens rápidas (toast).
 
 @onready var _screens := {
 	&"pet": %PetScreen,
 	&"house": %House,
+	&"farm": %Farm,
 }
 @onready var _tabs := {
 	&"pet": %PetTab,
 	&"house": %HouseTab,
+	&"farm": %FarmTab,
 }
 @onready var _level_label: Label = %LevelLabel
 @onready var _coins_label: Label = %CoinsLabel

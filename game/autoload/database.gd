@@ -9,6 +9,10 @@ var recipes: Dictionary = {}
 var needs: Dictionary = {}
 var actions: Dictionary = {}
 var stations: Dictionary = {}
+## Plantas da horta (data/crops.json): tempo, colheita e sprite da planta madura.
+var crops: Dictionary = {}
+## Sítio: nome, quantidade de canteiros e sprite do broto (config.json "farm").
+var farm: Dictionary = {}
 var xp: Dictionary = {}
 var start: Dictionary = {}
 ## Versão publicada (commit + data), gravada pelo deploy em data/version.json.
@@ -19,10 +23,12 @@ func _init() -> void:
 	# Carrega no _init para estar pronto antes do _ready dos outros autoloads.
 	items = _load("res://data/items.json")
 	recipes = _load("res://data/recipes.json")
+	crops = _load("res://data/crops.json")
 	var config := _load("res://data/config.json")
 	needs = config.get("needs", {})
 	actions = config.get("actions", {})
 	stations = config.get("stations", {})
+	farm = config.get("farm", {})
 	xp = config.get("xp", {})
 	start = config.get("start", {})
 	version = _load("res://data/version.json")
@@ -48,6 +54,16 @@ func need_icon(id: String) -> Texture2D:
 
 func need_color(id: String) -> Color:
 	return Color.from_string(needs.get(id, {}).get("color", ""), Color(0.45, 0.8, 0.4))
+
+
+## Sprite da planta madura no canteiro.
+func crop_texture(crop_id: String) -> Texture2D:
+	return _texture(crops.get(crop_id, {}).get("sprite", ""))
+
+
+## Sprites gerais do sítio (ex.: "sprout" = broto crescendo).
+func farm_texture(key: String) -> Texture2D:
+	return _texture(farm.get(key, ""))
 
 
 func _texture(path: String) -> Texture2D:

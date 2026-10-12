@@ -37,6 +37,10 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 ## Registro de assets
 | Asset | Tipo / ID PixelLab | Modo | Arquivos no jogo | Status |
 |---|---|---|---|---|
+| Sítio da Bloblo (fundo) | imagem pro, job `cbbd43cb-2fc8-44fd-83f6-bdd00d45c57a`, ref de estilo: sala v2 | 632x395 | `areas/farm/farm.png` | ativo |
+| Canteiro (solo vazio) | imagem pro, job `7e96a88e-5554-4a93-995d-6c284f3f991f` (cand. 9, pixels soltos limpos) | 73x52 | `areas/farm/plot.png` | ativo |
+| Broto / cenoura / batata / abóbora maduras | imagem pro, jobs `844eeb67-…` (cand. 5), `54b684d8-…` (0), `17b4bc79-…` (0), `8e1777c9-…` (0) | ~56x45 | `areas/farm/crop_*.png` | ativo |
+| Ícone aba Sítio | pixen `7aefa112-…` | 32x32 | `ui/icons/tab_farm.png` | ativo |
 | Tiro mundo v2 | personagem `8e4e8b4d-142c-4d14-a012-29f16506a0a4` | pro, 64px, 8 dir | `characters/tiro_world/` | ativo |
 | ↳ animações | walk (S/E/N, skeleton-v3), idle (S/E, skeleton-v3), bark (S), sit (E, v3), sleep (E, v3, deitando), eat (E, v3) | | `tiro_world/<ação>/<direção>/` | ativo |
 | Tiro mundo v1 | personagem `cc74ce02-1c93-4dc7-8a72-a359265ad497` | standard, 32px, 4 dir | (substituído) | descartado: pouco detalhe |
@@ -73,7 +77,7 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
   (vapor), usar a imagem fixa e copiar só a faixa do efeito de cada quadro.
 - `create_image_pro` aceita no máximo 632x424; gerar sem fundo transparente (`no_background=false`)
   e casar a cor do `Void` de `house.tscn` com o fundo escuro da imagem.
-- Serrilhado: a sala aparece em escala quebrada no celular; `house.gd` troca para filtro suave
+- Serrilhado: a sala aparece em escala quebrada no celular; `room.gd` troca para filtro suave
   com mipmaps nessas escalas (`_update_filter`). Texturas da casa importadas com mipmaps.
 
 ## Padrões visuais
