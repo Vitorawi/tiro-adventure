@@ -19,15 +19,15 @@
       "skill_xp": {
         "bond": 10
       }
-    }
+    },
+    "kind": "main",
+    "chapter": 1,
+    "order": 1
   },
   "first_harvest": {
     "npc": "bloblo",
     "name": "A primeira colheita",
     "dialogue": "O primeiro canteiro é emprestado. As sementes de cenoura são por minha conta!",
-    "requires": [
-      "welcome"
-    ],
     "goals": [
       {
         "type": "stat",
@@ -41,15 +41,15 @@
       "skill_xp": {
         "agriculture": 15
       }
-    }
+    },
+    "kind": "main",
+    "chapter": 1,
+    "order": 2
   },
   "first_kitchen": {
     "npc": "bloblo",
     "name": "Cheirinho de comida",
     "dialogue": "Com um fogão, suas cenouras viram petiscos. Prepare e recolha um.",
-    "requires": [
-      "first_harvest"
-    ],
     "goals": [
       {
         "type": "owned",
@@ -68,15 +68,15 @@
       "skill_xp": {
         "cooking": 15
       }
-    }
+    },
+    "kind": "main",
+    "chapter": 1,
+    "order": 3
   },
   "first_sale": {
     "npc": "merchant",
     "name": "Seu primeiro cliente",
     "dialogue": "Venda algum produto na feira ou entregue uma encomenda. É o primeiro passo para ter sua terra.",
-    "requires": [
-      "first_harvest"
-    ],
     "goals": [
       {
         "type": "stat",
@@ -90,15 +90,15 @@
       "skill_xp": {
         "commerce": 15
       }
-    }
+    },
+    "kind": "main",
+    "chapter": 2,
+    "order": 1
   },
   "farm_deed": {
     "npc": "bloblo",
     "name": "Seu nome na porteira",
     "dialogue": "Quando comprar a escritura, o sítio será seu. Separei uma lembrança para essa conquista.",
-    "requires": [
-      "first_sale"
-    ],
     "goals": [
       {
         "type": "owned",
@@ -114,7 +114,10 @@
       "skill_xp": {
         "agriculture": 25
       }
-    }
+    },
+    "kind": "main",
+    "chapter": 3,
+    "order": 2
   },
   "first_walk": {
     "npc": "guide",
@@ -133,7 +136,10 @@
       "skill_xp": {
         "walking": 15
       }
-    }
+    },
+    "kind": "main",
+    "chapter": 3,
+    "order": 1
   },
   "trail_friend": {
     "npc": "guide",
@@ -158,15 +164,13 @@
         "bond": 25,
         "walking": 20
       }
-    }
+    },
+    "kind": "side"
   },
   "stone_path": {
     "npc": "artisan",
     "name": "A primeira ferramenta",
     "dialogue": "Junte madeira e pedra nas trilhas. Uma picareta abre novos caminhos.",
-    "requires": [
-      "first_walk"
-    ],
     "goals": [
       {
         "type": "owned",
@@ -188,15 +192,15 @@
       "skill_xp": {
         "mining": 20
       }
-    }
+    },
+    "kind": "main",
+    "chapter": 5,
+    "order": 1
   },
   "workshop": {
     "npc": "artisan",
     "name": "Com as próprias mãos",
     "dialogue": "Monte sua bancada e fabrique tábuas. Elas serão úteis em quase toda melhoria.",
-    "requires": [
-      "farm_deed"
-    ],
     "goals": [
       {
         "type": "owned",
@@ -215,7 +219,10 @@
       "skill_xp": {
         "building": 35
       }
-    }
+    },
+    "kind": "main",
+    "chapter": 4,
+    "order": 1
   },
   "good_cook": {
     "npc": "bloblo",
@@ -240,15 +247,13 @@
       "skill_xp": {
         "cooking": 35
       }
-    }
+    },
+    "kind": "side"
   },
   "market_day": {
     "npc": "merchant",
     "name": "Dia de feira",
     "dialogue": "Complete três encomendas. Uma clientela fiel faz toda a diferença.",
-    "requires": [
-      "first_sale"
-    ],
     "goals": [
       {
         "type": "stat",
@@ -262,15 +267,15 @@
       "skill_xp": {
         "commerce": 40
       }
-    }
+    },
+    "kind": "main",
+    "chapter": 6,
+    "order": 1
   },
   "deep_earth": {
     "npc": "artisan",
     "name": "Brilho na pedra",
     "dialogue": "Leve dois cristais da gruta. Tenho uma lembrança para quem chega tão longe.",
-    "requires": [
-      "stone_path"
-    ],
     "goals": [
       {
         "type": "deliver",
@@ -287,15 +292,15 @@
       "skill_xp": {
         "mining": 45
       }
-    }
+    },
+    "kind": "main",
+    "chapter": 7,
+    "order": 1
   },
   "own_business": {
     "npc": "merchant",
     "name": "Nossa banca",
     "dialogue": "Abra sua banca e complete uma entrega de materiais para a praça.",
-    "requires": [
-      "market_day"
-    ],
     "goals": [
       {
         "type": "owned",
@@ -314,7 +319,10 @@
       "skill_xp": {
         "commerce": 60
       }
-    }
+    },
+    "kind": "main",
+    "chapter": 6,
+    "order": 2
   },
   "green_fingers": {
     "npc": "bloblo",
@@ -343,15 +351,13 @@
       "skill_xp": {
         "agriculture": 60
       }
-    }
+    },
+    "kind": "side"
   },
   "atelier_open": {
     "npc": "artisan",
     "name": "Um presente feito aqui",
     "dialogue": "Monte o ateliê e produza um conjunto de acessórios. Você chegou muito longe.",
-    "requires": [
-      "workshop"
-    ],
     "goals": [
       {
         "type": "owned",
@@ -373,6 +379,57 @@
       "skill_xp": {
         "building": 70
       }
-    }
+    },
+    "kind": "main",
+    "chapter": 8,
+    "order": 1
+  },
+  "main_2_fridge": {
+    "npc": "bloblo",
+    "name": "Conquistar fridge",
+    "dialogue": "Vamos construir nosso futuro.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "fridge",
+        "label": "Comprar fridge"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 2,
+    "order": 2
+  },
+  "main_5_oven": {
+    "npc": "bloblo",
+    "name": "Conquistar oven",
+    "dialogue": "Vamos construir nosso futuro.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "oven",
+        "label": "Comprar oven"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 5,
+    "order": 2
+  },
+  "main_7_greenhouse": {
+    "npc": "bloblo",
+    "name": "Conquistar greenhouse",
+    "dialogue": "Vamos construir nosso futuro.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "greenhouse",
+        "label": "Comprar greenhouse"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 7,
+    "order": 2
   }
 }

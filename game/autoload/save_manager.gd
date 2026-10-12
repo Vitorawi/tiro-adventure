@@ -13,7 +13,7 @@ extends Node
 ## (BuildInfo.save_path()). Na Web as duas ficam no mesmo IndexedDB do site, por isso
 ## precisam de nomes diferentes para a versão dev não apagar o progresso real.
 
-const SAVE_VERSION := 4
+const SAVE_VERSION := 5
 
 var _save_pending := false
 var _save_path := BuildInfo.save_path()
@@ -123,6 +123,22 @@ func _migrate(data: Dictionary) -> Dictionary:
 				old_unlocks[id] = true
 			state["progression"] = {"owned": old_owned, "unlocks": old_unlocks}
 		version = 4
+	if version < 5:
+		var state: Dictionary = data.get("state", {})
+		if not state.is_empty():
+			var progression: Dictionary = state.get("progression", {})
+			var owned: Dictionary = progression.get("owned", {})
+			var claimed: Dictionary = progression.get("claimed_quests", {})
+			for id: String in Database.quests:
+				var quest: Dictionary = Database.quests[id]
+				if quest.get("kind", "side") != "main":
+					continue
+				var chapter: Dictionary = Database.progression.chapters[int(quest.chapter) - 1]
+				if bool(owned.get(chapter.target, false)):
+					claimed[id] = true
+			progression["claimed_quests"] = claimed
+			state["progression"] = progression
+		version = 5
 	data["save_version"] = version
 	return data
 

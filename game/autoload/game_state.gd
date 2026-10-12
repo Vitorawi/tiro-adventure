@@ -498,8 +498,12 @@ func goal_value(goal: Dictionary) -> int:
 			return 1 if has_upgrade(goal.key) else 0
 		"skill":
 			return progress.skill_level(goal.key)
-		"deliver":
+		"deliver", "have":
 			return inventory.count(goal.key)
+		"coins":
+			return coins
+		"chapter":
+			return progress.chapter_index()
 		"stat":
 			return progress.stat(goal.key)
 	return 0
@@ -546,10 +550,15 @@ func _quest_deliveries(id: String) -> Dictionary:
 
 
 func _finish_quest(id: String) -> void:
+	var chapter := progress.chapter_index()
 	progress.claimed_quests[id] = true
 	_apply_rewards(Database.quests[id].rewards)
 	progress.count("quests")
 	_add_player_xp(int(Database.quests[id].get("player_xp", 15)))
+	Events.quest_completed.emit(id)
+	if Database.quests[id].get("kind", "side") == "main" and progress.chapter_index() > chapter:
+		_apply_rewards(Database.progression.chapters[chapter - 1].get("rewards", {}))
+		Events.chapter_completed.emit(chapter)
 
 
 # --- Ferramentas de desenvolvimento (só na versão dev) --------------------------------
@@ -607,6 +616,8 @@ func dev_jump_to_chapter(index: int) -> void:
 	var chapters: Array = Database.progression.chapters
 	for i in mini(index, chapters.size()):
 		_dev_satisfy_upgrade(str(chapters[i].target))
+		for id in progress.main_quests(i + 1):
+			_dev_complete_quest(id)
 	_changed()
 
 

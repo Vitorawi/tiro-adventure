@@ -13,6 +13,8 @@ signal game_saved
 signal game_loaded
 ## Emitido pelo GameState quando qualquer dado do estado muda.
 signal state_changed
+signal quest_completed(id: String)
+signal chapter_completed(index: int)
 
 ## Emitido pelo GameState quando o jogador cuida do Tiro ("feed", "play", "bathe", "pet").
 signal dog_action(action: StringName)

@@ -109,8 +109,12 @@ func _campaign() -> Dictionary:
 				for entry: Dictionary in station.queue:
 					entry["ready_at"] = 1.0
 				state.call("collect", recipes[id].station)
+		var current: String = state.get("progress").current_main_quest()
+		if current != "":
+			state.call("claim_quest", current)
 		for id: String in database.get("quests"):
-			state.call("claim_quest", id)
+			if database.get("quests")[id].get("kind", "side") == "side":
+				state.call("claim_quest", id)
 		for id: String in progression.upgrades:
 			state.call("buy_upgrade", id)
 		if state.call("has_upgrade", "farm") and state.get("coins") > 300:
@@ -124,6 +128,7 @@ func _campaign() -> Dictionary:
 				break
 		if state.get("progress").claimed_quests.size() == database.get("quests").size():
 			break
+	_check(state.get("progress").chapter_index() == 9, "Campanha deve concluir os oito capítulos")
 	for id: String in progression.upgrades:
 		if not state.call("has_upgrade", id):
 			print("Pendente ", id, ": ", state.call("upgrade_error", id), "; mochila ", state.get("inventory").counts)

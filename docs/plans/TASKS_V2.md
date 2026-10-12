@@ -252,7 +252,7 @@ Reescrever `_build` nesta ordem, um método por bloco (manter o padrão `LiveBox
 - GDScript tipado; comentários e textos em português; não ligar threads (Web single-thread).
 
 ## 9. Checklist de entrega
-- [ ] Fase 1 — dados/regras + migração v5 + `tasks_test`
+- [x] Fase 1 — dados/regras + migração v5 + `tasks_test`
 - [ ] Fase 2 — conteúdo da história + secundárias + `content_test`
 - [ ] Fase 3 — `goal_target` (todo objetivo com Ir)
 - [ ] Fase 4 — Tarefas v2, História, Atributos

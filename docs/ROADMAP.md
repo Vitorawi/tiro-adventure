@@ -4,9 +4,11 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **12/10/2026, Claude Code**.
 
-**PRÓXIMA TAREFA (para o Codex): executar `docs/plans/TASKS_V2.md`** — história principal em passos,
-missões secundárias separadas, "o que evoluir", comemorações e mundos liberados aos poucos.
-O plano tem fases, formatos de dados, testes obrigatórios e checklist.
+**Tarefas v2 — fase 1/6 concluída (Codex, 12/10/2026).**
+Sequência principal derivada das missões recebidas, objetivos coins/have/chapter, sinais
+e migração v5 implementados. Save v4 com fogão/geladeira/sítio abre no capítulo 4 sem
+recompensas extras. Todos os testes passaram (farm, campanha, DEV/prod, tasks).
+Próximo: fase 2, conteúdo completo e validação dos JSON. Sem push.
 
 **Rodada 2 (12/10/2026, Claude Code): navegação intuitiva + mini mundos**
 - Pedido do Vitor: "tá difícil achar rotas, vender, missões; deixar os menus intuitivos" e

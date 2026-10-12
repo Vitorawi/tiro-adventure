@@ -85,6 +85,10 @@ func _level_cost(current_level: int) -> int:
 func quest_unlocked(id: String) -> bool:
 	if not Database.quests.has(id):
 		return false
+	if Database.quests[id].get("kind", "side") == "main":
+		return id == current_main_quest()
+	if requirement_error(Database.quests[id].get("requirements", {})) != "":
+		return false
 	for required: String in Database.quests[id].get("requires", []):
 		if not claimed_quests.has(required):
 			return false
@@ -94,6 +98,8 @@ func quest_unlocked(id: String) -> bool:
 ## Um único validador para lojas, culturas, receitas, rotas e pedidos.
 ## requirements = { "owned": [...], "quests": [...], "skills": { id: nível } }
 func requirement_error(requirements: Dictionary) -> String:
+	if chapter_index() < int(requirements.get("chapter", 1)):
+		return "Disponível no capítulo %d" % int(requirements.chapter)
 	for id: String in requirements.get("owned", []):
 		if not has_upgrade(id):
 			return "Precisa de " + str(Database.progression.upgrades.get(id, {}).get("name", id))
@@ -114,12 +120,38 @@ func content_error(kind: String, id: String, data: Dictionary) -> String:
 	return requirement_error(data.get("requirements", {}))
 
 
-## Capítulo atual da história: o primeiro cujo alvo ainda não foi comprado.
+## História derivada apenas das recompensas recebidas.
+func main_quests(chapter: int) -> Array[String]:
+	var result: Array[String] = []
+	for id: String in Database.quests:
+		var quest: Dictionary = Database.quests[id]
+		if quest.get("kind", "side") == "main" and int(quest.get("chapter", 0)) == chapter:
+			result.append(id)
+	result.sort_custom(func(a: String, b: String) -> bool:
+		return int(Database.quests[a].order) < int(Database.quests[b].order))
+	return result
+
+
+func chapter_index() -> int:
+	for index in range(1, Database.progression.chapters.size() + 1):
+		for id in main_quests(index):
+			if not claimed_quests.has(id):
+				return index
+	return Database.progression.chapters.size() + 1
+
+
+func current_main_quest() -> String:
+	for id in main_quests(chapter_index()):
+		if not claimed_quests.has(id):
+			return id
+	return ""
+
+
 func current_chapter() -> Dictionary:
-	for chapter: Dictionary in Database.progression.chapters:
-		if not has_upgrade(chapter.target):
-			return chapter
-	return Database.progression.get("final_chapter", {"name": "", "description": "", "target": ""})
+	var index := chapter_index()
+	if index <= Database.progression.chapters.size():
+		return Database.progression.chapters[index - 1]
+	return Database.progression.get("final_chapter", {})
 
 
 ## Desloca todos os timestamps (ferramenta de dev "avançar tempo").

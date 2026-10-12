@@ -1,4 +1,4 @@
-# CLAUDE.md — Mapa do projeto
+# AGENTS.md — Mapa do projeto
 
 Leia este arquivo primeiro. Ele diz **o que é o projeto, como está organizado e onde trabalhar**.
 Detalhes ficam em `docs/`.
@@ -27,7 +27,7 @@ a cada push na `main` (versão publicada em `/` e versão dev em `/dev/`). Progr
 
 ## Trabalho em dupla (Claude Code + Codex)
 O projeto é desenvolvido alternando **Claude Code** (lê `CLAUDE.md`) e **Codex** (lê `AGENTS.md`).
-- `CLAUDE.md` e `AGENTS.md` têm **o mesmo conteúdo** (só o título muda): ao editar um, copie para o outro.
+- `CLAUDE.md` e `AGENTS.md` têm **o mesmo conteúdo** (inclusive o título): ao editar um, copie para o outro.
 - Ao terminar uma tarefa, atualize a seção **"Estado atual"** de `docs/ROADMAP.md` (o que foi feito,
   o que ficou pela metade, próximos passos). É por ali que o outro agente continua.
 - `.codex/` é config local do Codex (tem token): fica fora do git.
@@ -52,7 +52,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
     main/            casca: barra superior (selo DEV), abas Tiro/Mapa/Tarefas/Mochila, Sheet, toast
     ui/pet_screen/   Tela do Pet (Tiro grande, necessidades, ações)
     ui/worlds_screen/  aba Mapa: lista de mundos + mundo atual (cabeçalho com Mapa, Lugares e personagens)
-    ui/tasks_screen/   aba Tarefas (próximo passo, prontos agora, missões, atributos, coleção; botões "Ir")
+    ui/tasks_screen/   aba Tarefas (história em passos, prontos agora, secundárias, atributos, coleção; botões "Ir")
     ui/bag_screen/     aba Mochila (itens por categoria; detalhe: para que serve, onde usar, vender)
     ui/sheet/        painel inferior genérico (menus de objetos)
     levels/room/     RoomView genérico (`room_id`, `world_id`): monta data/rooms/<id>.json (casa, sítio, vila, trilha), canteiros, etiquetas, navegação, toque, câmera
