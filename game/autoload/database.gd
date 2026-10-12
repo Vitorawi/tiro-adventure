@@ -163,3 +163,19 @@ func _load(path: String) -> Dictionary:
 		push_error("Database: falha ao ler %s" % path)
 		return {}
 	return parsed
+
+## Fontes como objetivos, compartilhadas pela navegação das missões.
+func item_sources(item_id: String) -> Array[Dictionary]:
+	var sources: Array[Dictionary] = []
+	for id: String in crops:
+		if crops[id].get("yield", {}).has(item_id):
+			sources.append({"type": "stat", "key": "harvest:" + id})
+	for id: String in recipes:
+		if recipes[id].get("output", "") == item_id:
+			sources.append({"type": "stat", "key": "produce:" + item_id})
+	for id: String in progression.activities:
+		if progression.activities[id].get("rewards", {}).get("items", {}).has(item_id):
+			sources.append({"type": "stat", "key": "activity:" + id})
+	if item_id == "dog_food":
+		sources.append({"type": "stat", "key": "feed"})
+	return sources

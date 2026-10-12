@@ -178,3 +178,76 @@ static func world_alerts(world_id: String) -> PackedStringArray:
 		if alert != "" and not alert.begins_with("Em andamento"):
 			alerts.append("%s: %s" % [world.places[place_id].name, alert])
 	return alerts
+
+## Destino estruturado de um objetivo; não depende de texto traduzido.
+static func goal_target(goal: Dictionary) -> Dictionary:
+	var key: String = goal.get("key", "")
+	match str(goal.get("type", "")):
+		"owned":
+			if Database.progression.upgrades.has(key):
+				return {"world": Database.progression.upgrades[key].world, "place": "buy:" + key, "hint": "Construir: " + str(Database.progression.upgrades[key].name)}
+		"coins":
+			return _panel_target("sell")
+		"chapter":
+			return {"screen": "tasks", "hint": "Continue os passos da história."}
+		"have", "deliver":
+			for source: Dictionary in Database.item_sources(key):
+				var target := goal_target(source)
+				if not target.is_empty():
+					return target
+		"skill":
+			var panels := {"agriculture": "farm", "cooking": "station:stove", "building": "station:workbench", "commerce": "sell", "walking": "routes:walk", "mining": "routes:mine"}
+			if key == "bond":
+				return {"screen": "pet", "hint": "Tiro → cuidar e brincar"}
+			return _panel_target(panels.get(key, ""))
+		"stat":
+			if key == "feed":
+				return _panel_target("feed")
+			if key == "harvest" or key.begins_with("harvest:"):
+				return _panel_target("farm")
+			if key in ["trade", "sold"]:
+				return _panel_target("sell")
+			if key == "orders" or key.begins_with("order:"):
+				return _panel_target("orders")
+			if key in ["bathe", "play", "pet"]:
+				return {"screen": "pet", "hint": "Tiro → cuidar e brincar"}
+			if key == "explore":
+				return _panel_target("routes:walk")
+			if key.begins_with("activity:"):
+				var route: Dictionary = Database.progression.activities.get(key.trim_prefix("activity:"), {})
+				if not route.is_empty():
+					return _panel_target("routes:" + str(route.place))
+			if key.begins_with("produce:"):
+				for recipe: Dictionary in Database.recipes.values():
+					if recipe.output == key.trim_prefix("produce:"):
+						return _panel_target("station:" + str(recipe.station))
+	return {}
+
+
+static func _panel_target(panel: String) -> Dictionary:
+	var location := Database.place_with_panel(panel)
+	if location[0] == "":
+		return {}
+	return {"world": location[0], "place": location[1], "hint": "%s → %s" % [Database.worlds[location[0]].name, Database.worlds[location[0]].places[location[1]].name]}
+
+
+## Primeiro objetivo pendente, com substituições opcionais do conteúdo.
+static func quest_target(id: String) -> Dictionary:
+	var quest: Dictionary = Database.quests[id]
+	var goal: Dictionary = quest.goals[0]
+	for candidate: Dictionary in quest.goals:
+		if GameState.goal_value(candidate) < int(candidate.get("target", 1)):
+			goal = candidate
+			break
+	var result: Dictionary = quest.get("go", goal_target(goal)).duplicate()
+	if quest.has("hint"):
+		result["hint"] = quest.hint
+	return result
+
+
+static func go(target: Dictionary) -> void:
+	Events.sheet_close_requested.emit()
+	if target.has("screen"):
+		Events.screen_requested.emit(StringName(target.screen))
+	elif target.has("world"):
+		Events.world_requested.emit(target.world, target.get("place", ""))

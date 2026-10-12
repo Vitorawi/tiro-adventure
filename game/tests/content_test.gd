@@ -66,5 +66,55 @@ func _run() -> void:
 			check(int(a.requirements.get("chapter", 1)) >= 3, id + ": rota antes da Trilha abrir")
 	for id: String in data.orders:
 		check("first_harvest" in data.orders[id].requirements.get("quests", []), id + ": pedido antes da Vila abrir")
+	_validate_targets()
 	print("CONTENT TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(0 if failures == 0 else 1)
+
+
+func _validate_targets() -> void:
+	var places: Script = load("res://scripts/ui/places.gd")
+	var state: Node = root.get_node("GameState")
+	var quests: Dictionary = db.get("quests")
+	for chapter in range(1, 10):
+		state.call("reset")
+		for previous in range(1, chapter):
+			for id: String in state.get("progress").main_quests(previous):
+				state.get("progress").claimed_quests[id] = true
+		for id: String in quests:
+			var q: Dictionary = quests[id]
+			# Percorre os passos em ordem mesmo quando o JSON está em outra ordem.
+			if q.get("kind", "side") == "main":
+				if int(q.chapter) != chapter:
+					continue
+				for before: String in state.get("progress").main_quests(chapter):
+					if int(quests[before].order) < int(q.order):
+						state.get("progress").claimed_quests[before] = true
+					else:
+						state.get("progress").claimed_quests.erase(before)
+			elif not state.call("quest_unlocked", id):
+				continue
+			for goal: Dictionary in q.goals:
+				var target: Dictionary = places.call("goal_target", goal)
+				check(not target.is_empty(), id + ": objetivo sem destino")
+				_validate_target(target, id, state)
+			if q.has("go"):
+				_validate_target(q.go, id + ": go", state)
+
+
+func _validate_target(target: Dictionary, id: String, state: Node) -> void:
+	if target.has("screen"):
+		check(target.screen in ["pet", "tasks"], id + ": aba inexistente")
+		return
+	var world: String = target.get("world", "")
+	check(db.get("worlds").has(world), id + ": mundo inexistente")
+	if not db.get("worlds").has(world):
+		return
+	var w: Dictionary = db.get("worlds")[world]
+	var place: String = target.get("place", "")
+	if place.begins_with("buy:"):
+		check(db.get("progression").upgrades.has(place.trim_prefix("buy:")), id + ": compra inexistente")
+	elif place.begins_with("npc:"):
+		check(place.trim_prefix("npc:") in w.npcs, id + ": personagem fora do mundo")
+	else:
+		check(w.places.has(place), id + ": lugar inexistente")
+	check(state.call("requirement_error", w.get("requirements", {})) == "", id + ": destino em mundo ainda fechado")
