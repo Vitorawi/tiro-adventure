@@ -22,5 +22,7 @@ signal sheet_requested(title: String, content: Control)
 signal sheet_close_requested
 ## Pede para trocar de tela ("pet" ou "house").
 signal screen_requested(screen: StringName)
+## Emitido pelo PwaUpdater quando há uma versão nova do jogo pronta para instalar.
+signal update_available
 
 @warning_ignore_restore("unused_signal")

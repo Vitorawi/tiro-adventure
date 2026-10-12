@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3]
+[gd_scene load_steps=8 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pet_screen/pet_screen.tscn" id="2_pet"]
@@ -17,6 +17,13 @@ content_margin_left = 14.0
 content_margin_top = 8.0
 content_margin_right = 14.0
 content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_update"]
+bg_color = Color(1, 0.82, 0.35, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -102,6 +109,24 @@ text = "Casa"
 
 [node name="Sheet" parent="." instance=ExtResource("4_sheet")]
 layout_mode = 1
+
+[node name="UpdateBanner" type="Button" parent="."]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+offset_left = 12.0
+offset_top = 54.0
+offset_right = -12.0
+offset_bottom = 102.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(0.12, 0.1, 0.05, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_update")
+theme_override_styles/hover = SubResource("StyleBoxFlat_update")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_update")
+text = "Nova versão! Toque para atualizar"
 
 [node name="Toast" type="Label" parent="."]
 unique_name_in_owner = true

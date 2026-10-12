@@ -23,6 +23,7 @@ Events="*res://autoload/events.gd"
 Database="*res://autoload/database.gd"
 GameState="*res://autoload/game_state.gd"
 SaveManager="*res://autoload/save_manager.gd"
+PwaUpdater="*res://autoload/pwa_updater.gd"
 
 [display]
 

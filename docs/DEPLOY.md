@@ -31,5 +31,13 @@ URL: `https://<usuario>.github.io/<repositorio>/`
 3. Abrir o projeto no editor, testar, commitar.
 
 ## Atualizações no celular
-O service worker guarda o jogo em cache. Após um deploy, o PWA pode mostrar a versão antiga
-na primeira abertura e atualizar na seguinte. O save não é afetado.
+O service worker do Godot serve o jogo **do cache primeiro**. Uma versão nova é baixada em
+segundo plano mas fica esperando o app fechar de vez — o que quase nunca acontece num PWA
+no iPhone. Por isso existe o autoload `PwaUpdater` (`game/autoload/pwa_updater.gd`):
+- procura atualização ao abrir, ao voltar para o app e a cada 5 min;
+- quando há versão nova, emite `Events.update_available` e a tela principal mostra a faixa
+  **"Nova versão! Toque para atualizar"**;
+- o toque salva o jogo e chama `JavaScriptBridge.pwa_update()` (ativa a versão nova e recarrega).
+
+O save (IndexedDB) não é afetado. **Nunca** orientar o jogador a remover o app da tela inicial
+para atualizar: no iPhone isso apaga o save junto.

@@ -23,6 +23,9 @@ func _ready() -> void:
 	Events.screen_requested.connect(show_screen)
 	Events.toast_requested.connect(_show_toast)
 	Events.state_changed.connect(_refresh_top_bar)
+	Events.update_available.connect(%UpdateBanner.show)
+	%UpdateBanner.pressed.connect(PwaUpdater.apply_update)
+	%UpdateBanner.visible = PwaUpdater.update_ready
 	_toast.modulate.a = 0.0
 	_refresh_top_bar()
 	show_screen(&"pet")
