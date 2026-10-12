@@ -37,7 +37,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
     levels/room/     RoomView genérico (`room_id`): monta data/rooms/<id>.json (casa, sítio), canteiros, navegação, toque, câmera
     entities/dog_world/  Tiro pequeno com IA autônoma (anda pelo caminho calculado)
   scripts/state/     DogState, Inventory, StationState (dados + to_dict/from_dict)
-  scripts/ui/        UiKit (peças: ícone, chip, cartão, botão, barra) e SheetBuilder (conteúdo dos painéis)
+  scripts/ui/        UiKit (peças), SheetBuilder (painéis) e PetAnimator (animações do Tiro na aba Tiro; reage a Events.dog_action)
   assets/            sprites/(characters,areas,tiles,ui,fx), theme/, audio/, fonts/, icons/ (PWA)
   tests/             testes (excluídos do export)
 ```

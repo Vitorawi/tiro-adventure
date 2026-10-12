@@ -45,6 +45,8 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 | ↳ animações | walk (S/E/N, skeleton-v3), idle (S/E, skeleton-v3), bark (S), sit (E, v3), sleep (E, v3, deitando), eat (E, v3) | | `tiro_world/<ação>/<direção>/` | ativo |
 | Tiro mundo v1 | personagem `cc74ce02-1c93-4dc7-8a72-a359265ad497` | standard, 32px, 4 dir | (substituído) | descartado: pouco detalhe |
 | Tiro pet v2 (sentado, frente) | imagem pro, job `ee0ec478-c066-4b6c-ade9-fc8608809abe` (candidato 0 de 4), refs: pose da referência + rotação sul do Tiro mundo v2 | 160px | `characters/tiro_pet/tiro_pet_idle_front.png` | ativo |
+| Tiro pet v3 (animado) | personagem v3 `1082c03d-9eda-41ee-a5e1-19ba1a6ccf50` (ref: `tiro_pet_idle_front.png`, quadrúpede/dog, 8 dir, tags tiro-adventure,tiro,pet,ativo) | v3, 160px (quadros 216px) | `characters/tiro_pet/<animação>/frame_XX.png` | ativo |
+| ↳ animações (só south, `animate_character` mode pixminimax, 1 geração cada) | idle_breathe, head_tilt, scratch, yawn, sniff, stretch, bark, eat, happy_jump, shake_off (8 quadros +1), sleep (16 +1, deitando) | | tocadas por `scripts/ui/pet_animator.gd` | ativo |
 | Tiro pet v1 | imagem pixen | 128px | (substituído) | descartado |
 | Sala v2 (apê sala+cozinha em L, ilha, porta de vidro, varanda) | imagem pro, job `ee8724e1-1418-4118-9542-c4f50c46d362` (asset `ae1087d7-…`), ref: `docs/references/apartamento_sala_cozinha_v2.jpg` sem o título | 632x395 | `areas/house/room.png` | ativo |
 | Ilha (recorte da sala v2) | polígono recortado do próprio fundo, fatiado em colunas para ordenação | 140x151 | `areas/house/island.png` | ativo |
@@ -83,7 +85,7 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 ## Padrões visuais
 - Tiro no mundo: 64px (modo pro), exibido 1x (`SPRITE_SCALE` em `dog_world.gd`); o fundo
   provisório é exibido 2x. Um fundo novo do PixelLab deve casar com essa escala.
-- Tiro na Tela do Pet: 160px, exibido 2x (320px). Sempre escala inteira (2x, 3x) para pixels nítidos.
+- Tiro na Tela do Pet: quadros de 216px (`PetAnimator`), exibidos em ~320px. Sempre escala inteira (2x, 3x) para pixels nítidos.
 - Prévia ampliada de assets: gerar pranchas em `build/preview/` (ignorado no git) antes de aprovar.
 - Animações: preferir `skeleton-v3` (mantém a identidade do personagem); `v3` para ações customizadas.
 - Ícones do PWA atuais são placeholders.

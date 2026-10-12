@@ -15,6 +15,7 @@ const LOW_COLOR := Color(0.85, 0.27, 0.22)
 var _bars: Dictionary = {}  # need_id -> ProgressBar
 var _sleep_icon: TextureRect
 var _sleep_text: Label
+var _animator: PetAnimator
 
 @onready var _needs_grid: GridContainer = %NeedsGrid
 @onready var _mood_label: Label = %MoodLabel
@@ -32,6 +33,10 @@ func _ready() -> void:
 	_sleep_text = sleep_parts[1]
 	%DogArea.draw.connect(_draw_dog_shadow)
 	_dog_sprite.gui_input.connect(_on_dog_input)
+	_animator = PetAnimator.new()
+	add_child(_animator)
+	_animator.setup(_dog_sprite)
+	_animator.set_sleeping(GameState.dog.sleeping)
 	%FeedButton.pressed.connect(func() -> void:
 		Events.sheet_requested.emit("Comidinha", SheetBuilder.food_picker()))
 	%PlayButton.pressed.connect(_on_play_pressed)
@@ -91,7 +96,8 @@ func _refresh() -> void:
 
 	_sleep_text.text = "Acordar" if dog.sleeping else "Dormir"
 	_sleep_icon.texture = UiKit.ui_icon("action_wake" if dog.sleeping else "action_sleep")
-	_dog_sprite.modulate = Color(0.55, 0.55, 0.75) if dog.sleeping else Color.WHITE
+	_dog_sprite.modulate = Color(0.75, 0.75, 0.9) if dog.sleeping else Color.WHITE
+	_animator.set_sleeping(dog.sleeping)
 
 	if dog.sleeping:
 		_mood_label.text = "Zzz... %s está dormindo" % dog.name
@@ -106,15 +112,14 @@ func _refresh() -> void:
 ## Sombra oval sob as patas do Tiro (desenhada no DogArea, atrás do sprite).
 func _draw_dog_shadow() -> void:
 	var area: Control = %DogArea
-	var feet := Vector2(_dog_sprite.position.x + _dog_sprite.size.x / 2.0, _dog_sprite.position.y + _dog_sprite.size.y * 0.97)
+	var feet := Vector2(_dog_sprite.position.x + _dog_sprite.size.x / 2.0, _dog_sprite.position.y + _dog_sprite.size.y * 0.81)
 	area.draw_set_transform(feet, 0.0, Vector2(1.0, 0.25))
-	area.draw_circle(Vector2.ZERO, _dog_sprite.size.x * 0.32, Color(0.25, 0.12, 0.05, 0.3), true, -1.0, false)
+	area.draw_circle(Vector2.ZERO, _dog_sprite.size.x * 0.26, Color(0.25, 0.12, 0.05, 0.3), true, -1.0, false)
 	area.draw_set_transform(Vector2.ZERO)
 
 
 func _on_play_pressed() -> void:
 	if GameState.play():
-		_bounce()
 		Events.toast_requested.emit("Que divertido!")
 	else:
 		Events.toast_requested.emit("Tiro está cansado demais para brincar.")
@@ -128,16 +133,7 @@ func _on_dog_input(event: InputEvent) -> void:
 		Events.toast_requested.emit("Shh... ele está dormindo.")
 		return
 	GameState.pet()
-	_bounce()
 	_float_text("+carinho", button.global_position)
-
-
-func _bounce() -> void:
-	_dog_sprite.pivot_offset = _dog_sprite.size * Vector2(0.5, 1.0)
-	var tween := create_tween()
-	tween.tween_property(_dog_sprite, "scale", Vector2(1.08, 0.92), 0.08)
-	tween.tween_property(_dog_sprite, "scale", Vector2(0.95, 1.06), 0.1)
-	tween.tween_property(_dog_sprite, "scale", Vector2.ONE, 0.12)
 
 
 func _float_text(text: String, at: Vector2) -> void:

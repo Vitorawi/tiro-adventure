@@ -46,6 +46,7 @@ func feed(item_id: String) -> bool:
 	dog.apply(effects, now())
 	_gain_xp("feed")
 	_changed()
+	Events.dog_action.emit(&"feed")
 	return true
 
 
@@ -53,6 +54,7 @@ func pet() -> void:
 	dog.apply(Database.actions.get("pet", {}), now())
 	dog.affection += 1
 	_changed()
+	Events.dog_action.emit(&"pet")
 
 
 func play() -> bool:
@@ -62,6 +64,7 @@ func play() -> bool:
 	dog.affection += 2
 	_gain_xp("play")
 	_changed()
+	Events.dog_action.emit(&"play")
 	return true
 
 
@@ -69,6 +72,7 @@ func bathe() -> void:
 	dog.apply(Database.actions.get("bathe", {}), now())
 	_gain_xp("bathe")
 	_changed()
+	Events.dog_action.emit(&"bathe")
 
 
 func set_sleeping(value: bool) -> void:

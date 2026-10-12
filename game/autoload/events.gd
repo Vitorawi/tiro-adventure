@@ -14,6 +14,9 @@ signal game_loaded
 ## Emitido pelo GameState quando qualquer dado do estado muda.
 signal state_changed
 
+## Emitido pelo GameState quando o jogador cuida do Tiro ("feed", "play", "bathe", "pet").
+signal dog_action(action: StringName)
+
 ## Pede para a tela principal mostrar uma mensagem curta.
 signal toast_requested(text: String)
 ## Pede para abrir o painel inferior (sheet) com um conteúdo.
