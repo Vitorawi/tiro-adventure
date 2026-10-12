@@ -12,9 +12,10 @@ Cenas (scenes/*)  ──métodos──▶  GameState  ◀──to_dict/from_dict
 | Nome          | Arquivo                       | Responsabilidade |
 |---------------|-------------------------------|------------------|
 | `Events`      | `game/autoload/events.gd`     | Sinais globais: estado mudou, toast, abrir/fechar sheet, trocar tela. |
-| `Database`    | `game/autoload/database.gd`   | Lê `game/data/*.json` (itens, receitas, necessidades, ações, XP, início). |
-| `GameState`   | `game/autoload/game_state.gd` | Estado persistente + ações (feed, pet, play, bathe, cook, collect). |
+| `Database`    | `game/autoload/database.gd`   | Lê `game/data/*.json` (itens, receitas, plantas, config, progressão, missões, NPCs, coleção, versão). |
+| `GameState`   | `game/autoload/game_state.gd` | Estado persistente + ações (cuidar, cozinhar, plantar, comprar, vender, rotas, missões) + ferramentas `dev_*`. |
 | `SaveManager` | `game/autoload/save_manager.gd` | Lê/escreve o save, migra versões, salva a cada `state_changed`. |
+| `PwaUpdater`  | `game/autoload/pwa_updater.gd` | Web: detecta versão nova do PWA e aplica (só o SW/cache do próprio canal). |
 
 `SaveManager` vem por último porque carrega o save no `_ready` e preenche o `GameState`.
 `Database` carrega no `_init`, antes de qualquer `_ready`.
@@ -25,14 +26,23 @@ Cenas (scenes/*)  ──métodos──▶  GameState  ◀──to_dict/from_dict
 | `DogState` | Nome, necessidades (valor + `updated_at`, cálculo preguiçoso), sono, afeição, roupa. |
 | `Inventory` | `item_id -> quantidade`. |
 | `StationState` | Fila de produção com `ready_at` (timestamps Unix). |
+| `ProgressionState` | Jornada: XP dos atributos, construções (`owned`), contadores (`stats`), missões, descobertas, coleção, `unlocks`, recargas e rota em andamento. Consultas puras (`skill_info`, `requirement_error`, `current_chapter`). Acesso: `GameState.progress`. |
+
+Utilitários (`game/scripts/util/`): `BuildInfo` (canal prod/dev e arquivo de save) e `TimeText`
+(texto de duração, usado pelo estado e pela UI).
 
 ## Save local
+- Save v4: bloco `progression` (ver `ProgressionState`); migração v3→v4 dá aos saves antigos os
+  equipamentos e culturas que já tinham (`legacy_owned`/`legacy_unlocks` em `progression.json`).
 - Save v3: `unlocked_plots` registra expansão sequencial. Migração v2 preserva os canteiros existentes.
 - Plantações novas guardam `planted_at` e `ready_at`; plantações antigas calculam início pelo tempo em `crops.json`.
 - `GameState.buy_plot`, `plant` e `harvest` validam ações; colheita credita moedas configuradas em `crops.json`.
 - `PlotIndicator` desenha indicadores sem capturar toque; `RoomView` encaminha toques e atualiza o visual.
-- Teste: Godot `--headless --path game -s res://tests/farm_test.gd` (desliga persistência antes de alterar o estado).
-- Arquivo: `user://save.json` → JSON `{ save_version, saved_at, state }`.
+- Testes: `tests/farm_test.gd`, `progression_test.gd` (campanha simulada), `dev_tools_test.gd`
+  (rodam headless e removem o SaveManager antes de alterar o estado; comandos no `CLAUDE.md`).
+  Scripts de teste (`extends SceneTree`) compilam antes dos autoloads: não citar `class_name`
+  que dependa de autoload (use `load()` + `call()`, como em `dev_tools_test.gd`).
+- Arquivo: `user://save.json` (versão dev: `user://save_dev.json`, ver `BuildInfo`) → JSON `{ save_version, saved_at, state }`.
 - Na Web, `user://` é sincronizado com o **IndexedDB** do navegador, por site (origem).
   Mesmo jogador, mesmo aparelho, mesmo navegador/app = mesmo save.
 - **Quando salva:** chamadas explícitas a `SaveManager.save_game()` e autosave ao perder foco,
@@ -44,7 +54,7 @@ Cenas (scenes/*)  ──métodos──▶  GameState  ◀──to_dict/from_dict
 - Atenção: o PWA instalado no iPhone e o Safari normal têm armazenamentos **separados**.
 
 ## Cenas
-- `scenes/main/main.tscn` — cena inicial (hoje: teste do save com contador).
+- `scenes/main/main.tscn` — casca: barra superior (nível, moedas, selo DEV), telas Tiro/Casa/Sítio/Jornada, Sheet, toast.
 
 ### Planejado (ver `GAME_DESIGN.md`)
 ```

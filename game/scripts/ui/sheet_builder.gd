@@ -31,14 +31,17 @@ static func food_picker() -> Control:
 			row.add_child(give)
 			body.add_child(row)
 		if not any:
-			_empty_message(box, "Acabou a comida!", "Cozinhe algo no fogão da casa."))
+			_empty_message(box, "Acabou a comida!", "A Bloblo pode ajudar enquanto você prepara a próxima colheita.")
+			box.add_child(UiKit.button("Pedir comida à Bloblo", func() -> void:
+				var error := GameState.emergency_food()
+				Events.toast_requested.emit(error if error != "" else "Comida recebida!"), &"PrimaryButton")))
 
 
 ## Conteúdo da geladeira (inventário completo) em grade.
 static func inventory_view() -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		if GameState.inventory.counts.is_empty():
-			_empty_message(box, "Geladeira vazia.", "")
+			_empty_message(box, "Mochila vazia.", "Plante no sítio ou explore uma rota na Jornada.")
 			return
 		var grid := GridContainer.new()
 		grid.columns = 3
@@ -62,9 +65,12 @@ static func inventory_view() -> Control:
 ## Estação de produção (fogão): espaços de preparo + receitas em cartões.
 static func station_view(station_id: String) -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
+		if not GameState.has_upgrade(station_id):
+			box.add_child(UiKit.label("Adquira esta estação em Jornada → Construir."))
+			return
 		var target := GameState.station(station_id)
 		var now := GameState.now()
-		var slots := int(Database.stations.get(station_id, {}).get("slots", 1))
+		var slots := GameState.station_slots(station_id)
 		var full := target.queue.size() >= slots
 
 		box.add_child(UiKit.label("Preparando  %d/%d" % [target.queue.size(), slots], &"SectionLabel"))
@@ -120,6 +126,7 @@ static func _slot_frame(texture: Texture2D, text: String, progress: float, done:
 ## Cartão de receita: o que sai, quanto tempo leva, o que faz e o que precisa.
 static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full: bool) -> void:
 	var recipe: Dictionary = Database.recipes[recipe_id]
+	var locked := GameState.content_error("recipe", recipe_id, recipe)
 	var output: String = recipe["output"]
 	var inputs: Dictionary = recipe["inputs"]
 	var body := UiKit.card(parent)
@@ -150,15 +157,19 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 			UiKit.GOOD if have >= need else UiKit.BAD))
 	body.add_child(needs_row)
 
-	var text := "Cozinhar"
+	body.add_child(UiKit.label("+%d XP %s" % [int(recipe.get("skill_xp", 10)), Database.progression.skills[recipe.get("skill", "cooking")].name], &"SmallLabel"))
+	var text := "Produzir"
 	if not has_all:
 		text = "Faltam ingredientes"
 	elif station_full:
-		text = "Fogão cheio"
+		text = "Fila cheia"
+	if locked != "":
+		body.add_child(UiKit.label(locked, &"SmallLabel"))
+		text = "Ainda bloqueado"
 	var cook := UiKit.button(text, func() -> void:
 		var error := GameState.cook(recipe_id)
-		Events.toast_requested.emit(error if error != "" else "Cozinhando %s!" % Database.item_name(output)), &"PrimaryButton")
-	cook.disabled = not has_all or station_full
+		Events.toast_requested.emit(error if error != "" else "Preparando %s!" % Database.item_name(output)), &"PrimaryButton")
+	cook.disabled = not has_all or station_full or locked != ""
 	body.add_child(cook)
 
 
@@ -168,6 +179,7 @@ static func seed_picker(plot_index: int) -> Control:
 		box.add_child(UiKit.label("A Bloblo empresta as sementes. Escolha o que plantar:", &"SmallLabel"))
 		for crop_id: String in Database.crops:
 			var crop: Dictionary = Database.crops[crop_id]
+			var locked := GameState.content_error("crop", crop_id, crop)
 			var body := UiKit.card(box)
 			var row := UiKit.hbox(10)
 			row.add_child(UiKit.icon(Database.item_icon(crop_id), 64))
@@ -181,12 +193,16 @@ static func seed_picker(plot_index: int) -> Control:
 			for item_id: String in harvest:
 				details.add_child(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), UiKit.GOOD))
 			info.add_child(details)
+			info.add_child(UiKit.label("+%d XP Agricultura" % int(crop.get("skill_xp", 10)), &"SmallLabel"))
+			if locked != "":
+				info.add_child(UiKit.label(locked, &"SmallLabel"))
 			row.add_child(info)
 			var plant := UiKit.button("Plantar", func() -> void:
 				var error := GameState.plant(plot_index, crop_id)
 				Events.toast_requested.emit(error if error != "" else "Plantou %s!" % Database.item_name(crop_id))
 				Events.sheet_close_requested.emit(), &"PrimaryButton")
 			plant.custom_minimum_size = Vector2(96, 52)
+			plant.disabled = locked != ""
 			plant.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			row.add_child(plant)
 			body.add_child(row))
@@ -196,16 +212,23 @@ static func seed_picker(plot_index: int) -> Control:
 static func farm_view() -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var total := int(Database.farm.get("plots", 0))
-		box.add_child(UiKit.label("%d de %d terrenos cultiváveis" % [GameState.unlocked_plots, total], &"SectionLabel"))
-		box.add_child(UiKit.bar(100.0 * GameState.unlocked_plots / total, UiKit.GOOD))
+		if not GameState.has_upgrade("farm"):
+			box.add_child(UiKit.label("Um canteiro emprestado", &"SectionLabel"))
+			box.add_child(UiKit.label("Plante de graça, colha e junte moedas para comprar seu sítio.", &"SmallLabel"))
+			box.add_child(UiKit.button("Comprar o sítio", func() -> void:
+				Events.sheet_requested.emit("Escritura do sítio", ProgressionUi.purchase("farm")), &"PrimaryButton"))
+			box.add_child(UiKit.button("Conversar com a Bloblo", func() -> void:
+				Events.sheet_requested.emit("Bloblo", ProgressionUi.npc_view("bloblo"))))
+		box.add_child(UiKit.label("%d de %d terrenos cultiváveis" % [GameState.accessible_plots(), total], &"SectionLabel"))
+		box.add_child(UiKit.bar(100.0 * GameState.accessible_plots() / total, UiKit.GOOD))
 		box.add_child(UiKit.label("Colha para ganhar moedas e ampliar o sítio. Os terrenos têm lugar certo no mapa.", &"SmallLabel"))
 		box.add_child(UiKit.label("Você tem %d moedas" % GameState.coins))
-		if GameState.unlocked_plots < total:
+		if GameState.has_upgrade("farm") and GameState.unlocked_plots < total:
 			box.add_child(UiKit.button("Próximo terreno · %d moedas" % GameState.plot_cost(GameState.unlocked_plots), func() -> void:
 				Events.sheet_requested.emit("Expandir o sítio", plot_purchase(GameState.unlocked_plots)), &"PrimaryButton"))
-		else:
+		elif GameState.has_upgrade("farm"):
 			box.add_child(UiKit.label("Sítio completo! Todos os terrenos são seus.", &"SectionLabel", UiKit.GOOD))
-		for index in GameState.unlocked_plots:
+		for index in GameState.accessible_plots():
 			var status := GameState.plot_status(index)
 			var caption := "Terreno %d · Plantar" % (index + 1)
 			if status != "empty":
@@ -273,16 +296,13 @@ static func _empty_message(box: VBoxContainer, title: String, hint: String) -> v
 
 
 static func format_time(seconds: int) -> String:
-	if seconds >= 60 and seconds % 60 == 0:
-		return "%d min" % (seconds / 60)
-	if seconds >= 60:
-		return "%d:%02d" % [seconds / 60, seconds % 60]
-	return "%ds" % seconds
+	return TimeText.short(seconds)
 
 
 ## Caixa que se reconstrói quando o estado muda e a cada segundo (timers).
 class LiveBox extends VBoxContainer:
 	var _build: Callable
+	var _pending: bool = false
 
 	func _init(build: Callable) -> void:
 		_build = build
@@ -291,7 +311,7 @@ class LiveBox extends VBoxContainer:
 		add_theme_constant_override("separation", 10)
 
 	func _ready() -> void:
-		Events.state_changed.connect(_rebuild)
+		Events.state_changed.connect(_schedule_rebuild)
 		var timer := Timer.new()
 		timer.wait_time = 1.0
 		timer.autostart = true
@@ -299,13 +319,27 @@ class LiveBox extends VBoxContainer:
 		add_child(timer)
 		_rebuild()
 
+	## Reconstrói no fim do frame (ex.: troca de aba dentro do painel).
+	func refresh() -> void:
+		_schedule_rebuild()
+
 	func _on_tick() -> void:
 		# Não reconstrói com o dedo na tela, para não "roubar" um toque em andamento.
-		if not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
-			_rebuild()
+		if is_visible_in_tree() and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+			_schedule_rebuild()
+
+	func _schedule_rebuild() -> void:
+		if _pending:
+			return
+		_pending = true
+		_rebuild.call_deferred()
 
 	func _rebuild() -> void:
+		_pending = false
+		if is_queued_for_deletion() or not is_inside_tree():
+			return
 		for child in get_children():
 			if not child is Timer:
+				remove_child(child)
 				child.queue_free()
 		_build.call(self)

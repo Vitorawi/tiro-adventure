@@ -1,6 +1,6 @@
 # Servidor HTTP local para testar o build Web (build/web/).
 # Uso: powershell -File tools/serve_local.ps1 [-Port 8000]
-# Abra http://localhost:8000 no navegador. Ctrl+C para parar.
+# Abra http://localhost:8000 no navegador (versao dev: http://localhost:8000/dev/). Ctrl+C para parar.
 # Para testar no celular na mesma rede, use o "Remote Debug" do editor Godot
 # ou publique no GitHub Pages (localhost nao e acessivel pelo celular).
 
@@ -33,7 +33,7 @@ try {
     while ($Listener.IsListening) {
         $Context = $Listener.GetContext()
         $Path = [Uri]::UnescapeDataString($Context.Request.Url.AbsolutePath.TrimStart("/"))
-        if ($Path -eq "") { $Path = "index.html" }
+        if ($Path -eq "" -or $Path.EndsWith("/")) { $Path += "index.html" }  # / e /dev/
         $File = Join-Path $Root $Path
         $Response = $Context.Response
         if ((Test-Path $File -PathType Leaf) -and ((Resolve-Path $File).Path.StartsWith($Root))) {

@@ -8,6 +8,12 @@ extends Node
 ## Events.update_available e a interface oferece apply_update().
 
 const CHECK_INTERVAL := 300.0
+## Prefixo dos caches do service worker por canal. "prod" é o padrão do Godot
+## ("<nome do projeto>-sw-cache-"); o deploy troca pelo de "dev" na build /dev/.
+const CACHE_PREFIXES := {
+	"prod": "Tiro Adventure-sw-cache-",
+	"dev": "Tiro Adventure DEV-sw-cache-",
+}
 
 var update_ready := false
 
@@ -45,6 +51,10 @@ func check_for_update() -> void:
 ## worker que ele ignora quando o navegador não informa a origem (Safari/iOS),
 ## e nada acontece. Em vez disso: remove o service worker e o cache do jogo,
 ## baixa os arquivos direto do servidor e recarrega. O save (IndexedDB) fica intacto.
+##
+## Só mexe no service worker DESTA página e nos caches DESTE canal: a versão publicada
+## (/) e a dev (/dev/) ficam no mesmo site e não podem apagar o cache uma da outra.
+## O deploy dá prefixos de cache diferentes a cada canal (ver CACHE_PREFIXES).
 func apply_update() -> void:
 	if not OS.has_feature("web"):
 		return
@@ -55,10 +65,11 @@ func apply_update() -> void:
 	JavaScriptBridge.eval("""
 		(async () => {
 			try {
-				const regs = await navigator.serviceWorker.getRegistrations();
-				await Promise.all(regs.map((r) => r.unregister()));
+				const reg = await navigator.serviceWorker.getRegistration();
+				// Na /dev/ sem SW próprio, getRegistration() devolveria o da versão publicada.
+				if (reg && reg.scope === new URL('./', location.href).href) await reg.unregister();
 				const keys = await caches.keys();
-				await Promise.all(keys.map((k) => caches.delete(k)));
+				await Promise.all(keys.filter((k) => k.startsWith('%s')).map((k) => caches.delete(k)));
 				const files = ['index.html', 'index.js', 'index.pck', 'index.wasm', 'index.service.worker.js'];
 				await Promise.all(files.map((f) => fetch(f, { cache: 'reload' }).catch(() => null)));
 			} catch (e) {
@@ -66,7 +77,7 @@ func apply_update() -> void:
 			}
 			location.reload();
 		})();
-	""", true)
+	""" % CACHE_PREFIXES.get(BuildInfo.channel(), CACHE_PREFIXES.prod), true)
 
 
 func _on_update_available() -> void:

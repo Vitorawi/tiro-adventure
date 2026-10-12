@@ -1,0 +1,30 @@
+{
+  "bloblo": {
+    "name": "Bloblo",
+    "role": "Horta e culinária",
+    "portrait": "",
+    "icon": "tab_farm",
+    "greeting": "Um canteiro emprestado pode ser o começo de um sítio inteiro. Vamos cuidar dele juntos?"
+  },
+  "guide": {
+    "name": "Guia da trilha",
+    "role": "Passeios e descobertas",
+    "portrait": "",
+    "icon": "action_play",
+    "greeting": "O Tiro tem faro para aventuras. Cada caminho guarda uma descoberta."
+  },
+  "merchant": {
+    "name": "Feirante",
+    "role": "Comércio e encomendas",
+    "portrait": "",
+    "icon": "coin",
+    "greeting": "Tem gente na vila procurando o que você produz. Vamos fazer negócio?"
+  },
+  "artisan": {
+    "name": "Artesã",
+    "role": "Construção e acessórios",
+    "portrait": "",
+    "icon": "item_plank",
+    "greeting": "Com materiais e paciência, a gente transforma este lugar."
+  }
+}

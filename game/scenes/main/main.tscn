@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=15 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
 [ext_resource type="PackedScene" path="res://scenes/ui/pet_screen/pet_screen.tscn" id="2_pet"]
@@ -9,6 +9,8 @@
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_pet.png" id="7_tab_pet"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_house.png" id="8_tab_house"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_farm.png" id="9_tab_farm"]
+[ext_resource type="PackedScene" path="res://scenes/ui/progression_screen/progression_screen.tscn" id="10_progress"]
+[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_journey.png" id="11_tab_journey"]
 
 [sub_resource type="ButtonGroup" id="ButtonGroup_tabs"]
 
@@ -23,6 +25,18 @@ corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dev"]
+bg_color = Color(0.75, 0.24, 0.2, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 3
+border_color = Color(0.29, 0.1, 0.08, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -94,12 +108,28 @@ layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 2
 
+[node name="DevButton" type="Button" parent="Layout/TopBar/HBox"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(52, 36)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 0.96, 0.88, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_dev")
+theme_override_styles/hover = SubResource("StyleBoxFlat_dev")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_dev")
+text = "DEV"
+
 [node name="VersionLabel" type="Label" parent="Layout/TopBar/HBox"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 mouse_filter = 0
 theme_override_colors/font_color = Color(0.62, 0.52, 0.42, 1)
 theme_override_font_sizes/font_size = 14
+horizontal_alignment = 2
+clip_text = true
 
 [node name="CoinIcon" type="TextureRect" parent="Layout/TopBar/HBox"]
 custom_minimum_size = Vector2(32, 32)
@@ -140,6 +170,11 @@ visible = false
 layout_mode = 1
 room_id = "farm"
 
+[node name="ProgressionScreen" parent="Layout/Screens" instance=ExtResource("10_progress")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
 [node name="Tabs" type="HBoxContainer" parent="Layout"]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
@@ -177,6 +212,16 @@ toggle_mode = true
 button_group = SubResource("ButtonGroup_tabs")
 text = "Sítio"
 icon = ExtResource("9_tab_farm")
+
+[node name="JourneyTab" type="Button" parent="Layout/Tabs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_type_variation = &"TabButton"
+toggle_mode = true
+button_group = SubResource("ButtonGroup_tabs")
+text = "Jornada"
+icon = ExtResource("11_tab_journey")
 
 [node name="Sheet" parent="." instance=ExtResource("4_sheet")]
 z_index = 10

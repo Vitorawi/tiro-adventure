@@ -1,26 +1,96 @@
 {
   "needs": {
-    "hunger": { "name": "Barriga", "decay_per_hour": 8, "icon": "res://assets/sprites/ui/icons/need_hunger.png", "color": "#f0a04b" },
-    "happiness": { "name": "Felicidade", "decay_per_hour": 5, "icon": "res://assets/sprites/ui/icons/need_happiness.png", "color": "#ef6f8f" },
-    "energy": { "name": "Energia", "decay_per_hour": 6, "sleep_regen_per_hour": 40, "icon": "res://assets/sprites/ui/icons/need_energy.png", "color": "#f2cf4a" },
-    "hygiene": { "name": "Higiene", "decay_per_hour": 3, "icon": "res://assets/sprites/ui/icons/need_hygiene.png", "color": "#5fb3e8" }
+    "hunger": {
+      "name": "Barriga",
+      "decay_per_hour": 8,
+      "icon": "res://assets/sprites/ui/icons/need_hunger.png",
+      "color": "#f0a04b"
+    },
+    "happiness": {
+      "name": "Felicidade",
+      "decay_per_hour": 5,
+      "icon": "res://assets/sprites/ui/icons/need_happiness.png",
+      "color": "#ef6f8f"
+    },
+    "energy": {
+      "name": "Energia",
+      "decay_per_hour": 6,
+      "sleep_regen_per_hour": 40,
+      "icon": "res://assets/sprites/ui/icons/need_energy.png",
+      "color": "#f2cf4a"
+    },
+    "hygiene": {
+      "name": "Higiene",
+      "decay_per_hour": 3,
+      "icon": "res://assets/sprites/ui/icons/need_hygiene.png",
+      "color": "#5fb3e8"
+    }
   },
   "actions": {
-    "pet": { "happiness": 3 },
-    "play": { "happiness": 20, "energy": -12, "hygiene": -6 },
-    "bathe": { "hygiene": 100, "happiness": -5 }
+    "pet": {
+      "happiness": 3
+    },
+    "play": {
+      "happiness": 20,
+      "energy": -12,
+      "hygiene": -6
+    },
+    "bathe": {
+      "hygiene": 100,
+      "happiness": -5
+    }
   },
   "stations": {
-    "stove": { "name": "Fogão", "slots": 3 }
+    "stove": {
+      "name": "Fogão",
+      "slots": 1,
+      "slot_upgrades": {
+        "stove_queue": 2
+      }
+    },
+    "workbench": {
+      "name": "Bancada",
+      "slots": 2
+    },
+    "oven": {
+      "name": "Forno",
+      "slots": 2
+    },
+    "atelier": {
+      "name": "Ateliê",
+      "slots": 2
+    }
   },
   "farm": {
-    "name": "Sítio da Bloblo", "plots": 9, "initial_plots": 3,
-    "unlock_costs": [0, 0, 0, 20, 40, 70, 100, 150, 220],
-    "sprout": "res://assets/sprites/areas/farm/crop_sprout.png"
+    "name": "Sítio da Bloblo",
+    "plots": 9,
+    "initial_plots": 3,
+    "unlock_costs": [
+      0,
+      0,
+      0,
+      20,
+      40,
+      70,
+      100,
+      150,
+      220
+    ],
+    "sprout": "res://assets/sprites/areas/farm/crop_sprout.png",
+    "borrowed_plots": 1
   },
-  "xp": { "feed": 2, "play": 3, "bathe": 3, "cook": 5, "harvest": 2, "per_level": 100 },
+  "xp": {
+    "feed": 2,
+    "play": 3,
+    "bathe": 3,
+    "cook": 5,
+    "harvest": 2,
+    "per_level": 100
+  },
   "start": {
-    "coins": 50,
-    "inventory": { "dog_food": 5, "carrot": 6, "pumpkin": 2, "potato": 2 }
+    "coins": 10,
+    "inventory": {
+      "dog_food": 3
+    }
   }
 }

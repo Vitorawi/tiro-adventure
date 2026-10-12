@@ -1,5 +1,56 @@
 {
-  "carrot": { "seconds": 60, "coins": 3, "yield": { "carrot": 2 }, "sprite": "res://assets/sprites/areas/farm/crop_carrot.png" },
-  "potato": { "seconds": 300, "coins": 9, "yield": { "potato": 2 }, "sprite": "res://assets/sprites/areas/farm/crop_potato.png" },
-  "pumpkin": { "seconds": 600, "coins": 16, "yield": { "pumpkin": 1 }, "sprite": "res://assets/sprites/areas/farm/crop_pumpkin.png" }
+  "carrot": {
+    "seconds": 60,
+    "coins": 3,
+    "yield": {
+      "carrot": 2
+    },
+    "sprite": "res://assets/sprites/areas/farm/crop_carrot.png",
+    "skill_xp": 10
+  },
+  "potato": {
+    "seconds": 300,
+    "coins": 9,
+    "yield": {
+      "potato": 2
+    },
+    "sprite": "res://assets/sprites/areas/farm/crop_potato.png",
+    "skill_xp": 22,
+    "requirements": {
+      "skills": {
+        "agriculture": 2
+      }
+    }
+  },
+  "pumpkin": {
+    "seconds": 600,
+    "coins": 16,
+    "yield": {
+      "pumpkin": 1
+    },
+    "sprite": "res://assets/sprites/areas/farm/crop_pumpkin.png",
+    "skill_xp": 35,
+    "requirements": {
+      "skills": {
+        "agriculture": 3
+      }
+    }
+  },
+  "herbs": {
+    "seconds": 900,
+    "coins": 24,
+    "yield": {
+      "herbs": 2
+    },
+    "sprite": "res://assets/sprites/areas/farm/crop_sprout.png",
+    "skill_xp": 55,
+    "requirements": {
+      "owned": [
+        "greenhouse"
+      ],
+      "skills": {
+        "agriculture": 5
+      }
+    }
+  }
 }

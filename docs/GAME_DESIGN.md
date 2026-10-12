@@ -122,7 +122,8 @@ desbloquear áreas, estações, receitas, itens e personagens
 - Valores de tempo são ponto de partida para balancear (dados em `game/data/`).
 
 ## Progressão do sítio (implementada)
-- Novo jogo começa com 3 canteiros. Há 9 posições fixas visíveis no mapa, compradas em sequência.
+- Novo jogo começa com **1 canteiro emprestado** pela Bloblo; a escritura do sítio (Jornada → Construir)
+  libera 3 canteiros. Há 9 posições fixas visíveis no mapa, compradas em sequência.
 - Preços dos terrenos 4 a 9: 20, 40, 70, 100, 150 e 220 moedas (`config.json`, `farm.unlock_costs`).
 - Colher rende os produtos e moedas: cenoura 3, batata 9, abóbora 16 (`crops.json`, `coins`). Sementes continuam gratuitas.
 - Cada plantação mostra ícone, tempo restante e barra; ao amadurecer, mostra “Colher”. O broto cresce e dá lugar à planta.
@@ -130,7 +131,12 @@ desbloquear áreas, estações, receitas, itens e personagens
 - O botão “Meu sítio” mostra terrenos adquiridos, saldo, próxima expansão e acesso aos canteiros.
 - Saves antigos preservam seus terrenos e plantações. Crescimento continua com o app fechado.
 
-## Evolução e progressão (proposta)
+## Progressão — Jornada (implementada)
+Casa quase vazia no começo, 7 atributos (Agricultura, Culinária, Construção, Comércio, Passeio,
+Mineração, Vínculo), construções compradas, rotas de passeio/mineração, feira, capítulos, missões
+de NPCs e coleção de roupas/apetrechos. **Detalhes, formatos e versão dev em [PROGRESSION.md](PROGRESSION.md).**
+
+## Evolução (ideias originais; parte já virou a Jornada)
 - **(a) Nível do jogador:** XP de produzir, cuidar e missões; desbloqueia áreas, receitas e estações.
 - **(b) Vínculo com o Tiro (afeição):** sobe cuidando bem; desbloqueia truques.
 - **(c) Truques** (habilidades do Tiro, ligados aos sprites de referência), aprendidos com o Treinador via minigame:

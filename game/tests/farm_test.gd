@@ -30,6 +30,8 @@ func _run() -> void:
 	_check(state.call("plot_status", 5) == "ready", "Migração deve preservar a plantação")
 	_check(state.get("coins") == 77, "Migração deve preservar moedas")
 	state.call("reset")
+	state.get("progress").owned["farm"] = true
+	state.set("coins", 50)
 	_check(state.get("unlocked_plots") == 3, "Jogo novo começa com três terrenos")
 	_check(state.call("plant", 3, "carrot") != "", "Não pode plantar em terreno bloqueado")
 	_check(state.call("buy_plot", 4) != "", "Não pode pular a ordem de compra")
@@ -66,6 +68,8 @@ func _run() -> void:
 
 func _screenshots(state: Node) -> void:
 	state.call("reset")
+	state.get("progress").owned["farm"] = true
+	state.get("progress").skills["agriculture"] = 500
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	main.call("show_screen", &"farm")

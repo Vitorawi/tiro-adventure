@@ -1,0 +1,44 @@
+{
+  "farm_ribbon": {
+    "name": "Laço do sítio",
+    "slot": "neck",
+    "description": "Lembrança da conquista do seu próprio sítio.",
+    "icon": "tab_farm",
+    "sprite": ""
+  },
+  "trail_bandana": {
+    "name": "Lenço de trilha",
+    "slot": "neck",
+    "description": "Uma lembrança das primeiras aventuras com o Tiro.",
+    "icon": "action_play",
+    "sprite": ""
+  },
+  "cook_apron": {
+    "name": "Avental de cozinheiro",
+    "slot": "body",
+    "description": "Receita de família concluída.",
+    "icon": "item_carrot_snack",
+    "sprite": ""
+  },
+  "explorer_charm": {
+    "name": "Amuleto de explorador",
+    "slot": "neck",
+    "description": "Encontrado no caminho até a gruta dos cristais.",
+    "icon": "item_crystal",
+    "sprite": ""
+  },
+  "garden_hat": {
+    "name": "Chapéu de jardineiro",
+    "slot": "head",
+    "description": "Marca de um sítio cheio de vida.",
+    "icon": "tab_farm",
+    "sprite": ""
+  },
+  "artisan_outfit": {
+    "name": "Roupa de artesão",
+    "slot": "body",
+    "description": "Conquista do primeiro ateliê.",
+    "icon": "item_fabric",
+    "sprite": ""
+  }
+}

@@ -1,4 +1,124 @@
 {
-  "carrot_snack": { "station": "stove", "inputs": { "carrot": 2 }, "output": "carrot_snack", "qty": 1, "seconds": 60 },
-  "pumpkin_mash": { "station": "stove", "inputs": { "pumpkin": 1, "potato": 1 }, "output": "pumpkin_mash", "qty": 1, "seconds": 180 }
+  "carrot_snack": {
+    "station": "stove",
+    "inputs": {
+      "carrot": 2
+    },
+    "output": "carrot_snack",
+    "qty": 1,
+    "seconds": 60,
+    "skill_xp": 10
+  },
+  "pumpkin_mash": {
+    "station": "stove",
+    "inputs": {
+      "pumpkin": 1,
+      "potato": 1
+    },
+    "output": "pumpkin_mash",
+    "qty": 1,
+    "seconds": 180,
+    "skill_xp": 22,
+    "requirements": {
+      "skills": {
+        "cooking": 2
+      }
+    }
+  },
+  "vegetable_soup": {
+    "station": "stove",
+    "inputs": {
+      "carrot": 2,
+      "potato": 1,
+      "pumpkin": 1
+    },
+    "output": "vegetable_soup",
+    "qty": 1,
+    "seconds": 240,
+    "skill": "cooking",
+    "skill_xp": 30,
+    "requirements": {
+      "owned": [
+        "fridge"
+      ],
+      "skills": {
+        "cooking": 2
+      }
+    }
+  },
+  "plank": {
+    "station": "workbench",
+    "inputs": {
+      "wood": 3
+    },
+    "output": "plank",
+    "qty": 1,
+    "seconds": 90,
+    "skill": "building",
+    "skill_xp": 15
+  },
+  "brick": {
+    "station": "workbench",
+    "inputs": {
+      "stone": 3
+    },
+    "output": "brick",
+    "qty": 1,
+    "seconds": 120,
+    "skill": "building",
+    "skill_xp": 18
+  },
+  "apple_biscuit": {
+    "station": "oven",
+    "inputs": {
+      "apple": 2,
+      "carrot_snack": 1
+    },
+    "output": "apple_biscuit",
+    "qty": 2,
+    "seconds": 300,
+    "skill": "cooking",
+    "skill_xp": 45
+  },
+  "treat_box": {
+    "station": "oven",
+    "inputs": {
+      "apple_biscuit": 2,
+      "pumpkin_mash": 1,
+      "herbs": 1
+    },
+    "output": "treat_box",
+    "qty": 1,
+    "seconds": 420,
+    "skill": "cooking",
+    "skill_xp": 65,
+    "requirements": {
+      "skills": {
+        "cooking": 5
+      }
+    }
+  },
+  "fabric": {
+    "station": "atelier",
+    "inputs": {
+      "fiber": 3
+    },
+    "output": "fabric",
+    "qty": 1,
+    "seconds": 180,
+    "skill": "building",
+    "skill_xp": 25
+  },
+  "accessory_set": {
+    "station": "atelier",
+    "inputs": {
+      "fabric": 2,
+      "crystal": 1
+    },
+    "output": "accessory_set",
+    "qty": 1,
+    "seconds": 360,
+    "skill": "building",
+    "skill_xp": 55
+  }
 }

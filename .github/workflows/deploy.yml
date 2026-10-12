@@ -1,4 +1,5 @@
-# Build Web do Godot + publicação no GitHub Pages a cada push na main.
+# Build Web do Godot (versão publicada + versão dev em /dev/) e publicação no GitHub Pages
+# a cada push na main.
 # Pré-requisito no GitHub: Settings > Pages > Source = "GitHub Actions".
 name: Deploy Web
 
@@ -52,26 +53,40 @@ jobs:
           mkdir -p "$TPL"
           cp ~/godot/templates/* "$TPL/"
 
-      - name: Gravar versão
+      # Duas builds do mesmo commit (ver docs/DEPLOY.md, "Versão dev"):
+      #   prod -> build/web      (https://vitorawi.github.io/tiro-adventure/)
+      #   dev  -> build/web/dev  (https://vitorawi.github.io/tiro-adventure/dev/)
+      # O canal vai em data/version.json; a dev usa outro save e mostra as ferramentas DEV.
+      - name: Exportar Web (prod e dev)
         run: |
-          echo "{ \"version\": \"$(git rev-parse --short HEAD)\", \"date\": \"$(TZ=America/Sao_Paulo date '+%d/%m %H:%M')\" }" > game/data/version.json
-          cat game/data/version.json
-
-      - name: Exportar Web
-        run: |
-          mkdir -p build/web
           ~/godot/godot --headless --path game --import
-          ~/godot/godot --headless --path game --export-release "Web" "$GITHUB_WORKSPACE/build/web/index.html"
-          test -f build/web/index.html
+          export_channel() {
+            local channel="$1" out="$2"
+            echo "{ \"version\": \"$(git rev-parse --short HEAD)\", \"date\": \"$(TZ=America/Sao_Paulo date '+%d/%m %H:%M')\", \"channel\": \"$channel\" }" > game/data/version.json
+            cat game/data/version.json
+            mkdir -p "$out"
+            ~/godot/godot --headless --path game --export-release "Web" "$GITHUB_WORKSPACE/$out/index.html"
+            test -f "$out/index.html"
+            # O SW do Godot instala a versão nova com cache.addAll(), que pode pegar arquivos
+            # antigos do cache HTTP (o Pages manda guardar por 10 min). Força baixar do servidor.
+            local sw="$out/index.service.worker.js"
+            sed -i "s/cache.addAll(CACHED_FILES)/cache.addAll(CACHED_FILES.map((f) => new Request(f, { cache: 'reload' })))/" "$sw"
+            grep -q "cache: 'reload'" "$sw"
+          }
+          export_channel prod build/web
+          export_channel dev build/web/dev
           touch build/web/.nojekyll
 
-      - name: Service worker sem cache HTTP
-        # O SW do Godot instala a versão nova com cache.addAll(), que pode pegar arquivos
-        # antigos do cache HTTP (o Pages manda guardar por 10 min). Força baixar do servidor.
+      - name: Separar a versão dev da publicada
+        # Mesmo site = caches do service worker com o mesmo prefixo: ao ativar, um apagaria
+        # o cache do outro. Prefixo próprio (igual a PwaUpdater.CACHE_PREFIXES.dev) e nome
+        # "Tiro DEV" no ícone da tela inicial.
         run: |
-          SW=build/web/index.service.worker.js
-          sed -i "s/cache.addAll(CACHED_FILES)/cache.addAll(CACHED_FILES.map((f) => new Request(f, { cache: 'reload' })))/" "$SW"
-          grep -q "cache: 'reload'" "$SW"
+          DEV=build/web/dev
+          sed -i "s/const CACHE_PREFIX = 'Tiro Adventure-sw-cache-'/const CACHE_PREFIX = 'Tiro Adventure DEV-sw-cache-'/" "$DEV/index.service.worker.js"
+          grep -q "Tiro Adventure DEV-sw-cache-" "$DEV/index.service.worker.js"
+          sed -i 's/"name":"Tiro Adventure"/"name":"Tiro DEV"/' "$DEV/index.manifest.json"
+          sed -i 's#<title>Tiro Adventure</title>#<title>Tiro DEV</title>#' "$DEV/index.html"
 
       - uses: actions/upload-pages-artifact@v3
         with:

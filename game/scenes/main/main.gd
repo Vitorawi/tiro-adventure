@@ -1,16 +1,18 @@
 extends Control
-## Casca do jogo: barra superior (nível/moedas), telas (Pet, Casa e Sítio),
-## abas inferiores, painel inferior (Sheet) e mensagens rápidas (toast).
+## Casca do jogo: barra superior (nível/moedas, selo DEV), telas (Tiro, Casa,
+## Sítio e Jornada), abas inferiores, painel inferior (Sheet) e mensagens rápidas (toast).
 
 @onready var _screens := {
 	&"pet": %PetScreen,
 	&"house": %House,
 	&"farm": %Farm,
+	&"journey": %ProgressionScreen,
 }
 @onready var _tabs := {
 	&"pet": %PetTab,
 	&"house": %HouseTab,
 	&"farm": %FarmTab,
+	&"journey": %JourneyTab,
 }
 @onready var _level_label: Label = %LevelLabel
 @onready var _coins_label: Label = %CoinsLabel
@@ -22,6 +24,12 @@ var _toast_tween: Tween
 func _ready() -> void:
 	for id: StringName in _tabs:
 		_tabs[id].pressed.connect(show_screen.bind(id))
+		# Ícone em cima e texto embaixo: com 4 abas, "Jornada" ao lado do ícone não cabe.
+		_tabs[id].expand_icon = true
+		_tabs[id].icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_tabs[id].vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		_tabs[id].add_theme_constant_override("icon_max_width", 28)
+		_tabs[id].add_theme_font_size_override("font_size", 18)
 	Events.screen_requested.connect(show_screen)
 	Events.toast_requested.connect(_show_toast)
 	Events.state_changed.connect(_refresh_top_bar)
@@ -34,6 +42,10 @@ func _ready() -> void:
 		var button := event as InputEventMouseButton
 		if button and button.pressed:
 			PwaUpdater.apply_update())
+	# Versão dev: selo DEV abre as ferramentas de teste (BuildInfo / DevPanel).
+	%DevButton.visible = BuildInfo.is_dev()
+	%DevButton.pressed.connect(func() -> void:
+		Events.sheet_requested.emit("Ferramentas DEV", DevPanel.panel()))
 	_toast.modulate.a = 0.0
 	UiKit.tint_bar(%XpBar, Color(1, 0.82, 0.3))
 	_refresh_top_bar()

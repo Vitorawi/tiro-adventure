@@ -1,0 +1,603 @@
+{
+  "settings": {
+    "skill_base_xp": 30,
+    "skill_xp_step": 20,
+    "max_skill_level": 20,
+    "first_discovery_multiplier": 2,
+    "care_reward_cooldown": 120,
+    "emergency_food_amount": 2,
+    "emergency_food_cooldown": 300,
+    "initial_owned": [],
+    "legacy_owned": [
+      "stove",
+      "fridge",
+      "sofa",
+      "farm",
+      "stove_queue"
+    ],
+    "legacy_unlocks": [
+      "crop:potato",
+      "crop:pumpkin",
+      "recipe:pumpkin_mash"
+    ],
+    "care_xp": {
+      "feed": 5,
+      "play": 6,
+      "bathe": 5
+    },
+    "care_need_threshold": 95
+  },
+  "skills": {
+    "agriculture": {
+      "name": "Agricultura",
+      "description": "Colha e descubra novas culturas. Libera sementes, pomar e estufa.",
+      "icon": "tab_farm",
+      "color": "#79ac4b"
+    },
+    "cooking": {
+      "name": "Culinária",
+      "description": "Prepare receitas. Pratos elaborados dão mais experiência.",
+      "icon": "item_carrot_snack",
+      "color": "#eea24c"
+    },
+    "building": {
+      "name": "Construção",
+      "description": "Construa melhorias e fabrique materiais na bancada.",
+      "icon": "item_plank",
+      "color": "#bb9568"
+    },
+    "commerce": {
+      "name": "Comércio",
+      "description": "Venda produtos e entregue pedidos para abrir novos negócios.",
+      "icon": "coin",
+      "color": "#dbb442"
+    },
+    "walking": {
+      "name": "Passeio",
+      "description": "Explore caminhos com o Tiro para encontrar sementes e materiais.",
+      "icon": "action_play",
+      "color": "#70ada4"
+    },
+    "mining": {
+      "name": "Mineração",
+      "description": "Extraia pedra, cobre e cristais para equipamentos avançados.",
+      "icon": "item_crystal",
+      "color": "#a497ca"
+    },
+    "bond": {
+      "name": "Vínculo",
+      "description": "Cuide do Tiro quando ele precisar. Desbloqueia trilhas e lembranças.",
+      "icon": "need_happiness",
+      "color": "#df829c"
+    }
+  },
+  "upgrades": {
+    "stove": {
+      "name": "Fogão simples",
+      "description": "A primeira cozinha: prepara petiscos e refeições.",
+      "cost": 40,
+      "requirements": {},
+      "skill_xp": {
+        "building": 10
+      },
+      "icon": "item_carrot_snack"
+    },
+    "fridge": {
+      "name": "Geladeira",
+      "description": "Libera preparos conservados e a receita de caldo de legumes.",
+      "cost": 75,
+      "requirements": {
+        "owned": [
+          "stove"
+        ]
+      },
+      "skill_xp": {
+        "building": 15
+      },
+      "icon": "tab_house"
+    },
+    "farm": {
+      "name": "Escritura do sítio",
+      "description": "O terreno passa a ser seu: três canteiros e espaço para expandir.",
+      "cost": 180,
+      "requirements": {
+        "quests": [
+          "first_sale"
+        ]
+      },
+      "skill_xp": {
+        "building": 25
+      },
+      "icon": "tab_farm"
+    },
+    "sofa": {
+      "name": "Sofá do Tiro",
+      "description": "Um lugar confortável para as sonecas, na sala.",
+      "cost": 90,
+      "requirements": {
+        "skills": {
+          "bond": 2
+        }
+      },
+      "skill_xp": {
+        "building": 15
+      },
+      "icon": "action_sleep"
+    },
+    "workbench": {
+      "name": "Bancada de trabalho",
+      "description": "Transforma madeira e pedra em peças de construção.",
+      "cost": 120,
+      "materials": {
+        "wood": 6,
+        "stone": 4
+      },
+      "requirements": {
+        "owned": [
+          "farm"
+        ]
+      },
+      "skill_xp": {
+        "building": 25
+      },
+      "icon": "item_plank",
+      "station": "workbench"
+    },
+    "pickaxe": {
+      "name": "Picareta",
+      "description": "Permite explorar a pedreira e encontrar minérios.",
+      "cost": 80,
+      "materials": {
+        "wood": 3,
+        "stone": 3
+      },
+      "requirements": {
+        "skills": {
+          "walking": 2
+        }
+      },
+      "skill_xp": {
+        "building": 15
+      },
+      "icon": "item_stone"
+    },
+    "stove_queue": {
+      "name": "Cozinha organizada",
+      "description": "Mais dois espaços na fila do fogão.",
+      "cost": 180,
+      "materials": {
+        "plank": 3
+      },
+      "requirements": {
+        "owned": [
+          "stove",
+          "workbench"
+        ],
+        "skills": {
+          "cooking": 3
+        }
+      },
+      "skill_xp": {
+        "building": 25
+      },
+      "icon": "item_carrot_snack"
+    },
+    "oven": {
+      "name": "Forno",
+      "description": "Produz biscoitos e caixas de petiscos para encomendas.",
+      "cost": 240,
+      "materials": {
+        "brick": 4,
+        "copper": 3
+      },
+      "requirements": {
+        "owned": [
+          "workbench",
+          "fridge"
+        ],
+        "skills": {
+          "cooking": 3
+        }
+      },
+      "skill_xp": {
+        "building": 40
+      },
+      "icon": "item_apple_biscuit",
+      "station": "oven"
+    },
+    "orchard": {
+      "name": "Pomar",
+      "description": "Libera a rota de colheita de maçãs e novos preparos.",
+      "cost": 300,
+      "materials": {
+        "plank": 5
+      },
+      "requirements": {
+        "owned": [
+          "farm"
+        ],
+        "skills": {
+          "agriculture": 4
+        }
+      },
+      "skill_xp": {
+        "building": 35
+      },
+      "icon": "item_apple"
+    },
+    "greenhouse": {
+      "name": "Estufa",
+      "description": "Libera ervas aromáticas e culturas especializadas.",
+      "cost": 480,
+      "materials": {
+        "plank": 6,
+        "brick": 6,
+        "crystal": 2
+      },
+      "requirements": {
+        "owned": [
+          "farm"
+        ],
+        "skills": {
+          "agriculture": 5,
+          "mining": 3
+        }
+      },
+      "skill_xp": {
+        "building": 50
+      },
+      "icon": "item_herbs"
+    },
+    "stall": {
+      "name": "Banca da feira",
+      "description": "Abre contratos maiores de alimentos e materiais.",
+      "cost": 350,
+      "materials": {
+        "plank": 5,
+        "brick": 3
+      },
+      "requirements": {
+        "owned": [
+          "farm"
+        ],
+        "skills": {
+          "commerce": 4
+        }
+      },
+      "skill_xp": {
+        "building": 35
+      },
+      "icon": "coin"
+    },
+    "atelier": {
+      "name": "Ateliê",
+      "description": "Fabrica tecidos e conjuntos de acessórios.",
+      "cost": 600,
+      "materials": {
+        "plank": 8,
+        "copper": 6
+      },
+      "requirements": {
+        "owned": [
+          "workbench"
+        ],
+        "skills": {
+          "building": 5,
+          "commerce": 4
+        }
+      },
+      "skill_xp": {
+        "building": 60
+      },
+      "icon": "item_fabric",
+      "station": "atelier"
+    }
+  },
+  "activities": {
+    "lane": {
+      "name": "Volta pelo bairro",
+      "description": "Um passeio tranquilo com o Tiro. Sempre disponível.",
+      "seconds": 60,
+      "requirements": {},
+      "rewards": {
+        "coins": 8,
+        "items": {
+          "wood": 1
+        },
+        "skill_xp": {
+          "walking": 10,
+          "bond": 3
+        }
+      },
+      "icon": "action_play"
+    },
+    "trail": {
+      "name": "Trilha do riacho",
+      "description": "Recolha madeira e pedras para as primeiras construções.",
+      "seconds": 180,
+      "requirements": {
+        "skills": {
+          "walking": 2
+        }
+      },
+      "rewards": {
+        "coins": 15,
+        "items": {
+          "wood": 3,
+          "stone": 2
+        },
+        "skill_xp": {
+          "walking": 22,
+          "bond": 5
+        }
+      },
+      "icon": "item_wood"
+    },
+    "quarry": {
+      "name": "Pedreira",
+      "description": "Extraia pedra para a oficina e suas melhorias.",
+      "seconds": 180,
+      "requirements": {
+        "owned": [
+          "pickaxe"
+        ]
+      },
+      "rewards": {
+        "items": {
+          "stone": 5
+        },
+        "skill_xp": {
+          "mining": 20,
+          "walking": 5
+        }
+      },
+      "icon": "item_stone"
+    },
+    "copper_vein": {
+      "name": "Veio de cobre",
+      "description": "O minério abastece fornos e ferramentas.",
+      "seconds": 360,
+      "requirements": {
+        "owned": [
+          "pickaxe"
+        ],
+        "skills": {
+          "mining": 2
+        }
+      },
+      "rewards": {
+        "items": {
+          "stone": 3,
+          "copper": 3
+        },
+        "skill_xp": {
+          "mining": 36
+        }
+      },
+      "icon": "item_copper"
+    },
+    "crystal_cave": {
+      "name": "Gruta dos cristais",
+      "description": "Cristais para instalações especiais.",
+      "seconds": 600,
+      "requirements": {
+        "owned": [
+          "pickaxe"
+        ],
+        "skills": {
+          "mining": 3,
+          "walking": 3
+        }
+      },
+      "rewards": {
+        "items": {
+          "crystal": 2,
+          "copper": 2
+        },
+        "skill_xp": {
+          "mining": 55,
+          "walking": 12
+        }
+      },
+      "icon": "item_crystal"
+    },
+    "orchard_harvest": {
+      "name": "Colher no pomar",
+      "description": "Cuide das árvores e volte com maçãs.",
+      "seconds": 300,
+      "requirements": {
+        "owned": [
+          "orchard"
+        ]
+      },
+      "rewards": {
+        "items": {
+          "apple": 4
+        },
+        "skill_xp": {
+          "agriculture": 28
+        }
+      },
+      "icon": "item_apple"
+    },
+    "meadow": {
+      "name": "Prado das fibras",
+      "description": "Colete fibras para transformar em tecido.",
+      "seconds": 420,
+      "requirements": {
+        "skills": {
+          "walking": 4,
+          "bond": 3
+        }
+      },
+      "rewards": {
+        "items": {
+          "fiber": 5,
+          "wood": 3
+        },
+        "skill_xp": {
+          "walking": 38,
+          "bond": 10
+        }
+      },
+      "icon": "item_fiber"
+    }
+  },
+  "orders": {
+    "vegetables": {
+      "name": "Cesta da vizinhança",
+      "inputs": {
+        "carrot": 4
+      },
+      "requirements": {},
+      "rewards": {
+        "coins": 18,
+        "skill_xp": {
+          "commerce": 12
+        }
+      },
+      "cooldown": 60
+    },
+    "snacks": {
+      "name": "Petiscos para a feira",
+      "inputs": {
+        "carrot_snack": 3
+      },
+      "requirements": {
+        "owned": [
+          "stove"
+        ]
+      },
+      "rewards": {
+        "coins": 45,
+        "skill_xp": {
+          "commerce": 22
+        }
+      },
+      "cooldown": 180
+    },
+    "soup_order": {
+      "name": "Almoço da comunidade",
+      "inputs": {
+        "vegetable_soup": 2
+      },
+      "requirements": {
+        "owned": [
+          "fridge"
+        ]
+      },
+      "rewards": {
+        "coins": 75,
+        "skill_xp": {
+          "commerce": 32
+        }
+      },
+      "cooldown": 300
+    },
+    "building_order": {
+      "name": "Reforma da praça",
+      "inputs": {
+        "plank": 4,
+        "brick": 4
+      },
+      "requirements": {
+        "owned": [
+          "stall"
+        ]
+      },
+      "rewards": {
+        "coins": 150,
+        "skill_xp": {
+          "commerce": 45,
+          "building": 15
+        }
+      },
+      "cooldown": 600
+    },
+    "special_order": {
+      "name": "Caixas de presente",
+      "inputs": {
+        "treat_box": 3
+      },
+      "requirements": {
+        "owned": [
+          "stall",
+          "oven"
+        ]
+      },
+      "rewards": {
+        "coins": 220,
+        "skill_xp": {
+          "commerce": 60
+        }
+      },
+      "cooldown": 900
+    },
+    "fabric_order": {
+      "name": "Tecidos da vila",
+      "inputs": {
+        "fabric": 4
+      },
+      "requirements": {
+        "owned": [
+          "atelier",
+          "stall"
+        ]
+      },
+      "rewards": {
+        "coins": 180,
+        "skill_xp": {
+          "commerce": 50
+        }
+      },
+      "cooldown": 600
+    }
+  },
+  "chapters": [
+    {
+      "name": "Um novo começo",
+      "description": "Cuide do Tiro, colha no canteiro emprestado e conquiste seu fogão.",
+      "target": "stove"
+    },
+    {
+      "name": "Nossa primeira cozinha",
+      "description": "Cozinhe, entregue pedidos e compre a geladeira.",
+      "target": "fridge"
+    },
+    {
+      "name": "Um pedacinho de terra",
+      "description": "Faça sua primeira venda e compre o sítio.",
+      "target": "farm"
+    },
+    {
+      "name": "Construindo o futuro",
+      "description": "Explore, junte materiais e monte a bancada.",
+      "target": "workbench"
+    },
+    {
+      "name": "Uma produção de verdade",
+      "description": "Domine a cozinha e construa o forno.",
+      "target": "oven"
+    },
+    {
+      "name": "Nosso lugar na vila",
+      "description": "Abra a banca e atenda grandes encomendas.",
+      "target": "stall"
+    },
+    {
+      "name": "Um mundo de possibilidades",
+      "description": "Monte a estufa e descubra culturas especiais.",
+      "target": "greenhouse"
+    },
+    {
+      "name": "Feito por nós",
+      "description": "Construa o ateliê e produza acessórios.",
+      "target": "atelier"
+    }
+  ],
+  "final_chapter": {
+    "name": "Nosso lugar no mundo",
+    "description": "Seu lar está completo. Descubra todas as receitas, conclua as missões e desenvolva seus atributos.",
+    "target": ""
+  }
+}

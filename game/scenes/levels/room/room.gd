@@ -34,6 +34,7 @@ var _press_position := Vector2.ZERO
 var _dragged := false
 var _object_frame := 0
 var _farm_button: Button
+var _owned_snapshot: Dictionary = {}
 
 @onready var _content: Control = %Content
 @onready var _background: TextureRect = %Background
@@ -48,6 +49,8 @@ func _ready() -> void:
 	_spawn_objects()
 	_build_navigation()
 	_spawn_dog()
+	Events.state_changed.connect(_refresh_ownership)
+	_refresh_ownership()
 	if room_id == "farm":
 		_farm_button = UiKit.button("", func() -> void:
 			Events.sheet_requested.emit("Meu sítio", SheetBuilder.farm_view()))
@@ -90,6 +93,8 @@ func _build_navigation() -> void:
 	var blocked: Array[PackedVector2Array] = []
 	for data: Dictionary in _room.get("objects", []):
 		if data.has("footprint"):
+			if data.has("upgrade") and not GameState.has_upgrade(data.upgrade):
+				continue
 			blocked.append(_polygon(data["footprint"]))
 
 	_walkable.clear()
@@ -133,6 +138,24 @@ func _spawn_objects() -> void:
 		sprite.offset = -Vector2(sprite.texture.get_width() / 2.0, sprite.texture.get_height())
 		sprite.position = _vec(data["pos"])
 		sprite.set_meta("action", data.get("action", ""))
+		if data.has("upgrade"):
+			sprite.set_meta("upgrade", data.upgrade)
+			var marker := Label.new()
+			marker.name = "PurchaseMarker"
+			marker.text = "+"
+			marker.position = Vector2(-14, -28)
+			marker.size = Vector2(28, 28)
+			marker.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			marker.add_theme_font_size_override("font_size", 26)
+			marker.add_theme_color_override("font_color", Color("fff0c0"))
+			var marker_box := StyleBoxFlat.new()
+			marker_box.bg_color = Color("67573f")
+			marker_box.border_color = Color("edc56b")
+			marker_box.set_border_width_all(2)
+			marker_box.set_corner_radius_all(5)
+			marker.add_theme_stylebox_override("normal", marker_box)
+			marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			sprite.add_child(marker)
 		if data.has("busy_frames"):
 			# Estação com animação enquanto produz (ex.: fogão cozinhando).
 			sprite.set_meta("station", data["station"])
@@ -207,7 +230,22 @@ func _update_plot(sprite: Sprite2D) -> void:
 
 
 func _refresh_farm_button() -> void:
-	_farm_button.text = "Meu sítio  %d/%d" % [GameState.unlocked_plots, int(Database.farm.get("plots", 0))]
+	_farm_button.text = "Meu sítio  %d/%d" % [GameState.unlocked_plots, int(Database.farm.get("plots", 0))] if GameState.has_upgrade("farm") else "Sítio · canteiro emprestado"
+
+
+func _refresh_ownership() -> void:
+	if _owned_snapshot == GameState.progress.owned and has_meta("ownership_ready"):
+		return
+	set_meta("ownership_ready", true)
+	_owned_snapshot = GameState.progress.owned.duplicate()
+	for sprite: Sprite2D in _objects:
+		if sprite.has_meta("upgrade"):
+			var purchased := GameState.has_upgrade(sprite.get_meta("upgrade"))
+			sprite.self_modulate.a = 1.0 if purchased else 0.0
+			sprite.get_node("PurchaseMarker").visible = not purchased
+	_build_navigation()
+	if _dog:
+		_dog.sleep_point = _point("sleep") if GameState.has_upgrade("sofa") else _point("sleep_approach")
 
 
 ## Pulinho de "ficou pronto".
@@ -375,6 +413,11 @@ func _handle_tap(point: Vector2) -> void:
 				_on_plot_tapped(index)
 				return
 	for sprite: Sprite2D in ordered:
+		if sprite.has_meta("upgrade") and not GameState.has_upgrade(sprite.get_meta("upgrade")):
+			if Rect2(sprite.position + Vector2(-24, -36), Vector2(48, 48)).has_point(point):
+				Events.sheet_requested.emit("Construir", ProgressionUi.purchase(sprite.get_meta("upgrade")))
+				return
+			continue
 		if _hits(sprite, point - sprite.position) or (sprite.has_node("Crop") and _hits(sprite.get_node("Crop"), point - sprite.position - sprite.get_node("Crop").position)):
 			_flash(sprite)
 			_on_object_tapped(sprite.get_meta("action"), sprite)
@@ -390,7 +433,7 @@ func _handle_tap(point: Vector2) -> void:
 func _on_plot_tapped(index: int) -> void:
 	match GameState.plot_status(index):
 		"locked":
-			Events.sheet_requested.emit("Expandir o sítio", SheetBuilder.plot_purchase(index))
+			Events.sheet_requested.emit("Expandir o sítio", SheetBuilder.plot_purchase(index) if GameState.has_upgrade("farm") else ProgressionUi.purchase("farm"))
 		"empty":
 			Events.sheet_requested.emit("Canteiro", SheetBuilder.seed_picker(index))
 		"growing":
@@ -424,7 +467,7 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 		"home":
 			Events.screen_requested.emit(&"house")
 		"bloblo_house":
-			Events.toast_requested.emit("A Bloblo foi à feira. Volte mais tarde!")
+			Events.sheet_requested.emit("Bloblo", ProgressionUi.npc_view("bloblo"))
 		"plot":
 			_on_plot_tapped(int(target.get_meta("plot")) if target else 0)
 		_:

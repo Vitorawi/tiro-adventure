@@ -101,3 +101,8 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
   `tab_pet`, `tab_house`. Exibir em 32 ou 64 px (escala inteira). Prompt base:
   "game inventory icon: <coisa>, cute, bold outline", outline "single color black outline".
   Cenoura e petisco refeitos para não se confundirem (petisco = biscoito em forma de osso).
+- Ícones da Jornada (12/10/2026, pixen 32x32, 1 geração cada, mesmo prompt base): `item_wood`,
+  `item_stone`, `item_copper`, `item_crystal`, `item_plank`, `item_brick`, `item_fiber`, `item_fabric`,
+  `item_apple`, `item_herbs`, `item_vegetable_soup`, `item_apple_biscuit`, `item_treat_box`,
+  `item_accessory_set` e `tab_journey` (mapa de aventura). Jobs: 6dbd4739, 9abb5bb5, 7b3afe34, e14f0df2,
+  cc88fb7f, 3fd98acc, ed23acc2, 4943e753, 8d92c724, 15cf82fd, 7052ef53, f6de034e, b1fe6d24, 1fd7af62, 63c622bb.

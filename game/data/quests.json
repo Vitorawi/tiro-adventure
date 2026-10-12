@@ -1,0 +1,378 @@
+{
+  "welcome": {
+    "npc": "bloblo",
+    "name": "Um amigo bem cuidado",
+    "dialogue": "Dê uma refeição ao Tiro. Trouxe uma ajuda para vocês começarem.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "feed",
+        "target": 1,
+        "label": "Alimentar o Tiro"
+      }
+    ],
+    "rewards": {
+      "coins": 20,
+      "items": {
+        "dog_food": 2
+      },
+      "skill_xp": {
+        "bond": 10
+      }
+    }
+  },
+  "first_harvest": {
+    "npc": "bloblo",
+    "name": "A primeira colheita",
+    "dialogue": "O primeiro canteiro é emprestado. As sementes de cenoura são por minha conta!",
+    "requires": [
+      "welcome"
+    ],
+    "goals": [
+      {
+        "type": "stat",
+        "key": "harvest",
+        "target": 1,
+        "label": "Colher uma plantação"
+      }
+    ],
+    "rewards": {
+      "coins": 20,
+      "skill_xp": {
+        "agriculture": 15
+      }
+    }
+  },
+  "first_kitchen": {
+    "npc": "bloblo",
+    "name": "Cheirinho de comida",
+    "dialogue": "Com um fogão, suas cenouras viram petiscos. Prepare e recolha um.",
+    "requires": [
+      "first_harvest"
+    ],
+    "goals": [
+      {
+        "type": "owned",
+        "key": "stove",
+        "label": "Comprar o fogão"
+      },
+      {
+        "type": "stat",
+        "key": "produce:carrot_snack",
+        "target": 1,
+        "label": "Preparar um petisco"
+      }
+    ],
+    "rewards": {
+      "coins": 30,
+      "skill_xp": {
+        "cooking": 15
+      }
+    }
+  },
+  "first_sale": {
+    "npc": "merchant",
+    "name": "Seu primeiro cliente",
+    "dialogue": "Venda algum produto na feira ou entregue uma encomenda. É o primeiro passo para ter sua terra.",
+    "requires": [
+      "first_harvest"
+    ],
+    "goals": [
+      {
+        "type": "stat",
+        "key": "trade",
+        "target": 1,
+        "label": "Concluir uma venda ou pedido"
+      }
+    ],
+    "rewards": {
+      "coins": 40,
+      "skill_xp": {
+        "commerce": 15
+      }
+    }
+  },
+  "farm_deed": {
+    "npc": "bloblo",
+    "name": "Seu nome na porteira",
+    "dialogue": "Quando comprar a escritura, o sítio será seu. Separei uma lembrança para essa conquista.",
+    "requires": [
+      "first_sale"
+    ],
+    "goals": [
+      {
+        "type": "owned",
+        "key": "farm",
+        "label": "Comprar o sítio"
+      }
+    ],
+    "rewards": {
+      "coins": 35,
+      "collections": [
+        "farm_ribbon"
+      ],
+      "skill_xp": {
+        "agriculture": 25
+      }
+    }
+  },
+  "first_walk": {
+    "npc": "guide",
+    "name": "O mundo lá fora",
+    "dialogue": "Dê uma volta pelo bairro e recolha o que encontrar pelo caminho.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "activity:lane",
+        "target": 1,
+        "label": "Concluir uma volta pelo bairro"
+      }
+    ],
+    "rewards": {
+      "coins": 15,
+      "skill_xp": {
+        "walking": 15
+      }
+    }
+  },
+  "trail_friend": {
+    "npc": "guide",
+    "name": "Companheiros de trilha",
+    "dialogue": "Façam três explorações juntos. Esta lembrança é de vocês.",
+    "requires": [
+      "first_walk"
+    ],
+    "goals": [
+      {
+        "type": "stat",
+        "key": "explore",
+        "target": 3,
+        "label": "Concluir explorações"
+      }
+    ],
+    "rewards": {
+      "collections": [
+        "trail_bandana"
+      ],
+      "skill_xp": {
+        "bond": 25,
+        "walking": 20
+      }
+    }
+  },
+  "stone_path": {
+    "npc": "artisan",
+    "name": "A primeira ferramenta",
+    "dialogue": "Junte madeira e pedra nas trilhas. Uma picareta abre novos caminhos.",
+    "requires": [
+      "first_walk"
+    ],
+    "goals": [
+      {
+        "type": "owned",
+        "key": "pickaxe",
+        "label": "Comprar a picareta"
+      },
+      {
+        "type": "stat",
+        "key": "activity:quarry",
+        "target": 1,
+        "label": "Explorar a pedreira"
+      }
+    ],
+    "rewards": {
+      "coins": 25,
+      "items": {
+        "copper": 2
+      },
+      "skill_xp": {
+        "mining": 20
+      }
+    }
+  },
+  "workshop": {
+    "npc": "artisan",
+    "name": "Com as próprias mãos",
+    "dialogue": "Monte sua bancada e fabrique tábuas. Elas serão úteis em quase toda melhoria.",
+    "requires": [
+      "farm_deed"
+    ],
+    "goals": [
+      {
+        "type": "owned",
+        "key": "workbench",
+        "label": "Montar a bancada"
+      },
+      {
+        "type": "stat",
+        "key": "produce:plank",
+        "target": 2,
+        "label": "Fabricar tábuas"
+      }
+    ],
+    "rewards": {
+      "coins": 60,
+      "skill_xp": {
+        "building": 35
+      }
+    }
+  },
+  "good_cook": {
+    "npc": "bloblo",
+    "name": "Receita de família",
+    "dialogue": "Quero provar seu caldo de legumes. Entregue duas porções.",
+    "requires": [
+      "first_kitchen"
+    ],
+    "goals": [
+      {
+        "type": "deliver",
+        "key": "vegetable_soup",
+        "target": 2,
+        "label": "Entregar caldo de legumes"
+      }
+    ],
+    "rewards": {
+      "coins": 80,
+      "collections": [
+        "cook_apron"
+      ],
+      "skill_xp": {
+        "cooking": 35
+      }
+    }
+  },
+  "market_day": {
+    "npc": "merchant",
+    "name": "Dia de feira",
+    "dialogue": "Complete três encomendas. Uma clientela fiel faz toda a diferença.",
+    "requires": [
+      "first_sale"
+    ],
+    "goals": [
+      {
+        "type": "stat",
+        "key": "orders",
+        "target": 3,
+        "label": "Concluir encomendas"
+      }
+    ],
+    "rewards": {
+      "coins": 90,
+      "skill_xp": {
+        "commerce": 40
+      }
+    }
+  },
+  "deep_earth": {
+    "npc": "artisan",
+    "name": "Brilho na pedra",
+    "dialogue": "Leve dois cristais da gruta. Tenho uma lembrança para quem chega tão longe.",
+    "requires": [
+      "stone_path"
+    ],
+    "goals": [
+      {
+        "type": "deliver",
+        "key": "crystal",
+        "target": 2,
+        "label": "Entregar cristais"
+      }
+    ],
+    "rewards": {
+      "coins": 100,
+      "collections": [
+        "explorer_charm"
+      ],
+      "skill_xp": {
+        "mining": 45
+      }
+    }
+  },
+  "own_business": {
+    "npc": "merchant",
+    "name": "Nossa banca",
+    "dialogue": "Abra sua banca e complete uma entrega de materiais para a praça.",
+    "requires": [
+      "market_day"
+    ],
+    "goals": [
+      {
+        "type": "owned",
+        "key": "stall",
+        "label": "Abrir a banca"
+      },
+      {
+        "type": "stat",
+        "key": "order:building_order",
+        "target": 1,
+        "label": "Entregar a reforma da praça"
+      }
+    ],
+    "rewards": {
+      "coins": 150,
+      "skill_xp": {
+        "commerce": 60
+      }
+    }
+  },
+  "green_fingers": {
+    "npc": "bloblo",
+    "name": "Mãos de jardineiro",
+    "dialogue": "Uma estufa e vinte colheitas! Seu sítio tem uma história para contar.",
+    "requires": [
+      "farm_deed"
+    ],
+    "goals": [
+      {
+        "type": "owned",
+        "key": "greenhouse",
+        "label": "Construir a estufa"
+      },
+      {
+        "type": "stat",
+        "key": "harvest",
+        "target": 20,
+        "label": "Colher plantações"
+      }
+    ],
+    "rewards": {
+      "collections": [
+        "garden_hat"
+      ],
+      "skill_xp": {
+        "agriculture": 60
+      }
+    }
+  },
+  "atelier_open": {
+    "npc": "artisan",
+    "name": "Um presente feito aqui",
+    "dialogue": "Monte o ateliê e produza um conjunto de acessórios. Você chegou muito longe.",
+    "requires": [
+      "workshop"
+    ],
+    "goals": [
+      {
+        "type": "owned",
+        "key": "atelier",
+        "label": "Montar o ateliê"
+      },
+      {
+        "type": "stat",
+        "key": "produce:accessory_set",
+        "target": 1,
+        "label": "Produzir acessórios"
+      }
+    ],
+    "rewards": {
+      "coins": 200,
+      "collections": [
+        "artisan_outfit"
+      ],
+      "skill_xp": {
+        "building": 70
+      }
+    }
+  }
+}

@@ -1,5 +1,39 @@
 # Roadmap
 
+## Estado atual (passagem de bastão entre agentes)
+> Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
+> um do outro. Última atualização: **12/10/2026, Claude Code**.
+
+**Feito nesta rodada**
+- Progressão completa (**Jornada**), criada pelo Codex: casa quase vazia no começo, canteiro emprestado,
+  7 atributos, 12 construções, 7 rotas, feira (venda + 6 encomendas), 8 capítulos, 15 missões de 4 NPCs,
+  6 itens de coleção. Save v4 com migração. Ver `docs/PROGRESSION.md`.
+- Revisão e organização (Claude Code):
+  - dados da progressão saíram de 9 variáveis soltas no `GameState` para `ProgressionState`
+    (`scripts/state/`, acesso por `GameState.progress`), seguindo o padrão de `DogState`/`Inventory`;
+  - o estado não depende mais da UI (`TimeText` em vez de `SheetBuilder.format_time`);
+  - bugs corrigidos: rota removida do JSON travava o jogador para sempre; receita removida travava a coleta;
+    texto do capítulo final fixo no código (agora `final_chapter` no JSON);
+  - `house.json` voltou ao formato compacto (o Codex tinha expandido todas as coordenadas);
+  - 14 ícones de itens novos + ícone da aba Jornada (PixelLab); ícones próprios em atributos,
+    construções, rotas e chips "tem/precisa" com ícone na feira e nas construções;
+  - abas inferiores com ícone em cima e texto embaixo (com 4 abas, "Jornada" não cabia).
+- **Versão dev** (pedido do Vitor, que ficou sem resposta na conversa do Codex): `/dev/` com save
+  separado, selo DEV e Ferramentas DEV (moedas, itens, atributos, pular capítulo, liberar tudo, terminar
+  timers, avançar o tempo, copiar o save real). Deploy gera prod + dev. Ver `docs/DEPLOY.md`.
+- Testes: `farm_test`, `progression_test` (campanha simulada) e `dev_tools_test` (dev e `--prod`) passando;
+  teste de toque no Chrome headless confirmou prod sem selo e o painel DEV funcionando em `/dev/`.
+
+**Próximos passos sugeridos**
+1. Vestir as roupas da Coleção no Tiro (camadas sobre o sprite grande; `DogState.outfit` já existe).
+2. Retratos dos NPCs a partir das fotos que o Vitor vai mandar (`npcs.json` → `portrait`).
+3. NPCs pequenos no mundo (Bloblo no sítio, Tutor em casa) que abrem as missões ao toque.
+4. Móveis da bancada, forno e ateliê na casa ou no sítio (hoje só pela Jornada → Produção).
+5. Sprite próprio da planta de ervas (usa o broto como planta madura).
+6. Balancear com jogo real (o ritmo hoje só é medido pela campanha simulada; ela termina com ~16 mil
+   moedas, sinal de que vender o excedente rende demais no fim do jogo).
+7. Telas do Hoje/Missões mais visuais (o painel ainda é bastante texto).
+
 ## Fase 0 — Fundação
 - [x] Estrutura de pastas e documentação
 - [x] Projeto Godot 4.7.2 (Compatibility, pixel art, celular em pé 360x780)
@@ -29,17 +63,19 @@
 
 ## Iteração 2
 - [x] Horta: Sítio da Bloblo (aba Sítio + porta da casa), cenoura/batata/abóbora (`crops.json`)
-- [x] Progressão do sítio: 3 terrenos iniciais, expansão até 9 em posições fixas, moedas por colheita, indicadores de crescimento e painel Meu sítio; saves antigos mantêm os 6 terrenos
-- [ ] Bloblo como personagem (retrato + missões); Tiro passeando no sítio
+- [x] Progressão do sítio: canteiro emprestado, escritura, expansão até 9 em posições fixas, moedas por colheita, indicadores de crescimento e painel Meu sítio
+- [x] Jornada: atributos, construções, rotas, feira (venda + encomendas), capítulos, missões de NPCs, coleção (`docs/PROGRESSION.md`)
+- [x] Versão dev em `/dev/` com save separado e Ferramentas DEV
+- [ ] Bloblo como personagem no mundo (sprite + retrato); Tiro passeando no sítio
 - [ ] Tutor dentro de casa (sprite pequeno + retrato detalhado + diálogo) com missões
-- [ ] Moedas: vender produtos
 
 ## Iteração 3
-- [ ] Customização (Ateliê): camadas de roupa/acessório sobre o Tiro detalhado
+- [ ] Customização (Ateliê): vestir as roupas da Coleção (camadas sobre o Tiro detalhado)
 - [ ] Parque: passeio, truques, minigames
 
 ## Backlog / ideias técnicas
 - [ ] `AudioManager` (música/sfx; destravar áudio no primeiro toque)
 - [ ] Exportar/importar save como código (backup manual)
-- [ ] Aviso "nova versão disponível" no PWA
+- [x] Aviso "nova versão disponível" no PWA
 - [ ] Testes automatizados headless no CI
+- [ ] `tools/pixel_tools.ps1` → `New-ContactSheet` falha ("Parâmetro inválido" ao criar o Bitmap)

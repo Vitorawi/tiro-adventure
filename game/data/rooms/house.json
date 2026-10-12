@@ -10,13 +10,13 @@
       "footprint": [[266, 258], [364, 208], [404, 230], [306, 284]]
     },
     {
-      "id": "fridge", "action": "fridge",
+      "id": "fridge", "action": "fridge", "upgrade": "fridge",
       "sprite": "res://assets/sprites/areas/house/fridge.png",
       "pos": [250, 195],
       "footprint": [[222, 182], [256, 164], [278, 178], [243, 197]]
     },
     {
-      "id": "stove", "action": "stove", "station": "stove",
+      "id": "stove", "action": "stove", "station": "stove", "upgrade": "stove",
       "sprite": "res://assets/sprites/areas/house/stove.png",
       "busy_frames": "res://assets/sprites/areas/house/stove_cooking/",
       "pos": [300, 169],
@@ -28,7 +28,7 @@
       "pos": [215, 238]
     },
     {
-      "id": "sofa", "action": "sofa",
+      "id": "sofa", "action": "sofa", "upgrade": "sofa",
       "sprite": "res://assets/sprites/areas/house/sofa.png",
       "pos": [470, 330],
       "footprint": [[410, 274], [440, 240], [568, 300], [506, 322]]

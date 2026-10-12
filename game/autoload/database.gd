@@ -17,6 +17,10 @@ var xp: Dictionary = {}
 var start: Dictionary = {}
 ## Versão publicada (commit + data), gravada pelo deploy em data/version.json.
 var version: Dictionary = {}
+var progression: Dictionary = {}
+var quests: Dictionary = {}
+var npcs: Dictionary = {}
+var collections: Dictionary = {}
 
 
 func _init() -> void:
@@ -32,6 +36,10 @@ func _init() -> void:
 	xp = config.get("xp", {})
 	start = config.get("start", {})
 	version = _load("res://data/version.json")
+	progression = _load("res://data/progression.json")
+	quests = _load("res://data/quests.json")
+	npcs = _load("res://data/npcs.json")
+	collections = _load("res://data/collections.json")
 
 
 ## Layout de um ambiente (fundo, piso, móveis, pontos): game/data/rooms/<id>.json

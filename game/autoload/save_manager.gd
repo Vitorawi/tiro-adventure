@@ -8,11 +8,15 @@ extends Node
 ## Formato: JSON { "save_version": int, "saved_at": float, "state": {...} }.
 ## Ao mudar o formato do estado: incremente SAVE_VERSION e trate a versão
 ## antiga em _migrate() para não perder o progresso dos jogadores.
+##
+## Arquivo: user://save.json na versão publicada e user://save_dev.json na versão dev
+## (BuildInfo.save_path()). Na Web as duas ficam no mesmo IndexedDB do site, por isso
+## precisam de nomes diferentes para a versão dev não apagar o progresso real.
 
-const SAVE_PATH := "user://save.json"
-const SAVE_VERSION := 3
+const SAVE_VERSION := 4
 
 var _save_pending := false
+var _save_path := BuildInfo.save_path()
 
 
 func _ready() -> void:
@@ -45,7 +49,7 @@ func save_game() -> bool:
 		"saved_at": Time.get_unix_time_from_system(),
 		"state": GameState.to_dict(),
 	}
-	var file := FileAccess.open(SAVE_PATH, FileAccess.WRITE)
+	var file := FileAccess.open(_save_path, FileAccess.WRITE)
 	if file == null:
 		push_error("SaveManager: falha ao abrir save para escrita (%s)" % FileAccess.get_open_error())
 		return false
@@ -56,12 +60,12 @@ func save_game() -> bool:
 
 
 func load_game() -> void:
-	if not FileAccess.file_exists(SAVE_PATH):
+	if not FileAccess.file_exists(_save_path):
 		GameState.reset()
 		Events.game_loaded.emit()
 		return
 
-	var text := FileAccess.get_file_as_string(SAVE_PATH)
+	var text := FileAccess.get_file_as_string(_save_path)
 	var parsed: Variant = JSON.parse_string(text)
 	if typeof(parsed) != TYPE_DICTIONARY:
 		push_error("SaveManager: save corrompido, iniciando do zero.")
@@ -75,9 +79,24 @@ func load_game() -> void:
 
 
 func delete_save() -> void:
-	if FileAccess.file_exists(SAVE_PATH):
-		DirAccess.remove_absolute(SAVE_PATH)
+	if FileAccess.file_exists(_save_path):
+		DirAccess.remove_absolute(_save_path)
 	GameState.reset()
+
+
+## Só na versão dev: carrega uma CÓPIA do save da versão publicada (mesmo aparelho/navegador)
+## para testar em cima do progresso real. O save real não é alterado.
+func load_production_copy() -> String:
+	const PROD_PATH := "user://save.json"
+	if not BuildInfo.is_dev() or _save_path == PROD_PATH:
+		return "Disponível só na versão dev"
+	if not FileAccess.file_exists(PROD_PATH):
+		return "Nenhum save da versão publicada neste aparelho"
+	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(PROD_PATH))
+	if typeof(parsed) != TYPE_DICTIONARY:
+		return "Save da versão publicada ilegível"
+	GameState.from_dict(_migrate(parsed).get("state", {}))
+	return ""
 
 
 ## Converte saves antigos para o formato atual, uma versão por vez.
@@ -93,6 +112,17 @@ func _migrate(data: Dictionary) -> Dictionary:
 			var old_plots: Array = state.get("plots", [])
 			state["unlocked_plots"] = maxi(old_plots.size(), int(Database.farm.get("initial_plots", 3)))
 		version = 3
+	if version < 4:
+		var state: Dictionary = data.get("state", {})
+		if not state.is_empty():
+			var old_owned := {}
+			var old_unlocks := {}
+			for id: String in Database.progression.settings.legacy_owned:
+				old_owned[id] = true
+			for id: String in Database.progression.settings.legacy_unlocks:
+				old_unlocks[id] = true
+			state["progression"] = {"owned": old_owned, "unlocks": old_unlocks}
+		version = 4
 	data["save_version"] = version
 	return data
 

@@ -12,3 +12,6 @@ Thumbs.db
 desktop.ini
 .vscode/
 *.tmp
+
+# Config local do Codex (contém token do PixelLab)
+.codex/
