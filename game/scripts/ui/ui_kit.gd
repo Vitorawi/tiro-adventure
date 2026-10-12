@@ -55,6 +55,8 @@ static func card(parent: Control, variation: StringName = &"CardPanel") -> VBoxC
 	var panel := PanelContainer.new()
 	panel.theme_type_variation = variation
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# PASS: o arrasto do dedo segue para o ScrollContainer do painel (senão não rola).
+	panel.mouse_filter = Control.MOUSE_FILTER_PASS
 	var box := vbox(6)
 	panel.add_child(box)
 	parent.add_child(panel)
@@ -67,6 +69,7 @@ static func button(text: String, on_pressed: Callable, variation: StringName = &
 	result.theme_type_variation = variation
 	result.icon = texture
 	result.custom_minimum_size = Vector2(0, 52)
+	result.mouse_filter = Control.MOUSE_FILTER_PASS  # deixa rolar arrastando em cima do botão
 	result.pressed.connect(on_pressed)
 	return result
 

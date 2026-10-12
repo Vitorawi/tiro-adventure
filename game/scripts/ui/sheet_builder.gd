@@ -42,6 +42,7 @@ static func inventory_view() -> Control:
 			return
 		var grid := GridContainer.new()
 		grid.columns = 3
+		grid.mouse_filter = Control.MOUSE_FILTER_PASS
 		grid.add_theme_constant_override("h_separation", 8)
 		grid.add_theme_constant_override("v_separation", 8)
 		for id: String in GameState.inventory.counts:
@@ -100,7 +101,7 @@ static func _slot_frame(texture: Texture2D, text: String, progress: float, done:
 	var panel := PanelContainer.new()
 	panel.theme_type_variation = &"ReadyCardPanel" if done else &"CardPanel"
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.mouse_filter = Control.MOUSE_FILTER_PASS
 	if empty:
 		panel.modulate.a = 0.5
 	var box := UiKit.vbox(4)
@@ -187,6 +188,7 @@ class LiveBox extends VBoxContainer:
 	func _init(build: Callable) -> void:
 		_build = build
 		size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		mouse_filter = Control.MOUSE_FILTER_PASS
 		add_theme_constant_override("separation", 10)
 
 	func _ready() -> void:
