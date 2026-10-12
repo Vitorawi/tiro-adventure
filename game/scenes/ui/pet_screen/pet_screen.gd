@@ -10,12 +10,18 @@ const MOOD_TEXTS := {
 	"hygiene": "Preciso de um banho!",
 }
 
+## Pixels de arrasto para cada "passada" de carinho; e intervalo mínimo entre recompensas (s).
+const STROKE_STEP := 28.0
+const PET_REWARD_EVERY := 1.2
+
 const LOW_COLOR := Color(0.85, 0.27, 0.22)
 
 var _bars: Dictionary = {}  # need_id -> ProgressBar
 var _sleep_icon: TextureRect
 var _sleep_text: Label
 var _animator: PetAnimator
+var _stroke_distance := 0.0
+var _last_pet_reward := -10.0
 
 @onready var _needs_grid: GridContainer = %NeedsGrid
 @onready var _mood_label: Label = %MoodLabel
@@ -98,6 +104,7 @@ func _refresh() -> void:
 	_sleep_icon.texture = UiKit.ui_icon("action_wake" if dog.sleeping else "action_sleep")
 	_dog_sprite.modulate = Color(0.75, 0.75, 0.9) if dog.sleeping else Color.WHITE
 	_animator.set_sleeping(dog.sleeping)
+	_animator.set_sad(dog.get_need(dog.lowest_need(now), now) < MOOD_LOW)
 
 	if dog.sleeping:
 		_mood_label.text = "Zzz... %s está dormindo" % dog.name
@@ -125,15 +132,34 @@ func _on_play_pressed() -> void:
 		Events.toast_requested.emit("Tiro está cansado demais para brincar.")
 
 
+## Toque ou arrastar o dedo no Tiro = carinho. A zona (cabeça, barriga, patas) vem de onde o dedo está.
 func _on_dog_input(event: InputEvent) -> void:
+	var motion := event as InputEventMouseMotion
 	var button := event as InputEventMouseButton
-	if button == null or not button.pressed or button.button_index != MOUSE_BUTTON_LEFT:
+	var pressing := button != null and button.pressed and button.button_index == MOUSE_BUTTON_LEFT
+	var dragging := motion != null and (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0
+	if not pressing and not dragging:
 		return
 	if GameState.dog.sleeping:
-		Events.toast_requested.emit("Shh... ele está dormindo.")
+		if pressing:
+			Events.toast_requested.emit("Shh... ele está dormindo.")
 		return
-	GameState.pet()
-	_float_text("+carinho", button.global_position)
+	var local := (button.position if pressing else motion.position) as Vector2
+	var seconds := 0.5  # um toque conta como meio segundo de carinho
+	if dragging:
+		_stroke_distance += motion.relative.length()
+		if _stroke_distance < STROKE_STEP:
+			return
+		_stroke_distance = 0.0
+		seconds = 0.2
+	var y := local.y / maxf(_dog_sprite.size.y, 1.0)
+	var zone := &"head" if y < 0.5 else (&"belly" if y < 0.76 else &"paw")
+	_animator.stroke(zone, seconds)
+	var now := Time.get_ticks_msec() / 1000.0
+	if now - _last_pet_reward >= PET_REWARD_EVERY:
+		_last_pet_reward = now
+		GameState.pet()
+		_float_text("+carinho", _dog_sprite.get_global_transform() * local)
 
 
 func _float_text(text: String, at: Vector2) -> void:
