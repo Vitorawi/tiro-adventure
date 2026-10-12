@@ -96,9 +96,9 @@ func _campaign() -> Dictionary:
 		# Guarda reserva para cadeias e entrega o excedente na feira.
 		for item: String in database.get("items"):
 			var amount: int = state.get("inventory").count(item) - 12
-			if amount > 0:
+			if amount > 0 and state.call("requirement_error", database.get("worlds").village.requirements) == "":
 				state.call("sell", item, amount)
-		if turn == 0:
+		if turn == 2:
 			state.call("sell", "carrot", 1)
 		for id: String in progression.orders:
 			if int(state.get("progress").stats.get("order:" + id, 0)) >= 3:
@@ -119,7 +119,8 @@ func _campaign() -> Dictionary:
 			if database.get("quests")[id].get("kind", "side") == "side":
 				state.call("claim_quest", id)
 		for id: String in progression.upgrades:
-			state.call("buy_upgrade", id)
+			if state.call("requirement_error", database.get("worlds")[progression.upgrades[id].world].requirements) == "":
+				state.call("buy_upgrade", id)
 		if state.call("has_upgrade", "farm") and state.get("coins") > 300:
 			state.call("buy_plot", int(state.get("unlocked_plots")))
 		var rotation: Array[String] = ["lane", "trail", "quarry", "copper_vein", "crystal_cave", "meadow", "orchard_harvest"]

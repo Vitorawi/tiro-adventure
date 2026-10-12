@@ -88,6 +88,7 @@ static func _resources(box: VBoxContainer) -> void:
 static func _progress(box: VBoxContainer) -> void:
 	var chapter := GameState.current_chapter()
 	_section(box, "Capítulo atual", chapter.get("name", ""))
+	_tool(box, "Concluir passo atual da história", GameState.dev_complete_main_step)
 
 	_section(box, "Atributos", "Sobe todos para pelo menos o nível escolhido.")
 	var skills := _grid(box, 4)
@@ -115,7 +116,7 @@ static func _progress(box: VBoxContainer) -> void:
 	for id: String in Database.quests:
 		if not GameState.progress.claimed_quests.has(id):
 			var quest: Dictionary = Database.quests[id]
-			_tool(quests, "%s · %s" % [Database.npcs.get(quest.npc, {}).get("name", quest.npc), quest.name], GameState.dev_complete_quest.bind(id))
+			_tool(quests, "%s · %s" % ["História" if quest.get("kind", "side") == "main" else "Secundária", quest.name], GameState.dev_complete_quest.bind(id))
 
 
 static func _time(box: VBoxContainer) -> void:

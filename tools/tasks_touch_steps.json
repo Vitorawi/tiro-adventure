@@ -1,0 +1,9 @@
+[
+  {"do": "shot", "name": "01_pet"},
+  {"do": "tap", "x": 244, "y": 809},
+  {"do": "wait", "ms": 600},
+  {"do": "shot", "name": "02_tasks"},
+  {"do": "tap", "x": 195, "y": 340},
+  {"do": "wait", "ms": 700},
+  {"do": "shot", "name": "03_tasks_go"}
+]

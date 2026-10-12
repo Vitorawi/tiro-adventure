@@ -2,14 +2,23 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **12/10/2026, Claude Code**.
+> um do outro. Última atualização: **12/10/2026, Codex**.
 
-**Tarefas v2 — fase 5/6 concluída (Codex, 12/10/2026).**
-História com 28 passos em oito capítulos e nove secundárias, recompensas e dicas de atributos.
-Vila abre após first_harvest; Trilha no capítulo 3. Campanha completa 37 missões em 296 ciclos,
-sem recursos artificiais. Todos os testes passaram, incluindo content_test e tasks_test.
-Ajustes ao esboço: oficina/tecidos ficam em secundárias após comprar a estação; capítulo 8
-prepara fibras e Construção antes do ateliê. Destinos dos objetivos implementados e validados (mundo, lugar e acesso), incluindo go/hint e aba Tiro. Tarefas v2, História, secundárias por NPC e Atributos implementados. Cartão inicial verificado em 360×780. Comemoração modal, faixa/toast de próximo passo, guia inicial e badge sem duplicação implementados. Próximo: fase 6, DEV, toque e documentação final. Sem push.
+**Tarefas v2 — todas as fases (1–6) concluídas (Codex, 12/10/2026).**
+- 28 passos principais em 8 capítulos e 9 secundárias; recompensas por capítulo, destinos
+  com Ir, painel História, recomendações por progresso e ajuda para evoluir atributos.
+- Comemoração modal, faixa/toast com próximo passo, guia inicial e badge sem duplicação.
+- Save v5 migra capítulos cujas construções já eram adquiridas sem pagar recompensas.
+  Vila abre após first_harvest; Trilha no capítulo 3. Ferramentas DEV seguem a sequência.
+- Todos os testes verdes: farm, progression (296 ciclos, 37 missões, 12 construções),
+  tasks, content, DEV e DEV --prod. Export Web prod/dev local e toque real em Chrome
+  headless confirmaram Tarefas → Ir → Tigela do Tiro, sem erros no console.
+- Capturas 360×780: build/screenshots/tasks_{start,middle,end,story,side,celebration}.png.
+  Símbolos da história têm fonte bitmap própria de apoio (a Web não tem fallback do Windows).
+- Ajustes ao esboço para evitar produção antes da estação: oficina/tecidos são secundárias;
+  capítulo 8 prepara fibras e Construção antes do ateliê. Nenhum trecho ficou pela metade.
+- Seis commits locais, um por fase. **Sem push/publicação.** Próximo: Vitor revisar as capturas;
+  só publicar quando solicitado. Depois, balanceamento em jogo real e vestir a coleção.
 
 **Rodada 2 (12/10/2026, Claude Code): navegação intuitiva + mini mundos**
 - Pedido do Vitor: "tá difícil achar rotas, vender, missões; deixar os menus intuitivos" e
@@ -27,7 +36,7 @@ prepara fibras e Construção antes do ateliê. Destinos dos objetivos implement
    Receita em `docs/ART_PIPELINE.md`.
 2. NPCs pequenos dentro das cenas (sprite no mundo, além do botão no cabeçalho).
 3. Novos mundos seguindo `docs/WORLDS.md` (ex.: parque, praia, clínica).
-4. Tutorial curto no primeiro acesso apontando as abas (Tarefas → Ir).
+4. Tutorial curto inicial concluído em Tarefas v2 (guia no Tiro e aba pulsando).
 
 **Rodada 1 — feito**
 - Progressão completa (**Jornada**), criada pelo Codex: casa quase vazia no começo, canteiro emprestado,

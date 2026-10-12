@@ -46,6 +46,12 @@ func _progress() -> Variant:
 
 func _dev_mode() -> void:
 	state.call("reset")
+	state.call("dev_complete_main_step")
+	_check(_progress().claimed_quests.has("welcome") and _progress().current_main_quest() == "first_harvest", "Concluir passo DEV avança apenas um passo")
+	state.call("reset")
+	state.call("dev_complete_quest", "main_2_order")
+	_check(_progress().current_main_quest() == "main_2_fridge", "Concluir main respeita capítulos e ordem")
+	state.call("reset")
 	state.call("dev_add_coins", 1000)
 	_check(state.get("coins") == int(database.get("start").coins) + 1000, "Deve somar moedas")
 	state.call("dev_add_items", 5, "material")
@@ -101,9 +107,12 @@ func _prod_mode() -> void:
 	var coins: int = state.get("coins")
 	state.call("dev_add_coins", 1000)
 	state.call("dev_unlock_everything")
+	state.call("dev_complete_main_step")
+	state.call("dev_complete_quest", "main_2_order")
 	state.call("dev_jump_to_chapter", 5)
 	_check(state.get("coins") == coins, "Versão publicada não pode ganhar moedas pelo dev")
 	_check(not state.call("has_upgrade", "stove"), "Versão publicada não pode liberar melhorias pelo dev")
+	_check(_progress().claimed_quests.is_empty(), "Prod não pode concluir história via DEV")
 
 
 ## Capturas do painel DEV (rodar sem --headless e com "-- --screenshots").

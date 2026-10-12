@@ -47,7 +47,10 @@ function Export-Channel([string]$Name, [string]$Dir) {
     }
 }
 
-if (Test-Path $OutDir) { Remove-Item -Recurse -Force $OutDir }
+$ResolvedOutput = [IO.Path]::GetFullPath($OutDir)
+$ExpectedOutput = [IO.Path]::GetFullPath((Join-Path $Root "build\web"))
+if ($ResolvedOutput -ne $ExpectedOutput) { throw "Saida fora de build/web" }
+if (Test-Path $ResolvedOutput) { Remove-Item -LiteralPath $ResolvedOutput -Recurse -Force }
 New-Item -ItemType Directory -Force $OutDir | Out-Null
 
 Write-Host "Importando assets..."

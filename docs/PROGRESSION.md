@@ -48,11 +48,30 @@ petisco → biscoito → caixa de petiscos → encomenda especial).
 ## Requisitos (um formato para tudo)
 Construções, culturas, receitas, rotas e pedidos aceitam:
 ```json
-"requirements": { "owned": ["farm"], "quests": ["first_sale"], "skills": { "agriculture": 4 } }
+"requirements": { "owned": ["farm"], "quests": ["first_sale"], "skills": { "agriculture": 4 }, "chapter": 3 }
 ```
 Validados por `ProgressionState.requirement_error()` (a mensagem vira o motivo na UI).
 `progress.unlocks` ("crop:potato", "recipe:pumpkin_mash") libera conteúdo **sem** cumprir requisitos
 (usado para saves antigos e pode ser recompensa: `"rewards": { "unlocks": [...] }`).
+
+## História principal e missões secundárias (Tarefas v2)
+
+As 28 missões principais usam `kind: "main"`, `chapter` (1..8) e `order` consecutivo.
+Só `ProgressionState.current_main_quest()` pode ser recebida; não usam `requires`.
+Cada capítulo tem 3–5 passos, termina em `owned` de seu `target` e só avança quando
+todos foram recebidos. A compra por si só não avança. `chapters[].rewards` é entregue
+uma vez; os sinais `quest_completed(id)` e `chapter_completed(index)` acionam a UI.
+
+As nove secundárias usam `kind: "side"` (padrão), `requires`, `requirements` e
+`category` (atributo/cor). A tela recomenda três, prontas primeiro e depois por
+fração dos objetivos, com todas agrupadas por NPC e concluídas recolhidas.
+Oficina e tecidos são opcionais após adquirir suas estações; o capítulo final prepara
+fibras e Construção para o ateliê, evitando produção obrigatória antes da estação.
+
+`hint` substitui a dica gerada; `go: {"world": "...", "place": "..."}` substitui o
+destino. `Places.goal_target` resolve objetivos; `Database.item_sources` fornece
+fontes estruturadas de itens. Atributos têm `how_to` e a UI mostra o nível que a
+história pede, inclusive requisitos da construção atual.
 
 ## Objetivos de missão
 | `type` | `key` | Conta |
@@ -61,6 +80,9 @@ Validados por `ProgressionState.requirement_error()` (a mensagem vira o motivo n
 | `owned` | construção | 1 se comprada |
 | `skill` | atributo | nível atual |
 | `deliver` | item | itens na mochila; **são consumidos** ao concluir |
+| `have` | item | itens na mochila; não consome |
+| `coins` | — | saldo atual; não consome |
+| `chapter` | — | capítulo atual (9 = história completa) |
 
 Contadores (`progress.stats`), incrementados pelas ações do `GameState`:
 `feed`, `play`, `bathe`, `harvest`, `harvest:<crop>`, `produce`, `produce:<item>`, `trade`, `sold`,
@@ -108,7 +130,8 @@ Para chegar nas partes avançadas sem jogar horas, existe a **versão dev** (det
   - **Recursos:** +100/+1000/+10000 moedas; +10 de cada item (todos, materiais, colheitas, comidas); necessidades 100%.
   - **Progresso:** atributos para nível 3/5/10/máx.; **pular para o capítulo N** (libera de graça tudo
     o que vem antes, inclusive missões e atributos exigidos); liberar uma construção específica;
-    concluir uma missão; **liberar tudo**.
+    concluir uma missão e suas predecessoras; **concluir passo atual da história**; **liberar tudo**.
+    O índice interno de dev_jump_to_chapter é zero-based; capítulo 4 recebe índice 3.
   - **Tempo:** terminar todos os timers agora; avançar 10 min / 1 h / 4 h / 12 h (como se o app
     ficasse fechado: necessidades caem, plantas crescem, filas andam).
   - **Save:** copiar o save da versão publicada (mesmo aparelho) para testar em cima do progresso
@@ -117,16 +140,30 @@ Para chegar nas partes avançadas sem jogar horas, existe a **versão dev** (det
   não fazem nada (testado em `dev_tools_test.gd -- --prod`).
 
 ## Saves antigos
-Save v4 (`SaveManager._migrate`): quem jogou antes da progressão ganha `legacy_owned` (fogão,
+Migração anterior para v4 (`SaveManager._migrate`): quem jogou antes da progressão ganha `legacy_owned` (fogão,
 geladeira, sofá, sítio, fila do fogão) e `legacy_unlocks` (batata, abóbora, papinha), mantendo
 moedas, terrenos e plantações.
+
+O formato atual é **v5**. Ao migrar v4, capítulos cujos alvos já eram do jogador
+têm suas missões principais marcadas como recebidas, sem aplicar recompensas.
+Missões recebidas e demais campos são preservados. Fogão + geladeira + sítio abrem
+no capítulo 4. Capítulo e passo são derivados de `claimed_quests`, sem campos novos.
+
+## Validação
+
+`tools/test_all.ps1` executa farm, campanha, DEV, tasks, content e DEV prod.
+`tasks_test.gd -- --screenshots` (sem headless, 360×780) captura começo, capítulo 4,
+fim, História, secundárias e comemoração em `build/screenshots/tasks_*.png`.
+`content_test` valida ordem, alvos, referências e acesso aos destinos.
+`tools/touch_test.ps1 -Steps tools/tasks_touch_steps.json` exercita Tarefas → Ir
+na Web local com perfil de navegador descartável.
 
 ## Como estender
 - **Nova construção:** entrada em `upgrades` (name, description, cost, materials, requirements,
   skill_xp, icon). Se for estação: `"station": "<id>"` + entrada em `config.json → stations` +
   receitas com `"station"`. Se tiver móvel: objeto em `rooms/<sala>.json` com `"upgrade": "<id>"`.
-- **Novo capítulo:** item em `chapters` com o `target` (uma construção).
-- **Nova missão:** entrada em `quests.json` com `npc`, `requires`, `goals`, `rewards`.
+- **Novo capítulo:** item em `chapters` com `target`, `rewards`, `unlocks_text` e 3–5 missões main.
+- **Nova missão:** entrada em `quests.json` com `kind`, `npc`, `goals`, `rewards`; main usa chapter/order, side usa requires/requirements.
 - **Novo NPC com foto:** entrada em `npcs.json`; coloque o retrato (pixel art do PixelLab feita a
   partir da foto) em `assets/sprites/characters/npc_<id>/portrait.png` e preencha `"portrait"`.
 - **Nova roupa:** entrada em `collections.json` (+ `sprite` quando existir a camada para vestir).

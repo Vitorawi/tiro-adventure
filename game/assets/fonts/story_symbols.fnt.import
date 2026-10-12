@@ -1,0 +1,17 @@
+[remap]
+
+importer="font_data_bmfont"
+type="FontFile"
+uid="uid://xhdodumjpmma"
+path="res://.godot/imported/story_symbols.fnt-04dd9ba79d33c0891fff305455d1c00f.fontdata"
+
+[deps]
+
+source_file="res://assets/fonts/story_symbols.fnt"
+dest_files=["res://.godot/imported/story_symbols.fnt-04dd9ba79d33c0891fff305455d1c00f.fontdata"]
+
+[params]
+
+fallbacks=[]
+compress=true
+scaling_mode=2

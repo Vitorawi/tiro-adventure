@@ -257,5 +257,5 @@ Reescrever `_build` nesta ordem, um método por bloco (manter o padrão `LiveBox
 - [x] Fase 3 — `goal_target` (todo objetivo com Ir)
 - [x] Fase 4 — Tarefas v2, História, Atributos
 - [x] Fase 5 — comemoração, toast, aba pulsando, badge
-- [ ] Fase 6 — DEV, capturas, toque, docs, ROADMAP atualizado
-- [ ] Mostrar as capturas ao Vitor e **só publicar (push na main) com o OK dele**
+- [x] Fase 6 — DEV, capturas, toque, docs, ROADMAP atualizado
+- [x] Mostrar as capturas ao Vitor e **só publicar (push na main) com o OK dele**

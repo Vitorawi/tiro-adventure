@@ -80,6 +80,7 @@ func _ui_check() -> void:
 	var card: Control = main.find_child("StoryCard", true, false)
 	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
 	check(main.get("_tasks_pulse") != null, "Guia pulsa no começo")
+	check(main.find_child("MoodLabel", true, false).text == "Veja suas tarefas aqui embaixo!", "Guia do Tiro aparece no começo")
 	state.get("progress").stats["feed"] = 1
 	root.get_node("Events").emit_signal("state_changed")
 	check(main.get("_tasks_badge").text == "1", "Badge conta a principal pronta uma vez")

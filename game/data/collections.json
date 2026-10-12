@@ -44,16 +44,22 @@
   "merchant_apron": {
     "name": "Avental da feira",
     "description": "Uma lembrança de uma missão secundária.",
-    "icon": "coin"
+    "icon": "coin",
+    "slot": "body",
+    "sprite": ""
   },
   "miner_helmet": {
     "name": "Capacete de explorador",
     "description": "Uma lembrança de uma missão secundária.",
-    "icon": "item_stone"
+    "icon": "item_stone",
+    "slot": "head",
+    "sprite": ""
   },
   "clean_bow": {
     "name": "Laço de banho",
     "description": "Uma lembrança de uma missão secundária.",
-    "icon": "action_bathe"
+    "icon": "action_bathe",
+    "slot": "head",
+    "sprite": ""
   }
 }

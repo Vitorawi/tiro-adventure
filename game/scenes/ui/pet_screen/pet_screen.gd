@@ -106,6 +106,9 @@ func _refresh() -> void:
 	_animator.set_sleeping(dog.sleeping)
 	_animator.set_sad(dog.get_need(dog.lowest_need(now), now) < MOOD_LOW)
 
+	if not GameState.progress.claimed_quests.has("welcome"):
+		_mood_label.text = "Veja suas tarefas aqui embaixo!"
+		return
 	if dog.sleeping:
 		_mood_label.text = "Zzz... %s está dormindo" % dog.name
 		return
@@ -123,9 +126,6 @@ func _draw_dog_shadow() -> void:
 	area.draw_set_transform(feet, 0.0, Vector2(1.0, 0.25))
 	area.draw_circle(Vector2.ZERO, _dog_sprite.size.x * 0.26, Color(0.25, 0.12, 0.05, 0.3), true, -1.0, false)
 	area.draw_set_transform(Vector2.ZERO)
-
-	if not GameState.progress.claimed_quests.has("welcome"):
-		_mood_label.text = "Veja suas tarefas aqui embaixo!"
 
 
 func _on_play_pressed() -> void:

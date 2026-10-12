@@ -53,6 +53,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
     ui/pet_screen/   Tela do Pet (Tiro grande, necessidades, ações)
     ui/worlds_screen/  aba Mapa: lista de mundos + mundo atual (cabeçalho com Mapa, Lugares e personagens)
     ui/tasks_screen/   aba Tarefas (história em passos, prontos agora, secundárias, atributos, coleção; botões "Ir")
+    ui/celebration/  comemoração de capítulo acima do Sheet
     ui/bag_screen/     aba Mochila (itens por categoria; detalhe: para que serve, onde usar, vender)
     ui/sheet/        painel inferior genérico (menus de objetos)
     levels/room/     RoomView genérico (`room_id`, `world_id`): monta data/rooms/<id>.json (casa, sítio, vila, trilha), canteiros, etiquetas, navegação, toque, câmera
@@ -73,6 +74,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Nova construção, rota, pedido, capítulo ou atributo | `game/data/progression.json` (formato em `docs/PROGRESSION.md`) |
 | Novo mundo (mini mundinho)            | `data/worlds.json` + `data/rooms/<id>.json` + arte (receita em `docs/WORLDS.md`; sem código) |
 | Novo lugar tocável num mundo          | `places` em `worlds.json` + zona/objeto com `"action": "place:<id>"` (e `label`) em `rooms/<id>.json` |
+| História principal / secundárias      | `quests.json`: main usa chapter/order; side usa requires/requirements/category; `progression.json`: capítulos/rewards/how_to |
 | Nova missão / personagem (NPC) / roupa | `quests.json` / `npcs.json` (`portrait`, `services`) + mundo dele em `worlds.json` → `npcs` / `collections.json` |
 | Requisitos de conteúdo (nível, compra, missão) | campo `"requirements"` no JSON; validados por `ProgressionState.requirement_error` |
 | Nova ação do jogo (ex.: plantar)      | método em `game/autoload/game_state.gd` + estado em `game/scripts/state/` |
@@ -95,6 +97,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Mudar build/deploy                    | `tools/export_web.ps1`, `.github/workflows/deploy.yml`, `docs/DEPLOY.md` |
 
 ## Regras de arquitetura
+- **História:** capítulo/passo derivados de `progress.claimed_quests`; só a main atual pode ser recebida. Save v5 migra alvos já adquiridos sem pagar de novo. `Places.goal_target` resolve o botão Ir.
 - **Disco só via `SaveManager`.** Nenhum outro script usa `FileAccess` para save.
 - **Estado persistente só em `GameState`** (e nas classes de `scripts/state/` que ele guarda, ex.:
   `GameState.progress`). Cenas leem o estado e o alteram **só por métodos do `GameState`**.
@@ -163,6 +166,9 @@ powershell -ExecutionPolicy Bypass -File tools\serve_local.ps1  # http://localho
 & $env:GODOT_BIN --headless --path game -s res://tests/progression_test.gd   # inclui campanha simulada do zero ao fim
 & $env:GODOT_BIN --headless --path game -s res://tests/dev_tools_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/dev_tools_test.gd -- --prod   # ferramentas desligadas na prod
+& $env:GODOT_BIN --headless --path game -s res://tests/tasks_test.gd
+& $env:GODOT_BIN --headless --path game -s res://tests/content_test.gd
+# Ou rode toda a suíte: powershell -File tools/test_all.ps1
 # Capturas das telas: rode sem --headless, com --resolution 360x780 e "-- --screenshots"
 
 # Teste de TOQUE real (Chrome headless em modo celular): exporte, rode serve_local.ps1 e então

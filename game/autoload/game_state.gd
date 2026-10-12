@@ -684,6 +684,8 @@ func _dev_skill_at_least(id: String, target_level: int) -> void:
 
 
 func _dev_satisfy(requirements: Dictionary) -> void:
+	if progress.chapter_index() < int(requirements.get("chapter", 1)):
+		dev_jump_to_chapter(int(requirements.chapter) - 1)
 	for id: String in requirements.get("owned", []):
 		_dev_satisfy_upgrade(id)
 	for id: String in requirements.get("quests", []):
@@ -702,8 +704,18 @@ func _dev_satisfy_upgrade(id: String) -> void:
 func _dev_complete_quest(id: String) -> void:
 	if progress.claimed_quests.has(id) or not Database.quests.has(id):
 		return
-	for required: String in Database.quests[id].get("requires", []):
-		_dev_complete_quest(required)
+	var quest: Dictionary = Database.quests[id]
+	if quest.get("kind", "side") == "main":
+		for chapter in range(1, int(quest.chapter) + 1):
+			for previous in progress.main_quests(chapter):
+				if previous == id:
+					break
+				if not progress.claimed_quests.has(previous):
+					_finish_quest(previous)
+	else:
+		_dev_satisfy(quest.get("requirements", {}))
+		for required: String in quest.get("requires", []):
+			_dev_complete_quest(required)
 	_finish_quest(id)
 
 
@@ -766,3 +778,13 @@ func _ensure_stations() -> void:
 
 func _changed() -> void:
 	Events.state_changed.emit()
+
+
+## Conclui só o passo principal atual, com as mesmas recompensas e sinais.
+func dev_complete_main_step() -> void:
+	if not BuildInfo.is_dev():
+		return
+	var id := progress.current_main_quest()
+	if id != "":
+		_dev_complete_quest(id)
+		_changed()

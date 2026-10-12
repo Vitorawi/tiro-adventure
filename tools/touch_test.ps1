@@ -22,7 +22,7 @@ $Chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe"
 if (-not (Test-Path $Chrome)) { $Chrome = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" }
 $Profile = Join-Path $env:TEMP ("touch_test_" + [guid]::NewGuid().ToString("N").Substring(0, 6))
 $Port = 9333
-$Proc = Start-Process $Chrome -ArgumentList "--headless=new", "--remote-debugging-port=$Port", "--user-data-dir=$Profile", "--no-first-run", "--window-size=390,844", "about:blank" -PassThru
+$Proc = Start-Process $Chrome -WindowStyle Hidden -ArgumentList "--headless=new", "--remote-debugging-port=$Port", "--user-data-dir=$Profile", "--no-first-run", "--window-size=390,844", "about:blank" -PassThru
 
 try {
     $Target = $null
@@ -136,5 +136,8 @@ try {
     Write-Host "Prints em $Out"
 } finally {
     if ($Proc -and -not $Proc.HasExited) { Stop-Process -Id $Proc.Id -Force }
-    Remove-Item -Recurse -Force $Profile -ErrorAction SilentlyContinue
+    $ResolvedProfile = [IO.Path]::GetFullPath($Profile)
+    $TempRoot = [IO.Path]::GetFullPath($env:TEMP).TrimEnd('\') + '\'
+    if (!$ResolvedProfile.StartsWith($TempRoot, [StringComparison]::OrdinalIgnoreCase) -or !(Split-Path $ResolvedProfile -Leaf).StartsWith("touch_test_")) { throw "Perfil fora da pasta temporaria" }
+    Remove-Item -LiteralPath $ResolvedProfile -Recurse -Force -ErrorAction SilentlyContinue
 }

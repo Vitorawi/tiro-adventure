@@ -49,7 +49,7 @@ Rotas aparecem no lugar do tipo delas (`"place"` em `activities`: `walk`, `mine`
               "npcs": ["fisher"],
               "places": { "fish": { "name": "Pescar", "icon": "...", "description": "...", "panel": "routes:fish" } } }
    ```
-   - `requirements` usa o formato comum (`owned`/`quests`/`skills`); mundo fechado aparece no
+   - `requirements` usa o formato comum (`owned`/`quests`/`skills`/`chapter`); mundo fechado aparece no
      mapa com o motivo.
    - `panel` dos lugares: `station:<id>`, `inventory`, `feed`, `sleep`, `farm`, `build:<mundo>`,
      `sell`, `orders`, `routes:<tipo>`, `travel:<mundo>` (lista completa em `scripts/ui/places.gd`).
@@ -76,3 +76,14 @@ Nenhum código precisa mudar para um mundo novo, a não ser que ele traga um **t
 | `scenes/ui/bag_screen/` + `SheetBuilder.inventory_view/item_detail` | Aba Mochila (e geladeira). |
 | `Events.world_requested(mundo, lugar)` | "Ir até lá": `main.gd` troca para o Mapa e entra no mundo; `lugar` = `"<lugar>"`, `"npc:<id>"` ou `"buy:<construção>"`. |
 | `Database.npc_world`, `place_with_panel`, `sources_of`, `uses_of` | Consultas de conteúdo usadas pela navegação e pela Mochila. |
+
+
+## Acesso gradual (Tarefas v2)
+
+Casa e Sítio são abertos. Vila exige `quests: ["first_harvest"]`; Trilha exige
+`chapter: 3`. Pedidos da Vila e rotas de passeio/mina repetem esses requisitos.
+O capítulo é derivado das principais recebidas (comprar a geladeira não basta).
+A comemoração anuncia mundos recém-abertos; o mapa mostra o motivo dos bloqueios.
+Toda missão deve ter um destino válido e acessível quando liberada: valide com
+`content_test.gd` e a campanha simulada. `Places.goal_target` produz
+`{world, place, hint}` ou `{screen, hint}` para cuidados na aba Tiro.

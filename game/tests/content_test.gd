@@ -42,12 +42,19 @@ func _run() -> void:
 				"owned": check(data.upgrades.has(key), id + ": construção " + key)
 				"skill": check(data.skills.has(key), id + ": atributo " + key)
 				"stat":
+					check(key in ["feed", "play", "bathe", "pet", "harvest", "produce", "trade", "sold", "orders", "explore", "build", "quests"] or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:"), id + ": contador desconhecido " + key)
+					if key.begins_with("harvest:"):
+						check(db.get("crops").has(key.trim_prefix("harvest:")), id + ": cultura " + key)
 					if key.begins_with("produce:"):
 						check(db.get("recipes").values().any(func(r: Dictionary) -> bool: return r.output == key.trim_prefix("produce:")), id + ": produção " + key)
 					if key.begins_with("activity:"):
 						check(data.activities.has(key.trim_prefix("activity:")), id + ": rota " + key)
 					if key.begins_with("order:"):
 						check(data.orders.has(key.trim_prefix("order:")), id + ": pedido " + key)
+				"coins", "chapter":
+					check(int(g.get("target", 0)) > 0, id + ": alvo obrigatório")
+				_:
+					check(false, id + ": tipo desconhecido " + str(g.type))
 		for reward: String in q.get("rewards", {}).get("collections", []):
 			check(db.get("collections").has(reward), id + ": coleção " + reward)
 	for world: String in db.get("worlds"):
@@ -58,6 +65,14 @@ func _run() -> void:
 				check(w.places.has(service), npc + ": serviço " + service)
 		for place: String in w.places:
 			var p: Dictionary = w.places[place]
+			var panel: String = p.get("panel", "")
+			var arg := panel.get_slice(":", 1)
+			match panel.get_slice(":", 0):
+				"station": check(db.get("stations").has(arg), place + ": estação inexistente")
+				"travel", "build": check(db.get("worlds").has(arg), place + ": mundo inexistente")
+				"routes": check(data.activities.values().any(func(a: Dictionary) -> bool: return a.place == arg), place + ": grupo de rotas inexistente")
+				"inventory", "feed", "sleep", "farm", "sell", "orders": pass
+				_: check(false, place + ": painel desconhecido")
 			if p.has("upgrade"):
 				check(data.upgrades.has(p.upgrade), place + ": construção inexistente")
 	for id: String in data.activities:
@@ -93,6 +108,10 @@ func _validate_targets() -> void:
 						state.get("progress").claimed_quests.erase(before)
 			elif not state.call("quest_unlocked", id):
 				continue
+			var npc_world: String = db.call("npc_world", q.npc)
+			check(npc_world != "", id + ": NPC sem mundo")
+			if npc_world != "":
+				check(state.call("requirement_error", db.get("worlds")[npc_world].get("requirements", {})) == "", id + ": NPC em mundo fechado")
 			for goal: Dictionary in q.goals:
 				var target: Dictionary = places.call("goal_target", goal)
 				check(not target.is_empty(), id + ": objetivo sem destino")

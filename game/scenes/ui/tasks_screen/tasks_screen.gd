@@ -76,11 +76,11 @@ func _evolve_card(box: VBoxContainer) -> void:
 func _side_quests(box: VBoxContainer) -> void:
 	var ids := ProgressionUi.side_quests()
 	box.add_child(UiKit.label("Missões secundárias", &"SectionLabel"))
-	box.add_child(UiKit.label("%d recomendadas" % mini(3, ids.size()), &"SmallLabel"))
+	box.add_child(UiKit.label("1 recomendada" if ids.size() == 1 else "%d recomendadas" % mini(3, ids.size()), &"SmallLabel"))
 	for i in mini(3, ids.size()):
 		ProgressionUi.side_card(box, ids[i])
 	if ids.is_empty():
-		box.add_child(UiKit.label("Novas missões aparecem ao avançar na história.", &"SmallLabel"))
+		box.add_child(UiKit.label("Todas as secundárias concluídas!" if GameState.progress.chapter_index() > Database.progression.chapters.size() else "Novas missões aparecem ao avançar na história.", &"SmallLabel"))
 	box.add_child(UiKit.button("Ver todas (%d)" % ids.size(), func() -> void:
 		Events.sheet_requested.emit("Missões secundárias", ProgressionUi.side_panel())))
 
