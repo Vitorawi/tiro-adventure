@@ -81,7 +81,7 @@ mouse_filter = 2
 
 [node name="DogSprite" type="TextureRect" parent="Margin/VBox/DogArea"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(256, 256)
+custom_minimum_size = Vector2(320, 320)
 layout_mode = 2
 texture = ExtResource("2_tiro")
 expand_mode = 1
