@@ -13,7 +13,11 @@
   "stations": {
     "stove": { "name": "Fogão", "slots": 3 }
   },
-  "farm": { "name": "Sítio da Bloblo", "plots": 6, "sprout": "res://assets/sprites/areas/farm/crop_sprout.png" },
+  "farm": {
+    "name": "Sítio da Bloblo", "plots": 9, "initial_plots": 3,
+    "unlock_costs": [0, 0, 0, 20, 40, 70, 100, 150, 220],
+    "sprout": "res://assets/sprites/areas/farm/crop_sprout.png"
+  },
   "xp": { "feed": 2, "play": 3, "bathe": 3, "cook": 5, "harvest": 2, "per_level": 100 },
   "start": {
     "coins": 50,

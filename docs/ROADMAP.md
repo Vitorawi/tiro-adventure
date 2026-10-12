@@ -28,7 +28,8 @@
 - [ ] Barra de segurança no topo para notch do iPhone
 
 ## Iteração 2
-- [x] Horta: Sítio da Bloblo (aba Sítio + porta da casa), 6 canteiros, cenoura/batata/abóbora (`crops.json`)
+- [x] Horta: Sítio da Bloblo (aba Sítio + porta da casa), cenoura/batata/abóbora (`crops.json`)
+- [x] Progressão do sítio: 3 terrenos iniciais, expansão até 9 em posições fixas, moedas por colheita, indicadores de crescimento e painel Meu sítio; saves antigos mantêm os 6 terrenos
 - [ ] Bloblo como personagem (retrato + missões); Tiro passeando no sítio
 - [ ] Tutor dentro de casa (sprite pequeno + retrato detalhado + diálogo) com missões
 - [ ] Moedas: vender produtos

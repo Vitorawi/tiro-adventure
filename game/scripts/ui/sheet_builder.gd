@@ -177,6 +177,7 @@ static func seed_picker(plot_index: int) -> Control:
 			var details := UiKit.flow()
 			details.add_child(UiKit.chip(UiKit.ui_icon("timer"), format_time(int(crop["seconds"]))))
 			var harvest: Dictionary = crop.get("yield", {})
+			details.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d moedas" % int(crop.get("coins", 0))))
 			for item_id: String in harvest:
 				details.add_child(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), UiKit.GOOD))
 			info.add_child(details)
@@ -189,6 +190,75 @@ static func seed_picker(plot_index: int) -> Control:
 			plant.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			row.add_child(plant)
 			body.add_child(row))
+
+
+## Resumo da expansão e caminho de volta para cada canteiro.
+static func farm_view() -> Control:
+	return LiveBox.new(func(box: VBoxContainer) -> void:
+		var total := int(Database.farm.get("plots", 0))
+		box.add_child(UiKit.label("%d de %d terrenos cultiváveis" % [GameState.unlocked_plots, total], &"SectionLabel"))
+		box.add_child(UiKit.bar(100.0 * GameState.unlocked_plots / total, UiKit.GOOD))
+		box.add_child(UiKit.label("Colha para ganhar moedas e ampliar o sítio. Os terrenos têm lugar certo no mapa.", &"SmallLabel"))
+		box.add_child(UiKit.label("Você tem %d moedas" % GameState.coins))
+		if GameState.unlocked_plots < total:
+			box.add_child(UiKit.button("Próximo terreno · %d moedas" % GameState.plot_cost(GameState.unlocked_plots), func() -> void:
+				Events.sheet_requested.emit("Expandir o sítio", plot_purchase(GameState.unlocked_plots)), &"PrimaryButton"))
+		else:
+			box.add_child(UiKit.label("Sítio completo! Todos os terrenos são seus.", &"SectionLabel", UiKit.GOOD))
+		for index in GameState.unlocked_plots:
+			var status := GameState.plot_status(index)
+			var caption := "Terreno %d · Plantar" % (index + 1)
+			if status != "empty":
+				caption = "%s · %s" % [Database.item_name(GameState.plot(index)["crop"]), "Colher!" if status == "ready" else "%d%%" % int(GameState.plot_progress(index) * 100)]
+			box.add_child(UiKit.button(caption, func() -> void:
+				Events.sheet_requested.emit("Canteiro %d" % (index + 1), seed_picker(index) if GameState.plot_status(index) == "empty" else growing_plot(index)))))
+
+
+static func plot_purchase(index: int) -> Control:
+	return LiveBox.new(func(box: VBoxContainer) -> void:
+		var cost := GameState.plot_cost(index)
+		box.add_child(UiKit.label("Terreno %d" % (index + 1), &"SectionLabel"))
+		box.add_child(UiKit.label("Mais um espaço para plantar, na posição marcada no sítio.", &"SmallLabel"))
+		box.add_child(UiKit.label("Preço: %d moedas · Você tem: %d" % [cost, GameState.coins]))
+		var available := index == GameState.unlocked_plots
+		var owned := index < GameState.unlocked_plots
+		if owned:
+			box.add_child(UiKit.label("Este terreno já é seu!", &"", UiKit.GOOD))
+		elif not available:
+			box.add_child(UiKit.label("Compre o terreno %d primeiro." % (GameState.unlocked_plots + 1), &"SmallLabel"))
+		elif GameState.coins < cost:
+			box.add_child(UiKit.label("Faltam %d moedas. Continue colhendo para juntar!" % (cost - GameState.coins), &"SmallLabel"))
+		var buy := UiKit.button("Comprar por %d moedas" % cost, func() -> void:
+			var error := GameState.buy_plot(index)
+			Events.toast_requested.emit(error if error != "" else "Novo terreno! Já pode plantar.")
+			if error == "":
+				Events.sheet_requested.emit("Canteiro %d" % (index + 1), seed_picker(index)), &"PrimaryButton")
+		buy.disabled = not available or GameState.coins < cost or cost < 0
+		box.add_child(buy))
+
+
+static func growing_plot(index: int) -> Control:
+	return LiveBox.new(func(box: VBoxContainer) -> void:
+		var target := GameState.plot(index)
+		if target["crop"] == "":
+			box.add_child(UiKit.label("Colheita recolhida!"))
+			box.add_child(UiKit.button("Plantar de novo", func() -> void:
+				Events.sheet_requested.emit("Canteiro", seed_picker(index)), &"PrimaryButton"))
+			return
+		var crop_id: String = target["crop"]
+		var ready := GameState.plot_status(index) == "ready"
+		box.add_child(UiKit.icon(Database.item_icon(crop_id), 64))
+		box.add_child(UiKit.label(Database.item_name(crop_id), &"SectionLabel"))
+		box.add_child(UiKit.bar(GameState.plot_progress(index) * 100, UiKit.GOOD))
+		var remaining := maxi(0, int(ceil(float(target["ready_at"]) - GameState.now())))
+		box.add_child(UiKit.label("Pronta para colher!" if ready else "%d%% · Faltam %s" % [int(GameState.plot_progress(index) * 100), format_time(remaining)]))
+		var reward := int(Database.crops[crop_id].get("coins", 0))
+		box.add_child(UiKit.label("Colheita: %s e %d moedas" % [Database.describe_amounts(Database.crops[crop_id].get("yield", {})), reward], &"SmallLabel"))
+		if ready:
+			box.add_child(UiKit.button("Colher", func() -> void:
+				var received := GameState.harvest(index)
+				if not received.is_empty():
+					Events.toast_requested.emit("Colheu " + Database.describe_amounts(received) + "! +%d moedas" % reward), &"PrimaryButton")))
 
 
 static func _empty_message(box: VBoxContainer, title: String, hint: String) -> void:

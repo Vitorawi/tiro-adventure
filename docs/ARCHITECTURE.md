@@ -27,6 +27,11 @@ Cenas (scenes/*)  ──métodos──▶  GameState  ◀──to_dict/from_dict
 | `StationState` | Fila de produção com `ready_at` (timestamps Unix). |
 
 ## Save local
+- Save v3: `unlocked_plots` registra expansão sequencial. Migração v2 preserva os canteiros existentes.
+- Plantações novas guardam `planted_at` e `ready_at`; plantações antigas calculam início pelo tempo em `crops.json`.
+- `GameState.buy_plot`, `plant` e `harvest` validam ações; colheita credita moedas configuradas em `crops.json`.
+- `PlotIndicator` desenha indicadores sem capturar toque; `RoomView` encaminha toques e atualiza o visual.
+- Teste: Godot `--headless --path game -s res://tests/farm_test.gd` (desliga persistência antes de alterar o estado).
 - Arquivo: `user://save.json` → JSON `{ save_version, saved_at, state }`.
 - Na Web, `user://` é sincronizado com o **IndexedDB** do navegador, por site (origem).
   Mesmo jogador, mesmo aparelho, mesmo navegador/app = mesmo save.

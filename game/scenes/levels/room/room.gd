@@ -33,6 +33,7 @@ var _walkable: Array[Vector2i] = []
 var _press_position := Vector2.ZERO
 var _dragged := false
 var _object_frame := 0
+var _farm_button: Button
 
 @onready var _content: Control = %Content
 @onready var _background: TextureRect = %Background
@@ -47,6 +48,14 @@ func _ready() -> void:
 	_spawn_objects()
 	_build_navigation()
 	_spawn_dog()
+	if room_id == "farm":
+		_farm_button = UiKit.button("", func() -> void:
+			Events.sheet_requested.emit("Meu sítio", SheetBuilder.farm_view()))
+		_farm_button.position = Vector2(12, 12)
+		_farm_button.z_index = 5
+		add_child(_farm_button)
+		Events.state_changed.connect(_refresh_farm_button)
+		_refresh_farm_button()
 	%ZoomIn.pressed.connect(func() -> void: _zoom_at(size / 2.0, _zoom * ZOOM_STEP))
 	%ZoomOut.pressed.connect(func() -> void: _zoom_at(size / 2.0, _zoom / ZOOM_STEP))
 	resized.connect(_on_resized)
@@ -137,6 +146,11 @@ func _spawn_objects() -> void:
 			crop.position = Vector2(0, -sprite.texture.get_height() / 2.0 + float(data.get("crop_offset", 0)))
 			crop.offset = Vector2(0, -8)
 			sprite.add_child(crop)
+			var indicator := PlotIndicator.new()
+			indicator.name = "Indicator"
+			indicator.plot_index = int(data["plot"])
+			indicator.z_index = 2
+			sprite.add_child(indicator)
 		_world.add_child(sprite)
 		_objects.append(sprite)
 
@@ -172,15 +186,28 @@ func _update_plot(sprite: Sprite2D) -> void:
 	var index: int = sprite.get_meta("plot")
 	var crop: Sprite2D = sprite.get_node("Crop")
 	var texture: Texture2D = null
-	match GameState.plot_status(index):
+	var status := GameState.plot_status(index)
+	var progress := GameState.plot_progress(index)
+	sprite.self_modulate = Color("777e69") if status == "locked" else Color.WHITE
+	match status:
 		"growing":
-			texture = Database.farm_texture("sprout")
+			texture = Database.farm_texture("sprout") if progress < 0.33 else Database.crop_texture(GameState.plot(index)["crop"])
+			crop.scale = Vector2.ONE * lerpf(0.55, 0.9, progress)
 		"ready":
 			texture = Database.crop_texture(GameState.plot(index)["crop"])
 	if crop.texture != texture:
 		crop.texture = texture
 		if texture and GameState.plot_status(index) == "ready":
 			_pop(crop)
+	# A textura adulta também aparece no meio do crescimento: detectar a mudança de estado.
+	elif status == "ready" and sprite.get_meta("plot_status", "") != "ready":
+		_pop(crop)
+	sprite.set_meta("plot_status", status)
+	(sprite.get_node("Indicator") as PlotIndicator).refresh()
+
+
+func _refresh_farm_button() -> void:
+	_farm_button.text = "Meu sítio  %d/%d" % [GameState.unlocked_plots, int(Database.farm.get("plots", 0))]
 
 
 ## Pulinho de "ficou pronto".
@@ -341,6 +368,13 @@ func _handle_tap(point: Vector2) -> void:
 	var ordered := _objects.duplicate()
 	ordered.sort_custom(func(a: Sprite2D, b: Sprite2D) -> bool: return a.position.y > b.position.y)
 	for sprite: Sprite2D in ordered:
+		if sprite.has_node("Indicator"):
+			var index := int(sprite.get_meta("plot"))
+			var indicator := sprite.get_node("Indicator") as PlotIndicator
+			if GameState.plot_status(index) in ["growing", "ready"] and indicator.hit_rect.has_point(point - sprite.position):
+				_on_plot_tapped(index)
+				return
+	for sprite: Sprite2D in ordered:
 		if _hits(sprite, point - sprite.position) or (sprite.has_node("Crop") and _hits(sprite.get_node("Crop"), point - sprite.position - sprite.get_node("Crop").position)):
 			_flash(sprite)
 			_on_object_tapped(sprite.get_meta("action"), sprite)
@@ -355,15 +389,16 @@ func _handle_tap(point: Vector2) -> void:
 ## Canteiro vazio abre as sementes; crescendo mostra quanto falta; pronto colhe.
 func _on_plot_tapped(index: int) -> void:
 	match GameState.plot_status(index):
+		"locked":
+			Events.sheet_requested.emit("Expandir o sítio", SheetBuilder.plot_purchase(index))
 		"empty":
 			Events.sheet_requested.emit("Canteiro", SheetBuilder.seed_picker(index))
 		"growing":
-			var plot := GameState.plot(index)
-			var remaining := int(ceil(float(plot["ready_at"]) - GameState.now()))
-			Events.toast_requested.emit("%s fica pronta em %s" % [Database.item_name(plot["crop"]), SheetBuilder.format_time(remaining)])
+			Events.sheet_requested.emit("Plantação", SheetBuilder.growing_plot(index))
 		"ready":
+			var reward := int(Database.crops[GameState.plot(index)["crop"]].get("coins", 0))
 			var received := GameState.harvest(index)
-			Events.toast_requested.emit("Colheu " + Database.describe_amounts(received) + "!")
+			Events.toast_requested.emit("Colheu " + Database.describe_amounts(received) + "! +%d moedas" % reward)
 
 
 ## Toque preciso: dentro do retângulo e num pixel não transparente do desenho.

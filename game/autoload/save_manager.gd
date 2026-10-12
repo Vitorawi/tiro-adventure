@@ -10,7 +10,7 @@ extends Node
 ## antiga em _migrate() para não perder o progresso dos jogadores.
 
 const SAVE_PATH := "user://save.json"
-const SAVE_VERSION := 2
+const SAVE_VERSION := 3
 
 var _save_pending := false
 
@@ -87,6 +87,12 @@ func _migrate(data: Dictionary) -> Dictionary:
 		# v1 era só o contador de teste: começa um jogo novo.
 		data["state"] = {}
 		version = 2
+	if version < 3:
+		var state: Dictionary = data.get("state", {})
+		if not state.is_empty():
+			var old_plots: Array = state.get("plots", [])
+			state["unlocked_plots"] = maxi(old_plots.size(), int(Database.farm.get("initial_plots", 3)))
+		version = 3
 	data["save_version"] = version
 	return data
 

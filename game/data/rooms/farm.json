@@ -7,7 +7,10 @@
     { "id": "plot_2", "action": "plot", "plot": 2, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [378, 274] },
     { "id": "plot_3", "action": "plot", "plot": 3, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [222, 249] },
     { "id": "plot_4", "action": "plot", "plot": 4, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [274, 274] },
-    { "id": "plot_5", "action": "plot", "plot": 5, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [326, 299] }
+    { "id": "plot_5", "action": "plot", "plot": 5, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [326, 299] },
+    { "id": "plot_6", "action": "plot", "plot": 6, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [170, 274] },
+    { "id": "plot_7", "action": "plot", "plot": 7, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [222, 299] },
+    { "id": "plot_8", "action": "plot", "plot": 8, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [274, 324] }
   ],
   "zones": [
     { "id": "bloblo_house", "action": "bloblo_house", "polygon": [[140, 85], [250, 30], [305, 85], [305, 135], [220, 178], [145, 150]] }

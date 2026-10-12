@@ -121,6 +121,15 @@ desbloquear áreas, estações, receitas, itens e personagens
 - Regra: **comida feita em estação recupera mais** que o ingrediente cru.
 - Valores de tempo são ponto de partida para balancear (dados em `game/data/`).
 
+## Progressão do sítio (implementada)
+- Novo jogo começa com 3 canteiros. Há 9 posições fixas visíveis no mapa, compradas em sequência.
+- Preços dos terrenos 4 a 9: 20, 40, 70, 100, 150 e 220 moedas (`config.json`, `farm.unlock_costs`).
+- Colher rende os produtos e moedas: cenoura 3, batata 9, abóbora 16 (`crops.json`, `coins`). Sementes continuam gratuitas.
+- Cada plantação mostra ícone, tempo restante e barra; ao amadurecer, mostra “Colher”. O broto cresce e dá lugar à planta.
+- Tocar na plantação abre o progresso detalhado; tocar na planta pronta colhe. Tocar num terreno bloqueado abre preço e requisitos.
+- O botão “Meu sítio” mostra terrenos adquiridos, saldo, próxima expansão e acesso aos canteiros.
+- Saves antigos preservam seus terrenos e plantações. Crescimento continua com o app fechado.
+
 ## Evolução e progressão (proposta)
 - **(a) Nível do jogador:** XP de produzir, cuidar e missões; desbloqueia áreas, receitas e estações.
 - **(b) Vínculo com o Tiro (afeição):** sobe cuidando bem; desbloqueia truques.

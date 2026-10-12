@@ -1,5 +1,5 @@
 {
-  "carrot": { "seconds": 60, "yield": { "carrot": 2 }, "sprite": "res://assets/sprites/areas/farm/crop_carrot.png" },
-  "potato": { "seconds": 300, "yield": { "potato": 2 }, "sprite": "res://assets/sprites/areas/farm/crop_potato.png" },
-  "pumpkin": { "seconds": 600, "yield": { "pumpkin": 1 }, "sprite": "res://assets/sprites/areas/farm/crop_pumpkin.png" }
+  "carrot": { "seconds": 60, "coins": 3, "yield": { "carrot": 2 }, "sprite": "res://assets/sprites/areas/farm/crop_carrot.png" },
+  "potato": { "seconds": 300, "coins": 9, "yield": { "potato": 2 }, "sprite": "res://assets/sprites/areas/farm/crop_potato.png" },
+  "pumpkin": { "seconds": 600, "coins": 16, "yield": { "pumpkin": 1 }, "sprite": "res://assets/sprites/areas/farm/crop_pumpkin.png" }
 }

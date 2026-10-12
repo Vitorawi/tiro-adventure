@@ -9,8 +9,9 @@ extends Node
 var dog := DogState.new()
 var inventory := Inventory.new()
 var stations: Dictionary = {}  # station_id -> StationState
-## Canteiros do sítio: { "crop": id ou "", "ready_at": unix }. Quantidade em config "farm.plots".
+## Canteiros: crop, planted_at e ready_at (Unix). Quantidade em config "farm.plots".
 var plots: Array[Dictionary] = []
+var unlocked_plots: int = 0
 var coins: int = 0
 var xp: int = 0
 var level: int = 1
@@ -30,6 +31,7 @@ func reset() -> void:
 	stations = {}
 	_ensure_stations()
 	plots = []
+	unlocked_plots = int(Database.farm.get("initial_plots", 3))
 	_ensure_plots()
 	coins = int(Database.start.get("coins", 0))
 	xp = 0
@@ -124,8 +126,10 @@ func plot(index: int) -> Dictionary:
 	return plots[index]
 
 
-## "empty", "growing" ou "ready".
+## "locked", "empty", "growing" ou "ready".
 func plot_status(index: int) -> String:
+	if index < 0 or index >= unlocked_plots:
+		return "locked"
 	var target := plot(index)
 	if target["crop"] == "":
 		return "empty"
@@ -134,11 +138,14 @@ func plot_status(index: int) -> String:
 
 ## Planta no canteiro. Retorna "" se deu certo ou o motivo da falha.
 func plant(index: int, crop_id: String) -> String:
+	if plot_status(index) == "locked":
+		return "Compre este terreno primeiro"
 	if not Database.crops.has(crop_id):
 		return "Semente desconhecida"
 	if plot_status(index) != "empty":
 		return "Canteiro ocupado"
-	plots[index] = { "crop": crop_id, "ready_at": now() + float(Database.crops[crop_id].get("seconds", 60)) }
+	var planted_at := now()
+	plots[index] = { "crop": crop_id, "planted_at": planted_at, "ready_at": planted_at + float(Database.crops[crop_id].get("seconds", 60)) }
 	_changed()
 	return ""
 
@@ -148,6 +155,7 @@ func harvest(index: int) -> Dictionary:
 	if plot_status(index) != "ready":
 		return {}
 	var received: Dictionary = Database.crops[plot(index)["crop"]].get("yield", {})
+	coins += int(Database.crops[plot(index)["crop"]].get("coins", 0))
 	for item_id: String in received:
 		inventory.add(item_id, int(received[item_id]))
 	plots[index] = { "crop": "", "ready_at": 0.0 }
@@ -159,6 +167,40 @@ func harvest(index: int) -> Dictionary:
 func _ensure_plots() -> void:
 	while plots.size() < int(Database.farm.get("plots", 0)):
 		plots.append({ "crop": "", "ready_at": 0.0 })
+
+
+## Progresso calculado por timestamps; continua com o jogo fechado.
+func plot_progress(index: int) -> float:
+	if plot_status(index) in ["locked", "empty"]:
+		return 0.0
+	var target := plot(index)
+	var end := float(target["ready_at"])
+	var start := float(target.get("planted_at", end - float(Database.crops[target["crop"]]["seconds"])))
+	return clampf((now() - start) / maxf(end - start, 0.001), 0.0, 1.0)
+
+
+func plot_cost(index: int) -> int:
+	var costs: Array = Database.farm.get("unlock_costs", [])
+	return int(costs[index]) if index >= 0 and index < costs.size() else -1
+
+
+## Expansão em ordem fixa. Valida novamente no momento da compra.
+func buy_plot(index: int) -> String:
+	if index < 0 or index >= int(Database.farm.get("plots", 0)):
+		return "Terreno inválido"
+	if index < unlocked_plots:
+		return "Este terreno já é seu"
+	if index != unlocked_plots:
+		return "Compre o terreno %d primeiro" % (unlocked_plots + 1)
+	var cost := plot_cost(index)
+	if cost < 0:
+		return "Terreno indisponível"
+	if coins < cost:
+		return "Faltam %d moedas" % (cost - coins)
+	coins -= cost
+	unlocked_plots += 1
+	_changed()
+	return ""
 
 
 # --- Progressão ------------------------------------------------------------
@@ -186,6 +228,7 @@ func to_dict() -> Dictionary:
 		"inventory": inventory.to_dict(),
 		"stations": station_data,
 		"plots": plots,
+		"unlocked_plots": unlocked_plots,
 		"coins": coins,
 		"xp": xp,
 		"level": level,
@@ -210,7 +253,12 @@ func from_dict(data: Dictionary) -> void:
 	# "plots" chegou depois da v2 do save: saves antigos simplesmente começam com canteiros vazios.
 	plots = []
 	for entry: Dictionary in data.get("plots", []):
-		plots.append({ "crop": str(entry.get("crop", "")), "ready_at": float(entry.get("ready_at", 0.0)) })
+		var loaded_plot := { "crop": str(entry.get("crop", "")), "ready_at": float(entry.get("ready_at", 0.0)) }
+		if entry.has("planted_at"):
+			loaded_plot["planted_at"] = float(entry["planted_at"])
+		plots.append(loaded_plot)
+	# Saves anteriores mantêm todos os canteiros que já possuíam.
+	unlocked_plots = clampi(int(data.get("unlocked_plots", maxi(plots.size(), int(Database.farm.get("initial_plots", 3))))), 0, int(Database.farm.get("plots", 0)))
 	_ensure_plots()
 	coins = int(data.get("coins", 0))
 	xp = int(data.get("xp", 0))
