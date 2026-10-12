@@ -1,0 +1,14 @@
+# Godot
+.godot/
+*.translation
+export_credentials.cfg
+
+# Build
+build/
+
+# SO / editores
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+*.tmp
