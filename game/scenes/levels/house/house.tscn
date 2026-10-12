@@ -36,3 +36,32 @@ expand_mode = 1
 [node name="World" type="Node2D" parent="Content"]
 unique_name_in_owner = true
 y_sort_enabled = true
+
+[node name="ZoomControls" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -64.0
+offset_top = -124.0
+offset_right = -12.0
+offset_bottom = -12.0
+grow_horizontal = 0
+grow_vertical = 0
+theme_override_constants/separation = 8
+
+[node name="ZoomIn" type="Button" parent="ZoomControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "+"
+
+[node name="ZoomOut" type="Button" parent="ZoomControls"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 26
+text = "−"

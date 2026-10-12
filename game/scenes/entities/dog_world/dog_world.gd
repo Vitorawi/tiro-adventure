@@ -23,9 +23,12 @@ const SHADOW_COLOR := Color(0.12, 0.05, 0.02, 0.5)
 
 var room: HouseRoom
 var bowl_point := Vector2.ZERO
+## Lugar de dormir (em cima do sofá) e o ponto no chão, na frente dele, por onde sobe/desce.
 var sleep_point := Vector2.ZERO
+var sleep_approach := Vector2.ZERO
 
 var _facing := "south"
+var _on_sofa := false
 var _sprite: AnimatedSprite2D
 
 
@@ -35,6 +38,8 @@ func _ready() -> void:
 	_sprite.position = Vector2(0.0, -FEET_OFFSET)
 	add_child(_sprite)
 	_play("idle", "south")
+	if position.is_equal_approx(sleep_point):
+		_set_on_sofa(true)
 	_brain()
 
 
@@ -57,12 +62,16 @@ func _brain() -> void:
 	while is_inside_tree():
 		var dog := GameState.dog
 		if dog.sleeping:
-			await _go_to(sleep_point, true)
-			z_index = 1  # em cima do sofá: desenha na frente dele
+			if not _on_sofa:
+				await _go_to(sleep_approach)
+				_set_on_sofa(true)
+				await _step_to(sleep_point)
 			_play("sleep", "east")
 			await _wait(2.0)
 			continue
-		z_index = 0
+		if _on_sofa:
+			await _step_to(sleep_approach)
+			_set_on_sofa(false)
 		if dog.get_need("hunger", GameState.now()) < HUNGRY and randf() < 0.6:
 			await _go_to(bowl_point)
 			_play("eat", "east")
@@ -86,14 +95,19 @@ func _idle_moment() -> void:
 		await _wait(randf_range(1.5, 4.0))
 
 
-## Anda até o ponto pelo piso. `hop` faz o último trecho em linha reta
-## (ex.: subir no sofá, que é uma área bloqueada).
-func _go_to(target: Vector2, hop := false) -> void:
+## Em cima do sofá o Tiro é desenhado na frente dele (z_index), inclusive
+## enquanto sobe e desce pelo ponto da frente.
+func _set_on_sofa(value: bool) -> void:
+	_on_sofa = value
+	z_index = 1 if value else 0
+
+
+## Anda até o ponto pelo piso, desviando dos móveis.
+func _go_to(target: Vector2) -> void:
 	if position.distance_to(target) < 4.0 or not is_inside_tree():
 		return
 	var path := _simplify(room.find_path(position, target))
-	if hop:
-		path.append(target)
+	path.append(target)
 	for point in path:
 		await _step_to(point)
 		if not is_inside_tree():

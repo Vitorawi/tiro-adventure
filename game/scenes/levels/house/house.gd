@@ -9,11 +9,15 @@ extends Control
 ## Coordenadas do JSON estão em pixels da imagem de fundo.
 
 const ROOM_ID := "house"
-const ZOOM := 1.5
+const MAX_ZOOM := 2.0
+const ZOOM_STEP := 1.25
 const TAP_SLOP := 12.0
 const NAV_CELL := 8
 
 var _room: Dictionary = {}
+var _zoom := 1.0
+var _touches: Dictionary = {}  # índice do dedo -> posição (para a pinça)
+var _pinch_distance := 0.0
 var _objects: Array[Sprite2D] = []
 var _dog: DogWorld
 var _nav := AStarGrid2D.new()
@@ -31,12 +35,13 @@ func _ready() -> void:
 	_background.texture = load(_room["background"])
 	_background.size = _background.texture.get_size()
 	_content.size = _background.size
-	_content.scale = Vector2.ONE * ZOOM
 	_spawn_objects()
 	_build_navigation()
 	_spawn_dog()
-	resized.connect(_clamp_content)
-	_focus_on.call_deferred(_point("focus"))
+	%ZoomIn.pressed.connect(func() -> void: _zoom_at(size / 2.0, _zoom * ZOOM_STEP))
+	%ZoomOut.pressed.connect(func() -> void: _zoom_at(size / 2.0, _zoom / ZOOM_STEP))
+	resized.connect(_on_resized)
+	_show_whole_room.call_deferred()
 
 
 # --- Navegação (usada pelo DogWorld) -----------------------------------------
@@ -112,14 +117,53 @@ func _spawn_dog() -> void:
 	_dog.room = self
 	_dog.bowl_point = _point("bowl")
 	_dog.sleep_point = _point("sleep")
+	_dog.sleep_approach = _point("sleep_approach")
 	_dog.position = _point("sleep") if GameState.dog.sleeping else _point("dog_start")
 	_world.add_child(_dog)
 
 
 # --- Toque e câmera ----------------------------------------------------------
 
+## Pinça com dois dedos. Toques chegam aqui antes do _gui_input.
+func _input(event: InputEvent) -> void:
+	if not is_visible_in_tree():
+		return
+	var touch := event as InputEventScreenTouch
+	if touch:
+		if touch.pressed and get_global_rect().has_point(touch.position):
+			_touches[touch.index] = touch.position
+		else:
+			_touches.erase(touch.index)
+		if _touches.size() >= 2:
+			_dragged = true  # pinça não conta como toque
+		_pinch_distance = _current_pinch_distance()
+		return
+	var drag := event as InputEventScreenDrag
+	if drag and _touches.has(drag.index):
+		_touches[drag.index] = drag.position
+		if _touches.size() >= 2:
+			var distance := _current_pinch_distance()
+			if _pinch_distance > 0.0:
+				var center: Vector2 = (_touches.values()[0] + _touches.values()[1]) / 2.0
+				_zoom_at(center - global_position, _zoom * distance / _pinch_distance)
+			_pinch_distance = distance
+
+
+func _current_pinch_distance() -> float:
+	if _touches.size() < 2:
+		return 0.0
+	var points := _touches.values()
+	return (points[0] as Vector2).distance_to(points[1])
+
+
 func _gui_input(event: InputEvent) -> void:
 	var button := event as InputEventMouseButton
+	if button and button.pressed and button.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		var factor := ZOOM_STEP if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / ZOOM_STEP
+		_zoom_at(button.position, _zoom * factor)
+		return
+	if _touches.size() >= 2:
+		return  # durante a pinça, não arrasta nem toca
 	if button and button.button_index == MOUSE_BUTTON_LEFT:
 		if button.pressed:
 			_press_position = button.position
@@ -179,9 +223,29 @@ func _flash(sprite: Sprite2D) -> void:
 	create_tween().tween_property(sprite, "modulate", Color.WHITE, 0.25)
 
 
-func _focus_on(point: Vector2) -> void:
-	_content.position = size / 2.0 - point * ZOOM
+## Menor zoom: a sala inteira cabe na tela.
+func _fit_zoom() -> float:
+	return minf(size.x / _content.size.x, size.y / _content.size.y)
+
+
+func _show_whole_room() -> void:
+	_zoom_at(size / 2.0, _fit_zoom())
+
+
+## Muda o zoom mantendo fixo o ponto da sala sob `pivot` (coordenadas desta tela).
+func _zoom_at(pivot: Vector2, new_zoom: float) -> void:
+	if size.x <= 0.0 or size.y <= 0.0:
+		return  # ainda sem layout
+	new_zoom = clampf(new_zoom, _fit_zoom(), MAX_ZOOM)
+	var room_point := (pivot - _content.position) / _zoom
+	_zoom = new_zoom
+	_content.scale = Vector2.ONE * _zoom
+	_content.position = pivot - room_point * _zoom
 	_clamp_content()
+
+
+func _on_resized() -> void:
+	_zoom_at(size / 2.0, _zoom)
 
 
 func _clamp_content() -> void:

@@ -20,11 +20,25 @@ func _run() -> void:
 	main.show_screen(&"house")
 	await _frames(90)
 	_save("house")
-	# Chamada dinâmica: referenciar classes do jogo aqui quebra a compilação no modo -s.
-	main.find_child("House").call("_on_object_tapped", "stove")
+	# Chamadas dinâmicas: referenciar classes do jogo aqui quebra a compilação no modo -s.
+	var house: Node = main.find_child("House")
+	house.call("_on_object_tapped", "stove")
 	await _frames(10)
 	_save("stove_sheet")
+	root.get_node("/root/Events").emit_signal("sheet_close_requested")
+	# Manda dormir e espera o Tiro chegar ao sofá.
+	root.get_node("/root/GameState").call("set_sleeping", true)
+	await _seconds(14.0)
+	_save("house_sleep")
+	house.call("_zoom_at", Vector2(250, 330), 1.6)
+	await _frames(5)
+	_save("house_zoom")
+	root.get_node("/root/GameState").call("set_sleeping", false)
 	quit()
+
+
+func _seconds(duration: float) -> void:
+	await create_timer(duration).timeout
 
 
 func _frames(count: int) -> void:

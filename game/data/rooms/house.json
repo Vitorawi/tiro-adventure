@@ -23,7 +23,7 @@
       "id": "sofa", "action": "sofa",
       "sprite": "res://assets/sprites/areas/house/sofa.png",
       "pos": [492, 282],
-      "footprint": [[434, 226], [468, 212], [560, 254], [528, 272]]
+      "footprint": [[432, 226], [462, 192], [590, 252], [528, 274]]
     }
   ],
   "zones": [
@@ -33,6 +33,6 @@
     "dog_start": [260, 320],
     "bowl": [174, 304],
     "sleep": [488, 240],
-    "focus": [330, 280]
+    "sleep_approach": [462, 268]
   }
 }
