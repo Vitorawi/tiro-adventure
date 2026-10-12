@@ -49,3 +49,6 @@ Dois ajustes no build (no workflow e em `tools/export_web.ps1`):
 
 O save (IndexedDB) não é afetado. **Nunca** orientar o jogador a remover o app da tela inicial
 para atualizar: no iPhone isso apaga o save junto.
+
+### Aplicar a atualização
+`JavaScriptBridge.pwa_update()` **não funciona no iPhone**: o service worker do Godot ignora a mensagem quando `event.origin` vem vazio (Safari). `PwaUpdater.apply_update()` faz o próprio processo: salva, espera 1 s (sincronizar IndexedDB), remove o service worker e os caches, baixa os arquivos com `cache: 'reload'` e recarrega. Atalho de emergência: **tocar no número da versão** na barra superior.

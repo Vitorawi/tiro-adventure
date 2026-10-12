@@ -27,6 +27,11 @@ func _ready() -> void:
 	%UpdateBanner.pressed.connect(PwaUpdater.apply_update)
 	%UpdateBanner.visible = PwaUpdater.update_ready
 	%VersionLabel.text = "v%s %s  " % [Database.version.get("version", "?"), Database.version.get("date", "")]
+	# Atalho de emergência: tocar na versão força a atualização.
+	%VersionLabel.gui_input.connect(func(event: InputEvent) -> void:
+		var button := event as InputEventMouseButton
+		if button and button.pressed:
+			PwaUpdater.apply_update())
 	_toast.modulate.a = 0.0
 	_refresh_top_bar()
 	show_screen(&"pet")
