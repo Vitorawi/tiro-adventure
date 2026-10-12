@@ -12,15 +12,15 @@
     {
       "id": "fridge", "action": "fridge",
       "sprite": "res://assets/sprites/areas/house/fridge.png",
-      "pos": [245, 177],
-      "footprint": [[222, 174], [268, 150], [278, 165], [230, 188]]
+      "pos": [250, 195],
+      "footprint": [[222, 182], [256, 164], [278, 178], [243, 197]]
     },
     {
       "id": "stove", "action": "stove", "station": "stove",
       "sprite": "res://assets/sprites/areas/house/stove.png",
       "busy_frames": "res://assets/sprites/areas/house/stove_cooking/",
-      "pos": [300, 149],
-      "footprint": [[270, 150], [330, 120], [342, 138], [280, 168]]
+      "pos": [300, 169],
+      "footprint": [[276, 155], [303, 141], [323, 156], [296, 170]]
     },
     {
       "id": "bowl", "action": "bowl",
