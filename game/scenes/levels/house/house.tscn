@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=2 format=3]
 
 [ext_resource type="Script" path="res://scenes/levels/house/house.gd" id="1_house"]
-[ext_resource type="Texture2D" path="res://assets/sprites/areas/house_placeholder.png" id="2_bg"]
 
 [node name="House" type="Control"]
 clip_contents = true
@@ -21,7 +20,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.07, 0.07, 0.1, 1)
+color = Color(0.17, 0.15, 0.2, 1)
 
 [node name="Content" type="Control" parent="."]
 unique_name_in_owner = true
@@ -32,5 +31,8 @@ mouse_filter = 1
 unique_name_in_owner = true
 layout_mode = 0
 mouse_filter = 2
-texture = ExtResource("2_bg")
 expand_mode = 1
+
+[node name="World" type="Node2D" parent="Content"]
+unique_name_in_owner = true
+y_sort_enabled = true

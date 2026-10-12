@@ -21,7 +21,7 @@ func _run() -> void:
 	await _frames(90)
 	_save("house")
 	# Chamada dinâmica: referenciar classes do jogo aqui quebra a compilação no modo -s.
-	main.find_child("House").call("_on_hotspot_tapped", "stove")
+	main.find_child("House").call("_on_object_tapped", "stove")
 	await _frames(10)
 	_save("stove_sheet")
 	quit()

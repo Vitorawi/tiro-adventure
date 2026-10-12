@@ -21,8 +21,10 @@
 - [x] Casa: geladeira, fogão (fila), tigela, sofá, brinquedos; Tiro autônomo
 - [x] Inventário + receitas no fogão (dados em JSON) + XP/nível
 - [x] Sprites PixelLab: Tiro pet (128px) e Tiro mundo (4 direções + andar)
-- [ ] Fundo da casa feito no PixelLab (hoje: imagem de referência)
-- [ ] Animações do Tiro no mundo: dormir, comer, sentar
+- [x] Casa montada no PixelLab: sala vazia + móveis separados (geladeira, fogão, tigela, sofá)
+- [x] Colisão com móveis (grade de navegação), profundidade (Y-sort), toque por pixel, sombra do Tiro
+- [x] Animações do Tiro no mundo: andar, parado, sentar, latir, dormir, comer
+- [ ] Mais móveis/decoração (caminha, brinquedos, TV, mesa) — por enquanto casa enxuta
 - [ ] Barra de segurança no topo para notch do iPhone
 
 ## Iteração 2

@@ -1,8 +1,8 @@
 class_name DogWorld
-extends Hotspot
-## Tiro pequeno no Mundo. Anda sozinho entre pontos do chão, vai à tigela
-## quando está com fome, dorme no sofá, senta e late de vez em quando.
-## Tocar nele abre a Tela do Pet.
+extends Node2D
+## Tiro pequeno no Mundo. A origem do nó fica nas patas (usada na ordenação por Y).
+## Anda sozinho pelo piso desviando dos móveis (caminho calculado pela sala),
+## vai à tigela quando está com fome, dorme no sofá, senta e late de vez em quando.
 ##
 ## Sprites (PixelLab) em SPRITE_DIR:
 ##   rotations/<direção>.png               pose parada por direção
@@ -10,15 +10,18 @@ extends Hotspot
 ## Direções que faltam usam o espelho (oeste <-> leste) ou qualquer outra disponível.
 
 const SPRITE_DIR := "res://assets/sprites/characters/tiro_world/"
-const SPRITE_SCALE := 1.0
 ## Distância (px) do centro do canvas do sprite até as patas.
 const FEET_OFFSET := 26.0
 const HUNGRY := 30.0
 ## Ações em loop; as demais (sit, sleep, bark) tocam uma vez e param na última pose.
 const LOOPING := ["walk", "idle", "eat"]
 const MIRROR := { "west": "east", "east": "west" }
+## Sombra oval sob as patas (raio em px e achatamento vertical).
+const SHADOW_RADIUS := 17.0
+const SHADOW_SQUASH := 0.4
+const SHADOW_COLOR := Color(0.12, 0.05, 0.02, 0.5)
 
-var walk_points: Array[Vector2] = []
+var room: HouseRoom
 var bowl_point := Vector2.ZERO
 var sleep_point := Vector2.ZERO
 
@@ -27,24 +30,24 @@ var _sprite: AnimatedSprite2D
 
 
 func _ready() -> void:
-	size = Vector2(64, 64)
 	_sprite = AnimatedSprite2D.new()
 	_sprite.sprite_frames = _build_frames()
-	_sprite.scale = Vector2.ONE * SPRITE_SCALE
-	_sprite.position = Vector2(size.x / 2.0, size.y - FEET_OFFSET * SPRITE_SCALE)
+	_sprite.position = Vector2(0.0, -FEET_OFFSET)
 	add_child(_sprite)
 	_play("idle", "south")
-	tapped.connect(func() -> void: Events.screen_requested.emit(&"pet"))
 	_brain()
 
 
-## Posiciona o Tiro com as patas no ponto dado.
-func place_at(point: Vector2) -> void:
-	position = point - Vector2(size.x / 2.0, size.y)
+func _draw() -> void:
+	# Desenhada antes dos filhos, então fica embaixo do sprite.
+	draw_set_transform(Vector2(0.0, -1.0), 0.0, Vector2(1.0, SHADOW_SQUASH))
+	draw_circle(Vector2.ZERO, SHADOW_RADIUS, SHADOW_COLOR, true, -1.0, false)
+	draw_set_transform(Vector2.ZERO)
 
 
-func _feet() -> Vector2:
-	return position + Vector2(size.x / 2.0, size.y)
+## Área de toque em volta do Tiro (coordenadas do mundo).
+func hit_test(point: Vector2) -> bool:
+	return Rect2(position + Vector2(-24.0, -54.0), Vector2(48.0, 58.0)).has_point(point)
 
 
 # --- Comportamento -----------------------------------------------------------
@@ -54,18 +57,20 @@ func _brain() -> void:
 	while is_inside_tree():
 		var dog := GameState.dog
 		if dog.sleeping:
-			await _walk_to(sleep_point)
+			await _go_to(sleep_point, true)
+			z_index = 1  # em cima do sofá: desenha na frente dele
 			_play("sleep", "east")
 			await _wait(2.0)
 			continue
+		z_index = 0
 		if dog.get_need("hunger", GameState.now()) < HUNGRY and randf() < 0.6:
-			await _walk_to(bowl_point)
+			await _go_to(bowl_point)
 			_play("eat", "east")
 			await _wait(3.0)
 			continue
 		await _idle_moment()
-		if is_inside_tree() and not walk_points.is_empty():
-			await _walk_to(walk_points.pick_random())
+		if is_inside_tree():
+			await _go_to(room.random_floor_point())
 
 
 func _idle_moment() -> void:
@@ -81,9 +86,24 @@ func _idle_moment() -> void:
 		await _wait(randf_range(1.5, 4.0))
 
 
-func _walk_to(point: Vector2) -> void:
-	var delta := point - _feet()
-	if delta.length() < 4.0 or not is_inside_tree():
+## Anda até o ponto pelo piso. `hop` faz o último trecho em linha reta
+## (ex.: subir no sofá, que é uma área bloqueada).
+func _go_to(target: Vector2, hop := false) -> void:
+	if position.distance_to(target) < 4.0 or not is_inside_tree():
+		return
+	var path := _simplify(room.find_path(position, target))
+	if hop:
+		path.append(target)
+	for point in path:
+		await _step_to(point)
+		if not is_inside_tree():
+			return
+	_play("idle", _facing)
+
+
+func _step_to(point: Vector2) -> void:
+	var delta := point - position
+	if delta.length() < 1.0:
 		return
 	if absf(delta.x) > absf(delta.y) * 1.2:
 		_facing = "east" if delta.x > 0.0 else "west"
@@ -93,9 +113,22 @@ func _walk_to(point: Vector2) -> void:
 	var energy := GameState.dog.get_need("energy", GameState.now())
 	var speed := lerpf(35.0, 80.0, energy / 100.0)
 	var tween := create_tween()
-	tween.tween_property(self, "position", point - Vector2(size.x / 2.0, size.y), delta.length() / speed)
+	tween.tween_property(self, "position", point, delta.length() / speed)
 	await tween.finished
-	_play("idle", _facing)
+
+
+## Remove pontos intermediários em linha reta (caminho da grade vem célula a célula).
+func _simplify(path: PackedVector2Array) -> PackedVector2Array:
+	if path.size() < 3:
+		return path
+	var result := PackedVector2Array([path[0]])
+	for i in range(1, path.size() - 1):
+		var before := (path[i] - path[i - 1]).normalized()
+		var after := (path[i + 1] - path[i]).normalized()
+		if not before.is_equal_approx(after):
+			result.append(path[i])
+	result.append(path[path.size() - 1])
+	return result
 
 
 func _wait(seconds: float) -> void:

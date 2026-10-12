@@ -25,6 +25,11 @@ func _init() -> void:
 	start = config.get("start", {})
 
 
+## Layout de um ambiente (fundo, piso, móveis, pontos): game/data/rooms/<id>.json
+func room(id: String) -> Dictionary:
+	return _load("res://data/rooms/%s.json" % id)
+
+
 func item_name(id: String) -> String:
 	return items.get(id, {}).get("name", id)
 

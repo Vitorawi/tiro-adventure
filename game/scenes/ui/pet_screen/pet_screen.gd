@@ -20,6 +20,7 @@ var _bars: Dictionary = {}  # need_id -> ProgressBar
 
 func _ready() -> void:
 	_build_need_bars()
+	%DogArea.draw.connect(_draw_dog_shadow)
 	_dog_sprite.gui_input.connect(_on_dog_input)
 	%FeedButton.pressed.connect(func() -> void:
 		Events.sheet_requested.emit("Comidinha", SheetBuilder.food_picker()))
@@ -73,6 +74,15 @@ func _refresh() -> void:
 		_mood_label.text = MOOD_TEXTS.get(lowest, "")
 	else:
 		_mood_label.text = "%s está feliz da vida!" % dog.name
+
+
+## Sombra oval sob as patas do Tiro (desenhada no DogArea, atrás do sprite).
+func _draw_dog_shadow() -> void:
+	var area: Control = %DogArea
+	var feet := Vector2(_dog_sprite.position.x + _dog_sprite.size.x / 2.0, _dog_sprite.position.y + _dog_sprite.size.y * 0.97)
+	area.draw_set_transform(feet, 0.0, Vector2(1.0, 0.25))
+	area.draw_circle(Vector2.ZERO, _dog_sprite.size.x * 0.32, Color(0.25, 0.12, 0.05, 0.3), true, -1.0, false)
+	area.draw_set_transform(Vector2.ZERO)
 
 
 func _on_play_pressed() -> void:

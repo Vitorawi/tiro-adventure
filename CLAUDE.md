@@ -24,7 +24,7 @@ Arte em pixel art gerada com o **MCP PixelLab**.
 CLAUDE.md            este mapa
 README.md            descrição pública + link do jogo
 docs/                documentação (design, arquitetura, arte, deploy, roadmap)
-tools/               export_web.ps1, serve_local.ps1, screenshot.gd (captura telas)
+tools/               export_web.ps1, serve_local.ps1, screenshot.gd (captura telas), pixel_tools.ps1 (recorte/prancha de sprites)
 .github/workflows/   deploy.yml: build Web + GitHub Pages
 build/               saída do export e screenshots (gerada, ignorada no git)
 game/                PROJETO GODOT (abra game/project.godot no editor)
@@ -34,10 +34,10 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
     main/            casca: barra superior, abas Tiro/Casa, Sheet, toast
     ui/pet_screen/   Tela do Pet (Tiro grande, necessidades, ações)
     ui/sheet/        painel inferior genérico (menus de objetos)
-    levels/house/    Casa: fundo, áreas tocáveis (HOTSPOTS), câmera arrastável
-    entities/dog_world/  Tiro pequeno com IA autônoma
+    levels/house/    Casa (HouseRoom): monta a sala de data/rooms/house.json, navegação, toque, câmera
+    entities/dog_world/  Tiro pequeno com IA autônoma (anda pelo caminho calculado)
   scripts/state/     DogState, Inventory, StationState (dados + to_dict/from_dict)
-  scripts/ui/        Hotspot (área tocável), SheetBuilder (conteúdo dos painéis)
+  scripts/ui/        SheetBuilder (conteúdo dos painéis)
   assets/            sprites/(characters,areas,tiles,ui,fx), theme/, audio/, fonts/, icons/ (PWA)
   tests/             testes (excluídos do export)
 ```
@@ -47,7 +47,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 |---------------------------------------|---------|
 | Novo item / receita / ajuste de números | `game/data/*.json` (sem mexer em código) |
 | Nova ação do jogo (ex.: plantar)      | método em `game/autoload/game_state.gd` + estado em `game/scripts/state/` |
-| Novo objeto tocável na casa           | `HOTSPOTS` + `_on_hotspot_tapped` em `game/scenes/levels/house/house.gd` |
+| Novo móvel / mudar layout da casa     | `game/data/rooms/house.json` (sprite, pos, footprint, action) + ação em `_on_object_tapped` de `house.gd` |
 | Novo menu de objeto                   | função em `game/scripts/ui/sheet_builder.gd` + `Events.sheet_requested` |
 | Adicionar dado que deve ser salvo     | `game/autoload/game_state.gd` (campo + `to_dict`/`from_dict`/`reset`) |
 | Mudar formato do save                 | `game/autoload/save_manager.gd` (`SAVE_VERSION` + `_migrate`) |
@@ -75,8 +75,13 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   precisam ser adicionados lá.
 - **Ações passam pelo `GameState`** (feed, play, cook, collect...), que emite `state_changed`;
   o `SaveManager` salva automaticamente a cada mudança.
-- **Toque:** áreas tocáveis usam `Hotspot` (toque curto = clique; arrastar passa para a câmera).
-  Eventos de toque chegam como mouse (`emulate_mouse_from_touch`), então trate `InputEventMouse*`.
+- **Ambientes (salas):** fundo vazio (piso + paredes) + cada móvel como sprite separado, tudo
+  descrito em `game/data/rooms/<id>.json`. Coordenadas em pixels do fundo; `pos` = meio da base
+  do sprite (usado na ordenação por Y); `footprint` = polígono no chão que bloqueia o caminho;
+  `zones` = partes tocáveis do fundo (ex.: porta). O piso vira uma grade `AStarGrid2D` (8 px)
+  e o Tiro anda por ela. Para posicionar móveis, gere prévias com `tools/pixel_tools.ps1`.
+- **Toque:** a sala trata toque curto = clique (teste por pixel opaco do sprite) e arrastar =
+  câmera. Eventos de toque chegam como mouse (`emulate_mouse_from_touch`): trate `InputEventMouse*`.
 
 ## Convenções
 - Arquivos e pastas em `snake_case`; `class_name` em `PascalCase`; GDScript **sempre tipado**.

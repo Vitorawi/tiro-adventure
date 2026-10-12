@@ -42,7 +42,22 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 | Tiro mundo v1 | personagem `cc74ce02-1c93-4dc7-8a72-a359265ad497` | standard, 32px, 4 dir | (substituído) | descartado: pouco detalhe |
 | Tiro pet v2 (sentado, frente) | imagem pro, job `ee0ec478-c066-4b6c-ade9-fc8608809abe` (candidato 0 de 4), refs: pose da referência + rotação sul do Tiro mundo v2 | 160px | `characters/tiro_pet/tiro_pet_idle_front.png` | ativo |
 | Tiro pet v1 | imagem pixen | 128px | (substituído) | descartado |
-| Fundo da casa | imagem de referência + inpaint | 512x352 | `areas/house_placeholder.png` | provisório |
+| Sala vazia (casa) | imagem pro, job `161a0ff4-3f83-4944-ac04-41875e2e730b` + inpaint `5d257f6d-…` (remover cão) + fundo externo transparente | 624x416 | `areas/house/room.png` | ativo |
+| Geladeira | objeto pro flash `c68d8da4-9352-43b5-bc4f-09d1be4151c9` (estilo: recorte da referência) | 47x103 (recortado) | `areas/house/fridge.png` | ativo |
+| Fogão | objeto pro flash `6d20f34d-ef1b-42ff-8025-ca1c83db1e9a` | 62x67 | `areas/house/stove.png` | ativo |
+| Tigela | objeto pro flash `63a97314-eaeb-43f7-b957-f0c131aaa463` | 26x20 | `areas/house/bowl.png` | ativo |
+| Sofá | imagem pro, job `96402901-fe28-4f4a-80a9-0a45f34d7f2d` (candidato 3) | 132x102 | `areas/house/sofa.png` | ativo |
+| Sofá (de frente) | objetos `e97f7943-…`, `85c6e34e-…` | | — | descartado: não isométrico |
+| Fundo antigo (referência) | imagem do usuário + inpaint | 512x352 | (removido) | descartado |
+
+### Lições sobre o estilo isométrico da casa
+- Sala: `create_image_pro` com a referência do usuário + "EMPTY room, NO furniture". Não mandar o
+  sprite do Tiro como referência de escala: ele foi desenhado na sala (precisou de inpaint).
+- Móveis encostados na parede da esquerda (frente para sudeste): `create_object_pro_flash` com
+  recorte do móvel equivalente da referência como `style_image` funciona.
+- Móveis em diagonal (ex.: sofá virado para sudoeste): pro flash desenha de frente; usar
+  `create_image_pro` com o recorte da referência + a sala como referências (4 candidatos).
+- Sempre recortar bordas transparentes (`Invoke-TrimSprite`) antes de posicionar.
 
 ## Padrões visuais
 - Tiro no mundo: 64px (modo pro), exibido 1x (`SPRITE_SCALE` em `dog_world.gd`); o fundo
