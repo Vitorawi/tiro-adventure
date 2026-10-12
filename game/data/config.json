@@ -1,0 +1,21 @@
+{
+  "needs": {
+    "hunger": { "name": "Barriga", "decay_per_hour": 8 },
+    "happiness": { "name": "Felicidade", "decay_per_hour": 5 },
+    "energy": { "name": "Energia", "decay_per_hour": 6, "sleep_regen_per_hour": 40 },
+    "hygiene": { "name": "Higiene", "decay_per_hour": 3 }
+  },
+  "actions": {
+    "pet": { "happiness": 3 },
+    "play": { "happiness": 20, "energy": -12, "hygiene": -6 },
+    "bathe": { "hygiene": 100, "happiness": -5 }
+  },
+  "stations": {
+    "stove": { "name": "Fogão", "slots": 3 }
+  },
+  "xp": { "feed": 2, "play": 3, "bathe": 3, "cook": 5, "per_level": 100 },
+  "start": {
+    "coins": 50,
+    "inventory": { "dog_food": 5, "carrot": 6, "pumpkin": 2, "potato": 2 }
+  }
+}

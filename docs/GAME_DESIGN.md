@@ -1,12 +1,12 @@
 # Game Design
 
-> Documento vivo.
-> Imagens de referência: salvar em `docs/references/`. Referências visuais serão adicionadas em `docs/references/`.
+> Documento vivo. Itens marcados **(proposta)** são sugestões ainda não decididas.
+> Imagens de referência ficam em `docs/references/`.
 
 ## Conceito
-Um **bichinho virtual** (cuidar de um cachorrinho) misturado com **produção em cadeia estilo Hay Day**:
-o jogador planta, colhe, cozinha e fabrica coisas em vários ambientes para cuidar do cachorro,
-cumprir missões de personagens e desbloquear novos lugares.
+Um **bichinho virtual** (cuidar do **Tiro**, um Yorkshire Terrier) misturado com **produção em cadeia
+estilo Hay Day**: o jogador planta, colhe, cozinha e fabrica coisas em vários ambientes para cuidar
+do Tiro, cumprir missões de personagens e desbloquear novos lugares.
 
 ## Plataforma e tela
 - Celular **em pé**, ocupando a tela inteira (base 360×780, formato dos celulares atuais; estica
@@ -14,70 +14,180 @@ cumprir missões de personagens e desbloquear novos lugares.
 - Jogado no navegador / instalado como app (PWA).
 
 ## Princípio de interação: 100% toque
-- **Sem controles de movimento.** O jogador não anda com o cachorro.
-- O **cachorro vive sozinho**: anda, deita, brinca, reage, de forma autônoma.
+- **Sem controles de movimento.** O jogador não anda com o Tiro.
+- O **Tiro vive sozinho**: anda, deita, brinca, reage, de forma autônoma.
 - O jogador **toca nas coisas**: geladeira abre a geladeira, horta mostra o que plantar, fogão
-  mostra receitas, cachorro mostra carinho/necessidades.
+  mostra receitas, Tiro mostra carinho/necessidades.
 - **Arrastar para mover a câmera** pelo ambiente (ex.: andar pelo apartamento); pinça para zoom (a confirmar).
 - Alvos de toque grandes, poucos passos por ação, feedback visual imediato.
 - Ações frequentes ao alcance do polegar (parte de baixo da tela).
 
 ## As duas visões
 ### 1. Tela do Pet (close-up)
-- Cachorro **grande e detalhado** em pixel art, com as coisinhas dele (cama, pote, brinquedos).
-- Mostra as necessidades e permite interagir diretamente: alimentar, carinho, brincar, banho...
+- Tiro **grande e detalhado** em pixel art, com as coisinhas dele (cama, pote, brinquedos).
+- Mostra as necessidades e a customização; permite interagir: alimentar, carinho, brincar, banho...
 
 ### 2. Mundo (ambientes)
-- Pixel art **menos detalhada**, visão do ambiente com o cachorro pequeno andando por ali.
-- É onde acontece a **produção**. Ambientes desbloqueados aos poucos:
-  1. **Casa / apartamento** (início): geladeira, fogão, cama...
-  2. **Hortinha**: plantações.
-  3. Outros lugares (a definir).
+- Pixel art **menos detalhada**, visão 3/4 isométrica do ambiente com o Tiro pequeno andando por ali.
+- É onde acontece a **produção**. Ambientes desbloqueados aos poucos (ver "Áreas e desbloqueio").
 - Cada novo ambiente traz **personagens (NPCs) que dão missões**.
+
+## Dois níveis de sprite (proposta)
+| | Tela do Pet | Mundo |
+|---|---|---|
+| Tiro | Grande e detalhado (~128px), mostra customização | Pequeno (~32px), versão simplificada |
+| Comportamento | Reage ao toque (carinho, truques) | **IA autônoma**: passear, cheirar, deitar; vai até a tigela com fome; dorme no sofá quando cansado |
+| Pessoas | Retrato detalhado + diálogo | NPCs pequenos parados/andando |
+
+- Regra vale para pessoas: **NPC pequeno no mundo, toque abre retrato detalhado + diálogo**.
+
+## Personagens (proposta)
+| Personagem | Onde | Papel |
+|---|---|---|
+| **Tutor** (o próprio jogador/dono) | Dentro de casa | Toque abre retrato com diálogo, dicas e missões da casa |
+| Vizinha jardineira | Horta | Missões de plantio/colheita |
+| Padeiro / cozinheira | Padaria / feira | Pedidos de comida, compra de produtos |
+| Costureira | Ateliê | Customização, roupinhas |
+| Veterinária | Clínica | Cuidados, saúde, banho |
+| Treinador | Parque | Ensina truques via minigames |
+
+- Cada um **destrava junto com sua área** e entrega missões.
+
+## Áreas e desbloqueio (proposta)
+| Área | Nível | O que tem | Personagem |
+|---|---|---|---|
+| Casa (início) | 1 | Geladeira, fogão, tigela, sofá, TV, cama | Tutor |
+| Horta | 2 | Canteiros | Vizinha jardineira |
+| Parque | 4 | Passeio, minigames | Treinador |
+| Ateliê de costura | 6 | Tear, máquina de costura, roupinhas | Costureira |
+| Feira / Padaria | 8 | Forno, venda de produtos | Padeiro / cozinheira |
+| Clínica | 10 | Banho, saúde | Veterinária |
 
 ## Loop principal
 ```
-necessidades do cão caem com o tempo
+necessidades do Tiro caem com o tempo
         ↓
 produzir recursos no Mundo (plantar → colher → cozinhar/fabricar)
         ↓
-usar os produtos no cachorro (comida, brinquedos, cuidados)
+usar os produtos no Tiro (comida, brinquedos, cuidados, roupinhas)
         ↓
-cachorro feliz → ganha XP / evolui atributos  +  missões cumpridas → recompensas
+Tiro feliz → vínculo e XP sobem  +  missões cumpridas → recompensas
         ↓
-desbloquear ambientes, estações, receitas, itens e personagens
+desbloquear áreas, estações, receitas, itens e personagens
 ```
 
 ## Sistemas
 | Sistema | Descrição |
 |---|---|
-| **Necessidades** | Fome, felicidade, energia, higiene, passeio... caem com o tempo real. |
-| **Atributos / evolução** | O cachorro tem atributos que evoluem (nível, XP, outros a definir) e destravam conteúdo. |
-| **Inventário** | Recursos e produtos (sementes, vegetais, pratos, itens). |
+| **Necessidades** | Caem com o tempo real (ver tabela abaixo). |
+| **Evolução** | Nível do jogador, vínculo com o Tiro, truques. |
+| **Inventário** | Recursos e produtos (sementes, vegetais, pratos, tecidos, itens). |
 | **Plantação** | Canteiros com timer: plantar → esperar → colher. |
-| **Estações de produção** | Fogão etc.: receitas que consomem itens e levam tempo (fila estilo Hay Day). |
+| **Estações de produção** | Fogão, forno, tear etc.: receitas com fila e tempo, estilo Hay Day. |
 | **Ambientes** | Áreas desbloqueáveis com objetos tocáveis. |
-| **Personagens e missões** | NPCs pedem itens produzidos ou tarefas; dão recompensas. |
-| **Minigames** | Ex.: passeio, brincadeiras (a definir). |
-| **Moeda / economia** | A definir. |
+| **Personagens e missões** | NPCs pedem itens ou tarefas; dão recompensas. |
+| **Minigames** | Passeio, truques, brincadeiras. |
+| **Moeda / economia** | Moedas por vender produtos e cumprir pedidos. |
 | **Tempo real** | Timers e necessidades continuam com o app fechado (calculado ao abrir). |
 
+## Necessidades (proposta)
+| Necessidade | O que reduz | O que restaura | Efeito quando baixa |
+|---|---|---|---|
+| Fome | Tempo | Comida (feita em estação > ingrediente cru) | Tiro triste, anda devagar, vai à tigela |
+| Felicidade | Tempo, negligência | Carinho, brinquedos, passeio, truques | Tiro desanimado, ignora toques |
+| Energia | Atividade, tempo acordado | Dormir (cama/sofá), petiscos energéticos | Tiro lento, procura onde dormir |
+| Higiene | Tempo, passeio, sujeira | Banho (casa ou Clínica) | Tiro suja/cheira, felicidade cai mais rápido |
+| Passeio | Tempo dentro de casa | Passeio no Parque | Tiro inquieto, felicidade cai |
+
+- O Tiro **nunca morre nem foge**: necessidades baixas só deixam ele triste/lento (punição leve).
+
+## Cadeias de produção (proposta)
+| Estação | Receita | Entradas | Tempo | Uso da saída |
+|---|---|---|---|---|
+| Horta | Cenoura | Semente | 1 min | Ingrediente, venda |
+| Horta | Batata | Semente | 5 min | Ingrediente, venda |
+| Horta | Abóbora | Semente | 10 min | Ingrediente, venda |
+| Horta | Trigo | Semente | 15 min | Forno |
+| Horta | Algodão | Semente | 30 min | Tear |
+| Fogão | Petisco de cenoura | 2 cenoura | 2 min | Fome, felicidade |
+| Fogão | Papinha de abóbora | Abóbora + batata | 8 min | Fome (forte) |
+| Fogão | Sopinha | Cenoura + batata + abóbora | 12 min | Fome + energia |
+| Forno | Biscoito canino | Trigo + abóbora | 15 min | Fome, felicidade, venda |
+| Forno | Bolo de aniversário | Trigo + abóbora + cenoura | 30 min | Evento/missão, felicidade máx. |
+| Tear | Tecido | Algodão | 10 min | Máquina de costura |
+| Máquina de costura | Roupinhas / lenço | Tecido (+ linha) | 20 min | Customização do Tiro |
+| Geladeira | Armazém | - | - | Capacidade evolui com melhorias |
+
+- Regra: **comida feita em estação recupera mais** que o ingrediente cru.
+- Valores de tempo são ponto de partida para balancear (dados em `game/data/`).
+
+## Evolução e progressão (proposta)
+- **(a) Nível do jogador:** XP de produzir, cuidar e missões; desbloqueia áreas, receitas e estações.
+- **(b) Vínculo com o Tiro (afeição):** sobe cuidando bem; desbloqueia truques.
+- **(c) Truques** (habilidades do Tiro, ligados aos sprites de referência), aprendidos com o Treinador via minigame:
+
+| Truque | Sprite de referência |
+|---|---|
+| Sentar | Sitting (side sheet) |
+| Latir | Bark (side sheet) |
+| Pular | Jump (side sheet) |
+| Fingir de morto | Play dead (poses) |
+| Reverência (brincalhão) | Bow (poses) |
+
+- **(d) Moedas:** vender produtos e entregar pedidos.
+- **(e) Melhorias:** estações (fila maior, mais rápido), canteiros extras, geladeira maior.
+
+## Construir e decorar (proposta)
+| Dá para | Não dá (simplicidade no celular) |
+|---|---|
+| Comprar/colocar estações nos **slots fixos** de cada área | Construção livre em grid |
+| Canteiros extras | Paredes |
+| Móveis/decoração do Tiro (cama, casinha, brinquedos, tapetes) em **slots predefinidos** | Mover cômodos |
+| Trocar cores | |
+
+- Motivo: manter o toque simples, sem arrastar/posicionar com precisão.
+
+## Customização do Tiro (proposta)
+| Slot | Exemplos |
+|---|---|
+| Cabeça | Óculos, chapéu, laço |
+| Pescoço | Coleira, lenço, gravatinha |
+| Corpo | Roupinhas, capa |
+| Pelagem / tosa | Estilos de corte (proposta) |
+
+- Aparece em detalhe na **Tela do Pet** (camadas sobre o sprite grande).
+- No Mundo: só versão simplificada (ex.: cor da roupa) ou nada no início.
+- Fontes: **Ateliê** (produzido), recompensas de missão, loja com moedas.
+
+## Missões (proposta)
+| Tipo | Descrição | Recompensa |
+|---|---|---|
+| Pedidos | Quadro de pedidos estilo Hay Day: entregar X itens | Moedas + XP |
+| História | Por personagem; cumprir destrava a área/NPC seguinte | Áreas, itens |
+| Cuidado | Ex.: dar banho no Tiro, alimentar 3 vezes | XP, vínculo |
+| Minigames | Treino de truques, passeio | Truques, moedas |
+
 ## Referências
-- Bichinho virtual (Tamagotchi e similares).
-- Hay Day (produção em cadeia, pedidos, timers).
-- Imagens: a receber.
+- Bichinho virtual (Tamagotchi e similares) e Hay Day (produção em cadeia, pedidos, timers).
+- [apartamento_sala_cozinha.jpg](references/apartamento_sala_cozinha.jpg): apartamento em pixel art 3/4 isométrico (sala + cozinha), primeira cena do Mundo.
+- [dog_poses_movimentos.jpg](references/dog_poses_movimentos.jpg): poses detalhadas do cachorro (parado frente/costas/lado, correndo, fingir de morto, reverência, comendo, dormindo) para a Tela do Pet.
+- [dog_personagem_sprite_lado.jpg](references/dog_personagem_sprite_lado.jpg): sprite sheet lateral mais simples (parado, sentado, andando, correndo, latindo, farejando, pulando) para o Mundo.
+
+## Fatiamento de entrega
+| Iteração | Conteúdo |
+|---|---|
+| **1 (agora)** | Tela do Pet + Casa com objetos tocáveis + necessidades + inventário + fogão + tempo real |
+| **2** | Horta + Tutor com missões + nível/XP |
+| **3** | Customização (Ateliê) + Parque/truques |
+
+## Escopo do MVP (= Iteração 1)
+- Tela do Pet com o Tiro e 3 necessidades (fome, felicidade, energia), interações básicas.
+- Mundo com **Casa** (geladeira, fogão, tigela, sofá, cama) e Tiro autônomo.
+- Inventário, 2 receitas no fogão, tempo real offline + save local.
+- Fora do MVP: Horta, Tutor com missões, nível/XP (Iteração 2); customização e truques (Iteração 3).
 
 ## Perguntas em aberto
-- O cachorro pode ficar doente/fugir se abandonado, ou só fica triste? (sugestão: só triste, sem punição dura)
-- Nome/raça do cachorro escolhíveis?
 - Como funciona o passeio: minigame, ação com timer, ou ambiente?
-- Moeda: existe dinheiro para comprar sementes/itens? De onde vem?
 - Zoom com pinça no Mundo?
-- Qual o terceiro ambiente em diante?
-
-## Escopo do MVP (proposta)
-- Tela do Pet com 3 necessidades (fome, felicidade, energia) e interações básicas.
-- Mundo com **Casa** (geladeira, fogão) e **Horta** (2–3 canteiros).
-- 2 plantas, 2 receitas no fogão, inventário.
-- 1 personagem com 3 missões.
-- Tempo real offline + save local.
+- Balanceamento: tempos de produção, preços e valores de necessidades.
+- Como o Tiro é representado fora da tela (notificações push no PWA)?

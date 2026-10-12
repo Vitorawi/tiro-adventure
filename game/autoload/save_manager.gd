@@ -10,12 +10,16 @@ extends Node
 ## antiga em _migrate() para não perder o progresso dos jogadores.
 
 const SAVE_PATH := "user://save.json"
-const SAVE_VERSION := 1
+const SAVE_VERSION := 2
+
+var _save_pending := false
 
 
 func _ready() -> void:
 	_request_persistent_storage()
 	load_game()
+	# Qualquer mudança de estado agenda um save (agrupado no fim do frame).
+	Events.state_changed.connect(_schedule_save)
 
 
 func _notification(what: int) -> void:
@@ -27,7 +31,15 @@ func _notification(what: int) -> void:
 			save_game()
 
 
+func _schedule_save() -> void:
+	if _save_pending:
+		return
+	_save_pending = true
+	save_game.call_deferred()
+
+
 func save_game() -> bool:
+	_save_pending = false
 	var data := {
 		"save_version": SAVE_VERSION,
 		"saved_at": Time.get_unix_time_from_system(),
@@ -71,10 +83,10 @@ func delete_save() -> void:
 ## Converte saves antigos para o formato atual, uma versão por vez.
 func _migrate(data: Dictionary) -> Dictionary:
 	var version := int(data.get("save_version", 1))
-	# Exemplo para o futuro:
-	# if version < 2:
-	#     data["state"]["novo_campo"] = valor_padrao
-	#     version = 2
+	if version < 2:
+		# v1 era só o contador de teste: começa um jogo novo.
+		data["state"] = {}
+		version = 2
 	data["save_version"] = version
 	return data
 

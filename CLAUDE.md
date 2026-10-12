@@ -24,25 +24,31 @@ Arte em pixel art gerada com o **MCP PixelLab**.
 CLAUDE.md            este mapa
 README.md            descrição pública + link do jogo
 docs/                documentação (design, arquitetura, arte, deploy, roadmap)
-tools/               scripts PowerShell (export e servidor local)
+tools/               export_web.ps1, serve_local.ps1, screenshot.gd (captura telas)
 .github/workflows/   deploy.yml: build Web + GitHub Pages
-build/               saída do export (gerada, ignorada no git)
+build/               saída do export e screenshots (gerada, ignorada no git)
 game/                PROJETO GODOT (abra game/project.godot no editor)
-  autoload/          singletons globais: Events, GameState, SaveManager
+  autoload/          Events (sinais), Database (lê data/*.json), GameState (estado + ações), SaveManager
+  data/              CONTEÚDO em JSON: items.json, recipes.json, config.json (necessidades, ações, XP, início)
   scenes/            cenas, uma pasta por cena (.tscn + .gd juntos)
-    main/            cena inicial
-    ui/              menus, HUD, popups
-    levels/          fases/mapas
-    entities/        jogador, inimigos, itens, NPCs
-  scripts/           código sem cena (utils, Resources customizados)
-  data/              dados de jogo (.tres/.json): balanceamento, itens, fases
-  assets/            sprites/(characters,tiles,ui,fx), audio/(music,sfx), fonts/, icons/ (PWA)
+    main/            casca: barra superior, abas Tiro/Casa, Sheet, toast
+    ui/pet_screen/   Tela do Pet (Tiro grande, necessidades, ações)
+    ui/sheet/        painel inferior genérico (menus de objetos)
+    levels/house/    Casa: fundo, áreas tocáveis (HOTSPOTS), câmera arrastável
+    entities/dog_world/  Tiro pequeno com IA autônoma
+  scripts/state/     DogState, Inventory, StationState (dados + to_dict/from_dict)
+  scripts/ui/        Hotspot (área tocável), SheetBuilder (conteúdo dos painéis)
+  assets/            sprites/(characters,areas,tiles,ui,fx), theme/, audio/, fonts/, icons/ (PWA)
   tests/             testes (excluídos do export)
 ```
 
 ## Onde trabalhar (guia rápido)
 | Quero...                              | Vá para |
 |---------------------------------------|---------|
+| Novo item / receita / ajuste de números | `game/data/*.json` (sem mexer em código) |
+| Nova ação do jogo (ex.: plantar)      | método em `game/autoload/game_state.gd` + estado em `game/scripts/state/` |
+| Novo objeto tocável na casa           | `HOTSPOTS` + `_on_hotspot_tapped` em `game/scenes/levels/house/house.gd` |
+| Novo menu de objeto                   | função em `game/scripts/ui/sheet_builder.gd` + `Events.sheet_requested` |
 | Adicionar dado que deve ser salvo     | `game/autoload/game_state.gd` (campo + `to_dict`/`from_dict`/`reset`) |
 | Mudar formato do save                 | `game/autoload/save_manager.gd` (`SAVE_VERSION` + `_migrate`) |
 | Comunicar sistemas desacoplados       | sinal novo em `game/autoload/events.gd` |
@@ -63,8 +69,14 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   alvos grandes, ações perto do polegar, pouca memória. **Nada de botões direcionais/joystick.**
 - **Tempo real:** timers (plantação, fogão) e necessidades guardam timestamps Unix, nunca
   contadores por frame, para continuarem com o app fechado.
-- **Conteúdo orientado a dados:** itens, receitas, plantas, missões e ambientes ficam em
-  `game/data/` como Resources; o código dos sistemas não tem conteúdo fixo.
+- **Conteúdo orientado a dados:** itens, receitas, plantas, missões e números de balanceamento
+  ficam em `game/data/*.json` (lidos pelo `Database`); o código dos sistemas não tem conteúdo fixo.
+  O preset Web inclui `data/*.json` via `include_filter` — novos tipos de arquivo não-recurso
+  precisam ser adicionados lá.
+- **Ações passam pelo `GameState`** (feed, play, cook, collect...), que emite `state_changed`;
+  o `SaveManager` salva automaticamente a cada mudança.
+- **Toque:** áreas tocáveis usam `Hotspot` (toque curto = clique; arrastar passa para a câmera).
+  Eventos de toque chegam como mouse (`emulate_mouse_from_touch`), então trate `InputEventMouse*`.
 
 ## Convenções
 - Arquivos e pastas em `snake_case`; `class_name` em `PascalCase`; GDScript **sempre tipado**.
@@ -82,5 +94,6 @@ $env:GODOT_BIN = "$env:USERPROFILE\Downloads\Godot_v4.7.2-stable_win64.exe\Godot
 powershell -ExecutionPolicy Bypass -File tools\export_web.ps1   # build Web em build/web
 powershell -ExecutionPolicy Bypass -File tools\serve_local.ps1  # http://localhost:8000
 & $env:GODOT_BIN --headless --path game --quit-after 60         # checar erros de script
+& $env:GODOT_BIN --path game --resolution 360x780 -s ../tools/screenshot.gd  # PNGs em build/screenshots/
 ```
 Deploy: `git push` na `main` → GitHub Actions → GitHub Pages.

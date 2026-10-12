@@ -11,11 +11,20 @@ Cenas (scenes/*)  ──métodos──▶  GameState  ◀──to_dict/from_dict
 ## Autoloads (ordem de carregamento importa)
 | Nome          | Arquivo                       | Responsabilidade |
 |---------------|-------------------------------|------------------|
-| `Events`      | `game/autoload/events.gd`     | Sinais globais entre sistemas desacoplados. |
-| `GameState`   | `game/autoload/game_state.gd` | Estado persistente do jogador; serializa em `Dictionary`. |
-| `SaveManager` | `game/autoload/save_manager.gd` | Lê/escreve o save, migra versões, autosave. |
+| `Events`      | `game/autoload/events.gd`     | Sinais globais: estado mudou, toast, abrir/fechar sheet, trocar tela. |
+| `Database`    | `game/autoload/database.gd`   | Lê `game/data/*.json` (itens, receitas, necessidades, ações, XP, início). |
+| `GameState`   | `game/autoload/game_state.gd` | Estado persistente + ações (feed, pet, play, bathe, cook, collect). |
+| `SaveManager` | `game/autoload/save_manager.gd` | Lê/escreve o save, migra versões, salva a cada `state_changed`. |
 
 `SaveManager` vem por último porque carrega o save no `_ready` e preenche o `GameState`.
+`Database` carrega no `_init`, antes de qualquer `_ready`.
+
+## Estado (`game/scripts/state/`)
+| Classe | Guarda |
+|---|---|
+| `DogState` | Nome, necessidades (valor + `updated_at`, cálculo preguiçoso), sono, afeição, roupa. |
+| `Inventory` | `item_id -> quantidade`. |
+| `StationState` | Fila de produção com `ready_at` (timestamps Unix). |
 
 ## Save local
 - Arquivo: `user://save.json` → JSON `{ save_version, saved_at, state }`.

@@ -1,0 +1,4 @@
+{
+  "carrot_snack": { "station": "stove", "inputs": { "carrot": 2 }, "output": "carrot_snack", "qty": 1, "seconds": 60 },
+  "pumpkin_mash": { "station": "stove", "inputs": { "pumpkin": 1, "potato": 1 }, "output": "pumpkin_mash", "qty": 1, "seconds": 180 }
+}

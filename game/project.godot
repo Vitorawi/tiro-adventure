@@ -20,6 +20,7 @@ config/icon="res://assets/icons/icon_512.png"
 [autoload]
 
 Events="*res://autoload/events.gd"
+Database="*res://autoload/database.gd"
 GameState="*res://autoload/game_state.gd"
 SaveManager="*res://autoload/save_manager.gd"
 
@@ -31,9 +32,9 @@ window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
 
-[input_devices]
+[gui]
 
-pointing/emulate_touch_from_mouse=true
+theme/custom="res://assets/theme/main_theme.tres"
 
 [rendering]
 

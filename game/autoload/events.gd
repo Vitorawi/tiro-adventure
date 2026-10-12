@@ -14,4 +14,13 @@ signal game_loaded
 ## Emitido pelo GameState quando qualquer dado do estado muda.
 signal state_changed
 
+## Pede para a tela principal mostrar uma mensagem curta.
+signal toast_requested(text: String)
+## Pede para abrir o painel inferior (sheet) com um conteúdo.
+signal sheet_requested(title: String, content: Control)
+## Pede para fechar o painel inferior.
+signal sheet_close_requested
+## Pede para trocar de tela ("pet" ou "house").
+signal screen_requested(screen: StringName)
+
 @warning_ignore_restore("unused_signal")

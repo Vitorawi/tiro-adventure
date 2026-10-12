@@ -15,13 +15,24 @@
 - [ ] Responder perguntas em aberto do design
 - [ ] Padrões de arte (tamanho de tile/personagem, paleta)
 
-## Fase 2 — MVP (ver escopo em `GAME_DESIGN.md`)
-- [ ] Base: toque/arrasto de câmera, componente de objeto tocável, tempo real offline
-- [ ] Tela do Pet: cachorro + necessidades + interações
-- [ ] Mundo: Casa (geladeira, fogão) com cachorro autônomo
-- [ ] Inventário + Horta (plantar/colher) + receitas no fogão
-- [ ] 1 personagem com 3 missões
-- [ ] Primeiros assets no PixelLab
+## Fase 2 — Iteração 1 (ver `GAME_DESIGN.md`)
+- [x] Base: toque/arrasto de câmera, `Hotspot`, tempo real offline, save automático
+- [x] Tela do Pet: Tiro detalhado + 4 necessidades + comer/brincar/banho/dormir/carinho
+- [x] Casa: geladeira, fogão (fila), tigela, sofá, brinquedos; Tiro autônomo
+- [x] Inventário + receitas no fogão (dados em JSON) + XP/nível
+- [x] Sprites PixelLab: Tiro pet (128px) e Tiro mundo (4 direções + andar)
+- [ ] Fundo da casa feito no PixelLab (hoje: imagem de referência)
+- [ ] Animações do Tiro no mundo: dormir, comer, sentar
+- [ ] Barra de segurança no topo para notch do iPhone
+
+## Iteração 2
+- [ ] Horta (plantar/colher) + porta da casa leva até ela
+- [ ] Tutor dentro de casa (sprite pequeno + retrato detalhado + diálogo) com missões
+- [ ] Moedas: vender produtos
+
+## Iteração 3
+- [ ] Customização (Ateliê): camadas de roupa/acessório sobre o Tiro detalhado
+- [ ] Parque: passeio, truques, minigames
 
 ## Backlog / ideias técnicas
 - [ ] `AudioManager` (música/sfx; destravar áudio no primeiro toque)

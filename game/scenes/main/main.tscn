@@ -1,6 +1,22 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=7 format=3]
 
 [ext_resource type="Script" path="res://scenes/main/main.gd" id="1_main"]
+[ext_resource type="PackedScene" path="res://scenes/ui/pet_screen/pet_screen.tscn" id="2_pet"]
+[ext_resource type="PackedScene" path="res://scenes/levels/house/house.tscn" id="3_house"]
+[ext_resource type="PackedScene" path="res://scenes/ui/sheet/sheet.tscn" id="4_sheet"]
+
+[sub_resource type="ButtonGroup" id="ButtonGroup_tabs"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toast"]
+bg_color = Color(0.1, 0.1, 0.15, 0.9)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
 
 [node name="Main" type="Control"]
 layout_mode = 3
@@ -18,45 +34,88 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0.11, 0.12, 0.18, 1)
 
-[node name="Center" type="CenterContainer" parent="."]
+[node name="Layout" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 0
 
-[node name="VBox" type="VBoxContainer" parent="Center"]
+[node name="TopBar" type="MarginContainer" parent="Layout"]
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
-theme_override_constants/separation = 16
+theme_override_constants/margin_left = 14
+theme_override_constants/margin_right = 14
 
-[node name="Title" type="Label" parent="Center/VBox"]
+[node name="HBox" type="HBoxContainer" parent="Layout/TopBar"]
 layout_mode = 2
-text = "Tiro Adventure"
+
+[node name="LevelLabel" type="Label" parent="Layout/TopBar/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CoinsLabel" type="Label" parent="Layout/TopBar/HBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
+
+[node name="Screens" type="Control" parent="Layout"]
+clip_contents = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="PetScreen" parent="Layout/Screens" instance=ExtResource("2_pet")]
+unique_name_in_owner = true
+layout_mode = 1
+
+[node name="House" parent="Layout/Screens" instance=ExtResource("3_house")]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+
+[node name="Tabs" type="HBoxContainer" parent="Layout"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="PetTab" type="Button" parent="Layout/Tabs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+button_group = SubResource("ButtonGroup_tabs")
+text = "Tiro"
+
+[node name="HouseTab" type="Button" parent="Layout/Tabs"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+toggle_mode = true
+button_group = SubResource("ButtonGroup_tabs")
+text = "Casa"
+
+[node name="Sheet" parent="." instance=ExtResource("4_sheet")]
+layout_mode = 1
+
+[node name="Toast" type="Label" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.5
+anchor_top = 0.0
+anchor_right = 0.5
+offset_left = -160.0
+offset_top = 60.0
+offset_right = 160.0
+offset_bottom = 100.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_toast")
 horizontal_alignment = 1
-
-[node name="CounterLabel" type="Label" parent="Center/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_font_sizes/font_size = 48
-text = "0"
-horizontal_alignment = 1
-
-[node name="AddButton" type="Button" parent="Center/VBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 48)
-layout_mode = 2
-text = "+1 (salva)"
-
-[node name="ResetButton" type="Button" parent="Center/VBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(200, 48)
-layout_mode = 2
-text = "Apagar save"
-
-[node name="StatusLabel" type="Label" parent="Center/VBox"]
-unique_name_in_owner = true
-layout_mode = 2
-horizontal_alignment = 1
+autowrap_mode = 3

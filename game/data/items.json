@@ -1,0 +1,8 @@
+{
+  "dog_food": { "name": "Ração", "category": "food", "feed": { "hunger": 25 } },
+  "carrot_snack": { "name": "Petisco de cenoura", "category": "food", "feed": { "hunger": 20, "happiness": 15 } },
+  "pumpkin_mash": { "name": "Papinha de abóbora", "category": "food", "feed": { "hunger": 45, "happiness": 10 } },
+  "carrot": { "name": "Cenoura", "category": "crop", "feed": { "hunger": 6 } },
+  "pumpkin": { "name": "Abóbora", "category": "crop" },
+  "potato": { "name": "Batata", "category": "crop" }
+}
