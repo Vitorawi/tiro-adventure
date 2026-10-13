@@ -54,7 +54,7 @@
     "output": "plank",
     "qty": 1,
     "seconds": 90,
-    "skill": "building",
+    "skill": "adventure",
     "skill_xp": 15
   },
   "brick": {
@@ -65,7 +65,7 @@
     "output": "brick",
     "qty": 1,
     "seconds": 120,
-    "skill": "building",
+    "skill": "adventure",
     "skill_xp": 18
   },
   "apple_biscuit": {
@@ -106,7 +106,7 @@
     "output": "fabric",
     "qty": 1,
     "seconds": 180,
-    "skill": "building",
+    "skill": "adventure",
     "skill_xp": 25
   },
   "accessory_set": {
@@ -118,7 +118,7 @@
     "output": "accessory_set",
     "qty": 1,
     "seconds": 360,
-    "skill": "building",
+    "skill": "adventure",
     "skill_xp": 55
   }
 }

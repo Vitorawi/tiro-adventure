@@ -67,9 +67,8 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			var skill: Dictionary = Database.progression.skills[id]
 			var info := GameState.skill_info(id)
 			result = _base(skill.name, "Nível %d → %d" % [info.level, amount], Places.goal_target({"type": "skill", "key": id}), "Ir")
-			var stations := {"cooking": "stove", "building": "workbench"}
-			if stations.has(id) and not GameState.has_upgrade(stations[id]):
-				result.needs.append(_need("upgrade", stations[id], 1))
+			if id == "cooking" and not GameState.has_upgrade("stove"):
+				result.needs.append(_need("upgrade", "stove", 1))
 		"care":
 			result = _base("Comida para o Tiro", "Dê comida na Tigela.", Places.goal_target({"type": "stat", "key": "feed"}), "Ir")
 		"coins":

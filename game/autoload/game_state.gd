@@ -114,7 +114,7 @@ func emergency_food() -> String:
 	return ""
 
 
-## Cuidar só dá XP de Vínculo quando o Tiro precisa (abaixo do limite) e fora da recarga.
+## Cuidar só dá XP quando o Tiro precisa (abaixo do limite) e fora da recarga.
 func _need_is_low(need_id: String) -> bool:
 	return dog.get_need(need_id, now()) < float(Database.progression.settings.care_need_threshold)
 
@@ -125,7 +125,6 @@ func _care_reward(action_id: String, useful: bool) -> void:
 		return
 	var settings: Dictionary = Database.progression.settings
 	progress.cooldowns[key] = now() + float(settings.care_reward_cooldown)
-	_award_skill("bond", int(settings.care_xp.get(action_id, 0)))
 	_gain_xp(action_id)
 
 
@@ -314,7 +313,7 @@ func _award_skill(id: String, amount: int) -> void:
 	var before := progress.skill_level(id)
 	progress.skills[id] = int(progress.skills.get(id, 0)) + amount
 	var after := progress.skill_level(id)
-	if after > before:
+	if after > before and progress.skills_visible():
 		Events.toast_requested.emit("%s · nível %d!" % [Database.progression.skills[id].name, after])
 
 
@@ -505,6 +504,9 @@ func goal_value(goal: Dictionary) -> int:
 		"chapter":
 			return progress.chapter_index()
 		"stat":
+			# "fresh": conta só o que foi feito depois que o passo da história começou.
+			if goal.get("fresh", false):
+				return maxi(0, progress.stat(goal.key) - int(progress.step.get("base", {}).get(goal.key, progress.stat(goal.key))))
 			return progress.stat(goal.key)
 	return 0
 
@@ -904,7 +906,21 @@ func _ensure_stations() -> void:
 
 
 func _changed() -> void:
+	_sync_step()
 	Events.state_changed.emit()
+
+
+## Ao mudar o passo da história, guarda os contadores dos objetivos "fresh" (base = agora).
+func _sync_step() -> void:
+	var current := progress.current_main_quest()
+	if progress.step.get("quest", "") == current:
+		return
+	var base := {}
+	if current != "":
+		for goal: Dictionary in Database.quests[current].goals:
+			if goal.get("fresh", false):
+				base[goal.key] = progress.stat(goal.key)
+	progress.step = {"quest": current, "base": base}
 
 
 ## Conclui só o passo principal atual, com as mesmas recompensas e sinais.

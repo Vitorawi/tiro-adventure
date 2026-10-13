@@ -137,13 +137,12 @@ cada um com personagens e lugares tocáveis; a aba Missões (História, Diárias
 Ver [WORLDS.md](WORLDS.md).
 
 ## Progressão — Jornada (implementada)
-Casa quase vazia no começo, 7 atributos (Agricultura, Culinária, Construção, Comércio, Passeio,
-Mineração, Vínculo), construções compradas, rotas de passeio/mineração, feira, capítulos, missões
+Casa quase vazia no começo, 4 atributos (Horta, Cozinha, Comércio, Aventura), construções compradas, rotas de passeio/mineração, feira, capítulos, missões
 de NPCs e coleção de roupas/apetrechos. **Detalhes, formatos e versão dev em [PROGRESSION.md](PROGRESSION.md).**
 
 ## Evolução (ideias originais; parte já virou a Jornada)
 - **(a) Nível do jogador:** XP de produzir, cuidar e missões; desbloqueia áreas, receitas e estações.
-- **(b) Vínculo com o Tiro (afeição):** sobe cuidando bem; desbloqueia truques.
+- **(b) Carinho com o Tiro:** as necessidades (felicidade) mostram o cuidado; truques entram no futuro.
 - **(c) Truques** (habilidades do Tiro, ligados aos sprites de referência), aprendidos com o Treinador via minigame:
 
 | Truque | Sprite de referência |

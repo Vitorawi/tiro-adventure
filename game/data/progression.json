@@ -20,62 +20,37 @@
       "crop:pumpkin",
       "recipe:pumpkin_mash"
     ],
-    "care_xp": {
-      "feed": 5,
-      "play": 6,
-      "bathe": 5
-    },
-    "care_need_threshold": 95
+    "care_need_threshold": 95,
+    "skills_from_chapter": 3
   },
   "skills": {
     "agriculture": {
-      "name": "Agricultura",
-      "description": "Colha e descubra novas culturas. Libera sementes, pomar e estufa.",
+      "name": "Horta",
+      "description": "Plante e colha. Libera sementes novas.",
       "icon": "tab_farm",
       "color": "#79ac4b",
-      "how_to": "Plante e colha nos canteiros. Uma cultura nova vale XP em dobro."
+      "how_to": "Plante e colha nos canteiros."
     },
     "cooking": {
-      "name": "Culinária",
-      "description": "Prepare receitas. Pratos elaborados dão mais experiência.",
+      "name": "Cozinha",
+      "description": "Prepare receitas. Libera pratos novos.",
       "icon": "item_carrot_snack",
       "color": "#eea24c",
-      "how_to": "Cozinhe e recolha receitas no Fogão. Receita nova vale XP em dobro."
-    },
-    "building": {
-      "name": "Construção",
-      "description": "Construa melhorias e fabrique materiais na bancada.",
-      "icon": "item_plank",
-      "color": "#bb9568",
-      "how_to": "Fabrique tábuas e tijolos na Bancada."
+      "how_to": "Cozinhe no Fogão e no Forno."
     },
     "commerce": {
       "name": "Comércio",
-      "description": "Venda produtos e entregue pedidos para abrir novos negócios.",
+      "description": "Venda e entregue encomendas.",
       "icon": "coin",
       "color": "#dbb442",
-      "how_to": "Venda excedentes e entregue encomendas na Vila."
+      "how_to": "Venda e entregue encomendas na Vila."
     },
-    "walking": {
-      "name": "Passeio",
-      "description": "Explore caminhos com o Tiro para encontrar sementes e materiais.",
-      "icon": "action_play",
+    "adventure": {
+      "name": "Aventura",
+      "description": "Passeie, minere e fabrique materiais. Libera rotas novas.",
+      "icon": "tab_map",
       "color": "#70ada4",
-      "how_to": "Complete passeios na Trilha."
-    },
-    "mining": {
-      "name": "Mineração",
-      "description": "Extraia pedra, cobre e cristais para equipamentos avançados.",
-      "icon": "item_crystal",
-      "color": "#a497ca",
-      "how_to": "Explore a Mina e recolha os minérios."
-    },
-    "bond": {
-      "name": "Vínculo",
-      "description": "Cuide do Tiro quando ele precisar. Desbloqueia trilhas e lembranças.",
-      "icon": "need_happiness",
-      "color": "#df829c",
-      "how_to": "Alimente, brinque e cuide do Tiro. Espere a recarga entre cuidados."
+      "how_to": "Faça passeios, explore a mina e use a Bancada."
     }
   },
   "upgrades": {
@@ -86,7 +61,7 @@
       "cost": 40,
       "requirements": {},
       "skill_xp": {
-        "building": 10
+        "adventure": 10
       },
       "icon": "item_carrot_snack"
     },
@@ -101,7 +76,7 @@
         ]
       },
       "skill_xp": {
-        "building": 15
+        "adventure": 15
       },
       "icon": "tab_house"
     },
@@ -116,7 +91,7 @@
         ]
       },
       "skill_xp": {
-        "building": 25
+        "adventure": 25
       },
       "icon": "tab_farm"
     },
@@ -125,13 +100,9 @@
       "world": "house",
       "description": "Um lugar confortável para as sonecas, na sala.",
       "cost": 90,
-      "requirements": {
-        "skills": {
-          "bond": 2
-        }
-      },
+      "requirements": {},
       "skill_xp": {
-        "building": 15
+        "adventure": 15
       },
       "icon": "action_sleep"
     },
@@ -150,7 +121,7 @@
         ]
       },
       "skill_xp": {
-        "building": 25
+        "adventure": 25
       },
       "icon": "item_plank",
       "station": "workbench"
@@ -164,13 +135,9 @@
         "wood": 3,
         "stone": 3
       },
-      "requirements": {
-        "skills": {
-          "walking": 2
-        }
-      },
+      "requirements": {},
       "skill_xp": {
-        "building": 15
+        "adventure": 15
       },
       "icon": "item_stone"
     },
@@ -186,13 +153,10 @@
         "owned": [
           "stove",
           "workbench"
-        ],
-        "skills": {
-          "cooking": 3
-        }
+        ]
       },
       "skill_xp": {
-        "building": 25
+        "adventure": 25
       },
       "icon": "item_carrot_snack"
     },
@@ -209,13 +173,10 @@
         "owned": [
           "workbench",
           "fridge"
-        ],
-        "skills": {
-          "cooking": 3
-        }
+        ]
       },
       "skill_xp": {
-        "building": 40
+        "adventure": 40
       },
       "icon": "item_apple_biscuit",
       "station": "oven"
@@ -231,13 +192,10 @@
       "requirements": {
         "owned": [
           "farm"
-        ],
-        "skills": {
-          "agriculture": 4
-        }
+        ]
       },
       "skill_xp": {
-        "building": 35
+        "adventure": 35
       },
       "icon": "item_apple"
     },
@@ -254,14 +212,10 @@
       "requirements": {
         "owned": [
           "farm"
-        ],
-        "skills": {
-          "agriculture": 5,
-          "mining": 3
-        }
+        ]
       },
       "skill_xp": {
-        "building": 50
+        "adventure": 50
       },
       "icon": "item_herbs"
     },
@@ -277,13 +231,10 @@
       "requirements": {
         "owned": [
           "farm"
-        ],
-        "skills": {
-          "commerce": 4
-        }
+        ]
       },
       "skill_xp": {
-        "building": 35
+        "adventure": 35
       },
       "icon": "coin"
     },
@@ -299,14 +250,10 @@
       "requirements": {
         "owned": [
           "workbench"
-        ],
-        "skills": {
-          "building": 5,
-          "commerce": 4
-        }
+        ]
       },
       "skill_xp": {
-        "building": 60
+        "adventure": 60
       },
       "icon": "item_fabric",
       "station": "atelier"
@@ -327,8 +274,7 @@
           "wood": 1
         },
         "skill_xp": {
-          "walking": 10,
-          "bond": 3
+          "adventure": 10
         }
       },
       "icon": "action_play"
@@ -340,7 +286,7 @@
       "seconds": 180,
       "requirements": {
         "skills": {
-          "walking": 2
+          "adventure": 2
         },
         "chapter": 3
       },
@@ -351,8 +297,7 @@
           "stone": 2
         },
         "skill_xp": {
-          "walking": 22,
-          "bond": 5
+          "adventure": 22
         }
       },
       "icon": "item_wood"
@@ -373,8 +318,7 @@
           "stone": 5
         },
         "skill_xp": {
-          "mining": 20,
-          "walking": 5
+          "adventure": 25
         }
       },
       "icon": "item_stone"
@@ -389,7 +333,7 @@
           "pickaxe"
         ],
         "skills": {
-          "mining": 2
+          "adventure": 2
         },
         "chapter": 3
       },
@@ -399,7 +343,7 @@
           "copper": 3
         },
         "skill_xp": {
-          "mining": 36
+          "adventure": 36
         }
       },
       "icon": "item_copper"
@@ -414,8 +358,7 @@
           "pickaxe"
         ],
         "skills": {
-          "mining": 3,
-          "walking": 3
+          "adventure": 3
         },
         "chapter": 3
       },
@@ -425,8 +368,7 @@
           "copper": 2
         },
         "skill_xp": {
-          "mining": 55,
-          "walking": 12
+          "adventure": 67
         }
       },
       "icon": "item_crystal"
@@ -458,8 +400,7 @@
       "seconds": 420,
       "requirements": {
         "skills": {
-          "walking": 4,
-          "bond": 3
+          "adventure": 4
         },
         "chapter": 3
       },
@@ -469,8 +410,7 @@
           "wood": 3
         },
         "skill_xp": {
-          "walking": 38,
-          "bond": 10
+          "adventure": 38
         }
       },
       "icon": "item_fiber"
@@ -555,7 +495,7 @@
         "coins": 150,
         "skill_xp": {
           "commerce": 45,
-          "building": 15
+          "adventure": 15
         }
       },
       "cooldown": 600
@@ -611,10 +551,7 @@
       "description": "Cuide do Tiro, colha no canteiro emprestado e conquiste seu fogão.",
       "target": "stove",
       "rewards": {
-        "coins": 20,
-        "skill_xp": {
-          "bond": 20
-        }
+        "coins": 20
       },
       "unlocks_text": "Avance para o próximo capítulo"
     },
@@ -649,7 +586,7 @@
       "rewards": {
         "coins": 80,
         "skill_xp": {
-          "building": 20
+          "adventure": 20
         }
       },
       "unlocks_text": "Avance para o próximo capítulo"
@@ -697,7 +634,7 @@
       "rewards": {
         "coins": 160,
         "skill_xp": {
-          "building": 20
+          "adventure": 20
         }
       },
       "unlocks_text": "História completa! Continue suas missões secundárias."

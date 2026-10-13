@@ -58,6 +58,15 @@ func _run() -> void:
 		for reward: String in q.get("rewards", {}).get("collections", []):
 			check(db.get("collections").has(reward), id + ": coleção " + reward)
 		check(q.get("kind", "") == "main", id + ": só existem missões de história (diárias/semanais ficam em routines.json)")
+	# Atributos: só os 4 do jogo em qualquer "skill", "skill_xp" ou requisito.
+	var skill_refs: Array[String] = []
+	for source: Dictionary in [quests, data, db.get("recipes"), db.get("crops")]:
+		_collect_skills(source, skill_refs)
+	for ref in skill_refs:
+		check(data.skills.has(ref), "atributo inexistente: " + ref)
+	check(data.skills.size() == 4, "o jogo tem 4 atributos")
+	for id: String in data.upgrades:
+		check(not data.upgrades[id].get("requirements", {}).has("skills"), id + ": construção não exige nível (a história não trava)")
 	# Diárias e semanais: contador conhecido, alvo, recompensa e quantidade sorteável no começo.
 	for kind: String in ["daily", "weekly"]:
 		var group: Dictionary = db.get("routines")[kind]
@@ -101,6 +110,26 @@ func _run() -> void:
 	_validate_targets()
 	print("CONTENT TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(0 if failures == 0 else 1)
+
+
+## Junta os ids de atributo usados em "skill", "skill_xp" e "requirements.skills" (fora das definições).
+func _collect_skills(value: Variant, refs: Array[String]) -> void:
+	if value is Array:
+		for entry: Variant in value:
+			_collect_skills(entry, refs)
+	if not value is Dictionary:
+		return
+	for key: Variant in value:
+		var child: Variant = value[key]
+		if key == "skill" and child is String:
+			refs.append(child)
+		elif key == "skill_xp" and child is Dictionary:
+			refs.append_array(child.keys())
+		elif key == "skills" and child is Dictionary and child.values().all(func(v: Variant) -> bool: return v is float or v is int):
+			refs.append_array(child.keys())
+		elif key == "type" and child == "skill":
+			refs.append(str(value.get("key", "")))
+		_collect_skills(child, refs)
 
 
 func _validate_targets() -> void:

@@ -202,41 +202,49 @@ static func active_activity(box: VBoxContainer) -> void:
 
 static func skills_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		_text(box, "Cada atividade treina um atributo. Níveis altos liberam sementes, receitas, rotas e construções.", true)
 		for id: String in Database.progression.skills:
 			var data: Dictionary = Database.progression.skills[id]
 			var info := GameState.skill_info(id)
 			var card := UiKit.card(box)
-			_title(card, data.icon, "%s · nível %d" % [data.name, int(info.level)])
-			_text(card, data.description, true)
-			_text(card, data.get("how_to", ""), true)
-			for chapter in range(GameState.progress.chapter_index(), Database.progression.chapters.size() + 1):
-				var needed := 0
-				for quest in GameState.progress.main_quests(chapter):
-					needed = maxi(needed, int(quest_skills(quest).get(id, 0)))
-				if needed > int(info.level):
-					_text(card, "A história pede nível %d no capítulo %d" % [needed, chapter], true)
-					break
-			card.add_child(UiKit.bar(100 if info.max else float(info.xp) / float(info.needed) * 100, Color(data.color)))
-			_text(card, "Nível máximo" if info.max else "%d / %d XP para o próximo nível" % [int(info.xp), int(info.needed)], true)
+			var top := UiKit.hbox(8)
+			top.add_child(UiKit.icon(UiKit.ui_icon(data.icon), 40))
+			top.add_child(UiKit.fill_label(data.name, &"SectionLabel"))
+			top.add_child(UiKit.short_label("Nv %d" % int(info.level), &"SectionLabel"))
+			card.add_child(top)
+			var line := UiKit.hbox(6)
+			var bar := UiKit.bar(100 if info.max else float(info.xp) / float(info.needed) * 100, Color(data.color), 12)
+			bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			line.add_child(bar)
+			line.add_child(UiKit.short_label("Máx." if info.max else "%d/%d" % [int(info.xp), int(info.needed)], &"SmallLabel"))
+			card.add_child(line)
 			var next := _next_milestone(id, int(info.level))
-			if next != "":
-				_text(card, next, true)
+			if not next.is_empty():
+				var unlock := UiKit.hbox(6)
+				unlock.add_child(UiKit.short_label("Nv %d →" % int(next.level), &"SmallLabel"))
+				unlock.add_child(UiKit.icon(next.icon, 32))
+				unlock.add_child(UiKit.fill_label(next.name, &"SmallLabel"))
+				card.add_child(unlock)
 	)
 
 
-## "Nível 3 → Abóbora": o próximo conteúdo que o atributo libera.
-static func _next_milestone(skill_id: String, current: int) -> String:
-	var best_level := 999
-	var best_name := ""
-	for group: Dictionary in [Database.progression.upgrades, Database.progression.activities, Database.crops, Database.recipes]:
+## Próximo conteúdo que o atributo libera: { level, icon, name } (vazio se nada).
+static func _next_milestone(skill_id: String, current: int) -> Dictionary:
+	var best := {}
+	for kind: String in ["activity", "crop", "recipe"]:
+		var group: Dictionary = {"activity": Database.progression.activities, "crop": Database.crops, "recipe": Database.recipes}[kind]
 		for content_id: String in group:
 			var entry: Dictionary = group[content_id]
 			var required := int(entry.get("requirements", {}).get("skills", {}).get(skill_id, 0))
-			if required > current and required < best_level:
-				best_level = required
-				best_name = entry.get("name", Database.item_name(entry.get("output", content_id)))
-	return "" if best_name == "" else "Nível %d → %s" % [best_level, best_name]
+			if required <= current or (not best.is_empty() and required >= int(best.level)):
+				continue
+			match kind:
+				"activity":
+					best = {"level": required, "icon": UiKit.ui_icon(entry.get("icon", "action_play")), "name": entry.name}
+				"crop":
+					best = {"level": required, "icon": Database.item_icon(content_id), "name": Database.item_name(content_id)}
+				"recipe":
+					best = {"level": required, "icon": Database.item_icon(entry.output), "name": Database.item_name(entry.output)}
+	return best
 
 
 static func collection_panel() -> Control:
@@ -311,18 +319,6 @@ static func _amounts(card: VBoxContainer, amounts: Dictionary) -> void:
 		var need := int(amounts[id])
 		row.add_child(item_chip(id, need))
 	card.add_child(row)
-
-
-## Requisitos de atributo diretos e da construção do passo.
-static func quest_skills(id: String) -> Dictionary:
-	var result := {}
-	for goal: Dictionary in Database.quests[id].goals:
-		if goal.type == "skill":
-			result[goal.key] = maxi(int(result.get(goal.key, 0)), int(goal.target))
-		if goal.type == "owned":
-			for skill: String in Database.progression.upgrades[goal.key].get("requirements", {}).get("skills", {}):
-				result[skill] = maxi(int(result.get(skill, 0)), int(Database.progression.upgrades[goal.key].requirements.skills[skill]))
-	return result
 
 
 ## [Ir | Receber] + "?". O Ir leva ao primeiro passo possível (ex.: plantar antes de cozinhar).
@@ -473,7 +469,7 @@ static func reward_chips(rewards: Dictionary) -> HFlowContainer:
 	for id: String in rewards.get("items", {}):
 		row.add_child(UiKit.chip(Database.item_icon(id), "+%d" % int(rewards.items[id])))
 	for id: String in rewards.get("skill_xp", {}):
-		if Database.progression.skills.has(id):
+		if Database.progression.skills.has(id) and GameState.progress.skills_visible():
 			row.add_child(UiKit.chip(UiKit.ui_icon(Database.progression.skills[id].get("icon", "xp")), "+%d" % int(rewards.skill_xp[id])))
 	for id: String in rewards.get("collections", []):
 		if not GameState.progress.collection.has(id):

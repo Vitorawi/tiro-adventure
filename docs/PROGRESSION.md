@@ -21,7 +21,7 @@ petisco → biscoito → caixa de petiscos → encomenda especial).
 ## Peças do sistema
 | Peça | Onde está | O que é |
 |---|---|---|
-| **Atributos (7)** | `progression.json` → `skills` | Agricultura, Culinária, Construção, Comércio, Passeio, Mineração, Vínculo. Sobem com a atividade correspondente. |
+| **Atributos (4)** | `progression.json` → `skills` | Horta (`agriculture`), Cozinha (`cooking`), Comércio (`commerce`), Aventura (`adventure`: passeios, mina e bancada). Aparecem a partir do capítulo `settings.skills_from_chapter` (3). Liberam sementes, receitas e rotas; **construções não exigem nível**. |
 | **Construções** | `progression.json` → `upgrades` | Compras permanentes (moedas + materiais + requisitos): fogão, geladeira, escritura do sítio, sofá, bancada, picareta, cozinha organizada, forno, pomar, estufa, banca, ateliê. |
 | **Estações** | `config.json` → `stations` + `recipes.json` | Fogão, bancada, forno e ateliê; filas com tempo real. `slot_upgrades` = construção que aumenta a fila. |
 | **Rotas** | `progression.json` → `activities` | Passeios/mineração com tempo (uma por vez): bairro, trilha, pedreira, cobre, gruta, pomar, prado. |
@@ -38,12 +38,17 @@ petisco → biscoito → caixa de petiscos → encomenda especial).
   (30, 50, 70...). Máximo `max_skill_level` (20).
 - **Descoberta:** a primeira colheita de cada cultura e a primeira receita de cada tipo valem
   XP × `first_discovery_multiplier` (2).
-- **Vínculo:** cuidar (comer, brincar, banho) só dá XP quando o Tiro **precisa** (necessidade abaixo
+- **Cuidar** (comer, brincar, banho) só dá XP do jogador quando o Tiro **precisa** (necessidade abaixo
   de `care_need_threshold`) e fora da recarga `care_reward_cooldown` — não dá para "farmar" tocando.
-- Fontes: colheita → Agricultura; receita → atributo do campo `skill` da receita (padrão Culinária);
+  (O antigo atributo Vínculo saiu na simplificação; o save v6 soma Passeio, Mineração e Construção em Aventura.)
+- Fontes: colheita → Horta; receita → atributo do campo `skill` da receita (padrão Cozinha; bancada → Aventura);
   venda → Comércio (`trade_xp` do item); recompensas de rotas, pedidos, missões e construções → `skill_xp`.
 - **Nível do jogador** (estrela da barra superior) é separado: XP de ações (`config.json` → `xp`),
   missões (`player_xp`), construções e rotas.
+
+**Passos concretos:** a história não pede "suba o atributo"; pede ações ("Colha 5 vezes", "Venda 15 itens").
+Objetivo `stat` com `"fresh": true` conta só o que foi feito depois que o passo começou
+(`ProgressionState.step` guarda a base; `GameState._sync_step` a atualiza a cada mudança).
 
 ## Requisitos (um formato para tudo)
 Construções, culturas, receitas, rotas e pedidos aceitam:
@@ -93,7 +98,7 @@ Contadores (`progress.stats`), incrementados pelas ações do `GameState`:
 
 ## Recompensas (missões, pedidos, rotas)
 ```json
-"rewards": { "coins": 20, "items": { "dog_food": 2 }, "skill_xp": { "bond": 10 },
+"rewards": { "coins": 20, "items": { "dog_food": 2 }, "skill_xp": { "agriculture": 10 },
              "collections": ["farm_ribbon"], "unlocks": ["crop:potato"] }
 ```
 
@@ -104,10 +109,10 @@ Contadores (`progress.stats`), incrementados pelas ações do `GameState`:
 | 2. Nossa primeira cozinha | Geladeira (75) | caldo de legumes, pedido "Almoço da comunidade" |
 | 3. Um pedacinho de terra | Escritura do sítio (180, missão "Seu primeiro cliente") | 3 terrenos + expansão até 9, bancada |
 | 4. Construindo o futuro | Bancada (120 + 6 madeira + 4 pedra) | tábuas e tijolos |
-| 5. Uma produção de verdade | Forno (240 + 4 tijolo + 3 cobre; Culinária 3) | biscoito de maçã, caixa de petiscos |
-| 6. Nosso lugar na vila | Banca (350 + materiais; Comércio 4) | pedidos grandes |
-| 7. Um mundo de possibilidades | Estufa (480 + cristais; Agricultura 5, Mineração 3) | ervas |
-| 8. Feito por nós | Ateliê (600 + materiais; Construção 5, Comércio 4) | tecido, conjunto de acessórios |
+| 5. Uma produção de verdade | Forno (240 + 4 tijolo + 3 cobre) | biscoito de maçã, caixa de petiscos |
+| 6. Nosso lugar na vila | Banca (350 + materiais) | pedidos grandes |
+| 7. Um mundo de possibilidades | Estufa (480 + cristais) | ervas |
+| 8. Feito por nós | Ateliê (600 + materiais) | tecido, conjunto de acessórios |
 
 O `progression_test.gd` joga uma **campanha simulada** do zero (só ações reais, tempo acelerado) e
 falha se alguma construção ou missão ficar inalcançável. Rode-o depois de mexer em números.

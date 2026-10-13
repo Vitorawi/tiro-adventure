@@ -15,9 +15,6 @@
       "coins": 20,
       "items": {
         "dog_food": 2
-      },
-      "skill_xp": {
-        "bond": 10
       }
     },
     "kind": "main",
@@ -128,7 +125,7 @@
     "rewards": {
       "coins": 15,
       "skill_xp": {
-        "walking": 15
+        "adventure": 15
       }
     },
     "kind": "main",
@@ -154,7 +151,7 @@
         "copper": 2
       },
       "skill_xp": {
-        "mining": 20
+        "adventure": 20
       }
     },
     "kind": "main",
@@ -201,7 +198,7 @@
         "explorer_charm"
       ],
       "skill_xp": {
-        "mining": 45
+        "adventure": 45
       }
     },
     "kind": "main",
@@ -246,7 +243,7 @@
         "artisan_outfit"
       ],
       "skill_xp": {
-        "building": 70
+        "adventure": 70
       }
     },
     "kind": "main",
@@ -373,10 +370,11 @@
     "dialogue": "Vamos juntos: aprender com a terra.",
     "goals": [
       {
-        "type": "skill",
-        "key": "agriculture",
-        "target": 2,
-        "label": "Agricultura nível 2"
+        "type": "stat",
+        "key": "harvest",
+        "target": 5,
+        "fresh": true,
+        "label": "Colha 5 vezes"
       }
     ],
     "rewards": {
@@ -470,10 +468,11 @@
     "dialogue": "Vamos juntos: sabores de casa.",
     "goals": [
       {
-        "type": "skill",
-        "key": "cooking",
-        "target": 3,
-        "label": "Culinária nível 3"
+        "type": "stat",
+        "key": "produce",
+        "target": 5,
+        "fresh": true,
+        "label": "Prepare 5 receitas"
       }
     ],
     "rewards": {
@@ -508,10 +507,11 @@
     "dialogue": "Vamos juntos: conhecer a clientela.",
     "goals": [
       {
-        "type": "skill",
-        "key": "commerce",
-        "target": 4,
-        "label": "Comércio nível 4"
+        "type": "stat",
+        "key": "sold",
+        "target": 15,
+        "fresh": true,
+        "label": "Venda 15 itens"
       }
     ],
     "rewards": {
@@ -566,10 +566,11 @@
     "dialogue": "Vamos juntos: mãos experientes.",
     "goals": [
       {
-        "type": "skill",
-        "key": "building",
-        "target": 5,
-        "label": "Construção nível 5"
+        "type": "stat",
+        "key": "produce:plank",
+        "target": 6,
+        "fresh": true,
+        "label": "Faça 6 tábuas"
       }
     ],
     "rewards": {

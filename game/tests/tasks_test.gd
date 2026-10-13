@@ -24,13 +24,25 @@ func _run() -> void:
 	old.coins = 137
 	old.progression.owned = {"stove": true, "fridge": true, "farm": true}
 	old.progression.claimed_quests = {"trail_friend": true}
+	old.progression.skills = {"agriculture": 40, "walking": 50, "mining": 30, "building": 20, "bond": 99}
 	var migrated: Dictionary = saver.call("_migrate", {"save_version": 4, "state": old})
 	state.call("from_dict", migrated.state)
 	check(state.get("progress").chapter_index() == 4, "Save v4 deve abrir no capítulo 4")
 	check(state.get("coins") == 137, "Migração não paga recompensas")
-	check(state.get("progress").claimed_quests.has("trail_friend"), "Migração preserva secundárias")
+	check(state.get("progress").claimed_quests.has("trail_friend"), "Migração preserva missões antigas")
+	check(state.get("progress").skills == {"agriculture": 40, "adventure": 100}, "v6: Passeio+Mineração+Construção viram Aventura; Vínculo sai")
 	check(saver.call("_migrate", migrated) == migrated, "Migração é idempotente")
 	saver.free()
+	# Passo "fresh": conta só o que acontece depois que o passo começou.
+	state.call("reset")
+	state.get("progress").stats["harvest"] = 40
+	state.call("dev_jump_to_chapter", 2)
+	state.call("dev_complete_main_step")  # cap. 3: first_walk, depois main_3_agri
+	check(state.get("progress").current_main_quest() == "main_3_agri", "Passo de colheita é o atual")
+	var fresh: Dictionary = database.get("quests").main_3_agri.goals[0]
+	check(state.call("goal_value", fresh) == 0, "Colheitas anteriores não contam")
+	state.get("progress").count("harvest", 2)
+	check(state.call("goal_value", fresh) == 2, "Colheitas novas contam")
 	state.call("reset")
 	var events: Node = root.get_node("Events")
 	events.connect("quest_completed", func(id: String) -> void: quest_signals.append(id))
@@ -138,6 +150,10 @@ func _ui_check() -> void:
 	events.emit_signal("sheet_requested", "Como fazer", load("res://scripts/ui/task_help.gd").call("panel", "quest", state.get("progress").current_main_quest()))
 	await create_timer(0.3).timeout
 	_shot("tasks_help")
+	events.emit_signal("sheet_close_requested")
+	events.emit_signal("sheet_requested", "Atributos", ui.call("skills_panel"))
+	await create_timer(0.3).timeout
+	_shot("tasks_skills")
 	events.emit_signal("sheet_close_requested")
 	main.get_node("Celebration").call("show_chapter", 2, PackedStringArray(["Trilha do riacho"]))
 	await create_timer(0.2).timeout

@@ -212,9 +212,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				if not target.is_empty():
 					return target
 		"skill":
-			var panels := {"agriculture": "farm", "cooking": "station:stove", "building": "station:workbench", "commerce": "sell", "walking": "routes:walk", "mining": "routes:mine"}
-			if key == "bond":
-				return {"screen": "pet", "hint": "Tiro → cuidar e brincar"}
+			var panels := {"agriculture": "farm", "cooking": "station:stove", "commerce": "sell", "adventure": "routes:walk"}
 			return _panel_target(panels.get(key, ""))
 		"stat":
 			if key == "feed":

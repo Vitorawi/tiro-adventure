@@ -47,9 +47,10 @@ func _run() -> void:
 	_check(state.call("claim_quest", "welcome") == "", "Missão inicial deve ser possível")
 	coins_before = state.get("coins")
 	_check(state.call("claim_quest", "welcome") != "" and state.get("coins") == coins_before, "Missão não pode pagar duas vezes")
-	var bond_before: int = int(state.get("progress").skills.get("bond", 0))
+	var xp_before: int = state.get("xp")
+	var level_before: int = state.get("level")
 	state.call("feed", "dog_food")
-	_check(int(state.get("progress").skills.get("bond", 0)) == bond_before, "Cuidado repetido não pode farmar XP")
+	_check(state.get("xp") == xp_before and state.get("level") == level_before, "Cuidado repetido não pode farmar XP")
 	_check(state.call("start_activity", "lane") != "", "Trilha fechada antes do capítulo 3")
 	state.call("dev_jump_to_chapter", 2)
 	_check(state.call("start_activity", "lane") == "", "Rota abre no capítulo 3")
@@ -105,8 +106,10 @@ func _campaign() -> Dictionary:
 			if int(state.get("progress").stats.get("order:" + id, 0)) >= 3:
 				continue # Guarda os materiais dos próximos pedidos para construir.
 			state.call("fulfill_order", id)
+		var step: String = state.get("progress").current_main_quest()
+		var wanted: Array = database.get("quests")[step].goals.map(func(g: Dictionary) -> String: return str(g.get("key", ""))) if step != "" else []
 		for id: String in recipes:
-			if state.get("inventory").count(recipes[id].output) >= 12:
+			if state.get("inventory").count(recipes[id].output) >= 12 and not ("produce:" + str(recipes[id].output)) in wanted:
 				continue
 			if state.call("cook", id) == "":
 				var station: RefCounted = state.call("station", recipes[id].station)

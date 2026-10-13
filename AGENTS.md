@@ -10,7 +10,7 @@ https://vitorawi.github.io/tiro-adventure/ (versão de testes: `.../tiro-adventu
 **Bichinho virtual (cachorrinho) + produção em cadeia estilo Hay Day + progressão longa.**
 Celular **em pé**, tela inteira, **100% toque**: o jogador não controla o movimento do cachorro
 (ele anda sozinho), só toca nos objetos (geladeira, horta, fogão...) e arrasta para mover a câmera.
-Começa com a casa quase vazia e vai comprando fogão, geladeira, sítio, oficina... com 7 atributos
+Começa com a casa quase vazia e vai comprando fogão, geladeira, sítio, oficina... com 4 atributos
 que evoluem e missões de personagens. Abas: **Tiro · Mapa** (mini mundos: Casa, Sítio, Vila, Trilha,
 cada um com seus personagens e lugares) **· Missões** (História passo a passo, Diárias e Semanais, com botão "Ir" e "?") **· Mochila**.
 

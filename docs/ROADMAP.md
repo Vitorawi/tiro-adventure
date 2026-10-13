@@ -4,7 +4,7 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **12/10/2026, Claude Code**.
 
-**Simplificar — Fase 1 de 5 concluída (Claude Code, 12/10/2026).**
+**Simplificar — Fases 1 e 2 de 5 concluídas (Claude Code, 12/10/2026).**
 - O Vitor achou o jogo confuso ("bombardeamento de informação"). Plano aprovado em `docs/plans/SIMPLIFICAR.md`:
   missões em 3 tipos (História, Diárias, Semanais), 3 mundos (a Trilha vira portão na Vila), 4 atributos,
   personagens que aparecem aos poucos, revelação gradual com "Novo!" e menos texto em todo canto.
@@ -18,7 +18,12 @@
   `Places.target_view`, tema `ChipButton`. DEV: "Recomeçar diárias e semanais".
 - Testes verdes (farm, progression, DEV dev/prod, tasks com diárias/semanais, content). Capturas:
   `build/screenshots/tasks_{start,middle,story,help,end,celebration}.png`.
-- Próximo: **Fase 2** (atributos 7 → 4 e passos concretos; save v6). Sem push.
+- **Fase 2 feita:** 4 atributos (Horta, Cozinha, Comércio, Aventura), escondidos até o capítulo 3
+  (`settings.skills_from_chapter`). Construções não exigem nível. Passos "suba o atributo" viraram ações
+  contadas a partir do início do passo (`"fresh": true` + `ProgressionState.step`). Save v6 soma
+  Passeio+Mineração+Construção em Aventura e remove Vínculo. Painel de Atributos em ícones.
+  Dados migrados com uma ferramenta única (não versionada); a formatação dos JSON foi mantida.
+- Próximo: **Fase 3** (3 mundos, até 4 lugares cada, Trilha vira portão na Vila, construir no próprio lugar). Sem push.
 
 **Tarefas v2 — todas as fases (1–6) concluídas (Codex, 12/10/2026).**
 - 28 passos principais em 8 capítulos e 9 secundárias; recompensas por capítulo, destinos

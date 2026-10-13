@@ -29,6 +29,9 @@ var activity: Dictionary = {}
 ## { period: "2026-10-12", ids: [...], base: { contador: valor no início }, claimed: { id: true } }.
 ## Progresso = contador atual − base; não precisa de contador próprio.
 var routines: Dictionary = {}
+## Passo atual da história e o valor dos contadores quando ele começou (objetivos "fresh"):
+## { quest: id, base: { contador: valor } }.
+var step: Dictionary = {}
 
 
 func setup() -> void:
@@ -66,6 +69,11 @@ func skill_info(id: String) -> Dictionary:
 		current_level += 1
 		needed = _level_cost(current_level)
 	return {"level": current_level, "xp": remaining, "needed": needed, "max": current_level >= limit}
+
+
+## Atributos aparecem na interface só a partir do capítulo `skills_from_chapter` (antes: menos informação).
+func skills_visible() -> bool:
+	return chapter_index() >= int(Database.progression.settings.get("skills_from_chapter", 1))
 
 
 func skill_level(id: String) -> int:
@@ -172,7 +180,7 @@ func to_dict() -> Dictionary:
 		"skills": skills, "owned": owned, "stats": stats,
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
 		"collection": collection, "unlocks": unlocks,
-		"cooldowns": cooldowns, "activity": activity, "routines": routines,
+		"cooldowns": cooldowns, "activity": activity, "routines": routines, "step": step,
 	}
 
 
@@ -187,6 +195,7 @@ func from_dict(data: Dictionary) -> void:
 	cooldowns = data.get("cooldowns", {}).duplicate(true)
 	activity = data.get("activity", {}).duplicate(true)
 	routines = data.get("routines", {}).duplicate(true)
+	step = data.get("step", {}).duplicate(true)
 	# Rota removida do JSON não pode travar o jogador para sempre.
 	if not activity.is_empty() and not Database.progression.activities.has(str(activity.get("id", ""))):
 		activity = {}

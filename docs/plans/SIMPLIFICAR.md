@@ -63,7 +63,9 @@ e "facilitar encontrar como fazer a missão e os ingredientes".
 **Testes:** `tasks_test` (troca de dia e de semana, sorteio estável, recompensa só uma vez, base correta)
 e a campanha do `progression_test` sem as secundárias.
 
-## Fase 2: Atributos 7 → 4 e passos concretos
+## Fase 2: Atributos 7 → 4 e passos concretos — FEITA
+> Como ficou: construções não exigem nível (atributos só liberam sementes, receitas e rotas);
+> passos novos usam `"fresh": true` (contam a partir do início do passo); bancada dá XP de Aventura.
 - **Horta** (agriculture), **Cozinha** (cooking), **Comércio** (commerce),
   **Aventura** (walking + mining + building: materiais e obras com o que se acha nas rotas).
 - **Vínculo** deixa de ser atributo: vira o coração do Tiro (necessidade de felicidade). Recompensas de XP de vínculo saem.

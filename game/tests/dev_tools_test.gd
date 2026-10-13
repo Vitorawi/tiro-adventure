@@ -67,7 +67,6 @@ func _dev_mode() -> void:
 
 	state.call("dev_grant_upgrade", "greenhouse")
 	_check(state.call("has_upgrade", "greenhouse"), "Deve liberar a estufa")
-	_check(_progress().skill_level("agriculture") >= 5 and _progress().skill_level("mining") >= 3, "Deve subir atributos exigidos")
 	_check(state.call("upgrade_error", "greenhouse") == "Já adquirido", "Melhoria liberada conta como comprada")
 
 	_check(state.call("plant", 0, "carrot") == "", "Deve plantar")
@@ -99,7 +98,7 @@ func _dev_mode() -> void:
 
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
 	state.call("from_dict", saved)
-	_check(state.call("has_upgrade", "atelier") and _progress().skill_info("mining").max, "Estado dev deve sobreviver ao save")
+	_check(state.call("has_upgrade", "atelier") and _progress().skill_info("adventure").max, "Estado dev deve sobreviver ao save")
 
 
 func _prod_mode() -> void:

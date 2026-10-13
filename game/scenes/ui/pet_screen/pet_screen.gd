@@ -63,8 +63,10 @@ func _build_extras() -> void:
 	row.name = "Extras"
 	row.alignment = BoxContainer.ALIGNMENT_END
 	for entry: Array in [["Atributos", "xp", ProgressionUi.skills_panel], ["Coleção", "item_accessory_set", ProgressionUi.collection_panel]]:
-		row.add_child(UiKit.tap_chip(UiKit.ui_icon(entry[1]), entry[0], func() -> void:
-			Events.sheet_requested.emit(entry[0], (entry[2] as Callable).call())))
+		var chip := UiKit.tap_chip(UiKit.ui_icon(entry[1]), entry[0], func() -> void:
+			Events.sheet_requested.emit(entry[0], (entry[2] as Callable).call()))
+		chip.name = entry[0]
+		row.add_child(chip)
 	var layout := %DogArea.get_parent()
 	layout.add_child(row)
 	layout.move_child(row, %DogArea.get_index())
@@ -103,6 +105,10 @@ func _dress_button(button: Button, texture: Texture2D, text: String) -> Array:
 
 
 func _refresh() -> void:
+	var extras := %DogArea.get_parent().get_node_or_null("Extras")
+	if extras:
+		extras.get_node("Atributos").visible = GameState.progress.skills_visible()
+		extras.get_node("Coleção").visible = not GameState.progress.collection.is_empty()
 	var now := GameState.now()
 	var dog := GameState.dog
 	for id: String in _bars:
