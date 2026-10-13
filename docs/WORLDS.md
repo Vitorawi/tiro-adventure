@@ -1,5 +1,14 @@
 # Mundos (mini mundinhos) e navegação
 
+## Animais comprados no sítio
+
+Os abrigos abrem a loja pelo botão **Comprar animais**. Cada compra é individual; há
+três vagas no galinheiro e três no curral. O jogador pode escolher/repetir as variedades.
+Animais só aparecem depois da compra, com textura/escala definidas em `config.json.animals`.
+Objetos em `rooms/farm.json` usam `animal_station` e `animal_slot` (índice de 0 a 2).
+Vagas vazias são invisíveis, sem toque nem obstáculo. Quando o rebanho muda, RoomView
+atualiza os sprites e recalcula a navegação. A posição é fixa, com movimento leve do sprite.
+
 > Reorganização de 12/10/2026 (Claude Code): o jogador não precisa adivinhar onde fica cada coisa.
 > Regra de ouro: **cada coisa fica no lugar onde estaria no mundo, e a aba Missões leva até lá.**
 
@@ -40,14 +49,33 @@ Use verbos concretos (plantar, colher, comprar, produzir, entregar) em uma frase
 |---|---|---|
 | **Casa** | — | Tigela, **Cozinha** (fogão + forno + fila extra), Geladeira, porta → Sítio. Sofá = enfeite com soneca (`hidden`). |
 | **Sítio da Bloblo** | Bloblo (casinha) | Canteiros (+ estufa), Produção (bancada + moinho + queijaria), Pomar e Animais (galinheiro + curral). Volta para casa é atalho oculto. |
-| **Vila** | Feirante, Laís, Guia da trilha | **Feira** (barraca; abas Vender/Encomendas; caixas abrem Encomendas; + banca), **Ateliê** (casa da Laís), **Portão da trilha** (passeios + mina; + picareta; abre no capítulo 3) |
+| **Vila** | Feirante, Laís | **Feira** (vender/encomendas; + banca), **Ateliê**, **Portão da trilha** (viaja para Natureza; capítulo 3) |
+| **Natureza** | Guia da trilha | **Coletar** reúne madeira, pedra, cobre, cristais e fibras; **Ferramentas** permite comprar/melhorar machados, picaretas e foice. |
 
-Regra (simplificação de 12/10/2026): **3 mundos, no máximo 4 lugares visíveis cada** (`content_test`).
+Regra atual: **4 mundos, no máximo 4 lugares visíveis cada** (`content_test`).
 Não existe menu "Construir": cada construção é comprada **no próprio lugar** — `"upgrade"` do lugar
 (sem ela, tocar abre a compra; móveis mostram "+") ou `"upgrades"` (cartões de compra dentro do painel).
 `Database.place_of_upgrade` acha esse lugar; o "Ir" das missões leva até lá.
-A antiga Trilha virou o portão da Vila (a arte `areas/trail/` ficou guardada para um mundo futuro).
-Rotas aparecem no lugar do tipo delas (`"place"` em `activities`: `walk`, `mine`, `orchard`).
+A trilha mora no novo mundo Natureza; o portão da Vila usa `travel:nature`. A arte antiga
+`areas/trail/` continua guardada. Rotas aparecem no lugar do tipo delas (`activities.place`:
+`walk`, `creek`, `mine`, `crystal`, `meadow` em Natureza; `orchard` no sítio).
+
+Natureza tem paisagem contínua 512×384 com bosque, riacho com ponte, trilha e gruta.
+`regions` cercam/sombreiam zonas fechadas, abrem por `requirements` ou compra (`upgrade`).
+Abrir por Aventura recalcula a grade do Tiro, mesmo sem nova construção comprada.
+Tocar no cenário ou no botão Coletar abre o mesmo painel; escolhe-se o material sem viajar
+para outro ponto. NatureUi seleciona a melhor rota liberada em `nature_resources`. Ferramentas
+opcionais melhoram rendimento e liberam madeira dura; rotas anteriores continuam disponíveis.
+O painel `nature:<grupos>` resolve os aliases `routes:<grupo>` para missão/manual/mochila.
+`route_markers` mostra timer/Recolher por `RouteIndicator` sobre o cenário; obstáculos
+separados impedem andar na água, árvores ou penhascos. O save mantém os ids de atividade.
+
+## Seleção de mundos
+
+Quatro cartões horizontais: miniatura inteira, nome curto, função, requisito ou aviso de pronto.
+Cartão inteiro tocável; mundo fechado tem requisito legível e não permite entrar. `map_name`
+e `map_caption` em worlds.json fornecem os textos curtos. Cabeçalho Para onde vamos?;
+Mundos volta à seleção. Natureza tem atalho direto Coletar no lugar do menu Lugares.
 
 ## Como criar um mundo novo (receita)
 

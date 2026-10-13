@@ -15,6 +15,7 @@ extends Node
 var dog := DogState.new()
 var inventory := Inventory.new()
 var stations: Dictionary = {}  # station_id -> StationState
+var animals: Dictionary = {}  # variedade -> quantidade comprada
 ## Canteiros: crop, planted_at e ready_at (Unix). Quantidade em config "farm.plots".
 var plots: Array[Dictionary] = []
 ## Terrenos comprados (em ordem fixa). Só valem depois da escritura do sítio ("farm").
@@ -38,6 +39,7 @@ func reset() -> void:
 	for id: String in start_items:
 		inventory.add(id, int(start_items[id]))
 	stations = {}
+	animals = {}
 	_ensure_stations()
 	plots = []
 	unlocked_plots = int(Database.farm.get("initial_plots", 3))
@@ -153,8 +155,9 @@ func cook(recipe_id: String) -> String:
 		return error
 	var recipe: Dictionary = Database.recipes[recipe_id]
 	var station_id: String = recipe.station
-	inventory.remove_all(recipe.get("inputs", {}))
+	inventory.remove_all(recipe_inputs(recipe_id))
 	station(station_id).enqueue(recipe_id, float(recipe.seconds), now())
+	station(station_id).queue.back()["qty"] = recipe_quantity(recipe_id)
 	_changed()
 	if Database.stations[station_id].get("kind", "") == "animal":
 		Events.world_activity.emit(&"feed_animal", station_id, -1)
@@ -173,9 +176,11 @@ func cook_error(recipe_id: String) -> String:
 	if reason != "":
 		return reason
 	var target := station(station_id)
+	if Database.stations[station_id].get("kind", "") == "animal" and animal_count(station_id) == 0:
+		return "Compre um animal para começar"
 	if target.queue.size() >= station_slots(station_id):
 		return "Fila cheia"
-	if not inventory.has_all(recipe.get("inputs", {})):
+	if not inventory.has_all(recipe_inputs(recipe_id)):
 		return "Faltam ingredientes"
 	return ""
 
@@ -183,12 +188,13 @@ func cook_error(recipe_id: String) -> String:
 ## Coleta tudo o que está pronto na estação. Retorna os itens recebidos.
 func collect(station_id: String) -> Dictionary:
 	var received := {}
-	for recipe_id in station(station_id).take_ready(now()):
+	for entry: Dictionary in station(station_id).take_ready_batches(now()):
+		var recipe_id: String = entry.recipe
 		var recipe: Dictionary = Database.recipes.get(recipe_id, {})
 		if recipe.is_empty():
 			continue  # receita removida do JSON: descarta sem travar a fila
 		var output: String = recipe["output"]
-		var qty := int(recipe.get("qty", 1))
+		var qty := int(entry.get("qty", recipe.get("qty", 1)))
 		inventory.add(output, qty)
 		progress.count("produce:" + output, qty)
 		progress.count("produce", qty)
@@ -199,6 +205,58 @@ func collect(station_id: String) -> Dictionary:
 		_changed()
 		Events.world_activity.emit(&"collect", station_id, -1)
 	return received
+
+
+func animal_count(station_id: String) -> int:
+	return animal_roster(station_id).size()
+
+
+func animal_roster(station_id: String) -> Array[String]:
+	var result: Array[String] = []
+	for id: String in Database.animals:
+		if Database.animals[id].station == station_id:
+			for i in int(animals.get(id, 0)):
+				result.append(id)
+	return result
+
+
+func buy_animal_error(id: String) -> String:
+	if not Database.animals.has(id):
+		return "Animal desconhecido"
+	var data: Dictionary = Database.animals[id]
+	if not has_upgrade(data.station):
+		return "Compre o abrigo primeiro"
+	if animal_count(data.station) >= int(Database.stations[data.station].animal_capacity):
+		return "Abrigo cheio"
+	if coins < int(data.price):
+		return "Faltam moedas"
+	return ""
+
+
+func buy_animal(id: String) -> String:
+	var error := buy_animal_error(id)
+	if error != "":
+		return error
+	coins -= int(Database.animals[id].price)
+	animals[id] = int(animals.get(id, 0)) + 1
+	_changed()
+	Events.world_activity.emit(&"buy_upgrade", str(Database.animals[id].station), -1)
+	return ""
+
+
+func recipe_quantity(recipe_id: String) -> int:
+	var recipe: Dictionary = Database.recipes[recipe_id]
+	var factor := animal_count(recipe.station) if Database.stations[recipe.station].get("kind", "") == "animal" else 1
+	return int(recipe.get("qty", 1)) * factor
+
+
+func recipe_inputs(recipe_id: String) -> Dictionary:
+	var recipe: Dictionary = Database.recipes[recipe_id]
+	var factor := animal_count(recipe.station) if Database.stations[recipe.station].get("kind", "") == "animal" else 1
+	var result: Dictionary = recipe.get("inputs", {}).duplicate()
+	for id: String in result:
+		result[id] = int(result[id]) * factor
+	return result
 
 
 # --- Horta (sítio) ---------------------------------------------------------
@@ -897,6 +955,7 @@ func to_dict() -> Dictionary:
 		"dog": dog.to_dict(),
 		"inventory": inventory.to_dict(),
 		"stations": station_data,
+		"animals": animals.duplicate(),
 		"plots": plots,
 		"unlocked_plots": unlocked_plots,
 		"coins": coins,
@@ -935,6 +994,17 @@ func from_dict(data: Dictionary) -> void:
 	level = int(data.get("level", 1))
 	progress = ProgressionState.new()
 	progress.from_dict(data.get("progression", {}))
+	animals = {}
+	if data.has("animals"):
+		for id: String in Database.animals:
+			if has_upgrade(Database.animals[id].station):
+				var remaining := int(Database.stations[Database.animals[id].station].animal_capacity) - animal_count(Database.animals[id].station)
+				animals[id] = clampi(int(data.animals.get(id, 0)), 0, remaining)
+	else:
+		# Na versão anterior cada abrigo comprado já mostrava dois animais.
+		for id: String in Database.animals:
+			if has_upgrade(Database.animals[id].station) and Database.animals[id].get("legacy", false):
+				animals[id] = 2
 	# Save de antes das novidades: o que já estava aberto não vira "Novo!".
 	if not data.get("progression", {}).has("seen"):
 		_mark_all_seen()

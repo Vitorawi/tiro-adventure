@@ -1,6 +1,7 @@
 {
   "house": {
     "name": "Casa",
+    "map_caption": "Cuidar do Tiro e cozinhar",
     "icon": "tab_house",
     "description": "Comer, cozinhar e guardar.",
     "room": "house",
@@ -48,6 +49,8 @@
   },
   "farm": {
     "name": "Sítio da Bloblo",
+    "map_name": "Sítio",
+    "map_caption": "Plantar, criar e produzir",
     "icon": "tab_farm",
     "description": "Plantar, colher e crescer.",
     "room": "farm",
@@ -125,8 +128,9 @@
   },
   "village": {
     "name": "Vila",
+    "map_caption": "Vender e fabricar",
     "icon": "coin",
-    "description": "Feira, ateliê e a trilha.",
+    "description": "Feira, ateliê e o portão para Natureza.",
     "room": "village",
     "requirements": {
       "quests": [
@@ -135,8 +139,7 @@
     },
     "npcs": [
       "merchant",
-      "artisan",
-      "guide"
+      "artisan"
     ],
     "places": {
       "market": {
@@ -158,15 +161,25 @@
       "gate": {
         "name": "Portão da trilha",
         "icon": "action_play",
-        "description": "Passeios e mina.",
-        "panel": "routes:walk+mine",
-        "upgrades": [
-          "pickaxe"
-        ],
+        "description": "Ir para Natureza.",
+        "panel": "travel:nature",
         "requirements": {
           "chapter": 3
         }
       }
+    }
+  },
+  "nature": {
+    "name": "Natureza",
+    "map_caption": "Coletar e melhorar ferramentas",
+    "icon": "item_wood",
+    "description": "Bosque, riacho, prado e grutas. Explore para coletar materiais.",
+    "room": "nature",
+    "requirements": {"chapter": 3},
+    "npcs": ["guide"],
+    "places": {
+      "resources": {"name": "Natureza", "icon": "item_wood", "description": "Colete materiais e melhore ferramentas num só lugar.", "panel": "nature:walk+creek+mine+crystal+meadow", "upgrades": ["axe", "axe_reinforced", "pickaxe", "pickaxe_reinforced", "pickaxe_crystal", "sickle"]},
+      "village": {"name": "Voltar para a vila", "icon": "coin", "description": "", "panel": "travel:village", "hidden": true}
     }
   }
 }

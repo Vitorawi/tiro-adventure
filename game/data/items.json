@@ -197,6 +197,9 @@
     "sell_price": 14,
     "trade_xp": 3
   },
+  "hardwood": {
+    "name": "Madeira dura", "category": "material", "icon": "res://assets/sprites/ui/icons/item_hardwood.png", "sell_price": 8, "trade_xp": 3
+  },
   "cheese": {
     "name": "Queijo",
     "category": "food",

@@ -11,7 +11,7 @@ https://vitorawi.github.io/tiro-adventure/ (versão de testes: `.../tiro-adventu
 Celular **em pé**, tela inteira, **100% toque**: o jogador não controla o movimento do cachorro
 (ele anda sozinho), só toca nos objetos (geladeira, horta, fogão...) e arrasta para mover a câmera.
 Começa com a casa quase vazia e vai comprando fogão, geladeira, sítio, oficina... com 4 atributos
-que evoluem e missões de personagens. Abas: **Tiro · Mapa** (mini mundos: Casa, Sítio, Vila — a trilha é um portão da Vila —
+que evoluem e missões de personagens. Abas: **Tiro · Mapa** (mini mundos: Casa, Sítio, Vila e Natureza — o portão da Vila leva a Natureza —
 cada um com seus personagens e lugares) **· Missões** (História passo a passo, Diárias e Semanais, com botão "Ir" e "?") **· Mochila**.
 
 Jogo 2D em **Godot 4.7.2** (GDScript), exportado para **Web** e instalado no celular como **PWA**
@@ -62,8 +62,8 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   scripts/state/     DogState, Inventory, StationState, ProgressionState (dados + to_dict/from_dict)
   scripts/ui/        UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
                      ProgressionUi (painéis: personagem, construir, vender, encomendas, rotas, atributos, coleção),
-                     GameManual (catálogo visual de recursos/estações), DevPanel (ferramentas DEV),
-                     PlotIndicator, StationIndicator (tempo/coleta de estações e criações),
+                     GameManual (catálogo), NatureUi (coleta/ferramentas reunidas), DevPanel (DEV),
+                     PlotIndicator, StationIndicator (estações/criações), RouteIndicator (exploração),
                      PetAnimator (animações do Tiro na aba Tiro)
   scripts/util/      BuildInfo (canal prod/dev, arquivo de save), TimeText (texto de duração)
   assets/            sprites/(characters,areas,tiles,ui,fx), theme/, audio/, fonts/, icons/ (PWA)
@@ -91,7 +91,10 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Mudar a aba Missões / Mochila         | `scenes/ui/tasks_screen/tasks_screen.gd` / `SheetBuilder.inventory_view` e `item_detail` |
 | Manual de recursos e estações        | `scripts/ui/game_manual.gd` (conteúdo derivado do Database); atalho na tela `pet_screen.gd` |
 | Expandir o sítio com áreas fechadas  | `rooms/farm.json → regions` (polígono, cerca e compra existente que libera a área) |
-| Galinhas/vacas e seus produtos       | `config.json → stations` com `kind: "animal"`; alimentação/ovos/leite em `recipes.json`, estado/timer em `StationState` |
+| Zonas da Natureza e seus materiais | `rooms/nature.json → regions` (requirements/upgrade), `worlds.json → nature.places`, `progression.json → activities` (walk/creek/mine/crystal/meadow) |
+| Melhorar ferramentas/coleta | `progression.json → nature_resources` (rotas em prioridade, ferramentas), `upgrades` e `activities`; `NatureUi.best_route` seleciona a melhor liberada |
+| Comprar galinhas/vacas e variedades | `config.json → animals` (nome, preço, abrigo, sprite/escala); `GameState.buy_animal`, `animals` salvo; loja em `SheetBuilder.animal_shop` |
+| Galinhas/vacas e seus produtos       | `config.json → stations` com `kind: "animal"`, `animal_capacity`; alimentação/ovos/leite em `recipes.json`, timer em `StationState` |
 | Reações do Tiro no mundo             | `Events.world_activity` (GameState) → `RoomView` (alvo) → `DogWorld.react_at` (animação/caminho) |
 | Nova ferramenta de teste (dev)        | `GameState.dev_*()` (com guarda `BuildInfo.is_dev()`) + botão em `scripts/ui/dev_panel.gd` |
 | Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: PrimaryButton, TabButton, CloseButton, CardPanel, ReadyCardPanel, ChipPanel, SheetPanel, TopBarPanel, TitleLabel, SectionLabel, SmallLabel, BarLabel, ToastLabel) |
@@ -143,7 +146,10 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   Criações usam o mesmo sistema de estações: `kind: "animal"`, `action_label`, `queue_label`,
   `recipe_label` e `instruction` em `config.json`; entrada = comida, saída = ovos/leite.
   `GameState.cook_error/cook` valida/consome uma vez; `collect` só entrega lotes prontos,
-  sem duplicar. Nenhum estado paralelo dos animais nem novo formato de save.
+  sem duplicar. `GameState.animals` guarda quantidade por variedade comprada; abrigo novo
+  começa vazio. Alimentação consome/produz por animal; lote salva `qty` ao alimentar,
+  então novas compras não alteram produção já iniciada. Save v7 preserva os dois animais
+  dos abrigos comprados em saves sem `animals`; filas antigas mantêm rendimento original.
 - **Ambientes (salas):** fundo vazio (piso + paredes) + cada móvel como sprite separado, tudo
   descrito em `game/data/rooms/<id>.json`. Coordenadas em pixels do fundo; `pos` = meio da base
   do sprite (usado na ordenação por Y); `footprint` = polígono no chão que bloqueia o caminho;
@@ -163,11 +169,23 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   Objetos da área usam `"region"` para esconder o "+" enquanto a área está fechada; após
   abrir, compras internas pendentes mostram "+". A compra revela o sprite,
   tira a cerca e atualiza a navegação; o save continua usando a construção já adquirida.
+  Alternativa: `regions[].requirements` abre automaticamente por capítulo/atributo/ferramenta;
+  `action` abre o painel da zona fechada. RoomView observa mudança de requisito e recalcula
+  o chão; etiquetas com `requirements`/`locked_label` alternam entre nome e bloqueio.
+  Natureza é um mundo próprio, aberto no capítulo 3. `route_group` em objetos associa
+  `RouteIndicator` ao grupo de exploração e mostra tempo/Recolher no destino.
+  Natureza usa cenário contínuo 512×384, com obstáculos de rio/árvores/rochas no fundo.
+  `route_markers` mostra timers sem sprites extras. Tocar no cenário ou em Coletar abre
+  um painel `nature:<grupos>`; suas partes são aliases `routes:<grupo>` para missão/manual.
+  Ferramentas são upgrades normais persistidos em `progress.owned`; as rotas antigas
+  continuam disponíveis. Melhorias liberam outras rotas sem alterar lotes em andamento.
   `"initial_zoom"`/`"view_center"` definem o enquadramento inicial de mapas maiores.
   `"approach"` é o ponto seguro para o Tiro se aproximar de um objeto/estação ao reagir.
   `"station"` também detecta produção pronta, mesmo sem `busy_frames`.
   `StationIndicator` mostra tempo/Coletar sobre a estação. `animal_idle: true` dá movimento
   leve ao sprite; `decoration: true` esconde marcadores de compra duplicados dos animais.
+  `animal_station`/`animal_slot` vinculam o sprite a uma vaga da criação: só aparece e
+  bloqueia o chão se houver animal comprado; a variedade fornece textura/escala do mapa.
   `scale` ajusta o tamanho de objetos (galinhas 0,6); toque considera essa escala.
   Etiquetas com `detail_label` aparecem no zoom ≥0,5; `overview_label` abaixo disso.
   Moinho/queijaria têm lugares próprios `hidden` para o toque direto, além do agrupamento
@@ -217,6 +235,8 @@ powershell -ExecutionPolicy Bypass -File tools\serve_local.ps1  # http://localho
 & $env:GODOT_BIN --headless --path game -s res://tests/manual_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/world_life_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/animals_test.gd
+& $env:GODOT_BIN --headless --path game -s res://tests/nature_test.gd
+& $env:GODOT_BIN --headless --path game -s res://tests/worlds_test.gd
 # Ou rode toda a suíte: powershell -File tools/test_all.ps1
 # Capturas das telas: rode sem --headless, com --resolution 360x780 e "-- --screenshots"
 

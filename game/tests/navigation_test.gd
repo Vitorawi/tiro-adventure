@@ -28,7 +28,7 @@ func _run() -> void:
 	var state: Node = root.get_node("GameState")
 	state.call("reset")
 	seed(2718)
-	for id: String in ["house", "farm", "village"]:
+	for id: String in ["house", "farm", "village", "nature"]:
 		var room: Control = load("res://scenes/levels/room/room.tscn").instantiate()
 		room.set("room_id", id)
 		room.set_anchors_preset(Control.PRESET_TOP_LEFT)
@@ -42,7 +42,7 @@ func _run() -> void:
 		for obstacle: Dictionary in data.get("obstacles", []):
 			blocked.append(polygon(obstacle.polygon))
 		for region: Dictionary in data.get("regions", []):
-			if not state.call("has_upgrade", region.upgrade):
+			if room.call("region_error", region) != "":
 				blocked.append(polygon(region.polygon))
 		for object: Dictionary in data.get("objects", []):
 			if object.has("footprint") and not object.has("upgrade"):

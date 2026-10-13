@@ -163,6 +163,10 @@
       "chapter": 3
     }
   },
+  "hardwood_planks": {
+    "station": "workbench", "inputs": {"hardwood": 2}, "output": "plank", "qty": 3, "seconds": 120,
+    "skill": "adventure", "skill_xp": 15, "requirements": {"chapter": 3}
+  },
   "cheese": {
     "station": "dairy",
     "inputs": {

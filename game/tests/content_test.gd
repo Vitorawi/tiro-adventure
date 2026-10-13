@@ -13,6 +13,12 @@ func check(ok: bool, context: String) -> void:
 
 func _run() -> void:
 	db = root.get_node("Database")
+	for id: String in db.get("animals"):
+		var animal: Dictionary = db.get("animals")[id]
+		check(db.get("stations").has(animal.station), id + ": abrigo existente")
+		check(int(animal.price) > 0, id + ": preço positivo")
+		check(ResourceLoader.exists(animal.sprite), id + ": sprite existente")
+		check(int(db.get("stations")[animal.station].get("animal_capacity", 0)) > 0, id + ": capacidade do abrigo")
 	var saver: Node = root.get_node("SaveManager")
 	root.remove_child(saver)
 	saver.free()
@@ -102,7 +108,7 @@ func _run() -> void:
 					for id in arg.split("+"):
 						check(db.get("stations").has(id), place + ": estação inexistente " + id)
 				"travel": check(db.get("worlds").has(arg), place + ": mundo inexistente")
-				"routes":
+				"routes", "nature":
 					for group in arg.split("+"):
 						check(data.activities.values().any(func(a: Dictionary) -> bool: return a.place == group), place + ": grupo de rotas inexistente " + group)
 				"market": check(arg in ["sell", "orders"], place + ": aba da feira")
@@ -115,7 +121,7 @@ func _run() -> void:
 		# Simplicidade: no máximo 4 lugares visíveis por mundo (fora viagens).
 		var visible: Array = w.places.values().filter(func(p: Dictionary) -> bool: return not p.get("hidden", false) and not str(p.get("panel", "")).begins_with("travel"))
 		check(visible.size() <= 4, world + ": mais de 4 lugares")
-	check(db.get("worlds").size() == 3, "o jogo tem 3 mundos")
+	check(db.get("worlds").size() == 4, "o jogo tem 4 mundos")
 	# Revelar aos poucos: personagem aparece até o capítulo da primeira missão dele.
 	for npc: String in db.get("npcs"):
 		var from := int(db.get("npcs")[npc].get("requirements", {}).get("chapter", 1))
@@ -130,6 +136,12 @@ func _run() -> void:
 		var a: Dictionary = data.activities[id]
 		if a.place in ["walk", "mine"]:
 			check(int(a.requirements.get("chapter", 1)) >= 3, id + ": rota antes da Trilha abrir")
+	for id: String in data.get("nature_resources", {}):
+		check(db.get("items").has(id), id + ": material de coleta existente")
+		for route: String in data.nature_resources[id].routes:
+			check(data.activities.has(route) and data.activities[route].rewards.get("items", {}).has(id), id + ": rota rende este material")
+		for tool: String in data.nature_resources[id].tools:
+			check(data.upgrades.has(tool), id + ": ferramenta existente")
 	for id: String in data.orders:
 		check("first_harvest" in data.orders[id].requirements.get("quests", []), id + ": pedido antes da Vila abrir")
 	_validate_targets()

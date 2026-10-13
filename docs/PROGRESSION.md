@@ -1,5 +1,35 @@
 # Progressão (Jornada)
 
+## Ferramentas e coleta na Natureza
+
+`nature_resources` em progression.json define por material os `routes` em ordem de preferência
+e `tools` na ordem das melhorias. NatureUi escolhe a primeira rota cujos requisitos foram
+cumpridos, mesmo durante outro lote. Todo material aparece no painel único; começo/recolher
+usa GameState.start_activity/collect_activity, com timestamps e limite de uma exploração.
+
+- Machado (60) → reforçado (180): madeira em maior quantidade → madeira dura.
+- Picareta (80) → reforçada (220) → precisão (340): mais pedra/cobre → mais cristais.
+- Foice (90): mais fibras em menos tempo.
+
+Custos em moedas; materiais e requisitos ficam nos upgrades JSON. São melhorias opcionais:
+rotas antigas e saves em andamento mantêm requisitos, duração e recompensa anteriores.
+Madeira dura também vira três tábuas a partir de duas unidades na bancada. Save v7 continua
+adequado: compras persistem em progress.owned; novos ids não alteram o formato do estado.
+
+## Compra de animais
+
+`config.json.animals` define variedades, `station`, `price`, `sprite` e `map_scale`.
+Galinheiro/curral têm `animal_capacity: 3`, começam vazios e abrem uma loja própria.
+Galinhas: branca (60), ruiva (80), preta (90 moedas). Vacas: pintadinha (140), caramelo
+(180), malhada (200). Todas as variedades da mesma espécie têm o mesmo rendimento;
+a escolha é visual. Pode repetir variedades até ocupar as três vagas.
+
+`GameState.buy_animal_error/buy_animal` valida abrigo comprado, vagas e saldo antes de
+cobrar. `GameState.animals` persiste quantidades por variedade. Alimentar o abrigo inteiro
+consome os ingredientes por animal e produz `qty` por animal; a fila fixa a quantidade ao
+iniciar. Save v7 mantém as filas anteriores e concede os dois animais que já apareciam
+nos abrigos comprados da versão anterior, somente quando não existe o campo `animals`.
+
 > Sistema implementado em 12/10/2026 (Codex) e revisado/organizado no mesmo dia (Claude Code).
 > Conteúdo e números ficam nos JSON de `game/data/`; este doc explica **como funciona e como estender**.
 
@@ -61,7 +91,7 @@ As criações reutilizam `StationState` e os timestamps Unix das receitas, com u
 | **Capítulos** | `progression.json` → `chapters` (+ `final_chapter`) | A "história": cada capítulo termina ao comprar seu `target`. Aparece em Jornada → Hoje. |
 | **Novidades** | `progression.json` → `features` | O que a história revela (Mochila, diárias, semanais, atributos), com `requirements` e `go`. |
 | **Missões** | `quests.json`, `routines.json` | História (capítulos em passos) + diárias e semanais sorteadas. Objetivos + recompensas. |
-| **NPCs** | `npcs.json` (+ mundo em `worlds.json`) | Bloblo (Sítio), Feirante, Laís (a artesã) e Guia da trilha (Vila). `portrait` = retrato (hoje provisórios do PixelLab; trocar pelas fotos), `services` = atalhos para lugares. |
+| **NPCs** | `npcs.json` (+ mundo em `worlds.json`) | Bloblo (Sítio), Feirante e Laís (Vila), Guia da trilha (Natureza). `portrait` = retrato (hoje provisórios do PixelLab; trocar pelas fotos), `services` = atalhos para lugares. |
 | **Coleção** | `collections.json` | Roupas/apetrechos ganhos em missões (`slot`: head/neck/body; `sprite` para vestir no futuro). |
 | **Sítio** | `config.json` → `farm` | 1 canteiro emprestado antes da escritura; depois 3 iniciais e expansão até 9 (`unlock_costs`). |
 

@@ -60,6 +60,9 @@ func _run() -> void:
 	check(orchard.self_modulate.a == 0.0, "Comprar estufa não libera o pomar")
 	# Um save com compras antigas também revela as novas construções/áreas.
 	state.call("dev_unlock_everything")
+	state.call("dev_add_coins", 3000)
+	for id: String in root.get_node("Database").get("animals"):
+		check(state.call("buy_animal", id) == "", "Comprar variedades para conferir caminhos")
 	await create_timer(2.2).timeout
 	main.get_node("Celebration").hide()
 	await process_frame

@@ -182,6 +182,16 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 		var data: Dictionary = Database.stations[station_id]
 		if data.get("instruction", "") != "":
 			box.add_child(UiKit.label(data.instruction, &"SmallLabel"))
+		if data.get("kind", "") == "animal":
+			box.add_child(UiKit.label("Seus animais · %d/%d" % [GameState.animal_count(station_id), int(data.animal_capacity)], &"SectionLabel"))
+			var herd := UiKit.flow()
+			for animal_id: String in GameState.animal_roster(station_id):
+				herd.add_child(UiKit.icon(load(Database.animals[animal_id].sprite), 48))
+			box.add_child(herd)
+			box.add_child(UiKit.button("Comprar animais", open_animal_shop.bind(station_id)))
+			if GameState.animal_count(station_id) == 0:
+				box.add_child(UiKit.label("Abrigo vazio. Escolha seu primeiro animal.", &"SmallLabel"))
+				return
 
 		box.add_child(UiKit.label("%s  %d/%d" % [data.get("queue_label", "Preparando"), target.queue.size(), slots], &"SectionLabel"))
 		var slot_row := UiKit.hbox(8)
@@ -208,11 +218,12 @@ static func _slot_card(entry: Dictionary, now: float) -> Control:
 	var seconds := float(recipe["seconds"])
 	var remaining := float(entry["ready_at"]) - now
 	var texture := Database.item_icon(recipe["output"])
+	var amount := " · ×%d" % int(entry.get("qty", recipe.get("qty", 1)))
 	if remaining <= 0.0:
-		return _slot_frame(texture, "Pronto!", 1.0, true, false)
+		return _slot_frame(texture, "Pronto!" + amount, 1.0, true, false)
 	if remaining > seconds:
 		return _slot_frame(texture, "Na fila", 0.0, false, false)
-	return _slot_frame(texture, format_time(int(ceil(remaining))), 1.0 - remaining / seconds, false, false)
+	return _slot_frame(texture, format_time(int(ceil(remaining))) + amount, 1.0 - remaining / seconds, false, false)
 
 
 static func _slot_frame(texture: Texture2D, text: String, progress: float, done: bool, empty: bool) -> Control:
@@ -240,14 +251,14 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 	var recipe: Dictionary = Database.recipes[recipe_id]
 	var locked := GameState.content_error("recipe", recipe_id, recipe)
 	var output: String = recipe["output"]
-	var inputs: Dictionary = recipe["inputs"]
+	var inputs: Dictionary = GameState.recipe_inputs(recipe_id)
 	var body := UiKit.card(parent)
 
 	var top := UiKit.hbox(10)
 	top.add_child(UiKit.icon(Database.item_icon(output), 64))
 	var info := UiKit.vbox(4)
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var qty := int(recipe.get("qty", 1))
+	var qty := GameState.recipe_quantity(recipe_id)
 	info.add_child(UiKit.label(Database.item_name(output) + ("  x%d" % qty if qty > 1 else "")))
 	var details := UiKit.flow()
 	details.add_child(UiKit.chip(UiKit.ui_icon("timer"), format_time(int(recipe["seconds"]))))
@@ -279,6 +290,40 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 	body.add_child(row)
 	if locked != "":
 		body.add_child(UiKit.label(locked, &"SmallLabel"))
+
+
+static func open_animal_shop(station_id: String) -> void:
+	Events.sheet_requested.emit("Comprar animais", animal_shop(station_id))
+
+
+static func animal_shop(station_id: String) -> Control:
+	return LiveBox.new(func(box: VBoxContainer) -> void:
+		var data: Dictionary = Database.stations[station_id]
+		box.add_child(UiKit.label("%s · %d/%d animais" % [data.name, GameState.animal_count(station_id), int(data.animal_capacity)], &"SectionLabel"))
+		box.add_child(UiKit.label("Escolha o visual. Cada animal produz 2 unidades por alimentação.", &"SmallLabel"))
+		for id: String in Database.animals:
+			var animal: Dictionary = Database.animals[id]
+			if animal.station != station_id:
+				continue
+			var body := UiKit.card(box)
+			var row := UiKit.hbox(8)
+			row.add_child(UiKit.icon(load(animal.sprite), 64))
+			var info := UiKit.vbox(4)
+			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			info.add_child(UiKit.label(animal.name))
+			info.add_child(UiKit.label("Você tem %d" % int(GameState.animals.get(id, 0)), &"SmallLabel"))
+			row.add_child(info)
+			body.add_child(row)
+			var error := GameState.buy_animal_error(id)
+			var buy := UiKit.button("Comprar · %d moedas" % int(animal.price), func() -> void:
+				var reason := GameState.buy_animal(id)
+				Events.toast_requested.emit(reason if reason != "" else "%s chegou ao sítio!" % animal.name), &"PrimaryButton")
+			buy.disabled = error != ""
+			body.add_child(buy)
+			if error != "":
+				body.add_child(UiKit.label(error, &"SmallLabel"))
+		box.add_child(UiKit.button("Ver meus animais", func() -> void:
+			Events.sheet_requested.emit(data.name, station_view(station_id)))))
 
 
 ## Sementes para um canteiro vazio: [planta] nome · tempo · moedas · colheita · [Plantar].

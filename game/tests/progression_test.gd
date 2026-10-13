@@ -109,6 +109,9 @@ func _campaign() -> Dictionary:
 		var step: String = state.get("progress").current_main_quest()
 		var wanted: Array = database.get("quests")[step].goals.map(func(g: Dictionary) -> String: return str(g.get("key", ""))) if step != "" else []
 		for id: String in recipes:
+			for animal_id: String in database.get("animals"):
+				if database.get("animals")[animal_id].station == recipes[id].station and state.call("animal_count", recipes[id].station) == 0:
+					state.call("buy_animal", animal_id)
 			if state.get("inventory").count(recipes[id].output) >= 12 and not ("produce:" + str(recipes[id].output)) in wanted:
 				continue
 			if state.call("cook", id) == "":
@@ -127,14 +130,14 @@ func _campaign() -> Dictionary:
 				state.call("buy_upgrade", id)
 		if state.call("has_upgrade", "farm") and state.get("coins") > 300:
 			state.call("buy_plot", int(state.get("unlocked_plots")))
-		var rotation: Array[String] = ["lane", "trail", "quarry", "copper_vein", "crystal_cave", "meadow", "orchard_harvest"]
+		var rotation: Array[String] = ["lane", "trail", "quarry", "copper_vein", "crystal_cave", "meadow", "orchard_harvest", "timber", "deep_quarry", "crystal_deep", "reeds"]
 		var candidates: Array[String] = [rotation[turn % rotation.size()], "trail", "lane"]
 		for id in candidates:
 			if state.call("start_activity", id) == "":
 				state.get("progress").activity["ready_at"] = 1.0
 				state.call("collect_activity")
 				break
-		if state.get("progress").claimed_quests.size() == database.get("quests").size():
+		if state.get("progress").claimed_quests.size() == database.get("quests").size() and progression.upgrades.keys().all(func(id: String) -> bool: return state.call("has_upgrade", id)):
 			break
 	_check(state.get("progress").chapter_index() == progression.chapters.size() + 1, "Campanha deve concluir todos os capítulos")
 	for id: String in progression.upgrades:

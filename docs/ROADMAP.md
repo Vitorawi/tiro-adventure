@@ -4,6 +4,55 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **13/10/2026, Codex**.
 
+**Natureza integrada, ferramentas e seleção de mundos (Codex, 13/10/2026).**
+- Substituído o mapa de pontos separados por paisagem PixelLab contínua 512×384: floresta,
+  riacho com ponte, trilha e gruta. Obstáculos reais bloqueiam água, árvores e penhascos.
+- NatureUi reúne todos os materiais e ferramentas num painel; botão Coletar no cabeçalho,
+  cenário inteiro tocável. `nature_resources` prioriza melhor rota conforme ferramentas;
+  madeira/pedra/cobre/cristais/fibras não exigem trocar de lugar para coletar.
+- Machado → reforçado (madeira dura); picareta → reforçada → precisão; foice. Ferramentas
+  são compras normais. Madeira dura vira tábuas na bancada e serve à picareta de precisão.
+  Rotas existentes preservadas, melhorias opcionais; save/produção em curso mantêm resultados.
+- Mundos: quatro cartões horizontais com miniatura inteira, nome curto, função, bloqueio/
+  status; cartão inteiro entra com um toque. Título Para onde vamos?, volta por Mundos.
+- Testes de Natureza cobrem compra via UI, seleção automática, rendimento, save e melhoria
+  durante lote; campanha simulada chegou a 33 missões e 21 aquisições em 130 ciclos.
+  Worlds test cobre bloqueio/entrada por cartão e atalho de coleta. Capturas 360×780.
+- Suíte completa verde e export Web prod/dev sem erros. Capturas finais:
+  `worlds_{locked,select}.png`, `nature_{open,collect,collect_ready,tools_buy}.png` em
+  build/screenshots. Caminhos de ambos os lados da ponte e até a gruta também validados.
+- Publicação prod/dev autorizada por Vitor em 13/10/2026, via main, incluindo Natureza,
+  ferramentas, seleção de mundos e variedades dos animais. Próximo: acompanhar no celular.
+
+**Natureza como novo mundo — protótipo substituído pela versão acima (Codex, 13/10/2026).**
+- Quarto mundo, mapa 1208×683 com árvores/troncos, riacho/ponte, prado de fibras, gruta
+  de pedra/cobre e gruta de cristais. Portão da Vila viaja para Natureza; Guia mudou para lá.
+- Abre no capítulo 3. Bosque disponível ao entrar; riacho = Aventura 2; pedra = picareta;
+  cristais = picareta + Aventura 3; prado = Aventura 4. Mesmas rotas/ids/tempos/recompensas.
+- `regions.requirements` abre cercas por progressão e recalcula a navegação. Etiquetas
+  alternam entre requisito e nome; objetos de exploração mostram timer/Recolher no mapa.
+- Destinos de missão/manual/mochila resolvem cada zona. Saves e rotas em curso preservados.
+- `nature_test` valida viagem pelo portão, evolução real abrindo riacho, picareta/grutas,
+  áreas bloqueadas/abertas, coleta única, indicadores e navegação. Capturas 360×780 em
+  `build/screenshots/nature_{locked,open,ready,crystals}.png`.
+- Suíte completa verde (incluindo Natureza e animais); export Web prod/dev concluído sem
+  erros. Capturas conferidas em 360×780, com requisitos legíveis e sem etiquetas sobrepostas.
+- Protótipo substituído pela versão integrada acima, incluída na publicação autorizada.
+
+**Compra individual e variedades dos animais (Codex, 13/10/2026).**
+- Galinheiro/curral novos começam vazios. Loja dentro do abrigo: três variedades por espécie,
+  preço individual, quantidade possuída e três vagas por abrigo; cada compra aparece no mapa.
+- Galinhas branca/ruiva/preta; vacas pintadinha/caramelo/malhada. Variedade muda o visual;
+  cada animal consome o alimento da receita e produz duas unidades. Quantidade do lote é
+  fixada ao alimentar, inclusive offline; comprar outro animal não aumenta lote em curso.
+- Save v7 mantém os dois animais antes incluídos em cada abrigo já adquirido; saves novos
+  guardam quantidades por variedade. Slots vazios não bloqueiam caminhos nem recebem toque.
+- Suíte completa passou, incluindo campanha com compras reais, lotação, moedas,
+  save/migração e caminhos com as seis variedades. Loja/mapa conferidos em 360×780.
+- Export Web prod/dev concluído sem erros; capturas em `build/screenshots/animals_shop.png`
+  e `animals_farm_overview.png`. O botão da loja também é testado acionando sua compra.
+- Incluído na publicação autorizada em 13/10/2026, junto de Natureza e seleção de mundos.
+
 **Sítio dos animais e processamento (Codex, 13/10/2026).**
 - Quarta área no sítio (1208×683), cercada até comprar o galinheiro. Corredor independente
   das expansões de estufa/pomar; duas galinhas e duas vacas, com arte PixelLab e movimento leve.

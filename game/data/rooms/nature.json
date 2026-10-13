@@ -1,0 +1,31 @@
+{
+  "background": "res://assets/sprites/areas/nature/nature.png",
+  "floor": [[20, 214], [250, 79], [493, 213], [251, 329]],
+  "navigation_margin": 4,
+  "dog_scale": 0.5,
+  "obstacles": [
+    {"id": "woods", "polygon": [[0, 57], [118, 8], [233, 35], [248, 129], [222, 159], [154, 169], [129, 193], [97, 195], [60, 191], [50, 224], [19, 229], [0, 214]]},
+    {"id": "cliffs", "polygon": [[281, 71], [340, 44], [366, 24], [420, 28], [490, 74], [511, 121], [511, 203], [471, 179], [436, 178], [423, 149], [394, 149], [398, 123], [364, 103], [338, 126], [302, 117]]},
+    {"id": "stream_north", "polygon": [[262, 90], [277, 88], [295, 101], [280, 125], [286, 144], [319, 158], [300, 172], [277, 190], [266, 166], [262, 147], [260, 120], [250, 107]]},
+    {"id": "stream_south", "polygon": [[213, 198], [238, 205], [224, 224], [235, 246], [206, 271], [151, 284], [92, 259], [102, 243], [156, 225], [190, 222], [195, 210]]}
+  ],
+  "objects": [],
+  "route_markers": [
+    {"group": "walk", "pos": [165, 185]},
+    {"group": "creek", "pos": [321, 199]},
+    {"group": "mine", "pos": [375, 190]},
+    {"group": "crystal", "pos": [416, 173]},
+    {"group": "meadow", "pos": [280, 281]}
+  ],
+  "regions": [
+    {"id": "creek_area", "requirements": {"skills": {"adventure": 2}}, "polygon": [[246, 95], [329, 104], [331, 174], [287, 191], [267, 163]], "gate": [[322, 172], [303, 184]], "action": "place:resources"},
+    {"id": "rocks_area", "upgrade": "pickaxe", "polygon": [[339, 131], [459, 188], [494, 211], [364, 238], [315, 203], [323, 163]], "gate": [[338, 189], [363, 208]], "action": "place:resources", "label": "Picareta", "label_pos": [417, 218], "locked_label": true},
+    {"id": "crystals_area", "requirements": {"owned": ["pickaxe"], "skills": {"adventure": 3}}, "polygon": [[388, 123], [429, 139], [424, 161], [388, 164]], "gate": [[391, 155], [415, 164]], "action": "place:resources"},
+    {"id": "meadow_area", "requirements": {"skills": {"adventure": 4}}, "polygon": [[183, 274], [282, 226], [426, 240], [268, 321], [208, 300]], "gate": [[263, 239], [290, 249]], "action": "place:resources", "label": "Aventura 4", "label_pos": [295, 292], "locked_label": true}
+  ],
+  "zones": [
+    {"id": "village", "action": "place:village", "label": "Vila", "label_pos": [254, 80], "polygon": [[241, 83], [259, 75], [275, 85], [259, 99]]},
+    {"id": "resources", "action": "place:resources", "label": "Coletar", "label_pos": [244, 217], "polygon": [[0, 0], [512, 0], [512, 384], [0, 384]]}
+  ],
+  "points": {"dog_start": [246, 226]}
+}

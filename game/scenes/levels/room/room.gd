@@ -37,8 +37,11 @@ var _press_position := Vector2.ZERO
 var _dragged := false
 var _object_frame := 0
 var _owned_snapshot: Dictionary = {}
+var _animals_snapshot: Dictionary = {}
+var _region_open_snapshot: Array[bool] = []
 var _labels: Array[Label] = []
 var _regions: Array[Node2D] = []
+var _route_markers: Array[RouteIndicator] = []
 var _ready_counts: Dictionary = {}
 var navigation_revision: int = 0
 ## Seta do "Ir": pulsa sobre o objeto do destino até o próximo toque (ou alguns segundos).
@@ -61,6 +64,13 @@ func _ready() -> void:
 		world_id = room_id
 	_spawn_labels()
 	_spawn_regions()
+	for data: Dictionary in _room.get("route_markers", []):
+		var indicator := RouteIndicator.new()
+		indicator.group = data.group
+		indicator.position = _vec(data.pos)
+		indicator.z_index = 5
+		_world.add_child(indicator)
+		_route_markers.append(indicator)
 	Events.state_changed.connect(_refresh_ownership)
 	Events.world_activity.connect(_on_world_activity)
 	_refresh_ownership()
@@ -114,10 +124,12 @@ func _build_navigation() -> void:
 	for obstacle: Dictionary in _room.get("obstacles", []):
 		blocked.append(_polygon(obstacle["polygon"]))
 	for region: Dictionary in _room.get("regions", []):
-		if not GameState.has_upgrade(region.upgrade):
+		if region_error(region) != "":
 			blocked.append(_polygon(region.polygon))
 	for data: Dictionary in _room.get("objects", []):
 		if data.has("footprint"):
+			if data.has("animal_station") and int(data.animal_slot) >= GameState.animal_count(data.animal_station):
+				continue
 			if data.has("upgrade") and not GameState.has_upgrade(data.upgrade):
 				continue
 			blocked.append(_polygon(data["footprint"]))
@@ -171,6 +183,15 @@ func _spawn_objects() -> void:
 		sprite.scale = Vector2.ONE * float(data.get("scale", 1.0))
 		sprite.set_meta("action", data.get("action", ""))
 		sprite.set_meta("decoration", data.get("decoration", false))
+		if data.has("animal_station"):
+			sprite.set_meta("animal_station", data.animal_station)
+			sprite.set_meta("animal_slot", int(data.animal_slot))
+		if data.has("route_group"):
+			var indicator := RouteIndicator.new()
+			indicator.name = "RouteIndicator"
+			indicator.group = data.route_group
+			indicator.z_index = 2
+			sprite.add_child(indicator)
 		if data.get("animal_idle", false):
 			sprite.set_meta("idle_offset", sprite.offset)
 		sprite.set_meta("approach", _vec(data.get("approach", data["pos"])))
@@ -239,7 +260,11 @@ func _animate_objects() -> void:
 	if not is_visible_in_tree():
 		return
 	_object_frame += 1
+	for indicator: RouteIndicator in _route_markers:
+		indicator.refresh()
 	for sprite in _objects:
+		if sprite.has_node("RouteIndicator"):
+			(sprite.get_node("RouteIndicator") as RouteIndicator).refresh()
 		if sprite.has_meta("idle_offset"):
 			var phase := float(_object_frame) / OBJECT_FPS + sprite.position.x
 			sprite.offset = (sprite.get_meta("idle_offset") as Vector2) + Vector2(sin(phase * 1.5) * 1.3, sin(phase) * 0.8)
@@ -285,10 +310,15 @@ func _update_plot(sprite: Sprite2D) -> void:
 
 
 func _refresh_ownership() -> void:
-	if _owned_snapshot == GameState.progress.owned and has_meta("ownership_ready"):
+	var opened: Array[bool] = []
+	for data: Dictionary in _room.get("regions", []):
+		opened.append(region_error(data) == "")
+	if _owned_snapshot == GameState.progress.owned and _animals_snapshot == GameState.animals and _region_open_snapshot == opened and has_meta("ownership_ready"):
 		return
 	set_meta("ownership_ready", true)
 	_owned_snapshot = GameState.progress.owned.duplicate()
+	_animals_snapshot = GameState.animals.duplicate()
+	_region_open_snapshot = opened
 	for sprite: Sprite2D in _objects:
 		if sprite.has_meta("upgrade"):
 			var purchased := GameState.has_upgrade(sprite.get_meta("upgrade"))
@@ -296,11 +326,24 @@ func _refresh_ownership() -> void:
 			var region_locked := false
 			for data: Dictionary in _room.get("regions", []):
 				if data.id == sprite.get_meta("region", ""):
-					region_locked = not GameState.has_upgrade(data.upgrade)
+					region_locked = region_error(data) != ""
 			sprite.get_node("PurchaseMarker").visible = not purchased and not region_locked and not sprite.get_meta("decoration", false)
+		if sprite.has_meta("animal_station"):
+			var roster := GameState.animal_roster(sprite.get_meta("animal_station"))
+			var slot: int = sprite.get_meta("animal_slot")
+			sprite.visible = slot < roster.size()
+			if sprite.visible:
+				var animal: Dictionary = Database.animals[roster[slot]]
+				sprite.texture = load(animal.sprite)
+				sprite.offset = -Vector2(sprite.texture.get_width() / 2.0, sprite.texture.get_height())
+				sprite.set_meta("idle_offset", sprite.offset)
+				sprite.scale = Vector2.ONE * float(animal.map_scale)
 	for region: Node2D in _regions:
-		region.visible = not GameState.has_upgrade(region.get_meta("upgrade"))
+		region.visible = region_error(region.get_meta("data")) != ""
 	for tag: Label in _labels:
+		if tag.has_meta("requirements"):
+			var blocked := GameState.requirement_error(tag.get_meta("requirements")) != ""
+			tag.visible = blocked if tag.get_meta("locked_label", false) else not blocked
 		var upgrade: String = tag.get_meta("upgrade", "")
 		if upgrade != "":
 			tag.visible = GameState.has_upgrade(upgrade)
@@ -311,6 +354,16 @@ func _refresh_ownership() -> void:
 	_build_navigation()
 	if _dog and _room.get("points", {}).has("sleep"):
 		_dog.sleep_point = _point("sleep") if GameState.has_upgrade("sofa") else _point("sleep_approach")
+
+
+## Regiões podem abrir por compra ou por requisitos da aventura/história.
+func region_error(data: Dictionary) -> String:
+	var requirements: Dictionary = data.get("requirements", {}).duplicate(true)
+	if data.has("upgrade"):
+		var owned: Array = requirements.get("owned", []).duplicate()
+		owned.append(data.upgrade)
+		requirements["owned"] = owned
+	return GameState.requirement_error(requirements)
 
 
 ## Etiquetas sobre o que dá para tocar ("label" + "label_pos" em zonas e objetos):
@@ -337,6 +390,9 @@ func _spawn_labels() -> void:
 		tag.set_meta("anchor", _vec(data.get("label_pos", data.get("pos", [0, 0]))))
 		tag.set_meta("detail_label", data.get("detail_label", false))
 		tag.set_meta("overview_label", data.get("overview_label", false))
+		if data.has("requirements"):
+			tag.set_meta("requirements", data.requirements)
+			tag.set_meta("locked_label", data.get("locked_label", false))
 		if data.has("upgrade"):
 			tag.set_meta("locked_upgrade" if data.get("locked_label", false) else "upgrade", data.upgrade)
 		_world.add_child(tag)
@@ -351,7 +407,7 @@ func _spawn_regions() -> void:
 		var region := Node2D.new()
 		region.name = "Region_" + str(data.id)
 		region.z_index = 3
-		region.set_meta("upgrade", data.upgrade)
+		region.set_meta("data", data)
 		var shade := Polygon2D.new()
 		shade.polygon = _polygon(data.polygon)
 		shade.color = Color(0.16, 0.12, 0.08, 0.45)
@@ -393,6 +449,9 @@ func _place_labels() -> void:
 		var upgrade: String = tag.get_meta("upgrade", "")
 		var locked: String = tag.get_meta("locked_upgrade", "")
 		tag.visible = (upgrade == "" or GameState.has_upgrade(upgrade)) and (locked == "" or not GameState.has_upgrade(locked))
+		if tag.has_meta("requirements"):
+			var blocked := GameState.requirement_error(tag.get_meta("requirements")) != ""
+			tag.visible = tag.visible and (blocked if tag.get_meta("locked_label", false) else not blocked)
 		if tag.get_meta("detail_label", false):
 			tag.visible = tag.visible and _zoom >= 0.5
 		if tag.get_meta("overview_label", false):
@@ -612,8 +671,17 @@ func clear_pointer() -> void:
 func _handle_tap(point: Vector2) -> void:
 	clear_pointer()
 	for region: Dictionary in _room.get("regions", []):
-		if not GameState.has_upgrade(region.upgrade) and Geometry2D.is_point_in_polygon(point, _polygon(region.polygon)):
-			Events.sheet_requested.emit(region.get("label", "Expandir"), ProgressionUi.purchase(region.upgrade))
+		if region_error(region) != "" and Geometry2D.is_point_in_polygon(point, _polygon(region.polygon)):
+			if region.has("action"):
+				Places.run(world_id, region.action)
+			elif region.has("upgrade"):
+				Events.sheet_requested.emit(region.get("label", "Expandir"), ProgressionUi.purchase(region.upgrade))
+			else:
+				Places.run(world_id, region.get("action", ""))
+			return
+	for indicator: RouteIndicator in _route_markers:
+		if indicator.active() and indicator.hit_rect.has_point(point - indicator.position):
+			Places.run(world_id, "place:resources")
 			return
 	if _dog and _dog.hit_test(point):
 		Events.screen_requested.emit(&"pet")
@@ -622,6 +690,11 @@ func _handle_tap(point: Vector2) -> void:
 	var ordered := _objects.duplicate()
 	ordered.sort_custom(func(a: Sprite2D, b: Sprite2D) -> bool: return a.position.y > b.position.y)
 	for sprite: Sprite2D in ordered:
+		if sprite.has_node("RouteIndicator"):
+			var indicator := sprite.get_node("RouteIndicator") as RouteIndicator
+			if indicator.active() and indicator.hit_rect.has_point((point - sprite.position) / sprite.scale):
+				_on_object_tapped(sprite.get_meta("action"), sprite)
+				return
 		if sprite.has_node("ProductionIndicator"):
 			var indicator := sprite.get_node("ProductionIndicator") as StationIndicator
 			if GameState.has_upgrade(indicator.station_id) and not GameState.station(indicator.station_id).queue.is_empty() and indicator.hit_rect.has_point(point - sprite.position):
@@ -670,7 +743,7 @@ func _on_plot_tapped(index: int) -> void:
 ## Toque preciso: dentro do retângulo e num pixel não transparente do desenho.
 func _hits(sprite: Sprite2D, local: Vector2) -> bool:
 	var unscaled := local / sprite.scale
-	return sprite.texture != null and sprite.get_rect().has_point(unscaled) and sprite.is_pixel_opaque(unscaled)
+	return sprite.visible and sprite.texture != null and sprite.get_rect().has_point(unscaled) and sprite.is_pixel_opaque(unscaled)
 
 
 ## `target` é o sprite tocado (quando houver), para ações que dependem dele (canteiros).

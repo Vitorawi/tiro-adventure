@@ -21,7 +21,10 @@ func _ready() -> void:
 	%MapButton.pressed.connect(show_map)
 	%MapButton.icon = UiKit.ui_icon("tab_map")
 	%PlacesButton.pressed.connect(func() -> void:
-		Events.sheet_requested.emit("O que tem aqui?", Places.world_list(current_world)))
+		if current_world == "nature":
+			NatureUi.open()
+		else:
+			Events.sheet_requested.emit("O que tem aqui?", Places.world_list(current_world)))
 	%Cards.add_child(SheetBuilder.LiveBox.new(_build_cards))
 	Events.state_changed.connect(_refresh_header)
 	var timer := Timer.new()
@@ -113,6 +116,7 @@ func _refresh_header() -> void:
 		return
 	_header_key = key
 	%WorldTitle.text = world.get("name", "")
+	%PlacesButton.text = "Coletar" if current_world == "nature" else "Lugares"
 	for child in %NpcRow.get_children():
 		child.queue_free()
 	%NpcRow.visible = not Places.visible_npcs(current_world).is_empty()
@@ -130,38 +134,65 @@ func _refresh_header() -> void:
 # --- Mapa ----------------------------------------------------------------------
 
 func _build_cards(box: VBoxContainer) -> void:
+	box.add_theme_constant_override("separation", 10)
 	for world_id: String in Database.worlds:
 		var world: Dictionary = Database.worlds[world_id]
 		var locked := Places.world_error(world_id)
 		var alerts := Places.world_alerts(world_id)
-		var card := UiKit.card(box, &"ReadyCardPanel" if not alerts.is_empty() else &"CardPanel")
-		var picture := _thumbnail(world_id, 96)
+		var button := UiKit.button("", enter.bind(world_id, ""))
+		button.name = "WorldCard_" + world_id
+		button.custom_minimum_size = Vector2(0, 138 if locked != "" else 118)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.disabled = locked != ""
+		var normal := StyleBoxFlat.new()
+		normal.bg_color = Color("f7e9c9") if locked == "" else Color("e7ddc7")
+		normal.border_color = Color("689847") if not alerts.is_empty() or world_id == current_world else Color("a87d52")
+		normal.set_border_width_all(2)
+		normal.set_corner_radius_all(12)
+		button.add_theme_stylebox_override("normal", normal)
+		button.add_theme_stylebox_override("disabled", normal)
+		var pressed := normal.duplicate() as StyleBoxFlat
+		pressed.bg_color = Color("e5d0a4")
+		button.add_theme_stylebox_override("pressed", pressed)
+		button.add_theme_stylebox_override("hover", normal)
+		var row := UiKit.hbox(12)
+		row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		row.offset_left = 10
+		row.offset_right = -10
+		row.offset_top = 10
+		row.offset_bottom = -10
+		var picture := _thumbnail(world_id, 88)
 		if picture:
-			card.add_child(picture)
+			picture.custom_minimum_size.x = 88
+			picture.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			picture.modulate.a = 0.55 if locked != "" else 1.0
+			row.add_child(picture)
+		var info := UiKit.vbox(4)
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.alignment = BoxContainer.ALIGNMENT_CENTER
+		info.add_child(UiKit.label(world.get("map_name", world.name), &"SectionLabel"))
+		info.add_child(UiKit.label(world.get("map_caption", world.get("description", "")), &"SmallLabel"))
 		if locked != "":
-			card.get_parent().modulate.a = 0.6
-		# [ícone] Nome  [rostos]  [✓ prontos]  [Ir]
-		var row := UiKit.hbox(6)
-		row.add_child(UiKit.icon(UiKit.ui_icon(world.get("icon", "")), 32))
-		row.add_child(UiKit.fill_label(world.get("name", world_id), &"SectionLabel"))
-		for npc_id: String in Places.visible_npcs(world_id):
-			row.add_child(UiKit.icon(ProgressionUi.npc_portrait(npc_id), 32))
-		card.add_child(row)
-		var bottom := UiKit.hbox(8)
-		if locked != "":
-			bottom.add_child(UiKit.fill_label("Fechado: " + locked, &"SmallLabel", UiKit.BAD))
+			var hint := "Fechado · " + locked
+			if world.get("requirements", {}).has("chapter"):
+				hint = "Abre no capítulo %d" % int(world.requirements.chapter)
+			info.add_child(UiKit.label(hint, &"SmallLabel", UiKit.BAD))
 		elif not alerts.is_empty():
-			bottom.add_child(UiKit.chip(UiKit.ui_icon("tab_tasks"), "%d pronto(s)" % alerts.size(), UiKit.GOOD))
-			bottom.add_child(UiKit.fill_label("", &"SmallLabel"))
+			info.add_child(UiKit.label("Algo pronto para recolher!", &"SmallLabel", UiKit.GOOD))
 		elif world_id == current_world:
-			bottom.add_child(UiKit.fill_label("Você está aqui", &"SmallLabel", UiKit.GOOD))
-		else:
-			bottom.add_child(UiKit.fill_label("", &"SmallLabel"))
-		var go := UiKit.button("Ir", enter.bind(world_id, ""), &"PrimaryButton")
-		go.custom_minimum_size = Vector2(96, 48)
-		go.disabled = locked != ""
-		bottom.add_child(go)
-		card.add_child(bottom)
+			info.add_child(UiKit.label("Você está aqui", &"SmallLabel", UiKit.GOOD))
+		row.add_child(info)
+		row.add_child(UiKit.short_label("›" if locked == "" else "—", &"TitleLabel"))
+		button.add_child(row)
+		_ignore_card_mouse(row)
+		box.add_child(button)
+
+
+func _ignore_card_mouse(node: Control) -> void:
+	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for child: Node in node.get_children():
+		if child is Control:
+			_ignore_card_mouse(child)
 
 
 ## Miniatura do mundo: "banner" ou o fundo da sala, cortada para caber na largura.
@@ -178,7 +209,7 @@ func _thumbnail(world_id: String, height: int) -> TextureRect:
 	rect.texture = _thumbs[world_id]
 	rect.custom_minimum_size = Vector2(0, height)
 	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	rect.clip_contents = true
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return rect

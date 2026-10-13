@@ -9,6 +9,7 @@ var recipes: Dictionary = {}
 var needs: Dictionary = {}
 var actions: Dictionary = {}
 var stations: Dictionary = {}
+var animals: Dictionary = {}
 ## Plantas da horta (data/crops.json): tempo, colheita e sprite da planta madura.
 var crops: Dictionary = {}
 ## Sítio: nome, quantidade de canteiros e sprite do broto (config.json "farm").
@@ -36,6 +37,7 @@ func _init() -> void:
 	needs = config.get("needs", {})
 	actions = config.get("actions", {})
 	stations = config.get("stations", {})
+	animals = config.get("animals", {})
 	farm = config.get("farm", {})
 	xp = config.get("xp", {})
 	start = config.get("start", {})
@@ -85,7 +87,7 @@ func panel_parts(panel: String) -> PackedStringArray:
 			return parts
 		"market":
 			return PackedStringArray(["sell", "orders"])
-		"routes":
+		"routes", "nature":
 			var parts: PackedStringArray = []
 			for id in args:
 				parts.append("routes:" + id)

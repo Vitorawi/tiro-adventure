@@ -33,10 +33,18 @@ func ready_count(now: float) -> int:
 ## Remove e devolve as receitas prontas.
 func take_ready(now: float) -> Array[String]:
 	var done: Array[String] = []
+	for entry: Dictionary in take_ready_batches(now):
+		done.append(str(entry.recipe))
+	return done
+
+
+## Mantém a quantidade do lote alimentado, mesmo se novos animais forem comprados.
+func take_ready_batches(now: float) -> Array[Dictionary]:
+	var done: Array[Dictionary] = []
 	var pending: Array[Dictionary] = []
 	for entry in queue:
 		if float(entry["ready_at"]) <= now:
-			done.append(entry["recipe"])
+			done.append(entry)
 		else:
 			pending.append(entry)
 	queue = pending
@@ -51,3 +59,5 @@ func from_dict(data: Dictionary) -> void:
 	queue.clear()
 	for entry: Dictionary in data.get("queue", []):
 		queue.append({ "recipe": str(entry["recipe"]), "ready_at": float(entry["ready_at"]) })
+		if entry.has("qty"):
+			queue.back()["qty"] = int(entry.qty)

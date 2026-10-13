@@ -36,6 +36,51 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 
 ## Registro de assets
 
+### Natureza contínua e ferramentas — 13/10/2026 (Codex)
+
+Fundo PixelLab Pro em `areas/nature/nature.png`, job `331ff1e1-510a-41e7-8c60-f31f3ffdbc0f`,
+512×384, estilo do sítio. Substitui o protótipo composto; árvores, riacho/ponte e gruta
+formam uma paisagem. Polígonos de obstáculos acompanham os elementos desenhados.
+Madeira dura: Pixen 32 px, `item_hardwood.png`, job `7d5bc0d6-9365-4526-9395-f1a4c8b6ba95`.
+
+Ícones de ferramentas em `ui/icons/`, Pixen 32 px:
+
+| Arquivo | Job |
+|---|---|
+| tool_axe.png | `4f4f4869-29f1-4224-b2f8-18cf10543111` |
+| tool_axe_reinforced.png | `25f7b5aa-0e11-4812-ba33-462bdc7954d0` |
+| tool_pickaxe.png | `10351a4d-fe78-4faa-bf50-61365abcea99` |
+| tool_pickaxe_reinforced.png | `ca100609-6682-41e7-8817-7ad471ccf9a1` |
+| tool_pickaxe_crystal.png | `f46a880a-f529-4ee1-b613-bbcea4ff4ac1` |
+| tool_sickle.png | `422a6d00-76f6-46d3-8a1b-2eacb2f09291` |
+
+### Natureza — 13/10/2026 (Codex)
+
+PixelLab Pro, referência de estilo `farm.png`, candidato 0, PNGs transparentes recortados.
+Originais e `prepare_nature_art.ps1` ficam em build (ignorados). Fundo 1208×683 composto
+com o topo do terreno já gerado e trilhas; sem barrancos internos que pareçam obstáculos.
+
+| Arquivo em areas/nature | Job PixelLab | Recorte |
+|---|---|---|
+| forest_trees.png | `ccb94578-d03b-4b12-8ca7-939e30e3df28` | 112×116 |
+| creek_bridge.png | `69b43832-a68c-4bba-90f9-e0130f2f2aa5` | 124×97 |
+| stone_cave.png | `45f45456-47cb-42ad-9cf9-41285a056fe8` | 116×106 |
+| crystal_cave.png | `b71f2e86-0ed8-4bab-975d-f4dce5d0ea9c` | 109×95 |
+| fiber_meadow.png | `6fbada88-122b-4b44-a988-6b2afb184443` | 113×110 |
+| nature.png | Composição do terreno existente | 1208×683 |
+
+### Variedades de animais — 13/10/2026 (Codex)
+
+PixelLab Pixen, transparência, recorte com `tools/pixel_tools.ps1`. Galinhas escala 0,6;
+vacas novas escala 1,3 para se aproximar do tamanho da vaca original. Originais em build.
+
+| Arquivo em areas/farm | Job PixelLab | Recorte |
+|---|---|---|
+| cow_brown.png | `46dd338a-e68a-4216-807c-8785b17a5802` | 42×40 |
+| cow_spotted.png | `6f2526a9-069f-4102-ae62-333240ea8392` | 43×37 |
+| chicken_brown.png | `d390f672-09b1-4ac0-bf56-aaa877edbd22` | 25×29 |
+| chicken_black.png | `d04fbe2a-c1eb-43e1-b6c2-22acd44176be` | 24×28 |
+
 ### Expansões e construções — 13/10/2026 (Codex)
 
 Referência de estilo: `areas/farm/farm.png`. Geração PixelLab Pro, candidato 0; recortes

@@ -604,14 +604,14 @@
   "main_9_eggs": {
     "npc": "bloblo",
     "name": "Ovos fresquinhos",
-    "dialogue": "Alimente as galinhas com milho e recolha os ovos.",
+    "dialogue": "Compre uma galinha no galinheiro, dê milho e recolha os ovos.",
     "goals": [
       {
         "type": "stat",
         "key": "produce:egg",
         "target": 2,
         "fresh": true,
-        "label": "Alimente as galinhas e recolha 2 ovos"
+        "label": "Compre uma galinha, alimente e recolha 2 ovos"
       }
     ],
     "rewards": {
@@ -665,7 +665,7 @@
   "main_9_cheese": {
     "npc": "bloblo",
     "name": "Feito no nosso sítio",
-    "dialogue": "Recolha leite das vacas e faça queijo na queijaria.",
+    "dialogue": "Compre uma vaca no curral, recolha seu leite e faça queijo na queijaria.",
     "goals": [
       {
         "type": "deliver",

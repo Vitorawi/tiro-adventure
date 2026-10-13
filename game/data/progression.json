@@ -171,7 +171,7 @@
     },
     "pickaxe": {
       "name": "Picareta",
-      "world": "village",
+      "world": "nature",
       "description": "Permite explorar a pedreira e encontrar minérios.",
       "cost": 80,
       "materials": {
@@ -182,7 +182,32 @@
       "skill_xp": {
         "adventure": 15
       },
-      "icon": "item_stone"
+      "icon": "tool_pickaxe"
+    },
+    "axe": {
+      "name": "Machado", "world": "nature", "description": "Corte madeira em maior quantidade.",
+      "cost": 60, "materials": {"wood": 2, "stone": 2},
+      "requirements": {"chapter": 3}, "skill_xp": {"adventure": 10}, "icon": "tool_axe"
+    },
+    "axe_reinforced": {
+      "name": "Machado reforçado", "world": "nature", "description": "Corte madeira dura para fazer mais tábuas.",
+      "cost": 180, "materials": {"plank": 3, "copper": 2},
+      "requirements": {"owned": ["axe"]}, "skill_xp": {"adventure": 20}, "icon": "tool_axe_reinforced"
+    },
+    "pickaxe_reinforced": {
+      "name": "Picareta reforçada", "world": "nature", "description": "Extraia mais pedra e cobre por exploração.",
+      "cost": 220, "materials": {"plank": 4, "copper": 3},
+      "requirements": {"owned": ["pickaxe"]}, "skill_xp": {"adventure": 25}, "icon": "tool_pickaxe_reinforced"
+    },
+    "pickaxe_crystal": {
+      "name": "Picareta de precisão", "world": "nature", "description": "Recolha mais cristais na gruta.",
+      "cost": 340, "materials": {"hardwood": 3, "copper": 5, "crystal": 2},
+      "requirements": {"owned": ["pickaxe_reinforced"]}, "skill_xp": {"adventure": 35}, "icon": "tool_pickaxe_crystal"
+    },
+    "sickle": {
+      "name": "Foice", "world": "nature", "description": "Corte mais fibras em menos tempo no prado.",
+      "cost": 90, "materials": {"wood": 3, "stone": 2},
+      "requirements": {"chapter": 3}, "skill_xp": {"adventure": 10}, "icon": "tool_sickle"
     },
     "stove_queue": {
       "name": "Cozinha organizada",
@@ -386,11 +411,42 @@
       "station": "dairy"
     }
   },
+  "nature_resources": {
+    "wood": {"name": "Madeira", "icon": "item_wood", "routes": ["timber", "woodcutting", "trail", "lane"], "tools": ["axe", "axe_reinforced"]},
+    "stone": {"name": "Pedras", "icon": "item_stone", "routes": ["deep_quarry", "quarry", "trail", "pebbles"], "tools": ["pickaxe", "pickaxe_reinforced"]},
+    "copper": {"name": "Cobre", "icon": "item_copper", "routes": ["deep_quarry", "copper_vein"], "tools": ["pickaxe", "pickaxe_reinforced"]},
+    "crystal": {"name": "Cristais", "icon": "item_crystal", "routes": ["crystal_deep", "crystal_cave"], "tools": ["pickaxe", "pickaxe_reinforced", "pickaxe_crystal"]},
+    "fiber": {"name": "Fibras", "icon": "item_fiber", "routes": ["reeds", "meadow"], "tools": ["sickle"]}
+  },
   "activities": {
+    "pebbles": {
+      "name": "Pedras da margem", "place": "walk", "description": "Recolha pequenas pedras com as mãos.", "seconds": 75,
+      "requirements": {"chapter": 3}, "rewards": {"items": {"stone": 1}, "skill_xp": {"adventure": 8}}, "icon": "item_stone"
+    },
+    "woodcutting": {
+      "name": "Cortar madeira", "place": "walk", "description": "Use o machado entre as árvores.", "seconds": 150,
+      "requirements": {"chapter": 3, "owned": ["axe"]}, "rewards": {"items": {"wood": 4}, "skill_xp": {"adventure": 18}}, "icon": "item_wood"
+    },
+    "timber": {
+      "name": "Madeira dura", "place": "walk", "description": "Machado reforçado corta troncos mais resistentes.", "seconds": 240,
+      "requirements": {"chapter": 3, "owned": ["axe_reinforced"]}, "rewards": {"items": {"wood": 5, "hardwood": 2}, "skill_xp": {"adventure": 30}}, "icon": "item_hardwood"
+    },
+    "deep_quarry": {
+      "name": "Veio profundo", "place": "mine", "description": "Picareta reforçada rende mais pedra e cobre.", "seconds": 300,
+      "requirements": {"chapter": 3, "owned": ["pickaxe_reinforced"], "skills": {"adventure": 2}}, "rewards": {"items": {"stone": 8, "copper": 4}, "skill_xp": {"adventure": 40}}, "icon": "item_copper"
+    },
+    "crystal_deep": {
+      "name": "Cristais profundos", "place": "crystal", "description": "Use a picareta de precisão para aproveitar o veio.", "seconds": 480,
+      "requirements": {"chapter": 3, "owned": ["pickaxe_crystal"], "skills": {"adventure": 3}}, "rewards": {"items": {"crystal": 4, "copper": 3}, "skill_xp": {"adventure": 75}}, "icon": "item_crystal"
+    },
+    "reeds": {
+      "name": "Cortar fibras", "place": "meadow", "description": "Use a foice nos juncos da margem.", "seconds": 300,
+      "requirements": {"chapter": 3, "owned": ["sickle"], "skills": {"adventure": 4}}, "rewards": {"items": {"fiber": 8, "wood": 3}, "skill_xp": {"adventure": 45}}, "icon": "item_fiber"
+    },
     "lane": {
-      "name": "Volta pelo bairro",
+      "name": "Trilha do bosque",
       "place": "walk",
-      "description": "Um passeio tranquilo com o Tiro. Sempre disponível.",
+      "description": "Explore entre as árvores e recolha madeira. Aventura abre novas zonas.",
       "seconds": 60,
       "requirements": {
         "chapter": 3
@@ -408,7 +464,7 @@
     },
     "trail": {
       "name": "Trilha do riacho",
-      "place": "walk",
+      "place": "creek",
       "description": "Recolha madeira e pedras para as primeiras construções.",
       "seconds": 180,
       "requirements": {
@@ -477,7 +533,7 @@
     },
     "crystal_cave": {
       "name": "Gruta dos cristais",
-      "place": "mine",
+      "place": "crystal",
       "description": "Cristais para instalações especiais.",
       "seconds": 600,
       "requirements": {
@@ -522,7 +578,7 @@
     },
     "meadow": {
       "name": "Prado das fibras",
-      "place": "walk",
+      "place": "meadow",
       "description": "Colete fibras para transformar em tecido.",
       "seconds": 420,
       "requirements": {

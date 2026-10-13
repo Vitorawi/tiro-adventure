@@ -142,11 +142,11 @@ static func _recipe(id: String, amount: int) -> Dictionary:
 	var remaining := 0
 	for entry: Dictionary in GameState.station(station).queue:
 		if entry.recipe == id:
-			pending += int(recipe.get("qty", 1))
+			pending += int(entry.get("qty", recipe.get("qty", 1)))
 			if float(entry.ready_at) <= GameState.now():
-				ready += int(recipe.get("qty", 1))
+				ready += int(entry.get("qty", recipe.get("qty", 1)))
 			remaining = maxi(remaining, int(ceil(float(entry.ready_at) - GameState.now())))
-	var batches := ceili(float(maxi(0, amount - pending)) / maxi(1, int(recipe.get("qty", 1))))
+	var batches := ceili(float(maxi(0, amount - pending)) / maxi(1, GameState.recipe_quantity(id)))
 	result["batches"] = batches
 	result["pending"] = pending
 	result.detail = "Prepare %dx · %s cada" % [batches, TimeText.short(int(recipe.seconds))]
@@ -160,7 +160,12 @@ static func _recipe(id: String, amount: int) -> Dictionary:
 		result.needs.append(_need("upgrade", station, 1))
 	if GameState.content_error("recipe", id, recipe) != "":
 		result.needs.append_array(_requirements(recipe.get("requirements", {})))
-	_materials(result.needs, recipe.inputs, batches)
+	if Database.stations[station].get("kind", "") == "animal" and GameState.animal_count(station) == 0:
+		result["next"] = "Compre seu primeiro animal no abrigo"
+		result["next_target"] = target
+		result["next_action"] = "Comprar animais"
+		return result
+	_materials(result.needs, GameState.recipe_inputs(id), batches)
 	if GameState.station(station).queue.size() >= GameState.station_slots(station):
 		result["next"] = "Fila cheia: recolha ou espere"
 		result["next_target"] = target

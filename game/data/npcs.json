@@ -10,11 +10,11 @@
   "guide": {
     "name": "Guia da trilha",
     "requirements": {"chapter": 3},
-    "services": ["gate"],
+    "services": ["resources"],
     "role": "Passeios e descobertas",
     "portrait": "res://assets/sprites/characters/npc_guide/portrait.png",
     "icon": "action_play",
-    "greeting": "O Tiro tem faro para aventuras!"
+    "greeting": "Colete pela trilha e melhore suas ferramentas para encontrar materiais melhores!"
   },
   "merchant": {
     "name": "Feirante",

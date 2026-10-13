@@ -41,7 +41,7 @@ custom_minimum_size = Vector2(78, 48)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 18
-text = "Mapa"
+text = "Mundos"
 
 [node name="WorldTitle" type="Label" parent="WorldView/Header/Rows/Row"]
 unique_name_in_owner = true
@@ -95,7 +95,7 @@ theme_override_constants/separation = 6
 [node name="Title" type="Label" parent="MapView/Margin/Layout"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-text = "Mapa"
+text = "Para onde vamos?"
 
 [node name="Scroll" type="ScrollContainer" parent="MapView/Margin/Layout"]
 layout_mode = 2

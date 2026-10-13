@@ -39,7 +39,7 @@ static func open(world_id: String, place_id: String) -> void:
 			GameState.set_sleeping(sleeping)
 			Events.toast_requested.emit("Hora da soneca!" if sleeping else "Tiro acordou!")
 		_:
-			Events.sheet_requested.emit(place.name, _with_upgrades(_panel(kind, arg), place.get("upgrades", [])))
+			Events.sheet_requested.emit(place.name, _panel(kind, arg) if kind == "nature" else _with_upgrades(_panel(kind, arg), place.get("upgrades", [])))
 
 
 static func place_error(place: Dictionary) -> String:
@@ -62,6 +62,8 @@ static func _panel(kind: String, arg: String) -> Control:
 			return ProgressionUi.market_panel(arg)
 		"routes":
 			return ProgressionUi.routes_panel(arg)
+		"nature":
+			return NatureUi.panel()
 	return UiKit.label("Em breve!")
 
 
@@ -94,7 +96,12 @@ static func run(world_id: String, action: String) -> void:
 	elif action.begins_with("route:"):
 		var id := action.trim_prefix("route:")
 		if Database.progression.activities.has(id):
-			Events.sheet_requested.emit(Database.progression.activities[id].name, ProgressionUi.routes_panel(Database.progression.activities[id].place, id))
+			var data: Dictionary = Database.progression.activities[id]
+			var target := Database.place_with_panel("routes:" + str(data.place))
+			if target[0] == "nature":
+				NatureUi.open()
+			else:
+				Events.sheet_requested.emit(data.name, ProgressionUi.routes_panel(data.place, id))
 	elif action.begins_with("order:"):
 		var id := action.trim_prefix("order:")
 		if Database.progression.orders.has(id):

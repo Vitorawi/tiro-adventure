@@ -64,6 +64,7 @@
       "name": "Galinheiro",
       "slots": 1,
       "kind": "animal",
+      "animal_capacity": 3,
       "action_label": "Alimentar",
       "queue_label": "Produzindo ovos",
       "recipe_label": "Alimentação",
@@ -76,6 +77,7 @@
       "name": "Curral",
       "slots": 1,
       "kind": "animal",
+      "animal_capacity": 3,
       "action_label": "Alimentar",
       "queue_label": "Produzindo leite",
       "recipe_label": "Alimentação",
@@ -100,6 +102,14 @@
         "chapter": 3
       }
     }
+  },
+  "animals": {
+    "chicken_white": {"name": "Galinha branca", "station": "chicken_coop", "price": 60, "sprite": "res://assets/sprites/areas/farm/chicken.png", "legacy": true, "map_scale": 0.6},
+    "chicken_brown": {"name": "Galinha ruiva", "station": "chicken_coop", "price": 80, "sprite": "res://assets/sprites/areas/farm/chicken_brown.png", "map_scale": 0.6},
+    "chicken_black": {"name": "Galinha preta", "station": "chicken_coop", "price": 90, "sprite": "res://assets/sprites/areas/farm/chicken_black.png", "map_scale": 0.6},
+    "cow_white": {"name": "Vaca pintadinha", "station": "cow_barn", "price": 140, "sprite": "res://assets/sprites/areas/farm/cow.png", "legacy": true, "map_scale": 1.0},
+    "cow_brown": {"name": "Vaca caramelo", "station": "cow_barn", "price": 180, "sprite": "res://assets/sprites/areas/farm/cow_brown.png", "map_scale": 1.3},
+    "cow_spotted": {"name": "Vaca malhada", "station": "cow_barn", "price": 200, "sprite": "res://assets/sprites/areas/farm/cow_spotted.png", "map_scale": 1.3}
   },
   "farm": {
     "name": "Sítio da Bloblo",

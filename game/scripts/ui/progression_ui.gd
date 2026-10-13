@@ -157,6 +157,8 @@ static func routes_panel(place: String, focus: String = "") -> Control:
 				continue
 			var card := UiKit.card(box)
 			_title(card, data.get("icon", ""), data.name)
+			if data.get("description", "") != "":
+				card.add_child(UiKit.label(data.description, &"SmallLabel"))
 			var details := UiKit.flow()
 			details.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(data.seconds))))
 			for item: String in data.rewards.get("items", {}):
