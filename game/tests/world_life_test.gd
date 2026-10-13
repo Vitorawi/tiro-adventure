@@ -22,6 +22,7 @@ func _run() -> void:
 	saver.free()
 	state = root.get_node("GameState")
 	state.call("reset")
+	state.call("dev_complete_quest", "bloblo_meet")  # vovó Bloblo já emprestou o canteiro
 	main = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	main.call("_on_world_requested", "farm", "")
@@ -62,6 +63,8 @@ func _run() -> void:
 	state.call("dev_unlock_everything")
 	state.call("dev_add_coins", 3000)
 	for id: String in root.get_node("Database").get("animals"):
+		if int(state.get("animals").get(id, 0)) > 0:
+			continue  # Abrigos já entregaram o primeiro animal.
 		check(state.call("buy_animal", id) == "", "Comprar variedades para conferir caminhos")
 	await create_timer(2.2).timeout
 	main.get_node("Celebration").hide()

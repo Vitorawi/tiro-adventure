@@ -4,6 +4,76 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **13/10/2026, Codex**.
 
+**Publicação da nova história autorizada pelo Vitor (13/10/2026).**
+- Pacote das Fases 1–3 e introdução preparado para envio na `main`, com deploy
+  automático de prod (`/`) e dev (`/dev/`). Suíte completa e export local passaram.
+- Save v11 reinicia saves anteriores, conforme decisão da reformulação da história.
+- Próximo: testar no celular a chegada, as quatro linhas em paralelo e os animais;
+  ajustar ritmo e clareza a partir da experiência do Vitor.
+
+**Plano de linhas de NPC concluído — Fase 3 (Codex, 13/10/2026).**
+- Feirante tem 4 passos a partir do capítulo 4 (conversa, vender 5, encomenda, mais 2).
+  Guia tem 4 a partir do capítulo 5 (conversa, Bosque, Pedreira, Prado). As linhas
+  progridem em paralelo sem bloquear Laís/Bloblo; metas fresh usam base de cada linha.
+- Laís usa "Pedindo algo" nas conversas e "Acenando sorrindo" ao receber missão.
+  Artes existentes do personagem correto "Laís Avatar", sem gerar imagens novas.
+  `NpcPortrait` preserva a animação durante atualizações do painel e pausa oculto.
+- Campanha simulada completa: 138 ciclos, 30 aquisições, 51 missões. Novo teste
+  `npc_lines_test` cobre liberação gradual, independência, coleta real, save e animações.
+- Suíte completa verde (incluindo DEV em prod); export Web prod/dev concluído sem
+  erros em `build/web` e `build/web/dev`. PNGs, imports e UIDs novos gerados.
+- Capturas 360×780: `npc_lais_request`, `npc_lais_complete`, `npc_merchant_line`,
+  `npc_guide_line`. Próximo: jogar no aparelho e ajustar ritmo (publicação autorizada acima).
+
+**Polimento das conversas e do sítio (Codex, 13/10/2026).**
+- Mapa mostra ! para missão nova e ✓ com prioridade para missão pronta; NPCs fechados
+  não geram aviso. Bloblo se apresenta em 3 falas, uma vez por save, com retomada se fechar.
+- Canteiros fechados indicam Vovó e levam à conversa até liberar a escritura; atalhos
+  dos NPCs escondem lugares fechados e construções não compradas (como o Pomar).
+- Sheet remove conteúdo anterior da árvore antes da próxima fala, evitando nomes
+  duplicados temporários. `intro_test` cobre apresentação, retomada, save, badges e atalhos.
+- Capturas 360×780: `intro_bloblo.png` e `intro_bloblo_quest.png`.
+- Suíte completa passou após os ajustes, incluindo introdução e DEV em prod;
+  campanha do zero ao fim: 138 ciclos, 30 aquisições e 43 missões.
+- Fase 3 ainda tem animações de missão da Laís e linhas próprias de Feirante/Guia.
+  Trabalho local, sem commit/publicação.
+
+**Fase 2 — animais na linha da vovó concluída (Codex, 13/10/2026).**
+- B8–B13 ensinam galinheiro, ovos, curral, leite, farinha e queijo após a Bancada.
+  Laís fica com 9 capítulos; ids antigos preservados, mais `bloblo_milk`.
+- Abrigos custam moedas + tábuas (180 + 4 / 300 + 6), com primeiro animal presente.
+  Variedades abrem com 2 e 6 produtos recolhidos; lojas e ajuda mostram o requisito.
+- Campanha passou com 138 ciclos, 30 aquisições e 43 missões. Testes cobrem custo,
+  presente único, persistência, desbloqueio só na coleta e produção por lote.
+- Próximo: Fase 3 (badge no Mapa, apresentação da Bloblo, animações e outras linhas),
+  além dos ajustes de canteiros/atalhos anotados no plano. Sem commit ou publicação.
+
+**Introdução — retomada da última conversa do Claude (13/10/2026).**
+- Após a Fase 1, Vitor pediu a chegada em casa com a Laís apresentando e soltando o Tiro.
+  Claude implementou a cena e parou no limite da sessão após acrescentar título/capítulo.
+- Codex conferiu o retrato contra o arquivo de "Laís Avatar" baixado pelo Claude (hash igual),
+  revisou capturas 360×780 e protegeu o fim da cena contra toques repetidos no mesmo frame.
+- `intro_test.gd`, incluído em `tools/test_all.ps1`, verifica apresentação automática,
+  revelação do Tiro, persistência após recarregar, chegada em casa e primeira conversa
+  sem receber a missão automaticamente. Capturas: `build/screenshots/intro_*.png`.
+- Validação: suíte completa passou (incluindo DEV em prod), teste novo de introdução
+  passou com renderização e novamente headless após a proteção contra toque repetido.
+- Próximo: Fase 2 do plano (animais da vovó); apresentação da Bloblo e demais polimentos
+  continuam pendentes. Alterações locais, sem publicação.
+
+**▶ PRÓXIMO GRANDE TRABALHO: linhas de missões por NPC (Laís + vovó Bloblo) — Claude Code, 13/10/2026.**
+- Design combinado com o Vitor: `docs/plans/QUESTLINES.md` (história, falas, paralelismo).
+- **Plano de execução com fases e checklist: `docs/plans/TASKS_QUESTLINES.md`** — leia primeiro.
+  Decisões fechadas: save zerado; Laís (casa) conduz a história; Bloblo é a vovó do sítio;
+  um passo ativo por linha; casa começa sem fogão/geladeira; ensopado = 2 cenouras + 1 batata.
+- **Fase 1 feita (Claude Code, 13/10/2026):** linhas em paralelo (`kind: "line"`), Laís andando na
+  Casa e vovó Bloblo no Sítio (`NpcWorld`, balão `!`/`✓`, toque = conversa com retrato + fala),
+  aba Missões com um cartão por linha, cap. 1–5 da Laís + B1–B7 da vovó, cozinha só depois do
+  sítio, ensopado (2 cenouras + 1 batata), canteiros emprestados (`farm.lent_plots`), save v11 zerado.
+  Suíte completa verde (campanha: 139 ciclos, 30 aquisições, 42 missões); capturas 360×780 conferidas.
+  Ainda não publicado. **Próximo: Fase 2** (animais na linha da vovó, abrigos com moedas + tábuas,
+  primeiro bicho de presente) e os "Pontos para olhar" listados no plano.
+
 **Experiência por uso e cadeia clara de desbloqueios (Codex, 13/10/2026).**
 - Região abre uma vez com moedas; recolher cada coleta dá 10 XP próprios. Níveis/espaços
   seguintes são automáticos: Bosque/Prado em 30/90 XP, Caverna em 40/120 XP.

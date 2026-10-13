@@ -27,12 +27,17 @@ func _run() -> void:
 	var data: Dictionary = db.get("progression")
 	for c in range(1, data.chapters.size() + 1):
 		var ids: Array = progress.main_quests(c)
-		check(ids.size() >= 3 and ids.size() <= 5, "capítulo %d deve ter 3–5 passos" % c)
+		check(ids.size() >= 2 and ids.size() <= 5, "capítulo %d deve ter 2–5 passos" % c)
 		for i in ids.size():
 			check(int(quests[ids[i]].get("order", 0)) == i + 1, "ordem repetida ou lacuna: " + ids[i])
-		if not ids.is_empty():
-			var last: Dictionary = quests[ids.back()]
-			check(last.goals.any(func(g: Dictionary) -> bool: return g.type == "owned" and g.key == data.chapters[c - 1].target), "último passo precisa da construção-alvo no capítulo %d" % c)
+		if not ids.is_empty() and str(data.chapters[c - 1].target) != "":
+			# Capítulo com construção-alvo: algum passo pede essa compra.
+			check(ids.any(func(q: String) -> bool: return quests[q].goals.any(func(g: Dictionary) -> bool: return g.type == "owned" and g.key == data.chapters[c - 1].target)), "capítulo %d precisa de um passo com a construção-alvo" % c)
+	# Linhas de NPC (vovó Bloblo...): passos em ordem 1..N, sem lacunas.
+	for line: String in progress.lines():
+		var steps: Array = progress.line_quests(line)
+		for i in steps.size():
+			check(int(quests[steps[i]].order) == i + 1, line + ": ordem repetida ou lacuna: " + steps[i])
 	for id: String in quests:
 		var q: Dictionary = quests[id]
 		check(db.get("npcs").has(q.npc), id + ": NPC inexistente")
@@ -48,7 +53,7 @@ func _run() -> void:
 				"owned": check(data.upgrades.has(key), id + ": construção " + key)
 				"skill": check(data.skills.has(key), id + ": atributo " + key)
 				"stat":
-					check(key in ["feed", "play", "bathe", "pet", "harvest", "produce", "trade", "sold", "orders", "explore", "build", "quests"] or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:"), id + ": contador desconhecido " + key)
+					check(key in ["feed", "play", "bathe", "pet", "harvest", "produce", "trade", "sold", "orders", "explore", "build", "quests", "open:bag"] or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:"), id + ": contador desconhecido " + key)
 					if key.begins_with("harvest:"):
 						check(db.get("crops").has(key.trim_prefix("harvest:")), id + ": cultura " + key)
 					if key.begins_with("produce:"):
@@ -57,13 +62,17 @@ func _run() -> void:
 						check(data.activities.has(key.trim_prefix("activity:")), id + ": rota " + key)
 					if key.begins_with("order:"):
 						check(data.orders.has(key.trim_prefix("order:")), id + ": pedido " + key)
+				"quest":
+					check(quests.has(key) and quests[key].get("kind", "") in ["main", "line"], id + ": cruzamento com missão inexistente " + key)
 				"coins", "chapter":
 					check(int(g.get("target", 0)) > 0, id + ": alvo obrigatório")
 				_:
 					check(false, id + ": tipo desconhecido " + str(g.type))
 		for reward: String in q.get("rewards", {}).get("collections", []):
 			check(db.get("collections").has(reward), id + ": coleção " + reward)
-		check(q.get("kind", "") == "main", id + ": só existem missões de história (diárias/semanais ficam em routines.json)")
+		check(q.get("kind", "") in ["main", "line"], id + ": só existem história e linhas de NPC (diárias/semanais ficam em routines.json)")
+		if q.get("kind", "") == "line":
+			check(q.has("line") and q.has("order") and not q.has("chapter"), id + ": linha precisa de line/order")
 	# Atributos: só os 4 do jogo em qualquer "skill", "skill_xp" ou requisito.
 	var skill_refs: Array[String] = []
 	for source: Dictionary in [quests, data, db.get("recipes"), db.get("crops")]:
@@ -179,50 +188,70 @@ func _collect_skills(value: Variant, refs: Array[String]) -> void:
 		_collect_skills(child, refs)
 
 
+## Simula um jogador que avança as linhas de NPC em paralelo com a história: a cada capítulo,
+## cada linha anda até onde os requisitos deixam. Todo destino precisa existir e estar aberto.
 func _validate_targets() -> void:
-	var places: Script = load("res://scripts/ui/places.gd")
 	var state: Node = root.get_node("GameState")
+	var progress: RefCounted
 	var quests: Dictionary = db.get("quests")
+	var line_done: Dictionary = {}
 	for chapter in range(1, db.get("progression").chapters.size() + 1):
 		state.call("reset")
+		progress = state.get("progress")  # reset cria um estado novo
 		for previous in range(1, chapter):
-			for id: String in state.get("progress").main_quests(previous):
-				state.get("progress").claimed_quests[id] = true
-		for id: String in quests:
-			var q: Dictionary = quests[id]
-			# Percorre os passos em ordem mesmo quando o JSON está em outra ordem.
-			if q.get("kind", "side") == "main":
-				if int(q.chapter) != chapter:
+			for id: String in progress.main_quests(previous):
+				progress.claimed_quests[id] = true
+		for id: String in line_done:
+			progress.claimed_quests[id] = true
+		_sync_owned(state)
+		for line: String in progress.lines():
+			for step: String in progress.line_quests(line):
+				if progress.claimed_quests.has(step):
 					continue
-				for before: String in state.get("progress").main_quests(chapter):
-					if int(quests[before].order) < int(q.order):
-						state.get("progress").claimed_quests[before] = true
-					else:
-						state.get("progress").claimed_quests.erase(before)
-			elif not state.call("quest_unlocked", id):
-				continue
-			# Missão de compra recebida implica a construção adquirida. Recria
-			# as posses de cada passo para validar lugares com requisito owned.
-			state.get("progress").owned.clear()
-			for claimed_id: String in state.get("progress").claimed_quests:
-				for acquired: Dictionary in quests[claimed_id].goals:
-					if acquired.type == "owned":
-						state.get("progress").owned[acquired.key] = true
-			var npc_world: String = db.call("npc_world", q.npc)
-			check(npc_world != "", id + ": NPC sem mundo")
-			if npc_world != "":
-				check(state.call("requirement_error", db.get("worlds")[npc_world].get("requirements", {})) == "", id + ": NPC em mundo fechado")
-			for goal: Dictionary in q.goals:
-				var target: Dictionary = places.call("goal_target", goal)
-				check(not target.is_empty(), id + ": objetivo sem destino")
-				_validate_target(target, id, state)
-			if q.has("go"):
-				_validate_target(q.go, id + ": go", state)
+				if state.call("requirement_error", quests[step].get("requirements", {})) != "":
+					break
+				_validate_quest(step, state)
+				progress.claimed_quests[step] = true
+				line_done[step] = true
+				_sync_owned(state)
+		var lines_claimed: Dictionary = progress.claimed_quests.duplicate()
+		for id: String in progress.main_quests(chapter):
+			progress.claimed_quests = lines_claimed.duplicate()
+			for before: String in progress.main_quests(chapter):
+				if int(quests[before].order) < int(quests[id].order):
+					progress.claimed_quests[before] = true
+			_sync_owned(state)
+			_validate_quest(id, state)
+
+
+## Missão de compra recebida implica a construção adquirida.
+func _sync_owned(state: Node) -> void:
+	var progress: RefCounted = state.get("progress")
+	progress.owned.clear()
+	for claimed_id: String in progress.claimed_quests:
+		for acquired: Dictionary in db.get("quests")[claimed_id].goals:
+			if acquired.type == "owned":
+				progress.owned[acquired.key] = true
+
+
+func _validate_quest(id: String, state: Node) -> void:
+	var places: Script = load("res://scripts/ui/places.gd")
+	var q: Dictionary = db.get("quests")[id]
+	var npc_world: String = db.call("npc_world", q.npc)
+	check(npc_world != "", id + ": NPC sem mundo")
+	if npc_world != "":
+		check(state.call("requirement_error", db.get("worlds")[npc_world].get("requirements", {})) == "", id + ": NPC em mundo fechado")
+	for goal: Dictionary in q.goals:
+		var target: Dictionary = places.call("goal_target", goal)
+		check(not target.is_empty(), id + ": objetivo sem destino")
+		_validate_target(target, id, state)
+	if q.has("go"):
+		_validate_target(q.go, id + ": go", state)
 
 
 func _validate_target(target: Dictionary, id: String, state: Node) -> void:
 	if target.has("screen"):
-		check(target.screen in ["pet", "tasks"], id + ": aba inexistente")
+		check(target.screen in ["pet", "tasks", "bag", "map"], id + ": aba inexistente")
 		return
 	var world: String = target.get("world", "")
 	check(db.get("worlds").has(world), id + ": mundo inexistente")
@@ -236,6 +265,8 @@ func _validate_target(target: Dictionary, id: String, state: Node) -> void:
 		check(place.trim_prefix("npc:") in w.npcs, id + ": personagem fora do mundo")
 	elif place.begins_with("market:"):
 		check(db.call("place_with_panel", "sell")[0] == world, id + ": feira fora do mundo")
+	elif place == "":
+		check(state.call("requirement_error", w.get("requirements", {})) == "", id + ": mundo ainda fechado")
 	else:
 		check(w.places.has(place), id + ": lugar inexistente")
 		check(state.call("requirement_error", w.places.get(place, {}).get("requirements", {})) == "", id + ": destino em lugar ainda fechado")

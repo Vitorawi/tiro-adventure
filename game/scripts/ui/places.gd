@@ -85,7 +85,25 @@ static func _with_upgrades(panel: Control, upgrades: Array) -> Control:
 
 
 static func open_npc(npc_id: String) -> void:
-	Events.sheet_requested.emit(Database.npcs.get(npc_id, {}).get("name", npc_id), ProgressionUi.npc_view(npc_id))
+	if not GameState.progress.npc_visible(npc_id):
+		return
+	GameState.talk_to(npc_id)
+	var npc: Dictionary = Database.npcs.get(npc_id, {})
+	var introducing: bool = not npc.get("introduction", []).is_empty() and not GameState.progress.seen.has("npc_intro:" + npc_id)
+	Events.sheet_requested.emit(npc.get("name", npc_id), ProgressionUi.npc_introduction(npc_id) if introducing else ProgressionUi.npc_view(npc_id))
+
+
+## Balão sobre o personagem no mapa: "ready" (missão para receber), "new" (passo ainda
+## não conversado) ou "".
+static func npc_badge(npc_id: String) -> String:
+	var active := npc_active_quests(npc_id)
+	for id in active:
+		if GameState.quest_error(id) == "":
+			return "ready"
+	for id in active:
+		if not GameState.progress.seen.has("quest:" + id):
+			return "new"
+	return ""
 
 
 ## Ações das salas e dos botões "Ir": "place:<id>" | "npc:<id>" | "buy:<construção>" |
@@ -292,6 +310,10 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			return _panel_target("sell")
 		"chapter":
 			return {"screen": "tasks", "hint": "Continue os passos da história."}
+		"quest":
+			# Cruzamento: vai até o passo da outra linha (ex.: a vovó Bloblo).
+			if Database.quests.has(key):
+				return quest_target(key)
 		"have", "deliver":
 			for source: Dictionary in Database.item_sources(key):
 				var target := goal_target(source)
@@ -301,6 +323,14 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			var panels := {"agriculture": "farm", "cooking": "station:stove", "commerce": "sell", "adventure": "routes:walk"}
 			return _panel_target(panels.get(key, ""))
 		"stat":
+			if key.begins_with("talk:"):
+				var npc_id := key.trim_prefix("talk:")
+				return {"world": Database.npc_world(npc_id), "place": "npc:" + npc_id, "hint": str(Database.npcs.get(npc_id, {}).get("name", ""))}
+			if key.begins_with("open:"):
+				var screen := key.trim_prefix("open:")
+				if Database.worlds.has(screen):
+					return {"world": screen, "place": "", "hint": "Mapa → " + str(Database.worlds[screen].name)}
+				return {"screen": screen}
 			if key == "feed":
 				return _panel_target("feed")
 			if key == "harvest" or key.begins_with("harvest:"):

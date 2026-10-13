@@ -55,16 +55,18 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
     ui/worlds_screen/  aba Mapa: lista de mundos + mundo atual (cabeçalho com Mapa, Lugares e personagens)
     ui/tasks_screen/   aba Missões (História: um passo por vez, visual; Diárias; Semanais; botões "Ir" e "?")
     ui/celebration/  comemoração de capítulo acima do Sheet
+    ui/intro/        chegada da Laís com o Tiro (falas em npcs.json; uma vez por save)
     ui/bag_screen/     aba Mochila (itens por categoria; detalhe: para que serve, onde usar, vender)
     ui/sheet/        painel inferior genérico (menus de objetos)
     levels/room/     RoomView genérico (`room_id`, `world_id`): monta data/rooms/<id>.json (casa, sítio, vila), canteiros, etiquetas, navegação, toque, câmera
     entities/dog_world/  Tiro pequeno com IA autônoma (anda pelo caminho calculado)
+    entities/npc_world/  NPC pequeno (Laís, vovó Bloblo) que passeia perto de casa, com balão "!"/"✓"
   scripts/state/     DogState, Inventory, StationState, ProgressionState (dados + to_dict/from_dict)
   scripts/ui/        UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
                      ProgressionUi (painéis: personagem, construir, vender, encomendas, rotas, atributos, coleção),
                      GameManual (catálogo), NatureUi (coleta/níveis/refino), DevPanel (DEV),
                      PlotIndicator, StationIndicator (estações/criações), RouteIndicator (exploração),
-                     PetAnimator (animações do Tiro na aba Tiro)
+                     PetAnimator (animações do Tiro na aba Tiro), NpcPortrait (pedido/aceno nas conversas)
   scripts/util/      BuildInfo (canal prod/dev, arquivo de save), TimeText (texto de duração)
   assets/            sprites/(characters,areas,tiles,ui,fx), theme/, audio/, fonts/, icons/ (PWA)
   tests/             testes headless (excluídos do export)
@@ -77,10 +79,11 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Nova construção, rota, pedido, capítulo ou atributo | `game/data/progression.json` (formato em `docs/PROGRESSION.md`) |
 | Novo mundo (mini mundinho)            | `data/worlds.json` + `data/rooms/<id>.json` + arte (receita em `docs/WORLDS.md`; sem código) |
 | Novo lugar tocável num mundo          | `places` em `worlds.json` (máx. 4 visíveis por mundo; `upgrades` = compras ali dentro) + zona/objeto com `"action": "place:<id>"` (e `label`) em `rooms/<id>.json` |
-| História principal                    | `quests.json` (só `kind: "main"`, chapter/order); `progression.json`: capítulos/rewards |
+| História principal (linha da Laís)    | `quests.json` (`kind: "main"`, chapter/order, `dialogue`); `progression.json`: capítulos/rewards. Plano: `docs/plans/TASKS_QUESTLINES.md` |
+| Linha de missões de um NPC (ex.: vovó) | `quests.json` com `kind: "line"`, `line`, `order`, `requirements` (quando começa); cruzamento = goal `{"type": "quest", "key": "<id>"}` |
 | Missão diária / semanal               | `data/routines.json` (`goal` = contador + alvo, `rewards`, `requirements`; `count` por tipo); ações `GameState.claim_routine` |
 | "Como fazer" (o que falta, 1º passo)  | `scripts/ui/task_help.gd` (`TaskHelp.describe` calcula; `TaskHelp.panel` mostra em ícones) |
-| Nova missão / personagem (NPC) / roupa | `quests.json` / `npcs.json` (`portrait`, `services`) + mundo dele em `worlds.json` → `npcs` / `collections.json` |
+| Nova missão / personagem (NPC) / roupa | `quests.json` / `npcs.json` (`portrait`, `sprite_dir` com rotations/ + walk/, `services`) + mundo dele em `worlds.json` → `npcs` + ponto `npc_<id>` em `rooms/<id>.json → points` / `collections.json` |
 | Requisitos de conteúdo (nível, compra, missão) | campo `"requirements"` no JSON; validados por `ProgressionState.requirement_error` |
 | Nova ação do jogo (ex.: plantar)      | método em `game/autoload/game_state.gd` + estado em `game/scripts/state/` |
 | Novo móvel / mudar layout da casa     | `game/data/rooms/house.json` (sprite, pos, footprint, `"action": "place:<id>"`, `upgrade`) + lugar em `worlds.json` |
@@ -110,7 +113,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Mudar build/deploy                    | `tools/export_web.ps1`, `.github/workflows/deploy.yml`, `docs/DEPLOY.md` |
 
 ## Regras de arquitetura
-- **História:** capítulo/passo derivados de `progress.claimed_quests`; só a main atual pode ser recebida. Save v5 migra alvos já adquiridos sem pagar de novo. `Places.goal_target` resolve o botão Ir.
+- **História e linhas de NPC:** a Laís (casa) conduz a história (`kind: "main"`, capítulos); cada NPC pode ter uma linha (`kind: "line"`). Um passo ativo **por linha**, em paralelo (`ProgressionState.active_steps`), derivado de `progress.claimed_quests`; `progress.steps[linha]` guarda a base dos objetivos `fresh`. Objetivos `talk:<npc>` (tocar no NPC → `Places.open_npc` → `GameState.talk_to`), `open:<aba|mundo>` (`GameState.note_screen_opened`) e `quest` (cruzamento entre linhas). Save v11 recomeçou do zero (história refeita). `Places.goal_target` resolve o botão Ir.
 - **Disco só via `SaveManager`.** Nenhum outro script usa `FileAccess` para save.
 - **Estado persistente só em `GameState`** (e nas classes de `scripts/state/` que ele guarda, ex.:
   `GameState.progress`). Cenas leem o estado e o alteram **só por métodos do `GameState`**.
@@ -120,6 +123,11 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   um `*_error()` igual que a UI usa para desabilitar botões.
 - **Classes de estado** (`scripts/state/`): só dados + consultas puras + `to_dict`/`from_dict`.
   O estado não depende da UI (ex.: texto de tempo vem de `TimeText`, não do `SheetBuilder`).
+- **Apresentação de NPC:** `npcs.json → introduction` (falas) abre na primeira conversa;
+  conclusão em `progress.seen["npc_intro:<id>"]`. Laís usa a cena de chegada (`intro`).
+  Badge no Mapa prioriza missão pronta (✓) sobre nova (!), só em NPCs/mundos abertos.
+  `portrait_animations.request/complete` define pastas de quadros do retrato; `NpcPortrait`
+  fica fora do corpo reconstruído da conversa para preservar o aceno ao receber a missão.
 - **Sinais globais só em `Events`.** Sinais locais ficam na cena.
 - **Revelar aos poucos:** nada aparece antes da história apresentar (Mochila, diárias, semanais, atributos,
   Vila, portão, personagens). Ao abrir, a tela "Novo!" mostra ícone + Ir uma vez (`ProgressionState.seen`).
@@ -146,8 +154,8 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   Criações usam o mesmo sistema de estações: `kind: "animal"`, `action_label`, `queue_label`,
   `recipe_label` e `instruction` em `config.json`; entrada = comida, saída = ovos/leite.
   `GameState.cook_error/cook` valida/consome uma vez; `collect` só entrega lotes prontos,
-  sem duplicar. `GameState.animals` guarda quantidade por variedade comprada; abrigo novo
-  começa vazio. Alimentação consome/produz por animal; lote salva `qty` ao alimentar,
+  sem duplicar. `GameState.animals` guarda quantidade por variedade comprada; abrigo com `gift_animal` entrega uma unidade da variedade ao adquirir, uma vez só.
+  `requirements.produced` libera variedades pela quantidade já recolhida (contador `produce:<item>`). Alimentação consome/produz por animal; lote salva `qty` ao alimentar,
   então novas compras não alteram produção já iniciada. Save v7 preserva os dois animais
   dos abrigos comprados em saves sem `animals`; filas antigas mantêm rendimento original.
 - **Ambientes (salas):** fundo vazio (piso + paredes) + cada móvel como sprite separado, tudo
@@ -204,6 +212,10 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   `"plot": N` = canteiro N da horta (estado em `GameState.plots`; broto/planta madura por cima).
   `GameState.unlocked_plots` guarda os terrenos comprados em ordem fixa; `buy_plot` valida a compra.
   `PlotIndicator` desenha ícone, tempo e barra sobre a planta; `SheetBuilder` monta os painéis do sítio.
+  NPCs do mundo (`worlds.json → npcs`) andam na sala que tiver o ponto `npc_<id>` (`NpcWorld`, mesma grade do Tiro,
+  escala `dog_scale`); balão `Places.npc_badge`; `point_at("npc:<id>")` aponta para ele. Antes da escritura,
+  a vovó empresta canteiros: `config.json → farm.lent_plots` (`count` + `requirements`).
+  O "+" de compra só aparece quando os `requirements` da construção já valem (revelar aos poucos).
   O Tiro só aparece na sala que tiver o ponto `dog_start`. O piso vira uma grade `AStarGrid2D` (8 px)
   e o Tiro anda por ela, sorteando apenas destinos alcançáveis. Sem tigela/sofá no mapa,
   ele passeia e dorme no próprio chão. Para posicionar móveis, gere prévias com `tools/pixel_tools.ps1`.

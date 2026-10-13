@@ -6,7 +6,9 @@
     "description": "Comer, cozinhar e guardar.",
     "room": "house",
     "requirements": {},
-    "npcs": [],
+    "npcs": [
+      "lais"
+    ],
     "places": {
       "bowl": {
         "name": "Tigela do Tiro",
@@ -35,7 +37,12 @@
         "name": "Ir para o sítio",
         "icon": "tab_farm",
         "description": "",
-        "panel": "travel:farm"
+        "panel": "travel:farm",
+        "requirements": {
+          "quests": [
+            "lais_bag"
+          ]
+        }
       },
       "sofa": {
         "name": "Sofá",
@@ -54,7 +61,11 @@
     "icon": "tab_farm",
     "description": "Plantar, colher e crescer.",
     "room": "farm",
-    "requirements": {},
+    "requirements": {
+      "quests": [
+        "lais_bag"
+      ]
+    },
     "npcs": [
       "bloblo"
     ],
@@ -96,7 +107,7 @@
         "panel": "stations:chicken_coop+cow_barn",
         "upgrade": "chicken_coop",
         "requirements": {
-          "chapter": 3,
+          "chapter": 5,
           "owned": [
             "farm"
           ]
@@ -110,7 +121,7 @@
         "upgrade": "mill",
         "hidden": true,
         "requirements": {
-          "chapter": 3
+          "chapter": 5
         }
       },
       "dairy": {
@@ -121,7 +132,7 @@
         "upgrade": "dairy",
         "hidden": true,
         "requirements": {
-          "chapter": 3
+          "chapter": 5
         }
       }
     }
@@ -133,9 +144,7 @@
     "description": "Feira, ateliê e o portão para Natureza.",
     "room": "village",
     "requirements": {
-      "quests": [
-        "first_harvest"
-      ]
+      "chapter": 4
     },
     "npcs": [
       "merchant",
@@ -164,7 +173,7 @@
         "description": "Ir para Natureza.",
         "panel": "travel:nature",
         "requirements": {
-          "chapter": 3
+          "chapter": 5
         }
       }
     }
@@ -176,7 +185,7 @@
     "description": "Bosque, riacho, prado e grutas. Explore para coletar materiais.",
     "room": "nature",
     "requirements": {
-      "chapter": 3
+      "chapter": 5
     },
     "npcs": [
       "guide"

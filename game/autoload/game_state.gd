@@ -226,6 +226,9 @@ func buy_animal_error(id: String) -> String:
 	var data: Dictionary = Database.animals[id]
 	if not has_upgrade(data.station):
 		return "Compre o abrigo primeiro"
+	var reason := requirement_error(data.get("requirements", {}))
+	if reason != "":
+		return reason
 	if animal_count(data.station) >= int(Database.stations[data.station].animal_capacity):
 		return "Abrigo cheio"
 	if coins < int(data.price):
@@ -267,8 +270,15 @@ func plot(index: int) -> Dictionary:
 
 
 ## Canteiros utilizáveis: os comprados, ou só o emprestado antes da escritura.
+## Antes da escritura, a vovó Bloblo empresta canteiros conforme a linha dela (config farm.lent_plots).
 func accessible_plots() -> int:
-	return unlocked_plots if has_upgrade("farm") else int(Database.farm.get("borrowed_plots", 1))
+	if has_upgrade("farm"):
+		return unlocked_plots
+	var lent := 0
+	for entry: Dictionary in Database.farm.get("lent_plots", []):
+		if requirement_error(entry.get("requirements", {})) == "":
+			lent = maxi(lent, int(entry.count))
+	return lent
 
 
 ## "locked", "empty", "growing" ou "ready".
@@ -464,8 +474,15 @@ func buy_upgrade(id: String) -> String:
 
 
 func _grant_upgrade(id: String) -> void:
+	if has_upgrade(id):
+		return
 	progress.owned[id] = true
 	var data: Dictionary = Database.progression.upgrades[id]
+	var gift: String = data.get("gift_animal", "")
+	if Database.animals.has(gift):
+		var station_id: String = Database.animals[gift].station
+		if animal_count(station_id) < int(Database.stations[station_id].animal_capacity):
+			animals[gift] = int(animals.get(gift, 0)) + 1
 	if data.has("nature_unlock"):
 		var site: String = data.nature_unlock.site
 		var target := int(data.nature_unlock.level) - 1
@@ -744,12 +761,42 @@ func goal_value(goal: Dictionary) -> int:
 			return coins
 		"chapter":
 			return progress.chapter_index()
+		"quest":
+			return 1 if progress.claimed_quests.has(goal.key) else 0
 		"stat":
-			# "fresh": conta só o que foi feito depois que o passo da história começou.
+			# "fresh": conta só o que foi feito depois que o passo da linha começou.
 			if goal.get("fresh", false):
-				return maxi(0, progress.stat(goal.key) - int(progress.step.get("base", {}).get(goal.key, progress.stat(goal.key))))
+				return maxi(0, progress.stat(goal.key) - int(_step_base(goal).get(goal.key, progress.stat(goal.key))))
 			return progress.stat(goal.key)
 	return 0
+
+
+## Base dos contadores do passo ativo que contém este objetivo (cada linha tem o seu).
+func _step_base(goal: Dictionary) -> Dictionary:
+	for line: String in progress.steps:
+		var id: String = progress.steps[line].get("quest", "")
+		if id != "" and Database.quests.has(id) and Database.quests[id].goals.has(goal):
+			return progress.steps[line].get("base", {})
+	return {}
+
+
+## Conversa aberta com o personagem (objetivos "Falar com…").
+func talk_to(npc_id: String) -> void:
+	progress.count("talk:" + npc_id)
+	# Passos atuais deste personagem deixam de ser "novos" (balão "!" no mapa).
+	for id: String in progress.active_steps().values():
+		if Database.quests[id].get("npc", "") == npc_id:
+			progress.seen["quest:" + id] = true
+	_changed()
+
+
+## Tela aberta pelo jogador (objetivo "Abrir a Mochila" = "open:bag").
+func note_screen_opened(screen: String) -> void:
+	var key := "open:" + screen
+	if progress.stat(key) > 0:
+		return
+	progress.count(key)
+	_changed()
 
 
 func quest_error(id: String) -> String:
@@ -771,6 +818,11 @@ func claim_quest(id: String) -> String:
 		return reason
 	inventory.remove_all(_quest_deliveries(id))
 	_finish_quest(id)
+	# Recebeu conversando com o personagem: o próximo passo dele já aparece na mesma conversa.
+	var npc_id: String = Database.quests[id].get("npc", "")
+	for next: String in progress.active_steps().values():
+		if npc_id != "" and Database.quests[next].get("npc", "") == npc_id:
+			progress.seen["quest:" + next] = true
 	_changed()
 	return ""
 
@@ -1018,6 +1070,8 @@ func dev_unlock_everything() -> void:
 		_dev_satisfy_upgrade(id)
 	for id: String in Database.quests:
 		_dev_complete_quest(id)
+	for id: String in Database.animals:
+		_dev_satisfy(Database.animals[id].get("requirements", {}))
 	for id: String in Database.progression.skills:
 		_dev_skill_at_least(id, int(Database.progression.settings.max_skill_level))
 	# Roupas também vêm das semanais (sorteadas): entrega a coleção inteira.
@@ -1080,6 +1134,8 @@ func _dev_skill_at_least(id: String, target_level: int) -> void:
 
 
 func _dev_satisfy(requirements: Dictionary) -> void:
+	for item: String in requirements.get("produced", {}):
+		progress.stats["produce:" + item] = maxi(progress.stat("produce:" + item), int(requirements.produced[item]))
 	if progress.chapter_index() < int(requirements.get("chapter", 1)):
 		dev_jump_to_chapter(int(requirements.chapter) - 1)
 	for id: String in requirements.get("owned", []):
@@ -1107,12 +1163,23 @@ func _dev_complete_quest(id: String) -> void:
 				if previous == id:
 					break
 				if not progress.claimed_quests.has(previous):
-					_finish_quest(previous)
+					_dev_complete_quest(previous)
+	elif quest.get("kind", "side") == "line":
+		_dev_satisfy(quest.get("requirements", {}))
+		for previous in progress.line_quests(str(quest.line)):
+			if previous == id:
+				break
+			_dev_complete_quest(previous)
 	else:
 		_dev_satisfy(quest.get("requirements", {}))
 		for required: String in quest.get("requires", []):
 			_dev_complete_quest(required)
-	_finish_quest(id)
+	# Cruzamento entre linhas: o passo da outra linha também é concluído.
+	for goal: Dictionary in quest.goals:
+		if goal.type == "quest":
+			_dev_complete_quest(goal.key)
+	if not progress.claimed_quests.has(id):
+		_finish_quest(id)
 
 
 # --- Save ------------------------------------------------------------------
@@ -1192,17 +1259,21 @@ func _changed() -> void:
 	Events.state_changed.emit()
 
 
-## Ao mudar o passo da história, guarda os contadores dos objetivos "fresh" (base = agora).
+## Ao mudar o passo de uma linha, guarda os contadores dos objetivos "fresh" (base = agora).
 func _sync_step() -> void:
-	var current := progress.current_main_quest()
-	if progress.step.get("quest", "") == current:
-		return
-	var base := {}
-	if current != "":
+	var active := progress.active_steps()
+	for line: String in progress.steps.keys():
+		if not active.has(line):
+			progress.steps.erase(line)
+	for line: String in active:
+		var current: String = active[line]
+		if progress.steps.get(line, {}).get("quest", "") == current:
+			continue
+		var base := {}
 		for goal: Dictionary in Database.quests[current].goals:
 			if goal.get("fresh", false):
 				base[goal.key] = progress.stat(goal.key)
-	progress.step = {"quest": current, "base": base}
+		progress.steps[line] = {"quest": current, "base": base}
 
 
 ## Conclui só o passo principal atual, com as mesmas recompensas e sinais.

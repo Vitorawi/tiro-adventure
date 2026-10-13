@@ -29,21 +29,17 @@
     "station": "stove",
     "inputs": {
       "carrot": 2,
-      "potato": 1,
-      "pumpkin": 1
+      "potato": 1
     },
     "output": "vegetable_soup",
     "qty": 1,
-    "seconds": 240,
+    "seconds": 120,
     "skill": "cooking",
     "skill_xp": 30,
     "requirements": {
       "owned": [
         "fridge"
-      ],
-      "skills": {
-        "cooking": 2
-      }
+      ]
     }
   },
   "plank": {
@@ -132,7 +128,7 @@
     "skill": "agriculture",
     "skill_xp": 12,
     "requirements": {
-      "chapter": 3
+      "chapter": 5
     }
   },
   "milk": {
@@ -146,7 +142,7 @@
     "skill": "agriculture",
     "skill_xp": 18,
     "requirements": {
-      "chapter": 3
+      "chapter": 5
     }
   },
   "flour": {
@@ -160,12 +156,12 @@
     "skill": "cooking",
     "skill_xp": 15,
     "requirements": {
-      "chapter": 3
+      "chapter": 5
     }
   },
   "hardwood_planks": {
     "station": "workbench", "inputs": {"hardwood": 2}, "output": "plank", "qty": 3, "seconds": 120,
-    "skill": "adventure", "skill_xp": 15, "requirements": {"chapter": 3}
+    "skill": "adventure", "skill_xp": 15, "requirements": {"chapter": 5}
   },
   "cheese": {
     "station": "dairy",
@@ -178,7 +174,7 @@
     "skill": "cooking",
     "skill_xp": 25,
     "requirements": {
-      "chapter": 3
+      "chapter": 5
     }
   }
 }

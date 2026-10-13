@@ -52,6 +52,7 @@ func enter(world_id: String, place: String = "") -> void:
 		show_map()
 		return
 	current_world = world_id
+	GameState.note_screen_opened(world_id)
 	if not _views.has(world_id):
 		_views[world_id] = _build_world(world_id)
 		%WorldHolder.add_child(_views[world_id])

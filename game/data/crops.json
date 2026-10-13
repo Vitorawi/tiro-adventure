@@ -17,9 +17,9 @@
     "sprite": "res://assets/sprites/areas/farm/crop_potato.png",
     "skill_xp": 22,
     "requirements": {
-      "skills": {
-        "agriculture": 2
-      }
+      "quests": [
+        "bloblo_carrots"
+      ]
     }
   },
   "pumpkin": {
@@ -62,7 +62,7 @@
     "sprite": "res://assets/sprites/areas/farm/crop_wheat.png",
     "skill_xp": 12,
     "requirements": {
-      "chapter": 3,
+      "chapter": 5,
       "owned": [
         "farm"
       ]
@@ -77,7 +77,7 @@
     "sprite": "res://assets/sprites/areas/farm/crop_corn.png",
     "skill_xp": 15,
     "requirements": {
-      "chapter": 3,
+      "chapter": 5,
       "owned": [
         "farm"
       ]

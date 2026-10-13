@@ -1,18 +1,18 @@
 {
   "welcome": {
-    "npc": "bloblo",
-    "name": "Um amigo bem cuidado",
-    "dialogue": "Dê uma refeição ao Tiro. Trouxe uma ajuda para vocês começarem.",
+    "npc": "lais",
+    "name": "Oi, eu sou a Laís!",
+    "dialogue": "Oi! Eu sou a Laís, e esse é o Tiro. Agora ele é seu!",
     "goals": [
       {
         "type": "stat",
-        "key": "feed",
+        "key": "talk:lais",
         "target": 1,
-        "label": "Alimentar o Tiro"
+        "label": "Falar com a Laís"
       }
     ],
     "rewards": {
-      "coins": 20,
+      "coins": 5,
       "items": {
         "dog_food": 2
       }
@@ -21,32 +21,157 @@
     "chapter": 1,
     "order": 1
   },
-  "first_harvest": {
-    "npc": "bloblo",
-    "name": "A primeira colheita",
-    "dialogue": "O primeiro canteiro é emprestado. As sementes de cenoura são por minha conta!",
+  "lais_feed": {
+    "npc": "lais",
+    "name": "Hora de comer",
+    "dialogue": "Ele está com fome. Enche a tigela?",
     "goals": [
       {
         "type": "stat",
-        "key": "harvest",
+        "key": "feed",
         "target": 1,
-        "label": "Plante uma semente e colha quando crescer"
+        "fresh": true,
+        "label": "Alimentar o Tiro"
       }
     ],
     "rewards": {
-      "coins": 20,
-      "skill_xp": {
-        "agriculture": 15
-      }
+      "coins": 10
     },
     "kind": "main",
     "chapter": 1,
     "order": 2
   },
+  "lais_bath": {
+    "npc": "lais",
+    "name": "Banho de espuma",
+    "dialogue": "Eita, ele rolou na terra… Hora do banho!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "bathe",
+        "target": 1,
+        "fresh": true,
+        "label": "Dar banho no Tiro"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "main",
+    "chapter": 1,
+    "order": 3
+  },
+  "lais_play": {
+    "npc": "lais",
+    "name": "Vamos brincar!",
+    "dialogue": "Agora ele quer brincar!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "play",
+        "target": 1,
+        "fresh": true,
+        "label": "Brincar com o Tiro"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "main",
+    "chapter": 1,
+    "order": 4
+  },
+  "lais_bag": {
+    "npc": "lais",
+    "name": "Um presente na mochila",
+    "dialogue": "Deixei um presente na sua mochila. Dá uma olhada!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "open:bag",
+        "target": 1,
+        "label": "Abrir a Mochila"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "main",
+    "chapter": 1,
+    "order": 5,
+    "go": {
+      "screen": "bag",
+      "hint": "Toque na aba Mochila."
+    }
+  },
+  "lais_meet_bloblo": {
+    "npc": "lais",
+    "name": "A vovó do sítio",
+    "dialogue": "A vovó Bloblo tem um sítio aqui do lado. Vai lá conhecer!",
+    "goals": [
+      {
+        "type": "quest",
+        "key": "bloblo_meet",
+        "label": "Conhecer a vovó Bloblo"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "main",
+    "chapter": 2,
+    "order": 1,
+    "go": {
+      "world": "farm",
+      "place": "npc:bloblo",
+      "hint": "Sítio → vovó Bloblo"
+    }
+  },
+  "lais_first_crops": {
+    "npc": "lais",
+    "name": "Mãos na terra",
+    "dialogue": "Já colheu alguma coisa? A vovó adora ajuda na horta!",
+    "goals": [
+      {
+        "type": "quest",
+        "key": "bloblo_more_crops",
+        "label": "Ajudar a vovó na horta"
+      }
+    ],
+    "rewards": {
+      "coins": 15
+    },
+    "kind": "main",
+    "chapter": 2,
+    "order": 2,
+    "go": {
+      "world": "farm",
+      "place": "npc:bloblo",
+      "hint": "Sítio → vovó Bloblo"
+    }
+  },
+  "main_2_fridge": {
+    "npc": "lais",
+    "name": "Onde guardar?",
+    "dialogue": "Precisamos de um lugar para guardar a colheita.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "fridge",
+        "label": "Comprar a geladeira"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "main",
+    "chapter": 3,
+    "order": 1
+  },
   "first_kitchen": {
-    "npc": "bloblo",
+    "npc": "lais",
     "name": "Cheirinho de comida",
-    "dialogue": "Compre seu fogão. Nossa cozinha começa aqui!",
+    "dialogue": "Com um fogão dá para cozinhar de verdade!",
     "goals": [
       {
         "type": "owned",
@@ -55,71 +180,112 @@
       }
     ],
     "rewards": {
-      "coins": 30,
+      "coins": 10,
       "skill_xp": {
         "cooking": 15
       }
     },
     "kind": "main",
-    "chapter": 1,
-    "order": 4
+    "chapter": 3,
+    "order": 2
+  },
+  "lais_stew": {
+    "npc": "lais",
+    "name": "Ensopado para a vovó",
+    "dialogue": "Vamos fazer um ensopado para a vovó Bloblo?",
+    "goals": [
+      {
+        "type": "quest",
+        "key": "bloblo_stew",
+        "label": "Levar um ensopado para a vovó"
+      }
+    ],
+    "rewards": {
+      "coins": 20
+    },
+    "kind": "main",
+    "chapter": 3,
+    "order": 3,
+    "go": {
+      "world": "farm",
+      "place": "npc:bloblo",
+      "hint": "Sítio → vovó Bloblo"
+    }
+  },
+  "lais_village": {
+    "npc": "lais",
+    "name": "Passeio na Vila",
+    "dialogue": "Vamos passear na Vila? Tem uma feira!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "open:village",
+        "target": 1,
+        "label": "Ir à Vila"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "main",
+    "chapter": 4,
+    "order": 1,
+    "go": {
+      "world": "village",
+      "place": "",
+      "hint": "Mapa → Vila"
+    }
   },
   "first_sale": {
-    "npc": "merchant",
+    "npc": "lais",
     "name": "Seu primeiro cliente",
-    "dialogue": "Venda algum produto na feira ou entregue uma encomenda. É o primeiro passo para ter sua terra.",
+    "dialogue": "Vende o que sobrou da colheita na feira.",
     "goals": [
       {
         "type": "stat",
         "key": "trade",
         "target": 1,
-        "label": "Concluir uma venda ou pedido"
+        "label": "Fazer uma venda"
       }
     ],
     "rewards": {
-      "coins": 40,
+      "coins": 20,
       "skill_xp": {
         "commerce": 15
       }
     },
     "kind": "main",
-    "chapter": 2,
+    "chapter": 4,
     "order": 2
   },
-  "farm_deed": {
-    "npc": "bloblo",
-    "name": "Seu nome na porteira",
-    "dialogue": "Quando comprar a escritura, o sítio será seu. Separei uma lembrança para essa conquista.",
-    "goals": [
-      {
-        "type": "owned",
-        "key": "farm",
-        "label": "Comprar o sítio"
-      }
-    ],
-    "rewards": {
-      "coins": 35,
-      "collections": [
-        "farm_ribbon"
-      ],
-      "skill_xp": {
-        "agriculture": 25
-      }
-    },
-    "kind": "main",
-    "chapter": 3,
-    "order": 3
-  },
-  "first_walk": {
-    "npc": "guide",
-    "name": "O mundo lá fora",
-    "dialogue": "Dê uma volta pelo bairro e recolha o que encontrar pelo caminho.",
+  "main_2_order": {
+    "npc": "lais",
+    "name": "Uma encomenda da vizinhança",
+    "dialogue": "Uma encomenda paga melhor!",
     "goals": [
       {
         "type": "stat",
-        "key": "activity:lane",
+        "key": "orders",
         "target": 1,
-        "label": "Concluir uma volta pelo bairro"
+        "label": "Entregar uma encomenda"
+      }
+    ],
+    "rewards": {
+      "coins": 25
+    },
+    "kind": "main",
+    "chapter": 4,
+    "order": 3
+  },
+  "lais_forest": {
+    "npc": "lais",
+    "name": "Além do portão",
+    "dialogue": "O portão da Vila dá numa natureza linda, cheia de madeira.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "forest_open",
+        "label": "Abrir o Bosque"
       }
     ],
     "rewards": {
@@ -129,12 +295,206 @@
       }
     },
     "kind": "main",
-    "chapter": 3,
+    "chapter": 5,
+    "order": 1
+  },
+  "main_4_materials": {
+    "npc": "lais",
+    "name": "Madeira para construir",
+    "dialogue": "Junta madeira para a gente construir.",
+    "goals": [
+      {
+        "type": "have",
+        "key": "wood",
+        "target": 6,
+        "label": "Guardar madeira"
+      }
+    ],
+    "rewards": {
+      "coins": 30
+    },
+    "kind": "main",
+    "chapter": 5,
+    "order": 2
+  },
+  "main_4_bench": {
+    "npc": "lais",
+    "name": "Montar a bancada",
+    "dialogue": "Com uma bancada a madeira vira tábua!",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "workbench",
+        "label": "Comprar a bancada"
+      }
+    ],
+    "rewards": {
+      "coins": 30,
+      "skill_xp": {
+        "adventure": 20
+      }
+    },
+    "kind": "main",
+    "chapter": 5,
+    "order": 3
+  },
+  "bloblo_meet": {
+    "npc": "bloblo",
+    "name": "A vovó Bloblo",
+    "dialogue": "Oi, querido! Amigo da Laís é meu amigo. Vem ver as plantações!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "talk:bloblo",
+        "target": 1,
+        "label": "Falar com a vovó Bloblo"
+      }
+    ],
+    "rewards": {
+      "coins": 5
+    },
+    "kind": "line",
+    "line": "bloblo",
     "order": 1,
-    "hint": "Vila → Portão da trilha → Volta pelo bairro."
+    "requirements": {
+      "quests": [
+        "lais_bag"
+      ]
+    }
+  },
+  "first_harvest": {
+    "npc": "bloblo",
+    "name": "A primeira colheita",
+    "dialogue": "Esse canteiro é seu. Planta uma cenoura e espera crescer!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "harvest",
+        "target": 1,
+        "label": "Plantar e colher"
+      }
+    ],
+    "rewards": {
+      "coins": 10,
+      "skill_xp": {
+        "agriculture": 15
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 2
+  },
+  "bloblo_more_crops": {
+    "npc": "bloblo",
+    "name": "Mais canteiros",
+    "dialogue": "Mais umas colheitas e te empresto outros dois canteiros.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "harvest",
+        "target": 3,
+        "fresh": true,
+        "label": "Colher 3 vezes"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 3
+  },
+  "bloblo_carrots": {
+    "npc": "bloblo",
+    "name": "Cenouras para a vovó",
+    "dialogue": "Me traz umas cenouras? Te ensino a plantar batata!",
+    "goals": [
+      {
+        "type": "deliver",
+        "key": "carrot",
+        "target": 4,
+        "label": "Entregar cenouras"
+      }
+    ],
+    "rewards": {
+      "coins": 20
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 4
+  },
+  "bloblo_potato": {
+    "npc": "bloblo",
+    "name": "Batata rende mais",
+    "dialogue": "Batata demora um pouco, mas rende mais!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "harvest:potato",
+        "target": 1,
+        "label": "Colher batata"
+      }
+    ],
+    "rewards": {
+      "coins": 15,
+      "skill_xp": {
+        "agriculture": 15
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 5
+  },
+  "bloblo_stew": {
+    "npc": "bloblo",
+    "name": "Um ensopado quentinho",
+    "dialogue": "Ai, que saudade de um ensopado! Faz um pra mim?",
+    "goals": [
+      {
+        "type": "deliver",
+        "key": "vegetable_soup",
+        "target": 1,
+        "label": "Entregar um ensopado"
+      }
+    ],
+    "rewards": {
+      "coins": 30,
+      "skill_xp": {
+        "cooking": 15
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 6,
+    "requirements": {
+      "quests": [
+        "first_kitchen"
+      ]
+    }
+  },
+  "farm_deed": {
+    "npc": "bloblo",
+    "name": "Um pedaço do sítio",
+    "dialogue": "Você leva jeito! Quer um pedaço do sítio só seu?",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "farm",
+        "label": "Comprar a escritura"
+      }
+    ],
+    "rewards": {
+      "coins": 30,
+      "skill_xp": {
+        "agriculture": 20
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 7
   },
   "stone_path": {
-    "npc": "artisan",
+    "npc": "lais",
     "name": "A primeira exploração",
     "dialogue": "Desbloqueie a Caverna e recolha pedra para as construções.",
     "goals": [
@@ -155,11 +515,11 @@
       }
     },
     "kind": "main",
-    "chapter": 5,
+    "chapter": 6,
     "order": 2
   },
   "market_day": {
-    "npc": "merchant",
+    "npc": "lais",
     "name": "Dia de feira",
     "dialogue": "Complete três encomendas. Uma clientela fiel faz toda a diferença.",
     "goals": [
@@ -177,11 +537,11 @@
       }
     },
     "kind": "main",
-    "chapter": 6,
+    "chapter": 7,
     "order": 1
   },
   "deep_earth": {
-    "npc": "artisan",
+    "npc": "lais",
     "name": "Brilho na pedra",
     "dialogue": "Leve dois cristais da gruta. Tenho uma lembrança para quem chega tão longe.",
     "goals": [
@@ -202,11 +562,11 @@
       }
     },
     "kind": "main",
-    "chapter": 7,
+    "chapter": 8,
     "order": 2
   },
   "own_business": {
-    "npc": "merchant",
+    "npc": "lais",
     "name": "Nossa banca",
     "dialogue": "Sua clientela cresceu. Abra sua própria banca!",
     "goals": [
@@ -223,11 +583,11 @@
       }
     },
     "kind": "main",
-    "chapter": 6,
+    "chapter": 7,
     "order": 3
   },
   "atelier_open": {
-    "npc": "artisan",
+    "npc": "lais",
     "name": "Um presente feito aqui",
     "dialogue": "Monte seu ateliê. Agora podemos criar presentes aqui!",
     "goals": [
@@ -247,30 +607,11 @@
       }
     },
     "kind": "main",
-    "chapter": 8,
+    "chapter": 9,
     "order": 3
   },
-  "main_2_fridge": {
-    "npc": "bloblo",
-    "name": "Comprar a geladeira",
-    "dialogue": "Vamos juntos: comprar a geladeira.",
-    "goals": [
-      {
-        "type": "owned",
-        "key": "fridge",
-        "target": 1,
-        "label": "Comprar a geladeira"
-      }
-    ],
-    "rewards": {
-      "coins": 10
-    },
-    "kind": "main",
-    "chapter": 2,
-    "order": 4
-  },
   "main_5_oven": {
-    "npc": "bloblo",
+    "npc": "lais",
     "name": "Construir o forno",
     "dialogue": "Vamos juntos: construir o forno.",
     "goals": [
@@ -285,11 +626,11 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 5,
+    "chapter": 6,
     "order": 5
   },
   "main_7_greenhouse": {
-    "npc": "bloblo",
+    "npc": "lais",
     "name": "Uma estufa cheia de vida",
     "dialogue": "Vamos juntos: uma estufa cheia de vida.",
     "goals": [
@@ -304,147 +645,11 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 7,
-    "order": 3
-  },
-  "main_1_coins": {
-    "npc": "bloblo",
-    "name": "Juntar 40 moedas",
-    "dialogue": "Vamos juntos: juntar 40 moedas.",
-    "goals": [
-      {
-        "type": "coins",
-        "target": 40,
-        "label": "Juntar moedas"
-      }
-    ],
-    "rewards": {
-      "coins": 10
-    },
-    "kind": "main",
-    "chapter": 1,
-    "order": 3,
-    "hint": "Colha no Sítio e venda na Vila."
-  },
-  "main_2_snack": {
-    "npc": "bloblo",
-    "name": "Preparar um petisco",
-    "dialogue": "Vamos juntos: preparar um petisco.",
-    "goals": [
-      {
-        "type": "stat",
-        "key": "produce:carrot_snack",
-        "target": 1,
-        "label": "Preparar e recolher um petisco"
-      }
-    ],
-    "rewards": {
-      "coins": 10
-    },
-    "kind": "main",
-    "chapter": 2,
-    "order": 1
-  },
-  "main_2_order": {
-    "npc": "merchant",
-    "name": "Uma encomenda da vizinhança",
-    "dialogue": "Vamos juntos: uma encomenda da vizinhança.",
-    "goals": [
-      {
-        "type": "stat",
-        "key": "orders",
-        "target": 1,
-        "label": "Entregar uma encomenda"
-      }
-    ],
-    "rewards": {
-      "coins": 10
-    },
-    "kind": "main",
-    "chapter": 2,
-    "order": 3
-  },
-  "main_3_agri": {
-    "npc": "bloblo",
-    "name": "Aprender com a terra",
-    "dialogue": "Vamos juntos: aprender com a terra.",
-    "goals": [
-      {
-        "type": "stat",
-        "key": "harvest",
-        "target": 5,
-        "fresh": true,
-        "label": "Colha 5 vezes"
-      }
-    ],
-    "rewards": {
-      "coins": 10
-    },
-    "kind": "main",
-    "chapter": 3,
-    "order": 2
-  },
-  "main_4_materials": {
-    "npc": "artisan",
-    "name": "Madeira para construir",
-    "dialogue": "Vamos juntos: madeira para construir.",
-    "goals": [
-      {
-        "type": "have",
-        "key": "wood",
-        "target": 6,
-        "label": "Guardar madeira"
-      }
-    ],
-    "rewards": {
-      "coins": 10
-    },
-    "kind": "main",
-    "chapter": 4,
-    "order": 1,
-    "hint": "Vila → Portão da trilha: recolha madeira."
-  },
-  "main_4_stone": {
-    "npc": "artisan",
-    "name": "Uma base firme",
-    "dialogue": "Vamos juntos: uma base firme.",
-    "goals": [
-      {
-        "type": "have",
-        "key": "stone",
-        "target": 4,
-        "label": "Guardar pedra"
-      }
-    ],
-    "rewards": {
-      "coins": 10
-    },
-    "kind": "main",
-    "chapter": 4,
-    "order": 2,
-    "hint": "Vila → Portão da trilha → Trilha do riacho."
-  },
-  "main_4_bench": {
-    "npc": "artisan",
-    "name": "Montar a bancada",
-    "dialogue": "Vamos juntos: montar a bancada.",
-    "goals": [
-      {
-        "type": "owned",
-        "key": "workbench",
-        "target": 1,
-        "label": "Comprar a bancada"
-      }
-    ],
-    "rewards": {
-      "coins": 10
-    },
-    "kind": "main",
-    "chapter": 4,
+    "chapter": 8,
     "order": 3
   },
   "main_5_pickaxe": {
-    "npc": "artisan",
+    "npc": "lais",
     "name": "Desbloquear a Caverna",
     "dialogue": "Abra a Caverna para explorar os materiais da natureza.",
     "goals": [
@@ -459,11 +664,11 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 5,
+    "chapter": 6,
     "order": 1
   },
   "main_5_cooking": {
-    "npc": "bloblo",
+    "npc": "lais",
     "name": "Sabores de casa",
     "dialogue": "Vamos juntos: sabores de casa.",
     "goals": [
@@ -479,11 +684,11 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 5,
+    "chapter": 6,
     "order": 3
   },
   "main_5_bricks": {
-    "npc": "artisan",
+    "npc": "lais",
     "name": "Tijolos para o forno",
     "dialogue": "Vamos juntos: tijolos para o forno.",
     "goals": [
@@ -498,11 +703,11 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 5,
+    "chapter": 6,
     "order": 4
   },
   "main_6_commerce": {
-    "npc": "merchant",
+    "npc": "lais",
     "name": "Conhecer a clientela",
     "dialogue": "Vamos juntos: conhecer a clientela.",
     "goals": [
@@ -518,11 +723,11 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 6,
+    "chapter": 7,
     "order": 2
   },
   "main_7_orchard": {
-    "npc": "bloblo",
+    "npc": "lais",
     "name": "Nosso pomar",
     "dialogue": "Vamos juntos: nosso pomar.",
     "goals": [
@@ -537,11 +742,11 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 7,
+    "chapter": 8,
     "order": 1
   },
   "main_8_fiber": {
-    "npc": "artisan",
+    "npc": "lais",
     "name": "Fibras do prado",
     "dialogue": "Vamos juntos: fibras do prado.",
     "goals": [
@@ -556,12 +761,12 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 8,
+    "chapter": 9,
     "order": 1,
     "hint": "Vila → Portão da trilha → Prado das fibras."
   },
   "main_8_building": {
-    "npc": "artisan",
+    "npc": "lais",
     "name": "Mãos experientes",
     "dialogue": "Vamos juntos: mãos experientes.",
     "goals": [
@@ -577,13 +782,13 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 8,
+    "chapter": 9,
     "order": 2
   },
   "main_9_coop": {
     "npc": "bloblo",
     "name": "Novos moradores",
-    "dialogue": "Monte o galinheiro para receber suas galinhas.",
+    "dialogue": "Com tábuas fazemos um galinheiro! A primeira galinha é meu presente.",
     "goals": [
       {
         "type": "owned",
@@ -597,34 +802,38 @@
         "corn": 4
       }
     },
-    "kind": "main",
-    "chapter": 9,
-    "order": 1
+    "kind": "line",
+    "order": 8,
+    "line": "bloblo",
+    "requirements": {
+      "quests": [
+        "main_4_bench"
+      ]
+    }
   },
   "main_9_eggs": {
     "npc": "bloblo",
     "name": "Ovos fresquinhos",
-    "dialogue": "Compre uma galinha no galinheiro, dê milho e recolha os ovos.",
+    "dialogue": "Sua galinha gosta de milho. Recolha os ovos para conhecer a ruiva!",
     "goals": [
       {
         "type": "stat",
         "key": "produce:egg",
         "target": 2,
-        "fresh": true,
-        "label": "Compre uma galinha, alimente e recolha 2 ovos"
+        "label": "Alimente a galinha e recolha 2 ovos"
       }
     ],
     "rewards": {
       "coins": 35
     },
-    "kind": "main",
-    "chapter": 9,
-    "order": 2
+    "kind": "line",
+    "order": 9,
+    "line": "bloblo"
   },
   "main_9_cows": {
     "npc": "bloblo",
     "name": "As vaquinhas chegaram",
-    "dialogue": "Construa o curral. Trigo é a comida das vaquinhas.",
+    "dialogue": "Agora um curral! Vou te dar uma vaquinha que adora trigo.",
     "goals": [
       {
         "type": "owned",
@@ -638,9 +847,9 @@
         "wheat": 6
       }
     },
-    "kind": "main",
-    "chapter": 9,
-    "order": 3
+    "kind": "line",
+    "order": 10,
+    "line": "bloblo"
   },
   "main_9_flour": {
     "npc": "bloblo",
@@ -658,14 +867,14 @@
     "rewards": {
       "coins": 45
     },
-    "kind": "main",
-    "chapter": 9,
-    "order": 4
+    "kind": "line",
+    "order": 12,
+    "line": "bloblo"
   },
   "main_9_cheese": {
     "npc": "bloblo",
     "name": "Feito no nosso sítio",
-    "dialogue": "Compre uma vaca no curral, recolha seu leite e faça queijo na queijaria.",
+    "dialogue": "Com o leite da sua vaca, faça queijo para mim.",
     "goals": [
       {
         "type": "deliver",
@@ -682,8 +891,191 @@
     "rewards": {
       "coins": 60
     },
-    "kind": "main",
-    "chapter": 9,
-    "order": 5
+    "kind": "line",
+    "order": 13,
+    "line": "bloblo"
+  },
+  "bloblo_milk": {
+    "npc": "bloblo",
+    "name": "Leite fresquinho",
+    "dialogue": "Dê trigo à vaquinha. O primeiro leite libera a vaca caramelo!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "produce:milk",
+        "target": 2,
+        "label": "Alimente a vaca e recolha 2 leites"
+      }
+    ],
+    "rewards": {
+      "coins": 35
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 11
+  },
+  "merchant_meet": {
+    "npc": "merchant",
+    "name": "Boas-vindas à feira",
+    "dialogue": "Chegou com a Laís? Sou o feirante. Aqui sua colheita vale moedas!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "talk:merchant",
+        "target": 1,
+        "label": "Falar com o Feirante"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "line",
+    "line": "merchant",
+    "order": 1,
+    "requirements": {
+      "chapter": 4
+    }
+  },
+  "merchant_surplus": {
+    "npc": "merchant",
+    "name": "Nada de desperdício",
+    "dialogue": "Separe o que vai usar e venda cinco produtos que sobraram.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "sold",
+        "target": 5,
+        "fresh": true,
+        "label": "Vender 5 produtos na feira"
+      }
+    ],
+    "rewards": {
+      "coins": 20
+    },
+    "kind": "line",
+    "line": "merchant",
+    "order": 2
+  },
+  "merchant_orders": {
+    "npc": "merchant",
+    "name": "Cliente satisfeito",
+    "dialogue": "Veja os ingredientes do pedido e entregue uma encomenda.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "orders",
+        "target": 1,
+        "fresh": true,
+        "label": "Entregar 1 encomenda"
+      }
+    ],
+    "rewards": {
+      "coins": 25
+    },
+    "kind": "line",
+    "line": "merchant",
+    "order": 3
+  },
+  "merchant_regular": {
+    "npc": "merchant",
+    "name": "Freguês da casa",
+    "dialogue": "Já pegou o jeito! Vamos atender mais dois pedidos?",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "orders",
+        "target": 2,
+        "fresh": true,
+        "label": "Entregar mais 2 encomendas"
+      }
+    ],
+    "rewards": {
+      "coins": 40
+    },
+    "kind": "line",
+    "line": "merchant",
+    "order": 4
+  },
+  "guide_meet": {
+    "npc": "guide",
+    "name": "Além do portão",
+    "dialogue": "Sou o guia daqui. Vamos conhecer os caminhos com calma?",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "talk:guide",
+        "target": 1,
+        "label": "Falar com o Guia da trilha"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "line",
+    "line": "guide",
+    "order": 1,
+    "requirements": {
+      "chapter": 5
+    }
+  },
+  "guide_wood": {
+    "npc": "guide",
+    "name": "Primeiro caminho",
+    "dialogue": "No Bosque, escolha madeira e volte para recolher quando estiver pronta.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "activity:lane",
+        "target": 1,
+        "fresh": true,
+        "label": "Recolher 1 coleta na Trilha do bosque"
+      }
+    ],
+    "rewards": {
+      "coins": 20
+    },
+    "kind": "line",
+    "line": "guide",
+    "order": 2
+  },
+  "guide_stone": {
+    "npc": "guide",
+    "name": "Pedras da caverna",
+    "dialogue": "Na Caverna encontramos pedra para construir. Experimente a Pedreira.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "activity:quarry",
+        "target": 1,
+        "fresh": true,
+        "label": "Recolher 1 coleta na Pedreira"
+      }
+    ],
+    "rewards": {
+      "coins": 25
+    },
+    "kind": "line",
+    "line": "guide",
+    "order": 3
+  },
+  "guide_fibers": {
+    "npc": "guide",
+    "name": "Fibras do prado",
+    "dialogue": "O Prado tem fibras para o ateliê. Recolha sua primeira coleta lá.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "activity:meadow",
+        "target": 1,
+        "fresh": true,
+        "label": "Recolher 1 coleta no Prado das fibras"
+      }
+    ],
+    "rewards": {
+      "coins": 30
+    },
+    "kind": "line",
+    "line": "guide",
+    "order": 4
   }
 }

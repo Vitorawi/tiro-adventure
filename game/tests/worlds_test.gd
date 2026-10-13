@@ -30,7 +30,7 @@ func _run() -> void:
 	check(nature != null and nature.disabled, "Natureza fechada antes da história")
 	check(worlds.find_child("WorldCard_house", true, false).custom_minimum_size.y >= 100, "Cartão inteiro é alvo grande")
 	_shot("worlds_locked")
-	state.call("dev_jump_to_chapter", 2)
+	state.call("dev_jump_to_chapter", 4)
 	await create_timer(0.3).timeout
 	main.get_node("Celebration").hide()
 	worlds.call("show_map")

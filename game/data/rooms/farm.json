@@ -288,7 +288,8 @@
     }
   ],
   "points": {
-    "dog_start": [638, 190]
+    "dog_start": [638, 190],
+    "npc_bloblo": [540, 205]
   },
   "initial_zoom": 0.62,
   "view_center": [603, 235],

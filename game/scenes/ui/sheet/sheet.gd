@@ -18,6 +18,7 @@ func _ready() -> void:
 
 func open(title: String, content: Control) -> void:
 	for child in _content_holder.get_children():
+		_content_holder.remove_child(child)
 		child.queue_free()
 	_title.text = title
 	_content_holder.add_child(content)

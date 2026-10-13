@@ -13,7 +13,7 @@ extends Node
 ## (BuildInfo.save_path()). Na Web as duas ficam no mesmo IndexedDB do site, por isso
 ## precisam de nomes diferentes para a versão dev não apagar o progresso real.
 
-const SAVE_VERSION := 10
+const SAVE_VERSION := 11
 
 var _save_pending := false
 var _save_path := BuildInfo.save_path()
@@ -102,73 +102,10 @@ func load_production_copy() -> String:
 ## Converte saves antigos para o formato atual, uma versão por vez.
 func _migrate(data: Dictionary) -> Dictionary:
 	var version := int(data.get("save_version", 1))
-	if version < 2:
-		# v1 era só o contador de teste: começa um jogo novo.
-		data["state"] = {}
-		version = 2
-	if version < 3:
-		var state: Dictionary = data.get("state", {})
-		if not state.is_empty():
-			var old_plots: Array = state.get("plots", [])
-			state["unlocked_plots"] = maxi(old_plots.size(), int(Database.farm.get("initial_plots", 3)))
-		version = 3
-	if version < 4:
-		var state: Dictionary = data.get("state", {})
-		if not state.is_empty():
-			var old_owned := {}
-			var old_unlocks := {}
-			for id: String in Database.progression.settings.legacy_owned:
-				old_owned[id] = true
-			for id: String in Database.progression.settings.legacy_unlocks:
-				old_unlocks[id] = true
-			state["progression"] = {"owned": old_owned, "unlocks": old_unlocks}
-		version = 4
-	if version < 5:
-		var state: Dictionary = data.get("state", {})
-		if not state.is_empty():
-			var progression: Dictionary = state.get("progression", {})
-			var owned: Dictionary = progression.get("owned", {})
-			var claimed: Dictionary = progression.get("claimed_quests", {})
-			for id: String in Database.quests:
-				var quest: Dictionary = Database.quests[id]
-				if quest.get("kind", "side") != "main":
-					continue
-				var chapter: Dictionary = Database.progression.chapters[int(quest.chapter) - 1]
-				if bool(owned.get(chapter.target, false)):
-					claimed[id] = true
-			progression["claimed_quests"] = claimed
-			state["progression"] = progression
-		version = 5
-	if version < 6:
-		# Atributos 7 -> 4: Passeio, Mineração e Construção somam em Aventura; Vínculo sai.
-		var state: Dictionary = data.get("state", {})
-		if not state.is_empty():
-			var progression: Dictionary = state.get("progression", {})
-			var skills: Dictionary = progression.get("skills", {})
-			var adventure := int(skills.get("adventure", 0))
-			for old: String in ["walking", "mining", "building", "bond"]:
-				if old != "bond":
-					adventure += int(skills.get(old, 0))
-				skills.erase(old)
-			if adventure > 0:
-				skills["adventure"] = adventure
-			progression["skills"] = skills
-			state["progression"] = progression
-		version = 6
-	if version < 7:
-		# GameState.from_dict preserva os dois animais dos abrigos já comprados.
-		# Ausência de animals identifica esse estado anterior, sem criar em saves novos.
-		version = 7
-	if version < 8:
-		# ProgressionState.from_dict leva a antiga coleta para a vaga 1 do local.
-		version = 8
-	if version < 9:
-		# ProgressionState converte compras de ferramentas em níveis dos locais.
-		version = 9
-	if version < 10:
-		# XP local preserva níveis/vagas adquiridos e o uso anterior das regiões.
-		version = 10
-	data["save_version"] = version
+	if version < 11:
+		# v11: história refeita com as linhas da Laís e da vovó Bloblo. Combinado com o Vitor:
+		# o progresso anterior é descartado (sem migração) e o jogo recomeça do zero.
+		return {"save_version": SAVE_VERSION, "state": {}}
 	return data
 
 

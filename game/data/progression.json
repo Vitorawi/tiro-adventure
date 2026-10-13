@@ -31,7 +31,7 @@
       },
       "requirements": {
         "quests": [
-          "first_harvest"
+          "lais_play"
         ]
       }
     },
@@ -42,7 +42,7 @@
         "screen": "tasks"
       },
       "requirements": {
-        "chapter": 2
+        "chapter": 4
       }
     },
     "weekly": {
@@ -52,7 +52,7 @@
         "screen": "tasks"
       },
       "requirements": {
-        "chapter": 3
+        "chapter": 5
       }
     },
     "skills": {
@@ -62,7 +62,7 @@
         "screen": "pet"
       },
       "requirements": {
-        "chapter": 3
+        "chapter": 6
       }
     }
   },
@@ -101,8 +101,12 @@
       "name": "Fogão simples",
       "world": "house",
       "description": "A primeira cozinha: prepara petiscos e refeições.",
-      "cost": 40,
-      "requirements": {},
+      "cost": 60,
+      "requirements": {
+        "owned": [
+          "fridge"
+        ]
+      },
       "skill_xp": {
         "adventure": 10
       },
@@ -111,11 +115,11 @@
     "fridge": {
       "name": "Geladeira",
       "world": "house",
-      "description": "Libera preparos conservados e a receita de caldo de legumes.",
-      "cost": 75,
+      "description": "Guarda a colheita e libera o ensopado.",
+      "cost": 40,
       "requirements": {
-        "owned": [
-          "stove"
+        "quests": [
+          "lais_first_crops"
         ]
       },
       "skill_xp": {
@@ -130,7 +134,7 @@
       "cost": 180,
       "requirements": {
         "quests": [
-          "first_sale"
+          "bloblo_stew"
         ]
       },
       "skill_xp": {
@@ -155,12 +159,11 @@
       "description": "Transforma madeira e pedra em peças de construção.",
       "cost": 120,
       "materials": {
-        "wood": 6,
-        "stone": 4
+        "wood": 6
       },
       "requirements": {
-        "owned": [
-          "farm"
+        "quests": [
+          "main_4_materials"
         ]
       },
       "skill_xp": {
@@ -176,7 +179,7 @@
       "cost": 80,
       "materials": {},
       "requirements": {
-        "chapter": 3
+        "chapter": 5
       },
       "skill_xp": {
         "adventure": 15
@@ -505,44 +508,49 @@
     "chicken_coop": {
       "name": "Galinheiro",
       "world": "farm",
-      "description": "Duas galinhas: milho vira ovos. Abre a área dos animais.",
+      "description": "Inclui uma galinha branca de presente. Milho vira ovos.",
       "cost": 180,
       "materials": {
-        "plank": 2,
-        "wood": 3
+        "plank": 4
       },
       "requirements": {
-        "chapter": 3,
         "owned": [
-          "farm"
+          "farm",
+          "workbench"
+        ],
+        "quests": [
+          "farm_deed"
         ]
       },
       "skill_xp": {
         "adventure": 25
       },
       "icon": "item_egg",
-      "station": "chicken_coop"
+      "station": "chicken_coop",
+      "gift_animal": "chicken_white"
     },
     "cow_barn": {
       "name": "Curral",
       "world": "farm",
-      "description": "Duas vaquinhas: trigo vira leite.",
+      "description": "Inclui uma vaca pintadinha de presente. Trigo vira leite.",
       "cost": 300,
       "materials": {
-        "plank": 4,
-        "stone": 4
+        "plank": 6
       },
       "requirements": {
-        "chapter": 3,
         "owned": [
           "chicken_coop"
-        ]
+        ],
+        "produced": {
+          "egg": 2
+        }
       },
       "skill_xp": {
         "adventure": 25
       },
       "icon": "item_milk",
-      "station": "cow_barn"
+      "station": "cow_barn",
+      "gift_animal": "cow_white"
     },
     "mill": {
       "name": "Moinho",
@@ -554,7 +562,7 @@
         "stone": 6
       },
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "chicken_coop"
         ]
@@ -575,7 +583,7 @@
         "brick": 3
       },
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "cow_barn"
         ]
@@ -592,7 +600,7 @@
       "description": "Abre a coleta de madeira.",
       "cost": 40,
       "requirements": {
-        "chapter": 3
+        "chapter": 5
       },
       "icon": "item_wood"
     },
@@ -602,7 +610,7 @@
       "description": "Abre a coleta de fibras.",
       "cost": 50,
       "requirements": {
-        "chapter": 3
+        "chapter": 5
       },
       "icon": "item_fiber"
     },
@@ -826,7 +834,7 @@
       "description": "Recolha pequenas pedras com as mãos.",
       "seconds": 75,
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "cave_open"
         ]
@@ -847,7 +855,7 @@
       "description": "Colete madeira no Bosque de nível 2.",
       "seconds": 150,
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "forest_level_2"
         ]
@@ -868,7 +876,7 @@
       "description": "No nível 3, o Bosque libera madeira dura.",
       "seconds": 240,
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "forest_level_3"
         ]
@@ -890,7 +898,7 @@
       "description": "Explore os veios de pedra e cobre da Caverna de nível 2.",
       "seconds": 300,
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "cave_level_2"
         ]
@@ -912,7 +920,7 @@
       "description": "Colete os cristais da Caverna de nível 3.",
       "seconds": 480,
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "cave_level_3"
         ]
@@ -934,7 +942,7 @@
       "description": "Colete mais fibras no Prado de nível 2.",
       "seconds": 300,
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "meadow_level_2"
         ]
@@ -956,7 +964,7 @@
       "description": "Explore o Bosque e recolha madeira.",
       "seconds": 60,
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "forest_open"
         ]
@@ -978,7 +986,7 @@
       "description": "Recolha madeira e pedras para as primeiras construções.",
       "seconds": 180,
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "cave_open"
         ]
@@ -1001,7 +1009,7 @@
       "description": "Extraia pedra para a oficina e suas melhorias.",
       "seconds": 180,
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "cave_open"
         ]
@@ -1022,7 +1030,7 @@
       "description": "Cobre da Caverna de nível 2 para novas construções.",
       "seconds": 360,
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "cave_level_2"
         ]
@@ -1044,7 +1052,7 @@
       "description": "Cristais da Caverna de nível 3 para instalações especiais.",
       "seconds": 600,
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "cave_level_3"
         ]
@@ -1086,7 +1094,7 @@
       "description": "Colete fibras para transformar em tecido.",
       "seconds": 420,
       "requirements": {
-        "chapter": 3,
+        "chapter": 5,
         "owned": [
           "meadow_open"
         ]
@@ -1257,41 +1265,53 @@
   },
   "chapters": [
     {
-      "name": "Um novo começo",
-      "description": "Cuide do Tiro, colha no canteiro emprestado e conquiste seu fogão.",
-      "target": "stove",
+      "name": "Um novo lar",
+      "description": "A Laís trouxe o Tiro! Aprenda a cuidar dele.",
+      "target": "",
       "rewards": {
-        "coins": 20
+        "coins": 10
       },
-      "unlocks_text": "Avance para o próximo capítulo"
+      "unlocks_text": "Conheça a vovó Bloblo no sítio"
     },
     {
-      "name": "Nossa primeira cozinha",
-      "description": "Cozinhe, entregue pedidos e compre a geladeira.",
-      "target": "fridge",
+      "name": "O sítio da vovó",
+      "description": "Conheça a vovó Bloblo e faça as primeiras colheitas.",
+      "target": "",
       "rewards": {
-        "coins": 40,
-        "skill_xp": {
-          "cooking": 20
-        }
-      },
-      "unlocks_text": "Abre o portão da trilha na Vila"
-    },
-    {
-      "name": "Um pedacinho de terra",
-      "description": "Faça sua primeira venda e compre o sítio.",
-      "target": "farm",
-      "rewards": {
-        "coins": 60,
+        "coins": 20,
         "skill_xp": {
           "agriculture": 20
         }
       },
-      "unlocks_text": "Avance para o próximo capítulo"
+      "unlocks_text": "Monte a cozinha da casa"
     },
     {
-      "name": "Construindo o futuro",
-      "description": "Explore, junte materiais e monte a bancada.",
+      "name": "A cozinha",
+      "description": "Geladeira, fogão e um ensopado para a vovó.",
+      "target": "stove",
+      "rewards": {
+        "coins": 30,
+        "skill_xp": {
+          "cooking": 20
+        }
+      },
+      "unlocks_text": "Abre a Vila e as missões diárias"
+    },
+    {
+      "name": "Conhecendo a Vila",
+      "description": "Passeie na Vila, venda e entregue encomendas.",
+      "target": "",
+      "rewards": {
+        "coins": 40,
+        "skill_xp": {
+          "commerce": 20
+        }
+      },
+      "unlocks_text": "Abre o portão para a Natureza"
+    },
+    {
+      "name": "Além do portão",
+      "description": "Explore a Natureza, junte madeira e monte a bancada.",
       "target": "workbench",
       "rewards": {
         "coins": 80,
@@ -1347,20 +1367,7 @@
           "adventure": 20
         }
       },
-      "unlocks_text": "Conheça os animais do sítio!"
-    },
-    {
-      "name": "Um sítio cheio de vida",
-      "description": "Cuide de galinhas e vacas, moa trigo e faça queijo.",
-      "target": "dairy",
-      "rewards": {
-        "coins": 180,
-        "skill_xp": {
-          "agriculture": 30,
-          "cooking": 30
-        }
-      },
-      "unlocks_text": "História completa! Continue nas diárias e semanais."
+      "unlocks_text": "História da Laís completa! Continue com a vovó e nas diárias e semanais."
     }
   ],
   "final_chapter": {

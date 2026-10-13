@@ -22,6 +22,7 @@ extends Control
 var _toast_tween: Tween
 var _current_screen: StringName = &""
 var _tasks_badge: Label
+var _map_badge: Label
 var _tasks_pulse: Tween
 var _celebration: CanvasLayer
 ## Capítulo concluído nesta leva de missões (0 = nenhum); o anúncio sai uma vez, no fim do frame.
@@ -66,10 +67,14 @@ func _ready() -> void:
 	UiKit.tint_bar(%XpBar, Color(1, 0.82, 0.3))
 	_refresh_top_bar()
 	show_screen(&"pet")
+	# Jogo novo: a Laís chega com o Tiro e apresenta a casa (uma vez só).
+	if IntroScene.should_show():
+		add_child(IntroScene.new())
 
 
 func show_screen(id: StringName) -> void:
 	_current_screen = id
+	GameState.note_screen_opened(String(id))
 	for screen_id: StringName in _screens:
 		_screens[screen_id].visible = screen_id == id
 		_tabs[screen_id].button_pressed = screen_id == id
@@ -101,6 +106,9 @@ func _build_tasks_badge() -> void:
 	_tasks_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_tasks_badge.position = Vector2(54, 2)
 	%TasksTab.add_child(_tasks_badge)
+	_map_badge = _tasks_badge.duplicate() as Label
+	_map_badge.name = "NpcMapBadge"
+	%MapTab.add_child(_map_badge)
 	var timer := Timer.new()
 	timer.wait_time = 1.0
 	timer.autostart = true
@@ -110,6 +118,22 @@ func _build_tasks_badge() -> void:
 
 
 func _refresh_tasks_badge() -> void:
+	var npc_status := ""
+	for npc_id: String in Database.npcs:
+		if not GameState.progress.npc_visible(npc_id):
+			continue
+		var world_id := Database.npc_world(npc_id)
+		if GameState.requirement_error(Database.worlds.get(world_id, {}).get("requirements", {})) != "":
+			continue
+		var badge := Places.npc_badge(npc_id)
+		if badge == "ready":
+			npc_status = "ready"
+			break
+		if badge == "new":
+			npc_status = "new"
+	_map_badge.text = "✓" if npc_status == "ready" else "!"
+	_map_badge.visible = npc_status != ""
+	_map_badge.modulate = UiKit.GOOD if npc_status == "ready" else Color("ffd23f")
 	var count := GameState.ready_quest_count() + GameState.ready_routine_count()
 	for i in GameState.accessible_plots():
 		if GameState.plot_status(i) == "ready":

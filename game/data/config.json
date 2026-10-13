@@ -70,7 +70,7 @@
       "recipe_label": "Alimentação",
       "instruction": "Dê milho às galinhas. Espere e recolha os ovos.",
       "requirements": {
-        "chapter": 3
+        "chapter": 5
       }
     },
     "cow_barn": {
@@ -83,7 +83,7 @@
       "recipe_label": "Alimentação",
       "instruction": "Dê trigo às vacas. Espere e recolha o leite.",
       "requirements": {
-        "chapter": 3
+        "chapter": 5
       }
     },
     "mill": {
@@ -91,7 +91,7 @@
       "slots": 2,
       "instruction": "Transforme trigo em farinha.",
       "requirements": {
-        "chapter": 3
+        "chapter": 5
       }
     },
     "dairy": {
@@ -99,17 +99,17 @@
       "slots": 2,
       "instruction": "Transforme leite em queijo.",
       "requirements": {
-        "chapter": 3
+        "chapter": 5
       }
     }
   },
   "animals": {
     "chicken_white": {"name": "Galinha branca", "station": "chicken_coop", "price": 60, "sprite": "res://assets/sprites/areas/farm/chicken.png", "legacy": true, "map_scale": 0.6},
-    "chicken_brown": {"name": "Galinha ruiva", "station": "chicken_coop", "price": 80, "sprite": "res://assets/sprites/areas/farm/chicken_brown.png", "map_scale": 0.6},
-    "chicken_black": {"name": "Galinha preta", "station": "chicken_coop", "price": 90, "sprite": "res://assets/sprites/areas/farm/chicken_black.png", "map_scale": 0.6},
+    "chicken_brown": {"name": "Galinha ruiva", "station": "chicken_coop", "price": 80, "sprite": "res://assets/sprites/areas/farm/chicken_brown.png", "map_scale": 0.6, "requirements": {"produced": {"egg": 2}}},
+    "chicken_black": {"name": "Galinha preta", "station": "chicken_coop", "price": 90, "sprite": "res://assets/sprites/areas/farm/chicken_black.png", "map_scale": 0.6, "requirements": {"produced": {"egg": 6}}},
     "cow_white": {"name": "Vaca pintadinha", "station": "cow_barn", "price": 140, "sprite": "res://assets/sprites/areas/farm/cow.png", "legacy": true, "map_scale": 1.0},
-    "cow_brown": {"name": "Vaca caramelo", "station": "cow_barn", "price": 180, "sprite": "res://assets/sprites/areas/farm/cow_brown.png", "map_scale": 1.3},
-    "cow_spotted": {"name": "Vaca malhada", "station": "cow_barn", "price": 200, "sprite": "res://assets/sprites/areas/farm/cow_spotted.png", "map_scale": 1.3}
+    "cow_brown": {"name": "Vaca caramelo", "station": "cow_barn", "price": 180, "sprite": "res://assets/sprites/areas/farm/cow_brown.png", "map_scale": 1.3, "requirements": {"produced": {"milk": 2}}},
+    "cow_spotted": {"name": "Vaca malhada", "station": "cow_barn", "price": 200, "sprite": "res://assets/sprites/areas/farm/cow_spotted.png", "map_scale": 1.3, "requirements": {"produced": {"milk": 6}}}
   },
   "farm": {
     "name": "Sítio da Bloblo",
@@ -127,7 +127,10 @@
       220
     ],
     "sprout": "res://assets/sprites/areas/farm/crop_sprout.png",
-    "borrowed_plots": 1
+    "lent_plots": [
+      {"count": 1, "requirements": {"quests": ["bloblo_meet"]}},
+      {"count": 3, "requirements": {"quests": ["bloblo_more_crops"]}}
+    ]
   },
   "xp": {
     "feed": 2,

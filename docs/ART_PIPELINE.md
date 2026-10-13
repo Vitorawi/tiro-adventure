@@ -36,6 +36,14 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 
 ## Registro de assets
 
+### Retrato animado da Laís — 13/10/2026 (Codex)
+
+Personagem existente **Laís Avatar**, `650a88c3-6c61-40ba-a7f4-e533d891e478`, 64×64.
+Sem novas gerações. "Pedindo algo": animação `36e46520-30c5-42b2-81bf-01350b2bdf86`,
+9 quadros south em `characters/npc_lais/quest_request/frame_0.png` até `frame_8.png`.
+"Acenando sorrindo": `60d41505-05f9-4a28-b67d-75bc7e300364`, 9 quadros já baixados
+em `intro_wave/`, também usados na entrega das missões. Reprodução a 8 FPS.
+
 ### Natureza contínua e ferramentas — 13/10/2026 (Codex)
 
 Fundo PixelLab Pro em `areas/nature/nature.png`, job `331ff1e1-510a-41e7-8c60-f31f3ffdbc0f`,

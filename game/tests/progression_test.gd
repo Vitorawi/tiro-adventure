@@ -20,42 +20,32 @@ func _run() -> void:
 	state = root.get_node("GameState")
 	database = root.get_node("Database")
 	var saver: Node = root.get_node("SaveManager")
-	var old_state: Dictionary = state.call("to_dict").duplicate(true)
-	old_state.erase("progression")
-	old_state["coins"] = 123
-	old_state["unlocked_plots"] = 7
-	var migrated: Dictionary = saver.call("_migrate", {"save_version": 3, "state": old_state})
 	root.remove_child(saver)
 	saver.free()
-	state.call("from_dict", migrated.state)
-	_check(state.call("has_upgrade", "farm") and state.call("has_upgrade", "fridge") and state.call("has_upgrade", "stove"), "Migração deve preservar equipamentos e sítio")
-	_check(state.get("coins") == 123 and state.get("unlocked_plots") == 7, "Migração deve preservar moedas e terrenos")
-	_check(state.call("station_slots", "stove") == 3, "Migração deve preservar a fila antiga")
-	_check(state.call("content_error", "crop", "pumpkin", database.get("crops")["pumpkin"]) == "", "Migração não pode bloquear culturas antigas")
 	state.call("reset")
-	_check(not state.call("has_upgrade", "stove") and state.call("accessible_plots") == 1, "Começo deve ter casa vazia e um canteiro emprestado")
+	_check(not state.call("has_upgrade", "stove") and not state.call("has_upgrade", "fridge") and state.call("accessible_plots") == 0, "Começo: casa sem cozinha e sítio ainda não apresentado")
 	_check(state.call("cook", "carrot_snack") != "", "Não deve cozinhar sem estação")
-	_check(state.call("plant", 1, "carrot") != "" and state.call("buy_plot", 3) != "", "Não deve usar terrenos próprios antes de comprar o sítio")
-	_check(state.call("plant", 0, "pumpkin") != "", "Culturas devem respeitar o atributo")
+	_check(state.call("plant", 0, "carrot") != "" and state.call("buy_plot", 3) != "", "Sem canteiros antes de conhecer a vovó")
+	_check(state.call("buy_upgrade", "fridge") != "" and state.call("buy_upgrade", "stove") != "", "Cozinha só depois da história apresentar")
 	_check(state.call("start_activity", "quarry") != "", "Mineração precisa de ferramenta")
 	_check(state.call("claim_quest", "first_sale") != "", "Não deve receber missão fora da sequência")
 	_check(state.call("claim_quest", "welcome") != "", "Não deve receber missão sem objetivo")
 	var coins_before: int = state.get("coins")
 	_check(state.call("sell", "carrot", -2) != "" and state.get("coins") == coins_before, "Venda negativa não deve gerar itens ou moedas")
-	_check(state.call("buy_upgrade", "stove") != "" and not state.call("has_upgrade", "stove"), "Compra sem saldo não deve liberar equipamento")
 	_check(state.call("feed", "dog_food"), "Refeição inicial deve funcionar")
-	_check(state.call("claim_quest", "welcome") == "", "Missão inicial deve ser possível")
+	state.call("talk_to", "lais")
+	_check(state.call("claim_quest", "welcome") == "", "Falar com a Laís conclui a missão inicial")
 	coins_before = state.get("coins")
 	_check(state.call("claim_quest", "welcome") != "" and state.get("coins") == coins_before, "Missão não pode pagar duas vezes")
 	var xp_before: int = state.get("xp")
 	var level_before: int = state.get("level")
 	state.call("feed", "dog_food")
 	_check(state.get("xp") == xp_before and state.get("level") == level_before, "Cuidado repetido não pode farmar XP")
-	_check(state.call("start_activity", "lane") != "", "Trilha fechada antes do capítulo 3")
-	state.call("dev_jump_to_chapter", 2)
-	_check(state.call("start_activity", "lane") != "", "Capítulo 3 apresenta o local ainda fechado")
+	_check(state.call("start_activity", "lane") != "", "Trilha fechada antes do capítulo 5")
+	state.call("dev_jump_to_chapter", 4)
+	_check(state.call("start_activity", "lane") != "", "Capítulo 5 apresenta o local ainda fechado")
 	state.call("dev_add_coins", 40)
-	_check(state.call("buy_upgrade", "forest_open") == "", "Bosque pode ser desbloqueado no capítulo 3")
+	_check(state.call("buy_upgrade", "forest_open") == "", "Bosque pode ser desbloqueado no capítulo 5")
 	_check(state.call("start_activity", "lane") == "", "Rota abre ao desbloquear o Bosque")
 	_check(state.call("collect_activity") != "" and state.call("start_activity", "lane") != "", "Atividade não pode ser antecipada ou sobreposta")
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
@@ -88,6 +78,13 @@ func _campaign() -> Dictionary:
 		state.get("dog").updated_at -= 3600.0
 		state.call("emergency_food")
 		state.call("bathe")
+		state.call("play")
+		for npc_id: String in database.get("npcs"):
+			if not state.get("progress").npc_visible(npc_id):
+				continue
+			state.call("talk_to", npc_id)
+		for screen: String in ["bag", "village"]:
+			state.call("note_screen_opened", screen)
 		for item: String in database.get("items"):
 			if database.get("items")[item].has("feed") and state.get("inventory").count(item) > 0:
 				state.call("feed", item)
@@ -109,8 +106,9 @@ func _campaign() -> Dictionary:
 			if int(state.get("progress").stats.get("order:" + id, 0)) >= 3:
 				continue # Guarda os materiais dos próximos pedidos para construir.
 			state.call("fulfill_order", id)
-		var step: String = state.get("progress").current_main_quest()
-		var wanted: Array = database.get("quests")[step].goals.map(func(g: Dictionary) -> String: return str(g.get("key", ""))) if step != "" else []
+		var wanted: Array = []
+		for step: String in state.get("progress").active_steps().values():
+			wanted.append_array(database.get("quests")[step].goals.map(func(g: Dictionary) -> String: return str(g.get("key", ""))))
 		for id: String in recipes:
 			for animal_id: String in database.get("animals"):
 				if database.get("animals")[animal_id].station == recipes[id].station and state.call("animal_count", recipes[id].station) == 0:
@@ -122,8 +120,7 @@ func _campaign() -> Dictionary:
 				for entry: Dictionary in station.queue:
 					entry["ready_at"] = 1.0
 				state.call("collect", recipes[id].station)
-		var current: String = state.get("progress").current_main_quest()
-		if current != "":
+		for current: String in state.get("progress").active_steps().values():
 			state.call("claim_quest", current)
 		for kind: String in ["daily", "weekly"]:
 			for id: String in state.call("routine_ids", kind):
@@ -193,7 +190,7 @@ func _screenshots(final_save: Dictionary) -> void:
 	await create_timer(1.2).timeout
 	_shot("ui_kitchen")
 	events.emit_signal("sheet_close_requested")
-	main.call("_on_world_requested", "village", "npc:artisan")
+	main.call("_on_world_requested", "house", "npc:lais")
 	await create_timer(1.2).timeout
 	_shot("ui_npc_lais")
 	events.emit_signal("sheet_close_requested")

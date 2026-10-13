@@ -33,9 +33,9 @@ var nature_xp: Dictionary = {}
 ## { period: "2026-10-12", ids: [...], base: { contador: valor no início }, claimed: { id: true } }.
 ## Progresso = contador atual − base; não precisa de contador próprio.
 var routines: Dictionary = {}
-## Passo atual da história e o valor dos contadores quando ele começou (objetivos "fresh"):
-## { quest: id, base: { contador: valor } }.
-var step: Dictionary = {}
+## Passo atual de cada linha ("main" = história da Laís, "bloblo"...) e o valor dos contadores
+## quando ele começou (objetivos "fresh"): { linha: { quest: id, base: { contador: valor } } }.
+var steps: Dictionary = {}
 ## Novidades já mostradas ao jogador ("feature:bag", "world:village", "place:village/gate", "npc:guide").
 ## O que está liberado e ainda não está aqui aparece na tela "Novo!".
 var seen: Dictionary = {}
@@ -156,6 +156,8 @@ func quest_unlocked(id: String) -> bool:
 		return false
 	if Database.quests[id].get("kind", "side") == "main":
 		return id == current_main_quest()
+	if Database.quests[id].get("kind", "side") == "line":
+		return id == current_line_quest(str(Database.quests[id].line))
 	if requirement_error(Database.quests[id].get("requirements", {})) != "":
 		return false
 	for required: String in Database.quests[id].get("requires", []):
@@ -167,6 +169,10 @@ func quest_unlocked(id: String) -> bool:
 ## Um único validador para lojas, culturas, receitas, rotas e pedidos.
 ## requirements = { "owned": [...], "quests": [...], "skills": { id: nível } }
 func requirement_error(requirements: Dictionary) -> String:
+	for item: String in requirements.get("produced", {}):
+		var needed := int(requirements.produced[item])
+		if stat("produce:" + item) < needed:
+			return "Recolha %d × %s" % [needed, Database.item_name(item)]
 	if chapter_index() < int(requirements.get("chapter", 1)):
 		return "Disponível no capítulo %d" % int(requirements.chapter)
 	for id: String in requirements.get("owned", []):
@@ -216,6 +222,56 @@ func current_main_quest() -> String:
 	return ""
 
 
+## Linhas secundárias (kind "line"), na ordem em que aparecem em quests.json.
+func lines() -> Array[String]:
+	var result: Array[String] = []
+	for id: String in Database.quests:
+		var quest: Dictionary = Database.quests[id]
+		if quest.get("kind", "side") == "line" and not result.has(str(quest.line)):
+			result.append(str(quest.line))
+	return result
+
+
+func line_quests(line: String) -> Array[String]:
+	var result: Array[String] = []
+	for id: String in Database.quests:
+		var quest: Dictionary = Database.quests[id]
+		if quest.get("kind", "side") == "line" and str(quest.line) == line:
+			result.append(id)
+	result.sort_custom(func(a: String, b: String) -> bool:
+		return int(Database.quests[a].order) < int(Database.quests[b].order))
+	return result
+
+
+## Passo ativo da linha: primeira missão não recebida, se os requisitos dela já valem.
+## "" = linha concluída ou esperando (ex.: Bloblo antes de a Laís apresentar).
+func current_line_quest(line: String) -> String:
+	for id in line_quests(line):
+		if claimed_quests.has(id):
+			continue
+		return id if requirement_error(Database.quests[id].get("requirements", {})) == "" else ""
+	return ""
+
+
+## Passo ativo de cada linha, com a história ("main") primeiro: { linha: quest_id }.
+func active_steps() -> Dictionary:
+	var result := {}
+	var main := current_main_quest()
+	if main != "":
+		result["main"] = main
+	for line in lines():
+		var id := current_line_quest(line)
+		if id != "":
+			result[line] = id
+	return result
+
+
+## Linha dona da missão ("main" para a história).
+func quest_line(id: String) -> String:
+	var quest: Dictionary = Database.quests.get(id, {})
+	return "main" if quest.get("kind", "side") == "main" else str(quest.get("line", ""))
+
+
 func current_chapter() -> Dictionary:
 	var index := chapter_index()
 	if index <= Database.progression.chapters.size():
@@ -242,7 +298,7 @@ func to_dict() -> Dictionary:
 		"skills": skills, "owned": owned, "stats": stats, "nature_levels_version": 2, "nature_xp": nature_xp,
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
 		"collection": collection, "unlocks": unlocks,
-		"cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "step": step, "seen": seen,
+		"cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "steps": steps, "seen": seen,
 	}
 
 
@@ -313,7 +369,7 @@ func from_dict(data: Dictionary) -> void:
 			jobs.append(entry.duplicate(true) if entry.is_empty() or Database.gathering_site(str(entry.get("id", ""))) == site else {})
 		gathering[site] = jobs
 	routines = data.get("routines", {}).duplicate(true)
-	step = data.get("step", {}).duplicate(true)
+	steps = data.get("steps", {}).duplicate(true)
 	seen = data.get("seen", {}).duplicate(true)
 	# Rota removida do JSON não pode travar o jogador para sempre.
 	if not activity.is_empty() and not Database.progression.activities.has(str(activity.get("id", ""))):

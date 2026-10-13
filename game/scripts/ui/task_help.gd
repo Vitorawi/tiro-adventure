@@ -11,6 +11,12 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 	visited.append(key)
 	var result: Dictionary
 	match kind:
+		"produced":
+			var source := best_source(id)
+			if source.is_empty():
+				return _base(Database.item_name(id), "Continue produzindo.", {"screen": "tasks"}, "Missões")
+			result = describe(source.kind, source.id, maxi(1, amount - GameState.progress.stat("produce:" + id)), visited)
+			result["detail"] = "Produza e recolha " + Database.item_name(id)
 		"quest":
 			var quest: Dictionary = Database.quests[id]
 			if GameState.quest_error(id) == "":
@@ -125,6 +131,7 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 		"owned": return describe("upgrade", key, 1, trail)
 		"skill": return describe("skill", key, amount, trail)
 		"coins", "chapter": return describe(type, "", amount, trail)
+		"quest": return describe("quest", key, 1, trail)
 		"have", "deliver":
 			var result := describe("item", key, amount, trail)
 			if type == "deliver":
@@ -144,7 +151,7 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 			if key.begins_with("harvest:"):
 				return describe("crop", key.trim_prefix("harvest:"), 1, trail)
 	var target := Places.goal_target(goal)
-	var hints := {"feed": "Dê comida na Tigela.", "harvest": "Plante e colha.", "bathe": "Aba Tiro → Banho.", "play": "Aba Tiro → Brincar.", "trade": "Venda na Vila.", "sold": "Venda na Vila.", "explore": "Faça um passeio.", "produce": "Cozinhe no Fogão."}
+	var hints := {"talk:lais": "Toque na Laís, na Casa.", "talk:bloblo": "Toque na vovó Bloblo, no Sítio.", "open:bag": "Toque na aba Mochila.", "feed": "Dê comida na Tigela.", "harvest": "Plante e colha.", "bathe": "Aba Tiro → Banho.", "play": "Aba Tiro → Brincar.", "trade": "Venda na Vila.", "sold": "Venda na Vila.", "explore": "Faça um passeio.", "produce": "Cozinhe no Fogão."}
 	return _base(str(goal.get("label", "Seu objetivo")), hints.get(key, ""), target, "Ir")
 
 
@@ -193,6 +200,9 @@ static func _need(kind: String, id: String, amount: int) -> Dictionary:
 	var have := 0
 	var label := ""
 	match kind:
+		"produced":
+			have = GameState.progress.stat("produce:" + id)
+			label = "Recolher " + Database.item_name(id)
 		"item":
 			have = GameState.inventory.count(id)
 			label = Database.item_name(id)
@@ -216,6 +226,9 @@ static func _need(kind: String, id: String, amount: int) -> Dictionary:
 
 static func _requirements(requirements: Dictionary) -> Array[Dictionary]:
 	var needs: Array[Dictionary] = []
+	for item: String in requirements.get("produced", {}):
+		if GameState.progress.stat("produce:" + item) < int(requirements.produced[item]):
+			needs.append(_need("produced", item, int(requirements.produced[item])))
 	for id: String in requirements.get("owned", []):
 		if not GameState.has_upgrade(id):
 			needs.append(_need("upgrade", id, 1))
@@ -347,6 +360,8 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 ## Ícone do que o painel explica (missão = objetivo atual).
 static func icon_for(kind: String, id: String) -> Texture2D:
 	match kind:
+		"produced":
+			return Database.item_icon(id)
 		"quest":
 			return ProgressionUi.goal_icon(ProgressionUi.current_goal(id))
 		"item", "crop":

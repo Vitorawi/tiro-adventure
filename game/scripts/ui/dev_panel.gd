@@ -89,6 +89,9 @@ static func _progress(box: VBoxContainer) -> void:
 	var chapter := GameState.current_chapter()
 	_section(box, "Capítulo atual", chapter.get("name", ""))
 	_tool(box, "Concluir passo atual da história", GameState.dev_complete_main_step)
+	_tool(box, "Rever introdução (Laís chega com o Tiro)", func() -> void:
+		Events.sheet_close_requested.emit()
+		(Engine.get_main_loop() as SceneTree).current_scene.add_child(IntroScene.new()), "")
 
 	_section(box, "Atributos", "Sobe todos para pelo menos o nível escolhido.")
 	var skills := _grid(box, 4)
@@ -116,7 +119,8 @@ static func _progress(box: VBoxContainer) -> void:
 	for id: String in Database.quests:
 		if not GameState.progress.claimed_quests.has(id):
 			var quest: Dictionary = Database.quests[id]
-			_tool(quests, "%d. %s" % [int(quest.get("chapter", 0)), quest.name], GameState.dev_complete_quest.bind(id))
+			var where := "%d." % int(quest.chapter) if quest.has("chapter") else str(Database.npcs.get(quest.npc, {}).get("name", "")) + " ·"
+			_tool(quests, "%s %s" % [where, quest.name], GameState.dev_complete_quest.bind(id))
 	_section(box, "Diárias e semanais", "Zera o progresso e as recompensas do dia e da semana.")
 	_tool(_grid(box, 1), "Recomeçar diárias e semanais", GameState.dev_restart_routines)
 

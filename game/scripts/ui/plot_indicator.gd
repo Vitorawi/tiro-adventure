@@ -26,7 +26,7 @@ func _draw() -> void:
 		draw_style_box(_box(Color("73634a") if next else Color("454c48")), rect)
 		var caption := "+ %d" % GameState.plot_cost(plot_index) if next else "Depois"
 		if not GameState.has_upgrade("farm"):
-			caption = "Sítio"
+			caption = "Vovó"
 		_center_text(font, caption, -20, cream, 10)
 		return
 	draw_style_box(_box(dark), hit_rect)

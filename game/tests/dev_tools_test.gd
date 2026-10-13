@@ -47,23 +47,24 @@ func _progress() -> Variant:
 func _dev_mode() -> void:
 	state.call("reset")
 	state.call("dev_complete_main_step")
-	_check(_progress().claimed_quests.has("welcome") and _progress().current_main_quest() == "first_harvest", "Concluir passo DEV avança apenas um passo")
+	_check(_progress().claimed_quests.has("welcome") and _progress().current_main_quest() == "lais_feed", "Concluir passo DEV avança apenas um passo")
 	state.call("reset")
 	state.call("dev_complete_quest", "main_2_order")
-	_check(_progress().current_main_quest() == "main_2_fridge", "Concluir main respeita capítulos e ordem")
+	_check(_progress().current_main_quest() == "lais_forest", "Concluir main respeita capítulos e ordem")
+	_check(_progress().claimed_quests.has("bloblo_stew"), "Concluir main também conclui o cruzamento com a vovó")
 	state.call("reset")
 	state.call("dev_add_coins", 1000)
 	_check(state.get("coins") == int(database.get("start").coins) + 1000, "Deve somar moedas")
 	state.call("dev_add_items", 5, "material")
 	_check(state.get("inventory").count("plank") == 5 and state.get("inventory").count("carrot") == 0, "Deve somar só a categoria pedida")
 
-	state.call("dev_jump_to_chapter", 3)
-	for id: String in ["stove", "fridge", "farm"]:
+	state.call("dev_jump_to_chapter", 4)
+	for id: String in ["stove", "fridge"]:
 		_check(state.call("has_upgrade", id), "Pular capítulo deve liberar " + id)
 	_check(not state.call("has_upgrade", "workbench"), "Pular capítulo não libera o alvo do próprio capítulo")
 	_check(_progress().claimed_quests.has("first_sale") and _progress().claimed_quests.has("welcome"), "Requisitos de missão (e anteriores) devem ser concluídos")
-	_check(state.call("accessible_plots") == 3, "Escritura do sítio libera os terrenos iniciais")
-	_check(state.call("current_chapter").target == "workbench", "Capítulo atual deve ser o 4")
+	_check(state.call("accessible_plots") == 3, "Vovó empresta três canteiros")
+	_check(state.call("current_chapter").target == "workbench", "Capítulo atual deve ser o 5")
 
 	state.call("dev_grant_upgrade", "greenhouse")
 	_check(state.call("has_upgrade", "greenhouse"), "Deve liberar a estufa")

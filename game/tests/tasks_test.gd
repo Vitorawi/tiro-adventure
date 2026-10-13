@@ -20,34 +20,35 @@ func _run() -> void:
 	var saver: Node = root.get_node("SaveManager")
 	root.remove_child(saver)
 	state.call("reset")
+	# v11: a história foi refeita (Laís + vovó Bloblo) e o save anterior recomeça do zero.
 	var old: Dictionary = state.call("to_dict").duplicate(true)
 	old.coins = 137
-	old.progression.owned = {"stove": true, "fridge": true, "farm": true}
-	old.progression.claimed_quests = {"trail_friend": true}
-	old.progression.skills = {"agriculture": 40, "walking": 50, "mining": 30, "building": 20, "bond": 99}
-	var migrated: Dictionary = saver.call("_migrate", {"save_version": 4, "state": old})
-	state.call("from_dict", migrated.state)
-	check(state.get("progress").chapter_index() == 4, "Save v4 deve abrir no capítulo 4")
-	check(state.get("coins") == 137, "Migração não paga recompensas")
-	check(state.get("progress").claimed_quests.has("trail_friend"), "Migração preserva missões antigas")
-	check(state.get("progress").skills == {"agriculture": 40, "adventure": 100}, "v6: Passeio+Mineração+Construção viram Aventura; Vínculo sai")
-	check(saver.call("_migrate", migrated) == migrated, "Migração é idempotente")
+	var migrated: Dictionary = saver.call("_migrate", {"save_version": 10, "state": old})
+	check((migrated.state as Dictionary).is_empty(), "Save anterior à v11 recomeça do zero")
+	var current: Dictionary = {"save_version": saver.get("SAVE_VERSION"), "state": old}
+	check(saver.call("_migrate", current) == current, "Save atual não é alterado")
 	saver.free()
-	# Passo "fresh": conta só o que acontece depois que o passo começou.
+	# Linhas em paralelo: a vovó tem passo próprio e o "fresh" usa a base da linha dela.
 	state.call("reset")
 	state.get("progress").stats["harvest"] = 40
-	state.call("dev_jump_to_chapter", 2)
-	state.call("dev_complete_main_step")  # cap. 3: first_walk, depois main_3_agri
-	check(state.get("progress").current_main_quest() == "main_3_agri", "Passo de colheita é o atual")
-	var fresh: Dictionary = database.get("quests").main_3_agri.goals[0]
+	state.call("dev_complete_quest", "first_harvest")
+	check(state.get("progress").current_line_quest("bloblo") == "bloblo_more_crops", "Passo da vovó é o atual")
+	check(state.get("progress").current_main_quest() == "lais_meet_bloblo", "Laís segue na linha dela")
+	check(state.call("quest_error", "lais_meet_bloblo") == "", "Cruzamento: conhecer a vovó cumpre o passo da Laís")
+	var fresh: Dictionary = database.get("quests").bloblo_more_crops.goals[0]
 	check(state.call("goal_value", fresh) == 0, "Colheitas anteriores não contam")
 	state.get("progress").count("harvest", 2)
 	check(state.call("goal_value", fresh) == 2, "Colheitas novas contam")
+	check(state.call("accessible_plots") == 1, "Vovó empresta um canteiro ao conhecer")
+	state.get("progress").count("harvest", 1)
+	check(state.call("claim_quest", "bloblo_more_crops") == "" and state.call("accessible_plots") == 3, "Mais colheitas: vovó empresta três canteiros")
 	state.call("reset")
 	var events: Node = root.get_node("Events")
 	events.connect("quest_completed", func(id: String) -> void: quest_signals.append(id))
 	events.connect("chapter_completed", func(index: int) -> void: chapter_signals.append(index))
 	check(state.get("progress").current_main_quest() == "welcome", "História começa em welcome")
+	check(state.get("progress").current_line_quest("bloblo") == "", "Vovó espera a Laís apresentar")
+	check(state.call("accessible_plots") == 0, "Sem canteiros antes de conhecer a vovó")
 	check(not state.call("quest_unlocked", "first_harvest"), "Passo futuro não está liberado")
 	check(state.call("requirement_error", {"chapter": 3}) != "", "Requisito de capítulo bloqueia")
 	state.call("dev_add_coins", 1000)
@@ -91,11 +92,12 @@ func _unlocks_check() -> void:
 	var progress: RefCounted = state.get("progress")
 	check((state.call("new_unlocks") as Array).is_empty(), "Começo sem novidades pendentes")
 	check(not progress.feature_unlocked("bag") and not progress.skills_visible(), "Mochila e atributos escondidos no começo")
-	check(not progress.npc_visible("guide") and progress.npc_visible("bloblo"), "Só a Bloblo no começo")
+	check(not progress.npc_visible("guide") and not progress.npc_visible("bloblo") and progress.npc_visible("lais"), "Só a Laís no começo")
 	state.call("dev_jump_to_chapter", 1)
 	var news: Array = state.call("new_unlocks")
-	for key: String in ["feature:bag", "world:village", "feature:daily", "npc:merchant"]:
+	for key: String in ["feature:bag", "world:farm", "npc:bloblo"]:
 		check(key in news, "Novidade do capítulo 2: " + key)
+	check(not "world:village" in news, "Vila ainda não apresentada")
 	check(not "npc:guide" in news, "Guia ainda não apresentado")
 	state.call("mark_seen", news)
 	check((state.call("new_unlocks") as Array).is_empty(), "Novidade aparece uma vez só")
@@ -112,7 +114,7 @@ func _routines_check() -> void:
 	check(not state.call("routines_unlocked", "daily"), "Diárias escondidas no capítulo 1")
 	check((state.call("routine_ids", "daily") as Array).is_empty(), "Sem diárias antes de liberar")
 	state.get("progress").stats["harvest"] = 7
-	state.call("dev_jump_to_chapter", 3)
+	state.call("dev_jump_to_chapter", 4)
 	var progress: RefCounted = state.get("progress")
 	for kind: String in ["daily", "weekly"]:
 		var ids: Array = state.call("routine_ids", kind)
@@ -159,10 +161,10 @@ func _ui_check() -> void:
 	check(main.find_child("Sheet", true, false).visible, "Painel abre depois da seta")
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	main.call("show_screen", &"tasks")
-	state.get("progress").stats["feed"] = 1
+	state.get("progress").stats["talk:lais"] = 1
 	root.get_node("Events").emit_signal("state_changed")
 	check(main.get("_tasks_badge").text == "1", "Badge conta a principal pronta uma vez")
-	state.get("progress").stats["feed"] = 0
+	state.get("progress").stats["talk:lais"] = 0
 	root.get_node("Events").emit_signal("state_changed")
 	await create_timer(0.2).timeout
 	_shot("tasks_start")
@@ -173,6 +175,7 @@ func _ui_check() -> void:
 	await process_frame
 	main.call("show_screen", &"tasks")
 	check(main.get("_tasks_pulse") == null, "Guia para após welcome")
+	check(main.find_child("LineCard_bloblo", true, false) != null, "Cartão da vovó aparece em paralelo à história")
 	_shot("tasks_middle")
 	var ui: Script = load("res://scripts/ui/progression_ui.gd")
 	var events: Node = root.get_node("Events")

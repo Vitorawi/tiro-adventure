@@ -1,5 +1,5 @@
 extends SceneTree
-## Teste de progressão/migração. Desliga o SaveManager antes de alterar o estado.
+## Teste dos canteiros e terrenos. Desliga o SaveManager antes de alterar o estado.
 ## --headless --path game -s res://tests/farm_test.gd
 ## Sem --headless e com -- --screenshots: salva prévias em build/screenshots.
 
@@ -19,16 +19,10 @@ func _check(condition: bool, message: String) -> void:
 func _run() -> void:
 	var state: Node = root.get_node("GameState")
 	var saver: Node = root.get_node("SaveManager")
-	var old_save := {"save_version": 2, "state": {"coins": 77, "plots": []}}
-	for i in 6:
-		old_save["state"]["plots"].append({"crop": "carrot" if i == 5 else "", "ready_at": 1.0})
-	var migrated: Dictionary = saver.call("_migrate", old_save)
 	root.remove_child(saver)
 	saver.free()
-	state.call("from_dict", migrated["state"])
-	_check(state.get("unlocked_plots") == 6, "Migração deve preservar seis terrenos")
-	_check(state.call("plot_status", 5) == "ready", "Migração deve preservar a plantação")
-	_check(state.get("coins") == 77, "Migração deve preservar moedas")
+	state.call("reset")
+	_check(state.call("accessible_plots") == 0, "Sem canteiros antes de conhecer a vovó Bloblo")
 	state.call("reset")
 	state.get("progress").owned["farm"] = true
 	state.set("coins", 50)

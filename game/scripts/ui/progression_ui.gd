@@ -7,20 +7,43 @@ extends RefCounted
 
 # --- Personagens e missões ------------------------------------------------------
 
+## Falas curtas, avançadas por toque. Fechar antes do fim permite rever a apresentação.
+static func npc_introduction(npc_id: String, index: int = 0) -> Control:
+	var npc: Dictionary = Database.npcs[npc_id]
+	var lines: Array = npc.get("introduction", [])
+	var box := UiKit.vbox(12)
+	box.name = "NpcIntroduction"
+	npc_header(box, npc_id, str(lines[index]))
+	box.add_child(UiKit.button("Vamos!" if index == lines.size() - 1 else "Continuar", func() -> void:
+		if index + 1 < lines.size():
+			Events.sheet_requested.emit(npc.name, npc_introduction(npc_id, index + 1))
+		else:
+			GameState.mark_seen(["npc_intro:" + npc_id])
+			Events.sheet_requested.emit(npc.name, npc_view(npc_id)), &"PrimaryButton"))
+	return box
+
 ## Personagem: saudação, missões ativas e atalhos para os lugares dele ("services").
 static func npc_view(npc_id: String) -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+	var panel := UiKit.vbox(10)
+	var speech := npc_header(panel, npc_id, "", true)
+	panel.add_child(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var npc: Dictionary = Database.npcs.get(npc_id, {})
-		npc_header(box, npc_id)
-		for id: String in Database.quests:
-			if Database.quests[id].npc == npc_id and GameState.quest_unlocked(id) and not GameState.progress.claimed_quests.has(id):
-				quest_card(box, id)
+		var active := Places.npc_active_quests(npc_id)
+		speech.text = str(Database.quests[active[0]].get("dialogue", "")) if not active.is_empty() else str(npc.get("greeting", ""))
+		for id in active:
+			quest_card(box, id)
 		# Atalhos para os lugares que o personagem cuida.
 		var world_id := Database.npc_world(npc_id)
 		for place_id: String in npc.get("services", []):
 			var place: Dictionary = Database.worlds[world_id].places.get(place_id, {})
+			if place.is_empty() or Places.place_error(place) != "":
+				continue
+			var upgrade: String = place.get("upgrade", "")
+			if upgrade != "" and not GameState.has_upgrade(upgrade):
+				continue
 			box.add_child(UiKit.button(place.get("name", place_id), Places.open.bind(world_id, place_id), &"", UiKit.ui_icon(place.get("icon", ""))))
-	)
+	))
+	return panel
 
 
 static func npc_portrait(npc_id: String) -> Texture2D:
@@ -30,13 +53,26 @@ static func npc_portrait(npc_id: String) -> Texture2D:
 	return UiKit.ui_icon(npc.get("icon", "xp"))
 
 
-static func npc_header(box: VBoxContainer, npc_id: String) -> void:
+## Rosto grande + fala do passo atual (ou o cumprimento); o nome já está no título do painel.
+static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", animated: bool = false) -> Label:
 	var npc: Dictionary = Database.npcs.get(npc_id, {})
-	# Rosto + fala curta (o nome já está no título do painel).
 	var row := UiKit.hbox(10)
-	row.add_child(UiKit.icon(npc_portrait(npc_id), 64))
-	row.add_child(UiKit.fill_label(npc.get("greeting", ""), &"SmallLabel"))
+	if animated and npc.has("portrait_animations"):
+		var portrait := NpcPortrait.new()
+		portrait.name = "NpcPortrait"
+		portrait.npc_id = npc_id
+		portrait.custom_minimum_size = Vector2(96, 96)
+		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(portrait)
+	else:
+		row.add_child(UiKit.icon(npc_portrait(npc_id), 96))
+	var bubble := UiKit.fill_label(speech if speech != "" else str(npc.get("greeting", "")), &"")
+	bubble.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	row.add_child(bubble)
 	box.add_child(row)
+	return bubble
 
 
 static func quest_card(box: VBoxContainer, id: String) -> void:
@@ -465,6 +501,8 @@ static func goal_icon(goal: Dictionary) -> Texture2D:
 			return UiKit.ui_icon("coin")
 		"chapter":
 			return UiKit.ui_icon("tab_tasks")
+		"quest":
+			return npc_portrait(str(Database.quests.get(key, {}).get("npc", "")))
 	return stat_icon(key)
 
 
@@ -476,6 +514,10 @@ static func stat_icon(key: String) -> Texture2D:
 		return Database.item_icon(arg)
 	if prefix == "activity":
 		return UiKit.ui_icon(Database.progression.activities.get(arg, {}).get("icon", "action_play"))
+	if prefix == "talk":
+		return npc_portrait(arg)
+	if prefix == "open":
+		return UiKit.ui_icon(Database.worlds[arg].get("icon", "tab_map") if Database.worlds.has(arg) else "tab_" + arg)
 	var icons := {"feed": "need_hunger", "bathe": "action_bathe", "play": "action_play", "pet": "need_happiness", "harvest": "tab_farm", "produce": "item_carrot_snack", "trade": "coin", "sold": "coin", "orders": "item_treat_box", "order": "item_treat_box", "explore": "tab_map", "quests": "tab_tasks", "build": "item_plank"}
 	return UiKit.ui_icon(icons.get(prefix, "xp"))
 

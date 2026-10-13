@@ -58,11 +58,14 @@
       "action": "place:door",
       "label": "Sítio",
       "label_pos": [192, 28],
+      "requirements": {"quests": ["lais_bag"]},
       "polygon": [[166, 218], [218, 192], [218, 40], [166, 64]]
     }
   ],
   "points": {
     "dog_start": [330, 310],
+    "npc_lais": [255, 262],
+    "door_in": [212, 236],
     "bowl": [190, 238],
     "sleep": [466, 288],
     "sleep_approach": [440, 316]

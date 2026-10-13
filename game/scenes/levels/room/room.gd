@@ -31,6 +31,7 @@ var _touches: Dictionary = {}  # índice do dedo -> { "pos": Vector2, "time": ms
 var _pinch_distance := 0.0
 var _objects: Array[Sprite2D] = []
 var _dog: DogWorld
+var _npcs: Array[NpcWorld] = []
 var _nav := AStarGrid2D.new()
 var _walkable: Array[Vector2i] = []
 var _press_position := Vector2.ZERO
@@ -39,6 +40,7 @@ var _object_frame := 0
 var _owned_snapshot: Dictionary = {}
 var _animals_snapshot: Dictionary = {}
 var _region_open_snapshot: Array[bool] = []
+var _quests_snapshot := -1
 var _labels: Array[Label] = []
 var _regions: Array[Node2D] = []
 var _route_markers: Array[RouteIndicator] = []
@@ -62,6 +64,7 @@ func _ready() -> void:
 	_spawn_dog()
 	if world_id == "":
 		world_id = room_id
+	_spawn_npcs()
 	_spawn_labels()
 	_spawn_regions()
 	for data: Dictionary in _room.get("route_markers", []):
@@ -311,15 +314,18 @@ func _update_plot(sprite: Sprite2D) -> void:
 
 
 func _refresh_ownership() -> void:
+	for npc: NpcWorld in _npcs:
+		npc.visible = GameState.progress.npc_visible(npc.npc_id)
 	var opened: Array[bool] = []
 	for data: Dictionary in _room.get("regions", []):
 		opened.append(region_error(data) == "")
-	if _owned_snapshot == GameState.progress.owned and _animals_snapshot == GameState.animals and _region_open_snapshot == opened and has_meta("ownership_ready"):
+	if _owned_snapshot == GameState.progress.owned and _animals_snapshot == GameState.animals and _region_open_snapshot == opened and _quests_snapshot == GameState.progress.claimed_quests.size() and has_meta("ownership_ready"):
 		return
 	set_meta("ownership_ready", true)
 	_owned_snapshot = GameState.progress.owned.duplicate()
 	_animals_snapshot = GameState.animals.duplicate()
 	_region_open_snapshot = opened
+	_quests_snapshot = GameState.progress.claimed_quests.size()
 	for sprite: Sprite2D in _objects:
 		if sprite.has_meta("upgrade"):
 			var purchased := GameState.has_upgrade(sprite.get_meta("upgrade"))
@@ -328,7 +334,9 @@ func _refresh_ownership() -> void:
 			for data: Dictionary in _room.get("regions", []):
 				if data.id == sprite.get_meta("region", ""):
 					region_locked = region_error(data) != ""
-			sprite.get_node("PurchaseMarker").visible = not purchased and not region_locked and not sprite.get_meta("decoration", false)
+			# "+" só aparece quando a história já libera a compra (revelar aos poucos).
+			var available := GameState.requirement_error(Database.progression.upgrades.get(sprite.get_meta("upgrade"), {}).get("requirements", {})) == ""
+			sprite.get_node("PurchaseMarker").visible = not purchased and not region_locked and available and not sprite.get_meta("decoration", false)
 		if sprite.has_meta("animal_station"):
 			var roster := GameState.animal_roster(sprite.get_meta("animal_station"))
 			var slot: int = sprite.get_meta("animal_slot")
@@ -436,6 +444,11 @@ func _spawn_regions() -> void:
 func _on_world_activity(kind: StringName, subject: String, plot_index: int) -> void:
 	if not _dog or not is_visible_in_tree():
 		return
+	# Início da história: o Tiro é solto na porta e corre para dentro de casa.
+	if kind == &"arrive" and _room.get("points", {}).has("door_in"):
+		_dog.position = nearest_floor_point(_point("door_in"))
+		_dog.react_at(&"happy", _point("dog_start"))
+		return
 	for sprite: Sprite2D in _objects:
 		var matches: bool = (kind == &"harvest" and sprite.get_meta("plot", -1) == plot_index) or (kind in [&"collect", &"feed_animal"] and sprite.get_meta("station", "") == subject) or (kind == &"build" and sprite.get_meta("upgrade", "") == subject)
 		if matches:
@@ -508,6 +521,24 @@ func _spawn_dog() -> void:
 		_dog.sleep_approach = _point("sleep_approach")
 	_dog.position = _dog.sleep_point if GameState.dog.sleeping and _dog.sleep_point != Vector2.INF else nearest_floor_point(_point("dog_start"))
 	_world.add_child(_dog)
+
+
+## Personagens do mundo (worlds.json → npcs) que têm ponto "npc_<id>" nesta sala.
+func _spawn_npcs() -> void:
+	var points: Dictionary = _room.get("points", {})
+	for npc_id: String in Database.worlds.get(world_id, {}).get("npcs", []):
+		if not points.has("npc_" + npc_id):
+			continue
+		var npc := NpcWorld.new()
+		npc.name = "Npc_" + npc_id
+		npc.npc_id = npc_id
+		npc.room = self
+		npc.scale = Vector2.ONE * float(_room.get("dog_scale", 1.0))
+		npc.home = nearest_floor_point(_point("npc_" + npc_id))
+		npc.position = npc.home
+		npc.visible = GameState.progress.npc_visible(npc_id)
+		_world.add_child(npc)
+		_npcs.append(npc)
 
 
 # --- Toque e câmera ----------------------------------------------------------
@@ -620,7 +651,12 @@ func _gui_input(event: InputEvent) -> void:
 func point_at(action: String) -> bool:
 	clear_pointer()
 	var anchor := Vector2.INF
+	for npc: NpcWorld in _npcs:
+		if npc.visible and action == "npc:" + npc.npc_id:
+			anchor = npc.head_point()
 	for sprite in _objects:
+		if anchor != Vector2.INF:
+			break
 		if action == "plot" and sprite.has_meta("plot") or sprite.get_meta("action", "") == action:
 			anchor = sprite.position - Vector2(0, sprite.texture.get_height())
 			break
@@ -684,6 +720,10 @@ func _handle_tap(point: Vector2) -> void:
 		if indicator.active() and indicator.hit_rect.has_point(point - indicator.position):
 			Places.run(world_id, "place:" + indicator.site)
 			return
+	for npc: NpcWorld in _npcs:
+		if npc.visible and npc.hit_test(point):
+			Places.run(world_id, "npc:" + npc.npc_id)
+			return
 	if _dog and _dog.hit_test(point):
 		Events.screen_requested.emit(&"pet")
 		return
@@ -709,7 +749,7 @@ func _handle_tap(point: Vector2) -> void:
 				return
 	for sprite: Sprite2D in ordered:
 		if sprite.has_meta("upgrade") and not GameState.has_upgrade(sprite.get_meta("upgrade")):
-			if sprite.get_meta("decoration", false):
+			if sprite.get_meta("decoration", false) or not sprite.get_node("PurchaseMarker").visible:
 				continue
 			if Rect2(sprite.position + Vector2(-24, -36), Vector2(48, 48)).has_point(point):
 				Events.sheet_requested.emit("Construir", ProgressionUi.purchase(sprite.get_meta("upgrade")))
@@ -728,6 +768,9 @@ func _handle_tap(point: Vector2) -> void:
 
 ## Canteiro vazio abre as sementes; crescendo mostra quanto falta; pronto colhe.
 func _on_plot_tapped(index: int) -> void:
+	if GameState.plot_status(index) == "locked" and not GameState.has_upgrade("farm") and GameState.requirement_error(Database.progression.upgrades.farm.get("requirements", {})) != "":
+		Places.open_npc("bloblo")
+		return
 	match GameState.plot_status(index):
 		"locked":
 			Events.sheet_requested.emit("Expandir o sítio", SheetBuilder.plot_purchase(index) if GameState.has_upgrade("farm") else ProgressionUi.purchase("farm"))
