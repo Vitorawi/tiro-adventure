@@ -20,6 +20,7 @@ func _run() -> void:
 	saver.free()
 	var state: Node = root.get_node("GameState")
 	var places: Script = load("res://scripts/ui/places.gd")
+	var ui: Script = load("res://scripts/ui/nature_ui.gd")
 	state.call("reset")
 	check(places.call("world_error", "nature") != "", "Natureza espera o capítulo 3")
 	state.call("dev_jump_to_chapter", 2)
@@ -38,6 +39,12 @@ func _run() -> void:
 	check(room.find_child("Region_crystals_area", true, false).visible, "Cristais começam fechados")
 	check(nav.is_point_solid(Vector2i(325, 144) / 8), "Não atravessa a zona fechada")
 	check(state.call("start_activity", "trail") != "", "Não coleta no riacho fechado")
+	ui.call("open")
+	await create_timer(0.2).timeout
+	var required: Label = main.find_child("RequiredTool_copper", true, false)
+	check(required.text == "Precisa: Picareta", "Cobre informa ferramenta necessária, não coleta à mão")
+	check(main.find_child("RequiredTool_stone", true, false).text == "À mão · sem ferramenta", "Pedrinhas iniciais dispensam ferramenta")
+	root.get_node("Events").emit_signal("sheet_close_requested")
 	room.call("_zoom_at", room.size / 2, 0.32)
 	await process_frame
 	_shot("nature_locked")
@@ -80,12 +87,21 @@ func _run() -> void:
 	check(places.call("highlight_action", "route:crystal_cave") == "place:resources", "Cristais usam o mesmo painel")
 	var target: Dictionary = places.call("goal_target", {"type": "stat", "key": "activity:meadow"})
 	check(target.get("world", "") == "nature", "Missões levam ao novo mundo")
-	var ui: Script = load("res://scripts/ui/nature_ui.gd")
 	state.call("dev_add_coins", 2000)
 	check(state.call("start_activity", "timber") != "", "Não coleta madeira dura sem ferramenta")
 	ui.call("open", "tools", "wood")
 	await create_timer(0.2).timeout
 	var sheet: Control = main.find_child("Sheet", true, false)
+	check(sheet.find_child("Tool_axe", true, false) != null and sheet.find_child("Tool_pickaxe", true, false) == null, "Madeira mostra apenas machados")
+	sheet.find_child("ToolsTab_mining", true, false).pressed.emit()
+	await create_timer(0.2).timeout
+	check(sheet.find_child("Tool_pickaxe_crystal", true, false) != null and sheet.find_child("Tool_axe", true, false) == null, "Mineração reúne todas as picaretas")
+	_shot("nature_tools_mining")
+	sheet.find_child("ToolsTab_fiber", true, false).pressed.emit()
+	await create_timer(0.2).timeout
+	check(sheet.find_child("Tool_sickle", true, false) != null and sheet.find_child("Tool_pickaxe", true, false) == null, "Fibras mostra só a foice")
+	sheet.find_child("ToolsTab_wood", true, false).pressed.emit()
+	await create_timer(0.2).timeout
 	_shot("nature_tools_buy")
 	var bought := false
 	for button: Node in sheet.find_children("*", "Button", true, false):
@@ -137,6 +153,7 @@ func _run() -> void:
 	ui.call("open")
 	await create_timer(1.1).timeout
 	_shot("nature_collect")
+	check(main.find_child("RequiredTool_stone", true, false).text == "Usa: Picareta reforçada", "Mostra ferramenta da rota e não a última picareta comprada")
 	var start: Button = main.find_child("Start_wood", true, false)
 	check(start != null and not start.disabled, "Coleta disponível no painel único")
 	start.pressed.emit()

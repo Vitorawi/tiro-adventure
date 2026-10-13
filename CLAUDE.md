@@ -92,7 +92,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Manual de recursos e estações        | `scripts/ui/game_manual.gd` (conteúdo derivado do Database); atalho na tela `pet_screen.gd` |
 | Expandir o sítio com áreas fechadas  | `rooms/farm.json → regions` (polígono, cerca e compra existente que libera a área) |
 | Zonas da Natureza e seus materiais | `rooms/nature.json → regions` (requirements/upgrade), `worlds.json → nature.places`, `progression.json → activities` (walk/creek/mine/crystal/meadow) |
-| Melhorar ferramentas/coleta | `progression.json → nature_resources` (rotas em prioridade, ferramentas), `upgrades` e `activities`; `NatureUi.best_route` seleciona a melhor liberada |
+| Melhorar ferramentas/coleta | `progression.json → nature_resources` (rotas em prioridade), `nature_tool_groups` (Madeira/Mineração/Fibras), `upgrades` e `activities`; `NatureUi.best_route` seleciona a melhor liberada |
 | Comprar galinhas/vacas e variedades | `config.json → animals` (nome, preço, abrigo, sprite/escala); `GameState.buy_animal`, `animals` salvo; loja em `SheetBuilder.animal_shop` |
 | Galinhas/vacas e seus produtos       | `config.json → stations` com `kind: "animal"`, `animal_capacity`; alimentação/ovos/leite em `recipes.json`, timer em `StationState` |
 | Reações do Tiro no mundo             | `Events.world_activity` (GameState) → `RoomView` (alvo) → `DogWorld.react_at` (animação/caminho) |
@@ -179,6 +179,9 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   um painel `nature:<grupos>`; suas partes são aliases `routes:<grupo>` para missão/manual.
   Ferramentas são upgrades normais persistidos em `progress.owned`; as rotas antigas
   continuam disponíveis. Melhorias liberam outras rotas sem alterar lotes em andamento.
+  Ferramentas têm filtros por `nature_tool_groups`: todas as picaretas juntas em Mineração,
+  machados em Madeira e foice em Fibras. `NatureUi.route_tool` lê a exigência da rota;
+  coleta mostra ícone + Usa/Precisa e a próxima melhoria, sem confundir com a última compra.
   `"initial_zoom"`/`"view_center"` definem o enquadramento inicial de mapas maiores.
   `"approach"` é o ponto seguro para o Tiro se aproximar de um objeto/estação ao reagir.
   `"station"` também detecta produção pronta, mesmo sem `busy_frames`.

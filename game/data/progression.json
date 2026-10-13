@@ -411,6 +411,11 @@
       "station": "dairy"
     }
   },
+  "nature_tool_groups": {
+    "wood": {"name": "Madeira", "description": "Machados para madeira e madeira dura.", "resources": ["wood", "hardwood"], "tools": ["axe", "axe_reinforced"]},
+    "mining": {"name": "Mineração", "description": "Picaretas para pedras, cobre e cristais.", "resources": ["stone", "copper", "crystal"], "tools": ["pickaxe", "pickaxe_reinforced", "pickaxe_crystal"]},
+    "fiber": {"name": "Fibras", "description": "Foice para as fibras do prado.", "resources": ["fiber"], "tools": ["sickle"]}
+  },
   "nature_resources": {
     "wood": {"name": "Madeira", "icon": "item_wood", "routes": ["timber", "woodcutting", "trail", "lane"], "tools": ["axe", "axe_reinforced"]},
     "stone": {"name": "Pedras", "icon": "item_stone", "routes": ["deep_quarry", "quarry", "trail", "pebbles"], "tools": ["pickaxe", "pickaxe_reinforced"]},

@@ -66,6 +66,9 @@ Abrir por Aventura recalcula a grade do Tiro, mesmo sem nova construção compra
 Tocar no cenário ou no botão Coletar abre o mesmo painel; escolhe-se o material sem viajar
 para outro ponto. NatureUi seleciona a melhor rota liberada em `nature_resources`. Ferramentas
 opcionais melhoram rendimento e liberam madeira dura; rotas anteriores continuam disponíveis.
+Ferramentas têm abas Madeira/Mineração/Fibras: machados, todas as picaretas e foice.
+Cada coleta mostra ícone e Usa/Precisa/À mão, conforme a ferramenta exigida pela rota;
+a próxima melhoria aparece abaixo, com atalho para o kit correspondente.
 O painel `nature:<grupos>` resolve os aliases `routes:<grupo>` para missão/manual/mochila.
 `route_markers` mostra timer/Recolher por `RouteIndicator` sobre o cenário; obstáculos
 separados impedem andar na água, árvores ou penhascos. O save mantém os ids de atividade.

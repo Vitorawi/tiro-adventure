@@ -7,6 +7,13 @@ e `tools` na ordem das melhorias. NatureUi escolhe a primeira rota cujos requisi
 cumpridos, mesmo durante outro lote. Todo material aparece no painel único; começo/recolher
 usa GameState.start_activity/collect_activity, com timestamps e limite de uma exploração.
 
+`nature_tool_groups` organiza as abas Madeira (machados), Mineração (todas as picaretas) e
+Fibras (foice). Abrir ferramentas de pedra/cobre/cristal seleciona o mesmo kit Mineração.
+`route_tool` identifica o requisito real da rota: a coleta mostra **Usa** para ferramenta
+adquirida, **Precisa** para a que falta, ou **À mão · sem ferramenta**. Também indica
+a próxima melhoria. Ter uma picareta de precisão não muda o rótulo de uma rota que usa
+a reforçada; o painel segue o rendimento/duração da rota selecionada.
+
 - Machado (60) → reforçado (180): madeira em maior quantidade → madeira dura.
 - Picareta (80) → reforçada (220) → precisão (340): mais pedra/cobre → mais cristais.
 - Foice (90): mais fibras em menos tempo.

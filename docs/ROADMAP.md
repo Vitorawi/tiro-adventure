@@ -4,6 +4,19 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **13/10/2026, Codex**.
 
+**Ferramentas por categoria e exigência clara (Codex, 13/10/2026).**
+- Aba Ferramentas com filtros Madeira/Mineração/Fibras, definidos em `nature_tool_groups`.
+  Cada filtro mostra apenas seu kit; Mineração reúne as três picaretas, mesmo vindo de Pedras.
+- Ícones dos materiais atendidos, próxima ferramenta destacada e custos existentes.
+  Na coleta: ícone + Usa/Precisa/À mão; requisito deriva da rota, não da última ferramenta
+  comprada. Próxima melhoria indicada e atalho Ferramentas abre o grupo correspondente.
+- Nature test ampliado com troca real de filtros, compra após trocar abas, material sem
+  ferramenta e indicação da ferramenta correta após comprar todos os níveis.
+- Suíte completa verde, capturas 360×780 conferidas e export Web prod/dev sem erros.
+  Capturas `nature_tools_mining.png`, `nature_tools_buy.png`, `nature_collect.png` em build/screenshots.
+- Publicação prod/dev autorizada por Vitor em 13/10/2026, via main. Próximo: acompanhar
+  a clareza dos kits e dos requisitos de coleta no celular.
+
 **Natureza integrada, ferramentas e seleção de mundos (Codex, 13/10/2026).**
 - Substituído o mapa de pontos separados por paisagem PixelLab contínua 512×384: floresta,
   riacho com ponte, trilha e gruta. Obstáculos reais bloqueiam água, árvores e penhascos.
