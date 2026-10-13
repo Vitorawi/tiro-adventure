@@ -27,6 +27,8 @@ var cooldowns: Dictionary = {}
 var activity: Dictionary = {}
 ## Coletas por local: até três { id, resource, started_at, ready_at, rewards } independentes.
 var gathering: Dictionary = {}
+## XP próprio de cada região, ganho somente ao recolher uma coleta concluída.
+var nature_xp: Dictionary = {}
 ## Diárias e semanais do período atual (kind = "daily" | "weekly"):
 ## { period: "2026-10-12", ids: [...], base: { contador: valor no início }, claimed: { id: true } }.
 ## Progresso = contador atual − base; não precisa de contador próprio.
@@ -46,6 +48,28 @@ func setup() -> void:
 
 func has_upgrade(id: String) -> bool:
 	return bool(owned.get(id, false))
+
+
+## Região aberta começa no nível 1; os demais vêm do XP de uso.
+func nature_level(site: String) -> int:
+	var data: Dictionary = Database.progression.nature_sites.get(site, {})
+	if data.is_empty() or not has_upgrade(str(data.level_upgrades[0])):
+		return 0
+	var level := 1
+	for milestone: Dictionary in data.levels:
+		if int(nature_xp.get(site, 0)) >= int(milestone.xp):
+			level = data.levels.find(milestone) + 1
+	return level
+
+
+func nature_info(site: String) -> Dictionary:
+	var level := nature_level(site)
+	var levels: Array = Database.progression.nature_sites[site].levels
+	var total := maxi(0, int(nature_xp.get(site, 0)))
+	var current := int(levels[maxi(0, level - 1)].xp)
+	var maximum := level >= levels.size()
+	var target := current if maximum else int(levels[level if level > 0 else 0].xp)
+	return {"level":level, "total":total, "xp":total - current, "needed":target - current, "remaining":maxi(0, target - total), "max":maximum}
 
 
 func stat(key: String) -> int:
@@ -215,7 +239,7 @@ func shift_time(seconds: float) -> void:
 
 func to_dict() -> Dictionary:
 	return {
-		"skills": skills, "owned": owned, "stats": stats,
+		"skills": skills, "owned": owned, "stats": stats, "nature_levels_version": 2, "nature_xp": nature_xp,
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
 		"collection": collection, "unlocks": unlocks,
 		"cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "step": step, "seen": seen,
@@ -226,6 +250,52 @@ func from_dict(data: Dictionary) -> void:
 	skills = data.get("skills", {}).duplicate(true)
 	owned = data.get("owned", {}).duplicate(true)
 	stats = data.get("stats", {}).duplicate(true)
+	# Ferramentas antigas passam a valer como ampliações, sem cobrar novamente.
+	for old: String in Database.progression.get("nature_legacy_upgrades", {}):
+		if bool(owned.get(old, false)):
+			owned[Database.progression.nature_legacy_upgrades[old]] = true
+		owned.erase(old)
+	if not data.has("nature_levels_version"):
+		for site: String in Database.progression.nature_sites:
+			var levels: Array = Database.progression.nature_sites[site].level_upgrades
+			var highest := -1
+			for i in levels.size():
+				if has_upgrade(str(levels[i])):
+					highest = i
+			for route: String in Database.progression.activities:
+				if Database.gathering_site(route) == site and stat("activity:" + route) > 0:
+					highest = maxi(0, highest)
+			var previous: Array = data.get("gathering", {}).get(site, []).duplicate(true)
+			previous.append(data.get("activity", {}))
+			for entry: Dictionary in previous:
+				if Database.gathering_site(str(entry.get("id", ""))) == site:
+					highest = maxi(0, highest)
+			for i in highest + 1:
+				owned[str(levels[i])] = true
+	nature_xp = data.get("nature_xp", {}).duplicate(true)
+	if int(data.get("nature_levels_version", 0)) < 2:
+		# Mantém níveis/vagas adquiridos e transforma as coletas anteriores em experiência.
+		for site: String in Database.progression.nature_sites:
+			var config: Dictionary = Database.progression.nature_sites[site]
+			var total := 0
+			for route: String in Database.progression.activities:
+				if Database.gathering_site(route) == site:
+					total += stat("activity:" + route) * int(config.xp_per_collection)
+			for i in config.level_upgrades.size():
+				if has_upgrade(str(config.level_upgrades[i])):
+					total = maxi(total, int(config.levels[i].xp))
+			for i in config.slot_upgrades.size():
+				if has_upgrade(str(config.slot_upgrades[i])):
+					owned[str(config.level_upgrades[0])] = true
+					total = maxi(total, int(config.levels[i + 1].xp))
+			nature_xp[site] = total
+	for site: String in Database.progression.nature_sites:
+		var config: Dictionary = Database.progression.nature_sites[site]
+		var level := nature_level(site)
+		for i in level:
+			owned[str(config.level_upgrades[i])] = true
+		for i in maxi(0, level - 1):
+			owned[str(config.slot_upgrades[i])] = true
 	claimed_quests = data.get("claimed_quests", {}).duplicate(true)
 	discoveries = data.get("discoveries", {}).duplicate(true)
 	collection = data.get("collection", {}).duplicate(true)

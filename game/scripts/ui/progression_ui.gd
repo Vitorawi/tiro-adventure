@@ -52,11 +52,17 @@ static func quest_card(box: VBoxContainer, id: String) -> void:
 # --- Construir --------------------------------------------------------------------
 
 static func purchase(id: String) -> Control:
+	var unlock: Dictionary = Database.progression.upgrades[id].get("nature_unlock", {})
+	if not unlock.is_empty():
+		return NatureUi.panel(str(unlock.site))
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void: upgrade_card(box, id))
 
 
 static func upgrade_card(box: VBoxContainer, id: String) -> void:
 	var data: Dictionary = Database.progression.upgrades[id]
+	if data.has("nature_unlock"):
+		box.add_child(NatureUi.levels_panel(str(data.nature_unlock.site)))
+		return
 	var card := UiKit.card(box, &"ReadyCardPanel" if GameState.upgrade_error(id) == "" else &"CardPanel")
 	_title(card, data.get("icon", ""), data.name)
 	_text(card, data.description, true)
@@ -212,6 +218,23 @@ static func skills_panel() -> Control:
 				unlock.add_child(UiKit.icon(next.icon, 32))
 				unlock.add_child(UiKit.fill_label(next.name, &"SmallLabel"))
 				card.add_child(unlock)
+		if GameState.requirement_error(Database.worlds.nature.requirements) == "":
+			box.add_child(UiKit.label("Coleta do Tiro · evolui com o uso", &"SectionLabel"))
+			for site: String in Database.progression.nature_sites:
+				var data: Dictionary = Database.progression.nature_sites[site]
+				var info := GameState.progress.nature_info(site)
+				var card := UiKit.card(box)
+				card.name = "NatureSkill_" + site
+				var heading := UiKit.hbox(6)
+				heading.add_child(UiKit.icon(UiKit.ui_icon(data.icon)))
+				heading.add_child(UiKit.fill_label(data.name, &"SectionLabel"))
+				heading.add_child(UiKit.short_label("Fechado" if info.level == 0 else "Nv %d" % info.level, &"SmallLabel"))
+				card.add_child(heading)
+				if info.level > 0:
+					card.add_child(UiKit.bar(100 if info.max else 100.0 * info.xp / maxi(1, int(info.needed)), UiKit.GOOD, 10))
+					card.add_child(UiKit.label("Completo" if info.max else "Próximo: " + str(data.levels[info.level].label), &"SmallLabel"))
+				card.add_child(UiKit.button("Ver evolução", func() -> void:
+					Events.sheet_requested.emit("Evolução · " + str(data.name), NatureUi.levels_panel(site))))
 	)
 
 

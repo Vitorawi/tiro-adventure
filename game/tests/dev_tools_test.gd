@@ -81,7 +81,9 @@ func _dev_mode() -> void:
 	_check(state.call("plot_status", 1) == "ready", "Avançar 1 h faz a cenoura (1 min) amadurecer")
 	var hunger_after: float = state.get("dog").get_need("hunger", state.call("now"))
 	_check(hunger_after < hunger_before - 5.0, "Avançar o tempo deve baixar a fome")
-	_check(state.call("start_activity", "lane") == "", "Deve começar rota")
+	state.call("dev_add_coins", 40)
+	state.call("buy_upgrade", "forest_open")
+	_check(state.call("start_activity", "lane") == "", "Deve começar rota no Bosque desbloqueado")
 	state.call("dev_advance_time", 120.0)
 	_check(state.call("collect_activity") == "", "Rota avança junto com o tempo")
 

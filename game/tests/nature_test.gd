@@ -23,9 +23,29 @@ func _run() -> void:
 	var ui: Script = load("res://scripts/ui/nature_ui.gd")
 	var places: Script = load("res://scripts/ui/places.gd")
 	state.call("reset")
+	var legacy: Dictionary = state.call("to_dict").duplicate(true)
+	legacy.progression.erase("nature_levels_version")
+	legacy.progression.owned = {"axe_reinforced": true, "pickaxe_crystal": true, "sickle": true}
+	legacy.progression.claimed_quests = {"main_5_pickaxe": true}
+	legacy.progression.gathering = {"trees": [{"id":"timber", "resource":"wood", "started_at":state.call("now"), "ready_at":state.call("now") + 240, "rewards":{"items":{"wood":5,"hardwood":2}}}]}
+	state.call("from_dict", legacy)
+	check(state.get("progress").nature_level("trees") == 3 and state.get("progress").nature_level("rocks") == 3 and state.get("progress").nature_level("fibers") == 2, "Ferramentas antigas viram níveis incluindo ampliações anteriores")
+	check(not state.get("progress").owned.has("axe_reinforced"), "Save deixa de guardar ferramentas")
+	check(state.get("coins") == legacy.coins and state.get("progress").claimed_quests.has("main_5_pickaxe"), "Conversão não cobra nem perde missão recebida")
+	check(state.call("gathering_entry", "trees", 0) == legacy.progression.gathering.trees[0], "Conversão preserva prazo, material e recompensa em curso")
+	var converted: Dictionary = state.call("to_dict").duplicate(true)
+	state.call("from_dict", converted)
+	check(state.call("to_dict") == converted, "Migração de níveis é idempotente")
+	legacy.progression.owned = {}
+	legacy.progression.gathering = {}
+	legacy.progression.stats = {"activity:lane": 1}
+	state.call("from_dict", legacy)
+	check(state.get("progress").nature_level("trees") == 1 and state.get("progress").nature_level("rocks") == 0, "Save antigo preserva só o local que já foi explorado")
+	state.call("reset")
 	check(state.call("start_gathering", "trees", 0, "lane") != "", "História bloqueia coleta antecipada")
 	state.call("dev_jump_to_chapter", 2)
 	state.call("dev_add_coins", 4000)
+	check(state.call("start_next_gathering", "trees", "lane", "wood") != "", "Bosque precisa ser desbloqueado")
 	main = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	main.call("_on_world_requested", "village", "")
@@ -33,6 +53,12 @@ func _run() -> void:
 	await create_timer(0.3).timeout
 	var room: Control = main.find_child("World_nature", true, false)
 	check(room != null and room.is_visible_in_tree(), "Portão continua entrando na Natureza")
+	ui.call("open", "trees")
+	await create_timer(0.2).timeout
+	_shot("nature_forest_locked")
+	check(main.find_child("Material_wood", true, false) == null, "Local fechado oferece desbloqueio")
+	check(state.call("buy_upgrade", "forest_open") == "", "Desbloquear Bosque só com moedas")
+	check(state.call("buy_upgrade", "cave_open") == "", "Desbloquear Caverna sem materiais circulares")
 	check(state.call("gathering_slots", "trees") == 1 and state.call("gathering_slots", "rocks") == 1, "Um espaço inicial em cada local")
 	var before: Dictionary = state.call("to_dict").duplicate(true)
 	check(state.call("start_gathering", "trees", 1, "lane") != "", "Vaga fechada não coleta")
@@ -61,7 +87,9 @@ func _run() -> void:
 	check(state.call("collect_gathering", "rocks", 0) != "", "Migração não duplica recompensa")
 	state.call("from_dict", parallel_save)
 	state.call("dev_finish_timers")
+	check(int(state.get("progress").nature_xp.get("trees", 0)) == 0, "Timer pronto ainda não concede experiência")
 	check(state.call("collect_gathering", "trees", 0) == "", "Recolher madeira inicial")
+	check(int(state.get("progress").nature_xp.get("trees", 0)) == 10, "Uma coleta recolhida dá XP local uma vez")
 	check(state.call("collect_gathering", "rocks", 0) == "", "Recolher pedra inicial")
 	ui.call("open", "rocks")
 	await create_timer(0.2).timeout
@@ -73,20 +101,32 @@ func _run() -> void:
 	room.call("_handle_tap", Vector2(150, 150))
 	await create_timer(0.2).timeout
 	var sheet: Control = main.find_child("Sheet", true, false)
-	check(sheet.get_node("%Title").text == "Árvores", "Um toque abre Árvores")
+	check(sheet.get_node("%Title").text == "Bosque", "Um toque abre Bosque")
+	check(main.find_child("Material_hardwood", true, false).disabled, "Madeira dura exige nível 3 do Bosque")
 	check(main.find_child("Material_copper", true, false) == null, "Árvores não mistura cobre")
 	_shot("nature_trees_initial")
 	var coins: int = state.get("coins")
-	check(state.call("buy_upgrade", "trees_slot_3") != "", "Terceiro espaço exige segundo")
+	check(state.call("buy_upgrade", "trees_slot_3") != "", "Espaços não podem ser comprados")
 	check(state.get("coins") == coins, "Compra inválida não cobra")
-	main.find_child("Unlock_trees_1", true, false).pressed.emit()
+	check(state.get("progress").nature_info("trees").remaining == 20, "Mostra XP exato até o próximo nível")
+	for index in 2:
+		state.call("start_next_gathering", "trees", "lane", "wood")
+		check(state.get("progress").nature_level("trees") == 1, "Iniciar não antecipa XP")
+		state.call("dev_finish_timers")
+		state.call("collect_gathering_all", "trees")
+	check(state.call("gathering_slots", "trees") == 2 and state.get("progress").nature_level("trees") == 2, "Terceira coleta libera nível 2 e segundo espaço")
+	check(state.call("start_next_gathering", "trees", "timber", "hardwood") != "", "Bosque 2 ainda não libera madeira dura")
+	check(state.get("progress").nature_level("rocks") == 1, "XP do Bosque não aumenta Caverna")
+	for index in 6:
+		state.call("start_next_gathering", "trees", "lane", "wood")
+		state.call("dev_finish_timers")
+		state.call("collect_gathering_all", "trees")
 	await create_timer(0.2).timeout
-	check(state.call("gathering_slots", "trees") == 2, "Comprar segunda vaga no próprio painel")
-	main.find_child("Unlock_trees_2", true, false).pressed.emit()
-	await create_timer(0.2).timeout
-	check(state.call("gathering_slots", "trees") == 3, "Comprar terceira vaga no próprio painel")
-	check(state.get("coins") == coins - 300, "Só cobra as duas compras")
+	check(state.call("gathering_slots", "trees") == 3 and state.get("progress").nature_level("trees") == 3, "Uso libera madeira dura e terceiro espaço")
+	check(state.get("coins") >= coins, "Evolução não cobra moedas")
 	check(state.call("gathering_slots", "rocks") == 1, "Árvores não libera vagas de Pedras")
+	ui.call("open_route", "lane")
+	await create_timer(0.2).timeout
 	for count in 3:
 		main.find_child("Material_wood", true, false).pressed.emit()
 		await create_timer(0.1).timeout
@@ -106,7 +146,6 @@ func _run() -> void:
 	state.call("from_dict", offline)
 	check(state.call("gathering_jobs", "trees").size() == 3 and state.call("gathering_jobs", "rocks").size() == 1, "Todas as tarefas sobrevivem ao save")
 	state.call("dev_add_items", 20)
-	check(state.call("buy_upgrade", "axe") == "", "Comprar ferramenta durante corte")
 	state.call("dev_advance_time", 65)
 	check(state.call("gathering_ready_count", "trees") == 3, "Três terminam juntos offline")
 	check(state.call("gathering_ready_count", "rocks") == 0, "Pedra tem duração independente")
@@ -116,23 +155,35 @@ func _run() -> void:
 	var wood_before: int = state.get("inventory").count("wood")
 	check(state.call("collect_gathering_all", "trees") == "", "Um toque recolhe os três cortes")
 	check(state.get("inventory").count("wood") == wood_before + 3, "Nova ferramenta não altera lote iniciado à mão")
+	var gained_xp: int = state.get("progress").nature_xp.trees
 	check(state.call("collect_gathering_all", "trees") != "", "Não recolhe duas vezes")
+	check(state.get("progress").nature_xp.trees == gained_xp, "Não duplica XP ao recolher de novo")
 	state.call("dev_advance_time", 10)
 	check(state.call("collect_gathering", "rocks", 0) == "", "Pedra termina depois")
-	check(state.call("buy_upgrade", "axe_reinforced") == "", "Melhorar machado")
+	check(state.call("buy_upgrade", "forest_level_3") != "", "Nível por uso não é compra")
+	check(state.get("progress").nature_level("trees") == 3, "Bosque 3 libera novo material refinável")
 	check(state.call("start_gathering_all", "trees", "timber") == "", "Três cortes com a ferramenta nova")
 	state.call("dev_advance_time", 250)
 	var hardwood: int = state.get("inventory").count("hardwood")
 	check(state.call("collect_gathering_all", "trees") == "", "Recolher madeira dura")
 	check(state.get("inventory").count("hardwood") == hardwood + 6, "Três lotes rendem seis madeiras duras")
 	state.call("dev_set_skills", 4)
-	check(state.call("buy_upgrade", "pickaxe") == "", "Comprar picareta")
-	check(state.call("buy_upgrade", "pickaxe_reinforced") == "", "Melhorar picareta")
-	check(state.call("buy_upgrade", "pickaxe_crystal") == "", "Picareta para cristais")
-	check(state.call("buy_upgrade", "rocks_slot_2") == "" and state.call("buy_upgrade", "rocks_slot_3") == "", "Três espaços em Pedras")
+	check(state.get("progress").nature_level("rocks") == 1, "Caverna já desbloqueada")
+	for index in 10:
+		state.call("start_next_gathering", "rocks", "pebbles", "stone")
+		state.call("dev_finish_timers")
+		state.call("collect_gathering_all", "rocks")
+		if index == 1:
+			check(state.get("progress").nature_level("rocks") == 2 and state.call("gathering_slots", "rocks") == 2, "Quatro coletas liberam cobre e segundo espaço")
+			ui.call("open", "rocks")
+			await create_timer(0.2).timeout
+			check(not main.find_child("Material_copper", true, false).disabled and main.find_child("Material_crystal", true, false).disabled, "Nível 2 mostra cobre liberado e cristal futuro")
+			check(main.find_child("NatureProgress_rocks", true, false).text.contains("0/80 XP"), "Painel mostra o progresso até o próximo nível")
+			_shot("nature_cave_level_2")
+	check(state.get("progress").nature_level("rocks") == 3 and state.call("gathering_slots", "rocks") == 3, "Doze coletas liberam cristais e três espaços")
 	room.call("_handle_tap", Vector2(400, 200))
 	await create_timer(0.2).timeout
-	check(sheet.get_node("%Title").text == "Pedras", "Um toque abre Pedras")
+	check(sheet.get_node("%Title").text == "Caverna", "Um toque abre Caverna")
 	check(main.find_child("NextTool_trees", true, false) == null, "Pedras não mistura machados")
 	main.find_child("Material_crystal", true, false).pressed.emit()
 	await create_timer(0.2).timeout
@@ -186,6 +237,23 @@ func _run() -> void:
 	check(state.call("gathering_entry", "trees", 0) == first and state.call("gathering_entry", "trees", 2) == third, "Coleta automática preserva as outras tarefas")
 	for point: Vector2 in [Vector2(170, 182), Vector2(250, 196), Vector2(375, 190)]:
 		check(not (room.call("find_path", (room.get("_dog") as Node2D).position, point) as PackedVector2Array).is_empty(), "Paisagem continua conectada")
+	var refine: Control = ui.call("refining_panel", "trees")
+	check(refine.find_child("RefineRecipe_hardwood_planks", true, false) != null, "Madeira dura tem receita de refino acessível")
+	var destination: Array[String] = []
+	var capture := func(world: String, place: String) -> void: destination.assign([world, place])
+	root.get_node("Events").world_requested.connect(capture)
+	refine.find_child("RefineRecipe_hardwood_planks", true, false).pressed.emit()
+	check(destination == ["farm", "place:workbench"], "Refinar leva à bancada certa")
+	root.get_node("Events").world_requested.disconnect(capture)
+	refine.free()
+	var chain: Control = ui.call("levels_panel", "rocks")
+	root.add_child(chain)
+	check(chain.find_child("NatureLevel_rocks_3", true, false) != null, "Cadeia mostra os três níveis")
+	chain.queue_free()
+	var skills: Control = load("res://scripts/ui/progression_ui.gd").call("skills_panel")
+	root.add_child(skills)
+	check(skills.find_child("NatureSkill_rocks", true, false) != null, "Caverna aparece nos atributos do Tiro")
+	skills.queue_free()
 	main.queue_free()
 	await process_frame
 	print("NATURE TEST: ", "PASS" if failures == 0 else "FAIL")

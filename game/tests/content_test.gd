@@ -140,12 +140,15 @@ func _run() -> void:
 		check(db.get("items").has(id), id + ": material de coleta existente")
 		for route: String in data.nature_resources[id].routes:
 			check(data.activities.has(route) and data.activities[route].rewards.get("items", {}).has(id), id + ": rota rende este material")
-		for tool: String in data.nature_resources[id].tools:
-			check(data.upgrades.has(tool), id + ": ferramenta existente")
 	for id: String in data.get("nature_sites", {}):
 		var site: Dictionary = data.nature_sites[id]
+		check(site.levels.size() == site.level_upgrades.size(), id + ": cadeia de níveis completa")
+		check(int(site.levels[0].xp) == 0 and int(site.xp_per_collection) > 0, id + ": XP de uso válido")
+		for level in range(1, site.levels.size()):
+			check(int(site.levels[level].xp) > int(site.levels[level - 1].xp), id + ": níveis de XP crescentes")
+			check(int(site.levels[level].slots) == level + 1, id + ": vaga acompanha nível")
 		check(site.slot_upgrades.size() == 2, id + ": começa com uma vaga e libera mais duas")
-		for upgrade: String in site.slot_upgrades + site.tools:
+		for upgrade: String in site.slot_upgrades + site.level_upgrades:
 			check(data.upgrades.has(upgrade), id + ": compra existente " + upgrade)
 		for resource: String in site.resources:
 			check(data.nature_resources.has(resource), id + ": material com coleta definida")

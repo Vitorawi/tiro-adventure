@@ -51,6 +51,10 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	load("res://scripts/ui/places.gd").call("open", "nature", "trees")
 	await create_timer(0.2).timeout
+	check(main.find_child("Material_wood", true, false) == null, "Bosque fechado mostra desbloqueio")
+	state.call("dev_add_coins", 100)
+	state.call("buy_upgrade", "forest_open")
+	await create_timer(0.2).timeout
 	check(main.find_child("Material_wood", true, false) != null, "Árvores abre corte diretamente")
 	main.queue_free()
 	await process_frame

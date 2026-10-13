@@ -1,5 +1,13 @@
 # Game Design
 
+## Natureza: evolução dos locais (13/10/2026)
+Desbloqueie Bosque, Caverna e Prado com moedas. Depois, recolher coletas dá XP próprio ao local. Os novos
+materiais vêm do nível do local, sem comprar ferramentas: madeira dura no Bosque 3,
+cobre na Caverna 2 e cristais na Caverna 3. Os níveis 2 e 3 também liberam vagas automaticamente. Material tocado inicia uma coleta; até três
+por local simultaneamente. O atalho Refinar leva às receitas/estações existentes.
+Custos, vagas e requisitos: docs/PROGRESSION.md e data/progression.json.
+
+
 > Documento vivo. Itens marcados **(proposta)** são sugestões ainda não decididas.
 > Imagens de referência ficam em `docs/references/`.
 

@@ -62,7 +62,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   scripts/state/     DogState, Inventory, StationState, ProgressionState (dados + to_dict/from_dict)
   scripts/ui/        UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
                      ProgressionUi (painéis: personagem, construir, vender, encomendas, rotas, atributos, coleção),
-                     GameManual (catálogo), NatureUi (coleta/ferramentas reunidas), DevPanel (DEV),
+                     GameManual (catálogo), NatureUi (coleta/níveis/refino), DevPanel (DEV),
                      PlotIndicator, StationIndicator (estações/criações), RouteIndicator (exploração),
                      PetAnimator (animações do Tiro na aba Tiro)
   scripts/util/      BuildInfo (canal prod/dev, arquivo de save), TimeText (texto de duração)
@@ -92,7 +92,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Manual de recursos e estações        | `scripts/ui/game_manual.gd` (conteúdo derivado do Database); atalho na tela `pet_screen.gd` |
 | Expandir o sítio com áreas fechadas  | `rooms/farm.json → regions` (polígono, cerca e compra existente que libera a área) |
 | Zonas da Natureza e seus materiais | `rooms/nature.json → regions` (requirements/upgrade), `worlds.json → nature.places`, `progression.json → activities` (walk/creek/mine/crystal/meadow) |
-| Coletar na Natureza e liberar vagas | `progression.json → nature_sites` (Árvores/Pedras/Fibras, ferramentas e slot_upgrades), `nature_resources` (rotas); `GameState.start_gathering/collect_gathering` e `NatureUi.panel` |
+| Coletar na Natureza e liberar vagas | `progression.json → nature_sites` (Bosque/Caverna/Prado, levels/XP, tokens level_upgrades/slot_upgrades), `nature_resources` (rotas); `GameState.start_gathering/collect_gathering` e `NatureUi.panel` |
 | Comprar galinhas/vacas e variedades | `config.json → animals` (nome, preço, abrigo, sprite/escala); `GameState.buy_animal`, `animals` salvo; loja em `SheetBuilder.animal_shop` |
 | Galinhas/vacas e seus produtos       | `config.json → stations` com `kind: "animal"`, `animal_capacity`; alimentação/ovos/leite em `recipes.json`, timer em `StationState` |
 | Reações do Tiro no mundo             | `Events.world_activity` (GameState) → `RoomView` (alvo) → `DogWorld.react_at` (animação/caminho) |
@@ -175,19 +175,21 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   Natureza é um mundo próprio, aberto no capítulo 3. `route_group` em objetos associa
   `RouteIndicator` ao grupo de exploração e mostra tempo/Recolher no destino.
   Natureza usa cenário contínuo 512×384, com obstáculos de rio/árvores/rochas no fundo.
-  Árvores/Pedras/Fibras são locais tocáveis com painel `nature:<grupos>` (aliases
-  `routes:<grupo>` para missão/manual). Cada painel reúne só suas ferramentas e vagas;
-  começa com uma, `slot_upgrades` compra a segunda/terceira. `progress.gathering` salva
-  três tarefas independentes por local, com timestamps e recompensas fixadas ao iniciar.
-  `GameState.start_gathering/collect_gathering` valida ocupação, limite, local e requisitos;
-  `start_next_gathering/next_gathering_error` ocupa a primeira vaga livre: tocar no material
-  já inicia uma tarefa, sem seleção intermediária. Vagas mostram tempo/barra; recolher prontos
-  tem botão único. Árvores e Pedras trabalham ao mesmo tempo.
-  Save v8 move a antiga atividade da Natureza para a primeira vaga, preservando tempo e
-  recompensa; pomar mantém a rota global. Ferramentas/vagas persistem em `progress.owned`.
-  `route_markers.site` mostra tempo/quantidade pronta no mapa. Sem abas gerais de coleta;
-  `route_tool` lê a ferramenta exigida e o painel oferece só a próxima compra. O Ir de uma
-  missão preserva a rota exata, mesmo que ferramentas melhores já estejam compradas.
+  Bosque/Caverna/Prado (`trees`/`rocks`/`fibers`) usam painel `nature:<grupos>` e aliases
+  `routes:<grupo>`. Desbloqueio inicial é compra; depois XP de uso libera materiais/vagas.
+  `nature_sites.levels` define xp total/label/materials/slots e `xp_per_collection` a recompensa.
+  `progress.nature_xp` é persistente; nature_info/nature_level consultam XP + abertura inicial.
+  Primeira coleta dá 10 XP somente ao recolher; locais têm XP independente. Snapshot de XP
+  no lote mantém recompensa após balanceamentos; coletar duas vezes não duplica XP/produtos.
+  Níveis 2/3 liberam espaços 2/3 automaticamente. Tokens level_upgrades/slot_upgrades em
+  owned preservam requirements; metadata nature_unlock impede comprar marcos de XP.
+  `start_next_gathering` inicia na primeira vaga livre; até três tarefas simultâneas por local.
+  NatureUi mostra barra, próximo marco, coletas restantes e cadeia no ?. Atributos do Tiro
+  também mostra as três regiões. Refinar lista receitas e leva às estações existentes.
+  Save v10 converte ferramentas, níveis/vagas comprados e uso anterior em XP equivalente;
+  nature_levels_version 2 impede conversão repetida. Moedas, missões e coletas são preservadas.
+  Save v8 move activity antiga para vaga 1; pomar mantém API global. Ir preserva a rota exata
+  das missões; route_markers.site mostra tempo/prontos e route_level a ampliação exigida.
   `"initial_zoom"`/`"view_center"` definem o enquadramento inicial de mapas maiores.
   `"approach"` é o ponto seguro para o Tiro se aproximar de um objeto/estação ao reagir.
   `"station"` também detecta produção pronta, mesmo sem `busy_frames`.

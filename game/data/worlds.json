@@ -171,17 +171,63 @@
   },
   "nature": {
     "name": "Natureza",
-    "map_caption": "Coletar e melhorar ferramentas",
+    "map_caption": "Desbloquear e evoluir locais",
     "icon": "item_wood",
     "description": "Bosque, riacho, prado e grutas. Explore para coletar materiais.",
     "room": "nature",
-    "requirements": {"chapter": 3},
-    "npcs": ["guide"],
+    "requirements": {
+      "chapter": 3
+    },
+    "npcs": [
+      "guide"
+    ],
     "places": {
-      "trees": {"name": "Árvores", "icon": "item_wood", "description": "Madeira, machados e espaços de corte.", "panel": "nature:walk", "upgrades": ["axe", "axe_reinforced", "trees_slot_2", "trees_slot_3"]},
-      "rocks": {"name": "Pedras", "icon": "item_stone", "description": "Pedra, cobre, cristais e picaretas.", "panel": "nature:creek+mine+crystal", "upgrades": ["pickaxe", "pickaxe_reinforced", "pickaxe_crystal", "rocks_slot_2", "rocks_slot_3"]},
-      "fibers": {"name": "Fibras", "icon": "item_fiber", "description": "Fibras, foice e espaços de coleta.", "panel": "nature:meadow", "upgrades": ["sickle", "fibers_slot_2", "fibers_slot_3"]},
-      "village": {"name": "Voltar para a vila", "icon": "coin", "description": "", "panel": "travel:village", "hidden": true}
+      "trees": {
+        "name": "Bosque",
+        "icon": "item_wood",
+        "description": "Colete para ganhar XP e liberar materiais e espaços.",
+        "panel": "nature:walk",
+        "upgrades": [
+          "forest_open",
+          "forest_level_2",
+          "forest_level_3",
+          "trees_slot_2",
+          "trees_slot_3"
+        ]
+      },
+      "rocks": {
+        "name": "Caverna",
+        "icon": "item_stone",
+        "description": "Colete para ganhar XP e liberar materiais e espaços.",
+        "panel": "nature:creek+mine+crystal",
+        "upgrades": [
+          "cave_open",
+          "cave_level_2",
+          "cave_level_3",
+          "rocks_slot_2",
+          "rocks_slot_3"
+        ]
+      },
+      "fibers": {
+        "name": "Prado",
+        "icon": "item_fiber",
+        "description": "Colete para ganhar XP e liberar materiais e espaços.",
+        "panel": "nature:meadow",
+        "upgrades": [
+          "meadow_open",
+          "meadow_level_2",
+          "meadow_level_3",
+          "fibers_slot_2",
+          "fibers_slot_3"
+        ]
+      },
+      "village": {
+        "name": "Voltar para a vila",
+        "icon": "coin",
+        "description": "",
+        "panel": "travel:village",
+        "hidden": true
+      }
     }
   }
 }

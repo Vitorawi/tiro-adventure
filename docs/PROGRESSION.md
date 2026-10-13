@@ -1,38 +1,42 @@
 # Progressão (Jornada)
 
-## Ferramentas e coleta na Natureza
+## Regiões e experiência de coleta
 
-`nature_sites` em progression.json define Árvores, Pedras e Fibras: grupos de rotas,
-materiais, ferramentas e duas compras `slot_upgrades`. `nature_resources` escolhe a melhor
-rota liberada por material. Cada local tem painel próprio, aberto tocando no cenário;
-materiais tocáveis com rendimento/tempo, ferramenta, três vagas e próxima melhoria ficam ali.
-Tocar no material inicia uma coleta na primeira vaga livre (`start_next_gathering`), sem
-selecionar material e depois escolher espaço. Cada toque adiciona só uma tarefa; com tudo
-ocupado, o botão desabilita. A fila é visual, com ícone, tempo/barra e recolhimento em lote.
+Bosque, Caverna e Prado são desbloqueados uma vez com moedas. Depois, evoluem com uso:
+cada coleta recolhida dá 10 XP próprios àquela região. Iniciar/esperar não dá XP; recolher
+de novo não duplica. Aventura continua existindo como atributo geral, separado do XP local.
+Não há ferramentas, compra de níveis nem compra de espaços extras.
 
-Uma vaga vem aberta. Segunda/terceira custam 100/200 em Árvores, 120/240 em Pedras e 80/160
-em Fibras. Só moedas; a terceira exige a segunda. São upgrades normais em progress.owned.
-Cada vaga começa agora e termina por seu timestamp, sem fila sequencial. Até três por local,
-inclusive Árvores e Pedras simultâneos. `start_gathering`, `collect_gathering` e ações em lote
-validam local, vaga, requisito e prontidão antes de alterar o estado.
+| Região | Desbloqueio / nível 1 | Nível 2 (XP total) | Nível 3 (XP total) |
+|---|---|---|---|
+| Bosque | 40 moedas; madeira; 1 espaço | 30 XP; mais madeira; 2 espaços | 90 XP; madeira dura; 3 espaços |
+| Caverna | 80 moedas; pedra; 1 espaço | 40 XP; cobre; 2 espaços | 120 XP; cristais; 3 espaços |
+| Prado | 50 moedas; fibras; 1 espaço | 30 XP; mais fibras; 2 espaços | 90 XP; 3 espaços |
 
-`progress.gathering` guarda tarefas por índice, com id, resource, started_at, ready_at e snapshot de
-rewards. Save v8 converte a antiga activity da Natureza para a vaga 1 do local correto,
-sem reiniciar o prazo ou duplicar recompensa. Pomar/rotas antigas mantêm a API global.
-O Ir das missões abre a rota exata para objetivos activity:lane/quarry, mesmo após melhorias.
-`route_tool` identifica a exigência real; cada material mostra a ferramenta ou À mão,
-com ajuda para requisitos bloqueados. O painel oferece só o atalho da próxima melhoria.
-O material tocado fica salvo na tarefa para manter o ícone certo em coletas mistas;
-todos os produtos extras da rota também são entregues, sem mudar tarefas em andamento.
+O painel mostra barra de XP, próxima liberação e quantas coletas faltam. O ? mostra a
+cadeia inteira de níveis, liberados/futuros e preço inicial. Atributos do Tiro também
+mostra cada região com nível, barra, próximo marco e Ver evolução. Desbloqueio inicial
+usa o painel normal de compra: preço, requisitos e ajuda; evoluções seguintes são automáticas.
 
-- Machado (60) → reforçado (180): madeira em maior quantidade → madeira dura.
-- Picareta (80) → reforçada (220) → precisão (340): mais pedra/cobre → mais cristais.
-- Foice (90): mais fibras em menos tempo.
+Conteúdo em `nature_sites`: `levels` (xp total, label, materials, slots), `xp_per_collection`,
+`level_upgrades` e `slot_upgrades`. O primeiro level_upgrade é a compra inicial; os demais
+e slots têm `nature_unlock: {site, level}` e não podem ser comprados. São tokens de owned
+concedidos automaticamente para manter requirements/rotas/ajuda compatíveis. Materiais novos
+e rendimento usam as mesmas rotas e não têm trava adicional de Aventura.
 
-Custos em moedas; materiais e requisitos ficam nos upgrades JSON. São melhorias opcionais:
-rotas antigas e saves em andamento mantêm requisitos, duração e recompensa anteriores.
-Madeira dura também vira três tábuas a partir de duas unidades na bancada. Melhorar ferramenta
-não altera tarefas em andamento, que mantêm recompensa e prazo do início.
+`progress.nature_xp` guarda XP total por região. `nature_info`/`nature_level` são consultas
+puras com base no XP e no desbloqueio inicial. `_award_nature_xp` concede XP ao recolher e
+sincroniza tokens em owned; `_grant_upgrade` permite simulação DEV coerente com esses níveis.
+Até três coletas por local, sempre simultâneas. Tocar material inicia na primeira vaga livre.
+Refinar lista receitas existentes, ingredientes e atalho às estações (tábuas/tijolos/tecidos,
+cristais em apetrechos); cobre continua material de construção.
+
+`progress.gathering` salva id/resource/prazos e snapshots de produtos, XP do jogador e XP
+local. Melhorias não alteram lotes iniciados. Save v10 converte ferramentas antigas,
+níveis/vagas comprados e histórico de coletas em XP equivalente, sem perder acesso nem
+cobrar outra vez. `nature_levels_version: 2` evita converter o histórico duas vezes.
+Moedas, missões, vagas e tarefas são preservadas; main_5_pickaxe mantém id e pede abrir
+a Caverna. Migração v8 de activity para vaga 1 e API global do pomar seguem compatíveis.
 
 ## Compra de animais
 

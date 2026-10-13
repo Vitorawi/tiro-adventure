@@ -13,7 +13,7 @@ extends Node
 ## (BuildInfo.save_path()). Na Web as duas ficam no mesmo IndexedDB do site, por isso
 ## precisam de nomes diferentes para a versão dev não apagar o progresso real.
 
-const SAVE_VERSION := 8
+const SAVE_VERSION := 10
 
 var _save_pending := false
 var _save_path := BuildInfo.save_path()
@@ -162,6 +162,12 @@ func _migrate(data: Dictionary) -> Dictionary:
 	if version < 8:
 		# ProgressionState.from_dict leva a antiga coleta para a vaga 1 do local.
 		version = 8
+	if version < 9:
+		# ProgressionState converte compras de ferramentas em níveis dos locais.
+		version = 9
+	if version < 10:
+		# XP local preserva níveis/vagas adquiridos e o uso anterior das regiões.
+		version = 10
 	data["save_version"] = version
 	return data
 

@@ -434,6 +434,9 @@ func upgrade_error(id: String) -> String:
 		return "Melhoria desconhecida"
 	if has_upgrade(id):
 		return "Já adquirido"
+	if data.has("nature_unlock"):
+		var unlock: Dictionary = data.nature_unlock
+		return "Colete em %s até o nível %d" % [Database.progression.nature_sites[unlock.site].name, int(unlock.level)]
 	var reason := requirement_error(data.get("requirements", {}))
 	if reason != "":
 		return reason
@@ -462,6 +465,13 @@ func buy_upgrade(id: String) -> String:
 
 func _grant_upgrade(id: String) -> void:
 	progress.owned[id] = true
+	var data: Dictionary = Database.progression.upgrades[id]
+	if data.has("nature_unlock"):
+		var site: String = data.nature_unlock.site
+		var target := int(data.nature_unlock.level) - 1
+		progress.nature_xp[site] = maxi(int(progress.nature_xp.get(site, 0)), int(Database.progression.nature_sites[site].levels[target].xp))
+	for site: String in Database.progression.nature_sites:
+		_sync_nature_unlocks(site)
 	if id == "farm":
 		unlocked_plots = maxi(unlocked_plots, int(Database.farm.initial_plots))
 
@@ -554,6 +564,7 @@ func collect_activity() -> String:
 	progress.count("activity:" + id)
 	progress.count("explore")
 	_apply_rewards(data.rewards)
+	_award_nature_xp(Database.gathering_site(id))
 	_add_player_xp(int(data.get("player_xp", 5)))
 	_changed()
 	return ""
@@ -565,12 +576,25 @@ func collect_activity() -> String:
 func gathering_slots(site: String) -> int:
 	if not Database.progression.nature_sites.has(site):
 		return 0
-	var count := 1
-	for upgrade: String in Database.progression.nature_sites[site].slot_upgrades:
-		if not has_upgrade(upgrade):
-			break
-		count += 1
-	return mini(3, count)
+	var level := progress.nature_level(site)
+	return int(Database.progression.nature_sites[site].levels[maxi(0, level - 1)].slots) if level > 0 else 0
+
+
+func _sync_nature_unlocks(site: String) -> void:
+	var config: Dictionary = Database.progression.nature_sites[site]
+	var level := progress.nature_level(site)
+	for i in level:
+		progress.owned[str(config.level_upgrades[i])] = true
+	for i in maxi(0, level - 1):
+		progress.owned[str(config.slot_upgrades[i])] = true
+
+
+func _award_nature_xp(site: String, amount: int = -1) -> void:
+	if site == "":
+		return
+	var reward := int(Database.progression.nature_sites[site].xp_per_collection) if amount < 0 else amount
+	progress.nature_xp[site] = maxi(0, int(progress.nature_xp.get(site, 0))) + maxi(0, reward)
+	_sync_nature_unlocks(site)
 
 
 func gathering_entry(site: String, index: int) -> Dictionary:
@@ -629,7 +653,7 @@ func start_gathering(site: String, index: int, route_id: String, resource: Strin
 	while jobs.size() <= index:
 		jobs.append({})
 	var start := now()
-	jobs[index] = {"id": route_id, "resource": resource, "started_at": start, "ready_at": start + float(data.seconds), "rewards": data.rewards.duplicate(true), "player_xp": int(data.get("player_xp", 5))}
+	jobs[index] = {"id": route_id, "resource": resource, "started_at": start, "ready_at": start + float(data.seconds), "rewards": data.rewards.duplicate(true), "player_xp": int(data.get("player_xp", 5)), "nature_xp": int(Database.progression.nature_sites[site].xp_per_collection)}
 	progress.gathering[site] = jobs
 	_changed()
 	return ""
@@ -639,6 +663,8 @@ func start_gathering(site: String, index: int, route_id: String, resource: Strin
 func next_gathering_error(site: String, route_id: String, resource: String = "") -> String:
 	if not Database.progression.nature_sites.has(site):
 		return "Local de coleta inválido"
+	if progress.nature_level(site) == 0:
+		return "Desbloqueie %s primeiro" % Database.progression.nature_sites[site].name
 	for index in gathering_slots(site):
 		if gathering_entry(site, index).is_empty():
 			return gathering_error(site, index, route_id, resource)
@@ -685,6 +711,7 @@ func collect_gathering(site: String, index: int) -> String:
 	progress.count("activity:" + str(entry.id))
 	progress.count("explore")
 	_apply_rewards(entry.get("rewards", data.rewards))
+	_award_nature_xp(site, int(entry.get("nature_xp", Database.progression.nature_sites[site].xp_per_collection)))
 	_add_player_xp(int(entry.get("player_xp", data.get("player_xp", 5))))
 	_changed()
 	return ""

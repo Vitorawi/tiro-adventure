@@ -4,28 +4,126 @@
   "navigation_margin": 4,
   "dog_scale": 0.5,
   "obstacles": [
-    {"id": "woods", "polygon": [[0, 57], [118, 8], [233, 35], [248, 129], [222, 159], [154, 169], [129, 193], [97, 195], [60, 191], [50, 224], [19, 229], [0, 214]]},
-    {"id": "cliffs", "polygon": [[281, 71], [340, 44], [366, 24], [420, 28], [490, 74], [511, 121], [511, 203], [471, 179], [436, 178], [423, 149], [394, 149], [398, 123], [364, 103], [338, 126], [302, 117]]},
-    {"id": "stream_north", "polygon": [[262, 90], [277, 88], [295, 101], [280, 125], [286, 144], [319, 158], [300, 172], [277, 190], [266, 166], [262, 147], [260, 120], [250, 107]]},
-    {"id": "stream_south", "polygon": [[213, 198], [238, 205], [224, 224], [235, 246], [206, 271], [151, 284], [92, 259], [102, 243], [156, 225], [190, 222], [195, 210]]}
+    {
+      "id": "woods",
+      "polygon": [[0, 57], [118, 8], [233, 35], [248, 129], [222, 159], [154, 169], [129, 193], [97, 195], [60, 191], [50, 224], [19, 229], [0, 214]]
+    },
+    {
+      "id": "cliffs",
+      "polygon": [[281, 71], [340, 44], [366, 24], [420, 28], [490, 74], [511, 121], [511, 203], [471, 179], [436, 178], [423, 149], [394, 149], [398, 123], [364, 103], [338, 126], [302, 117]]
+    },
+    {
+      "id": "stream_north",
+      "polygon": [[262, 90], [277, 88], [295, 101], [280, 125], [286, 144], [319, 158], [300, 172], [277, 190], [266, 166], [262, 147], [260, 120], [250, 107]]
+    },
+    {
+      "id": "stream_south",
+      "polygon": [[213, 198], [238, 205], [224, 224], [235, 246], [206, 271], [151, 284], [92, 259], [102, 243], [156, 225], [190, 222], [195, 210]]
+    }
   ],
   "objects": [],
   "route_markers": [
-    {"site": "trees", "pos": [142, 220]},
-    {"site": "rocks", "pos": [375, 190]},
-    {"site": "fibers", "pos": [280, 255]}
+    {
+      "site": "trees",
+      "pos": [142, 220]
+    },
+    {
+      "site": "rocks",
+      "pos": [375, 190]
+    },
+    {
+      "site": "fibers",
+      "pos": [280, 255]
+    }
   ],
   "regions": [
-    {"id": "creek_area", "requirements": {"skills": {"adventure": 2}}, "polygon": [[246, 95], [329, 104], [331, 174], [287, 191], [267, 163]], "gate": [[322, 172], [303, 184]], "action": "place:rocks"},
-    {"id": "rocks_area", "upgrade": "pickaxe", "polygon": [[339, 131], [459, 188], [494, 211], [364, 238], [315, 203], [323, 163]], "gate": [[338, 189], [363, 208]], "action": "place:rocks", "locked_label": true},
-    {"id": "crystals_area", "requirements": {"owned": ["pickaxe"], "skills": {"adventure": 3}}, "polygon": [[388, 123], [429, 139], [424, 161], [388, 164]], "gate": [[391, 155], [415, 164]], "action": "place:rocks"},
-    {"id": "meadow_area", "requirements": {"skills": {"adventure": 4}}, "polygon": [[183, 274], [282, 226], [426, 240], [268, 321], [208, 300]], "gate": [[263, 239], [290, 249]], "action": "place:fibers", "label": "Aventura 4", "label_pos": [295, 292], "locked_label": true}
+    {
+      "id": "creek_area",
+      "requirements": {
+        "owned": [
+          "cave_open"
+        ]
+      },
+      "polygon": [[246, 95], [329, 104], [331, 174], [287, 191], [267, 163]],
+      "gate": [[322, 172], [303, 184]],
+      "action": "place:rocks"
+    },
+    {
+      "id": "rocks_area",
+      "upgrade": "cave_open",
+      "polygon": [[339, 131], [459, 188], [494, 211], [364, 238], [315, 203], [323, 163]],
+      "gate": [[338, 189], [363, 208]],
+      "action": "place:rocks",
+      "locked_label": true
+    },
+    {
+      "id": "crystals_area",
+      "requirements": {
+        "owned": [
+          "cave_level_3"
+        ]
+      },
+      "polygon": [[388, 123], [429, 139], [424, 161], [388, 164]],
+      "gate": [[391, 155], [415, 164]],
+      "action": "place:rocks"
+    },
+    {
+      "id": "meadow_area",
+      "requirements": {
+        "owned": [
+          "meadow_open"
+        ]
+      },
+      "polygon": [[183, 274], [282, 226], [426, 240], [268, 321], [208, 300]],
+      "gate": [[263, 239], [290, 249]],
+      "action": "place:fibers",
+      "label": "Prado fechado",
+      "label_pos": [295, 292],
+      "locked_label": true
+    },
+    {
+      "id": "forest_area",
+      "requirements": {
+        "owned": [
+          "forest_open"
+        ]
+      },
+      "polygon": [[0, 75], [235, 22], [245, 150], [130, 170], [0, 215]],
+      "gate": [[105, 175], [135, 160]],
+      "action": "place:trees"
+    }
   ],
   "zones": [
-    {"id": "village", "action": "place:village", "label": "Vila", "label_pos": [254, 80], "polygon": [[241, 83], [259, 75], [275, 85], [259, 99]]},
-    {"id": "trees", "action": "place:trees", "label": "Árvores", "label_pos": [119, 168], "polygon": [[0, 75], [235, 22], [245, 180], [202, 205], [130, 237], [0, 226]]},
-    {"id": "rocks", "action": "place:rocks", "label": "Pedras", "label_pos": [407, 206], "polygon": [[278, 34], [390, 17], [511, 83], [512, 224], [348, 240], [310, 194], [287, 146]]},
-    {"id": "fibers", "action": "place:fibers", "label": "Fibras", "label_pos": [280, 290], "requirements": {"skills": {"adventure": 4}}, "polygon": [[93, 239], [190, 222], [279, 226], [399, 262], [251, 351], [105, 270]]}
+    {
+      "id": "village",
+      "action": "place:village",
+      "label": "Vila",
+      "label_pos": [254, 80],
+      "polygon": [[241, 83], [259, 75], [275, 85], [259, 99]]
+    },
+    {
+      "id": "trees",
+      "action": "place:trees",
+      "label": "Bosque",
+      "label_pos": [119, 168],
+      "polygon": [[0, 75], [235, 22], [245, 180], [202, 205], [130, 237], [0, 226]]
+    },
+    {
+      "id": "rocks",
+      "action": "place:rocks",
+      "label": "Caverna",
+      "label_pos": [407, 206],
+      "polygon": [[278, 34], [390, 17], [511, 83], [512, 224], [348, 240], [310, 194], [287, 146]]
+    },
+    {
+      "id": "fibers",
+      "action": "place:fibers",
+      "label": "Prado",
+      "label_pos": [280, 290],
+      "polygon": [[93, 239], [190, 222], [279, 226], [399, 262], [251, 351], [105, 270]]
+    }
   ],
-  "points": {"dog_start": [246, 226]}
+  "points": {
+    "dog_start": [246, 226]
+  }
 }

@@ -247,7 +247,7 @@
         },
         "requirements": {
           "owned": [
-            "pickaxe"
+            "cave_open"
           ]
         }
       },

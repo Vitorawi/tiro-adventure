@@ -4,6 +4,35 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **13/10/2026, Codex**.
 
+**Experiência por uso e cadeia clara de desbloqueios (Codex, 13/10/2026).**
+- Região abre uma vez com moedas; recolher cada coleta dá 10 XP próprios. Níveis/espaços
+  seguintes são automáticos: Bosque/Prado em 30/90 XP, Caverna em 40/120 XP.
+- Painel mostra barra, próxima liberação, coletas restantes e ? com cadeia completa.
+  Atributos do Tiro inclui as três regiões. Compra inicial mostra preço/requisitos normais.
+- nature_xp persistente e consultas puras; XP local salvo no lote e entregue uma vez.
+  Tokens owned mantêm rotas/ajuda; marcos de XP não podem ser comprados. Pomar não ganha XP local.
+- Save v10 preserva ferramentas/níveis/vagas anteriores e histórico de uso como XP equivalente;
+  nature_levels_version 2 impede conversão duplicada. Prazo/produtos/missões/moedas preservados.
+- Suíte completa passou; campanha 129 ciclos, 30 aquisições, 33 missões. Nature/tasks/content
+  repetidos após ajustes finais; capturas 360×780 verificadas (incluindo Caverna nível 2).
+  Export Web prod/dev sem erros. Publicação prod/dev autorizada em 13/10/2026 via main.
+  Próximo: avaliar clareza/ritmo de XP no celular.
+
+**Níveis comprados — substituídos por experiência de uso acima (Codex, 13/10/2026).**
+- Bosque, Caverna e Prado têm desbloqueio e níveis permanentes, comprados no próprio painel.
+  Nível 3 do Bosque libera madeira dura; Caverna 2 cobre, Caverna 3 cristais; Prado 2 mais fibras.
+  Coleta com um toque e três vagas simultâneas continuam. Vagas compradas separadamente.
+- Removidas compras de ferramentas e trava extra de Aventura para materiais. Conteúdo em
+  nature_sites.level_upgrades/requirements; progress.nature_level deriva ampliações compradas.
+- Refinar lista receitas/ingredientes e leva às estações existentes. Sem novas receitas.
+- Save v9 converte ferramentas e locais já explorados sem cobrar; preserva moedas, missões,
+  vagas e tarefas com prazo/recompensa. main_5_pickaxe mantém id e agora pede abrir a Caverna.
+- Suíte completa passou; campanha com 158 ciclos, 29 aquisições e 33 missões. Nature test
+  repetido após ajustes, incluindo migração idempotente, acesso antigo sem ferramentas,
+  prazo/recompensa em curso, níveis bloqueados e destino real do refino. Export Web prod/dev
+  sem erros; capturas 360×780 verificadas (Bosque fechado/nível 1 e Caverna nível 3).
+  Alteração local; ainda não publicada. Próximo: publicar e avaliar progressão no celular.
+
 **Coleta com um toque e painel enxuto (Codex, 13/10/2026).**
 - Material virou ação direta: tocar já chama `start_next_gathering` e ocupa a primeira
   vaga livre. Sem selecionar material e depois espaço; cada toque inicia uma tarefa.

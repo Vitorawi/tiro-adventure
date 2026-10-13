@@ -50,7 +50,7 @@ Use verbos concretos (plantar, colher, comprar, produzir, entregar) em uma frase
 | **Casa** | — | Tigela, **Cozinha** (fogão + forno + fila extra), Geladeira, porta → Sítio. Sofá = enfeite com soneca (`hidden`). |
 | **Sítio da Bloblo** | Bloblo (casinha) | Canteiros (+ estufa), Produção (bancada + moinho + queijaria), Pomar e Animais (galinheiro + curral). Volta para casa é atalho oculto. |
 | **Vila** | Feirante, Laís | **Feira** (vender/encomendas; + banca), **Ateliê**, **Portão da trilha** (viaja para Natureza; capítulo 3) |
-| **Natureza** | Guia da trilha | **Árvores** (madeira/machados), **Pedras** (pedra/cobre/cristal/picaretas), **Fibras** (prado/foice). Cada local tem uma a três coletas paralelas. |
+| **Natureza** | Guia da trilha | **Bosque** (madeira/madeira dura), **Caverna** (pedra/cobre/cristais), **Prado** (fibras). Cada local tem uma a três coletas paralelas. |
 
 Regra atual: **4 mundos, no máximo 4 lugares visíveis cada** (`content_test`).
 Não existe menu "Construir": cada construção é comprada **no próprio lugar** — `"upgrade"` do lugar
@@ -63,12 +63,15 @@ A trilha mora no novo mundo Natureza; o portão da Vila usa `travel:nature`. A a
 Natureza tem paisagem contínua 512×384 com bosque, riacho com ponte, trilha e gruta.
 `regions` cercam/sombreiam zonas fechadas, abrem por `requirements` ou compra (`upgrade`).
 Abrir por Aventura recalcula a grade do Tiro, mesmo sem nova construção comprada.
-Tocar nas árvores ou nas pedras abre seu painel diretamente: ferramenta, rendimento/tempo,
-três espaços e próxima compra. Só uma vaga inicial; liberar outras permite coletar em paralelo.
-Pedra/Cobre/Cristal são ações diretas: um toque inicia na primeira vaga livre, sem seleção
-intermediária. Árvores usa a melhor ferramenta disponível. Fibras é outro local. Não há
-listão nem abas de ferramentas. Vagas mostram ícone/tempo/barra; um botão recolhe os prontos.
-As tarefas continuam simultâneas, sem fila sequencial. Próxima ferramenta tem atalho Melhorar.
+Tocar no Bosque, Caverna ou Prado abre o local. Fechado, oferece desbloqueio; aberto,
+mostra barra de XP, próximo marco, coletas restantes, materiais e fila. Recolher coletas
+evolui o local; níveis 2/3 liberam materiais e espaços automaticamente. Sem compras de
+ferramentas, níveis ou vagas. O ? mostra a cadeia; Atributos do Tiro mostra o XP de cada região.
+Bosque nível 3 libera madeira dura; Caverna nível 2 cobre e nível 3 cristais.
+Regiões usam requisitos das ampliações, recalculando navegação ao abrir.
+Um toque no material inicia na primeira vaga livre. Recolher prontos é um botão único.
+Fila permanece simultânea, com ícone/tempo/barra. Refinar mostra receitas existentes e
+leva às estações no sítio/vila. Desbloqueio e curva de XP ficam em progression.json; nature_xp é salvo por região.
 O painel `nature:<grupos>` resolve os aliases `routes:<grupo>` para missão/manual/mochila.
 `route_markers.site` mostra tempo/quantidade pronta por `RouteIndicator`; obstáculos
 separados impedem andar na água, árvores ou penhascos. O save mantém os ids de atividade.
@@ -78,7 +81,7 @@ separados impedem andar na água, árvores ou penhascos. O save mantém os ids d
 Quatro cartões horizontais: miniatura inteira, nome curto, função, requisito ou aviso de pronto.
 Cartão inteiro tocável; mundo fechado tem requisito legível e não permite entrar. `map_name`
 e `map_caption` em worlds.json fornecem os textos curtos. Cabeçalho Para onde vamos?;
-Mundos volta à seleção. Natureza tem Locais (Árvores, Pedras, Fibras), além do toque direto no mapa.
+Mundos volta à seleção. Natureza tem Locais (Bosque, Caverna, Prado), além do toque direto no mapa.
 
 ## Como criar um mundo novo (receita)
 

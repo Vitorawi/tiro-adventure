@@ -169,51 +169,221 @@
       "icon": "item_plank",
       "station": "workbench"
     },
-    "pickaxe": {
-      "name": "Picareta",
+    "cave_open": {
+      "name": "Desbloquear Caverna",
       "world": "nature",
-      "description": "Permite explorar a pedreira e encontrar minérios.",
+      "description": "Abre a coleta de pedra.",
       "cost": 80,
-      "materials": {
-        "wood": 3,
-        "stone": 3
+      "materials": {},
+      "requirements": {
+        "chapter": 3
       },
-      "requirements": {},
       "skill_xp": {
         "adventure": 15
       },
-      "icon": "tool_pickaxe"
+      "icon": "item_stone"
     },
-    "trees_slot_2": {"name": "Segundo espaço de corte", "world": "nature", "description": "Colete em duas árvores ao mesmo tempo.", "cost": 100, "materials": {}, "requirements": {"chapter": 3}, "icon": "item_wood"},
-    "trees_slot_3": {"name": "Terceiro espaço de corte", "world": "nature", "description": "Colete em três árvores ao mesmo tempo.", "cost": 200, "materials": {}, "requirements": {"owned": ["trees_slot_2"]}, "icon": "item_wood"},
-    "rocks_slot_2": {"name": "Segundo espaço de mineração", "world": "nature", "description": "Colete em duas pedras ao mesmo tempo.", "cost": 120, "materials": {}, "requirements": {"chapter": 3}, "icon": "item_stone"},
-    "rocks_slot_3": {"name": "Terceiro espaço de mineração", "world": "nature", "description": "Colete em três pedras ao mesmo tempo.", "cost": 240, "materials": {}, "requirements": {"owned": ["rocks_slot_2"]}, "icon": "item_stone"},
-    "fibers_slot_2": {"name": "Segundo espaço de fibras", "world": "nature", "description": "Colete fibras em dois pontos ao mesmo tempo.", "cost": 80, "materials": {}, "requirements": {"chapter": 3}, "icon": "item_fiber"},
-    "fibers_slot_3": {"name": "Terceiro espaço de fibras", "world": "nature", "description": "Colete fibras em três pontos ao mesmo tempo.", "cost": 160, "materials": {}, "requirements": {"owned": ["fibers_slot_2"]}, "icon": "item_fiber"},
-    "axe": {
-      "name": "Machado", "world": "nature", "description": "Corte madeira em maior quantidade.",
-      "cost": 60, "materials": {"wood": 2, "stone": 2},
-      "requirements": {"chapter": 3}, "skill_xp": {"adventure": 10}, "icon": "tool_axe"
+    "trees_slot_2": {
+      "name": "Segundo espaço de corte",
+      "world": "nature",
+      "description": "Colete em duas árvores ao mesmo tempo.",
+      "cost": 0,
+      "materials": {},
+      "requirements": {
+        "owned": [
+          "forest_open"
+        ]
+      },
+      "icon": "item_wood",
+      "nature_unlock": {
+        "site": "trees",
+        "level": 2
+      }
     },
-    "axe_reinforced": {
-      "name": "Machado reforçado", "world": "nature", "description": "Corte madeira dura para fazer mais tábuas.",
-      "cost": 180, "materials": {"plank": 3, "copper": 2},
-      "requirements": {"owned": ["axe"]}, "skill_xp": {"adventure": 20}, "icon": "tool_axe_reinforced"
+    "trees_slot_3": {
+      "name": "Terceiro espaço de corte",
+      "world": "nature",
+      "description": "Colete em três árvores ao mesmo tempo.",
+      "cost": 0,
+      "materials": {},
+      "requirements": {
+        "owned": [
+          "forest_open"
+        ]
+      },
+      "icon": "item_wood",
+      "nature_unlock": {
+        "site": "trees",
+        "level": 3
+      }
     },
-    "pickaxe_reinforced": {
-      "name": "Picareta reforçada", "world": "nature", "description": "Extraia mais pedra e cobre por exploração.",
-      "cost": 220, "materials": {"plank": 4, "copper": 3},
-      "requirements": {"owned": ["pickaxe"]}, "skill_xp": {"adventure": 25}, "icon": "tool_pickaxe_reinforced"
+    "rocks_slot_2": {
+      "name": "Segundo espaço de mineração",
+      "world": "nature",
+      "description": "Colete em duas pedras ao mesmo tempo.",
+      "cost": 0,
+      "materials": {},
+      "requirements": {
+        "owned": [
+          "cave_open"
+        ]
+      },
+      "icon": "item_stone",
+      "nature_unlock": {
+        "site": "rocks",
+        "level": 2
+      }
     },
-    "pickaxe_crystal": {
-      "name": "Picareta de precisão", "world": "nature", "description": "Recolha mais cristais na gruta.",
-      "cost": 340, "materials": {"hardwood": 3, "copper": 5, "crystal": 2},
-      "requirements": {"owned": ["pickaxe_reinforced"]}, "skill_xp": {"adventure": 35}, "icon": "tool_pickaxe_crystal"
+    "rocks_slot_3": {
+      "name": "Terceiro espaço de mineração",
+      "world": "nature",
+      "description": "Colete em três pedras ao mesmo tempo.",
+      "cost": 0,
+      "materials": {},
+      "requirements": {
+        "owned": [
+          "cave_open"
+        ]
+      },
+      "icon": "item_stone",
+      "nature_unlock": {
+        "site": "rocks",
+        "level": 3
+      }
     },
-    "sickle": {
-      "name": "Foice", "world": "nature", "description": "Corte mais fibras em menos tempo no prado.",
-      "cost": 90, "materials": {"wood": 3, "stone": 2},
-      "requirements": {"chapter": 3}, "skill_xp": {"adventure": 10}, "icon": "tool_sickle"
+    "fibers_slot_2": {
+      "name": "Segundo espaço de fibras",
+      "world": "nature",
+      "description": "Colete fibras em dois pontos ao mesmo tempo.",
+      "cost": 0,
+      "materials": {},
+      "requirements": {
+        "owned": [
+          "meadow_open"
+        ]
+      },
+      "icon": "item_fiber",
+      "nature_unlock": {
+        "site": "fibers",
+        "level": 2
+      }
+    },
+    "fibers_slot_3": {
+      "name": "Terceiro espaço de fibras",
+      "world": "nature",
+      "description": "Colete fibras em três pontos ao mesmo tempo.",
+      "cost": 0,
+      "materials": {},
+      "requirements": {
+        "owned": [
+          "meadow_open"
+        ]
+      },
+      "icon": "item_fiber",
+      "nature_unlock": {
+        "site": "fibers",
+        "level": 3
+      }
+    },
+    "forest_level_2": {
+      "name": "Bosque · nível 2",
+      "world": "nature",
+      "description": "Mais madeira por coleta.",
+      "cost": 0,
+      "materials": {},
+      "requirements": {
+        "owned": [
+          "forest_open"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 10
+      },
+      "icon": "item_wood",
+      "nature_unlock": {
+        "site": "trees",
+        "level": 2
+      }
+    },
+    "forest_level_3": {
+      "name": "Bosque · nível 3",
+      "world": "nature",
+      "description": "Libera madeira dura para refinar em tábuas.",
+      "cost": 0,
+      "materials": {},
+      "requirements": {
+        "owned": [
+          "forest_open"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 20
+      },
+      "icon": "item_hardwood",
+      "nature_unlock": {
+        "site": "trees",
+        "level": 3
+      }
+    },
+    "cave_level_2": {
+      "name": "Caverna · nível 2",
+      "world": "nature",
+      "description": "Libera cobre e veios mais produtivos.",
+      "cost": 0,
+      "materials": {},
+      "requirements": {
+        "owned": [
+          "cave_open"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 25
+      },
+      "icon": "item_copper",
+      "nature_unlock": {
+        "site": "rocks",
+        "level": 2
+      }
+    },
+    "cave_level_3": {
+      "name": "Caverna · nível 3",
+      "world": "nature",
+      "description": "Libera cristais nas partes profundas.",
+      "cost": 0,
+      "materials": {},
+      "requirements": {
+        "owned": [
+          "cave_open"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 35
+      },
+      "icon": "item_crystal",
+      "nature_unlock": {
+        "site": "rocks",
+        "level": 3
+      }
+    },
+    "meadow_level_2": {
+      "name": "Prado · nível 2",
+      "world": "nature",
+      "description": "Mais fibras por coleta.",
+      "cost": 0,
+      "materials": {},
+      "requirements": {
+        "owned": [
+          "meadow_open"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 10
+      },
+      "icon": "item_fiber",
+      "nature_unlock": {
+        "site": "fibers",
+        "level": 2
+      }
     },
     "stove_queue": {
       "name": "Cozinha organizada",
@@ -415,52 +585,381 @@
       },
       "icon": "item_cheese",
       "station": "dairy"
+    },
+    "forest_open": {
+      "name": "Desbloquear Bosque",
+      "world": "nature",
+      "description": "Abre a coleta de madeira.",
+      "cost": 40,
+      "requirements": {
+        "chapter": 3
+      },
+      "icon": "item_wood"
+    },
+    "meadow_open": {
+      "name": "Desbloquear Prado",
+      "world": "nature",
+      "description": "Abre a coleta de fibras.",
+      "cost": 50,
+      "requirements": {
+        "chapter": 3
+      },
+      "icon": "item_fiber"
+    },
+    "meadow_level_3": {
+      "name": "Prado · nível 3",
+      "world": "nature",
+      "description": "Libera o terceiro espaço de coleta.",
+      "cost": 0,
+      "requirements": {
+        "owned": [
+          "meadow_open"
+        ]
+      },
+      "icon": "item_fiber",
+      "materials": {},
+      "nature_unlock": {
+        "site": "fibers",
+        "level": 3
+      }
     }
   },
   "nature_sites": {
-    "trees": {"name": "Árvores", "icon": "item_wood", "groups": ["walk"], "resources": ["wood"], "tools": ["axe", "axe_reinforced"], "slot_upgrades": ["trees_slot_2", "trees_slot_3"]},
-    "rocks": {"name": "Pedras", "icon": "item_stone", "groups": ["creek", "mine", "crystal"], "resources": ["stone", "copper", "crystal"], "tools": ["pickaxe", "pickaxe_reinforced", "pickaxe_crystal"], "slot_upgrades": ["rocks_slot_2", "rocks_slot_3"]},
-    "fibers": {"name": "Fibras", "icon": "item_fiber", "groups": ["meadow"], "resources": ["fiber"], "tools": ["sickle"], "slot_upgrades": ["fibers_slot_2", "fibers_slot_3"]}
+    "trees": {
+      "name": "Bosque",
+      "icon": "item_wood",
+      "groups": [
+        "walk"
+      ],
+      "resources": [
+        "wood",
+        "hardwood"
+      ],
+      "slot_upgrades": [
+        "trees_slot_2",
+        "trees_slot_3"
+      ],
+      "level_upgrades": [
+        "forest_open",
+        "forest_level_2",
+        "forest_level_3"
+      ],
+      "xp_per_collection": 10,
+      "levels": [
+        {
+          "xp": 0,
+          "label": "Madeira",
+          "materials": [
+            "wood"
+          ],
+          "slots": 1
+        },
+        {
+          "xp": 30,
+          "label": "Mais madeira + 2 espaços",
+          "materials": [
+            "wood"
+          ],
+          "slots": 2
+        },
+        {
+          "xp": 90,
+          "label": "Madeira dura + 3 espaços",
+          "materials": [
+            "hardwood"
+          ],
+          "slots": 3
+        }
+      ]
+    },
+    "rocks": {
+      "name": "Caverna",
+      "icon": "item_stone",
+      "groups": [
+        "creek",
+        "mine",
+        "crystal"
+      ],
+      "resources": [
+        "stone",
+        "copper",
+        "crystal"
+      ],
+      "slot_upgrades": [
+        "rocks_slot_2",
+        "rocks_slot_3"
+      ],
+      "level_upgrades": [
+        "cave_open",
+        "cave_level_2",
+        "cave_level_3"
+      ],
+      "xp_per_collection": 10,
+      "levels": [
+        {
+          "xp": 0,
+          "label": "Pedra",
+          "materials": [
+            "stone"
+          ],
+          "slots": 1
+        },
+        {
+          "xp": 40,
+          "label": "Cobre + 2 espaços",
+          "materials": [
+            "copper"
+          ],
+          "slots": 2
+        },
+        {
+          "xp": 120,
+          "label": "Cristais + 3 espaços",
+          "materials": [
+            "crystal"
+          ],
+          "slots": 3
+        }
+      ]
+    },
+    "fibers": {
+      "name": "Prado",
+      "icon": "item_fiber",
+      "groups": [
+        "meadow"
+      ],
+      "resources": [
+        "fiber"
+      ],
+      "slot_upgrades": [
+        "fibers_slot_2",
+        "fibers_slot_3"
+      ],
+      "level_upgrades": [
+        "meadow_open",
+        "meadow_level_2",
+        "meadow_level_3"
+      ],
+      "xp_per_collection": 10,
+      "levels": [
+        {
+          "xp": 0,
+          "label": "Fibras",
+          "materials": [
+            "fiber"
+          ],
+          "slots": 1
+        },
+        {
+          "xp": 30,
+          "label": "Mais fibras + 2 espaços",
+          "materials": [
+            "fiber"
+          ],
+          "slots": 2
+        },
+        {
+          "xp": 90,
+          "label": "3 espaços de coleta",
+          "materials": [
+            "fiber"
+          ],
+          "slots": 3
+        }
+      ]
+    }
   },
   "nature_resources": {
-    "wood": {"name": "Madeira", "icon": "item_wood", "routes": ["timber", "woodcutting", "lane"], "tools": ["axe", "axe_reinforced"]},
-    "stone": {"name": "Pedras", "icon": "item_stone", "routes": ["deep_quarry", "quarry", "pebbles"], "tools": ["pickaxe", "pickaxe_reinforced"]},
-    "copper": {"name": "Cobre", "icon": "item_copper", "routes": ["deep_quarry", "copper_vein"], "tools": ["pickaxe", "pickaxe_reinforced"]},
-    "crystal": {"name": "Cristais", "icon": "item_crystal", "routes": ["crystal_deep", "crystal_cave"], "tools": ["pickaxe", "pickaxe_reinforced", "pickaxe_crystal"]},
-    "fiber": {"name": "Fibras", "icon": "item_fiber", "routes": ["reeds", "meadow"], "tools": ["sickle"]}
+    "wood": {
+      "name": "Madeira",
+      "icon": "item_wood",
+      "routes": [
+        "woodcutting",
+        "lane"
+      ]
+    },
+    "stone": {
+      "name": "Pedras",
+      "icon": "item_stone",
+      "routes": [
+        "deep_quarry",
+        "quarry",
+        "pebbles"
+      ]
+    },
+    "copper": {
+      "name": "Cobre",
+      "icon": "item_copper",
+      "routes": [
+        "deep_quarry",
+        "copper_vein"
+      ]
+    },
+    "crystal": {
+      "name": "Cristais",
+      "icon": "item_crystal",
+      "routes": [
+        "crystal_deep",
+        "crystal_cave"
+      ]
+    },
+    "fiber": {
+      "name": "Fibras",
+      "icon": "item_fiber",
+      "routes": [
+        "reeds",
+        "meadow"
+      ]
+    },
+    "hardwood": {
+      "name": "Madeira dura",
+      "icon": "item_hardwood",
+      "routes": [
+        "timber"
+      ]
+    }
   },
   "activities": {
     "pebbles": {
-      "name": "Pedras da margem", "place": "creek", "description": "Recolha pequenas pedras com as mãos.", "seconds": 75,
-      "requirements": {"chapter": 3}, "rewards": {"items": {"stone": 1}, "skill_xp": {"adventure": 8}}, "icon": "item_stone"
+      "name": "Pedras da margem",
+      "place": "creek",
+      "description": "Recolha pequenas pedras com as mãos.",
+      "seconds": 75,
+      "requirements": {
+        "chapter": 3,
+        "owned": [
+          "cave_open"
+        ]
+      },
+      "rewards": {
+        "items": {
+          "stone": 1
+        },
+        "skill_xp": {
+          "adventure": 8
+        }
+      },
+      "icon": "item_stone"
     },
     "woodcutting": {
-      "name": "Cortar madeira", "place": "walk", "description": "Use o machado entre as árvores.", "seconds": 150,
-      "requirements": {"chapter": 3, "owned": ["axe"]}, "rewards": {"items": {"wood": 4}, "skill_xp": {"adventure": 18}}, "icon": "item_wood"
+      "name": "Cortar madeira",
+      "place": "walk",
+      "description": "Colete madeira no Bosque de nível 2.",
+      "seconds": 150,
+      "requirements": {
+        "chapter": 3,
+        "owned": [
+          "forest_level_2"
+        ]
+      },
+      "rewards": {
+        "items": {
+          "wood": 4
+        },
+        "skill_xp": {
+          "adventure": 18
+        }
+      },
+      "icon": "item_wood"
     },
     "timber": {
-      "name": "Madeira dura", "place": "walk", "description": "Machado reforçado corta troncos mais resistentes.", "seconds": 240,
-      "requirements": {"chapter": 3, "owned": ["axe_reinforced"]}, "rewards": {"items": {"wood": 5, "hardwood": 2}, "skill_xp": {"adventure": 30}}, "icon": "item_hardwood"
+      "name": "Madeira dura",
+      "place": "walk",
+      "description": "No nível 3, o Bosque libera madeira dura.",
+      "seconds": 240,
+      "requirements": {
+        "chapter": 3,
+        "owned": [
+          "forest_level_3"
+        ]
+      },
+      "rewards": {
+        "items": {
+          "wood": 5,
+          "hardwood": 2
+        },
+        "skill_xp": {
+          "adventure": 30
+        }
+      },
+      "icon": "item_hardwood"
     },
     "deep_quarry": {
-      "name": "Veio profundo", "place": "mine", "description": "Picareta reforçada rende mais pedra e cobre.", "seconds": 300,
-      "requirements": {"chapter": 3, "owned": ["pickaxe_reinforced"], "skills": {"adventure": 2}}, "rewards": {"items": {"stone": 8, "copper": 4}, "skill_xp": {"adventure": 40}}, "icon": "item_copper"
+      "name": "Veio profundo",
+      "place": "mine",
+      "description": "Explore os veios de pedra e cobre da Caverna de nível 2.",
+      "seconds": 300,
+      "requirements": {
+        "chapter": 3,
+        "owned": [
+          "cave_level_2"
+        ]
+      },
+      "rewards": {
+        "items": {
+          "stone": 8,
+          "copper": 4
+        },
+        "skill_xp": {
+          "adventure": 40
+        }
+      },
+      "icon": "item_copper"
     },
     "crystal_deep": {
-      "name": "Cristais profundos", "place": "crystal", "description": "Use a picareta de precisão para aproveitar o veio.", "seconds": 480,
-      "requirements": {"chapter": 3, "owned": ["pickaxe_crystal"], "skills": {"adventure": 3}}, "rewards": {"items": {"crystal": 4, "copper": 3}, "skill_xp": {"adventure": 75}}, "icon": "item_crystal"
+      "name": "Cristais profundos",
+      "place": "crystal",
+      "description": "Colete os cristais da Caverna de nível 3.",
+      "seconds": 480,
+      "requirements": {
+        "chapter": 3,
+        "owned": [
+          "cave_level_3"
+        ]
+      },
+      "rewards": {
+        "items": {
+          "crystal": 4,
+          "copper": 3
+        },
+        "skill_xp": {
+          "adventure": 75
+        }
+      },
+      "icon": "item_crystal"
     },
     "reeds": {
-      "name": "Cortar fibras", "place": "meadow", "description": "Use a foice nos juncos da margem.", "seconds": 300,
-      "requirements": {"chapter": 3, "owned": ["sickle"], "skills": {"adventure": 4}}, "rewards": {"items": {"fiber": 8, "wood": 3}, "skill_xp": {"adventure": 45}}, "icon": "item_fiber"
+      "name": "Cortar fibras",
+      "place": "meadow",
+      "description": "Colete mais fibras no Prado de nível 2.",
+      "seconds": 300,
+      "requirements": {
+        "chapter": 3,
+        "owned": [
+          "meadow_level_2"
+        ]
+      },
+      "rewards": {
+        "items": {
+          "fiber": 8,
+          "wood": 3
+        },
+        "skill_xp": {
+          "adventure": 45
+        }
+      },
+      "icon": "item_fiber"
     },
     "lane": {
       "name": "Trilha do bosque",
       "place": "walk",
-      "description": "Explore entre as árvores e recolha madeira. Aventura abre novas zonas.",
+      "description": "Explore o Bosque e recolha madeira.",
       "seconds": 60,
       "requirements": {
-        "chapter": 3
+        "chapter": 3,
+        "owned": [
+          "forest_open"
+        ]
       },
       "rewards": {
         "coins": 8,
@@ -479,10 +978,10 @@
       "description": "Recolha madeira e pedras para as primeiras construções.",
       "seconds": 180,
       "requirements": {
-        "skills": {
-          "adventure": 2
-        },
-        "chapter": 3
+        "chapter": 3,
+        "owned": [
+          "cave_open"
+        ]
       },
       "rewards": {
         "coins": 15,
@@ -502,10 +1001,10 @@
       "description": "Extraia pedra para a oficina e suas melhorias.",
       "seconds": 180,
       "requirements": {
+        "chapter": 3,
         "owned": [
-          "pickaxe"
-        ],
-        "chapter": 3
+          "cave_open"
+        ]
       },
       "rewards": {
         "items": {
@@ -520,16 +1019,13 @@
     "copper_vein": {
       "name": "Veio de cobre",
       "place": "mine",
-      "description": "O minério abastece fornos e ferramentas.",
+      "description": "Cobre da Caverna de nível 2 para novas construções.",
       "seconds": 360,
       "requirements": {
+        "chapter": 3,
         "owned": [
-          "pickaxe"
-        ],
-        "skills": {
-          "adventure": 2
-        },
-        "chapter": 3
+          "cave_level_2"
+        ]
       },
       "rewards": {
         "items": {
@@ -545,16 +1041,13 @@
     "crystal_cave": {
       "name": "Gruta dos cristais",
       "place": "crystal",
-      "description": "Cristais para instalações especiais.",
+      "description": "Cristais da Caverna de nível 3 para instalações especiais.",
       "seconds": 600,
       "requirements": {
+        "chapter": 3,
         "owned": [
-          "pickaxe"
-        ],
-        "skills": {
-          "adventure": 3
-        },
-        "chapter": 3
+          "cave_level_3"
+        ]
       },
       "rewards": {
         "items": {
@@ -593,10 +1086,10 @@
       "description": "Colete fibras para transformar em tecido.",
       "seconds": 420,
       "requirements": {
-        "skills": {
-          "adventure": 4
-        },
-        "chapter": 3
+        "chapter": 3,
+        "owned": [
+          "meadow_open"
+        ]
       },
       "rewards": {
         "items": {
@@ -874,5 +1367,13 @@
     "name": "Nosso lugar no mundo",
     "description": "Seu lar está completo. Descubra todas as receitas, conclua as missões e desenvolva seus atributos.",
     "target": ""
+  },
+  "nature_legacy_upgrades": {
+    "axe": "forest_level_2",
+    "axe_reinforced": "forest_level_3",
+    "pickaxe": "cave_open",
+    "pickaxe_reinforced": "cave_level_2",
+    "pickaxe_crystal": "cave_level_3",
+    "sickle": "meadow_level_2"
   }
 }

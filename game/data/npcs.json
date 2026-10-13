@@ -14,7 +14,7 @@
     "role": "Passeios e descobertas",
     "portrait": "res://assets/sprites/characters/npc_guide/portrait.png",
     "icon": "action_play",
-    "greeting": "Colete pela trilha e melhore suas ferramentas para encontrar materiais melhores!"
+    "greeting": "Desbloqueie o Bosque, a Caverna e o Prado. Colete em cada local para ganhar XP, materiais e espaços!"
   },
   "merchant": {
     "name": "Feirante",

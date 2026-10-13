@@ -41,6 +41,15 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			result = _recipe(id, amount)
 		"upgrade":
 			var upgrade: Dictionary = Database.progression.upgrades[id]
+			if upgrade.has("nature_unlock"):
+				var site: String = upgrade.nature_unlock.site
+				var level := int(upgrade.nature_unlock.level)
+				var config: Dictionary = Database.progression.nature_sites[site]
+				var missing := maxi(0, int(config.levels[level - 1].xp) - int(GameState.progress.nature_xp.get(site, 0)))
+				result = _base(upgrade.name, "Recolha coletas em %s para ganhar XP." % config.name, {"world":"nature", "place":"place:" + site}, "Coletar")
+				result.detail = "Faltam %d XP · %d coleta(s)" % [missing, ceili(float(missing) / int(config.xp_per_collection))]
+				result.needs = _requirements({"owned":[config.level_upgrades[0]]})
+				return result
 			result = _base(upgrade.name, "Junte o que falta e construa.", Places.goal_target({"type": "owned", "key": id}), "Ir")
 			result.needs = _requirements(upgrade.get("requirements", {}))
 			result.needs.append(_need("coins", "", int(upgrade.get("cost", 0))))
@@ -54,7 +63,9 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			result = _base(route.name, "Passeio de %s" % TimeText.short(int(route.seconds)), _focused("routes:" + str(route.place), "route:" + id), "Ir")
 			result.needs = _requirements(route.get("requirements", {}))
 			var site := Database.gathering_site(id)
-			if site != "" and GameState.gathering_ready_count(site) > 0:
+			if site != "" and GameState.progress.nature_level(site) == 0:
+				result.detail = "Desbloqueie %s para começar." % Database.progression.nature_sites[site].name
+			elif site != "" and GameState.gathering_ready_count(site) > 0:
 				result.detail = "%d coleta(s) pronta(s). Recolha no local." % GameState.gathering_ready_count(site)
 			elif site != "" and GameState.gathering_free_count(site) == 0:
 				result.detail = "Espaços ocupados. Aguarde ou recolha."

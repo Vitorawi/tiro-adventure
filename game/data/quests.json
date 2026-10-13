@@ -135,8 +135,8 @@
   },
   "stone_path": {
     "npc": "artisan",
-    "name": "A primeira ferramenta",
-    "dialogue": "Junte madeira e pedra nas trilhas. Uma picareta abre novos caminhos.",
+    "name": "A primeira exploração",
+    "dialogue": "Desbloqueie a Caverna e recolha pedra para as construções.",
     "goals": [
       {
         "type": "stat",
@@ -445,14 +445,14 @@
   },
   "main_5_pickaxe": {
     "npc": "artisan",
-    "name": "Comprar a picareta",
-    "dialogue": "Vamos juntos: comprar a picareta.",
+    "name": "Desbloquear a Caverna",
+    "dialogue": "Abra a Caverna para explorar os materiais da natureza.",
     "goals": [
       {
         "type": "owned",
-        "key": "pickaxe",
+        "key": "cave_open",
         "target": 1,
-        "label": "Comprar a picareta"
+        "label": "Desbloquear a Caverna"
       }
     ],
     "rewards": {
