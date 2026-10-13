@@ -2,9 +2,9 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **12/10/2026, Claude Code**.
+> um do outro. Última atualização: **13/10/2026, Claude Code**.
 
-**Simplificar — Fases 1 a 4 de 5 concluídas (Claude Code, 13/10/2026).**
+**Simplificar — todas as 5 fases concluídas (Claude Code, 13/10/2026). Sem push: esperando o Vitor aprovar.**
 - O Vitor achou o jogo confuso ("bombardeamento de informação"). Plano aprovado em `docs/plans/SIMPLIFICAR.md`:
   missões em 3 tipos (História, Diárias, Semanais), 3 mundos (a Trilha vira portão na Vila), 4 atributos,
   personagens que aparecem aos poucos, revelação gradual com "Novo!" e menos texto em todo canto.
@@ -32,8 +32,15 @@
   semanais e atributos cap. 3); NPCs com `requirements` (Feirante 2, Guia 3, Laís 4). Tela "Novo!" (com a
   comemoração de capítulo) lista o que abriu com ícone + Ir, uma vez só (`ProgressionState.seen`). O "Ir" mostra
   uma seta sobre o objeto da sala e abre o painel 0,8 s depois. Detalhes em `docs/WORLDS.md`.
-- Próximo: **Fase 5** (menos texto no resto: Mochila em ícones, detalhe do item com fontes/usos tocáveis,
-  sítio, coleção, NPC). Sem push.
+- **Fase 5 feita:** menos texto no resto. Mochila em 4 colunas (ícone + `x12`); detalhe do item com preço,
+  "De onde vem" e "Usado em" em chips que levam ao lugar; sementes compactas (bloqueada = "?"); canteiros em
+  grade; compra de terreno em ícones; coleção em grade (conquistado colorido, resto "?"); personagem = rosto +
+  fala curta + atalhos (falas encurtadas em `npcs.json`).
+- Capturas: `build/screenshots/` → `tasks_*`, `go_pointer`, `ui_*` (mapa, vila, feira, portão, cozinha, mochila,
+  item, NPC), `sheet_seeds`, `farm_*`.
+- **Próximos passos sugeridos:** Vitor jogar a versão dev e aprovar → publicar (push na main); testar o toque
+  real (`tools/touch_test.ps1`); ícones próprios (PixelLab) para encomenda, passeio e coleção (hoje reaproveitam
+  ícones de itens); balancear diárias/semanais com jogo real.
 
 **Tarefas v2 — todas as fases (1–6) concluídas (Codex, 12/10/2026).**
 - 28 passos principais em 8 capítulos e 9 secundárias; recompensas por capítulo, destinos

@@ -5,7 +5,7 @@
     "role": "Horta e culinária",
     "portrait": "res://assets/sprites/characters/npc_bloblo/portrait.png",
     "icon": "tab_farm",
-    "greeting": "Um canteiro emprestado pode ser o começo de um sítio inteiro. Vamos cuidar dele juntos?"
+    "greeting": "Vamos cuidar da horta juntos?"
   },
   "guide": {
     "name": "Guia da trilha",
@@ -14,7 +14,7 @@
     "role": "Passeios e descobertas",
     "portrait": "res://assets/sprites/characters/npc_guide/portrait.png",
     "icon": "action_play",
-    "greeting": "O Tiro tem faro para aventuras. Cada caminho guarda uma descoberta."
+    "greeting": "O Tiro tem faro para aventuras!"
   },
   "merchant": {
     "name": "Feirante",
@@ -23,7 +23,7 @@
     "role": "Comércio e encomendas",
     "portrait": "res://assets/sprites/characters/npc_merchant/portrait.png",
     "icon": "coin",
-    "greeting": "Tem gente na vila procurando o que você produz. Vamos fazer negócio?"
+    "greeting": "Vamos fazer negócio?"
   },
   "artisan": {
     "name": "Laís",
@@ -32,6 +32,6 @@
     "role": "Artesã: construção e acessórios",
     "portrait": "res://assets/sprites/characters/npc_artisan/portrait.png",
     "icon": "item_plank",
-    "greeting": "Oi! Eu sou a Laís. Com materiais e paciência, a gente transforma este lugar juntos."
+    "greeting": "Oi! Eu sou a Laís."
   }
 }

@@ -12,28 +12,14 @@ static func npc_view(npc_id: String) -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var npc: Dictionary = Database.npcs.get(npc_id, {})
 		npc_header(box, npc_id)
-		_text(box, npc.get("greeting", ""), true)
-		var active := 0
-		var done := 0
 		for id: String in Database.quests:
-			if Database.quests[id].npc != npc_id:
-				continue
-			if GameState.progress.claimed_quests.has(id):
-				done += 1
-			elif GameState.quest_unlocked(id):
-				active += 1
+			if Database.quests[id].npc == npc_id and GameState.quest_unlocked(id) and not GameState.progress.claimed_quests.has(id):
 				quest_card(box, id)
-		if active == 0:
-			_text(box, "Nenhuma missão agora. Continue sua jornada que logo aparece outra!", true)
-		if done > 0:
-			_text(box, "%d missão(ões) concluída(s) com %s." % [done, npc.get("name", "")], true)
+		# Atalhos para os lugares que o personagem cuida.
 		var world_id := Database.npc_world(npc_id)
-		var services: Array = npc.get("services", [])
-		if not services.is_empty():
-			box.add_child(UiKit.label("Posso ajudar com:", &"SectionLabel"))
-			for place_id: String in services:
-				var place: Dictionary = Database.worlds[world_id].places.get(place_id, {})
-				box.add_child(UiKit.button(place.get("name", place_id), Places.open.bind(world_id, place_id), &"", UiKit.ui_icon(place.get("icon", ""))))
+		for place_id: String in npc.get("services", []):
+			var place: Dictionary = Database.worlds[world_id].places.get(place_id, {})
+			box.add_child(UiKit.button(place.get("name", place_id), Places.open.bind(world_id, place_id), &"", UiKit.ui_icon(place.get("icon", ""))))
 	)
 
 
@@ -46,13 +32,10 @@ static func npc_portrait(npc_id: String) -> Texture2D:
 
 static func npc_header(box: VBoxContainer, npc_id: String) -> void:
 	var npc: Dictionary = Database.npcs.get(npc_id, {})
+	# Rosto + fala curta (o nome já está no título do painel).
 	var row := UiKit.hbox(10)
 	row.add_child(UiKit.icon(npc_portrait(npc_id), 64))
-	var info := UiKit.vbox(2)
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.add_child(UiKit.label(npc.get("name", npc_id), &"SectionLabel"))
-	info.add_child(UiKit.label(npc.get("role", ""), &"SmallLabel"))
-	row.add_child(info)
+	row.add_child(UiKit.fill_label(npc.get("greeting", ""), &"SmallLabel"))
 	box.add_child(row)
 
 
@@ -252,14 +235,32 @@ static func _next_milestone(skill_id: String, current: int) -> Dictionary:
 
 static func collection_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		_text(box, "Roupas e apetrechos ganhos nas missões ficam guardados aqui.", true)
+		var count := 0
+		var grid := GridContainer.new()
+		grid.columns = 3
+		grid.mouse_filter = Control.MOUSE_FILTER_PASS
+		grid.add_theme_constant_override("h_separation", 6)
+		grid.add_theme_constant_override("v_separation", 6)
+		# Grade: conquistado = colorido com nome; ainda não = apagado com "?".
 		for id: String in Database.collections:
 			var data: Dictionary = Database.collections[id]
 			var earned := GameState.progress.collection.has(id)
-			var card := UiKit.card(box, &"ReadyCardPanel" if earned else &"CardPanel")
-			_title(card, data.icon, data.name)
-			_text(card, data.description, true)
-			_text(card, "Conquistado!" if earned else "Recompensa de missão", true)
+			count += 1 if earned else 0
+			var card := UiKit.card(grid, &"ReadyCardPanel" if earned else &"CardPanel")
+			card.alignment = BoxContainer.ALIGNMENT_CENTER
+			var picture := UiKit.icon(UiKit.ui_icon(data.icon), 48)
+			picture.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			card.add_child(picture)
+			var title := UiKit.label(data.name if earned else "?", &"SmallLabel")
+			title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			card.add_child(title)
+			if not earned:
+				card.get_parent().modulate.a = 0.45
+		var header := UiKit.hbox(8)
+		header.add_child(UiKit.icon(UiKit.ui_icon("item_accessory_set"), 32))
+		header.add_child(UiKit.short_label("%d/%d" % [count, Database.collections.size()], &"SectionLabel"))
+		box.add_child(header)
+		box.add_child(grid)
 	)
 
 

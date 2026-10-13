@@ -188,6 +188,10 @@ func _ui_check() -> void:
 	await create_timer(0.3).timeout
 	_shot("tasks_skills")
 	events.emit_signal("sheet_close_requested")
+	events.emit_signal("sheet_requested", "Coleção", ui.call("collection_panel"))
+	await create_timer(0.3).timeout
+	_shot("tasks_collection")
+	events.emit_signal("sheet_close_requested")
 	var news: Array[String] = ["world:village", "feature:bag", "npc:merchant"]
 	main.get_node("Celebration").call("show_chapter", 2, news)
 	await create_timer(0.2).timeout

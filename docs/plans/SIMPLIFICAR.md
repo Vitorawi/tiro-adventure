@@ -112,7 +112,10 @@ e a campanha do `progression_test` sem as secundárias.
   objeto do lugar até ele ser tocado. É o que transforma o **Ir** em "vá ali".
 - NPC só aparece no mundo depois do passo que o apresenta (`npcs.json` → `requirements`).
 
-## Fase 5: Menos texto no resto do jogo
+## Fase 5: Menos texto no resto do jogo — FEITA
+> Como ficou: Mochila 4 colunas (ícone + x12), detalhe do item com "De onde vem"/"Usado em" tocáveis
+> (`SheetBuilder._sources/_uses`), sítio em grade de canteiros, sementes compactas, coleção em grade,
+> personagem = rosto + fala curta + atalhos. Ícones novos do PixelLab ficaram para depois (os atuais bastaram).
 - **Mochila:** blocos com ícone grande + `x12` (sem nome; o nome aparece no detalhe).
 - **Detalhe do item:** "De onde vem" e "Usado em" viram fileiras de ícones tocáveis com **Ir**
   (`Database.item_sources` já devolve destinos).

@@ -3,9 +3,10 @@ extends RefCounted
 ## Monta o conteúdo dos painéis inferiores (sheets) usados por várias telas.
 ## Uso: Events.sheet_requested.emit("Título", SheetBuilder.food_picker())
 ## Peças visuais vêm do UiKit; ícones de itens/necessidades vêm do Database.
+## Regra: ícone + número em vez de frase; no máximo uma linha curta de texto.
 
 
-## Comidas do inventário: o que cada uma faz e botão "Dar".
+## Comidas do inventário: ícone, quantidade, efeitos e "Dar".
 static func food_picker() -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var any := false
@@ -18,8 +19,7 @@ static func food_picker() -> Control:
 			row.add_child(UiKit.icon(Database.item_icon(id), 64))
 			var info := UiKit.vbox(4)
 			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			info.add_child(UiKit.label(Database.item_name(id)))
-			info.add_child(UiKit.label("Você tem %d" % GameState.inventory.count(id), &"SmallLabel"))
+			info.add_child(UiKit.label("x%d" % GameState.inventory.count(id)))
 			info.add_child(UiKit.effect_chips(Database.items[id]["feed"]))
 			row.add_child(info)
 			var give := UiKit.button("Dar", func() -> void:
@@ -31,22 +31,21 @@ static func food_picker() -> Control:
 			row.add_child(give)
 			body.add_child(row)
 		if not any:
-			_empty_message(box, "Acabou a comida!", "A Bloblo pode ajudar enquanto você prepara a próxima colheita.")
-			box.add_child(UiKit.button("Pedir comida à Bloblo", func() -> void:
+			_empty_message(box, "Acabou a comida!", "")
+			box.add_child(UiKit.button("Pedir à Bloblo", func() -> void:
 				var error := GameState.emergency_food()
-				Events.toast_requested.emit(error if error != "" else "Comida recebida!"), &"PrimaryButton")))
+				Events.toast_requested.emit(error if error != "" else "Comida recebida!"), &"PrimaryButton", ProgressionUi.npc_portrait("bloblo"))))
 
 
 const CATEGORIES := {"food": "Comidas", "crop": "Colheitas", "material": "Materiais", "product": "Produtos"}
 
 
-## Mochila (também é a geladeira): itens por categoria; tocar abre o detalhe do item.
+## Mochila (também é a geladeira): ícone + quantidade por categoria; tocar abre o detalhe.
 static func inventory_view() -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		if GameState.inventory.counts.is_empty():
-			_empty_message(box, "Mochila vazia.", "Plante no Sítio ou passeie na Trilha (aba Mapa).")
+			_empty_message(box, "Mochila vazia.", "")
 			return
-		box.add_child(UiKit.label("Toque num item para ver para que ele serve.", &"SmallLabel"))
 		for category: String in CATEGORIES:
 			var ids: Array[String] = []
 			for id: String in GameState.inventory.counts:
@@ -56,40 +55,38 @@ static func inventory_view() -> Control:
 				continue
 			box.add_child(UiKit.label(CATEGORIES[category], &"SectionLabel"))
 			var grid := GridContainer.new()
-			grid.columns = 3
+			grid.columns = 4
 			grid.mouse_filter = Control.MOUSE_FILTER_PASS
-			grid.add_theme_constant_override("h_separation", 8)
-			grid.add_theme_constant_override("v_separation", 8)
+			grid.add_theme_constant_override("h_separation", 6)
+			grid.add_theme_constant_override("v_separation", 6)
 			for id in ids:
 				grid.add_child(_item_tile(id))
 			box.add_child(grid))
 
 
 static func _item_tile(id: String) -> Button:
-	var tile := UiKit.button("%s\nx%d" % [Database.item_name(id), GameState.inventory.count(id)], func() -> void:
+	var tile := UiKit.button("x%d" % GameState.inventory.count(id), func() -> void:
 		Events.sheet_requested.emit(Database.item_name(id), item_detail(id)), &"", Database.item_icon(id))
-	tile.custom_minimum_size = Vector2(0, 112)
+	tile.custom_minimum_size = Vector2(0, 84)
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tile.expand_icon = true
 	tile.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tile.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-	tile.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	tile.add_theme_constant_override("icon_max_width", 48)
+	tile.add_theme_constant_override("icon_max_width", 44)
 	tile.add_theme_font_size_override("font_size", 16)
 	return tile
 
 
-## Detalhe do item: o que faz, como conseguir, onde usar e quanto vale.
+## Detalhe do item: ícone + quantidade, efeitos, de onde vem e onde usa (tocáveis, com Ir) e preço.
 static func item_detail(id: String) -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var item: Dictionary = Database.items.get(id, {})
 		var top := UiKit.hbox(10)
 		top.add_child(UiKit.icon(Database.item_icon(id), 64))
-		var info := UiKit.vbox(4)
-		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info.add_child(UiKit.label(Database.item_name(id), &"SectionLabel"))
-		info.add_child(UiKit.label("Você tem %d" % GameState.inventory.count(id)))
-		top.add_child(info)
+		top.add_child(UiKit.fill_label("x%d" % GameState.inventory.count(id), &"TitleLabel"))
+		var price := int(item.get("sell_price", 0))
+		if price > 0:
+			top.add_child(UiKit.chip(UiKit.ui_icon("coin"), str(price)))
 		box.add_child(top)
 		if item.has("feed"):
 			box.add_child(UiKit.effect_chips(item.feed))
@@ -98,24 +95,60 @@ static func item_detail(id: String) -> Control:
 					Events.toast_requested.emit("Nhac! %s" % Database.item_name(id)), &"PrimaryButton")
 			give.disabled = GameState.inventory.count(id) == 0
 			box.add_child(give)
-		_list_section(box, "Como conseguir", Database.sources_of(id))
-		_list_section(box, "Usado em", Database.uses_of(id))
-		var price := int(item.get("sell_price", 0))
-		if price > 0:
-			box.add_child(UiKit.label("Vale %d moedas na feira da Vila." % price, &"SmallLabel"))
+		_link_section(box, "De onde vem", _sources(id))
+		_link_section(box, "Usado em", _uses(id))
+		if price > 0 and GameState.inventory.count(id) > 0:
 			var place := Database.place_with_panel("sell")
-			if place[0] != "" and GameState.inventory.count(id) > 0:
-				box.add_child(UiKit.button("Ir vender", func() -> void:
-					Events.sheet_close_requested.emit()
-					Events.world_requested.emit(place[0], place[1]), &"", UiKit.ui_icon("coin"))))
+			if place[0] != "" and Places.world_error(place[0]) == "":
+				box.add_child(UiKit.button("Vender", Places.go.bind({"world": place[0], "place": "market:sell"}), &"", UiKit.ui_icon("coin"))))
 
 
-static func _list_section(box: VBoxContainer, title: String, lines: PackedStringArray) -> void:
-	if lines.is_empty():
+## Fontes do item: [ícone] nome curto → destino. Ex.: Canteiros, Bancada, Volta pelo bairro.
+static func _sources(id: String) -> Array[Dictionary]:
+	var links: Array[Dictionary] = []
+	for source: Dictionary in Database.item_sources(id):
+		var key: String = source.key
+		var target := Places.goal_target(source)
+		if key.begins_with("activity:"):
+			var route: Dictionary = Database.progression.activities.get(key.trim_prefix("activity:"), {})
+			links.append({"icon": UiKit.ui_icon(route.get("icon", "")), "name": route.get("name", ""), "target": target})
+		elif not target.is_empty() and target.has("world"):
+			var place: Dictionary = Database.worlds[target.world].places.get(target.place, {})
+			links.append({"icon": UiKit.ui_icon(place.get("icon", "")), "name": place.get("name", ""), "target": target})
+	return links
+
+
+## Onde o item é usado: receitas, construções, encomendas e comida do Tiro.
+static func _uses(id: String) -> Array[Dictionary]:
+	var links: Array[Dictionary] = []
+	for recipe_id: String in Database.recipes:
+		var recipe: Dictionary = Database.recipes[recipe_id]
+		if recipe.get("inputs", {}).has(id):
+			var location := Database.place_with_panel("station:" + str(recipe.station))
+			links.append({"icon": Database.item_icon(recipe.output), "name": Database.item_name(recipe.output), "target": {"world": location[0], "place": "recipe:" + recipe_id, "spot": location[1]}})
+	for upgrade_id: String in Database.progression.upgrades:
+		var upgrade: Dictionary = Database.progression.upgrades[upgrade_id]
+		if upgrade.get("materials", {}).has(id) and not GameState.has_upgrade(upgrade_id):
+			links.append({"icon": UiKit.ui_icon(upgrade.get("icon", "")), "name": upgrade.name, "target": Places.goal_target({"type": "owned", "key": upgrade_id})})
+	for order_id: String in Database.progression.orders:
+		if Database.progression.orders[order_id].get("inputs", {}).has(id):
+			links.append({"icon": UiKit.ui_icon("item_treat_box"), "name": Database.progression.orders[order_id].name, "target": Places.goal_target({"type": "stat", "key": "order:" + order_id})})
+	return links
+
+
+## Título curto + botões com ícone que levam ao lugar (fechados ficam apagados).
+static func _link_section(box: VBoxContainer, title: String, links: Array[Dictionary]) -> void:
+	if links.is_empty():
 		return
 	box.add_child(UiKit.label(title, &"SectionLabel"))
-	for line in lines:
-		box.add_child(UiKit.label("• " + line, &"SmallLabel"))
+	var flow := UiKit.flow()
+	for link: Dictionary in links:
+		var target: Dictionary = link.target
+		var chip := UiKit.tap_chip(link.icon, link.name, Places.go.bind(target))
+		if target.has("world") and Places.world_error(str(target.world)) != "":
+			chip.modulate.a = 0.5
+		flow.add_child(chip)
+	box.add_child(flow)
 
 
 ## Várias estações num painel (Cozinha = fogão + forno): título com ícone e a estação embaixo.
@@ -242,112 +275,144 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 		body.add_child(UiKit.label(locked, &"SmallLabel"))
 
 
-## Sementes para um canteiro vazio: o que nasce, quanto tempo leva e quanto rende.
+## Sementes para um canteiro vazio: [planta] nome · tempo · moedas · colheita · [Plantar].
+## Bloqueada: apagada, com "?" que mostra como liberar.
 static func seed_picker(plot_index: int, focus: String = "") -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
-		box.add_child(UiKit.label("A Bloblo empresta as sementes. Escolha o que plantar:", &"SmallLabel"))
 		for crop_id: String in Database.crops:
 			if focus != "" and crop_id != focus:
 				continue
 			var crop: Dictionary = Database.crops[crop_id]
 			var locked := GameState.content_error("crop", crop_id, crop)
 			var body := UiKit.card(box)
-			var row := UiKit.hbox(10)
-			row.add_child(UiKit.icon(Database.item_icon(crop_id), 64))
+			if locked != "":
+				body.get_parent().modulate.a = 0.6
+			var row := UiKit.hbox(8)
+			row.add_child(UiKit.icon(Database.item_icon(crop_id), 48))
 			var info := UiKit.vbox(4)
 			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			info.add_child(UiKit.label(Database.item_name(crop_id)))
-			var details := UiKit.flow()
+			var details := UiKit.flow(4)
 			details.add_child(UiKit.chip(UiKit.ui_icon("timer"), format_time(int(crop["seconds"]))))
+			details.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(crop.get("coins", 0))))
 			var harvest: Dictionary = crop.get("yield", {})
-			details.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d moedas" % int(crop.get("coins", 0))))
 			for item_id: String in harvest:
 				details.add_child(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), UiKit.GOOD))
 			info.add_child(details)
-			info.add_child(UiKit.label("+%d XP Agricultura" % int(crop.get("skill_xp", 10)), &"SmallLabel"))
-			if locked != "":
-				info.add_child(UiKit.label(locked, &"SmallLabel"))
 			row.add_child(info)
-			var plant := UiKit.button("Plantar", func() -> void:
-				var error := GameState.plant(plot_index, crop_id)
-				Events.toast_requested.emit(error if error != "" else "Plantou %s!" % Database.item_name(crop_id))
-				Events.sheet_close_requested.emit(), &"PrimaryButton")
-			plant.custom_minimum_size = Vector2(96, 52)
-			plant.disabled = locked != ""
-			plant.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			row.add_child(plant)
+			if locked != "":
+				row.add_child(UiKit.square_button("?", TaskHelp.open.bind("crop", crop_id)))
+			else:
+				var plant := UiKit.button("Plantar", func() -> void:
+					var error := GameState.plant(plot_index, crop_id)
+					Events.toast_requested.emit(error if error != "" else "Plantou %s!" % Database.item_name(crop_id))
+					Events.sheet_close_requested.emit(), &"PrimaryButton")
+				plant.custom_minimum_size = Vector2(92, 52)
+				plant.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+				row.add_child(plant)
 			body.add_child(row))
 
 
-## Resumo da expansão e caminho de volta para cada canteiro.
+## Canteiros: terrenos (barra), próximo terreno e cada canteiro em ícone + estado.
 static func farm_view(focus: String = "") -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var total := int(Database.farm.get("plots", 0))
 		if not GameState.has_upgrade("farm"):
-			box.add_child(UiKit.label("Um canteiro emprestado", &"SectionLabel"))
-			box.add_child(UiKit.label("Plante de graça, colha e junte moedas para comprar seu sítio.", &"SmallLabel"))
-			box.add_child(UiKit.button("Comprar o sítio", func() -> void:
-				Events.sheet_requested.emit("Escritura do sítio", ProgressionUi.purchase("farm")), &"PrimaryButton"))
-			box.add_child(UiKit.button("Conversar com a Bloblo", func() -> void:
-				Events.sheet_requested.emit("Bloblo", ProgressionUi.npc_view("bloblo"))))
-		box.add_child(UiKit.label("%d de %d terrenos cultiváveis" % [GameState.accessible_plots(), total], &"SectionLabel"))
-		box.add_child(UiKit.bar(100.0 * GameState.accessible_plots() / total, UiKit.GOOD))
-		box.add_child(UiKit.label("Colha para ganhar moedas e ampliar o sítio. Os terrenos têm lugar certo no mapa.", &"SmallLabel"))
-		box.add_child(UiKit.label("Você tem %d moedas" % GameState.coins))
+			# Antes da escritura: um canteiro emprestado e a compra do sítio.
+			ProgressionUi.upgrade_card(box, "farm")
+		var land := UiKit.hbox(8)
+		land.add_child(UiKit.icon(UiKit.ui_icon("tab_farm"), 32))
+		var bar := UiKit.bar(100.0 * GameState.accessible_plots() / total, UiKit.GOOD, 12)
+		bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		land.add_child(bar)
+		land.add_child(UiKit.short_label("%d/%d" % [GameState.accessible_plots(), total]))
+		box.add_child(land)
 		if GameState.has_upgrade("farm") and GameState.unlocked_plots < total:
-			box.add_child(UiKit.button("Próximo terreno · %d moedas" % GameState.plot_cost(GameState.unlocked_plots), func() -> void:
-				Events.sheet_requested.emit("Expandir o sítio", plot_purchase(GameState.unlocked_plots)), &"PrimaryButton"))
-		elif GameState.has_upgrade("farm"):
-			box.add_child(UiKit.label("Sítio completo! Todos os terrenos são seus.", &"SectionLabel", UiKit.GOOD))
+			var cost := GameState.plot_cost(GameState.unlocked_plots)
+			box.add_child(UiKit.button("+1 terreno · %d" % cost, func() -> void:
+				Events.sheet_requested.emit("Expandir o sítio", plot_purchase(GameState.unlocked_plots)), &"PrimaryButton" if GameState.coins >= cost else &"", UiKit.ui_icon("coin")))
+		var grid := GridContainer.new()
+		grid.columns = 3
+		grid.mouse_filter = Control.MOUSE_FILTER_PASS
+		grid.add_theme_constant_override("h_separation", 6)
+		grid.add_theme_constant_override("v_separation", 6)
 		for index in GameState.accessible_plots():
-			var status := GameState.plot_status(index)
-			var caption := "Terreno %d · Plantar" % (index + 1)
-			if status != "empty":
-				caption = "%s · %s" % [Database.item_name(GameState.plot(index)["crop"]), "Colher!" if status == "ready" else "%d%%" % int(GameState.plot_progress(index) * 100)]
-			box.add_child(UiKit.button(caption, func() -> void:
-				Events.sheet_requested.emit("Canteiro %d" % (index + 1), seed_picker(index, focus) if GameState.plot_status(index) == "empty" else growing_plot(index)))))
+			grid.add_child(_plot_tile(index, focus))
+		box.add_child(grid))
 
 
+## Canteiro: vazio = "+" (plantar); crescendo = planta + %; pronto = planta + "Colher!".
+static func _plot_tile(index: int, focus: String) -> Button:
+	var status := GameState.plot_status(index)
+	var crop: String = GameState.plot(index)["crop"]
+	var caption := "Plantar" if status == "empty" else ("Colher!" if status == "ready" else "%d%%" % int(GameState.plot_progress(index) * 100))
+	var tile := UiKit.button(caption, func() -> void:
+		Events.sheet_requested.emit("Canteiro %d" % (index + 1), seed_picker(index, focus) if GameState.plot_status(index) == "empty" else growing_plot(index)),
+		&"PrimaryButton" if status == "ready" else &"", Database.item_icon(crop) if crop != "" else UiKit.ui_icon("tab_farm"))
+	tile.custom_minimum_size = Vector2(0, 84)
+	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tile.expand_icon = true
+	tile.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tile.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	tile.add_theme_constant_override("icon_max_width", 40)
+	tile.add_theme_font_size_override("font_size", 16)
+	return tile
+
+
+## Comprar terreno: preço (tem/precisa) e botão.
 static func plot_purchase(index: int) -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var cost := GameState.plot_cost(index)
-		box.add_child(UiKit.label("Terreno %d" % (index + 1), &"SectionLabel"))
-		box.add_child(UiKit.label("Mais um espaço para plantar, na posição marcada no sítio.", &"SmallLabel"))
-		box.add_child(UiKit.label("Preço: %d moedas · Você tem: %d" % [cost, GameState.coins]))
 		var available := index == GameState.unlocked_plots
-		var owned := index < GameState.unlocked_plots
-		if owned:
+		if index < GameState.unlocked_plots:
 			box.add_child(UiKit.label("Este terreno já é seu!", &"", UiKit.GOOD))
-		elif not available:
-			box.add_child(UiKit.label("Compre o terreno %d primeiro." % (GameState.unlocked_plots + 1), &"SmallLabel"))
-		elif GameState.coins < cost:
-			box.add_child(UiKit.label("Faltam %d moedas. Continue colhendo para juntar!" % (cost - GameState.coins), &"SmallLabel"))
-		var buy := UiKit.button("Comprar por %d moedas" % cost, func() -> void:
+			return
+		var row := UiKit.hbox(8)
+		row.add_child(UiKit.icon(UiKit.ui_icon("tab_farm"), 48))
+		row.add_child(UiKit.fill_label("Terreno %d" % (index + 1), &"SectionLabel"))
+		row.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [mini(GameState.coins, cost), cost], UiKit.GOOD if GameState.coins >= cost else UiKit.BAD))
+		box.add_child(row)
+		if not available:
+			box.add_child(UiKit.label("Compre o terreno %d antes." % (GameState.unlocked_plots + 1), &"SmallLabel"))
+		var buy := UiKit.button("Comprar", func() -> void:
 			var error := GameState.buy_plot(index)
-			Events.toast_requested.emit(error if error != "" else "Novo terreno! Já pode plantar.")
+			Events.toast_requested.emit(error if error != "" else "Novo terreno!")
 			if error == "":
 				Events.sheet_requested.emit("Canteiro %d" % (index + 1), seed_picker(index)), &"PrimaryButton")
 		buy.disabled = not available or GameState.coins < cost or cost < 0
 		box.add_child(buy))
 
 
+## Planta crescendo: ícone, barra com tempo e o que vai render.
 static func growing_plot(index: int) -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var target := GameState.plot(index)
 		if target["crop"] == "":
-			box.add_child(UiKit.label("Colheita recolhida!"))
 			box.add_child(UiKit.button("Plantar de novo", func() -> void:
-				Events.sheet_requested.emit("Canteiro", seed_picker(index)), &"PrimaryButton"))
+				Events.sheet_requested.emit("Canteiro", seed_picker(index)), &"PrimaryButton", UiKit.ui_icon("tab_farm")))
 			return
 		var crop_id: String = target["crop"]
 		var ready := GameState.plot_status(index) == "ready"
-		box.add_child(UiKit.icon(Database.item_icon(crop_id), 64))
-		box.add_child(UiKit.label(Database.item_name(crop_id), &"SectionLabel"))
-		box.add_child(UiKit.bar(GameState.plot_progress(index) * 100, UiKit.GOOD))
+		var top := UiKit.hbox(10)
+		top.add_child(UiKit.icon(Database.item_icon(crop_id), 64))
+		var info := UiKit.vbox(6)
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var line := UiKit.hbox(6)
+		var bar := UiKit.bar(GameState.plot_progress(index) * 100, UiKit.GOOD, 14)
+		bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		line.add_child(bar)
 		var remaining := maxi(0, int(ceil(float(target["ready_at"]) - GameState.now())))
-		box.add_child(UiKit.label("Pronta para colher!" if ready else "%d%% · Faltam %s" % [int(GameState.plot_progress(index) * 100), format_time(remaining)]))
+		line.add_child(UiKit.short_label("Pronta!" if ready else format_time(remaining), &"", UiKit.GOOD if ready else null))
+		info.add_child(line)
 		var reward := int(Database.crops[crop_id].get("coins", 0))
-		box.add_child(UiKit.label("Colheita: %s e %d moedas" % [Database.describe_amounts(Database.crops[crop_id].get("yield", {})), reward], &"SmallLabel"))
+		var gains := UiKit.flow(4)
+		gains.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % reward))
+		var harvest: Dictionary = Database.crops[crop_id].get("yield", {})
+		for item_id: String in harvest:
+			gains.add_child(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), UiKit.GOOD))
+		info.add_child(gains)
+		top.add_child(info)
+		box.add_child(top)
 		if ready:
 			box.add_child(UiKit.button("Colher", func() -> void:
 				var received := GameState.harvest(index)
