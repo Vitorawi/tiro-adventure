@@ -32,6 +32,9 @@ var routines: Dictionary = {}
 ## Passo atual da história e o valor dos contadores quando ele começou (objetivos "fresh"):
 ## { quest: id, base: { contador: valor } }.
 var step: Dictionary = {}
+## Novidades já mostradas ao jogador ("feature:bag", "world:village", "place:village/gate", "npc:guide").
+## O que está liberado e ainda não está aqui aparece na tela "Novo!".
+var seen: Dictionary = {}
 
 
 func setup() -> void:
@@ -71,9 +74,37 @@ func skill_info(id: String) -> Dictionary:
 	return {"level": current_level, "xp": remaining, "needed": needed, "max": current_level >= limit}
 
 
-## Atributos aparecem na interface só a partir do capítulo `skills_from_chapter` (antes: menos informação).
+## Recurso revelado pela história (progression.json → features: bag, daily, weekly, skills).
+func feature_unlocked(id: String) -> bool:
+	return requirement_error(Database.progression.get("features", {}).get(id, {}).get("requirements", {})) == ""
+
+
 func skills_visible() -> bool:
-	return chapter_index() >= int(Database.progression.settings.get("skills_from_chapter", 1))
+	return feature_unlocked("skills")
+
+
+func npc_visible(id: String) -> bool:
+	return requirement_error(Database.npcs.get(id, {}).get("requirements", {})) == ""
+
+
+## Tudo o que a história já revelou: recursos e mundos, lugares e personagens que têm requisito.
+func unlocked_keys() -> Array[String]:
+	var keys: Array[String] = []
+	for id: String in Database.progression.get("features", {}):
+		if feature_unlocked(id):
+			keys.append("feature:" + id)
+	for world_id: String in Database.worlds:
+		var world: Dictionary = Database.worlds[world_id]
+		if not world.get("requirements", {}).is_empty() and requirement_error(world.requirements) == "":
+			keys.append("world:" + world_id)
+		for place_id: String in world.get("places", {}):
+			var requirements: Dictionary = world.places[place_id].get("requirements", {})
+			if not requirements.is_empty() and requirement_error(requirements) == "":
+				keys.append("place:%s/%s" % [world_id, place_id])
+	for id: String in Database.npcs:
+		if not Database.npcs[id].get("requirements", {}).is_empty() and npc_visible(id):
+			keys.append("npc:" + id)
+	return keys
 
 
 func skill_level(id: String) -> int:
@@ -180,7 +211,7 @@ func to_dict() -> Dictionary:
 		"skills": skills, "owned": owned, "stats": stats,
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
 		"collection": collection, "unlocks": unlocks,
-		"cooldowns": cooldowns, "activity": activity, "routines": routines, "step": step,
+		"cooldowns": cooldowns, "activity": activity, "routines": routines, "step": step, "seen": seen,
 	}
 
 
@@ -196,6 +227,7 @@ func from_dict(data: Dictionary) -> void:
 	activity = data.get("activity", {}).duplicate(true)
 	routines = data.get("routines", {}).duplicate(true)
 	step = data.get("step", {}).duplicate(true)
+	seen = data.get("seen", {}).duplicate(true)
 	# Rota removida do JSON não pode travar o jogador para sempre.
 	if not activity.is_empty() and not Database.progression.activities.has(str(activity.get("id", ""))):
 		activity = {}

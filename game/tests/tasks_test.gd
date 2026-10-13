@@ -79,9 +79,31 @@ func _run() -> void:
 		check(state.get("inventory").count("carrot") == before - (1 if kind == "deliver" else 0), "Consumo de " + kind)
 	database.get("quests").erase("test_goal")
 	_routines_check()
+	_unlocks_check()
 	await _ui_check()
 	print("TASKS TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(0 if failures == 0 else 1)
+
+
+## Revelar aos poucos: o começo mostra pouco; cada passo anuncia o que abriu, uma vez só.
+func _unlocks_check() -> void:
+	state.call("reset")
+	var progress: RefCounted = state.get("progress")
+	check((state.call("new_unlocks") as Array).is_empty(), "Começo sem novidades pendentes")
+	check(not progress.feature_unlocked("bag") and not progress.skills_visible(), "Mochila e atributos escondidos no começo")
+	check(not progress.npc_visible("guide") and progress.npc_visible("bloblo"), "Só a Bloblo no começo")
+	state.call("dev_jump_to_chapter", 1)
+	var news: Array = state.call("new_unlocks")
+	for key: String in ["feature:bag", "world:village", "feature:daily", "npc:merchant"]:
+		check(key in news, "Novidade do capítulo 2: " + key)
+	check(not "npc:guide" in news, "Guia ainda não apresentado")
+	state.call("mark_seen", news)
+	check((state.call("new_unlocks") as Array).is_empty(), "Novidade aparece uma vez só")
+	# Save antigo (sem "seen"): o que já estava aberto não vira novidade.
+	var old: Dictionary = state.call("to_dict")
+	old.progression.erase("seen")
+	state.call("from_dict", old)
+	check((state.call("new_unlocks") as Array).is_empty(), "Save antigo não anuncia o que já tinha")
 
 
 ## Diárias e semanais: liberação, sorteio estável, progresso pela base, recompensa única e virada de período.
@@ -126,6 +148,17 @@ func _ui_check() -> void:
 	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
 	check(main.get("_tasks_pulse") != null, "Guia pulsa no começo")
 	check(main.find_child("MoodLabel", true, false).text == "Veja suas missões aqui embaixo!", "Guia do Tiro aparece no começo")
+	check(not main.find_child("BagTab", true, false).visible, "Aba Mochila escondida no começo")
+	# "Ir": seta sobre o objeto do destino, depois o painel.
+	main.call("_on_world_requested", "house", "place:bowl")
+	await create_timer(0.3).timeout
+	var house: Node = main.find_child("World_house", true, false)
+	check(house != null and house.find_child("Pointer", true, false) != null, "Ir mostra a seta no objeto")
+	_shot("go_pointer")
+	await create_timer(0.8).timeout
+	check(main.find_child("Sheet", true, false).visible, "Painel abre depois da seta")
+	root.get_node("Events").emit_signal("sheet_close_requested")
+	main.call("show_screen", &"tasks")
 	state.get("progress").stats["feed"] = 1
 	root.get_node("Events").emit_signal("state_changed")
 	check(main.get("_tasks_badge").text == "1", "Badge conta a principal pronta uma vez")
@@ -155,7 +188,8 @@ func _ui_check() -> void:
 	await create_timer(0.3).timeout
 	_shot("tasks_skills")
 	events.emit_signal("sheet_close_requested")
-	main.get_node("Celebration").call("show_chapter", 2, PackedStringArray(["Trilha do riacho"]))
+	var news: Array[String] = ["world:village", "feature:bag", "npc:merchant"]
+	main.get_node("Celebration").call("show_chapter", 2, news)
 	await create_timer(0.2).timeout
 	_shot("tasks_celebration")
 	main.get_node("Celebration").hide()

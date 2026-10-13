@@ -84,6 +84,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Novo móvel / mudar layout da casa     | `game/data/rooms/house.json` (sprite, pos, footprint, `"action": "place:<id>"`, `upgrade`) + lugar em `worlds.json` |
 | Nova planta da horta / tempo / colheita | `game/data/crops.json` (tempo, itens, moedas, XP, requisitos; ícone em `items.json`); terrenos em `config.json` → `farm` |
 | Novo tipo de painel de lugar          | caso em `Places._panel` (`scripts/ui/places.gd`) + função que monta o painel (`SheetBuilder`/`ProgressionUi`, com `UiKit`) |
+| Revelar algo aos poucos ("Novo!")     | `progression.json` → `features` (aba/seção com `requirements` e `go`); mundos, lugares e NPCs com `requirements` entram sozinhos. `GameState.new_unlocks`/`mark_seen`; tela em `scenes/ui/celebration/` |
 | Botão "Ir até lá"                     | `Events.world_requested.emit(mundo, "<lugar>" | "npc:<id>" | "buy:<construção>")` |
 | Mudar a aba Missões / Mochila         | `scenes/ui/tasks_screen/tasks_screen.gd` / `SheetBuilder.inventory_view` e `item_detail` |
 | Nova ferramenta de teste (dev)        | `GameState.dev_*()` (com guarda `BuildInfo.is_dev()`) + botão em `scripts/ui/dev_panel.gd` |
@@ -111,6 +112,9 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 - **Classes de estado** (`scripts/state/`): só dados + consultas puras + `to_dict`/`from_dict`.
   O estado não depende da UI (ex.: texto de tempo vem de `TimeText`, não do `SheetBuilder`).
 - **Sinais globais só em `Events`.** Sinais locais ficam na cena.
+- **Revelar aos poucos:** nada aparece antes da história apresentar (Mochila, diárias, semanais, atributos,
+  Vila, portão, personagens). Ao abrir, a tela "Novo!" mostra ícone + Ir uma vez (`ProgressionState.seen`).
+  O "Ir" mostra uma seta sobre o objeto (`RoomView.point_at` + `Places.highlight_action`) e abre o painel em seguida.
 - **Navegação intuitiva:** cada função mora num lugar de um mundo (`worlds.json`); toda tela que
   sugere algo (Missões, Mochila, personagem) tem botão que leva até lá (`Events.world_requested`).
   Nada de menus genéricos escondidos: um lugar novo entra no mundo onde faria sentido.

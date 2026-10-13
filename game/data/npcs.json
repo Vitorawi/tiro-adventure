@@ -9,6 +9,7 @@
   },
   "guide": {
     "name": "Guia da trilha",
+    "requirements": {"chapter": 3},
     "services": ["gate"],
     "role": "Passeios e descobertas",
     "portrait": "res://assets/sprites/characters/npc_guide/portrait.png",
@@ -17,6 +18,7 @@
   },
   "merchant": {
     "name": "Feirante",
+    "requirements": {"chapter": 2},
     "services": ["market"],
     "role": "Comércio e encomendas",
     "portrait": "res://assets/sprites/characters/npc_merchant/portrait.png",
@@ -25,6 +27,7 @@
   },
   "artisan": {
     "name": "Laís",
+    "requirements": {"chapter": 4},
     "services": ["atelier"],
     "role": "Artesã: construção e acessórios",
     "portrait": "res://assets/sprites/characters/npc_artisan/portrait.png",

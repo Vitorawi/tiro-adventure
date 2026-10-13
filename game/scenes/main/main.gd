@@ -24,8 +24,9 @@ var _current_screen: StringName = &""
 var _tasks_badge: Label
 var _tasks_pulse: Tween
 var _celebration: CanvasLayer
-var _worlds_open: Dictionary = {}
-var _new_worlds: PackedStringArray = []
+## Capítulo concluído nesta leva de missões (0 = nenhum); o anúncio sai uma vez, no fim do frame.
+var _chapter_done: int = 0
+var _announce_pending: bool = false
 
 
 func _ready() -> void:
@@ -41,8 +42,6 @@ func _ready() -> void:
 	Events.world_requested.connect(_on_world_requested)
 	_celebration = load("res://scenes/ui/celebration/celebration.tscn").instantiate()
 	add_child(_celebration)
-	for world: String in Database.worlds:
-		_worlds_open[world] = Places.world_error(world) == ""
 	Events.quest_completed.connect(_on_quest_completed)
 	Events.chapter_completed.connect(_on_chapter_completed)
 	Events.state_changed.connect(_refresh_guide)
@@ -142,6 +141,8 @@ func _show_toast(text: String) -> void:
 
 func _refresh_guide() -> void:
 	_refresh_tasks_badge()
+	# Mochila só aparece quando a história a apresenta.
+	%BagTab.visible = GameState.progress.feature_unlocked("bag")
 	if GameState.progress.claimed_quests.has("welcome"):
 		if _tasks_pulse:
 			_tasks_pulse.kill()
@@ -156,18 +157,35 @@ func _refresh_guide() -> void:
 
 
 func _on_quest_completed(id: String) -> void:
-	for world: String in Database.worlds:
-		if not _worlds_open.get(world, false) and Places.world_error(world) == "":
-			_worlds_open[world] = true
-			_new_worlds.append(Database.worlds[world].name)
 	var text := "Missão concluída!"
-	if Database.quests[id].get("kind", "side") == "main":
+	if Database.quests[id].get("kind", "main") == "main":
 		var next := GameState.progress.current_main_quest()
 		text += " Próximo: " + str(Database.quests[next].name) if next != "" else " História completa!"
 	_show_toast.call_deferred(text)
+	_schedule_announce()
 
 
 func _on_chapter_completed(index: int) -> void:
-	Events.sheet_close_requested.emit()
-	_celebration.call_deferred("show_chapter", index, _new_worlds.duplicate())
-	_new_worlds.clear()
+	_chapter_done = index
+	_schedule_announce()
+
+
+func _schedule_announce() -> void:
+	if not _announce_pending:
+		_announce_pending = true
+		_announce.call_deferred()
+
+
+## Fim de capítulo e/ou novidades ("Novo!") numa só tela; depois ficam marcadas como vistas.
+func _announce() -> void:
+	_announce_pending = false
+	var unlocks := GameState.new_unlocks()
+	if _chapter_done > 0:
+		Events.sheet_close_requested.emit()
+		_celebration.show_chapter(_chapter_done, unlocks)
+	elif not unlocks.is_empty():
+		Events.sheet_close_requested.emit()
+		_celebration.show_unlocks(unlocks)
+	_chapter_done = 0
+	if not unlocks.is_empty():
+		GameState.mark_seen(unlocks)

@@ -98,7 +98,9 @@ e a campanha do `progression_test` sem as secundárias.
   Selo de "pronto" (colheita, preparo, rota que voltou) no cartão e no lugar da cena.
 - **Save v6:** se o jogador estava na trilha, volta para a Vila; nada mais muda (rotas e mina continuam com o mesmo id).
 
-## Fase 4: Revelar aos poucos
+## Fase 4: Revelar aos poucos — FEITA
+> Como ficou: o Mapa continua desde o início (é onde fica a Casa); some só a Mochila. Diárias/semanais usam
+> `features` em vez de requisitos em routines.json; atributos idem (saiu `settings.skills_from_chapter`).
 - `progression.json` → `features`: `{ "bag": {"quest": "…"}, "map": {…}, "farm": {…}, "village": {…},
   "sell": {…}, "orders": {…}, "routes": {…}, "mine": {…}, "skills": {…}, "daily": {…}, "weekly": {…} }`.
   Usa os mesmos `requirements` de sempre (`ProgressionState.requirement_error`).

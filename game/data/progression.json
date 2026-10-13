@@ -20,8 +20,33 @@
       "crop:pumpkin",
       "recipe:pumpkin_mash"
     ],
-    "care_need_threshold": 95,
-    "skills_from_chapter": 3
+    "care_need_threshold": 95
+  },
+  "features": {
+    "bag": {
+      "name": "Mochila",
+      "icon": "tab_bag",
+      "go": {"screen": "bag"},
+      "requirements": {"quests": ["first_harvest"]}
+    },
+    "daily": {
+      "name": "Missões diárias",
+      "icon": "tab_tasks",
+      "go": {"screen": "tasks"},
+      "requirements": {"chapter": 2}
+    },
+    "weekly": {
+      "name": "Missões semanais",
+      "icon": "item_accessory_set",
+      "go": {"screen": "tasks"},
+      "requirements": {"chapter": 3}
+    },
+    "skills": {
+      "name": "Atributos",
+      "icon": "xp",
+      "go": {"screen": "pet"},
+      "requirements": {"chapter": 3}
+    }
   },
   "skills": {
     "agriculture": {

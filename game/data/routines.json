@@ -1,9 +1,6 @@
 {
   "daily": {
     "count": 3,
-    "requirements": {
-      "chapter": 2
-    },
     "missions": {
       "feed": {
         "name": "Alimente o Tiro",
@@ -53,9 +50,6 @@
   },
   "weekly": {
     "count": 2,
-    "requirements": {
-      "chapter": 3
-    },
     "missions": {
       "clean_week": {
         "name": "Semana cheirosa",

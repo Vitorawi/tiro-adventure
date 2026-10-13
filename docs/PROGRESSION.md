@@ -21,12 +21,13 @@ petisco → biscoito → caixa de petiscos → encomenda especial).
 ## Peças do sistema
 | Peça | Onde está | O que é |
 |---|---|---|
-| **Atributos (4)** | `progression.json` → `skills` | Horta (`agriculture`), Cozinha (`cooking`), Comércio (`commerce`), Aventura (`adventure`: passeios, mina e bancada). Aparecem a partir do capítulo `settings.skills_from_chapter` (3). Liberam sementes, receitas e rotas; **construções não exigem nível**. |
+| **Atributos (4)** | `progression.json` → `skills` | Horta (`agriculture`), Cozinha (`cooking`), Comércio (`commerce`), Aventura (`adventure`: passeios, mina e bancada). Aparecem no capítulo 3 (`features.skills`). Liberam sementes, receitas e rotas; **construções não exigem nível**. |
 | **Construções** | `progression.json` → `upgrades` | Compras permanentes (moedas + materiais + requisitos): fogão, geladeira, escritura do sítio, sofá, bancada, picareta, cozinha organizada, forno, pomar, estufa, banca, ateliê. |
 | **Estações** | `config.json` → `stations` + `recipes.json` | Fogão, bancada, forno e ateliê; filas com tempo real. `slot_upgrades` = construção que aumenta a fila. |
 | **Rotas** | `progression.json` → `activities` | Passeios/mineração com tempo (uma por vez): bairro, trilha, pedreira, cobre, gruta, pomar, prado. |
 | **Feira** | `progression.json` → `orders` + `sell_price` em `items.json` | Encomendas com recarga + venda direta. |
 | **Capítulos** | `progression.json` → `chapters` (+ `final_chapter`) | A "história": cada capítulo termina ao comprar seu `target`. Aparece em Jornada → Hoje. |
+| **Novidades** | `progression.json` → `features` | O que a história revela (Mochila, diárias, semanais, atributos), com `requirements` e `go`. |
 | **Missões** | `quests.json`, `routines.json` | História (capítulos em passos) + diárias e semanais sorteadas. Objetivos + recompensas. |
 | **NPCs** | `npcs.json` (+ mundo em `worlds.json`) | Bloblo (Sítio), Feirante, Laís (a artesã) e Guia da trilha (Vila). `portrait` = retrato (hoje provisórios do PixelLab; trocar pelas fotos), `services` = atalhos para lugares. |
 | **Coleção** | `collections.json` | Roupas/apetrechos ganhos em missões (`slot`: head/neck/body; `sprite` para vestir no futuro). |

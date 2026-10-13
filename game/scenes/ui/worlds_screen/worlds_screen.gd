@@ -8,6 +8,8 @@ extends Control
 ## pronta), para nunca ser preciso adivinhar onde tocar.
 
 const ROOM_SCENE := preload("res://scenes/levels/room/room.tscn")
+## Segundos com a seta à vista antes de abrir o painel do destino.
+const POINT_DELAY := 0.8
 
 var current_world := "house"
 var _views: Dictionary = {}  # world_id -> Control (criado na primeira visita e mantido)
@@ -59,7 +61,15 @@ func enter(world_id: String, place: String = "") -> void:
 	%WorldView.show()
 	_header_key = ""
 	_refresh_header()
-	if place != "":
+	if place == "":
+		return
+	# "Ir": a seta mostra ONDE fica a coisa e o painel abre logo depois.
+	var room := _views[world_id] as RoomView
+	if room and room.point_at(Places.highlight_action(place)):
+		get_tree().create_timer(POINT_DELAY).timeout.connect(func() -> void:
+			if current_world == world_id and %WorldView.visible:
+				Places.run(world_id, place))
+	else:
 		Places.run.call_deferred(world_id, place)
 
 
@@ -97,7 +107,7 @@ func _build_world(world_id: String) -> Control:
 func _refresh_header() -> void:
 	var world: Dictionary = Database.worlds.get(current_world, {})
 	var key := current_world
-	for npc_id: String in world.get("npcs", []):
+	for npc_id: String in Places.visible_npcs(current_world):
 		key += "|%s:%s" % [npc_id, Places.npc_alert(npc_id) != ""]
 	if key == _header_key:
 		return
@@ -105,8 +115,8 @@ func _refresh_header() -> void:
 	%WorldTitle.text = world.get("name", "")
 	for child in %NpcRow.get_children():
 		child.queue_free()
-	%NpcRow.visible = not world.get("npcs", []).is_empty()
-	for npc_id: String in world.get("npcs", []):
+	%NpcRow.visible = not Places.visible_npcs(current_world).is_empty()
+	for npc_id: String in Places.visible_npcs(current_world):
 		# Personagem com nome escrito; verde e com "!" quando tem missão pronta.
 		var ready := Places.npc_alert(npc_id) != ""
 		var npc_name: String = Database.npcs.get(npc_id, {}).get("name", npc_id)
@@ -134,7 +144,7 @@ func _build_cards(box: VBoxContainer) -> void:
 		var row := UiKit.hbox(6)
 		row.add_child(UiKit.icon(UiKit.ui_icon(world.get("icon", "")), 32))
 		row.add_child(UiKit.fill_label(world.get("name", world_id), &"SectionLabel"))
-		for npc_id: String in world.get("npcs", []):
+		for npc_id: String in Places.visible_npcs(world_id):
 			row.add_child(UiKit.icon(ProgressionUi.npc_portrait(npc_id), 32))
 		card.add_child(row)
 		var bottom := UiKit.hbox(8)

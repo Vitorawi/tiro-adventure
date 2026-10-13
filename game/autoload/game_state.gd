@@ -47,6 +47,7 @@ func reset() -> void:
 	level = 1
 	progress = ProgressionState.new()
 	progress.setup()
+	_mark_all_seen()
 	_changed()
 
 
@@ -563,6 +564,28 @@ func _finish_quest(id: String) -> void:
 		Events.chapter_completed.emit(chapter)
 
 
+# --- Novidades (revelar aos poucos) ---------------------------------------------------
+
+## O que a história acabou de revelar e o jogador ainda não viu (chaves de ProgressionState.unlocked_keys).
+func new_unlocks() -> Array[String]:
+	var result: Array[String] = []
+	for key in progress.unlocked_keys():
+		if not progress.seen.has(key):
+			result.append(key)
+	return result
+
+
+func mark_seen(keys: Array[String]) -> void:
+	for key in keys:
+		progress.seen[key] = true
+	_changed()
+
+
+func _mark_all_seen() -> void:
+	for key in progress.unlocked_keys():
+		progress.seen[key] = true
+
+
 # --- Diárias e semanais -------------------------------------------------------------
 # Modelos em data/routines.json. A cada dia (ou semana, a partir de segunda) sorteia
 # `count` modelos liberados; o sorteio usa o período como semente, então é o mesmo
@@ -586,7 +609,7 @@ func routine_seconds_left(kind: String) -> int:
 
 
 func routines_unlocked(kind: String) -> bool:
-	return requirement_error(Database.routines.get(kind, {}).get("requirements", {})) == ""
+	return progress.feature_unlocked(kind)
 
 
 ## Missões do período (sorteia ao virar o dia ou a semana).
@@ -896,6 +919,9 @@ func from_dict(data: Dictionary) -> void:
 	level = int(data.get("level", 1))
 	progress = ProgressionState.new()
 	progress.from_dict(data.get("progression", {}))
+	# Save de antes das novidades: o que já estava aberto não vira "Novo!".
+	if not data.get("progression", {}).has("seen"):
+		_mark_all_seen()
 	_changed()
 
 

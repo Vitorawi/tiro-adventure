@@ -123,7 +123,7 @@ static func run(world_id: String, action: String) -> void:
 static func world_list(world_id: String) -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var world: Dictionary = Database.worlds.get(world_id, {})
-		for npc_id: String in world.get("npcs", []):
+		for npc_id: String in visible_npcs(world_id):
 			var ready := npc_alert(npc_id) != ""
 			var button := UiKit.button(("! " if ready else "") + str(Database.npcs.get(npc_id, {}).get("name", npc_id)), open_npc.bind(npc_id), &"PrimaryButton" if ready else &"", ProgressionUi.npc_portrait(npc_id))
 			_list_button(box, button)
@@ -140,6 +140,58 @@ static func world_list(world_id: String) -> Control:
 				button.modulate.a = 0.6
 			_list_button(box, button)
 	)
+
+
+## Ação da sala (objeto ou zona de rooms/<id>.json) que representa o destino do "Ir",
+## para a seta apontar: "place:stove", "npc:bloblo", "market:orders" ou "plot".
+static func highlight_action(place: String) -> String:
+	if place == "" or place.begins_with("npc:") or place.begins_with("market:"):
+		return place
+	var id := place.get_slice(":", 1) if ":" in place else place
+	var spot := id
+	match place.get_slice(":", 0) if ":" in place else "place":
+		"recipe":
+			spot = Database.place_with_panel("station:" + str(Database.recipes.get(id, {}).get("station", "")))[1]
+		"route":
+			spot = Database.place_with_panel("routes:" + str(Database.progression.activities.get(id, {}).get("place", "")))[1]
+		"order":
+			return "market:orders"
+		"crop":
+			return "plot"
+		"buy":
+			spot = Database.place_of_upgrade(id)[1]
+	if spot == "plots":
+		return "plot"
+	return "place:" + spot if spot != "" else ""
+
+
+## Personagens do mundo que a história já apresentou.
+static func visible_npcs(world_id: String) -> Array[String]:
+	var result: Array[String] = []
+	for npc_id: String in Database.worlds.get(world_id, {}).get("npcs", []):
+		if GameState.progress.npc_visible(npc_id):
+			result.append(npc_id)
+	return result
+
+
+## Novidade para a tela "Novo!": { icon, name, target } (target no formato de Places.go).
+static func unlock_view(key: String) -> Dictionary:
+	var kind := key.get_slice(":", 0)
+	var id := key.get_slice(":", 1)
+	match kind:
+		"feature":
+			var feature: Dictionary = Database.progression.features.get(id, {})
+			return {"icon": UiKit.ui_icon(feature.get("icon", "")), "name": feature.get("name", id), "target": feature.get("go", {})}
+		"world":
+			var world: Dictionary = Database.worlds.get(id, {})
+			return {"icon": UiKit.ui_icon(world.get("icon", "")), "name": world.get("name", id), "target": {"world": id, "place": ""}}
+		"place":
+			var world_id := id.get_slice("/", 0)
+			var place: Dictionary = Database.worlds.get(world_id, {}).get("places", {}).get(id.get_slice("/", 1), {})
+			return {"icon": UiKit.ui_icon(place.get("icon", "")), "name": place.get("name", id), "target": {"world": world_id, "place": id.get_slice("/", 1)}}
+		"npc":
+			return {"icon": ProgressionUi.npc_portrait(id), "name": Database.npcs.get(id, {}).get("name", id), "target": {"world": Database.npc_world(id), "place": "npc:" + id}}
+	return {}
 
 
 static func _list_button(box: VBoxContainer, button: Button) -> void:
@@ -201,7 +253,7 @@ static func place_alert(world_id: String, place_id: String) -> String:
 static func world_alerts(world_id: String) -> PackedStringArray:
 	var alerts: PackedStringArray = []
 	var world: Dictionary = Database.worlds.get(world_id, {})
-	for npc_id: String in world.get("npcs", []):
+	for npc_id: String in visible_npcs(world_id):
 		if npc_alert(npc_id) != "":
 			alerts.append("Missão pronta com " + str(Database.npcs[npc_id].name))
 	for place_id: String in world.get("places", {}):

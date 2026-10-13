@@ -38,6 +38,8 @@ var _dragged := false
 var _object_frame := 0
 var _owned_snapshot: Dictionary = {}
 var _labels: Array[Label] = []
+## Seta do "Ir": pulsa sobre o objeto do destino até o próximo toque (ou alguns segundos).
+var _pointer: Node2D
 
 @onready var _content: Control = %Content
 @onready var _background: TextureRect = %Background
@@ -430,7 +432,57 @@ func _gui_input(event: InputEvent) -> void:
 			_clamp_content()
 
 
+## Seta pulsando sobre o objeto/zona com a ação ("place:stove", "npc:bloblo", "market:orders"
+## ou "plot" = primeiro canteiro). Mostra o jogador ONDE fica a coisa. Devolve se achou o alvo.
+func point_at(action: String) -> bool:
+	clear_pointer()
+	var anchor := Vector2.INF
+	for sprite in _objects:
+		if action == "plot" and sprite.has_meta("plot") or sprite.get_meta("action", "") == action:
+			anchor = sprite.position - Vector2(0, sprite.texture.get_height())
+			break
+	if anchor == Vector2.INF:
+		for zone: Dictionary in _room.get("zones", []):
+			if zone.get("action", "") == action:
+				anchor = _vec(zone.get("label_pos", [0, 0])) if zone.has("label_pos") else _polygon(zone.polygon)[0]
+				anchor.y -= 12  # acima da etiqueta
+				break
+	if anchor == Vector2.INF:
+		return false
+	_pointer = Node2D.new()
+	_pointer.name = "Pointer"
+	_pointer.z_index = 5
+	_pointer.z_as_relative = false
+	_pointer.position = anchor
+	_pointer.scale = Vector2.ONE / _zoom
+	var arrow := Polygon2D.new()
+	arrow.polygon = PackedVector2Array([Vector2(-14, -34), Vector2(14, -34), Vector2(14, -20), Vector2(24, -20), Vector2(0, 0), Vector2(-24, -20), Vector2(-14, -20)])
+	arrow.color = Color("ffd23f")
+	var outline := Line2D.new()
+	outline.points = arrow.polygon
+	outline.closed = true
+	outline.width = 3.0
+	outline.default_color = Color("4a2e21")
+	arrow.add_child(outline)
+	_pointer.add_child(arrow)
+	_world.add_child(_pointer)
+	var bounce := _pointer.create_tween().set_loops()
+	bounce.tween_property(arrow, "position:y", -10.0, 0.35).set_trans(Tween.TRANS_SINE)
+	bounce.tween_property(arrow, "position:y", 0.0, 0.35).set_trans(Tween.TRANS_SINE)
+	get_tree().create_timer(5.0).timeout.connect(func() -> void:
+		if is_instance_valid(_pointer) and _pointer.position == anchor:
+			clear_pointer())
+	return true
+
+
+func clear_pointer() -> void:
+	if is_instance_valid(_pointer):
+		_pointer.queue_free()
+	_pointer = null
+
+
 func _handle_tap(point: Vector2) -> void:
+	clear_pointer()
 	if _dog and _dog.hit_test(point):
 		Events.screen_requested.emit(&"pet")
 		return
@@ -516,6 +568,8 @@ func _zoom_at(pivot: Vector2, new_zoom: float) -> void:
 	_clamp_content()
 	_update_filter()
 	_place_labels()
+	if is_instance_valid(_pointer):
+		_pointer.scale = Vector2.ONE / _zoom
 
 
 ## Pixel art em escala quebrada (ex.: 1,9 pixel de tela por pixel) com filtro "nearest"

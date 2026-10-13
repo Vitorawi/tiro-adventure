@@ -4,7 +4,7 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **12/10/2026, Claude Code**.
 
-**Simplificar — Fases 1 a 3 de 5 concluídas (Claude Code, 12/10/2026).**
+**Simplificar — Fases 1 a 4 de 5 concluídas (Claude Code, 13/10/2026).**
 - O Vitor achou o jogo confuso ("bombardeamento de informação"). Plano aprovado em `docs/plans/SIMPLIFICAR.md`:
   missões em 3 tipos (História, Diárias, Semanais), 3 mundos (a Trilha vira portão na Vila), 4 atributos,
   personagens que aparecem aos poucos, revelação gradual com "Novo!" e menos texto em todo canto.
@@ -19,7 +19,7 @@
 - Testes verdes (farm, progression, DEV dev/prod, tasks com diárias/semanais, content). Capturas:
   `build/screenshots/tasks_{start,middle,story,help,end,celebration}.png`.
 - **Fase 2 feita:** 4 atributos (Horta, Cozinha, Comércio, Aventura), escondidos até o capítulo 3
-  (`settings.skills_from_chapter`). Construções não exigem nível. Passos "suba o atributo" viraram ações
+  (`features.skills`). Construções não exigem nível. Passos "suba o atributo" viraram ações
   contadas a partir do início do passo (`"fresh": true` + `ProgressionState.step`). Save v6 soma
   Passeio+Mineração+Construção em Aventura e remove Vínculo. Painel de Atributos em ícones.
   Dados migrados com uma ferramenta única (não versionada); a formatação dos JSON foi mantida.
@@ -28,8 +28,12 @@
   Portão da trilha (passeios + mina + picareta; capítulo 3). Sem menus "Construir em…": cada construção é
   comprada no próprio lugar (`upgrade`/`upgrades` em `worlds.json`; `Database.place_of_upgrade`).
   Mapa e "Lugares" em ícones. `rooms/trail.json` removido (arte guardada). `content_test` garante 3 mundos e ≤4 lugares.
-- Próximo: **Fase 4** (revelar aos poucos: features liberadas pela história, "Novo!", seta no objeto do Ir,
-  NPC aparece quando apresentado). Sem push.
+- **Fase 4 feita:** revelar aos poucos. `progression.json → features` (Mochila após a 1ª colheita, diárias cap. 2,
+  semanais e atributos cap. 3); NPCs com `requirements` (Feirante 2, Guia 3, Laís 4). Tela "Novo!" (com a
+  comemoração de capítulo) lista o que abriu com ícone + Ir, uma vez só (`ProgressionState.seen`). O "Ir" mostra
+  uma seta sobre o objeto da sala e abre o painel 0,8 s depois. Detalhes em `docs/WORLDS.md`.
+- Próximo: **Fase 5** (menos texto no resto: Mochila em ícones, detalhe do item com fontes/usos tocáveis,
+  sítio, coleção, NPC). Sem push.
 
 **Tarefas v2 — todas as fases (1–6) concluídas (Codex, 12/10/2026).**
 - 28 passos principais em 8 capítulos e 9 secundárias; recompensas por capítulo, destinos

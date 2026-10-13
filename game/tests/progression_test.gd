@@ -176,19 +176,19 @@ func _screenshots(final_save: Dictionary) -> void:
 	_shot("ui_places_village")
 	events.emit_signal("sheet_close_requested")
 	main.call("_on_world_requested", "village", "place:market")
-	await create_timer(0.4).timeout
+	await create_timer(1.2).timeout
 	_shot("ui_sell")
 	events.emit_signal("sheet_close_requested")
 	main.call("_on_world_requested", "village", "place:gate")
-	await create_timer(0.4).timeout
+	await create_timer(1.2).timeout
 	_shot("ui_gate")
 	events.emit_signal("sheet_close_requested")
 	main.call("_on_world_requested", "house", "place:stove")
-	await create_timer(0.4).timeout
+	await create_timer(1.2).timeout
 	_shot("ui_kitchen")
 	events.emit_signal("sheet_close_requested")
 	main.call("_on_world_requested", "village", "npc:artisan")
-	await create_timer(0.4).timeout
+	await create_timer(1.2).timeout
 	_shot("ui_npc_lais")
 	events.emit_signal("sheet_close_requested")
 	main.call("show_screen", &"tasks")

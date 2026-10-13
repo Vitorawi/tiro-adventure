@@ -113,6 +113,13 @@ func _run() -> void:
 		var visible: Array = w.places.values().filter(func(p: Dictionary) -> bool: return not p.get("hidden", false) and not str(p.get("panel", "")).begins_with("travel"))
 		check(visible.size() <= 4, world + ": mais de 4 lugares")
 	check(db.get("worlds").size() == 3, "o jogo tem 3 mundos")
+	# Revelar aos poucos: personagem aparece até o capítulo da primeira missão dele.
+	for npc: String in db.get("npcs"):
+		var from := int(db.get("npcs")[npc].get("requirements", {}).get("chapter", 1))
+		for id: String in quests:
+			check(int(quests[id].get("chapter", 99)) >= from or quests[id].npc != npc, npc + ": aparece depois da missão " + id)
+	for feature: String in ["bag", "daily", "weekly", "skills"]:
+		check(data.get("features", {}).has(feature), "recurso usado pelo código: " + feature)
 	# Toda construção tem um lugar onde é comprada (fora a escritura do sítio, que fica nos canteiros).
 	for id: String in data.upgrades:
 		check(id == "farm" or db.call("place_of_upgrade", id)[0] != "", id + ": sem lugar para comprar")

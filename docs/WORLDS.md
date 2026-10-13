@@ -92,3 +92,15 @@ A comemoração anuncia mundos recém-abertos; o mapa mostra o motivo dos bloque
 Toda missão deve ter um destino válido e acessível quando liberada: valide com
 `content_test.gd` e a campanha simulada. `Places.goal_target` produz
 `{world, place, hint}` ou `{screen, hint}` para cuidados na aba Tiro.
+
+## Revelar aos poucos (simplificação, fase 4)
+- **Começo:** abas Tiro, Mapa (Casa) e Missões. A Mochila aparece após a primeira colheita; diárias no
+  capítulo 2; semanais e Atributos no capítulo 3 (`progression.json → features`).
+- **Personagens:** `npcs.json → requirements` (Feirante cap. 2, Guia cap. 3, Laís cap. 4). Escondidos no
+  cabeçalho, no mapa e em "Lugares" até lá (`Places.visible_npcs`). O `content_test` garante que nenhum
+  aparece depois do capítulo da primeira missão dele.
+- **"Novo!":** ao concluir passos, tudo o que abriu (recursos, mundos, lugares e personagens com requisito)
+  aparece numa tela com ícone + **Ir** — junto da comemoração quando o capítulo termina. Cada novidade aparece
+  uma vez (`ProgressionState.seen`; saves antigos marcam como visto o que já estava aberto).
+- **Seta do Ir:** `Places.highlight_action` traduz o destino ("recipe:x", "buy:oven", "market:orders"...) para o
+  objeto/zona da sala; `RoomView.point_at` desenha a seta pulsando; o painel abre `POINT_DELAY` (0,8 s) depois.
