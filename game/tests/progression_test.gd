@@ -166,7 +166,7 @@ func _screenshots(final_save: Dictionary) -> void:
 	_shot("ui_tasks_new")
 	# Meio do jogo: save final da campanha.
 	state.call("from_dict", final_save)
-	for world_id: String in ["farm", "village", "trail"]:
+	for world_id: String in ["farm", "village"]:
 		main.call("_on_world_requested", world_id, "")
 		await create_timer(0.4).timeout
 		_shot("ui_world_" + world_id)
@@ -175,9 +175,17 @@ func _screenshots(final_save: Dictionary) -> void:
 	await create_timer(0.4).timeout
 	_shot("ui_places_village")
 	events.emit_signal("sheet_close_requested")
-	main.call("_on_world_requested", "village", "place:sell")
+	main.call("_on_world_requested", "village", "place:market")
 	await create_timer(0.4).timeout
 	_shot("ui_sell")
+	events.emit_signal("sheet_close_requested")
+	main.call("_on_world_requested", "village", "place:gate")
+	await create_timer(0.4).timeout
+	_shot("ui_gate")
+	events.emit_signal("sheet_close_requested")
+	main.call("_on_world_requested", "house", "place:stove")
+	await create_timer(0.4).timeout
+	_shot("ui_kitchen")
 	events.emit_signal("sheet_close_requested")
 	main.call("_on_world_requested", "village", "npc:artisan")
 	await create_timer(0.4).timeout

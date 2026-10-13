@@ -95,12 +95,27 @@ func _run() -> void:
 			var arg := panel.get_slice(":", 1)
 			match panel.get_slice(":", 0):
 				"station": check(db.get("stations").has(arg), place + ": estação inexistente")
-				"travel", "build": check(db.get("worlds").has(arg), place + ": mundo inexistente")
-				"routes": check(data.activities.values().any(func(a: Dictionary) -> bool: return a.place == arg), place + ": grupo de rotas inexistente")
-				"inventory", "feed", "sleep", "farm", "sell", "orders": pass
+				"stations":
+					for id in arg.split("+"):
+						check(db.get("stations").has(id), place + ": estação inexistente " + id)
+				"travel": check(db.get("worlds").has(arg), place + ": mundo inexistente")
+				"routes":
+					for group in arg.split("+"):
+						check(data.activities.values().any(func(a: Dictionary) -> bool: return a.place == group), place + ": grupo de rotas inexistente " + group)
+				"market": check(arg in ["sell", "orders"], place + ": aba da feira")
+				"inventory", "feed", "sleep", "farm": pass
 				_: check(false, place + ": painel desconhecido")
 			if p.has("upgrade"):
 				check(data.upgrades.has(p.upgrade), place + ": construção inexistente")
+			for id: String in p.get("upgrades", []):
+				check(data.upgrades.has(id), place + ": construção inexistente " + id)
+		# Simplicidade: no máximo 4 lugares visíveis por mundo (fora viagens).
+		var visible: Array = w.places.values().filter(func(p: Dictionary) -> bool: return not p.get("hidden", false) and not str(p.get("panel", "")).begins_with("travel"))
+		check(visible.size() <= 4, world + ": mais de 4 lugares")
+	check(db.get("worlds").size() == 3, "o jogo tem 3 mundos")
+	# Toda construção tem um lugar onde é comprada (fora a escritura do sítio, que fica nos canteiros).
+	for id: String in data.upgrades:
+		check(id == "farm" or db.call("place_of_upgrade", id)[0] != "", id + ": sem lugar para comprar")
 	for id: String in data.activities:
 		var a: Dictionary = data.activities[id]
 		if a.place in ["walk", "mine"]:
@@ -180,6 +195,9 @@ func _validate_target(target: Dictionary, id: String, state: Node) -> void:
 		check(db.get("progression").upgrades.has(place.trim_prefix("buy:")), id + ": compra inexistente")
 	elif place.begins_with("npc:"):
 		check(place.trim_prefix("npc:") in w.npcs, id + ": personagem fora do mundo")
+	elif place.begins_with("market:"):
+		check(db.call("place_with_panel", "sell")[0] == world, id + ": feira fora do mundo")
 	else:
 		check(w.places.has(place), id + ": lugar inexistente")
+		check(state.call("requirement_error", w.places.get(place, {}).get("requirements", {})) == "", id + ": destino em lugar ainda fechado")
 	check(state.call("requirement_error", w.get("requirements", {})) == "", id + ": destino em mundo ainda fechado")

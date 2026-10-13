@@ -565,7 +565,7 @@
           "cooking": 20
         }
       },
-      "unlocks_text": "Libera a Trilha do riacho"
+      "unlocks_text": "Abre o portão da trilha na Vila"
     },
     {
       "name": "Um pedacinho de terra",
@@ -637,7 +637,7 @@
           "adventure": 20
         }
       },
-      "unlocks_text": "História completa! Continue suas missões secundárias."
+      "unlocks_text": "História completa! Continue nas diárias e semanais."
     }
   ],
   "final_chapter": {

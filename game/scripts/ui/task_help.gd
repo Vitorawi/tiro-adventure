@@ -270,7 +270,7 @@ static func _best_order() -> String:
 
 static func _focused(panel: String, focus: String) -> Dictionary:
 	var location := Database.place_with_panel(panel)
-	return {"world": location[0], "place": focus, "hint": "%s → %s" % [Database.worlds[location[0]].name, Database.worlds[location[0]].places[location[1]].name]}
+	return {"world": location[0], "place": focus, "spot": location[1], "hint": "%s → %s" % [Database.worlds[location[0]].name, Database.worlds[location[0]].places[location[1]].name]}
 
 
 ## Painel "Como fazer" (botão "?" e chips de ingrediente). `history` = etapas anteriores, para voltar.

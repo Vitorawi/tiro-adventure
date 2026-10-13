@@ -131,7 +131,7 @@
     "kind": "main",
     "chapter": 3,
     "order": 1,
-    "hint": "Trilha → Passeios → Volta pelo bairro."
+    "hint": "Vila → Portão da trilha → Volta pelo bairro."
   },
   "stone_path": {
     "npc": "artisan",
@@ -402,7 +402,7 @@
     "kind": "main",
     "chapter": 4,
     "order": 1,
-    "hint": "Trilha → Passeios: recolha madeira."
+    "hint": "Vila → Portão da trilha: recolha madeira."
   },
   "main_4_stone": {
     "npc": "artisan",
@@ -422,7 +422,7 @@
     "kind": "main",
     "chapter": 4,
     "order": 2,
-    "hint": "Trilha → Passeios → Trilha do riacho."
+    "hint": "Vila → Portão da trilha → Trilha do riacho."
   },
   "main_4_bench": {
     "npc": "artisan",
@@ -558,7 +558,7 @@
     "kind": "main",
     "chapter": 8,
     "order": 1,
-    "hint": "Trilha → Passeios → Prado das fibras."
+    "hint": "Vila → Portão da trilha → Prado das fibras."
   },
   "main_8_building": {
     "npc": "artisan",

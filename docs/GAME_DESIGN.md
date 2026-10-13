@@ -132,7 +132,7 @@ desbloquear áreas, estações, receitas, itens e personagens
 - Saves antigos preservam seus terrenos e plantações. Crescimento continua com o app fechado.
 
 ## Mundos e navegação (implementado)
-Abas Tiro · Mapa · Missões · Mochila. Mini mundos (Casa, Sítio da Bloblo, Vila, Trilha do riacho),
+Abas Tiro · Mapa · Missões · Mochila. Mini mundos (Casa, Sítio da Bloblo, Vila com o portão da trilha),
 cada um com personagens e lugares tocáveis; a aba Missões (História, Diárias, Semanais) diz o que fazer e leva até lá.
 Ver [WORLDS.md](WORLDS.md).
 

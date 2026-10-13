@@ -79,7 +79,9 @@ e a campanha do `progression_test` sem as secundárias.
 - Atributos ficam escondidos até o capítulo 3 (aparecem na aba Tiro com "Novo!").
 - **Save v6:** XP de walking+mining+building é somado em `adventure`; `bond` é descartado.
 
-## Fase 3: Mundos (3 mundos, no máximo 4 lugares cada)
+## Fase 3: Mundos (3 mundos, no máximo 4 lugares cada) — FEITA
+> Como ficou: painéis combinados (`stations:stove+oven`, `market:<aba>`, `routes:walk+mine`),
+> `upgrades` por lugar, `Database.place_of_upgrade` para o Ir, mapa com cartões enxutos.
 | Mundo | Lugares (tocáveis) | Personagem |
 |---|---|---|
 | Casa | Tigela, Cozinha (fogão + forno no mesmo painel), Geladeira (= Mochila), Porta → Sítio | — |

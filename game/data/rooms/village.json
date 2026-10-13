@@ -2,12 +2,14 @@
   "background": "res://assets/sprites/areas/village/banner.png",
   "objects": [],
   "zones": [
-    { "id": "stall", "action": "place:sell", "label": "Vender", "label_pos": [228, 72],
+    { "id": "stall", "action": "place:market", "label": "Feira", "label_pos": [228, 72],
       "polygon": [[165, 120], [245, 85], [290, 140], [290, 190], [215, 222], [162, 196]] },
-    { "id": "workshop", "action": "npc:artisan", "label": "Laís", "label_pos": [425, 32],
+    { "id": "workshop", "action": "place:atelier", "label": "Ateliê", "label_pos": [425, 32],
       "polygon": [[345, 90], [430, 38], [500, 95], [500, 162], [420, 192], [345, 152]] },
-    { "id": "crates", "action": "place:orders", "label": "Encomendas", "label_pos": [350, 262],
-      "polygon": [[316, 282], [360, 268], [388, 294], [362, 326], [318, 322]] }
+    { "id": "crates", "action": "market:orders", "label": "Encomendas", "label_pos": [350, 262],
+      "polygon": [[316, 282], [360, 268], [388, 294], [362, 326], [318, 322]] },
+    { "id": "gate", "action": "place:gate", "label": "Trilha", "label_pos": [178, 236],
+      "polygon": [[160, 262], [196, 244], [236, 262], [212, 286], [176, 286]] }
   ],
   "points": {}
 }

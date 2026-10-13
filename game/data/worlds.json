@@ -2,63 +2,52 @@
   "house": {
     "name": "Casa",
     "icon": "tab_house",
-    "description": "Onde o Tiro mora: comer, cozinhar e descansar.",
+    "description": "Comer, cozinhar e guardar.",
     "room": "house",
     "requirements": {},
     "npcs": [],
     "places": {
-      "stove": {
-        "name": "Fogão",
-        "icon": "item_carrot_snack",
-        "description": "Cozinhe petiscos e refeições.",
-        "upgrade": "stove",
-        "panel": "station:stove"
-      },
-      "oven": {
-        "name": "Forno",
-        "icon": "item_apple_biscuit",
-        "description": "Biscoitos e caixas de petiscos.",
-        "upgrade": "oven",
-        "panel": "station:oven"
-      },
-      "fridge": {
-        "name": "Geladeira",
-        "icon": "tab_house",
-        "description": "Tudo o que você guardou.",
-        "upgrade": "fridge",
-        "panel": "inventory"
-      },
       "bowl": {
         "name": "Tigela do Tiro",
         "icon": "item_dog_food",
         "description": "Dê comida ao Tiro.",
         "panel": "feed"
       },
+      "stove": {
+        "name": "Cozinha",
+        "icon": "item_carrot_snack",
+        "description": "Fogão e forno.",
+        "upgrade": "stove",
+        "panel": "stations:stove+oven",
+        "upgrades": ["stove_queue"]
+      },
+      "fridge": {
+        "name": "Geladeira",
+        "icon": "tab_bag",
+        "description": "Tudo o que você guardou.",
+        "upgrade": "fridge",
+        "panel": "inventory"
+      },
+      "door": {
+        "name": "Ir para o sítio",
+        "icon": "tab_farm",
+        "description": "",
+        "panel": "travel:farm"
+      },
       "sofa": {
         "name": "Sofá",
         "icon": "action_sleep",
         "description": "Soneca do Tiro.",
         "upgrade": "sofa",
-        "panel": "sleep"
-      },
-      "build": {
-        "name": "Construir em casa",
-        "icon": "tab_house",
-        "description": "Fogão, geladeira, sofá, forno...",
-        "panel": "build:house"
-      },
-      "door": {
-        "name": "Ir para o sítio",
-        "icon": "tab_farm",
-        "description": "A porta leva ao Sítio da Bloblo.",
-        "panel": "travel:farm"
+        "panel": "sleep",
+        "hidden": true
       }
     }
   },
   "farm": {
     "name": "Sítio da Bloblo",
     "icon": "tab_farm",
-    "description": "Plante, colha e expanda seus terrenos.",
+    "description": "Plantar, colher e crescer.",
     "room": "farm",
     "requirements": {},
     "npcs": [
@@ -69,27 +58,22 @@
         "name": "Canteiros",
         "icon": "tab_farm",
         "description": "Plantar, colher e comprar terrenos.",
-        "panel": "farm"
+        "panel": "farm",
+        "upgrades": ["greenhouse"]
       },
       "workbench": {
         "name": "Bancada",
         "icon": "item_plank",
-        "description": "Tábuas e tijolos para construir.",
+        "description": "Tábuas e tijolos.",
         "upgrade": "workbench",
         "panel": "station:workbench"
       },
       "orchard": {
         "name": "Pomar",
         "icon": "item_apple",
-        "description": "Colha maçãs nas árvores.",
+        "description": "Maçãs.",
         "upgrade": "orchard",
         "panel": "routes:orchard"
-      },
-      "build": {
-        "name": "Construir no sítio",
-        "icon": "item_plank",
-        "description": "Escritura, bancada, pomar, estufa...",
-        "panel": "build:farm"
       },
       "home": {
         "name": "Voltar para casa",
@@ -102,7 +86,7 @@
   "village": {
     "name": "Vila",
     "icon": "coin",
-    "description": "Feira para vender, encomendas e o ateliê da Laís.",
+    "description": "Feira, ateliê e a trilha.",
     "room": "village",
     "requirements": {
       "quests": [
@@ -111,20 +95,16 @@
     },
     "npcs": [
       "merchant",
-      "artisan"
+      "artisan",
+      "guide"
     ],
     "places": {
-      "sell": {
-        "name": "Vender na feira",
+      "market": {
+        "name": "Feira",
         "icon": "coin",
-        "description": "Troque o que sobrar por moedas.",
-        "panel": "sell"
-      },
-      "orders": {
-        "name": "Encomendas",
-        "icon": "item_treat_box",
-        "description": "Pedidos da vizinhança: pagam mais.",
-        "panel": "orders"
+        "description": "Vender e encomendas.",
+        "panel": "market:sell",
+        "upgrades": ["stall"]
       },
       "atelier": {
         "name": "Ateliê",
@@ -133,38 +113,15 @@
         "upgrade": "atelier",
         "panel": "station:atelier"
       },
-      "build": {
-        "name": "Lojas da vila",
-        "icon": "coin",
-        "description": "Picareta, banca, ateliê...",
-        "panel": "build:village"
-      }
-    }
-  },
-  "trail": {
-    "name": "Trilha do riacho",
-    "icon": "item_wood",
-    "description": "Passeios com o Tiro e a mina de pedras e cristais.",
-    "room": "trail",
-    "requirements": {
-      "chapter": 3
-    },
-    "npcs": [
-      "guide"
-    ],
-    "places": {
-      "walks": {
-        "name": "Passeios",
+      "gate": {
+        "name": "Portão da trilha",
         "icon": "action_play",
-        "description": "Leve o Tiro para passear e achar madeira e fibras.",
-        "panel": "routes:walk"
-      },
-      "mine": {
-        "name": "Mina",
-        "icon": "item_crystal",
-        "description": "Pedra, cobre e cristais (precisa de picareta).",
-        "upgrade": "pickaxe",
-        "panel": "routes:mine"
+        "description": "Passeios e mina.",
+        "panel": "routes:walk+mine",
+        "upgrades": ["pickaxe"],
+        "requirements": {
+          "chapter": 3
+        }
       }
     }
   }

@@ -72,25 +72,6 @@ static func purchase(id: String) -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void: upgrade_card(box, id))
 
 
-## Construções de um mundo: primeiro as que faltam, depois as conquistadas.
-static func build_panel(world_id: String) -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		var upgrades: Dictionary = Database.progression.upgrades
-		var owned: Array[String] = []
-		for id: String in upgrades:
-			if upgrades[id].get("world", "") != world_id:
-				continue
-			if GameState.has_upgrade(id):
-				owned.append(id)
-			else:
-				upgrade_card(box, id)
-		if not owned.is_empty():
-			box.add_child(UiKit.label("Já é seu", &"SectionLabel"))
-			for id in owned:
-				upgrade_card(box, id)
-	)
-
-
 static func upgrade_card(box: VBoxContainer, id: String) -> void:
 	var data: Dictionary = Database.progression.upgrades[id]
 	var card := UiKit.card(box, &"ReadyCardPanel" if GameState.upgrade_error(id) == "" else &"CardPanel")
@@ -111,9 +92,35 @@ static func upgrade_card(box: VBoxContainer, id: String) -> void:
 
 # --- Vila: vender e encomendas --------------------------------------------------------
 
+## Feira: abas Vender | Encomendas (`tab` = "sell" ou "orders").
+static func market_panel(tab: String = "sell") -> Control:
+	var box := UiKit.vbox(10)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.mouse_filter = Control.MOUSE_FILTER_PASS
+	var tabs := UiKit.hbox(8)
+	var holder := UiKit.vbox(0)
+	holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	holder.mouse_filter = Control.MOUSE_FILTER_PASS
+	var buttons := {}
+	var show_tab := func(id: String) -> void:
+		for child in holder.get_children():
+			child.queue_free()
+		holder.add_child(sell_panel() if id == "sell" else orders_panel())
+		for key: String in buttons:
+			buttons[key].theme_type_variation = &"PrimaryButton" if key == id else &""
+	for entry: Array in [["sell", "Vender", "coin"], ["orders", "Encomendas", "item_treat_box"]]:
+		var button := UiKit.button(entry[1], show_tab.bind(entry[0]), &"", UiKit.ui_icon(entry[2]))
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		buttons[entry[0]] = button
+		tabs.add_child(button)
+	box.add_child(tabs)
+	box.add_child(holder)
+	show_tab.call(tab if tab in ["sell", "orders"] else "sell")
+	return box
+
+
 static func sell_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		_text(box, "Guarde o que precisar para receitas, construções e missões. O resto vira moeda!", true)
 		var any := false
 		for id: String in Database.items:
 			var price := int(Database.items[id].get("sell_price", 0))
@@ -122,10 +129,8 @@ static func sell_panel() -> Control:
 				continue
 			any = true
 			var row := UiKit.hbox(8)
-			row.add_child(UiKit.icon(Database.item_icon(id), 32))
-			var info := UiKit.label("%s · x%d" % [Database.item_name(id), count])
-			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			row.add_child(info)
+			row.add_child(UiKit.icon(Database.item_icon(id), 40))
+			row.add_child(UiKit.fill_label("x%d" % count))
 			var sell := UiKit.button("+%d" % price, func() -> void:
 				var error := GameState.sell(id)
 				Events.toast_requested.emit(error if error != "" else "Vendeu %s!" % Database.item_name(id)), &"PrimaryButton", UiKit.ui_icon("coin"))
@@ -133,13 +138,12 @@ static func sell_panel() -> Control:
 			row.add_child(sell)
 			UiKit.card(box).add_child(row)
 		if not any:
-			_text(box, "Nada para vender agora. Colha no sítio ou passeie na trilha!")
+			_text(box, "Nada para vender.")
 	)
 
 
 static func orders_panel(focus: String = "") -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		_text(box, "Encomendas pagam mais que a venda direta e voltam depois de um tempo.", true)
 		for id: String in Database.progression.orders:
 			if focus != "" and id != focus:
 				continue
@@ -159,18 +163,17 @@ static func orders_panel(focus: String = "") -> Control:
 
 # --- Rotas (passeios, mina, pomar) ------------------------------------------------------
 
-## Rotas de um lugar ("walk", "mine", "orchard"). Só uma rota por vez em todo o jogo.
+## Rotas de um ou mais grupos ("walk", "mine+walk", "orchard"). Só uma rota por vez em todo o jogo.
 static func routes_panel(place: String, focus: String = "") -> Control:
+	var groups := place.split("+")
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		active_activity(box)
-		_text(box, "Uma rota por vez. O tempo continua passando com o jogo fechado.", true)
 		for id: String in Database.progression.activities:
 			var data: Dictionary = Database.progression.activities[id]
-			if data.get("place", "walk") != place or (focus != "" and id != focus):
+			if not str(data.get("place", "walk")) in groups or (focus != "" and id != focus):
 				continue
 			var card := UiKit.card(box)
 			_title(card, data.get("icon", ""), data.name)
-			_text(card, data.description, true)
 			var details := UiKit.flow()
 			details.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(data.seconds))))
 			for item: String in data.rewards.get("items", {}):

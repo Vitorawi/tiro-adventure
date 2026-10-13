@@ -3,19 +3,25 @@ extends RefCounted
 ## Lugares e personagens dos mundos (data/worlds.json): abrir, listar e avisar.
 ##
 ## Um lugar tem "panel", que diz o que ele abre:
-##   station:<id>  estação (fogão, forno, bancada, ateliê)   inventory  geladeira/mochila
-##   feed          tigela (dar comida)                        sleep      sofá (soneca)
-##   farm          canteiros e terrenos                       build:<mundo>  construções daquele mundo
-##   sell          vender na feira                            orders     encomendas
-##   routes:<tipo> rotas ("walk", "mine", "orchard")          travel:<mundo> ir para outro mundo
-## "upgrade" (opcional) = construção necessária; sem ela, tocar abre a compra.
-## Nas salas (rooms/<id>.json) objetos e zonas usam "action": "place:<id>" ou "npc:<id>".
+##   station:<id>            uma estação (bancada, ateliê)        inventory  geladeira/mochila
+##   stations:<id>+<id>      várias estações num painel (cozinha) feed       tigela (dar comida)
+##   farm                    canteiros e terrenos                 sleep      sofá (soneca)
+##   market:<sell|orders>    feira com abas Vender/Encomendas     travel:<mundo> ir para outro mundo
+##   routes:<tipo>+<tipo>    rotas ("walk", "mine", "orchard")
+## "upgrade" = construção necessária (sem ela, tocar abre a compra); "upgrades" = compras feitas
+## dentro do painel (ex.: picareta no portão); "requirements" = lugar fechado até cumprir;
+## "hidden" = fora da lista "Lugares". Nas salas (rooms/<id>.json) objetos e zonas usam
+## "action": "place:<id>", "npc:<id>" ou "market:<aba>".
 
 
 ## Abre um lugar do mundo (painel inferior, ação ou viagem).
 static func open(world_id: String, place_id: String) -> void:
 	var place: Dictionary = Database.worlds.get(world_id, {}).get("places", {}).get(place_id, {})
 	if place.is_empty():
+		return
+	var closed := place_error(place)
+	if closed != "":
+		Events.toast_requested.emit("Ainda fechado: " + closed)
 		return
 	var upgrade: String = place.get("upgrade", "")
 	if upgrade != "" and not GameState.has_upgrade(upgrade):
@@ -33,35 +39,53 @@ static func open(world_id: String, place_id: String) -> void:
 			GameState.set_sleeping(sleeping)
 			Events.toast_requested.emit("Hora da soneca!" if sleeping else "Tiro acordou!")
 		_:
-			Events.sheet_requested.emit(place.name, _panel(kind, arg))
+			Events.sheet_requested.emit(place.name, _with_upgrades(_panel(kind, arg), place.get("upgrades", [])))
+
+
+static func place_error(place: Dictionary) -> String:
+	return GameState.requirement_error(place.get("requirements", {}))
 
 
 static func _panel(kind: String, arg: String) -> Control:
 	match kind:
 		"station":
 			return SheetBuilder.station_view(arg)
+		"stations":
+			return SheetBuilder.stations_view(arg.split("+"))
 		"inventory":
 			return SheetBuilder.inventory_view()
 		"feed":
 			return SheetBuilder.food_picker()
 		"farm":
 			return SheetBuilder.farm_view()
-		"build":
-			return ProgressionUi.build_panel(arg)
-		"sell":
-			return ProgressionUi.sell_panel()
-		"orders":
-			return ProgressionUi.orders_panel()
+		"market":
+			return ProgressionUi.market_panel(arg)
 		"routes":
 			return ProgressionUi.routes_panel(arg)
 	return UiKit.label("Em breve!")
+
+
+## Painel do lugar + cartões de compra das construções que se compram ali (somem ao comprar).
+static func _with_upgrades(panel: Control, upgrades: Array) -> Control:
+	if upgrades.is_empty():
+		return panel
+	var box := UiKit.vbox(10)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.mouse_filter = Control.MOUSE_FILTER_PASS
+	box.add_child(panel)
+	box.add_child(SheetBuilder.LiveBox.new(func(cards: VBoxContainer) -> void:
+		for id: String in upgrades:
+			if not GameState.has_upgrade(id):
+				ProgressionUi.upgrade_card(cards, id)))
+	return box
 
 
 static func open_npc(npc_id: String) -> void:
 	Events.sheet_requested.emit(Database.npcs.get(npc_id, {}).get("name", npc_id), ProgressionUi.npc_view(npc_id))
 
 
-## "place:<id>" | "npc:<id>" | "buy:<construção>" (ações das salas e dos botões "Ir").
+## Ações das salas e dos botões "Ir": "place:<id>" | "npc:<id>" | "buy:<construção>" |
+## "market:<aba>" | foco direto em "recipe:", "route:", "order:" ou "crop:" <id>.
 static func run(world_id: String, action: String) -> void:
 	if action.begins_with("recipe:"):
 		var id := action.trim_prefix("recipe:")
@@ -79,6 +103,10 @@ static func run(world_id: String, action: String) -> void:
 		var id := action.trim_prefix("crop:")
 		if Database.crops.has(id):
 			Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.farm_view(id))
+	elif action.begins_with("market:"):
+		var location := Database.place_with_panel("sell")
+		var place: Dictionary = Database.worlds[location[0]].places[location[1]]
+		Events.sheet_requested.emit(place.name, _with_upgrades(ProgressionUi.market_panel(action.trim_prefix("market:")), place.get("upgrades", [])))
 	elif action.begins_with("npc:"):
 		open_npc(action.trim_prefix("npc:"))
 	elif action.begins_with("buy:"):
@@ -90,49 +118,36 @@ static func run(world_id: String, action: String) -> void:
 		open(world_id, action)
 
 
-## "O que tem aqui?": personagens e lugares do mundo, em cartões com botão.
+## "O que tem aqui?": personagens e lugares do mundo, um botão grande com ícone cada.
+## Verde = tem algo pronto; apagado = fechado ou ainda não construído.
 static func world_list(world_id: String) -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var world: Dictionary = Database.worlds.get(world_id, {})
 		for npc_id: String in world.get("npcs", []):
-			var npc: Dictionary = Database.npcs.get(npc_id, {})
-			var card := UiKit.card(box, &"ReadyCardPanel" if npc_alert(npc_id) != "" else &"CardPanel")
-			var row := UiKit.hbox(10)
-			row.add_child(UiKit.icon(ProgressionUi.npc_portrait(npc_id), 48))
-			var info := UiKit.vbox(2)
-			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			info.add_child(UiKit.label(npc.get("name", npc_id), &"SectionLabel"))
-			info.add_child(UiKit.label(npc_alert(npc_id) if npc_alert(npc_id) != "" else npc.get("role", ""), &"SmallLabel"))
-			row.add_child(info)
-			var talk := UiKit.button("Conversar", open_npc.bind(npc_id), &"PrimaryButton")
-			talk.custom_minimum_size = Vector2(110, 48)
-			talk.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			row.add_child(talk)
-			card.add_child(row)
+			var ready := npc_alert(npc_id) != ""
+			var button := UiKit.button(("! " if ready else "") + str(Database.npcs.get(npc_id, {}).get("name", npc_id)), open_npc.bind(npc_id), &"PrimaryButton" if ready else &"", ProgressionUi.npc_portrait(npc_id))
+			_list_button(box, button)
 		var places: Dictionary = world.get("places", {})
 		for place_id: String in places:
 			var place: Dictionary = places[place_id]
+			if place.get("hidden", false):
+				continue
 			var upgrade: String = place.get("upgrade", "")
-			var locked := upgrade != "" and not GameState.has_upgrade(upgrade)
-			var alert := place_alert(world_id, place_id)
-			var card := UiKit.card(box, &"ReadyCardPanel" if alert != "" else &"CardPanel")
-			var row := UiKit.hbox(10)
-			row.add_child(UiKit.icon(UiKit.ui_icon(place.get("icon", "")), 32))
-			var info := UiKit.vbox(2)
-			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			info.add_child(UiKit.label(place.name, &"SectionLabel"))
-			var hint: String = alert if alert != "" else place.get("description", "")
-			if locked:
-				hint = "Construa primeiro: " + Database.progression.upgrades.get(upgrade, {}).get("name", upgrade)
-			if hint != "":
-				info.add_child(UiKit.label(hint, &"SmallLabel"))
-			row.add_child(info)
-			var go := UiKit.button("Ver" if locked else "Abrir", open.bind(world_id, place_id), &"" if locked else &"PrimaryButton")
-			go.custom_minimum_size = Vector2(88, 48)
-			go.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			row.add_child(go)
-			card.add_child(row)
+			var dim := place_error(place) != "" or (upgrade != "" and not GameState.has_upgrade(upgrade))
+			var ready := place_alert(world_id, place_id) != ""
+			var button := UiKit.button(place.name, open.bind(world_id, place_id), &"PrimaryButton" if ready else &"", UiKit.ui_icon(place.get("icon", "")))
+			if dim:
+				button.modulate.a = 0.6
+			_list_button(box, button)
 	)
+
+
+static func _list_button(box: VBoxContainer, button: Button) -> void:
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.expand_icon = true
+	button.add_theme_constant_override("icon_max_width", 40)
+	button.custom_minimum_size = Vector2(0, 56)
+	box.add_child(button)
 
 
 # --- Avisos ("tem coisa pronta aqui") -------------------------------------------------
@@ -163,19 +178,19 @@ static func npc_active_quests(npc_id: String) -> Array[String]:
 static func place_alert(world_id: String, place_id: String) -> String:
 	var place: Dictionary = Database.worlds.get(world_id, {}).get("places", {}).get(place_id, {})
 	var panel: String = place.get("panel", "")
-	var arg := panel.get_slice(":", 1) if ":" in panel else ""
-	match panel.get_slice(":", 0):
-		"farm":
-			var ready := 0
-			for i in GameState.accessible_plots():
-				if GameState.plot_status(i) == "ready":
-					ready += 1
-			return "%d pronto(s) para colher!" % ready if ready > 0 else ""
-		"station":
-			if GameState.has_upgrade(arg):
-				var count := GameState.station(arg).ready_count(GameState.now())
-				return "%d pronto(s) para coletar!" % count if count > 0 else ""
-		"routes":
+	if panel == "farm":
+		var ready := 0
+		for i in GameState.accessible_plots():
+			if GameState.plot_status(i) == "ready":
+				ready += 1
+		return "%d pronto(s) para colher!" % ready if ready > 0 else ""
+	for part in Database.panel_parts(panel):
+		var arg := part.get_slice(":", 1)
+		if part.begins_with("station:") and GameState.has_upgrade(arg):
+			var count := GameState.station(arg).ready_count(GameState.now())
+			if count > 0:
+				return "%d pronto(s) para coletar!" % count
+		if part.begins_with("routes:"):
 			var activity: Dictionary = GameState.progress.activity
 			if not activity.is_empty() and Database.progression.activities.get(activity.id, {}).get("place", "walk") == arg:
 				return "A rota terminou: recolha!" if GameState.activity_remaining() == 0 else "Em andamento (%s)" % TimeText.short(GameState.activity_remaining())
@@ -201,6 +216,10 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 	match str(goal.get("type", "")):
 		"owned":
 			if Database.progression.upgrades.has(key):
+				# Vai ao lugar onde se compra (cozinha, portão...); sem lugar, abre a compra direto.
+				var location := Database.place_of_upgrade(key)
+				if location[0] != "":
+					return {"world": location[0], "place": location[1], "hint": str(Database.worlds[location[0]].places[location[1]].name)}
 				return {"world": Database.progression.upgrades[key].world, "place": "buy:" + key, "hint": "Construir: " + str(Database.progression.upgrades[key].name)}
 		"coins":
 			return _panel_target("sell")
@@ -244,7 +263,9 @@ static func _panel_target(panel: String) -> Dictionary:
 	var location := Database.place_with_panel(panel)
 	if location[0] == "":
 		return {}
-	return {"world": location[0], "place": location[1], "hint": "%s → %s" % [Database.worlds[location[0]].name, Database.worlds[location[0]].places[location[1]].name]}
+	# Encomendas ficam na aba própria da Feira.
+	var place := "market:orders" if panel == "orders" else location[1]
+	return {"world": location[0], "place": place, "hint": "%s → %s" % [Database.worlds[location[0]].name, Database.worlds[location[0]].places[location[1]].name]}
 
 
 ## Primeiro objetivo pendente, com substituições opcionais do conteúdo.
@@ -283,7 +304,11 @@ static func target_view(target: Dictionary) -> HBoxContainer:
 		texture = ProgressionUi.npc_portrait(place.trim_prefix("npc:"))
 		place_name = Database.npcs.get(place.trim_prefix("npc:"), {}).get("name", "")
 	else:
-		var data: Dictionary = world.get("places", {}).get(place.trim_prefix("place:"), {})
+		# "spot" = lugar de destinos com foco ("recipe:...", "route:..."); "market:<aba>" = a Feira.
+		var place_id: String = target.get("spot", place.trim_prefix("place:"))
+		if place_id.begins_with("market:"):
+			place_id = Database.place_with_panel("sell")[1]
+		var data: Dictionary = world.get("places", {}).get(place_id, {})
 		texture = UiKit.ui_icon(data.get("icon", ""))
 		place_name = data.get("name", "")
 	row.add_child(UiKit.icon(UiKit.ui_icon(world.get("icon", "")), 32))

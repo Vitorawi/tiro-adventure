@@ -11,7 +11,7 @@ https://vitorawi.github.io/tiro-adventure/ (versão de testes: `.../tiro-adventu
 Celular **em pé**, tela inteira, **100% toque**: o jogador não controla o movimento do cachorro
 (ele anda sozinho), só toca nos objetos (geladeira, horta, fogão...) e arrasta para mover a câmera.
 Começa com a casa quase vazia e vai comprando fogão, geladeira, sítio, oficina... com 4 atributos
-que evoluem e missões de personagens. Abas: **Tiro · Mapa** (mini mundos: Casa, Sítio, Vila, Trilha,
+que evoluem e missões de personagens. Abas: **Tiro · Mapa** (mini mundos: Casa, Sítio, Vila — a trilha é um portão da Vila —
 cada um com seus personagens e lugares) **· Missões** (História passo a passo, Diárias e Semanais, com botão "Ir" e "?") **· Mochila**.
 
 Jogo 2D em **Godot 4.7.2** (GDScript), exportado para **Web** e instalado no celular como **PWA**
@@ -57,7 +57,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
     ui/celebration/  comemoração de capítulo acima do Sheet
     ui/bag_screen/     aba Mochila (itens por categoria; detalhe: para que serve, onde usar, vender)
     ui/sheet/        painel inferior genérico (menus de objetos)
-    levels/room/     RoomView genérico (`room_id`, `world_id`): monta data/rooms/<id>.json (casa, sítio, vila, trilha), canteiros, etiquetas, navegação, toque, câmera
+    levels/room/     RoomView genérico (`room_id`, `world_id`): monta data/rooms/<id>.json (casa, sítio, vila), canteiros, etiquetas, navegação, toque, câmera
     entities/dog_world/  Tiro pequeno com IA autônoma (anda pelo caminho calculado)
   scripts/state/     DogState, Inventory, StationState, ProgressionState (dados + to_dict/from_dict)
   scripts/ui/        UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
@@ -74,7 +74,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Novo item / receita / ajuste de números | `game/data/*.json` (sem mexer em código) |
 | Nova construção, rota, pedido, capítulo ou atributo | `game/data/progression.json` (formato em `docs/PROGRESSION.md`) |
 | Novo mundo (mini mundinho)            | `data/worlds.json` + `data/rooms/<id>.json` + arte (receita em `docs/WORLDS.md`; sem código) |
-| Novo lugar tocável num mundo          | `places` em `worlds.json` + zona/objeto com `"action": "place:<id>"` (e `label`) em `rooms/<id>.json` |
+| Novo lugar tocável num mundo          | `places` em `worlds.json` (máx. 4 visíveis por mundo; `upgrades` = compras ali dentro) + zona/objeto com `"action": "place:<id>"` (e `label`) em `rooms/<id>.json` |
 | História principal                    | `quests.json` (só `kind: "main"`, chapter/order); `progression.json`: capítulos/rewards |
 | Missão diária / semanal               | `data/routines.json` (`goal` = contador + alvo, `rewards`, `requirements`; `count` por tipo); ações `GameState.claim_routine` |
 | "Como fazer" (o que falta, 1º passo)  | `scripts/ui/task_help.gd` (`TaskHelp.describe` calcula; `TaskHelp.panel` mostra em ícones) |
@@ -136,7 +136,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   (ex.: fogão cozinhando). Quadros de animação usam o MESMO recorte da imagem base.
   `"upgrade": "<id>"` = móvel só aparece depois de comprado (antes: marcador "+" que abre a compra).
   `"action"`: `"place:<id>"` (lugar do mundo em `worlds.json`), `"npc:<id>"` ou `"plot"`; `"label"` +
-  `"label_pos"` = etiqueta flutuante mostrando que dá para tocar. Sala sem `"floor"` = só toques (vila, trilha).
+  `"label_pos"` = etiqueta flutuante mostrando que dá para tocar. Sala sem `"floor"` = só toques (vila).
   `"plot": N` = canteiro N da horta (estado em `GameState.plots`; broto/planta madura por cima).
   `GameState.unlocked_plots` guarda os terrenos comprados em ordem fixa; `buy_plot` valida a compra.
   `PlotIndicator` desenha ícone, tempo e barra sobre a planta; `SheetBuilder` monta os painéis do sítio.

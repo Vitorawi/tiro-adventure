@@ -4,7 +4,7 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **12/10/2026, Claude Code**.
 
-**Simplificar — Fases 1 e 2 de 5 concluídas (Claude Code, 12/10/2026).**
+**Simplificar — Fases 1 a 3 de 5 concluídas (Claude Code, 12/10/2026).**
 - O Vitor achou o jogo confuso ("bombardeamento de informação"). Plano aprovado em `docs/plans/SIMPLIFICAR.md`:
   missões em 3 tipos (História, Diárias, Semanais), 3 mundos (a Trilha vira portão na Vila), 4 atributos,
   personagens que aparecem aos poucos, revelação gradual com "Novo!" e menos texto em todo canto.
@@ -23,7 +23,13 @@
   contadas a partir do início do passo (`"fresh": true` + `ProgressionState.step`). Save v6 soma
   Passeio+Mineração+Construção em Aventura e remove Vínculo. Painel de Atributos em ícones.
   Dados migrados com uma ferramenta única (não versionada); a formatação dos JSON foi mantida.
-- Próximo: **Fase 3** (3 mundos, até 4 lugares cada, Trilha vira portão na Vila, construir no próprio lugar). Sem push.
+- **Fase 3 feita:** 3 mundos (Casa, Sítio, Vila), no máximo 4 lugares visíveis cada. Casa: Tigela, Cozinha
+  (fogão + forno + fila extra), Geladeira, porta. Vila: Feira (abas Vender/Encomendas + banca), Ateliê,
+  Portão da trilha (passeios + mina + picareta; capítulo 3). Sem menus "Construir em…": cada construção é
+  comprada no próprio lugar (`upgrade`/`upgrades` em `worlds.json`; `Database.place_of_upgrade`).
+  Mapa e "Lugares" em ícones. `rooms/trail.json` removido (arte guardada). `content_test` garante 3 mundos e ≤4 lugares.
+- Próximo: **Fase 4** (revelar aos poucos: features liberadas pela história, "Novo!", seta no objeto do Ir,
+  NPC aparece quando apresentado). Sem push.
 
 **Tarefas v2 — todas as fases (1–6) concluídas (Codex, 12/10/2026).**
 - 28 passos principais em 8 capítulos e 9 secundárias; recompensas por capítulo, destinos

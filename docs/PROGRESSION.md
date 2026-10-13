@@ -28,7 +28,7 @@ petisco → biscoito → caixa de petiscos → encomenda especial).
 | **Feira** | `progression.json` → `orders` + `sell_price` em `items.json` | Encomendas com recarga + venda direta. |
 | **Capítulos** | `progression.json` → `chapters` (+ `final_chapter`) | A "história": cada capítulo termina ao comprar seu `target`. Aparece em Jornada → Hoje. |
 | **Missões** | `quests.json`, `routines.json` | História (capítulos em passos) + diárias e semanais sorteadas. Objetivos + recompensas. |
-| **NPCs** | `npcs.json` (+ mundo em `worlds.json`) | Bloblo (Sítio), Guia da trilha (Trilha), Feirante e Laís, a artesã (Vila). `portrait` = retrato (hoje provisórios do PixelLab; trocar pelas fotos), `services` = atalhos para lugares. |
+| **NPCs** | `npcs.json` (+ mundo em `worlds.json`) | Bloblo (Sítio), Feirante, Laís (a artesã) e Guia da trilha (Vila). `portrait` = retrato (hoje provisórios do PixelLab; trocar pelas fotos), `services` = atalhos para lugares. |
 | **Coleção** | `collections.json` | Roupas/apetrechos ganhos em missões (`slot`: head/neck/body; `sprite` para vestir no futuro). |
 | **Sítio** | `config.json` → `farm` | 1 canteiro emprestado antes da escritura; depois 3 iniciais e expansão até 9 (`unlock_costs`). |
 
@@ -119,8 +119,7 @@ falha se alguma construção ou missão ficar inalcançável. Rode-o depois de m
 
 ## Interface
 Desde a reorganização da navegação, a progressão não fica mais num menu único: cada coisa mora
-num lugar de um mundo (vender e encomendas na Vila, passeios e mina na Trilha, construir em cada
-mundo) e a aba **Missões** mostra a História (um passo por vez: quem pede, ícone + `0/6`, onde,
+num lugar de um mundo (feira, ateliê e portão da trilha na Vila; cada construção comprada no próprio lugar) e a aba **Missões** mostra a História (um passo por vez: quem pede, ícone + `0/6`, onde,
 o que falta em chips tocáveis), as Diárias e as Semanais, sempre com **Ir** e **?** ("Como fazer"). Detalhes em **`docs/WORLDS.md`**. Painéis em `scripts/ui/progression_ui.gd`.
 - Casa: móveis com `"upgrade"` em `rooms/house.json` só aparecem depois de comprados; antes há um
   marcador "+" que abre a compra. Sítio: canteiros bloqueados mostram "Sítio" (antes da escritura)

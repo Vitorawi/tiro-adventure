@@ -128,30 +128,30 @@ func _build_cards(box: VBoxContainer) -> void:
 		var picture := _thumbnail(world_id, 96)
 		if picture:
 			card.add_child(picture)
-		var row := UiKit.hbox()
-		row.add_child(UiKit.icon(UiKit.ui_icon(world.get("icon", "")), 32))
-		var title := UiKit.label(world.get("name", world_id), &"SectionLabel")
-		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		row.add_child(title)
-		if world_id == current_world:
-			var here := UiKit.label("Você está aqui", &"SmallLabel", UiKit.GOOD)
-			here.autowrap_mode = TextServer.AUTOWRAP_OFF
-			row.add_child(here)
-		card.add_child(row)
-		card.add_child(UiKit.label(world.get("description", ""), &"SmallLabel"))
-		var npcs: Array = world.get("npcs", [])
-		if not npcs.is_empty():
-			var people := UiKit.flow()
-			for npc_id: String in npcs:
-				people.add_child(UiKit.chip(ProgressionUi.npc_portrait(npc_id), Database.npcs.get(npc_id, {}).get("name", npc_id)))
-			card.add_child(people)
-		for alert in alerts:
-			card.add_child(UiKit.label("• " + alert, &"SmallLabel", UiKit.GOOD))
 		if locked != "":
-			card.add_child(UiKit.label("Fechado: " + locked, &"SmallLabel", UiKit.BAD))
-		var go := UiKit.button("Ir para " + str(world.get("name", world_id)), enter.bind(world_id, ""), &"PrimaryButton")
+			card.get_parent().modulate.a = 0.6
+		# [ícone] Nome  [rostos]  [✓ prontos]  [Ir]
+		var row := UiKit.hbox(6)
+		row.add_child(UiKit.icon(UiKit.ui_icon(world.get("icon", "")), 32))
+		row.add_child(UiKit.fill_label(world.get("name", world_id), &"SectionLabel"))
+		for npc_id: String in world.get("npcs", []):
+			row.add_child(UiKit.icon(ProgressionUi.npc_portrait(npc_id), 32))
+		card.add_child(row)
+		var bottom := UiKit.hbox(8)
+		if locked != "":
+			bottom.add_child(UiKit.fill_label("Fechado: " + locked, &"SmallLabel", UiKit.BAD))
+		elif not alerts.is_empty():
+			bottom.add_child(UiKit.chip(UiKit.ui_icon("tab_tasks"), "%d pronto(s)" % alerts.size(), UiKit.GOOD))
+			bottom.add_child(UiKit.fill_label("", &"SmallLabel"))
+		elif world_id == current_world:
+			bottom.add_child(UiKit.fill_label("Você está aqui", &"SmallLabel", UiKit.GOOD))
+		else:
+			bottom.add_child(UiKit.fill_label("", &"SmallLabel"))
+		var go := UiKit.button("Ir", enter.bind(world_id, ""), &"PrimaryButton")
+		go.custom_minimum_size = Vector2(96, 48)
 		go.disabled = locked != ""
-		card.add_child(go)
+		bottom.add_child(go)
+		card.add_child(bottom)
 
 
 ## Miniatura do mundo: "banner" ou o fundo da sala, cortada para caber na largura.

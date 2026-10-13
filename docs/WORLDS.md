@@ -14,12 +14,15 @@
 ## Onde fica cada coisa hoje
 | Mundo | Personagens | Lugares (tocar na cena ou em "Lugares") |
 |---|---|---|
-| **Casa** | — | Fogão, Forno, Geladeira, Tigela, Sofá, Construir em casa, porta → Sítio |
-| **Sítio da Bloblo** | Bloblo (casinha) | Canteiros, Bancada, Pomar, Construir no sítio |
-| **Vila** | Feirante, Laís — artesã (casa do ateliê) | Vender na feira (barraca), Encomendas (caixas), Ateliê, Lojas da vila |
-| **Trilha do riacho** | Guia da trilha | Passeios (ponte/caminho), Mina (precisa de picareta) |
+| **Casa** | — | Tigela, **Cozinha** (fogão + forno + fila extra), Geladeira, porta → Sítio. Sofá = enfeite com soneca (`hidden`). |
+| **Sítio da Bloblo** | Bloblo (casinha) | Canteiros (+ estufa), Bancada, Pomar, volta para casa |
+| **Vila** | Feirante, Laís, Guia da trilha | **Feira** (barraca; abas Vender/Encomendas; caixas abrem Encomendas; + banca), **Ateliê** (casa da Laís), **Portão da trilha** (passeios + mina; + picareta; abre no capítulo 3) |
 
-Construções aparecem no "Construir" do mundo delas (`"world"` em `progression.json → upgrades`).
+Regra (simplificação de 12/10/2026): **3 mundos, no máximo 4 lugares visíveis cada** (`content_test`).
+Não existe menu "Construir": cada construção é comprada **no próprio lugar** — `"upgrade"` do lugar
+(sem ela, tocar abre a compra; móveis mostram "+") ou `"upgrades"` (cartões de compra dentro do painel).
+`Database.place_of_upgrade` acha esse lugar; o "Ir" das missões leva até lá.
+A antiga Trilha virou o portão da Vila (a arte `areas/trail/` ficou guardada para um mundo futuro).
 Rotas aparecem no lugar do tipo delas (`"place"` em `activities`: `walk`, `mine`, `orchard`).
 
 ## Como criar um mundo novo (receita)
@@ -51,9 +54,11 @@ Rotas aparecem no lugar do tipo delas (`"place"` em `activities`: `walk`, `mine`
    ```
    - `requirements` usa o formato comum (`owned`/`quests`/`skills`/`chapter`); mundo fechado aparece no
      mapa com o motivo.
-   - `panel` dos lugares: `station:<id>`, `inventory`, `feed`, `sleep`, `farm`, `build:<mundo>`,
-     `sell`, `orders`, `routes:<tipo>`, `travel:<mundo>` (lista completa em `scripts/ui/places.gd`).
-     `upgrade` opcional: sem essa construção, tocar abre a compra.
+   - `panel` dos lugares: `station:<id>`, `stations:<id>+<id>`, `inventory`, `feed`, `sleep`, `farm`,
+     `market:<sell|orders>`, `routes:<tipo>+<tipo>`, `travel:<mundo>` (lista em `scripts/ui/places.gd`).
+     `upgrade` opcional: sem essa construção, tocar abre a compra. `upgrades`: compras dentro do painel.
+     `requirements`: lugar fechado até cumprir. `hidden`: fora da lista "Lugares".
+     **No máximo 4 lugares visíveis por mundo.**
    - Sem `room`, o mundo ainda funciona: vira uma tela com a imagem `banner` + cartões dos
      personagens e lugares (bom para prototipar antes da arte).
 4. **Personagens:** em `game/data/npcs.json` (`name`, `role`, `greeting`, `portrait`, `icon`,
@@ -80,8 +85,8 @@ Nenhum código precisa mudar para um mundo novo, a não ser que ele traga um **t
 
 ## Acesso gradual (Tarefas v2)
 
-Casa e Sítio são abertos. Vila exige `quests: ["first_harvest"]`; Trilha exige
-`chapter: 3`. Pedidos da Vila e rotas de passeio/mina repetem esses requisitos.
+Casa e Sítio são abertos. Vila exige `quests: ["first_harvest"]`; o Portão da trilha (lugar da Vila)
+exige `chapter: 3`. Pedidos da Vila e rotas de passeio/mina repetem esses requisitos.
 O capítulo é derivado das principais recebidas (comprar a geladeira não basta).
 A comemoração anuncia mundos recém-abertos; o mapa mostra o motivo dos bloqueios.
 Toda missão deve ter um destino válido e acessível quando liberada: valide com

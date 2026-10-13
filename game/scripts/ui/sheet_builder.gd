@@ -118,6 +118,22 @@ static func _list_section(box: VBoxContainer, title: String, lines: PackedString
 		box.add_child(UiKit.label("• " + line, &"SmallLabel"))
 
 
+## Várias estações num painel (Cozinha = fogão + forno): título com ícone e a estação embaixo.
+## Estação ainda não comprada mostra o cartão de compra no lugar.
+static func stations_view(ids: PackedStringArray) -> Control:
+	var box := UiKit.vbox(12)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.mouse_filter = Control.MOUSE_FILTER_PASS
+	for id in ids:
+		if ids.size() > 1:
+			var title := UiKit.hbox(8)
+			title.add_child(UiKit.icon(UiKit.ui_icon(Database.progression.upgrades.get(id, {}).get("icon", "")), 32))
+			title.add_child(UiKit.fill_label(Database.stations.get(id, {}).get("name", id), &"TitleLabel"))
+			box.add_child(title)
+		box.add_child(station_view(id))
+	return box
+
+
 ## Estação de produção (fogão): espaços de preparo + receitas em cartões.
 static func station_view(station_id: String, focus: String = "") -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:

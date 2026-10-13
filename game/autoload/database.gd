@@ -57,11 +57,49 @@ func npc_world(npc_id: String) -> String:
 
 
 ## Lugar do mundo que abre um painel (ex.: "station:stove" -> "stove" na casa). Devolve [mundo, lugar].
+## Um lugar pode juntar painéis: "stations:stove+oven" atende "station:stove" e "station:oven";
+## "market:<aba>" atende "sell" e "orders"; "routes:walk+mine" atende "routes:walk" e "routes:mine".
 func place_with_panel(panel: String) -> Array[String]:
 	for world_id: String in worlds:
 		var places: Dictionary = worlds[world_id].get("places", {})
 		for place_id: String in places:
-			if places[place_id].get("panel", "") == panel:
+			if panel in panel_parts(places[place_id].get("panel", "")):
+				return [world_id, place_id]
+	return ["", ""]
+
+
+## Painéis simples que um painel de lugar atende (ver place_with_panel).
+func panel_parts(panel: String) -> PackedStringArray:
+	var kind := panel.get_slice(":", 0)
+	var args := panel.get_slice(":", 1).split("+") if ":" in panel else PackedStringArray()
+	match kind:
+		"stations":
+			var parts: PackedStringArray = []
+			for id in args:
+				parts.append("station:" + id)
+			return parts
+		"market":
+			return PackedStringArray(["sell", "orders"])
+		"routes":
+			var parts: PackedStringArray = []
+			for id in args:
+				parts.append("routes:" + id)
+			return parts
+	return PackedStringArray([panel])
+
+
+## Lugar onde se compra a construção: o que a tem como "upgrade" (ou na lista "upgrades").
+func place_of_upgrade(upgrade_id: String) -> Array[String]:
+	for world_id: String in worlds:
+		var places: Dictionary = worlds[world_id].get("places", {})
+		for place_id: String in places:
+			var place: Dictionary = places[place_id]
+			if place.get("upgrade", "") == upgrade_id or upgrade_id in place.get("upgrades", []):
+				return [world_id, place_id]
+	for world_id: String in worlds:
+		var places: Dictionary = worlds[world_id].get("places", {})
+		for place_id: String in places:
+			if "station:" + upgrade_id in panel_parts(places[place_id].get("panel", "")):
 				return [world_id, place_id]
 	return ["", ""]
 
