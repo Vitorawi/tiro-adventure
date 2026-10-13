@@ -58,14 +58,6 @@ func _quest_body(card: VBoxContainer, id: String) -> void:
 	var place := Places.target_view(Places.quest_target(id))
 	if place:
 		card.add_child(place)
-	if GameState.quest_error(id) != "":
-		var needs: Array = TaskHelp.describe("quest", id).needs
-		if not needs.is_empty():
-			var chips := UiKit.flow()
-			for need: Dictionary in needs:
-				var ok := int(need.have) >= int(need.amount)
-				chips.add_child(UiKit.tap_chip(TaskHelp.need_icon(need), "%d/%d" % [mini(int(need.have), int(need.amount)), int(need.amount)], TaskHelp.open.bind(need.kind, need.id, int(need.amount)), UiKit.GOOD if ok else UiKit.BAD))
-			card.add_child(chips)
 	card.add_child(ProgressionUi.reward_chips(quest.rewards))
 	ProgressionUi.quest_action(card, id)
 

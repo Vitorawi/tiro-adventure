@@ -69,6 +69,13 @@ static func _panel(kind: String, arg: String) -> Control:
 	return UiKit.label("Em breve!")
 
 
+static func _is_slot_upgrade(upgrade_id: String) -> bool:
+	for station: Dictionary in Database.stations.values():
+		if station.get("slot_upgrades", {}).has(upgrade_id):
+			return true
+	return false
+
+
 ## Painel do lugar + cartões de compra das construções que se compram ali (somem ao comprar).
 static func _with_upgrades(panel: Control, upgrades: Array) -> Control:
 	if upgrades.is_empty():
@@ -79,7 +86,7 @@ static func _with_upgrades(panel: Control, upgrades: Array) -> Control:
 	box.add_child(panel)
 	box.add_child(SheetBuilder.LiveBox.new(func(cards: VBoxContainer) -> void:
 		for id: String in upgrades:
-			if not GameState.has_upgrade(id):
+			if not GameState.has_upgrade(id) and not _is_slot_upgrade(id):  # espaços de estação ficam na fileira de espaços
 				ProgressionUi.upgrade_card(cards, id)))
 	return box
 

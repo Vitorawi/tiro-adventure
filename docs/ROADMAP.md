@@ -18,6 +18,14 @@
 - (4) Fogão expansível até 3 espaços: `stove_queue` (+1, 180 moedas + 3 tábuas) e novo `stove_queue_2`
   (+1, 320 + 5 tábuas, exige `stove_queue`); ambos em `config.json → stations.stove.slot_upgrades`,
   `progression.json → upgrades` e no lugar Cozinha de `worlds.json`. Números fáceis de ajustar.
+- (6) Espaços do fogão a ampliar ficam na própria fileira de espaços ("+" com o preço; tocar abre
+  a compra), em vez de um cartão lá embaixo: `SheetBuilder._locked_slot`, `GameState.pending_slot_upgrades`;
+  `Places._with_upgrades` não repete as compras que são `slot_upgrades` de estação. Vale para qualquer
+  estação com `slot_upgrades` em `config.json`. Teste em `progression_test` (captura `ui_kitchen_slots`).
+  Local, depois do deploy `e2e2f90`; falta publicar.
+- (7) Cartão de missão enxuto (pedido do Vitor): só o que fazer (objetivo), onde (lugar) e a recompensa;
+  saíram os chips de ingredientes que faltam (a cadeia fica no "?"). `tasks_screen._quest_body`.
+  Bancada não tinha bug: Vitor confirmou que "desbugou" (nada a corrigir). Falta publicar (itens 6 e 7).
 - (5) Recolher direto no mapa + animação: `Events.items_gained` / `CollectFx` (z_index 20, filho de `main`).
   Tocar numa estação/criação com lote pronto, no marcador "Recolher" da Natureza ou numa planta
   madura recolhe sem abrir painel e salta ícone +N. Os botões de recolher dos painéis usam a mesma

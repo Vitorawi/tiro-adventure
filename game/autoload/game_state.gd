@@ -141,6 +141,15 @@ func station(station_id: String) -> StationState:
 	return stations[station_id]
 
 
+## Ampliações de espaço da estação ainda não compradas, na ordem do config.json.
+func pending_slot_upgrades(id: String) -> Array[String]:
+	var result: Array[String] = []
+	for upgrade_id: String in Database.stations.get(id, {}).get("slot_upgrades", {}):
+		if not has_upgrade(upgrade_id):
+			result.append(upgrade_id)
+	return result
+
+
 ## Espaços na fila: base de config.json + melhorias em "slot_upgrades".
 func station_slots(id: String) -> int:
 	var data: Dictionary = Database.stations.get(id, {})

@@ -152,6 +152,7 @@ func _campaign() -> Dictionary:
 
 func _screenshots(final_save: Dictionary) -> void:
 	state.call("reset")
+	state.get("progress").seen["intro"] = true
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	var events: Node = root.get_node("Events")
@@ -188,6 +189,15 @@ func _screenshots(final_save: Dictionary) -> void:
 	events.emit_signal("sheet_close_requested")
 	main.call("_on_world_requested", "house", "place:stove")
 	await create_timer(1.2).timeout
+	state.get("progress").owned["stove"] = true
+	state.get("progress").owned["workbench"] = true
+	state.get("progress").owned.erase("stove_queue")
+	state.get("progress").owned.erase("stove_queue_2")
+	events.emit_signal("sheet_close_requested")
+	load("res://scripts/ui/places.gd").call("open", "house", "stove")
+	await create_timer(0.5).timeout
+	_check(main.find_child("LockedSlot_stove_queue", true, false) != null and main.find_child("LockedSlot_stove_queue_2", true, false) != null, "Fogão mostra na fileira de espaços as duas ampliações")
+	_shot("ui_kitchen_slots")
 	_shot("ui_kitchen")
 	events.emit_signal("sheet_close_requested")
 	main.call("_on_world_requested", "house", "npc:lais")

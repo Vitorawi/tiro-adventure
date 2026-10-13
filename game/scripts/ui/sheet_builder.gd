@@ -197,6 +197,9 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 		var slot_row := UiKit.hbox(8)
 		for i in slots:
 			slot_row.add_child(_slot_card(target.queue[i] if i < target.queue.size() else {}, now))
+		# Espaços que ainda dá para ampliar ficam na mesma fileira, com "+" e o preço.
+		for upgrade_id: String in GameState.pending_slot_upgrades(station_id):
+			slot_row.add_child(_locked_slot(upgrade_id))
 		box.add_child(slot_row)
 		var ready := target.ready_count(now)
 		if ready > 0:
@@ -224,6 +227,36 @@ static func _slot_card(entry: Dictionary, now: float) -> Control:
 	if remaining > seconds:
 		return _slot_frame(texture, "Na fila", 0.0, false, false)
 	return _slot_frame(texture, format_time(int(ceil(remaining))) + amount, 1.0 - remaining / seconds, false, false)
+
+
+## Espaço ainda fechado: "+" e o preço; tocar abre a compra da ampliação.
+static func _locked_slot(upgrade_id: String) -> Control:
+	var data: Dictionary = Database.progression.upgrades[upgrade_id]
+	var ready := GameState.upgrade_error(upgrade_id) == ""
+	var panel := PanelContainer.new()
+	panel.theme_type_variation = &"ReadyCardPanel" if ready else &"CardPanel"
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.name = "LockedSlot_" + upgrade_id
+	if not ready:
+		panel.modulate.a = 0.75
+	var box := UiKit.vbox(4)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var plus := UiKit.label("+", &"TitleLabel", UiKit.GOOD if ready else null)
+	plus.add_theme_font_size_override("font_size", 44)
+	plus.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	plus.custom_minimum_size = Vector2(0, 64)
+	plus.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	box.add_child(plus)
+	var price := UiKit.chip(UiKit.ui_icon("coin"), str(int(data.cost)), UiKit.GOOD if GameState.coins >= int(data.cost) else UiKit.BAD)
+	price.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	box.add_child(price)
+	panel.add_child(box)
+	panel.gui_input.connect(func(event: InputEvent) -> void:
+		var click := event as InputEventMouseButton
+		if click and click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
+			Events.sheet_requested.emit(str(data.name), ProgressionUi.purchase(upgrade_id)))
+	return panel
 
 
 static func _slot_frame(texture: Texture2D, text: String, progress: float, done: bool, empty: bool) -> Control:
