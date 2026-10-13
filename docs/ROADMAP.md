@@ -4,6 +4,18 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **13/10/2026, Codex**.
 
+**Manual visual na tela principal (Codex, 13/10/2026).**
+- Botão Manual acima do Tiro, disponível desde o começo. Catálogo Recursos/Estações em
+  `GameManual`, gerado dos dados existentes: itens por categoria, origens, ingredientes,
+  quantidades, tempos, usos e local mundo › lugar. Toque em ingrediente abre sua origem.
+- Ir até lá para os lugares; Ver compra para estações não compradas; mundos/lugares fechados
+  continuam bloqueados com motivo. Catálogo completo é consulta, sem mudar progresso/save.
+- Atalhos acima do Tiro usam fluxo para caber Manual + Atributos + Coleção no celular.
+- Suíte completa incluindo novo `manual_test`: consulta sem alterações, todos os itens,
+  bloqueios, ingrediente tocável e navegação até a bancada. Capturas 360×780 `manual_*` conferidas.
+- Publicação autorizada pelo Vitor em 13/10/2026 pela `main` (prod e dev), após suíte completa verde.
+  Próximo: revisar no celular a consulta de recursos e os atalhos do manual.
+
 **Instruções breves nas missões (Codex, 13/10/2026).**
 - Pedido do Vitor: só ícones deixaram a ação difícil de entender. `goal_row` agora mostra
   `goals[].label` acima da barra, tanto na História quanto nos cartões dos personagens.

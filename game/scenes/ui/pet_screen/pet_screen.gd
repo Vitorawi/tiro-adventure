@@ -57,11 +57,14 @@ func _ready() -> void:
 	_refresh()
 
 
-## Atalhos pequenos (Atributos e Coleção) acima do Tiro, à direita.
+## Atalhos acima do Tiro: Manual sempre disponível; Atributos/Coleção conforme progresso.
 func _build_extras() -> void:
-	var row := UiKit.hbox(8)
+	var row := UiKit.flow(6)
 	row.name = "Extras"
-	row.alignment = BoxContainer.ALIGNMENT_END
+	row.alignment = FlowContainer.ALIGNMENT_END
+	var manual := UiKit.tap_chip(UiKit.ui_icon("tab_tasks"), "Manual", GameManual.open)
+	manual.name = "ManualButton"
+	row.add_child(manual)
 	for entry: Array in [["Atributos", "xp", ProgressionUi.skills_panel], ["Coleção", "item_accessory_set", ProgressionUi.collection_panel]]:
 		var chip := UiKit.tap_chip(UiKit.ui_icon(entry[1]), entry[0], func() -> void:
 			Events.sheet_requested.emit(entry[0], (entry[2] as Callable).call()))

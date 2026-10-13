@@ -62,7 +62,8 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   scripts/state/     DogState, Inventory, StationState, ProgressionState (dados + to_dict/from_dict)
   scripts/ui/        UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
                      ProgressionUi (painéis: personagem, construir, vender, encomendas, rotas, atributos, coleção),
-                     DevPanel (ferramentas DEV), PlotIndicator, PetAnimator (animações do Tiro na aba Tiro)
+                     GameManual (catálogo visual de recursos/estações), DevPanel (ferramentas DEV),
+                     PlotIndicator, PetAnimator (animações do Tiro na aba Tiro)
   scripts/util/      BuildInfo (canal prod/dev, arquivo de save), TimeText (texto de duração)
   assets/            sprites/(characters,areas,tiles,ui,fx), theme/, audio/, fonts/, icons/ (PWA)
   tests/             testes headless (excluídos do export)
@@ -87,6 +88,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Revelar algo aos poucos ("Novo!")     | `progression.json` → `features` (aba/seção com `requirements` e `go`); mundos, lugares e NPCs com `requirements` entram sozinhos. `GameState.new_unlocks`/`mark_seen`; tela em `scenes/ui/celebration/` |
 | Botão "Ir até lá"                     | `Events.world_requested.emit(mundo, "<lugar>" | "npc:<id>" | "buy:<construção>")` |
 | Mudar a aba Missões / Mochila         | `scenes/ui/tasks_screen/tasks_screen.gd` / `SheetBuilder.inventory_view` e `item_detail` |
+| Manual de recursos e estações        | `scripts/ui/game_manual.gd` (conteúdo derivado do Database); atalho na tela `pet_screen.gd` |
 | Nova ferramenta de teste (dev)        | `GameState.dev_*()` (com guarda `BuildInfo.is_dev()`) + botão em `scripts/ui/dev_panel.gd` |
 | Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: PrimaryButton, TabButton, CloseButton, CardPanel, ReadyCardPanel, ChipPanel, SheetPanel, TopBarPanel, TitleLabel, SectionLabel, SmallLabel, BarLabel, ToastLabel) |
 | Ícone de item/necessidade/atributo    | PNG 32 px em `game/assets/sprites/ui/icons/` + campo `"icon"` no JSON (caminho em `items.json`/`needs`; nome do arquivo sem `.png` em `progression.json`, `npcs.json`, `collections.json`) |
@@ -115,6 +117,9 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 - **Revelar aos poucos:** nada aparece antes da história apresentar (Mochila, diárias, semanais, atributos,
   Vila, portão, personagens). Ao abrir, a tela "Novo!" mostra ícone + Ir uma vez (`ProgressionState.seen`).
   O "Ir" mostra uma seta sobre o objeto (`RoomView.point_at` + `Places.highlight_action`) e abre o painel em seguida.
+  Exceção de consulta: o **Manual** na tela Tiro mostra o catálogo completo desde o começo,
+  conforme pedido do Vitor. Não altera progresso; atalhos respeitam requisitos de mundos/lugares
+  e estações não compradas levam à compra. Ingredientes abrem sua origem no próprio manual.
 - **Navegação intuitiva:** cada função mora num lugar de um mundo (`worlds.json`); toda tela que
   sugere algo (Missões, Mochila, personagem) tem botão que leva até lá (`Events.world_requested`).
   Nada de menus genéricos escondidos: um lugar novo entra no mundo onde faria sentido.
@@ -185,6 +190,7 @@ powershell -ExecutionPolicy Bypass -File tools\serve_local.ps1  # http://localho
 & $env:GODOT_BIN --headless --path game -s res://tests/tasks_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/content_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/navigation_test.gd
+& $env:GODOT_BIN --headless --path game -s res://tests/manual_test.gd
 # Ou rode toda a suíte: powershell -File tools/test_all.ps1
 # Capturas das telas: rode sem --headless, com --resolution 360x780 e "-- --screenshots"
 

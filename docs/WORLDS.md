@@ -6,16 +6,35 @@
 ## Abas
 | Aba | O que tem |
 |---|---|
-| **Tiro** | Tela do Pet (necessidades, carinho, comer, brincar, banho, dormir). |
+| **Tiro** | Tela do Pet (necessidades, carinho, comer, brincar, banho, dormir) e botão **Manual** para consultar recursos/estações. |
 | **Mapa** | O mundo em que você está (sala tocável) com cabeçalho: botão **Mapa**, nome do mundo, botão **Lugares** ("O que tem aqui?") e os **personagens** dali (verdes com "!" quando há missão pronta). Tocar em "Mapa" (ou na aba de novo) mostra a lista de mundos com miniatura, personagens e avisos ("Canteiros: 2 prontos para colher!"). |
 | **Missões** | "O que eu faço agora?": **História** (um passo por vez: rosto de quem pede, instrução breve + ícone + `0/6`, ícone do lugar, ingredientes que faltam em chips tocáveis, recompensa em chips, **Ir** + **?**), **Diárias** (3, renovam à meia-noite) e **Semanais** (2, renovam na segunda), também com instrução breve. A bolinha vermelha conta o que está pronto. Atributos e Coleção ficam na aba Tiro. |
 | **Mochila** | Ícone + quantidade por categoria (aparece após a 1ª colheita). Tocar num item: preço, efeitos, **De onde vem** e **Usado em** (chips que levam ao lugar), "Dar ao Tiro" e "Vender". |
 
-## Onde fica cada coisa hoje
+## Instruções das missões
 
 Texto de ação: `quests.json → goals[].label` aparece junto ao progresso, na aba Missões
 e nos cartões dos personagens; `routines.json → description` explica cada diária/semanal.
 Use verbos concretos (plantar, colher, comprar, produzir, entregar) em uma frase curta.
+
+## Manual visual (consulta na tela principal)
+
+- Botão **Manual** acima do Tiro, sempre disponível; Recursos e Estações em dois botões.
+- **Recursos:** todos os itens de `items.json`, agrupados por categoria, com ícone e nome,
+  mesmo com mochila vazia. Tocar mostra como conseguir: plantar/colher, receita com ingredientes
+  → produto, rota ou recompensa de missão; tempo e quantidade vêm dos JSON. Ingredientes e
+  produtos são tocáveis para seguir a cadeia; mostra também usos em receitas/construções,
+  comida do Tiro e preço de venda quando houver.
+- **Estações:** fogão, forno, bancada e ateliê derivados de `config.json → stations`, produtos
+  derivados de `recipes.json`; local legível (mundo › lugar). Também inclui canteiros e rotas
+  para explicar onde coletar os materiais.
+- **Ir até lá** usa a navegação existente; **Ver compra** para estação não comprada.
+  Mundos/lugares fechados têm botão desabilitado e requisito. Receitas/culturas/rotas mostram
+  requisitos pendentes. O catálogo permite conhecer conteúdos futuros, sem liberar suas ações.
+- Código em `scripts/ui/game_manual.gd`; não depende de itens possuídos nem altera o save.
+  `manual_test.gd` valida cobertura, consulta sem alterações, toque em ingrediente e destino.
+
+## Onde fica cada coisa hoje
 
 | Mundo | Personagens | Lugares (tocar na cena ou em "Lugares") |
 |---|---|---|
