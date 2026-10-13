@@ -163,6 +163,8 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 - Commitar os arquivos `.uid` e `.import` gerados pelo Godot; nunca commitar `.godot/` ou `build/`.
 - **Visual e simples:** ícone + número em vez de frase (`ProgressionUi.goal_row`, `reward_chips`, `item_chip`);
   ingrediente que falta é chip tocável (abre o "Como fazer"); bloqueio = botão desabilitado + "?". Uma linha de texto no máximo.
+  Nas missões, mostre também uma instrução breve da ação: `goals[].label` na História
+  e `description` nas diárias/semanais. Pode quebrar a frase no celular; não truncar o objetivo.
 - Ao mudar estrutura ou arquitetura, **atualize este arquivo (e o `AGENTS.md`) e o doc relevante em `docs/`**.
 
 ## Comandos

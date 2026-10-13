@@ -394,6 +394,8 @@ static func routine_card(box: VBoxContainer, kind: String, id: String) -> void:
 		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(button)
 	card.add_child(row)
+	# Frase de ação ocupa a largura toda, sem ficar espremida pelo botão Ir.
+	card.add_child(UiKit.label(data.get("description", data.name), &"SmallLabel"))
 
 
 ## História completa: capítulos passados (✓), o atual com os passos e os próximos apagados.
@@ -453,15 +455,21 @@ static func stat_icon(key: String) -> Texture2D:
 	return UiKit.ui_icon(icons.get(prefix, "xp"))
 
 
-## Linha de objetivo: ícone + barra + "3/6".
+## Linha de objetivo: ícone + instrução breve + barra e "3/6".
 static func goal_row(goal: Dictionary, value: int, px: int = 32) -> HBoxContainer:
 	var target := int(goal.get("target", 1))
 	var row := UiKit.hbox(8)
 	row.add_child(UiKit.icon(goal_icon(goal), px))
+	var info := UiKit.vbox(4)
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_child(UiKit.label(goal.get("label", ""), &"SmallLabel"))
+	var progress := UiKit.hbox(8)
 	var bar := UiKit.bar(100.0 * mini(value, target) / maxi(1, target), UiKit.GOOD, 12)
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(bar)
-	row.add_child(UiKit.short_label("%d/%d" % [mini(value, target), target], &"", UiKit.GOOD if value >= target else null))
+	progress.add_child(bar)
+	progress.add_child(UiKit.short_label("%d/%d" % [mini(value, target), target], &"", UiKit.GOOD if value >= target else null))
+	info.add_child(progress)
+	row.add_child(info)
 	return row
 
 

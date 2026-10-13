@@ -1,5 +1,5 @@
 extends PanelContainer
-## Aba Missões: História (um passo por vez), Diárias e Semanais. Visual: ícone + número.
+## Aba Missões: História (um passo por vez), Diárias e Semanais. Ícone + ação breve + progresso.
 
 
 func _ready() -> void:
@@ -12,7 +12,7 @@ func _build(box: VBoxContainer) -> void:
 		_routines(box, kind)
 
 
-## Cartão da história: quem pede, o quê (ícone + 0/6), onde, o que falta e Ir.
+## Cartão da história: quem pede, ação em texto breve + ícone + 0/6, onde, o que falta e Ir.
 func _story_card(box: VBoxContainer) -> void:
 	var chapter := GameState.current_chapter()
 	var index := GameState.progress.chapter_index()

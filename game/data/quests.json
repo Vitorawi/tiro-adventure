@@ -30,7 +30,7 @@
         "type": "stat",
         "key": "harvest",
         "target": 1,
-        "label": "Colher uma plantação"
+        "label": "Plante uma semente e colha quando crescer"
       }
     ],
     "rewards": {

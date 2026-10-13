@@ -8,10 +8,15 @@
 |---|---|
 | **Tiro** | Tela do Pet (necessidades, carinho, comer, brincar, banho, dormir). |
 | **Mapa** | O mundo em que você está (sala tocável) com cabeçalho: botão **Mapa**, nome do mundo, botão **Lugares** ("O que tem aqui?") e os **personagens** dali (verdes com "!" quando há missão pronta). Tocar em "Mapa" (ou na aba de novo) mostra a lista de mundos com miniatura, personagens e avisos ("Canteiros: 2 prontos para colher!"). |
-| **Missões** | "O que eu faço agora?": **História** (um passo por vez: rosto de quem pede, ícone + `0/6`, ícone do lugar, ingredientes que faltam em chips tocáveis, recompensa em chips, **Ir** + **?**), **Diárias** (3, renovam à meia-noite) e **Semanais** (2, renovam na segunda). A bolinha vermelha conta o que está pronto. Atributos e Coleção ficam na aba Tiro. |
+| **Missões** | "O que eu faço agora?": **História** (um passo por vez: rosto de quem pede, instrução breve + ícone + `0/6`, ícone do lugar, ingredientes que faltam em chips tocáveis, recompensa em chips, **Ir** + **?**), **Diárias** (3, renovam à meia-noite) e **Semanais** (2, renovam na segunda), também com instrução breve. A bolinha vermelha conta o que está pronto. Atributos e Coleção ficam na aba Tiro. |
 | **Mochila** | Ícone + quantidade por categoria (aparece após a 1ª colheita). Tocar num item: preço, efeitos, **De onde vem** e **Usado em** (chips que levam ao lugar), "Dar ao Tiro" e "Vender". |
 
 ## Onde fica cada coisa hoje
+
+Texto de ação: `quests.json → goals[].label` aparece junto ao progresso, na aba Missões
+e nos cartões dos personagens; `routines.json → description` explica cada diária/semanal.
+Use verbos concretos (plantar, colher, comprar, produzir, entregar) em uma frase curta.
+
 | Mundo | Personagens | Lugares (tocar na cena ou em "Lugares") |
 |---|---|---|
 | **Casa** | — | Tigela, **Cozinha** (fogão + forno + fila extra), Geladeira, porta → Sítio. Sofá = enfeite com soneca (`hidden`). |

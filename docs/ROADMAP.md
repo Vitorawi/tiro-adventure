@@ -4,6 +4,15 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **13/10/2026, Codex**.
 
+**Instruções breves nas missões (Codex, 13/10/2026).**
+- Pedido do Vitor: só ícones deixaram a ação difícil de entender. `goal_row` agora mostra
+  `goals[].label` acima da barra, tanto na História quanto nos cartões dos personagens.
+- Primeira colheita explica plantar e esperar crescer. Todas as diárias/semanais têm
+  `description` com ação e quantidade, exibida na largura do cartão, sem exigir tocar em "?".
+- Teste de Missões passou; capturas 360×780 `tasks_start` e `tasks_middle` conferidas.
+  Publicação autorizada pelo Vitor em 13/10/2026 pela `main` (prod e dev); suíte completa
+  rodada novamente antes do envio. Próximo: revisar a clareza das frases jogando no celular.
+
 **Tiro andando no Sítio e na Vila (Codex, 13/10/2026).**
 - Ambos têm `dog_start`; Vila ganhou `floor`. Canteiros têm `footprint`; `obstacles` bloqueia
   casas, feira, árvores/pomar, caixas e banco desenhados no fundo. Margem de navegação de 8 px

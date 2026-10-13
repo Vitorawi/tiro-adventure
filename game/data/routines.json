@@ -4,44 +4,52 @@
     "missions": {
       "feed": {
         "name": "Alimente o Tiro",
+        "description": "Dê comida ao Tiro 2 vezes.",
         "goal": {"key": "feed", "target": 2},
         "rewards": {"coins": 10}
       },
       "bathe": {
         "name": "Dê banho no Tiro",
+        "description": "Dê um banho no Tiro.",
         "goal": {"key": "bathe", "target": 1},
         "rewards": {"coins": 10}
       },
       "play": {
         "name": "Brinque com o Tiro",
+        "description": "Brinque com o Tiro 2 vezes.",
         "goal": {"key": "play", "target": 2},
         "rewards": {"coins": 10}
       },
       "harvest": {
         "name": "Colha 3 vezes",
+        "description": "Plante e colha 3 canteiros no sítio.",
         "goal": {"key": "harvest", "target": 3},
         "rewards": {"coins": 15}
       },
       "cook": {
         "name": "Cozinhe 2 vezes",
+        "description": "Produza e recolha 2 itens.",
         "goal": {"key": "produce", "target": 2},
         "rewards": {"coins": 15},
         "requirements": {"owned": ["stove"]}
       },
       "sell": {
         "name": "Venda 5 itens",
+        "description": "Venda 5 itens na feira.",
         "goal": {"key": "sold", "target": 5},
         "rewards": {"coins": 15},
         "requirements": {"quests": ["first_sale"]}
       },
       "walk": {
         "name": "Faça um passeio",
+        "description": "Conclua uma rota de exploração.",
         "goal": {"key": "explore", "target": 1},
         "rewards": {"coins": 20},
         "requirements": {"quests": ["first_walk"]}
       },
       "order": {
         "name": "Entregue uma encomenda",
+        "description": "Entregue os produtos de uma encomenda na feira.",
         "goal": {"key": "orders", "target": 1},
         "rewards": {"coins": 25},
         "requirements": {"quests": ["main_2_order"]}
@@ -53,34 +61,40 @@
     "missions": {
       "clean_week": {
         "name": "Semana cheirosa",
+        "description": "Dê 7 banhos no Tiro nesta semana.",
         "goal": {"key": "bathe", "target": 7},
         "rewards": {"coins": 60, "collections": ["clean_bow"]}
       },
       "big_harvest": {
         "name": "Grande colheita",
+        "description": "Plante e colha 30 canteiros no sítio.",
         "goal": {"key": "harvest", "target": 30},
         "rewards": {"coins": 100, "collections": ["garden_hat"]}
       },
       "chef_week": {
         "name": "Chef da semana",
+        "description": "Produza e recolha 15 itens.",
         "goal": {"key": "produce", "target": 15},
         "rewards": {"coins": 90, "collections": ["cook_apron"]},
         "requirements": {"owned": ["stove"]}
       },
       "market_week": {
         "name": "Freguês fiel",
+        "description": "Venda 40 itens na feira.",
         "goal": {"key": "sold", "target": 40},
         "rewards": {"coins": 90, "collections": ["merchant_apron"]},
         "requirements": {"quests": ["first_sale"]}
       },
       "explorer_week": {
         "name": "Pé na trilha",
+        "description": "Conclua 7 rotas de exploração.",
         "goal": {"key": "explore", "target": 7},
         "rewards": {"coins": 100, "collections": ["trail_bandana"]},
         "requirements": {"quests": ["first_walk"]}
       },
       "miner_week": {
         "name": "Pequeno minerador",
+        "description": "Explore a pedreira 5 vezes e recolha os materiais.",
         "goal": {"key": "activity:quarry", "target": 5},
         "rewards": {"coins": 120, "collections": ["miner_helmet"]},
         "requirements": {"owned": ["pickaxe"]}
