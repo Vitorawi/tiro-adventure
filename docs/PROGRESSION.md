@@ -2,17 +2,24 @@
 
 ## Ferramentas e coleta na Natureza
 
-`nature_resources` em progression.json define por material os `routes` em ordem de preferência
-e `tools` na ordem das melhorias. NatureUi escolhe a primeira rota cujos requisitos foram
-cumpridos, mesmo durante outro lote. Todo material aparece no painel único; começo/recolher
-usa GameState.start_activity/collect_activity, com timestamps e limite de uma exploração.
+`nature_sites` em progression.json define Árvores, Pedras e Fibras: grupos de rotas,
+materiais, ferramentas e duas compras `slot_upgrades`. `nature_resources` escolhe a melhor
+rota liberada por material. Cada local tem painel próprio, aberto tocando no cenário;
+ferramenta atual, rendimento/tempo, três vagas e próxima melhoria ficam ali, sem abas gerais.
 
-`nature_tool_groups` organiza as abas Madeira (machados), Mineração (todas as picaretas) e
-Fibras (foice). Abrir ferramentas de pedra/cobre/cristal seleciona o mesmo kit Mineração.
-`route_tool` identifica o requisito real da rota: a coleta mostra **Usa** para ferramenta
-adquirida, **Precisa** para a que falta, ou **À mão · sem ferramenta**. Também indica
-a próxima melhoria. Ter uma picareta de precisão não muda o rótulo de uma rota que usa
-a reforçada; o painel segue o rendimento/duração da rota selecionada.
+Uma vaga vem aberta. Segunda/terceira custam 100/200 em Árvores, 120/240 em Pedras e 80/160
+em Fibras. Só moedas; a terceira exige a segunda. São upgrades normais em progress.owned.
+Cada vaga começa agora e termina por seu timestamp, sem fila sequencial. Até três por local,
+inclusive Árvores e Pedras simultâneos. `start_gathering`, `collect_gathering` e ações em lote
+validam local, vaga, requisito e prontidão antes de alterar o estado.
+
+`progress.gathering` guarda tarefas por índice, com id, resource, started_at, ready_at e snapshot de
+rewards. Save v8 converte a antiga activity da Natureza para a vaga 1 do local correto,
+sem reiniciar o prazo ou duplicar recompensa. Pomar/rotas antigas mantêm a API global.
+O Ir das missões abre a rota exata para objetivos activity:lane/quarry, mesmo após melhorias.
+`route_tool` identifica a exigência real; o painel mostra Usa/Precisa/À mão e só a próxima compra.
+O material selecionado fica salvo na tarefa para manter o ícone certo ao trocar de seleção;
+todos os produtos extras da rota também são entregues, sem mudar tarefas em andamento.
 
 - Machado (60) → reforçado (180): madeira em maior quantidade → madeira dura.
 - Picareta (80) → reforçada (220) → precisão (340): mais pedra/cobre → mais cristais.
@@ -20,8 +27,8 @@ a reforçada; o painel segue o rendimento/duração da rota selecionada.
 
 Custos em moedas; materiais e requisitos ficam nos upgrades JSON. São melhorias opcionais:
 rotas antigas e saves em andamento mantêm requisitos, duração e recompensa anteriores.
-Madeira dura também vira três tábuas a partir de duas unidades na bancada. Save v7 continua
-adequado: compras persistem em progress.owned; novos ids não alteram o formato do estado.
+Madeira dura também vira três tábuas a partir de duas unidades na bancada. Melhorar ferramenta
+não altera tarefas em andamento, que mantêm recompensa e prazo do início.
 
 ## Compra de animais
 

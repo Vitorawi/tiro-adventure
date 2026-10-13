@@ -13,7 +13,7 @@ extends Node
 ## (BuildInfo.save_path()). Na Web as duas ficam no mesmo IndexedDB do site, por isso
 ## precisam de nomes diferentes para a versão dev não apagar o progresso real.
 
-const SAVE_VERSION := 7
+const SAVE_VERSION := 8
 
 var _save_pending := false
 var _save_path := BuildInfo.save_path()
@@ -159,6 +159,9 @@ func _migrate(data: Dictionary) -> Dictionary:
 		# GameState.from_dict preserva os dois animais dos abrigos já comprados.
 		# Ausência de animals identifica esse estado anterior, sem criar em saves novos.
 		version = 7
+	if version < 8:
+		# ProgressionState.from_dict leva a antiga coleta para a vaga 1 do local.
+		version = 8
 	data["save_version"] = version
 	return data
 

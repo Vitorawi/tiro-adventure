@@ -21,10 +21,7 @@ func _ready() -> void:
 	%MapButton.pressed.connect(show_map)
 	%MapButton.icon = UiKit.ui_icon("tab_map")
 	%PlacesButton.pressed.connect(func() -> void:
-		if current_world == "nature":
-			NatureUi.open()
-		else:
-			Events.sheet_requested.emit("O que tem aqui?", Places.world_list(current_world)))
+		Events.sheet_requested.emit("Locais" if current_world == "nature" else "O que tem aqui?", Places.world_list(current_world)))
 	%Cards.add_child(SheetBuilder.LiveBox.new(_build_cards))
 	Events.state_changed.connect(_refresh_header)
 	var timer := Timer.new()
@@ -116,7 +113,7 @@ func _refresh_header() -> void:
 		return
 	_header_key = key
 	%WorldTitle.text = world.get("name", "")
-	%PlacesButton.text = "Coletar" if current_world == "nature" else "Lugares"
+	%PlacesButton.text = "Locais" if current_world == "nature" else "Lugares"
 	for child in %NpcRow.get_children():
 		child.queue_free()
 	%NpcRow.visible = not Places.visible_npcs(current_world).is_empty()

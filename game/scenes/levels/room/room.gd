@@ -66,7 +66,8 @@ func _ready() -> void:
 	_spawn_regions()
 	for data: Dictionary in _room.get("route_markers", []):
 		var indicator := RouteIndicator.new()
-		indicator.group = data.group
+		indicator.group = data.get("group", "")
+		indicator.site = data.get("site", "")
 		indicator.position = _vec(data.pos)
 		indicator.z_index = 5
 		_world.add_child(indicator)
@@ -681,7 +682,7 @@ func _handle_tap(point: Vector2) -> void:
 			return
 	for indicator: RouteIndicator in _route_markers:
 		if indicator.active() and indicator.hit_rect.has_point(point - indicator.position):
-			Places.run(world_id, "place:resources")
+			Places.run(world_id, "place:" + indicator.site)
 			return
 	if _dog and _dog.hit_test(point):
 		Events.screen_requested.emit(&"pet")

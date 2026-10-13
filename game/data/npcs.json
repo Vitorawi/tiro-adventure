@@ -10,7 +10,7 @@
   "guide": {
     "name": "Guia da trilha",
     "requirements": {"chapter": 3},
-    "services": ["resources"],
+    "services": ["trees", "rocks", "fibers"],
     "role": "Passeios e descobertas",
     "portrait": "res://assets/sprites/characters/npc_guide/portrait.png",
     "icon": "action_play",

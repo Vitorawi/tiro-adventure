@@ -184,6 +184,12 @@
       },
       "icon": "tool_pickaxe"
     },
+    "trees_slot_2": {"name": "Segundo espaço de corte", "world": "nature", "description": "Colete em duas árvores ao mesmo tempo.", "cost": 100, "materials": {}, "requirements": {"chapter": 3}, "icon": "item_wood"},
+    "trees_slot_3": {"name": "Terceiro espaço de corte", "world": "nature", "description": "Colete em três árvores ao mesmo tempo.", "cost": 200, "materials": {}, "requirements": {"owned": ["trees_slot_2"]}, "icon": "item_wood"},
+    "rocks_slot_2": {"name": "Segundo espaço de mineração", "world": "nature", "description": "Colete em duas pedras ao mesmo tempo.", "cost": 120, "materials": {}, "requirements": {"chapter": 3}, "icon": "item_stone"},
+    "rocks_slot_3": {"name": "Terceiro espaço de mineração", "world": "nature", "description": "Colete em três pedras ao mesmo tempo.", "cost": 240, "materials": {}, "requirements": {"owned": ["rocks_slot_2"]}, "icon": "item_stone"},
+    "fibers_slot_2": {"name": "Segundo espaço de fibras", "world": "nature", "description": "Colete fibras em dois pontos ao mesmo tempo.", "cost": 80, "materials": {}, "requirements": {"chapter": 3}, "icon": "item_fiber"},
+    "fibers_slot_3": {"name": "Terceiro espaço de fibras", "world": "nature", "description": "Colete fibras em três pontos ao mesmo tempo.", "cost": 160, "materials": {}, "requirements": {"owned": ["fibers_slot_2"]}, "icon": "item_fiber"},
     "axe": {
       "name": "Machado", "world": "nature", "description": "Corte madeira em maior quantidade.",
       "cost": 60, "materials": {"wood": 2, "stone": 2},
@@ -411,21 +417,21 @@
       "station": "dairy"
     }
   },
-  "nature_tool_groups": {
-    "wood": {"name": "Madeira", "description": "Machados para madeira e madeira dura.", "resources": ["wood", "hardwood"], "tools": ["axe", "axe_reinforced"]},
-    "mining": {"name": "Mineração", "description": "Picaretas para pedras, cobre e cristais.", "resources": ["stone", "copper", "crystal"], "tools": ["pickaxe", "pickaxe_reinforced", "pickaxe_crystal"]},
-    "fiber": {"name": "Fibras", "description": "Foice para as fibras do prado.", "resources": ["fiber"], "tools": ["sickle"]}
+  "nature_sites": {
+    "trees": {"name": "Árvores", "icon": "item_wood", "groups": ["walk"], "resources": ["wood"], "tools": ["axe", "axe_reinforced"], "slot_upgrades": ["trees_slot_2", "trees_slot_3"]},
+    "rocks": {"name": "Pedras", "icon": "item_stone", "groups": ["creek", "mine", "crystal"], "resources": ["stone", "copper", "crystal"], "tools": ["pickaxe", "pickaxe_reinforced", "pickaxe_crystal"], "slot_upgrades": ["rocks_slot_2", "rocks_slot_3"]},
+    "fibers": {"name": "Fibras", "icon": "item_fiber", "groups": ["meadow"], "resources": ["fiber"], "tools": ["sickle"], "slot_upgrades": ["fibers_slot_2", "fibers_slot_3"]}
   },
   "nature_resources": {
-    "wood": {"name": "Madeira", "icon": "item_wood", "routes": ["timber", "woodcutting", "trail", "lane"], "tools": ["axe", "axe_reinforced"]},
-    "stone": {"name": "Pedras", "icon": "item_stone", "routes": ["deep_quarry", "quarry", "trail", "pebbles"], "tools": ["pickaxe", "pickaxe_reinforced"]},
+    "wood": {"name": "Madeira", "icon": "item_wood", "routes": ["timber", "woodcutting", "lane"], "tools": ["axe", "axe_reinforced"]},
+    "stone": {"name": "Pedras", "icon": "item_stone", "routes": ["deep_quarry", "quarry", "pebbles"], "tools": ["pickaxe", "pickaxe_reinforced"]},
     "copper": {"name": "Cobre", "icon": "item_copper", "routes": ["deep_quarry", "copper_vein"], "tools": ["pickaxe", "pickaxe_reinforced"]},
     "crystal": {"name": "Cristais", "icon": "item_crystal", "routes": ["crystal_deep", "crystal_cave"], "tools": ["pickaxe", "pickaxe_reinforced", "pickaxe_crystal"]},
     "fiber": {"name": "Fibras", "icon": "item_fiber", "routes": ["reeds", "meadow"], "tools": ["sickle"]}
   },
   "activities": {
     "pebbles": {
-      "name": "Pedras da margem", "place": "walk", "description": "Recolha pequenas pedras com as mãos.", "seconds": 75,
+      "name": "Pedras da margem", "place": "creek", "description": "Recolha pequenas pedras com as mãos.", "seconds": 75,
       "requirements": {"chapter": 3}, "rewards": {"items": {"stone": 1}, "skill_xp": {"adventure": 8}}, "icon": "item_stone"
     },
     "woodcutting": {

@@ -63,7 +63,9 @@ static func _panel(kind: String, arg: String) -> Control:
 		"routes":
 			return ProgressionUi.routes_panel(arg)
 		"nature":
-			return NatureUi.panel()
+			for site: String in Database.progression.nature_sites:
+				if arg.get_slice("+", 0) in Database.progression.nature_sites[site].groups:
+					return NatureUi.panel(site)
 	return UiKit.label("Em breve!")
 
 
@@ -99,7 +101,7 @@ static func run(world_id: String, action: String) -> void:
 			var data: Dictionary = Database.progression.activities[id]
 			var target := Database.place_with_panel("routes:" + str(data.place))
 			if target[0] == "nature":
-				NatureUi.open()
+				NatureUi.open_route(id)
 			else:
 				Events.sheet_requested.emit(data.name, ProgressionUi.routes_panel(data.place, id))
 	elif action.begins_with("order:"):
@@ -243,6 +245,12 @@ static func place_alert(world_id: String, place_id: String) -> String:
 			if GameState.plot_status(i) == "ready":
 				ready += 1
 		return "%d pronto(s) para colher!" % ready if ready > 0 else ""
+	if world_id == "nature" and Database.progression.nature_sites.has(place_id):
+		var count := GameState.gathering_ready_count(place_id)
+		if count > 0:
+			return "%d coleta(s) pronta(s)!" % count
+		if not GameState.gathering_jobs(place_id).is_empty():
+			return "Coletando"
 	for part in Database.panel_parts(panel):
 		var arg := part.get_slice(":", 1)
 		if part.begins_with("station:") and GameState.has_upgrade(arg):

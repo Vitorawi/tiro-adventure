@@ -46,10 +46,12 @@ func _run() -> void:
 	check(worlds.get("current_world") == "nature", "Um toque entra no mundo")
 	check(not worlds.call("is_map_open"), "Seleção fecha após entrar")
 	var collect: Button = worlds.get_node("%PlacesButton")
-	check(collect.text == "Coletar", "Natureza tem acesso direto à coleta")
+	check(collect.text == "Locais", "Natureza lista pontos de coleta")
 	collect.pressed.emit()
 	await create_timer(0.2).timeout
-	check(main.find_child("Start_wood", true, false) != null, "Atalho abre todos os recursos")
+	load("res://scripts/ui/places.gd").call("open", "nature", "trees")
+	await create_timer(0.2).timeout
+	check(main.find_child("Gather_trees_0", true, false) != null, "Árvores abre corte diretamente")
 	main.queue_free()
 	await process_frame
 	print("WORLDS TEST: ", "PASS" if failures == 0 else "FAIL")

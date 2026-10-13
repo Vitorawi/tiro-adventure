@@ -50,7 +50,7 @@ Use verbos concretos (plantar, colher, comprar, produzir, entregar) em uma frase
 | **Casa** | — | Tigela, **Cozinha** (fogão + forno + fila extra), Geladeira, porta → Sítio. Sofá = enfeite com soneca (`hidden`). |
 | **Sítio da Bloblo** | Bloblo (casinha) | Canteiros (+ estufa), Produção (bancada + moinho + queijaria), Pomar e Animais (galinheiro + curral). Volta para casa é atalho oculto. |
 | **Vila** | Feirante, Laís | **Feira** (vender/encomendas; + banca), **Ateliê**, **Portão da trilha** (viaja para Natureza; capítulo 3) |
-| **Natureza** | Guia da trilha | **Coletar** reúne madeira, pedra, cobre, cristais e fibras; **Ferramentas** permite comprar/melhorar machados, picaretas e foice. |
+| **Natureza** | Guia da trilha | **Árvores** (madeira/machados), **Pedras** (pedra/cobre/cristal/picaretas), **Fibras** (prado/foice). Cada local tem uma a três coletas paralelas. |
 
 Regra atual: **4 mundos, no máximo 4 lugares visíveis cada** (`content_test`).
 Não existe menu "Construir": cada construção é comprada **no próprio lugar** — `"upgrade"` do lugar
@@ -63,14 +63,13 @@ A trilha mora no novo mundo Natureza; o portão da Vila usa `travel:nature`. A a
 Natureza tem paisagem contínua 512×384 com bosque, riacho com ponte, trilha e gruta.
 `regions` cercam/sombreiam zonas fechadas, abrem por `requirements` ou compra (`upgrade`).
 Abrir por Aventura recalcula a grade do Tiro, mesmo sem nova construção comprada.
-Tocar no cenário ou no botão Coletar abre o mesmo painel; escolhe-se o material sem viajar
-para outro ponto. NatureUi seleciona a melhor rota liberada em `nature_resources`. Ferramentas
-opcionais melhoram rendimento e liberam madeira dura; rotas anteriores continuam disponíveis.
-Ferramentas têm abas Madeira/Mineração/Fibras: machados, todas as picaretas e foice.
-Cada coleta mostra ícone e Usa/Precisa/À mão, conforme a ferramenta exigida pela rota;
-a próxima melhoria aparece abaixo, com atalho para o kit correspondente.
+Tocar nas árvores ou nas pedras abre seu painel diretamente: ferramenta, rendimento/tempo,
+três espaços e próxima compra. Só uma vaga inicial; liberar outras permite coletar em paralelo.
+Pedras tem seleção curta Pedra/Cobre/Cristal; Árvores usa a melhor ferramenta disponível.
+Fibras é outro local. Não há listão de materiais nem abas de ferramentas. Botões iniciam
+nos espaços livres e recolhem os prontos de uma vez; nenhuma tarefa vira fila sequencial.
 O painel `nature:<grupos>` resolve os aliases `routes:<grupo>` para missão/manual/mochila.
-`route_markers` mostra timer/Recolher por `RouteIndicator` sobre o cenário; obstáculos
+`route_markers.site` mostra tempo/quantidade pronta por `RouteIndicator`; obstáculos
 separados impedem andar na água, árvores ou penhascos. O save mantém os ids de atividade.
 
 ## Seleção de mundos
@@ -78,7 +77,7 @@ separados impedem andar na água, árvores ou penhascos. O save mantém os ids d
 Quatro cartões horizontais: miniatura inteira, nome curto, função, requisito ou aviso de pronto.
 Cartão inteiro tocável; mundo fechado tem requisito legível e não permite entrar. `map_name`
 e `map_caption` em worlds.json fornecem os textos curtos. Cabeçalho Para onde vamos?;
-Mundos volta à seleção. Natureza tem atalho direto Coletar no lugar do menu Lugares.
+Mundos volta à seleção. Natureza tem Locais (Árvores, Pedras, Fibras), além do toque direto no mapa.
 
 ## Como criar um mundo novo (receita)
 

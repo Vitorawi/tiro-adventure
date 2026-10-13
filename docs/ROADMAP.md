@@ -4,7 +4,24 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **13/10/2026, Codex**.
 
-**Ferramentas por categoria e exigência clara (Codex, 13/10/2026).**
+**Coleta por local e três vagas simultâneas (Codex, 13/10/2026).**
+- Árvores e Pedras agora são pontos distintos no mapa; Fibras fica no prado. Um toque abre
+  ferramenta, rendimento/tempo, vagas e próxima melhoria daquele local, sem abas/listão.
+- Uma vaga inicial por local; segunda/terceira compradas ali (Árvores 100/200, Pedras 120/240,
+  Fibras 80/160 moedas). Máximo três, começando juntas e terminando independentemente.
+  Locais trabalham ao mesmo tempo; iniciar nos livres/recolher prontos tem botão único.
+- Save v8: progress.gathering por local/índice, timestamps Unix e rewards congeladas. Atividade
+  antiga da Natureza migra para a vaga 1, sem perder prazo/recompensa; pomar segue compatível.
+  Ir das missões mantém lane/quarry exatos após comprar ferramentas melhores.
+- Nature test cobre UI, compra das vagas, simultaneidade (três cortes + pedra), offline,
+  coleta única, migração, melhorias durante coleta e indicador de três prontos. Campanha
+  completa passou com 152 ciclos, 27 aquisições e 33 missões. Demais testes passaram.
+- Suíte completa verde e export Web prod/dev concluído sem erros. Capturas 360×780 em
+  `build/screenshots/nature_{trees_initial,trees_working,trees_ready,rocks,sites_map}.png`.
+  Material por vaga fica salvo; coletas mistas preservam ícone, prazo e produtos extras.
+- Publicação prod/dev autorizada em 13/10/2026, via push na main. Próximo: avaliar a clareza dos dois painéis no celular.
+
+**Ferramentas por categoria — substituído pelos locais acima (Codex, 13/10/2026).**
 - Aba Ferramentas com filtros Madeira/Mineração/Fibras, definidos em `nature_tool_groups`.
   Cada filtro mostra apenas seu kit; Mineração reúne as três picaretas, mesmo vindo de Pedras.
 - Ícones dos materiais atendidos, próxima ferramenta destacada e custos existentes.

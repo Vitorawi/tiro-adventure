@@ -25,6 +25,8 @@ var unlocks: Dictionary = {}
 var cooldowns: Dictionary = {}
 ## Rota em andamento: { id, started_at, ready_at } ou vazio.
 var activity: Dictionary = {}
+## Coletas por local: até três { id, resource, started_at, ready_at, rewards } independentes.
+var gathering: Dictionary = {}
 ## Diárias e semanais do período atual (kind = "daily" | "weekly"):
 ## { period: "2026-10-12", ids: [...], base: { contador: valor no início }, claimed: { id: true } }.
 ## Progresso = contador atual − base; não precisa de contador próprio.
@@ -204,6 +206,11 @@ func shift_time(seconds: float) -> void:
 	if not activity.is_empty():
 		activity["started_at"] = float(activity.started_at) - seconds
 		activity["ready_at"] = float(activity.ready_at) - seconds
+	for jobs: Array in gathering.values():
+		for entry: Dictionary in jobs:
+			if not entry.is_empty():
+				entry["started_at"] = float(entry.started_at) - seconds
+				entry["ready_at"] = float(entry.ready_at) - seconds
 
 
 func to_dict() -> Dictionary:
@@ -211,7 +218,7 @@ func to_dict() -> Dictionary:
 		"skills": skills, "owned": owned, "stats": stats,
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
 		"collection": collection, "unlocks": unlocks,
-		"cooldowns": cooldowns, "activity": activity, "routines": routines, "step": step, "seen": seen,
+		"cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "step": step, "seen": seen,
 	}
 
 
@@ -225,9 +232,25 @@ func from_dict(data: Dictionary) -> void:
 	unlocks = data.get("unlocks", {}).duplicate(true)
 	cooldowns = data.get("cooldowns", {}).duplicate(true)
 	activity = data.get("activity", {}).duplicate(true)
+	gathering = {}
+	for site: String in data.get("gathering", {}):
+		if not Database.progression.nature_sites.has(site):
+			continue
+		var jobs: Array[Dictionary] = []
+		for entry: Dictionary in data.gathering[site]:
+			if jobs.size() >= 3:
+				break
+			jobs.append(entry.duplicate(true) if entry.is_empty() or Database.gathering_site(str(entry.get("id", ""))) == site else {})
+		gathering[site] = jobs
 	routines = data.get("routines", {}).duplicate(true)
 	step = data.get("step", {}).duplicate(true)
 	seen = data.get("seen", {}).duplicate(true)
 	# Rota removida do JSON não pode travar o jogador para sempre.
 	if not activity.is_empty() and not Database.progression.activities.has(str(activity.get("id", ""))):
 		activity = {}
+	# Save anterior: mantém a coleta em curso no primeiro espaço do local correto.
+	if not data.has("gathering") and not activity.is_empty():
+		var site := Database.gathering_site(str(activity.id))
+		if site != "":
+			gathering[site] = [activity.duplicate(true)]
+			activity = {}

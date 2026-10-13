@@ -11,21 +11,21 @@
   ],
   "objects": [],
   "route_markers": [
-    {"group": "walk", "pos": [165, 185]},
-    {"group": "creek", "pos": [321, 199]},
-    {"group": "mine", "pos": [375, 190]},
-    {"group": "crystal", "pos": [416, 173]},
-    {"group": "meadow", "pos": [280, 281]}
+    {"site": "trees", "pos": [142, 220]},
+    {"site": "rocks", "pos": [375, 190]},
+    {"site": "fibers", "pos": [280, 255]}
   ],
   "regions": [
-    {"id": "creek_area", "requirements": {"skills": {"adventure": 2}}, "polygon": [[246, 95], [329, 104], [331, 174], [287, 191], [267, 163]], "gate": [[322, 172], [303, 184]], "action": "place:resources"},
-    {"id": "rocks_area", "upgrade": "pickaxe", "polygon": [[339, 131], [459, 188], [494, 211], [364, 238], [315, 203], [323, 163]], "gate": [[338, 189], [363, 208]], "action": "place:resources", "label": "Picareta", "label_pos": [417, 218], "locked_label": true},
-    {"id": "crystals_area", "requirements": {"owned": ["pickaxe"], "skills": {"adventure": 3}}, "polygon": [[388, 123], [429, 139], [424, 161], [388, 164]], "gate": [[391, 155], [415, 164]], "action": "place:resources"},
-    {"id": "meadow_area", "requirements": {"skills": {"adventure": 4}}, "polygon": [[183, 274], [282, 226], [426, 240], [268, 321], [208, 300]], "gate": [[263, 239], [290, 249]], "action": "place:resources", "label": "Aventura 4", "label_pos": [295, 292], "locked_label": true}
+    {"id": "creek_area", "requirements": {"skills": {"adventure": 2}}, "polygon": [[246, 95], [329, 104], [331, 174], [287, 191], [267, 163]], "gate": [[322, 172], [303, 184]], "action": "place:rocks"},
+    {"id": "rocks_area", "upgrade": "pickaxe", "polygon": [[339, 131], [459, 188], [494, 211], [364, 238], [315, 203], [323, 163]], "gate": [[338, 189], [363, 208]], "action": "place:rocks", "locked_label": true},
+    {"id": "crystals_area", "requirements": {"owned": ["pickaxe"], "skills": {"adventure": 3}}, "polygon": [[388, 123], [429, 139], [424, 161], [388, 164]], "gate": [[391, 155], [415, 164]], "action": "place:rocks"},
+    {"id": "meadow_area", "requirements": {"skills": {"adventure": 4}}, "polygon": [[183, 274], [282, 226], [426, 240], [268, 321], [208, 300]], "gate": [[263, 239], [290, 249]], "action": "place:fibers", "label": "Aventura 4", "label_pos": [295, 292], "locked_label": true}
   ],
   "zones": [
     {"id": "village", "action": "place:village", "label": "Vila", "label_pos": [254, 80], "polygon": [[241, 83], [259, 75], [275, 85], [259, 99]]},
-    {"id": "resources", "action": "place:resources", "label": "Coletar", "label_pos": [244, 217], "polygon": [[0, 0], [512, 0], [512, 384], [0, 384]]}
+    {"id": "trees", "action": "place:trees", "label": "Árvores", "label_pos": [119, 168], "polygon": [[0, 75], [235, 22], [245, 180], [202, 205], [130, 237], [0, 226]]},
+    {"id": "rocks", "action": "place:rocks", "label": "Pedras", "label_pos": [407, 206], "polygon": [[278, 34], [390, 17], [511, 83], [512, 224], [348, 240], [310, 194], [287, 146]]},
+    {"id": "fibers", "action": "place:fibers", "label": "Fibras", "label_pos": [280, 290], "requirements": {"skills": {"adventure": 4}}, "polygon": [[93, 239], [190, 222], [279, 226], [399, 262], [251, 351], [105, 270]]}
   ],
   "points": {"dog_start": [246, 226]}
 }

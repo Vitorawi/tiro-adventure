@@ -92,7 +92,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Manual de recursos e estações        | `scripts/ui/game_manual.gd` (conteúdo derivado do Database); atalho na tela `pet_screen.gd` |
 | Expandir o sítio com áreas fechadas  | `rooms/farm.json → regions` (polígono, cerca e compra existente que libera a área) |
 | Zonas da Natureza e seus materiais | `rooms/nature.json → regions` (requirements/upgrade), `worlds.json → nature.places`, `progression.json → activities` (walk/creek/mine/crystal/meadow) |
-| Melhorar ferramentas/coleta | `progression.json → nature_resources` (rotas em prioridade), `nature_tool_groups` (Madeira/Mineração/Fibras), `upgrades` e `activities`; `NatureUi.best_route` seleciona a melhor liberada |
+| Coletar na Natureza e liberar vagas | `progression.json → nature_sites` (Árvores/Pedras/Fibras, ferramentas e slot_upgrades), `nature_resources` (rotas); `GameState.start_gathering/collect_gathering` e `NatureUi.panel` |
 | Comprar galinhas/vacas e variedades | `config.json → animals` (nome, preço, abrigo, sprite/escala); `GameState.buy_animal`, `animals` salvo; loja em `SheetBuilder.animal_shop` |
 | Galinhas/vacas e seus produtos       | `config.json → stations` com `kind: "animal"`, `animal_capacity`; alimentação/ovos/leite em `recipes.json`, timer em `StationState` |
 | Reações do Tiro no mundo             | `Events.world_activity` (GameState) → `RoomView` (alvo) → `DogWorld.react_at` (animação/caminho) |
@@ -175,13 +175,17 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   Natureza é um mundo próprio, aberto no capítulo 3. `route_group` em objetos associa
   `RouteIndicator` ao grupo de exploração e mostra tempo/Recolher no destino.
   Natureza usa cenário contínuo 512×384, com obstáculos de rio/árvores/rochas no fundo.
-  `route_markers` mostra timers sem sprites extras. Tocar no cenário ou em Coletar abre
-  um painel `nature:<grupos>`; suas partes são aliases `routes:<grupo>` para missão/manual.
-  Ferramentas são upgrades normais persistidos em `progress.owned`; as rotas antigas
-  continuam disponíveis. Melhorias liberam outras rotas sem alterar lotes em andamento.
-  Ferramentas têm filtros por `nature_tool_groups`: todas as picaretas juntas em Mineração,
-  machados em Madeira e foice em Fibras. `NatureUi.route_tool` lê a exigência da rota;
-  coleta mostra ícone + Usa/Precisa e a próxima melhoria, sem confundir com a última compra.
+  Árvores/Pedras/Fibras são locais tocáveis com painel `nature:<grupos>` (aliases
+  `routes:<grupo>` para missão/manual). Cada painel reúne só suas ferramentas e vagas;
+  começa com uma, `slot_upgrades` compra a segunda/terceira. `progress.gathering` salva
+  três tarefas independentes por local, com timestamps e recompensas fixadas ao iniciar.
+  `GameState.start_gathering/collect_gathering` valida ocupação, limite, local e requisitos;
+  ações em lote iniciam livres/recolhem prontos. Árvores e Pedras trabalham ao mesmo tempo.
+  Save v8 move a antiga atividade da Natureza para a primeira vaga, preservando tempo e
+  recompensa; pomar mantém a rota global. Ferramentas/vagas persistem em `progress.owned`.
+  `route_markers.site` mostra tempo/quantidade pronta no mapa. Sem abas gerais de coleta;
+  `route_tool` lê a ferramenta exigida e o painel oferece só a próxima compra. O Ir de uma
+  missão preserva a rota exata, mesmo que ferramentas melhores já estejam compradas.
   `"initial_zoom"`/`"view_center"` definem o enquadramento inicial de mapas maiores.
   `"approach"` é o ponto seguro para o Tiro se aproximar de um objeto/estação ao reagir.
   `"station"` também detecta produção pronta, mesmo sem `busy_frames`.

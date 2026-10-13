@@ -58,6 +58,14 @@ func npc_world(npc_id: String) -> String:
 	return ""
 
 
+func gathering_site(route_id: String) -> String:
+	var group: String = progression.activities.get(route_id, {}).get("place", "")
+	for id: String in progression.get("nature_sites", {}):
+		if group in progression.nature_sites[id].groups:
+			return id
+	return ""
+
+
 ## Lugar do mundo que abre um painel (ex.: "station:stove" -> "stove" na casa). Devolve [mundo, lugar].
 ## Um lugar pode juntar painéis: "stations:stove+oven" atende "station:stove" e "station:oven";
 ## "market:<aba>" atende "sell" e "orders"; "routes:walk+mine" atende "routes:walk" e "routes:mine".

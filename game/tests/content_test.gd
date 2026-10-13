@@ -142,6 +142,13 @@ func _run() -> void:
 			check(data.activities.has(route) and data.activities[route].rewards.get("items", {}).has(id), id + ": rota rende este material")
 		for tool: String in data.nature_resources[id].tools:
 			check(data.upgrades.has(tool), id + ": ferramenta existente")
+	for id: String in data.get("nature_sites", {}):
+		var site: Dictionary = data.nature_sites[id]
+		check(site.slot_upgrades.size() == 2, id + ": começa com uma vaga e libera mais duas")
+		for upgrade: String in site.slot_upgrades + site.tools:
+			check(data.upgrades.has(upgrade), id + ": compra existente " + upgrade)
+		for resource: String in site.resources:
+			check(data.nature_resources.has(resource), id + ": material com coleta definida")
 	for id: String in data.orders:
 		check("first_harvest" in data.orders[id].requirements.get("quests", []), id + ": pedido antes da Vila abrir")
 	_validate_targets()

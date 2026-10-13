@@ -53,7 +53,12 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			var route: Dictionary = Database.progression.activities[id]
 			result = _base(route.name, "Passeio de %s" % TimeText.short(int(route.seconds)), _focused("routes:" + str(route.place), "route:" + id), "Ir")
 			result.needs = _requirements(route.get("requirements", {}))
-			if not GameState.progress.activity.is_empty():
+			var site := Database.gathering_site(id)
+			if site != "" and GameState.gathering_ready_count(site) > 0:
+				result.detail = "%d coleta(s) pronta(s). Recolha no local." % GameState.gathering_ready_count(site)
+			elif site != "" and GameState.gathering_free_count(site) == 0:
+				result.detail = "Espaços ocupados. Aguarde ou recolha."
+			elif site == "" and not GameState.progress.activity.is_empty():
 				result.detail = "Já tem um passeio: " + ("recolha!" if GameState.activity_remaining() == 0 else "volta em %s" % TimeText.short(GameState.activity_remaining()))
 		"order":
 			var order: Dictionary = Database.progression.orders[id]

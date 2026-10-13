@@ -559,6 +559,125 @@ func collect_activity() -> String:
 	return ""
 
 
+# --- Coleta por local ---------------------------------------------------------------
+
+## Coletas independentes da Natureza: um a três espaços em cada local.
+func gathering_slots(site: String) -> int:
+	if not Database.progression.nature_sites.has(site):
+		return 0
+	var count := 1
+	for upgrade: String in Database.progression.nature_sites[site].slot_upgrades:
+		if not has_upgrade(upgrade):
+			break
+		count += 1
+	return mini(3, count)
+
+
+func gathering_entry(site: String, index: int) -> Dictionary:
+	var jobs: Array = progress.gathering.get(site, [])
+	return jobs[index] if index >= 0 and index < jobs.size() else {}
+
+
+func gathering_jobs(site: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for entry: Dictionary in progress.gathering.get(site, []):
+		if not entry.is_empty():
+			result.append(entry)
+	return result
+
+
+func gathering_remaining(site: String, index: int) -> int:
+	var entry := gathering_entry(site, index)
+	return maxi(0, ceili(float(entry.get("ready_at", 0)) - now()))
+
+
+func gathering_ready_count(site: String) -> int:
+	var count := 0
+	for entry: Dictionary in gathering_jobs(site):
+		if float(entry.ready_at) <= now():
+			count += 1
+	return count
+
+
+func gathering_free_count(site: String) -> int:
+	var count := 0
+	for i in gathering_slots(site):
+		if gathering_entry(site, i).is_empty():
+			count += 1
+	return count
+
+
+func gathering_error(site: String, index: int, route_id: String, resource: String = "") -> String:
+	if not Database.progression.nature_sites.has(site) or Database.gathering_site(route_id) != site:
+		return "Coleta não pertence a este local"
+	if index < 0 or index >= gathering_slots(site):
+		return "Libere este espaço primeiro"
+	if not gathering_entry(site, index).is_empty():
+		return "Espaço ocupado"
+	if resource != "" and (not resource in Database.progression.nature_sites[site].resources or not Database.progression.activities[route_id].rewards.get("items", {}).has(resource)):
+		return "Este material não vem desta coleta"
+	var reason := requirement_error(Database.worlds.nature.get("requirements", {}))
+	return reason if reason != "" else requirement_error(Database.progression.activities[route_id].get("requirements", {}))
+
+
+func start_gathering(site: String, index: int, route_id: String, resource: String = "") -> String:
+	var error := gathering_error(site, index, route_id, resource)
+	if error != "":
+		return error
+	var data: Dictionary = Database.progression.activities[route_id]
+	var jobs: Array = progress.gathering.get(site, []).duplicate(true)
+	while jobs.size() <= index:
+		jobs.append({})
+	var start := now()
+	jobs[index] = {"id": route_id, "resource": resource, "started_at": start, "ready_at": start + float(data.seconds), "rewards": data.rewards.duplicate(true), "player_xp": int(data.get("player_xp", 5))}
+	progress.gathering[site] = jobs
+	_changed()
+	return ""
+
+
+func start_gathering_all(site: String, route_id: String, resource: String = "") -> String:
+	var started := false
+	var reason := "Todos os espaços estão ocupados"
+	for index in gathering_slots(site):
+		if gathering_entry(site, index).is_empty():
+			reason = start_gathering(site, index, route_id, resource)
+			if reason != "":
+				return reason
+			started = true
+	return "" if started else reason
+
+
+func collect_gathering_error(site: String, index: int) -> String:
+	if gathering_entry(site, index).is_empty():
+		return "Nada para recolher"
+	if gathering_remaining(site, index) > 0:
+		return "A coleta ainda está em andamento"
+	return ""
+
+
+func collect_gathering(site: String, index: int) -> String:
+	var error := collect_gathering_error(site, index)
+	if error != "":
+		return error
+	var entry := gathering_entry(site, index).duplicate(true)
+	var data: Dictionary = Database.progression.activities[entry.id]
+	progress.gathering[site][index] = {}
+	progress.count("activity:" + str(entry.id))
+	progress.count("explore")
+	_apply_rewards(entry.get("rewards", data.rewards))
+	_add_player_xp(int(entry.get("player_xp", data.get("player_xp", 5))))
+	_changed()
+	return ""
+
+
+func collect_gathering_all(site: String) -> String:
+	var done := false
+	for index in gathering_slots(site):
+		if collect_gathering_error(site, index) == "":
+			collect_gathering(site, index)
+			done = true
+	return "" if done else "Nenhuma coleta pronta"
+
 # --- Missões ----------------------------------------------------------------------
 
 func quest_unlocked(id: String) -> bool:
@@ -883,6 +1002,10 @@ func dev_finish_timers() -> void:
 			entry["ready_at"] = minf(float(entry["ready_at"]), t)
 	if not progress.activity.is_empty():
 		progress.activity["ready_at"] = minf(float(progress.activity.ready_at), t)
+	for jobs: Array in progress.gathering.values():
+		for entry: Dictionary in jobs:
+			if not entry.is_empty():
+				entry["ready_at"] = minf(float(entry.ready_at), t)
 	progress.cooldowns.clear()
 	_changed()
 
