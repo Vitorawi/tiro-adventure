@@ -23,6 +23,9 @@ signal world_activity(kind: StringName, subject: String, plot_index: int)
 
 ## Pede para a tela principal mostrar uma mensagem curta.
 signal toast_requested(text: String)
+## Recolheu algo: itens (id → qtd) e moedas; a tela mostra miniaturas saltando de `origin`
+## (coordenadas da tela; Vector2(-1, -1) = meio da tela). Ver CollectFx.
+signal items_gained(items: Dictionary, coins: int, origin: Vector2)
 ## Pede para abrir o painel inferior (sheet) com um conteúdo.
 signal sheet_requested(title: String, content: Control)
 ## Pede para fechar o painel inferior.

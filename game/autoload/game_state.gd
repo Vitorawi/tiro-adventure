@@ -21,6 +21,9 @@ var plots: Array[Dictionary] = []
 ## Terrenos comprados (em ordem fixa). Só valem depois da escritura do sítio ("farm").
 var unlocked_plots: int = 0
 var coins: int = 0
+## Último recolhimento de coletas da Natureza (não salvo): alimenta a animação de recolher.
+var last_gain: Dictionary = {}
+var last_coins: int = 0
 var xp: int = 0
 var level: int = 1
 ## Atributos, aquisições, missões, coleção, contadores e rota em andamento.
@@ -727,14 +730,22 @@ func collect_gathering(site: String, index: int) -> String:
 	progress.gathering[site][index] = {}
 	progress.count("activity:" + str(entry.id))
 	progress.count("explore")
-	_apply_rewards(entry.get("rewards", data.rewards))
+	var rewards: Dictionary = entry.get("rewards", data.rewards)
+	for id: String in rewards.get("items", {}):
+		last_gain[id] = int(last_gain.get(id, 0)) + int(rewards.items[id])
+	last_coins += int(rewards.get("coins", 0))
+	_apply_rewards(rewards)
 	_award_nature_xp(site, int(entry.get("nature_xp", Database.progression.nature_sites[site].xp_per_collection)))
 	_add_player_xp(int(entry.get("player_xp", data.get("player_xp", 5))))
 	_changed()
 	return ""
 
 
+## Recolhe todas as coletas prontas do local; o que veio fica em last_gain/last_coins
+## (para a animação de recolher).
 func collect_gathering_all(site: String) -> String:
+	last_gain = {}
+	last_coins = 0
 	var done := false
 	for index in gathering_slots(site):
 		if collect_gathering_error(site, index) == "":

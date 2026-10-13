@@ -533,7 +533,7 @@ func _spawn_npcs() -> void:
 		npc.name = "Npc_" + npc_id
 		npc.npc_id = npc_id
 		npc.room = self
-		npc.scale = Vector2.ONE * float(_room.get("dog_scale", 1.0))
+		npc.scale = Vector2.ONE * float(_room.get("dog_scale", 1.0)) * float(Database.npcs.get(npc_id, {}).get("world_scale", 1.0))
 		npc.home = nearest_floor_point(_point("npc_" + npc_id))
 		npc.position = npc.home
 		npc.visible = GameState.progress.npc_visible(npc_id)
@@ -718,7 +718,10 @@ func _handle_tap(point: Vector2) -> void:
 			return
 	for indicator: RouteIndicator in _route_markers:
 		if indicator.active() and indicator.hit_rect.has_point(point - indicator.position):
-			Places.run(world_id, "place:" + indicator.site)
+			if indicator.site != "" and GameState.gathering_ready_count(indicator.site) > 0:
+				_collect_site(indicator.site, indicator.position)
+			else:
+				Places.run(world_id, "place:" + indicator.site)
 			return
 	for npc: NpcWorld in _npcs:
 		if npc.visible and npc.hit_test(point):
@@ -780,8 +783,36 @@ func _on_plot_tapped(index: int) -> void:
 			Events.sheet_requested.emit("Plantação", SheetBuilder.growing_plot(index))
 		"ready":
 			var reward := int(Database.crops[GameState.plot(index)["crop"]].get("coins", 0))
-			var received := GameState.harvest(index)
-			Events.toast_requested.emit("Colheu " + Database.describe_amounts(received) + "! +%d moedas" % reward)
+			var origin := Vector2(-1.0, -1.0)
+			for sprite: Sprite2D in _objects:
+				if sprite.has_meta("plot") and int(sprite.get_meta("plot")) == index:
+					origin = _screen_point(sprite.position)
+			Events.items_gained.emit(GameState.harvest(index), reward, origin)
+
+
+## Ponto da sala (coordenadas do mundo) na tela, de onde saltam as miniaturas de recolher.
+func _screen_point(point: Vector2) -> Vector2:
+	return _world.get_global_transform_with_canvas() * point
+
+
+## Recolhe direto no mapa as coletas prontas de um local da Natureza.
+func _collect_site(site: String, point: Vector2) -> void:
+	var data: Dictionary = Database.progression.nature_sites[site]
+	var previous_level := GameState.progress.nature_level(site)
+	if GameState.collect_gathering_all(site) != "":
+		return
+	Events.items_gained.emit(GameState.last_gain, GameState.last_coins, _screen_point(point))
+	var level := GameState.progress.nature_level(site)
+	if level > previous_level:
+		Events.toast_requested.emit("%s nível %d!" % [data.name, level])
+
+
+## Recolhe direto no mapa os lotes prontos de uma estação/criação. Devolve true se recolheu.
+func _collect_station(station_id: String, point: Vector2) -> bool:
+	if station_id == "" or not GameState.has_upgrade(station_id) or GameState.station(station_id).ready_count(GameState.now()) <= 0:
+		return false
+	Events.items_gained.emit(GameState.collect(station_id), 0, _screen_point(point))
+	return true
 
 
 ## Toque preciso: dentro do retângulo e num pixel não transparente do desenho.
@@ -792,6 +823,8 @@ func _hits(sprite: Sprite2D, local: Vector2) -> bool:
 
 ## `target` é o sprite tocado (quando houver), para ações que dependem dele (canteiros).
 func _on_object_tapped(action: String, target: Node = null) -> void:
+	if target is Sprite2D and _collect_station(str(target.get_meta("station", target.get_meta("animal_station", ""))), target.position):
+		return
 	match action:
 		"plot":
 			_on_plot_tapped(int(target.get_meta("plot")) if target else 0)

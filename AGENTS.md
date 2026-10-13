@@ -98,6 +98,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Coletar na Natureza e liberar vagas | `progression.json → nature_sites` (Bosque/Caverna/Prado, levels/XP, tokens level_upgrades/slot_upgrades), `nature_resources` (rotas); `GameState.start_gathering/collect_gathering` e `NatureUi.panel` |
 | Comprar galinhas/vacas e variedades | `config.json → animals` (nome, preço, abrigo, sprite/escala); `GameState.buy_animal`, `animals` salvo; loja em `SheetBuilder.animal_shop` |
 | Galinhas/vacas e seus produtos       | `config.json → stations` com `kind: "animal"`, `animal_capacity`; alimentação/ovos/leite em `recipes.json`, timer em `StationState` |
+| Recolher/colher com animação          | `Events.items_gained(itens, moedas, origem)` → `scripts/ui/collect_fx.gd` (miniaturas ícone +N saltam na tela). No mapa, tocar em estação/criação pronta, marcador de coleta da Natureza ou planta madura recolhe direto (`RoomView._collect_station/_collect_site`), sem abrir painel |
 | Reações do Tiro no mundo             | `Events.world_activity` (GameState) → `RoomView` (alvo) → `DogWorld.react_at` (animação/caminho) |
 | Nova ferramenta de teste (dev)        | `GameState.dev_*()` (com guarda `BuildInfo.is_dev()`) + botão em `scripts/ui/dev_panel.gd` |
 | Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: PrimaryButton, TabButton, CloseButton, CardPanel, ReadyCardPanel, ChipPanel, SheetPanel, TopBarPanel, TitleLabel, SectionLabel, SmallLabel, BarLabel, ToastLabel) |

@@ -66,6 +66,8 @@ static func panel(site: String = "trees", resource: String = "", focus_route: St
 				var previous_level := GameState.progress.nature_level(site)
 				var error := GameState.collect_gathering_all(site)
 				var level_now := GameState.progress.nature_level(site)
+				if error == "":
+					Events.items_gained.emit(GameState.last_gain, GameState.last_coins, Vector2(-1.0, -1.0))
 				_result(error, "%s nível %d!" % [data.name, level_now] if level_now > previous_level else "+%d XP em %s" % [int(GameState.progress.nature_xp.get(site, 0)) - before, data.name]), &"PrimaryButton")
 			collect.name = "CollectAll_" + site
 			box.add_child(collect)

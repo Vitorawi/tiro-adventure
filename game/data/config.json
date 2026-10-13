@@ -45,7 +45,8 @@
       "name": "Fogão",
       "slots": 1,
       "slot_upgrades": {
-        "stove_queue": 2
+        "stove_queue": 1,
+        "stove_queue_2": 1
       }
     },
     "workbench": {

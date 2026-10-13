@@ -202,7 +202,7 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 		if ready > 0:
 			box.add_child(UiKit.button("Coletar prontos (%d)" % ready, func() -> void:
 				var received := GameState.collect(station_id)
-				Events.toast_requested.emit("Recebeu " + Database.describe_amounts(received)), &"PrimaryButton"))
+				Events.items_gained.emit(received, 0, Vector2(-1.0, -1.0)), &"PrimaryButton"))
 
 		box.add_child(UiKit.label(data.get("recipe_label", "Receitas"), &"SectionLabel"))
 		for recipe_id in Database.recipes_for(station_id):
@@ -468,7 +468,7 @@ static func growing_plot(index: int) -> Control:
 			box.add_child(UiKit.button("Colher", func() -> void:
 				var received := GameState.harvest(index)
 				if not received.is_empty():
-					Events.toast_requested.emit("Colheu " + Database.describe_amounts(received) + "! +%d moedas" % reward), &"PrimaryButton")))
+					Events.items_gained.emit(received, reward, Vector2(-1.0, -1.0)), &"PrimaryButton")))
 
 
 static func _empty_message(box: VBoxContainer, title: String, hint: String) -> void:

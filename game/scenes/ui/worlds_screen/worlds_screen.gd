@@ -64,8 +64,13 @@ func enter(world_id: String, place: String = "") -> void:
 	_refresh_header()
 	if place == "":
 		return
-	# "Ir": a seta mostra ONDE fica a coisa e o painel abre logo depois.
 	var room := _views[world_id] as RoomView
+	# "look:<ação>": só a seta, sem abrir o painel (o jogador toca por conta própria).
+	if place.begins_with("look:"):
+		if room:
+			room.point_at(Places.highlight_action(place.trim_prefix("look:")))
+		return
+	# "Ir": a seta mostra ONDE fica a coisa e o painel abre logo depois.
 	if room and room.point_at(Places.highlight_action(place)):
 		get_tree().create_timer(POINT_DELAY).timeout.connect(func() -> void:
 			if current_world == world_id and %WorldView.visible:

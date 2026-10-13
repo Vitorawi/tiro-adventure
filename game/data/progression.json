@@ -13,7 +13,8 @@
       "fridge",
       "sofa",
       "farm",
-      "stove_queue"
+      "stove_queue",
+      "stove_queue_2"
     ],
     "legacy_unlocks": [
       "crop:potato",
@@ -391,7 +392,7 @@
     "stove_queue": {
       "name": "Cozinha organizada",
       "world": "house",
-      "description": "Mais dois espaços na fila do fogão.",
+      "description": "Mais um espaço na fila do fogão (2 no total).",
       "cost": 180,
       "materials": {
         "plank": 3
@@ -404,6 +405,24 @@
       },
       "skill_xp": {
         "adventure": 25
+      },
+      "icon": "item_carrot_snack"
+    },
+    "stove_queue_2": {
+      "name": "Cozinha ampliada",
+      "world": "house",
+      "description": "Mais um espaço na fila do fogão (3 no total).",
+      "cost": 320,
+      "materials": {
+        "plank": 5
+      },
+      "requirements": {
+        "owned": [
+          "stove_queue"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 40
       },
       "icon": "item_carrot_snack"
     },

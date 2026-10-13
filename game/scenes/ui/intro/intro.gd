@@ -155,4 +155,4 @@ func _finish() -> void:
 	tree.create_timer(0.4).timeout.connect(func() -> void:
 		Events.world_activity.emit(&"arrive", "", -1))
 	tree.create_timer(2.6).timeout.connect(func() -> void:
-		Events.world_requested.emit("house", "npc:" + NPC))
+		Events.world_requested.emit("house", "look:npc:" + NPC))

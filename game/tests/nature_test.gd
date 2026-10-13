@@ -159,7 +159,28 @@ func _run() -> void:
 	check(state.call("collect_gathering_all", "trees") != "", "Não recolhe duas vezes")
 	check(state.get("progress").nature_xp.trees == gained_xp, "Não duplica XP ao recolher de novo")
 	state.call("dev_advance_time", 10)
-	check(state.call("collect_gathering", "rocks", 0) == "", "Pedra termina depois")
+	# Tocar no marcador do mapa recolhe direto e anima os itens (sem abrir painel).
+	var gains: Array = []
+	root.get_node("Events").items_gained.connect(func(items: Dictionary, coins: int, origin: Vector2) -> void: gains.append([items, coins, origin]))
+	var rock_marker: Node2D
+	for marker: Node2D in room.get("_route_markers"):
+		if marker.get("site") == "rocks":
+			rock_marker = marker
+	check(state.call("gathering_ready_count", "rocks") == 1, "Pedra pronta antes do toque")
+	room.call("_handle_tap", rock_marker.position + Vector2(0, -15))
+	check(gains.size() == 1 and not gains[0][0].is_empty(), "Toque no mapa recolhe e avisa os itens")
+	check(state.call("gathering_ready_count", "rocks") == 0, "Recolher no mapa libera a vaga")
+	var fx: Node = null
+	for node in main.get_children():
+		if node.get_script() != null and str(node.get_script().resource_path).ends_with("collect_fx.gd"):
+			fx = node
+	check(fx != null and fx.get_child_count() >= 1, "Miniaturas aparecem na tela")
+	await create_timer(0.3).timeout
+	for node in main.get_children():
+		if node is CanvasLayer and node.layer == 20:
+			node.queue_free()
+	await create_timer(0.1).timeout
+	_shot("collect_fx")
 	check(state.call("buy_upgrade", "forest_level_3") != "", "Nível por uso não é compra")
 	check(state.get("progress").nature_level("trees") == 3, "Bosque 3 libera novo material refinável")
 	check(state.call("start_gathering_all", "trees", "timber") == "", "Três cortes com a ferramenta nova")

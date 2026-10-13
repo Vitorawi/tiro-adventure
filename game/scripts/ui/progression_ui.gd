@@ -386,7 +386,7 @@ static func _amounts(card: VBoxContainer, amounts: Dictionary) -> void:
 	card.add_child(row)
 
 
-## [Ir | Receber] + "?". O Ir leva ao primeiro passo possível (ex.: plantar antes de cozinhar).
+## [Ir | Receber] + "?". O Ir leva ao lugar da missão; o "?" explica o que falta.
 static func quest_action(box: VBoxContainer, id: String) -> void:
 	var ready := GameState.quest_error(id) == ""
 	var row := UiKit.hbox(8)
@@ -404,9 +404,10 @@ static func quest_action(box: VBoxContainer, id: String) -> void:
 	box.add_child(row)
 
 
+## Leva ao lugar do OBJETIVO da missão (ex.: ensopado → fogão), sem pular para o ingrediente
+## que falta; a cadeia de passos fica no "?" (TaskHelp).
 static func quest_go_target(id: String) -> Dictionary:
-	var target: Dictionary = TaskHelp.describe("quest", id).get("next_target", {})
-	return target if not target.is_empty() and not target.has("claim") else Places.quest_target(id)
+	return Places.quest_target(id)
 
 
 ## Objetivo que falta (ou o primeiro, se todos cumpridos).

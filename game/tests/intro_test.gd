@@ -60,7 +60,8 @@ func _run() -> void:
 	check(dog.get_meta("last_reaction", "") == &"happy", "Tiro reage à chegada em casa")
 	await _shot("intro_release")
 	await create_timer(3.0).timeout
-	check(state.get("progress").stat("talk:lais") > 0, "Chegada conduz à primeira conversa com a Laís")
+	check(state.get("progress").stat("talk:lais") == 0, "Chegada só aponta a Laís: a conversa não abre sozinha")
+	check(house.find_child("Pointer", true, false) != null, "Seta aponta para a Laís")
 	check(not state.get("progress").claimed_quests.has("welcome"), "Apresentação não recebe missão automaticamente")
 	await _shot("intro_lais")
 	var places: Script = load("res://scripts/ui/places.gd")

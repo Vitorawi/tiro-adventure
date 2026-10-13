@@ -43,6 +43,7 @@ func _ready() -> void:
 	Events.world_requested.connect(_on_world_requested)
 	_celebration = load("res://scenes/ui/celebration/celebration.tscn").instantiate()
 	add_child(_celebration)
+	add_child(CollectFx.new())
 	Events.quest_completed.connect(_on_quest_completed)
 	Events.chapter_completed.connect(_on_chapter_completed)
 	Events.state_changed.connect(_refresh_guide)

@@ -4,6 +4,28 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **13/10/2026, Codex**.
 
+**Ajustes pós-publicação (Claude Code, 13/10/2026) — locais, sem commit.**
+- Codex parou no limite de uso sem alterar arquivos. Feedback do Vitor após o deploy `2c78f95`:
+  (1) a conversa com a Laís abria sozinha ao fim da introdução; (2) Laís pequena demais.
+- (1) Fim da intro usa `world_requested("house", "look:npc:lais")`: `WorldsScreen.enter` aceita
+  `look:<ação>` = só a seta, sem abrir o painel. `intro_test` agora exige talk:lais == 0 + seta.
+- (2) `npcs.json → world_scale` (padrão 1) multiplica a escala do NPC na sala; Laís = 1.7
+  (maior que o Tiro, quase na altura do balcão). Ajustar o número se ainda parecer pequena/grande.
+- (3) Feedback do Vitor: o "Ir" pulava etapas (missão do ensopado levava direto à horta de cenoura).
+  `ProgressionUi.quest_go_target` agora = `Places.quest_target` (lugar do objetivo: fogão/geladeira);
+  a cadeia de ingredientes continua no "?" (`TaskHelp`). Os botões "Ir" de dentro do "?" seguem
+  levando ao passo que falta.
+- (4) Fogão expansível até 3 espaços: `stove_queue` (+1, 180 moedas + 3 tábuas) e novo `stove_queue_2`
+  (+1, 320 + 5 tábuas, exige `stove_queue`); ambos em `config.json → stations.stove.slot_upgrades`,
+  `progression.json → upgrades` e no lugar Cozinha de `worlds.json`. Números fáceis de ajustar.
+- (5) Recolher direto no mapa + animação: `Events.items_gained` / `CollectFx` (z_index 20, filho de `main`).
+  Tocar numa estação/criação com lote pronto, no marcador "Recolher" da Natureza ou numa planta
+  madura recolhe sem abrir painel e salta ícone +N. Os botões de recolher dos painéis usam a mesma
+  animação (a partir do meio da tela). `GameState.last_gain/last_coins` guardam o que a última coleta
+  da Natureza trouxe. Teste em `nature_test` (captura `collect_fx`). Rotas legadas (`route_group` em
+  objetos) ainda abrem o painel.
+- Suíte completa verde. Falta publicar (aguardando OK do Vitor) e testar no celular.
+
 **Publicação da nova história autorizada pelo Vitor (13/10/2026).**
 - Pacote das Fases 1–3 e introdução preparado para envio na `main`, com deploy
   automático de prod (`/`) e dev (`/dev/`). Suíte completa e export local passaram.

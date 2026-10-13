@@ -23,7 +23,8 @@
         "upgrade": "stove",
         "panel": "stations:stove+oven",
         "upgrades": [
-          "stove_queue"
+          "stove_queue",
+          "stove_queue_2"
         ]
       },
       "fridge": {
