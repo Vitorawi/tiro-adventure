@@ -120,5 +120,61 @@
     "seconds": 360,
     "skill": "adventure",
     "skill_xp": 55
+  },
+  "eggs": {
+    "station": "chicken_coop",
+    "inputs": {
+      "corn": 2
+    },
+    "output": "egg",
+    "qty": 2,
+    "seconds": 180,
+    "skill": "agriculture",
+    "skill_xp": 12,
+    "requirements": {
+      "chapter": 3
+    }
+  },
+  "milk": {
+    "station": "cow_barn",
+    "inputs": {
+      "wheat": 2
+    },
+    "output": "milk",
+    "qty": 2,
+    "seconds": 300,
+    "skill": "agriculture",
+    "skill_xp": 18,
+    "requirements": {
+      "chapter": 3
+    }
+  },
+  "flour": {
+    "station": "mill",
+    "inputs": {
+      "wheat": 3
+    },
+    "output": "flour",
+    "qty": 2,
+    "seconds": 120,
+    "skill": "cooking",
+    "skill_xp": 15,
+    "requirements": {
+      "chapter": 3
+    }
+  },
+  "cheese": {
+    "station": "dairy",
+    "inputs": {
+      "milk": 2
+    },
+    "output": "cheese",
+    "qty": 1,
+    "seconds": 240,
+    "skill": "cooking",
+    "skill_xp": 25,
+    "requirements": {
+      "chapter": 3
+    }
   }
 }

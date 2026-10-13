@@ -35,6 +35,55 @@ e por este registro. Toda geração nova entra na tabela abaixo.
 Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 
 ## Registro de assets
+
+### Expansões e construções — 13/10/2026 (Codex)
+
+Referência de estilo: `areas/farm/farm.png`. Geração PixelLab Pro, candidato 0; recortes
+transparentes preparados com `tools/pixel_tools.ps1` no Windows PowerShell.
+
+| Asset | Job PixelLab | Arquivo | Preparação |
+|---|---|---|---|
+| Terreno vazio | `3232557c-9d20-452a-8923-e0932ec64291` | `areas/farm/land_tile.png` | 632×395; preencher o chão sob os pixels transparentes com a cor da grama original |
+| Sítio ampliado | composição local | `areas/farm/farm_expanded.png` | 1208×539; terrenos em (0,144)/(576,144), sítio original em (288,0), remover fundo externo e barranco interno do original |
+| Bancada | `d3c814eb-d535-41fc-a2ad-8b0c066201a9` | `areas/farm/workbench.png` | 95×78 recortado |
+| Estufa | `c03c97dc-3d3d-49cd-b659-e0ddae709479` | `areas/farm/greenhouse.png` | 125×135 recortado |
+| Pomar | `3141936f-cc0b-4b20-aed7-5b82d9fe5dd1` | `areas/farm/orchard.png` | 145×125 recortado |
+| Forno | `48982a2f-3fd8-4522-988d-67c9e9782a36` | `areas/house/oven.png` | 69×83 recortado |
+| Banca extra | `aa86a1bc-f344-4a9b-9b9d-d691e45f1406` | `areas/village/stall.png` | 83×113 recortado |
+| Costura no ateliê | `95e68a14-e62f-403c-89d3-371cb3a314a5` | `areas/village/atelier.png` | 101×94 recortado |
+
+Todos ativos. Originais baixados e script de composição em `build/art_sources/` e
+`build/prepare_world_art.ps1` (ignorados); arte anterior preservada para referência.
+
+### Animais e processamento — 13/10/2026 (Codex)
+
+Prédios/animais: PixelLab Pro com `farm.png` como estilo, candidato 0, recorte transparente.
+Ícones e culturas: Pixen; ícones com canvas 32 px. Todos ativos.
+
+| Asset | Job PixelLab | Arquivo |
+|---|---|---|
+| Galinheiro | `b11d1adb-4d09-493b-812a-6959c10478f2` | `areas/farm/chicken_coop.png` (135×132) |
+| Curral | `51178d3b-c5c3-49aa-9572-9b216cac6cd3` | `areas/farm/cow_barn.png` (145×133) |
+| Moinho | `6ce6e173-2249-40b6-a193-aecd9db66b68` | `areas/farm/mill.png` (115×129) |
+| Queijaria | `32bb5c2d-5082-45ae-ae07-b127e0f0024c` | `areas/farm/dairy.png` (102×113) |
+| Galinha | `7ec73480-aebd-44ca-b04e-5b32ddc9e624` | `areas/farm/chicken.png` (24×27; escala 0,6) |
+| Vaca | `7a1e89a5-ee3e-4747-ac14-8018a87739b6` | `areas/farm/cow.png` (64×52) |
+| Trigo (ícone) | `c6ff271e-f3a3-47ff-9ab6-a293a1b5b4e0` | `ui/icons/item_wheat.png` |
+| Milho (ícone) | `9b82ce5b-af23-4cc7-b91b-05fe14f5a0ee` | `ui/icons/item_corn.png` |
+| Ovos (ícone) | `748b7657-6065-47f4-b7ae-a121912e4bd5`; corrigido por `b5ceb5ba-aa96-4bf7-94e3-87f8e175f2c5` | `ui/icons/item_egg.png` (cascas lisas) |
+| Leite (ícone) | `db2a922c-9589-4a19-8aa0-7381128b1d6e` | `ui/icons/item_milk.png` |
+| Farinha (ícone) | `7178e820-5c5f-4ee9-8877-c7fc8ba1feb9` | `ui/icons/item_flour.png` |
+| Queijo (ícone) | `c6db50ea-4a6a-4f19-9337-c04611c4e3c7` | `ui/icons/item_cheese.png` |
+| Trigo (planta) | `6efe3fd5-a3a1-41bc-b63b-b41e289f3b6d` | `areas/farm/crop_wheat.png` |
+| Milho (planta) | `a3b06bb4-b5e2-4c2f-9ed1-c3ac2c6f0747` | `areas/farm/crop_corn.png` |
+| Sítio com animais | composição dos terrenos anteriores | `areas/farm/farm_animals.png` (1208×683) |
+
+A quarta área usa `land_tile.png` em (288,288), removendo os barrancos internos do mapa
+anterior. Composição em `build/prepare_animal_art.ps1`; originais em `build/art_sources/animals/`.
+
+### Registro anterior completo
+
+
 | Asset | Tipo / ID PixelLab | Modo | Arquivos no jogo | Status |
 |---|---|---|---|---|
 | Sítio da Bloblo (fundo) | imagem pro, job `cbbd43cb-2fc8-44fd-83f6-bdd00d45c57a`, ref de estilo: sala v2 | 632x395 | `areas/farm/farm.png` | ativo |

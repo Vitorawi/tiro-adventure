@@ -579,5 +579,111 @@
     "kind": "main",
     "chapter": 8,
     "order": 2
+  },
+  "main_9_coop": {
+    "npc": "bloblo",
+    "name": "Novos moradores",
+    "dialogue": "Monte o galinheiro para receber suas galinhas.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "chicken_coop",
+        "label": "Construir o galinheiro"
+      }
+    ],
+    "rewards": {
+      "coins": 35,
+      "items": {
+        "corn": 4
+      }
+    },
+    "kind": "main",
+    "chapter": 9,
+    "order": 1
+  },
+  "main_9_eggs": {
+    "npc": "bloblo",
+    "name": "Ovos fresquinhos",
+    "dialogue": "Alimente as galinhas com milho e recolha os ovos.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "produce:egg",
+        "target": 2,
+        "fresh": true,
+        "label": "Alimente as galinhas e recolha 2 ovos"
+      }
+    ],
+    "rewards": {
+      "coins": 35
+    },
+    "kind": "main",
+    "chapter": 9,
+    "order": 2
+  },
+  "main_9_cows": {
+    "npc": "bloblo",
+    "name": "As vaquinhas chegaram",
+    "dialogue": "Construa o curral. Trigo é a comida das vaquinhas.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "cow_barn",
+        "label": "Construir o curral das vacas"
+      }
+    ],
+    "rewards": {
+      "coins": 40,
+      "items": {
+        "wheat": 6
+      }
+    },
+    "kind": "main",
+    "chapter": 9,
+    "order": 3
+  },
+  "main_9_flour": {
+    "npc": "bloblo",
+    "name": "Do grão à farinha",
+    "dialogue": "Construa o moinho e transforme trigo em farinha.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "produce:flour",
+        "target": 2,
+        "fresh": true,
+        "label": "Moa trigo e recolha 2 farinhas"
+      }
+    ],
+    "rewards": {
+      "coins": 45
+    },
+    "kind": "main",
+    "chapter": 9,
+    "order": 4
+  },
+  "main_9_cheese": {
+    "npc": "bloblo",
+    "name": "Feito no nosso sítio",
+    "dialogue": "Recolha leite das vacas e faça queijo na queijaria.",
+    "goals": [
+      {
+        "type": "deliver",
+        "key": "cheese",
+        "target": 2,
+        "label": "Faça e entregue 2 queijos"
+      },
+      {
+        "type": "owned",
+        "key": "dairy",
+        "label": "Construir a queijaria"
+      }
+    ],
+    "rewards": {
+      "coins": 60
+    },
+    "kind": "main",
+    "chapter": 9,
+    "order": 5
   }
 }

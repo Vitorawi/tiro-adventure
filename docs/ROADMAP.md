@@ -4,6 +4,40 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **13/10/2026, Codex**.
 
+**Sítio dos animais e processamento (Codex, 13/10/2026).**
+- Quarta área no sítio (1208×683), cercada até comprar o galinheiro. Corredor independente
+  das expansões de estufa/pomar; duas galinhas e duas vacas, com arte PixelLab e movimento leve.
+- Cadeias: milho → ovos; trigo → leite → queijo; trigo → farinha. Galinheiro/curral = um lote
+  por vez; moinho/queijaria = duas posições na fila. Alimentar, esperar, recolher; indicador
+  de tempo/coleta no mapa. Reutiliza StationState/save v6, sem duplicação de alimentação/coleta.
+- Abre após sítio próprio/capítulo ≥3; lugar Animais e lugar Produção (bancada+moinho+queijaria).
+  Manual, mochila, venda, ajuda dos ingredientes e navegação já reconhecem os novos recursos.
+- Capítulo 9 com cinco passos, preservando a campanha anterior; duas diárias, uma semanal e
+  encomenda Café da manhã. Campanha simulada passou com 328 ciclos, 16 compras e 33 missões.
+- Novo `animals_test` cobre requisitos, alimentação, lotação, coleta única, offline/save antigo,
+  processamento e corredor. Capturas `animals_{farm_overview,feed,dairy,manual_milk}.png`.
+- Suíte completa verde; export Web prod/dev concluído sem erros. Toque direto no moinho
+  também validado com bancada ainda não comprada; destinos próprios no manual/missões.
+- Publicação em prod/dev autorizada por Vitor em 13/10/2026, junto das melhorias de mundo
+  abaixo, via push na main. Próximo: acompanhar balanceamento e experiência no celular.
+
+**Tiro reagindo, construções visíveis e sítio ampliado (Codex, 13/10/2026).**
+- Sítio 1208×539: duas laterais cercadas e sombreadas, abertas pelas compras já existentes
+  de estufa/pomar. Centro anterior preservado, mesmos nove canteiros/índices de save; câmera
+  começa no centro e pode arrastar/diminuir zoom. Ir enquadra destinos fora da tela.
+- Arte PixelLab: bancada, estufa, pomar, forno, banca extra e estação de costura aparecem após
+  comprar; caminhos contornam suas bases. `regions` bloqueia chão antes da compra e retira
+  a cerca ao abrir. Requisitos/custos existentes preservados, sem migração de save.
+- Colher, recolher e comprar emitem `world_activity`. Tiro vai ao objeto, cheira em colheita/
+  produção pronta e comemora com pulo/coração. Reações não acordam o Tiro nem rodam em mapa
+  oculto; o movimento se interrompe quando muda a navegação ou chega outra ação.
+- Novo `world_life_test` cobre ações reais, construções em save avançado, áreas fechadas/abertas,
+  reação a produção pronta, sono e caminhos completos após compras. Capturas 360×780 em
+  `build/screenshots/{farm_expansion_start,farm_expansion_built,farm_orchard_focus,house_buildings,village_buildings}.png`.
+- Suíte completa verde e export Web prod/dev concluído sem erros. Reação de colheita conferida
+  em `build/screenshots/tiro_harvest_reaction.png`; o teste aguarda a chegada/animação do Tiro.
+- Incluído na publicação autorizada em 13/10/2026. Próximo: acompanhar visual/reações no celular.
+
 **Manual visual na tela principal (Codex, 13/10/2026).**
 - Botão Manual acima do Tiro, disponível desde o começo. Catálogo Recursos/Estações em
   `GameManual`, gerado dos dados existentes: itens por categoria, origens, ingredientes,

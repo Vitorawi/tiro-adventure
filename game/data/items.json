@@ -161,5 +161,47 @@
     "icon": "res://assets/sprites/ui/icons/item_accessory_set.png",
     "sell_price": 90,
     "trade_xp": 22
+  },
+  "wheat": {
+    "name": "Trigo",
+    "category": "crop",
+    "icon": "res://assets/sprites/ui/icons/item_wheat.png",
+    "sell_price": 3,
+    "trade_xp": 3
+  },
+  "corn": {
+    "name": "Milho",
+    "category": "crop",
+    "icon": "res://assets/sprites/ui/icons/item_corn.png",
+    "sell_price": 4,
+    "trade_xp": 3
+  },
+  "egg": {
+    "name": "Ovos",
+    "category": "product",
+    "icon": "res://assets/sprites/ui/icons/item_egg.png",
+    "sell_price": 9,
+    "trade_xp": 3
+  },
+  "milk": {
+    "name": "Leite",
+    "category": "product",
+    "icon": "res://assets/sprites/ui/icons/item_milk.png",
+    "sell_price": 12,
+    "trade_xp": 3
+  },
+  "flour": {
+    "name": "Farinha",
+    "category": "material",
+    "icon": "res://assets/sprites/ui/icons/item_flour.png",
+    "sell_price": 14,
+    "trade_xp": 3
+  },
+  "cheese": {
+    "name": "Queijo",
+    "category": "food",
+    "icon": "res://assets/sprites/ui/icons/item_cheese.png",
+    "sell_price": 32,
+    "trade_xp": 3
   }
 }

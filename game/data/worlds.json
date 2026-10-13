@@ -19,7 +19,9 @@
         "description": "Fogão e forno.",
         "upgrade": "stove",
         "panel": "stations:stove+oven",
-        "upgrades": ["stove_queue"]
+        "upgrades": [
+          "stove_queue"
+        ]
       },
       "fridge": {
         "name": "Geladeira",
@@ -59,14 +61,16 @@
         "icon": "tab_farm",
         "description": "Plantar, colher e comprar terrenos.",
         "panel": "farm",
-        "upgrades": ["greenhouse"]
+        "upgrades": [
+          "greenhouse"
+        ]
       },
       "workbench": {
-        "name": "Bancada",
+        "name": "Produção",
         "icon": "item_plank",
-        "description": "Tábuas e tijolos.",
+        "description": "Bancada, moinho e queijaria.",
         "upgrade": "workbench",
-        "panel": "station:workbench"
+        "panel": "stations:workbench+mill+dairy"
       },
       "orchard": {
         "name": "Pomar",
@@ -79,7 +83,43 @@
         "name": "Voltar para casa",
         "icon": "tab_house",
         "description": "",
-        "panel": "travel:house"
+        "panel": "travel:house",
+        "hidden": true
+      },
+      "animals": {
+        "name": "Animais",
+        "icon": "item_egg",
+        "description": "Alimentar galinhas e vacas, recolher ovos e leite.",
+        "panel": "stations:chicken_coop+cow_barn",
+        "upgrade": "chicken_coop",
+        "requirements": {
+          "chapter": 3,
+          "owned": [
+            "farm"
+          ]
+        }
+      },
+      "mill": {
+        "name": "Moinho",
+        "icon": "item_flour",
+        "description": "Trigo vira farinha.",
+        "panel": "station:mill",
+        "upgrade": "mill",
+        "hidden": true,
+        "requirements": {
+          "chapter": 3
+        }
+      },
+      "dairy": {
+        "name": "Queijaria",
+        "icon": "item_cheese",
+        "description": "Leite vira queijo.",
+        "panel": "station:dairy",
+        "upgrade": "dairy",
+        "hidden": true,
+        "requirements": {
+          "chapter": 3
+        }
       }
     }
   },
@@ -104,7 +144,9 @@
         "icon": "coin",
         "description": "Vender e encomendas.",
         "panel": "market:sell",
-        "upgrades": ["stall"]
+        "upgrades": [
+          "stall"
+        ]
       },
       "atelier": {
         "name": "Ateliê",
@@ -118,7 +160,9 @@
         "icon": "action_play",
         "description": "Passeios e mina.",
         "panel": "routes:walk+mine",
-        "upgrades": ["pickaxe"],
+        "upgrades": [
+          "pickaxe"
+        ],
         "requirements": {
           "chapter": 3
         }

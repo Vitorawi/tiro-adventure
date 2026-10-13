@@ -60,6 +60,11 @@ func npc_world(npc_id: String) -> String:
 ## Um lugar pode juntar painéis: "stations:stove+oven" atende "station:stove" e "station:oven";
 ## "market:<aba>" atende "sell" e "orders"; "routes:walk+mine" atende "routes:walk" e "routes:mine".
 func place_with_panel(panel: String) -> Array[String]:
+	# Um objeto com painel próprio é destino melhor que um agrupamento de estações.
+	for world_id: String in worlds:
+		for place_id: String in worlds[world_id].get("places", {}):
+			if worlds[world_id].places[place_id].get("panel", "") == panel:
+				return [world_id, place_id]
 	for world_id: String in worlds:
 		var places: Dictionary = worlds[world_id].get("places", {})
 		for place_id: String in places:

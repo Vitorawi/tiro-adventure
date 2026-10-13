@@ -19,11 +19,43 @@ para o fogão); no fim, cadeias com várias estações (madeira → tábua → c
 petisco → biscoito → caixa de petiscos → encomenda especial).
 
 ## Peças do sistema
+
+### Criações e processamento no sítio (13/10/2026)
+
+Parte de animais abre quando o sítio é comprado (requisitos: capítulo ≥3 + `owned: farm`).
+Galinheiro, curral, moinho e queijaria são compras permanentes; aparecem no mapa.
+As criações reutilizam `StationState` e os timestamps Unix das receitas, com um lote por vez.
+
+| Cadeia | Entrada | Tempo | Saída | Construção |
+|---|---|---|---|---|
+| Plantar milho | Semente gratuita | 3 min | 3 milhos | Sítio próprio |
+| Plantar trigo | Semente gratuita | 2 min | 3 trigos | Sítio próprio |
+| Alimentar galinhas | 2 milhos | 3 min | 2 ovos | Galinheiro (inclui duas galinhas) |
+| Alimentar vacas | 2 trigos | 5 min | 2 leites | Curral (inclui duas vacas) |
+| Moer trigo | 3 trigos | 2 min | 2 farinhas | Moinho |
+| Fazer queijo | 2 leites | 4 min | 1 queijo | Queijaria |
+
+- `config.json → stations`: `kind: animal` muda os textos para Alimentar/Alimentação;
+  `instruction`, `action_label`, `queue_label` e `recipe_label` são configuráveis.
+- `recipes.json`: mesma estrutura de produção. `GameState.cook_error` valida sem consumir;
+  `cook` consome uma vez e agenda o lote; `collect` entrega só os prontos, uma vez.
+- Galinheiro abre a área dos animais; curral exige galinheiro, moinho exige galinheiro e
+  queijaria exige curral. Novas culturas e construções usam os atributos existentes.
+- **Capítulo 9** acrescentado após os oito anteriores, com cinco passos: galinheiro, ovos,
+  curral, farinha e entrega de dois queijos (com queijaria comprada). Saves que concluíram
+  os oito capítulos continuam no 9, preservando tudo. Nenhuma missão antiga foi reordenada.
+- Novas diárias de ovos/leite, semanal de queijo e encomenda Café da manhã (ovos, farinha,
+  queijo). Recursos têm preços de venda e entram no catálogo/manual automaticamente.
+- Mesmo save v6: as quatro filas novas são criadas vazias ao carregar saves antigos;
+  alimentação/produção em andamento sobrevive ao fechamento do app.
+
+### Demais peças
+
 | Peça | Onde está | O que é |
 |---|---|---|
 | **Atributos (4)** | `progression.json` → `skills` | Horta (`agriculture`), Cozinha (`cooking`), Comércio (`commerce`), Aventura (`adventure`: passeios, mina e bancada). Aparecem no capítulo 3 (`features.skills`). Liberam sementes, receitas e rotas; **construções não exigem nível**. |
-| **Construções** | `progression.json` → `upgrades` | Compras permanentes (moedas + materiais + requisitos): fogão, geladeira, escritura do sítio, sofá, bancada, picareta, cozinha organizada, forno, pomar, estufa, banca, ateliê. |
-| **Estações** | `config.json` → `stations` + `recipes.json` | Fogão, bancada, forno e ateliê; filas com tempo real. `slot_upgrades` = construção que aumenta a fila. |
+| **Construções** | `progression.json` → `upgrades` | Compras permanentes (moedas + materiais + requisitos): equipamentos da casa/vila, sítio, estufa, pomar, galinheiro, curral, moinho e queijaria. |
+| **Estações** | `config.json` → `stations` + `recipes.json` | Fogão, bancada, forno, ateliê, galinheiro, curral, moinho e queijaria; filas com tempo real. `slot_upgrades` = construção que aumenta a fila. |
 | **Rotas** | `progression.json` → `activities` | Passeios/mineração com tempo (uma por vez): bairro, trilha, pedreira, cobre, gruta, pomar, prado. |
 | **Feira** | `progression.json` → `orders` + `sell_price` em `items.json` | Encomendas com recarga + venda direta. |
 | **Capítulos** | `progression.json` → `chapters` (+ `final_chapter`) | A "história": cada capítulo termina ao comprar seu `target`. Aparece em Jornada → Hoje. |

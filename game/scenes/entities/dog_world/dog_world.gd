@@ -30,6 +30,8 @@ var sleep_approach := Vector2.INF
 var _facing := "south"
 var _on_sofa := false
 var _sprite: AnimatedSprite2D
+var _reaction: Dictionary = {}
+var _move_tween: Tween
 
 
 func _ready() -> void:
@@ -40,6 +42,7 @@ func _ready() -> void:
 	_play("idle", "south")
 	if position.is_equal_approx(sleep_point):
 		_set_on_sofa(true)
+	Events.dog_action.connect(_on_care)
 	_brain()
 
 
@@ -61,7 +64,12 @@ func _brain() -> void:
 	await get_tree().process_frame
 	while is_inside_tree():
 		var dog := GameState.dog
+		if not room.is_visible_in_tree():
+			_reaction.clear()
+			await get_tree().create_timer(0.2).timeout
+			continue
 		if dog.sleeping:
+			_reaction.clear()
 			if sleep_point == Vector2.INF:
 				_play("sleep", _facing)
 				await _wait(2.0)
@@ -76,14 +84,62 @@ func _brain() -> void:
 		if _on_sofa:
 			await _step_to(sleep_approach)
 			_set_on_sofa(false)
+		if not _reaction.is_empty():
+			var reaction := _reaction.duplicate()
+			_reaction.clear()
+			await _go_to(reaction.target)
+			if not _reaction.is_empty() or GameState.dog.sleeping:
+				continue
+			await _show_reaction(reaction.kind)
+			continue
 		if bowl_point != Vector2.INF and dog.get_need("hunger", GameState.now()) < HUNGRY and randf() < 0.6:
 			await _go_to(bowl_point)
 			_play("eat", "east")
 			await _wait(3.0)
 			continue
 		await _idle_moment()
-		if is_inside_tree():
+		if is_inside_tree() and _reaction.is_empty():
 			await _go_to(room.random_floor_point(position))
+
+
+## Uma reação por vez; uma ação nova substitui a anterior sem somar caminhos.
+func react_at(kind: StringName, target: Vector2) -> void:
+	if GameState.dog.sleeping or not room.is_visible_in_tree():
+		return
+	_reaction = {"kind": kind, "target": room.nearest_floor_point(target)}
+	set_meta("last_reaction", kind)
+
+
+func _on_care(action: StringName) -> void:
+	if action in [&"pet", &"play", &"feed", &"bathe"]:
+		react_at(&"happy", position)
+
+
+func _show_reaction(kind: StringName) -> void:
+	if kind == &"harvest" or kind == &"ready":
+		# A animação de focinho da comida também serve para cheirar de perto.
+		_play("eat", _facing)
+		await _wait(1.2)
+		if not _reaction.is_empty() or GameState.dog.sleeping:
+			return
+	_play("bark", "south")
+	var heart := Sprite2D.new()
+	heart.texture = UiKit.ui_icon("need_happiness")
+	heart.position = Vector2(0, -66)
+	heart.scale = Vector2.ONE * 0.7
+	add_child(heart)
+	var float_up := create_tween()
+	float_up.tween_property(heart, "position:y", -82.0, 0.8)
+	float_up.parallel().tween_property(heart, "modulate:a", 0.0, 0.8)
+	float_up.tween_callback(heart.queue_free)
+	var hop := create_tween()
+	for repeat in 2:
+		hop.tween_property(_sprite, "position:y", -FEET_OFFSET - 7.0, 0.16)
+		hop.tween_property(_sprite, "position:y", -FEET_OFFSET, 0.16)
+	await _wait(0.9)
+	if hop.is_running():
+		await hop.finished
+	_play("idle", _facing)
 
 
 func _idle_moment() -> void:
@@ -112,11 +168,12 @@ func _go_to(target: Vector2) -> void:
 	if position.distance_to(target) < 4.0 or not is_inside_tree():
 		return
 	var path := _simplify(room.find_path(position, target))
+	var revision := room.navigation_revision
 	# Destino final é a célula livre retornada pela sala. Um alvo bloqueado
 	# ou sem caminho nunca vira um trecho direto atravessando o cenário.
 	for point in path:
 		await _step_to(point)
-		if not is_inside_tree():
+		if not is_inside_tree() or not _reaction.is_empty() or not room.is_visible_in_tree() or revision != room.navigation_revision:
 			return
 	_play("idle", _facing)
 
@@ -132,9 +189,19 @@ func _step_to(point: Vector2) -> void:
 	_play("walk", _facing)
 	var energy := GameState.dog.get_need("energy", GameState.now())
 	var speed := lerpf(35.0, 80.0, energy / 100.0)
-	var tween := create_tween()
-	tween.tween_property(self, "position", point, delta.length() / speed)
-	await tween.finished
+	_move_tween = create_tween()
+	var revision := room.navigation_revision
+	_move_tween.tween_property(self, "position", point, delta.length() / speed)
+	while _move_tween.is_running():
+		await get_tree().process_frame
+		if revision != room.navigation_revision:
+			_move_tween.kill()
+			if not _on_sofa:
+				position = room.nearest_floor_point(position)
+			break
+		if not _reaction.is_empty() or not room.is_visible_in_tree() or (GameState.dog.sleeping and not _on_sofa and sleep_point == Vector2.INF):
+			_move_tween.kill()
+			break
 
 
 ## Remove pontos intermediários em linha reta (caminho da grade vem célula a célula).
@@ -152,7 +219,11 @@ func _simplify(path: PackedVector2Array) -> PackedVector2Array:
 
 
 func _wait(seconds: float) -> void:
-	await get_tree().create_timer(seconds).timeout
+	var end := Time.get_ticks_msec() + int(seconds * 1000)
+	while Time.get_ticks_msec() < end:
+		await get_tree().create_timer(0.1).timeout
+		if not _reaction.is_empty() or not room.is_visible_in_tree():
+			return
 
 
 # --- Animação ----------------------------------------------------------------

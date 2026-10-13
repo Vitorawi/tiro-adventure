@@ -77,6 +77,19 @@ desbloquear áreas, estações, receitas, itens e personagens
 ```
 
 ## Sistemas
+
+### Sítio dos animais — implementado em 13/10/2026
+
+Ao ter o sítio próprio, o jogador pode construir o galinheiro (duas galinhas), o curral
+(duas vacas), o moinho e a queijaria. Plantar milho/trigo → alimentar → esperar → recolher
+ovos/leite; trigo → farinha e leite → queijo nas estações do sítio. As criações não produzem
+sem alimento; um lote por vez, com tempo real e sem perda dos animais se o jogador ficar fora.
+Os produtos servem à feira/encomendas e à progressão. Manual mostra a cadeia inteira.
+
+Capítulo 9 amplia a história existente com cinco passos sobre essa produção. A área física
+é uma expansão cercada, aberta pelo galinheiro; comprar também revela os animais no cenário.
+Para números e campos dos dados, ver `PROGRESSION.md` e `WORLDS.md`.
+
 | Sistema | Descrição |
 |---|---|
 | **Necessidades** | Caem com o tempo real (ver tabela abaixo). |

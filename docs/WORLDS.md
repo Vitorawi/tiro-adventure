@@ -39,7 +39,7 @@ Use verbos concretos (plantar, colher, comprar, produzir, entregar) em uma frase
 | Mundo | Personagens | Lugares (tocar na cena ou em "Lugares") |
 |---|---|---|
 | **Casa** | — | Tigela, **Cozinha** (fogão + forno + fila extra), Geladeira, porta → Sítio. Sofá = enfeite com soneca (`hidden`). |
-| **Sítio da Bloblo** | Bloblo (casinha) | Canteiros (+ estufa), Bancada, Pomar, volta para casa |
+| **Sítio da Bloblo** | Bloblo (casinha) | Canteiros (+ estufa), Produção (bancada + moinho + queijaria), Pomar e Animais (galinheiro + curral). Volta para casa é atalho oculto. |
 | **Vila** | Feirante, Laís, Guia da trilha | **Feira** (barraca; abas Vender/Encomendas; caixas abrem Encomendas; + banca), **Ateliê** (casa da Laís), **Portão da trilha** (passeios + mina; + picareta; abre no capítulo 3) |
 
 Regra (simplificação de 12/10/2026): **3 mundos, no máximo 4 lugares visíveis cada** (`content_test`).
@@ -50,6 +50,49 @@ A antiga Trilha virou o portão da Vila (a arte `areas/trail/` ficou guardada pa
 Rotas aparecem no lugar do tipo delas (`"place"` em `activities`: `walk`, `mine`, `orchard`).
 
 ## Como criar um mundo novo (receita)
+
+### Sítio ampliado e construções (13/10/2026)
+- Fundo ampliado para 1208×539, preservando a área antiga (deslocamento +288 px em X).
+  Nove canteiros e índices de save preservados; o espaço extra recebe estufa e pomar.
+- Duas `regions` laterais: `greenhouse_area` e `orchard_area`. Cada uma usa a compra existente
+  (`greenhouse`/`orchard`) para abrir. Chão sombreado + cerca; tocar abre a compra. Enquanto
+  fechada, a região inteira é obstáculo; após comprar, apenas a construção bloqueia o caminho.
+- A região tem `id`, `polygon`, `gate` (duas pontas da divisa), `upgrade`, `label`, `label_pos`
+  e `locked_label: true`. Móvel dentro dela usa `region` e `upgrade`. Etiquetas dos móveis
+  aparecem somente após a compra; a etiqueta Expandir desaparece quando a área abre.
+- `initial_zoom: 0.62` e `view_center` mantêm o centro legível; arrastar mostra as laterais e
+  diminuir o zoom mostra tudo. A seta do Ir traz o destino para a parte visível da câmera.
+- Construções novas visíveis: bancada, estufa e pomar no sítio; forno na casa; banca extra e
+  estação de costura na vila. Casa da Laís/Feira continuam no fundo; as compras acrescentam
+  equipamento a esses lugares. Todas as peças têm `footprint` e se ordenam por Y.
+- `Events.world_activity(kind, subject, plot_index)` é emitido após colheita, coleta e compra
+  bem-sucedidas. A sala visível encontra o objeto e seu `approach`, e o Tiro se aproxima,
+  cheira ao colher/achar produção pronta e comemora com pulos/coração. `station` detecta
+  aumento do número de produtos prontos. Sono e mapas ocultos suspendem reações.
+- Não há novo formato de save nem moeda de expansão: as áreas leem `progress.owned`.
+  `world_life_test` cobre compras reais, saves já avançados, reações e caminhos após construir.
+
+### Área dos animais (13/10/2026)
+- Fundo atual `farm_animals.png`, 1208×683: quarta área na frente das três anteriores.
+  `animals_area` é cercada até comprar `chicken_coop`; não libera estufa/pomar junto.
+- Divisas das laterais deixam um corredor de 60 px no centro: é possível visitar os animais
+  sem antes comprar as expansões de estufa/pomar. Polígonos de navegação incluem essa ligação.
+- Galinheiro, curral, moinho e queijaria ficam nessa área, como sprites separados. Galinhas
+  e vacas são sprites tocáveis com `upgrade`, `decoration: true` e `animal_idle: true`.
+  Galinhas usam escala 0,6; vacas escala 1. Seus footprints conservadores também bloqueiam o Tiro.
+- **Animais** abre `stations:chicken_coop+cow_barn`, após sítio próprio/capítulo ≥3.
+  **Produção** abre `stations:workbench+mill+dairy`: receitas e compras moram no sítio.
+  Continuação com no máximo quatro lugares visíveis; `home` fica oculto.
+- Moinho/queijaria também têm lugares individuais `hidden`; toque no prédio abre sua
+  própria estação, mesmo antes de comprar a bancada. `place_with_panel` prefere estes
+  painéis exatos para o Ir do manual/missões. Compras pendentes mostram "+" após abrir a área.
+- Estações com requisito ainda pendente não entram no painel múltiplo. Manual permite
+  consulta de futuras receitas/construções, e os botões de compra continuam validando requisitos.
+- Etiquetas detalhadas só no zoom ≥0,5. Ao afastar, aparece uma etiqueta Animais para evitar
+  sobreposição. `StationIndicator` mostra tempo/barra e Coletar no objeto, e é tocável.
+
+### Receita para novos mundos
+
 1. **Arte:** gere a cena no PixelLab no mesmo estilo (ex.: `create_image_pro` 632x395, sem fundo
    transparente, com `farm.png` como referência de estilo: "ilha isométrica flutuante, fundo escuro").
    Salve em `game/assets/sprites/areas/<mundo>/background.png`. Registre em `docs/ART_PIPELINE.md`.

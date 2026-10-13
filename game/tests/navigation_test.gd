@@ -41,6 +41,9 @@ func _run() -> void:
 		var blocked: Array[PackedVector2Array] = []
 		for obstacle: Dictionary in data.get("obstacles", []):
 			blocked.append(polygon(obstacle.polygon))
+		for region: Dictionary in data.get("regions", []):
+			if not state.call("has_upgrade", region.upgrade):
+				blocked.append(polygon(region.polygon))
 		for object: Dictionary in data.get("objects", []):
 			if object.has("footprint") and not object.has("upgrade"):
 				blocked.append(polygon(object.footprint))

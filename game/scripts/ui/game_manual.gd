@@ -166,7 +166,7 @@ static func _recipe(box: VBoxContainer, id: String) -> void:
 	var station_id: String = recipe.station
 	box.add_child(UiKit.label(Database.stations[station_id].name, &"SectionLabel"))
 	_amounts(box, recipe.get("inputs", {}))
-	box.add_child(UiKit.label("↓ Produzir e recolher", &"SmallLabel"))
+	box.add_child(UiKit.label("↓ Alimentar → esperar → recolher" if Database.stations[station_id].get("kind", "") == "animal" else "↓ Produzir e recolher", &"SmallLabel"))
 	_amounts(box, {recipe.output: int(recipe.get("qty", 1))})
 	_timer(box, int(recipe.seconds))
 	_requirements(box, recipe)

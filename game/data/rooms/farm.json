@@ -1,25 +1,290 @@
 {
-  "background": "res://assets/sprites/areas/farm/farm.png",
-  "floor": [[40, 198], [318, 68], [596, 198], [315, 338]],
+  "background": "res://assets/sprites/areas/farm/farm_animals.png",
+  "floor": [[603, 60], [1180, 344], [603, 638], [25, 344]],
   "navigation_margin": 8,
   "dog_scale": 0.5,
   "obstacles": [
-    { "id": "bloblo_house", "polygon": [[132, 82], [258, 24], [310, 82], [310, 140], [220, 185], [136, 151]] },
-    { "id": "orchard", "polygon": [[411, 42], [479, 36], [489, 72], [544, 69], [592, 106], [596, 191], [548, 215], [512, 205], [474, 198], [424, 166], [408, 113]] }
+    {
+      "id": "bloblo_house",
+      "polygon": [[420, 82], [546, 24], [598, 82], [598, 140], [508, 185], [424, 151]]
+    },
+    {
+      "id": "orchard",
+      "polygon": [[699, 42], [767, 36], [777, 72], [832, 69], [880, 106], [884, 191], [836, 215], [800, 205], [762, 198], [712, 166], [696, 113]]
+    }
   ],
   "objects": [
-    { "id": "plot_0", "action": "plot", "plot": 0, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [274, 224], "footprint": [[274, 174], [311, 198], [274, 224], [237, 198]] },
-    { "id": "plot_1", "action": "plot", "plot": 1, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [326, 249], "footprint": [[326, 199], [363, 223], [326, 249], [289, 223]] },
-    { "id": "plot_2", "action": "plot", "plot": 2, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [378, 274], "footprint": [[378, 224], [415, 248], [378, 274], [341, 248]] },
-    { "id": "plot_3", "action": "plot", "plot": 3, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [222, 249], "footprint": [[222, 199], [259, 223], [222, 249], [185, 223]] },
-    { "id": "plot_4", "action": "plot", "plot": 4, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [274, 274], "footprint": [[274, 224], [311, 248], [274, 274], [237, 248]] },
-    { "id": "plot_5", "action": "plot", "plot": 5, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [326, 299], "footprint": [[326, 249], [363, 273], [326, 299], [289, 273]] },
-    { "id": "plot_6", "action": "plot", "plot": 6, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [170, 274], "footprint": [[170, 224], [207, 248], [170, 274], [133, 248]] },
-    { "id": "plot_7", "action": "plot", "plot": 7, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [222, 299], "footprint": [[222, 249], [259, 273], [222, 299], [185, 273]] },
-    { "id": "plot_8", "action": "plot", "plot": 8, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [274, 324], "footprint": [[274, 274], [311, 298], [274, 324], [237, 298]] }
+    {
+      "id": "plot_0",
+      "action": "plot",
+      "plot": 0,
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [562, 224],
+      "footprint": [[562, 174], [599, 198], [562, 224], [525, 198]],
+      "approach": [562, 244]
+    },
+    {
+      "id": "plot_1",
+      "action": "plot",
+      "plot": 1,
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [614, 249],
+      "footprint": [[614, 199], [651, 223], [614, 249], [577, 223]],
+      "approach": [614, 269]
+    },
+    {
+      "id": "plot_2",
+      "action": "plot",
+      "plot": 2,
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [666, 274],
+      "footprint": [[666, 224], [703, 248], [666, 274], [629, 248]],
+      "approach": [666, 294]
+    },
+    {
+      "id": "plot_3",
+      "action": "plot",
+      "plot": 3,
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [510, 249],
+      "footprint": [[510, 199], [547, 223], [510, 249], [473, 223]],
+      "approach": [510, 269]
+    },
+    {
+      "id": "plot_4",
+      "action": "plot",
+      "plot": 4,
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [562, 274],
+      "footprint": [[562, 224], [599, 248], [562, 274], [525, 248]],
+      "approach": [562, 294]
+    },
+    {
+      "id": "plot_5",
+      "action": "plot",
+      "plot": 5,
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [614, 299],
+      "footprint": [[614, 249], [651, 273], [614, 299], [577, 273]],
+      "approach": [614, 319]
+    },
+    {
+      "id": "plot_6",
+      "action": "plot",
+      "plot": 6,
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [458, 274],
+      "footprint": [[458, 224], [495, 248], [458, 274], [421, 248]],
+      "approach": [458, 294]
+    },
+    {
+      "id": "plot_7",
+      "action": "plot",
+      "plot": 7,
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [510, 299],
+      "footprint": [[510, 249], [547, 273], [510, 299], [473, 273]],
+      "approach": [510, 319]
+    },
+    {
+      "id": "plot_8",
+      "action": "plot",
+      "plot": 8,
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [562, 324],
+      "footprint": [[562, 274], [599, 298], [562, 324], [525, 298]],
+      "approach": [562, 344]
+    },
+    {
+      "id": "workbench",
+      "action": "place:workbench",
+      "upgrade": "workbench",
+      "station": "workbench",
+      "sprite": "res://assets/sprites/areas/farm/workbench.png",
+      "pos": [649, 176],
+      "approach": [670, 200],
+      "footprint": [[615, 151], [646, 135], [691, 157], [659, 179]],
+      "label": "Bancada",
+      "label_pos": [649, 86],
+      "detail_label": true
+    },
+    {
+      "id": "greenhouse",
+      "action": "place:plots",
+      "upgrade": "greenhouse",
+      "region": "greenhouse_area",
+      "sprite": "res://assets/sprites/areas/farm/greenhouse.png",
+      "pos": [315, 390],
+      "approach": [388, 382],
+      "footprint": [[250, 350], [316, 318], [380, 350], [316, 397]],
+      "label": "Estufa",
+      "label_pos": [315, 240]
+    },
+    {
+      "id": "orchard",
+      "action": "place:orchard",
+      "upgrade": "orchard",
+      "region": "orchard_area",
+      "sprite": "res://assets/sprites/areas/farm/orchard.png",
+      "pos": [900, 400],
+      "approach": [823, 406],
+      "footprint": [[844, 370], [900, 340], [957, 369], [905, 404]],
+      "label": "Pomar",
+      "label_pos": [900, 262]
+    },
+    {
+      "id": "chicken_coop",
+      "action": "place:animals",
+      "upgrade": "chicken_coop",
+      "sprite": "res://assets/sprites/areas/farm/chicken_coop.png",
+      "pos": [510, 476],
+      "footprint": [[450, 447], [510, 416], [571, 447], [511, 482]],
+      "approach": [582, 486],
+      "label": "Galinheiro",
+      "label_pos": [510, 330],
+      "station": "chicken_coop",
+      "region": "animals_area",
+      "detail_label": true
+    },
+    {
+      "id": "cow_barn",
+      "region": "animals_area",
+      "action": "place:animals",
+      "upgrade": "cow_barn",
+      "sprite": "res://assets/sprites/areas/farm/cow_barn.png",
+      "pos": [704, 548],
+      "footprint": [[639, 509], [701, 478], [769, 512], [711, 554]],
+      "approach": [785, 541],
+      "label": "Curral",
+      "label_pos": [704, 398],
+      "station": "cow_barn",
+      "detail_label": true
+    },
+    {
+      "id": "mill",
+      "action": "place:mill",
+      "upgrade": "mill",
+      "sprite": "res://assets/sprites/areas/farm/mill.png",
+      "pos": [416, 497],
+      "footprint": [[370, 477], [416, 454], [465, 480], [422, 508]],
+      "approach": [380, 507],
+      "label": "Moinho",
+      "label_pos": [416, 352],
+      "station": "mill",
+      "region": "animals_area",
+      "detail_label": true
+    },
+    {
+      "id": "dairy",
+      "action": "place:dairy",
+      "upgrade": "dairy",
+      "sprite": "res://assets/sprites/areas/farm/dairy.png",
+      "pos": [790, 494],
+      "footprint": [[745, 470], [790, 447], [838, 470], [793, 500]],
+      "approach": [855, 507],
+      "label": "Queijaria",
+      "label_pos": [790, 366],
+      "station": "dairy",
+      "region": "animals_area",
+      "detail_label": true
+    },
+    {
+      "id": "hen_1",
+      "scale": 0.6,
+      "action": "place:animals",
+      "upgrade": "chicken_coop",
+      "sprite": "res://assets/sprites/areas/farm/chicken.png",
+      "pos": [503, 532],
+      "decoration": true,
+      "animal_idle": true,
+      "footprint": [[487, 516], [503, 508], [519, 516], [503, 532]],
+      "approach": [533, 540]
+    },
+    {
+      "id": "hen_2",
+      "scale": 0.6,
+      "action": "place:animals",
+      "upgrade": "chicken_coop",
+      "sprite": "res://assets/sprites/areas/farm/chicken.png",
+      "pos": [544, 511],
+      "decoration": true,
+      "animal_idle": true,
+      "footprint": [[528, 495], [544, 487], [560, 495], [544, 511]],
+      "approach": [574, 519]
+    },
+    {
+      "id": "cow_1",
+      "action": "place:animals",
+      "upgrade": "cow_barn",
+      "sprite": "res://assets/sprites/areas/farm/cow.png",
+      "pos": [673, 587],
+      "decoration": true,
+      "animal_idle": true,
+      "footprint": [[657, 571], [673, 563], [689, 571], [673, 587]],
+      "approach": [703, 595]
+    },
+    {
+      "id": "cow_2",
+      "action": "place:animals",
+      "upgrade": "cow_barn",
+      "sprite": "res://assets/sprites/areas/farm/cow.png",
+      "pos": [751, 549],
+      "decoration": true,
+      "animal_idle": true,
+      "footprint": [[723, 530], [751, 517], [779, 532], [751, 550]],
+      "approach": [794, 550]
+    }
   ],
   "zones": [
-    { "id": "bloblo_house", "action": "npc:bloblo", "label": "Bloblo", "label_pos": [222, 22], "polygon": [[140, 85], [250, 30], [305, 85], [305, 135], [220, 178], [145, 150]] }
+    {
+      "id": "bloblo_house",
+      "action": "npc:bloblo",
+      "label": "Bloblo",
+      "label_pos": [510, 22],
+      "polygon": [[428, 85], [538, 30], [593, 85], [593, 135], [508, 178], [433, 150]]
+    },
+    {
+      "id": "animal_yard",
+      "action": "place:animals",
+      "upgrade": "chicken_coop",
+      "label": "Animais",
+      "overview_label": true,
+      "label_pos": [603, 408],
+      "polygon": [[603, 348], [891, 492], [603, 638], [315, 492]]
+    }
   ],
-  "points": { "dog_start": [350, 190] }
+  "points": {
+    "dog_start": [638, 190]
+  },
+  "initial_zoom": 0.62,
+  "view_center": [603, 235],
+  "regions": [
+    {
+      "id": "greenhouse_area",
+      "upgrade": "greenhouse",
+      "label": "Estufa · Expandir",
+      "locked_label": true,
+      "label_pos": [443, 276],
+      "polygon": [[313, 200], [573, 333], [573, 363], [315, 492], [25, 344]],
+      "gate": [[325, 208], [565, 329]]
+    },
+    {
+      "id": "orchard_area",
+      "upgrade": "orchard",
+      "label": "Pomar · Expandir",
+      "locked_label": true,
+      "label_pos": [765, 276],
+      "polygon": [[893, 200], [1180, 344], [891, 492], [633, 363], [633, 333]],
+      "gate": [[641, 329], [881, 208]]
+    },
+    {
+      "id": "animals_area",
+      "upgrade": "chicken_coop",
+      "label": "Animais · Expandir",
+      "locked_label": true,
+      "label_pos": [603, 445],
+      "polygon": [[603, 348], [891, 492], [603, 638], [315, 492]],
+      "gate": [[465, 418], [739, 418]]
+    }
+  ]
 }

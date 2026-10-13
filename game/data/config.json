@@ -59,6 +59,46 @@
     "atelier": {
       "name": "Ateliê",
       "slots": 2
+    },
+    "chicken_coop": {
+      "name": "Galinheiro",
+      "slots": 1,
+      "kind": "animal",
+      "action_label": "Alimentar",
+      "queue_label": "Produzindo ovos",
+      "recipe_label": "Alimentação",
+      "instruction": "Dê milho às galinhas. Espere e recolha os ovos.",
+      "requirements": {
+        "chapter": 3
+      }
+    },
+    "cow_barn": {
+      "name": "Curral",
+      "slots": 1,
+      "kind": "animal",
+      "action_label": "Alimentar",
+      "queue_label": "Produzindo leite",
+      "recipe_label": "Alimentação",
+      "instruction": "Dê trigo às vacas. Espere e recolha o leite.",
+      "requirements": {
+        "chapter": 3
+      }
+    },
+    "mill": {
+      "name": "Moinho",
+      "slots": 2,
+      "instruction": "Transforme trigo em farinha.",
+      "requirements": {
+        "chapter": 3
+      }
+    },
+    "dairy": {
+      "name": "Queijaria",
+      "slots": 2,
+      "instruction": "Transforme leite em queijo.",
+      "requirements": {
+        "chapter": 3
+      }
     }
   },
   "farm": {
@@ -85,7 +125,8 @@
     "bathe": 3,
     "cook": 5,
     "harvest": 2,
-    "per_level": 100
+    "per_level": 100,
+    "animal": 3
   },
   "start": {
     "coins": 10,

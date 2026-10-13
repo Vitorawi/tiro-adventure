@@ -63,7 +63,8 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   scripts/ui/        UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
                      ProgressionUi (painéis: personagem, construir, vender, encomendas, rotas, atributos, coleção),
                      GameManual (catálogo visual de recursos/estações), DevPanel (ferramentas DEV),
-                     PlotIndicator, PetAnimator (animações do Tiro na aba Tiro)
+                     PlotIndicator, StationIndicator (tempo/coleta de estações e criações),
+                     PetAnimator (animações do Tiro na aba Tiro)
   scripts/util/      BuildInfo (canal prod/dev, arquivo de save), TimeText (texto de duração)
   assets/            sprites/(characters,areas,tiles,ui,fx), theme/, audio/, fonts/, icons/ (PWA)
   tests/             testes headless (excluídos do export)
@@ -89,6 +90,9 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Botão "Ir até lá"                     | `Events.world_requested.emit(mundo, "<lugar>" | "npc:<id>" | "buy:<construção>")` |
 | Mudar a aba Missões / Mochila         | `scenes/ui/tasks_screen/tasks_screen.gd` / `SheetBuilder.inventory_view` e `item_detail` |
 | Manual de recursos e estações        | `scripts/ui/game_manual.gd` (conteúdo derivado do Database); atalho na tela `pet_screen.gd` |
+| Expandir o sítio com áreas fechadas  | `rooms/farm.json → regions` (polígono, cerca e compra existente que libera a área) |
+| Galinhas/vacas e seus produtos       | `config.json → stations` com `kind: "animal"`; alimentação/ovos/leite em `recipes.json`, estado/timer em `StationState` |
+| Reações do Tiro no mundo             | `Events.world_activity` (GameState) → `RoomView` (alvo) → `DogWorld.react_at` (animação/caminho) |
 | Nova ferramenta de teste (dev)        | `GameState.dev_*()` (com guarda `BuildInfo.is_dev()`) + botão em `scripts/ui/dev_panel.gd` |
 | Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: PrimaryButton, TabButton, CloseButton, CardPanel, ReadyCardPanel, ChipPanel, SheetPanel, TopBarPanel, TitleLabel, SectionLabel, SmallLabel, BarLabel, ToastLabel) |
 | Ícone de item/necessidade/atributo    | PNG 32 px em `game/assets/sprites/ui/icons/` + campo `"icon"` no JSON (caminho em `items.json`/`needs`; nome do arquivo sem `.png` em `progression.json`, `npcs.json`, `collections.json`) |
@@ -136,6 +140,10 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   balanceamento ficam em `game/data/*.json` (lidos pelo `Database`); o código dos sistemas não tem
   conteúdo fixo. O preset Web inclui `data/*.json` via `include_filter` — novos tipos de arquivo
   não-recurso precisam ser adicionados lá.
+  Criações usam o mesmo sistema de estações: `kind: "animal"`, `action_label`, `queue_label`,
+  `recipe_label` e `instruction` em `config.json`; entrada = comida, saída = ovos/leite.
+  `GameState.cook_error/cook` valida/consome uma vez; `collect` só entrega lotes prontos,
+  sem duplicar. Nenhum estado paralelo dos animais nem novo formato de save.
 - **Ambientes (salas):** fundo vazio (piso + paredes) + cada móvel como sprite separado, tudo
   descrito em `game/data/rooms/<id>.json`. Coordenadas em pixels do fundo; `pos` = meio da base
   do sprite (usado na ordenação por Y); `footprint` = polígono no chão que bloqueia o caminho;
@@ -150,12 +158,28 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   essas áreas são independentes das `zones` tocáveis. `"navigation_margin"` = folga em pixels
   nos cantos da célula (padrão 4; sítio/vila usam 8). Canteiros também têm `footprint`.
   `"dog_scale"` = escala do Tiro, sombra e área de toque por sala (padrão 1; sítio/vila usam 0,5).
+  `"regions"` = áreas cercadas com `id`, `polygon`, `gate` (2 pontos), `upgrade`, `label`,
+  `label_pos` e `locked_label: true`. Até comprar, bloqueiam caminho e toque abre a compra.
+  Objetos da área usam `"region"` para esconder o "+" enquanto a área está fechada; após
+  abrir, compras internas pendentes mostram "+". A compra revela o sprite,
+  tira a cerca e atualiza a navegação; o save continua usando a construção já adquirida.
+  `"initial_zoom"`/`"view_center"` definem o enquadramento inicial de mapas maiores.
+  `"approach"` é o ponto seguro para o Tiro se aproximar de um objeto/estação ao reagir.
+  `"station"` também detecta produção pronta, mesmo sem `busy_frames`.
+  `StationIndicator` mostra tempo/Coletar sobre a estação. `animal_idle: true` dá movimento
+  leve ao sprite; `decoration: true` esconde marcadores de compra duplicados dos animais.
+  `scale` ajusta o tamanho de objetos (galinhas 0,6); toque considera essa escala.
+  Etiquetas com `detail_label` aparecem no zoom ≥0,5; `overview_label` abaixo disso.
+  Moinho/queijaria têm lugares próprios `hidden` para o toque direto, além do agrupamento
+  Produção. `Database.place_with_panel` prioriza painel exato antes dos agrupados.
   `"plot": N` = canteiro N da horta (estado em `GameState.plots`; broto/planta madura por cima).
   `GameState.unlocked_plots` guarda os terrenos comprados em ordem fixa; `buy_plot` valida a compra.
   `PlotIndicator` desenha ícone, tempo e barra sobre a planta; `SheetBuilder` monta os painéis do sítio.
   O Tiro só aparece na sala que tiver o ponto `dog_start`. O piso vira uma grade `AStarGrid2D` (8 px)
   e o Tiro anda por ela, sorteando apenas destinos alcançáveis. Sem tigela/sofá no mapa,
   ele passeia e dorme no próprio chão. Para posicionar móveis, gere prévias com `tools/pixel_tools.ps1`.
+  Reações a colheita/coleta/compra chegam por `Events.world_activity`; não alteram necessidades
+  nem acordam o Tiro. Caminhos são interrompidos/recalculados quando a navegação muda.
 - **Toque:** a sala trata toque curto = clique (teste por pixel opaco do sprite) e arrastar =
   câmera. Eventos de toque chegam como mouse (`emulate_mouse_from_touch`): trate `InputEventMouse*`.
 
@@ -191,6 +215,8 @@ powershell -ExecutionPolicy Bypass -File tools\serve_local.ps1  # http://localho
 & $env:GODOT_BIN --headless --path game -s res://tests/content_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/navigation_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/manual_test.gd
+& $env:GODOT_BIN --headless --path game -s res://tests/world_life_test.gd
+& $env:GODOT_BIN --headless --path game -s res://tests/animals_test.gd
 # Ou rode toda a suíte: powershell -File tools/test_all.ps1
 # Capturas das telas: rode sem --headless, com --resolution 360x780 e "-- --screenshots"
 

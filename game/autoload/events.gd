@@ -18,6 +18,8 @@ signal chapter_completed(index: int)
 
 ## Emitido pelo GameState quando o jogador cuida do Tiro ("feed", "play", "bathe", "pet").
 signal dog_action(action: StringName)
+## Ação concluída no mundo; reação visual do Tiro, sem efeito no save.
+signal world_activity(kind: StringName, subject: String, plot_index: int)
 
 ## Pede para a tela principal mostrar uma mensagem curta.
 signal toast_requested(text: String)

@@ -136,7 +136,7 @@ func _campaign() -> Dictionary:
 				break
 		if state.get("progress").claimed_quests.size() == database.get("quests").size():
 			break
-	_check(state.get("progress").chapter_index() == 9, "Campanha deve concluir os oito capítulos")
+	_check(state.get("progress").chapter_index() == progression.chapters.size() + 1, "Campanha deve concluir todos os capítulos")
 	for id: String in progression.upgrades:
 		if not state.call("has_upgrade", id):
 			print("Pendente ", id, ": ", state.call("upgrade_error", id), "; mochila ", state.get("inventory").counts)

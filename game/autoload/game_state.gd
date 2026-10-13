@@ -148,22 +148,35 @@ func station_slots(id: String) -> int:
 
 ## Coloca uma receita na fila. Retorna "" se deu certo ou o motivo da falha.
 func cook(recipe_id: String) -> String:
+	var error := cook_error(recipe_id)
+	if error != "":
+		return error
+	var recipe: Dictionary = Database.recipes[recipe_id]
+	var station_id: String = recipe.station
+	inventory.remove_all(recipe.get("inputs", {}))
+	station(station_id).enqueue(recipe_id, float(recipe.seconds), now())
+	_changed()
+	if Database.stations[station_id].get("kind", "") == "animal":
+		Events.world_activity.emit(&"feed_animal", station_id, -1)
+	return ""
+
+
+## A mesma validação para alimentação dos animais e fabricação nas estações.
+func cook_error(recipe_id: String) -> String:
 	if not Database.recipes.has(recipe_id):
 		return "Receita desconhecida"
 	var recipe: Dictionary = Database.recipes[recipe_id]
 	var station_id: String = recipe.get("station", "")
 	if not has_upgrade(station_id):
-		return "Compre %s na Jornada" % Database.stations.get(station_id, {}).get("name", station_id)
+		return "Compre %s no seu lugar do mapa" % Database.stations.get(station_id, {}).get("name", station_id)
 	var reason := content_error("recipe", recipe_id, recipe)
 	if reason != "":
 		return reason
 	var target := station(station_id)
 	if target.queue.size() >= station_slots(station_id):
 		return "Fila cheia"
-	if not inventory.remove_all(recipe.get("inputs", {})):
+	if not inventory.has_all(recipe.get("inputs", {})):
 		return "Faltam ingredientes"
-	target.enqueue(recipe_id, float(recipe.get("seconds", 60)), now())
-	_changed()
 	return ""
 
 
@@ -181,9 +194,10 @@ func collect(station_id: String) -> Dictionary:
 		progress.count("produce", qty)
 		_discover("recipe:" + recipe_id, str(recipe.get("skill", "cooking")), int(recipe.get("skill_xp", 10)))
 		received[output] = int(received.get(output, 0)) + qty
-		_gain_xp("cook")
+		_gain_xp("animal" if Database.stations.get(station_id, {}).get("kind", "") == "animal" else "cook")
 	if not received.is_empty():
 		_changed()
+		Events.world_activity.emit(&"collect", station_id, -1)
 	return received
 
 
@@ -242,6 +256,7 @@ func harvest(index: int) -> Dictionary:
 	plots[index] = { "crop": "", "ready_at": 0.0 }
 	_gain_xp("harvest")
 	_changed()
+	Events.world_activity.emit(&"harvest", crop_id, index)
 	return received
 
 
@@ -383,6 +398,7 @@ func buy_upgrade(id: String) -> String:
 	progress.count("build")
 	_add_player_xp(int(data.get("player_xp", 10)))
 	_changed()
+	Events.world_activity.emit(&"build", id, -1)
 	return ""
 
 

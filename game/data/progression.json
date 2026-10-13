@@ -26,26 +26,44 @@
     "bag": {
       "name": "Mochila",
       "icon": "tab_bag",
-      "go": {"screen": "bag"},
-      "requirements": {"quests": ["first_harvest"]}
+      "go": {
+        "screen": "bag"
+      },
+      "requirements": {
+        "quests": [
+          "first_harvest"
+        ]
+      }
     },
     "daily": {
       "name": "Missões diárias",
       "icon": "tab_tasks",
-      "go": {"screen": "tasks"},
-      "requirements": {"chapter": 2}
+      "go": {
+        "screen": "tasks"
+      },
+      "requirements": {
+        "chapter": 2
+      }
     },
     "weekly": {
       "name": "Missões semanais",
       "icon": "item_accessory_set",
-      "go": {"screen": "tasks"},
-      "requirements": {"chapter": 3}
+      "go": {
+        "screen": "tasks"
+      },
+      "requirements": {
+        "chapter": 3
+      }
     },
     "skills": {
       "name": "Atributos",
       "icon": "xp",
-      "go": {"screen": "pet"},
-      "requirements": {"chapter": 3}
+      "go": {
+        "screen": "pet"
+      },
+      "requirements": {
+        "chapter": 3
+      }
     }
   },
   "skills": {
@@ -282,6 +300,90 @@
       },
       "icon": "item_fabric",
       "station": "atelier"
+    },
+    "chicken_coop": {
+      "name": "Galinheiro",
+      "world": "farm",
+      "description": "Duas galinhas: milho vira ovos. Abre a área dos animais.",
+      "cost": 180,
+      "materials": {
+        "plank": 2,
+        "wood": 3
+      },
+      "requirements": {
+        "chapter": 3,
+        "owned": [
+          "farm"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 25
+      },
+      "icon": "item_egg",
+      "station": "chicken_coop"
+    },
+    "cow_barn": {
+      "name": "Curral",
+      "world": "farm",
+      "description": "Duas vaquinhas: trigo vira leite.",
+      "cost": 300,
+      "materials": {
+        "plank": 4,
+        "stone": 4
+      },
+      "requirements": {
+        "chapter": 3,
+        "owned": [
+          "chicken_coop"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 25
+      },
+      "icon": "item_milk",
+      "station": "cow_barn"
+    },
+    "mill": {
+      "name": "Moinho",
+      "world": "farm",
+      "description": "Transforma trigo em farinha no sítio.",
+      "cost": 240,
+      "materials": {
+        "plank": 3,
+        "stone": 6
+      },
+      "requirements": {
+        "chapter": 3,
+        "owned": [
+          "chicken_coop"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 25
+      },
+      "icon": "item_flour",
+      "station": "mill"
+    },
+    "dairy": {
+      "name": "Queijaria",
+      "world": "farm",
+      "description": "Transforma leite em queijo no sítio.",
+      "cost": 320,
+      "materials": {
+        "plank": 4,
+        "brick": 3
+      },
+      "requirements": {
+        "chapter": 3,
+        "owned": [
+          "cow_barn"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 25
+      },
+      "icon": "item_cheese",
+      "station": "dairy"
     }
   },
   "activities": {
@@ -568,6 +670,29 @@
         }
       },
       "cooldown": 600
+    },
+    "farm_breakfast": {
+      "name": "Café da manhã",
+      "inputs": {
+        "egg": 2,
+        "flour": 2,
+        "cheese": 1
+      },
+      "rewards": {
+        "coins": 95,
+        "skill_xp": {
+          "commerce": 25
+        }
+      },
+      "cooldown": 600,
+      "requirements": {
+        "quests": [
+          "first_harvest"
+        ],
+        "owned": [
+          "dairy"
+        ]
+      }
     }
   },
   "chapters": [
@@ -660,6 +785,19 @@
         "coins": 160,
         "skill_xp": {
           "adventure": 20
+        }
+      },
+      "unlocks_text": "Conheça os animais do sítio!"
+    },
+    {
+      "name": "Um sítio cheio de vida",
+      "description": "Cuide de galinhas e vacas, moa trigo e faça queijo.",
+      "target": "dairy",
+      "rewards": {
+        "coins": 180,
+        "skill_xp": {
+          "agriculture": 30,
+          "cooking": 30
         }
       },
       "unlocks_text": "História completa! Continue nas diárias e semanais."

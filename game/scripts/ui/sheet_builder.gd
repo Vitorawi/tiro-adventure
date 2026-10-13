@@ -158,6 +158,8 @@ static func stations_view(ids: PackedStringArray) -> Control:
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.mouse_filter = Control.MOUSE_FILTER_PASS
 	for id in ids:
+		if GameState.requirement_error(Database.stations.get(id, {}).get("requirements", {})) != "":
+			continue
 		if ids.size() > 1:
 			var title := UiKit.hbox(8)
 			title.add_child(UiKit.icon(UiKit.ui_icon(Database.progression.upgrades.get(id, {}).get("icon", "")), 32))
@@ -177,8 +179,11 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 		var now := GameState.now()
 		var slots := GameState.station_slots(station_id)
 		var full := target.queue.size() >= slots
+		var data: Dictionary = Database.stations[station_id]
+		if data.get("instruction", "") != "":
+			box.add_child(UiKit.label(data.instruction, &"SmallLabel"))
 
-		box.add_child(UiKit.label("Preparando  %d/%d" % [target.queue.size(), slots], &"SectionLabel"))
+		box.add_child(UiKit.label("%s  %d/%d" % [data.get("queue_label", "Preparando"), target.queue.size(), slots], &"SectionLabel"))
 		var slot_row := UiKit.hbox(8)
 		for i in slots:
 			slot_row.add_child(_slot_card(target.queue[i] if i < target.queue.size() else {}, now))
@@ -189,7 +194,7 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 				var received := GameState.collect(station_id)
 				Events.toast_requested.emit("Recebeu " + Database.describe_amounts(received)), &"PrimaryButton"))
 
-		box.add_child(UiKit.label("Receitas", &"SectionLabel"))
+		box.add_child(UiKit.label(data.get("recipe_label", "Receitas"), &"SectionLabel"))
 		for recipe_id in Database.recipes_for(station_id):
 			if focus != "" and recipe_id != focus:
 				continue
@@ -262,10 +267,11 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 	body.add_child(needs_row)
 
 	var row := UiKit.hbox(8)
-	var cook := UiKit.button("Fila cheia" if station_full and has_all and locked == "" else "Produzir", func() -> void:
+	var action: String = Database.stations.get(recipe.station, {}).get("action_label", "Produzir")
+	var cook := UiKit.button("Fila cheia" if station_full and has_all and locked == "" else action, func() -> void:
 		var error := GameState.cook(recipe_id)
 		Events.toast_requested.emit(error if error != "" else "Preparando %s!" % Database.item_name(output)), &"PrimaryButton")
-	cook.disabled = not has_all or station_full or locked != ""
+	cook.disabled = GameState.cook_error(recipe_id) != ""
 	cook.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(cook)
 	if not has_all or locked != "":

@@ -74,7 +74,10 @@ func _run() -> void:
 		for id: String in group.missions:
 			var m: Dictionary = group.missions[id]
 			var key: String = m.goal.key
-			check(key in ["feed", "play", "bathe", "harvest", "produce", "sold", "orders", "explore"] or key.begins_with("activity:"), kind + "/" + id + ": contador " + key)
+			check(key in ["feed", "play", "bathe", "harvest", "produce", "sold", "orders", "explore"] or key.begins_with("activity:") or key.begins_with("produce:"), kind + "/" + id + ": contador " + key)
+			if key.begins_with("produce:"):
+				check(db.get("items").has(key.trim_prefix("produce:")), kind + "/" + id + ": produto inexistente")
+				check(db.get("recipes").values().any(func(recipe: Dictionary) -> bool: return recipe.output == key.trim_prefix("produce:")), kind + "/" + id + ": produto sem receita")
 			if key.begins_with("activity:"):
 				check(data.activities.has(key.trim_prefix("activity:")), kind + "/" + id + ": rota " + key)
 			check(int(m.goal.get("target", 0)) > 0 and int(m.rewards.get("coins", 0)) > 0, kind + "/" + id + ": alvo e moedas")
@@ -158,7 +161,7 @@ func _validate_targets() -> void:
 	var places: Script = load("res://scripts/ui/places.gd")
 	var state: Node = root.get_node("GameState")
 	var quests: Dictionary = db.get("quests")
-	for chapter in range(1, 10):
+	for chapter in range(1, db.get("progression").chapters.size() + 1):
 		state.call("reset")
 		for previous in range(1, chapter):
 			for id: String in state.get("progress").main_quests(previous):
@@ -176,6 +179,13 @@ func _validate_targets() -> void:
 						state.get("progress").claimed_quests.erase(before)
 			elif not state.call("quest_unlocked", id):
 				continue
+			# Missão de compra recebida implica a construção adquirida. Recria
+			# as posses de cada passo para validar lugares com requisito owned.
+			state.get("progress").owned.clear()
+			for claimed_id: String in state.get("progress").claimed_quests:
+				for acquired: Dictionary in quests[claimed_id].goals:
+					if acquired.type == "owned":
+						state.get("progress").owned[acquired.key] = true
 			var npc_world: String = db.call("npc_world", q.npc)
 			check(npc_world != "", id + ": NPC sem mundo")
 			if npc_world != "":

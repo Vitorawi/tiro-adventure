@@ -52,5 +52,35 @@
         "agriculture": 5
       }
     }
+  },
+  "wheat": {
+    "seconds": 120,
+    "coins": 4,
+    "yield": {
+      "wheat": 3
+    },
+    "sprite": "res://assets/sprites/areas/farm/crop_wheat.png",
+    "skill_xp": 12,
+    "requirements": {
+      "chapter": 3,
+      "owned": [
+        "farm"
+      ]
+    }
+  },
+  "corn": {
+    "seconds": 180,
+    "coins": 5,
+    "yield": {
+      "corn": 3
+    },
+    "sprite": "res://assets/sprites/areas/farm/crop_corn.png",
+    "skill_xp": 15,
+    "requirements": {
+      "chapter": 3,
+      "owned": [
+        "farm"
+      ]
+    }
   }
 }
