@@ -5,7 +5,6 @@
     "portrait": "res://assets/sprites/characters/npc_lais/portrait.png",
     "sprite_dir": "res://assets/sprites/characters/npc_lais/",
     "icon": "tab_house",
-    "world_scale": 1.7,
     "greeting": "Oi! Vamos cuidar do Tiro juntos?",
     "portrait_animations": {"request": "res://assets/sprites/characters/npc_lais/quest_request/", "complete": "res://assets/sprites/characters/npc_lais/intro_wave/"},
     "intro_wave": "res://assets/sprites/characters/npc_lais/intro_wave/",

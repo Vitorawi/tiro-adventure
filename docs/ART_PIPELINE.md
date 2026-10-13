@@ -36,6 +36,17 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 
 ## Registro de assets
 
+### Laís no mapa v3 — 13/10/2026 (Claude Code)
+
+Personagem **Laís Mapa v3** `502435b0-c34e-4164-82ac-4f4699c2894f`: modo pro, 128 px, 8 direções,
+concept = rotação sul do Laís Avatar; descrição pede corpo esguio e proporção adulta (a v2,
+96 px, saiu "gordinha"/chibi; pro ignora `proportions`). Altura ~87 px a 1x (geladeira 113),
+mesma densidade de pixel do Tiro: não ampliar (`world_scale` removido). Caminhada `walking-8-frames`
+em skeleton-v3 (S/E/N/W, grupo `fda0e3fa-ed4e-4861-a9d5-7ab79f26736a`), quadros 144 px
+(norte 128 px; todos centrados, pés em +46 do centro). Arquivos: `characters/npc_lais/rotations/` e
+`walk/<direção>/frame_00..07.png`. Descartados: `9b151c04…` (Laís Mapa, standard 68 px) e
+`d1c95140…` (v2, 96 px); podem ser apagados no PixelLab.
+
 ### Retrato animado da Laís — 13/10/2026 (Codex)
 
 Personagem existente **Laís Avatar**, `650a88c3-6c61-40ba-a7f4-e533d891e478`, 64×64.

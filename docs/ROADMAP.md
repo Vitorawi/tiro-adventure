@@ -26,6 +26,9 @@
 - (7) Cartão de missão enxuto (pedido do Vitor): só o que fazer (objetivo), onde (lugar) e a recompensa;
   saíram os chips de ingredientes que faltam (a cadeia fica no "?"). `tasks_screen._quest_body`.
   Bancada não tinha bug: Vitor confirmou que "desbugou" (nada a corrigir). Falta publicar (itens 6 e 7).
+- (8) Laís do mapa refeita (v3, pro 128 px, mesmo detalhe do Tiro, esguia) com caminhada de 8 quadros;
+  `world_scale` removido do `npcs.json` (campo e suporte no `room.gd` continuam para outros NPCs).
+  Detalhes em `docs/ART_PIPELINE.md`. Falta publicar.
 - (5) Recolher direto no mapa + animação: `Events.items_gained` / `CollectFx` (z_index 20, filho de `main`).
   Tocar numa estação/criação com lote pronto, no marcador "Recolher" da Natureza ou numa planta
   madura recolhe sem abrir painel e salta ícone +N. Os botões de recolher dos painéis usam a mesma
