@@ -43,7 +43,18 @@ Rotas aparecem no lugar do tipo delas (`"place"` em `activities`: `walk`, `mine`
    - `zones` = áreas tocáveis do desenho (polígono em pixels da imagem); `label` + `label_pos` =
      etiqueta que mostra ao jogador que dá para tocar ali (fica com o mesmo tamanho em qualquer zoom).
    - Sem `floor` = ninguém anda (só toques). Com `floor` + `points.dog_start` o Tiro passeia lá
-     (ver casa). Móveis separados vão em `objects` (ver `CLAUDE.md`, "Ambientes").
+     (Casa, Sítio e Vila). Móveis separados vão em `objects` (ver `CLAUDE.md`, "Ambientes").
+   - `objects[].footprint` bloqueia móveis e canteiros; `obstacles` contém polígonos dos
+     elementos desenhados no fundo (`{ "id": "arvore", "polygon": [...] }`). As `zones`
+     continuam sendo somente áreas de toque: não use sua área inteira como colisão sem
+     conferir a arte. No fundo plano, bloqueie também a silhueta de casas/árvores para o Tiro
+     não aparecer sobre telhados/copas (esses elementos não têm ordenação por Y separada).
+   - `navigation_margin` dá folga nos cantos de cada célula (padrão 4 px; mapas externos 8 px).
+     `dog_scale` ajusta a proporção do Tiro à arte de cada mapa, incluindo sombra e área de toque
+     (padrão 1; Sítio e Vila usam 0,5, pois as construções externas são menores na imagem).
+     O Tiro nasce numa célula livre perto de `dog_start`, sorteia destinos alcançáveis e nunca
+     acrescenta um trecho direto até um alvo bloqueado. `bowl`, `sleep` e `sleep_approach` são
+     opcionais: sem esses pontos, ele não procura a tigela e dorme no chão onde estiver.
    - Para achar coordenadas: abra a imagem, ou gere uma prévia com `tools/pixel_tools.ps1`.
 3. **Mundo:** entrada em `game/data/worlds.json`:
    ```json
@@ -67,6 +78,8 @@ Rotas aparecem no lugar do tipo delas (`"place"` em `activities`: `walk`, `mine`
    receitas/estações etc.
 6. **Teste:** `progression_test.gd -- --screenshots` gera `ui_world_<mundo>.png` para os mundos
    da lista do teste (acrescente o novo), e a campanha simulada valida o progresso.
+   `navigation_test.gd` verifica 100 caminhos por mapa, incluindo cada trecho entre células,
+   limites do piso, obstáculos, destinos sem rota e sono nos mapas externos.
 
 Nenhum código precisa mudar para um mundo novo, a não ser que ele traga um **tipo de painel novo**
 (aí: um caso em `Places._panel` + a função que monta o painel).

@@ -4,7 +4,7 @@ extends Control
 ## fundo + objetos separados (PixelLab), cada um com uma área no chão (footprint)
 ## que o Tiro contorna. Objetos com "plot" são canteiros de horta.
 ## O Tiro só aparece se a sala tiver o ponto "dog_start"; sem "floor" não há caminho
-## (sala só de toques, ex.: vila). Ações: "plot" ou "place:<id>"/"npc:<id>" (Places).
+## (sala só de toques). Ações: "plot" ou "place:<id>"/"npc:<id>" (Places).
 ##
 ## Arrastar move a câmera; tocar num objeto abre o menu dele (toque preciso no
 ## desenho, não num retângulo); tocar no Tiro abre a Tela do Pet.
@@ -74,16 +74,28 @@ func _ready() -> void:
 
 ## Caminho pelo piso, desviando dos móveis. Pontos em pixels do fundo.
 func find_path(from: Vector2, to: Vector2) -> PackedVector2Array:
+	if _walkable.is_empty():
+		return PackedVector2Array()
 	return _nav.get_point_path(_nearest_walkable(from), _nearest_walkable(to))
 
 
-func random_floor_point() -> Vector2:
-	return _nav.get_point_position(_walkable.pick_random())
+func random_floor_point(from: Vector2) -> Vector2:
+	if _walkable.is_empty():
+		return from
+	for attempt in 20:
+		var target := _nav.get_point_position(_walkable.pick_random())
+		if not find_path(from, target).is_empty():
+			return target
+	return from
+
+
+func nearest_floor_point(point: Vector2) -> Vector2:
+	return _nav.get_point_position(_nearest_walkable(point)) if not _walkable.is_empty() else point
 
 
 func _build_navigation() -> void:
 	if not _room.has("floor"):
-		return  # sala sem chão andável (ex.: vila e trilha): só toques
+		return  # sala sem chão andável: só toques
 	var cells := Vector2i((_background.size / NAV_CELL).ceil())
 	_nav.region = Rect2i(Vector2i.ZERO, cells)
 	_nav.cell_size = Vector2.ONE * NAV_CELL
@@ -92,7 +104,10 @@ func _build_navigation() -> void:
 	_nav.update()
 
 	var floor_area := _polygon(_room["floor"])
+	var margin: float = float(_room.get("navigation_margin", NAV_CELL / 2.0))
 	var blocked: Array[PackedVector2Array] = []
+	for obstacle: Dictionary in _room.get("obstacles", []):
+		blocked.append(_polygon(obstacle["polygon"]))
 	for data: Dictionary in _room.get("objects", []):
 		if data.has("footprint"):
 			if data.has("upgrade") and not GameState.has_upgrade(data.upgrade):
@@ -104,11 +119,16 @@ func _build_navigation() -> void:
 		for y in cells.y:
 			var cell := Vector2i(x, y)
 			var center := _nav.get_point_position(cell)
-			var solid := not Geometry2D.is_point_in_polygon(center, floor_area)
-			for area in blocked:
+			var solid := false
+			# Margem das patas nos mapas externos; inclui os cantos da célula
+			# para os segmentos diagonais não cortarem as bordas dos obstáculos.
+			for offset: Vector2 in [Vector2.ZERO, Vector2(-margin, -margin), Vector2(margin, -margin), Vector2(-margin, margin), Vector2(margin, margin)]:
+				var sample := center + offset
+				solid = not Geometry2D.is_point_in_polygon(sample, floor_area)
+				for area in blocked:
+					solid = solid or Geometry2D.is_point_in_polygon(sample, area)
 				if solid:
 					break
-				solid = Geometry2D.is_point_in_polygon(center, area)
 			_nav.set_point_solid(cell, solid)
 			if not solid:
 				_walkable.append(cell)
@@ -242,7 +262,7 @@ func _refresh_ownership() -> void:
 			sprite.self_modulate.a = 1.0 if purchased else 0.0
 			sprite.get_node("PurchaseMarker").visible = not purchased
 	_build_navigation()
-	if _dog:
+	if _dog and _room.get("points", {}).has("sleep"):
 		_dog.sleep_point = _point("sleep") if GameState.has_upgrade("sofa") else _point("sleep_approach")
 
 
@@ -316,14 +336,18 @@ func _spawn_sliced(texture: Texture2D, pos: Vector2) -> void:
 
 func _spawn_dog() -> void:
 	if not _room.get("points", {}).has("dog_start"):
-		return  # sala sem o Tiro (ex.: sítio, por enquanto)
+		return  # sala sem o Tiro
 	_dog = DogWorld.new()
 	_dog.name = "Tiro"
 	_dog.room = self
-	_dog.bowl_point = _point("bowl")
-	_dog.sleep_point = _point("sleep")
-	_dog.sleep_approach = _point("sleep_approach")
-	_dog.position = _point("sleep") if GameState.dog.sleeping else _point("dog_start")
+	_dog.scale = Vector2.ONE * float(_room.get("dog_scale", 1.0))
+	var points: Dictionary = _room["points"]
+	if points.has("bowl"):
+		_dog.bowl_point = _point("bowl")
+	if points.has("sleep") and points.has("sleep_approach"):
+		_dog.sleep_point = _point("sleep")
+		_dog.sleep_approach = _point("sleep_approach")
+	_dog.position = _dog.sleep_point if GameState.dog.sleeping and _dog.sleep_point != Vector2.INF else nearest_floor_point(_point("dog_start"))
 	_world.add_child(_dog)
 
 

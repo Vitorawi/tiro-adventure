@@ -1,19 +1,25 @@
 {
   "background": "res://assets/sprites/areas/farm/farm.png",
   "floor": [[40, 198], [318, 68], [596, 198], [315, 338]],
+  "navigation_margin": 8,
+  "dog_scale": 0.5,
+  "obstacles": [
+    { "id": "bloblo_house", "polygon": [[132, 82], [258, 24], [310, 82], [310, 140], [220, 185], [136, 151]] },
+    { "id": "orchard", "polygon": [[411, 42], [479, 36], [489, 72], [544, 69], [592, 106], [596, 191], [548, 215], [512, 205], [474, 198], [424, 166], [408, 113]] }
+  ],
   "objects": [
-    { "id": "plot_0", "action": "plot", "plot": 0, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [274, 224] },
-    { "id": "plot_1", "action": "plot", "plot": 1, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [326, 249] },
-    { "id": "plot_2", "action": "plot", "plot": 2, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [378, 274] },
-    { "id": "plot_3", "action": "plot", "plot": 3, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [222, 249] },
-    { "id": "plot_4", "action": "plot", "plot": 4, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [274, 274] },
-    { "id": "plot_5", "action": "plot", "plot": 5, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [326, 299] },
-    { "id": "plot_6", "action": "plot", "plot": 6, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [170, 274] },
-    { "id": "plot_7", "action": "plot", "plot": 7, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [222, 299] },
-    { "id": "plot_8", "action": "plot", "plot": 8, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [274, 324] }
+    { "id": "plot_0", "action": "plot", "plot": 0, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [274, 224], "footprint": [[274, 174], [311, 198], [274, 224], [237, 198]] },
+    { "id": "plot_1", "action": "plot", "plot": 1, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [326, 249], "footprint": [[326, 199], [363, 223], [326, 249], [289, 223]] },
+    { "id": "plot_2", "action": "plot", "plot": 2, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [378, 274], "footprint": [[378, 224], [415, 248], [378, 274], [341, 248]] },
+    { "id": "plot_3", "action": "plot", "plot": 3, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [222, 249], "footprint": [[222, 199], [259, 223], [222, 249], [185, 223]] },
+    { "id": "plot_4", "action": "plot", "plot": 4, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [274, 274], "footprint": [[274, 224], [311, 248], [274, 274], [237, 248]] },
+    { "id": "plot_5", "action": "plot", "plot": 5, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [326, 299], "footprint": [[326, 249], [363, 273], [326, 299], [289, 273]] },
+    { "id": "plot_6", "action": "plot", "plot": 6, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [170, 274], "footprint": [[170, 224], [207, 248], [170, 274], [133, 248]] },
+    { "id": "plot_7", "action": "plot", "plot": 7, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [222, 299], "footprint": [[222, 249], [259, 273], [222, 299], [185, 273]] },
+    { "id": "plot_8", "action": "plot", "plot": 8, "sprite": "res://assets/sprites/areas/farm/plot.png", "pos": [274, 324], "footprint": [[274, 274], [311, 298], [274, 324], [237, 298]] }
   ],
   "zones": [
     { "id": "bloblo_house", "action": "npc:bloblo", "label": "Bloblo", "label_pos": [222, 22], "polygon": [[140, 85], [250, 30], [305, 85], [305, 135], [220, 178], [145, 150]] }
   ],
-  "points": {}
+  "points": { "dog_start": [350, 190] }
 }

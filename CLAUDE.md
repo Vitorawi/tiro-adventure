@@ -140,12 +140,17 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   (ex.: fogão cozinhando). Quadros de animação usam o MESMO recorte da imagem base.
   `"upgrade": "<id>"` = móvel só aparece depois de comprado (antes: marcador "+" que abre a compra).
   `"action"`: `"place:<id>"` (lugar do mundo em `worlds.json`), `"npc:<id>"` ou `"plot"`; `"label"` +
-  `"label_pos"` = etiqueta flutuante mostrando que dá para tocar. Sala sem `"floor"` = só toques (vila).
+  `"label_pos"` = etiqueta flutuante mostrando que dá para tocar. Sala sem `"floor"` = só toques.
+  `"obstacles"` = lista de `{ "id", "polygon" }` para bloquear elementos já desenhados no fundo;
+  essas áreas são independentes das `zones` tocáveis. `"navigation_margin"` = folga em pixels
+  nos cantos da célula (padrão 4; sítio/vila usam 8). Canteiros também têm `footprint`.
+  `"dog_scale"` = escala do Tiro, sombra e área de toque por sala (padrão 1; sítio/vila usam 0,5).
   `"plot": N` = canteiro N da horta (estado em `GameState.plots`; broto/planta madura por cima).
   `GameState.unlocked_plots` guarda os terrenos comprados em ordem fixa; `buy_plot` valida a compra.
   `PlotIndicator` desenha ícone, tempo e barra sobre a planta; `SheetBuilder` monta os painéis do sítio.
   O Tiro só aparece na sala que tiver o ponto `dog_start`. O piso vira uma grade `AStarGrid2D` (8 px)
-  e o Tiro anda por ela. Para posicionar móveis, gere prévias com `tools/pixel_tools.ps1`.
+  e o Tiro anda por ela, sorteando apenas destinos alcançáveis. Sem tigela/sofá no mapa,
+  ele passeia e dorme no próprio chão. Para posicionar móveis, gere prévias com `tools/pixel_tools.ps1`.
 - **Toque:** a sala trata toque curto = clique (teste por pixel opaco do sprite) e arrastar =
   câmera. Eventos de toque chegam como mouse (`emulate_mouse_from_touch`): trate `InputEventMouse*`.
 
@@ -177,6 +182,7 @@ powershell -ExecutionPolicy Bypass -File tools\serve_local.ps1  # http://localho
 & $env:GODOT_BIN --headless --path game -s res://tests/dev_tools_test.gd -- --prod   # ferramentas desligadas na prod
 & $env:GODOT_BIN --headless --path game -s res://tests/tasks_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/content_test.gd
+& $env:GODOT_BIN --headless --path game -s res://tests/navigation_test.gd
 # Ou rode toda a suíte: powershell -File tools/test_all.ps1
 # Capturas das telas: rode sem --headless, com --resolution 360x780 e "-- --screenshots"
 

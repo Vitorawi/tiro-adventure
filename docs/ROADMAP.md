@@ -2,7 +2,23 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **13/10/2026, Claude Code**.
+> um do outro. Última atualização: **13/10/2026, Codex**.
+
+**Tiro andando no Sítio e na Vila (Codex, 13/10/2026).**
+- Ambos têm `dog_start`; Vila ganhou `floor`. Canteiros têm `footprint`; `obstacles` bloqueia
+  casas, feira, árvores/pomar, caixas e banco desenhados no fundo. Margem de navegação de 8 px
+  nos mapas externos; grade da casa também confere cantos de células (4 px).
+- Proporção ajustada após pedido do Vitor: `dog_scale: 0.5` no Sítio/Vila; Casa mantém 1.
+  Sprite, sombra e área de toque acompanham a escala; patas continuam ancoradas no chão.
+- Pontos de tigela/sofá são opcionais: fora da casa o Tiro dorme no local e não tenta ir à origem.
+  Nasce no chão livre, sorteia apenas destinos alcançáveis e não anda direto até um alvo sem rota.
+- Suíte completa verde, incluindo novo `navigation_test` (100 caminhos por mapa, limites,
+  obstáculos, sono e ausência de rota). Capturas 360×780 conferidas em
+  `build/screenshots/tiro_{farm,village}{,_walking}.png`.
+- Publicação autorizada pelo Vitor em 13/10/2026: enviar pela `main` para o deploy automático
+  de prod e dev no GitHub Pages. Suíte completa rodada novamente antes do envio.
+- Próximo: conferir no aparelho o passeio e a proporção do Tiro; ajustar as áreas conforme
+  novas artes/objetos entrarem nos mapas.
 
 **Simplificar — todas as 5 fases concluídas (Claude Code, 13/10/2026). Sem push: esperando o Vitor aprovar.**
 - O Vitor achou o jogo confuso ("bombardeamento de informação"). Plano aprovado em `docs/plans/SIMPLIFICAR.md`:

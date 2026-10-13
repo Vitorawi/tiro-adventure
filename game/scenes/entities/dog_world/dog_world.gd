@@ -22,10 +22,10 @@ const SHADOW_SQUASH := 0.4
 const SHADOW_COLOR := Color(0.12, 0.05, 0.02, 0.5)
 
 var room: RoomView
-var bowl_point := Vector2.ZERO
+var bowl_point := Vector2.INF
 ## Lugar de dormir (em cima do sofá) e o ponto no chão, na frente dele, por onde sobe/desce.
-var sleep_point := Vector2.ZERO
-var sleep_approach := Vector2.ZERO
+var sleep_point := Vector2.INF
+var sleep_approach := Vector2.INF
 
 var _facing := "south"
 var _on_sofa := false
@@ -52,7 +52,7 @@ func _draw() -> void:
 
 ## Área de toque em volta do Tiro (coordenadas do mundo).
 func hit_test(point: Vector2) -> bool:
-	return Rect2(position + Vector2(-24.0, -54.0), Vector2(48.0, 58.0)).has_point(point)
+	return Rect2(Vector2(-24.0, -54.0), Vector2(48.0, 58.0)).has_point((point - position) / scale)
 
 
 # --- Comportamento -----------------------------------------------------------
@@ -62,6 +62,10 @@ func _brain() -> void:
 	while is_inside_tree():
 		var dog := GameState.dog
 		if dog.sleeping:
+			if sleep_point == Vector2.INF:
+				_play("sleep", _facing)
+				await _wait(2.0)
+				continue
 			if not _on_sofa:
 				await _go_to(sleep_approach)
 				_set_on_sofa(true)
@@ -72,14 +76,14 @@ func _brain() -> void:
 		if _on_sofa:
 			await _step_to(sleep_approach)
 			_set_on_sofa(false)
-		if dog.get_need("hunger", GameState.now()) < HUNGRY and randf() < 0.6:
+		if bowl_point != Vector2.INF and dog.get_need("hunger", GameState.now()) < HUNGRY and randf() < 0.6:
 			await _go_to(bowl_point)
 			_play("eat", "east")
 			await _wait(3.0)
 			continue
 		await _idle_moment()
 		if is_inside_tree():
-			await _go_to(room.random_floor_point())
+			await _go_to(room.random_floor_point(position))
 
 
 func _idle_moment() -> void:
@@ -108,7 +112,8 @@ func _go_to(target: Vector2) -> void:
 	if position.distance_to(target) < 4.0 or not is_inside_tree():
 		return
 	var path := _simplify(room.find_path(position, target))
-	path.append(target)
+	# Destino final é a célula livre retornada pela sala. Um alvo bloqueado
+	# ou sem caminho nunca vira um trecho direto atravessando o cenário.
 	for point in path:
 		await _step_to(point)
 		if not is_inside_tree():
