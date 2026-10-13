@@ -2,7 +2,15 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **12/10/2026, Codex**.
+> um do outro. Última atualização: **12/10/2026, Claude Code**.
+
+**Simplificar — plano escrito, execução ainda não começou (Claude Code, 12/10/2026).**
+- O Vitor achou o jogo confuso ("bombardeamento de informação"). Plano aprovado em `docs/plans/SIMPLIFICAR.md`:
+  missões em 3 tipos (História, Diárias, Semanais), 3 mundos (a Trilha vira portão na Vila), 4 atributos,
+  personagens que aparecem aos poucos, revelação gradual com "Novo!" e menos texto em todo canto.
+- O painel "Como fazer" do Codex (`scripts/ui/task_help.gd`) parou no meio pelo limite de uso; foi commitado
+  como WIP (`ddab0df`). A lógica será reaproveitada no cartão da História (Fase 1); o painel cheio de texto será refeito.
+- Próximo: Fase 1 do plano. Sem push.
 
 **Tarefas v2 — todas as fases (1–6) concluídas (Codex, 12/10/2026).**
 - 28 passos principais em 8 capítulos e 9 secundárias; recompensas por capítulo, destinos
