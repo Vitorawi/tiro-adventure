@@ -111,6 +111,7 @@ static func upgrade_card(box: VBoxContainer, id: String) -> void:
 	cost.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [mini(GameState.coins, int(data.cost)), int(data.cost)], UiKit.GOOD if GameState.coins >= int(data.cost) else UiKit.BAD))
 	card.add_child(cost)
 	_amounts(card, data.get("materials", {}))
+	card.add_child(UiKit.button("Materiais e ajuda", TaskHelp.open.bind("upgrade", id)))
 	_action(card, "Comprar " + data.name, func() -> String: return GameState.buy_upgrade(id), GameState.upgrade_error(id), "%s é seu!" % data.name)
 
 
@@ -142,15 +143,18 @@ static func sell_panel() -> Control:
 	)
 
 
-static func orders_panel() -> Control:
+static func orders_panel(focus: String = "") -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		_text(box, "Encomendas pagam mais que a venda direta e voltam depois de um tempo.", true)
 		for id: String in Database.progression.orders:
+			if focus != "" and id != focus:
+				continue
 			var data: Dictionary = Database.progression.orders[id]
 			var reason := GameState.order_error(id)
 			var locked := GameState.requirement_error(data.get("requirements", {}))
 			var card := UiKit.card(box, &"ReadyCardPanel" if reason == "" else &"CardPanel")
 			card.add_child(UiKit.label(data.name, &"SectionLabel"))
+			card.add_child(UiKit.button("Ingredientes e ajuda", TaskHelp.open.bind("order", id)))
 			if locked != "":
 				_text(card, "Ainda não: " + locked, true)
 				continue
@@ -163,13 +167,13 @@ static func orders_panel() -> Control:
 # --- Rotas (passeios, mina, pomar) ------------------------------------------------------
 
 ## Rotas de um lugar ("walk", "mine", "orchard"). Só uma rota por vez em todo o jogo.
-static func routes_panel(place: String) -> Control:
+static func routes_panel(place: String, focus: String = "") -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		active_activity(box)
 		_text(box, "Uma rota por vez. O tempo continua passando com o jogo fechado.", true)
 		for id: String in Database.progression.activities:
 			var data: Dictionary = Database.progression.activities[id]
-			if data.get("place", "walk") != place:
+			if data.get("place", "walk") != place or (focus != "" and id != focus):
 				continue
 			var card := UiKit.card(box)
 			_title(card, data.get("icon", ""), data.name)
@@ -181,6 +185,8 @@ static func routes_panel(place: String) -> Control:
 			if int(data.rewards.get("coins", 0)) > 0:
 				details.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(data.rewards.coins), UiKit.GOOD))
 			card.add_child(details)
+			if GameState.activity_error(id) != "":
+				card.add_child(UiKit.button("Como liberar esta rota", TaskHelp.open.bind("route", id)))
 			_action(card, "Começar", func() -> String: return GameState.start_activity(id), GameState.activity_error(id), "Vocês saíram para: " + data.name)
 	)
 
@@ -331,6 +337,8 @@ static func quest_action(box: VBoxContainer, id: String) -> void:
 				Events.toast_requested.emit(error)
 		else:
 			Places.go(Places.quest_target(id)), &"PrimaryButton"))
+	if not ready:
+		box.add_child(UiKit.button("Como fazer", TaskHelp.open.bind("quest", id)))
 
 
 static func quest_fraction(id: String) -> float:

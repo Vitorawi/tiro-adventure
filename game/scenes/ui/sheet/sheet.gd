@@ -21,6 +21,9 @@ func open(title: String, content: Control) -> void:
 		child.queue_free()
 	_title.text = title
 	_content_holder.add_child(content)
+	var scroll := _content_holder.get_parent() as ScrollContainer
+	if scroll:
+		scroll.set_deferred("scroll_vertical", 0)
 	var was_open := visible
 	show()
 	if not was_open:

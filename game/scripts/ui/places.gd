@@ -63,7 +63,23 @@ static func open_npc(npc_id: String) -> void:
 
 ## "place:<id>" | "npc:<id>" | "buy:<construção>" (ações das salas e dos botões "Ir").
 static func run(world_id: String, action: String) -> void:
-	if action.begins_with("npc:"):
+	if action.begins_with("recipe:"):
+		var id := action.trim_prefix("recipe:")
+		if Database.recipes.has(id):
+			Events.sheet_requested.emit(Database.item_name(Database.recipes[id].output), SheetBuilder.station_view(Database.recipes[id].station, id))
+	elif action.begins_with("route:"):
+		var id := action.trim_prefix("route:")
+		if Database.progression.activities.has(id):
+			Events.sheet_requested.emit(Database.progression.activities[id].name, ProgressionUi.routes_panel(Database.progression.activities[id].place, id))
+	elif action.begins_with("order:"):
+		var id := action.trim_prefix("order:")
+		if Database.progression.orders.has(id):
+			Events.sheet_requested.emit(Database.progression.orders[id].name, ProgressionUi.orders_panel(id))
+	elif action.begins_with("crop:"):
+		var id := action.trim_prefix("crop:")
+		if Database.crops.has(id):
+			Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.farm_view(id))
+	elif action.begins_with("npc:"):
 		open_npc(action.trim_prefix("npc:"))
 	elif action.begins_with("buy:"):
 		var upgrade := action.trim_prefix("buy:")

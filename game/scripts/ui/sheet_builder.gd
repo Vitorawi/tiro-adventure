@@ -98,6 +98,7 @@ static func item_detail(id: String) -> Control:
 					Events.toast_requested.emit("Nhac! %s" % Database.item_name(id)), &"PrimaryButton")
 			give.disabled = GameState.inventory.count(id) == 0
 			box.add_child(give)
+		box.add_child(UiKit.button("Como conseguir mais", TaskHelp.open.bind("item", id, GameState.inventory.count(id) + 1)))
 		_list_section(box, "Como conseguir", Database.sources_of(id))
 		_list_section(box, "Usado em", Database.uses_of(id))
 		var price := int(item.get("sell_price", 0))
@@ -119,7 +120,7 @@ static func _list_section(box: VBoxContainer, title: String, lines: PackedString
 
 
 ## Estação de produção (fogão): espaços de preparo + receitas em cartões.
-static func station_view(station_id: String) -> Control:
+static func station_view(station_id: String, focus: String = "") -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		if not GameState.has_upgrade(station_id):
 			ProgressionUi.upgrade_card(box, station_id)
@@ -142,6 +143,8 @@ static func station_view(station_id: String) -> Control:
 
 		box.add_child(UiKit.label("Receitas", &"SectionLabel"))
 		for recipe_id in Database.recipes_for(station_id):
+			if focus != "" and recipe_id != focus:
+				continue
 			_recipe_card(box, recipe_id, full))
 
 
@@ -227,13 +230,16 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 		Events.toast_requested.emit(error if error != "" else "Preparando %s!" % Database.item_name(output)), &"PrimaryButton")
 	cook.disabled = not has_all or station_full or locked != ""
 	body.add_child(cook)
+	body.add_child(UiKit.button("Ingredientes e ajuda", TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))))
 
 
 ## Sementes para um canteiro vazio: o que nasce, quanto tempo leva e quanto rende.
-static func seed_picker(plot_index: int) -> Control:
+static func seed_picker(plot_index: int, focus: String = "") -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		box.add_child(UiKit.label("A Bloblo empresta as sementes. Escolha o que plantar:", &"SmallLabel"))
 		for crop_id: String in Database.crops:
+			if focus != "" and crop_id != focus:
+				continue
 			var crop: Dictionary = Database.crops[crop_id]
 			var locked := GameState.content_error("crop", crop_id, crop)
 			var body := UiKit.card(box)
@@ -265,7 +271,7 @@ static func seed_picker(plot_index: int) -> Control:
 
 
 ## Resumo da expansão e caminho de volta para cada canteiro.
-static func farm_view() -> Control:
+static func farm_view(focus: String = "") -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var total := int(Database.farm.get("plots", 0))
 		if not GameState.has_upgrade("farm"):
@@ -290,7 +296,7 @@ static func farm_view() -> Control:
 			if status != "empty":
 				caption = "%s · %s" % [Database.item_name(GameState.plot(index)["crop"]), "Colher!" if status == "ready" else "%d%%" % int(GameState.plot_progress(index) * 100)]
 			box.add_child(UiKit.button(caption, func() -> void:
-				Events.sheet_requested.emit("Canteiro %d" % (index + 1), seed_picker(index) if GameState.plot_status(index) == "empty" else growing_plot(index)))))
+				Events.sheet_requested.emit("Canteiro %d" % (index + 1), seed_picker(index, focus) if GameState.plot_status(index) == "empty" else growing_plot(index)))))
 
 
 static func plot_purchase(index: int) -> Control:
