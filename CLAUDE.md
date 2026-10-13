@@ -180,7 +180,9 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   começa com uma, `slot_upgrades` compra a segunda/terceira. `progress.gathering` salva
   três tarefas independentes por local, com timestamps e recompensas fixadas ao iniciar.
   `GameState.start_gathering/collect_gathering` valida ocupação, limite, local e requisitos;
-  ações em lote iniciam livres/recolhem prontos. Árvores e Pedras trabalham ao mesmo tempo.
+  `start_next_gathering/next_gathering_error` ocupa a primeira vaga livre: tocar no material
+  já inicia uma tarefa, sem seleção intermediária. Vagas mostram tempo/barra; recolher prontos
+  tem botão único. Árvores e Pedras trabalham ao mesmo tempo.
   Save v8 move a antiga atividade da Natureza para a primeira vaga, preservando tempo e
   recompensa; pomar mantém a rota global. Ferramentas/vagas persistem em `progress.owned`.
   `route_markers.site` mostra tempo/quantidade pronta no mapa. Sem abas gerais de coleta;

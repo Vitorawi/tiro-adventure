@@ -5,7 +5,10 @@
 `nature_sites` em progression.json define Árvores, Pedras e Fibras: grupos de rotas,
 materiais, ferramentas e duas compras `slot_upgrades`. `nature_resources` escolhe a melhor
 rota liberada por material. Cada local tem painel próprio, aberto tocando no cenário;
-ferramenta atual, rendimento/tempo, três vagas e próxima melhoria ficam ali, sem abas gerais.
+materiais tocáveis com rendimento/tempo, ferramenta, três vagas e próxima melhoria ficam ali.
+Tocar no material inicia uma coleta na primeira vaga livre (`start_next_gathering`), sem
+selecionar material e depois escolher espaço. Cada toque adiciona só uma tarefa; com tudo
+ocupado, o botão desabilita. A fila é visual, com ícone, tempo/barra e recolhimento em lote.
 
 Uma vaga vem aberta. Segunda/terceira custam 100/200 em Árvores, 120/240 em Pedras e 80/160
 em Fibras. Só moedas; a terceira exige a segunda. São upgrades normais em progress.owned.
@@ -17,8 +20,9 @@ validam local, vaga, requisito e prontidão antes de alterar o estado.
 rewards. Save v8 converte a antiga activity da Natureza para a vaga 1 do local correto,
 sem reiniciar o prazo ou duplicar recompensa. Pomar/rotas antigas mantêm a API global.
 O Ir das missões abre a rota exata para objetivos activity:lane/quarry, mesmo após melhorias.
-`route_tool` identifica a exigência real; o painel mostra Usa/Precisa/À mão e só a próxima compra.
-O material selecionado fica salvo na tarefa para manter o ícone certo ao trocar de seleção;
+`route_tool` identifica a exigência real; cada material mostra a ferramenta ou À mão,
+com ajuda para requisitos bloqueados. O painel oferece só o atalho da próxima melhoria.
+O material tocado fica salvo na tarefa para manter o ícone certo em coletas mistas;
 todos os produtos extras da rota também são entregues, sem mudar tarefas em andamento.
 
 - Machado (60) → reforçado (180): madeira em maior quantidade → madeira dura.

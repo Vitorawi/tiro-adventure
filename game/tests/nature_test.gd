@@ -37,6 +37,7 @@ func _run() -> void:
 	var before: Dictionary = state.call("to_dict").duplicate(true)
 	check(state.call("start_gathering", "trees", 1, "lane") != "", "Vaga fechada não coleta")
 	check(state.call("start_gathering", "trees", 0, "quarry") != "", "Mineração não entra nas árvores")
+	check(state.call("start_next_gathering", "trees", "quarry", "stone") != "", "Coleta automática também valida o local")
 	check(state.call("to_dict") == before, "Falhas não mudam estado")
 	check(state.call("start_gathering", "trees", 0, "lane") == "", "Coletar madeira")
 	check(state.call("start_gathering", "rocks", 0, "pebbles") == "", "Pedras trabalham junto com madeira")
@@ -62,6 +63,12 @@ func _run() -> void:
 	state.call("dev_finish_timers")
 	check(state.call("collect_gathering", "trees", 0) == "", "Recolher madeira inicial")
 	check(state.call("collect_gathering", "rocks", 0) == "", "Recolher pedra inicial")
+	ui.call("open", "rocks")
+	await create_timer(0.2).timeout
+	check(main.find_child("Material_copper", true, false).disabled, "Cobre bloqueado não vira seleção nem inicia tarefa")
+	before = state.call("to_dict").duplicate(true)
+	main.find_child("Material_copper", true, false).pressed.emit()
+	check(state.call("to_dict") == before, "Falta de ferramenta não altera a fila")
 	# Tocar no cenário abre diretamente o painel daquele tipo.
 	room.call("_handle_tap", Vector2(150, 150))
 	await create_timer(0.2).timeout
@@ -80,9 +87,14 @@ func _run() -> void:
 	check(state.call("gathering_slots", "trees") == 3, "Comprar terceira vaga no próprio painel")
 	check(state.get("coins") == coins - 300, "Só cobra as duas compras")
 	check(state.call("gathering_slots", "rocks") == 1, "Árvores não libera vagas de Pedras")
-	main.find_child("StartAll_trees", true, false).pressed.emit()
-	await create_timer(0.2).timeout
-	check(state.call("gathering_jobs", "trees").size() == 3, "Um toque inicia três coletas")
+	for count in 3:
+		main.find_child("Material_wood", true, false).pressed.emit()
+		await create_timer(0.1).timeout
+		check(state.call("gathering_jobs", "trees").size() == count + 1, "Cada toque no material inicia exatamente uma coleta")
+	check(main.find_child("Material_wood", true, false).disabled, "Material desabilita quando as três vagas estão ocupadas")
+	before = state.call("to_dict").duplicate(true)
+	check(state.call("start_next_gathering", "trees", "lane", "wood") != "", "Fila cheia recusa novo material")
+	check(state.call("to_dict") == before, "Fila cheia não sobrescreve coletas")
 	var jobs: Array = state.call("gathering_jobs", "trees")
 	for entry: Dictionary in jobs:
 		check(absf(float(entry.ready_at) - float(entry.started_at) - 60) < 0.01, "Cada corte começa agora, sem fila sequencial")
@@ -124,12 +136,8 @@ func _run() -> void:
 	check(main.find_child("NextTool_trees", true, false) == null, "Pedras não mistura machados")
 	main.find_child("Material_crystal", true, false).pressed.emit()
 	await create_timer(0.2).timeout
-	main.find_child("Gather_rocks_0", true, false).pressed.emit()
-	await create_timer(0.2).timeout
-	check(state.call("gathering_entry", "rocks", 0).id == "crystal_deep", "Botão usa ferramenta e material escolhidos")
+	check(state.call("gathering_entry", "rocks", 0).id == "crystal_deep", "Um toque no cristal já inicia com ferramenta correta")
 	main.find_child("Material_copper", true, false).pressed.emit()
-	await create_timer(0.2).timeout
-	main.find_child("Gather_rocks_1", true, false).pressed.emit()
 	await create_timer(0.2).timeout
 	check(state.call("gathering_entry", "rocks", 1).resource == "copper", "Guarda material selecionado na segunda vaga")
 	check(main.find_child("GatherItem_rocks_0", true, false).texture.resource_path.ends_with("item_crystal.png"), "Trocar material não muda a primeira coleta")
@@ -143,7 +151,7 @@ func _run() -> void:
 	# Ir de uma missão preserva a rota exata, mesmo com ferramentas melhores.
 	ui.call("open_route", "lane")
 	await create_timer(0.2).timeout
-	main.find_child("Gather_trees_0", true, false).pressed.emit()
+	main.find_child("Material_wood", true, false).pressed.emit()
 	check(state.call("gathering_entry", "trees", 0).id == "lane", "Missão da rota inicial continua concluível")
 	state.call("dev_finish_timers")
 	state.call("collect_gathering_all", "trees")
@@ -154,7 +162,9 @@ func _run() -> void:
 	check(state.get("inventory").count("copper") == copper_before + 7 and state.get("inventory").count("stone") == stones_before + 8 and state.get("inventory").count("crystal") == crystals_before + 4, "Seleção do material mantém todos os produtos dos dois lotes")
 	ui.call("open", "trees")
 	await create_timer(0.2).timeout
-	main.find_child("StartAll_trees", true, false).pressed.emit()
+	for index in 3:
+		main.find_child("Material_wood", true, false).pressed.emit()
+		await create_timer(0.1).timeout
 	state.call("dev_finish_timers")
 	await create_timer(1.2).timeout
 	_shot("nature_trees_ready")
@@ -168,6 +178,12 @@ func _run() -> void:
 	var final_save: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
 	state.call("from_dict", final_save)
 	check(state.call("gathering_slots", "trees") == 3 and state.call("gathering_ready_count", "trees") == 3, "Vagas e coletas prontas salvas")
+	var first: Dictionary = state.call("gathering_entry", "trees", 0).duplicate(true)
+	var third: Dictionary = state.call("gathering_entry", "trees", 2).duplicate(true)
+	state.call("collect_gathering", "trees", 1)
+	check(state.call("start_next_gathering", "trees", "timber", "wood") == "", "Um toque reutiliza o espaço vazio no meio")
+	check(state.call("gathering_entry", "trees", 1).id == "timber", "Preenche a primeira vaga livre")
+	check(state.call("gathering_entry", "trees", 0) == first and state.call("gathering_entry", "trees", 2) == third, "Coleta automática preserva as outras tarefas")
 	for point: Vector2 in [Vector2(170, 182), Vector2(250, 196), Vector2(375, 190)]:
 		check(not (room.call("find_path", (room.get("_dog") as Node2D).position, point) as PackedVector2Array).is_empty(), "Paisagem continua conectada")
 	main.queue_free()

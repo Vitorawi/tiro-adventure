@@ -4,6 +4,18 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **13/10/2026, Codex**.
 
+**Coleta com um toque e painel enxuto (Codex, 13/10/2026).**
+- Material virou ação direta: tocar já chama `start_next_gathering` e ocupa a primeira
+  vaga livre. Sem selecionar material e depois espaço; cada toque inicia uma tarefa.
+- Painel compacto: materiais com ícone/rendimento/tempo, ferramenta em legenda, fila
+  com ícone/tempo/barra, compra das vagas e botão único para recolher os prontos.
+  Próxima ferramenta tem atalho Melhorar, em vez de cartão de compra completo na coleta.
+- Nature test verifica um toque por tarefa, fila cheia sem sobrescrita, requisitos,
+  coletas mistas e reutilização de vaga no meio preservando as outras tarefas.
+- Suíte completa verde (incluindo campanha e dev/prod); Nature test repetido após ajuste
+  visual, sem erros. Capturas 360×780 verificadas, incluindo fila mista e recolhimento.
+  Publicação prod/dev autorizada em 13/10/2026 via main. Próximo: avaliar os toques no celular.
+
 **Coleta por local e três vagas simultâneas (Codex, 13/10/2026).**
 - Árvores e Pedras agora são pontos distintos no mapa; Fibras fica no prado. Um toque abre
   ferramenta, rendimento/tempo, vagas e próxima melhoria daquele local, sem abas/listão.

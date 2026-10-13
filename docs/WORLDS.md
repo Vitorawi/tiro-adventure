@@ -65,9 +65,10 @@ Natureza tem paisagem contínua 512×384 com bosque, riacho com ponte, trilha e 
 Abrir por Aventura recalcula a grade do Tiro, mesmo sem nova construção comprada.
 Tocar nas árvores ou nas pedras abre seu painel diretamente: ferramenta, rendimento/tempo,
 três espaços e próxima compra. Só uma vaga inicial; liberar outras permite coletar em paralelo.
-Pedras tem seleção curta Pedra/Cobre/Cristal; Árvores usa a melhor ferramenta disponível.
-Fibras é outro local. Não há listão de materiais nem abas de ferramentas. Botões iniciam
-nos espaços livres e recolhem os prontos de uma vez; nenhuma tarefa vira fila sequencial.
+Pedra/Cobre/Cristal são ações diretas: um toque inicia na primeira vaga livre, sem seleção
+intermediária. Árvores usa a melhor ferramenta disponível. Fibras é outro local. Não há
+listão nem abas de ferramentas. Vagas mostram ícone/tempo/barra; um botão recolhe os prontos.
+As tarefas continuam simultâneas, sem fila sequencial. Próxima ferramenta tem atalho Melhorar.
 O painel `nature:<grupos>` resolve os aliases `routes:<grupo>` para missão/manual/mochila.
 `route_markers.site` mostra tempo/quantidade pronta por `RouteIndicator`; obstáculos
 separados impedem andar na água, árvores ou penhascos. O save mantém os ids de atividade.

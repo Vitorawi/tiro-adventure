@@ -635,6 +635,26 @@ func start_gathering(site: String, index: int, route_id: String, resource: Strin
 	return ""
 
 
+## Um toque no material preenche só a primeira vaga livre, sem escolher o espaço.
+func next_gathering_error(site: String, route_id: String, resource: String = "") -> String:
+	if not Database.progression.nature_sites.has(site):
+		return "Local de coleta inválido"
+	for index in gathering_slots(site):
+		if gathering_entry(site, index).is_empty():
+			return gathering_error(site, index, route_id, resource)
+	return "Todos os espaços estão ocupados"
+
+
+func start_next_gathering(site: String, route_id: String, resource: String = "") -> String:
+	var error := next_gathering_error(site, route_id, resource)
+	if error != "":
+		return error
+	for index in gathering_slots(site):
+		if gathering_entry(site, index).is_empty():
+			return start_gathering(site, index, route_id, resource)
+	return "Todos os espaços estão ocupados"
+
+
 func start_gathering_all(site: String, route_id: String, resource: String = "") -> String:
 	var started := false
 	var reason := "Todos os espaços estão ocupados"

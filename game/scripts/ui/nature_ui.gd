@@ -1,6 +1,6 @@
 class_name NatureUi
 extends RefCounted
-## Local tocável -> ferramenta, três espaços e próxima melhoria no mesmo painel.
+## Um toque no material inicia; fila visual e próxima ferramenta no mesmo painel.
 
 
 static func open(site: String = "trees", resource: String = "", focus_route: String = "") -> void:
@@ -42,79 +42,95 @@ static func panel(site: String = "trees", resource: String = "", focus_route: St
 	var data: Dictionary = Database.progression.nature_sites[site]
 	var selected: String = resource if resource in data.resources else str(data.resources[0])
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		if data.resources.size() > 1:
-			var choices := UiKit.flow(6)
-			for item: String in data.resources:
-				var choice := UiKit.button(Database.item_name(item), open.bind(site, item), &"PrimaryButton" if item == selected else &"", Database.item_icon(item))
-				choice.add_theme_constant_override("icon_max_width", 24)
-				choice.add_theme_font_size_override("font_size", 16)
-				choice.name = "Material_" + item
-				choices.add_child(choice)
-			box.add_child(choices)
-		var route_id := focus_route if Database.gathering_site(focus_route) == site else best_route(selected)
-		var route: Dictionary = Database.progression.activities[route_id]
-		if focus_route != "":
-			box.add_child(UiKit.label(route.name, &"SmallLabel"))
-		var tool := route_tool(route_id)
-		var tools := UiKit.hbox(6)
-		if tool != "":
-			tools.add_child(UiKit.icon(UiKit.ui_icon(Database.progression.upgrades[tool].icon), 32))
-		var caption := UiKit.fill_label("À mão · sem ferramenta" if tool == "" else ("Usa: " if GameState.has_upgrade(tool) else "Precisa: ") + str(Database.progression.upgrades[tool].name), &"SmallLabel")
-		caption.name = "RequiredTool_" + site
-		tools.add_child(caption)
-		var extra_tools := false
-		for owned: String in data.tools:
-			if GameState.has_upgrade(owned) and owned != tool:
-				if not extra_tools:
-					tools.add_child(UiKit.short_label("Tem:", &"SmallLabel"))
-					extra_tools = true
-				var icon := UiKit.icon(UiKit.ui_icon(Database.progression.upgrades[owned].icon), 24)
-				icon.name = "OwnedTool_" + owned
-				tools.add_child(icon)
-		box.add_child(tools)
-		var rewards := UiKit.flow(4)
-		rewards.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(route.seconds))))
-		for item: String in route.rewards.get("items", {}):
-			rewards.add_child(UiKit.chip(Database.item_icon(item), "+%d" % int(route.rewards.items[item])))
-		box.add_child(rewards)
-		box.add_child(UiKit.label("Espaços · %d/3" % GameState.gathering_slots(site), &"SectionLabel"))
-		var slots := UiKit.hbox(6)
-		for index in 3:
-			_slot(slots, site, index, route_id, selected)
-		box.add_child(slots)
+		box.add_child(UiKit.label("Toque no material para coletar", &"SmallLabel"))
+		var choices := UiKit.hbox(6)
+		for item: String in data.resources:
+			var route_id := focus_route if item == selected and Database.gathering_site(focus_route) == site else best_route(item)
+			_material(choices, site, item, route_id, data.resources.size() > 1)
+		box.add_child(choices)
 		var ready := GameState.gathering_ready_count(site)
 		var free := GameState.gathering_free_count(site)
-		if ready > 1:
-			box.add_child(UiKit.button("Recolher prontos (%d)" % ready, func() -> void:
-				_result(GameState.collect_gathering_all(site), "Materiais recolhidos!"), &"PrimaryButton"))
-		elif free > 1:
-			var all := UiKit.button("Coletar nos livres (%d)" % free, func() -> void:
-				_result(GameState.start_gathering_all(site, route_id, selected), "Coletas iniciadas!"), &"PrimaryButton")
-			all.name = "StartAll_" + site
-			all.disabled = GameState.requirement_error(route.get("requirements", {})) != ""
-			box.add_child(all)
-		var reason := GameState.requirement_error(route.get("requirements", {}))
-		if reason != "":
-			box.add_child(UiKit.label(reason, &"SmallLabel", UiKit.BAD))
+		box.add_child(UiKit.label("Coletas · %d/%d" % [GameState.gathering_jobs(site).size(), GameState.gathering_slots(site)], &"SectionLabel"))
+		var slots := UiKit.hbox(6)
+		for index in 3:
+			_slot(slots, site, index)
+		box.add_child(slots)
+		if ready > 0:
+			var collect := UiKit.button("Recolher prontos (%d)" % ready, func() -> void:
+				_result(GameState.collect_gathering_all(site), "Materiais recolhidos!"), &"PrimaryButton")
+			collect.name = "CollectAll_" + site
+			box.add_child(collect)
+		elif free == 0:
+			box.add_child(UiKit.label("Espaços ocupados · aguarde a coleta", &"SmallLabel"))
 		for upgrade: String in data.tools:
 			if not GameState.has_upgrade(upgrade):
-				var next := UiKit.vbox(4)
+				var next := UiKit.hbox(6)
 				next.name = "NextTool_" + site
+				next.add_child(UiKit.icon(UiKit.ui_icon(Database.progression.upgrades[upgrade].icon)))
+				next.add_child(UiKit.fill_label(Database.progression.upgrades[upgrade].name, &"SmallLabel"))
+				next.add_child(UiKit.button("Melhorar", func() -> void:
+					Events.sheet_requested.emit("Melhorar ferramenta", ProgressionUi.purchase(upgrade))))
 				box.add_child(next)
-				next.add_child(UiKit.label("Melhorar ferramenta", &"SectionLabel"))
-				ProgressionUi.upgrade_card(next, upgrade)
 				break)
 
 
-static func _slot(parent: HBoxContainer, site: String, index: int, route_id: String, selected: String) -> void:
-	var card := UiKit.card(parent)
-	card.get_parent().custom_minimum_size.x = 94
-	var label := UiKit.label("%dº espaço" % (index + 1), &"SmallLabel")
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	card.add_child(label)
+## O material já é a ação: usa a primeira vaga livre, sem trocar de painel.
+static func _material(parent: HBoxContainer, site: String, item: String, route_id: String, compact: bool) -> void:
+	var route: Dictionary = Database.progression.activities[route_id]
+	var column := UiKit.vbox(4)
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.size_flags_stretch_ratio = 1.0
+	parent.add_child(column)
+	var primary := item if route.rewards.get("items", {}).has(item) else str(route.rewards.items.keys()[0])
+	var text := "%s ×%d\n%s" % [Database.item_name(primary), int(route.rewards.items[primary]), TimeText.short(int(route.seconds))]
+	var button := UiKit.button(text, func() -> void:
+		_result(GameState.start_next_gathering(site, route_id, item), "Coleta iniciada!"), &"PrimaryButton", Database.item_icon(primary))
+	button.name = "Material_" + item
+	button.add_theme_font_size_override("font_size", 16)
+	button.add_theme_constant_override("icon_max_width", 32)
+	button.expand_icon = true
+	button.custom_minimum_size.y = 64
+	if compact:
+		button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+		button.custom_minimum_size.y = 96
+	button.disabled = GameState.next_gathering_error(site, route_id, item) != ""
+	column.add_child(button)
+	var extras := UiKit.hbox(2)
+	extras.alignment = BoxContainer.ALIGNMENT_CENTER
+	for bonus: String in route.rewards.get("items", {}):
+		if bonus != primary:
+			extras.add_child(UiKit.icon(Database.item_icon(bonus), 16))
+			var amount := UiKit.short_label("+%d" % int(route.rewards.items[bonus]), &"SmallLabel")
+			amount.add_theme_font_size_override("font_size", 13)
+			extras.add_child(amount)
+	if extras.get_child_count() > 0:
+		column.add_child(extras)
+	else:
+		extras.free()
+	var tool := route_tool(route_id)
+	var caption := "À mão" if tool == "" else str(Database.progression.upgrades[tool].name)
+	var tool_label := UiKit.label(caption, &"SmallLabel", UiKit.BAD if tool != "" and not GameState.has_upgrade(tool) else null)
+	tool_label.name = "RequiredTool_" + item
+	tool_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tool_label.add_theme_font_size_override("font_size", 13)
+	column.add_child(tool_label)
+	var reason := GameState.requirement_error(route.get("requirements", {}))
+	if reason != "":
+		var help := UiKit.square_button("?", TaskHelp.open.bind("route", route_id), null, 44)
+		column.add_child(help)
+
+
+static func _slot(parent: HBoxContainer, site: String, index: int) -> void:
+	var entry := GameState.gathering_entry(site, index)
+	var remaining := GameState.gathering_remaining(site, index)
+	var card := UiKit.card(parent, &"ReadyCardPanel" if not entry.is_empty() and remaining == 0 else &"CardPanel")
+	card.add_theme_constant_override("separation", 4)
 	if index >= GameState.gathering_slots(site):
 		var upgrade: String = Database.progression.nature_sites[site].slot_upgrades[index - 1]
-		card.add_child(UiKit.label("Após o 2º" if index == 2 and GameState.gathering_slots(site) == 1 else "Fechado", &"SmallLabel"))
+		var title := UiKit.label("+ Espaço", &"SmallLabel")
+		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		card.add_child(title)
 		var buy := UiKit.button(str(int(Database.progression.upgrades[upgrade].cost)), func() -> void:
 			_result(GameState.buy_upgrade(upgrade), "Espaço liberado!"), &"", UiKit.ui_icon("coin"))
 		buy.name = "Unlock_%s_%d" % [site, index]
@@ -125,40 +141,32 @@ static func _slot(parent: HBoxContainer, site: String, index: int, route_id: Str
 		if GameState.coins < int(Database.progression.upgrades[upgrade].cost):
 			buy.add_theme_color_override("font_disabled_color", UiKit.BAD)
 		card.add_child(buy)
+		if index == 2 and GameState.gathering_slots(site) == 1:
+			var after := UiKit.label("Após o 2º", &"SmallLabel")
+			after.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			card.add_child(after)
 		return
-	var entry := GameState.gathering_entry(site, index)
-	var route: Dictionary = Database.progression.activities[route_id if entry.is_empty() else str(entry.id)]
-	var items: Dictionary = route.rewards.get("items", {}) if entry.is_empty() else entry.get("rewards", route.rewards).get("items", {})
-	if not items.is_empty():
-		var item: String = items.keys()[0]
-		var primary: String = selected if entry.is_empty() else str(entry.get("resource", ""))
-		if items.has(primary):
-			item = primary
-		else:
-			for candidate: String in items:
-				if candidate in Database.progression.nature_sites[site].resources:
-					item = candidate
-					break
-		var picture := UiKit.icon(Database.item_icon(item), 40)
-		picture.name = "GatherItem_%s_%d" % [site, index]
-		card.add_child(picture)
-		var amount := UiKit.label("×%d" % int(items[item]), &"SmallLabel")
-		amount.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		card.add_child(amount)
-	var remaining := GameState.gathering_remaining(site, index)
-	var status := UiKit.label("Livre" if entry.is_empty() else ("Pronto!" if remaining == 0 else TimeText.short(remaining)), &"SmallLabel")
+	if entry.is_empty():
+		card.add_child(UiKit.icon(UiKit.ui_icon("timer")))
+		var empty := UiKit.label("Livre", &"SmallLabel")
+		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		card.add_child(empty)
+		return
+	var route: Dictionary = Database.progression.activities[str(entry.id)]
+	var items: Dictionary = entry.get("rewards", route.rewards).get("items", {})
+	var item := str(entry.get("resource", ""))
+	if not items.has(item):
+		item = str(items.keys()[0])
+	var picture := UiKit.icon(Database.item_icon(item), 32)
+	picture.name = "GatherItem_%s_%d" % [site, index]
+	card.add_child(picture)
+	var status := UiKit.label("×%d · %s" % [int(items[item]), "Pronto" if remaining == 0 else TimeText.short(remaining)], &"SmallLabel")
+	status.add_theme_font_size_override("font_size", 14)
 	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	card.add_child(status)
-	var button := UiKit.button("Coletar" if entry.is_empty() else ("Recolher" if remaining == 0 else "Aguarde"), func() -> void:
-		if GameState.gathering_entry(site, index).is_empty():
-			_result(GameState.start_gathering(site, index, route_id, selected), "Coleta iniciada!")
-		else:
-			_result(GameState.collect_gathering(site, index), "Materiais recolhidos!"), &"PrimaryButton")
-	button.name = "Gather_%s_%d" % [site, index]
-	button.add_theme_font_size_override("font_size", 16)
-	button.custom_minimum_size.y = 48
-	button.disabled = GameState.gathering_error(site, index, route_id, selected) != "" if entry.is_empty() else remaining > 0
-	card.add_child(button)
+	if remaining > 0:
+		var duration := maxf(1.0, float(entry.ready_at) - float(entry.started_at))
+		card.add_child(UiKit.bar(100.0 * (1.0 - remaining / duration), UiKit.GOOD, 6))
 
 
 static func _result(error: String, done: String) -> void:

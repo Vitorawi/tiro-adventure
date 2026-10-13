@@ -51,7 +51,7 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	load("res://scripts/ui/places.gd").call("open", "nature", "trees")
 	await create_timer(0.2).timeout
-	check(main.find_child("Gather_trees_0", true, false) != null, "Árvores abre corte diretamente")
+	check(main.find_child("Material_wood", true, false) != null, "Árvores abre corte diretamente")
 	main.queue_free()
 	await process_frame
 	print("WORLDS TEST: ", "PASS" if failures == 0 else "FAIL")
