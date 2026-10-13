@@ -98,7 +98,6 @@ static func item_detail(id: String) -> Control:
 					Events.toast_requested.emit("Nhac! %s" % Database.item_name(id)), &"PrimaryButton")
 			give.disabled = GameState.inventory.count(id) == 0
 			box.add_child(give)
-		box.add_child(UiKit.button("Como conseguir mais", TaskHelp.open.bind("item", id, GameState.inventory.count(id) + 1)))
 		_list_section(box, "Como conseguir", Database.sources_of(id))
 		_list_section(box, "Usado em", Database.uses_of(id))
 		var price := int(item.get("sell_price", 0))
@@ -205,32 +204,26 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 	top.add_child(info)
 	body.add_child(top)
 
-	body.add_child(UiKit.label("Precisa de:", &"SmallLabel"))
+	# Ingredientes: ícone + tem/precisa; tocar mostra de onde vem.
 	var needs_row := UiKit.flow()
 	var has_all := true
 	for item_id: String in inputs:
-		var need := int(inputs[item_id])
-		var have := GameState.inventory.count(item_id)
-		has_all = has_all and have >= need
-		needs_row.add_child(UiKit.chip(Database.item_icon(item_id), "%d/%d %s" % [have, need, Database.item_name(item_id)],
-			UiKit.GOOD if have >= need else UiKit.BAD))
+		has_all = has_all and GameState.inventory.count(item_id) >= int(inputs[item_id])
+		needs_row.add_child(ProgressionUi.item_chip(item_id, int(inputs[item_id])))
 	body.add_child(needs_row)
 
-	body.add_child(UiKit.label("+%d XP %s" % [int(recipe.get("skill_xp", 10)), Database.progression.skills[recipe.get("skill", "cooking")].name], &"SmallLabel"))
-	var text := "Produzir"
-	if not has_all:
-		text = "Faltam ingredientes"
-	elif station_full:
-		text = "Fila cheia"
-	if locked != "":
-		body.add_child(UiKit.label(locked, &"SmallLabel"))
-		text = "Ainda bloqueado"
-	var cook := UiKit.button(text, func() -> void:
+	var row := UiKit.hbox(8)
+	var cook := UiKit.button("Fila cheia" if station_full and has_all and locked == "" else "Produzir", func() -> void:
 		var error := GameState.cook(recipe_id)
 		Events.toast_requested.emit(error if error != "" else "Preparando %s!" % Database.item_name(output)), &"PrimaryButton")
 	cook.disabled = not has_all or station_full or locked != ""
-	body.add_child(cook)
-	body.add_child(UiKit.button("Ingredientes e ajuda", TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))))
+	cook.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(cook)
+	if not has_all or locked != "":
+		row.add_child(UiKit.square_button("?", TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))))
+	body.add_child(row)
+	if locked != "":
+		body.add_child(UiKit.label(locked, &"SmallLabel"))
 
 
 ## Sementes para um canteiro vazio: o que nasce, quanto tempo leva e quanto rende.

@@ -6,6 +6,8 @@ extends RefCounted
 
 static func short(seconds: int) -> String:
 	seconds = maxi(0, seconds)
+	if seconds >= 86400:
+		return "%dd %dh" % [seconds / 86400, (seconds % 86400) / 3600]
 	if seconds >= 3600:
 		return "%dh %02d" % [seconds / 3600, (seconds % 3600) / 60]
 	if seconds >= 60 and seconds % 60 == 0:

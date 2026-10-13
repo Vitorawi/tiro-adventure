@@ -51,9 +51,23 @@ func _ready() -> void:
 		Events.toast_requested.emit("Tiro está cheiroso!"))
 	_sleep_button.pressed.connect(func() -> void:
 		GameState.set_sleeping(not GameState.dog.sleeping))
+	_build_extras()
 	Events.state_changed.connect(_refresh)
 	%RefreshTimer.timeout.connect(_refresh)
 	_refresh()
+
+
+## Atalhos pequenos (Atributos e Coleção) acima do Tiro, à direita.
+func _build_extras() -> void:
+	var row := UiKit.hbox(8)
+	row.name = "Extras"
+	row.alignment = BoxContainer.ALIGNMENT_END
+	for entry: Array in [["Atributos", "xp", ProgressionUi.skills_panel], ["Coleção", "item_accessory_set", ProgressionUi.collection_panel]]:
+		row.add_child(UiKit.tap_chip(UiKit.ui_icon(entry[1]), entry[0], func() -> void:
+			Events.sheet_requested.emit(entry[0], (entry[2] as Callable).call())))
+	var layout := %DogArea.get_parent()
+	layout.add_child(row)
+	layout.move_child(row, %DogArea.get_index())
 
 
 ## Uma célula por necessidade: ícone + nome + barra na cor dela.
@@ -107,7 +121,7 @@ func _refresh() -> void:
 	_animator.set_sad(dog.get_need(dog.lowest_need(now), now) < MOOD_LOW)
 
 	if not GameState.progress.claimed_quests.has("welcome"):
-		_mood_label.text = "Veja suas tarefas aqui embaixo!"
+		_mood_label.text = "Veja suas missões aqui embaixo!"
 		return
 	if dog.sleeping:
 		_mood_label.text = "Zzz... %s está dormindo" % dog.name

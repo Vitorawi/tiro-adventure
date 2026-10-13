@@ -64,7 +64,8 @@ func _run() -> void:
 	state.call("reset")
 	var final_save := _campaign()
 	state.call("from_dict", JSON.parse_string(JSON.stringify(final_save)))
-	_check(state.get("progress").collection.size() == database.get("collections").size(), "Coleção deve sobreviver ao save")
+	_check(not final_save.progression.collection.is_empty() and state.get("progress").collection.size() == final_save.progression.collection.size(), "Coleção deve sobreviver ao save")
+	_check(int(state.get("progress").stat("routines")) > 0, "Campanha deve receber diárias e semanais")
 	if "--screenshots" in OS.get_cmdline_user_args():
 		await _screenshots(final_save)
 	print("PROGRESSION TEST: ", "PASS" if _failures == 0 else "FAIL (%d)" % _failures)
@@ -115,9 +116,9 @@ func _campaign() -> Dictionary:
 		var current: String = state.get("progress").current_main_quest()
 		if current != "":
 			state.call("claim_quest", current)
-		for id: String in database.get("quests"):
-			if database.get("quests")[id].get("kind", "side") == "side":
-				state.call("claim_quest", id)
+		for kind: String in ["daily", "weekly"]:
+			for id: String in state.call("routine_ids", kind):
+				state.call("claim_routine", kind, id)
 		for id: String in progression.upgrades:
 			if state.call("requirement_error", database.get("worlds")[progression.upgrades[id].world].requirements) == "":
 				state.call("buy_upgrade", id)

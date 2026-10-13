@@ -6,7 +6,7 @@ extends RefCounted
 static func describe(kind: String, id: String, amount: int = 1, trail: Array[String] = []) -> Dictionary:
 	var key := kind + ":" + id
 	if key in trail or trail.size() >= 12:
-		return _base("Continue sua história", "Veja os passos anteriores para liberar este objetivo.", {"screen": "tasks"}, "Ver tarefas")
+		return _base("Continue a história", "Siga os passos da história.", {"screen": "tasks"}, "Missões")
 	var visited: Array[String] = trail.duplicate()
 	visited.append(key)
 	var result: Dictionary
@@ -14,7 +14,7 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 		"quest":
 			var quest: Dictionary = Database.quests[id]
 			if GameState.quest_error(id) == "":
-				return _base(quest.name, "Tudo pronto! Receba a recompensa para avançar.", {"claim": id}, "Receber recompensa")
+				return _base(quest.name, "Tudo pronto!", {"claim": id}, "Receber")
 			var goal: Dictionary = quest.goals[0]
 			for candidate: Dictionary in quest.goals:
 				if GameState.goal_value(candidate) < int(candidate.get("target", 1)):
@@ -28,59 +28,59 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 		"item":
 			var missing := maxi(0, amount - GameState.inventory.count(id))
 			if missing == 0:
-				return _base(Database.item_name(id), "Você já tem a quantidade necessária na mochila.", {"screen": "tasks"}, "Voltar às tarefas")
+				return _base(Database.item_name(id), "Você já tem.", {"screen": "tasks"}, "Missões")
 			var source := best_source(id)
 			if source.is_empty():
-				return _base(Database.item_name(id), "Veja as fontes deste item na mochila.", {"screen": "bag"}, "Ver mochila")
+				return _base(Database.item_name(id), "Veja na Mochila.", {"screen": "bag"}, "Mochila")
 			var source_amount := missing if source.kind == "recipe" else 1
 			result = describe(source.kind, source.id, source_amount, visited)
 			result["title"] = Database.item_name(id)
-			result["stock"] = "Você tem %d / precisa de %d · faltam %d" % [GameState.inventory.count(id), amount, missing]
+			result["stock"] = "%d/%d" % [GameState.inventory.count(id), amount]
 			return result
 		"recipe":
 			result = _recipe(id, amount)
 		"upgrade":
 			var upgrade: Dictionary = Database.progression.upgrades[id]
-			result = _base(upgrade.name, "Construa no Mapa. Os materiais e as moedas serão usados na compra.", Places.goal_target({"type": "owned", "key": id}), "Ir construir")
+			result = _base(upgrade.name, "Junte o que falta e construa.", Places.goal_target({"type": "owned", "key": id}), "Ir")
 			result.needs = _requirements(upgrade.get("requirements", {}))
 			result.needs.append(_need("coins", "", int(upgrade.get("cost", 0))))
 			_materials(result.needs, upgrade.get("materials", {}))
 		"crop":
 			var crop: Dictionary = Database.crops[id]
-			result = _base(Database.item_name(id), "Plante e depois colha: %s. Leva %s; as sementes são gratuitas." % [Database.describe_amounts(crop.get("yield", {})), TimeText.short(int(crop.seconds))], _focused("farm", "crop:" + id), "Ir plantar / colher")
+			result = _base(Database.item_name(id), "Plante e colha · %s" % TimeText.short(int(crop.seconds)), _focused("farm", "crop:" + id), "Ir")
 			result.needs = _requirements(crop.get("requirements", {})) if GameState.content_error("crop", id, crop) != "" else []
 		"route":
 			var route: Dictionary = Database.progression.activities[id]
-			result = _base(route.name, "Comece a rota e recolha ao voltar. Leva %s. Recebe: %s." % [TimeText.short(int(route.seconds)), ProgressionUi.rewards_text(route.rewards)], _focused("routes:" + str(route.place), "route:" + id), "Ir à rota")
+			result = _base(route.name, "Passeio de %s" % TimeText.short(int(route.seconds)), _focused("routes:" + str(route.place), "route:" + id), "Ir")
 			result.needs = _requirements(route.get("requirements", {}))
 			if not GameState.progress.activity.is_empty():
-				result.detail = "Já existe uma rota em andamento. " + ("Recolha o resultado antes de começar outra." if GameState.activity_remaining() == 0 else "Volta em %s." % TimeText.short(GameState.activity_remaining()))
+				result.detail = "Já tem um passeio: " + ("recolha!" if GameState.activity_remaining() == 0 else "volta em %s" % TimeText.short(GameState.activity_remaining()))
 		"order":
 			var order: Dictionary = Database.progression.orders[id]
-			result = _base(order.name, "Separe os produtos e toque em Entregar. Os itens serão consumidos.", _focused("orders", "order:" + id), "Ir entregar")
+			result = _base(order.name, "Junte e entregue na Vila.", _focused("orders", "order:" + id), "Ir")
 			result.needs = _requirements(order.get("requirements", {}))
 			_materials(result.needs, order.inputs)
 			var wait := GameState.progress.cooldown_left("order:" + id, GameState.now())
 			if wait > 0:
-				result.detail += " Novo pedido em %s." % TimeText.short(wait)
+				result.detail = "Novo pedido em %s" % TimeText.short(wait)
 		"skill":
 			var skill: Dictionary = Database.progression.skills[id]
 			var info := GameState.skill_info(id)
-			result = _base(skill.name, "%s Você está no nível %d; precisa do nível %d (%d/%d XP para o próximo)." % [skill.how_to, info.level, amount, info.xp, info.needed], Places.goal_target({"type": "skill", "key": id}), "Ir evoluir")
+			result = _base(skill.name, "Nível %d → %d" % [info.level, amount], Places.goal_target({"type": "skill", "key": id}), "Ir")
 			var stations := {"cooking": "stove", "building": "workbench"}
 			if stations.has(id) and not GameState.has_upgrade(stations[id]):
 				result.needs.append(_need("upgrade", stations[id], 1))
 		"care":
-			result = _base("Comida para o Tiro", "Abra a Tigela. Quando não houver comida, peça ração gratuita à Bloblo.", Places.goal_target({"type": "stat", "key": "feed"}), "Ir à tigela")
+			result = _base("Comida para o Tiro", "Dê comida na Tigela.", Places.goal_target({"type": "stat", "key": "feed"}), "Ir")
 		"coins":
 			var target := Places.goal_target({"type": "coins"})
 			if Places.world_error(str(target.get("world", ""))) != "":
 				target = Places.goal_target({"type": "stat", "key": "harvest"})
-			result = _base("Juntar moedas", "Você tem %d / precisa de %d. Colha nos canteiros ou venda excedentes na Vila; guarde os ingredientes da missão." % [GameState.coins, amount], target, "Ir juntar moedas")
+			result = _base("Juntar moedas", "Colha e venda.", target, "Ir")
 		"chapter":
-			result = _base("Capítulo %d" % amount, "Continue a história até o capítulo %d." % amount, {"screen": "tasks"}, "Ver tarefas")
+			result = _base("Capítulo %d" % amount, "Siga a história.", {"screen": "tasks"}, "Missões")
 		_:
-			result = _base("Continuar", "Veja o próximo passo em Tarefas.", {"screen": "tasks"}, "Ver tarefas")
+			result = _base("Continuar", "Siga a história.", {"screen": "tasks"}, "Missões")
 	# Inclui o bloqueio do mundo antes de qualquer ingrediente.
 	var world: String = result.target.get("world", "")
 	if world != "" and Database.worlds.has(world):
@@ -88,8 +88,10 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 	for need: Dictionary in result.needs:
 		if int(need.have) < int(need.amount) and not result.has("next"):
 			var next := describe(need.kind, need.id, int(need.amount), visited)
-			result["next"] = "Primeiro: " + str(need.label)
-			result["next_detail"] = next.get("next", next.detail)
+			# O passo mais fundo da cadeia (ex.: plantar cenoura antes do petisco).
+			var first: Dictionary = next.get("next_need", need)
+			result["next_need"] = first
+			result["next"] = str(first.label)
 			result["next_target"] = next.get("next_target", next.target)
 			result["next_action"] = next.get("next_action", next.action)
 			break
@@ -110,7 +112,8 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 		"coins", "chapter": return describe(type, "", amount, trail)
 		"have", "deliver":
 			var result := describe("item", key, amount, trail)
-			result.detail += " Os itens serão entregues ao receber a missão." if type == "deliver" else "Basta guardar na mochila; esta missão não consome o item."
+			if type == "deliver":
+				result.detail = "Será entregue ao receber."
 			return result
 		"stat":
 			if key.begins_with("produce:"):
@@ -126,15 +129,15 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 			if key.begins_with("harvest:"):
 				return describe("crop", key.trim_prefix("harvest:"), 1, trail)
 	var target := Places.goal_target(goal)
-	var hints := {"feed": "Toque em Dar na Tigela do Tiro. Se a comida acabar, peça ajuda à Bloblo.", "harvest": "Escolha um canteiro, plante e volte para colher quando estiver pronto.", "bathe": "Abra Tiro e toque em Banho.", "play": "Abra Tiro e toque em Brincar.", "trade": "Na Vila, venda um produto da mochila ou entregue uma encomenda.", "sold": "Na Vila, venda os produtos que sobrarem.", "explore": "Complete passeios e recolha o resultado ao voltar."}
-	return _base(str(goal.get("label", "Seu objetivo")), hints.get(key, target.get("hint", "Siga até o lugar indicado.")), target, "Ir fazer")
+	var hints := {"feed": "Dê comida na Tigela.", "harvest": "Plante e colha.", "bathe": "Aba Tiro → Banho.", "play": "Aba Tiro → Brincar.", "trade": "Venda na Vila.", "sold": "Venda na Vila.", "explore": "Faça um passeio.", "produce": "Cozinhe no Fogão."}
+	return _base(str(goal.get("label", "Seu objetivo")), hints.get(key, ""), target, "Ir")
 
 
 static func _recipe(id: String, amount: int) -> Dictionary:
 	var recipe: Dictionary = Database.recipes[id]
 	var station: String = recipe.station
 	var target := _focused("station:" + station, "recipe:" + id)
-	var result := _base(Database.item_name(recipe.output), "", target, "Ir preparar")
+	var result := _base(Database.item_name(recipe.output), "", target, "Ir")
 	var pending := 0
 	var ready := 0
 	var remaining := 0
@@ -147,12 +150,12 @@ static func _recipe(id: String, amount: int) -> Dictionary:
 	var batches := ceili(float(maxi(0, amount - pending)) / maxi(1, int(recipe.get("qty", 1))))
 	result["batches"] = batches
 	result["pending"] = pending
-	result.detail = "Para conseguir %d: faça %d preparo(s). Cada preparo rende %d e leva %s. Recolha quando ficar pronto." % [amount, batches, int(recipe.get("qty", 1)), TimeText.short(int(recipe.seconds))]
+	result.detail = "Prepare %dx · %s cada" % [batches, TimeText.short(int(recipe.seconds))]
 	if pending > 0:
-		result.detail += " Já há %d na fila." % pending
+		result.detail += " · %d na fila" % pending
 	if ready > 0 or (pending >= amount and pending > 0):
-		result.action = "Ir recolher" if ready > 0 else "Ver preparo"
-		result.detail = "Há %d pronto(s) para recolher." % ready if ready > 0 else "Já está preparando o necessário. Faltam até %s; não precisa produzir de novo." % TimeText.short(remaining)
+		result.action = "Recolher" if ready > 0 else "Ver"
+		result.detail = "%d pronto(s)!" % ready if ready > 0 else "Já está no fogo · %s" % TimeText.short(remaining)
 		return result
 	if not GameState.has_upgrade(station):
 		result.needs.append(_need("upgrade", station, 1))
@@ -160,9 +163,9 @@ static func _recipe(id: String, amount: int) -> Dictionary:
 		result.needs.append_array(_requirements(recipe.get("requirements", {})))
 	_materials(result.needs, recipe.inputs, batches)
 	if GameState.station(station).queue.size() >= GameState.station_slots(station):
-		result["next"] = "A fila está cheia. Recolha o que estiver pronto ou espere uma vaga."
+		result["next"] = "Fila cheia: recolha ou espere"
 		result["next_target"] = target
-		result["next_action"] = "Ver fila"
+		result["next_action"] = "Ver"
 	return result
 
 
@@ -175,7 +178,7 @@ static func _need(kind: String, id: String, amount: int) -> Dictionary:
 			label = Database.item_name(id)
 		"upgrade":
 			have = 1 if GameState.has_upgrade(id) else 0
-			label = "Construir " + str(Database.progression.upgrades[id].name)
+			label = str(Database.progression.upgrades[id].name)
 		"skill":
 			have = GameState.progress.skill_level(id)
 			label = "%s nível %d" % [Database.progression.skills[id].name, amount]
@@ -184,10 +187,10 @@ static func _need(kind: String, id: String, amount: int) -> Dictionary:
 			label = "Moedas"
 		"quest":
 			have = 1 if GameState.progress.claimed_quests.has(id) else 0
-			label = "Concluir " + str(Database.quests[id].name)
+			label = str(Database.quests[id].name)
 		"chapter":
 			have = GameState.progress.chapter_index()
-			label = "Chegar ao capítulo %d" % amount
+			label = "Capítulo %d" % amount
 	return {"kind": kind, "id": id, "amount": amount, "have": have, "label": label}
 
 
@@ -271,53 +274,87 @@ static func _focused(panel: String, focus: String) -> Dictionary:
 	return {"world": location[0], "place": focus, "hint": "%s → %s" % [Database.worlds[location[0]].name, Database.worlds[location[0]].places[location[1]].name]}
 
 
+## Painel "Como fazer" (botão "?" e chips de ingrediente). `history` = etapas anteriores, para voltar.
 static func open(kind: String, id: String, amount: int = 1, history: Array[Dictionary] = []) -> void:
 	Events.sheet_requested.emit("Como fazer", panel(kind, id, amount, history))
 
 
+## Visual: o que é (ícone + tem/precisa), o primeiro passo com Ir e o que falta em chips tocáveis.
 static func panel(kind: String, id: String, amount: int = 1, history: Array[Dictionary] = []) -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		var data := describe(kind, id, amount)
+		var top := UiKit.hbox(10)
 		if not history.is_empty():
 			var previous: Dictionary = history.back()
-			box.add_child(UiKit.button("Voltar à etapa anterior", func() -> void:
+			top.add_child(UiKit.square_button("‹", func() -> void:
 				var back: Array[Dictionary] = history.duplicate()
 				back.pop_back()
 				open(previous.kind, previous.id, previous.amount, back)))
-		var data := describe(kind, id, amount)
-		box.add_child(UiKit.label(data.title, &"SectionLabel"))
+		top.add_child(UiKit.icon(icon_for(kind, id), 64))
+		var title := UiKit.vbox(2)
+		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		title.add_child(UiKit.label(data.title, &"SectionLabel"))
 		if data.has("stock"):
-			box.add_child(UiKit.label(data.stock, &"SmallLabel"))
-		var next := UiKit.card(box, &"ReadyCardPanel")
-		next.add_child(UiKit.label(data.get("next", "Seu próximo passo"), &"SectionLabel"))
-		next.add_child(UiKit.label(data.get("next_detail", data.detail), &"SmallLabel"))
-		var destination: Dictionary = data.get("next_target", data.target)
-		next.add_child(UiKit.button(data.get("next_action", data.action), _go.bind(destination), &"PrimaryButton"))
-		if data.has("next"):
+			var enough := GameState.inventory.count(id) >= amount
+			title.add_child(UiKit.label(data.stock, &"", UiKit.GOOD if enough else UiKit.BAD))
+		top.add_child(title)
+		box.add_child(top)
+		# Próximo passo: ícone + o que fazer + Ir.
+		var step := UiKit.hbox(10)
+		var first: Dictionary = data.get("next_need", {})
+		step.add_child(UiKit.icon(need_icon(first) if not first.is_empty() else icon_for(kind, id), 48))
+		step.add_child(UiKit.fill_label(data.get("next", data.detail)))
+		var go := UiKit.button(data.get("next_action", data.action), _go.bind(data.get("next_target", data.target)), &"PrimaryButton")
+		go.custom_minimum_size = Vector2(92, 52)
+		go.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		step.add_child(go)
+		UiKit.card(box, &"ReadyCardPanel").add_child(step)
+		if data.has("next") and data.detail != "":
 			box.add_child(UiKit.label(data.detail, &"SmallLabel"))
-		if kind == "quest":
-			for goal: Dictionary in Database.quests[id].goals:
-				box.add_child(UiKit.label("%s · %d/%d" % [goal.label, mini(GameState.goal_value(goal), int(goal.get("target", 1))), int(goal.get("target", 1))], &"SmallLabel"))
-		if not data.needs.is_empty():
-			box.add_child(UiKit.label("O que você precisa", &"SectionLabel"))
+		if data.needs.is_empty():
+			return
+		var chips := UiKit.flow()
 		for need: Dictionary in data.needs:
-			var missing := maxi(0, int(need.amount) - int(need.have))
-			var card := UiKit.card(box)
-			var row := UiKit.hbox(8)
-			if need.kind == "item":
-				row.add_child(UiKit.icon(Database.item_icon(need.id), 32))
-			var label := UiKit.label("%s · %d/%d" % [need.label, need.have, need.amount])
-			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			row.add_child(label)
-			card.add_child(row)
-			card.add_child(UiKit.label("Já tem o necessário" if missing == 0 else "Faltam %d" % missing, &"SmallLabel", UiKit.GOOD if missing == 0 else UiKit.BAD))
-			if missing > 0:
-				card.add_child(UiKit.button("Como conseguir" if need.kind == "item" else "Ver como liberar", func() -> void:
-					var path: Array[Dictionary] = history.duplicate()
-					path.append({"kind": kind, "id": id, "amount": amount})
-					open(need.kind, need.id, int(need.amount), path)))
-		if kind == "quest" and GameState.quest_error(id) == "":
-			box.add_child(UiKit.label("Recompensa: " + ProgressionUi.rewards_text(Database.quests[id].rewards), &"SmallLabel"))
+			var ok := int(need.have) >= int(need.amount)
+			chips.add_child(UiKit.tap_chip(need_icon(need), "%d/%d" % [mini(int(need.have), int(need.amount)), int(need.amount)], func() -> void:
+				var path: Array[Dictionary] = history.duplicate()
+				path.append({"kind": kind, "id": id, "amount": amount})
+				open(need.kind, need.id, int(need.amount), path), UiKit.GOOD if ok else UiKit.BAD))
+		box.add_child(chips)
 	)
+
+
+## Ícone do que o painel explica (missão = objetivo atual).
+static func icon_for(kind: String, id: String) -> Texture2D:
+	match kind:
+		"quest":
+			return ProgressionUi.goal_icon(ProgressionUi.current_goal(id))
+		"item", "crop":
+			return Database.item_icon(id)
+		"recipe":
+			return Database.item_icon(Database.recipes[id].output)
+		"route":
+			return UiKit.ui_icon(Database.progression.activities[id].get("icon", "action_play"))
+		"order":
+			return UiKit.ui_icon("item_treat_box")
+		"care":
+			return UiKit.ui_icon("need_hunger")
+	return need_icon({"kind": kind, "id": id})
+
+
+## Ícone de um requisito (item, construção, atributo, moedas, missão).
+static func need_icon(need: Dictionary) -> Texture2D:
+	var id: String = need.get("id", "")
+	match str(need.get("kind", "")):
+		"item":
+			return Database.item_icon(id)
+		"upgrade":
+			return UiKit.ui_icon(Database.progression.upgrades[id].get("icon", "tab_house"))
+		"skill":
+			return UiKit.ui_icon(Database.progression.skills[id].get("icon", "xp"))
+		"coins":
+			return UiKit.ui_icon("coin")
+	return UiKit.ui_icon("tab_tasks")
 
 
 static func _go(target: Dictionary) -> void:

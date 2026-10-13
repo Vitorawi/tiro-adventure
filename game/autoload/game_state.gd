@@ -561,6 +561,122 @@ func _finish_quest(id: String) -> void:
 		Events.chapter_completed.emit(chapter)
 
 
+# --- Diárias e semanais -------------------------------------------------------------
+# Modelos em data/routines.json. A cada dia (ou semana, a partir de segunda) sorteia
+# `count` modelos liberados; o sorteio usa o período como semente, então é o mesmo
+# ao reabrir o jogo. O progresso é o contador do objetivo menos o valor no início.
+
+## Período atual em hora local: "AAAA-MM-DD" do dia ou da segunda-feira da semana.
+func routine_period(kind: String, at: float = -1.0) -> String:
+	var local := _local_time(at)
+	if kind == "weekly":
+		local -= _days_into_week(local) * 86400
+	return Time.get_date_string_from_unix_time(local)
+
+
+## Segundos até as missões do tipo se renovarem.
+func routine_seconds_left(kind: String) -> int:
+	var local := _local_time()
+	var left := 86400 - local % 86400
+	if kind == "weekly":
+		left += (6 - _days_into_week(local)) * 86400
+	return left
+
+
+func routines_unlocked(kind: String) -> bool:
+	return requirement_error(Database.routines.get(kind, {}).get("requirements", {})) == ""
+
+
+## Missões do período (sorteia ao virar o dia ou a semana).
+func routine_ids(kind: String) -> Array[String]:
+	_ensure_routines(kind)
+	var ids: Array[String] = []
+	ids.assign(progress.routines.get(kind, {}).get("ids", []))
+	return ids
+
+
+func routine_data(kind: String, id: String) -> Dictionary:
+	return Database.routines.get(kind, {}).get("missions", {}).get(id, {})
+
+
+func routine_value(kind: String, id: String) -> int:
+	var key: String = routine_data(kind, id).get("goal", {}).get("key", "")
+	var base: Dictionary = progress.routines.get(kind, {}).get("base", {})
+	return maxi(0, progress.stat(key) - int(base.get(key, 0)))
+
+
+func routine_claimed(kind: String, id: String) -> bool:
+	return progress.routines.get(kind, {}).get("claimed", {}).has(id)
+
+
+func routine_error(kind: String, id: String) -> String:
+	if not id in routine_ids(kind):
+		return "Esta missão já passou"
+	if routine_claimed(kind, id):
+		return "Recompensa já recebida"
+	if routine_value(kind, id) < int(routine_data(kind, id).goal.get("target", 1)):
+		return "Objetivo pendente"
+	return ""
+
+
+func claim_routine(kind: String, id: String) -> String:
+	var reason := routine_error(kind, id)
+	if reason != "":
+		return reason
+	var data := routine_data(kind, id)
+	progress.routines[kind].claimed[id] = true
+	_apply_rewards(data.get("rewards", {}))
+	progress.count("routines")
+	_add_player_xp(int(data.get("player_xp", 10 if kind == "daily" else 30)))
+	_changed()
+	return ""
+
+
+func ready_routine_count() -> int:
+	var total := 0
+	for kind: String in Database.routines:
+		if routines_unlocked(kind):
+			for id in routine_ids(kind):
+				if routine_error(kind, id) == "":
+					total += 1
+	return total
+
+
+func _ensure_routines(kind: String) -> void:
+	if not routines_unlocked(kind):
+		return
+	var period := routine_period(kind)
+	if progress.routines.get(kind, {}).get("period", "") == period:
+		return
+	var missions: Dictionary = Database.routines[kind].missions
+	var pool: Array[String] = []
+	for id: String in missions:
+		if requirement_error(missions[id].get("requirements", {})) == "":
+			pool.append(id)
+	pool.sort()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(kind + period)
+	var ids: Array[String] = []
+	while ids.size() < int(Database.routines[kind].get("count", 3)) and not pool.is_empty():
+		ids.append(pool.pop_at(rng.randi_range(0, pool.size() - 1)))
+	var base := {}
+	for id in ids:
+		var key: String = missions[id].goal.key
+		base[key] = progress.stat(key)
+	progress.routines[kind] = {"period": period, "ids": ids, "base": base, "claimed": {}}
+	# Adiado: pode ser chamado durante a montagem de uma tela.
+	_changed.call_deferred()
+
+
+func _local_time(at: float = -1.0) -> int:
+	return int(now() if at < 0.0 else at) + int(Time.get_time_zone_from_system().get("bias", 0)) * 60
+
+
+## 0 = segunda ... 6 = domingo.
+func _days_into_week(local: int) -> int:
+	return (int(Time.get_datetime_dict_from_unix_time(local).weekday) + 6) % 7
+
+
 # --- Ferramentas de desenvolvimento (só na versão dev) --------------------------------
 # Usadas pelo painel DEV (scripts/ui/dev_panel.gd). Na versão publicada (prod) não fazem
 # nada. Alteram o estado por aqui para respeitar a regra "estado só no GameState".
@@ -639,7 +755,18 @@ func dev_unlock_everything() -> void:
 		_dev_complete_quest(id)
 	for id: String in Database.progression.skills:
 		_dev_skill_at_least(id, int(Database.progression.settings.max_skill_level))
+	# Roupas também vêm das semanais (sorteadas): entrega a coleção inteira.
+	for id: String in Database.collections:
+		progress.collection[id] = true
 	unlocked_plots = int(Database.farm.get("plots", 0))
+	_changed()
+
+
+## Recomeça as diárias e semanais do período (mesmas missões, progresso e recompensas zerados).
+func dev_restart_routines() -> void:
+	if not BuildInfo.is_dev():
+		return
+	progress.routines.clear()
 	_changed()
 
 

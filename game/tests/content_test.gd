@@ -57,6 +57,23 @@ func _run() -> void:
 					check(false, id + ": tipo desconhecido " + str(g.type))
 		for reward: String in q.get("rewards", {}).get("collections", []):
 			check(db.get("collections").has(reward), id + ": coleção " + reward)
+		check(q.get("kind", "") == "main", id + ": só existem missões de história (diárias/semanais ficam em routines.json)")
+	# Diárias e semanais: contador conhecido, alvo, recompensa e quantidade sorteável no começo.
+	for kind: String in ["daily", "weekly"]:
+		var group: Dictionary = db.get("routines")[kind]
+		var open := 0
+		for id: String in group.missions:
+			var m: Dictionary = group.missions[id]
+			var key: String = m.goal.key
+			check(key in ["feed", "play", "bathe", "harvest", "produce", "sold", "orders", "explore"] or key.begins_with("activity:"), kind + "/" + id + ": contador " + key)
+			if key.begins_with("activity:"):
+				check(data.activities.has(key.trim_prefix("activity:")), kind + "/" + id + ": rota " + key)
+			check(int(m.goal.get("target", 0)) > 0 and int(m.rewards.get("coins", 0)) > 0, kind + "/" + id + ": alvo e moedas")
+			for reward: String in m.rewards.get("collections", []):
+				check(db.get("collections").has(reward), kind + "/" + id + ": coleção " + reward)
+			if m.get("requirements", {}).is_empty():
+				open += 1
+		check(open >= int(group.count), kind + ": precisa de modelos sem requisito para o primeiro sorteio")
 	for world: String in db.get("worlds"):
 		var w: Dictionary = db.get("worlds")[world]
 		for npc: String in w.get("npcs", []):

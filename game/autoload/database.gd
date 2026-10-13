@@ -23,6 +23,8 @@ var npcs: Dictionary = {}
 var collections: Dictionary = {}
 ## Mundos (casa, sítio, vila...): lugares, personagens e requisitos (data/worlds.json).
 var worlds: Dictionary = {}
+## Missões diárias e semanais (data/routines.json): modelos sorteados a cada período.
+var routines: Dictionary = {}
 
 
 func _init() -> void:
@@ -43,6 +45,7 @@ func _init() -> void:
 	npcs = _load("res://data/npcs.json")
 	collections = _load("res://data/collections.json")
 	worlds = _load("res://data/worlds.json")
+	routines = _load("res://data/routines.json")
 
 
 ## Mundo onde o personagem mora ("" se nenhum).

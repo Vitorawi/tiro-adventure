@@ -93,7 +93,7 @@ func _dev_mode() -> void:
 	for id: String in database.get("progression").upgrades:
 		_check(state.call("has_upgrade", id), "Liberar tudo deve incluir " + id)
 	_check(_progress().claimed_quests.size() == database.get("quests").size(), "Liberar tudo conclui as missões")
-	_check(_progress().collection.size() == database.get("collections").size(), "Missões concluídas entregam a coleção")
+	_check(_progress().collection.size() == database.get("collections").size(), "Liberar tudo entrega a coleção")
 	_check(state.get("unlocked_plots") == int(database.get("farm").plots), "Liberar tudo compra os terrenos")
 	_check(_progress().skill_info("cooking").max, "Liberar tudo leva atributos ao máximo")
 

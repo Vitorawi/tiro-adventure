@@ -12,7 +12,7 @@ Celular **em pé**, tela inteira, **100% toque**: o jogador não controla o movi
 (ele anda sozinho), só toca nos objetos (geladeira, horta, fogão...) e arrasta para mover a câmera.
 Começa com a casa quase vazia e vai comprando fogão, geladeira, sítio, oficina... com 7 atributos
 que evoluem e missões de personagens. Abas: **Tiro · Mapa** (mini mundos: Casa, Sítio, Vila, Trilha,
-cada um com seus personagens e lugares) **· Tarefas** (o que fazer agora, com botão "Ir") **· Mochila**.
+cada um com seus personagens e lugares) **· Missões** (História passo a passo, Diárias e Semanais, com botão "Ir" e "?") **· Mochila**.
 
 Jogo 2D em **Godot 4.7.2** (GDScript), exportado para **Web** e instalado no celular como **PWA**
 ("Adicionar à tela inicial" no iPhone/Android). Publicado automaticamente no **GitHub Pages**
@@ -45,14 +45,15 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   data/              CONTEÚDO em JSON:
                        items.json, recipes.json, crops.json, config.json (necessidades, estações, sítio, XP, início)
                        progression.json (atributos, construções, rotas, pedidos, capítulos)
-                       quests.json, npcs.json, collections.json (missões, personagens, roupas/apetrechos)
+                       quests.json, npcs.json, collections.json (história, personagens, roupas/apetrechos)
+                       routines.json (modelos de missões diárias e semanais, sorteados por período)
                        worlds.json (mundos: lugares, personagens, requisitos)
                        rooms/<id>.json (cena de cada mundo: fundo, móveis, zonas tocáveis), version.json (versão + canal prod/dev, gravado no deploy)
   scenes/            cenas, uma pasta por cena (.tscn + .gd juntos)
-    main/            casca: barra superior (selo DEV), abas Tiro/Mapa/Tarefas/Mochila, Sheet, toast
+    main/            casca: barra superior (selo DEV), abas Tiro/Mapa/Missões/Mochila, Sheet, toast
     ui/pet_screen/   Tela do Pet (Tiro grande, necessidades, ações)
     ui/worlds_screen/  aba Mapa: lista de mundos + mundo atual (cabeçalho com Mapa, Lugares e personagens)
-    ui/tasks_screen/   aba Tarefas (história em passos, prontos agora, secundárias, atributos, coleção; botões "Ir")
+    ui/tasks_screen/   aba Missões (História: um passo por vez, visual; Diárias; Semanais; botões "Ir" e "?")
     ui/celebration/  comemoração de capítulo acima do Sheet
     ui/bag_screen/     aba Mochila (itens por categoria; detalhe: para que serve, onde usar, vender)
     ui/sheet/        painel inferior genérico (menus de objetos)
@@ -74,7 +75,9 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Nova construção, rota, pedido, capítulo ou atributo | `game/data/progression.json` (formato em `docs/PROGRESSION.md`) |
 | Novo mundo (mini mundinho)            | `data/worlds.json` + `data/rooms/<id>.json` + arte (receita em `docs/WORLDS.md`; sem código) |
 | Novo lugar tocável num mundo          | `places` em `worlds.json` + zona/objeto com `"action": "place:<id>"` (e `label`) em `rooms/<id>.json` |
-| História principal / secundárias      | `quests.json`: main usa chapter/order; side usa requires/requirements/category; `progression.json`: capítulos/rewards/how_to |
+| História principal                    | `quests.json` (só `kind: "main"`, chapter/order); `progression.json`: capítulos/rewards |
+| Missão diária / semanal               | `data/routines.json` (`goal` = contador + alvo, `rewards`, `requirements`; `count` por tipo); ações `GameState.claim_routine` |
+| "Como fazer" (o que falta, 1º passo)  | `scripts/ui/task_help.gd` (`TaskHelp.describe` calcula; `TaskHelp.panel` mostra em ícones) |
 | Nova missão / personagem (NPC) / roupa | `quests.json` / `npcs.json` (`portrait`, `services`) + mundo dele em `worlds.json` → `npcs` / `collections.json` |
 | Requisitos de conteúdo (nível, compra, missão) | campo `"requirements"` no JSON; validados por `ProgressionState.requirement_error` |
 | Nova ação do jogo (ex.: plantar)      | método em `game/autoload/game_state.gd` + estado em `game/scripts/state/` |
@@ -82,7 +85,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Nova planta da horta / tempo / colheita | `game/data/crops.json` (tempo, itens, moedas, XP, requisitos; ícone em `items.json`); terrenos em `config.json` → `farm` |
 | Novo tipo de painel de lugar          | caso em `Places._panel` (`scripts/ui/places.gd`) + função que monta o painel (`SheetBuilder`/`ProgressionUi`, com `UiKit`) |
 | Botão "Ir até lá"                     | `Events.world_requested.emit(mundo, "<lugar>" | "npc:<id>" | "buy:<construção>")` |
-| Mudar a aba Tarefas / Mochila         | `scenes/ui/tasks_screen/tasks_screen.gd` / `SheetBuilder.inventory_view` e `item_detail` |
+| Mudar a aba Missões / Mochila         | `scenes/ui/tasks_screen/tasks_screen.gd` / `SheetBuilder.inventory_view` e `item_detail` |
 | Nova ferramenta de teste (dev)        | `GameState.dev_*()` (com guarda `BuildInfo.is_dev()`) + botão em `scripts/ui/dev_panel.gd` |
 | Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: PrimaryButton, TabButton, CloseButton, CardPanel, ReadyCardPanel, ChipPanel, SheetPanel, TopBarPanel, TitleLabel, SectionLabel, SmallLabel, BarLabel, ToastLabel) |
 | Ícone de item/necessidade/atributo    | PNG 32 px em `game/assets/sprites/ui/icons/` + campo `"icon"` no JSON (caminho em `items.json`/`needs`; nome do arquivo sem `.png` em `progression.json`, `npcs.json`, `collections.json`) |
@@ -109,7 +112,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   O estado não depende da UI (ex.: texto de tempo vem de `TimeText`, não do `SheetBuilder`).
 - **Sinais globais só em `Events`.** Sinais locais ficam na cena.
 - **Navegação intuitiva:** cada função mora num lugar de um mundo (`worlds.json`); toda tela que
-  sugere algo (Tarefas, Mochila, personagem) tem botão que leva até lá (`Events.world_requested`).
+  sugere algo (Missões, Mochila, personagem) tem botão que leva até lá (`Events.world_requested`).
   Nada de menus genéricos escondidos: um lugar novo entra no mundo onde faria sentido.
 - **Versão dev x publicada:** `BuildInfo.is_dev()` (canal em `data/version.json`; o executável do
   Godot é sempre dev). A dev usa `user://save_dev.json`, mostra o selo **DEV** e libera as
@@ -149,6 +152,8 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 - Comentários e docs em português.
 - JSON de conteúdo: 2 espaços; listas de coordenadas numa linha só (`[[45, 284], [336, 138]]`).
 - Commitar os arquivos `.uid` e `.import` gerados pelo Godot; nunca commitar `.godot/` ou `build/`.
+- **Visual e simples:** ícone + número em vez de frase (`ProgressionUi.goal_row`, `reward_chips`, `item_chip`);
+  ingrediente que falta é chip tocável (abre o "Como fazer"); bloqueio = botão desabilitado + "?". Uma linha de texto no máximo.
 - Ao mudar estrutura ou arquitetura, **atualize este arquivo (e o `AGENTS.md`) e o doc relevante em `docs/`**.
 
 ## Comandos

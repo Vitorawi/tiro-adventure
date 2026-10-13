@@ -25,6 +25,10 @@ var unlocks: Dictionary = {}
 var cooldowns: Dictionary = {}
 ## Rota em andamento: { id, started_at, ready_at } ou vazio.
 var activity: Dictionary = {}
+## Diárias e semanais do período atual (kind = "daily" | "weekly"):
+## { period: "2026-10-12", ids: [...], base: { contador: valor no início }, claimed: { id: true } }.
+## Progresso = contador atual − base; não precisa de contador próprio.
+var routines: Dictionary = {}
 
 
 func setup() -> void:
@@ -168,7 +172,7 @@ func to_dict() -> Dictionary:
 		"skills": skills, "owned": owned, "stats": stats,
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
 		"collection": collection, "unlocks": unlocks,
-		"cooldowns": cooldowns, "activity": activity,
+		"cooldowns": cooldowns, "activity": activity, "routines": routines,
 	}
 
 
@@ -182,6 +186,7 @@ func from_dict(data: Dictionary) -> void:
 	unlocks = data.get("unlocks", {}).duplicate(true)
 	cooldowns = data.get("cooldowns", {}).duplicate(true)
 	activity = data.get("activity", {}).duplicate(true)
+	routines = data.get("routines", {}).duplicate(true)
 	# Rota removida do JSON não pode travar o jogador para sempre.
 	if not activity.is_empty() and not Database.progression.activities.has(str(activity.get("id", ""))):
 		activity = {}

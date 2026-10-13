@@ -1,14 +1,14 @@
 # Mundos (mini mundinhos) e navegação
 
 > Reorganização de 12/10/2026 (Claude Code): o jogador não precisa adivinhar onde fica cada coisa.
-> Regra de ouro: **cada coisa fica no lugar onde estaria no mundo, e a aba Tarefas leva até lá.**
+> Regra de ouro: **cada coisa fica no lugar onde estaria no mundo, e a aba Missões leva até lá.**
 
 ## Abas
 | Aba | O que tem |
 |---|---|
 | **Tiro** | Tela do Pet (necessidades, carinho, comer, brincar, banho, dormir). |
 | **Mapa** | O mundo em que você está (sala tocável) com cabeçalho: botão **Mapa**, nome do mundo, botão **Lugares** ("O que tem aqui?") e os **personagens** dali (verdes com "!" quando há missão pronta). Tocar em "Mapa" (ou na aba de novo) mostra a lista de mundos com miniatura, personagens e avisos ("Canteiros: 2 prontos para colher!"). |
-| **Tarefas** | "O que eu faço agora?": **Próximo passo** (capítulo + o que falta para a próxima construção), **Prontos agora** (colheitas, produções, rota que voltou, missões prontas), **Missões** por personagem, **Atributos** e **Coleção**. Todo item tem botão **Ir** que leva ao lugar certo. A aba mostra uma bolinha vermelha com o número de coisas prontas. |
+| **Missões** | "O que eu faço agora?": **História** (um passo por vez: rosto de quem pede, ícone + `0/6`, ícone do lugar, ingredientes que faltam em chips tocáveis, recompensa em chips, **Ir** + **?**), **Diárias** (3, renovam à meia-noite) e **Semanais** (2, renovam na segunda). A bolinha vermelha conta o que está pronto. Atributos e Coleção ficam na aba Tiro. |
 | **Mochila** | Itens por categoria. Tocar num item: o que ele faz, **como conseguir**, **onde é usado**, quanto vale na feira, "Dar ao Tiro" e "Ir vender". |
 
 ## Onde fica cada coisa hoje
@@ -72,7 +72,7 @@ Nenhum código precisa mudar para um mundo novo, a não ser que ele traga um **t
 | `scenes/ui/worlds_screen/` | Aba Mapa: lista de mundos + mundo atual (instancia `levels/room/room.tscn` por mundo e mantém em memória). `enter(mundo, lugar)`. |
 | `scripts/ui/places.gd` (`Places`) | Abre lugares/personagens (`open`, `open_npc`, `run`), lista "O que tem aqui?" (`world_list`) e calcula avisos (`world_alerts`, `npc_alert`, `place_alert`). |
 | `scripts/ui/progression_ui.gd` | Painéis: personagem, construir (por mundo), vender, encomendas, rotas, atributos, coleção. |
-| `scenes/ui/tasks_screen/` | Aba Tarefas. |
+| `scenes/ui/tasks_screen/` | Aba Missões. |
 | `scenes/ui/bag_screen/` + `SheetBuilder.inventory_view/item_detail` | Aba Mochila (e geladeira). |
 | `Events.world_requested(mundo, lugar)` | "Ir até lá": `main.gd` troca para o Mapa e entra no mundo; `lugar` = `"<lugar>"`, `"npc:<id>"` ou `"buy:<construção>"`. |
 | `Database.npc_world`, `place_with_panel`, `sources_of`, `uses_of` | Consultas de conteúdo usadas pela navegação e pela Mochila. |

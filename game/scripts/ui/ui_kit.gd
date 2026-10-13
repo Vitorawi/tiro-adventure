@@ -50,6 +50,43 @@ static func chip(texture: Texture2D, text: String, color: Variant = null) -> Pan
 	return panel
 
 
+## Chip tocável (ex.: ingrediente que falta: tocar mostra de onde ele vem).
+static func tap_chip(texture: Texture2D, text: String, on_pressed: Callable, color: Variant = null) -> Button:
+	var result := button(text, on_pressed, &"ChipButton", texture)
+	result.custom_minimum_size = Vector2(0, 44)
+	result.add_theme_constant_override("icon_max_width", 32)
+	if color is Color:
+		for state: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
+			result.add_theme_color_override(state, color)
+	return result
+
+
+## Botão quadrado só com ícone ou um símbolo curto (ex.: "?").
+static func square_button(text: String, on_pressed: Callable, texture: Texture2D = null, px: int = 52) -> Button:
+	var result := button(text, on_pressed, &"", texture)
+	result.custom_minimum_size = Vector2(px, px)
+	result.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if texture:
+		result.expand_icon = true
+		result.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		result.add_theme_constant_override("icon_max_width", 32)
+	return result
+
+
+## Rótulo curto numa linha (ex.: "3/6"): sem quebra, senão o HBox o espreme letra por letra.
+static func short_label(text: String, variation: StringName = &"", color: Variant = null) -> Label:
+	var result := label(text, variation, color)
+	result.autowrap_mode = TextServer.AUTOWRAP_OFF
+	return result
+
+
+## Rótulo que ocupa o espaço que sobra na linha.
+static func fill_label(text: String, variation: StringName = &"", color: Variant = null) -> Label:
+	var result := label(text, variation, color)
+	result.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return result
+
+
 ## Cartão (PanelContainer) com um VBox dentro; devolve o VBox para preencher.
 static func card(parent: Control, variation: StringName = &"CardPanel") -> VBoxContainer:
 	var panel := PanelContainer.new()

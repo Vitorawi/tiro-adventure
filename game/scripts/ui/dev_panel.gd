@@ -103,7 +103,7 @@ static func _progress(box: VBoxContainer) -> void:
 		_tool(jumps, "%d. %s" % [i + 1, chapters[i].name], GameState.dev_jump_to_chapter.bind(i))
 	_tool(jumps, "%d. %s" % [chapters.size() + 1, Database.progression.final_chapter.name], GameState.dev_jump_to_chapter.bind(chapters.size()))
 	var all := _grid(box, 1)
-	_tool(all, "Liberar TUDO (melhorias, terrenos, missões, atributos máx.)", GameState.dev_unlock_everything)
+	_tool(all, "Liberar TUDO (melhorias, terrenos, missões, coleção, atributos máx.)", GameState.dev_unlock_everything)
 
 	_section(box, "Melhorias", "Libera uma melhoria e o que ela exige, sem custo.")
 	var upgrades := _grid(box)
@@ -116,7 +116,9 @@ static func _progress(box: VBoxContainer) -> void:
 	for id: String in Database.quests:
 		if not GameState.progress.claimed_quests.has(id):
 			var quest: Dictionary = Database.quests[id]
-			_tool(quests, "%s · %s" % ["História" if quest.get("kind", "side") == "main" else "Secundária", quest.name], GameState.dev_complete_quest.bind(id))
+			_tool(quests, "%d. %s" % [int(quest.get("chapter", 0)), quest.name], GameState.dev_complete_quest.bind(id))
+	_section(box, "Diárias e semanais", "Zera o progresso e as recompensas do dia e da semana.")
+	_tool(_grid(box, 1), "Recomeçar diárias e semanais", GameState.dev_restart_routines)
 
 
 static func _time(box: VBoxContainer) -> void:

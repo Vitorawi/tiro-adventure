@@ -4,13 +4,21 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **12/10/2026, Claude Code**.
 
-**Simplificar — plano escrito, execução ainda não começou (Claude Code, 12/10/2026).**
+**Simplificar — Fase 1 de 5 concluída (Claude Code, 12/10/2026).**
 - O Vitor achou o jogo confuso ("bombardeamento de informação"). Plano aprovado em `docs/plans/SIMPLIFICAR.md`:
   missões em 3 tipos (História, Diárias, Semanais), 3 mundos (a Trilha vira portão na Vila), 4 atributos,
   personagens que aparecem aos poucos, revelação gradual com "Novo!" e menos texto em todo canto.
-- O painel "Como fazer" do Codex (`scripts/ui/task_help.gd`) parou no meio pelo limite de uso; foi commitado
-  como WIP (`ddab0df`). A lógica será reaproveitada no cartão da História (Fase 1); o painel cheio de texto será refeito.
-- Próximo: Fase 1 do plano. Sem push.
+  Regra que vale sempre: **ícone + número em vez de frase; simplificar**.
+- **Fase 1 feita:** aba Tarefas → **Missões** com 3 blocos. História = cartão visual (rosto, ícone + `0/6`,
+  lugar em ícones, ingredientes que faltam em chips tocáveis, recompensa em chips, **Ir** + **?**).
+  Diárias (3, a partir do cap. 2) e Semanais (2, a partir do cap. 3) em `data/routines.json`, estado em
+  `ProgressionState.routines`. Secundárias removidas (roupas → semanais). Atributos/Coleção → aba Tiro.
+  "Como fazer" do Codex (`task_help.gd`) refeito em ícones; os botões de ajuda espalhados viraram "?" e chips.
+  Novas peças: `UiKit.tap_chip/square_button/short_label/fill_label`, `ProgressionUi.goal_row/reward_chips/item_chip`,
+  `Places.target_view`, tema `ChipButton`. DEV: "Recomeçar diárias e semanais".
+- Testes verdes (farm, progression, DEV dev/prod, tasks com diárias/semanais, content). Capturas:
+  `build/screenshots/tasks_{start,middle,story,help,end,celebration}.png`.
+- Próximo: **Fase 2** (atributos 7 → 4 e passos concretos; save v6). Sem push.
 
 **Tarefas v2 — todas as fases (1–6) concluídas (Codex, 12/10/2026).**
 - 28 passos principais em 8 capítulos e 9 secundárias; recompensas por capítulo, destinos

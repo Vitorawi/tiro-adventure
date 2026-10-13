@@ -66,9 +66,42 @@ func _run() -> void:
 		check(state.get("coins") == coins, "Objetivo não consome moedas")
 		check(state.get("inventory").count("carrot") == before - (1 if kind == "deliver" else 0), "Consumo de " + kind)
 	database.get("quests").erase("test_goal")
+	_routines_check()
 	await _ui_check()
 	print("TASKS TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(0 if failures == 0 else 1)
+
+
+## Diárias e semanais: liberação, sorteio estável, progresso pela base, recompensa única e virada de período.
+func _routines_check() -> void:
+	state.call("reset")
+	check(not state.call("routines_unlocked", "daily"), "Diárias escondidas no capítulo 1")
+	check((state.call("routine_ids", "daily") as Array).is_empty(), "Sem diárias antes de liberar")
+	state.get("progress").stats["harvest"] = 7
+	state.call("dev_jump_to_chapter", 3)
+	var progress: RefCounted = state.get("progress")
+	for kind: String in ["daily", "weekly"]:
+		var ids: Array = state.call("routine_ids", kind)
+		check(ids.size() == int(database.get("routines")[kind].count), kind + ": quantidade sorteada")
+		check(state.call("routine_ids", kind) == ids, kind + ": sorteio estável")
+		var id: String = ids[0]
+		var goal: Dictionary = state.call("routine_data", kind, id).goal
+		check(state.call("routine_value", kind, id) == 0, kind + ": progresso começa do zero")
+		check(state.call("claim_routine", kind, id) != "", kind + ": não recebe sem cumprir")
+		progress.stats[goal.key] = progress.stat(goal.key) + int(goal.target)
+		check(state.call("routine_error", kind, id) == "", kind + ": pronta ao cumprir")
+		var coins: int = state.get("coins")
+		check(state.call("claim_routine", kind, id) == "", kind + ": recebe")
+		check(state.get("coins") == coins + int(state.call("routine_data", kind, id).rewards.get("coins", 0)), kind + ": paga moedas")
+		check(state.call("claim_routine", kind, id) != "", kind + ": paga uma vez só")
+		# Virada do período: novo sorteio com progresso e recompensas zerados.
+		progress.routines[kind].period = "2000-01-01"
+		var next: Array = state.call("routine_ids", kind)
+		check(progress.routines[kind].period == state.call("routine_period", kind), kind + ": período atualizado")
+		check(not state.call("routine_claimed", kind, next[0]) and state.call("routine_value", kind, next[0]) == 0, kind + ": novo período zerado")
+	var monday: String = state.call("routine_period", "weekly")
+	check(int(Time.get_datetime_dict_from_datetime_string(monday + "T12:00:00", true).weekday) == 1, "Semana começa na segunda")
+	check(state.call("routine_seconds_left", "daily") <= 86400 and state.call("routine_seconds_left", "weekly") <= 7 * 86400, "Tempo até renovar")
 
 
 func _ui_check() -> void:
@@ -80,7 +113,7 @@ func _ui_check() -> void:
 	var card: Control = main.find_child("StoryCard", true, false)
 	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
 	check(main.get("_tasks_pulse") != null, "Guia pulsa no começo")
-	check(main.find_child("MoodLabel", true, false).text == "Veja suas tarefas aqui embaixo!", "Guia do Tiro aparece no começo")
+	check(main.find_child("MoodLabel", true, false).text == "Veja suas missões aqui embaixo!", "Guia do Tiro aparece no começo")
 	state.get("progress").stats["feed"] = 1
 	root.get_node("Events").emit_signal("state_changed")
 	check(main.get("_tasks_badge").text == "1", "Badge conta a principal pronta uma vez")
@@ -102,9 +135,10 @@ func _ui_check() -> void:
 	await create_timer(0.3).timeout
 	_shot("tasks_story")
 	events.emit_signal("sheet_close_requested")
-	events.emit_signal("sheet_requested", "Missões secundárias", ui.call("side_panel"))
+	events.emit_signal("sheet_requested", "Como fazer", load("res://scripts/ui/task_help.gd").call("panel", "quest", state.get("progress").current_main_quest()))
 	await create_timer(0.3).timeout
-	_shot("tasks_side")
+	_shot("tasks_help")
+	events.emit_signal("sheet_close_requested")
 	main.get_node("Celebration").call("show_chapter", 2, PackedStringArray(["Trilha do riacho"]))
 	await create_timer(0.2).timeout
 	_shot("tasks_celebration")

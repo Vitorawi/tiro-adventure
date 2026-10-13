@@ -1,6 +1,6 @@
 extends Control
 ## Casca do jogo: barra superior (nível/moedas, selo DEV), abas Tiro / Mapa (mundos) /
-## Tarefas / Mochila, painel inferior (Sheet) e mensagens rápidas (toast).
+## Missões / Mochila, painel inferior (Sheet) e mensagens rápidas (toast).
 ## Events.world_requested (botões "Ir") troca para o Mapa e entra no mundo pedido.
 
 @onready var _screens := {
@@ -88,7 +88,7 @@ func _on_world_requested(world_id: String, place: String) -> void:
 	%WorldsScreen.enter(world_id, place)
 
 
-## Bolinha com o número de coisas prontas (missões e colheitas/produções) na aba Tarefas.
+## Bolinha com o número de coisas prontas (missões e colheitas/produções) na aba Missões.
 func _build_tasks_badge() -> void:
 	_tasks_badge = Label.new()
 	_tasks_badge.add_theme_font_size_override("font_size", 16)
@@ -111,7 +111,7 @@ func _build_tasks_badge() -> void:
 
 
 func _refresh_tasks_badge() -> void:
-	var count := GameState.ready_quest_count()
+	var count := GameState.ready_quest_count() + GameState.ready_routine_count()
 	for i in GameState.accessible_plots():
 		if GameState.plot_status(i) == "ready":
 			count += 1

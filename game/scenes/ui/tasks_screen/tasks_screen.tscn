@@ -24,7 +24,7 @@ theme_override_constants/separation = 6
 [node name="Title" type="Label" parent="Margin/Layout"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-text = "Tarefas"
+text = "Missões"
 
 [node name="Scroll" type="ScrollContainer" parent="Margin/Layout"]
 unique_name_in_owner = true

@@ -136,36 +136,6 @@
     "order": 1,
     "hint": "Trilha → Passeios → Volta pelo bairro."
   },
-  "trail_friend": {
-    "npc": "guide",
-    "name": "Companheiros de trilha",
-    "dialogue": "Façam três explorações juntos. Esta lembrança é de vocês.",
-    "requires": [
-      "first_walk"
-    ],
-    "goals": [
-      {
-        "type": "stat",
-        "key": "explore",
-        "target": 3,
-        "label": "Concluir explorações"
-      }
-    ],
-    "rewards": {
-      "collections": [
-        "trail_bandana"
-      ],
-      "skill_xp": {
-        "bond": 25,
-        "walking": 20
-      }
-    },
-    "kind": "side",
-    "category": "walking",
-    "requirements": {
-      "chapter": 3
-    }
-  },
   "stone_path": {
     "npc": "artisan",
     "name": "A primeira ferramenta",
@@ -190,60 +160,6 @@
     "kind": "main",
     "chapter": 5,
     "order": 2
-  },
-  "workshop": {
-    "npc": "artisan",
-    "name": "Com as próprias mãos",
-    "dialogue": "Monte sua bancada e fabrique tábuas. Elas serão úteis em quase toda melhoria.",
-    "goals": [
-      {
-        "type": "stat",
-        "key": "produce:plank",
-        "target": 2,
-        "label": "Fabricar tábuas"
-      }
-    ],
-    "rewards": {
-      "coins": 60,
-      "skill_xp": {
-        "building": 35
-      }
-    },
-    "kind": "side",
-    "requires": [
-      "main_4_bench"
-    ],
-    "category": "building",
-    "requirements": {
-      "chapter": 5
-    }
-  },
-  "good_cook": {
-    "npc": "bloblo",
-    "name": "Receita de família",
-    "dialogue": "Quero provar seu caldo de legumes. Entregue duas porções.",
-    "requires": [
-      "first_kitchen"
-    ],
-    "goals": [
-      {
-        "type": "deliver",
-        "key": "vegetable_soup",
-        "target": 2,
-        "label": "Entregar caldo de legumes"
-      }
-    ],
-    "rewards": {
-      "coins": 80,
-      "collections": [
-        "cook_apron"
-      ],
-      "skill_xp": {
-        "cooking": 35
-      }
-    },
-    "kind": "side",
-    "category": "cooking"
   },
   "market_day": {
     "npc": "merchant",
@@ -312,37 +228,6 @@
     "kind": "main",
     "chapter": 6,
     "order": 3
-  },
-  "green_fingers": {
-    "npc": "bloblo",
-    "name": "Mãos de jardineiro",
-    "dialogue": "Uma estufa e vinte colheitas! Seu sítio tem uma história para contar.",
-    "requires": [
-      "farm_deed"
-    ],
-    "goals": [
-      {
-        "type": "owned",
-        "key": "greenhouse",
-        "label": "Construir a estufa"
-      },
-      {
-        "type": "stat",
-        "key": "harvest",
-        "target": 20,
-        "label": "Colher plantações"
-      }
-    ],
-    "rewards": {
-      "collections": [
-        "garden_hat"
-      ],
-      "skill_xp": {
-        "agriculture": 60
-      }
-    },
-    "kind": "side",
-    "category": "agriculture"
   },
   "atelier_open": {
     "npc": "artisan",
@@ -693,122 +578,5 @@
     "kind": "main",
     "chapter": 8,
     "order": 2
-  },
-  "loyal_customer": {
-    "npc": "merchant",
-    "name": "Cliente fiel",
-    "dialogue": "Vamos juntos: cliente fiel.",
-    "goals": [
-      {
-        "type": "stat",
-        "key": "sold",
-        "target": 10,
-        "label": "Vender produtos"
-      }
-    ],
-    "rewards": {
-      "coins": 10,
-      "collections": [
-        "merchant_apron"
-      ]
-    },
-    "kind": "side",
-    "category": "commerce",
-    "requirements": {
-      "chapter": 2
-    }
-  },
-  "little_miner": {
-    "npc": "guide",
-    "name": "Pequeno minerador",
-    "dialogue": "Vamos juntos: pequeno minerador.",
-    "goals": [
-      {
-        "type": "stat",
-        "key": "activity:quarry",
-        "target": 5,
-        "label": "Explorar a pedreira"
-      }
-    ],
-    "rewards": {
-      "coins": 10,
-      "collections": [
-        "miner_helmet"
-      ]
-    },
-    "kind": "side",
-    "category": "mining",
-    "requirements": {
-      "chapter": 5
-    }
-  },
-  "bath_day": {
-    "npc": "bloblo",
-    "name": "Banho em dia",
-    "dialogue": "Vamos juntos: banho em dia.",
-    "goals": [
-      {
-        "type": "stat",
-        "key": "bathe",
-        "target": 3,
-        "label": "Dar banho no Tiro"
-      }
-    ],
-    "rewards": {
-      "coins": 10,
-      "collections": [
-        "clean_bow"
-      ]
-    },
-    "kind": "side",
-    "category": "bond",
-    "requirements": {
-      "chapter": 1
-    }
-  },
-  "main_8_fabric": {
-    "npc": "artisan",
-    "name": "Tecidos da Laís",
-    "dialogue": "Vamos juntos: tecidos da laís.",
-    "goals": [
-      {
-        "type": "stat",
-        "key": "produce:fabric",
-        "target": 2,
-        "label": "Produzir tecidos"
-      }
-    ],
-    "rewards": {
-      "coins": 10,
-      "collections": [
-        "artisan_outfit"
-      ]
-    },
-    "kind": "side",
-    "category": "building",
-    "requirements": {
-      "chapter": 9
-    }
-  },
-  "village_repair": {
-    "npc": "merchant",
-    "name": "Um presente para a praça",
-    "dialogue": "Vamos juntos: um presente para a praça.",
-    "goals": [
-      {
-        "type": "stat",
-        "key": "order:building_order",
-        "target": 1,
-        "label": "Entregar materiais à praça"
-      }
-    ],
-    "rewards": {
-      "coins": 10
-    },
-    "kind": "side",
-    "category": "commerce",
-    "requirements": {
-      "chapter": 7
-    }
   }
 }

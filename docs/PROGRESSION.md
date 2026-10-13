@@ -27,7 +27,7 @@ petisco → biscoito → caixa de petiscos → encomenda especial).
 | **Rotas** | `progression.json` → `activities` | Passeios/mineração com tempo (uma por vez): bairro, trilha, pedreira, cobre, gruta, pomar, prado. |
 | **Feira** | `progression.json` → `orders` + `sell_price` em `items.json` | Encomendas com recarga + venda direta. |
 | **Capítulos** | `progression.json` → `chapters` (+ `final_chapter`) | A "história": cada capítulo termina ao comprar seu `target`. Aparece em Jornada → Hoje. |
-| **Missões** | `quests.json` | Por NPC, em sequência (`requires`). Objetivos + recompensas. |
+| **Missões** | `quests.json`, `routines.json` | História (capítulos em passos) + diárias e semanais sorteadas. Objetivos + recompensas. |
 | **NPCs** | `npcs.json` (+ mundo em `worlds.json`) | Bloblo (Sítio), Guia da trilha (Trilha), Feirante e Laís, a artesã (Vila). `portrait` = retrato (hoje provisórios do PixelLab; trocar pelas fotos), `services` = atalhos para lugares. |
 | **Coleção** | `collections.json` | Roupas/apetrechos ganhos em missões (`slot`: head/neck/body; `sprite` para vestir no futuro). |
 | **Sítio** | `config.json` → `farm` | 1 canteiro emprestado antes da escritura; depois 3 iniciais e expansão até 9 (`unlock_costs`). |
@@ -54,7 +54,7 @@ Validados por `ProgressionState.requirement_error()` (a mensagem vira o motivo n
 `progress.unlocks` ("crop:potato", "recipe:pumpkin_mash") libera conteúdo **sem** cumprir requisitos
 (usado para saves antigos e pode ser recompensa: `"rewards": { "unlocks": [...] }`).
 
-## História principal e missões secundárias (Tarefas v2)
+## Missões: História, Diárias e Semanais
 
 As 28 missões principais usam `kind: "main"`, `chapter` (1..8) e `order` consecutivo.
 Só `ProgressionState.current_main_quest()` pode ser recebida; não usam `requires`.
@@ -62,11 +62,14 @@ Cada capítulo tem 3–5 passos, termina em `owned` de seu `target` e só avanç
 todos foram recebidos. A compra por si só não avança. `chapters[].rewards` é entregue
 uma vez; os sinais `quest_completed(id)` e `chapter_completed(index)` acionam a UI.
 
-As nove secundárias usam `kind: "side"` (padrão), `requires`, `requirements` e
-`category` (atributo/cor). A tela recomenda três, prontas primeiro e depois por
-fração dos objetivos, com todas agrupadas por NPC e concluídas recolhidas.
-Oficina e tecidos são opcionais após adquirir suas estações; o capítulo final prepara
-fibras e Construção para o ateliê, evitando produção obrigatória antes da estação.
+As secundárias foram removidas (plano `docs/plans/SIMPLIFICAR.md`); `quests.json` só tem `main`.
+**Diárias e semanais** ficam em `data/routines.json`: por tipo, `count` (quantas sorteia),
+`requirements` (quando aparecem: diárias no capítulo 2, semanais no 3) e `missions` com
+`goal: { key: <contador>, target }`, `rewards` (moedas, itens, roupas) e `requirements`.
+`GameState.routine_ids(kind)` sorteia ao virar o dia (meia-noite local) ou a semana (segunda),
+com o período como semente (o mesmo sorteio ao reabrir). O progresso é contador − `base`
+(valor no início do período), guardado em `ProgressionState.routines`. As roupas que eram das
+secundárias agora vêm das semanais. Ações: `claim_routine`/`routine_error`.
 
 `hint` substitui a dica gerada; `go: {"world": "...", "place": "..."}` substitui o
 destino. `Places.goal_target` resolve objetivos; `Database.item_sources` fornece
@@ -112,8 +115,8 @@ falha se alguma construção ou missão ficar inalcançável. Rode-o depois de m
 ## Interface
 Desde a reorganização da navegação, a progressão não fica mais num menu único: cada coisa mora
 num lugar de um mundo (vender e encomendas na Vila, passeios e mina na Trilha, construir em cada
-mundo) e a aba **Tarefas** mostra o próximo passo, o que está pronto e as missões, sempre com
-botão **Ir**. Detalhes em **`docs/WORLDS.md`**. Painéis em `scripts/ui/progression_ui.gd`.
+mundo) e a aba **Missões** mostra a História (um passo por vez: quem pede, ícone + `0/6`, onde,
+o que falta em chips tocáveis), as Diárias e as Semanais, sempre com **Ir** e **?** ("Como fazer"). Detalhes em **`docs/WORLDS.md`**. Painéis em `scripts/ui/progression_ui.gd`.
 - Casa: móveis com `"upgrade"` em `rooms/house.json` só aparecem depois de comprados; antes há um
   marcador "+" que abre a compra. Sítio: canteiros bloqueados mostram "Sítio" (antes da escritura)
   ou o preço do próximo terreno.
@@ -153,9 +156,9 @@ no capítulo 4. Capítulo e passo são derivados de `claimed_quests`, sem campos
 
 `tools/test_all.ps1` executa farm, campanha, DEV, tasks, content e DEV prod.
 `tasks_test.gd -- --screenshots` (sem headless, 360×780) captura começo, capítulo 4,
-fim, História, secundárias e comemoração em `build/screenshots/tasks_*.png`.
+fim, História, "Como fazer" e comemoração em `build/screenshots/tasks_*.png`.
 `content_test` valida ordem, alvos, referências e acesso aos destinos.
-`tools/touch_test.ps1 -Steps tools/tasks_touch_steps.json` exercita Tarefas → Ir
+`tools/touch_test.ps1 -Steps tools/tasks_touch_steps.json` exercita Missões → Ir
 na Web local com perfil de navegador descartável.
 
 ## Como estender
@@ -163,7 +166,7 @@ na Web local com perfil de navegador descartável.
   skill_xp, icon). Se for estação: `"station": "<id>"` + entrada em `config.json → stations` +
   receitas com `"station"`. Se tiver móvel: objeto em `rooms/<sala>.json` com `"upgrade": "<id>"`.
 - **Novo capítulo:** item em `chapters` com `target`, `rewards`, `unlocks_text` e 3–5 missões main.
-- **Nova missão:** entrada em `quests.json` com `kind`, `npc`, `goals`, `rewards`; main usa chapter/order, side usa requires/requirements.
+- **Nova missão:** entrada em `quests.json` com `kind`, `npc`, `goals`, `rewards`; main usa chapter/order. Diária/semanal: entrada em `routines.json`.
 - **Novo NPC com foto:** entrada em `npcs.json`; coloque o retrato (pixel art do PixelLab feita a
   partir da foto) em `assets/sprites/characters/npc_<id>/portrait.png` e preencha `"portrait"`.
 - **Nova roupa:** entrada em `collections.json` (+ `sprite` quando existir a camada para vestir).

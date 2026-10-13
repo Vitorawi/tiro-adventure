@@ -1,6 +1,6 @@
 class_name ProgressionUi
 extends RefCounted
-## Painéis da progressão, abertos pelos lugares dos mundos (Places) e pelas Tarefas:
+## Painéis da progressão, abertos pelos lugares dos mundos (Places) e pelas Missões:
 ## personagem (missões), construir por mundo, vender, encomendas, rotas, atributos e coleção.
 ## Conteúdo, requisitos e recompensas vêm dos JSON; ações passam pelo GameState.
 
@@ -58,16 +58,11 @@ static func npc_header(box: VBoxContainer, npc_id: String) -> void:
 
 static func quest_card(box: VBoxContainer, id: String) -> void:
 	var quest: Dictionary = Database.quests[id]
-	var ready := GameState.quest_error(id) == ""
-	var card := UiKit.card(box, &"ReadyCardPanel" if ready else &"CardPanel")
+	var card := UiKit.card(box, &"ReadyCardPanel" if GameState.quest_error(id) == "" else &"CardPanel")
 	card.add_child(UiKit.label(quest.name, &"SectionLabel"))
-	_text(card, quest.dialogue, true)
 	for goal: Dictionary in quest.goals:
-		var target := int(goal.get("target", 1))
-		var value := mini(GameState.goal_value(goal), target)
-		_text(card, "%s · %d/%d" % [goal.label, value, target], true)
-		card.add_child(UiKit.bar(100.0 * value / maxi(1, target), UiKit.GOOD, 8))
-	_text(card, "Recompensa: " + rewards_text(quest.rewards), true)
+		card.add_child(goal_row(goal, GameState.goal_value(goal)))
+	card.add_child(reward_chips(quest.rewards))
 	quest_action(card, id)
 
 
@@ -111,8 +106,7 @@ static func upgrade_card(box: VBoxContainer, id: String) -> void:
 	cost.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [mini(GameState.coins, int(data.cost)), int(data.cost)], UiKit.GOOD if GameState.coins >= int(data.cost) else UiKit.BAD))
 	card.add_child(cost)
 	_amounts(card, data.get("materials", {}))
-	card.add_child(UiKit.button("Materiais e ajuda", TaskHelp.open.bind("upgrade", id)))
-	_action(card, "Comprar " + data.name, func() -> String: return GameState.buy_upgrade(id), GameState.upgrade_error(id), "%s é seu!" % data.name)
+	_action(card, "Comprar", func() -> String: return GameState.buy_upgrade(id), GameState.upgrade_error(id), "%s é seu!" % data.name, TaskHelp.open.bind("upgrade", id))
 
 
 # --- Vila: vender e encomendas --------------------------------------------------------
@@ -154,13 +148,12 @@ static func orders_panel(focus: String = "") -> Control:
 			var locked := GameState.requirement_error(data.get("requirements", {}))
 			var card := UiKit.card(box, &"ReadyCardPanel" if reason == "" else &"CardPanel")
 			card.add_child(UiKit.label(data.name, &"SectionLabel"))
-			card.add_child(UiKit.button("Ingredientes e ajuda", TaskHelp.open.bind("order", id)))
 			if locked != "":
-				_text(card, "Ainda não: " + locked, true)
+				_action(card, "Bloqueada", func() -> String: return locked, locked, "", TaskHelp.open.bind("order", id))
 				continue
 			_amounts(card, data.inputs)
-			_text(card, "Recebe: " + rewards_text(data.rewards), true)
-			_action(card, "Entregar", func() -> String: return GameState.fulfill_order(id), reason, "Encomenda entregue!")
+			card.add_child(reward_chips(data.rewards))
+			_action(card, "Entregar", func() -> String: return GameState.fulfill_order(id), reason, "Encomenda entregue!", TaskHelp.open.bind("order", id))
 	)
 
 
@@ -185,9 +178,7 @@ static func routes_panel(place: String, focus: String = "") -> Control:
 			if int(data.rewards.get("coins", 0)) > 0:
 				details.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(data.rewards.coins), UiKit.GOOD))
 			card.add_child(details)
-			if GameState.activity_error(id) != "":
-				card.add_child(UiKit.button("Como liberar esta rota", TaskHelp.open.bind("route", id)))
-			_action(card, "Começar", func() -> String: return GameState.start_activity(id), GameState.activity_error(id), "Vocês saíram para: " + data.name)
+			_action(card, "Começar", func() -> String: return GameState.start_activity(id), GameState.activity_error(id), "Vocês saíram para: " + data.name, TaskHelp.open.bind("route", id))
 	)
 
 
@@ -293,13 +284,19 @@ static func _text(box: VBoxContainer, text: String, small: bool = false) -> void
 		box.add_child(UiKit.label(text, &"SmallLabel" if small else &""))
 
 
-## Botão de ação do GameState: desabilitado com o motivo embaixo; toast com o resultado.
-static func _action(box: VBoxContainer, text: String, action: Callable, reason: String = "", done: String = "Feito!") -> void:
+## Botão de ação do GameState; toast com o resultado. Bloqueado: motivo curto embaixo e,
+## se houver `help`, um "?" ao lado que abre o "Como fazer".
+static func _action(box: VBoxContainer, text: String, action: Callable, reason: String = "", done: String = "Feito!", help: Callable = Callable()) -> void:
 	var button := UiKit.button(text, func() -> void:
 		var error: String = action.call()
 		Events.toast_requested.emit(error if error != "" else done), &"PrimaryButton")
 	button.disabled = reason != ""
-	box.add_child(button)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var row := UiKit.hbox(8)
+	row.add_child(button)
+	if reason != "" and help.is_valid():
+		row.add_child(UiKit.square_button("?", help))
+	box.add_child(row)
 	if reason != "":
 		_text(box, reason, true)
 
@@ -312,7 +309,7 @@ static func _amounts(card: VBoxContainer, amounts: Dictionary) -> void:
 	for id: String in amounts:
 		var have := GameState.inventory.count(id)
 		var need := int(amounts[id])
-		row.add_child(UiKit.chip(Database.item_icon(id), "%d/%d %s" % [have, need, Database.item_name(id)], UiKit.GOOD if have >= need else UiKit.BAD))
+		row.add_child(item_chip(id, need))
 	card.add_child(row)
 
 
@@ -328,84 +325,78 @@ static func quest_skills(id: String) -> Dictionary:
 	return result
 
 
+## [Ir | Receber] + "?". O Ir leva ao primeiro passo possível (ex.: plantar antes de cozinhar).
 static func quest_action(box: VBoxContainer, id: String) -> void:
 	var ready := GameState.quest_error(id) == ""
-	box.add_child(UiKit.button("Receber recompensa" if ready else "Ir", func() -> void:
+	var row := UiKit.hbox(8)
+	var main := UiKit.button("Receber" if ready else "Ir", func() -> void:
 		if ready:
 			var error := GameState.claim_quest(id)
 			if error != "":
 				Events.toast_requested.emit(error)
 		else:
-			Places.go(Places.quest_target(id)), &"PrimaryButton"))
+			Places.go(quest_go_target(id)), &"PrimaryButton")
+	main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(main)
 	if not ready:
-		box.add_child(UiKit.button("Como fazer", TaskHelp.open.bind("quest", id)))
+		row.add_child(UiKit.square_button("?", TaskHelp.open.bind("quest", id)))
+	box.add_child(row)
 
 
-static func quest_fraction(id: String) -> float:
-	var total := 0.0
+static func quest_go_target(id: String) -> Dictionary:
+	var target: Dictionary = TaskHelp.describe("quest", id).get("next_target", {})
+	return target if not target.is_empty() and not target.has("claim") else Places.quest_target(id)
+
+
+## Objetivo que falta (ou o primeiro, se todos cumpridos).
+static func current_goal(id: String) -> Dictionary:
 	var goals: Array = Database.quests[id].goals
 	for goal: Dictionary in goals:
-		total += minf(1.0, float(GameState.goal_value(goal)) / maxi(1, int(goal.get("target", 1))))
-	return total / maxi(1, goals.size())
+		if GameState.goal_value(goal) < int(goal.get("target", 1)):
+			return goal
+	return goals[0]
 
 
-static func side_quests() -> Array[String]:
-	var ids: Array[String] = []
-	for id: String in Database.quests:
-		if Database.quests[id].get("kind", "side") == "side" and GameState.quest_unlocked(id) and not GameState.progress.claimed_quests.has(id):
-			ids.append(id)
-	ids.sort_custom(func(a: String, b: String) -> bool:
-		var a_ready := GameState.quest_error(a) == ""
-		var b_ready := GameState.quest_error(b) == ""
-		if a_ready != b_ready:
-			return a_ready
-		if not is_equal_approx(quest_fraction(a), quest_fraction(b)):
-			return quest_fraction(a) > quest_fraction(b)
-		return a < b)
-	return ids
-
-
-static func side_card(box: VBoxContainer, id: String) -> void:
-	var q: Dictionary = Database.quests[id]
-	var card := UiKit.card(box, &"ReadyCardPanel" if GameState.quest_error(id) == "" else &"CardPanel")
+## Diária ou semanal: [ícone] nome · barra · recompensa · [Ir | Receber].
+static func routine_card(box: VBoxContainer, kind: String, id: String) -> void:
+	var data := GameState.routine_data(kind, id)
+	var goal: Dictionary = data.goal
+	var target := int(goal.get("target", 1))
+	var value := mini(GameState.routine_value(kind, id), target)
+	var claimed := GameState.routine_claimed(kind, id)
+	var ready := GameState.routine_error(kind, id) == ""
+	var card := UiKit.card(box, &"ReadyCardPanel" if ready else &"CardPanel")
+	if claimed:
+		card.get_parent().modulate.a = 0.55
 	var row := UiKit.hbox(8)
-	row.add_child(UiKit.icon(npc_portrait(q.npc), 40))
+	row.add_child(UiKit.icon(stat_icon(goal.key), 40))
 	var info := UiKit.vbox(2)
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.add_child(UiKit.label(q.name))
-	var category: Dictionary = Database.progression.skills.get(q.get("category", ""), {})
-	info.add_child(UiKit.label(category.get("name", Database.npcs[q.npc].name), &"SmallLabel", Color(category.get("color", "#62764d"))))
+	info.add_child(UiKit.label(data.name))
+	var line := UiKit.hbox(6)
+	var bar := UiKit.bar(100.0 * value / maxi(1, target), UiKit.GOOD, 10)
+	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	line.add_child(bar)
+	line.add_child(UiKit.short_label("%d/%d" % [value, target], &"SmallLabel"))
+	info.add_child(line)
+	info.add_child(reward_chips(data.get("rewards", {})))
 	row.add_child(info)
+	if claimed:
+		row.add_child(UiKit.short_label("✓", &"SectionLabel", UiKit.GOOD))
+	else:
+		var button := UiKit.button("Receber" if ready else "Ir", func() -> void:
+			if ready:
+				var error := GameState.claim_routine(kind, id)
+				Events.toast_requested.emit(error if error != "" else "Missão concluída!")
+			else:
+				Places.go(Places.goal_target({"type": "stat", "key": goal.key})), &"PrimaryButton")
+		button.custom_minimum_size = Vector2(96, 48)
+		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(button)
 	card.add_child(row)
-	for goal: Dictionary in q.goals:
-		card.add_child(UiKit.label("%s · %d/%d" % [goal.label, mini(GameState.goal_value(goal), int(goal.get("target", 1))), int(goal.get("target", 1))], &"SmallLabel"))
-	card.add_child(UiKit.label(rewards_text(q.rewards), &"SmallLabel"))
-	quest_action(card, id)
 
 
-static func side_panel() -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		var ids := side_quests()
-		for npc: String in Database.npcs:
-			var header := false
-			for id in ids:
-				if Database.quests[id].npc == npc:
-					if not header:
-						box.add_child(UiKit.label(Database.npcs[npc].name, &"SectionLabel"))
-						header = true
-					side_card(box, id)
-		var completed := UiKit.vbox()
-		completed.visible = false
-		var count := 0
-		for id: String in Database.quests:
-			if Database.quests[id].get("kind", "side") == "side" and GameState.progress.claimed_quests.has(id):
-				count += 1
-				completed.add_child(UiKit.label("✓ " + str(Database.quests[id].name), &"SmallLabel", UiKit.GOOD))
-		box.add_child(UiKit.button("Concluídas (%d)" % count, func() -> void: completed.visible = not completed.visible))
-		box.add_child(completed)
-	)
-
-
+## História completa: capítulos passados (✓), o atual com os passos e os próximos apagados.
 static func story_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var current := GameState.progress.chapter_index()
@@ -413,13 +404,84 @@ static func story_panel() -> Control:
 			var chapter: Dictionary = Database.progression.chapters[i]
 			var index: int = i + 1
 			var card := UiKit.card(box, &"ReadyCardPanel" if index == current else &"CardPanel")
-			card.add_child(UiKit.label("%s %d · %s" % ["✓" if index < current else ("▶" if index == current else "?"), index, chapter.name], &"SectionLabel"))
-			if index < current:
-				card.add_child(UiKit.label("Recompensas recebidas · " + rewards_text(chapter.get("rewards", {})), &"SmallLabel", UiKit.GOOD))
-			elif index == current:
+			if index > current:
+				card.get_parent().modulate.a = 0.5
+			var title := "%d · %s" % [index, chapter.name] if index <= current else "%d · ?" % index
+			card.add_child(UiKit.label(("✓ " if index < current else "") + title, &"SectionLabel", UiKit.GOOD if index < current else null))
+			if index == current:
 				for id in GameState.progress.main_quests(index):
 					var claimed := GameState.progress.claimed_quests.has(id)
-					card.add_child(UiKit.label(("✓ " if claimed else "○ ") + str(Database.quests[id].name), &"SmallLabel"))
-					if id == GameState.progress.current_main_quest():
-						quest_action(card, id)
+					var row := UiKit.hbox(8)
+					row.add_child(UiKit.icon(goal_icon(current_goal(id)), 32))
+					row.add_child(UiKit.fill_label(Database.quests[id].name, &"SmallLabel", UiKit.GOOD if claimed else null))
+					if claimed:
+						row.add_child(UiKit.short_label("✓", &"", UiKit.GOOD))
+					card.add_child(row)
+			if index >= current:
+				card.add_child(reward_chips(chapter.get("rewards", {})))
 	)
+
+
+# --- Peças visuais de missão ---------------------------------------------------------------
+
+## Ícone de um objetivo pelo tipo: item, construção, atributo, moedas ou contador.
+static func goal_icon(goal: Dictionary) -> Texture2D:
+	var key: String = goal.get("key", "")
+	match str(goal.get("type", "stat")):
+		"owned":
+			return UiKit.ui_icon(Database.progression.upgrades.get(key, {}).get("icon", "tab_house"))
+		"skill":
+			return UiKit.ui_icon(Database.progression.skills.get(key, {}).get("icon", "xp"))
+		"have", "deliver":
+			return Database.item_icon(key)
+		"coins":
+			return UiKit.ui_icon("coin")
+		"chapter":
+			return UiKit.ui_icon("tab_tasks")
+	return stat_icon(key)
+
+
+## Ícone de um contador ("harvest", "produce:plank", "activity:lane"...).
+static func stat_icon(key: String) -> Texture2D:
+	var prefix := key.get_slice(":", 0)
+	var arg := key.get_slice(":", 1) if ":" in key else ""
+	if arg != "" and prefix in ["harvest", "produce"]:
+		return Database.item_icon(arg)
+	if prefix == "activity":
+		return UiKit.ui_icon(Database.progression.activities.get(arg, {}).get("icon", "action_play"))
+	var icons := {"feed": "need_hunger", "bathe": "action_bathe", "play": "action_play", "pet": "need_happiness", "harvest": "tab_farm", "produce": "item_carrot_snack", "trade": "coin", "sold": "coin", "orders": "item_treat_box", "order": "item_treat_box", "explore": "tab_map", "quests": "tab_tasks", "build": "item_plank"}
+	return UiKit.ui_icon(icons.get(prefix, "xp"))
+
+
+## Linha de objetivo: ícone + barra + "3/6".
+static func goal_row(goal: Dictionary, value: int, px: int = 32) -> HBoxContainer:
+	var target := int(goal.get("target", 1))
+	var row := UiKit.hbox(8)
+	row.add_child(UiKit.icon(goal_icon(goal), px))
+	var bar := UiKit.bar(100.0 * mini(value, target) / maxi(1, target), UiKit.GOOD, 12)
+	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(bar)
+	row.add_child(UiKit.short_label("%d/%d" % [mini(value, target), target], &"", UiKit.GOOD if value >= target else null))
+	return row
+
+
+## Recompensas em chips: [moeda] +40  [cenoura] +2  [atributo] +20  [roupa] +1.
+static func reward_chips(rewards: Dictionary) -> HFlowContainer:
+	var row := UiKit.flow()
+	if int(rewards.get("coins", 0)) > 0:
+		row.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(rewards.coins)))
+	for id: String in rewards.get("items", {}):
+		row.add_child(UiKit.chip(Database.item_icon(id), "+%d" % int(rewards.items[id])))
+	for id: String in rewards.get("skill_xp", {}):
+		if Database.progression.skills.has(id):
+			row.add_child(UiKit.chip(UiKit.ui_icon(Database.progression.skills[id].get("icon", "xp")), "+%d" % int(rewards.skill_xp[id])))
+	for id: String in rewards.get("collections", []):
+		if not GameState.progress.collection.has(id):
+			row.add_child(UiKit.chip(UiKit.ui_icon("item_accessory_set"), "+1"))
+	return row
+
+
+## Ingrediente: ícone + tem/precisa (verde/vermelho); tocar mostra de onde vem.
+static func item_chip(id: String, need: int) -> Button:
+	var have := GameState.inventory.count(id)
+	return UiKit.tap_chip(Database.item_icon(id), "%d/%d" % [mini(have, need), need], TaskHelp.open.bind("item", id, need), UiKit.GOOD if have >= need else UiKit.BAD)

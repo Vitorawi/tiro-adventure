@@ -233,6 +233,8 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				var route: Dictionary = Database.progression.activities.get(key.trim_prefix("activity:"), {})
 				if not route.is_empty():
 					return _panel_target("routes:" + str(route.place))
+			if key == "produce":
+				return _panel_target("station:stove")
 			if key.begins_with("produce:"):
 				for recipe: Dictionary in Database.recipes.values():
 					if recipe.output == key.trim_prefix("produce:"):
@@ -259,6 +261,41 @@ static func quest_target(id: String) -> Dictionary:
 	if quest.has("hint"):
 		result["hint"] = quest.hint
 	return result
+
+
+## "Onde": [ícone do mundo] › [ícone do lugar] Nome. Aba Tiro: [Tiro]. null se não houver lugar.
+static func target_view(target: Dictionary) -> HBoxContainer:
+	var row := UiKit.hbox(6)
+	if target.get("screen", "") == "pet":
+		row.add_child(UiKit.icon(UiKit.ui_icon("tab_pet"), 32))
+		row.add_child(UiKit.fill_label("Tiro", &"SmallLabel"))
+		return row
+	var world: Dictionary = Database.worlds.get(target.get("world", ""), {})
+	if world.is_empty():
+		row.free()
+		return null
+	var place: String = target.get("place", "")
+	var texture: Texture2D = null
+	var place_name := ""
+	if place.begins_with("buy:"):
+		var upgrade: Dictionary = Database.progression.upgrades.get(place.trim_prefix("buy:"), {})
+		texture = UiKit.ui_icon(upgrade.get("icon", ""))
+		place_name = upgrade.get("name", "")
+	elif place.begins_with("npc:"):
+		texture = ProgressionUi.npc_portrait(place.trim_prefix("npc:"))
+		place_name = Database.npcs.get(place.trim_prefix("npc:"), {}).get("name", "")
+	else:
+		var data: Dictionary = world.get("places", {}).get(place.trim_prefix("place:"), {})
+		texture = UiKit.ui_icon(data.get("icon", ""))
+		place_name = data.get("name", "")
+	row.add_child(UiKit.icon(UiKit.ui_icon(world.get("icon", "")), 32))
+	if place_name != "":
+		row.add_child(UiKit.short_label("›", &"SmallLabel"))
+		row.add_child(UiKit.icon(texture, 32))
+		row.add_child(UiKit.fill_label(place_name, &"SmallLabel"))
+	else:
+		row.add_child(UiKit.fill_label(world.get("name", ""), &"SmallLabel"))
+	return row
 
 
 static func go(target: Dictionary) -> void:

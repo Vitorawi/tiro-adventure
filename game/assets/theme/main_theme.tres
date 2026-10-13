@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=24 format=3]
+[gd_resource type="Theme" load_steps=25 format=3]
 
 [ext_resource type="FontVariation" path="res://assets/fonts/main_font.tres" id="1_font"]
 
@@ -200,6 +200,22 @@ corner_radius_top_right = 8
 corner_radius_bottom_right = 8
 corner_radius_bottom_left = 8
 
+[sub_resource type="StyleBoxFlat" id="chip_pressed"]
+content_margin_left = 6.0
+content_margin_top = 2.0
+content_margin_right = 8.0
+content_margin_bottom = 2.0
+bg_color = Color(0.93, 0.85, 0.72, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.62, 0.38, 0.18, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
 [sub_resource type="StyleBoxFlat" id="bar_bg"]
 bg_color = Color(0.85, 0.77, 0.64, 1)
 border_width_left = 2
@@ -355,6 +371,12 @@ ReadyCardPanel/base_type = &"PanelContainer"
 ReadyCardPanel/styles/panel = SubResource("card_ready")
 ChipPanel/base_type = &"PanelContainer"
 ChipPanel/styles/panel = SubResource("chip")
+ChipButton/base_type = &"Button"
+ChipButton/styles/normal = SubResource("chip")
+ChipButton/styles/hover = SubResource("chip")
+ChipButton/styles/pressed = SubResource("chip_pressed")
+ChipButton/styles/hover_pressed = SubResource("chip_pressed")
+ChipButton/styles/disabled = SubResource("chip")
 SheetPanel/base_type = &"PanelContainer"
 SheetPanel/styles/panel = SubResource("sheet_panel")
 TopBarPanel/base_type = &"PanelContainer"

@@ -25,7 +25,7 @@ e "facilitar encontrar como fazer a missão e os ingredientes".
 
 ---
 
-## Fase 1: Missões em 3 tipos (aba "Missões")
+## Fase 1: Missões em 3 tipos (aba "Missões") — FEITA
 **Aba Tarefas → Missões**, com só 3 blocos:
 
 1. **História** (cartão grande):
@@ -44,11 +44,10 @@ e "facilitar encontrar como fazer a missão e os ingredientes".
 **Sai:** secundárias, "Para evoluir", "Prontos agora" (vira selo no mapa e nos lugares) e "Sua evolução"
 (atributos e coleção vão para a aba Tiro).
 
-**Dados:**
-- `quests.json`: `kind` passa a ser `main | daily | weekly`. As 9 secundárias são removidas ou viram
-  modelo de diária/semanal (ex.: `bath_day` → diária "Dê banho 1x"; `loyal_customer` → semanal "Venda 10 itens").
-- Diárias e semanais são **modelos** com `requirements`. O sorteio usa só os liberados.
-- Formato do modelo: `{ "kind": "daily", "name", "icon", "goals": [{ "type": "stat", "key": "harvest", "target": 3 }], "rewards", "requirements" }`.
+**Dados (como ficou):**
+- `quests.json` só tem `main`; as 9 secundárias saíram e as roupas delas viraram prêmio das semanais.
+- Diárias e semanais ficam em `data/routines.json` (arquivo próprio, fora da máquina de missões):
+  `{ "daily": { "count": 3, "requirements": {"chapter": 2}, "missions": { id: { "name", "goal": {"key", "target"}, "rewards", "requirements" } } }, "weekly": {...} }`.
 
 **Estado (`ProgressionState.routines`):**
 ```

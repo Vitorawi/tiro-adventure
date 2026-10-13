@@ -1,0 +1,96 @@
+{
+  "daily": {
+    "count": 3,
+    "requirements": {
+      "chapter": 2
+    },
+    "missions": {
+      "feed": {
+        "name": "Alimente o Tiro",
+        "goal": {"key": "feed", "target": 2},
+        "rewards": {"coins": 10}
+      },
+      "bathe": {
+        "name": "Dê banho no Tiro",
+        "goal": {"key": "bathe", "target": 1},
+        "rewards": {"coins": 10}
+      },
+      "play": {
+        "name": "Brinque com o Tiro",
+        "goal": {"key": "play", "target": 2},
+        "rewards": {"coins": 10}
+      },
+      "harvest": {
+        "name": "Colha 3 vezes",
+        "goal": {"key": "harvest", "target": 3},
+        "rewards": {"coins": 15}
+      },
+      "cook": {
+        "name": "Cozinhe 2 vezes",
+        "goal": {"key": "produce", "target": 2},
+        "rewards": {"coins": 15},
+        "requirements": {"owned": ["stove"]}
+      },
+      "sell": {
+        "name": "Venda 5 itens",
+        "goal": {"key": "sold", "target": 5},
+        "rewards": {"coins": 15},
+        "requirements": {"quests": ["first_sale"]}
+      },
+      "walk": {
+        "name": "Faça um passeio",
+        "goal": {"key": "explore", "target": 1},
+        "rewards": {"coins": 20},
+        "requirements": {"quests": ["first_walk"]}
+      },
+      "order": {
+        "name": "Entregue uma encomenda",
+        "goal": {"key": "orders", "target": 1},
+        "rewards": {"coins": 25},
+        "requirements": {"quests": ["main_2_order"]}
+      }
+    }
+  },
+  "weekly": {
+    "count": 2,
+    "requirements": {
+      "chapter": 3
+    },
+    "missions": {
+      "clean_week": {
+        "name": "Semana cheirosa",
+        "goal": {"key": "bathe", "target": 7},
+        "rewards": {"coins": 60, "collections": ["clean_bow"]}
+      },
+      "big_harvest": {
+        "name": "Grande colheita",
+        "goal": {"key": "harvest", "target": 30},
+        "rewards": {"coins": 100, "collections": ["garden_hat"]}
+      },
+      "chef_week": {
+        "name": "Chef da semana",
+        "goal": {"key": "produce", "target": 15},
+        "rewards": {"coins": 90, "collections": ["cook_apron"]},
+        "requirements": {"owned": ["stove"]}
+      },
+      "market_week": {
+        "name": "Freguês fiel",
+        "goal": {"key": "sold", "target": 40},
+        "rewards": {"coins": 90, "collections": ["merchant_apron"]},
+        "requirements": {"quests": ["first_sale"]}
+      },
+      "explorer_week": {
+        "name": "Pé na trilha",
+        "goal": {"key": "explore", "target": 7},
+        "rewards": {"coins": 100, "collections": ["trail_bandana"]},
+        "requirements": {"quests": ["first_walk"]}
+      },
+      "miner_week": {
+        "name": "Pequeno minerador",
+        "goal": {"key": "activity:quarry", "target": 5},
+        "rewards": {"coins": 120, "collections": ["miner_helmet"]},
+        "requirements": {"owned": ["pickaxe"]}
+      }
+    }
+  }
+}
