@@ -365,13 +365,19 @@
   "first_harvest": {
     "npc": "bloblo",
     "name": "A primeira colheita",
-    "dialogue": "Esse canteiro é seu. Planta uma cenoura e espera crescer!",
+    "dialogue": "Esse canteiro é seu. Planta uma cenoura e rega!",
     "goals": [
+      {
+        "type": "stat",
+        "key": "water",
+        "target": 1,
+        "label": "Regar a plantinha"
+      },
       {
         "type": "stat",
         "key": "harvest",
         "target": 1,
-        "label": "Plantar e colher"
+        "label": "Colher a cenoura"
       }
     ],
     "rewards": {

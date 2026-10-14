@@ -15,6 +15,8 @@ var current_world := "house"
 var _views: Dictionary = {}  # world_id -> Control (criado na primeira visita e mantido)
 var _thumbs: Dictionary = {}  # world_id -> Texture2D (miniatura do cartão do mapa)
 var _header_key := ""
+var _idle := 0.0
+var _hinted: Dictionary = {}  # passos que já ganharam a seta da dica parada
 
 
 func _ready() -> void:
@@ -219,3 +221,45 @@ func _thumbnail(world_id: String, height: int) -> TextureRect:
 	rect.clip_contents = true
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return rect
+
+
+# --- Dica parada --------------------------------------------------------------------
+# Sem toque por `idle_hint_seconds` nos primeiros capítulos: seta sozinha no alvo do passo ativo
+# (só a seta, sem abrir painel), uma vez por passo (memória, não vai para o save).
+
+func _process(delta: float) -> void:
+	if is_visible_in_tree() and %WorldView.visible:
+		advance_idle(delta)
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventMouseButton or event is InputEventScreenTouch:
+		_idle = 0.0
+
+
+## Soma tempo parado e mostra a seta quando passa do limite. Público para os testes.
+func advance_idle(seconds: float) -> void:
+	_idle += seconds
+	var settings: Dictionary = Database.progression.settings
+	if _idle < float(settings.get("idle_hint_seconds", 15)) or GameState.progress.chapter_index() > int(settings.get("idle_hint_max_chapter", 4)):
+		return
+	var room := _views.get(current_world) as RoomView
+	if room == null:
+		return
+	var steps := GameState.progress.active_steps()
+	var order: Array = []
+	if steps.has("main"):
+		order.append(steps["main"])
+	for line: String in steps:
+		if line != "main":
+			order.append(steps[line])
+	for quest_id: String in order:
+		if _hinted.has(quest_id):
+			continue
+		var target := Places.quest_target(quest_id)
+		if str(target.get("world", "")) != current_world or str(target.get("place", "")) == "":
+			continue
+		_hinted[quest_id] = true
+		_idle = 0.0
+		room.point_at(Places.highlight_action(str(target.place)))
+		return

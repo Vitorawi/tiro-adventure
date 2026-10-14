@@ -39,9 +39,9 @@ func _run() -> void:
 	check(state.call("goal_value", fresh) == 0, "Colheitas anteriores não contam")
 	state.get("progress").count("harvest", 2)
 	check(state.call("goal_value", fresh) == 2, "Colheitas novas contam")
-	check(state.call("accessible_plots") == 1, "Vovó empresta um canteiro ao conhecer")
+	check(state.call("accessible_plots") == 2, "Vovó empresta dois canteiros ao conhecer")
 	state.get("progress").count("harvest", 1)
-	check(state.call("claim_quest", "bloblo_more_crops") == "" and state.call("accessible_plots") == 3, "Mais colheitas: vovó empresta três canteiros")
+	check(state.call("claim_quest", "bloblo_more_crops") == "" and state.call("accessible_plots") == 4, "Mais colheitas: vovó empresta quatro canteiros")
 	state.call("reset")
 	var events: Node = root.get_node("Events")
 	events.connect("quest_completed", func(id: String) -> void: quest_signals.append(id))
@@ -74,6 +74,7 @@ func _run() -> void:
 		database.get("quests")["test_goal"] = {"kind": "side", "goals": [{"type": kind, "key": "carrot", "target": 1}], "rewards": {}}
 		state.get("progress").claimed_quests.erase("test_goal")
 		var before: int = state.get("inventory").count("carrot")
+		state.set("xp", 0)
 		coins = state.get("coins")
 		check(state.call("claim_quest", "test_goal") == "", "Objetivo " + kind)
 		check(state.get("coins") == coins, "Objetivo não consome moedas")
@@ -113,6 +114,11 @@ func _routines_check() -> void:
 	state.call("reset")
 	check(not state.call("routines_unlocked", "daily"), "Diárias escondidas no capítulo 1")
 	check((state.call("routine_ids", "daily") as Array).is_empty(), "Sem diárias antes de liberar")
+	# Capítulo 3: diárias abrem com 3 missões; semanais só no 4.
+	state.call("dev_jump_to_chapter", 2)
+	check(state.get("progress").chapter_index() == 3, "Está no capítulo 3")
+	check(state.call("routines_unlocked", "daily") and (state.call("routine_ids", "daily") as Array).size() == 3, "Diárias abrem no capítulo 3 com 3 missões")
+	check(not state.call("routines_unlocked", "weekly"), "Semanais ainda fechadas no capítulo 3")
 	state.get("progress").stats["harvest"] = 7
 	state.call("dev_jump_to_chapter", 4)
 	var progress: RefCounted = state.get("progress")
@@ -126,6 +132,7 @@ func _routines_check() -> void:
 		check(state.call("claim_routine", kind, id) != "", kind + ": não recebe sem cumprir")
 		progress.stats[goal.key] = progress.stat(goal.key) + int(goal.target)
 		check(state.call("routine_error", kind, id) == "", kind + ": pronta ao cumprir")
+		state.set("xp", 0)  # evita presente de nível no meio da conta
 		var coins: int = state.get("coins")
 		check(state.call("claim_routine", kind, id) == "", kind + ": recebe")
 		check(state.get("coins") == coins + int(state.call("routine_data", kind, id).rewards.get("coins", 0)), kind + ": paga moedas")

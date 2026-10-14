@@ -21,6 +21,8 @@ const MAX_SLOTS := 5
 ## Slot em uso agora e slot em que o jogo entra ao abrir.
 var active_slot: int = 1
 var default_slot: int = 1
+## Quando o save carregado foi gravado pela última vez (Unix; 0 = não havia save). Usado no "bem-vindo de volta".
+var last_saved_at: float = 0.0
 
 var _save_pending := false
 var _save_path := BuildInfo.save_path()
@@ -84,6 +86,7 @@ func load_game() -> void:
 		return
 
 	var data := _migrate(parsed)
+	last_saved_at = float(data.get("saved_at", 0.0))
 	GameState.from_dict(data.get("state", {}))
 	Events.game_loaded.emit()
 

@@ -793,6 +793,10 @@ func _on_plot_tapped(index: int) -> void:
 	if GameState.plot_status(index) == "locked" and not GameState.has_upgrade("farm") and GameState.requirement_error(Database.progression.upgrades.farm.get("requirements", {})) != "":
 		Places.open_npc("bloblo")
 		return
+	if GameState.water_error(index) == "":
+		GameState.water(index)
+		_water_fx(index)
+		return
 	match GameState.plot_status(index):
 		"locked":
 			Events.sheet_requested.emit("Expandir o sítio", SheetBuilder.plot_purchase(index) if GameState.has_upgrade("farm") else ProgressionUi.purchase("farm"))
@@ -807,6 +811,34 @@ func _on_plot_tapped(index: int) -> void:
 				if sprite.has_meta("plot") and int(sprite.get_meta("plot")) == index:
 					origin = _screen_point(sprite.position)
 			Events.items_gained.emit(GameState.harvest(index), reward, origin)
+
+
+## Gotinhas caem sobre o canteiro regado: o ícone desce e some, mais quatro pontinhos azuis.
+func _water_fx(index: int) -> void:
+	for sprite: Sprite2D in _objects:
+		if not sprite.has_meta("plot") or int(sprite.get_meta("plot")) != index:
+			continue
+		var drop := Sprite2D.new()
+		drop.texture = UiKit.ui_icon("action_water")
+		drop.position = Vector2(0, -54)
+		drop.z_index = 5
+		sprite.add_child(drop)
+		var tween := create_tween().set_parallel(true)
+		tween.tween_property(drop, "position:y", -10.0, 0.6)
+		tween.tween_property(drop, "modulate:a", 0.0, 0.6).set_delay(0.2)
+		tween.chain().tween_callback(drop.queue_free)
+		for i in 4:
+			var dot := ColorRect.new()
+			dot.color = Color("5aa9e6")
+			dot.size = Vector2(3, 3)
+			dot.position = Vector2(-12 + i * 8, -50)
+			dot.z_index = 5
+			sprite.add_child(dot)
+			var fall := create_tween().set_parallel(true)
+			fall.tween_property(dot, "position:y", -6.0, 0.5).set_delay(0.08 * i)
+			fall.tween_property(dot, "modulate:a", 0.0, 0.2).set_delay(0.4 + 0.08 * i)
+			fall.chain().tween_callback(dot.queue_free)
+		return
 
 
 ## Ponto da sala (coordenadas do mundo) na tela, de onde saltam as miniaturas de recolher.

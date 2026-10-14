@@ -26,32 +26,51 @@ func _run() -> void:
 	state.call("reset")
 	state.get("progress").owned["farm"] = true
 	state.set("coins", 50)
-	_check(state.get("unlocked_plots") == 3, "Jogo novo começa com três terrenos")
-	_check(state.call("plant", 3, "carrot") != "", "Não pode plantar em terreno bloqueado")
-	_check(state.call("buy_plot", 4) != "", "Não pode pular a ordem de compra")
+	_check(state.get("unlocked_plots") == 4, "Jogo novo começa com quatro terrenos")
+	_check(state.call("plant", 4, "carrot") != "", "Não pode plantar em terreno bloqueado")
+	_check(state.call("buy_plot", 5) != "", "Não pode pular a ordem de compra")
 	_check(state.call("buy_plot", -1) != "", "Índice inválido deve ser recusado")
-	_check(state.call("buy_plot", 3) == "", "Primeira expansão deve funcionar")
-	_check(state.get("coins") == 30, "Compra deve descontar uma única vez")
-	_check(state.call("buy_plot", 3) != "" and state.get("coins") == 30, "Compra repetida não deve cobrar")
-	_check(state.call("buy_plot", 4) != "" and state.get("unlocked_plots") == 4, "Saldo insuficiente não pode liberar terreno")
-	_check(state.call("plant", 3, "carrot") == "", "Terreno comprado deve aceitar plantação")
-	_check((state.call("harvest", 3) as Dictionary).is_empty(), "Não pode colher antes da hora")
+	_check(state.call("buy_plot", 4) == "", "Primeira expansão deve funcionar")
+	_check(state.get("coins") == 10, "Compra deve descontar uma única vez")
+	_check(state.call("buy_plot", 4) != "" and state.get("coins") == 10, "Compra repetida não deve cobrar")
+	_check(state.call("buy_plot", 5) != "" and state.get("unlocked_plots") == 5, "Saldo insuficiente não pode liberar terreno")
+	_check(state.call("plant", 4, "carrot") == "", "Terreno comprado deve aceitar plantação")
+	_check((state.call("harvest", 4) as Dictionary).is_empty(), "Não pode colher antes da hora")
 	var plots: Array = state.get("plots")
 	var now: float = state.call("now")
-	plots[3]["planted_at"] = now - 30.0
-	plots[3]["ready_at"] = now + 30.0
-	_check(absf(float(state.call("plot_progress", 3)) - 0.5) < 0.02, "Progresso deve refletir o tempo decorrido")
+	plots[4]["planted_at"] = now - 30.0
+	plots[4]["ready_at"] = now + 30.0
+	_check(absf(float(state.call("plot_progress", 4)) - 0.5) < 0.02, "Progresso deve refletir o tempo decorrido")
 	var saved: Dictionary = (state.call("to_dict") as Dictionary).duplicate(true)
 	state.call("from_dict", saved)
-	_check(state.get("unlocked_plots") == 4 and absf(float(state.call("plot_progress", 3)) - 0.5) < 0.02, "Save deve preservar expansão e crescimento")
+	_check(state.get("unlocked_plots") == 5 and absf(float(state.call("plot_progress", 4)) - 0.5) < 0.02, "Save deve preservar expansão e crescimento")
 	plots = state.get("plots")
-	plots[3]["ready_at"] = now - 1.0
+	plots[4]["ready_at"] = now - 1.0
 	var before: int = state.get("coins")
-	_check(not (state.call("harvest", 3) as Dictionary).is_empty(), "Plantação offline pronta deve render colheita")
+	_check(not (state.call("harvest", 4) as Dictionary).is_empty(), "Plantação offline pronta deve render colheita")
 	_check(state.get("coins") == before + 3, "Colheita deve conceder moedas")
-	_check((state.call("harvest", 3) as Dictionary).is_empty() and state.get("coins") == before + 3, "Colheita repetida não pode duplicar moedas")
+	_check((state.call("harvest", 4) as Dictionary).is_empty() and state.get("coins") == before + 3, "Colheita repetida não pode duplicar moedas")
+	# Regar: acelera uma vez por plantio, por timestamps.
+	_check(state.call("water_error", 0) == "Canteiro vazio", "Não rega canteiro vazio")
+	state.call("plant", 0, "carrot")
+	_check(state.call("water_error", 0) == "", "Planta crescendo pode ser regada")
+	var left_before: float = float(state.call("plot", 0).ready_at) - float(state.call("now"))
+	var water_xp: int = state.get("xp")
+	_check(state.call("water", 0) == "", "Regar funciona")
+	var left_after: float = float(state.call("plot", 0).ready_at) - float(state.call("now"))
+	_check(absf(left_after - left_before * 0.7) < 1.0, "Rega tira 30% do tempo que falta")
+	_check(state.call("water", 0) == "Já foi regado" and state.get("xp") == water_xp + 1, "Só uma rega por plantio (1 XP)")
+	_check(state.get("progress").stat("water") == 1, "Rega conta no contador")
+	var kept: Dictionary = (state.call("to_dict") as Dictionary).duplicate(true)
+	state.call("from_dict", kept)
+	_check(state.call("water_error", 0) == "Já foi regado", "Save preserva a rega")
+	state.get("plots")[0]["ready_at"] = float(state.call("now")) - 1.0
+	_check(state.call("water_error", 0) == "Já está pronto", "Planta pronta não precisa de rega")
+	state.call("harvest", 0)
+	state.call("plant", 0, "carrot")
+	_check(state.call("water_error", 0) == "", "Novo plantio pode ser regado de novo")
 	state.set("coins", 10000)
-	for i in range(4, 9):
+	for i in range(5, 9):
 		_check(state.call("buy_plot", i) == "", "Todas as expansões devem ser acessíveis")
 	_check(state.call("buy_plot", 9) != "", "Não deve ultrapassar o total de terrenos")
 	if "--screenshots" in OS.get_cmdline_user_args():
@@ -64,6 +83,9 @@ func _screenshots(state: Node) -> void:
 	state.call("reset")
 	state.get("progress").owned["farm"] = true
 	state.get("progress").skills["agriculture"] = 500
+	state.get("progress").seen["intro"] = true
+	state.get("progress").claimed_quests["lais_bag"] = true
+	state.get("progress").claimed_quests["bloblo_meet"] = true
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	main.call("_on_world_requested", "farm", "")
@@ -77,19 +99,24 @@ func _screenshots(state: Node) -> void:
 	plots[1]["planted_at"] = now - 240
 	plots[1]["ready_at"] = now + 60
 	plots[2]["ready_at"] = now - 1
+	# Antes da escritura: só o próximo canteiro fechado mostra a etiqueta "Vovó".
+	state.get("progress").owned.erase("farm")
+	state.get("progress").claimed_quests["lais_bag"] = true
+	state.get("progress").claimed_quests["bloblo_meet"] = true
+	await create_timer(0.5).timeout
+	_shot("farm_progress_vovo")
+	state.get("progress").owned["farm"] = true
 	await create_timer(0.5).timeout
 	_shot("farm_progress")
 	var farm: Node = main.find_child("World_farm", true, false)
-	farm.call("_zoom_at", Vector2(180, 330), 1.5)
-	var content: Control = farm.get_node("Content")
-	content.position = farm.get("size") / 2.0 - Vector2(275, 245) * 1.5
-	farm.call("_clamp_content")
+	farm.call("_zoom_at", Vector2(165, 190), 3.0)
 	await create_timer(0.3).timeout
 	_shot("farm_progress_zoom")
-	farm.call("_on_plot_tapped", 3)
+	farm.call("_on_plot_tapped", 4)
 	await create_timer(0.4).timeout
 	_shot("farm_purchase")
 	root.get_node("Events").emit_signal("sheet_close_requested")
+	state.call("water", 0)  # já regado: tocar abre o progresso
 	farm.call("_on_plot_tapped", 0)
 	await create_timer(0.4).timeout
 	_shot("farm_growth_sheet")

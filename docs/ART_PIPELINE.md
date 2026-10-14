@@ -238,3 +238,10 @@ PixelLab Pro Flash, `create_object_pro_flash`, 1 direção, low top-down, recort
 Objetos: baú `004a6731-a055-4049-8b5a-4039a2e772a2`, silo `f2071b90-2b20-4069-a1a7-13e768517eb9`,
 armazém `4c3a037e-e51b-4b50-b259-9810ef727510`. Ícones Pixen 32 px em `ui/icons/`:
 `item_bolt.png` (`81d53d1e-8a39-4c52-af5e-7f2cfdff382a`) e `item_iron_band.png` (`aaefb859-3329-46ba-a854-fe277e2a565f`).
+
+### Etapa 01 do começo — 14/10/2026 (Claude Code)
+
+Ícone Pixen 32×32 (`create_image_pixen`, `no_background`, contorno preto, médio detalhe), 1 geração, sem repetir:
+`ui/icons/action_water.png` — regador azul derramando gotas (job `fb2b5e89-c20b-46aa-9ed5-d05c21c0740c`,
+asset `a81f579c-9bdb-5d9d-aaa0-79fad89d6110`). Usado no canteiro (24 px, balançando), na animação de regar e
+nos ícones de missão do contador `water`. Original em `build/art_sources/etapa01/`.

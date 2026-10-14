@@ -28,6 +28,12 @@ var _celebration: CanvasLayer
 ## Capítulo concluído nesta leva de missões (0 = nenhum); o anúncio sai uma vez, no fim do frame.
 var _chapter_done: int = 0
 var _announce_pending: bool = false
+## Cartões modais esperando a vez (nível, bem-vindo de volta): um por vez, depois da introdução/comemorações.
+var _modal_queue: Array[Callable] = []
+var _welcome: CanvasLayer
+var _intro: Node
+var _left_at: float = 0.0
+var _pending_level: Dictionary = {}
 
 
 func _ready() -> void:
@@ -44,6 +50,14 @@ func _ready() -> void:
 	_celebration = load("res://scenes/ui/celebration/celebration.tscn").instantiate()
 	add_child(_celebration)
 	add_child(CollectFx.new())
+	_welcome = load("res://scenes/ui/welcome_back/welcome_back.tscn").instantiate()
+	add_child(_welcome)
+	Events.level_up.connect(_on_level_up)
+	var modal_timer := Timer.new()
+	modal_timer.wait_time = 0.3
+	modal_timer.autostart = true
+	modal_timer.timeout.connect(_flush_modals)
+	add_child(modal_timer)
 	Events.quest_completed.connect(_on_quest_completed)
 	Events.chapter_completed.connect(_on_chapter_completed)
 	Events.state_changed.connect(_refresh_guide)
@@ -71,7 +85,58 @@ func _ready() -> void:
 	show_screen(&"pet")
 	# Jogo novo: a Laís chega com o Tiro e apresenta a casa (uma vez só).
 	if IntroScene.should_show():
-		add_child(IntroScene.new())
+		_intro = IntroScene.new()
+		add_child(_intro)
+	# Voltou depois de um tempo (ou abriu o jogo): presente do dia e o que ficou pronto.
+	var saver := get_node_or_null("/root/SaveManager")
+	var saved_at: float = float(saver.last_saved_at) if saver else 0.0
+	_maybe_welcome(GameState.now() - saved_at if saved_at > 0.0 else 0.0)
+
+
+## Ao ir para o segundo plano guarda a hora; ao voltar, mostra o cartão se passou tempo suficiente.
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
+		_left_at = GameState.now()
+	elif (what == NOTIFICATION_APPLICATION_FOCUS_IN or what == NOTIFICATION_APPLICATION_RESUMED) and _left_at > 0.0:
+		var away := GameState.now() - _left_at
+		_left_at = 0.0
+		_maybe_welcome(away)
+
+
+func _maybe_welcome(away_seconds: float) -> void:
+	if away_seconds < float(Database.progression.settings.get("welcome_back_seconds", 300)):
+		return
+	_queue_modal(func() -> void:
+		if WelcomeBack.has_content():
+			_welcome.open())
+
+
+func _on_level_up(level: int, rewards: Dictionary) -> void:
+	# Níveis seguidos antes do cartão abrir viram um só (o último, com a soma).
+	var first := _pending_level.is_empty()
+	var sum: Dictionary = _pending_level.get("rewards", {"coins": 0, "affection": 0, "items": {}})
+	sum["coins"] = int(sum.coins) + int(rewards.get("coins", 0))
+	sum["affection"] = int(sum.affection) + int(rewards.get("affection", 0))
+	for id: String in rewards.get("items", {}):
+		sum.items[id] = int(sum.items.get(id, 0)) + int(rewards.items[id])
+	_pending_level = {"level": level, "rewards": sum}
+	if first:
+		_queue_modal(func() -> void:
+			_celebration.show_level(int(_pending_level.level), _pending_level.rewards)
+			_pending_level = {})
+
+
+func _queue_modal(callback: Callable) -> void:
+	_modal_queue.append(callback)
+
+
+## Abre o próximo cartão quando nada está na tela (introdução, comemoração ou outro cartão).
+func _flush_modals() -> void:
+	if _modal_queue.is_empty() or _announce_pending or _chapter_done > 0:
+		return
+	if (is_instance_valid(_intro) and _intro.is_inside_tree()) or _celebration.visible or _welcome.visible:
+		return
+	_modal_queue.pop_front().call()
 
 
 func show_screen(id: StringName) -> void:

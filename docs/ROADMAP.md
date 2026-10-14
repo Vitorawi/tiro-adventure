@@ -1,10 +1,32 @@
-# Roadmap
+﻿# Roadmap
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **13/10/2026, Codex**.
+> um do outro. Última atualização: **14/10/2026, Claude Code**.
 
-**✔ Etapa 00 do começo (fundação) feita — Claude Code, 13/10/2026.** Próximo passo: `ETAPA_01_facilitar.md`.
+**✔ Etapa 01 do começo (facilitar) feita — Claude Code, 14/10/2026.** Próximo passo: `docs/plans/comeco/ETAPA_02_caminha.md` (Etapa 02).
+- 1A: vovó empresta 2 e depois 4 canteiros; `initial_plots` 4, `unlock_costs` `[0,0,0,0,40,70,100,150,220]`. 1D: só o próximo
+  canteiro fechado tem etiqueta (`PlotIndicator`: ícone `tab_farm` + "Vovó", ou moeda + preço).
+- 1B: abóbora → `bloblo_potato`, papinha → `lais_stew`; regra nova no `content_test` (skills só com cap. ≥ 6 ou construção com
+  materiais; herbas/caixa de petiscos passam por estufa/forno). 1C: diárias no cap. 3, semanais no 4; diária nova "Regue 5 plantas".
+- 1E: regar (`GameState.water/water_error`, `watered` no canteiro salvo, tira 30% do tempo que falta, 1 XP, contador `water`;
+  gotinha `action_water` no mapa e animação em `RoomView._water_fx`; `first_harvest` pede regar + colher; ação `water` em
+  `available_actions`). Arte: `action_water.png` (PixelLab, ver ART_PIPELINE).
+- 1F: `level_rewards` + `Events.level_up` + `Celebration.show_level`. Decisão: nível fora da tabela = `coins_per_level × nível`.
+  Vários níveis juntos dão um cartão só (soma). 1G: presente do dia (`daily_gift`, `progress.daily_gift`, dias jogados) e cartão
+  `welcome_back` (`SaveManager.last_saved_at`; abre após 300 s fora; decisão: só abre se houver presente ou algo pronto).
+  `main.gd` ganhou fila de cartões (`_queue_modal`): nível/bem-vindo esperam a introdução e as comemorações fecharem.
+- 1H: dica parada em `WorldsScreen.advance_idle` (15 s, cap. ≤ 4, uma vez por passo, só no mundo aberto).
+- 1I: `onboarding_test.gd` (jogador simulado; imprime a linha do tempo: 1ª colheita ~1,5 min, cap. 4 em ~10,5 min, ocioso 220 s,
+  maior trecho 30 s). O tempo é simulado com `dev_advance_time` (3 s por ação), então é só uma estimativa. Novos: `welcome_test`.
+  Ajustes em `farm_test` (4 canteiros, regar), `tasks_test`, `navigation_test` (dica), `progression_test` (campanha rega).
+- `tools/test_all.ps1` reescrito: modo "Continue" (no PowerShell 5.1 os avisos "RIDs leaked" do stderr derrubavam a suíte) e
+  respeita `$env:GODOT_BIN`; inclui `welcome_test` e `onboarding_test`. Suíte completa verde. Capturas 360×780 conferidas:
+  `farm_progress{,_vovo,_zoom}`, `welcome_back`, `level_up`.
+- Pendente/atenção: economia do começo não foi jogada de verdade (ver 00_VISAO §6; se ficar fácil, escritura 220); `dev_advance_time`
+  não mexe em `watered`. Nada publicado (sem push).
+
+**✔ Etapa 00 do começo (fundação) feita — Claude Code, 13/10/2026.**
 - Save **v12 zerado** (`_migrate` descarta qualquer save < 12, todos os slots); `quests.json` com `order` ×10;
   `content_test` espera ordens 10, 20, 30...
 - `pet()` conta `pet`; `feed()` conta `feed:<item>`; todas as contagens do `GameState` passam por `_count`,

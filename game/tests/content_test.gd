@@ -66,7 +66,7 @@ func _run() -> void:
 				"owned": check(data.upgrades.has(key), id + ": construção " + key)
 				"skill": check(data.skills.has(key), id + ": atributo " + key)
 				"stat":
-					check(key in ["feed", "play", "bathe", "pet", "harvest", "produce", "trade", "sold", "orders", "explore", "build", "quests", "open:bag"] or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:"), id + ": contador desconhecido " + key)
+					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "orders", "explore", "build", "quests", "open:bag"] or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:"), id + ": contador desconhecido " + key)
 					if key.begins_with("harvest:"):
 						check(db.get("crops").has(key.trim_prefix("harvest:")), id + ": cultura " + key)
 					if key.begins_with("produce:"):
@@ -95,6 +95,25 @@ func _run() -> void:
 	check(data.skills.size() == 4, "o jogo tem 4 atributos")
 	for id: String in data.upgrades:
 		check(not data.upgrades[id].get("requirements", {}).has("skills"), id + ": construção não exige nível (a história não trava)")
+	# Atributos só aparecem no capítulo 6: conteúdo dos capítulos 1–5 não pode depender deles.
+	# Vale se exigir também capítulo ≥ 6 ou uma construção que pede materiais (só existe depois).
+	var gated: Array = []
+	for source: Dictionary in [db.get("recipes"), db.get("crops")]:
+		for id: String in source:
+			var entry_reqs: Dictionary = source[id].get("requirements", {}).duplicate(true)
+			if source[id].has("station"):
+				entry_reqs["owned"] = entry_reqs.get("owned", []) + [source[id].station]
+			gated.append([id, entry_reqs])
+	for id: String in data.get("activities", {}):
+		gated.append([id, data.activities[id].get("requirements", {})])
+	for entry: Array in gated:
+		var reqs: Dictionary = entry[1]
+		if not reqs.has("skills"):
+			continue
+		var late := int(reqs.get("chapter", 0)) >= 6
+		for owned_id: String in reqs.get("owned", []):
+			late = late or not data.upgrades.get(owned_id, {}).get("materials", {}).is_empty()
+		check(late, str(entry[0]) + ": exige atributo (skills) antes do capítulo 6; use missão/capítulo/construção com materiais")
 	# Diárias e semanais: contador conhecido, alvo, recompensa e quantidade sorteável no começo.
 	for kind: String in ["daily", "weekly"]:
 		var group: Dictionary = db.get("routines")[kind]
@@ -102,7 +121,7 @@ func _run() -> void:
 		for id: String in group.missions:
 			var m: Dictionary = group.missions[id]
 			var key: String = m.goal.key
-			check(key in ["feed", "play", "bathe", "harvest", "produce", "sold", "orders", "explore"] or key.begins_with("activity:") or key.begins_with("produce:"), kind + "/" + id + ": contador " + key)
+			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "explore"] or key.begins_with("activity:") or key.begins_with("produce:"), kind + "/" + id + ": contador " + key)
 			if key.begins_with("produce:"):
 				check(db.get("items").has(key.trim_prefix("produce:")), kind + "/" + id + ": produto inexistente")
 				check(db.get("recipes").values().any(func(recipe: Dictionary) -> bool: return recipe.output == key.trim_prefix("produce:")), kind + "/" + id + ": produto sem receita")

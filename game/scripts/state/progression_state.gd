@@ -43,6 +43,8 @@ var seen: Dictionary = {}
 ## Alimentam a seção "Ritmo" do painel DEV, para medir o começo do jogo.
 var started_at: float = 0.0
 var firsts: Dictionary = {}
+## Presente do dia: { period: "AAAA-MM-DD" do último recebido, count: dias jogados que receberam }. Nunca zera.
+var daily_gift: Dictionary = {"period": "", "count": 0}
 
 
 func setup() -> void:
@@ -329,7 +331,7 @@ func to_dict() -> Dictionary:
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
 		"collection": collection, "unlocks": unlocks,
 		"cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "steps": steps, "seen": seen,
-			"started_at": started_at, "firsts": firsts,
+			"started_at": started_at, "firsts": firsts, "daily_gift": daily_gift,
 	}
 
 
@@ -404,6 +406,7 @@ func from_dict(data: Dictionary) -> void:
 	seen = data.get("seen", {}).duplicate(true)
 	started_at = float(data.get("started_at", 0.0))
 	firsts = data.get("firsts", {}).duplicate(true)
+	daily_gift = {"period": str(data.get("daily_gift", {}).get("period", "")), "count": int(data.get("daily_gift", {}).get("count", 0))}
 	# Rota removida do JSON não pode travar o jogador para sempre.
 	if not activity.is_empty() and not Database.progression.activities.has(str(activity.get("id", ""))):
 		activity = {}

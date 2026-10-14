@@ -31,9 +31,7 @@
     "sprite": "res://assets/sprites/areas/farm/crop_pumpkin.png",
     "skill_xp": 35,
     "requirements": {
-      "skills": {
-        "agriculture": 3
-      }
+      "quests": ["bloblo_potato"]
     }
   },
   "herbs": {

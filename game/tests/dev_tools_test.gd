@@ -63,7 +63,7 @@ func _dev_mode() -> void:
 		_check(state.call("has_upgrade", id), "Pular capítulo deve liberar " + id)
 	_check(not state.call("has_upgrade", "workbench"), "Pular capítulo não libera o alvo do próprio capítulo")
 	_check(_progress().claimed_quests.has("first_sale") and _progress().claimed_quests.has("welcome"), "Requisitos de missão (e anteriores) devem ser concluídos")
-	_check(state.call("accessible_plots") == 3, "Vovó empresta três canteiros")
+	_check(state.call("accessible_plots") == 4, "Vovó empresta quatro canteiros")
 	_check(state.call("current_chapter").target == "workbench", "Capítulo atual deve ser o 5")
 
 	state.call("dev_grant_upgrade", "greenhouse")

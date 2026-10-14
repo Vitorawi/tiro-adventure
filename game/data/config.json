@@ -115,22 +115,13 @@
   "farm": {
     "name": "Sítio da Bloblo",
     "plots": 9,
-    "initial_plots": 3,
-    "unlock_costs": [
-      0,
-      0,
-      0,
-      20,
-      40,
-      70,
-      100,
-      150,
-      220
-    ],
+    "initial_plots": 4,
+    "unlock_costs": [0, 0, 0, 0, 40, 70, 100, 150, 220],
     "sprout": "res://assets/sprites/areas/farm/crop_sprout.png",
+    "water": {"speedup": 0.3, "xp": 1},
     "lent_plots": [
-      {"count": 1, "requirements": {"quests": ["bloblo_meet"]}},
-      {"count": 3, "requirements": {"quests": ["bloblo_more_crops"]}}
+      {"count": 2, "requirements": {"quests": ["bloblo_meet"]}},
+      {"count": 4, "requirements": {"quests": ["bloblo_more_crops"]}}
     ]
   },
   "xp": {

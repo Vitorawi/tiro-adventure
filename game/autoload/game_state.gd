@@ -333,8 +333,37 @@ func plant(index: int, crop_id: String) -> String:
 	if plot_status(index) != "empty":
 		return "Canteiro ocupado"
 	var planted_at := now()
-	plots[index] = { "crop": crop_id, "planted_at": planted_at, "ready_at": planted_at + float(Database.crops[crop_id].get("seconds", 60)) }
+	plots[index] = { "crop": crop_id, "planted_at": planted_at, "ready_at": planted_at + float(Database.crops[crop_id].get("seconds", 60)), "watered": false }
 	_changed()
+	return ""
+
+
+## Por que não dá para regar ("" = pode). Uma rega por plantio.
+func water_error(index: int) -> String:
+	if plot_status(index) == "locked":
+		return "Compre este terreno primeiro"
+	if plot_status(index) == "empty":
+		return "Canteiro vazio"
+	if plot_status(index) == "ready":
+		return "Já está pronto"
+	if bool(plot(index).get("watered", false)):
+		return "Já foi regado"
+	return ""
+
+
+## Rega uma planta crescendo: o tempo que falta cai (config farm.water.speedup), uma vez por plantio.
+func water(index: int) -> String:
+	var reason := water_error(index)
+	if reason != "":
+		return reason
+	var target := plot(index)
+	var left := float(target.ready_at) - now()
+	target.ready_at = now() + left * (1.0 - float(Database.farm.water.speedup))
+	target.watered = true
+	_count("water")
+	_add_player_xp(int(Database.farm.water.get("xp", 0)))
+	_changed()
+	Events.world_activity.emit(&"water", str(target.crop), index)
 	return ""
 
 
@@ -419,10 +448,30 @@ func _gain_xp(action: String) -> void:
 
 func _add_player_xp(amount: int) -> void:
 	xp += amount
+	var gained := {}
+	var leveled := false
 	while xp >= xp_to_next_level():
 		xp -= xp_to_next_level()
 		level += 1
-		Events.toast_requested.emit("Nível %d!" % level)
+		leveled = true
+		var reward := level_reward(level)
+		_apply_rewards(reward)
+		gained["coins"] = int(gained.get("coins", 0)) + int(reward.get("coins", 0))
+		gained["affection"] = int(gained.get("affection", 0)) + int(reward.get("affection", 0))
+		var items: Dictionary = gained.get("items", {})
+		for id: String in reward.get("items", {}):
+			items[id] = int(items.get(id, 0)) + int(reward.items[id])
+		gained["items"] = items
+	if leveled:
+		Events.level_up.emit(level, gained)
+
+
+## Presente de subir de nível (progression.json → level_rewards; "default": coins_per_level × nível).
+func level_reward(target_level: int) -> Dictionary:
+	var table: Dictionary = Database.progression.get("level_rewards", {})
+	if table.has(str(target_level)):
+		return table[str(target_level)].duplicate(true)
+	return {"coins": int(table.get("default", {}).get("coins_per_level", 0)) * target_level}
 
 
 func _award_skill(id: String, amount: int) -> void:
@@ -1094,6 +1143,68 @@ func claim_routine(kind: String, id: String) -> String:
 	return ""
 
 
+# --- Presente do dia ----------------------------------------------------------------
+# Ciclo de progression.json → daily_gift, um por DIA JOGADO (nunca zera por faltar).
+
+## O presente que vale hoje (vazio se o ciclo não existe).
+func daily_gift_rewards() -> Dictionary:
+	var cycle: Array = Database.progression.get("daily_gift", [])
+	if cycle.is_empty():
+		return {}
+	return cycle[int(progress.daily_gift.count) % cycle.size()].duplicate(true)
+
+
+func daily_gift_error() -> String:
+	if requirement_error(Database.progression.settings.get("welcome_requirements", {})) != "":
+		return "Ainda não disponível"
+	if daily_gift_rewards().is_empty():
+		return "Sem presente"
+	if str(progress.daily_gift.period) == routine_period("daily"):
+		return "Já recebido hoje"
+	return ""
+
+
+func claim_daily_gift() -> String:
+	var reason := daily_gift_error()
+	if reason != "":
+		return reason
+	var rewards := daily_gift_rewards()
+	_apply_rewards(rewards)
+	progress.daily_gift = {"period": routine_period("daily"), "count": int(progress.daily_gift.count) + 1}
+	_changed()
+	return ""
+
+
+## O que ficou pronto para o cartão "bem-vindo de volta": até `limit` linhas
+## { kind, count, icon (id de item), world, target }: colheitas, estações e coletas da Natureza.
+func welcome_ready_lines(limit: int = 4) -> Array[Dictionary]:
+	var lines: Array[Dictionary] = []
+	var farm_at := Database.place_with_panel("farm")
+	var ripe := 0
+	var crop_item := ""
+	for i in plots.size():
+		if plot_status(i) == "ready":
+			ripe += 1
+			if crop_item == "":
+				crop_item = str(Database.crops.get(plot(i).crop, {}).get("yield", {}).keys().front())
+	if ripe > 0:
+		lines.append({"kind": "harvest", "count": ripe, "icon": crop_item, "world": farm_at[0], "target": farm_at[1]})
+	for id: String in Database.stations:
+		if not has_upgrade(id) or station(id).ready_count(now()) == 0:
+			continue
+		var at := Database.place_with_panel("station:" + id)
+		var output := ""
+		for entry: Dictionary in station(id).queue:
+			if output == "" and float(entry.ready_at) <= now():
+				output = str(Database.recipes.get(entry.recipe, {}).get("output", ""))
+		lines.append({"kind": "collect", "count": station(id).ready_count(now()), "icon": output, "world": at[0], "target": at[1]})
+	for site: String in Database.progression.get("nature_sites", {}):
+		if gathering_slots(site) > 0 and gathering_ready_count(site) > 0:
+			var at := Database.place_with_panel("nature:" + str(Database.progression.nature_sites[site].groups[0]))
+			lines.append({"kind": "gather_ready", "count": gathering_ready_count(site), "icon": "", "world": at[0], "target": at[1]})
+	return lines.slice(0, limit)
+
+
 ## O que dá para fazer agora (consulta pura). Cada item: { kind, world, target }; `target` é o
 ## lugar do mundo (mesmo alvo de Events.world_requested) ou a tela ("pet", "tasks") quando world = "".
 func available_actions() -> Array[Dictionary]:
@@ -1102,14 +1213,18 @@ func available_actions() -> Array[Dictionary]:
 	var can_plant := Database.crops.keys().any(func(id: String) -> bool: return content_error("crop", id, Database.crops[id]) == "")
 	var planted := false
 	var ready := false
+	var thirsty := false
 	for i in plots.size():
 		match plot_status(i):
 			"empty":
 				planted = planted or can_plant
 			"ready":
 				ready = true
+		thirsty = thirsty or water_error(i) == ""
 	if planted:
 		result.append({"kind": "plant", "world": farm_at[0], "target": farm_at[1]})
+	if thirsty:
+		result.append({"kind": "water", "world": farm_at[0], "target": farm_at[1]})
 	if ready:
 		result.append({"kind": "harvest", "world": farm_at[0], "target": farm_at[1]})
 	for id: String in Database.stations:
@@ -1412,6 +1527,8 @@ func from_dict(data: Dictionary) -> void:
 		var loaded_plot := { "crop": str(entry.get("crop", "")), "ready_at": float(entry.get("ready_at", 0.0)) }
 		if entry.has("planted_at"):
 			loaded_plot["planted_at"] = float(entry["planted_at"])
+		if entry.has("watered"):
+			loaded_plot["watered"] = bool(entry["watered"])
 		plots.append(loaded_plot)
 	# Saves anteriores à expansão mantêm todos os canteiros que já possuíam (ver SaveManager._migrate).
 	unlocked_plots = clampi(int(data.get("unlocked_plots", maxi(plots.size(), int(Database.farm.get("initial_plots", 3))))), 0, int(Database.farm.get("plots", 0)))

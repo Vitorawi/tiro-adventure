@@ -349,7 +349,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				return {"screen": screen}
 			if key == "feed":
 				return _panel_target("feed")
-			if key == "harvest" or key.begins_with("harvest:"):
+			if key in ["harvest", "water"] or key.begins_with("harvest:"):
 				return _panel_target("farm")
 			if key in ["trade", "sold"]:
 				return _panel_target("sell")

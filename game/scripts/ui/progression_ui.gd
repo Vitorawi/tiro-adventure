@@ -529,7 +529,7 @@ static func stat_icon(key: String) -> Texture2D:
 		return npc_portrait(arg)
 	if prefix == "open":
 		return UiKit.ui_icon(Database.worlds[arg].get("icon", "tab_map") if Database.worlds.has(arg) else "tab_" + arg)
-	var icons := {"feed": "need_hunger", "bathe": "action_bathe", "play": "action_play", "pet": "need_happiness", "harvest": "tab_farm", "produce": "item_carrot_snack", "trade": "coin", "sold": "coin", "orders": "item_treat_box", "order": "item_treat_box", "explore": "tab_map", "quests": "tab_tasks", "build": "item_plank"}
+	var icons := {"feed": "need_hunger", "bathe": "action_bathe", "play": "action_play", "pet": "need_happiness", "harvest": "tab_farm", "water": "action_water", "produce": "item_carrot_snack", "trade": "coin", "sold": "coin", "orders": "item_treat_box", "order": "item_treat_box", "explore": "tab_map", "quests": "tab_tasks", "build": "item_plank"}
 	return UiKit.ui_icon(icons.get(prefix, "xp"))
 
 

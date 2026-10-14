@@ -22,6 +22,18 @@ func show_chapter(index: int, unlocks: Array[String]) -> void:
 	show()
 
 
+## Subiu de nível: o presente já entrou; o botão só fecha.
+func show_level(level: int, rewards: Dictionary) -> void:
+	var box := _open()
+	box.add_child(_center(UiKit.icon(UiKit.ui_icon("xp"), 64)))
+	box.add_child(_center(UiKit.label("Nível %d!" % level, &"TitleLabel")))
+	var chips := ProgressionUi.reward_chips(rewards)
+	chips.alignment = FlowContainer.ALIGNMENT_CENTER
+	box.add_child(chips)
+	box.add_child(UiKit.button("Oba!", hide, &"PrimaryButton"))
+	show()
+
+
 ## Só novidades (sem fim de capítulo).
 func show_unlocks(unlocks: Array[String]) -> void:
 	var box := _open()

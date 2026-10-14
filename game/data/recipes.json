@@ -20,9 +20,7 @@
     "seconds": 180,
     "skill_xp": 22,
     "requirements": {
-      "skills": {
-        "cooking": 2
-      }
+      "quests": ["lais_stew"]
     }
   },
   "vegetable_soup": {

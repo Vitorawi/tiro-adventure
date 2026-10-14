@@ -46,6 +46,22 @@
           "coins": 15
         }
       },
+      "water": {
+        "name": "Regue 5 plantas",
+        "description": "Toque nas plantinhas com gota para regar.",
+        "goal": {
+          "key": "water",
+          "target": 5
+        },
+        "rewards": {
+          "coins": 10
+        },
+        "requirements": {
+          "quests": [
+            "first_harvest"
+          ]
+        }
+      },
       "cook": {
         "name": "Cozinhe 2 vezes",
         "description": "Produza e recolha 2 itens.",

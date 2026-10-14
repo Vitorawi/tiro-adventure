@@ -78,6 +78,35 @@ func _run() -> void:
 			check(dog.position == before, id + ": sem caminho não pode atravessar direto")
 		room.queue_free()
 		await process_frame
+	await _idle_hint_check(state)
 	if failures == 0:
 		print("NAVIGATION TEST: PASS")
 	quit(1 if failures else 0)
+
+
+## Dica parada: 15 s sem toque nos primeiros capítulos põe a seta no alvo do passo, uma vez por passo.
+func _idle_hint_check(state: Node) -> void:
+	state.call("reset")
+	var main: Node = load("res://scenes/main/main.tscn").instantiate()
+	root.add_child(main)
+	await create_timer(0.3).timeout
+	var worlds: Node = main.find_child("WorldsScreen", true, false)
+	check(worlds.get("current_world") == "house", "Dica: começa na casa")
+	var room: Node = main.find_child("World_house", true, false)
+	check(room != null and room.get("_pointer") == null, "Dica: sem seta no começo")
+	worlds.call("advance_idle", 5.0)
+	check(room.get("_pointer") == null, "Dica: 5 s ainda não mostra a seta")
+	worlds.call("advance_idle", 11.0)
+	var pointer: Node2D = room.get("_pointer")
+	check(pointer != null and is_instance_valid(pointer), "Dica: 16 s parado mostra a seta")
+	room.call("clear_pointer")
+	worlds.call("advance_idle", 16.0)
+	check(room.get("_pointer") == null or not is_instance_valid(room.get("_pointer")), "Dica: segunda vez no mesmo passo não repete")
+	# Passo novo = dica nova.
+	state.call("dev_complete_quest", "welcome")
+	worlds.set("_idle", 0.0)
+	worlds.call("advance_idle", 16.0)
+	var next_step: String = state.get("progress").current_main_quest()
+	check(next_step != "welcome", "Dica: história avançou")
+	main.queue_free()
+	await process_frame

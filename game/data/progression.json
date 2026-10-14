@@ -22,11 +22,36 @@
       "recipe:pumpkin_mash"
     ],
     "care_need_threshold": 95,
+    "welcome_requirements": {"quests": ["lais_bag"]},
+    "welcome_back_seconds": 300,
+    "idle_hint_seconds": 15,
+    "idle_hint_max_chapter": 4,
     "stat_labels": {
       "walk": "passeios", "find": "achados", "wish": "desejos", "harvest": "colheitas",
       "water": "regas", "friend_gift": "petiscos a amigos", "trick": "truques"
     }
   },
+  "level_rewards": {
+    "2": {"coins": 15, "items": {"dog_food": 2}},
+    "3": {"coins": 20, "items": {"carrot_snack": 1}},
+    "4": {"coins": 25, "items": {"bolt": 1}},
+    "5": {"coins": 30, "affection": 5},
+    "6": {"coins": 40, "items": {"bolt": 1}},
+    "7": {"coins": 50},
+    "8": {"coins": 60, "items": {"iron_band": 1}},
+    "9": {"coins": 70},
+    "10": {"coins": 100, "items": {"bolt": 2}},
+    "default": {"coins_per_level": 10}
+  },
+  "daily_gift": [
+    {"items": {"dog_food": 3}},
+    {"coins": 15},
+    {"items": {"carrot_snack": 2}},
+    {"coins": 25},
+    {"items": {"bolt": 1}},
+    {"coins": 30},
+    {"coins": 40}
+  ],
   "bond_levels": [
     {"affection": 0},
     {"affection": 20, "rewards": {"coins": 15}},
@@ -57,7 +82,7 @@
         "screen": "tasks"
       },
       "requirements": {
-        "chapter": 4
+        "chapter": 3
       }
     },
     "weekly": {
@@ -67,7 +92,7 @@
         "screen": "tasks"
       },
       "requirements": {
-        "chapter": 5
+        "chapter": 4
       }
     },
     "skills": {
@@ -291,7 +316,7 @@
     "farm": {
       "name": "Escritura do sítio",
       "world": "farm",
-      "description": "O terreno passa a ser seu: três canteiros e espaço para expandir.",
+      "description": "O terreno passa a ser seu: quatro canteiros e espaço para expandir.",
       "cost": 180,
       "requirements": {
         "quests": [

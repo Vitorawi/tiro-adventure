@@ -54,7 +54,8 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
     ui/pet_screen/   Tela do Pet (Tiro grande, necessidades, ações)
     ui/worlds_screen/  aba Mapa: lista de mundos + mundo atual (cabeçalho com Mapa, Lugares e personagens)
     ui/tasks_screen/   aba Missões (História: um passo por vez, visual; Diárias; Semanais; botões "Ir" e "?")
-    ui/celebration/  comemoração de capítulo acima do Sheet
+    ui/celebration/  comemoração de capítulo e de nível acima do Sheet
+    ui/welcome_back/ cartão "que bom que você voltou" (presente do dia + o que ficou pronto)
     ui/intro/        chegada da Laís com o Tiro (falas em npcs.json; uma vez por save)
     ui/bag_screen/     aba Mochila (itens por categoria; detalhe: para que serve, onde usar, vender)
     ui/sheet/        painel inferior genérico (menus de objetos)
@@ -93,6 +94,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Painel de produção/coleta (padrão)    | Sempre o molde da estação: espaços em cima (`SheetBuilder.slot_frame`: ícone, tempo, barra; fechado = "+" com preço ou nível/XP), "Recolher/Coletar prontos", e embaixo cartões do que escolher (ícone 64, chips de tempo/ganho, botão). Usado em `station_view`, `NatureUi.panel` e `ProgressionUi.routes_panel` |
 | Novo tipo de painel de lugar          | caso em `Places._panel` (`scripts/ui/places.gd`) + função que monta o painel (`SheetBuilder`/`ProgressionUi`, com `UiKit`) |
 | Revelar algo aos poucos ("Novo!")     | `progression.json` → `features` (aba/seção com `requirements` e `go`); mundos, lugares e NPCs com `requirements` entram sozinhos. `GameState.new_unlocks`/`mark_seen`; tela em `scenes/ui/celebration/` |
+| Regar, presente de nível, presente do dia | `GameState.water/water_error` (`config.json → farm.water`), `progression.json → level_rewards`/`daily_gift` + `settings` (welcome_*, idle_hint_*); `Events.level_up` → `Celebration.show_level`; cartão `scenes/ui/welcome_back/` (`GameState.welcome_ready_lines`); dica parada em `WorldsScreen.advance_idle`; cartões modais esperam a vez em `main.gd._queue_modal` |
 | Botão "Ir até lá"                     | `Events.world_requested.emit(mundo, "<lugar>" | "npc:<id>" | "buy:<construção>")` |
 | Mudar a aba Missões / Mochila         | `scenes/ui/tasks_screen/tasks_screen.gd` / `SheetBuilder.inventory_view` e `item_detail` |
 | Manual de recursos e estações        | `scripts/ui/game_manual.gd` (conteúdo derivado do Database); atalho na tela `pet_screen.gd` |

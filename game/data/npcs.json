@@ -20,7 +20,7 @@
     "name": "Vovó Bloblo",
     "introduction": [
       "Oi! Eu sou a vovó Bloblo. A Laís me contou que vocês chegaram!",
-      "Este é o meu sítio. Vou te emprestar um canteiro para começar.",
+      "Este é o meu sítio. Vou te emprestar dois canteiros para começar.",
       "Vamos plantar juntos? Depois quero conhecer o Tiro!"
     ],
     "requirements": {"quests": ["lais_bag"]},

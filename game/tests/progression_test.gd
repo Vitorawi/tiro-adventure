@@ -127,6 +127,7 @@ func _campaign() -> Dictionary:
 			var crop_id: String = crops.keys()[(turn + i) % crops.size()]
 			if state.call("plant", i, crop_id) != "":
 				state.call("plant", i, "carrot")
+			state.call("water", i)
 			state.get("plots")[i]["ready_at"] = 1.0
 			state.call("harvest", i)
 		# Guarda reserva para cadeias e entrega o excedente na feira.

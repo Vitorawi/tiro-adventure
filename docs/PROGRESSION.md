@@ -325,3 +325,21 @@ as existentes. São quatro linhas possíveis em paralelo (Laís, Bloblo, Feirant
 `npcs.json → portrait_animations` define pastas `request`/`complete`. `NpcPortrait`
 executa o aceno uma vez ao receber missão do NPC, depois retorna ao pedido quando houver
 passo ativo. Sem animação configurada, o NPC continua com seu retrato estático.
+
+## Começo mais fácil (Etapa 01 do plano `docs/plans/comeco`)
+- **Canteiros:** vovó empresta 2 (`bloblo_meet`) e depois 4 (`bloblo_more_crops`); `farm.initial_plots` = 4 e a
+  escritura mantém os 4. Só o próximo canteiro fechado tem etiqueta (Vovó antes da escritura, moeda + preço depois).
+- **Regar** (`config.json → farm.water`: `speedup` 0,3, `xp` 1): `GameState.water/water_error`, uma rega por plantio,
+  contador `water`; gotinha sobre a planta no mapa, tocar rega. Primeira colheita pede regar.
+- **Nada preso a atributo escondido (cap. 1–5):** abóbora exige `bloblo_potato`, papinha exige `lais_stew`;
+  `content_test` recusa `requirements.skills` sem capítulo ≥ 6 ou construção com materiais.
+- **Nível dá presente:** `progression.json → level_rewards` (por nível; `default.coins_per_level` × nível acima da
+  tabela). `Events.level_up(level, rewards)` abre a comemoração "Nível N!".
+- **Presente do dia:** `progression.json → daily_gift` (ciclo de 7 dias jogados, nunca zera),
+  estado `progress.daily_gift {period, count}`, `GameState.claim_daily_gift/daily_gift_error`.
+- **Bem-vindo de volta:** cartão `scenes/ui/welcome_back/` ao abrir/voltar após `settings.welcome_back_seconds` (300 s),
+  só depois de `settings.welcome_requirements` (`lais_bag`) e se houver presente ou algo pronto
+  (`GameState.welcome_ready_lines`).
+- **Dica parada:** `settings.idle_hint_seconds` (15) / `idle_hint_max_chapter` (4): seta sozinha no alvo do passo
+  (`WorldsScreen.advance_idle`), uma vez por passo.
+- Diárias abrem no capítulo 3 e semanais no 4 (`features.daily/weekly`); nova diária "Regue 5 plantas".
