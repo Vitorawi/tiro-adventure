@@ -26,8 +26,6 @@ var bowl_point := Vector2.INF
 ## Lugar de dormir (em cima do sofá) e o ponto no chão, na frente dele, por onde sobe/desce.
 var sleep_point := Vector2.INF
 var sleep_approach := Vector2.INF
-## Falso quando o lugar de dormir fica no chão (caminha): não sobe no móvel.
-var sleep_climbs := true
 
 var _facing := "south"
 var _on_sofa := false
@@ -42,7 +40,7 @@ func _ready() -> void:
 	_sprite.position = Vector2(0.0, -FEET_OFFSET)
 	add_child(_sprite)
 	_play("idle", "south")
-	if sleep_climbs and position.is_equal_approx(sleep_point):
+	if position.is_equal_approx(sleep_point):
 		_set_on_sofa(true)
 	Events.dog_action.connect(_on_care)
 	_brain()
@@ -76,14 +74,11 @@ func _brain() -> void:
 				_play("sleep", _facing)
 				await _wait(2.0)
 				continue
-			if not sleep_climbs:
-				_set_on_sofa(false)
-				if position.distance_to(sleep_point) > 4.0:
-					await _go_to(sleep_approach)
-					await _step_to(sleep_point)
-			elif not _on_sofa:
+			# Sofá ou caminha: o Tiro é desenhado na frente do móvel (z_index) enquanto dorme.
+			if not _on_sofa:
 				await _go_to(sleep_approach)
 				_set_on_sofa(true)
+			if position.distance_to(sleep_point) > 4.0:
 				await _step_to(sleep_point)
 			_play("sleep", "east")
 			await _wait(2.0)

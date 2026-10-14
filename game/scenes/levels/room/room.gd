@@ -372,11 +372,9 @@ func refresh_sleep_points() -> void:
 	if GameState.has_upgrade("dog_bed") and points.has("bed_sleep") and points.has("bed_approach"):
 		_dog.sleep_point = _point("bed_sleep")
 		_dog.sleep_approach = _point("bed_approach")
-		_dog.sleep_climbs = false
 	elif points.has("sleep") and points.has("sleep_approach"):
 		_dog.sleep_approach = _point("sleep_approach")
 		_dog.sleep_point = _point("sleep") if GameState.has_upgrade("sofa") else _point("sleep_approach")
-		_dog.sleep_climbs = true
 
 
 ## Regiões podem abrir por compra ou por requisitos da aventura/história.

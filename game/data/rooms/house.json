@@ -58,6 +58,7 @@
       "action": "place:bed",
       "upgrade": "dog_bed",
       "sprite": "res://assets/sprites/areas/house/dog_bed.png",
+      "scale": 1.5,
       "pos": [372, 336],
       "approach": [352, 346],
       "footprint": [[350, 330], [372, 318], [394, 330], [372, 342]]
@@ -90,7 +91,7 @@
     "bowl": [190, 238],
     "sleep": [466, 288],
     "sleep_approach": [440, 316],
-    "bed_sleep": [374, 338],
+    "bed_sleep": [376, 330],
     "bed_approach": [352, 346]
   }
 }
