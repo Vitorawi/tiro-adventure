@@ -218,6 +218,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   das missões; route_markers.site mostra tempo/prontos e route_level a ampliação exigida.
   `"initial_zoom"`/`"view_center"` definem o enquadramento inicial de mapas maiores.
   `"approach"` é o ponto seguro para o Tiro se aproximar de um objeto/estação ao reagir.
+  `"z_index"` (padrão 0) coloca objetos apoiados em móveis acima das fatias, como o liquidificador sobre a ilha.
   `"station"` também detecta produção pronta, mesmo sem `busy_frames`.
   `StationIndicator` mostra tempo/Coletar sobre a estação. `animal_idle: true` dá movimento
   leve ao sprite; `decoration: true` esconde marcadores de compra duplicados dos animais.

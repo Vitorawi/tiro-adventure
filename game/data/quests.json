@@ -1222,5 +1222,92 @@
     "kind": "line",
     "line": "guide",
     "order": 40
+  },
+  "bloblo_strawberry": {
+    "npc": "bloblo",
+    "name": "Docinho da Laís",
+    "dialogue": "Morango é o docinho preferido da Laís. Planta e colhe um pra ela?",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "harvest:strawberry",
+        "target": 1,
+        "label": "Colher morango"
+      }
+    ],
+    "rewards": {
+      "coins": 15,
+      "items": {
+        "dog_food": 2
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 62
+  },
+  "bloblo_pumpkin": {
+    "npc": "bloblo",
+    "name": "Abóbora gorducha",
+    "dialogue": "Agora a abóbora. Demora, mas vira uma papinha que o Tiro adora!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "harvest:pumpkin",
+        "target": 1,
+        "label": "Colher abóbora"
+      }
+    ],
+    "rewards": {
+      "coins": 20,
+      "skill_xp": {
+        "agriculture": 15
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 65
+  },
+  "bloblo_sweet_potato": {
+    "npc": "bloblo",
+    "name": "A favorita dos cachorros",
+    "dialogue": "Batata-doce é a favorita dos cachorros. Planta no seu terreno novo!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "harvest:sweet_potato",
+        "target": 1,
+        "label": "Colher batata-doce"
+      }
+    ],
+    "rewards": {
+      "coins": 25,
+      "skill_xp": {
+        "agriculture": 20
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 75
+  },
+  "lais_blender": {
+    "npc": "lais",
+    "name": "Picolé pro calor",
+    "dialogue": "Com um liquidificador, o morango vira picolé pro Tiro!",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "blender",
+        "label": "Comprar o liquidificador"
+      }
+    ],
+    "rewards": {
+      "coins": 10,
+      "items": {
+        "strawberry": 2
+      }
+    },
+    "kind": "main",
+    "chapter": 3,
+    "order": 25
   }
 }

@@ -7,12 +7,14 @@
 ## Como pedir ao Sonnet (copie e cole, trocando o número da etapa)
 
 ```
-Leia, nesta ordem: CLAUDE.md, docs/plans/comeco/00_VISAO.md, docs/plans/comeco/01_REGRAS_E_ARTE.md
-e docs/plans/comeco/ETAPA_03_desejos.md. Execute SOMENTE a Etapa 03, seguindo o passo a passo e a
+Leia, nesta ordem: CLAUDE.md, docs/ROADMAP.md (seção Estado atual), docs/plans/comeco/00_VISAO.md,
+docs/plans/comeco/01_REGRAS_E_ARTE.md
+e docs/plans/comeco/ETAPA_05_faro.md. Execute SOMENTE a Etapa 05, seguindo o passo a passo e a
 lista de conferência do arquivo. Use as recomendações do plano em qualquer dúvida e anote no
 docs/ROADMAP.md o que decidiu. Gere a arte com o PixelLab exatamente como descrito em
-01_REGRAS_E_ARTE.md e no arquivo da etapa. Rode todos os testes (tools/test_all.ps1) e confira as
-capturas 360x780 antes de terminar. Faça um commit local no fim (não faça push).
+01_REGRAS_E_ARTE.md e no arquivo da etapa. Rode todos os testes (tools/test_all.ps1; se passar
+de 10 minutos nesta máquina, rode cada teste um a um, incluindo DEV em prod), gere capturas
+360x780 e abra os PNGs para inspecionar antes de terminar. Faça um commit local no fim (não faça push).
 Ao terminar, marque a etapa como feita no docs/plans/comeco/README.md.
 ```
 
@@ -39,7 +41,7 @@ Ao terminar, marque a etapa como feita no docs/plans/comeco/README.md.
 - [x] Etapa 01 — facilitar (14/10/2026)
 - [x] Etapa 02 — caminha (14/10/2026)
 - [x] Etapa 03 — desejos e vínculo (14/10/2026, retomada Claude Code + Codex; testes e capturas conferidos, sem push)
-- [ ] Etapa 04 — sabores
+- [x] Etapa 04 — sabores (14/10/2026, Codex; morango/abóbora após ensopado para preservar ritmo, sem push)
 - [ ] Etapa 05 — faro
 - [ ] Etapa 06 — praça
 - [ ] Etapa 07 — passeios

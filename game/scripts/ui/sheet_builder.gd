@@ -417,7 +417,12 @@ static func _animal_missing(body: VBoxContainer, animal: Dictionary, error: Stri
 ## Bloqueada: apagada, com "?" que mostra como liberar.
 static func seed_picker(plot_index: int, focus: String = "") -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
-		for crop_id: String in Database.crops:
+		var crop_ids: Array = Database.crops.keys()
+		crop_ids.sort_custom(func(a: String, b: String) -> bool:
+			var a_time := int(Database.crops[a].seconds)
+			var b_time := int(Database.crops[b].seconds)
+			return a_time < b_time if a_time != b_time else a > b)
+		for crop_id: String in crop_ids:
 			if focus != "" and crop_id != focus:
 				continue
 			var crop: Dictionary = Database.crops[crop_id]

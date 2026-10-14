@@ -124,6 +124,9 @@ Mundos volta à seleção. Natureza tem Locais (Bosque, Caverna, Prado), além d
   consulta de futuras receitas/construções, e os botões de compra continuam validando requisitos.
 - Etiquetas detalhadas só no zoom ≥0,5. Ao afastar, aparece uma etiqueta Animais para evitar
   sobreposição. `StationIndicator` mostra tempo/barra e Coletar no objeto, e é tocável.
+  Objetos aceitam `z_index` (padrão 0): use 1 para um objeto apoiado sobre um móvel fatiado,
+  como o liquidificador em `[318,186]` na ilha da Casa. O campo altera a camada visual,
+  sem criar bloqueio de chão; o liquidificador não tem `footprint` e reage em `[300,292]`.
 
 ### Receita para novos mundos
 

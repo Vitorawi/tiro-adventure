@@ -13,6 +13,12 @@ func check(ok: bool, context: String) -> void:
 
 func _run() -> void:
 	db = root.get_node("Database")
+	for id: String in db.get("items"):
+		check(ResourceLoader.exists(db.get("items")[id].icon), id + ": ícone existente")
+	for id: String in db.get("crops"):
+		check(ResourceLoader.exists(db.get("crops")[id].sprite), id + ": planta existente")
+	for id: String in db.get("recipes"):
+		check(db.get("stations").has(db.get("recipes")[id].station), id + ": estação existente")
 	for id: String in db.get("animals"):
 		var animal: Dictionary = db.get("animals")[id]
 		check(db.get("stations").has(animal.station), id + ": abrigo existente")
@@ -48,15 +54,15 @@ func _run() -> void:
 		var ids: Array = progress.main_quests(c)
 		check(ids.size() >= 2 and ids.size() <= 6, "capítulo %d deve ter 2–6 passos" % c)
 		for i in ids.size():
-			check(int(quests[ids[i]].get("order", 0)) == (i + 1) * 10, "ordem repetida ou lacuna: " + ids[i])
+			check(int(quests[ids[i]].get("order", 0)) > (int(quests[ids[i - 1]].order) if i > 0 else 0), "ordem positiva, crescente e única: " + ids[i])
 		if not ids.is_empty() and str(data.chapters[c - 1].target) != "":
 			# Capítulo com construção-alvo: algum passo pede essa compra.
 			check(ids.any(func(q: String) -> bool: return quests[q].goals.any(func(g: Dictionary) -> bool: return g.type == "owned" and g.key == data.chapters[c - 1].target)), "capítulo %d precisa de um passo com a construção-alvo" % c)
-	# Linhas de NPC (vovó Bloblo...): passos em ordem 1..N, sem lacunas.
+	# Linhas de NPC: ordens crescentes permitem inserir passos sem renumerar a história.
 	for line: String in progress.lines():
 		var steps: Array = progress.line_quests(line)
 		for i in steps.size():
-			check(int(quests[steps[i]].order) == (i + 1) * 10, line + ": ordem repetida ou lacuna: " + steps[i])
+			check(int(quests[steps[i]].order) > (int(quests[steps[i - 1]].order) if i > 0 else 0), line + ": ordem positiva, crescente e única: " + steps[i])
 	for id: String in quests:
 		var q: Dictionary = quests[id]
 		check(db.get("npcs").has(q.npc), id + ": NPC inexistente")
@@ -127,7 +133,9 @@ func _run() -> void:
 		for id: String in group.missions:
 			var m: Dictionary = group.missions[id]
 			var key: String = m.goal.key
-			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "explore", "wish"] or key.begins_with("activity:") or key.begins_with("produce:"), kind + "/" + id + ": contador " + key)
+			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "explore", "wish"] or key.begins_with("activity:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
+			if key.begins_with("harvest:"):
+				check(db.get("crops").has(key.trim_prefix("harvest:")), kind + "/" + id + ": cultura inexistente")
 			if key.begins_with("produce:"):
 				check(db.get("items").has(key.trim_prefix("produce:")), kind + "/" + id + ": produto inexistente")
 				check(db.get("recipes").values().any(func(recipe: Dictionary) -> bool: return recipe.output == key.trim_prefix("produce:")), kind + "/" + id + ": produto sem receita")

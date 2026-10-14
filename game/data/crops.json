@@ -80,5 +80,33 @@
         "farm"
       ]
     }
+  },
+  "strawberry": {
+    "seconds": 180,
+    "coins": 5,
+    "yield": {
+      "strawberry": 2
+    },
+    "sprite": "res://assets/sprites/areas/farm/crop_strawberry.png",
+    "skill_xp": 15,
+    "requirements": {
+      "quests": [
+        "bloblo_more_crops"
+      ]
+    }
+  },
+  "sweet_potato": {
+    "seconds": 420,
+    "coins": 12,
+    "yield": {
+      "sweet_potato": 2
+    },
+    "sprite": "res://assets/sprites/areas/farm/crop_sweet_potato.png",
+    "skill_xp": 30,
+    "requirements": {
+      "quests": [
+        "farm_deed"
+      ]
+    }
   }
 }

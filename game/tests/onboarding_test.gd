@@ -20,6 +20,7 @@ var idle_total: float = 0.0
 var idle_streak: float = 0.0
 var idle_max: float = 0.0
 var firsts: Dictionary = {}
+var idle_steps: Dictionary = {}
 
 
 func check(ok: bool, message: String) -> void:
@@ -44,6 +45,8 @@ func _run() -> void:
 		var acts := _turn()
 		_record_firsts()
 		if acts == 0:
+			var active: String = str(progress.active_steps())
+			idle_steps[active] = float(idle_steps.get(active, 0)) + IDLE_STEP_SEC
 			state.call("dev_advance_time", IDLE_STEP_SEC)
 			sim += IDLE_STEP_SEC
 			idle_total += IDLE_STEP_SEC
@@ -58,6 +61,7 @@ func _run() -> void:
 	for key: String in ["talk:lais", "feed", "open:bag", "talk:bloblo", "wish", "water", "harvest", "produce", "open:village"]:
 		print("  ", key, ": ", ("%.1f" % (float(firsts[key]) / 60.0)) if firsts.has(key) else "nunca")
 	print("  capítulo %d em %.1f min; ocioso total %.0f s; maior trecho ocioso %.0f s" % [progress.chapter_index(), sim / 60.0, idle_total, idle_max])
+	print("  espera por passos: ", idle_steps)
 	check(progress.chapter_index() >= GOAL_CHAPTER, "chegou ao capítulo %d em %.0f min simulados" % [GOAL_CHAPTER, MAX_SIM_MIN])
 	check(firsts.has("harvest") and float(firsts.harvest) / 60.0 <= MAX_FIRST_HARVEST_MIN, "primeira colheita em até %.0f min" % MAX_FIRST_HARVEST_MIN)
 	check(firsts.has("wish") and float(firsts.wish) / 60.0 <= MAX_FIRST_WISH_MIN, "primeiro desejo do Tiro cumprido em até %.0f min" % MAX_FIRST_WISH_MIN)
@@ -86,6 +90,19 @@ func _turn() -> int:
 			wanted.append(str(goal.get("key", "")))
 			if goal.type == "owned":
 				owned_goals.append(str(goal.key))
+	# Comidas pedidas pelo Tiro também são objetivos úteis, com a cadeia de ingredientes.
+	for i in 3:
+		var wish: Dictionary = state.call("wish_at", i)
+		if wish.get("type", "") == "feed":
+			var item_id: String = wish.item
+			wanted.append(item_id)
+			if database.get("crops").has(item_id) and state.get("inventory").count(item_id) == 0:
+				wanted.append("harvest:" + item_id)
+			for recipe: Dictionary in database.get("recipes").values():
+				if recipe.output == item_id:
+					for input: String in recipe.inputs:
+						if database.get("crops").has(input) and state.get("inventory").count(input) < int(recipe.inputs[input]):
+							wanted.append("harvest:" + input)
 	# 1. Recebe o que está pronto (missões e diárias).
 	for step: String in progress.active_steps().values():
 		if state.call("claim_quest", step) == "":
@@ -121,11 +138,18 @@ func _turn() -> int:
 		if state.call("water", i) == "":
 			acts += 1
 		if state.call("plot_status", i) == "empty":
-			# Uma batata só (a vovó pede uma colheita); o resto continua de cenoura.
-			var potato_busy := false
-			for j in state.get("plots").size():
-				potato_busy = potato_busy or (state.call("plot_status", j) != "empty" and state.call("plot", j).crop == "potato")
-			var planted: bool = "harvest:potato" in wanted and not potato_busy and state.call("plant", i, "potato") == ""
+			# Um canteiro por cultura pedida; os outros mantêm colheitas rápidas.
+			var planted := false
+			for goal: String in wanted:
+				if not goal.begins_with("harvest:"):
+					continue
+				var crop_id := goal.trim_prefix("harvest:")
+				var busy := false
+				for j in state.get("plots").size():
+					busy = busy or (state.call("plot_status", j) != "empty" and state.call("plot", j).crop == crop_id)
+				if not busy and state.call("plant", i, crop_id) == "":
+					planted = true
+					break
 			if planted or state.call("plant", i, "carrot") == "":
 				acts += 1
 	# 4b. Desejos do Tiro: faz o que ele pede (carinho, brincar, banho, comida) e recebe.
@@ -154,6 +178,8 @@ func _turn() -> int:
 	for id: String in database.get("recipes"):
 		var recipe: Dictionary = database.get("recipes")[id]
 		if ("deliver:" + id) == "" or not (id in wanted or str(recipe.output) in wanted):
+			continue
+		if state.get("inventory").count(str(recipe.output)) >= 1:
 			continue
 		if state.call("cook", id) == "":
 			acts += 1

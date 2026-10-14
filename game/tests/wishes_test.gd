@@ -48,6 +48,11 @@ func _run() -> void:
 	events.connect("bond_up", func(level: int, _rewards: Dictionary) -> void: bond_events.append(level))
 	state.call("reset")
 	var progress: RefCounted = state.get("progress")
+	var taken: Array[String] = []
+	check(not state.call("_wish_eligible", "strawberry_pop", taken, ""), "picolé não sorteia sem liquidificador")
+	progress.owned["blender"] = true
+	check(state.call("_wish_eligible", "strawberry_pop", taken, ""), "picolé elegível com liquidificador")
+	progress.owned.erase("blender")
 
 	# Antes da caminha: aba escondida, nenhum desejo.
 	check(not progress.feature_unlocked("wishes"), "aba escondida antes da caminha")

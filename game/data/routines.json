@@ -164,6 +164,38 @@
             "cow_barn"
           ]
         }
+      },
+      "blender": {
+        "name": "Faça 2 picolés",
+        "description": "Use o liquidificador da cozinha.",
+        "goal": {
+          "key": "produce:strawberry_pop",
+          "target": 2
+        },
+        "rewards": {
+          "coins": 15
+        },
+        "requirements": {
+          "owned": [
+            "blender"
+          ]
+        }
+      },
+      "strawberries": {
+        "name": "Colha morango 2 vezes",
+        "description": "Plante morango no sítio e colha.",
+        "goal": {
+          "key": "harvest:strawberry",
+          "target": 2
+        },
+        "rewards": {
+          "coins": 12
+        },
+        "requirements": {
+          "quests": [
+            "bloblo_strawberry"
+          ]
+        }
       }
     }
   },

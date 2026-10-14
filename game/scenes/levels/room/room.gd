@@ -184,6 +184,8 @@ func _spawn_objects() -> void:
 		sprite.centered = false
 		sprite.offset = -Vector2(sprite.texture.get_width() / 2.0, sprite.texture.get_height())
 		sprite.position = _vec(data["pos"])
+		# Objetos apoiados em móveis podem ficar acima das fatias do cenário.
+		sprite.z_index = int(data.get("z_index", 0))
 		sprite.scale = Vector2.ONE * float(data.get("scale", 1.0))
 		sprite.set_meta("action", data.get("action", ""))
 		sprite.set_meta("decoration", data.get("decoration", false))

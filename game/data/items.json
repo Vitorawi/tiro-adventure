@@ -228,5 +228,64 @@
     "icon": "res://assets/sprites/ui/icons/item_cheese.png",
     "sell_price": 32,
     "trade_xp": 3
+  },
+  "strawberry": {
+    "name": "Morango",
+    "category": "crop",
+    "icon": "res://assets/sprites/ui/icons/item_strawberry.png",
+    "sell_price": 5,
+    "trade_xp": 2,
+    "feed": {
+      "hunger": 4,
+      "happiness": 6
+    }
+  },
+  "sweet_potato": {
+    "name": "Batata-doce",
+    "category": "crop",
+    "icon": "res://assets/sprites/ui/icons/item_sweet_potato.png",
+    "sell_price": 8,
+    "trade_xp": 3
+  },
+  "strawberry_pop": {
+    "name": "Picolé de morango",
+    "category": "food",
+    "icon": "res://assets/sprites/ui/icons/item_strawberry_pop.png",
+    "sell_price": 16,
+    "trade_xp": 4,
+    "feed": {
+      "happiness": 25,
+      "hunger": 5
+    }
+  },
+  "strawberry_juice": {
+    "name": "Suco de morango",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_strawberry_juice.png",
+    "sell_price": 20,
+    "trade_xp": 5
+  },
+  "mashed_potato": {
+    "name": "Purê de batata",
+    "category": "food",
+    "icon": "res://assets/sprites/ui/icons/item_mashed_potato.png",
+    "sell_price": 18,
+    "trade_xp": 4,
+    "feed": {
+      "hunger": 35,
+      "happiness": 5
+    }
+  },
+  "sweet_potato_chips": {
+    "name": "Chips de batata-doce",
+    "category": "food",
+    "icon": "res://assets/sprites/ui/icons/item_sweet_potato_chips.png",
+    "sell_price": 30,
+    "trade_xp": 7,
+    "feed": {
+      "hunger": 20,
+      "happiness": 25
+    }
   }
 }

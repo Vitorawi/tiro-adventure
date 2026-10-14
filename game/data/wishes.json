@@ -37,6 +37,86 @@
       "requirements": {"owned": ["stove"]}},
     "vegetable_soup": {"type": "feed", "item": "vegetable_soup", "name": "Quero ensopado",
       "rewards": {"coins": 18, "affection": 10}, "weight": 2, "special": true,
-      "requirements": {"quests": ["bloblo_stew"]}}
+      "requirements": {"quests": ["bloblo_stew"]}},
+    "strawberry": {
+      "type": "feed",
+      "item": "strawberry",
+      "name": "Quero morango",
+      "rewards": {
+        "coins": 8,
+        "affection": 6
+      },
+      "weight": 3,
+      "requirements": {
+        "quests": [
+          "bloblo_strawberry"
+        ]
+      }
+    },
+    "strawberry_pop": {
+      "type": "feed",
+      "item": "strawberry_pop",
+      "name": "Quero picolé!",
+      "rewards": {
+        "coins": 15,
+        "affection": 10
+      },
+      "weight": 4,
+      "requirements": {
+        "owned": [
+          "blender"
+        ]
+      }
+    },
+    "mashed_potato": {
+      "type": "feed",
+      "item": "mashed_potato",
+      "name": "Quero purê",
+      "rewards": {
+        "coins": 15,
+        "affection": 8
+      },
+      "weight": 2,
+      "requirements": {
+        "quests": [
+          "bloblo_potato"
+        ],
+        "owned": [
+          "stove"
+        ]
+      }
+    },
+    "pumpkin_mash": {
+      "type": "feed",
+      "item": "pumpkin_mash",
+      "name": "Quero papinha",
+      "rewards": {
+        "coins": 20,
+        "affection": 10
+      },
+      "weight": 2,
+      "special": true,
+      "requirements": {
+        "quests": [
+          "bloblo_pumpkin"
+        ]
+      }
+    },
+    "sweet_potato_chips": {
+      "type": "feed",
+      "item": "sweet_potato_chips",
+      "name": "Quero chips!",
+      "rewards": {
+        "coins": 25,
+        "affection": 12
+      },
+      "weight": 2,
+      "special": true,
+      "requirements": {
+        "quests": [
+          "bloblo_sweet_potato"
+        ]
+      }
+    }
   }
 }

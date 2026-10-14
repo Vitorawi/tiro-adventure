@@ -19,9 +19,9 @@
       "stove": {
         "name": "Cozinha",
         "icon": "item_carrot_snack",
-        "description": "Fogão e forno.",
+        "description": "Fogão, liquidificador e forno.",
         "upgrade": "stove",
-        "panel": "stations:stove+oven",
+        "panel": "stations:stove+blender+oven",
         "upgrades": [
           "stove_queue",
           "stove_queue_2"
@@ -69,6 +69,15 @@
         "description": "Soneca do Tiro.",
         "upgrade": "sofa",
         "panel": "sleep",
+        "hidden": true
+      },
+      "blender": {
+        "name": "Liquidificador",
+        "icon": "item_strawberry_pop",
+        "description": "Picolé e suco.",
+        "requirements": {"quests": ["first_kitchen"]},
+        "upgrade": "blender",
+        "panel": "station:blender",
         "hidden": true
       }
     }

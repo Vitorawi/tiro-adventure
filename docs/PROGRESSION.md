@@ -1,5 +1,33 @@
 # Progressão (Jornada)
 
+## Primeiros sabores (Etapa 04)
+
+Morango abre após `bloblo_more_crops` (180 s, 2 unidades, 15 XP); batata-doce após
+`farm_deed` (420 s, 2 unidades, 30 XP). Abóbora mantém `bloblo_potato`: exigir a conclusão
+de `bloblo_pumpkin`, que pede colher abóbora, criaria um ciclo impossível. A papinha, por
+sua vez, abre após `bloblo_pumpkin`. Sementes são ordenadas por duração; empates usam id
+decrescente para uma ordem determinística (morango antes de milho).
+
+O liquidificador custa 30 moedas após `first_kitchen`, tem um espaço e usa `StationState`.
+O lugar oculto `house/blender` abre seu painel; Cozinha agrupa fogão, liquidificador e forno.
+O lugar exige `first_kitchen` também, entrando automaticamente na comemoração "Novo!".
+O objeto fica sobre a ilha, sem bloquear o chão; `z_index: 1` desenha sobre as fatias.
+
+| Receita | Estação | Ingredientes | Tempo | XP Cozinha | Requisito adicional |
+|---|---|---|---|---|---|
+| Picolé de morango | Liquidificador | 2 morangos | 90 s | 12 | — |
+| Suco de morango | Liquidificador | 3 morangos | 60 s | 10 | — |
+| Purê de batata | Fogão | 2 batatas | 90 s | 15 | `bloblo_potato` |
+| Chips de batata-doce | Fogão | 2 batatas-doces | 150 s | 25 | `bloblo_sweet_potato` |
+
+Suco não alimenta o Tiro e vai à geladeira; os outros alimentos viram mimos e desejos.
+Missões da vovó apresentam morango, abóbora e batata-doce; Laís apresenta o liquidificador.
+`bloblo_strawberry`/`bloblo_pumpkin` usam ordens 62/65, depois do ensopado e antes da
+escritura, para que as novas colheitas não bloqueiem a abertura da Vila. Morango continua
+disponível cedo, após `bloblo_more_crops`; as duas missões e seus rendimentos ficam preservados.
+Pedidos de morango, picolé, purê e suco preservam `first_harvest` além dos requisitos
+específicos, como os pedidos antigos. Diárias de picolé e morango usam contadores existentes.
+
 ## Desejos e vínculo
 
 `Database.wishes` carrega `data/wishes.json`; `settings` define espaços/requisitos, esperas,

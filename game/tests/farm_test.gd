@@ -73,6 +73,16 @@ func _run() -> void:
 	for i in range(5, 9):
 		_check(state.call("buy_plot", i) == "", "Todas as expansões devem ser acessíveis")
 	_check(state.call("buy_plot", 9) != "", "Não deve ultrapassar o total de terrenos")
+	# Sabores: bloqueio por missão, crescimento, rendimento e coleta única.
+	for crop_id: String in ["strawberry", "sweet_potato"]:
+		_check(state.call("plant", 1, crop_id) != "", crop_id + " espera a missão")
+		state.get("progress").claimed_quests["bloblo_more_crops" if crop_id == "strawberry" else "farm_deed"] = true
+		_check(state.call("plant", 1, crop_id) == "", crop_id + " liberada pela missão")
+		state.get("plots")[1]["ready_at"] = float(state.call("now")) - 1.0
+		var count_before: int = state.get("inventory").count(crop_id)
+		state.call("harvest", 1)
+		_check(state.get("inventory").count(crop_id) == count_before + 2, crop_id + " rende duas unidades")
+		_check((state.call("harvest", 1) as Dictionary).is_empty(), crop_id + " não duplica colheita")
 	if "--screenshots" in OS.get_cmdline_user_args():
 		await _screenshots(state)
 	print("FARM TEST: ", "PASS" if _failures == 0 else "FAIL (%d)" % _failures)

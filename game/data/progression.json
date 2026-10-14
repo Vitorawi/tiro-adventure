@@ -855,6 +855,22 @@
         "site": "fibers",
         "level": 3
       }
+    },
+    "blender": {
+      "name": "Liquidificador",
+      "world": "house",
+      "description": "Faz picolé de morango para o Tiro e suco para a Laís.",
+      "cost": 30,
+      "requirements": {
+        "quests": [
+          "first_kitchen"
+        ]
+      },
+      "skill_xp": {
+        "cooking": 10
+      },
+      "icon": "item_strawberry_pop",
+      "station": "blender"
     }
   },
   "nature_sites": {
@@ -1486,6 +1502,89 @@
           "dairy"
         ]
       }
+    },
+    "fruit_basket": {
+      "name": "Cesta de morangos",
+      "inputs": {
+        "strawberry": 4
+      },
+      "requirements": {
+        "quests": [
+          "first_harvest",
+          "bloblo_strawberry"
+        ]
+      },
+      "rewards": {
+        "coins": 26,
+        "skill_xp": {
+          "commerce": 12
+        }
+      },
+      "cooldown": 120
+    },
+    "pop_order": {
+      "name": "Picolés da praça",
+      "inputs": {
+        "strawberry_pop": 2
+      },
+      "requirements": {
+        "owned": [
+          "blender"
+        ],
+        "quests": [
+          "first_harvest"
+        ]
+      },
+      "rewards": {
+        "coins": 45,
+        "skill_xp": {
+          "commerce": 18
+        }
+      },
+      "cooldown": 240
+    },
+    "puree_order": {
+      "name": "Almoço do vizinho",
+      "inputs": {
+        "mashed_potato": 2
+      },
+      "requirements": {
+        "quests": [
+          "first_harvest",
+          "bloblo_potato"
+        ],
+        "owned": [
+          "stove"
+        ]
+      },
+      "rewards": {
+        "coins": 50,
+        "skill_xp": {
+          "commerce": 20
+        }
+      },
+      "cooldown": 300
+    },
+    "juice_order": {
+      "name": "Suco para a Laís",
+      "inputs": {
+        "strawberry_juice": 2
+      },
+      "requirements": {
+        "owned": [
+          "blender"
+        ],
+        "quests": [
+          "first_harvest"
+        ]
+      },
+      "rewards": {
+        "coins": 48,
+        "skill_xp": {
+          "commerce": 18
+        }
+      },
+      "cooldown": 300
     }
   },
   "chapters": [

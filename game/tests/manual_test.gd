@@ -34,6 +34,7 @@ func _run() -> void:
 		check(catalog.find_child("Resource_" + id, true, false) != null, id + ": deve aparecer sem estar na mochila")
 	catalog.free()
 	var stations: Control = manual.call("panel", "stations")
+	check(_has_text(stations, "Liquidificador"), "Liquidificador aparece no catálogo")
 	check(_has_text(stations, "Bloqueado"), "Mundos/lugares fechados precisam de botão bloqueado")
 	check(_button_with_text(stations, "Bloqueado").disabled, "Consultar o catálogo não permite pular bloqueios")
 	check(_has_text(stations, "Ver compra"), "Estações ainda não compradas precisam de atalho de compra")

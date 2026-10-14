@@ -72,6 +72,16 @@
       "pos": [428, 252],
       "approach": [422, 280],
       "footprint": [[400, 236], [426, 221], [457, 239], [430, 260]]
+    },
+    {
+      "id": "blender",
+      "action": "place:blender",
+      "upgrade": "blender",
+      "station": "blender",
+      "sprite": "res://assets/sprites/areas/house/blender.png",
+      "pos": [318, 186],
+      "approach": [300, 292],
+      "z_index": 1
     }
   ],
   "zones": [

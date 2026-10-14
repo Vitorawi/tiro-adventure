@@ -102,6 +102,11 @@
       "requirements": {
         "chapter": 5
       }
+    },
+    "blender": {
+      "name": "Liquidificador",
+      "slots": 1,
+      "instruction": "Frutas viram picolé e suco."
     }
   },
   "animals": {

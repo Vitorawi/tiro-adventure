@@ -20,7 +20,9 @@
     "seconds": 180,
     "skill_xp": 22,
     "requirements": {
-      "quests": ["lais_stew"]
+      "quests": [
+        "bloblo_pumpkin"
+      ]
     }
   },
   "vegetable_soup": {
@@ -173,6 +175,60 @@
     "skill_xp": 25,
     "requirements": {
       "chapter": 5
+    }
+  },
+  "strawberry_pop": {
+    "station": "blender",
+    "inputs": {
+      "strawberry": 2
+    },
+    "output": "strawberry_pop",
+    "qty": 1,
+    "seconds": 90,
+    "skill": "cooking",
+    "skill_xp": 12
+  },
+  "strawberry_juice": {
+    "station": "blender",
+    "inputs": {
+      "strawberry": 3
+    },
+    "output": "strawberry_juice",
+    "qty": 1,
+    "seconds": 60,
+    "skill": "cooking",
+    "skill_xp": 10
+  },
+  "mashed_potato": {
+    "station": "stove",
+    "inputs": {
+      "potato": 2
+    },
+    "output": "mashed_potato",
+    "qty": 1,
+    "seconds": 90,
+    "skill": "cooking",
+    "skill_xp": 15,
+    "requirements": {
+      "quests": [
+        "bloblo_potato"
+      ]
+    }
+  },
+  "sweet_potato_chips": {
+    "station": "stove",
+    "inputs": {
+      "sweet_potato": 2
+    },
+    "output": "sweet_potato_chips",
+    "qty": 1,
+    "seconds": 150,
+    "skill": "cooking",
+    "skill_xp": 25,
+    "requirements": {
+      "quests": [
+        "bloblo_sweet_potato"
+      ]
     }
   }
 }

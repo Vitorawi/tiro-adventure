@@ -4,6 +4,43 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **14/10/2026, Codex**.
 
+**✔ Etapa 04 do começo (primeiros sabores) — Codex, 14/10/2026.** Trabalho local, sem push.
+- Morango e batata-doce, seis itens e quatro receitas; liquidificador de 30 moedas após
+  `first_kitchen`, uma vaga, lugar oculto próprio e Cozinha agrupando as três estações.
+  Lugar com requisito `first_kitchen` entra automaticamente na comemoração "Novo!".
+  Objeto em `[318,186]`, sobre o tampo da ilha, com `z_index: 1` (suporte de dados no RoomView).
+  Sem animação opcional; indicador existente mostra tempo/Coletar. Sementes ordenadas por
+  tempo com desempate determinístico por id (morango antes de milho).
+- Missões de morango/abóbora/batata-doce da vovó e liquidificador da Laís; cinco desejos,
+  quatro pedidos da feira e duas diárias. Suco é para pessoas (sem `feed`, geladeira);
+  os outros preparados alimentam o Tiro. Pedidos mantêm `first_harvest` como os antigos.
+- Decisões: a cultura abóbora mantém `bloblo_potato`, porque exigir `bloblo_pumpkin` (que
+  pede colher abóbora) criaria ciclo. Papinha passa a exigir `bloblo_pumpkin`. As novas
+  missões de morango/abóbora usam ordens **62/65**, depois do ensopado (60) e antes da
+  escritura (70), em vez de 35/55 do exemplo: sabores extras não bloqueiam a abertura da
+  Vila; morango segue disponível cedo após `bloblo_more_crops`. A sequência original
+  produziu 460–480 s ociosos totais no onboarding; apenas mover abóbora deu 270 s.
+  Sequência final na suíte: capítulo 4 em **10,7 min**, ocioso **190 s** (meta 240), maior trecho
+  **30 s** (meta 120), primeira colheita **1,6 min** e desejo **0,7 min**. Limites mantidos;
+  simulação passou a cultivar objetivos `harvest:<cultura>` e atender cadeias dos desejos.
+  Experimentos de reserva de mimos foram removidos; não houve escolha de seed para passar.
+- Arte PixelLab: seis ícones, duas plantas e objeto gerados/revisados; jobs/candidatos/recortes
+  em `ART_PIPELINE.md`. Batata-doce regenerada uma vez para tirar o rosto; referência do
+  fogão reduzida para caber no canvas do liquidificador. PNGs e `.import` incluídos.
+- Capturas 360×780 abertas e conferidas em `build/screenshots/etapa04/`: compra antes/depois,
+  liquidificador trabalhando e receitas, sementes, plantas maduras (visão geral e close),
+  desejo de picolé, pedidos de morango e suco. Objeto apoiado no tampo, indicador legível,
+  balão do Tiro ocultado dormindo para inspecionar compra/objeto e câmera enquadrando a ilha.
+- Validação final: **todos os 20 testes + DEV em prod PASS**, executados um a um; campanha
+  completa em 216 ciclos, 44 aquisições e 61 missões. Logs `build/test_logs/etapa04/`.
+  Godot importou arte/UIDs sem erro de script; `git diff --check` limpo e CLAUDE=AGENTS.
+  Avisos já conhecidos de RIDs/ObjectDB no fechamento de alguns testes de UI permanecem.
+  Novo `flavors_test` cobre compra, cadeias de produção/coleta única, suco não alimentável,
+  destino próprio do liquidificador, ordenação das sementes e capturas; entrou no `test_all`.
+- Etapa 04 concluída, sem pendências. Nada de conteúdo da Etapa 05 foi adiantado.
+  Próximo passo: **Etapa 05 — Faro do Tiro**,
+  `docs/plans/comeco/ETAPA_05_faro.md`.
+
 **✔ Correção da rolagem dos desbloqueios — Codex, 14/10/2026.**
 - A comemoração não tinha `ScrollContainer`: muitas novidades faziam o cartão ultrapassar a tela e
   cortavam o botão Continuar. `celebration.gd` agora limita a altura à área visível (16 px de folga

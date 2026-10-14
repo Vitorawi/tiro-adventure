@@ -36,6 +36,33 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 
 ## Registro de assets
 
+### Primeiros sabores — Etapa 04, 14/10/2026 (Codex)
+
+PixelLab: ícones Pixen 32×32 transparentes, contorno preto, detalhe médio; plantas Pro
+56×48, 16 candidatos, referência `crop_carrot.png` por upload. Pranchas abertas em
+`build/art_sources/etapa04/`; o helper PowerShell falhou nesta sessão (System.Drawing/Bitmap),
+então a revisão em grade e os recortes foram feitos com Pillow, sem alterar a arte gerada.
+Originais permanecem nessa pasta ignorada. Ícones mantêm canvas 32×32 para alinhamento.
+
+| Asset | Job/id PixelLab | Arquivo final em `game/assets/sprites/` | Escolha/recorte |
+|---|---|---|---|
+| Morango | `395466c6-8403-4818-88b9-110891de46b8` | `ui/icons/item_strawberry.png` | canvas 32×32 |
+| Batata-doce | `ce8d1410-5cbc-4110-9520-b99086b08789` | `ui/icons/item_sweet_potato.png` | tentativa 2, canvas 32×32 |
+| Picolé | `fe67f545-28a8-47ff-a913-2e51c67c7322` | `ui/icons/item_strawberry_pop.png` | canvas 32×32 |
+| Suco | `5b403447-2a90-41a4-8a46-fa56028d4724` | `ui/icons/item_strawberry_juice.png` | canvas 32×32 |
+| Purê | `745c921a-e225-4661-94e6-e5b594ac7347` | `ui/icons/item_mashed_potato.png` | canvas 32×32 |
+| Chips | `b7e74248-5983-41cb-aeca-65f4179e9d0f` | `ui/icons/item_sweet_potato_chips.png` | canvas 32×32 |
+| Morangueiro | `5eb550fd-6891-47a1-a0f2-82c3d8d394c3` | `areas/farm/crop_strawberry.png` | candidato 9, bbox `[10,8,45,41]`, 35×33 |
+| Batata-doce madura | `1579ffea-3929-49fa-bc3c-568af457b706` | `areas/farm/crop_sweet_potato.png` | candidato 15, bbox `[5,6,47,45]`, 42×39 |
+| Liquidificador | objeto `e599be77-804a-4b29-8bb7-7d7ded9673ec`, job `baa5791b-ca83-41f4-9dc0-f4daf629feea` | `areas/house/blender.png` | bbox `[6,6,27,43]`, 21×37 |
+
+Liquidificador Flash Pro, uma direção, low top-down, canvas 32×48; referência do fogão
+reduzida com nearest para 29×48 (a referência deve caber no canvas). Tags `tiro-adventure`,
+`objeto`, `ativo`. Sem animação opcional: indicador de produção informa trabalho/pronto.
+Tentativas descartadas: batata-doce `0fc95615-b6ff-4c5d-a97c-d3a9a799b33e` saiu com rosto;
+objeto `bac5a9b4-c6e4-4403-8584-0d3be7b41322`, job `cb617035-7d0f-4d16-bdc7-e605effdb523`,
+foi criado sem referência antes da redução do fogão e tem tag `descartado`.
+
 ### Laís no mapa v3 — 13/10/2026 (Claude Code)
 
 Personagem **Laís Mapa v3** `502435b0-c34e-4164-82ac-4f4699c2894f`: modo pro, 128 px, 8 direções,
