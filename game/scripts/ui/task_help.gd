@@ -349,7 +349,7 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 		var chips := UiKit.flow()
 		for need: Dictionary in data.needs:
 			var ok := int(need.have) >= int(need.amount)
-			chips.add_child(UiKit.tap_chip(need_icon(need), "%d/%d" % [mini(int(need.have), int(need.amount)), int(need.amount)], func() -> void:
+			chips.add_child(UiKit.tap_chip(need_icon(need), "%d/%d" % [int(need.have), int(need.amount)], func() -> void:
 				var path: Array[Dictionary] = history.duplicate()
 				path.append({"kind": kind, "id": id, "amount": amount})
 				open(need.kind, need.id, int(need.amount), path), UiKit.GOOD if ok else UiKit.BAD))

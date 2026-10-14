@@ -188,44 +188,54 @@ static func orders_panel(focus: String = "") -> Control:
 
 # --- Rotas (passeios, mina, pomar) ------------------------------------------------------
 
-## Rotas de um ou mais grupos ("walk", "mine+walk", "orchard"). Só uma rota por vez em todo o jogo.
+## Rotas de um ou mais grupos ("orchard"...). Só uma por vez em todo o jogo. Mesmo molde das
+## estações: o espaço com a rota em andamento em cima, as rotas para escolher embaixo.
 static func routes_panel(place: String, focus: String = "") -> Control:
 	var groups := place.split("+")
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		active_activity(box)
+		var activity: Dictionary = GameState.progress.activity
+		var remaining := GameState.activity_remaining() if not activity.is_empty() else 0
+		box.add_child(UiKit.label("Em andamento  %d/1" % (0 if activity.is_empty() else 1), &"SectionLabel"))
+		var slot_row := UiKit.hbox(8)
+		if activity.is_empty():
+			slot_row.add_child(SheetBuilder.slot_frame(null, "Livre", 0.0, false, true))
+		else:
+			var running: Dictionary = Database.progression.activities.get(activity.id, {})
+			var icon_name: String = running.get("icon", "")
+			var duration := maxf(1.0, float(activity.ready_at) - float(activity.started_at))
+			slot_row.add_child(SheetBuilder.slot_frame(UiKit.ui_icon(icon_name), "Pronto!" if remaining == 0 else TimeText.short(remaining), 1.0 - remaining / duration, remaining == 0, false))
+		box.add_child(slot_row)
+		if not activity.is_empty() and remaining == 0:
+			var data: Dictionary = Database.progression.activities.get(activity.id, {})
+			var collect := UiKit.button("Recolher", func() -> void:
+				var error := GameState.collect_activity()
+				if error != "":
+					Events.toast_requested.emit(error)
+				else:
+					Events.items_gained.emit(data.get("rewards", {}).get("items", {}), int(data.get("rewards", {}).get("coins", 0)), Vector2(-1.0, -1.0)), &"PrimaryButton")
+			box.add_child(collect)
+		box.add_child(UiKit.label("Rotas", &"SectionLabel"))
 		for id: String in Database.progression.activities:
 			var data: Dictionary = Database.progression.activities[id]
 			if not str(data.get("place", "walk")) in groups or (focus != "" and id != focus):
 				continue
 			var card := UiKit.card(box)
-			_title(card, data.get("icon", ""), data.name)
-			if data.get("description", "") != "":
-				card.add_child(UiKit.label(data.description, &"SmallLabel"))
+			var top := UiKit.hbox(10)
+			top.add_child(UiKit.icon(UiKit.ui_icon(data.get("icon", "")), 64))
+			var info := UiKit.vbox(4)
+			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			info.add_child(UiKit.label(data.name))
 			var details := UiKit.flow()
 			details.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(data.seconds))))
 			for item: String in data.rewards.get("items", {}):
 				details.add_child(UiKit.chip(Database.item_icon(item), "+%d" % int(data.rewards.items[item]), UiKit.GOOD))
 			if int(data.rewards.get("coins", 0)) > 0:
 				details.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(data.rewards.coins), UiKit.GOOD))
-			card.add_child(details)
+			info.add_child(details)
+			top.add_child(info)
+			card.add_child(top)
 			_action(card, "Começar", func() -> String: return GameState.start_activity(id), GameState.activity_error(id), "Vocês saíram para: " + data.name, TaskHelp.open.bind("route", id))
 	)
-
-
-## Cartão da rota em andamento (com "Recolher" quando termina).
-static func active_activity(box: VBoxContainer) -> void:
-	var activity: Dictionary = GameState.progress.activity
-	if activity.is_empty():
-		return
-	var data: Dictionary = Database.progression.activities.get(activity.id, {})
-	var remaining := GameState.activity_remaining()
-	var card := UiKit.card(box, &"ReadyCardPanel")
-	_title(card, data.get("icon", ""), data.get("name", ""))
-	var duration := maxf(1.0, float(activity.ready_at) - float(activity.started_at))
-	card.add_child(UiKit.bar(clampf(1.0 - remaining / duration, 0, 1) * 100, UiKit.GOOD))
-	_text(card, "Voltaram! Recolha o que acharam." if remaining == 0 else "Em andamento · faltam " + TimeText.short(remaining))
-	if remaining == 0:
-		_action(card, "Recolher", func() -> String: return GameState.collect_activity(), "", "Recebeu: " + rewards_text(data.get("rewards", {})))
 
 
 # --- Atributos e coleção --------------------------------------------------------------
@@ -560,4 +570,4 @@ static func reward_chips(rewards: Dictionary) -> HFlowContainer:
 ## Ingrediente: ícone + tem/precisa (verde/vermelho); tocar mostra de onde vem.
 static func item_chip(id: String, need: int) -> Button:
 	var have := GameState.inventory.count(id)
-	return UiKit.tap_chip(Database.item_icon(id), "%d/%d" % [mini(have, need), need], TaskHelp.open.bind("item", id, need), UiKit.GOOD if have >= need else UiKit.BAD)
+	return UiKit.tap_chip(Database.item_icon(id), "%d/%d" % [have, need], TaskHelp.open.bind("item", id, need), UiKit.GOOD if have >= need else UiKit.BAD)

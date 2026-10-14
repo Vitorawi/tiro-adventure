@@ -415,7 +415,7 @@ func _spawn_regions() -> void:
 	for data: Dictionary in _room.get("regions", []):
 		var region := Node2D.new()
 		region.name = "Region_" + str(data.id)
-		region.z_index = 3
+		region.z_index = 0  # sombra e cerca ficam atrás dos objetos (galinheiro, plantas, Tiro)
 		region.set_meta("data", data)
 		var shade := Polygon2D.new()
 		shade.polygon = _polygon(data.polygon)
@@ -438,6 +438,7 @@ func _spawn_regions() -> void:
 			post.default_color = Color("654529")
 			region.add_child(post)
 		_world.add_child(region)
+		_world.move_child(region, 0)
 		_regions.append(region)
 
 
@@ -654,6 +655,15 @@ func point_at(action: String) -> bool:
 	for npc: NpcWorld in _npcs:
 		if npc.visible and action == "npc:" + npc.npc_id:
 			anchor = npc.head_point()
+	if action.begins_with("buy:"):
+		# Compra: a seta vai no "+" do objeto (sprite com "upgrade" ainda não comprado).
+		var upgrade_id := action.trim_prefix("buy:")
+		for sprite in _objects:
+			if sprite.get_meta("upgrade", "") == upgrade_id and not GameState.has_upgrade(upgrade_id) and not sprite.get_meta("decoration", false):
+				anchor = sprite.position + Vector2(0, -44)
+				break
+		if anchor == Vector2.INF:
+			action = Places.upgrade_place_action(upgrade_id)
 	for sprite in _objects:
 		if anchor != Vector2.INF:
 			break
@@ -668,11 +678,12 @@ func point_at(action: String) -> bool:
 				break
 	if anchor == Vector2.INF:
 		return false
-	# Em mapas maiores, o destino pode estar fora da parte visível da câmera.
-	var on_screen := _content.position + anchor * _zoom
-	if size.x > 72.0 and size.y > 96.0 and not Rect2(Vector2(36, 48), size - Vector2(72, 96)).has_point(on_screen):
-		_content.position = size / 2.0 - anchor * _zoom
-		_clamp_content()
+	# Em mapas maiores, o destino pode estar fora da parte visível da câmera. Numa sala recém-aberta
+	# o tamanho e o enquadramento inicial só se acertam depois de alguns quadros: confere de novo.
+	_reveal(anchor)
+	get_tree().create_timer(0.2).timeout.connect(func() -> void:
+		if is_instance_valid(_pointer):
+			_reveal(anchor))
 	_pointer = Node2D.new()
 	_pointer.name = "Pointer"
 	_pointer.z_index = 5
@@ -697,6 +708,14 @@ func point_at(action: String) -> bool:
 		if is_instance_valid(_pointer) and _pointer.position == anchor:
 			clear_pointer())
 	return true
+
+
+## Leva a câmera até `anchor` (coordenadas da sala) se ele estiver fora da parte visível.
+func _reveal(anchor: Vector2) -> void:
+	var on_screen := _content.position + anchor * _zoom
+	if size.x > 72.0 and size.y > 96.0 and not Rect2(Vector2(36, 48), size - Vector2(72, 96)).has_point(on_screen):
+		_content.position = size / 2.0 - anchor * _zoom
+		_clamp_content()
 
 
 func clear_pointer() -> void:

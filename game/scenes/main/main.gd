@@ -62,6 +62,7 @@ func _ready() -> void:
 			PwaUpdater.apply_update())
 	# Versão dev: selo DEV abre as ferramentas de teste (BuildInfo / DevPanel).
 	%DevButton.visible = BuildInfo.is_dev()
+	_build_settings_button()
 	%DevButton.pressed.connect(func() -> void:
 		Events.sheet_requested.emit("Ferramentas DEV", DevPanel.panel()))
 	_toast.modulate.a = 0.0
@@ -145,6 +146,20 @@ func _refresh_tasks_badge() -> void:
 		count += 1
 	_tasks_badge.text = str(count)
 	_tasks_badge.visible = count > 0
+
+
+## Engrenagem ao lado das moedas: abre as configurações (vários saves).
+func _build_settings_button() -> void:
+	var gear := Button.new()
+	gear.name = "SettingsButton"
+	gear.flat = true
+	gear.icon = UiKit.ui_icon("settings")
+	gear.expand_icon = true
+	gear.custom_minimum_size = Vector2(40, 40)
+	gear.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	gear.add_theme_constant_override("icon_max_width", 32)
+	gear.pressed.connect(SettingsPanel.open)
+	%CoinsLabel.get_parent().add_child(gear)
 
 
 func _refresh_top_bar() -> void:

@@ -88,6 +88,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Nova ação do jogo (ex.: plantar)      | método em `game/autoload/game_state.gd` + estado em `game/scripts/state/` |
 | Novo móvel / mudar layout da casa     | `game/data/rooms/house.json` (sprite, pos, footprint, `"action": "place:<id>"`, `upgrade`) + lugar em `worlds.json` |
 | Nova planta da horta / tempo / colheita | `game/data/crops.json` (tempo, itens, moedas, XP, requisitos; ícone em `items.json`); terrenos em `config.json` → `farm` |
+| Painel de produção/coleta (padrão)    | Sempre o molde da estação: espaços em cima (`SheetBuilder.slot_frame`: ícone, tempo, barra; fechado = "+" com preço ou nível/XP), "Recolher/Coletar prontos", e embaixo cartões do que escolher (ícone 64, chips de tempo/ganho, botão). Usado em `station_view`, `NatureUi.panel` e `ProgressionUi.routes_panel` |
 | Novo tipo de painel de lugar          | caso em `Places._panel` (`scripts/ui/places.gd`) + função que monta o painel (`SheetBuilder`/`ProgressionUi`, com `UiKit`) |
 | Revelar algo aos poucos ("Novo!")     | `progression.json` → `features` (aba/seção com `requirements` e `go`); mundos, lugares e NPCs com `requirements` entram sozinhos. `GameState.new_unlocks`/`mark_seen`; tela em `scenes/ui/celebration/` |
 | Botão "Ir até lá"                     | `Events.world_requested.emit(mundo, "<lugar>" | "npc:<id>" | "buy:<construção>")` |
@@ -104,6 +105,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: PrimaryButton, TabButton, CloseButton, CardPanel, ReadyCardPanel, ChipPanel, SheetPanel, TopBarPanel, TitleLabel, SectionLabel, SmallLabel, BarLabel, ToastLabel) |
 | Ícone de item/necessidade/atributo    | PNG 32 px em `game/assets/sprites/ui/icons/` + campo `"icon"` no JSON (caminho em `items.json`/`needs`; nome do arquivo sem `.png` em `progression.json`, `npcs.json`, `collections.json`) |
 | Adicionar dado que deve ser salvo     | classe em `game/scripts/state/` (ou campo no `GameState`) + `to_dict`/`from_dict`/`reset` |
+| Configurações / vários saves          | Engrenagem na barra superior (`main.gd._build_settings_button`) → `scripts/ui/settings_panel.gd`. Saves 1..5 em `SaveManager` (`list_slots/switch_slot/new_slot/delete_slot/set_default_slot`; slot 1 = `save.json`/`save_dev.json`, outros `save_N.json`; padrão em `settings.json`); trocar de save recarrega a cena |
 | Mudar formato do save                 | `game/autoload/save_manager.gd` (`SAVE_VERSION` + `_migrate`) |
 | Comunicar sistemas desacoplados       | sinal novo em `game/autoload/events.gd` |
 | Criar tela/menu                       | `game/scenes/ui/<nome>/` |

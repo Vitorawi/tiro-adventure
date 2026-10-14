@@ -53,7 +53,8 @@ func enter(world_id: String, place: String = "") -> void:
 		return
 	current_world = world_id
 	GameState.note_screen_opened(world_id)
-	if not _views.has(world_id):
+	var fresh_view := not _views.has(world_id)
+	if fresh_view:
 		_views[world_id] = _build_world(world_id)
 		%WorldHolder.add_child(_views[world_id])
 	for id: String in _views:
@@ -64,6 +65,8 @@ func enter(world_id: String, place: String = "") -> void:
 	_refresh_header()
 	if place == "":
 		return
+	if fresh_view:
+		await get_tree().process_frame  # a sala nova recentraliza a câmera no próximo quadro
 	var room := _views[world_id] as RoomView
 	# "look:<ação>": só a seta, sem abrir o painel (o jogador toca por conta própria).
 	if place.begins_with("look:"):

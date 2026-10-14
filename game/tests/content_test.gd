@@ -19,6 +19,19 @@ func _run() -> void:
 		check(int(animal.price) > 0, id + ": preço positivo")
 		check(ResourceLoader.exists(animal.sprite), id + ": sprite existente")
 		check(int(db.get("stations")[animal.station].get("animal_capacity", 0)) > 0, id + ": capacidade do abrigo")
+	# Geladeira guarda só comida e ingredientes; materiais ficam na Mochila.
+	var builder: Script = load("res://scripts/ui/sheet_builder.gd")
+	for id: String in ["dog_food", "carrot", "vegetable_soup", "egg", "milk", "flour", "cheese", "apple"]:
+		check(builder.call("_fits_fridge", id), id + ": cabe na geladeira")
+	for id: String in ["wood", "stone", "plank", "brick", "copper", "crystal", "fiber", "fabric", "hardwood", "treat_box", "accessory_set"]:
+		check(not builder.call("_fits_fridge", id), id + ": não cabe na geladeira")
+	# Cada abrigo abre só o próprio painel (galinheiro ≠ curral).
+	var farm_room: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/rooms/farm.json"))
+	for object: Dictionary in farm_room.objects:
+		var shelter: String = object.get("animal_station", object.get("station", ""))
+		if shelter != "" and db.get("stations").get(shelter, {}).get("kind", "") == "animal":
+			check(object.get("action", "") == "place:" + shelter, str(object.get("id", "")) + ": abre só o painel de " + shelter)
+			check(db.get("worlds").farm.places.has(shelter) and db.get("worlds").farm.places[shelter].panel == "station:" + shelter, shelter + ": lugar próprio")
 	var saver: Node = root.get_node("SaveManager")
 	root.remove_child(saver)
 	saver.free()
@@ -121,7 +134,7 @@ func _run() -> void:
 					for group in arg.split("+"):
 						check(data.activities.values().any(func(a: Dictionary) -> bool: return a.place == group), place + ": grupo de rotas inexistente " + group)
 				"market": check(arg in ["sell", "orders"], place + ": aba da feira")
-				"inventory", "feed", "sleep", "farm": pass
+				"inventory", "fridge", "feed", "sleep", "farm": pass
 				_: check(false, place + ": painel desconhecido")
 			if p.has("upgrade"):
 				check(data.upgrades.has(p.upgrade), place + ": construção inexistente")

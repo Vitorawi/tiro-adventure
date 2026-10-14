@@ -179,6 +179,7 @@
   "egg": {
     "name": "Ovos",
     "category": "product",
+    "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_egg.png",
     "sell_price": 9,
     "trade_xp": 3
@@ -186,6 +187,7 @@
   "milk": {
     "name": "Leite",
     "category": "product",
+    "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_milk.png",
     "sell_price": 12,
     "trade_xp": 3
@@ -193,6 +195,7 @@
   "flour": {
     "name": "Farinha",
     "category": "material",
+    "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_flour.png",
     "sell_price": 14,
     "trade_xp": 3

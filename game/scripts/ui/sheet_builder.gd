@@ -40,15 +40,21 @@ static func food_picker() -> Control:
 const CATEGORIES := {"food": "Comidas", "crop": "Colheitas", "material": "Materiais", "product": "Produtos"}
 
 
-## Mochila (também é a geladeira): ícone + quantidade por categoria; tocar abre o detalhe.
-static func inventory_view() -> Control:
+## Mochila (todos os itens) ou, com `fridge`, só o que cabe na geladeira: comidas, colheitas e
+## ingredientes com "storage": "fridge" em items.json (ovos, leite, farinha). Materiais ficam só
+## na Mochila. Ícone + quantidade por categoria; tocar abre o detalhe.
+static func inventory_view(fridge: bool = false) -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
-		if GameState.inventory.counts.is_empty():
-			_empty_message(box, "Mochila vazia.", "")
+		var shown: Array[String] = []
+		for id: String in GameState.inventory.counts:
+			if not fridge or _fits_fridge(id):
+				shown.append(id)
+		if shown.is_empty():
+			_empty_message(box, "Geladeira vazia." if fridge else "Mochila vazia.", "Guarde comidas e ingredientes aqui." if fridge else "")
 			return
 		for category: String in CATEGORIES:
 			var ids: Array[String] = []
-			for id: String in GameState.inventory.counts:
+			for id: String in shown:
 				if Database.items.get(id, {}).get("category", "product") == category:
 					ids.append(id)
 			if ids.is_empty():
@@ -62,6 +68,11 @@ static func inventory_view() -> Control:
 			for id in ids:
 				grid.add_child(_item_tile(id))
 			box.add_child(grid))
+
+
+static func _fits_fridge(id: String) -> bool:
+	var item: Dictionary = Database.items.get(id, {})
+	return str(item.get("category", "product")) in ["food", "crop"] or item.get("storage", "") == "fridge"
 
 
 static func _item_tile(id: String) -> Button:
@@ -216,17 +227,17 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 
 static func _slot_card(entry: Dictionary, now: float) -> Control:
 	if entry.is_empty():
-		return _slot_frame(null, "Livre", 0.0, false, true)
+		return slot_frame(null, "Livre", 0.0, false, true)
 	var recipe: Dictionary = Database.recipes[entry["recipe"]]
 	var seconds := float(recipe["seconds"])
 	var remaining := float(entry["ready_at"]) - now
 	var texture := Database.item_icon(recipe["output"])
 	var amount := " · ×%d" % int(entry.get("qty", recipe.get("qty", 1)))
 	if remaining <= 0.0:
-		return _slot_frame(texture, "Pronto!" + amount, 1.0, true, false)
+		return slot_frame(texture, "Pronto!" + amount, 1.0, true, false)
 	if remaining > seconds:
-		return _slot_frame(texture, "Na fila", 0.0, false, false)
-	return _slot_frame(texture, format_time(int(ceil(remaining))) + amount, 1.0 - remaining / seconds, false, false)
+		return slot_frame(texture, "Na fila", 0.0, false, false)
+	return slot_frame(texture, format_time(int(ceil(remaining))) + amount, 1.0 - remaining / seconds, false, false)
 
 
 ## Espaço ainda fechado: "+" e o preço; tocar abre a compra da ampliação.
@@ -259,7 +270,7 @@ static func _locked_slot(upgrade_id: String) -> Control:
 	return panel
 
 
-static func _slot_frame(texture: Texture2D, text: String, progress: float, done: bool, empty: bool) -> Control:
+static func slot_frame(texture: Texture2D, text: String, progress: float, done: bool, empty: bool) -> Control:
 	var panel := PanelContainer.new()
 	panel.theme_type_variation = &"ReadyCardPanel" if done else &"CardPanel"
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -354,9 +365,27 @@ static func animal_shop(station_id: String) -> Control:
 			buy.disabled = error != ""
 			body.add_child(buy)
 			if error != "":
-				body.add_child(UiKit.label(error, &"SmallLabel"))
+				_animal_missing(body, animal, error)
 		box.add_child(UiKit.button("Ver meus animais", func() -> void:
 			Events.sheet_requested.emit(data.name, station_view(station_id)))))
+
+
+## O que falta para comprar o animal, em ícone + número (pode faltar mais de uma coisa):
+## produtos a recolher (ex.: ovos 1/2) e moedas (78/80). Outros motivos continuam em texto.
+static func _animal_missing(body: VBoxContainer, animal: Dictionary, error: String) -> void:
+	var chips := UiKit.flow(4)
+	var produced: Dictionary = animal.get("requirements", {}).get("produced", {})
+	for item_id: String in produced:
+		var done := GameState.progress.stat("produce:" + item_id)
+		if done < int(produced[item_id]):
+			chips.add_child(UiKit.chip(Database.item_icon(item_id), "%d/%d" % [done, int(produced[item_id])], UiKit.BAD))
+	if GameState.coins < int(animal.price):
+		chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [GameState.coins, int(animal.price)], UiKit.BAD))
+	if chips.get_child_count() > 0:
+		body.add_child(chips)
+	else:
+		chips.free()
+		body.add_child(UiKit.label(error, &"SmallLabel"))
 
 
 ## Sementes para um canteiro vazio: [planta] nome · tempo · moedas · colheita · [Plantar].

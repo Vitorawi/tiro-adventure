@@ -29,6 +29,40 @@
 - (8) Laís do mapa refeita (v3, pro 128 px, mesmo detalhe do Tiro, esguia) com caminhada de 8 quadros;
   `world_scale` removido do `npcs.json` (campo e suporte no `room.gd` continuam para outros NPCs).
   Detalhes em `docs/ART_PIPELINE.md`. Falta publicar.
+- (9) Painéis de produção padronizados (pedido do Vitor: gostou do do fogão): espaços em cima com
+  tempo/barra, espaço fechado mostrando preço (estações) ou nível/XP (Natureza), recolher, e embaixo
+  os cartões do que escolher. Aplicado à Natureza (`NatureUi.panel/_material/_slot`) e ao Pomar
+  (`ProgressionUi.routes_panel`); `SheetBuilder.slot_frame` agora é público. Regra em `CLAUDE.md`.
+  Falta publicar (itens 8 e 9).
+- (10) Geladeira só com comida e ingredientes: lugar `fridge` usa `panel: "fridge"` →
+  `SheetBuilder.inventory_view(true)` (categorias food/crop + itens com `"storage": "fridge"` em
+  `items.json`: ovos, leite, farinha). Materiais/produtos de oficina ficam só na aba Mochila.
+  Teste em `content_test` (`_fits_fridge`). Falta publicar (itens 8–10).
+- (11) Contador de ingrediente mostrava o estoque limitado ao que a receita pede (6 pedras = "3/3",
+  e depois de gastar 3 continuava "3/3"; parecia que não descontava). `ProgressionUi.item_chip` e
+  os chips do `TaskHelp` agora mostram o estoque real ("6/3" → "3/3"). O desconto em si (`GameState.cook`)
+  sempre esteve correto. Falta publicar (itens 8–11).
+- (12) Sombra das áreas bloqueadas (Estufa/Pomar/Animais) ficava NA FRENTE de objetos (galinheiro, plantas):
+  `room.gd._spawn_regions` agora usa z_index 0 e `move_child(region, 0)`: sombra e cerca ficam atrás dos
+  objetos. Falta publicar (itens 8–12).
+- (13) Galinheiro e curral abriam o mesmo painel com os dois. Agora cada abrigo tem lugar próprio
+  (`worlds.json → farm.places.chicken_coop / cow_barn`, `hidden`, `panel: station:<id>`) e os objetos do
+  `rooms/farm.json` (abrigo + bichos) usam `place:chicken_coop` / `place:cow_barn`. A zona "Animais"
+  (`animal_yard`) e a lista "Lugares" continuam com o painel junto. Teste em `content_test`.
+  Falta publicar (itens 8–13).
+- (14) Loja de animais: botão cinza só dizia o 1º motivo ("Recolha 2 × Ovos") mesmo faltando moedas
+  também. `SheetBuilder._animal_missing` mostra tudo em chips ícone + número (ovos 0/2, moedas 78/80);
+  texto só para outros motivos (abrigo cheio etc.). Falta publicar (itens 8–14).
+- (15) "Ir" de comprar/construir (objetivo `owned`) levava ao lugar da estação (ex.: fogão). Agora
+  `Places.goal_target` devolve sempre `buy:<construção>`: a seta aponta o "+" do objeto
+  (`RoomView.point_at("buy:<id>")`, cai no lugar só se a sala não tiver o "+") e abre a compra com o que é
+  preciso ter. `WorldsScreen.enter` espera um quadro numa sala recém-aberta e `RoomView._reveal` confere a
+  câmera de novo após 0,2 s (a seta aparecia fora de vista na 1ª abertura). Falta publicar (itens 8–15).
+- (16) Configurações com vários saves (pedido do Vitor): engrenagem (`ui/icons/settings.png`, Pixen job
+  `2521958e-e74f-4ec9-a45c-38ad69c6b2d0`) ao lado das moedas abre `SettingsPanel`: até 5 saves, cada um com
+  nível/capítulo/moedas, Jogar, Tornar padrão (o que o jogo abre ao iniciar) e Excluir (2 toques); "+ Novo save".
+  O save de sempre vira o Save 1 (sem migração). Detalhes no cabeçalho de `save_manager.gd`.
+  Teste: `saves_test` (usa o slot 4 e devolve o padrão). Falta publicar (itens 8–16).
 - (5) Recolher direto no mapa + animação: `Events.items_gained` / `CollectFx` (z_index 20, filho de `main`).
   Tocar numa estação/criação com lote pronto, no marcador "Recolher" da Natureza ou numa planta
   madura recolhe sem abrir painel e salta ícone +N. Os botões de recolher dos painéis usam a mesma

@@ -54,6 +54,8 @@ static func _panel(kind: String, arg: String) -> Control:
 			return SheetBuilder.stations_view(arg.split("+"))
 		"inventory":
 			return SheetBuilder.inventory_view()
+		"fridge":
+			return SheetBuilder.inventory_view(true)
 		"feed":
 			return SheetBuilder.food_picker()
 		"farm":
@@ -176,6 +178,14 @@ static func world_list(world_id: String) -> Control:
 	)
 
 
+## Ação do lugar onde a construção é feita (usada quando a sala não tem o "+" dela).
+static func upgrade_place_action(upgrade_id: String) -> String:
+	var spot := Database.place_of_upgrade(upgrade_id)[1]
+	if spot == "plots":
+		return "plot"
+	return "place:" + spot if spot != "" else ""
+
+
 ## Ação da sala (objeto ou zona de rooms/<id>.json) que representa o destino do "Ir",
 ## para a seta apontar: "place:stove", "npc:bloblo", "market:orders" ou "plot".
 static func highlight_action(place: String) -> String:
@@ -193,7 +203,7 @@ static func highlight_action(place: String) -> String:
 		"crop":
 			return "plot"
 		"buy":
-			spot = Database.place_of_upgrade(id)[1]
+			return "buy:" + id  # seta no "+" do objeto; RoomView.point_at cai no lugar se não houver "+"
 	if spot == "plots":
 		return "plot"
 	return "place:" + spot if spot != "" else ""
@@ -308,10 +318,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 	match str(goal.get("type", "")):
 		"owned":
 			if Database.progression.upgrades.has(key):
-				# Vai ao lugar onde se compra (cozinha, portão...); sem lugar, abre a compra direto.
-				var location := Database.place_of_upgrade(key)
-				if location[0] != "":
-					return {"world": location[0], "place": location[1], "hint": str(Database.worlds[location[0]].places[location[1]].name)}
+				# Compra/construção: vai ao "+" do objeto (seta) e abre a compra com o que é preciso ter.
 				return {"world": Database.progression.upgrades[key].world, "place": "buy:" + key, "hint": "Construir: " + str(Database.progression.upgrades[key].name)}
 		"coins":
 			return _panel_target("sell")

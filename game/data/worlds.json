@@ -30,9 +30,9 @@
       "fridge": {
         "name": "Geladeira",
         "icon": "tab_bag",
-        "description": "Tudo o que você guardou.",
+        "description": "Comidas, colheitas e ingredientes.",
         "upgrade": "fridge",
-        "panel": "inventory"
+        "panel": "fridge"
       },
       "door": {
         "name": "Ir para o sítio",
@@ -107,6 +107,34 @@
         "description": "Alimentar galinhas e vacas, recolher ovos e leite.",
         "panel": "stations:chicken_coop+cow_barn",
         "upgrade": "chicken_coop",
+        "requirements": {
+          "chapter": 5,
+          "owned": [
+            "farm"
+          ]
+        }
+      },
+      "chicken_coop": {
+        "name": "Galinheiro",
+        "icon": "item_egg",
+        "description": "Alimentar galinhas e recolher ovos.",
+        "panel": "station:chicken_coop",
+        "upgrade": "chicken_coop",
+        "hidden": true,
+        "requirements": {
+          "chapter": 5,
+          "owned": [
+            "farm"
+          ]
+        }
+      },
+      "cow_barn": {
+        "name": "Curral",
+        "icon": "item_milk",
+        "description": "Alimentar vacas e recolher leite.",
+        "panel": "station:cow_barn",
+        "upgrade": "cow_barn",
+        "hidden": true,
         "requirements": {
           "chapter": 5,
           "owned": [
