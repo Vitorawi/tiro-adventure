@@ -19,6 +19,12 @@ func _run() -> void:
 		check(int(animal.price) > 0, id + ": preço positivo")
 		check(ResourceLoader.exists(animal.sprite), id + ": sprite existente")
 		check(int(db.get("stations")[animal.station].get("animal_capacity", 0)) > 0, id + ": capacidade do abrigo")
+	# Caminha do Tiro: objeto na casa com sprite; o presente não se vende.
+	var house_room: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/rooms/house.json"))
+	var bed_objects: Array = house_room.objects.filter(func(o: Dictionary) -> bool: return o.id == "dog_bed")
+	check(bed_objects.size() == 1 and ResourceLoader.exists(bed_objects[0].sprite), "dog_bed: sprite existente na casa")
+	check(house_room.points.has("bed_sleep") and house_room.points.has("bed_approach"), "dog_bed: pontos de dormir")
+	check(not db.get("items")["bed_gift"].has("sell_price"), "bed_gift: presente não se vende")
 	# Geladeira guarda comida e ingredientes (ovo, leite...); colheitas vão ao silo, materiais ao armazém.
 	var builder: Script = load("res://scripts/ui/sheet_builder.gd")
 	for id: String in ["vegetable_soup", "egg", "milk", "flour", "cheese"]:
@@ -40,7 +46,7 @@ func _run() -> void:
 	var data: Dictionary = db.get("progression")
 	for c in range(1, data.chapters.size() + 1):
 		var ids: Array = progress.main_quests(c)
-		check(ids.size() >= 2 and ids.size() <= 5, "capítulo %d deve ter 2–5 passos" % c)
+		check(ids.size() >= 2 and ids.size() <= 6, "capítulo %d deve ter 2–6 passos" % c)
 		for i in ids.size():
 			check(int(quests[ids[i]].get("order", 0)) == (i + 1) * 10, "ordem repetida ou lacuna: " + ids[i])
 		if not ids.is_empty() and str(data.chapters[c - 1].target) != "":

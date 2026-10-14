@@ -51,9 +51,17 @@
         "panel": "travel:farm",
         "requirements": {
           "quests": [
-            "lais_bag"
+            "lais_bed"
           ]
         }
+      },
+      "bed": {
+        "name": "Caminha",
+        "icon": "action_sleep",
+        "description": "Soneca do Tiro.",
+        "upgrade": "dog_bed",
+        "panel": "sleep",
+        "hidden": true
       },
       "sofa": {
         "name": "Sofá",
@@ -74,7 +82,7 @@
     "room": "farm",
     "requirements": {
       "quests": [
-        "lais_bag"
+        "lais_bed"
       ]
     },
     "npcs": [

@@ -338,7 +338,7 @@ passo ativo. Sem animação configurada, o NPC continua com seu retrato estátic
 - **Presente do dia:** `progression.json → daily_gift` (ciclo de 7 dias jogados, nunca zera),
   estado `progress.daily_gift {period, count}`, `GameState.claim_daily_gift/daily_gift_error`.
 - **Bem-vindo de volta:** cartão `scenes/ui/welcome_back/` ao abrir/voltar após `settings.welcome_back_seconds` (300 s),
-  só depois de `settings.welcome_requirements` (`lais_bag`) e se houver presente ou algo pronto
+  só depois de `settings.welcome_requirements` (`lais_bed`) e se houver presente ou algo pronto
   (`GameState.welcome_ready_lines`).
 - **Dica parada:** `settings.idle_hint_seconds` (15) / `idle_hint_max_chapter` (4): seta sozinha no alvo do passo
   (`WorldsScreen.advance_idle`), uma vez por passo.

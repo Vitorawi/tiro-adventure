@@ -54,6 +54,15 @@
       "footprint": [[410, 274], [440, 240], [568, 300], [506, 322]]
     },
     {
+      "id": "dog_bed",
+      "action": "place:bed",
+      "upgrade": "dog_bed",
+      "sprite": "res://assets/sprites/areas/house/dog_bed.png",
+      "pos": [372, 336],
+      "approach": [352, 346],
+      "footprint": [[350, 330], [372, 318], [394, 330], [372, 342]]
+    },
+    {
       "id": "oven",
       "action": "place:stove",
       "upgrade": "oven",
@@ -70,7 +79,7 @@
       "action": "place:door",
       "label": "Sítio",
       "label_pos": [192, 28],
-      "requirements": {"quests": ["lais_bag"]},
+      "requirements": {"quests": ["lais_bed"]},
       "polygon": [[166, 218], [218, 192], [218, 40], [166, 64]]
     }
   ],
@@ -80,6 +89,8 @@
     "door_in": [212, 236],
     "bowl": [190, 238],
     "sleep": [466, 288],
-    "sleep_approach": [440, 316]
+    "sleep_approach": [440, 316],
+    "bed_sleep": [374, 338],
+    "bed_approach": [352, 346]
   }
 }

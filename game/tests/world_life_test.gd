@@ -104,6 +104,23 @@ func _run() -> void:
 	_shot("village_buildings")
 	for room: Control in [farm, house, village]:
 		_check_paths(room)
+	# Caminha do Tiro: presente grátis, e o Tiro passa a dormir nela (no chão).
+	state.get("progress").owned.erase("dog_bed")  # dev_unlock_everything já comprou
+	state.call("dev_add_coins", 0)  # só para emitir state_changed
+	await process_frame
+	var house_dog: Node2D = house.get("_dog")
+	check(not (house_dog.get("sleep_point") as Vector2).is_equal_approx(Vector2(374, 338)), "Sem caminha, o Tiro não dorme nela")
+	check(house_dog.get("sleep_climbs"), "Sem caminha, o Tiro sobe no sofá/chão antigo")
+	state.get("inventory").call("remove", "bed_gift", int(state.get("inventory").call("count", "bed_gift")))  # dev_add_items deu 20
+	check(state.call("upgrade_error", "dog_bed") != "", "Caminha exige o presente")
+	state.get("inventory").call("add", "bed_gift", 1)
+	var coins_before: int = state.get("coins")
+	check(state.call("buy_upgrade", "dog_bed") == "", "Comprar a caminha com o presente")
+	check(state.get("coins") == coins_before, "Caminha não custa moedas")
+	check(state.get("inventory").call("count", "bed_gift") == 0, "Comprar consome o presente")
+	check((house_dog.get("sleep_point") as Vector2).is_equal_approx(Vector2(374, 338)) and not house_dog.get("sleep_climbs"), "Com caminha, sleep_point = bed_sleep")
+	check(house.find_child("dog_bed", true, false).self_modulate.a == 1.0, "Caminha aparece na casa")
+	_shot("house_bed")
 	# Dormindo/fora do mapa não reage nem acorda por causa de uma produção.
 	state.call("set_sleeping", true)
 	var village_dog: Node = village.get("_dog")

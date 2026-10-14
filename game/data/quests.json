@@ -94,7 +94,10 @@
       }
     ],
     "rewards": {
-      "coins": 10
+      "coins": 10,
+      "items": {
+        "bed_gift": 1
+      }
     },
     "kind": "main",
     "chapter": 1,
@@ -102,6 +105,30 @@
     "go": {
       "screen": "bag",
       "hint": "Toque na aba Mochila."
+    }
+  },
+  "lais_bed": {
+    "npc": "lais",
+    "name": "Um cantinho para ele",
+    "dialogue": "É uma caminha! Escolhe um cantinho da casa pra ela.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "dog_bed",
+        "label": "Pôr a caminha na casa"
+      }
+    ],
+    "rewards": {
+      "coins": 10,
+      "affection": 5
+    },
+    "kind": "main",
+    "chapter": 1,
+    "order": 60,
+    "go": {
+      "world": "house",
+      "place": "buy:dog_bed",
+      "hint": "Casa → toque no +"
     }
   },
   "lais_meet_bloblo": {
@@ -358,7 +385,7 @@
     "order": 10,
     "requirements": {
       "quests": [
-        "lais_bag"
+        "lais_bed"
       ]
     }
   },

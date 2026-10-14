@@ -37,7 +37,7 @@ Ao terminar, marque a etapa como feita no docs/plans/comeco/README.md.
 ## Andamento (o executor marca ao terminar cada etapa)
 - [x] Etapa 00 — fundação (13/10/2026)
 - [x] Etapa 01 — facilitar (14/10/2026)
-- [ ] Etapa 02 — caminha
+- [x] Etapa 02 — caminha (14/10/2026)
 - [ ] Etapa 03 — desejos
 - [ ] Etapa 04 — sabores
 - [ ] Etapa 05 — faro

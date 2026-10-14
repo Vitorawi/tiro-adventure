@@ -4,7 +4,17 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **14/10/2026, Claude Code**.
 
-**✔ Etapa 01 do começo (facilitar) feita — Claude Code, 14/10/2026.** Próximo passo: `docs/plans/comeco/ETAPA_02_caminha.md` (Etapa 02).
+**✔ Etapa 02 do começo (caminha) feita — Claude Code, 14/10/2026.** Próximo passo: `docs/plans/comeco/ETAPA_03_desejos.md` (Etapa 03).
+- `lais_bag` agora dá o item `bed_gift` (Mochila); nova missão `lais_bed` (cap. 1, ordem 60, objetivo `owned: dog_bed`, +10 moedas, +5 carinho).
+  Construção `dog_bed` (custo 0 + `bed_gift`, lugar `bed` oculto em `worlds.json → house`, objeto + pontos `bed_sleep`/`bed_approach` em `rooms/house.json`).
+  Sítio, porta, vovó, `bloblo_meet` e `welcome_requirements` passam a exigir `lais_bed`.
+- Tiro dorme na caminha (`RoomView.refresh_sleep_points`, chamado no spawn e a cada `state_changed`; `DogWorld.sleep_climbs = false` = no chão,
+  sem subir). Prioridade: caminha > sofá > chão. Custo 0 aparece como "Grátis" (painel de compra e marcador "+").
+- Decisões: `content_test` agora aceita capítulo com até 6 passos (cap. 1 ficou com 6). Caminha em (372,336), Tiro deitado em `bed_sleep` (374,338), à frente dela;
+  conferido nas capturas 360×780. Arte no `ART_PIPELINE.md` (a `style_image` do PixelLab tem de caber no canvas: usei recorte do piso).
+- Testes: rodei cada teste da suíte direto no Godot (todos PASS, inclusive `-- --prod`); o `test_all.ps1` completo passa de 10 min nesta máquina, não esperei até o fim. `world_life_test` (caminha: sleep_point, grátis, consome presente), `content_test`, `welcome/intro/farm_test` usam `lais_bed`.
+
+**✔ Etapa 01 do começo (facilitar) feita — Claude Code, 14/10/2026.**
 - 1A: vovó empresta 2 e depois 4 canteiros; `initial_plots` 4, `unlock_costs` `[0,0,0,0,40,70,100,150,220]`. 1D: só o próximo
   canteiro fechado tem etiqueta (`PlotIndicator`: ícone `tab_farm` + "Vovó", ou moeda + preço).
 - 1B: abóbora → `bloblo_potato`, papinha → `lais_stew`; regra nova no `content_test` (skills só com cap. ≥ 6 ou construção com

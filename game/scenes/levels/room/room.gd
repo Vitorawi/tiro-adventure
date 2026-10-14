@@ -361,8 +361,22 @@ func _refresh_ownership() -> void:
 			tag.visible = not GameState.has_upgrade(locked_upgrade)
 	_place_labels()
 	_build_navigation()
-	if _dog and _room.get("points", {}).has("sleep"):
+	refresh_sleep_points()
+
+
+## Onde o Tiro dorme: caminha (no chão) > sofá > chão perto do sofá.
+func refresh_sleep_points() -> void:
+	if _dog == null:
+		return
+	var points: Dictionary = _room.get("points", {})
+	if GameState.has_upgrade("dog_bed") and points.has("bed_sleep") and points.has("bed_approach"):
+		_dog.sleep_point = _point("bed_sleep")
+		_dog.sleep_approach = _point("bed_approach")
+		_dog.sleep_climbs = false
+	elif points.has("sleep") and points.has("sleep_approach"):
+		_dog.sleep_approach = _point("sleep_approach")
 		_dog.sleep_point = _point("sleep") if GameState.has_upgrade("sofa") else _point("sleep_approach")
+		_dog.sleep_climbs = true
 
 
 ## Regiões podem abrir por compra ou por requisitos da aventura/história.
@@ -517,9 +531,7 @@ func _spawn_dog() -> void:
 	var points: Dictionary = _room["points"]
 	if points.has("bowl"):
 		_dog.bowl_point = _point("bowl")
-	if points.has("sleep") and points.has("sleep_approach"):
-		_dog.sleep_point = _point("sleep")
-		_dog.sleep_approach = _point("sleep_approach")
+	refresh_sleep_points()
 	_dog.position = _dog.sleep_point if GameState.dog.sleeping and _dog.sleep_point != Vector2.INF else nearest_floor_point(_point("dog_start"))
 	_world.add_child(_dog)
 

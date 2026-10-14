@@ -85,6 +85,7 @@ func _screenshots(state: Node) -> void:
 	state.get("progress").skills["agriculture"] = 500
 	state.get("progress").seen["intro"] = true
 	state.get("progress").claimed_quests["lais_bag"] = true
+	state.get("progress").claimed_quests["lais_bed"] = true
 	state.get("progress").claimed_quests["bloblo_meet"] = true
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
@@ -102,6 +103,7 @@ func _screenshots(state: Node) -> void:
 	# Antes da escritura: só o próximo canteiro fechado mostra a etiqueta "Vovó".
 	state.get("progress").owned.erase("farm")
 	state.get("progress").claimed_quests["lais_bag"] = true
+	state.get("progress").claimed_quests["lais_bed"] = true
 	state.get("progress").claimed_quests["bloblo_meet"] = true
 	await create_timer(0.5).timeout
 	_shot("farm_progress_vovo")

@@ -22,12 +22,12 @@ func _run() -> void:
 	state = root.get_node("GameState")
 	state.call("reset")
 	var progress: RefCounted = state.get("progress")
-	# Antes de lais_bag não há presente nem cartão.
-	check(state.call("daily_gift_error") != "", "Sem presente antes de lais_bag")
+	# Antes de lais_bed não há presente nem cartão.
+	check(state.call("daily_gift_error") != "", "Sem presente antes de lais_bed")
 	var card_script: Script = load("res://scenes/ui/welcome_back/welcome_back.gd")
-	check(not card_script.call("has_content"), "Cartão não abre antes de lais_bag")
-	state.call("dev_complete_quest", "lais_bag")
-	check(state.call("daily_gift_error") == "", "Presente liberado depois de lais_bag")
+	check(not card_script.call("has_content"), "Cartão não abre antes de lais_bed")
+	state.call("dev_complete_quest", "lais_bed")
+	check(state.call("daily_gift_error") == "", "Presente liberado depois de lais_bed")
 	# Presente do dia: uma vez por dia; o ciclo anda só em dia jogado.
 	var cycle: Array = root.get_node("Database").get("progression").daily_gift
 	var first: Dictionary = state.call("daily_gift_rewards")
@@ -77,7 +77,7 @@ func _run() -> void:
 	check(state.get("level") >= 4, "Save preserva o nível")
 	# Tela: cartão abre, recebe presente e fecha.
 	state.call("reset")
-	state.call("dev_complete_quest", "lais_bag")
+	state.call("dev_complete_quest", "lais_bed")
 	# Algo pronto enquanto estava fora: um canteiro e uma sopa no fogão.
 	state.get("progress").owned["farm"] = true
 	state.get("progress").owned["stove"] = true

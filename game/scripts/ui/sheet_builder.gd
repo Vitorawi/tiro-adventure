@@ -271,7 +271,7 @@ static func _locked_slot(upgrade_id: String) -> Control:
 	plus.custom_minimum_size = Vector2(0, 64)
 	plus.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	box.add_child(plus)
-	var price := UiKit.chip(UiKit.ui_icon("coin"), str(int(data.cost)), UiKit.GOOD if GameState.coins >= int(data.cost) else UiKit.BAD)
+	var price := UiKit.chip(UiKit.ui_icon("coin"), "Grátis" if int(data.cost) <= 0 else str(int(data.cost)), UiKit.GOOD if GameState.coins >= int(data.cost) else UiKit.BAD)
 	price.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	box.add_child(price)
 	panel.add_child(box)

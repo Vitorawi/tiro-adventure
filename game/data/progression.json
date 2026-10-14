@@ -22,7 +22,7 @@
       "recipe:pumpkin_mash"
     ],
     "care_need_threshold": 95,
-    "welcome_requirements": {"quests": ["lais_bag"]},
+    "welcome_requirements": {"quests": ["lais_bed"]},
     "welcome_back_seconds": 300,
     "idle_hint_seconds": 15,
     "idle_hint_max_chapter": 4,
@@ -327,6 +327,15 @@
         "adventure": 25
       },
       "icon": "tab_farm"
+    },
+    "dog_bed": {
+      "name": "Caminha do Tiro",
+      "world": "house",
+      "description": "Um cantinho só dele para as sonecas.",
+      "cost": 0,
+      "materials": {"bed_gift": 1},
+      "requirements": {"quests": ["lais_bag"]},
+      "icon": "item_bed_gift"
     },
     "sofa": {
       "name": "Sofá do Tiro",

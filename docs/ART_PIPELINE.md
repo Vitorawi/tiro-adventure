@@ -245,3 +245,11 @@ armazém `4c3a037e-e51b-4b50-b259-9810ef727510`. Ícones Pixen 32 px em `ui/icon
 `ui/icons/action_water.png` — regador azul derramando gotas (job `fb2b5e89-c20b-46aa-9ed5-d05c21c0740c`,
 asset `a81f579c-9bdb-5d9d-aaa0-79fad89d6110`). Usado no canteiro (24 px, balançando), na animação de regar e
 nos ícones de missão do contador `water`. Original em `build/art_sources/etapa01/`.
+
+### Etapa 02 do começo (caminha) — 14/10/2026 (Claude Code)
+
+- `areas/house/dog_bed.png` (39×31 recortado): `create_object_pro_flash`, 1 direção, low top-down, 64×48; objeto
+  `0646e11a-dcb8-49ed-b2fe-d24ec3899d22` (job `136b91f6-5674-4ebc-9a50-bdaeeb2f8fda`). A `style_image` precisa caber no canvas
+  (o `room.png` de 632×395 foi recusado): usei um recorte 64×48 do piso da sala. 1 tentativa, ficou isométrica.
+- `ui/icons/item_bed_gift.png` 32×32: `create_image_pixen` (job `55030dd5-b6d1-48e1-80e0-a79b97e04b7f`,
+  asset `3b73d3e5-3a80-5b80-be62-142d5c7a40c2`), 1 geração. Originais em `build/art_sources/02/`.

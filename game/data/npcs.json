@@ -23,7 +23,7 @@
       "Este é o meu sítio. Vou te emprestar dois canteiros para começar.",
       "Vamos plantar juntos? Depois quero conhecer o Tiro!"
     ],
-    "requirements": {"quests": ["lais_bag"]},
+    "requirements": {"quests": ["lais_bed"]},
     "services": ["plots", "orchard"],
     "role": "A vovó do sítio",
     "portrait": "res://assets/sprites/characters/npc_bloblo/portrait.png",

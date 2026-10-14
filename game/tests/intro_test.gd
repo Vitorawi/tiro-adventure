@@ -65,7 +65,7 @@ func _run() -> void:
 	check(not state.get("progress").claimed_quests.has("welcome"), "Apresentação não recebe missão automaticamente")
 	await _shot("intro_lais")
 	var places: Script = load("res://scripts/ui/places.gd")
-	state.call("dev_complete_quest", "lais_bag")
+	state.call("dev_complete_quest", "lais_bed")
 	main.call("_on_world_requested", "farm", "")
 	await create_timer(0.3).timeout
 	main.get_node("Celebration").hide()
