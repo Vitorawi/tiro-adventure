@@ -12,6 +12,7 @@
   sem subir de verdade). Prioridade: caminha > sofá > chão. Custo 0 aparece como "Grátis" (painel de compra e marcador "+").
 - Decisões: `content_test` agora aceita capítulo com até 6 passos (cap. 1 ficou com 6). Caminha em (372,336), Tiro deitado em `bed_sleep` (376,330), desenhado na frente dela (z_index, igual ao sofá; caminha com `scale` 1.5);
   conferido nas capturas 360×780. Arte no `ART_PIPELINE.md` (a `style_image` do PixelLab tem de caber no canvas: usei recorte do piso).
+- Dicas p/ a próxima sessão: em testes headless não tipar com classes que usam autoloads (ex.: `DogWorld`; dá "Identifier not found: Events" e o teste trava) — use `Node2D` + `.get()`; `dev_unlock_everything`/`dev_add_items` já dão `dog_bed`/`bed_gift`; saída de teste com `grep` em pipe só aparece no fim (redirecione para arquivo). `tools/_*.gd` temporários de captura devem ser apagados.
 - Testes: rodei cada teste da suíte direto no Godot (todos PASS, inclusive `-- --prod`); o `test_all.ps1` completo passa de 10 min nesta máquina, não esperei até o fim. `world_life_test` (caminha: sleep_point, grátis, consome presente), `content_test`, `welcome/intro/farm_test` usam `lais_bed`.
 
 **✔ Etapa 01 do começo (facilitar) feita — Claude Code, 14/10/2026.**
