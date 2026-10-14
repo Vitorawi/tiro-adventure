@@ -155,9 +155,12 @@ func _build_settings_button() -> void:
 	gear.flat = true
 	gear.icon = UiKit.ui_icon("settings")
 	gear.expand_icon = true
-	gear.custom_minimum_size = Vector2(40, 40)
+	gear.custom_minimum_size = Vector2(48, 48)
 	gear.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	gear.add_theme_constant_override("icon_max_width", 32)
+	gear.add_theme_constant_override("icon_max_width", 48)
+	# Sem margens internas do botão: o ícone ocupa todo o espaço.
+	for style: String in ["normal", "hover", "pressed", "focus", "disabled"]:
+		gear.add_theme_stylebox_override(style, StyleBoxEmpty.new())
 	gear.pressed.connect(SettingsPanel.open)
 	%CoinsLabel.get_parent().add_child(gear)
 

@@ -4,7 +4,6 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/pet_screen/pet_screen.tscn" id="2_pet"]
 [ext_resource type="PackedScene" path="res://scenes/ui/worlds_screen/worlds_screen.tscn" id="3_worlds"]
 [ext_resource type="PackedScene" path="res://scenes/ui/sheet/sheet.tscn" id="4_sheet"]
-[ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/xp.png" id="5_xp"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/coin.png" id="6_coin"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_pet.png" id="7_tab_pet"]
 [ext_resource type="Texture2D" path="res://assets/sprites/ui/icons/tab_map.png" id="8_tab_map"]
@@ -75,15 +74,6 @@ theme_type_variation = &"TopBarPanel"
 [node name="HBox" type="HBoxContainer" parent="Layout/TopBar"]
 layout_mode = 2
 theme_override_constants/separation = 6
-
-[node name="XpIcon" type="TextureRect" parent="Layout/TopBar/HBox"]
-custom_minimum_size = Vector2(32, 32)
-layout_mode = 2
-size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("5_xp")
-expand_mode = 1
-stretch_mode = 5
 
 [node name="LevelBox" type="VBoxContainer" parent="Layout/TopBar/HBox"]
 custom_minimum_size = Vector2(110, 0)
