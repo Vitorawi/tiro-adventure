@@ -2,6 +2,13 @@ extends CanvasLayer
 ## Comemoração modal acima do Sheet, sem estado persistente: capítulo concluído e/ou
 ## novidades reveladas pela história ("Novo!": ícone + nome + Ir).
 
+var _panel: PanelContainer
+var _box: VBoxContainer
+
+
+func _ready() -> void:
+	get_viewport().size_changed.connect(_resize_panel)
+
 
 ## Capítulo concluído: recompensas + novidades.
 func show_chapter(index: int, unlocks: Array[String]) -> void:
@@ -95,10 +102,29 @@ func _open() -> VBoxContainer:
 	panel.theme_type_variation = &"ReadyCardPanel"
 	panel.custom_minimum_size.x = 320
 	center.add_child(panel)
+	var scroll := ScrollContainer.new()
+	scroll.name = "CelebrationScroll"
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.follow_focus = true
+	panel.add_child(scroll)
 	var box := UiKit.vbox(12)
 	box.custom_minimum_size.x = 292
-	panel.add_child(box)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(box)
+	_panel = panel
+	_box = box
+	box.minimum_size_changed.connect(_resize_panel)
+	_resize_panel.call_deferred()
 	return box
+
+
+## Cartões curtos ficam centrados; listas longas cabem na tela e rolam até os botões finais.
+func _resize_panel() -> void:
+	if not is_instance_valid(_panel) or not is_instance_valid(_box):
+		return
+	var frame_height := _panel.get_theme_stylebox("panel").get_minimum_size().y
+	var content_height := _box.get_combined_minimum_size().y + frame_height
+	_panel.custom_minimum_size.y = minf(content_height, maxf(0.0, get_viewport().get_visible_rect().size.y - 32.0))
 
 
 func _center(control: Control) -> Control:

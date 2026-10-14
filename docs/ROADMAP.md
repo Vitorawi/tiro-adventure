@@ -4,6 +4,16 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **14/10/2026, Codex**.
 
+**✔ Correção da rolagem dos desbloqueios — Codex, 14/10/2026.**
+- A comemoração não tinha `ScrollContainer`: muitas novidades faziam o cartão ultrapassar a tela e
+  cortavam o botão Continuar. `celebration.gd` agora limita a altura à área visível (16 px de folga
+  em cima/baixo), rola o conteúdo e recalcula ao mudar o tamanho da janela/conteúdo.
+  Cartões curtos continuam compactos e centrados; aplica-se também às comemorações de nível/vínculo.
+- `tasks_test` cobre lista longa, limite de altura, rolagem até Continuar inteiro e fechamento;
+  também verifica o cartão curto. Capturas 360×780 `unlocks_scroll_top/bottom` e `tasks_celebration`
+  conferidas. Suíte completa executada um a um, incluindo DEV em prod. Sem push.
+- Próximo passo continua sendo **Etapa 04**, `docs/plans/comeco/ETAPA_04_sabores.md`.
+
 **✔ Etapa 03 do começo (Desejos e vínculo) feita — Claude Code + Codex, 14/10/2026.** Próximo passo: `docs/plans/comeco/ETAPA_04_sabores.md` (Etapa 04). Trabalho local, sem push.
 - Retomada da conversa Claude `b3a5ed69-3c90-4cfc-9fcd-6448e677647e`: parou no limite da sessão logo após
   acrescentar `_ui_checks` ao `wishes_test.gd`; implementação e quatro ícones PixelLab estavam sem commit.

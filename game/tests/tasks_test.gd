@@ -207,7 +207,26 @@ func _ui_check() -> void:
 	var news: Array[String] = ["world:village", "feature:bag", "npc:merchant"]
 	main.get_node("Celebration").call("show_chapter", 2, news)
 	await create_timer(0.2).timeout
+	var short_scroll := main.find_child("CelebrationScroll", true, false) as ScrollContainer
+	check((short_scroll.get_parent() as Control).size.y < root.get_visible_rect().size.y - 32, "Comemoração curta mantém cartão centrado e compacto")
 	_shot("tasks_celebration")
+	# Muitas novidades: o cartão cabe no celular e o último botão fica acessível pela rolagem.
+	var many_news: Array[String] = ["feature:wishes", "feature:bag", "feature:daily", "world:farm", "npc:bloblo", "world:village"]
+	main.get_node("Celebration").call("show_chapter", 2, many_news)
+	await create_timer(0.2).timeout
+	var scroll := main.find_child("CelebrationScroll", true, false) as ScrollContainer
+	var panel := scroll.get_parent() as Control
+	check(panel.get_global_rect().position.y >= 0 and panel.get_global_rect().end.y <= root.get_visible_rect().size.y + 1, "Desbloqueios longos cabem na altura da tela")
+	check(scroll.get_v_scroll_bar().max_value > scroll.get_v_scroll_bar().page, "Lista longa tem rolagem vertical")
+	_shot("unlocks_scroll_top")
+	scroll.scroll_vertical = int(scroll.get_v_scroll_bar().max_value)
+	await create_timer(0.2).timeout
+	var content := scroll.get_child(0) as VBoxContainer
+	var last_button := content.get_child(content.get_child_count() - 1) as Button
+	check(last_button.text == "Continuar" and last_button.get_global_rect().position.y >= scroll.get_global_rect().position.y and last_button.get_global_rect().end.y <= scroll.get_global_rect().end.y + 1, "Rolagem chega ao botão Continuar inteiro")
+	_shot("unlocks_scroll_bottom")
+	last_button.emit_signal("pressed")
+	check(not main.get_node("Celebration").visible, "Continuar fecha o desbloqueio após rolar")
 	main.get_node("Celebration").hide()
 	events.emit_signal("sheet_close_requested")
 	state.call("dev_unlock_everything")
