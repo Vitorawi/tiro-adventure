@@ -57,6 +57,8 @@ func _ready() -> void:
 	add_child(_welcome)
 	Events.level_up.connect(_on_level_up)
 	Events.bond_up.connect(_on_bond_up)
+	Events.find_discovered.connect(func(result: Dictionary) -> void:
+		_queue_modal(func() -> void: _celebration.show_find(result)))
 	var modal_timer := Timer.new()
 	modal_timer.wait_time = 0.3
 	modal_timer.autostart = true

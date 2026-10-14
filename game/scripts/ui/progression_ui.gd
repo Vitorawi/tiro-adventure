@@ -307,7 +307,25 @@ static func _next_milestone(skill_id: String, current: int) -> Dictionary:
 	return best
 
 
+static var _collection_tab := "clothes"
+
 static func collection_panel() -> Control:
+	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		var tabs := UiKit.hbox(8)
+		for entry: Array in [["clothes", "Roupas"], ["finds", "Achados"]]:
+			if entry[0] == "finds" and not GameState.progress.feature_unlocked("finds"):
+				continue
+			var button := UiKit.button(str(entry[1]), func() -> void:
+				_collection_tab = str(entry[0])
+				(box as SheetBuilder.LiveBox).refresh())
+			button.disabled = _collection_tab == entry[0]
+			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			tabs.add_child(button)
+		box.add_child(tabs)
+		box.add_child(FindUi.album() if _collection_tab == "finds" and GameState.progress.feature_unlocked("finds") else _clothes_panel())
+	)
+
+static func _clothes_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var count := 0
 		var grid := GridContainer.new()

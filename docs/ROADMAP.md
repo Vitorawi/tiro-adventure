@@ -4,6 +4,19 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **14/10/2026, Codex**.
 
+**✔ Etapa 05 do começo (Faro do Tiro) — Claude Code, 14/10/2026** (código iniciado pelo Codex). Commit local, sem push.
+- `data/finds.json` (mundos farm/village/nature, `guaranteed`, `table`, conjuntos), `FindState`, `GameState.update_finds/dig/dig_error/claim_find_set`,
+  `find_ui.gd` (álbum Roupas · Achados), montinho `DigSpot` no `RoomView`, `sniff`/`dig` no `DogWorld`, `dig_spots` em
+  `rooms/farm|village|nature.json`, missão `bloblo_dig` (ordem 25), diária `dig`, semanal `digger_week`, Mochila → Achados.
+- Arte (Codex gerou, Claude instalou): 16 achados + `item_map_piece` + `find_paw`, `areas/fx/dig_spot.png`, `fx_sparkle.png`,
+  `tiro_world/sniff/east` e `dig/east` (9 quadros). Originais em `build/art_sources/etapa05/`.
+- Ajustes de teste: `dig_spots` movidos para chão alcançável (farm 7, village 6, nature 6); `farm_test`, `tasks_test`,
+  `manual_test` (achados da Praça isentos até a Etapa 06), `progression_test` (cava a cada turno) e `onboarding_test`
+  (primeiro achado em 2,5 min, meta ≤ 9; capítulo 4 em 11,4 min, ocioso 220 s) atualizados. `finds_test` entrou no `test_all`. Suíte toda PASS.
+- **Pendências:** capturas 360×780 (farejando, "Novo achado!", Coleção → Achados, Mochila → Achados, cartão de volta) não foram
+  conferidas visualmente; registrar os jobs PixelLab na tabela do `ART_PIPELINE.md`; `docs/WORLDS.md`/`GAME_DESIGN.md` com `dig_spots`.
+  Próximo: **Etapa 06** (Praça, `park_set`, `map_piece_2`) em `docs/plans/comeco/`.
+
 **✔ Etapa 04 do começo (primeiros sabores) — Codex, 14/10/2026.** Trabalho local, sem push.
 - Morango e batata-doce, seis itens e quatro receitas; liquidificador de 30 moedas após
   `first_kitchen`, uma vaga, lugar oculto próprio e Cozinha agrupando as três estações.

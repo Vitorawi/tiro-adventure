@@ -110,6 +110,10 @@ func _campaign() -> Dictionary:
 		iterations = turn + 1
 		state.get("progress").cooldowns.clear()
 		state.get("dog").updated_at -= 3600.0
+		state.call("update_finds")
+		for find_world: String in state.get("finds").worlds:
+			state.get("finds").worlds[find_world].pending = 1
+			state.call("dig", find_world)
 		state.call("emergency_food")
 		state.call("bathe")
 		state.call("play")

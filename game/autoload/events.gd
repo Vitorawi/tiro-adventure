@@ -30,6 +30,8 @@ signal toast_requested(text: String)
 ## Recolheu algo: itens (id → qtd) e moedas; a tela mostra miniaturas saltando de `origin`
 ## (coordenadas da tela; Vector2(-1, -1) = meio da tela). Ver CollectFx.
 signal items_gained(items: Dictionary, coins: int, origin: Vector2)
+## Novo item do álbum ou mudas iniciais: cartão na fila de comemorações.
+signal find_discovered(result: Dictionary)
 ## Pede para abrir o painel inferior (sheet) com um conteúdo.
 signal sheet_requested(title: String, content: Control)
 ## Pede para fechar o painel inferior.

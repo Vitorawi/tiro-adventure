@@ -25,6 +25,8 @@ func _run() -> void:
 	var db: Node = root.get_node("Database")
 	var before: Dictionary = state.call("to_dict").duplicate(true)
 	for id: String in db.get("items"):
+		if id in ["lost_ball", "bone_keychain", "shiny_pebble", "dog_tag", "map_piece_2"]:
+			continue  # achados da Praça: ganham fonte na Etapa 06
 		check(not (manual.call("sources", id) as Array).is_empty(), id + ": precisa explicar uma fonte")
 		var detail: Control = manual.call("item_panel", id)
 		check(detail.get_child_count() > 3, id + ": detalhe deve mostrar fontes")

@@ -30,6 +30,7 @@ var level: int = 1
 var progress := ProgressionState.new()
 ## Desejos do Tiro (até três espaços).
 var wishes := WishState.new()
+var finds := FindState.new()
 
 
 func _ready() -> void:
@@ -38,7 +39,8 @@ func _ready() -> void:
 	timer.wait_time = 1.0
 	timer.autostart = true
 	timer.timeout.connect(func() -> void:
-		if update_wishes():
+		var changed_wishes := update_wishes()
+		if update_finds() or changed_wishes:
 			_changed())
 	add_child(timer)
 
@@ -73,9 +75,116 @@ func reset() -> void:
 	progress.setup()
 	progress.started_at = now()
 	wishes = WishState.new()
+	finds = FindState.new()
 	_mark_all_seen()
 	_changed()
 
+
+# --- Faro do Tiro ---------------------------------------------------------
+
+## Só um achado por mundo, mesmo após dias fora. A semente pertence ao montinho,
+## separada do próximo horário, e não muda ao avançar tempo ou recarregar.
+func update_finds() -> bool:
+	var changed := false
+	for world: String in Database.finds.get("worlds", {}):
+		var def: Dictionary = Database.finds.worlds[world]
+		if requirement_error(def.get("requirements", {})) != "":
+			continue
+		if not finds.worlds.has(world):
+			finds.worlds[world] = {"next_at": now() + float(Database.finds.settings.first_delay), "pending": 0, "spot": 0, "dug": 0, "seed": 0}
+			changed = true
+		var entry: Dictionary = finds.worlds[world]
+		if float(entry.next_at) > now() or int(entry.pending) >= mini(1, int(def.get("max_pending", 1))):
+			continue
+		var spots: Array = Database.room(str(Database.worlds.get(world, {}).get("room", world))).get("dig_spots", [])
+		if spots.is_empty():
+			continue
+		entry.seed = int(entry.next_at)
+		entry.spot = Loot.amount([0, spots.size() - 1], int(entry.seed))
+		entry.pending = 1
+		entry.next_at = now() + float(def.interval)
+		changed = true
+	return changed
+
+func find_reward(world: String) -> Dictionary:
+	if not finds.worlds.has(world) or not Database.finds.worlds.has(world):
+		return {}
+	var entry: Dictionary = finds.worlds[world]
+	var def: Dictionary = Database.finds.worlds[world]
+	var guaranteed: Array = def.get("guaranteed", [])
+	return guaranteed[int(entry.dug)].duplicate(true) if int(entry.dug) < guaranteed.size() else Loot.roll(def.get("table", []), 1, int(entry.seed))
+
+func dig_error(world: String) -> String:
+	if not finds.worlds.has(world) or int(finds.worlds[world].pending) <= 0 or requirement_error(Database.finds.worlds.get(world, {}).get("requirements", {})) != "":
+		return "Nada para cavar aqui"
+	return storage_error(find_reward(world).get("items", {}))
+
+func dig(world: String, origin: Vector2 = Vector2(-1, -1)) -> Dictionary:
+	if dig_error(world) != "":
+		return {}
+	var reward := find_reward(world)
+	var fresh: Array[String] = []
+	for id: String in reward.get("items", {}):
+		if Database.items.get(id, {}).get("category", "") == "find" and progress.stat("find_item:" + id) == 0:
+			fresh.append(id)
+		_count("find_item:" + id, int(reward.items[id]))
+	_apply_rewards(reward)
+	finds.worlds[world].pending = 0
+	finds.worlds[world].dug = int(finds.worlds[world].dug) + 1
+	# Não gera outro na mesma ação depois de ficar muito tempo pendente.
+	finds.worlds[world].next_at = now() + float(Database.finds.worlds[world].interval)
+	_count("find")
+	_count("find:" + world)
+	_changed()
+	var result := {"items": reward.get("items", {}), "coins": int(reward.get("coins", 0)), "label": reward.get("label", ""), "icon": reward.get("icon", ""), "new": fresh}
+	result["announcement"] = reward.get("announcement", "")
+	result["unlock_label"] = reward.get("unlock_label", "")
+	Events.items_gained.emit(result.items, result.coins, origin)
+	if not fresh.is_empty() or result.label != "":
+		Events.find_discovered.emit(result)
+	return result
+
+func find_album_count() -> int:
+	var total := 0
+	for items: Array in Database.finds.get("album_groups", {}).values():
+		for id: String in items:
+			total += 1 if progress.stat("find_item:" + id) > 0 else 0
+	return total
+
+func find_set_progress(id: String) -> int:
+	var total := 0
+	for item: String in Database.finds.get("sets", {}).get(id, {}).get("items", []):
+		total += 1 if progress.stat("find_item:" + item) > 0 else 0
+	return total
+
+func find_set_error(id: String) -> String:
+	if not Database.finds.get("sets", {}).has(id):
+		return "Conjunto desconhecido"
+	if id in finds.claimed_sets:
+		return "Já recebido"
+	var def: Dictionary = Database.finds.sets[id]
+	if find_set_progress(id) < def.items.size():
+		return "Encontre todos os achados"
+	return storage_error(def.get("rewards", {}).get("items", {}))
+
+func claim_find_set(id: String) -> String:
+	var error := find_set_error(id)
+	if error != "":
+		return error
+	_apply_rewards(Database.finds.sets[id].rewards)
+	finds.claimed_sets.append(id)
+	_changed()
+	return ""
+
+func dev_spawn_finds() -> void:
+	if not BuildInfo.is_dev(): return
+	update_finds()
+	for world: String in finds.worlds:
+		if requirement_error(Database.finds.worlds.get(world, {}).get("requirements", {})) == "":
+			finds.worlds[world].pending = 1
+			if int(finds.worlds[world].seed) == 0:
+				finds.worlds[world].seed = int(finds.worlds[world].next_at)
+	_changed()
 
 # --- Ações do Tiro ---------------------------------------------------------
 
@@ -1444,6 +1553,9 @@ func claim_daily_gift() -> String:
 ## { kind, count, icon (id de item), world, target }: colheitas, estações e coletas da Natureza.
 func welcome_ready_lines(limit: int = 4) -> Array[Dictionary]:
 	var lines: Array[Dictionary] = []
+	for world: String in finds.worlds:
+		if int(finds.worlds[world].pending) > 0:
+			lines.append({"kind": "dig", "count": 1, "icon": "", "world": world, "target": "find"})
 	var farm_at := Database.place_with_panel("farm")
 	var ripe := 0
 	var crop_item := ""
@@ -1474,6 +1586,9 @@ func welcome_ready_lines(limit: int = 4) -> Array[Dictionary]:
 ## lugar do mundo (mesmo alvo de Events.world_requested) ou a tela ("pet", "tasks") quando world = "".
 func available_actions() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
+	for world: String in finds.worlds:
+		if dig_error(world) == "":
+			result.append({"kind": "dig", "world": world, "target": "find"})
 	var farm_at := Database.place_with_panel("farm")
 	var can_plant := Database.crops.keys().any(func(id: String) -> bool: return content_error("crop", id, Database.crops[id]) == "")
 	var planted := false
@@ -1719,6 +1834,7 @@ func dev_advance_time(seconds: float) -> void:
 			entry["ready_at"] = float(entry["ready_at"]) - seconds
 	progress.shift_time(seconds)
 	wishes.shift_time(seconds)
+	finds.shift_time(seconds)
 	_changed()
 
 
@@ -1793,6 +1909,7 @@ func to_dict() -> Dictionary:
 		"level": level,
 		"progression": progress.to_dict(),
 		"wishes": wishes.to_dict(),
+		"finds": finds.to_dict(),
 	}
 
 
@@ -1829,6 +1946,8 @@ func from_dict(data: Dictionary) -> void:
 	progress.from_dict(data.get("progression", {}))
 	wishes = WishState.new()
 	wishes.from_dict(data.get("wishes", {}))
+	finds = FindState.new()
+	finds.from_dict(data.get("finds", {}))
 	# Save sem o campo de vínculo: o que já valia não paga presente de novo.
 	if not data.get("progression", {}).has("claimed_bond_level"):
 		progress.claimed_bond_level = bond_level()
@@ -1858,6 +1977,7 @@ func _ensure_stations() -> void:
 func _changed() -> void:
 	_sync_step()
 	update_wishes()
+	update_finds()
 	_check_bond()
 	Events.state_changed.emit()
 

@@ -1309,5 +1309,24 @@
     "kind": "main",
     "chapter": 3,
     "order": 25
+  },
+  "bloblo_dig": {
+    "npc": "bloblo",
+    "name": "Faro de ouro",
+    "dialogue": "Olha o Tiro cavando ali! Vai ver o que ele achou.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "find",
+        "target": 1,
+        "label": "Cavar onde o Tiro farejou"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 25
   }
 }

@@ -1,6 +1,7 @@
 {
   "background": "res://assets/sprites/areas/farm/farm_animals.png",
   "floor": [[603, 60], [1180, 344], [603, 638], [25, 344]],
+  "dig_spots": [[660, 166], [706, 202], [745, 237], [764, 252], [716, 276], [668, 300], [613, 325]],
   "navigation_margin": 8,
   "dog_scale": 0.5,
   "obstacles": [

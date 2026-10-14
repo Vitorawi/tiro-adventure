@@ -196,6 +196,22 @@
             "bloblo_strawberry"
           ]
         }
+      },
+      "dig": {
+        "name": "Cave 2 achados",
+        "description": "Toque onde o Tiro farejou.",
+        "goal": {
+          "key": "find",
+          "target": 2
+        },
+        "rewards": {
+          "coins": 12
+        },
+        "requirements": {
+          "quests": [
+            "bloblo_dig"
+          ]
+        }
       }
     }
   },
@@ -333,6 +349,28 @@
         "requirements": {
           "owned": [
             "dairy"
+          ]
+        }
+      },
+      "digger_week": {
+        "name": "Farejador",
+        "description": "Cave 10 achados nesta semana.",
+        "goal": {
+          "key": "find",
+          "target": 10
+        },
+        "rewards": {
+          "coins": 100,
+          "items": {
+            "bolt": 1
+          },
+          "collections": [
+            "digger_bandana"
+          ]
+        },
+        "requirements": {
+          "quests": [
+            "bloblo_dig"
           ]
         }
       }

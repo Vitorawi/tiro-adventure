@@ -287,5 +287,157 @@
       "hunger": 20,
       "happiness": 25
     }
+  },
+  "old_horseshoe": {
+    "name": "Ferradura velha",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_old_horseshoe.png",
+    "sell_price": 6,
+    "rare": false
+  },
+  "hen_feather": {
+    "name": "Pena colorida",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_hen_feather.png",
+    "sell_price": 6,
+    "rare": false
+  },
+  "grandma_button": {
+    "name": "Botão da vovó",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_grandma_button.png",
+    "sell_price": 8,
+    "rare": false
+  },
+  "old_coin": {
+    "name": "Moeda antiga",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_old_coin.png",
+    "sell_price": 40,
+    "rare": true
+  },
+  "lost_ball": {
+    "name": "Bolinha perdida",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_lost_ball.png",
+    "sell_price": 6,
+    "rare": false
+  },
+  "bone_keychain": {
+    "name": "Chaveiro de osso",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_bone_keychain.png",
+    "sell_price": 8,
+    "rare": false
+  },
+  "shiny_pebble": {
+    "name": "Pedrinha brilhante",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_shiny_pebble.png",
+    "sell_price": 8,
+    "rare": false
+  },
+  "dog_tag": {
+    "name": "Medalhinha",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_dog_tag.png",
+    "sell_price": 40,
+    "rare": true
+  },
+  "marble": {
+    "name": "Bolinha de gude",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_marble.png",
+    "sell_price": 8,
+    "rare": false
+  },
+  "old_ticket": {
+    "name": "Bilhete antigo",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_old_ticket.png",
+    "sell_price": 8,
+    "rare": false
+  },
+  "silver_spoon": {
+    "name": "Colher de prata",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_silver_spoon.png",
+    "sell_price": 12,
+    "rare": false
+  },
+  "pocket_watch": {
+    "name": "Relógio de bolso",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_pocket_watch.png",
+    "sell_price": 50,
+    "rare": true
+  },
+  "pinecone": {
+    "name": "Pinha",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_pinecone.png",
+    "sell_price": 6,
+    "rare": false
+  },
+  "creek_shell": {
+    "name": "Concha do riacho",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_creek_shell.png",
+    "sell_price": 8,
+    "rare": false
+  },
+  "owl_feather": {
+    "name": "Pena de coruja",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_owl_feather.png",
+    "sell_price": 10,
+    "rare": false
+  },
+  "fossil": {
+    "name": "Fóssil",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_fossil.png",
+    "sell_price": 60,
+    "rare": true
+  },
+  "map_piece_1": {
+    "name": "Pedaço do mapa 1",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_map_piece.png"
+  },
+  "map_piece_2": {
+    "name": "Pedaço do mapa 2",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_map_piece.png"
+  },
+  "map_piece_3": {
+    "name": "Pedaço do mapa 3",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_map_piece.png"
+  },
+  "map_piece_4": {
+    "name": "Pedaço do mapa 4",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_map_piece.png"
   }
 }

@@ -68,5 +68,17 @@
     "icon": "bond_heart",
     "slot": "neck",
     "sprite": ""
+  },
+  "digger_bandana": {
+    "name": "Bandana de farejador",
+    "slot": "neck",
+    "icon": "find_paw",
+    "sprite": ""
+  },
+  "explorer_hat": {
+    "name": "Chapéu de explorador",
+    "slot": "head",
+    "icon": "tab_map",
+    "sprite": ""
   }
 }

@@ -31,6 +31,10 @@ var _touches: Dictionary = {}  # índice do dedo -> { "pos": Vector2, "time": ms
 var _pinch_distance := 0.0
 var _objects: Array[Sprite2D] = []
 var _dog: DogWorld
+var _dig_spot: Node2D
+var _find_reacted_seed := -1
+## Só DEV: desenha os pontos candidatos para revisar o chão.
+var dev_show_dig_spots := false
 var _npcs: Array[NpcWorld] = []
 var _nav := AStarGrid2D.new()
 var _walkable: Array[Vector2i] = []
@@ -76,8 +80,10 @@ func _ready() -> void:
 		_world.add_child(indicator)
 		_route_markers.append(indicator)
 	Events.state_changed.connect(_refresh_ownership)
+	Events.state_changed.connect(_refresh_find)
 	Events.world_activity.connect(_on_world_activity)
 	_refresh_ownership()
+	_refresh_find()
 	%ZoomIn.pressed.connect(func() -> void: _zoom_at(size / 2.0, _zoom * ZOOM_STEP))
 	%ZoomOut.pressed.connect(func() -> void: _zoom_at(size / 2.0, _zoom / ZOOM_STEP))
 	resized.connect(_on_resized)
@@ -263,6 +269,7 @@ func _load_frames(folder: String) -> Array[Texture2D]:
 
 ## Troca o quadro dos móveis animados; parados mostram a imagem base.
 func _animate_objects() -> void:
+	_refresh_find()
 	if not is_visible_in_tree():
 		return
 	_object_frame += 1
@@ -664,6 +671,11 @@ func _gui_input(event: InputEvent) -> void:
 func point_at(action: String) -> bool:
 	clear_pointer()
 	var anchor := Vector2.INF
+	if action == "find":
+		if is_instance_valid(_dig_spot):
+			anchor = _dig_spot.position - Vector2(0, 16)
+		elif not _room.get("dig_spots", []).is_empty():
+			anchor = _vec(_room.dig_spots[0])
 	for npc: NpcWorld in _npcs:
 		if npc.visible and action == "npc:" + npc.npc_id:
 			anchor = npc.head_point()
@@ -738,6 +750,12 @@ func clear_pointer() -> void:
 
 func _handle_tap(point: Vector2) -> void:
 	clear_pointer()
+	if is_instance_valid(_dig_spot):
+		var radius := 28.0 / maxf(_zoom, 0.01)
+		var dog_near := _dog and _dog.position.distance_to(_dig_spot.position) < 40.0
+		if point.distance_to(_dig_spot.position) <= radius or (dog_near and _dog.hit_test(point)):
+			_dig_find()
+			return
 	for region: Dictionary in _room.get("regions", []):
 		if region_error(region) != "" and Geometry2D.is_point_in_polygon(point, _polygon(region.polygon)):
 			if region.has("action"):
@@ -854,6 +872,54 @@ func _water_fx(index: int) -> void:
 
 
 ## Ponto da sala (coordenadas do mundo) na tela, de onde saltam as miniaturas de recolher.
+func _refresh_find() -> void:
+	var entry: Dictionary = GameState.finds.worlds.get(world_id, {})
+	var spots: Array = _room.get("dig_spots", [])
+	if entry.is_empty() or int(entry.pending) <= 0 or spots.is_empty():
+		if is_instance_valid(_dig_spot):
+			_dig_spot.queue_free()
+		_dig_spot = null
+		_find_reacted_seed = -1
+		return
+	if not is_instance_valid(_dig_spot):
+		_dig_spot = Node2D.new()
+		_dig_spot.name = "DigSpot"
+		_dig_spot.position = _vec(spots[int(entry.spot) % spots.size()])
+		_world.add_child(_dig_spot)
+		var mound := Sprite2D.new()
+		mound.texture = load("res://assets/sprites/areas/fx/dig_spot.png")
+		mound.position.y = -8
+		_dig_spot.add_child(mound)
+		var sparkle := Sprite2D.new()
+		sparkle.texture = load("res://assets/sprites/areas/fx/fx_sparkle.png")
+		sparkle.position = Vector2(4, -22)
+		_dig_spot.add_child(sparkle)
+		var blink := sparkle.create_tween().set_loops()
+		blink.tween_property(sparkle, "modulate:a", 0.15, 0.65)
+		blink.tween_property(sparkle, "modulate:a", 1.0, 0.65)
+	if _dog and is_visible_in_tree() and not GameState.dog.sleeping and _find_reacted_seed != int(entry.seed):
+		_find_reacted_seed = int(entry.seed)
+		_dog.react_at(&"sniff", _dig_spot.position)
+
+func _dig_find() -> void:
+	var error := GameState.dig_error(world_id)
+	if error != "":
+		Events.toast_requested.emit(error)
+		return
+	var point := _dig_spot.position
+	if not GameState.dig(world_id, _screen_point(point)).is_empty() and _dog:
+		_dog.react_at(&"dig", point)
+
+func show_dig_spots() -> void:
+	if not BuildInfo.is_dev(): return
+	for index in _room.get("dig_spots", []).size():
+		var marker := Polygon2D.new()
+		marker.position = _vec(_room.dig_spots[index])
+		marker.polygon = PackedVector2Array([Vector2(-6,-6),Vector2(6,-6),Vector2(6,6),Vector2(-6,6)])
+		marker.color = Color(1, 0.2, 0.1, 0.8)
+		marker.z_index = 5
+		_world.add_child(marker)
+
 func _screen_point(point: Vector2) -> Vector2:
 	return _world.get_global_transform_with_canvas() * point
 

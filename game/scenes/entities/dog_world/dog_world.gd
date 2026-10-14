@@ -14,7 +14,7 @@ const SPRITE_DIR := "res://assets/sprites/characters/tiro_world/"
 const FEET_OFFSET := 26.0
 const HUNGRY := 30.0
 ## Ações em loop; as demais (sit, sleep, bark) tocam uma vez e param na última pose.
-const LOOPING := ["walk", "idle", "eat"]
+const LOOPING := ["walk", "idle", "eat", "sniff", "dig"]
 const MIRROR := { "west": "east", "east": "west" }
 ## Sombra oval sob as patas (raio em px e achatamento vertical).
 const SHADOW_RADIUS := 17.0
@@ -166,6 +166,17 @@ func _on_care(action: StringName) -> void:
 
 
 func _show_reaction(kind: StringName) -> void:
+	if kind == &"sniff":
+		_play("sniff", _facing)
+		await _wait(2.0)
+		if not _reaction.is_empty() or GameState.dog.sleeping: return
+		_play("sit", _facing)
+		await _wait(20.0)
+		return
+	if kind == &"dig":
+		_play("dig", _facing)
+		await _wait(float(Database.finds.settings.get("dig_seconds", 0.8)))
+		return
 	if kind == &"harvest" or kind == &"ready":
 		# A animação de focinho da comida também serve para cheirar de perto.
 		_play("eat", _facing)

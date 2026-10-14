@@ -158,7 +158,7 @@ func _refresh() -> void:
 	var extras := %DogArea.get_parent().get_node_or_null("Extras")
 	if extras:
 		extras.get_node("Atributos").visible = GameState.progress.skills_visible()
-		extras.get_node("Coleção").visible = not GameState.progress.collection.is_empty()
+		extras.get_node("Coleção").visible = not GameState.progress.collection.is_empty() or GameState.progress.feature_unlocked("finds")
 	var now := GameState.now()
 	var dog := GameState.dog
 	if _bond_chip:

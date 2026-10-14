@@ -80,6 +80,13 @@ static func sources(id: String) -> Array[Dictionary]:
 	for key: String in Database.quests:
 		if Database.quests[key].get("rewards", {}).get("items", {}).has(id):
 			result.append({"kind": "quest", "id": key})
+	for world: String in Database.finds.worlds:
+		var entry: Dictionary = Database.finds.worlds[world]
+		var found := false
+		for reward: Dictionary in entry.get("guaranteed", []) + entry.get("table", []):
+			found = found or reward.get("items", {}).has(id)
+		if found:
+			result.append({"kind": "find", "id": world})
 	for source: Dictionary in Database.item_sources(id):
 		if source.key == "feed":
 			result.append({"kind": "care", "id": id})
@@ -155,6 +162,18 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 			card.add_child(UiKit.label("Recompensa de missão", &"SectionLabel"))
 			card.add_child(UiKit.label(Database.quests[id].name, &"SmallLabel"))
 			card.add_child(UiKit.button("Ver missões", Places.go.bind({"screen": "tasks"})))
+		"find":
+			card.add_child(UiKit.label("Faro do Tiro", &"SectionLabel"))
+			card.add_child(UiKit.label("Toque no montinho onde o Tiro farejou.", &"SmallLabel"))
+			var find_world: Dictionary = Database.worlds[id]
+			var find_row := UiKit.hbox(8)
+			find_row.add_child(UiKit.icon(UiKit.ui_icon(find_world.get("icon", "")), 32))
+			find_row.add_child(UiKit.fill_label(find_world.name, &"SmallLabel"))
+			card.add_child(find_row)
+			var find_error := Places.world_error(id)
+			var find_button := UiKit.button("Bloqueado" if find_error != "" else "Ir até lá", Places.go.bind({"world": id, "place": "find"}), &"PrimaryButton")
+			find_button.disabled = find_error != ""
+			card.add_child(find_button)
 		"care":
 			card.add_child(UiKit.label("Ajuda da Bloblo", &"SectionLabel"))
 			card.add_child(UiKit.label("Sem comida? Abra Comer e peça ajuda.", &"SmallLabel"))

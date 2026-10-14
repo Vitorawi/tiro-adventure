@@ -154,6 +154,7 @@ Mundos volta à seleção. Natureza tem Locais (Bosque, Caverna, Prado), além d
      conferir a arte. No fundo plano, bloqueie também a silhueta de casas/árvores para o Tiro
      não aparecer sobre telhados/copas (esses elementos não têm ordenação por Y separada).
    - `navigation_margin` dá folga nos cantos de cada célula (padrão 4 px; mapas externos 8 px).
+   - `dig_spots` (lista de `[x, y]`, 6–10 pontos) = onde o Tiro fareja e aparece o montinho do Faro (`finds.json`); precisam estar no chão alcançável (o `finds_test` confere).
      `dog_scale` ajusta a proporção do Tiro à arte de cada mapa, incluindo sombra e área de toque
      (padrão 1; Sítio e Vila usam 0,5, pois as construções externas são menores na imagem).
      O Tiro nasce numa célula livre perto de `dog_start`, sorteia destinos alcançáveis e nunca

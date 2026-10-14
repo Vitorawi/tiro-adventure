@@ -116,6 +116,18 @@
       "requirements": {
         "chapter": 6
       }
+    },
+    "finds": {
+      "name": "Achados do Tiro",
+      "icon": "find_paw",
+      "go": {
+        "screen": "pet"
+      },
+      "requirements": {
+        "quests": [
+          "bloblo_dig"
+        ]
+      }
     }
   },
   "skills": {

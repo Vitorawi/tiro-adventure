@@ -28,6 +28,8 @@ var worlds: Dictionary = {}
 var routines: Dictionary = {}
 ## Desejos do Tiro (data/wishes.json): configurações e modelos de pedidos.
 var wishes: Dictionary = {}
+## Achados, sorteios e conjuntos do faro.
+var finds: Dictionary = {}
 
 
 func _init() -> void:
@@ -51,6 +53,7 @@ func _init() -> void:
 	worlds = _load("res://data/worlds.json")
 	routines = _load("res://data/routines.json")
 	wishes = _load("res://data/wishes.json")
+	finds = _load("res://data/finds.json")
 
 
 ## Mundo onde o personagem mora ("" se nenhum).

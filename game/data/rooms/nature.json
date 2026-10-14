@@ -1,6 +1,7 @@
 {
   "background": "res://assets/sprites/areas/nature/nature.png",
   "floor": [[20, 214], [250, 79], [493, 213], [251, 329]],
+  "dig_spots": [[204, 196], [230, 233], [257, 221], [283, 209], [246, 190], [188, 212]],
   "navigation_margin": 4,
   "dog_scale": 0.5,
   "obstacles": [

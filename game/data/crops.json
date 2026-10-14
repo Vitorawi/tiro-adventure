@@ -90,9 +90,7 @@
     "sprite": "res://assets/sprites/areas/farm/crop_strawberry.png",
     "skill_xp": 15,
     "requirements": {
-      "quests": [
-        "bloblo_more_crops"
-      ]
+      "quests": ["bloblo_dig"]
     }
   },
   "sweet_potato": {

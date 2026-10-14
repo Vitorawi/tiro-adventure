@@ -32,6 +32,8 @@ func _run() -> void:
 	state.call("reset")
 	state.get("progress").stats["harvest"] = 40
 	state.call("dev_complete_quest", "first_harvest")
+	check(state.get("progress").current_line_quest("bloblo") == "bloblo_dig", "Depois da colheita a vovó manda cavar")
+	state.call("dev_complete_quest", "bloblo_dig")
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_more_crops", "Passo da vovó é o atual")
 	check(state.get("progress").current_main_quest() == "lais_meet_bloblo", "Laís segue na linha dela")
 	check(state.call("quest_error", "lais_meet_bloblo") == "", "Cruzamento: conhecer a vovó cumpre o passo da Laís")

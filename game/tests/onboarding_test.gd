@@ -5,6 +5,7 @@ extends SceneTree
 
 const MAX_FIRST_HARVEST_MIN := 4.0
 const MAX_FIRST_WISH_MIN := 7.0
+const MAX_FIRST_FIND_MIN := 9.0
 const MAX_IDLE_TOTAL_SEC := 240.0  # ocioso total até o fim do capítulo 3
 const MAX_IDLE_STREAK_SEC := 120.0  # nenhum trecho ocioso contínuo maior que isto
 const GOAL_CHAPTER := 4
@@ -58,13 +59,14 @@ func _run() -> void:
 			idle_streak = 0.0
 	progress = state.get("progress")
 	print("Linha do tempo (min simulados):")
-	for key: String in ["talk:lais", "feed", "open:bag", "talk:bloblo", "wish", "water", "harvest", "produce", "open:village"]:
+	for key: String in ["talk:lais", "feed", "open:bag", "talk:bloblo", "wish", "water", "harvest", "find", "produce", "open:village"]:
 		print("  ", key, ": ", ("%.1f" % (float(firsts[key]) / 60.0)) if firsts.has(key) else "nunca")
 	print("  capítulo %d em %.1f min; ocioso total %.0f s; maior trecho ocioso %.0f s" % [progress.chapter_index(), sim / 60.0, idle_total, idle_max])
 	print("  espera por passos: ", idle_steps)
 	check(progress.chapter_index() >= GOAL_CHAPTER, "chegou ao capítulo %d em %.0f min simulados" % [GOAL_CHAPTER, MAX_SIM_MIN])
 	check(firsts.has("harvest") and float(firsts.harvest) / 60.0 <= MAX_FIRST_HARVEST_MIN, "primeira colheita em até %.0f min" % MAX_FIRST_HARVEST_MIN)
 	check(firsts.has("wish") and float(firsts.wish) / 60.0 <= MAX_FIRST_WISH_MIN, "primeiro desejo do Tiro cumprido em até %.0f min" % MAX_FIRST_WISH_MIN)
+	check(firsts.has("find") and float(firsts.find) / 60.0 <= MAX_FIRST_FIND_MIN, "primeiro achado em até %.0f min" % MAX_FIRST_FIND_MIN)
 	check(firsts.has("water"), "o jogador regou ao menos uma vez")
 	check(idle_total <= MAX_IDLE_TOTAL_SEC, "ocioso total %.0f s (máximo %.0f s)" % [idle_total, MAX_IDLE_TOTAL_SEC])
 	check(idle_max <= MAX_IDLE_STREAK_SEC, "maior trecho ocioso %.0f s (máximo %.0f s)" % [idle_max, MAX_IDLE_STREAK_SEC])
@@ -74,7 +76,7 @@ func _run() -> void:
 
 func _record_firsts() -> void:
 	var progress: RefCounted = state.get("progress")
-	for key: String in ["talk:lais", "feed", "open:bag", "talk:bloblo", "wish", "water", "harvest", "produce", "open:village"]:
+	for key: String in ["talk:lais", "feed", "open:bag", "talk:bloblo", "wish", "water", "harvest", "find", "produce", "open:village"]:
 		if not firsts.has(key) and progress.stat(key) > 0:
 			firsts[key] = sim
 
@@ -169,6 +171,10 @@ func _turn() -> int:
 						state.call("feed", "dog_food")
 			acts += 1
 		if state.call("fulfill_wish", i) == "":
+			acts += 1
+	# 4c. Faro: cava o montinho que o Tiro farejou.
+	for find_world: String in state.get("finds").worlds:
+		if state.call("dig_error", find_world) == "" and not (state.call("dig", find_world) as Dictionary).is_empty():
 			acts += 1
 	# 5. Construir o que a história pede, se der.
 	for id: String in owned_goals:

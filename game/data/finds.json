@@ -1,0 +1,247 @@
+{
+  "settings": {
+    "dig_seconds": 0.8,
+    "first_delay": 20
+  },
+  "worlds": {
+    "farm": {
+      "interval": 480,
+      "max_pending": 1,
+      "requirements": {
+        "quests": ["first_harvest"]
+      },
+      "guaranteed": [
+        {
+          "unlocks": ["crop:strawberry"],
+          "announcement": "O Tiro achou mudas de morango!",
+          "unlock_label": "Morango liberado",
+          "label": "Mudas de morango",
+          "icon": "item_strawberry"
+        },
+        {
+          "items": {
+            "old_horseshoe": 1
+          }
+        },
+        {
+          "items": {
+            "map_piece_1": 1
+          }
+        }
+      ],
+      "table": [
+        {
+          "weight": 30,
+          "coins": [3, 8]
+        },
+        {
+          "weight": 20,
+          "items": {
+            "carrot": [1, 2]
+          }
+        },
+        {
+          "weight": 12,
+          "items": {
+            "dog_food": 1
+          }
+        },
+        {
+          "weight": 10,
+          "items": {
+            "old_horseshoe": 1
+          }
+        },
+        {
+          "weight": 10,
+          "items": {
+            "hen_feather": 1
+          }
+        },
+        {
+          "weight": 8,
+          "items": {
+            "grandma_button": 1
+          }
+        },
+        {
+          "weight": 3,
+          "items": {
+            "old_coin": 1
+          }
+        },
+        {
+          "weight": 2,
+          "items": {
+            "bolt": 1
+          }
+        }
+      ]
+    },
+    "village": {
+      "interval": 600,
+      "max_pending": 1,
+      "requirements": {
+        "chapter": 4
+      },
+      "guaranteed": [
+        {
+          "items": {
+            "marble": 1
+          }
+        },
+        {
+          "items": {
+            "map_piece_3": 1
+          }
+        }
+      ],
+      "table": [
+        {
+          "weight": 35,
+          "coins": [5, 12]
+        },
+        {
+          "weight": 14,
+          "items": {
+            "marble": 1
+          }
+        },
+        {
+          "weight": 12,
+          "items": {
+            "old_ticket": 1
+          }
+        },
+        {
+          "weight": 8,
+          "items": {
+            "silver_spoon": 1
+          }
+        },
+        {
+          "weight": 3,
+          "items": {
+            "pocket_watch": 1
+          }
+        },
+        {
+          "weight": 3,
+          "items": {
+            "bolt": 1
+          }
+        }
+      ]
+    },
+    "nature": {
+      "interval": 600,
+      "max_pending": 1,
+      "requirements": {
+        "chapter": 5
+      },
+      "guaranteed": [
+        {
+          "items": {
+            "pinecone": 1
+          }
+        },
+        {
+          "items": {
+            "map_piece_4": 1
+          }
+        }
+      ],
+      "table": [
+        {
+          "weight": 25,
+          "coins": [4, 10]
+        },
+        {
+          "weight": 15,
+          "items": {
+            "wood": [1, 2]
+          }
+        },
+        {
+          "weight": 10,
+          "items": {
+            "stone": [1, 2]
+          }
+        },
+        {
+          "weight": 14,
+          "items": {
+            "pinecone": 1
+          }
+        },
+        {
+          "weight": 12,
+          "items": {
+            "creek_shell": 1
+          }
+        },
+        {
+          "weight": 9,
+          "items": {
+            "owl_feather": 1
+          }
+        },
+        {
+          "weight": 3,
+          "items": {
+            "fossil": 1
+          }
+        }
+      ]
+    }
+  },
+  "sets": {
+    "farm_set": {
+      "name": "Tesouros do sÃ­tio",
+      "world": "farm",
+      "items": ["old_horseshoe", "hen_feather", "grandma_button", "old_coin"],
+      "rewards": {
+        "coins": 60,
+        "items": {
+          "bolt": 1
+        },
+        "collections": ["digger_bandana"]
+      }
+    },
+    "village_set": {
+      "name": "Tesouros da vila",
+      "world": "village",
+      "items": ["marble", "old_ticket", "silver_spoon", "pocket_watch"],
+      "rewards": {
+        "coins": 100,
+        "items": {
+          "bolt": 1
+        }
+      }
+    },
+    "nature_set": {
+      "name": "Tesouros da trilha",
+      "world": "nature",
+      "items": ["pinecone", "creek_shell", "owl_feather", "fossil"],
+      "rewards": {
+        "coins": 120,
+        "items": {
+          "iron_band": 1
+        },
+        "collections": ["explorer_hat"]
+      }
+    }
+  },
+  "album_groups": {
+    "farm": ["old_horseshoe", "hen_feather", "grandma_button", "old_coin"],
+    "park": ["lost_ball", "bone_keychain", "shiny_pebble", "dog_tag"],
+    "village": ["marble", "old_ticket", "silver_spoon", "pocket_watch"],
+    "nature": ["pinecone", "creek_shell", "owl_feather", "fossil"]
+  },
+  "album_names": {
+    "farm": "Tesouros do sÃ­tio",
+    "park": "Tesouros da praÃ§a",
+    "village": "Tesouros da vila",
+    "nature": "Tesouros da trilha"
+  }
+}

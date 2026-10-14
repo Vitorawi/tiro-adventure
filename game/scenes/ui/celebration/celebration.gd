@@ -54,6 +54,26 @@ func show_bond(level: int, rewards: Dictionary) -> void:
 
 
 ## Só novidades (sem fim de capítulo).
+func show_find(result: Dictionary) -> void:
+	var box := _open()
+	var ids: Array = result.get("new", [])
+	var item := str(ids[0]) if not ids.is_empty() else ""
+	var texture: Texture2D = Database.item_icon(item) if item != "" else UiKit.ui_icon(str(result.get("icon", "find_paw")))
+	box.add_child(_center(UiKit.icon(texture, 64)))
+	box.add_child(_center(UiKit.label("Novo achado!", &"TitleLabel")))
+	box.add_child(_center(UiKit.label(Database.item_name(item) if item != "" else str(result.get("announcement", result.label)), &"SectionLabel")))
+	var progress_text := "%d/16" % GameState.find_album_count()
+	if item.begins_with("map_piece_"):
+		var pieces := 0
+		for n in range(1, 5):
+			pieces += 1 if GameState.progress.stat("find_item:map_piece_%d" % n) > 0 else 0
+		progress_text = "%d/4" % pieces
+	elif item == "":
+		progress_text = str(result.get("unlock_label", ""))
+	box.add_child(_center(UiKit.label(progress_text, &"SmallLabel")))
+	box.add_child(UiKit.button("Oba!", hide, &"PrimaryButton"))
+	show()
+
 func show_unlocks(unlocks: Array[String]) -> void:
 	var box := _open()
 	box.add_child(_center(UiKit.label("Novo!", &"TitleLabel")))

@@ -76,7 +76,7 @@ func _run() -> void:
 	# Sabores: bloqueio por missão, crescimento, rendimento e coleta única.
 	for crop_id: String in ["strawberry", "sweet_potato"]:
 		_check(state.call("plant", 1, crop_id) != "", crop_id + " espera a missão")
-		state.get("progress").claimed_quests["bloblo_more_crops" if crop_id == "strawberry" else "farm_deed"] = true
+		state.get("progress").claimed_quests["bloblo_dig" if crop_id == "strawberry" else "farm_deed"] = true
 		_check(state.call("plant", 1, crop_id) == "", crop_id + " liberada pela missão")
 		state.get("plots")[1]["ready_at"] = float(state.call("now")) - 1.0
 		var count_before: int = state.get("inventory").count(crop_id)

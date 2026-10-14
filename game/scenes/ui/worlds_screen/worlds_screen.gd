@@ -70,6 +70,9 @@ func enter(world_id: String, place: String = "") -> void:
 	if fresh_view:
 		await get_tree().process_frame  # a sala nova recentraliza a câmera no próximo quadro
 	var room := _views[world_id] as RoomView
+	if place == "find":
+		if room: room.point_at("find")
+		return
 	# "look:<ação>": só a seta, sem abrir o painel (o jogador toca por conta própria).
 	if place.begins_with("look:"):
 		if room:

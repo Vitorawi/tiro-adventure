@@ -351,6 +351,14 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				return _panel_target("feed")
 			if key in ["harvest", "water"] or key.begins_with("harvest:"):
 				return _panel_target("farm")
+			if key == "find" or key.begins_with("find:"):
+				var world := key.trim_prefix("find:") if key.begins_with("find:") else "farm"
+				if key == "find":
+					for id: String in GameState.finds.worlds:
+						if int(GameState.finds.worlds[id].pending) > 0:
+							world = id
+							break
+				return {"world": world, "place": "find", "hint": "Cavar onde o Tiro farejou"}
 			if key in ["trade", "sold"]:
 				return _panel_target("sell")
 			if key == "orders" or key.begins_with("order:"):

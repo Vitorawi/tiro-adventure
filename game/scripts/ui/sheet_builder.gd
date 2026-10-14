@@ -50,7 +50,7 @@ static func food_picker() -> Control:
 				Events.toast_requested.emit(error if error != "" else "Comida recebida!"), &"PrimaryButton", ProgressionUi.npc_portrait("bloblo"))))
 
 
-const CATEGORIES := {"food": "Comidas", "crop": "Colheitas", "material": "Materiais", "product": "Produtos"}
+const CATEGORIES := {"food": "Comidas", "crop": "Colheitas", "material": "Materiais", "product": "Produtos", "find": "Achados"}
 
 
 ## Mochila: lugar único com todos os itens e a ocupação de cada depósito ("12/30" ao construir).
