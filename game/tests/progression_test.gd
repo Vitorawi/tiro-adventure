@@ -114,6 +114,13 @@ func _campaign() -> Dictionary:
 		for find_world: String in state.get("finds").worlds:
 			state.get("finds").worlds[find_world].pending = 1
 			state.call("dig", find_world)
+		# Passeio da Praça: descansa o Tiro, sai e recolhe na hora (o tempo é simulado).
+		if state.call("walk_error", "park_loop") != "" and not state.call("walking"):
+			state.get("dog").sleeping = false
+			state.get("dog").needs["energy"] = 100.0
+		if state.call("start_walk", "park_loop") == "":
+			state.get("walk_state").current["ready_at"] = 1.0
+			state.call("collect_walk")
 		state.call("emergency_food")
 		state.call("bathe")
 		state.call("play")

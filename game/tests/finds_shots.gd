@@ -19,7 +19,7 @@ func _run() -> void:
 	saver.free()
 	state = root.get_node("GameState")
 	state.call("reset")
-	for id in ["bloblo_meet", "first_harvest"]:
+	for id in ["welcome", "lais_bed", "bloblo_meet", "first_harvest"]:
 		state.get("progress").claimed_quests[id] = true
 	state.get("progress").seen["intro"] = true
 	state.call("_changed")
@@ -28,6 +28,7 @@ func _run() -> void:
 	root.add_child(main)
 	await create_timer(0.4).timeout
 	main.get_node("Celebration").hide()
+	main.call("show_screen", &"map")
 	main.call("_on_world_requested", "farm", "")
 	await create_timer(3.0).timeout
 	await shot("farejando_sitio")
@@ -45,6 +46,7 @@ func _run() -> void:
 	for id: String in items:
 		state.get("inventory").add(id, items[id])
 	root.get_node("Events").emit_signal("state_changed")
+	main.get_node("Celebration").hide()
 	var progression_ui: Script = load("res://scripts/ui/progression_ui.gd")
 	progression_ui.set("_collection_tab", "finds")
 	root.get_node("Events").emit_signal("sheet_requested", "Coleção", progression_ui.call("collection_panel"))
@@ -52,4 +54,14 @@ func _run() -> void:
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	main.call("show_screen", &"bag")
 	await shot("mochila")
+	state.get("progress").claimed_quests["lais_bed"] = true
+	state.call("dev_spawn_finds")
+	state.call("_changed")
+	var celebration: CanvasLayer = main.get_node("Celebration")
+	celebration.call("show_find", {"new": ["old_horseshoe"], "items": {"old_horseshoe": 1}, "label": "", "icon": "find_paw"})
+	await shot("novo_achado")
+	celebration.hide()
+	var welcome: CanvasLayer = main.get_node("WelcomeBack")
+	welcome.call("open")
+	await shot("cartao_volta_faro")
 	quit(0)

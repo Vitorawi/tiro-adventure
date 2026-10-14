@@ -66,6 +66,8 @@ static func _panel(kind: String, arg: String) -> Control:
 			return ProgressionUi.market_panel(arg)
 		"routes":
 			return ProgressionUi.routes_panel(arg)
+		"walks":
+			return ProgressionUi.walks_panel()
 		"nature":
 			for site: String in Database.progression.nature_sites:
 				if arg.get_slice("+", 0) in Database.progression.nature_sites[site].groups:
@@ -215,7 +217,7 @@ static func highlight_action(place: String) -> String:
 static func visible_npcs(world_id: String) -> Array[String]:
 	var result: Array[String] = []
 	for npc_id: String in Database.worlds.get(world_id, {}).get("npcs", []):
-		if GameState.progress.npc_visible(npc_id):
+		if GameState.progress.npc_visible(npc_id) and not Database.npcs.get(npc_id, {}).get("decor", false):
 			result.append(npc_id)
 	return result
 
@@ -347,6 +349,8 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				if Database.worlds.has(screen):
 					return {"world": screen, "place": "", "hint": "Mapa → " + str(Database.worlds[screen].name)}
 				return {"screen": screen}
+			if key == "walk" or key.begins_with("walk:") or key.begins_with("walk_"):
+				return _panel_target("walks")
 			if key == "feed":
 				return _panel_target("feed")
 			if key in ["harvest", "water"] or key.begins_with("harvest:"):

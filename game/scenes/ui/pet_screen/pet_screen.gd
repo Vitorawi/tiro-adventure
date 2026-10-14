@@ -23,6 +23,10 @@ var _animator: PetAnimator
 var _bond_chip: Button
 var _wish_bubble: Button
 var _wish_icon: TextureRect
+var _away_view: VBoxContainer
+var _away_postcard: TextureRect
+var _away_name: Label
+var _away_time: Label
 var _stroke_distance := 0.0
 var _last_pet_reward := -10.0
 
@@ -56,6 +60,7 @@ func _ready() -> void:
 		GameState.set_sleeping(not GameState.dog.sleeping))
 	_build_extras()
 	_build_wish_widgets()
+	_build_away_view()
 	Events.state_changed.connect(_refresh)
 	%RefreshTimer.timeout.connect(_refresh)
 	_refresh()
@@ -117,6 +122,57 @@ func _build_wish_widgets() -> void:
 	_place_bubble.call_deferred()
 
 
+## Durante o passeio: no lugar do Tiro grande, o postal com o Tiro do mapa andando (2x), nome e tempo.
+func _build_away_view() -> void:
+	_away_view = UiKit.vbox(6)
+	_away_view.name = "AwayView"
+	_away_view.visible = false
+	_away_view.alignment = BoxContainer.ALIGNMENT_CENTER
+	var stage := Control.new()
+	stage.custom_minimum_size = Vector2(256, 160)
+	stage.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	stage.clip_contents = true
+	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_away_postcard = TextureRect.new()
+	_away_postcard.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_away_postcard.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_away_postcard.stretch_mode = TextureRect.STRETCH_SCALE
+	_away_postcard.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_away_postcard.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stage.add_child(_away_postcard)
+	var frames := SpriteFrames.new()
+	frames.add_animation("walk")
+	frames.set_animation_speed("walk", 8.0)
+	for index in 8:
+		var path := "res://assets/sprites/characters/tiro_world/walk/east/frame_%02d.png" % index
+		if ResourceLoader.exists(path):
+			frames.add_frame("walk", load(path))
+	var walker := AnimatedSprite2D.new()
+	walker.name = "AwayTiro"
+	walker.sprite_frames = frames
+	walker.scale = Vector2(2, 2)
+	walker.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	walker.position = Vector2(-40, 92)
+	stage.add_child(walker)
+	walker.play("walk")
+	var stroll := walker.create_tween().set_loops()
+	stroll.tween_property(walker, "position:x", 296.0, 5.0).from(-40.0)
+	_away_view.add_child(stage)
+	var caption := PanelContainer.new()
+	caption.theme_type_variation = &"ChipPanel"
+	caption.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var caption_box := UiKit.vbox(2)
+	caption.add_child(caption_box)
+	_away_name = UiKit.short_label("", &"SectionLabel")
+	_away_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption_box.add_child(_away_name)
+	_away_time = UiKit.short_label("", &"SmallLabel")
+	_away_time.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	caption_box.add_child(_away_time)
+	_away_view.add_child(caption)
+	%DogArea.add_child(_away_view)
+
+
 func _place_bubble() -> void:
 	if _wish_bubble:
 		_wish_bubble.position = _dog_sprite.global_position - global_position + Vector2(_dog_sprite.size.x * 0.72, _dog_sprite.size.y * 0.18)
@@ -161,11 +217,23 @@ func _refresh() -> void:
 		extras.get_node("Coleção").visible = not GameState.progress.collection.is_empty() or GameState.progress.feature_unlocked("finds")
 	var now := GameState.now()
 	var dog := GameState.dog
+	var away := GameState.walking()
+	_dog_sprite.visible = not away
+	%DogArea.queue_redraw()
+	if _away_view:
+		_away_view.visible = away
+	for button: Button in [%FeedButton, %PlayButton, %BatheButton, _sleep_button]:
+		button.disabled = away
+	if away:
+		var walk_id := str(GameState.walk_state.current.id)
+		_away_postcard.texture = WalkResult.postcard_texture(GameState.walk_postcard(walk_id))
+		_away_name.text = str(GameState.walk_def(walk_id).get("name", ""))
+		_away_time.text = "Pronto! Recolha na Praça" if GameState.walk_ready() else TimeText.short(GameState.walk_remaining())
 	if _bond_chip:
 		_bond_chip.text = str(GameState.bond_level())
 		_bond_chip.visible = GameState.progress.feature_unlocked("wishes")
 		var wish_id := GameState.balloon_wish()
-		_wish_bubble.visible = wish_id != "" and not dog.sleeping
+		_wish_bubble.visible = wish_id != "" and not dog.sleeping and not away
 		_wish_icon.texture = WishUi.icon(wish_id) if wish_id != "" else null
 	for id: String in _bars:
 		var value := dog.get_need(id, now)
@@ -182,6 +250,9 @@ func _refresh() -> void:
 	_animator.set_sleeping(dog.sleeping)
 	_animator.set_sad(dog.get_need(dog.lowest_need(now), now) < MOOD_LOW)
 
+	if away:
+		_mood_label.text = GameState.away_text()
+		return
 	if not GameState.progress.claimed_quests.has("welcome"):
 		_mood_label.text = "Veja suas missões aqui embaixo!"
 		return
@@ -198,6 +269,8 @@ func _refresh() -> void:
 
 ## Sombra oval sob as patas do Tiro (desenhada no DogArea, atrás do sprite).
 func _draw_dog_shadow() -> void:
+	if GameState.walking():
+		return
 	var area: Control = %DogArea
 	var feet := Vector2(_dog_sprite.position.x + _dog_sprite.size.x / 2.0, _dog_sprite.position.y + _dog_sprite.size.y * 0.81)
 	area.draw_set_transform(feet, 0.0, Vector2(1.0, 0.25))

@@ -211,6 +211,19 @@
       }
     }
   },
+  "park": {
+    "name": "Praça",
+    "map_caption": "Passear e fazer amigos",
+    "icon": "tab_park",
+    "description": "Passeios com o Tiro, amigos e novidades.",
+    "room": "park",
+    "requirements": {"quests": ["main_2_order"]},
+    "npcs": ["nina", "dog_pipoca"],
+    "places": {
+      "walk": {"name": "Passeio", "icon": "action_walk", "description": "Passear com o Tiro.", "panel": "walks"},
+      "home": {"name": "Voltar para casa", "icon": "tab_house", "description": "", "panel": "travel:house", "hidden": true}
+    }
+  },
   "village": {
     "name": "Vila",
     "map_caption": "Vender e fabricar",

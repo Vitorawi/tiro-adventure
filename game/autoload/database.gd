@@ -30,6 +30,8 @@ var routines: Dictionary = {}
 var wishes: Dictionary = {}
 ## Achados, sorteios e conjuntos do faro.
 var finds: Dictionary = {}
+## Passeios do Tiro (data/walks.json): configurações e caminhos.
+var walks: Dictionary = {}
 
 
 func _init() -> void:
@@ -54,6 +56,7 @@ func _init() -> void:
 	routines = _load("res://data/routines.json")
 	wishes = _load("res://data/wishes.json")
 	finds = _load("res://data/finds.json")
+	walks = _load("res://data/walks.json")
 
 
 ## Mundo onde o personagem mora ("" se nenhum).

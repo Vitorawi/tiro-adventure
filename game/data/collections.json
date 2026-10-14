@@ -75,6 +75,12 @@
     "icon": "find_paw",
     "sprite": ""
   },
+  "park_bow": {
+    "name": "Laço da praça",
+    "slot": "head",
+    "icon": "tab_park",
+    "sprite": ""
+  },
   "explorer_hat": {
     "name": "Chapéu de explorador",
     "slot": "head",

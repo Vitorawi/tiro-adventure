@@ -2,7 +2,42 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **14/10/2026, Codex**.
+> um do outro. Última atualização: **14/10/2026, Claude Code**.
+
+**✔ Etapa 06 do começo (Praça: Nina, Pipoca e o primeiro passeio) — Claude Code, 14/10/2026.** Commit local, sem push.
+- Mundo `park` (Praça) entre Sítio e Vila em `worlds.json`; abre com a primeira encomenda (`main_2_order`), com "Novo!" listando Praça e
+  Nina. Sala `rooms/park.json` (fundo novo, 8 `dig_spots` alcançáveis, 15 obstáculos, zona `walk_gate`, pontos `dog_start`,
+  `npc_nina`, `npc_dog_pipoca`, `walk_marker`). NPCs `nina` (apresentação de 3 falas, serviço `walk`) e `dog_pipoca` (`decor` + `follow`:
+  novos campos do `npcs.json`, tratados em `NpcWorld`/`Places`/`ProgressionState`).
+- Motor de passeios: `data/walks.json` (só `park_loop`: 2 min, ⚡8, +20 felicidade/−10 higiene, loot 50% moedas / 30% `find: park` / 20% ração),
+  `WalkState` (salvo em `walks`, sem mudar `SAVE_VERSION`: save antigo = sem passeio), `GameState.walking/walk_error/start_walk/walk_remaining/
+  walk_ready/walk_loot/collect_walk_error/collect_walk/cancel_walk`, `Database.walks`, `Events.walk_collected`. Enquanto passeia: o Tiro some das
+  salas (`RoomView._sync_dog`), `feed/play/bathe/pet/dormir/cavar` bloqueados e desejos de comida mostram "Quando ele voltar".
+  `dev_finish_timers`/`dev_advance_time` também andam o passeio. `available_actions` e o cartão "bem-vindo de volta" ganharam `walk`.
+- Telas: painel `walks` (`ProgressionUi.walks_panel`: espaço com postal/tempo/barra, Recolher ou "Chamar de volta" com 2 toques,
+  cartões dos passeios com chips de tempo/⚡ e ícones dos achados possíveis, até 2 bloqueados apagados com cadeado), cartão "Volta do passeio"
+  (`scenes/ui/walk_result/`), `WalkIndicator` no portão (tempo/Recolher; tocar recolhe direto), tela do Tiro com postal 2x e o Tiro andando
+  (`AwayView`, botões de cuidado desabilitados e humor "Tiro está passeando").
+- Conteúdo: linha `nina` (`nina_meet` ordem 10, `nina_walk` ordem 20), `finds.json → worlds.park` + `park_set` (laço `park_bow`), desejo `walk`
+  (`go: "place:park:walk"`; `WishUi.go_target` entende `place:<mundo>:<lugar>`), diária `tiro_walk`, `Places.goal_target` para `walk`/`walk:<id>`.
+- Arte (PixelLab, registrada no `ART_PIPELINE.md`): fundo da Praça, postal `park_loop`, Nina (caminhada S/E/N/O + retrato), Pipoca (caminhada S/E/N,
+  parada S/E + retrato), ícones `tab_park` (2ª tentativa) e `action_walk`. Originais em `build/art_sources/etapa06/`.
+- Decisões: (1) a diária se chama `tiro_walk` porque `walk` já era a diária "Faça um passeio" (rotas da Natureza). (2) O quiosque do fundo veio com
+  balcão (não vazio); serve para a Etapa 08. (3) A Pipoca só tem pulinhos ao toque (a Etapa 09 a transforma em amiga). (4) Chão da Praça = calçada +
+  gramado dentro da cerca, com fonte, bancos, árvores, canteiros, caixa de areia e quiosque como obstáculos; a fonte e a copa da árvore da frente
+  foram encolhidas para deixar um corredor de 20 px entre elas (senão o lado leste ficava inalcançável). Os montinhos "na caixa de areia" ficaram
+  na grama ao redor (a areia é obstáculo). (5) `onboarding_test` agora segue até o 1º passeio: capítulo 4 em ~10,5 min, 1º passeio recolhido em
+  ~14 min (meta ≤ 60), ocioso 190 s; o jogador simulado também vende o excedente e entrega a encomenda. (6) `progression_test` faz um passeio por ciclo.
+- Pendências da Etapa 05 fechadas: capturas 360×780 conferidas (`build/screenshots/etapa05/`: farejando, "Novo achado!", Coleção → Achados, Mochila,
+  cartão de volta com achado); o álbum tinha o contador "4/16" quebrando letra por letra e nomes cortados: corrigido (`find_ui.gd`). Jobs PixelLab da 05
+  registrados (por id de galeria) no `ART_PIPELINE.md`; faro incluído em `GAME_DESIGN.md`. Mojibake do `finds.json` ("sÃ­tio") corrigido.
+  Isenção dos 5 achados da Praça removida do `manual_test`.
+- Testes: `park_test` novo (no `test_all`); `content_test` (5 mundos, Praça, walks.json), `npc_lines_test`, `onboarding_test`, `progression_test` ajustados.
+  Suíte inteira PASS rodada um a um (logs em `build/test_logs/etapa06b/`). Capturas 360×780 em `build/screenshots/etapa06/` conferidas
+  (lista do Mapa, Praça com Nina e Pipoca, conversa, painel vazio/andando/pronto, tela do Tiro passeando, casa sem o Tiro, portão "Recolher", cartão de volta).
+- Pendências/atenção: a Pipoca ainda é só enfeite; o Tiro andando na tela do Tiro é só leste (loop); `tab_park` é um banco sob árvore pequeno (legível,
+  mas pode ser refeito). Avisos de RIDs/ObjectDB no fechamento dos testes continuam. Nada de conteúdo da Etapa 07 foi adiantado.
+  Próximo passo: **Etapa 07 — passeios** (`docs/plans/comeco/ETAPA_07_passeios.md`).
 
 **✔ Etapa 05 do começo (Faro do Tiro) — Claude Code, 14/10/2026** (código iniciado pelo Codex). Commit local, sem push.
 - `data/finds.json` (mundos farm/village/nature, `guaranteed`, `table`, conjuntos), `FindState`, `GameState.update_finds/dig/dig_error/claim_find_set`,

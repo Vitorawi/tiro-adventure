@@ -78,7 +78,7 @@ func _run() -> void:
 				"owned": check(data.upgrades.has(key), id + ": construção " + key)
 				"skill": check(data.skills.has(key), id + ": atributo " + key)
 				"stat":
-					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "orders", "explore", "build", "quests", "open:bag", "find"] or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:"), id + ": contador desconhecido " + key)
+					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "orders", "explore", "build", "quests", "open:bag", "find", "walk"] or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:"), id + ": contador desconhecido " + key)
 					if key.begins_with("harvest:"):
 						check(db.get("crops").has(key.trim_prefix("harvest:")), id + ": cultura " + key)
 					if key.begins_with("produce:"):
@@ -133,7 +133,7 @@ func _run() -> void:
 		for id: String in group.missions:
 			var m: Dictionary = group.missions[id]
 			var key: String = m.goal.key
-			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "explore", "wish", "find"] or key.begins_with("activity:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
+			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "explore", "wish", "find", "walk"] or key.begins_with("activity:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
 			if key.begins_with("harvest:"):
 				check(db.get("crops").has(key.trim_prefix("harvest:")), kind + "/" + id + ": cultura inexistente")
 			if key.begins_with("produce:"):
@@ -168,7 +168,7 @@ func _run() -> void:
 						check(data.activities.values().any(func(a: Dictionary) -> bool: return a.place == group), place + ": grupo de rotas inexistente " + group)
 				"market": check(arg in ["sell", "orders"], place + ": aba da feira")
 				"storage": check(data.storage.has(arg), place + ": depósito inexistente")
-				"inventory", "fridge", "feed", "sleep", "farm": pass
+				"inventory", "fridge", "feed", "sleep", "farm", "walks": pass
 				_: check(false, place + ": painel desconhecido")
 			if p.has("upgrade"):
 				check(data.upgrades.has(p.upgrade), place + ": construção inexistente")
@@ -177,7 +177,22 @@ func _run() -> void:
 		# Simplicidade: no máximo 4 lugares visíveis por mundo (fora viagens).
 		var visible: Array = w.places.values().filter(func(p: Dictionary) -> bool: return not p.get("hidden", false) and not str(p.get("panel", "")).begins_with("travel"))
 		check(visible.size() <= 4, world + ": mais de 4 lugares")
-	check(db.get("worlds").size() == 4, "o jogo tem 4 mundos")
+	check(db.get("worlds").size() == 5, "o jogo tem 5 mundos")
+	# Praça: sala com pontos para o Tiro, para cada personagem e para o passeio; postais dos passeios existem.
+	var park_room: Dictionary = db.call("room", "park")
+	check(ResourceLoader.exists(park_room.get("background", "")), "Praça: fundo")
+	check(park_room.get("points", {}).has("dog_start") and park_room.get("points", {}).has("walk_marker"), "Praça: dog_start e walk_marker")
+	for npc: String in db.get("worlds").park.npcs:
+		check(park_room.get("points", {}).has("npc_" + npc), "Praça: ponto de " + npc)
+		check(ResourceLoader.exists(db.get("npcs")[npc].portrait), "Praça: retrato de " + npc)
+	for walk_id: String in db.get("walks").walks:
+		var walk: Dictionary = db.get("walks").walks[walk_id]
+		check(ResourceLoader.exists(db.get("walks").settings.postcard_dir + walk.postcard), walk_id + ": postal existe")
+		for entry: Dictionary in walk.loot.table:
+			if entry.has("find"):
+				check(db.get("finds").worlds.has(entry.find), walk_id + ": mundo de achados " + str(entry.find))
+			for item: String in entry.get("items", {}):
+				check(db.get("items").has(item), walk_id + ": item " + item)
 	# Revelar aos poucos: personagem aparece até o capítulo da primeira missão dele.
 	for npc: String in db.get("npcs"):
 		var from := int(db.get("npcs")[npc].get("requirements", {}).get("chapter", 1))

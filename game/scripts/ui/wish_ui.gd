@@ -152,6 +152,8 @@ static func go_target(def: Dictionary) -> Dictionary:
 	var go := str(def.get("go", ""))
 	if go.begins_with("screen:"):
 		return {"screen": go.trim_prefix("screen:")}
+	if go.begins_with("place:"):
+		return {"world": go.get_slice(":", 1), "place": go.get_slice(":", 2), "hint": "Passeio"}
 	if def.get("type", "") != "action":
 		return Places.goal_target({"type": "have", "key": str(def.item)})
 	return {"screen": "pet"}

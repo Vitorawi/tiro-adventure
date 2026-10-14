@@ -1,5 +1,25 @@
 # Game Design
 
+## Faro do Tiro (Etapa 05, 14/10/2026)
+
+O Tiro fareja sozinho: de tempos em tempos aparece um montinho com brilho no chão do mapa (sítio, vila,
+natureza e, depois, a praça), no máximo um por mundo. Tocar no montinho faz o Tiro cavar e rende um
+achado (moedas, comida ou um objeto do álbum). Os primeiros achados de cada mundo são garantidos e o
+último deles é um pedaço do mapa do tesouro. O álbum (Coleção → Achados e Mochila → Achados) agrupa os
+achados por mundo; completar o conjunto de um mundo dá moedas e, às vezes, um apetrecho. Nada vence nem
+some: o montinho espera. Dados em `finds.json`; `dig_spots` das salas dizem onde ele pode aparecer.
+
+## Praça e passeios (Etapa 06, 14/10/2026)
+
+Depois da Vila (primeira encomenda entregue) abre a **Praça**, entre Sítio e Vila no Mapa. A Nina,
+adestradora, passeia com a Pipoca (vira-lata caramelo, só enfeite por enquanto). Conversar com a Nina
+abre a missão do primeiro passeio. No portão **Passeio** o jogador manda o Tiro passear: ele gasta
+energia, **sai de casa** (some dos mapas; a tela do Tiro mostra o postal com ele andando) e volta
+quando o tempo acaba. Recolher mostra o cartão "Volta do passeio" com achados, moedas e vínculo. Ele
+volta mais feliz, um pouco cansado e sujinho (laço com o banho). Não há punição: dá para chamar o Tiro de
+volta (devolve a energia, sem prêmio). Só um passeio por vez. A Etapa 07 acrescenta mais caminhos e raros.
+
+
 ## Desejos do Tiro e vínculo (Etapa 03, 14/10/2026)
 
 Depois da caminha, a aba Desejos aparece entre Tiro e Mapa. O primeiro pedido é 3 carinhos.

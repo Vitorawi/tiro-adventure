@@ -32,6 +32,8 @@ signal toast_requested(text: String)
 signal items_gained(items: Dictionary, coins: int, origin: Vector2)
 ## Novo item do álbum ou mudas iniciais: cartão na fila de comemorações.
 signal find_discovered(result: Dictionary)
+## Recolheu um passeio: resumo para o cartão "Volta do passeio" (ver WalkResult).
+signal walk_collected(result: Dictionary)
 ## Pede para abrir o painel inferior (sheet) com um conteúdo.
 signal sheet_requested(title: String, content: Control)
 ## Pede para fechar o painel inferior.

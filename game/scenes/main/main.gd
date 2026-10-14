@@ -34,6 +34,7 @@ var _announce_pending: bool = false
 ## Cartões modais esperando a vez (nível, bem-vindo de volta): um por vez, depois da introdução/comemorações.
 var _modal_queue: Array[Callable] = []
 var _welcome: CanvasLayer
+var _walk_result: CanvasLayer
 var _intro: Node
 var _left_at: float = 0.0
 var _pending_level: Dictionary = {}
@@ -55,6 +56,10 @@ func _ready() -> void:
 	add_child(CollectFx.new())
 	_welcome = load("res://scenes/ui/welcome_back/welcome_back.tscn").instantiate()
 	add_child(_welcome)
+	_walk_result = load("res://scenes/ui/walk_result/walk_result.tscn").instantiate()
+	add_child(_walk_result)
+	Events.walk_collected.connect(func(result: Dictionary) -> void:
+		_queue_modal(func() -> void: _walk_result.show_result(result)))
 	Events.level_up.connect(_on_level_up)
 	Events.bond_up.connect(_on_bond_up)
 	Events.find_discovered.connect(func(result: Dictionary) -> void:
@@ -146,7 +151,7 @@ func _queue_modal(callback: Callable) -> void:
 func _flush_modals() -> void:
 	if _modal_queue.is_empty() or _announce_pending or _chapter_done > 0:
 		return
-	if (is_instance_valid(_intro) and _intro.is_inside_tree()) or _celebration.visible or _welcome.visible:
+	if (is_instance_valid(_intro) and _intro.is_inside_tree()) or _celebration.visible or _welcome.visible or _walk_result.visible:
 		return
 	_modal_queue.pop_front().call()
 

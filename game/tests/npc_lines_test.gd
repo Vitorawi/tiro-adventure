@@ -51,6 +51,18 @@ func _run() -> void:
 	state.call("from_dict", snapshot)
 	check(state.get("progress").current_line_quest("merchant") == "merchant_orders", "Feirante persiste")
 	check(state.get("progress").current_line_quest("guide") == "guide_stone", "Guia persiste")
+	# Praça: a linha da Nina corre em paralelo (depois da primeira encomenda) e a Pipoca não é personagem.
+	state.get("progress").claimed_quests["main_2_order"] = true
+	state.call("_changed")
+	var lines_before: Dictionary = state.get("progress").active_steps().duplicate()
+	check(lines_before.get("nina", "") == "nina_meet", "linha da Nina começa depois da encomenda")
+	check(lines_before.has("main") and lines_before.has("bloblo") and lines_before.has("merchant"), "Nina não bloqueia as outras linhas")
+	state.call("talk_to", "nina")
+	check(state.call("claim_quest", "nina_meet") == "", "recebe nina_meet")
+	check(state.get("progress").current_line_quest("nina") == "nina_walk", "linha da Nina avança")
+	check(state.get("progress").current_main_quest() == lines_before.main, "linha da Nina não mexe na história")
+	var places_script: Script = load("res://scripts/ui/places.gd")
+	check(not (places_script.call("visible_npcs", "park") as Array).has("dog_pipoca"), "Pipoca não é personagem")
 	var help: Script = load("res://scripts/ui/task_help.gd")
 	check(not (help.call("describe", "quest", "guide_stone") as Dictionary).get("next_target", {}).is_empty(), "Guia aponta o próximo requisito da Caverna")
 	# Retrato permanece vivo enquanto o corpo da conversa é reconstruído.

@@ -12,6 +12,8 @@ extends Node2D
 const MIRROR := { "west": "east", "east": "west" }
 ## Distância máxima (px da sala) que o NPC se afasta do ponto de casa.
 const ROAM_RADIUS := 140.0
+## "follow": distância máxima (px da sala) do personagem que ele acompanha.
+const FOLLOW_RADIUS := 40.0
 const SPEED := 32.0
 const SHADOW_RADIUS := 15.0
 const SHADOW_COLOR := Color(0.12, 0.05, 0.02, 0.45)
@@ -25,6 +27,7 @@ var _sprite: AnimatedSprite2D
 var _badge: Label
 var _feet := 26.0
 var _move_tween: Tween
+var _hopping := false
 
 
 func _ready() -> void:
@@ -87,8 +90,30 @@ func _brain() -> void:
 		await _go_to(_roam_target())
 
 
-## Destino alcançável perto de casa (o NPC não atravessa o mapa todo).
+## Personagem "decor" (ex.: Pipoca): sem conversa nem balão; tocar faz pulinhos.
+func is_decor() -> bool:
+	return bool(Database.npcs.get(npc_id, {}).get("decor", false))
+
+
+## Pulinhos de alegria (reação ao toque de personagens decor).
+func react() -> void:
+	if _hopping:
+		return
+	_hopping = true
+	var tween := create_tween()
+	for i in 2:
+		tween.tween_property(_sprite, "position:y", -_feet - 10.0, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		tween.tween_property(_sprite, "position:y", -_feet, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	await tween.finished
+	_hopping = false
+
+
+## Destino alcançável perto de casa (o NPC não atravessa o mapa todo). Quem tem "follow"
+## escolhe destinos perto do personagem que acompanha.
 func _roam_target() -> Vector2:
+	var leader := room.npc_node(str(Database.npcs.get(npc_id, {}).get("follow", "")))
+	if leader != null:
+		return room.floor_point_near(leader.position, FOLLOW_RADIUS)
 	for attempt in 12:
 		var target := room.random_floor_point(position)
 		if target.distance_to(home) <= ROAM_RADIUS:

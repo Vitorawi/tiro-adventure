@@ -1,0 +1,27 @@
+{
+  "settings": {
+    "slots": 1,
+    "postcard_dir": "res://assets/sprites/areas/walks/",
+    "away_text": "Tiro está passeando"
+  },
+  "walks": {
+    "park_loop": {
+      "name": "Volta na praça",
+      "icon": "action_walk",
+      "postcard": "park_loop.png",
+      "seconds": 120,
+      "energy": 8,
+      "requirements": {"quests": ["nina_meet"]},
+      "needs": {"happiness": 20, "hygiene": -10},
+      "rewards": {"coins": 6, "affection": 3, "skill_xp": {"adventure": 5}},
+      "loot": {
+        "rolls": 1,
+        "table": [
+          {"weight": 50, "coins": [2, 6]},
+          {"weight": 30, "find": "park"},
+          {"weight": 20, "items": {"dog_food": 1}}
+        ]
+      }
+    }
+  }
+}

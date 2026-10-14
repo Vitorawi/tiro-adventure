@@ -241,6 +241,166 @@ static func routes_panel(place: String, focus: String = "") -> Control:
 	)
 
 
+# --- Passeios -------------------------------------------------------------------------
+
+## "Chamar de volta" pede dois toques: vale até este instante (Unix).
+static var _cancel_armed_until := 0.0
+
+
+## Painel do portão da Praça, no molde das estações: um espaço em cima (o Tiro é um só) e os passeios embaixo.
+static func walks_panel() -> Control:
+	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		box.add_child(UiKit.label("Em andamento  %d/1" % (1 if GameState.walking() else 0), &"SectionLabel"))
+		box.add_child(_walk_slot())
+		box.add_child(UiKit.label("Passeios", &"SectionLabel"))
+		var shown_locked := 0
+		for id: String in Database.walks.get("walks", {}):
+			var data: Dictionary = Database.walks.walks[id]
+			var closed := GameState.requirement_error(data.get("requirements", {}))
+			if closed != "":
+				if shown_locked >= 2:
+					continue
+				shown_locked += 1
+			_walk_card(box, id, data, closed != ""))
+
+
+## Espaço do passeio: vazio, andando (postal, tempo, barra) ou pronto.
+static func _walk_slot() -> Control:
+	var panel := PanelContainer.new()
+	panel.name = "WalkSlot"
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.mouse_filter = Control.MOUSE_FILTER_PASS
+	var box := UiKit.vbox(6)
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	panel.add_child(box)
+	if not GameState.walking():
+		panel.theme_type_variation = &"CardPanel"
+		panel.modulate.a = 0.5
+		box.add_child(_center(UiKit.icon(UiKit.ui_icon("action_walk"), 64)))
+		box.add_child(_center(UiKit.label("Livre", &"SmallLabel")))
+		return panel
+	var entry: Dictionary = GameState.walk_state.current
+	var ready := GameState.walk_ready()
+	var remaining := GameState.walk_remaining()
+	panel.theme_type_variation = &"ReadyCardPanel" if ready else &"CardPanel"
+	box.add_child(_center(_postcard(GameState.walk_postcard(str(entry.id)), Vector2(128, 80))))
+	box.add_child(_center(UiKit.label(str(GameState.walk_def(str(entry.id)).get("name", "")), &"SectionLabel")))
+	box.add_child(_center(UiKit.label("Pronto!" if ready else TimeText.short(remaining), &"SmallLabel", UiKit.GOOD if ready else null)))
+	if not ready:
+		var seconds := maxf(1.0, float(entry.ready_at) - float(entry.started_at))
+		box.add_child(UiKit.bar(100.0 * clampf(1.0 - remaining / seconds, 0.0, 1.0), Color(0.96, 0.62, 0.25), 10))
+	if ready:
+		var collect := UiKit.button("Recolher", func() -> void:
+			var error := GameState.collect_walk_error()
+			if error != "":
+				Events.toast_requested.emit(error)
+			else:
+				Events.sheet_close_requested.emit()
+				GameState.collect_walk(), &"PrimaryButton")
+		collect.name = "CollectWalk"
+		collect.disabled = GameState.collect_walk_error() != ""
+		box.add_child(collect)
+		if collect.disabled:
+			box.add_child(UiKit.label(GameState.collect_walk_error(), &"SmallLabel", UiKit.BAD))
+	else:
+		var armed := GameState.now() < _cancel_armed_until
+		var call_back := UiKit.button("Toque de novo para chamar" if armed else "Chamar de volta", func() -> void:
+			if GameState.now() < _cancel_armed_until:
+				_cancel_armed_until = 0.0
+				GameState.cancel_walk()
+				Events.toast_requested.emit("Tiro voltou para casa")
+			else:
+				_cancel_armed_until = GameState.now() + 4.0
+				Events.toast_requested.emit("Sem prêmio se voltar agora. Toque de novo."))
+		call_back.name = "CancelWalk"
+		box.add_child(call_back)
+	return panel
+
+
+static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, locked: bool) -> void:
+	var body := UiKit.card(parent)
+	body.get_parent().name = "WalkCard_" + id
+	if locked:
+		body.get_parent().modulate.a = 0.6
+	var top := UiKit.hbox(10)
+	top.add_child(_postcard(GameState.walk_postcard(id), Vector2(64, 40)))
+	var info := UiKit.vbox(4)
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_child(UiKit.label(str(data.name)))
+	var details := UiKit.flow()
+	if locked:
+		details.add_child(WishUi.LockIcon.new())
+		for chip: Control in _walk_requirement_chips(data.get("requirements", {})):
+			details.add_child(chip)
+	else:
+		details.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(data.seconds))))
+		details.add_child(UiKit.chip(Database.need_icon("energy"), str(int(data.get("energy", 0)))))
+	info.add_child(details)
+	top.add_child(info)
+	body.add_child(top)
+	if locked:
+		return
+	var finds := UiKit.flow(4)
+	finds.name = "PossibleFinds"
+	for item: String in walk_possible_items(id):
+		finds.add_child(UiKit.icon(Database.item_icon(item), 32))
+	body.add_child(finds)
+	var go := UiKit.button("Passear", func() -> void:
+		var error := GameState.start_walk(id)
+		Events.toast_requested.emit(error if error != "" else "Vamos passear!")
+		if error == "":
+			Events.sheet_close_requested.emit(), &"PrimaryButton")
+	go.name = "StartWalk_" + id
+	go.disabled = GameState.walk_error(id) != ""
+	go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var row := UiKit.hbox(8)
+	row.add_child(go)
+	body.add_child(row)
+	if go.disabled:
+		body.add_child(UiKit.label(GameState.walk_error(id), &"SmallLabel", UiKit.BAD))
+
+
+## Itens que o passeio pode render (da tabela, incluindo a tabela de achados do mundo em "find").
+static func walk_possible_items(id: String) -> Array[String]:
+	var result: Array[String] = []
+	for entry: Dictionary in GameState.walk_def(id).get("loot", {}).get("table", []):
+		var pools: Array = [entry]
+		if entry.has("find"):
+			pools = Database.finds.get("worlds", {}).get(str(entry.find), {}).get("table", [])
+		for pool: Dictionary in pools:
+			for item: String in pool.get("items", {}):
+				if not item in result:
+					result.append(item)
+	return result
+
+
+static func _walk_requirement_chips(requirements: Dictionary) -> Array[Control]:
+	var chips: Array[Control] = []
+	for key: String in requirements.get("stats", {}):
+		var label := "%d/%d" % [mini(GameState.progress.stat(key), int(requirements.stats[key])), int(requirements.stats[key])]
+		chips.append(UiKit.chip(UiKit.ui_icon("action_walk"), label + " passeios" if key == "walk" else label))
+	if requirements.has("bond"):
+		chips.append(UiKit.chip(UiKit.ui_icon("bond_heart"), str(int(requirements.bond))))
+	if requirements.has("quests") and not requirements.has("stats") and not requirements.has("bond"):
+		chips.append(UiKit.chip(UiKit.ui_icon("tab_tasks"), "Missão"))
+	return chips
+
+
+static func _postcard(path: String, size: Vector2) -> TextureRect:
+	var rect := UiKit.icon(WalkResult.postcard_texture(path), 0)
+	rect.custom_minimum_size = size
+	rect.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	return rect
+
+
+static func _center(control: Control) -> Control:
+	if control is Label:
+		(control as Label).horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	else:
+		control.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	return control
+
+
 # --- Atributos e coleção --------------------------------------------------------------
 
 static func skills_panel() -> Control:

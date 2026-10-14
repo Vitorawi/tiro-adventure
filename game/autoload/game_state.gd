@@ -31,6 +31,8 @@ var progress := ProgressionState.new()
 ## Desejos do Tiro (até três espaços).
 var wishes := WishState.new()
 var finds := FindState.new()
+## Passeio em andamento (o Tiro sai de casa).
+var walk_state := WalkState.new()
 
 
 func _ready() -> void:
@@ -76,6 +78,7 @@ func reset() -> void:
 	progress.started_at = now()
 	wishes = WishState.new()
 	finds = FindState.new()
+	walk_state = WalkState.new()
 	_mark_all_seen()
 	_changed()
 
@@ -115,6 +118,8 @@ func find_reward(world: String) -> Dictionary:
 	return guaranteed[int(entry.dug)].duplicate(true) if int(entry.dug) < guaranteed.size() else Loot.roll(def.get("table", []), 1, int(entry.seed))
 
 func dig_error(world: String) -> String:
+	if walking():
+		return away_text()
 	if not finds.worlds.has(world) or int(finds.worlds[world].pending) <= 0 or requirement_error(Database.finds.worlds.get(world, {}).get("requirements", {})) != "":
 		return "Nada para cavar aqui"
 	return storage_error(find_reward(world).get("items", {}))
@@ -186,12 +191,147 @@ func dev_spawn_finds() -> void:
 				finds.worlds[world].seed = int(finds.worlds[world].next_at)
 	_changed()
 
+# --- Passeios ---------------------------------------------------------------
+
+func walk_def(id: String) -> Dictionary:
+	return Database.walks.get("walks", {}).get(id, {})
+
+
+## Há passeio em andamento (pronto ou não): o Tiro não está em casa.
+func walking() -> bool:
+	return walk_state.active()
+
+
+func away_text() -> String:
+	return str(Database.walks.get("settings", {}).get("away_text", "Tiro está passeando"))
+
+
+## Motivo de o cuidado direto estar bloqueado ("" se o Tiro está em casa).
+func away_error() -> String:
+	return away_text() if walking() else ""
+
+
+func walk_remaining() -> int:
+	return walk_state.remaining(now())
+
+
+func walk_ready() -> bool:
+	return walk_state.ready(now())
+
+
+func walk_error(id: String) -> String:
+	var def := walk_def(id)
+	if def.is_empty():
+		return "Passeio desconhecido"
+	if walking():
+		return "O Tiro já está passeando"
+	var closed := requirement_error(def.get("requirements", {}))
+	if closed != "":
+		return closed
+	if dog.sleeping:
+		return "Tiro está dormindo"
+	if dog.get_need("energy", now()) < float(def.get("energy", 0)) + 5.0:
+		return "Tiro está cansado: deixe ele dormir"
+	return ""
+
+
+func start_walk(id: String) -> String:
+	var error := walk_error(id)
+	if error != "":
+		return error
+	var def := walk_def(id)
+	dog.apply({"energy": -float(def.get("energy", 0))}, now())
+	walk_state.current = {
+		"id": id,
+		"started_at": now(),
+		"ready_at": now() + float(def.get("seconds", 60)),
+		"seed": int(now()),
+		"energy": int(def.get("energy", 0)),
+	}
+	_changed()
+	return ""
+
+
+## Sorteio do passeio em andamento, estável: depende só da semente guardada.
+func walk_loot() -> Dictionary:
+	if not walking():
+		return {"coins": 0, "items": {}}
+	var def := walk_def(str(walk_state.current.id))
+	var loot: Dictionary = def.get("loot", {})
+	var seed := int(walk_state.current.seed)
+	var coins := 0
+	var items := {}
+	for i in int(loot.get("rolls", 1)):
+		var entry := Loot.pick_weighted(loot.get("table", []), seed + i * 7919)
+		var drop := Loot.roll([entry], 1, seed + i * 104729 + 1)
+		if entry.has("find"):
+			drop = Loot.roll(Database.finds.get("worlds", {}).get(str(entry.find), {}).get("table", []), 1, seed + i * 15485863 + 2)
+		coins += int(drop.coins)
+		for item: String in drop.items:
+			items[item] = int(items.get(item, 0)) + int(drop.items[item])
+	return {"coins": coins, "items": items}
+
+
+func collect_walk_error() -> String:
+	if not walking():
+		return "Nenhum passeio"
+	if not walk_ready():
+		return "O passeio ainda não terminou"
+	return storage_error(walk_loot().items)
+
+
+## Recolhe o passeio pronto. Devolve o resumo para o cartão "Volta do passeio" (vazio se falhou).
+func collect_walk() -> Dictionary:
+	if collect_walk_error() != "":
+		return {}
+	var id := str(walk_state.current.id)
+	var def := walk_def(id)
+	var loot := walk_loot()
+	var fresh: Array[String] = []
+	for item: String in loot.items:
+		if Database.items.get(item, {}).get("category", "") == "find" and progress.stat("find_item:" + item) == 0:
+			fresh.append(item)
+		if Database.items.get(item, {}).get("category", "") == "find":
+			_count("find_item:" + item, int(loot.items[item]))
+		_count("walk_item:" + item, int(loot.items[item]))
+	dog.apply(def.get("needs", {}), now())
+	var rewards: Dictionary = def.get("rewards", {}).duplicate(true)
+	var items: Dictionary = loot.items.duplicate()
+	rewards["coins"] = int(rewards.get("coins", 0)) + int(loot.coins)
+	rewards["items"] = items
+	_apply_rewards(rewards)
+	walk_state.history[id] = {"count": int(walk_state.history.get(id, {}).get("count", 0)) + 1}
+	walk_state.current = {}
+	_count("walk")
+	_count("walk:" + id)
+	var result := {"id": id, "name": str(def.get("name", id)), "postcard": walk_postcard(id), "items": items, "coins": int(rewards.coins), "affection": int(def.get("rewards", {}).get("affection", 0)), "needs": def.get("needs", {}), "new": fresh}
+	_changed()
+	Events.items_gained.emit(items, int(rewards.coins), Vector2(-1.0, -1.0))
+	Events.walk_collected.emit(result)
+	return result
+
+
+## Chama o Tiro de volta antes da hora: devolve a energia, sem prêmio.
+func cancel_walk() -> String:
+	if not walking():
+		return "Nenhum passeio"
+	dog.apply({"energy": float(walk_state.current.get("energy", 0))}, now())
+	walk_state.current = {}
+	_changed()
+	return ""
+
+
+func walk_postcard(id: String) -> String:
+	var settings: Dictionary = Database.walks.get("settings", {})
+	return str(settings.get("postcard_dir", "")) + str(walk_def(id).get("postcard", ""))
+
+
 # --- Ações do Tiro ---------------------------------------------------------
 
 func feed(item_id: String) -> bool:
 	var useful := _need_is_low("hunger")
 	var effects: Dictionary = Database.items.get(item_id, {}).get("feed", {})
-	if effects.is_empty() or not inventory.remove(item_id):
+	if walking() or effects.is_empty() or not inventory.remove(item_id):
 		return false
 	dog.apply(effects, now())
 	_count("feed")
@@ -203,6 +343,8 @@ func feed(item_id: String) -> bool:
 
 
 func pet() -> void:
+	if walking():
+		return
 	dog.apply(Database.actions.get("pet", {}), now())
 	dog.affection += 1
 	_count("pet")
@@ -211,7 +353,7 @@ func pet() -> void:
 
 
 func play() -> bool:
-	if dog.sleeping or dog.get_need("energy", now()) < 15.0:
+	if walking() or dog.sleeping or dog.get_need("energy", now()) < 15.0:
 		return false
 	var useful := _need_is_low("happiness")
 	dog.apply(Database.actions.get("play", {}), now())
@@ -224,6 +366,8 @@ func play() -> bool:
 
 
 func bathe() -> void:
+	if walking():
+		return
 	var useful := _need_is_low("hygiene")
 	dog.apply(Database.actions.get("bathe", {}), now())
 	_count("bathe")
@@ -233,6 +377,8 @@ func bathe() -> void:
 
 
 func set_sleeping(value: bool) -> void:
+	if value and walking():
+		return
 	dog.set_sleeping(value, now())
 	_changed()
 
@@ -1394,6 +1540,8 @@ func wish_error(i: int) -> String:
 	var def := wish_at(i)
 	if def.is_empty():
 		return "Espere"
+	if def.type != "action" and walking():
+		return "Quando ele voltar"
 	if wish_value(i) >= wish_target(i):
 		return ""
 	if def.type == "action":
@@ -1553,6 +1701,9 @@ func claim_daily_gift() -> String:
 ## { kind, count, icon (id de item), world, target }: colheitas, estações e coletas da Natureza.
 func welcome_ready_lines(limit: int = 4) -> Array[Dictionary]:
 	var lines: Array[Dictionary] = []
+	if walk_ready():
+		var park_at := Database.place_with_panel("walks")
+		lines.append({"kind": "walk", "count": 1, "icon": "", "world": park_at[0], "target": park_at[1]})
 	for world: String in finds.worlds:
 		if int(finds.worlds[world].pending) > 0:
 			lines.append({"kind": "dig", "count": 1, "icon": "", "world": world, "target": "find"})
@@ -1586,6 +1737,11 @@ func welcome_ready_lines(limit: int = 4) -> Array[Dictionary]:
 ## lugar do mundo (mesmo alvo de Events.world_requested) ou a tela ("pet", "tasks") quando world = "".
 func available_actions() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
+	var walk_at := Database.place_with_panel("walks")
+	if walk_ready():
+		result.append({"kind": "walk_ready", "world": walk_at[0], "target": walk_at[1]})
+	elif not walking() and Database.walks.get("walks", {}).keys().any(func(id: String) -> bool: return walk_error(id) == ""):
+		result.append({"kind": "walk", "world": walk_at[0], "target": walk_at[1]})
 	for world: String in finds.worlds:
 		if dig_error(world) == "":
 			result.append({"kind": "dig", "world": world, "target": "find"})
@@ -1812,6 +1968,8 @@ func dev_finish_timers() -> void:
 		for entry: Dictionary in jobs:
 			if not entry.is_empty():
 				entry["ready_at"] = minf(float(entry.ready_at), t)
+	if walking():
+		walk_state.current["ready_at"] = minf(float(walk_state.current.ready_at), t)
 	progress.cooldowns.clear()
 	for slot: Dictionary in wishes.slots:
 		slot["ready_at"] = minf(float(slot.ready_at), t)
@@ -1835,6 +1993,7 @@ func dev_advance_time(seconds: float) -> void:
 	progress.shift_time(seconds)
 	wishes.shift_time(seconds)
 	finds.shift_time(seconds)
+	walk_state.shift_time(seconds)
 	_changed()
 
 
@@ -1910,6 +2069,7 @@ func to_dict() -> Dictionary:
 		"progression": progress.to_dict(),
 		"wishes": wishes.to_dict(),
 		"finds": finds.to_dict(),
+		"walks": walk_state.to_dict(),
 	}
 
 
@@ -1948,6 +2108,8 @@ func from_dict(data: Dictionary) -> void:
 	wishes.from_dict(data.get("wishes", {}))
 	finds = FindState.new()
 	finds.from_dict(data.get("finds", {}))
+	walk_state = WalkState.new()
+	walk_state.from_dict(data.get("walks", {}))
 	# Save sem o campo de vínculo: o que já valia não paga presente de novo.
 	if not data.get("progression", {}).has("claimed_bond_level"):
 		progress.claimed_bond_level = bond_level()

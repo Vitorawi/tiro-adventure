@@ -197,6 +197,13 @@
           ]
         }
       },
+      "tiro_walk": {
+        "name": "Passeie com o Tiro",
+        "description": "Leve o Tiro para passear na Praça.",
+        "goal": {"key": "walk", "target": 1},
+        "rewards": {"coins": 12},
+        "requirements": {"quests": ["nina_walk"]}
+      },
       "dig": {
         "name": "Cave 2 achados",
         "description": "Toque onde o Tiro farejou.",

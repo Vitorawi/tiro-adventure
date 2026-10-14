@@ -6,7 +6,7 @@ static func album() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var header := UiKit.hbox(8)
 		header.add_child(UiKit.icon(UiKit.ui_icon("find_paw"), 32))
-		header.add_child(UiKit.label("%d/16" % GameState.find_album_count(), &"SectionLabel"))
+		header.add_child(UiKit.short_label("%d/16" % GameState.find_album_count(), &"SectionLabel"))
 		box.add_child(header)
 		var map_card := UiKit.card(box)
 		var pieces := UiKit.hbox(8)
@@ -31,11 +31,11 @@ static func album() -> Control:
 			card.add_child(UiKit.label(str(Database.finds.album_names[world]), &"SectionLabel"))
 			var grid := GridContainer.new()
 			grid.columns = 4
-			grid.add_theme_constant_override("h_separation", 8)
+			grid.add_theme_constant_override("h_separation", 4)
 			for id: String in items:
 				var earned := GameState.progress.stat("find_item:" + id) > 0
 				var cell := UiKit.vbox(2)
-				cell.custom_minimum_size.x = 56
+				cell.custom_minimum_size.x = 66
 				var icon := UiKit.icon(Database.item_icon(id), 48)
 				icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 				if not earned:
@@ -43,6 +43,8 @@ static func album() -> Control:
 				cell.add_child(icon)
 				var label := UiKit.label(Database.item_name(id) if earned else "?", &"SmallLabel")
 				label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+				label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				label.custom_minimum_size.x = 66
 				cell.add_child(label)
 				grid.add_child(cell)
 			card.add_child(grid)

@@ -49,10 +49,11 @@ Use verbos concretos (plantar, colher, comprar, produzir, entregar) em uma frase
 |---|---|---|
 | **Casa** | — | Tigela, **Cozinha** (fogão + forno + fila extra), Geladeira, porta → Sítio. Sofá = enfeite com soneca (`hidden`). |
 | **Sítio da Bloblo** | Bloblo (casinha) | Canteiros (+ estufa), Produção (bancada + moinho + queijaria), Pomar e Animais (galinheiro + curral). Volta para casa é atalho oculto. |
+| **Praça** | Nina (+ Pipoca, enfeite) | **Passeio** (portão; o Tiro sai de casa e volta com achados). Pet shop, amigos e treino chegam nas Etapas 08–10. |
 | **Vila** | Feirante, Laís | **Feira** (vender/encomendas; + banca), **Ateliê**, **Portão da trilha** (viaja para Natureza; capítulo 3) |
 | **Natureza** | Guia da trilha | **Bosque** (madeira/madeira dura), **Caverna** (pedra/cobre/cristais), **Prado** (fibras). Cada local tem uma a três coletas paralelas. |
 
-Regra atual: **4 mundos, no máximo 4 lugares visíveis cada** (`content_test`).
+Regra atual: **5 mundos (Casa, Sítio, Praça, Vila, Natureza), no máximo 4 lugares visíveis cada** (`content_test`).
 Não existe menu "Construir": cada construção é comprada **no próprio lugar** — `"upgrade"` do lugar
 (sem ela, tocar abre a compra; móveis mostram "+") ou `"upgrades"` (cartões de compra dentro do painel).
 `Database.place_of_upgrade` acha esse lugar; o "Ir" das missões leva até lá.
@@ -222,3 +223,16 @@ Toda missão deve ter um destino válido e acessível quando liberada: valide co
   uma vez (`ProgressionState.seen`; saves antigos marcam como visto o que já estava aberto).
 - **Seta do Ir:** `Places.highlight_action` traduz o destino ("recipe:x", "buy:oven", "market:orders"...) para o
   objeto/zona da sala; `RoomView.point_at` desenha a seta pulsando; o painel abre `POINT_DELAY` (0,8 s) depois.
+
+## Praça (Etapa 06)
+
+- Mundo `park` (`worlds.json`, entre `farm` e `village`; abre com `quests: ["main_2_order"]`, a primeira
+  encomenda). Sala `rooms/park.json` (fundo `areas/park/park.png`, `dog_scale` 0,5): zona `walk_gate`
+  (`place:walk`, etiqueta "Passeio") e pontos `dog_start`, `npc_nina`, `npc_dog_pipoca`, `walk_marker`.
+- `walk_marker` = onde o `WalkIndicator` (tempo / "Recolher") aparece; tocar nele ou no portão com o
+  passeio pronto recolhe direto. O lugar `walk` usa o painel `walks` (`ProgressionUi.walks_panel`).
+- NPC com `"decor": true` (Pipoca): sem conversa, balão, "Novo!" nem lista de personagens; tocar faz
+  pulinhos. `"follow": "<npc>"`: escolhe destinos a até 40 px do personagem seguido (`RoomView.floor_point_near`).
+- Enquanto `GameState.walking()` o `RoomView` não mantém o `DogWorld` (casa, sítio, praça...) e o recria no
+  `dog_start` ao recolher. Passeios: `data/walks.json`, `WalkState`, `GameState.start_walk/collect_walk/cancel_walk`.
+- Achados da praça: `finds.json → worlds.park` (a tabela também alimenta `"find": "park"` dos passeios).

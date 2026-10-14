@@ -169,7 +169,7 @@ func unlocked_keys() -> Array[String]:
 			if not requirements.is_empty() and requirement_error(requirements) == "":
 				keys.append("place:%s/%s" % [world_id, place_id])
 	for id: String in Database.npcs:
-		if not Database.npcs[id].get("requirements", {}).is_empty() and npc_visible(id):
+		if not Database.npcs[id].get("requirements", {}).is_empty() and npc_visible(id) and not Database.npcs[id].get("decor", false):
 			keys.append("npc:" + id)
 	return keys
 

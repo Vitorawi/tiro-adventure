@@ -9,6 +9,7 @@ const MAX_FIRST_FIND_MIN := 9.0
 const MAX_IDLE_TOTAL_SEC := 240.0  # ocioso total até o fim do capítulo 3
 const MAX_IDLE_STREAK_SEC := 120.0  # nenhum trecho ocioso contínuo maior que isto
 const GOAL_CHAPTER := 4
+const MAX_FIRST_WALK_MIN := 60.0  # primeiro passeio recolhido (Etapa 06)
 const MAX_SIM_MIN := 60.0
 const ACTION_SEC := 3.0  # custo de tempo de cada ação do jogador simulado
 const IDLE_STEP_SEC := 10.0
@@ -22,6 +23,9 @@ var idle_streak: float = 0.0
 var idle_max: float = 0.0
 var firsts: Dictionary = {}
 var idle_steps: Dictionary = {}
+var goal_sim := -1.0  # instante em que o capítulo alvo começou
+var goal_idle_total := 0.0
+var goal_idle_max := 0.0
 
 
 func check(ok: bool, message: String) -> void:
@@ -42,9 +46,13 @@ func _run() -> void:
 	database = root.get_node("Database")
 	state.call("reset")
 	var progress: RefCounted = state.get("progress")
-	while progress.chapter_index() < GOAL_CHAPTER and sim < MAX_SIM_MIN * 60.0:
+	while (progress.chapter_index() < GOAL_CHAPTER or progress.stat("walk") == 0) and sim < MAX_SIM_MIN * 60.0:
 		var acts := _turn()
 		_record_firsts()
+		if goal_sim < 0.0 and progress.chapter_index() >= GOAL_CHAPTER:
+			goal_sim = sim
+			goal_idle_total = idle_total
+			goal_idle_max = idle_max
 		if acts == 0:
 			var active: String = str(progress.active_steps())
 			idle_steps[active] = float(idle_steps.get(active, 0)) + IDLE_STEP_SEC
@@ -59,24 +67,27 @@ func _run() -> void:
 			idle_streak = 0.0
 	progress = state.get("progress")
 	print("Linha do tempo (min simulados):")
-	for key: String in ["talk:lais", "feed", "open:bag", "talk:bloblo", "wish", "water", "harvest", "find", "produce", "open:village"]:
+	for key: String in ["talk:lais", "feed", "open:bag", "talk:bloblo", "wish", "water", "harvest", "find", "produce", "open:village", "walk"]:
 		print("  ", key, ": ", ("%.1f" % (float(firsts[key]) / 60.0)) if firsts.has(key) else "nunca")
-	print("  capítulo %d em %.1f min; ocioso total %.0f s; maior trecho ocioso %.0f s" % [progress.chapter_index(), sim / 60.0, idle_total, idle_max])
+	print("  capítulo %d em %.1f min; ocioso total %.0f s; maior trecho ocioso %.0f s" % [GOAL_CHAPTER, goal_sim / 60.0, goal_idle_total, goal_idle_max])
+	print("  primeiro passeio recolhido em %.1f min" % (float(firsts.get("walk", -60.0)) / 60.0))
 	print("  espera por passos: ", idle_steps)
 	check(progress.chapter_index() >= GOAL_CHAPTER, "chegou ao capítulo %d em %.0f min simulados" % [GOAL_CHAPTER, MAX_SIM_MIN])
 	check(firsts.has("harvest") and float(firsts.harvest) / 60.0 <= MAX_FIRST_HARVEST_MIN, "primeira colheita em até %.0f min" % MAX_FIRST_HARVEST_MIN)
 	check(firsts.has("wish") and float(firsts.wish) / 60.0 <= MAX_FIRST_WISH_MIN, "primeiro desejo do Tiro cumprido em até %.0f min" % MAX_FIRST_WISH_MIN)
 	check(firsts.has("find") and float(firsts.find) / 60.0 <= MAX_FIRST_FIND_MIN, "primeiro achado em até %.0f min" % MAX_FIRST_FIND_MIN)
 	check(firsts.has("water"), "o jogador regou ao menos uma vez")
-	check(idle_total <= MAX_IDLE_TOTAL_SEC, "ocioso total %.0f s (máximo %.0f s)" % [idle_total, MAX_IDLE_TOTAL_SEC])
-	check(idle_max <= MAX_IDLE_STREAK_SEC, "maior trecho ocioso %.0f s (máximo %.0f s)" % [idle_max, MAX_IDLE_STREAK_SEC])
+	check(goal_sim >= 0.0, "chegou ao capítulo %d" % GOAL_CHAPTER)
+	check(firsts.has("walk") and float(firsts.walk) / 60.0 <= MAX_FIRST_WALK_MIN, "primeiro passeio recolhido em até %.0f min" % MAX_FIRST_WALK_MIN)
+	check(goal_idle_total <= MAX_IDLE_TOTAL_SEC, "ocioso total %.0f s (máximo %.0f s)" % [goal_idle_total, MAX_IDLE_TOTAL_SEC])
+	check(goal_idle_max <= MAX_IDLE_STREAK_SEC, "maior trecho ocioso %.0f s (máximo %.0f s)" % [goal_idle_max, MAX_IDLE_STREAK_SEC])
 	print("ONBOARDING TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(1 if failures > 0 else 0)
 
 
 func _record_firsts() -> void:
 	var progress: RefCounted = state.get("progress")
-	for key: String in ["talk:lais", "feed", "open:bag", "talk:bloblo", "wish", "water", "harvest", "find", "produce", "open:village"]:
+	for key: String in ["talk:lais", "feed", "open:bag", "talk:bloblo", "wish", "water", "harvest", "find", "produce", "open:village", "walk"]:
 		if not firsts.has(key) and progress.stat(key) > 0:
 			firsts[key] = sim
 
@@ -192,4 +203,21 @@ func _turn() -> int:
 	for station_id: String in state.get("stations"):
 		if not (state.call("collect", station_id) as Dictionary).is_empty():
 			acts += 1
+	# 6b. Vende o excedente (cenoura guarda 4 para a encomenda) quando a Vila pede vendas.
+	if "trade" in wanted or "sold" in wanted:
+		for item: String in state.get("inventory").counts.keys():
+			var spare: int = int(state.get("inventory").counts[item]) - (4 if item == "carrot" else 0)
+			if database.get("crops").has(item) and spare > 0 and state.call("sell", item, spare) == "":
+				acts += 1
+	# 7. Encomenda da feira (fecha o capítulo 4 e abre a Praça) e o primeiro passeio.
+	if "orders" in wanted:
+		for id: String in database.get("progression").orders:
+			if state.call("fulfill_order", id) == "":
+				acts += 1
+				break
+	if state.call("walk_ready"):
+		if not (state.call("collect_walk") as Dictionary).is_empty():
+			acts += 1
+	elif state.call("start_walk", "park_loop") == "":
+		acts += 1
 	return acts

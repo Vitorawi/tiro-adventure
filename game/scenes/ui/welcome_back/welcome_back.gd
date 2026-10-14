@@ -58,10 +58,14 @@ func _fill(box: VBoxContainer) -> void:
 		var texture: Texture2D = Database.item_icon(str(line.icon)) if str(line.icon) != "" else UiKit.ui_icon("tab_map")
 		if str(line.kind) == "dig":
 			texture = UiKit.ui_icon("find_paw")
+		elif str(line.kind) == "walk":
+			texture = UiKit.ui_icon("action_walk")
 		row.add_child(UiKit.icon(texture, 32))
 		var count := UiKit.label("%d pronto%s" % [line.count, "s" if int(line.count) > 1 else ""], &"SectionLabel")
 		if str(line.kind) == "dig":
 			count.text = "1 achado · " + str(Database.worlds.get(str(line.world), {}).get("name", line.world))
+		elif str(line.kind) == "walk":
+			count.text = "Tiro voltou do passeio"
 		count.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(count)
 		var target := {"world": line.world, "place": line.target}

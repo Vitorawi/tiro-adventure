@@ -43,7 +43,7 @@ Ao terminar, marque a etapa como feita no docs/plans/comeco/README.md.
 - [x] Etapa 03 — desejos e vínculo (14/10/2026, retomada Claude Code + Codex; testes e capturas conferidos, sem push)
 - [x] Etapa 04 — sabores (14/10/2026, Codex; morango/abóbora após ensopado para preservar ritmo, sem push)
 - [x] Etapa 05 — faro (14/10/2026, Codex + Claude Code; código e testes ok, capturas 360x780 pendentes, sem push)
-- [ ] Etapa 06 — praça
+- [x] Etapa 06 — praça (14/10/2026, Claude Code; testes e capturas ok, sem push)
 - [ ] Etapa 07 — passeios
 - [ ] Etapa 08 — apetrechos
 - [ ] Etapa 09 — amigos

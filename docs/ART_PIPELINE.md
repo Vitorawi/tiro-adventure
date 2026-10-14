@@ -300,3 +300,47 @@ especial usa a estrela de XP existente, conforme fallback do plano.
   (o `room.png` de 632×395 foi recusado): usei um recorte 64×48 do piso da sala. 1 tentativa, ficou isométrica.
 - `ui/icons/item_bed_gift.png` 32×32: `create_image_pixen` (job `55030dd5-b6d1-48e1-80e0-a79b97e04b7f`,
   asset `3b73d3e5-3a80-5b80-be62-142d5c7a40c2`), 1 geração. Originais em `build/art_sources/02/`.
+
+### Etapa 05 do começo (faro) — 14/10/2026 (Codex gerou, Claude instalou)
+
+Os job ids não foram anotados na hora; as imagens estão na galeria do PixelLab (Creator, 14/10/2026) e os
+originais em `build/art_sources/etapa05/` (ignorada pelo git). Ícones 32×32 `create_image_pixen`
+(`no_background`, contorno preto, médio detalhe, 1 geração cada), na pasta `ui/icons/`:
+
+| Arquivo | Galeria (`gallery:`) |
+|---|---|
+| `item_old_horseshoe` | `f46871f9-e41e-5d44-879f-e272affc5cd6` |
+| `item_hen_feather` | `5cee647c-35f8-586f-8a13-18e0431c6832` |
+| `item_grandma_button` | `884be7a9-0251-5568-8b0c-98e463fade61` |
+| `item_old_coin` | `917b2fb1-fb87-54b3-8529-a4b90cdf10f6` |
+| `item_lost_ball` | `da02d1e1-f6c3-5e87-a0cd-d35fb5096745` |
+| `item_bone_keychain` | `96db6db8-1222-56a2-abce-89dedb043dcf` |
+| `item_dog_tag` | `02e0d0a0-5734-542f-9c9d-28f6af409292` |
+| `item_marble` | `36738c49-f113-56d9-972c-2b808b8f1def` |
+| `item_old_ticket` | `5ba328d9-3abb-5b9f-8407-aab4ee9edf11` |
+| `item_silver_spoon` | `5b8fefd4-3d78-55e9-912d-5c97431e76a2` |
+| `item_pocket_watch` | `d522da0b-394b-5a0f-9892-febe8f61fc41` |
+| `item_pinecone` | `fd073190-5bc1-524a-a273-44472edb17b3` |
+| `item_map_piece` | `f9c09935-65b2-52e0-bcf3-545a8fe160a8` |
+| `find_paw` | `b588be73-0ef2-5f54-a865-004a3344607c` |
+
+`item_shiny_pebble`, `item_creek_shell`, `item_owl_feather` e `item_fossil` também estão na galeria do mesmo dia
+(busque por "pebble", "shell", "feather" e "fossil" em `list_images`). Montinho `areas/fx/dig_spot.png`
+(galeria `8bc492ba-9909-5da1-a086-67d587cf6da3`, 32×24) e brilho `areas/fx/fx_sparkle.png` (16×16,
+`bdb51a19-cd15-554b-80eb-a95719a40066`). Animações do Tiro do mapa `tiro_world/sniff/east` e `dig/east`
+(9 quadros, personagem `8e4e8b4d-142c-4d14-a012-29f16506a0a4`, `animate_character` v3, 1 direção).
+
+### Etapa 06 do começo (Praça) — 14/10/2026 (Claude Code)
+
+Originais em `build/art_sources/etapa06/` (ignorada pelo git).
+
+| Asset | Ferramenta / job ou id | Arquivo em `game/assets/sprites/` | Recorte |
+|---|---|---|---|
+| Fundo da Praça 632×395 | `create_image_pro`, refs `farm.png` + `village/banner.png`; job `786e8151-a3c3-41c3-a3f7-33acec99ff4f` (asset `f0fcec32-7fe5-52dd-8198-f4fe9c5c3fdc`). 2ª tentativa (seed 7, `2f325580-ce6f-495a-bafc-90587f0171c2`) gerada e não usada | `areas/park/park.png` | inteiro; escolhido pela calçada larga e pelo arco do portão visível. O quiosque veio com balcão (não vazio), serve para a Etapa 08 |
+| Postal "Volta na praça" 128×80 | `create_image_pro`, ref `farm.png`; job `56400ba6-72d5-4a85-a5c7-a1223a6e89f1` (4 candidatos; usado o 0) | `areas/walks/park_loop.png` | inteiro |
+| Nina (personagem) | `create_character` pro 128, `style_character_id` Laís v3; `008f327a-6e03-4bf8-a1ca-223ddbe2fa79`; caminhada `animate_character` `walking-8-frames` skeleton-v3 (S/E/N `ba30ef8b…`, `c9bb3b2c…`, `28d76fdf…`; O `221bdb32-6703-416e-b4f4-7b00647338a3`) | `characters/npc_nina/rotations/` (4) e `walk/<dir>/frame_00..07.png` | 128×128 e 144×144, como a Laís |
+| Retrato da Nina 64×64 | `create_image_pro`, refs retrato da Laís + rotação sul; job `dd1b076e-d1ca-4ddc-9540-a32ab8c20186` (16 candidatos, prancha; usado o 0) | `characters/npc_nina/portrait.png` | inteiro |
+| Pipoca (cachorro) | `create_character` pro 64 quadruped `dog`, `style_character_id` Tiro mundo v2; `c2f7d371-f843-4455-8cb9-894c04959074`; `walk-8-frames` S/E/N (grupo `fba31f42…`) e `idle` S/E (grupo `13c22293…`), skeleton-v3 | `characters/dog_pipoca/rotations/` (4), `walk/<dir>/`, `idle/<dir>/` | rotações 64×64, animações 80×80; oeste = espelho do leste |
+| Retrato da Pipoca 64×64 | `create_image_pro`, refs rotação sul + `tiro_pet_idle_front.png`; job `0763eca0-b903-4e6d-a36f-b42dffbec391` (16 candidatos; usado o 2) | `characters/dog_pipoca/portrait.png` | inteiro |
+| Ícone `action_walk` | `create_image_pixen` 32×32, job `4a83dd30-f471-4ec7-ac55-7755a058ea9b` | `ui/icons/action_walk.png` | inteiro; 1ª tentativa |
+| Ícone `tab_park` | `create_image_pixen` 32×32; 1ª (`7c10279c-1e21-4b38-90eb-4c925813d7f4`, canteiro de flores, não leu como banco) trocada pela 2ª (seed 21, `b9305522-7477-4878-9414-bba846a84360`: banco sob árvore amarela) | `ui/icons/tab_park.png` | inteiro |

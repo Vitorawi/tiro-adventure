@@ -57,5 +57,30 @@
     "portrait": "",
     "icon": "item_plank",
     "greeting": "Vamos construir alguma coisa?"
+  },
+  "nina": {
+    "name": "Nina",
+    "role": "Adestradora da praça",
+    "portrait": "res://assets/sprites/characters/npc_nina/portrait.png",
+    "sprite_dir": "res://assets/sprites/characters/npc_nina/",
+    "icon": "action_walk",
+    "greeting": "Bora passear?",
+    "requirements": {"quests": ["main_2_order"]},
+    "introduction": [
+      "Oi! Eu sou a Nina, e essa bagunceira é a Pipoca.",
+      "Que yorkshire mais lindo! Passeio todo dia deixa qualquer cachorro feliz.",
+      "Aparece sempre que quiser. A Pipoca vai adorar um amigo!"
+    ],
+    "services": ["walk"]
+  },
+  "dog_pipoca": {
+    "name": "Pipoca",
+    "role": "Vira-lata caramelo da Nina",
+    "portrait": "res://assets/sprites/characters/dog_pipoca/portrait.png",
+    "sprite_dir": "res://assets/sprites/characters/dog_pipoca/",
+    "icon": "action_walk",
+    "decor": true,
+    "follow": "nina",
+    "requirements": {"quests": ["main_2_order"]}
   }
 }

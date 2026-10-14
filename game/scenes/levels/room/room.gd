@@ -32,6 +32,7 @@ var _pinch_distance := 0.0
 var _objects: Array[Sprite2D] = []
 var _dog: DogWorld
 var _dig_spot: Node2D
+var _walk_marker: WalkIndicator
 var _find_reacted_seed := -1
 ## Só DEV: desenha os pontos candidatos para revisar o chão.
 var dev_show_dig_spots := false
@@ -79,6 +80,11 @@ func _ready() -> void:
 		indicator.z_index = 5
 		_world.add_child(indicator)
 		_route_markers.append(indicator)
+	if _room.get("points", {}).has("walk_marker"):
+		_walk_marker = WalkIndicator.new()
+		_walk_marker.position = _point("walk_marker")
+		_walk_marker.z_index = 5
+		_world.add_child(_walk_marker)
 	Events.state_changed.connect(_refresh_ownership)
 	Events.state_changed.connect(_refresh_find)
 	Events.world_activity.connect(_on_world_activity)
@@ -112,6 +118,26 @@ func random_floor_point(from: Vector2) -> Vector2:
 		if not find_path(from, target).is_empty():
 			return target
 	return from
+
+
+## Ponto do chão a até `radius` px de `center` (quem acompanha alguém usa isto).
+func floor_point_near(center: Vector2, radius: float) -> Vector2:
+	if _walkable.is_empty():
+		return center
+	for attempt in 16:
+		var point := center + Vector2.from_angle(randf() * TAU) * randf_range(10.0, radius)
+		var cell := Vector2i((point / NAV_CELL).floor())
+		if _nav.is_in_boundsv(cell) and not _nav.is_point_solid(cell):
+			return _nav.get_point_position(cell)
+	return nearest_floor_point(center)
+
+
+## Personagem do mundo pelo id (null se não estiver nesta sala).
+func npc_node(npc_id: String) -> NpcWorld:
+	for npc: NpcWorld in _npcs:
+		if npc.npc_id == npc_id:
+			return npc
+	return null
 
 
 func nearest_floor_point(point: Vector2) -> Vector2:
@@ -273,6 +299,8 @@ func _animate_objects() -> void:
 	if not is_visible_in_tree():
 		return
 	_object_frame += 1
+	if _walk_marker:
+		_walk_marker.refresh()
 	for indicator: RouteIndicator in _route_markers:
 		indicator.refresh()
 	for sprite in _objects:
@@ -323,6 +351,7 @@ func _update_plot(sprite: Sprite2D) -> void:
 
 
 func _refresh_ownership() -> void:
+	_sync_dog()
 	for npc: NpcWorld in _npcs:
 		npc.visible = GameState.progress.npc_visible(npc.npc_id)
 	var opened: Array[bool] = []
@@ -528,9 +557,18 @@ func _spawn_sliced(texture: Texture2D, pos: Vector2) -> void:
 		_world.add_child(strip)
 
 
+## O Tiro sai da sala enquanto passeia e reaparece no "dog_start" quando volta.
+func _sync_dog() -> void:
+	if GameState.walking() and is_instance_valid(_dog):
+		_dog.queue_free()
+		_dog = null
+	elif not GameState.walking() and _dog == null:
+		_spawn_dog()
+
+
 func _spawn_dog() -> void:
-	if not _room.get("points", {}).has("dog_start"):
-		return  # sala sem o Tiro
+	if not _room.get("points", {}).has("dog_start") or GameState.walking():
+		return  # sala sem o Tiro (ou o Tiro está passeando)
 	_dog = DogWorld.new()
 	_dog.name = "Tiro"
 	_dog.room = self
@@ -765,6 +803,9 @@ func _handle_tap(point: Vector2) -> void:
 			else:
 				Places.run(world_id, region.get("action", ""))
 			return
+	if _walk_marker and _walk_marker.active() and _walk_marker.hit_rect.has_point(point - _walk_marker.position):
+		_collect_walk()
+		return
 	for indicator: RouteIndicator in _route_markers:
 		if indicator.active() and indicator.hit_rect.has_point(point - indicator.position):
 			if indicator.site != "" and GameState.gathering_ready_count(indicator.site) > 0:
@@ -774,7 +815,10 @@ func _handle_tap(point: Vector2) -> void:
 			return
 	for npc: NpcWorld in _npcs:
 		if npc.visible and npc.hit_test(point):
-			Places.run(world_id, "npc:" + npc.npc_id)
+			if npc.is_decor():
+				npc.react()
+			else:
+				Places.run(world_id, "npc:" + npc.npc_id)
 			return
 	if _dog and _dog.hit_test(point):
 		Events.screen_requested.emit(&"wishes" if _dog.has_balloon() else &"pet")
@@ -953,8 +997,23 @@ func _hits(sprite: Sprite2D, local: Vector2) -> bool:
 	return sprite.visible and sprite.texture != null and sprite.get_rect().has_point(unscaled) and sprite.is_pixel_opaque(unscaled)
 
 
+## Recolhe direto no mapa o passeio pronto; senão abre o painel de passeios.
+func _collect_walk() -> void:
+	if GameState.walk_ready():
+		var error := GameState.collect_walk_error()
+		if error != "":
+			Events.toast_requested.emit(error)
+		else:
+			GameState.collect_walk()
+	else:
+		Places.run(world_id, "place:walk")
+
+
 ## `target` é o sprite tocado (quando houver), para ações que dependem dele (canteiros).
 func _on_object_tapped(action: String, target: Node = null) -> void:
+	if action == "place:walk" and GameState.walk_ready():
+		_collect_walk()
+		return
 	if target is Sprite2D and _collect_station(str(target.get_meta("station", target.get_meta("animal_station", ""))), target.position):
 		return
 	match action:

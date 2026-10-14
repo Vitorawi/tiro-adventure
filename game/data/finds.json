@@ -78,6 +78,23 @@
         }
       ]
     },
+    "park": {
+      "interval": 420,
+      "max_pending": 1,
+      "requirements": {"quests": ["nina_meet"]},
+      "guaranteed": [
+        {"items": {"lost_ball": 1}},
+        {"items": {"map_piece_2": 1}}
+      ],
+      "table": [
+        {"weight": 30, "coins": [3, 8]},
+        {"weight": 15, "items": {"dog_food": 1}},
+        {"weight": 15, "items": {"lost_ball": 1}},
+        {"weight": 12, "items": {"bone_keychain": 1}},
+        {"weight": 10, "items": {"shiny_pebble": 1}},
+        {"weight": 3, "items": {"dog_tag": 1}}
+      ]
+    },
     "village": {
       "interval": 600,
       "max_pending": 1,
@@ -197,7 +214,7 @@
   },
   "sets": {
     "farm_set": {
-      "name": "Tesouros do sÃ­tio",
+      "name": "Tesouros do sítio",
       "world": "farm",
       "items": ["old_horseshoe", "hen_feather", "grandma_button", "old_coin"],
       "rewards": {
@@ -207,6 +224,12 @@
         },
         "collections": ["digger_bandana"]
       }
+    },
+    "park_set": {
+      "name": "Tesouros da praça",
+      "world": "park",
+      "items": ["lost_ball", "bone_keychain", "shiny_pebble", "dog_tag"],
+      "rewards": {"coins": 80, "collections": ["park_bow"]}
     },
     "village_set": {
       "name": "Tesouros da vila",
@@ -239,8 +262,8 @@
     "nature": ["pinecone", "creek_shell", "owl_feather", "fossil"]
   },
   "album_names": {
-    "farm": "Tesouros do sÃ­tio",
-    "park": "Tesouros da praÃ§a",
+    "farm": "Tesouros do sítio",
+    "park": "Tesouros da praça",
     "village": "Tesouros da vila",
     "nature": "Tesouros da trilha"
   }

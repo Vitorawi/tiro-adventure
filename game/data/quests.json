@@ -1328,5 +1328,30 @@
     "kind": "line",
     "line": "bloblo",
     "order": 25
+  },
+  "nina_meet": {
+    "npc": "nina",
+    "name": "Uma amiga na praça",
+    "dialogue": "Oi! Eu sou a Nina, e essa é a Pipoca. Bem-vindos à praça!",
+    "goals": [
+      {"type": "stat", "key": "talk:nina", "target": 1, "label": "Falar com a Nina"}
+    ],
+    "rewards": {"coins": 10},
+    "kind": "line",
+    "line": "nina",
+    "order": 10,
+    "requirements": {"quests": ["main_2_order"]}
+  },
+  "nina_walk": {
+    "npc": "nina",
+    "name": "Primeiro passeio",
+    "dialogue": "Bora dar uma volta na praça? Toque no portão do passeio!",
+    "goals": [
+      {"type": "stat", "key": "walk", "target": 1, "fresh": true, "label": "Passear com o Tiro"}
+    ],
+    "rewards": {"coins": 15, "items": {"dog_food": 2}, "affection": 5},
+    "kind": "line",
+    "line": "nina",
+    "order": 20
   }
 }
