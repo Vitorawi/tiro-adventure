@@ -108,6 +108,8 @@ func _campaign() -> Dictionary:
 	# Acelera apenas o tempo. Moedas, materiais, XP e aquisições vêm das ações reais.
 	for turn in 1500:
 		iterations = turn + 1
+		if turn % 100 == 0:
+			print("Campanha: ciclo ", turn, "; passos ", state.get("progress").active_steps(), "; passeios ", state.get("progress").stat("walk"))
 		state.get("progress").cooldowns.clear()
 		state.get("dog").updated_at -= 3600.0
 		state.call("update_finds")
@@ -118,7 +120,8 @@ func _campaign() -> Dictionary:
 		if state.call("walk_error", "park_loop") != "" and not state.call("walking"):
 			state.get("dog").sleeping = false
 			state.get("dog").needs["energy"] = 100.0
-		if state.call("start_walk", "park_loop") == "":
+		var walk_id := "flower_street" if state.get("progress").current_line_quest("nina") == "nina_routes" and state.call("walk_lock_error", "flower_street") == "" else "park_loop"
+		if state.call("start_walk", walk_id) == "":
 			state.get("walk_state").current["ready_at"] = 1.0
 			state.call("collect_walk")
 		state.call("emergency_food")

@@ -56,6 +56,12 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			return result
 		"recipe":
 			result = _recipe(id, amount)
+		"walk":
+			var walk := GameState.walk_def(id)
+			result = _base(str(walk.get("name", id)), "Passeie e recolha na Praça.", {"world": "park", "place": "walk"}, "Ir")
+			var error := GameState.walk_error(id)
+			if error != "":
+				result.detail = error
 		"upgrade":
 			var upgrade: Dictionary = Database.progression.upgrades[id]
 			if upgrade.has("nature_unlock"):
@@ -282,6 +288,10 @@ static func best_source(item: String) -> Dictionary:
 			var route: String = str(source.key).trim_prefix("activity:")
 			candidate = {"kind": "route", "id": route}
 			requirements = Database.progression.activities[route].get("requirements", {})
+		elif str(source.key).begins_with("walk:"):
+			var walk_id := str(source.key).trim_prefix("walk:")
+			candidate = {"kind": "walk", "id": walk_id}
+			requirements = GameState.walk_def(walk_id).get("requirements", {})
 		if candidate.is_empty():
 			continue
 		var target := Places.goal_target(source)
@@ -381,6 +391,8 @@ static func icon_for(kind: String, id: String) -> Texture2D:
 			return Database.item_icon(Database.recipes[id].output)
 		"route":
 			return UiKit.ui_icon(Database.progression.activities[id].get("icon", "action_play"))
+		"walk":
+			return UiKit.ui_icon("action_walk")
 		"order":
 			return UiKit.ui_icon("item_treat_box")
 		"care":

@@ -248,20 +248,32 @@ static var _cancel_armed_until := 0.0
 
 
 ## Painel do portão da Praça, no molde das estações: um espaço em cima (o Tiro é um só) e os passeios embaixo.
+## Liberados primeiro (do mais curto ao mais longo), depois só os 2 próximos bloqueados.
 static func walks_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		box.add_child(UiKit.label("Em andamento  %d/1" % (1 if GameState.walking() else 0), &"SectionLabel"))
 		box.add_child(_walk_slot())
-		box.add_child(UiKit.label("Passeios", &"SectionLabel"))
-		var shown_locked := 0
+		var heading := UiKit.hbox(8)
+		heading.add_child(UiKit.fill_label("Passeios", &"SectionLabel"))
+		if GameState.progress.feature_unlocked("walk_diary"):
+			var diary := UiKit.button("Diário", func() -> void:
+				Events.sheet_requested.emit("Diário de passeios", walk_diary()), &"", UiKit.ui_icon("item_accessory_set"))
+			diary.name = "WalkDiaryButton"
+			heading.add_child(diary)
+		box.add_child(heading)
+		var open: Array[String] = []
+		var closed: Array[String] = []
 		for id: String in Database.walks.get("walks", {}):
-			var data: Dictionary = Database.walks.walks[id]
-			var closed := GameState.requirement_error(data.get("requirements", {}))
-			if closed != "":
-				if shown_locked >= 2:
-					continue
-				shown_locked += 1
-			_walk_card(box, id, data, closed != ""))
+			if GameState.walk_lock_error(id) == "":
+				open.append(id)
+			elif closed.size() < 2:
+				closed.append(id)
+		open.sort_custom(func(a: String, b: String) -> bool:
+			return int(Database.walks.walks[a].seconds) < int(Database.walks.walks[b].seconds))
+		for id: String in open:
+			_walk_card(box, id, Database.walks.walks[id], false)
+		for id: String in closed:
+			_walk_card(box, id, Database.walks.walks[id], true))
 
 
 ## Espaço do passeio: vazio, andando (postal, tempo, barra) ou pronto.
@@ -339,12 +351,15 @@ static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, lock
 	top.add_child(info)
 	body.add_child(top)
 	if locked:
+		var actions := UiKit.hbox(8)
+		var blocked := UiKit.button("Passear", func() -> void: pass)
+		blocked.disabled = true
+		blocked.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		actions.add_child(blocked)
+		actions.add_child(UiKit.square_button("?", TaskHelp.open.bind("walk", id)))
+		body.add_child(actions)
 		return
-	var finds := UiKit.flow(4)
-	finds.name = "PossibleFinds"
-	for item: String in walk_possible_items(id):
-		finds.add_child(UiKit.icon(Database.item_icon(item), 32))
-	body.add_child(finds)
+	body.add_child(walk_exclusives(id, 32))
 	var go := UiKit.button("Passear", func() -> void:
 		var error := GameState.start_walk(id)
 		Events.toast_requested.emit(error if error != "" else "Vamos passear!")
@@ -355,23 +370,95 @@ static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, lock
 	go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var row := UiKit.hbox(8)
 	row.add_child(go)
+	if go.disabled:
+		row.add_child(UiKit.square_button("?", TaskHelp.open.bind("walk", id)))
 	body.add_child(row)
 	if go.disabled:
-		body.add_child(UiKit.label(GameState.walk_error(id), &"SmallLabel", UiKit.BAD))
+		var reason := UiKit.hbox(6)
+		if GameState.walk_hours_error(id) != "":
+			reason.add_child(UiKit.icon(UiKit.ui_icon("timer"), 24))
+		reason.add_child(UiKit.fill_label(GameState.walk_error(id), &"SmallLabel", UiKit.BAD))
+		body.add_child(reason)
 
 
-## Itens que o passeio pode render (da tabela, incluindo a tabela de achados do mundo em "find").
-static func walk_possible_items(id: String) -> Array[String]:
+## Materiais do passeio (trail) que aparecem na primeira volta ou na tabela, sem repetir.
+static func walk_materials(id: String) -> Array[String]:
 	var result: Array[String] = []
-	for entry: Dictionary in GameState.walk_def(id).get("loot", {}).get("table", []):
-		var pools: Array = [entry]
-		if entry.has("find"):
-			pools = Database.finds.get("worlds", {}).get(str(entry.find), {}).get("table", [])
-		for pool: Dictionary in pools:
-			for item: String in pool.get("items", {}):
-				if not item in result:
-					result.append(item)
+	var loot: Dictionary = GameState.walk_def(id).get("loot", {})
+	var pools: Array = [loot.get("first", {})]
+	pools.append_array(loot.get("table", []))
+	for pool: Dictionary in pools:
+		for item: String in pool.get("items", {}):
+			if Database.items.get(item, {}).get("category", "") == "trail" and not item in result:
+				result.append(item)
 	return result
+
+
+## Fileira de materiais + apetrecho raro do passeio: colorido = já achou, silhueta = ainda não.
+static func walk_exclusives(id: String, px: int) -> Control:
+	var row := UiKit.flow(4)
+	row.name = "WalkExclusives"
+	for item: String in walk_materials(id):
+		var picture := UiKit.icon(Database.item_icon(item), px)
+		picture.name = "Material_" + item
+		if GameState.progress.stat("walk_item:" + item) == 0:
+			_silhouette(picture)
+		row.add_child(picture)
+	var rare := str(GameState.walk_def(id).get("loot", {}).get("rare", {}).get("collection", ""))
+	if rare != "":
+		var own := GameState.progress.collection.has(rare)
+		var cell := UiKit.hbox(2)
+		var picture := UiKit.icon(UiKit.ui_icon(str(Database.collections.get(rare, {}).get("icon", ""))), px)
+		picture.name = "Rare_" + rare
+		if not own:
+			_silhouette(picture)
+		cell.add_child(picture)
+		if own:
+			cell.add_child(UiKit.label("✓", &"SectionLabel", UiKit.GOOD))
+		row.add_child(cell)
+	return row
+
+
+static func _silhouette(picture: Control) -> void:
+	picture.modulate = Color(0.1, 0.08, 0.06, 0.6)
+
+
+## Diário de passeios: um bloco por passeio (silhueta e requisitos enquanto bloqueado).
+static func walk_diary() -> Control:
+	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		for id: String in Database.walks.get("walks", {}):
+			var data: Dictionary = Database.walks.walks[id]
+			var locked := GameState.walk_lock_error(id) != ""
+			var rare := str(data.get("loot", {}).get("rare", {}).get("collection", ""))
+			var found := rare != "" and GameState.progress.collection.has(rare)
+			var body := UiKit.card(box, &"ReadyCardPanel" if found else &"CardPanel")
+			body.get_parent().name = "Diary_" + id
+			var top := UiKit.hbox(10)
+			var picture := _postcard(GameState.walk_postcard(id), Vector2(128, 80))
+			if locked:
+				_silhouette(picture)
+			top.add_child(picture)
+			var info := UiKit.vbox(4)
+			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			info.add_child(UiKit.label("???" if locked else str(data.name), &"SectionLabel"))
+			if locked:
+				var chips := UiKit.flow()
+				chips.add_child(WishUi.LockIcon.new())
+				for chip: Control in _walk_requirement_chips(data.get("requirements", {})):
+					chips.add_child(chip)
+				info.add_child(chips)
+			else:
+				info.add_child(UiKit.chip(UiKit.ui_icon("action_walk"), "×%d" % GameState.progress.stat("walk:" + id)))
+			top.add_child(info)
+			body.add_child(top)
+			if locked:
+				continue
+			body.add_child(walk_exclusives(id, 32))
+			if rare != "":
+				var left := GameState.walk_pity_left(id)
+				var note := UiKit.label("Raro encontrado ✓" if found else "Raro garantido em até %d passeios" % left, &"SmallLabel", UiKit.GOOD if found else null)
+				note.name = "Pity"
+				body.add_child(note))
 
 
 static func _walk_requirement_chips(requirements: Dictionary) -> Array[Control]:
@@ -381,6 +468,11 @@ static func _walk_requirement_chips(requirements: Dictionary) -> Array[Control]:
 		chips.append(UiKit.chip(UiKit.ui_icon("action_walk"), label + " passeios" if key == "walk" else label))
 	if requirements.has("bond"):
 		chips.append(UiKit.chip(UiKit.ui_icon("bond_heart"), str(int(requirements.bond))))
+	for upgrade: String in requirements.get("owned", []):
+		var built: Dictionary = Database.progression.upgrades.get(upgrade, {})
+		chips.append(UiKit.chip(UiKit.ui_icon(str(built.get("icon", "tab_map"))), str(built.get("name", upgrade)).trim_prefix("Desbloquear ")))
+	if requirements.has("hours"):
+		chips.append(UiKit.chip(UiKit.ui_icon("timer"), "%dh" % int(requirements.hours[0])))
 	if requirements.has("quests") and not requirements.has("stats") and not requirements.has("bond"):
 		chips.append(UiKit.chip(UiKit.ui_icon("tab_tasks"), "Missão"))
 	return chips
@@ -489,7 +581,7 @@ static func _clothes_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var count := 0
 		var grid := GridContainer.new()
-		grid.columns = 3
+		grid.columns = 2
 		grid.mouse_filter = Control.MOUSE_FILTER_PASS
 		grid.add_theme_constant_override("h_separation", 6)
 		grid.add_theme_constant_override("v_separation", 6)
@@ -503,11 +595,24 @@ static func _clothes_panel() -> Control:
 			var picture := UiKit.icon(UiKit.ui_icon(data.icon), 48)
 			picture.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			card.add_child(picture)
+			var source := str(data.get("source", ""))
+			var is_walk_rare := source.begins_with("walk:") and not earned
+			if is_walk_rare:
+				_silhouette(picture)
 			var title := UiKit.label(data.name if earned else "?", &"SmallLabel")
 			title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			card.add_child(title)
+			if is_walk_rare:
+				var walk_name := str(GameState.walk_def(source.trim_prefix("walk:")).get("name", ""))
+				var hint := UiKit.label("Raro de passeio: " + walk_name, &"SmallLabel")
+				hint.name = "RareHint_" + id
+				hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+				card.add_child(hint)
+				var go := UiKit.button("Ir", Places.go.bind({"world": "park", "place": "walk"}))
+				go.custom_minimum_size.y = 48
+				card.add_child(go)
 			if not earned:
-				card.get_parent().modulate.a = 0.45
+				card.get_parent().modulate.a = 0.45 if not is_walk_rare else 0.8
 		var header := UiKit.hbox(8)
 		header.add_child(UiKit.icon(UiKit.ui_icon("item_accessory_set"), 32))
 		header.add_child(UiKit.short_label("%d/%d" % [count, Database.collections.size()], &"SectionLabel"))

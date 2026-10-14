@@ -225,14 +225,55 @@ func walk_error(id: String) -> String:
 		return "Passeio desconhecido"
 	if walking():
 		return "O Tiro já está passeando"
-	var closed := requirement_error(def.get("requirements", {}))
+	var closed := walk_lock_error(id)
 	if closed != "":
 		return closed
+	var hours := walk_hours_error(id)
+	if hours != "":
+		return hours
 	if dog.sleeping:
 		return "Tiro está dormindo"
 	if dog.get_need("energy", now()) < float(def.get("energy", 0)) + 5.0:
 		return "Tiro está cansado: deixe ele dormir"
 	return ""
+
+
+## Requisitos do passeio sem o horário ("" = liberado; o horário só impede de começar).
+func walk_lock_error(id: String) -> String:
+	var requirements: Dictionary = walk_def(id).get("requirements", {}).duplicate()
+	requirements.erase("hours")
+	return requirement_error(requirements)
+
+
+## "Abre às 17h" se o passeio tem janela de horário e agora está fora dela.
+func walk_hours_error(id: String, local_hour: int = -1) -> String:
+	var hours: Array = walk_def(id).get("requirements", {}).get("hours", [])
+	if hours.is_empty():
+		return ""
+	var hour := int(Time.get_datetime_dict_from_unix_time(_local_time()).hour) if local_hour < 0 else local_hour
+	var from_hour := int(hours[0])
+	var to_hour := int(hours[1])
+	var inside := from_hour <= hour and hour < to_hour if from_hour < to_hour else hour >= from_hour or hour < to_hour
+	if inside:
+		return ""
+	return "Abre às %dh" % int(hours[0])
+
+
+## Quantos passeios faltam, no máximo, para o raro vir com certeza (0 se o raro já é do jogador).
+func walk_pity_left(id: String) -> int:
+	var rare: Dictionary = walk_def(id).get("loot", {}).get("rare", {})
+	if rare.is_empty() or progress.collection.has(str(rare.get("collection", ""))):
+		return 0
+	return maxi(1, int(rare.get("pity", 1)) - int(walk_state.pity.get(id, 0)))
+
+
+## Passeios que valem "Novo!": liberados (fora o horário) e não silenciosos.
+func walk_unlock_keys() -> Array[String]:
+	var keys: Array[String] = []
+	for id: String in Database.walks.get("walks", {}):
+		if not walk_def(id).get("silent", false) and walk_lock_error(id) == "":
+			keys.append("walk:" + id)
+	return keys
 
 
 func start_walk(id: String) -> String:
@@ -252,24 +293,50 @@ func start_walk(id: String) -> String:
 	return ""
 
 
-## Sorteio do passeio em andamento, estável: depende só da semente guardada.
+## Sorteio do passeio em andamento, estável: depende só da semente guardada e do que já foi
+## recolhido (histórico e garantia só mudam ao recolher). Devolve moedas, itens, "first", "rare"
+## (id do apetrecho, "" se não veio) e "rare_duplicate" (já era do jogador: vira prêmio de consolo).
 func walk_loot() -> Dictionary:
 	if not walking():
-		return {"coins": 0, "items": {}}
-	var def := walk_def(str(walk_state.current.id))
+		return {"coins": 0, "items": {}, "first": false, "rare": "", "rare_item": "", "rare_duplicate": false}
+	var id := str(walk_state.current.id)
+	var def := walk_def(id)
 	var loot: Dictionary = def.get("loot", {})
 	var seed := int(walk_state.current.seed)
 	var coins := 0
 	var items := {}
+	var first := int(walk_state.history.get(id, {}).get("count", 0)) == 0 and loot.has("first")
+	if first:
+		coins += int(loot.first.get("coins", 0))
+		_add_amounts(items, loot.first.get("items", {}))
 	for i in int(loot.get("rolls", 1)):
 		var entry := Loot.pick_weighted(loot.get("table", []), seed + i * 7919)
 		var drop := Loot.roll([entry], 1, seed + i * 104729 + 1)
 		if entry.has("find"):
 			drop = Loot.roll(Database.finds.get("worlds", {}).get(str(entry.find), {}).get("table", []), 1, seed + i * 15485863 + 2)
 		coins += int(drop.coins)
-		for item: String in drop.items:
-			items[item] = int(items.get(item, 0)) + int(drop.items[item])
-	return {"coins": coins, "items": items}
+		_add_amounts(items, drop.items)
+	var rare := ""
+	var rare_item := ""
+	var duplicate := false
+	var rare_def: Dictionary = loot.get("rare", {})
+	if not rare_def.is_empty():
+		var rng := RandomNumberGenerator.new()
+		rng.seed = seed + 999331
+		if rng.randf() < float(rare_def.get("chance", 0.0)) or int(walk_state.pity.get(id, 0)) + 1 >= int(rare_def.get("pity", 1)):
+			rare = str(rare_def.collection)
+			rare_item = rare
+			duplicate = progress.collection.has(rare)
+			if duplicate:
+				coins += int(rare_def.get("duplicate", {}).get("coins", 0))
+				_add_amounts(items, rare_def.get("duplicate", {}).get("items", {}))
+				rare = ""
+	return {"coins": coins, "items": items, "first": first, "rare": rare, "rare_item": rare_item, "rare_duplicate": duplicate}
+
+
+func _add_amounts(target: Dictionary, amounts: Dictionary) -> void:
+	for item: String in amounts:
+		target[item] = int(target.get(item, 0)) + int(amounts[item])
 
 
 func collect_walk_error() -> String:
@@ -288,25 +355,42 @@ func collect_walk() -> Dictionary:
 	var def := walk_def(id)
 	var loot := walk_loot()
 	var fresh: Array[String] = []
+	var total := 0
 	for item: String in loot.items:
-		if Database.items.get(item, {}).get("category", "") == "find" and progress.stat("find_item:" + item) == 0:
+		var category: String = Database.items.get(item, {}).get("category", "")
+		if category == "find" and progress.stat("find_item:" + item) == 0:
 			fresh.append(item)
-		if Database.items.get(item, {}).get("category", "") == "find":
+		elif category == "trail" and progress.stat("walk_item:" + item) == 0:
+			fresh.append(item)
+		if category == "find":
 			_count("find_item:" + item, int(loot.items[item]))
 		_count("walk_item:" + item, int(loot.items[item]))
+		total += int(loot.items[item])
 	dog.apply(def.get("needs", {}), now())
 	var rewards: Dictionary = def.get("rewards", {}).duplicate(true)
 	var items: Dictionary = loot.items.duplicate()
 	rewards["coins"] = int(rewards.get("coins", 0)) + int(loot.coins)
 	rewards["items"] = items
+	var rare := str(loot.rare)
+	if rare != "":
+		rewards["collections"] = [rare]
 	_apply_rewards(rewards)
 	walk_state.history[id] = {"count": int(walk_state.history.get(id, {}).get("count", 0)) + 1}
+	walk_state.pity[id] = 0 if rare != "" or bool(loot.rare_duplicate) else int(walk_state.pity.get(id, 0)) + 1
 	walk_state.current = {}
 	_count("walk")
 	_count("walk:" + id)
-	var result := {"id": id, "name": str(def.get("name", id)), "postcard": walk_postcard(id), "items": items, "coins": int(rewards.coins), "affection": int(def.get("rewards", {}).get("affection", 0)), "needs": def.get("needs", {}), "new": fresh}
+	if total > 0:
+		_count("walk_item", total)
+	if rare != "":
+		_count("walk_rare")
+		_count("walk_rare:" + id)
+	var result := {"id": id, "name": str(def.get("name", id)), "postcard": walk_postcard(id), "items": items, "coins": int(rewards.coins), "affection": int(def.get("rewards", {}).get("affection", 0)), "needs": def.get("needs", {}), "new": fresh, "first": bool(loot.first), "rare": rare, "rare_item": str(loot.rare_item), "rare_duplicate": bool(loot.rare_duplicate)}
+	result["new_items"] = fresh
 	_changed()
 	Events.items_gained.emit(items, int(rewards.coins), Vector2(-1.0, -1.0))
+	if rare != "":
+		Events.dog_action.emit(&"wish")
 	Events.walk_collected.emit(result)
 	return result
 
@@ -1324,7 +1408,7 @@ func _finish_quest(id: String) -> void:
 ## O que a história acabou de revelar e o jogador ainda não viu (chaves de ProgressionState.unlocked_keys).
 func new_unlocks() -> Array[String]:
 	var result: Array[String] = []
-	for key in progress.unlocked_keys():
+	for key in progress.unlocked_keys() + walk_unlock_keys():
 		if not progress.seen.has(key):
 			result.append(key)
 	return result
@@ -1337,7 +1421,7 @@ func mark_seen(keys: Array[String]) -> void:
 
 
 func _mark_all_seen() -> void:
-	for key in progress.unlocked_keys():
+	for key in progress.unlocked_keys() + walk_unlock_keys():
 		progress.seen[key] = true
 
 

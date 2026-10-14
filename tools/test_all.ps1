@@ -13,4 +13,5 @@ foreach ($testTask in @("farm_test", "progression_test", "dev_tools_test", "task
   if (!(Test-Path "game/tests/$testTask.gd")) { continue }
   Invoke-Test $testTask @()
 }
+Invoke-Test "walks_test" @()
 Invoke-Test "dev_tools_test" @("--", "--prod")

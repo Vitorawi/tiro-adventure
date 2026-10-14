@@ -2,7 +2,8 @@
   "settings": {
     "slots": 1,
     "postcard_dir": "res://assets/sprites/areas/walks/",
-    "away_text": "Tiro está passeando"
+    "away_text": "Tiro está passeando",
+    "rare_star": "rare_star"
   },
   "walks": {
     "park_loop": {
@@ -11,16 +12,160 @@
       "postcard": "park_loop.png",
       "seconds": 120,
       "energy": 8,
+      "silent": true,
       "requirements": {"quests": ["nina_meet"]},
       "needs": {"happiness": 20, "hygiene": -10},
       "rewards": {"coins": 6, "affection": 3, "skill_xp": {"adventure": 5}},
       "loot": {
-        "rolls": 1,
+        "rolls": 2,
         "table": [
-          {"weight": 50, "coins": [2, 6]},
-          {"weight": 30, "find": "park"},
-          {"weight": 20, "items": {"dog_food": 1}}
-        ]
+          {"weight": 40, "items": {"stick": [1, 2]}},
+          {"weight": 15, "items": {"ribbon": 1}},
+          {"weight": 25, "coins": [2, 6]},
+          {"weight": 15, "find": "park"},
+          {"weight": 5, "items": {"dog_food": 1}}
+        ],
+        "first": {"items": {"stick": 2, "ribbon": 1}},
+        "rare": {"chance": 0.08, "pity": 6, "collection": "plaid_bow",
+                 "duplicate": {"coins": 20, "items": {"ribbon": 1}}}
+      }
+    },
+    "flower_street": {
+      "name": "Rua das flores",
+      "icon": "action_walk",
+      "postcard": "flower_street.png",
+      "seconds": 300,
+      "energy": 10,
+      "requirements": {"stats": {"walk": 3}},
+      "needs": {"happiness": 25, "hygiene": -12},
+      "rewards": {"coins": 10, "affection": 4, "skill_xp": {"adventure": 8}},
+      "loot": {
+        "rolls": 2,
+        "table": [
+          {"weight": 45, "items": {"wildflower": [1, 3]}},
+          {"weight": 15, "items": {"ribbon": 1}},
+          {"weight": 15, "items": {"stick": 1}},
+          {"weight": 15, "coins": [3, 8]},
+          {"weight": 10, "find": "park"}
+        ],
+        "first": {"items": {"wildflower": 3}},
+        "rare": {"chance": 0.08, "pity": 8, "collection": "flower_clip",
+                 "duplicate": {"coins": 25, "items": {"wildflower": 2}}}
+      }
+    },
+    "village_fair": {
+      "name": "Feirinha da Vila",
+      "icon": "action_walk",
+      "postcard": "village_fair.png",
+      "seconds": 600,
+      "energy": 12,
+      "requirements": {"stats": {"walk": 6}},
+      "needs": {"happiness": 30, "hygiene": -15},
+      "rewards": {"coins": 15, "affection": 5, "skill_xp": {"adventure": 12}},
+      "loot": {
+        "rolls": 2,
+        "table": [
+          {"weight": 35, "items": {"color_button": [1, 2]}},
+          {"weight": 25, "items": {"yarn": 1}},
+          {"weight": 10, "items": {"ribbon": 1}},
+          {"weight": 20, "coins": [5, 12]},
+          {"weight": 10, "find": "village"}
+        ],
+        "first": {"items": {"yarn": 2}},
+        "rare": {"chance": 0.08, "pity": 8, "collection": "bow_tie",
+                 "duplicate": {"coins": 30, "items": {"yarn": 1}}}
+      }
+    },
+    "creek_walk": {
+      "name": "Beira do riacho",
+      "icon": "action_walk",
+      "postcard": "creek_walk.png",
+      "seconds": 1200,
+      "energy": 15,
+      "requirements": {"bond": 3, "owned": ["forest_open"]},
+      "needs": {"happiness": 30, "hygiene": -20},
+      "rewards": {"coins": 22, "affection": 6, "skill_xp": {"adventure": 16}},
+      "loot": {
+        "rolls": 3,
+        "table": [
+          {"weight": 35, "items": {"smooth_pebble": [1, 3]}},
+          {"weight": 30, "items": {"river_shell": [1, 2]}},
+          {"weight": 10, "items": {"stick": 1}},
+          {"weight": 15, "coins": [6, 14]},
+          {"weight": 10, "find": "nature"}
+        ],
+        "first": {"items": {"river_shell": 2}},
+        "rare": {"chance": 0.07, "pity": 10, "collection": "sailor_scarf",
+                 "duplicate": {"coins": 35, "items": {"river_shell": 2}}}
+      }
+    },
+    "bird_clearing": {
+      "name": "Clareira dos passarinhos",
+      "icon": "action_walk",
+      "postcard": "bird_clearing.png",
+      "seconds": 1800,
+      "energy": 18,
+      "requirements": {"stats": {"walk": 15}, "bond": 4},
+      "needs": {"happiness": 35, "hygiene": -20},
+      "rewards": {"coins": 30, "affection": 7, "skill_xp": {"adventure": 20}},
+      "loot": {
+        "rolls": 3,
+        "table": [
+          {"weight": 35, "items": {"wild_mint": [1, 3]}},
+          {"weight": 30, "items": {"bird_feather": [1, 2]}},
+          {"weight": 10, "items": {"wildflower": 1}},
+          {"weight": 15, "coins": [8, 18]},
+          {"weight": 10, "find": "nature"}
+        ],
+        "first": {"items": {"bird_feather": 2}},
+        "rare": {"chance": 0.07, "pity": 10, "collection": "explorer_backpack",
+                 "duplicate": {"coins": 40, "items": {"bird_feather": 2}}}
+      }
+    },
+    "hill_view": {
+      "name": "Mirante do morro",
+      "icon": "action_walk",
+      "postcard": "hill_view.png",
+      "seconds": 3600,
+      "energy": 25,
+      "requirements": {"stats": {"walk": 25}, "bond": 5},
+      "needs": {"happiness": 40, "hygiene": -25},
+      "rewards": {"coins": 50, "affection": 8, "skill_xp": {"adventure": 30}},
+      "loot": {
+        "rolls": 4,
+        "table": [
+          {"weight": 30, "items": {"bird_feather": 1}},
+          {"weight": 20, "items": {"smooth_pebble": 1}},
+          {"weight": 15, "items": {"wild_mint": 1}},
+          {"weight": 25, "coins": [10, 25]},
+          {"weight": 10, "items": {"golden_leaf": 1}}
+        ],
+        "first": {"items": {"golden_leaf": 1}},
+        "rare": {"chance": 0.06, "pity": 12, "collection": "star_glasses",
+                 "duplicate": {"coins": 60, "items": {"golden_leaf": 1}}}
+      }
+    },
+    "sunset_walk": {
+      "name": "Passeio ao pôr do sol",
+      "icon": "action_walk",
+      "postcard": "sunset_walk.png",
+      "seconds": 900,
+      "energy": 12,
+      "requirements": {"stats": {"walk": 10}, "hours": [17, 21]},
+      "needs": {"happiness": 30, "hygiene": -15},
+      "rewards": {"coins": 20, "affection": 5, "skill_xp": {"adventure": 14}},
+      "loot": {
+        "rolls": 3,
+        "table": [
+          {"weight": 30, "items": {"smooth_pebble": 1}},
+          {"weight": 20, "items": {"wildflower": 1}},
+          {"weight": 15, "items": {"ribbon": 1}},
+          {"weight": 20, "coins": [5, 12]},
+          {"weight": 15, "items": {"moon_pebble": 1}}
+        ],
+        "first": {"items": {"moon_pebble": 1}},
+        "rare": {"chance": 0.10, "pity": 6, "collection": "glow_collar",
+                 "duplicate": {"coins": 30, "items": {"moon_pebble": 1}}}
       }
     }
   }

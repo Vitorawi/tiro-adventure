@@ -344,3 +344,48 @@ Originais em `build/art_sources/etapa06/` (ignorada pelo git).
 | Retrato da Pipoca 64×64 | `create_image_pro`, refs rotação sul + `tiro_pet_idle_front.png`; job `0763eca0-b903-4e6d-a36f-b42dffbec391` (16 candidatos; usado o 2) | `characters/dog_pipoca/portrait.png` | inteiro |
 | Ícone `action_walk` | `create_image_pixen` 32×32, job `4a83dd30-f471-4ec7-ac55-7755a058ea9b` | `ui/icons/action_walk.png` | inteiro; 1ª tentativa |
 | Ícone `tab_park` | `create_image_pixen` 32×32; 1ª (`7c10279c-1e21-4b38-90eb-4c925813d7f4`, canteiro de flores, não leu como banco) trocada pela 2ª (seed 21, `b9305522-7477-4878-9414-bba846a84360`: banco sob árvore amarela) | `ui/icons/tab_park.png` | inteiro |
+
+
+### Etapa 07 do começo (passeios) — 14/10/2026 (Claude Code + Codex)
+
+Retomados oito jobs da conversa Claude `bda53413-221b-4067-8fff-56762caff35b`; demais ícones gerados
+na continuação. Originais e tentativas em `build/art_sources/etapa07/` (ignorada pelo git).
+Postais: `create_image_pro`, 128×80, referência do sítio, quatro candidatos por caminho; prancha
+`build/preview/etapa07_postais.png`. Ícones: `create_image_pixen`, 32×32 transparente, contorno preto,
+detalhe médio (estrela final: baixo); prancha `etapa07_icones.png`. Canvas inteiro preservado para
+alinhamento dos ícones em 32/64 px; postais sem recorte. O postal `park_loop` é reutilizado da Etapa 06.
+
+| Asset | Job PixelLab | Destino em `game/assets/sprites/` / escolha |
+|---|---|---|
+| `flower_street` | `bfe03a08-0398-4657-8c81-5df4841b202b` | areas/walks/flower_street.png; candidato 0 |
+| `village_fair` | `85ffb543-015d-4603-b316-e7a4e307f82e` | areas/walks/village_fair.png; candidato 1 |
+| `creek_walk` | `03183dcf-7878-4314-9302-428519b4cce7` | areas/walks/creek_walk.png; candidato 1 |
+| `bird_clearing` | `9c944460-ecff-4479-aec6-2c8295ecbf72` | areas/walks/bird_clearing.png; candidato 1 |
+| `hill_view` | `3e5bf3f3-4d44-446d-9c37-78f5ee4296dd` | areas/walks/hill_view.png; candidato 0 |
+| `sunset_walk` | `16bd6978-c514-43c5-8ca8-e2508f72b31d` | areas/walks/sunset_walk.png; candidato 2 |
+| `item_stick` | `eb8d5de6-8fd3-449c-9259-f4f0cb8302cd` | ui/icons/item_stick.png; inteiro |
+| `item_ribbon` | `49a59445-a315-4d53-9dcb-b97781be80c8` | ui/icons/item_ribbon.png; inteiro |
+| `item_wildflower` | `7664b3b0-e2e3-400e-af3f-cdcad7f0840a` | ui/icons/item_wildflower.png; inteiro |
+| `item_color_button` | `df3d0993-1582-4519-a7b1-1ac29acd3816` | ui/icons/item_color_button.png; inteiro |
+| `item_yarn` | `5c56439c-5e77-44a5-8c2f-7e0e6e84bf36` | ui/icons/item_yarn.png; inteiro |
+| `item_smooth_pebble` | `33c95f6e-9490-47b9-afdb-f31d8519bfd7` | ui/icons/item_smooth_pebble.png; inteiro |
+| `item_river_shell` | `21635bef-3b7d-41e3-b75e-43f4e8a6c01a` | ui/icons/item_river_shell.png; inteiro |
+| `item_wild_mint` | `cf2b1c5a-a448-41c9-8a39-46504a0154ed` | ui/icons/item_wild_mint.png; inteiro |
+| `item_bird_feather` | `12c88074-3f00-4cb8-8fd7-5b0c73a8e28b` | ui/icons/item_bird_feather.png; inteiro |
+| `item_golden_leaf` | `d0c6d973-0876-479e-9255-841663b5cfc9` | ui/icons/item_golden_leaf.png; inteiro |
+| `item_moon_pebble` | `baafcbfa-96e3-439f-83ea-7aeeaf50fa5a` | ui/icons/item_moon_pebble.png; inteiro |
+| `item_mint_snack` | `910a5691-ab02-44a0-bb06-b1f94c5e4488` | ui/icons/item_mint_snack.png; inteiro |
+| `rare_star` | `b1242dfc-f706-4025-ba6f-12596b799f72` | rejeitado (rosto/personagem); só nos originais |
+| `outfit_plaid_bow` | `2b6e3ced-dce8-4072-a030-15b7b73a30b4` | ui/icons/outfit_plaid_bow.png; inteiro |
+| `outfit_flower_clip` | `9153523d-2c29-463b-a699-03e378e78406` | ui/icons/outfit_flower_clip.png; inteiro |
+| `outfit_bow_tie` | `7ab2e100-8a06-4380-993f-3650c61c117a` | ui/icons/outfit_bow_tie.png; inteiro |
+| `outfit_sailor_scarf` | `7f711272-b424-45c8-97c4-6b44a530ff6a` | ui/icons/outfit_sailor_scarf.png; inteiro |
+| `outfit_explorer_backpack` | `e5df9a2d-0a21-46d6-89e3-3bcae1d5ff47` | ui/icons/outfit_explorer_backpack.png; inteiro |
+| `outfit_star_glasses` | `0c5e8c89-8a88-49ca-9712-2402d4ed1e45` | ui/icons/outfit_star_glasses.png; inteiro |
+| `outfit_glow_collar` | `c2e85ccd-2829-434b-97d9-ed4e729c1438` | rejeitado (rosto/personagem); só nos originais |
+| `outfit_glow_collar_retry` | `6b02fb17-ccdf-439a-a7b5-35919f40b0c0` | ui/icons/outfit_glow_collar.png; inteiro; 2ª tentativa (colar vazio) |
+| `rare_star_retry` | `ad61323a-2b1f-4e21-8d37-c65a90961492` | rejeitado (rosto/personagem); só nos originais |
+| `rare_star_retry2` | `ec0a6c18-5424-413a-84ef-30a6b8358196` | ui/icons/rare_star.png; inteiro; 3ª tentativa (estrela geométrica) |
+
+Revisão: postais distinguíveis por cenário; materiais por cor/silhueta; estrela sem rosto e coleira
+sem cachorro escolhidas nas novas tentativas. Não há arte de vestir, costura ou quiosque da Etapa 08.

@@ -59,7 +59,8 @@ func _ready() -> void:
 	_walk_result = load("res://scenes/ui/walk_result/walk_result.tscn").instantiate()
 	add_child(_walk_result)
 	Events.walk_collected.connect(func(result: Dictionary) -> void:
-		_queue_modal(func() -> void: _walk_result.show_result(result)))
+		_queue_modal(func() -> void: _walk_result.show_result(result))
+		_queue_modal(func() -> void: _announce()))
 	Events.level_up.connect(_on_level_up)
 	Events.bond_up.connect(_on_bond_up)
 	Events.find_discovered.connect(func(result: Dictionary) -> void:

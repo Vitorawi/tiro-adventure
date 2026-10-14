@@ -1353,5 +1353,29 @@
     "kind": "line",
     "line": "nina",
     "order": 20
+  },
+  "nina_routes": {
+    "npc": "nina",
+    "name": "Rua das flores",
+    "dialogue": "Depois de três voltas, conhece a Rua das flores. Tem flor pra todo lado!",
+    "goals": [
+      {"type": "stat", "key": "walk:flower_street", "target": 1, "label": "Passear na Rua das flores"}
+    ],
+    "rewards": {"coins": 20, "items": {"ribbon": 2}},
+    "kind": "line",
+    "line": "nina",
+    "order": 30
+  },
+  "nina_rare": {
+    "npc": "nina",
+    "name": "Coisa rara",
+    "dialogue": "Dizem que nos passeios aparece coisa rara. Me mostra uma?",
+    "goals": [
+      {"type": "stat", "key": "walk_rare", "target": 1, "label": "Achar um raro no passeio"}
+    ],
+    "rewards": {"coins": 30, "affection": 10},
+    "kind": "line",
+    "line": "nina",
+    "order": 40
   }
 }

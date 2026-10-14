@@ -50,7 +50,7 @@ static func food_picker() -> Control:
 				Events.toast_requested.emit(error if error != "" else "Comida recebida!"), &"PrimaryButton", ProgressionUi.npc_portrait("bloblo"))))
 
 
-const CATEGORIES := {"food": "Comidas", "crop": "Colheitas", "material": "Materiais", "product": "Produtos", "find": "Achados"}
+const CATEGORIES := {"food": "Comidas", "crop": "Colheitas", "material": "Materiais", "product": "Produtos", "find": "Achados", "trail": "Do passeio"}
 
 
 ## Mochila: lugar único com todos os itens e a ocupação de cada depósito ("12/30" ao construir).
@@ -73,7 +73,13 @@ static func inventory_view(only: String = "") -> Control:
 					ids.append(id)
 			if ids.is_empty():
 				continue
-			box.add_child(UiKit.label(CATEGORIES[category], &"SectionLabel"))
+			if category == "trail":
+				var heading := UiKit.hbox(6)
+				heading.add_child(UiKit.icon(UiKit.ui_icon("action_walk"), 32))
+				heading.add_child(UiKit.fill_label(CATEGORIES[category], &"SectionLabel"))
+				box.add_child(heading)
+			else:
+				box.add_child(UiKit.label(CATEGORIES[category], &"SectionLabel"))
 			var grid := GridContainer.new()
 			grid.columns = 4
 			grid.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -131,8 +137,12 @@ static func item_detail(id: String) -> Control:
 					Events.toast_requested.emit("Nhac! %s" % Database.item_name(id)), &"PrimaryButton")
 			give.disabled = GameState.inventory.count(id) == 0
 			box.add_child(give)
-		_link_section(box, "De onde vem", _sources(id))
-		_link_section(box, "Usado em", _uses(id))
+		var sources := _sources(id)
+		var uses := _uses(id)
+		_link_section(box, "De onde vem", sources)
+		_link_section(box, "Usado em", uses)
+		if uses.is_empty() and str(item.get("note", "")) != "":
+			box.add_child(UiKit.label(str(item.note), &"SmallLabel"))
 		if price > 0 and GameState.inventory.count(id) > 0:
 			var place := Database.place_with_panel("sell")
 			if place[0] != "" and Places.world_error(place[0]) == "":
@@ -148,6 +158,9 @@ static func _sources(id: String) -> Array[Dictionary]:
 		if key.begins_with("activity:"):
 			var route: Dictionary = Database.progression.activities.get(key.trim_prefix("activity:"), {})
 			links.append({"icon": UiKit.ui_icon(route.get("icon", "")), "name": route.get("name", ""), "target": target})
+		elif key.begins_with("walk:"):
+			var walk := GameState.walk_def(key.trim_prefix("walk:"))
+			links.append({"icon": UiKit.ui_icon("action_walk"), "name": walk.get("name", ""), "target": target})
 		elif not target.is_empty() and target.has("world"):
 			var place: Dictionary = Database.worlds[target.world].places.get(target.place, {})
 			links.append({"icon": UiKit.ui_icon(place.get("icon", "")), "name": place.get("name", ""), "target": target})

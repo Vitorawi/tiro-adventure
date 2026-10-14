@@ -28,7 +28,7 @@
     "idle_hint_max_chapter": 4,
     "stat_labels": {
       "walk": "passeios", "find": "achados", "wish": "desejos", "harvest": "colheitas",
-      "water": "regas", "friend_gift": "petiscos a amigos", "trick": "truques"
+      "walk:flower_street": "passeios na Rua das flores", "walk:bird_clearing": "passeios na Clareira", "walk_rare": "raros de passeio", "water": "regas", "friend_gift": "petiscos a amigos", "trick": "truques"
     }
   },
   "level_rewards": {
@@ -116,6 +116,12 @@
       "requirements": {
         "chapter": 6
       }
+    },
+    "walk_diary": {
+      "name": "Diário de passeios",
+      "icon": "action_walk",
+      "go": {"world": "park", "place": "walk"},
+      "requirements": {"stats": {"walk": 3}}
     },
     "finds": {
       "name": "Achados do Tiro",

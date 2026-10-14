@@ -230,5 +230,15 @@
         "bloblo_sweet_potato"
       ]
     }
+  },
+  "mint_snack": {
+    "station": "stove",
+    "inputs": {"wild_mint": 2, "carrot": 1},
+    "output": "mint_snack",
+    "qty": 1,
+    "seconds": 120,
+    "skill": "cooking",
+    "skill_xp": 18,
+    "requirements": {"stats": {"walk:bird_clearing": 1}}
   }
 }

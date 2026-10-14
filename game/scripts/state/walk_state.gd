@@ -1,7 +1,7 @@
 class_name WalkState
 extends RefCounted
 ## Passeio do Tiro: um por vez (o Tiro é um só). Guarda timestamps Unix, então o passeio
-## termina sozinho com o app fechado. `pity` e `history` ficam prontos para a Etapa 07.
+## termina sozinho com o app fechado. `pity` e `history` preservam a garantia e as voltas por caminho.
 
 ## { "id", "started_at", "ready_at", "seed", "energy" } ou vazio.
 var current: Dictionary = {}

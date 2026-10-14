@@ -9,7 +9,7 @@ achado (moedas, comida ou um objeto do álbum). Os primeiros achados de cada mun
 achados por mundo; completar o conjunto de um mundo dá moedas e, às vezes, um apetrecho. Nada vence nem
 some: o montinho espera. Dados em `finds.json`; `dig_spots` das salas dizem onde ele pode aparecer.
 
-## Praça e passeios (Etapa 06, 14/10/2026)
+## Praça e passeios (Etapas 06–07, 14/10/2026)
 
 Depois da Vila (primeira encomenda entregue) abre a **Praça**, entre Sítio e Vila no Mapa. A Nina,
 adestradora, passeia com a Pipoca (vira-lata caramelo, só enfeite por enquanto). Conversar com a Nina
@@ -17,7 +17,15 @@ abre a missão do primeiro passeio. No portão **Passeio** o jogador manda o Tir
 energia, **sai de casa** (some dos mapas; a tela do Tiro mostra o postal com ele andando) e volta
 quando o tempo acaba. Recolher mostra o cartão "Volta do passeio" com achados, moedas e vínculo. Ele
 volta mais feliz, um pouco cansado e sujinho (laço com o banho). Não há punição: dá para chamar o Tiro de
-volta (devolve a energia, sem prêmio). Só um passeio por vez. A Etapa 07 acrescenta mais caminhos e raros.
+volta (devolve a energia, sem prêmio). Só um passeio por vez.
+
+Sete caminhos abrem por passeios feitos, vínculo e Bosque aberto. O Pôr do sol só começa das 17h às 21h
+(hora do aparelho); pode ser recolhido depois. O painel mostra os liberados e dois próximos bloqueados.
+Cada caminho tem postal, materiais e apetrecho raro próprio. A primeira volta garante materiais; o raro
+vem por sorte ou em até 6–12 voltas daquele caminho, sem perder a garantia ao fechar o jogo. Duplicados
+viram moedas e materiais. O Diário (após 3 passeios) mostra silhuetas, histórico e quantas voltas faltam
+para a garantia. Raros ficam na Coleção; vestir e costurar ficam para a Etapa 08. Materiais vão para
+Mochila → Do passeio, sem ocupar depósitos. Hortelã + cenoura rendem petisco no fogão após a Clareira.
 
 
 ## Desejos do Tiro e vínculo (Etapa 03, 14/10/2026)

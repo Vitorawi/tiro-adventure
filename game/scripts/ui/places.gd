@@ -239,6 +239,9 @@ static func unlock_view(key: String) -> Dictionary:
 			return {"icon": UiKit.ui_icon(place.get("icon", "")), "name": place.get("name", id), "target": {"world": world_id, "place": id.get_slice("/", 1)}}
 		"npc":
 			return {"icon": ProgressionUi.npc_portrait(id), "name": Database.npcs.get(id, {}).get("name", id), "target": {"world": Database.npc_world(id), "place": "npc:" + id}}
+		"walk":
+			var postcard := WalkResult.postcard_texture(GameState.walk_postcard(id))
+			return {"icon": postcard if postcard else UiKit.ui_icon("action_walk"), "name": GameState.walk_def(id).get("name", id), "target": {"world": "park", "place": "walk"}}
 	return {}
 
 

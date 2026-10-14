@@ -399,3 +399,31 @@ passo ativo. Sem animação configurada, o NPC continua com seu retrato estátic
 - **Dica parada:** `settings.idle_hint_seconds` (15) / `idle_hint_max_chapter` (4): seta sozinha no alvo do passo
   (`WorldsScreen.advance_idle`), uma vez por passo.
 - Diárias abrem no capítulo 3 e semanais no 4 (`features.daily/weekly`); nova diária "Regue 5 plantas".
+
+
+## Passeios da Praça (Etapa 07)
+
+`walks.json` define sete passeios, separados das rotas de coleta da Natureza. `loot.first` soma materiais
+na primeira coleta; `loot.table` faz sorteios com a semente salva, e `find` consulta uma tabela existente
+em `finds.json`, sem gastar seus garantidos. `loot.rare` tem `chance`, `pity`, `collection` e `duplicate`.
+A N-ésima coleta sem raro atinge a garantia. Somente uma coleta bem-sucedida altera `WalkState.history`
+e `pity`; cancelar e armazenamento cheio preservam ambos. Saves da Etapa 06 preservam suas voltas,
+e saves sem `walks` começam vazios, sem migração/reset adicional.
+
+| Passeio | Abre com | Tempo | Raro / garantia |
+|---|---|---|---|
+| Volta na praça | `nina_meet` | 2 min | Laço xadrez / 6 |
+| Rua das flores | 3 passeios | 5 min | Presilha de flor / 8 |
+| Feirinha da Vila | 6 passeios | 10 min | Gravata-borboleta / 8 |
+| Beira do riacho | vínculo 3 + `forest_open` | 20 min | Lenço de marinheiro / 10 |
+| Clareira dos passarinhos | 15 passeios + vínculo 4 | 30 min | Mochilinha de explorador / 10 |
+| Mirante do morro | 25 passeios + vínculo 5 | 60 min | Óculos de estrelinha / 12 |
+| Passeio ao pôr do sol | 10 passeios, início das 17h às 21h | 15 min | Coleira que brilha / 6 |
+
+Contadores: `walk`, `walk:<id>`, `walk_item` (quantidades), `walk_item:<item>`, `walk_rare` e
+`walk_rare:<id>` (apetrechos novos; consolo não conta). Achados do faro também contam `find_item:<item>`.
+`walk_pity_left` consulta a garantia; `walk_lock_error` exclui horas, `walk_hours_error` verifica o início.
+`walk_unlock_keys` entra em `new_unlocks`/`_mark_all_seen`; `Places.unlock_view` mostra o postal.
+`collect_walk` devolve `first`, `rare`, `rare_item`, `rare_duplicate`, `new_items` e o alias anterior `new`.
+`ProgressionUi.walk_diary` abre no Sheet; o cartão de volta rola quando grande para manter Oba acessível.
+Materiais `trail` têm `storage: none` e `note`; `Database.item_sources` e `TaskHelp` apontam aos passeios.

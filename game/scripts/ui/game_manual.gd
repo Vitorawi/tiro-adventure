@@ -90,6 +90,8 @@ static func sources(id: String) -> Array[Dictionary]:
 	for source: Dictionary in Database.item_sources(id):
 		if source.key == "feed":
 			result.append({"kind": "care", "id": id})
+		elif str(source.key).begins_with("walk:"):
+			result.append({"kind": "walk", "id": str(source.key).trim_prefix("walk:")})
 	return result
 
 
@@ -141,6 +143,13 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 	var card := UiKit.card(box)
 	var id: String = source.id
 	match str(source.kind):
+		"walk":
+			var walk := GameState.walk_def(id)
+			card.add_child(UiKit.label(str(walk.name), &"SectionLabel"))
+			card.add_child(UiKit.label("Passear → esperar → recolher", &"SmallLabel"))
+			card.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(walk.seconds))))
+			_requirements(card, walk)
+			_location(card, {"world": "park", "place": "walk"})
 		"recipe":
 			_recipe(card, id)
 		"crop":

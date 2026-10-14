@@ -439,5 +439,24 @@
     "category": "find",
     "storage": "none",
     "icon": "res://assets/sprites/ui/icons/item_map_piece.png"
+  },
+  "stick": {"name": "Graveto", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_stick.png", "sell_price": 2, "note": "O Tiro adora! E serve na costura."},
+  "ribbon": {"name": "Fita colorida", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_ribbon.png", "sell_price": 6, "note": "Serve para costurar apetrechos."},
+  "wildflower": {"name": "Flor do campo", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_wildflower.png", "sell_price": 4, "note": "Serve para uma coroa de flores."},
+  "color_button": {"name": "Botão colorido", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_color_button.png", "sell_price": 4, "note": "Serve para costurar roupinhas."},
+  "yarn": {"name": "Novelo de lã", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_yarn.png", "sell_price": 6, "note": "Serve para tricotar roupinhas."},
+  "smooth_pebble": {"name": "Pedrinha lisa", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_smooth_pebble.png", "sell_price": 4, "note": "Bonita para coleiras."},
+  "river_shell": {"name": "Conchinha", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_river_shell.png", "sell_price": 6, "note": "Serve para uma coleira de conchas."},
+  "wild_mint": {"name": "Hortelã silvestre", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_wild_mint.png", "sell_price": 5, "note": "Vira petisco de hortelã."},
+  "bird_feather": {"name": "Pena de passarinho", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_bird_feather.png", "sell_price": 6, "note": "Serve para um chapéu de pena."},
+  "golden_leaf": {"name": "Folha dourada", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_golden_leaf.png", "sell_price": 25, "rare": true, "note": "Rara! Serve para a capa dourada."},
+  "moon_pebble": {"name": "Pedrinha da lua", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_moon_pebble.png", "sell_price": 30, "rare": true, "note": "Rara! Só aparece no fim da tarde."},
+  "mint_snack": {
+    "name": "Petisco de hortelã",
+    "category": "food",
+    "icon": "res://assets/sprites/ui/icons/item_mint_snack.png",
+    "sell_price": 22,
+    "trade_xp": 5,
+    "feed": {"hunger": 15, "happiness": 15, "hygiene": 10}
   }
 }

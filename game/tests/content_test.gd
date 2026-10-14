@@ -78,7 +78,7 @@ func _run() -> void:
 				"owned": check(data.upgrades.has(key), id + ": construção " + key)
 				"skill": check(data.skills.has(key), id + ": atributo " + key)
 				"stat":
-					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "orders", "explore", "build", "quests", "open:bag", "find", "walk"] or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:"), id + ": contador desconhecido " + key)
+					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "orders", "explore", "build", "quests", "open:bag", "find", "walk", "walk_item", "walk_rare"] or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:"), id + ": contador desconhecido " + key)
 					if key.begins_with("harvest:"):
 						check(db.get("crops").has(key.trim_prefix("harvest:")), id + ": cultura " + key)
 					if key.begins_with("produce:"):
@@ -133,7 +133,7 @@ func _run() -> void:
 		for id: String in group.missions:
 			var m: Dictionary = group.missions[id]
 			var key: String = m.goal.key
-			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "explore", "wish", "find", "walk"] or key.begins_with("activity:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
+			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "explore", "wish", "find", "walk", "walk_item", "walk_rare"] or key.begins_with("activity:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
 			if key.begins_with("harvest:"):
 				check(db.get("crops").has(key.trim_prefix("harvest:")), kind + "/" + id + ": cultura inexistente")
 			if key.begins_with("produce:"):
@@ -188,11 +188,27 @@ func _run() -> void:
 	for walk_id: String in db.get("walks").walks:
 		var walk: Dictionary = db.get("walks").walks[walk_id]
 		check(ResourceLoader.exists(db.get("walks").settings.postcard_dir + walk.postcard), walk_id + ": postal existe")
+		var rare: Dictionary = walk.loot.get("rare", {})
+		check(db.get("collections").has(str(rare.get("collection", ""))), walk_id + ": raro existe")
+		for reward: Dictionary in [walk.loot.get("first", {}), rare.get("duplicate", {})]:
+			for item: String in reward.get("items", {}):
+				check(db.get("items").has(item), walk_id + ": item garantido/consolo " + item)
 		for entry: Dictionary in walk.loot.table:
 			if entry.has("find"):
 				check(db.get("finds").worlds.has(entry.find), walk_id + ": mundo de achados " + str(entry.find))
 			for item: String in entry.get("items", {}):
 				check(db.get("items").has(item), walk_id + ": item " + item)
+	# Materiais exclusivos de passeio nunca são colheita, produto de estação ou achado do faro.
+	for item: String in db.get("items"):
+		if db.get("items")[item].get("category", "") != "trail":
+			continue
+		check(db.get("items")[item].get("storage", "") == "none", item + ": não ocupa depósito")
+		check(not db.get("crops").has(item), item + ": não é colheita")
+		for recipe: Dictionary in db.get("recipes").values():
+			check(recipe.output != item, item + ": não sai de estação")
+		for world: Dictionary in db.get("finds").worlds.values():
+			for entry: Dictionary in world.get("table", []) + world.get("guaranteed", []):
+				check(not entry.get("items", {}).has(item), item + ": não sai de montinho")
 	# Revelar aos poucos: personagem aparece até o capítulo da primeira missão dele.
 	for npc: String in db.get("npcs"):
 		var from := int(db.get("npcs")[npc].get("requirements", {}).get("chapter", 1))

@@ -204,6 +204,13 @@
         "rewards": {"coins": 12},
         "requirements": {"quests": ["nina_walk"]}
       },
+      "walk_items": {
+        "name": "Ache 6 coisas passeando",
+        "description": "Materiais e achados contam.",
+        "goal": {"key": "walk_item", "target": 6},
+        "rewards": {"coins": 15},
+        "requirements": {"quests": ["nina_walk"]}
+      },
       "dig": {
         "name": "Cave 2 achados",
         "description": "Toque onde o Tiro farejou.",
@@ -225,6 +232,13 @@
   "weekly": {
     "count": 2,
     "missions": {
+      "walker_week": {
+        "name": "Passeador",
+        "description": "Faça 10 passeios nesta semana.",
+        "goal": {"key": "walk", "target": 10},
+        "rewards": {"coins": 90, "items": {"ribbon": 3}, "collections": ["walker_bandana"]},
+        "requirements": {"quests": ["nina_walk"]}
+      },
       "best_friend": {
         "name": "Melhor amigo",
         "description": "Realize 12 desejos do Tiro.",

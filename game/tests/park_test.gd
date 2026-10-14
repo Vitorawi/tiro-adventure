@@ -137,7 +137,8 @@ func _run() -> void:
 	for keys_list: Array in park_items:
 		allowed.append_array(keys_list)
 	for id: String in loot.items:
-		check(id in allowed, "achado vem da tabela da praça: " + id)
+		if db.get("items")[id].category == "find":
+			check(id in allowed, "achado vem da tabela da praça: " + id)
 	state.get("walk_state").current["ready_at"] = 0.0
 	var was_new: Dictionary = {}
 	for id: String in loot.items:

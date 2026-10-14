@@ -10,6 +10,7 @@ const MAX_IDLE_TOTAL_SEC := 240.0  # ocioso total até o fim do capítulo 3
 const MAX_IDLE_STREAK_SEC := 120.0  # nenhum trecho ocioso contínuo maior que isto
 const GOAL_CHAPTER := 4
 const MAX_FIRST_WALK_MIN := 60.0  # primeiro passeio recolhido (Etapa 06)
+const MAX_FIRST_RARE_MIN := 60.0  # garantia de até 6 voltas, com descanso real
 const MAX_SIM_MIN := 60.0
 const ACTION_SEC := 3.0  # custo de tempo de cada ação do jogador simulado
 const IDLE_STEP_SEC := 10.0
@@ -45,8 +46,12 @@ func _run() -> void:
 	state = root.get_node("GameState")
 	database = root.get_node("Database")
 	state.call("reset")
+	# Mede o pior caso da garantia (sem sorte), preservando custos, timers e descanso reais.
+	var rare: Dictionary = database.get("walks").walks.park_loop.loot.rare
+	var rare_chance := float(rare.chance)
+	rare.chance = 0.0
 	var progress: RefCounted = state.get("progress")
-	while (progress.chapter_index() < GOAL_CHAPTER or progress.stat("walk") == 0) and sim < MAX_SIM_MIN * 60.0:
+	while (progress.chapter_index() < GOAL_CHAPTER or progress.stat("walk_rare") == 0) and sim < MAX_SIM_MIN * 60.0:
 		var acts := _turn()
 		_record_firsts()
 		if goal_sim < 0.0 and progress.chapter_index() >= GOAL_CHAPTER:
@@ -71,6 +76,7 @@ func _run() -> void:
 		print("  ", key, ": ", ("%.1f" % (float(firsts[key]) / 60.0)) if firsts.has(key) else "nunca")
 	print("  capítulo %d em %.1f min; ocioso total %.0f s; maior trecho ocioso %.0f s" % [GOAL_CHAPTER, goal_sim / 60.0, goal_idle_total, goal_idle_max])
 	print("  primeiro passeio recolhido em %.1f min" % (float(firsts.get("walk", -60.0)) / 60.0))
+	print("  primeiro raro em %.1f min; %d passeios" % [float(firsts.get("walk_rare", -60.0)) / 60.0, progress.stat("walk")])
 	print("  espera por passos: ", idle_steps)
 	check(progress.chapter_index() >= GOAL_CHAPTER, "chegou ao capítulo %d em %.0f min simulados" % [GOAL_CHAPTER, MAX_SIM_MIN])
 	check(firsts.has("harvest") and float(firsts.harvest) / 60.0 <= MAX_FIRST_HARVEST_MIN, "primeira colheita em até %.0f min" % MAX_FIRST_HARVEST_MIN)
@@ -79,14 +85,18 @@ func _run() -> void:
 	check(firsts.has("water"), "o jogador regou ao menos uma vez")
 	check(goal_sim >= 0.0, "chegou ao capítulo %d" % GOAL_CHAPTER)
 	check(firsts.has("walk") and float(firsts.walk) / 60.0 <= MAX_FIRST_WALK_MIN, "primeiro passeio recolhido em até %.0f min" % MAX_FIRST_WALK_MIN)
+	check(firsts.has("walk_rare") and float(firsts.walk_rare) / 60.0 <= MAX_FIRST_RARE_MIN, "primeiro raro em até %.0f min" % MAX_FIRST_RARE_MIN)
 	check(goal_idle_total <= MAX_IDLE_TOTAL_SEC, "ocioso total %.0f s (máximo %.0f s)" % [goal_idle_total, MAX_IDLE_TOTAL_SEC])
 	check(goal_idle_max <= MAX_IDLE_STREAK_SEC, "maior trecho ocioso %.0f s (máximo %.0f s)" % [goal_idle_max, MAX_IDLE_STREAK_SEC])
 	print("ONBOARDING TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
+	rare.chance = rare_chance
 	quit(1 if failures > 0 else 0)
 
 
 func _record_firsts() -> void:
 	var progress: RefCounted = state.get("progress")
+	if not firsts.has("walk_rare") and progress.stat("walk_rare") > 0:
+		firsts["walk_rare"] = sim
 	for key: String in ["talk:lais", "feed", "open:bag", "talk:bloblo", "wish", "water", "harvest", "find", "produce", "open:village", "walk"]:
 		if not firsts.has(key) and progress.stat(key) > 0:
 			firsts[key] = sim
@@ -171,6 +181,9 @@ func _turn() -> int:
 		if wish.is_empty():
 			continue
 		if str(wish.type) == "action" and state.call("wish_error", i) != "":
+			# Ao buscar o raro, deixa os pedidos de brincar para depois de descansar.
+			if wish.goal.key == "play" and progress.claimed_quests.has("nina_meet") and (state.get("dog").sleeping or state.get("dog").get_need("energy", state.call("now")) < 25.0):
+				continue
 			for n in int(wish.goal.target):
 				match str(wish.goal.key):
 					"pet": state.call("pet")
@@ -218,6 +231,12 @@ func _turn() -> int:
 	if state.call("walk_ready"):
 		if not (state.call("collect_walk") as Dictionary).is_empty():
 			acts += 1
+	elif state.call("walk_error", "park_loop") == "Tiro está cansado: deixe ele dormir":
+		state.call("set_sleeping", true)
+		acts += 1
+	elif state.get("dog").sleeping and state.get("dog").get_need("energy", state.call("now")) >= 20.0:
+		state.call("set_sleeping", false)
+		acts += 1
 	elif state.call("start_walk", "park_loop") == "":
 		acts += 1
 	return acts

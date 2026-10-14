@@ -2,7 +2,47 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **14/10/2026, Claude Code**.
+> um do outro. Última atualização: **14/10/2026, Codex (retomada do Claude Code)**.
+
+**✔ Etapa 07 do começo (sete passeios, materiais e raros) — Claude Code + Codex, 14/10/2026.** Commit local, sem push.
+- Retomada exata da conversa Claude `bda53413-221b-4067-8fff-56762caff35b`: parou por limite após editar a Coleção,
+  com 14 arquivos modificados e 8 jobs PixelLab enviados. Preservados os dados/código e recuperados os 6 postais + 2 ícones.
+  Corrigidos erro de tipagem e substituição ampla que havia colocado requisito de 3 passeios em dez missões antigas.
+- `walks.json`: sete caminhos conforme a tabela do plano, requisitos de contagem/vínculo/Bosque e início do Pôr do sol
+  das 17h (inclusive) às 21h (exclusive), hora do aparelho. Horário não impede recolher nem esconde caminho já liberado.
+  `loot.first` garante material na primeira coleta; `loot.rare` sorteia pela seed ou garante na N-ésima volta sem raro.
+  `WalkState.pity/history` reutilizados; coleta altera uma vez, cancelar/armazenamento cheio não gastam histórico/garantia.
+  Raro novo vai à Coleção e conta `walk_rare`/`walk_rare:<id>`; duplicado vira moedas/material e zera a garantia.
+  `walk_item` soma quantidades; `walk_item:<item>` e achados do faro continuam. Alias `new_items` + `new` no resumo.
+- Interface: painel com liberados em ordem de tempo e dois próximos bloqueados na ordem de progressão; materiais/raros
+  em silhueta, chips de requisitos, Passear desabilitado + ?. Diário após 3 passeios, com postais, contagens e garantia.
+  Cartão normal/Primeira vez!/Novo!/RARO (moldura dourada, estrela girando, vibração)/consolo. Rolagem limita o cartão à tela;
+  tween vinculado à estrela para terminar ao recriar o cartão. Cabeçalho do Sheet quebra linha sem alargar a tela.
+  Coleção usa duas colunas e mostra os sete raros com silhueta + origem + Ir. Mochila → Do passeio com ícone.
+  Novos caminhos entram em `new_unlocks` e são anunciados na fila modal depois do cartão da volta, sem exigir receber missão.
+  O Tiro reaparece no dog_start e reage via `wish` ao ganhar raro.
+- Conteúdo: 11 materiais `trail` sem depósito + `note`; petisco de hortelã (fogão, hortelã + cenoura, após 1 Clareira);
+  desejos de graveto/flor/petisco; Nina `nina_routes`/`nina_rare`; diária `walk_items`, semanal `walker_week` + bandana.
+  Manual, Mochila e Como fazer mostram origens nos passeios (inclusive ingrediente da receita). Mantidos `tiro_walk` e
+  os achados de mundos existentes em `finds.json`; nenhum material trail entra em colheita, produto de estação ou montinho.
+- Arte: 6 postais 128×80 + 20 ícones 32×32, PixelLab, originais em `build/art_sources/etapa07/`; todos os job ids,
+  candidatos e tentativas registrados no ART_PIPELINE. Coleira refeita para tirar cachorro; estrela escolhida na 3ª tentativa,
+  geométrica sem rosto. Canvas inteiro preservado para alinhamento. `park_loop` reutilizado; quiosque da Praça preservado.
+  Godot `--headless --import` terminou; PNGs, imports e UIDs incluídos.
+- Validação: **23 testes + DEV em prod PASS**, executados individualmente; logs `build/test_logs/etapa07/`.
+  `walks_test` cobre requisitos e limites horários, primeira volta, garantia independente por caminho, consolo, contadores,
+  sorteio/save, receita, diário/silhuetas, Novo! na fila e largura do Sheet. `content_test` valida postais, raros, itens,
+  tabelas `find` e exclusividade dos materiais. Campanha completa: **216 ciclos, 44 aquisições, 66 missões**.
+  Simulação escolhe Flores só após 3 voltas para não travar a linha da Nina. Onboarding testa o pior caso (chance rara 0):
+  primeiro raro na **6ª volta, 25,4 min**; primeiro passeio 14,4 min; capítulo 4 em 10,6 min; ocioso 190 s, maior trecho 30 s.
+  Simulador deixa brincadeiras para depois quando precisa descansar (sem alterar energia/custos do jogo).
+- Capturas 360×780 geradas sem headless, com processo limitado, abertas e conferidas em `build/screenshots/etapa07/`:
+  painel (3 liberados/2 bloqueados), Pôr do sol fechado, Diário/bloqueados, volta normal/primeira/raro/botão/consolo,
+  Coleção em silhuetas, Mochila Do passeio, detalhe com nota/origem. Rótulos que quebravam letra por letra corrigidos.
+  `game/tests/walks_shots.gd` preservado como roteiro. `git diff --check` limpo; CLAUDE.md = AGENTS.md.
+- Pendências: nenhuma da Etapa 07. Avisos de RIDs/ObjectDB/recursos no encerramento de testes continuam iguais aos logs
+  da Etapa 06 (incluindo park_test); nenhum erro de script. Vestir o Tiro, costura, pet shop e bolsinha não foram adiantados.
+  **Próximo passo: Etapa 08 — apetrechos**, `docs/plans/comeco/ETAPA_08_apetrechos.md`.
 
 **✔ Etapa 06 do começo (Praça: Nina, Pipoca e o primeiro passeio) — Claude Code, 14/10/2026.** Commit local, sem push.
 - Mundo `park` (Praça) entre Sítio e Vila em `worlds.json`; abre com a primeira encomenda (`main_2_order`), com "Novo!" listando Praça e

@@ -127,6 +127,12 @@
       "rewards": {"coins": 10, "affection": 8},
       "weight": 3,
       "requirements": {"quests": ["nina_walk"]}
-    }
+    },
+    "stick": {"type": "give", "item": "stick", "name": "Quero um graveto!", "rewards": {"coins": 6, "affection": 6},
+      "weight": 3, "requirements": {"quests": ["nina_walk"]}},
+    "wildflower": {"type": "give", "item": "wildflower", "name": "Quero cheirar flor", "rewards": {"coins": 8, "affection": 6},
+      "weight": 2, "requirements": {"stats": {"walk:flower_street": 1}}},
+    "mint_snack": {"type": "feed", "item": "mint_snack", "name": "Quero hortelã!", "rewards": {"coins": 18, "affection": 10},
+      "weight": 2, "special": true, "requirements": {"stats": {"walk:bird_clearing": 1}}}
   }
 }

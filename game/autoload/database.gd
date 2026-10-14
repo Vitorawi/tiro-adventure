@@ -243,4 +243,11 @@ func item_sources(item_id: String) -> Array[Dictionary]:
 			sources.append({"type": "stat", "key": "activity:" + id})
 	if item_id == "dog_food":
 		sources.append({"type": "stat", "key": "feed"})
+	for id: String in (walks.get("walks", {}) if items.get(item_id, {}).get("category", "") == "trail" else {}):
+		var loot: Dictionary = walks.walks[id].get("loot", {})
+		var found: bool = loot.get("first", {}).get("items", {}).has(item_id)
+		for entry: Dictionary in loot.get("table", []):
+			found = found or entry.get("items", {}).has(item_id)
+		if found:
+			sources.append({"type": "stat", "key": "walk:" + id})
 	return sources
