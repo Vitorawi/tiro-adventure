@@ -1,4 +1,4 @@
-﻿# Roadmap
+# Roadmap
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
