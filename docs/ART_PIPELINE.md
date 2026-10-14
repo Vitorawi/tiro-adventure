@@ -230,3 +230,11 @@ anterior. Composição em `build/prepare_animal_art.ps1`; originais em `build/ar
   `item_apple`, `item_herbs`, `item_vegetable_soup`, `item_apple_biscuit`, `item_treat_box`,
   `item_accessory_set` e `tab_journey` (mapa de aventura). Jobs: 6dbd4739, 9abb5bb5, 7b3afe34, e14f0df2,
   cc88fb7f, 3fd98acc, ed23acc2, 4943e753, 8d92c724, 15cf82fd, 7052ef53, f6de034e, b1fe6d24, 1fd7af62, 63c622bb.
+
+### Armazenamento — 13/10/2026 (Claude Code)
+
+PixelLab Pro Flash, `create_object_pro_flash`, 1 direção, low top-down, recortados ao pixel opaco
+(`areas/house/chest.png` 18×22, usado com `scale` 2; `areas/farm/silo.png` 47×89; `areas/farm/warehouse.png` 87×83).
+Objetos: baú `004a6731-a055-4049-8b5a-4039a2e772a2`, silo `f2071b90-2b20-4069-a1a7-13e768517eb9`,
+armazém `4c3a037e-e51b-4b50-b259-9810ef727510`. Ícones Pixen 32 px em `ui/icons/`:
+`item_bolt.png` (`81d53d1e-8a39-4c52-af5e-7f2cfdff382a`) e `item_iron_band.png` (`aaefb859-3329-46ba-a854-fe277e2a565f`).

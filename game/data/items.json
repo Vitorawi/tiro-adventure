@@ -1,7 +1,20 @@
 {
+  "bolt": {
+    "name": "Parafuso",
+    "category": "material",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_bolt.png"
+  },
+  "iron_band": {
+    "name": "Cinta de ferro",
+    "category": "material",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_iron_band.png"
+  },
   "dog_food": {
     "name": "Ração",
     "category": "food",
+    "storage": "none",
     "icon": "res://assets/sprites/ui/icons/item_dog_food.png",
     "feed": {
       "hunger": 25

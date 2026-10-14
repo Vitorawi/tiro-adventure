@@ -67,7 +67,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
                      GameManual (catálogo), NatureUi (coleta/níveis/refino), DevPanel (DEV),
                      PlotIndicator, StationIndicator (estações/criações), RouteIndicator (exploração),
                      PetAnimator (animações do Tiro na aba Tiro), NpcPortrait (pedido/aceno nas conversas)
-  scripts/util/      BuildInfo (canal prod/dev, arquivo de save), TimeText (texto de duração)
+  scripts/util/      BuildInfo (canal prod/dev, arquivo de save), TimeText (texto de duração), Loot (sorteios com semente)
   assets/            sprites/(characters,areas,tiles,ui,fx), theme/, audio/, fonts/, icons/ (PWA)
   tests/             testes headless (excluídos do export)
 ```
@@ -84,7 +84,9 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Missão diária / semanal               | `data/routines.json` (`goal` = contador + alvo, `rewards`, `requirements`; `count` por tipo); ações `GameState.claim_routine` |
 | "Como fazer" (o que falta, 1º passo)  | `scripts/ui/task_help.gd` (`TaskHelp.describe` calcula; `TaskHelp.panel` mostra em ícones) |
 | Nova missão / personagem (NPC) / roupa | `quests.json` / `npcs.json` (`portrait`, `sprite_dir` com rotations/ + walk/, `services`) + mundo dele em `worlds.json` → `npcs` + ponto `npc_<id>` em `rooms/<id>.json → points` / `collections.json` |
-| Requisitos de conteúdo (nível, compra, missão) | campo `"requirements"` no JSON; validados por `ProgressionState.requirement_error` |
+| Requisitos de conteúdo (nível, compra, missão) | campo `"requirements"` no JSON; validados por `ProgressionState.requirement_error` (+ `bond`/`hours` em `GameState.requirement_error`; também `stats`). Recompensas `affection`/`needs` em `GameState._apply_rewards` |
+| Sorteio com semente / faixas `[min, max]` | `scripts/util/loot.gd` (`Loot.pick_weighted/amount/roll`) |
+| "O que dá para fazer agora" / medir o ritmo do começo | `GameState.available_actions()`; `progress.firsts` + aba **Ritmo** do `DevPanel` (todo contador passa por `GameState._count`) |
 | Nova ação do jogo (ex.: plantar)      | método em `game/autoload/game_state.gd` + estado em `game/scripts/state/` |
 | Novo móvel / mudar layout da casa     | `game/data/rooms/house.json` (sprite, pos, footprint, `"action": "place:<id>"`, `upgrade`) + lugar em `worlds.json` |
 | Nova planta da horta / tempo / colheita | `game/data/crops.json` (tempo, itens, moedas, XP, requisitos; ícone em `items.json`); terrenos em `config.json` → `farm` |
@@ -104,6 +106,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Nova ferramenta de teste (dev)        | `GameState.dev_*()` (com guarda `BuildInfo.is_dev()`) + botão em `scripts/ui/dev_panel.gd` |
 | Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: PrimaryButton, TabButton, CloseButton, CardPanel, ReadyCardPanel, ChipPanel, SheetPanel, TopBarPanel, TitleLabel, SectionLabel, SmallLabel, BarLabel, ToastLabel) |
 | Ícone de item/necessidade/atributo    | PNG 32 px em `game/assets/sprites/ui/icons/` + campo `"icon"` no JSON (caminho em `items.json`/`needs`; nome do arquivo sem `.png` em `progression.json`, `npcs.json`, `collections.json`) |
+| Armazenamento (limites e ampliações)  | `progression.json → storage` + melhorias com `storage_capacity`; `items.json → storage`; `GameState.storage_*`; plano `docs/plans/ARMAZENAMENTO.md` |
 | Adicionar dado que deve ser salvo     | classe em `game/scripts/state/` (ou campo no `GameState`) + `to_dict`/`from_dict`/`reset` |
 | Configurações / vários saves          | Engrenagem na barra superior (`main.gd._build_settings_button`) → `scripts/ui/settings_panel.gd`. Saves 1..5 em `SaveManager` (`list_slots/switch_slot/new_slot/delete_slot/set_default_slot`; slot 1 = `save.json`/`save_dev.json`, outros `save_N.json`; padrão em `settings.json`); trocar de save recarrega a cena |
 | Mudar formato do save                 | `game/autoload/save_manager.gd` (`SAVE_VERSION` + `_migrate`) |

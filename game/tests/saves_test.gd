@@ -56,6 +56,14 @@ func _run() -> void:
 	check(manager.get("default_slot") == manager.get("active_slot"), "Padrão nunca aponta para um save apagado")
 	check(_slot_info(manager, created).is_empty(), "Save excluído some da lista")
 
+	# Save v11 (formato antigo) aparece na lista como jogo novo, sem quebrar.
+	var legacy := FileAccess.open(manager.call("slot_path", 5), FileAccess.WRITE)
+	legacy.store_string(JSON.stringify({"save_version": 11, "state": {"coins": 999, "level": 7}}))
+	legacy.close()
+	var legacy_info := _slot_info(manager, 5)
+	check(not legacy_info.is_empty() and int(legacy_info.coins) == 0 and int(legacy_info.level) == 1 and int(legacy_info.chapter) == 1, "Slot v11 aparece como jogo novo")
+	manager.call("delete_slot", 5)
+
 	# Interface: engrenagem no topo e painel com os saves.
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)

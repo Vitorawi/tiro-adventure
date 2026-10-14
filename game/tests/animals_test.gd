@@ -30,6 +30,7 @@ func _run() -> void:
 	state.call("dev_complete_quest", "farm_deed")
 	state.call("dev_grant_upgrade", "farm")
 	state.call("dev_add_coins", 3000)
+	state.set("unlimited_storage", true)
 	state.call("dev_add_items", 20)
 	main = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
@@ -157,6 +158,7 @@ func _run() -> void:
 	check(state.call("animal_count", "cow_barn") == 2, "Migração não duplica animais")
 	state.call("from_dict", herd_save)
 	state.call("dev_unlock_everything")
+	state.set("unlimited_storage", true)
 	state.call("dev_add_items", 20)
 	await create_timer(2.2).timeout
 	main.get_node("Celebration").hide()

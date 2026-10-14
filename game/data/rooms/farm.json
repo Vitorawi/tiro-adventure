@@ -109,6 +109,28 @@
       "detail_label": true
     },
     {
+      "id": "silo",
+      "action": "place:silo",
+      "upgrade": "silo",
+      "sprite": "res://assets/sprites/areas/farm/silo.png",
+      "pos": [745, 245],
+      "approach": [725, 266],
+      "footprint": [[721, 241], [745, 229], [769, 241], [745, 253]],
+      "label": "Silo",
+      "label_pos": [745, 170]
+    },
+    {
+      "id": "warehouse",
+      "action": "place:warehouse",
+      "upgrade": "warehouse",
+      "sprite": "res://assets/sprites/areas/farm/warehouse.png",
+      "pos": [400, 222],
+      "approach": [430, 238],
+      "footprint": [[360, 222], [400, 202], [442, 222], [400, 242]],
+      "label": "Armazém",
+      "label_pos": [400, 150]
+    },
+    {
       "id": "greenhouse",
       "action": "place:plots",
       "upgrade": "greenhouse",

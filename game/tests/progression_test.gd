@@ -33,6 +33,14 @@ func _run() -> void:
 	var coins_before: int = state.get("coins")
 	_check(state.call("sell", "carrot", -2) != "" and state.get("coins") == coins_before, "Venda negativa não deve gerar itens ou moedas")
 	_check(state.call("feed", "dog_food"), "Refeição inicial deve funcionar")
+	var progress_now: RefCounted = state.get("progress")
+	_check(progress_now.call("stat", "feed:dog_food") == 1, "feed conta também a comida usada")
+	state.call("pet")
+	_check(progress_now.call("stat", "pet") == 1, "carinho conta estatística")
+	_check(progress_now.get("firsts").has("feed") and progress_now.get("started_at") > 0.0, "Ritmo: primeira vez e início gravados")
+	_check(state.call("available_actions") is Array, "available_actions devolve lista")
+	_check(progress_now.call("pace_lines").size() > 0 and "feed" in " ".join(progress_now.call("pace_lines")), "Ritmo lista as primeiras vezes")
+	_foundation()
 	state.call("talk_to", "lais")
 	_check(state.call("claim_quest", "welcome") == "", "Falar com a Laís conclui a missão inicial")
 	coins_before = state.get("coins")
@@ -66,11 +74,37 @@ func _run() -> void:
 	quit(0 if _failures == 0 else 1)
 
 
+## Peças da Etapa 00: requisitos stats/bond/hours, recompensas affection/needs e bond_level.
+func _foundation() -> void:
+	var progress: RefCounted = state.get("progress")
+	_check(state.call("requirement_error", {"stats": {"walk": 5}}) == "Faça mais 5 passeios", "Requisito stats pede mais passeios")
+	progress.call("count", "walk", 5)
+	_check(state.call("requirement_error", {"stats": {"walk": 5}}) == "", "Requisito stats cumprido")
+	progress.call("count", "xyz", 1)
+	_check(state.call("requirement_error", {"stats": {"xyz": 3}}) == "Faça mais 2 xyz", "Chave sem rótulo usa a própria chave")
+	var dog: RefCounted = state.get("dog")
+	var affection_before: int = dog.get("affection")
+	dog.set("affection", 0)
+	_check(state.call("requirement_error", {"bond": 3}) == "Vínculo 3", "Requisito bond bloqueia")
+	dog.set("affection", 50)
+	_check(state.call("requirement_error", {"bond": 3}) == "", "Requisito bond cumprido")
+	_check(progress.call("bond_level", 0) == 1 and progress.call("bond_level", 20) == 2 and progress.call("bond_level", 9999) == 8, "bond_level segue bond_levels")
+	var hour: int = Time.get_datetime_dict_from_unix_time(state.call("_local_time")).hour
+	_check(state.call("requirement_error", {"hours": [hour, (hour + 1) % 24]}) == "", "Requisito hours dentro da faixa")
+	var outside: String = state.call("requirement_error", {"hours": [(hour + 1) % 24, (hour + 2) % 24]})
+	_check(outside.begins_with("Só das "), "Requisito hours fora da faixa")
+	dog.set("affection", affection_before)
+	state.call("_apply_rewards", {"affection": 7, "needs": {"happiness": -10}})
+	_check(dog.get("affection") == affection_before + 7, "Recompensa affection soma ao afeto")
+
+
 func _campaign() -> Dictionary:
 	var progression: Dictionary = database.get("progression")
 	var recipes: Dictionary = database.get("recipes")
 	var crops: Dictionary = database.get("crops")
 	var iterations: int = 0
+	# A simulação estoca 12 de cada item: o limite de armazenamento é testado em storage_test.
+	state.set("unlimited_storage", true)
 	# Acelera apenas o tempo. Moedas, materiais, XP e aquisições vêm das ações reais.
 	for turn in 1500:
 		iterations = turn + 1

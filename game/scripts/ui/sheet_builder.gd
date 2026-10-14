@@ -40,17 +40,18 @@ static func food_picker() -> Control:
 const CATEGORIES := {"food": "Comidas", "crop": "Colheitas", "material": "Materiais", "product": "Produtos"}
 
 
-## Mochila (todos os itens) ou, com `fridge`, só o que cabe na geladeira: comidas, colheitas e
-## ingredientes com "storage": "fridge" em items.json (ovos, leite, farinha). Materiais ficam só
-## na Mochila. Ícone + quantidade por categoria; tocar abre o detalhe.
-static func inventory_view(fridge: bool = false) -> Control:
+## Mochila: lugar único com todos os itens e a ocupação de cada depósito ("12/30" ao construir).
+## Com `only` (id de depósito: "fridge", "chest", "silo", "warehouse"), só o que mora nele. Ícone + quantidade por
+## categoria; tocar abre o detalhe.
+static func inventory_view(only: String = "") -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
+		_storage_bars(box, only)
 		var shown: Array[String] = []
 		for id: String in GameState.inventory.counts:
-			if not fridge or _fits_fridge(id):
+			if only == "" or GameState.storage_of(id) == only:
 				shown.append(id)
 		if shown.is_empty():
-			_empty_message(box, "Geladeira vazia." if fridge else "Mochila vazia.", "Guarde comidas e ingredientes aqui." if fridge else "")
+			_empty_message(box, "%s vazio." % Database.progression.storage[only].name if only != "" else "Mochila vazia.", "")
 			return
 		for category: String in CATEGORIES:
 			var ids: Array[String] = []
@@ -70,9 +71,20 @@ static func inventory_view(fridge: bool = false) -> Control:
 			box.add_child(grid))
 
 
+## Uma linha de chips com ícone e usado/capacidade de cada depósito construído (`only` = só ele).
+static func _storage_bars(box: VBoxContainer, only: String) -> void:
+	var row := HFlowContainer.new()
+	for id: String in Database.progression.storage:
+		if (only != "" and id != only) or not GameState.storage_active(id):
+			continue
+		var full := GameState.storage_space(id) == 0
+		row.add_child(UiKit.chip(UiKit.ui_icon(str(Database.progression.storage[id].icon)), "%d/%d" % [GameState.storage_used(id), GameState.storage_capacity(id)], UiKit.BAD if full else null))
+	if row.get_child_count() > 0:
+		box.add_child(row)
+
+
 static func _fits_fridge(id: String) -> bool:
-	var item: Dictionary = Database.items.get(id, {})
-	return str(item.get("category", "product")) in ["food", "crop"] or item.get("storage", "") == "fridge"
+	return GameState.storage_of(id) == "fridge"
 
 
 static func _item_tile(id: String) -> Button:

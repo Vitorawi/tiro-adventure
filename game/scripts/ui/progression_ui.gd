@@ -564,6 +564,9 @@ static func reward_chips(rewards: Dictionary) -> HFlowContainer:
 	for id: String in rewards.get("collections", []):
 		if not GameState.progress.collection.has(id):
 			row.add_child(UiKit.chip(UiKit.ui_icon("item_accessory_set"), "+1"))
+	if int(rewards.get("affection", 0)) > 0:
+		# Ícone provisório: a Etapa 03 troca por bond_heart.
+		row.add_child(UiKit.chip(UiKit.ui_icon("need_happiness"), "+%d" % int(rewards.affection)))
 	return row
 
 

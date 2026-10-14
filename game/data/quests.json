@@ -19,7 +19,7 @@
     },
     "kind": "main",
     "chapter": 1,
-    "order": 1
+    "order": 10
   },
   "lais_feed": {
     "npc": "lais",
@@ -39,7 +39,7 @@
     },
     "kind": "main",
     "chapter": 1,
-    "order": 2
+    "order": 20
   },
   "lais_bath": {
     "npc": "lais",
@@ -59,7 +59,7 @@
     },
     "kind": "main",
     "chapter": 1,
-    "order": 3
+    "order": 30
   },
   "lais_play": {
     "npc": "lais",
@@ -79,7 +79,7 @@
     },
     "kind": "main",
     "chapter": 1,
-    "order": 4
+    "order": 40
   },
   "lais_bag": {
     "npc": "lais",
@@ -98,7 +98,7 @@
     },
     "kind": "main",
     "chapter": 1,
-    "order": 5,
+    "order": 50,
     "go": {
       "screen": "bag",
       "hint": "Toque na aba Mochila."
@@ -120,7 +120,7 @@
     },
     "kind": "main",
     "chapter": 2,
-    "order": 1,
+    "order": 10,
     "go": {
       "world": "farm",
       "place": "npc:bloblo",
@@ -143,7 +143,7 @@
     },
     "kind": "main",
     "chapter": 2,
-    "order": 2,
+    "order": 20,
     "go": {
       "world": "farm",
       "place": "npc:bloblo",
@@ -166,7 +166,7 @@
     },
     "kind": "main",
     "chapter": 3,
-    "order": 1
+    "order": 10
   },
   "first_kitchen": {
     "npc": "lais",
@@ -187,7 +187,7 @@
     },
     "kind": "main",
     "chapter": 3,
-    "order": 2
+    "order": 20
   },
   "lais_stew": {
     "npc": "lais",
@@ -205,7 +205,7 @@
     },
     "kind": "main",
     "chapter": 3,
-    "order": 3,
+    "order": 30,
     "go": {
       "world": "farm",
       "place": "npc:bloblo",
@@ -229,7 +229,7 @@
     },
     "kind": "main",
     "chapter": 4,
-    "order": 1,
+    "order": 10,
     "go": {
       "world": "village",
       "place": "",
@@ -256,7 +256,7 @@
     },
     "kind": "main",
     "chapter": 4,
-    "order": 2
+    "order": 20
   },
   "main_2_order": {
     "npc": "lais",
@@ -275,7 +275,7 @@
     },
     "kind": "main",
     "chapter": 4,
-    "order": 3
+    "order": 30
   },
   "lais_forest": {
     "npc": "lais",
@@ -296,7 +296,7 @@
     },
     "kind": "main",
     "chapter": 5,
-    "order": 1
+    "order": 10
   },
   "main_4_materials": {
     "npc": "lais",
@@ -315,7 +315,7 @@
     },
     "kind": "main",
     "chapter": 5,
-    "order": 2
+    "order": 20
   },
   "main_4_bench": {
     "npc": "lais",
@@ -336,7 +336,7 @@
     },
     "kind": "main",
     "chapter": 5,
-    "order": 3
+    "order": 30
   },
   "bloblo_meet": {
     "npc": "bloblo",
@@ -355,7 +355,7 @@
     },
     "kind": "line",
     "line": "bloblo",
-    "order": 1,
+    "order": 10,
     "requirements": {
       "quests": [
         "lais_bag"
@@ -382,7 +382,7 @@
     },
     "kind": "line",
     "line": "bloblo",
-    "order": 2
+    "order": 20
   },
   "bloblo_more_crops": {
     "npc": "bloblo",
@@ -402,7 +402,7 @@
     },
     "kind": "line",
     "line": "bloblo",
-    "order": 3
+    "order": 30
   },
   "bloblo_carrots": {
     "npc": "bloblo",
@@ -421,7 +421,7 @@
     },
     "kind": "line",
     "line": "bloblo",
-    "order": 4
+    "order": 40
   },
   "bloblo_potato": {
     "npc": "bloblo",
@@ -443,7 +443,7 @@
     },
     "kind": "line",
     "line": "bloblo",
-    "order": 5
+    "order": 50
   },
   "bloblo_stew": {
     "npc": "bloblo",
@@ -465,7 +465,7 @@
     },
     "kind": "line",
     "line": "bloblo",
-    "order": 6,
+    "order": 60,
     "requirements": {
       "quests": [
         "first_kitchen"
@@ -491,7 +491,7 @@
     },
     "kind": "line",
     "line": "bloblo",
-    "order": 7
+    "order": 70
   },
   "stone_path": {
     "npc": "lais",
@@ -516,7 +516,7 @@
     },
     "kind": "main",
     "chapter": 6,
-    "order": 2
+    "order": 20
   },
   "market_day": {
     "npc": "lais",
@@ -538,7 +538,7 @@
     },
     "kind": "main",
     "chapter": 7,
-    "order": 1
+    "order": 10
   },
   "deep_earth": {
     "npc": "lais",
@@ -563,7 +563,7 @@
     },
     "kind": "main",
     "chapter": 8,
-    "order": 2
+    "order": 20
   },
   "own_business": {
     "npc": "lais",
@@ -584,7 +584,7 @@
     },
     "kind": "main",
     "chapter": 7,
-    "order": 3
+    "order": 30
   },
   "atelier_open": {
     "npc": "lais",
@@ -608,7 +608,7 @@
     },
     "kind": "main",
     "chapter": 9,
-    "order": 3
+    "order": 30
   },
   "main_5_oven": {
     "npc": "lais",
@@ -627,7 +627,7 @@
     },
     "kind": "main",
     "chapter": 6,
-    "order": 5
+    "order": 50
   },
   "main_7_greenhouse": {
     "npc": "lais",
@@ -646,7 +646,7 @@
     },
     "kind": "main",
     "chapter": 8,
-    "order": 3
+    "order": 30
   },
   "main_5_pickaxe": {
     "npc": "lais",
@@ -665,7 +665,7 @@
     },
     "kind": "main",
     "chapter": 6,
-    "order": 1
+    "order": 10
   },
   "main_5_cooking": {
     "npc": "lais",
@@ -685,7 +685,7 @@
     },
     "kind": "main",
     "chapter": 6,
-    "order": 3
+    "order": 30
   },
   "main_5_bricks": {
     "npc": "lais",
@@ -704,7 +704,7 @@
     },
     "kind": "main",
     "chapter": 6,
-    "order": 4
+    "order": 40
   },
   "main_6_commerce": {
     "npc": "lais",
@@ -724,7 +724,7 @@
     },
     "kind": "main",
     "chapter": 7,
-    "order": 2
+    "order": 20
   },
   "main_7_orchard": {
     "npc": "lais",
@@ -743,7 +743,7 @@
     },
     "kind": "main",
     "chapter": 8,
-    "order": 1
+    "order": 10
   },
   "main_8_fiber": {
     "npc": "lais",
@@ -762,7 +762,7 @@
     },
     "kind": "main",
     "chapter": 9,
-    "order": 1,
+    "order": 10,
     "hint": "Vila → Portão da trilha → Prado das fibras."
   },
   "main_8_building": {
@@ -783,7 +783,7 @@
     },
     "kind": "main",
     "chapter": 9,
-    "order": 2
+    "order": 20
   },
   "main_9_coop": {
     "npc": "bloblo",
@@ -803,7 +803,7 @@
       }
     },
     "kind": "line",
-    "order": 8,
+    "order": 80,
     "line": "bloblo",
     "requirements": {
       "quests": [
@@ -827,7 +827,7 @@
       "coins": 35
     },
     "kind": "line",
-    "order": 9,
+    "order": 90,
     "line": "bloblo"
   },
   "main_9_cows": {
@@ -848,7 +848,7 @@
       }
     },
     "kind": "line",
-    "order": 10,
+    "order": 100,
     "line": "bloblo"
   },
   "main_9_flour": {
@@ -868,7 +868,7 @@
       "coins": 45
     },
     "kind": "line",
-    "order": 12,
+    "order": 120,
     "line": "bloblo"
   },
   "main_9_cheese": {
@@ -892,7 +892,7 @@
       "coins": 60
     },
     "kind": "line",
-    "order": 13,
+    "order": 130,
     "line": "bloblo"
   },
   "bloblo_milk": {
@@ -912,7 +912,119 @@
     },
     "kind": "line",
     "line": "bloblo",
-    "order": 11
+    "order": 110
+  },
+  "bloblo_silo": {
+    "npc": "bloblo",
+    "name": "A colheita não cabe!",
+    "dialogue": "Olha só, a colheita já não cabe no celeiro velho. Vamos construir um silo!",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "silo",
+        "label": "Construir o silo no sítio"
+      }
+    ],
+    "rewards": {
+      "coins": 40,
+      "items": {
+        "bolt": 1
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 140
+  },
+  "bloblo_warehouse": {
+    "npc": "bloblo",
+    "name": "Tudo no seu lugar",
+    "dialogue": "Madeira, pedra e fibra espalhadas por aí... Um armazém resolve!",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "warehouse",
+        "label": "Construir o armazém no sítio"
+      }
+    ],
+    "rewards": {
+      "coins": 50,
+      "items": {
+        "bolt": 1
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 150
+  },
+  "bloblo_chest": {
+    "npc": "bloblo",
+    "name": "Um baú para a casa",
+    "dialogue": "Leve este parafuso: na casa, um baú guarda seus produtos.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "chest",
+        "label": "Construir o baú na casa"
+      }
+    ],
+    "rewards": {
+      "coins": 50,
+      "items": {
+        "bolt": 1
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 160
+  },
+  "bloblo_bigger": {
+    "npc": "bloblo",
+    "name": "Mais espaço",
+    "dialogue": "Com parafusos dá para ampliar. Aumente o silo e a geladeira!",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "silo_2",
+        "label": "Ampliar o silo"
+      },
+      {
+        "type": "owned",
+        "key": "fridge_2",
+        "label": "Ampliar a geladeira"
+      }
+    ],
+    "rewards": {
+      "coins": 100,
+      "items": {
+        "bolt": 3,
+        "iron_band": 3
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 170
+  },
+  "bloblo_biggest": {
+    "npc": "bloblo",
+    "name": "Silo de gente grande",
+    "dialogue": "Agora o silo gigante, com cintas de ferro. Fica para a vida toda!",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "silo_3",
+        "label": "Ampliar o silo ao máximo"
+      }
+    ],
+    "rewards": {
+      "coins": 200,
+      "items": {
+        "bolt": 3,
+        "iron_band": 2
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 180
   },
   "merchant_meet": {
     "npc": "merchant",
@@ -931,7 +1043,7 @@
     },
     "kind": "line",
     "line": "merchant",
-    "order": 1,
+    "order": 10,
     "requirements": {
       "chapter": 4
     }
@@ -954,7 +1066,7 @@
     },
     "kind": "line",
     "line": "merchant",
-    "order": 2
+    "order": 20
   },
   "merchant_orders": {
     "npc": "merchant",
@@ -974,7 +1086,7 @@
     },
     "kind": "line",
     "line": "merchant",
-    "order": 3
+    "order": 30
   },
   "merchant_regular": {
     "npc": "merchant",
@@ -994,7 +1106,7 @@
     },
     "kind": "line",
     "line": "merchant",
-    "order": 4
+    "order": 40
   },
   "guide_meet": {
     "npc": "guide",
@@ -1013,7 +1125,7 @@
     },
     "kind": "line",
     "line": "guide",
-    "order": 1,
+    "order": 10,
     "requirements": {
       "chapter": 5
     }
@@ -1036,7 +1148,7 @@
     },
     "kind": "line",
     "line": "guide",
-    "order": 2
+    "order": 20
   },
   "guide_stone": {
     "npc": "guide",
@@ -1056,7 +1168,7 @@
     },
     "kind": "line",
     "line": "guide",
-    "order": 3
+    "order": 30
   },
   "guide_fibers": {
     "npc": "guide",
@@ -1076,6 +1188,6 @@
     },
     "kind": "line",
     "line": "guide",
-    "order": 4
+    "order": 40
   }
 }

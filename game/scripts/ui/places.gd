@@ -55,7 +55,9 @@ static func _panel(kind: String, arg: String) -> Control:
 		"inventory":
 			return SheetBuilder.inventory_view()
 		"fridge":
-			return SheetBuilder.inventory_view(true)
+			return SheetBuilder.inventory_view("fridge")
+		"storage":
+			return SheetBuilder.inventory_view(arg)
 		"feed":
 			return SheetBuilder.food_picker()
 		"farm":

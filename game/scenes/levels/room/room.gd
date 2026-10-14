@@ -818,7 +818,10 @@ func _screen_point(point: Vector2) -> Vector2:
 func _collect_site(site: String, point: Vector2) -> void:
 	var data: Dictionary = Database.progression.nature_sites[site]
 	var previous_level := GameState.progress.nature_level(site)
-	if GameState.collect_gathering_all(site) != "":
+	var error := GameState.collect_gathering_all(site)
+	if error != "":
+		if error.ends_with("sem espaço"):
+			Events.toast_requested.emit(error)
 		return
 	Events.items_gained.emit(GameState.last_gain, GameState.last_coins, _screen_point(point))
 	var level := GameState.progress.nature_level(site)

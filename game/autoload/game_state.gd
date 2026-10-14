@@ -34,6 +34,12 @@ func now() -> float:
 	return Time.get_unix_time_from_system()
 
 
+## Soma ao contador e grava a primeira vez (alimenta o "Ritmo" do painel DEV).
+func _count(key: String, amount: int = 1) -> void:
+	if progress.stat(key) == 0 and amount > 0 and not progress.firsts.has(key):
+		progress.firsts[key] = now()
+	progress.count(key, amount)
+
 func reset() -> void:
 	dog = DogState.new()
 	dog.setup(now())
@@ -52,6 +58,7 @@ func reset() -> void:
 	level = 1
 	progress = ProgressionState.new()
 	progress.setup()
+	progress.started_at = now()
 	_mark_all_seen()
 	_changed()
 
@@ -64,7 +71,8 @@ func feed(item_id: String) -> bool:
 	if effects.is_empty() or not inventory.remove(item_id):
 		return false
 	dog.apply(effects, now())
-	progress.count("feed")
+	_count("feed")
+	_count("feed:" + item_id)
 	_care_reward("feed", useful)
 	_changed()
 	Events.dog_action.emit(&"feed")
@@ -74,6 +82,7 @@ func feed(item_id: String) -> bool:
 func pet() -> void:
 	dog.apply(Database.actions.get("pet", {}), now())
 	dog.affection += 1
+	_count("pet")
 	_changed()
 	Events.dog_action.emit(&"pet")
 
@@ -84,7 +93,7 @@ func play() -> bool:
 	var useful := _need_is_low("happiness")
 	dog.apply(Database.actions.get("play", {}), now())
 	dog.affection += 2
-	progress.count("play")
+	_count("play")
 	_care_reward("play", useful)
 	_changed()
 	Events.dog_action.emit(&"play")
@@ -94,7 +103,7 @@ func play() -> bool:
 func bathe() -> void:
 	var useful := _need_is_low("hygiene")
 	dog.apply(Database.actions.get("bathe", {}), now())
-	progress.count("bathe")
+	_count("bathe")
 	_care_reward("bathe", useful)
 	_changed()
 	Events.dog_action.emit(&"bathe")
@@ -200,6 +209,7 @@ func cook_error(recipe_id: String) -> String:
 ## Coleta tudo o que está pronto na estação. Retorna os itens recebidos.
 func collect(station_id: String) -> Dictionary:
 	var received := {}
+	var blocked := ""
 	for entry: Dictionary in station(station_id).take_ready_batches(now()):
 		var recipe_id: String = entry.recipe
 		var recipe: Dictionary = Database.recipes.get(recipe_id, {})
@@ -207,12 +217,20 @@ func collect(station_id: String) -> Dictionary:
 			continue  # receita removida do JSON: descarta sem travar a fila
 		var output: String = recipe["output"]
 		var qty := int(entry.get("qty", recipe.get("qty", 1)))
+		var full := storage_error({output: qty})
+		if full != "":
+			# Não cabe: o lote continua pronto na fila, nada se perde.
+			station(station_id).queue.append(entry)
+			blocked = full
+			continue
 		inventory.add(output, qty)
-		progress.count("produce:" + output, qty)
-		progress.count("produce", qty)
+		_count("produce:" + output, qty)
+		_count("produce", qty)
 		_discover("recipe:" + recipe_id, str(recipe.get("skill", "cooking")), int(recipe.get("skill_xp", 10)))
 		received[output] = int(received.get(output, 0)) + qty
 		_gain_xp("animal" if Database.stations.get(station_id, {}).get("kind", "") == "animal" else "cook")
+	if blocked != "":
+		Events.toast_requested.emit(blocked)
 	if not received.is_empty():
 		_changed()
 		Events.world_activity.emit(&"collect", station_id, -1)
@@ -327,8 +345,12 @@ func harvest(index: int) -> Dictionary:
 	var crop_id: String = plot(index)["crop"]
 	var crop: Dictionary = Database.crops.get(crop_id, {})
 	var received: Dictionary = crop.get("yield", {})
-	progress.count("harvest")
-	progress.count("harvest:" + crop_id)
+	var full := storage_error(received)
+	if full != "":
+		Events.toast_requested.emit(full)
+		return {}
+	_count("harvest")
+	_count("harvest:" + crop_id)
 	_discover("crop:" + crop_id, "agriculture", int(crop.get("skill_xp", 10)))
 	coins += int(crop.get("coins", 0))
 	for item_id: String in received:
@@ -430,6 +452,9 @@ func _apply_rewards(rewards: Dictionary) -> void:
 		progress.collection[id] = true
 	for id: String in rewards.get("unlocks", []):
 		progress.unlocks[id] = true
+	dog.affection += int(rewards.get("affection", 0))
+	if rewards.has("needs"):
+		dog.apply(rewards.needs, now())
 
 
 # --- Aquisições (Construir) -------------------------------------------------------
@@ -438,12 +463,106 @@ func has_upgrade(id: String) -> bool:
 	return progress.has_upgrade(id)
 
 
-func requirement_error(requirements: Dictionary) -> String:
-	return progress.requirement_error(requirements)
+# --- Armazenamento ----------------------------------------------------------------
+# Cada item mora num depósito (items.json "storage" ou a categoria em progression.json → storage).
+# O limite só vale depois de construir o depósito; antes disso entra sem limite.
+# Níveis de ampliação são melhorias comuns (`owned`) com "storage_capacity": sem estado novo no save.
 
+## Depósito do item ("" = sem limite: ração, itens fora de qualquer categoria).
+func storage_of(item_id: String) -> String:
+	var item: Dictionary = Database.items.get(item_id, {})
+	var forced := str(item.get("storage", ""))
+	if forced != "":
+		return "" if forced == "none" or not Database.progression.storage.has(forced) else forced
+	var category := str(item.get("category", "product"))
+	for id: String in Database.progression.storage:
+		if category in Database.progression.storage[id].get("categories", []):
+			return id
+	return ""
+
+
+## Desliga os limites (só testes automatizados que enchem a mochila).
+var unlimited_storage := false
+
+
+## O depósito já foi construído (e, portanto, tem limite)?
+func storage_active(id: String) -> bool:
+	if unlimited_storage:
+		return false
+	return Database.progression.storage.has(id) and has_upgrade(str(Database.progression.storage[id].building))
+
+
+func storage_capacity(id: String) -> int:
+	var data: Dictionary = Database.progression.storage.get(id, {})
+	var total := int(data.get("base", 0))
+	for upgrade_id: String in data.get("levels", []):
+		if has_upgrade(upgrade_id):
+			total += int(Database.progression.upgrades[upgrade_id].get("storage_capacity", 0))
+	return total
+
+
+func storage_used(id: String) -> int:
+	var total := 0
+	for item_id: String in inventory.counts:
+		if storage_of(item_id) == id:
+			total += inventory.count(item_id)
+	return total
+
+
+func storage_space(id: String) -> int:
+	return maxi(0, storage_capacity(id) - storage_used(id))
+
+
+## Próxima ampliação do depósito ("" se já está no máximo).
+func storage_next_upgrade(id: String) -> String:
+	for upgrade_id: String in Database.progression.storage.get(id, {}).get("levels", []):
+		if not has_upgrade(upgrade_id):
+			return upgrade_id
+	return ""
+
+
+## Nome do depósito que não comporta os itens ("" se cabem). Soma por depósito.
+func storage_full(items: Dictionary) -> String:
+	var needed := {}
+	for item_id: String in items:
+		var id := storage_of(item_id)
+		if id != "" and storage_active(id):
+			needed[id] = int(needed.get(id, 0)) + int(items[item_id])
+	for id: String in needed:
+		if int(needed[id]) > storage_space(id):
+			return id
+	return ""
+
+
+## Texto pronto para toast quando os itens não cabem ("" se cabem).
+func storage_error(items: Dictionary) -> String:
+	var full := storage_full(items)
+	if full == "":
+		return ""
+	return "%s sem espaço" % Database.progression.storage[full].name
+
+
+## Requisitos que dependem de fora do ProgressionState (afeto do Tiro e hora local) são checados
+## aqui; os demais vão para o `progress`. Todo conteúdo passa por este embrulho (content_error também).
+func requirement_error(requirements: Dictionary) -> String:
+	var reason := progress.requirement_error(requirements)
+	if reason != "":
+		return reason
+	if requirements.has("bond") and progress.bond_level(dog.affection) < int(requirements.bond):
+		return "Vínculo %d" % int(requirements.bond)
+	if requirements.has("hours"):
+		var from_hour := int(requirements.hours[0])
+		var to_hour := int(requirements.hours[1])
+		var hour := int(Time.get_datetime_dict_from_unix_time(_local_time()).hour)
+		var inside := from_hour <= hour and hour < to_hour if from_hour < to_hour else hour >= from_hour or hour < to_hour
+		if not inside:
+			return "Só das %dh às %dh" % [from_hour, to_hour]
+	return ""
 
 func content_error(kind: String, id: String, data: Dictionary) -> String:
-	return progress.content_error(kind, id, data)
+	if progress.unlocks.has(kind + ":" + id):
+		return ""
+	return requirement_error(data.get("requirements", {}))
 
 
 func current_chapter() -> Dictionary:
@@ -478,7 +597,7 @@ func buy_upgrade(id: String) -> String:
 	coins -= int(data.get("cost", 0))
 	_grant_upgrade(id)
 	_apply_rewards({"skill_xp": data.get("skill_xp", {})})
-	progress.count("build")
+	_count("build")
 	_add_player_xp(int(data.get("player_xp", 10)))
 	_changed()
 	Events.world_activity.emit(&"build", id, -1)
@@ -514,8 +633,8 @@ func sell(item_id: String, amount: int = 1) -> String:
 	if not inventory.remove(item_id, amount):
 		return "Você não tem essa quantidade"
 	coins += price * amount
-	progress.count("trade")
-	progress.count("sold", amount)
+	_count("trade")
+	_count("sold", amount)
 	_award_skill("commerce", int(Database.items[item_id].get("trade_xp", 1)) * amount)
 	_changed()
 	return ""
@@ -543,9 +662,9 @@ func fulfill_order(id: String) -> String:
 	var order: Dictionary = Database.progression.orders[id]
 	inventory.remove_all(order.inputs)
 	progress.cooldowns["order:" + id] = now() + float(order.get("cooldown", 0))
-	progress.count("trade")
-	progress.count("orders")
-	progress.count("order:" + id)
+	_count("trade")
+	_count("orders")
+	_count("order:" + id)
 	_apply_rewards(order.rewards)
 	_changed()
 	return ""
@@ -590,8 +709,8 @@ func collect_activity() -> String:
 	if data.is_empty():
 		_changed()
 		return "Rota indisponível"
-	progress.count("activity:" + id)
-	progress.count("explore")
+	_count("activity:" + id)
+	_count("explore")
 	_apply_rewards(data.rewards)
 	_award_nature_xp(Database.gathering_site(id))
 	_add_player_xp(int(data.get("player_xp", 5)))
@@ -727,7 +846,9 @@ func collect_gathering_error(site: String, index: int) -> String:
 		return "Nada para recolher"
 	if gathering_remaining(site, index) > 0:
 		return "A coleta ainda está em andamento"
-	return ""
+	var entry := gathering_entry(site, index)
+	var data: Dictionary = Database.progression.activities.get(entry.get("id", ""), {})
+	return storage_error(entry.get("rewards", data.get("rewards", {})).get("items", {}))
 
 
 func collect_gathering(site: String, index: int) -> String:
@@ -737,8 +858,8 @@ func collect_gathering(site: String, index: int) -> String:
 	var entry := gathering_entry(site, index).duplicate(true)
 	var data: Dictionary = Database.progression.activities[entry.id]
 	progress.gathering[site][index] = {}
-	progress.count("activity:" + str(entry.id))
-	progress.count("explore")
+	_count("activity:" + str(entry.id))
+	_count("explore")
 	var rewards: Dictionary = entry.get("rewards", data.rewards)
 	for id: String in rewards.get("items", {}):
 		last_gain[id] = int(last_gain.get(id, 0)) + int(rewards.items[id])
@@ -756,11 +877,15 @@ func collect_gathering_all(site: String) -> String:
 	last_gain = {}
 	last_coins = 0
 	var done := false
+	var blocked := ""
 	for index in gathering_slots(site):
-		if collect_gathering_error(site, index) == "":
+		var error := collect_gathering_error(site, index)
+		if error == "":
 			collect_gathering(site, index)
 			done = true
-	return "" if done else "Nenhuma coleta pronta"
+		elif error.ends_with("sem espaço"):
+			blocked = error
+	return "" if done else (blocked if blocked != "" else "Nenhuma coleta pronta")
 
 # --- Missões ----------------------------------------------------------------------
 
@@ -802,7 +927,7 @@ func _step_base(goal: Dictionary) -> Dictionary:
 
 ## Conversa aberta com o personagem (objetivos "Falar com…").
 func talk_to(npc_id: String) -> void:
-	progress.count("talk:" + npc_id)
+	_count("talk:" + npc_id)
 	# Passos atuais deste personagem deixam de ser "novos" (balão "!" no mapa).
 	for id: String in progress.active_steps().values():
 		if Database.quests[id].get("npc", "") == npc_id:
@@ -815,7 +940,7 @@ func note_screen_opened(screen: String) -> void:
 	var key := "open:" + screen
 	if progress.stat(key) > 0:
 		return
-	progress.count(key)
+	_count(key)
 	_changed()
 
 
@@ -868,7 +993,7 @@ func _finish_quest(id: String) -> void:
 	var chapter := progress.chapter_index()
 	progress.claimed_quests[id] = true
 	_apply_rewards(Database.quests[id].rewards)
-	progress.count("quests")
+	_count("quests")
 	_add_player_xp(int(Database.quests[id].get("player_xp", 15)))
 	Events.quest_completed.emit(id)
 	if Database.quests[id].get("kind", "side") == "main" and progress.chapter_index() > chapter:
@@ -963,10 +1088,55 @@ func claim_routine(kind: String, id: String) -> String:
 	var data := routine_data(kind, id)
 	progress.routines[kind].claimed[id] = true
 	_apply_rewards(data.get("rewards", {}))
-	progress.count("routines")
+	_count("routines")
 	_add_player_xp(int(data.get("player_xp", 10 if kind == "daily" else 30)))
 	_changed()
 	return ""
+
+
+## O que dá para fazer agora (consulta pura). Cada item: { kind, world, target }; `target` é o
+## lugar do mundo (mesmo alvo de Events.world_requested) ou a tela ("pet", "tasks") quando world = "".
+func available_actions() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var farm_at := Database.place_with_panel("farm")
+	var can_plant := Database.crops.keys().any(func(id: String) -> bool: return content_error("crop", id, Database.crops[id]) == "")
+	var planted := false
+	var ready := false
+	for i in plots.size():
+		match plot_status(i):
+			"empty":
+				planted = planted or can_plant
+			"ready":
+				ready = true
+	if planted:
+		result.append({"kind": "plant", "world": farm_at[0], "target": farm_at[1]})
+	if ready:
+		result.append({"kind": "harvest", "world": farm_at[0], "target": farm_at[1]})
+	for id: String in Database.stations:
+		if not has_upgrade(id):
+			continue
+		var at := Database.place_with_panel("station:" + id)
+		if station(id).ready_count(now()) > 0:
+			result.append({"kind": "collect", "world": at[0], "target": at[1]})
+		if Database.recipes.keys().any(func(r: String) -> bool: return Database.recipes[r].get("station", "") == id and cook_error(r) == ""):
+			result.append({"kind": "cook", "world": at[0], "target": at[1]})
+	for site: String in Database.progression.get("nature_sites", {}):
+		if gathering_slots(site) == 0:
+			continue
+		var at := Database.place_with_panel("nature:" + str(Database.progression.nature_sites[site].groups[0]))
+		if gathering_ready_count(site) > 0:
+			result.append({"kind": "gather_ready", "world": at[0], "target": at[1]})
+		if gathering_free_count(site) > 0:
+			result.append({"kind": "gather", "world": at[0], "target": at[1]})
+	if ready_quest_count() > 0:
+		result.append({"kind": "quest_ready", "world": "", "target": "tasks"})
+	if ready_routine_count() > 0:
+		result.append({"kind": "routine_ready", "world": "", "target": "tasks"})
+	for need: String in dog.needs:
+		if dog.get_need(need, now()) < 60.0:
+			result.append({"kind": "care", "world": "", "target": "pet"})
+			break
+	return result
 
 
 func ready_routine_count() -> int:

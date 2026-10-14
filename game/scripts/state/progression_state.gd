@@ -39,11 +39,36 @@ var steps: Dictionary = {}
 ## Novidades já mostradas ao jogador ("feature:bag", "world:village", "place:village/gate", "npc:guide").
 ## O que está liberado e ainda não está aqui aparece na tela "Novo!".
 var seen: Dictionary = {}
+## Momento em que o jogo começou (Unix) e a primeira vez de cada contador (chave -> Unix).
+## Alimentam a seção "Ritmo" do painel DEV, para medir o começo do jogo.
+var started_at: float = 0.0
+var firsts: Dictionary = {}
 
 
 func setup() -> void:
 	for id: String in Database.progression.settings.get("initial_owned", []):
 		owned[id] = true
+
+
+## Primeiras vezes em ordem, como "mm:ss  chave" (minutos desde o início do jogo).
+func pace_lines() -> PackedStringArray:
+	var keys: Array = firsts.keys()
+	keys.sort_custom(func(a: String, b: String) -> bool: return float(firsts[a]) < float(firsts[b]))
+	var lines := PackedStringArray()
+	for key: String in keys:
+		var seconds := maxi(0, int(float(firsts[key]) - started_at))
+		lines.append("%02d:%02d  %s" % [seconds / 60, seconds % 60, key])
+	return lines
+
+
+## Nível de vínculo (1..N) para um afeto, pela lista progression.json → bond_levels.
+func bond_level(affection: int) -> int:
+	var level := 1
+	var levels: Array = Database.progression.get("bond_levels", [])
+	for i in levels.size():
+		if affection >= int(levels[i].get("affection", 0)):
+			level = i + 1
+	return level
 
 
 func has_upgrade(id: String) -> bool:
@@ -173,6 +198,11 @@ func requirement_error(requirements: Dictionary) -> String:
 		var needed := int(requirements.produced[item])
 		if stat("produce:" + item) < needed:
 			return "Recolha %d × %s" % [needed, Database.item_name(item)]
+	for key: String in requirements.get("stats", {}):
+		var missing := int(requirements.stats[key]) - stat(key)
+		if missing > 0:
+			var label: String = Database.progression.settings.get("stat_labels", {}).get(key, key)
+			return "Faça mais %d %s" % [missing, label]
 	if chapter_index() < int(requirements.get("chapter", 1)):
 		return "Disponível no capítulo %d" % int(requirements.chapter)
 	for id: String in requirements.get("owned", []):
@@ -299,6 +329,7 @@ func to_dict() -> Dictionary:
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
 		"collection": collection, "unlocks": unlocks,
 		"cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "steps": steps, "seen": seen,
+			"started_at": started_at, "firsts": firsts,
 	}
 
 
@@ -371,6 +402,8 @@ func from_dict(data: Dictionary) -> void:
 	routines = data.get("routines", {}).duplicate(true)
 	steps = data.get("steps", {}).duplicate(true)
 	seen = data.get("seen", {}).duplicate(true)
+	started_at = float(data.get("started_at", 0.0))
+	firsts = data.get("firsts", {}).duplicate(true)
 	# Rota removida do JSON não pode travar o jogador para sempre.
 	if not activity.is_empty() and not Database.progression.activities.has(str(activity.get("id", ""))):
 		activity = {}

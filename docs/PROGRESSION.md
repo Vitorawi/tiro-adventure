@@ -153,6 +153,12 @@ Construções, culturas, receitas, rotas e pedidos aceitam:
 Validados por `ProgressionState.requirement_error()` (a mensagem vira o motivo na UI).
 `progress.unlocks` ("crop:potato", "recipe:pumpkin_mash") libera conteúdo **sem** cumprir requisitos
 (usado para saves antigos e pode ser recompensa: `"rewards": { "unlocks": [...] }`).
+Requisitos extras: `"stats": {"walk": 5}` (contador mínimo; rótulos em `settings.stat_labels`), `"bond": 3` (vínculo, `bond_levels`)
+e `"hours": [17, 21]` (hora local em [início, fim)). `bond` e `hours` dependem de fora do `ProgressionState`, então são
+checados em `GameState.requirement_error` (que embrulha o do `progress`; `content_error` também passa por ele).
+Recompensas extras: `"affection": N` (afeto do Tiro) e `"needs": {"happiness": 20, "energy": -8}`.
+`GameState.available_actions()` lista o que dá para fazer agora (`plant`, `harvest`, `cook`, `collect`, `gather`, `gather_ready`,
+`quest_ready`, `routine_ready`, `care`); `Loot` (`scripts/util/loot.gd`) sorteia tabelas com semente e faixas `[min, max]`.
 
 ## Missões: História, Diárias e Semanais
 

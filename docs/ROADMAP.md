@@ -4,6 +4,47 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **13/10/2026, Codex**.
 
+**✔ Etapa 00 do começo (fundação) feita — Claude Code, 13/10/2026.** Próximo passo: `ETAPA_01_facilitar.md`.
+- Save **v12 zerado** (`_migrate` descarta qualquer save < 12, todos os slots); `quests.json` com `order` ×10;
+  `content_test` espera ordens 10, 20, 30...
+- `pet()` conta `pet`; `feed()` conta `feed:<item>`; todas as contagens do `GameState` passam por `_count`,
+  que grava `progress.firsts[chave]` (primeira vez) e `progress.started_at` (novo jogo). Aba **Ritmo** no DevPanel
+  (`ProgressionState.pace_lines`, botão Copiar).
+- Requisitos `stats` (rótulos em `settings.stat_labels`), `bond` e `hours`; recompensas `affection` e `needs`.
+  `progression.json → bond_levels` criado com os valores da Etapa 03.
+- `Loot` (`scripts/util/loot.gd`, `loot_test.gd` novo na suíte) e `GameState.available_actions()`.
+- Decisões: `bond` e `hours` ficam em `GameState.requirement_error` (precisam de `dog.affection` e da hora local;
+  `content_error` do GameState agora passa por ele). `progress.requirement_error` continua puro (só stats/quests/etc.).
+  Chip de `affection` nas recompensas usa `need_happiness` até a Etapa 03. Nenhuma arte nova (a etapa não pede).
+- Observação: os testes aceitam avisos de "RIDs leaked" do Godot; o `tools/test_all.ps1` no PowerShell 5.1 trata
+  esses avisos (stderr) como erro — rodei cada teste direto no Godot e todos deram PASS (inclusive `-- --prod`).
+
+**▶ PRÓXIMO GRANDE TRABALHO: um começo mais gostoso — plano em andamento (Claude Code, 13/10/2026).**
+- Pedido do Vitor: mais missões, itens, receitas, estruturas e um mapa novo, focando a primeira hora.
+- **Plano por etapas para executar: pasta `docs/plans/comeco/`** — comece pelo `README.md` (ordem,
+  mensagem pronta para o agente, andamento). `00_VISAO.md` = diagnóstico, pesquisa e princípios;
+  `01_REGRAS_E_ARTE.md` = regras, receitas do PixelLab e catálogo de ids; um `ETAPA_XX_*.md` por etapa.
+- Etapas: 00 fundação (save v12 zerado) · 01 facilitar · 02 caminha · 03 aba Desejos + vínculo ·
+  04 sabores (morango, liquidificador) · 05 faro do Tiro · 06 Praça (abre depois da Vila; Nina, Pipoca,
+  primeiro passeio) · 07 passeios (7 caminhos, materiais exclusivos, apetrechos raros) · 08 vestir o Tiro,
+  pet shop, costura · 09 amigos · 10 truques · 11 mapa do tesouro.
+- Decisões do Vitor: pode zerar os saves; Praça depois da Vila; Desejos em aba própria; foco nos passeios.
+  Etapa 00 feita; as demais ainda não.
+
+**Armazenamento com limite (Claude Code, 13/10/2026) — local, sem commit.** Plano: `docs/plans/ARMAZENAMENTO.md`.
+- Feito (base): `progression.json → storage` (geladeira/baú/silo/armazém: `categories`, `base`, `building`, `levels`) +
+  melhorias `fridge_2/3`, `chest(_2/_3)`, `silo(_2/_3)`, `warehouse(_2/_3)` com `storage_capacity` (sem estado novo: níveis = `owned`).
+  `items.json → storage` força o depósito (`"none"` = sem limite: ração). `GameState.storage_of/capacity/used/space/error`.
+  O limite só vale com a construção comprada (a geladeira já vale). Sem espaço: `harvest`, `collect` e `collect_gathering`
+  não entregam (lote continua pronto, toast "X sem espaço"); recompensas de missão sempre entram.
+- UI: Mochila e painéis de depósito mostram chips usado/capacidade (`SheetBuilder._storage_bars`); painel `storage:<id>`.
+  Lugares `chest`/`silo`/`warehouse` (ocultos) em `worlds.json`. `storage_test.gd` novo; testes que enchem a mochila usam `GameState.unlimited_storage`.
+- Feito (2ª passada): objetos Baú (casa), Silo e Armazém (sítio) com arte PixelLab; ficam na parte ABERTA do sítio, fora das áreas fechadas (estufa/pomar/animais) para não dependerem de compra de outra área.
+  Linha da vovó ganhou `bloblo_silo → warehouse → chest → bigger → biggest` (ordens 14–18): cada construção só aparece após a missão anterior;
+  ampliações pedem itens novos `bolt` (Parafuso) e `iron_band` (Cinta de ferro), dados por essas missões e (parafuso) pelas semanais. Itens com `storage: "none"` não ocupam espaço.
+- Falta: aviso de "cheio" no marcador do mapa; `dev_add_items` ignora o limite; painel de ampliação direto na tela de cada depósito; balancear números
+  (parafuso aparece nas semanais antes de a história apresentá-lo); a simulação de campanha roda com `unlimited_storage`.
+
 **Ajustes pós-publicação (Claude Code, 13/10/2026) — locais, sem commit.**
 - Codex parou no limite de uso sem alterar arquivos. Feedback do Vitor após o deploy `2c78f95`:
   (1) a conversa com a Laís abria sozinha ao fim da introdução; (2) Laís pequena demais.

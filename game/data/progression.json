@@ -21,8 +21,22 @@
       "crop:pumpkin",
       "recipe:pumpkin_mash"
     ],
-    "care_need_threshold": 95
+    "care_need_threshold": 95,
+    "stat_labels": {
+      "walk": "passeios", "find": "achados", "wish": "desejos", "harvest": "colheitas",
+      "water": "regas", "friend_gift": "petiscos a amigos", "trick": "truques"
+    }
   },
+  "bond_levels": [
+    {"affection": 0},
+    {"affection": 20, "rewards": {"coins": 15}},
+    {"affection": 50, "rewards": {"coins": 25, "items": {"carrot_snack": 2}}},
+    {"affection": 100, "rewards": {"coins": 40}},
+    {"affection": 170, "rewards": {"coins": 60, "items": {"bolt": 1}}},
+    {"affection": 260, "rewards": {"coins": 80}},
+    {"affection": 380, "rewards": {"coins": 100, "items": {"bolt": 1}}},
+    {"affection": 520, "rewards": {"coins": 150}}
+  ],
   "features": {
     "bag": {
       "name": "Mochila",
@@ -97,7 +111,153 @@
       "how_to": "Faça passeios, explore a mina e use a Bancada."
     }
   },
+  "storage": {
+    "fridge": {
+      "name": "Geladeira",
+      "icon": "tab_house",
+      "world": "house",
+      "place": "fridge",
+      "building": "fridge",
+      "categories": ["food"],
+      "base": 30,
+      "levels": ["fridge_2", "fridge_3"]
+    },
+    "chest": {
+      "name": "Baú",
+      "icon": "item_treat_box",
+      "world": "house",
+      "building": "chest",
+      "categories": ["product"],
+      "base": 20,
+      "levels": ["chest_2", "chest_3"]
+    },
+    "silo": {
+      "name": "Silo",
+      "icon": "item_wheat",
+      "world": "farm",
+      "building": "silo",
+      "categories": ["crop"],
+      "base": 40,
+      "levels": ["silo_2", "silo_3"]
+    },
+    "warehouse": {
+      "name": "Armazém",
+      "icon": "item_plank",
+      "world": "farm",
+      "building": "warehouse",
+      "categories": ["material"],
+      "base": 40,
+      "levels": ["warehouse_2", "warehouse_3"]
+    }
+  },
   "upgrades": {
+    "chest": {
+      "name": "Baú",
+      "world": "house",
+      "description": "Guarda os produtos e os acessórios.",
+      "cost": 80,
+      "materials": { "wood": 4 },
+      "requirements": { "quests": ["bloblo_warehouse"] },
+      "icon": "item_treat_box"
+    },
+    "silo": {
+      "name": "Silo",
+      "world": "farm",
+      "description": "Guarda as colheitas do sítio.",
+      "cost": 120,
+      "materials": { "wood": 6 },
+      "requirements": { "quests": ["main_9_cheese"] },
+      "icon": "item_wheat"
+    },
+    "warehouse": {
+      "name": "Armazém",
+      "world": "farm",
+      "description": "Guarda madeira, pedra e outros materiais.",
+      "cost": 150,
+      "materials": { "wood": 8, "stone": 4 },
+      "requirements": { "quests": ["bloblo_silo"] },
+      "icon": "item_plank"
+    },
+    "fridge_2": {
+      "name": "Geladeira maior",
+      "world": "house",
+      "description": "Cabem mais comidas, ovos e leite.",
+      "cost": 150,
+      "materials": { "plank": 4, "bolt": 1 },
+      "requirements": { "owned": ["fridge"], "quests": ["bloblo_chest"] },
+      "storage_capacity": 20,
+      "icon": "tab_house"
+    },
+    "fridge_3": {
+      "name": "Geladeira gigante",
+      "world": "house",
+      "description": "Mais espaço ainda para a comida.",
+      "cost": 400,
+      "materials": { "plank": 8, "brick": 4, "bolt": 1, "iron_band": 1 },
+      "requirements": { "owned": ["fridge_2"], "quests": ["bloblo_bigger"] },
+      "storage_capacity": 30,
+      "icon": "tab_house"
+    },
+    "chest_2": {
+      "name": "Baú maior",
+      "world": "house",
+      "description": "Cabem mais produtos.",
+      "cost": 150,
+      "materials": { "plank": 4, "bolt": 1 },
+      "requirements": { "owned": ["chest"], "quests": ["bloblo_chest"] },
+      "storage_capacity": 20,
+      "icon": "item_treat_box"
+    },
+    "chest_3": {
+      "name": "Baú gigante",
+      "world": "house",
+      "description": "Mais espaço para produtos.",
+      "cost": 400,
+      "materials": { "plank": 8, "brick": 4, "bolt": 1, "iron_band": 1 },
+      "requirements": { "owned": ["chest_2"], "quests": ["bloblo_bigger"] },
+      "storage_capacity": 30,
+      "icon": "item_treat_box"
+    },
+    "silo_2": {
+      "name": "Silo maior",
+      "world": "farm",
+      "description": "Cabem mais colheitas.",
+      "cost": 150,
+      "materials": { "plank": 4, "bolt": 1 },
+      "requirements": { "owned": ["silo"], "quests": ["bloblo_chest"] },
+      "storage_capacity": 40,
+      "icon": "item_wheat"
+    },
+    "silo_3": {
+      "name": "Silo gigante",
+      "world": "farm",
+      "description": "Mais espaço para colheitas.",
+      "cost": 400,
+      "materials": { "plank": 8, "brick": 4, "bolt": 1, "iron_band": 1 },
+      "requirements": { "owned": ["silo_2"], "quests": ["bloblo_bigger"] },
+      "storage_capacity": 60,
+      "icon": "item_wheat"
+    },
+    "warehouse_2": {
+      "name": "Armazém maior",
+      "world": "farm",
+      "description": "Cabem mais materiais.",
+      "cost": 150,
+      "materials": { "plank": 4, "bolt": 1 },
+      "requirements": { "owned": ["warehouse"], "quests": ["bloblo_chest"] },
+      "storage_capacity": 40,
+      "icon": "item_plank"
+    },
+    "warehouse_3": {
+      "name": "Armazém gigante",
+      "world": "farm",
+      "description": "Mais espaço para materiais.",
+      "cost": 400,
+      "materials": { "plank": 8, "brick": 4, "bolt": 1, "iron_band": 1 },
+      "requirements": { "owned": ["warehouse_2"], "quests": ["bloblo_bigger"] },
+      "storage_capacity": 60,
+      "icon": "item_plank"
+    },
     "stove": {
       "name": "Fogão simples",
       "world": "house",

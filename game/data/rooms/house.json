@@ -28,6 +28,18 @@
       "footprint": [[276, 155], [303, 141], [323, 156], [296, 170]]
     },
     {
+      "id": "chest",
+      "action": "place:chest",
+      "upgrade": "chest",
+      "sprite": "res://assets/sprites/areas/house/chest.png",
+      "scale": 2.0,
+      "pos": [118, 264],
+      "approach": [140, 276],
+      "footprint": [[98, 262], [118, 252], [138, 262], [118, 274]],
+      "label": "Baú",
+      "label_pos": [118, 214]
+    },
+    {
       "id": "bowl",
       "action": "place:bowl",
       "sprite": "res://assets/sprites/areas/house/bowl.png",

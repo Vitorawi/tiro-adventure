@@ -3,7 +3,7 @@ extends RefCounted
 ## Painel "Ferramentas DEV" (só na versão dev; aberto pelo selo DEV da barra superior).
 ## Cada botão chama um GameState.dev_*() ou o SaveManager. Ver docs/DEPLOY.md ("Versão dev").
 
-const PAGES := {"resources": "Recursos", "progress": "Progresso", "time": "Tempo", "save": "Save"}
+const PAGES := {"resources": "Recursos", "progress": "Progresso", "time": "Tempo", "pace": "Ritmo", "save": "Save"}
 
 static var _page: String = "resources"
 ## Toque duplo para recomeçar do zero: guarda até quando o segundo toque vale.
@@ -18,6 +18,8 @@ static func panel() -> Control:
 				_progress(box)
 			"time":
 				_time(box)
+			"pace":
+				_pace(box)
 			"save":
 				_save(box)
 			_:
@@ -134,6 +136,18 @@ static func _time(box: VBoxContainer) -> void:
 	var shift := _grid(box, 4)
 	for seconds: int in [600, 3600, 4 * 3600, 12 * 3600]:
 		_tool(shift, "+" + TimeText.short(seconds).replace(" 00", ""), GameState.dev_advance_time.bind(float(seconds)))
+
+
+static func _pace(box: VBoxContainer) -> void:
+	_section(box, "Ritmo", "Minutos desde o início do jogo até a primeira vez de cada coisa.")
+	var lines := GameState.progress.pace_lines()
+	if lines.is_empty():
+		box.add_child(UiKit.label("Nada registrado ainda.", &"SmallLabel"))
+		return
+	box.add_child(UiKit.label("\n".join(lines), &"SmallLabel"))
+	_tool(_grid(box, 1), "Copiar", func() -> String:
+		DisplayServer.clipboard_set("\n".join(lines))
+		return "Copiado")
 
 
 static func _save(box: VBoxContainer) -> void:

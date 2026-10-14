@@ -19,11 +19,11 @@ func _run() -> void:
 		check(int(animal.price) > 0, id + ": preço positivo")
 		check(ResourceLoader.exists(animal.sprite), id + ": sprite existente")
 		check(int(db.get("stations")[animal.station].get("animal_capacity", 0)) > 0, id + ": capacidade do abrigo")
-	# Geladeira guarda só comida e ingredientes; materiais ficam na Mochila.
+	# Geladeira guarda comida e ingredientes (ovo, leite...); colheitas vão ao silo, materiais ao armazém.
 	var builder: Script = load("res://scripts/ui/sheet_builder.gd")
-	for id: String in ["dog_food", "carrot", "vegetable_soup", "egg", "milk", "flour", "cheese", "apple"]:
+	for id: String in ["vegetable_soup", "egg", "milk", "flour", "cheese"]:
 		check(builder.call("_fits_fridge", id), id + ": cabe na geladeira")
-	for id: String in ["wood", "stone", "plank", "brick", "copper", "crystal", "fiber", "fabric", "hardwood", "treat_box", "accessory_set"]:
+	for id: String in ["dog_food", "carrot", "apple", "wood", "stone", "plank", "brick", "copper", "crystal", "fiber", "fabric", "hardwood", "treat_box", "accessory_set"]:
 		check(not builder.call("_fits_fridge", id), id + ": não cabe na geladeira")
 	# Cada abrigo abre só o próprio painel (galinheiro ≠ curral).
 	var farm_room: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://data/rooms/farm.json"))
@@ -42,7 +42,7 @@ func _run() -> void:
 		var ids: Array = progress.main_quests(c)
 		check(ids.size() >= 2 and ids.size() <= 5, "capítulo %d deve ter 2–5 passos" % c)
 		for i in ids.size():
-			check(int(quests[ids[i]].get("order", 0)) == i + 1, "ordem repetida ou lacuna: " + ids[i])
+			check(int(quests[ids[i]].get("order", 0)) == (i + 1) * 10, "ordem repetida ou lacuna: " + ids[i])
 		if not ids.is_empty() and str(data.chapters[c - 1].target) != "":
 			# Capítulo com construção-alvo: algum passo pede essa compra.
 			check(ids.any(func(q: String) -> bool: return quests[q].goals.any(func(g: Dictionary) -> bool: return g.type == "owned" and g.key == data.chapters[c - 1].target)), "capítulo %d precisa de um passo com a construção-alvo" % c)
@@ -50,7 +50,7 @@ func _run() -> void:
 	for line: String in progress.lines():
 		var steps: Array = progress.line_quests(line)
 		for i in steps.size():
-			check(int(quests[steps[i]].order) == i + 1, line + ": ordem repetida ou lacuna: " + steps[i])
+			check(int(quests[steps[i]].order) == (i + 1) * 10, line + ": ordem repetida ou lacuna: " + steps[i])
 	for id: String in quests:
 		var q: Dictionary = quests[id]
 		check(db.get("npcs").has(q.npc), id + ": NPC inexistente")
@@ -134,6 +134,7 @@ func _run() -> void:
 					for group in arg.split("+"):
 						check(data.activities.values().any(func(a: Dictionary) -> bool: return a.place == group), place + ": grupo de rotas inexistente " + group)
 				"market": check(arg in ["sell", "orders"], place + ": aba da feira")
+				"storage": check(data.storage.has(arg), place + ": depósito inexistente")
 				"inventory", "fridge", "feed", "sleep", "farm": pass
 				_: check(false, place + ": painel desconhecido")
 			if p.has("upgrade"):

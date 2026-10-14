@@ -20,11 +20,11 @@ func _run() -> void:
 	var saver: Node = root.get_node("SaveManager")
 	root.remove_child(saver)
 	state.call("reset")
-	# v11: a história foi refeita (Laís + vovó Bloblo) e o save anterior recomeça do zero.
+	# v12: começo refeito; qualquer save anterior recomeça do zero.
 	var old: Dictionary = state.call("to_dict").duplicate(true)
 	old.coins = 137
-	var migrated: Dictionary = saver.call("_migrate", {"save_version": 10, "state": old})
-	check((migrated.state as Dictionary).is_empty(), "Save anterior à v11 recomeça do zero")
+	var migrated: Dictionary = saver.call("_migrate", {"save_version": 11, "state": old})
+	check((migrated.state as Dictionary).is_empty(), "Save anterior à v12 recomeça do zero")
 	var current: Dictionary = {"save_version": saver.get("SAVE_VERSION"), "state": old}
 	check(saver.call("_migrate", current) == current, "Save atual não é alterado")
 	saver.free()

@@ -15,7 +15,7 @@ extends Node
 ## site, por isso a dev usa nomes próprios e não apaga o progresso real.
 ## O slot em que o jogo ENTRA fica em user://settings.json (settings_dev.json na dev).
 
-const SAVE_VERSION := 11
+const SAVE_VERSION := 12
 const MAX_SLOTS := 5
 
 ## Slot em uso agora e slot em que o jogo entra ao abrir.
@@ -242,9 +242,9 @@ func load_production_copy() -> String:
 ## Converte saves antigos para o formato atual, uma versão por vez.
 func _migrate(data: Dictionary) -> Dictionary:
 	var version := int(data.get("save_version", 1))
-	if version < 11:
-		# v11: história refeita com as linhas da Laís e da vovó Bloblo. Combinado com o Vitor:
-		# o progresso anterior é descartado (sem migração) e o jogo recomeça do zero.
+	if version < 12:
+		# v12: começo refeito (plano docs/plans/comeco). Combinado com o Vitor em 13/10/2026:
+		# o progresso anterior é descartado e o jogo recomeça do zero.
 		return {"save_version": SAVE_VERSION, "state": {}}
 	return data
 

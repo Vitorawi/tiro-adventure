@@ -30,9 +30,19 @@
       "fridge": {
         "name": "Geladeira",
         "icon": "tab_bag",
-        "description": "Comidas, colheitas e ingredientes.",
+        "description": "Comidas, ovos e leite.",
         "upgrade": "fridge",
-        "panel": "fridge"
+        "panel": "fridge",
+        "upgrades": ["fridge_2", "fridge_3"]
+      },
+      "chest": {
+        "name": "Baú",
+        "icon": "item_treat_box",
+        "description": "Produtos e acessórios.",
+        "upgrade": "chest",
+        "panel": "storage:chest",
+        "upgrades": ["chest_2", "chest_3"],
+        "hidden": true
       },
       "door": {
         "name": "Ir para o sítio",
@@ -86,6 +96,24 @@
         "description": "Bancada, moinho e queijaria.",
         "upgrade": "workbench",
         "panel": "stations:workbench+mill+dairy"
+      },
+      "silo": {
+        "name": "Silo",
+        "icon": "item_wheat",
+        "description": "Colheitas.",
+        "upgrade": "silo",
+        "panel": "storage:silo",
+        "upgrades": ["silo_2", "silo_3"],
+        "hidden": true
+      },
+      "warehouse": {
+        "name": "Armazém",
+        "icon": "item_plank",
+        "description": "Materiais.",
+        "upgrade": "warehouse",
+        "panel": "storage:warehouse",
+        "upgrades": ["warehouse_2", "warehouse_3"],
+        "hidden": true
       },
       "orchard": {
         "name": "Pomar",
