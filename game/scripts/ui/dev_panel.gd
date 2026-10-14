@@ -83,6 +83,8 @@ static func _resources(box: VBoxContainer) -> void:
 	_section(box, "Tiro")
 	var dog := _grid(box)
 	_tool(dog, "Necessidades 100%", GameState.dev_fill_needs)
+	_tool(dog, "Vínculo +30", GameState.dev_add_affection.bind(30))
+	_tool(dog, "Sortear desejos já", GameState.dev_refresh_wishes)
 	_tool(dog, "Abrir mochila", func() -> void:
 		Events.sheet_requested.emit("Mochila", SheetBuilder.inventory_view()), "")
 

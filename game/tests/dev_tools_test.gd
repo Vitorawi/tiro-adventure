@@ -107,6 +107,10 @@ func _dev_mode() -> void:
 func _prod_mode() -> void:
 	state.call("reset")
 	var coins: int = state.get("coins")
+	var wishes_before: Dictionary = state.get("wishes").to_dict()
+	state.call("dev_add_affection", 100)
+	state.call("dev_refresh_wishes")
+	_check(state.get("dog").affection == 0 and state.get("wishes").to_dict() == wishes_before, "Prod não pode alterar vínculo nem desejos via DEV")
 	state.call("dev_add_coins", 1000)
 	state.call("dev_unlock_everything")
 	state.call("dev_complete_main_step")

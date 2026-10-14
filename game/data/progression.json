@@ -63,6 +63,18 @@
     {"affection": 520, "rewards": {"coins": 150}}
   ],
   "features": {
+    "wishes": {
+      "name": "Desejos do Tiro",
+      "icon": "tab_wishes",
+      "go": {
+        "screen": "wishes"
+      },
+      "requirements": {
+        "quests": [
+          "lais_bed"
+        ]
+      }
+    },
     "bag": {
       "name": "Mochila",
       "icon": "tab_bag",

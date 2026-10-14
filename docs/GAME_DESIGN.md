@@ -1,5 +1,24 @@
 # Game Design
 
+## Desejos do Tiro e vínculo (Etapa 03, 14/10/2026)
+
+Depois da caminha, a aba Desejos aparece entre Tiro e Mapa. O primeiro pedido é 3 carinhos.
+Um espaço abre com a caminha, outro com vínculo 2 e o terceiro com vínculo 4. Pedidos não vencem;
+trocar é grátis e espera 5 min. Cumprir dá moedas e afeto, com festa do Tiro; o próximo chega em
+1 min nos três primeiros cumpridos e em 10 min depois. Necessidades baixas têm prioridade.
+
+Cartões mostram ícone, progresso e recompensa; Dar entrega uma comida, Receber conclui ações,
+Ir e ? levam ao cuidado ou à origem do alimento. O seletor de comida põe primeiro o pedido com
+"Ele quer!": Dar ali também cumpre o desejo. Alimentar diretamente por outras ações só alimenta.
+Balão no mapa e na tela Tiro abre Desejos; some dormindo. Badge conta os pedidos prontos.
+
+Vínculo usa o afeto acumulado, fica visível nas duas telas e entrega presentes uma vez por nível.
+O chip mostra a barra, próximo presente e liberações. A partir do vínculo 3, há 5% de chance de
+um pedido especial elegível, com borda dourada e prêmio dobrado. Nesta etapa entram carinho,
+brincar, banho, qualquer comida, cenoura, petisco de cenoura e ensopado especial; alimentos,
+passeios e apetrechos das próximas etapas ficam para elas. Diária: 2 desejos; semanal: 12,
+com Coleira de coração na coleção (ainda sem sprite de vestir).
+
 ## Natureza: evolução dos locais (13/10/2026)
 Desbloqueie Bosque, Caverna e Prado com moedas. Depois, recolher coletas dá XP próprio ao local. Os novos
 materiais vêm do nível do local, sem comprar ferramentas: madeira dura no Bosque 3,

@@ -127,7 +127,7 @@ func _run() -> void:
 		for id: String in group.missions:
 			var m: Dictionary = group.missions[id]
 			var key: String = m.goal.key
-			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "explore"] or key.begins_with("activity:") or key.begins_with("produce:"), kind + "/" + id + ": contador " + key)
+			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "explore", "wish"] or key.begins_with("activity:") or key.begins_with("produce:"), kind + "/" + id + ": contador " + key)
 			if key.begins_with("produce:"):
 				check(db.get("items").has(key.trim_prefix("produce:")), kind + "/" + id + ": produto inexistente")
 				check(db.get("recipes").values().any(func(recipe: Dictionary) -> bool: return recipe.output == key.trim_prefix("produce:")), kind + "/" + id + ": produto sem receita")

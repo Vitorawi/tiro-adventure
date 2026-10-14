@@ -20,6 +20,9 @@ var _bars: Dictionary = {}  # need_id -> ProgressBar
 var _sleep_icon: TextureRect
 var _sleep_text: Label
 var _animator: PetAnimator
+var _bond_chip: Button
+var _wish_bubble: Button
+var _wish_icon: TextureRect
 var _stroke_distance := 0.0
 var _last_pet_reward := -10.0
 
@@ -52,6 +55,7 @@ func _ready() -> void:
 	_sleep_button.pressed.connect(func() -> void:
 		GameState.set_sleeping(not GameState.dog.sleeping))
 	_build_extras()
+	_build_wish_widgets()
 	Events.state_changed.connect(_refresh)
 	%RefreshTimer.timeout.connect(_refresh)
 	_refresh()
@@ -73,6 +77,49 @@ func _build_extras() -> void:
 	var layout := %DogArea.get_parent()
 	layout.add_child(row)
 	layout.move_child(row, %DogArea.get_index())
+
+
+## Chip de vínculo ao lado do humor e balão do desejo ao lado da cabeça do Tiro (toque abre os Desejos).
+func _build_wish_widgets() -> void:
+	var mood: Control = %MoodLabel.get_parent()
+	var row := UiKit.hbox(8)
+	row.name = "MoodRow"
+	row.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var parent := mood.get_parent()
+	var index := mood.get_index()
+	parent.remove_child(mood)
+	row.add_child(mood)
+	_bond_chip = UiKit.tap_chip(UiKit.ui_icon("bond_heart"), "1", func() -> void:
+		Events.sheet_requested.emit("Vínculo", WishUi.bond_panel()))
+	_bond_chip.name = "BondChip"
+	_bond_chip.custom_minimum_size.y = 48
+	row.add_child(_bond_chip)
+	parent.add_child(row)
+	parent.move_child(row, index)
+	_wish_bubble = Button.new()
+	_wish_bubble.name = "WishBubble"
+	_wish_bubble.flat = true
+	_wish_bubble.icon = UiKit.ui_icon("wish_bubble")
+	_wish_bubble.expand_icon = true
+	_wish_bubble.add_theme_constant_override("icon_max_width", 64)
+	_wish_bubble.custom_minimum_size = Vector2(64, 64)
+	for style: String in ["normal", "hover", "pressed", "focus", "disabled"]:
+		_wish_bubble.add_theme_stylebox_override(style, StyleBoxEmpty.new())
+	_wish_bubble.pressed.connect(func() -> void:
+		Events.screen_requested.emit(&"wishes"))
+	_wish_icon = UiKit.icon(null, 32)
+	_wish_icon.position = Vector2(16, 12)
+	_wish_bubble.add_child(_wish_icon)
+	add_child(_wish_bubble)
+	_dog_sprite.resized.connect(_place_bubble)
+	_dog_sprite.item_rect_changed.connect(_place_bubble)
+	resized.connect(_place_bubble)
+	_place_bubble.call_deferred()
+
+
+func _place_bubble() -> void:
+	if _wish_bubble:
+		_wish_bubble.position = _dog_sprite.global_position - global_position + Vector2(_dog_sprite.size.x * 0.72, _dog_sprite.size.y * 0.18)
 
 
 ## Uma célula por necessidade: ícone + nome + barra na cor dela.
@@ -114,6 +161,12 @@ func _refresh() -> void:
 		extras.get_node("Coleção").visible = not GameState.progress.collection.is_empty()
 	var now := GameState.now()
 	var dog := GameState.dog
+	if _bond_chip:
+		_bond_chip.text = str(GameState.bond_level())
+		_bond_chip.visible = GameState.progress.feature_unlocked("wishes")
+		var wish_id := GameState.balloon_wish()
+		_wish_bubble.visible = wish_id != "" and not dog.sleeping
+		_wish_icon.texture = WishUi.icon(wish_id) if wish_id != "" else null
 	for id: String in _bars:
 		var value := dog.get_need(id, now)
 		var bar: ProgressBar = _bars[id]
@@ -140,6 +193,7 @@ func _refresh() -> void:
 		_mood_label.text = MOOD_TEXTS.get(lowest, "")
 	else:
 		_mood_label.text = "%s está feliz da vida!" % dog.name
+
 
 
 ## Sombra oval sob as patas do Tiro (desenhada no DogArea, atrás do sprite).

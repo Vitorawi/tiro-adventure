@@ -1,5 +1,33 @@
 # Progressão (Jornada)
 
+## Desejos e vínculo
+
+`Database.wishes` carrega `data/wishes.json`; `settings` define espaços/requisitos, esperas,
+primeiro desejo, limiar de necessidades e chance/multiplicador de especiais. Modelos têm
+tipo, nome, ícone ou item, objetivo de ação, destino, recompensas, peso e requisitos.
+`WishState` guarda três espaços (`id`, `base`, `since`, `ready_at`, `special`, `last`),
+`done_count` e `first_done`; participa de reset e serialização de `GameState`.
+
+`update_wishes` roda ao carregar, após ações e a cada segundo; só preenche espaços revelados
+pela caminha e pelo vínculo. Semente = `int(ready_at) + índice`; evita ids simultâneos repetidos.
+Primeiro vem carinho, depois necessidade baixa, especial elegível ou sorteio por peso.
+`last` evita repetir o pedido trocado no sorteio comum, com fallback se só restar ele;
+a prioridade de necessidade e o pedido inicial podem prevalecer. Nada expira.
+
+`wish_value/target/error` consultam progresso; ações usam contador menos base. `fulfill_wish`
+alimenta (`feed`), entrega (`give`) ou recebe ação pronta; conta `wish`/`wish:<id>`, paga
+e inicia a espera. `give` já tem suporte, sem modelos nesta etapa. `swap_wish/error` troca sem
+custo. Balão prefere um pedido pronto; `fulfillable_wish_count` alimenta o badge.
+`available_actions` inclui `wish`; `Places.goal_target` resolve `wish`/`wish:<id>` para a aba.
+`TaskHelp` aceita tipo `wish` para orientar ações e reutiliza a cadeia de item para comida.
+
+`progression.json → bond_levels` define afeto total e presentes. `bond_level` e `bond_info`
+consultam o nível/barra; `progress.claimed_bond_level` salva o maior presente entregue.
+`_check_bond` soma os níveis alcançados em uma mudança e emite `Events.bond_up` para a fila
+de comemorações. Saves v12 sem o campo inicializam esse marco no vínculo atual, sem repetir
+presentes antigos. Não há mudança da versão do save nem reset adicional nesta etapa.
+`dev_add_affection`, `dev_refresh_wishes` e avanço de tempo permitem testar, com guarda DEV.
+
 ## Introdução da história
 
 Em jogo novo, `IntroScene` apresenta a Laís e o Tiro antes das abas. As cinco falas e a

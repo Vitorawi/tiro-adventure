@@ -246,6 +246,26 @@ armazém `4c3a037e-e51b-4b50-b259-9810ef727510`. Ícones Pixen 32 px em `ui/icon
 asset `a81f579c-9bdb-5d9d-aaa0-79fad89d6110`). Usado no canteiro (24 px, balançando), na animação de regar e
 nos ícones de missão do contador `water`. Original em `build/art_sources/etapa01/`.
 
+### Etapa 03 do começo (desejos) — 14/10/2026 (Claude Code + Codex)
+
+Os quatro ícones foram gerados pelo Claude com `create_image_pixen`, 32×32, transparência,
+contorno preto, médio detalhe e os prompts do plano (uma tentativa por ícone). Codex retomou
+os originais, conferiu a prancha `build/preview/wishes_icons.png` e as capturas 360×780.
+Originais em `build/art_sources/etapa03/`; destinos abaixo, com `.import` do Godot.
+Canvas 32×32 preservado para alinhar o fundo do balão ao ícone sobreposto; sem recorte.
+O balão usa ~40 px no mundo antes do zoom (~25 px no sítio) e 64 px na tela Tiro, com ícone por cima.
+
+| Asset | Job PixelLab | Arquivo em `game/assets/sprites/` | Recorte |
+|---|---|---|---|
+| Aba Desejos | `8944e95f-2116-47dc-a75e-bb78b4545952` | `ui/icons/tab_wishes.png` | 32×32, inteiro |
+| Balão | `c33e308a-25f8-4a8d-88c3-fe0aa25320de` | `ui/icons/wish_bubble.png` | 32×32, inteiro |
+| Carinho | `617c858c-3e8c-4385-a8cf-b15c27fde4e0` | `ui/icons/action_pet.png` | 32×32, inteiro |
+| Vínculo | `c3f82abc-1702-4abc-81e2-904ea7946a7c` | `ui/icons/bond_heart.png` | 32×32, inteiro |
+
+`New-ContactSheet` ainda falha nesta máquina; a prancha foi montada com `System.Drawing`
+e escala inteira 4× (nearest-neighbor). Cadeado dos espaços fechados desenhado por `WishUi`;
+especial usa a estrela de XP existente, conforme fallback do plano.
+
 ### Etapa 02 do começo (caminha) — 14/10/2026 (Claude Code)
 
 - `areas/house/dog_bed.png` (39×31 recortado): `create_object_pro_flash`, 1 direção, low top-down, 64×48; objeto

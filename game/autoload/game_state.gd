@@ -28,6 +28,19 @@ var xp: int = 0
 var level: int = 1
 ## Atributos, aquisições, missões, coleção, contadores e rota em andamento.
 var progress := ProgressionState.new()
+## Desejos do Tiro (até três espaços).
+var wishes := WishState.new()
+
+
+func _ready() -> void:
+	# Desejos novos aparecem com o tempo, mesmo sem nenhuma ação do jogador.
+	var timer := Timer.new()
+	timer.wait_time = 1.0
+	timer.autostart = true
+	timer.timeout.connect(func() -> void:
+		if update_wishes():
+			_changed())
+	add_child(timer)
 
 
 func now() -> float:
@@ -59,6 +72,7 @@ func reset() -> void:
 	progress = ProgressionState.new()
 	progress.setup()
 	progress.started_at = now()
+	wishes = WishState.new()
 	_mark_all_seen()
 	_changed()
 
@@ -1143,6 +1157,257 @@ func claim_routine(kind: String, id: String) -> String:
 	return ""
 
 
+# --- Desejos do Tiro e vínculo --------------------------------------------------------
+# Modelos em data/wishes.json; estado em `wishes` (WishState). Nada vence nem pune: trocar é grátis.
+
+func wish_settings() -> Dictionary:
+	return Database.wishes.get("settings", {})
+
+
+func wish_def(id: String) -> Dictionary:
+	return Database.wishes.get("wishes", {}).get(id, {})
+
+
+## Espaço de desejo aberto? (requisitos de settings.slots[i]).
+func wish_slot_open(i: int) -> bool:
+	if not progress.feature_unlocked("wishes"):
+		return false
+	var slots: Array = wish_settings().get("slots", [])
+	return i >= 0 and i < slots.size() and i < wishes.slots.size() and requirement_error(slots[i].get("requirements", {})) == ""
+
+
+## Requisito que falta para abrir o espaço ("" = aberto).
+func wish_slot_error(i: int) -> String:
+	var slots: Array = wish_settings().get("slots", [])
+	if i < 0 or i >= slots.size():
+		return "Espaço inexistente"
+	return requirement_error(slots[i].get("requirements", {}))
+
+
+## Sorteia desejos nos espaços abertos que estão prontos. Devolve true se algo mudou (sem emitir sinal).
+func update_wishes() -> bool:
+	var changed := false
+	var t := now()
+	for i in wishes.slots.size():
+		if not wish_slot_open(i):
+			continue
+		var slot: Dictionary = wishes.slots[i]
+		if str(slot.id) != "":
+			if wish_def(str(slot.id)).is_empty():  # desejo removido do JSON: libera o espaço
+				wishes.slots[i] = WishState.empty_slot(0.0)
+				changed = true
+			continue
+		if float(slot.ready_at) > t:
+			continue
+		var pick := _pick_wish(i, slot)
+		if pick.is_empty():
+			continue
+		var def := wish_def(str(pick.id))
+		wishes.slots[i] = {
+			"id": pick.id, "base": progress.stat(str(def.goal.key)) if def.get("type", "") == "action" else 0,
+			"since": t, "ready_at": float(slot.ready_at), "special": bool(pick.get("special", false)), "last": str(slot.get("last", "")),
+		}
+		changed = true
+	return changed
+
+
+func _wish_eligible(id: String, taken: Array[String], last: String) -> bool:
+	var def := wish_def(id)
+	return not def.is_empty() and not id in taken and id != last and not def.get("special", false) and requirement_error(def.get("requirements", {})) == ""
+
+
+## Escolhe o desejo do espaço: o inicial, depois necessidade baixa, especial raro e sorteio por peso.
+func _pick_wish(i: int, slot: Dictionary) -> Dictionary:
+	var settings := wish_settings()
+	var taken := wishes.active_ids()
+	var last := str(slot.get("last", ""))
+	var rng := RandomNumberGenerator.new()
+	rng.seed = int(float(slot.ready_at)) + i
+	var first := str(settings.get("first", ""))
+	if not wishes.first_done and not wish_def(first).is_empty() and not first in taken:
+		return {"id": first}
+	var needs: Dictionary = settings.get("need_wishes", {})
+	for need_id: String in needs:
+		if dog.get_need(need_id, now()) < float(settings.get("need_threshold", 35)) and _wish_eligible(str(needs[need_id]), taken, ""):
+			return {"id": needs[need_id]}
+	if requirement_error(settings.get("special_requirements", {})) == "" and rng.randf() < float(settings.get("special_chance", 0.0)):
+		var specials: Array = []
+		for id: String in Database.wishes.wishes:
+			var def := wish_def(id)
+			if def.get("special", false) and not id in taken and requirement_error(def.get("requirements", {})) == "":
+				specials.append({"id": id, "weight": def.get("weight", 1)})
+		if not specials.is_empty():
+			var chosen := Loot.pick_weighted(specials, rng.randi())
+			return {"id": chosen.id, "special": true}
+	var pool: Array = []
+	for id: String in Database.wishes.wishes:
+		if _wish_eligible(id, taken, last):
+			pool.append({"id": id, "weight": wish_def(id).get("weight", 1)})
+	if pool.is_empty():  # só sobrou o último desejo: aceita repetir
+		for id: String in Database.wishes.wishes:
+			if _wish_eligible(id, taken, ""):
+				pool.append({"id": id, "weight": wish_def(id).get("weight", 1)})
+	if pool.is_empty():
+		return {}
+	return {"id": Loot.pick_weighted(pool, rng.randi()).id}
+
+
+## Desejo do espaço (vazio se esperando ou fechado).
+func wish_at(i: int) -> Dictionary:
+	if i < 0 or i >= wishes.slots.size() or not wish_slot_open(i):
+		return {}
+	return wish_def(str(wishes.slots[i].id))
+
+
+## Segundos até um espaço esperando ter outro desejo.
+func wish_wait(i: int) -> int:
+	if i < 0 or i >= wishes.slots.size():
+		return 0
+	return maxi(0, ceili(float(wishes.slots[i].ready_at) - now()))
+
+
+## Quanto já foi feito (ação: contador desde o início; comida/item: quanto tem).
+func wish_value(i: int) -> int:
+	var def := wish_at(i)
+	if def.is_empty():
+		return 0
+	if def.type == "action":
+		return maxi(0, progress.stat(str(def.goal.key)) - int(wishes.slots[i].base))
+	return mini(inventory.count(str(def.item)), 1)
+
+
+func wish_target(i: int) -> int:
+	var def := wish_at(i)
+	return int(def.goal.get("target", 1)) if def.get("type", "") == "action" else 1
+
+
+func wish_error(i: int) -> String:
+	var def := wish_at(i)
+	if def.is_empty():
+		return "Espere"
+	if wish_value(i) >= wish_target(i):
+		return ""
+	if def.type == "action":
+		return "Faça: " + str(def.name)
+	return "Falta " + Database.item_name(str(def.item))
+
+
+## Prêmio do desejo (dobrado nos especiais).
+func wish_rewards(i: int) -> Dictionary:
+	var def := wish_at(i)
+	if def.is_empty():
+		return {}
+	var rewards: Dictionary = def.get("rewards", {}).duplicate(true)
+	if bool(wishes.slots[i].special):
+		var factor := int(wish_settings().get("special_multiplier", 2))
+		for key: String in ["coins", "affection"]:
+			if rewards.has(key):
+				rewards[key] = int(rewards[key]) * factor
+	return rewards
+
+
+## Cumpre o desejo do espaço: entrega a comida/item (se for o caso), paga e começa a esperar o próximo.
+func fulfill_wish(i: int) -> String:
+	var error := wish_error(i)
+	if error != "":
+		return error
+	var def := wish_at(i)
+	var id := str(wishes.slots[i].id)
+	var rewards := wish_rewards(i)
+	match str(def.type):
+		"feed":
+			if not feed(str(def.item)):
+				return "Ele não quer isso agora"
+		"give":
+			inventory.remove(str(def.item))
+			_count("give:" + str(def.item))
+	_apply_rewards(rewards)
+	_count("wish")
+	_count("wish:" + id)
+	wishes.done_count += 1
+	wishes.first_done = true
+	var settings := wish_settings()
+	var wait := float(settings.get("first_refill_seconds", 60)) if wishes.done_count <= int(settings.get("first_count", 3)) else float(settings.get("refill_seconds", 600))
+	wishes.slots[i] = WishState.empty_slot(now() + wait, id)
+	_changed()
+	Events.dog_action.emit(&"wish")
+	Events.items_gained.emit(rewards.get("items", {}), int(rewards.get("coins", 0)), Vector2(-1, -1))
+	return ""
+
+
+func swap_wish_error(i: int) -> String:
+	return "" if not wish_at(i).is_empty() else "Nada para trocar"
+
+
+## Troca o desejo por outro, sem custo; o espaço espera `swap_seconds`.
+func swap_wish(i: int) -> String:
+	var error := swap_wish_error(i)
+	if error != "":
+		return error
+	wishes.slots[i] = WishState.empty_slot(now() + float(wish_settings().get("swap_seconds", 300)), str(wishes.slots[i].id))
+	_changed()
+	return ""
+
+
+## Quantos desejos dá para cumprir agora (badge da aba).
+func fulfillable_wish_count() -> int:
+	var total := 0
+	for i in wishes.slots.size():
+		if not wish_at(i).is_empty() and wish_error(i) == "":
+			total += 1
+	return total
+
+
+## Espaço do desejo que o balão mostra: o primeiro que dá para cumprir ou, senão, o primeiro com pedido (-1 = nenhum).
+func balloon_slot() -> int:
+	var first := -1
+	for i in wishes.slots.size():
+		if wish_at(i).is_empty():
+			continue
+		if wish_error(i) == "":
+			return i
+		if first < 0:
+			first = i
+	return first
+
+
+## Id do desejo do balão ("" = nenhum).
+func balloon_wish() -> String:
+	var slot := balloon_slot()
+	return str(wishes.slots[slot].id) if slot >= 0 else ""
+
+
+## Espaço que pede exatamente esta comida e dá para cumprir (-1 = nenhum): "Ele quer!" no seletor de comida.
+func wish_slot_for_item(item_id: String) -> int:
+	for i in wishes.slots.size():
+		var def := wish_at(i)
+		if def.get("type", "") == "feed" and str(def.item) == item_id and wish_error(i) == "":
+			return i
+	return -1
+
+
+## Nível de vínculo atual (1..N).
+func bond_level() -> int:
+	return progress.bond_level(dog.affection)
+
+
+## Entrega o presente dos níveis de vínculo novos (uma vez) e avisa a tela.
+func _check_bond() -> void:
+	var level := bond_level()
+	if level <= progress.claimed_bond_level:
+		return
+	var levels: Array = Database.progression.get("bond_levels", [])
+	var gained := {"coins": 0, "items": {}}
+	for reached in range(progress.claimed_bond_level + 1, level + 1):
+		var reward: Dictionary = levels[reached - 1].get("rewards", {}) if reached - 1 < levels.size() else {}
+		_apply_rewards(reward)
+		gained["coins"] = int(gained.coins) + int(reward.get("coins", 0))
+		for id: String in reward.get("items", {}):
+			gained.items[id] = int(gained.items.get(id, 0)) + int(reward.items[id])
+	progress.claimed_bond_level = level
+	Events.bond_up.emit(level, gained)
+
+
 # --- Presente do dia ----------------------------------------------------------------
 # Ciclo de progression.json → daily_gift, um por DIA JOGADO (nunca zera por faltar).
 
@@ -1247,6 +1512,8 @@ func available_actions() -> Array[Dictionary]:
 		result.append({"kind": "quest_ready", "world": "", "target": "tasks"})
 	if ready_routine_count() > 0:
 		result.append({"kind": "routine_ready", "world": "", "target": "tasks"})
+	if fulfillable_wish_count() > 0:
+		result.append({"kind": "wish", "world": "", "target": "wishes"})
 	for need: String in dog.needs:
 		if dog.get_need(need, now()) < 60.0:
 			result.append({"kind": "care", "world": "", "target": "pet"})
@@ -1394,6 +1661,24 @@ func dev_restart_routines() -> void:
 	_changed()
 
 
+## Soma afeto ao Tiro (sobe o vínculo e entrega os presentes dele).
+func dev_add_affection(amount: int) -> void:
+	if not BuildInfo.is_dev():
+		return
+	dog.affection = maxi(0, dog.affection + amount)
+	_changed()
+
+
+## Sorteia agora os desejos dos espaços que estão esperando.
+func dev_refresh_wishes() -> void:
+	if not BuildInfo.is_dev():
+		return
+	for slot: Dictionary in wishes.slots:
+		if str(slot.id) == "":
+			slot["ready_at"] = 0.0
+	_changed()
+
+
 ## Termina agora plantações, estações, rota e recargas.
 func dev_finish_timers() -> void:
 	if not BuildInfo.is_dev():
@@ -1413,6 +1698,8 @@ func dev_finish_timers() -> void:
 			if not entry.is_empty():
 				entry["ready_at"] = minf(float(entry.ready_at), t)
 	progress.cooldowns.clear()
+	for slot: Dictionary in wishes.slots:
+		slot["ready_at"] = minf(float(slot.ready_at), t)
 	_changed()
 
 
@@ -1431,6 +1718,7 @@ func dev_advance_time(seconds: float) -> void:
 		for entry: Dictionary in stations[id].queue:
 			entry["ready_at"] = float(entry["ready_at"]) - seconds
 	progress.shift_time(seconds)
+	wishes.shift_time(seconds)
 	_changed()
 
 
@@ -1504,6 +1792,7 @@ func to_dict() -> Dictionary:
 		"xp": xp,
 		"level": level,
 		"progression": progress.to_dict(),
+		"wishes": wishes.to_dict(),
 	}
 
 
@@ -1538,6 +1827,11 @@ func from_dict(data: Dictionary) -> void:
 	level = int(data.get("level", 1))
 	progress = ProgressionState.new()
 	progress.from_dict(data.get("progression", {}))
+	wishes = WishState.new()
+	wishes.from_dict(data.get("wishes", {}))
+	# Save sem o campo de vínculo: o que já valia não paga presente de novo.
+	if not data.get("progression", {}).has("claimed_bond_level"):
+		progress.claimed_bond_level = bond_level()
 	animals = {}
 	if data.has("animals"):
 		for id: String in Database.animals:
@@ -1563,6 +1857,8 @@ func _ensure_stations() -> void:
 
 func _changed() -> void:
 	_sync_step()
+	update_wishes()
+	_check_bond()
 	Events.state_changed.emit()
 
 

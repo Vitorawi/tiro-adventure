@@ -2,6 +2,13 @@
   "daily": {
     "count": 3,
     "missions": {
+      "wishes": {
+        "name": "Realize 2 desejos",
+        "description": "Abra a aba Desejos e atenda o Tiro.",
+        "goal": { "key": "wish", "target": 2 },
+        "rewards": { "coins": 15 },
+        "requirements": { "quests": ["lais_bed"] }
+      },
       "feed": {
         "name": "Alimente o Tiro",
         "description": "Dê comida ao Tiro 2 vezes.",
@@ -163,6 +170,13 @@
   "weekly": {
     "count": 2,
     "missions": {
+      "best_friend": {
+        "name": "Melhor amigo",
+        "description": "Realize 12 desejos do Tiro.",
+        "goal": { "key": "wish", "target": 12 },
+        "rewards": { "coins": 90, "items": { "bolt": 1 }, "collections": ["heart_collar"] },
+        "requirements": { "quests": ["lais_bed"] }
+      },
       "clean_week": {
         "name": "Semana cheirosa",
         "description": "Dê 7 banhos no Tiro nesta semana.",

@@ -121,6 +121,8 @@ func _routines_check() -> void:
 	check(not state.call("routines_unlocked", "weekly"), "Semanais ainda fechadas no capítulo 3")
 	state.get("progress").stats["harvest"] = 7
 	state.call("dev_jump_to_chapter", 4)
+	# Reinicia após preparar os contadores: a diária já pode ter sido sorteada no capítulo 3.
+	state.call("dev_restart_routines")
 	var progress: RefCounted = state.get("progress")
 	for kind: String in ["daily", "weekly"]:
 		var ids: Array = state.call("routine_ids", kind)

@@ -38,7 +38,7 @@ Ao terminar, marque a etapa como feita no docs/plans/comeco/README.md.
 - [x] Etapa 00 — fundação (13/10/2026)
 - [x] Etapa 01 — facilitar (14/10/2026)
 - [x] Etapa 02 — caminha (14/10/2026)
-- [ ] Etapa 03 — desejos
+- [x] Etapa 03 — desejos e vínculo (14/10/2026, retomada Claude Code + Codex; testes e capturas conferidos, sem push)
 - [ ] Etapa 04 — sabores
 - [ ] Etapa 05 — faro
 - [ ] Etapa 06 — praça

@@ -61,5 +61,12 @@
     "icon": "action_bathe",
     "slot": "head",
     "sprite": ""
+  },
+  "heart_collar": {
+    "name": "Coleira de coração",
+    "description": "Prêmio por realizar muitos desejos.",
+    "icon": "bond_heart",
+    "slot": "neck",
+    "sprite": ""
   }
 }

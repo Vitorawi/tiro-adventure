@@ -1,16 +1,18 @@
 extends Control
-## Casca do jogo: barra superior (nível/moedas, selo DEV), abas Tiro / Mapa (mundos) /
+## Casca do jogo: barra superior (nível/moedas, selo DEV), abas Tiro / Desejos / Mapa (mundos) /
 ## Missões / Mochila, painel inferior (Sheet) e mensagens rápidas (toast).
 ## Events.world_requested (botões "Ir") troca para o Mapa e entra no mundo pedido.
 
 @onready var _screens := {
 	&"pet": %PetScreen,
+	&"wishes": %WishesScreen,
 	&"map": %WorldsScreen,
 	&"tasks": %TasksScreen,
 	&"bag": %BagScreen,
 }
 @onready var _tabs := {
 	&"pet": %PetTab,
+	&"wishes": %WishesTab,
 	&"map": %MapTab,
 	&"tasks": %TasksTab,
 	&"bag": %BagTab,
@@ -23,6 +25,7 @@ var _toast_tween: Tween
 var _current_screen: StringName = &""
 var _tasks_badge: Label
 var _map_badge: Label
+var _wishes_badge: Label
 var _tasks_pulse: Tween
 var _celebration: CanvasLayer
 ## Capítulo concluído nesta leva de missões (0 = nenhum); o anúncio sai uma vez, no fim do frame.
@@ -39,7 +42,7 @@ var _pending_level: Dictionary = {}
 func _ready() -> void:
 	for id: StringName in _tabs:
 		_tabs[id].pressed.connect(_on_tab_pressed.bind(id))
-		# Ícone em cima e texto embaixo: com 4 abas, o texto ao lado do ícone não cabe.
+		# Ícone em cima e texto embaixo: as cinco abas cabem na largura de 360 px.
 		_tabs[id].expand_icon = true
 		_tabs[id].icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		_tabs[id].vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
@@ -53,6 +56,7 @@ func _ready() -> void:
 	_welcome = load("res://scenes/ui/welcome_back/welcome_back.tscn").instantiate()
 	add_child(_welcome)
 	Events.level_up.connect(_on_level_up)
+	Events.bond_up.connect(_on_bond_up)
 	var modal_timer := Timer.new()
 	modal_timer.wait_time = 0.3
 	modal_timer.autostart = true
@@ -126,6 +130,12 @@ func _on_level_up(level: int, rewards: Dictionary) -> void:
 			_pending_level = {})
 
 
+## Vínculo novo: cartão com o presente (já entregue), na fila dos cartões.
+func _on_bond_up(level: int, rewards: Dictionary) -> void:
+	_queue_modal(func() -> void:
+		_celebration.show_bond(level, rewards))
+
+
 func _queue_modal(callback: Callable) -> void:
 	_modal_queue.append(callback)
 
@@ -171,11 +181,20 @@ func _build_tasks_badge() -> void:
 	box.content_margin_right = 6
 	_tasks_badge.add_theme_stylebox_override("normal", box)
 	_tasks_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_tasks_badge.position = Vector2(54, 2)
 	%TasksTab.add_child(_tasks_badge)
 	_map_badge = _tasks_badge.duplicate() as Label
 	_map_badge.name = "NpcMapBadge"
 	%MapTab.add_child(_map_badge)
+	_wishes_badge = _tasks_badge.duplicate() as Label
+	_wishes_badge.name = "WishesBadge"
+	%WishesTab.add_child(_wishes_badge)
+	# O selo fica no canto de cima, à direita do ícone (centrado na aba).
+	for pair: Array in [[%TasksTab, _tasks_badge], [%MapTab, _map_badge], [%WishesTab, _wishes_badge]]:
+		var tab: Button = pair[0]
+		var badge: Label = pair[1]
+		var place := func() -> void: badge.position = Vector2(tab.size.x / 2.0 + 6.0, 0.0)
+		tab.resized.connect(place)
+		place.call()
 	var timer := Timer.new()
 	timer.wait_time = 1.0
 	timer.autostart = true
@@ -211,6 +230,8 @@ func _refresh_tasks_badge() -> void:
 		count += 1
 	_tasks_badge.text = str(count)
 	_tasks_badge.visible = count > 0
+	_wishes_badge.text = str(GameState.fulfillable_wish_count())
+	_wishes_badge.visible = GameState.fulfillable_wish_count() > 0
 
 
 ## Engrenagem ao lado das moedas: abre as configurações (vários saves).
@@ -251,6 +272,7 @@ func _refresh_guide() -> void:
 	_refresh_tasks_badge()
 	# Mochila só aparece quando a história a apresenta.
 	%BagTab.visible = GameState.progress.feature_unlocked("bag")
+	%WishesTab.visible = GameState.progress.feature_unlocked("wishes")
 	if GameState.progress.claimed_quests.has("welcome"):
 		if _tasks_pulse:
 			_tasks_pulse.kill()

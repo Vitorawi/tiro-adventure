@@ -32,6 +32,10 @@ var _on_sofa := false
 var _sprite: AnimatedSprite2D
 var _reaction: Dictionary = {}
 var _move_tween: Tween
+## Balãozinho do desejo sobre a cabeça (some dormindo ou sem pedido).
+var _balloon: Node2D
+var _balloon_icon: Sprite2D
+var _balloon_wish := ""
 
 
 func _ready() -> void:
@@ -43,6 +47,9 @@ func _ready() -> void:
 	if position.is_equal_approx(sleep_point):
 		_set_on_sofa(true)
 	Events.dog_action.connect(_on_care)
+	_build_balloon()
+	Events.state_changed.connect(_refresh_balloon)
+	_refresh_balloon()
 	_brain()
 
 
@@ -53,10 +60,51 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 
 
+## O Tiro está com um desejo no balão (tocar nele abre a aba Desejos)?
+func has_balloon() -> bool:
+	return _balloon.visible
+
+
 ## Área de toque em volta do Tiro (coordenadas do mundo).
 func hit_test(point: Vector2) -> bool:
-	return Rect2(Vector2(-24.0, -54.0), Vector2(48.0, 58.0)).has_point((point - position) / scale)
+	var local := (point - position) / scale
+	if _balloon.visible:
+		var screen_scale := get_global_transform_with_canvas().get_scale().abs()
+		var half := Vector2(maxf(24.0 / maxf(screen_scale.x, 0.01), 18.0 * _balloon.scale.x), maxf(24.0 / maxf(screen_scale.y, 0.01), 18.0 * _balloon.scale.y))
+		if Rect2(_balloon.position - half, half * 2.0).has_point(local):
+			return true
+	return Rect2(Vector2(-24.0, -54.0), Vector2(48.0, 58.0)).has_point(local)
 
+
+
+## Balão do desejo: fundo + ícone; ~40 px no mundo, ~25 px no enquadramento inicial do sítio.
+func _build_balloon() -> void:
+	_balloon = Node2D.new()
+	_balloon.name = "WishBalloon"
+	var factor := 1.25 / maxf(scale.x, 0.1)
+	_balloon.scale = Vector2.ONE * factor
+	_balloon.position = Vector2(0.0, -54.0 - 16.0 * factor - 4.0)
+	_balloon.z_index = 3
+	var bubble := Sprite2D.new()
+	bubble.texture = UiKit.ui_icon("wish_bubble")
+	_balloon.add_child(bubble)
+	_balloon_icon = Sprite2D.new()
+	_balloon_icon.scale = Vector2.ONE * 0.6
+	_balloon_icon.position = Vector2(0.0, -2.0)
+	_balloon.add_child(_balloon_icon)
+	_balloon.visible = false
+	add_child(_balloon)
+	var bob := create_tween().set_loops()
+	bob.tween_property(_balloon, "position:y", _balloon.position.y - 2.0, 0.7)
+	bob.tween_property(_balloon, "position:y", _balloon.position.y, 0.7)
+
+
+func _refresh_balloon() -> void:
+	var wish := "" if GameState.dog.sleeping else GameState.balloon_wish()
+	_balloon.visible = wish != ""
+	if wish != "" and wish != _balloon_wish:
+		_balloon_icon.texture = WishUi.icon(wish)
+	_balloon_wish = wish
 
 # --- Comportamento -----------------------------------------------------------
 
@@ -113,7 +161,7 @@ func react_at(kind: StringName, target: Vector2) -> void:
 
 
 func _on_care(action: StringName) -> void:
-	if action in [&"pet", &"play", &"feed", &"bathe"]:
+	if action in [&"pet", &"play", &"feed", &"bathe", &"wish"]:
 		react_at(&"happy", position)
 
 

@@ -2,7 +2,34 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **14/10/2026, Claude Code**.
+> um do outro. Última atualização: **14/10/2026, Codex**.
+
+**✔ Etapa 03 do começo (Desejos e vínculo) feita — Claude Code + Codex, 14/10/2026.** Próximo passo: `docs/plans/comeco/ETAPA_04_sabores.md` (Etapa 04). Trabalho local, sem push.
+- Retomada da conversa Claude `b3a5ed69-3c90-4cfc-9fcd-6448e677647e`: parou no limite da sessão logo após
+  acrescentar `_ui_checks` ao `wishes_test.gd`; implementação e quatro ícones PixelLab estavam sem commit.
+- `wishes.json`, `WishState`, `WishUi` e aba Desejos entre Tiro e Mapa. Após `lais_bed`, primeiro pedido =
+  3 carinhos; até 3 espaços (vínculos 2/4), sem repetir ids simultâneos. Prioridade das necessidades, especial
+  elegível com vínculo 3 (5%, prêmio dobrado), Dar/Receber, Ir/?, trocar grátis, badge e balões tocáveis.
+  Reposição 60 s nos 3 primeiros cumpridos / 600 s depois; troca 300 s. Dados/base/timestamps persistem.
+- Vínculo visível, barra e liberações; presentes uma vez por nível (`claimed_bond_level`, `Events.bond_up`),
+  na fila de comemorações. Diária de 2 desejos, semanal de 12 e `heart_collar` sem sprite de vestir.
+  Comida pedida aparece primeiro com "Ele quer!"; Dar ali cumpre e alimenta uma vez. `feed` direto não cumpre.
+  Ferramentas DEV de afeto e desejos, avanço de tempo e contadores/atalhos integrados.
+- Correções da retomada: teste carrega `SheetBuilder`/`WishUi` em runtime para evitar autoload indisponível;
+  desejos não antecipam a caminha com vínculo alto; balão segue o layout da cabeça, some dormindo e tem
+  área de toque mínima 48 px. Borda dourada distingue especiais; cadeado e troca compacta; todas as abas cabem.
+- Decisões: reaproveitados os quatro ícones já gerados pelo Claude, sem novas gerações (jobs e revisão em
+  `ART_PIPELINE.md`). Estrela de XP é o fallback do especial. `last` evita repetição no sorteio comum;
+  pedido inicial e necessidade baixa podem prevalecer, conforme a ordem do plano. Canvas 32×32 preservado
+  para alinhar balão/ícone. Saves v12 antigos inicializam o marco de vínculo no nível atual, sem presente retroativo;
+  não houve reset adicional nem conteúdo das Etapas 04+. Suporte `give` fica sem modelo até etapa futura.
+- Validação: todos os 19 testes da suíte + ferramentas DEV em prod passaram, executados um a um (histórico
+  do `test_all.ps1` >10 min nesta máquina). Campanha: 212 ciclos, 43 aquisições, 57 missões. Onboarding:
+  1º desejo ~0,7 min, 1ª colheita ~1,6 min, capítulo 4 ~10,5 min simulados. Ajustados `content_test`
+  (contador wish) e `tasks_test` (reiniciar sorteio após preparar contadores, sem depender do modelo do dia).
+  Capturas 360×780 abertas: início, especial+fechado, todos abertos, espera, Casa/Sítio/Tiro, seletor,
+  comemoração e painel de vínculo. Godot importou PNGs/UIDs. Persistem avisos de RIDs/ObjectDB no encerramento
+  de alguns testes de interface; nenhum erro de script. Nada ficou pela metade na Etapa 03.
 
 **✔ Etapa 02 do começo (caminha) feita — Claude Code, 14/10/2026.** Próximo passo: `docs/plans/comeco/ETAPA_03_desejos.md` (Etapa 03).
 - `lais_bag` agora dá o item `bed_gift` (Mochila); nova missão `lais_bed` (cap. 1, ordem 60, objetivo `owned: dog_bed`, +10 moedas, +5 carinho).
@@ -62,7 +89,7 @@
   primeiro passeio) · 07 passeios (7 caminhos, materiais exclusivos, apetrechos raros) · 08 vestir o Tiro,
   pet shop, costura · 09 amigos · 10 truques · 11 mapa do tesouro.
 - Decisões do Vitor: pode zerar os saves; Praça depois da Vila; Desejos em aba própria; foco nos passeios.
-  Etapa 00 feita; as demais ainda não.
+  Etapas 00–03 feitas; próxima: Etapa 04 (sabores).
 
 **Armazenamento com limite (Claude Code, 13/10/2026) — local, sem commit.** Plano: `docs/plans/ARMAZENAMENTO.md`.
 - Feito (base): `progression.json → storage` (geladeira/baú/silo/armazém: `categories`, `base`, `building`, `levels`) +

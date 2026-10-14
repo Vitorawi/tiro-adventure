@@ -10,20 +10,33 @@ extends RefCounted
 static func food_picker() -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var any := false
+		# A comida que o Tiro está pedindo (aba Desejos) vem primeiro, com um coração.
+		var foods: Array[String] = []
 		for id: String in Database.items:
-			if not Database.items[id].has("feed") or GameState.inventory.count(id) == 0:
-				continue
+			if Database.items[id].has("feed") and GameState.inventory.count(id) > 0:
+				foods.append(id)
+		foods.sort_custom(func(a: String, b: String) -> bool:
+			return GameState.wish_slot_for_item(a) >= 0 and GameState.wish_slot_for_item(b) < 0)
+		for id: String in foods:
 			any = true
+			var wish_slot := GameState.wish_slot_for_item(id)
 			var body := UiKit.card(box)
 			var row := UiKit.hbox(10)
 			row.add_child(UiKit.icon(Database.item_icon(id), 64))
 			var info := UiKit.vbox(4)
 			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			if wish_slot >= 0:
+				info.add_child(UiKit.chip(UiKit.ui_icon("bond_heart"), "Ele quer!", UiKit.GOOD))
 			info.add_child(UiKit.label("x%d" % GameState.inventory.count(id)))
 			info.add_child(UiKit.effect_chips(Database.items[id]["feed"]))
 			row.add_child(info)
 			var give := UiKit.button("Dar", func() -> void:
-				if GameState.feed(id):
+				# Comida desejada: tocar cumpre o desejo (que já alimenta o Tiro).
+				if wish_slot >= 0:
+					var error := GameState.fulfill_wish(wish_slot)
+					Events.toast_requested.emit(error if error != "" else "Era isso que ele queria!")
+					Events.sheet_close_requested.emit()
+				elif GameState.feed(id):
 					Events.toast_requested.emit("Nhac! %s" % Database.item_name(id))
 					Events.sheet_close_requested.emit(), &"PrimaryButton")
 			give.custom_minimum_size = Vector2(76, 52)

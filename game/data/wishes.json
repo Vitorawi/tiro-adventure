@@ -1,0 +1,42 @@
+{
+  "settings": {
+    "slots": [
+      {"requirements": {"quests": ["lais_bed"]}},
+      {"requirements": {"bond": 2}},
+      {"requirements": {"bond": 4}}
+    ],
+    "refill_seconds": 600,
+    "first_refill_seconds": 60,
+    "first_count": 3,
+    "swap_seconds": 300,
+    "first": "pet",
+    "need_threshold": 35,
+    "need_wishes": {"hygiene": "bath", "hunger": "food_any", "happiness": "play"},
+    "special_chance": 0.05,
+    "special_requirements": {"bond": 3},
+    "special_multiplier": 2
+  },
+  "wishes": {
+    "pet": {"type": "action", "name": "Quero carinho", "icon": "action_pet",
+      "goal": {"key": "pet", "target": 3}, "go": "screen:pet",
+      "rewards": {"coins": 5, "affection": 5}, "weight": 3},
+    "play": {"type": "action", "name": "Quero brincar", "icon": "action_play",
+      "goal": {"key": "play", "target": 1}, "go": "screen:pet",
+      "rewards": {"coins": 5, "affection": 5}, "weight": 3},
+    "bath": {"type": "action", "name": "Quero um banho", "icon": "action_bathe",
+      "goal": {"key": "bathe", "target": 1}, "go": "screen:pet",
+      "rewards": {"coins": 5, "affection": 4}, "weight": 1},
+    "food_any": {"type": "action", "name": "Tô com fome", "icon": "item_dog_food",
+      "goal": {"key": "feed", "target": 1}, "go": "screen:pet",
+      "rewards": {"coins": 5, "affection": 4}, "weight": 1},
+    "carrot": {"type": "feed", "item": "carrot", "name": "Quero cenoura",
+      "rewards": {"coins": 6, "affection": 5}, "weight": 3,
+      "requirements": {"quests": ["first_harvest"]}},
+    "carrot_snack": {"type": "feed", "item": "carrot_snack", "name": "Quero petisco de cenoura",
+      "rewards": {"coins": 12, "affection": 8}, "weight": 4,
+      "requirements": {"owned": ["stove"]}},
+    "vegetable_soup": {"type": "feed", "item": "vegetable_soup", "name": "Quero ensopado",
+      "rewards": {"coins": 18, "affection": 10}, "weight": 2, "special": true,
+      "requirements": {"quests": ["bloblo_stew"]}}
+  }
+}

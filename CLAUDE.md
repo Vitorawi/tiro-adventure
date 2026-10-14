@@ -13,6 +13,7 @@ Celular **em pé**, tela inteira, **100% toque**: o jogador não controla o movi
 Começa com a casa quase vazia e vai comprando fogão, geladeira, sítio, oficina... com 4 atributos
 que evoluem e missões de personagens. Abas: **Tiro · Mapa** (mini mundos: Casa, Sítio, Vila e Natureza — o portão da Vila leva a Natureza —
 cada um com seus personagens e lugares) **· Missões** (História passo a passo, Diárias e Semanais, com botão "Ir" e "?") **· Mochila**.
+Após a caminha, a aba **Desejos** entra entre Tiro e Mapa: até três pedidos, balão sobre o Tiro e vínculo em corações.
 
 Jogo 2D em **Godot 4.7.2** (GDScript), exportado para **Web** e instalado no celular como **PWA**
 ("Adicionar à tela inicial" no iPhone/Android). Publicado automaticamente no **GitHub Pages**
@@ -47,11 +48,13 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
                        progression.json (atributos, construções, rotas, pedidos, capítulos)
                        quests.json, npcs.json, collections.json (história, personagens, roupas/apetrechos)
                        routines.json (modelos de missões diárias e semanais, sorteados por período)
+                       wishes.json (pedidos do Tiro, espaços, esperas, prioridade das necessidades e especiais)
                        worlds.json (mundos: lugares, personagens, requisitos)
                        rooms/<id>.json (cena de cada mundo: fundo, móveis, zonas tocáveis), version.json (versão + canal prod/dev, gravado no deploy)
   scenes/            cenas, uma pasta por cena (.tscn + .gd juntos)
     main/            casca: barra superior (selo DEV), abas Tiro/Mapa/Missões/Mochila, Sheet, toast
     ui/pet_screen/   Tela do Pet (Tiro grande, necessidades, ações)
+    ui/wishes_screen/  aba Desejos: até 3 pedidos, progresso, Dar/Receber, Ir/?, trocar e vínculo
     ui/worlds_screen/  aba Mapa: lista de mundos + mundo atual (cabeçalho com Mapa, Lugares e personagens)
     ui/tasks_screen/   aba Missões (História: um passo por vez, visual; Diárias; Semanais; botões "Ir" e "?")
     ui/celebration/  comemoração de capítulo e de nível acima do Sheet
@@ -62,10 +65,11 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
     levels/room/     RoomView genérico (`room_id`, `world_id`): monta data/rooms/<id>.json (casa, sítio, vila), canteiros, etiquetas, navegação, toque, câmera
     entities/dog_world/  Tiro pequeno com IA autônoma (anda pelo caminho calculado)
     entities/npc_world/  NPC pequeno (Laís, vovó Bloblo) que passeia perto de casa, com balão "!"/"✓"
-  scripts/state/     DogState, Inventory, StationState, ProgressionState (dados + to_dict/from_dict)
+  scripts/state/     DogState, Inventory, StationState, ProgressionState, WishState (dados + to_dict/from_dict)
   scripts/ui/        UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
                      ProgressionUi (painéis: personagem, construir, vender, encomendas, rotas, atributos, coleção),
                      GameManual (catálogo), NatureUi (coleta/níveis/refino), DevPanel (DEV),
+                     WishUi (cartões de desejos, ícones e painel de vínculo),
                      PlotIndicator, StationIndicator (estações/criações), RouteIndicator (exploração),
                      PetAnimator (animações do Tiro na aba Tiro), NpcPortrait (pedido/aceno nas conversas)
   scripts/util/      BuildInfo (canal prod/dev, arquivo de save), TimeText (texto de duração), Loot (sorteios com semente)
@@ -83,6 +87,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | História principal (linha da Laís)    | `quests.json` (`kind: "main"`, chapter/order, `dialogue`); `progression.json`: capítulos/rewards. Plano: `docs/plans/TASKS_QUESTLINES.md` |
 | Linha de missões de um NPC (ex.: vovó) | `quests.json` com `kind: "line"`, `line`, `order`, `requirements` (quando começa); cruzamento = goal `{"type": "quest", "key": "<id>"}` |
 | Missão diária / semanal               | `data/routines.json` (`goal` = contador + alvo, `rewards`, `requirements`; `count` por tipo); ações `GameState.claim_routine` |
+| Desejos do Tiro / vínculo             | `data/wishes.json`, `scripts/state/wish_state.gd`, `scenes/ui/wishes_screen/` + `scripts/ui/wish_ui.gd`; `GameState.update_wishes/fulfill_wish/swap_wish`; níveis em `progression.json → bond_levels` |
 | "Como fazer" (o que falta, 1º passo)  | `scripts/ui/task_help.gd` (`TaskHelp.describe` calcula; `TaskHelp.panel` mostra em ícones) |
 | Nova missão / personagem (NPC) / roupa | `quests.json` / `npcs.json` (`portrait`, `sprite_dir` com rotations/ + walk/, `services`) + mundo dele em `worlds.json` → `npcs` + ponto `npc_<id>` em `rooms/<id>.json → points` / `collections.json` |
 | Requisitos de conteúdo (nível, compra, missão) | campo `"requirements"` no JSON; validados por `ProgressionState.requirement_error` (+ `bond`/`hours` em `GameState.requirement_error`; também `stats`). Recompensas `affection`/`needs` em `GameState._apply_rewards` |
@@ -137,6 +142,11 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   `portrait_animations.request/complete` define pastas de quadros do retrato; `NpcPortrait`
   fica fora do corpo reconstruído da conversa para preservar o aceno ao receber a missão.
 - **Sinais globais só em `Events`.** Sinais locais ficam na cena.
+- **Desejos e vínculo:** só após `lais_bed`, mesmo com afeto alto. `GameState.wishes` salva espaços/base/timestamps/último id e contagem;
+  sorteio sem ids repetidos, necessidade baixa primeiro e especial elegível com vínculo 3. `feed` direto não cumpre desejo;
+  `fulfill_wish` e o "Ele quer!" do seletor cumprem, alimentam uma vez e recompensam. Reposição 60 s nos 3 primeiros,
+  depois 600 s; trocar espera 300 s, sem custo. `claimed_bond_level` evita presentes repetidos; `Events.bond_up` entra na fila modal.
+  Balão some dormindo; toque no Tiro com balão abre Desejos. `dev_add_affection/dev_refresh_wishes` têm guarda DEV.
 - **Revelar aos poucos:** nada aparece antes da história apresentar (Mochila, diárias, semanais, atributos,
   Vila, portão, personagens). Ao abrir, a tela "Novo!" mostra ícone + Ir uma vez (`ProgressionState.seen`).
   O "Ir" mostra uma seta sobre o objeto (`RoomView.point_at` + `Places.highlight_action`) e abre o painel em seguida.
@@ -268,6 +278,7 @@ powershell -ExecutionPolicy Bypass -File tools\serve_local.ps1  # http://localho
 & $env:GODOT_BIN --headless --path game -s res://tests/animals_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/nature_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/worlds_test.gd
+& $env:GODOT_BIN --headless --path game -s res://tests/wishes_test.gd
 # Ou rode toda a suíte: powershell -File tools/test_all.ps1
 # Capturas das telas: rode sem --headless, com --resolution 360x780 e "-- --screenshots"
 

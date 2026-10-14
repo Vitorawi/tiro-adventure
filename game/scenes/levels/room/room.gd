@@ -757,7 +757,7 @@ func _handle_tap(point: Vector2) -> void:
 			Places.run(world_id, "npc:" + npc.npc_id)
 			return
 	if _dog and _dog.hit_test(point):
-		Events.screen_requested.emit(&"pet")
+		Events.screen_requested.emit(&"wishes" if _dog.has_balloon() else &"pet")
 		return
 	# Do mais à frente (maior Y) para o mais ao fundo.
 	var ordered := _objects.duplicate()

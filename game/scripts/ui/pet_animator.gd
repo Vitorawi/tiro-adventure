@@ -26,6 +26,7 @@ const FIDGETS := {
 const REACTIONS := {
 	&"feed": [&"eat", 3], &"play": [&"happy_jump", 3], &"bathe": [&"shake_off", 3],
 	&"pet": [&"wag_excited", 1],
+	&"wish": [&"happy_jump", 2],
 }
 ## Quanto carinho (segundos de dedo na barriga/cabeça) até ele rolar de barriga.
 const ROLL_AFTER := 1.6

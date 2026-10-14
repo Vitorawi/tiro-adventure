@@ -355,6 +355,8 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				return _panel_target("sell")
 			if key == "orders" or key.begins_with("order:"):
 				return _panel_target("orders")
+			if key == "wish" or key.begins_with("wish:"):
+				return {"screen": "wishes", "hint": "Desejos do Tiro"}
 			if key in ["bathe", "play", "pet"]:
 				return {"screen": "pet", "hint": "Tiro → cuidar e brincar"}
 			if key == "explore":

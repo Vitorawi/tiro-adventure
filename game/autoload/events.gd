@@ -17,6 +17,8 @@ signal quest_completed(id: String)
 signal chapter_completed(index: int)
 ## Subiu de nível; `rewards` já foi entregue (soma dos níveis atingidos).
 signal level_up(level: int, rewards: Dictionary)
+## Subiu de vínculo com o Tiro; `rewards` já foi entregue (soma dos níveis atingidos).
+signal bond_up(level: int, rewards: Dictionary)
 
 ## Emitido pelo GameState quando o jogador cuida do Tiro ("feed", "play", "bathe", "pet").
 signal dog_action(action: StringName)

@@ -11,6 +11,17 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 	visited.append(key)
 	var result: Dictionary
 	match kind:
+		"wish":
+			var wish := GameState.wish_def(id)
+			if wish.is_empty():
+				return _base("Desejos", "Veja o que o Tiro quer.", {"screen": "wishes"}, "Ir")
+			if wish.get("type", "") != "action":
+				return describe("item", str(wish.item), amount, visited)
+			var goal: Dictionary = wish.goal.duplicate()
+			goal["type"] = "stat"
+			goal["label"] = wish.name
+			result = _goal(goal, visited)
+			result.target = {"screen": str(wish.get("go", "screen:pet")).trim_prefix("screen:")}
 		"produced":
 			var source := best_source(id)
 			if source.is_empty():
@@ -151,7 +162,7 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 			if key.begins_with("harvest:"):
 				return describe("crop", key.trim_prefix("harvest:"), 1, trail)
 	var target := Places.goal_target(goal)
-	var hints := {"talk:lais": "Toque na Laís, na Casa.", "talk:bloblo": "Toque na vovó Bloblo, no Sítio.", "open:bag": "Toque na aba Mochila.", "feed": "Dê comida na Tigela.", "harvest": "Plante e colha.", "water": "Toque na plantinha com a gota.", "bathe": "Aba Tiro → Banho.", "play": "Aba Tiro → Brincar.", "trade": "Venda na Vila.", "sold": "Venda na Vila.", "explore": "Faça um passeio.", "produce": "Cozinhe no Fogão."}
+	var hints := {"talk:lais": "Toque na Laís, na Casa.", "talk:bloblo": "Toque na vovó Bloblo, no Sítio.", "open:bag": "Toque na aba Mochila.", "feed": "Dê comida na Tigela.", "pet": "Aba Tiro → faça carinho com o dedo.", "harvest": "Plante e colha.", "water": "Toque na plantinha com a gota.", "bathe": "Aba Tiro → Banho.", "play": "Aba Tiro → Brincar.", "trade": "Venda na Vila.", "sold": "Venda na Vila.", "explore": "Faça um passeio.", "produce": "Cozinhe no Fogão."}
 	return _base(str(goal.get("label", "Seu objetivo")), hints.get(key, ""), target, "Ir")
 
 
