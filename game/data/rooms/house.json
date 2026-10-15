@@ -102,6 +102,7 @@
     "sleep": [466, 288],
     "sleep_approach": [440, 316],
     "bed_sleep": [376, 330],
-    "bed_approach": [352, 346]
+    "bed_approach": [352, 346],
+    "friend_visit": [400, 310]
   }
 }

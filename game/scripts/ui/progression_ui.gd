@@ -251,6 +251,10 @@ static var _cancel_armed_until := 0.0
 ## Liberados primeiro (do mais curto ao mais longo), depois só os 2 próximos bloqueados.
 static func walks_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		if GameState.friend_walk_bonus() > 0:
+			box.add_child(UiKit.label("Pipoca vai junto · +1 achado", &"SmallLabel"))
+		if GameState.has_upgrade("walk_bag"):
+			box.add_child(UiKit.label("Bolsinha de passeio · +1 achado", &"SmallLabel"))
 		box.add_child(UiKit.label("Em andamento  %d/1" % (1 if GameState.walking() else 0), &"SectionLabel"))
 		box.add_child(_walk_slot())
 		var heading := UiKit.hbox(8)
@@ -619,7 +623,9 @@ static func petshop_panel() -> Control:
 static func collection_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var tabs := UiKit.hbox(8)
-		for entry: Array in [["clothes", "Roupas"], ["finds", "Achados"]]:
+		for entry: Array in [["clothes", "Roupas"], ["finds", "Achados"], ["friends", "Amigos"]]:
+			if entry[0] == "friends" and not GameState.progress.feature_unlocked("friends"):
+				continue
 			if entry[0] == "finds" and not GameState.progress.feature_unlocked("finds"):
 				continue
 			var button := UiKit.button(str(entry[1]), func() -> void:
@@ -629,7 +635,10 @@ static func collection_panel() -> Control:
 			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			tabs.add_child(button)
 		box.add_child(tabs)
-		box.add_child(FindUi.album() if _collection_tab == "finds" and GameState.progress.feature_unlocked("finds") else _clothes_panel())
+		if _collection_tab == "friends" and GameState.progress.feature_unlocked("friends"):
+			box.add_child(FriendUi.album())
+		else:
+			box.add_child(FindUi.album() if _collection_tab == "finds" and GameState.progress.feature_unlocked("finds") else _clothes_panel())
 	)
 
 static func _clothes_panel() -> Control:
@@ -644,6 +653,8 @@ static func _clothes_panel() -> Control:
 		for id: String in Database.collections:
 			var data: Dictionary = Database.collections[id]
 			var earned := GameState.progress.collection.has(id)
+			if str(data.get("source", "")).begins_with("friend:") and not earned and not GameState.progress.feature_unlocked("friends"):
+				continue
 			if data.get("rarity", "") == "legendary" and not earned and not GameState.progress.feature_unlocked("legendary_walks"):
 				continue
 			count += 1 if earned else 0
@@ -684,6 +695,10 @@ static func _clothes_panel() -> Control:
 				var go := UiKit.button("Pet shop", Places.go.bind({"world": "park", "place": "petshop"}))
 				go.disabled = Places.world_error("park") != "" or Places.place_error(Database.worlds.get("park", {}).get("places", {}).get("petshop", {})) != ""
 				card.add_child(go)
+			elif not earned and source.begins_with("friend:"):
+				var friend_id := source.trim_prefix("friend:")
+				card.add_child(UiKit.label(str(GameState.friend_def(friend_id).name) + " · 3 corações", &"SmallLabel"))
+				card.add_child(UiKit.button("Ir", Places.go.bind({"world": "park", "place": "friend:" + friend_id})))
 			if not earned:
 				card.get_parent().modulate.a = 0.45 if not is_walk_rare else 0.8
 		var header := UiKit.hbox(8)
@@ -880,6 +895,8 @@ static func goal_icon(goal: Dictionary) -> Texture2D:
 static func stat_icon(key: String) -> Texture2D:
 	var prefix := key.get_slice(":", 0)
 	var arg := key.get_slice(":", 1) if ":" in key else ""
+	if prefix in ["friend_gift", "friend_level"]:
+		return UiKit.ui_icon(str(GameState.friend_def(arg if arg != "" else "pipoca").get("icon", "bond_heart")))
 	if arg != "" and prefix in ["harvest", "produce"]:
 		return Database.item_icon(arg)
 	if prefix == "activity":

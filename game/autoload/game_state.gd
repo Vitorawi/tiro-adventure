@@ -33,6 +33,7 @@ var wishes := WishState.new()
 var finds := FindState.new()
 ## Passeio em andamento (o Tiro sai de casa).
 var walk_state := WalkState.new()
+var friend_state := FriendState.new()
 
 
 func _ready() -> void:
@@ -42,7 +43,7 @@ func _ready() -> void:
 	timer.autostart = true
 	timer.timeout.connect(func() -> void:
 		var changed_wishes := update_wishes()
-		if update_finds() or changed_wishes:
+		if sync_friend_window() or update_finds() or changed_wishes:
 			_changed())
 	add_child(timer)
 
@@ -79,6 +80,7 @@ func reset() -> void:
 	wishes = WishState.new()
 	finds = FindState.new()
 	walk_state = WalkState.new()
+	friend_state = FriendState.new()
 	_mark_all_seen()
 	_changed()
 
@@ -317,7 +319,7 @@ func walk_loot() -> Dictionary:
 	if first:
 		coins += int(loot.first.get("coins", 0))
 		_add_amounts(items, loot.first.get("items", {}))
-	for i in int(loot.get("rolls", 1)) + (1 if has_upgrade("walk_bag") else 0):
+	for i in int(loot.get("rolls", 1)) + (1 if has_upgrade("walk_bag") else 0) + friend_walk_bonus():
 		var entry := Loot.pick_weighted(loot.get("table", []), seed + i * 7919)
 		var drop := Loot.roll([entry], 1, seed + i * 104729 + 1)
 		if entry.has("find"):
@@ -1922,6 +1924,9 @@ func claim_daily_gift() -> String:
 ## { kind, count, icon (id de item), world, target }: colheitas, estações e coletas da Natureza.
 func welcome_ready_lines(limit: int = 4) -> Array[Dictionary]:
 	var lines: Array[Dictionary] = []
+	for id: String in Database.friends.friends:
+		if bool(friend_state.entry(id).visit_pending):
+			lines.append({"kind": "friend_visit", "count": 1, "icon": "", "friend": id, "world": "house", "target": "friend_visit:" + id})
 	if walk_ready():
 		var park_at := Database.place_with_panel("walks")
 		lines.append({"kind": "walk", "count": 1, "icon": "", "world": park_at[0], "target": park_at[1]})
@@ -1958,6 +1963,12 @@ func welcome_ready_lines(limit: int = 4) -> Array[Dictionary]:
 ## lugar do mundo (mesmo alvo de Events.world_requested) ou a tela ("pet", "tasks") quando world = "".
 func available_actions() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
+	for id: String in friends_present():
+		if give_friend_error(id) == "":
+			result.append({"kind": "friend", "world": "park", "target": "friend:" + id})
+	for id: String in Database.friends.friends:
+		if collect_friend_visit_error(id) == "":
+			result.append({"kind": "friend_visit", "world": "house", "target": "friend_visit:" + id})
 	var walk_at := Database.place_with_panel("walks")
 	if walk_ready():
 		result.append({"kind": "walk_ready", "world": walk_at[0], "target": walk_at[1]})
@@ -2291,6 +2302,7 @@ func to_dict() -> Dictionary:
 		"wishes": wishes.to_dict(),
 		"finds": finds.to_dict(),
 		"walks": walk_state.to_dict(),
+		"friends": friend_state.to_dict(),
 	}
 
 
@@ -2331,6 +2343,9 @@ func from_dict(data: Dictionary) -> void:
 	finds.from_dict(data.get("finds", {}))
 	walk_state = WalkState.new()
 	walk_state.from_dict(data.get("walks", {}))
+	friend_state = FriendState.new()
+	friend_state.from_dict(data.get("friends", {}))
+	_sync_friend_level()
 	# Save sem o campo de vínculo: o que já valia não paga presente de novo.
 	if not data.get("progression", {}).has("claimed_bond_level"):
 		progress.claimed_bond_level = bond_level()
@@ -2358,6 +2373,7 @@ func _ensure_stations() -> void:
 
 
 func _changed() -> void:
+	sync_friend_window()
 	_sync_step()
 	update_wishes()
 	update_finds()
@@ -2390,3 +2406,177 @@ func dev_complete_main_step() -> void:
 	if id != "":
 		_dev_complete_quest(id)
 		_changed()
+
+# --- Amigos do Tiro --------------------------------------------------------
+
+func friend_def(id: String) -> Dictionary:
+	return Database.friends.get("friends", {}).get(id, {})
+
+
+func friend_unlocked(id: String) -> bool:
+	var def := friend_def(id)
+	return not def.is_empty() and requirement_error(def.get("requirements", {})) == ""
+
+
+## O maior bloco local já observado impede voltar uma janela ao atrasar relógio/fuso.
+func friend_window_index() -> int:
+	var seconds := int(Database.friends.settings.window_hours) * 3600
+	return maxi(friend_state.window_index, floori(float(_local_time()) / seconds))
+
+
+func friend_window() -> String:
+	var local := friend_window_index() * int(Database.friends.settings.window_hours) * 3600
+	return Time.get_date_string_from_unix_time(local) + "-%d" % (int(Time.get_datetime_dict_from_unix_time(local).hour) / int(Database.friends.settings.window_hours))
+
+
+func _friend_visitor() -> String:
+	if friend_state.visitor_window == friend_window() and friend_state.visitor != "":
+		return friend_state.visitor
+	var ids: Array[String] = []
+	for id: String in Database.friends.friends:
+		if not bool(friend_def(id).get("always", false)) and friend_unlocked(id):
+			ids.append(id)
+	ids.sort()
+	return ids[posmod(friend_window_index(), ids.size())] if not ids.is_empty() else ""
+
+
+## Fixa o visitante inclusive se novos requisitos forem cumpridos durante a janela.
+func sync_friend_window() -> bool:
+	var window := friend_window()
+	if friend_state.visitor_window == window and (friend_state.visitor != "" or _friend_visitor() == ""):
+		return false
+	friend_state.visitor = _friend_visitor()
+	friend_state.window_index = friend_window_index()
+	friend_state.visitor_window = window
+	return true
+
+
+func friends_present() -> Array[String]:
+	var ids: Array[String] = []
+	for id: String in Database.friends.friends:
+		if bool(friend_def(id).get("always", false)) and friend_unlocked(id):
+			ids.append(id)
+	var visitor := _friend_visitor()
+	if visitor != "" and friend_unlocked(visitor):
+		ids.append(visitor)
+	return ids
+
+
+func friend_hearts(id: String) -> int:
+	return friend_state.hearts(id, Database.friends.settings.hearts)
+
+
+func friend_walk_bonus() -> int:
+	var total := 0
+	for id: String in Database.friends.friends:
+		var bonus: Dictionary = friend_def(id).get("walk_bonus", {})
+		if not bonus.is_empty() and friend_hearts(id) >= int(bonus.hearts):
+			total += int(bonus.rolls)
+	return total
+
+
+func _sync_friend_level() -> void:
+	var total := 0
+	for id: String in Database.friends.friends:
+		total += friend_hearts(id)
+	progress.stats["friend_level"] = total
+
+
+func _friend_heart_reward(id: String, gifts: int) -> Dictionary:
+	var reward: Dictionary = {"coins": 0, "items": {}, "collections": []}
+	var claimed := int(friend_state.entry(id).claimed_hearts)
+	var thresholds: Array = Database.friends.settings.hearts
+	for i in thresholds.size():
+		if gifts < int(thresholds[i]) or i < claimed:
+			continue
+		var next: Dictionary = friend_def(id).heart_rewards[i]
+		reward.coins += int(next.get("coins", 0))
+		_add_amounts(reward.items, next.get("items", {}))
+		reward.collections.append_array(next.get("collections", []))
+	return reward
+
+
+func give_friend_error(id: String) -> String:
+	if not friend_unlocked(id):
+		return requirement_error(friend_def(id).get("requirements", {})) if not friend_def(id).is_empty() else "Amigo desconhecido"
+	if id not in friends_present():
+		return str(friend_def(id).name) + " não está na praça agora"
+	var entry := friend_state.entry(id)
+	if str(entry.last_window) == friend_window():
+		return "Já ganhou petisco nesta janela"
+	var item := str(friend_def(id).likes)
+	if inventory.count(item) < 1:
+		return "Falta " + Database.item_name(item)
+	var items: Dictionary = _friend_heart_reward(id, int(entry.gifts) + 1).items.duplicate()
+	items[item] = int(items.get(item, 0)) - 1
+	return storage_error(items)
+
+
+func give_friend(id: String) -> String:
+	var reason := give_friend_error(id)
+	if reason != "":
+		return reason
+	var entry := friend_state.entry(id).duplicate(true)
+	var reward := _friend_heart_reward(id, int(entry.gifts) + 1)
+	inventory.remove(str(friend_def(id).likes))
+	entry.gifts = int(entry.gifts) + 1
+	entry.last_window = friend_window()
+	friend_state.friends[id] = entry
+	entry.claimed_hearts = friend_hearts(id)
+	if friend_hearts(id) == Database.friends.settings.hearts.size() and float(entry.best_at) == 0.0:
+		entry.best_at = now()
+	_apply_rewards(reward)
+	_count("friend_gift")
+	_count("friend_gift:" + id)
+	_sync_friend_level()
+	_changed()
+	Events.items_gained.emit(reward.items, int(reward.coins), Vector2(-1, -1))
+	return ""
+
+
+## Só o ciclo de presença do SaveManager chama esta ação. Não é atualização por timer,
+## nem parte de from_dict/troca de slot. Uma ausência contínua de oito horas é necessária.
+func update_friend_visits(away_since: float = -1.0) -> void:
+	var since := friend_state.last_active_at if away_since < 0.0 else away_since
+	var interval := float(Database.friends.settings.visit_hours) * 3600.0
+	if since <= 0.0 or now() - since < interval:
+		return
+	var changed := false
+	for id: String in Database.friends.friends:
+		var entry := friend_state.entry(id).duplicate(true)
+		if friend_hearts(id) < Database.friends.settings.hearts.size() or bool(entry.visit_pending):
+			continue
+		if now() - maxf(since, maxf(float(entry.best_at), float(entry.last_visit))) < interval:
+			continue
+		var gift: Dictionary = friend_def(id).visit_gift
+		var seed := hash(id + ":" + str(entry.last_visit) + ":" + str(since))
+		var reward := Loot.roll(gift.get("loot", []), 1, seed)
+		reward.coins += Loot.amount(gift.get("coins", 0), seed + 1)
+		entry.visit_pending = true
+		entry.visit_gift = reward
+		entry.last_visit = now()
+		friend_state.friends[id] = entry
+		changed = true
+	if changed:
+		_changed()
+
+
+func collect_friend_visit_error(id: String) -> String:
+	var entry := friend_state.entry(id)
+	if not bool(entry.visit_pending):
+		return "Nenhuma visita"
+	return storage_error(entry.visit_gift.get("items", {}))
+
+
+func collect_friend_visit(id: String) -> String:
+	var reason := collect_friend_visit_error(id)
+	if reason != "":
+		return reason
+	var entry := friend_state.entry(id)
+	var reward: Dictionary = entry.visit_gift.duplicate(true)
+	entry.visit_pending = false
+	entry.visit_gift = {}
+	_apply_rewards(reward)
+	_changed()
+	Events.items_gained.emit(reward.get("items", {}), int(reward.get("coins", 0)), Vector2(-1, -1))
+	return ""

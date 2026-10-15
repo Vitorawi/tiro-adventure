@@ -32,6 +32,7 @@ var wishes: Dictionary = {}
 var finds: Dictionary = {}
 ## Passeios do Tiro (data/walks.json): configurações e caminhos.
 var walks: Dictionary = {}
+var friends: Dictionary = {}
 
 
 func _init() -> void:
@@ -57,6 +58,7 @@ func _init() -> void:
 	wishes = _load("res://data/wishes.json")
 	finds = _load("res://data/finds.json")
 	walks = _load("res://data/walks.json")
+	friends = _load("res://data/friends.json")
 
 
 ## Mundo onde o personagem mora ("" se nenhum).
@@ -229,6 +231,9 @@ func uses_of(item_id: String) -> PackedStringArray:
 				lines.append("Missão: " + str(quests[id].name))
 	if items.get(item_id, {}).has("feed"):
 		lines.append("Comida para o Tiro")
+	for id: String in friends.get("friends", {}):
+		if friends.friends[id].get("likes", "") == item_id:
+			lines.append("Petisco favorito: " + str(friends.friends[id].name))
 	return lines
 
 

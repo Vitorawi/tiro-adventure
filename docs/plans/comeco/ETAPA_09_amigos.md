@@ -60,39 +60,39 @@ Pocket Camp (amizade por pedidos), Stardew (presentes favoritos).
   }
 }
 ```
-- [ ] `collections.json → caramel_bandana` "Bandana caramelo" (neck, ícone `friend_pipoca`, com `overlay` se a arte da Etapa 08 permitir).
+- [x] `collections.json → caramel_bandana` "Bandana caramelo" (neck, ícone `friend_pipoca`, com `overlay` se a arte da Etapa 08 permitir).
 
 ### 9.2 Estado — `game/scripts/state/friend_state.gd` (novo, `class_name FriendState`)
 ```
 friends: Dictionary  # "<id>": {"gifts": int, "last_window": "", "claimed_hearts": int, "last_visit": 0.0, "visit_pending": false}
 ```
 ### 9.3 Ações no `GameState`
-- [ ] `friend_window() -> String` (`"2026-10-13-5"` = dia + bloco de 3 h, hora local).
-- [ ] `friends_present() -> Array[String]`: Pipoca (se liberada) + visitante sorteado de forma
+- [x] `friend_window() -> String` (`"2026-10-13-5"` = dia + bloco de 3 h, hora local).
+- [x] `friends_present() -> Array[String]`: Pipoca (se liberada) + visitante sorteado de forma
   determinística por `hash(janela)` entre os liberados não-`always`.
-- [ ] `friend_hearts(id)` a partir de `gifts` e `settings.hearts`.
-- [ ] `give_friend_error(id)` (`"<Nome> não está na praça agora"`, `"Já ganhou petisco hoje"` (nesta janela),
+- [x] `friend_hearts(id)` a partir de `gifts` e `settings.hearts`.
+- [x] `give_friend_error(id)` (`"<Nome> não está na praça agora"`, `"Já ganhou petisco hoje"` (nesta janela),
   `"Falta <item>"`) e `give_friend(id)`: consome 1 item, `gifts += 1`, aplica `heart_rewards` novos,
   contadores `friend_gift`, `friend_gift:<id>`, e recalcula `friend_level` (soma dos corações de
   todos → grava no contador com `progress.stats["friend_level"] = soma`).
-- [ ] `update_friend_visits()` (ao carregar): para cada amigo ♥3 com `now - last_visit >= visit_hours*3600`
+- [x] `update_friend_visits()` (ao carregar): para cada amigo ♥3 com `now - last_visit >= visit_hours*3600`
   e o app estava fechado → `visit_pending = true`, `last_visit = now`.
-- [ ] `collect_friend_visit(id)`: aplica `visit_gift` (`Loot`), `visit_pending = false`.
-- [ ] `walk_bonus`: em `collect_walk`, se Pipoca tem `hearts >= 2` → `rolls + 1`.
-- [ ] `available_actions()`: `friend` (amigo presente que aceita petisco e o jogador tem) e `friend_visit`.
+- [x] `collect_friend_visit(id)`: aplica `visit_gift` (`Loot`), `visit_pending = false`.
+- [x] `walk_bonus`: em `collect_walk`, se Pipoca tem `hearts >= 2` → `rolls + 1`.
+- [x] `available_actions()`: `friend` (amigo presente que aceita petisco e o jogador tem) e `friend_visit`.
 
 ### 9.4 Mapa e telas
-- [ ] A Pipoca deixa de ser `decor` quando `nina_pipoca` está ativa/concluída: tocar nela abre o cartão de amigo.
-- [ ] Visitante: `NpcWorld` com o `sprite_dir` do amigo no ponto `friend_1` (novo em `rooms/park.json → points`);
+- [x] A Pipoca deixa de ser `decor` quando `nina_pipoca` está ativa/concluída: tocar nela abre o cartão de amigo.
+- [x] Visitante: `NpcWorld` com o `sprite_dir` do amigo no ponto `friend_1` (novo em `rooms/park.json → points`);
   aparece/sai quando a janela muda (o `RoomView` confere a cada minuto).
-- [ ] Balão sobre o amigo: ícone do petisco preferido se ele ainda aceita nesta janela.
-- [ ] Casa: `rooms/house.json → points.friend_visit`; amigo com visita pendente aparece lá brincando
+- [x] Balão sobre o amigo: ícone do petisco preferido se ele ainda aceita nesta janela.
+- [x] Casa: `rooms/house.json → points.friend_visit`; amigo com visita pendente aparece lá brincando
   (anda perto do Tiro); toque → presente (CollectFx) e ele sai.
-- [ ] Lugar `friends` na Praça (`worlds.json → park.places.friends`, `panel: "friends"`,
+- [x] Lugar `friends` na Praça (`worlds.json → park.places.friends`, `panel: "friends"`,
   `requirements: {"quests": ["nina_pipoca"]}`): lista os amigos presentes (máx. 2 cartões).
-- [ ] Coleção → aba **Amigos**: todos os amigos (silhueta preta se nunca ganhou petisco), corações,
+- [x] Coleção → aba **Amigos**: todos os amigos (silhueta preta se nunca ganhou petisco), corações,
   petisco preferido, "Visita a casa" quando ♥3.
-- [ ] Cartão "Que bom que você voltou!": "Mel passou aqui e deixou um presente! [Ver]".
+- [x] Cartão "Que bom que você voltou!": "Mel passou aqui e deixou um presente! [Ver]".
 
 ### 9.5 Missões, desejos, diárias, semanais
 ```json
@@ -105,12 +105,12 @@ friends: Dictionary  # "<id>": {"gifts": int, "last_window": "", "claimed_hearts
   "goals": [{"type": "stat", "key": "friend_level", "target": 4, "label": "Somar 4 corações de amizade"}],
   "rewards": {"coins": 50, "affection": 10}, "kind": "line", "line": "nina", "order": 100}
 ```
-- [ ] `features.friends`: `{"name": "Amigos do Tiro", "icon": "friend_pipoca", "go": {"world": "park", "place": "friends"},
+- [x] `features.friends`: `{"name": "Amigos do Tiro", "icon": "friend_pipoca", "go": {"world": "park", "place": "friends"},
   "requirements": {"quests": ["nina_pipoca"]}}`.
-- [ ] Desejo `friend`: `{"type": "action", "name": "Saudade da Pipoca", "icon": "friend_pipoca", "goal": {"key": "friend_gift", "target": 1},
+- [x] Desejo `friend`: `{"type": "action", "name": "Saudade da Pipoca", "icon": "friend_pipoca", "goal": {"key": "friend_gift", "target": 1},
   "go": "place:park:friends", "rewards": {"coins": 10, "affection": 8}, "weight": 2, "requirements": {"quests": ["nina_pipoca"]}}`.
-- [ ] Diária `friend`: "Dê um petisco a um amigo" (`friend_gift` × 1, 12 moedas, `nina_pipoca`).
-- [ ] Semanal `pack_week`: "Turma da praça" (`friend_gift` × 7, 100 moedas, 2 fitas, `nina_pipoca`).
+- [x] Diária `friend`: "Dê um petisco a um amigo" (`friend_gift` × 1, 12 moedas, `nina_pipoca`).
+- [x] Semanal `pack_week`: "Turma da praça" (`friend_gift` × 7, 100 moedas, 2 fitas, `nina_pipoca`).
 
 ### 9.6 Arte (receita "Cachorro" do `01_REGRAS_E_ARTE.md`)
 | Pasta | description do `create_character` |
@@ -122,13 +122,21 @@ Retratos 64×64 (receita) e ícones `friend_<id>.png` 32×32 ("game inventory ic
 para `pipoca`, `mel`, `bolota`, `fred`.
 
 ## Testes — `friends_test.gd` (novo)
-- [ ] Pipoca vira amiga quando `nina_sewing` foi recebida (o passo `nina_pipoca` fica ativo e dá para cumpri-lo); visitante estável na janela e muda na próxima.
-- [ ] Um petisco por amigo por janela; corações em 1/3/6 com prêmio uma vez; `friend_level` somado.
-- [ ] Visita ♥3 só após 8 h e uma vez; presente uma vez.
-- [ ] Pipoca ♥2 → passeio com +1 sorteio.
-- [ ] Save/carregar preserva tudo.
+- [x] Pipoca vira amiga quando `nina_sewing` foi recebida (o passo `nina_pipoca` fica ativo e dá para cumpri-lo); visitante estável na janela e muda na próxima.
+- [x] Um petisco por amigo por janela; corações em 1/3/6 com prêmio uma vez; `friend_level` somado.
+- [x] Visita ♥3 só após 8 h e uma vez; presente uma vez.
+- [x] Pipoca ♥2 → passeio com +1 sorteio.
+- [x] Save/carregar preserva tudo.
 
 ## Lista de conferência (aceite)
-- [ ] Dar petisco à Pipoca abre "Novo! Amigos do Tiro".
-- [ ] Visitantes trocam ao longo do dia; amigos ♥3 deixam presentes ao voltar.
-- [ ] CLAUDE.md/AGENTS.md (`friends.json`, `FriendState`, visitas), `docs/GAME_DESIGN.md`, ROADMAP, ART_PIPELINE, README; commit.
+- [x] Dar petisco à Pipoca abre "Novo! Amigos do Tiro".
+- [x] Visitantes trocam ao longo do dia; amigos ♥3 deixam presentes ao voltar.
+- [x] CLAUDE.md/AGENTS.md (`friends.json`, `FriendState`, visitas), `docs/GAME_DESIGN.md`, ROADMAP, ART_PIPELINE, README; commit.
+
+## Execução — 14/10/2026, Codex
+
+Concluída e validada; detalhes e decisões no Estado atual do ROADMAP. Pipoca abre após
+`nina_sewing`, sem ciclo com `nina_pipoca`. Bolota também exige `bloblo_potato`, requisito
+real do purê. Sorteio/validação do bônus em `walk_loot`; visitas por ausência contínua e
+atividade global entre slots, presente persistido. Bandana caramelo sem overlay (opcional
+na 9.1), permanece na Coleção com Vestir desabilitado. Nenhum sistema da Etapa 10.

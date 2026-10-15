@@ -29,9 +29,15 @@ func open() -> void:
 	panel.theme_type_variation = &"ReadyCardPanel"
 	panel.custom_minimum_size.x = 320
 	center.add_child(panel)
+	var scroll := ScrollContainer.new()
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.custom_minimum_size = Vector2(300, 0)
+	scroll.set_deferred("custom_minimum_size", Vector2(300, minf(640, get_viewport().get_visible_rect().size.y - 56)))
+	panel.add_child(scroll)
 	var box := UiKit.vbox(12)
 	box.custom_minimum_size.x = 292
-	panel.add_child(box)
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(box)
 	_fill(box)
 	show()
 
@@ -60,18 +66,25 @@ func _fill(box: VBoxContainer) -> void:
 			texture = UiKit.ui_icon("find_paw")
 		elif str(line.kind) == "walk":
 			texture = UiKit.ui_icon("action_walk")
+		elif str(line.kind) == "friend_visit":
+			texture = UiKit.ui_icon(str(GameState.friend_def(str(line.friend)).icon))
 		row.add_child(UiKit.icon(texture, 32))
 		var count := UiKit.label("%d pronto%s" % [line.count, "s" if int(line.count) > 1 else ""], &"SectionLabel")
 		if str(line.kind) == "dig":
 			count.text = "1 achado · " + str(Database.worlds.get(str(line.world), {}).get("name", line.world))
 		elif str(line.kind) == "walk":
 			count.text = "Tiro voltou do passeio"
+		elif str(line.kind) == "friend_visit":
+			count.text = str(GameState.friend_def(str(line.friend)).name) + " passou aqui e deixou um presente!"
 		count.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(count)
 		var target := {"world": line.world, "place": line.target}
-		var go := UiKit.button("Ir", func() -> void:
+		var go := UiKit.button("Ver" if str(line.kind) == "friend_visit" else "Ir", func() -> void:
 			hide()
-			Places.go(target), &"PrimaryButton")
+			if str(line.kind) == "friend_visit":
+				Events.world_requested.emit("house", "look:" + str(line.target))
+			else:
+				Places.go(target), &"PrimaryButton")
 		go.custom_minimum_size = Vector2(72, 48)
 		row.add_child(go)
 		card.add_child(row)

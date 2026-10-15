@@ -48,6 +48,8 @@ static func place_error(place: Dictionary) -> String:
 
 static func _panel(kind: String, arg: String) -> Control:
 	match kind:
+		"friends":
+			return FriendUi.panel()
 		"petshop":
 			return ProgressionUi.petshop_panel()
 		"station":
@@ -124,7 +126,13 @@ static func npc_badge(npc_id: String) -> String:
 ## Ações das salas e dos botões "Ir": "place:<id>" | "npc:<id>" | "buy:<construção>" |
 ## "market:<aba>" | foco direto em "recipe:", "route:", "order:" ou "crop:" <id>.
 static func run(world_id: String, action: String) -> void:
-	if action.begins_with("recipe:"):
+	if action.begins_with("friend_visit:"):
+		var reason := GameState.collect_friend_visit(action.trim_prefix("friend_visit:"))
+		if reason != "":
+			Events.toast_requested.emit(reason)
+	elif action.begins_with("friend:"):
+		FriendUi.open(action.trim_prefix("friend:"))
+	elif action.begins_with("recipe:"):
 		var id := action.trim_prefix("recipe:")
 		if Database.recipes.has(id):
 			Events.sheet_requested.emit(Database.item_name(Database.recipe_output(Database.recipes[id])), SheetBuilder.station_view(Database.recipes[id].station, id))
@@ -195,6 +203,8 @@ static func upgrade_place_action(upgrade_id: String) -> String:
 ## Ação da sala (objeto ou zona de rooms/<id>.json) que representa o destino do "Ir",
 ## para a seta apontar: "place:stove", "npc:bloblo", "market:orders" ou "plot".
 static func highlight_action(place: String) -> String:
+	if place.begins_with("friend:") or place.begins_with("friend_visit:"):
+		return place
 	if place == "" or place.begins_with("npc:") or place.begins_with("market:"):
 		return place
 	var id := place.get_slice(":", 1) if ":" in place else place
@@ -346,6 +356,10 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			var panels := {"agriculture": "farm", "cooking": "station:stove", "commerce": "sell", "adventure": "routes:walk"}
 			return _panel_target(panels.get(key, ""))
 		"stat":
+			if key.begins_with("friend_gift:"):
+				return {"world": "park", "place": "friend:" + key.trim_prefix("friend_gift:")}
+			if key in ["friend_gift", "friend_level"]:
+				return _panel_target("friends")
 			if key == "equip":
 				return {"screen": "pet", "collection": true, "hint": "Tiro → Coleção → Vestir"}
 			if key == "sew":

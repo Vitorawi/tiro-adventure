@@ -467,3 +467,37 @@ posse ou progresso da Rua das flores.
 Validação: `petshop_test` (ações/save antigo/fila/bolsa/depósito/duas garantias/atalhos), campanha
 216 ciclos, 47 aquisições, 69 missões. Onboarding com chance rara zero: primeiro raro em 54,5 min,
 capítulo 4 em 11,4 min; ocioso 220 s, maior trecho 30 s; limites anteriores mantidos.
+
+## Etapa 09 — Amigos do Tiro
+
+`friends.json` define os quatro amigos e seus requisitos, petiscos, marcos, recompensas e tabelas de visita.
+Pipoca (`pipoca`, NPC `dog_pipoca`) passa dos pulinhos ao cartão após `nina_sewing`, enquanto
+`nina_pipoca` ainda está ativa. Continua seguindo Nina. Os outros exigem `nina_pipoca`;
+Mel também exige `blender`, Bolota `bloblo_potato` (purê desbloqueado) e Fred `bloblo_sweet_potato`.
+Petiscos reais: `carrot_snack`, `strawberry_pop`, `mashed_potato`, `sweet_potato_chips`.
+
+Um petisco por amigo em cada bloco local de 3 horas. O bloco inclui a data; o maior índice observado
+é salvo para impedir repetição ao atrasar hora/fuso. O visitante usa rotação determinística dos ids
+elegíveis ordenados, fixada durante a janela; novos desbloqueios não trocam um visitante já escolhido.
+Se ainda não havia visitante elegível, o primeiro pode aparecer na própria janela. Pipoca sempre está.
+Corações em 1/3/6 petiscos; `claimed_hearts` impede repetir os três prêmios. O contador `friend_level`
+é a soma de corações, recalculada ao dar e carregar. `friend_gift` e `friend_gift:<id>` contam entregas.
+
+Pipoca ♥2 adiciona +1 sorteio comum em `walk_loot`, somado à bolsinha. Raros, consolos, histórico,
+garantias e sorteio independente dos dois lendários mantêm as sementes e posições. Erro/coleta usam
+o mesmo resultado. Pipoca ♥3 entrega `caramel_bandana` à Coleção; sem overlay por decisão desta
+etapa (opcional no plano), permanece “Em breve no Tiro”, usando `friend_pipoca` como ícone.
+
+Visitas exigem ♥3 e ausência contínua de 8 h, posterior a `best_at`/`last_visit`.
+O SaveManager trata primeira carga e retorno do segundo plano; carregar estado e trocar de slot
+não geram visitas. Presença global entre slots fica em `settings*.json → last_session_active`;
+`FriendState.last_active_at` guarda o último contato do save, com heartbeat a cada minuto.
+O presente é sorteado uma vez com Loot e salvo em `visit_gift`; só sai após coleta bem-sucedida.
+Armazenamento cheio preserva visita, horário e prêmio. Sem reset ou aumento de SAVE_VERSION.
+
+Nina: `nina_pipoca` (ordem 80), `nina_friends` (100, quatro corações somados).
+Feature `friends`, desejo `friend`, diária `friend` e semanal `pack_week` usam os mesmos contadores
+e navegação. `FriendUi` monta cartão e Coleção → Amigos no Sheet com rolagem existente.
+`friends_test` testa calendário/fuso, requisitos, recompensas, persistência, ciclo real do SaveManager,
+visitas, armazenamento, NPCs/caminhos e bônus/garantias; `friend_clock.gd` é exclusivo de testes.
+Campanha simula janelas e entrega petiscos produzidos, sem alterar limites ou conceder itens.

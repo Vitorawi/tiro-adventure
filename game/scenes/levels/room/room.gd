@@ -70,6 +70,13 @@ func _ready() -> void:
 	if world_id == "":
 		world_id = room_id
 	_spawn_npcs()
+	_sync_friends()
+	Events.state_changed.connect(_sync_friends)
+	var friend_timer := Timer.new()
+	friend_timer.wait_time = 60.0
+	friend_timer.autostart = true
+	friend_timer.timeout.connect(_sync_friends)
+	add_child(friend_timer)
 	_spawn_labels()
 	_spawn_regions()
 	for data: Dictionary in _room.get("route_markers", []):
@@ -138,6 +145,40 @@ func npc_node(npc_id: String) -> NpcWorld:
 		if npc.npc_id == npc_id:
 			return npc
 	return null
+
+
+## Reutiliza a IA, escala e navegação dos NPCs. Só recria quem entrou/saiu da janela.
+func _sync_friends() -> void:
+	var desired: Array[String] = []
+	if world_id == "park":
+		for id: String in GameState.friends_present():
+			if str(GameState.friend_def(id).get("npc", "")) == "":
+				desired.append(id)
+	elif world_id == "house":
+		for id: String in Database.friends.friends:
+			if bool(GameState.friend_state.entry(id).visit_pending):
+				desired.append(id)
+	for npc: NpcWorld in _npcs.duplicate():
+		if npc.npc_id != "":
+			continue
+		if npc.friend_id not in desired:
+			_npcs.erase(npc)
+			npc.react()
+			var goodbye := npc.create_tween()
+			goodbye.tween_property(npc, "modulate:a", 0.0, 0.5)
+			goodbye.tween_callback(npc.queue_free)
+		else:
+			desired.erase(npc.friend_id)
+	for id: String in desired:
+		var npc := NpcWorld.new()
+		npc.friend_id = id
+		npc.friend_visit = world_id == "house"
+		npc.room = self
+		npc.scale = Vector2.ONE * float(_room.get("dog_scale", 1.0))
+		npc.home = nearest_floor_point(_point("friend_visit" if npc.friend_visit else "friend_1"))
+		npc.position = floor_point_near(npc.home, 24.0)
+		_world.add_child(npc)
+		_npcs.append(npc)
 
 
 func nearest_floor_point(point: Vector2) -> Vector2:
@@ -353,7 +394,7 @@ func _update_plot(sprite: Sprite2D) -> void:
 func _refresh_ownership() -> void:
 	_sync_dog()
 	for npc: NpcWorld in _npcs:
-		npc.visible = GameState.progress.npc_visible(npc.npc_id)
+		npc.visible = GameState.progress.npc_visible(npc.npc_id) if npc.npc_id != "" else true
 	var opened: Array[bool] = []
 	for data: Dictionary in _room.get("regions", []):
 		opened.append(region_error(data) == "")
@@ -590,6 +631,9 @@ func _spawn_npcs() -> void:
 		var npc := NpcWorld.new()
 		npc.name = "Npc_" + npc_id
 		npc.npc_id = npc_id
+		for id: String in Database.friends.friends:
+			if GameState.friend_def(id).get("npc", "") == npc_id:
+				npc.friend_id = id
 		npc.room = self
 		npc.scale = Vector2.ONE * float(_room.get("dog_scale", 1.0)) * float(Database.npcs.get(npc_id, {}).get("world_scale", 1.0))
 		npc.home = nearest_floor_point(_point("npc_" + npc_id))
@@ -715,7 +759,7 @@ func point_at(action: String) -> bool:
 		elif not _room.get("dig_spots", []).is_empty():
 			anchor = _vec(_room.dig_spots[0])
 	for npc: NpcWorld in _npcs:
-		if npc.visible and action == "npc:" + npc.npc_id:
+		if npc.visible and (action == "npc:" + npc.npc_id or (npc.friend_id != "" and action in ["friend:" + npc.friend_id, "friend_visit:" + npc.friend_id, "place:friends"])):
 			anchor = npc.head_point()
 	if action.begins_with("buy:"):
 		# Compra: a seta vai no "+" do objeto (sprite com "upgrade" ainda não comprado).
@@ -815,7 +859,14 @@ func _handle_tap(point: Vector2) -> void:
 			return
 	for npc: NpcWorld in _npcs:
 		if npc.visible and npc.hit_test(point):
-			if npc.is_decor():
+			if npc.friend_visit:
+				var reason := GameState.collect_friend_visit(npc.friend_id)
+				if reason != "":
+					Events.toast_requested.emit(reason)
+			elif npc.friend_id != "" and GameState.friend_unlocked(npc.friend_id):
+				npc.react()
+				FriendUi.open(npc.friend_id)
+			elif npc.is_decor():
 				npc.react()
 			else:
 				Places.run(world_id, "npc:" + npc.npc_id)

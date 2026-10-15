@@ -25,7 +25,7 @@ a cada push na `main` (versão publicada em `/` e versão dev em `/dev/`). Progr
 - Mundos, navegação e **como criar um mundo novo**: `docs/WORLDS.md`
 - Fases, **estado atual e próximas tarefas**: `docs/ROADMAP.md`
 - Planos detalhados prontos para executar: `docs/plans/` (ex.: `TASKS_V2.md`)
-- Etapa 08 concluída: vestir (3 slots), pet shop/costura e dois lendários Bob Esponja; ver `docs/PROGRESSION.md` e `docs/ART_PIPELINE.md`. Próxima: Etapa 09.
+- Etapa 09 concluída: quatro amigos, petiscos por janela local, corações, bônus e visitas offline; ver `docs/PROGRESSION.md` e `docs/ART_PIPELINE.md`. Próxima: Etapa 10.
 
 ## Trabalho em dupla (Claude Code + Codex)
 O projeto é desenvolvido alternando **Claude Code** (lê `CLAUDE.md`) e **Codex** (lê `AGENTS.md`).
@@ -51,6 +51,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
                        routines.json (modelos de missões diárias e semanais, sorteados por período)
                        wishes.json (pedidos do Tiro, espaços, esperas, prioridade das necessidades e especiais)
                        finds.json (faro: achados por mundo, conjuntos, álbum), walks.json (passeios: tempo, energia, necessidades, sorteio, postal)
+                       friends.json (amigos: petiscos, corações, recompensas, visitantes e presentes de visita)
                        worlds.json (mundos: lugares, personagens, requisitos)
                        rooms/<id>.json (cena de cada mundo: fundo, móveis, zonas tocáveis), version.json (versão + canal prod/dev, gravado no deploy)
   scenes/            cenas, uma pasta por cena (.tscn + .gd juntos)
@@ -68,11 +69,11 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
     levels/room/     RoomView genérico (`room_id`, `world_id`): monta data/rooms/<id>.json (casa, sítio, vila), canteiros, etiquetas, navegação, toque, câmera
     entities/dog_world/  Tiro pequeno com IA autônoma (anda pelo caminho calculado)
     entities/npc_world/  NPC pequeno (Laís, vovó Bloblo) que passeia perto de casa, com balão "!"/"✓"
-  scripts/state/     DogState, Inventory, StationState, ProgressionState, WishState, FindState, WalkState (dados + to_dict/from_dict)
+  scripts/state/     DogState, Inventory, StationState, ProgressionState, WishState, FindState, WalkState, FriendState (dados + to_dict/from_dict)
   scripts/ui/        UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
                      ProgressionUi (painéis: personagem, construir, vender, encomendas, rotas, atributos, coleção),
                      GameManual (catálogo), NatureUi (coleta/níveis/refino), DevPanel (DEV),
-                     WishUi (cartões de desejos, ícones e painel de vínculo),
+                     WishUi (cartões de desejos, ícones e painel de vínculo), FriendUi (cartões/álbum de amigos),
                      PlotIndicator, StationIndicator (estações/criações), RouteIndicator (exploração), WalkIndicator (passeio no portão da Praça),
                      PetAnimator (animações do Tiro na aba Tiro), NpcPortrait (pedido/aceno nas conversas)
   scripts/util/      BuildInfo (canal prod/dev, arquivo de save), TimeText (texto de duração), Loot (sorteios com semente)
@@ -93,6 +94,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Desejos do Tiro / vínculo             | `data/wishes.json`, `scripts/state/wish_state.gd`, `scenes/ui/wishes_screen/` + `scripts/ui/wish_ui.gd`; `GameState.update_wishes/fulfill_wish/swap_wish`; níveis em `progression.json → bond_levels` |
 | Faro do Tiro (achados, álbum, mapa rasgado) | `data/finds.json` (mundos, `guaranteed`, `table`, conjuntos), `scripts/state/find_state.gd`, `GameState.update_finds/dig/claim_find_set`, `scripts/ui/find_ui.gd`; `"dig_spots"` (pontos no chão alcançável) em `rooms/<id>.json`; montinho `DigSpot` no `RoomView`, `sniff`/`dig` no `DogWorld` |
 | Passeios do Tiro (Praça)              | `data/walks.json` (tempo, `energy`, `needs`, `rewards`, `loot` com `find:<mundo>`, postal), `scripts/state/walk_state.gd`, `GameState.walk_error/start_walk/collect_walk/cancel_walk/walking`; painel `walks` (`ProgressionUi.walks_panel`), `scenes/ui/walk_result/`, tela do Tiro (`pet_screen.gd` → `AwayView`), `WalkIndicator` no `walk_marker` da sala. 7 caminhos, primeira volta, raro com garantia/consolo e `ProgressionUi.walk_diary` (Diário) |
+| Amigos / visitante / presente na Casa | `data/friends.json`, `FriendState`, `GameState.friend_window/friends_present/give_friend/collect_friend_visit`, `FriendUi`; `NpcWorld.friend_id/friend_visit`, `RoomView._sync_friends`; ausência via `SaveManager` (não via timer/from_dict/troca de slot) |
 | NPC enfeite / que segue outro         | `npcs.json`: `"decor": true` (sem conversa/balão/lista; toque = pulinhos) e `"follow": "<npc>"` (destinos a ≤ 40 px dele); ex.: Pipoca segue a Nina |
 | "Como fazer" (o que falta, 1º passo)  | `scripts/ui/task_help.gd` (`TaskHelp.describe` calcula; `TaskHelp.panel` mostra em ícones) |
 | Vestir o Tiro / camadas / poses | `collections.json → overlay/slot`, `progress.equipped`, `GameState.equip/unequip`, `PetAnimator` + `tiro_pet/overlay_anchors.json` e `overlays/<id>/<clip>/`; `tools/outfit_extract.py` reproduz os recortes/variantes |
@@ -162,6 +164,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   `start_walk` gasta energia (precisa `energy + 5`); `collect_walk` (sorteio estável pela semente, checa `storage_error`)
   aplica `rewards`/`needs`, conta `walk`, `walk:<id>`, `walk_item`, `walk_item:<item>` e `find_item:<item>` e emite `Events.walk_collected`;
   `cancel_walk` devolve a energia sem prêmio. `loot.first` soma materiais só na primeira coleta; `loot.rare` define chance/garantia por caminho/apetrecho/consolo. Histórico e `pity` só mudam ao recolher; raro novo conta `walk_rare`/`walk_rare:<id>`, duplicado vira moedas/material. `walk_lock_error` exclui horas e `walk_hours_error` verifica início (17h inclusivo, 21h exclusivo no Pôr do sol). Diário após 3 voltas; materiais `trail` sem depósito, `note` no detalhe; Coleção mostra silhuetas dos raros. `walk_unlock_keys` entra no Novo! com postal e Ir, anunciado na fila após o cartão de volta. Testes: `tests/park_test.gd` e `tests/walks_test.gd`; capturas: `tests/walks_shots.gd`.
+- **Amigos (Etapa 09):** Pipoca usa arte/IA existentes e segue Nina; toque vira amizade após receber `nina_sewing` (missão `nina_pipoca` ativa, sem ciclo). Visitante não-always na Praça em `points.friend_1`; rotação determinística dos elegíveis por bloco local de 3 h, fixada na janela. `FriendState.window_index` é o maior bloco observado: atrasar relógio/fuso não reabre janelas; avançar permite a próxima. Um petisco por amigo/bloco; corações em 1/3/6, `claimed_hearts` e `visit_gift` persistidos; `friend_level` é soma recalculada (inclusive ao carregar). Pipoca ♥2 soma um sorteio em `walk_loot`, junto à bolsinha, sem deslocar raro/lendário. Visita exige ♥3 e ausência contínua de 8 h após melhor amizade/última visita; só `SaveManager` processa primeira abertura/retorno do segundo plano. `last_session_active` nas configurações é compartilhado entre slots; heartbeat de 60 s limita ausência após crash. `from_dict`, timer e troca de slot não criam visitas. Presentes sorteados ficam pendentes até caber; falha/reabrir não ressorteia nem consome. Casa reutiliza `NpcWorld` perto do Tiro; boas-vindas → Ver apenas aponta, toque recebe com CollectFx/aceno. Coleção → Amigos usa silhuetas; bandana caramelo fica na Coleção sem overlay (não pode vestir roupa invisível). Nenhum reset/SAVE_VERSION novo.
 - **Roupas (Etapa 08):** `progress.equipped` salva head/neck/body (strings vazias em saves anteriores); equipar exige posse + overlay, trocar igual não repete contador. Camadas corpo → pescoço → cabeça em `PetAnimator`, canvas 256×216; `overlay_anchors.json` inclui sono e exclui acrobacias. Variantes por quadro em `overlays/<id>/<clip>/`; cache máximo 48. Retratos de Desejos/boas-vindas usam `PetAnimator.portrait`. JSON das âncoras incluído explicitamente no preset Web. Costura usa a estação existente com `output_collection` (sem output/qty): valida posse/fila global, entrega coleção e conta sew/produce uma vez; evento cosmetic_received entra na fila modal e não vira inventário. `Database.recipe_output` e item_name/item_icon resolvem ambos os tipos; `station_upgrade` associa sewing a sewing_table. Pet shop compra quatro roupas/ração/bolsinha; sem diária de costura. `flower_clip` é id legado dos óculos escuros, preservando saves. Lendário tem sorteio/pity independente e soma ao raro; cancelar/armazenamento cheio não gasta garantias.
 - **Revelar aos poucos:** nada aparece antes da história apresentar (Mochila, diárias, semanais, atributos,
   Vila, portão, personagens). Ao abrir, a tela "Novo!" mostra ícone + Ir uma vez (`ProgressionState.seen`).

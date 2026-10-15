@@ -248,3 +248,16 @@ O fundo já tem toldo e balcão: as novas peças são placa/mercadorias e a pequ
 `z_index` 1/2 e sem footprint. Os quinze obstáculos anteriores permanecem, sem duplicar bloqueios
 ou estreitar corredores. A mesa usa `station: sewing` para tempo/Coletar e toque de coleta direta.
 Roupas aparecem somente no Tiro detalhado/retratos; o cachorro do mapa mantém seus sprites.
+
+## Amigos na Praça e visitas na Casa (Etapa 09)
+
+Praça mantém 15 obstáculos e três lugares visíveis (Passeio, Pet shop, Amigos), abaixo do limite 4.
+`points.friend_1 = [370, 230]` fica em chão alcançável; a zona `friends` usa o mesmo gramado,
+sem novo obstáculo. `RoomView._sync_friends` observa estado e confere presença a cada minuto.
+Pipoca conserva `npc_dog_pipoca`, escala e `follow: nina`; `NpcWorld.friend_id` apenas troca o toque
+e o balão quando a amizade fica acessível. Visitantes usam o mesmo NpcWorld e caminhos.
+
+Casa usa `points.friend_visit = [400, 310]`; amigos com presente pendente andam perto do Tiro
+(ou do ponto quando ele está passeando). Toque recolhe com CollectFx e aceno; cheio mantém o amigo.
+Alvos `friend:<id>` e `friend_visit:<id>` são resolvidos por Places/RoomView; o Ver das boas-vindas
+emite `look:friend_visit:<id>` para apontar sem entregar automaticamente.

@@ -26,6 +26,10 @@ var last_saved_at: float = 0.0
 
 var _save_pending := false
 var _save_path := BuildInfo.save_path()
+var _first_load := true
+var _away_since: float = 0.0
+## Atividade do aplicativo, compartilhada entre slots. Um slot parado não é jogador ausente.
+var _last_session_active: float = 0.0
 
 
 func _ready() -> void:
@@ -36,6 +40,14 @@ func _ready() -> void:
 	load_game()
 	# Qualquer mudança de estado agenda um save (agrupado no fim do frame).
 	Events.state_changed.connect(_schedule_save)
+	# Heartbeat limita a ausência após encerramento inesperado; não cria visitas online.
+	var heartbeat := Timer.new()
+	heartbeat.wait_time = 60.0
+	heartbeat.autostart = true
+	heartbeat.timeout.connect(func() -> void:
+		if _away_since == 0.0:
+			save_game())
+	add_child(heartbeat)
 
 
 func _notification(what: int) -> void:
@@ -44,7 +56,14 @@ func _notification(what: int) -> void:
 		NOTIFICATION_APPLICATION_FOCUS_OUT, \
 		NOTIFICATION_APPLICATION_PAUSED, \
 		NOTIFICATION_WM_CLOSE_REQUEST:
+			if _away_since == 0.0:
+				_away_since = GameState.now()
 			save_game()
+		NOTIFICATION_APPLICATION_FOCUS_IN, NOTIFICATION_APPLICATION_RESUMED:
+			if _away_since > 0.0:
+				GameState.update_friend_visits(_away_since)
+				_away_since = 0.0
+				save_game()
 
 
 func _schedule_save() -> void:
@@ -56,6 +75,7 @@ func _schedule_save() -> void:
 
 func save_game() -> bool:
 	_save_pending = false
+	GameState.friend_state.last_active_at = GameState.now() if _away_since == 0.0 else _away_since
 	var data := {
 		"save_version": SAVE_VERSION,
 		"saved_at": Time.get_unix_time_from_system(),
@@ -67,11 +87,15 @@ func save_game() -> bool:
 		return false
 	file.store_string(JSON.stringify(data))
 	file.close()
+	_last_session_active = GameState.friend_state.last_active_at
+	_save_settings()
 	Events.game_saved.emit()
 	return true
 
 
 func load_game() -> void:
+	var allow_visits := _first_load
+	_first_load = false
 	if not FileAccess.file_exists(_save_path):
 		GameState.reset()
 		Events.game_loaded.emit()
@@ -88,6 +112,10 @@ func load_game() -> void:
 	var data := _migrate(parsed)
 	last_saved_at = float(data.get("saved_at", 0.0))
 	GameState.from_dict(data.get("state", {}))
+	if allow_visits:
+		GameState.update_friend_visits(maxf(_last_session_active, GameState.friend_state.last_active_at))
+	# Consome a ausência antes de apresentar o cartão; reabrir não repete o sorteio.
+	save_game()
 	Events.game_loaded.emit()
 
 
@@ -216,6 +244,7 @@ func _load_settings() -> void:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(_settings_path()))
 	if typeof(parsed) == TYPE_DICTIONARY:
 		default_slot = clampi(int(parsed.get("default_slot", 1)), 1, MAX_SLOTS)
+		_last_session_active = float(parsed.get("last_session_active", 0.0))
 
 
 func _save_settings() -> void:
@@ -223,7 +252,7 @@ func _save_settings() -> void:
 	if file == null:
 		push_error("SaveManager: falha ao gravar as configurações (%s)" % FileAccess.get_open_error())
 		return
-	file.store_string(JSON.stringify({"default_slot": default_slot}))
+	file.store_string(JSON.stringify({"default_slot": default_slot, "last_session_active": _last_session_active}))
 	file.close()
 
 

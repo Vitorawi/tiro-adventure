@@ -292,3 +292,13 @@ separados para combinar. São cosméticos, com sorteio independente e garantia, 
 chance dos raros existentes. Após pet shop + 20 voltas, chance 1% e garantia em 30 voltas elegíveis
 por peça; não há pagamento premium. Óculos escuros clássicos substituem a presilha, preservando
 o id de coleção anterior. Não foi criada diária de costura (roupas têm quantidade finita).
+
+## Amigos do Tiro (Etapa 09)
+
+Pipoca, Mel (poodle), Bolota (pug) e Fred (beagle) fazem parte da vizinhança. Na Praça ficam
+Pipoca e um visitante por janela local de três horas. Cada um aceita seu petisco favorito uma vez
+por janela; 1, 3 e 6 petiscos rendem corações e presentes únicos. Ninguém perde amizade por faltar.
+Pipoca com dois corações soma um achado aos passeios, junto à bolsinha. Melhores amigos podem
+visitar a Casa após oito horas de ausência real e deixam um presente persistido até o toque.
+O cartão de boas-vindas leva à visita; a Coleção tem álbum de amigos e silhuetas dos desconhecidos.
+Missões da Nina apresentam a turma; desejo, diária e semanal reutilizam dar petiscos.

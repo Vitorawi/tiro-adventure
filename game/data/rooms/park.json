@@ -32,12 +32,25 @@
       "label": "Passeio",
       "label_pos": [192, 194],
       "polygon": [[158, 222], [190, 205], [228, 224], [228, 298], [160, 262]]
+    },
+    {
+      "id": "friends",
+      "action": "place:friends",
+      "label": "Amigos",
+      "label_pos": [375, 227],
+      "requirements": {
+        "quests": [
+          "nina_pipoca"
+        ]
+      },
+      "polygon": [[345, 218], [390, 218], [390, 249], [345, 249]]
     }
   ],
   "points": {
     "dog_start": [238, 262],
     "npc_nina": [255, 168],
     "npc_dog_pipoca": [272, 150],
-    "walk_marker": [192, 238]
+    "walk_marker": [192, 238],
+    "friend_1": [370, 230]
   }
 }

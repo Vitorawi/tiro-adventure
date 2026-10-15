@@ -4,6 +4,57 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **14/10/2026, Codex (retomada do Claude Code)**.
 
+**✔ Etapa 09 — Amigos do Tiro concluída (14/10/2026, Codex). Commit local, sem push.**
+- Base `ec64beb` (Etapa 08), sem reimplementar vestir, costura ou pet shop; nenhum conteúdo
+  da Etapa 10. `SAVE_VERSION` continua 12: novos campos têm padrão vazio, sem reset/migração.
+- `friends.json` e `FriendState`; Pipoca reaproveita toda arte, IA e seguir Nina. Toque vira amizade
+  ao receber `nina_sewing`, enquanto `nina_pipoca` está ativa. Sem exigir concluir a própria missão.
+  Mel/poodle, Bolota/pug e Fred/beagle usam NpcWorld/RoomView existentes; só um visitante na Praça.
+- Petiscos conferidos nos dados: `carrot_snack`, `strawberry_pop`, `mashed_potato`,
+  `sweet_potato_chips`. Bolota também exige `bloblo_potato`, evitando pedir purê ainda bloqueado.
+  Mel exige liquidificador e Fred a missão da batata-doce. Praça com três lugares visíveis,
+  15 obstáculos preservados, visitante em `[370, 230]` com caminho alcançável.
+- Janela local de 3 h com data + bloco, visitante em rotação determinística dos elegíveis ordenados,
+  fixado durante a janela. Se ainda não havia elegível, o primeiro pode aparecer sem esperar outra.
+  Maior índice local observado persistido: atrasar relógio/fuso não reabre janelas; avançar abre
+  a próxima. Um petisco por amigo por janela; corações 1/3/6, `claimed_hearts` e soma `friend_level`
+  recalculada ao dar/carregar. Recompensas e presentes não repetem após salvar/reabrir.
+- Pipoca ♥2 soma +1 sorteio comum em `walk_loot`, junto à bolsinha. Mesma prévia/validação/coleta;
+  sete raros, consolos, histórico/garantias e dois lendários independentes preservados.
+  ♥3 dá `caramel_bandana` à Coleção, com ícone Pipoca; **sem overlay, opção explícita do plano**:
+  “Em breve no Tiro”, Vestir desabilitado. Sem roupa invisível ou alteração das camadas aprovadas.
+- Visitas exigem ♥3 e ausência contínua de 8 h após melhor amizade/última visita. SaveManager
+  trata só primeira abertura/retorno do segundo plano; timer, `from_dict` e troca de slot não geram
+  visitas. Atividade global em `settings*.json` impede usar save antigo como ausência; heartbeat
+  a cada minuto limita a margem após crash. Presente Loot fica sorteado no save até caber.
+  Cheio não consome visita/prêmio nem permite ressorteio. Casa: amigo anda perto do Tiro,
+  toque recebe com CollectFx/aceno; boas-vindas → Ver apenas aponta. Fila modal preservada.
+- FriendUi no Sheet: retrato, raça, corações por ícones, próximo prêmio, petisco tem/precisa,
+  Dar/Ir/?, já dado; Coleção → Amigos com silhuetas e rolagem. Boas-vindas ganhou rolagem.
+  Nina `nina_pipoca`/`nina_friends`; feature `friends`, desejo `friend`, diária `friend`, semanal
+  `pack_week`. Ajuda, ícones de objetivo, destinos e usos dos itens integrados.
+- PixelLab: três personagens com oito direções + caminhada S/E/N (O espelhado), três retratos
+  escolhidos entre 16 cada, quatro ícones. Pipoca mantém sprites/retrato existentes; ícone escolhido
+  na terceira tentativa (orelhas erguidas e só cabeça). 72 quadros 64×64 preservam canvas/pivô.
+  Todos os jobs, candidatos/rejeições, escolhas/alinhamentos no ART_PIPELINE; originais em
+  `build/art_sources/etapa09/`. Pranchas abertas; PNGs/imports/UIDs versionados.
+- **26 execuções individuais PASS** (25 scripts + DEV em prod); logs `build/test_logs/etapa09/`.
+  `friends_test` cobre requisitos, janelas/data/fuso, corações/prêmios únicos, persistência, ausência
+  online/offline, primeira abertura/troca de slot/notificações duplicadas, armazenamento, caminho,
+  soma dos bônus e independência das garantias. Campanha usa ações/produção e janelas simuladas:
+  **190 ciclos, 47 aquisições, 71 missões**. Onboarding mantém chance rara zero e todos os limites:
+  capítulo 4 em **11,4 min**, passeio **15,0 min**, raro na **6ª volta em 35,8 min**; ocioso total
+  **220 s**, máximo **30 s**. Nenhum erro de script. Avisos antigos de RIDs/ObjectDB/recursos
+  no encerramento (incluindo park_test) continuam, sem falha nas verificações funcionais.
+- **23 capturas 360×780** sem headless, timeout externo de 90 s, abertas e conferidas em
+  `build/screenshots/etapa09/`: Pipoca antes/depois, missão Nina, falta/Dar/já dado, corações,
+  três visitantes/cartões, Coleção/silhuetas/rolagem ao fim, bônus somados, Casa, boas-vindas,
+  presente recebido. Fonte desenhava ♡ como ♥: substituída por ícones apagados; contador não quebra.
+  Exportação Web prod/dev concluída; `friends.json` e scripts/arte conferidos nos dois PCKs,
+  `tests/*` excluídos; nenhuma publicação. Saves pessoais desktop preservados pelo backup da suíte.
+- Pendências da Etapa 09: nenhuma obrigatória. Overlay da bandana não faz parte desta entrega,
+  conforme opção da 9.1. **Próximo passo: Etapa 10 — truques** (`ETAPA_10_truques.md`).
+
 **✔ Etapa 08 — apetrechos, pet shop e costura concluídos (14/10/2026, Codex). Commit local, sem push.**
 - Retomada da base `7211a42` (Etapa 07); `9ddd3b9` preservado. Nenhum reset/migração de save:
   campos novos têm padrão vazio. Saves locais restaurados e hashes conferidos após testes e capturas.

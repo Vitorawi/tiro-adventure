@@ -246,5 +246,11 @@
     "icon": "outfit_sponge_hat",
     "source": "legendary:walks",
     "overlay": "res://assets/sprites/characters/tiro_pet/overlays/sponge_hat.png"
+  },
+  "caramel_bandana": {
+    "name": "Bandana caramelo",
+    "slot": "neck",
+    "icon": "friend_pipoca",
+    "source": "friend:pipoca"
   }
 }

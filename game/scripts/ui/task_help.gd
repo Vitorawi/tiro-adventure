@@ -144,6 +144,13 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 	var type: String = goal.type
 	var key: String = goal.get("key", "")
 	var amount := int(goal.get("target", 1))
+	if type == "stat" and (key == "friend_level" or key.begins_with("friend_gift")):
+		var id := key.trim_prefix("friend_gift:") if key.begins_with("friend_gift:") else "pipoca"
+		var def := GameState.friend_def(id)
+		var result := _base(str(goal.get("label", "Amigos do Tiro")), "Um petisco por amigo a cada 3 horas.", Places.goal_target(goal), "Ir")
+		if GameState.inventory.count(str(def.likes)) == 0:
+			return describe("item", str(def.likes), 1, trail)
+		return result
 	match type:
 		"owned": return describe("upgrade", key, 1, trail)
 		"skill": return describe("skill", key, amount, trail)

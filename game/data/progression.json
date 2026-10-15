@@ -290,6 +290,19 @@
         "world": "park",
         "place": "walk"
       }
+    },
+    "friends": {
+      "name": "Amigos do Tiro",
+      "icon": "friend_pipoca",
+      "go": {
+        "world": "park",
+        "place": "friends"
+      },
+      "requirements": {
+        "quests": [
+          "nina_pipoca"
+        ]
+      }
     }
   },
   "skills": {

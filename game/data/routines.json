@@ -226,6 +226,22 @@
             "bloblo_dig"
           ]
         }
+      },
+      "friend": {
+        "name": "Petisco para um amigo",
+        "description": "Dê um petisco a um amigo da Praça.",
+        "goal": {
+          "key": "friend_gift",
+          "target": 1
+        },
+        "rewards": {
+          "coins": 12
+        },
+        "requirements": {
+          "quests": [
+            "nina_pipoca"
+          ]
+        }
       }
     }
   },
@@ -392,6 +408,25 @@
         "requirements": {
           "quests": [
             "bloblo_dig"
+          ]
+        }
+      },
+      "pack_week": {
+        "name": "Turma da praça",
+        "description": "Dê 7 petiscos aos amigos da Praça.",
+        "goal": {
+          "key": "friend_gift",
+          "target": 7
+        },
+        "rewards": {
+          "coins": 100,
+          "items": {
+            "ribbon": 2
+          }
+        },
+        "requirements": {
+          "quests": [
+            "nina_pipoca"
           ]
         }
       }

@@ -19,6 +19,8 @@ const SHADOW_RADIUS := 15.0
 const SHADOW_COLOR := Color(0.12, 0.05, 0.02, 0.45)
 
 var npc_id := ""
+var friend_id := ""
+var friend_visit := false
 var room: RoomView
 var home := Vector2.ZERO
 
@@ -28,6 +30,7 @@ var _badge: Label
 var _feet := 26.0
 var _move_tween: Tween
 var _hopping := false
+var _snack: Sprite2D
 
 
 func _ready() -> void:
@@ -44,6 +47,9 @@ func _ready() -> void:
 	_badge.position = Vector2(-20, -_feet * 2.0 - 44.0)
 	_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_badge)
+	_snack = Sprite2D.new()
+	_snack.position = Vector2(0, -_feet * 2.0 - 22.0)
+	add_child(_snack)
 	var bounce := _badge.create_tween().set_loops()
 	bounce.tween_property(_badge, "position:y", _badge.position.y - 6.0, 0.4).set_trans(Tween.TRANS_SINE)
 	bounce.tween_property(_badge, "position:y", _badge.position.y, 0.4).set_trans(Tween.TRANS_SINE)
@@ -70,6 +76,12 @@ func head_point() -> Vector2:
 
 
 func _refresh_badge() -> void:
+	if friend_id != "" and GameState.friend_unlocked(friend_id):
+		_badge.text = "✓" if friend_visit else ""
+		_snack.texture = Database.item_icon(str(GameState.friend_def(friend_id).likes))
+		_snack.visible = not friend_visit and str(GameState.friend_state.entry(friend_id).last_window) != GameState.friend_window()
+		return
+	_snack.visible = false
 	var state := Places.npc_badge(npc_id)
 	_badge.text = "✓" if state == "ready" else ("!" if state == "new" else "")
 	_badge.add_theme_color_override("font_color", Color("7fd35a") if state == "ready" else Color("ffd23f"))
@@ -92,6 +104,8 @@ func _brain() -> void:
 
 ## Personagem "decor" (ex.: Pipoca): sem conversa nem balão; tocar faz pulinhos.
 func is_decor() -> bool:
+	if friend_id != "" and GameState.friend_unlocked(friend_id):
+		return false
 	return bool(Database.npcs.get(npc_id, {}).get("decor", false))
 
 
@@ -111,6 +125,11 @@ func react() -> void:
 ## Destino alcançável perto de casa (o NPC não atravessa o mapa todo). Quem tem "follow"
 ## escolhe destinos perto do personagem que acompanha.
 func _roam_target() -> Vector2:
+	if friend_visit:
+		var dog: DogWorld = room.get("_dog")
+		return room.floor_point_near(dog.position if is_instance_valid(dog) else home, FOLLOW_RADIUS)
+	if friend_id != "" and npc_id == "":
+		return room.floor_point_near(home, FOLLOW_RADIUS)
 	var leader := room.npc_node(str(Database.npcs.get(npc_id, {}).get("follow", "")))
 	if leader != null:
 		return room.floor_point_near(leader.position, FOLLOW_RADIUS)
@@ -163,7 +182,7 @@ func _play(action: String, direction: String) -> void:
 
 
 func _build_frames() -> SpriteFrames:
-	var dir: String = Database.npcs.get(npc_id, {}).get("sprite_dir", "")
+	var dir: String = GameState.friend_def(friend_id).get("sprite_dir", "") if friend_id != "" else Database.npcs.get(npc_id, {}).get("sprite_dir", "")
 	var frames := SpriteFrames.new()
 	if dir == "" or ResourceLoader.list_directory(dir + "rotations/").is_empty():
 		return frames

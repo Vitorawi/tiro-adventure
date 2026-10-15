@@ -64,6 +64,9 @@ func _run() -> void:
 	coins_before = state.get("coins")
 	_check(state.call("collect_activity") != "" and state.get("coins") == coins_before, "Não deve duplicar coleta de atividade")
 	state.call("reset")
+	state.set_script(load("res://tests/friend_clock.gd"))
+	state.set("test_time", Time.get_unix_time_from_system())
+	state.call("reset")
 	var final_save := _campaign()
 	state.call("from_dict", JSON.parse_string(JSON.stringify(final_save)))
 	_check(not final_save.progression.collection.is_empty() and state.get("progress").collection.size() == final_save.progression.collection.size(), "Coleção deve sobreviver ao save")
@@ -108,6 +111,11 @@ func _campaign() -> Dictionary:
 	# Acelera apenas o tempo. Moedas, materiais, XP e aquisições vêm das ações reais.
 	for turn in 1500:
 		iterations = turn + 1
+		# Uma janela por ciclo; só tempo simulado e petiscos produzidos pelas receitas abaixo.
+		state.set("test_time", state.get("test_time") + 10800.0)
+		state.call("_changed")
+		for friend: String in state.call("friends_present"):
+			state.call("give_friend", friend)
 		if turn % 100 == 0:
 			print("Campanha: ciclo ", turn, "; passos ", state.get("progress").active_steps(), "; passeios ", state.get("progress").stat("walk"))
 		state.get("progress").cooldowns.clear()

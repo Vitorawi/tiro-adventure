@@ -1486,5 +1486,44 @@
     "kind": "line",
     "line": "nina",
     "order": 70
+  },
+  "nina_pipoca": {
+    "npc": "nina",
+    "name": "Amiga da Pipoca",
+    "dialogue": "A Pipoca é doida por petisco de cenoura. Dá um pra ela?",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "friend_gift:pipoca",
+        "target": 1,
+        "label": "Dar petisco à Pipoca"
+      }
+    ],
+    "rewards": {
+      "coins": 20
+    },
+    "kind": "line",
+    "line": "nina",
+    "order": 80
+  },
+  "nina_friends": {
+    "npc": "nina",
+    "name": "Turma da praça",
+    "dialogue": "O Tiro já tem fama! Faça amizade com mais cachorros.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "friend_level",
+        "target": 4,
+        "label": "Somar 4 corações de amizade"
+      }
+    ],
+    "rewards": {
+      "coins": 50,
+      "affection": 10
+    },
+    "kind": "line",
+    "line": "nina",
+    "order": 100
   }
 }

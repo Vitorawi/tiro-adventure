@@ -582,3 +582,51 @@ conferem os quadros e as 18 roupas nas cinco poses difíceis. Roteiro: `tests/pe
 A introdução foi marcada como vista no estado de captura; nenhum save pessoal foi substituído.
 Exportação Web local de produção e desenvolvimento concluída sem erros; `overlay_anchors.json`
 conferido dentro dos dois pacotes exportados. Saída em `build/web/` e `build/web/dev/`, sem publicação.
+
+## Etapa 09 — Amigos do Tiro (14/10/2026, Codex)
+
+Originais, ZIPs, 48 candidatos de retratos e pranchas em `build/art_sources/etapa09/`.
+Pipoca reutiliza integralmente `dog_pipoca` (rotações, caminhada, retrato e seguir Nina).
+Três personagens novos gerados no PixelLab com `create_character`, modo pro, quadrúpede dog,
+64×64, oito direções e estilo `8e4e8b4d-142c-4d14-a012-29f16506a0a4` (Tiro mundo v2).
+Tags: `tiro-adventure`, `cachorro`, `amigo-<id>`, `ativo`.
+
+| Arte | Personagem/job PixelLab | Destino e escolha |
+|---|---|---|
+| Mel, poodle branco com laço rosa | `e08c0939-df2d-4492-bc5a-6b0efacd2cea` | `characters/dog_mel/rotations/`, oito PNGs 64×64 |
+| Bolota, pug fulvo com focinho preto | `2404fb8f-36bb-4904-9b61-30c257b24d07` | `characters/dog_bolota/rotations/`, oito PNGs 64×64 |
+| Fred, beagle tricolor | `c3be7d02-3743-4af4-b357-e88cfa541132` | `characters/dog_fred/rotations/`, oito PNGs 64×64 |
+| Mel, caminhada S/E/N | `d967dc18-71a3-4dc6-8ac3-3336e40c6783`, `b51a5f2f-e5da-4155-a9db-bef28448b85f`, `a2d4184e-c188-4c80-a6b6-d0ac4fe091a4` | grupo `94723892-1a88-4511-b759-04df0250102f`; `dog_mel/walk/<direção>/frame_00..07.png` |
+| Bolota, caminhada S/E/N | `91542b5e-01fd-411b-a144-c89e4a4dd2ab`, `b69427e1-5918-4b0b-95f7-9d9f507d15ca`, `2d40c5f1-8112-4a00-be7d-2d3bdecc45fb` | grupo `fd21141a-e060-452b-9d87-51095a895539`; `dog_bolota/walk/` |
+| Fred, caminhada S/E/N | `af384cc9-6448-4d43-9ad3-392d0ffedd1b`, `0e049a26-573b-46e3-9e81-958882c6bed3`, `37ca8026-2b60-4cc4-9b60-b1af8ef84cff` | grupo `89bda567-321f-4efe-9898-eb29f5a43617`; norte enviado separadamente por limite de slots |
+| Retrato Mel | `b0699cb3-268b-4ae6-a275-a05a9505c935` (galeria `5c8d1056-c7b3-5007-827c-d5799f5ffe77`) | 16 candidatos; escolhido **0**, laço no alto como no sprite; `dog_mel/portrait.png` |
+| Retrato Bolota | `73a46937-71f7-4fb8-b3fb-57e92ded07bd` (galeria `b2795d2a-46fa-580f-8f0e-b0390cef3b14`) | 16 candidatos; **0**, olhos abertos e sorriso; `dog_bolota/portrait.png` |
+| Retrato Fred | `a4e3cebe-7dc7-48eb-82f0-ceacb26116de` (galeria `87c6ab82-f89f-5821-aa56-c6cb2ecb0bc0`) | 16 candidatos; **0**, focinho branco/orelhas castanhas/coleira vermelha; `dog_fred/portrait.png` |
+| Ícone Pipoca, tentativa 1 | `3385392f-3831-448a-8c62-e3d87c1aed56` (galeria `c4b0d911-5f19-5e3b-a1e0-dbebdb687670`) | Rejeitado: orelhas caídas, diferentes da Pipoca existente |
+| Ícone Pipoca, tentativa 2 | `5531c630-0e45-48ac-9ffb-8b713ab00b3f` (galeria `95b26f1e-e9f9-583d-aa38-6a324886d8fd`) | Rejeitado: corpo inteiro, rosto pequeno em 32 px |
+| Ícone Pipoca, tentativa 3 | `408eaba9-f3da-4898-a1fd-49976f6e9f9f` (galeria `559031b4-39b9-5d6b-922a-caabc9e6c0cd`) | Escolhido: somente cabeça e orelhas erguidas, `ui/icons/friend_pipoca.png` |
+| Ícone Mel | `ac1f7ca7-3792-43a5-877d-2b087c042b68` (galeria `833988d9-2a32-55b9-abc3-5cb531666cbe`) | Primeiro candidato; `ui/icons/friend_mel.png` |
+| Ícone Bolota | `c0465cdc-a6ce-451f-95ea-5419b126c5a2` (galeria `e9dc2c43-f5d1-5351-81ff-b59cd3da00a0`) | Primeiro candidato; `ui/icons/friend_bolota.png` |
+| Ícone Fred | `9d378a6f-c359-488f-bced-3a910a00ce5d` (galeria `619336a6-f339-5e1e-ace9-3c1472765b84`) | Primeiro candidato; `ui/icons/friend_fred.png` |
+
+Caminhadas usam o template quadrúpede disponível `walk-8-frames` (não o id humano
+`walking-8-frames`), oito quadros por direção. Oeste espelha leste pelo NpcWorld existente.
+As poses estáticas são idle: não se inventaram quadros; todos os canvases 64×64 foram preservados
+sem recorte, mantendo pivô central. NpcWorld calcula os pés pela última linha opaca da pose sul,
+e aplica o mesmo deslocamento às animações. Retratos pro 64×64 usam o retrato existente da
+Pipoca como referência de enquadramento/contorno; escolhidos após abrir `review_mel`,
+`review_bolota`, `review_fred`. Ícones Pixen 32×32, transparência, contorno preto, detalhe médio.
+`review_walks.png` confere os 72 quadros e alinhamentos; `review_dogs_icons.png` confere escala
+e diferenciação. O ícone final da Pipoca foi aberto individualmente após a terceira tentativa.
+
+Bandana caramelo usa o ícone `friend_pipoca` previsto no plano. **Sem overlay nesta etapa**:
+é recompensa de Coleção, com “Em breve no Tiro” e Vestir desabilitado. Nenhuma camada invisível
+ou recoloração improvisada das roupas aprovadas na Etapa 08. Overlay era opcional na 9.1.
+
+Capturas gráficas 360×780, sem headless e com timeout externo de 90 s:
+`build/screenshots/etapa09/`, roteiro `game/tests/friends_shots.gd`. Incluem Pipoca decorativa/amiga,
+missão Nina, cartão sem/com petisco, janela já atendida, coração 2/bônus, melhor amizade, três
+visitantes, Coleção com silhuetas/amigos e rolagem ao fim, bônus somados, Casa, boas-vindas e
+presente recolhido. Corações vazios usam ícones apagados (a fonte mapeava ♡ como ♥);
+contador tem/precisa sem quebra. PNGs e pranchas abertos e conferidos. Importação Godot final
+concluída; PNGs, `.import` e `.uid` versionados. Originais e capturas continuam fora do git.
