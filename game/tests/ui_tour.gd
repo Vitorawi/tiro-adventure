@@ -248,4 +248,15 @@ func _run() -> void:
 	main.find_child("WorldsScreen", true, false).call("enter", "park", "")
 	await shot("d04_transition", 0.2)
 	await create_timer(0.5).timeout
+	# Etapa 06: colheitas prontas e visão afastada (cozinha pronta fica na Casa).
+	Motion.reduced = true
+	state.call("dev_finish_timers")
+	await _world("farm")
+	world_farm.call("recenter")
+	await shot("d05_farm_ready", 0.5)
+	world_farm.set("_label_intro_until", 0.0)
+	world_farm.call("_zoom_at", world_farm.size / 2.0, 0.0)
+	await shot("d06_farm_zoom_out", 0.5)
+	await _world("house")
+	await shot("d07_house_ready", 0.5)
 	quit(0)

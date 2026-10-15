@@ -1689,6 +1689,16 @@ func new_unlocks() -> Array[String]:
 	return result
 
 
+## Conta apenas as duas apresentações de etiquetas, sem tocar nas regras de progressão.
+func note_label_visit(world_id: String) -> bool:
+	var key := "ui:labels:" + world_id
+	var visits := int(progress.seen.get(key, 0))
+	if visits >= 2: return false
+	progress.seen[key] = visits + 1
+	_changed()
+	return true
+
+
 func mark_seen(keys: Array[String]) -> void:
 	for key in keys:
 		progress.seen[key] = true

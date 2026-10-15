@@ -151,6 +151,16 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   para preservar o cenário visível. A alça continua permitindo ampliar para consulta; listas/atalhos mantêm o automático.
   Desvio da implementação original da Etapa 04: subir o objeto não adiantava com o painel de Produção em 88% da tela.
 - Etiquetas que sairiam pelas laterais são empurradas para dentro (margem 8 px); totalmente fora, ficam onde estão.
+- **Balões e etiquetas (Etapa 06):** canteiros, estações, criações, coletas da Natureza e o passeio mostram um `WorldBalloon`
+  (`scripts/ui/world_balloon.gd`): anel `INFO` com o produto enquanto cresce, verde com ✓ pulando a cada 2 s quando pronto, balão
+  `buy` (laranja, "+" e preço) no lugar do antigo "+" de compra, `alert` ("!"). Mantém 44 px de tela (0,8×–1,25× com o zoom
+  extremo), nunca encolhe junto com o mapa; no zoom de abertura mostra o tempo só por 2 s depois de tocar o canteiro (ou com zoom ≥ 1,2).
+  Balões que se sobrepõem ao afastar são espalhados por `RoomView._layout_balloons`. O toque no balão vale como tocar no objeto
+  (pronto = pegar; ver `RoomView._tap_balloon`).
+  As etiquetas (`WorldLabel`: pílula `PAPER`, ícone do lugar, borda na cor do mundo quando importam) aparecem sempre só se houver
+  algo a fazer (alerta do lugar, compra disponível, passo de missão apontando, personagem com missão); as outras só com zoom ≥ 0,9.
+  Nas duas primeiras entradas em cada mundo (`progress.seen["ui:labels:<mundo>"]`) todas aparecem por 4 s e somem com fade.
+  Região fechada mostra cadeado + nome ("Estufa"); o preço fica no balão `buy` dentro da região.
 - `WorldsScreen`: sem cabeçalho. `WorldBar` (abaixo do HUD, y 64, ignora o mouse): pílula `WorldPill` (`MapButton`: ícone do mundo +
   `map_name` + seta, borda na cor `Palette.WORLD`; abre o seletor de mundos), botão de ícone `PlacesButton` (painel "Lugares", sempre
   esse título) e, à direita em coluna, `NpcFace` por personagem (`NpcRow`; selo "!" = missão nova, check = pronta; `Places.npc_badge`).
@@ -194,8 +204,9 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   painéis exatos para o Ir do manual/missões. Compras pendentes mostram "+" após abrir a área.
 - Estações com requisito ainda pendente não entram no painel múltiplo. Manual permite
   consulta de futuras receitas/construções, e os botões de compra continuam validando requisitos.
-- Etiquetas detalhadas só no zoom ≥0,5. Ao afastar, aparece uma etiqueta Animais para evitar
-  sobreposição. `StationIndicator` mostra tempo/barra e Coletar no objeto, e é tocável.
+- Etiquetas detalhadas só no zoom ≥0,9 (Interface nova, Etapa 06; antes 0,5). Ao afastar, aparece uma etiqueta Animais
+  (`overview_label`) para evitar sobreposição. `StationIndicator` é um balão (`WorldBalloon`) com o produto, o anel de tempo
+  e "×N" quando há vários prontos, e é tocável.
   Objetos aceitam `z_index` (padrão 0): use 1 para um objeto apoiado sobre um móvel fatiado,
   como o liquidificador em `[318,186]` na ilha da Casa. O campo altera a camada visual,
   sem criar bloqueio de chão; o liquidificador não tem `footprint` e reage em `[300,292]`.

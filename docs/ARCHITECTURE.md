@@ -37,7 +37,7 @@ Utilitários (`game/scripts/util/`): `BuildInfo` (canal prod/dev e arquivo de sa
 - Save v3: `unlocked_plots` registra expansão sequencial. Migração v2 preserva os canteiros existentes.
 - Plantações novas guardam `planted_at` e `ready_at`; plantações antigas calculam início pelo tempo em `crops.json`.
 - `GameState.buy_plot`, `plant` e `harvest` validam ações; colheita credita moedas configuradas em `crops.json`.
-- `PlotIndicator` desenha indicadores sem capturar toque; `RoomView` encaminha toques e atualiza o visual.
+- `WorldBalloon` (base de `PlotIndicator`, `StationIndicator`, `RouteIndicator`, `WalkIndicator` e do marcador de compra) desenha o balão do mundo sem capturar toque; `RoomView` encaminha toques por `hit_rect` e atualiza o visual.
 - Testes: `tests/farm_test.gd`, `progression_test.gd` (campanha simulada), `dev_tools_test.gd`
   (rodam headless e removem o SaveManager antes de alterar o estado; comandos no `CLAUDE.md`).
   Scripts de teste (`extends SceneTree`) compilam antes dos autoloads: não citar `class_name`

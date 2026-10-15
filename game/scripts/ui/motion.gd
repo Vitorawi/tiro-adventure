@@ -25,6 +25,9 @@ const CLOSE := 0.2  # painel que desce ao fechar
 const TAB := 0.15  # aba que sobe/desce ao ser escolhida
 const CAMERA := 0.25  # câmera do mundo deslizando/aproximando (duplo toque, "Ir", centralizar)
 const SETTLE := 0.2  # mundo voltando ao limite depois de arrastado além da borda
+const WORLD_BOUNCE := 2.0  # intervalo dos pulinhos dos balões prontos
+const WORLD_CAPTION := 2.0  # tempo visível depois de tocar no canteiro
+const WORLD_LABELS := 4.0  # apresentação dos nomes nas duas primeiras visitas
 
 
 ## Pivô no centro para Controls (Node2D já gira/escala pela origem).
@@ -54,16 +57,16 @@ static func press(button: BaseButton) -> void:
 
 
 ## Aparece crescendo de 0,6 a 1,0 com o alfa de 0 a 1.
-static func pop_in(node: CanvasItem) -> Tween:
+static func pop_in(node: CanvasItem, target_scale: Vector2 = Vector2.ONE) -> Tween:
 	if reduced:
-		node.set("scale", Vector2.ONE)
+		node.set("scale", target_scale)
 		node.modulate.a = 1.0
 		return _finished(node)
 	_pivot(node)
-	node.set("scale", Vector2.ONE * 0.6)
+	node.set("scale", target_scale * 0.6)
 	node.modulate.a = 0.0
 	var tween := node.create_tween().set_parallel()
-	tween.tween_property(node, "scale", Vector2.ONE, POP_IN).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(node, "scale", target_scale, POP_IN).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(node, "modulate:a", 1.0, POP_IN)
 	return tween
 

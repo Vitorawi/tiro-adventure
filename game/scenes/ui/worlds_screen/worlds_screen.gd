@@ -110,6 +110,7 @@ func enter(world_id: String, place: String = "") -> void:
 
 
 func _switch_world(world_id: String) -> void:
+	var entering := current_world != world_id or not _views.has(world_id) or not is_visible_in_tree()
 	current_world = world_id
 	GameState.note_screen_opened(world_id)
 	var fresh_view := not _views.has(world_id)
@@ -121,6 +122,7 @@ func _switch_world(world_id: String) -> void:
 		_views[id].visible = id == world_id
 	%MapView.hide()
 	%WorldView.show()
+	if entering: _views[world_id].present_labels()
 	_header_key = ""
 	_refresh_header()
 

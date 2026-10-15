@@ -30,6 +30,8 @@
       "id": "stove",
       "action": "place:stove",
       "station": "stove",
+      "label": "Cozinha",
+      "label_pos": [282, 156],
       "upgrade": "stove",
       "sprite": "res://assets/sprites/areas/house/stove.png",
       "busy_frames": "res://assets/sprites/areas/house/stove_cooking/",
