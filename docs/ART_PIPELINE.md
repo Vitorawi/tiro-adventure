@@ -646,3 +646,19 @@ Pixen, 32×32 transparente, contorno preto e detalhe médio. Originais preservad
 | Gira 1 | `44a551d5-507e-42bb-af9f-c4b584b47fdf` | `55022655-d6af-587d-97cf-5d8a095fbf33` | Escolhido: espiral/pata → `trick_spin.png` |
 
 Reutilizados integralmente `give_paw`, `bark`, `roll_over`, `happy_jump`, `chase_tail` do Tiro grande, respectivas variantes de roupa e os cones do fundo da Praça. Capturas reais do treino e das cinco animações com head/neck/body em `build/screenshots/etapa10/`; pata/latido vestidos, acrobacias sem roupa, retorno vestido. O treino usa os ícones de estrela existentes para acertos, sem glifos ambíguos.
+
+## Etapa 11 — Tesouro (PixelLab, 14/10/2026)
+Originais e candidatos em `build/art_sources/etapa11/` (fora do git). Recortes com `Invoke-TrimSprite`.
+
+| Asset | Job / id PixelLab | Escolha | Destino |
+|---|---|---|---|
+| Baú fechado (objeto 48×40, sem estilo: `style_image` de 512×384 foi recusada — "deve caber no canvas") | objeto `da22b8fd-a9bd-4065-8047-5ddb1934dd15`, job `fcd032e3-0b69-4f27-b1a5-920a3d79305b` | único candidato; recorte 19×18 | `areas/nature/treasure_closed.png` |
+| Baú aberto (`create_object_state`, "lid open, golden glow and gold coins") | objeto `5f84c88f-4125-4b66-bc40-22f49dc4d920`, job `37959260-a555-445a-a76b-0a005815a109` | único candidato; recorte 19×21 | `areas/nature/treasure_open.png` |
+| Planta madura do mirtilo (56×48, referência `crop_carrot.png`) | `create_image_pro` job `634919dd-986d-4824-a15a-ada21aa0b27e` (16 candidatos) | candidato **0** (monte de terra, bagas azuis visíveis); recorte 30×35 (morango: 35×33) | `areas/farm/crop_blueberry.png` |
+| Ícone do mirtilo 32×32 | `create_image_pixen` job `203a9418-b9e2-41db-92ee-18457bb337da`, 1ª tentativa | aprovado, sem recorte | `ui/icons/item_blueberry.png` |
+| Clareira (112×64, referência `nature.png`) | `create_image_pro` job `7ccd5399-2c87-4f7c-a0d7-7a7ba3a453a9` (4 candidatos) | **rejeitados os quatro**: vieram como ilhotas isométricas flutuantes com borda de terra, que ficariam como um bloco colado sobre a Natureza | — |
+
+Decisão: o fundo da Natureza (512×384) não tem espaço livre bonito, e nenhum candidato de clareira cabia como objeto
+decorativo. O baú fica na grama livre à esquerda da ponte, `pos [96, 222]`, `scale 1.6` (a arte tem só ~19 px, no
+tamanho do Tiro a 0,5). A "Clareira escondida" é revelada pelo próprio baú + etiqueta quando a missão
+`guide_treasure` é recebida. Chapéu de explorador continua sem overlay ("Em breve no Tiro"), como a bandana caramelo.

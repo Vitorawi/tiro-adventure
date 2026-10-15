@@ -183,6 +183,36 @@ func claim_find_set(id: String) -> String:
 	_changed()
 	return ""
 
+# --- Baú da Clareira (tesouro) ----------------------------------------------
+
+func treasure_opened() -> bool:
+	return bool(progress.seen.get("treasure_opened", false))
+
+
+## Baú aparece com a missão "O mapa completo" e abre uma vez só.
+func open_treasure_error() -> String:
+	if treasure_opened():
+		return "Já aberto"
+	var def: Dictionary = Database.progression.get("treasure", {})
+	var reason := requirement_error(def.get("requirements", {}))
+	if reason != "":
+		return reason
+	return storage_error(def.get("rewards", {}).get("items", {}))
+
+
+func open_treasure() -> String:
+	var error := open_treasure_error()
+	if error != "":
+		return error
+	var rewards: Dictionary = Database.progression.treasure.rewards
+	_apply_rewards(rewards)
+	progress.seen["treasure_opened"] = true
+	_count("treasure")
+	_changed()
+	Events.treasure_opened.emit(rewards)
+	return ""
+
+
 func dev_spawn_finds() -> void:
 	if not BuildInfo.is_dev(): return
 	update_finds()
@@ -1876,7 +1906,6 @@ func fulfill_wish(i: int) -> String:
 	wishes.slots[i] = WishState.empty_slot(now() + wait, id)
 	_changed()
 	Events.dog_action.emit(&"wish")
-	Events.items_gained.emit(rewards.get("items", {}), int(rewards.get("coins", 0)), Vector2(-1, -1))
 	return ""
 
 

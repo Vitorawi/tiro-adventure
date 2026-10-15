@@ -45,6 +45,7 @@ var _object_frame := 0
 var _owned_snapshot: Dictionary = {}
 var _animals_snapshot: Dictionary = {}
 var _region_open_snapshot: Array[bool] = []
+var _gated_snapshot: Array[String] = []
 var _quests_snapshot := -1
 var _labels: Array[Label] = []
 var _regions: Array[Node2D] = []
@@ -93,9 +94,11 @@ func _ready() -> void:
 		_walk_marker.z_index = 5
 		_world.add_child(_walk_marker)
 	Events.state_changed.connect(_refresh_ownership)
+	Events.state_changed.connect(_refresh_gated)
 	Events.state_changed.connect(_refresh_find)
 	Events.world_activity.connect(_on_world_activity)
 	_refresh_ownership()
+	_refresh_gated()
 	_refresh_find()
 	%ZoomIn.pressed.connect(func() -> void: _zoom_at(size / 2.0, _zoom * ZOOM_STEP))
 	%ZoomOut.pressed.connect(func() -> void: _zoom_at(size / 2.0, _zoom / ZOOM_STEP))
@@ -209,6 +212,8 @@ func _build_navigation() -> void:
 				continue
 			if data.has("upgrade") and not GameState.has_upgrade(data.upgrade):
 				continue
+			if data.has("requirements") and GameState.requirement_error(data.requirements) != "":
+				continue
 			blocked.append(_polygon(data["footprint"]))
 
 	_walkable.clear()
@@ -276,6 +281,10 @@ func _spawn_objects() -> void:
 		sprite.set_meta("approach", _vec(data.get("approach", data["pos"])))
 		if data.has("region"):
 			sprite.set_meta("region", data.region)
+		if data.has("requirements"):
+			sprite.set_meta("requirements", data.requirements)
+		if data.has("seen_sprite"):
+			sprite.set_meta("seen_sprite", data.seen_sprite)
 		if data.has("station"):
 			sprite.set_meta("station", data.station)
 			var indicator := StationIndicator.new()
@@ -1042,6 +1051,39 @@ func _collect_station(station_id: String, point: Vector2) -> bool:
 	return true
 
 
+## Objetos com "requirements" (ex.: baú da Clareira) só existem depois que a história os revela;
+## "seen_sprite" troca o desenho quando a marca em progress.seen existe (baú aberto).
+func _refresh_gated() -> void:
+	var states: Array[String] = []
+	for sprite: Sprite2D in _objects:
+		if not sprite.has_meta("requirements") and not sprite.has_meta("seen_sprite"):
+			continue
+		var open := GameState.requirement_error(sprite.get_meta("requirements", {})) == ""
+		var seen_data: Dictionary = sprite.get_meta("seen_sprite", {})
+		var seen := not seen_data.is_empty() and bool(GameState.progress.seen.get(seen_data.key, false))
+		states.append("%s:%s:%s" % [sprite.name, open, seen])
+		sprite.visible = open
+		if not seen_data.is_empty():
+			if not sprite.has_meta("base_texture_path"):
+				sprite.set_meta("base_texture_path", sprite.texture.resource_path)
+			sprite.texture = load(seen_data.sprite if seen else sprite.get_meta("base_texture_path"))
+			sprite.offset = -Vector2(sprite.texture.get_width() / 2.0, sprite.texture.get_height())
+	if states == _gated_snapshot:
+		return
+	_gated_snapshot = states
+	_build_navigation()
+
+
+## Toque no baú: abre uma vez (festa na casca) e troca para o desenho aberto.
+func _open_treasure(sprite: Sprite2D) -> void:
+	var error := GameState.open_treasure()
+	if error != "":
+		Events.toast_requested.emit(error)
+		return
+	var rewards: Dictionary = Database.progression.treasure.rewards
+	Events.items_gained.emit(rewards.get("items", {}), int(rewards.get("coins", 0)), _screen_point(sprite.position - Vector2(0, sprite.texture.get_height() / 2.0)))
+
+
 ## Toque preciso: dentro do retângulo e num pixel não transparente do desenho.
 func _hits(sprite: Sprite2D, local: Vector2) -> bool:
 	var unscaled := local / sprite.scale
@@ -1070,6 +1112,9 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 	match action:
 		"plot":
 			_on_plot_tapped(int(target.get_meta("plot")) if target else 0)
+		"treasure":
+			if target is Sprite2D:
+				_open_treasure(target)
 		_:
 			Places.run(world_id, action)  # "place:<id>" ou "npc:<id>" (data/worlds.json)
 

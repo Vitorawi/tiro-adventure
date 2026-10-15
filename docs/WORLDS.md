@@ -265,3 +265,7 @@ emite `look:friend_visit:<id>` para apontar sem entregar automaticamente.
 ### Treino da Praça — Etapa 10
 
 Quarto lugar visível `park.places.training`, painel `tricks`, aberto após `nina_pipoca`; também disponível nos serviços da Nina. Zona `training` sobre os cones já desenhados, polígono `[[105, 182], [148, 174], [188, 198], [156, 220], [114, 210]]`, etiqueta `[136, 168]`. Não altera os 15 obstáculos, amigos ou acesso ao portão/quiosque. `Places.goal_target` usa Treino para `trick_learned` e a tela Tiro para `trick`/`trick:<id>`.
+
+### Baú da Clareira — Etapa 11
+
+`rooms/nature.json → objects` ganhou `treasure_chest` (ação `treasure`, `pos [96, 222]`, escala 1,6, grama livre à esquerda da ponte). Dois campos novos de objeto no `RoomView`: `"requirements"` (o objeto só existe — visível, tocável e bloqueando o chão — depois que valem; a etiqueta "Clareira escondida" segue o mesmo requisito) e `"seen_sprite": {"key", "sprite"}` (troca o desenho quando `progress.seen[key]` existe; aqui o baú aberto). O mapa da Natureza não tem espaço livre para uma clareira desenhada, então não há região fechada nem arte de clareira (ver ART_PIPELINE). Tocar no baú chama `GameState.open_treasure()`, com CollectFx e a festa "Tesouro encontrado!".

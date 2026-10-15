@@ -2,8 +2,22 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **14/10/2026, Codex (retomada do Claude Code)**.
+> um do outro. Última atualização: **14/10/2026, Claude Code (Etapa 11)**.
 
+
+**✔ Etapa 11 — Tesouro concluída (14/10/2026, Claude Code, retomando o Codex). Commit local, sem push.**
+**✔ PLANO DE 12 ETAPAS (00–11) CONCLUÍDO.**
+- Base `66c5869` (Etapa 10). `SAVE_VERSION` continua 12, sem reset/migração: usa `progress.seen["treasure_opened"]`, `unlocks`, `collection` e contadores existentes.
+- `quests.json → guide_treasure` (Guia, ordem 50, após `guide_fibers`): quatro objetivos `have` nos pedaços, que **não são consumidos** (só `deliver` consome). `Database.item_sources` passou a indicar onde cavar itens `find`, então o Ir dos pedaços leva ao faro do mundo certo (sítio, praça, vila, natureza).
+- `progression.json → treasure` + `GameState.open_treasure/open_treasure_error` ("Já aberto", requisito, armazenamento); 150 moedas, `explorer_hat`, `crop:blueberry`, 2 parafusos; contador `treasure`; `Events.treasure_opened` → fila modal → `Celebration.show_treasure`. Chapéu também vem do conjunto da natureza e não duplica.
+- Mirtilo: item, cultura (900 s, 3 por colheita, 40 XP; exige `guide_treasure` + `stats.treasure`) e desejo especial.
+- `RoomView`: objetos aceitam `requirements` (invisível/intocável/sem footprint até valer) e `seen_sprite` (baú aberto). Baú em `rooms/nature.json`, `[96, 222]`, escala 2,2, etiqueta "Clareira escondida" abaixo dele.
+- **Decisão/pendência de arte:** o mapa da Natureza não tem espaço livre para uma clareira e os 4 candidatos do PixelLab vieram como ilhotas flutuantes (rejeitados); então não há região fechada nem arte de clareira, só o baú revelado pela missão. Chapéu de explorador segue sem overlay ("Em breve no Tiro"). O baú é pequeno (arte ~19 px); se quiser, dá para gerar um maior depois.
+- PixelLab: baú fechado/aberto, planta e ícone do mirtilo; jobs/ids/escolhas no ART_PIPELINE; originais em `build/art_sources/etapa11/`.
+- Testes: todos PASS individualmente (26 scripts + DEV em prod), logs em `build/test_logs/etapa11/`; novo `treasure_test` (missão, não consumir pedaços, abrir uma vez, salvar/reabrir, mirtilo, Ir, sala real). `progression_test` (campanha) passou sem mudanças e `onboarding_test` manteve os limites. `navigation_test` agora respeita `requirements` dos objetos (igual ao jogo). Aviso antigo de recursos no encerramento do `park_test` permanece.
+- 11 capturas 360×780 gráficas em `build/screenshots/etapa11/` (Natureza antes, Guia 3/4 e pronta, coleção 3/4 e 4/4, baú com seta, festa, aberto, "Já aberto", sementes, Mochila), abertas e conferidas.
+- Web prod/dev exportados; baú, planta, ícone e dados conferidos nos dois PCKs; testes fora. Nenhuma publicação.
+- Pendências obrigatórias: nenhuma. Ideias de FUTURO.md não implementadas.
 **✔ Etapa 10 — Truques concluída (14/10/2026, Codex). Commit local, sem push.**
 - Base `711d169` (Etapa 09); implementada somente a Etapa 10. `SAVE_VERSION` continua 12,
   sem reset ou migração: `progress.tricks` ausente começa vazio, recargas usam o dicionário existente.

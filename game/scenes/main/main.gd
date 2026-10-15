@@ -63,6 +63,8 @@ func _ready() -> void:
 		_queue_modal(func() -> void: _announce()))
 	Events.trick_learned.connect(func(id: String) -> void:
 		_queue_modal(func() -> void: _celebration.show_trick(id)))
+	Events.treasure_opened.connect(func(rewards: Dictionary) -> void:
+		_queue_modal(func() -> void: _celebration.show_treasure(rewards)))
 	Events.cosmetic_received.connect(func(id: String) -> void:
 		_queue_modal(func() -> void:
 			_walk_result.show_result({"kind": "sewing", "name": "Roupa nova", "rare": id, "collections": [id]})))

@@ -48,7 +48,7 @@ Ao terminar, marque a etapa como feita no docs/plans/comeco/README.md.
 - [x] Etapa 08 — apetrechos (14/10/2026, Codex; lenço e lendários aprovados, vestir/pet shop/costura/bolsinha, testes e capturas conferidos, sem push)
 - [x] Etapa 09 — amigos (14/10/2026, Codex; quatro cachorros, janelas, corações e visitas offline; testes/capturas/Web prod/dev conferidos, sem push)
 - [x] Etapa 10 — truques (14/10/2026, Codex; cinco truques, treino de um toque, testes/capturas/Web prod/dev conferidos, sem push)
-- [ ] Etapa 11 — tesouro
+- [x] Etapa 11 — tesouro (14/10/2026; mapa completo, baú da Clareira, mirtilo; testes/capturas/Web prod/dev conferidos, sem push)
 
 ## Decisões já fechadas com o Vitor (13/10/2026)
 - **Saves serão zerados** (save v12 começa do zero, como já foi feito no v11). Nada de migração.

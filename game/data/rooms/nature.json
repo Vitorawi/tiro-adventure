@@ -22,7 +22,21 @@
       "polygon": [[213, 198], [238, 205], [224, 224], [235, 246], [206, 271], [151, 284], [92, 259], [102, 243], [156, 225], [190, 222], [195, 210]]
     }
   ],
-  "objects": [],
+  "objects": [
+    {
+      "id": "treasure_chest",
+      "sprite": "res://assets/sprites/areas/nature/treasure_closed.png",
+      "seen_sprite": {"key": "treasure_opened", "sprite": "res://assets/sprites/areas/nature/treasure_open.png"},
+      "requirements": {"quests": ["guide_treasure"]},
+      "pos": [96, 222],
+      "scale": 2.2,
+      "approach": [112, 236],
+      "footprint": [[82, 216], [110, 216], [110, 226], [82, 226]],
+      "action": "treasure",
+      "label": "Clareira escondida",
+      "label_pos": [96, 250]
+    }
+  ],
   "route_markers": [
     {
       "site": "trees",

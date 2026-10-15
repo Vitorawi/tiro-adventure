@@ -74,6 +74,30 @@ func show_find(result: Dictionary) -> void:
 	box.add_child(UiKit.button("Oba!", hide, &"PrimaryButton"))
 	show()
 
+## Baú da Clareira: a festa grande. Os prêmios já entraram; o cartão só mostra o que veio.
+func show_treasure(rewards: Dictionary) -> void:
+	var def: Dictionary = Database.progression.treasure
+	var box := _open()
+	box.add_child(_center(UiKit.icon(UiKit.ui_icon(str(def.get("icon", "item_map_piece"))), 64)))
+	box.add_child(_center(UiKit.label("Tesouro encontrado!", &"TitleLabel")))
+	box.add_child(_center(UiKit.label(str(def.get("name", "")), &"SectionLabel")))
+	var chips := UiKit.flow()
+	chips.alignment = FlowContainer.ALIGNMENT_CENTER
+	if int(rewards.get("coins", 0)) > 0:
+		chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(rewards.coins)))
+	for id: String in rewards.get("items", {}):
+		chips.add_child(UiKit.chip(Database.item_icon(id), "+%d" % int(rewards.items[id])))
+	for id: String in rewards.get("collections", []):
+		chips.add_child(UiKit.chip(UiKit.ui_icon(str(Database.collections.get(id, {}).get("icon", "item_accessory_set"))), "+1"))
+	box.add_child(chips)
+	for unlock: String in rewards.get("unlocks", []):
+		if unlock.begins_with("crop:"):
+			var crop := unlock.trim_prefix("crop:")
+			box.add_child(_center(UiKit.label("Muda nova: %s" % Database.item_name(crop), &"SmallLabel", UiKit.GOOD)))
+	box.add_child(UiKit.button("Oba!", hide, &"PrimaryButton"))
+	show()
+
+
 func show_trick(id: String) -> void:
 	var def: Dictionary = Database.progression.tricks[id]
 	var box := _open()

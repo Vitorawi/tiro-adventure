@@ -266,6 +266,11 @@ func item_sources(item_id: String) -> Array[Dictionary]:
 			sources.append({"type": "stat", "key": "activity:" + id})
 	if item_id == "dog_food":
 		sources.append({"type": "stat", "key": "feed"})
+	# Achados (pedaços do mapa...): onde o Tiro cava no mundo que os garante ou sorteia.
+	for world: String in (finds.get("worlds", {}) if items.get(item_id, {}).get("category", "") == "find" else {}):
+		var entries: Array = finds.worlds[world].get("guaranteed", []) + finds.worlds[world].get("table", [])
+		if entries.any(func(entry: Dictionary) -> bool: return entry.get("items", {}).has(item_id)):
+			sources.append({"type": "stat", "key": "find:" + world})
 	for id: String in (walks.get("walks", {}) if items.get(item_id, {}).get("category", "") == "trail" else {}):
 		var loot: Dictionary = walks.walks[id].get("loot", {})
 		var found: bool = loot.get("first", {}).get("items", {}).has(item_id)

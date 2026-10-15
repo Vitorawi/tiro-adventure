@@ -41,6 +41,7 @@
       "water": "regas",
       "friend_gift": "petiscos a amigos",
       "trick": "truques",
+      "treasure": "baús abertos",
       "equip": "apetrechos vestidos",
       "sew": "apetrechos costurados",
       "walk_legendary": "lendários de passeio"
@@ -2167,6 +2168,12 @@
       "zone": 0.18,
       "speed": 0.95
     }
+  },
+  "treasure": {
+    "name": "Baú da Clareira",
+    "icon": "item_map_piece",
+    "requirements": {"quests": ["guide_treasure"]},
+    "rewards": {"coins": 150, "collections": ["explorer_hat"], "unlocks": ["crop:blueberry"], "items": {"bolt": 2}}
   },
   "trick_settings": {
     "hits": 3,

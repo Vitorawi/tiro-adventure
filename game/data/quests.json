@@ -1223,6 +1223,25 @@
     "line": "guide",
     "order": 40
   },
+  "guide_treasure": {
+    "npc": "guide",
+    "name": "O mapa completo",
+    "dialogue": "Esse mapa... é da Clareira Escondida! Vamos lá?",
+    "goals": [
+      {"type": "have", "key": "map_piece_1", "target": 1, "label": "Pedaço do sítio"},
+      {"type": "have", "key": "map_piece_2", "target": 1, "label": "Pedaço da praça"},
+      {"type": "have", "key": "map_piece_3", "target": 1, "label": "Pedaço da vila"},
+      {"type": "have", "key": "map_piece_4", "target": 1, "label": "Pedaço da trilha"}
+    ],
+    "rewards": {
+      "coins": 30,
+      "skill_xp": {"adventure": 40}
+    },
+    "kind": "line",
+    "line": "guide",
+    "order": 50,
+    "requirements": {"quests": ["guide_fibers"]}
+  },
   "bloblo_strawberry": {
     "npc": "bloblo",
     "name": "Docinho da Laís",

@@ -240,6 +240,17 @@
       "happiness": 6
     }
   },
+  "blueberry": {
+    "name": "Mirtilo",
+    "category": "crop",
+    "icon": "res://assets/sprites/ui/icons/item_blueberry.png",
+    "sell_price": 9,
+    "trade_xp": 3,
+    "feed": {
+      "hunger": 4,
+      "happiness": 8
+    }
+  },
   "sweet_potato": {
     "name": "Batata-doce",
     "category": "crop",

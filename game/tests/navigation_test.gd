@@ -45,7 +45,7 @@ func _run() -> void:
 			if room.call("region_error", region) != "":
 				blocked.append(polygon(region.polygon))
 		for object: Dictionary in data.get("objects", []):
-			if object.has("footprint") and not object.has("upgrade"):
+			if object.has("footprint") and not object.has("upgrade") and (not object.has("requirements") or state.call("requirement_error", object.requirements) == ""):
 				blocked.append(polygon(object.footprint))
 		var start := dog.position
 		var destinations: Array[Vector2] = []

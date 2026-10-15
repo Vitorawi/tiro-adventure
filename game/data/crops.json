@@ -93,6 +93,19 @@
       "quests": ["bloblo_dig"]
     }
   },
+  "blueberry": {
+    "seconds": 900,
+    "coins": 20,
+    "yield": {
+      "blueberry": 3
+    },
+    "sprite": "res://assets/sprites/areas/farm/crop_blueberry.png",
+    "skill_xp": 40,
+    "requirements": {
+      "quests": ["guide_treasure"],
+      "stats": {"treasure": 1}
+    }
+  },
   "sweet_potato": {
     "seconds": 420,
     "coins": 12,

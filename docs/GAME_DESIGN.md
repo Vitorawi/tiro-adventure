@@ -294,3 +294,4 @@ Pipoca com dois corações soma um achado aos passeios, junto à bolsinha. Melho
 visitar a Casa após oito horas de ausência real e deixam um presente persistido até o toque.
 O cartão de boas-vindas leva à visita; a Coleção tem álbum de amigos e silhuetas dos desconhecidos.
 Missões da Nina apresentam a turma; desejo, diária e semanal reutilizam dar petiscos.
+- **(d) Tesouro (Etapa 11, implementada):** com os quatro pedaços achados pelo Tiro (sítio, praça, vila, natureza), o Guia da trilha ganha o passo "O mapa completo". Ao recebê-lo, um baú aparece na Natureza (Clareira escondida). Tocar uma vez: festa, 150 moedas, Chapéu de explorador, parafusos e as mudas de mirtilo (cultura nova e desejo especial). Final do mistério que começou no pedaço 1; plano de 12 etapas concluído.

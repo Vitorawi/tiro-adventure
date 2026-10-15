@@ -3,6 +3,8 @@ extends Node
 ## Roupa produzida/conquistada fora do passeio; entra na fila de cartões da casca.
 signal cosmetic_received(id: String)
 signal trick_learned(id: String)
+## Baú da Clareira aberto; `rewards` já foi entregue.
+signal treasure_opened(rewards: Dictionary)
 ## Barramento global de sinais (autoload "Events").
 ##
 ## Sistemas que não se conhecem conversam por aqui: um emite, outro escuta.
