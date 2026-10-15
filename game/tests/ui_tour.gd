@@ -224,4 +224,19 @@ func _run() -> void:
 	await create_timer(2.2).timeout
 	main.get_node("TopBar").call("show_level_popover")
 	await shot("c06_hud_popover", 0.4)
+	# --- Etapa 04: câmera dos mundos (zoom mínimo, duplo toque, painel aberto sobre um objeto) ---
+	await create_timer(2.2).timeout
+	await _world("farm")
+	var world_farm: Node = main.find_child("World_farm", true, false)
+	world_farm.call("_zoom_at", world_farm.size / 2.0, 0.0)
+	await shot("d01_farm_zoom_out", 0.5)
+	# Duplo toque no céu (zoom mínimo, área sempre vazia): aproxima.
+	world_farm.call("_on_tap_released", Vector2(10, 10))
+	world_farm.call("_on_tap_released", Vector2(12, 12))
+	await shot("d02_farm_doubletap", 0.6)
+	world_farm.call("recenter")
+	await create_timer(0.5).timeout
+	world_farm.call("_on_object_tapped", "place:silo", world_farm.find_child("silo", true, false))
+	await shot("d03_sheet_over_object", 1.0)
+	await _close()
 	quit(0)

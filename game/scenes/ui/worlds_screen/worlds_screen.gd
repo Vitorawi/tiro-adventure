@@ -3,13 +3,16 @@ extends Control
 ##
 ## Os mundos vêm de data/worlds.json. Mundo com "room" vira uma sala (RoomView:
 ## casa, sítio); sem "room" vira uma tela com a imagem "banner" + cartões dos
-## personagens e lugares. O cabeçalho do mundo mostra o botão "Mapa", o botão
-## "Lugares" ("O que tem aqui?") e os personagens dali (com "!" quando há missão
-## pronta), para nunca ser preciso adivinhar onde tocar.
+## personagens e lugares. O mundo ocupa a tela toda (o HUD flutua por cima); a barra do mundo
+## mostra a pílula do mundo (abre a lista de mundos), o botão "Lugares" e os rostos dos
+## personagens dali (com selo quando há missão), para nunca ser preciso adivinhar onde tocar.
 
 const ROOM_SCENE := preload("res://scenes/levels/room/room.tscn")
 ## Segundos com a seta à vista antes de abrir o painel do destino.
 const POINT_DELAY := 0.8
+## Barra do mundo: margem lateral e altura (logo abaixo do HUD, que tem 60).
+const BAR_MARGIN := 10.0
+const BAR_TOP := 64.0
 
 var current_world := "house"
 var _views: Dictionary = {}  # world_id -> Control (criado na primeira visita e mantido)
@@ -20,10 +23,8 @@ var _hinted: Dictionary = {}  # passos que já ganharam a seta da dica parada
 
 
 func _ready() -> void:
+	_build_world_bar()
 	%MapButton.pressed.connect(show_map)
-	%MapButton.icon = UiKit.ui_icon("tab_map")
-	%PlacesButton.pressed.connect(func() -> void:
-		Events.sheet_requested.emit("Locais" if current_world == "nature" else "O que tem aqui?", Places.world_list(current_world)))
 	%Cards.add_child(SheetBuilder.LiveBox.new(_build_cards))
 	Events.state_changed.connect(_refresh_header)
 	var timer := Timer.new()
@@ -116,30 +117,78 @@ func _build_world(world_id: String) -> Control:
 	return view
 
 
-## Cabeçalho: nome do mundo e, embaixo, os personagens dali (com nome). Só refaz se algo mudou
-## (refazer com o dedo na tela "engoliria" o toque).
+func _open_places() -> void:
+	Events.sheet_requested.emit("Lugares", Places.world_list(current_world))
+
+
+## Barra flutuante do mundo, abaixo do HUD: pílula do mundo + lista de lugares (esquerda) e os
+## rostos dos personagens dali (direita, em coluna). O contêiner ignora o mouse: arrastar o mundo
+## continua funcionando fora das peças.
+func _build_world_bar() -> void:
+	var bar := Control.new()
+	bar.name = "WorldBar"
+	bar.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	bar.z_index = 2
+	%WorldView.add_child(bar)
+	var left := HBoxContainer.new()
+	left.name = "BarLeft"
+	left.add_theme_constant_override("separation", 6)
+	left.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	left.position = Vector2(BAR_MARGIN, BAR_TOP)
+	bar.add_child(left)
+	var pill := WorldPill.new()
+	pill.name = "MapButton"
+	left.add_child(pill)
+	pill.owner = self
+	pill.unique_name_in_owner = true
+	var places := UiKit.icon_button(UiKit.ui_icon("tab_tasks"), _open_places, 44)
+	places.name = "PlacesButton"
+	left.add_child(places)
+	places.owner = self
+	places.unique_name_in_owner = true
+	var title := Label.new()  # só guarda o nome do mundo (testes e leitores de tela); não aparece
+	title.name = "WorldTitle"
+	title.visible = false
+	bar.add_child(title)
+	title.owner = self
+	title.unique_name_in_owner = true
+	var faces := VBoxContainer.new()
+	faces.name = "NpcRow"
+	faces.add_theme_constant_override("separation", 8)
+	faces.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	faces.anchor_left = 1.0
+	faces.anchor_right = 1.0
+	faces.offset_left = -(BAR_MARGIN + NpcFace.SIZE + 8.0)  # 8 a mais: o selo passa um pouco do círculo
+	faces.offset_right = -BAR_MARGIN
+	faces.offset_top = BAR_TOP
+	faces.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	bar.add_child(faces)
+	faces.owner = self
+	faces.unique_name_in_owner = true
+
+
+## Nome do mundo na pílula e os rostos dos personagens (selo "!" = missão nova, check = pronta).
+## Só refaz se algo mudou (refazer com o dedo na tela "engoliria" o toque).
 func _refresh_header() -> void:
 	var world: Dictionary = Database.worlds.get(current_world, {})
 	var key := current_world
 	for npc_id: String in Places.visible_npcs(current_world):
-		key += "|%s:%s" % [npc_id, Places.npc_alert(npc_id) != ""]
+		key += "|%s:%s" % [npc_id, Places.npc_badge(npc_id)]
 	if key == _header_key:
 		return
 	_header_key = key
 	%WorldTitle.text = world.get("name", "")
-	%PlacesButton.text = "Locais" if current_world == "nature" else "Lugares"
+	(%MapButton as WorldPill).set_world(current_world)
 	for child in %NpcRow.get_children():
 		child.queue_free()
 	%NpcRow.visible = not Places.visible_npcs(current_world).is_empty()
 	for npc_id: String in Places.visible_npcs(current_world):
-		# Personagem com nome escrito; verde e com "!" quando tem missão pronta.
-		var ready := Places.npc_alert(npc_id) != ""
-		var npc_name: String = Database.npcs.get(npc_id, {}).get("name", npc_id)
-		var chip := UiKit.button(("! " if ready else "") + npc_name, Places.open_npc.bind(npc_id), &"PrimaryButton" if ready else &"", ProgressionUi.npc_portrait(npc_id))
-		chip.custom_minimum_size = Vector2(0, 40)
-		chip.add_theme_constant_override("icon_max_width", 28)
-		chip.add_theme_font_size_override("font_size", 16)
-		%NpcRow.add_child(chip)
+		var face := NpcFace.new()
+		face.pressed.connect(Places.open_npc.bind(npc_id))
+		%NpcRow.add_child(face)
+		face.setup(npc_id, Places.npc_badge(npc_id))
+		Motion.pop_in(face)
 
 
 # --- Mapa ----------------------------------------------------------------------

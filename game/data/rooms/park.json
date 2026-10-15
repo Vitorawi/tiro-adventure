@@ -1,5 +1,14 @@
 {
   "background": "res://assets/sprites/areas/park/park.png",
+  "backdrop": {
+    "texture": "res://assets/sprites/areas/park/backdrop.png",
+    "sky": ["#9ad7f5", "#fbeec9"],
+    "ground": "#80964c",
+    "clouds": true,
+    "parallax": 0.25,
+    "horizon": 0.3
+  },
+  "initial_zoom": 0.85,
   "floor": [[52, 194], [315, 60], [582, 196], [318, 330]],
   "dig_spots": [[262, 150], [400, 262], [345, 150], [440, 172], [420, 240], [232, 238], [160, 190], [380, 258]],
   "navigation_margin": 8,

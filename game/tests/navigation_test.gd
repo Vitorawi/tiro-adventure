@@ -129,8 +129,8 @@ func _framing_check(state: Node) -> void:
 		check(bool(room.get("_framed")), id + ": sala enquadrada depois de ganhar tamanho")
 		var data: Dictionary = root.get_node("Database").call("room", id)
 		var content: Control = room.get("_content")
-		var expected: float = float(data.get("initial_zoom", room.call("_fit_zoom")))
-		check(is_equal_approx(float(room.get("_zoom")), maxf(expected, float(room.call("_fit_zoom")))), id + ": zoom inicial é o enquadrado")
+		var expected: float = float(room.call("_initial_zoom"))
+		check(is_equal_approx(float(room.get("_zoom")), maxf(expected, float(room.call("_min_zoom")))), id + ": zoom inicial é o enquadrado")
 		var dog: Node2D = room.get("_dog")
 		if dog != null and id == "house":
 			var on_screen: Vector2 = content.position + dog.position * float(room.get("_zoom"))

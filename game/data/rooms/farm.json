@@ -1,7 +1,16 @@
 {
   "background": "res://assets/sprites/areas/farm/farm_animals.png",
+  "backdrop": {
+    "texture": "res://assets/sprites/areas/farm/backdrop.png",
+    "sky": ["#8fd3f4", "#dff3e6"],
+    "ground": "#7f9150",
+    "clouds": true,
+    "parallax": 0.25,
+    "horizon": 0.2
+  },
   "floor": [[603, 60], [1180, 344], [603, 638], [25, 344]],
   "dig_spots": [[660, 166], [706, 202], [745, 237], [764, 252], [716, 276], [668, 300], [613, 325]],
+  "edge_cover": [[20, 335], [604, 629], [1184, 341], [1184, 412], [616, 700], [20, 412]],
   "navigation_margin": 8,
   "dog_scale": 0.5,
   "obstacles": [
@@ -354,8 +363,8 @@
     "dog_start": [638, 190],
     "npc_bloblo": [540, 205]
   },
-  "initial_zoom": 0.62,
-  "view_center": [603, 235],
+  "initial_zoom": 1.0,
+  "view_center": [562, 250],
   "regions": [
     {
       "id": "greenhouse_area",

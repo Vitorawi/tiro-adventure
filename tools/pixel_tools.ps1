@@ -3,6 +3,8 @@
 #   . .\tools\pixel_tools.ps1              (carrega as funcoes na sessao)
 #   Invoke-TrimSprite in.png out.png       (corta bordas transparentes; retorna "LxA")
 #   Invoke-ClearOutside in.png out.png 12  (torna transparente o fundo claro que toca as bordas)
+#   Invoke-ClearCorner in.png out.png 4    (torna transparente o fundo escuro liso da cor do canto que toca as bordas)
+#   Invoke-FillBelow in.png out.png '#6fa046' (pinta de cor solida os transparentes abaixo do 1o pixel opaco de cada coluna)
 #   New-ContactSheet out.png 3 a.png b.png (pranchas ampliadas para revisao)
 #   New-OverlayFromDiff base.png vestido.png overlay.png 24 (diferenca RGBA, canvas preservado)
 
@@ -59,12 +61,51 @@ public static class PixelTools {
         bmp.Save(outPath, ImageFormat.Png); bmp.Dispose();
         return n;
     }
+    // Em cada coluna, pinta com a cor dada os pixels transparentes abaixo do primeiro pixel opaco
+    // (faixa de paisagem que precisa terminar sem buracos, na cor do chao).
+    public static int FillBelow(string inPath, string outPath, int r, int g, int b) {
+        var bmp = Load(inPath); int n = 0;
+        for (int x = 0; x < bmp.Width; x++) {
+            bool seen = false;
+            for (int y = 0; y < bmp.Height; y++) {
+                var c = bmp.GetPixel(x, y);
+                if (c.A > 128) seen = true;
+                else if (seen) { bmp.SetPixel(x, y, Color.FromArgb(255, r, g, b)); n++; }
+            }
+        }
+        bmp.Save(outPath, ImageFormat.Png); bmp.Dispose();
+        return n;
+    }
+    // Torna transparente o fundo escuro liso (cor do canto 0,0) que toca as bordas da imagem.
+    public static int ClearCorner(string inPath, string outPath, int tol) {
+        var bmp = Load(inPath); int w = bmp.Width, h = bmp.Height, n = 0;
+        var key = bmp.GetPixel(0, 0);
+        var seen = new bool[w, h]; var q = new Queue<Point>();
+        for (int x = 0; x < w; x++) { q.Enqueue(new Point(x, 0)); q.Enqueue(new Point(x, h - 1)); }
+        for (int y = 0; y < h; y++) { q.Enqueue(new Point(0, y)); q.Enqueue(new Point(w - 1, y)); }
+        while (q.Count > 0) {
+            var p = q.Dequeue();
+            if (p.X < 0 || p.Y < 0 || p.X >= w || p.Y >= h || seen[p.X, p.Y]) continue;
+            var c = bmp.GetPixel(p.X, p.Y);
+            if (Math.Abs(c.R - key.R) > tol || Math.Abs(c.G - key.G) > tol || Math.Abs(c.B - key.B) > tol) continue;
+            seen[p.X, p.Y] = true; bmp.SetPixel(p.X, p.Y, Color.Transparent); n++;
+            q.Enqueue(new Point(p.X + 1, p.Y)); q.Enqueue(new Point(p.X - 1, p.Y));
+            q.Enqueue(new Point(p.X, p.Y + 1)); q.Enqueue(new Point(p.X, p.Y - 1));
+        }
+        bmp.Save(outPath, ImageFormat.Png); bmp.Dispose();
+        return n;
+    }
 }
 "@
 }
 
 function Invoke-TrimSprite([string]$In, [string]$Out) { [PixelTools]::Trim((Resolve-Path $In).Path, $Out) }
 function Invoke-ClearOutside([string]$In, [string]$Out, [int]$Tolerance = 12) { [PixelTools]::ClearOutside((Resolve-Path $In).Path, $Out, $Tolerance) }
+function Invoke-ClearCorner([string]$In, [string]$Out, [int]$Tolerance = 4) { [PixelTools]::ClearCorner((Resolve-Path $In).Path, $Out, $Tolerance) }
+function Invoke-FillBelow([string]$In, [string]$Out, [string]$Hex) {
+    $c = [System.Drawing.ColorTranslator]::FromHtml($Hex)
+    [PixelTools]::FillBelow((Resolve-Path $In).Path, $Out, $c.R, $c.G, $c.B)
+}
 function New-OverlayFromDiff([string]$Base, [string]$Dressed, [string]$Out, [int]$Tolerance = 24) {
     if ($Tolerance -lt 0) { throw 'A tolerancia precisa ser positiva ou zero.' }
     [PixelTools]::OverlayFromDiff((Resolve-Path $Base).Path, (Resolve-Path $Dressed).Path, $Out, $Tolerance)

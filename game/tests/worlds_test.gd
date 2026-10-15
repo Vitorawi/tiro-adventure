@@ -46,7 +46,8 @@ func _run() -> void:
 	check(worlds.get("current_world") == "nature", "Um toque entra no mundo")
 	check(not worlds.call("is_map_open"), "Seleção fecha após entrar")
 	var collect: Button = worlds.get_node("%PlacesButton")
-	check(collect.text == "Locais", "Natureza lista pontos de coleta")
+	check(collect.text == "" and collect.icon != null, "Lugares é um botão só de ícone (Natureza também)")
+	check((worlds.get_node("%MapButton") as Button).text == "Natureza", "Pílula do mundo mostra o nome")
 	collect.pressed.emit()
 	await create_timer(0.2).timeout
 	load("res://scripts/ui/places.gd").call("open", "nature", "trees")

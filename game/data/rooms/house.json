@@ -1,5 +1,14 @@
 {
   "background": "res://assets/sprites/areas/house/room.png",
+  "backdrop": {
+    "sky": ["#f3dcc0", "#e9c9a3"],
+    "ground": "#9a6b48",
+    "clouds": false,
+    "parallax": 0.25,
+    "horizon": 0.42
+  },
+  "framing": "width",
+  "view_center": [330, 260],
   "floor": [[45, 284], [336, 138], [390, 164], [402, 238], [452, 215], [592, 285], [415, 382], [310, 334], [205, 382]],
   "objects": [
     {

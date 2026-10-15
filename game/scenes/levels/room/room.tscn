@@ -12,7 +12,19 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_room")
 
-[node name="Void" type="ColorRect" parent="."]
+[node name="Backdrop" type="Control" parent="."]
+unique_name_in_owner = true
+clip_contents = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture_filter = 1
+
+[node name="Void" type="ColorRect" parent="Backdrop"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -21,6 +33,31 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0.137, 0.114, 0.173, 1)
+
+[node name="Sky" type="TextureRect" parent="Backdrop"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 0
+
+[node name="Ground" type="ColorRect" parent="Backdrop"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+mouse_filter = 2
+
+[node name="Clouds" type="Node2D" parent="Backdrop"]
+unique_name_in_owner = true
+
+[node name="Far" type="TextureRect" parent="Backdrop"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 0
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 0
 
 [node name="Content" type="Control" parent="."]
 unique_name_in_owner = true

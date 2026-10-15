@@ -706,3 +706,36 @@ Sem PixelLab (nada de arte nova): `ui/icons/hud_tiro.png` (48×48) é um **recor
 `characters/tiro_pet/idle_breathe/frame_00.png` (caixa 98×98 em x=74, y=38 do canvas 256×216), reduzida para 44×44 por
 vizinho mais próximo (`System.Drawing`, `InterpolationMode = NearestNeighbor`) e colocada em (2, 3) de um canvas 48×48
 transparente. Serve de rosto no avatar do HUD (`Hud`, botão `HudAvatar`). Para refazer: repetir o recorte com outro quadro.
+
+### Interface nova — Etapa 04 (fundos dos mundos, nuvens e ícone de centralizar)
+Originais, tentativas e prancha em `build/art_sources/interface_etapa04/` (fora do git). Imagens soltas no PixelLab (sem tags).
+
+**Faixa de horizonte** (`areas/<mundo>/backdrop.png`) — `create_image_pro`, 480×192, `no_background: true`, 1 referência de estilo
+(o próprio mapa do mundo, enviada por `get_upload_url`). Cada uma saiu **na 1ª tentativa** (cenário de fundo com uma faixa de paisagem
+e o céu transparente; o céu vem do degradê do código). Recortada com `Invoke-TrimSprite` e sem as últimas linhas (faixa de terra/contorno
+que não combinava com o chão do código).
+
+| Mundo | Job escolhido | Recorte final | Observação |
+|---|---|---|---|
+| farm | `a541261f-cea4-4801-9698-176a79d25748` | 480×41 | morros verdes, árvores e um celeiro ao longe (menos 3 linhas) |
+| park | `d4553f1d-efc7-4951-b44c-92ef207b749b` | 480×33 | prédios azulados e ipês amarelos (menos 2 linhas) |
+| village | `22d12f41-1abc-4e1b-8ec4-5728698595df` | 480×82 | telhados, igreja e árvores de outono (menos 14 linhas de terra) |
+| nature | `55bd9181-16c0-421a-89c5-ab17b660ba03` | 480×130 | montanhas, névoa e pinheiros (menos 24 linhas escuras de baixo) |
+
+**Nuvens** — `create_image_pixen`, `no_background`, `outline: lineless` (o Pixen desenha contorno azul mesmo assim). O Pixen só aceita lado
+curto < 32 se for quadrado, então a nuvem 2 ficou 64×32 (não 64×24).
+- `areas/common/cloud_1.png` (86×30 depois do recorte): job `c5dd5c9a-b06f-4da0-a799-df7b5f269bd6`, 1ª tentativa.
+- `areas/common/cloud_2.png` (53×32): 3ª tentativa, job `dbcacc3f-8287-4c77-9f8c-d0e3f97cd1cf` (seed 21, `single color outline`).
+  Rejeitadas: `aafbc72b-45c1-45b4-80c1-518d93c9ba4d` (pontas azuis soltas dos lados) e `5b7ff834-9a3e-4bd0-a2b4-69d235d3ea10` (nuvem cinza).
+
+**Ícone de centralizar** `ui/icons/ui_recenter.png` (32×32) — `create_image_pixen`, 3 jobs em paralelo (mira laranja): escolhido o do seed 5,
+job `a03f5c3c-64d6-4728-8e22-deb7f7d552cc` (mira com um olho no meio). Rejeitados: `37ee4046-fd40-4518-8c7b-5080bfc37f87` (explosão) e
+`69a803ca-8146-4e66-a8ba-3b31bd44a5dc` (roda de leme).
+
+**Mapas com fundo transparente** (sem PixelLab): os fundos `farm/farm_animals.png`, `house/room.png`, `park/park.png` e `village/banner.png`
+traziam a cor de fundo escura (`#231d2c`/`#25192d`) gravada em volta da maquete; ela virou transparente (preenchimento a partir das bordas,
+`Invoke-ClearCorner` em `tools/pixel_tools.ps1`, tolerância 4) para o céu e o chão do mundo aparecerem atrás. Os originais ficaram em
+`build/art_sources/interface_etapa04/originais/`. `nature/nature.png` já era transparente.
+
+**Polígono `edge_cover`** (terra da lateral do Sítio coberta com a cor do chão): `tools/edge_cover.ps1 <png>` extrai o contorno da borda da grama e do
+fundo do bloco, mas a borda desenhada à mão é irregular; o do Sítio foi ajustado à mão (topo 5 px acima da borda da grama e fundo 12 px abaixo da terra) em `rooms/farm.json`.

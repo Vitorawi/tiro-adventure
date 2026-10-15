@@ -44,6 +44,8 @@ signal walk_collected(result: Dictionary)
 signal sheet_requested(title: String, content: Control)
 ## Pede para fechar o painel inferior.
 signal sheet_close_requested
+## O painel inferior acabou de fechar (por qualquer caminho: botão, arrasto ou pedido).
+signal sheet_closed
 ## Pede para trocar de aba ("pet", "map", "tasks", "bag").
 signal screen_requested(screen: StringName)
 ## Pede para ir a um mundo (aba Mapa) e, se `place` vier, abrir um lugar ("stove")

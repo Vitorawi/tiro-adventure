@@ -126,6 +126,7 @@ func close() -> void:
 	for child in _content_holder.get_children():
 		_content_holder.remove_child(child)
 		child.queue_free()
+	Events.sheet_closed.emit()
 	if _closing:
 		return
 	if Motion.reduced or not visible or not is_inside_tree():

@@ -23,6 +23,8 @@ const FADE := 0.12  # conteúdo novo entrando num painel que já está aberto
 const RESIZE := 0.18  # painel que acompanha o tamanho do conteúdo (e volta ao lugar depois de arrastado)
 const CLOSE := 0.2  # painel que desce ao fechar
 const TAB := 0.15  # aba que sobe/desce ao ser escolhida
+const CAMERA := 0.25  # câmera do mundo deslizando/aproximando (duplo toque, "Ir", centralizar)
+const SETTLE := 0.2  # mundo voltando ao limite depois de arrastado além da borda
 
 
 ## Pivô no centro para Controls (Node2D já gira/escala pela origem).

@@ -82,7 +82,55 @@ separados impedem andar na água, árvores ou penhascos. O save mantém os ids d
 Quatro cartões horizontais: miniatura inteira, nome curto, função, requisito ou aviso de pronto.
 Cartão inteiro tocável; mundo fechado tem requisito legível e não permite entrar. `map_name`
 e `map_caption` em worlds.json fornecem os textos curtos. Cabeçalho Para onde vamos?;
-Mundos volta à seleção. Natureza tem Locais (Bosque, Caverna, Prado), além do toque direto no mapa.
+a pílula do mundo (canto de cima do mapa) volta à seleção. Natureza lista Bosque, Caverna e Prado em
+"Lugares" (mesmo botão dos outros mundos), além do toque direto no mapa.
+
+## Mundo em tela cheia: fundo, enquadramento e câmera (Interface nova, Etapa 04)
+
+O mundo ocupa a tela toda (o HUD e a `WorldBar` flutuam por cima). Nada de vazio escuro: atrás da maquete
+há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem `backdrop` a sala mantém a cor escura de antes):
+
+```json
+"backdrop": {
+  "texture": "res://assets/sprites/areas/farm/backdrop.png",
+  "sky": ["#8fd3f4", "#dff3e6"],
+  "ground": "#7f9150",
+  "clouds": true,
+  "parallax": 0.25,
+  "horizon": 0.2
+},
+"framing": "width",
+"initial_zoom": 1.0,
+"view_center": [562, 250],
+"min_zoom": 0.3,
+"edge_cover": [[20, 335], [604, 629], [1184, 341], [1184, 412], [616, 700], [20, 412]]
+```
+
+- `sky` = degradê vertical (topo, meio) do alto da tela até o horizonte; `ground` = cor lisa do horizonte para baixo.
+  `texture` (opcional) = faixa de paisagem (PNG com céu transparente, base na cor do chão) apoiada no horizonte, em escala
+  inteira que cubra a largura; `clouds` = `true` (3–4 nuvens `areas/common/cloud_*.png` a 6–12 px/s, escala 2) ou `"mist"`
+  (névoa: nuvens grandes a 20%, lentas); `parallax` = fração do movimento da câmera que o horizonte e a paisagem acompanham;
+  `horizon` = altura do horizonte como fração da tela no enquadramento inicial (padrão 0,42; ajuste para ficar na altura do
+  fundo da maquete). Tudo é montado em `RoomView._setup_backdrop` (nó `Backdrop`: `Void`, `Sky`, `Ground`, `Clouds`, `Far`).
+- Os PNGs dos mapas (`farm_animals`, `room`, `park`, `banner`) têm o fundo transparente em volta da maquete
+  (`Invoke-ClearCorner` em `tools/pixel_tools.ps1`); mapa novo precisa seguir isso, senão o céu não aparece.
+- `edge_cover` = polígono (ou lista de polígonos) em coordenadas do fundo, pintado com a cor `ground` logo acima do
+  `Background` e abaixo dos objetos: esconde a lateral de terra do bloco flutuante. Só o **Sítio** usa (a maquete ocupa a
+  tela e fica "assentada" no gramado); Praça, Vila e Natureza mantêm a terra e parecem uma ilha no gramado. `edge_cover_color`
+  troca a cor. `tools/edge_cover.ps1 <png>` sugere o contorno.
+- `framing`: `"width"` (padrão: a maquete ocupa a largura toda, centrada em `view_center` ou no meio), `"height"` ou `"fit"`
+  (sala inteira). `initial_zoom` e `view_center` têm prioridade. O zoom mínimo (`min_zoom`; padrão = o menor entre a sala inteira
+  e a abertura) deixa afastar até ver tudo; o máximo é 2,0. `RoomView._initial_zoom()`/`_min_zoom()`.
+- Câmera: arrastar passa até 48 px da borda e volta em 0,2 s ao soltar; soltar com velocidade continua deslizando (últimos 80 ms,
+  perde 10% por quadro, para abaixo de 10 px/s; qualquer toque para). Duplo toque (< 300 ms, < 24 px, primeiro toque em área vazia)
+  aproxima para 1,6 no ponto ou, se já passou de 1,4, volta ao enquadramento. `zoom_to(pivô, zoom, segundos)` e `recenter()` animam.
+  Os botões +/− saíram (os nós ficam escondidos); `RecenterButton` (`ui_recenter`) aparece quando o zoom difere > 15% do inicial ou o
+  centro passa de 120 px. Ao abrir um painel por um objeto que ficaria atrás dele (y > 45% da tela), a câmera o sobe para 30%
+  (pode passar da borda; ao fechar o painel só volta ao limite do mundo — `Events.sheet_closed`).
+- Etiquetas que sairiam pelas laterais são empurradas para dentro (margem 8 px); totalmente fora, ficam onde estão.
+- `WorldsScreen`: sem cabeçalho. `WorldBar` (abaixo do HUD, y 64, ignora o mouse): pílula `WorldPill` (`MapButton`: ícone do mundo +
+  `map_name` + seta, borda na cor `Palette.WORLD`; abre a lista de mundos), botão de ícone `PlacesButton` (painel "Lugares", sempre
+  esse título) e, à direita em coluna, `NpcFace` por personagem (`NpcRow`; selo "!" = missão nova, check = pronta; `Places.npc_badge`).
 
 ## Como criar um mundo novo (receita)
 
@@ -95,8 +143,8 @@ Mundos volta à seleção. Natureza tem Locais (Bosque, Caverna, Prado), além d
 - A região tem `id`, `polygon`, `gate` (duas pontas da divisa), `upgrade`, `label`, `label_pos`
   e `locked_label: true`. Móvel dentro dela usa `region` e `upgrade`. Etiquetas dos móveis
   aparecem somente após a compra; a etiqueta Expandir desaparece quando a área abre.
-- `initial_zoom: 0.62` e `view_center` mantêm o centro legível; arrastar mostra as laterais e
-  diminuir o zoom mostra tudo. A seta do Ir traz o destino para a parte visível da câmera.
+- `initial_zoom: 1.0` e `view_center` (Interface nova, Etapa 04; antes 0,62) mantêm a horta 3×3 grande;
+  arrastar mostra as laterais e diminuir o zoom mostra tudo. A seta do Ir desliza a câmera até o destino.
 - Construções novas visíveis: bancada, estufa e pomar no sítio; forno na casa; banca extra e
   estação de costura na vila. Casa da Laís/Feira continuam no fundo; as compras acrescentam
   equipamento a esses lugares. Todas as peças têm `footprint` e se ordenam por Y.

@@ -48,7 +48,7 @@ Faça um commit local no fim (não faça push). Ao terminar, marque a etapa como
 - [x] Etapa 01 — visual (tema) — feita em 15/10/2026
 - [x] Etapa 02 — painel — feita em 15/10/2026
 - [x] Etapa 03 — barra superior e abas — feita em 15/10/2026
-- [ ] Etapa 04 — mundo em tela cheia
+- [x] Etapa 04 — mundo em tela cheia — feita em 15/10/2026
 - [ ] Etapa 05 — seletor de mundos
 - [ ] Etapa 06 — indicadores e etiquetas
 - [ ] Etapa 07 — bandeja na horta

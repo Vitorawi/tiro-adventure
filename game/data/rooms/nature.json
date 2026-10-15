@@ -1,5 +1,14 @@
 {
   "background": "res://assets/sprites/areas/nature/nature.png",
+  "backdrop": {
+    "texture": "res://assets/sprites/areas/nature/backdrop.png",
+    "sky": ["#9cc9d8", "#e4efe6"],
+    "ground": "#4f8a5b",
+    "clouds": "mist",
+    "parallax": 0.25,
+    "horizon": 0.3
+  },
+  "framing": "width",
   "floor": [[20, 214], [250, 79], [493, 213], [251, 329]],
   "dig_spots": [[204, 196], [230, 233], [257, 221], [283, 209], [246, 190], [188, 212]],
   "navigation_margin": 4,

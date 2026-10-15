@@ -1,5 +1,14 @@
 {
   "background": "res://assets/sprites/areas/village/banner.png",
+  "backdrop": {
+    "texture": "res://assets/sprites/areas/village/backdrop.png",
+    "sky": ["#a7d8f0", "#f6e3c4"],
+    "ground": "#7d9250",
+    "clouds": true,
+    "parallax": 0.25,
+    "horizon": 0.3
+  },
+  "initial_zoom": 0.85,
   "floor": [[38, 201], [315, 60], [593, 201], [315, 343]],
   "dig_spots": [[292, 212], [332, 212], [371, 248], [260, 260], [364, 244], [267, 239]],
   "navigation_margin": 8,
