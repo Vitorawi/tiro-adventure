@@ -421,7 +421,7 @@
           "bloblo_warehouse"
         ]
       },
-      "icon": "item_treat_box"
+      "icon": "station_chest"
     },
     "silo": {
       "name": "Silo",
@@ -436,7 +436,7 @@
           "main_9_cheese"
         ]
       },
-      "icon": "item_wheat"
+      "icon": "station_silo"
     },
     "warehouse": {
       "name": "Armazém",
@@ -452,7 +452,7 @@
           "bloblo_silo"
         ]
       },
-      "icon": "item_plank"
+      "icon": "station_warehouse"
     },
     "fridge_2": {
       "name": "Geladeira maior",
@@ -472,7 +472,7 @@
         ]
       },
       "storage_capacity": 20,
-      "icon": "tab_house"
+      "icon": "station_fridge"
     },
     "fridge_3": {
       "name": "Geladeira gigante",
@@ -494,7 +494,7 @@
         ]
       },
       "storage_capacity": 30,
-      "icon": "tab_house"
+      "icon": "station_fridge"
     },
     "chest_2": {
       "name": "Baú maior",
@@ -514,7 +514,7 @@
         ]
       },
       "storage_capacity": 20,
-      "icon": "item_treat_box"
+      "icon": "station_chest"
     },
     "chest_3": {
       "name": "Baú gigante",
@@ -536,7 +536,7 @@
         ]
       },
       "storage_capacity": 30,
-      "icon": "item_treat_box"
+      "icon": "station_chest"
     },
     "silo_2": {
       "name": "Silo maior",
@@ -556,7 +556,7 @@
         ]
       },
       "storage_capacity": 40,
-      "icon": "item_wheat"
+      "icon": "station_silo"
     },
     "silo_3": {
       "name": "Silo gigante",
@@ -578,7 +578,7 @@
         ]
       },
       "storage_capacity": 60,
-      "icon": "item_wheat"
+      "icon": "station_silo"
     },
     "warehouse_2": {
       "name": "Armazém maior",
@@ -598,7 +598,7 @@
         ]
       },
       "storage_capacity": 40,
-      "icon": "item_plank"
+      "icon": "station_warehouse"
     },
     "warehouse_3": {
       "name": "Armazém gigante",
@@ -620,7 +620,7 @@
         ]
       },
       "storage_capacity": 60,
-      "icon": "item_plank"
+      "icon": "station_warehouse"
     },
     "stove": {
       "name": "Fogão simples",
@@ -635,7 +635,7 @@
       "skill_xp": {
         "adventure": 10
       },
-      "icon": "item_carrot_snack"
+      "icon": "station_stove"
     },
     "fridge": {
       "name": "Geladeira",
@@ -650,7 +650,7 @@
       "skill_xp": {
         "adventure": 15
       },
-      "icon": "tab_house"
+      "icon": "station_fridge"
     },
     "farm": {
       "name": "Escritura do sítio",
@@ -709,7 +709,7 @@
       "skill_xp": {
         "adventure": 25
       },
-      "icon": "item_plank",
+      "icon": "station_workbench",
       "station": "workbench"
     },
     "cave_open": {
@@ -945,7 +945,7 @@
       "skill_xp": {
         "adventure": 25
       },
-      "icon": "item_carrot_snack"
+      "icon": "station_stove"
     },
     "stove_queue_2": {
       "name": "Cozinha ampliada",
@@ -963,7 +963,7 @@
       "skill_xp": {
         "adventure": 40
       },
-      "icon": "item_carrot_snack"
+      "icon": "station_stove"
     },
     "orchard": {
       "name": "Pomar",
@@ -1020,7 +1020,7 @@
       "skill_xp": {
         "adventure": 35
       },
-      "icon": "coin"
+      "icon": "station_stall"
     },
     "atelier": {
       "name": "Ateliê",
@@ -1062,7 +1062,7 @@
       "skill_xp": {
         "adventure": 25
       },
-      "icon": "item_egg",
+      "icon": "station_coop",
       "station": "chicken_coop",
       "gift_animal": "chicken_white"
     },
@@ -1085,7 +1085,7 @@
       "skill_xp": {
         "adventure": 25
       },
-      "icon": "item_milk",
+      "icon": "station_barn",
       "station": "cow_barn",
       "gift_animal": "cow_white"
     },
@@ -1107,7 +1107,7 @@
       "skill_xp": {
         "adventure": 25
       },
-      "icon": "item_flour",
+      "icon": "station_mill",
       "station": "mill"
     },
     "dairy": {
@@ -1128,7 +1128,7 @@
       "skill_xp": {
         "adventure": 25
       },
-      "icon": "item_cheese",
+      "icon": "station_dairy",
       "station": "dairy"
     },
     "forest_open": {
@@ -1181,7 +1181,7 @@
       "skill_xp": {
         "cooking": 10
       },
-      "icon": "item_strawberry_pop",
+      "icon": "station_blender",
       "station": "blender"
     },
     "petshop": {
@@ -1214,7 +1214,7 @@
           "petshop"
         ]
       },
-      "icon": "action_sew",
+      "icon": "station_sewing",
       "station": "sewing"
     },
     "walk_bag": {

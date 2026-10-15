@@ -18,7 +18,7 @@
       },
       "stove": {
         "name": "Cozinha",
-        "icon": "item_carrot_snack",
+        "icon": "station_stove",
         "description": "Fogão e liquidificador.",
         "upgrade": "stove",
         "panel": "stations:stove+blender",
@@ -29,7 +29,7 @@
       },
       "fridge": {
         "name": "Geladeira",
-        "icon": "tab_bag",
+        "icon": "station_fridge",
         "description": "Comidas, ovos e leite.",
         "upgrade": "fridge",
         "panel": "fridge",
@@ -40,7 +40,7 @@
       },
       "chest": {
         "name": "Baú",
-        "icon": "item_treat_box",
+        "icon": "station_chest",
         "description": "Produtos e acessórios.",
         "upgrade": "chest",
         "panel": "storage:chest",
@@ -79,7 +79,7 @@
       },
       "blender": {
         "name": "Liquidificador",
-        "icon": "item_strawberry_pop",
+        "icon": "station_blender",
         "description": "Picolé e suco.",
         "requirements": {
           "quests": [
@@ -119,14 +119,14 @@
       },
       "workbench": {
         "name": "Produção",
-        "icon": "item_plank",
+        "icon": "station_workbench",
         "description": "Bancada, moinho e queijaria.",
         "upgrade": "workbench",
         "panel": "stations:workbench+mill+dairy"
       },
       "silo": {
         "name": "Silo",
-        "icon": "item_wheat",
+        "icon": "station_silo",
         "description": "Colheitas.",
         "upgrade": "silo",
         "panel": "storage:silo",
@@ -138,7 +138,7 @@
       },
       "warehouse": {
         "name": "Armazém",
-        "icon": "item_plank",
+        "icon": "station_warehouse",
         "description": "Materiais.",
         "upgrade": "warehouse",
         "panel": "storage:warehouse",
@@ -177,7 +177,7 @@
       },
       "chicken_coop": {
         "name": "Galinheiro",
-        "icon": "item_egg",
+        "icon": "station_coop",
         "description": "Alimentar galinhas e recolher ovos.",
         "panel": "station:chicken_coop",
         "upgrade": "chicken_coop",
@@ -191,7 +191,7 @@
       },
       "cow_barn": {
         "name": "Curral",
-        "icon": "item_milk",
+        "icon": "station_barn",
         "description": "Alimentar vacas e recolher leite.",
         "panel": "station:cow_barn",
         "upgrade": "cow_barn",
@@ -205,7 +205,7 @@
       },
       "mill": {
         "name": "Moinho",
-        "icon": "item_flour",
+        "icon": "station_mill",
         "description": "Trigo vira farinha.",
         "panel": "station:mill",
         "upgrade": "mill",
@@ -216,7 +216,7 @@
       },
       "dairy": {
         "name": "Queijaria",
-        "icon": "item_cheese",
+        "icon": "station_dairy",
         "description": "Leite vira queijo.",
         "panel": "station:dairy",
         "upgrade": "dairy",
@@ -311,7 +311,7 @@
     "places": {
       "market": {
         "name": "Feira",
-        "icon": "coin",
+        "icon": "station_stall",
         "description": "Vender e encomendas.",
         "panel": "market:sell",
         "upgrades": [

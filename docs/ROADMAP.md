@@ -2,14 +2,44 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **15/10/2026, Claude Code (plano de interface)**.
+> um do outro. Última atualização: **15/10/2026, Claude Code (Interface nova, Etapa 00)**.
 
 **▶ PLANO ATUAL (15/10/2026): Interface nova — `docs/plans/interface/README.md`.** Aprovado pelo Vitor
 ("vamos nessas ideias mesmo"). 13 etapas (00–12), executar **uma por vez, na ordem**, com o prompt do README.
 Leitura obrigatória: `00_VISAO.md` (diagnóstico, referências, esboços) e `01_REGRAS_E_ESTILO.md` (regras,
 paleta, medidas, componentes, movimento, glossário de textos, receitas de arte). Só interface: regras, números
 e save (`SAVE_VERSION` 12) não mudam. Rascunho do tour de capturas usado no diagnóstico: `docs/plans/interface/ui_tour_rascunho.gd`
-(a Etapa 00 o transforma em `game/tests/ui_tour.gd`). **Próximo passo: Etapa 00.**
+(já virou `game/tests/ui_tour.gd`). **Próximo passo: Etapa 01 (`docs/plans/interface/ETAPA_01_visual.md`).**
+
+**✔ Interface nova — Etapa 00 (base) concluída (15/10/2026, Claude Code). Commit local, sem push.**
+- `SAVE_VERSION` continua 12; nenhuma regra/número/save mudou. Só ferramentas, constantes, ícones e um bug de enquadramento.
+- **Tour de capturas** `game/tests/ui_tour.gd` (rascunho do plano + completado): 40 PNGs numerados (`a01–a05` começo, `b01–b24b` jogo avançado,
+  `c01–c05` cartões/toast) em `build/screenshots/<--out>/`. Rodar SEM `--headless`: `--resolution 360x780 -s res://tests/ui_tour.gd -- --out=<pasta>`.
+  Não entra no `test_all`. Decisão: o `SaveManager` **fica** (o painel de Configurações lista os saves), mas o tour desliga o autosave
+  (`state_changed` desconectado, Timers removidos, `_save_path` num arquivo descartável); nada do save pessoal é gravado.
+  Acrescentei `b22b_places_list` ("O que tem aqui?") e `b24b_manual_stations` ao que o plano listava.
+- **`Palette`** (`scripts/ui/palette.gd`, igual ao guia B.1); `UiKit.GOOD/BAD` agora apontam para `Palette.GOOD/BAD` (cores levemente diferentes das antigas).
+- **`Motion`** (`scripts/ui/motion.gd`): `press/pop_in/pop_out/slide_up/bounce/pulse/count_up/shake/float_text`, tempos como constantes, `static var reduced`.
+  Desvios mínimos: `press` só conecta os sinais (devolve nada); com `reduced` as demais devolvem um Tween já encerrado; `reduced` ainda **não é lido do
+  `settings.json`** (o `SaveManager` é o único dono do disco; ligar na tela de Configurações numa etapa futura).
+- **`RingProgress`** (`scripts/ui/ring_progress.gd`): como no plano, mais `done_color` (verde quando `progress == 1`, "pronto" do guia B.5) e setters que redesenham;
+  ícone desenhado no maior múltiplo inteiro do PNG que cabe no quadrado inscrito no anel.
+- **Casa enquadrada:** `RoomView._framed`; `_show_whole_room` só marca enquadrado com `size > 0`, senão `_on_resized` tenta de novo. Conferido nas capturas
+  (360×780, 390×844 e 412×915): Casa inteira, Tiro no quadro; Sítio/Praça/Vila/Natureza iguais ao antes (o vazio em volta fica para a Etapa 04).
+  Teste: `navigation_test → _framing_check` (sala criada sem tamanho, ganha tamanho depois; **falha sem a correção**, verificado).
+- **14 ícones PixelLab** (Pixen 32×32): `station_stove/fridge/blender/chest/workbench/silo/warehouse/mill/dairy/coop/barn/sewing/stall` + `ui_lock`, em
+  `ui/icons/`, trocados em `progression.json → upgrades` (23 construções) e `worlds.json → places` (12 lugares). Todos aprovados em ≤ 3 tentativas
+  (fogão na 3ª; liquidificador, silo e queijaria na 2ª). Recortados e recentralizados em canvas 32×32. Jobs/escolhas em `docs/ART_PIPELINE.md`.
+  Ficaram como estavam (ícone de item faz sentido): pomar, estufa, ferramentas, tokens de nível da Natureza e o lugar `farm.animals` (ovo; agrupa galinheiro + curral);
+  também o mapa de ícones dos contadores de missão em `ProgressionUi` (`produce → item_carrot_snack`), que é de rotina, não de estação.
+- **Testes:** novo `ui_base_test` ("UI_BASE TEST: PASS", no `test_all.ps1`): anel corta 1,7→1 e −1→0, `Motion.reduced`, `count_up`, ícones existentes,
+  nenhuma estação com ícone `tab_*`/`item_carrot_snack`. Suíte inteira PASS. Atenção: `tools/test_all.ps1` **aborta no `park_test`** porque o encerramento
+  imprime `ERROR: N resources still in use at exit` (vazamento ao sair, igual no HEAD limpo — confirmado num worktree; é o aviso antigo já citado abaixo);
+  por isso os demais (walks, petshop, friends, tricks, treasure, ui_base e `dev_tools_test` dev/prod) foram rodados um a um: todos PASS.
+  Logs em `build/test_logs/etapa00_ui/`.
+- **Capturas:** `build/screenshots/etapa00_antes/` (39) e `etapa00_depois/` (40) em 360×780; `etapa00_depois_390x844/` e `etapa00_depois_412x915/`.
+  `b24b_manual_stations` só existe no "depois" (foi acrescentada depois do "antes").
+- Pendências: nenhuma obrigatória. **Próxima: Etapa 01** (tema novo: cartão ≠ botão, `primary/secondary/ghost/icon_button`, `lock_hint` usando `ui_lock`).
 
 **✔ Etapa 11 — Tesouro concluída (14/10/2026, Claude Code, retomando o Codex). Commit local, sem push.**
 **Ajustes pós-plano (14–15/10/2026):** O **forno foi removido**: biscoito de maçã e caixa de petiscos agora são feitos no fogão (exigem bancada + geladeira), sem construção nem passo de história; capítulo 6 aponta para a Caverna. Coleção só lista roupas com arte (`GameState.has_overlay`); baú da Clareira some depois de aberto (`hide_seen`); etiquetas dos mapas tocáveis; **Estufa** ganhou 4 canteiros próprios (índices 9–12; ervas e mirtilo só lá, morango nos dois; crescem 30% mais rápido). Arte dos canteiros da estufa reaproveita `plot.png`.

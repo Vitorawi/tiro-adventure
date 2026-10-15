@@ -26,7 +26,7 @@ a cada push na `main` (versão publicada em `/` e versão dev em `/dev/`). Progr
 - Fases, **estado atual e próximas tarefas**: `docs/ROADMAP.md`
 - Planos detalhados prontos para executar: `docs/plans/` (ex.: `TASKS_V2.md`)
 - Etapas 10 e 11 concluídas: truques com treino de um toque na Praça e o tesouro (mapa completo, baú da Clareira, mirtilo); ver `docs/PROGRESSION.md` e `docs/ART_PIPELINE.md`. **Plano de 12 etapas concluído.**
-- **Plano atual: Interface nova** (`docs/plans/interface/README.md`): 13 etapas (00–12), uma por vez — visual, painel, HUD, mundo em tela cheia, seletor, balões, **bandeja de ação** (plantar/colher arrastando), estações, tela do Tiro, listas, textos e comemorações. Regras e estilo em `docs/plans/interface/01_REGRAS_E_ESTILO.md`.
+- **Plano atual: Interface nova** (`docs/plans/interface/README.md`): 13 etapas (00–12), uma por vez — visual, painel, HUD, mundo em tela cheia, seletor, balões, **bandeja de ação** (plantar/colher arrastando), estações, tela do Tiro, listas, textos e comemorações. Regras e estilo em `docs/plans/interface/01_REGRAS_E_ESTILO.md`. **Etapa 00 concluída** (tour de capturas, `Palette`, `Motion`, `RingProgress`, ícones próprios das estações, Casa enquadrada); próxima: Etapa 01.
 
 ## Trabalho em dupla (Claude Code + Codex)
 O projeto é desenvolvido alternando **Claude Code** (lê `CLAUDE.md`) e **Codex** (lê `AGENTS.md`).
@@ -72,7 +72,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
     entities/dog_world/  Tiro pequeno com IA autônoma (anda pelo caminho calculado)
     entities/npc_world/  NPC pequeno (Laís, vovó Bloblo) que passeia perto de casa, com balão "!"/"✓"
   scripts/state/     DogState, Inventory, StationState, ProgressionState, WishState, FindState, WalkState, FriendState (dados + to_dict/from_dict)
-  scripts/ui/        UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
+  scripts/ui/        Palette (cores), Motion (microanimações), RingProgress (anel de progresso), UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
                      ProgressionUi (painéis: personagem, construir, vender, encomendas, rotas, atributos, coleção),
                      GameManual (catálogo), NatureUi (coleta/níveis/refino), DevPanel (DEV),
                      WishUi (cartões de desejos, ícones e painel de vínculo), FriendUi (cartões/álbum de amigos), TrickUi (treino/lista),
@@ -126,6 +126,9 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Galinhas/vacas e seus produtos       | `config.json → stations` com `kind: "animal"`, `animal_capacity`; alimentação/ovos/leite em `recipes.json`, timer em `StationState` |
 | Recolher/colher com animação          | `Events.items_gained(itens, moedas, origem)` → `scripts/ui/collect_fx.gd` (miniaturas ícone +N saltam na tela). No mapa, tocar em estação/criação pronta, marcador de coleta da Natureza ou planta madura recolhe direto (`RoomView._collect_station/_collect_site`), sem abrir painel |
 | Reações do Tiro no mundo             | `Events.world_activity` (GameState) → `RoomView` (alvo) → `DogWorld.react_at` (animação/caminho) |
+| Cor, animação ou anel de progresso da interface | `scripts/ui/palette.gd` (`Palette.*`: nada de `Color("...")` solto no código novo), `scripts/ui/motion.gd` (`Motion.press/pop_in/pop_out/slide_up/bounce/pulse/count_up/shake/float_text`; `Motion.reduced` zera os tempos), `scripts/ui/ring_progress.gd` (`RingProgress`: `progress` 0..1 + `texture`). Guia: `docs/plans/interface/01_REGRAS_E_ESTILO.md` |
+| Ícone próprio de estação/lugar (`station_*`, `ui_lock`) | PNG 32 px em `ui/icons/` + campo `"icon"` em `progression.json → upgrades` e `worlds.json → places`; teste `ui_base_test.gd` impede ícone emprestado (`tab_*`, `item_carrot_snack`) nas estações |
+| Capturas de toda a interface (antes/depois de mudar visual) | `tests/ui_tour.gd` (régua do plano Interface nova; NÃO é teste). Cada tela nova acrescenta a captura dela |
 | Nova ferramenta de teste (dev)        | `GameState.dev_*()` (com guarda `BuildInfo.is_dev()`) + botão em `scripts/ui/dev_panel.gd` |
 | Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: PrimaryButton, TabButton, CloseButton, CardPanel, ReadyCardPanel, ChipPanel, SheetPanel, TopBarPanel, TitleLabel, SectionLabel, SmallLabel, BarLabel, ToastLabel) |
 | Ícone de item/necessidade/atributo    | PNG 32 px em `game/assets/sprites/ui/icons/` + campo `"icon"` no JSON (caminho em `items.json`/`needs`; nome do arquivo sem `.png` em `progression.json`, `npcs.json`, `collections.json`) |
@@ -243,6 +246,8 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
   Save v8 move activity antiga para vaga 1; pomar mantém API global. Ir preserva a rota exata
   das missões; route_markers.site mostra tempo/prontos e route_level a ampliação exigida.
   `"initial_zoom"`/`"view_center"` definem o enquadramento inicial de mapas maiores.
+  O enquadramento inicial só vale com a sala já com tamanho: `RoomView._framed` fica falso até
+  `_show_whole_room` rodar com `size > 0` (senão `_on_resized` repete); sem isso a Casa abria cortada.
   `"approach"` é o ponto seguro para o Tiro se aproximar de um objeto/estação ao reagir.
   `"z_index"` (padrão 0) coloca objetos apoiados em móveis acima das fatias, como o liquidificador sobre a ilha.
   `"station"` também detecta produção pronta, mesmo sem `busy_frames`.
@@ -310,8 +315,11 @@ powershell -ExecutionPolicy Bypass -File tools\serve_local.ps1  # http://localho
 & $env:GODOT_BIN --headless --path game -s res://tests/park_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/tricks_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/treasure_test.gd
+& $env:GODOT_BIN --headless --path game -s res://tests/ui_base_test.gd       # Palette, Motion, RingProgress, ícones das estações
 # Ou rode toda a suíte: powershell -File tools/test_all.ps1
 # Capturas das telas: rode sem --headless, com --resolution 360x780 e "-- --screenshots"
+# Tour de capturas da interface (40 PNGs em build/screenshots/<pasta>/; não grava o save):
+& $env:GODOT_BIN --path game --resolution 360x780 -s res://tests/ui_tour.gd -- --out=etapaNN_antes
 
 # Teste de TOQUE real (Chrome headless em modo celular): exporte, rode serve_local.ps1 e então
 powershell -ExecutionPolicy Bypass -File tools\touch_test.ps1 [-Url http://localhost:8000/dev/] [-Steps roteiro.json]  # tap/drag/pinch/ghost_drag/shot

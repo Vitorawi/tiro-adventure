@@ -5,8 +5,8 @@ extends RefCounted
 ## Ícones são pixel art de 32 px: usar tamanhos inteiros (32, 64) para ficarem nítidos.
 
 const ICON_DIR := "res://assets/sprites/ui/icons/"
-const GOOD := Color(0.24, 0.55, 0.16)
-const BAD := Color(0.78, 0.22, 0.18)
+const GOOD := Palette.GOOD
+const BAD := Palette.BAD
 
 
 static func ui_icon(icon_name: String) -> Texture2D:

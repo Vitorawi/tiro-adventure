@@ -44,7 +44,7 @@ Faça um commit local no fim (não faça push). Ao terminar, marque a etapa como
 | — | [FUTURO.md](FUTURO.md) | Ideias para depois (sons, noite, etc.; não executar) | — | — |
 
 ## Andamento (o executor marca ao terminar cada etapa)
-- [ ] Etapa 00 — base (tour, paleta, movimento, ícones)
+- [x] Etapa 00 — base (tour, paleta, movimento, ícones) — feita em 15/10/2026
 - [ ] Etapa 01 — visual (tema)
 - [ ] Etapa 02 — painel
 - [ ] Etapa 03 — barra superior e abas

@@ -79,6 +79,7 @@ func _run() -> void:
 		room.queue_free()
 		await process_frame
 	await _idle_hint_check(state)
+	await _framing_check(state)
 	if failures == 0:
 		print("NAVIGATION TEST: PASS")
 	quit(1 if failures else 0)
@@ -110,3 +111,29 @@ func _idle_hint_check(state: Node) -> void:
 	check(next_step != "welcome", "Dica: história avançou")
 	main.queue_free()
 	await process_frame
+
+
+## Enquadramento: a sala criada sem tamanho (como na aba Mapa) é enquadrada quando ganha layout,
+## e o Tiro fica dentro da área visível (bug da Casa que abria cortada, Etapa 00 da interface).
+func _framing_check(state: Node) -> void:
+	state.call("reset")
+	for id: String in ["house", "farm", "park", "village"]:
+		var room: Control = load("res://scenes/levels/room/room.tscn").instantiate()
+		room.set("room_id", id)
+		room.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		root.add_child(room)
+		await process_frame
+		room.size = Vector2(360, 650)
+		await process_frame
+		await process_frame
+		check(bool(room.get("_framed")), id + ": sala enquadrada depois de ganhar tamanho")
+		var data: Dictionary = root.get_node("Database").call("room", id)
+		var content: Control = room.get("_content")
+		var expected: float = float(data.get("initial_zoom", room.call("_fit_zoom")))
+		check(is_equal_approx(float(room.get("_zoom")), maxf(expected, float(room.call("_fit_zoom")))), id + ": zoom inicial é o enquadrado")
+		var dog: Node2D = room.get("_dog")
+		if dog != null and id == "house":
+			var on_screen: Vector2 = content.position + dog.position * float(room.get("_zoom"))
+			check(Rect2(Vector2.ZERO, room.size).has_point(on_screen), id + ": Tiro dentro da área visível")
+		room.queue_free()
+		await process_frame

@@ -662,3 +662,30 @@ Decisão: o fundo da Natureza (512×384) não tem espaço livre bonito, e nenhum
 decorativo. O baú fica na grama livre à esquerda da ponte, `pos [96, 222]`, `scale 1.6` (a arte tem só ~19 px, no
 tamanho do Tiro a 0,5). A "Clareira escondida" é revelada pelo próprio baú + etiqueta quando a missão
 `guide_treasure` é recebida. Chapéu de explorador continua sem overlay ("Em breve no Tiro"), como a bandana caramelo.
+
+## Interface nova — Etapa 00 (PixelLab, 15/10/2026)
+Ícones próprios das estações e do cadeado: `create_image_pixen` 32×32, `no_background`, contorno preto, detalhe médio
+(receita "Ícone de estação" de `docs/plans/interface/01_REGRAS_E_ESTILO.md`; o Pixen não aceita imagem de referência).
+Originais e candidatos em `build/art_sources/interface_etapa00/` (fora do git); pranchas em `build/preview/etapa00_*.png`.
+Recorte com `Invoke-TrimSprite` e recentralização num canvas 32×32 (mesmo tamanho dos ícones antigos). Até 3 tentativas cada.
+
+| Ícone (`ui/icons/`) | Job escolhido | Tentativa | Observação |
+|---|---|---|---|
+| `station_stove` | `55c14ef9-2494-4aaf-9bf6-7c0ec59afae2` | 3 | fogão de frente com panela e vapor; 1ª (`d83f6d43-…`, panela sobre chama) e 2ª (`172ba563-…`, caixa com panela) rejeitadas |
+| `station_fridge` | `6852d69d-36a0-49b8-b618-3d4dbfe61747` | 1 | |
+| `station_blender` | `e50c0836-d63c-40e7-9f60-5745c8fa339e` | 2 | 1ª (`fb890785-…`) parecia um troféu com carinha |
+| `station_chest` | `a0a41f31-02a1-4c6e-9e51-de3a4eef0167` | 1 | |
+| `station_workbench` | `be95bde4-5edd-4a69-a56f-4006a123c8a9` | 1 | |
+| `station_silo` | `55b72272-a904-4103-a7ac-46b9edc7c7e2` | 2 | 1ª (`b1ecb7d5-…`) parecia hidrante |
+| `station_warehouse` | `4d51f9ec-3690-4016-a274-7d4b3f0e7a51` | 1 | |
+| `station_mill` | `be9f32bd-6640-4faa-a90d-ac63e4fb2cdc` | 1 | |
+| `station_dairy` | `d4dac5c7-4905-48e4-9bfa-1da622992358` | 2 | 1ª (`344b3874-…`) saiu uma vaca em vez da casinha |
+| `station_coop` | `3d9a293f-d226-47bd-a7c6-46b678075838` | 1 | |
+| `station_barn` | `d3cd53b4-d69a-4213-91b8-cf40c6530449` | 1 | |
+| `station_sewing` | `98950559-6f82-436f-b0e2-c1ff93be9682` | 1 | |
+| `station_stall` | `86a636c4-79fc-4936-92c5-65786170f711` | 1 | |
+| `ui_lock` | `fd381a7d-ac41-4b88-8379-f4464c7cfbce` | 1 | cadeado dourado (usado a partir da Etapa 01) |
+
+Trocados em `progression.json → upgrades[*].icon` (23 construções) e `worlds.json → places[*].icon` (12 lugares).
+Ficaram como estão: pomar (maçã), estufa (ervas), ferramentas, tokens de nível da Natureza e o lugar `farm.animals` (ovo,
+agrupa galinheiro + curral). Não há personagem/objeto no PixelLab para estes ícones (imagens soltas, sem tags).

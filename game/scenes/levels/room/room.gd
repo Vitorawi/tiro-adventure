@@ -52,6 +52,8 @@ var _regions: Array[Node2D] = []
 var _route_markers: Array[RouteIndicator] = []
 var _ready_counts: Dictionary = {}
 var navigation_revision: int = 0
+## A sala já foi enquadrada (zoom inicial aplicado com tamanho de tela válido).
+var _framed := false
 ## Seta do "Ir": pulsa sobre o objeto do destino até o próximo toque (ou alguns segundos).
 var _pointer: Node2D
 
@@ -1183,6 +1185,9 @@ func _fit_zoom() -> float:
 
 
 func _show_whole_room() -> void:
+	if size.x <= 0.0 or size.y <= 0.0:
+		return  # ainda sem layout: _on_resized tenta de novo quando a sala ganhar tamanho
+	_framed = true
 	_zoom_at(size / 2.0, float(_room.get("initial_zoom", _fit_zoom())))
 	if _room.has("view_center"):
 		_content.position = size / 2.0 - _vec(_room.view_center) * _zoom
@@ -1215,6 +1220,9 @@ func _update_filter() -> void:
 
 
 func _on_resized() -> void:
+	if not _framed:
+		_show_whole_room()
+		return
 	_zoom_at(size / 2.0, _zoom)
 
 
