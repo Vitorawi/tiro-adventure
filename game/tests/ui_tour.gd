@@ -83,6 +83,10 @@ func _run() -> void:
 	main.call("show_screen", &"tasks")
 	await shot("a02_tasks")
 	main.call("show_screen", &"map")
+	main.find_child("WorldsScreen", true, false).call("show_map")
+	await process_frame
+	await process_frame
+	main.find_child("WorldsScreen", true, false).get_node("%MapView").call("center_on", "farm", false)
 	await shot("a03_map")
 	await _world("house")
 	await shot("a04_house")
@@ -239,4 +243,9 @@ func _run() -> void:
 	world_farm.call("_on_object_tapped", "place:workbench", world_farm.find_child("workbench", true, false))
 	await shot("d03_sheet_over_object", 1.0)
 	await _close()
+	# Etapa 05: cobertura no meio da viagem, abaixo do HUD.
+	Motion.reduced = false
+	main.find_child("WorldsScreen", true, false).call("enter", "park", "")
+	await shot("d04_transition", 0.2)
+	await create_timer(0.5).timeout
 	quit(0)

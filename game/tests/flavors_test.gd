@@ -84,6 +84,8 @@ func shot(name: String) -> void:
 	root.get_texture().get_image().save_png(folder + name + ".png")
 
 func screenshots() -> void:
+	# Consulta das salas sem esperar a viagem; a animação tem teste próprio em world_selector_test.
+	Motion.reduced = true
 	state.call("dev_add_items", 20)
 	state.get("progress").seen["intro"] = true
 	main = load("res://scenes/main/main.tscn").instantiate()

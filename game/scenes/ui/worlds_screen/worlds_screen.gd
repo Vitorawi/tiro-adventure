@@ -1,5 +1,5 @@
 extends Control
-## Aba Mapa: a lista de mundos (MapView) e o mundo atual (WorldView).
+## Aba Mapa: mundo atual (WorldView) e seletor em carrossel por cima (MapView).
 ##
 ## Os mundos vêm de data/worlds.json. Mundo com "room" vira uma sala (RoomView:
 ## casa, sítio); sem "room" vira uma tela com a imagem "banner" + cartões dos
@@ -8,6 +8,7 @@ extends Control
 ## personagens dali (com selo quando há missão), para nunca ser preciso adivinhar onde tocar.
 
 const ROOM_SCENE := preload("res://scenes/levels/room/room.tscn")
+const TRANSITION_SCENE := preload("res://scenes/ui/world_transition/world_transition.tscn")
 ## Segundos com a seta à vista antes de abrir o painel do destino.
 const POINT_DELAY := 0.8
 ## Barra do mundo: margem lateral e altura (logo abaixo do HUD, que tem 60).
@@ -20,13 +21,20 @@ var _thumbs: Dictionary = {}  # world_id -> Texture2D (miniatura do cartão do m
 var _header_key := ""
 var _idle := 0.0
 var _hinted: Dictionary = {}  # passos que já ganharam a seta da dica parada
+var _transition: WorldTransition
+var _visit: int = 0  # invalida setas/painéis de uma viagem substituída por outra
 
 
 func _ready() -> void:
 	_build_world_bar()
 	%MapButton.pressed.connect(show_map)
-	%Cards.add_child(SheetBuilder.LiveBox.new(_build_cards))
+	%MapView.chosen.connect(enter)
+	%MapView.closed.connect(_resume_room_input)
+	_transition = TRANSITION_SCENE.instantiate()
+	add_child(_transition)
 	Events.state_changed.connect(_refresh_header)
+	Events.state_changed.connect(func() -> void:
+		if is_map_open(): %MapView.refresh(current_world))
 	var timer := Timer.new()
 	timer.wait_time = 1.0
 	timer.autostart = true
@@ -36,8 +44,26 @@ func _ready() -> void:
 
 
 func show_map() -> void:
-	%MapView.show()
-	%WorldView.hide()
+	if _transition.busy: return
+	Events.sheet_close_requested.emit()
+	_suspend_room_input()
+	%MapView.open(current_world)
+
+
+func close_map() -> void:
+	%MapView.dismiss()
+
+
+func _suspend_room_input() -> void:
+	for view: Control in _views.values():
+		view.set_process_input(false)
+		if view is RoomView: view.call("_stop_camera")
+
+
+func _resume_room_input() -> void:
+	if _transition.busy: return
+	for view: Control in _views.values():
+		view.set_process_input(true)
 
 
 func is_map_open() -> bool:
@@ -64,22 +90,46 @@ func enter(world_id: String, place: String = "") -> void:
 		Events.toast_requested.emit("Ainda fechado: " + reason)
 		show_map()
 		return
+	_visit += 1
+	var visit := _visit
+	# Durante a nuvem, o pedido mais recente espera a troca atual e então segue.
+	while _transition.busy:
+		await get_tree().process_frame
+		if visit != _visit: return
+	var animate := world_id != current_world and is_visible_in_tree() and not Motion.reduced
+	%MapView.dismiss()
+	if animate:
+		Events.sheet_close_requested.emit()
+		_suspend_room_input()
+		await _transition.travel(_switch_world.bind(world_id))
+		_resume_room_input()
+	else:
+		_switch_world(world_id)
+	if visit != _visit: return
+	await _point_destination(world_id, place, visit)
+
+
+func _switch_world(world_id: String) -> void:
 	current_world = world_id
 	GameState.note_screen_opened(world_id)
 	var fresh_view := not _views.has(world_id)
 	if fresh_view:
 		_views[world_id] = _build_world(world_id)
 		%WorldHolder.add_child(_views[world_id])
+		if _transition.busy: _views[world_id].set_process_input(false)
 	for id: String in _views:
 		_views[id].visible = id == world_id
 	%MapView.hide()
 	%WorldView.show()
 	_header_key = ""
 	_refresh_header()
+
+
+func _point_destination(world_id: String, place: String, visit: int) -> void:
 	if place == "":
 		return
-	if fresh_view:
-		await get_tree().process_frame  # a sala nova recentraliza a câmera no próximo quadro
+	await get_tree().process_frame  # a sala nova recentraliza a câmera no próximo quadro
+	if visit != _visit or not is_visible_in_tree(): return
 	var room := _views[world_id] as RoomView
 	if place == "find":
 		if room: room.point_at("find")
@@ -92,7 +142,7 @@ func enter(world_id: String, place: String = "") -> void:
 	# "Ir": a seta mostra ONDE fica a coisa e o painel abre logo depois.
 	if room and room.point_at(Places.highlight_action(place)):
 		get_tree().create_timer(POINT_DELAY).timeout.connect(func() -> void:
-			if current_world == world_id and %WorldView.visible:
+			if visit == _visit and current_world == world_id and is_visible_in_tree() and not is_map_open():
 				Places.run(world_id, place))
 	else:
 		Places.run.call_deferred(world_id, place)
@@ -203,72 +253,6 @@ func _refresh_header() -> void:
 
 # --- Mapa ----------------------------------------------------------------------
 
-func _build_cards(box: VBoxContainer) -> void:
-	box.add_theme_constant_override("separation", 10)
-	for world_id: String in Database.worlds:
-		var world: Dictionary = Database.worlds[world_id]
-		var locked := Places.world_error(world_id)
-		var alerts := Places.world_alerts(world_id)
-		var button := UiKit.button("", enter.bind(world_id, ""))
-		button.name = "WorldCard_" + world_id
-		button.custom_minimum_size = Vector2(0, 138 if locked != "" else 118)
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		button.disabled = locked != ""
-		var normal := StyleBoxFlat.new()
-		normal.bg_color = Palette.CARD if locked == "" else Palette.SUNKEN
-		var highlighted := not alerts.is_empty() or world_id == current_world
-		normal.border_color = Palette.PRIMARY if highlighted else Palette.CARD_LINE
-		normal.set_border_width_all(3 if highlighted else 2)
-		normal.set_corner_radius_all(14)
-		normal.shadow_color = Palette.SHADE
-		normal.shadow_size = 3
-		normal.shadow_offset = Vector2(0, 2)
-		button.add_theme_stylebox_override("normal", normal)
-		button.add_theme_stylebox_override("disabled", normal)
-		var pressed := normal.duplicate() as StyleBoxFlat
-		pressed.bg_color = Palette.SUNKEN
-		button.add_theme_stylebox_override("pressed", pressed)
-		button.add_theme_stylebox_override("hover", normal)
-		var row := UiKit.hbox(12)
-		row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		row.offset_left = 10
-		row.offset_right = -10
-		row.offset_top = 10
-		row.offset_bottom = -10
-		var picture := _thumbnail(world_id, 88)
-		if picture:
-			picture.custom_minimum_size.x = 88
-			picture.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			picture.modulate.a = 0.55 if locked != "" else 1.0
-			row.add_child(picture)
-		var info := UiKit.vbox(4)
-		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		info.alignment = BoxContainer.ALIGNMENT_CENTER
-		info.add_child(UiKit.label(world.get("map_name", world.name), &"SectionLabel"))
-		info.add_child(UiKit.label(world.get("map_caption", world.get("description", "")), &"SmallLabel"))
-		if locked != "":
-			var hint := "Fechado · " + locked
-			if world.get("requirements", {}).has("chapter"):
-				hint = "Abre no capítulo %d" % int(world.requirements.chapter)
-			info.add_child(UiKit.label(hint, &"SmallLabel", UiKit.BAD))
-		elif not alerts.is_empty():
-			info.add_child(UiKit.label("Algo pronto para recolher!", &"SmallLabel", UiKit.GOOD))
-		elif world_id == current_world:
-			info.add_child(UiKit.label("Você está aqui", &"SmallLabel", UiKit.GOOD))
-		row.add_child(info)
-		row.add_child(UiKit.short_label("›" if locked == "" else "—", &"TitleLabel"))
-		button.add_child(row)
-		_ignore_card_mouse(row)
-		box.add_child(button)
-
-
-func _ignore_card_mouse(node: Control) -> void:
-	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for child: Node in node.get_children():
-		if child is Control:
-			_ignore_card_mouse(child)
-
-
 ## Miniatura do mundo: "banner" ou o fundo da sala, cortada para caber na largura.
 func _thumbnail(world_id: String, height: int) -> TextureRect:
 	if not _thumbs.has(world_id):
@@ -294,7 +278,7 @@ func _thumbnail(world_id: String, height: int) -> TextureRect:
 # (só a seta, sem abrir painel), uma vez por passo (memória, não vai para o save).
 
 func _process(delta: float) -> void:
-	if is_visible_in_tree() and %WorldView.visible:
+	if is_visible_in_tree() and %WorldView.visible and not is_map_open() and not _transition.busy:
 		advance_idle(delta)
 
 

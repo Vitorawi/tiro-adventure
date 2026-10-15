@@ -17,6 +17,8 @@ func check(ok: bool, message: String) -> void:
 
 
 func _run() -> void:
+	# Consulta das salas sem esperar a viagem; a animação tem teste próprio em world_selector_test.
+	Motion.reduced = true
 	var saver: Node = root.get_node("SaveManager")
 	root.remove_child(saver)
 	saver.free()

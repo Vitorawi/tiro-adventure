@@ -298,7 +298,7 @@
   "village": {
     "name": "Vila",
     "map_caption": "Vender e fabricar",
-    "icon": "coin",
+    "icon": "tab_village",
     "description": "Feira, ateliê e o portão para Natureza.",
     "room": "village",
     "requirements": {
@@ -339,7 +339,7 @@
   "nature": {
     "name": "Natureza",
     "map_caption": "Desbloquear e evoluir locais",
-    "icon": "item_wood",
+    "icon": "tab_nature",
     "description": "Bosque, riacho, prado e grutas. Explore para coletar materiais.",
     "room": "nature",
     "requirements": {

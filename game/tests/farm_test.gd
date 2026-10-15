@@ -90,6 +90,8 @@ func _run() -> void:
 
 
 func _screenshots(state: Node) -> void:
+	# Consulta das salas sem esperar a viagem; a animação tem teste próprio em world_selector_test.
+	Motion.reduced = true
 	state.call("reset")
 	state.get("progress").owned["farm"] = true
 	state.get("progress").skills["agriculture"] = 500

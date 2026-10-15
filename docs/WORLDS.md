@@ -79,11 +79,26 @@ separados impedem andar na água, árvores ou penhascos. O save mantém os ids d
 
 ## Seleção de mundos
 
-Quatro cartões horizontais: miniatura inteira, nome curto, função, requisito ou aviso de pronto.
-Cartão inteiro tocável; mundo fechado tem requisito legível e não permite entrar. `map_name`
-e `map_caption` em worlds.json fornecem os textos curtos. Cabeçalho Para onde vamos?;
-a pílula do mundo (canto de cima do mapa) volta à seleção. Natureza lista Bosque, Caverna e Prado em
-"Lugares" (mesmo botão dos outros mundos), além do toque direto no mapa.
+A aba Mapa retoma o último mundo da sessão (Casa no começo, sem gravação em disco). Tocar novamente
+na aba ou na pílula do mundo abre `MapView`, seletor sobre o mundo escurecido, sem esconder a sala.
+`WorldSelector` organiza cinco cartões 240×330 em carrossel horizontal, com margens para centralizar
+o primeiro/último, encaixe ao soltar e laterais menores. Tocar num lateral centraliza; tocar no central
+aberto viaja. Fecha pelo ✕, fora dos cartões ou arrastando para baixo. A pinça da sala fica suspensa
+enquanto ele está aberto, sem alterar o zoom ou desalinhamento da textura do chão.
+
+`WorldCard` mostra miniatura sobre céu/chão do `backdrop`, faixa `Palette.WORLD`, nome, legenda,
+"Você está aqui", quantidade de avisos (`Places.world_alerts`) e selo de missão. `map_name`, `map_caption`
+e `icon` de `worlds.json` fornecem os textos/ícones; os cinco ícones próprios são `tab_house`, `tab_farm`,
+`tab_park`, `tab_village` e `tab_nature`. Mundo fechado fica desabilitado, com cadeado e
+`Places.unlock_hint`: nome da história ou missão e seu ícone/retrato, sem número de capítulo.
+
+`WorldsScreen.enter` usa `WorldTransition` quando muda o mundo com a aba visível. Duas massas de papel
+arredondadas entram em 0,22 s, a sala troca coberta e elas saem em 0,22 s (alternativa permitida pelo plano).
+O nó coordenador é `CanvasLayer`; `CloudCover` usa o canvas da tela em z 5, abaixo do HUD em z 8,
+para preservar a ordem sem mover o `TopBar`. A seta e o painel do "Ir" esperam a viagem terminar;
+um pedido novo cancela o destino atrasado anterior. `Motion.reduced` troca imediatamente.
+`show_map()`/`is_map_open()` continuam válidos e `close_map()` fecha o seletor. Os nomes
+`WorldCard_<mundo>` e `World_<mundo>` permanecem. Natureza mantém os três locais em "Lugares".
 
 ## Mundo em tela cheia: fundo, enquadramento e câmera (Interface nova, Etapa 04)
 
@@ -136,7 +151,7 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   Desvio da implementação original da Etapa 04: subir o objeto não adiantava com o painel de Produção em 88% da tela.
 - Etiquetas que sairiam pelas laterais são empurradas para dentro (margem 8 px); totalmente fora, ficam onde estão.
 - `WorldsScreen`: sem cabeçalho. `WorldBar` (abaixo do HUD, y 64, ignora o mouse): pílula `WorldPill` (`MapButton`: ícone do mundo +
-  `map_name` + seta, borda na cor `Palette.WORLD`; abre a lista de mundos), botão de ícone `PlacesButton` (painel "Lugares", sempre
+  `map_name` + seta, borda na cor `Palette.WORLD`; abre o seletor de mundos), botão de ícone `PlacesButton` (painel "Lugares", sempre
   esse título) e, à direita em coluna, `NpcFace` por personagem (`NpcRow`; selo "!" = missão nova, check = pronta; `Places.npc_badge`).
 
 ## Como criar um mundo novo (receita)

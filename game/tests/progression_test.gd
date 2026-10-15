@@ -215,6 +215,8 @@ func _campaign() -> Dictionary:
 
 
 func _screenshots(final_save: Dictionary) -> void:
+	# Consulta das salas sem esperar a viagem; a animação tem teste próprio em world_selector_test.
+	Motion.reduced = true
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()

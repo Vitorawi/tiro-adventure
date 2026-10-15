@@ -49,7 +49,7 @@ Faça um commit local no fim (não faça push). Ao terminar, marque a etapa como
 - [x] Etapa 02 — painel — feita em 15/10/2026
 - [x] Etapa 03 — barra superior e abas — feita em 15/10/2026
 - [x] Etapa 04 — mundo em tela cheia — feita em 15/10/2026; revisão do chão texturado e das bordas pelo Codex
-- [ ] Etapa 05 — seletor de mundos
+- [x] Etapa 05 — seletor de mundos — feita em 15/10/2026; carrossel, encaixe, viagem e ícones próprios
 - [ ] Etapa 06 — indicadores e etiquetas
 - [ ] Etapa 07 — bandeja na horta
 - [ ] Etapa 08 — bandeja nas estações

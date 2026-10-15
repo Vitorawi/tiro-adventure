@@ -217,6 +217,8 @@ func _run() -> void:
 
 ## Telas: aba, cartões, balão, seletor de comida, vínculo. Capturas com "-- --screenshots".
 func _ui_checks() -> void:
+	# Este teste consulta as salas na hora; a viagem animada é coberta em world_selector_test.
+	Motion.reduced = true
 	state.call("reset")
 	state.call("dev_complete_quest", "lais_bed")
 	state.get("progress").seen["intro"] = true

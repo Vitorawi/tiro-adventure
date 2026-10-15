@@ -280,6 +280,21 @@ static func world_error(world_id: String) -> String:
 	return GameState.requirement_error(Database.worlds.get(world_id, {}).get("requirements", {}))
 
 
+## Explica o bloqueio pelo nome da história ou missão, sem expor o número do capítulo.
+static func unlock_hint(world_id: String) -> Dictionary:
+	var requirements: Dictionary = Database.worlds.get(world_id, {}).get("requirements", {})
+	if requirements.has("chapter"):
+		var chapters: Array = Database.progression.get("chapters", [])
+		var index := int(requirements.chapter) - 1
+		if index >= 0 and index < chapters.size():
+			return {"icon": UiKit.ui_icon("tab_tasks"), "text": "Na história: " + str(chapters[index].name)}
+	for quest_id: String in requirements.get("quests", []):
+		if not GameState.progress.claimed_quests.has(quest_id):
+			var quest: Dictionary = Database.quests.get(quest_id, {})
+			return {"icon": ProgressionUi.npc_portrait(str(quest.get("npc", ""))), "text": "Depois de: " + str(quest.get("name", quest_id))}
+	return {"icon": UiKit.ui_icon("ui_lock"), "text": world_error(world_id)}
+
+
 ## Texto curto se o personagem tem missão com recompensa pronta.
 static func npc_alert(npc_id: String) -> String:
 	for id: String in Database.quests:

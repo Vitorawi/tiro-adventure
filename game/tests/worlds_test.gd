@@ -15,6 +15,7 @@ func check(ok: bool, message: String) -> void:
 
 
 func _run() -> void:
+	Motion.reduced = true
 	var saver: Node = root.get_node("SaveManager")
 	root.remove_child(saver)
 	saver.free()
@@ -41,6 +42,10 @@ func _run() -> void:
 	nature = worlds.find_child("WorldCard_nature", true, false)
 	check(not nature.disabled, "Cartão libera conforme história")
 	_shot("worlds_select")
+	# Tocar no cartão lateral primeiro o centraliza; o segundo toque viaja.
+	nature.pressed.emit()
+	await process_frame
+	check(worlds.get("current_world") == "house", "Cartão lateral só centraliza")
 	nature.pressed.emit()
 	await create_timer(0.2).timeout
 	check(worlds.get("current_world") == "nature", "Um toque entra no mundo")

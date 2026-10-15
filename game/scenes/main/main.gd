@@ -172,16 +172,18 @@ func show_screen(id: StringName) -> void:
 		_tabs[screen_id].button_pressed = screen_id == id
 
 
-## Tocar de novo na aba Mapa (já nela) volta para a lista de mundos.
+## A aba Mapa retoma o mundo; tocar de novo abre o carrossel.
 func _on_tab_pressed(id: StringName) -> void:
 	if id == &"map" and _current_screen == &"map":
 		%WorldsScreen.show_map()
+	elif id == &"map":
+		%WorldsScreen.close_map()
 	show_screen(id)
 
 
 func _on_world_requested(world_id: String, place: String) -> void:
-	show_screen(&"map")
 	%WorldsScreen.enter(world_id, place)
+	show_screen(&"map")
 
 
 ## Bolinha com o número de coisas prontas (missões e colheitas/produções) na aba Missões.

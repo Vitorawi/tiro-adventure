@@ -36,6 +36,23 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 
 ## Registro de assets
 
+### Interface nova — Etapa 05, ícones dos mundos (15/10/2026, Codex)
+
+- Pixen 32×32 transparente, contorno preto, detalhe médio; dois ícones aprovados na primeira tentativa.
+  A ferramenta `create_image_pixen` não aceita referência nem tags em imagens avulsas; registro local
+  `tiro-adventure`, `interface`, `ativo`. Nenhum upload de referência foi necessário.
+- Vila: casinha com telhas e toldo, seed 51, job `c636389e-4c2a-4d46-8b56-9a1bc43d2ac3`,
+  asset `1684de67-7bd5-5c59-aca3-39c1c2865285`; destino `ui/icons/tab_village.png`.
+- Natureza: pinheiro, pedra e riacho, seed 52, job `e64d99fa-8da9-474f-93e1-5f2caf163171`,
+  asset `8548e7b4-1ae0-5726-b592-b85c1a34f408`; destino `ui/icons/tab_nature.png`.
+- Originais em `build/art_sources/interface_etapa05/`; prancha com os três ícones existentes
+  aberta antes da escolha: `build/preview/etapa05/icones_candidatos.png`. `Invoke-TrimSprite`
+  recortou Vila para 32×30 e Natureza para 22×28; ambos recentralizados em canvas transparente 32×32,
+  sem ampliar. Script reproduzível `prepare_art.ps1` nessa pasta, executado no Windows PowerShell 5.1.
+- `worlds.json → icon` alimenta a pílula e os cartões. Importados no Godot; PNG e `.import` versionados.
+  Para a viagem foi usada a alternativa do plano: duas coberturas `Palette.PAPER` arredondadas,
+  evitando esticar a pequena arte das nuvens até perder a definição. Nenhuma arte do mundo foi alterada.
+
 ### Interface nova — Etapa 04, revisão do chão (15/10/2026, Codex)
 
 - Pedido do Vitor após o commit `7e84772`: dar mais textura ao chão e corrigir o aspecto das maquetes.
