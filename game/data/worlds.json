@@ -19,9 +19,9 @@
       "stove": {
         "name": "Cozinha",
         "icon": "item_carrot_snack",
-        "description": "Fogão, liquidificador e forno.",
+        "description": "Fogão e liquidificador.",
         "upgrade": "stove",
-        "panel": "stations:stove+blender+oven",
+        "panel": "stations:stove+blender",
         "upgrades": [
           "stove_queue",
           "stove_queue_2"

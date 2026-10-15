@@ -94,7 +94,6 @@ func _run() -> void:
 	main.call("_on_world_requested", "house", "")
 	await create_timer(0.3).timeout
 	var house: Control = main.find_child("World_house", true, false)
-	check(house.find_child("oven", true, false).self_modulate.a == 1.0, "Forno aparece na casa")
 	_shot("house_buildings")
 	main.call("_on_world_requested", "village", "")
 	await create_timer(0.3).timeout

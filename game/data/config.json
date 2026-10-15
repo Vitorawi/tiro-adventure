@@ -53,10 +53,6 @@
       "name": "Bancada",
       "slots": 2
     },
-    "oven": {
-      "name": "Forno",
-      "slots": 2
-    },
     "atelier": {
       "name": "Ateliê",
       "slots": 2

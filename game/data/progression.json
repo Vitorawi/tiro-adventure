@@ -331,7 +331,7 @@
       "description": "Prepare receitas. Libera pratos novos.",
       "icon": "item_carrot_snack",
       "color": "#eea24c",
-      "how_to": "Cozinhe no Fogão e no Forno."
+      "how_to": "Cozinhe no Fogão e no Liquidificador."
     },
     "commerce": {
       "name": "Comércio",
@@ -964,27 +964,6 @@
         "adventure": 40
       },
       "icon": "item_carrot_snack"
-    },
-    "oven": {
-      "name": "Forno",
-      "world": "house",
-      "description": "Produz biscoitos e caixas de petiscos para encomendas.",
-      "cost": 240,
-      "materials": {
-        "brick": 4,
-        "copper": 3
-      },
-      "requirements": {
-        "owned": [
-          "workbench",
-          "fridge"
-        ]
-      },
-      "skill_xp": {
-        "adventure": 40
-      },
-      "icon": "item_apple_biscuit",
-      "station": "oven"
     },
     "orchard": {
       "name": "Pomar",
@@ -1828,8 +1807,7 @@
       },
       "requirements": {
         "owned": [
-          "stall",
-          "oven"
+          "stall"
         ],
         "quests": [
           "first_harvest"
@@ -2032,8 +2010,8 @@
     },
     {
       "name": "Uma produção de verdade",
-      "description": "Domine a cozinha e construa o forno.",
-      "target": "oven",
+      "description": "Domine a cozinha e abra a Caverna.",
+      "target": "cave_open",
       "rewards": {
         "coins": 100,
         "skill_xp": {

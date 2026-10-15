@@ -6,7 +6,7 @@
 
 
 **✔ Etapa 11 — Tesouro concluída (14/10/2026, Claude Code, retomando o Codex). Commit local, sem push.**
-**Ajustes pós-plano (14/10/2026):** Coleção só lista roupas com arte (`GameState.has_overlay`); baú da Clareira some depois de aberto (`hide_seen`); etiquetas dos mapas tocáveis; **Estufa** ganhou 4 canteiros próprios (índices 9–12; ervas e mirtilo só lá, morango nos dois; crescem 30% mais rápido). Arte dos canteiros da estufa reaproveita `plot.png`.
+**Ajustes pós-plano (14–15/10/2026):** O **forno foi removido**: biscoito de maçã e caixa de petiscos agora são feitos no fogão (exigem bancada + geladeira), sem construção nem passo de história; capítulo 6 aponta para a Caverna. Coleção só lista roupas com arte (`GameState.has_overlay`); baú da Clareira some depois de aberto (`hide_seen`); etiquetas dos mapas tocáveis; **Estufa** ganhou 4 canteiros próprios (índices 9–12; ervas e mirtilo só lá, morango nos dois; crescem 30% mais rápido). Arte dos canteiros da estufa reaproveita `plot.png`.
 **✔ PLANO DE 12 ETAPAS (00–11) CONCLUÍDO E PUBLICADO na `main` (14/10/2026).** Resumo final e pontas soltas em
 `docs/plans/comeco/README.md` ("PLANO CONCLUÍDO"). Depois dele: etiquetas de texto dos mapas agora são tocáveis
 (`RoomView._tap_label`, commit `6beacf4`). Próximo passo: definir um novo plano a partir desse resumo e de `FUTURO.md`.

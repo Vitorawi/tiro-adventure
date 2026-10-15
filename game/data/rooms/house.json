@@ -64,16 +64,6 @@
       "footprint": [[350, 330], [372, 318], [394, 330], [372, 342]]
     },
     {
-      "id": "oven",
-      "action": "place:stove",
-      "upgrade": "oven",
-      "station": "oven",
-      "sprite": "res://assets/sprites/areas/house/oven.png",
-      "pos": [428, 252],
-      "approach": [422, 280],
-      "footprint": [[400, 236], [426, 221], [457, 239], [430, 260]]
-    },
-    {
       "id": "blender",
       "action": "place:blender",
       "upgrade": "blender",

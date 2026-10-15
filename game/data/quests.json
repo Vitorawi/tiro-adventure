@@ -643,25 +643,6 @@
     "chapter": 9,
     "order": 30
   },
-  "main_5_oven": {
-    "npc": "lais",
-    "name": "Construir o forno",
-    "dialogue": "Vamos juntos: construir o forno.",
-    "goals": [
-      {
-        "type": "owned",
-        "key": "oven",
-        "target": 1,
-        "label": "Comprar o forno"
-      }
-    ],
-    "rewards": {
-      "coins": 10
-    },
-    "kind": "main",
-    "chapter": 6,
-    "order": 50
-  },
   "main_7_greenhouse": {
     "npc": "lais",
     "name": "Uma estufa cheia de vida",
@@ -722,8 +703,8 @@
   },
   "main_5_bricks": {
     "npc": "lais",
-    "name": "Tijolos para o forno",
-    "dialogue": "Vamos juntos: tijolos para o forno.",
+    "name": "Tijolos para construir",
+    "dialogue": "Vamos juntos: guardar tijolos para as próximas construções.",
     "goals": [
       {
         "type": "have",
