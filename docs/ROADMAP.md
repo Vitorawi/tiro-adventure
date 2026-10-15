@@ -6,7 +6,9 @@
 
 
 **✔ Etapa 11 — Tesouro concluída (14/10/2026, Claude Code, retomando o Codex). Commit local, sem push.**
-**✔ PLANO DE 12 ETAPAS (00–11) CONCLUÍDO.**
+**✔ PLANO DE 12 ETAPAS (00–11) CONCLUÍDO E PUBLICADO na `main` (14/10/2026).** Resumo final e pontas soltas em
+`docs/plans/comeco/README.md` ("PLANO CONCLUÍDO"). Depois dele: etiquetas de texto dos mapas agora são tocáveis
+(`RoomView._tap_label`, commit `6beacf4`). Próximo passo: definir um novo plano a partir desse resumo e de `FUTURO.md`.
 - Base `66c5869` (Etapa 10). `SAVE_VERSION` continua 12, sem reset/migração: usa `progress.seen["treasure_opened"]`, `unlocks`, `collection` e contadores existentes.
 - `quests.json → guide_treasure` (Guia, ordem 50, após `guide_fibers`): quatro objetivos `have` nos pedaços, que **não são consumidos** (só `deliver` consome). `Database.item_sources` passou a indicar onde cavar itens `find`, então o Ir dos pedaços leva ao faro do mundo certo (sítio, praça, vila, natureza).
 - `progression.json → treasure` + `GameState.open_treasure/open_treasure_error` ("Já aberto", requisito, armazenamento); 150 moedas, `explorer_hat`, `crop:blueberry`, 2 parafusos; contador `treasure`; `Events.treasure_opened` → fila modal → `Celebration.show_treasure`. Chapéu também vem do conjunto da natureza e não duplica.

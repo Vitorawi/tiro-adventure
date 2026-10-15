@@ -1,5 +1,7 @@
 # Plano "Um começo mais gostoso" — índice das etapas
 
+> **STATUS: CONCLUÍDO (etapas 00–11, 14/10/2026).** Veja o resumo final abaixo, em "PLANO CONCLUÍDO".
+
 > Plano do Claude Code (13/10/2026) para melhorar a **primeira hora** do Tiro Adventure.
 > Cada etapa é um arquivo próprio, feito para ser executado por **outro agente (Sonnet)**,
 > **uma etapa por vez**, na ordem abaixo. Nenhuma etapa começa antes da anterior estar pronta e testada.
@@ -49,6 +51,31 @@ Ao terminar, marque a etapa como feita no docs/plans/comeco/README.md.
 - [x] Etapa 09 — amigos (14/10/2026, Codex; quatro cachorros, janelas, corações e visitas offline; testes/capturas/Web prod/dev conferidos, sem push)
 - [x] Etapa 10 — truques (14/10/2026, Codex; cinco truques, treino de um toque, testes/capturas/Web prod/dev conferidos, sem push)
 - [x] Etapa 11 — tesouro (14/10/2026; mapa completo, baú da Clareira, mirtilo; testes/capturas/Web prod/dev conferidos, sem push)
+
+## ✔ PLANO CONCLUÍDO — resumo para o próximo planejamento (14/10/2026)
+Todas as 12 etapas (00–11) estão feitas, testadas e publicadas na `main` (último commit do plano: `30c8257`;
+depois dele, `6beacf4` deixou as etiquetas dos mapas tocáveis). `SAVE_VERSION` ficou em **12** desde a Etapa 00
+(save zerado, sem migrações depois disso). O que o jogo ganhou:
+
+- **Fundação (00):** contadores (`GameState._count`), requisitos novos (`bond`, `hours`, `stats`), sorteios com semente (`Loot`), aba **Ritmo** no DevPanel para medir a primeira hora.
+- **Começo mais fácil (01–02):** 2/4 canteiros, regar, presente de nível e do dia, "enquanto você estava fora", dica parada; caminha do Tiro como primeiro presente da Laís (ele dorme nela).
+- **Desejos e vínculo (03):** aba Desejos (até 3 pedidos), balão sobre o Tiro, corações com presentes por nível.
+- **Sabores (04):** morango, batata-doce, liquidificador, picolé, suco, purê, chips; linha de missões da vovó e pedidos.
+- **Faro (05):** o Tiro fareja e cava achados por mundo; álbum, conjuntos e os quatro pedaços do mapa do tesouro.
+- **Praça (06) e passeios (07):** mundo novo com Nina e Pipoca; 7 passeios liberados aos poucos, materiais exclusivos, raros com garantia/consolo, lendários, diário e postais.
+- **Apetrechos (08):** vestir o Tiro (cabeça/pescoço/corpo) com camadas no `PetAnimator`, pet shop, mesa de costura, bolsinha.
+- **Amigos (09):** quatro cachorros, petiscos, corações, visitantes na Praça e visitas com presente após ausência offline.
+- **Truques (10):** cinco truques, treino de um toque com a Nina, botão Truques na tela do Tiro.
+- **Tesouro (11):** missão "O mapa completo", baú na Clareira escondida da Natureza, mirtilo (cultura e desejo especial) — fecha o mistério do pedaço 1.
+
+**Pendências / pontas soltas conhecidas**
+- Chapéu de explorador sem overlay ("Em breve no Tiro"); baú da Clareira com arte pequena (~19 px) e sem região/clareira desenhada (a Natureza não tem espaço livre).
+- Avisos antigos de recursos/RIDs no encerramento de alguns testes (ex.: `park_test`) — inofensivos.
+- Ideias não implementadas ficam em [FUTURO.md](FUTURO.md).
+
+**Para o próximo plano:** comece por `CLAUDE.md`, `docs/ROADMAP.md` (Estado atual) e `docs/PROGRESSION.md`; o ritmo da primeira hora
+está medido pelo `onboarding_test` (capítulo 4 em ~10,6 min, 1º passeio ~14,3 min, 1º raro na 6ª volta em ~25,7 min). Mantenha as
+decisões abaixo e use este formato (um arquivo por etapa + índice) se o plano for executado por outro agente.
 
 ## Decisões já fechadas com o Vitor (13/10/2026)
 - **Saves serão zerados** (save v12 começa do zero, como já foi feito no v11). Nada de migração.
