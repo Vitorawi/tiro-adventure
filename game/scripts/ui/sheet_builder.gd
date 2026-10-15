@@ -21,16 +21,10 @@ static func food_picker() -> Control:
 		for id: String in foods:
 			any = true
 			var wish_slot := GameState.wish_slot_for_item(id)
-			var body := UiKit.card(box)
-			var row := UiKit.hbox(10)
-			row.add_child(UiKit.icon(Database.item_icon(id), 64))
-			var info := UiKit.vbox(4)
-			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			var chips: Array[Control] = []
 			if wish_slot >= 0:
-				info.add_child(UiKit.chip(UiKit.ui_icon("bond_heart"), "Ele quer!", UiKit.GOOD))
-			info.add_child(UiKit.label("x%d" % GameState.inventory.count(id)))
-			info.add_child(UiKit.effect_chips(Database.items[id]["feed"]))
-			row.add_child(info)
+				chips.append(UiKit.chip(UiKit.ui_icon("bond_heart"), "Ele quer!", UiKit.GOOD))
+			chips.append_array(UiKit.effect_chip_list(Database.items[id]["feed"]))
 			var on_give := func() -> void:
 				# Comida desejada: tocar cumpre o desejo (que já alimenta o Tiro).
 				if wish_slot >= 0:
@@ -45,9 +39,7 @@ static func food_picker() -> Control:
 			primary_used = primary_used or wanted
 			var give := UiKit.primary("Dar", on_give) if wanted else UiKit.secondary("Dar", on_give, null, true)
 			give.custom_minimum_size = Vector2(76, 52 if wanted else 44)
-			give.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			row.add_child(give)
-			body.add_child(row)
+			box.add_child(UiKit.list_row(Database.item_icon(id), "%s ×%d" % [Database.item_name(id), GameState.inventory.count(id)], chips, give))
 		if not any:
 			_empty_message(box, "Acabou a comida!", "")
 			box.add_child(UiKit.button("Pedir à Bloblo", func() -> void:
@@ -62,7 +54,7 @@ const CATEGORIES := {"food": "Comidas", "crop": "Colheitas", "material": "Materi
 ## Com `only` (id de depósito: "fridge", "chest", "silo", "warehouse"), só o que mora nele. Ícone + quantidade por
 ## categoria; tocar abre o detalhe.
 static func inventory_view(only: String = "") -> Control:
-	return LiveBox.new(func(box: VBoxContainer) -> void:
+	return tall(LiveBox.new(func(box: VBoxContainer) -> void:
 		_storage_bars(box, only)
 		var shown: Array[String] = []
 		for id: String in GameState.inventory.counts:
@@ -92,7 +84,13 @@ static func inventory_view(only: String = "") -> Control:
 			grid.add_theme_constant_override("v_separation", 6)
 			for id in ids:
 				grid.add_child(_item_tile(id))
-			box.add_child(grid))
+			box.add_child(grid)))
+
+
+## Marca o conteúdo como painel alto (88% da tela, com rolagem): listas longas e consultas.
+static func tall(content: Control) -> Control:
+	content.set_meta("sheet_size", "tall")
+	return content
 
 
 ## Uma linha de chips com ícone e usado/capacidade de cada depósito construído (`only` = só ele).
@@ -211,10 +209,13 @@ static func stations_view(ids: PackedStringArray) -> Control:
 	var box := UiKit.vbox(12)
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.mouse_filter = Control.MOUSE_FILTER_PASS
+	# Só as estações já liberadas contam: com uma só visível, o título do painel já diz o nome.
+	var visible_ids: Array[String] = []
 	for id in ids:
-		if GameState.requirement_error(Database.stations.get(id, {}).get("requirements", {})) != "":
-			continue
-		if ids.size() > 1:
+		if GameState.requirement_error(Database.stations.get(id, {}).get("requirements", {})) == "":
+			visible_ids.append(id)
+	for id in visible_ids:
+		if visible_ids.size() > 1:
 			var title := UiKit.hbox(8)
 			title.add_child(UiKit.icon(UiKit.ui_icon(Database.progression.upgrades.get(id, {}).get("icon", "")), 32))
 			title.add_child(UiKit.fill_label(Database.stations.get(id, {}).get("name", id), &"TitleLabel"))
@@ -247,21 +248,19 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 				box.add_child(UiKit.label("Abrigo vazio. Escolha seu primeiro animal.", &"SmallLabel"))
 				return
 
-		box.add_child(UiKit.label("%s  %d/%d" % [data.get("queue_label", "Preparando"), target.queue.size(), slots], &"SectionLabel"))
-		var slot_row := UiKit.hbox(8)
+		var slot_row := slot_flow()
 		for i in slots:
 			slot_row.add_child(_slot_card(target.queue[i] if i < target.queue.size() else {}, now))
 		# Espaços que ainda dá para ampliar ficam na mesma fileira, com "+" e o preço.
 		for upgrade_id: String in GameState.pending_slot_upgrades(station_id):
 			slot_row.add_child(_locked_slot(upgrade_id))
-		box.add_child(slot_row)
 		var ready := target.ready_count(now)
-		if ready > 0:
-			box.add_child(UiKit.button("Coletar prontos (%d)" % ready, func() -> void:
-				var received := GameState.collect(station_id)
-				Events.items_gained.emit(received, 0, Vector2(-1.0, -1.0)), &"PrimaryButton"))
+		box.add_child(slot_strip(slot_row, "Pegar tudo (%d)" % ready if ready > 0 else "", func() -> void:
+			var received := GameState.collect(station_id)
+			Events.items_gained.emit(received, 0, Vector2(-1.0, -1.0))))
 
-		box.add_child(UiKit.label(data.get("recipe_label", "Receitas"), &"SectionLabel"))
+		if data.get("kind", "") == "animal":
+			box.add_child(UiKit.label(data.get("recipe_label", "Receitas"), &"SectionLabel"))  # estações comuns: a lista fala por si
 		for recipe_id in Database.recipes_for(station_id):
 			if focus != "" and recipe_id != focus:
 				continue
@@ -270,119 +269,94 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 
 static func _slot_card(entry: Dictionary, now: float) -> Control:
 	if entry.is_empty():
-		return slot_frame(null, "Livre", 0.0, false, true)
+		return slot_frame(null, "", 0.0, false, true)
 	var recipe: Dictionary = Database.recipes[entry["recipe"]]
 	var seconds := float(recipe["seconds"])
 	var remaining := float(entry["ready_at"]) - now
 	var texture := Database.item_icon(Database.recipe_output(recipe))
-	var amount := " · ×%d" % int(entry.get("qty", recipe.get("qty", 1)))
 	if remaining <= 0.0:
-		return slot_frame(texture, "Pronto!" + amount, 1.0, true, false)
+		return slot_frame(texture, "Pronto!", 1.0, true, false)
 	if remaining > seconds:
-		return slot_frame(texture, "Na fila", 0.0, false, false)
-	return slot_frame(texture, format_time(int(ceil(remaining))) + amount, 1.0 - remaining / seconds, false, false)
+		return slot_frame(texture, "Na fila", 0.0, false, false, true)
+	return slot_frame(texture, format_time(int(ceil(remaining))), 1.0 - remaining / seconds, false, false)
 
 
 ## Espaço ainda fechado: "+" e o preço; tocar abre a compra da ampliação.
 static func _locked_slot(upgrade_id: String) -> Control:
 	var data: Dictionary = Database.progression.upgrades[upgrade_id]
 	var ready := GameState.upgrade_error(upgrade_id) == ""
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"ReadyCardPanel" if ready else &"CardPanel"
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.name = "LockedSlot_" + upgrade_id
+	var cost := int(data.cost)
+	var dot := UiKit.slot_dot(SlotDot.BUY, null, 1.0 if ready else 0.0, "Grátis" if cost <= 0 else str(cost),
+			UiKit.GOOD if GameState.coins >= cost else UiKit.BAD, UiKit.ui_icon("coin") if cost > 0 else null)
+	dot.name = "LockedSlot_" + upgrade_id
 	if not ready:
-		panel.modulate.a = 0.75
-	var box := UiKit.vbox(4)
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var plus := UiKit.label("+", &"TitleLabel", UiKit.GOOD if ready else null)
-	plus.add_theme_font_size_override("font_size", 44)
-	plus.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	plus.custom_minimum_size = Vector2(0, 64)
-	plus.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	box.add_child(plus)
-	var price := UiKit.chip(UiKit.ui_icon("coin"), "Grátis" if int(data.cost) <= 0 else str(int(data.cost)), UiKit.GOOD if GameState.coins >= int(data.cost) else UiKit.BAD)
-	price.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	box.add_child(price)
-	panel.add_child(box)
-	panel.gui_input.connect(func(event: InputEvent) -> void:
+		dot.modulate.a = 0.75
+	dot.gui_input.connect(func(event: InputEvent) -> void:
 		var click := event as InputEventMouseButton
 		if click and click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
 			Events.sheet_requested.emit(str(data.name), ProgressionUi.purchase(upgrade_id)))
-	return panel
+	return dot
 
 
-static func slot_frame(texture: Texture2D, text: String, progress: float, done: bool, empty: bool) -> Control:
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"ReadyCardPanel" if done else &"CardPanel"
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.mouse_filter = Control.MOUSE_FILTER_PASS
-	if empty:
-		panel.modulate.a = 0.5
-	var box := UiKit.vbox(4)
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	var picture := UiKit.icon(texture, 64)
-	box.add_child(picture)
-	var caption := UiKit.label(text, &"SmallLabel", UiKit.GOOD if done else null)
-	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(caption)
-	if not done and not empty:
-		box.add_child(UiKit.bar(progress * 100.0, Palette.INFO, 10))
-	panel.add_child(box)
-	return panel
+## Um espaço de produção em bolinha (`SlotDot`): vazio, na fila, produzindo ou pronto.
+## `text` é a legenda (tempo, "Na fila", "Pronto!").
+static func slot_frame(texture: Texture2D, text: String, progress: float, done: bool, empty: bool, queued: bool = false) -> Control:
+	var state := SlotDot.EMPTY if empty else (SlotDot.READY if done else (SlotDot.QUEUED if queued else SlotDot.BUSY))
+	return UiKit.slot_dot(state, texture, progress, text, UiKit.GOOD if done else null)
 
 
-## Cartão de receita: o que sai, quanto tempo leva, o que faz e o que precisa.
+## Fileira de bolinhas (quebra para a linha de baixo se não couber).
+static func slot_flow() -> HFlowContainer:
+	var row := UiKit.flow(8)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return row
+
+
+## Fileira de espaços e, ao lado, o botão "Pegar tudo (N)" (só aparece com `collect_text`; o único principal do painel).
+static func slot_strip(slots: Control, collect_text: String = "", on_collect: Callable = Callable(), collect_name: String = "") -> Control:
+	var strip := UiKit.hbox(8)
+	strip.add_child(slots)
+	if collect_text != "":
+		var collect := UiKit.primary(collect_text, on_collect)
+		collect.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		if collect_name != "":
+			collect.name = collect_name
+		strip.add_child(collect)
+	return strip
+
+
+## Linha de receita: o que sai, tempo, o que faz, o que precisa e o botão da estação.
 static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full: bool) -> void:
 	var recipe: Dictionary = Database.recipes[recipe_id]
 	var locked := GameState.content_error("recipe", recipe_id, recipe)
 	var output: String = Database.recipe_output(recipe)
 	var inputs: Dictionary = GameState.recipe_inputs(recipe_id)
-	var body := UiKit.card(parent)
-
-	var top := UiKit.hbox(10)
-	top.add_child(UiKit.icon(Database.item_icon(output), 64))
-	var info := UiKit.vbox(4)
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var qty := GameState.recipe_quantity(recipe_id)
-	info.add_child(UiKit.label(Database.item_name(output) + ("  x%d" % qty if qty > 1 else "")))
-	var details := UiKit.flow()
-	details.add_child(UiKit.chip(UiKit.ui_icon("timer"), format_time(int(recipe["seconds"]))))
-	var feed: Dictionary = Database.items.get(output, {}).get("feed", {})
-	for need_id: String in feed:
-		details.add_child(UiKit.chip(Database.need_icon(need_id), "%+d" % int(feed[need_id]), UiKit.GOOD))
-	info.add_child(details)
-	top.add_child(info)
-	body.add_child(top)
 
-	# Ingredientes: ícone + tem/precisa; tocar mostra de onde vem.
-	var needs_row := UiKit.flow()
+	# Chips: tempo, efeitos (comidas) e ingredientes (tocáveis quando faltam: mostram de onde vêm).
+	var chips: Array[Control] = [UiKit.chip(UiKit.ui_icon("timer"), format_time(int(recipe["seconds"])))]
+	chips.append_array(UiKit.effect_chip_list(Database.items.get(output, {}).get("feed", {})))
 	var has_all := true
 	for item_id: String in inputs:
 		has_all = has_all and GameState.inventory.count(item_id) >= int(inputs[item_id])
-		needs_row.add_child(ProgressionUi.item_chip(item_id, int(inputs[item_id])))
-	body.add_child(needs_row)
+		chips.append(ProgressionUi.item_chip(item_id, int(inputs[item_id])))
 
-	var help := TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))
+	var action: Button = null
+	if locked == "":
+		var label: String = Database.stations.get(recipe.station, {}).get("action_label", "Produzir")
+		if recipe.has("output_collection") and GameState.cook_error(recipe_id) in ["Você já tem", "Já está sendo costurado"]:
+			label = GameState.cook_error(recipe_id)
+		action = UiKit.secondary("Fila cheia" if station_full and has_all else label, func() -> void:
+			var error := GameState.cook(recipe_id)
+			Events.toast_requested.emit(error if error != "" else "Preparando %s!" % Database.item_name(output)), null, true)
+		action.disabled = GameState.cook_error(recipe_id) != ""
+		action.custom_minimum_size.x = 88
+	var row := UiKit.list_row(Database.item_icon(output), Database.item_name(output) + (" ×%d" % qty if qty > 1 else ""), chips, action)
+	parent.add_child(row)
 	if locked != "":
-		# Receita fechada: cartão apagado e cadeado com o motivo, no lugar do botão.
-		body.get_parent().modulate.a = 0.55
-		body.add_child(UiKit.lock_hint(locked, help))
-		return
-	var row := UiKit.hbox(8)
-	var action: String = Database.stations.get(recipe.station, {}).get("action_label", "Produzir")
-	if recipe.has("output_collection") and GameState.cook_error(recipe_id) in ["Você já tem", "Já está sendo costurado"]:
-		action = GameState.cook_error(recipe_id)
-	var cook := UiKit.secondary("Fila cheia" if station_full and has_all else action, func() -> void:
-		var error := GameState.cook(recipe_id)
-		Events.toast_requested.emit(error if error != "" else "Preparando %s!" % Database.item_name(output)), null, true)
-	cook.disabled = GameState.cook_error(recipe_id) != ""
-	cook.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(cook)
-	if not has_all:
-		row.add_child(UiKit.square_button("?", help, null, 44))
-	body.add_child(row)
+		# Receita fechada: linha apagada e cadeado com o motivo, no lugar do botão.
+		row.modulate.a = 0.55
+		(row.get_child(0) as VBoxContainer).add_child(UiKit.lock_hint(locked, TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))))
 
 
 static func open_animal_shop(station_id: String) -> void:
@@ -453,32 +427,25 @@ static func seed_picker(plot_index: int, focus: String = "") -> Control:
 				continue  # estufa: só plantas delicadas; sítio: sem as que só crescem na estufa
 			var crop: Dictionary = Database.crops[crop_id]
 			var locked := GameState.content_error("crop", crop_id, crop)
-			var body := UiKit.card(box)
-			if locked != "":
-				body.get_parent().modulate.a = 0.6
-			var row := UiKit.hbox(8)
-			row.add_child(UiKit.icon(Database.item_icon(crop_id), 48))
-			var info := UiKit.vbox(4)
-			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			info.add_child(UiKit.label(Database.item_name(crop_id)))
-			var details := UiKit.flow(4)
-			details.add_child(UiKit.chip(UiKit.ui_icon("timer"), format_time(int(crop["seconds"]))))
-			details.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(crop.get("coins", 0))))
+			var chips: Array[Control] = [
+				UiKit.chip(UiKit.ui_icon("timer"), format_time(int(crop["seconds"]))),
+				UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(crop.get("coins", 0))),
+			]
 			var harvest: Dictionary = crop.get("yield", {})
 			for item_id: String in harvest:
-				details.add_child(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), UiKit.GOOD))
-			info.add_child(details)
-			row.add_child(info)
+				chips.append(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), UiKit.GOOD))
+			var plant: Button = null
 			if locked == "":
-				var plant := UiKit.secondary("Plantar", func() -> void:
+				plant = UiKit.secondary("Plantar", func() -> void:
 					var error := GameState.plant(plot_index, crop_id)
 					Events.toast_requested.emit(error if error != "" else "Plantou %s!" % Database.item_name(crop_id))
 					Events.sheet_close_requested.emit(), null, true)
-				plant.custom_minimum_size.x = 92
-				row.add_child(plant)
-			body.add_child(row)
+				plant.custom_minimum_size.x = 88
+			var row := UiKit.list_row(Database.item_icon(crop_id), Database.item_name(crop_id), chips, plant)
+			box.add_child(row)
 			if locked != "":
-				body.add_child(UiKit.lock_hint(locked, TaskHelp.open.bind("crop", crop_id))))
+				row.modulate.a = 0.6
+				(row.get_child(0) as VBoxContainer).add_child(UiKit.lock_hint(locked, TaskHelp.open.bind("crop", crop_id))))
 
 
 ## Canteiros: terrenos (barra), próximo terreno e cada canteiro em ícone + estado.
@@ -625,7 +592,7 @@ class LiveBox extends VBoxContainer:
 		_build = build
 		size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		mouse_filter = Control.MOUSE_FILTER_PASS
-		add_theme_constant_override("separation", 10)
+		add_theme_constant_override("separation", 8)
 
 	func _ready() -> void:
 		Events.state_changed.connect(_schedule_rebuild)

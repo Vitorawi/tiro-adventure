@@ -46,7 +46,7 @@ Faça um commit local no fim (não faça push). Ao terminar, marque a etapa como
 ## Andamento (o executor marca ao terminar cada etapa)
 - [x] Etapa 00 — base (tour, paleta, movimento, ícones) — feita em 15/10/2026
 - [x] Etapa 01 — visual (tema) — feita em 15/10/2026
-- [ ] Etapa 02 — painel
+- [x] Etapa 02 — painel — feita em 15/10/2026
 - [ ] Etapa 03 — barra superior e abas
 - [ ] Etapa 04 — mundo em tela cheia
 - [ ] Etapa 05 — seletor de mundos

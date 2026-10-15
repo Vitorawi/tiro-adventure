@@ -48,25 +48,17 @@ static func panel(site: String = "trees", resource: String = "", focus_route: St
 			ProgressionUi.upgrade_card(box, str(data.level_upgrades[0]))
 			return
 		var ready := GameState.gathering_ready_count(site)
-		var free := GameState.gathering_free_count(site)
-		box.add_child(UiKit.label("Coletas · %d/%d" % [GameState.gathering_jobs(site).size(), GameState.gathering_slots(site)], &"SectionLabel"))
-		var slots := UiKit.hbox(6)
+		var slots := SheetBuilder.slot_flow()
 		for index in 3:
 			_slot(slots, site, index)
-		box.add_child(slots)
-		if ready > 0:
-			var collect := UiKit.button("Recolher prontos (%d)" % ready, func() -> void:
-				var before := int(GameState.progress.nature_xp.get(site, 0))
-				var previous_level := GameState.progress.nature_level(site)
-				var error := GameState.collect_gathering_all(site)
-				var level_now := GameState.progress.nature_level(site)
-				if error == "":
-					Events.items_gained.emit(GameState.last_gain, GameState.last_coins, Vector2(-1.0, -1.0))
-				_result(error, "%s nível %d!" % [data.name, level_now] if level_now > previous_level else "+%d XP em %s" % [int(GameState.progress.nature_xp.get(site, 0)) - before, data.name]), &"PrimaryButton")
-			collect.name = "CollectAll_" + site
-			box.add_child(collect)
-		elif free == 0:
-			box.add_child(UiKit.label("Espaços ocupados · aguarde a coleta", &"SmallLabel"))
+		box.add_child(SheetBuilder.slot_strip(slots, "Pegar tudo (%d)" % ready if ready > 0 else "", func() -> void:
+			var before := int(GameState.progress.nature_xp.get(site, 0))
+			var previous_level := GameState.progress.nature_level(site)
+			var error := GameState.collect_gathering_all(site)
+			var level_now := GameState.progress.nature_level(site)
+			if error == "":
+				Events.items_gained.emit(GameState.last_gain, GameState.last_coins, Vector2(-1.0, -1.0))
+			_result(error, "%s nível %d!" % [data.name, level_now] if level_now > previous_level else "+%d XP em %s" % [int(GameState.progress.nature_xp.get(site, 0)) - before, data.name]), "CollectAll_" + site))
 		_progress(box, site)
 		box.add_child(UiKit.label("Materiais", &"SectionLabel"))
 		for item: String in data.resources:
@@ -142,87 +134,58 @@ static func refining_panel(site: String) -> Control:
 	return box
 
 
-## Material para coletar, no mesmo molde das receitas das estações: ícone, tempo, nível e botão.
+## Material para coletar, em linha de lista: ícone, tempo, bônus e botão (nível fechado = cadeado).
 static func _material(parent: VBoxContainer, site: String, item: String, route_id: String) -> void:
 	var route: Dictionary = Database.progression.activities[route_id]
 	var primary := item if route.rewards.get("items", {}).has(item) else str(route.rewards.items.keys()[0])
-	var body := UiKit.card(parent)
-	var top := UiKit.hbox(10)
-	top.add_child(UiKit.icon(Database.item_icon(primary), 64))
-	var info := UiKit.vbox(4)
-	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.add_child(UiKit.label("%s  x%d" % [Database.item_name(primary), int(route.rewards.items[primary])]))
-	var details := UiKit.flow()
-	details.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(route.seconds))))
+	var chips: Array[Control] = [UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(route.seconds)))]
 	for bonus: String in route.rewards.get("items", {}):
 		if bonus != primary:
-			details.add_child(UiKit.chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), UiKit.GOOD))
-	info.add_child(details)
-	top.add_child(info)
-	body.add_child(top)
+			chips.append(UiKit.chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), UiKit.GOOD))
 	var level := route_level(route_id)
 	var locked := GameState.progress.nature_level(site) < level
-	var button := UiKit.secondary("Coletar", func() -> void:
+	var button := UiKit.secondary("Buscar", func() -> void:
 		_result(GameState.start_next_gathering(site, route_id, item), "Coleta iniciada!"), null, true)
 	button.name = "Material_" + item
 	button.disabled = GameState.next_gathering_error(site, route_id, item) != ""
+	button.custom_minimum_size.x = 88
+	var row := UiKit.list_row(Database.item_icon(primary), "%s ×%d" % [Database.item_name(primary), int(route.rewards.items[primary])], chips, null if locked else button)
+	parent.add_child(row)
+	var footer := row.get_child(0) as VBoxContainer
 	if locked:
-		# Nível ainda não alcançado: cartão apagado e cadeado no lugar do botão (que fica escondido e desabilitado).
-		body.get_parent().modulate.a = 0.55
+		# Nível ainda não alcançado: linha apagada e cadeado no lugar do botão (que fica escondido e desabilitado).
+		row.modulate.a = 0.55
 		var hint := UiKit.lock_hint("Nível %d" % level)
 		hint.name = "RequiredLevel_" + item
-		body.add_child(hint)
+		footer.add_child(hint)
 		button.visible = false
-	else:
-		var tool_label := UiKit.label("Nível %d" % level, &"SmallLabel")
-		tool_label.name = "RequiredLevel_" + item
-		body.add_child(tool_label)
-	body.add_child(button)
+		footer.add_child(button)
 
 
-## Espaço de coleta, igual ao das estações: ícone, tempo e barra; fechado mostra o que falta.
-static func _slot(parent: HBoxContainer, site: String, index: int) -> void:
+## Espaço de coleta, igual ao das estações: bolinha com ícone e tempo; fechado mostra o nível.
+static func _slot(parent: Control, site: String, index: int) -> void:
 	var entry := GameState.gathering_entry(site, index)
 	var remaining := GameState.gathering_remaining(site, index)
 	if index >= GameState.gathering_slots(site):
-		parent.add_child(_locked_slot(site, index))
+		parent.add_child(_locked_slot(index))
 		return
 	if entry.is_empty():
-		parent.add_child(SheetBuilder.slot_frame(null, "Livre", 0.0, false, true))
+		parent.add_child(SheetBuilder.slot_frame(null, "", 0.0, false, true))
 		return
 	var route: Dictionary = Database.progression.activities[str(entry.id)]
 	var items: Dictionary = entry.get("rewards", route.rewards).get("items", {})
 	var item := str(entry.get("resource", ""))
 	if not items.has(item):
 		item = str(items.keys()[0])
-	var text := "Pronto! · ×%d" % int(items[item]) if remaining == 0 else "%s · ×%d" % [TimeText.short(remaining), int(items[item])]
 	var duration := maxf(1.0, float(entry.ready_at) - float(entry.started_at))
-	var frame := SheetBuilder.slot_frame(Database.item_icon(item), text, 1.0 - remaining / duration, remaining == 0, false)
-	(frame.get_child(0).get_child(0) as Control).name = "GatherItem_%s_%d" % [site, index]
+	var frame := SheetBuilder.slot_frame(Database.item_icon(item), "Pronto!" if remaining == 0 else TimeText.short(remaining), 1.0 - remaining / duration, remaining == 0, false)
+	frame.find_child("Icon", true, false).name = "GatherItem_%s_%d" % [site, index]
 	parent.add_child(frame)
 
 
-## Espaço ainda fechado: nível e XP que faltam (aqui o espaço abre usando, não comprando).
-static func _locked_slot(site: String, index: int) -> Control:
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"CardPanel"
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.modulate.a = 0.75
-	panel.mouse_filter = Control.MOUSE_FILTER_PASS
-	var box := UiKit.vbox(4)
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	var title := UiKit.label("Nv %d" % (index + 1), &"TitleLabel")
-	title.add_theme_font_size_override("font_size", 30)
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title.custom_minimum_size = Vector2(0, 64)
-	box.add_child(title)
-	var missing := maxi(0, int(Database.progression.nature_sites[site].levels[index].xp) - int(GameState.progress.nature_xp.get(site, 0)))
-	var chip := UiKit.chip(UiKit.ui_icon("xp"), str(missing))
-	chip.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	box.add_child(chip)
-	panel.add_child(box)
-	return panel
+## Espaço ainda fechado: cadeado e o nível (aqui o espaço abre usando, não comprando).
+static func _locked_slot(index: int) -> Control:
+	return UiKit.slot_dot(SlotDot.LEVEL, null, 0.0, "Nível %d" % (index + 1))
 
 
 static func _result(error: String, done: String) -> void:

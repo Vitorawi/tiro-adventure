@@ -2,14 +2,27 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **15/10/2026, Claude Code (Interface nova, Etapa 01)**.
+> um do outro. Última atualização: **15/10/2026, Claude Code (Interface nova, Etapa 02)**.
 
 **▶ PLANO ATUAL (15/10/2026): Interface nova — `docs/plans/interface/README.md`.** Aprovado pelo Vitor
 ("vamos nessas ideias mesmo"). 13 etapas (00–12), executar **uma por vez, na ordem**, com o prompt do README.
 Leitura obrigatória: `00_VISAO.md` (diagnóstico, referências, esboços) e `01_REGRAS_E_ESTILO.md` (regras,
 paleta, medidas, componentes, movimento, glossário de textos, receitas de arte). Só interface: regras, números
 e save (`SAVE_VERSION` 12) não mudam. Rascunho do tour de capturas usado no diagnóstico: `docs/plans/interface/ui_tour_rascunho.gd`
-(já virou `game/tests/ui_tour.gd`). **Próximo passo: Etapa 02 (`docs/plans/interface/ETAPA_02_painel.md`).**
+(já virou `game/tests/ui_tour.gd`). **Próximo passo: Etapa 03 (`docs/plans/interface/ETAPA_03_hud.md`).**
+
+**✔ Interface nova — Etapa 02 (painel novo) concluída (15/10/2026, Claude Code). Commit local, sem push. Próxima: Etapa 03 (`ETAPA_03_hud.md`).**
+- `SAVE_VERSION` continua 12; nenhuma regra/número/save mudou.
+- **Sheet** (`scenes/ui/sheet/`): painel preso embaixo, altura por `offset_top`. `content.set_meta("sheet_size", "half"|"tall")` (`SheetBuilder.tall(...)` marca); sem meta = automático (cabe em 55% → altura do conteúdo, mín. 30%; senão 88% com rolagem), medido 2 quadros depois de abrir e a cada `minimum_size_changed` (tween 0,18 s só se mudar > 24 px). Marcados `tall`: Mochila, Coleção, Manual, Diário, Vender/Feira, História. `Places._with_upgrades` repassa a meta.
+  Alça (`Handle`, 40×5) + título + faixa de 28 px do topo arrastam; > 25% da altura ou > 900 px/s fecha, para cima vira alto, senão volta (`TRANS_BACK`). Botão fechar = `UiKit.icon_button(ui_close, 44)` criado no código (continua `CloseButton`). Fade de 0,12 s ao trocar conteúdo. Novos `Motion.FADE/RESIZE/CLOSE` e `Motion.fade_in`.
+  **Fechar:** `close()`/`sheet_close_requested` esvazia o conteúdo na hora (`is_open()` falso, como pede a opção "mais segura") e só o fundo desliza 0,2 s; `visible` fica verdadeiro até acabar. `is_open()` e `panel_height()` são novos.
+- **`SlotDot`** (`scripts/ui/slot_dot.gd`, `UiKit.slot_dot`): vazio tracejado, na fila, produzindo (`RingProgress` + tempo), pronto (anel verde + check 16 + pulso), "+" com preço, cadeado "Nível N". `SheetBuilder.slot_frame` (mesma assinatura + `queued`) desenha por ela; `slot_flow()`/`slot_strip()` = fileira + "Pegar tudo (N)" ao lado. Valem para estações, Natureza, rotas e passeio (`WalkSlot` virou bolinha + postal/ação ao lado; `CollectWalk`/`CancelWalk`/`LockedSlot_*`/`GatherItem_*` mantidos). Rótulos "Preparando 0/3", "Coletas · 0/3", "Em andamento 0/1" saíram; legenda vazia some. Desvio: o pulso do "pronto" é calculado no `_process` pelo relógio (não `Motion.pulse`), porque o `LiveBox` reconstrói a cada segundo e reiniciaria o tween. Quantidade "×N" saiu da legenda dos espaços.
+- **`UiKit.list_row`** (+ tema `RowPanel`): `[ícone 48][título][ação]` e chips embaixo na largura toda (desvio: título e chips não cabem na mesma linha em 360 px). Aplicada em receitas, sementes, comidas, vender, materiais da Natureza e rotas; linha fechada = apagada + `lock_hint` no rodapé. Para caber 4 receitas: chip com margens 4/1, `RowPanel` 8/5, painel com margens 10/14, alça 16, separação do `LiveBox` 8. Efeito: **fogão sozinho mostra 4 receitas inteiras sem rolar em 360×780** (teste); com liquidificador liberado o título "Fogão" ocupa ~40 px e a 4ª aparece pela metade. Textos: "Coletar prontos/Recolher prontos" → "Pegar tudo (N)", "Recolher" (rotas/passeio) → "Pegar", "Coletar" (Natureza) → "Buscar"; o resto do glossário fica para a Etapa 11. "Receitas" só aparece em criações.
+- **Título único:** `stations_view` só nomeia a estação se houver > 1 liberada; "Construir" genérico trocado pelo nome da construção; item usa o nome. **Fala em balão:** `SpeechBubble` (balão + rabinho + etiqueta com nome) em `ProgressionUi.npc_header`; retrato 96 embaixo; Laís abre com painel baixo.
+- **Desvio:** arrastar valendo "quando a rolagem está no topo e o dedo desce" **não** foi feito (soltar o dedo sobre um botão dispararia o botão); só alça/título/topo.
+- **Testes:** novo `sheet_test` (alturas, fechar, arrasto, título, 4 receitas, bolinhas/linha) no `test_all.ps1`; os 31 passam um a um (`build/test_logs/etapa02/`). `park_test` falhou 1 vez por sorteio ("destino da Pipoca perto da Nina", flaky antigo; 3 reexecuções PASS). `ui_style_test.gd.uid` (esquecido na Etapa 01) entrou no commit.
+- **Capturas:** `build/screenshots/etapa02_antes|depois` (360×780), `_depois_390`, `_depois_412`; pranchas em `build/preview/etapa02/`. Tour ganhou `b25_stove_busy`; `tests/sheet_shots.gd` (fogão, arrasto, Bosque) para conferências rápidas.
+- Pendências: `Canteiro`/`Plantação` ainda são títulos genéricos; botões "Passear" e "Ir" das missões seguem verdes (Etapas 05/06/10).
 
 **✔ Interface nova — Etapa 01 (visual: cartão não é botão) concluída (15/10/2026, Claude Code). Commit local, sem push.**
 - `SAVE_VERSION` continua 12; nenhuma regra/número/save mudou. Quase tudo no tema e no `UiKit`, então vale para o jogo inteiro.

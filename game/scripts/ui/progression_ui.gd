@@ -56,7 +56,8 @@ static func npc_portrait(npc_id: String) -> Texture2D:
 ## Rosto grande + fala do passo atual (ou o cumprimento); o nome já está no título do painel.
 static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", animated: bool = false) -> Label:
 	var npc: Dictionary = Database.npcs.get(npc_id, {})
-	var row := UiKit.hbox(10)
+	var row := UiKit.hbox(4)
+	var picture: Control
 	if animated and npc.has("portrait_animations"):
 		var portrait := NpcPortrait.new()
 		portrait.name = "NpcPortrait"
@@ -65,14 +66,16 @@ static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", 
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		row.add_child(portrait)
+		picture = portrait
 	else:
-		row.add_child(UiKit.icon(npc_portrait(npc_id), 96))
-	var bubble := UiKit.fill_label(speech if speech != "" else str(npc.get("greeting", "")), &"")
-	bubble.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	row.add_child(bubble)
+		picture = UiKit.icon(npc_portrait(npc_id), 96)
+	picture.size_flags_vertical = Control.SIZE_SHRINK_END  # o retrato fica embaixo e o balão aponta para ele
+	row.add_child(picture)
+	var balloon := SpeechBubble.new(speech if speech != "" else str(npc.get("greeting", "")), str(npc.get("name", "")))
+	balloon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(balloon)
 	box.add_child(row)
-	return bubble
+	return balloon.label
 
 
 static func quest_card(box: VBoxContainer, id: String) -> void:
@@ -151,11 +154,12 @@ static func market_panel(tab: String = "sell") -> Control:
 	box.add_child(tabs)
 	box.add_child(holder)
 	show_tab.call(tab if tab in ["sell", "orders"] else "sell")
+	box.set_meta("sheet_size", "tall")  # a aba Vender é comprida e o painel não pode pular de altura ao trocar de aba
 	return box
 
 
 static func sell_panel() -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+	return SheetBuilder.tall(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var any := false
 		for id: String in Database.items:
 			var price := int(Database.items[id].get("sell_price", 0))
@@ -163,18 +167,14 @@ static func sell_panel() -> Control:
 			if price <= 0 or count == 0:
 				continue
 			any = true
-			var row := UiKit.hbox(8)
-			row.add_child(UiKit.icon(Database.item_icon(id), 40))
-			row.add_child(UiKit.fill_label("x%d" % count))
 			var sell := UiKit.secondary("+%d" % price, func() -> void:
 				var error := GameState.sell(id)
 				Events.toast_requested.emit(error if error != "" else "Vendeu %s!" % Database.item_name(id)), UiKit.ui_icon("coin"), true)
 			sell.custom_minimum_size = Vector2(96, 44)
-			row.add_child(sell)
-			UiKit.card(box).add_child(row)
+			box.add_child(UiKit.list_row(Database.item_icon(id), "%s ×%d" % [Database.item_name(id), count], [], sell))
 		if not any:
 			_text(box, "Nada para vender.")
-	)
+	))
 
 
 static func orders_panel(focus: String = "") -> Control:
@@ -206,46 +206,46 @@ static func routes_panel(place: String, focus: String = "") -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var activity: Dictionary = GameState.progress.activity
 		var remaining := GameState.activity_remaining() if not activity.is_empty() else 0
-		box.add_child(UiKit.label("Em andamento  %d/1" % (0 if activity.is_empty() else 1), &"SectionLabel"))
-		var slot_row := UiKit.hbox(8)
+		var slot_row := SheetBuilder.slot_flow()
+		var running_data: Dictionary = {}
 		if activity.is_empty():
-			slot_row.add_child(SheetBuilder.slot_frame(null, "Livre", 0.0, false, true))
+			slot_row.add_child(SheetBuilder.slot_frame(null, "", 0.0, false, true))
 		else:
 			var running: Dictionary = Database.progression.activities.get(activity.id, {})
+			running_data = running
 			var icon_name: String = running.get("icon", "")
 			var duration := maxf(1.0, float(activity.ready_at) - float(activity.started_at))
 			slot_row.add_child(SheetBuilder.slot_frame(UiKit.ui_icon(icon_name), "Pronto!" if remaining == 0 else TimeText.short(remaining), 1.0 - remaining / duration, remaining == 0, false))
-		box.add_child(slot_row)
-		if not activity.is_empty() and remaining == 0:
-			var data: Dictionary = Database.progression.activities.get(activity.id, {})
-			var collect := UiKit.button("Recolher", func() -> void:
-				var error := GameState.collect_activity()
-				if error != "":
-					Events.toast_requested.emit(error)
-				else:
-					Events.items_gained.emit(data.get("rewards", {}).get("items", {}), int(data.get("rewards", {}).get("coins", 0)), Vector2(-1.0, -1.0)), &"PrimaryButton")
-			box.add_child(collect)
+		var collect_text := "Pegar" if not activity.is_empty() and remaining == 0 else ""
+		box.add_child(SheetBuilder.slot_strip(slot_row, collect_text, func() -> void:
+			var error := GameState.collect_activity()
+			if error != "":
+				Events.toast_requested.emit(error)
+			else:
+				Events.items_gained.emit(running_data.get("rewards", {}).get("items", {}), int(running_data.get("rewards", {}).get("coins", 0)), Vector2(-1.0, -1.0))))
 		box.add_child(UiKit.label("Rotas", &"SectionLabel"))
 		for id: String in Database.progression.activities:
 			var data: Dictionary = Database.progression.activities[id]
 			if not str(data.get("place", "walk")) in groups or (focus != "" and id != focus):
 				continue
-			var card := UiKit.card(box)
-			var top := UiKit.hbox(10)
-			top.add_child(UiKit.icon(UiKit.ui_icon(data.get("icon", "")), 64))
-			var info := UiKit.vbox(4)
-			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			info.add_child(UiKit.label(data.name))
-			var details := UiKit.flow()
-			details.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(data.seconds))))
+			var chips: Array[Control] = [UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(data.seconds)))]
 			for item: String in data.rewards.get("items", {}):
-				details.add_child(UiKit.chip(Database.item_icon(item), "+%d" % int(data.rewards.items[item]), UiKit.GOOD))
+				chips.append(UiKit.chip(Database.item_icon(item), "+%d" % int(data.rewards.items[item]), UiKit.GOOD))
 			if int(data.rewards.get("coins", 0)) > 0:
-				details.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(data.rewards.coins), UiKit.GOOD))
-			info.add_child(details)
-			top.add_child(info)
-			card.add_child(top)
-			_action(card, "Começar", func() -> String: return GameState.start_activity(id), GameState.activity_error(id), "Vocês saíram para: " + data.name, TaskHelp.open.bind("route", id), false)
+				chips.append(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(data.rewards.coins), UiKit.GOOD))
+			var reason := GameState.activity_error(id)
+			var go := UiKit.secondary("Começar", func() -> void:
+				var error := GameState.start_activity(id)
+				Events.toast_requested.emit(error if error != "" else "Vocês saíram para: " + data.name), null, true)
+			go.disabled = reason != ""
+			go.custom_minimum_size.x = 88
+			var row := UiKit.list_row(UiKit.ui_icon(data.get("icon", "")), str(data.name), chips, go)
+			box.add_child(row)
+			if reason != "":
+				var hint := UiKit.hbox(8)
+				hint.add_child(UiKit.fill_label(reason, &"SmallLabel"))
+				hint.add_child(UiKit.square_button("?", TaskHelp.open.bind("route", id), null, 44))
+				(row.get_child(0) as VBoxContainer).add_child(hint)
 	)
 
 
@@ -263,7 +263,6 @@ static func walks_panel() -> Control:
 			box.add_child(UiKit.label("Pipoca vai junto · +1 achado", &"SmallLabel"))
 		if GameState.has_upgrade("walk_bag"):
 			box.add_child(UiKit.label("Bolsinha de passeio · +1 achado", &"SmallLabel"))
-		box.add_child(UiKit.label("Em andamento  %d/1" % (1 if GameState.walking() else 0), &"SectionLabel"))
 		box.add_child(_walk_slot())
 		var heading := UiKit.hbox(8)
 		heading.add_child(UiKit.fill_label("Passeios", &"SectionLabel"))
@@ -288,57 +287,60 @@ static func walks_panel() -> Control:
 			_walk_card(box, id, Database.walks.walks[id], true))
 
 
-## Espaço do passeio: vazio, andando (postal, tempo, barra) ou pronto.
+## Espaço do passeio em bolinha: vazio, andando (tempo no anel) ou pronto; ao lado, o postal e a ação.
 static func _walk_slot() -> Control:
-	var panel := PanelContainer.new()
-	panel.name = "WalkSlot"
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	panel.mouse_filter = Control.MOUSE_FILTER_PASS
-	var box := UiKit.vbox(6)
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	panel.add_child(box)
+	var strip := UiKit.hbox(10)
+	strip.mouse_filter = Control.MOUSE_FILTER_PASS
 	if not GameState.walking():
-		panel.theme_type_variation = &"CardPanel"
-		panel.modulate.a = 0.5
-		box.add_child(_center(UiKit.icon(UiKit.ui_icon("action_walk"), 64)))
-		box.add_child(_center(UiKit.label("Livre", &"SmallLabel")))
-		return panel
+		var empty := UiKit.slot_dot(SlotDot.EMPTY)
+		empty.name = "WalkSlot"
+		strip.add_child(empty)
+		var hint := UiKit.fill_label("Escolha um passeio", &"SmallLabel")
+		hint.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		strip.add_child(hint)
+		return strip
 	var entry: Dictionary = GameState.walk_state.current
 	var ready := GameState.walk_ready()
 	var remaining := GameState.walk_remaining()
-	panel.theme_type_variation = &"ReadyCardPanel" if ready else &"CardPanel"
-	box.add_child(_center(_postcard(GameState.walk_postcard(str(entry.id)), Vector2(128, 80))))
-	box.add_child(_center(UiKit.label(str(GameState.walk_def(str(entry.id)).get("name", "")), &"SectionLabel")))
-	box.add_child(_center(UiKit.label("Pronto!" if ready else TimeText.short(remaining), &"SmallLabel", UiKit.GOOD if ready else null)))
-	if not ready:
-		var seconds := maxf(1.0, float(entry.ready_at) - float(entry.started_at))
-		box.add_child(UiKit.bar(100.0 * clampf(1.0 - remaining / seconds, 0.0, 1.0), Palette.INFO, 10))
+	var seconds := maxf(1.0, float(entry.ready_at) - float(entry.started_at))
+	var dot := UiKit.slot_dot(SlotDot.READY if ready else SlotDot.BUSY, UiKit.ui_icon("action_walk"), clampf(1.0 - remaining / seconds, 0.0, 1.0),
+			"Pronto!" if ready else TimeText.short(remaining), UiKit.GOOD if ready else null)
+	dot.name = "WalkSlot"
+	strip.add_child(dot)
+	var info := UiKit.vbox(6)
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var heading := UiKit.hbox(8)
+	heading.add_child(_postcard(GameState.walk_postcard(str(entry.id)), Vector2(64, 40)))
+	heading.add_child(UiKit.fill_label(str(GameState.walk_def(str(entry.id)).get("name", "")), &"SectionLabel"))
+	info.add_child(heading)
 	if ready:
-		var collect := UiKit.button("Recolher", func() -> void:
+		var collect := UiKit.primary("Pegar", func() -> void:
 			var error := GameState.collect_walk_error()
 			if error != "":
 				Events.toast_requested.emit(error)
 			else:
 				Events.sheet_close_requested.emit()
-				GameState.collect_walk(), &"PrimaryButton")
+				GameState.collect_walk())
 		collect.name = "CollectWalk"
 		collect.disabled = GameState.collect_walk_error() != ""
-		box.add_child(collect)
+		info.add_child(collect)
 		if collect.disabled:
-			box.add_child(UiKit.label(GameState.collect_walk_error(), &"SmallLabel", UiKit.BAD))
+			info.add_child(UiKit.label(GameState.collect_walk_error(), &"SmallLabel", UiKit.BAD))
 	else:
 		var armed := GameState.now() < _cancel_armed_until
-		var call_back := UiKit.button("Toque de novo para chamar" if armed else "Chamar de volta", func() -> void:
+		var call_back := UiKit.secondary("Toque de novo para chamar" if armed else "Chamar de volta", func() -> void:
 			if GameState.now() < _cancel_armed_until:
 				_cancel_armed_until = 0.0
 				GameState.cancel_walk()
 				Events.toast_requested.emit("Tiro voltou para casa")
 			else:
 				_cancel_armed_until = GameState.now() + 4.0
-				Events.toast_requested.emit("Sem prêmio se voltar agora. Toque de novo."))
+				Events.toast_requested.emit("Sem prêmio se voltar agora. Toque de novo."), null, true)
 		call_back.name = "CancelWalk"
-		box.add_child(call_back)
-	return panel
+		info.add_child(call_back)
+	strip.add_child(info)
+	return strip
 
 
 static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, locked: bool) -> void:
@@ -437,7 +439,7 @@ static func _silhouette(picture: Control) -> void:
 
 ## Diário de passeios: um bloco por passeio (silhueta e requisitos enquanto bloqueado).
 static func walk_diary() -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+	return SheetBuilder.tall(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var legendary: Dictionary = Database.walks.get("legendary", {})
 		if not legendary.is_empty() and GameState.progress.feature_unlocked("legendary_walks"):
 			var card := UiKit.card(box)
@@ -482,7 +484,7 @@ static func walk_diary() -> Control:
 				var left := GameState.walk_pity_left(id)
 				var note := UiKit.label("Raro encontrado ✓" if found else "Raro garantido em até %d passeios" % left, &"SmallLabel", UiKit.GOOD if found else null)
 				note.name = "Pity"
-				body.add_child(note))
+				body.add_child(note)))
 
 
 static func _walk_requirement_chips(requirements: Dictionary) -> Array[Control]:
@@ -629,7 +631,7 @@ static func petshop_panel() -> Control:
 	)
 
 static func collection_panel() -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+	return SheetBuilder.tall(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var tabs := UiKit.hbox(8)
 		for entry: Array in [["clothes", "Roupas"], ["finds", "Achados"], ["friends", "Amigos"]]:
 			if entry[0] == "friends" and not GameState.progress.feature_unlocked("friends"):
@@ -647,7 +649,7 @@ static func collection_panel() -> Control:
 			box.add_child(FriendUi.album())
 		else:
 			box.add_child(FindUi.album() if _collection_tab == "finds" and GameState.progress.feature_unlocked("finds") else _clothes_panel())
-	)
+	))
 
 static func _clothes_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
@@ -860,7 +862,7 @@ static func routine_card(box: VBoxContainer, kind: String, id: String) -> void:
 
 ## História completa: capítulos passados (✓), o atual com os passos e os próximos apagados.
 static func story_panel() -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+	return SheetBuilder.tall(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var current := GameState.progress.chapter_index()
 		for i in Database.progression.chapters.size():
 			var chapter: Dictionary = Database.progression.chapters[i]
@@ -881,7 +883,7 @@ static func story_panel() -> Control:
 					card.add_child(row)
 			if index >= current:
 				card.add_child(reward_chips(chapter.get("rewards", {})))
-	)
+	))
 
 
 # --- Peças visuais de missão ---------------------------------------------------------------

@@ -96,6 +96,8 @@ static func _with_upgrades(panel: Control, upgrades: Array) -> Control:
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.mouse_filter = Control.MOUSE_FILTER_PASS
 	box.add_child(panel)
+	if panel.has_meta("sheet_size"):
+		box.set_meta("sheet_size", panel.get_meta("sheet_size"))  # a altura pedida pelo painel vale para o conjunto
 	box.add_child(SheetBuilder.LiveBox.new(func(cards: VBoxContainer) -> void:
 		for id: String in upgrades:
 			if not GameState.has_upgrade(id) and not _is_slot_upgrade(id):  # espaços de estação ficam na fileira de espaços

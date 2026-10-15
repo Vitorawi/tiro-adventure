@@ -156,7 +156,7 @@ func _run() -> void:
 	places.call("open_npc", "lais")
 	await shot("b17_npc_lais")
 	await _close()
-	await _sheet("Mochila", sb.call("item_detail", "carrot"))
+	await _sheet("Cenoura", sb.call("item_detail", "carrot"))  # o painel do item leva o nome dele no título
 	await shot("b18_item_detail")
 	await _close()
 	await _sheet("Atributos", pu.call("skills_panel"))
@@ -183,6 +183,15 @@ func _run() -> void:
 	await _close()
 	load("res://scripts/ui/game_manual.gd").call("open", "stations")
 	await shot("b24b_manual_stations")
+	await _close()
+	# Fogão trabalhando: bolinhas em andamento, na fila e prontas (no fim das telas de painel: acrescenta itens ao jogo).
+	state.call("dev_add_items", 20)
+	for i in 3:
+		state.call("cook", "carrot_snack")
+	state.call("dev_advance_time", 40)
+	await _world("house")
+	places.call("open", "house", "stove")
+	await shot("b25_stove_busy")
 	await _close()
 	# --- Cartões ---
 	var celebration: CanvasLayer = main.get("_celebration")

@@ -19,6 +19,9 @@ const PULSE := 0.9
 const COUNT := 0.5
 const SHAKE := 0.24
 const FLOAT := 0.7
+const FADE := 0.12  # conteúdo novo entrando num painel que já está aberto
+const RESIZE := 0.18  # painel que acompanha o tamanho do conteúdo (e volta ao lugar depois de arrastado)
+const CLOSE := 0.2  # painel que desce ao fechar
 
 
 ## Pivô no centro para Controls (Node2D já gira/escala pela origem).
@@ -59,6 +62,17 @@ static func pop_in(node: CanvasItem) -> Tween:
 	var tween := node.create_tween().set_parallel()
 	tween.tween_property(node, "scale", Vector2.ONE, POP_IN).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(node, "modulate:a", 1.0, POP_IN)
+	return tween
+
+
+## Aparece só com o alfa de 0 a 1 (troca de conteúdo dentro de um painel aberto).
+static func fade_in(node: CanvasItem) -> Tween:
+	if reduced:
+		node.modulate.a = 1.0
+		return _finished(node)
+	node.modulate.a = 0.0
+	var tween := node.create_tween()
+	tween.tween_property(node, "modulate:a", 1.0, FADE)
 	return tween
 
 

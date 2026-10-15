@@ -921,7 +921,7 @@ func _handle_tap(point: Vector2) -> void:
 			if sprite.get_meta("decoration", false) or not sprite.get_node("PurchaseMarker").visible:
 				continue
 			if Rect2(sprite.position + Vector2(-24, -36), Vector2(48, 48)).has_point(point):
-				Events.sheet_requested.emit("Construir", ProgressionUi.purchase(sprite.get_meta("upgrade")))
+				Events.sheet_requested.emit(str(Database.progression.upgrades.get(sprite.get_meta("upgrade"), {}).get("name", "Construir")), ProgressionUi.purchase(sprite.get_meta("upgrade")))
 				return
 			continue
 		if _hits(sprite, point - sprite.position) or (sprite.has_node("Crop") and _hits(sprite.get_node("Crop"), point - sprite.position - sprite.get_node("Crop").position)):
@@ -957,7 +957,7 @@ func _tap_label(point: Vector2) -> bool:
 				continue
 			return true
 		if upgrade != "" and not GameState.has_upgrade(upgrade):
-			Events.sheet_requested.emit("Construir", ProgressionUi.purchase(upgrade))
+			Events.sheet_requested.emit(str(Database.progression.upgrades.get(upgrade, {}).get("name", "Construir")), ProgressionUi.purchase(upgrade))
 			return true
 		var action: String = data.get("action", "")
 		if action == "":

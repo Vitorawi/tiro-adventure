@@ -133,6 +133,44 @@ static func lock_hint(text: String, on_help: Callable = Callable()) -> HBoxConta
 	return row
 
 
+## Espaço de produção compacto: bolinha de 56 px + legenda. `state` = SlotDot.EMPTY/QUEUED/BUSY/READY/BUY/LEVEL;
+## `progress` 0..1 (em BUY, 1 = dá para comprar agora); `caption_icon` vai antes da legenda (moeda do preço).
+static func slot_dot(state: String, texture: Texture2D = null, progress: float = 0.0, caption: String = "", caption_color: Variant = null, caption_icon: Texture2D = null) -> SlotDot:
+	return SlotDot.new(state, texture, progress, caption, caption_color, caption_icon)
+
+
+## Linha baixa de lista: [ícone 48] [título] [ação à direita] e, embaixo, os chips na largura toda (quebram se faltar espaço).
+## Toque na linha = `on_tap` (opcional).
+## O corpo (VBox, filho 0) aceita rodapés, como o `lock_hint` de uma linha fechada.
+static func list_row(texture: Texture2D, title: String, chips: Array[Control], action: Control = null, on_tap: Callable = Callable()) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.theme_type_variation = &"RowPanel"  # cartão com margens menores (8 em cima e embaixo)
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.custom_minimum_size = Vector2(0, 64)
+	panel.mouse_filter = Control.MOUSE_FILTER_PASS
+	var body := vbox(2)
+	panel.add_child(body)
+	var top := hbox(8)
+	top.add_child(icon(texture, 48))
+	var name_label := fill_label(title)
+	name_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	top.add_child(name_label)
+	if action:
+		action.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		top.add_child(action)
+	body.add_child(top)
+	if not chips.is_empty():
+		var chip_row := flow(2)
+		for chip_control: Control in chips:
+			chip_row.add_child(chip_control)
+		body.add_child(chip_row)
+	if on_tap.is_valid():
+		panel.gui_input.connect(func(event: InputEvent) -> void:
+			var click := event as InputEventMouseButton
+			if click and click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
+				on_tap.call())
+	return panel
+
 ## Rótulo curto numa linha (ex.: "3/6"): sem quebra, senão o HBox o espreme letra por letra.
 static func short_label(text: String, variation: StringName = &"", color: Variant = null) -> Label:
 	var result := label(text, variation, color)
@@ -215,7 +253,15 @@ static func tint_bar(target: ProgressBar, color: Color) -> void:
 ## Chips de efeito numa necessidade: [osso +20] [coração +15].
 static func effect_chips(effects: Dictionary) -> HFlowContainer:
 	var row := flow()
+	for item: Control in effect_chip_list(effects):
+		row.add_child(item)
+	return row
+
+
+## Os mesmos chips de efeito, soltos (para entrar nos chips de uma `list_row`).
+static func effect_chip_list(effects: Dictionary) -> Array[Control]:
+	var chips: Array[Control] = []
 	for need_id: String in effects:
 		var amount := int(effects[need_id])
-		row.add_child(chip(Database.need_icon(need_id), "%+d" % amount, GOOD if amount > 0 else BAD))
-	return row
+		chips.append(chip(Database.need_icon(need_id), "%+d" % amount, GOOD if amount > 0 else BAD))
+	return chips

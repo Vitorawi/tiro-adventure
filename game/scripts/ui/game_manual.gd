@@ -22,6 +22,7 @@ static func panel(section: String = "resources") -> Control:
 		_stations(box)
 	else:
 		_resources(box)
+	box.set_meta("sheet_size", "tall")  # consulta comprida: não pode mudar de altura ao trocar de aba
 	return box
 
 
