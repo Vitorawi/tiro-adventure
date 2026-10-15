@@ -61,9 +61,10 @@ static func tap_chip(texture: Texture2D, text: String, on_pressed: Callable, col
 	return result
 
 
-## Botão quadrado só com ícone ou um símbolo curto (ex.: "?").
-static func square_button(text: String, on_pressed: Callable, texture: Texture2D = null, px: int = 52) -> Button:
-	var result := button(text, on_pressed, &"", texture)
+## Botão redondo só com ícone ou um símbolo curto (ex.: "?", "↔"): círculo `CARD` com borda fina.
+## Alvo de toque = `px` (o desenho é o círculo inteiro).
+static func icon_button(texture: Texture2D, on_pressed: Callable, px: int = 44, text: String = "") -> Button:
+	var result := button(text, on_pressed, &"IconButton", texture)
 	result.custom_minimum_size = Vector2(px, px)
 	result.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	if texture:
@@ -71,6 +72,65 @@ static func square_button(text: String, on_pressed: Callable, texture: Texture2D
 		result.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		result.add_theme_constant_override("icon_max_width", 32)
 	return result
+
+
+## Mesma peça de antes (assinatura antiga), agora um `icon_button`.
+static func square_button(text: String, on_pressed: Callable, texture: Texture2D = null, px: int = 52) -> Button:
+	return icon_button(texture, on_pressed, px, text)
+
+
+## O botão principal da tela/painel (verde). Só um por vez: listas usam `secondary(..., small = true)`.
+static func primary(text: String, on_pressed: Callable, texture: Texture2D = null) -> Button:
+	return button(text, on_pressed, &"PrimaryButton", texture)
+
+
+## Ação alternativa (mel). `small` = linha de lista (altura 44).
+static func secondary(text: String, on_pressed: Callable, texture: Texture2D = null, small: bool = false) -> Button:
+	var result := button(text, on_pressed, &"SecondaryButton", texture)
+	if small:
+		result.custom_minimum_size = Vector2(0, 44)
+		result.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return result
+
+
+## Ação fraca ("Ver tudo", "Cancelar"): sem fundo, texto suave sublinhado.
+static func ghost(text: String, on_pressed: Callable) -> Button:
+	var result := button(text, on_pressed, &"GhostButton")
+	result.custom_minimum_size = Vector2(0, 44)
+	return result
+
+
+## Pílula escura do HUD sobre o mundo: ícone + número com contorno.
+static func pill(texture: Texture2D, text: String) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.theme_type_variation = &"PillPanel"
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var row := hbox(4)
+	if texture:
+		row.add_child(icon(texture, 32))
+	var number := label(text, &"NumberLabel")
+	number.autowrap_mode = TextServer.AUTOWRAP_OFF
+	row.add_child(number)
+	panel.add_child(row)
+	return panel
+
+
+## Cadeado de 32 px (`ui_lock`), usado no `lock_hint` e nos cartões fechados.
+static func lock_icon(px: int = 32) -> TextureRect:
+	var lock := icon(ui_icon("ui_lock"), px)
+	lock.name = "LockIcon"
+	return lock
+
+
+## "Ainda não dá": cadeado + motivo curto (+ "?" se houver `on_help`). Substitui o botão cinza largo.
+static func lock_hint(text: String, on_help: Callable = Callable()) -> HBoxContainer:
+	var row := hbox(8)
+	row.name = "LockHint"
+	row.add_child(lock_icon())
+	row.add_child(fill_label(text, &"SmallLabel"))
+	if on_help.is_valid():
+		row.add_child(icon_button(null, on_help, 44, "?"))
+	return row
 
 
 ## Rótulo curto numa linha (ex.: "3/6"): sem quebra, senão o HBox o espreme letra por letra.
@@ -108,6 +168,7 @@ static func button(text: String, on_pressed: Callable, variation: StringName = &
 	result.custom_minimum_size = Vector2(0, 52)
 	result.mouse_filter = Control.MOUSE_FILTER_PASS  # deixa rolar arrastando em cima do botão
 	result.pressed.connect(on_pressed)
+	Motion.press(result)
 	return result
 
 

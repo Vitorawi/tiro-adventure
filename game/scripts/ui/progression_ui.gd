@@ -108,6 +108,10 @@ static func upgrade_card(box: VBoxContainer, id: String) -> void:
 		if place[0] != "":
 			card.add_child(UiKit.button("Abrir " + Database.stations[id].name, Places.open.bind(place[0], place[1])))
 		return
+	# Bloqueio por requisito (não por moedas): cartão apagado e cadeado com o motivo, sem botão.
+	var lock := GameState.requirement_error(data.get("requirements", {}))
+	if lock != "":
+		card.get_parent().modulate.a = 0.55
 	var cost := UiKit.flow()
 	if int(data.cost) <= 0:
 		cost.add_child(UiKit.chip(UiKit.ui_icon("coin"), "Grátis", UiKit.GOOD))
@@ -115,6 +119,9 @@ static func upgrade_card(box: VBoxContainer, id: String) -> void:
 		cost.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [mini(GameState.coins, int(data.cost)), int(data.cost)], UiKit.GOOD if GameState.coins >= int(data.cost) else UiKit.BAD))
 	card.add_child(cost)
 	_amounts(card, data.get("materials", {}))
+	if lock != "":
+		card.add_child(UiKit.lock_hint(lock, TaskHelp.open.bind("upgrade", id)))
+		return
 	_action(card, "Comprar", func() -> String: return GameState.buy_upgrade(id), GameState.upgrade_error(id), "%s é seu!" % data.name, TaskHelp.open.bind("upgrade", id))
 
 
@@ -135,7 +142,7 @@ static func market_panel(tab: String = "sell") -> Control:
 			child.queue_free()
 		holder.add_child(sell_panel() if id == "sell" else orders_panel())
 		for key: String in buttons:
-			buttons[key].theme_type_variation = &"PrimaryButton" if key == id else &""
+			buttons[key].theme_type_variation = &"SecondaryButton" if key == id else &"GhostButton"
 	for entry: Array in [["sell", "Vender", "coin"], ["orders", "Encomendas", "item_treat_box"]]:
 		var button := UiKit.button(entry[1], show_tab.bind(entry[0]), &"", UiKit.ui_icon(entry[2]))
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -159,10 +166,10 @@ static func sell_panel() -> Control:
 			var row := UiKit.hbox(8)
 			row.add_child(UiKit.icon(Database.item_icon(id), 40))
 			row.add_child(UiKit.fill_label("x%d" % count))
-			var sell := UiKit.button("+%d" % price, func() -> void:
+			var sell := UiKit.secondary("+%d" % price, func() -> void:
 				var error := GameState.sell(id)
-				Events.toast_requested.emit(error if error != "" else "Vendeu %s!" % Database.item_name(id)), &"PrimaryButton", UiKit.ui_icon("coin"))
-			sell.custom_minimum_size = Vector2(96, 48)
+				Events.toast_requested.emit(error if error != "" else "Vendeu %s!" % Database.item_name(id)), UiKit.ui_icon("coin"), true)
+			sell.custom_minimum_size = Vector2(96, 44)
 			row.add_child(sell)
 			UiKit.card(box).add_child(row)
 		if not any:
@@ -181,11 +188,12 @@ static func orders_panel(focus: String = "") -> Control:
 			var card := UiKit.card(box, &"ReadyCardPanel" if reason == "" else &"CardPanel")
 			card.add_child(UiKit.label(data.name, &"SectionLabel"))
 			if locked != "":
-				_action(card, "Bloqueada", func() -> String: return locked, locked, "", TaskHelp.open.bind("order", id))
+				card.get_parent().modulate.a = 0.55
+				card.add_child(UiKit.lock_hint(locked, TaskHelp.open.bind("order", id)))
 				continue
 			_amounts(card, data.inputs)
 			card.add_child(reward_chips(data.rewards))
-			_action(card, "Entregar", func() -> String: return GameState.fulfill_order(id), reason, "Encomenda entregue!", TaskHelp.open.bind("order", id))
+			_action(card, "Entregar", func() -> String: return GameState.fulfill_order(id), reason, "Encomenda entregue!", TaskHelp.open.bind("order", id), false)
 	)
 
 
@@ -237,7 +245,7 @@ static func routes_panel(place: String, focus: String = "") -> Control:
 			info.add_child(details)
 			top.add_child(info)
 			card.add_child(top)
-			_action(card, "Começar", func() -> String: return GameState.start_activity(id), GameState.activity_error(id), "Vocês saíram para: " + data.name, TaskHelp.open.bind("route", id))
+			_action(card, "Começar", func() -> String: return GameState.start_activity(id), GameState.activity_error(id), "Vocês saíram para: " + data.name, TaskHelp.open.bind("route", id), false)
 	)
 
 
@@ -304,7 +312,7 @@ static func _walk_slot() -> Control:
 	box.add_child(_center(UiKit.label("Pronto!" if ready else TimeText.short(remaining), &"SmallLabel", UiKit.GOOD if ready else null)))
 	if not ready:
 		var seconds := maxf(1.0, float(entry.ready_at) - float(entry.started_at))
-		box.add_child(UiKit.bar(100.0 * clampf(1.0 - remaining / seconds, 0.0, 1.0), Color(0.96, 0.62, 0.25), 10))
+		box.add_child(UiKit.bar(100.0 * clampf(1.0 - remaining / seconds, 0.0, 1.0), Palette.INFO, 10))
 	if ready:
 		var collect := UiKit.button("Recolher", func() -> void:
 			var error := GameState.collect_walk_error()
@@ -345,7 +353,7 @@ static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, lock
 	info.add_child(UiKit.label(str(data.name)))
 	var details := UiKit.flow()
 	if locked:
-		details.add_child(WishUi.LockIcon.new())
+		details.add_child(UiKit.lock_icon())
 		for chip: Control in _walk_requirement_chips(data.get("requirements", {})):
 			details.add_child(chip)
 	else:
@@ -459,7 +467,7 @@ static func walk_diary() -> Control:
 			info.add_child(UiKit.label("???" if locked else str(data.name), &"SectionLabel"))
 			if locked:
 				var chips := UiKit.flow()
-				chips.add_child(WishUi.LockIcon.new())
+				chips.add_child(UiKit.lock_icon())
 				for chip: Control in _walk_requirement_chips(data.get("requirements", {})):
 					chips.add_child(chip)
 				info.add_child(chips)
@@ -597,10 +605,10 @@ static func petshop_panel() -> Control:
 			row.add_child(UiKit.icon(Database.item_icon(id), 64))
 			row.add_child(UiKit.fill_label(str(data.name)))
 			card.add_child(row)
-			var button := UiKit.button("Vestir" if own else "Comprar · %d" % int(data.price), func() -> void:
+			var button := UiKit.secondary("Vestir" if own else "Comprar · %d" % int(data.price), func() -> void:
 				var error := GameState.equip(id) if own else GameState.buy_cosmetic(id)
 				if error != "":
-					Events.toast_requested.emit(error))
+					Events.toast_requested.emit(error), null, true)
 			button.disabled = (GameState.equip_error(id) if own else GameState.buy_cosmetic_error(id)) != ""
 			card.add_child(button)
 		for id: String in Database.progression.get("shop_items", {}):
@@ -610,10 +618,10 @@ static func petshop_panel() -> Control:
 			var card := UiKit.card(box)
 			card.add_child(UiKit.label(str(data.name), &"SectionLabel"))
 			card.add_child(reward_chips({"items": data.items}))
-			var button := UiKit.button("Comprar · %d" % int(data.price), func() -> void:
+			var button := UiKit.secondary("Comprar · %d" % int(data.price), func() -> void:
 				var error := GameState.buy_shop_item(id)
 				if error != "":
-					Events.toast_requested.emit(error))
+					Events.toast_requested.emit(error), null, true)
 			button.disabled = GameState.buy_shop_item_error(id) != ""
 			card.add_child(button)
 		if not GameState.has_upgrade("walk_bag"):
@@ -676,10 +684,10 @@ static func _clothes_panel() -> Control:
 				card.add_child(UiKit.label("LENDÁRIO", &"SmallLabel", Color("b56be0")))
 			if earned:
 				var wearing := str(GameState.progress.equipped.get(str(data.get("slot", "")), "")) == id
-				var button := UiKit.button("Tirar" if wearing else "Vestir", func() -> void:
+				var button := UiKit.secondary("Tirar" if wearing else "Vestir", func() -> void:
 					var error := GameState.unequip(str(data.slot)) if wearing else GameState.equip(id)
 					if error != "":
-						Events.toast_requested.emit(error))
+						Events.toast_requested.emit(error), null, true)
 				button.disabled = not wearing and GameState.equip_error(id) != ""
 				card.add_child(button)
 				if not wearing and GameState.equip_error(id) != "":
@@ -745,16 +753,18 @@ static func _text(box: VBoxContainer, text: String, small: bool = false) -> void
 
 ## Botão de ação do GameState; toast com o resultado. Bloqueado: motivo curto embaixo e,
 ## se houver `help`, um "?" ao lado que abre o "Como fazer".
-static func _action(box: VBoxContainer, text: String, action: Callable, reason: String = "", done: String = "Feito!", help: Callable = Callable()) -> void:
-	var button := UiKit.button(text, func() -> void:
+## `primary` = botão principal do painel; em listas de cartões repetidos use `false` (secundário pequeno).
+static func _action(box: VBoxContainer, text: String, action: Callable, reason: String = "", done: String = "Feito!", help: Callable = Callable(), primary: bool = true) -> void:
+	var on_press := func() -> void:
 		var error: String = action.call()
-		Events.toast_requested.emit(error if error != "" else done), &"PrimaryButton")
+		Events.toast_requested.emit(error if error != "" else done)
+	var button := UiKit.primary(text, on_press) if primary else UiKit.secondary(text, on_press, null, true)
 	button.disabled = reason != ""
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var row := UiKit.hbox(8)
 	row.add_child(button)
 	if reason != "" and help.is_valid():
-		row.add_child(UiKit.square_button("?", help))
+		row.add_child(UiKit.square_button("?", help, null, 44))
 	box.add_child(row)
 	if reason != "":
 		_text(box, reason, true)
@@ -832,13 +842,15 @@ static func routine_card(box: VBoxContainer, kind: String, id: String) -> void:
 	if claimed:
 		row.add_child(UiKit.short_label("✓", &"SectionLabel", UiKit.GOOD))
 	else:
-		var button := UiKit.button("Receber" if ready else "Ir", func() -> void:
+		var on_press := func() -> void:
 			if ready:
 				var error := GameState.claim_routine(kind, id)
 				Events.toast_requested.emit(error if error != "" else "Missão concluída!")
 			else:
-				Places.go(Places.goal_target({"type": "stat", "key": goal.key})), &"PrimaryButton")
-		button.custom_minimum_size = Vector2(96, 48)
+				Places.go(Places.goal_target({"type": "stat", "key": goal.key}))
+		# Pronta = botão principal "Pegar prêmio"; ainda não = "Ir" pequeno e secundário.
+		var button := UiKit.primary("Pegar prêmio", on_press) if ready else UiKit.secondary("Ir", on_press, null, true)
+		button.custom_minimum_size = Vector2(96, 52 if ready else 44)
 		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(button)
 	card.add_child(row)

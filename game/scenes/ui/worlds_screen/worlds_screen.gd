@@ -156,14 +156,18 @@ func _build_cards(box: VBoxContainer) -> void:
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.disabled = locked != ""
 		var normal := StyleBoxFlat.new()
-		normal.bg_color = Color("f7e9c9") if locked == "" else Color("e7ddc7")
-		normal.border_color = Color("689847") if not alerts.is_empty() or world_id == current_world else Color("a87d52")
-		normal.set_border_width_all(2)
-		normal.set_corner_radius_all(12)
+		normal.bg_color = Palette.CARD if locked == "" else Palette.SUNKEN
+		var highlighted := not alerts.is_empty() or world_id == current_world
+		normal.border_color = Palette.PRIMARY if highlighted else Palette.CARD_LINE
+		normal.set_border_width_all(3 if highlighted else 2)
+		normal.set_corner_radius_all(14)
+		normal.shadow_color = Palette.SHADE
+		normal.shadow_size = 3
+		normal.shadow_offset = Vector2(0, 2)
 		button.add_theme_stylebox_override("normal", normal)
 		button.add_theme_stylebox_override("disabled", normal)
 		var pressed := normal.duplicate() as StyleBoxFlat
-		pressed.bg_color = Color("e5d0a4")
+		pressed.bg_color = Palette.SUNKEN
 		button.add_theme_stylebox_override("pressed", pressed)
 		button.add_theme_stylebox_override("hover", normal)
 		var row := UiKit.hbox(12)

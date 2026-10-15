@@ -26,7 +26,7 @@ a cada push na `main` (versão publicada em `/` e versão dev em `/dev/`). Progr
 - Fases, **estado atual e próximas tarefas**: `docs/ROADMAP.md`
 - Planos detalhados prontos para executar: `docs/plans/` (ex.: `TASKS_V2.md`)
 - Etapas 10 e 11 concluídas: truques com treino de um toque na Praça e o tesouro (mapa completo, baú da Clareira, mirtilo); ver `docs/PROGRESSION.md` e `docs/ART_PIPELINE.md`. **Plano de 12 etapas concluído.**
-- **Plano atual: Interface nova** (`docs/plans/interface/README.md`): 13 etapas (00–12), uma por vez — visual, painel, HUD, mundo em tela cheia, seletor, balões, **bandeja de ação** (plantar/colher arrastando), estações, tela do Tiro, listas, textos e comemorações. Regras e estilo em `docs/plans/interface/01_REGRAS_E_ESTILO.md`. **Etapa 00 concluída** (tour de capturas, `Palette`, `Motion`, `RingProgress`, ícones próprios das estações, Casa enquadrada); próxima: Etapa 01.
+- **Plano atual: Interface nova** (`docs/plans/interface/README.md`): 13 etapas (00–12), uma por vez — visual, painel, HUD, mundo em tela cheia, seletor, balões, **bandeja de ação** (plantar/colher arrastando), estações, tela do Tiro, listas, textos e comemorações. Regras e estilo em `docs/plans/interface/01_REGRAS_E_ESTILO.md`. **Etapas 00 e 01 concluídas** (00: tour de capturas, `Palette`, `Motion`, `RingProgress`, ícones das estações, Casa enquadrada; 01: tema novo — cartão leve, botão com degrau, um botão verde por painel, cadeado no lugar do botão cinza); próxima: Etapa 02.
 
 ## Trabalho em dupla (Claude Code + Codex)
 O projeto é desenvolvido alternando **Claude Code** (lê `CLAUDE.md`) e **Codex** (lê `AGENTS.md`).
@@ -130,7 +130,8 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Ícone próprio de estação/lugar (`station_*`, `ui_lock`) | PNG 32 px em `ui/icons/` + campo `"icon"` em `progression.json → upgrades` e `worlds.json → places`; teste `ui_base_test.gd` impede ícone emprestado (`tab_*`, `item_carrot_snack`) nas estações |
 | Capturas de toda a interface (antes/depois de mudar visual) | `tests/ui_tour.gd` (régua do plano Interface nova; NÃO é teste). Cada tela nova acrescenta a captura dela |
 | Nova ferramenta de teste (dev)        | `GameState.dev_*()` (com guarda `BuildInfo.is_dev()`) + botão em `scripts/ui/dev_panel.gd` |
-| Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: PrimaryButton, TabButton, CloseButton, CardPanel, ReadyCardPanel, ChipPanel, SheetPanel, TopBarPanel, TitleLabel, SectionLabel, SmallLabel, BarLabel, ToastLabel) |
+| Visual da interface (cores, botões, fonte) | `game/assets/theme/main_theme.tres` (variações: botões `Button`=secundário/`SecondaryButton`, `PrimaryButton`, `GhostButton`, `IconButton`, `CloseButton`, `TabButton`, `ChipButton`; painéis `CardPanel` (sem degrau), `ReadyCardPanel`, `ChipPanel`, `PillPanel`, `SheetPanel`, `TopBarPanel`; rótulos `TitleLabel` 30, `SectionLabel` 22, `SmallLabel` 18, `NumberLabel`, `BadgeLabel`, `BarLabel`, `ToastLabel`). Cores do `.tres` em decimais = `Palette` |
+| Botão/peça de interface nova | Sempre no `UiKit`: `primary` (um por tela/painel), `secondary(..., small)` (listas, altura 44), `ghost`, `icon_button`/`square_button("?")`, `pill`, `lock_hint` (cadeado + motivo; bloqueio por requisito, nunca botão cinza), `lock_icon`; `UiKit.button` já aplica `Motion.press`. Teste `ui_style_test.gd` (≤ 1 `PrimaryButton` por painel) |
 | Ícone de item/necessidade/atributo    | PNG 32 px em `game/assets/sprites/ui/icons/` + campo `"icon"` no JSON (caminho em `items.json`/`needs`; nome do arquivo sem `.png` em `progression.json`, `npcs.json`, `collections.json`) |
 | Armazenamento (limites e ampliações)  | `progression.json → storage` + melhorias com `storage_capacity`; `items.json → storage`; `GameState.storage_*`; plano `docs/plans/ARMAZENAMENTO.md` |
 | Adicionar dado que deve ser salvo     | classe em `game/scripts/state/` (ou campo no `GameState`) + `to_dict`/`from_dict`/`reset` |
@@ -316,6 +317,7 @@ powershell -ExecutionPolicy Bypass -File tools\serve_local.ps1  # http://localho
 & $env:GODOT_BIN --headless --path game -s res://tests/tricks_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/treasure_test.gd
 & $env:GODOT_BIN --headless --path game -s res://tests/ui_base_test.gd       # Palette, Motion, RingProgress, ícones das estações
+& $env:GODOT_BIN --headless --path game -s res://tests/ui_style_test.gd      # tema (cartão sem degrau), peças do UiKit, um botão principal por painel, cadeado
 # Ou rode toda a suíte: powershell -File tools/test_all.ps1
 # Capturas das telas: rode sem --headless, com --resolution 360x780 e "-- --screenshots"
 # Tour de capturas da interface (40 PNGs em build/screenshots/<pasta>/; não grava o save):

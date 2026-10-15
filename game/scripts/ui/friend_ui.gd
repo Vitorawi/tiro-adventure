@@ -64,7 +64,7 @@ static func _card(box: VBoxContainer, id: String, album: bool = false) -> void:
 		var give := UiKit.button("Dar petisco", func() -> void:
 			var error := GameState.give_friend(id)
 			if error != "":
-				Events.toast_requested.emit(error), &"PrimaryButton")
+				Events.toast_requested.emit(error), &"SecondaryButton")
 		give.disabled = reason != ""
 		card.add_child(give)
 	if reason != "":

@@ -14,7 +14,7 @@ static func panel(section: String = "resources") -> Control:
 	box.add_child(UiKit.label("Toque para ver como conseguir e onde ir.", &"SmallLabel"))
 	var tabs := UiKit.hbox(8)
 	for entry: Array in [["Recursos", "resources", "tab_bag"], ["Estações", "stations", "item_plank"]]:
-		var tab := UiKit.button(entry[0], open.bind(entry[1]), &"PrimaryButton" if section == entry[1] else &"", UiKit.ui_icon(entry[2]))
+		var tab := UiKit.button(entry[0], open.bind(entry[1]), &"SecondaryButton" if section == entry[1] else &"GhostButton", UiKit.ui_icon(entry[2]))
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tabs.add_child(tab)
 	box.add_child(tabs)
@@ -183,7 +183,7 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 			find_row.add_child(UiKit.fill_label(find_world.name, &"SmallLabel"))
 			card.add_child(find_row)
 			var find_error := Places.world_error(id)
-			var find_button := UiKit.button("Bloqueado" if find_error != "" else "Ir até lá", Places.go.bind({"world": id, "place": "find"}), &"PrimaryButton")
+			var find_button := UiKit.button("Bloqueado" if find_error != "" else "Ir até lá", Places.go.bind({"world": id, "place": "find"}), &"SecondaryButton")
 			find_button.disabled = find_error != ""
 			card.add_child(find_button)
 		"care":
@@ -240,7 +240,7 @@ static func _location(box: VBoxContainer, target: Dictionary, upgrade: String = 
 		error = Places.place_error(place)
 	var needs_buy: bool = upgrade != "" and Database.progression.upgrades.has(upgrade) and not GameState.has_upgrade(upgrade)
 	var destination := Places.goal_target({"type": "owned", "key": upgrade}) if needs_buy else target
-	var button := UiKit.button("Bloqueado" if error != "" else ("Ver compra" if needs_buy else "Ir até lá"), Places.go.bind(destination), &"PrimaryButton")
+	var button := UiKit.button("Bloqueado" if error != "" else ("Ver compra" if needs_buy else "Ir até lá"), Places.go.bind(destination), &"SecondaryButton")
 	button.disabled = error != ""
 	box.add_child(button)
 	if error != "":

@@ -44,7 +44,7 @@ static func _slot_card(box: VBoxContainer, summary: Dictionary) -> void:
 	var row := UiKit.hbox(6)
 	var play := UiKit.button("Jogando" if summary.active else "Jogar", func() -> void:
 		SaveManager.switch_slot(slot)
-		_restart(), &"PrimaryButton")
+		_restart(), &"SecondaryButton")
 	play.name = "Play_%d" % slot
 	play.disabled = summary.active
 	play.size_flags_horizontal = Control.SIZE_EXPAND_FILL

@@ -12,6 +12,13 @@ func _ready() -> void:
 	hide()
 	_dim.gui_input.connect(_on_dim_input)
 	%CloseButton.pressed.connect(close)
+	# Botão redondo com o ícone "✕" próprio (a fonte pixel art não tem o glifo).
+	var close_button: Button = %CloseButton
+	close_button.icon = UiKit.ui_icon("ui_close")
+	close_button.expand_icon = true
+	close_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	close_button.add_theme_constant_override("icon_max_width", 28)
+	Motion.press(close_button)
 	Events.sheet_requested.connect(open)
 	Events.sheet_close_requested.connect(close)
 

@@ -89,7 +89,7 @@ static func slot_card(box: VBoxContainer, i: int) -> void:
 	if special:
 		var panel := card.get_parent() as PanelContainer
 		var border := panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
-		border.border_color = Color(0.85, 0.59, 0.15)
+		border.border_color = Palette.ACCENT_EDGE
 		panel.add_theme_stylebox_override("panel", border)
 	card.name = "Wish%d" % i
 	var wish_id := str(GameState.wishes.slots[i].id)
@@ -104,10 +104,9 @@ static func slot_card(box: VBoxContainer, i: int) -> void:
 	info.add_child(title)
 	info.add_child(_progress(def, i))
 	row.add_child(info)
-	var swap := UiKit.square_button("↔", func() -> void:
-		GameState.swap_wish(i), null, 56)
+	var swap := UiKit.icon_button(null, func() -> void:
+		GameState.swap_wish(i), 48, "↔")
 	swap.tooltip_text = "Trocar desejo"
-	swap.custom_minimum_size = Vector2(48, 48)
 	swap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	row.add_child(swap)
 	card.add_child(row)
@@ -132,17 +131,19 @@ static func _progress(def: Dictionary, i: int) -> Control:
 static func _actions(card: VBoxContainer, def: Dictionary, i: int, ready: bool) -> void:
 	var row := UiKit.hbox(8)
 	var give: bool = def.type != "action"
-	var main := UiKit.button(("Dar" if give else "Receber") if ready else "Ir", func() -> void:
+	var on_press := func() -> void:
 		if ready:
 			var error := GameState.fulfill_wish(i)
 			if error != "":
 				Events.toast_requested.emit(error)
 		else:
-			Places.go(go_target(def)), &"PrimaryButton")
+			Places.go(go_target(def))
+	# Cumprível = botão principal ("Dar"/"Receber"); ainda não = "Ir" secundário pequeno.
+	var main := UiKit.primary(("Dar" if give else "Receber"), on_press) if ready else UiKit.secondary("Ir", on_press, null, true)
 	main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(main)
 	if not ready:
-		row.add_child(UiKit.square_button("?", TaskHelp.open.bind("wish", str(GameState.wishes.slots[i].id), 1)))
+		row.add_child(UiKit.square_button("?", TaskHelp.open.bind("wish", str(GameState.wishes.slots[i].id), 1), null, 44))
 	card.add_child(row)
 
 
@@ -172,22 +173,8 @@ static func _closed_card(box: VBoxContainer, i: int) -> void:
 	card.name = "WishClosed%d" % i
 	card.get_parent().modulate.a = 0.6
 	var row := UiKit.hbox(10)
-	row.add_child(LockIcon.new())
+	row.add_child(UiKit.lock_icon())
 	var need := int(GameState.wish_settings().slots[i].get("requirements", {}).get("bond", 0))
 	row.add_child(UiKit.chip(UiKit.ui_icon("bond_heart"), str(need)))
 	row.add_child(UiKit.fill_label("Abre com vínculo %d" % need if need > 0 else "Fechado", &"SmallLabel"))
 	card.add_child(row)
-
-
-## Cadeado simples, sem depender de um glifo que a fonte pixel art pode não ter.
-class LockIcon extends Control:
-	func _init() -> void:
-		custom_minimum_size = Vector2(32, 32)
-		mouse_filter = Control.MOUSE_FILTER_IGNORE
-
-	func _draw() -> void:
-		var color := Color(0.45, 0.35, 0.27)
-		draw_arc(Vector2(16, 13), 7, PI, TAU, 12, color, 3)
-		draw_rect(Rect2(6, 13, 20, 16), color)
-		draw_circle(Vector2(16, 19), 2, Color(1, 0.96, 0.86))
-		draw_line(Vector2(16, 20), Vector2(16, 24), Color(1, 0.96, 0.86), 2)

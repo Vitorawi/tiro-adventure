@@ -99,7 +99,7 @@ func _ready() -> void:
 	%DevButton.pressed.connect(func() -> void:
 		Events.sheet_requested.emit("Ferramentas DEV", DevPanel.panel()))
 	_toast.modulate.a = 0.0
-	UiKit.tint_bar(%XpBar, Color(1, 0.82, 0.3))
+	UiKit.tint_bar(%XpBar, Palette.GOLD)
 	_refresh_top_bar()
 	show_screen(&"pet")
 	# Jogo novo: a Laís chega com o Tiro e apresenta a casa (uma vez só).
@@ -187,14 +187,7 @@ func _on_world_requested(world_id: String, place: String) -> void:
 ## Bolinha com o número de coisas prontas (missões e colheitas/produções) na aba Missões.
 func _build_tasks_badge() -> void:
 	_tasks_badge = Label.new()
-	_tasks_badge.add_theme_font_size_override("font_size", 16)
-	_tasks_badge.add_theme_color_override("font_color", Color.WHITE)
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color(0.78, 0.22, 0.18)
-	box.set_corner_radius_all(10)
-	box.content_margin_left = 6
-	box.content_margin_right = 6
-	_tasks_badge.add_theme_stylebox_override("normal", box)
+	_tasks_badge.theme_type_variation = &"BadgeLabel"
 	_tasks_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	%TasksTab.add_child(_tasks_badge)
 	_map_badge = _tasks_badge.duplicate() as Label
@@ -234,7 +227,7 @@ func _refresh_tasks_badge() -> void:
 			npc_status = "new"
 	_map_badge.text = "✓" if npc_status == "ready" else "!"
 	_map_badge.visible = npc_status != ""
-	_map_badge.modulate = UiKit.GOOD if npc_status == "ready" else Color("ffd23f")
+	_map_badge.modulate = UiKit.GOOD if npc_status == "ready" else Palette.GOLD
 	var count := GameState.ready_quest_count() + GameState.ready_routine_count()
 	for i in GameState.usable_plot_indices():
 		if GameState.plot_status(i) == "ready":
@@ -297,7 +290,7 @@ func _refresh_guide() -> void:
 	elif not _tasks_pulse:
 		%TasksTab.tooltip_text = "Comece por aqui!"
 		_tasks_pulse = create_tween().set_loops()
-		_tasks_pulse.tween_property(%TasksTab, "modulate", Color(1.0, 0.72, 0.32), 0.7)
+		_tasks_pulse.tween_property(%TasksTab, "modulate", Palette.ACCENT, 0.7)
 		_tasks_pulse.tween_property(%TasksTab, "modulate", Color.WHITE, 0.7)
 
 

@@ -54,7 +54,7 @@ static func album() -> Control:
 				var error := GameState.find_set_error(set_id)
 				var receive := UiKit.button("Recebido" if set_id in GameState.finds.claimed_sets else "Receber", func() -> void:
 					var result := GameState.claim_find_set(set_id)
-					if result != "": Events.toast_requested.emit(result), &"PrimaryButton")
+					if result != "": Events.toast_requested.emit(result), &"SecondaryButton")
 				receive.disabled = error != ""
 				receive.tooltip_text = error
 				card.add_child(receive)

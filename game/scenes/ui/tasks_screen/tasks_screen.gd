@@ -70,7 +70,7 @@ func _step_dots(count: int, done: int) -> HBoxContainer:
 		dot.custom_minimum_size = Vector2(0, 8)
 		dot.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		dot.color = UiKit.GOOD if i < done else (Color(0.96, 0.62, 0.25) if i == done else Color(0.85, 0.78, 0.68))
+		dot.color = UiKit.GOOD if i < done else (Palette.ACCENT if i == done else Palette.SUNKEN)
 		row.add_child(dot)
 	return row
 

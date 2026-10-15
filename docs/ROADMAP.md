@@ -2,14 +2,42 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **15/10/2026, Claude Code (Interface nova, Etapa 00)**.
+> um do outro. Última atualização: **15/10/2026, Claude Code (Interface nova, Etapa 01)**.
 
 **▶ PLANO ATUAL (15/10/2026): Interface nova — `docs/plans/interface/README.md`.** Aprovado pelo Vitor
 ("vamos nessas ideias mesmo"). 13 etapas (00–12), executar **uma por vez, na ordem**, com o prompt do README.
 Leitura obrigatória: `00_VISAO.md` (diagnóstico, referências, esboços) e `01_REGRAS_E_ESTILO.md` (regras,
 paleta, medidas, componentes, movimento, glossário de textos, receitas de arte). Só interface: regras, números
 e save (`SAVE_VERSION` 12) não mudam. Rascunho do tour de capturas usado no diagnóstico: `docs/plans/interface/ui_tour_rascunho.gd`
-(já virou `game/tests/ui_tour.gd`). **Próximo passo: Etapa 01 (`docs/plans/interface/ETAPA_01_visual.md`).**
+(já virou `game/tests/ui_tour.gd`). **Próximo passo: Etapa 02 (`docs/plans/interface/ETAPA_02_painel.md`).**
+
+**✔ Interface nova — Etapa 01 (visual: cartão não é botão) concluída (15/10/2026, Claude Code). Commit local, sem push.**
+- `SAVE_VERSION` continua 12; nenhuma regra/número/save mudou. Quase tudo no tema e no `UiKit`, então vale para o jogo inteiro.
+- **Tema** (`main_theme.tres`, editado, não recriado; cores em decimais = `Palette`): cartão sem degrau (borda 2 `CARD_LINE`, sombra suave, cantos 14), `ReadyCardPanel`
+  com borda verde 3 e fundo levemente esverdeado, chip = pílula `SUNKEN` sem borda, `Button` = secundário mel com degrau 5 que afunda ao tocar, `PrimaryButton` verde com texto
+  branco contornado (desabilitado = verde apagado), painel do `Sheet` sem borda e com sombra para cima, tipografia título 30 / seção 22 `INK_SOFT` / pequeno 18.
+  Variações novas: `SecondaryButton`, `GhostButton` (sem fundo, texto suave com **sublinhado de 2 px** — desvio do "stylebox vazio" do plano, para parecer tocável, como pede B.4),
+  `IconButton` (círculo `CARD`), `PillPanel`, `NumberLabel`, `BadgeLabel`. Painel padrão (`PanelContainer`) e barras (`ProgressBar`) também ganharam as cores novas.
+- **`UiKit`:** `primary`, `secondary(small)`, `ghost`, `icon_button`, `pill`, `lock_hint`, `lock_icon`; `square_button` (mesma assinatura) agora devolve `icon_button`;
+  `UiKit.button` chama `Motion.press`. `WishUi.LockIcon` (cadeado desenhado em código) foi removida e trocada por `UiKit.lock_icon()` (ícone `ui_lock`).
+- **Um botão verde por painel (tabela 1.3):** sementes, comidas (só "Ele quer!" fica verde, e só a primeira), receitas das estações, materiais da Natureza, diárias ("Ir" mel; pronta = verde "Pegar prêmio"),
+  coleção/Pet shop (Vestir/Tirar/Comprar), vender, desejos ("Ir" mel; "Dar/Receber" verde), encomendas e rotas (`_action(..., primary = false)`). Também viraram mel: "Ir" do cartão "Que bom que você voltou",
+  "Ir até lá" do Manual, "Jogar" por save, "Mostrar/Treinar" dos truques, "Dar petisco" e "Receber" do conjunto de achados. Abas Vender/Encomendas e Recursos/Estações: aba atual = mel, as outras = fantasma.
+- **Cadeado:** construção bloqueada por **requisito** (não por moedas) e encomenda bloqueada mostram `lock_hint` (cartão a 55% + motivo + "?"), sem botão; receita e planta fechadas idem. Falta de moedas continua botão desabilitado com o preço em vermelho.
+  Natureza: material de nível ainda fechado mostra o cadeado "Nível N", mas o `Material_<item>` continua existindo **escondido e desabilitado** (os testes de `nature_test` apertam esse botão).
+- **Cores soltas trocadas por `Palette`:** `worlds_screen._build_cards`, selos de aba do `main.gd` (agora `BadgeLabel`), barra de XP, pisca da aba Missões, barras de tempo dos espaços (`Palette.INFO`), pontinhos de passo.
+  **Ficaram para as etapas seguintes** (`Color("...")` em `plot_/station_/route_/walk_indicator` → Etapa 06; `intro`, `celebration`, `walk_result`, `trick_training`, `pet_screen` → Etapas 09/12; roxo do "LENDÁRIO" e silhueta em `progression_ui`, rosa da barra de vínculo em `wish_ui`).
+- **Arte (2 ícones, 1ª tentativa cada):** `ui_close` (agora o "✕" do botão de fechar do `Sheet`, 48 px) e `ui_check` (ainda sem uso; vai nos balões da Etapa 06). Registro em `docs/ART_PIPELINE.md`.
+- **Teste novo** `ui_style_test.gd` (no `test_all.ps1`): tema (cartão sem degrau, degrau do botão, variações), peças do `UiKit`, `lock_hint` com `ui_lock`, construção bloqueada = cadeado sem botão verde,
+  e ≤ 1 `PrimaryButton` visível e habilitado em fogão, sementes, comida, Natureza, coleção, vender, encomendas e rotas. As classes de interface só são carregadas em tempo de execução
+  (elas usam o autoload `Database`, que não existe ao compilar o script de teste).
+- **Testes:** os 30 passam rodando um a um (logs em `build/test_logs/etapa01/`). Lembrete: `test_all.ps1` aborta no `park_test` por um aviso antigo de encerramento ("N resources still in use at exit"); não é regressão.
+- **Capturas:** `build/screenshots/etapa01_antes` × `etapa01_depois` (360×780) e `etapa01_depois_390`, `etapa01_depois_412` (40 PNGs cada). Nada corta nem estoura nos três tamanhos. Pranchas lado a lado em `build/preview/etapa01/`.
+- **Pendências / observações para as próximas etapas:**
+  - `Manual`, `Atributos`, `Coleção` e a fala do Tiro na aba Tiro são `ChipButton`/chip: a pílula `SUNKEN` sem borda tem pouco contraste sobre o fundo bege/marrom. A Etapa 09 refaz essa tela.
+  - Destaques de "pronto" em lista continuam `PrimaryButton` (Lugares/personagens no `places.gd`, chips de NPC no cabeçalho do Mapa); Etapas 05/06 trocam por indicadores.
+  - Botões-bloco ainda com fonte 16 (tiles da Mochila e dos canteiros, chips de NPC, "Refinar"): ficam para a Etapa 10; selos de aba já são 16 pelo `BadgeLabel`.
+  - Textos continuam os antigos ("Conclua: …", "Produzir", "Recolher"): só a Etapa 11 troca. Única exceção: o botão da diária pronta agora diz "Pegar prêmio", como manda a tabela 1.3.
 
 **✔ Interface nova — Etapa 00 (base) concluída (15/10/2026, Claude Code). Commit local, sem push.**
 - `SAVE_VERSION` continua 12; nenhuma regra/número/save mudou. Só ferramentas, constantes, ícones e um bug de enquadramento.

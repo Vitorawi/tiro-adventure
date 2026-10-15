@@ -27,11 +27,11 @@ static func panel(training: bool = false) -> Control:
 						Events.toast_requested.emit(error)
 					else:
 						Events.sheet_close_requested.emit()
-						Events.screen_requested.emit(&"pet"), &"PrimaryButton")
+						Events.screen_requested.emit(&"pet"), &"SecondaryButton")
 				perform.disabled = reason != ""
 				card.add_child(perform)
 			else:
-				var train := UiKit.button("Treinar", start.bind(id), &"PrimaryButton")
+				var train := UiKit.button("Treinar", start.bind(id), &"SecondaryButton")
 				train.disabled = reason != "" or next_found
 				next_found = true
 				card.add_child(train)

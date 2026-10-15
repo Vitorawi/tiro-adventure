@@ -84,7 +84,7 @@ func _fill(box: VBoxContainer) -> void:
 			if str(line.kind) == "friend_visit":
 				Events.world_requested.emit("house", "look:" + str(line.target))
 			else:
-				Places.go(target), &"PrimaryButton")
+				Places.go(target), &"SecondaryButton")
 		go.custom_minimum_size = Vector2(72, 48)
 		row.add_child(go)
 		card.add_child(row)

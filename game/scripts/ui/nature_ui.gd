@@ -85,8 +85,8 @@ static func _progress(box: VBoxContainer, site: String) -> void:
 	var title := UiKit.fill_label("Nível %d · %s" % [info.level, "Máximo" if info.max else "%d/%d XP" % [info.xp, info.needed]], &"SectionLabel")
 	title.name = "NatureProgress_" + site
 	heading.add_child(title)
-	heading.add_child(UiKit.square_button("?", func() -> void:
-		Events.sheet_requested.emit("Evolução · " + str(data.name), levels_panel(site)), null, 44))
+	heading.add_child(UiKit.icon_button(null, func() -> void:
+		Events.sheet_requested.emit("Evolução · " + str(data.name), levels_panel(site)), 44, "?"))
 	box.add_child(heading)
 	box.add_child(UiKit.bar(100.0 if info.max else 100.0 * info.xp / maxi(1, int(info.needed)), UiKit.GOOD, 10))
 	if not info.max:
@@ -162,13 +162,21 @@ static func _material(parent: VBoxContainer, site: String, item: String, route_i
 	body.add_child(top)
 	var level := route_level(route_id)
 	var locked := GameState.progress.nature_level(site) < level
-	var tool_label := UiKit.label("Nível %d" % level, &"SmallLabel", UiKit.BAD if locked else null)
-	tool_label.name = "RequiredLevel_" + item
-	body.add_child(tool_label)
-	var button := UiKit.button("Coletar", func() -> void:
-		_result(GameState.start_next_gathering(site, route_id, item), "Coleta iniciada!"), &"PrimaryButton")
+	var button := UiKit.secondary("Coletar", func() -> void:
+		_result(GameState.start_next_gathering(site, route_id, item), "Coleta iniciada!"), null, true)
 	button.name = "Material_" + item
 	button.disabled = GameState.next_gathering_error(site, route_id, item) != ""
+	if locked:
+		# Nível ainda não alcançado: cartão apagado e cadeado no lugar do botão (que fica escondido e desabilitado).
+		body.get_parent().modulate.a = 0.55
+		var hint := UiKit.lock_hint("Nível %d" % level)
+		hint.name = "RequiredLevel_" + item
+		body.add_child(hint)
+		button.visible = false
+	else:
+		var tool_label := UiKit.label("Nível %d" % level, &"SmallLabel")
+		tool_label.name = "RequiredLevel_" + item
+		body.add_child(tool_label)
 	body.add_child(button)
 
 

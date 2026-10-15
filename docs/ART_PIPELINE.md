@@ -689,3 +689,14 @@ Recorte com `Invoke-TrimSprite` e recentralização num canvas 32×32 (mesmo tam
 Trocados em `progression.json → upgrades[*].icon` (23 construções) e `worlds.json → places[*].icon` (12 lugares).
 Ficaram como estão: pomar (maçã), estufa (ervas), ferramentas, tokens de nível da Natureza e o lugar `farm.animals` (ovo,
 agrupa galinheiro + curral). Não há personagem/objeto no PixelLab para estes ícones (imagens soltas, sem tags).
+
+### Interface nova — Etapa 01 (ícones de interface)
+`create_image_pixen` 32×32, `no_background`, sem imagem de referência (o Pixen não aceita). Originais em
+`build/art_sources/interface_etapa01/` (fora do git). Já saíram em 32×32 certinhos, sem precisar de recorte.
+
+| Ícone (`ui/icons/`) | Job escolhido | Tentativa | Observação |
+|---|---|---|---|
+| `ui_close` | `33b72b4c-d540-493e-9d39-644630237c51` (seed 11) | 1 | "✕" marrom escuro de pontas redondas, `lineless`; usado no botão de fechar do painel (`Sheet`). Alternativa (`94859070-…`, seed 22) saiu laranja |
+| `ui_check` | `c7b645b5-acd7-4f32-9fa8-31b45d104f39` (seed 22) | 1 | visto verde com contorno escuro; ainda sem uso (balões de pronto da Etapa 06 e listas). Alternativa (`2074371a-…`, seed 11) mais verde-escura |
+
+Imagens soltas no PixelLab (sem personagem/objeto, sem tags).

@@ -10,6 +10,7 @@ extends RefCounted
 static func food_picker() -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var any := false
+		var primary_used := false
 		# A comida que o Tiro está pedindo (aba Desejos) vem primeiro, com um coração.
 		var foods: Array[String] = []
 		for id: String in Database.items:
@@ -30,7 +31,7 @@ static func food_picker() -> Control:
 			info.add_child(UiKit.label("x%d" % GameState.inventory.count(id)))
 			info.add_child(UiKit.effect_chips(Database.items[id]["feed"]))
 			row.add_child(info)
-			var give := UiKit.button("Dar", func() -> void:
+			var on_give := func() -> void:
 				# Comida desejada: tocar cumpre o desejo (que já alimenta o Tiro).
 				if wish_slot >= 0:
 					var error := GameState.fulfill_wish(wish_slot)
@@ -38,8 +39,12 @@ static func food_picker() -> Control:
 					Events.sheet_close_requested.emit()
 				elif GameState.feed(id):
 					Events.toast_requested.emit("Nhac! %s" % Database.item_name(id))
-					Events.sheet_close_requested.emit(), &"PrimaryButton")
-			give.custom_minimum_size = Vector2(76, 52)
+					Events.sheet_close_requested.emit()
+			# Só a comida que o Tiro quer ("Ele quer!") é o botão principal; as outras são secundárias.
+			var wanted := wish_slot >= 0 and not primary_used
+			primary_used = primary_used or wanted
+			var give := UiKit.primary("Dar", on_give) if wanted else UiKit.secondary("Dar", on_give, null, true)
+			give.custom_minimum_size = Vector2(76, 52 if wanted else 44)
 			give.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			row.add_child(give)
 			body.add_child(row)
@@ -323,7 +328,7 @@ static func slot_frame(texture: Texture2D, text: String, progress: float, done: 
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(caption)
 	if not done and not empty:
-		box.add_child(UiKit.bar(progress * 100.0, Color(0.96, 0.62, 0.25), 10))
+		box.add_child(UiKit.bar(progress * 100.0, Palette.INFO, 10))
 	panel.add_child(box)
 	return panel
 
@@ -359,21 +364,25 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 		needs_row.add_child(ProgressionUi.item_chip(item_id, int(inputs[item_id])))
 	body.add_child(needs_row)
 
+	var help := TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))
+	if locked != "":
+		# Receita fechada: cartão apagado e cadeado com o motivo, no lugar do botão.
+		body.get_parent().modulate.a = 0.55
+		body.add_child(UiKit.lock_hint(locked, help))
+		return
 	var row := UiKit.hbox(8)
 	var action: String = Database.stations.get(recipe.station, {}).get("action_label", "Produzir")
 	if recipe.has("output_collection") and GameState.cook_error(recipe_id) in ["Você já tem", "Já está sendo costurado"]:
 		action = GameState.cook_error(recipe_id)
-	var cook := UiKit.button("Fila cheia" if station_full and has_all and locked == "" else action, func() -> void:
+	var cook := UiKit.secondary("Fila cheia" if station_full and has_all else action, func() -> void:
 		var error := GameState.cook(recipe_id)
-		Events.toast_requested.emit(error if error != "" else "Preparando %s!" % Database.item_name(output)), &"PrimaryButton")
+		Events.toast_requested.emit(error if error != "" else "Preparando %s!" % Database.item_name(output)), null, true)
 	cook.disabled = GameState.cook_error(recipe_id) != ""
 	cook.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(cook)
-	if not has_all or locked != "":
-		row.add_child(UiKit.square_button("?", TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))))
+	if not has_all:
+		row.add_child(UiKit.square_button("?", help, null, 44))
 	body.add_child(row)
-	if locked != "":
-		body.add_child(UiKit.label(locked, &"SmallLabel"))
 
 
 static func open_animal_shop(station_id: String) -> void:
@@ -460,17 +469,16 @@ static func seed_picker(plot_index: int, focus: String = "") -> Control:
 				details.add_child(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), UiKit.GOOD))
 			info.add_child(details)
 			row.add_child(info)
-			if locked != "":
-				row.add_child(UiKit.square_button("?", TaskHelp.open.bind("crop", crop_id)))
-			else:
-				var plant := UiKit.button("Plantar", func() -> void:
+			if locked == "":
+				var plant := UiKit.secondary("Plantar", func() -> void:
 					var error := GameState.plant(plot_index, crop_id)
 					Events.toast_requested.emit(error if error != "" else "Plantou %s!" % Database.item_name(crop_id))
-					Events.sheet_close_requested.emit(), &"PrimaryButton")
-				plant.custom_minimum_size = Vector2(92, 52)
-				plant.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+					Events.sheet_close_requested.emit(), null, true)
+				plant.custom_minimum_size.x = 92
 				row.add_child(plant)
-			body.add_child(row))
+			body.add_child(row)
+			if locked != "":
+				body.add_child(UiKit.lock_hint(locked, TaskHelp.open.bind("crop", crop_id))))
 
 
 ## Canteiros: terrenos (barra), próximo terreno e cada canteiro em ícone + estado.
