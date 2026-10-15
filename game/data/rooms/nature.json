@@ -26,7 +26,7 @@
     {
       "id": "treasure_chest",
       "sprite": "res://assets/sprites/areas/nature/treasure_closed.png",
-      "seen_sprite": {"key": "treasure_opened", "sprite": "res://assets/sprites/areas/nature/treasure_open.png"},
+      "hide_seen": "treasure_opened",
       "requirements": {"quests": ["guide_treasure"]},
       "pos": [96, 222],
       "scale": 2.2,

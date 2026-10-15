@@ -100,10 +100,9 @@ func _run() -> void:
 	state.call("_changed")
 	await process_frame
 	check(chest.visible, "baú aparece com a missão")
-	var closed_texture: Texture2D = chest.texture
 	room.call("_open_treasure", chest)
 	await process_frame
-	check(chest.texture != closed_texture, "desenho muda para aberto: %s %s" % [chest.has_meta("seen_sprite"), chest.texture.resource_path])
+	check(not chest.visible, "baú some depois de aberto")
 	check(state.call("treasure_opened"), "aberto na sala")
 	room.queue_free()
 	await process_frame

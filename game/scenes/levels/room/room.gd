@@ -214,6 +214,8 @@ func _build_navigation() -> void:
 				continue
 			if data.has("requirements") and GameState.requirement_error(data.requirements) != "":
 				continue
+			if data.has("hide_seen") and GameState.progress.seen.get(data.hide_seen, false):
+				continue
 			blocked.append(_polygon(data["footprint"]))
 
 	_walkable.clear()
@@ -285,6 +287,8 @@ func _spawn_objects() -> void:
 			sprite.set_meta("requirements", data.requirements)
 		if data.has("seen_sprite"):
 			sprite.set_meta("seen_sprite", data.seen_sprite)
+		if data.has("hide_seen"):
+			sprite.set_meta("hide_seen", data.hide_seen)
 		if data.has("station"):
 			sprite.set_meta("station", data.station)
 			var indicator := StationIndicator.new()
@@ -500,6 +504,8 @@ func _spawn_labels() -> void:
 		tag.set_meta("detail_label", data.get("detail_label", false))
 		tag.set_meta("overview_label", data.get("overview_label", false))
 		tag.set_meta("tap_data", data)
+		if data.has("hide_seen"):
+			tag.set_meta("hide_seen", data.hide_seen)
 		if data.has("requirements"):
 			tag.set_meta("requirements", data.requirements)
 			tag.set_meta("locked_label", data.get("locked_label", false))
@@ -568,6 +574,8 @@ func _place_labels() -> void:
 		if tag.has_meta("requirements"):
 			var blocked := GameState.requirement_error(tag.get_meta("requirements")) != ""
 			tag.visible = tag.visible and (blocked if tag.get_meta("locked_label", false) else not blocked)
+		if tag.has_meta("hide_seen") and GameState.progress.seen.get(tag.get_meta("hide_seen"), false):
+			tag.visible = false
 		if tag.get_meta("detail_label", false):
 			tag.visible = tag.visible and _zoom >= 0.5
 		if tag.get_meta("overview_label", false):
@@ -1100,13 +1108,14 @@ func _collect_station(station_id: String, point: Vector2) -> bool:
 func _refresh_gated() -> void:
 	var states: Array[String] = []
 	for sprite: Sprite2D in _objects:
-		if not sprite.has_meta("requirements") and not sprite.has_meta("seen_sprite"):
+		if not sprite.has_meta("requirements") and not sprite.has_meta("seen_sprite") and not sprite.has_meta("hide_seen"):
 			continue
 		var open := GameState.requirement_error(sprite.get_meta("requirements", {})) == ""
 		var seen_data: Dictionary = sprite.get_meta("seen_sprite", {})
 		var seen := not seen_data.is_empty() and bool(GameState.progress.seen.get(seen_data.key, false))
-		states.append("%s:%s:%s" % [sprite.name, open, seen])
-		sprite.visible = open
+		var gone := bool(GameState.progress.seen.get(sprite.get_meta("hide_seen", ""), false))
+		states.append("%s:%s:%s:%s" % [sprite.name, open, seen, gone])
+		sprite.visible = open and not gone
 		if not seen_data.is_empty():
 			if not sprite.has_meta("base_texture_path"):
 				sprite.set_meta("base_texture_path", sprite.texture.resource_path)

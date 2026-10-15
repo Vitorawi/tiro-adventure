@@ -1017,6 +1017,12 @@ func has_upgrade(id: String) -> bool:
 	return progress.has_upgrade(Database.station_upgrade(id))
 
 
+## Só entra na Coleção o que já dá para vestir (tem arte de sobreposição no Tiro).
+func has_overlay(id: String) -> bool:
+	var path := str(Database.collections.get(id, {}).get("overlay", ""))
+	return path != "" and ResourceLoader.exists(path)
+
+
 func equip_error(id: String) -> String:
 	if not Database.collections.has(id) or not progress.collection.has(id):
 		return "Você ainda não tem esse apetrecho"

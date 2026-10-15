@@ -653,6 +653,8 @@ static func _clothes_panel() -> Control:
 		for id: String in Database.collections:
 			var data: Dictionary = Database.collections[id]
 			var earned := GameState.progress.collection.has(id)
+			if not GameState.has_overlay(id):
+				continue  # "Em breve no Tiro": fica fora da lista até ter arte
 			if str(data.get("source", "")).begins_with("friend:") and not earned and not GameState.progress.feature_unlocked("friends"):
 				continue
 			if data.get("rarity", "") == "legendary" and not earned and not GameState.progress.feature_unlocked("legendary_walks"):
