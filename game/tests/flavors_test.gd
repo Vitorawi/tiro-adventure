@@ -1,4 +1,4 @@
-extends SceneTree
+﻿extends SceneTree
 ## Etapa 04: cadeias reais, navegação do liquidificador e prévias mobile.
 var failures: int = 0
 var state: Node
@@ -60,7 +60,7 @@ func _run() -> void:
 	var texts: Array[String] = []
 	labels(picker, texts)
 	var previous := -1
-	for name: String in ["Cenoura", "Trigo", "Morango", "Milho", "Batata", "Batata-doce", "Abóbora", "Ervas"]:
+	for name: String in ["Cenoura", "Trigo", "Morango", "Milho", "Batata", "Batata-doce", "Abóbora"]:
 		var index := texts.find(name)
 		check(index > previous, "sementes ordenadas: " + name)
 		previous = index

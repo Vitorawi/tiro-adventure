@@ -1,4 +1,4 @@
-extends SceneTree
+﻿extends SceneTree
 ## Construções/expansões e reações a ações reais do GameState, sem gravar save pessoal.
 
 var failures: int = 0
@@ -35,7 +35,7 @@ func _run() -> void:
 	check(farm.find_child("Region_greenhouse_area", true, false).visible, "Área da estufa fechada")
 	_shot("farm_expansion_start")
 	var nav: AStarGrid2D = farm.get("_nav")
-	check(nav.is_point_solid(Vector2i(220, 350) / 8), "Tiro não entra na área fechada")
+	check(nav.is_point_solid(Vector2i(260, 300) / 8), "Tiro não entra na área fechada")
 	# Colheita real e caminho da reação: deve continuar contornando canteiros.
 	check(state.call("plant", 0, "carrot") == "", "Plantar cenoura")
 	state.get("plots")[0].ready_at = 0.0
@@ -73,8 +73,8 @@ func _run() -> void:
 	await process_frame
 	check(greenhouse.self_modulate.a == 1.0 and orchard.self_modulate.a == 1.0, "Construções compradas aparecem")
 	check(not farm.find_child("Region_greenhouse_area", true, false).visible, "Cerca sai depois da compra")
-	check(not nav.is_point_solid(Vector2i(220, 350) / 8), "Área aberta entra na navegação")
-	check(not (farm.call("find_path", dog.position, Vector2(220, 350)) as PackedVector2Array).is_empty(), "Área expandida é alcançável")
+	check(not nav.is_point_solid(Vector2i(260, 300) / 8), "Área aberta entra na navegação")
+	check(not (farm.call("find_path", dog.position, Vector2(260, 300)) as PackedVector2Array).is_empty(), "Área expandida é alcançável")
 	farm.call("_zoom_at", farm.size / 2.0, 0.3)
 	await create_timer(0.3).timeout
 	_shot("farm_expansion_built")

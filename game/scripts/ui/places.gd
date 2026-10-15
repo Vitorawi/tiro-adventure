@@ -297,7 +297,7 @@ static func place_alert(world_id: String, place_id: String) -> String:
 	var panel: String = place.get("panel", "")
 	if panel == "farm":
 		var ready := 0
-		for i in GameState.accessible_plots():
+		for i in GameState.usable_plot_indices():
 			if GameState.plot_status(i) == "ready":
 				ready += 1
 		return "%d pronto(s) para colher!" % ready if ready > 0 else ""

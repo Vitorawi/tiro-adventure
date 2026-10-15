@@ -440,6 +440,8 @@ static func seed_picker(plot_index: int, focus: String = "") -> Control:
 		for crop_id: String in crop_ids:
 			if focus != "" and crop_id != focus:
 				continue
+			if GameState.crop_plot_error(plot_index, crop_id) != "":
+				continue  # estufa: só plantas delicadas; sítio: sem as que só crescem na estufa
 			var crop: Dictionary = Database.crops[crop_id]
 			var locked := GameState.content_error("crop", crop_id, crop)
 			var body := UiKit.card(box)
@@ -494,9 +496,22 @@ static func farm_view(focus: String = "") -> Control:
 		grid.mouse_filter = Control.MOUSE_FILTER_PASS
 		grid.add_theme_constant_override("h_separation", 6)
 		grid.add_theme_constant_override("v_separation", 6)
-		for index in GameState.accessible_plots():
+		var garden: Array[int] = []
+		var greenhouse: Array[int] = []
+		for index in GameState.usable_plot_indices():
+			(greenhouse if GameState.is_greenhouse_plot(index) else garden).append(index)
+		for index in garden:
 			grid.add_child(_plot_tile(index, focus))
-		box.add_child(grid))
+		box.add_child(grid)
+		if not greenhouse.is_empty():
+			box.add_child(UiKit.label("Estufa · plantas delicadas, crescem mais rápido", &"SectionLabel"))
+			var house_grid := GridContainer.new()
+			house_grid.columns = 3
+			house_grid.mouse_filter = Control.MOUSE_FILTER_PASS
+			house_grid.add_theme_constant_override("h_separation", 6)
+			for index in greenhouse:
+				house_grid.add_child(_plot_tile(index, focus))
+			box.add_child(house_grid))
 
 
 ## Canteiro: vazio = "+" (plantar); crescendo = planta + %; pronto = planta + "Colher!".
@@ -505,7 +520,7 @@ static func _plot_tile(index: int, focus: String) -> Button:
 	var crop: String = GameState.plot(index)["crop"]
 	var caption := "Plantar" if status == "empty" else ("Colher!" if status == "ready" else "%d%%" % int(GameState.plot_progress(index) * 100))
 	var tile := UiKit.button(caption, func() -> void:
-		Events.sheet_requested.emit("Canteiro %d" % (index + 1), seed_picker(index, focus) if GameState.plot_status(index) == "empty" else growing_plot(index)),
+		Events.sheet_requested.emit("Canteiro da estufa" if GameState.is_greenhouse_plot(index) else "Canteiro %d" % (index + 1), seed_picker(index, focus) if GameState.plot_status(index) == "empty" else growing_plot(index)),
 		&"PrimaryButton" if status == "ready" else &"", Database.item_icon(crop) if crop != "" else UiKit.ui_icon("tab_farm"))
 	tile.custom_minimum_size = Vector2(0, 84)
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL

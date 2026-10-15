@@ -97,6 +97,36 @@
       "approach": [562, 344]
     },
     {
+      "id": "plot_9",
+      "action": "plot",
+      "plot": 9,
+      "requirements": {"owned": ["greenhouse"]},
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [200, 390],
+      "footprint": [[200, 340], [237, 364], [200, 390], [163, 364]],
+      "approach": [200, 410]
+    },
+    {
+      "id": "plot_10",
+      "action": "plot",
+      "plot": 10,
+      "requirements": {"owned": ["greenhouse"]},
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [148, 365],
+      "footprint": [[148, 315], [185, 339], [148, 365], [111, 339]],
+      "approach": [148, 385]
+    },
+    {
+      "id": "plot_11",
+      "action": "plot",
+      "plot": 11,
+      "requirements": {"owned": ["greenhouse"]},
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [200, 340],
+      "footprint": [[200, 290], [237, 314], [200, 340], [163, 314]],
+      "approach": [248, 336]
+    },
+    {
       "id": "workbench",
       "action": "place:workbench",
       "upgrade": "workbench",

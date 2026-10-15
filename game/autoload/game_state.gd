@@ -816,9 +816,28 @@ func accessible_plots() -> int:
 	return lent
 
 
+## Canteiros da estufa vêm depois dos do sítio (índices a partir de farm.plots) e só valem com a estufa comprada.
+func is_greenhouse_plot(index: int) -> bool:
+	return index >= int(Database.farm.get("plots", 0)) and index < int(Database.farm.get("plots", 0)) + int(Database.farm.get("greenhouse_plots", 0))
+
+
+## Canteiros do sítio liberados + os da estufa (quando comprada), na ordem do jogo.
+func usable_plot_indices() -> Array[int]:
+	var result: Array[int] = []
+	for i in accessible_plots():
+		result.append(i)
+	if has_upgrade("greenhouse"):
+		for i in int(Database.farm.get("greenhouse_plots", 0)):
+			result.append(int(Database.farm.get("plots", 0)) + i)
+	return result
+
+
 ## "locked", "empty", "growing" ou "ready".
 func plot_status(index: int) -> String:
-	if index < 0 or index >= accessible_plots():
+	if is_greenhouse_plot(index):
+		if not has_upgrade("greenhouse"):
+			return "locked"
+	elif index < 0 or index >= accessible_plots():
 		return "locked"
 	var target := plot(index)
 	if target["crop"] == "":
@@ -837,9 +856,25 @@ func plant(index: int, crop_id: String) -> String:
 		return reason
 	if plot_status(index) != "empty":
 		return "Canteiro ocupado"
+	var reason_place := crop_plot_error(index, crop_id)
+	if reason_place != "":
+		return reason_place
 	var planted_at := now()
-	plots[index] = { "crop": crop_id, "planted_at": planted_at, "ready_at": planted_at + float(Database.crops[crop_id].get("seconds", 60)), "watered": false }
+	var seconds := float(Database.crops[crop_id].get("seconds", 60))
+	if is_greenhouse_plot(index):
+		seconds *= float(Database.farm.get("greenhouse_speed", 1.0))
+	plots[index] = { "crop": crop_id, "planted_at": planted_at, "ready_at": planted_at + seconds, "watered": false }
 	_changed()
+	return ""
+
+
+## Culturas com "greenhouse": "only" (delicadas) só crescem na estufa; "any" cresce nos dois (mais rápido na estufa).
+func crop_plot_error(index: int, crop_id: String) -> String:
+	var mode := str(Database.crops.get(crop_id, {}).get("greenhouse", ""))
+	if mode == "only" and not is_greenhouse_plot(index):
+		return "Esta planta só cresce na estufa"
+	if is_greenhouse_plot(index) and mode == "":
+		return "A estufa é para plantas delicadas"
 	return ""
 
 
@@ -933,7 +968,7 @@ func buy_plot(index: int) -> String:
 
 
 func _ensure_plots() -> void:
-	while plots.size() < int(Database.farm.get("plots", 0)):
+	while plots.size() < int(Database.farm.get("plots", 0)) + int(Database.farm.get("greenhouse_plots", 0)):
 		plots.append({ "crop": "", "ready_at": 0.0 })
 
 

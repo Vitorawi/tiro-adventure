@@ -41,6 +41,7 @@
       "herbs": 2
     },
     "sprite": "res://assets/sprites/areas/farm/crop_sprout.png",
+    "greenhouse": "only",
     "skill_xp": 55,
     "requirements": {
       "owned": [
@@ -88,6 +89,7 @@
       "strawberry": 2
     },
     "sprite": "res://assets/sprites/areas/farm/crop_strawberry.png",
+    "greenhouse": "any",
     "skill_xp": 15,
     "requirements": {
       "quests": ["bloblo_dig"]
@@ -100,6 +102,7 @@
       "blueberry": 3
     },
     "sprite": "res://assets/sprites/areas/farm/crop_blueberry.png",
+    "greenhouse": "only",
     "skill_xp": 40,
     "requirements": {
       "quests": ["guide_treasure"],

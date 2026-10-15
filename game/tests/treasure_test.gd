@@ -1,4 +1,4 @@
-extends SceneTree
+﻿extends SceneTree
 ## Missão "O mapa completo", baú da Clareira (uma vez só), mirtilo e persistência da Etapa 11.
 var state: Node
 var db: Node
@@ -68,11 +68,15 @@ func _run() -> void:
 	# Mirtilo planta e colhe.
 	state.set("unlocked_plots", 3)
 	p.owned["farm"] = true
-	check(state.call("plant", 0, "blueberry") == "", "planta mirtilo")
+	check(state.call("plant", 0, "blueberry") != "", "mirtilo só cresce na estufa")
+	p.owned["greenhouse"] = true
+	check(state.call("plant", 9, "blueberry") == "", "planta mirtilo na estufa")
+	check(state.call("plant", 10, "carrot") != "", "cenoura não vai para a estufa")
+	check(state.call("crop_plot_error", 10, "strawberry") == "" and state.call("crop_plot_error", 0, "strawberry") == "", "morango cresce nos dois lugares")
 	state.call("dev_advance_time", 901.0)
-	check(state.call("plot_status", 0) == "ready", "mirtilo cresce em 15 min")
+	check(state.call("plot_status", 9) == "ready", "mirtilo cresce mais rápido na estufa")
 	var before: int = inv.count("blueberry")
-	state.call("harvest", 0)
+	state.call("harvest", 9)
 	check(inv.count("blueberry") == before + 3, "colhe 3 mirtilos")
 	check(db.get("items").blueberry.feed.happiness == 8 and db.get("crops").blueberry.coins == 20, "dados do mirtilo")
 	# Desejo especial do mirtilo.

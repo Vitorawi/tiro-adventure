@@ -1007,7 +1007,7 @@
     "greenhouse": {
       "name": "Estufa",
       "world": "farm",
-      "description": "Libera ervas aromáticas e culturas especializadas.",
+      "description": "3 canteiros só para plantas delicadas (ervas, mirtilo, morango), que crescem mais rápido.",
       "cost": 480,
       "materials": {
         "plank": 6,

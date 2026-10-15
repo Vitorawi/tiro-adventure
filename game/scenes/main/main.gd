@@ -236,7 +236,7 @@ func _refresh_tasks_badge() -> void:
 	_map_badge.visible = npc_status != ""
 	_map_badge.modulate = UiKit.GOOD if npc_status == "ready" else Color("ffd23f")
 	var count := GameState.ready_quest_count() + GameState.ready_routine_count()
-	for i in GameState.accessible_plots():
+	for i in GameState.usable_plot_indices():
 		if GameState.plot_status(i) == "ready":
 			count += 1
 	for station_id: String in GameState.stations:
