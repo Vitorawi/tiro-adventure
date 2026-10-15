@@ -1,9 +1,15 @@
-﻿# Roadmap
+# Roadmap
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **14/10/2026, Claude Code (Etapa 11)**.
+> um do outro. Última atualização: **15/10/2026, Claude Code (plano de interface)**.
 
+**▶ PLANO ATUAL (15/10/2026): Interface nova — `docs/plans/interface/README.md`.** Aprovado pelo Vitor
+("vamos nessas ideias mesmo"). 13 etapas (00–12), executar **uma por vez, na ordem**, com o prompt do README.
+Leitura obrigatória: `00_VISAO.md` (diagnóstico, referências, esboços) e `01_REGRAS_E_ESTILO.md` (regras,
+paleta, medidas, componentes, movimento, glossário de textos, receitas de arte). Só interface: regras, números
+e save (`SAVE_VERSION` 12) não mudam. Rascunho do tour de capturas usado no diagnóstico: `docs/plans/interface/ui_tour_rascunho.gd`
+(a Etapa 00 o transforma em `game/tests/ui_tour.gd`). **Próximo passo: Etapa 00.**
 
 **✔ Etapa 11 — Tesouro concluída (14/10/2026, Claude Code, retomando o Codex). Commit local, sem push.**
 **Ajustes pós-plano (14–15/10/2026):** O **forno foi removido**: biscoito de maçã e caixa de petiscos agora são feitos no fogão (exigem bancada + geladeira), sem construção nem passo de história; capítulo 6 aponta para a Caverna. Coleção só lista roupas com arte (`GameState.has_overlay`); baú da Clareira some depois de aberto (`hide_seen`); etiquetas dos mapas tocáveis; **Estufa** ganhou 4 canteiros próprios (índices 9–12; ervas e mirtilo só lá, morango nos dois; crescem 30% mais rápido). Arte dos canteiros da estufa reaproveita `plot.png`.

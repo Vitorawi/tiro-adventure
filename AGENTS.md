@@ -26,6 +26,7 @@ a cada push na `main` (versão publicada em `/` e versão dev em `/dev/`). Progr
 - Fases, **estado atual e próximas tarefas**: `docs/ROADMAP.md`
 - Planos detalhados prontos para executar: `docs/plans/` (ex.: `TASKS_V2.md`)
 - Etapas 10 e 11 concluídas: truques com treino de um toque na Praça e o tesouro (mapa completo, baú da Clareira, mirtilo); ver `docs/PROGRESSION.md` e `docs/ART_PIPELINE.md`. **Plano de 12 etapas concluído.**
+- **Plano atual: Interface nova** (`docs/plans/interface/README.md`): 13 etapas (00–12), uma por vez — visual, painel, HUD, mundo em tela cheia, seletor, balões, **bandeja de ação** (plantar/colher arrastando), estações, tela do Tiro, listas, textos e comemorações. Regras e estilo em `docs/plans/interface/01_REGRAS_E_ESTILO.md`.
 
 ## Trabalho em dupla (Claude Code + Codex)
 O projeto é desenvolvido alternando **Claude Code** (lê `CLAUDE.md`) e **Codex** (lê `AGENTS.md`).
