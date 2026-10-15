@@ -1007,7 +1007,7 @@
     "greenhouse": {
       "name": "Estufa",
       "world": "farm",
-      "description": "3 canteiros só para plantas delicadas (ervas, mirtilo, morango), que crescem mais rápido.",
+      "description": "4 canteiros só para plantas delicadas (ervas, mirtilo, morango), que crescem mais rápido.",
       "cost": 480,
       "materials": {
         "plank": 6,

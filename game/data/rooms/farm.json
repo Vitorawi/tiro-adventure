@@ -127,6 +127,16 @@
       "approach": [248, 336]
     },
     {
+      "id": "plot_12",
+      "action": "plot",
+      "plot": 12,
+      "requirements": {"owned": ["greenhouse"]},
+      "sprite": "res://assets/sprites/areas/farm/plot.png",
+      "pos": [252, 315],
+      "footprint": [[252, 265], [289, 289], [252, 315], [215, 289]],
+      "approach": [262, 330]
+    },
+    {
       "id": "workbench",
       "action": "place:workbench",
       "upgrade": "workbench",

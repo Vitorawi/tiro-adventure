@@ -185,7 +185,7 @@
   "farm": {
     "name": "Sítio da Bloblo",
     "plots": 9,
-    "greenhouse_plots": 3,
+    "greenhouse_plots": 4,
     "greenhouse_speed": 0.7,
     "initial_plots": 4,
     "unlock_costs": [

@@ -1,4 +1,4 @@
-# AGENTS.md — Mapa do projeto
+﻿# AGENTS.md — Mapa do projeto
 
 Leia este arquivo primeiro. Ele diz **o que é o projeto, como está organizado e onde trabalhar**.
 Detalhes ficam em `docs/`.
@@ -109,7 +109,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | "O que dá para fazer agora" / medir o ritmo do começo | `GameState.available_actions()`; `progress.firsts` + aba **Ritmo** do `DevPanel` (todo contador passa por `GameState._count`) |
 | Nova ação do jogo (ex.: plantar)      | método em `game/autoload/game_state.gd` + estado em `game/scripts/state/` |
 | Novo móvel / mudar layout da casa     | `game/data/rooms/house.json` (sprite, pos, footprint, `"action": "place:<id>"`, `upgrade`) + lugar em `worlds.json` |
-| Estufa (canteiros delicados)          | `config.json → farm.greenhouse_plots/greenhouse_speed` (índices a partir de `farm.plots`), `crops.json → greenhouse: "only"` ou `"any"`, `GameState.is_greenhouse_plot/usable_plot_indices/crop_plot_error`; objetos `plot_9..11` com `requirements.owned greenhouse` em `rooms/farm.json` |
+| Estufa (canteiros delicados)          | `config.json → farm.greenhouse_plots/greenhouse_speed` (índices a partir de `farm.plots`), `crops.json → greenhouse: "only"` ou `"any"`, `GameState.is_greenhouse_plot/usable_plot_indices/crop_plot_error`; objetos `plot_9..12` com `requirements.owned greenhouse` em `rooms/farm.json` |
 | Nova planta da horta / tempo / colheita | `game/data/crops.json` (tempo, itens, moedas, XP, requisitos; ícone em `items.json`); terrenos em `config.json` → `farm` |
 | Painel de produção/coleta (padrão)    | Sempre o molde da estação: espaços em cima (`SheetBuilder.slot_frame`: ícone, tempo, barra; fechado = "+" com preço ou nível/XP), "Recolher/Coletar prontos", e embaixo cartões do que escolher (ícone 64, chips de tempo/ganho, botão). Usado em `station_view`, `NatureUi.panel` e `ProgressionUi.routes_panel` |
 | Novo tipo de painel de lugar          | caso em `Places._panel` (`scripts/ui/places.gd`) + função que monta o painel (`SheetBuilder`/`ProgressionUi`, com `UiKit`) |
