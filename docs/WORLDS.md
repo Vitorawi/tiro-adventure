@@ -261,3 +261,7 @@ Casa usa `points.friend_visit = [400, 310]`; amigos com presente pendente andam 
 (ou do ponto quando ele está passeando). Toque recolhe com CollectFx e aceno; cheio mantém o amigo.
 Alvos `friend:<id>` e `friend_visit:<id>` são resolvidos por Places/RoomView; o Ver das boas-vindas
 emite `look:friend_visit:<id>` para apontar sem entregar automaticamente.
+
+### Treino da Praça — Etapa 10
+
+Quarto lugar visível `park.places.training`, painel `tricks`, aberto após `nina_pipoca`; também disponível nos serviços da Nina. Zona `training` sobre os cones já desenhados, polígono `[[105, 182], [148, 174], [188, 198], [156, 220], [114, 210]]`, etiqueta `[136, 168]`. Não altera os 15 obstáculos, amigos ou acesso ao portão/quiosque. `Places.goal_target` usa Treino para `trick_learned` e a tela Tiro para `trick`/`trick:<id>`.

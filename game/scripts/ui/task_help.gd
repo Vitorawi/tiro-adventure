@@ -144,6 +144,8 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 	var type: String = goal.type
 	var key: String = goal.get("key", "")
 	var amount := int(goal.get("target", 1))
+	if type == "stat" and (key == "trick_learned" or key == "trick" or key.begins_with("trick:")):
+		return _base(str(goal.get("label", "Truques")), "Treine 3 acertos na Praça." if key == "trick_learned" else "Peça um truque; recarga por truque.", Places.goal_target(goal), "Ir")
 	if type == "stat" and (key == "friend_level" or key.begins_with("friend_gift")):
 		var id := key.trim_prefix("friend_gift:") if key.begins_with("friend_gift:") else "pipoca"
 		var def := GameState.friend_def(id)

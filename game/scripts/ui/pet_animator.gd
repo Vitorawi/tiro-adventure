@@ -121,6 +121,12 @@ func set_sad(value: bool) -> void:
 
 
 func react(action: StringName) -> void:
+	for id: String in Database.progression.tricks:
+		if action == StringName(Database.progression.tricks[id].animation) and not _sleeping:
+			_belly_up = false
+			_next = &""
+			_play(action, 1)
+			return
 	if _sleeping or _belly_up or not REACTIONS.has(action):
 		return
 	if action == &"pet" and _clip != IDLE:

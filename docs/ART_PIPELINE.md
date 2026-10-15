@@ -630,3 +630,19 @@ visitantes, Coleção com silhuetas/amigos e rolagem ao fim, bônus somados, Cas
 presente recolhido. Corações vazios usam ícones apagados (a fonte mapeava ♡ como ♥);
 contador tem/precisa sem quebra. PNGs e pranchas abertos e conferidos. Importação Godot final
 concluída; PNGs, `.import` e `.uid` versionados. Originais e capturas continuam fora do git.
+
+## Etapa 10 — ícones de truques (PixelLab, 14/10/2026)
+
+Pixen, 32×32 transparente, contorno preto e detalhe médio. Originais preservados em `build/art_sources/etapa10/`; pranchas `candidates.png` (primeira rodada) e `candidates2.png` (pata/fala refeitos), abertas antes da escolha. Destino `game/assets/sprites/ui/icons/`. Canvas inteiro 32×32 preservado para alinhar os cinco ícones em 32/48/64 px, sem recorte que altere o pivô. Importação Godot concluída após cada cópia; PNGs e `.import` versionados. Nenhuma animação ou sobreposição existente substituída.
+
+| Asset/candidato | Job PixelLab | Asset de galeria | Escolha/destino |
+|---|---|---|---|
+| Pata 1 | `a948dbfd-8dba-4a7d-b4ac-b08ec61c94ce` | `92200ba9-96e9-56af-ab7d-0a499cf746e6` | Rejeitado: cachorro inteiro, não pata; original `trick_paw.png` |
+| Pata 2 | `430dd767-c629-47a1-9f4e-0f3458eb6252` | `c080b8fa-400f-583b-b9b9-21c12ed5b6d6` | Escolhido: pata isolada/estrela, original `trick_paw_2.png` → `trick_paw.png` |
+| Fala 1 | `487fe857-d7bb-48d4-86ff-e61583fc30f9` | `8015ec37-89a9-518f-93fa-1d228fc22a07` | Rejeitado: parecia quadro com escrita; original `trick_talk.png` |
+| Fala 2 | `9acd6057-094d-401d-a6f2-4b44145f6844` | `d74538a9-8a42-5c93-9ebc-53349352a246` | Escolhido: balão branco/ziguezague sonoro sem letras, `trick_talk_2.png` → `trick_talk.png` |
+| Rola 1 | `a0bcfb30-b179-4e7f-b157-39f062b2ca96` | `3df45de3-6cc0-5066-8220-36df2f46062a` | Escolhido: seta circular/pata → `trick_roll.png` |
+| Pula 1 | `206b36bf-580a-4a20-97ac-8c097d0715f6` | `63d1af06-6d8e-576f-b1bf-f5571caea62e` | Escolhido: pata/linhas ascendentes → `trick_jump.png` |
+| Gira 1 | `44a551d5-507e-42bb-af9f-c4b584b47fdf` | `55022655-d6af-587d-97cf-5d8a095fbf33` | Escolhido: espiral/pata → `trick_spin.png` |
+
+Reutilizados integralmente `give_paw`, `bark`, `roll_over`, `happy_jump`, `chase_tail` do Tiro grande, respectivas variantes de roupa e os cones do fundo da Praça. Capturas reais do treino e das cinco animações com head/neck/body em `build/screenshots/etapa10/`; pata/latido vestidos, acrobacias sem roupa, retorno vestido. O treino usa os ícones de estrela existentes para acertos, sem glifos ambíguos.

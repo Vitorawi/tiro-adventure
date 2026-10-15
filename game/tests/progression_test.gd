@@ -136,6 +136,9 @@ func _campaign() -> Dictionary:
 			state.call("collect_walk")
 		if state.call("equip_error", "red_scarf") == "":
 			state.call("equip", "red_scarf")
+		for trick: String in progression.tricks:
+			state.call("learn_trick", trick)
+			state.call("perform_trick", trick)
 		state.call("emergency_food")
 		state.call("bathe")
 		state.call("play")

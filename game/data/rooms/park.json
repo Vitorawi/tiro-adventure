@@ -44,6 +44,18 @@
         ]
       },
       "polygon": [[345, 218], [390, 218], [390, 249], [345, 249]]
+    },
+    {
+      "id": "training",
+      "action": "place:training",
+      "label": "Treino",
+      "label_pos": [136, 168],
+      "requirements": {
+        "quests": [
+          "nina_pipoca"
+        ]
+      },
+      "polygon": [[105, 182], [148, 174], [188, 198], [156, 220], [114, 210]]
     }
   ],
   "points": {

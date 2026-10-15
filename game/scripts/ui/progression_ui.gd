@@ -895,6 +895,8 @@ static func goal_icon(goal: Dictionary) -> Texture2D:
 static func stat_icon(key: String) -> Texture2D:
 	var prefix := key.get_slice(":", 0)
 	var arg := key.get_slice(":", 1) if ":" in key else ""
+	if prefix in ["trick", "trick_learned"]:
+		return UiKit.ui_icon("trick_" + (arg if arg != "" else "paw"))
 	if prefix in ["friend_gift", "friend_level"]:
 		return UiKit.ui_icon(str(GameState.friend_def(arg if arg != "" else "pipoca").get("icon", "bond_heart")))
 	if arg != "" and prefix in ["harvest", "produce"]:

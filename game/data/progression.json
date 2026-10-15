@@ -303,6 +303,18 @@
           "nina_pipoca"
         ]
       }
+    },
+    "tricks": {
+      "name": "Truques",
+      "icon": "trick_paw",
+      "go": {
+        "screen": "pet"
+      },
+      "requirements": {
+        "quests": [
+          "nina_trick"
+        ]
+      }
     }
   },
   "skills": {
@@ -2088,6 +2100,80 @@
       "price": 15,
       "shop": "petshop",
       "icon": "item_dog_food"
+    }
+  },
+  "tricks": {
+    "paw": {
+      "name": "Dá a pata",
+      "icon": "trick_paw",
+      "animation": "give_paw",
+      "requirements": {
+        "quests": [
+          "nina_pipoca"
+        ]
+      },
+      "zone": 0.25,
+      "speed": 1.2
+    },
+    "talk": {
+      "name": "Fala",
+      "icon": "trick_talk",
+      "animation": "bark",
+      "requirements": {
+        "quests": [
+          "nina_pipoca"
+        ],
+        "bond": 2
+      },
+      "zone": 0.25,
+      "speed": 1.2
+    },
+    "roll": {
+      "name": "Rola",
+      "icon": "trick_roll",
+      "animation": "roll_over",
+      "requirements": {
+        "quests": [
+          "nina_pipoca"
+        ],
+        "bond": 3
+      },
+      "zone": 0.22,
+      "speed": 1.1
+    },
+    "jump": {
+      "name": "Pula",
+      "icon": "trick_jump",
+      "animation": "happy_jump",
+      "requirements": {
+        "quests": [
+          "nina_pipoca"
+        ],
+        "bond": 4
+      },
+      "zone": 0.2,
+      "speed": 1.0
+    },
+    "spin": {
+      "name": "Gira",
+      "icon": "trick_spin",
+      "animation": "chase_tail",
+      "requirements": {
+        "quests": [
+          "nina_pipoca"
+        ],
+        "bond": 5
+      },
+      "zone": 0.18,
+      "speed": 0.95
+    }
+  },
+  "trick_settings": {
+    "hits": 3,
+    "cooldown": 120,
+    "perform": {
+      "happiness": 3,
+      "affection": 1
     }
   }
 }

@@ -153,6 +153,26 @@
           "nina_pipoca"
         ]
       }
+    },
+    "trick": {
+      "type": "action",
+      "name": "Quero mostrar um truque",
+      "icon": "trick_paw",
+      "goal": {
+        "key": "trick",
+        "target": 1
+      },
+      "go": "screen:pet",
+      "rewards": {
+        "coins": 8,
+        "affection": 6
+      },
+      "weight": 2,
+      "requirements": {
+        "quests": [
+          "nina_trick"
+        ]
+      }
     }
   }
 }

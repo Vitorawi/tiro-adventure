@@ -281,6 +281,17 @@
             "nina_pipoca"
           ]
         }
+      },
+      "training": {
+        "name": "Treino",
+        "icon": "trick_paw",
+        "description": "Truques com a Nina.",
+        "panel": "tricks",
+        "requirements": {
+          "quests": [
+            "nina_pipoca"
+          ]
+        }
       }
     }
   },

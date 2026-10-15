@@ -242,6 +242,22 @@
             "nina_pipoca"
           ]
         }
+      },
+      "trick": {
+        "name": "Mostre 2 truques",
+        "description": "Tiro → Truques: peça dois truques.",
+        "goal": {
+          "key": "trick",
+          "target": 2
+        },
+        "rewards": {
+          "coins": 10
+        },
+        "requirements": {
+          "quests": [
+            "nina_trick"
+          ]
+        }
       }
     }
   },

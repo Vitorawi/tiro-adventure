@@ -47,7 +47,7 @@ Ao terminar, marque a etapa como feita no docs/plans/comeco/README.md.
 - [x] Etapa 07 — passeios (14/10/2026, retomada Claude Code + Codex; 7 caminhos, raros, diário; testes e capturas ok, sem push)
 - [x] Etapa 08 — apetrechos (14/10/2026, Codex; lenço e lendários aprovados, vestir/pet shop/costura/bolsinha, testes e capturas conferidos, sem push)
 - [x] Etapa 09 — amigos (14/10/2026, Codex; quatro cachorros, janelas, corações e visitas offline; testes/capturas/Web prod/dev conferidos, sem push)
-- [ ] Etapa 10 — truques
+- [x] Etapa 10 — truques (14/10/2026, Codex; cinco truques, treino de um toque, testes/capturas/Web prod/dev conferidos, sem push)
 - [ ] Etapa 11 — tesouro
 
 ## Decisões já fechadas com o Vitor (13/10/2026)

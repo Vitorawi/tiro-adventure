@@ -16,4 +16,5 @@ foreach ($testTask in @("farm_test", "progression_test", "dev_tools_test", "task
 Invoke-Test "walks_test" @()
 Invoke-Test "petshop_test" @()
 Invoke-Test "friends_test" @()
+Invoke-Test "tricks_test" @()
 Invoke-Test "dev_tools_test" @("--", "--prod")

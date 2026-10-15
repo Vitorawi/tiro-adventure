@@ -71,7 +71,7 @@
       "Que yorkshire mais lindo! Passeio todo dia deixa qualquer cachorro feliz.",
       "Aparece sempre que quiser. A Pipoca vai adorar um amigo!"
     ],
-    "services": ["walk"]
+    "services": ["walk", "training"]
   },
   "dog_pipoca": {
     "name": "Pipoca",

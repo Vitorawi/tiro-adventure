@@ -48,6 +48,8 @@ static func place_error(place: Dictionary) -> String:
 
 static func _panel(kind: String, arg: String) -> Control:
 	match kind:
+		"tricks":
+			return TrickUi.panel(true)
 		"friends":
 			return FriendUi.panel()
 		"petshop":
@@ -356,6 +358,10 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			var panels := {"agriculture": "farm", "cooking": "station:stove", "commerce": "sell", "adventure": "routes:walk"}
 			return _panel_target(panels.get(key, ""))
 		"stat":
+			if key == "trick_learned":
+				return _panel_target("tricks")
+			if key == "trick" or key.begins_with("trick:"):
+				return {"screen": "pet", "hint": "Tiro → Truques"}
 			if key.begins_with("friend_gift:"):
 				return {"world": "park", "place": "friend:" + key.trim_prefix("friend_gift:")}
 			if key in ["friend_gift", "friend_level"]:

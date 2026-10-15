@@ -4,6 +4,50 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **14/10/2026, Codex (retomada do Claude Code)**.
 
+**✔ Etapa 10 — Truques concluída (14/10/2026, Codex). Commit local, sem push.**
+- Base `711d169` (Etapa 09); implementada somente a Etapa 10. `SAVE_VERSION` continua 12,
+  sem reset ou migração: `progress.tricks` ausente começa vazio, recargas usam o dicionário existente.
+- `progression.json → tricks/trick_settings`: `paw/talk/roll/jump/spin`, 3 acertos, zona/velocidade,
+  +3 felicidade/+1 afeto e recarga Unix individual de 120 s. Requisitos reais: `nina_pipoca`, depois
+  vínculo 2/3/4/5; aprendizado em sequência. `learn_trick/perform_trick` + `*_error` validam ids,
+  requisitos, posse, sono e passeio; contadores `trick_learned`, `trick`, `trick:<id>` uma vez.
+- Treino é o quarto lugar visível da Praça, na zona dos cones existentes; também serviço da Nina.
+  Não alterados os 15 obstáculos, amigos, portão ou quiosque. `TrickUi` usa Sheet/LiveBox;
+  `TrickTraining` reutiliza PetAnimator, Tween ping-pong, pequena variação central, botão 64 px,
+  estrelas de acerto, Isso!/Quase! sem custo/limite. Consulta pura `check_hit`; posição forçada
+  só via `dev_force_marker` com guarda DEV. Após aprender, botão “Voltar ao treino”.
+- Botão Truques na tela Tiro após o primeiro aprendizado; Mostrar fecha o painel e exibe a animação.
+  Mantidas as três camadas/slots e variantes: give_paw/bark vestidos; roll_over/happy_jump/chase_tail
+  ocultam roupas e as restauram ao descansar. Nenhum sprite/animação do cachorro substituído.
+  “Novo truque!” usa a fila modal e a rolagem da comemoração existente.
+- Nina: `nina_trick` ordem 90, `nina_friends` preservada em 100, `nina_roll` em 110; objetivos totais
+  permitem treinar antes de receber a missão. Feature/desejo/diária `tricks`/`trick`/`trick` após
+  `nina_trick`; ajuda, ícones e Ir levam ao Treino ou à tela Tiro conforme a ação.
+- Amigos/janelas locais/visitas offline/presentes únicos preservados; não alterados os sistemas de
+  loot, sete raros, consolos, histórico/garantias ou sorteio independente dos dois lendários.
+- PixelLab: 5 ícones 32×32; 7 jobs/candidatos, pata e fala refeitos após revisão (cachorro inteiro
+  e quadro com escrita rejeitados). Originais/pranchas em `build/art_sources/etapa10/`; todos os
+  jobs/ids, escolhas e alinhamento no ART_PIPELINE. PNGs/imports/UIDs incluídos; import concluído.
+- **27 execuções individuais PASS** (26 scripts + DEV em prod), logs `build/test_logs/etapa10/`.
+  `tricks_test` cobre zona/bordas, 3 acertos/toque duplo, tempo <30 s, abertura real de Treino,
+  requisitos, efeitos/recargas independentes e limite 120 s, persistência/save antigo, anúncio,
+  recompensa única da missão, navegação/chão e as três roupas em todos os truques.
+  Friends/petshop/walks e DEV prod PASS. Campanha: **196 ciclos, 47 aquisições, 73 missões**;
+  simulação usa novas ações conforme requisitos, sem brindes/limites relaxados novos.
+  Onboarding mantém chance rara zero e limites: capítulo 4 **10,6 min**, passeio **14,3 min**,
+  raro na **6ª volta em 25,7 min**, ocioso total **190 s**, máximo **30 s**.
+- **22 capturas 360×780** gráficas, timeout externo 90 s, abertas e conferidas em
+  `build/screenshots/etapa10/`: Praça antes/depois, lista/bloqueios/rolagem, barra/erro/acerto,
+  festa, missão Nina/Novo!, botão/lista aprendidos, cinco animações vestidas/acrobáticas,
+  roupas restauradas, recargas, sono e passeio. Botão Agora! testado por eventos de mouse
+  (mesmo caminho do toque). Sem erros de script; avisos antigos de recursos/RIDs no encerramento
+  de algumas cenas/testes permanecem; o novo `tricks_test` encerra limpo.
+- Web prod/dev exportados; conferidos dados/scene/script/ícones nos dois PCKs e exclusão de testes.
+  Nenhuma publicação. Saves pessoais restaurados byte a byte e hashes conferidos após validação.
+  CLAUDE.md e AGENTS.md idênticos; docs de progressão/design/mundos/arte atualizados.
+- Pendências obrigatórias da Etapa 10: nenhuma. **Próximo passo: Etapa 11 — tesouro**
+  (`docs/plans/comeco/ETAPA_11_tesouro.md`), ainda não iniciada.
+
 **✔ Etapa 09 — Amigos do Tiro concluída (14/10/2026, Codex). Commit local, sem push.**
 - Base `ec64beb` (Etapa 08), sem reimplementar vestir, costura ou pet shop; nenhum conteúdo
   da Etapa 10. `SAVE_VERSION` continua 12: novos campos têm padrão vazio, sem reset/migração.

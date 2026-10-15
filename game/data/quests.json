@@ -1525,5 +1525,44 @@
     "kind": "line",
     "line": "nina",
     "order": 100
+  },
+  "nina_trick": {
+    "npc": "nina",
+    "name": "Dá a pata!",
+    "dialogue": "Vou te ensinar o dá a pata. Toque na hora certa!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "trick_learned",
+        "target": 1,
+        "label": "Ensinar Dá a pata"
+      }
+    ],
+    "rewards": {
+      "coins": 20,
+      "affection": 5
+    },
+    "kind": "line",
+    "line": "nina",
+    "order": 90
+  },
+  "nina_roll": {
+    "npc": "nina",
+    "name": "Rola, Tiro!",
+    "dialogue": "Ele confia em você. Agora o rola!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "trick_learned",
+        "target": 3,
+        "label": "Aprender 3 truques"
+      }
+    ],
+    "rewards": {
+      "coins": 40
+    },
+    "kind": "line",
+    "line": "nina",
+    "order": 110
   }
 }

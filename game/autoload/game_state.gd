@@ -449,6 +449,71 @@ func walk_postcard(id: String) -> String:
 	return str(settings.get("postcard_dir", "")) + str(walk_def(id).get("postcard", ""))
 
 
+# --- Truques --------------------------------------------------------------
+
+func trick_available_error(id: String) -> String:
+	if not Database.progression.tricks.has(id):
+		return "Truque desconhecido"
+	if walking():
+		return away_text()
+	if dog.sleeping:
+		return "Shh... ele está dormindo."
+	return requirement_error(Database.progression.tricks[id].get("requirements", {}))
+
+
+func learn_trick_error(id: String) -> String:
+	var error := trick_available_error(id)
+	if error != "":
+		return error
+	if bool(progress.tricks.get(id, false)):
+		return "Truque já aprendido"
+	for previous: String in Database.progression.tricks:
+		if previous == id:
+			break
+		if not bool(progress.tricks.get(previous, false)):
+			return "Aprenda " + str(Database.progression.tricks[previous].name)
+	return ""
+
+
+func learn_trick(id: String) -> String:
+	var error := learn_trick_error(id)
+	if error != "":
+		return error
+	progress.tricks[id] = true
+	_count("trick_learned")
+	_changed()
+	Events.trick_learned.emit(id)
+	return ""
+
+
+func perform_trick_error(id: String) -> String:
+	var error := trick_available_error(id)
+	if error != "":
+		return error
+	if not bool(progress.tricks.get(id, false)):
+		return "Aprenda com a Nina na Praça"
+	var wait := progress.cooldown_left("trick:" + id, now())
+	return "Descansa por " + TimeText.short(wait) if wait > 0 else ""
+
+
+func perform_trick(id: String) -> String:
+	var error := perform_trick_error(id)
+	if error != "":
+		return error
+	var settings: Dictionary = Database.progression.trick_settings
+	var effects: Dictionary = settings.perform.duplicate(true)
+	var affection := int(effects.get("affection", 0))
+	effects.erase("affection")
+	dog.apply(effects, now())
+	dog.affection += affection
+	progress.cooldowns["trick:" + id] = now() + float(settings.cooldown)
+	_count("trick")
+	_count("trick:" + id)
+	_changed()
+	Events.dog_action.emit(StringName(Database.progression.tricks[id].animation))
+	return ""
+
+
 # --- Ações do Tiro ---------------------------------------------------------
 
 func feed(item_id: String) -> bool:

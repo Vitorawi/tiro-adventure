@@ -501,3 +501,15 @@ e navegação. `FriendUi` monta cartão e Coleção → Amigos no Sheet com rola
 `friends_test` testa calendário/fuso, requisitos, recompensas, persistência, ciclo real do SaveManager,
 visitas, armazenamento, NPCs/caminhos e bônus/garantias; `friend_clock.gd` é exclusivo de testes.
 Campanha simula janelas e entrega petiscos produzidos, sem alterar limites ou conceder itens.
+
+## Truques — Etapa 10 (14/10/2026)
+
+`progression.json.tricks` é a fonte de nomes, ícones, animações, requisitos, largura da zona e segundos por ida do marcador; `trick_settings` define 3 acertos, recarga de 120 s e efeitos +3 felicidade/+1 afeto. Ordem: `paw`, `talk`, `roll`, `jump`, `spin`; todos exigem `nina_pipoca`, os quatro últimos vínculo 2/3/4/5. Só o próximo pode ser aprendido. O Treino é o quarto lugar visível da Praça; Nina tem o serviço `training`, com a mesma guarda do lugar.
+
+`GameState.learn_trick_error/learn_trick` validam e gravam `progress.tricks[id] = true`, contam `trick_learned` uma vez e emitem `Events.trick_learned` para a fila modal. `perform_trick_error/perform_trick` validam posse, requisitos, sono/passeio e recarga, aplicam efeitos, contam `trick`/`trick:<id>`, salvam timestamp Unix em `progress.cooldowns` e emitem a animação existente. Save anterior começa com dicionário vazio; `SAVE_VERSION` continua 12. Não se persiste uma partida parcial, nem se premia o treino repetido.
+
+`TrickUi` usa o Sheet/LiveBox (rolagem e atualização de recarga); executar fecha o painel e mostra a animação na aba Tiro. `TrickTraining` usa PetAnimator, Tween ping-pong, zona central com pequena variação, botão 64 px e feedback sem punição. `check_hit` é uma consulta pura; `dev_force_marker` tem guarda `BuildInfo.is_dev()`, só para testes. As roupas respeitam as mesmas âncoras, variantes e três slots; nenhuma arte do Tiro foi substituída.
+
+Linha da Nina: `nina_trick` ordem 90 (um aprendido, 20 moedas/+5 afeto), `nina_friends` ordem 100 preservada, `nina_roll` ordem 110 (três aprendidos, 40 moedas). Os objetivos são totais, sem `fresh`, permitindo treinar antes de receber a missão. Após `nina_trick`, `features.tricks`, desejo `trick` e diária `trick` (duas execuções, 10 moedas). Objetivos/ajuda levam ao Treino para aprender e à aba Tiro para executar.
+
+Validação: `tricks_test` cobre fronteiras da zona, erro sem custo, três acertos/toque repetido, anúncio/contadores únicos, vínculo, recarga independente/exata/persistida, sono/passeio, missão/recompensa única, saves antigos, navegação e os três slots durante todas as cinco animações. `tricks_shots` usa mouse (mesmo caminho do toque), capturas gráficas 360×780 com timeout externo. Campanha usa `learn_trick/perform_trick` conforme elegibilidade, sem concessões novas.

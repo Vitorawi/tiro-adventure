@@ -79,6 +79,9 @@ func _build_extras() -> void:
 			Events.sheet_requested.emit(entry[0], (entry[2] as Callable).call()))
 		chip.name = entry[0]
 		row.add_child(chip)
+	var tricks := UiKit.tap_chip(UiKit.ui_icon("trick_paw"), "Truques", TrickUi.open)
+	tricks.name = "TricksButton"
+	row.add_child(tricks)
 	var layout := %DogArea.get_parent()
 	layout.add_child(row)
 	layout.move_child(row, %DogArea.get_index())
@@ -213,6 +216,7 @@ func _dress_button(button: Button, texture: Texture2D, text: String) -> Array:
 func _refresh() -> void:
 	var extras := %DogArea.get_parent().get_node_or_null("Extras")
 	if extras:
+		extras.get_node("TricksButton").visible = not GameState.progress.tricks.is_empty()
 		extras.get_node("Atributos").visible = GameState.progress.skills_visible()
 		extras.get_node("Coleção").visible = not GameState.progress.collection.is_empty() or GameState.progress.feature_unlocked("finds")
 	var now := GameState.now()

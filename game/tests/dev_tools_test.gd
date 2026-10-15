@@ -106,6 +106,11 @@ func _dev_mode() -> void:
 
 func _prod_mode() -> void:
 	state.call("reset")
+	var training: Control = load("res://scenes/ui/trick_training/trick_training.tscn").instantiate()
+	training.set("marker", 0.1)
+	training.call("dev_force_marker", 0.9)
+	_check(is_equal_approx(float(training.get("marker")), 0.1), "Prod não força marcador do treino via DEV")
+	training.free()
 	state.call("dev_grant_cosmetics")
 	_check(_progress().collection.is_empty(), "Prod não pode ganhar roupas via DEV")
 	var coins: int = state.get("coins")

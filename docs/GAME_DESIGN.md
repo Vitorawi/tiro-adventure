@@ -210,16 +210,8 @@ de NPCs e coleção de roupas/apetrechos. **Detalhes, formatos e versão dev em 
 
 ## Evolução (ideias originais; parte já virou a Jornada)
 - **(a) Nível do jogador:** XP de produzir, cuidar e missões; desbloqueia áreas, receitas e estações.
-- **(b) Carinho com o Tiro:** as necessidades (felicidade) mostram o cuidado; truques entram no futuro.
-- **(c) Truques** (habilidades do Tiro, ligados aos sprites de referência), aprendidos com o Treinador via minigame:
-
-| Truque | Sprite de referência |
-|---|---|
-| Sentar | Sitting (side sheet) |
-| Latir | Bark (side sheet) |
-| Pular | Jump (side sheet) |
-| Fingir de morto | Play dead (poses) |
-| Reverência (brincalhão) | Bow (poses) |
+- **(b) Carinho com o Tiro:** as necessidades (felicidade) mostram o cuidado; truques aprendidos também aumentam felicidade e afeto.
+- **(c) Truques (Etapa 10, implementada):** Nina ensina no lugar Treino da Praça, no cantinho dos cones, após `nina_pipoca`. Barra em ping-pong, zona verde e botão de 64 px “Agora!”. Três acertos aprendem; “Quase!” apenas repete, sem custo ou limite. Um truque por vez: Dá a pata, Fala (vínculo 2), Rola (3), Pula (4), Gira (5). A tela Tiro ganha Truques após aprender o primeiro; mostrar dá +3 felicidade e +1 afeto, com recarga individual de 2 min. Sono e passeio bloqueiam treino/execução. Reutiliza as cinco animações existentes: roupas permanecem na pata/latido, somem nas acrobacias e voltam ao descanso. “Novo truque!” usa a fila e o cartão com rolagem existentes. Missões Nina nas ordens 90 e 110, desejo e diária após `nina_trick`.
 
 - **(d) Moedas:** vender produtos e entregar pedidos.
 - **(e) Melhorias:** estações (fila maior, mais rápido), canteiros extras, geladeira maior.

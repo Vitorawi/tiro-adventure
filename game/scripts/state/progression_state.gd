@@ -25,6 +25,8 @@ var equipped: Dictionary = {"head": "", "neck": "", "body": ""}
 var unlocks: Dictionary = {}
 ## Recargas em timestamp Unix: "care:feed", "order:<id>", "emergency_food".
 var cooldowns: Dictionary = {}
+## Truques aprendidos; sem campo em saves anteriores = nenhum.
+var tricks: Dictionary = {}
 ## Rota em andamento: { id, started_at, ready_at } ou vazio.
 var activity: Dictionary = {}
 ## Coletas por local: até três { id, resource, started_at, ready_at, rewards } independentes.
@@ -346,7 +348,7 @@ func to_dict() -> Dictionary:
 		"skills": skills, "owned": owned, "stats": stats, "nature_levels_version": 2, "nature_xp": nature_xp,
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
 		"collection": collection, "equipped": equipped, "unlocks": unlocks,
-		"cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "steps": steps, "seen": seen,
+		"tricks": tricks, "cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "steps": steps, "seen": seen,
 			"started_at": started_at, "firsts": firsts, "daily_gift": daily_gift, "claimed_bond_level": claimed_bond_level,
 	}
 
@@ -411,6 +413,10 @@ func from_dict(data: Dictionary) -> void:
 			equipped[slot] = id
 	unlocks = data.get("unlocks", {}).duplicate(true)
 	cooldowns = data.get("cooldowns", {}).duplicate(true)
+	tricks = {}
+	for id: String in data.get("tricks", {}):
+		if Database.progression.tricks.has(id) and bool(data.tricks[id]):
+			tricks[id] = true
 	activity = data.get("activity", {}).duplicate(true)
 	gathering = {}
 	for site: String in data.get("gathering", {}):

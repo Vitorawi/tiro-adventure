@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes/ui/trick_training/trick_training.gd" id="1"]
+
+[node name="TrickTraining" type="VBoxContainer"]
+script = ExtResource("1")
+theme_override_constants/separation = 10

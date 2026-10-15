@@ -74,6 +74,16 @@ func show_find(result: Dictionary) -> void:
 	box.add_child(UiKit.button("Oba!", hide, &"PrimaryButton"))
 	show()
 
+func show_trick(id: String) -> void:
+	var def: Dictionary = Database.progression.tricks[id]
+	var box := _open()
+	box.add_child(_center(UiKit.icon(UiKit.ui_icon(str(def.icon)), 64)))
+	box.add_child(_center(UiKit.label("Novo truque!", &"TitleLabel")))
+	box.add_child(_center(UiKit.label(str(def.name), &"SectionLabel")))
+	box.add_child(UiKit.button("Oba!", hide, &"PrimaryButton"))
+	show()
+
+
 func show_unlocks(unlocks: Array[String]) -> void:
 	var box := _open()
 	box.add_child(_center(UiKit.label("Novo!", &"TitleLabel")))
