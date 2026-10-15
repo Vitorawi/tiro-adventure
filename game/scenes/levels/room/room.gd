@@ -101,6 +101,7 @@ var _has_backdrop := false
 var _parallax := 0.25
 var _horizon := HORIZON_DEFAULT
 var _far_texture: Texture2D
+var _ground_detail: WorldGround
 var _clouds: Array[Sprite2D] = []
 var _cloud_speeds: Array[float] = []
 var _clouds_ready := false
@@ -1303,7 +1304,10 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 		_:
 			if target is Sprite2D:
 				_lift_for_sheet(target)
-			Places.run(world_id, action)  # "place:<id>" ou "npc:<id>" (data/worlds.json)
+			if target is Sprite2D and action.begins_with("place:"):
+				Places.open(world_id, action.trim_prefix("place:"), true)
+			else:
+				Places.run(world_id, action)  # "place:<id>" ou "npc:<id>" (data/worlds.json)
 
 
 func _flash(sprite: Sprite2D) -> void:
@@ -1561,9 +1565,16 @@ func _setup_backdrop() -> void:
 	%Sky.texture = sky_texture
 	%Sky.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	%Sky.visible = true
-	# Chão: cor lisa do JSON (a mesma do "edge_cover" que esconde a lateral de terra da maquete).
+	# A cor do chão também tinge a textura e a cobertura da lateral da maquete.
 	%Ground.color = Color(str(data.get("ground", "#6fa046")))
 	%Ground.visible = true
+	var ground_path := str(data.get("ground_texture", ""))
+	if ground_path != "" and ResourceLoader.exists(ground_path):
+		%Ground.clip_contents = true
+		_ground_detail = WorldGround.new()
+		_ground_detail.name = "GroundDetail"
+		%Ground.add_child(_ground_detail)
+		_ground_detail.configure(load(ground_path), %Ground.color)
 	var far_path := str(data.get("texture", ""))
 	if far_path != "" and ResourceLoader.exists(far_path):
 		_far_texture = load(far_path)
@@ -1609,6 +1620,9 @@ func _layout_backdrop() -> void:
 	%Sky.size = Vector2(size.x, edge)
 	%Ground.position = Vector2(0.0, edge)
 	%Ground.size = Vector2(size.x, size.y - edge)
+	if _ground_detail:
+		_ground_detail.size = %Ground.size
+		_ground_detail.set_camera(_content.position - %Ground.position, _zoom)
 	if _far_texture:
 		# Escala inteira que cubra a largura (com sobra para o parallax andar sem mostrar buraco).
 		var far_scale := maxi(1, ceili(size.x * 1.15 / _far_texture.get_width()))
@@ -1647,7 +1661,12 @@ func _spawn_edge_cover() -> void:
 		var shape := Polygon2D.new()
 		shape.name = "EdgeCover"
 		shape.polygon = _polygon(points)
-		shape.color = color
+		if _ground_detail:
+			shape.texture = _ground_detail.texture
+			shape.uv = shape.polygon
+			shape.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
+		else:
+			shape.color = color
 		_content.add_child(shape)
 		_content.move_child(shape, _background.get_index() + 1)
 

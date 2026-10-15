@@ -3,11 +3,13 @@
   "backdrop": {
     "texture": "res://assets/sprites/areas/park/backdrop.png",
     "sky": ["#9ad7f5", "#fbeec9"],
-    "ground": "#80964c",
-    "clouds": true,
+    "ground": "#80904f",
+    "ground_texture": "res://assets/sprites/areas/common/grass_ground.png",
+    "clouds": false,
     "parallax": 0.25,
     "horizon": 0.3
   },
+  "edge_cover": [[20, 205], [316, 360], [612, 206], [664, 448], [-32, 448]],
   "initial_zoom": 0.85,
   "floor": [[52, 194], [315, 60], [582, 196], [318, 330]],
   "dig_spots": [[262, 150], [400, 262], [345, 150], [440, 172], [420, 240], [232, 238], [160, 190], [380, 258]],

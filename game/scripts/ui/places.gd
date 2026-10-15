@@ -15,7 +15,7 @@ extends RefCounted
 
 
 ## Abre um lugar do mundo (painel inferior, ação ou viagem).
-static func open(world_id: String, place_id: String) -> void:
+static func open(world_id: String, place_id: String, from_object: bool = false) -> void:
 	var place: Dictionary = Database.worlds.get(world_id, {}).get("places", {}).get(place_id, {})
 	if place.is_empty():
 		return
@@ -39,7 +39,11 @@ static func open(world_id: String, place_id: String) -> void:
 			GameState.set_sleeping(sleeping)
 			Events.toast_requested.emit("Hora da soneca!" if sleeping else "Tiro acordou!")
 		_:
-			Events.sheet_requested.emit(place.name, _panel(kind, arg) if kind in ["nature", "petshop"] else _with_upgrades(_panel(kind, arg), place.get("upgrades", [])))
+			var content := _panel(kind, arg) if kind in ["nature", "petshop"] else _with_upgrades(_panel(kind, arg), place.get("upgrades", []))
+			# Ao tocar na estação do mapa, deixa o objeto à vista; puxar a alça para cima amplia a consulta.
+			if from_object and kind in ["station", "stations"]:
+				content.set_meta("sheet_size", "half")
+			Events.sheet_requested.emit(place.name, content)
 
 
 static func place_error(place: Dictionary) -> String:

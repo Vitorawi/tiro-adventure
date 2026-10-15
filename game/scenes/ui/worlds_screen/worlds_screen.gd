@@ -44,6 +44,16 @@ func is_map_open() -> bool:
 	return %MapView.visible
 
 
+## Reserva espaço para o aviso abaixo da pílula e dos rostos, sem cobrir os botões do mapa.
+func toast_top() -> float:
+	if not is_visible_in_tree() or not %WorldView.visible:
+		return 0.0
+	var bottom: float = %MapButton.get_global_rect().end.y
+	if %NpcRow.visible:
+		bottom = maxf(bottom, %NpcRow.get_global_rect().end.y)
+	return bottom + 8.0
+
+
 ## Entra no mundo; `place` opcional abre um lugar ("stove"), personagem ("npc:bloblo")
 ## ou compra ("buy:oven") assim que chegar.
 func enter(world_id: String, place: String = "") -> void:

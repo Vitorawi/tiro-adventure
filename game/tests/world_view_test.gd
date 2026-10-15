@@ -85,27 +85,31 @@ func _backdrops() -> void:
 		check(ground.visible and is_equal_approx(ground.position.y, sky.size.y), id + ": chão começa onde o céu termina")
 		check(ground.position.y + ground.size.y >= room.size.y - 0.5, id + ": o chão vai até embaixo")
 		check(is_equal_approx(sky.size.x, room.size.x) and is_equal_approx(ground.size.x, room.size.x), id + ": céu e chão têm a largura da tela")
+		check((room.find_child("EdgeCover", true, false) != null) == (id != "house"), id + ": a terra da lateral fica coberta (menos na Casa)")
 		var far: Control = room.get_node("%Far")
 		check(far.visible == (id != "house"), id + ": paisagem ao longe só nos mundos abertos")
 		if far.visible:
 			check(far.position.x <= 0.5 and far.position.x + far.size.x >= room.size.x - 0.5, id + ": a paisagem cobre a largura")
-		var clouds: Array = room.get("_clouds")
-		check((id in ["house"]) == clouds.is_empty(), id + ": nuvens só onde o fundo pede")
+		check((room.get("_clouds") as Array).is_empty(), id + ": sem nuvens (fundo simples)")
+		var detail: Control = ground.get_node_or_null("GroundDetail")
+		check((detail != null) == (id != "house"), id + ": gramado texturado só nos mundos externos")
+		if detail:
+			var texture: Texture2D = detail.get("texture")
+			check(texture != null and ground.clip_contents, id + ": textura existe e fica abaixo do horizonte")
+			var cover: Polygon2D = room.find_child("EdgeCover", true, false)
+			check(cover.texture == texture and cover.uv == cover.polygon, id + ": borda usa a mesma textura nas coordenadas do mundo")
+			check(cover.polygon[-1].y > (room.get("_content") as Control).size.y, id + ": cobertura passa do fundo da imagem sem sobrar terra")
+			room.call("_zoom_at", room.size / 2.0, 1.4)
+			var content: Control = room.get("_content")
+			check(is_equal_approx(float(detail.get("camera_zoom")), float(room.get("_zoom"))), id + ": textura acompanha o zoom")
+			check((detail.get("camera_origin") as Vector2).is_equal_approx(content.position - ground.position), id + ": textura acompanha o arrasto sem deslizar na borda")
+			room.call("recenter")
 	# Mundo sem "backdrop" no JSON: comportamento antigo (cor escura).
 	var plain: Control = (load("res://scenes/levels/room/room.tscn") as PackedScene).instantiate()
 	plain.set("room_id", "house")
 	plain.set("_room", {})
 	check(not bool(plain.get("_has_backdrop")), "sala sem backdrop não liga o fundo novo")
 	plain.free()
-	# Nuvens andam para a direita e voltam pela esquerda.
-	var park: Control = await _enter("park")
-	var cloud: Sprite2D = (park.get("_clouds") as Array)[0]
-	var before := cloud.position.x
-	park.call("_drift_clouds", 1.0)
-	check(cloud.position.x > before, "nuvem anda para a direita")
-	cloud.position.x = park.size.x + 10.0
-	park.call("_drift_clouds", 0.01)
-	check(cloud.position.x < 0.0, "nuvem volta pela esquerda")
 
 
 func _framing() -> void:
@@ -121,7 +125,7 @@ func _framing() -> void:
 	var dog: Node2D = house.get("_dog")
 	check(dog != null and Rect2(Vector2.ZERO, house.size).has_point(_on_screen(house, dog.position)), "Casa: o Tiro está dentro da tela")
 	var content: Control = house.get("_content")
-	check(content.size.x * float(house.get("_zoom")) <= house.size.x + 0.5 and absf(content.size.x * float(house.get("_zoom")) - house.size.x) < 1.0, "Casa: a maquete ocupa a largura")
+	check(is_equal_approx(content.size.x * float(house.get("_zoom")), house.size.x), "Casa: cenário inteiro na largura, sem cortar as laterais")
 	for id: String in ["park", "village"]:
 		var room := await _enter(id)
 		check(float(room.get("_zoom")) >= 0.8 and float(room.get("_zoom")) <= 0.9, id + ": zoom entre 0,8 e 0,9")
@@ -251,6 +255,12 @@ func _taps() -> void:
 	_tap(farm, at)
 	await process_frame
 	check(bool(main.get_node("Sheet").call("is_open")), "toque simples na Bancada abre o painel na hora")
+	for i in 4:
+		await process_frame
+	var sheet: Control = main.get_node("Sheet")
+	var panel_height := float(sheet.call("panel_height"))
+	check(panel_height <= main.size.y * 0.55 + 1.0, "estação tocada no mapa abre em meia altura")
+	check(_on_screen(farm, bench.position).y < main.size.y - panel_height, "a Bancada fica visível acima do painel")
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	await process_frame
 
@@ -276,6 +286,17 @@ func _world_bar() -> void:
 	var face := faces.get_child(0) as Button
 	check(face.size.x >= 48.0 and face.size.y >= 48.0, "rosto tem 48 de alvo de toque")
 	check(face.global_position.x + face.size.x <= worlds.size.x - 8.0, "rosto fica dentro da tela")
+	# O aviso precisa deixar a navegação do mundo e os rostos tocáveis.
+	for id: String in ["farm", "village"]:
+		await _enter(id)
+		main.call("_show_toast", "Um aviso enquanto você olha o mundo")
+		await process_frame
+		var toast: Control = main.get_node("Toast")
+		check(not toast.get_global_rect().intersects(pill.get_global_rect()), id + ": aviso não cobre a pílula")
+		for npc: Control in faces.get_children():
+			check(not toast.get_global_rect().intersects(npc.get_global_rect()), id + ": aviso não cobre os rostos")
+		toast.hide()
+	await _enter("farm")
 	# Tocar no rosto abre a conversa; a pílula abre a lista de mundos.
 	pill.pressed.emit()
 	check(bool(worlds.call("is_map_open")), "tocar na pílula abre a lista de mundos")

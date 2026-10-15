@@ -73,7 +73,7 @@ func _run() -> void:
 	farm.call("recenter")
 	await create_timer(0.5).timeout
 	
-	farm.call("_on_object_tapped", "place:silo", farm.find_child("silo", true, false))
+	farm.call("_on_object_tapped", "place:workbench", farm.find_child("workbench", true, false))
 	await shot("d03_sheet_over_object", 1.0)
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	await create_timer(0.5).timeout

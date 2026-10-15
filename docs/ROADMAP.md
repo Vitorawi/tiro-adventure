@@ -2,7 +2,7 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **15/10/2026, Claude Code (Interface nova, Etapa 04)**.
+> um do outro. Última atualização: **15/10/2026, Codex (revisão visual da Interface nova, Etapa 04)**.
 
 **▶ PLANO ATUAL (15/10/2026): Interface nova — `docs/plans/interface/README.md`.** Aprovado pelo Vitor
 ("vamos nessas ideias mesmo"). 13 etapas (00–12), executar **uma por vez, na ordem**, com o prompt do README.
@@ -10,6 +10,18 @@ Leitura obrigatória: `00_VISAO.md` (diagnóstico, referências, esboços) e `01
 paleta, medidas, componentes, movimento, glossário de textos, receitas de arte). Só interface: regras, números
 e save (`SAVE_VERSION` 12) não mudam. Rascunho do tour de capturas usado no diagnóstico: `docs/plans/interface/ui_tour_rascunho.gd`
 (já virou `game/tests/ui_tour.gd`). **Próximo passo: Etapa 05 (`docs/plans/interface/ETAPA_05_seletor.md`).**
+
+**✔ Revisão da Etapa 04 concluída (15/10/2026, Codex, continuando o Claudi).** Base `7e84772`, com seis arquivos locais preservados e revisados por autorização do Vitor. O pedido após a entrega foi "deixa mais textura no chão". Commit local, sem push; próxima: Etapa 05.
+- `WorldGround` (`scripts/ui/world_ground.gd`) repete uma textura PixelLab de grama (`backdrop.ground_texture`) com brilho ajustado ao chão de cada mundo. Textura e cobertura da borda usam as mesmas coordenadas do mapa e acompanham arrasto/zoom; não criam estado salvo.
+- Os quatro mundos externos agora escondem a lateral de terra inteira: o contorno de baixo passa do fundo do PNG, eliminando os riscos escuros que sobravam na tentativa local do Claudi. A Casa mantém o fundo quente ajustado, mas voltou a `framing: width` para não cortar as laterais. Nuvens/névoa continuam desligadas nos JSON, preservando a simplificação visual iniciada por ele.
+- O aviso no mundo usa `WorldsScreen.toast_top()`: aparece abaixo da pílula e dos rostos, inclusive na Vila com dois personagens. Nas outras telas mantém a posição da Etapa 03.
+- Corrigida também a pendência do painel alto: `Places.open(..., from_object=true)` marca estações tocadas no mapa como `sheet_size: half`; a Bancada fica visível acima do painel e a alça ainda amplia a consulta. Listas/atalhos seguem automáticos. O `d03_sheet_over_object` do tour agora abre a Bancada de verdade (antes abria o Silo). Isso usa a peça da Etapa 02; nenhuma bandeja da Etapa 08 foi antecipada.
+- Arte: duas tentativas de grama 128×128; a primeira ficou densa demais no jogo. Escolhida a segunda, esparsa e de baixo contraste. Jobs, originais e prancha no `ART_PIPELINE.md`.
+- **Validação final:** 33 execuções PASS, uma por vez, incluindo DEV em prod; logs em `build/test_logs/etapa04/revisao/`. `world_view_test` cobre grama/UV, cobertura inteira da terra, Casa sem cortes, aviso livre dos controles e Bancada acima do painel. Já constava do `tools/test_all.ps1`; nenhum teste novo ficou fora da suíte. Avisos antigos de recursos/RID no encerramento de `park_test`/`ui_style_test` permanecem (PASS e saída 0).
+- **Capturas:** 45 PNGs por tour, em `build/screenshots/etapa04_revisao_antes`, `etapa04_revisao_depois`, `etapa04_revisao_depois_390` e `etapa04_revisao_depois_412`. Comparação das 45 telas nos três tamanhos em 23 pranchas `build/preview/etapa04/revisao_comparacoes/`, abertas e conferidas; `revisao_mundos_final.png` mostra os cinco mundos juntos. Os tours e logs originais foram preservados.
+- **Web/toque:** export prod/dev PASS; `tools/touch_test.ps1` com `build/touch_steps_etapa04_revisao.json`, 390×844, confirmou arrasto/inércia, elástico, pinça, duplo toque, centralizar e toque no nome da Bancada (x 282, y 120 CSS após centralizar). Painel em meia altura e Bancada acima dele, sem erros no console. PNGs/console preservados em `build/touch_test_etapa04_revisao_final/`; pranchas `revisao_touch_gestos.png` e `revisao_touch_zoom_painel.png`. Servidor encerrado.
+- **Aceite 4.1–4.5 conferido:** fundo completo e coerente; Sítio com horta grande/Casa inteira/Praça e Vila preenchendo a largura; gestos funcionando; sem +/− e centralizar só quando precisa; barra flutuante sem cabeçalho; documentação/arte atualizadas; README marcado e commit local. Nuvens desligadas e chão texturado são os ajustes visuais desta revisão, sem bandejas antecipadas.
+- **Pendências:** nenhuma obrigatória desta revisão. Cortes antigos nas linhas compridas do fogão (já no antes) ficam para as Etapas 08/10. A lista de mundos ainda é a atual: a Etapa 05 fará o seletor. Não foi implementada nenhuma parte dela; `SAVE_VERSION` continua 12. Nova sessão da Etapa 05 será criada no Codex após o commit (a ferramenta de sessões do Claude remoto não está disponível nesta conversa), com o roteiro completo e a instrução de encadear até a 12.
 
 **✔ Interface nova — Etapa 04 (mundo em tela cheia: céu, paisagem e câmera gostosa) concluída (15/10/2026, Claude Code). Commit local, sem push. Próxima: Etapa 05 (`ETAPA_05_seletor.md`).**
 - `SAVE_VERSION` continua 12; nenhuma regra/número/save mudou. Só interface (`Events.sheet_closed` é um sinal novo, sem estado).

@@ -4,13 +4,14 @@
     "texture": "res://assets/sprites/areas/farm/backdrop.png",
     "sky": ["#8fd3f4", "#dff3e6"],
     "ground": "#7f9150",
-    "clouds": true,
+    "ground_texture": "res://assets/sprites/areas/common/grass_ground.png",
+    "clouds": false,
     "parallax": 0.25,
     "horizon": 0.2
   },
   "floor": [[603, 60], [1180, 344], [603, 638], [25, 344]],
   "dig_spots": [[660, 166], [706, 202], [745, 237], [764, 252], [716, 276], [668, 300], [613, 325]],
-  "edge_cover": [[20, 335], [604, 629], [1184, 341], [1184, 412], [616, 700], [20, 412]],
+  "edge_cover": [[12, 335], [604, 629], [1192, 341], [1240, 735], [-32, 735]],
   "navigation_margin": 8,
   "dog_scale": 0.5,
   "obstacles": [

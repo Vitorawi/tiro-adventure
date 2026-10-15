@@ -131,11 +131,16 @@ Tour `etapa04_antes`/`etapa04_depois` (todas as b06 de mundo, a04 Casa) + `d01_f
 `d02_farm_doubletap`, `d03_sheet_over_object` (Bancada visível acima do painel). Confira em 390×844 e 412×915.
 
 ## Lista de conferência (aceite)
-- [ ] Nenhum mundo mostra o vazio escuro; céu/paisagem combinam com a maquete.
-- [ ] Sítio abre com a horta grande; Casa inteira com o Tiro à vista; Praça/Vila preenchem a largura.
-- [ ] Arrasto com inércia, duplo toque e pinça funcionam no celular (touch_test).
-- [ ] Sem botões +/−; "centralizar" só quando precisa.
-- [ ] Cabeçalho do mundo virou pílula + lista + rostos; o mundo vai até o topo.
-- [ ] `docs/WORLDS.md` (campos `backdrop`, `framing`, `min_zoom`, `edge_cover`) e CLAUDE.md/AGENTS.md
+- [x] Nenhum mundo mostra o vazio escuro; céu/paisagem combinam com a maquete.
+- [x] Sítio abre com a horta grande; Casa inteira com o Tiro à vista; Praça/Vila preenchem a largura.
+- [x] Arrasto com inércia, duplo toque e pinça funcionam no celular (touch_test).
+- [x] Sem botões +/−; "centralizar" só quando precisa.
+- [x] Cabeçalho do mundo virou pílula + lista + rostos; o mundo vai até o topo.
+- [x] `docs/WORLDS.md` (campos `backdrop`, `framing`, `min_zoom`, `edge_cover`) e CLAUDE.md/AGENTS.md
   (Ambientes) atualizados; ART_PIPELINE com fundos/nuvens.
-- [ ] ROADMAP e README marcados; commit `feat(ui): mundos em tela cheia com céu, câmera macia e cabeçalho flutuante`.
+- [x] ROADMAP e README marcados; commit `feat(ui): mundos em tela cheia com céu, câmera macia e cabeçalho flutuante`.
+
+Revisão visual do Codex (15/10/2026), após `7e84772`: grama repetível nos quatro mundos externos, cobertura da terra sem
+sobras, Casa inteira e aviso abaixo dos controles. Nuvens desligadas para simplificar o fundo, conforme as alterações locais
+do Claudi. Estações tocadas no mapa abrem em meia altura (componente da Etapa 02), deixando a Bancada visível acima do painel.
+Jobs, decisões, testes e capturas da revisão estão no topo de `docs/ROADMAP.md` e no `docs/ART_PIPELINE.md`.

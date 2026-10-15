@@ -95,7 +95,8 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   "texture": "res://assets/sprites/areas/farm/backdrop.png",
   "sky": ["#8fd3f4", "#dff3e6"],
   "ground": "#7f9150",
-  "clouds": true,
+  "ground_texture": "res://assets/sprites/areas/common/grass_ground.png",
+  "clouds": false,
   "parallax": 0.25,
   "horizon": 0.2
 },
@@ -114,10 +115,13 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   fundo da maquete). Tudo é montado em `RoomView._setup_backdrop` (nó `Backdrop`: `Void`, `Sky`, `Ground`, `Clouds`, `Far`).
 - Os PNGs dos mapas (`farm_animals`, `room`, `park`, `banner`) têm o fundo transparente em volta da maquete
   (`Invoke-ClearCorner` em `tools/pixel_tools.ps1`); mapa novo precisa seguir isso, senão o céu não aparece.
-- `edge_cover` = polígono (ou lista de polígonos) em coordenadas do fundo, pintado com a cor `ground` logo acima do
-  `Background` e abaixo dos objetos: esconde a lateral de terra do bloco flutuante. Só o **Sítio** usa (a maquete ocupa a
-  tela e fica "assentada" no gramado); Praça, Vila e Natureza mantêm a terra e parecem uma ilha no gramado. `edge_cover_color`
-  troca a cor. `tools/edge_cover.ps1 <png>` sugere o contorno.
+- `ground_texture` (opcional) = textura repetível de grama. `WorldGround` ajusta o brilho à cor `ground`, repete abaixo do
+  horizonte e acompanha a posição e o zoom do mundo. Sem o campo, mantém o chão liso (Casa). Os mundos atuais deixam
+  `clouds: false` para simplificar o fundo; as nuvens e a névoa continuam disponíveis para outras salas.
+- `edge_cover` = polígono (ou lista) em coordenadas do fundo, acima do `Background` e abaixo dos objetos. Os quatro mundos
+  externos cobrem a lateral de terra com a mesma textura do chão, alinhada pelas coordenadas UV do mundo. O contorno de cima
+  segue a grama; o de baixo passa de toda a imagem para não sobrar terra solta. Sem textura, usa `ground` ou `edge_cover_color`.
+  `tools/edge_cover.ps1 <png>` sugere o contorno superior (confira na imagem antes de usar).
 - `framing`: `"width"` (padrão: a maquete ocupa a largura toda, centrada em `view_center` ou no meio), `"height"` ou `"fit"`
   (sala inteira). `initial_zoom` e `view_center` têm prioridade. O zoom mínimo (`min_zoom`; padrão = o menor entre a sala inteira
   e a abertura) deixa afastar até ver tudo; o máximo é 2,0. `RoomView._initial_zoom()`/`_min_zoom()`.
@@ -127,6 +131,9 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   Os botões +/− saíram (os nós ficam escondidos); `RecenterButton` (`ui_recenter`) aparece quando o zoom difere > 15% do inicial ou o
   centro passa de 120 px. Ao abrir um painel por um objeto que ficaria atrás dele (y > 45% da tela), a câmera o sobe para 30%
   (pode passar da borda; ao fechar o painel só volta ao limite do mundo — `Events.sheet_closed`).
+- Estações abertas pelo objeto usam `Places.open(mundo, lugar, true)`: `station`/`stations` pedem `sheet_size: half`
+  para preservar o cenário visível. A alça continua permitindo ampliar para consulta; listas/atalhos mantêm o automático.
+  Desvio da implementação original da Etapa 04: subir o objeto não adiantava com o painel de Produção em 88% da tela.
 - Etiquetas que sairiam pelas laterais são empurradas para dentro (margem 8 px); totalmente fora, ficam onde estão.
 - `WorldsScreen`: sem cabeçalho. `WorldBar` (abaixo do HUD, y 64, ignora o mouse): pílula `WorldPill` (`MapButton`: ícone do mundo +
   `map_name` + seta, borda na cor `Palette.WORLD`; abre a lista de mundos), botão de ícone `PlacesButton` (painel "Lugares", sempre

@@ -236,7 +236,7 @@ func _run() -> void:
 	await shot("d02_farm_doubletap", 0.6)
 	world_farm.call("recenter")
 	await create_timer(0.5).timeout
-	world_farm.call("_on_object_tapped", "place:silo", world_farm.find_child("silo", true, false))
+	world_farm.call("_on_object_tapped", "place:workbench", world_farm.find_child("workbench", true, false))
 	await shot("d03_sheet_over_object", 1.0)
 	await _close()
 	quit(0)

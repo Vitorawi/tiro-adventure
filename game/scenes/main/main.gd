@@ -266,6 +266,8 @@ func _show_toast(text: String) -> void:
 	_toast.reset_size()
 	_toast.pivot_offset = _toast.size / 2.0
 	var target_y := TOAST_BELOW_BANNER_Y if %UpdateBanner.visible else TOAST_Y
+	if _current_screen == &"map":
+		target_y = maxf(target_y, %WorldsScreen.toast_top())
 	_toast.position.x = (size.x - _toast.size.x) / 2.0
 	if _toast_tween:
 		_toast_tween.kill()

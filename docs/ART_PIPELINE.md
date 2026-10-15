@@ -36,6 +36,20 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 
 ## Registro de assets
 
+### Interface nova — Etapa 04, revisão do chão (15/10/2026, Codex)
+
+- Pedido do Vitor após o commit `7e84772`: dar mais textura ao chão e corrigir o aspecto das maquetes.
+- PixelLab Pixen, 128×128 opaco, sem contorno: 1ª tentativa, detalhe médio/seed 41, job
+  `7a7f9959-4337-4c44-a076-b47d7d5f630e` (asset `34a0e550-8cdc-52e9-be48-a6e52de74eb5`), rejeitada no jogo por densidade excessiva.
+- Escolhida a 2ª tentativa (detalhe baixo/seed 42, tufos esparsos), job `7d10c4a5-0abc-486c-ab37-dd2624975827`,
+  asset `f4749cd6-949e-5f04-808a-0f80448f4f6e`. Originais: `build/art_sources/interface_etapa04/revisao/grass_try1|2.png`;
+  prancha aberta antes da escolha: `build/preview/etapa04/grass_candidates.png`. Destino: `areas/common/grass_ground.png`,
+  recortado com `Invoke-TrimSprite` (128×128; textura opaca, sem margem).
+- `WorldGround` preserva os detalhes e ajusta a luminosidade à cor do chão de cada mundo, sem gerar quatro cópias.
+  O mesmo recurso cobre as laterais de terra; UV e repetição acompanham o mapa para evitar emendas durante arrasto/zoom.
+- Fundos, nuvens e ícone do commit anterior foram preservados; nuvens/névoa ficam desligadas nos JSON conforme o ajuste
+  visual iniciado pelo Claudi. Nenhum cenário, objeto ou sprite do Tiro foi substituído.
+
 ### Primeiros sabores — Etapa 04, 14/10/2026 (Codex)
 
 PixelLab: ícones Pixen 32×32 transparentes, contorno preto, detalhe médio; plantas Pro
