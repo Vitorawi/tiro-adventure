@@ -278,3 +278,17 @@ de NPCs e coleção de roupas/apetrechos. **Detalhes, formatos e versão dev em 
 - Zoom com pinça no Mundo?
 - Balanceamento: tempos de produção, preços e valores de necessidades.
 - Como o Tiro é representado fora da tela (notificações push no PWA)?
+
+## Vestir e criar apetrechos (Etapa 08)
+
+Coleção → Roupas permite vestir/tirar até três peças (cabeça, pescoço, corpo). O Tiro detalhado,
+Desejos e cartão de boas-vindas mostram a combinação; no mapa ele mantém o visual pequeno.
+Pet shop Patinhas ocupa o quiosque existente da Praça: compra roupas/ração/bolsinha e costura
+roupas com materiais dos passeios. Roupa pronta e apetrecho encontrado têm **Vestir agora**.
+Há 18 peças com arte; roupas antigas ainda sem sobreposição mostram "Em breve no Tiro".
+
+Dois lendários temáticos aprovados pelo Vitor: uniforme de esponjinha e chapéu do Siri Cascudo,
+separados para combinar. São cosméticos, com sorteio independente e garantia, sem reduzir a
+chance dos raros existentes. Após pet shop + 20 voltas, chance 1% e garantia em 30 voltas elegíveis
+por peça; não há pagamento premium. Óculos escuros clássicos substituem a presilha, preservando
+o id de coleção anterior. Não foi criada diária de costura (roupas têm quantidade finita).

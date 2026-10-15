@@ -122,7 +122,7 @@ func _turn() -> int:
 			if database.get("crops").has(item_id) and state.get("inventory").count(item_id) == 0:
 				wanted.append("harvest:" + item_id)
 			for recipe: Dictionary in database.get("recipes").values():
-				if recipe.output == item_id:
+				if recipe.get("output", recipe.get("output_collection", "")) == item_id:
 					for input: String in recipe.inputs:
 						if database.get("crops").has(input) and state.get("inventory").count(input) < int(recipe.inputs[input]):
 							wanted.append("harvest:" + input)
@@ -207,9 +207,9 @@ func _turn() -> int:
 	# 6. Cozinhar o que a história pede e recolher.
 	for id: String in database.get("recipes"):
 		var recipe: Dictionary = database.get("recipes")[id]
-		if ("deliver:" + id) == "" or not (id in wanted or str(recipe.output) in wanted):
+		if ("deliver:" + id) == "" or not (id in wanted or str(recipe.get("output", recipe.get("output_collection", ""))) in wanted):
 			continue
-		if state.get("inventory").count(str(recipe.output)) >= 1:
+		if state.get("inventory").count(str(recipe.get("output", recipe.get("output_collection", "")))) >= 1:
 			continue
 		if state.call("cook", id) == "":
 			acts += 1

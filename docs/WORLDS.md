@@ -236,3 +236,15 @@ Toda missão deve ter um destino válido e acessível quando liberada: valide co
 - Enquanto `GameState.walking()` o `RoomView` não mantém o `DogWorld` (casa, sítio, praça...) e o recria no
   `dog_start` ao recolher. Passeios: `data/walks.json`, `WalkState`, `GameState.start_walk/collect_walk/cancel_walk`.
 - Achados da praça: `finds.json → worlds.park` (a tabela também alimenta `"find": "park"` dos passeios).
+
+## Pet shop da Praça (Etapa 08)
+
+`park.places.petshop` abre após `nina_rare`; `upgrade: petshop` representa a montagem inicial.
+`upgrades: [sewing_table, walk_bag]` dá destinos às compras; o painel `petshop` as dispõe nos blocos
+Costura/Comprar sem duplicar cartões genéricos. `Database.panel_parts("petshop")` também atende
+`station:sewing`, portanto Manual/ajuda/avisos/Ir resolvem a estação no quiosque.
+
+O fundo já tem toldo e balcão: as novas peças são placa/mercadorias e a pequena mesa, com
+`z_index` 1/2 e sem footprint. Os quinze obstáculos anteriores permanecem, sem duplicar bloqueios
+ou estreitar corredores. A mesa usa `station: sewing` para tempo/Coletar e toque de coleta direta.
+Roupas aparecem somente no Tiro detalhado/retratos; o cachorro do mapa mantém seus sprites.

@@ -107,26 +107,118 @@
       "name": "Liquidificador",
       "slots": 1,
       "instruction": "Frutas viram picolé e suco."
+    },
+    "sewing": {
+      "name": "Mesa de costura",
+      "slots": 1,
+      "action_label": "Costurar",
+      "queue_label": "Costurando",
+      "instruction": "Materiais de passeio viram apetrechos."
     }
   },
   "animals": {
-    "chicken_white": {"name": "Galinha branca", "station": "chicken_coop", "price": 60, "sprite": "res://assets/sprites/areas/farm/chicken.png", "legacy": true, "map_scale": 0.6},
-    "chicken_brown": {"name": "Galinha ruiva", "station": "chicken_coop", "price": 80, "sprite": "res://assets/sprites/areas/farm/chicken_brown.png", "map_scale": 0.6, "requirements": {"produced": {"egg": 2}}},
-    "chicken_black": {"name": "Galinha preta", "station": "chicken_coop", "price": 90, "sprite": "res://assets/sprites/areas/farm/chicken_black.png", "map_scale": 0.6, "requirements": {"produced": {"egg": 6}}},
-    "cow_white": {"name": "Vaca pintadinha", "station": "cow_barn", "price": 140, "sprite": "res://assets/sprites/areas/farm/cow.png", "legacy": true, "map_scale": 1.0},
-    "cow_brown": {"name": "Vaca caramelo", "station": "cow_barn", "price": 180, "sprite": "res://assets/sprites/areas/farm/cow_brown.png", "map_scale": 1.3, "requirements": {"produced": {"milk": 2}}},
-    "cow_spotted": {"name": "Vaca malhada", "station": "cow_barn", "price": 200, "sprite": "res://assets/sprites/areas/farm/cow_spotted.png", "map_scale": 1.3, "requirements": {"produced": {"milk": 6}}}
+    "chicken_white": {
+      "name": "Galinha branca",
+      "station": "chicken_coop",
+      "price": 60,
+      "sprite": "res://assets/sprites/areas/farm/chicken.png",
+      "legacy": true,
+      "map_scale": 0.6
+    },
+    "chicken_brown": {
+      "name": "Galinha ruiva",
+      "station": "chicken_coop",
+      "price": 80,
+      "sprite": "res://assets/sprites/areas/farm/chicken_brown.png",
+      "map_scale": 0.6,
+      "requirements": {
+        "produced": {
+          "egg": 2
+        }
+      }
+    },
+    "chicken_black": {
+      "name": "Galinha preta",
+      "station": "chicken_coop",
+      "price": 90,
+      "sprite": "res://assets/sprites/areas/farm/chicken_black.png",
+      "map_scale": 0.6,
+      "requirements": {
+        "produced": {
+          "egg": 6
+        }
+      }
+    },
+    "cow_white": {
+      "name": "Vaca pintadinha",
+      "station": "cow_barn",
+      "price": 140,
+      "sprite": "res://assets/sprites/areas/farm/cow.png",
+      "legacy": true,
+      "map_scale": 1.0
+    },
+    "cow_brown": {
+      "name": "Vaca caramelo",
+      "station": "cow_barn",
+      "price": 180,
+      "sprite": "res://assets/sprites/areas/farm/cow_brown.png",
+      "map_scale": 1.3,
+      "requirements": {
+        "produced": {
+          "milk": 2
+        }
+      }
+    },
+    "cow_spotted": {
+      "name": "Vaca malhada",
+      "station": "cow_barn",
+      "price": 200,
+      "sprite": "res://assets/sprites/areas/farm/cow_spotted.png",
+      "map_scale": 1.3,
+      "requirements": {
+        "produced": {
+          "milk": 6
+        }
+      }
+    }
   },
   "farm": {
     "name": "Sítio da Bloblo",
     "plots": 9,
     "initial_plots": 4,
-    "unlock_costs": [0, 0, 0, 0, 40, 70, 100, 150, 220],
+    "unlock_costs": [
+      0,
+      0,
+      0,
+      0,
+      40,
+      70,
+      100,
+      150,
+      220
+    ],
     "sprout": "res://assets/sprites/areas/farm/crop_sprout.png",
-    "water": {"speedup": 0.3, "xp": 1},
+    "water": {
+      "speedup": 0.3,
+      "xp": 1
+    },
     "lent_plots": [
-      {"count": 2, "requirements": {"quests": ["bloblo_meet"]}},
-      {"count": 4, "requirements": {"quests": ["bloblo_more_crops"]}}
+      {
+        "count": 2,
+        "requirements": {
+          "quests": [
+            "bloblo_meet"
+          ]
+        }
+      },
+      {
+        "count": 4,
+        "requirements": {
+          "quests": [
+            "bloblo_more_crops"
+          ]
+        }
+      }
     ]
   },
   "xp": {

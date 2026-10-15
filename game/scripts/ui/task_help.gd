@@ -157,7 +157,7 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 		"stat":
 			if key.begins_with("produce:"):
 				for recipe_id: String in Database.recipes:
-					if Database.recipes[recipe_id].output == key.trim_prefix("produce:"):
+					if Database.recipe_output(Database.recipes[recipe_id]) == key.trim_prefix("produce:"):
 						return describe("recipe", recipe_id, maxi(0, amount - GameState.goal_value(goal)), trail)
 			if key.begins_with("activity:"):
 				return describe("route", key.trim_prefix("activity:"), 1, trail)
@@ -176,7 +176,7 @@ static func _recipe(id: String, amount: int) -> Dictionary:
 	var recipe: Dictionary = Database.recipes[id]
 	var station: String = recipe.station
 	var target := _focused("station:" + station, "recipe:" + id)
-	var result := _base(Database.item_name(recipe.output), "", target, "Ir")
+	var result := _base(Database.item_name(Database.recipe_output(recipe)), "", target, "Ir")
 	var pending := 0
 	var ready := 0
 	var remaining := 0
@@ -279,7 +279,7 @@ static func best_source(item: String) -> Dictionary:
 			requirements = Database.crops[crop].get("requirements", {})
 		elif str(source.key).begins_with("produce:"):
 			for id: String in Database.recipes:
-				if Database.recipes[id].output == item:
+				if Database.recipe_output(Database.recipes[id]) == item:
 					candidate = {"kind": "recipe", "id": id}
 					requirements = Database.recipes[id].get("requirements", {})
 					station = Database.recipes[id].station
@@ -388,7 +388,7 @@ static func icon_for(kind: String, id: String) -> Texture2D:
 		"item", "crop":
 			return Database.item_icon(id)
 		"recipe":
-			return Database.item_icon(Database.recipes[id].output)
+			return Database.item_icon(Database.recipe_output(Database.recipes[id]))
 		"route":
 			return UiKit.ui_icon(Database.progression.activities[id].get("icon", "action_play"))
 		"walk":

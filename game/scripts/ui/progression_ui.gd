@@ -426,6 +426,18 @@ static func _silhouette(picture: Control) -> void:
 ## Diário de passeios: um bloco por passeio (silhueta e requisitos enquanto bloqueado).
 static func walk_diary() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		var legendary: Dictionary = Database.walks.get("legendary", {})
+		if not legendary.is_empty() and GameState.progress.feature_unlocked("legendary_walks"):
+			var card := UiKit.card(box)
+			card.add_child(UiKit.label("Conjunto de esponjinha · LENDÁRIO", &"SectionLabel"))
+			for id: String in legendary.get("collections", []):
+				var row := UiKit.hbox(8)
+				row.add_child(UiKit.icon(Database.item_icon(id), 48))
+				row.add_child(UiKit.fill_label(Database.item_name(id) if GameState.progress.collection.has(id) else "?", &"SmallLabel"))
+				card.add_child(row)
+			var error := GameState.requirement_error(legendary.get("requirements", {}))
+			var complete: bool = legendary.get("collections", []).all(func(id: String) -> bool: return GameState.progress.collection.has(id))
+			card.add_child(UiKit.label("Conjunto completo!" if complete else (error if error != "" else "Lendário em até %d voltas" % maxi(1, int(legendary.pity) - int(GameState.walk_state.pity.get("legendary", 0)))), &"SmallLabel"))
 		for id: String in Database.walks.get("walks", {}):
 			var data: Dictionary = Database.walks.walks[id]
 			var locked := GameState.walk_lock_error(id) != ""
@@ -555,11 +567,54 @@ static func _next_milestone(skill_id: String, current: int) -> Dictionary:
 				"crop":
 					best = {"level": required, "icon": Database.item_icon(content_id), "name": Database.item_name(content_id)}
 				"recipe":
-					best = {"level": required, "icon": Database.item_icon(entry.output), "name": Database.item_name(entry.output)}
+					best = {"level": required, "icon": Database.item_icon(Database.recipe_output(entry)), "name": Database.item_name(Database.recipe_output(entry))}
 	return best
 
 
 static var _collection_tab := "clothes"
+
+
+## O quiosque reúne costura e compras; mantém o molde das estações.
+static func petshop_panel() -> Control:
+	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		box.add_child(UiKit.label("Costura", &"SectionLabel"))
+		if GameState.has_upgrade("sewing_table"):
+			box.add_child(SheetBuilder.station_view("sewing"))
+		else:
+			box.add_child(purchase("sewing_table"))
+		box.add_child(UiKit.label("Comprar", &"SectionLabel"))
+		for id: String in Database.collections:
+			var data: Dictionary = Database.collections[id]
+			if data.get("shop", "") != "petshop":
+				continue
+			var own := GameState.progress.collection.has(id)
+			var card := UiKit.card(box)
+			var row := UiKit.hbox(8)
+			row.add_child(UiKit.icon(Database.item_icon(id), 64))
+			row.add_child(UiKit.fill_label(str(data.name)))
+			card.add_child(row)
+			var button := UiKit.button("Vestir" if own else "Comprar · %d" % int(data.price), func() -> void:
+				var error := GameState.equip(id) if own else GameState.buy_cosmetic(id)
+				if error != "":
+					Events.toast_requested.emit(error))
+			button.disabled = (GameState.equip_error(id) if own else GameState.buy_cosmetic_error(id)) != ""
+			card.add_child(button)
+		for id: String in Database.progression.get("shop_items", {}):
+			var data: Dictionary = Database.progression.shop_items[id]
+			if data.get("shop", "") != "petshop":
+				continue
+			var card := UiKit.card(box)
+			card.add_child(UiKit.label(str(data.name), &"SectionLabel"))
+			card.add_child(reward_chips({"items": data.items}))
+			var button := UiKit.button("Comprar · %d" % int(data.price), func() -> void:
+				var error := GameState.buy_shop_item(id)
+				if error != "":
+					Events.toast_requested.emit(error))
+			button.disabled = GameState.buy_shop_item_error(id) != ""
+			card.add_child(button)
+		if not GameState.has_upgrade("walk_bag"):
+			box.add_child(purchase("walk_bag"))
+	)
 
 static func collection_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
@@ -589,6 +644,8 @@ static func _clothes_panel() -> Control:
 		for id: String in Database.collections:
 			var data: Dictionary = Database.collections[id]
 			var earned := GameState.progress.collection.has(id)
+			if data.get("rarity", "") == "legendary" and not earned and not GameState.progress.feature_unlocked("legendary_walks"):
+				continue
 			count += 1 if earned else 0
 			var card := UiKit.card(grid, &"ReadyCardPanel" if earned else &"CardPanel")
 			card.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -596,20 +653,36 @@ static func _clothes_panel() -> Control:
 			picture.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			card.add_child(picture)
 			var source := str(data.get("source", ""))
-			var is_walk_rare := source.begins_with("walk:") and not earned
+			var is_walk_rare := (source.begins_with("walk:") or source.begins_with("legendary:")) and not earned
 			if is_walk_rare:
 				_silhouette(picture)
 			var title := UiKit.label(data.name if earned else "?", &"SmallLabel")
 			title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			card.add_child(title)
+			if data.get("rarity", "") == "legendary":
+				card.add_child(UiKit.label("LENDÁRIO", &"SmallLabel", Color("b56be0")))
+			if earned:
+				var wearing := str(GameState.progress.equipped.get(str(data.get("slot", "")), "")) == id
+				var button := UiKit.button("Tirar" if wearing else "Vestir", func() -> void:
+					var error := GameState.unequip(str(data.slot)) if wearing else GameState.equip(id)
+					if error != "":
+						Events.toast_requested.emit(error))
+				button.disabled = not wearing and GameState.equip_error(id) != ""
+				card.add_child(button)
+				if not wearing and GameState.equip_error(id) != "":
+					card.add_child(UiKit.label(GameState.equip_error(id), &"SmallLabel"))
 			if is_walk_rare:
 				var walk_name := str(GameState.walk_def(source.trim_prefix("walk:")).get("name", ""))
-				var hint := UiKit.label("Raro de passeio: " + walk_name, &"SmallLabel")
+				var hint := UiKit.label("Lendário de passeio" if source.begins_with("legendary:") else "Raro de passeio: " + walk_name, &"SmallLabel")
 				hint.name = "RareHint_" + id
 				hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 				card.add_child(hint)
 				var go := UiKit.button("Ir", Places.go.bind({"world": "park", "place": "walk"}))
 				go.custom_minimum_size.y = 48
+				card.add_child(go)
+			elif not earned and (data.get("shop", "") == "petshop" or data.has("recipe")):
+				var go := UiKit.button("Pet shop", Places.go.bind({"world": "park", "place": "petshop"}))
+				go.disabled = Places.world_error("park") != "" or Places.place_error(Database.worlds.get("park", {}).get("places", {}).get("petshop", {})) != ""
 				card.add_child(go)
 			if not earned:
 				card.get_parent().modulate.a = 0.45 if not is_walk_rare else 0.8

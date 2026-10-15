@@ -132,9 +132,9 @@ static func refining_panel(site: String) -> Control:
 		for item: String in recipe.inputs:
 			ingredients.add_child(UiKit.chip(Database.item_icon(item), str(int(recipe.inputs[item]))))
 		box.add_child(ingredients)
-		var button := UiKit.button("%s ×%d · %s" % [Database.item_name(recipe.output), int(recipe.qty), Database.stations[recipe.station].name], func() -> void:
+		var button := UiKit.button("%s ×%d · %s" % [Database.item_name(Database.recipe_output(recipe)), int(recipe.get("qty", 1)), Database.stations[recipe.station].name], func() -> void:
 			Events.sheet_close_requested.emit()
-			Events.world_requested.emit(place[0], "place:" + place[1]), &"", Database.item_icon(recipe.output))
+			Events.world_requested.emit(place[0], "place:" + place[1]), &"", Database.item_icon(Database.recipe_output(recipe)))
 		button.add_theme_font_size_override("font_size", 16)
 		button.name = "RefineRecipe_" + id
 		button.add_theme_constant_override("icon_max_width", 32)

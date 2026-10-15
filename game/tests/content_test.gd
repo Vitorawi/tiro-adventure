@@ -78,11 +78,11 @@ func _run() -> void:
 				"owned": check(data.upgrades.has(key), id + ": construção " + key)
 				"skill": check(data.skills.has(key), id + ": atributo " + key)
 				"stat":
-					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "orders", "explore", "build", "quests", "open:bag", "find", "walk", "walk_item", "walk_rare"] or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:"), id + ": contador desconhecido " + key)
+					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "orders", "explore", "build", "quests", "open:bag", "find", "walk", "walk_item", "walk_rare", "equip", "sew"] or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:"), id + ": contador desconhecido " + key)
 					if key.begins_with("harvest:"):
 						check(db.get("crops").has(key.trim_prefix("harvest:")), id + ": cultura " + key)
 					if key.begins_with("produce:"):
-						check(db.get("recipes").values().any(func(r: Dictionary) -> bool: return r.output == key.trim_prefix("produce:")), id + ": produção " + key)
+						check(db.get("recipes").values().any(func(r: Dictionary) -> bool: return r.get("output", r.get("output_collection", "")) == key.trim_prefix("produce:")), id + ": produção " + key)
 					if key.begins_with("activity:"):
 						check(data.activities.has(key.trim_prefix("activity:")), id + ": rota " + key)
 					if key.begins_with("order:"):
@@ -133,12 +133,12 @@ func _run() -> void:
 		for id: String in group.missions:
 			var m: Dictionary = group.missions[id]
 			var key: String = m.goal.key
-			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "explore", "wish", "find", "walk", "walk_item", "walk_rare"] or key.begins_with("activity:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
+			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "explore", "wish", "find", "walk", "walk_item", "walk_rare", "equip", "sew"] or key.begins_with("activity:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
 			if key.begins_with("harvest:"):
 				check(db.get("crops").has(key.trim_prefix("harvest:")), kind + "/" + id + ": cultura inexistente")
 			if key.begins_with("produce:"):
 				check(db.get("items").has(key.trim_prefix("produce:")), kind + "/" + id + ": produto inexistente")
-				check(db.get("recipes").values().any(func(recipe: Dictionary) -> bool: return recipe.output == key.trim_prefix("produce:")), kind + "/" + id + ": produto sem receita")
+				check(db.get("recipes").values().any(func(recipe: Dictionary) -> bool: return recipe.get("output", recipe.get("output_collection", "")) == key.trim_prefix("produce:")), kind + "/" + id + ": produto sem receita")
 			if key.begins_with("activity:"):
 				check(data.activities.has(key.trim_prefix("activity:")), kind + "/" + id + ": rota " + key)
 			check(int(m.goal.get("target", 0)) > 0 and int(m.rewards.get("coins", 0)) > 0, kind + "/" + id + ": alvo e moedas")
@@ -168,7 +168,7 @@ func _run() -> void:
 						check(data.activities.values().any(func(a: Dictionary) -> bool: return a.place == group), place + ": grupo de rotas inexistente " + group)
 				"market": check(arg in ["sell", "orders"], place + ": aba da feira")
 				"storage": check(data.storage.has(arg), place + ": depósito inexistente")
-				"inventory", "fridge", "feed", "sleep", "farm", "walks": pass
+				"inventory", "fridge", "feed", "sleep", "farm", "walks", "petshop": pass
 				_: check(false, place + ": painel desconhecido")
 			if p.has("upgrade"):
 				check(data.upgrades.has(p.upgrade), place + ": construção inexistente")
@@ -205,7 +205,7 @@ func _run() -> void:
 		check(db.get("items")[item].get("storage", "") == "none", item + ": não ocupa depósito")
 		check(not db.get("crops").has(item), item + ": não é colheita")
 		for recipe: Dictionary in db.get("recipes").values():
-			check(recipe.output != item, item + ": não sai de estação")
+			check(recipe.get("output", recipe.get("output_collection", "")) != item, item + ": não sai de estação")
 		for world: Dictionary in db.get("finds").worlds.values():
 			for entry: Dictionary in world.get("table", []) + world.get("guaranteed", []):
 				check(not entry.get("items", {}).has(item), item + ": não sai de montinho")

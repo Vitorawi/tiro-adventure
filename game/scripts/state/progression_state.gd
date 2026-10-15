@@ -17,8 +17,10 @@ var stats: Dictionary = {}
 var claimed_quests: Dictionary = {}
 ## Primeira vez de cada coisa ("crop:carrot", "recipe:plank") rende XP em dobro.
 var discoveries: Dictionary = {}
-## Roupas/apetrechos conquistados (collection_id -> true). Vestir fica em DogState.outfit.
+## Roupas/apetrechos conquistados (collection_id -> true); slots vestidos em equipped.
 var collection: Dictionary = {}
+## Um apetrecho por lugar; saves anteriores começam sem roupa.
+var equipped: Dictionary = {"head": "", "neck": "", "body": ""}
 ## Conteúdo liberado sem cumprir requisitos ("crop:potato", "recipe:pumpkin_mash"): saves antigos e recompensas.
 var unlocks: Dictionary = {}
 ## Recargas em timestamp Unix: "care:feed", "order:<id>", "emergency_food".
@@ -343,7 +345,7 @@ func to_dict() -> Dictionary:
 	return {
 		"skills": skills, "owned": owned, "stats": stats, "nature_levels_version": 2, "nature_xp": nature_xp,
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
-		"collection": collection, "unlocks": unlocks,
+		"collection": collection, "equipped": equipped, "unlocks": unlocks,
 		"cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "steps": steps, "seen": seen,
 			"started_at": started_at, "firsts": firsts, "daily_gift": daily_gift, "claimed_bond_level": claimed_bond_level,
 	}
@@ -402,6 +404,11 @@ func from_dict(data: Dictionary) -> void:
 	claimed_quests = data.get("claimed_quests", {}).duplicate(true)
 	discoveries = data.get("discoveries", {}).duplicate(true)
 	collection = data.get("collection", {}).duplicate(true)
+	equipped = {"head": "", "neck": "", "body": ""}
+	for slot: String in equipped:
+		var id := str(data.get("equipped", {}).get(slot, ""))
+		if collection.has(id) and Database.collections.get(id, {}).get("slot", "") == slot:
+			equipped[slot] = id
 	unlocks = data.get("unlocks", {}).duplicate(true)
 	cooldowns = data.get("cooldowns", {}).duplicate(true)
 	activity = data.get("activity", {}).duplicate(true)

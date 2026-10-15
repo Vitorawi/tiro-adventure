@@ -168,5 +168,21 @@
                  "duplicate": {"coins": 30, "items": {"moon_pebble": 1}}}
       }
     }
+  },
+  "legendary": {
+    "requirements": {
+      "owned": [
+        "petshop"
+      ],
+      "stats": {
+        "walk": 20
+      }
+    },
+    "chance": 0.01,
+    "pity": 30,
+    "collections": [
+      "sponge_hat",
+      "sponge_uniform"
+    ]
   }
 }

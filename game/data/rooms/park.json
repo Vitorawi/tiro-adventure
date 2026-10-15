@@ -21,7 +21,10 @@
     {"id": "arch_left", "polygon": [[160, 215], [177, 212], [179, 270], [162, 272]]},
     {"id": "arch_right", "polygon": [[207, 225], [226, 230], [226, 300], [208, 298]]}
   ],
-  "objects": [],
+  "objects": [
+    {"id": "petshop", "sprite": "res://assets/sprites/areas/park/petshop.png", "pos": [500, 209], "upgrade": "petshop", "action": "place:petshop", "label": "Pet shop", "label_pos": [501, 106], "approach": [449, 209], "z_index": 1},
+    {"id": "sewing_table", "sprite": "res://assets/sprites/areas/park/sewing_table.png", "pos": [531, 191], "upgrade": "sewing_table", "station": "sewing", "action": "place:petshop", "approach": [449, 209], "z_index": 2}
+  ],
   "zones": [
     {
       "id": "walk_gate",

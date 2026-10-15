@@ -191,6 +191,14 @@ func dev_spawn_finds() -> void:
 				finds.worlds[world].seed = int(finds.worlds[world].next_at)
 	_changed()
 
+
+func dev_grant_cosmetics() -> void:
+	if not BuildInfo.is_dev():
+		return
+	for id: String in Database.collections:
+		progress.collection[id] = true
+	_changed()
+
 # --- Passeios ---------------------------------------------------------------
 
 func walk_def(id: String) -> Dictionary:
@@ -309,7 +317,7 @@ func walk_loot() -> Dictionary:
 	if first:
 		coins += int(loot.first.get("coins", 0))
 		_add_amounts(items, loot.first.get("items", {}))
-	for i in int(loot.get("rolls", 1)):
+	for i in int(loot.get("rolls", 1)) + (1 if has_upgrade("walk_bag") else 0):
 		var entry := Loot.pick_weighted(loot.get("table", []), seed + i * 7919)
 		var drop := Loot.roll([entry], 1, seed + i * 104729 + 1)
 		if entry.has("find"):
@@ -331,7 +339,25 @@ func walk_loot() -> Dictionary:
 				coins += int(rare_def.get("duplicate", {}).get("coins", 0))
 				_add_amounts(items, rare_def.get("duplicate", {}).get("items", {}))
 				rare = ""
-	return {"coins": coins, "items": items, "first": first, "rare": rare, "rare_item": rare_item, "rare_duplicate": duplicate}
+	return {"coins": coins, "items": items, "first": first, "rare": rare, "rare_item": rare_item, "rare_duplicate": duplicate, "legendary": _walk_legendary(seed)}
+
+
+## Sorteio independente: nunca ocupa o lugar do raro nem gasta a garantia dele.
+func _walk_legendary(seed: int) -> String:
+	var data: Dictionary = Database.walks.get("legendary", {})
+	if data.is_empty() or requirement_error(data.get("requirements", {})) != "":
+		return ""
+	var missing: Array[String] = []
+	for id: String in data.get("collections", []):
+		if not progress.collection.has(id):
+			missing.append(id)
+	if missing.is_empty():
+		return ""
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed + 130363
+	if rng.randf() < float(data.get("chance", 0.01)) or int(walk_state.pity.get("legendary", 0)) + 1 >= int(data.get("pity", 30)):
+		return missing[0]
+	return ""
 
 
 func _add_amounts(target: Dictionary, amounts: Dictionary) -> void:
@@ -372,8 +398,17 @@ func collect_walk() -> Dictionary:
 	rewards["coins"] = int(rewards.get("coins", 0)) + int(loot.coins)
 	rewards["items"] = items
 	var rare := str(loot.rare)
+	var costumes: Array[String] = []
 	if rare != "":
-		rewards["collections"] = [rare]
+		costumes.append(rare)
+	var legendary := str(loot.get("legendary", ""))
+	if legendary != "":
+		costumes.append(legendary)
+		_count("walk_legendary")
+		walk_state.pity["legendary"] = 0
+	elif requirement_error(Database.walks.get("legendary", {}).get("requirements", {})) == "" and Database.walks.get("legendary", {}).get("collections", []).any(func(id: String) -> bool: return not progress.collection.has(id)):
+		walk_state.pity["legendary"] = int(walk_state.pity.get("legendary", 0)) + 1
+	rewards["collections"] = costumes
 	_apply_rewards(rewards)
 	walk_state.history[id] = {"count": int(walk_state.history.get(id, {}).get("count", 0)) + 1}
 	walk_state.pity[id] = 0 if rare != "" or bool(loot.rare_duplicate) else int(walk_state.pity.get(id, 0)) + 1
@@ -387,6 +422,8 @@ func collect_walk() -> Dictionary:
 		_count("walk_rare:" + id)
 	var result := {"id": id, "name": str(def.get("name", id)), "postcard": walk_postcard(id), "items": items, "coins": int(rewards.coins), "affection": int(def.get("rewards", {}).get("affection", 0)), "needs": def.get("needs", {}), "new": fresh, "first": bool(loot.first), "rare": rare, "rare_item": str(loot.rare_item), "rare_duplicate": bool(loot.rare_duplicate)}
 	result["new_items"] = fresh
+	result["legendary"] = legendary
+	result["collections"] = costumes
 	_changed()
 	Events.items_gained.emit(items, int(rewards.coins), Vector2(-1.0, -1.0))
 	if rare != "":
@@ -550,6 +587,14 @@ func cook_error(recipe_id: String) -> String:
 	if reason != "":
 		return reason
 	var target := station(station_id)
+	var cosmetic := str(recipe.get("output_collection", ""))
+	if cosmetic != "":
+		if progress.collection.has(cosmetic):
+			return "Você já tem"
+		for queue_state: StationState in stations.values():
+			for entry: Dictionary in queue_state.queue:
+				if str(Database.recipes.get(str(entry.recipe), {}).get("output_collection", "")) == cosmetic:
+					return "Já está sendo costurado"
 	if Database.stations[station_id].get("kind", "") == "animal" and animal_count(station_id) == 0:
 		return "Compre um animal para começar"
 	if target.queue.size() >= station_slots(station_id):
@@ -568,7 +613,17 @@ func collect(station_id: String) -> Dictionary:
 		var recipe: Dictionary = Database.recipes.get(recipe_id, {})
 		if recipe.is_empty():
 			continue  # receita removida do JSON: descarta sem travar a fila
-		var output: String = recipe["output"]
+		var output: String = Database.recipe_output(recipe)
+		if recipe.has("output_collection"):
+			if not progress.collection.has(output):
+				progress.collection[output] = true
+				_count("sew")
+				_count("produce:" + output)
+				_count("produce")
+				_discover("recipe:" + recipe_id, str(recipe.get("skill", "adventure")), int(recipe.get("skill_xp", 20)))
+				Events.cosmetic_received.emit(output)
+				_changed()
+			continue
 		var qty := int(entry.get("qty", recipe.get("qty", 1)))
 		var full := storage_error({output: qty})
 		if full != "":
@@ -862,7 +917,89 @@ func _apply_rewards(rewards: Dictionary) -> void:
 # --- Aquisições (Construir) -------------------------------------------------------
 
 func has_upgrade(id: String) -> bool:
-	return progress.has_upgrade(id)
+	return progress.has_upgrade(Database.station_upgrade(id))
+
+
+func equip_error(id: String) -> String:
+	if not Database.collections.has(id) or not progress.collection.has(id):
+		return "Você ainda não tem esse apetrecho"
+	var path := str(Database.collections[id].get("overlay", ""))
+	if path == "" or not ResourceLoader.exists(path):
+		return "Em breve no Tiro"
+	if not progress.equipped.has(str(Database.collections[id].get("slot", ""))):
+		return "Lugar de roupa desconhecido"
+	return ""
+
+
+func equip(id: String) -> String:
+	var error := equip_error(id)
+	if error != "":
+		return error
+	var slot := str(Database.collections[id].slot)
+	if progress.equipped[slot] == id:
+		return ""
+	progress.equipped[slot] = id
+	_count("equip")
+	_changed()
+	return ""
+
+
+func unequip_error(slot: String) -> String:
+	return "" if progress.equipped.has(slot) else "Lugar de roupa desconhecido"
+
+
+func unequip(slot: String) -> String:
+	var error := unequip_error(slot)
+	if error != "":
+		return error
+	progress.equipped[slot] = ""
+	_changed()
+	return ""
+
+
+func buy_cosmetic_error(id: String) -> String:
+	var data: Dictionary = Database.collections.get(id, {})
+	if data.get("shop", "") != "petshop":
+		return "Apetrecho não está à venda"
+	if not has_upgrade("petshop"):
+		return "Monte o pet shop"
+	if progress.collection.has(id):
+		return "Você já tem"
+	return "Faltam moedas" if coins < int(data.get("price", 0)) else ""
+
+
+func buy_cosmetic(id: String) -> String:
+	var error := buy_cosmetic_error(id)
+	if error != "":
+		return error
+	coins -= int(Database.collections[id].price)
+	progress.collection[id] = true
+	_count("buy_cosmetic")
+	_changed()
+	return ""
+
+
+func buy_shop_item_error(id: String) -> String:
+	var data: Dictionary = Database.progression.get("shop_items", {}).get(id, {})
+	if data.is_empty():
+		return "Produto desconhecido"
+	if not has_upgrade(str(data.get("shop", ""))):
+		return "Monte o pet shop"
+	if coins < int(data.price):
+		return "Faltam moedas"
+	return storage_error(data.get("items", {}))
+
+
+func buy_shop_item(id: String) -> String:
+	var error := buy_shop_item_error(id)
+	if error != "":
+		return error
+	var data: Dictionary = Database.progression.shop_items[id]
+	coins -= int(data.price)
+	for item: String in data.items:
+		inventory.add(item, int(data.items[item]))
+	_changed()
+	return ""
 
 
 # --- Armazenamento ----------------------------------------------------------------
@@ -1808,7 +1945,7 @@ func welcome_ready_lines(limit: int = 4) -> Array[Dictionary]:
 		var output := ""
 		for entry: Dictionary in station(id).queue:
 			if output == "" and float(entry.ready_at) <= now():
-				output = str(Database.recipes.get(entry.recipe, {}).get("output", ""))
+				output = Database.recipe_output(Database.recipes.get(entry.recipe, {}))
 		lines.append({"kind": "collect", "count": station(id).ready_count(now()), "icon": output, "world": at[0], "target": at[1]})
 	for site: String in Database.progression.get("nature_sites", {}):
 		if gathering_slots(site) > 0 and gathering_ready_count(site) > 0:

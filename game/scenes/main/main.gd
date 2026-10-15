@@ -61,6 +61,9 @@ func _ready() -> void:
 	Events.walk_collected.connect(func(result: Dictionary) -> void:
 		_queue_modal(func() -> void: _walk_result.show_result(result))
 		_queue_modal(func() -> void: _announce()))
+	Events.cosmetic_received.connect(func(id: String) -> void:
+		_queue_modal(func() -> void:
+			_walk_result.show_result({"kind": "sewing", "name": "Roupa nova", "rare": id, "collections": [id]})))
 	Events.level_up.connect(_on_level_up)
 	Events.bond_up.connect(_on_bond_up)
 	Events.find_discovered.connect(func(result: Dictionary) -> void:

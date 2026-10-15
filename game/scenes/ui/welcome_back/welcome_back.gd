@@ -37,7 +37,7 @@ func open() -> void:
 
 
 func _fill(box: VBoxContainer) -> void:
-	box.add_child(_center(UiKit.icon(load(TIRO), 64)))
+	box.add_child(_center(PetAnimator.portrait()))
 	box.add_child(_center(UiKit.label("Que bom que você voltou!", &"TitleLabel")))
 	if GameState.daily_gift_error() == "":
 		var gift := UiKit.card(box, &"CardPanel")

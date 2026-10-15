@@ -413,7 +413,7 @@ e saves sem `walks` começam vazios, sem migração/reset adicional.
 | Passeio | Abre com | Tempo | Raro / garantia |
 |---|---|---|---|
 | Volta na praça | `nina_meet` | 2 min | Laço xadrez / 6 |
-| Rua das flores | 3 passeios | 5 min | Presilha de flor / 8 |
+| Rua das flores | 3 passeios | 5 min | Óculos escuros (`flower_clip` legado) / 8 |
 | Feirinha da Vila | 6 passeios | 10 min | Gravata-borboleta / 8 |
 | Beira do riacho | vínculo 3 + `forest_open` | 20 min | Lenço de marinheiro / 10 |
 | Clareira dos passarinhos | 15 passeios + vínculo 4 | 30 min | Mochilinha de explorador / 10 |
@@ -427,3 +427,43 @@ Contadores: `walk`, `walk:<id>`, `walk_item` (quantidades), `walk_item:<item>`, 
 `collect_walk` devolve `first`, `rare`, `rare_item`, `rare_duplicate`, `new_items` e o alias anterior `new`.
 `ProgressionUi.walk_diary` abre no Sheet; o cartão de volta rola quando grande para manter Oba acessível.
 Materiais `trail` têm `storage: none` e `note`; `Database.item_sources` e `TaskHelp` apontam aos passeios.
+
+## Apetrechos, pet shop e costura (Etapa 08)
+
+`progress.equipped` salva `head`, `neck` e `body`; saves v12 anteriores começam com três strings
+vazias e mantêm coleção/progresso. `GameState.equip_error/equip/unequip_error/unequip` valida posse,
+slot e arquivo de overlay; uma roupa por lugar. Revestir a mesma peça não soma `equip` novamente.
+Roupas antigas sem arte mostram **Em breve no Tiro**. Há 18 peças vestíveis (incluindo dois lendários).
+
+Pet shop Patinhas: após `nina_rare`, custa 150 moedas + 4 gravetos + 2 fitas. Costura custa 100 +
+2 novelos + 2 fitas, com uma vaga; bolsinha custa 200 + 3 novelos + 2 fitas, após 10 passeios.
+Quatro roupas à venda (50/60/80/140 moedas), cinco receitas exclusivas de materiais `trail` e
+pacote de cinco rações por 15 moedas. A linha da Nina continua com montar → vestir → costurar.
+Não foi criada diária de costura. `features.dress` anuncia vestir; `features.legendary_walks`
+anuncia os lendários somente quando elegíveis.
+
+Receitas usam **ou** `output`/`qty` **ou** `output_collection`. `Database.recipe_output` resolve
+o id; `item_name/item_icon` também entendem coleções. `Database.station_upgrade` associa uma
+estação à construção que a libera (`sewing` → `sewing_table`). Filas conservam receita/tempo/qty;
+`cook_error` rejeita roupa já possuída ou sendo costurada em qualquer fila. Coleta de roupa não
+usa inventário/depósito: soma `sew`, `produce:<id>` e `produce`, entrega coleção uma vez e emite
+`cosmetic_received`. A casca põe o cartão com **Vestir agora** na fila modal existente.
+Manual, Mochila/usos, ajuda, DEV e painéis reconhecem os dois tipos de saída. Materiais com uso
+de receita deixam de mostrar a nota provisória. DEV: `dev_grant_cosmetics`, com guarda prod.
+
+`walk_bag` acrescenta um sorteio da tabela comum em `walk_loot`; semente e ordem dos sorteios
+anteriores são preservadas. A mesma função calcula os itens de `collect_walk_error` e da coleta.
+
+**Lendários cosméticos Bob Esponja:** Chapéu do Siri Cascudo (`sponge_hat`, cabeça) e Uniforme de
+esponjinha (`sponge_uniform`, corpo), aprovados pelo Vitor. Após pet shop e 20 passeios concluídos,
+todo passeio tem um sorteio **adicional independente**, com chance 1% e garantia em 30 voltas
+elegíveis por peça; primeiro chapéu, depois uniforme, sem duplicados. Regras em `walks.json.legendary`.
+`WalkState.pity.legendary` persiste a garantia; `walk_legendary` conta as peças novas. Cancelar ou
+não caber no depósito não muda prêmio/garantias/histórico. Raro e lendário podem vir juntos;
+os sete raros mantêm suas tabelas e garantias. Diário mostra garantia/conjunto completo e Coleção
+mostra a raridade. `flower_clip` conserva o id legado, mas agora é **Óculos escuros**, sem perder
+posse ou progresso da Rua das flores.
+
+Validação: `petshop_test` (ações/save antigo/fila/bolsa/depósito/duas garantias/atalhos), campanha
+216 ciclos, 47 aquisições, 69 missões. Onboarding com chance rara zero: primeiro raro em 54,5 min,
+capítulo 4 em 11,4 min; ocioso 220 s, maior trecho 30 s; limites anteriores mantidos.

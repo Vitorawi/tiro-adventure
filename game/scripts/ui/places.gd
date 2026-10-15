@@ -39,7 +39,7 @@ static func open(world_id: String, place_id: String) -> void:
 			GameState.set_sleeping(sleeping)
 			Events.toast_requested.emit("Hora da soneca!" if sleeping else "Tiro acordou!")
 		_:
-			Events.sheet_requested.emit(place.name, _panel(kind, arg) if kind == "nature" else _with_upgrades(_panel(kind, arg), place.get("upgrades", [])))
+			Events.sheet_requested.emit(place.name, _panel(kind, arg) if kind in ["nature", "petshop"] else _with_upgrades(_panel(kind, arg), place.get("upgrades", [])))
 
 
 static func place_error(place: Dictionary) -> String:
@@ -48,6 +48,8 @@ static func place_error(place: Dictionary) -> String:
 
 static func _panel(kind: String, arg: String) -> Control:
 	match kind:
+		"petshop":
+			return ProgressionUi.petshop_panel()
 		"station":
 			return SheetBuilder.station_view(arg)
 		"stations":
@@ -125,7 +127,7 @@ static func run(world_id: String, action: String) -> void:
 	if action.begins_with("recipe:"):
 		var id := action.trim_prefix("recipe:")
 		if Database.recipes.has(id):
-			Events.sheet_requested.emit(Database.item_name(Database.recipes[id].output), SheetBuilder.station_view(Database.recipes[id].station, id))
+			Events.sheet_requested.emit(Database.item_name(Database.recipe_output(Database.recipes[id])), SheetBuilder.station_view(Database.recipes[id].station, id))
 	elif action.begins_with("route:"):
 		var id := action.trim_prefix("route:")
 		if Database.progression.activities.has(id):
@@ -344,6 +346,10 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			var panels := {"agriculture": "farm", "cooking": "station:stove", "commerce": "sell", "adventure": "routes:walk"}
 			return _panel_target(panels.get(key, ""))
 		"stat":
+			if key == "equip":
+				return {"screen": "pet", "collection": true, "hint": "Tiro → Coleção → Vestir"}
+			if key == "sew":
+				return {"world": "park", "place": "petshop"}
 			if key.begins_with("talk:"):
 				var npc_id := key.trim_prefix("talk:")
 				return {"world": Database.npc_world(npc_id), "place": "npc:" + npc_id, "hint": str(Database.npcs.get(npc_id, {}).get("name", ""))}
@@ -384,7 +390,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				return _panel_target("station:stove")
 			if key.begins_with("produce:"):
 				for recipe: Dictionary in Database.recipes.values():
-					if recipe.output == key.trim_prefix("produce:"):
+					if Database.recipe_output(recipe) == key.trim_prefix("produce:"):
 						return _panel_target("station:" + str(recipe.station))
 	return {}
 
@@ -455,5 +461,7 @@ static func go(target: Dictionary) -> void:
 	Events.sheet_close_requested.emit()
 	if target.has("screen"):
 		Events.screen_requested.emit(StringName(target.screen))
+		if bool(target.get("collection", false)):
+			Events.sheet_requested.emit("Coleção", ProgressionUi.collection_panel())
 	elif target.has("world"):
 		Events.world_requested.emit(target.world, target.get("place", ""))

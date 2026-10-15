@@ -160,8 +160,18 @@
     }
   },
   "hardwood_planks": {
-    "station": "workbench", "inputs": {"hardwood": 2}, "output": "plank", "qty": 3, "seconds": 120,
-    "skill": "adventure", "skill_xp": 15, "requirements": {"chapter": 5}
+    "station": "workbench",
+    "inputs": {
+      "hardwood": 2
+    },
+    "output": "plank",
+    "qty": 3,
+    "seconds": 120,
+    "skill": "adventure",
+    "skill_xp": 15,
+    "requirements": {
+      "chapter": 5
+    }
   },
   "cheese": {
     "station": "dairy",
@@ -233,12 +243,76 @@
   },
   "mint_snack": {
     "station": "stove",
-    "inputs": {"wild_mint": 2, "carrot": 1},
+    "inputs": {
+      "wild_mint": 2,
+      "carrot": 1
+    },
     "output": "mint_snack",
     "qty": 1,
     "seconds": 120,
     "skill": "cooking",
     "skill_xp": 18,
-    "requirements": {"stats": {"walk:bird_clearing": 1}}
+    "requirements": {
+      "stats": {
+        "walk:bird_clearing": 1
+      }
+    }
+  },
+  "sew_flower_crown": {
+    "station": "sewing",
+    "inputs": {
+      "wildflower": 3,
+      "ribbon": 1
+    },
+    "output_collection": "flower_crown",
+    "seconds": 300,
+    "skill": "adventure",
+    "skill_xp": 20
+  },
+  "sew_shell_collar": {
+    "station": "sewing",
+    "inputs": {
+      "river_shell": 4,
+      "ribbon": 1
+    },
+    "output_collection": "shell_collar",
+    "seconds": 480,
+    "skill": "adventure",
+    "skill_xp": 25
+  },
+  "sew_knit_sweater": {
+    "station": "sewing",
+    "inputs": {
+      "yarn": 4,
+      "color_button": 2
+    },
+    "output_collection": "knit_sweater",
+    "seconds": 600,
+    "skill": "adventure",
+    "skill_xp": 30
+  },
+  "sew_feather_hat": {
+    "station": "sewing",
+    "inputs": {
+      "bird_feather": 2,
+      "yarn": 2,
+      "stick": 1
+    },
+    "output_collection": "feather_hat",
+    "seconds": 600,
+    "skill": "adventure",
+    "skill_xp": 30
+  },
+  "sew_golden_cape": {
+    "station": "sewing",
+    "inputs": {
+      "golden_leaf": 3,
+      "yarn": 2,
+      "moon_pebble": 1
+    },
+    "output_collection": "golden_cape",
+    "seconds": 1200,
+    "skill": "adventure",
+    "skill_xp": 60
   }
 }

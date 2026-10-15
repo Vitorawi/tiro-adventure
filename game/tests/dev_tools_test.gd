@@ -106,6 +106,8 @@ func _dev_mode() -> void:
 
 func _prod_mode() -> void:
 	state.call("reset")
+	state.call("dev_grant_cosmetics")
+	_check(_progress().collection.is_empty(), "Prod não pode ganhar roupas via DEV")
 	var coins: int = state.get("coins")
 	var wishes_before: Dictionary = state.get("wishes").to_dict()
 	state.call("dev_add_affection", 100)

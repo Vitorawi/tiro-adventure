@@ -9,6 +9,7 @@ const DIR := "res://assets/sprites/characters/tiro_pet/"
 const IDLE := &"idle_breathe"
 const SLEEP := &"sleep"
 const ROLL := &"roll_over"
+const CLOTHES_CACHE_LIMIT := 48
 ## Quadros por segundo de cada animação.
 const FPS := {
 	&"idle_breathe": 6.0, &"head_tilt": 7.0, &"scratch": 8.0, &"yawn": 6.0, &"sniff": 7.0,
@@ -34,6 +35,9 @@ const ROLL_AFTER := 1.6
 const BELLY_IDLE := 4.0
 
 var _target: TextureRect
+var _clothes: Dictionary = {}
+var _anchors: Dictionary = {}
+var _clothes_cache: Dictionary = {}
 var _frames: Dictionary = {}  # nome -> Array[Texture2D]
 var _clip: StringName = IDLE
 var _frame := 0
@@ -50,8 +54,41 @@ var _stroke_time := 0.0  # carinho acumulado (sentado) para decidir rolar
 var _stroke_age := 0.0   # tempo desde o último carinho
 
 
+## Retrato vestido com recorte do canvas transparente; o Tiro continua legível em 64 px.
+static func portrait(px: int = 64) -> Control:
+	var holder := Control.new()
+	holder.custom_minimum_size = Vector2(px, px + 20)
+	holder.clip_contents = true
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var target := TextureRect.new()
+	target.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	target.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	target.size = Vector2(px * 2, px * 2.0 * 216.0 / 256.0)
+	target.position = Vector2(-px * 0.5, -px * 9.0 / 64.0)
+	target.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	target.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	holder.add_child(target)
+	var animator := PetAnimator.new()
+	holder.add_child(animator)
+	animator.setup(target)
+	animator.set_sleeping(GameState.dog.sleeping)
+	return holder
+
+
 func setup(target: TextureRect) -> void:
 	_target = target
+	_anchors = JSON.parse_string(FileAccess.get_file_as_string(DIR + "overlay_anchors.json"))
+	for slot: String in ["body", "neck", "head"]:
+		var layer := TextureRect.new()
+		layer.name = "Outfit_" + slot
+		layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		layer.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		layer.stretch_mode = target.stretch_mode
+		layer.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		target.add_child(layer)
+		layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		_clothes[slot] = layer
+	Events.state_changed.connect(_show)
 	for clip: StringName in FPS:
 		_load_clip(clip)
 	Events.dog_action.connect(react)
@@ -199,8 +236,26 @@ func _pick_fidget() -> StringName:
 
 
 func _show() -> void:
+	if _target == null:
+		return
 	var list: Array = _frames[_clip]
 	if list.is_empty():
 		return
 	var index := mini(_frame, list.size() - 1)
 	_target.texture = list[list.size() - 1 - index if _reverse else index]
+	var drawn := list.size() - 1 - index if _reverse else index
+	for slot: String in _clothes:
+		var layer: TextureRect = _clothes[slot]
+		var id := str(GameState.progress.equipped.get(slot, ""))
+		var path := str(Database.collections.get(id, {}).get("overlay", ""))
+		layer.visible = path != "" and str(_clip) in _anchors.get("show_in", [])
+		if not layer.visible:
+			continue
+		var variant := DIR + "overlays/%s/%s/frame_%02d.png" % [id, _clip, drawn]
+		if ResourceLoader.exists(variant):
+			path = variant
+		if not _clothes_cache.has(path):
+			if _clothes_cache.size() >= CLOTHES_CACHE_LIMIT:
+				_clothes_cache.erase(_clothes_cache.keys().front())
+			_clothes_cache[path] = load(path)
+		layer.texture = _clothes_cache[path]

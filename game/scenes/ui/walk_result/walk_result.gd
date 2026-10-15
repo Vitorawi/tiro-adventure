@@ -48,7 +48,7 @@ func show_result(result: Dictionary) -> void:
 		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	var title := UiKit.label("De volta! %s" % str(result.get("name", "")), &"TitleLabel")
+	var title := UiKit.label("Roupa pronta!" if result.get("kind", "") == "sewing" else "De volta! %s" % str(result.get("name", "")), &"TitleLabel")
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(_center(title))
 	if bool(result.get("first", false)):
@@ -58,6 +58,9 @@ func show_result(result: Dictionary) -> void:
 	var rare := str(result.get("rare", ""))
 	if rare != "":
 		_rare_banner(panel, box, rare)
+	var legendary := str(result.get("legendary", ""))
+	if legendary != "":
+		_rare_banner(panel, box, legendary)
 	var found := UiKit.flow(10)
 	found.name = "Found"
 	found.alignment = FlowContainer.ALIGNMENT_CENTER
@@ -91,6 +94,20 @@ func show_result(result: Dictionary) -> void:
 	else:
 		found.queue_free()
 	box.add_child(chips)
+	var clothes: Array = result.get("collections", [])
+	if rare != "" and not rare in clothes:
+		clothes = clothes.duplicate()
+		clothes.append(rare)
+	for id: String in clothes:
+		var dress := UiKit.button("Vestir agora · " + Database.item_name(id), func() -> void:
+			var error := GameState.equip(id)
+			if error != "":
+				Events.toast_requested.emit(error)
+			else:
+				hide(), &"PrimaryButton")
+		dress.name = "Equip_" + id
+		dress.disabled = GameState.equip_error(id) != ""
+		box.add_child(dress)
 	var close := UiKit.button("Oba!", hide, &"PrimaryButton")
 	close.name = "CloseResult"
 	box.add_child(close)
@@ -146,7 +163,7 @@ func _rare_banner(panel: PanelContainer, box: VBoxContainer, rare: String) -> vo
 	box.add_child(stage)
 	var tween := create_tween().bind_node(star).set_loops()
 	tween.tween_property(star, "rotation", TAU, 6.0).from(0.0)
-	var title := UiKit.label("RARO!", &"TitleLabel", Color(0.85, 0.55, 0.05))
+	var title := UiKit.label("LENDÁRIO!" if data.get("rarity", "") == "legendary" else ("RARO!" if data.get("rarity", "") == "rare" else "ROUPA NOVA!"), &"TitleLabel", Color(0.85, 0.55, 0.05))
 	title.name = "RareTitle"
 	box.add_child(_center(title))
 	box.add_child(_center(UiKit.label(str(data.get("name", rare)), &"SectionLabel")))

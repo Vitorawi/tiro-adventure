@@ -4,6 +4,43 @@
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
 > um do outro. Última atualização: **14/10/2026, Codex (retomada do Claude Code)**.
 
+**✔ Etapa 08 — apetrechos, pet shop e costura concluídos (14/10/2026, Codex). Commit local, sem push.**
+- Retomada da base `7211a42` (Etapa 07); `9ddd3b9` preservado. Nenhum reset/migração de save:
+  campos novos têm padrão vazio. Saves locais restaurados e hashes conferidos após testes e capturas.
+- **Aceite da Parte A recebido antes das demais roupas:** Vitor aprovou o lenço e o método `transfer_outfit`
+  após comparar comer/dormir/lamber a pata; aprovou também o conjunto Bob Esponja ("Perfeito!").
+  A troca da presilha por óculos escuros preserva o id `flower_clip` e a posse dos saves existentes.
+- 18 peças vestíveis: 7 raros existentes, 4 do pet shop, 5 da costura e 2 lendários. Três slots persistidos
+  (`head/neck/body`), camadas no Tiro e retratos de Desejos/boas-vindas; roupas continuam no sono,
+  somem nas seis animações acrobáticas e voltam ao terminar. As 14 roupas antigas sem arte mostram
+  "Em breve no Tiro", conforme o escopo do plano; não se veste uma roupa invisível.
+- Arte PixelLab: camadas isoladas sem substituir o cachorro; 18 bases + 954 variantes por quadro.
+  Método híbrido documentado: poses do lenço extraídas do transfer_outfit; demais quadros usam
+  transformações/oclusão das camadas geradas. Candidatos, rejeições, jobs, máscaras e alinhamentos no
+  `ART_PIPELINE.md`; originais em `build/art_sources/etapa08/`; extração em `tools/outfit_extract.py`.
+- Pet shop Patinhas, pacote de ração, bolsinha (+1 sorteio) e costura no quiosque já desenhado.
+  Arte nova acrescenta produtos/placa e mesa; preserva balcão, 15 obstáculos e caminhos da Praça.
+  Nina ganhou os três passos previstos. **Não criada a diária de costura**, pois receitas são finitas.
+- `output_collection` integrado à produção, filas salvas, coleta, indicadores, painéis, Manual,
+  Mochila, ajuda, navegação, DEV e testes. Bloqueio de duplicata considera posse e qualquer fila.
+  Costura entrega à Coleção e entra na fila modal existente com "Vestir agora"; cartão de volta
+  mantém rolagem/fila. Bolsinha está em `walk_loot`, com sorteio determinístico e mesma checagem
+  de armazenamento da coleta; falha/cancelamento não consome histórico nem garantia.
+- Lendários cosméticos pedidos: chapéu do Siri Cascudo e uniforme de esponjinha, separados e combináveis.
+  Depois de pet shop + 20 passeios recolhidos: 1% por volta elegível, garantia em até 30 por peça,
+  primeiro chapéu, depois uniforme. Sorteio/garantia independentes dos sete raros; podem vir juntos.
+  Após obter ambos não há duplicatas nem crescimento infinito da garantia lendária.
+- **25 execuções individuais PASS** (24 scripts + DEV em prod), incluindo `petshop_test` novo.
+  Logs em `build/test_logs/etapa08/`. Campanha: 216 ciclos, 47 aquisições, 69 missões; simulador
+  passeia, veste e costura sem concessões. Onboarding com chance rara zero: capítulo 4 em 11,4 min,
+  primeiro passeio 15,1 min, primeiro raro na 6ª volta em 54,5 min; ocioso total 220 s, máximo 30 s.
+  Limites dos testes preservados. Avisos antigos de recursos/RIDs ao encerrar permanecem;
+  nenhum erro de script. Capturas gráficas 360×780 com timeout externo abertas e conferidas:
+  `build/screenshots/etapa08/` (40 telas, todas as 22 animações, três roupas, raros, lendários,
+  costura, Coleção, Desejos, Diário e Praça antes/depois). Exportação Web prod/dev concluída sem
+  erros; `overlay_anchors.json` conferido nos dois pacotes locais. Nenhuma publicação.
+- Pendências da Etapa 08: nenhuma. **Próximo passo: Etapa 09 — amigos**, ainda não iniciada.
+
 **✔ Etapa 07 do começo (sete passeios, materiais e raros) — Claude Code + Codex, 14/10/2026.** Commit local, sem push.
 - Retomada exata da conversa Claude `bda53413-221b-4067-8fff-56762caff35b`: parou por limite após editar a Coleção,
   com 14 arquivos modificados e 8 jobs PixelLab enviados. Preservados os dados/código e recuperados os 6 postais + 2 ícones.

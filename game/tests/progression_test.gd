@@ -120,10 +120,14 @@ func _campaign() -> Dictionary:
 		if state.call("walk_error", "park_loop") != "" and not state.call("walking"):
 			state.get("dog").sleeping = false
 			state.get("dog").needs["energy"] = 100.0
-		var walk_id := "flower_street" if state.get("progress").current_line_quest("nina") == "nina_routes" and state.call("walk_lock_error", "flower_street") == "" else "park_loop"
+		var walk_id := "flower_street" if state.get("progress").current_line_quest("nina") in ["nina_routes", "nina_petshop", "nina_dress", "nina_sewing"] and state.call("walk_lock_error", "flower_street") == "" else "park_loop"
+		if state.get("inventory").count("yarn") < 5 and not state.call("has_upgrade", "walk_bag") and state.call("walk_lock_error", "village_fair") == "":
+			walk_id = "village_fair"
 		if state.call("start_walk", walk_id) == "":
 			state.get("walk_state").current["ready_at"] = 1.0
 			state.call("collect_walk")
+		if state.call("equip_error", "red_scarf") == "":
+			state.call("equip", "red_scarf")
 		state.call("emergency_food")
 		state.call("bathe")
 		state.call("play")
@@ -162,7 +166,7 @@ func _campaign() -> Dictionary:
 			for animal_id: String in database.get("animals"):
 				if database.get("animals")[animal_id].station == recipes[id].station and state.call("animal_count", recipes[id].station) == 0:
 					state.call("buy_animal", animal_id)
-			if state.get("inventory").count(recipes[id].output) >= 12 and not ("produce:" + str(recipes[id].output)) in wanted:
+			if state.get("inventory").count(recipes[id].get("output", recipes[id].get("output_collection", ""))) >= 12 and not ("produce:" + str(recipes[id].get("output", recipes[id].get("output_collection", "")))) in wanted:
 				continue
 			if state.call("cook", id) == "":
 				var station: RefCounted = state.call("station", recipes[id].station)

@@ -87,12 +87,164 @@
     "icon": "tab_map",
     "sprite": ""
   },
-  "plaid_bow": {"name": "Laço xadrez", "slot": "head", "description": "Achado raro da Volta na praça.", "icon": "outfit_plaid_bow", "sprite": "", "source": "walk:park_loop"},
-  "flower_clip": {"name": "Presilha de flor", "slot": "head", "description": "Achado raro da Rua das flores.", "icon": "outfit_flower_clip", "sprite": "", "source": "walk:flower_street"},
-  "bow_tie": {"name": "Gravata-borboleta", "slot": "neck", "description": "Achado raro da Feirinha da Vila.", "icon": "outfit_bow_tie", "sprite": "", "source": "walk:village_fair"},
-  "sailor_scarf": {"name": "Lenço de marinheiro", "slot": "neck", "description": "Achado raro da Beira do riacho.", "icon": "outfit_sailor_scarf", "sprite": "", "source": "walk:creek_walk"},
-  "explorer_backpack": {"name": "Mochilinha de explorador", "slot": "body", "description": "Achado raro da Clareira dos passarinhos.", "icon": "outfit_explorer_backpack", "sprite": "", "source": "walk:bird_clearing"},
-  "star_glasses": {"name": "Óculos de estrelinha", "slot": "head", "description": "Achado raro do Mirante do morro.", "icon": "outfit_star_glasses", "sprite": "", "source": "walk:hill_view"},
-  "glow_collar": {"name": "Coleira que brilha", "slot": "neck", "description": "Achado raro do Passeio ao pôr do sol.", "icon": "outfit_glow_collar", "sprite": "", "source": "walk:sunset_walk"},
-  "walker_bandana": {"name": "Bandana de passeador", "slot": "neck", "description": "Prêmio por muitos passeios.", "icon": "action_walk", "sprite": ""}
+  "plaid_bow": {
+    "name": "Laço xadrez",
+    "slot": "head",
+    "description": "Achado raro da Volta na praça.",
+    "icon": "outfit_plaid_bow",
+    "sprite": "",
+    "source": "walk:park_loop",
+    "rarity": "rare",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/plaid_bow.png"
+  },
+  "flower_clip": {
+    "name": "Óculos escuros",
+    "slot": "head",
+    "description": "Achado raro da Rua das flores.",
+    "icon": "outfit_flower_clip",
+    "sprite": "",
+    "source": "walk:flower_street",
+    "rarity": "rare",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/flower_clip.png"
+  },
+  "bow_tie": {
+    "name": "Gravata-borboleta",
+    "slot": "neck",
+    "description": "Achado raro da Feirinha da Vila.",
+    "icon": "outfit_bow_tie",
+    "sprite": "",
+    "source": "walk:village_fair",
+    "rarity": "rare",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/bow_tie.png"
+  },
+  "sailor_scarf": {
+    "name": "Lenço de marinheiro",
+    "slot": "neck",
+    "description": "Achado raro da Beira do riacho.",
+    "icon": "outfit_sailor_scarf",
+    "sprite": "",
+    "source": "walk:creek_walk",
+    "rarity": "rare",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/sailor_scarf.png"
+  },
+  "explorer_backpack": {
+    "name": "Mochilinha de explorador",
+    "slot": "body",
+    "description": "Achado raro da Clareira dos passarinhos.",
+    "icon": "outfit_explorer_backpack",
+    "sprite": "",
+    "source": "walk:bird_clearing",
+    "rarity": "rare",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/explorer_backpack.png"
+  },
+  "star_glasses": {
+    "name": "Óculos de estrelinha",
+    "slot": "head",
+    "description": "Achado raro do Mirante do morro.",
+    "icon": "outfit_star_glasses",
+    "sprite": "",
+    "source": "walk:hill_view",
+    "rarity": "rare",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/star_glasses.png"
+  },
+  "glow_collar": {
+    "name": "Coleira que brilha",
+    "slot": "neck",
+    "description": "Achado raro do Passeio ao pôr do sol.",
+    "icon": "outfit_glow_collar",
+    "sprite": "",
+    "source": "walk:sunset_walk",
+    "rarity": "rare",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/glow_collar.png"
+  },
+  "walker_bandana": {
+    "name": "Bandana de passeador",
+    "slot": "neck",
+    "description": "Prêmio por muitos passeios.",
+    "icon": "action_walk",
+    "sprite": ""
+  },
+  "red_scarf": {
+    "name": "Lenço vermelho",
+    "slot": "neck",
+    "price": 60,
+    "shop": "petshop",
+    "icon": "outfit_red_scarf",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/red_scarf.png"
+  },
+  "blue_collar": {
+    "name": "Coleira azul",
+    "slot": "neck",
+    "price": 80,
+    "shop": "petshop",
+    "icon": "outfit_blue_collar",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/blue_collar.png"
+  },
+  "yellow_bow": {
+    "name": "Lacinho amarelo",
+    "slot": "head",
+    "price": 50,
+    "shop": "petshop",
+    "icon": "outfit_yellow_bow",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/yellow_bow.png"
+  },
+  "rain_coat": {
+    "name": "Capa de chuva",
+    "slot": "body",
+    "price": 140,
+    "shop": "petshop",
+    "icon": "outfit_rain_coat",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/rain_coat.png"
+  },
+  "flower_crown": {
+    "name": "Coroa de flores",
+    "slot": "head",
+    "recipe": "sew_flower_crown",
+    "icon": "outfit_flower_crown",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/flower_crown.png"
+  },
+  "shell_collar": {
+    "name": "Coleira de conchas",
+    "slot": "neck",
+    "recipe": "sew_shell_collar",
+    "icon": "outfit_shell_collar",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/shell_collar.png"
+  },
+  "knit_sweater": {
+    "name": "Suéter de tricô",
+    "slot": "body",
+    "recipe": "sew_knit_sweater",
+    "icon": "outfit_knit_sweater",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/knit_sweater.png"
+  },
+  "feather_hat": {
+    "name": "Chapéu de pena",
+    "slot": "head",
+    "recipe": "sew_feather_hat",
+    "icon": "outfit_feather_hat",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/feather_hat.png"
+  },
+  "golden_cape": {
+    "name": "Capa dourada",
+    "slot": "body",
+    "recipe": "sew_golden_cape",
+    "icon": "outfit_golden_cape",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/golden_cape.png"
+  },
+  "sponge_uniform": {
+    "name": "Uniforme de esponjinha",
+    "slot": "body",
+    "rarity": "legendary",
+    "icon": "outfit_sponge_uniform",
+    "source": "legendary:walks",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/sponge_uniform.png"
+  },
+  "sponge_hat": {
+    "name": "Chapéu do Siri Cascudo",
+    "slot": "head",
+    "rarity": "legendary",
+    "icon": "outfit_sponge_hat",
+    "source": "legendary:walks",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/sponge_hat.png"
+  }
 }

@@ -1,0 +1,28 @@
+{
+  "show_in": [
+    "idle_breathe",
+    "wag_excited",
+    "head_tilt",
+    "look_around",
+    "yawn",
+    "sad",
+    "pet_head",
+    "pet_paw",
+    "eat",
+    "sniff",
+    "lick_paw",
+    "scratch",
+    "bark",
+    "give_paw",
+    "shake_off",
+    "sleep"
+  ],
+  "offsets": {},
+  "frame_variants": [
+    "sad",
+    "eat",
+    "lick_paw",
+    "sleep",
+    "head_tilt"
+  ]
+}

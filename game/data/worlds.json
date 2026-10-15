@@ -33,7 +33,10 @@
         "description": "Comidas, ovos e leite.",
         "upgrade": "fridge",
         "panel": "fridge",
-        "upgrades": ["fridge_2", "fridge_3"]
+        "upgrades": [
+          "fridge_2",
+          "fridge_3"
+        ]
       },
       "chest": {
         "name": "Baú",
@@ -41,7 +44,10 @@
         "description": "Produtos e acessórios.",
         "upgrade": "chest",
         "panel": "storage:chest",
-        "upgrades": ["chest_2", "chest_3"],
+        "upgrades": [
+          "chest_2",
+          "chest_3"
+        ],
         "hidden": true
       },
       "door": {
@@ -75,7 +81,11 @@
         "name": "Liquidificador",
         "icon": "item_strawberry_pop",
         "description": "Picolé e suco.",
-        "requirements": {"quests": ["first_kitchen"]},
+        "requirements": {
+          "quests": [
+            "first_kitchen"
+          ]
+        },
         "upgrade": "blender",
         "panel": "station:blender",
         "hidden": true
@@ -120,7 +130,10 @@
         "description": "Colheitas.",
         "upgrade": "silo",
         "panel": "storage:silo",
-        "upgrades": ["silo_2", "silo_3"],
+        "upgrades": [
+          "silo_2",
+          "silo_3"
+        ],
         "hidden": true
       },
       "warehouse": {
@@ -129,7 +142,10 @@
         "description": "Materiais.",
         "upgrade": "warehouse",
         "panel": "storage:warehouse",
-        "upgrades": ["warehouse_2", "warehouse_3"],
+        "upgrades": [
+          "warehouse_2",
+          "warehouse_3"
+        ],
         "hidden": true
       },
       "orchard": {
@@ -217,11 +233,45 @@
     "icon": "tab_park",
     "description": "Passeios com o Tiro, amigos e novidades.",
     "room": "park",
-    "requirements": {"quests": ["main_2_order"]},
-    "npcs": ["nina", "dog_pipoca"],
+    "requirements": {
+      "quests": [
+        "main_2_order"
+      ]
+    },
+    "npcs": [
+      "nina",
+      "dog_pipoca"
+    ],
     "places": {
-      "walk": {"name": "Passeio", "icon": "action_walk", "description": "Passear com o Tiro.", "panel": "walks"},
-      "home": {"name": "Voltar para casa", "icon": "tab_house", "description": "", "panel": "travel:house", "hidden": true}
+      "walk": {
+        "name": "Passeio",
+        "icon": "action_walk",
+        "description": "Passear com o Tiro.",
+        "panel": "walks"
+      },
+      "home": {
+        "name": "Voltar para casa",
+        "icon": "tab_house",
+        "description": "",
+        "panel": "travel:house",
+        "hidden": true
+      },
+      "petshop": {
+        "name": "Pet shop",
+        "icon": "petshop",
+        "description": "Roupinhas e costura.",
+        "upgrade": "petshop",
+        "upgrades": [
+          "sewing_table",
+          "walk_bag"
+        ],
+        "panel": "petshop",
+        "requirements": {
+          "quests": [
+            "nina_rare"
+          ]
+        }
+      }
     }
   },
   "village": {

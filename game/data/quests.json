@@ -1334,22 +1334,45 @@
     "name": "Uma amiga na praça",
     "dialogue": "Oi! Eu sou a Nina, e essa é a Pipoca. Bem-vindos à praça!",
     "goals": [
-      {"type": "stat", "key": "talk:nina", "target": 1, "label": "Falar com a Nina"}
+      {
+        "type": "stat",
+        "key": "talk:nina",
+        "target": 1,
+        "label": "Falar com a Nina"
+      }
     ],
-    "rewards": {"coins": 10},
+    "rewards": {
+      "coins": 10
+    },
     "kind": "line",
     "line": "nina",
     "order": 10,
-    "requirements": {"quests": ["main_2_order"]}
+    "requirements": {
+      "quests": [
+        "main_2_order"
+      ]
+    }
   },
   "nina_walk": {
     "npc": "nina",
     "name": "Primeiro passeio",
     "dialogue": "Bora dar uma volta na praça? Toque no portão do passeio!",
     "goals": [
-      {"type": "stat", "key": "walk", "target": 1, "fresh": true, "label": "Passear com o Tiro"}
+      {
+        "type": "stat",
+        "key": "walk",
+        "target": 1,
+        "fresh": true,
+        "label": "Passear com o Tiro"
+      }
     ],
-    "rewards": {"coins": 15, "items": {"dog_food": 2}, "affection": 5},
+    "rewards": {
+      "coins": 15,
+      "items": {
+        "dog_food": 2
+      },
+      "affection": 5
+    },
     "kind": "line",
     "line": "nina",
     "order": 20
@@ -1359,9 +1382,19 @@
     "name": "Rua das flores",
     "dialogue": "Depois de três voltas, conhece a Rua das flores. Tem flor pra todo lado!",
     "goals": [
-      {"type": "stat", "key": "walk:flower_street", "target": 1, "label": "Passear na Rua das flores"}
+      {
+        "type": "stat",
+        "key": "walk:flower_street",
+        "target": 1,
+        "label": "Passear na Rua das flores"
+      }
     ],
-    "rewards": {"coins": 20, "items": {"ribbon": 2}},
+    "rewards": {
+      "coins": 20,
+      "items": {
+        "ribbon": 2
+      }
+    },
     "kind": "line",
     "line": "nina",
     "order": 30
@@ -1371,11 +1404,87 @@
     "name": "Coisa rara",
     "dialogue": "Dizem que nos passeios aparece coisa rara. Me mostra uma?",
     "goals": [
-      {"type": "stat", "key": "walk_rare", "target": 1, "label": "Achar um raro no passeio"}
+      {
+        "type": "stat",
+        "key": "walk_rare",
+        "target": 1,
+        "label": "Achar um raro no passeio"
+      }
     ],
-    "rewards": {"coins": 30, "affection": 10},
+    "rewards": {
+      "coins": 30,
+      "affection": 10
+    },
     "kind": "line",
     "line": "nina",
     "order": 40
+  },
+  "nina_petshop": {
+    "npc": "nina",
+    "name": "Pet shop novo",
+    "dialogue": "Vamos montar o pet shop com graveto e fita?",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "petshop",
+        "label": "Montar o pet shop"
+      }
+    ],
+    "rewards": {
+      "coins": 40,
+      "collections": [
+        "red_scarf"
+      ]
+    },
+    "kind": "line",
+    "line": "nina",
+    "order": 50
+  },
+  "nina_dress": {
+    "npc": "nina",
+    "name": "Desfile na praça",
+    "dialogue": "Ganhou um lenço! Veste nele pra gente ver?",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "equip",
+        "target": 1,
+        "label": "Vestir um apetrecho no Tiro"
+      }
+    ],
+    "rewards": {
+      "coins": 20,
+      "affection": 10
+    },
+    "kind": "line",
+    "line": "nina",
+    "order": 60,
+    "go": {
+      "screen": "pet",
+      "hint": "Tiro → Coleção → Vestir",
+      "collection": true
+    }
+  },
+  "nina_sewing": {
+    "npc": "nina",
+    "name": "Feito à mão",
+    "dialogue": "Com flores e fita dá uma coroa linda. Costura uma?",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "sew",
+        "target": 1,
+        "label": "Costurar um apetrecho"
+      }
+    ],
+    "rewards": {
+      "coins": 40,
+      "items": {
+        "ribbon": 2
+      }
+    },
+    "kind": "line",
+    "line": "nina",
+    "order": 70
   }
 }

@@ -97,6 +97,8 @@ func panel_parts(panel: String) -> PackedStringArray:
 	var kind := panel.get_slice(":", 0)
 	var args := panel.get_slice(":", 1).split("+") if ":" in panel else PackedStringArray()
 	match kind:
+		"petshop":
+			return PackedStringArray(["petshop", "station:sewing"])
 		"stations":
 			var parts: PackedStringArray = []
 			for id in args:
@@ -134,12 +136,28 @@ func room(id: String) -> Dictionary:
 
 
 func item_name(id: String) -> String:
-	return items.get(id, {}).get("name", id)
+	return items.get(id, collections.get(id, {})).get("name", id)
 
 
 ## Ícone do item (campo "icon" em items.json); null se não tiver.
 func item_icon(id: String) -> Texture2D:
+	if collections.has(id):
+		return _texture("res://assets/sprites/ui/icons/%s.png" % str(collections[id].get("icon", "")))
 	return _texture(items.get(id, {}).get("icon", ""))
+
+
+## Saída comum para receitas de inventário e de roupas (estas nunca viram itens).
+func recipe_output(recipe: Dictionary) -> String:
+	return str(recipe.get("output_collection", recipe.get("output", "")))
+
+
+func station_upgrade(id: String) -> String:
+	if id == "":
+		return ""
+	for key: String in progression.get("upgrades", {}):
+		if progression.upgrades[key].get("station", "") == id:
+			return key
+	return id
 
 
 func need_icon(id: String) -> Texture2D:
@@ -180,7 +198,7 @@ func sources_of(item_id: String) -> PackedStringArray:
 			lines.append("Plantar e colher no Sítio")
 			break
 	for id: String in recipes:
-		if recipes[id].get("output", "") == item_id:
+		if recipe_output(recipes[id]) == item_id:
 			lines.append("%s: %s" % [stations.get(recipes[id].station, {}).get("name", ""), describe_amounts(recipes[id].get("inputs", {}))])
 	for id: String in progression.get("activities", {}):
 		if progression.activities[id].get("rewards", {}).get("items", {}).has(item_id):
@@ -198,7 +216,7 @@ func uses_of(item_id: String) -> PackedStringArray:
 	var lines: PackedStringArray = []
 	for id: String in recipes:
 		if recipes[id].get("inputs", {}).has(item_id):
-			lines.append("%s: %s" % [stations.get(recipes[id].station, {}).get("name", ""), item_name(recipes[id].output)])
+			lines.append("%s: %s" % [stations.get(recipes[id].station, {}).get("name", ""), item_name(recipe_output(recipes[id]))])
 	for id: String in progression.get("upgrades", {}):
 		if progression.upgrades[id].get("materials", {}).has(item_id):
 			lines.append("Construir: " + str(progression.upgrades[id].name))
@@ -236,7 +254,7 @@ func item_sources(item_id: String) -> Array[Dictionary]:
 		if crops[id].get("yield", {}).has(item_id):
 			sources.append({"type": "stat", "key": "harvest:" + id})
 	for id: String in recipes:
-		if recipes[id].get("output", "") == item_id:
+		if recipe_output(recipes[id]) == item_id:
 			sources.append({"type": "stat", "key": "produce:" + item_id})
 	for id: String in progression.activities:
 		if progression.activities[id].get("rewards", {}).get("items", {}).has(item_id):

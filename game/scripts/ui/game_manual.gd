@@ -58,6 +58,9 @@ static func _tile(id: String) -> Button:
 
 
 static func open_item(id: String) -> void:
+	if Database.collections.has(id):
+		Events.sheet_requested.emit("Coleção", ProgressionUi.collection_panel())
+		return
 	Events.sheet_requested.emit(Database.item_name(id), item_panel(id))
 
 
@@ -72,7 +75,7 @@ static func sources(id: String) -> Array[Dictionary]:
 		if Database.crops[key].get("yield", {}).has(id):
 			result.append({"kind": "crop", "id": key})
 	for key: String in Database.recipes:
-		if Database.recipes[key].output == id:
+		if Database.recipe_output(Database.recipes[key]) == id:
 			result.append({"kind": "recipe", "id": key})
 	for key: String in Database.progression.activities:
 		if Database.progression.activities[key].get("rewards", {}).get("items", {}).has(id):
@@ -110,7 +113,7 @@ static func item_panel(id: String) -> Control:
 	for recipe_id: String in Database.recipes:
 		var recipe: Dictionary = Database.recipes[recipe_id]
 		if recipe.get("inputs", {}).has(id):
-			uses.add_child(_item_chip(recipe.output, 0))
+			uses.add_child(_item_chip(Database.recipe_output(recipe), 0))
 	for upgrade_id: String in Database.progression.upgrades:
 		var upgrade: Dictionary = Database.progression.upgrades[upgrade_id]
 		if upgrade.get("materials", {}).has(id):
@@ -197,7 +200,7 @@ static func _recipe(box: VBoxContainer, id: String) -> void:
 		box.add_child(UiKit.label("Compre animais no abrigo. Quantidades abaixo são por animal.", &"SmallLabel"))
 	_amounts(box, recipe.get("inputs", {}))
 	box.add_child(UiKit.label("↓ Alimentar → esperar → recolher" if Database.stations[station_id].get("kind", "") == "animal" else "↓ Produzir e recolher", &"SmallLabel"))
-	_amounts(box, {recipe.output: int(recipe.get("qty", 1))})
+	_amounts(box, {Database.recipe_output(recipe): int(recipe.get("qty", 1))})
 	_timer(box, int(recipe.seconds))
 	_requirements(box, recipe)
 	_location(box, _focused("station:" + station_id, "recipe:" + id), station_id)
@@ -222,6 +225,8 @@ static func _focused(panel_id: String, focus: String = "") -> Dictionary:
 
 ## Destino legível e atalho: mundos/lugares fechados não permitem navegação.
 static func _location(box: VBoxContainer, target: Dictionary, upgrade: String = "") -> void:
+	var station_id := upgrade
+	upgrade = Database.station_upgrade(upgrade)
 	if target.is_empty():
 		return
 	var world: Dictionary = Database.worlds[target.world]
@@ -241,7 +246,7 @@ static func _location(box: VBoxContainer, target: Dictionary, upgrade: String = 
 	if error != "":
 		box.add_child(UiKit.label(error, &"SmallLabel", UiKit.BAD))
 	elif needs_buy:
-		box.add_child(UiKit.label("Compre: " + str(Database.stations[upgrade].name), &"SmallLabel"))
+		box.add_child(UiKit.label("Compre: " + str(Database.stations[station_id].name), &"SmallLabel"))
 
 
 static func _stations(box: VBoxContainer) -> void:
@@ -251,7 +256,7 @@ static func _stations(box: VBoxContainer) -> void:
 		card.add_child(UiKit.label(Database.stations[id].name, &"SectionLabel"))
 		var products := UiKit.flow()
 		for recipe_id: String in Database.recipes_for(id):
-			products.add_child(_item_chip(Database.recipes[recipe_id].output, 0))
+			products.add_child(_item_chip(Database.recipe_output(Database.recipes[recipe_id]), 0))
 		card.add_child(products)
 		_location(card, _focused("station:" + id), id)
 	box.add_child(UiKit.label("Onde coletar", &"SectionLabel"))

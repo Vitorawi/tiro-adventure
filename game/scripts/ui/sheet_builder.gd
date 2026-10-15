@@ -174,7 +174,7 @@ static func _uses(id: String) -> Array[Dictionary]:
 		var recipe: Dictionary = Database.recipes[recipe_id]
 		if recipe.get("inputs", {}).has(id):
 			var location := Database.place_with_panel("station:" + str(recipe.station))
-			links.append({"icon": Database.item_icon(recipe.output), "name": Database.item_name(recipe.output), "target": {"world": location[0], "place": "recipe:" + recipe_id, "spot": location[1]}})
+			links.append({"icon": Database.item_icon(Database.recipe_output(recipe)), "name": Database.item_name(Database.recipe_output(recipe)), "target": {"world": location[0], "place": "recipe:" + recipe_id, "spot": location[1]}})
 	for upgrade_id: String in Database.progression.upgrades:
 		var upgrade: Dictionary = Database.progression.upgrades[upgrade_id]
 		if upgrade.get("materials", {}).has(id) and not GameState.has_upgrade(upgrade_id):
@@ -269,7 +269,7 @@ static func _slot_card(entry: Dictionary, now: float) -> Control:
 	var recipe: Dictionary = Database.recipes[entry["recipe"]]
 	var seconds := float(recipe["seconds"])
 	var remaining := float(entry["ready_at"]) - now
-	var texture := Database.item_icon(recipe["output"])
+	var texture := Database.item_icon(Database.recipe_output(recipe))
 	var amount := " · ×%d" % int(entry.get("qty", recipe.get("qty", 1)))
 	if remaining <= 0.0:
 		return slot_frame(texture, "Pronto!" + amount, 1.0, true, false)
@@ -332,7 +332,7 @@ static func slot_frame(texture: Texture2D, text: String, progress: float, done: 
 static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full: bool) -> void:
 	var recipe: Dictionary = Database.recipes[recipe_id]
 	var locked := GameState.content_error("recipe", recipe_id, recipe)
-	var output: String = recipe["output"]
+	var output: String = Database.recipe_output(recipe)
 	var inputs: Dictionary = GameState.recipe_inputs(recipe_id)
 	var body := UiKit.card(parent)
 
@@ -361,6 +361,8 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 
 	var row := UiKit.hbox(8)
 	var action: String = Database.stations.get(recipe.station, {}).get("action_label", "Produzir")
+	if recipe.has("output_collection") and GameState.cook_error(recipe_id) in ["Você já tem", "Já está sendo costurado"]:
+		action = GameState.cook_error(recipe_id)
 	var cook := UiKit.button("Fila cheia" if station_full and has_all and locked == "" else action, func() -> void:
 		var error := GameState.cook(recipe_id)
 		Events.toast_requested.emit(error if error != "" else "Preparando %s!" % Database.item_name(output)), &"PrimaryButton")

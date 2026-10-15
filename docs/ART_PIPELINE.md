@@ -389,3 +389,196 @@ alinhamento dos ícones em 32/64 px; postais sem recorte. O postal `park_loop` �
 
 Revisão: postais distinguíveis por cenário; materiais por cor/silhueta; estrela sem rosto e coleira
 sem cachorro escolhidas nas novas tentativas. Não há arte de vestir, costura ou quiosque da Etapa 08.
+
+### Etapa 08 — investigação do lenço (Parte A), 14/10/2026 (Codex)
+
+**Lenço e método aprovados pelo Vitor em 14/10/2026**, após as comparações transfer_outfit abaixo.
+Somente `red_scarf` gerado; nenhuma outra roupa, ícone ou quiosque novo.
+Base: `characters/tiro_pet/idle_breathe/frame_00.png`, 256×216, upload
+`a70f0dcc-83ba-4563-94fd-a7ef218306dd`. Originais em `build/art_sources/etapa08/`.
+
+| Asset / candidato | Job PixelLab / galeria | Escolha e extração |
+|---|---|---|
+| Lenço 01, `edit_image_pro_flash`, text, transparente, correção de paleta ligada | `d429285f-1090-472c-9e98-a14362ee09f7` / `c0da5219-6503-5776-9920-8e6556ec0fbb` | Rejeitado: tecido rosado e sombras marrons; diferença RGBA com tolerância 24 = 5376 pixels visíveis, incluindo alterações indevidas no pelo |
+| Lenço 02, mesma ferramenta, correção de paleta desligada, pedido explícito de vermelho escarlate | `92028668-23bb-4ae6-a226-6b25d1b4ad23` / `1e182345-d212-56f1-b1e6-673a4c03a015` | Candidato apresentado ao Vitor; diferença bruta = 6180 pixels. `tools/scarf_extract.ps1` retém tecido vermelho e contorno adjacente, exclui boca e resíduos pequenos do pelo. Sobreposição em `characters/tiro_pet/overlays/red_scarf.png` |
+
+`New-OverlayFromDiff` em `tools/pixel_tools.ps1` soma diferenças RGBA, copia o pixel vestido quando
+excede 24 e mantém o restante transparente; rejeita tamanhos diferentes. Canvas 256×216 inteiro,
+sem trim e offset inicial 0,0. Verificado com imagens idênticas (0 pixels) e candidatos reais.
+`New-ContactSheet` recebeu dimensões inteiras para funcionar em `powershell.exe`/System.Drawing.
+Limpeza local reproduzível em `tools/scarf_extract.ps1`; prancha `red_scarf_review.png` contém base,
+candidato e sobreposição. Nenhuma mudança do cachorro do candidato é levada ao jogo.
+
+`tools/scarf_preview.gd` gera capturas 360×780 sem headless, com timeout externo de 60 s, e remove
+SaveManager antes de preparar a demonstração. Tela Tiro: `build/screenshots/etapa08_lenco/tiro_lenco.png`.
+As 22 capturas `alinhamento_<animação>.png` foram abertas: primeiro/meio/último quadro, lenço sempre
+visível de propósito para expor falhas. São diagnósticos, não o comportamento final da roupa.
+
+`overlay_anchors.json` é **provisório, sem consumidor no jogo ainda**: offset 0 nas 12 poses que
+mantêm o pescoço no lugar (`idle_breathe`, `wag_excited`, `head_tilt`, `look_around`, `yawn`, `pet_head`,
+`pet_paw`, `sniff`, `scratch`, `bark`, `give_paw`, `shake_off`). Nas acrobáticas (`happy_jump`,
+`roll_over`, `belly_rub`, `belly_kick`, `chase_tail`, `stretch`) deverá desaparecer/voltar conforme plano.
+`sad`, `eat`, `lick_paw` e `sleep` mudam o pescoço durante a sequência: offset único não basta.
+**Pendente antes do aceite final:** corrigir esses alinhamentos; sono deve manter roupa visível,
+não se deve considerar sua ausência no `show_in` provisório como decisão de design aprovada.
+
+#### Teste autorizado de `transfer_outfit` — 14/10/2026
+
+Após perguntar sobre troca de roupa preservando personagem, Vitor autorizou testar somente o lenço
+nas poses difíceis. Depois das capturas, aprovou o lenço e o método ("Sim!") e pediu visualizar o
+catálogo de acessórios. Documentação do PixelLab distingue `create_character_state` (variante nas rotações)
+de `transfer_outfit` (roupa de uma referência aplicada aos quadros existentes, mantendo poses).
+
+| Teste | Job / galeria | Entradas e resultado |
+|---|---|---|
+| Lenço em três poses, `transfer_outfit`, seed 8, 256×216 transparente, 25 gerações | `6540f6c6-3893-4e9a-82b1-b0b34e1e16ab` / `d243bbce-5cbf-5ba5-ab04-2f38a2577fca` | Referência `red_scarf_candidate_02.png`, upload `823d4afb-1232-483f-8d08-d672284ab693`; quadros na ordem: `eat/frame_04.png` (`76f8f1c8-855d-4084-b69f-9851ccbc429b`), `sleep/frame_16.png` (`1ade4547-84b1-40d8-a72b-01c37280f888`), `lick_paw/frame_04.png` (`9f84ea7b-697c-4568-acd3-14a01785d2d6`); resultados `build/art_sources/etapa08/transfer_eat_04.png`, `transfer_sleep_16.png`, `transfer_lick_paw_04.png` |
+
+Capturas 360×780, sem headless e timeout externo de 60 s, abertas e conferidas:
+`build/screenshots/etapa08_lenco/transfer_{eat,sleep,lick_paw}.png`. Cada uma mostra original,
+sobreposição fixa e transferência; `tools/scarf_preview.gd -- --transfer` reproduz a comparação.
+Hashes dos JSON de save antes/depois idênticos. Nenhum resultado transferido foi instalado no jogo.
+
+Conclusão visual: lenço acompanha o pescoço e deixa de cobrir olhos/testa nas três poses. Dormindo,
+só se vê a borda do tecido atrás da cabeça e o nó lateral; tigela e gesto de lamber foram preservados
+visualmente. Porém, também há mudanças no pelo, cor da tigela e contornos. Medição de diferença RGBA
+>24 fora da região do tecido vermelho (bbox expandida 5 px): comer 4390 pixels, sono 1287, lamber 2665;
+mudança de silhueta (alpha >0,1): 1192/517/985 pixels respectivamente. É uma região aproximada,
+não uma máscara semântica perfeita, mas confirma que a edição não é restrita à roupa.
+
+Transferência é candidata para gerar **camadas por pose/quadro**, após limpar as mudanças do cachorro;
+usar quadros completos dificultaria combinar cabeça/pescoço/corpo e mudaria a base original.
+O teste contém três poses isoladas: **não valida continuidade temporal** das animações completas.
+Visual aprovado; ainda é necessário testar extração por quadro/continuidade.
+Prancha de apresentação `build/art_sources/etapa08/accessories_catalog.png`: sete ícones já existentes
+da Etapa 07, ampliados 2× sem nova geração, com nomes. Não representa sobreposições já instaladas.
+
+#### Conjunto lendário Bob Esponja — prévia pedida pelo Vitor, 14/10/2026
+
+Vitor escolheu **uniforme e chapéu**, pedindo detalhes mais reconhecíveis do Bob Esponja.
+Adição à Etapa 08 documentada no plano: `sponge_uniform` (body) e `sponge_hat` (head).
+
+| Asset | Job / galeria PixelLab | Originais e revisão |
+|---|---|---|
+| Tiro com uniforme + chapéu, candidato conjunto 01 | `edit_image_pro_flash`, job `295e9865-483c-4774-972e-04281cd9f5c1`, galeria `a6c13b6d-db0b-54ce-a8b0-15a0b9ae872e`, 9 gerações | `build/art_sources/etapa08/sponge_set_candidate_01.png`, 256×216 transparente, sem correção de paleta. Base `idle_breathe/frame_00.png`, upload `b818f77a-fc35-4486-9394-b28ad0c8b212` |
+
+Prévia aberta e conferida: uniforme amarelo com poros em tons de ocre, gola branca, gravata vermelha,
+barra marrom com cinto e fivela, detalhes listrados de meias; chapéu branco com âncora azul,
+contorno/detalhe vermelho e marca amarela com poros. Rosto e orelhas do Tiro continuam visíveis.
+Visual do conjunto aprovado pelo Vitor: "Perfeito!", após a captura ser reenviada diretamente.
+Captura 360×780 sem headless, timeout externo 60 s:
+`build/screenshots/etapa08_lenco/tiro_esponjinha_conceito.png`, reproduzida por
+`tools/scarf_preview.gd -- --sponge`. Script passou em `--check-only`; saves com hashes idênticos
+antes/depois. É **conceito estático**, não roupas já implementadas: separar slots/ícones/camadas,
+validar animações e definir obtenção/garantia lendária ainda pendentes. Nenhum PNG da prévia
+foi instalado em `game/assets/`; não altera os sete raros ou a Etapa 09.
+
+#### Roupas após aceite — lote 01 (14/10/2026)
+
+Oito jobs enviados após o aceite do conjunto. `edit_image_pro_flash`, referência
+`idle_breathe/frame_00.png` (upload `b818f77a-fc35-4486-9394-b28ad0c8b212`), canvas 256×216,
+transparente, sem correção de paleta. Vestido completo como candidato; extrair e conferir as camadas
+antes de instalar. Originais previstos: `build/art_sources/etapa08/<id>_candidate_01.png`.
+Os outros sete envios foram recusados pelo limite de oito jobs ativos, sem job criado;
+reenviar somente após liberar vagas. Manifesto local `jobs_outfits.json`.
+
+| Peça | Job | Galeria | Estado |
+|---|---|---|---|
+| blue_collar | `225c7238-c38e-4abd-8890-dd841b5deae8` | `dbfd7907-12f5-5993-ba74-a489aa04ba50` | candidato 01, em processamento |
+| yellow_bow | `a5516e67-bd6e-49c5-9d80-3394fb852969` | `733e6845-8ff0-5aaa-a96d-d5ea5df09ab3` | candidato 01, em processamento |
+| rain_coat | `81492d05-eb22-4d14-bef7-5bc5bbff76a4` | `f47b58c8-fdea-500e-a368-9f05621d1a58` | candidato 01, em processamento |
+| plaid_bow | `a575cff3-3b59-4ab9-98de-03b30da6d8ed` | `6e99b6bb-841e-5dbc-9cae-fb8e2f34b71f` | candidato 01, em processamento |
+| flower_clip | `fad43570-6926-4103-95e9-a71871b21677` | `6036a4dc-c41e-5d1d-8c6f-da24b40aa548` | candidato 01, em processamento |
+| bow_tie | `ec2cad34-66c9-4816-bf79-d1b3f228dbf7` | `750c59f9-7536-54c9-a1cf-66a4cc0fc4b5` | candidato 01, em processamento |
+| sailor_scarf | `624123c3-f6cc-4b32-a72f-7c701dd0eb19` | `b5b3a12a-b44f-57c1-b3a3-31e205bf3a8e` | candidato 01, em processamento |
+| explorer_backpack | `1c7f3829-dd05-4578-a6f0-1779194efcfd` | `22cf3d85-d70b-55ff-98dd-6385aba025f8` | candidato 01, em processamento |
+
+### Etapa 08 concluída — artes instaladas e alinhamento (14/10/2026, Codex)
+
+Lenço e método aprovados pelo Vitor antes dos demais; conjunto Bob Esponja também aprovado após
+reenviar a imagem diretamente. Os estados "em processamento" acima são o histórico da investigação.
+Todos os candidatos abaixo foram baixados em `build/art_sources/etapa08/` e abertos em pranchas.
+Origem das edições: `idle_breathe/frame_00.png`, 256×216 transparente, sem correção de paleta.
+
+| Sobreposição | Job PixelLab | Galeria | Escolha / máscara |
+|---|---|---|---|
+| `blue_collar` | `225c7238-c38e-4abd-8890-dd841b5deae8` | `dbfd7907-12f5-5993-ba74-a489aa04ba50` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `yellow_bow` | `a5516e67-bd6e-49c5-9d80-3394fb852969` | `733e6845-8ff0-5aaa-a96d-d5ea5df09ab3` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `rain_coat` | `81492d05-eb22-4d14-bef7-5bc5bbff76a4` | `f47b58c8-fdea-500e-a368-9f05621d1a58` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `plaid_bow` | `a575cff3-3b59-4ab9-98de-03b30da6d8ed` | `6e99b6bb-841e-5dbc-9cae-fb8e2f34b71f` | Falhou na fila do serviço; substituído pelo novo job |
+| `flower_clip` | `fad43570-6926-4103-95e9-a71871b21677` | `6036a4dc-c41e-5d1d-8c6f-da24b40aa548` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `bow_tie` | `ec2cad34-66c9-4816-bf79-d1b3f228dbf7` | `750c59f9-7536-54c9-a1cf-66a4cc0fc4b5` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `sailor_scarf` | `624123c3-f6cc-4b32-a72f-7c701dd0eb19` | `b5b3a12a-b44f-57c1-b3a3-31e205bf3a8e` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `explorer_backpack` | `1c7f3829-dd05-4578-a6f0-1779194efcfd` | `22cf3d85-d70b-55ff-98dd-6385aba025f8` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `plaid_bow` | `d38fab7e-53f8-4af8-bb26-4214996bead6` | `ddef8071-9eb0-598b-b97a-3f6ec7b65daa` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `star_glasses` | `e688e33f-6049-4c51-b348-abac6ffce0da` | `d05945ab-c42b-5764-b373-c97250e20960` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `glow_collar` | `128f7afb-f5d1-4529-86bd-204f3cb6dbef` | `31208c9e-c580-5b7b-b06b-549ba13e1b03` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `flower_crown` | `ad289c29-cff6-41e2-8ad8-4455b830666e` | `dd4d9d77-7f3b-5454-9ad3-1e674a33c2b4` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `shell_collar` | `9c3358ab-0acf-40d6-b824-0bf9a8a1daa4` | `c2905027-f518-5a92-bbe0-98c8970a5201` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `knit_sweater` | `c0890275-b3e3-4f0f-92ee-ce5085133d82` | `5cbd2476-fbec-57fc-8c2c-65a93513470f` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `feather_hat` | `5a896563-792b-4048-8e50-f8d7104d62f4` | `07a303a7-50a6-553b-8050-08f88b9eb957` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+| `golden_cape` | `81c1755f-c0b8-4af2-a45d-fa37bf4e05b1` | `8d53afa8-be50-5a97-ba42-d8e0231fd3c8` | Candidato 01; polígonos em `tools/outfit_extract.py`; canvas inteiro |
+
+`flower_clip` agora representa **Óculos escuros**. O id antigo foi conservado para manter
+as conquistas e garantias da Rua das flores nos saves da Etapa 07; ícone e roupa foram substituídos.
+`sponge_hat` e `sponge_uniform` foram separados do candidato conjunto aprovado (`295e9865-483c-4774-972e-04281cd9f5c1`).
+
+| Ícone 32×32 | Job | Galeria | Escolha |
+|---|---|---|---|
+| `outfit_red_scarf` | `721441ab-ee5a-445b-9fde-feedd330de6e` | `c79a5c26-5f88-5b3b-bda9-a61843024a60` | Rejeitado: personagem/rosto dentro do ícone |
+| `outfit_blue_collar` | `a4bbede8-efb8-4d21-b8d8-acdaf1fc7e24` | `cda202d6-09c7-58d6-b2ed-4e1f0249276c` | Instalado; 1ª tentativa |
+| `outfit_yellow_bow` | `312eef9e-dce4-4702-83d0-53c2823c5d0b` | `eb873fd3-4a37-5696-8c15-121e37e1a5d8` | Instalado; 1ª tentativa |
+| `outfit_rain_coat` | `7de525b2-b9b5-43c9-b613-b8776f34d1b0` | `164c8e3c-c76d-5e57-8a44-e3501ea3762b` | Rejeitado: personagem/rosto dentro do ícone |
+| `outfit_flower_crown` | `18013c92-d43e-400c-a5ef-855c58223188` | `e972c3e7-dd8c-5966-a1d6-da7c050dc0fc` | Rejeitado: personagem/rosto dentro do ícone |
+| `outfit_shell_collar` | `0736077a-4f42-4d2f-b735-323e1d634003` | `4f345358-6c29-573b-a5bf-fe6a045e428b` | Instalado; 1ª tentativa |
+| `outfit_knit_sweater` | `c4b612d2-27f6-49ee-a055-3aec2d27dff6` | `0960c08b-fc88-56f4-8c6d-7c0646d51afe` | Rejeitado: personagem/rosto dentro do ícone |
+| `outfit_feather_hat` | `0610bbbf-53db-45bb-8817-2a0da0503c4e` | `330b0524-ecfa-519c-ba60-037fe98d71d6` | Rejeitado: personagem/rosto dentro do ícone |
+| `outfit_golden_cape` | `ff4980c5-55c0-4667-b199-3487be664b8a` | `25f894c0-9182-5e8c-afff-f7c7a8ef85a4` | Rejeitado: personagem/rosto dentro do ícone |
+| `outfit_sponge_hat` | `db9772f7-53f2-407e-9736-2898ffa9846e` | `e594464e-bae4-58d1-ab55-16a94c79ca7c` | Instalado; 1ª tentativa |
+| `outfit_sponge_uniform` | `58cf292d-bf69-445d-97f4-dcc3bd71264d` | `2ebb5d13-962f-5b0a-87be-9ea258725e9c` | Rejeitado: personagem/rosto dentro do ícone |
+| `outfit_flower_clip` | `fe1b0f4f-65e5-4a4c-bffd-d09f79fde1d7` | `b9918c92-7542-5c59-a703-6d854acdf3de` | Instalado; 1ª tentativa |
+| `petshop` | `7369eb45-2c29-4e41-a242-3fab77888fe2` | `ce5c1050-c0fe-521d-9545-8f55dbe3981a` | Instalado; 1ª tentativa |
+| `action_sew` | `5aab422e-27fd-42c0-ae19-66511d6e476a` | `72c9ca90-0b53-5ac5-a64c-348690d60b94` | Instalado; 1ª tentativa |
+| `outfit_feather_hat` | `8bf5898a-b1c3-43bd-89bb-ab241a04d114` | `06fb3aa6-f1b2-5f37-804e-fbcca81e4f04` | Instalado; 2ª tentativa, peça vazia |
+| `outfit_flower_crown` | `196f4b2d-3ed7-4962-89c4-f851269cbd96` | `8c9bd141-aa25-5fe3-b85c-183da6068174` | Instalado; 2ª tentativa, peça vazia |
+| `outfit_golden_cape` | `a95880f0-b2f5-4f7c-add2-4fad72d77059` | `4a73f39c-38fe-5000-ae29-426274d61397` | Instalado; 2ª tentativa, peça vazia |
+| `outfit_knit_sweater` | `f842f52c-5e8f-49ee-b74e-0faf507e6680` | `20793eaa-b17d-5d8d-b432-95be47ebe61e` | Instalado; 2ª tentativa, peça vazia |
+| `outfit_rain_coat` | `8a502fba-e285-48b3-9659-d6cf3f2ef939` | `4035d16d-2dd6-5add-a8f1-0fe1ec570802` | Instalado; 2ª tentativa, peça vazia |
+| `outfit_red_scarf` | `cfcd697a-d5ef-4745-8aef-0a927e058a91` | `7b2e76ae-ce70-5f34-b21f-814433f08302` | Instalado; 2ª tentativa, peça vazia |
+| `outfit_sponge_uniform` | `80227967-fac9-448b-b1e6-f93ac1705d12` | `fb2019c4-5a9a-5026-a4bd-e351920d7209` | Instalado; 2ª tentativa, peça vazia |
+
+Ícones gerados com `create_image_pixen`, contorno preto, detalhe médio, transparente; pranchas
+`icons_review.png` e `icons_retry_review.png` abertas. Sete primeiras tentativas tinham personagem;
+as sete novas versões mostram só o acessório. Demais ícones dos raros reaproveitados da Etapa 07.
+
+| Objeto | Job / objeto PixelLab | Destino e encaixe |
+|---|---|---|
+| Quiosque 96×96 | `1a3d078c-96ee-40d1-928b-933dc3a8586a` / `1bd1cc85-f64e-4c9b-8d18-2dcde30b4ad2` | `areas/park/petshop.png`: placa de pata e mercadorias recortadas; o balcão/toldo já desenhados no fundo são preservados |
+| Costura 48×48 | `36cabb13-fa92-45c0-b826-9a29069483d4` / `cc894cc4-0ca5-440c-a751-a394b426fc06` | `areas/park/sewing_table.png`: recorte alpha, dentro do balcão; StationIndicator |
+
+Objetos: `create_object_pro_flash`, uma direção, low top-down. Não foi sobreposto um segundo
+balcão: extraídas só a placa e as mercadorias; o cenário mantém seus 15 obstáculos originais.
+Placa em `[500,209]`, mesa em `[531,191]`, sem footprint adicional, aproximação em `[449,209]`.
+
+**Pipeline final das roupas:** `New-OverlayFromDiff` mantém a diferença bruta RGBA (tolerância 24).
+`tools/outfit_extract.py` recorta o tecido por polígonos revisados e preserva o cachorro original
+fora das roupas. Canvas 256×216 e origem do quadro conservados. Há 18 bases e 954 variantes
+(972 PNGs), para `sad`, `eat`, `lick_paw`, `sleep` e `head_tilt`. As variantes reutilizam as artes
+PixelLab com âncoras, nearest-neighbor e máscaras de oclusão da face; não são 954 novas gerações.
+O lenço nas poses de comer, dormir e lamber usa também o tecido extraído diretamente dos três
+quadros `transfer_outfit` aprovados, sem transportar o pelo redesenhado. As demais poses usam
+a base fixa. `overlay_anchors.json` controla visibilidade; seis acrobáticas ocultam as camadas
+e o descanso as restaura. Dormir mantém roupa/chapéu: tecido aparece sobre as costas, atrás da cabeça.
+
+PetAnimator usa camadas corpo → pescoço → cabeça e cache limitado a 48 texturas; retratos
+de Desejos e boas-vindas usam recorte do canvas para o Tiro continuar legível em 64 px.
+`rare_star.png` recebeu limpeza de fundo escuro residual, com original preservado em build.
+Godot `--headless --import` concluído; PNGs, imports e UIDs entram no commit.
+
+**QA:** 40 capturas 360×780 sem headless, com timeout externo de 120 s, em
+`build/screenshots/etapa08/`; abertas e conferidas (lenço, 3 roupas, lendários juntos/sono, 22
+animações, Desejos, Coleção, Praça antes/depois, loja/costura/fila, raro e lendário com Vestir agora,
+cartão de roupa costurada e Diário). Pranchas `anim_review_00..02` e `outfits_review_<pose>`
+conferem os quadros e as 18 roupas nas cinco poses difíceis. Roteiro: `tests/petshop_shots.gd`.
+A introdução foi marcada como vista no estado de captura; nenhum save pessoal foi substituído.
+Exportação Web local de produção e desenvolvimento concluída sem erros; `overlay_anchors.json`
+conferido dentro dos dois pacotes exportados. Saída em `build/web/` e `build/web/dev/`, sem publicação.

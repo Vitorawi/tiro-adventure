@@ -22,45 +22,165 @@
       "recipe:pumpkin_mash"
     ],
     "care_need_threshold": 95,
-    "welcome_requirements": {"quests": ["lais_bed"]},
+    "welcome_requirements": {
+      "quests": [
+        "lais_bed"
+      ]
+    },
     "welcome_back_seconds": 300,
     "idle_hint_seconds": 15,
     "idle_hint_max_chapter": 4,
     "stat_labels": {
-      "walk": "passeios", "find": "achados", "wish": "desejos", "harvest": "colheitas",
-      "walk:flower_street": "passeios na Rua das flores", "walk:bird_clearing": "passeios na Clareira", "walk_rare": "raros de passeio", "water": "regas", "friend_gift": "petiscos a amigos", "trick": "truques"
+      "walk": "passeios",
+      "find": "achados",
+      "wish": "desejos",
+      "harvest": "colheitas",
+      "walk:flower_street": "passeios na Rua das flores",
+      "walk:bird_clearing": "passeios na Clareira",
+      "walk_rare": "raros de passeio",
+      "water": "regas",
+      "friend_gift": "petiscos a amigos",
+      "trick": "truques",
+      "equip": "apetrechos vestidos",
+      "sew": "apetrechos costurados",
+      "walk_legendary": "lendários de passeio"
     }
   },
   "level_rewards": {
-    "2": {"coins": 15, "items": {"dog_food": 2}},
-    "3": {"coins": 20, "items": {"carrot_snack": 1}},
-    "4": {"coins": 25, "items": {"bolt": 1}},
-    "5": {"coins": 30, "affection": 5},
-    "6": {"coins": 40, "items": {"bolt": 1}},
-    "7": {"coins": 50},
-    "8": {"coins": 60, "items": {"iron_band": 1}},
-    "9": {"coins": 70},
-    "10": {"coins": 100, "items": {"bolt": 2}},
-    "default": {"coins_per_level": 10}
+    "2": {
+      "coins": 15,
+      "items": {
+        "dog_food": 2
+      }
+    },
+    "3": {
+      "coins": 20,
+      "items": {
+        "carrot_snack": 1
+      }
+    },
+    "4": {
+      "coins": 25,
+      "items": {
+        "bolt": 1
+      }
+    },
+    "5": {
+      "coins": 30,
+      "affection": 5
+    },
+    "6": {
+      "coins": 40,
+      "items": {
+        "bolt": 1
+      }
+    },
+    "7": {
+      "coins": 50
+    },
+    "8": {
+      "coins": 60,
+      "items": {
+        "iron_band": 1
+      }
+    },
+    "9": {
+      "coins": 70
+    },
+    "10": {
+      "coins": 100,
+      "items": {
+        "bolt": 2
+      }
+    },
+    "default": {
+      "coins_per_level": 10
+    }
   },
   "daily_gift": [
-    {"items": {"dog_food": 3}},
-    {"coins": 15},
-    {"items": {"carrot_snack": 2}},
-    {"coins": 25},
-    {"items": {"bolt": 1}},
-    {"coins": 30},
-    {"coins": 40}
+    {
+      "items": {
+        "dog_food": 3
+      }
+    },
+    {
+      "coins": 15
+    },
+    {
+      "items": {
+        "carrot_snack": 2
+      }
+    },
+    {
+      "coins": 25
+    },
+    {
+      "items": {
+        "bolt": 1
+      }
+    },
+    {
+      "coins": 30
+    },
+    {
+      "coins": 40
+    }
   ],
   "bond_levels": [
-    {"affection": 0},
-    {"affection": 20, "rewards": {"coins": 15}},
-    {"affection": 50, "rewards": {"coins": 25, "items": {"carrot_snack": 2}}},
-    {"affection": 100, "rewards": {"coins": 40}},
-    {"affection": 170, "rewards": {"coins": 60, "items": {"bolt": 1}}},
-    {"affection": 260, "rewards": {"coins": 80}},
-    {"affection": 380, "rewards": {"coins": 100, "items": {"bolt": 1}}},
-    {"affection": 520, "rewards": {"coins": 150}}
+    {
+      "affection": 0
+    },
+    {
+      "affection": 20,
+      "rewards": {
+        "coins": 15
+      }
+    },
+    {
+      "affection": 50,
+      "rewards": {
+        "coins": 25,
+        "items": {
+          "carrot_snack": 2
+        }
+      }
+    },
+    {
+      "affection": 100,
+      "rewards": {
+        "coins": 40
+      }
+    },
+    {
+      "affection": 170,
+      "rewards": {
+        "coins": 60,
+        "items": {
+          "bolt": 1
+        }
+      }
+    },
+    {
+      "affection": 260,
+      "rewards": {
+        "coins": 80
+      }
+    },
+    {
+      "affection": 380,
+      "rewards": {
+        "coins": 100,
+        "items": {
+          "bolt": 1
+        }
+      }
+    },
+    {
+      "affection": 520,
+      "rewards": {
+        "coins": 150
+      }
+    }
   ],
   "features": {
     "wishes": {
@@ -120,8 +240,15 @@
     "walk_diary": {
       "name": "Diário de passeios",
       "icon": "action_walk",
-      "go": {"world": "park", "place": "walk"},
-      "requirements": {"stats": {"walk": 3}}
+      "go": {
+        "world": "park",
+        "place": "walk"
+      },
+      "requirements": {
+        "stats": {
+          "walk": 3
+        }
+      }
     },
     "finds": {
       "name": "Achados do Tiro",
@@ -133,6 +260,35 @@
         "quests": [
           "bloblo_dig"
         ]
+      }
+    },
+    "dress": {
+      "name": "Vestir o Tiro",
+      "icon": "outfit_red_scarf",
+      "requirements": {
+        "quests": [
+          "nina_petshop"
+        ]
+      },
+      "go": {
+        "screen": "pet",
+        "collection": true
+      }
+    },
+    "legendary_walks": {
+      "name": "Lendários dos passeios",
+      "icon": "rare_star",
+      "requirements": {
+        "owned": [
+          "petshop"
+        ],
+        "stats": {
+          "walk": 20
+        }
+      },
+      "go": {
+        "world": "park",
+        "place": "walk"
       }
     }
   },
@@ -173,36 +329,56 @@
       "world": "house",
       "place": "fridge",
       "building": "fridge",
-      "categories": ["food"],
+      "categories": [
+        "food"
+      ],
       "base": 30,
-      "levels": ["fridge_2", "fridge_3"]
+      "levels": [
+        "fridge_2",
+        "fridge_3"
+      ]
     },
     "chest": {
       "name": "Baú",
       "icon": "item_treat_box",
       "world": "house",
       "building": "chest",
-      "categories": ["product"],
+      "categories": [
+        "product"
+      ],
       "base": 20,
-      "levels": ["chest_2", "chest_3"]
+      "levels": [
+        "chest_2",
+        "chest_3"
+      ]
     },
     "silo": {
       "name": "Silo",
       "icon": "item_wheat",
       "world": "farm",
       "building": "silo",
-      "categories": ["crop"],
+      "categories": [
+        "crop"
+      ],
       "base": 40,
-      "levels": ["silo_2", "silo_3"]
+      "levels": [
+        "silo_2",
+        "silo_3"
+      ]
     },
     "warehouse": {
       "name": "Armazém",
       "icon": "item_plank",
       "world": "farm",
       "building": "warehouse",
-      "categories": ["material"],
+      "categories": [
+        "material"
+      ],
       "base": 40,
-      "levels": ["warehouse_2", "warehouse_3"]
+      "levels": [
+        "warehouse_2",
+        "warehouse_3"
+      ]
     }
   },
   "upgrades": {
@@ -211,8 +387,14 @@
       "world": "house",
       "description": "Guarda os produtos e os acessórios.",
       "cost": 80,
-      "materials": { "wood": 4 },
-      "requirements": { "quests": ["bloblo_warehouse"] },
+      "materials": {
+        "wood": 4
+      },
+      "requirements": {
+        "quests": [
+          "bloblo_warehouse"
+        ]
+      },
       "icon": "item_treat_box"
     },
     "silo": {
@@ -220,8 +402,14 @@
       "world": "farm",
       "description": "Guarda as colheitas do sítio.",
       "cost": 120,
-      "materials": { "wood": 6 },
-      "requirements": { "quests": ["main_9_cheese"] },
+      "materials": {
+        "wood": 6
+      },
+      "requirements": {
+        "quests": [
+          "main_9_cheese"
+        ]
+      },
       "icon": "item_wheat"
     },
     "warehouse": {
@@ -229,8 +417,15 @@
       "world": "farm",
       "description": "Guarda madeira, pedra e outros materiais.",
       "cost": 150,
-      "materials": { "wood": 8, "stone": 4 },
-      "requirements": { "quests": ["bloblo_silo"] },
+      "materials": {
+        "wood": 8,
+        "stone": 4
+      },
+      "requirements": {
+        "quests": [
+          "bloblo_silo"
+        ]
+      },
       "icon": "item_plank"
     },
     "fridge_2": {
@@ -238,8 +433,18 @@
       "world": "house",
       "description": "Cabem mais comidas, ovos e leite.",
       "cost": 150,
-      "materials": { "plank": 4, "bolt": 1 },
-      "requirements": { "owned": ["fridge"], "quests": ["bloblo_chest"] },
+      "materials": {
+        "plank": 4,
+        "bolt": 1
+      },
+      "requirements": {
+        "owned": [
+          "fridge"
+        ],
+        "quests": [
+          "bloblo_chest"
+        ]
+      },
       "storage_capacity": 20,
       "icon": "tab_house"
     },
@@ -248,8 +453,20 @@
       "world": "house",
       "description": "Mais espaço ainda para a comida.",
       "cost": 400,
-      "materials": { "plank": 8, "brick": 4, "bolt": 1, "iron_band": 1 },
-      "requirements": { "owned": ["fridge_2"], "quests": ["bloblo_bigger"] },
+      "materials": {
+        "plank": 8,
+        "brick": 4,
+        "bolt": 1,
+        "iron_band": 1
+      },
+      "requirements": {
+        "owned": [
+          "fridge_2"
+        ],
+        "quests": [
+          "bloblo_bigger"
+        ]
+      },
       "storage_capacity": 30,
       "icon": "tab_house"
     },
@@ -258,8 +475,18 @@
       "world": "house",
       "description": "Cabem mais produtos.",
       "cost": 150,
-      "materials": { "plank": 4, "bolt": 1 },
-      "requirements": { "owned": ["chest"], "quests": ["bloblo_chest"] },
+      "materials": {
+        "plank": 4,
+        "bolt": 1
+      },
+      "requirements": {
+        "owned": [
+          "chest"
+        ],
+        "quests": [
+          "bloblo_chest"
+        ]
+      },
       "storage_capacity": 20,
       "icon": "item_treat_box"
     },
@@ -268,8 +495,20 @@
       "world": "house",
       "description": "Mais espaço para produtos.",
       "cost": 400,
-      "materials": { "plank": 8, "brick": 4, "bolt": 1, "iron_band": 1 },
-      "requirements": { "owned": ["chest_2"], "quests": ["bloblo_bigger"] },
+      "materials": {
+        "plank": 8,
+        "brick": 4,
+        "bolt": 1,
+        "iron_band": 1
+      },
+      "requirements": {
+        "owned": [
+          "chest_2"
+        ],
+        "quests": [
+          "bloblo_bigger"
+        ]
+      },
       "storage_capacity": 30,
       "icon": "item_treat_box"
     },
@@ -278,8 +517,18 @@
       "world": "farm",
       "description": "Cabem mais colheitas.",
       "cost": 150,
-      "materials": { "plank": 4, "bolt": 1 },
-      "requirements": { "owned": ["silo"], "quests": ["bloblo_chest"] },
+      "materials": {
+        "plank": 4,
+        "bolt": 1
+      },
+      "requirements": {
+        "owned": [
+          "silo"
+        ],
+        "quests": [
+          "bloblo_chest"
+        ]
+      },
       "storage_capacity": 40,
       "icon": "item_wheat"
     },
@@ -288,8 +537,20 @@
       "world": "farm",
       "description": "Mais espaço para colheitas.",
       "cost": 400,
-      "materials": { "plank": 8, "brick": 4, "bolt": 1, "iron_band": 1 },
-      "requirements": { "owned": ["silo_2"], "quests": ["bloblo_bigger"] },
+      "materials": {
+        "plank": 8,
+        "brick": 4,
+        "bolt": 1,
+        "iron_band": 1
+      },
+      "requirements": {
+        "owned": [
+          "silo_2"
+        ],
+        "quests": [
+          "bloblo_bigger"
+        ]
+      },
       "storage_capacity": 60,
       "icon": "item_wheat"
     },
@@ -298,8 +559,18 @@
       "world": "farm",
       "description": "Cabem mais materiais.",
       "cost": 150,
-      "materials": { "plank": 4, "bolt": 1 },
-      "requirements": { "owned": ["warehouse"], "quests": ["bloblo_chest"] },
+      "materials": {
+        "plank": 4,
+        "bolt": 1
+      },
+      "requirements": {
+        "owned": [
+          "warehouse"
+        ],
+        "quests": [
+          "bloblo_chest"
+        ]
+      },
       "storage_capacity": 40,
       "icon": "item_plank"
     },
@@ -308,8 +579,20 @@
       "world": "farm",
       "description": "Mais espaço para materiais.",
       "cost": 400,
-      "materials": { "plank": 8, "brick": 4, "bolt": 1, "iron_band": 1 },
-      "requirements": { "owned": ["warehouse_2"], "quests": ["bloblo_bigger"] },
+      "materials": {
+        "plank": 8,
+        "brick": 4,
+        "bolt": 1,
+        "iron_band": 1
+      },
+      "requirements": {
+        "owned": [
+          "warehouse_2"
+        ],
+        "quests": [
+          "bloblo_bigger"
+        ]
+      },
       "storage_capacity": 60,
       "icon": "item_plank"
     },
@@ -363,8 +646,14 @@
       "world": "house",
       "description": "Um cantinho só dele para as sonecas.",
       "cost": 0,
-      "materials": {"bed_gift": 1},
-      "requirements": {"quests": ["lais_bag"]},
+      "materials": {
+        "bed_gift": 1
+      },
+      "requirements": {
+        "quests": [
+          "lais_bag"
+        ]
+      },
       "icon": "item_bed_gift"
     },
     "sofa": {
@@ -889,6 +1178,58 @@
       },
       "icon": "item_strawberry_pop",
       "station": "blender"
+    },
+    "petshop": {
+      "name": "Pet shop Patinhas",
+      "world": "park",
+      "description": "Roupinhas, ração e coisas de passeio.",
+      "cost": 150,
+      "materials": {
+        "stick": 4,
+        "ribbon": 2
+      },
+      "requirements": {
+        "quests": [
+          "nina_rare"
+        ]
+      },
+      "icon": "petshop"
+    },
+    "sewing_table": {
+      "name": "Mesa de costura",
+      "world": "park",
+      "description": "Materiais de passeio viram apetrechos.",
+      "cost": 100,
+      "materials": {
+        "yarn": 2,
+        "ribbon": 2
+      },
+      "requirements": {
+        "owned": [
+          "petshop"
+        ]
+      },
+      "icon": "action_sew",
+      "station": "sewing"
+    },
+    "walk_bag": {
+      "name": "Bolsinha de passeio",
+      "world": "park",
+      "description": "Uma coisa a mais de cada passeio.",
+      "cost": 200,
+      "materials": {
+        "yarn": 3,
+        "ribbon": 2
+      },
+      "requirements": {
+        "owned": [
+          "petshop"
+        ],
+        "stats": {
+          "walk": 10
+        }
+      },
+      "icon": "action_walk"
     }
   },
   "nature_sites": {
@@ -1724,5 +2065,16 @@
     "pickaxe_reinforced": "cave_level_2",
     "pickaxe_crystal": "cave_level_3",
     "sickle": "meadow_level_2"
+  },
+  "shop_items": {
+    "dog_food_pack": {
+      "name": "Pacote de ração",
+      "items": {
+        "dog_food": 5
+      },
+      "price": 15,
+      "shop": "petshop",
+      "icon": "item_dog_food"
+    }
   }
 }

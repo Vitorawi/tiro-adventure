@@ -19,6 +19,20 @@ ciclo **passear → materiais/raros → vestir**.
    tempo, como o fogão). Ao recolher, a roupa vai direto para a Coleção com festa + "Vestir agora".
 5. O cartão de raro do passeio (Etapa 07) ganha o botão **Vestir agora**.
 
+### Ajustes pedidos pelo Vitor durante a Parte A (14/10/2026)
+- Lenço vermelho e método `transfer_outfit` aprovados após as comparações de poses.
+- Acrescentar dois acessórios lendários do tema Bob Esponja, que possam ser vestidos juntos:
+  `sponge_uniform` (body), "Uniforme de esponjinha", e `sponge_hat` (head), "Chapéu do Siri Cascudo".
+  O Vitor escolheu **os dois** e pediu detalhes mais reconhecíveis do Bob Esponja.
+- Uniforme: colete amarelo com poros de esponja, gola branca, gravata vermelha, barra marrom
+  remetendo à calça quadrada e pequenos detalhes de meias. Chapéu branco com âncora azul,
+  detalhe vermelho e pequena marca amarela de esponja. Rosto/pelo/patas do Tiro preservados.
+- Primeiro gerar uma prévia conjunta; arte final deve separar os slots. Lendário é cosmético;
+  obtenção implementada após pet shop + 20 passeios: 1% independente, garantia em 30 voltas
+  elegíveis por peça (chapéu, depois uniforme). Não altera a garantia dos sete raros existentes.
+- Óculos escuros clássicos substituem a presilha no catálogo e na arte; id `flower_clip`
+  preservado para manter a posse nos saves existentes.
+
 ## Parte A — investigação de arte (FAÇA PRIMEIRO, antes de programar)
 O Tiro grande tem ~22 animações (`characters/tiro_pet/<animação>/frame_XX.png`, quadros 256×216).
 Redesenhar todas com cada roupa é caro. Método escolhido (barato e alinhado):
@@ -55,31 +69,31 @@ description: "the exact same yorkshire terrier puppy in the exact same pose and 
 ## Parte B — código
 
 ### 8.1 Dados das roupas (`collections.json`)
-- [ ] Toda roupa ganha `"overlay": "res://assets/sprites/characters/tiro_pet/overlays/<id>.png"` quando a arte existir.
-- [ ] Roupas do pet shop: `"price": <moedas>`, `"shop": "petshop"`.
-- [ ] Roupas da costura: `"recipe": "<id da receita>"`.
-- [ ] Novas (pet shop): `red_scarf` "Lenço vermelho" (neck, 60), `blue_collar` "Coleira azul" (neck, 80),
+- [x] Toda roupa ganha `"overlay": "res://assets/sprites/characters/tiro_pet/overlays/<id>.png"` quando a arte existir.
+- [x] Roupas do pet shop: `"price": <moedas>`, `"shop": "petshop"`.
+- [x] Roupas da costura: `"recipe": "<id da receita>"`.
+- [x] Novas (pet shop): `red_scarf` "Lenço vermelho" (neck, 60), `blue_collar` "Coleira azul" (neck, 80),
   `yellow_bow` "Lacinho amarelo" (head, 50), `rain_coat` "Capa de chuva" (body, 140).
-- [ ] Novas (costura): `flower_crown` "Coroa de flores" (head), `shell_collar` "Coleira de conchas" (neck),
+- [x] Novas (costura): `flower_crown` "Coroa de flores" (head), `shell_collar` "Coleira de conchas" (neck),
   `knit_sweater` "Suéter de tricô" (body), `feather_hat` "Chapéu de pena" (head), `golden_cape` "Capa dourada" (body).
 
 ### 8.2 Estado e ações
-- [ ] `progress.equipped = {"head": "", "neck": "", "body": ""}` (salvo).
-- [ ] `GameState.equip_error(id)`, `equip(id)` (veste no `slot` da roupa, trocando a que estava),
+- [x] `progress.equipped = {"head": "", "neck": "", "body": ""}` (salvo).
+- [x] `GameState.equip_error(id)`, `equip(id)` (veste no `slot` da roupa, trocando a que estava),
   `unequip(slot)`; contador `equip`.
-- [ ] `GameState.buy_cosmetic_error(id)`, `buy_cosmetic(id)` (desconta `price`, dá a coleção, conta `buy_cosmetic`).
-- [ ] Coleções com `overlay` vazio: podem ser vestidas? **Não** — mostram "Em breve no Tiro" e
+- [x] `GameState.buy_cosmetic_error(id)`, `buy_cosmetic(id)` (desconta `price`, dá a coleção, conta `buy_cosmetic`).
+- [x] Coleções com `overlay` vazio: podem ser vestidas? **Não** — mostram "Em breve no Tiro" e
   desabilitam Vestir (evita vestir algo invisível). Prioridade de arte: as 7 raras de passeio, as 5 de
   costura, as 4 do pet shop; depois as antigas (`farm_ribbon`, `trail_bandana`, ...).
 
 ### 8.3 Tiro vestido
-- [ ] `PetAnimator`: camadas `TextureRect` por cima do Tiro, na ordem corpo → pescoço → cabeça,
+- [x] `PetAnimator`: camadas `TextureRect` por cima do Tiro, na ordem corpo → pescoço → cabeça,
   mesmo tamanho/posição do sprite do Tiro; visíveis só nas animações de `show_in` (com `offsets`);
   escondidas dormindo? **Não**: dormindo continua (é fofo de pijama); só some nas acrobáticas.
-- [ ] Usado na tela do Tiro, no cabeçalho da aba Desejos e em qualquer retrato do Tiro grande.
+- [x] Usado na tela do Tiro, no cabeçalho da aba Desejos e em qualquer retrato do Tiro grande.
 
 ### 8.4 Pet shop e costura (Praça)
-- [ ] `progression.json → upgrades`:
+- [x] `progression.json → upgrades`:
 ```json
 "petshop": {"name": "Pet shop Patinhas", "world": "park",
   "description": "Roupinhas, ração e coisas de passeio.",
@@ -94,8 +108,8 @@ description: "the exact same yorkshire terrier puppy in the exact same pose and 
   "cost": 200, "materials": {"yarn": 3, "ribbon": 2},
   "requirements": {"owned": ["petshop"], "stats": {"walk": 10}}, "icon": "action_walk"}
 ```
-- [ ] `config.json → stations.sewing`: `{"name": "Mesa de costura", "slots": 1, "instruction": "Materiais de passeio viram apetrechos."}`.
-- [ ] `recipes.json` (campo novo `output_collection`: ao recolher, dá a coleção em vez de item;
+- [x] `config.json → stations.sewing`: `{"name": "Mesa de costura", "slots": 1, "instruction": "Materiais de passeio viram apetrechos."}`.
+- [x] `recipes.json` (campo novo `output_collection`: ao recolher, dá a coleção em vez de item;
   `collect` conta `sew` e `produce:<id>`; se já tem a roupa, devolve os materiais? **Não**: a receita
   fica desabilitada com "Você já tem" — `cook_error` checa):
 ```json
@@ -109,10 +123,10 @@ description: "the exact same yorkshire terrier puppy in the exact same pose and 
   `SheetBuilder` (ícone = ícone da coleção) e `Database` (usos dos itens: "Costura: Coroa de flores")
   para entender `output_collection`. A `note` dos materiais (Etapa 07) deixa de aparecer quando o
   item passa a ter uso de receita.
-- [ ] `walk_bag`: em `collect_walk`, `rolls + 1` se comprado.
-- [ ] `worlds.json → park.places.petshop`: `{"name": "Pet shop", "icon": "petshop", "description": "Roupinhas e costura.",
+- [x] `walk_bag`: em `collect_walk`, `rolls + 1` se comprado.
+- [x] `worlds.json → park.places.petshop`: `{"name": "Pet shop", "icon": "petshop", "description": "Roupinhas e costura.",
   "upgrade": "petshop", "panel": "petshop", "requirements": {"quests": ["nina_rare"]}}`.
-- [ ] Painel `petshop` (novo caso em `Places._panel` → `ProgressionUi.petshop_panel()`), três blocos:
+- [x] Painel `petshop` (novo caso em `Places._panel` → `ProgressionUi.petshop_panel()`), três blocos:
   1. **Costura** (se `sewing_table` comprada; senão cartão de compra): espaço da estação em cima
      (padrão `slot_frame`) + cartões das receitas (ícone 64 da roupa, chips dos materiais tem/precisa,
      tempo, botão Costurar; "Você já tem ✓" quando já é sua);
@@ -120,7 +134,7 @@ description: "the exact same yorkshire terrier puppy in the exact same pose and 
      (5 rações por 15 moedas — item de loja simples: `progression.json → shop_items.dog_food_pack = {"items": {"dog_food": 5}, "price": 15, "shop": "petshop"}`),
      **Bolsinha de passeio** (compra de upgrade);
   3. nada mais (uma tela por vez).
-- [ ] `rooms/park.json`: objeto do quiosque com `upgrade: "petshop"`, `action: "place:petshop"`; antes
+- [x] `rooms/park.json`: objeto do quiosque com `upgrade: "petshop"`, `action: "place:petshop"`; antes
   da compra o "+" aparece sobre o quiosque vazio do fundo. A mesa de costura aparece dentro/ao lado
   (`upgrade: "sewing_table"`, `station: "sewing"`) com `StationIndicator`.
 
@@ -142,10 +156,8 @@ description: "the exact same yorkshire terrier puppy in the exact same pose and 
   "rewards": {"coins": 40, "items": {"ribbon": 2}},
   "kind": "line", "line": "nina", "order": 70}
 ```
-- [ ] `Places.goal_target`: `equip` → tela do Tiro (abre Coleção); `sew` → `park` + `petshop`.
-- [ ] Diária `sew`: "Costure 1 apetrecho" só se ainda existir receita disponível (requisito: `owned sewing_table`).
-  Se o jogador já tiver todas, a diária não deve ser sorteada (use um requisito que o `routine` checa:
-  acrescente `"has_recipe": "sewing"` ou simplesmente não crie essa diária — **recomendado: não criar**).
+- [x] `Places.goal_target`: `equip` → tela do Tiro (abre Coleção); `sew` → `park` + `petshop`.
+- [x] Diária de costura **não criada**, seguindo a recomendação: as cinco receitas são finitas.
 
 ### 8.6 Arte
 **Sobreposições** (Parte A) para cada roupa com arte → `characters/tiro_pet/overlays/<id>.png`.
@@ -157,7 +169,7 @@ Descrições para o `edit_image_pro_flash` (`<ROUPA>`):
 | `yellow_bow` | "a small yellow bow on top of its head" |
 | `rain_coat` | "a yellow raincoat covering its back" |
 | `plaid_bow` | "a small red and green plaid bow on top of its head" |
-| `flower_clip` | "a pink flower hair clip on one ear" |
+| `flower_clip` | "classic black sunglasses on its face" |
 | `bow_tie` | "a navy blue polka dot bow tie under its chin" |
 | `sailor_scarf` | "a blue and white sailor neckerchief" |
 | `explorer_backpack` | "a tiny brown explorer backpack on its back" |
@@ -177,20 +189,28 @@ shelves with dog toys and a tiny sewing table at its side, isometric 3/4 view, p
 `width: 96, height: 96` → recorte → `areas/park/petshop.png`. Confira encaixe sobre o quiosque vazio do fundo.
 
 ## Testes — `petshop_test.gd` (novo)
-- [ ] Vestir/tirar salva; uma por lugar; não veste o que não tem; sem `overlay` → erro "Em breve".
-- [ ] Comprar desconta uma vez; não compra repetido; pacote de ração dá 5.
-- [ ] Costura: consome materiais uma vez, dá a coleção ao recolher, não deixa costurar o que já tem.
-- [ ] `walk_bag`: passeio sorteia `rolls + 1`.
-- [ ] Teste de dados: toda roupa com `overlay` tem arquivo; `overlay_anchors.json` válido.
-- [ ] Cartão de raro mostra "Vestir agora" e veste.
+- [x] Vestir/tirar salva; uma por lugar; não veste o que não tem; sem `overlay` → erro "Em breve".
+- [x] Comprar desconta uma vez; não compra repetido; pacote de ração dá 5.
+- [x] Costura: consome materiais uma vez, dá a coleção ao recolher, não deixa costurar o que já tem.
+- [x] `walk_bag`: passeio sorteia `rolls + 1`.
+- [x] Teste de dados: toda roupa com `overlay` tem arquivo; `overlay_anchors.json` válido.
+- [x] Cartão de raro mostra "Vestir agora" e veste.
 
 ## Capturas
 Tiro de lenço (tela do Tiro), Tiro com 3 roupas; animação acrobática sem roupa e voltando; Coleção → Roupas;
 pet shop (comprar e costura); cartão de raro com "Vestir agora".
 
 ## Lista de conferência (aceite)
-- [ ] O Vitor viu e aprovou o lenço antes do resto (anotado no ROADMAP).
-- [ ] Raros de passeio aparecem no Tiro.
-- [ ] Costura usa só materiais de passeio.
-- [ ] CLAUDE.md/AGENTS.md (vestir: `equipped`, overlays, `overlay_anchors.json`, `output_collection`,
+- [x] O Vitor viu e aprovou o lenço antes do resto (14/10/2026, após teste transfer_outfit; anotado no ROADMAP).
+- [x] Raros de passeio aparecem no Tiro.
+- [x] Costura usa só materiais de passeio.
+- [x] CLAUDE.md/AGENTS.md (vestir: `equipped`, overlays, `overlay_anchors.json`, `output_collection`,
   pet shop), `docs/ART_PIPELINE.md` (pipeline das sobreposições), ROADMAP, README; commit.
+
+## Resultado da execução (14/10/2026)
+Etapa concluída; 18 sobreposições base e 954 variantes por quadro, com sono vestido e acrobacias
+sem roupas. As 14 coleções antigas sem arte permanecem "Em breve no Tiro", como autorizado no plano.
+O quiosque do fundo já tinha balcão: usados apenas placa/produtos e a mesa, sem duplicar obstáculos.
+Extração híbrida, jobs e alinhamentos em `docs/ART_PIPELINE.md`; aprovação/decisões e resultados
+das 25 execuções individuais em "Estado atual" do ROADMAP. Capturas 360×780 sem headless,
+com timeout externo, conferidas em `build/screenshots/etapa08/`. Etapa 09 não iniciada; sem push.

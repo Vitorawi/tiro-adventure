@@ -3,7 +3,6 @@ extends RefCounted
 ## Peças visuais dos desejos do Tiro e do vínculo: cartão de desejo, cabeçalho com vínculo,
 ## painel "o que libera" e o balão. Ícone + número; só ações pelo GameState.
 
-const TIRO_PORTRAIT := "res://assets/sprites/characters/tiro_pet/tiro_pet_idle_front.png"
 
 
 ## Ícone do desejo: o campo "icon" (ação) ou o do item pedido.
@@ -18,7 +17,7 @@ static func icon(wish_id: String) -> Texture2D:
 static func header(box: VBoxContainer) -> void:
 	var card := UiKit.card(box, &"CardPanel")
 	var row := UiKit.hbox(10)
-	row.add_child(UiKit.icon(load(TIRO_PORTRAIT), 64))
+	row.add_child(PetAnimator.portrait())
 	var info := UiKit.vbox(4)
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.add_child(UiKit.label("O que o Tiro quer", &"SectionLabel"))
