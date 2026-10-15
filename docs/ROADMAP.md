@@ -2,7 +2,9 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **15/10/2026, Codex (Interface nova, Etapa 05)**.
+> um do outro. Última atualização: **15/10/2026, Codex (capítulos nos bloqueios do seletor)**.
+
+**Bloqueios do seletor (15/10/2026, Codex):** novo pedido do Vitor prevalece sobre a opção antiga de esconder o número do capítulo. Os mundos fechados mantêm o cadeado/cartão desabilitado e agora mostram **"Abre no capítulo N"**, seguido da história ou missão exigida. Capítulo derivado dos dados: Sítio 1 (caminha), Praça 4 (encomenda), Vila 4, Natureza 5; nenhuma regra foi alterada. `world_selector_test` valida capítulos, cadeados e impossibilidade de viajar com o cartão fechado; `worlds_test` também PASS. Capturas dos quatro bloqueios conferidas em `build/screenshots/seletor_capitulos/`, prancha em `build/preview/seletor_capitulos/mundos_bloqueados.png`. Export Web prod/dev atualizado; commit local, sem push. Etapa 06 permanece na sessão já criada.
 
 **▶ PLANO ATUAL (15/10/2026): Interface nova — `docs/plans/interface/README.md`.** Aprovado pelo Vitor
 ("vamos nessas ideias mesmo"). 13 etapas (00–12), executar **uma por vez, na ordem**, com o prompt do README.

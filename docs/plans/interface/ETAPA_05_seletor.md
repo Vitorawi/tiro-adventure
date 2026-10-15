@@ -5,6 +5,9 @@
 > Pré-requisito: Etapas 00–04.
 
 ## Objetivo (o que o jogador sente)
+> Ajuste aprovado pelo Vitor após a entrega (15/10/2026): mostrar o capítulo nos mundos fechados.
+> Este pedido substitui a recomendação original de omitir o número; os requisitos não mudam.
+
 "A aba Mapa me leva direto para onde eu estava. Para ir a outro lugar, abro um carrossel bonito com
 os mundos, deslizo e toco — e uma nuvem passa na tela enquanto eu viajo."
 Fim da lista vertical de blocos grandes com "Abre no capítulo 4".
@@ -47,9 +50,10 @@ Fim da lista vertical de blocos grandes com "Abre no capítulo 4".
 
 ### 5.3 Texto do bloqueio
 - [x] Nova função `Places.unlock_hint(world_id) -> Dictionary` `{icon, text}`:
-  - requisito `chapter: N` → ícone da história + "Na história: <nome do capítulo N>" (nome de
-    `progression.json → chapters[N-1].name`, sem o número);
-  - requisito `quests: [id]` → retrato do NPC da missão + "Depois de: <nome da missão>";
+  - requisito `chapter: N` → ícone da história + "Abre no capítulo N" e o nome de
+    `progression.json → chapters[N-1].name`;
+  - requisito `quests: [id]` → retrato do NPC, "Abre no capítulo N" (de `quests[id].chapter`)
+    e "Após: <nome da missão>";
   - outro requisito → o texto que `world_error` já devolve.
 - [x] O cartão mostra `lock_hint` com esse ícone/texto; a miniatura fica com `modulate.a 0.55` e um
   cadeado grande no meio.
@@ -72,7 +76,7 @@ Fim da lista vertical de blocos grandes com "Abre no capítulo 4".
 - [x] `worlds_test`/`navigation_test`: atualizar onde dependem da lista antiga. Casos novos:
   - aba Mapa abre no mundo atual (não no seletor);
   - tocar de novo na aba abre o seletor; `is_map_open()` verdadeiro;
-  - `WorldCard_nature` desabilitado antes do capítulo; `Places.unlock_hint("nature").text` não contém "capítulo";
+  - `WorldCard_nature` desabilitado antes do capítulo; `Places.unlock_hint("nature").text` mostra "Abre no capítulo 5";
   - pressionar `WorldCard_farm` (central) entra no Sítio;
   - `Events.world_requested("village", "market")` com `reduced` abre a Vila e o painel da feira.
 
@@ -83,7 +87,7 @@ esperando 0,2 s).
 
 ## Lista de conferência (aceite)
 - [x] Aba Mapa abre no mundo; seletor em carrossel com encaixe.
-- [x] Bloqueio sem "capítulo N".
+- [x] Bloqueio com "Abre no capítulo N", conforme pedido final do Vitor.
 - [x] Transição de nuvem entre mundos (alternativa `PAPER` arredondada).
 - [x] CLAUDE.md/AGENTS.md (`ui/worlds_screen/` e `ui/world_transition/` na Estrutura; "Botão Ir até lá");
   `docs/WORLDS.md` (ícone do mundo).

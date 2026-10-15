@@ -90,7 +90,8 @@ enquanto ele está aberto, sem alterar o zoom ou desalinhamento da textura do ch
 "Você está aqui", quantidade de avisos (`Places.world_alerts`) e selo de missão. `map_name`, `map_caption`
 e `icon` de `worlds.json` fornecem os textos/ícones; os cinco ícones próprios são `tab_house`, `tab_farm`,
 `tab_park`, `tab_village` e `tab_nature`. Mundo fechado fica desabilitado, com cadeado e
-`Places.unlock_hint`: nome da história ou missão e seu ícone/retrato, sem número de capítulo.
+`Places.unlock_hint`: "Abre no capítulo N", nome da história ou missão e seu ícone/retrato.
+Quando o requisito é uma missão, o capítulo vem do próprio `quests.json`, sem alterar a regra de abertura.
 
 `WorldsScreen.enter` usa `WorldTransition` quando muda o mundo com a aba visível. Duas massas de papel
 arredondadas entram em 0,22 s, a sala troca coberta e elas saem em 0,22 s (alternativa permitida pelo plano).
