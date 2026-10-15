@@ -17,11 +17,21 @@ extends Control
 	&"tasks": %TasksTab,
 	&"bag": %BagTab,
 }
-@onready var _level_label: Label = %LevelLabel
-@onready var _coins_label: Label = %CoinsLabel
-@onready var _toast: Label = %Toast
+@onready var _hud: Hud = %TopBar
+@onready var _toast: Control = %Toast
+@onready var _toast_text: Label = %ToastText
+@onready var _toast_icon: TextureRect = %ToastIcon
+
+## Aviso (toast) desce de y = TOAST_FROM_Y até TOAST_Y, logo abaixo do HUD; com o banner de atualização aberto, desce mais.
+const TOAST_FROM_Y := -40.0
+const TOAST_Y := 68.0
+const TOAST_BELOW_BANNER_Y := 116.0
+const TOAST_MAX_WIDTH := 320.0
+const TOAST_HOLD := 1.6
+const TOAST_FADE := 0.3
 
 var _toast_tween: Tween
+var _faces: Dictionary = {}  # id da aba → NavTab
 var _current_screen: StringName = &""
 var _tasks_badge: Label
 var _map_badge: Label
@@ -43,12 +53,9 @@ var _pending_level: Dictionary = {}
 func _ready() -> void:
 	for id: StringName in _tabs:
 		_tabs[id].pressed.connect(_on_tab_pressed.bind(id))
-		# Ícone em cima e texto embaixo: as cinco abas cabem na largura de 360 px.
-		_tabs[id].expand_icon = true
-		_tabs[id].icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		_tabs[id].vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-		_tabs[id].add_theme_constant_override("icon_max_width", 28)
-		_tabs[id].add_theme_font_size_override("font_size", 18)
+		# Ícone em cima e nome embaixo; a aba ativa ganha o círculo e sobe (as cinco cabem em 360 px).
+		_faces[id] = NavTab.attach(_tabs[id])
+		_tabs[id].pressed.connect(func() -> void: Motion.bounce(_faces[id].icon_node()))
 	Events.screen_requested.connect(show_screen)
 	Events.world_requested.connect(_on_world_requested)
 	_celebration = load("res://scenes/ui/celebration/celebration.tscn").instantiate()
@@ -87,20 +94,13 @@ func _ready() -> void:
 	Events.update_available.connect(%UpdateBanner.show)
 	%UpdateBanner.pressed.connect(PwaUpdater.apply_update)
 	%UpdateBanner.visible = PwaUpdater.update_ready
-	%VersionLabel.text = "v%s %s  " % [Database.version.get("version", "?"), Database.version.get("date", "")]
-	# Atalho de emergência: tocar na versão força a atualização.
-	%VersionLabel.gui_input.connect(func(event: InputEvent) -> void:
-		var button := event as InputEventMouseButton
-		if button and button.pressed:
-			PwaUpdater.apply_update())
 	# Versão dev: selo DEV abre as ferramentas de teste (BuildInfo / DevPanel).
-	%DevButton.visible = BuildInfo.is_dev()
-	_build_settings_button()
-	%DevButton.pressed.connect(func() -> void:
+	# (A versão e o atalho de atualização moraram no HUD; agora ficam no rodapé das Configurações.)
+	_hud.dev_button.visible = BuildInfo.is_dev()
+	_hud.dev_button.pressed.connect(func() -> void:
 		Events.sheet_requested.emit("Ferramentas DEV", DevPanel.panel()))
-	_toast.modulate.a = 0.0
-	UiKit.tint_bar(%XpBar, Palette.GOLD)
-	_refresh_top_bar()
+	UiKit.tint_bar(_hud.xp_bar, Palette.GOLD)
+	_hud.refresh(false)
 	show_screen(&"pet")
 	# Jogo novo: a Laís chega com o Tiro e apresenta a casa (uma vez só).
 	if IntroScene.should_show():
@@ -196,12 +196,15 @@ func _build_tasks_badge() -> void:
 	_wishes_badge = _tasks_badge.duplicate() as Label
 	_wishes_badge.name = "WishesBadge"
 	%WishesTab.add_child(_wishes_badge)
-	# O selo fica no canto de cima, à direita do ícone (centrado na aba).
-	for pair: Array in [[%TasksTab, _tasks_badge], [%MapTab, _map_badge], [%WishesTab, _wishes_badge]]:
-		var tab: Button = pair[0]
+	# O selo fica no canto de cima, à direita do ÍCONE (não da aba): centro do ícone + (14, −20).
+	for pair: Array in [[&"tasks", _tasks_badge], [&"map", _map_badge], [&"wishes", _wishes_badge]]:
+		var tab: Button = _tabs[pair[0]]
+		var face: NavTab = _faces[pair[0]]
 		var badge: Label = pair[1]
-		var place := func() -> void: badge.position = Vector2(tab.size.x / 2.0 + 6.0, 0.0)
+		var place := func() -> void: badge.position = face.icon_center() + Vector2(14.0, -20.0) - badge.size / 2.0
 		tab.resized.connect(place)
+		badge.resized.connect(place)
+		tab.toggled.connect(func(_pressed: bool) -> void: place.call())
 		place.call()
 	var timer := Timer.new()
 	timer.wait_time = 1.0
@@ -242,38 +245,44 @@ func _refresh_tasks_badge() -> void:
 	_wishes_badge.visible = GameState.fulfillable_wish_count() > 0
 
 
-## Engrenagem ao lado das moedas: abre as configurações (vários saves).
-func _build_settings_button() -> void:
-	var gear := Button.new()
-	gear.name = "SettingsButton"
-	gear.flat = true
-	gear.icon = UiKit.ui_icon("settings")
-	gear.expand_icon = true
-	gear.custom_minimum_size = Vector2(48, 48)
-	gear.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	gear.add_theme_constant_override("icon_max_width", 48)
-	# Sem margens internas do botão: o ícone ocupa todo o espaço.
-	for style: String in ["normal", "hover", "pressed", "focus", "disabled"]:
-		gear.add_theme_stylebox_override(style, StyleBoxEmpty.new())
-	gear.pressed.connect(SettingsPanel.open)
-	%CoinsLabel.get_parent().add_child(gear)
-
-
 func _refresh_top_bar() -> void:
-	_level_label.text = "Nível %d" % GameState.level
-	%XpBar.max_value = GameState.xp_to_next_level()
-	%XpBar.value = GameState.xp
-	_coins_label.text = str(GameState.coins)
+	_hud.refresh()
 
 
+## Aviso: pílula que desce de cima até logo abaixo do HUD, fica 1,6 s e some em 0,3 s.
+## Aviso novo com outro ainda na tela: troca o texto, dá um pulinho e reinicia o tempo.
 func _show_toast(text: String) -> void:
-	_toast.text = text
+	var on_screen := _toast.visible and _toast.modulate.a > 0.0
+	_toast_text.text = text
+	_toast_icon.visible = text.begins_with("Missão concluída")
+	if _toast_icon.visible:
+		_toast_icon.texture = UiKit.ui_icon("ui_check")
+	# Largura do texto (até 320 com o ícone e as margens); só então a pílula assume o tamanho certo.
+	var font := _toast_text.get_theme_font("font")
+	var font_size := _toast_text.get_theme_font_size("font_size")
+	var limit := TOAST_MAX_WIDTH - 20.0 - (38.0 if _toast_icon.visible else 0.0)
+	_toast_text.custom_minimum_size.x = minf(font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x + 2.0, limit)
+	_toast_text.custom_minimum_size.y = 0.0
+	_toast.reset_size()
+	_toast.pivot_offset = _toast.size / 2.0
+	var target_y := TOAST_BELOW_BANNER_Y if %UpdateBanner.visible else TOAST_Y
+	_toast.position.x = (size.x - _toast.size.x) / 2.0
 	if _toast_tween:
 		_toast_tween.kill()
+	_toast.show()
 	_toast.modulate.a = 1.0
 	_toast_tween = create_tween()
-	_toast_tween.tween_interval(1.6)
-	_toast_tween.tween_property(_toast, "modulate:a", 0.0, 0.4)
+	if on_screen:
+		_toast.position.y = target_y
+		Motion.bounce(_toast)
+	elif Motion.reduced:
+		_toast.position.y = target_y
+	else:
+		_toast.position.y = TOAST_FROM_Y
+		_toast_tween.tween_property(_toast, "position:y", target_y, Motion.SLIDE).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_toast_tween.tween_interval(TOAST_HOLD)
+	_toast_tween.tween_property(_toast, "modulate:a", 0.0, TOAST_FADE)
+	_toast_tween.tween_callback(_toast.hide)
 
 
 func _refresh_guide() -> void:
@@ -285,13 +294,12 @@ func _refresh_guide() -> void:
 		if _tasks_pulse:
 			_tasks_pulse.kill()
 			_tasks_pulse = null
-		%TasksTab.modulate = Color.WHITE
+			_faces[&"tasks"].lift_node().scale = Vector2.ONE
 		%TasksTab.tooltip_text = ""
 	elif not _tasks_pulse:
+		# Chama o olhar para a aba Missões pulsando o ícone (sem frase na tela do Tiro).
 		%TasksTab.tooltip_text = "Comece por aqui!"
-		_tasks_pulse = create_tween().set_loops()
-		_tasks_pulse.tween_property(%TasksTab, "modulate", Palette.ACCENT, 0.7)
-		_tasks_pulse.tween_property(%TasksTab, "modulate", Color.WHITE, 0.7)
+		_tasks_pulse = Motion.pulse(_faces[&"tasks"].lift_node())
 
 
 func _on_quest_completed(id: String) -> void:

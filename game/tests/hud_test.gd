@@ -1,0 +1,150 @@
+extends SceneTree
+## Etapa 03 da interface nova: HUD flutuante (avatar com anel de XP, moedas, DEV), abas com rosto animado,
+## balão do nível (Popover) e aviso (toast) que desce abaixo do HUD.
+## Sem `Motion.reduced` os tempos seriam de animação; aqui ele fica ligado para os números chegarem na hora.
+
+var failures: int = 0
+var state: Node
+var main: Control
+
+
+func _initialize() -> void:
+	_run.call_deferred()
+
+
+func check(ok: bool, message: String) -> void:
+	if not ok:
+		failures += 1
+		push_error("HUD: " + message)
+
+
+func _run() -> void:
+	var saver: Node = root.get_node("SaveManager")
+	root.remove_child(saver)
+	saver.free()
+	state = root.get_node("GameState")
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	Motion.reduced = true
+	main = (load("res://scenes/main/main.tscn") as PackedScene).instantiate()
+	root.add_child(main)
+	for i in 3:
+		await process_frame
+	await _structure()
+	await _numbers()
+	await _toast()
+	await _tabs()
+	await _popover()
+	await _coin_flight()
+	Motion.reduced = false
+	print("HUD TEST: ", "PASS" if failures == 0 else "FAIL")
+	quit(1 if failures else 0)
+
+
+func _structure() -> void:
+	var top: Node = main.find_child("TopBar", true, false)
+	check(top != null and top.get_parent() == main, "o TopBar é filho direto da casca, fora do Layout")
+	check(main.get_node("Layout").find_child("TopBar", true, false) == null, "nada chamado TopBar dentro do Layout")
+	check((top as Control).mouse_filter == Control.MOUSE_FILTER_IGNORE, "o fundo do HUD não pega toque")
+	check(top.get_index() > main.get_node("Layout").get_index() and top.get_index() < main.get_node("Sheet").get_index(), "HUD fica depois do Layout e antes do Sheet")
+	for node_name: String in ["LevelLabel", "XpBar", "CoinsLabel", "DevButton", "SettingsButton", "HudAvatar"]:
+		check(main.find_child(node_name, true, false) != null, node_name + " existe")
+	check(main.find_child("VersionLabel", true, false) == null, "a versão saiu do HUD")
+	check(main.find_child("DevButton", true, false).visible == load("res://scripts/util/build_info.gd").call("is_dev"), "DEV só aparece na versão dev")
+	check(not (main.find_child("XpBar", true, false) as Control).visible, "XpBar fica invisível (só compatibilidade)")
+	# Telas sem mundo não ficam embaixo do HUD (60 px).
+	for pair: Array in [["PetScreen", "Margin"], ["WishesScreen", "Margin"], ["TasksScreen", "Margin"], ["BagScreen", "Margin"]]:
+		var margin := main.find_child(pair[0], true, false).find_child(pair[1], true, false) as MarginContainer
+		check(margin != null and margin.get_theme_constant("margin_top") >= 64, "%s deixa 64 px para o HUD" % pair[0])
+	# Pílula de moedas com 40 px de altura e engrenagem 44.
+	check(main.find_child("CoinsPill", true, false).size.y >= 40.0, "pílula de moedas tem 40 px")
+	check(main.find_child("SettingsButton", true, false).size.x == 44.0, "engrenagem de 44 px")
+
+
+func _numbers() -> void:
+	var level_label: Label = main.find_child("LevelLabel", true, false)
+	check(level_label.text == str(state.get("level")), "LevelLabel mostra o nível")
+	var coins_label: Label = main.find_child("CoinsLabel", true, false)
+	var before: int = state.get("coins")
+	state.set("coins", before + 50)
+	root.get_node("Events").emit_signal("state_changed")
+	await process_frame
+	check(coins_label.text == str(before + 50), "ganhar 50 moedas: o número termina em %d (veio %s)" % [before + 50, coins_label.text])
+	state.set("coins", before)
+	root.get_node("Events").emit_signal("state_changed")
+	await process_frame
+	check(coins_label.text == str(before), "gastar volta o número")
+	# O anel acompanha o XP.
+	state.set("xp", int(state.call("xp_to_next_level")) / 2)
+	root.get_node("Events").emit_signal("state_changed")
+	await process_frame
+	var ring: RingProgress = main.find_child("XpRing", true, false)
+	check(absf(ring.progress - 0.5) < 0.02, "anel de XP mostra a metade (veio %f)" % ring.progress)
+
+
+func _toast() -> void:
+	var toast: Control = main.get_node("Toast")
+	var text: Label = main.find_child("ToastText", true, false)
+	root.get_node("Events").emit_signal("toast_requested", "Primeiro aviso")
+	root.get_node("Events").emit_signal("toast_requested", "Segundo aviso")
+	await process_frame
+	check(toast.visible and text.text == "Segundo aviso", "dois avisos seguidos mostram o último texto")
+	check(not main.find_child("ToastIcon", true, false).visible, "aviso comum sem ícone")
+	check(toast.position.y >= 60.0 and toast.position.y < 130.0, "aviso fica logo abaixo do HUD (y = %f)" % toast.position.y)
+	check(toast.size.x <= 320.0, "aviso com até 320 px de largura")
+	var middle := toast.position.x + toast.size.x / 2.0
+	check(absf(middle - main.size.x / 2.0) < 2.0, "aviso centralizado")
+	root.get_node("Events").emit_signal("toast_requested", "Missão concluída! Próximo: um texto bem comprido para quebrar em duas linhas no celular")
+	await process_frame
+	check(main.find_child("ToastIcon", true, false).visible, "Missão concluída leva o ícone de check")
+	check(toast.size.x <= 320.0 and toast.size.y <= 90.0, "aviso comprido quebra em até duas linhas (%s)" % str(toast.size))
+	toast.hide()
+
+
+func _tabs() -> void:
+	for tab_name: String in ["PetTab", "MapTab", "TasksTab"]:
+		check(main.find_child(tab_name, true, false).find_child("Face", false, false) != null, tab_name + " tem rosto novo")
+	main.call("show_screen", &"map")
+	await process_frame
+	var map_face: NavTab = main.find_child("MapTab", true, false).find_child("Face", false, false)
+	var pet_face: NavTab = main.find_child("PetTab", true, false).find_child("Face", false, false)
+	check(map_face.is_active() and not pet_face.is_active(), "só a aba do Mapa fica ativa")
+	check(absf(map_face.lift_node().position.y + 6.0) < 0.5, "aba ativa sobe 6 px")
+	check(pet_face.lift_node().position.y == 0.0, "aba comum fica no lugar")
+	check(map_face.icon_node().scale.x > pet_face.icon_node().scale.x, "ícone da aba ativa é maior (36 contra 32)")
+	check(map_face.find_child("Circle", true, false).modulate.a == 1.0, "círculo atrás do ícone ativo")
+	main.call("show_screen", &"pet")
+	await process_frame
+	check(pet_face.is_active() and not map_face.is_active(), "voltar ao Tiro troca a aba ativa")
+	# Selo da aba Missões fica perto do ícone (centro + (14, −20)).
+	var badge: Control = main.find_child("TasksTab", true, false).get_child(-1)
+	check(badge is Label or main.find_child("TasksTab", true, false).get_child_count() >= 2, "selo mora na aba")
+
+
+func _popover() -> void:
+	var hud: Control = main.find_child("TopBar", true, false)
+	hud.call("show_level_popover")
+	await process_frame
+	check(main.get_node_or_null("PopoverCatcher") != null, "tocar no avatar abre o balão do nível")
+	var texts := PackedStringArray()
+	for label: Node in main.get_node("PopoverCatcher").find_children("*", "Label", true, false):
+		texts.append((label as Label).text)
+	check(" ".join(texts).contains("Nível") and " ".join(texts).contains("XP"), "balão mostra nível e XP (%s)" % " | ".join(texts))
+	# Tocar fora fecha.
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_LEFT
+	click.pressed = true
+	main.get_node("PopoverCatcher").emit_signal("gui_input", click)
+	await process_frame
+	await process_frame
+	check(main.get_node_or_null("PopoverCatcher") == null, "tocar fora fecha o balão")
+
+
+func _coin_flight() -> void:
+	var hud: Control = main.find_child("TopBar", true, false)
+	var pill: Control = main.find_child("CoinsPill", true, false)
+	check(pill.get_global_rect().has_point(hud.call("coins_target")), "as moedas do CollectFx voam para dentro da pílula")
+	var count_before := main.get_children().size()
+	root.get_node("Events").emit_signal("items_gained", {}, 5, Vector2(100.0, 400.0))
+	await process_frame
+	check(main.get_children().size() == count_before, "a animação nasce dentro do CollectFx, não solta na casca")

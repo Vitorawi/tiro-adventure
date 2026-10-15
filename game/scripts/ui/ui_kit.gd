@@ -109,6 +109,7 @@ static func pill(texture: Texture2D, text: String) -> PanelContainer:
 	if texture:
 		row.add_child(icon(texture, 32))
 	var number := label(text, &"NumberLabel")
+	number.name = "Value"
 	number.autowrap_mode = TextServer.AUTOWRAP_OFF
 	row.add_child(number)
 	panel.add_child(row)

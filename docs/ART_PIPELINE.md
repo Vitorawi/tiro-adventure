@@ -700,3 +700,9 @@ agrupa galinheiro + curral). Não há personagem/objeto no PixelLab para estes �
 | `ui_check` | `c7b645b5-acd7-4f32-9fa8-31b45d104f39` (seed 22) | 1 | visto verde com contorno escuro; ainda sem uso (balões de pronto da Etapa 06 e listas). Alternativa (`2074371a-…`, seed 11) mais verde-escura |
 
 Imagens soltas no PixelLab (sem personagem/objeto, sem tags).
+
+### Interface nova — Etapa 03 (retrato do Tiro para o HUD)
+Sem PixelLab (nada de arte nova): `ui/icons/hud_tiro.png` (48×48) é um **recorte da cabeça** do quadro
+`characters/tiro_pet/idle_breathe/frame_00.png` (caixa 98×98 em x=74, y=38 do canvas 256×216), reduzida para 44×44 por
+vizinho mais próximo (`System.Drawing`, `InterpolationMode = NearestNeighbor`) e colocada em (2, 3) de um canvas 48×48
+transparente. Serve de rosto no avatar do HUD (`Hud`, botão `HudAvatar`). Para refazer: repetir o recorte com outro quadro.

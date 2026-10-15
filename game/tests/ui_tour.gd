@@ -220,4 +220,8 @@ func _run() -> void:
 	await _world("farm")
 	root.get_node("Events").emit_signal("toast_requested", "Missão concluída!")
 	await shot("c05_toast", 0.3)
+	# Balão do nível (toque no avatar do HUD), sobre o mundo aberto.
+	await create_timer(2.2).timeout
+	main.get_node("TopBar").call("show_level_popover")
+	await shot("c06_hud_popover", 0.4)
 	quit(0)

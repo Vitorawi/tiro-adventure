@@ -2,14 +2,33 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **15/10/2026, Claude Code (Interface nova, Etapa 02)**.
+> um do outro. Última atualização: **15/10/2026, Claude Code (Interface nova, Etapa 03)**.
 
 **▶ PLANO ATUAL (15/10/2026): Interface nova — `docs/plans/interface/README.md`.** Aprovado pelo Vitor
 ("vamos nessas ideias mesmo"). 13 etapas (00–12), executar **uma por vez, na ordem**, com o prompt do README.
 Leitura obrigatória: `00_VISAO.md` (diagnóstico, referências, esboços) e `01_REGRAS_E_ESTILO.md` (regras,
 paleta, medidas, componentes, movimento, glossário de textos, receitas de arte). Só interface: regras, números
 e save (`SAVE_VERSION` 12) não mudam. Rascunho do tour de capturas usado no diagnóstico: `docs/plans/interface/ui_tour_rascunho.gd`
-(já virou `game/tests/ui_tour.gd`). **Próximo passo: Etapa 03 (`docs/plans/interface/ETAPA_03_hud.md`).**
+(já virou `game/tests/ui_tour.gd`). **Próximo passo: Etapa 04 (`docs/plans/interface/ETAPA_04_mundo_cheio.md`).**
+
+**✔ Interface nova — Etapa 03 (HUD flutuante, abas que pulam, aviso novo) concluída (15/10/2026, Claude Code). Commit local, sem push. Próxima: Etapa 04 (`ETAPA_04_mundo_cheio.md`).**
+- `SAVE_VERSION` continua 12; nenhuma regra/número/save mudou.
+- **HUD** (`scripts/ui/hud.gd`, `class_name Hud`, nó `TopBar` agora filho direto de `Main`, depois do `Layout` e antes do `Sheet`, `z_index` 8, `mouse_filter` ignora): construído em código.
+  Esquerda: botão redondo 52 `HudAvatar` (papel, borda 3 `INK`, retrato `hud_tiro.png`) dentro de um `RingProgress` de 60 (ouro, trilho `Palette.HUD`) com o XP do nível; selo ouro 22 no canto de baixo à direita com o número (`LevelLabel` = só o número, "5").
+  `XpBar` continua existindo mas invisível. Tocar no avatar abre o balão do nível (`Hud.show_level_popover`, usa o novo `Popover`): "Nível N", barra, "x/y XP" e "Próximo presente" com `ProgressionUi.reward_chips(GameState.level_reward(nível+1))`; some em 2 s ou ao tocar fora.
+  Subiu de nível: `Motion.bounce` no avatar + o anel enche até o fim e recomeça do que sobrou. Direita: `UiKit.pill(coin)` (agora com o número chamado `Value`, renomeado `CoinsLabel` no HUD), engrenagem `UiKit.icon_button(settings, 44)` (`SettingsButton`) e, só na dev, o selo `DEV` (pílula `DANGER` 24 px, `DevButton`) embaixo das moedas.
+  Moedas: `Motion.count_up` + `Motion.bounce` quando sobe; a pílula mora num `Control` simples (`CoinsHolder`) para o pulinho não brigar com o container.
+- **`VersionLabel` saiu do HUD** e virou rodapé do painel de Configurações (`SettingsPanel._version_label`; tocar força a atualização).
+- **CollectFx:** as moedas sobem 0,4 s e voam 0,45 s até o centro de `CoinsLabel` (`Hud.coins_target()`), encolhendo; itens continuam subindo e sumindo. Cores soltas do `collect_fx` trocadas por `Palette`.
+- **Abas:** `TabBar` (`PanelContainer`, tema novo `TabBarPanel`: `INK` 92%, cantos 22 em cima, sombra para cima, altura 72) contém o `Tabs`. Cada aba ganha um rosto (`scripts/ui/nav_tab.gd`, `NavTab.attach`): ícone 32 e nome 18 a 70%; ativa = círculo `PAPER` 52, ícone 36, sobe 6 px (0,15 s `Motion.TAB`) e nome a 100%; `Motion.bounce` no ícone ao tocar. O botão deixa de ter texto/ícone próprios (estilos todos vazios).
+  Selos (`_tasks_badge`, `_map_badge`, `_wishes_badge`) ficam em centro do ícone + (14, −20). Pulso da aba Missões no começo = `Motion.pulse` no círculo+ícone (sem trocar cor). `Layout` tem separação −22: a barra de abas cobre 22 px do fim das telas (cantos arredondados mostram o conteúdo); por isso as telas sem mundo ganharam margem inferior 30–34.
+- **Margens:** Tiro/Desejos/Missões/Mochila e a lista de mundos (`MapView`) agora têm 64 px em cima. O mundo (`WorldView`) começa 60 px mais abaixo (`offset_top = 60`) por causa do cabeçalho "Mundos/Lugares", que continua existindo até a Etapa 04.
+- **Aviso (`Toast`)**: agora um `PanelContainer` (pílula `PillPanel`, ícone `ToastIcon` + `ToastText` 20, máx. 320 de largura, 2 linhas) que desce de y −40 até 68 (116 se o banner de atualização estiver aberto), fica 1,6 s e some em 0,3 s. Um segundo aviso enquanto o primeiro está na tela troca o texto, dá um pulinho e reinicia o tempo. "Missão concluída…" leva `ui_check` (único caso). `UpdateBanner` virou pílula `ACCENT` ("Nova versão! Tocar para atualizar") centralizada em y 64.
+- **Desvios:** (1) nome das abas em 18, não 16 (regra geral "texto legível nunca abaixo de 18"); (2) sem `Events.coins_short` e sem shake das moedas (nenhum sinal de "faltou moeda" existe; criar só se uma etapa futura precisar); (3) ainda **não há setinha** no pulso da aba Missões (o "Pointer" só vive nos mundos); (4) `TopBarPanel` e o estilo `top_bar` do tema ficaram sem uso (não removidos para não mexer em teste de tema).
+- **Arte:** só `ui/icons/hud_tiro.png` (recorte da cabeça do Tiro, sem PixelLab; receita em `docs/ART_PIPELINE.md`).
+- **Testes:** novo `hud_test.gd` (no `test_all.ps1`): `TopBar` fora do `Layout`, nomes mantidos, moedas +50 e volta, anel de XP, dois avisos seguidos, ícone da missão, largura ≤ 320, abas ativa/inativa, balão e fechar tocando fora, moedas do `CollectFx` com destino dentro da pílula. Suíte inteira um a um: ver lista no commit (logs em `build/test_logs/etapa03/`).
+- **Capturas:** `build/screenshots/etapa03_antes|depois` (360×780), `etapa03_depois_390`, `etapa03_depois_412`; o tour ganhou `c06_hud_popover` (o `c05_toast` já era com o mundo aberto); `tests/hud_shots.gd` faz capturas rápidas do HUD (balão, aviso longo, banner, moedas voando, configurações).
+- **Pendências / avisos para as próximas etapas:** no Mapa o aviso (y 68) cai sobre o cabeçalho "Mundos/Lugares", e o selo DEV encosta nele; some quando a Etapa 04 tirar o cabeçalho. Botões `+`/`−` do mapa ficam parcialmente sob a barra de abas (a Etapa 04 os remove). `Hud` não lê `Motion.reduced` do save (igual à Etapa 00).
 
 **✔ Interface nova — Etapa 02 (painel novo) concluída (15/10/2026, Claude Code). Commit local, sem push. Próxima: Etapa 03 (`ETAPA_03_hud.md`).**
 - `SAVE_VERSION` continua 12; nenhuma regra/número/save mudou.

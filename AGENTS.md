@@ -26,7 +26,7 @@ a cada push na `main` (versão publicada em `/` e versão dev em `/dev/`). Progr
 - Fases, **estado atual e próximas tarefas**: `docs/ROADMAP.md`
 - Planos detalhados prontos para executar: `docs/plans/` (ex.: `TASKS_V2.md`)
 - Etapas 10 e 11 concluídas: truques com treino de um toque na Praça e o tesouro (mapa completo, baú da Clareira, mirtilo); ver `docs/PROGRESSION.md` e `docs/ART_PIPELINE.md`. **Plano de 12 etapas concluído.**
-- **Plano atual: Interface nova** (`docs/plans/interface/README.md`): 13 etapas (00–12), uma por vez — visual, painel, HUD, mundo em tela cheia, seletor, balões, **bandeja de ação** (plantar/colher arrastando), estações, tela do Tiro, listas, textos e comemorações. Regras e estilo em `docs/plans/interface/01_REGRAS_E_ESTILO.md`. **Etapas 00, 01 e 02 concluídas** (00: tour de capturas, `Palette`, `Motion`, `RingProgress`, ícones das estações, Casa enquadrada; 01: tema novo — cartão leve, botão com degrau, um botão verde por painel, cadeado no lugar do botão cinza; 02: painel do tamanho do conteúdo com alça para arrastar e fechar, espaços de produção em bolinhas (`SlotDot`), linhas baixas de lista (`UiKit.list_row`) e fala de personagem em balão (`SpeechBubble`)); próxima: Etapa 03.
+- **Plano atual: Interface nova** (`docs/plans/interface/README.md`): 13 etapas (00–12), uma por vez — visual, painel, HUD, mundo em tela cheia, seletor, balões, **bandeja de ação** (plantar/colher arrastando), estações, tela do Tiro, listas, textos e comemorações. Regras e estilo em `docs/plans/interface/01_REGRAS_E_ESTILO.md`. **Etapas 00, 01, 02 e 03 concluídas** (00: tour de capturas, `Palette`, `Motion`, `RingProgress`, ícones das estações, Casa enquadrada; 01: tema novo — cartão leve, botão com degrau, um botão verde por painel, cadeado no lugar do botão cinza; 02: painel do tamanho do conteúdo com alça para arrastar e fechar, espaços de produção em bolinhas (`SlotDot`), linhas baixas de lista (`UiKit.list_row`) e fala de personagem em balão (`SpeechBubble`); 03: HUD flutuante com avatar do Tiro e anel de XP (`Hud`), pílula de moedas que conta, abas com rosto animado (`NavTab`), balão do nível (`Popover`) e aviso que desce abaixo do HUD); próxima: Etapa 04.
 
 ## Trabalho em dupla (Claude Code + Codex)
 O projeto é desenvolvido alternando **Claude Code** (lê `CLAUDE.md`) e **Codex** (lê `AGENTS.md`).
@@ -56,7 +56,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
                        worlds.json (mundos: lugares, personagens, requisitos)
                        rooms/<id>.json (cena de cada mundo: fundo, móveis, zonas tocáveis), version.json (versão + canal prod/dev, gravado no deploy)
   scenes/            cenas, uma pasta por cena (.tscn + .gd juntos)
-    main/            casca: barra superior (selo DEV), abas Tiro/Mapa/Missões/Mochila, Sheet, toast
+    main/            casca: HUD flutuante (avatar com anel de XP, moedas, DEV, engrenagem), abas Tiro/Desejos/Mapa/Missões/Mochila (barra `TabBar` sobre as telas), Sheet, aviso (`Toast`)
     ui/pet_screen/   Tela do Pet (Tiro grande, necessidades, ações)
     ui/wishes_screen/  aba Desejos: até 3 pedidos, progresso, Dar/Receber, Ir/?, trocar e vínculo
     ui/worlds_screen/  aba Mapa: lista de mundos + mundo atual (cabeçalho com Mapa, Lugares e personagens)
@@ -72,7 +72,7 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
     entities/dog_world/  Tiro pequeno com IA autônoma (anda pelo caminho calculado)
     entities/npc_world/  NPC pequeno (Laís, vovó Bloblo) que passeia perto de casa, com balão "!"/"✓"
   scripts/state/     DogState, Inventory, StationState, ProgressionState, WishState, FindState, WalkState, FriendState (dados + to_dict/from_dict)
-  scripts/ui/        Palette (cores), Motion (microanimações), RingProgress (anel de progresso), SlotDot (bolinha de espaço de produção), SpeechBubble (fala em balão), UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
+  scripts/ui/        Palette (cores), Motion (microanimações), RingProgress (anel de progresso), Hud (barra superior flutuante, nó `TopBar`), NavTab (rosto das abas), Popover (balão que some sozinho), SlotDot (bolinha de espaço de produção), SpeechBubble (fala em balão), UiKit (peças), SheetBuilder (painéis), Places (lugares/personagens/avisos dos mundos),
                      ProgressionUi (painéis: personagem, construir, vender, encomendas, rotas, atributos, coleção),
                      GameManual (catálogo), NatureUi (coleta/níveis/refino), DevPanel (DEV),
                      WishUi (cartões de desejos, ícones e painel de vínculo), FriendUi (cartões/álbum de amigos), TrickUi (treino/lista),
@@ -137,7 +137,8 @@ game/                PROJETO GODOT (abra game/project.godot no editor)
 | Ícone de item/necessidade/atributo    | PNG 32 px em `game/assets/sprites/ui/icons/` + campo `"icon"` no JSON (caminho em `items.json`/`needs`; nome do arquivo sem `.png` em `progression.json`, `npcs.json`, `collections.json`) |
 | Armazenamento (limites e ampliações)  | `progression.json → storage` + melhorias com `storage_capacity`; `items.json → storage`; `GameState.storage_*`; plano `docs/plans/ARMAZENAMENTO.md` |
 | Adicionar dado que deve ser salvo     | classe em `game/scripts/state/` (ou campo no `GameState`) + `to_dict`/`from_dict`/`reset` |
-| Configurações / vários saves          | Engrenagem na barra superior (`main.gd._build_settings_button`) → `scripts/ui/settings_panel.gd`. Saves 1..5 em `SaveManager` (`list_slots/switch_slot/new_slot/delete_slot/set_default_slot`; slot 1 = `save.json`/`save_dev.json`, outros `save_N.json`; padrão em `settings.json`); trocar de save recarrega a cena |
+| HUD, abas e aviso (casca)             | `scripts/ui/hud.gd` (`Hud`, nó `TopBar` direto em `Main`, `mouse_filter` ignora; `refresh()` chamado pelo `main.gd` a cada `state_changed`; `LevelLabel` = número do nível no selo, `XpRing` mostra o XP, `XpBar` invisível só por compatibilidade, `CoinsLabel` conta com `Motion.count_up`, `DevButton`, `SettingsButton`, `show_level_popover()`, `coins_target()` é o destino das moedas do `CollectFx`); `scripts/ui/nav_tab.gd` (`NavTab.attach(botão)`: círculo + ícone sobem 6 px na aba ativa; `lift_node()` é o que pulsa; selos de aba em centro do ícone + (14, −20)); `scripts/ui/popover.gd` (`Popover.open(host, âncora, conteúdo)`: some em 2 s ou ao tocar fora); `main.gd._show_toast` (pílula `Toast` que desce de y −40 até 68, ou 116 com o banner de atualização; segundo aviso troca o texto e pula; "Missão concluída…" leva `ui_check`); `TabBarPanel` no tema; telas sem mundo deixam 64 px de margem em cima. Nada fixo no `Layout` além de `Screens`/`TabBar` (separação −22: a barra de abas cobre 22 px do fim das telas) |
+| Configurações / vários saves          | Engrenagem do HUD (`Hud.settings_button`, nome `SettingsButton`) → `scripts/ui/settings_panel.gd` (a versão do jogo fica no rodapé, `VersionLabel`; tocar nela força a atualização). Saves 1..5 em `SaveManager` (`list_slots/switch_slot/new_slot/delete_slot/set_default_slot`; slot 1 = `save.json`/`save_dev.json`, outros `save_N.json`; padrão em `settings.json`); trocar de save recarrega a cena |
 | Mudar formato do save                 | `game/autoload/save_manager.gd` (`SAVE_VERSION` + `_migrate`) |
 | Comunicar sistemas desacoplados       | sinal novo em `game/autoload/events.gd` |
 | Criar tela/menu                       | `game/scenes/ui/<nome>/` |
@@ -321,6 +322,7 @@ powershell -ExecutionPolicy Bypass -File tools\serve_local.ps1  # http://localho
 & $env:GODOT_BIN --headless --path game -s res://tests/ui_base_test.gd       # Palette, Motion, RingProgress, ícones das estações
 & $env:GODOT_BIN --headless --path game -s res://tests/ui_style_test.gd      # tema (cartão sem degrau), peças do UiKit, um botão principal por painel, cadeado
 & $env:GODOT_BIN --headless --path game -s res://tests/sheet_test.gd         # Sheet: alturas (automática/half/tall), fechar na hora, arrastar, título único, bolinhas e linhas
+& $env:GODOT_BIN --headless --path game -s res://tests/hud_test.gd           # HUD flutuante, moedas que contam, abas ativas, balão do nível, aviso
 # Ou rode toda a suíte: powershell -File tools/test_all.ps1
 # Capturas das telas: rode sem --headless, com --resolution 360x780 e "-- --screenshots"
 # Tour de capturas da interface (40 PNGs em build/screenshots/<pasta>/; não grava o save):

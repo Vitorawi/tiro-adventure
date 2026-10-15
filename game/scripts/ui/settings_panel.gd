@@ -23,7 +23,21 @@ static func panel() -> Control:
 			add.name = "NewSave"
 			box.add_child(add)
 		else:
-			box.add_child(UiKit.label("Máximo de %d saves. Exclua um para criar outro." % SaveManager.MAX_SLOTS, &"SmallLabel")))
+			box.add_child(UiKit.label("Máximo de %d saves. Exclua um para criar outro." % SaveManager.MAX_SLOTS, &"SmallLabel"))
+		box.add_child(_version_label()))
+
+
+## Rodapé com a versão do jogo. Atalho de emergência: tocar nela força a atualização.
+static func _version_label() -> Label:
+	var version := UiKit.label("v%s %s" % [Database.version.get("version", "?"), Database.version.get("date", "")], &"SmallLabel")
+	version.name = "VersionLabel"
+	version.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	version.mouse_filter = Control.MOUSE_FILTER_STOP
+	version.gui_input.connect(func(event: InputEvent) -> void:
+		var click := event as InputEventMouseButton
+		if click and click.pressed:
+			PwaUpdater.apply_update())
+	return version
 
 
 static func _slot_card(box: VBoxContainer, summary: Dictionary) -> void:
