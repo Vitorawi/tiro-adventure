@@ -499,6 +499,7 @@ func _spawn_labels() -> void:
 		tag.set_meta("anchor", _vec(data.get("label_pos", data.get("pos", [0, 0]))))
 		tag.set_meta("detail_label", data.get("detail_label", false))
 		tag.set_meta("overview_label", data.get("overview_label", false))
+		tag.set_meta("tap_data", data)
 		if data.has("requirements"):
 			tag.set_meta("requirements", data.requirements)
 			tag.set_meta("locked_label", data.get("locked_label", false))
@@ -847,6 +848,8 @@ func _handle_tap(point: Vector2) -> void:
 		if point.distance_to(_dig_spot.position) <= radius or (dog_near and _dog.hit_test(point)):
 			_dig_find()
 			return
+	if _tap_label(point):
+		return
 	for region: Dictionary in _room.get("regions", []):
 		if region_error(region) != "" and Geometry2D.is_point_in_polygon(point, _polygon(region.polygon)):
 			if region.has("action"):
@@ -920,6 +923,47 @@ func _handle_tap(point: Vector2) -> void:
 		if Geometry2D.is_point_in_polygon(point, _polygon(zone["polygon"])):
 			_on_object_tapped(zone["action"])
 			return
+
+
+## Tocar na etiqueta de um lugar (ex.: "Caverna") faz o mesmo que tocar no objeto dele.
+## A área de toque ganha folga para o polegar. Devolve true se tratou o toque.
+func _tap_label(point: Vector2) -> bool:
+	for i in range(_labels.size() - 1, -1, -1):
+		var tag := _labels[i]
+		if not tag.visible or not tag.has_meta("tap_data"):
+			continue
+		var pad := Vector2(8, 8) / _zoom
+		var rect := Rect2(tag.position - pad, tag.size * tag.scale + pad * 2.0)
+		if not rect.has_point(point):
+			continue
+		var data: Dictionary = tag.get_meta("tap_data")
+		var upgrade: String = data.get("upgrade", "")
+		if data.has("polygon") and data.has("gate"):  # região fechada
+			if data.has("action"):
+				Places.run(world_id, data.action)
+			elif upgrade != "":
+				Events.sheet_requested.emit(data.get("label", "Expandir"), ProgressionUi.purchase(upgrade))
+			else:
+				continue
+			return true
+		if upgrade != "" and not GameState.has_upgrade(upgrade):
+			Events.sheet_requested.emit("Construir", ProgressionUi.purchase(upgrade))
+			return true
+		var action: String = data.get("action", "")
+		if action == "":
+			continue
+		var target: Sprite2D = null
+		if data.has("pos"):
+			var pos := _vec(data.pos)
+			for sprite: Sprite2D in _objects:
+				if sprite.get_meta("action", "") == action and sprite.position.distance_to(pos) < 1.0:
+					target = sprite
+					break
+		if target:
+			_flash(target)
+		_on_object_tapped(action, target)
+		return true
+	return false
 
 
 ## Canteiro vazio abre as sementes; crescendo mostra quanto falta; pronto colhe.
