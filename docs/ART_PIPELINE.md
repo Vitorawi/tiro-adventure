@@ -36,6 +36,21 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 
 ## Registro de assets
 
+### Interface nova — Etapa 05, apartamento (15/10/2026, Codex)
+
+- Ajuste do Vitor antes de encerrar: o lar é um apartamento; substituir o desenho da casinha em todos os lugares.
+  Trocado o PNG compartilhado `ui/icons/tab_house.png`, preservando o caminho usado por mapa, carrossel,
+  missões, atalhos, retorno à Casa e demais referências. Nenhuma mudança de texto ou comportamento.
+- Dois candidatos Pixen 32×32 transparentes, contorno preto e detalhe médio. Escolhido o primeiro,
+  prédio claro com janelas azuis e sacadas, seed 61, job `29c08d77-863c-4ff3-bb08-e6643967d8f0`,
+  asset `b6ab45da-c72c-5291-a681-85058a5ac5f8`. Recorte `Invoke-TrimSprite` 32×32, sem ampliar.
+- Alternativa seed 62: job `a057f31e-8d6e-402a-b916-f11ff06c6bfa`, asset
+  `4ddadafb-b4fe-528c-b487-9d7e4f13b3ea`, preservada como candidata sem uso.
+- Originais e ícone anterior em `build/art_sources/interface_etapa05/apartamento/`;
+  pranchas abertas em `build/preview/etapa05/apartamento/` (`candidato_01`, `candidatos`, `interface_final`).
+  Conferidos no jogo a pílula, o carrossel e o destino das missões; capturas em `build/screenshots/etapa05_apartamento/`.
+  Import Godot, `ui_base_test`, `worlds_test` e `world_selector_test` PASS; export prod/dev atualizado.
+
 ### Interface nova — Etapa 05, ícones dos mundos (15/10/2026, Codex)
 
 - Pixen 32×32 transparente, contorno preto, detalhe médio; dois ícones aprovados na primeira tentativa.
