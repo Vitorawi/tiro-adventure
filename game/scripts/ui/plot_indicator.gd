@@ -5,6 +5,10 @@ extends Node2D
 var plot_index: int = 0
 var hit_rect := Rect2(-22, -61, 44, 23)
 var _icon: Texture2D
+# Ícones carregados já na criação: a 1ª carga dentro do _draw sai como quadrado branco.
+var _drop: Texture2D = UiKit.ui_icon("action_water")
+var _coin: Texture2D = UiKit.ui_icon("coin")
+var _farm: Texture2D = UiKit.ui_icon("tab_farm")
 
 
 func refresh() -> void:
@@ -28,7 +32,7 @@ func _draw() -> void:
 		draw_style_box(_box(Color("73634a")), rect)
 		var vovo := not GameState.has_upgrade("farm")
 		var caption := "Vovó" if vovo else str(GameState.plot_cost(plot_index))
-		var icon := UiKit.ui_icon("tab_farm" if vovo else "coin")
+		var icon := _farm if vovo else _coin
 		var width := font.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 10).x + 13.0
 		var left := -width / 2.0
 		if icon:
@@ -45,7 +49,7 @@ func _draw() -> void:
 	draw_rect(Rect2(-19, -44, 38 * GameState.plot_progress(plot_index), 4), Color("a8db65") if status == "ready" else Color("efbb55"))
 	# Gotinha balançando: planta crescendo ainda sem rega (toque no canteiro rega).
 	if GameState.water_error(plot_index) == "":
-		var drop := UiKit.ui_icon("action_water")
+		var drop := _drop
 		if drop:
 			var sway := sin(Time.get_ticks_msec() / 220.0) * 2.0
 			draw_texture_rect(drop, Rect2(-12 + sway, -86, 24, 24), false)
