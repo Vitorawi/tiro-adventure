@@ -59,37 +59,12 @@ const CATEGORIES := {"food": "Comidas", "crop": "Colheitas", "material": "Materi
 ## Com `only` (id de depósito: "fridge", "chest", "silo", "warehouse"), só o que mora nele. Ícone + quantidade por
 ## categoria; tocar abre o detalhe.
 static func inventory_view(only: String = "") -> Control:
-	return tall(LiveBox.new(func(box: VBoxContainer) -> void:
-		_storage_bars(box, only)
-		var shown: Array[String] = []
-		for id: String in GameState.inventory.counts:
-			if only == "" or GameState.storage_of(id) == only:
-				shown.append(id)
-		if shown.is_empty():
-			_empty_message(box, "%s vazio." % Database.progression.storage[only].name if only != "" else "Mochila vazia.", "")
-			return
-		for category: String in CATEGORIES:
-			var ids: Array[String] = []
-			for id: String in shown:
-				if Database.items.get(id, {}).get("category", "product") == category:
-					ids.append(id)
-			if ids.is_empty():
-				continue
-			if category == "trail":
-				var heading := UiKit.hbox(6)
-				heading.add_child(UiKit.icon(UiKit.ui_icon("action_walk"), 32))
-				heading.add_child(UiKit.fill_label(CATEGORIES[category], &"SectionLabel"))
-				box.add_child(heading)
-			else:
-				box.add_child(UiKit.label(CATEGORIES[category], &"SectionLabel"))
-			var grid := GridContainer.new()
-			grid.columns = 4
-			grid.mouse_filter = Control.MOUSE_FILTER_PASS
-			grid.add_theme_constant_override("h_separation", 6)
-			grid.add_theme_constant_override("v_separation", 6)
-			for id in ids:
-				grid.add_child(_item_tile(id))
-			box.add_child(grid)))
+	return tall(InventoryList.new(only))
+
+
+## Consulta compartilhada pelos contratos de conteúdo e achados.
+static func _fits_fridge(id: String) -> bool:
+	return GameState.storage_of(id) == "fridge"
 
 
 ## Marca o conteúdo como painel alto (88% da tela, com rolagem): listas longas e consultas.
@@ -98,53 +73,24 @@ static func tall(content: Control) -> Control:
 	return content
 
 
-## Uma linha de chips com ícone e usado/capacidade de cada depósito construído (`only` = só ele).
-static func _storage_bars(box: VBoxContainer, only: String) -> void:
-	var row := HFlowContainer.new()
-	for id: String in Database.progression.storage:
-		if (only != "" and id != only) or not GameState.storage_active(id):
-			continue
-		var full := GameState.storage_space(id) == 0
-		row.add_child(UiKit.chip(UiKit.ui_icon(str(Database.progression.storage[id].icon)), "%d/%d" % [GameState.storage_used(id), GameState.storage_capacity(id)], UiKit.BAD if full else null))
-	if row.get_child_count() > 0:
-		box.add_child(row)
-
-
-static func _fits_fridge(id: String) -> bool:
-	return GameState.storage_of(id) == "fridge"
-
-
-static func _item_tile(id: String) -> Button:
-	var tile := UiKit.button("x%d" % GameState.inventory.count(id), func() -> void:
-		Events.sheet_requested.emit(Database.item_name(id), item_detail(id)), &"", Database.item_icon(id))
-	tile.custom_minimum_size = Vector2(0, 84)
-	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tile.expand_icon = true
-	tile.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tile.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-	tile.add_theme_constant_override("icon_max_width", 44)
-	tile.add_theme_font_size_override("font_size", 16)
-	return tile
-
-
 ## Detalhe do item: ícone + quantidade, efeitos, de onde vem e onde usa (tocáveis, com Ir) e preço.
 static func item_detail(id: String) -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var item: Dictionary = Database.items.get(id, {})
 		var top := UiKit.hbox(10)
 		top.add_child(UiKit.icon(Database.item_icon(id), 64))
-		top.add_child(UiKit.fill_label("x%d" % GameState.inventory.count(id), &"TitleLabel"))
+		var amount := GameState.inventory.count(id)
+		top.add_child(UiKit.fill_label("Você tem %d" % amount if amount > 0 else "Você não tem", &"", Palette.INK if amount > 0 else Palette.INK_SOFT))
 		var price := int(item.get("sell_price", 0))
 		if price > 0:
 			top.add_child(UiKit.chip(UiKit.ui_icon("coin"), str(price)))
 		box.add_child(top)
 		if item.has("feed"):
 			box.add_child(UiKit.effect_chips(item.feed))
-			var give := UiKit.button("Dar ao Tiro", func() -> void:
-				if GameState.feed(id):
-					Events.toast_requested.emit("Nhac! %s" % Database.item_name(id)), &"PrimaryButton")
-			give.disabled = GameState.inventory.count(id) == 0
-			box.add_child(give)
+			if GameState.inventory.count(id) > 0:
+				box.add_child(UiKit.primary("Dar ao Tiro", func() -> void:
+					var error := give_food(id)
+					Events.toast_requested.emit(error if error != "" else "Nhac! %s" % Database.item_name(id))))
 		var sources := _sources(id)
 		var uses := _uses(id)
 		_link_section(box, "De onde vem", sources)
@@ -631,7 +577,7 @@ class LiveBox extends VBoxContainer:
 			_schedule_rebuild()
 
 	func _schedule_rebuild() -> void:
-		if _pending:
+		if _pending or bool(get_meta("ui_animating", false)):
 			return
 		_pending = true
 		_rebuild.call_deferred()

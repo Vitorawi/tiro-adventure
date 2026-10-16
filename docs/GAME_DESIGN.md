@@ -8,6 +8,16 @@ Comida abre uma guia vertical com até cinco opções visíveis e rolagem para t
 O caderninho abre Manual por padrão, com Atributos/Coleção/Truques revelados conforme o progresso. Luz acompanha a hora local, sono tinge a tela, humor aparece em balão temporário e o desejo continua tocável. Nada altera regras, custos, tempos ou save.
 
 
+## Listas (Interface nova — Etapa 10)
+Missões mantém a História como cartão com pontinhos dos passos, nome do capítulo, miniatura do destino e progresso. Diárias e semanais usam linhas compactas com anel, instrução inteira, prêmio e Ir/Pegar; as recebidas saem da lista. Com duas ou mais rotinas prontas, um único **Pegar tudo (N)** recebe diárias e semanais elegíveis, sem repetir recompensas. A História e as outras linhas usam ações secundárias enquanto esse principal aparece.
+
+Desejos mantém retrato e vínculo no cabeçalho, troca no canto, ajuda e Ir/Dar/Pegar conforme o estado. Só o primeiro pedido cumprível usa o botão principal; os demais continuam tocáveis como ações secundárias. Espaços fechados mostram o vínculo exigido; espera mostra anel e tempo.
+
+Mochila mostra os depósitos construídos em linhas com nome, ícone próprio e capacidade. Tocar filtra os itens daquele depósito; tocar de novo volta a todos. Filtros segmentados com ícones rolam na horizontal e aparecem só para categorias presentes (Tudo, Comidas, Colheitas, Materiais, Produtos, Achados, Passeio). Uma grade de quatro colunas substitui as seções empilhadas. O selo Novo dura a abertura e usa as marcações opcionais `ui:bag:<item>`, sem migração. Item sem quantidade fica fora da grade; o detalhe diz “Você não tem”. Comida no detalhe compartilha `SheetBuilder.give_food` com os cuidados, preservando desejo e consumo único; vender continua na feira.
+
+Coleção usa abas segmentadas Roupas/Achados/Amigos. Roupas e Amigos têm três colunas; Achados conserva o álbum por mundo. O contador usa barra fina. Tocar numa roupa possuída veste/tira, com check na vestida; a origem das bloqueadas fica no detalhe. Só roupas com arte de sobreposição entram na grade e no denominador. A Home e seu cenário continuam como foram ajustados com o Vitor na Etapa 09.
+
+
 ## Faro do Tiro (Etapa 05, 14/10/2026)
 
 O Tiro fareja sozinho: de tempos em tempos aparece um montinho com brilho no chão do mapa (sítio, vila,
@@ -43,7 +53,7 @@ Um espaço abre com a caminha, outro com vínculo 2 e o terceiro com vínculo 4.
 trocar é grátis e espera 5 min. Cumprir dá moedas e afeto, com festa do Tiro; o próximo chega em
 1 min nos três primeiros cumpridos e em 10 min depois. Necessidades baixas têm prioridade.
 
-Cartões mostram ícone, progresso e recompensa; Dar entrega uma comida, Receber conclui ações,
+Cartões mostram ícone, progresso e recompensa; Dar entrega uma comida, Pegar conclui ações,
 Ir e ? levam ao cuidado ou à origem do alimento. O seletor de comida põe primeiro o pedido com
 "Ele quer!": Dar ali também cumpre o desejo. Alimentar diretamente por outras ações só alimenta.
 Balão no mapa e na tela Tiro abre Desejos; some dormindo. Badge conta os pedidos prontos.

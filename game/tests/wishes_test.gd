@@ -288,7 +288,7 @@ func _ui_checks() -> void:
 	state.get("inventory").add("carrot_snack", 1)
 	for n in 3:
 		await process_frame
-	check(_find_label(screen, "Abre com vínculo 4", true) != null, "3º espaço fechado mostra o vínculo")
+	check(_find_label(screen, "Com vínculo ♥4", true) != null, "3º espaço fechado mostra o vínculo")
 	await _shot("wishes_three", main)
 	state.get("wishes").slots[0] = WishState.empty_slot(float(state.call("now")) + 250.0)
 	state.call("_changed")

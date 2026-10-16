@@ -84,6 +84,21 @@ func _run() -> void:
 		await _pet_shots()
 		quit(0)
 		return
+	if "--lists-only" in OS.get_cmdline_user_args():
+		state.call("reset")
+		state.get("progress").seen["intro"] = true
+		state.call("dev_unlock_everything")
+		state.call("_mark_all_seen")
+		await _start_main(1.5)
+		main.call("show_screen", &"wishes")
+		await shot("b02_wishes")
+		main.call("show_screen", &"tasks")
+		await shot("b03_tasks")
+		main.call("show_screen", &"bag")
+		await shot("b04_bag")
+		await _list_shots()
+		quit(0)
+		return
 	# --- Começo de jogo ---
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
@@ -366,6 +381,7 @@ func _run() -> void:
 	await shot("e11_tray_trees", 0.6)
 	nature_room.call("close_tray")
 	await _pet_shots()
+	await _list_shots()
 	quit(0)
 
 
@@ -426,3 +442,27 @@ func _empty_plots() -> void:
 ## Posição do dedo que deixa o fantasma da bandeja sobre o canteiro `index`.
 func _finger(room: Node, index: int) -> Vector2:
 	return (room.call("world_to_screen", room.call("plot_center", index)) as Vector2) + Vector2(0, 40)
+
+
+## Etapa 10: rotinas prontas, filtro de colheitas e toque nas roupas.
+func _list_shots() -> void:
+	await _close()
+	state.call("dev_restart_routines")
+	for kind: String in ["daily", "weekly"]:
+		for id: String in state.call("routine_ids", kind):
+			var goal: Dictionary = state.call("routine_data", kind, id).goal
+			state.get("progress").stats[goal.key] = state.get("progress").stat(goal.key) + int(goal.target)
+	state.call("_changed")
+	_hide_modals()
+	main.call("show_screen", &"tasks")
+	await shot("g01_tasks_ready_many")
+	state.get("inventory").call("from_dict", {"carrot": 4, "wheat": 3, "dog_food": 5, "plank": 2})
+	main.call("show_screen", &"bag")
+	await create_timer(0.3).timeout
+	main.find_child("InventoryList", true, false).call("choose_category", "crop")
+	await shot("g02_bag_filter")
+	state.get("progress").collection.red_scarf = true
+	state.call("equip", "red_scarf")
+	await _sheet("Coleção", load("res://scripts/ui/progression_ui.gd").call("collection_panel"))
+	await shot("g03_collection_grid")
+	await _close()

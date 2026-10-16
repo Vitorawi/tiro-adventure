@@ -37,7 +37,7 @@ static func bond_bar() -> HBoxContainer:
 	line.add_child(UiKit.chip(UiKit.ui_icon("bond_heart"), str(info.level)))
 	var span := maxi(1, int(info.next) - int(info.floor))
 	var fill := 100.0 if info.max else 100.0 * (int(info.affection) - int(info.floor)) / span
-	var bar := UiKit.bar(fill, Color(0.9, 0.3, 0.4), 14)
+	var bar := UiKit.bar(fill, Palette.DANGER, 14)
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	line.add_child(bar)
 	return line
@@ -75,7 +75,7 @@ static func _unlock_row(level: int, text: String) -> HBoxContainer:
 
 
 ## Um cartão por espaço: fechado, esperando ou com o pedido.
-static func slot_card(box: VBoxContainer, i: int) -> void:
+static func slot_card(box: VBoxContainer, i: int, primary: bool = true) -> void:
 	if not GameState.wish_slot_open(i):
 		_closed_card(box, i)
 		return
@@ -105,13 +105,14 @@ static func slot_card(box: VBoxContainer, i: int) -> void:
 	info.add_child(_progress(def, i))
 	row.add_child(info)
 	var swap := UiKit.icon_button(null, func() -> void:
-		GameState.swap_wish(i), 48, "↔")
+		var error := GameState.swap_wish(i)
+		if error != "": Events.toast_requested.emit(error), 48, "↔")
 	swap.tooltip_text = "Trocar desejo"
 	swap.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	row.add_child(swap)
 	card.add_child(row)
 	card.add_child(ProgressionUi.reward_chips(GameState.wish_rewards(i)))
-	_actions(card, def, i, ready)
+	_actions(card, def, i, ready, primary)
 
 
 ## Ação: barra "1/3"; comida/item: chip "tem 0/1" tocável (de onde vem).
@@ -128,7 +129,7 @@ static func _progress(def: Dictionary, i: int) -> Control:
 	return line
 
 
-static func _actions(card: VBoxContainer, def: Dictionary, i: int, ready: bool) -> void:
+static func _actions(card: VBoxContainer, def: Dictionary, i: int, ready: bool, primary: bool) -> void:
 	var row := UiKit.hbox(8)
 	var give: bool = def.type != "action"
 	var on_press := func() -> void:
@@ -139,11 +140,11 @@ static func _actions(card: VBoxContainer, def: Dictionary, i: int, ready: bool) 
 		else:
 			Places.go(go_target(def))
 	# Cumprível = botão principal ("Dar"/"Receber"); ainda não = "Ir" secundário pequeno.
-	var main := UiKit.primary(("Dar" if give else "Receber"), on_press) if ready else UiKit.secondary("Ir", on_press, null, true)
+	var caption := ("Dar" if give else "Pegar") if ready else "Ir"
+	var main := UiKit.primary(caption, on_press) if ready and primary else UiKit.secondary(caption, on_press, null, true)
 	main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(main)
-	if not ready:
-		row.add_child(UiKit.square_button("?", TaskHelp.open.bind("wish", str(GameState.wishes.slots[i].id), 1), null, 44))
+	row.add_child(UiKit.square_button("?", TaskHelp.open.bind("wish", str(GameState.wishes.slots[i].id), 1), null, 44))
 	card.add_child(row)
 
 
@@ -163,7 +164,13 @@ static func _waiting_card(box: VBoxContainer, i: int) -> void:
 	var card := UiKit.card(box, &"CardPanel")
 	card.name = "WishWait%d" % i
 	var row := UiKit.hbox(10)
-	row.add_child(UiKit.icon(UiKit.ui_icon("timer"), 48))
+	var ring := RingProgress.new()
+	ring.texture = UiKit.ui_icon("timer")
+	var settings := GameState.wish_settings()
+	var duration := int(settings.get("first_refill_seconds", 60)) if GameState.wishes.done_count <= int(settings.get("first_count", 3)) else int(settings.get("refill_seconds", 600))
+	if GameState.wish_wait(i) > duration: duration = int(settings.get("swap_seconds", 300))
+	ring.progress = 1.0 - float(GameState.wish_wait(i)) / maxi(1, duration)
+	row.add_child(ring)
 	row.add_child(UiKit.fill_label("Novo desejo em %s" % TimeText.short(GameState.wish_wait(i)), &"SectionLabel"))
 	card.add_child(row)
 
@@ -172,9 +179,5 @@ static func _closed_card(box: VBoxContainer, i: int) -> void:
 	var card := UiKit.card(box, &"CardPanel")
 	card.name = "WishClosed%d" % i
 	card.get_parent().modulate.a = 0.6
-	var row := UiKit.hbox(10)
-	row.add_child(UiKit.lock_icon())
 	var need := int(GameState.wish_settings().slots[i].get("requirements", {}).get("bond", 0))
-	row.add_child(UiKit.chip(UiKit.ui_icon("bond_heart"), str(need)))
-	row.add_child(UiKit.fill_label("Abre com vínculo %d" % need if need > 0 else "Fechado", &"SmallLabel"))
-	card.add_child(row)
+	card.add_child(UiKit.lock_hint("Com vínculo ♥%d" % need if need > 0 else "Fechado"))

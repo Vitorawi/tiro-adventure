@@ -4,10 +4,7 @@ extends RefCounted
 
 static func album() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		var header := UiKit.hbox(8)
-		header.add_child(UiKit.icon(UiKit.ui_icon("find_paw"), 32))
-		header.add_child(UiKit.short_label("%d/16" % GameState.find_album_count(), &"SectionLabel"))
-		box.add_child(header)
+		box.add_child(UiKit.collection_progress(GameState.find_album_count(), 16))
 		var map_card := UiKit.card(box)
 		var pieces := UiKit.hbox(8)
 		var found := 0
@@ -17,7 +14,7 @@ static func album() -> Control:
 			var piece := UiKit.vbox(0)
 			var icon := UiKit.icon(UiKit.ui_icon("item_map_piece"), 48)
 			if not earned:
-				icon.modulate = Color(0.12, 0.10, 0.08)
+				icon.modulate = Palette.INK
 			piece.add_child(icon)
 			var number := UiKit.label(str(n), &"SmallLabel")
 			number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -39,7 +36,7 @@ static func album() -> Control:
 				var icon := UiKit.icon(Database.item_icon(id), 48)
 				icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 				if not earned:
-					icon.modulate = Color(0.12, 0.10, 0.08)
+					icon.modulate = Palette.INK
 				cell.add_child(icon)
 				var label := UiKit.label(Database.item_name(id) if earned else "?", &"SmallLabel")
 				label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

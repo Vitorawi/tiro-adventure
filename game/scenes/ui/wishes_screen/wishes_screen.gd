@@ -9,5 +9,8 @@ func _ready() -> void:
 
 func _build(box: VBoxContainer) -> void:
 	WishUi.header(box)
+	var primary_used := false
 	for i in GameState.wishes.slots.size():
-		WishUi.slot_card(box, i)
+		var ready := GameState.wish_error(i) == ""
+		WishUi.slot_card(box, i, not primary_used)
+		primary_used = primary_used or ready

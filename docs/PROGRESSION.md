@@ -245,7 +245,7 @@ acionam a UI.
 `GameState.routine_ids(kind)` sorteia ao virar o dia (meia-noite local) ou a semana (segunda),
 com o período como semente (o mesmo sorteio ao reabrir). O progresso é contador − `base`
 (valor no início do período), guardado em `ProgressionState.routines`. As roupas que eram das
-secundárias agora vêm das semanais. Ações: `claim_routine`/`routine_error`.
+secundárias agora vêm das semanais. Ações: `claim_routine`/`routine_error`. A interface compacta da Etapa 10 usa essas mesmas ações: Pegar tudo recebe apenas as rotinas elegíveis, uma vez cada; linhas recebidas somem, com moedas no CollectFx.
 
 `hint` substitui a dica gerada; `go: {"world": "...", "place": "..."}` substitui o
 destino. `Places.goal_target` resolve objetivos; `Database.item_sources` fornece
@@ -296,7 +296,7 @@ falha se alguma construção ou missão ficar inalcançável. Rode-o depois de m
 ## Interface
 Desde a reorganização da navegação, a progressão não fica mais num menu único: cada coisa mora
 num lugar de um mundo (feira, ateliê e portão da trilha na Vila; cada construção comprada no próprio lugar) e a aba **Missões** mostra a História (um passo por vez: quem pede, ícone + `0/6`, onde,
-o que falta em chips tocáveis), as Diárias e as Semanais, sempre com **Ir** e **?** ("Como fazer"). Detalhes em **`docs/WORLDS.md`**. Painéis em `scripts/ui/progression_ui.gd`.
+o que falta em chips tocáveis), as Diárias e as Semanais em linhas com anel, instrução e prêmio. História mantém **Ir** e **?** ("Como fazer"); rotinas usam **Ir/Pegar** e **Pegar tudo** quando há várias prontas. Detalhes em **`docs/WORLDS.md`**. Painéis em `scripts/ui/progression_ui.gd`.
 - Casa: móveis com `"upgrade"` em `rooms/house.json` só aparecem depois de comprados; antes há um
   marcador "+" que abre a compra. Sítio: canteiros bloqueados mostram "Sítio" (antes da escritura)
   ou o preço do próximo terreno.

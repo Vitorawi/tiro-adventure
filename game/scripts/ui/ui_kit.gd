@@ -312,6 +312,10 @@ static func segmented(entries: Array[Dictionary], selected: String, choose: Call
 	for entry in entries:
 		var id := str(entry.id)
 		var tab := ghost(str(entry.text), choose.bind(id))
+		tab.pressed.connect(func() -> void: Motion.bounce(tab))
+		if entry.get("icon") is Texture2D:
+			tab.icon = entry.icon
+			tab.add_theme_constant_override("icon_max_width", 24)
 		tab.name = "NotebookTab_" + id
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tab.add_theme_font_size_override("font_size", 18)
@@ -321,7 +325,53 @@ static func segmented(entries: Array[Dictionary], selected: String, choose: Call
 		style.set_content_margin_all(6)
 		style.border_color = Palette.PRIMARY
 		style.set_border_width_all(2 if id == selected else 0)
+		tab.add_theme_color_override("font_color", Palette.INK if id == selected else Palette.INK_SOFT)
 		for state: String in ["normal", "hover", "pressed"]:
 			tab.add_theme_stylebox_override(state, style)
 		row.add_child(tab)
+	return row
+
+
+## Quadrado neutro de inventário/álbum. Conteúdo ignora o mouse para manter toque e rolagem.
+static func grid_tile(texture: Texture2D, title: String, action: Callable, px: int = 76, icon_px: int = 48) -> Button:
+	var tile := button("", action, &"GhostButton")
+	tile.custom_minimum_size = Vector2(px, px)
+	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var style := StyleBoxFlat.new()
+	style.bg_color = Palette.CARD
+	style.border_color = Palette.CARD_LINE
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(12)
+	for state: String in ["normal", "hover", "pressed"]:
+		tile.add_theme_stylebox_override(state, style)
+	var body := vbox(0)
+	body.name = "Visual"
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	body.offset_left = 4
+	body.offset_right = -4
+	body.offset_top = 4
+	body.offset_bottom = -4
+	body.alignment = BoxContainer.ALIGNMENT_CENTER
+	var picture := icon(texture, icon_px)
+	picture.name = "Picture"
+	body.add_child(picture)
+	if title != "":
+		var caption := label(title, &"SmallLabel")
+		caption.name = "Caption"
+		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		body.add_child(caption)
+	tile.add_child(body)
+	tile.pressed.connect(func() -> void: Motion.bounce(tile))
+	return tile
+
+
+## Progresso fino dos álbuns.
+static func collection_progress(count: int, total: int) -> HBoxContainer:
+	var row := hbox(8)
+	var progress := bar(100.0 * count / maxi(1, total), Palette.PRIMARY, 8)
+	progress.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(progress)
+	row.add_child(short_label("%d/%d" % [count, total], &"SmallLabel"))
 	return row

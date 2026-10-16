@@ -54,7 +54,7 @@ Faça um commit local no fim (não faça push). Ao terminar, marque a etapa como
 - [x] Etapa 07 — bandeja na horta — feita em 15/10/2026; `ActionTray` + `PlotTray`: toque e arrasto para plantar, regar e colher
 - [x] Etapa 08 — bandeja nas estações — feita em 15/10/2026; `StationTray`, grade/detalhe, criações e Natureza; retomada e concluída pelo Codex
 - [x] Etapa 09 — tela do Tiro — feita em 15/10/2026; cenário original sem margens, anéis, quatro cuidados iguais, comidas em guia vertical (pedido do Vitor), arrasto e caderninho
-- [ ] Etapa 10 — listas (missões, desejos, mochila, coleção)
+- [x] Etapa 10 — listas — feita em 15/10/2026; Missões compactas com Pegar tudo, Desejos, Mochila com depósitos/filtros/grade, Coleção em abas com toque para vestir (iniciada pelo Codex, concluída pelo Claude Code)
 - [ ] Etapa 11 — textos
 - [ ] Etapa 12 — festa e polimento
 

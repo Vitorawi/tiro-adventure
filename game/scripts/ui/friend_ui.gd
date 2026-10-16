@@ -28,7 +28,7 @@ static func _card(box: VBoxContainer, id: String, album: bool = false) -> void:
 	var row := UiKit.hbox(12)
 	var portrait := UiKit.icon(load(str(def.portrait)), 64)
 	if album and not known:
-		portrait.modulate = Color(0, 0, 0)
+		portrait.modulate = Palette.INK
 	row.add_child(portrait)
 	var text := UiKit.vbox(4)
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -38,7 +38,7 @@ static func _card(box: VBoxContainer, id: String, album: bool = false) -> void:
 	for i in maximum:
 		var heart := UiKit.icon(UiKit.ui_icon("bond_heart"), 24)
 		if i >= hearts:
-			heart.modulate = Color(0.4, 0.4, 0.4, 0.35)
+			heart.modulate = Palette.SUNKEN
 		heart_row.add_child(heart)
 	text.add_child(heart_row)
 	row.add_child(text)
@@ -80,5 +80,22 @@ static func _card(box: VBoxContainer, id: String, album: bool = false) -> void:
 
 static func album() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		var grid := GridContainer.new()
+		grid.columns = 3
+		grid.add_theme_constant_override("h_separation", 4)
+		grid.add_theme_constant_override("v_separation", 4)
+		var known_count := 0
 		for id: String in Database.friends.friends:
-			_card(box, id, true))
+			var def := GameState.friend_def(id)
+			var known := int(GameState.friend_state.entry(id).gifts) > 0
+			known_count += 1 if known else 0
+			var tile := UiKit.grid_tile(load(str(def.portrait)), str(def.name) if known else "?", func() -> void:
+				Events.sheet_requested.emit(str(def.name) if known else "Amigo da vizinhança", panel(id)), 100, 64)
+			tile.name = "Friend_" + id
+			tile.custom_minimum_size.y = 120
+			if not known:
+				tile.get_node("Visual/Picture").modulate = Palette.INK
+				tile.modulate.a = 0.55
+			grid.add_child(tile)
+		box.add_child(UiKit.collection_progress(known_count, Database.friends.friends.size()))
+		box.add_child(grid))

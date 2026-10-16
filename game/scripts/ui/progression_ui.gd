@@ -434,7 +434,7 @@ static func walk_exclusives(id: String, px: int) -> Control:
 
 
 static func _silhouette(picture: Control) -> void:
-	picture.modulate = Color(0.1, 0.08, 0.06, 0.6)
+	picture.modulate = Palette.INK
 
 
 ## Diário de passeios: um bloco por passeio (silhueta e requisitos enquanto bloqueado).
@@ -632,93 +632,80 @@ static func petshop_panel() -> Control:
 
 static func collection_panel() -> Control:
 	return SheetBuilder.tall(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		var tabs := UiKit.hbox(8)
-		for entry: Array in [["clothes", "Roupas"], ["finds", "Achados"], ["friends", "Amigos"]]:
-			if entry[0] == "friends" and not GameState.progress.feature_unlocked("friends"):
-				continue
-			if entry[0] == "finds" and not GameState.progress.feature_unlocked("finds"):
-				continue
-			var button := UiKit.button(str(entry[1]), func() -> void:
-				_collection_tab = str(entry[0])
-				(box as SheetBuilder.LiveBox).refresh())
-			button.disabled = _collection_tab == entry[0]
-			button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			tabs.add_child(button)
-		box.add_child(tabs)
-		if _collection_tab == "friends" and GameState.progress.feature_unlocked("friends"):
-			box.add_child(FriendUi.album())
-		else:
-			box.add_child(FindUi.album() if _collection_tab == "finds" and GameState.progress.feature_unlocked("finds") else _clothes_panel())
+		var entries: Array[Dictionary] = [{"id": "clothes", "text": "Roupas"}]
+		for entry: Dictionary in [{"id": "finds", "text": "Achados"}, {"id": "friends", "text": "Amigos"}]:
+			if GameState.progress.feature_unlocked(entry.id): entries.append(entry)
+		if not entries.any(func(entry: Dictionary) -> bool: return entry.id == _collection_tab): _collection_tab = "clothes"
+		box.add_child(UiKit.segmented(entries, _collection_tab, func(id: String) -> void:
+			_collection_tab = id
+			(box as SheetBuilder.LiveBox).refresh()))
+		match _collection_tab:
+			"friends": box.add_child(FriendUi.album())
+			"finds": box.add_child(FindUi.album())
+			_: box.add_child(_clothes_panel())
 	))
+
 
 static func _clothes_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var count := 0
+		var total := 0
 		var grid := GridContainer.new()
-		grid.columns = 2
-		grid.mouse_filter = Control.MOUSE_FILTER_PASS
-		grid.add_theme_constant_override("h_separation", 6)
-		grid.add_theme_constant_override("v_separation", 6)
-		# Grade: conquistado = colorido com nome; ainda não = apagado com "?".
+		grid.name = "ClothesGrid"
+		grid.columns = 3
+		grid.add_theme_constant_override("h_separation", 4)
+		grid.add_theme_constant_override("v_separation", 4)
 		for id: String in Database.collections:
 			var data: Dictionary = Database.collections[id]
 			var earned := GameState.progress.collection.has(id)
-			if not GameState.has_overlay(id):
-				continue  # "Em breve no Tiro": fica fora da lista até ter arte
-			if str(data.get("source", "")).begins_with("friend:") and not earned and not GameState.progress.feature_unlocked("friends"):
-				continue
-			if data.get("rarity", "") == "legendary" and not earned and not GameState.progress.feature_unlocked("legendary_walks"):
-				continue
+			if not GameState.has_overlay(id): continue
+			if str(data.get("source", "")).begins_with("friend:") and not earned and not GameState.progress.feature_unlocked("friends"): continue
+			if data.get("rarity", "") == "legendary" and not earned and not GameState.progress.feature_unlocked("legendary_walks"): continue
+			total += 1
 			count += 1 if earned else 0
-			var card := UiKit.card(grid, &"ReadyCardPanel" if earned else &"CardPanel")
-			card.alignment = BoxContainer.ALIGNMENT_CENTER
-			var picture := UiKit.icon(UiKit.ui_icon(data.icon), 48)
-			picture.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-			card.add_child(picture)
-			var source := str(data.get("source", ""))
-			var is_walk_rare := (source.begins_with("walk:") or source.begins_with("legendary:")) and not earned
-			if is_walk_rare:
-				_silhouette(picture)
-			var title := UiKit.label(data.name if earned else "?", &"SmallLabel")
-			title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			card.add_child(title)
-			if data.get("rarity", "") == "legendary":
-				card.add_child(UiKit.label("LENDÁRIO", &"SmallLabel", Color("b56be0")))
-			if earned:
-				var wearing := str(GameState.progress.equipped.get(str(data.get("slot", "")), "")) == id
-				var button := UiKit.secondary("Tirar" if wearing else "Vestir", func() -> void:
-					var error := GameState.unequip(str(data.slot)) if wearing else GameState.equip(id)
-					if error != "":
-						Events.toast_requested.emit(error), null, true)
-				button.disabled = not wearing and GameState.equip_error(id) != ""
-				card.add_child(button)
-				if not wearing and GameState.equip_error(id) != "":
-					card.add_child(UiKit.label(GameState.equip_error(id), &"SmallLabel"))
-			if is_walk_rare:
-				var walk_name := str(GameState.walk_def(source.trim_prefix("walk:")).get("name", ""))
-				var hint := UiKit.label("Lendário de passeio" if source.begins_with("legendary:") else "Raro de passeio: " + walk_name, &"SmallLabel")
-				hint.name = "RareHint_" + id
-				hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-				card.add_child(hint)
-				var go := UiKit.button("Ir", Places.go.bind({"world": "park", "place": "walk"}))
-				go.custom_minimum_size.y = 48
-				card.add_child(go)
-			elif not earned and (data.get("shop", "") == "petshop" or data.has("recipe")):
-				var go := UiKit.button("Pet shop", Places.go.bind({"world": "park", "place": "petshop"}))
-				go.disabled = Places.world_error("park") != "" or Places.place_error(Database.worlds.get("park", {}).get("places", {}).get("petshop", {})) != ""
-				card.add_child(go)
-			elif not earned and source.begins_with("friend:"):
-				var friend_id := source.trim_prefix("friend:")
-				card.add_child(UiKit.label(str(GameState.friend_def(friend_id).name) + " · 3 corações", &"SmallLabel"))
-				card.add_child(UiKit.button("Ir", Places.go.bind({"world": "park", "place": "friend:" + friend_id})))
+			var tile := UiKit.grid_tile(UiKit.ui_icon(data.icon), str(data.name) if earned else "?", func() -> void:
+				if not earned:
+					Events.sheet_requested.emit(str(data.name), _clothing_source(id))
+					return
+				var wearing := str(GameState.progress.equipped.get(str(data.slot), "")) == id
+				var error := GameState.unequip(str(data.slot)) if wearing else GameState.equip(id)
+				if error != "": Events.toast_requested.emit(error), 100, 64)
+			tile.custom_minimum_size.y = 120
+			tile.name = "Equip_" + id
+			var wearing := str(GameState.progress.equipped.get(str(data.slot), "")) == id
+			var mark := UiKit.icon(UiKit.ui_icon("ui_check" if wearing else "ui_lock"), 24)
+			mark.name = "EquippedCheck" if wearing else "ClothingLock"
+			mark.visible = wearing or not earned
+			tile.add_child(mark)
 			if not earned:
-				card.get_parent().modulate.a = 0.45 if not is_walk_rare else 0.8
-		var header := UiKit.hbox(8)
-		header.add_child(UiKit.icon(UiKit.ui_icon("item_accessory_set"), 32))
-		header.add_child(UiKit.short_label("%d/%d" % [count, Database.collections.size()], &"SectionLabel"))
-		box.add_child(header)
+				_silhouette(tile.get_node("Visual/Picture"))
+				tile.modulate.a = 0.55
+				if str(data.get("source", "")).begins_with("walk:") or str(data.get("source", "")).begins_with("legendary:"):
+					mark.name = "RareHint_" + id
+					mark.tooltip_text = "Raro de passeio"
+			grid.add_child(tile)
+		box.add_child(UiKit.collection_progress(count, total))
 		box.add_child(grid)
 	)
+
+
+## Origem fica no detalhe para manter os quadrados compactos.
+static func _clothing_source(id: String) -> Control:
+	var box := UiKit.vbox(8)
+	var data: Dictionary = Database.collections[id]
+	box.add_child(UiKit.icon(UiKit.ui_icon(data.icon), 64))
+	box.add_child(UiKit.lock_hint("Você ainda não tem"))
+	var source := str(data.get("source", ""))
+	if source.begins_with("walk:") or source.begins_with("legendary:"):
+		box.add_child(UiKit.label("Lendário de passeio" if source.begins_with("legendary:") else "Raro de passeio: " + str(GameState.walk_def(source.trim_prefix("walk:")).get("name", "")), &"SmallLabel"))
+		box.add_child(UiKit.secondary("Ir", Places.go.bind({"world": "park", "place": "walk"}), null, true))
+	elif source.begins_with("friend:"):
+		var friend_id := source.trim_prefix("friend:")
+		box.add_child(UiKit.label(str(GameState.friend_def(friend_id).name) + " ♥3", &"SmallLabel"))
+		box.add_child(UiKit.secondary("Ir", Places.go.bind({"world": "park", "place": "friend:" + friend_id}), null, true))
+	elif data.get("shop", "") == "petshop" or data.has("recipe"):
+		box.add_child(UiKit.secondary("Pet shop", Places.go.bind({"world": "park", "place": "petshop"}), null, true))
+	return box
 
 
 # --- Peças ------------------------------------------------------------------------------
@@ -785,16 +772,17 @@ static func _amounts(card: VBoxContainer, amounts: Dictionary) -> void:
 
 
 ## [Ir | Receber] + "?". O Ir leva ao lugar da missão; o "?" explica o que falta.
-static func quest_action(box: VBoxContainer, id: String) -> void:
+static func quest_action(box: VBoxContainer, id: String, primary: bool = true) -> void:
 	var ready := GameState.quest_error(id) == ""
 	var row := UiKit.hbox(8)
-	var main := UiKit.button("Receber" if ready else "Ir", func() -> void:
+	var main := UiKit.button("Pegar prêmio" if ready else "Ir", func() -> void:
 		if ready:
 			var error := GameState.claim_quest(id)
 			if error != "":
 				Events.toast_requested.emit(error)
 		else:
-			Places.go(quest_go_target(id)), &"PrimaryButton")
+			Places.go(quest_go_target(id)), &"PrimaryButton" if primary else &"SecondaryButton")
+	if ready and primary: Motion.pulse.call_deferred(main)
 	main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(main)
 	if not ready:
@@ -817,47 +805,83 @@ static func current_goal(id: String) -> Dictionary:
 	return goals[0]
 
 
-## Diária ou semanal: [ícone] nome · barra · recompensa · [Ir | Receber].
-static func routine_card(box: VBoxContainer, kind: String, id: String) -> void:
+## Rotina compacta: anel, nome/instrução, prêmio e ação. O dono da tela decide o principal.
+static func routine_card(box: VBoxContainer, kind: String, id: String, primary: bool = false) -> void:
+	if GameState.routine_claimed(kind, id): return
 	var data := GameState.routine_data(kind, id)
 	var goal: Dictionary = data.goal
 	var target := int(goal.get("target", 1))
 	var value := mini(GameState.routine_value(kind, id), target)
-	var claimed := GameState.routine_claimed(kind, id)
 	var ready := GameState.routine_error(kind, id) == ""
-	var card := UiKit.card(box, &"ReadyCardPanel" if ready else &"CardPanel")
-	if claimed:
-		card.get_parent().modulate.a = 0.55
-	var row := UiKit.hbox(8)
-	row.add_child(UiKit.icon(stat_icon(goal.key), 40))
-	var info := UiKit.vbox(2)
+	var action := func() -> void:
+		if ready: claim_routine_rows(box, [{"kind": kind, "id": id}])
+		else: Places.go(Places.goal_target({"type": "stat", "key": goal.key}))
+	var button := UiKit.primary("Pegar", action) if ready and primary else UiKit.secondary("Pegar" if ready else "Ir", action, null, true)
+	button.custom_minimum_size = Vector2(60, 44)
+	button.add_theme_font_size_override("font_size", 18)
+	var action_column := UiKit.vbox(0)
+	action_column.add_child(button)
+	var panel := UiKit.list_row(null, "", [], action_column)
+	panel.name = "Routine_" + kind + "_" + id
+	var row := panel.get_child(0).get_child(0) as HBoxContainer
+	row.add_theme_constant_override("separation", 6)
+	row.get_child(0).free()
+	row.get_child(0).free()
+	var progress := UiKit.vbox(0)
+	var ring := RingProgress.new()
+	ring.custom_minimum_size = Vector2(52, 52)
+	ring.texture = stat_icon(str(goal.key))
+	ring.progress = float(value) / maxi(1, target)
+	progress.add_child(ring)
+	var number := UiKit.short_label("%d/%d" % [value, target], &"SmallLabel")
+	number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	progress.add_child(number)
+	row.add_child(progress)
+	row.move_child(progress, 0)
+	var info := UiKit.vbox(0)
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.add_child(UiKit.label(data.name))
-	var line := UiKit.hbox(6)
-	var bar := UiKit.bar(100.0 * value / maxi(1, target), UiKit.GOOD, 10)
-	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	line.add_child(bar)
-	line.add_child(UiKit.short_label("%d/%d" % [value, target], &"SmallLabel"))
-	info.add_child(line)
-	info.add_child(reward_chips(data.get("rewards", {})))
+	var title := UiKit.hbox(2)
+	var name_label := UiKit.fill_label(str(data.name))
+	name_label.add_theme_font_size_override("font_size", 18)
+	title.add_child(name_label)
+	info.add_child(title)
+	info.add_child(UiKit.label(str(data.get("description", data.name)), &"SmallLabel"))
+	var prize := UiKit.hbox(2)
+	prize.add_child(UiKit.icon(UiKit.ui_icon("coin"), 18))
+	prize.add_child(UiKit.short_label("+%d" % int(data.get("rewards", {}).get("coins", 0)), &"SmallLabel", Palette.GOOD))
+	action_column.add_child(prize)
 	row.add_child(info)
-	if claimed:
-		row.add_child(UiKit.short_label("✓", &"SectionLabel", UiKit.GOOD))
-	else:
-		var on_press := func() -> void:
-			if ready:
-				var error := GameState.claim_routine(kind, id)
-				Events.toast_requested.emit(error if error != "" else "Missão concluída!")
-			else:
-				Places.go(Places.goal_target({"type": "stat", "key": goal.key}))
-		# Pronta = botão principal "Pegar prêmio"; ainda não = "Ir" pequeno e secundário.
-		var button := UiKit.primary("Pegar prêmio", on_press) if ready else UiKit.secondary("Ir", on_press, null, true)
-		button.custom_minimum_size = Vector2(96, 52 if ready else 44)
-		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		row.add_child(button)
-	card.add_child(row)
-	# Frase de ação ocupa a largura toda, sem ficar espremida pelo botão Ir.
-	card.add_child(UiKit.label(data.get("description", data.name), &"SmallLabel"))
+	row.move_child(info, 1)
+	if ready:
+		panel.ready.connect(func() -> void:
+			var style := panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
+			style.border_color = Palette.PRIMARY
+			panel.add_theme_stylebox_override("panel", style))
+	box.add_child(panel)
+
+
+## Recebe somente as elegíveis; anima antes do LiveBox reconstruir e não repete prêmios.
+static func claim_routine_rows(host: Control, entries: Array[Dictionary]) -> void:
+	var live: Node = host
+	while live and not live is SheetBuilder.LiveBox: live = live.get_parent()
+	if live and bool(live.get_meta("ui_animating", false)): return
+	if live: live.set_meta("ui_animating", true)
+	for entry: Dictionary in entries:
+		if GameState.routine_error(entry.kind, entry.id) != "": continue
+		var row := host.find_child("Routine_" + str(entry.kind) + "_" + str(entry.id), true, false) as Control
+		var origin := row.get_global_rect().get_center() if row else host.get_global_rect().get_center()
+		var rewards: Dictionary = GameState.routine_data(entry.kind, entry.id).get("rewards", {})
+		var error := GameState.claim_routine(entry.kind, entry.id)
+		if error != "":
+			Events.toast_requested.emit(error)
+			continue
+		Events.items_gained.emit(rewards.get("items", {}), int(rewards.get("coins", 0)), origin)
+		if row: Motion.pop_out(row, false)
+	if not is_instance_valid(host): return
+	await host.get_tree().create_timer(0.0 if Motion.reduced else Motion.POP_OUT).timeout
+	if is_instance_valid(live):
+		live.set_meta("ui_animating", false)
+		(live as SheetBuilder.LiveBox).refresh()
 
 
 ## História completa: capítulos passados (✓), o atual com os passos e os próximos apagados.
