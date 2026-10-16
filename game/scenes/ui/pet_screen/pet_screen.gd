@@ -17,6 +17,7 @@ var _away_view: VBoxContainer
 var _away_postcard: TextureRect
 var _away_name: Label
 var _away_time: Label
+var _away_collect: Button
 var _stroke_distance := 0.0
 var _last_pet_reward := -10.0
 var _care: PetCareTray
@@ -185,7 +186,8 @@ func _refresh() -> void:
 		var walk_id := str(GameState.walk_state.current.id)
 		_away_postcard.texture = WalkResult.postcard_texture(GameState.walk_postcard(walk_id))
 		_away_name.text = str(GameState.walk_def(walk_id).get("name", ""))
-		_away_time.text = "Pronto! Pegue na Praça" if GameState.walk_ready() else TimeText.short(GameState.walk_remaining())
+		_away_time.text = "Pronto!" if GameState.walk_ready() else TimeText.short(GameState.walk_remaining())
+	_away_collect.visible = away and GameState.walk_ready()
 	_bond_caption.text = str(GameState.bond_level())
 	var bond := GameState.progress.bond_info(GameState.dog.affection)
 	_bond_ring.progress = 1.0 if bond.max else float(int(bond.affection) - int(bond.floor)) / maxi(1, int(bond.next) - int(bond.floor))
@@ -210,6 +212,8 @@ func _refresh() -> void:
 	_animator.set_sleeping(dog.sleeping)
 	_animator.set_sad(dog.get_need(dog.lowest_need(now), now) < MOOD_LOW)
 	var text := GameState.away_text() if away else ("Zzz... %s está dormindo" % dog.name if dog.sleeping else str(MOOD_TEXTS.get(dog.lowest_need(now), "")) if dog.get_need(dog.lowest_need(now), now) < MOOD_LOW else "%s está feliz da vida!" % dog.name)
+	if away and GameState.walk_ready():
+		text = "Passeio pronto!"
 	if text != _mood_label.text:
 		_mood_label.text = text
 		_show_mood()
@@ -363,6 +367,16 @@ func _build_away_view() -> void:
 	_away_time.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	caption_box.add_child(_away_time)
 	_away_view.add_child(caption)
+	_away_collect = UiKit.primary("Terminar passeio", func() -> void:
+		var error := GameState.collect_walk_error()
+		if error != "":
+			Events.toast_requested.emit(error)
+		else:
+			GameState.collect_walk())
+	_away_collect.name = "CollectWalk"
+	_away_collect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_away_collect.visible = false
+	_away_view.add_child(_away_collect)
 	%DogArea.add_child(_away_view)
 
 

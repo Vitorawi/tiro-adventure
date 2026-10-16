@@ -160,6 +160,8 @@ func _campaign() -> Dictionary:
 			state.get("plots")[i]["ready_at"] = 1.0
 			state.call("harvest", i)
 		# Guarda reserva para cadeias e entrega o excedente na feira.
+		if state.get("progress").current_line_quest("bloblo") == "bloblo_sell_surplus" and state.get("inventory").count("carrot") > 0:
+			state.call("sell", "carrot", 1)
 		for item: String in database.get("items"):
 			var amount: int = state.get("inventory").count(item) - 12
 			if amount > 0 and state.call("requirement_error", database.get("worlds").village.requirements) == "":
@@ -171,9 +173,17 @@ func _campaign() -> Dictionary:
 				continue # Guarda os materiais dos próximos pedidos para construir.
 			state.call("fulfill_order", id)
 		var wanted: Array = []
+		var reserved := {}
 		for step: String in state.get("progress").active_steps().values():
 			wanted.append_array(database.get("quests")[step].goals.map(func(g: Dictionary) -> String: return str(g.get("key", ""))))
+			for goal: Dictionary in database.get("quests")[step].goals:
+				if str(goal.get("key", "")).begins_with("order:"):
+					reserved.merge(progression.orders[str(goal.key).trim_prefix("order:")].inputs, true)
 		for id: String in recipes:
+			# Como o jogador, guarda os produtos do contrato atual em vez de gastá-los em outra receita.
+			var output_id := str(recipes[id].get("output", recipes[id].get("output_collection", "")))
+			if not reserved.has(output_id) and recipes[id].get("inputs", {}).keys().any(func(item: String) -> bool: return reserved.has(item) and state.get("inventory").count(item) - int(recipes[id].inputs[item]) < int(reserved[item])):
+				continue
 			for animal_id: String in database.get("animals"):
 				if database.get("animals")[animal_id].station == recipes[id].station and state.call("animal_count", recipes[id].station) == 0:
 					state.call("buy_animal", animal_id)

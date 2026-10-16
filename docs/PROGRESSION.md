@@ -177,7 +177,7 @@ As criações reutilizam `StationState` e os timestamps Unix das receitas, com u
 | **Construções** | `progression.json` → `upgrades` | Compras permanentes (moedas + materiais + requisitos): equipamentos da casa/vila, sítio, estufa, pomar, galinheiro, curral, moinho e queijaria. |
 | **Estações** | `config.json` → `stations` + `recipes.json` | Fogão, bancada, forno, ateliê, galinheiro, curral, moinho e queijaria; filas com tempo real. `slot_upgrades` = construção que aumenta a fila. |
 | **Rotas** | `progression.json` → `activities` | Passeios/mineração com tempo (uma por vez): bairro, trilha, pedreira, cobre, gruta, pomar, prado. |
-| **Feira** | `progression.json` → `orders` + `sell_price` em `items.json` | Encomendas com recarga + venda direta. |
+| **Comércio** | `progression.json` → `orders` + `sell_price` em `items.json` | Venda no Sítio/Vila, encomendas dos vizinhos e contratos da banca própria em três níveis. Interface `MarketUi`. |
 | **Capítulos** | `progression.json` → `chapters` (+ `final_chapter`) | A "história": cada capítulo termina ao comprar seu `target`. Aparece em Jornada → Hoje. |
 | **Novidades** | `progression.json` → `features` | O que a história revela (Mochila, diárias, semanais, atributos), com `requirements` e `go`. |
 | **Missões** | `quests.json`, `routines.json` | História (capítulos em passos) + diárias e semanais sorteadas. Objetivos + recompensas. |
@@ -219,6 +219,17 @@ Recompensas extras: `"affection": N` (afeto do Tiro) e `"needs": {"happiness": 2
 `quest_ready`, `routine_ready`, `care`); `Loot` (`scripts/util/loot.gd`) sorteia tabelas com semente e faixas `[min, max]`.
 
 ## Missões: História, Diárias e Semanais
+
+Nos cruzamentos repetidos do começo, a história usa `shared_with` para apontar para a missão
+canônica da Bloblo: `lais_meet_bloblo → bloblo_meet`, `lais_first_crops → bloblo_more_crops` e
+`lais_stew → bloblo_stew`. O cartão principal orienta “Complete as missões de Vovó Bloblo até
+‘Mais canteiros’” (com o nome do marco correspondente) e oferece Ir para o passo atual.
+A missão secundária mantém sua entrega e seu prêmio logo abaixo, uma única vez.
+Receber a missão canônica avança o marco principal automaticamente:
+ele não paga moedas/XP de missão, não conta outra conclusão e não emite outro aviso de missão.
+Recompensas de capítulo continuam independentes. IDs anteriores seguem nos saves/requisitos;
+ao carregar missão canônica já recebida, o marco pendente é sincronizado sem repetir seu prêmio.
+Não há devolução de recompensas que saves antigos já receberam.
 
 **Linhas de missões por NPC (13/10/2026).** Design em `docs/plans/QUESTLINES.md`, plano em
 `docs/plans/TASKS_QUESTLINES.md`. A **Laís** (mora na Casa, trouxe o Tiro) conduz a história:
@@ -376,7 +387,12 @@ fechados levam à vovó enquanto a escritura não estiver liberada.
 
 ### Feirante, Guia e retratos animados
 
-Feirante (cap. 4): conversar → vender 5 produtos → 1 encomenda → mais 2 encomendas.
+Feirante (cap. 4): conversar → primeira venda → vender 5 produtos → 1 encomenda → mais 2 encomendas
+→ montar a própria banca → 2 contratos → ampliar para nível 2 → somar 5 contratos → nível 3
+→ contrato Festa da vila. `first_sale`, `main_2_order`, `market_day` e `own_business` usam
+`shared_with` para orientar até os respectivos marcos, sem pagamento repetido. A Bloblo ensina
+a primeira venda no próprio Sítio (`bloblo_sell_surplus`, depois da primeira colheita): `early_market`
+fica disponível desde `bloblo_meet`, sem exigir a Vila, a escritura ou a banca.
 Guia (cap. 5): conversar → recolher lane → quarry → meadow. Metas de ações são `fresh`;
 passos anteriores da Laís não contam retroativamente. As novas linhas não bloqueiam
 as existentes. São quatro linhas possíveis em paralelo (Laís, Bloblo, Feirante, Guia).
@@ -526,3 +542,25 @@ Enquanto `guide_treasure` estiver ativa, `finds.json → worlds.<mundo>.quest_fi
 - `progression.json → treasure`: `requirements {"quests": ["guide_treasure"]}` e `rewards` (150 moedas, `explorer_hat`, `unlocks ["crop:blueberry"]`, 2 parafusos). `GameState.open_treasure_error()/open_treasure()`: marca `progress.seen["treasure_opened"]`, conta `treasure` e emite `Events.treasure_opened` (fila modal → `Celebration.show_treasure`). Repetir devolve "Já aberto" e não paga nada; sem espaço no armazenamento a abertura é recusada sem gastar. O Chapéu de explorador também sai do conjunto "Tesouros da trilha": a coleção é um dicionário, então não duplica.
 - Mirtilo: `crops.json → blueberry` (900 s, 20 moedas, 3 mirtilos, 40 XP). Requisitos `quests: guide_treasure` **e** `stats: {treasure: 1}` (só depois de abrir o baú; o `unlocks` do baú também o libera). Desejo especial `blueberry` com o mesmo requisito. Item `blueberry`: venda 9, `feed` fome 4 / felicidade 8.
 - Sem `SAVE_VERSION` novo: tudo usa `progress.seen`, `progress.unlocks`, `progress.collection` e contadores existentes.
+
+## Banca própria e contratos (16/10/2026)
+
+`orders.<id>.channel = "contracts"` separa os contratos; ausência do campo significa vizinhança.
+`building_order` e `special_order` exigem `stall`; `fabric_order` exige `stall_2` e ateliê;
+`banquet_contract` exige `stall_2`, queijaria e liquidificador; `festival_contract` exige `stall_3`,
+ateliê e liquidificador. Contadores gerais `orders`/`order:<id>` continuam compatíveis; `contracts`
+é a soma dos `order:<id>` de contratos, recalculada em `_changed`, inclusive ao carregar saves
+anteriores. Não há reset, novo SAVE_VERSION ou repetição de prêmio antigo.
+
+| Estágio | Compra | O que muda |
+|---|---|---|
+| Minha banca | 350 moedas, 5 tábuas, 3 tijolos; sítio adquirido | Dois contratos, moedas e parafusos |
+| Banca ampliada | 450 moedas, 6 tábuas, 4 tijolos; 2 contratos | Tecidos e Mesa da comunidade; bandeirolas no mapa |
+| Banca da vila | 800 moedas, 8 tábuas, 6 tijolos, 2 tecidos; 5 contratos | Festa da vila, materiais e estrela no mapa |
+
+As missões novas da linha `merchant` usam metas totais para contratos (2/5) e compras reais;
+as encomendas introdutórias preservam `fresh`. `merchant_festival` pede uma entrega real de
+`festival_contract`. Marcos da história recebidos em saves antigos também marcam suas novas
+missões canônicas sem novo pagamento. As melhorias permanecem em `owned`, e a etiqueta do
+mapa usa `label_levels` para mostrar o nível. `market_test.gd` percorre a linha inteira, confere
+venda inicial, margem das encomendas, canais, recarga, compras e compatibilidade de save.

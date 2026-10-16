@@ -130,72 +130,15 @@ static func upgrade_card(box: VBoxContainer, id: String) -> void:
 
 # --- Vila: vender e encomendas --------------------------------------------------------
 
-## Feira: abas Vender | Encomendas (`tab` = "sell" ou "orders").
+## Acessos antigos continuam válidos; cada lugar abre só sua função.
 static func market_panel(tab: String = "sell") -> Control:
-	var box := UiKit.vbox(10)
-	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.mouse_filter = Control.MOUSE_FILTER_PASS
-	var tabs := UiKit.hbox(8)
-	var holder := UiKit.vbox(0)
-	holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	holder.mouse_filter = Control.MOUSE_FILTER_PASS
-	var buttons := {}
-	var show_tab := func(id: String) -> void:
-		for child in holder.get_children():
-			child.queue_free()
-		holder.add_child(sell_panel() if id == "sell" else orders_panel())
-		for key: String in buttons:
-			buttons[key].theme_type_variation = &"SecondaryButton" if key == id else &"GhostButton"
-	for entry: Array in [["sell", "Vender", "coin"], ["orders", "Encomendas", "item_treat_box"]]:
-		var button := UiKit.button(entry[1], show_tab.bind(entry[0]), &"", UiKit.ui_icon(entry[2]))
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		buttons[entry[0]] = button
-		tabs.add_child(button)
-	box.add_child(tabs)
-	box.add_child(holder)
-	show_tab.call(tab if tab in ["sell", "orders"] else "sell")
-	box.set_meta("sheet_size", "tall")  # a aba Vender é comprida e o painel não pode pular de altura ao trocar de aba
-	return box
-
+	return MarketUi.orders() if tab == "orders" else MarketUi.sell()
 
 static func sell_panel() -> Control:
-	return SheetBuilder.tall(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		var any := false
-		for id: String in Database.items:
-			var price := int(Database.items[id].get("sell_price", 0))
-			var count := GameState.inventory.count(id)
-			if price <= 0 or count == 0:
-				continue
-			any = true
-			var sell := UiKit.secondary("+%d" % price, func() -> void:
-				var error := GameState.sell(id)
-				if error != "":
-					Events.toast_requested.emit(error), UiKit.ui_icon("coin"), true)
-			sell.custom_minimum_size = Vector2(96, 44)
-			box.add_child(UiKit.list_row(Database.item_icon(id), "%s ×%d" % [Database.item_name(id), count], [], sell))
-		if not any:
-			_text(box, "Nada para vender.")
-	))
-
+	return MarketUi.sell()
 
 static func orders_panel(focus: String = "") -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		for id: String in Database.progression.orders:
-			if focus != "" and id != focus:
-				continue
-			var data: Dictionary = Database.progression.orders[id]
-			var reason := GameState.order_error(id)
-			var locked := GameState.requirement_error(data.get("requirements", {}))
-			var card := UiKit.card(box, &"ReadyCardPanel" if reason == "" else &"CardPanel")
-			card.add_child(UiKit.label(data.name, &"SectionLabel"))
-			if locked != "":
-				card.get_parent().modulate.a = 0.55
-				card.add_child(UiKit.lock_hint(locked, TaskHelp.open.bind("order", id)))
-				continue
-			_amounts(card, data.inputs)
-			card.add_child(reward_chips(data.rewards))
-			_action(card, "Entregar", func() -> String: return GameState.fulfill_order(id), reason, "Encomenda entregue!", TaskHelp.open.bind("order", id), false)
-	)
+	return MarketUi.orders(focus)
 
 
 # --- Rotas (passeios, mina, pomar) ------------------------------------------------------
@@ -594,14 +537,9 @@ static func _next_milestone(skill_id: String, current: int) -> Dictionary:
 static var _collection_tab := "clothes"
 
 
-## O quiosque reúne costura e compras; mantém o molde das estações.
+## Compras do quiosque; a costura tem acesso próprio e usa StationTray.
 static func petshop_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		box.add_child(UiKit.label("Costura", &"SectionLabel"))
-		if GameState.has_upgrade("sewing_table"):
-			box.add_child(SheetBuilder.station_view("sewing"))
-		else:
-			box.add_child(purchase("sewing_table"))
 		box.add_child(UiKit.label("Comprar", &"SectionLabel"))
 		for id: String in Database.collections:
 			var data: Dictionary = Database.collections[id]
@@ -709,7 +647,9 @@ static func _clothing_source(id: String) -> Control:
 		var friend_id := source.trim_prefix("friend:")
 		box.add_child(UiKit.label(str(GameState.friend_def(friend_id).name) + " ♥3", &"SmallLabel"))
 		box.add_child(UiKit.secondary("Ir", Places.go.bind({"world": "park", "place": "friend:" + friend_id}), null, true))
-	elif data.get("shop", "") == "petshop" or data.has("recipe"):
+	elif data.has("recipe"):
+		box.add_child(UiKit.secondary("Costura", Places.go.bind({"world": "park", "place": "sewing"}), null, true))
+	elif data.get("shop", "") == "petshop":
 		box.add_child(UiKit.secondary("Pet shop", Places.go.bind({"world": "park", "place": "petshop"}), null, true))
 	return box
 

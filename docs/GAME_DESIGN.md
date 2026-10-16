@@ -43,7 +43,7 @@ Coleção usa abas segmentadas Roupas/Achados/Amigos. Roupas e Amigos têm três
 ## Interface (Interface nova — visão geral e Etapa 12, festa)
 **O mundo é a tela.** Casa, Sítio, Praça, Vila e Natureza ocupam a tela inteira, com céu, paisagem e chão atrás da maquete; o HUD (avatar do Tiro com anel de XP, moedas, engrenagem), a pílula do mundo e as abas flutuam por cima. A câmera arrasta com inércia, aproxima por pinça ou duplo toque e volta ao enquadramento por um botão. A aba Mapa abre no último mundo; trocar de mundo é pelo carrossel (a pílula) e a viagem cobre a tela com nuvens de papel.
 
-**A bandeja fica ao lado do dedo.** Plantar, regar, colher, cozinhar, fazer, alimentar animais e buscar na Natureza abrem uma bandeja pequena perto do alvo, sem tirar o mundo da vista; o painel grande continua para consulta ("Ver tudo"). **Arrastar** a semente (ou o regador, ou a foice) por vários canteiros age em todos de uma vez, com o toque simples valendo igual. O balão sobre canteiros e estações mostra o anel de progresso e o "pronto" pulando; tocar nele pega/colhe na hora.
+**A bandeja fica ao lado do dedo.** Plantar, regar, cozinhar, fazer, alimentar animais e iniciar buscas na Natureza usam uma bandeja pequena perto do alvo, sem tirar o mundo da vista; o painel grande continua para consulta ("Ver tudo"). **Arrastar** a semente ou o regador por vários canteiros age em todos de uma vez. **Coletar no mapa só coleta:** planta madura, estação/criação, Natureza e pomar prontos entregam os produtos sem abrir bandeja nem painel depois. O balão mostra o anel de progresso e o "pronto" pulando; tocar nele pega/colhe na hora.
 
 **O Tiro tem o próprio cantinho.** Quatro anéis de necessidade e o coração de vínculo; quatro cuidados iguais (Comida, Banho, Brincar, Dormir) por toque ou arrasto; o **caderninho** flutuante guarda Manual, Atributos, Coleção e Truques.
 
@@ -192,7 +192,26 @@ Ao ter o sítio próprio, o jogador pode construir o galinheiro (duas galinhas),
 (duas vacas), o moinho e a queijaria. Plantar milho/trigo → alimentar → esperar → recolher
 ovos/leite; trigo → farinha e leite → queijo nas estações do sítio. As criações não produzem
 sem alimento; um lote por vez, com tempo real e sem perda dos animais se o jogador ficar fora.
-Os produtos servem à feira/encomendas e à progressão. Manual mostra a cadeia inteira.
+Os produtos servem ao comércio e à progressão. Manual mostra a cadeia inteira.
+
+O comércio evolui em três funções claras: **vender excedentes** (moedas imediatas, disponível
+no Sítio desde conhecer a Bloblo), **encomendas da vizinhança** (pedidos pequenos no quadro
+da Vila) e **Minha banca** (negócio próprio com contratos maiores). A Bloblo ensina a primeira
+venda após a colheita; ela não exige escritura nem acesso à Vila. Uma colheita de cenouras
+custa 3 moedas e rende duas cenouras, vendidas por 6: há uma fonte repetível de renda inicial.
+
+A banca tem três níveis. Montar abre dois contratos; entregar dois permite a primeira ampliação;
+somar cinco permite a última. Nível 2 acrescenta tecidos e alimentos; nível 3 acrescenta a Festa
+da vila. Contratos pagam mais que a venda avulsa dos produtos e também materiais de ampliação
+já existentes, sem nova moeda. Pedidos não expiram: após entregar, aguardam a própria recarga.
+A linha do Feirante guia as vendas, encomendas, montagem, ampliações e contrato final. Quando
+a história compartilha esses marcos, apenas orienta a seguir a linha e avança automaticamente.
+
+As telas usam seleção e detalhe na mesma janela: venda com quantidade e botão Tudo;
+encomendas em grade 2×2 com quatro por página; contratos com dois por página. Produtos,
+tem/precisa, pagamento e estado ficam nos cartões; só o selecionado mostra ingredientes
+tocáveis e o botão de entrega. Prontos vêm primeiro, aguardando renovação no fim. Bloqueados
+não ocupam cartões: uma faixa mostra o próximo desbloqueio.
 
 Capítulo 9 amplia a história existente com cinco passos sobre essa produção. A área física
 é uma expansão cercada, aberta pelo galinheiro; comprar também revela os animais no cenário.
@@ -262,8 +281,8 @@ Custos, tempos, quantidades e requisitos permanecem os mesmos.
   sementes (a última usada primeiro, o tempo embaixo de cada uma; bloqueadas ficam apagadas com cadeado e levam ao "Como fazer").
   Tocar na semente planta ali; **arrastar a semente por cima da horta planta em vários canteiros de uma vez** (a horta inteira
   leva 1 toque + 1 arrasto). Tocar numa planta crescendo rega na hora (uma rega por plantio) e oferece o regador para arrastar pelos
-  outros; já regada, mostra o tempo que falta num anel. Tocar numa planta pronta colhe na hora e oferece a **foice** (arrastar) e
-  **Tudo** (um toque colhe o resto). Nada disso muda custo, tempo ou recompensa; o painel antigo continua em "Ver tudo".
+  outros; já regada, mostra o tempo que falta num anel. Tocar numa planta pronta só colhe, sem abrir sementes, foice ou painel.
+  Para plantar novamente, toque depois no canteiro já vazio. Nada disso muda custo, tempo ou recompensa; o painel antigo continua em "Ver tudo".
   Tocar fora da bandeja só a fecha. Tocar num terreno bloqueado abre preço e requisitos.
 - O botão “Meu sítio” mostra terrenos adquiridos, saldo, próxima expansão e acesso aos canteiros.
 - Saves antigos preservam seus terrenos e plantações. Crescimento continua com o app fechado.

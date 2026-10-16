@@ -100,7 +100,7 @@ func panel_parts(panel: String) -> PackedStringArray:
 	var args := panel.get_slice(":", 1).split("+") if ":" in panel else PackedStringArray()
 	match kind:
 		"petshop":
-			return PackedStringArray(["petshop", "station:sewing"])
+			return PackedStringArray(["petshop"])
 		"stations":
 			var parts: PackedStringArray = []
 			for id in args:
@@ -108,6 +108,10 @@ func panel_parts(panel: String) -> PackedStringArray:
 			return parts
 		"market":
 			return PackedStringArray(["sell", "orders"])
+		"sell":
+			return PackedStringArray(["sell", "market:sell"])
+		"orders":
+			return PackedStringArray(["orders", "market:orders"])
 		"routes", "nature":
 			var parts: PackedStringArray = []
 			for id in args:

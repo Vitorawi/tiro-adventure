@@ -115,7 +115,7 @@ func _run() -> void:
 	await _test_stove_cooks()
 	await _test_full_queue()
 	await _test_missing_ingredients()
-	await _test_collect_then_open()
+	await _test_collect_without_opening()
 	await _test_blender_and_focus()
 	await _test_see_all()
 	await _test_coop()
@@ -272,9 +272,9 @@ func _test_missing_ingredients() -> void:
 	house.call("close_tray")
 
 
-# --- 4. pronto: tocar pega e abre a bandeja -------------------------------------------------
+# --- 4. pronto: tocar só pega -------------------------------------------------------------
 
-func _test_collect_then_open() -> void:
+func _test_collect_without_opening() -> void:
 	reset_world_state()
 	var house := await enter("house")
 	add("carrot", 4)
@@ -284,7 +284,7 @@ func _test_collect_then_open() -> void:
 	var current := await tap(house, "place:stove", "stove")
 	check(state.get("inventory").call("count", "carrot_snack") == snacks + 1, "o toque pega o petisco pronto")
 	check(state.call("station", "stove").ready_count(state.call("now")) == 0, "nada pronto sobrando")
-	check(current != null, "e abre a bandeja em seguida")
+	check(current == null, "coletar no mapa não abre bandeja")
 	house.call("close_tray")
 
 
@@ -436,14 +436,14 @@ func _test_nature() -> void:
 	check(tray() == current, "a bandeja continua aberta")
 	var gather: Variant = current.call("find_in_panel", "GatherItem_trees_0")
 	check(gather != null, "GatherItem_trees_0 no cabeçalho")
-	# Pronto: tocar de novo recolhe e abre a bandeja.
+	# Pronto: tocar de novo só recolhe.
 	state.call("dev_finish_timers")
 	var wood: int = state.get("inventory").call("count", "wood")
 	nature.call("close_tray")
 	nature.call("_on_object_tapped", "place:trees")
 	await frames()
 	check(state.get("inventory").call("count", "wood") > wood, "o toque recolhe a coleta pronta")
-	check(tray() != null, "e abre a bandeja")
+	check(tray() == null, "Natureza: coleta não abre bandeja")
 	nature.call("close_tray")
 	# Local fechado: continua abrindo o painel/compra.
 	progress.owned.erase("cave_open")
@@ -466,14 +466,19 @@ func _test_sewing() -> void:
 	if table == null or not state.call("has_upgrade", "sewing"):
 		check(false, "mesa de costura no mapa e comprada")
 		return
-	var current := await tap(park, "place:petshop", "sewing_table")
+	sheet_titles.clear()
+	await tap(park, "place:petshop", "petshop")
+	check(tray() == null and sheet_titles == ["Pet shop"], "loja abre o menu de compras separado da costura")
+	events.emit_signal("sheet_close_requested")
+	await frames()
+	var current := await tap(park, "place:sewing", "sewing_table")
 	check(current != null, "tocar na mesa de costura abre a bandeja")
 	if current == null:
 		return
 	var ids: Array = current.call("entry_ids")
 	check("sew_flower_crown" in ids, "receitas de costura em grade")
 	var cook := current.call("find_in_panel", "Cook") as Button
-	check(cook != null and cook.text in ["Costurar", "Você já tem"] or cook.text.begins_with("Falta "), "verbo da costura (%s)" % (cook.text if cook else "?"))
+	check(cook != null and (cook.text in ["Costurar", "Você já tem"] or cook.text.begins_with("Falta ")), "verbo da costura (%s)" % (cook.text if cook else "?"))
 	park.call("close_tray")
 
 

@@ -43,11 +43,32 @@
   ],
   "objects": [
     {
+      "id": "stall_flags",
+      "action": "place:stall",
+      "sprite": "res://assets/sprites/areas/village/stall_flags.svg",
+      "pos": [287, 175],
+      "requirements": {"owned": ["stall_2"]},
+      "z_index": 1,
+      "decoration": true
+    },
+    {
+      "id": "stall_star",
+      "action": "place:stall",
+      "sprite": "res://assets/sprites/areas/village/stall_star.svg",
+      "pos": [319, 198],
+      "requirements": {"owned": ["stall_3"]},
+      "z_index": 1,
+      "decoration": true
+    },
+    {
       "id": "stall_extension",
-      "action": "place:market",
+      "action": "place:stall",
       "upgrade": "stall",
       "sprite": "res://assets/sprites/areas/village/stall.png",
       "pos": [291, 240],
+      "label": "Minha banca",
+      "label_pos": [310, 110],
+      "label_levels": {"stall_2": "Banca · nível 2", "stall_3": "Banca · nível 3"},
       "approach": [340, 241],
       "footprint": [[259, 216], [290, 200], [329, 221], [291, 243]]
     },
@@ -66,7 +87,7 @@
     {
       "id": "stall",
       "action": "place:market",
-      "label": "Feira",
+      "label": "Feirante",
       "label_pos": [228, 72],
       "polygon": [[165, 120], [245, 85], [290, 140], [290, 190], [215, 222], [162, 196]]
     },
@@ -79,7 +100,7 @@
     },
     {
       "id": "crates",
-      "action": "market:orders",
+      "action": "place:orders",
       "label": "Encomendas",
       "label_pos": [350, 262],
       "polygon": [[316, 282], [360, 268], [388, 294], [362, 326], [318, 322]]

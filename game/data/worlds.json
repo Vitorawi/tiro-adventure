@@ -114,10 +114,15 @@
         "name": "Canteiros",
         "icon": "tab_farm",
         "description": "Plantar, colher e comprar terrenos.",
-        "panel": "farm",
-        "upgrades": [
-          "greenhouse"
-        ]
+        "panel": "farm"
+      },
+      "greenhouse": {
+        "name": "Estufa",
+        "icon": "item_herbs",
+        "description": "Canteiros de plantas delicadas.",
+        "upgrade": "greenhouse",
+        "panel": "greenhouse",
+        "hidden": true
       },
       "workbench": {
         "name": "Produção",
@@ -226,6 +231,18 @@
         "requirements": {
           "chapter": 5
         }
+      },
+      "early_market": {
+        "name": "Vender colheitas",
+        "icon": "coin",
+        "description": "Venda o que sobrou e receba moedas na hora.",
+        "panel": "sell",
+        "hidden": true,
+        "requirements": {
+          "quests": [
+            "bloblo_meet"
+          ]
+        }
       }
     }
   },
@@ -262,16 +279,28 @@
       "petshop": {
         "name": "Pet shop",
         "icon": "petshop",
-        "description": "Roupinhas e costura.",
+        "description": "Roupinhas e materiais de passeio.",
         "upgrade": "petshop",
         "upgrades": [
-          "sewing_table",
           "walk_bag"
         ],
         "panel": "petshop",
         "requirements": {
           "quests": [
             "nina_rare"
+          ]
+        }
+      },
+      "sewing": {
+        "name": "Mesa de costura",
+        "icon": "station_sewing",
+        "description": "Materiais de passeio viram apetrechos.",
+        "upgrade": "sewing_table",
+        "panel": "station:sewing",
+        "hidden": true,
+        "requirements": {
+          "owned": [
+            "petshop"
           ]
         }
       },
@@ -314,13 +343,10 @@
     ],
     "places": {
       "market": {
-        "name": "Feira",
-        "icon": "station_stall",
-        "description": "Vender e encomendas.",
-        "panel": "market:sell",
-        "upgrades": [
-          "stall"
-        ]
+        "name": "Feirante",
+        "icon": "coin",
+        "description": "Venda excedentes por moedas.",
+        "panel": "sell"
       },
       "atelier": {
         "name": "Ateliê",
@@ -337,6 +363,24 @@
         "requirements": {
           "chapter": 5
         }
+      },
+      "orders": {
+        "name": "Encomendas",
+        "icon": "item_treat_box",
+        "description": "Pedidos pequenos da vizinhança.",
+        "panel": "orders"
+      },
+      "stall": {
+        "name": "Minha banca",
+        "icon": "station_stall",
+        "description": "Contratos maiores e evolução da sua banca.",
+        "panel": "contracts",
+        "upgrade": "stall",
+        "upgrades": [
+          "stall_2",
+          "stall_3"
+        ],
+        "hidden": true
       }
     }
   },

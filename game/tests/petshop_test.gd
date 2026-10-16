@@ -78,7 +78,7 @@ func _run() -> void:
 			check(ResourceLoader.exists(data.overlay), "overlay existe " + id)
 	var anchors: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://assets/sprites/characters/tiro_pet/overlay_anchors.json"))
 	check("sleep" in anchors.show_in and not "happy_jump" in anchors.show_in, "sono vestido e acrobacia oculta")
-	check(db.call("place_with_panel", "station:sewing") == ["park", "petshop"], "Manual/ajuda encontram a costura")
+	check(db.call("place_with_panel", "station:sewing") == ["park", "sewing"], "Manual/ajuda encontram a costura separada da loja")
 	var places: Script = load("res://scripts/ui/places.gd")
 	check(places.call("quest_target", "nina_dress").get("collection", false), "Ir da Nina abre Coleção")
 	print("PETSHOP TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
@@ -148,5 +148,5 @@ func _ui() -> void:
 	var panel: Control = ui.call("petshop_panel")
 	root.add_child(panel)
 	await process_frame
-	check(panel.get_child_count() > 0, "painel da loja e costura")
+	check(panel.get_child_count() > 0, "painel de compras da loja")
 	panel.queue_free()

@@ -112,9 +112,9 @@
       "plot": 9,
       "requirements": {"owned": ["greenhouse"]},
       "sprite": "res://assets/sprites/areas/farm/plot_greenhouse.png",
-      "pos": [200, 390],
-      "footprint": [[200, 340], [237, 364], [200, 390], [163, 364]],
-      "approach": [200, 410]
+      "pos": [250, 325],
+      "footprint": [[250, 275], [287, 299], [250, 325], [213, 299]],
+      "approach": [250, 345]
     },
     {
       "id": "plot_10",
@@ -122,9 +122,9 @@
       "plot": 10,
       "requirements": {"owned": ["greenhouse"]},
       "sprite": "res://assets/sprites/areas/farm/plot_greenhouse.png",
-      "pos": [148, 365],
-      "footprint": [[148, 315], [185, 339], [148, 365], [111, 339]],
-      "approach": [148, 385]
+      "pos": [198, 350],
+      "footprint": [[198, 300], [235, 324], [198, 350], [161, 324]],
+      "approach": [198, 370]
     },
     {
       "id": "plot_11",
@@ -132,9 +132,9 @@
       "plot": 11,
       "requirements": {"owned": ["greenhouse"]},
       "sprite": "res://assets/sprites/areas/farm/plot_greenhouse.png",
-      "pos": [200, 340],
-      "footprint": [[200, 290], [237, 314], [200, 340], [163, 314]],
-      "approach": [248, 336]
+      "pos": [302, 350],
+      "footprint": [[302, 300], [339, 324], [302, 350], [265, 324]],
+      "approach": [302, 370]
     },
     {
       "id": "plot_12",
@@ -142,9 +142,9 @@
       "plot": 12,
       "requirements": {"owned": ["greenhouse"]},
       "sprite": "res://assets/sprites/areas/farm/plot_greenhouse.png",
-      "pos": [252, 315],
-      "footprint": [[252, 265], [289, 289], [252, 315], [215, 289]],
-      "approach": [262, 330]
+      "pos": [250, 375],
+      "footprint": [[250, 325], [287, 349], [250, 375], [213, 349]],
+      "approach": [250, 395]
     },
     {
       "id": "workbench",
@@ -183,15 +183,15 @@
     },
     {
       "id": "greenhouse",
-      "action": "place:plots",
+      "action": "place:greenhouse",
       "upgrade": "greenhouse",
       "region": "greenhouse_area",
-      "sprite": "res://assets/sprites/areas/farm/greenhouse.png",
-      "pos": [315, 390],
-      "approach": [388, 382],
-      "footprint": [[250, 350], [316, 318], [380, 350], [316, 397]],
+      "sprite": "res://assets/sprites/areas/farm/greenhouse_boundary.svg",
+      "pos": [250, 400],
+      "approach": [300, 400],
+      "z_index": 0,
       "label": "Estufa",
-      "label_pos": [315, 240]
+      "label_pos": [250, 414]
     },
     {
       "id": "orchard",
@@ -343,6 +343,14 @@
     }
   ],
   "zones": [
+    {
+      "id": "early_market",
+      "action": "place:early_market",
+      "label": "Vender colheitas",
+      "label_pos": [450, 205],
+      "requirements": {"quests": ["bloblo_meet"]},
+      "polygon": [[425, 180], [450, 192], [425, 204], [400, 192]]
+    },
     {
       "id": "bloblo_house",
       "action": "npc:bloblo",

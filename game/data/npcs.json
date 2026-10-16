@@ -24,7 +24,7 @@
       "Vamos plantar juntos? Depois quero conhecer o Tiro!"
     ],
     "requirements": {"quests": ["lais_bed"]},
-    "services": ["plots", "orchard"],
+    "services": ["plots", "early_market", "orchard"],
     "role": "A vovó do sítio",
     "portrait": "res://assets/sprites/characters/npc_bloblo/portrait.png",
     "sprite_dir": "res://assets/sprites/characters/npc_bloblo/",
@@ -43,7 +43,7 @@
   "merchant": {
     "name": "Feirante",
     "requirements": {"chapter": 4},
-    "services": ["market"],
+    "services": ["market", "orders", "stall"],
     "role": "Comércio e encomendas",
     "portrait": "res://assets/sprites/characters/npc_merchant/portrait.png",
     "icon": "coin",

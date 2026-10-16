@@ -191,8 +191,16 @@ func _ui() -> void:
 		if n.get("npc_id") == "":
 			visitors += 1
 	check(visitors == 1, "um NpcWorld visitante na Praça")
-	room.queue_free()
 	var friend_ui: Script = load("res://scripts/ui/friend_ui.gd")
+	friend_ui.call("open", "pipoca")
+	await process_frame
+	var tray: Control = room.find_child("ActionTray", true, false)
+	check(tray != null, "amigo no mapa abre bandeja de petisco")
+	if tray != null:
+		check(tray.call("entry_ids") == ["carrot_snack"], "petisco preferido disponível direto")
+		check(tray.call("find_in_panel", "GiveTreat") != null, "Dar petisco na própria bandeja")
+	room.call("close_tray")
+	room.queue_free()
 	var card: Control = friend_ui.call("panel", "pipoca")
 	root.add_child(card)
 	await process_frame

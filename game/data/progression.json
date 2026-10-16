@@ -44,7 +44,8 @@
       "treasure": "baús abertos",
       "equip": "apetrechos vestidos",
       "sew": "apetrechos costurados",
-      "walk_legendary": "lendários de passeio"
+      "walk_legendary": "lendários de passeio",
+      "contracts": "contratos da sua banca"
     }
   },
   "level_rewards": {
@@ -1004,9 +1005,9 @@
       "icon": "item_herbs"
     },
     "stall": {
-      "name": "Banca da feira",
+      "name": "Minha banca",
       "world": "village",
-      "description": "Abre contratos maiores de alimentos e materiais.",
+      "description": "Sua própria banca: dois contratos maiores, com moedas e materiais de ampliação.",
       "cost": 350,
       "materials": {
         "plank": 5,
@@ -1235,6 +1236,51 @@
         }
       },
       "icon": "action_walk"
+    },
+    "stall_2": {
+      "name": "Banca ampliada",
+      "world": "village",
+      "description": "Nível 2: contratos de alimentos e mais materiais para ampliar seus depósitos.",
+      "cost": 450,
+      "materials": {
+        "plank": 6,
+        "brick": 4
+      },
+      "requirements": {
+        "owned": [
+          "stall"
+        ],
+        "stats": {
+          "contracts": 2
+        }
+      },
+      "icon": "station_stall",
+      "skill_xp": {
+        "commerce": 30
+      }
+    },
+    "stall_3": {
+      "name": "Banca da vila",
+      "world": "village",
+      "description": "Nível 3: contratos especiais para abastecer a vila.",
+      "cost": 800,
+      "materials": {
+        "plank": 8,
+        "brick": 6,
+        "fabric": 2
+      },
+      "requirements": {
+        "owned": [
+          "stall_2"
+        ],
+        "stats": {
+          "contracts": 5
+        }
+      },
+      "icon": "station_stall",
+      "skill_xp": {
+        "commerce": 50
+      }
     }
   },
   "nature_sites": {
@@ -1796,9 +1842,13 @@
         "skill_xp": {
           "commerce": 45,
           "adventure": 15
+        },
+        "items": {
+          "bolt": 1
         }
       },
-      "cooldown": 600
+      "cooldown": 600,
+      "channel": "contracts"
     },
     "special_order": {
       "name": "Caixas de presente",
@@ -1817,9 +1867,13 @@
         "coins": 220,
         "skill_xp": {
           "commerce": 60
+        },
+        "items": {
+          "bolt": 1
         }
       },
-      "cooldown": 900
+      "cooldown": 900,
+      "channel": "contracts"
     },
     "fabric_order": {
       "name": "Tecidos da vila",
@@ -1829,7 +1883,8 @@
       "requirements": {
         "owned": [
           "atelier",
-          "stall"
+          "stall",
+          "stall_2"
         ],
         "quests": [
           "first_harvest"
@@ -1839,9 +1894,13 @@
         "coins": 180,
         "skill_xp": {
           "commerce": 50
+        },
+        "items": {
+          "bolt": 1
         }
       },
-      "cooldown": 600
+      "cooldown": 600,
+      "channel": "contracts"
     },
     "farm_breakfast": {
       "name": "Café da manhã",
@@ -1948,6 +2007,65 @@
         }
       },
       "cooldown": 300
+    },
+    "banquet_contract": {
+      "name": "Mesa da comunidade",
+      "channel": "contracts",
+      "inputs": {
+        "vegetable_soup": 3,
+        "cheese": 2,
+        "strawberry_juice": 3
+      },
+      "requirements": {
+        "owned": [
+          "stall_2",
+          "dairy",
+          "blender"
+        ],
+        "quests": [
+          "first_harvest"
+        ]
+      },
+      "rewards": {
+        "coins": 300,
+        "items": {
+          "iron_band": 1
+        },
+        "skill_xp": {
+          "commerce": 65
+        }
+      },
+      "cooldown": 1200
+    },
+    "festival_contract": {
+      "name": "Festa da vila",
+      "channel": "contracts",
+      "inputs": {
+        "treat_box": 4,
+        "fabric": 3,
+        "strawberry_pop": 4
+      },
+      "requirements": {
+        "owned": [
+          "stall_3",
+          "atelier",
+          "blender"
+        ],
+        "quests": [
+          "first_harvest"
+        ]
+      },
+      "rewards": {
+        "coins": 450,
+        "items": {
+          "bolt": 1,
+          "iron_band": 1
+        },
+        "skill_xp": {
+          "commerce": 90
+        }
+      },
+      "cooldown": 1800
     }
   },
   "chapters": [
@@ -2150,8 +2268,23 @@
   "treasure": {
     "name": "Baú da Clareira",
     "icon": "item_map_piece",
-    "requirements": {"quests": ["guide_treasure"]},
-    "rewards": {"coins": 150, "collections": ["explorer_hat"], "unlocks": ["crop:blueberry"], "items": {"bolt": 2}}
+    "requirements": {
+      "quests": [
+        "guide_treasure"
+      ]
+    },
+    "rewards": {
+      "coins": 150,
+      "collections": [
+        "explorer_hat"
+      ],
+      "unlocks": [
+        "crop:blueberry"
+      ],
+      "items": {
+        "bolt": 2
+      }
+    }
   },
   "trick_settings": {
     "hits": 3,

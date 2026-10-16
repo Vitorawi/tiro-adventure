@@ -57,7 +57,7 @@ func _run() -> void:
 			check(int(quests[ids[i]].get("order", 0)) > (int(quests[ids[i - 1]].order) if i > 0 else 0), "ordem positiva, crescente e única: " + ids[i])
 		if not ids.is_empty() and str(data.chapters[c - 1].target) != "":
 			# Capítulo com construção-alvo: algum passo pede essa compra.
-			check(ids.any(func(q: String) -> bool: return quests[q].goals.any(func(g: Dictionary) -> bool: return g.type == "owned" and g.key == data.chapters[c - 1].target)), "capítulo %d precisa de um passo com a construção-alvo" % c)
+			check(ids.any(func(q: String) -> bool: return quests[str(quests[q].get("shared_with", q))].goals.any(func(g: Dictionary) -> bool: return g.type == "owned" and g.key == data.chapters[c - 1].target)), "capítulo %d precisa de um passo com a construção-alvo" % c)
 	# Linhas de NPC: ordens crescentes permitem inserir passos sem renumerar a história.
 	for line: String in progress.lines():
 		var steps: Array = progress.line_quests(line)
@@ -78,7 +78,7 @@ func _run() -> void:
 				"owned": check(data.upgrades.has(key), id + ": construção " + key)
 				"skill": check(data.skills.has(key), id + ": atributo " + key)
 				"stat":
-					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "orders", "explore", "build", "quests", "open:bag", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned"] or (key.begins_with("friend_gift:") and db.get("friends").friends.has(key.trim_prefix("friend_gift:"))) or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:"), id + ": contador desconhecido " + key)
+					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "orders", "contracts", "explore", "build", "quests", "open:bag", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned"] or (key.begins_with("friend_gift:") and db.get("friends").friends.has(key.trim_prefix("friend_gift:"))) or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:"), id + ": contador desconhecido " + key)
 					if key.begins_with("harvest:"):
 						check(db.get("crops").has(key.trim_prefix("harvest:")), id + ": cultura " + key)
 					if key.begins_with("produce:"):
@@ -133,7 +133,7 @@ func _run() -> void:
 		for id: String in group.missions:
 			var m: Dictionary = group.missions[id]
 			var key: String = m.goal.key
-			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "explore", "wish", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned"] or key.begins_with("activity:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
+			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "contracts", "explore", "wish", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned"] or key.begins_with("activity:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
 			if key.begins_with("harvest:"):
 				check(db.get("crops").has(key.trim_prefix("harvest:")), kind + "/" + id + ": cultura inexistente")
 			if key.begins_with("produce:"):
@@ -168,7 +168,7 @@ func _run() -> void:
 						check(data.activities.values().any(func(a: Dictionary) -> bool: return a.place == group), place + ": grupo de rotas inexistente " + group)
 				"market": check(arg in ["sell", "orders"], place + ": aba da feira")
 				"storage": check(data.storage.has(arg), place + ": depósito inexistente")
-				"inventory", "fridge", "feed", "sleep", "farm", "walks", "petshop", "friends", "tricks": pass
+				"inventory", "fridge", "feed", "sleep", "farm", "greenhouse", "sell", "orders", "contracts", "walks", "petshop", "friends", "tricks": pass
 				_: check(false, place + ": painel desconhecido")
 			if p.has("upgrade"):
 				check(data.upgrades.has(p.upgrade), place + ": construção inexistente")
@@ -359,6 +359,8 @@ func _validate_target(target: Dictionary, id: String, state: Node) -> void:
 		check(state.call("friend_unlocked", friend_id), id + ": amizade ainda fechada")
 	elif place.begins_with("market:"):
 		check(db.call("place_with_panel", "sell")[0] == world, id + ": feira fora do mundo")
+	elif place.begins_with("order:"):
+		check(db.get("progression").orders.has(place.trim_prefix("order:")) and world == "village", id + ": encomenda fora da Vila")
 	elif place == "find":
 		pass
 	elif place == "":

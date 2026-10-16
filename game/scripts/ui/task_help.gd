@@ -11,6 +11,8 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 	visited.append(key)
 	var result: Dictionary
 	match kind:
+		"stat":
+			return _goal({"type": "stat", "key": id, "target": amount}, visited)
 		"wish":
 			var wish := GameState.wish_def(id)
 			if wish.is_empty():
@@ -96,7 +98,7 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 				result.detail = "Já tem um passeio: " + ("pegue!" if GameState.activity_remaining() == 0 else "volta em %s" % TimeText.short(GameState.activity_remaining()))
 		"order":
 			var order: Dictionary = Database.progression.orders[id]
-			result = _base(order.name, "Junte e entregue na Vila.", _focused("orders", "order:" + id), "Ir")
+			result = _base(order.name, "Junte e entregue na sua banca." if MarketUi.is_contract(id) else "Junte e entregue no quadro da vizinhança.", _focused("contracts" if MarketUi.is_contract(id) else "orders", "order:" + id), "Ir")
 			result.needs = _requirements(order.get("requirements", {}))
 			_materials(result.needs, order.inputs)
 			var wait := GameState.progress.cooldown_left("order:" + id, GameState.now())
@@ -174,6 +176,8 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 				return describe("order", key.trim_prefix("order:"), 1, trail)
 			if key == "orders":
 				return describe("order", _best_order(), 1, trail)
+			if key == "contracts":
+				return _base("Contratos da sua banca", "Vila → Minha banca: prepare os produtos e entregue um contrato.", {"world": "village", "place": "stall"}, "Ir")
 			if key.begins_with("harvest:"):
 				return describe("crop", key.trim_prefix("harvest:"), 1, trail)
 	var target := Places.goal_target(goal)
@@ -247,11 +251,17 @@ static func _need(kind: String, id: String, amount: int) -> Dictionary:
 		"chapter":
 			have = GameState.progress.chapter_index()
 			label = _chapter_name(amount)
+		"stat":
+			have = GameState.progress.stat(id)
+			label = str(Database.progression.settings.stat_labels.get(id, id))
 	return {"kind": kind, "id": id, "amount": amount, "have": have, "label": label}
 
 
 static func _requirements(requirements: Dictionary) -> Array[Dictionary]:
 	var needs: Array[Dictionary] = []
+	for id: String in requirements.get("stats", {}):
+		if GameState.progress.stat(id) < int(requirements.stats[id]):
+			needs.append(_need("stat", id, int(requirements.stats[id])))
 	for item: String in requirements.get("produced", {}):
 		if GameState.progress.stat("produce:" + item) < int(requirements.produced[item]):
 			needs.append(_need("produced", item, int(requirements.produced[item])))
@@ -321,6 +331,7 @@ static func _best_order() -> String:
 	var best := ""
 	var score := INF
 	for id: String in Database.progression.orders:
+		if MarketUi.is_contract(id): continue
 		var order: Dictionary = Database.progression.orders[id]
 		var value := float(_requirements(order.get("requirements", {})).size() * 1000)
 		for item: String in order.inputs:

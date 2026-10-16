@@ -6,7 +6,7 @@ extends RefCounted
 ##   station:<id>            uma estação (bancada, ateliê)        inventory  geladeira/mochila
 ##   stations:<id>+<id>      várias estações num painel (cozinha) feed       tigela (dar comida)
 ##   farm                    canteiros e terrenos                 sleep      sofá (soneca)
-##   market:<sell|orders>    feira com abas Vender/Encomendas     travel:<mundo> ir para outro mundo
+##   sell / orders / contracts   venda / vizinhos / banca própria    travel:<mundo> viagem
 ##   routes:<tipo>+<tipo>    rotas ("walk", "mine", "orchard")
 ## "upgrade" = construção necessária (sem ela, tocar abre a compra); "upgrades" = compras feitas
 ## dentro do painel (ex.: picareta no portão); "requirements" = lugar fechado até cumprir;
@@ -39,7 +39,7 @@ static func open(world_id: String, place_id: String, from_object: bool = false) 
 			GameState.set_sleeping(sleeping)
 			Events.toast_requested.emit("Hora da soneca!" if sleeping else "Tiro acordou!")
 		_:
-			var content := _panel(kind, arg) if kind in ["nature", "petshop"] else _with_upgrades(_panel(kind, arg), place.get("upgrades", []))
+			var content := _panel(kind, arg) if kind in ["nature", "petshop", "contracts"] else _with_upgrades(_panel(kind, arg), place.get("upgrades", []))
 			# Ao tocar na estação do mapa, deixa o objeto à vista; puxar a alça para cima amplia a consulta.
 			if from_object and kind in ["station", "stations"]:
 				content.set_meta("sheet_size", "half")
@@ -72,8 +72,16 @@ static func _panel(kind: String, arg: String) -> Control:
 			return SheetBuilder.food_picker()
 		"farm":
 			return SheetBuilder.farm_view()
+		"greenhouse":
+			return SheetBuilder.farm_view("", true)
 		"market":
 			return ProgressionUi.market_panel(arg)
+		"sell":
+			return MarketUi.sell()
+		"orders":
+			return MarketUi.orders()
+		"contracts":
+			return MarketUi.orders("", "contracts")
 		"routes":
 			return ProgressionUi.routes_panel(arg)
 		"walks":
@@ -211,11 +219,10 @@ static func run(world_id: String, action: String) -> void:
 				# No Sítio a bandeja de sementes abre no primeiro canteiro vazio, com a planta pedida em destaque.
 				Events.plot_tray_requested.emit(id, -1)
 			else:
-				Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.farm_view(id))
+				Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.farm_view(id, Database.crops.get(id, {}).get("greenhouse", "") == "only"))
 	elif action.begins_with("market:"):
-		var location := Database.place_with_panel("sell")
-		var place: Dictionary = Database.worlds[location[0]].places[location[1]]
-		Events.sheet_requested.emit(place.name, _with_upgrades(ProgressionUi.market_panel(action.trim_prefix("market:")), place.get("upgrades", [])))
+		var orders := action.trim_prefix("market:") == "orders"
+		Events.sheet_requested.emit("Encomendas" if orders else "Vender", ProgressionUi.market_panel("orders" if orders else "sell"))
 	elif action.begins_with("npc:"):
 		open_npc(action.trim_prefix("npc:"))
 	elif action.begins_with("buy:"):
@@ -277,7 +284,7 @@ static func highlight_action(place: String) -> String:
 		"route":
 			spot = Database.place_with_panel("routes:" + str(Database.progression.activities.get(id, {}).get("place", "")))[1]
 		"order":
-			return "market:orders"
+			return "place:stall" if MarketUi.is_contract(id) else "place:orders"
 		"crop":
 			return "plot"
 		"buy":
@@ -453,7 +460,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			if key == "equip":
 				return {"screen": "pet", "collection": true, "hint": "Tiro → Coleção → Vestir"}
 			if key == "sew":
-				return {"world": "park", "place": "petshop"}
+				return {"world": "park", "place": "sewing"}
 			if key.begins_with("talk:"):
 				var npc_id := key.trim_prefix("talk:")
 				return {"world": Database.npc_world(npc_id), "place": "npc:" + npc_id, "hint": str(Database.npcs.get(npc_id, {}).get("name", ""))}
@@ -477,8 +484,13 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 							break
 				return {"world": world, "place": "find", "hint": "Cavar onde o Tiro farejou"}
 			if key in ["trade", "sold"]:
-				return _panel_target("sell")
-			if key == "orders" or key.begins_with("order:"):
+				return {"world": "village", "place": "market"} if GameState.requirement_error(Database.worlds.village.get("requirements", {})) == "" else {"world": "farm", "place": "early_market"}
+			if key == "contracts":
+				return {"world": "village", "place": "stall"}
+			if key.begins_with("order:"):
+				var order_id := key.trim_prefix("order:")
+				return {"world": "village", "place": "order:" + order_id, "spot": "stall" if MarketUi.is_contract(order_id) else "orders"}
+			if key == "orders":
 				return _panel_target("orders")
 			if key == "wish" or key.begins_with("wish:"):
 				return {"screen": "wishes", "hint": "Desejos do Tiro"}
@@ -504,7 +516,7 @@ static func _panel_target(panel: String) -> Dictionary:
 	if location[0] == "":
 		return {}
 	# Encomendas ficam na aba própria da Feira.
-	var place := "market:orders" if panel == "orders" else location[1]
+	var place := location[1]
 	return {"world": location[0], "place": place, "hint": "%s → %s" % [Database.worlds[location[0]].name, Database.worlds[location[0]].places[location[1]].name]}
 
 

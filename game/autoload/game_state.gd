@@ -1386,6 +1386,8 @@ func fulfill_order(id: String) -> String:
 	_count("trade")
 	_count("orders")
 	_count("order:" + id)
+	if str(order.get("channel", "neighbors")) == "contracts":
+		_count("contracts")
 	_apply_rewards(order.rewards)
 	_changed()
 	return ""
@@ -1710,13 +1712,14 @@ func _quest_deliveries(id: String) -> Dictionary:
 	return deliveries
 
 
-func _finish_quest(id: String) -> void:
+func _finish_quest(id: String, grant_reward: bool = true) -> void:
 	var chapter := progress.chapter_index()
 	progress.claimed_quests[id] = true
-	_apply_rewards(Database.quests[id].rewards)
-	_count("quests")
-	_add_player_xp(int(Database.quests[id].get("player_xp", 15)))
-	Events.quest_completed.emit(id)
+	if grant_reward and not Database.quests[id].has("shared_with"):
+		_apply_rewards(Database.quests[id].rewards)
+		_count("quests")
+		_add_player_xp(int(Database.quests[id].get("player_xp", 15)))
+		Events.quest_completed.emit(id)
 	if Database.quests[id].get("kind", "side") == "main" and progress.chapter_index() > chapter:
 		_apply_rewards(Database.progression.chapters[chapter - 1].get("rewards", {}))
 		Events.chapter_completed.emit(chapter)
@@ -2583,11 +2586,33 @@ func _ensure_stations() -> void:
 
 func _changed() -> void:
 	sync_friend_window()
+	# Contratos antigos já entregues contam na evolução da banca, sem repetir prêmios.
+	var contracts := 0
+	for order_id: String in Database.progression.orders:
+		if str(Database.progression.orders[order_id].get("channel", "neighbors")) == "contracts":
+			contracts += progress.stat("order:" + order_id)
+	progress.stats["contracts"] = contracts
+	_sync_shared_quests()
 	_sync_step()
 	update_wishes()
 	update_finds()
 	_check_bond()
 	Events.state_changed.emit()
+
+
+## IDs antigos continuam válidos para requisitos/saves; só a missão do personagem paga prêmio.
+func _sync_shared_quests() -> void:
+	# Um marco antigo recebido equivale à sua nova missão canônica; não paga outra vez.
+	for alias: String in Database.quests:
+		var target := str(Database.quests[alias].get("shared_with", ""))
+		if target != "" and progress.claimed_quests.has(alias):
+			progress.claimed_quests[target] = true
+	for _i in Database.quests.size():
+		var id := progress.current_main_quest()
+		var shared := str(Database.quests.get(id, {}).get("shared_with", ""))
+		if shared == "" or not progress.claimed_quests.has(shared):
+			break
+		_finish_quest(id, false)
 
 
 ## Ao mudar o passo de uma linha, guarda os contadores dos objetivos "fresh" (base = agora).

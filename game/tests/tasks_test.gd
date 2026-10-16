@@ -32,11 +32,13 @@ func _run() -> void:
 	state.call("reset")
 	state.get("progress").stats["harvest"] = 40
 	state.call("dev_complete_quest", "first_harvest")
+	check(state.get("progress").current_line_quest("bloblo") == "bloblo_sell_surplus", "Primeira colheita ensina a vender no sítio")
+	state.call("dev_complete_quest", "bloblo_sell_surplus")
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_dig", "Depois da colheita a vovó manda cavar")
 	state.call("dev_complete_quest", "bloblo_dig")
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_more_crops", "Passo da vovó é o atual")
-	check(state.get("progress").current_main_quest() == "lais_meet_bloblo", "Laís segue na linha dela")
-	check(state.call("quest_error", "lais_meet_bloblo") == "", "Cruzamento: conhecer a vovó cumpre o passo da Laís")
+	check(state.get("progress").current_main_quest() == "lais_first_crops", "Conhecer a vovó já avança a história junto")
+	check(state.get("progress").claimed_quests.has("lais_meet_bloblo") and not state.call("quest_unlocked", "lais_meet_bloblo"), "Cruzamento não exige outro prêmio")
 	var fresh: Dictionary = database.get("quests").bloblo_more_crops.goals[0]
 	check(state.call("goal_value", fresh) == 0, "Colheitas anteriores não contam")
 	state.get("progress").count("harvest", 2)
@@ -44,6 +46,7 @@ func _run() -> void:
 	check(state.call("accessible_plots") == 2, "Vovó empresta dois canteiros ao conhecer")
 	state.get("progress").count("harvest", 1)
 	check(state.call("claim_quest", "bloblo_more_crops") == "" and state.call("accessible_plots") == 4, "Mais colheitas: vovó empresta quatro canteiros")
+	_shared_quests_check()
 	state.call("reset")
 	var events: Node = root.get_node("Events")
 	events.connect("quest_completed", func(id: String) -> void: quest_signals.append(id))
@@ -179,6 +182,14 @@ func _ui_check() -> void:
 	root.get_node("Events").emit_signal("state_changed")
 	await create_timer(0.2).timeout
 	_shot("tasks_start")
+	state.call("dev_jump_to_chapter", 1)
+	state.call("_changed")
+	await process_frame
+	await process_frame
+	var guidance: Label = main.find_child("SharedQuestGuidance", true, false)
+	check(guidance != null and guidance.text.contains("A vovó Bloblo"), "principal orienta até o marco da linha")
+	check(main.find_child("LineCard_bloblo", true, false) != null, "a entrega fica na missão do personagem")
+	_shot("tasks_shared_guidance")
 	state.call("dev_jump_to_chapter", 3)
 	await create_timer(2.2).timeout
 	main.get_node("Celebration").hide()
@@ -248,3 +259,41 @@ func _shot(file_name: String) -> void:
 	var folder := ProjectSettings.globalize_path("res://../build/screenshots/")
 	DirAccess.make_dir_recursive_absolute(folder)
 	root.get_texture().get_image().save_png(folder + file_name + ".png")
+
+## Cruzamentos da história: uma entrega, um prêmio e compatibilidade com saves anteriores.
+func _shared_quests_check() -> void:
+	for alias: String in ["lais_meet_bloblo", "lais_first_crops", "lais_stew"]:
+		state.call("reset")
+		var progress: RefCounted = state.get("progress")
+		var quests: Dictionary = database.get("quests")
+		var shared: String = quests[alias].shared_with
+		for chapter in range(1, int(quests[alias].chapter) + 1):
+			for previous: String in progress.main_quests(chapter):
+				if previous == alias: break
+				progress.claimed_quests[previous] = true
+		for previous: String in progress.line_quests("bloblo"):
+			if previous == shared: break
+			progress.claimed_quests[previous] = true
+		state.call("_changed")
+		for goal: Dictionary in quests[shared].goals:
+			if goal.type == "stat":
+				progress.count(goal.key, int(goal.get("target", 1)))
+			elif goal.type == "deliver":
+				state.get("inventory").add(goal.key, int(goal.target))
+		check(progress.displayed_main_quest() == shared, "história mostra missão canônica: " + alias)
+		var before: int = state.get("coins")
+		var count_before: int = progress.stat("quests")
+		var old: Dictionary = state.call("to_dict").duplicate(true)
+		check(state.call("claim_quest", shared) == "", "entrega única: " + shared)
+		var chapter_reward := 0
+		if alias in ["lais_first_crops", "lais_stew"]:
+			chapter_reward = int(database.get("progression").chapters[int(quests[alias].chapter) - 1].get("rewards", {}).get("coins", 0))
+		check(progress.claimed_quests.has(alias), "história avança junto: " + alias)
+		check(state.get("coins") == before + int(quests[shared].rewards.get("coins", 0)) + chapter_reward, "só prêmio canônico e eventual capítulo")
+		check(progress.stat("quests") == count_before + 1, "conta só uma missão")
+		check(state.call("claim_quest", alias) != "" and state.call("claim_quest", shared) != "", "sem segunda entrega")
+		# Save antigo com missão secundária recebida, mas marco da Laís ainda pendente.
+		old.progression.claimed_quests[shared] = true
+		state.call("from_dict", old)
+		check(state.get("progress").claimed_quests.has(alias), "save antigo resolve marco pendente")
+		check(state.get("coins") == before + chapter_reward, "carregar não paga de novo a missão")

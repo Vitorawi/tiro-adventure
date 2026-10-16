@@ -30,7 +30,9 @@ func _story_card(box: VBoxContainer) -> void:
 	var index := GameState.progress.chapter_index()
 	var total: int = Database.progression.chapters.size()
 	var current := GameState.progress.current_main_quest()
-	var ready := current != "" and GameState.quest_error(current) == ""
+	var displayed := GameState.progress.displayed_main_quest()
+	var shared := str(Database.quests.get(current, {}).get("shared_with", ""))
+	var ready := shared == "" and displayed != "" and GameState.quest_error(displayed) == ""
 	var card := UiKit.card(box, &"ReadyCardPanel" if ready else &"CardPanel")
 	card.name = "StoryCard"
 	var header := UiKit.tap_chip(UiKit.ui_icon("tab_tasks"), str(chapter.get("name", "História")) + "  ›", func() -> void:
@@ -42,7 +44,26 @@ func _story_card(box: VBoxContainer) -> void:
 		return
 	var ids := GameState.progress.main_quests(index)
 	card.add_child(_step_dots(ids.size(), ids.find(current)))
-	_quest_body(card, current, _ready_routines.size() < 2)
+	if shared != "":
+		_shared_story_goal(card, shared)
+		return
+	if displayed != "":
+		_quest_body(card, displayed, _ready_routines.size() < 2)
+
+
+## A história orienta até um marco da linha paralela; a entrega e o prêmio ficam só nela.
+func _shared_story_goal(card: VBoxContainer, target: String) -> void:
+	var quest: Dictionary = Database.quests[target]
+	var npc: Dictionary = Database.npcs.get(str(quest.get("npc", "")), {})
+	var name := str(npc.get("name", "personagem"))
+	card.add_child(UiKit.label("Missões de " + name, &"SectionLabel"))
+	var guidance := UiKit.label("Complete as missões de %s até “%s”." % [name, str(quest.name)], &"SmallLabel")
+	guidance.name = "SharedQuestGuidance"
+	card.add_child(guidance)
+	card.add_child(UiKit.label("A história avança automaticamente ao concluir essa etapa.", &"SmallLabel"))
+	var current := GameState.progress.displayed_main_quest()
+	if current != "":
+		card.add_child(UiKit.secondary("Ir", func() -> void: Places.go(Places.quest_target(current)), null, true))
 
 
 ## Cartão de uma linha secundária (ex.: vovó Bloblo): passos da linha + o passo atual.

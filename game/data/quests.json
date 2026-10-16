@@ -132,6 +132,7 @@
     }
   },
   "lais_meet_bloblo": {
+    "shared_with": "bloblo_meet",
     "npc": "lais",
     "name": "A vovó do sítio",
     "dialogue": "A vovó Bloblo tem um sítio aqui do lado. Vai lá conhecer!",
@@ -142,9 +143,7 @@
         "label": "Conhecer a vovó Bloblo"
       }
     ],
-    "rewards": {
-      "coins": 10
-    },
+    "rewards": {},
     "kind": "main",
     "chapter": 2,
     "order": 10,
@@ -155,6 +154,7 @@
     }
   },
   "lais_first_crops": {
+    "shared_with": "bloblo_more_crops",
     "npc": "lais",
     "name": "Mãos na terra",
     "dialogue": "Já colheu alguma coisa? A vovó adora ajuda na horta!",
@@ -165,9 +165,7 @@
         "label": "Ajudar a vovó na horta"
       }
     ],
-    "rewards": {
-      "coins": 15
-    },
+    "rewards": {},
     "kind": "main",
     "chapter": 2,
     "order": 20,
@@ -217,6 +215,7 @@
     "order": 20
   },
   "lais_stew": {
+    "shared_with": "bloblo_stew",
     "npc": "lais",
     "name": "Ensopado para a vovó",
     "dialogue": "Vamos fazer um ensopado para a vovó Bloblo?",
@@ -227,9 +226,7 @@
         "label": "Levar um ensopado para a vovó"
       }
     ],
-    "rewards": {
-      "coins": 20
-    },
+    "rewards": {},
     "kind": "main",
     "chapter": 3,
     "order": 30,
@@ -269,21 +266,16 @@
     "dialogue": "Vende o que sobrou da colheita na feira.",
     "goals": [
       {
-        "type": "stat",
-        "key": "trade",
-        "target": 1,
-        "label": "Fazer uma venda"
+        "type": "quest",
+        "key": "merchant_first_sale",
+        "label": "Concluir Moedas na hora"
       }
     ],
-    "rewards": {
-      "coins": 20,
-      "skill_xp": {
-        "commerce": 15
-      }
-    },
+    "rewards": {},
     "kind": "main",
     "chapter": 4,
-    "order": 20
+    "order": 20,
+    "shared_with": "merchant_first_sale"
   },
   "main_2_order": {
     "npc": "lais",
@@ -291,18 +283,16 @@
     "dialogue": "Uma encomenda paga melhor!",
     "goals": [
       {
-        "type": "stat",
-        "key": "orders",
-        "target": 1,
-        "label": "Entregar uma encomenda"
+        "type": "quest",
+        "key": "merchant_orders",
+        "label": "Concluir Cliente satisfeito"
       }
     ],
-    "rewards": {
-      "coins": 25
-    },
+    "rewards": {},
     "kind": "main",
     "chapter": 4,
-    "order": 30
+    "order": 30,
+    "shared_with": "merchant_orders"
   },
   "lais_forest": {
     "npc": "lais",
@@ -557,21 +547,16 @@
     "dialogue": "Complete três encomendas. Uma clientela fiel faz toda a diferença.",
     "goals": [
       {
-        "type": "stat",
-        "key": "orders",
-        "target": 3,
-        "label": "Entregar encomendas"
+        "type": "quest",
+        "key": "merchant_regular",
+        "label": "Concluir Freguês da casa"
       }
     ],
-    "rewards": {
-      "coins": 90,
-      "skill_xp": {
-        "commerce": 40
-      }
-    },
+    "rewards": {},
     "kind": "main",
     "chapter": 7,
-    "order": 10
+    "order": 10,
+    "shared_with": "merchant_regular"
   },
   "deep_earth": {
     "npc": "lais",
@@ -604,20 +589,16 @@
     "dialogue": "Sua clientela cresceu. Abra sua própria banca!",
     "goals": [
       {
-        "type": "owned",
-        "key": "stall",
-        "label": "Abrir a banca"
+        "type": "quest",
+        "key": "merchant_stall",
+        "label": "Concluir Um negócio seu"
       }
     ],
-    "rewards": {
-      "coins": 150,
-      "skill_xp": {
-        "commerce": 60
-      }
-    },
+    "rewards": {},
     "kind": "main",
     "chapter": 7,
-    "order": 30
+    "order": 30,
+    "shared_with": "merchant_stall"
   },
   "atelier_open": {
     "npc": "lais",
@@ -1080,7 +1061,11 @@
     },
     "kind": "line",
     "line": "merchant",
-    "order": 20
+    "order": 20,
+    "go": {
+      "world": "village",
+      "place": "market"
+    }
   },
   "merchant_orders": {
     "npc": "merchant",
@@ -1100,12 +1085,16 @@
     },
     "kind": "line",
     "line": "merchant",
-    "order": 30
+    "order": 30,
+    "go": {
+      "world": "village",
+      "place": "orders"
+    }
   },
   "merchant_regular": {
     "npc": "merchant",
     "name": "Freguês da casa",
-    "dialogue": "Já pegou o jeito! Vamos atender mais dois pedidos?",
+    "dialogue": "Atenda mais dois pedidos da vizinhança. Depois vamos montar sua própria banca!",
     "goals": [
       {
         "type": "stat",
@@ -1120,7 +1109,11 @@
     },
     "kind": "line",
     "line": "merchant",
-    "order": 40
+    "order": 40,
+    "go": {
+      "world": "village",
+      "place": "orders"
+    }
   },
   "guide_meet": {
     "npc": "guide",
@@ -1209,19 +1202,45 @@
     "name": "O mapa completo",
     "dialogue": "Esse mapa... é da Clareira Escondida! Vamos lá?",
     "goals": [
-      {"type": "have", "key": "map_piece_1", "target": 1, "label": "Pedaço do sítio"},
-      {"type": "have", "key": "map_piece_2", "target": 1, "label": "Pedaço da praça"},
-      {"type": "have", "key": "map_piece_3", "target": 1, "label": "Pedaço da vila"},
-      {"type": "have", "key": "map_piece_4", "target": 1, "label": "Pedaço da trilha"}
+      {
+        "type": "have",
+        "key": "map_piece_1",
+        "target": 1,
+        "label": "Pedaço do sítio"
+      },
+      {
+        "type": "have",
+        "key": "map_piece_2",
+        "target": 1,
+        "label": "Pedaço da praça"
+      },
+      {
+        "type": "have",
+        "key": "map_piece_3",
+        "target": 1,
+        "label": "Pedaço da vila"
+      },
+      {
+        "type": "have",
+        "key": "map_piece_4",
+        "target": 1,
+        "label": "Pedaço da trilha"
+      }
     ],
     "rewards": {
       "coins": 30,
-      "skill_xp": {"adventure": 40}
+      "skill_xp": {
+        "adventure": 40
+      }
     },
     "kind": "line",
     "line": "guide",
     "order": 50,
-    "requirements": {"quests": ["guide_fibers"]}
+    "requirements": {
+      "quests": [
+        "guide_fibers"
+      ]
+    }
   },
   "bloblo_strawberry": {
     "npc": "bloblo",
@@ -1564,5 +1583,196 @@
     "kind": "line",
     "line": "nina",
     "order": 110
+  },
+  "bloblo_sell_surplus": {
+    "npc": "bloblo",
+    "kind": "line",
+    "line": "bloblo",
+    "name": "As primeiras moedas",
+    "dialogue": "Pode vender uma parte do que colher aqui mesmo. Assim você consegue moedas para continuar plantando.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "sold",
+        "target": 1,
+        "label": "Vender um produto que sobrou"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "order": 22,
+    "go": {
+      "world": "farm",
+      "place": "early_market"
+    }
+  },
+  "merchant_first_sale": {
+    "npc": "merchant",
+    "kind": "line",
+    "line": "merchant",
+    "name": "Moedas na hora",
+    "dialogue": "Eu compro seus excedentes. Os pedidos dos vizinhos ficam no quadro, e sua banca terá contratos próprios.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "sold",
+        "target": 1,
+        "label": "Vender um produto"
+      }
+    ],
+    "rewards": {
+      "coins": 20,
+      "skill_xp": {
+        "commerce": 15
+      }
+    },
+    "order": 15,
+    "go": {
+      "world": "village",
+      "place": "market"
+    }
+  },
+  "merchant_stall": {
+    "npc": "merchant",
+    "kind": "line",
+    "line": "merchant",
+    "name": "Um negócio seu",
+    "dialogue": "Monte sua banca: nela chegam contratos maiores, que também rendem materiais para ampliar seus depósitos.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "stall",
+        "label": "Montar sua própria banca"
+      }
+    ],
+    "rewards": {
+      "coins": 150,
+      "skill_xp": {
+        "commerce": 60
+      }
+    },
+    "order": 50,
+    "go": {
+      "world": "village",
+      "place": "buy:stall"
+    }
+  },
+  "merchant_contracts": {
+    "npc": "merchant",
+    "kind": "line",
+    "line": "merchant",
+    "name": "Primeiros contratos",
+    "dialogue": "Sua banca está aberta! Entregue dois contratos. Você recebe moedas e materiais de ampliação.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "contracts",
+        "target": 2,
+        "label": "Entregar 2 contratos da sua banca"
+      }
+    ],
+    "rewards": {
+      "coins": 60
+    },
+    "order": 60,
+    "go": {
+      "world": "village",
+      "place": "stall"
+    }
+  },
+  "merchant_expand": {
+    "npc": "merchant",
+    "kind": "line",
+    "line": "merchant",
+    "name": "Mais espaço na banca",
+    "dialogue": "Seus primeiros clientes chegaram. Amplie sua banca para receber novos contratos.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "stall_2",
+        "label": "Ampliar a banca para o nível 2"
+      }
+    ],
+    "rewards": {
+      "coins": 80
+    },
+    "order": 70,
+    "go": {
+      "world": "village",
+      "place": "stall"
+    }
+  },
+  "merchant_clients": {
+    "npc": "merchant",
+    "kind": "line",
+    "line": "merchant",
+    "name": "Clientes da vila",
+    "dialogue": "Continue atendendo os contratos e preparando seus produtos. Vamos chegar a cinco entregas da banca.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "contracts",
+        "target": 5,
+        "label": "Somar 5 contratos da sua banca"
+      }
+    ],
+    "rewards": {
+      "coins": 100
+    },
+    "order": 80,
+    "go": {
+      "world": "village",
+      "place": "stall"
+    }
+  },
+  "merchant_village_stall": {
+    "npc": "merchant",
+    "kind": "line",
+    "line": "merchant",
+    "name": "Uma banca de verdade",
+    "dialogue": "Agora sua banca pode virar referência na vila. Faça a última ampliação!",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "stall_3",
+        "label": "Ampliar a banca para o nível 3"
+      }
+    ],
+    "rewards": {
+      "coins": 120
+    },
+    "order": 90,
+    "go": {
+      "world": "village",
+      "place": "stall"
+    }
+  },
+  "merchant_festival": {
+    "npc": "merchant",
+    "kind": "line",
+    "line": "merchant",
+    "name": "A vila conta com você",
+    "dialogue": "Prepare o contrato Festa da vila. É o primeiro grande pedido da sua banca completa.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "order:festival_contract",
+        "target": 1,
+        "label": "Entregar o contrato Festa da vila"
+      }
+    ],
+    "rewards": {
+      "coins": 150,
+      "items": {
+        "bolt": 1,
+        "iron_band": 1
+      }
+    },
+    "order": 100,
+    "go": {
+      "world": "village",
+      "place": "order:festival_contract"
+    }
   }
 }

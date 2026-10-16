@@ -154,12 +154,22 @@ func _run() -> void:
 	check(tray.find_child("SleepButton", true, false).find_child("Caption", true, false).text == "Acordar", "acordar preservado")
 	tray.find_child("SleepButton", true, false).pressed.emit()
 	check(not state.get("dog").sleeping, "botão acorda")
-	state.get("walk_state").current = {"id": "park_loop", "ready_at": 9999999999.0}
+	state.get("walk_state").current = {"id": "park_loop", "ready_at": 9999999999.0, "seed": 42}
 	state.call("_changed")
 	check(not tray.visible and pet.find_child("AwayView", true, false).visible, "passeio troca a bandeja pelo postal")
 	tap("dog_food")
 	check(bag.call("count", "dog_food") == before, "passeio não alimenta nem por chamada de UI")
-	state.get("walk_state").current = {}
+	var collect_walk: Button = pet.find_child("CollectWalk", true, false)
+	check(not collect_walk.visible, "finalizar fica oculto enquanto passeia")
+	state.get("walk_state").current.ready_at = 1.0
+	state.call("_changed")
+	check(collect_walk.visible, "passeio pronto pode terminar na home")
+	var walks_before: int = progress.stat("walk")
+	collect_walk.pressed.emit()
+	check(not state.call("walking") and progress.stat("walk") == walks_before + 1, "home recolhe o passeio uma vez")
+	collect_walk.pressed.emit()
+	check(progress.stat("walk") == walks_before + 1 and not pet.find_child("AwayView", true, false).visible, "não duplica prêmio e Tiro retorna")
+	(main.get("_walk_result") as CanvasLayer).hide()
 	state.call("dev_complete_quest", "lais_bed")
 	# Cenoura é um desejo de comida real; ração é o desejo de ação food_any.
 	var food_wish := "carrot"

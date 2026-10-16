@@ -48,9 +48,9 @@ Use verbos concretos (plantar, colher, comprar, produzir, entregar) em uma frase
 | Mundo | Personagens | Lugares (tocar na cena ou em "Lugares") |
 |---|---|---|
 | **Casa** | — | Tigela, **Cozinha** (fogão + forno + fila extra), Geladeira, porta → Sítio. Sofá = enfeite com soneca (`hidden`). |
-| **Sítio da Bloblo** | Bloblo (casinha) | Canteiros (+ estufa), Produção (bancada + moinho + queijaria), Pomar e Animais (galinheiro + curral). Volta para casa é atalho oculto. |
+| **Sítio da Bloblo** | Bloblo (casinha) | Canteiros, Produção (bancada + moinho + queijaria), Pomar e Animais (galinheiro + curral). Estufa tem acesso próprio no mapa; volta para casa é atalho oculto. |
 | **Praça** | Nina (+ Pipoca, enfeite) | **Passeio** (portão; o Tiro sai de casa e volta com achados). Pet shop, amigos e treino chegam nas Etapas 08–10. |
-| **Vila** | Feirante, Laís | **Feira** (vender/encomendas; + banca), **Ateliê**, **Portão da trilha** (viaja para Natureza; capítulo 3) |
+| **Vila** | Feirante, Artesã | **Feirante** (vender excedentes), **Encomendas** (vizinhança), **Ateliê**, **Portão da trilha** (Natureza). **Minha banca** tem etiqueta própria no mapa e fica oculta só da lista de Lugares. |
 | **Natureza** | Guia da trilha | **Bosque** (madeira/madeira dura), **Caverna** (pedra/cobre/cristais), **Prado** (fibras). Cada local tem uma a três coletas paralelas. |
 
 Regra atual: **5 mundos (Casa, Sítio, Praça, Vila, Natureza), no máximo 4 lugares visíveis cada** (`content_test`).
@@ -152,6 +152,7 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   Desvio da implementação original da Etapa 04: subir o objeto não adiantava com o painel de Produção em 88% da tela.
 - `region_shade: false` na sala (Natureza) tira o escurecimento das regiões fechadas; ficam a cerca do portão e o balão +.
 - Etiquetas e balões ficam fixos no mapa: arrastar a câmera não os move. Etiquetas de áreas bloqueadas usam label_pos no centro do polígono.
+- Coleta no mapa termina na coleta: plantas maduras, estações/criações, Natureza e pomar prontos não abrem bandeja/painel após entregar os produtos. Um novo toque deliberado num canteiro vazio abre sementes; estação/local sem produtos prontos abre sua bandeja normalmente.
 - Na horta, um único balão de compra fica no último canteiro comum, com âncora baixa. Tocar nele ou em qualquer canteiro comum fechado abre a compra do próximo (`GameState.unlocked_plots`), sempre na ordem e pelo preço correspondente; some com os nove abertos, sem balão extra na estufa.
 - **Balões e etiquetas (Etapa 06):** canteiros, estações, criações, coletas da Natureza e o passeio mostram um `WorldBalloon`
   (`scripts/ui/world_balloon.gd`): anel `INFO` com o produto enquanto cresce, verde com ✓ pulando a cada 2 s quando pronto, balão
@@ -299,7 +300,8 @@ o ? abre os níveis. Locais fechados continuam oferecendo a abertura. Nenhuma re
 |---|---|
 | `scenes/ui/worlds_screen/` | Aba Mapa: lista de mundos + mundo atual (instancia `levels/room/room.tscn` por mundo e mantém em memória). `enter(mundo, lugar)`. |
 | `scripts/ui/places.gd` (`Places`) | Abre lugares/personagens (`open`, `open_npc`, `run`), lista "O que tem aqui?" (`world_list`) e calcula avisos (`world_alerts`, `npc_alert`, `place_alert`). |
-| `scripts/ui/progression_ui.gd` | Painéis: personagem, construir (por mundo), vender, encomendas, rotas, atributos, coleção. |
+| `scripts/ui/progression_ui.gd` | Painéis: personagem, construir (por mundo), rotas, atributos, coleção; acessos de comércio delegam a `MarketUi`. |
+| `scripts/ui/market_ui.gd` | Venda paginada com quantidade, encomendas 2×2 e contratos da banca com dois por página, detalhe/entrega na mesma tela; `sell`, `orders`, `contracts` em `Places`. |
 | `scenes/ui/tasks_screen/` | Aba Missões. |
 | `scenes/ui/bag_screen/` + `SheetBuilder.inventory_view/item_detail` | Aba Mochila (e geladeira). |
 | `Events.world_requested(mundo, lugar)` | "Ir até lá": `main.gd` troca para o Mapa e entra no mundo; `lugar` = `"<lugar>"`, `"npc:<id>"` ou `"buy:<construção>"`. |
@@ -344,9 +346,11 @@ Toda missão deve ter um destino válido e acessível quando liberada: valide co
 ## Pet shop da Praça (Etapa 08)
 
 `park.places.petshop` abre após `nina_rare`; `upgrade: petshop` representa a montagem inicial.
-`upgrades: [sewing_table, walk_bag]` dá destinos às compras; o painel `petshop` as dispõe nos blocos
-Costura/Comprar sem duplicar cartões genéricos. `Database.panel_parts("petshop")` também atende
-`station:sewing`, portanto Manual/ajuda/avisos/Ir resolvem a estação no quiosque.
+O painel `petshop` contém apenas compras de roupas, materiais e bolsinha (`upgrades: [walk_bag]`).
+`park.places.sewing` tem `upgrade: sewing_table` e `panel: station:sewing`: a etiqueta própria
+“Costura”, abaixo do quiosque, abre a bandeja padrão de produção (fila, receitas, tempo,
+ingredientes e Costurar). É `hidden` apenas na lista de Lugares, preservando o limite de quatro;
+continua acessível no mapa, Manual, ajuda e atalhos das roupas feitas na mesa.
 
 O fundo já tem toldo e balcão: as novas peças são placa/mercadorias e a pequena mesa, com
 `z_index` 1/2 e sem footprint. Os quinze obstáculos anteriores permanecem, sem duplicar bloqueios

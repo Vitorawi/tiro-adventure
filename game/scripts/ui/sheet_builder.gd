@@ -446,8 +446,20 @@ static func seed_picker(plot_index: int, focus: String = "") -> Control:
 
 
 ## Canteiros: terrenos (barra), próximo terreno e cada canteiro em ícone + estado.
-static func farm_view(focus: String = "") -> Control:
+static func farm_view(focus: String = "", greenhouse_only: bool = false) -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
+		if greenhouse_only:
+			box.add_child(UiKit.label("Plantas delicadas · crescem mais rápido", &"SmallLabel"))
+			var house_grid := GridContainer.new()
+			house_grid.name = "GreenhousePlots"
+			house_grid.columns = 2
+			house_grid.add_theme_constant_override("h_separation", 6)
+			house_grid.add_theme_constant_override("v_separation", 6)
+			for index in GameState.usable_plot_indices():
+				if GameState.is_greenhouse_plot(index):
+					house_grid.add_child(_plot_tile(index, focus))
+			box.add_child(house_grid)
+			return
 		var total := int(Database.farm.get("plots", 0))
 		if not GameState.has_upgrade("farm"):
 			# Antes da escritura: um canteiro emprestado e a compra do sítio.
@@ -469,21 +481,13 @@ static func farm_view(focus: String = "") -> Control:
 		grid.add_theme_constant_override("h_separation", 6)
 		grid.add_theme_constant_override("v_separation", 6)
 		var garden: Array[int] = []
-		var greenhouse: Array[int] = []
 		for index in GameState.usable_plot_indices():
-			(greenhouse if GameState.is_greenhouse_plot(index) else garden).append(index)
+			if not GameState.is_greenhouse_plot(index):
+				garden.append(index)
 		for index in garden:
 			grid.add_child(_plot_tile(index, focus))
 		box.add_child(grid)
-		if not greenhouse.is_empty():
-			box.add_child(UiKit.label("Estufa · plantas delicadas, crescem mais rápido", &"SectionLabel"))
-			var house_grid := GridContainer.new()
-			house_grid.columns = 3
-			house_grid.mouse_filter = Control.MOUSE_FILTER_PASS
-			house_grid.add_theme_constant_override("h_separation", 6)
-			for index in greenhouse:
-				house_grid.add_child(_plot_tile(index, focus))
-			box.add_child(house_grid))
+	)
 
 
 ## Canteiro: vazio = "+" (plantar); crescendo = planta + %; pronto = planta + "Colher!".
@@ -526,7 +530,7 @@ static func plot_purchase(index: int) -> Control:
 			if error != "":
 				Events.toast_requested.emit(error)
 			if error == "":
-				Events.sheet_requested.emit("Canteiro %d" % (index + 1), seed_picker(index)), &"PrimaryButton")
+				Events.sheet_close_requested.emit(), &"PrimaryButton")
 		buy.disabled = not available or GameState.coins < cost or cost < 0
 		box.add_child(buy))
 

@@ -512,6 +512,12 @@ func _refresh_ownership() -> void:
 	for region: Node2D in _regions:
 		region.visible = region_error(region.get_meta("data")) != ""
 	for tag: Label in _labels:
+		var label_data: Dictionary = tag.get_meta("tap_data", {})
+		if label_data.has("label_levels"):
+			tag.text = str(label_data.label)
+			for token: String in label_data.label_levels:
+				if GameState.has_upgrade(token):
+					tag.text = str(label_data.label_levels[token])
 		if tag.has_meta("requirements"):
 			var blocked := GameState.requirement_error(tag.get_meta("requirements")) != ""
 			tag.visible = blocked if tag.get_meta("locked_label", false) else not blocked
@@ -1059,6 +1065,12 @@ func _handle_tap(point: Vector2) -> bool:
 			_dig_find()
 			return true
 	if _tap_balloon(point): return true
+	# A etiqueta de Amigos pode cruzar o visitante; tocar no cachorro dá o petisco direto.
+	for npc: NpcWorld in _npcs:
+		if npc.visible and not npc.friend_visit and npc.friend_id != "" and GameState.friend_unlocked(npc.friend_id) and npc.hit_test(point):
+			npc.react()
+			FriendUi.open(npc.friend_id)
+			return true
 	if _tap_label(point):
 		return true
 	for region: Node2D in _regions:
@@ -1083,9 +1095,6 @@ func _handle_tap(point: Vector2) -> bool:
 				var reason := GameState.collect_friend_visit(npc.friend_id)
 				if reason != "":
 					Events.toast_requested.emit(reason)
-			elif npc.friend_id != "" and GameState.friend_unlocked(npc.friend_id):
-				npc.react()
-				FriendUi.open(npc.friend_id)
 			elif npc.is_decor():
 				npc.react()
 			else:
@@ -1124,7 +1133,7 @@ func _tap_balloon(point: Vector2) -> bool:
 		return true
 	for indicator: RouteIndicator in _route_markers:
 		if indicator.active() and indicator.hit_rect.has_point(point - indicator.position):
-			# Recolhe o que está pronto e abre a bandeja do local (fechado: o painel de compra).
+			# Pronto só recolhe; sem produtos prontos, abre a bandeja/compra do local.
 			_on_object_tapped("place:" + indicator.site)
 			return true
 	for sprite: Sprite2D in _objects:
@@ -1189,9 +1198,12 @@ func _tap_label(point: Vector2) -> bool:
 
 
 ## Toque num canteiro (a bandeja de ação faz o resto): vazio abre as sementes; crescendo e regável rega na hora
-## (e oferece o regador para os outros); crescendo sem rega mostra o tempo; pronto colhe na hora (e oferece a foice).
+## (e oferece o regador para os outros); crescendo sem rega mostra o tempo; pronto só colhe.
 func _on_plot_tapped(index: int) -> void:
 	close_tray()
+	if GameState.plot_status(index) == "ready":
+		harvest_plot(index)
+		return
 	if GameState.plot_status(index) == "locked" and not GameState.has_upgrade("farm") and GameState.requirement_error(Database.progression.upgrades.farm.get("requirements", {})) != "":
 		Places.open_npc("bloblo")
 		return
@@ -1224,8 +1236,7 @@ func open_plot_tray(index: int, focus: String = "", center_camera: bool = false)
 		"growing":
 			PlotTray.care(self, index)
 		"ready":
-			if harvest_plot(index) and not ready_plots().is_empty():
-				PlotTray.sickle(self, index)
+			harvest_plot(index)
 
 
 ## Leva a câmera até o ponto da sala se ele estiver fora da área confortável (ou se `force`), antes de abrir
@@ -1277,6 +1288,20 @@ func object_anchor(sprite: Sprite2D) -> Dictionary:
 ## Esta sala tem a estação (já comprada) para mostrar a bandeja?
 func can_open_station_tray(station_id: String) -> bool:
 	return station_sprite(station_id) != null and GameState.has_upgrade(station_id)
+
+
+## Amigos presentes na Praça usam a bandeja de petiscos, sem passar por um painel.
+func open_friend_tray(id: String) -> bool:
+	if world_id != "park" or not GameState.friend_unlocked(id):
+		return false
+	for npc: NpcWorld in _npcs:
+		if npc.visible and npc.friend_id == id and not npc.friend_visit:
+			Events.sheet_close_requested.emit()
+			close_tray()
+			clear_pointer()
+			FriendUi.tray(self, id, npc.position)
+			return true
+	return false
 
 
 ## Abre a bandeja da estação (receitas em grade; criações: ração). `focus` = receita pedida pelo "Ir".
@@ -1639,7 +1664,18 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 	if action == "place:walk" and GameState.walk_ready():
 		_collect_walk()
 		return
-	var collected := target is Sprite2D and _collect_station(_station_of(target), target.position)
+	var activity: Dictionary = GameState.progress.activity
+	var route: Dictionary = Database.progression.activities.get(str(activity.get("id", "")), {})
+	if not activity.is_empty() and GameState.activity_remaining() == 0 and action == "place:" + str(route.get("place", "")):
+		var error := GameState.collect_activity()
+		if error != "":
+			Events.toast_requested.emit(error)
+		else:
+			var origin := world_to_screen(target.position) if target is Node2D else Vector2(-1, -1)
+			Events.items_gained.emit(route.get("rewards", {}).get("items", {}), int(route.get("rewards", {}).get("coins", 0)), origin)
+		return
+	if target is Sprite2D and _collect_station(_station_of(target), target.position):
+		return  # Coleta no mapa termina aqui, inclusive quando o depósito está cheio.
 	# Estação, criação e local da Natureza abrem a bandeja perto do objeto (o painel fica em "Ver tudo").
 	if target is Sprite2D and _station_of(target) != "" and GameState.has_upgrade(_station_of(target)):
 		open_station_tray(_station_of(target), "", false, target)
@@ -1648,9 +1684,8 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 	if site != "" and GameState.progress.nature_level(site) > 0 and _nature_marker(site) != null:
 		if GameState.gathering_ready_count(site) > 0:
 			_collect_site(site, _nature_marker(site).position)
+			return
 		open_nature_tray(site)
-		return
-	if collected:
 		return
 	match action:
 		"plot":

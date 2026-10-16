@@ -199,6 +199,8 @@ func _level_cost(current_level: int) -> int:
 func quest_unlocked(id: String) -> bool:
 	if not Database.quests.has(id):
 		return false
+	if Database.quests[id].has("shared_with"):
+		return false  # marco da história, recebido junto da missão canônica
 	if Database.quests[id].get("kind", "side") == "main":
 		return id == current_main_quest()
 	if Database.quests[id].get("kind", "side") == "line":
@@ -274,6 +276,16 @@ func current_main_quest() -> String:
 	return ""
 
 
+## Passo do personagem a seguir quando a história aponta para um marco de sua linha.
+func displayed_main_quest() -> String:
+	var id := current_main_quest()
+	var shared := str(Database.quests.get(id, {}).get("shared_with", ""))
+	if shared == "":
+		return id
+	var line := str(Database.quests[shared].get("line", ""))
+	return current_line_quest(line) if line != "" else shared
+
+
 ## Linhas secundárias (kind "line"), na ordem em que aparecem em quests.json.
 func lines() -> Array[String]:
 	var result: Array[String] = []
@@ -309,7 +321,7 @@ func current_line_quest(line: String) -> String:
 func active_steps() -> Dictionary:
 	var result := {}
 	var main := current_main_quest()
-	if main != "":
+	if main != "" and not Database.quests[main].has("shared_with"):
 		result["main"] = main
 	for line in lines():
 		var id := current_line_quest(line)

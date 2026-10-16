@@ -103,6 +103,13 @@ func _run() -> void:
 	var garden: Sprite2D = farm.find_child("plot_0", true, false)
 	var glass: Sprite2D = farm.find_child("plot_9", true, false)
 	check(glass.texture.resource_path.ends_with("plot_greenhouse.png") and garden.texture.resource_path.ends_with("plot.png"), "estufa tem canteiro próprio (pedra e vidro)")
+	var boundary: Sprite2D = farm.find_child("greenhouse", true, false)
+	check(boundary.texture.resource_path.ends_with("greenhouse_boundary.svg") and boundary.get_meta("action") == "place:greenhouse", "estufa é área demarcada com acesso próprio")
+	var greenhouse_panel: Control = load("res://scripts/ui/sheet_builder.gd").call("farm_view", "", true)
+	root.add_child(greenhouse_panel)
+	await process_frame
+	check(greenhouse_panel.find_child("GreenhousePlots", true, false).get_child_count() == 4, "painel da estufa só tem seus quatro canteiros")
+	greenhouse_panel.queue_free()
 
 	await _test_state_helpers()
 	await _test_plot_at()
@@ -300,45 +307,25 @@ func _caption_of(current: Control, id: String) -> String:
 func _test_harvest() -> void:
 	empty_plots()
 	toasts.clear()
-	for i in 4:
+	for i in 6:
 		state.call("plant", i, "carrot")
 	state.call("dev_finish_timers")
 	farm.call("_animate_objects")
 	var coins_before: int = state.get("coins")
-	farm.call("_on_plot_tapped", 1)
-	check(status(1) == "empty", "tocar no pronto colhe na hora")
-	check(state.get("coins") > coins_before, "colheita rendeu moedas")
-	await process_frame
-	var current := tray()
-	check(current != null, "sobrou pronto: aparece a bandeja da foice")
-	if current == null:
-		return
-	check((current.call("entry_ids") as Array) == ["sickle", "all"], "foice e Tudo")
-	check(_caption_of(current, "sickle") == "×3", "foice mostra ×3 (%s)" % _caption_of(current, "sickle"))
-	await process_frame
-	var path: Array[Vector2] = [finger_for(2), finger_for(3)]
-	current.call("drag_through", "sickle", path)
-	check(status(2) == "empty" and status(3) == "empty", "arrasto da foice colheu 2 e 3")
-	check(status(0) == "ready", "quem ficou de fora continua pronto")
-	check(tray() == null, "agiu: a bandeja fecha")
-	# Colher tudo com 1 toque + "Tudo".
-	empty_plots()
+	var carrots_before: int = state.get("inventory").call("count", "carrot")
 	for i in 6:
-		state.call("plant", i, "carrot")
-	state.call("dev_finish_timers")
-	farm.call("_animate_objects")
+		farm.call("_on_plot_tapped", i)
+		await process_frame
+		check(status(i) == "empty", "toque colhe a cenoura %d" % i)
+		check(tray() == null, "colher %d não abre sementes nem foice" % i)
+	check(state.get("coins") > coins_before, "colheita rendeu moedas")
+	check(state.get("inventory").call("count", "carrot") == carrots_before + 12, "seis toques colhem seis canteiros sem perda")
+	# Plantar continua disponível no próximo toque deliberado num canteiro já vazio.
 	farm.call("_on_plot_tapped", 0)
 	await process_frame
-	var all_tray := tray()
-	check(all_tray != null and _caption_of(all_tray, "all") == "×5", "Tudo mostra ×5")
-	all_tray.call("tap_item", "all")
-	var left := 0
-	for i in 6:
-		if status(i) == "ready": left += 1
-	check(left == 0, "1 toque + Tudo colhe tudo (sobraram %d)" % left)
-	check(tray() == null, "depois do Tudo a bandeja fecha")
+	check(tray() != null, "tocar depois no canteiro vazio abre sementes")
+	farm.call("close_tray")
 	empty_plots()
-
 
 # --- 6. armazenamento cheio -----------------------------------------------------------------------------
 
@@ -546,7 +533,7 @@ func _test_hint() -> void:
 		state.call("plant", i, "carrot")
 	state.call("dev_finish_timers")
 	state.get("progress").seen.erase("ui:tray_harvest_hint")
-	farm.call("_on_plot_tapped", 0)
+	PlotTrayScript().call("sickle", farm, 0)
 	await process_frame
 	await process_frame
 	var sickle := tray()
