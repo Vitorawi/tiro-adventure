@@ -109,6 +109,10 @@ var _clouds_ready := false
 var _pointer: Node2D
 var _label_intro_until := 0.0
 var _label_tick := 0.0
+## A bandeja de ação está arrastando um item: o mundo não move a câmera nem trata toques.
+var tray_dragging := false
+## Toque que fechou a bandeja: some junto com o resto do gesto (não planta nem arrasta sem querer).
+var _swallow_touch := false
 
 @onready var _content: Control = %Content
 @onready var _background: TextureRect = %Background
@@ -164,6 +168,10 @@ func _ready() -> void:
 	_build_recenter_button()
 	Events.sheet_closed.connect(_on_sheet_closed)
 	Events.sheet_requested.connect(_on_sheet_requested)
+	Events.plot_tray_requested.connect(_on_plot_tray_requested)
+	visibility_changed.connect(func() -> void:
+		if not is_visible_in_tree():
+			close_tray())
 	resized.connect(_on_resized)
 	_show_whole_room.call_deferred()
 	var timer := Timer.new()
@@ -379,6 +387,14 @@ func _spawn_objects() -> void:
 			crop.position = Vector2(0, -sprite.texture.get_height() / 2.0 + float(data.get("crop_offset", 0)))
 			crop.offset = Vector2(0, -8)
 			sprite.add_child(crop)
+			# Centro e meia-largura/altura do losango no chão: achar o canteiro sob o dedo (plot_at).
+			var diamond := _polygon(data.get("footprint", []))
+			if not diamond.is_empty():
+				var bounds := Rect2(diamond[0], Vector2.ZERO)
+				for corner in diamond:
+					bounds = bounds.expand(corner)
+				sprite.set_meta("plot_center", bounds.get_center())
+				sprite.set_meta("plot_half", bounds.size / 2.0)
 			var indicator := PlotIndicator.new()
 			indicator.name = "Indicator"
 			indicator.plot_index = int(data["plot"])
@@ -799,8 +815,8 @@ func _spawn_npcs() -> void:
 ## dedo duas vezes ou soltar com outro identificador; um dedo "fantasma" na
 ## lista transformaria todo arrastar em zoom e bloquearia os toques.
 func _input(event: InputEvent) -> void:
-	if not is_visible_in_tree():
-		return
+	if not is_visible_in_tree() or tray_dragging:
+		return  # durante o arrasto da bandeja o mundo não trata pinça nem toques
 	var touch := event as InputEventScreenTouch
 	if touch:
 		_prune_stale_touches()
@@ -878,10 +894,19 @@ func _gui_input(event: InputEvent) -> void:
 		var factor := ZOOM_STEP if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / ZOOM_STEP
 		_zoom_at(button.position, _zoom * factor)
 		return
-	if _is_pinching():
-		return  # durante a pinça, não arrasta nem toca
+	if _is_pinching() or tray_dragging:
+		return  # durante a pinça (ou o arrasto da bandeja), não arrasta nem toca
 	if button and button.button_index == MOUSE_BUTTON_LEFT:
+		if button.pressed and ActionTray.is_open(self):
+			# Tocar fora da bandeja só a fecha: o toque não age no mundo (evita plantar sem querer).
+			close_tray()
+			_swallow_touch = true
+			return
+		if not button.pressed and _swallow_touch:
+			_swallow_touch = false
+			return
 		if button.pressed:
+			_swallow_touch = false
 			_stop_camera()  # qualquer toque para a inércia e o retorno elástico
 			_press_position = button.position
 			_dragged = false
@@ -892,7 +917,7 @@ func _gui_input(event: InputEvent) -> void:
 			_on_tap_released(button.position)
 		return
 	var motion := event as InputEventMouseMotion
-	if motion and motion.button_mask & MOUSE_BUTTON_MASK_LEFT:
+	if motion and motion.button_mask & MOUSE_BUTTON_MASK_LEFT and not _swallow_touch:
 		if motion.position.distance_to(_press_position) > TAP_SLOP:
 			_dragged = true
 		if _dragged:
@@ -992,7 +1017,7 @@ func point_at(action: String) -> bool:
 	for sprite in _objects:
 		if anchor != Vector2.INF:
 			break
-		if action == "plot" and sprite.has_meta("plot") or sprite.get_meta("action", "") == action:
+		if action == "plot" and sprite.has_meta("plot") or sprite.get_meta("action", "") == action or action == "plot:%d" % int(sprite.get_meta("plot", -1)):
 			anchor = sprite.position - Vector2(0, sprite.texture.get_height())
 			break
 	if anchor == Vector2.INF:
@@ -1189,32 +1214,213 @@ func _tap_label(point: Vector2) -> bool:
 	return false
 
 
-## Canteiro vazio abre as sementes; crescendo mostra quanto falta; pronto colhe.
+## Toque num canteiro (a bandeja de ação faz o resto): vazio abre as sementes; crescendo e regável rega na hora
+## (e oferece o regador para os outros); crescendo sem rega mostra o tempo; pronto colhe na hora (e oferece a foice).
 func _on_plot_tapped(index: int) -> void:
-	for sprite: Sprite2D in _objects:
-		if sprite.get_meta("plot", -1) == index:
-			(sprite.get_node("Indicator") as PlotIndicator).reveal_caption()
+	close_tray()
 	if GameState.plot_status(index) == "locked" and not GameState.has_upgrade("farm") and GameState.requirement_error(Database.progression.upgrades.farm.get("requirements", {})) != "":
 		Places.open_npc("bloblo")
 		return
 	if GameState.water_error(index) == "":
-		GameState.water(index)
+		water_plot(index)
+		if not waterable_plots().is_empty():
+			PlotTray.water(self, index)
+		return
+	if GameState.plot_status(index) == "locked":
+		Events.sheet_requested.emit("Expandir o sítio", SheetBuilder.plot_purchase(index) if GameState.has_upgrade("farm") else ProgressionUi.purchase("farm"))
+		return
+	open_plot_tray(index)
+
+
+# --- Bandeja de ação da horta ------------------------------------------------------
+
+## Abre a bandeja que combina com o canteiro: sementes (vazio), cuidado (crescendo) ou colheita (pronto).
+## `focus` = planta pedida pelo "Ir" (vem primeiro e destacada). `center_camera` leva a câmera até ele antes.
+func open_plot_tray(index: int, focus: String = "", center_camera: bool = false) -> void:
+	close_tray()
+	if _plot_sprite(index) == null or GameState.plot_status(index) == "locked":
+		return
+	clear_pointer()
+	var center := plot_center(index)
+	var on_screen := _content.position + center * _zoom
+	var comfortable := Rect2(Vector2(48, 150), size - Vector2(96, 260))
+	if size.x > 0.0 and (center_camera or not comfortable.has_point(on_screen)):
+		_tween_camera(center, _zoom)
+		if not Motion.reduced and is_inside_tree():
+			await get_tree().create_timer(Motion.CAMERA + 0.05).timeout
+		if not is_inside_tree() or not is_visible_in_tree() or tray_dragging:
+			return
+	match GameState.plot_status(index):
+		"empty":
+			PlotTray.seeds(self, index, focus)
+		"growing":
+			PlotTray.care(self, index)
+		"ready":
+			if harvest_plot(index) and not ready_plots().is_empty():
+				PlotTray.sickle(self, index)
+
+
+func close_tray() -> void:
+	if ActionTray.is_open(self):
+		ActionTray.close_current()
+
+
+## "Ir"/painel de canteiros: `plot_index` −1 = o primeiro canteiro vazio que aceite a planta.
+func _on_plot_tray_requested(crop_id: String, plot_index: int) -> void:
+	if not is_visible_in_tree() or plot_indices().is_empty():
+		return
+	var index := plot_index
+	if index < 0:
+		for candidate in plot_indices():
+			if GameState.plot_status(candidate) == "empty" and (crop_id == "" or GameState.crop_plot_error(candidate, crop_id) == ""):
+				index = candidate
+				break
+		if index < 0:
+			point_at("plot:%d" % plot_indices()[0])
+			Events.toast_requested.emit("Todos os canteiros estão ocupados")
+			return
+	open_plot_tray(index, crop_id, plot_index >= 0)
+
+
+## Canteiros desta sala visíveis (a estufa só aparece depois de comprada).
+func plot_indices() -> Array[int]:
+	var result: Array[int] = []
+	for sprite: Sprite2D in _objects:
+		if sprite.has_meta("plot") and sprite.visible:
+			result.append(int(sprite.get_meta("plot")))
+	result.sort()
+	return result
+
+
+func _plot_sprite(index: int) -> Sprite2D:
+	for sprite: Sprite2D in _objects:
+		if sprite.get_meta("plot", -1) == index and sprite.visible:
+			return sprite
+	return null
+
+
+## Meio do losango do canteiro no chão (ponto da sala).
+func plot_center(index: int) -> Vector2:
+	var sprite := _plot_sprite(index)
+	if sprite == null:
+		return Vector2.ZERO
+	return sprite.get_meta("plot_center", sprite.position - Vector2(0, 25))
+
+
+## Pontos da sala onde a bandeja aponta: `above` = em cima da planta, `below` = embaixo do losango.
+func plot_anchor(index: int) -> Dictionary:
+	var sprite := _plot_sprite(index)
+	var center := plot_center(index)
+	var half: Vector2 = sprite.get_meta("plot_half", Vector2(37, 25)) if sprite else Vector2(37, 25)
+	return {"above": center - Vector2(0, half.y + 24.0), "below": center + Vector2(0, half.y)}
+
+
+## Canteiro sob um ponto da sala (−1 = nenhum). Usa o losango do chão ampliado 20% (arrastar tem que ser fácil);
+## quando dois se tocam vence o mais perto do centro. Sem losango, vale o retângulo da planta.
+func plot_at(world_point: Vector2) -> int:
+	var best := -1
+	var best_score := INF
+	for sprite: Sprite2D in _objects:
+		if not sprite.has_meta("plot") or not sprite.visible:
+			continue
+		var score := INF
+		if sprite.has_meta("plot_center"):
+			var half: Vector2 = sprite.get_meta("plot_half")
+			var offset := (world_point - (sprite.get_meta("plot_center") as Vector2)).abs()
+			var distance := offset.x / maxf(half.x, 1.0) + offset.y / maxf(half.y, 1.0)
+			if distance <= 1.2:
+				score = distance
+		var crop := sprite.get_node("Crop") as Sprite2D
+		if score == INF and crop.texture and crop.visible:
+			var local := (world_point - sprite.position - crop.position) / maxf(crop.scale.x, 0.01)
+			if crop.get_rect().has_point(local):
+				score = 5.0
+		if score < best_score:
+			best_score = score
+			best = int(sprite.get_meta("plot"))
+	return best
+
+
+## Canteiros crescendo que ainda dá para regar / prontos para colher (só os desta sala).
+func waterable_plots() -> Array[int]:
+	var result: Array[int] = []
+	for index in plot_indices():
+		if GameState.water_error(index) == "":
+			result.append(index)
+	return result
+
+
+func ready_plots() -> Array[int]:
+	var result: Array[int] = []
+	for index in plot_indices():
+		if GameState.plot_status(index) == "ready":
+			result.append(index)
+	return result
+
+
+## Planta com efeito no canteiro. Devolve "" ou o motivo (a bandeja mostra).
+func plant_plot(index: int, crop_id: String) -> String:
+	var reason := GameState.plant(index, crop_id)
+	if reason == "":
+		plot_feedback(index, &"plant")
+	return reason
+
+
+func water_plot(index: int) -> String:
+	var reason := GameState.water(index)
+	if reason == "":
+		plot_feedback(index, &"water")
+	return reason
+
+
+## Colhe e faz as miniaturas saltarem do canteiro. Falhou (ex.: depósito cheio)? O GameState já avisou
+## com o toast; o canteiro balança e nada é entregue.
+func harvest_plot(index: int) -> bool:
+	if GameState.plot_status(index) != "ready":
+		return false
+	var sprite := _plot_sprite(index)
+	var reward := int(Database.crops.get(str(GameState.plot(index)["crop"]), {}).get("coins", 0))
+	var origin := world_to_screen(sprite.position) if sprite else Vector2(-1.0, -1.0)
+	var received := GameState.harvest(index)
+	if GameState.plot_status(index) == "ready":  # não coube no depósito: continua pronto
+		if sprite:
+			Motion.shake(sprite)
+		return false
+	Events.items_gained.emit(received, reward, origin)
+	plot_feedback(index, &"harvest")
+	return true
+
+
+## Resposta visual a uma ação no canteiro: pulinho + `plant` (pontinhos de terra), `water` (gotas) ou `harvest`.
+func plot_feedback(index: int, kind: StringName) -> void:
+	var sprite := _plot_sprite(index)
+	if sprite == null:
+		return
+	_update_plot(sprite)
+	if kind == &"water":
 		_water_fx(index)
 		return
-	match GameState.plot_status(index):
-		"locked":
-			Events.sheet_requested.emit("Expandir o sítio", SheetBuilder.plot_purchase(index) if GameState.has_upgrade("farm") else ProgressionUi.purchase("farm"))
-		"empty":
-			Events.sheet_requested.emit("Canteiro", SheetBuilder.seed_picker(index))
-		"growing":
-			Events.sheet_requested.emit("Plantação", SheetBuilder.growing_plot(index))
-		"ready":
-			var reward := int(Database.crops[GameState.plot(index)["crop"]].get("coins", 0))
-			var origin := Vector2(-1.0, -1.0)
-			for sprite: Sprite2D in _objects:
-				if sprite.has_meta("plot") and int(sprite.get_meta("plot")) == index:
-					origin = _screen_point(sprite.position)
-			Events.items_gained.emit(GameState.harvest(index), reward, origin)
+	Motion.bounce(sprite)
+	if kind != &"plant":
+		return
+	for i in 4:
+		var dot := ColorRect.new()
+		dot.color = Palette.INK_SOFT
+		dot.size = Vector2(3, 3)
+		dot.position = Vector2(-9 + i * 6, -22)
+		dot.z_index = 5
+		sprite.add_child(dot)
+		var spray := create_tween().set_parallel(true)
+		spray.tween_property(dot, "position", dot.position + Vector2((i - 1.5) * 5.0, -9.0), 0.25).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		spray.tween_property(dot, "modulate:a", 0.0, 0.2).set_delay(0.2)
+		spray.chain().tween_callback(dot.queue_free)
+
+
+## Rola a câmera (arrasto perto da borda): `delta` em pixels de tela, respeitando os limites do mundo.
+func scroll_by(delta: Vector2) -> void:
+	_content.position -= delta
+	_clamp_content()
+	_camera_changed()
 
 
 ## Gotinhas caem sobre o canteiro regado: o ícone desce e some, mais quatro pontinhos azuis.
@@ -1233,7 +1439,7 @@ func _water_fx(index: int) -> void:
 		tween.chain().tween_callback(drop.queue_free)
 		for i in 4:
 			var dot := ColorRect.new()
-			dot.color = Color("5aa9e6")
+			dot.color = Palette.INFO
 			dot.size = Vector2(3, 3)
 			dot.position = Vector2(-12 + i * 8, -50)
 			dot.z_index = 5
@@ -1281,7 +1487,7 @@ func _dig_find() -> void:
 		Events.toast_requested.emit(error)
 		return
 	var point := _dig_spot.position
-	if not GameState.dig(world_id, _screen_point(point)).is_empty() and _dog:
+	if not GameState.dig(world_id, world_to_screen(point)).is_empty() and _dog:
 		_dog.react_at(&"dig", point)
 
 func show_dig_spots() -> void:
@@ -1294,8 +1500,14 @@ func show_dig_spots() -> void:
 		marker.z_index = 5
 		_world.add_child(marker)
 
-func _screen_point(point: Vector2) -> Vector2:
+## Ponto da sala → coordenadas da tela (de onde saltam as miniaturas e onde a bandeja aponta).
+func world_to_screen(point: Vector2) -> Vector2:
 	return _world.get_global_transform_with_canvas() * point
+
+
+## Coordenadas da tela → ponto da sala (o caminho de volta de `world_to_screen`).
+func screen_to_world(screen: Vector2) -> Vector2:
+	return _world.get_global_transform_with_canvas().affine_inverse() * screen
 
 
 ## Recolhe direto no mapa as coletas prontas de um local da Natureza.
@@ -1307,7 +1519,7 @@ func _collect_site(site: String, point: Vector2) -> void:
 		if error.ends_with("sem espaço"):
 			Events.toast_requested.emit(error)
 		return
-	Events.items_gained.emit(GameState.last_gain, GameState.last_coins, _screen_point(point))
+	Events.items_gained.emit(GameState.last_gain, GameState.last_coins, world_to_screen(point))
 	var level := GameState.progress.nature_level(site)
 	if level > previous_level:
 		Events.toast_requested.emit("%s nível %d!" % [data.name, level])
@@ -1317,7 +1529,7 @@ func _collect_site(site: String, point: Vector2) -> void:
 func _collect_station(station_id: String, point: Vector2) -> bool:
 	if station_id == "" or not GameState.has_upgrade(station_id) or GameState.station(station_id).ready_count(GameState.now()) <= 0:
 		return false
-	Events.items_gained.emit(GameState.collect(station_id), 0, _screen_point(point))
+	Events.items_gained.emit(GameState.collect(station_id), 0, world_to_screen(point))
 	return true
 
 
@@ -1352,7 +1564,7 @@ func _open_treasure(sprite: Sprite2D) -> void:
 		Events.toast_requested.emit(error)
 		return
 	var rewards: Dictionary = Database.progression.treasure.rewards
-	Events.items_gained.emit(rewards.get("items", {}), int(rewards.get("coins", 0)), _screen_point(sprite.position - Vector2(0, sprite.texture.get_height() / 2.0)))
+	Events.items_gained.emit(rewards.get("items", {}), int(rewards.get("coins", 0)), world_to_screen(sprite.position - Vector2(0, sprite.texture.get_height() / 2.0)))
 
 
 ## Toque preciso: dentro do retângulo e num pixel não transparente do desenho.
@@ -1507,6 +1719,8 @@ func _set_camera(center: Vector2, new_zoom: float, margin: float = 0.0) -> void:
 
 ## Depois de qualquer movimento: etiquetas dentro da tela, fundo com parallax, botão de centralizar.
 func _camera_changed() -> void:
+	if not tray_dragging:
+		close_tray()  # a bandeja aponta para um ponto da tela: se a câmera mexe, ela fecha
 	_nudge_labels()
 	_layout_backdrop()
 	_update_recenter()
@@ -1613,6 +1827,7 @@ func _lift_for_sheet(sprite: Sprite2D) -> void:
 
 func _on_sheet_requested(_title: String, _content: Control) -> void:
 	_sheet_open = true
+	close_tray()
 
 
 ## Painel fechou: a câmera não volta ao lugar de antes, só ao limite do mundo se tinha passado dele.

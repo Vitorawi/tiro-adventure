@@ -785,3 +785,10 @@ traziam a cor de fundo escura (`#231d2c`/`#25192d`) gravada em volta da maquete;
 
 **Polígono `edge_cover`** (terra da lateral do Sítio coberta com a cor do chão): `tools/edge_cover.ps1 <png>` extrai o contorno da borda da grama e do
 fundo do bloco, mas a borda desenhada à mão é irregular; o do Sítio foi ajustado à mão (topo 5 px acima da borda da grama e fundo 12 px abaixo da terra) em `rooms/farm.json`.
+
+**Canteiro da estufa** `areas/farm/plot_greenhouse.png` (76×52, Interface nova Etapa 07; pedido do Vitor: a estufa parecia estranha com os mesmos canteiros de madeira) —
+`create_image_pixen` 76×52 sem fundo, 3 candidatos em paralelo (caixa de pedra clara com vidro, seeds 11/22/33). Escolhido o do seed 11, job
+`59e9382c-ae24-4040-8b34-2f20c4e7680f` (pedra creme + parede de vidro). Rejeitados: `a5791443-4c60-4663-8e3b-00019449ccc9` (pedra escura, brotos
+pintados) e `d67faaf5-774f-4152-b15c-501f6201fb2e` (virou uma mini estufa inteira, não cabe no losango). Os brotinhos verdes pintados na terra do
+escolhido foram trocados por terra escura (script no PowerShell, 154 pixels) para o canteiro vazio parecer vazio. Originais e pranchas em
+`build/art_sources/interface_etapa07/`. Usado só nos canteiros 9–12 (`rooms/farm.json`); o losango do chão (`footprint`) não mudou.

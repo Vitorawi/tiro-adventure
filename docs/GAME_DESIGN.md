@@ -195,7 +195,13 @@ Para números e campos dos dados, ver `PROGRESSION.md` e `WORLDS.md`.
 - Preços dos terrenos 4 a 9: 20, 40, 70, 100, 150 e 220 moedas (`config.json`, `farm.unlock_costs`).
 - Colher rende os produtos e moedas: cenoura 3, batata 9, abóbora 16 (`crops.json`, `coins`). Sementes continuam gratuitas.
 - Cada plantação mostra ícone, tempo restante e barra; ao amadurecer, mostra “Colher”. O broto cresce e dá lugar à planta.
-- Tocar na plantação abre o progresso detalhado; tocar na planta pronta colhe. Tocar num terreno bloqueado abre preço e requisitos.
+- **Como se planta (bandeja de ação, Interface nova Etapa 07):** tocar num canteiro vazio abre, ao lado do dedo, uma bandeja com as
+  sementes (a última usada primeiro, o tempo embaixo de cada uma; bloqueadas ficam apagadas com cadeado e levam ao "Como fazer").
+  Tocar na semente planta ali; **arrastar a semente por cima da horta planta em vários canteiros de uma vez** (a horta inteira
+  leva 1 toque + 1 arrasto). Tocar numa planta crescendo rega na hora (uma rega por plantio) e oferece o regador para arrastar pelos
+  outros; já regada, mostra o tempo que falta num anel. Tocar numa planta pronta colhe na hora e oferece a **foice** (arrastar) e
+  **Tudo** (um toque colhe o resto). Nada disso muda custo, tempo ou recompensa; o painel antigo continua em "Ver tudo".
+  Tocar fora da bandeja só a fecha. Tocar num terreno bloqueado abre preço e requisitos.
 - O botão “Meu sítio” mostra terrenos adquiridos, saldo, próxima expansão e acesso aos canteiros.
 - Saves antigos preservam seus terrenos e plantações. Crescimento continua com o app fechado.
 

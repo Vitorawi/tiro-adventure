@@ -51,6 +51,9 @@ signal screen_requested(screen: StringName)
 ## Pede para ir a um mundo (aba Mapa) e, se `place` vier, abrir um lugar ("stove")
 ## ou personagem ("npc:bloblo") dele. Usado pelos botões "Ir" das Missões e da Mochila.
 signal world_requested(world: String, place: String)
+## Pede a bandeja de ação da horta (Sítio): `crop_id` = planta a destacar ("" = nenhuma);
+## `plot_index` = canteiro (−1 = o primeiro vazio que aceite a planta). Usado pelo "Ir" e pelo painel de canteiros.
+signal plot_tray_requested(crop_id: String, plot_index: int)
 ## Emitido pelo PwaUpdater quando há uma versão nova do jogo pronta para instalar.
 signal update_available
 

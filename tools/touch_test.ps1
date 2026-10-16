@@ -93,6 +93,18 @@ try {
                 }
                 Touch "touchEnd" @()
             }
+            "path" {
+                # Um dedo por uma lista de pontos ("points": [[x, y], ...]); 6 passos entre cada par. Arrastar da bandeja pelos canteiros.
+                $pts = @($s.points)
+                Touch "touchStart" @(, @($pts[0][0], $pts[0][1], 0))
+                for ($p = 1; $p -lt $pts.Count; $p++) {
+                    for ($k = 1; $k -le 6; $k++) {
+                        $x = $pts[$p-1][0] + ($pts[$p][0] - $pts[$p-1][0]) * $k / 6; $y = $pts[$p-1][1] + ($pts[$p][1] - $pts[$p-1][1]) * $k / 6
+                        Touch "touchMove" @(, @($x, $y, 0)); Start-Sleep -Milliseconds 16
+                    }
+                }
+                Touch "touchEnd" @()
+            }
             "pinch" {
                 # Dois dedos se afastando (zoom in) ou aproximando (factor < 1) em volta de (x, y).
                 $n = 12; $d0 = 40; $d1 = 40 * $s.factor

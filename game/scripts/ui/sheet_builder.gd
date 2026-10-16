@@ -493,9 +493,11 @@ static func farm_view(focus: String = "") -> Control:
 static func _plot_tile(index: int, focus: String) -> Button:
 	var status := GameState.plot_status(index)
 	var crop: String = GameState.plot(index)["crop"]
-	var caption := "Plantar" if status == "empty" else ("Colher!" if status == "ready" else "%d%%" % int(GameState.plot_progress(index) * 100))
+	var caption := "Livre" if status == "empty" else ("Colher!" if status == "ready" else "%d%%" % int(GameState.plot_progress(index) * 100))
+	# O resumo é só consulta: tocar num canteiro fecha o painel, leva a câmera até ele e abre a bandeja de ação.
 	var tile := UiKit.button(caption, func() -> void:
-		Events.sheet_requested.emit("Canteiro da estufa" if GameState.is_greenhouse_plot(index) else "Canteiro %d" % (index + 1), seed_picker(index, focus) if GameState.plot_status(index) == "empty" else growing_plot(index)),
+		Events.sheet_close_requested.emit()
+		Events.plot_tray_requested.emit(focus, index),
 		&"PrimaryButton" if status == "ready" else &"", Database.item_icon(crop) if crop != "" else UiKit.ui_icon("tab_farm"))
 	tile.custom_minimum_size = Vector2(0, 84)
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL

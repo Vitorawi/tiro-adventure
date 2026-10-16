@@ -161,6 +161,12 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   algo a fazer (alerta do lugar, compra disponível, passo de missão apontando, personagem com missão); as outras só com zoom ≥ 0,9.
   Nas duas primeiras entradas em cada mundo (`progress.seen["ui:labels:<mundo>"]`) todas aparecem por 4 s e somem com fade.
   Região fechada mostra cadeado + nome ("Estufa"); o preço fica no balão `buy` dentro da região.
+- **Bandeja de ação (Etapa 07):** tocar num canteiro não abre mais painel: `RoomView._on_plot_tapped` abre uma `ActionTray` (filha da
+  sala, por cima do mundo e da pílula do mundo, abaixo das abas/HUD/painéis) apontando para o canteiro: acima dele, ou abaixo se não
+  couber sob o HUD (y < 120). Ela fecha ao tocar fora (o toque é consumido), arrastar/dar zoom no mundo, abrir um painel ou trocar de
+  aba. `plot_at(ponto)` acha o canteiro pelo losango do chão (`footprint`) ampliado 20%; o fantasma arrastado anda 40 px acima do dedo
+  e a câmera rola quando ele chega a 36 px da borda. O "Ir" de uma planta (`crop:<id>`) e a grade do painel Canteiros também abrem a
+  bandeja (`Events.plot_tray_requested`). Detalhes de código na tabela "Bandeja de ação" do `CLAUDE.md`.
 - `WorldsScreen`: sem cabeçalho. `WorldBar` (abaixo do HUD, y 64, ignora o mouse): pílula `WorldPill` (`MapButton`: ícone do mundo +
   `map_name` + seta, borda na cor `Palette.WORLD`; abre o seletor de mundos), botão de ícone `PlacesButton` (painel "Lugares", sempre
   esse título) e, à direita em coluna, `NpcFace` por personagem (`NpcRow`; selo "!" = missão nova, check = pronta; `Places.npc_badge`).

@@ -845,8 +845,8 @@ func plot_status(index: int) -> String:
 	return "ready" if float(target["ready_at"]) <= now() else "growing"
 
 
-## Planta no canteiro. Retorna "" se deu certo ou o motivo da falha.
-func plant(index: int, crop_id: String) -> String:
+## Por que não dá para plantar `crop_id` no canteiro ("" = pode). Mesmas checagens, na mesma ordem, de `plant`.
+func plant_error(index: int, crop_id: String) -> String:
 	if plot_status(index) == "locked":
 		return "Compre este terreno primeiro"
 	if not Database.crops.has(crop_id):
@@ -856,9 +856,14 @@ func plant(index: int, crop_id: String) -> String:
 		return reason
 	if plot_status(index) != "empty":
 		return "Canteiro ocupado"
-	var reason_place := crop_plot_error(index, crop_id)
-	if reason_place != "":
-		return reason_place
+	return crop_plot_error(index, crop_id)
+
+
+## Planta no canteiro. Retorna "" se deu certo ou o motivo da falha.
+func plant(index: int, crop_id: String) -> String:
+	var reason := plant_error(index, crop_id)
+	if reason != "":
+		return reason
 	var planted_at := now()
 	var seconds := float(Database.crops[crop_id].get("seconds", 60))
 	if is_greenhouse_plot(index):
@@ -905,6 +910,14 @@ func water(index: int) -> String:
 	_changed()
 	Events.world_activity.emit(&"water", str(target.crop), index)
 	return ""
+
+
+## Por que não dá para colher agora ("" = pode): não está pronto ou o depósito não comporta a colheita.
+func harvest_error(index: int) -> String:
+	if plot_status(index) != "ready":
+		return "Ainda não está pronto"
+	var crop: Dictionary = Database.crops.get(str(plot(index)["crop"]), {})
+	return storage_error(crop.get("yield", {}))
 
 
 ## Colhe um canteiro pronto. Retorna os itens recebidos (vazio se não estava pronto).

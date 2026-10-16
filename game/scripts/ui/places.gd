@@ -160,7 +160,11 @@ static func run(world_id: String, action: String) -> void:
 	elif action.begins_with("crop:"):
 		var id := action.trim_prefix("crop:")
 		if Database.crops.has(id):
-			Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.farm_view(id))
+			if world_id == "farm":
+				# No Sítio a bandeja de sementes abre no primeiro canteiro vazio, com a planta pedida em destaque.
+				Events.plot_tray_requested.emit(id, -1)
+			else:
+				Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.farm_view(id))
 	elif action.begins_with("market:"):
 		var location := Database.place_with_panel("sell")
 		var place: Dictionary = Database.worlds[location[0]].places[location[1]]

@@ -259,4 +259,64 @@ func _run() -> void:
 	await shot("d06_farm_zoom_out", 0.5)
 	await _world("house")
 	await shot("d07_house_ready", 0.5)
+	# --- Etapa 07: bandeja de ação da horta ---
+	await _world("farm")
+	world_farm.call("recenter")
+	await create_timer(0.5).timeout
+	var progress_seen: Dictionary = state.get("progress").seen
+	progress_seen["ui:tray_drag_hint"] = true
+	progress_seen["ui:tray_harvest_hint"] = true
+	_empty_plots()
+	world_farm.call("open_plot_tray", 4)
+	await shot("e01_tray_seeds", 0.5)
+	world_farm.call("close_tray")
+	var tray_script: Script = load("res://scripts/ui/action_tray.gd")
+	world_farm.call("open_plot_tray", 1)
+	await create_timer(0.3).timeout
+	var tray: Control = tray_script.get("current")
+	var path: Array[Vector2] = []
+	for i in [1, 2, 3]:
+		path.append(_finger(world_farm, i))
+	tray.call("drag_through", "carrot", path, false)
+	await shot("e02_tray_drag", 0.4)
+	tray.call("release_item", path[2])
+	await create_timer(0.3).timeout
+	_empty_plots()
+	world_farm.call("open_plot_tray", 9)
+	await shot("e03_tray_greenhouse", 0.5)
+	world_farm.call("close_tray")
+	state.call("plant", 5, "carrot")
+	state.call("water", 5)
+	world_farm.call("_on_plot_tapped", 5)
+	await shot("e04_tray_growing", 0.5)
+	world_farm.call("close_tray")
+	_empty_plots()
+	# O depósito cheio (itens do fogão acima) impediria colher: esvazia a mochila para a foice aparecer.
+	(state.get("inventory") as RefCounted).call("from_dict", {})
+	for i in 4:
+		state.call("plant", i, "carrot")
+	state.call("dev_finish_timers")
+	world_farm.call("_animate_objects")
+	world_farm.call("_on_plot_tapped", 1)
+	await shot("e05_tray_sickle", 0.5)
+	world_farm.call("close_tray")
+	_empty_plots()
+	progress_seen.erase("ui:tray_drag_hint")
+	Motion.reduced = false
+	world_farm.call("open_plot_tray", 0)
+	await shot("e06_drag_hint", 1.0)
+	world_farm.call("close_tray")
+	Motion.reduced = true
 	quit(0)
+
+
+func _empty_plots() -> void:
+	var plots: Array = state.get("plots")
+	for i in plots.size():
+		plots[i] = {"crop": "", "ready_at": 0.0}
+	state.call("_changed")
+
+
+## Posição do dedo que deixa o fantasma da bandeja sobre o canteiro `index`.
+func _finger(room: Node, index: int) -> Vector2:
+	return (room.call("world_to_screen", room.call("plot_center", index)) as Vector2) + Vector2(0, 40)
