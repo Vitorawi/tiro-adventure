@@ -372,7 +372,7 @@
       "upgrade": "greenhouse",
       "label": "Abrir estufa",
       "locked_label": true,
-      "label_pos": [443, 276],
+      "label_pos": [312, 346],
       "polygon": [[313, 200], [573, 333], [573, 363], [315, 492], [25, 344]],
       "gate": [[325, 208], [565, 329]]
     },
@@ -381,7 +381,7 @@
       "upgrade": "orchard",
       "label": "Abrir pomar",
       "locked_label": true,
-      "label_pos": [765, 276],
+      "label_pos": [893, 346],
       "polygon": [[893, 200], [1180, 344], [891, 492], [633, 363], [633, 333]],
       "gate": [[641, 329], [881, 208]]
     },
@@ -390,7 +390,7 @@
       "upgrade": "chicken_coop",
       "label": "Abrir criação",
       "locked_label": true,
-      "label_pos": [603, 445],
+      "label_pos": [603, 493],
       "polygon": [[603, 348], [891, 492], [603, 638], [315, 492]],
       "gate": [[465, 418], [739, 418]]
     }

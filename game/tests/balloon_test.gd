@@ -55,6 +55,20 @@ func _run() -> void:
 		check(width >= 44 * 0.8 - 0.01 and width <= 44 * 1.25 + 0.01, "tamanho de tela limitado em zoom " + str(zoom))
 		var rect: Rect2 = balloon.get("hit_rect")
 		check(is_equal_approx(rect.size.x * plot.global_scale.x, width), "toque acompanha desenho")
+	# Arrastar a câmera não move os balões: o arranjo só depende do zoom, não da posição.
+	for i in range(1, 4): state.call("plant", i, "carrot")
+	farm.call("_animate_objects")
+	farm.call("_set_camera", Vector2(200, 200), 2.0)
+	farm.call("_layout_balloons")
+	var before: Array[Vector2] = []
+	for member: Node in farm.get_tree().get_nodes_in_group("world_balloons"):
+		if farm.is_ancestor_of(member): before.append(member.get("draw_offset"))
+	for center: Vector2 in [Vector2(100, 150), Vector2(350, 260), Vector2(60, 400)]:
+		farm.call("_set_camera", center, 2.0)
+		var after: Array[Vector2] = []
+		for member: Node in farm.get_tree().get_nodes_in_group("world_balloons"):
+			if farm.is_ancestor_of(member): after.append(member.get("draw_offset"))
+		check(after == before, "mexer a câmera não muda a posição dos balões")
 	balloon.call("reveal_caption")
 	farm.call("_zoom_at", farm.size / 2, 0.6)
 	check(balloon.get("show_caption"), "toque revela tempo mesmo afastado")
@@ -76,11 +90,10 @@ func _run() -> void:
 	check(int(state.get("progress").seen["ui:labels:farm"]) == 2, "visitas limitadas a dois")
 	farm.set("_label_intro_until", 0.0)
 	farm.call("_place_labels")
-	var quiet_hidden := 0
+	var quiet_shown := 0
 	for tag: Label in farm.get("_labels"):
-		if tag.visible: check(tag.get_meta("always_visible", false), "zoom baixo só mantém etiquetas importantes")
-		else: quiet_hidden += 1
-	check(quiet_hidden > 0, "zoom baixo esconde nomes sem ação")
+		if tag.visible and not tag.get_meta("always_visible", false): quiet_shown += 1
+	check(quiet_shown > 0, "zoom baixo mantém os nomes dos lugares (etiquetas fixas)")
 	var overview: Label
 	for tag: Label in farm.get("_labels"):
 		if tag.get_meta("overview_label", false): overview = tag

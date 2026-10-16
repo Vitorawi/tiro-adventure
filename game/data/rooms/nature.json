@@ -104,7 +104,7 @@
       "gate": [[263, 239], [290, 249]],
       "action": "place:fibers",
       "label": "Prado",
-      "label_pos": [295, 292],
+      "label_pos": [291, 268],
       "locked_label": true
     },
     {
@@ -146,6 +146,11 @@
       "action": "place:fibers",
       "label": "Prado",
       "label_pos": [280, 290],
+      "requirements": {
+        "owned": [
+          "meadow_open"
+        ]
+      },
       "polygon": [[93, 239], [190, 222], [279, 226], [399, 262], [251, 351], [105, 270]]
     }
   ],

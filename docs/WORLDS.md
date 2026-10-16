@@ -150,7 +150,7 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
 - Estações abertas pelo objeto usam `Places.open(mundo, lugar, true)`: `station`/`stations` pedem `sheet_size: half`
   para preservar o cenário visível. A alça continua permitindo ampliar para consulta; listas/atalhos mantêm o automático.
   Desvio da implementação original da Etapa 04: subir o objeto não adiantava com o painel de Produção em 88% da tela.
-- Etiquetas que sairiam pelas laterais são empurradas para dentro (margem 8 px); totalmente fora, ficam onde estão.
+- Etiquetas e balões ficam fixos no mapa: arrastar a câmera não os move. Etiquetas de áreas bloqueadas usam label_pos no centro do polígono.
 - **Balões e etiquetas (Etapa 06):** canteiros, estações, criações, coletas da Natureza e o passeio mostram um `WorldBalloon`
   (`scripts/ui/world_balloon.gd`): anel `INFO` com o produto enquanto cresce, verde com ✓ pulando a cada 2 s quando pronto, balão
   `buy` (laranja, "+" e preço) no lugar do antigo "+" de compra, `alert` ("!"). Mantém 44 px de tela (0,8×–1,25× com o zoom

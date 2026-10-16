@@ -324,36 +324,29 @@ func _world_bar() -> void:
 
 
 func _labels() -> void:
-	# Etiqueta que sai pela lateral é empurrada para dentro (margem de 8 px); a totalmente fora não.
+	# Etiquetas ficam fixas no mapa: arrastar a câmera não as move, e as áreas bloqueadas
+	# têm a etiqueta no centro do polígono.
 	var farm := await _enter("farm")
 	var tags: Array = farm.get("_labels")
-	var partial := 0
-	for tag: Label in tags:
-		if not tag.visible:
-			continue
-		var width := tag.size.x
-		var left: float = (farm.get("_content") as Control).position.x + tag.position.x * float(farm.get("_zoom"))
-		if left < 7.5 and left + width > 0.5:
-			partial += 1
-		if left + width > farm.size.x - 7.5 and left < farm.size.x - 0.5:
-			partial += 1
-	check(partial == 0, "nenhuma etiqueta fica cortada pelas laterais (cortadas: %d)" % partial)
-	# Arrastando, as etiquetas continuam inteiras.
 	var content: Control = farm.get("_content")
+	var before: Array[Vector2] = []
+	for tag: Label in tags: before.append(tag.position)
 	for dx in [-120.0, 90.0, -60.0]:
 		content.position.x += dx
 		farm.call("_clamp_content")
 		farm.call("_camera_changed")
-		partial = 0
-		for tag: Label in tags:
-			if not tag.visible:
-				continue
-			var left: float = content.position.x + tag.position.x * float(farm.get("_zoom"))
-			if left < 7.5 and left + tag.size.x > 0.5:
-				partial += 1
-			if left + tag.size.x > farm.size.x - 7.5 and left < farm.size.x - 0.5:
-				partial += 1
-		check(partial == 0, "etiquetas inteiras depois de arrastar %d" % int(dx))
+		var after: Array[Vector2] = []
+		for tag: Label in tags: after.append(tag.position)
+		check(after == before, "etiquetas não andam ao arrastar %d" % int(dx))
+	for tag: Label in tags:
+		var data: Dictionary = tag.get_meta("tap_data")
+		if not data.has("polygon") or not data.get("locked_label", false) or not data.has("gate"): continue
+		var polygon: PackedVector2Array = farm.call("_polygon", data.polygon)
+		var middle := Vector2.ZERO
+		for point: Vector2 in polygon: middle += point
+		middle /= polygon.size()
+		var anchor: Vector2 = tag.get_meta("anchor")
+		check(Geometry2D.is_point_in_polygon(anchor, polygon) and anchor.distance_to(middle) < 120.0, "etiqueta de %s fica no meio da área bloqueada" % str(data.get("id", "")))
 	farm.call("recenter")
 
 

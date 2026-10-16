@@ -35,7 +35,6 @@ const RECENTER_DISTANCE := 120.0
 const SHEET_COVER_FROM := 0.45
 const SHEET_LIFT_TO := 0.30
 ## Folga das etiquetas em relação às laterais da tela.
-const LABEL_MARGIN := 8.0
 ## Fundo: velocidade das nuvens (px/s) e altura do horizonte (fração da tela, na posição inicial).
 const CLOUD_SPEED_MIN := 6.0
 const CLOUD_SPEED_MAX := 12.0
@@ -50,6 +49,7 @@ const OBJECT_FPS := 8.0
 
 var _room: Dictionary = {}
 var _zoom := 1.0
+var _balloon_layout_zoom := -1.0  # zoom do último arranjo dos balões
 var _touches: Dictionary = {}  # índice do dedo -> { "pos": Vector2, "time": ms } (para a pinça)
 var _pinch_distance := 0.0
 var _objects: Array[Sprite2D] = []
@@ -667,9 +667,9 @@ func _place_labels() -> void:
 		if label.important != important:
 			label.important = important
 			label.restyle()
-		var intro := Time.get_ticks_msec() / 1000.0 < _label_intro_until
-		var shown := important or _zoom >= 0.9 or intro
-		# Nome do conjunto (ex.: "Animais") substitui os nomes de detalhe quando o zoom os esconde.
+		# Etiquetas ficam fixas no mapa e aparecem em qualquer zoom; só o nome do conjunto
+		# (ex.: "Animais") troca com os nomes de detalhe quando o zoom os afasta demais.
+		var shown := true
 		if tag.get_meta("overview_label", false):
 			shown = _zoom < 0.9
 			important = shown
@@ -679,7 +679,6 @@ func _place_labels() -> void:
 		label.set_world_zoom(_zoom)
 		label.reveal(eligible and shown)
 		tag.position = (tag.get_meta("anchor") as Vector2) - tag.size * tag.scale / 2.0
-	_nudge_labels()
 	for region: Node2D in _regions:
 		if region.has_node("PurchaseMarker"):
 			var data: Dictionary = region.get_meta("data")
@@ -697,27 +696,30 @@ func _zoom_balloons() -> void:
 	# Só esta sala: um call_group global mudaria também os mundos ocultos em outro zoom.
 	for balloon: Node in get_tree().get_nodes_in_group("world_balloons"):
 		if is_ancestor_of(balloon): balloon.call("set_zoom", _zoom)
-	_layout_balloons()
+	# Arrastar a câmera não muda o arranjo: só o zoom (a posição não entra na conta).
+	if not is_equal_approx(_zoom, _balloon_layout_zoom):
+		_layout_balloons()
 
 
 ## No zoom distante, abre espaço entre os balões próximos sem encolher os produtos.
+## A conta é feita relativa à origem da maquete (não da tela): mexer a câmera não
+## faz os balões pularem, e ficam presos ao que apontam, estando na tela ou não.
 func _layout_balloons() -> void:
+	_balloon_layout_zoom = _zoom
 	var occupied: Array[Rect2] = []
 	for member: Node in get_tree().get_nodes_in_group("world_balloons"):
 		if not is_ancestor_of(member): continue
 		var balloon := member as WorldBalloon
 		balloon.draw_offset = Vector2.ZERO
 		if not balloon.is_visible_in_tree(): continue
-		var center := balloon.get_global_transform() * balloon.anchor - global_position
+		var center := balloon.get_global_transform() * balloon.anchor - _content.global_position
 		var diameter := 44.0 * balloon.global_scale.x
-		if center.x < -diameter or center.x > size.x + diameter or center.y < 0 or center.y > size.y: continue
 		var chosen := Vector2.ZERO
 		var found := false
 		for dy: float in [0.0, -48.0, -96.0, 48.0]:
 			for dx: float in [0.0, -48.0, 48.0, -96.0, 96.0, -144.0, 144.0]:
 				var offset := Vector2(dx, dy)
 				var rect := Rect2(center + offset - Vector2.ONE * (diameter / 2 + 3), Vector2.ONE * (diameter + 6))
-				if rect.position.x < LABEL_MARGIN or rect.end.x > size.x - LABEL_MARGIN: continue
 				var overlaps := false
 				for other: Rect2 in occupied:
 					if rect.intersects(other): overlaps = true
@@ -1805,7 +1807,6 @@ func _set_camera(center: Vector2, new_zoom: float, margin: float = 0.0) -> void:
 func _camera_changed() -> void:
 	if not tray_dragging:
 		close_tray()  # a bandeja aponta para um ponto da tela: se a câmera mexe, ela fecha
-	_nudge_labels()
 	_layout_backdrop()
 	_update_recenter()
 
@@ -2055,25 +2056,6 @@ func _spawn_edge_cover() -> void:
 			shape.color = color
 		_content.add_child(shape)
 		_content.move_child(shape, _background.get_index() + 1)
-
-
-## Etiqueta que ficaria cortada pela lateral da tela é empurrada para dentro (margem de 8 px).
-## Etiqueta totalmente fora da tela fica onde está: some junto com o objeto.
-func _nudge_labels() -> void:
-	if size.x <= 0.0:
-		return
-	for tag in _labels:
-		if not tag.visible:
-			continue
-		var base := (tag.get_meta("anchor") as Vector2) - tag.size * tag.scale / 2.0
-		var screen_x := _content.position.x + base.x * _zoom
-		var width := tag.size.x
-		if width + LABEL_MARGIN * 2.0 <= size.x:
-			if screen_x < LABEL_MARGIN and screen_x + width > 0.0:
-				base.x = (LABEL_MARGIN - _content.position.x) / _zoom
-			elif screen_x + width > size.x - LABEL_MARGIN and screen_x < size.x:
-				base.x = (size.x - LABEL_MARGIN - width - _content.position.x) / _zoom
-		tag.position = base
 
 
 # --- Helpers -----------------------------------------------------------------
