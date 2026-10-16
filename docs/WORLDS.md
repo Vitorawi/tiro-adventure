@@ -154,9 +154,9 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
 - Etiquetas e balões ficam fixos no mapa: arrastar a câmera não os move. Etiquetas de áreas bloqueadas usam label_pos no centro do polígono.
 - **Balões e etiquetas (Etapa 06):** canteiros, estações, criações, coletas da Natureza e o passeio mostram um `WorldBalloon`
   (`scripts/ui/world_balloon.gd`): anel `INFO` com o produto enquanto cresce, verde com ✓ pulando a cada 2 s quando pronto, balão
-  `buy` (laranja, "+" e preço) no lugar do antigo "+" de compra, `alert` ("!"). Tamanho base de 44 px de tela, limitado a 0,5×–1,25× com o zoom
-  (`WorldBalloon.MIN_SCREEN_SCALE`): ao afastar, encolhe com o mapa; os afastamentos do arranjo acompanham o diâmetro. No zoom de abertura mostra o tempo só por 2 s depois de tocar o canteiro (ou com zoom ≥ 1,2).
-  Balões que se sobrepõem ao afastar são espalhados por `RoomView._layout_balloons`. O toque no balão vale como tocar no objeto
+  `buy` (laranja, "+" e preço) no lugar do antigo "+" de compra, `alert` ("!"). Tamanho base de 44 px no zoom 1, acompanhando o zoom sem limite mínimo
+  e sem afastamento: ao afastar, encolhe com o mapa e pode se sobrepor aos vizinhos. No zoom de abertura mostra o tempo só por 2 s depois de tocar o canteiro (ou com zoom ≥ 1,2).
+  Balões continuam na própria âncora em qualquer zoom; `RoomView._layout_balloons` mantém o afastamento zerado. O seletor de mundos (`MapView`, z 6) cobre os indicadores do mundo (até z 5), abaixo do HUD (z 8). O toque no balão vale como tocar no objeto
   (pronto = pegar; ver `RoomView._tap_balloon`).
   As etiquetas (`WorldLabel`: pílula `PAPER`, ícone do lugar, borda na cor do mundo quando importam) aparecem sempre só se houver
   algo a fazer (alerta do lugar, compra disponível, passo de missão apontando, personagem com missão); as outras só com zoom ≥ 0,9.

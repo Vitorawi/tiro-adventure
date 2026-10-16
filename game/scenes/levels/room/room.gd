@@ -49,7 +49,6 @@ const OBJECT_FPS := 8.0
 
 var _room: Dictionary = {}
 var _zoom := 1.0
-var _balloon_layout_zoom := -1.0  # zoom do último arranjo dos balões
 var _touches: Dictionary = {}  # índice do dedo -> { "pos": Vector2, "time": ms } (para a pinça)
 var _pinch_distance := 0.0
 var _objects: Array[Sprite2D] = []
@@ -697,41 +696,14 @@ func _zoom_balloons() -> void:
 	# Só esta sala: um call_group global mudaria também os mundos ocultos em outro zoom.
 	for balloon: Node in get_tree().get_nodes_in_group("world_balloons"):
 		if is_ancestor_of(balloon): balloon.call("set_zoom", _zoom)
-	# Arrastar a câmera não muda o arranjo: só o zoom (a posição não entra na conta).
-	if not is_equal_approx(_zoom, _balloon_layout_zoom):
-		_layout_balloons()
 
 
-## No zoom distante, abre espaço entre os balões próximos sem encolher os produtos.
-## A conta é feita relativa à origem da maquete (não da tela): mexer a câmera não
-## faz os balões pularem, e ficam presos ao que apontam, estando na tela ou não.
+## Balões ficam na própria âncora; sobreposição no zoom distante é intencional.
 func _layout_balloons() -> void:
-	_balloon_layout_zoom = _zoom
-	var occupied: Array[Rect2] = []
 	for member: Node in get_tree().get_nodes_in_group("world_balloons"):
 		if not is_ancestor_of(member): continue
 		var balloon := member as WorldBalloon
 		balloon.draw_offset = Vector2.ZERO
-		if not balloon.is_visible_in_tree(): continue
-		var center := balloon.get_global_transform() * balloon.anchor - _content.global_position
-		var diameter := 44.0 * balloon.global_scale.x
-		var chosen := Vector2.ZERO
-		var found := false
-		var step := diameter + 6.0  # afastamentos proporcionais ao balão: afastado ele fica perto do que aponta
-		for dy: float in [0.0, -step, -2.0 * step, step]:
-			for dx: float in [0.0, -step, step, -2.0 * step, 2.0 * step, -3.0 * step, 3.0 * step]:
-				var offset := Vector2(dx, dy)
-				var rect := Rect2(center + offset - Vector2.ONE * (diameter / 2 + 3), Vector2.ONE * (diameter + 6))
-				var overlaps := false
-				for other: Rect2 in occupied:
-					if rect.intersects(other): overlaps = true
-				if not overlaps:
-					chosen = offset
-					occupied.append(rect)
-					found = true
-					break
-			if found: break
-		balloon.draw_offset = chosen / balloon.global_scale
 		balloon.queue_redraw()
 
 

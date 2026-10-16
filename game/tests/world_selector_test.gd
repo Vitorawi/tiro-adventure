@@ -35,6 +35,7 @@ func _run() -> void:
 	await frames()
 	worlds = main.find_child("WorldsScreen", true, false)
 	selector = worlds.get_node("%MapView")
+	check(selector.z_index > 5 and selector.z_index < 8, "seletor cobre indicadores do mundo e fica abaixo do HUD")
 	main.call("_on_tab_pressed", &"map")
 	check(not worlds.call("is_map_open"), "Primeira entrada na aba mostra a Casa")
 	main.call("_on_tab_pressed", &"map")

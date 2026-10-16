@@ -52,10 +52,10 @@ func _run() -> void:
 	for zoom: float in [0.5, 2.0]:
 		farm.call("_zoom_at", farm.size / 2, zoom)
 		var width: float = balloon.global_scale.x * 44.0
-		check(width >= 44 * 0.5 - 0.01 and width <= 44 * 1.25 + 0.01, "tamanho de tela limitado em zoom " + str(zoom))
+		check(is_equal_approx(width, 44.0 * float(farm.get("_zoom"))), "balão acompanha o zoom do mapa " + str(zoom))
 		var rect: Rect2 = balloon.get("hit_rect")
 		check(is_equal_approx(rect.size.x * plot.global_scale.x, width), "toque acompanha desenho")
-	# Arrastar a câmera não move os balões: o arranjo só depende do zoom, não da posição.
+	# Sobreposição é permitida: nenhum zoom nem arrasto afasta o balão da plantação.
 	for i in range(1, 4): state.call("plant", i, "carrot")
 	farm.call("_animate_objects")
 	farm.call("_set_camera", Vector2(200, 200), 2.0)
@@ -63,6 +63,8 @@ func _run() -> void:
 	var before: Array[Vector2] = []
 	for member: Node in farm.get_tree().get_nodes_in_group("world_balloons"):
 		if farm.is_ancestor_of(member): before.append(member.get("draw_offset"))
+	for offset: Vector2 in before:
+		check(offset == Vector2.ZERO, "balão permanece na própria âncora mesmo com vizinhos")
 	for center: Vector2 in [Vector2(100, 150), Vector2(350, 260), Vector2(60, 400)]:
 		farm.call("_set_camera", center, 2.0)
 		var after: Array[Vector2] = []
