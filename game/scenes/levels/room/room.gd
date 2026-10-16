@@ -600,7 +600,7 @@ func _spawn_regions() -> void:
 			for point: Vector2 in gate:
 				rail.add_point(point + Vector2(0, height))
 			rail.width = 4.0
-			rail.default_color = Color("a67843")
+			rail.default_color = Palette.FENCE_RAIL
 			region.add_child(rail)
 		var posts := maxi(2, ceili(gate[0].distance_to(gate[1]) / 24.0))
 		for i in range(posts + 1):
@@ -608,7 +608,7 @@ func _spawn_regions() -> void:
 			var post := Line2D.new()
 			post.points = PackedVector2Array([foot, foot - Vector2(0, 30)])
 			post.width = 5.0
-			post.default_color = Color("654529")
+			post.default_color = Palette.FENCE_POST
 			region.add_child(post)
 		_world.add_child(region)
 		_world.move_child(region, 0)
@@ -1043,12 +1043,12 @@ func point_at(action: String) -> bool:
 	_pointer.scale = Vector2.ONE / _zoom
 	var arrow := Polygon2D.new()
 	arrow.polygon = PackedVector2Array([Vector2(-14, -34), Vector2(14, -34), Vector2(14, -20), Vector2(24, -20), Vector2(0, 0), Vector2(-24, -20), Vector2(-14, -20)])
-	arrow.color = Color("ffd23f")
+	arrow.color = Palette.GOLD
 	var outline := Line2D.new()
 	outline.points = arrow.polygon
 	outline.closed = true
 	outline.width = 3.0
-	outline.default_color = Color("4a2e21")
+	outline.default_color = Palette.OUTLINE
 	arrow.add_child(outline)
 	_pointer.add_child(arrow)
 	_world.add_child(_pointer)

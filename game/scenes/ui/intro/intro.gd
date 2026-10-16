@@ -53,7 +53,7 @@ func _build() -> void:
 	root.gui_input.connect(_on_tap)
 	add_child(root)
 	var shade := ColorRect.new()
-	shade.color = Color("2a1a12")
+	shade.color = Palette.INTRO_SHADE
 	shade.set_anchors_preset(Control.PRESET_FULL_RECT)
 	shade.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(shade)
@@ -69,10 +69,10 @@ func _build() -> void:
 	title.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	title.offset_top = 72
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var game_name := UiKit.label("Tiro Adventure", &"TitleLabel", Color("ffd23f"))
+	var game_name := UiKit.label("Tiro Adventure", &"TitleLabel", Palette.GOLD)
 	game_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_child(game_name)
-	var chapter := UiKit.label(str(Database.progression.chapters[0].name), &"SectionLabel", Color("fff4dc"))
+	var chapter := UiKit.label(str(Database.progression.chapters[0].name), &"SectionLabel", Palette.INK_ON_DARK)
 	chapter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_child(chapter)
 	root.add_child(title)

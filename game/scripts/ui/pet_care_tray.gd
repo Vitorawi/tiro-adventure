@@ -156,10 +156,10 @@ func _item(id: String, texture: Texture2D, caption: String) -> Control:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	item.add_child(label)
-	var badge := UiKit.icon(UiKit.ui_icon("bond_heart"), 20)
+	var badge := UiKit.icon(UiKit.ui_icon("bond_heart"), 16)
 	badge.name = "Badge"
 	badge.position = Vector2(40, 0)
-	badge.size = Vector2(20, 20)
+	badge.size = Vector2(16, 16)
 	badge.hide()
 	badge.anchor_left = 0.5
 	badge.anchor_right = 0.5

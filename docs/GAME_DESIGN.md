@@ -40,6 +40,19 @@ Mochila mostra os depósitos construídos em linhas com nome, ícone próprio e 
 Coleção usa abas segmentadas Roupas/Achados/Amigos. Roupas e Amigos têm três colunas; Achados conserva o álbum por mundo. O contador usa barra fina. Tocar numa roupa possuída veste/tira, com check na vestida; a origem das bloqueadas fica no detalhe. Só roupas com arte de sobreposição entram na grade e no denominador. A Home e seu cenário continuam como foram ajustados com o Vitor na Etapa 09.
 
 
+## Interface (Interface nova — visão geral e Etapa 12, festa)
+**O mundo é a tela.** Casa, Sítio, Praça, Vila e Natureza ocupam a tela inteira, com céu, paisagem e chão atrás da maquete; o HUD (avatar do Tiro com anel de XP, moedas, engrenagem), a pílula do mundo e as abas flutuam por cima. A câmera arrasta com inércia, aproxima por pinça ou duplo toque e volta ao enquadramento por um botão. A aba Mapa abre no último mundo; trocar de mundo é pelo carrossel (a pílula) e a viagem cobre a tela com nuvens de papel.
+
+**A bandeja fica ao lado do dedo.** Plantar, regar, colher, cozinhar, fazer, alimentar animais e buscar na Natureza abrem uma bandeja pequena perto do alvo, sem tirar o mundo da vista; o painel grande continua para consulta ("Ver tudo"). **Arrastar** a semente (ou o regador, ou a foice) por vários canteiros age em todos de uma vez, com o toque simples valendo igual. O balão sobre canteiros e estações mostra o anel de progresso e o "pronto" pulando; tocar nele pega/colhe na hora.
+
+**O Tiro tem o próprio cantinho.** Quatro anéis de necessidade e o coração de vínculo; quatro cuidados iguais (Comida, Banho, Brincar, Dormir) por toque ou arrasto; o **caderninho** flutuante guarda Manual, Atributos, Coleção e Truques.
+
+**Quando se ganha algo, o jogo comemora.** Todos os cartões de comemoração (nível, capítulo, tesouro, vínculo, achado, truque, "Novo!", volta do passeio, roupa nova, boas-vindas) usam o mesmo `ModalCard`: fundo escurecido, cartão que salta, **fita** colorida com o título, ícone grande com **raios** girando devagar, prêmios em chips que entram um por um e **números que contam**, um botão verde e, às vezes, uma ação fraca. **Confete** (40 pedacinhos coloridos, uma vez) só nos grandes momentos: nível, capítulo, tesouro, vínculo e raro/lendário do passeio; o "Novo!" simples fica sem, para não banalizar. O celular **vibra de leve** (toque no canteiro do arrasto, colher/pegar, forte em nível/capítulo/tesouro/raro, duas batidinhas no "não dá"; iPhone/Safari ignora vibração na web).
+
+**Configurações do aparelho** (engrenagem → "Jogo"): **Vibrar** (Sim por padrão) e **Menos animação** (Não por padrão; zera os tempos das animações e desliga confete e raios girando). Valem para todos os saves e ficam em `settings.json`, não no save.
+
+**Boas-vindas agrupado.** Ao voltar, o presente do dia fica em destaque no topo; embaixo vem **uma linha por tipo**: "3 achados" (com o ícone de cada mundo em fileira), "2 prontos no Sítio" (canteiros, estações e coletas do mesmo mundo juntos), visita de amigo e passeio. Tocar na linha (ou em Ir) leva ao primeiro.
+
 ## Faro do Tiro (Etapa 05, 14/10/2026)
 
 O Tiro fareja sozinho: de tempos em tempos aparece um montinho com brilho no chão do mapa (sítio, vila,

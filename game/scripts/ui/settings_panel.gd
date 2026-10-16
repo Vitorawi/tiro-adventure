@@ -1,6 +1,6 @@
 class_name SettingsPanel
 extends RefCounted
-## Painel de configurações (engrenagem na barra superior): vários saves.
+## Painel de configurações (engrenagem na barra superior): Vibrar, Menos animação e vários saves.
 ## Cada save mostra nível, capítulo e moedas; dá para jogar nele, torná-lo o padrão (o que o
 ## jogo abre ao iniciar), excluí-lo (com confirmação) ou começar um save novo.
 ## Trocar de save recarrega a cena principal: tudo é reconstruído a partir do estado carregado.
@@ -12,6 +12,11 @@ static func open() -> void:
 
 static func panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		box.add_child(UiKit.label("Jogo", &"SectionLabel"))
+		var prefs := UiKit.card(box, &"CardPanel")
+		prefs.name = "Preferences"
+		_toggle_row(prefs, "Vibrar", "Vibrate", SaveManager.vibrate_enabled, SaveManager.set_vibrate)
+		_toggle_row(prefs, "Menos animação", "ReducedMotion", SaveManager.reduced_motion, SaveManager.set_reduced_motion)
 		box.add_child(UiKit.label("Saves", &"SectionLabel"))
 		box.add_child(UiKit.label("Toque em Jogar para trocar de save.", &"SmallLabel"))
 		for summary: Dictionary in SaveManager.list_slots():
@@ -25,6 +30,22 @@ static func panel() -> Control:
 		else:
 			box.add_child(UiKit.label("Máximo de %d saves. Exclua um para criar outro." % SaveManager.MAX_SLOTS, &"SmallLabel"))
 		box.add_child(_version_label()))
+
+
+## Linha "texto  [Sim] [Não]": preferência do aparelho (SaveManager grava em settings.json).
+static func _toggle_row(parent: VBoxContainer, text: String, key: String, enabled: bool, apply: Callable) -> void:
+	var row := UiKit.hbox(8)
+	row.name = key + "Row"
+	row.add_child(UiKit.fill_label(text, &"SectionLabel"))
+	var choices: Array[Dictionary] = [{"id": "on", "text": "Sim"}, {"id": "off", "text": "Não"}]
+	var choose := func(id: String) -> void:
+		apply.call(id == "on")
+		Events.state_changed.emit()
+	var segmented := UiKit.segmented(choices, "on" if enabled else "off", choose)
+	segmented.name = key + "Toggle"
+	segmented.custom_minimum_size = Vector2(132, 44)
+	row.add_child(segmented)
+	parent.add_child(row)
 
 
 ## Rodapé com a versão do jogo. Atalho de emergência: tocar nela força a atualização.
@@ -81,7 +102,7 @@ static func _delete_button(slot: int) -> Button:
 		if not button.has_meta("armed"):
 			button.set_meta("armed", true)
 			button.text = "Certeza?"
-			button.modulate = Color(1.0, 0.6, 0.55)
+			button.modulate = Palette.WARN_TINT
 			return
 		var was_active: bool = slot == SaveManager.active_slot
 		SaveManager.delete_slot(slot)

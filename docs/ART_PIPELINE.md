@@ -805,3 +805,11 @@ fundo do bloco, mas a borda desenhada à mão é irregular; o do Sítio foi ajus
 pintados) e `d67faaf5-774f-4152-b15c-501f6201fb2e` (virou uma mini estufa inteira, não cabe no losango). Os brotinhos verdes pintados na terra do
 escolhido foram trocados por terra escura (script no PowerShell, 154 pixels) para o canteiro vazio parecer vazio. Originais e pranchas em
 `build/art_sources/interface_etapa07/`. Usado só nos canteiros 9–12 (`rooms/farm.json`); o losango do chão (`footprint`) não mudou.
+
+**Raios das comemorações** `ui/fx/rays.png` (128×128, Interface nova Etapa 12; gira atrás do ícone grande do `ModalCard`, 20°/s, alfa 0,6) —
+`create_image_pixen` 128×128 sem fundo, "radial sun rays burst, soft golden, transparent background, pixel art, centered, symmetrical", 3 candidatos em paralelo:
+seed 11 `lineless`/medium (`b6fc8c35-dc1e-4d26-a069-3da62542a97e`, **escolhido**: explosão limpa de raios finos), seed 22 `lineless`/low
+(`b8213319-5771-4378-a67b-0cedd670c137`, raios tortos e sujos) e seed 33 `selective outline` (`436eb195-1f89-4599-a0e0-e881bc145f9a`, virou rosa dos ventos).
+O escolhido veio em marrom-ouro escuro; foi **reentonado sem PixelLab** (PowerShell/System.Drawing: luminância → 4 degraus entre `E8A530` e `FFF1B0`, alfa preservado)
+para virar o dourado suave da paleta. Originais, reentonado e prévia em `build/art_sources/interface_etapa12/`. Fica em `game/assets/sprites/ui/fx/` (não em `sprites/fx/`, que
+é dos efeitos do mundo). O confete é desenhado por código (retângulos 4×6 em `CPUParticles2D`), sem arte.

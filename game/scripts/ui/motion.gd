@@ -6,7 +6,7 @@ extends RefCounted
 ## nunca bloqueia o toque. Cada função devolve o Tween (para parar um `pulse`, por exemplo).
 
 ## Com `reduced` ligado, as funções aplicam o estado final na hora, sem animar.
-## Desligado por padrão; a tela de configurações poderá ligar numa etapa futura.
+## Desligado por padrão; "Menos animação" nas configurações liga (SaveManager lê de settings.json).
 static var reduced := false
 
 const PRESS_DOWN := 0.08
@@ -56,14 +56,14 @@ static func press(button: BaseButton) -> void:
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT))
 
 
-## Aparece crescendo de 0,6 a 1,0 com o alfa de 0 a 1.
-static func pop_in(node: CanvasItem, target_scale: Vector2 = Vector2.ONE) -> Tween:
+## Aparece crescendo de `from` (0,6) a 1,0 com o alfa de 0 a 1.
+static func pop_in(node: CanvasItem, target_scale: Vector2 = Vector2.ONE, from: float = 0.6) -> Tween:
 	if reduced:
 		node.set("scale", target_scale)
 		node.modulate.a = 1.0
 		return _finished(node)
 	_pivot(node)
-	node.set("scale", target_scale * 0.6)
+	node.set("scale", target_scale * from)
 	node.modulate.a = 0.0
 	var tween := node.create_tween().set_parallel()
 	tween.tween_property(node, "scale", target_scale, POP_IN).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -146,6 +146,7 @@ static func count_up(label: Label, from: int, to: int, fmt: String = "%d") -> Tw
 
 ## "Não dá": balança 4 px para os lados três vezes.
 static func shake(node: CanvasItem) -> Tween:
+	Haptics.error()
 	if reduced:
 		return _finished(node)
 	var base_x: float = node.position.x

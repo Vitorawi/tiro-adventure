@@ -2087,9 +2087,12 @@ func claim_daily_gift() -> String:
 	return ""
 
 
-## O que ficou pronto para o cartão "bem-vindo de volta": até `limit` linhas
-## { kind, count, icon (id de item), world, target }: colheitas, estações e coletas da Natureza.
-func welcome_ready_lines(limit: int = 4) -> Array[Dictionary]:
+## O que ficou pronto para o cartão "bem-vindo de volta", UMA linha por tipo (até `limit`):
+## - friend_visit { friend }: visita de amigo com presente; walk: o Tiro voltou do passeio;
+## - dig { count, worlds }: achados do faro de todos os mundos juntos (`world`/`target` = o primeiro);
+## - ready { count, icons, world }: canteiros + estações + coletas da Natureza de UM mundo.
+## Todas trazem { kind, count, icon, world, target } (o destino do "Ir").
+func welcome_ready_lines(limit: int = 5) -> Array[Dictionary]:
 	var lines: Array[Dictionary] = []
 	for id: String in Database.friends.friends:
 		if bool(friend_state.entry(id).visit_pending):
@@ -2097,9 +2100,13 @@ func welcome_ready_lines(limit: int = 4) -> Array[Dictionary]:
 	if walk_ready():
 		var park_at := Database.place_with_panel("walks")
 		lines.append({"kind": "walk", "count": 1, "icon": "", "world": park_at[0], "target": park_at[1]})
+	var dig_worlds: Array[String] = []
 	for world: String in finds.worlds:
 		if int(finds.worlds[world].pending) > 0:
-			lines.append({"kind": "dig", "count": 1, "icon": "", "world": world, "target": "find"})
+			dig_worlds.append(world)
+	if not dig_worlds.is_empty():
+		lines.append({"kind": "dig", "count": dig_worlds.size(), "icon": "", "worlds": dig_worlds, "world": dig_worlds[0], "target": "find"})
+	var groups: Dictionary = {}  # mundo -> { count, icons, target }
 	var farm_at := Database.place_with_panel("farm")
 	var ripe := 0
 	var crop_item := ""
@@ -2109,7 +2116,7 @@ func welcome_ready_lines(limit: int = 4) -> Array[Dictionary]:
 			if crop_item == "":
 				crop_item = str(Database.crops.get(plot(i).crop, {}).get("yield", {}).keys().front())
 	if ripe > 0:
-		lines.append({"kind": "harvest", "count": ripe, "icon": crop_item, "world": farm_at[0], "target": farm_at[1]})
+		_welcome_group(groups, farm_at[0], farm_at[1], ripe, crop_item)
 	for id: String in Database.stations:
 		if not has_upgrade(id) or station(id).ready_count(now()) == 0:
 			continue
@@ -2118,12 +2125,25 @@ func welcome_ready_lines(limit: int = 4) -> Array[Dictionary]:
 		for entry: Dictionary in station(id).queue:
 			if output == "" and float(entry.ready_at) <= now():
 				output = Database.recipe_output(Database.recipes.get(entry.recipe, {}))
-		lines.append({"kind": "collect", "count": station(id).ready_count(now()), "icon": output, "world": at[0], "target": at[1]})
+		_welcome_group(groups, at[0], at[1], station(id).ready_count(now()), output)
 	for site: String in Database.progression.get("nature_sites", {}):
 		if gathering_slots(site) > 0 and gathering_ready_count(site) > 0:
 			var at := Database.place_with_panel("nature:" + str(Database.progression.nature_sites[site].groups[0]))
-			lines.append({"kind": "gather_ready", "count": gathering_ready_count(site), "icon": "", "world": at[0], "target": at[1]})
+			_welcome_group(groups, at[0], at[1], gathering_ready_count(site), "")
+	for world: String in groups:
+		var group: Dictionary = groups[world]
+		lines.append({"kind": "ready", "count": group.count, "icon": group.icons[0] if not group.icons.is_empty() else "", "icons": group.icons, "world": world, "target": group.target})
 	return lines.slice(0, limit)
+
+
+## Soma o que está pronto num mundo (o destino é o primeiro lugar que apareceu; até 3 ícones diferentes).
+func _welcome_group(groups: Dictionary, world: String, target: String, count: int, icon: String) -> void:
+	if not groups.has(world):
+		groups[world] = {"count": 0, "icons": [], "target": target}
+	var group: Dictionary = groups[world]
+	group.count = int(group.count) + count
+	if icon != "" and not icon in group.icons and group.icons.size() < 3:
+		group.icons.append(icon)
 
 
 ## O que dá para fazer agora (consulta pura). Cada item: { kind, world, target }; `target` é o

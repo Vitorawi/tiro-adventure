@@ -80,10 +80,10 @@ func _process(_delta: float) -> void:
 
 func _draw_bar() -> void:
 	var width := _bar.size.x - 12.0
-	_bar.draw_rect(Rect2(6, 8, width, 40), Color("352c39"))
+	_bar.draw_rect(Rect2(6, 8, width, 40), Palette.TRACK_DARK)
 	var zone := float(Database.progression.tricks[trick_id].zone)
-	_bar.draw_rect(Rect2(6 + (zone_center - zone * 0.5) * width, 8, zone * width, 40), Color("66cc73"))
-	_bar.draw_rect(Rect2(4 + marker * width, 0, 4, 56), Color("fff2b0"))
+	_bar.draw_rect(Rect2(6 + (zone_center - zone * 0.5) * width, 8, zone * width, 40), Palette.TRACK_ZONE)
+	_bar.draw_rect(Rect2(4 + marker * width, 0, 4, 56), Palette.TRACK_MARKER)
 
 
 func attempt() -> void:

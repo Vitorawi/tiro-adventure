@@ -84,6 +84,15 @@ func _run() -> void:
 		await _pet_shots()
 		quit(0)
 		return
+	if "--festa-only" in OS.get_cmdline_user_args():
+		state.call("reset")
+		state.get("progress").seen["intro"] = true
+		state.call("dev_unlock_everything")
+		state.call("_mark_all_seen")
+		await _start_main(1.5)
+		await _festa_shots()
+		quit(0)
+		return
 	if "--lists-only" in OS.get_cmdline_user_args():
 		state.call("reset")
 		state.get("progress").seen["intro"] = true
@@ -382,6 +391,7 @@ func _run() -> void:
 	nature_room.call("close_tray")
 	await _pet_shots()
 	await _list_shots()
+	await _festa_shots()
 	quit(0)
 
 
@@ -465,4 +475,41 @@ func _list_shots() -> void:
 	state.call("equip", "red_scarf")
 	await _sheet("Coleção", load("res://scripts/ui/progression_ui.gd").call("collection_panel"))
 	await shot("g03_collection_grid")
+	await _close()
+
+
+## Etapa 12: cartões de festa (com animação ligada, para ver os raios e o confete), boas-vindas
+## agrupado e as preferências novas nas configurações.
+func _festa_shots() -> void:
+	await _close()
+	main.call("show_screen", &"pet")
+	_hide_modals()
+	Motion.reduced = false
+	var celebration: CanvasLayer = main.get("_celebration")
+	celebration.call("show_level", 6, {"coins": 50, "affection": 2, "items": {"carrot": 3}})
+	await shot("h01_level_card", 1.0)
+	celebration.hide()
+	celebration.call("show_chapter", 2, ["world:village", "feature:bag"] as Array[String])
+	await shot("h02_chapter_card", 1.0)
+	celebration.hide()
+	celebration.call("show_treasure", {"coins": 200, "items": {"carrot": 3}, "collections": ["explorer_hat"], "unlocks": ["crop:blueberry"]})
+	await shot("h03_treasure_confetti", 0.45)
+	celebration.hide()
+	Motion.reduced = true
+	var welcome: CanvasLayer = main.get("_welcome")
+	var progress: RefCounted = state.get("progress")
+	progress.daily_gift["period"] = ""
+	var finds: RefCounted = state.get("finds")
+	var world_ids: Array = root.get_node("Database").get("finds").worlds.keys()
+	for i in mini(3, world_ids.size()):
+		finds.worlds[world_ids[i]] = {"next_at": 0.0, "pending": 1, "spot": 0, "dug": 0, "seed": 0}
+	_empty_plots()
+	for i in 3:
+		state.call("plant", i, "carrot")
+	state.call("dev_finish_timers")
+	welcome.call("open")
+	await shot("h04_welcome_grouped", 0.8)
+	welcome.hide()
+	load("res://scripts/ui/settings_panel.gd").call("open")
+	await shot("h05_settings_haptics", 0.8)
 	await _close()

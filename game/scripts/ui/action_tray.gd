@@ -590,6 +590,7 @@ func _act_here() -> void:
 		return
 	if drag.call(ghost_world_point()) == true:
 		acted += 1
+		Haptics.tap()
 		_note_success()
 		_refresh_captions()
 

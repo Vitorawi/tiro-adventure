@@ -30,6 +30,9 @@ var _first_load := true
 var _away_since: float = 0.0
 ## Atividade do aplicativo, compartilhada entre slots. Um slot parado não é jogador ausente.
 var _last_session_active: float = 0.0
+## Preferências do aparelho (valem para todos os saves; ficam em settings.json, não no save).
+var vibrate_enabled := true
+var reduced_motion := false
 
 
 func _ready() -> void:
@@ -199,6 +202,24 @@ func set_default_slot(slot: int) -> void:
 	_save_settings()
 
 
+## "Vibrar" e "Menos animação" das configurações: valem na hora e ficam no settings.json.
+func set_vibrate(enabled: bool) -> void:
+	vibrate_enabled = enabled
+	_apply_preferences()
+	_save_settings()
+
+
+func set_reduced_motion(enabled: bool) -> void:
+	reduced_motion = enabled
+	_apply_preferences()
+	_save_settings()
+
+
+func _apply_preferences() -> void:
+	Haptics.enabled = vibrate_enabled
+	Motion.reduced = reduced_motion
+
+
 func _free_slot() -> int:
 	for slot in range(1, MAX_SLOTS + 1):
 		if slot != active_slot and not FileAccess.file_exists(slot_path(slot)):
@@ -239,12 +260,16 @@ func _settings_path() -> String:
 
 func _load_settings() -> void:
 	default_slot = 1
+	_apply_preferences()
 	if not FileAccess.file_exists(_settings_path()):
 		return
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(_settings_path()))
 	if typeof(parsed) == TYPE_DICTIONARY:
 		default_slot = clampi(int(parsed.get("default_slot", 1)), 1, MAX_SLOTS)
 		_last_session_active = float(parsed.get("last_session_active", 0.0))
+		vibrate_enabled = bool(parsed.get("vibrate", true))
+		reduced_motion = bool(parsed.get("reduced_motion", false))
+		_apply_preferences()
 
 
 func _save_settings() -> void:
@@ -252,7 +277,7 @@ func _save_settings() -> void:
 	if file == null:
 		push_error("SaveManager: falha ao gravar as configurações (%s)" % FileAccess.get_open_error())
 		return
-	file.store_string(JSON.stringify({"default_slot": default_slot, "last_session_active": _last_session_active}))
+	file.store_string(JSON.stringify({"default_slot": default_slot, "last_session_active": _last_session_active, "vibrate": vibrate_enabled, "reduced_motion": reduced_motion}))
 	file.close()
 
 

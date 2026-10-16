@@ -40,7 +40,7 @@ func _ready() -> void:
 	_sprite.position = Vector2(0.0, -_feet)
 	_badge = Label.new()
 	_badge.add_theme_font_size_override("font_size", 28)
-	_badge.add_theme_color_override("font_outline_color", Color("4a2e21"))
+	_badge.add_theme_color_override("font_outline_color", Palette.OUTLINE)
 	_badge.add_theme_constant_override("outline_size", 8)
 	_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_badge.size = Vector2(40, 40)
@@ -84,7 +84,7 @@ func _refresh_badge() -> void:
 	_snack.visible = false
 	var state := Places.npc_badge(npc_id)
 	_badge.text = "✓" if state == "ready" else ("!" if state == "new" else "")
-	_badge.add_theme_color_override("font_color", Color("7fd35a") if state == "ready" else Color("ffd23f"))
+	_badge.add_theme_color_override("font_color", Palette.PRIMARY if state == "ready" else Palette.GOLD)
 
 
 # --- Comportamento -----------------------------------------------------------

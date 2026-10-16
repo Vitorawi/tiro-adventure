@@ -71,3 +71,28 @@ Faça um commit local no fim (não faça push). Ao terminar, marque a etapa como
 6. **Arte nova no PixelLab liberada** (fundos de céu/paisagem por mundo, ícones de estação, retrato do Tiro).
 7. **Nada muda nas regras do jogo** (tempos, preços, recompensas, save). Este plano é só de interface:
    `SAVE_VERSION` continua 12 e nenhum save é zerado.
+
+---
+
+## PLANO CONCLUÍDO (16/10/2026)
+As 13 etapas (00–12) foram executadas, uma por vez, entre Claude Code e Codex. `SAVE_VERSION` ficou em 12 do começo ao fim:
+nenhum custo, tempo, recompensa, requisito ou id mudou e nenhum save foi zerado. Só a interface mudou.
+
+**O que mudou (do jogador para dentro)**
+- **Cara nova:** paleta única (`Palette`), movimento único (`Motion`), tema com cartão leve, botão com degrau, um botão verde por painel e cadeado no lugar do botão cinza; fonte Jersey 10 mantida.
+- **Mundo é a tela:** céu, paisagem e chão atrás da maquete, enquadramento por mundo, câmera com inércia/duplo toque/elástico, seletor de mundos em carrossel e viagem com nuvens; HUD flutuante com avatar do Tiro e anel de XP.
+- **Ações perto do dedo:** balões de progresso/pronto sobre canteiros e estações, **bandeja de ação** (plantar, regar e colher **arrastando** por vários canteiros; receitas, criações e Natureza em bandeja com fila e detalhe).
+- **Cantinho do Tiro:** anéis de necessidade, quatro cuidados iguais, comida por guia vertical (toque ou arrasto até a cabeça), esponja, bola e caderninho flutuante.
+- **Listas e textos:** Missões com "Pegar tudo", Mochila com depósitos e filtros, Coleção em abas com toque para vestir; glossário único (Pegar/Colher/Cozinhar/Fazer/Buscar/Ir) com guarda automática (`texts_test`).
+- **Festa (Etapa 12):** todas as comemorações no mesmo `ModalCard` (fita, ícone com raios girando, chips que entram um por um e contam), confete nos grandes momentos, boas-vindas agrupado por tipo, vibração leve (`Haptics`) e, em Configurações, **Vibrar** e **Menos animação** (em `settings.json`, valem para todos os saves).
+
+**Capturas de referência:** `build/screenshots/etapa00_antes` (como era) × `etapa12_depois` (360×780), `etapa12_depois_390` e `etapa12_depois_412`
+(77 telas cada, com `h01`–`h05` da Etapa 12). Pranchas da conferência final em `build/preview/etapa12/`. Testes: 41 execuções individuais, todas PASS.
+
+**Pendências / decisões para o Vitor**
+- Testar no **celular de verdade** (`/dev/`) antes de publicar: vibração (Android; iPhone/Safari ignora vibração na web), sensação dos cartões e do confete, e o arrasto do Sítio. No computador, o arrasto com balões + confete deu média de 18,7 ms por quadro (5 de 240 quadros acima de 33 ms, só no instante em que o cartão abre); no celular pode variar. Se engasgar: `Motion.reduced`, menos confete (`ModalCard.CONFETTI_COUNT`) ou o brilho opcional 6.4 (nunca feito).
+- As falas da história (`dialogue`, `introduction`, `greeting`) não foram reescritas na Etapa 11; "Abre no capítulo N" no cartão de mundo fechado continua por pedido do Vitor.
+- Brilho opcional nos prontos (6.4) e arrastar receita até o fogão (8.2) não foram feitos.
+- "Menos animação" vale para o que for criado depois de ligar (botões já na tela terminam o que estavam fazendo); reabrir o painel já mostra tudo no estado novo.
+
+**Ideias para o FUTURO** (além das de `FUTURO.md`): sons e música com a configuração "Som" ao lado de "Vibrar" (o jogo ainda não tem nenhum som); tamanho do texto; tema escuro; dia/noite nos mundos; confete em cores do mundo; usar o `ModalCard` para novas comemorações (ex.: amigo novo, coleção completa) só montando o corpo.

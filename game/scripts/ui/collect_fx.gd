@@ -26,6 +26,8 @@ func _on_items_gained(items: Dictionary, coins: int, origin: Vector2) -> void:
 	if coins > 0:
 		coin_index = entries.size()
 		entries.append([UiKit.ui_icon("coin"), coins])
+	if not entries.is_empty():
+		Haptics.success()
 	var start := origin if origin.x >= 0.0 else get_viewport_rect().size / 2.0
 	var hud := get_parent().get_node_or_null("TopBar") as Hud if get_parent() else null
 	for i in entries.size():

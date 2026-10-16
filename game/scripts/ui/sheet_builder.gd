@@ -472,7 +472,7 @@ static func _plot_tile(index: int, focus: String) -> Button:
 	tile.expand_icon = true
 	tile.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	tile.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-	tile.add_theme_constant_override("icon_max_width", 40)
+	tile.add_theme_constant_override("icon_max_width", 32)
 	tile.add_theme_font_size_override("font_size", 16)
 	return tile
 

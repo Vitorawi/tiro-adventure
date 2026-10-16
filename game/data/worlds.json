@@ -1,6 +1,7 @@
 {
   "house": {
     "name": "Casa",
+    "in_name": "na Casa",
     "map_caption": "Cuidar do Tiro e cozinhar",
     "icon": "tab_house",
     "description": "Comer, cozinhar e guardar.",
@@ -95,6 +96,7 @@
   "farm": {
     "name": "Sítio da Bloblo",
     "map_name": "Sítio",
+    "in_name": "no Sítio",
     "map_caption": "Plantar, criar e fazer",
     "icon": "tab_farm",
     "description": "Plantar, colher e crescer.",
@@ -229,6 +231,7 @@
   },
   "park": {
     "name": "Praça",
+    "in_name": "na Praça",
     "map_caption": "Passear e fazer amigos",
     "icon": "tab_park",
     "description": "Passeios com o Tiro, amigos e novidades.",
@@ -297,6 +300,7 @@
   },
   "village": {
     "name": "Vila",
+    "in_name": "na Vila",
     "map_caption": "Vender e fabricar",
     "icon": "tab_village",
     "description": "Feira, ateliê e o portão para Natureza.",
@@ -338,6 +342,7 @@
   },
   "nature": {
     "name": "Natureza",
+    "in_name": "na Natureza",
     "map_caption": "Desbloquear e evoluir locais",
     "icon": "tab_nature",
     "description": "Bosque, riacho, prado e grutas. Explore para buscar materiais.",
