@@ -254,13 +254,15 @@ func _taps() -> void:
 	var at := _on_screen(farm, bench.position + _opaque_point(bench))
 	_tap(farm, at)
 	await process_frame
-	check(bool(main.get_node("Sheet").call("is_open")), "toque simples na Bancada abre o painel na hora")
+	var tray_script: Script = load("res://scripts/ui/action_tray.gd")
+	check(tray_script.get("current") != null, "toque simples na Bancada abre a bandeja na hora")
 	for i in 4:
 		await process_frame
-	var sheet: Control = main.get_node("Sheet")
-	var panel_height := float(sheet.call("panel_height"))
-	check(panel_height <= main.size.y * 0.55 + 1.0, "estação tocada no mapa abre em meia altura")
-	check(_on_screen(farm, bench.position).y < main.size.y - panel_height, "a Bancada fica visível acima do painel")
+	var current: Control = tray_script.get("current")
+	var box: Control = current.get("_box")
+	check(Rect2(Vector2.ZERO, farm.size).encloses(Rect2(box.position, box.size)), "bandeja da Bancada inteira dentro do mundo")
+	check(not bool(main.get_node("Sheet").call("is_open")), "produção no mundo não abre painel grande")
+	farm.call("close_tray")
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	await process_frame
 
@@ -362,7 +364,9 @@ func _sheet_lift() -> void:
 	state.call("dev_add_coins", 99999)
 	var middle := coop.position - Vector2(0, coop.texture.get_height() * coop.scale.y / 2.0)
 	var y_before := _on_screen(farm, middle).y
-	farm.call("_on_object_tapped", "place:chicken_coop", coop)
+	# O deslocamento continua para painéis de consulta; o toque comum agora usa a bandeja.
+	farm.call("_lift_for_sheet", coop)
+	load("res://scripts/ui/places.gd").call("open", "farm", "chicken_coop", true)
 	await process_frame
 	var y_after := _on_screen(farm, middle).y
 	check(y_before > farm.size.y * 0.45, "o galinheiro ficaria atrás do painel (y %d)" % int(y_before))
@@ -376,7 +380,7 @@ func _sheet_lift() -> void:
 	var pos_before: Vector2 = (farm.get("_content") as Control).position
 	var bench_y := _on_screen(farm, bench.position).y
 	if bench_y <= farm.size.y * 0.45:
-		farm.call("_on_object_tapped", "place:workbench", bench)
+		farm.call("_lift_for_sheet", bench)
 		check((farm.get("_content") as Control).position.is_equal_approx(pos_before), "objeto no alto da tela não move a câmera")
 		root.get_node("Events").emit_signal("sheet_close_requested")
 	await process_frame

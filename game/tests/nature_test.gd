@@ -103,7 +103,16 @@ func _run() -> void:
 	room.call("_handle_tap", Vector2(150, 150))
 	await create_timer(0.2).timeout
 	var sheet: Control = main.find_child("Sheet", true, false)
-	check(sheet.get_node("%Title").text == "Bosque", "Um toque abre Bosque")
+	var tray_script: Script = load("res://scripts/ui/action_tray.gd")
+	var current_tray: Control = tray_script.get("current")
+	check(current_tray != null and current_tray.get("selected") == "wood", "Um toque abre a bandeja do Bosque")
+	current_tray.call("tap_item", "hardwood")
+	await process_frame
+	await process_frame
+	check(current_tray.call("find_in_panel", "RequiredLevel_hardwood") != null, "Madeira dura bloqueada pelo nível na bandeja")
+	# A consulta completa continua verificando todos os materiais e suas restrições.
+	ui.call("open", "trees")
+	await create_timer(0.2).timeout
 	check(main.find_child("Material_hardwood", true, false).disabled, "Madeira dura exige nível 3 do Bosque")
 	check(main.find_child("Material_copper", true, false) == null, "Árvores não mistura cobre")
 	_shot("nature_trees_initial")
@@ -206,7 +215,10 @@ func _run() -> void:
 	check(state.get("progress").nature_level("rocks") == 3 and state.call("gathering_slots", "rocks") == 3, "Doze coletas liberam cristais e três espaços")
 	room.call("_handle_tap", Vector2(400, 200))
 	await create_timer(0.2).timeout
-	check(sheet.get_node("%Title").text == "Caverna", "Um toque abre Caverna")
+	current_tray = tray_script.get("current")
+	check(current_tray != null and "crystal" in current_tray.call("entry_ids"), "Um toque abre a bandeja da Caverna")
+	ui.call("open", "rocks")
+	await create_timer(0.2).timeout
 	check(main.find_child("NextTool_trees", true, false) == null, "Pedras não mistura machados")
 	main.find_child("Material_crystal", true, false).pressed.emit()
 	await create_timer(0.2).timeout

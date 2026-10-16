@@ -50,7 +50,7 @@ static func panel(site: String = "trees", resource: String = "", focus_route: St
 		var ready := GameState.gathering_ready_count(site)
 		var slots := SheetBuilder.slot_flow()
 		for index in 3:
-			_slot(slots, site, index)
+			slot(slots, site, index)
 		box.add_child(SheetBuilder.slot_strip(slots, "Pegar tudo (%d)" % ready if ready > 0 else "", func() -> void:
 			var before := int(GameState.progress.nature_xp.get(site, 0))
 			var previous_level := GameState.progress.nature_level(site)
@@ -163,7 +163,7 @@ static func _material(parent: VBoxContainer, site: String, item: String, route_i
 
 
 ## Espaço de coleta, igual ao das estações: bolinha com ícone e tempo; fechado mostra o nível.
-static func _slot(parent: Control, site: String, index: int) -> void:
+static func slot(parent: Control, site: String, index: int) -> void:
 	var entry := GameState.gathering_entry(site, index)
 	var remaining := GameState.gathering_remaining(site, index)
 	if index >= GameState.gathering_slots(site):

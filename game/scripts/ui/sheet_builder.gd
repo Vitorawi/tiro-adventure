@@ -248,12 +248,7 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 				box.add_child(UiKit.label("Abrigo vazio. Escolha seu primeiro animal.", &"SmallLabel"))
 				return
 
-		var slot_row := slot_flow()
-		for i in slots:
-			slot_row.add_child(_slot_card(target.queue[i] if i < target.queue.size() else {}, now))
-		# Espaços que ainda dá para ampliar ficam na mesma fileira, com "+" e o preço.
-		for upgrade_id: String in GameState.pending_slot_upgrades(station_id):
-			slot_row.add_child(_locked_slot(upgrade_id))
+		var slot_row := station_slot_row(station_id)
 		var ready := target.ready_count(now)
 		box.add_child(slot_strip(slot_row, "Pegar tudo (%d)" % ready if ready > 0 else "", func() -> void:
 			var received := GameState.collect(station_id)
@@ -265,6 +260,22 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 			if focus != "" and recipe_id != focus:
 				continue
 			_recipe_card(box, recipe_id, full))
+
+
+## Fileira de bolinhas da estação: um espaço por vaga (vazio, fila, produzindo ou pronto, `Slot_<i>`)
+## e, no fim, as ampliações que ainda dá para comprar ("+" e preço, `LockedSlot_<melhoria>`).
+## Usada pelo painel (`station_view`) e pela bandeja de estação.
+static func station_slot_row(station_id: String) -> HFlowContainer:
+	var target := GameState.station(station_id)
+	var now := GameState.now()
+	var row := slot_flow()
+	for i in GameState.station_slots(station_id):
+		var dot := _slot_card(target.queue[i] if i < target.queue.size() else {}, now)
+		dot.name = "Slot_%d" % i
+		row.add_child(dot)
+	for upgrade_id: String in GameState.pending_slot_upgrades(station_id):
+		row.add_child(_locked_slot(upgrade_id))
+	return row
 
 
 static func _slot_card(entry: Dictionary, now: float) -> Control:
@@ -343,7 +354,7 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 
 	var action: Button = null
 	if locked == "":
-		var label: String = Database.stations.get(recipe.station, {}).get("action_label", "Produzir")
+		var label: String = Database.stations.get(recipe.station, {}).get("action_label", "Fazer")
 		if recipe.has("output_collection") and GameState.cook_error(recipe_id) in ["Você já tem", "Já está sendo costurado"]:
 			label = GameState.cook_error(recipe_id)
 		action = UiKit.secondary("Fila cheia" if station_full and has_all else label, func() -> void:

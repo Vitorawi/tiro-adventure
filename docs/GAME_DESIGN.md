@@ -169,6 +169,16 @@ Para números e campos dos dados, ver `PROGRESSION.md` e `WORLDS.md`.
 
 - O Tiro **nunca morre nem foge**: necessidades baixas só deixam ele triste/lento (punição leve).
 
+## Produzir no mapa (Interface nova, Etapa 08)
+
+Tocar no fogão, liquidificador, bancada, moinho, queijaria, costura ou ateliê abre uma bandeja junto
+ao objeto: fila em bolinhas, receitas em grade e detalhe com ingredientes tocáveis. Escolher uma
+receita só seleciona; Cozinhar/Fazer/Costurar inicia a produção e mantém a bandeja aberta. O toque
+na estação pronta pega os produtos antes de abrir a bandeja. Ver tudo mantém a consulta completa.
+Nos abrigos, tocar na ração alimenta os animais; sem animais, a bandeja leva à loja. Na Natureza,
+escolher um material e Buscar inicia na primeira vaga livre; nível e XP ficam no cabeçalho.
+Custos, tempos, quantidades e requisitos permanecem os mesmos.
+
 ## Cadeias de produção (proposta)
 | Estação | Receita | Entradas | Tempo | Uso da saída |
 |---|---|---|---|---|

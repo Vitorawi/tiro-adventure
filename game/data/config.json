@@ -44,6 +44,7 @@
     "stove": {
       "name": "Fogão",
       "slots": 1,
+      "action_label": "Cozinhar",
       "slot_upgrades": {
         "stove_queue": 1,
         "stove_queue_2": 1
@@ -102,6 +103,7 @@
     "blender": {
       "name": "Liquidificador",
       "slots": 1,
+      "action_label": "Cozinhar",
       "instruction": "Frutas viram picolé e suco."
     },
     "sewing": {

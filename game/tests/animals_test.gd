@@ -116,7 +116,10 @@ func _run() -> void:
 	farm.call("_on_object_tapped", "place:mill")
 	await create_timer(0.2).timeout
 	var sheet: Control = main.find_child("Sheet", true, false)
-	check(sheet.get_node("%Title").text == "Moinho", "Toque no moinho abre moinho, sem exigir bancada")
+	var tray_script: Script = load("res://scripts/ui/action_tray.gd")
+	var mill_tray: Control = tray_script.get("current")
+	check(mill_tray != null and "flour" in mill_tray.call("entry_ids"), "Toque no moinho abre sua bandeja, sem exigir bancada")
+	farm.call("close_tray")
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	check(state.call("buy_upgrade", "dairy") == "", "Comprar queijaria")
 	var milk: int = state.get("inventory").count("milk")

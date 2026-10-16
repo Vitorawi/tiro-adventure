@@ -6,7 +6,7 @@ extends Control
 ##
 ## entry: {
 ##   "id": String, "icon": Texture2D, "caption": String (tempo/quantidade), "badge": String ("", "!", "♥"),
-##   "caption_fn": Callable () -> String (opcional, relida depois de cada ação),
+##   "caption_fn": Callable () -> String (opcional, relida depois de cada ação), "badge_fn" idem para o selo,
 ##   "error": String ("" = disponível; senão aparece apagado com cadeado e o toque mostra o motivo),
 ##   "help": Callable (opcional, abre "Como fazer" quando bloqueado),
 ##   "highlight": bool (borda verde: o item pedido pelo "Ir"),
@@ -14,8 +14,14 @@ extends Control
 ##   "tap": Callable () -> String  ("" = deu certo; senão motivo para toast),
 ##   "drag": Callable (world_point: Vector2) -> bool  (opcional; true = agiu neste ponto)
 ## }
+##
+## Modo "pick" (`options.mode = "pick"`, estações/criações/Natureza): grade de 4 por linha, tocar SELECIONA
+## (borda verde) em vez de agir; embaixo fica o detalhe do escolhido (`options.detail: Callable(id) -> Control`,
+## refeito sozinho a cada mudança), com o único botão principal. Largura 328, ✕ no canto, não fecha ao agir.
+## `options.selected` = id inicial; `options.on_select: Callable(id)` avisa quem lembra a última escolha.
 
 signal closed
+signal selected_changed(id: String)
 
 const TAP_SLOP := 12.0
 const ITEM := Vector2(60, 72)
@@ -36,6 +42,11 @@ const PER_ROW := 5
 const SCROLL_FROM := 10
 ## A bandeja fica translúcida enquanto o item é arrastado (os canteiros atrás dela aparecem).
 const DRAG_ALPHA := 0.3
+## Modo "pick": largura da bandeja (cabe em 360 com 16 de margem) e itens por linha.
+const PICK_WIDTH := 328.0
+const PICK_PER_ROW := 4
+## Tempo do ícone da receita voando da grade até a bolinha da fila.
+const FLY_TIME := 0.3
 
 ## Só existe uma bandeja por vez.
 static var current: ActionTray
@@ -45,6 +56,9 @@ var entries: Array[Dictionary] = []
 var options: Dictionary = {}
 var closing := false
 var acted := 0
+## Modo "pick": id selecionado na grade ("" = nenhum).
+var selected := ""
+var pick := false
 
 var _anchor_world := Vector2.ZERO
 var _below_world := Vector2.ZERO
@@ -53,6 +67,7 @@ var _panel: PanelContainer
 var _arrow: TrayArrow
 var _items: Array[Control] = []
 var _captions: Array[Label] = []
+var _badges: Array[Label] = []
 var _hint_label: Label
 var _hint_node: Control
 var _hint_tween: Tween
@@ -63,6 +78,9 @@ var _drag_index := -1
 var _finger := Vector2.ZERO
 var _idle := 0.0
 var _tip := Vector2.ZERO
+var _circle_styles: Array[StyleBoxFlat] = []
+var _detail: SheetBuilder.LiveBox
+var _last_min := Vector2.ZERO
 
 
 ## Abre a bandeja apontando para `anchor_world` (ponto da sala). `options`: "title", "header" (Control),
@@ -131,7 +149,19 @@ func _build() -> void:
 	column.add_theme_constant_override("separation", 4)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_child(column)
-	if str(options.get("title", "")) != "":
+	pick = str(options.get("mode", "")) == "pick"
+	if pick:
+		_panel.custom_minimum_size.x = PICK_WIDTH
+		selected = str(options.get("selected", ""))
+		var heading := UiKit.hbox(4)
+		var title := UiKit.fill_label(str(options.get("title", "")), &"SectionLabel")
+		heading.add_child(title)
+		var close_button := UiKit.icon_button(UiKit.ui_icon("ui_close"), close, 44)
+		close_button.name = "CloseTray"
+		close_button.mouse_filter = Control.MOUSE_FILTER_STOP
+		heading.add_child(close_button)
+		column.add_child(heading)
+	elif str(options.get("title", "")) != "":
 		var title := UiKit.label(str(options.title), &"SmallLabel")
 		title.name = "Title"
 		title.autowrap_mode = TextServer.AUTOWRAP_OFF
@@ -141,6 +171,11 @@ func _build() -> void:
 		column.add_child(options.header)
 	if not entries.is_empty():
 		column.add_child(_build_items())
+	if pick and options.get("detail") is Callable:
+		_detail = SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+			box.add_child((options.detail as Callable).call(selected)))
+		_detail.name = "Detail"
+		column.add_child(_detail)
 	var hint: Dictionary = options.get("hint", {})
 	if not hint.is_empty():
 		_hint_label = UiKit.label(str(hint.get("caption", "")), &"SmallLabel")
@@ -162,6 +197,8 @@ func _build() -> void:
 	_panel.reset_size()
 	_place()
 	_refresh_captions()
+	if pick:
+		Events.state_changed.connect(_refresh_captions)  # selo "!" e legendas acompanham a mochila
 	_animate_in()
 	if not hint.is_empty():
 		_start_hint.call_deferred()
@@ -170,7 +207,8 @@ func _build() -> void:
 func _build_items() -> Control:
 	var count := entries.size()
 	var holder: Control
-	if count > SCROLL_FROM:
+	var per_row := PICK_PER_ROW if pick else PER_ROW
+	if count > SCROLL_FROM and not pick:
 		var scroll := ScrollContainer.new()
 		scroll.name = "Scroll"
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
@@ -188,7 +226,7 @@ func _build_items() -> Control:
 	holder = rows
 	var current_row: HBoxContainer = null
 	for i in count:
-		if i % PER_ROW == 0:
+		if i % per_row == 0:
 			current_row = _row()
 			rows.add_child(current_row)
 		current_row.add_child(_make_item(i))
@@ -221,10 +259,11 @@ func _make_item(index: int) -> Control:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Palette.SUNKEN
 	style.set_corner_radius_all(int(CIRCLE / 2.0))
-	if bool(entry.get("highlight", false)):
+	style.border_color = Palette.PRIMARY
+	if bool(entry.get("highlight", false)) or (pick and str(entry.get("id", "")) == selected):
 		style.set_border_width_all(3)
-		style.border_color = Palette.PRIMARY
 	circle.add_theme_stylebox_override("panel", style)
+	_circle_styles.append(style)
 	circle.position = Vector2((ITEM.x - CIRCLE) / 2.0, 0)
 	circle.size = Vector2(CIRCLE, CIRCLE)
 	body.add_child(circle)
@@ -243,16 +282,20 @@ func _make_item(index: int) -> Control:
 	body.add_child(caption)
 	_captions.append(caption)
 	var badge_text := str(entry.get("badge", ""))
-	if badge_text != "":
-		var badge := UiKit.label(badge_text, &"BadgeLabel")
+	var badge: Label = null
+	if badge_text != "" or entry.has("badge_fn"):
+		badge = UiKit.label(badge_text, &"BadgeLabel")
 		badge.name = "Badge"
 		badge.autowrap_mode = TextServer.AUTOWRAP_OFF
 		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		badge.position = circle.position + Vector2(CIRCLE - 14.0, -4.0)
+		badge.visible = badge_text != ""
 		item.add_child(badge)
-	if blocked:
+	_badges.append(badge)
+	if blocked or entry.has("error_fn"):
 		var lock := UiKit.icon(UiKit.ui_icon("ui_lock"), 16)
 		lock.name = "Lock"
+		lock.visible = blocked
 		lock.position = circle.position + Vector2(CIRCLE - 18.0, CIRCLE - 18.0)
 		lock.size = Vector2(16, 16)
 		item.add_child(lock)
@@ -299,6 +342,12 @@ func _animate_in() -> void:
 	var tween := create_tween().set_parallel()
 	tween.tween_property(_box, "scale", Vector2.ONE, Motion.POP_IN).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(_box, "modulate:a", 1.0, Motion.POP_IN)
+
+
+## Fecha sozinha daqui a `seconds` sem toque (ex.: 1,5 s depois de alimentar os animais).
+func close_after(seconds: float) -> void:
+	options["auto_close"] = seconds
+	_idle = 0.0
 
 
 ## Fecha com `pop_out` (ou na hora). Só avisa uma vez.
@@ -429,6 +478,9 @@ func tap_item(id: String) -> void:
 
 func _tap(index: int) -> void:
 	var entry := entries[index]
+	if pick:
+		select(str(entry.get("id", "")))  # ver o motivo do bloqueio é no detalhe, não num aviso
+		return
 	var error := str(entry.get("error", ""))
 	if error != "":
 		Events.toast_requested.emit(error)
@@ -451,6 +503,49 @@ func _tap(index: int) -> void:
 		_refresh_captions()
 	else:
 		close()
+
+
+## Modo "pick": seleciona um item da grade (borda, pulinho) e refaz o detalhe.
+func select(id: String) -> void:
+	var index := _entry_index(id)
+	if index < 0:
+		return
+	var changed := id != selected
+	selected = id
+	for i in _circle_styles.size():
+		_circle_styles[i].set_border_width_all(3 if i == index else 0)
+	Motion.bounce(_items[index])
+	if changed:
+		if options.get("on_select") is Callable:
+			(options.on_select as Callable).call(id)
+		selected_changed.emit(id)
+		if _detail:
+			_detail.refresh()
+
+
+## Faz o detalhe se refazer já (depois de uma ação que mudou o que ele mostra).
+func refresh_detail() -> void:
+	if _detail:
+		_detail.refresh()
+
+
+## Ícone voando de um ponto da tela a outro (a receita indo da grade para a bolinha da fila).
+func fly_icon(texture: Texture2D, from_global: Vector2, to_global: Vector2) -> void:
+	if Motion.reduced or not is_inside_tree() or closing:
+		return
+	var token := _make_token(texture)
+	token.name = "FlyingIcon"
+	add_child(token)
+	var half := Vector2(GHOST_PX, GHOST_PX) / 2.0
+	token.position = from_global - room.global_position - half
+	var tween := create_tween()
+	tween.tween_property(token, "position", to_global - room.global_position - half, FLY_TIME).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_callback(token.queue_free)
+
+
+## Dentro do painel, o nó do detalhe/cabeçalho que tiver este nome (testes e animações).
+func find_in_panel(node_name: String) -> Node:
+	return _box.find_child(node_name, true, false)
 
 
 func _begin_drag(index: int) -> void:
@@ -517,6 +612,12 @@ func _act_here() -> void:
 func _process(delta: float) -> void:
 	if closing:
 		return
+	if pick or options.get("header") is Control:
+		# O detalhe e o cabeçalho mudam de altura: a bandeja acompanha e continua dentro da tela.
+		var minimum := _panel.get_combined_minimum_size()
+		if not minimum.is_equal_approx(_last_min):
+			_last_min = minimum
+			_place()
 	if _drag_index >= 0:
 		# Rolagem na borda: o dedo perto da lateral/embaixo (ou o fantasma perto do HUD) anda a câmera.
 		var local := _finger - room.global_position
@@ -587,9 +688,21 @@ func _note_success() -> void:
 
 func _refresh_captions() -> void:
 	for i in entries.size():
+		var error_fn: Variant = entries[i].get("error_fn")
+		if error_fn is Callable and (error_fn as Callable).is_valid():
+			entries[i]["error"] = (error_fn as Callable).call()
+			var blocked := str(entries[i].error) != ""
+			(_items[i].get_node("Body") as Control).modulate.a = 0.55 if blocked else 1.0
+			var lock := _items[i].get_node_or_null("Lock") as Control
+			if lock: lock.visible = blocked
 		var fn: Variant = entries[i].get("caption_fn")
 		if fn is Callable and (fn as Callable).is_valid():
 			_captions[i].text = (fn as Callable).call()
+		var badge_fn: Variant = entries[i].get("badge_fn")
+		if badge_fn is Callable and (badge_fn as Callable).is_valid() and _badges[i]:
+			var text: String = (badge_fn as Callable).call()
+			_badges[i].text = text
+			_badges[i].visible = text != ""
 
 
 # --- Mãozinha de ensino ------------------------------------------------------------

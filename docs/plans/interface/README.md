@@ -52,7 +52,7 @@ Faça um commit local no fim (não faça push). Ao terminar, marque a etapa como
 - [x] Etapa 05 — seletor de mundos — feita em 15/10/2026; carrossel, encaixe, viagem e ícones próprios
 - [x] Etapa 06 — indicadores e etiquetas — feita em 15/10/2026; balões `WorldBalloon` e etiquetas `WorldLabel` (brilho 6.4 opcional não feito)
 - [x] Etapa 07 — bandeja na horta — feita em 15/10/2026; `ActionTray` + `PlotTray`: toque e arrasto para plantar, regar e colher
-- [ ] Etapa 08 — bandeja nas estações
+- [x] Etapa 08 — bandeja nas estações — feita em 15/10/2026; `StationTray`, grade/detalhe, criações e Natureza; retomada e concluída pelo Codex
 - [ ] Etapa 09 — tela do Tiro
 - [ ] Etapa 10 — listas (missões, desejos, mochila, coleção)
 - [ ] Etapa 11 — textos

@@ -79,10 +79,50 @@ static func _panel(kind: String, arg: String) -> Control:
 		"walks":
 			return ProgressionUi.walks_panel()
 		"nature":
-			for site: String in Database.progression.nature_sites:
-				if arg.get_slice("+", 0) in Database.progression.nature_sites[site].groups:
-					return NatureUi.panel(site)
+			var site := _site_of_group(arg)
+			if site != "":
+				return NatureUi.panel(site)
 	return UiKit.label("Em breve!")
+
+
+## Local da Natureza (Bosque, Caverna, Prado) de um grupo de rotas ("walk", "creek+mine+crystal"...) ou "".
+static func _site_of_group(arg: String) -> String:
+	for site: String in Database.progression.nature_sites:
+		if arg.get_slice("+", 0) in Database.progression.nature_sites[site].groups:
+			return site
+	return ""
+
+
+## Local da Natureza que um lugar do mundo abre ("" se o lugar não for da Natureza).
+static func nature_site(world_id: String, place_id: String) -> String:
+	var panel: String = Database.worlds.get(world_id, {}).get("places", {}).get(place_id, {}).get("panel", "")
+	return _site_of_group(panel.get_slice(":", 1)) if panel.begins_with("nature:") else ""
+
+
+## Atalhos e Lugares usam a bandeja do mundo visível; `open` continua sendo a consulta em painel.
+static func open_tray(world_id: String, place_id: String) -> bool:
+	var place: Dictionary = Database.worlds.get(world_id, {}).get("places", {}).get(place_id, {})
+	if place.is_empty() or place_error(place) != "":
+		return false
+	var upgrade: String = place.get("upgrade", "")
+	if upgrade != "" and not GameState.has_upgrade(upgrade):
+		return false
+	var panel: String = place.get("panel", "")
+	for room: Node in (Engine.get_main_loop() as SceneTree).get_nodes_in_group("room_views"):
+		if not room is RoomView or room.world_id != world_id or not room.is_visible_in_tree():
+			continue
+		if panel.get_slice(":", 0) in ["station", "stations"]:
+			for station_id: String in panel.get_slice(":", 1).split("+"):
+				if room.can_open_station_tray(station_id):
+					Events.sheet_close_requested.emit()
+					room.open_station_tray(station_id)
+					return true
+		var site := nature_site(world_id, place_id)
+		if site != "" and GameState.progress.nature_level(site) > 0:
+			Events.sheet_close_requested.emit()
+			room.open_nature_tray(site)
+			return true
+	return false
 
 
 static func _is_slot_upgrade(upgrade_id: String) -> bool:
@@ -143,6 +183,13 @@ static func run(world_id: String, action: String) -> void:
 	elif action.begins_with("recipe:"):
 		var id := action.trim_prefix("recipe:")
 		if Database.recipes.has(id):
+			# No mundo da estação, a bandeja abre ao lado dela com a receita já escolhida.
+			var station: String = Database.recipes[id].station
+			for room: Node in (Engine.get_main_loop() as SceneTree).get_nodes_in_group("room_views"):
+				if room is RoomView and room.world_id == world_id and room.is_visible_in_tree() and room.can_open_station_tray(station):
+					Events.sheet_close_requested.emit()
+					room.open_station_tray(station, id, true)
+					return
 			Events.sheet_requested.emit(Database.item_name(Database.recipe_output(Database.recipes[id])), SheetBuilder.station_view(Database.recipes[id].station, id))
 	elif action.begins_with("route:"):
 		var id := action.trim_prefix("route:")
@@ -175,9 +222,12 @@ static func run(world_id: String, action: String) -> void:
 		var upgrade := action.trim_prefix("buy:")
 		Events.sheet_requested.emit(Database.progression.upgrades.get(upgrade, {}).get("name", "Construir"), ProgressionUi.purchase(upgrade))
 	elif action.begins_with("place:"):
-		open(world_id, action.trim_prefix("place:"))
+		var id := action.trim_prefix("place:")
+		if not open_tray(world_id, id):
+			open(world_id, id)
 	elif action != "":
-		open(world_id, action)
+		if not open_tray(world_id, action):
+			open(world_id, action)
 
 
 ## "O que tem aqui?": personagens e lugares do mundo, um botão grande com ícone cada.

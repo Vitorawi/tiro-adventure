@@ -120,6 +120,7 @@ var _swallow_touch := false
 
 
 func _ready() -> void:
+	add_to_group("room_views")  # o "Ir" de uma receita acha a sala do mundo (open_station_tray)
 	_room = Database.room(room_id)
 	_background.texture = load(_room["background"])
 	_background.size = _background.texture.get_size()
@@ -1148,10 +1149,8 @@ func _tap_balloon(point: Vector2) -> bool:
 		return true
 	for indicator: RouteIndicator in _route_markers:
 		if indicator.active() and indicator.hit_rect.has_point(point - indicator.position):
-			if indicator.site != "" and GameState.gathering_ready_count(indicator.site) > 0:
-				_collect_site(indicator.site, indicator.position)
-			else:
-				Places.run(world_id, "place:" + indicator.site)
+			# Recolhe o que está pronto e abre a bandeja do local (fechado: o painel de compra).
+			_on_object_tapped("place:" + indicator.site)
 			return true
 	for sprite: Sprite2D in _objects:
 		if sprite.has_node("RouteIndicator"):
@@ -1241,15 +1240,8 @@ func open_plot_tray(index: int, focus: String = "", center_camera: bool = false)
 	if _plot_sprite(index) == null or GameState.plot_status(index) == "locked":
 		return
 	clear_pointer()
-	var center := plot_center(index)
-	var on_screen := _content.position + center * _zoom
-	var comfortable := Rect2(Vector2(48, 150), size - Vector2(96, 260))
-	if size.x > 0.0 and (center_camera or not comfortable.has_point(on_screen)):
-		_tween_camera(center, _zoom)
-		if not Motion.reduced and is_inside_tree():
-			await get_tree().create_timer(Motion.CAMERA + 0.05).timeout
-		if not is_inside_tree() or not is_visible_in_tree() or tray_dragging:
-			return
+	if not await _bring_into_view(plot_center(index), center_camera):
+		return
 	match GameState.plot_status(index):
 		"empty":
 			PlotTray.seeds(self, index, focus)
@@ -1260,9 +1252,90 @@ func open_plot_tray(index: int, focus: String = "", center_camera: bool = false)
 				PlotTray.sickle(self, index)
 
 
+## Leva a câmera até o ponto da sala se ele estiver fora da área confortável (ou se `force`), antes de abrir
+## uma bandeja. Devolve false se a sala deixou de estar à mostra no meio do caminho.
+func _bring_into_view(center: Vector2, force: bool = false) -> bool:
+	var on_screen := _content.position + center * _zoom
+	var comfortable := Rect2(Vector2(48, 150), size - Vector2(96, 260))
+	if size.x > 0.0 and (force or not comfortable.has_point(on_screen)):
+		_tween_camera(center, _zoom)
+		if not Motion.reduced and is_inside_tree():
+			await get_tree().create_timer(Motion.CAMERA + 0.05).timeout
+		if not is_inside_tree() or not is_visible_in_tree() or tray_dragging:
+			return false
+	return true
+
+
 func close_tray() -> void:
 	if ActionTray.is_open(self):
 		ActionTray.close_current()
+
+
+# --- Bandeja de ação das estações, criações e Natureza (Etapa 08) -------------------
+
+## Estação (ou criação) a que o sprite pertence ("" se não for de produção).
+func _station_of(sprite: Node) -> String:
+	return str(sprite.get_meta("station", sprite.get_meta("animal_station", "")))
+
+
+## Sprite da estação (o do galinheiro/curral, não o de cada bicho) desta sala, pelo id.
+func station_sprite(station_id: String) -> Sprite2D:
+	var fallback: Sprite2D = null
+	for sprite: Sprite2D in _objects:
+		if not sprite.visible or str(sprite.get_meta("station", "")) != station_id:
+			continue
+		return sprite
+	for sprite: Sprite2D in _objects:
+		if sprite.visible and str(sprite.get_meta("animal_station", "")) == station_id:
+			fallback = sprite
+			break
+	return fallback
+
+
+## Pontos da sala onde a bandeja aponta: `above` = em cima do sprite, `below` = embaixo dele.
+func object_anchor(sprite: Sprite2D) -> Dictionary:
+	var height := float(sprite.texture.get_height()) * absf(sprite.scale.y) if sprite.texture else 40.0
+	return {"above": sprite.position - Vector2(0, height * 0.9), "below": sprite.position + Vector2(0, 6)}
+
+
+## Esta sala tem a estação (já comprada) para mostrar a bandeja?
+func can_open_station_tray(station_id: String) -> bool:
+	return station_sprite(station_id) != null and GameState.has_upgrade(station_id)
+
+
+## Abre a bandeja da estação (receitas em grade; criações: ração). `focus` = receita pedida pelo "Ir".
+## `sprite` = o objeto tocado (senão a estação desta sala com esse id).
+func open_station_tray(station_id: String, focus: String = "", center_camera: bool = false, sprite: Sprite2D = null) -> void:
+	var home := sprite if sprite != null else station_sprite(station_id)
+	if home == null or not GameState.has_upgrade(station_id):
+		return
+	close_tray()
+	clear_pointer()
+	var anchor := object_anchor(home)
+	if not await _bring_into_view(anchor.above, center_camera):
+		return
+	StationTray.station(self, station_id, anchor, focus)
+
+
+## Local da Natureza aberto: bandeja com as coletas e os materiais. `focus` = material pedido.
+func open_nature_tray(site: String, focus: String = "") -> void:
+	var marker := _nature_marker(site)
+	if marker == null:
+		return
+	close_tray()
+	clear_pointer()
+	var anchor := {"above": marker.position - Vector2(0, 26), "below": marker.position + Vector2(0, 12)}
+	if not await _bring_into_view(anchor.above):
+		return
+	StationTray.nature(self, site, anchor, focus)
+
+
+## Marcador de coleta da Natureza deste local (é onde a bandeja aponta).
+func _nature_marker(site: String) -> RouteIndicator:
+	for indicator: RouteIndicator in _route_markers:
+		if indicator.site == site:
+			return indicator
+	return null
 
 
 ## "Ir"/painel de canteiros: `plot_index` −1 = o primeiro canteiro vazio que aceite a planta.
@@ -1590,7 +1663,18 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 	if action == "place:walk" and GameState.walk_ready():
 		_collect_walk()
 		return
-	if target is Sprite2D and _collect_station(str(target.get_meta("station", target.get_meta("animal_station", ""))), target.position):
+	var collected := target is Sprite2D and _collect_station(_station_of(target), target.position)
+	# Estação, criação e local da Natureza abrem a bandeja perto do objeto (o painel fica em "Ver tudo").
+	if target is Sprite2D and _station_of(target) != "" and GameState.has_upgrade(_station_of(target)):
+		open_station_tray(_station_of(target), "", false, target)
+		return
+	var site := Places.nature_site(world_id, action.trim_prefix("place:")) if action.begins_with("place:") else ""
+	if site != "" and GameState.progress.nature_level(site) > 0 and _nature_marker(site) != null:
+		if GameState.gathering_ready_count(site) > 0:
+			_collect_site(site, _nature_marker(site).position)
+		open_nature_tray(site)
+		return
+	if collected:
 		return
 	match action:
 		"plot":

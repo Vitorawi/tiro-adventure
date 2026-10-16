@@ -278,6 +278,20 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
 Nenhum código precisa mudar para um mundo novo, a não ser que ele traga um **tipo de painel novo**
 (aí: um caso em `Places._panel` + a função que monta o painel).
 
+## Bandejas de produção (Interface nova, Etapa 08)
+
+Tocar numa estação comprada pega os prontos e abre `StationTray`, perto do objeto. A `ActionTray`
+usa `mode: "pick"`: fila em `SlotDot`, grade de quatro receitas por linha, detalhe da seleção e um
+botão Cozinhar/Fazer/Costurar. A bandeja continua aberta para enfileirar receitas; ingredientes
+em falta abrem o Como fazer. O liquidificador abre sua própria grade, mesmo pertencendo à Cozinha.
+`Places.run` atende os atalhos de Lugares e receitas com foco; `Places.open` mantém a consulta em
+painel, usada também por Ver tudo. Compras e serviços ricos (pet shop, passeio, mercado) continuam em painel.
+
+Galinheiro/curral e cada animal abrem a mesma bandeja do abrigo: variedades e produção no cabeçalho,
+ração com tem/precisa e toque para alimentar. Após alimentar, fecha em 1,5 s. Sem animais, oferece
+Comprar animais. Bosque/Caverna/Prado mostram as três vagas, anel de XP, nível, materiais e Buscar;
+o ? abre os níveis. Locais fechados continuam oferecendo a abertura. Nenhuma regra de produção mudou.
+
 ## Código
 | Arquivo | Papel |
 |---|---|

@@ -105,10 +105,15 @@ func _run() -> void:
 	await create_timer(0.28).timeout
 	check(worlds.get("current_world") == "farm", "Mundo troca sob a nuvem")
 	check(not main.get_node("Sheet").call("is_open"), "Painel espera as nuvens")
+	var tray_script: Script = load("res://scripts/ui/action_tray.gd")
+	check(tray_script.get("current") == null, "Bandeja também espera as nuvens")
 	var cover: Control = worlds.find_child("CloudCover", true, false)
 	check(main.get_node("TopBar").z_index > cover.z_index and main.get_node("Layout/TabBar").z_index > cover.z_index, "HUD e abas ficam acima da cobertura")
-	await create_timer(1.2).timeout
-	check(main.get_node("Sheet").call("is_open"), "Destino abre após a viagem e a seta")
+	# Além da viagem/seta, a bandeja espera a câmera levar a estação à área confortável.
+	await create_timer(1.6).timeout
+	var destination_tray: Control = tray_script.get("current")
+	check(destination_tray != null and "plank" in destination_tray.call("entry_ids"), "Bandeja da Bancada abre após a viagem, a seta e o enquadramento")
+	check(not main.get_node("Sheet").call("is_open"), "Destino de produção dispensa painel grande")
 	check(not worlds.find_child("CloudCover", true, false).visible, "Nuvens saem completamente")
 	Motion.reduced = true
 	# Um pedido novo substitui o destino anterior, sem painel atrasado do mundo antigo.
@@ -117,6 +122,7 @@ func _run() -> void:
 	worlds.call("enter", "house", "")
 	await create_timer(1.0).timeout
 	check(worlds.get("current_world") == "house" and not main.get_node("Sheet").call("is_open"), "Viagem substituída cancela o painel anterior")
+	check(tray_script.get("current") == null, "Trocar de mundo fecha a bandeja anterior")
 	main.queue_free()
 	await process_frame
 	Motion.reduced = false
