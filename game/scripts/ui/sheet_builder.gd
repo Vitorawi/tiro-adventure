@@ -193,10 +193,6 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 			box.add_child(UiKit.label(data.instruction, &"SmallLabel"))
 		if data.get("kind", "") == "animal":
 			box.add_child(UiKit.label("%d de %d animais" % [GameState.animal_count(station_id), int(data.animal_capacity)], &"SectionLabel"))
-			var herd := UiKit.flow()
-			for animal_id: String in GameState.animal_roster(station_id):
-				herd.add_child(UiKit.icon(load(Database.animals[animal_id].sprite), 48))
-			box.add_child(herd)
 			box.add_child(UiKit.button("Comprar animais", open_animal_shop.bind(station_id)))
 			if GameState.animal_count(station_id) == 0:
 				box.add_child(UiKit.label("Abrigo vazio. Escolha seu primeiro animal.", &"SmallLabel"))
@@ -220,6 +216,8 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 ## e, no fim, as ampliações que ainda dá para comprar ("+" e preço, `LockedSlot_<melhoria>`).
 ## Usada pelo painel (`station_view`) e pela bandeja de estação.
 static func station_slot_row(station_id: String) -> HFlowContainer:
+	if Database.stations[station_id].get("kind", "") == "animal":
+		return _animal_slot_row(station_id)
 	var target := GameState.station(station_id)
 	var now := GameState.now()
 	var row := slot_flow()
@@ -229,6 +227,37 @@ static func station_slot_row(station_id: String) -> HFlowContainer:
 		row.add_child(dot)
 	for upgrade_id: String in GameState.pending_slot_upgrades(station_id):
 		row.add_child(_locked_slot(upgrade_id))
+	return row
+
+
+## Cada animal fica alinhado ao seu espaço; compras novas não participam do lote antigo.
+static func _animal_slot_row(station_id: String) -> HFlowContainer:
+	var row := slot_flow()
+	row.name = "Herd"
+	row.alignment = FlowContainer.ALIGNMENT_CENTER
+	var roster := GameState.animal_roster(station_id)
+	row.custom_minimum_size.x = roster.size() * SlotDot.DOT + maxi(0, roster.size() - 1) * 8.0
+	var queue := GameState.station(station_id).queue
+	var entry: Dictionary = queue[0] if not queue.is_empty() else {}
+	var fed: Dictionary = {}
+	if not entry.is_empty():
+		var per_animal := maxi(1, int(Database.recipes[entry.recipe].get("qty", 1)))
+		var fallback := roster.slice(0, int(entry.get("qty", per_animal)) / per_animal)
+		for id: String in entry.get("animals", fallback):
+			fed[id] = int(fed.get(id, 0)) + 1
+	for i in roster.size():
+		var id: String = roster[i]
+		var producing := int(fed.get(id, 0)) > 0
+		if producing: fed[id] = int(fed[id]) - 1
+		var column := UiKit.vbox(4)
+		column.name = "Animal_%d" % i
+		var portrait := UiKit.icon(load(Database.animals[id].sprite), 32)
+		portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		column.add_child(portrait)
+		var dot := _slot_card(entry if producing else {}, GameState.now())
+		dot.name = "Slot_%d" % i
+		column.add_child(dot)
+		row.add_child(column)
 	return row
 
 

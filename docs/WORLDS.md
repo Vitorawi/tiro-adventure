@@ -152,6 +152,7 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   Desvio da implementação original da Etapa 04: subir o objeto não adiantava com o painel de Produção em 88% da tela.
 - `region_shade: false` na sala (Natureza) tira o escurecimento das regiões fechadas; ficam a cerca do portão e o balão +.
 - Etiquetas e balões ficam fixos no mapa: arrastar a câmera não os move. Etiquetas de áreas bloqueadas usam label_pos no centro do polígono.
+- Na horta, um único balão de compra fica no último canteiro comum, com âncora baixa. Tocar nele ou em qualquer canteiro comum fechado abre a compra do próximo (`GameState.unlocked_plots`), sempre na ordem e pelo preço correspondente; some com os nove abertos, sem balão extra na estufa.
 - **Balões e etiquetas (Etapa 06):** canteiros, estações, criações, coletas da Natureza e o passeio mostram um `WorldBalloon`
   (`scripts/ui/world_balloon.gd`): anel `INFO` com o produto enquanto cresce, verde com ✓ pulando a cada 2 s quando pronto, balão
   `buy` (laranja, "+" e preço) no lugar do antigo "+" de compra, `alert` ("!"). Tamanho base de 44 px no zoom 1, acompanhando o zoom sem limite mínimo

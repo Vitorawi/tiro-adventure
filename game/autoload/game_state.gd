@@ -686,6 +686,8 @@ func cook(recipe_id: String) -> String:
 	inventory.remove_all(recipe_inputs(recipe_id))
 	station(station_id).enqueue(recipe_id, float(recipe.seconds), now())
 	station(station_id).queue.back()["qty"] = recipe_quantity(recipe_id)
+	if Database.stations[station_id].get("kind", "") == "animal":
+		station(station_id).queue.back()["animals"] = animal_roster(station_id)
 	_changed()
 	if Database.stations[station_id].get("kind", "") == "animal":
 		Events.world_activity.emit(&"feed_animal", station_id, -1)

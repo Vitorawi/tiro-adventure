@@ -21,6 +21,8 @@
     {
       "id": "fridge",
       "action": "place:fridge",
+      "label": "Geladeira",
+      "label_pos": [232, 54],
       "upgrade": "fridge",
       "sprite": "res://assets/sprites/areas/house/fridge.png",
       "pos": [250, 195],
@@ -30,8 +32,8 @@
       "id": "stove",
       "action": "place:stove",
       "station": "stove",
-      "label": "Cozinha",
-      "label_pos": [282, 156],
+      "label": "Fogão",
+      "label_pos": [308, 72],
       "upgrade": "stove",
       "sprite": "res://assets/sprites/areas/house/stove.png",
       "busy_frames": "res://assets/sprites/areas/house/stove_cooking/",
@@ -77,6 +79,8 @@
     {
       "id": "blender",
       "action": "place:blender",
+      "label": "Liquidificador",
+      "label_pos": [318, 210],
       "upgrade": "blender",
       "station": "blender",
       "sprite": "res://assets/sprites/areas/house/blender.png",

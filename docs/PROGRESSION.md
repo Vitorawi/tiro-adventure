@@ -118,6 +118,8 @@ consome os ingredientes por animal e produz `qty` por animal; a fila fixa a quan
 iniciar. Save v7 mantém as filas anteriores e concede os dois animais que já apareciam
 nos abrigos comprados da versão anterior, somente quando não existe o campo `animals`.
 
+Na bandeja do abrigo, cada animal tem um retrato com seu `SlotDot` embaixo (vazio, produzindo ou pronto); os três ficam na mesma fileira. O rodapé é **Comprar animais**, que abre a loja diretamente, no lugar de Ver tudo. O produto (ovos/leite) é selecionável no mesmo modo `pick` das outras estações; `StationTray.recipe_detail` mostra tempo, rendimento do lote, ingredientes tocáveis e o botão **Alimentar**. Selecionar o produto não consome comida; a ação fica no botão e a bandeja permanece aberta. A alimentação continua por lote. A fila guarda o retrato do lote em `animals` (lista de variedades alimentadas), além de `qty`: animais comprados durante o timer aparecem vazios e entram na próxima alimentação. Esse campo opcional sobrevive ao save sem mudar a versão 12; filas antigas usam a quantidade salva para indicar quantos espaços estão ocupados. O painel de consulta usa a mesma fileira da bandeja.
+
 > Sistema implementado em 12/10/2026 (Codex) e revisado/organizado no mesmo dia (Claude Code).
 > Conteúdo e números ficam nos JSON de `game/data/`; este doc explica **como funciona e como estender**.
 

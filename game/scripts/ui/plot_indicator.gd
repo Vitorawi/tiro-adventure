@@ -15,12 +15,14 @@ func refresh() -> void:
 	anchor = Vector2(0, -64)
 	var status := GameState.plot_status(plot_index)
 	visible = status in ["growing", "ready"]
-	if status == "locked" and plot_index == GameState.accessible_plots():
+	# Uma única compra na ponta da frente da horta, sem cobrir o canteiro de trás.
+	if status == "locked" and plot_index == int(Database.farm.plots) - 1:
 		visible = true
+		anchor = Vector2(0, -16)
 		state = "buy"
 		texture = null
 		corner_texture = null
-		caption = str(GameState.plot_cost(plot_index)) if GameState.has_upgrade("farm") else "Vovó"
+		caption = str(GameState.plot_cost(GameState.unlocked_plots)) if GameState.has_upgrade("farm") else "Vovó"
 		show_caption = true
 		queue_redraw()
 		return

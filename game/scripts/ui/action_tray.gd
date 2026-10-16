@@ -186,10 +186,11 @@ func _build() -> void:
 		column.add_child(_hint_label)
 	var footer: Dictionary = options.get("footer_ghost", {})
 	if not footer.is_empty():
-		var ghost := UiKit.ghost(str(footer.text), func() -> void:
+		var action := func() -> void:
 			_touched()
-			(footer.action as Callable).call())
-		ghost.name = "FooterGhost"
+			(footer.action as Callable).call()
+		var ghost := UiKit.primary(str(footer.text), action) if footer.get("primary", false) else UiKit.ghost(str(footer.text), action)
+		ghost.name = str(footer.get("name", "FooterGhost"))
 		ghost.mouse_filter = Control.MOUSE_FILTER_STOP
 		column.add_child(ghost)
 	_arrow = TrayArrow.new()
@@ -362,7 +363,8 @@ func close(immediate: bool = false) -> void:
 	_stop_hint()
 	if current == self:
 		current = null
-	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# O botão pode abrir um Sheet durante o soltar do dedo. Até sair da árvore,
+	# o painel ainda precisa consumir esse evento para ele não atingir o mapa atrás.
 	closed.emit()
 	if immediate or Motion.reduced or not is_inside_tree():
 		queue_free()

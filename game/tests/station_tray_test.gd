@@ -119,12 +119,51 @@ func _run() -> void:
 	await _test_blender_and_focus()
 	await _test_see_all()
 	await _test_coop()
+	await _test_animal_spaces()
 	await _test_nature()
 	await _test_sewing()
 	await _test_outside_closes()
 
 	print("STATION TRAY TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(0 if failures == 0 else 1)
+
+
+## Compra durante produção: cada animal tem seu espaço e o rodapé abre a loja diretamente.
+func _test_animal_spaces() -> void:
+	reset_world_state()
+	state.set("animals", {"chicken_brown": 1})
+	add("corn", 20)
+	check(state.call("cook", "eggs") == "", "alimenta a galinha ruiva")
+	check(state.call("buy_animal", "chicken_white") == "" and state.call("buy_animal", "chicken_white") == "", "compra duas galinhas durante o lote")
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
+	state.call("from_dict", saved)
+	var farm := await enter("farm")
+	var current := await tap(farm, "place:chicken_coop", "chicken_coop")
+	var herd: Control = current.call("find_in_panel", "Herd")
+	check(herd != null and herd.get_child_count() == 3, "três animais com três colunas")
+	for i in 3:
+		var dot: Control = current.call("find_in_panel", "Slot_%d" % i)
+		check(dot != null and dot.get_parent().name == "Animal_%d" % i, "espaço embaixo do animal %d" % i)
+		check(dot.get("state") == ("busy" if i == 2 else "empty"), "só a ruiva alimentada produz; novas ficam vazias após recarga")
+	var buy: Button = current.call("find_in_panel", "BuyAnimals")
+	check(buy != null and buy.get_parent().get_child(-1) == buy, "Comprar animais é o último botão")
+	sheet_titles.clear()
+	buy.pressed.emit()
+	await frames()
+	check(sheet_titles == ["Comprar animais"], "rodapé abre a loja sem Ver tudo")
+	events.emit_signal("sheet_close_requested")
+	state.call("dev_finish_timers")
+	check(state.call("collect", "chicken_coop").get("egg", 0) == 2, "animais novos não duplicam a produção antiga")
+	check(state.call("cook", "eggs") == "", "próxima alimentação inclui as três")
+	current = await tap(farm, "place:chicken_coop", "chicken_coop")
+	for i in 3:
+		check(current.call("find_in_panel", "Slot_%d" % i).get("state") == "busy", "três espaços ocupados na nova alimentação")
+	state.call("dev_finish_timers")
+	await frames()
+	for i in 3:
+		check(current.call("find_in_panel", "Slot_%d" % i).get("state") == "ready", "cada animal tem produto pronto")
+	check(state.call("collect", "chicken_coop").get("egg", 0) == 6, "três animais entregam seis ovos uma vez")
+	farm.call("close_tray")
 
 
 # --- 1. fogão: escolher a receita e cozinhar sem sair do mapa -------------------------------
@@ -314,29 +353,36 @@ func _test_coop() -> void:
 	check(sheet_titles == ["Comprar animais"], "o botão abre a loja de animais (%s)" % str(sheet_titles))
 	events.emit_signal("sheet_close_requested")
 	await frames()
-	# Com uma galinha e milho: tocar na ração alimenta uma vez.
+	# Com uma galinha: produto selecionável, tempo e ingredientes; Alimentar executa.
 	check(state.call("buy_animal", "chicken_white") == "", "compra uma galinha")
 	add("corn", 10)
 	current = await tap(farm, "place:chicken_coop", "chicken_coop")
-	check(current != null and current.call("item_count") == 1, "com animais há um item de ração")
+	check(current != null and current.call("item_count") == 1 and current.get("pick"), "com animais há uma receita no padrão das estações")
 	if current == null:
 		return
 	check(current.call("find_in_panel", "Herd") != null, "fileirinha dos animais no cabeçalho")
 	var feed: String = (current.call("entry_ids") as Array)[0]
 	var item: Control = current.call("item_node", feed)
-	check((item.find_child("Caption", true, false) as Label).text == "10/2", "legenda tem/precisa (%s)" % (item.find_child("Caption", true, false) as Label).text)
+	check((item.find_child("Caption", true, false) as Label).text == TimeText.short(180), "produto mostra tempo de preparo")
+	check((item.find_child("Icon", true, false) as TextureRect).texture == root.get_node("Database").call("item_icon", "egg"), "ícone da receita é ovo, não milho")
 	current.call("tap_item", feed)
+	check(state.get("inventory").call("count", "corn") == 10, "selecionar o ovo não gasta milho")
+	var ingredients: Control = current.call("find_in_panel", "Ingredients")
+	check(ingredients != null and (ingredients.get_child(0) as Button).text == "10/2", "ingredientes tocáveis mostram milho tem/precisa")
+	var action: Button = current.call("find_in_panel", "Cook")
+	check(action != null and action.text == "Alimentar" and not action.disabled, "botão Alimentar disponível")
+	action.pressed.emit()
 	check(state.get("inventory").call("count", "corn") == 8, "alimentar consome o milho uma vez (%d)" % state.get("inventory").call("count", "corn"))
 	check((state.call("station", "chicken_coop").queue as Array).size() == 1, "uma alimentação na fila")
 	check(tray() == current, "a bandeja fica um instante")
-	check(is_equal_approx(float(current.get("options")["auto_close"]), 1.5), "e fecha em 1,5 s")
+	check(not current.get("options").has("auto_close"), "receita permanece aberta para consulta")
 	await frames()
 	check(current.call("find_in_panel", "Slot_0") != null and current.call("find_in_panel", "Slot_0").get("state") == "busy", "a bolinha da produção acende")
 	var arrow: Control = current.get("_arrow")
 	var panel_box: Control = current.get("_box")
 	check(is_equal_approx(arrow.position.y, -float(current.get("ARROW")) if arrow.get("points_up") else panel_box.size.y), "a seta acompanha a altura do cabeçalho depois de alimentar")
 	await create_timer(1.8).timeout
-	check(tray() == null, "fechou sozinha")
+	check(tray() == current, "bandeja permanece aberta como as outras estações")
 	# Uma galinha individual faz o mesmo que o abrigo.
 	var hen: Node = farm.find_child("hen_1", true, false)
 	if hen != null and hen.visible:

@@ -161,62 +161,36 @@ static func _light_new_slot(tray: ActionTray, station_id: String, icon: Texture2
 
 # --- Criações (galinheiro, curral) ------------------------------------------------------
 
-## Sem animais: abrigo vazio e "Comprar animais". Com animais: a fileirinha deles, a bolinha da produção
-## e um item de ração (tocar alimenta, a bandeja fica um instante para mostrar a bolinha e fecha).
+## Cada animal tem o próprio espaço; produto, tempo, ingredientes e Alimentar seguem o padrão das estações.
+## "Comprar animais" abre a loja diretamente no rodapé, inclusive com o abrigo vazio.
 static func animal(room: RoomView, station_id: String, anchor: Dictionary) -> ActionTray:
 	var data: Dictionary = Database.stations[station_id]
 	var buy := func() -> void: SheetBuilder.open_animal_shop(station_id)
-	var see_all := {"text": "Ver tudo", "action": func() -> void:
-		Events.sheet_requested.emit(str(data.name), SheetBuilder.station_view(station_id))}
+	var shop_footer := {"text": "Comprar animais", "name": "BuyAnimals", "action": buy}
 	if GameState.animal_count(station_id) == 0:
 		var empty := UiKit.vbox(6)
 		empty.name = "EmptyShelter"
 		var note := UiKit.label("Abrigo vazio", &"SectionLabel")
 		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty.add_child(note)
-		var shop := UiKit.primary("Comprar animais", buy)
-		shop.name = "BuyAnimals"
-		empty.add_child(shop)
-		return ActionTray.open(room, anchor.above, [], {"mode": "pick", "title": str(data.name), "header": empty, "below": anchor.below, "footer_ghost": see_all})
+		shop_footer["primary"] = true
+		return ActionTray.open(room, anchor.above, [], {"mode": "pick", "title": str(data.name), "header": empty, "below": anchor.below, "footer_ghost": shop_footer})
 	var entries: Array[Dictionary] = []
-	for id in Database.recipes_for(station_id):
+	for id in recipe_ids(station_id):
 		var recipe: Dictionary = Database.recipes[id]
-		var inputs: Dictionary = GameState.recipe_inputs(id)
-		var first: String = inputs.keys()[0] if not inputs.is_empty() else ""
 		entries.append({
 			"id": id,
-			"icon": Database.item_icon(first) if first != "" else Database.item_icon(Database.recipe_output(recipe)),
-			"caption_fn": func() -> String:
-				var need := int(GameState.recipe_inputs(id).get(first, 0))
-				return "%d/%d" % [GameState.inventory.count(first), need],
+			"icon": Database.item_icon(Database.recipe_output(recipe)),
+			"caption": TimeText.short(int(recipe.seconds)),
+			"badge_fn": func() -> String: return "!" if _missing(id) else "",
 			"error": GameState.content_error("recipe", id, recipe),
-			"help": TaskHelp.open.bind("recipe", id, int(recipe.get("qty", 1))),
-			"keep_open": true,
-			"tap": func() -> String:
-				var tray := ActionTray.current
-				var from := tray.item_center(id)
-				var reason := GameState.cook(id)
-				if reason == "":
-					tray.close_after(1.5)
-					_light_new_slot(tray, station_id, Database.item_icon(first), from)
-				return reason,
 		})
-	var header := SheetBuilder.LiveBox.new(func(parent: VBoxContainer) -> void:
-		var herd := UiKit.hbox(4)
-		herd.name = "Herd"
-		herd.alignment = BoxContainer.ALIGNMENT_CENTER
-		for animal_id: String in GameState.animal_roster(station_id):
-			herd.add_child(UiKit.icon(load(Database.animals[animal_id].sprite), 32))
-		parent.add_child(herd)
-		var ready := GameState.station(station_id).ready_count(GameState.now())
-		parent.add_child(SheetBuilder.slot_strip(SheetBuilder.station_slot_row(station_id)))
-		if ready > 0:
-			parent.add_child(_collect_button(station_id, ready))
-		var shop := UiKit.ghost("Comprar animais", buy)
-		shop.name = "BuyAnimals"
-		parent.add_child(shop))
-	header.name = "Header"
-	return ActionTray.open(room, anchor.above, entries, {"header": header, "below": anchor.below, "footer_ghost": see_all, "auto_close": 6.0})
+	return ActionTray.open(room, anchor.above, entries, {
+		"mode": "pick", "title": str(data.name), "selected": _first_open(entries),
+		"header": _header(station_id),
+		"detail": func(id: String) -> Control: return recipe_detail(station_id, id),
+		"below": anchor.below, "footer_ghost": shop_footer,
+	})
 
 
 # --- Natureza (Bosque, Caverna, Prado) --------------------------------------------------

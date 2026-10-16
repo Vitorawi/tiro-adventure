@@ -1201,7 +1201,8 @@ func _on_plot_tapped(index: int) -> void:
 			PlotTray.water(self, index)
 		return
 	if GameState.plot_status(index) == "locked":
-		Events.sheet_requested.emit("Abrir área", SheetBuilder.plot_purchase(index) if GameState.has_upgrade("farm") else ProgressionUi.purchase("farm"))
+		# Qualquer canteiro fechado abre a mesma compra, mantendo a ordem de liberação.
+		Events.sheet_requested.emit("Abrir área", SheetBuilder.plot_purchase(GameState.unlocked_plots) if GameState.has_upgrade("farm") else ProgressionUi.purchase("farm"))
 		return
 	open_plot_tray(index)
 
