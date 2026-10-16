@@ -55,7 +55,7 @@ func _ready() -> void:
 		_tabs[id].pressed.connect(_on_tab_pressed.bind(id))
 		# Ícone em cima e nome embaixo; a aba ativa ganha o círculo e sobe (as cinco cabem em 360 px).
 		_faces[id] = NavTab.attach(_tabs[id])
-		_tabs[id].pressed.connect(func() -> void: Motion.bounce(_faces[id].icon_node()))
+		_tabs[id].pressed.connect(func() -> void: _faces[id].bounce_icon())
 	Events.screen_requested.connect(show_screen)
 	Events.world_requested.connect(_on_world_requested)
 	_celebration = load("res://scenes/ui/celebration/celebration.tscn").instantiate()

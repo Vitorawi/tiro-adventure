@@ -19,6 +19,7 @@ var _icon: TextureRect
 var _title: Label
 var _active := false
 var _tween: Tween
+var _icon_bounce: Tween
 
 
 ## Cria o rosto e liga ao botão (o `toggled` do botão anima). Devolve o rosto.
@@ -101,6 +102,18 @@ func icon_node() -> TextureRect:
 	return _icon
 
 
+## Toques rápidos reiniciam o pulinho na posição de repouso, sem acumular altura.
+func bounce_icon() -> void:
+	_reset_icon_bounce()
+	_icon_bounce = Motion.bounce(_icon)
+
+
+func _reset_icon_bounce() -> void:
+	if _icon_bounce:
+		_icon_bounce.kill()
+	_icon.position.y = ICON_CENTER_Y - ICON_ACTIVE / 2.0
+
+
 ## Círculo + ícone, que sobem juntos: é o que pulsa (`Motion.pulse`) quando a aba chama atenção.
 func lift_node() -> Control:
 	return _lift
@@ -112,7 +125,7 @@ func icon_center() -> Vector2:
 
 
 func set_active(active: bool, animate: bool) -> void:
-	var changed := active != _active
+	_reset_icon_bounce()
 	_active = active
 	if _tween:
 		_tween.kill()
@@ -131,5 +144,3 @@ func set_active(active: bool, animate: bool) -> void:
 	_tween.tween_property(_icon, "scale", icon_scale, Motion.TAB)
 	_tween.tween_property(_circle, "modulate:a", alpha, Motion.TAB)
 	_tween.tween_property(_title, "modulate:a", text_alpha, Motion.TAB)
-	if active and changed:
-		_tween.chain().tween_callback(func() -> void: Motion.bounce(_icon))

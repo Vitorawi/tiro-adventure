@@ -34,6 +34,7 @@ func _run() -> void:
 	await _numbers()
 	await _toast()
 	await _tabs()
+	await _tab_bounces()
 	await _popover()
 	await _coin_flight()
 	Motion.reduced = false
@@ -119,6 +120,22 @@ func _tabs() -> void:
 	# Selo da aba Missões fica perto do ícone (centro + (14, −20)).
 	var badge: Control = main.find_child("TasksTab", true, false).get_child(-1)
 	check(badge is Label or main.find_child("TasksTab", true, false).get_child_count() >= 2, "selo mora na aba")
+
+
+## Animação real: o bug só aparece com novos toques antes de terminar o pulinho.
+func _tab_bounces() -> void:
+	Motion.reduced = false
+	for i in 24:
+		var tab_name: String = ["MapTab", "MapTab", "TasksTab", "PetTab"][i % 4]
+		(main.find_child(tab_name, true, false) as Button).pressed.emit()
+		await create_timer(0.03).timeout
+	main.call("show_screen", &"pet")
+	await create_timer(0.6).timeout
+	for tab_name: String in ["PetTab", "MapTab", "TasksTab", "WishesTab", "BagTab"]:
+		var face: NavTab = main.find_child(tab_name, true, false).find_child("Face", false, false)
+		check(is_equal_approx(face.icon_node().position.y, NavTab.ICON_CENTER_Y - NavTab.ICON_ACTIVE / 2.0), tab_name + ": pulinhos repetidos não acumulam altura")
+		check(is_equal_approx(face.lift_node().position.y, -NavTab.LIFT if face.is_active() else 0.0), tab_name + ": só a aba selecionada fica elevada")
+	Motion.reduced = true
 
 
 func _popover() -> void:

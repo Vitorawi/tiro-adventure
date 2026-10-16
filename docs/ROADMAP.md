@@ -2,7 +2,9 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **16/10/2026, Codex (balões ancorados e seletor acima do mundo)**.
+> um do outro. Última atualização: **16/10/2026, Codex (ícones das abas sem subida acumulada)**.
+
+**Ícones das abas subindo a cada toque (16/10/2026, Codex).** `Motion.bounce` capturava a posição intermediária do ícone como base quando recebia novos toques durante o pulinho; havia ainda um segundo pulinho disparado ao ativar a aba. `NavTab.bounce_icon` agora cancela o pulinho anterior e restaura a posição fixa antes de animar; trocar a seleção também restaura o ícone. Removido o pulinho duplicado, mantendo os 6 px de elevação apenas na aba ativa. Validação curta: `hud_test` PASS, agora incluindo 24 toques rápidos (repetidos e alternados em Mapa/Missões/Tiro), com animações ligadas e conferência da posição de todas as cinco abas. Sem suíte completa. Próximo: Vitor conferir os toques no celular.
 
 **Correção após teste no celular (16/10/2026, Codex).** A solução anterior ainda afastava os indicadores para evitar sobreposição; isso contrariava o comportamento pedido pelo Vitor. Removido todo afastamento entre balões e o limite de tamanho: agora acompanham o zoom na própria âncora, mesmo pequenos/sobrepostos. `MapView` passou de z 4 para z 6, cobrindo também os indicadores da Natureza (z 5), abaixo do HUD. Validação curta a pedido do Vitor: somente `balloon_test` e `world_selector_test` (PASS), mais capturas reais em 390×844 da horta afastada e Natureza com seletor (`build/screenshots/balloon_fixed/`). Sem suíte completa. Próximo: Vitor conferir os dois casos no celular.
 
