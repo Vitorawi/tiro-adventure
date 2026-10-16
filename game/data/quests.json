@@ -560,7 +560,7 @@
         "type": "stat",
         "key": "orders",
         "target": 3,
-        "label": "Concluir encomendas"
+        "label": "Entregar encomendas"
       }
     ],
     "rewards": {
@@ -691,7 +691,7 @@
         "key": "produce",
         "target": 5,
         "fresh": true,
-        "label": "Prepare 5 receitas"
+        "label": "Cozinhe 5 receitas"
       }
     ],
     "rewards": {
@@ -834,7 +834,7 @@
         "type": "stat",
         "key": "produce:egg",
         "target": 2,
-        "label": "Alimente a galinha e recolha 2 ovos"
+        "label": "Alimente a galinha e pegue 2 ovos"
       }
     ],
     "rewards": {
@@ -875,7 +875,7 @@
         "key": "produce:flour",
         "target": 2,
         "fresh": true,
-        "label": "Moa trigo e recolha 2 farinhas"
+        "label": "Moa trigo e pegue 2 farinhas"
       }
     ],
     "rewards": {
@@ -918,7 +918,7 @@
         "type": "stat",
         "key": "produce:milk",
         "target": 2,
-        "label": "Alimente a vaca e recolha 2 leites"
+        "label": "Alimente a vaca e pegue 2 leites"
       }
     ],
     "rewards": {
@@ -1154,7 +1154,7 @@
         "key": "activity:lane",
         "target": 1,
         "fresh": true,
-        "label": "Recolher 1 coleta na Trilha do bosque"
+        "label": "Pegar 1 busca na Trilha do bosque"
       }
     ],
     "rewards": {
@@ -1174,7 +1174,7 @@
         "key": "activity:quarry",
         "target": 1,
         "fresh": true,
-        "label": "Recolher 1 coleta na Pedreira"
+        "label": "Pegar 1 busca na Pedreira"
       }
     ],
     "rewards": {
@@ -1194,7 +1194,7 @@
         "key": "activity:meadow",
         "target": 1,
         "fresh": true,
-        "label": "Recolher 1 coleta no Prado das fibras"
+        "label": "Pegar 1 busca no Prado das fibras"
       }
     ],
     "rewards": {

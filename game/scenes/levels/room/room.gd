@@ -1098,7 +1098,7 @@ func _handle_tap(point: Vector2) -> bool:
 			if region.has("action"):
 				Places.run(world_id, region.action)
 			elif region.has("upgrade"):
-				Events.sheet_requested.emit(region.get("label", "Expandir"), ProgressionUi.purchase(region.upgrade))
+				Events.sheet_requested.emit(region.get("label", "Abrir área"), ProgressionUi.purchase(region.upgrade))
 			else:
 				Places.run(world_id, region.get("action", ""))
 			return true
@@ -1189,7 +1189,7 @@ func _tap_label(point: Vector2) -> bool:
 			if data.has("action"):
 				Places.run(world_id, data.action)
 			elif upgrade != "":
-				Events.sheet_requested.emit(data.get("label", "Expandir"), ProgressionUi.purchase(upgrade))
+				Events.sheet_requested.emit(data.get("label", "Abrir área"), ProgressionUi.purchase(upgrade))
 			else:
 				continue
 			return true
@@ -1226,7 +1226,7 @@ func _on_plot_tapped(index: int) -> void:
 			PlotTray.water(self, index)
 		return
 	if GameState.plot_status(index) == "locked":
-		Events.sheet_requested.emit("Expandir o sítio", SheetBuilder.plot_purchase(index) if GameState.has_upgrade("farm") else ProgressionUi.purchase("farm"))
+		Events.sheet_requested.emit("Abrir área", SheetBuilder.plot_purchase(index) if GameState.has_upgrade("farm") else ProgressionUi.purchase("farm"))
 		return
 	open_plot_tray(index)
 

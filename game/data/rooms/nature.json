@@ -103,7 +103,7 @@
       "polygon": [[183, 274], [282, 226], [426, 240], [268, 321], [208, 300]],
       "gate": [[263, 239], [290, 249]],
       "action": "place:fibers",
-      "label": "Prado fechado",
+      "label": "Prado",
       "label_pos": [295, 292],
       "locked_label": true
     },

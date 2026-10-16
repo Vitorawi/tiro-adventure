@@ -27,11 +27,11 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			if source.is_empty():
 				return _base(Database.item_name(id), "Continue produzindo.", {"screen": "tasks"}, "Missões")
 			result = describe(source.kind, source.id, maxi(1, amount - GameState.progress.stat("produce:" + id)), visited)
-			result["detail"] = "Produza e recolha " + Database.item_name(id)
+			result["detail"] = "Faça e pegue " + Database.item_name(id)
 		"quest":
 			var quest: Dictionary = Database.quests[id]
 			if GameState.quest_error(id) == "":
-				return _base(quest.name, "Tudo pronto!", {"claim": id}, "Receber")
+				return _base(quest.name, "Tudo pronto!", {"claim": id}, "Pegar prêmio")
 			var goal: Dictionary = quest.goals[0]
 			for candidate: Dictionary in quest.goals:
 				if GameState.goal_value(candidate) < int(candidate.get("target", 1)):
@@ -58,7 +58,7 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			result = _recipe(id, amount)
 		"walk":
 			var walk := GameState.walk_def(id)
-			result = _base(str(walk.get("name", id)), "Passeie e recolha na Praça.", {"world": "park", "place": "walk"}, "Ir")
+			result = _base(str(walk.get("name", id)), "Passeie e pegue na Praça.", {"world": "park", "place": "walk"}, "Ir")
 			var error := GameState.walk_error(id)
 			if error != "":
 				result.detail = error
@@ -69,8 +69,8 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 				var level := int(upgrade.nature_unlock.level)
 				var config: Dictionary = Database.progression.nature_sites[site]
 				var missing := maxi(0, int(config.levels[level - 1].xp) - int(GameState.progress.nature_xp.get(site, 0)))
-				result = _base(upgrade.name, "Recolha coletas em %s para ganhar XP." % config.name, {"world":"nature", "place":"place:" + site}, "Coletar")
-				result.detail = "Faltam %d XP · %d coleta(s)" % [missing, ceili(float(missing) / int(config.xp_per_collection))]
+				result = _base(upgrade.name, "Busque em %s para ganhar XP." % config.name, {"world":"nature", "place":"place:" + site}, "Buscar")
+				result.detail = "Faltam %d XP · %s" % [missing, searches(ceili(float(missing) / int(config.xp_per_collection)))]
 				result.needs = _requirements({"owned":[config.level_upgrades[0]]})
 				return result
 			result = _base(upgrade.name, "Junte o que falta e construa.", Places.goal_target({"type": "owned", "key": id}), "Ir")
@@ -89,11 +89,11 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			if site != "" and GameState.progress.nature_level(site) == 0:
 				result.detail = "Desbloqueie %s para começar." % Database.progression.nature_sites[site].name
 			elif site != "" and GameState.gathering_ready_count(site) > 0:
-				result.detail = "%d coleta(s) pronta(s). Recolha no local." % GameState.gathering_ready_count(site)
+				result.detail = "%s Pegue no local." % Places.ready_text(GameState.gathering_ready_count(site))
 			elif site != "" and GameState.gathering_free_count(site) == 0:
-				result.detail = "Espaços ocupados. Aguarde ou recolha."
+				result.detail = "Espaços ocupados. Aguarde ou pegue."
 			elif site == "" and not GameState.progress.activity.is_empty():
-				result.detail = "Já tem um passeio: " + ("recolha!" if GameState.activity_remaining() == 0 else "volta em %s" % TimeText.short(GameState.activity_remaining()))
+				result.detail = "Já tem um passeio: " + ("pegue!" if GameState.activity_remaining() == 0 else "volta em %s" % TimeText.short(GameState.activity_remaining()))
 		"order":
 			var order: Dictionary = Database.progression.orders[id]
 			result = _base(order.name, "Junte e entregue na Vila.", _focused("orders", "order:" + id), "Ir")
@@ -161,7 +161,7 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 		"have", "deliver":
 			var result := describe("item", key, amount, trail)
 			if type == "deliver":
-				result.detail = "Será entregue ao receber."
+				result.detail = "Será entregue ao pegar o prêmio."
 			return result
 		"stat":
 			if key.begins_with("produce:"):
@@ -198,11 +198,11 @@ static func _recipe(id: String, amount: int) -> Dictionary:
 	var batches := ceili(float(maxi(0, amount - pending)) / maxi(1, GameState.recipe_quantity(id)))
 	result["batches"] = batches
 	result["pending"] = pending
-	result.detail = "Prepare %dx · %s cada" % [batches, TimeText.short(int(recipe.seconds))]
+	result.detail = "Faça %d× · %s cada" % [batches, TimeText.short(int(recipe.seconds))]
 	if pending > 0:
 		result.detail += " · %d na fila" % pending
 	if ready > 0 or (pending >= amount and pending > 0):
-		result.action = "Recolher" if ready > 0 else "Ver"
+		result.action = "Pegar" if ready > 0 else "Ver"
 		result.detail = "%d pronto(s)!" % ready if ready > 0 else "Já está no fogo · %s" % TimeText.short(remaining)
 		return result
 	if not GameState.has_upgrade(station):
@@ -216,7 +216,7 @@ static func _recipe(id: String, amount: int) -> Dictionary:
 		return result
 	_materials(result.needs, GameState.recipe_inputs(id), batches)
 	if GameState.station(station).queue.size() >= GameState.station_slots(station):
-		result["next"] = "Fila cheia: recolha ou espere"
+		result["next"] = "Fila cheia: pegue ou espere"
 		result["next_target"] = target
 		result["next_action"] = "Ver"
 	return result
@@ -228,7 +228,7 @@ static func _need(kind: String, id: String, amount: int) -> Dictionary:
 	match kind:
 		"produced":
 			have = GameState.progress.stat("produce:" + id)
-			label = "Recolher " + Database.item_name(id)
+			label = "Fazer " + Database.item_name(id)
 		"item":
 			have = GameState.inventory.count(id)
 			label = Database.item_name(id)
@@ -246,7 +246,7 @@ static func _need(kind: String, id: String, amount: int) -> Dictionary:
 			label = str(Database.quests[id].name)
 		"chapter":
 			have = GameState.progress.chapter_index()
-			label = "Capítulo %d" % amount
+			label = _chapter_name(amount)
 	return {"kind": kind, "id": id, "amount": amount, "have": have, "label": label}
 
 
@@ -431,3 +431,14 @@ static func _go(target: Dictionary) -> void:
 			Events.toast_requested.emit(error)
 	else:
 		Places.go(target)
+
+
+## "1 busca" / "3 buscas" (Natureza).
+static func searches(count: int) -> String:
+	return "1 busca" if count == 1 else "%d buscas" % count
+
+
+## Nome do capítulo N (o jogador não vê o número).
+static func _chapter_name(number: int) -> String:
+	var chapters: Array = Database.progression.get("chapters", [])
+	return str(chapters[number - 1].name) if number >= 1 and number <= chapters.size() else "Capítulo"

@@ -44,7 +44,7 @@ static func panel(site: String = "trees", resource: String = "", focus_route: St
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var level := GameState.progress.nature_level(site)
 		if level == 0:
-			box.add_child(UiKit.label("Local fechado", &"SectionLabel"))
+			box.add_child(UiKit.lock_hint("Ainda não aberto"))
 			ProgressionUi.upgrade_card(box, str(data.level_upgrades[0]))
 			return
 		var ready := GameState.gathering_ready_count(site)
@@ -74,7 +74,7 @@ static func _progress(box: VBoxContainer, site: String) -> void:
 	var data: Dictionary = Database.progression.nature_sites[site]
 	var info := GameState.progress.nature_info(site)
 	var heading := UiKit.hbox(6)
-	var title := UiKit.fill_label("Nível %d · %s" % [info.level, "Máximo" if info.max else "%d/%d XP" % [info.xp, info.needed]], &"SectionLabel")
+	var title := UiKit.fill_label(("Nível %d ★" % info.level) if info.max else "Nível %d · %d/%d XP" % [info.level, info.xp, info.needed], &"SectionLabel")
 	title.name = "NatureProgress_" + site
 	heading.add_child(title)
 	heading.add_child(UiKit.icon_button(null, func() -> void:
@@ -84,7 +84,7 @@ static func _progress(box: VBoxContainer, site: String) -> void:
 	if not info.max:
 		box.add_child(UiKit.label("Próximo: " + str(data.levels[info.level].label), &"SmallLabel"))
 		var count := ceili(float(info.remaining) / int(data.xp_per_collection))
-		box.add_child(UiKit.label("Recolha mais %d %s · +%d XP cada" % [count, "coleta" if count == 1 else "coletas", int(data.xp_per_collection)], &"SmallLabel"))
+		box.add_child(UiKit.label("Mais %s · +%d XP cada" % [TaskHelp.searches(count), int(data.xp_per_collection)], &"SmallLabel"))
 	else:
 		box.add_child(UiKit.label("Todos os materiais e espaços liberados", &"SmallLabel"))
 
@@ -93,7 +93,7 @@ static func levels_panel(site: String) -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var data: Dictionary = Database.progression.nature_sites[site]
 		var info := GameState.progress.nature_info(site)
-		box.add_child(UiKit.label("Recolha coletas para ganhar XP neste local", &"SmallLabel"))
+		box.add_child(UiKit.label("Busque para ganhar XP neste local", &"SmallLabel"))
 		for i in data.levels.size():
 			var milestone: Dictionary = data.levels[i]
 			var card := UiKit.card(box, &"ReadyCardPanel" if info.level > i else &"CardPanel")
@@ -102,7 +102,7 @@ static func levels_panel(site: String) -> Control:
 			row.add_child(UiKit.icon(Database.item_icon(str(milestone.materials[0]))))
 			row.add_child(UiKit.fill_label("Nível %d · %s" % [i + 1, milestone.label], &"SmallLabel"))
 			card.add_child(row)
-			card.add_child(UiKit.label("Liberado" if info.level > i else ("Desbloquear: %d moedas" % int(Database.progression.upgrades[data.level_upgrades[0]].cost) if i == 0 else "Faltam %d XP · %d coleta(s)" % [maxi(0, int(milestone.xp) - int(info.total)), ceili(float(maxi(0, int(milestone.xp) - int(info.total))) / int(data.xp_per_collection))]), &"SmallLabel"))
+			card.add_child(UiKit.label("Liberado" if info.level > i else ("Desbloquear: %d moedas" % int(Database.progression.upgrades[data.level_upgrades[0]].cost) if i == 0 else "Faltam %d XP · %s" % [maxi(0, int(milestone.xp) - int(info.total)), TaskHelp.searches(ceili(float(maxi(0, int(milestone.xp) - int(info.total))) / int(data.xp_per_collection)))]), &"SmallLabel"))
 		box.add_child(UiKit.button("Ir ao local", func() -> void:
 			Events.sheet_close_requested.emit()
 			Events.world_requested.emit("nature", "place:" + site), &"PrimaryButton")))
@@ -134,7 +134,7 @@ static func refining_panel(site: String) -> Control:
 	return box
 
 
-## Material para coletar, em linha de lista: ícone, tempo, bônus e botão (nível fechado = cadeado).
+## Material para buscar, em linha de lista: ícone, tempo, bônus e botão (nível fechado = cadeado).
 static func _material(parent: VBoxContainer, site: String, item: String, route_id: String) -> void:
 	var route: Dictionary = Database.progression.activities[route_id]
 	var primary := item if route.rewards.get("items", {}).has(item) else str(route.rewards.items.keys()[0])
@@ -145,7 +145,7 @@ static func _material(parent: VBoxContainer, site: String, item: String, route_i
 	var level := route_level(route_id)
 	var locked := GameState.progress.nature_level(site) < level
 	var button := UiKit.secondary("Buscar", func() -> void:
-		_result(GameState.start_next_gathering(site, route_id, item), "Coleta iniciada!"), null, true)
+		_result(GameState.start_next_gathering(site, route_id, item), ""), null, true)
 	button.name = "Material_" + item
 	button.disabled = GameState.next_gathering_error(site, route_id, item) != ""
 	button.custom_minimum_size.x = 88
@@ -189,4 +189,5 @@ static func _locked_slot(index: int) -> Control:
 
 
 static func _result(error: String, done: String) -> void:
-	Events.toast_requested.emit(error if error != "" else done)
+	if error != "" or done != "":
+		Events.toast_requested.emit(error if error != "" else done)

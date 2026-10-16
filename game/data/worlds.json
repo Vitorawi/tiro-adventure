@@ -95,7 +95,7 @@
   "farm": {
     "name": "Sítio da Bloblo",
     "map_name": "Sítio",
-    "map_caption": "Plantar, criar e produzir",
+    "map_caption": "Plantar, criar e fazer",
     "icon": "tab_farm",
     "description": "Plantar, colher e crescer.",
     "room": "farm",
@@ -165,7 +165,7 @@
       "animals": {
         "name": "Animais",
         "icon": "item_egg",
-        "description": "Alimentar galinhas e vacas, recolher ovos e leite.",
+        "description": "Alimentar galinhas e vacas, pegar ovos e leite.",
         "panel": "stations:chicken_coop+cow_barn",
         "upgrade": "chicken_coop",
         "requirements": {
@@ -178,7 +178,7 @@
       "chicken_coop": {
         "name": "Galinheiro",
         "icon": "station_coop",
-        "description": "Alimentar galinhas e recolher ovos.",
+        "description": "Alimentar galinhas e pegar ovos.",
         "panel": "station:chicken_coop",
         "upgrade": "chicken_coop",
         "hidden": true,
@@ -192,7 +192,7 @@
       "cow_barn": {
         "name": "Curral",
         "icon": "station_barn",
-        "description": "Alimentar vacas e recolher leite.",
+        "description": "Alimentar vacas e pegar leite.",
         "panel": "station:cow_barn",
         "upgrade": "cow_barn",
         "hidden": true,
@@ -340,7 +340,7 @@
     "name": "Natureza",
     "map_caption": "Desbloquear e evoluir locais",
     "icon": "tab_nature",
-    "description": "Bosque, riacho, prado e grutas. Explore para coletar materiais.",
+    "description": "Bosque, riacho, prado e grutas. Explore para buscar materiais.",
     "room": "nature",
     "requirements": {
       "chapter": 5
@@ -352,7 +352,7 @@
       "trees": {
         "name": "Bosque",
         "icon": "item_wood",
-        "description": "Colete para ganhar XP e liberar materiais e espaços.",
+        "description": "Busque para ganhar XP e liberar materiais e espaços.",
         "panel": "nature:walk",
         "upgrades": [
           "forest_open",
@@ -365,7 +365,7 @@
       "rocks": {
         "name": "Caverna",
         "icon": "item_stone",
-        "description": "Colete para ganhar XP e liberar materiais e espaços.",
+        "description": "Busque para ganhar XP e liberar materiais e espaços.",
         "panel": "nature:creek+mine+crystal",
         "upgrades": [
           "cave_open",
@@ -378,7 +378,7 @@
       "fibers": {
         "name": "Prado",
         "icon": "item_fiber",
-        "description": "Colete para ganhar XP e liberar materiais e espaços.",
+        "description": "Busque para ganhar XP e liberar materiais e espaços.",
         "panel": "nature:meadow",
         "upgrades": [
           "meadow_open",

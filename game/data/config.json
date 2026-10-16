@@ -64,9 +64,9 @@
       "kind": "animal",
       "animal_capacity": 3,
       "action_label": "Alimentar",
-      "queue_label": "Produzindo ovos",
+      "queue_label": "Fazendo ovos",
       "recipe_label": "Alimentação",
-      "instruction": "Dê milho às galinhas. Espere e recolha os ovos.",
+      "instruction": "Dê milho às galinhas. Espere e pegue os ovos.",
       "requirements": {
         "chapter": 5
       }
@@ -77,9 +77,9 @@
       "kind": "animal",
       "animal_capacity": 3,
       "action_label": "Alimentar",
-      "queue_label": "Produzindo leite",
+      "queue_label": "Fazendo leite",
       "recipe_label": "Alimentação",
-      "instruction": "Dê trigo às vacas. Espere e recolha o leite.",
+      "instruction": "Dê trigo às vacas. Espere e pegue o leite.",
       "requirements": {
         "chapter": 5
       }

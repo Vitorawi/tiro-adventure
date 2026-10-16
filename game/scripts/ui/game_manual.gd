@@ -150,7 +150,7 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 		"walk":
 			var walk := GameState.walk_def(id)
 			card.add_child(UiKit.label(str(walk.name), &"SectionLabel"))
-			card.add_child(UiKit.label("Passear → esperar → recolher", &"SmallLabel"))
+			card.add_child(UiKit.label("Passear → esperar → pegar", &"SmallLabel"))
 			card.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(walk.seconds))))
 			_requirements(card, walk)
 			_location(card, {"world": "park", "place": "walk"})
@@ -166,7 +166,7 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 		"route":
 			var route: Dictionary = Database.progression.activities[id]
 			card.add_child(UiKit.label(route.name, &"SectionLabel"))
-			card.add_child(UiKit.label("Inicie a rota e recolha ao terminar.", &"SmallLabel"))
+			card.add_child(UiKit.label("Comece a rota e pegue ao terminar.", &"SmallLabel"))
 			_timer(card, int(route.seconds))
 			_amounts(card, route.rewards.get("items", {}))
 			_requirements(card, route)
@@ -174,7 +174,7 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 		"quest":
 			card.add_child(UiKit.label("Recompensa de missão", &"SectionLabel"))
 			card.add_child(UiKit.label(Database.quests[id].name, &"SmallLabel"))
-			card.add_child(UiKit.button("Ver missões", Places.go.bind({"screen": "tasks"})))
+			card.add_child(UiKit.button("Ir às missões", Places.go.bind({"screen": "tasks"})))
 		"find":
 			card.add_child(UiKit.label("Faro do Tiro", &"SectionLabel"))
 			card.add_child(UiKit.label("Toque no montinho onde o Tiro farejou.", &"SmallLabel"))
@@ -184,7 +184,7 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 			find_row.add_child(UiKit.fill_label(find_world.name, &"SmallLabel"))
 			card.add_child(find_row)
 			var find_error := Places.world_error(id)
-			var find_button := UiKit.button("Bloqueado" if find_error != "" else "Ir até lá", Places.go.bind({"world": id, "place": "find"}), &"SecondaryButton")
+			var find_button := UiKit.button("Bloqueado" if find_error != "" else "Ir", Places.go.bind({"world": id, "place": "find"}), &"SecondaryButton")
 			find_button.disabled = find_error != ""
 			card.add_child(find_button)
 		"care":
@@ -200,7 +200,7 @@ static func _recipe(box: VBoxContainer, id: String) -> void:
 	if Database.stations[station_id].get("kind", "") == "animal":
 		box.add_child(UiKit.label("Compre animais no abrigo. Quantidades abaixo são por animal.", &"SmallLabel"))
 	_amounts(box, recipe.get("inputs", {}))
-	box.add_child(UiKit.label("↓ Alimentar → esperar → recolher" if Database.stations[station_id].get("kind", "") == "animal" else "↓ Produzir e recolher", &"SmallLabel"))
+	box.add_child(UiKit.label("↓ Alimentar → esperar → pegar" if Database.stations[station_id].get("kind", "") == "animal" else "↓ Fazer → esperar → pegar", &"SmallLabel"))
 	_amounts(box, {Database.recipe_output(recipe): int(recipe.get("qty", 1))})
 	_timer(box, int(recipe.seconds))
 	_requirements(box, recipe)
@@ -241,7 +241,7 @@ static func _location(box: VBoxContainer, target: Dictionary, upgrade: String = 
 		error = Places.place_error(place)
 	var needs_buy: bool = upgrade != "" and Database.progression.upgrades.has(upgrade) and not GameState.has_upgrade(upgrade)
 	var destination := Places.goal_target({"type": "owned", "key": upgrade}) if needs_buy else target
-	var button := UiKit.button("Bloqueado" if error != "" else ("Ver compra" if needs_buy else "Ir até lá"), Places.go.bind(destination), &"SecondaryButton")
+	var button := UiKit.button("Bloqueado" if error != "" else "Ir", Places.go.bind(destination), &"SecondaryButton")
 	button.disabled = error != ""
 	box.add_child(button)
 	if error != "":
@@ -251,7 +251,7 @@ static func _location(box: VBoxContainer, target: Dictionary, upgrade: String = 
 
 
 static func _stations(box: VBoxContainer) -> void:
-	box.add_child(UiKit.label("Onde produzir", &"SectionLabel"))
+	box.add_child(UiKit.label("Onde fazer", &"SectionLabel"))
 	for id: String in Database.stations:
 		var card := UiKit.card(box)
 		card.add_child(UiKit.label(Database.stations[id].name, &"SectionLabel"))
@@ -260,7 +260,7 @@ static func _stations(box: VBoxContainer) -> void:
 			products.add_child(_item_chip(Database.recipe_output(Database.recipes[recipe_id]), 0))
 		card.add_child(products)
 		_location(card, _focused("station:" + id), id)
-	box.add_child(UiKit.label("Onde coletar", &"SectionLabel"))
+	box.add_child(UiKit.label("Onde buscar", &"SectionLabel"))
 	var crops := UiKit.card(box)
 	crops.add_child(UiKit.label("Canteiros", &"SectionLabel"))
 	crops.add_child(UiKit.label("Plante uma semente. Espere e toque para colher.", &"SmallLabel"))

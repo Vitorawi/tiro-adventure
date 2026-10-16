@@ -37,7 +37,7 @@ func _run() -> void:
 	check(_has_text(stations, "Liquidificador"), "Liquidificador aparece no catálogo")
 	check(_has_text(stations, "Bloqueado"), "Mundos/lugares fechados precisam de botão bloqueado")
 	check(_button_with_text(stations, "Bloqueado").disabled, "Consultar o catálogo não permite pular bloqueios")
-	check(_has_text(stations, "Ver compra"), "Estações ainda não compradas precisam de atalho de compra")
+	check(_has_prefix(stations, "Compre: ") and _button_with_text(stations, "Ir") != null, "Estações ainda não compradas precisam de atalho de compra (Ir + Compre: ...)")
 	stations.free()
 	check(state.call("to_dict") == before, "Consultar o manual não altera progresso/inventário")
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
@@ -75,7 +75,7 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	_shot("manual_plank")
 	resource = main.find_child("ManualResource*", true, false)
-	var go: Button = _button_with_text(resource, "Ir até lá")
+	var go: Button = _button_with_text(resource, "Ir")
 	check(go != null and not go.disabled, "Ir liberado quando a bancada existe")
 	go.pressed.emit()
 	await create_timer(0.2).timeout
@@ -113,3 +113,14 @@ func _shot(file_name: String) -> void:
 		var folder := ProjectSettings.globalize_path("res://../build/screenshots/")
 		DirAccess.make_dir_recursive_absolute(folder)
 		root.get_texture().get_image().save_png(folder + file_name + ".png")
+
+
+func _has_prefix(node: Node, prefix: String) -> bool:
+	if node == null:
+		return false
+	if node is Label and str(node.get("text")).begins_with(prefix):
+		return true
+	for child: Node in node.get_children():
+		if _has_prefix(child, prefix):
+			return true
+	return false

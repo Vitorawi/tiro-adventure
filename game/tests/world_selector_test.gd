@@ -46,7 +46,7 @@ func _run() -> void:
 	var hint: Dictionary = places.call("unlock_hint", "nature")
 	check(str(hint.text).begins_with("Abre no capítulo 5\n") and hint.icon != null, "Natureza mostra capítulo 5 e ícone da história")
 	hint = places.call("unlock_hint", "farm")
-	check(str(hint.text).begins_with("Abre no capítulo 1\nApós:") and hint.icon != null, "Sítio mostra capítulo 1, missão e retrato")
+	check(str(hint.text).begins_with("Abre no capítulo 1\nDepois de:") and hint.icon != null, "Sítio mostra capítulo 1, missão e retrato")
 	for id: String in ["village", "park"]:
 		hint = places.call("unlock_hint", id)
 		check(str(hint.text).begins_with("Abre no capítulo 4\n"), id + ": abertura real no capítulo 4")

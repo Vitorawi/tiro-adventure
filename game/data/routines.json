@@ -71,7 +71,7 @@
       },
       "cook": {
         "name": "Cozinhe 2 vezes",
-        "description": "Produza e recolha 2 itens.",
+        "description": "Faça e pegue 2 itens.",
         "goal": {
           "key": "produce",
           "target": 2
@@ -103,7 +103,7 @@
       },
       "walk": {
         "name": "Faça um passeio",
-        "description": "Conclua uma rota de exploração.",
+        "description": "Termine uma rota de exploração.",
         "goal": {
           "key": "explore",
           "target": 1
@@ -135,7 +135,7 @@
       },
       "eggs": {
         "name": "Ovos do dia",
-        "description": "Alimente as galinhas e recolha 4 ovos.",
+        "description": "Alimente as galinhas e pegue 4 ovos.",
         "goal": {
           "key": "produce:egg",
           "target": 4
@@ -151,7 +151,7 @@
       },
       "milk": {
         "name": "Leite fresquinho",
-        "description": "Alimente as vacas e recolha 2 leites.",
+        "description": "Alimente as vacas e pegue 2 leites.",
         "goal": {
           "key": "produce:milk",
           "target": 2
@@ -310,7 +310,7 @@
       },
       "chef_week": {
         "name": "Chef da semana",
-        "description": "Produza e recolha 15 itens.",
+        "description": "Faça e pegue 15 itens.",
         "goal": {
           "key": "produce",
           "target": 15
@@ -350,7 +350,7 @@
       },
       "explorer_week": {
         "name": "Pé na trilha",
-        "description": "Conclua 7 rotas de exploração.",
+        "description": "Termine 7 rotas de exploração.",
         "goal": {
           "key": "explore",
           "target": 7
@@ -370,7 +370,7 @@
       },
       "miner_week": {
         "name": "Pequeno minerador",
-        "description": "Explore a pedreira 5 vezes e recolha os materiais.",
+        "description": "Explore a pedreira 5 vezes e pegue os materiais.",
         "goal": {
           "key": "activity:quarry",
           "target": 5
@@ -390,7 +390,7 @@
       },
       "cheese": {
         "name": "Queijo do sítio",
-        "description": "Faça e recolha 5 queijos na queijaria.",
+        "description": "Faça e pegue 5 queijos na queijaria.",
         "goal": {
           "key": "produce:cheese",
           "target": 5

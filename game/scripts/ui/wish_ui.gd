@@ -139,7 +139,7 @@ static func _actions(card: VBoxContainer, def: Dictionary, i: int, ready: bool, 
 				Events.toast_requested.emit(error)
 		else:
 			Places.go(go_target(def))
-	# Cumprível = botão principal ("Dar"/"Receber"); ainda não = "Ir" secundário pequeno.
+	# Cumprível = botão principal ("Dar"/"Pegar"); ainda não = "Ir" secundário pequeno.
 	var caption := ("Dar" if give else "Pegar") if ready else "Ir"
 	var main := UiKit.primary(caption, on_press) if ready and primary else UiKit.secondary(caption, on_press, null, true)
 	main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -180,4 +180,4 @@ static func _closed_card(box: VBoxContainer, i: int) -> void:
 	card.name = "WishClosed%d" % i
 	card.get_parent().modulate.a = 0.6
 	var need := int(GameState.wish_settings().slots[i].get("requirements", {}).get("bond", 0))
-	card.add_child(UiKit.lock_hint("Com vínculo ♥%d" % need if need > 0 else "Fechado"))
+	card.add_child(UiKit.lock_hint("Com vínculo ♥%d" % need if need > 0 else "Ainda não"))

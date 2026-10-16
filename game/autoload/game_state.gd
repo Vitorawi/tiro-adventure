@@ -168,7 +168,7 @@ func find_set_error(id: String) -> String:
 	if not Database.finds.get("sets", {}).has(id):
 		return "Conjunto desconhecido"
 	if id in finds.claimed_sets:
-		return "Já recebido"
+		return "Já pegou"
 	var def: Dictionary = Database.finds.sets[id]
 	if find_set_progress(id) < def.items.size():
 		return "Encontre todos os achados"
@@ -672,6 +672,15 @@ func cook(recipe_id: String) -> String:
 	return ""
 
 
+## Primeiro item que falta, como "Falta Cenoura ×2"; sem faltar nada devolve o texto geral.
+func _missing_text(amounts: Dictionary, fallback: String) -> String:
+	for id: String in amounts:
+		var lack := int(amounts[id]) - inventory.count(id)
+		if lack > 0:
+			return "Falta %s ×%d" % [Database.item_name(id), lack]
+	return fallback
+
+
 ## A mesma validação para alimentação dos animais e fabricação nas estações.
 func cook_error(recipe_id: String) -> String:
 	if not Database.recipes.has(recipe_id):
@@ -697,7 +706,7 @@ func cook_error(recipe_id: String) -> String:
 	if target.queue.size() >= station_slots(station_id):
 		return "Fila cheia"
 	if not inventory.has_all(recipe_inputs(recipe_id)):
-		return "Faltam ingredientes"
+		return _missing_text(recipe_inputs(recipe_id), "Faltam ingredientes")
 	return ""
 
 
@@ -1267,14 +1276,14 @@ func upgrade_error(id: String) -> String:
 		return "Já adquirido"
 	if data.has("nature_unlock"):
 		var unlock: Dictionary = data.nature_unlock
-		return "Colete em %s até o nível %d" % [Database.progression.nature_sites[unlock.site].name, int(unlock.level)]
+		return "Busque em %s até o nível %d" % [Database.progression.nature_sites[unlock.site].name, int(unlock.level)]
 	var reason := requirement_error(data.get("requirements", {}))
 	if reason != "":
 		return reason
 	if coins < int(data.get("cost", 0)):
 		return "Faltam %d moedas" % (int(data.cost) - coins)
 	if not inventory.has_all(data.get("materials", {})):
-		return "Faltam materiais"
+		return _missing_text(data.get("materials", {}), "Faltam materiais")
 	return ""
 
 
@@ -1341,7 +1350,7 @@ func order_error(id: String) -> String:
 	if wait > 0:
 		return "Novo pedido em " + TimeText.short(wait)
 	if not inventory.has_all(order.inputs):
-		return "Faltam produtos"
+		return _missing_text(order.inputs, "Faltam produtos")
 	return ""
 
 
@@ -1364,7 +1373,7 @@ func fulfill_order(id: String) -> String:
 
 func activity_error(id: String) -> String:
 	if not progress.activity.is_empty():
-		return "Conclua a atividade em andamento"
+		return "Termine o que está fazendo"
 	var data: Dictionary = Database.progression.activities.get(id, {})
 	if data.is_empty():
 		return "Rota desconhecida"
@@ -1390,9 +1399,9 @@ func activity_remaining() -> int:
 
 func collect_activity() -> String:
 	if progress.activity.is_empty():
-		return "Nenhuma atividade em andamento"
+		return "Nada em andamento"
 	if activity_remaining() > 0:
-		return "A atividade ainda está em andamento"
+		return "Ainda não terminou"
 	var id: String = progress.activity.id
 	var data: Dictionary = Database.progression.activities.get(id, {})
 	progress.activity = {}
@@ -1471,13 +1480,13 @@ func gathering_free_count(site: String) -> int:
 
 func gathering_error(site: String, index: int, route_id: String, resource: String = "") -> String:
 	if not Database.progression.nature_sites.has(site) or Database.gathering_site(route_id) != site:
-		return "Coleta não pertence a este local"
+		return "Este material não é deste local"
 	if index < 0 or index >= gathering_slots(site):
 		return "Libere este espaço primeiro"
 	if not gathering_entry(site, index).is_empty():
 		return "Espaço ocupado"
 	if resource != "" and (not resource in Database.progression.nature_sites[site].resources or not Database.progression.activities[route_id].rewards.get("items", {}).has(resource)):
-		return "Este material não vem desta coleta"
+		return "Este material não vem desta busca"
 	var reason := requirement_error(Database.worlds.nature.get("requirements", {}))
 	return reason if reason != "" else requirement_error(Database.progression.activities[route_id].get("requirements", {}))
 
@@ -1500,7 +1509,7 @@ func start_gathering(site: String, index: int, route_id: String, resource: Strin
 ## Um toque no material preenche só a primeira vaga livre, sem escolher o espaço.
 func next_gathering_error(site: String, route_id: String, resource: String = "") -> String:
 	if not Database.progression.nature_sites.has(site):
-		return "Local de coleta inválido"
+		return "Local de busca inválido"
 	if progress.nature_level(site) == 0:
 		return "Desbloqueie %s primeiro" % Database.progression.nature_sites[site].name
 	for index in gathering_slots(site):
@@ -1533,9 +1542,9 @@ func start_gathering_all(site: String, route_id: String, resource: String = "") 
 
 func collect_gathering_error(site: String, index: int) -> String:
 	if gathering_entry(site, index).is_empty():
-		return "Nada para recolher"
+		return "Nada pronto ainda"
 	if gathering_remaining(site, index) > 0:
-		return "A coleta ainda está em andamento"
+		return "Ainda não terminou"
 	var entry := gathering_entry(site, index)
 	var data: Dictionary = Database.progression.activities.get(entry.get("id", ""), {})
 	return storage_error(entry.get("rewards", data.get("rewards", {})).get("items", {}))
@@ -1575,7 +1584,7 @@ func collect_gathering_all(site: String) -> String:
 			done = true
 		elif error.ends_with("sem espaço"):
 			blocked = error
-	return "" if done else (blocked if blocked != "" else "Nenhuma coleta pronta")
+	return "" if done else (blocked if blocked != "" else "Nada pronto ainda")
 
 # --- Missões ----------------------------------------------------------------------
 
@@ -1636,14 +1645,14 @@ func note_screen_opened(screen: String) -> void:
 
 func quest_error(id: String) -> String:
 	if not quest_unlocked(id):
-		return "Conclua as missões anteriores"
+		return "Termine as missões anteriores"
 	if progress.claimed_quests.has(id):
-		return "Recompensa já recebida"
+		return "Prêmio já pego"
 	for goal: Dictionary in Database.quests[id].goals:
 		if goal_value(goal) < int(goal.get("target", 1)):
-			return "Objetivos pendentes"
+			return "Falta cumprir os objetivos"
 	if not inventory.has_all(_quest_deliveries(id)):
-		return "Faltam itens para entregar"
+		return _missing_text(_quest_deliveries(id), "Faltam itens")
 	return ""
 
 
@@ -1775,9 +1784,9 @@ func routine_error(kind: String, id: String) -> String:
 	if not id in routine_ids(kind):
 		return "Esta missão já passou"
 	if routine_claimed(kind, id):
-		return "Recompensa já recebida"
+		return "Prêmio já pego"
 	if routine_value(kind, id) < int(routine_data(kind, id).goal.get("target", 1)):
-		return "Objetivo pendente"
+		return "Falta cumprir o objetivo"
 	return ""
 
 
@@ -2063,7 +2072,7 @@ func daily_gift_error() -> String:
 	if daily_gift_rewards().is_empty():
 		return "Sem presente"
 	if str(progress.daily_gift.period) == routine_period("daily"):
-		return "Já recebido hoje"
+		return "Já pegou hoje"
 	return ""
 
 

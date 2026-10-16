@@ -36,7 +36,9 @@ static func food_picker() -> Control:
 			chips.append_array(UiKit.effect_chip_list(Database.items[id]["feed"]))
 			var on_give := func() -> void:
 				var error := give_food(id)
-				Events.toast_requested.emit(error if error != "" else ("Era isso que ele queria!" if wish_slot >= 0 else "Nhac! %s" % Database.item_name(id)))
+				var message := error if error != "" else ("Era isso que ele queria!" if wish_slot >= 0 else "")
+				if message != "":
+					Events.toast_requested.emit(message)
 				if error == "":
 					Events.sheet_close_requested.emit()
 			# Só a comida que o Tiro quer ("Ele quer!") é o botão principal; as outras são secundárias.
@@ -49,7 +51,7 @@ static func food_picker() -> Control:
 			_empty_message(box, "Acabou a comida!", "")
 			box.add_child(UiKit.button("Pedir à Bloblo", func() -> void:
 				var error := GameState.emergency_food()
-				Events.toast_requested.emit(error if error != "" else "Comida recebida!"), &"PrimaryButton", ProgressionUi.npc_portrait("bloblo"))))
+				Events.toast_requested.emit(error if error != "" else "Bloblo trouxe comida!"), &"PrimaryButton", ProgressionUi.npc_portrait("bloblo"))))
 
 
 const CATEGORIES := {"food": "Comidas", "crop": "Colheitas", "material": "Materiais", "product": "Produtos", "find": "Achados", "trail": "Do passeio"}
@@ -90,7 +92,8 @@ static func item_detail(id: String) -> Control:
 			if GameState.inventory.count(id) > 0:
 				box.add_child(UiKit.primary("Dar ao Tiro", func() -> void:
 					var error := give_food(id)
-					Events.toast_requested.emit(error if error != "" else "Nhac! %s" % Database.item_name(id))))
+					if error != "":
+						Events.toast_requested.emit(error)))
 		var sources := _sources(id)
 		var uses := _uses(id)
 		_link_section(box, "De onde vem", sources)
@@ -189,7 +192,7 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 		if data.get("instruction", "") != "":
 			box.add_child(UiKit.label(data.instruction, &"SmallLabel"))
 		if data.get("kind", "") == "animal":
-			box.add_child(UiKit.label("Seus animais · %d/%d" % [GameState.animal_count(station_id), int(data.animal_capacity)], &"SectionLabel"))
+			box.add_child(UiKit.label("%d de %d animais" % [GameState.animal_count(station_id), int(data.animal_capacity)], &"SectionLabel"))
 			var herd := UiKit.flow()
 			for animal_id: String in GameState.animal_roster(station_id):
 				herd.add_child(UiKit.icon(load(Database.animals[animal_id].sprite), 48))
@@ -310,7 +313,8 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 			label = GameState.cook_error(recipe_id)
 		action = UiKit.secondary("Fila cheia" if station_full and has_all else label, func() -> void:
 			var error := GameState.cook(recipe_id)
-			Events.toast_requested.emit(error if error != "" else "Preparando %s!" % Database.item_name(output)), null, true)
+			if error != "":
+				Events.toast_requested.emit(error), null, true)
 		action.disabled = GameState.cook_error(recipe_id) != ""
 		action.custom_minimum_size.x = 88
 	var row := UiKit.list_row(Database.item_icon(output), Database.item_name(output) + (" ×%d" % qty if qty > 1 else ""), chips, action)
@@ -346,7 +350,8 @@ static func animal_shop(station_id: String) -> Control:
 			var error := GameState.buy_animal_error(id)
 			var buy := UiKit.button("Comprar · %d moedas" % int(animal.price), func() -> void:
 				var reason := GameState.buy_animal(id)
-				Events.toast_requested.emit(reason if reason != "" else "%s chegou ao sítio!" % animal.name), &"PrimaryButton")
+				if reason != "":
+					Events.toast_requested.emit(reason), &"PrimaryButton")
 			buy.disabled = error != ""
 			body.add_child(buy)
 			if error != "":
@@ -400,7 +405,8 @@ static func seed_picker(plot_index: int, focus: String = "") -> Control:
 			if locked == "":
 				plant = UiKit.secondary("Plantar", func() -> void:
 					var error := GameState.plant(plot_index, crop_id)
-					Events.toast_requested.emit(error if error != "" else "Plantou %s!" % Database.item_name(crop_id))
+					if error != "":
+						Events.toast_requested.emit(error)
 					Events.sheet_close_requested.emit(), null, true)
 				plant.custom_minimum_size.x = 88
 			var row := UiKit.list_row(Database.item_icon(crop_id), Database.item_name(crop_id), chips, plant)
@@ -427,7 +433,7 @@ static func farm_view(focus: String = "") -> Control:
 		if GameState.has_upgrade("farm") and GameState.unlocked_plots < total:
 			var cost := GameState.plot_cost(GameState.unlocked_plots)
 			box.add_child(UiKit.button("+1 terreno · %d" % cost, func() -> void:
-				Events.sheet_requested.emit("Expandir o sítio", plot_purchase(GameState.unlocked_plots)), &"PrimaryButton" if GameState.coins >= cost else &"", UiKit.ui_icon("coin")))
+				Events.sheet_requested.emit("Abrir área", plot_purchase(GameState.unlocked_plots)), &"PrimaryButton" if GameState.coins >= cost else &"", UiKit.ui_icon("coin")))
 		var grid := GridContainer.new()
 		grid.columns = 3
 		grid.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -488,7 +494,8 @@ static func plot_purchase(index: int) -> Control:
 			box.add_child(UiKit.label("Compre o terreno %d antes." % (GameState.unlocked_plots + 1), &"SmallLabel"))
 		var buy := UiKit.button("Comprar", func() -> void:
 			var error := GameState.buy_plot(index)
-			Events.toast_requested.emit(error if error != "" else "Novo terreno!")
+			if error != "":
+				Events.toast_requested.emit(error)
 			if error == "":
 				Events.sheet_requested.emit("Canteiro %d" % (index + 1), seed_picker(index)), &"PrimaryButton")
 		buy.disabled = not available or GameState.coins < cost or cost < 0

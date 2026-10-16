@@ -55,7 +55,7 @@ Faça um commit local no fim (não faça push). Ao terminar, marque a etapa como
 - [x] Etapa 08 — bandeja nas estações — feita em 15/10/2026; `StationTray`, grade/detalhe, criações e Natureza; retomada e concluída pelo Codex
 - [x] Etapa 09 — tela do Tiro — feita em 15/10/2026; cenário original sem margens, anéis, quatro cuidados iguais, comidas em guia vertical (pedido do Vitor), arrasto e caderninho
 - [x] Etapa 10 — listas — feita em 15/10/2026; Missões compactas com Pegar tudo, Desejos, Mochila com depósitos/filtros/grade, Coleção em abas com toque para vestir (iniciada pelo Codex, concluída pelo Claude Code)
-- [ ] Etapa 11 — textos
+- [x] Etapa 11 — textos — feita em 16/10/2026; `tools/list_texts.ps1` (build/texts.csv), glossário aplicado (Pegar/Colher/Cozinhar/Fazer/Buscar/Ir), erros com o item que falta e `texts_test` como guarda
 - [ ] Etapa 12 — festa e polimento
 
 ## Decisões já fechadas com o Vitor (15/10/2026)

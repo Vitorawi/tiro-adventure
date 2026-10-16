@@ -215,7 +215,7 @@ func _test_missing_ingredients() -> void:
 	var badge := item.find_child("Badge", true, false) as Label
 	check(badge != null and badge.visible and badge.text == "!", "selo \"!\" na receita sem ingredientes")
 	var cook := current.call("find_in_panel", "Cook") as Button
-	check(cook != null and cook.disabled and cook.text == "Faltam ingredientes", "primary desabilitado: Faltam ingredientes")
+	check(cook != null and cook.disabled and cook.text == state.call("cook_error", "carrot_snack") and cook.text.begins_with("Falta "), "primary desabilitado mostra o que falta (%s)" % (cook.text if cook else "?"))
 	var chips := current.call("find_in_panel", "Ingredients") as Control
 	check(chips != null and chips.get_child_count() > 0 and chips.get_child(0) is Button, "ingrediente que falta é chip tocável")
 	sheet_titles.clear()
@@ -427,7 +427,7 @@ func _test_sewing() -> void:
 	var ids: Array = current.call("entry_ids")
 	check("sew_flower_crown" in ids, "receitas de costura em grade")
 	var cook := current.call("find_in_panel", "Cook") as Button
-	check(cook != null and cook.text in ["Costurar", "Faltam ingredientes", "Você já tem"], "verbo da costura (%s)" % (cook.text if cook else "?"))
+	check(cook != null and cook.text in ["Costurar", "Você já tem"] or cook.text.begins_with("Falta "), "verbo da costura (%s)" % (cook.text if cook else "?"))
 	park.call("close_tray")
 
 

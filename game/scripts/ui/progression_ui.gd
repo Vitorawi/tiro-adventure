@@ -169,7 +169,8 @@ static func sell_panel() -> Control:
 			any = true
 			var sell := UiKit.secondary("+%d" % price, func() -> void:
 				var error := GameState.sell(id)
-				Events.toast_requested.emit(error if error != "" else "Vendeu %s!" % Database.item_name(id)), UiKit.ui_icon("coin"), true)
+				if error != "":
+					Events.toast_requested.emit(error), UiKit.ui_icon("coin"), true)
 			sell.custom_minimum_size = Vector2(96, 44)
 			box.add_child(UiKit.list_row(Database.item_icon(id), "%s ×%d" % [Database.item_name(id), count], [], sell))
 		if not any:
@@ -236,7 +237,8 @@ static func routes_panel(place: String, focus: String = "") -> Control:
 			var reason := GameState.activity_error(id)
 			var go := UiKit.secondary("Começar", func() -> void:
 				var error := GameState.start_activity(id)
-				Events.toast_requested.emit(error if error != "" else "Vocês saíram para: " + data.name), null, true)
+				if error != "":
+					Events.toast_requested.emit(error), null, true)
 			go.disabled = reason != ""
 			go.custom_minimum_size.x = 88
 			var row := UiKit.list_row(UiKit.ui_icon(data.get("icon", "")), str(data.name), chips, go)
@@ -376,8 +378,9 @@ static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, lock
 	body.add_child(walk_exclusives(id, 32))
 	var go := UiKit.button("Passear", func() -> void:
 		var error := GameState.start_walk(id)
-		Events.toast_requested.emit(error if error != "" else "Vamos passear!")
-		if error == "":
+		if error != "":
+			Events.toast_requested.emit(error)
+		else:
 			Events.sheet_close_requested.emit(), &"PrimaryButton")
 	go.name = "StartWalk_" + id
 	go.disabled = GameState.walk_error(id) != ""
@@ -530,23 +533,23 @@ static func skills_panel() -> Control:
 			var top := UiKit.hbox(8)
 			top.add_child(UiKit.icon(UiKit.ui_icon(data.icon), 40))
 			top.add_child(UiKit.fill_label(data.name, &"SectionLabel"))
-			top.add_child(UiKit.short_label("Nv %d" % int(info.level), &"SectionLabel"))
+			top.add_child(UiKit.short_label("Nível %d" % int(info.level), &"SectionLabel"))
 			card.add_child(top)
 			var line := UiKit.hbox(6)
 			var bar := UiKit.bar(100 if info.max else float(info.xp) / float(info.needed) * 100, Color(data.color), 12)
 			bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			line.add_child(bar)
-			line.add_child(UiKit.short_label("Máx." if info.max else "%d/%d" % [int(info.xp), int(info.needed)], &"SmallLabel"))
+			line.add_child(UiKit.short_label("★ completo" if info.max else "%d/%d" % [int(info.xp), int(info.needed)], &"SmallLabel"))
 			card.add_child(line)
 			var next := _next_milestone(id, int(info.level))
 			if not next.is_empty():
 				var unlock := UiKit.hbox(6)
-				unlock.add_child(UiKit.short_label("Nv %d →" % int(next.level), &"SmallLabel"))
+				unlock.add_child(UiKit.short_label("Nível %d:" % int(next.level), &"SmallLabel"))
 				unlock.add_child(UiKit.icon(next.icon, 32))
 				unlock.add_child(UiKit.fill_label(next.name, &"SmallLabel"))
 				card.add_child(unlock)
 		if GameState.requirement_error(Database.worlds.nature.requirements) == "":
-			box.add_child(UiKit.label("Coleta do Tiro · evolui com o uso", &"SectionLabel"))
+			box.add_child(UiKit.label("Buscas do Tiro · evoluem com o uso", &"SectionLabel"))
 			for site: String in Database.progression.nature_sites:
 				var data: Dictionary = Database.progression.nature_sites[site]
 				var info := GameState.progress.nature_info(site)
@@ -555,11 +558,14 @@ static func skills_panel() -> Control:
 				var heading := UiKit.hbox(6)
 				heading.add_child(UiKit.icon(UiKit.ui_icon(data.icon)))
 				heading.add_child(UiKit.fill_label(data.name, &"SectionLabel"))
-				heading.add_child(UiKit.short_label("Fechado" if info.level == 0 else "Nv %d" % info.level, &"SmallLabel"))
+				if info.level == 0:
+					heading.add_child(UiKit.lock_icon(24))
+				else:
+					heading.add_child(UiKit.short_label("Nível %d" % info.level, &"SmallLabel"))
 				card.add_child(heading)
 				if info.level > 0:
 					card.add_child(UiKit.bar(100 if info.max else 100.0 * info.xp / maxi(1, int(info.needed)), UiKit.GOOD, 10))
-					card.add_child(UiKit.label("Completo" if info.max else "Próximo: " + str(data.levels[info.level].label), &"SmallLabel"))
+					card.add_child(UiKit.label("★ completo" if info.max else "Próximo: " + str(data.levels[info.level].label), &"SmallLabel"))
 				card.add_child(UiKit.button("Ver evolução", func() -> void:
 					Events.sheet_requested.emit("Evolução · " + str(data.name), NatureUi.levels_panel(site))))
 	)
@@ -743,10 +749,11 @@ static func _text(box: VBoxContainer, text: String, small: bool = false) -> void
 ## Botão de ação do GameState; toast com o resultado. Bloqueado: motivo curto embaixo e,
 ## se houver `help`, um "?" ao lado que abre o "Como fazer".
 ## `primary` = botão principal do painel; em listas de cartões repetidos use `false` (secundário pequeno).
-static func _action(box: VBoxContainer, text: String, action: Callable, reason: String = "", done: String = "Feito!", help: Callable = Callable(), primary: bool = true) -> void:
+static func _action(box: VBoxContainer, text: String, action: Callable, reason: String = "", done: String = "", help: Callable = Callable(), primary: bool = true) -> void:
 	var on_press := func() -> void:
 		var error: String = action.call()
-		Events.toast_requested.emit(error if error != "" else done)
+		if error != "" or done != "":
+			Events.toast_requested.emit(error if error != "" else done)
 	var button := UiKit.primary(text, on_press) if primary else UiKit.secondary(text, on_press, null, true)
 	button.disabled = reason != ""
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL

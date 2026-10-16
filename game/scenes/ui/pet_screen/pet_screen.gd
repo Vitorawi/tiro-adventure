@@ -185,7 +185,7 @@ func _refresh() -> void:
 		var walk_id := str(GameState.walk_state.current.id)
 		_away_postcard.texture = WalkResult.postcard_texture(GameState.walk_postcard(walk_id))
 		_away_name.text = str(GameState.walk_def(walk_id).get("name", ""))
-		_away_time.text = "Pronto! Recolha na Praça" if GameState.walk_ready() else TimeText.short(GameState.walk_remaining())
+		_away_time.text = "Pronto! Pegue na Praça" if GameState.walk_ready() else TimeText.short(GameState.walk_remaining())
 	_bond_caption.text = str(GameState.bond_level())
 	var bond := GameState.progress.bond_info(GameState.dog.affection)
 	_bond_ring.progress = 1.0 if bond.max else float(int(bond.affection) - int(bond.floor)) / maxi(1, int(bond.next) - int(bond.floor))

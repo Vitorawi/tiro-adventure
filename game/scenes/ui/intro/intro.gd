@@ -72,7 +72,7 @@ func _build() -> void:
 	var game_name := UiKit.label("Tiro Adventure", &"TitleLabel", Color("ffd23f"))
 	game_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_child(game_name)
-	var chapter := UiKit.label("Capítulo 1 · " + str(Database.progression.chapters[0].name), &"SectionLabel", Color("fff4dc"))
+	var chapter := UiKit.label(str(Database.progression.chapters[0].name), &"SectionLabel", Color("fff4dc"))
 	chapter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_child(chapter)
 	root.add_child(title)

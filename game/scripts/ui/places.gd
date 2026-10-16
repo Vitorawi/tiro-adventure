@@ -21,7 +21,7 @@ static func open(world_id: String, place_id: String, from_object: bool = false) 
 		return
 	var closed := place_error(place)
 	if closed != "":
-		Events.toast_requested.emit("Ainda fechado: " + closed)
+		Events.toast_requested.emit("Ainda não: " + closed)
 		return
 	var upgrade: String = place.get("upgrade", "")
 	if upgrade != "" and not GameState.has_upgrade(upgrade):
@@ -346,7 +346,7 @@ static func unlock_hint(world_id: String) -> Dictionary:
 		if not GameState.progress.claimed_quests.has(quest_id):
 			var quest: Dictionary = Database.quests.get(quest_id, {})
 			var chapter := int(quest.get("chapter", 0))
-			var text := "Após: " + str(quest.get("name", quest_id))
+			var text := "Depois de: " + str(quest.get("name", quest_id))
 			if chapter > 0:
 				text = "Abre no capítulo %d\n%s" % [chapter, text]
 			return {"icon": ProgressionUi.npc_portrait(str(quest.get("npc", ""))), "text": text}
@@ -370,6 +370,11 @@ static func npc_active_quests(npc_id: String) -> Array[String]:
 	return result
 
 
+## "1 pronto!" / "3 prontos!" (glossário: Pegar o que ficou pronto).
+static func ready_text(count: int) -> String:
+	return "1 pronto!" if count == 1 else "%d prontos!" % count
+
+
 ## Texto curto se o lugar tem algo pronto (colheita, produção, rota que voltou).
 static func place_alert(world_id: String, place_id: String) -> String:
 	var place: Dictionary = Database.worlds.get(world_id, {}).get("places", {}).get(place_id, {})
@@ -379,23 +384,23 @@ static func place_alert(world_id: String, place_id: String) -> String:
 		for i in GameState.usable_plot_indices():
 			if GameState.plot_status(i) == "ready":
 				ready += 1
-		return "%d pronto(s) para colher!" % ready if ready > 0 else ""
+		return ready_text(ready) if ready > 0 else ""
 	if world_id == "nature" and Database.progression.nature_sites.has(place_id):
 		var count := GameState.gathering_ready_count(place_id)
 		if count > 0:
-			return "%d coleta(s) pronta(s)!" % count
+			return ready_text(count)
 		if not GameState.gathering_jobs(place_id).is_empty():
-			return "Coletando"
+			return "Buscando"
 	for part in Database.panel_parts(panel):
 		var arg := part.get_slice(":", 1)
 		if part.begins_with("station:") and GameState.has_upgrade(arg):
 			var count := GameState.station(arg).ready_count(GameState.now())
 			if count > 0:
-				return "%d pronto(s) para coletar!" % count
+				return ready_text(count)
 		if part.begins_with("routes:"):
 			var activity: Dictionary = GameState.progress.activity
 			if not activity.is_empty() and Database.progression.activities.get(activity.id, {}).get("place", "walk") == arg:
-				return "A rota terminou: recolha!" if GameState.activity_remaining() == 0 else "Em andamento (%s)" % TimeText.short(GameState.activity_remaining())
+				return "Pronto! Pegue" if GameState.activity_remaining() == 0 else "Em andamento (%s)" % TimeText.short(GameState.activity_remaining())
 	return ""
 
 

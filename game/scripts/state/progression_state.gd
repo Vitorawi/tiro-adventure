@@ -217,20 +217,22 @@ func requirement_error(requirements: Dictionary) -> String:
 	for item: String in requirements.get("produced", {}):
 		var needed := int(requirements.produced[item])
 		if stat("produce:" + item) < needed:
-			return "Recolha %d × %s" % [needed, Database.item_name(item)]
+			return "Faça %d × %s" % [needed, Database.item_name(item)]
 	for key: String in requirements.get("stats", {}):
 		var missing := int(requirements.stats[key]) - stat(key)
 		if missing > 0:
 			var label: String = Database.progression.settings.get("stat_labels", {}).get(key, key)
 			return "Faça mais %d %s" % [missing, label]
 	if chapter_index() < int(requirements.get("chapter", 1)):
-		return "Disponível no capítulo %d" % int(requirements.chapter)
+		var chapters: Array = Database.progression.get("chapters", [])
+		var opens := int(requirements.chapter) - 1
+		return "Abre em: " + str(chapters[opens].name) if opens >= 0 and opens < chapters.size() else "Ainda não"
 	for id: String in requirements.get("owned", []):
 		if not has_upgrade(id):
 			return "Precisa de " + str(Database.progression.upgrades.get(id, {}).get("name", id))
 	for id: String in requirements.get("quests", []):
 		if not claimed_quests.has(id):
-			return "Conclua: " + str(Database.quests.get(id, {}).get("name", id))
+			return "Depois de: " + str(Database.quests.get(id, {}).get("name", id))
 	for id: String in requirements.get("skills", {}):
 		var needed := int(requirements["skills"][id])
 		if skill_level(id) < needed:

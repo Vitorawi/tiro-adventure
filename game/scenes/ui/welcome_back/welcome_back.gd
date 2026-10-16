@@ -52,7 +52,7 @@ func _fill(box: VBoxContainer) -> void:
 		chips.alignment = FlowContainer.ALIGNMENT_CENTER
 		gift.add_child(_center(UiKit.label("Presente do dia", &"SectionLabel")))
 		gift.add_child(chips)
-		gift.add_child(UiKit.button("Receber", func() -> void:
+		gift.add_child(UiKit.button("Pegar", func() -> void:
 			var items: Dictionary = rewards.get("items", {})
 			var coins := int(rewards.get("coins", 0))
 			if GameState.claim_daily_gift() == "":
@@ -71,7 +71,7 @@ func _fill(box: VBoxContainer) -> void:
 		row.add_child(UiKit.icon(texture, 32))
 		var count := UiKit.label("%d pronto%s" % [line.count, "s" if int(line.count) > 1 else ""], &"SectionLabel")
 		if str(line.kind) == "dig":
-			count.text = "1 achado · " + str(Database.worlds.get(str(line.world), {}).get("name", line.world))
+			count.text = "Achado: " + str(Database.worlds.get(str(line.world), {}).get("name", line.world))
 		elif str(line.kind) == "walk":
 			count.text = "Tiro voltou do passeio"
 		elif str(line.kind) == "friend_visit":
@@ -79,7 +79,7 @@ func _fill(box: VBoxContainer) -> void:
 		count.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		row.add_child(count)
 		var target := {"world": line.world, "place": line.target}
-		var go := UiKit.button("Ver" if str(line.kind) == "friend_visit" else "Ir", func() -> void:
+		var go := UiKit.button("Ir", func() -> void:
 			hide()
 			if str(line.kind) == "friend_visit":
 				Events.world_requested.emit("house", "look:" + str(line.target))

@@ -328,7 +328,7 @@
     },
     "cooking": {
       "name": "Cozinha",
-      "description": "Prepare receitas. Libera pratos novos.",
+      "description": "Cozinhe receitas. Libera pratos novos.",
       "icon": "item_carrot_snack",
       "color": "#eea24c",
       "how_to": "Cozinhe no Fogão e no Liquidificador."
@@ -625,7 +625,7 @@
     "stove": {
       "name": "Fogão simples",
       "world": "house",
-      "description": "A primeira cozinha: prepara petiscos e refeições.",
+      "description": "A primeira cozinha: faz petiscos e refeições.",
       "cost": 60,
       "requirements": {
         "owned": [
@@ -655,7 +655,7 @@
     "farm": {
       "name": "Escritura do sítio",
       "world": "farm",
-      "description": "O terreno passa a ser seu: quatro canteiros e espaço para expandir.",
+      "description": "O terreno passa a ser seu: quatro canteiros e espaço para ampliar.",
       "cost": 180,
       "requirements": {
         "quests": [
@@ -715,7 +715,7 @@
     "cave_open": {
       "name": "Desbloquear Caverna",
       "world": "nature",
-      "description": "Abre a coleta de pedra.",
+      "description": "Abre a busca de pedra.",
       "cost": 80,
       "materials": {},
       "requirements": {
@@ -729,7 +729,7 @@
     "trees_slot_2": {
       "name": "Segundo espaço de corte",
       "world": "nature",
-      "description": "Colete em duas árvores ao mesmo tempo.",
+      "description": "Busque em duas árvores ao mesmo tempo.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -746,7 +746,7 @@
     "trees_slot_3": {
       "name": "Terceiro espaço de corte",
       "world": "nature",
-      "description": "Colete em três árvores ao mesmo tempo.",
+      "description": "Busque em três árvores ao mesmo tempo.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -763,7 +763,7 @@
     "rocks_slot_2": {
       "name": "Segundo espaço de mineração",
       "world": "nature",
-      "description": "Colete em duas pedras ao mesmo tempo.",
+      "description": "Busque em duas pedras ao mesmo tempo.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -780,7 +780,7 @@
     "rocks_slot_3": {
       "name": "Terceiro espaço de mineração",
       "world": "nature",
-      "description": "Colete em três pedras ao mesmo tempo.",
+      "description": "Busque em três pedras ao mesmo tempo.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -797,7 +797,7 @@
     "fibers_slot_2": {
       "name": "Segundo espaço de fibras",
       "world": "nature",
-      "description": "Colete fibras em dois pontos ao mesmo tempo.",
+      "description": "Busque fibras em dois pontos ao mesmo tempo.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -814,7 +814,7 @@
     "fibers_slot_3": {
       "name": "Terceiro espaço de fibras",
       "world": "nature",
-      "description": "Colete fibras em três pontos ao mesmo tempo.",
+      "description": "Busque fibras em três pontos ao mesmo tempo.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -831,7 +831,7 @@
     "forest_level_2": {
       "name": "Bosque · nível 2",
       "world": "nature",
-      "description": "Mais madeira por coleta.",
+      "description": "Mais madeira por busca.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -911,7 +911,7 @@
     "meadow_level_2": {
       "name": "Prado · nível 2",
       "world": "nature",
-      "description": "Mais fibras por coleta.",
+      "description": "Mais fibras por busca.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -968,7 +968,7 @@
     "orchard": {
       "name": "Pomar",
       "world": "farm",
-      "description": "Libera a rota de colheita de maçãs e novos preparos.",
+      "description": "Libera a rota de colheita de maçãs e novas receitas.",
       "cost": 300,
       "materials": {
         "plank": 5
@@ -1134,7 +1134,7 @@
     "forest_open": {
       "name": "Desbloquear Bosque",
       "world": "nature",
-      "description": "Abre a coleta de madeira.",
+      "description": "Abre a busca de madeira.",
       "cost": 40,
       "requirements": {
         "chapter": 5
@@ -1144,7 +1144,7 @@
     "meadow_open": {
       "name": "Desbloquear Prado",
       "world": "nature",
-      "description": "Abre a coleta de fibras.",
+      "description": "Abre a busca de fibras.",
       "cost": 50,
       "requirements": {
         "chapter": 5
@@ -1154,7 +1154,7 @@
     "meadow_level_3": {
       "name": "Prado · nível 3",
       "world": "nature",
-      "description": "Libera o terceiro espaço de coleta.",
+      "description": "Libera o terceiro espaço de busca.",
       "cost": 0,
       "requirements": {
         "owned": [
@@ -1373,7 +1373,7 @@
         },
         {
           "xp": 90,
-          "label": "3 espaços de coleta",
+          "label": "3 espaços de busca",
           "materials": [
             "fiber"
           ],
@@ -1436,7 +1436,7 @@
     "pebbles": {
       "name": "Pedras da margem",
       "place": "creek",
-      "description": "Recolha pequenas pedras com as mãos.",
+      "description": "Pegue pequenas pedras com as mãos.",
       "seconds": 75,
       "requirements": {
         "chapter": 5,
@@ -1457,7 +1457,7 @@
     "woodcutting": {
       "name": "Cortar madeira",
       "place": "walk",
-      "description": "Colete madeira no Bosque de nível 2.",
+      "description": "Busque madeira no Bosque de nível 2.",
       "seconds": 150,
       "requirements": {
         "chapter": 5,
@@ -1522,7 +1522,7 @@
     "crystal_deep": {
       "name": "Cristais profundos",
       "place": "crystal",
-      "description": "Colete os cristais da Caverna de nível 3.",
+      "description": "Busque os cristais da Caverna de nível 3.",
       "seconds": 480,
       "requirements": {
         "chapter": 5,
@@ -1544,7 +1544,7 @@
     "reeds": {
       "name": "Cortar fibras",
       "place": "meadow",
-      "description": "Colete mais fibras no Prado de nível 2.",
+      "description": "Busque mais fibras no Prado de nível 2.",
       "seconds": 300,
       "requirements": {
         "chapter": 5,
@@ -1566,7 +1566,7 @@
     "lane": {
       "name": "Trilha do bosque",
       "place": "walk",
-      "description": "Explore o Bosque e recolha madeira.",
+      "description": "Explore o Bosque e pegue madeira.",
       "seconds": 60,
       "requirements": {
         "chapter": 5,
@@ -1588,7 +1588,7 @@
     "trail": {
       "name": "Trilha do riacho",
       "place": "creek",
-      "description": "Recolha madeira e pedras para as primeiras construções.",
+      "description": "Busque madeira e pedras para as primeiras construções.",
       "seconds": 180,
       "requirements": {
         "chapter": 5,
@@ -1696,7 +1696,7 @@
     "meadow": {
       "name": "Prado das fibras",
       "place": "meadow",
-      "description": "Colete fibras para transformar em tecido.",
+      "description": "Busque fibras para transformar em tecido.",
       "seconds": 420,
       "requirements": {
         "chapter": 5,
@@ -2046,7 +2046,7 @@
     },
     {
       "name": "Feito por nós",
-      "description": "Construa o ateliê e produza acessórios.",
+      "description": "Construa o ateliê e faça acessórios.",
       "target": "atelier",
       "rewards": {
         "coins": 160,

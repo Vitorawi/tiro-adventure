@@ -1,5 +1,27 @@
 # Game Design
 
+## Voz do jogo (Interface nova — Etapa 11)
+Curta, calorosa, falando com o jogador, no presente. Sem "·" juntando frases, sem "Conclua:", sem abreviações ("Nv", "Máx."), sem "x0" e sem número de capítulo (mostre o nome). Um verbo por ação:
+
+| Situação | Usar | Não usar |
+|----------|------|----------|
+| Pegar planta madura | **Colher** | Recolher, Coletar |
+| Pegar o que ficou pronto (fogão, animais, natureza, passeio, presente) | **Pegar** | Recolher, Coletar, Receber |
+| Pegar todos de uma vez | **Pegar tudo (3)** | Coletar prontos (3) |
+| Fazer no fogão/liquidificador | **Cozinhar** | Produzir, Preparar |
+| Fazer na bancada/moinho/queijaria | **Fazer** (costura: **Costurar**; animais: **Alimentar**) | Produzir |
+| Começar uma coleta na Natureza | **Buscar** | Coletar |
+| Prêmio de missão | **Pegar prêmio** | Receber |
+| Comprar construção | **Construir** (moedas) / **Comprar** (animais, roupas) | |
+| Ampliar espaço | **Ampliar** (áreas do sítio: **Abrir área**) | Expandir |
+| Ir até o lugar | **Ir** | Ver, Ir até lá |
+| Explicação | botão **?** | Ajuda |
+| Fechado | cadeado + "Depois de: <passo>" / "Abre em: <capítulo>" | "Fechado · Conclua:" |
+| Fila | "Na fila" | |
+| Pronto | "Pronto!" ("1 pronto!", "3 prontos!") | "Concluído" |
+
+Números: `3/6` é meta, `×3` é quantidade de um item, `+20` é ganho; tempo pelo `TimeText`. Nunca `×0`. Erros curtos e com o que fazer: "Falta Cenoura ×2" (`GameState._missing_text`). Mensagem de sucesso que repete a animação (plantou, preparou, vendeu, comida dada) não aparece. As falas da história (`dialogue`, `introduction`, `greeting`) não foram reescritas. A guarda é `tests/texts_test.gd`; a lista de todos os textos sai de `tools/list_texts.ps1` (`build/texts.csv`).
+
 ## Interface do cantinho do Tiro (Interface nova — Etapa 09)
 O cenário original ocupa a largura toda, sem moldura lateral nem deformar a arte; Tiro e sombra ficam sobre o tapete. Quatro necessidades em anéis e o coração de vínculo ficam na mesma fileira, sem o nome Tiro acima; o caderninho flutua à direita. A faixa de cuidados flutua acima das abas: Comida, Banho, Brincar e Dormir/Acordar usam o mesmo círculo, tamanho e alinhamento.
 

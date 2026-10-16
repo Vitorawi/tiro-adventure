@@ -299,10 +299,8 @@ func _refresh_guide() -> void:
 			_tasks_pulse.kill()
 			_tasks_pulse = null
 			_faces[&"tasks"].lift_node().scale = Vector2.ONE
-		%TasksTab.tooltip_text = ""
 	elif not _tasks_pulse:
 		# Chama o olhar para a aba Missões pulsando o ícone (sem frase na tela do Tiro).
-		%TasksTab.tooltip_text = "Comece por aqui!"
 		_tasks_pulse = Motion.pulse(_faces[&"tasks"].lift_node())
 
 

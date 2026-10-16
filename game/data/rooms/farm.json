@@ -370,7 +370,7 @@
     {
       "id": "greenhouse_area",
       "upgrade": "greenhouse",
-      "label": "Estufa · Expandir",
+      "label": "Abrir estufa",
       "locked_label": true,
       "label_pos": [443, 276],
       "polygon": [[313, 200], [573, 333], [573, 363], [315, 492], [25, 344]],
@@ -379,7 +379,7 @@
     {
       "id": "orchard_area",
       "upgrade": "orchard",
-      "label": "Pomar · Expandir",
+      "label": "Abrir pomar",
       "locked_label": true,
       "label_pos": [765, 276],
       "polygon": [[893, 200], [1180, 344], [891, 492], [633, 363], [633, 333]],
@@ -388,7 +388,7 @@
     {
       "id": "animals_area",
       "upgrade": "chicken_coop",
-      "label": "Animais · Expandir",
+      "label": "Abrir criação",
       "locked_label": true,
       "label_pos": [603, 445],
       "polygon": [[603, 348], [891, 492], [603, 638], [315, 492]],

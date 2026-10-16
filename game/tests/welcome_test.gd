@@ -35,11 +35,11 @@ func _run() -> void:
 	var food_before: int = state.get("inventory").count("dog_food")
 	check(state.call("claim_daily_gift") == "", "Recebe o presente")
 	check(state.get("inventory").count("dog_food") == food_before + 3, "Presente entra na mochila")
-	check(state.call("claim_daily_gift") == "Já recebido hoje", "Só uma vez por dia")
+	check(state.call("claim_daily_gift") == "Já pegou hoje", "Só uma vez por dia")
 	check(int(progress.daily_gift.count) == 1, "Contador avançou uma vez")
 	var saved: Dictionary = state.call("to_dict")
 	state.call("from_dict", saved)
-	check(state.call("daily_gift_error") == "Já recebido hoje", "Save preserva o presente recebido")
+	check(state.call("daily_gift_error") == "Já pegou hoje", "Save preserva o presente recebido")
 	progress = state.get("progress")
 	progress.daily_gift.period = "2000-01-01"
 	var coins: int = state.get("coins")
@@ -92,11 +92,11 @@ func _run() -> void:
 	welcome.call("open")
 	await process_frame
 	check(welcome.visible, "Cartão visível")
-	check(_find_button(welcome, "Receber") != null, "Botão Receber presente")
+	check(_find_button(welcome, "Pegar") != null, "Botão Pegar presente")
 	_shot("welcome_back")
-	_find_button(welcome, "Receber").emit_signal("pressed")
+	_find_button(welcome, "Pegar").emit_signal("pressed")
 	await process_frame
-	check(state.call("daily_gift_error") == "Já recebido hoje" and _find_button(welcome, "Receber") == null, "Receber entrega e some o botão")
+	check(state.call("daily_gift_error") == "Já pegou hoje" and _find_button(welcome, "Pegar") == null, "Pegar entrega e some o botão")
 	_find_button(welcome, "Vamos lá!").emit_signal("pressed")
 	check(not welcome.visible, "Vamos lá fecha")
 	main.get("_celebration").call("show_level", 3, {"coins": 20, "items": {"carrot_snack": 1}})

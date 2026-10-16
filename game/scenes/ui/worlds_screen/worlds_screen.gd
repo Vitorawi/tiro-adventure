@@ -87,7 +87,7 @@ func enter(world_id: String, place: String = "") -> void:
 		return
 	var reason := Places.world_error(world_id)
 	if reason != "":
-		Events.toast_requested.emit("Ainda fechado: " + reason)
+		Events.toast_requested.emit("Ainda não: " + reason)
 		show_map()
 		return
 	_visit += 1
