@@ -87,19 +87,31 @@ func reset() -> void:
 
 # --- Faro do Tiro ---------------------------------------------------------
 
+## A missão garante o item que falta em cada mundo acessível, inclusive em saves antigos.
+func _quest_find_item(world: String) -> String:
+	var def: Dictionary = Database.finds.worlds.get(world, {}).get("quest_find", {})
+	if def.is_empty() or not quest_unlocked(str(def.quest)):
+		return ""
+	if requirement_error(Database.worlds.get(world, {}).get("requirements", {})) != "":
+		return ""
+	var item := str(def.item)
+	return item if inventory.count(item) == 0 else ""
+
+
 ## Só um achado por mundo, mesmo após dias fora. A semente pertence ao montinho,
 ## separada do próximo horário, e não muda ao avançar tempo ou recarregar.
 func update_finds() -> bool:
 	var changed := false
 	for world: String in Database.finds.get("worlds", {}):
 		var def: Dictionary = Database.finds.worlds[world]
-		if requirement_error(def.get("requirements", {})) != "":
+		var quest_item := _quest_find_item(world)
+		if quest_item == "" and requirement_error(def.get("requirements", {})) != "":
 			continue
 		if not finds.worlds.has(world):
 			finds.worlds[world] = {"next_at": now() + float(Database.finds.settings.first_delay), "pending": 0, "spot": 0, "dug": 0, "seed": 0}
 			changed = true
 		var entry: Dictionary = finds.worlds[world]
-		if float(entry.next_at) > now() or int(entry.pending) >= mini(1, int(def.get("max_pending", 1))):
+		if (quest_item == "" and float(entry.next_at) > now()) or int(entry.pending) >= mini(1, int(def.get("max_pending", 1))):
 			continue
 		var spots: Array = Database.room(str(Database.worlds.get(world, {}).get("room", world))).get("dig_spots", [])
 		if spots.is_empty():
@@ -117,12 +129,20 @@ func find_reward(world: String) -> Dictionary:
 	var entry: Dictionary = finds.worlds[world]
 	var def: Dictionary = Database.finds.worlds[world]
 	var guaranteed: Array = def.get("guaranteed", [])
-	return guaranteed[int(entry.dug)].duplicate(true) if int(entry.dug) < guaranteed.size() else Loot.roll(def.get("table", []), 1, int(entry.seed))
+	var reward: Dictionary = guaranteed[int(entry.dug)].duplicate(true) if int(entry.dug) < guaranteed.size() else Loot.roll(def.get("table", []), 1, int(entry.seed))
+	var quest_item := _quest_find_item(world)
+	if quest_item != "":
+		var items: Dictionary = reward.get("items", {}).duplicate()
+		items[quest_item] = maxi(1, int(items.get(quest_item, 0)))
+		reward["items"] = items
+	return reward
 
 func dig_error(world: String) -> String:
 	if walking():
 		return away_text()
-	if not finds.worlds.has(world) or int(finds.worlds[world].pending) <= 0 or requirement_error(Database.finds.worlds.get(world, {}).get("requirements", {})) != "":
+	if not finds.worlds.has(world) or int(finds.worlds[world].pending) <= 0:
+		return "Nada para cavar aqui"
+	if _quest_find_item(world) == "" and requirement_error(Database.finds.worlds.get(world, {}).get("requirements", {})) != "":
 		return "Nada para cavar aqui"
 	return storage_error(find_reward(world).get("items", {}))
 

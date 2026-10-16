@@ -5,6 +5,7 @@
   },
   "worlds": {
     "farm": {
+      "quest_find": {"quest": "guide_treasure", "item": "map_piece_1"},
       "interval": 480,
       "max_pending": 1,
       "requirements": {
@@ -79,6 +80,7 @@
       ]
     },
     "park": {
+      "quest_find": {"quest": "guide_treasure", "item": "map_piece_2"},
       "interval": 420,
       "max_pending": 1,
       "requirements": {"quests": ["nina_meet"]},
@@ -96,6 +98,7 @@
       ]
     },
     "village": {
+      "quest_find": {"quest": "guide_treasure", "item": "map_piece_3"},
       "interval": 600,
       "max_pending": 1,
       "requirements": {
@@ -151,6 +154,7 @@
       ]
     },
     "nature": {
+      "quest_find": {"quest": "guide_treasure", "item": "map_piece_4"},
       "interval": 600,
       "max_pending": 1,
       "requirements": {

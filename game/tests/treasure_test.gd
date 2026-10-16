@@ -1,4 +1,4 @@
-﻿extends SceneTree
+extends SceneTree
 ## Missão "O mapa completo", baú da Clareira (uma vez só), mirtilo e persistência da Etapa 11.
 var state: Node
 var db: Node
@@ -110,6 +110,7 @@ func _run() -> void:
 	check(state.call("treasure_opened"), "aberto na sala")
 	room.queue_free()
 	await process_frame
+	await _quest_finds()
 	print("TREASURE TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(0 if failures == 0 else 1)
 
@@ -117,3 +118,53 @@ func _find_chest(node: Node) -> Sprite2D:
 	for child in node.find_children("treasure_chest", "Sprite2D", true, false):
 		return child as Sprite2D
 	return null
+
+
+## Save antigo: missão ativa, escavações garantidas já gastas e próximo achado distante.
+func _quest_finds() -> void:
+	state.call("reset")
+	state.call("dev_unlock_everything")
+	var pieces := {"farm": "map_piece_1", "park": "map_piece_2", "village": "map_piece_3", "nature": "map_piece_4"}
+	for world: String in pieces:
+		state.get("inventory").counts.erase(pieces[world])
+		state.get("finds").worlds[world] = {"next_at": state.call("now") + 86400.0, "pending": 0, "spot": 0, "dug": 99, "seed": 123}
+	state.get("progress").claimed_quests.erase("guide_treasure")
+	# Praça deve funcionar mesmo sem ter iniciado a linha opcional da Nina.
+	state.get("progress").claimed_quests.erase("nina_meet")
+	check(state.call("quest_unlocked", "guide_treasure"), "missão do mapa ativa no save antigo")
+	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
+	state.call("from_dict", saved)
+	state.call("_changed")
+	for world: String in pieces:
+		var item: String = pieces[world]
+		var entry: Dictionary = state.get("finds").worlds[world]
+		check(entry.pending == 1, world + ": pedaço ausente gera montinho sem esperar timer")
+		var reward: Dictionary = state.call("find_reward", world)
+		check(reward.get("items", {}).get(item, 0) == 1, world + ": pedaço garantido mesmo após 99 escavações")
+		var seed_before: int = entry.seed
+		state.call("update_finds")
+		check(entry.seed == seed_before and reward == state.call("find_reward", world), world + ": montinho pendente não é sorteado novamente")
+		var room: Control = load("res://scenes/levels/room/room.tscn").instantiate()
+		room.set("room_id", world)
+		room.set("world_id", world)
+		root.add_child(room)
+		await process_frame
+		check(room.call("point_at", "find"), world + ": Ir aponta para o achado real")
+		var spot: Node2D = room.get("_dig_spot")
+		check(is_instance_valid(spot) and spot.is_visible_in_tree(), world + ": achado existe e aparece")
+		if is_instance_valid(spot):
+			room.call("_handle_tap", spot.position)
+		check(state.get("inventory").count(item) == 1, world + ": toque entrega o pedaço que faltava")
+		check(state.get("finds").worlds[world].pending == 0 and state.call("dig", world).is_empty(), world + ": não duplica peça nem montinho")
+		check(not room.call("point_at", "find"), world + ": sem achado não mostra seta num lugar vazio")
+		room.queue_free()
+		await process_frame
+	check(state.call("quest_error", "guide_treasure") == "", "quatro pedaços deixam a missão pronta")
+	# A garantia da missão soma o pedaço ao prêmio normal, sem pular as mudas iniciais.
+	state.get("inventory").counts.erase("map_piece_1")
+	state.get("finds").worlds.farm.dug = 0
+	state.call("_changed")
+	var first: Dictionary = state.call("find_reward", "farm")
+	check(first.get("unlocks", []).has("crop:strawberry") and first.get("items", {}).get("map_piece_1", 0) == 1, "pedaço garantido preserva as mudas de morango do primeiro achado")
+
+	check(state.call("dig", "farm").get("items", {}).get("map_piece_1", 0) == 1, "escavação inicial entrega mapa junto das mudas")

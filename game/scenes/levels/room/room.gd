@@ -975,10 +975,9 @@ func point_at(action: String) -> bool:
 	clear_pointer()
 	var anchor := Vector2.INF
 	if action == "find":
+		_refresh_find()
 		if is_instance_valid(_dig_spot):
 			anchor = _dig_spot.position - Vector2(0, 16)
-		elif not _room.get("dig_spots", []).is_empty():
-			anchor = _vec(_room.dig_spots[0])
 	for npc: NpcWorld in _npcs:
 		if npc.visible and (action == "npc:" + npc.npc_id or (npc.friend_id != "" and action in ["friend:" + npc.friend_id, "friend_visit:" + npc.friend_id, "place:friends"])):
 			anchor = npc.head_point()
