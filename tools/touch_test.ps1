@@ -119,6 +119,43 @@ try {
                 $png = (Send-Cdp "Page.captureScreenshot" @{ format = "png" }).data
                 [IO.File]::WriteAllBytes((Join-Path $Out "$($s.name).png"), [Convert]::FromBase64String($png))
             }
+            "save" {
+                # Lê só o save do perfil descartável deste teste, após a gravação no IndexedDB.
+                Start-Sleep -Milliseconds 1600
+                $expression = @'
+(async () => {
+  for (const info of await indexedDB.databases()) {
+    const db = await new Promise((resolve, reject) => {
+      const request = indexedDB.open(info.name);
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+    for (const name of db.objectStoreNames) {
+      const entries = await new Promise((resolve, reject) => {
+        const store = db.transaction(name, 'readonly').objectStore(name);
+        const values = store.getAll(), keys = store.getAllKeys();
+        let a, b;
+        const done = () => { if (a && b) resolve(a.map((value, i) => [b[i], value])); };
+        values.onsuccess = () => { a = values.result; done(); };
+        keys.onsuccess = () => { b = keys.result; done(); };
+        values.onerror = keys.onerror = () => reject('IndexedDB read');
+      });
+      for (const [key, value] of entries) {
+        if (/\/save(?:_dev)?\.json$/.test(String(key)) && value.contents) {
+          db.close();
+          return JSON.parse(new TextDecoder().decode(value.contents));
+        }
+      }
+    }
+    db.close();
+  }
+  throw new Error('Save do perfil de teste ainda não apareceu no IndexedDB');
+})()
+'@
+                $result = Send-Cdp "Runtime.evaluate" @{ expression = $expression; awaitPromise = $true; returnByValue = $true }
+                if ($result.exceptionDetails) { throw "Nao foi possivel capturar o save de teste: $($result.exceptionDetails.text)" }
+                $result.result.value | ConvertTo-Json -Depth 100 | Set-Content (Join-Path $Out "$($s.name).json") -Encoding UTF8
+            }
         }
     }
 

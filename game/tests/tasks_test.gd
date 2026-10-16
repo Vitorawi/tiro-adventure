@@ -160,7 +160,7 @@ func _ui_check() -> void:
 	var card: Control = main.find_child("StoryCard", true, false)
 	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
 	check(main.get("_tasks_pulse") != null, "Guia pulsa no começo")
-	check(main.find_child("MoodLabel", true, false).text == "Veja suas missões aqui embaixo!", "Guia do Tiro aparece no começo")
+	check(main.find_child("MoodLabel", true, false).text == "Tiro está feliz da vida!", "Humor do Tiro substitui a instrução fixa (Etapa 09); guia nas abas continua pulsando")
 	check(not main.find_child("BagTab", true, false).visible, "Aba Mochila escondida no começo")
 	# "Ir": seta sobre o objeto do destino, depois o painel.
 	main.call("_on_world_requested", "house", "place:bowl")

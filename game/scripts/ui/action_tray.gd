@@ -72,6 +72,7 @@ var _hint_label: Label
 var _hint_node: Control
 var _hint_tween: Tween
 var _ghost: Control
+var _gesture := DragGhost.new()
 var _pressed := -1
 var _press_global := Vector2.ZERO
 var _drag_index := -1
@@ -437,6 +438,7 @@ func press_item(index: int, global_point: Vector2) -> void:
 		return
 	_pressed = index
 	_press_global = global_point
+	_gesture.press(global_point)
 	_finger = global_point
 	_touched()
 	_stop_hint()
@@ -448,11 +450,13 @@ func move_item(global_point: Vector2) -> void:
 	_finger = global_point
 	if _drag_index < 0:
 		var entry := entries[_pressed]
-		if global_point.distance_to(_press_global) <= TAP_SLOP:
+		if not _gesture.move(global_point):
 			return
 		if not entry.has("drag") or str(entry.get("error", "")) != "":
 			return
 		_begin_drag(_pressed)
+	else:
+		_gesture.move(global_point)
 	_follow()
 
 
@@ -551,34 +555,14 @@ func find_in_panel(node_name: String) -> Node:
 func _begin_drag(index: int) -> void:
 	_drag_index = index
 	room.tray_dragging = true
-	_ghost = _make_token(entries[index].get("icon") as Texture2D)
-	_ghost.name = "Ghost"
-	add_child(_ghost)
-	Motion.pop_in(_ghost)
+	_ghost = _gesture.begin(self, entries[index].get("icon") as Texture2D)
 	_items[index].modulate.a = 0.5
 	_fade_box(DRAG_ALPHA)  # a bandeja some um pouco para não esconder os canteiros que estão atrás dela
 
 
 ## Ficha redonda com o ícone (o "fantasma" que o dedo carrega e a mãozinha de ensino).
 func _make_token(texture: Texture2D) -> Control:
-	var token := Panel.new()
-	token.size = Vector2(GHOST_PX, GHOST_PX)
-	token.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.PAPER
-	style.set_corner_radius_all(int(GHOST_PX / 2.0))
-	style.set_border_width_all(2)
-	style.border_color = Palette.CARD_LINE
-	style.shadow_color = Palette.SHADE
-	style.shadow_size = 4
-	style.shadow_offset = Vector2(0, 2)
-	token.add_theme_stylebox_override("panel", style)
-	var icon := UiKit.icon(texture, int(ICON_PX))
-	icon.position = (Vector2(GHOST_PX, GHOST_PX) - Vector2(ICON_PX, ICON_PX)) / 2.0
-	icon.size = Vector2(ICON_PX, ICON_PX)
-	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	token.add_child(icon)
-	return token
+	return DragGhost.make_token(texture)
 
 
 func _fade_box(alpha: float) -> void:
@@ -590,11 +574,12 @@ func _fade_box(alpha: float) -> void:
 
 ## Ponto do mundo onde o fantasma (a ponta de baixo dele) está.
 func ghost_world_point() -> Vector2:
-	return room.screen_to_world(_finger + Vector2(0, -GHOST_LIFT))
+	return room.screen_to_world(_gesture.target())
 
 
 func _follow() -> void:
-	_ghost.position = _finger - room.global_position - Vector2(GHOST_PX / 2.0, GHOST_PX + GHOST_LIFT)
+	_gesture.finger = _finger
+	_gesture.follow(self)
 	_act_here()
 
 
@@ -646,8 +631,7 @@ func _end_drag(allow_close: bool) -> void:
 	_drag_index = -1
 	if is_instance_valid(room):
 		room.tray_dragging = false
-	if is_instance_valid(_ghost):
-		Motion.pop_out(_ghost)
+	_gesture.finish()
 	_ghost = null
 	if not closing:
 		_fade_box(1.0)

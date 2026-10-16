@@ -53,7 +53,7 @@ Faça um commit local no fim (não faça push). Ao terminar, marque a etapa como
 - [x] Etapa 06 — indicadores e etiquetas — feita em 15/10/2026; balões `WorldBalloon` e etiquetas `WorldLabel` (brilho 6.4 opcional não feito)
 - [x] Etapa 07 — bandeja na horta — feita em 15/10/2026; `ActionTray` + `PlotTray`: toque e arrasto para plantar, regar e colher
 - [x] Etapa 08 — bandeja nas estações — feita em 15/10/2026; `StationTray`, grade/detalhe, criações e Natureza; retomada e concluída pelo Codex
-- [ ] Etapa 09 — tela do Tiro
+- [x] Etapa 09 — tela do Tiro — feita em 15/10/2026; cenário original sem margens, anéis, quatro cuidados iguais, comidas em guia vertical (pedido do Vitor), arrasto e caderninho
 - [ ] Etapa 10 — listas (missões, desejos, mochila, coleção)
 - [ ] Etapa 11 — textos
 - [ ] Etapa 12 — festa e polimento

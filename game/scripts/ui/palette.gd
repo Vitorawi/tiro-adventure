@@ -30,3 +30,11 @@ const WORLD := {
 	"house": Color("c98b5a"), "farm": Color("7db84a"), "park": Color("e9b93a"),
 	"village": Color("d9694a"), "nature": Color("4fa3d9"),
 }
+
+# Luz do cantinho do Tiro (hora local; só apresentação).
+const PET_DAY := Color.WHITE
+const PET_SUNSET := Color(1.0, 0.83, 0.66)
+const PET_NIGHT := Color(0.42, 0.52, 0.74)
+const PET_SLEEP := Color(0.76, 0.79, 0.88)
+const PET_SURFACE := Color(1.0, 0.965, 0.89, 0.96)
+const PET_BUTTON := Color(0.9, 0.83, 0.69, 0.55)

@@ -199,6 +199,44 @@ static func card(parent: Control, variation: StringName = &"CardPanel") -> VBoxC
 	return box
 
 
+## Ação de cuidado: círculo de 56 px, ícone de 48 e legenda alinhada. Mesma peça nos quatro cuidados.
+static func action_tile(texture: Texture2D, caption: String, on_pressed: Callable) -> Button:
+	var result := button("", on_pressed, &"GhostButton")
+	result.custom_minimum_size = Vector2(72, 80)
+	result.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	result.size_flags_vertical = Control.SIZE_FILL
+	for state: String in ["normal", "hover", "pressed", "focus", "disabled"]:
+		result.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+	var visual := vbox(2)
+	visual.name = "Visual"
+	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result.add_child(visual)
+	visual.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	visual.alignment = BoxContainer.ALIGNMENT_CENTER
+	var circle := PanelContainer.new()
+	circle.name = "Circle"
+	circle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	circle.custom_minimum_size = Vector2(56, 56)
+	circle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var style := StyleBoxFlat.new()
+	style.bg_color = Palette.PET_BUTTON
+	style.set_corner_radius_all(28)
+	circle.add_theme_stylebox_override("panel", style)
+	var center := CenterContainer.new()
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var picture := icon(texture, 48)
+	picture.name = "CareIcon"
+	center.add_child(picture)
+	circle.add_child(center)
+	visual.add_child(circle)
+	var text := short_label(caption, &"SmallLabel")
+	text.name = "Caption"
+	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	visual.add_child(text)
+	return result
+
+
 static func button(text: String, on_pressed: Callable, variation: StringName = &"", texture: Texture2D = null) -> Button:
 	var result := Button.new()
 	result.text = text
@@ -266,3 +304,24 @@ static func effect_chip_list(effects: Dictionary) -> Array[Control]:
 		var amount := int(effects[need_id])
 		chips.append(chip(Database.need_icon(need_id), "%+d" % amount, GOOD if amount > 0 else BAD))
 	return chips
+
+
+## Abas de consulta em pílulas; a seleção é uma borda verde, sem botão principal.
+static func segmented(entries: Array[Dictionary], selected: String, choose: Callable) -> HBoxContainer:
+	var row := hbox(4)
+	for entry in entries:
+		var id := str(entry.id)
+		var tab := ghost(str(entry.text), choose.bind(id))
+		tab.name = "NotebookTab_" + id
+		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tab.add_theme_font_size_override("font_size", 18)
+		var style := StyleBoxFlat.new()
+		style.bg_color = Palette.PAPER if id == selected else Palette.SUNKEN
+		style.set_corner_radius_all(16)
+		style.set_content_margin_all(6)
+		style.border_color = Palette.PRIMARY
+		style.set_border_width_all(2 if id == selected else 0)
+		for state: String in ["normal", "hover", "pressed"]:
+			tab.add_theme_stylebox_override(state, style)
+		row.add_child(tab)
+	return row

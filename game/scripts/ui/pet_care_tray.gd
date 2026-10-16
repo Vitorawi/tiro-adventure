@@ -1,0 +1,336 @@
+class_name PetCareTray
+extends PanelContainer
+## Faixa permanente de cuidados. Gestos nunca alteram estado antes de validar o alvo.
+
+const SCRUB_STEP := 260.0
+const SCRUB_TOTAL := 800.0
+const THROW_SPEED := -180.0
+var pet_screen: Control
+var gesture := DragGhost.new()
+var _row: HBoxContainer
+var _scroll: ScrollContainer
+var _foods: VBoxContainer
+var _food_button: Button
+var _menu: PanelContainer
+static var recent_foods: Array[String] = []
+var _sleep: Button
+var _items: Dictionary = {}
+var _food_ids: Array[String] = []
+var _pressed := ""
+var _dragging := false
+var _distance := 0.0
+var _bubbles_at := 0.0
+var _acted := false
+var _scrolling := false
+var _foods_ready := false
+
+
+func _ready() -> void:
+	name = "CareTray"
+	custom_minimum_size.y = 104
+	var style := StyleBoxFlat.new()
+	style.bg_color = Palette.PET_SURFACE
+	style.set_corner_radius_all(26)
+	style.shadow_color = Palette.SHADE
+	style.shadow_size = 6
+	style.shadow_offset = Vector2(0, 3)
+	style.content_margin_left = 12
+	style.content_margin_right = 12
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
+	add_theme_stylebox_override("panel", style)
+	_row = UiKit.hbox(8)
+	add_child(_row)
+	_food_button = UiKit.action_tile(Database.item_icon("dog_food"), "Comida", open_food_menu)
+	_food_button.name = "FoodButton"
+	_row.add_child(_food_button)
+	_menu = PanelContainer.new()
+	_menu.name = "FoodMenu"
+	_menu.theme_type_variation = &"CardPanel"
+	_menu.z_index = 4
+	_menu.hide()
+	pet_screen.add_child(_menu)
+	_menu.minimum_size_changed.connect(func() -> void: _place_menu.call_deferred())
+	var column := UiKit.vbox(4)
+	_menu.add_child(column)
+	var header := UiKit.hbox(4)
+	header.add_child(UiKit.fill_label("Comidinhas", &"SectionLabel"))
+	header.add_child(UiKit.icon_button(UiKit.ui_icon("ui_close"), close_food_menu, 44))
+	column.add_child(header)
+	_scroll = ScrollContainer.new()
+	_scroll.name = "FoodScroll"
+	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	column.add_child(_scroll)
+	_foods = UiKit.vbox(4)
+	_foods.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_scroll.add_child(_foods)
+	for entry: Array in [["sponge", "action_sponge", "Banho"], ["ball", "action_play", "Brincar"]]:
+		var item := UiKit.action_tile(UiKit.ui_icon(entry[1]), entry[2], func() -> void: pass)
+		item.name = "Care_" + str(entry[0])
+		item.mouse_filter = Control.MOUSE_FILTER_STOP
+		item.gui_input.connect(_on_item_input.bind(str(entry[0])))
+		_items[entry[0]] = item
+		_row.add_child(item)
+	_sleep = UiKit.action_tile(UiKit.ui_icon("action_sleep"), "Dormir", func() -> void:
+		if not GameState.walking(): GameState.set_sleeping(not GameState.dog.sleeping))
+	_sleep.name = "SleepButton"
+	_row.add_child(_sleep)
+	Events.state_changed.connect(refresh)
+	visibility_changed.connect(func() -> void:
+		if not is_visible_in_tree(): cancel())
+	Events.sheet_requested.connect(func(_title: String, _content: Control) -> void: cancel())
+	refresh()
+
+
+func food_ids() -> Array[String]:
+	var result: Array[String] = []
+	for id: String in Database.items:
+		if Database.items[id].has("feed") and GameState.inventory.count(id) > 0:
+			result.append(id)
+	result.sort_custom(func(a: String, b: String) -> bool:
+		var count_a := GameState.progress.stat("feed:" + a)
+		var count_b := GameState.progress.stat("feed:" + b)
+		if count_a != count_b: return count_a > count_b
+		var recent_a := recent_foods.find(a)
+		var recent_b := recent_foods.find(b)
+		return recent_a >= 0 and (recent_b < 0 or recent_a < recent_b))
+	return result
+
+
+func refresh() -> void:
+	visible = not GameState.walking()
+	var ids := food_ids()
+	# Não libera o controle que ainda recebe o gesto; só atualiza as quantidades.
+	if (not _foods_ready or ids != _food_ids) and _pressed == "":
+		_foods_ready = true
+		for id in _food_ids: _items.erase(id)
+		for child in _foods.get_children():
+			_foods.remove_child(child)
+			child.queue_free()
+		_food_ids = ids
+		for id in ids: _foods.add_child(_food_item(id))
+		_scroll.custom_minimum_size = Vector2(204, mini(5, maxi(1, ids.size())) * 64 - 4)
+		_place_menu.call_deferred()
+		if ids.is_empty():
+			var help := UiKit.icon_button(Database.item_icon("dog_food"), func() -> void:
+				Events.sheet_requested.emit("Comidinha", SheetBuilder.food_picker()), 60, "+")
+			help.name = "FoodHelp"
+			_foods.add_child(help)
+	for id: String in _items:
+		var item: Control = _items[id]
+		item.modulate.a = 0.45 if GameState.dog.sleeping else 1.0
+		var caption := item.find_child("Caption", true, false) as Label
+		if Database.items.has(id): caption.text = "%s ×%d" % [Database.item_name(id), GameState.inventory.count(id)]
+		else: caption.text = "Banho" if id == "sponge" else "Brincar"
+		if GameState.dog.sleeping: caption.text = "Zzz"
+		var badge := item.get_node_or_null("Badge") as Control
+		if badge: badge.visible = GameState.wish_slot_for_item(id) >= 0
+	_food_button.modulate.a = 0.45 if GameState.dog.sleeping else 1.0
+	(_food_button.find_child("Caption", true, false) as Label).text = "Zzz" if GameState.dog.sleeping else "Comida"
+	if GameState.dog.sleeping or GameState.walking(): close_food_menu()
+	(_sleep.find_child("Caption", true, false) as Label).text = "Acordar" if GameState.dog.sleeping else "Dormir"
+	(_sleep.find_child("CareIcon", true, false) as TextureRect).texture = UiKit.ui_icon("action_wake" if GameState.dog.sleeping else "action_sleep")
+	_sleep.disabled = GameState.walking()
+
+
+func _item(id: String, texture: Texture2D, caption: String) -> Control:
+	var item := Control.new()
+	item.name = "Care_" + id
+	item.custom_minimum_size = Vector2(56, 76)
+	item.mouse_filter = Control.MOUSE_FILTER_STOP
+	var icon := UiKit.icon(texture, 48)
+	icon.position = Vector2(4, 0)
+	icon.name = "CareIcon"
+	icon.anchor_left = 0.5
+	icon.anchor_right = 0.5
+	icon.offset_left = -24
+	icon.offset_right = 24
+	item.add_child(icon)
+	var label := UiKit.short_label(caption, &"SmallLabel")
+	label.name = "Caption"
+	label.position = Vector2(0, 48)
+	label.size = Vector2(56, 24)
+	label.anchor_right = 1.0
+	label.offset_right = 0
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	item.add_child(label)
+	var badge := UiKit.icon(UiKit.ui_icon("bond_heart"), 20)
+	badge.name = "Badge"
+	badge.position = Vector2(40, 0)
+	badge.size = Vector2(20, 20)
+	badge.hide()
+	badge.anchor_left = 0.5
+	badge.anchor_right = 0.5
+	badge.offset_left = 16
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	item.add_child(badge)
+	item.gui_input.connect(_on_item_input.bind(id))
+	_items[id] = item
+	return item
+
+
+## Linhas verticais: o ícone é a pega de arrasto; o nome permite rolar a lista.
+func _food_item(id: String) -> Control:
+	var item := _item(id, Database.item_icon(id), "")
+	item.custom_minimum_size = Vector2(204, 60)
+	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var label := item.get_node("Caption") as Label
+	label.anchor_right = 0.0
+	label.position = Vector2(60, 4)
+	label.size = Vector2(136, 52)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var icon := item.get_node("CareIcon") as Control
+	icon.anchor_left = 0.0
+	icon.anchor_right = 0.0
+	icon.position = Vector2(4, 6)
+	icon.size = Vector2(48, 48)
+	var badge := item.get_node("Badge") as Control
+	badge.anchor_left = 0.0
+	badge.anchor_right = 0.0
+	badge.position = Vector2(36, 2)
+	return item
+
+
+func open_food_menu() -> void:
+	if GameState.walking() or GameState.dog.sleeping:
+		Events.toast_requested.emit(GameState.away_text() if GameState.walking() else "Shh... ele está dormindo.")
+		return
+	if _menu.visible:
+		close_food_menu()
+		return
+	refresh()
+	_menu.show()
+	_scroll.scroll_vertical = 0
+	_place_menu()
+	Motion.pop_in(_menu)
+
+
+func close_food_menu() -> void:
+	_menu.hide()
+
+
+func _place_menu() -> void:
+	_menu.size = _menu.get_combined_minimum_size()
+	_menu.position = Vector2(12, global_position.y - pet_screen.global_position.y - _menu.size.y - 8)
+
+
+func _input(event: InputEvent) -> void:
+	if not is_visible_in_tree() or not _menu.visible or _pressed != "": return
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		if not _menu.get_global_rect().has_point(event.global_position) and not get_global_rect().has_point(event.global_position):
+			close_food_menu()
+			get_viewport().set_input_as_handled()
+
+
+func item_center(id: String) -> Vector2:
+	var item: Control = _items.get(id)
+	return item.global_position + Vector2(28, 28) if item and Database.items.has(id) else (item.global_position + item.size / 2.0 if item else Vector2.ZERO)
+
+
+func item_node(id: String) -> Control:
+	return _items.get(id) as Control
+
+
+func _on_item_input(event: InputEvent, id: String) -> void:
+	if event is InputEventMouseButton and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		return  # deixa a roda chegar ao ScrollContainer
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
+		if event.pressed: press_item(id, event.global_position)
+		else: release_item(event.global_position)
+	elif event is InputEventMouseMotion and _pressed == id:
+		move_item(event.global_position)
+	if _items.has(id): (_items[id] as Control).accept_event()
+
+
+func press_item(id: String, point: Vector2) -> void:
+	if _pressed != "": return
+	_pressed = id
+	gesture.press(point)
+	_distance = 0.0
+	_bubbles_at = 0.0
+	_acted = false
+	_scrolling = false
+
+
+func move_item(point: Vector2) -> void:
+	if _pressed == "" or GameState.dog.sleeping or GameState.walking(): return
+	var crossed := gesture.move(point)
+	if not _dragging and crossed and Database.items.has(_pressed) and gesture.start.x - (_items[_pressed] as Control).global_position.x > 64 and absf(point.y - gesture.start.y) > absf(point.x - gesture.start.x):
+		_scrolling = true
+	if _scrolling:
+		_scroll.scroll_vertical -= roundi(point.y - gesture.previous.y)
+		return
+	if not _dragging:
+		if not crossed: return
+		_dragging = true
+		var texture := UiKit.ui_icon("action_sponge" if _pressed == "sponge" else "action_play") if _pressed in ["sponge", "ball"] else Database.item_icon(_pressed)
+		gesture.begin(pet_screen, texture)
+		_menu.modulate.a = 0.3
+	gesture.follow(pet_screen)
+	if _pressed == "sponge" and not _acted:
+		var dog: Rect2 = pet_screen.call("dog_rect")
+		if dog.has_point(gesture.target()) and dog.has_point(gesture.previous - Vector2(0, DragGhost.LIFT)):
+			_distance += gesture.finger.distance_to(gesture.previous)
+		if _distance - _bubbles_at >= SCRUB_STEP:
+			_bubbles_at = _distance
+			pet_screen.call("care_bubbles", gesture.target())
+		if _distance >= SCRUB_TOTAL:
+			_acted = true
+			_act("sponge")
+			gesture.finish()
+
+
+func release_item(point: Vector2) -> void:
+	if _pressed == "": return
+	var id := _pressed
+	# Marca como consumido antes da ação: state_changed pode reconstruir a faixa.
+	var dragged := _dragging
+	var acted := _acted
+	var scrolling := _scrolling
+	_pressed = ""
+	_dragging = false
+	if not acted and not scrolling:
+		if not dragged: _act(id)
+		elif id == "ball":
+			if gesture.release_velocity().y < THROW_SPEED and point.y < gesture.start.y - DragGhost.SLOP:
+				_act(id)
+		elif id != "sponge":
+			var head: Rect2 = pet_screen.call("head_rect")
+			if head.has_point(point - Vector2(0, DragGhost.LIFT)): _act(id)
+	gesture.finish()
+	_menu.modulate.a = 1.0
+	refresh()
+
+
+func cancel() -> void:
+	_pressed = ""
+	_dragging = false
+	gesture.finish()
+	_menu.modulate.a = 1.0
+	close_food_menu()
+
+
+func _act(id: String) -> void:
+	var error := ""
+	if GameState.walking(): error = GameState.away_text()
+	elif GameState.dog.sleeping: error = "Shh... ele está dormindo."
+	elif id == "sponge":
+		close_food_menu()
+		GameState.bathe()
+		pet_screen.call("care_bubbles", (pet_screen.call("dog_rect") as Rect2).get_center())
+	elif id == "ball":
+		close_food_menu()
+		if GameState.play(): pet_screen.call("throw_ball")
+		else: error = "Tiro está cansado demais para brincar."
+	else:
+		error = SheetBuilder.give_food(id)
+		if error == "":
+			recent_foods.erase(id)
+			recent_foods.push_front(id)
+			pet_screen.call("food_effects", id)
+	if error != "":
+		Events.toast_requested.emit(error)
+		if _items.has(id): Motion.shake(_items[id])

@@ -36,6 +36,19 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 
 ## Registro de assets
 
+### Interface nova — Etapa 09, cantinho e cuidados (15/10/2026, Codex)
+
+| Asset | Job / asset PixelLab | Destino / escolha |
+|---|---|---|
+| Cantinho original | Pro `f217fed7-cfa9-4891-a2d5-a2e663baed91`; asset `023aa614-82e0-55f0-a235-c53d4b0d6ac5` | `areas/pet/corner.png`, 360×420, mantido a pedido do Vitor. Referência `areas/house/room.png` via upload `b5e3093b-c7bc-4bd2-8149-69e6b517aed3`. |
+| Esponja | Pixen `a656ecc4-0d24-48e0-a40e-29ac0680f870`; asset `fbafa795-4221-5250-9436-f369239d1d43` | `ui/icons/action_sponge.png`, fonte 32×32, `Invoke-TrimSprite` → 32×29. |
+| Caderninho | Pixen `4f71ac45-ffa2-4000-a440-a7a25b2e226f`; asset `44523362-8e82-55b3-a7fe-c16bcee924ce` | `ui/icons/ui_notebook.png`, fonte 32×32, recorte 29×26. |
+
+Ícones transparentes, contorno preto, detalhe médio; aprovados na primeira tentativa. Imagens avulsas não aceitam tags; registro local `tiro-adventure`, `interface`, `ativo`. Pranchas abertas antes da escolha: `build/preview/etapa09/icones.png`, `cenario.png`, `cenarios.png`. Originais e candidatos em `build/art_sources/interface_etapa09/`; PNGs e `.import` versionados.
+
+O primeiro cenário tinha uma moldura bege vazia dentro do próprio PNG. A pedido do Vitor, a tela foi recomposta e o cenário original mantido fiel: `PetBackdrop` desenha o recorte `36,72,289,277` na proporção original e continua parede/piso pela tela; nenhum objeto novo foi pintado. Patas e sombra seguem o centro do tapete. Um candidato Pro 360×640 (`16f6f287-121d-4fdc-948d-5fc5c582f981`, asset `0387c504-ad45-514e-898b-f5aa1fe0393a`) preencheu as bordas, mas trouxe um astronauta: descartado e **não usado no jogo**. O edit Pro Flash foi recusado pela ferramenta (limite 256×256). Terceira geração `577d1b3f-5325-4ead-a918-d57e569eede4` cancelada quando o Vitor pediu fidelidade à primeira imagem.
+
+
 ### Interface nova — Etapa 05, apartamento (15/10/2026, Codex)
 
 - Ajuste do Vitor antes de encerrar: o lar é um apartamento; substituir o desenho da casinha em todos os lugares.

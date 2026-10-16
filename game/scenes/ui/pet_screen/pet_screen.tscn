@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/pet_screen/pet_screen.gd" id="1_pet"]
 [ext_resource type="Texture2D" path="res://assets/sprites/characters/tiro_pet/tiro_pet_idle_front.png" id="2_tiro"]
+[ext_resource type="Script" path="res://scripts/ui/pet_backdrop.gd" id="4_backdrop"]
 
 [node name="PetScreen" type="Control"]
 layout_mode = 3
@@ -12,39 +13,25 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_pet")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Corner" type="Control" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+script = ExtResource("4_backdrop")
 mouse_filter = 2
-color = Color(0.96, 0.89, 0.76, 1)
 
-[node name="Floor" type="ColorRect" parent="."]
+[node name="Stars" type="Control" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.6
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+offset_left = 34.0
+offset_top = 186.0
+offset_right = 128.0
+offset_bottom = 250.0
 mouse_filter = 2
-color = Color(0.66, 0.45, 0.3, 1)
-
-[node name="Baseboard" type="ColorRect" parent="."]
-layout_mode = 1
-anchors_preset = -1
-anchor_top = 0.6
-anchor_right = 1.0
-anchor_bottom = 0.6
-offset_top = -6.0
-grow_horizontal = 2
-mouse_filter = 2
-color = Color(1, 0.97, 0.9, 1)
 
 [node name="Margin" type="MarginContainer" parent="."]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -53,35 +40,29 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 64
+theme_override_constants/margin_top = 96
 theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 34
+theme_override_constants/margin_bottom = 42
 
 [node name="VBox" type="VBoxContainer" parent="Margin"]
+unique_name_in_owner = true
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 8
 
-[node name="NeedsPanel" type="PanelContainer" parent="Margin/VBox"]
-layout_mode = 2
-
-[node name="NeedsGrid" type="GridContainer" parent="Margin/VBox/NeedsPanel"]
+[node name="NeedRow" type="HBoxContainer" parent="Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 6
-columns = 2
-
-[node name="MoodBubble" type="PanelContainer" parent="Margin/VBox"]
-layout_mode = 2
-size_flags_horizontal = 4
+alignment = 1
+theme_override_constants/separation = 4
 mouse_filter = 2
-theme_type_variation = &"ChipPanel"
 
-[node name="MoodLabel" type="Label" parent="Margin/VBox/MoodBubble"]
+[node name="NeedsGrid" type="GridContainer" parent="Margin/VBox/NeedRow"]
 unique_name_in_owner = true
 layout_mode = 2
-horizontal_alignment = 1
+columns = 4
+theme_override_constants/h_separation = 4
+mouse_filter = 2
 
 [node name="DogArea" type="CenterContainer" parent="Margin/VBox"]
 unique_name_in_owner = true
@@ -89,41 +70,20 @@ layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="DogSprite" type="TextureRect" parent="Margin/VBox/DogArea"]
-unique_name_in_owner = true
+[node name="DogCanvas" type="Control" parent="Margin/VBox/DogArea"]
 custom_minimum_size = Vector2(336, 284)
 layout_mode = 2
+mouse_filter = 2
+
+[node name="DogSprite" type="TextureRect" parent="Margin/VBox/DogArea/DogCanvas"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(336, 284)
+layout_mode = 0
+offset_right = 336.0
+offset_bottom = 284.0
 texture = ExtResource("2_tiro")
 expand_mode = 1
 stretch_mode = 5
-
-[node name="Actions" type="HBoxContainer" parent="Margin/VBox"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="FeedButton" type="Button" parent="Margin/VBox/Actions"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 100)
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="PlayButton" type="Button" parent="Margin/VBox/Actions"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 100)
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="BatheButton" type="Button" parent="Margin/VBox/Actions"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 100)
-layout_mode = 2
-size_flags_horizontal = 3
-
-[node name="SleepButton" type="Button" parent="Margin/VBox/Actions"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(0, 100)
-layout_mode = 2
-size_flags_horizontal = 3
 
 [node name="RefreshTimer" type="Timer" parent="."]
 unique_name_in_owner = true

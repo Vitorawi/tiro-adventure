@@ -1,5 +1,13 @@
 # Game Design
 
+## Interface do cantinho do Tiro (Interface nova — Etapa 09)
+O cenário original ocupa a largura toda, sem moldura lateral nem deformar a arte; Tiro e sombra ficam sobre o tapete. Quatro necessidades em anéis e o coração de vínculo ficam na mesma fileira, sem o nome Tiro acima; o caderninho flutua à direita. A faixa de cuidados flutua acima das abas: Comida, Banho, Brincar e Dormir/Acordar usam o mesmo círculo, tamanho e alinhamento.
+
+Comida abre uma guia vertical com até cinco opções visíveis e rolagem para todas as comidas da mochila. As mais usadas vêm primeiro (contadores existentes), com desempate pelo uso recente da sessão; coração indica o pedido. Tocar alimenta; arrastar pelo ícone só entrega ao soltar na cabeça. Arrastar pelo nome rola a guia. O desejo usa o mesmo caminho do “Ele quer!” e alimenta uma vez. Esfregar a esponja e arremessar a bola também têm toque simples equivalente. Dormindo só Acordar funciona; passeando a faixa dá lugar ao postal. Carinho direto permanece.
+
+O caderninho abre Manual por padrão, com Atributos/Coleção/Truques revelados conforme o progresso. Luz acompanha a hora local, sono tinge a tela, humor aparece em balão temporário e o desejo continua tocável. Nada altera regras, custos, tempos ou save.
+
+
 ## Faro do Tiro (Etapa 05, 14/10/2026)
 
 O Tiro fareja sozinho: de tempos em tempos aparece um montinho com brilho no chão do mapa (sítio, vila,

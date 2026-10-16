@@ -6,6 +6,15 @@ extends RefCounted
 ## Regra: ícone + número em vez de frase; no máximo uma linha curta de texto.
 
 
+## Caminho único da comida desejada (o cumprimento já alimenta exatamente uma vez).
+static func give_food(id: String) -> String:
+	if GameState.walking(): return GameState.away_text()
+	if GameState.dog.sleeping: return "Shh... ele está dormindo."
+	var slot := GameState.wish_slot_for_item(id)
+	if slot >= 0: return GameState.fulfill_wish(slot)
+	return "" if GameState.feed(id) else "Você não tem essa comida."
+
+
 ## Comidas do inventário: ícone, quantidade, efeitos e "Dar".
 static func food_picker() -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
@@ -26,13 +35,9 @@ static func food_picker() -> Control:
 				chips.append(UiKit.chip(UiKit.ui_icon("bond_heart"), "Ele quer!", UiKit.GOOD))
 			chips.append_array(UiKit.effect_chip_list(Database.items[id]["feed"]))
 			var on_give := func() -> void:
-				# Comida desejada: tocar cumpre o desejo (que já alimenta o Tiro).
-				if wish_slot >= 0:
-					var error := GameState.fulfill_wish(wish_slot)
-					Events.toast_requested.emit(error if error != "" else "Era isso que ele queria!")
-					Events.sheet_close_requested.emit()
-				elif GameState.feed(id):
-					Events.toast_requested.emit("Nhac! %s" % Database.item_name(id))
+				var error := give_food(id)
+				Events.toast_requested.emit(error if error != "" else ("Era isso que ele queria!" if wish_slot >= 0 else "Nhac! %s" % Database.item_name(id)))
+				if error == "":
 					Events.sheet_close_requested.emit()
 			# Só a comida que o Tiro quer ("Ele quer!") é o botão principal; as outras são secundárias.
 			var wanted := wish_slot >= 0 and not primary_used

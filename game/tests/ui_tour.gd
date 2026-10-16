@@ -56,6 +56,7 @@ func _world(id: String) -> void:
 func _start_main(wait: float) -> void:
 	main = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
+	main.find_child("PetScreen", true, false).set("preview_hour", 12)
 	await create_timer(wait).timeout
 	_hide_modals()
 
@@ -74,6 +75,15 @@ func _run() -> void:
 	var places: Script = load("res://scripts/ui/places.gd")
 	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
+	if "--pet-only" in OS.get_cmdline_user_args():
+		state.call("reset")
+		state.get("progress").seen["intro"] = true
+		state.call("dev_unlock_everything")
+		state.call("_mark_all_seen")
+		await _start_main(2.5)
+		await _pet_shots()
+		quit(0)
+		return
 	# --- Começo de jogo ---
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
@@ -355,7 +365,55 @@ func _run() -> void:
 	nature_room.call("_on_object_tapped", "place:trees")
 	await shot("e11_tray_trees", 0.6)
 	nature_room.call("close_tray")
+	await _pet_shots()
 	quit(0)
+
+
+## Etapa 09: usa os mesmos gestos públicos que o gui_input dos cuidados.
+func _pet_shots() -> void:
+	await _close()
+	main.call("show_screen", &"pet")
+	_hide_modals()
+	var pet: Control = main.find_child("PetScreen", true, false)
+	var care: Control = pet.find_child("CareTray", true, false)
+	state.get("inventory").call("from_dict", {"dog_food": 5, "carrot": 3, "carrot_snack": 2})
+	state.call("set_sleeping", false)
+	pet.set("preview_hour", 12)
+	state.call("_changed")
+	await create_timer(0.5).timeout
+	care.call("open_food_menu")
+	await create_timer(0.3).timeout
+	await shot("f08_pet_food_menu", 0.3)
+	var head: Rect2 = pet.call("head_rect")
+	care.call("press_item", "dog_food", care.call("item_center", "dog_food"))
+	care.call("move_item", head.get_center() + Vector2(0, 40))
+	await shot("f01_pet_drag_food", 0.3)
+	care.call("release_item", head.get_center() + Vector2(0, 40))
+	var dog: Rect2 = pet.call("dog_rect")
+	var a := dog.get_center() + Vector2(-60, 40)
+	var b := a + Vector2(120, 0)
+	care.call("press_item", "sponge", care.call("item_center", "sponge"))
+	care.call("move_item", a)
+	for i in 5: care.call("move_item", b if i % 2 == 0 else a)
+	await shot("f02_pet_sponge", 0.15)
+	care.call("release_item", b)
+	state.call("set_sleeping", true)
+	await shot("f03_pet_sleep")
+	state.call("set_sleeping", false)
+	pet.set("preview_hour", 22)
+	pet.call("_update_light")
+	await shot("f04_pet_night")
+	pet.set("preview_hour", 12)
+	var notebook: Script = load("res://scripts/ui/pet_notebook.gd")
+	notebook.call("open")
+	await shot("f05_notebook_manual")
+	notebook.call("open", "collection")
+	await shot("f06_notebook_collection")
+	await _close()
+	for id: String in ["hunger", "happiness", "energy", "hygiene"]: state.get("dog").needs[id] = 15.0
+	state.get("dog").updated_at = state.call("now")
+	state.call("_changed")
+	await shot("f07_pet_low_needs")
 
 
 func _empty_plots() -> void:
