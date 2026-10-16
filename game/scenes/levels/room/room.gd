@@ -372,7 +372,7 @@ func _spawn_objects() -> void:
 			var marker := WorldBalloon.new()
 			marker.name = "PurchaseMarker"
 			marker.state = "buy"
-			marker.caption = str(Database.progression.upgrades.get(data.upgrade, {}).get("cost", 0))
+			marker.caption = str(int(Database.progression.upgrades.get(data.upgrade, {}).get("cost", 0)))
 			marker.show_caption = true
 			sprite.add_child(marker)
 		if data.has("busy_frames"):
@@ -590,10 +590,11 @@ func _spawn_regions() -> void:
 		region.name = "Region_" + str(data.id)
 		region.z_index = 0  # sombra e cerca ficam atrás dos objetos (galinheiro, plantas, Tiro)
 		region.set_meta("data", data)
-		var shade := Polygon2D.new()
-		shade.polygon = _polygon(data.polygon)
-		shade.color = Color(0.16, 0.12, 0.08, 0.45)
-		region.add_child(shade)
+		if _room.get("region_shade", true):  # a Natureza fica sem sombra: só cerca e "+"
+			var shade := Polygon2D.new()
+			shade.polygon = _polygon(data.polygon)
+			shade.color = Color(0.16, 0.12, 0.08, 0.45)
+			region.add_child(shade)
 		var gate := _polygon(data.gate)
 		for height: float in [-12.0, -22.0]:
 			var rail := Line2D.new()
@@ -618,7 +619,7 @@ func _spawn_regions() -> void:
 			marker.name = "PurchaseMarker"
 			marker.position = _vec(data.get("label_pos", data.gate[0])) + Vector2(0, -42)
 			marker.state = "buy"
-			marker.caption = str(Database.progression.upgrades.get(data.upgrade, {}).get("cost", 0))
+			marker.caption = str(int(Database.progression.upgrades.get(data.upgrade, {}).get("cost", 0)))
 			marker.show_caption = true
 			region.add_child(marker)
 
@@ -716,8 +717,9 @@ func _layout_balloons() -> void:
 		var diameter := 44.0 * balloon.global_scale.x
 		var chosen := Vector2.ZERO
 		var found := false
-		for dy: float in [0.0, -48.0, -96.0, 48.0]:
-			for dx: float in [0.0, -48.0, 48.0, -96.0, 96.0, -144.0, 144.0]:
+		var step := diameter + 6.0  # afastamentos proporcionais ao balão: afastado ele fica perto do que aponta
+		for dy: float in [0.0, -step, -2.0 * step, step]:
+			for dx: float in [0.0, -step, step, -2.0 * step, 2.0 * step, -3.0 * step, 3.0 * step]:
 				var offset := Vector2(dx, dy)
 				var rect := Rect2(center + offset - Vector2.ONE * (diameter / 2 + 3), Vector2.ONE * (diameter + 6))
 				var overlaps := false

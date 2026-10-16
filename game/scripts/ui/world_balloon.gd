@@ -3,6 +3,8 @@ extends Node2D
 ## Balão compartilhado. O retângulo de toque usa o espaço do pai e acompanha a escala.
 
 const DIAMETER := 44.0
+## Menor tamanho de tela: afastado, o balão encolhe junto com o mapa para continuar colado no que aponta.
+const MIN_SCREEN_SCALE := 0.5
 var state: String = "progress"
 var texture: Texture2D
 var progress: float = 0.0
@@ -37,7 +39,7 @@ func refresh() -> void:
 func set_zoom(value: float) -> void:
 	room_zoom = maxf(value, 0.01)
 	var parent_scale: Vector2 = (get_parent() as Node2D).global_scale.abs() if get_parent() is Node2D else Vector2.ONE * room_zoom
-	var screen_factor := clampf(room_zoom, 0.8, 1.25)
+	var screen_factor := clampf(room_zoom, MIN_SCREEN_SCALE, 1.25)
 	scale = Vector2.ONE * screen_factor / parent_scale
 	refresh()
 

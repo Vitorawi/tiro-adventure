@@ -1,4 +1,4 @@
-﻿extends SceneTree
+extends SceneTree
 ## Etapa 06: balões, tamanho de tela, toque real da sala e apresentação das etiquetas.
 
 var failures := 0
@@ -52,7 +52,7 @@ func _run() -> void:
 	for zoom: float in [0.5, 2.0]:
 		farm.call("_zoom_at", farm.size / 2, zoom)
 		var width: float = balloon.global_scale.x * 44.0
-		check(width >= 44 * 0.8 - 0.01 and width <= 44 * 1.25 + 0.01, "tamanho de tela limitado em zoom " + str(zoom))
+		check(width >= 44 * 0.5 - 0.01 and width <= 44 * 1.25 + 0.01, "tamanho de tela limitado em zoom " + str(zoom))
 		var rect: Rect2 = balloon.get("hit_rect")
 		check(is_equal_approx(rect.size.x * plot.global_scale.x, width), "toque acompanha desenho")
 	# Arrastar a câmera não move os balões: o arranjo só depende do zoom, não da posição.

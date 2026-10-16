@@ -15,6 +15,7 @@
   "dig_spots": [[204, 196], [230, 233], [257, 221], [283, 209], [246, 190], [188, 212]],
   "navigation_margin": 4,
   "dog_scale": 0.5,
+  "region_shade": false,
   "obstacles": [
     {
       "id": "woods",
@@ -80,6 +81,7 @@
       "polygon": [[339, 131], [459, 188], [494, 211], [364, 238], [315, 203], [323, 163]],
       "gate": [[338, 189], [363, 208]],
       "action": "place:rocks",
+      "label_pos": [386, 192],
       "locked_label": true
     },
     {

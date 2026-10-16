@@ -2,7 +2,9 @@
 
 ## Estado atual (passagem de bastão entre agentes)
 > Atualize esta seção ao terminar cada tarefa: é por aqui que Claude Code e Codex continuam o trabalho
-> um do outro. Última atualização: **16/10/2026, Claude Code (correção dos balões do mundo)**.
+> um do outro. Última atualização: **16/10/2026, Codex (ajustes pendentes e publicação)**.
+
+**Entrega para publicação (16/10/2026, Codex, a pedido do Vitor).** Ajustes pendentes consolidados: balões encolhem até 0,5× ao afastar o mapa e o espaçamento acompanha o diâmetro; preços de compra sem casas decimais; Natureza sem sombra nas áreas fechadas e etiqueta da Caverna reposicionada. A sombra só é criada quando ativada, evitando nós órfãos. `AGENTS.md` e `CLAUDE.md` continuam idênticos; documentação dos mundos corrigida. As correções anteriores de etiquetas/balões fixos já estão no commit `9b3db4a` da `main` remota. Validação: **41/41 execuções PASS**, sem SCRIPT ERROR/Parse Error, incluindo DEV em prod. O `test_all.ps1` parou no aviso antigo de recursos ao encerrar o `park_test` (que passou); os 19 restantes foram executados individualmente. Logs em `build/publish_suite.log` e `build/publish_remaining.log`; envio à `main` aciona o workflow `Deploy Web` para produção e `/dev/`. Próximo passo de uso: conferir no celular o arrasto/zoom da horta, Casa e Natureza, vibração e comemorações.
 
 **✔ Correção: balões do mundo pulavam ao mexer a câmera (16/10/2026, Claude Code; ainda sem commit).** `RoomView._layout_balloons` calculava o afastamento em coordenadas de tela, descartava balões fora da tela e respeitava margem lateral, e `_set_camera`/`_zoom_at` o chamavam antes de atualizar `_content.position`, então o arranjo usava a câmera do quadro anterior e mudava conforme os balões entravam e saíam da tela. Agora a conta é relativa à origem da maquete (sem corte de tela nem margem) e `_zoom_balloons` só reorganiza quando o **zoom** muda (`_balloon_layout_zoom`); arrastar a câmera não mexe nos balões. Teste novo em `balloon_test.gd` (falha no código antigo). ⚠ Conferir no celular (`/dev/`) na horta e na Casa.
 
