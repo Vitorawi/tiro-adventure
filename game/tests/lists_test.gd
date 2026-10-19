@@ -57,6 +57,8 @@ func _run() -> void:
 	state.get("progress").routines.daily.ids = ["feed", "water", "order"]
 	state.get("progress").routines.daily.claimed = {}
 	state.get("progress").routines.daily.base = state.get("progress").stats.duplicate()
+	state.get("progress").routines.daily.erase("catalog")  # rotinas antigas ativas mantêm a definição de antes
+	state.get("progress").routines.daily.erase("targets")
 	main = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	Motion.reduced = true

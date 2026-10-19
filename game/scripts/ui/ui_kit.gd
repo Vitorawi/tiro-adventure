@@ -24,6 +24,23 @@ static func icon(texture: Texture2D, px: int = 32) -> TextureRect:
 	return rect
 
 
+## Bolinha de conclusão: só aparece quando há algo pronto para receber/coletar.
+static func ready_dot(px: int = 14) -> Control:
+	var dot := Panel.new()
+	dot.name = "ReadyDot"
+	dot.custom_minimum_size = Vector2(px, px)
+	dot.size = dot.custom_minimum_size
+	dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color = Palette.PRIMARY
+	style.border_color = Palette.PAPER
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(px)
+	dot.add_theme_stylebox_override("panel", style)
+	return dot
+
+
 static func label(text: String, variation: StringName = &"", color: Variant = null) -> Label:
 	var result := Label.new()
 	result.text = text

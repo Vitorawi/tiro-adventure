@@ -39,6 +39,7 @@ static func orders(focus: String = "", channel: String = "neighbors") -> Control
 			_stall_header(box)
 		else:
 			box.add_child(UiKit.label("Pedidos pequenos dos vizinhos. Sem prazo para entregar.", &"SmallLabel"))
+			_customers_summary(box)
 		var ids := order_ids(channel)
 		if focus != "" and not focus in ids:
 			var data: Dictionary = Database.progression.orders[focus]
@@ -68,6 +69,51 @@ static func orders(focus: String = "", channel: String = "neighbors") -> Control
 			box.add_child(UiKit.label("Novos contratos chegam com a evolução da banca." if channel == "contracts" else "Os pedidos chegam depois da primeira colheita.", &"SmallLabel"))
 		_next_order(box, channel)
 	))
+
+## Selos de confiança do cliente (bronze/prata/ouro; o coração é do vínculo com o Tiro).
+static func customer_seals(customer: String, px: int = 20) -> HBoxContainer:
+	var row := UiKit.hbox(2)
+	row.name = "Seals_" + customer
+	var level := GameState.progress.customer_level(customer)
+	var colors := [Palette.SEAL_BRONZE, Palette.SEAL_SILVER, Palette.SEAL_GOLD]
+	for index in 3:
+		var seal := UiKit.icon(UiKit.ui_icon("item_ribbon"), px)
+		seal.modulate = colors[index] if index < level else Color(1, 1, 1, 0.22)
+		row.add_child(seal)
+	return row
+
+## "Laís · Freguês · 5/8" (entregas até o próximo patamar; variedade quando falta tipo).
+static func customer_text(customer: String) -> String:
+	var tiers: Array = Database.progression.get("customer_tiers", [])
+	var level := GameState.progress.customer_level(customer)
+	var seen := GameState.progress.customer_orders(customer)
+	var who := str(Database.npcs.get(customer, {}).get("name", customer))
+	var title := "Novo cliente" if level == 0 else str(tiers[level - 1].name)
+	if level >= tiers.size():
+		return "%s · %s · %d entregas" % [who, title, int(seen.count)]
+	var next: Dictionary = tiers[level]
+	if int(seen.count) >= int(next.count):
+		return "%s · %s · peça %d tipos" % [who, title, int(next.kinds)]
+	return "%s · %s · %d/%d" % [who, title, int(seen.count), int(next.count)]
+
+static func customer_row(customer: String) -> HBoxContainer:
+	var row := UiKit.hbox(6)
+	row.name = "Customer_" + customer
+	row.add_child(customer_seals(customer))
+	row.add_child(UiKit.fill_label(customer_text(customer), &"SmallLabel"))
+	return row
+
+static func _customers_summary(box: VBoxContainer) -> void:
+	var seen: Array[String] = []
+	for id: String in Database.progression.orders:
+		var customer := str(Database.progression.orders[id].get("customer", ""))
+		if customer != "" and not customer in seen and GameState.requirement_error(Database.progression.orders[id].get("requirements", {})) == "":
+			seen.append(customer)
+	var card := UiKit.vbox(2)
+	card.name = "CustomerSummary"
+	for customer in seen:
+		card.add_child(customer_row(customer))
+	box.add_child(card)
 
 static func _page(box: VBoxContainer, model: Dictionary, total: int, count: int) -> void:
 	var pages := maxi(1, ceili(float(total) / count))
@@ -136,6 +182,8 @@ static func _order_detail(box: VBoxContainer, id: String) -> void:
 	var detail := UiKit.vbox(6)
 	detail.name = "OrderDetail"
 	detail.add_child(UiKit.label(str(data.name), &"SectionLabel"))
+	if str(data.get("customer", "")) != "":
+		detail.add_child(customer_row(str(data.customer)))
 	var ingredients := UiKit.flow(2)
 	for item: String in data.inputs:
 		ingredients.add_child(ProgressionUi.item_chip(item, int(data.inputs[item])))
@@ -169,7 +217,11 @@ static func _stall_header(box: VBoxContainer) -> void:
 	box.add_child(UiKit.label("Minha banca · nível %d/3" % level, &"SectionLabel"))
 	box.add_child(UiKit.label(["Monte sua banca para receber contratos.", "Banca de bairro · primeiros contratos.", "Banca ampliada · novos produtos e materiais.", "Banca da vila · contratos especiais."][level], &"SmallLabel"))
 	if level < 3:
-		box.add_child(UiKit.label("Próxima ampliação: %d/%d contratos" % [mini(GameState.progress.stat("contracts"), 2 if level <= 1 else 5), 2 if level <= 1 else 5], &"SmallLabel"))
+		var next_id := "stall" if level == 0 else "stall_%d" % (level + 1)
+		var need: Dictionary = Database.progression.upgrades[next_id].get("requirements", {})
+		var goal := int(need.get("stats", {}).get("contracts", 0))
+		if goal > 0:
+			box.add_child(UiKit.label("Próxima ampliação: %d/%d contratos · %d/%d tipos" % [mini(GameState.progress.stat("contracts"), goal), goal, mini(GameState.progress.distinct_orders("contracts"), int(need.get("distinct_orders", {}).get("contracts", 0))), int(need.get("distinct_orders", {}).get("contracts", 0))], &"SmallLabel"))
 		var upgrade := "stall" if level == 0 else "stall_%d" % (level + 1)
 		var button := UiKit.secondary("Montar banca" if level == 0 else "Ampliar banca", func() -> void:
 			Events.sheet_requested.emit(str(Database.progression.upgrades[upgrade].name), ProgressionUi.purchase(upgrade)), UiKit.ui_icon("station_stall"), true)

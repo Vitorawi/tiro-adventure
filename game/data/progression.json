@@ -5,6 +5,9 @@
     "max_skill_level": 20,
     "first_discovery_multiplier": 2,
     "care_reward_cooldown": 120,
+    "care_affection_cooldown": 120,
+    "care_useful_gain": 5,
+    "care_useful_gain_pet": 3,
     "emergency_food_amount": 2,
     "emergency_food_cooldown": 300,
     "initial_owned": [],
@@ -45,7 +48,9 @@
       "equip": "apetrechos vestidos",
       "sew": "apetrechos costurados",
       "walk_legendary": "lendários de passeio",
-      "contracts": "contratos da sua banca"
+      "contracts": "contratos da sua banca",
+      "distinct_contracts": "tipos de contrato",
+      "storage_upgrades": "ampliações"
     }
   },
   "level_rewards": {
@@ -96,7 +101,9 @@
       }
     },
     "default": {
-      "coins_per_level": 10
+      "coins_base": 20,
+      "coins_per_level": 3,
+      "coins_max": 80
     }
   },
   "daily_gift": [
@@ -135,13 +142,13 @@
     {
       "affection": 20,
       "rewards": {
-        "coins": 15
+        "coins": 10
       }
     },
     {
       "affection": 50,
       "rewards": {
-        "coins": 25,
+        "coins": 15,
         "items": {
           "carrot_snack": 2
         }
@@ -150,13 +157,13 @@
     {
       "affection": 100,
       "rewards": {
-        "coins": 40
+        "coins": 20
       }
     },
     {
       "affection": 170,
       "rewards": {
-        "coins": 60,
+        "coins": 25,
         "items": {
           "bolt": 1
         }
@@ -165,13 +172,13 @@
     {
       "affection": 260,
       "rewards": {
-        "coins": 80
+        "coins": 30
       }
     },
     {
       "affection": 380,
       "rewards": {
-        "coins": 100,
+        "coins": 40,
         "items": {
           "bolt": 1
         }
@@ -180,7 +187,7 @@
     {
       "affection": 520,
       "rewards": {
-        "coins": 150
+        "coins": 50
       }
     }
   ],
@@ -359,10 +366,14 @@
       "categories": [
         "food"
       ],
-      "base": 30,
+      "prebuild_name": "Despensa",
+      "prebuild_capacity": 12,
+      "base": 24,
       "levels": [
         "fridge_2",
-        "fridge_3"
+        "fridge_3",
+        "fridge_4",
+        "fridge_5"
       ]
     },
     "chest": {
@@ -373,10 +384,14 @@
       "categories": [
         "product"
       ],
-      "base": 20,
+      "prebuild_name": "Sacola de passeio",
+      "prebuild_capacity": 12,
+      "base": 24,
       "levels": [
         "chest_2",
-        "chest_3"
+        "chest_3",
+        "chest_4",
+        "chest_5"
       ]
     },
     "silo": {
@@ -387,10 +402,14 @@
       "categories": [
         "crop"
       ],
-      "base": 40,
+      "prebuild_name": "Cesto da horta",
+      "prebuild_capacity": 16,
+      "base": 32,
       "levels": [
         "silo_2",
-        "silo_3"
+        "silo_3",
+        "silo_4",
+        "silo_5"
       ]
     },
     "warehouse": {
@@ -401,10 +420,14 @@
       "categories": [
         "material"
       ],
-      "base": 40,
+      "prebuild_name": "Pilha de materiais",
+      "prebuild_capacity": 16,
+      "base": 32,
       "levels": [
         "warehouse_2",
-        "warehouse_3"
+        "warehouse_3",
+        "warehouse_4",
+        "warehouse_5"
       ]
     }
   },
@@ -412,14 +435,14 @@
     "chest": {
       "name": "Baú",
       "world": "house",
-      "description": "Guarda os produtos e os acessórios.",
-      "cost": 80,
+      "description": "Guarda os achados dos passeios, os produtos e os acessórios.",
+      "cost": 0,
       "materials": {
-        "wood": 4
+        "stick": 2
       },
       "requirements": {
         "quests": [
-          "bloblo_warehouse"
+          "nina_walk"
         ]
       },
       "icon": "station_chest"
@@ -427,14 +450,11 @@
     "silo": {
       "name": "Silo",
       "world": "farm",
-      "description": "Guarda as colheitas do sítio.",
-      "cost": 120,
-      "materials": {
-        "wood": 6
-      },
+      "description": "Arrume o cesto da vovó: cabem mais colheitas.",
+      "cost": 0,
       "requirements": {
         "quests": [
-          "main_9_cheese"
+          "first_harvest"
         ]
       },
       "icon": "station_silo"
@@ -443,14 +463,14 @@
       "name": "Armazém",
       "world": "farm",
       "description": "Guarda madeira, pedra e outros materiais.",
-      "cost": 150,
+      "cost": 40,
       "materials": {
-        "wood": 8,
-        "stone": 4
+        "wood": 4,
+        "stone": 2
       },
       "requirements": {
         "quests": [
-          "bloblo_silo"
+          "lais_forest"
         ]
       },
       "icon": "station_warehouse"
@@ -459,9 +479,9 @@
       "name": "Geladeira maior",
       "world": "house",
       "description": "Cabem mais comidas, ovos e leite.",
-      "cost": 150,
+      "cost": 100,
       "materials": {
-        "plank": 4,
+        "plank": 2,
         "bolt": 1
       },
       "requirements": {
@@ -469,41 +489,82 @@
           "fridge"
         ],
         "quests": [
-          "bloblo_chest"
+          "main_4_bench"
         ]
       },
-      "storage_capacity": 20,
+      "storage_capacity": 16,
       "icon": "station_fridge"
     },
     "fridge_3": {
       "name": "Geladeira gigante",
       "world": "house",
       "description": "Mais espaço ainda para a comida.",
-      "cost": 400,
+      "cost": 240,
       "materials": {
-        "plank": 8,
-        "brick": 4,
-        "bolt": 1,
-        "iron_band": 1
+        "plank": 4,
+        "brick": 2,
+        "bolt": 1
       },
       "requirements": {
         "owned": [
           "fridge_2"
         ],
         "quests": [
-          "bloblo_bigger"
+          "own_business"
         ]
       },
-      "storage_capacity": 30,
+      "storage_capacity": 24,
+      "icon": "station_fridge"
+    },
+    "fridge_4": {
+      "name": "Geladeira enorme",
+      "world": "house",
+      "description": "Conforto extra: mais espaço para a comida.",
+      "cost": 500,
+      "materials": {
+        "plank": 5,
+        "brick": 3,
+        "iron_band": 1
+      },
+      "requirements": {
+        "owned": [
+          "fridge_3"
+        ],
+        "quests": [
+          "atelier_open"
+        ]
+      },
+      "storage_capacity": 24,
+      "icon": "station_fridge"
+    },
+    "fridge_5": {
+      "name": "Geladeira imensa",
+      "world": "house",
+      "description": "Conforto extra: mais espaço para a comida.",
+      "cost": 900,
+      "materials": {
+        "plank": 6,
+        "brick": 4,
+        "iron_band": 2
+      },
+      "requirements": {
+        "owned": [
+          "fridge_4"
+        ],
+        "stats": {
+          "contracts": 12
+        }
+      },
+      "storage_capacity": 32,
       "icon": "station_fridge"
     },
     "chest_2": {
       "name": "Baú maior",
       "world": "house",
       "description": "Cabem mais produtos.",
-      "cost": 150,
+      "cost": 80,
       "materials": {
-        "plank": 4,
+        "plank": 2,
         "bolt": 1
       },
       "requirements": {
@@ -511,41 +572,83 @@
           "chest"
         ],
         "quests": [
-          "bloblo_chest"
+          "main_4_bench"
         ]
       },
-      "storage_capacity": 20,
+      "storage_capacity": 16,
       "icon": "station_chest"
     },
     "chest_3": {
       "name": "Baú gigante",
       "world": "house",
       "description": "Mais espaço para produtos.",
+      "cost": 200,
+      "materials": {
+        "plank": 3,
+        "fabric": 1,
+        "bolt": 1
+      },
+      "requirements": {
+        "owned": [
+          "chest_2",
+          "atelier"
+        ],
+        "quests": [
+          "own_business"
+        ]
+      },
+      "storage_capacity": 24,
+      "icon": "station_chest"
+    },
+    "chest_4": {
+      "name": "Baú enorme",
+      "world": "house",
+      "description": "Conforto extra: mais espaço para produtos.",
       "cost": 400,
       "materials": {
-        "plank": 8,
-        "brick": 4,
-        "bolt": 1,
+        "plank": 4,
+        "fabric": 2,
         "iron_band": 1
       },
       "requirements": {
         "owned": [
-          "chest_2"
+          "chest_3"
         ],
         "quests": [
-          "bloblo_bigger"
+          "atelier_open"
         ]
       },
-      "storage_capacity": 30,
+      "storage_capacity": 24,
+      "icon": "station_chest"
+    },
+    "chest_5": {
+      "name": "Baú imenso",
+      "world": "house",
+      "description": "Conforto extra: mais espaço para produtos.",
+      "cost": 750,
+      "materials": {
+        "plank": 5,
+        "fabric": 3,
+        "iron_band": 2
+      },
+      "requirements": {
+        "owned": [
+          "chest_4"
+        ],
+        "stats": {
+          "contracts": 12
+        }
+      },
+      "storage_capacity": 32,
       "icon": "station_chest"
     },
     "silo_2": {
       "name": "Silo maior",
       "world": "farm",
       "description": "Cabem mais colheitas.",
-      "cost": 150,
+      "cost": 100,
       "materials": {
-        "plank": 4,
+        "plank": 2,
         "bolt": 1
       },
       "requirements": {
@@ -553,41 +656,82 @@
           "silo"
         ],
         "quests": [
-          "bloblo_chest"
+          "main_4_bench"
         ]
       },
-      "storage_capacity": 40,
+      "storage_capacity": 24,
       "icon": "station_silo"
     },
     "silo_3": {
       "name": "Silo gigante",
       "world": "farm",
       "description": "Mais espaço para colheitas.",
-      "cost": 400,
+      "cost": 260,
       "materials": {
-        "plank": 8,
-        "brick": 4,
-        "bolt": 1,
-        "iron_band": 1
+        "plank": 4,
+        "brick": 2,
+        "bolt": 1
       },
       "requirements": {
         "owned": [
           "silo_2"
         ],
         "quests": [
-          "bloblo_bigger"
+          "own_business"
         ]
       },
-      "storage_capacity": 60,
+      "storage_capacity": 32,
+      "icon": "station_silo"
+    },
+    "silo_4": {
+      "name": "Silo enorme",
+      "world": "farm",
+      "description": "Conforto extra: mais espaço para colheitas.",
+      "cost": 550,
+      "materials": {
+        "plank": 6,
+        "brick": 4,
+        "iron_band": 1
+      },
+      "requirements": {
+        "owned": [
+          "silo_3"
+        ],
+        "quests": [
+          "atelier_open"
+        ]
+      },
+      "storage_capacity": 40,
+      "icon": "station_silo"
+    },
+    "silo_5": {
+      "name": "Silo imenso",
+      "world": "farm",
+      "description": "Conforto extra: mais espaço para colheitas.",
+      "cost": 1000,
+      "materials": {
+        "plank": 8,
+        "brick": 6,
+        "iron_band": 2
+      },
+      "requirements": {
+        "owned": [
+          "silo_4"
+        ],
+        "stats": {
+          "contracts": 12
+        }
+      },
+      "storage_capacity": 48,
       "icon": "station_silo"
     },
     "warehouse_2": {
       "name": "Armazém maior",
       "world": "farm",
       "description": "Cabem mais materiais.",
-      "cost": 150,
+      "cost": 90,
       "materials": {
-        "plank": 4,
+        "plank": 2,
         "bolt": 1
       },
       "requirements": {
@@ -595,32 +739,73 @@
           "warehouse"
         ],
         "quests": [
-          "bloblo_chest"
+          "main_4_bench"
         ]
       },
-      "storage_capacity": 40,
+      "storage_capacity": 24,
       "icon": "station_warehouse"
     },
     "warehouse_3": {
       "name": "Armazém gigante",
       "world": "farm",
       "description": "Mais espaço para materiais.",
-      "cost": 400,
+      "cost": 240,
       "materials": {
-        "plank": 8,
-        "brick": 4,
-        "bolt": 1,
-        "iron_band": 1
+        "plank": 4,
+        "brick": 2,
+        "bolt": 1
       },
       "requirements": {
         "owned": [
           "warehouse_2"
         ],
         "quests": [
-          "bloblo_bigger"
+          "own_business"
         ]
       },
-      "storage_capacity": 60,
+      "storage_capacity": 32,
+      "icon": "station_warehouse"
+    },
+    "warehouse_4": {
+      "name": "Armazém enorme",
+      "world": "farm",
+      "description": "Conforto extra: mais espaço para materiais.",
+      "cost": 500,
+      "materials": {
+        "plank": 6,
+        "brick": 3,
+        "iron_band": 1
+      },
+      "requirements": {
+        "owned": [
+          "warehouse_3"
+        ],
+        "quests": [
+          "atelier_open"
+        ]
+      },
+      "storage_capacity": 40,
+      "icon": "station_warehouse"
+    },
+    "warehouse_5": {
+      "name": "Armazém imenso",
+      "world": "farm",
+      "description": "Conforto extra: mais espaço para materiais.",
+      "cost": 900,
+      "materials": {
+        "plank": 8,
+        "brick": 5,
+        "iron_band": 2
+      },
+      "requirements": {
+        "owned": [
+          "warehouse_4"
+        ],
+        "stats": {
+          "contracts": 12
+        }
+      },
+      "storage_capacity": 48,
       "icon": "station_warehouse"
     },
     "stove": {
@@ -641,7 +826,7 @@
     "fridge": {
       "name": "Geladeira",
       "world": "house",
-      "description": "Guarda a colheita e libera o ensopado.",
+      "description": "Despensa de verdade: guarda mais comida e libera o ensopado.",
       "cost": 40,
       "requirements": {
         "quests": [
@@ -657,7 +842,7 @@
       "name": "Escritura do sítio",
       "world": "farm",
       "description": "O terreno passa a ser seu: quatro canteiros e espaço para ampliar.",
-      "cost": 180,
+      "cost": 220,
       "requirements": {
         "quests": [
           "bloblo_stew"
@@ -698,7 +883,7 @@
       "name": "Bancada de trabalho",
       "world": "farm",
       "description": "Transforma madeira e pedra em peças de construção.",
-      "cost": 120,
+      "cost": 160,
       "materials": {
         "wood": 6
       },
@@ -758,7 +943,7 @@
       "icon": "item_wood",
       "nature_unlock": {
         "site": "trees",
-        "level": 3
+        "level": 4
       }
     },
     "rocks_slot_2": {
@@ -792,7 +977,7 @@
       "icon": "item_stone",
       "nature_unlock": {
         "site": "rocks",
-        "level": 3
+        "level": 4
       }
     },
     "fibers_slot_2": {
@@ -826,13 +1011,13 @@
       "icon": "item_fiber",
       "nature_unlock": {
         "site": "fibers",
-        "level": 3
+        "level": 4
       }
     },
     "forest_level_2": {
       "name": "Bosque · nível 2",
       "world": "nature",
-      "description": "Mais madeira por busca.",
+      "description": "O Bosque ganhou o segundo espaço de busca.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -852,7 +1037,7 @@
     "forest_level_3": {
       "name": "Bosque · nível 3",
       "world": "nature",
-      "description": "Libera madeira dura para refinar em tábuas.",
+      "description": "Libera madeira dura (uma hora de busca) para refinar em tábuas.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -872,7 +1057,7 @@
     "cave_level_2": {
       "name": "Caverna · nível 2",
       "world": "nature",
-      "description": "Libera cobre e veios mais produtivos.",
+      "description": "Libera cobre e veios mais produtivos; abre o segundo espaço.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -912,7 +1097,7 @@
     "meadow_level_2": {
       "name": "Prado · nível 2",
       "world": "nature",
-      "description": "Mais fibras por busca.",
+      "description": "Libera os juncos longos e o segundo espaço de busca.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -933,14 +1118,13 @@
       "name": "Cozinha organizada",
       "world": "house",
       "description": "Mais um espaço na fila do fogão (2 no total).",
-      "cost": 180,
-      "materials": {
-        "plank": 3
-      },
+      "cost": 80,
       "requirements": {
         "owned": [
-          "stove",
-          "workbench"
+          "stove"
+        ],
+        "quests": [
+          "first_kitchen"
         ]
       },
       "skill_xp": {
@@ -952,12 +1136,13 @@
       "name": "Cozinha ampliada",
       "world": "house",
       "description": "Mais um espaço na fila do fogão (3 no total).",
-      "cost": 320,
+      "cost": 220,
       "materials": {
-        "plank": 5
+        "plank": 3
       },
       "requirements": {
         "owned": [
+          "workbench",
           "stove_queue"
         ]
       },
@@ -966,11 +1151,52 @@
       },
       "icon": "station_stove"
     },
+    "stove_queue_3": {
+      "name": "Cozinha completa",
+      "world": "house",
+      "description": "Mais um espaço na fila do fogão (4 no total).",
+      "cost": 500,
+      "materials": {
+        "plank": 4,
+        "bolt": 1
+      },
+      "requirements": {
+        "owned": [
+          "stove_queue_2"
+        ],
+        "quests": [
+          "own_business"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 60
+      },
+      "icon": "station_stove"
+    },
+    "blender_queue": {
+      "name": "Bancada de sucos",
+      "world": "house",
+      "description": "Mais um espaço na fila do liquidificador (2 no total).",
+      "cost": 100,
+      "materials": {
+        "plank": 1
+      },
+      "requirements": {
+        "owned": [
+          "blender",
+          "workbench"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 25
+      },
+      "icon": "station_blender"
+    },
     "orchard": {
       "name": "Pomar",
       "world": "farm",
       "description": "Libera a rota de colheita de maçãs e novas receitas.",
-      "cost": 300,
+      "cost": 400,
       "materials": {
         "plank": 5
       },
@@ -988,7 +1214,7 @@
       "name": "Estufa",
       "world": "farm",
       "description": "4 canteiros só para plantas delicadas (ervas, mirtilo, morango), que crescem mais rápido.",
-      "cost": 480,
+      "cost": 850,
       "materials": {
         "plank": 6,
         "brick": 6,
@@ -1008,7 +1234,7 @@
       "name": "Minha banca",
       "world": "village",
       "description": "Sua própria banca: dois contratos maiores, com moedas e materiais de ampliação.",
-      "cost": 350,
+      "cost": 500,
       "materials": {
         "plank": 5,
         "brick": 3
@@ -1027,7 +1253,7 @@
       "name": "Ateliê",
       "world": "village",
       "description": "Fabrica tecidos e conjuntos de acessórios.",
-      "cost": 600,
+      "cost": 1000,
       "materials": {
         "plank": 8,
         "copper": 6
@@ -1043,11 +1269,30 @@
       "icon": "item_fabric",
       "station": "atelier"
     },
+    "atelier_queue": {
+      "name": "Ateliê ampliado",
+      "world": "village",
+      "description": "Mais um espaço na fila do ateliê (3 no total).",
+      "cost": 450,
+      "materials": {
+        "plank": 4,
+        "fabric": 1
+      },
+      "requirements": {
+        "owned": [
+          "atelier"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 40
+      },
+      "icon": "item_fabric"
+    },
     "chicken_coop": {
       "name": "Galinheiro",
       "world": "farm",
       "description": "Inclui uma galinha branca de presente. Milho vira ovos.",
-      "cost": 180,
+      "cost": 260,
       "materials": {
         "plank": 4
       },
@@ -1071,7 +1316,7 @@
       "name": "Curral",
       "world": "farm",
       "description": "Inclui uma vaca pintadinha de presente. Trigo vira leite.",
-      "cost": 300,
+      "cost": 420,
       "materials": {
         "plank": 6
       },
@@ -1094,7 +1339,7 @@
       "name": "Moinho",
       "world": "farm",
       "description": "Transforma trigo em farinha no sítio.",
-      "cost": 240,
+      "cost": 300,
       "materials": {
         "plank": 3,
         "stone": 6
@@ -1111,11 +1356,29 @@
       "icon": "station_mill",
       "station": "mill"
     },
+    "mill_queue": {
+      "name": "Moinho em dobro",
+      "world": "farm",
+      "description": "Mais um espaço na fila do moinho (3 no total).",
+      "cost": 250,
+      "materials": {
+        "plank": 3
+      },
+      "requirements": {
+        "owned": [
+          "mill"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 40
+      },
+      "icon": "station_mill"
+    },
     "dairy": {
       "name": "Queijaria",
       "world": "farm",
       "description": "Transforma leite em queijo no sítio.",
-      "cost": 320,
+      "cost": 420,
       "materials": {
         "plank": 4,
         "brick": 3
@@ -1131,6 +1394,25 @@
       },
       "icon": "station_dairy",
       "station": "dairy"
+    },
+    "dairy_queue": {
+      "name": "Queijaria ampliada",
+      "world": "farm",
+      "description": "Mais um espaço na fila da queijaria (3 no total).",
+      "cost": 350,
+      "materials": {
+        "plank": 3,
+        "brick": 2
+      },
+      "requirements": {
+        "owned": [
+          "dairy"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 40
+      },
+      "icon": "station_dairy"
     },
     "forest_open": {
       "name": "Desbloquear Bosque",
@@ -1155,7 +1437,7 @@
     "meadow_level_3": {
       "name": "Prado · nível 3",
       "world": "nature",
-      "description": "Libera o terceiro espaço de busca.",
+      "description": "Domínio do Prado: o título da região.",
       "cost": 0,
       "requirements": {
         "owned": [
@@ -1196,7 +1478,7 @@
       },
       "requirements": {
         "quests": [
-          "nina_rare"
+          "nina_routes"
         ]
       },
       "icon": "petshop"
@@ -1241,7 +1523,7 @@
       "name": "Banca ampliada",
       "world": "village",
       "description": "Nível 2: contratos de alimentos e mais materiais para ampliar seus depósitos.",
-      "cost": 450,
+      "cost": 900,
       "materials": {
         "plank": 6,
         "brick": 4
@@ -1251,6 +1533,9 @@
           "stall"
         ],
         "stats": {
+          "contracts": 6
+        },
+        "distinct_orders": {
           "contracts": 2
         }
       },
@@ -1263,7 +1548,7 @@
       "name": "Banca da vila",
       "world": "village",
       "description": "Nível 3: contratos especiais para abastecer a vila.",
-      "cost": 800,
+      "cost": 1500,
       "materials": {
         "plank": 8,
         "brick": 6,
@@ -1274,7 +1559,10 @@
           "stall_2"
         ],
         "stats": {
-          "contracts": 5
+          "contracts": 12
+        },
+        "distinct_orders": {
+          "contracts": 3
         }
       },
       "icon": "station_stall",
@@ -1298,6 +1586,7 @@
         "trees_slot_2",
         "trees_slot_3"
       ],
+      "slot_levels": [2, 4],
       "level_upgrades": [
         "forest_open",
         "forest_level_2",
@@ -1314,18 +1603,26 @@
           "slots": 1
         },
         {
-          "xp": 30,
-          "label": "Mais madeira + 2 espaços",
+          "xp": 24,
+          "label": "Segundo espaço de busca",
           "materials": [
             "wood"
           ],
           "slots": 2
         },
         {
-          "xp": 90,
-          "label": "Madeira dura + 3 espaços",
+          "xp": 120,
+          "label": "Madeira dura",
           "materials": [
             "hardwood"
+          ],
+          "slots": 2
+        },
+        {
+          "xp": 360,
+          "label": "Terceiro espaço de busca",
+          "materials": [
+            "wood"
           ],
           "slots": 3
         }
@@ -1348,6 +1645,7 @@
         "rocks_slot_2",
         "rocks_slot_3"
       ],
+      "slot_levels": [2, 4],
       "level_upgrades": [
         "cave_open",
         "cave_level_2",
@@ -1364,8 +1662,8 @@
           "slots": 1
         },
         {
-          "xp": 40,
-          "label": "Cobre + 2 espaços",
+          "xp": 24,
+          "label": "Cobre + segundo espaço",
           "materials": [
             "copper"
           ],
@@ -1373,9 +1671,17 @@
         },
         {
           "xp": 120,
-          "label": "Cristais + 3 espaços",
+          "label": "Cristais",
           "materials": [
             "crystal"
+          ],
+          "slots": 2
+        },
+        {
+          "xp": 360,
+          "label": "Terceiro espaço de busca",
+          "materials": [
+            "stone"
           ],
           "slots": 3
         }
@@ -1394,6 +1700,7 @@
         "fibers_slot_2",
         "fibers_slot_3"
       ],
+      "slot_levels": [2, 4],
       "level_upgrades": [
         "meadow_open",
         "meadow_level_2",
@@ -1410,16 +1717,24 @@
           "slots": 1
         },
         {
-          "xp": 30,
-          "label": "Mais fibras + 2 espaços",
+          "xp": 24,
+          "label": "Mais fibras + segundo espaço",
           "materials": [
             "fiber"
           ],
           "slots": 2
         },
         {
-          "xp": 90,
-          "label": "3 espaços de busca",
+          "xp": 120,
+          "label": "Domínio do Prado",
+          "materials": [
+            "fiber"
+          ],
+          "slots": 2
+        },
+        {
+          "xp": 360,
+          "label": "Terceiro espaço de busca",
           "materials": [
             "fiber"
           ],
@@ -1483,7 +1798,8 @@
       "name": "Pedras da margem",
       "place": "creek",
       "description": "Pegue pequenas pedras com as mãos.",
-      "seconds": 75,
+      "seconds": 120,
+      "nature_xp": 2,
       "requirements": {
         "chapter": 5,
         "owned": [
@@ -1492,7 +1808,7 @@
       },
       "rewards": {
         "items": {
-          "stone": 1
+          "stone": 2
         },
         "skill_xp": {
           "adventure": 8
@@ -1503,17 +1819,18 @@
     "woodcutting": {
       "name": "Cortar madeira",
       "place": "walk",
-      "description": "Busque madeira no Bosque de nível 2.",
-      "seconds": 150,
+      "description": "Uma busca longa de madeira no Bosque.",
+      "seconds": 900,
+      "nature_xp": 12,
       "requirements": {
         "chapter": 5,
         "owned": [
-          "forest_level_2"
+          "forest_open"
         ]
       },
       "rewards": {
         "items": {
-          "wood": 4
+          "wood": 8
         },
         "skill_xp": {
           "adventure": 18
@@ -1524,8 +1841,9 @@
     "timber": {
       "name": "Madeira dura",
       "place": "walk",
-      "description": "No nível 3, o Bosque libera madeira dura.",
-      "seconds": 240,
+      "description": "No nível 3, o Bosque libera madeira dura (uma hora de busca).",
+      "seconds": 3600,
+      "nature_xp": 35,
       "requirements": {
         "chapter": 5,
         "owned": [
@@ -1534,8 +1852,8 @@
       },
       "rewards": {
         "items": {
-          "wood": 5,
-          "hardwood": 2
+          "wood": 8,
+          "hardwood": 3
         },
         "skill_xp": {
           "adventure": 30
@@ -1547,7 +1865,8 @@
       "name": "Veio profundo",
       "place": "mine",
       "description": "Explore os veios de pedra e cobre da Caverna de nível 2.",
-      "seconds": 300,
+      "seconds": 3600,
+      "nature_xp": 35,
       "requirements": {
         "chapter": 5,
         "owned": [
@@ -1557,7 +1876,7 @@
       "rewards": {
         "items": {
           "stone": 8,
-          "copper": 4
+          "copper": 5
         },
         "skill_xp": {
           "adventure": 40
@@ -1569,7 +1888,8 @@
       "name": "Cristais profundos",
       "place": "crystal",
       "description": "Busque os cristais da Caverna de nível 3.",
-      "seconds": 480,
+      "seconds": 7200,
+      "nature_xp": 60,
       "requirements": {
         "chapter": 5,
         "owned": [
@@ -1578,8 +1898,8 @@
       },
       "rewards": {
         "items": {
-          "crystal": 4,
-          "copper": 3
+          "crystal": 5,
+          "copper": 4
         },
         "skill_xp": {
           "adventure": 75
@@ -1591,7 +1911,8 @@
       "name": "Cortar fibras",
       "place": "meadow",
       "description": "Busque mais fibras no Prado de nível 2.",
-      "seconds": 300,
+      "seconds": 3600,
+      "nature_xp": 35,
       "requirements": {
         "chapter": 5,
         "owned": [
@@ -1600,7 +1921,7 @@
       },
       "rewards": {
         "items": {
-          "fiber": 8,
+          "fiber": 10,
           "wood": 3
         },
         "skill_xp": {
@@ -1612,8 +1933,9 @@
     "lane": {
       "name": "Trilha do bosque",
       "place": "walk",
-      "description": "Explore o Bosque e pegue madeira.",
-      "seconds": 60,
+      "description": "Uma busca curta de madeira no Bosque.",
+      "seconds": 120,
+      "nature_xp": 2,
       "requirements": {
         "chapter": 5,
         "owned": [
@@ -1621,9 +1943,9 @@
         ]
       },
       "rewards": {
-        "coins": 8,
+        "coins": 0,
         "items": {
-          "wood": 1
+          "wood": 2
         },
         "skill_xp": {
           "adventure": 10
@@ -1635,7 +1957,8 @@
       "name": "Trilha do riacho",
       "place": "creek",
       "description": "Busque madeira e pedras para as primeiras construções.",
-      "seconds": 180,
+      "seconds": 600,
+      "nature_xp": 8,
       "requirements": {
         "chapter": 5,
         "owned": [
@@ -1643,10 +1966,10 @@
         ]
       },
       "rewards": {
-        "coins": 15,
+        "coins": 0,
         "items": {
-          "wood": 3,
-          "stone": 2
+          "wood": 4,
+          "stone": 3
         },
         "skill_xp": {
           "adventure": 22
@@ -1658,7 +1981,8 @@
       "name": "Pedreira",
       "place": "mine",
       "description": "Extraia pedra para a oficina e suas melhorias.",
-      "seconds": 180,
+      "seconds": 600,
+      "nature_xp": 8,
       "requirements": {
         "chapter": 5,
         "owned": [
@@ -1667,7 +1991,7 @@
       },
       "rewards": {
         "items": {
-          "stone": 5
+          "stone": 6
         },
         "skill_xp": {
           "adventure": 25
@@ -1679,7 +2003,8 @@
       "name": "Veio de cobre",
       "place": "mine",
       "description": "Cobre da Caverna de nível 2 para novas construções.",
-      "seconds": 360,
+      "seconds": 1200,
+      "nature_xp": 16,
       "requirements": {
         "chapter": 5,
         "owned": [
@@ -1701,7 +2026,8 @@
       "name": "Gruta dos cristais",
       "place": "crystal",
       "description": "Cristais da Caverna de nível 3 para instalações especiais.",
-      "seconds": 600,
+      "seconds": 2400,
+      "nature_xp": 26,
       "requirements": {
         "chapter": 5,
         "owned": [
@@ -1722,8 +2048,8 @@
     "orchard_harvest": {
       "name": "Colher no pomar",
       "place": "orchard",
-      "description": "Cuide das árvores e volte com maçãs.",
-      "seconds": 300,
+      "description": "Uma colheita longa do pomar: volte depois de uma hora para 8 maçãs.",
+      "seconds": 3600,
       "requirements": {
         "owned": [
           "orchard"
@@ -1731,7 +2057,7 @@
       },
       "rewards": {
         "items": {
-          "apple": 4
+          "apple": 8
         },
         "skill_xp": {
           "agriculture": 28
@@ -1743,7 +2069,8 @@
       "name": "Prado das fibras",
       "place": "meadow",
       "description": "Busque fibras para transformar em tecido.",
-      "seconds": 420,
+      "seconds": 600,
+      "nature_xp": 8,
       "requirements": {
         "chapter": 5,
         "owned": [
@@ -1752,8 +2079,8 @@
       },
       "rewards": {
         "items": {
-          "fiber": 5,
-          "wood": 3
+          "fiber": 4,
+          "wood": 2
         },
         "skill_xp": {
           "adventure": 38
@@ -1762,8 +2089,38 @@
       "icon": "item_fiber"
     }
   },
+  "customer_tiers": [
+    {
+      "count": 3,
+      "kinds": 1,
+      "name": "Freguês",
+      "rewards": {
+        "coins": 10
+      }
+    },
+    {
+      "count": 8,
+      "kinds": 2,
+      "name": "Cliente de confiança",
+      "rewards": {
+        "coins": 20,
+        "items": {
+          "bolt": 1
+        }
+      }
+    },
+    {
+      "count": 18,
+      "kinds": 2,
+      "name": "Amigo da casa",
+      "rewards": {
+        "coins": 30
+      }
+    }
+  ],
   "orders": {
     "vegetables": {
+      "customer": "lais",
       "name": "Cesta da vizinhança",
       "inputs": {
         "carrot": 4
@@ -1782,6 +2139,7 @@
       "cooldown": 60
     },
     "snacks": {
+      "customer": "bloblo",
       "name": "Petiscos para a feira",
       "inputs": {
         "carrot_snack": 3
@@ -1803,6 +2161,7 @@
       "cooldown": 180
     },
     "soup_order": {
+      "customer": "lais",
       "name": "Almoço da comunidade",
       "inputs": {
         "vegetable_soup": 2
@@ -1864,7 +2223,7 @@
         ]
       },
       "rewards": {
-        "coins": 220,
+        "coins": 600,
         "skill_xp": {
           "commerce": 60
         },
@@ -1903,6 +2262,7 @@
       "channel": "contracts"
     },
     "farm_breakfast": {
+      "customer": "bloblo",
       "name": "Café da manhã",
       "inputs": {
         "egg": 2,
@@ -1926,6 +2286,7 @@
       }
     },
     "fruit_basket": {
+      "customer": "nina",
       "name": "Cesta de morangos",
       "inputs": {
         "strawberry": 4
@@ -1945,6 +2306,7 @@
       "cooldown": 120
     },
     "pop_order": {
+      "customer": "nina",
       "name": "Picolés da praça",
       "inputs": {
         "strawberry_pop": 2
@@ -1965,7 +2327,84 @@
       },
       "cooldown": 240
     },
+    "nina_toys": {
+      "customer": "nina",
+      "name": "Brinquedos da Nina",
+      "inputs": {
+        "braided_toy": 2
+      },
+      "requirements": {
+        "quests": [
+          "first_harvest",
+          "atelier_open"
+        ],
+        "owned": [
+          "workbench",
+          "atelier"
+        ]
+      },
+      "rewards": {
+        "coins": 110,
+        "skill_xp": {
+          "commerce": 10
+        }
+      },
+      "cooldown": 3600
+    },
+    "lais_picnic": {
+      "customer": "lais",
+      "name": "Piquenique da Laís",
+      "inputs": {
+        "picnic_pack": 1,
+        "strawberry_juice": 2
+      },
+      "requirements": {
+        "quests": [
+          "first_harvest",
+          "atelier_open"
+        ],
+        "owned": [
+          "stove",
+          "blender",
+          "atelier"
+        ]
+      },
+      "rewards": {
+        "coins": 190,
+        "skill_xp": {
+          "commerce": 12
+        }
+      },
+      "cooldown": 3600
+    },
+    "nina_blueberries": {
+      "customer": "nina",
+      "name": "Petiscos de mirtilo",
+      "inputs": {
+        "blueberry_treat": 2
+      },
+      "requirements": {
+        "quests": [
+          "first_harvest"
+        ],
+        "stats": {
+          "treasure": 1
+        },
+        "owned": [
+          "stove",
+          "greenhouse"
+        ]
+      },
+      "rewards": {
+        "coins": 175,
+        "skill_xp": {
+          "commerce": 12
+        }
+      },
+      "cooldown": 7200
+    },
     "puree_order": {
+      "customer": "bloblo",
       "name": "Almoço do vizinho",
       "inputs": {
         "mashed_potato": 2
@@ -1988,6 +2427,7 @@
       "cooldown": 300
     },
     "juice_order": {
+      "customer": "lais",
       "name": "Suco para a Laís",
       "inputs": {
         "strawberry_juice": 2
@@ -2018,7 +2458,7 @@
       },
       "requirements": {
         "owned": [
-          "stall_2",
+          "stall",
           "dairy",
           "blender"
         ],
@@ -2038,7 +2478,7 @@
       "cooldown": 1200
     },
     "festival_contract": {
-      "name": "Festa da vila",
+      "name": "Encomenda para eventos",
       "channel": "contracts",
       "inputs": {
         "treat_box": 4,
@@ -2056,7 +2496,7 @@
         ]
       },
       "rewards": {
-        "coins": 450,
+        "coins": 940,
         "items": {
           "bolt": 1,
           "iron_band": 1
@@ -2119,7 +2559,7 @@
       "description": "Explore a Natureza, junte madeira e monte a bancada.",
       "target": "workbench",
       "rewards": {
-        "coins": 80,
+        "coins": 60,
         "skill_xp": {
           "adventure": 20
         }
@@ -2131,7 +2571,7 @@
       "description": "Domine a cozinha e abra a Caverna.",
       "target": "cave_open",
       "rewards": {
-        "coins": 100,
+        "coins": 60,
         "skill_xp": {
           "cooking": 20
         }
@@ -2143,7 +2583,7 @@
       "description": "Abra a banca e atenda grandes encomendas.",
       "target": "stall",
       "rewards": {
-        "coins": 120,
+        "coins": 60,
         "skill_xp": {
           "commerce": 20
         }
@@ -2155,7 +2595,7 @@
       "description": "Monte a estufa e descubra culturas especiais.",
       "target": "greenhouse",
       "rewards": {
-        "coins": 140,
+        "coins": 80,
         "skill_xp": {
           "agriculture": 20
         }
@@ -2167,12 +2607,39 @@
       "description": "Construa o ateliê e faça acessórios.",
       "target": "atelier",
       "rewards": {
-        "coins": 160,
+        "coins": 80,
         "skill_xp": {
           "adventure": 20
         }
       },
-      "unlocks_text": "História da Laís completa! Continue com a vovó e nas diárias e semanais."
+      "unlocks_text": "Um banco para a Praça espera por vocês."
+    },
+    {
+      "name": "Um lugar para descansar",
+      "description": "Construa o banco da Praça e sente com o Tiro.",
+      "target": "",
+      "rewards": {
+        "coins": 30
+      },
+      "unlocks_text": "O Jardim e o Piquenique abrem juntos."
+    },
+    {
+      "name": "Um encontro especial",
+      "description": "Faça florescer o jardim e prepare o piquenique.",
+      "target": "",
+      "rewards": {
+        "coins": 40
+      },
+      "unlocks_text": "A turma quer fazer uma festa."
+    },
+    {
+      "name": "A festa da nossa turma",
+      "description": "Reúna a vila numa festa e guarde uma lembrança.",
+      "target": "",
+      "rewards": {
+        "coins": 60
+      },
+      "unlocks_text": "História da Laís completa! Continue com a vovó, nos projetos da vila e nas diárias e semanais."
     }
   ],
   "final_chapter": {
@@ -2293,5 +2760,44 @@
       "happiness": 3,
       "affection": 1
     }
+  },
+  "mastery": {
+    "stations": [
+      "stove",
+      "blender",
+      "workbench",
+      "mill",
+      "dairy",
+      "atelier"
+    ],
+    "tiers": [
+      {
+        "jobs": 12,
+        "kinds": 2,
+        "name": "Aprendiz",
+        "seal": "bronze",
+        "rewards": {
+          "coins": 10
+        }
+      },
+      {
+        "jobs": 40,
+        "kinds": 3,
+        "name": "Habilidoso",
+        "seal": "silver",
+        "rewards": {
+          "coins": 20
+        }
+      },
+      {
+        "jobs": 100,
+        "kinds": 4,
+        "name": "Mestre",
+        "seal": "gold",
+        "rewards": {
+          "coins": 30
+        }
+      }
+    ]
   }
 }

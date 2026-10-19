@@ -14,7 +14,6 @@ static var last_crop := ""
 ## `focus` = planta pedida pelo "Ir" (primeira e destacada).
 static func seeds(room: RoomView, index: int, focus: String = "") -> ActionTray:
 	var greenhouse := GameState.is_greenhouse_plot(index)
-	var speed := float(Database.farm.get("greenhouse_speed", 1.0)) if greenhouse else 1.0
 	var ids: Array[String] = []
 	for crop_id: String in Database.crops:
 		if GameState.crop_plot_error(index, crop_id) == "":
@@ -33,7 +32,7 @@ static func seeds(room: RoomView, index: int, focus: String = "") -> ActionTray:
 		entries.append({
 			"id": crop_id,
 			"icon": Database.item_icon(crop_id),
-			"caption": TimeText.short(int(round(float(crop.get("seconds", 60)) * speed))),
+			"caption": TimeText.short(int(round(GameState.crop_seconds(index, crop_id)))),
 			"error": GameState.content_error("crop", crop_id, crop),
 			"help": TaskHelp.open.bind("crop", crop_id),
 			"highlight": crop_id == focus,
@@ -151,17 +150,24 @@ static func sickle(room: RoomView, index: int) -> ActionTray:
 			"icon": Database.item_icon(common) if common != "" else UiKit.ui_icon("tool_sickle"),
 			"caption_fn": func() -> String: return "×%d" % room.ready_plots().size(),
 			"tap": func() -> String:
+				# Cada lote é validado sozinho (um menor ainda pode caber depois de um maior que não coube):
+				# o que não cabe continua pronto na planta, sem moedas nem XP.
 				var done := 0
+				var left := 0
+				var first_error := ""
 				for target in room.ready_plots():
 					var error := GameState.harvest_error(target)
-					if error != "":
-						if done == 0:
-							return error
-						Events.toast_requested.emit(error)  # para no primeiro que não couber, avisando uma vez
-						break
-					if room.harvest_plot(target):
+					if error == "" and room.harvest_plot(target):
 						done += 1
-				return "" if done > 0 else "Nada para colher",
+						continue
+					left += 1
+					if first_error == "":
+						first_error = error
+				if done == 0:
+					return first_error if first_error != "" else "Nada para colher"
+				if left > 0:
+					Events.toast_requested.emit("%d ficaram prontos. %s" % [left, first_error])
+				return "",
 		},
 	]
 	var anchor := room.plot_anchor(index)

@@ -35,7 +35,7 @@ func _run() -> void:
 		state.get("progress").owned[token] = true
 	_supply()
 	check(state.call("buy_upgrade", "stall") == "", "monta banca pela compra real")
-	check(market.call("stall_level") == 1 and market.call("order_ids", "contracts").size() == 2, "nível 1 tem dois contratos próprios")
+	check(market.call("stall_level") == 1 and market.call("order_ids", "contracts").size() == 3, "nível 1 tem três contratos próprios (inclui o banquete)")
 	check(not "building_order" in market.call("order_ids", "neighbors"), "quadro dos vizinhos não mistura contratos")
 	for id: String in db.get("progression").orders:
 		var order: Dictionary = db.get("progression").orders[id]
@@ -52,13 +52,19 @@ func _run() -> void:
 	check(state.call("fulfill_order", "building_order") != "" and state.get("coins") == after, "espera impede duplicação")
 	check(state.call("fulfill_order", "special_order") == "", "segundo contrato")
 	check(state.get("progress").stat("contracts") == 2, "duas entregas contam")
+	check(state.call("upgrade_error", "stall_2") != "", "duas entregas não bastam para a banca 2")
+	for _i in 3:
+		_deliver("building_order")
+	check(state.get("progress").stat("contracts") == 5 and state.call("upgrade_error", "stall_2") != "", "5 contratos ainda não ampliam")
+	_deliver("building_order")
+	check(state.get("progress").stat("contracts") == 6 and state.get("progress").distinct_orders("contracts") == 2, "6 contratos de 2 tipos")
 	_supply()
-	check(state.call("buy_upgrade", "stall_2") == "" and market.call("stall_level") == 2, "amplia depois dos dois contratos")
+	check(state.call("buy_upgrade", "stall_2") == "" and market.call("stall_level") == 2, "amplia com 6 contratos de 2 tipos")
 	check("fabric_order" in market.call("order_ids", "contracts") and "banquet_contract" in market.call("order_ids", "contracts"), "nível 2 abre novos contratos")
 	check(state.call("fulfill_order", "fabric_order") == "" and state.call("fulfill_order", "banquet_contract") == "", "entrega contratos do nível 2")
-	state.get("progress").cooldowns["order:building_order"] = 0.0
-	_supply()
-	check(state.call("fulfill_order", "building_order") == "" and state.get("progress").stat("contracts") == 5, "cinco entregas alcançáveis")
+	while state.get("progress").stat("contracts") < 12:
+		_deliver("building_order")
+	check(state.get("progress").distinct_orders("contracts") >= 3, "12 contratos com 4 tipos")
 	_supply()
 	check(state.call("buy_upgrade", "stall_3") == "" and market.call("stall_level") == 3, "nível 3 pela compra real")
 	check(state.call("fulfill_order", "festival_contract") == "", "contrato final funciona")
@@ -66,7 +72,7 @@ func _run() -> void:
 	saved.progression.stats.erase("contracts")
 	before = state.get("coins")
 	state.call("from_dict", saved)
-	check(market.call("stall_level") == 3 and state.get("progress").stat("contracts") == 6 and state.get("coins") == before, "save preserva banca e recompõe contratos sem prêmio extra")
+	check(market.call("stall_level") == 3 and state.get("progress").stat("contracts") == 13 and state.get("coins") == before, "save preserva banca e recompõe contratos sem prêmio extra")
 	var board: Control = market.call("orders")
 	root.add_child(board)
 	await process_frame
@@ -77,6 +83,12 @@ func _run() -> void:
 	_final_contract_production()
 	print("MARKET TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(0 if failures == 0 else 1)
+func _deliver(id: String) -> void:
+	state.get("progress").cooldowns["order:" + id] = 0.0
+	_supply()
+	var error: String = state.call("fulfill_order", id)
+	check(error == "", "entrega " + id + ": " + error)
+
 func _supply() -> void:
 	for id: String in ["plank", "brick", "carrot", "carrot_snack", "treat_box", "fabric", "vegetable_soup", "cheese", "strawberry_juice", "strawberry_pop"]:
 		state.get("inventory").add(id, 20)
@@ -89,7 +101,7 @@ func _merchant_missions() -> void:
 	for token: String in ["farm", "stove", "blender", "dairy", "atelier", "workbench"]:
 		state.get("progress").owned[token] = true
 	state.call("_changed")
-	var expected: Array[String] = ["merchant_meet", "merchant_first_sale", "merchant_surplus", "merchant_orders", "merchant_regular", "merchant_stall", "merchant_contracts", "merchant_expand", "merchant_clients", "merchant_village_stall", "merchant_festival"]
+	var expected: Array[String] = ["merchant_meet", "merchant_first_sale", "merchant_surplus", "merchant_orders", "merchant_regular", "merchant_variety", "merchant_stall", "merchant_contracts", "merchant_expand", "merchant_clients", "merchant_village_stall", "merchant_festival"]
 	for id: String in expected:
 		check(state.get("progress").current_line_quest("merchant") == id, "ordem da linha: " + id)
 		_supply()
@@ -101,16 +113,17 @@ func _merchant_missions() -> void:
 			"merchant_regular":
 				state.call("fulfill_order", "snacks")
 				state.call("fulfill_order", "soup_order")
+			"merchant_variety": pass  # os pedidos de legumes e petiscos já entregues acima valem (sem entregar de novo)
 			"merchant_stall": state.call("buy_upgrade", "stall")
 			"merchant_contracts":
-				state.call("fulfill_order", "building_order")
-				state.call("fulfill_order", "special_order")
+				for kind in ["building_order", "special_order", "building_order", "building_order", "building_order", "building_order"]:
+					_deliver(kind)
 			"merchant_expand": state.call("buy_upgrade", "stall_2")
 			"merchant_clients":
-				state.call("fulfill_order", "fabric_order")
-				state.call("fulfill_order", "banquet_contract")
-				state.get("progress").cooldowns["order:building_order"] = 0.0
-				state.call("fulfill_order", "building_order")
+				_deliver("fabric_order")
+				_deliver("banquet_contract")
+				while state.get("progress").stat("contracts") < 12:
+					_deliver("building_order")
 			"merchant_village_stall": state.call("buy_upgrade", "stall_3")
 			"merchant_festival": state.call("fulfill_order", "festival_contract")
 		check(state.call("claim_quest", id) == "", "missão concluída por ações reais: " + id)

@@ -28,7 +28,7 @@ func _run() -> void:
 	await process_frame
 	var intro: Node
 	main.call("_refresh_tasks_badge")
-	check((main.get("_map_badge") as Label).text == "!" and (main.get("_map_badge") as Label).visible, "Mapa avisa primeira missão nova")
+	check(not (main.get("_map_badge") as Label).visible, "Missão nova não gera aviso de coleta no Mapa")
 	for child: Node in main.get_children():
 		if child.get_script() == intro_script:
 			intro = child
@@ -94,7 +94,7 @@ func _run() -> void:
 		has_orchard = has_orchard or button.text == "Pomar"
 	check(not has_orchard, "Conversa não anuncia pomar antes da compra")
 	main.call("_refresh_tasks_badge")
-	check((main.get("_map_badge") as Label).text == "✓", "Missão pronta tem prioridade no Mapa")
+	check((main.get("_tasks_badge") as Label).visible, "Missão pronta avisa na aba Missões")
 	await _shot("intro_bloblo_quest")
 	saved = state.call("to_dict").duplicate(true)
 	state.call("reset")

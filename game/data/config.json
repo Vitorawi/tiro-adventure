@@ -1,14 +1,20 @@
 {
+  "offline": {
+    "rate": 0.5,
+    "max_hours": 8
+  },
   "needs": {
     "hunger": {
       "name": "Barriga",
       "decay_per_hour": 8,
+      "offline_floor": 25,
       "icon": "res://assets/sprites/ui/icons/need_hunger.png",
       "color": "#f0a04b"
     },
     "happiness": {
       "name": "Felicidade",
       "decay_per_hour": 5,
+      "offline_floor": 35,
       "icon": "res://assets/sprites/ui/icons/need_happiness.png",
       "color": "#ef6f8f"
     },
@@ -16,12 +22,14 @@
       "name": "Energia",
       "decay_per_hour": 6,
       "sleep_regen_per_hour": 40,
+      "offline_floor": 25,
       "icon": "res://assets/sprites/ui/icons/need_energy.png",
       "color": "#f2cf4a"
     },
     "hygiene": {
       "name": "Higiene",
       "decay_per_hour": 3,
+      "offline_floor": 30,
       "icon": "res://assets/sprites/ui/icons/need_hygiene.png",
       "color": "#5fb3e8"
     }
@@ -47,7 +55,8 @@
       "action_label": "Cozinhar",
       "slot_upgrades": {
         "stove_queue": 1,
-        "stove_queue_2": 1
+        "stove_queue_2": 1,
+        "stove_queue_3": 1
       }
     },
     "workbench": {
@@ -56,7 +65,10 @@
     },
     "atelier": {
       "name": "Ateliê",
-      "slots": 2
+      "slots": 2,
+      "slot_upgrades": {
+        "atelier_queue": 1
+      }
     },
     "chicken_coop": {
       "name": "Galinheiro",
@@ -90,6 +102,9 @@
       "instruction": "Transforme trigo em farinha.",
       "requirements": {
         "chapter": 5
+      },
+      "slot_upgrades": {
+        "mill_queue": 1
       }
     },
     "dairy": {
@@ -98,12 +113,18 @@
       "instruction": "Transforme leite em queijo.",
       "requirements": {
         "chapter": 5
+      },
+      "slot_upgrades": {
+        "dairy_queue": 1
       }
     },
     "blender": {
       "name": "Liquidificador",
       "slots": 1,
       "action_label": "Cozinhar",
+      "slot_upgrades": {
+        "blender_queue": 1
+      },
       "instruction": "Frutas viram picolé e suco."
     },
     "sewing": {
@@ -118,7 +139,7 @@
     "chicken_white": {
       "name": "Galinha branca",
       "station": "chicken_coop",
-      "price": 60,
+      "price": 120,
       "sprite": "res://assets/sprites/areas/farm/chicken.png",
       "legacy": true,
       "map_scale": 0.6
@@ -126,31 +147,31 @@
     "chicken_brown": {
       "name": "Galinha ruiva",
       "station": "chicken_coop",
-      "price": 80,
+      "price": 150,
       "sprite": "res://assets/sprites/areas/farm/chicken_brown.png",
       "map_scale": 0.6,
       "requirements": {
         "produced": {
-          "egg": 2
+          "egg": 8
         }
       }
     },
     "chicken_black": {
       "name": "Galinha preta",
       "station": "chicken_coop",
-      "price": 90,
+      "price": 180,
       "sprite": "res://assets/sprites/areas/farm/chicken_black.png",
       "map_scale": 0.6,
       "requirements": {
         "produced": {
-          "egg": 6
+          "egg": 24
         }
       }
     },
     "cow_white": {
       "name": "Vaca pintadinha",
       "station": "cow_barn",
-      "price": 140,
+      "price": 220,
       "sprite": "res://assets/sprites/areas/farm/cow.png",
       "legacy": true,
       "map_scale": 1.0
@@ -158,24 +179,24 @@
     "cow_brown": {
       "name": "Vaca caramelo",
       "station": "cow_barn",
-      "price": 180,
+      "price": 280,
       "sprite": "res://assets/sprites/areas/farm/cow_brown.png",
       "map_scale": 1.3,
       "requirements": {
         "produced": {
-          "milk": 2
+          "milk": 8
         }
       }
     },
     "cow_spotted": {
       "name": "Vaca malhada",
       "station": "cow_barn",
-      "price": 200,
+      "price": 340,
       "sprite": "res://assets/sprites/areas/farm/cow_spotted.png",
       "map_scale": 1.3,
       "requirements": {
         "produced": {
-          "milk": 6
+          "milk": 24
         }
       }
     }
@@ -191,11 +212,11 @@
       0,
       0,
       0,
-      40,
-      70,
-      100,
-      150,
-      220
+      80,
+      140,
+      220,
+      340,
+      500
     ],
     "sprout": "res://assets/sprites/areas/farm/crop_sprout.png",
     "water": {

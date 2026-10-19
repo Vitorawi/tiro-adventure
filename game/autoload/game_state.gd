@@ -34,6 +34,10 @@ var finds := FindState.new()
 ## Passeio em andamento (o Tiro sai de casa).
 var walk_state := WalkState.new()
 var friend_state := FriendState.new()
+## Obras comunitárias (contribuições persistentes; catálogo em Database.projects).
+var projects := ProjectState.new()
+## Economia protegida: revisão, piso legado de capacidade, presentes a guardar e recompensas já pagas.
+var economy := EconomyState.new()
 
 
 func _ready() -> void:
@@ -43,6 +47,9 @@ func _ready() -> void:
 	timer.autostart = true
 	timer.timeout.connect(func() -> void:
 		var changed_wishes := update_wishes()
+		# A volta do passeio não depende de nenhuma tela aberta: o tick liquida a viagem vencida.
+		return_due_walk()
+		changed_wishes = _recover_projects() or changed_wishes
 		if sync_friend_window() or update_finds() or changed_wishes:
 			_changed())
 	add_child(timer)
@@ -81,6 +88,9 @@ func reset() -> void:
 	finds = FindState.new()
 	walk_state = WalkState.new()
 	friend_state = FriendState.new()
+	projects = ProjectState.new()
+	economy = EconomyState.new()
+	economy.reset()
 	_mark_all_seen()
 	_changed()
 
@@ -252,14 +262,18 @@ func dev_grant_cosmetics() -> void:
 	_changed()
 
 # --- Passeios ---------------------------------------------------------------
+# Viagem e bagagem são estados diferentes (etapa 03): `walk_state.current` é a viagem; quando o tempo
+# acaba, `return_due_walk` sorteia e congela o resultado UMA vez, aplica o que não é item (moedas, XP,
+# afeto, coleção, cuidados do Tiro), conta o passeio e move os achados para `walk_state.pending_return`.
+# O Tiro volta para casa mesmo que a bagagem não caiba; guardar os achados é uma ação à parte.
 
 func walk_def(id: String) -> Dictionary:
 	return Database.walks.get("walks", {}).get(id, {})
 
 
-## Há passeio em andamento (pronto ou não): o Tiro não está em casa.
+## O Tiro está fora de casa de verdade: viagem com tempo restante. Bagagem esperando NÃO conta.
 func walking() -> bool:
-	return walk_state.active()
+	return walk_state.traveling(now())
 
 
 func away_text() -> String:
@@ -275,16 +289,20 @@ func walk_remaining() -> int:
 	return walk_state.remaining(now())
 
 
+## Há achados do passeio esperando para serem guardados (o Tiro já está em casa).
 func walk_ready() -> bool:
-	return walk_state.ready(now())
+	return walk_state.baggage_count() > 0
 
 
 func walk_error(id: String) -> String:
 	var def := walk_def(id)
 	if def.is_empty():
 		return "Passeio desconhecido"
-	if walking():
+	if walk_state.active():
 		return "O Tiro já está passeando"
+	if walk_ready():
+		var hint := walk_baggage_hint()
+		return hint if hint != "" else "Guarde os achados do último passeio"
 	var closed := walk_lock_error(id)
 	if closed != "":
 		return closed
@@ -337,32 +355,136 @@ func walk_unlock_keys() -> Array[String]:
 
 
 func start_walk(id: String) -> String:
+	return_due_walk()
 	var error := walk_error(id)
 	if error != "":
 		return error
 	var def := walk_def(id)
 	dog.apply({"energy": -float(def.get("energy", 0))}, now())
+	var snapshot := WorkJobs.walk(id, Database.walks, Database.finds.get("worlds", {}))
+	# Uma bagagem já vazia (só o cartão dela ficou) não impede o próximo passeio.
+	walk_state.pending_return = {}
 	walk_state.current = {
 		"id": id,
 		"started_at": now(),
 		"ready_at": now() + float(def.get("seconds", 60)),
 		"seed": int(now()),
 		"energy": int(def.get("energy", 0)),
+		"snapshot": snapshot,
 	}
 	_changed()
 	return ""
 
 
-## Sorteio do passeio em andamento, estável: depende só da semente guardada e do que já foi
-## recolhido (histórico e garantia só mudam ao recolher). Devolve moedas, itens, "first", "rare"
+## Liquida a viagem cujo tempo acabou: idempotente (sem viagem vencida não faz nada). Roda no tick, ao
+## carregar o save e antes de começar/cancelar/recolher; a interface nunca é dona do retorno.
+## `announce` = emitir o resumo para a fila de cartões (falso ao carregar: o cartão sai da marca persistida).
+## Devolve true se liquidou agora.
+func return_due_walk(announce: bool = true) -> bool:
+	if not walk_state.due(now()):
+		return false
+	var trip: Dictionary = walk_state.current
+	var id := str(trip.get("id", ""))
+	var snapshot := _walk_snapshot(trip)
+	var def: Dictionary = snapshot.get("def", walk_def(id))
+	var loot := _roll_walk(trip)
+	var returned_at := minf(float(trip.get("ready_at", 0.0)), now())
+	var fresh: Array[String] = []
+	for item: String in loot.items:
+		var category: String = Database.items.get(item, {}).get("category", "")
+		if category == "find" and progress.stat("find_item:" + item) == 0:
+			fresh.append(item)
+		elif category == "trail" and progress.stat("walk_item:" + item) == 0:
+			fresh.append(item)
+	var costumes: Array[String] = []
+	if str(loot.rare) != "":
+		costumes.append(str(loot.rare))
+	var legendary := str(loot.get("legendary", ""))
+	if legendary != "":
+		costumes.append(legendary)
+	# Os cuidados do Tiro entram no instante da volta; o tempo depois dele segue normal.
+	dog.apply(def.get("needs", {}), maxf(returned_at, dog.updated_at))
+	var rewards: Dictionary = def.get("rewards", {}).duplicate(true)
+	rewards["coins"] = int(rewards.get("coins", 0)) + int(loot.coins)
+	rewards["collections"] = costumes
+	rewards.erase("items")
+	_apply_rewards(rewards)
+	if legendary != "":
+		_count("walk_legendary")
+		walk_state.pity["legendary"] = 0
+	elif requirement_error(snapshot.legendary.get("requirements", {})) == "" and snapshot.legendary.get("collections", []).any(func(collection: String) -> bool: return not progress.collection.has(collection)):
+		walk_state.pity["legendary"] = int(walk_state.pity.get("legendary", 0)) + 1
+	walk_state.history[id] = {"count": int(walk_state.history.get(id, {}).get("count", 0)) + 1}
+	walk_state.pity[id] = 0 if str(loot.rare) != "" or bool(loot.rare_duplicate) else int(walk_state.pity.get(id, 0)) + 1
+	_count("walk")
+	_count("walk:" + id)
+	if str(loot.rare) != "":
+		_count("walk_rare")
+		_count("walk_rare:" + id)
+	var result := {"id": id, "name": str(walk_def(id).get("name", id)), "postcard": walk_postcard(id), "items": loot.items.duplicate(), "coins": int(rewards.coins),
+			"loot_coins": int(loot.coins), "affection": int(def.get("rewards", {}).get("affection", 0)), "needs": def.get("needs", {}).duplicate(), "new": fresh, "new_items": fresh,
+			"first": bool(loot.first), "rare": str(loot.rare), "rare_item": str(loot.rare_item), "rare_duplicate": bool(loot.rare_duplicate), "legendary": legendary, "collections": costumes}
+	walk_state.pending_return = {
+		"id": id, "started_at": float(trip.get("started_at", returned_at)), "ready_at": float(trip.get("ready_at", returned_at)), "returned_at": returned_at, "seed": int(trip.get("seed", 0)),
+		"result": result, "left": loot.items.duplicate(), "rewards_applied": true, "result_shown": false,
+	}
+	walk_state.current = {}
+	if announce:
+		_changed()
+		if int(rewards.coins) > 0:
+			Events.items_gained.emit({}, int(rewards.coins), Vector2(-1.0, -1.0))
+		if str(loot.rare) != "":
+			Events.dog_action.emit(&"wish")
+		Events.walk_collected.emit(walk_result_view())
+	return true
+
+
+## Resumo da última volta para o cartão (itens = tudo o que veio; `left` = o que ainda espera). {} sem bagagem.
+func walk_result_view() -> Dictionary:
+	if not walk_state.has_baggage():
+		return {}
+	var view: Dictionary = (walk_state.pending_return.result as Dictionary).duplicate(true)
+	view["left"] = walk_state.baggage_left().duplicate()
+	view["items_claimed"] = walk_state.baggage_left().is_empty()
+	view["result_shown"] = bool(walk_state.pending_return.result_shown)
+	return view
+
+
+## O cartão da volta foi apresentado: reabrir o resumo não premia de novo. Bagagem vazia some.
+func mark_walk_result_shown() -> void:
+	if not walk_state.has_baggage() or bool(walk_state.pending_return.result_shown):
+		return
+	walk_state.pending_return["result_shown"] = true
+	if walk_state.baggage_left().is_empty():
+		walk_state.pending_return = {}
+	_changed()
+
+
+## Há um resultado de volta que ainda não foi mostrado (carregar o save, outro slot...).
+func walk_result_unseen() -> bool:
+	return walk_state.has_baggage() and not bool(walk_state.pending_return.result_shown)
+
+
+## Sorteio do passeio, estável: depende só da semente guardada, do contrato congelado e do que já foi
+## recolhido (histórico e garantia só mudam na volta). Devolve moedas, itens, "first", "rare"
 ## (id do apetrecho, "" se não veio) e "rare_duplicate" (já era do jogador: vira prêmio de consolo).
+## Com bagagem esperando devolve o resultado congelado; com viagem em curso, uma prévia do sorteio.
 func walk_loot() -> Dictionary:
-	if not walking():
-		return {"coins": 0, "items": {}, "first": false, "rare": "", "rare_item": "", "rare_duplicate": false}
-	var id := str(walk_state.current.id)
-	var def := walk_def(id)
+	if walk_state.active():
+		return _roll_walk(walk_state.current)
+	if walk_state.has_baggage():
+		var frozen: Dictionary = (walk_state.pending_return.result as Dictionary).duplicate(true)
+		frozen["coins"] = int(frozen.get("loot_coins", 0))
+		return frozen
+	return {"coins": 0, "items": {}, "first": false, "rare": "", "rare_item": "", "rare_duplicate": false}
+
+
+func _roll_walk(trip: Dictionary) -> Dictionary:
+	var id := str(trip.get("id", ""))
+	var snapshot := _walk_snapshot(trip)
+	var def: Dictionary = snapshot.def
 	var loot: Dictionary = def.get("loot", {})
-	var seed := int(walk_state.current.seed)
+	var seed := int(trip.get("seed", 0))
 	var coins := 0
 	var items := {}
 	var first := int(walk_state.history.get(id, {}).get("count", 0)) == 0 and loot.has("first")
@@ -373,9 +495,16 @@ func walk_loot() -> Dictionary:
 		var entry := Loot.pick_weighted(loot.get("table", []), seed + i * 7919)
 		var drop := Loot.roll([entry], 1, seed + i * 104729 + 1)
 		if entry.has("find"):
-			drop = Loot.roll(Database.finds.get("worlds", {}).get(str(entry.find), {}).get("table", []), 1, seed + i * 15485863 + 2)
+			drop = Loot.roll(snapshot.find_tables.get(str(entry.find), Database.finds.get("worlds", {}).get(str(entry.find), {}).get("table", [])), 1, seed + i * 15485863 + 2)
 		coins += int(drop.coins)
 		_add_amounts(items, drop.items)
+	# Garantia da rota inicial: até o baú existir, a volta completa os gravetos que ele pede (sem sorteio).
+	var guarantee: Dictionary = loot.get("guarantee", {})
+	if not guarantee.is_empty() and not has_upgrade(str(guarantee.get("until_owned", ""))):
+		var guaranteed := str(guarantee.get("item", ""))
+		var short := int(guarantee.get("count", 0)) - inventory.count(guaranteed) - int(items.get(guaranteed, 0))
+		if short > 0:
+			items[guaranteed] = int(items.get(guaranteed, 0)) + short
 	var rare := ""
 	var rare_item := ""
 	var duplicate := false
@@ -391,12 +520,20 @@ func walk_loot() -> Dictionary:
 				coins += int(rare_def.get("duplicate", {}).get("coins", 0))
 				_add_amounts(items, rare_def.get("duplicate", {}).get("items", {}))
 				rare = ""
-	return {"coins": coins, "items": items, "first": first, "rare": rare, "rare_item": rare_item, "rare_duplicate": duplicate, "legendary": _walk_legendary(seed)}
+	return {"coins": coins, "items": items, "first": first, "rare": rare, "rare_item": rare_item, "rare_duplicate": duplicate, "legendary": _walk_legendary(seed, snapshot.legendary)}
+
+
+## Contrato da viagem: o que valia quando o Tiro saiu (sem snapshot, a tabela viva).
+func _walk_snapshot(trip: Dictionary = walk_state.current) -> Dictionary:
+	var stored: Dictionary = trip.get("snapshot", {})
+	if not stored.is_empty():
+		return stored
+	var live := WorkJobs.walk(str(trip.get("id", "")), Database.walks, Database.finds.get("worlds", {}))
+	return live if not live.is_empty() else {"def": {}, "legendary": {}, "find_tables": {}}
 
 
 ## Sorteio independente: nunca ocupa o lugar do raro nem gasta a garantia dele.
-func _walk_legendary(seed: int) -> String:
-	var data: Dictionary = Database.walks.get("legendary", {})
+func _walk_legendary(seed: int, data: Dictionary = Database.walks.get("legendary", {})) -> String:
 	if data.is_empty() or requirement_error(data.get("requirements", {})) != "":
 		return ""
 	var missing: Array[String] = []
@@ -417,77 +554,107 @@ func _add_amounts(target: Dictionary, amounts: Dictionary) -> void:
 		target[item] = int(target.get(item, 0)) + int(amounts[item])
 
 
-func collect_walk_error() -> String:
-	if not walking():
-		return "Nenhum passeio"
+## Quanto da bagagem cabe agora, por parcelas, sem alterar nada: { moved: {item: qtd}, blocked: depósito,
+## item e missing: o primeiro item que não coube e quantas unidades faltam de espaço }.
+func walk_baggage_plan() -> Dictionary:
+	var moved := {}
+	var blocked := ""
+	var blocked_item := ""
+	var missing := 0
+	var space := {}
+	var left: Dictionary = walk_state.baggage_left()
+	for item_id: String in left:
+		var amount := int(left[item_id])
+		var depot := storage_of(item_id)
+		var fits := amount
+		if depot != "" and storage_active(depot):
+			fits = mini(amount, int(space.get(depot, storage_space(depot))))
+			space[depot] = int(space.get(depot, storage_space(depot))) - fits
+		if fits > 0:
+			moved[item_id] = fits
+		if fits < amount and blocked == "":
+			blocked = depot
+			blocked_item = item_id
+			missing = amount - fits + storage_excess(depot)
+	return {"moved": moved, "blocked": blocked, "item": blocked_item, "missing": missing}
+
+
+## "Baú sem espaço: abra lugar para Graveto ×3" ("" se tudo cabe ou não há bagagem).
+func walk_baggage_hint() -> String:
+	var plan := walk_baggage_plan()
+	return pending_blocked_text(plan) if plan.blocked != "" else ""
+
+
+## Depósito que impede guardar a bagagem ("" se cabe).
+func walk_baggage_depot() -> String:
+	return str(walk_baggage_plan().blocked)
+
+
+func walk_baggage_error() -> String:
 	if not walk_ready():
-		return "O passeio ainda não terminou"
-	return storage_error(walk_loot().items)
+		return "Nenhum achado para guardar"
+	var plan := walk_baggage_plan()
+	if not plan.moved.is_empty():
+		return ""
+	return pending_blocked_text(plan)
 
 
-## Recolhe o passeio pronto. Devolve o resumo para o cartão "Volta do passeio" (vazio se falhou).
-func collect_walk() -> Dictionary:
-	if collect_walk_error() != "":
+## Guarda na Mochila o que cabe da bagagem; o resto continua esperando, sem perder nem repetir nada.
+## Os contadores de itens (`walk_item`, `find_item`) só andam com o que entrou. Devolve {item: qtd} guardados.
+func claim_walk_baggage() -> Dictionary:
+	if walk_baggage_error() != "":
 		return {}
-	var id := str(walk_state.current.id)
-	var def := walk_def(id)
-	var loot := walk_loot()
-	var fresh: Array[String] = []
+	var plan := walk_baggage_plan()
+	var stored: Dictionary = plan.moved
 	var total := 0
-	for item: String in loot.items:
-		var category: String = Database.items.get(item, {}).get("category", "")
-		if category == "find" and progress.stat("find_item:" + item) == 0:
-			fresh.append(item)
-		elif category == "trail" and progress.stat("walk_item:" + item) == 0:
-			fresh.append(item)
-		if category == "find":
-			_count("find_item:" + item, int(loot.items[item]))
-		_count("walk_item:" + item, int(loot.items[item]))
-		total += int(loot.items[item])
-	dog.apply(def.get("needs", {}), now())
-	var rewards: Dictionary = def.get("rewards", {}).duplicate(true)
-	var items: Dictionary = loot.items.duplicate()
-	rewards["coins"] = int(rewards.get("coins", 0)) + int(loot.coins)
-	rewards["items"] = items
-	var rare := str(loot.rare)
-	var costumes: Array[String] = []
-	if rare != "":
-		costumes.append(rare)
-	var legendary := str(loot.get("legendary", ""))
-	if legendary != "":
-		costumes.append(legendary)
-		_count("walk_legendary")
-		walk_state.pity["legendary"] = 0
-	elif requirement_error(Database.walks.get("legendary", {}).get("requirements", {})) == "" and Database.walks.get("legendary", {}).get("collections", []).any(func(id: String) -> bool: return not progress.collection.has(id)):
-		walk_state.pity["legendary"] = int(walk_state.pity.get("legendary", 0)) + 1
-	rewards["collections"] = costumes
-	_apply_rewards(rewards)
-	walk_state.history[id] = {"count": int(walk_state.history.get(id, {}).get("count", 0)) + 1}
-	walk_state.pity[id] = 0 if rare != "" or bool(loot.rare_duplicate) else int(walk_state.pity.get(id, 0)) + 1
-	walk_state.current = {}
-	_count("walk")
-	_count("walk:" + id)
-	if total > 0:
-		_count("walk_item", total)
-	if rare != "":
-		_count("walk_rare")
-		_count("walk_rare:" + id)
-	var result := {"id": id, "name": str(def.get("name", id)), "postcard": walk_postcard(id), "items": items, "coins": int(rewards.coins), "affection": int(def.get("rewards", {}).get("affection", 0)), "needs": def.get("needs", {}), "new": fresh, "first": bool(loot.first), "rare": rare, "rare_item": str(loot.rare_item), "rare_duplicate": bool(loot.rare_duplicate)}
-	result["new_items"] = fresh
-	result["legendary"] = legendary
-	result["collections"] = costumes
+	for item: String in stored:
+		var amount := int(stored[item])
+		inventory.add(item, amount)
+		if Database.items.get(item, {}).get("category", "") == "find":
+			_count("find_item:" + item, amount)
+		_count("walk_item:" + item, amount)
+		total += amount
+		var remaining_amount := int(walk_state.pending_return.left[item]) - amount
+		if remaining_amount > 0:
+			walk_state.pending_return.left[item] = remaining_amount
+		else:
+			walk_state.pending_return.left.erase(item)
+	_count("walk_item", total)
+	if walk_state.baggage_left().is_empty() and bool(walk_state.pending_return.result_shown):
+		walk_state.pending_return = {}
 	_changed()
-	Events.items_gained.emit(items, int(rewards.coins), Vector2(-1.0, -1.0))
-	if rare != "":
-		Events.dog_action.emit(&"wish")
-	Events.walk_collected.emit(result)
-	return result
+	Events.items_gained.emit(stored, 0, Vector2(-1.0, -1.0))
+	return stored
 
 
-## Chama o Tiro de volta antes da hora: devolve a energia, sem prêmio.
-func cancel_walk() -> String:
-	if not walking():
+## Compatibilidade: motivo de não conseguir terminar o passeio e guardar os achados ("" = pode).
+func collect_walk_error() -> String:
+	if walk_state.traveling(now()):
+		return "O passeio ainda não terminou"
+	if walk_state.due(now()):
+		return ""
+	if not walk_state.has_baggage():
 		return "Nenhum passeio"
+	return walk_baggage_error() if walk_ready() else ""
+
+
+## Compatibilidade: liquida a volta (se preciso) e tenta guardar a bagagem. Devolve o resumo da volta
+## (vazio se nada foi guardado). O Tiro volta para casa mesmo quando a bagagem não cabe.
+func collect_walk() -> Dictionary:
+	var returned_now := return_due_walk()
+	if walk_state.traveling(now()) or not walk_state.has_baggage() or (not returned_now and not walk_ready()):
+		return {}
+	var view := walk_result_view()
+	if walk_ready() and claim_walk_baggage().is_empty():
+		return {}
+	view["left"] = walk_state.baggage_left().duplicate()
+	return view
+
+
+## Chama o Tiro de volta antes da hora: devolve a energia, sem prêmio. Só durante a viagem.
+func cancel_walk() -> String:
+	if not walk_state.traveling(now()):
+		return "O Tiro já voltou" if walk_state.has_baggage() or walk_state.active() else "Nenhum passeio"
 	dog.apply({"energy": float(walk_state.current.get("energy", 0))}, now())
 	walk_state.current = {}
 	_changed()
@@ -569,34 +736,57 @@ func perform_trick(id: String) -> String:
 func feed(item_id: String) -> bool:
 	var useful := _need_is_low("hunger")
 	var effects: Dictionary = Database.items.get(item_id, {}).get("feed", {})
-	if walking() or effects.is_empty() or not inventory.remove(item_id):
+	if walking() or effects.is_empty() or inventory.count(item_id) < 1:
 		return false
+	var exception := {"forced": true} if _care_forced else _care_exception("feed")
+	var before := _needs_now()
+	inventory.remove(item_id)
 	dog.apply(effects, now())
+	var gain := _care_gain(before)
 	_count("feed")
 	_count("feed:" + item_id)
+	_care_useful("feed", gain, exception)
 	_care_reward("feed", useful)
 	_changed()
 	Events.dog_action.emit(&"feed")
 	return true
 
 
-func pet() -> void:
+## Carinho: reação livre; o afeto (+1) vem no máximo a cada `care_affection_cooldown` s, guardado no estado.
+## Devolve o afeto concedido (0 = só a reação).
+func pet() -> int:
 	if walking():
-		return
+		return 0
+	var exception := _care_exception("pet")
+	var before := _needs_now()
 	dog.apply(Database.actions.get("pet", {}), now())
-	dog.affection += 1
+	var gain := _care_gain(before)
+	var gained := 0
+	if _care_ready("affection:pet"):
+		_care_start("affection:pet")
+		gained = 1
+		dog.affection += 1
 	_count("pet")
+	var guard := "useful:pet"
+	if _care_ready(guard) and _care_useful("pet", gain, exception):
+		_care_start(guard)
 	_changed()
 	Events.dog_action.emit(&"pet")
+	return gained
 
 
 func play() -> bool:
 	if walking() or dog.sleeping or dog.get_need("energy", now()) < 15.0:
 		return false
 	var useful := _need_is_low("happiness")
+	var exception := _care_exception("play")
+	var before := _needs_now()
 	dog.apply(Database.actions.get("play", {}), now())
-	dog.affection += 2
+	var gain := _care_gain(before)
 	_count("play")
+	if _care_useful("play", gain, exception) and _care_ready("affection:play"):
+		_care_start("affection:play")
+		dog.affection += 2
 	_care_reward("play", useful)
 	_changed()
 	Events.dog_action.emit(&"play")
@@ -607,8 +797,12 @@ func bathe() -> void:
 	if walking():
 		return
 	var useful := _need_is_low("hygiene")
+	var exception := _care_exception("bathe")
+	var before := _needs_now()
 	dog.apply(Database.actions.get("bathe", {}), now())
+	var gain := _care_gain(before)
 	_count("bathe")
+	_care_useful("bathe", gain, exception)
 	_care_reward("bathe", useful)
 	_changed()
 	Events.dog_action.emit(&"bathe")
@@ -634,6 +828,66 @@ func emergency_food() -> String:
 	progress.cooldowns["emergency_food"] = now() + float(settings.emergency_food_cooldown)
 	_changed()
 	return ""
+
+
+# Cuidado útil (etapa 16): só conta quando recupera de verdade ou cumpre um pedido que ainda falta.
+const CARE_NEEDS: Array[String] = ["hunger", "happiness", "hygiene", "energy"]
+## Entrega de desejo de comida em andamento: o `feed` interno vale como cuidado pedido.
+var _care_forced: bool = false
+
+
+func _needs_now() -> Dictionary:
+	var result := {}
+	for id: String in CARE_NEEDS:
+		result[id] = dog.get_need(id, now())
+	return result
+
+
+## Maior recuperação efetiva entre as necessidades, medida antes → depois do gesto.
+func _care_gain(before: Dictionary) -> float:
+	var best := 0.0
+	for id: String in CARE_NEEDS:
+		best = maxf(best, dog.get_need(id, now()) - float(before.get(id, 0.0)))
+	return best
+
+
+func _care_ready(key: String) -> bool:
+	return progress.cooldown_left(key, now()) <= 0
+
+
+func _care_start(key: String) -> void:
+	progress.cooldowns[key] = now() + float(Database.progression.settings.get("care_affection_cooldown", 120))
+
+
+## Pedido que ainda falta e vale uma vez por instância: desejo de ação aberto (sem prêmio pendente) ou passo de história do mesmo gesto.
+func _care_exception(action: String) -> Dictionary:
+	for i in wishes.slots.size():
+		var def := wish_at(i)
+		if str(def.get("type", "")) == "action" and str(def.goal.key) == action 				and not bool(wishes.slots[i].get("used", false)) and wish_value(i) < wish_target(i):
+			return {"wish": i}
+	for id: String in progress.active_steps().values():
+		if progress.seen.has("care:" + id):
+			continue
+		for goal: Dictionary in Database.quests[id].goals:
+			if str(goal.type) == "stat" and str(goal.key) == action and goal_value(goal) < int(goal.get("target", 1)):
+				return {"quest": id}
+	return {}
+
+
+## Conta `care_useful` (total e por ação) se o ganho passou do limiar ou há exceção; consome a exceção só quando ela foi o motivo.
+func _care_useful(action: String, gain: float, exception: Dictionary) -> bool:
+	var settings: Dictionary = Database.progression.settings
+	var limit := float(settings.get("care_useful_gain_pet" if action == "pet" else "care_useful_gain", 5))
+	if gain < limit:
+		if exception.is_empty():
+			return false
+		if exception.has("wish"):
+			wishes.slots[int(exception.wish)]["used"] = true
+		elif exception.has("quest"):
+			progress.seen["care:" + str(exception.quest)] = true
+	_count("care_useful")
+	_count("care_useful:" + action)
+	return true
 
 
 ## Cuidar só dá XP quando o Tiro precisa (abaixo do limite) e fora da recarga.
@@ -678,18 +932,30 @@ func station_slots(id: String) -> int:
 
 ## Coloca uma receita na fila. Retorna "" se deu certo ou o motivo da falha.
 func cook(recipe_id: String) -> String:
-	var error := cook_error(recipe_id)
+	return cook_many(recipe_id, 1)
+
+
+## Prepara N lotes iguais de uma vez (Etapa 12): cada um é um trabalho próprio na fila, com os
+## ingredientes e o snapshot dele, começando quando o anterior termina. Tudo ou nada: se faltar
+## vaga ou ingrediente para qualquer um dos N, nada é consumido nem enfileirado.
+func cook_many(recipe_id: String, count: int) -> String:
+	var error := cook_many_error(recipe_id, count)
 	if error != "":
 		return error
 	var recipe: Dictionary = Database.recipes[recipe_id]
 	var station_id: String = recipe.station
-	inventory.remove_all(recipe_inputs(recipe_id))
-	station(station_id).enqueue(recipe_id, float(recipe.seconds), now())
-	station(station_id).queue.back()["qty"] = recipe_quantity(recipe_id)
-	if Database.stations[station_id].get("kind", "") == "animal":
-		station(station_id).queue.back()["animals"] = animal_roster(station_id)
+	var animal: bool = Database.stations[station_id].get("kind", "") == "animal"
+	var target := station(station_id)
+	var paid := recipe_inputs(recipe_id)
+	for i in count:
+		inventory.remove_all(paid)
+		target.enqueue(recipe_id, float(recipe.seconds), now())
+		target.queue.back()["qty"] = recipe_quantity(recipe_id)
+		target.queue.back()["job"] = WorkJobs.batch(recipe_id, Database.recipes, Database.xp, Database.stations, recipe_quantity(recipe_id), paid)
+		if animal:
+			target.queue.back()["animals"] = animal_roster(station_id)
 	_changed()
-	if Database.stations[station_id].get("kind", "") == "animal":
+	if animal:
 		Events.world_activity.emit(&"feed_animal", station_id, -1)
 	return ""
 
@@ -705,6 +971,48 @@ func _missing_text(amounts: Dictionary, fallback: String) -> String:
 
 ## A mesma validação para alimentação dos animais e fabricação nas estações.
 func cook_error(recipe_id: String) -> String:
+	return cook_many_error(recipe_id, 1)
+
+
+## Vagas livres da estação (as prontas e ainda não pegas continuam ocupando a vaga).
+func station_free_slots(station_id: String) -> int:
+	return maxi(0, station_slots(station_id) - station(station_id).queue.size())
+
+
+## Quantos lotes dá para preparar agora: o menor entre vagas livres e lotes que os ingredientes pagam.
+## Criações e costura de coleção são sempre um por vez. 0 = não dá nem um (ver `cook_error`).
+func cook_max(recipe_id: String) -> int:
+	if not Database.recipes.has(recipe_id) or cook_many_error(recipe_id, 1) != "":
+		return 0
+	var recipe: Dictionary = Database.recipes[recipe_id]
+	if recipe.has("output_collection") or Database.stations[recipe.station].get("kind", "") == "animal":
+		return 1
+	var result := station_free_slots(str(recipe.station))
+	var inputs := recipe_inputs(recipe_id)
+	for id: String in inputs:
+		result = mini(result, inventory.count(id) / maxi(1, int(inputs[id])))
+	return result
+
+
+## Ingredientes totais de N lotes.
+func cook_inputs(recipe_id: String, count: int) -> Dictionary:
+	var result := recipe_inputs(recipe_id)
+	for id: String in result:
+		result[id] = int(result[id]) * count
+	return result
+
+
+## Quando o último dos N lotes ficaria pronto (Unix), contando o que já está na fila.
+func cook_finish_at(recipe_id: String, count: int) -> float:
+	var queue := station(str(Database.recipes[recipe_id].station)).queue
+	var start := now()
+	if not queue.is_empty():
+		start = maxf(start, float(queue.back()["ready_at"]))
+	return start + float(Database.recipes[recipe_id].seconds) * count
+
+
+## Consulta pura da ação `cook_many`: devolve "" ou o motivo, sem alterar nada.
+func cook_many_error(recipe_id: String, count: int) -> String:
 	if not Database.recipes.has(recipe_id):
 		return "Receita desconhecida"
 	var recipe: Dictionary = Database.recipes[recipe_id]
@@ -716,6 +1024,9 @@ func cook_error(recipe_id: String) -> String:
 		return reason
 	var target := station(station_id)
 	var cosmetic := str(recipe.get("output_collection", ""))
+	var animal: bool = Database.stations[station_id].get("kind", "") == "animal"
+	if count < 1:
+		return "Escolha quantos"
 	if cosmetic != "":
 		if progress.collection.has(cosmetic):
 			return "Você já tem"
@@ -723,12 +1034,17 @@ func cook_error(recipe_id: String) -> String:
 			for entry: Dictionary in queue_state.queue:
 				if str(Database.recipes.get(str(entry.recipe), {}).get("output_collection", "")) == cosmetic:
 					return "Já está sendo costurado"
-	if Database.stations[station_id].get("kind", "") == "animal" and animal_count(station_id) == 0:
+	if animal and animal_count(station_id) == 0:
 		return "Compre um animal para começar"
 	if target.queue.size() >= station_slots(station_id):
 		return "Fila cheia"
-	if not inventory.has_all(recipe_inputs(recipe_id)):
-		return _missing_text(recipe_inputs(recipe_id), "Faltam ingredientes")
+	if count > 1 and (animal or cosmetic != ""):
+		return "Um por vez"
+	if count > station_free_slots(station_id):
+		return "Só cabem %d na fila" % station_free_slots(station_id)
+	var needed := cook_inputs(recipe_id, count)
+	if not inventory.has_all(needed):
+		return _missing_text(needed, "Faltam ingredientes")
 	return ""
 
 
@@ -738,21 +1054,26 @@ func collect(station_id: String) -> Dictionary:
 	var blocked := ""
 	for entry: Dictionary in station(station_id).take_ready_batches(now()):
 		var recipe_id: String = entry.recipe
-		var recipe: Dictionary = Database.recipes.get(recipe_id, {})
-		if recipe.is_empty():
-			continue  # receita removida do JSON: descarta sem travar a fila
-		var output: String = Database.recipe_output(recipe)
-		if recipe.has("output_collection"):
+		# O contrato do lote vale o que foi pago ao começar; sem snapshot (entrada montada à mão), a receita atual.
+		var job: Dictionary = entry.get("job", {})
+		if job.is_empty():
+			var live: Dictionary = Database.recipes.get(recipe_id, {})
+			job = WorkJobs.batch(recipe_id, Database.recipes, Database.xp, Database.stations, int(entry.get("qty", live.get("qty", 1))), {})
+		if job.is_empty():
+			continue  # receita removida do JSON e sem snapshot: descarta sem travar a fila
+		var output := str(job.output)
+		if bool(job.collection):
 			if not progress.collection.has(output):
 				progress.collection[output] = true
 				_count("sew")
 				_count("produce:" + output)
 				_count("produce")
-				_discover("recipe:" + recipe_id, str(recipe.get("skill", "adventure")), int(recipe.get("skill_xp", 20)))
+				_count("production_jobs")
+				_discover("recipe:" + recipe_id, str(job.skill), int(job.skill_xp))
 				Events.cosmetic_received.emit(output)
 				_changed()
 			continue
-		var qty := int(entry.get("qty", recipe.get("qty", 1)))
+		var qty := int(job.qty)
 		var full := storage_error({output: qty})
 		if full != "":
 			# Não cabe: o lote continua pronto na fila, nada se perde.
@@ -762,15 +1083,144 @@ func collect(station_id: String) -> Dictionary:
 		inventory.add(output, qty)
 		_count("produce:" + output, qty)
 		_count("produce", qty)
-		_discover("recipe:" + recipe_id, str(recipe.get("skill", "cooking")), int(recipe.get("skill_xp", 10)))
+		_count("production_jobs")  # um lote = 1, mesmo que saiam 2 ou 3 unidades
+		_count_station_job(station_id, recipe_id)
+		_discover("recipe:" + recipe_id, str(job.skill), int(job.skill_xp))
 		received[output] = int(received.get(output, 0)) + qty
-		_gain_xp("animal" if Database.stations.get(station_id, {}).get("kind", "") == "animal" else "cook")
+		_add_player_xp(int(job.player_xp))
 	if blocked != "":
 		Events.toast_requested.emit(blocked)
 	if not received.is_empty():
 		_changed()
 		Events.world_activity.emit(&"collect", station_id, -1)
 	return received
+
+
+# --- Maestria das estações (etapa 18) -----------------------------------------------------------
+# Reconhecimento de uso diverso, derivado de lotes concluídos e recolhidos (um lote = 1, qualquer que seja a
+# saída). Sem XP farmável e sem efeito na produção: só selo e uma recompensa única por patamar.
+
+func mastery_enabled(station_id: String) -> bool:
+	return station_id in Database.progression.get("mastery", {}).get("stations", [])
+
+
+func mastery_tiers() -> Array:
+	return Database.progression.get("mastery", {}).get("tiers", [])
+
+
+## Lotes recebidos nesta estação (sem animais nem costura de coleção).
+func mastery_jobs(station_id: String) -> int:
+	return progress.stat("station_jobs:" + station_id)
+
+
+## Receitas da estação que já foram feitas ao menos uma vez.
+func mastery_kinds_done(station_id: String) -> int:
+	var done := 0
+	for recipe_id: String in Database.recipes_for(station_id):
+		if progress.stat("station_recipe_jobs:%s:%s" % [station_id, recipe_id]) > 0:
+			done += 1
+	return done
+
+
+## Catálogo elegível: receitas comuns que já estão abertas para o jogador ou que ele já fez.
+## Cosméticos únicos (costura de coleção) ficam de fora.
+func mastery_catalog_size(station_id: String) -> int:
+	var total := 0
+	for recipe_id: String in Database.recipes_for(station_id):
+		var recipe: Dictionary = Database.recipes[recipe_id]
+		if recipe.has("output_collection"):
+			continue
+		if progress.stat("station_recipe_jobs:%s:%s" % [station_id, recipe_id]) > 0 or content_error("recipe", recipe_id, recipe) == "":
+			total += 1
+	return total
+
+
+## Variedade pedida pelo patamar (índice 0..2): min(meta, catálogo elegível), nunca menos de 1.
+func mastery_kinds_needed(station_id: String, index: int) -> int:
+	var tiers := mastery_tiers()
+	return maxi(1, mini(int(tiers[index].kinds), mastery_catalog_size(station_id)))
+
+
+func _mastery_reached(station_id: String, index: int) -> bool:
+	if economy.granted.has("mastery:%s:%d" % [station_id, index + 1]):
+		return true  # o que já foi recebido não retrocede (receita nova no catálogo, por exemplo)
+	return mastery_jobs(station_id) >= int(mastery_tiers()[index].jobs) 			and mastery_kinds_done(station_id) >= mastery_kinds_needed(station_id, index)
+
+
+## Patamar atual (0 = nenhum, 3 = ouro).
+func mastery_level(station_id: String) -> int:
+	if not mastery_enabled(station_id):
+		return 0
+	var level := 0
+	for index in mastery_tiers().size():
+		if _mastery_reached(station_id, index):
+			level = index + 1
+	return level
+
+
+## Conta um lote recebido (uma vez, no recolhimento) e paga os patamares novos.
+func _count_station_job(station_id: String, recipe_id: String) -> void:
+	if not mastery_enabled(station_id):
+		return
+	_count("station_jobs:" + station_id)
+	_count("station_recipe_jobs:%s:%s" % [station_id, recipe_id])
+	_pay_mastery(station_id)
+
+
+func _pay_mastery(station_id: String) -> void:
+	var tiers := mastery_tiers()
+	var newest := -1
+	for index in tiers.size():
+		var auto_id := "mastery:%s:%d" % [station_id, index + 1]
+		if economy.granted.has(auto_id) or not _mastery_reached(station_id, index):
+			continue
+		_grant_automatic(auto_id, tiers[index].rewards)
+		newest = index
+	if newest >= 0:
+		Events.toast_requested.emit("%s: selo %s" % [str(Database.stations.get(station_id, {}).get("name", station_id)), str(tiers[newest].name)])
+
+
+## Save anterior à maestria: o histórico de `produce:<item>` conta unidades, não lotes. Registra o MÍNIMO
+## comprovável (unidades ÷ maior rendimento conhecido, arredondado para cima); nunca supõe um lote por unidade.
+## Saída produzida por mais de uma receita da estação (tábua: bancada comum e madeira de lei) não diz qual
+## receita foi feita: só o total da estação sobe e o medidor de variedade fica em 0 para ela.
+## Não paga nada aqui: os patamares alcançados saem no próximo lote recolhido da estação.
+func _seed_mastery() -> void:
+	if economy.mastery_method != "":
+		return
+	var legacy_recipes: Dictionary = Database.legacy.get("recipes", {})
+	var seeded := {}
+	for station_id: String in Database.progression.get("mastery", {}).get("stations", []):
+		var by_output := {}
+		for recipe_id: String in Database.recipes_for(station_id):
+			var recipe: Dictionary = Database.recipes[recipe_id]
+			if recipe.has("output_collection"):
+				continue
+			var output := Database.recipe_output(recipe)
+			if not by_output.has(output):
+				by_output[output] = []
+			by_output[output].append(recipe_id)
+		var total := 0
+		for output: String in by_output:
+			var units := progress.stat("produce:" + output)
+			var best := 1
+			for recipe_id: String in by_output[output]:
+				var recipe: Dictionary = Database.recipes[recipe_id]
+				best = maxi(best, int(legacy_recipes.get(recipe_id, recipe).get("qty", recipe.get("qty", 1))))
+			var jobs := ceili(float(units) / best) if units > 0 else 0
+			if by_output[output].size() == 1:
+				var key := "station_recipe_jobs:%s:%s" % [station_id, by_output[output][0]]
+				if jobs > progress.stat(key):
+					progress.stats[key] = jobs
+				total += progress.stat(key)
+			else:
+				total += jobs
+		var jobs_key := "station_jobs:" + station_id
+		if total > progress.stat(jobs_key):
+			progress.stats[jobs_key] = total
+		seeded[station_id] = float(progress.stat(jobs_key))  # como o JSON devolve: o estado não muda ao recarregar
+	economy.mastery_method = "min_units_v1"
+	economy.legacy["mastery"] = {"method": "min_units_v1", "jobs": seeded}
 
 
 func animal_count(station_id: String) -> int:
@@ -890,16 +1340,22 @@ func plant_error(index: int, crop_id: String) -> String:
 	return crop_plot_error(index, crop_id)
 
 
+## Tempo real de crescimento no canteiro (estufa x0,7 aplicado UMA vez, aqui; a rega age depois sobre o que falta).
+func crop_seconds(index: int, crop_id: String) -> float:
+	var seconds := float(Database.crops.get(crop_id, {}).get("seconds", 60))
+	if index >= 0 and is_greenhouse_plot(index):
+		seconds *= float(Database.farm.get("greenhouse_speed", 1.0))
+	return seconds
+
+
 ## Planta no canteiro. Retorna "" se deu certo ou o motivo da falha.
 func plant(index: int, crop_id: String) -> String:
 	var reason := plant_error(index, crop_id)
 	if reason != "":
 		return reason
 	var planted_at := now()
-	var seconds := float(Database.crops[crop_id].get("seconds", 60))
-	if is_greenhouse_plot(index):
-		seconds *= float(Database.farm.get("greenhouse_speed", 1.0))
-	plots[index] = { "crop": crop_id, "planted_at": planted_at, "ready_at": planted_at + seconds, "watered": false }
+	var seconds := crop_seconds(index, crop_id)
+	plots[index] = { "crop": crop_id, "planted_at": planted_at, "ready_at": planted_at + seconds, "watered": false, "job": WorkJobs.crop(crop_id, Database.crops, Database.xp) }
 	_changed()
 	return ""
 
@@ -943,12 +1399,29 @@ func water(index: int) -> String:
 	return ""
 
 
+## Contrato da colheita: o que valia quando foi plantada (canteiro sem snapshot usa a tabela viva).
+func plot_job(index: int) -> Dictionary:
+	var target := plot(index)
+	if target.get("job", {}).is_empty():
+		return WorkJobs.crop(str(target.crop), Database.crops, Database.xp)
+	return target.job
+
+
 ## Por que não dá para colher agora ("" = pode): não está pronto ou o depósito não comporta a colheita.
 func harvest_error(index: int) -> String:
 	if plot_status(index) != "ready":
 		return "Ainda não está pronto"
-	var crop: Dictionary = Database.crops.get(str(plot(index)["crop"]), {})
-	return storage_error(crop.get("yield", {}))
+	var yield_items: Dictionary = plot_job(index).get("yield", {})
+	var shortage := storage_shortage(yield_items)
+	if shortage.is_empty():
+		return ""
+	# "Cesto da horta sem espaço: abra lugar para Cenoura ×4": a falta real, não o tamanho do lote.
+	var item_id := ""
+	for candidate: String in yield_items:
+		if storage_of(candidate) == str(shortage.depot):
+			item_id = candidate
+			break
+	return "%s sem espaço: abra lugar para %s ×%d" % [storage_name(str(shortage.depot)), Database.item_name(item_id), int(shortage.missing)]
 
 
 ## Colhe um canteiro pronto. Retorna os itens recebidos (vazio se não estava pronto).
@@ -956,20 +1429,20 @@ func harvest(index: int) -> Dictionary:
 	if plot_status(index) != "ready":
 		return {}
 	var crop_id: String = plot(index)["crop"]
-	var crop: Dictionary = Database.crops.get(crop_id, {})
-	var received: Dictionary = crop.get("yield", {})
-	var full := storage_error(received)
+	var job := plot_job(index)
+	var received: Dictionary = job.get("yield", {})
+	var full := harvest_error(index)
 	if full != "":
 		Events.toast_requested.emit(full)
 		return {}
 	_count("harvest")
 	_count("harvest:" + crop_id)
-	_discover("crop:" + crop_id, "agriculture", int(crop.get("skill_xp", 10)))
-	coins += int(crop.get("coins", 0))
+	_discover("crop:" + crop_id, str(job.get("skill", "agriculture")), int(job.get("skill_xp", 10)))
+	coins += int(job.get("coins", 0))
 	for item_id: String in received:
 		inventory.add(item_id, int(received[item_id]))
 	plots[index] = { "crop": "", "ready_at": 0.0 }
-	_gain_xp("harvest")
+	_add_player_xp(int(job.get("player_xp", 0)))
 	_changed()
 	Events.world_activity.emit(&"harvest", crop_id, index)
 	return received
@@ -1039,23 +1512,28 @@ func _add_player_xp(amount: int) -> void:
 		level += 1
 		leveled = true
 		var reward := level_reward(level)
-		_apply_rewards(reward)
+		# Só entra no cartão o que de fato foi guardado agora; o resto espera no recibo "level:N".
+		var paid := _grant_automatic("level:%d" % level, reward)
+		if not paid.paid:
+			continue
 		gained["coins"] = int(gained.get("coins", 0)) + int(reward.get("coins", 0))
 		gained["affection"] = int(gained.get("affection", 0)) + int(reward.get("affection", 0))
 		var items: Dictionary = gained.get("items", {})
-		for id: String in reward.get("items", {}):
-			items[id] = int(items.get(id, 0)) + int(reward.items[id])
+		for id: String in paid.items:
+			items[id] = int(items.get(id, 0)) + int(paid.items[id])
 		gained["items"] = items
 	if leveled:
 		Events.level_up.emit(level, gained)
 
 
-## Presente de subir de nível (progression.json → level_rewards; "default": coins_per_level × nível).
+## Presente de subir de nível (progression.json → level_rewards; "default": min(coins_max, coins_base + coins_per_level × nível)).
 func level_reward(target_level: int) -> Dictionary:
 	var table: Dictionary = Database.progression.get("level_rewards", {})
 	if table.has(str(target_level)):
 		return table[str(target_level)].duplicate(true)
-	return {"coins": int(table.get("default", {}).get("coins_per_level", 0)) * target_level}
+	var fallback: Dictionary = table.get("default", {})
+	var amount := int(fallback.get("coins_base", 0)) + int(fallback.get("coins_per_level", 0)) * target_level
+	return {"coins": mini(amount, int(fallback.get("coins_max", amount)))}
 
 
 func _award_skill(id: String, amount: int) -> void:
@@ -1186,7 +1664,10 @@ func buy_shop_item(id: String) -> String:
 
 # --- Armazenamento ----------------------------------------------------------------
 # Cada item mora num depósito (items.json "storage" ou a categoria em progression.json → storage).
-# O limite só vale depois de construir o depósito; antes disso entra sem limite.
+# O limite só vale depois de construir o depósito, ou desde já quando o depósito tem
+# `prebuild_capacity` no JSON (a etapa de cada depósito liga o campo; sem ele vale a regra antiga).
+# Capacidade = max(curva do estágio, piso legado COMPRADO). Excesso de estoque nunca some: só bloqueia
+# novas entradas; consumir, vender e entregar continuam funcionando.
 # Níveis de ampliação são melhorias comuns (`owned`) com "storage_capacity": sem estado novo no save.
 
 ## Depósito do item ("" = sem limite: ração, itens fora de qualquer categoria).
@@ -1206,20 +1687,52 @@ func storage_of(item_id: String) -> String:
 var unlimited_storage := false
 
 
-## O depósito já foi construído (e, portanto, tem limite)?
+## O depósito tem limite agora? Construído ou com capacidade provisória (`prebuild_capacity`).
 func storage_active(id: String) -> bool:
 	if unlimited_storage:
 		return false
-	return Database.progression.storage.has(id) and has_upgrade(str(Database.progression.storage[id].building))
-
-
-func storage_capacity(id: String) -> int:
 	var data: Dictionary = Database.progression.storage.get(id, {})
+	if data.is_empty():
+		return false
+	return data.has("prebuild_capacity") or has_upgrade(str(data.building))
+
+
+## Capacidade provisória antes do prédio (0 = o depósito ainda não tem limite provisório).
+func storage_prebuild(id: String) -> int:
+	return int(Database.progression.storage.get(id, {}).get("prebuild_capacity", 0))
+
+
+## Curva do estágio atual: base e ampliações compradas (ou a capacidade provisória sem o prédio).
+func storage_curve(id: String) -> int:
+	var data: Dictionary = Database.progression.storage.get(id, {})
+	if not has_upgrade(str(data.get("building", ""))):
+		return storage_prebuild(id)
 	var total := int(data.get("base", 0))
 	for upgrade_id: String in data.get("levels", []):
 		if has_upgrade(upgrade_id):
 			total += int(Database.progression.upgrades[upgrade_id].get("storage_capacity", 0))
 	return total
+
+
+## Piso legado: o que o save já tinha COMPRADO pela tabela congelada (nunca o estoque). Só sobe.
+## Vem SÓ do que a migração gravou em `economy.storage_floor` (e do que foi comprado antes de a etapa
+## do depósito trocar a curva): comprar agora, num jogo novo, vale a curva R1 (silo 32, não 40).
+func storage_floor(id: String) -> int:
+	return economy.floor_of(id)
+
+
+## Nome do depósito para o jogador: "Cesto da horta" até o prédio existir (`prebuild_name`).
+func storage_name(id: String) -> String:
+	var data: Dictionary = Database.progression.storage.get(id, {})
+	if not has_upgrade(str(data.get("building", ""))) and data.has("prebuild_name"):
+		return str(data.prebuild_name)
+	return str(data.get("name", id))
+
+
+func storage_capacity(id: String) -> int:
+	if not Database.progression.storage.has(id):
+		return 0
+	return maxi(storage_curve(id), storage_floor(id))
 
 
 func storage_used(id: String) -> int:
@@ -1234,6 +1747,36 @@ func storage_space(id: String) -> int:
 	return maxi(0, storage_capacity(id) - storage_used(id))
 
 
+## Quantas unidades passam do limite (excesso legado ou de uma curva nova menor).
+func storage_excess(id: String) -> int:
+	return maxi(0, storage_used(id) - storage_capacity(id))
+
+
+## Quanto o depósito passa a caber com esta compra ({} se a melhoria não mexe em depósito): "16 → 32".
+func storage_upgrade_preview(upgrade_id: String) -> Dictionary:
+	for depot: String in Database.progression.storage:
+		var data: Dictionary = Database.progression.storage[depot]
+		if upgrade_id != str(data.get("building", "")) and not upgrade_id in data.get("levels", []):
+			continue
+		var total := int(data.get("base", 0))
+		for level_id: String in data.get("levels", []):
+			if level_id == upgrade_id or has_upgrade(level_id):
+				total += int(Database.progression.upgrades[level_id].get("storage_capacity", 0))
+		return {"depot": depot, "from": storage_capacity(depot), "to": maxi(total, storage_floor(depot))}
+	return {}
+
+
+## Ampliações (`_2` em diante) já compradas, de qualquer depósito; o edifício inicial não conta.
+## Derivado da posse (saves antigos entram sozinhos; comprar conta uma vez, abrir painel nunca).
+func storage_upgrades_owned() -> int:
+	var total := 0
+	for depot: String in Database.progression.storage:
+		for upgrade_id: String in Database.progression.storage[depot].get("levels", []):
+			if has_upgrade(upgrade_id):
+				total += 1
+	return total
+
+
 ## Próxima ampliação do depósito ("" se já está no máximo).
 func storage_next_upgrade(id: String) -> String:
 	for upgrade_id: String in Database.progression.storage.get(id, {}).get("levels", []):
@@ -1242,25 +1785,182 @@ func storage_next_upgrade(id: String) -> String:
 	return ""
 
 
-## Nome do depósito que não comporta os itens ("" se cabem). Soma por depósito.
-func storage_full(items: Dictionary) -> String:
-	var needed := {}
-	for item_id: String in items:
+## VALIDAÇÃO ÚNICA do inventário projetado: depois de tirar `outgoing` e pôr `incoming`, cada depósito
+## limitado ainda cabe? Consulta pura (sem RNG, contador, recarga nem efeito). Soma por depósito, e quem só
+## consome ou vende nunca é bloqueado, mesmo acima do limite. Devolve {} se cabe ou
+## {depot, missing}: `missing` é a falta REAL de espaço (não o tamanho do lote).
+func storage_shortage(incoming: Dictionary, outgoing: Dictionary = {}) -> Dictionary:
+	var gain := {}
+	for item_id: String in incoming:
 		var id := storage_of(item_id)
-		if id != "" and storage_active(id):
-			needed[id] = int(needed.get(id, 0)) + int(items[item_id])
-	for id: String in needed:
-		if int(needed[id]) > storage_space(id):
-			return id
-	return ""
+		if id != "" and storage_active(id) and int(incoming[item_id]) > 0:
+			gain[id] = int(gain.get(id, 0)) + int(incoming[item_id])
+	for id: String in gain:
+		var loss := 0
+		for item_id: String in outgoing:
+			if storage_of(item_id) == id:
+				loss += mini(int(outgoing[item_id]), inventory.count(item_id))
+		var projected := storage_used(id) - loss + int(gain[id])
+		if projected > storage_capacity(id):
+			return {"depot": id, "missing": projected - storage_capacity(id)}
+	return {}
+
+
+## Nome do depósito que não comporta a entrada ("" se cabe).
+func storage_full(items: Dictionary, outgoing: Dictionary = {}) -> String:
+	return str(storage_shortage(items, outgoing).get("depot", ""))
 
 
 ## Texto pronto para toast quando os itens não cabem ("" se cabem).
-func storage_error(items: Dictionary) -> String:
-	var full := storage_full(items)
+func storage_error(items: Dictionary, outgoing: Dictionary = {}) -> String:
+	var full := storage_full(items, outgoing)
 	if full == "":
 		return ""
-	return "%s sem espaço" % Database.progression.storage[full].name
+	return "%s sem espaço" % storage_name(full)
+
+
+## Transação manual: consome `take` e recebe `give` (e/ou gasta `coin_cost`) numa só validação.
+## Falta de moeda/ingrediente ou de espaço projetado: nada é aplicado.
+func transaction_error(take: Dictionary = {}, give: Dictionary = {}, coin_cost: int = 0) -> String:
+	if coins < coin_cost:
+		return "Faltam %d moedas" % (coin_cost - coins)
+	if not inventory.has_all(take):
+		return _missing_text(take, "Faltam itens")
+	return storage_error(give, take)
+
+
+# --- Presentes para guardar (recibos de recompensas automáticas) -------------------------------
+
+## Recompensa AUTOMÁTICA (nível, capítulo, vínculo, cliente, projeto): `auto_id` é a identidade estável
+## ("level:8", "chapter:6", "bond:4", "customer:lais:2", "project:park_bench"). Moedas, XP, coleções e
+## desbloqueios saem UMA vez; só os itens que não cabem esperam num recibo persistente.
+## Devolve {"paid": bool, "items": itens guardados agora, "pending": itens no recibo}.
+func _grant_automatic(auto_id: String, rewards: Dictionary) -> Dictionary:
+	if economy.granted.has(auto_id):
+		return {"paid": false, "items": {}, "pending": {}}
+	economy.granted[auto_id] = true
+	var stored := {}
+	var waiting := {}
+	var space := {}
+	var wanted: Dictionary = rewards.get("items", {})
+	for item_id: String in wanted:
+		var amount := int(wanted[item_id])
+		var depot := storage_of(item_id)
+		var fits := amount
+		if depot != "" and storage_active(depot):
+			fits = mini(amount, int(space.get(depot, storage_space(depot))))
+			space[depot] = int(space.get(depot, storage_space(depot))) - fits
+		if fits > 0:
+			stored[item_id] = fits
+		if amount > fits:
+			waiting[item_id] = amount - fits
+	var effects := rewards.duplicate(true)
+	effects["items"] = stored
+	_apply_rewards(effects)
+	if not waiting.is_empty():
+		economy.pending[auto_id] = {"items": waiting, "label": _receipt_label(auto_id), "source": auto_id.get_slice(":", 0)}
+		Events.toast_requested.emit("Presente esperando na Mochila")
+	return {"paid": true, "items": stored, "pending": waiting}
+
+
+func _receipt_label(auto_id: String) -> String:
+	var kind := auto_id.get_slice(":", 0)
+	var number := int(auto_id.get_slice(":", 1)) if auto_id.get_slice(":", 1).is_valid_int() else 0
+	match kind:
+		"level":
+			return "Nível %d" % number
+		"chapter":
+			var chapters: Array = Database.progression.get("chapters", [])
+			return str(chapters[number - 1].name) if number >= 1 and number <= chapters.size() else "Capítulo %d" % number
+		"bond":
+			return "Vínculo %d" % number
+		"customer":
+			return str(Database.npcs.get(auto_id.get_slice(":", 1), {}).get("name", auto_id.get_slice(":", 1)))
+		"project":
+			return "Projeto da vila"
+	return auto_id.get_slice(":", 1) if ":" in auto_id else auto_id
+
+
+func pending_reward_count() -> int:
+	return economy.pending_count()
+
+
+func pending_reward_total() -> int:
+	return economy.pending_total()
+
+
+## Por que nada do(s) presente(s) pode ser guardado agora ("" = ao menos uma unidade cabe).
+func pending_reward_error(receipt_id: String = "") -> String:
+	var plan := _pending_plan(receipt_id)
+	if not plan.moved.is_empty():
+		return ""
+	if plan.blocked == "":
+		return "Nenhum presente para guardar"
+	return pending_blocked_text(plan)
+
+
+## "Armazém sem espaço: abra lugar para Tábua ×3" (a falta real do primeiro item que não coube).
+func pending_blocked_text(plan: Dictionary) -> String:
+	return "%s sem espaço: abra lugar para %s ×%d" % [storage_name(str(plan.blocked)),Database.item_name(str(plan.item)), int(plan.missing)]
+
+
+## Aviso do que ainda não cabe ("" = tudo cabe ou nada pendente). Usado pela Mochila.
+func pending_reward_hint(receipt_id: String = "") -> String:
+	var plan := _pending_plan(receipt_id)
+	return pending_blocked_text(plan) if plan.blocked != "" else ""
+
+
+## Quanto de cada recibo cabe agora (sem alterar nada): {moved: {id: {item: qtd}}, blocked: depósito,
+## item e missing: o primeiro item que não coube e quantas unidades faltam de espaço}.
+func _pending_plan(receipt_id: String) -> Dictionary:
+	var moved := {}
+	var blocked := ""
+	var blocked_item := ""
+	var missing := 0
+	var space := {}
+	for id: String in economy.pending:
+		if receipt_id != "" and id != receipt_id:
+			continue
+		for item_id: String in economy.pending[id].items:
+			var amount := int(economy.pending[id].items[item_id])
+			var depot := storage_of(item_id)
+			var fits := amount
+			if depot != "" and storage_active(depot):
+				fits = mini(amount, int(space.get(depot, storage_space(depot))))
+				space[depot] = int(space.get(depot, storage_space(depot))) - fits
+			if fits > 0:
+				if not moved.has(id):
+					moved[id] = {}
+				moved[id][item_id] = fits
+			if fits < amount and blocked == "":
+				blocked = depot
+				blocked_item = item_id
+				missing = amount - fits + storage_excess(depot)
+	return {"moved": moved, "blocked": blocked, "item": blocked_item, "missing": missing}
+
+
+## Guarda na Mochila o que cabe de cada presente (todos, ou só `receipt_id`). O restante continua no
+## recibo, sem perda nem pagamento repetido. Devolve {item: qtd} guardados ({} se nada coube).
+func claim_pending_rewards(receipt_id: String = "") -> Dictionary:
+	if pending_reward_error(receipt_id) != "":
+		return {}
+	var plan := _pending_plan(receipt_id)
+	var total := {}
+	for id: String in plan.moved:
+		for item_id: String in plan.moved[id]:
+			var amount := int(plan.moved[id][item_id])
+			inventory.add(item_id, amount)
+			total[item_id] = int(total.get(item_id, 0)) + amount
+			var left := int(economy.pending[id].items[item_id]) - amount
+			if left > 0:
+				economy.pending[id].items[item_id] = left
+			else:
+				economy.pending[id].items.erase(item_id)
+		if economy.pending[id].items.is_empty():
+			economy.pending.erase(id)
+	_changed()
+	Events.items_gained.emit(total, 0, Vector2(-1, -1))
+	return total
 
 
 ## Requisitos que dependem de fora do ProgressionState (afeto do Tiro e hora local) são checados
@@ -1269,6 +1969,11 @@ func requirement_error(requirements: Dictionary) -> String:
 	var reason := progress.requirement_error(requirements)
 	if reason != "":
 		return reason
+	for project_id: String in requirements.get("projects", []):
+		if not Database.projects.get("projects", {}).has(project_id):
+			return "Projeto desconhecido"
+		if not projects.is_completed(project_id):
+			return "Depois de: " + str(Database.project(project_id).get("name", project_id))
 	if requirements.has("bond") and progress.bond_level(dog.affection) < int(requirements.bond):
 		return "Vínculo %d" % int(requirements.bond)
 	if requirements.has("hours"):
@@ -1373,7 +2078,7 @@ func order_error(id: String) -> String:
 		return "Novo pedido em " + TimeText.short(wait)
 	if not inventory.has_all(order.inputs):
 		return _missing_text(order.inputs, "Faltam produtos")
-	return ""
+	return storage_error(order.get("rewards", {}).get("items", {}), order.inputs)
 
 
 func fulfill_order(id: String) -> String:
@@ -1389,8 +2094,27 @@ func fulfill_order(id: String) -> String:
 	if str(order.get("channel", "neighbors")) == "contracts":
 		_count("contracts")
 	_apply_rewards(order.rewards)
+	_pay_customer_tiers(str(order.get("customer", "")))
 	_changed()
 	return ""
+
+
+## Patamares de confiança do cliente ainda não pagos (id estável `customer:<npc>:<n>`, recibo se não couber).
+## Histórico antigo só ganha o que nunca recebeu; avisa o mais alto alcançado agora.
+func _pay_customer_tiers(customer: String) -> void:
+	if customer == "":
+		return
+	var tiers: Array = Database.progression.get("customer_tiers", [])
+	var reached := progress.customer_level(customer)
+	var newest := 0
+	for index in reached:
+		var auto_id := "customer:%s:%d" % [customer, index + 1]
+		if economy.granted.has(auto_id):
+			continue
+		_grant_automatic(auto_id, tiers[index].rewards)
+		newest = index + 1
+	if newest > 0:
+		Events.toast_requested.emit("%s: %s" % [str(Database.npcs.get(customer, {}).get("name", customer)), str(tiers[newest - 1].name)])
 
 
 # --- Rotas (passeios e mineração) --------------------------------------------------
@@ -1409,7 +2133,8 @@ func start_activity(id: String) -> String:
 	if reason != "":
 		return reason
 	var start := now()
-	progress.activity = {"id": id, "started_at": start, "ready_at": start + float(Database.progression.activities[id].seconds)}
+	var job := WorkJobs.route(id, Database.progression.activities)
+	progress.activity = {"id": id, "started_at": start, "ready_at": start + float(Database.progression.activities[id].seconds), "rewards": job.rewards, "player_xp": job.player_xp, "nature_xp": route_nature_xp(id)}
 	_changed()
 	return ""
 
@@ -1421,22 +2146,34 @@ func activity_remaining() -> int:
 	return maxi(0, int(ceil(float(progress.activity.ready_at) - now())))
 
 
-func collect_activity() -> String:
+func collect_activity_error() -> String:
 	if progress.activity.is_empty():
 		return "Nada em andamento"
 	if activity_remaining() > 0:
 		return "Ainda não terminou"
+	var data: Dictionary = Database.progression.activities.get(str(progress.activity.id), {})
+	if data.is_empty():
+		return ""  # rota removida: collect_activity encerra sem prêmio
+	return storage_error(progress.activity.get("rewards", data.rewards).get("items", {}))
+
+
+func collect_activity() -> String:
+	var error := collect_activity_error()
+	if error != "":
+		return error
 	var id: String = progress.activity.id
 	var data: Dictionary = Database.progression.activities.get(id, {})
+	var job: Dictionary = progress.activity
 	progress.activity = {}
 	if data.is_empty():
 		_changed()
 		return "Rota indisponível"
 	_count("activity:" + id)
 	_count("explore")
-	_apply_rewards(data.rewards)
-	_award_nature_xp(Database.gathering_site(id))
-	_add_player_xp(int(data.get("player_xp", 5)))
+	_apply_rewards(job.get("rewards", data.rewards))
+	var site := Database.gathering_site(id)
+	_award_nature_xp(site, int(job.get("nature_xp", Database.progression.nature_sites[site].xp_per_collection)) if site != "" else 0)
+	_add_player_xp(int(job.get("player_xp", data.get("player_xp", 5))))
 	_changed()
 	return ""
 
@@ -1452,12 +2189,31 @@ func gathering_slots(site: String) -> int:
 
 
 func _sync_nature_unlocks(site: String) -> void:
-	var config: Dictionary = Database.progression.nature_sites[site]
-	var level := progress.nature_level(site)
-	for i in level:
-		progress.owned[str(config.level_upgrades[i])] = true
-	for i in maxi(0, level - 1):
-		progress.owned[str(config.slot_upgrades[i])] = true
+	progress.sync_nature_tokens(site)
+
+
+## XP local que a rota dá ao local (fixado ao começar). Rota sem local (pomar) não dá nada;
+## rota sem "nature_xp" usa o valor antigo do local (compatibilidade).
+func route_nature_xp(route_id: String) -> int:
+	var site := Database.gathering_site(route_id)
+	if site == "":
+		return 0
+	var data: Dictionary = Database.progression.activities.get(route_id, {})
+	return int(data.get("nature_xp", Database.progression.nature_sites[site].xp_per_collection))
+
+
+## Rota padrão de um material: a elegível mais curta (ou, se nenhuma vale ainda, a mais curta do material).
+func default_gathering_route(resource: String) -> String:
+	var routes: Array = Database.progression.get("nature_resources", {}).get(resource, {}).get("routes", [])
+	var best := ""
+	var best_open := ""
+	for id: String in routes:
+		var seconds := int(Database.progression.activities[id].seconds)
+		if best == "" or seconds < int(Database.progression.activities[best].seconds):
+			best = id
+		if requirement_error(Database.progression.activities[id].get("requirements", {})) == "" and (best_open == "" or seconds < int(Database.progression.activities[best_open].seconds)):
+			best_open = id
+	return best_open if best_open != "" else best
 
 
 func _award_nature_xp(site: String, amount: int = -1) -> void:
@@ -1502,8 +2258,11 @@ func gathering_free_count(site: String) -> int:
 	return count
 
 
-func gathering_error(site: String, index: int, route_id: String, resource: String = "") -> String:
-	if not Database.progression.nature_sites.has(site) or Database.gathering_site(route_id) != site:
+## `route_id` vazio = rota padrão do material (a elegível mais curta); chamadas antigas continuam valendo.
+func gathering_error(site: String, index: int, route_id: String = "", resource: String = "") -> String:
+	if route_id == "":
+		route_id = default_gathering_route(resource)
+	if not Database.progression.activities.has(route_id) or not Database.progression.nature_sites.has(site) or Database.gathering_site(route_id) != site:
 		return "Este material não é deste local"
 	if index < 0 or index >= gathering_slots(site):
 		return "Libere este espaço primeiro"
@@ -1515,23 +2274,25 @@ func gathering_error(site: String, index: int, route_id: String, resource: Strin
 	return reason if reason != "" else requirement_error(Database.progression.activities[route_id].get("requirements", {}))
 
 
-func start_gathering(site: String, index: int, route_id: String, resource: String = "") -> String:
+func start_gathering(site: String, index: int, route_id: String = "", resource: String = "") -> String:
 	var error := gathering_error(site, index, route_id, resource)
 	if error != "":
 		return error
+	if route_id == "":
+		route_id = default_gathering_route(resource)
 	var data: Dictionary = Database.progression.activities[route_id]
 	var jobs: Array = progress.gathering.get(site, []).duplicate(true)
 	while jobs.size() <= index:
 		jobs.append({})
 	var start := now()
-	jobs[index] = {"id": route_id, "resource": resource, "started_at": start, "ready_at": start + float(data.seconds), "rewards": data.rewards.duplicate(true), "player_xp": int(data.get("player_xp", 5)), "nature_xp": int(Database.progression.nature_sites[site].xp_per_collection)}
+	jobs[index] = {"id": route_id, "resource": resource, "started_at": start, "ready_at": start + float(data.seconds), "rewards": data.rewards.duplicate(true), "player_xp": int(data.get("player_xp", 5)), "nature_xp": route_nature_xp(route_id)}
 	progress.gathering[site] = jobs
 	_changed()
 	return ""
 
 
 ## Um toque no material preenche só a primeira vaga livre, sem escolher o espaço.
-func next_gathering_error(site: String, route_id: String, resource: String = "") -> String:
+func next_gathering_error(site: String, route_id: String = "", resource: String = "") -> String:
 	if not Database.progression.nature_sites.has(site):
 		return "Local de busca inválido"
 	if progress.nature_level(site) == 0:
@@ -1542,7 +2303,7 @@ func next_gathering_error(site: String, route_id: String, resource: String = "")
 	return "Todos os espaços estão ocupados"
 
 
-func start_next_gathering(site: String, route_id: String, resource: String = "") -> String:
+func start_next_gathering(site: String, route_id: String = "", resource: String = "") -> String:
 	var error := next_gathering_error(site, route_id, resource)
 	if error != "":
 		return error
@@ -1552,7 +2313,7 @@ func start_next_gathering(site: String, route_id: String, resource: String = "")
 	return "Todos os espaços estão ocupados"
 
 
-func start_gathering_all(site: String, route_id: String, resource: String = "") -> String:
+func start_gathering_all(site: String, route_id: String = "", resource: String = "") -> String:
 	var started := false
 	var reason := "Todos os espaços estão ocupados"
 	for index in gathering_slots(site):
@@ -1631,6 +2392,8 @@ func goal_value(goal: Dictionary) -> int:
 			return progress.chapter_index()
 		"quest":
 			return 1 if progress.claimed_quests.has(goal.key) else 0
+		"project":
+			return 1 if projects.is_completed(str(goal.key)) else 0
 		"stat":
 			# "fresh": conta só o que foi feito depois que o passo da linha começou.
 			if goal.get("fresh", false):
@@ -1677,7 +2440,8 @@ func quest_error(id: String) -> String:
 			return "Falta cumprir os objetivos"
 	if not inventory.has_all(_quest_deliveries(id)):
 		return _missing_text(_quest_deliveries(id), "Faltam itens")
-	return ""
+	# Entrega e prêmio juntos: o espaço é o que sobra DEPOIS de entregar os ingredientes.
+	return storage_error(Database.quests[id].get("rewards", {}).get("items", {}), _quest_deliveries(id))
 
 
 func claim_quest(id: String) -> String:
@@ -1721,8 +2485,9 @@ func _finish_quest(id: String, grant_reward: bool = true) -> void:
 		_add_player_xp(int(Database.quests[id].get("player_xp", 15)))
 		Events.quest_completed.emit(id)
 	if Database.quests[id].get("kind", "side") == "main" and progress.chapter_index() > chapter:
-		_apply_rewards(Database.progression.chapters[chapter - 1].get("rewards", {}))
-		Events.chapter_completed.emit(chapter)
+		var chapter_paid := _grant_automatic("chapter:%d" % chapter, Database.progression.chapters[chapter - 1].get("rewards", {}))
+		if chapter_paid.paid:
+			Events.chapter_completed.emit(chapter)
 
 
 # --- Novidades (revelar aos poucos) ---------------------------------------------------
@@ -1791,8 +2556,28 @@ func routine_ids(kind: String) -> Array[String]:
 	return ids
 
 
+## Modelo da rotina. Períodos sorteados no catálogo R1 (`catalog` 2) usam `missions`; os anteriores continuam
+## com a definição de antes (`legacy`), então meta e prêmio de uma rotina ativa nunca mudam no meio do período.
 func routine_data(kind: String, id: String) -> Dictionary:
-	return Database.routines.get(kind, {}).get("missions", {}).get(id, {})
+	var block: Dictionary = Database.routines.get(kind, {})
+	var current: Dictionary = block.get("missions", {})
+	if progress.routines.get(kind, {}).is_empty() or int(progress.routines[kind].get("catalog", 1)) >= 2:
+		return current.get(id, {})
+	return block.get("legacy", {}).get(id, current.get(id, {}))
+
+
+## Fase da jornada para as faixas de meta: começo (até o capítulo 4), meio (5–9), comunidade (10+).
+func routine_phase() -> String:
+	var chapter := progress.chapter_index()
+	return "start" if chapter <= 4 else ("middle" if chapter <= 9 else "community")
+
+
+## Meta da rotina: a quantidade congelada na geração (fase) ou, em sorteio antigo, a do modelo.
+func routine_target(kind: String, id: String) -> int:
+	var frozen: Dictionary = progress.routines.get(kind, {}).get("targets", {})
+	if frozen.has(id):
+		return int(frozen[id])
+	return int(routine_data(kind, id).get("goal", {}).get("target", 1))
 
 
 func routine_value(kind: String, id: String) -> int:
@@ -1810,9 +2595,9 @@ func routine_error(kind: String, id: String) -> String:
 		return "Esta missão já passou"
 	if routine_claimed(kind, id):
 		return "Prêmio já pego"
-	if routine_value(kind, id) < int(routine_data(kind, id).goal.get("target", 1)):
+	if routine_value(kind, id) < routine_target(kind, id):
 		return "Falta cumprir o objetivo"
-	return ""
+	return storage_error(routine_data(kind, id).get("rewards", {}).get("items", {}))
 
 
 func claim_routine(kind: String, id: String) -> String:
@@ -1876,7 +2661,7 @@ func update_wishes() -> bool:
 		var def := wish_def(str(pick.id))
 		wishes.slots[i] = {
 			"id": pick.id, "base": progress.stat(str(def.goal.key)) if def.get("type", "") == "action" else 0,
-			"since": t, "ready_at": float(slot.ready_at), "special": bool(pick.get("special", false)), "last": str(slot.get("last", "")),
+			"since": t, "ready_at": float(slot.ready_at), "special": bool(pick.get("special", false)), "last": str(slot.get("last", "")), "used": false, "swap_reason": str(slot.get("swap_reason", "")),
 		}
 		changed = true
 	return changed
@@ -1884,7 +2669,7 @@ func update_wishes() -> bool:
 
 func _wish_eligible(id: String, taken: Array[String], last: String) -> bool:
 	var def := wish_def(id)
-	return not def.is_empty() and not id in taken and id != last and not def.get("special", false) and requirement_error(def.get("requirements", {})) == ""
+	return not def.is_empty() and not id in taken and id != last and not def.get("special", false) 			and requirement_error(def.get("requirements", {})) == "" and wish_item_reachable(def)
 
 
 ## Escolhe o desejo do espaço: o inicial, depois necessidade baixa, especial raro e sorteio por peso.
@@ -1897,6 +2682,14 @@ func _pick_wish(i: int, slot: Dictionary) -> Dictionary:
 	var first := str(settings.get("first", ""))
 	if not wishes.first_done and not wish_def(first).is_empty() and not first in taken:
 		return {"id": first}
+	# Missão ativa que pede um desejo (`guarantee_quest`): oferece na próxima vaga elegível, só em espaço vazio.
+	# Não substitui pedido atual nem gera ingrediente; o pedido que acabou de ser trocado não volta ao mesmo espaço.
+	for id: String in Database.wishes.wishes:
+		var wanted := wish_def(id)
+		var quest := str(wanted.get("guarantee_quest", ""))
+		if quest != "" and not id in taken and id != last and progress.current_line_quest(progress.quest_line(quest)) == quest \
+				and requirement_error(wanted.get("requirements", {})) == "" and wish_item_reachable(wanted):
+			return {"id": id, "special": bool(wanted.get("special", false))}
 	var needs: Dictionary = settings.get("need_wishes", {})
 	for need_id: String in needs:
 		if dog.get_need(need_id, now()) < float(settings.get("need_threshold", 35)) and _wish_eligible(str(needs[need_id]), taken, ""):
@@ -1905,7 +2698,7 @@ func _pick_wish(i: int, slot: Dictionary) -> Dictionary:
 		var specials: Array = []
 		for id: String in Database.wishes.wishes:
 			var def := wish_def(id)
-			if def.get("special", false) and not id in taken and requirement_error(def.get("requirements", {})) == "":
+			if def.get("special", false) and not id in taken and requirement_error(def.get("requirements", {})) == "" and wish_item_reachable(def):
 				specials.append({"id": id, "weight": def.get("weight", 1)})
 		if not specials.is_empty():
 			var chosen := Loot.pick_weighted(specials, rng.randi())
@@ -1921,6 +2714,31 @@ func _pick_wish(i: int, slot: Dictionary) -> Dictionary:
 	if pool.is_empty():
 		return {}
 	return {"id": Loot.pick_weighted(pool, rng.randi()).id}
+
+
+## O item pedido existe na mochila ou tem uma fonte que já dá para usar agora (planta liberada ou receita com estação e requisitos).
+## Itens de passeio/achado dependem só dos requisitos do próprio desejo. Desejos de ação sempre valem.
+func wish_item_reachable(def: Dictionary) -> bool:
+	if str(def.get("type", "")) == "action":
+		return true
+	var item := str(def.get("item", ""))
+	if inventory.count(item) > 0:
+		return true
+	var gated := false
+	for id: String in Database.crops:
+		if Database.crops[id].get("yield", {}).has(item):
+			gated = true
+			if requirement_error(Database.crops[id].get("requirements", {})) == "":
+				return true
+	for id: String in Database.recipes:
+		var recipe: Dictionary = Database.recipes[id]
+		if Database.recipe_output(recipe) != item:
+			continue
+		gated = true
+		var owner := Database.station_upgrade(str(recipe.get("station", "")))
+		if (owner == "" or has_upgrade(owner)) and requirement_error(recipe.get("requirements", {})) == "":
+			return true
+	return not gated
 
 
 ## Desejo do espaço (vazio se esperando ou fechado).
@@ -1959,7 +2777,7 @@ func wish_error(i: int) -> String:
 	if def.type != "action" and walking():
 		return "Quando ele voltar"
 	if wish_value(i) >= wish_target(i):
-		return ""
+		return storage_error(wish_rewards(i).get("items", {}), {str(def.item): 1} if str(def.get("type", "")) == "give" else {})
 	if def.type == "action":
 		return "Faça: " + str(def.name)
 	return "Falta " + Database.item_name(str(def.item))
@@ -1976,6 +2794,8 @@ func wish_rewards(i: int) -> Dictionary:
 		for key: String in ["coins", "affection"]:
 			if rewards.has(key):
 				rewards[key] = int(rewards[key]) * factor
+		if rewards.has("coins"):
+			rewards["coins"] = mini(int(rewards.coins), int(wish_settings().get("special_coin_cap", 12)))
 	return rewards
 
 
@@ -1989,12 +2809,17 @@ func fulfill_wish(i: int) -> String:
 	var rewards := wish_rewards(i)
 	match str(def.type):
 		"feed":
-			if not feed(str(def.item)):
+			_care_forced = true
+			var fed := feed(str(def.item))
+			_care_forced = false
+			if not fed:
 				return "Ele não quer isso agora"
 		"give":
 			inventory.remove(str(def.item))
 			_count("give:" + str(def.item))
 	_apply_rewards(rewards)
+	if str(def.type) != "action":
+		_count("wish_item:" + str(def.item))
 	_count("wish")
 	_count("wish:" + id)
 	wishes.done_count += 1
@@ -2016,7 +2841,12 @@ func swap_wish(i: int) -> String:
 	var error := swap_wish_error(i)
 	if error != "":
 		return error
-	wishes.slots[i] = WishState.empty_slot(now() + float(wish_settings().get("swap_seconds", 300)), str(wishes.slots[i].id))
+	# Pedido que ficou impossível (item sem fonte liberada): troca na hora e guarda o motivo, sem gerar item.
+	var impossible := not wish_item_reachable(wish_at(i))
+	var wait := 0.0 if impossible else float(wish_settings().get("swap_seconds", 300))
+	wishes.slots[i] = WishState.empty_slot(now() + wait, str(wishes.slots[i].id))
+	if impossible:
+		wishes.slots[i]["swap_reason"] = "unreachable"
 	_changed()
 	return ""
 
@@ -2072,10 +2902,12 @@ func _check_bond() -> void:
 	var gained := {"coins": 0, "items": {}}
 	for reached in range(progress.claimed_bond_level + 1, level + 1):
 		var reward: Dictionary = levels[reached - 1].get("rewards", {}) if reached - 1 < levels.size() else {}
-		_apply_rewards(reward)
+		var paid := _grant_automatic("bond:%d" % reached, reward)
+		if not paid.paid:
+			continue
 		gained["coins"] = int(gained.coins) + int(reward.get("coins", 0))
-		for id: String in reward.get("items", {}):
-			gained.items[id] = int(gained.items.get(id, 0)) + int(reward.items[id])
+		for id: String in paid.items:
+			gained.items[id] = int(gained.items.get(id, 0)) + int(paid.items[id])
 	progress.claimed_bond_level = level
 	Events.bond_up.emit(level, gained)
 
@@ -2098,7 +2930,7 @@ func daily_gift_error() -> String:
 		return "Sem presente"
 	if str(progress.daily_gift.period) == routine_period("daily"):
 		return "Já pegou hoje"
-	return ""
+	return storage_error(daily_gift_rewards().get("items", {}))
 
 
 func claim_daily_gift() -> String:
@@ -2112,10 +2944,42 @@ func claim_daily_gift() -> String:
 	return ""
 
 
-## O que ficou pronto para o cartão "bem-vindo de volta", UMA linha por tipo (até `limit`):
-## - friend_visit { friend }: visita de amigo com presente; walk: o Tiro voltou do passeio;
-## - dig { count, worlds }: achados do faro de todos os mundos juntos (`world`/`target` = o primeiro);
-## - ready { count, icons, world }: canteiros + estações + coletas da Natureza de UM mundo.
+## Coletas prontas por mundo, contadas por canteiro/lote/vaga, sem missões nem novidades.
+func world_ready_counts() -> Dictionary:
+	var counts: Dictionary = {}
+	var farm_at := Database.place_with_panel("farm")
+	for i: int in usable_plot_indices():
+		if plot_status(i) == "ready":
+			_add_world_ready(counts, farm_at[0], 1)
+	for id: String in Database.stations:
+		if has_upgrade(id):
+			var at := Database.place_with_panel("station:" + id)
+			_add_world_ready(counts, at[0], station(id).ready_count(now()))
+	for site: String in Database.progression.get("nature_sites", {}):
+		if gathering_slots(site) > 0:
+			var at := Database.place_with_panel("routes:" + str(Database.progression.nature_sites[site].groups[0]))
+			_add_world_ready(counts, at[0], gathering_ready_count(site))
+	if walk_ready():
+		_add_world_ready(counts, Database.place_with_panel("walks")[0], 1)
+	if not progress.activity.is_empty() and activity_remaining() == 0:
+		var route: Dictionary = Database.progression.activities.get(str(progress.activity.get("id", "")), {})
+		_add_world_ready(counts, Database.place_with_panel("routes:" + str(route.get("place", "")))[0], 1)
+	for id: String in Database.friends.friends:
+		if bool(friend_state.entry(id).visit_pending):
+			_add_world_ready(counts, "house", 1)
+	for world: String in finds.worlds:
+		if int(finds.worlds[world].pending) > 0:
+			_add_world_ready(counts, world, 1)
+	return counts
+
+
+func _add_world_ready(counts: Dictionary, world: String, count: int) -> void:
+	if count <= 0 or not Database.worlds.has(world): return
+	if requirement_error(Database.worlds[world].get("requirements", {})) != "": return
+	counts[world] = int(counts.get(world, 0)) + count
+
+
+## Boas-vindas: visitas, passeio, achados agrupados e produções prontas por mundo.
 ## Todas trazem { kind, count, icon, world, target } (o destino do "Ir").
 func welcome_ready_lines(limit: int = 5) -> Array[Dictionary]:
 	var lines: Array[Dictionary] = []
@@ -2264,12 +3128,21 @@ func _ensure_routines(kind: String) -> void:
 	while ids.size() < int(Database.routines[kind].get("count", 3)) and not pool.is_empty():
 		ids.append(pool.pop_at(rng.randi_range(0, pool.size() - 1)))
 	var base := {}
+	var targets := {}
+	var phase := routine_phase()
 	for id in ids:
-		var key: String = missions[id].goal.key
-		base[key] = progress.stat(key)
-	progress.routines[kind] = {"period": period, "ids": ids, "base": base, "claimed": {}}
+		var goal: Dictionary = missions[id].goal
+		base[str(goal.key)] = progress.stat(str(goal.key))
+		targets[id] = int(goal.get("targets", {}).get(phase, goal.get("target", 1)))
+	progress.routines[kind] = {"period": period, "ids": ids, "base": base, "targets": targets, "catalog": 2, "claimed": {}}
 	# Adiado: pode ser chamado durante a montagem de uma tela.
 	_changed.call_deferred()
+
+
+## Hora do relógio local ("14:35") de um instante Unix, para "pronto às ...".
+func clock_text(at: float) -> String:
+	var parts := Time.get_datetime_dict_from_unix_time(_local_time(at))
+	return "%02d:%02d" % [int(parts.hour), int(parts.minute)]
 
 
 func _local_time(at: float = -1.0) -> int:
@@ -2300,6 +3173,38 @@ func dev_add_items(amount: int, category: String = "") -> void:
 		if category == "" or Database.items[id].get("category", "") == category:
 			inventory.add(id, amount)
 	_changed()
+
+
+## Cria um presente automático de teste esperando na Mochila (sem moedas): serve para ver a seção
+## "Presentes para guardar" e o botão Guardar mesmo com os depósitos vazios.
+func dev_add_pending_gift() -> void:
+	if not BuildInfo.is_dev():
+		return
+	var number := 1
+	while economy.granted.has("dev:%d" % number):
+		number += 1
+	var id := "dev:%d" % number
+	economy.granted[id] = true
+	economy.pending[id] = {"items": {"carrot_snack": 2, "plank": 3}, "label": "Presente de teste", "source": "dev"}
+	_changed()
+
+
+## Passeio que acabou de voltar, com a bagagem esperando (só a versão dev; sorteio normal, sem prêmio extra).
+## Libera o mínimo para passear (a Praça e a conversa com a Nina) quando o save ainda não chegou lá.
+func dev_walk_return() -> void:
+	if not BuildInfo.is_dev():
+		return
+	return_due_walk()
+	if walk_state.active() or walk_ready():
+		return
+	for quest: String in ["main_2_order", "nina_meet", "nina_walk"]:
+		progress.claimed_quests[quest] = true
+	dog.set_sleeping(false, now())
+	dog.apply({"energy": 100.0}, now())
+	if start_walk("park_loop") != "":
+		return
+	walk_state.current["ready_at"] = now() - 1.0
+	return_due_walk()
 
 
 ## Sobe todos os atributos para pelo menos este nível.
@@ -2425,7 +3330,11 @@ func dev_finish_timers() -> void:
 func dev_advance_time(seconds: float) -> void:
 	if not BuildInfo.is_dev():
 		return
+	# O tempo andou com o jogo fechado: o Tiro vive isso como ausência protegida.
+	dog.commit(now())
 	dog.updated_at -= seconds
+	dog.away_since = dog.updated_at
+	dog.end_absence(now())
 	for entry: Dictionary in plots:
 		if entry["crop"] != "":
 			entry["ready_at"] = float(entry["ready_at"]) - seconds
@@ -2438,6 +3347,7 @@ func dev_advance_time(seconds: float) -> void:
 	wishes.shift_time(seconds)
 	finds.shift_time(seconds)
 	walk_state.shift_time(seconds)
+	projects.shift_time(seconds)
 	_changed()
 
 
@@ -2494,6 +3404,345 @@ func _dev_complete_quest(id: String) -> void:
 		_finish_quest(id)
 
 
+
+# --- Projetos comunitários (etapa 19) ------------------------------------------------------------
+# Contrato estável para a interface das etapas 20–22: consultas puras (`project_*`), erros (`*_error`
+# devolvem "" se vale) e ações. Taxa só ao começar; material entregue sai do inventário e vira
+# contribuição no mesmo passo; a última entrega conclui e premia (uma vez) sem passo intermediário salvo.
+
+## Projeto existe, tem definição coerente e os requisitos valem (a UI só mostra o que passa aqui ou já começou).
+func project_available(id: String) -> bool:
+	return Database.project_issue(id) == "" and (projects.entry(id).started or requirement_error(Database.project(id).get("requirements", {})) == "")
+
+
+func project_started(id: String) -> bool:
+	return bool(projects.entry(id).started)
+
+
+func project_completed(id: String) -> bool:
+	return projects.is_completed(id)
+
+
+## Estágio atual (consulta pura): índice, id da fase, material pedido/entregue/restante e progressos 0..1.
+## Obra inteira entregue (aguardando ou já concluída) devolve `done` verdadeiro e fase vazia.
+func project_stage(id: String) -> Dictionary:
+	var def := Database.project(id)
+	if def.is_empty():
+		return {}
+	var phases: Array = def.get("phases", [])
+	var entry := projects.entry(id)
+	var index := clampi(int(entry.phase_index), 0, phases.size())
+	var total := 0
+	var delivered := 0
+	for position: int in phases.size():
+		var items: Dictionary = phases[position].get("items", {})
+		for item: String in items:
+			total += int(items[item])
+			if position <= index:
+				delivered += mini(int(items[item]), projects.given(id, str(phases[position].id), item))
+	var stage := {"index": index, "count": phases.size(), "phase": "", "needed": {}, "given": {}, "remaining": {}, "progress": 1.0, "done": index >= phases.size(), "total_progress": float(delivered) / float(maxi(1, total))}
+	if index >= phases.size():
+		return stage
+	var phase: Dictionary = phases[index]
+	var needed: Dictionary = phase.get("items", {})
+	var given := {}
+	var remaining := {}
+	var needed_total := 0
+	var given_total := 0
+	for item: String in needed:
+		var have := mini(int(needed[item]), projects.given(id, str(phase.id), item))
+		given[item] = have
+		remaining[item] = int(needed[item]) - have
+		needed_total += int(needed[item])
+		given_total += have
+	stage["phase"] = str(phase.id)
+	stage["needed"] = needed
+	stage["given"] = given
+	stage["remaining"] = remaining
+	stage["progress"] = float(given_total) / float(maxi(1, needed_total))
+	return stage
+
+
+## Desenho da obra no mapa (consulta pura): "" = ainda não existe para o jogador; "ghost" = marcação do
+## lugar (nada entregue); senão o `visual_state` da última fase já entregue (obra concluída = o da última).
+func project_visual(id: String) -> String:
+	if not project_available(id):
+		return ""
+	var phases: Array = Database.project(id).get("phases", [])
+	var done := phases.size() if projects.is_completed(id) else clampi(int(projects.entry(id).phase_index), 0, phases.size())
+	if done <= 0:
+		return "ghost"
+	return str(phases[done - 1].get("visual_state", "ghost"))
+
+
+## Todas as fases entregues e a conclusão/prêmio ainda por registrar (só acontece numa interrupção: recuperável).
+func project_ready(id: String) -> bool:
+	var entry := projects.entry(id)
+	return bool(entry.started) and bool(project_stage(id).get("done", false)) and not (bool(entry.completed) and bool(entry.completion_rewarded))
+
+
+func project_error(id: String) -> String:
+	if Database.project(id).is_empty():
+		return "Projeto desconhecido"
+	if Database.project_issue(id) != "":
+		return "Obra indisponível"
+	var entry := projects.entry(id)
+	if bool(entry.completed):
+		return "Obra concluída"
+	if bool(entry.started):
+		return "A obra já começou"
+	var reason := requirement_error(Database.project(id).get("requirements", {}))
+	if reason != "":
+		return reason
+	var fee := int(Database.project(id).get("start_coins", 0))
+	if coins < fee:
+		return "Faltam %d moedas" % (fee - coins)
+	return ""
+
+
+## Começa a obra: valida requisitos e moedas e cobra a taxa numa só passada. Sem taxa por fase.
+func start_project(id: String) -> String:
+	var error := project_error(id)
+	if error != "":
+		return error
+	coins -= int(Database.project(id).get("start_coins", 0))
+	var entry := projects.entry(id)
+	entry["started"] = true
+	entry["paid_start"] = true
+	projects.projects[id] = entry
+	_count("project_start")
+	_changed()
+	return ""
+
+
+## Quantidade inteira positiva (decimal só se for inteiro, ex. 2.0 vindo de JSON); senão 0.
+func _whole_quantity(qty: Variant) -> int:
+	if typeof(qty) == TYPE_INT:
+		return maxi(0, int(qty))
+	if typeof(qty) == TYPE_FLOAT and is_finite(float(qty)) and float(qty) == floorf(float(qty)):
+		return maxi(0, int(qty))
+	return 0
+
+
+func project_contribution_error(id: String, item: String, qty: Variant) -> String:
+	if Database.project(id).is_empty():
+		return "Projeto desconhecido"
+	if Database.project_issue(id) != "":
+		return "Obra indisponível"
+	var entry := projects.entry(id)
+	if not bool(entry.started):
+		return "Comece a obra primeiro"
+	var stage := project_stage(id)
+	if bool(entry.completed) or bool(stage.done):
+		return "Obra concluída"
+	var amount := _whole_quantity(qty)
+	if amount <= 0:
+		return "Escolha uma quantidade"
+	var missing := int(stage.remaining.get(item, 0))
+	if missing <= 0:
+		return "Esta fase não precisa de " + Database.item_name(item)
+	if amount > missing:
+		return "Só faltam %d" % missing
+	if inventory.count(item) < amount:
+		return "Falta %s ×%d" % [Database.item_name(item), amount - inventory.count(item)]
+	return ""
+
+
+## Entrega `qty` de `item` à fase atual. Erro não consome nem avança. Fase completa avança uma vez; a última
+## conclui e premia no mesmo passo (recibo se o prêmio não couber; nunca bloqueia a obra).
+func contribute_project(id: String, item: String, qty: Variant) -> String:
+	var error := project_contribution_error(id, item, qty)
+	if error != "":
+		return error
+	var amount := _whole_quantity(qty)
+	var phase_id := str(project_stage(id).phase)
+	inventory.remove(item, amount)
+	var entry := projects.entry(id)
+	var contributions: Dictionary = entry.contributions
+	var phase_given: Dictionary = contributions.get(phase_id, {})
+	phase_given[item] = int(phase_given.get(item, 0)) + amount
+	contributions[phase_id] = phase_given
+	entry["contributions"] = contributions
+	projects.projects[id] = entry
+	_count("project_contribution", amount)
+	var events := _advance_project(id)
+	_changed()
+	_emit_project_events(events)
+	return ""
+
+
+## Avança as fases cheias e conclui a obra se acabou. Devolve os eventos a emitir DEPOIS de salvar.
+func _advance_project(id: String) -> Array[Dictionary]:
+	var events: Array[Dictionary] = []
+	var phases: Array = Database.project(id).get("phases", [])
+	var entry := projects.entry(id)
+	var index := clampi(int(entry.phase_index), 0, phases.size())
+	while index < phases.size():
+		var phase: Dictionary = phases[index]
+		var complete := true
+		for item: String in phase.get("items", {}):
+			if projects.given(id, str(phase.id), item) < int(phase.items[item]):
+				complete = false
+		if not complete:
+			break
+		events.append({"kind": "phase", "id": id, "phase": str(phase.id), "index": index})
+		index += 1
+	entry["phase_index"] = index
+	projects.projects[id] = entry
+	if index >= phases.size() and bool(entry.started):
+		var finished := _finish_project(id)
+		if not finished.is_empty():
+			events.append({"kind": "completed", "id": id, "result": finished})
+	return events
+
+
+func _emit_project_events(events: Array[Dictionary]) -> void:
+	for event: Dictionary in events:
+		if event.kind == "phase":
+			Events.project_phase_completed.emit(event.id, event.phase, event.index)
+		else:
+			Events.project_completed.emit(event.id, event.result)
+
+
+## Conclusão + prêmio idempotentes: `completed`/`completion_rewarded` e o id `project:<id>` em
+## `economy.granted` impedem pagar duas vezes. Devolve {} se já estava tudo registrado.
+func _finish_project(id: String) -> Dictionary:
+	var entry := projects.entry(id)
+	if bool(entry.completed) and bool(entry.completion_rewarded):
+		return {}
+	var first := not bool(entry.completed)
+	var rewards: Dictionary = Database.project(id).get("rewards", {})
+	var paid := _grant_automatic("project:" + id, rewards)
+	if bool(paid.paid) and int(rewards.get("xp", 0)) > 0:
+		_add_player_xp(int(rewards.xp))
+	entry = projects.entry(id)
+	entry["completed"] = true
+	entry["completion_rewarded"] = true
+	if first:
+		entry["completed_at"] = now()
+	projects.projects[id] = entry
+	if first:
+		_count("projects")
+	return paid
+
+
+## Conclui uma obra cujas fases já estão todas entregues (interrupção). Idempotente: "" se já concluída.
+func complete_project(id: String) -> String:
+	if Database.project(id).is_empty():
+		return "Projeto desconhecido"
+	if not project_ready(id):
+		return "" if projects.is_completed(id) else "A obra ainda não está pronta"
+	var events := _advance_project(id)
+	_changed()
+	_emit_project_events(events)
+	return ""
+
+
+## Repara obras interrompidas entre a última entrega e o registro do prêmio (e fases cheias sem avanço).
+## Roda ao carregar e no tick de 1 s; devolve se mudou algo. Projeto fora do catálogo é preservado intacto.
+func _recover_projects() -> bool:
+	var changed := false
+	var events: Array[Dictionary] = []
+	for id: String in projects.projects.keys():
+		if Database.project_issue(id) != "" or not bool(projects.entry(id).started):
+			continue
+		var before: Dictionary = projects.entry(id).duplicate(true)
+		events.append_array(_advance_project(id))
+		if projects.entry(id) != before:
+			changed = true
+	_emit_project_events(events)
+	return changed
+
+
+func project_use_error(id: String) -> String:
+	if Database.project(id).is_empty():
+		return "Projeto desconhecido"
+	if not projects.is_completed(id):
+		return "A obra ainda não terminou"
+	if walking():
+		return away_text()
+	if dog.sleeping:
+		return "Tiro está dormindo"
+	return ""
+
+
+## Usar a obra pronta. Primeira vez: `used_once` + contador `project_use:<id>`; repetir só repete o visual
+## (sem moedas, XP, afeto nem necessidades). A UI chama quando a reação do Tiro realmente começa.
+func use_project(id: String) -> String:
+	var error := project_use_error(id)
+	if error != "":
+		return error
+	var entry := projects.entry(id)
+	var first := not bool(entry.used_once)
+	if first:
+		entry["used_once"] = true
+		projects.projects[id] = entry
+		_count("project_use:" + id)
+		_changed()
+	Events.project_used.emit(id, first)
+	return ""
+
+## Encontro repetível depois da obra (`gathering` no projeto): intervalo mínimo desde a última conclusão,
+## material da definição e XP pequeno. Sem afeto, moedas nem material de ampliação.
+func meeting_def(id: String) -> Dictionary:
+	return Database.project(id).get("gathering", {})
+
+
+## Quando o encontro pode acontecer (Unix); 0 = a qualquer momento.
+func meeting_ready_at(id: String) -> float:
+	var def := meeting_def(id)
+	if def.is_empty() or not projects.is_completed(id):
+		return 0.0
+	return projects.last_done_at(id) + float(def.get("hours", 24)) * 3600.0
+
+
+func meeting_error(id: String) -> String:
+	var def := meeting_def(id)
+	if def.is_empty():
+		return "Esta obra não tem encontro"
+	if Database.project_issue(id) != "":
+		return "Obra indisponível"
+	if not projects.is_completed(id):
+		return "A obra ainda não terminou"
+	if walking():
+		return away_text()
+	if dog.sleeping:
+		return "Tiro está dormindo"
+	var wait := meeting_ready_at(id) - now()
+	if wait > 0.0:
+		return "Disponível em " + TimeText.short(int(ceil(wait)))
+	for item: String in def.items:
+		var missing := int(def.items[item]) - inventory.count(item)
+		if missing > 0:
+			return "Falta %s ×%d" % [Database.item_name(item), missing]
+	return ""
+
+
+## Confirma um ciclo: valida tudo antes, consome o material e registra o ciclo e o prêmio (id estável por
+## ciclo em `economy.granted`) no mesmo passo salvo. Erro não consome nada.
+func gather_project(id: String) -> String:
+	var error := meeting_error(id)
+	if error != "":
+		return error
+	var def := meeting_def(id)
+	for item: String in def.items:
+		inventory.remove(item, int(def.items[item]))
+	var entry := projects.entry(id)
+	var cycle := projects.cycle_count(id) + 1
+	var cycles: Dictionary = entry.cycles
+	cycles[str(cycle)] = {"at": now()}
+	entry["cycles"] = cycles
+	projects.projects[id] = entry
+	var rewards: Dictionary = def.get("rewards", {})
+	var paid := _grant_automatic("project_gather:%s:%d" % [id, cycle], rewards)
+	if bool(paid.paid) and int(rewards.get("xp", 0)) > 0:
+		_add_player_xp(int(rewards.xp))
+	_count("project_gather")
+	_count("project_gather:" + id)
+	_changed()
+	Events.project_gathered.emit(id, cycle)
+	return ""
+
 # --- Save ------------------------------------------------------------------
 
 func to_dict() -> Dictionary:
@@ -2515,6 +3764,8 @@ func to_dict() -> Dictionary:
 		"finds": finds.to_dict(),
 		"walks": walk_state.to_dict(),
 		"friends": friend_state.to_dict(),
+		"projects": projects.to_dict(),
+		"economy": economy.to_dict(),
 	}
 
 
@@ -2522,6 +3773,8 @@ func from_dict(data: Dictionary) -> void:
 	if data.is_empty():
 		reset()
 		return
+	# Migração de economia (pura e idempotente): piso de capacidade, snapshots de trabalhos, prêmios já pagos.
+	data = EconomyMigration.migrate(data)
 	dog = DogState.new()
 	dog.from_dict(data.get("dog", {}), now())
 	inventory = Inventory.new()
@@ -2540,6 +3793,8 @@ func from_dict(data: Dictionary) -> void:
 			loaded_plot["planted_at"] = float(entry["planted_at"])
 		if entry.has("watered"):
 			loaded_plot["watered"] = bool(entry["watered"])
+		if entry.has("job") and loaded_plot.crop != "":
+			loaded_plot["job"] = (entry.job as Dictionary).duplicate(true)
 		plots.append(loaded_plot)
 	# Saves anteriores à expansão mantêm todos os canteiros que já possuíam (ver SaveManager._migrate).
 	unlocked_plots = clampi(int(data.get("unlocked_plots", maxi(plots.size(), int(Database.farm.get("initial_plots", 3))))), 0, int(Database.farm.get("plots", 0)))
@@ -2557,7 +3812,17 @@ func from_dict(data: Dictionary) -> void:
 	walk_state.from_dict(data.get("walks", {}))
 	friend_state = FriendState.new()
 	friend_state.from_dict(data.get("friends", {}))
+	projects = ProjectState.new()
+	projects.from_dict(data.get("projects", {}))
+	economy = EconomyState.new()
+	economy.from_dict(data.get("economy", {}))
+	_seed_mastery()
+	_recover_projects()
 	_sync_friend_level()
+	# Fechamento abrupto: sem início de ausência salvo, o último instante ativo gravado é o início estimado.
+	# Só estima; quem encerra a ausência é o SaveManager (carregar não cura nem repete).
+	if dog.away_since <= 0.0 and friend_state.last_active_at > 0.0 and friend_state.last_active_at < now():
+		dog.away_since = maxf(friend_state.last_active_at, dog.updated_at)
 	# Save sem o campo de vínculo: o que já valia não paga presente de novo.
 	if not data.get("progression", {}).has("claimed_bond_level"):
 		progress.claimed_bond_level = bond_level()
@@ -2575,6 +3840,8 @@ func from_dict(data: Dictionary) -> void:
 	# Save de antes das novidades: o que já estava aberto não vira "Novo!".
 	if not data.get("progression", {}).has("seen"):
 		_mark_all_seen()
+	# Viagem vencida com o jogo fechado volta agora (sem segundo sorteio); o cartão sai da marca persistida.
+	return_due_walk(false)
 	_changed()
 
 
@@ -2592,6 +3859,7 @@ func _changed() -> void:
 		if str(Database.progression.orders[order_id].get("channel", "neighbors")) == "contracts":
 			contracts += progress.stat("order:" + order_id)
 	progress.stats["contracts"] = contracts
+	progress.stats["storage_upgrades"] = storage_upgrades_owned()
 	_sync_shared_quests()
 	_sync_step()
 	update_wishes()
@@ -2623,12 +3891,17 @@ func _sync_step() -> void:
 			progress.steps.erase(line)
 	for line: String in active:
 		var current: String = active[line]
-		if progress.steps.get(line, {}).get("quest", "") == current:
-			continue
 		var base := {}
 		for goal: Dictionary in Database.quests[current].goals:
 			if goal.get("fresh", false):
 				base[goal.key] = progress.stat(goal.key)
+		if progress.steps.get(line, {}).get("quest", "") == current:
+			# Mesmo passo (save antigo): a base só mantém os contadores que ainda são "fresh".
+			var kept: Dictionary = progress.steps[line].get("base", {})
+			for key: String in kept.keys():
+				if not base.has(key):
+					kept.erase(key)
+			continue
 		progress.steps[line] = {"quest": current, "base": base}
 
 
@@ -2741,9 +4014,7 @@ func give_friend_error(id: String) -> String:
 	var item := str(friend_def(id).likes)
 	if inventory.count(item) < 1:
 		return "Falta " + Database.item_name(item)
-	var items: Dictionary = _friend_heart_reward(id, int(entry.gifts) + 1).items.duplicate()
-	items[item] = int(items.get(item, 0)) - 1
-	return storage_error(items)
+	return storage_error(_friend_heart_reward(id, int(entry.gifts) + 1).items, {item: 1})
 
 
 func give_friend(id: String) -> String:
@@ -2766,6 +4037,20 @@ func give_friend(id: String) -> String:
 	_changed()
 	Events.items_gained.emit(reward.items, int(reward.coins), Vector2(-1, -1))
 	return ""
+
+
+## O app saiu de cena (segundo plano/fechar): fixa o Tiro e abre a ausência protegida. Idempotente.
+func begin_absence(at: float) -> void:
+	dog.begin_absence(minf(at, now()))
+
+
+## O app voltou (ou o save foi carregado): projeta a ausência uma única vez e volta às taxas online.
+## Devolve true se havia ausência. Não cria visitas nem presentes: isso é do `update_friend_visits`.
+func end_absence() -> bool:
+	if not dog.end_absence(now()):
+		return false
+	_changed()
+	return true
 
 
 ## Só o ciclo de presença do SaveManager chama esta ação. Não é atualização por timer,

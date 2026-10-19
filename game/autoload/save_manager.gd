@@ -7,7 +7,8 @@ extends Node
 ##
 ## Formato: JSON { "save_version": int, "saved_at": float, "state": {...} }.
 ## Ao mudar o formato do estado: incremente SAVE_VERSION e trate a versão
-## antiga em _migrate() para não perder o progresso dos jogadores.
+## antiga em _migrate() para não perder o progresso dos jogadores. Mudanças só de CONTEÚDO/economia
+## usam `EconomyState.CURRENT_REVISION` + `EconomyMigration` (sem tocar no SAVE_VERSION).
 ##
 ## Vários saves (slots 1..MAX_SLOTS): o slot 1 é o arquivo de sempre (user://save.json na versão
 ## publicada, user://save_dev.json na dev, ver BuildInfo.save_path()); os outros ganham o número
@@ -61,11 +62,14 @@ func _notification(what: int) -> void:
 		NOTIFICATION_WM_CLOSE_REQUEST:
 			if _away_since == 0.0:
 				_away_since = GameState.now()
+			# Foco, pausa e fechar chegam juntos: a ausência abre uma vez só (o teto de horas não reinicia).
+			GameState.begin_absence(_away_since)
 			save_game()
 		NOTIFICATION_APPLICATION_FOCUS_IN, NOTIFICATION_APPLICATION_RESUMED:
 			if _away_since > 0.0:
 				GameState.update_friend_visits(_away_since)
 				_away_since = 0.0
+				GameState.end_absence()
 				save_game()
 
 
@@ -115,6 +119,8 @@ func load_game() -> void:
 	var data := _migrate(parsed)
 	last_saved_at = float(data.get("saved_at", 0.0))
 	GameState.from_dict(data.get("state", {}))
+	# O tempo com o app fechado (ou este slot parado) é ausência protegida, projetada uma única vez.
+	GameState.end_absence()
 	if allow_visits:
 		GameState.update_friend_visits(maxf(_last_session_active, GameState.friend_state.last_active_at))
 	# Consome a ausência antes de apresentar o cartão; reabrir não repete o sorteio.
@@ -303,6 +309,12 @@ func _migrate(data: Dictionary) -> Dictionary:
 		# v12: começo refeito (plano docs/plans/comeco). Combinado com o Vitor em 13/10/2026:
 		# o progresso anterior é descartado e o jogo recomeça do zero.
 		return {"save_version": SAVE_VERSION, "state": {}}
+	# Revisão de ECONOMIA (conteúdo), separada do formato: migração pura, sem pagar nada e sem reset.
+	# Slots, "copiar da versão publicada" e o carregamento normal passam por aqui; os campos novos
+	# têm padrão em from_dict, então o SAVE_VERSION continua 12. Idempotente.
+	if data.get("state") is Dictionary and EconomyMigration.needs(data.state):
+		data = data.duplicate()
+		data["state"] = EconomyMigration.migrate(data.state)
 	return data
 
 

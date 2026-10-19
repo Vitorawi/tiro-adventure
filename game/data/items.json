@@ -23,6 +23,7 @@
   "carrot_snack": {
     "name": "Petisco de cenoura",
     "category": "food",
+    "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_carrot_snack.png",
     "feed": {
       "hunger": 20,
@@ -34,6 +35,7 @@
   "pumpkin_mash": {
     "name": "Papinha de abóbora",
     "category": "food",
+    "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_pumpkin_mash.png",
     "feed": {
       "hunger": 45,
@@ -148,6 +150,7 @@
   "vegetable_soup": {
     "name": "Ensopado",
     "category": "food",
+    "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_vegetable_soup.png",
     "sell_price": 28,
     "feed": {
@@ -159,8 +162,9 @@
   "apple_biscuit": {
     "name": "Biscoito de maçã",
     "category": "food",
+    "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_apple_biscuit.png",
-    "sell_price": 40,
+    "sell_price": 30,
     "feed": {
       "hunger": 30,
       "happiness": 20
@@ -171,7 +175,7 @@
     "name": "Caixa de petiscos",
     "category": "product",
     "icon": "res://assets/sprites/ui/icons/item_treat_box.png",
-    "sell_price": 60,
+    "sell_price": 140,
     "trade_xp": 15
   },
   "accessory_set": {
@@ -225,6 +229,7 @@
   "cheese": {
     "name": "Queijo",
     "category": "food",
+    "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_cheese.png",
     "sell_price": 32,
     "trade_xp": 3
@@ -261,6 +266,7 @@
   "strawberry_pop": {
     "name": "Picolé de morango",
     "category": "food",
+    "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_strawberry_pop.png",
     "sell_price": 16,
     "trade_xp": 4,
@@ -280,6 +286,7 @@
   "mashed_potato": {
     "name": "Purê de batata",
     "category": "food",
+    "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_mashed_potato.png",
     "sell_price": 18,
     "trade_xp": 4,
@@ -291,6 +298,7 @@
   "sweet_potato_chips": {
     "name": "Chips de batata-doce",
     "category": "food",
+    "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_sweet_potato_chips.png",
     "sell_price": 30,
     "trade_xp": 7,
@@ -451,23 +459,49 @@
     "storage": "none",
     "icon": "res://assets/sprites/ui/icons/item_map_piece.png"
   },
-  "stick": {"name": "Graveto", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_stick.png", "sell_price": 2, "note": "O Tiro adora! E serve na costura."},
-  "ribbon": {"name": "Fita colorida", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_ribbon.png", "sell_price": 6, "note": "Serve para costurar apetrechos."},
-  "wildflower": {"name": "Flor do campo", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_wildflower.png", "sell_price": 4, "note": "Serve para uma coroa de flores."},
-  "color_button": {"name": "Botão colorido", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_color_button.png", "sell_price": 4, "note": "Serve para costurar roupinhas."},
-  "yarn": {"name": "Novelo de lã", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_yarn.png", "sell_price": 6, "note": "Serve para tricotar roupinhas."},
-  "smooth_pebble": {"name": "Pedrinha lisa", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_smooth_pebble.png", "sell_price": 4, "note": "Bonita para coleiras."},
-  "river_shell": {"name": "Conchinha", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_river_shell.png", "sell_price": 6, "note": "Serve para uma coleira de conchas."},
-  "wild_mint": {"name": "Hortelã silvestre", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_wild_mint.png", "sell_price": 5, "note": "Vira petisco de hortelã."},
-  "bird_feather": {"name": "Pena de passarinho", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_bird_feather.png", "sell_price": 6, "note": "Serve para um chapéu de pena."},
-  "golden_leaf": {"name": "Folha dourada", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_golden_leaf.png", "sell_price": 25, "rare": true, "note": "Rara! Serve para a capa dourada."},
-  "moon_pebble": {"name": "Pedrinha da lua", "category": "trail", "storage": "none", "icon": "res://assets/sprites/ui/icons/item_moon_pebble.png", "sell_price": 30, "rare": true, "note": "Rara! Só aparece no fim da tarde."},
+  "stick": {"name": "Graveto", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_stick.png", "sell_price": 2, "note": "O Tiro adora! E serve na costura."},
+  "ribbon": {"name": "Fita colorida", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_ribbon.png", "sell_price": 6, "note": "Serve para costurar apetrechos."},
+  "wildflower": {"name": "Flor do campo", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_wildflower.png", "sell_price": 4, "note": "Serve para uma coroa de flores."},
+  "color_button": {"name": "Botão colorido", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_color_button.png", "sell_price": 4, "note": "Serve para costurar roupinhas."},
+  "yarn": {"name": "Novelo de lã", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_yarn.png", "sell_price": 6, "note": "Serve para tricotar roupinhas."},
+  "smooth_pebble": {"name": "Pedrinha lisa", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_smooth_pebble.png", "sell_price": 4, "note": "Bonita para coleiras."},
+  "river_shell": {"name": "Conchinha", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_river_shell.png", "sell_price": 6, "note": "Serve para uma coleira de conchas."},
+  "wild_mint": {"name": "Hortelã silvestre", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_wild_mint.png", "sell_price": 5, "note": "Vira petisco de hortelã."},
+  "bird_feather": {"name": "Pena de passarinho", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_bird_feather.png", "sell_price": 6, "note": "Serve para um chapéu de pena."},
+  "golden_leaf": {"name": "Folha dourada", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_golden_leaf.png", "sell_price": 25, "rare": true, "note": "Rara! Serve para a capa dourada."},
+  "moon_pebble": {"name": "Pedrinha da lua", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_moon_pebble.png", "sell_price": 30, "rare": true, "note": "Rara! Só aparece no fim da tarde."},
   "mint_snack": {
     "name": "Petisco de hortelã",
     "category": "food",
+    "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_mint_snack.png",
     "sell_price": 22,
     "trade_xp": 5,
     "feed": {"hunger": 15, "happiness": 15, "hygiene": 10}
+  },
+  "braided_toy": {
+    "name": "Brinquedo trançado",
+    "category": "product",
+    "icon": "res://assets/sprites/ui/icons/item_braided_toy.png",
+    "sell_price": 40,
+    "trade_xp": 10,
+    "note": "Para brincar, não para comer. Vai em encomendas."
+  },
+  "picnic_pack": {
+    "name": "Cesta do encontro",
+    "category": "product",
+    "icon": "res://assets/sprites/ui/icons/item_picnic_pack.png",
+    "sell_price": 110,
+    "trade_xp": 15,
+    "note": "Para dividir com os amigos. Vai em encomendas."
+  },
+  "blueberry_treat": {
+    "name": "Petisco de mirtilo",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_blueberry_treat.png",
+    "sell_price": 65,
+    "trade_xp": 8,
+    "feed": {"hunger": 20, "happiness": 10}
   }
 }

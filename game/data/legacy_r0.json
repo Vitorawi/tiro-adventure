@@ -1,0 +1,2547 @@
+{
+  "_nota": "Congelado em 17/10/2026 (etapa 02 da economia R1) a partir do jogo ANTES das mudanças. Não editar nem regenerar.",
+  "tabelas": "r0",
+  "storage": {
+    "fridge": {
+      "building": "fridge",
+      "base": 30,
+      "levels": [
+        {
+          "id": "fridge_2",
+          "capacity": 20
+        },
+        {
+          "id": "fridge_3",
+          "capacity": 30
+        }
+      ]
+    },
+    "chest": {
+      "building": "chest",
+      "base": 20,
+      "levels": [
+        {
+          "id": "chest_2",
+          "capacity": 20
+        },
+        {
+          "id": "chest_3",
+          "capacity": 30
+        }
+      ]
+    },
+    "silo": {
+      "building": "silo",
+      "base": 40,
+      "levels": [
+        {
+          "id": "silo_2",
+          "capacity": 40
+        },
+        {
+          "id": "silo_3",
+          "capacity": 60
+        }
+      ]
+    },
+    "warehouse": {
+      "building": "warehouse",
+      "base": 40,
+      "levels": [
+        {
+          "id": "warehouse_2",
+          "capacity": 40
+        },
+        {
+          "id": "warehouse_3",
+          "capacity": 60
+        }
+      ]
+    }
+  },
+  "crops": {
+    "carrot": {
+      "seconds": 60,
+      "coins": 3,
+      "yield": {
+        "carrot": 2
+      },
+      "skill_xp": 10
+    },
+    "potato": {
+      "seconds": 300,
+      "coins": 9,
+      "yield": {
+        "potato": 2
+      },
+      "skill_xp": 22,
+      "requirements": {
+        "quests": [
+          "bloblo_carrots"
+        ]
+      }
+    },
+    "pumpkin": {
+      "seconds": 600,
+      "coins": 16,
+      "yield": {
+        "pumpkin": 1
+      },
+      "skill_xp": 35,
+      "requirements": {
+        "quests": [
+          "bloblo_potato"
+        ]
+      }
+    },
+    "herbs": {
+      "seconds": 900,
+      "coins": 24,
+      "yield": {
+        "herbs": 2
+      },
+      "greenhouse": "only",
+      "skill_xp": 55,
+      "requirements": {
+        "owned": [
+          "greenhouse"
+        ],
+        "skills": {
+          "agriculture": 5
+        }
+      }
+    },
+    "wheat": {
+      "seconds": 120,
+      "coins": 4,
+      "yield": {
+        "wheat": 3
+      },
+      "skill_xp": 12,
+      "requirements": {
+        "chapter": 5,
+        "owned": [
+          "farm"
+        ]
+      }
+    },
+    "corn": {
+      "seconds": 180,
+      "coins": 5,
+      "yield": {
+        "corn": 3
+      },
+      "skill_xp": 15,
+      "requirements": {
+        "chapter": 5,
+        "owned": [
+          "farm"
+        ]
+      }
+    },
+    "strawberry": {
+      "seconds": 180,
+      "coins": 5,
+      "yield": {
+        "strawberry": 2
+      },
+      "greenhouse": "any",
+      "skill_xp": 15,
+      "requirements": {
+        "quests": [
+          "bloblo_dig"
+        ]
+      }
+    },
+    "blueberry": {
+      "seconds": 900,
+      "coins": 20,
+      "yield": {
+        "blueberry": 3
+      },
+      "greenhouse": "only",
+      "skill_xp": 40,
+      "requirements": {
+        "quests": [
+          "guide_treasure"
+        ],
+        "stats": {
+          "treasure": 1
+        }
+      }
+    },
+    "sweet_potato": {
+      "seconds": 420,
+      "coins": 12,
+      "yield": {
+        "sweet_potato": 2
+      },
+      "skill_xp": 30,
+      "requirements": {
+        "quests": [
+          "farm_deed"
+        ]
+      }
+    }
+  },
+  "recipes": {
+    "carrot_snack": {
+      "station": "stove",
+      "inputs": {
+        "carrot": 2
+      },
+      "output": "carrot_snack",
+      "qty": 1,
+      "seconds": 60,
+      "skill_xp": 10
+    },
+    "pumpkin_mash": {
+      "station": "stove",
+      "inputs": {
+        "pumpkin": 1,
+        "potato": 1
+      },
+      "output": "pumpkin_mash",
+      "qty": 1,
+      "seconds": 180,
+      "skill_xp": 22,
+      "requirements": {
+        "quests": [
+          "bloblo_pumpkin"
+        ]
+      }
+    },
+    "vegetable_soup": {
+      "station": "stove",
+      "inputs": {
+        "carrot": 2,
+        "potato": 1
+      },
+      "output": "vegetable_soup",
+      "qty": 1,
+      "seconds": 120,
+      "skill": "cooking",
+      "skill_xp": 30,
+      "requirements": {
+        "owned": [
+          "fridge"
+        ]
+      }
+    },
+    "plank": {
+      "station": "workbench",
+      "inputs": {
+        "wood": 3
+      },
+      "output": "plank",
+      "qty": 1,
+      "seconds": 90,
+      "skill": "adventure",
+      "skill_xp": 15
+    },
+    "brick": {
+      "station": "workbench",
+      "inputs": {
+        "stone": 3
+      },
+      "output": "brick",
+      "qty": 1,
+      "seconds": 120,
+      "skill": "adventure",
+      "skill_xp": 18
+    },
+    "apple_biscuit": {
+      "station": "stove",
+      "requirements": {
+        "owned": [
+          "workbench",
+          "fridge"
+        ]
+      },
+      "inputs": {
+        "apple": 2,
+        "carrot_snack": 1
+      },
+      "output": "apple_biscuit",
+      "qty": 2,
+      "seconds": 300,
+      "skill": "cooking",
+      "skill_xp": 45
+    },
+    "treat_box": {
+      "station": "stove",
+      "inputs": {
+        "apple_biscuit": 2,
+        "pumpkin_mash": 1,
+        "herbs": 1
+      },
+      "output": "treat_box",
+      "qty": 1,
+      "seconds": 420,
+      "skill": "cooking",
+      "skill_xp": 65,
+      "requirements": {
+        "owned": [
+          "workbench",
+          "fridge"
+        ],
+        "skills": {
+          "cooking": 5
+        }
+      }
+    },
+    "fabric": {
+      "station": "atelier",
+      "inputs": {
+        "fiber": 3
+      },
+      "output": "fabric",
+      "qty": 1,
+      "seconds": 180,
+      "skill": "adventure",
+      "skill_xp": 25
+    },
+    "accessory_set": {
+      "station": "atelier",
+      "inputs": {
+        "fabric": 2,
+        "crystal": 1
+      },
+      "output": "accessory_set",
+      "qty": 1,
+      "seconds": 360,
+      "skill": "adventure",
+      "skill_xp": 55
+    },
+    "eggs": {
+      "station": "chicken_coop",
+      "inputs": {
+        "corn": 2
+      },
+      "output": "egg",
+      "qty": 2,
+      "seconds": 180,
+      "skill": "agriculture",
+      "skill_xp": 12,
+      "requirements": {
+        "chapter": 5
+      }
+    },
+    "milk": {
+      "station": "cow_barn",
+      "inputs": {
+        "wheat": 2
+      },
+      "output": "milk",
+      "qty": 2,
+      "seconds": 300,
+      "skill": "agriculture",
+      "skill_xp": 18,
+      "requirements": {
+        "chapter": 5
+      }
+    },
+    "flour": {
+      "station": "mill",
+      "inputs": {
+        "wheat": 3
+      },
+      "output": "flour",
+      "qty": 2,
+      "seconds": 120,
+      "skill": "cooking",
+      "skill_xp": 15,
+      "requirements": {
+        "chapter": 5
+      }
+    },
+    "hardwood_planks": {
+      "station": "workbench",
+      "inputs": {
+        "hardwood": 2
+      },
+      "output": "plank",
+      "qty": 3,
+      "seconds": 120,
+      "skill": "adventure",
+      "skill_xp": 15,
+      "requirements": {
+        "chapter": 5
+      }
+    },
+    "cheese": {
+      "station": "dairy",
+      "inputs": {
+        "milk": 2
+      },
+      "output": "cheese",
+      "qty": 1,
+      "seconds": 240,
+      "skill": "cooking",
+      "skill_xp": 25,
+      "requirements": {
+        "chapter": 5
+      }
+    },
+    "strawberry_pop": {
+      "station": "blender",
+      "inputs": {
+        "strawberry": 2
+      },
+      "output": "strawberry_pop",
+      "qty": 1,
+      "seconds": 90,
+      "skill": "cooking",
+      "skill_xp": 12
+    },
+    "strawberry_juice": {
+      "station": "blender",
+      "inputs": {
+        "strawberry": 3
+      },
+      "output": "strawberry_juice",
+      "qty": 1,
+      "seconds": 60,
+      "skill": "cooking",
+      "skill_xp": 10
+    },
+    "mashed_potato": {
+      "station": "stove",
+      "inputs": {
+        "potato": 2
+      },
+      "output": "mashed_potato",
+      "qty": 1,
+      "seconds": 90,
+      "skill": "cooking",
+      "skill_xp": 15,
+      "requirements": {
+        "quests": [
+          "bloblo_potato"
+        ]
+      }
+    },
+    "sweet_potato_chips": {
+      "station": "stove",
+      "inputs": {
+        "sweet_potato": 2
+      },
+      "output": "sweet_potato_chips",
+      "qty": 1,
+      "seconds": 150,
+      "skill": "cooking",
+      "skill_xp": 25,
+      "requirements": {
+        "quests": [
+          "bloblo_sweet_potato"
+        ]
+      }
+    },
+    "mint_snack": {
+      "station": "stove",
+      "inputs": {
+        "wild_mint": 2,
+        "carrot": 1
+      },
+      "output": "mint_snack",
+      "qty": 1,
+      "seconds": 120,
+      "skill": "cooking",
+      "skill_xp": 18,
+      "requirements": {
+        "stats": {
+          "walk:bird_clearing": 1
+        }
+      }
+    },
+    "sew_flower_crown": {
+      "station": "sewing",
+      "inputs": {
+        "wildflower": 3,
+        "ribbon": 1
+      },
+      "output_collection": "flower_crown",
+      "seconds": 300,
+      "skill": "adventure",
+      "skill_xp": 20
+    },
+    "sew_shell_collar": {
+      "station": "sewing",
+      "inputs": {
+        "river_shell": 4,
+        "ribbon": 1
+      },
+      "output_collection": "shell_collar",
+      "seconds": 480,
+      "skill": "adventure",
+      "skill_xp": 25
+    },
+    "sew_knit_sweater": {
+      "station": "sewing",
+      "inputs": {
+        "yarn": 4,
+        "color_button": 2
+      },
+      "output_collection": "knit_sweater",
+      "seconds": 600,
+      "skill": "adventure",
+      "skill_xp": 30
+    },
+    "sew_feather_hat": {
+      "station": "sewing",
+      "inputs": {
+        "bird_feather": 2,
+        "yarn": 2,
+        "stick": 1
+      },
+      "output_collection": "feather_hat",
+      "seconds": 600,
+      "skill": "adventure",
+      "skill_xp": 30
+    },
+    "sew_golden_cape": {
+      "station": "sewing",
+      "inputs": {
+        "golden_leaf": 3,
+        "yarn": 2,
+        "moon_pebble": 1
+      },
+      "output_collection": "golden_cape",
+      "seconds": 1200,
+      "skill": "adventure",
+      "skill_xp": 60
+    }
+  },
+  "xp": {
+    "feed": 2,
+    "play": 3,
+    "bathe": 3,
+    "cook": 5,
+    "harvest": 2,
+    "per_level": 100,
+    "animal": 3
+  },
+  "activities": {
+    "pebbles": {
+      "seconds": 75,
+      "rewards": {
+        "items": {
+          "stone": 1
+        },
+        "skill_xp": {
+          "adventure": 8
+        }
+      },
+      "player_xp": 5,
+      "place": "creek"
+    },
+    "woodcutting": {
+      "seconds": 150,
+      "rewards": {
+        "items": {
+          "wood": 4
+        },
+        "skill_xp": {
+          "adventure": 18
+        }
+      },
+      "player_xp": 5,
+      "place": "walk"
+    },
+    "timber": {
+      "seconds": 240,
+      "rewards": {
+        "items": {
+          "wood": 5,
+          "hardwood": 2
+        },
+        "skill_xp": {
+          "adventure": 30
+        }
+      },
+      "player_xp": 5,
+      "place": "walk"
+    },
+    "deep_quarry": {
+      "seconds": 300,
+      "rewards": {
+        "items": {
+          "stone": 8,
+          "copper": 4
+        },
+        "skill_xp": {
+          "adventure": 40
+        }
+      },
+      "player_xp": 5,
+      "place": "mine"
+    },
+    "crystal_deep": {
+      "seconds": 480,
+      "rewards": {
+        "items": {
+          "crystal": 4,
+          "copper": 3
+        },
+        "skill_xp": {
+          "adventure": 75
+        }
+      },
+      "player_xp": 5,
+      "place": "crystal"
+    },
+    "reeds": {
+      "seconds": 300,
+      "rewards": {
+        "items": {
+          "fiber": 8,
+          "wood": 3
+        },
+        "skill_xp": {
+          "adventure": 45
+        }
+      },
+      "player_xp": 5,
+      "place": "meadow"
+    },
+    "lane": {
+      "seconds": 60,
+      "rewards": {
+        "coins": 8,
+        "items": {
+          "wood": 1
+        },
+        "skill_xp": {
+          "adventure": 10
+        }
+      },
+      "player_xp": 5,
+      "place": "walk"
+    },
+    "trail": {
+      "seconds": 180,
+      "rewards": {
+        "coins": 15,
+        "items": {
+          "wood": 3,
+          "stone": 2
+        },
+        "skill_xp": {
+          "adventure": 22
+        }
+      },
+      "player_xp": 5,
+      "place": "creek"
+    },
+    "quarry": {
+      "seconds": 180,
+      "rewards": {
+        "items": {
+          "stone": 5
+        },
+        "skill_xp": {
+          "adventure": 25
+        }
+      },
+      "player_xp": 5,
+      "place": "mine"
+    },
+    "copper_vein": {
+      "seconds": 360,
+      "rewards": {
+        "items": {
+          "stone": 3,
+          "copper": 3
+        },
+        "skill_xp": {
+          "adventure": 36
+        }
+      },
+      "player_xp": 5,
+      "place": "mine"
+    },
+    "crystal_cave": {
+      "seconds": 600,
+      "rewards": {
+        "items": {
+          "crystal": 2,
+          "copper": 2
+        },
+        "skill_xp": {
+          "adventure": 67
+        }
+      },
+      "player_xp": 5,
+      "place": "crystal"
+    },
+    "orchard_harvest": {
+      "seconds": 300,
+      "rewards": {
+        "items": {
+          "apple": 4
+        },
+        "skill_xp": {
+          "agriculture": 28
+        }
+      },
+      "player_xp": 5,
+      "place": "orchard"
+    },
+    "meadow": {
+      "seconds": 420,
+      "rewards": {
+        "items": {
+          "fiber": 5,
+          "wood": 3
+        },
+        "skill_xp": {
+          "adventure": 38
+        }
+      },
+      "player_xp": 5,
+      "place": "meadow"
+    }
+  },
+  "walks": {
+    "settings": {
+      "slots": 1,
+      "postcard_dir": "res://assets/sprites/areas/walks/",
+      "rare_star": "rare_star"
+    },
+    "walks": {
+      "park_loop": {
+        "seconds": 120,
+        "energy": 8,
+        "silent": true,
+        "requirements": {
+          "quests": [
+            "nina_meet"
+          ]
+        },
+        "needs": {
+          "happiness": 20,
+          "hygiene": -10
+        },
+        "rewards": {
+          "coins": 6,
+          "affection": 3,
+          "skill_xp": {
+            "adventure": 5
+          }
+        },
+        "loot": {
+          "rolls": 2,
+          "table": [
+            {
+              "weight": 40,
+              "items": {
+                "stick": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "weight": 15,
+              "items": {
+                "ribbon": 1
+              }
+            },
+            {
+              "weight": 25,
+              "coins": [
+                2,
+                6
+              ]
+            },
+            {
+              "weight": 15,
+              "find": "park"
+            },
+            {
+              "weight": 5,
+              "items": {
+                "dog_food": 1
+              }
+            }
+          ],
+          "first": {
+            "items": {
+              "stick": 2,
+              "ribbon": 1
+            }
+          },
+          "rare": {
+            "chance": 0.08,
+            "pity": 6,
+            "collection": "plaid_bow",
+            "duplicate": {
+              "coins": 20,
+              "items": {
+                "ribbon": 1
+              }
+            }
+          }
+        }
+      },
+      "flower_street": {
+        "seconds": 300,
+        "energy": 10,
+        "requirements": {
+          "stats": {
+            "walk": 3
+          }
+        },
+        "needs": {
+          "happiness": 25,
+          "hygiene": -12
+        },
+        "rewards": {
+          "coins": 10,
+          "affection": 4,
+          "skill_xp": {
+            "adventure": 8
+          }
+        },
+        "loot": {
+          "rolls": 2,
+          "table": [
+            {
+              "weight": 45,
+              "items": {
+                "wildflower": [
+                  1,
+                  3
+                ]
+              }
+            },
+            {
+              "weight": 15,
+              "items": {
+                "ribbon": 1
+              }
+            },
+            {
+              "weight": 15,
+              "items": {
+                "stick": 1
+              }
+            },
+            {
+              "weight": 15,
+              "coins": [
+                3,
+                8
+              ]
+            },
+            {
+              "weight": 10,
+              "find": "park"
+            }
+          ],
+          "first": {
+            "items": {
+              "wildflower": 3
+            }
+          },
+          "rare": {
+            "chance": 0.08,
+            "pity": 8,
+            "collection": "flower_clip",
+            "duplicate": {
+              "coins": 25,
+              "items": {
+                "wildflower": 2
+              }
+            }
+          }
+        }
+      },
+      "village_fair": {
+        "seconds": 600,
+        "energy": 12,
+        "requirements": {
+          "stats": {
+            "walk": 6
+          }
+        },
+        "needs": {
+          "happiness": 30,
+          "hygiene": -15
+        },
+        "rewards": {
+          "coins": 15,
+          "affection": 5,
+          "skill_xp": {
+            "adventure": 12
+          }
+        },
+        "loot": {
+          "rolls": 2,
+          "table": [
+            {
+              "weight": 35,
+              "items": {
+                "color_button": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "weight": 25,
+              "items": {
+                "yarn": 1
+              }
+            },
+            {
+              "weight": 10,
+              "items": {
+                "ribbon": 1
+              }
+            },
+            {
+              "weight": 20,
+              "coins": [
+                5,
+                12
+              ]
+            },
+            {
+              "weight": 10,
+              "find": "village"
+            }
+          ],
+          "first": {
+            "items": {
+              "yarn": 2
+            }
+          },
+          "rare": {
+            "chance": 0.08,
+            "pity": 8,
+            "collection": "bow_tie",
+            "duplicate": {
+              "coins": 30,
+              "items": {
+                "yarn": 1
+              }
+            }
+          }
+        }
+      },
+      "creek_walk": {
+        "seconds": 1200,
+        "energy": 15,
+        "requirements": {
+          "bond": 3,
+          "owned": [
+            "forest_open"
+          ]
+        },
+        "needs": {
+          "happiness": 30,
+          "hygiene": -20
+        },
+        "rewards": {
+          "coins": 22,
+          "affection": 6,
+          "skill_xp": {
+            "adventure": 16
+          }
+        },
+        "loot": {
+          "rolls": 3,
+          "table": [
+            {
+              "weight": 35,
+              "items": {
+                "smooth_pebble": [
+                  1,
+                  3
+                ]
+              }
+            },
+            {
+              "weight": 30,
+              "items": {
+                "river_shell": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "weight": 10,
+              "items": {
+                "stick": 1
+              }
+            },
+            {
+              "weight": 15,
+              "coins": [
+                6,
+                14
+              ]
+            },
+            {
+              "weight": 10,
+              "find": "nature"
+            }
+          ],
+          "first": {
+            "items": {
+              "river_shell": 2
+            }
+          },
+          "rare": {
+            "chance": 0.07,
+            "pity": 10,
+            "collection": "sailor_scarf",
+            "duplicate": {
+              "coins": 35,
+              "items": {
+                "river_shell": 2
+              }
+            }
+          }
+        }
+      },
+      "bird_clearing": {
+        "seconds": 1800,
+        "energy": 18,
+        "requirements": {
+          "stats": {
+            "walk": 15
+          },
+          "bond": 4
+        },
+        "needs": {
+          "happiness": 35,
+          "hygiene": -20
+        },
+        "rewards": {
+          "coins": 30,
+          "affection": 7,
+          "skill_xp": {
+            "adventure": 20
+          }
+        },
+        "loot": {
+          "rolls": 3,
+          "table": [
+            {
+              "weight": 35,
+              "items": {
+                "wild_mint": [
+                  1,
+                  3
+                ]
+              }
+            },
+            {
+              "weight": 30,
+              "items": {
+                "bird_feather": [
+                  1,
+                  2
+                ]
+              }
+            },
+            {
+              "weight": 10,
+              "items": {
+                "wildflower": 1
+              }
+            },
+            {
+              "weight": 15,
+              "coins": [
+                8,
+                18
+              ]
+            },
+            {
+              "weight": 10,
+              "find": "nature"
+            }
+          ],
+          "first": {
+            "items": {
+              "bird_feather": 2
+            }
+          },
+          "rare": {
+            "chance": 0.07,
+            "pity": 10,
+            "collection": "explorer_backpack",
+            "duplicate": {
+              "coins": 40,
+              "items": {
+                "bird_feather": 2
+              }
+            }
+          }
+        }
+      },
+      "hill_view": {
+        "seconds": 3600,
+        "energy": 25,
+        "requirements": {
+          "stats": {
+            "walk": 25
+          },
+          "bond": 5
+        },
+        "needs": {
+          "happiness": 40,
+          "hygiene": -25
+        },
+        "rewards": {
+          "coins": 50,
+          "affection": 8,
+          "skill_xp": {
+            "adventure": 30
+          }
+        },
+        "loot": {
+          "rolls": 4,
+          "table": [
+            {
+              "weight": 30,
+              "items": {
+                "bird_feather": 1
+              }
+            },
+            {
+              "weight": 20,
+              "items": {
+                "smooth_pebble": 1
+              }
+            },
+            {
+              "weight": 15,
+              "items": {
+                "wild_mint": 1
+              }
+            },
+            {
+              "weight": 25,
+              "coins": [
+                10,
+                25
+              ]
+            },
+            {
+              "weight": 10,
+              "items": {
+                "golden_leaf": 1
+              }
+            }
+          ],
+          "first": {
+            "items": {
+              "golden_leaf": 1
+            }
+          },
+          "rare": {
+            "chance": 0.06,
+            "pity": 12,
+            "collection": "star_glasses",
+            "duplicate": {
+              "coins": 60,
+              "items": {
+                "golden_leaf": 1
+              }
+            }
+          }
+        }
+      },
+      "sunset_walk": {
+        "seconds": 900,
+        "energy": 12,
+        "requirements": {
+          "stats": {
+            "walk": 10
+          },
+          "hours": [
+            17,
+            21
+          ]
+        },
+        "needs": {
+          "happiness": 30,
+          "hygiene": -15
+        },
+        "rewards": {
+          "coins": 20,
+          "affection": 5,
+          "skill_xp": {
+            "adventure": 14
+          }
+        },
+        "loot": {
+          "rolls": 3,
+          "table": [
+            {
+              "weight": 30,
+              "items": {
+                "smooth_pebble": 1
+              }
+            },
+            {
+              "weight": 20,
+              "items": {
+                "wildflower": 1
+              }
+            },
+            {
+              "weight": 15,
+              "items": {
+                "ribbon": 1
+              }
+            },
+            {
+              "weight": 20,
+              "coins": [
+                5,
+                12
+              ]
+            },
+            {
+              "weight": 15,
+              "items": {
+                "moon_pebble": 1
+              }
+            }
+          ],
+          "first": {
+            "items": {
+              "moon_pebble": 1
+            }
+          },
+          "rare": {
+            "chance": 0.1,
+            "pity": 6,
+            "collection": "glow_collar",
+            "duplicate": {
+              "coins": 30,
+              "items": {
+                "moon_pebble": 1
+              }
+            }
+          }
+        }
+      }
+    },
+    "legendary": {
+      "requirements": {
+        "owned": [
+          "petshop"
+        ],
+        "stats": {
+          "walk": 20
+        }
+      },
+      "chance": 0.01,
+      "pity": 30,
+      "collections": [
+        "sponge_hat",
+        "sponge_uniform"
+      ]
+    }
+  },
+  "find_worlds": {
+    "farm": {
+      "table": [
+        {
+          "weight": 30,
+          "coins": [
+            3,
+            8
+          ]
+        },
+        {
+          "weight": 20,
+          "items": {
+            "carrot": [
+              1,
+              2
+            ]
+          }
+        },
+        {
+          "weight": 12,
+          "items": {
+            "dog_food": 1
+          }
+        },
+        {
+          "weight": 10,
+          "items": {
+            "old_horseshoe": 1
+          }
+        },
+        {
+          "weight": 10,
+          "items": {
+            "hen_feather": 1
+          }
+        },
+        {
+          "weight": 8,
+          "items": {
+            "grandma_button": 1
+          }
+        },
+        {
+          "weight": 3,
+          "items": {
+            "old_coin": 1
+          }
+        },
+        {
+          "weight": 2,
+          "items": {
+            "bolt": 1
+          }
+        }
+      ]
+    },
+    "park": {
+      "table": [
+        {
+          "weight": 30,
+          "coins": [
+            3,
+            8
+          ]
+        },
+        {
+          "weight": 15,
+          "items": {
+            "dog_food": 1
+          }
+        },
+        {
+          "weight": 15,
+          "items": {
+            "lost_ball": 1
+          }
+        },
+        {
+          "weight": 12,
+          "items": {
+            "bone_keychain": 1
+          }
+        },
+        {
+          "weight": 10,
+          "items": {
+            "shiny_pebble": 1
+          }
+        },
+        {
+          "weight": 3,
+          "items": {
+            "dog_tag": 1
+          }
+        }
+      ]
+    },
+    "village": {
+      "table": [
+        {
+          "weight": 35,
+          "coins": [
+            5,
+            12
+          ]
+        },
+        {
+          "weight": 14,
+          "items": {
+            "marble": 1
+          }
+        },
+        {
+          "weight": 12,
+          "items": {
+            "old_ticket": 1
+          }
+        },
+        {
+          "weight": 8,
+          "items": {
+            "silver_spoon": 1
+          }
+        },
+        {
+          "weight": 3,
+          "items": {
+            "pocket_watch": 1
+          }
+        },
+        {
+          "weight": 3,
+          "items": {
+            "bolt": 1
+          }
+        }
+      ]
+    },
+    "nature": {
+      "table": [
+        {
+          "weight": 25,
+          "coins": [
+            4,
+            10
+          ]
+        },
+        {
+          "weight": 15,
+          "items": {
+            "wood": [
+              1,
+              2
+            ]
+          }
+        },
+        {
+          "weight": 10,
+          "items": {
+            "stone": [
+              1,
+              2
+            ]
+          }
+        },
+        {
+          "weight": 14,
+          "items": {
+            "pinecone": 1
+          }
+        },
+        {
+          "weight": 12,
+          "items": {
+            "creek_shell": 1
+          }
+        },
+        {
+          "weight": 9,
+          "items": {
+            "owl_feather": 1
+          }
+        },
+        {
+          "weight": 3,
+          "items": {
+            "fossil": 1
+          }
+        }
+      ]
+    }
+  },
+  "quest_map": {
+    "welcome": {
+      "kind": "main",
+      "chapter": 1,
+      "order": 10,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "talk:lais",
+          "target": 1
+        }
+      ]
+    },
+    "lais_feed": {
+      "kind": "main",
+      "chapter": 1,
+      "order": 20,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "feed",
+          "target": 1,
+          "fresh": true
+        }
+      ]
+    },
+    "lais_bath": {
+      "kind": "main",
+      "chapter": 1,
+      "order": 30,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "bathe",
+          "target": 1,
+          "fresh": true
+        }
+      ]
+    },
+    "lais_play": {
+      "kind": "main",
+      "chapter": 1,
+      "order": 40,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "play",
+          "target": 1,
+          "fresh": true
+        }
+      ]
+    },
+    "lais_bag": {
+      "kind": "main",
+      "chapter": 1,
+      "order": 50,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "open:bag",
+          "target": 1
+        }
+      ]
+    },
+    "lais_bed": {
+      "kind": "main",
+      "chapter": 1,
+      "order": 60,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "dog_bed"
+        }
+      ]
+    },
+    "lais_meet_bloblo": {
+      "kind": "main",
+      "chapter": 2,
+      "order": 10,
+      "shared_with": "bloblo_meet",
+      "goals": [
+        {
+          "type": "quest",
+          "key": "bloblo_meet"
+        }
+      ]
+    },
+    "lais_first_crops": {
+      "kind": "main",
+      "chapter": 2,
+      "order": 20,
+      "shared_with": "bloblo_more_crops",
+      "goals": [
+        {
+          "type": "quest",
+          "key": "bloblo_more_crops"
+        }
+      ]
+    },
+    "main_2_fridge": {
+      "kind": "main",
+      "chapter": 3,
+      "order": 10,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "fridge"
+        }
+      ]
+    },
+    "first_kitchen": {
+      "kind": "main",
+      "chapter": 3,
+      "order": 20,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "stove"
+        }
+      ]
+    },
+    "lais_stew": {
+      "kind": "main",
+      "chapter": 3,
+      "order": 30,
+      "shared_with": "bloblo_stew",
+      "goals": [
+        {
+          "type": "quest",
+          "key": "bloblo_stew"
+        }
+      ]
+    },
+    "lais_village": {
+      "kind": "main",
+      "chapter": 4,
+      "order": 10,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "open:village",
+          "target": 1
+        }
+      ]
+    },
+    "first_sale": {
+      "kind": "main",
+      "chapter": 4,
+      "order": 20,
+      "shared_with": "merchant_first_sale",
+      "goals": [
+        {
+          "type": "quest",
+          "key": "merchant_first_sale"
+        }
+      ]
+    },
+    "main_2_order": {
+      "kind": "main",
+      "chapter": 4,
+      "order": 30,
+      "shared_with": "merchant_orders",
+      "goals": [
+        {
+          "type": "quest",
+          "key": "merchant_orders"
+        }
+      ]
+    },
+    "lais_forest": {
+      "kind": "main",
+      "chapter": 5,
+      "order": 10,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "forest_open"
+        }
+      ]
+    },
+    "main_4_materials": {
+      "kind": "main",
+      "chapter": 5,
+      "order": 20,
+      "goals": [
+        {
+          "type": "have",
+          "key": "wood",
+          "target": 6
+        }
+      ]
+    },
+    "main_4_bench": {
+      "kind": "main",
+      "chapter": 5,
+      "order": 30,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "workbench"
+        }
+      ]
+    },
+    "bloblo_meet": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 10,
+      "requirements": {
+        "quests": [
+          "lais_bed"
+        ]
+      },
+      "goals": [
+        {
+          "type": "stat",
+          "key": "talk:bloblo",
+          "target": 1
+        }
+      ]
+    },
+    "first_harvest": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 20,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "water",
+          "target": 1
+        },
+        {
+          "type": "stat",
+          "key": "harvest",
+          "target": 1
+        }
+      ]
+    },
+    "bloblo_more_crops": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 30,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "harvest",
+          "target": 3,
+          "fresh": true
+        }
+      ]
+    },
+    "bloblo_carrots": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 40,
+      "goals": [
+        {
+          "type": "deliver",
+          "key": "carrot",
+          "target": 4
+        }
+      ]
+    },
+    "bloblo_potato": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 50,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "harvest:potato",
+          "target": 1
+        }
+      ]
+    },
+    "bloblo_stew": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 60,
+      "requirements": {
+        "quests": [
+          "first_kitchen"
+        ]
+      },
+      "goals": [
+        {
+          "type": "deliver",
+          "key": "vegetable_soup",
+          "target": 1
+        }
+      ]
+    },
+    "farm_deed": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 70,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "farm"
+        }
+      ]
+    },
+    "stone_path": {
+      "kind": "main",
+      "chapter": 6,
+      "order": 20,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "activity:quarry",
+          "target": 1
+        }
+      ]
+    },
+    "market_day": {
+      "kind": "main",
+      "chapter": 7,
+      "order": 10,
+      "shared_with": "merchant_regular",
+      "goals": [
+        {
+          "type": "quest",
+          "key": "merchant_regular"
+        }
+      ]
+    },
+    "deep_earth": {
+      "kind": "main",
+      "chapter": 8,
+      "order": 20,
+      "goals": [
+        {
+          "type": "deliver",
+          "key": "crystal",
+          "target": 2
+        }
+      ]
+    },
+    "own_business": {
+      "kind": "main",
+      "chapter": 7,
+      "order": 30,
+      "shared_with": "merchant_stall",
+      "goals": [
+        {
+          "type": "quest",
+          "key": "merchant_stall"
+        }
+      ]
+    },
+    "atelier_open": {
+      "kind": "main",
+      "chapter": 9,
+      "order": 30,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "atelier"
+        }
+      ]
+    },
+    "main_7_greenhouse": {
+      "kind": "main",
+      "chapter": 8,
+      "order": 30,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "greenhouse",
+          "target": 1
+        }
+      ]
+    },
+    "main_5_pickaxe": {
+      "kind": "main",
+      "chapter": 6,
+      "order": 10,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "cave_open",
+          "target": 1
+        }
+      ]
+    },
+    "main_5_cooking": {
+      "kind": "main",
+      "chapter": 6,
+      "order": 30,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "produce",
+          "target": 5,
+          "fresh": true
+        }
+      ]
+    },
+    "main_5_bricks": {
+      "kind": "main",
+      "chapter": 6,
+      "order": 40,
+      "goals": [
+        {
+          "type": "have",
+          "key": "brick",
+          "target": 4
+        }
+      ]
+    },
+    "main_6_commerce": {
+      "kind": "main",
+      "chapter": 7,
+      "order": 20,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "sold",
+          "target": 15,
+          "fresh": true
+        }
+      ]
+    },
+    "main_7_orchard": {
+      "kind": "main",
+      "chapter": 8,
+      "order": 10,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "orchard",
+          "target": 1
+        }
+      ]
+    },
+    "main_8_fiber": {
+      "kind": "main",
+      "chapter": 9,
+      "order": 10,
+      "goals": [
+        {
+          "type": "have",
+          "key": "fiber",
+          "target": 6
+        }
+      ]
+    },
+    "main_8_building": {
+      "kind": "main",
+      "chapter": 9,
+      "order": 20,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "produce:plank",
+          "target": 6,
+          "fresh": true
+        }
+      ]
+    },
+    "main_9_coop": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 80,
+      "requirements": {
+        "quests": [
+          "main_4_bench"
+        ]
+      },
+      "goals": [
+        {
+          "type": "owned",
+          "key": "chicken_coop"
+        }
+      ]
+    },
+    "main_9_eggs": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 90,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "produce:egg",
+          "target": 2
+        }
+      ]
+    },
+    "main_9_cows": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 100,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "cow_barn"
+        }
+      ]
+    },
+    "main_9_flour": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 120,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "produce:flour",
+          "target": 2,
+          "fresh": true
+        }
+      ]
+    },
+    "main_9_cheese": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 130,
+      "goals": [
+        {
+          "type": "deliver",
+          "key": "cheese",
+          "target": 2
+        },
+        {
+          "type": "owned",
+          "key": "dairy"
+        }
+      ]
+    },
+    "bloblo_milk": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 110,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "produce:milk",
+          "target": 2
+        }
+      ]
+    },
+    "bloblo_silo": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 140,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "silo"
+        }
+      ]
+    },
+    "bloblo_warehouse": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 150,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "warehouse"
+        }
+      ]
+    },
+    "bloblo_chest": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 160,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "chest"
+        }
+      ]
+    },
+    "bloblo_bigger": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 170,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "silo_2"
+        },
+        {
+          "type": "owned",
+          "key": "fridge_2"
+        }
+      ]
+    },
+    "bloblo_biggest": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 180,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "silo_3"
+        }
+      ]
+    },
+    "merchant_meet": {
+      "kind": "line",
+      "line": "merchant",
+      "order": 10,
+      "requirements": {
+        "chapter": 4
+      },
+      "goals": [
+        {
+          "type": "stat",
+          "key": "talk:merchant",
+          "target": 1
+        }
+      ]
+    },
+    "merchant_surplus": {
+      "kind": "line",
+      "line": "merchant",
+      "order": 20,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "sold",
+          "target": 5,
+          "fresh": true
+        }
+      ]
+    },
+    "merchant_orders": {
+      "kind": "line",
+      "line": "merchant",
+      "order": 30,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "orders",
+          "target": 1,
+          "fresh": true
+        }
+      ]
+    },
+    "merchant_regular": {
+      "kind": "line",
+      "line": "merchant",
+      "order": 40,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "orders",
+          "target": 2,
+          "fresh": true
+        }
+      ]
+    },
+    "guide_meet": {
+      "kind": "line",
+      "line": "guide",
+      "order": 10,
+      "requirements": {
+        "chapter": 5
+      },
+      "goals": [
+        {
+          "type": "stat",
+          "key": "talk:guide",
+          "target": 1
+        }
+      ]
+    },
+    "guide_wood": {
+      "kind": "line",
+      "line": "guide",
+      "order": 20,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "activity:lane",
+          "target": 1,
+          "fresh": true
+        }
+      ]
+    },
+    "guide_stone": {
+      "kind": "line",
+      "line": "guide",
+      "order": 30,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "activity:quarry",
+          "target": 1,
+          "fresh": true
+        }
+      ]
+    },
+    "guide_fibers": {
+      "kind": "line",
+      "line": "guide",
+      "order": 40,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "activity:meadow",
+          "target": 1,
+          "fresh": true
+        }
+      ]
+    },
+    "guide_treasure": {
+      "kind": "line",
+      "line": "guide",
+      "order": 50,
+      "requirements": {
+        "quests": [
+          "guide_fibers"
+        ]
+      },
+      "goals": [
+        {
+          "type": "have",
+          "key": "map_piece_1",
+          "target": 1
+        },
+        {
+          "type": "have",
+          "key": "map_piece_2",
+          "target": 1
+        },
+        {
+          "type": "have",
+          "key": "map_piece_3",
+          "target": 1
+        },
+        {
+          "type": "have",
+          "key": "map_piece_4",
+          "target": 1
+        }
+      ]
+    },
+    "bloblo_strawberry": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 62,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "harvest:strawberry",
+          "target": 1
+        }
+      ]
+    },
+    "bloblo_pumpkin": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 65,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "harvest:pumpkin",
+          "target": 1
+        }
+      ]
+    },
+    "bloblo_sweet_potato": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 75,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "harvest:sweet_potato",
+          "target": 1
+        }
+      ]
+    },
+    "lais_blender": {
+      "kind": "main",
+      "chapter": 3,
+      "order": 25,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "blender"
+        }
+      ]
+    },
+    "bloblo_dig": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 25,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "find",
+          "target": 1
+        }
+      ]
+    },
+    "nina_meet": {
+      "kind": "line",
+      "line": "nina",
+      "order": 10,
+      "requirements": {
+        "quests": [
+          "main_2_order"
+        ]
+      },
+      "goals": [
+        {
+          "type": "stat",
+          "key": "talk:nina",
+          "target": 1
+        }
+      ]
+    },
+    "nina_walk": {
+      "kind": "line",
+      "line": "nina",
+      "order": 20,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "walk",
+          "target": 1,
+          "fresh": true
+        }
+      ]
+    },
+    "nina_routes": {
+      "kind": "line",
+      "line": "nina",
+      "order": 30,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "walk:flower_street",
+          "target": 1
+        }
+      ]
+    },
+    "nina_rare": {
+      "kind": "line",
+      "line": "nina",
+      "order": 40,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "walk_rare",
+          "target": 1
+        }
+      ]
+    },
+    "nina_petshop": {
+      "kind": "line",
+      "line": "nina",
+      "order": 50,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "petshop"
+        }
+      ]
+    },
+    "nina_dress": {
+      "kind": "line",
+      "line": "nina",
+      "order": 60,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "equip",
+          "target": 1
+        }
+      ]
+    },
+    "nina_sewing": {
+      "kind": "line",
+      "line": "nina",
+      "order": 70,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "sew",
+          "target": 1
+        }
+      ]
+    },
+    "nina_pipoca": {
+      "kind": "line",
+      "line": "nina",
+      "order": 80,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "friend_gift:pipoca",
+          "target": 1
+        }
+      ]
+    },
+    "nina_friends": {
+      "kind": "line",
+      "line": "nina",
+      "order": 100,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "friend_level",
+          "target": 4
+        }
+      ]
+    },
+    "nina_trick": {
+      "kind": "line",
+      "line": "nina",
+      "order": 90,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "trick_learned",
+          "target": 1
+        }
+      ]
+    },
+    "nina_roll": {
+      "kind": "line",
+      "line": "nina",
+      "order": 110,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "trick_learned",
+          "target": 3
+        }
+      ]
+    },
+    "bloblo_sell_surplus": {
+      "kind": "line",
+      "line": "bloblo",
+      "order": 22,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "sold",
+          "target": 1
+        }
+      ]
+    },
+    "merchant_first_sale": {
+      "kind": "line",
+      "line": "merchant",
+      "order": 15,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "sold",
+          "target": 1
+        }
+      ]
+    },
+    "merchant_stall": {
+      "kind": "line",
+      "line": "merchant",
+      "order": 50,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "stall"
+        }
+      ]
+    },
+    "merchant_contracts": {
+      "kind": "line",
+      "line": "merchant",
+      "order": 60,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "contracts",
+          "target": 2
+        }
+      ]
+    },
+    "merchant_expand": {
+      "kind": "line",
+      "line": "merchant",
+      "order": 70,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "stall_2"
+        }
+      ]
+    },
+    "merchant_clients": {
+      "kind": "line",
+      "line": "merchant",
+      "order": 80,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "contracts",
+          "target": 5
+        }
+      ]
+    },
+    "merchant_village_stall": {
+      "kind": "line",
+      "line": "merchant",
+      "order": 90,
+      "goals": [
+        {
+          "type": "owned",
+          "key": "stall_3"
+        }
+      ]
+    },
+    "merchant_festival": {
+      "kind": "line",
+      "line": "merchant",
+      "order": 100,
+      "goals": [
+        {
+          "type": "stat",
+          "key": "order:festival_contract",
+          "target": 1
+        }
+      ]
+    }
+  },
+  "chapters": [
+    {
+      "rewards": {
+        "coins": 10
+      }
+    },
+    {
+      "rewards": {
+        "coins": 20,
+        "skill_xp": {
+          "agriculture": 20
+        }
+      }
+    },
+    {
+      "rewards": {
+        "coins": 30,
+        "skill_xp": {
+          "cooking": 20
+        }
+      }
+    },
+    {
+      "rewards": {
+        "coins": 40,
+        "skill_xp": {
+          "commerce": 20
+        }
+      }
+    },
+    {
+      "rewards": {
+        "coins": 80,
+        "skill_xp": {
+          "adventure": 20
+        }
+      }
+    },
+    {
+      "rewards": {
+        "coins": 100,
+        "skill_xp": {
+          "cooking": 20
+        }
+      }
+    },
+    {
+      "rewards": {
+        "coins": 120,
+        "skill_xp": {
+          "commerce": 20
+        }
+      }
+    },
+    {
+      "rewards": {
+        "coins": 140,
+        "skill_xp": {
+          "agriculture": 20
+        }
+      }
+    },
+    {
+      "rewards": {
+        "coins": 160,
+        "skill_xp": {
+          "adventure": 20
+        }
+      }
+    }
+  ]
+}

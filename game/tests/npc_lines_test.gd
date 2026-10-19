@@ -52,7 +52,7 @@ func _run() -> void:
 	state.call("reset")
 	state.call("from_dict", snapshot)
 	check(state.get("progress").current_line_quest("merchant") == "merchant_orders", "Feirante persiste")
-	check(state.get("progress").current_line_quest("guide") == "guide_stone", "Guia persiste")
+	check(state.get("progress").current_line_quest("guide") == "guide_open_cave", "Guia persiste")
 	# Praça: a linha da Nina corre em paralelo (depois da primeira encomenda) e a Pipoca não é personagem.
 	state.get("progress").claimed_quests["main_2_order"] = true
 	state.call("_changed")

@@ -80,10 +80,10 @@ func _run() -> void:
 	check(state.call("wish_error", 0) == "" and int(state.call("fulfillable_wish_count")) == 1, "3 carinhos cumprem")
 	var pet_gain: int = state.get("dog").affection - affection  # carinhos (+1 cada)
 	check(state.call("fulfill_wish", 0) == "", "receber o desejo")
-	check(state.get("coins") == coins + 5, "moedas do desejo uma vez")
+	check(state.get("coins") == coins + 2, "moedas do desejo uma vez")
 	check(state.get("dog").affection == affection + pet_gain + 5, "afeto do desejo uma vez")
 	check(progress.stat("wish") == 1 and progress.stat("wish:pet") == 1, "contadores wish")
-	check(state.call("fulfill_wish", 0) != "" and state.get("coins") == coins + 5, "não paga duas vezes")
+	check(state.call("fulfill_wish", 0) != "" and state.get("coins") == coins + 2, "não paga duas vezes")
 
 	# Os 3 primeiros reabastecem em 60 s; o 4º em 600 s.
 	check(slot(0).id == "" and int(state.call("wish_wait", 0)) >= 55 and int(state.call("wish_wait", 0)) <= 60, "1º desejo: espera ~60 s")
@@ -167,18 +167,20 @@ func _run() -> void:
 	coins = state.get("coins")
 	state.call("dev_add_affection", 25)
 	check(state.call("bond_level") == 2 and state.call("wish_slot_open", 1), "vínculo 2 abre o 2º espaço")
-	check(state.get("coins") == coins + 15 and bond_events == [2], "presente do vínculo 2 uma vez + sinal")
+	check(state.get("coins") == coins + 10 and bond_events == [2], "presente do vínculo 2 uma vez + sinal")
 	state.call("dev_add_affection", 0)
-	check(state.get("coins") == coins + 15 and bond_events == [2], "presente não repete")
+	check(state.get("coins") == coins + 10 and bond_events == [2], "presente não repete")
 	var bond_save: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
 	state.call("from_dict", bond_save)
-	check(state.get("coins") == coins + 15 and bond_events == [2], "recarregar não repete presente de vínculo")
+	check(state.get("coins") == coins + 10 and bond_events == [2], "recarregar não repete presente de vínculo")
 	check(slot(1).id != "" and slot(1).id != slot(0).id, "2º espaço sem repetir o desejo do 1º")
 	state.call("dev_add_affection", 30)
 	check(state.call("bond_level") == 3 and bond_events == [2, 3], "vínculo 3 emite sinal")
 
 	# Especial: só com vínculo >= 3; recompensa dobrada.
 	state.call("dev_complete_quest", "bloblo_stew")
+	state.get("progress").owned["stove"] = true  # o pedido só sorteia o que dá para fazer: fogão e geladeira
+	state.get("progress").owned["fridge"] = true
 	database.get("wishes").settings.special_chance = 1.0
 	state.get("wishes").slots[0] = WishState.empty_slot(0.0)
 	state.get("wishes").slots[1] = WishState.empty_slot(0.0)
@@ -189,10 +191,10 @@ func _run() -> void:
 			found = i
 	check(found >= 0 and slot(found).id == "vegetable_soup", "especial aparece com vínculo 3")
 	if found >= 0:
-		check(int(state.call("wish_rewards", found).coins) == 36 and int(state.call("wish_rewards", found).affection) == 20, "especial paga o dobro")
+		check(int(state.call("wish_rewards", found).coins) == 12 and int(state.call("wish_rewards", found).affection) == 20, "especial paga o dobro")
 		state.get("inventory").add("vegetable_soup", 1)
 		coins = state.get("coins")
-		check(state.call("fulfill_wish", found) == "" and state.get("coins") == coins + 36, "especial entrega a recompensa dobrada")
+		check(state.call("fulfill_wish", found) == "" and state.get("coins") == coins + 12, "especial entrega a recompensa dobrada (moedas no teto de 12)")
 	state.get("dog").affection = 0
 	state.get("wishes").slots[0] = WishState.empty_slot(0.0)
 	state.call("dev_refresh_wishes")
@@ -200,7 +202,7 @@ func _run() -> void:
 	database.get("wishes").settings.special_chance = 0.05
 
 	# Conteúdo e ações.
-	check(database.get("routines").daily.missions.has("wishes") and database.get("routines").weekly.missions.has("best_friend"), "diária e semanal de desejos")
+	check(database.get("routines").daily.legacy.has("wishes") and database.get("routines").weekly.legacy.has("best_friend"), "diária e semanal de desejos (legado, fora do sorteio novo)")
 	check(database.get("collections").has("heart_collar"), "coleira de coração na coleção")
 	state.call("reset")
 	state.call("dev_complete_quest", "lais_bed")
@@ -279,6 +281,8 @@ func _ui_checks() -> void:
 	# Três espaços: normal, especial e fechado (vínculo 3), depois esperando.
 	state.get("dog").affection = 55
 	state.call("dev_complete_quest", "bloblo_stew")
+	state.get("progress").owned["stove"] = true  # o pedido só sorteia o que dá para fazer: fogão e geladeira
+	state.get("progress").owned["fridge"] = true
 	state.get("progress").claimed_bond_level = state.call("bond_level")
 	database.get("wishes").settings.special_chance = 1.0
 	state.get("wishes").slots[0] = WishState.empty_slot(0.0)

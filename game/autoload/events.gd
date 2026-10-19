@@ -31,6 +31,15 @@ signal dog_action(action: StringName)
 ## Ação concluída no mundo; reação visual do Tiro, sem efeito no save.
 signal world_activity(kind: StringName, subject: String, plot_index: int)
 
+## Obra comunitária: uma fase ficou completa (emitido uma vez, depois de salvar o estado).
+signal project_phase_completed(id: String, phase_id: String, index: int)
+## Obra concluída; `result` = o que o `_grant_automatic` devolveu (itens guardados/em recibo). Uma vez por obra.
+signal project_completed(id: String, result: Dictionary)
+## Uso da obra pronta; `first` só na primeira vez (as demais são só visuais).
+signal project_used(id: String, first: bool)
+## Um ciclo do "Encontro da turma" (opção repetível depois da obra) acabou de ser confirmado.
+signal project_gathered(id: String, cycle: int)
+
 ## Pede para a tela principal mostrar uma mensagem curta.
 signal toast_requested(text: String)
 ## Recolheu algo: itens (id → qtd) e moedas; a tela mostra miniaturas saltando de `origin`

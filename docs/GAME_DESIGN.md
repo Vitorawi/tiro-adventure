@@ -101,10 +101,12 @@ passeios e apetrechos das próximas etapas ficam para elas. Diária: 2 desejos; 
 com Coleira de coração na coleção (ainda sem sprite de vestir).
 
 ## Natureza: evolução dos locais (13/10/2026)
-Desbloqueie Bosque, Caverna e Prado com moedas. Depois, recolher coletas dá XP próprio ao local. Os novos
-materiais vêm do nível do local, sem comprar ferramentas: madeira dura no Bosque 3,
-cobre na Caverna 2 e cristais na Caverna 3. Os níveis 2 e 3 também liberam vagas automaticamente. Material tocado inicia uma coleta; até três
-por local simultaneamente. O atalho Refinar leva às receitas/estações existentes.
+Desbloqueie Bosque, Caverna e Prado com moedas. Depois, cada busca recolhida dá o XP **da rota escolhida**
+(buscas curtas 2 XP, médias 8–16, longas 26–60), com patamares de 24/120/360 XP. Os novos
+materiais vêm do nível do local, sem comprar ferramentas: cobre na Caverna 2, madeira dura no Bosque 3 e
+cristais na Caverna 3. A segunda vaga entra no nível 2 e **a terceira só no nível 4**. Material tocado mostra as rotas
+que já valem (duração, saída e XP) e o jogador escolhe quanto tempo ficar fora; nada troca sozinho. Até três
+buscas simultâneas por local. O atalho Refinar leva às receitas/estações existentes.
 Custos, vagas e requisitos: docs/PROGRESSION.md e data/progression.json.
 
 
@@ -275,7 +277,7 @@ Custos, tempos, quantidades e requisitos permanecem os mesmos.
 - Novo jogo começa com **1 canteiro emprestado** pela Bloblo; a escritura do sítio (Jornada → Construir)
   libera 3 canteiros. Há 9 posições fixas visíveis no mapa, compradas em sequência.
 - Preços dos terrenos 4 a 9: 20, 40, 70, 100, 150 e 220 moedas (`config.json`, `farm.unlock_costs`).
-- Colher rende os produtos e moedas: cenoura 3, batata 9, abóbora 16 (`crops.json`, `coins`). Sementes continuam gratuitas.
+- Colher rende só os produtos e XP (etapa 09 da economia: `crops.json → coins` é 0); as moedas vêm de vender (feira) e entregar encomendas/contratos. Sementes continuam gratuitas.
 - Cada plantação mostra ícone, tempo restante e barra; ao amadurecer, mostra “Colher”. O broto cresce e dá lugar à planta.
 - **Como se planta (bandeja de ação, Interface nova Etapa 07):** tocar num canteiro vazio abre, ao lado do dedo, uma bandeja com as
   sementes (a última usada primeiro, o tempo embaixo de cada uma; bloqueadas ficam apagadas com cadeado e levam ao "Como fazer").

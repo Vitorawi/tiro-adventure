@@ -1,21 +1,21 @@
 {
   "carrot": {
     "seconds": 60,
-    "coins": 3,
+    "coins": 0,
     "yield": {
       "carrot": 2
     },
     "sprite": "res://assets/sprites/areas/farm/crop_carrot.png",
-    "skill_xp": 10
+    "skill_xp": 6
   },
   "potato": {
     "seconds": 300,
-    "coins": 9,
+    "coins": 0,
     "yield": {
-      "potato": 2
+      "potato": 3
     },
     "sprite": "res://assets/sprites/areas/farm/crop_potato.png",
-    "skill_xp": 22,
+    "skill_xp": 16,
     "requirements": {
       "quests": [
         "bloblo_carrots"
@@ -23,10 +23,10 @@
     }
   },
   "pumpkin": {
-    "seconds": 600,
-    "coins": 16,
+    "seconds": 3600,
+    "coins": 0,
     "yield": {
-      "pumpkin": 1
+      "pumpkin": 4
     },
     "sprite": "res://assets/sprites/areas/farm/crop_pumpkin.png",
     "skill_xp": 35,
@@ -35,31 +35,28 @@
     }
   },
   "herbs": {
-    "seconds": 900,
-    "coins": 24,
+    "seconds": 7200,
+    "coins": 0,
     "yield": {
-      "herbs": 2
+      "herbs": 6
     },
     "sprite": "res://assets/sprites/areas/farm/crop_sprout.png",
     "greenhouse": "only",
-    "skill_xp": 55,
+    "skill_xp": 50,
     "requirements": {
       "owned": [
         "greenhouse"
-      ],
-      "skills": {
-        "agriculture": 5
-      }
+      ]
     }
   },
   "wheat": {
-    "seconds": 120,
-    "coins": 4,
+    "seconds": 600,
+    "coins": 0,
     "yield": {
-      "wheat": 3
+      "wheat": 4
     },
     "sprite": "res://assets/sprites/areas/farm/crop_wheat.png",
-    "skill_xp": 12,
+    "skill_xp": 18,
     "requirements": {
       "chapter": 5,
       "owned": [
@@ -68,13 +65,13 @@
     }
   },
   "corn": {
-    "seconds": 180,
-    "coins": 5,
+    "seconds": 1200,
+    "coins": 0,
     "yield": {
-      "corn": 3
+      "corn": 6
     },
     "sprite": "res://assets/sprites/areas/farm/crop_corn.png",
-    "skill_xp": 15,
+    "skill_xp": 24,
     "requirements": {
       "chapter": 5,
       "owned": [
@@ -83,40 +80,40 @@
     }
   },
   "strawberry": {
-    "seconds": 180,
-    "coins": 5,
+    "seconds": 900,
+    "coins": 0,
     "yield": {
-      "strawberry": 2
+      "strawberry": 4
     },
     "sprite": "res://assets/sprites/areas/farm/crop_strawberry.png",
     "greenhouse": "any",
-    "skill_xp": 15,
+    "skill_xp": 24,
     "requirements": {
       "quests": ["bloblo_dig"]
     }
   },
   "blueberry": {
-    "seconds": 900,
-    "coins": 20,
+    "seconds": 14400,
+    "coins": 0,
     "yield": {
-      "blueberry": 3
+      "blueberry": 8
     },
     "sprite": "res://assets/sprites/areas/farm/crop_blueberry.png",
     "greenhouse": "only",
-    "skill_xp": 40,
+    "skill_xp": 65,
     "requirements": {
       "quests": ["guide_treasure"],
       "stats": {"treasure": 1}
     }
   },
   "sweet_potato": {
-    "seconds": 420,
-    "coins": 12,
+    "seconds": 7200,
+    "coins": 0,
     "yield": {
-      "sweet_potato": 2
+      "sweet_potato": 6
     },
     "sprite": "res://assets/sprites/areas/farm/crop_sweet_potato.png",
-    "skill_xp": 30,
+    "skill_xp": 45,
     "requirements": {
       "quests": [
         "farm_deed"

@@ -26,6 +26,7 @@
           {"weight": 5, "items": {"dog_food": 1}}
         ],
         "first": {"items": {"stick": 2, "ribbon": 1}},
+        "guarantee": {"item": "stick", "count": 2, "until_owned": "chest"},
         "rare": {"chance": 0.08, "pity": 6, "collection": "plaid_bow",
                  "duplicate": {"coins": 20, "items": {"ribbon": 1}}}
       }

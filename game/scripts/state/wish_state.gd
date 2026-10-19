@@ -3,7 +3,8 @@ extends RefCounted
 ## Desejos do Tiro: até três espaços, cada um com um pedido (ou esperando outro).
 ##
 ## Só dados + consultas puras; as ações (sortear, cumprir, trocar) ficam no GameState.
-## Espaço: { id, base, since, ready_at, special, last }.
+## Espaço: { id, base, since, ready_at, special, last, used }.
+##   used = a exceção de cuidado deste pedido (ver GameState._care_exception) já foi gasta.
 ##   id "" + ready_at > agora = esperando; id "" + ready_at <= agora = pronto para sortear.
 ##   base = contador do desejo de ação quando ele começou; last = último id (evita repetir ao trocar).
 
@@ -29,7 +30,7 @@ func reset() -> void:
 
 
 static func empty_slot(ready_at: float, last: String = "") -> Dictionary:
-	return {"id": "", "base": 0, "since": 0.0, "ready_at": ready_at, "special": false, "last": last}
+	return {"id": "", "base": 0, "since": 0.0, "ready_at": ready_at, "special": false, "last": last, "used": false}
 
 
 ## Ids dos desejos que estão em algum espaço.
@@ -60,6 +61,8 @@ func from_dict(data: Dictionary) -> void:
 		slots[i] = {
 			"id": str(entry.get("id", "")), "base": int(entry.get("base", 0)), "since": float(entry.get("since", 0.0)),
 			"ready_at": float(entry.get("ready_at", 0.0)), "special": bool(entry.get("special", false)), "last": str(entry.get("last", "")),
+			"used": bool(entry.get("used", false)),
+			"swap_reason": str(entry.get("swap_reason", "")),
 		}
 	done_count = int(data.get("done_count", 0))
 	first_done = bool(data.get("first_done", false))

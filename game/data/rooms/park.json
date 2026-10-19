@@ -34,7 +34,9 @@
   ],
   "objects": [
     {"id": "petshop", "sprite": "res://assets/sprites/areas/park/petshop.png", "pos": [500, 209], "upgrade": "petshop", "action": "place:petshop", "label": "Pet shop", "label_pos": [501, 106], "approach": [449, 209], "z_index": 1},
-    {"id": "sewing_table", "sprite": "res://assets/sprites/areas/park/sewing_table.png", "pos": [531, 191], "upgrade": "sewing_table", "station": "sewing", "action": "place:sewing", "label": "Costura", "label_pos": [500, 245], "approach": [449, 209], "z_index": 2}
+    {"id": "sewing_table", "sprite": "res://assets/sprites/areas/park/sewing_table.png", "pos": [531, 191], "upgrade": "sewing_table", "station": "sewing", "action": "place:sewing", "label": "Costura", "label_pos": [500, 245], "approach": [449, 209], "z_index": 2},
+    {"id": "community_bench", "sprite": "res://assets/sprites/areas/park/bench_base.png", "pos": [400, 282], "project": "park_bench", "project_sprites": {"ghost": "res://assets/sprites/areas/park/bench_base.png", "base": "res://assets/sprites/areas/park/bench_base.png", "comfort": "res://assets/sprites/areas/park/bench_comfort.png", "welcome": "res://assets/sprites/areas/park/bench_welcome.png"}, "action": "place:bench", "label": "Banco", "label_pos": [412, 298], "requirements": {"quests": ["atelier_open"]}, "approach": [372, 280], "footprint": [[380, 274], [402, 264], [424, 274], [402, 286]]},
+    {"id": "community_picnic", "sprite": "res://assets/sprites/areas/park/picnic_corner.png", "pos": [436, 168], "scale": 0.8, "project": "park_picnic", "project_sprites": {"ghost": "res://assets/sprites/areas/park/picnic_corner.png", "corner": "res://assets/sprites/areas/park/picnic_corner.png", "basket": "res://assets/sprites/areas/park/picnic_basket.png", "meeting": "res://assets/sprites/areas/park/picnic_meeting.png"}, "action": "place:picnic", "label": "Piquenique", "label_pos": [436, 182], "requirements": {"projects": ["park_bench"]}, "approach": [436, 190], "footprint": [[424, 166], [436, 160], [448, 166], [436, 172]]}
   ],
   "zones": [
     {

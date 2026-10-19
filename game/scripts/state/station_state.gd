@@ -63,3 +63,5 @@ func from_dict(data: Dictionary) -> void:
 			queue.back()["qty"] = int(entry.qty)
 		if entry.has("animals"):
 			queue.back()["animals"] = entry.animals.duplicate()
+		if entry.has("job"):
+			queue.back()["job"] = (entry.job as Dictionary).duplicate(true)

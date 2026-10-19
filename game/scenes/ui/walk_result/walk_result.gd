@@ -1,7 +1,9 @@
 class_name WalkResult
 extends CanvasLayer
 ## Cartão "Volta do passeio": postal, achados em fila (ícone + quantidade, "Novo!" na primeira vez),
-## moedas e vínculo. Sem estado: o resumo vem de Events.walk_collected (GameState.collect_walk).
+## moedas e vínculo. Sem estado: o resumo vem de Events.walk_collected (GameState.return_due_walk), UM por viagem.
+## O Tiro já está em casa; se sobrou bagagem, o cartão oferece "Guardar achados" (ou "Ver bagagem" quando não cabe).
+## Abrir o cartão só marca o resultado como visto (`mark_walk_result_shown`): nunca premia.
 ## Usa o `ModalCard`; raro e lendário ganham moldura dourada, estrela e confete.
 
 var _panel: PanelContainer
@@ -79,9 +81,29 @@ func show_result(result: Dictionary) -> void:
 		dress.name = "Equip_" + id
 		dress.disabled = GameState.equip_error(id) != ""
 		card.add(dress)
-	var close := card.add_primary("Oba!", hide)
-	close.name = "CloseResult"
+	var left: Dictionary = GameState.walk_state.baggage_left() if not sewing else {}
+	if left.is_empty():
+		var close := card.add_primary("Oba!", hide)
+		close.name = "CloseResult"
+	else:
+		var blocked := GameState.walk_baggage_error() != ""
+		var store := card.add_primary("Ver bagagem" if blocked else "Guardar achados", func() -> void:
+			if blocked:
+				var at := Database.place_with_panel("walks")
+				hide()
+				Events.world_requested.emit(str(at[0]), str(at[1]))
+				return
+			GameState.claim_walk_baggage()
+			var hint := GameState.walk_baggage_hint()
+			if hint != "":
+				Events.toast_requested.emit(hint)
+			hide())
+		store.name = "StoreBaggage"
+		var later := card.add_ghost("Depois", hide)
+		later.name = "CloseResult"
 	show()
+	if not sewing:
+		GameState.mark_walk_result_shown()
 
 
 ## Postal do passeio (arquivo em walks.json); null se não existir.

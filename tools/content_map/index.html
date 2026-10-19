@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Atlas do Tiro · Mapa do conteúdo</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/pacing.css">
+  <link rel="stylesheet" href="/pacing-calendar.css">
+  <link rel="stylesheet" href="/economy.css">
+  <link rel="stylesheet" href="/economy-diary.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">T</span><span>Atlas do Tiro<small>MAPA DO CONTEÚDO</small></span></a>
+    <nav class="atlas-tabs" aria-label="Áreas do Atlas"><button id="tab-economy" class="active">Economia</button><button id="tab-pacing">Calendário e metas</button><button id="tab-connections">Conexões</button></nav>
+    <div class="live"><span id="live-dot"></span><span id="status" role="status">Lendo arquivos…</span></div>
+    <button id="refresh" title="Reler os arquivos do projeto">↻ Atualizar</button>
+  </header>
+  <section id="economy-view" class="economy-view">
+    <div class="eco-heading"><div><div class="eyebrow">ACOMPANHAMENTO DO JOGO</div><h1>Como a jornada evolui?</h1><p>Explore o tempo das conquistas e o caminho do dinheiro e dos materiais.</p></div><span class="eco-badge">RESULTADOS SIMULADOS</span></div>
+    <div class="eco-controls"><label>Versão do relatório<select id="eco-batch"></select></label><label>Perfil do jogador<select id="eco-profile"></select></label><label>Objetivo da execução<select id="eco-until"></select></label><label>Jornada<select id="eco-run"></select></label></div>
+    <div id="eco-validity" class="eco-validity" role="status">Lendo relatórios locais…</div>
+    <div id="eco-error" class="eco-validity stale" role="alert" hidden></div>
+    <div id="eco-content" hidden>
+      <details class="diary-global-summary"><summary>Resumo da jornada completa · dias, tempo ativo e saldo final</summary><div id="eco-kpis" class="eco-kpis"></div></details>
+      <div class="eco-section-head"><div><h2>Uma jornada, semana a semana</h2><p>Selecione uma semana para explorar suas conquistas e sua economia.</p></div><button id="eco-all">Ver jornada inteira</button></div>
+      <div id="eco-weeks" class="eco-weeks" aria-label="Semanas da jornada"></div>
+      <div class="eco-section-head"><h2 id="eco-period">Jornada inteira</h2><span id="eco-period-time"></span></div>
+      <div class="eco-subtabs" role="group" aria-label="O que explorar"><button data-eco-mode="diary" class="active">Como foram os dias</button><button data-eco-mode="progress">Caminho das conquistas</button><button data-eco-mode="money">Moedas</button><button data-eco-mode="resources">Recursos e depósitos</button></div>
+      <section id="eco-diary">
+        <p>Veja o conjunto dos dias e escolha um para investigar. Os detalhes abaixo acompanham sua seleção.</p>
+        <div id="diary-days" class="diary-days" aria-label="Resumo de cada dia"></div>
+        <section class="diary-detail"><div class="diary-heading"><div><div class="eyebrow">DIA EM FOCO</div><h2 id="diary-title"></h2></div><div class="segmented"><button id="diary-day" class="active">Só este dia</button><button id="diary-total">Acumulado até aqui</button></div></div>
+          <div id="diary-summary" class="diary-summary"></div>
+          <div id="diary-reading" class="eco-validity"></div>
+          <article class="eco-card stock-panel"><h3>Estoque e próximos desbloqueios</h3><p>Estado registrado no início ou no fechamento de uma sessão. Compare o que havia com o que faltava para uma construção ou melhoria.</p><div id="stock-empty" class="eco-validity"></div><div id="stock-content" hidden><label>Momento observado <select id="stock-checkpoint"></select></label><div id="stock-summary"></div><div class="stock-layout"><section><h4>O que havia na mochila</h4><input id="stock-search" type="search" placeholder="Buscar no estoque…" aria-label="Buscar estoque"><div id="stock-items"></div></section><section><h4>O que faltava para abrir</h4><select id="stock-target" aria-label="Construção ou melhoria"></select><div id="stock-target-detail"></div></section></div></div></article>
+          <div class="eco-grid"><article class="eco-card"><h3>O que o jogador fez</h3><p>Contagem de ações bem-sucedidas. Uma ação pode produzir ou colher várias unidades.</p><div id="diary-actions"></div></article><article class="eco-card"><h3>O que avançou</h3><div id="diary-achievements"></div></article></div>
+          <article class="eco-card diary-materials"><div class="diary-heading"><div><h3>Recurso por recurso</h3><p>Entradas, saídas e destinos observados. Clique em um recurso para acompanhar seus dias.</p></div><input id="diary-search" type="search" placeholder="Buscar recurso…" aria-label="Buscar recurso no diário"></div>
+            <div id="diary-resource-detail" hidden></div><div class="diary-table-wrap"><table class="diary-table"><thead><tr><th>Recurso</th><th>Entrou</th><th>Saiu</th><th>Variação</th><th>Como entrou</th><th>Onde foi usado</th></tr></thead><tbody id="diary-items"></tbody></table></div>
+            <p class="eco-footnote">Variação = entradas menos saídas registradas, não estoque. “Acumulado” vai até o fim do dia selecionado, não até o instante de uma conquista.</p>
+          </article>
+          <details><summary>Tentativas recusadas registradas</summary><div id="diary-failures"></div></details>
+        </section>
+      </section>
+      <section id="eco-progress" hidden>
+        <div class="eco-filter"><input id="eco-search" type="search" placeholder="Buscar construção, missão, receita…" aria-label="Buscar conquista"><select id="eco-kind" aria-label="Tipo de conquista"><option value="main">Construções, capítulos e obras</option><option value="all">Todas as conquistas</option><option value="quest">Missões</option><option value="recipe">Primeiro preparo</option><option value="item">Primeira aquisição</option><option value="world">Mundos liberados</option></select></div>
+        <p>Siga os dias e clique em um marco para ver os passos anteriores, os custos e o que ele ajuda a abrir.</p>
+        <div id="eco-day-nav" class="eco-day-nav" aria-label="Ir para um dia"></div>
+        <section id="eco-trail-detail" class="eco-trail-detail" hidden aria-label="Caminho até o marco"></section>
+        <div id="eco-milestones" class="eco-timeline"></div>
+        <details><summary id="eco-unreached-title">Sem registro</summary><div id="eco-unreached" class="eco-milestones"></div></details>
+      </section>
+      <section id="eco-money" hidden><div class="eco-grid"><article class="eco-card"><h3>Saldo ao longo dos dias</h3><p>Último saldo observado em cada dia. Passe pelo gráfico para ler os valores.</p><div id="eco-chart"></div></article><article class="eco-card"><h3 id="eco-flow-title">Movimentação no período</h3><div id="eco-flow-totals" class="eco-flow-totals"></div><div id="eco-flows"></div></article></div><p class="eco-footnote">Entradas e saídas por variação do saldo entre registros; uma ação pode incluir prêmios automáticos. Valores são líquidos por evento, não a decomposição bruta de cada transação.</p><details><summary>Classificação contábil do relatório · jornada inteira</summary><div id="eco-official-flow"></div></details></section>
+      <section id="eco-resources" hidden><div class="eco-grid"><article class="eco-card"><h3>Materiais que circularam</h3><p>Entradas e saídas observadas nas ações. Não representam o estoque disponível.</p><input id="eco-item-search" type="search" placeholder="Buscar material…" aria-label="Buscar material"><div id="eco-items"></div></article><article class="eco-card"><h3>Ocupação dos depósitos</h3><p>Maior ocupação observada no período. Um depósito cheio não comprova uma produção bloqueada.</p><div id="eco-storage"></div><h3>Esperas registradas dentro das sessões</h3><p>Não inclui toda a duração dos timers nem o tempo fora do jogo.</p><div id="eco-waits"></div></article></div></section>
+      <details class="eco-provenance"><summary>Como ler estes resultados</summary><p>Dia 1 = primeiras 24 horas desde o início. Tempo ativo é o registrado pelo jogador automatizado; dias corridos incluem as ausências. Cada jornada é mostrada separadamente. “Sem registro” não significa conteúdo impossível de alcançar. Nomes, ícones e conexões vêm dos arquivos atuais; tempos e movimentações vêm da execução selecionada. Igualdade dos JSONs não verifica alterações no código do motor ou na estratégia do robô.</p><code id="eco-source"></code></details>
+    </div>
+  </section>
+  <main class="workspace" hidden>
+    <aside class="catalog">
+      <div class="catalog-head"><h1>Explore o jogo</h1><p>Encontre uma peça. Siga suas conexões.</p>
+        <label class="search"><span>⌕</span><input id="search" type="search" placeholder="Buscar nome ou ID…" aria-label="Buscar conteúdo"></label>
+        <label class="filter-label" for="kind">Categoria</label><select id="kind"><option value="">Todas as categorias</option></select>
+        <div class="catalog-meta"><span id="result-count"></span><button id="clear" class="text-button">Limpar filtros</button></div>
+      </div>
+      <div id="catalog-list" class="catalog-list" aria-label="Catálogo"></div>
+      <div class="catalog-foot"><span id="totals"></span><br>Fonte: arquivos locais em <code>game/data</code></div>
+    </aside>
+    <section class="map-area" aria-label="Mapa de conexões">
+      <div class="map-head"><div><div class="eyebrow">CONEXÕES DO CONTEÚDO</div><h2 id="map-title">Escolha um elemento</h2></div>
+        <div class="segmented" role="group" aria-label="Modo de visualização"><button id="mode-map" class="active">Mapa</button><button id="mode-list">Lista</button></div>
+      </div>
+      <div class="toolbar">
+        <select id="relation" aria-label="Tipo de conexão"><option value="all">Todas as ligações</option><option value="production">Produção e materiais</option><option value="progression">Missões e desbloqueios</option><option value="location">Mundos e lugares</option><option value="rewards">Prêmios e usos</option></select>
+        <label class="depth-label">Alcance <select id="depth" aria-label="Alcance das conexões"><option value="1">1 ligação</option><option value="2">2 ligações</option><option value="3">3 ligações</option></select></label>
+        <label class="direction-label"><select id="direction" aria-label="Direção das conexões"><option value="both">Origens e destinos</option><option value="in">De onde vem / precisa</option><option value="out">Para onde vai / libera</option></select></label>
+        <label class="counter-toggle"><input id="show-counters" type="checkbox"> Contadores</label>
+        <button id="fit" title="Enquadrar todos os elementos visíveis">Enquadrar</button>
+      </div>
+      <div id="graph-wrap" class="graph-wrap">
+        <div class="map-instructions">Arraste o fundo para mover · Use a roda para aproximar · Clique em uma peça para explorar</div>
+        <svg id="graph" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Grafo de relações do jogo"><defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="context-stroke"/></marker></defs><g id="scene"></g></svg>
+        <div id="empty" class="empty" hidden>Nenhuma ligação neste filtro. Experimente “Todas as ligações”.</div>
+        <div class="zoom-controls"><button id="zoom-out" aria-label="Diminuir zoom">−</button><span id="zoom-value">100%</span><button id="zoom-in" aria-label="Aumentar zoom">+</button></div>
+      </div>
+      <div id="connection-list" class="connection-list" hidden></div>
+      <footer class="map-footer"><span id="map-count"></span><span><i class="legend-dot material"></i>Produção <i class="legend-dot quest"></i>Progressão <i class="legend-dot world"></i>Mundo</span></footer>
+      <div id="error" class="error" role="alert" hidden></div>
+    </section>
+    <aside id="detail" class="detail" aria-label="Detalhes do elemento"></aside>
+  </main>
+  <section id="pacing-view" class="pacing-view" hidden>
+    <div class="pacing-heading"><div><div class="eyebrow">O RITMO DO TIRO</div><h1>Uma semana de cada vez</h1><p>Veja em qual dia chegam as novidades. Toque numa conquista para ajustar sua meta.</p></div><button id="pacing-save" disabled>Salvar metas</button></div>
+    <div class="calendar-config"><label>Perfil do jogador<select id="pacing-profile"></select></label><label>Começar a semana em<select id="calendar-start"><option value="0">Segunda-feira</option><option value="1">Terça-feira</option><option value="2">Quarta-feira</option><option value="3">Quinta-feira</option><option value="4">Sexta-feira</option><option value="5">Sábado</option><option value="6">Domingo</option></select></label><div class="calendar-view-switch" role="group" aria-label="Visualização da progressão"><button id="calendar-actual" class="active">Quando chegou</button><button id="calendar-targets">Onde queremos chegar</button><button id="calendar-table">Tabela</button></div></div>
+    <details class="pacing-advanced"><summary>Relatório usado e resumo da comparação</summary><div class="pacing-controls"><label>Relatório existente<select id="pacing-batch"></select></label><label>Até onde foi acompanhado<select id="pacing-until"></select></label><button id="pacing-reload">↻ Reler resultados</button></div><div id="pacing-stats" class="pacing-stats"></div></details>
+    <div id="pacing-evidence" class="pacing-evidence" role="status">Lendo planejamento…</div>
+    <div id="pacing-error" class="pacing-error" role="alert" hidden></div>
+    <div class="pacing-layout"><div class="pacing-main">
+      <div class="pacing-filters"><label class="search"><input id="pacing-search" type="search" placeholder="Buscar um marco…" aria-label="Buscar marco de progressão"></label><select id="pacing-kind" aria-label="Recorte de marcos"><option value="highlights">Marcos principais</option><option value="targets">Marcos com meta</option><option value="upgrade">Construções e melhorias</option><option value="quest">Missões</option><option value="chapter">Capítulos concluídos</option><option value="project">Obras comunitárias</option><option value="item">Primeira aquisição de itens</option><option value="recipe">Primeiro preparo de receitas</option><option value="all">Todos os marcos</option></select><label class="attention-filter"><input id="pacing-attention" type="checkbox"> Fora da faixa</label></div>
+      <section id="pacing-calendar" class="pacing-calendar" aria-label="Calendário de conquistas">
+        <div class="calendar-weekbar"><div><h2 id="calendar-week-title">Semana 1</h2><span id="calendar-week-range">Dias 1 a 7</span></div><div class="calendar-weeknav"><button id="calendar-prev" aria-label="Semana anterior">← Anterior</button><label>Semana <input id="calendar-week-number" type="number" min="1" value="1" aria-label="Ir para a semana"></label><button id="calendar-next" aria-label="Próxima semana">Próxima →</button></div></div>
+        <p id="calendar-explanation" class="calendar-explanation"></p>
+        <div id="calendar-budget" class="calendar-budget" hidden><label>Sessões por dia <input id="calendar-sessions" type="number" min="1" max="24" value="3"></label><label>Minutos por sessão <input id="calendar-minutes" type="number" min="1" max="240" value="10"></label><span id="calendar-daily-budget"></span></div>
+        <div id="calendar-days" class="calendar-days"></div>
+        <div id="calendar-week-summary" class="calendar-week-summary"></div>
+        <details id="calendar-unplaced" class="calendar-unplaced"><summary id="calendar-unplaced-title"></summary><div id="calendar-unplaced-cards"></div></details>
+      </section>
+      <div class="pacing-table-wrap" id="pacing-table-view" hidden><table class="pacing-table"><thead><tr><th>Marco / conquista</th><th>Meta · tempo ativo</th><th>Registrado · tempo ativo</th><th>Calendário registrado</th><th>Meta × registro <small>Escala logarítmica · minutos</small><div id="pacing-axis" class="pacing-axis"></div></th><th>Leitura do ritmo</th></tr></thead><tbody id="pacing-rows"></tbody></table></div>
+      <p id="pacing-table-note" class="pacing-table-note"></p>
+      <details class="pacing-sources"><summary>Origem, validade e limites dos números</summary><div id="pacing-sources"></div></details>
+    </div><button id="pacing-editor-backdrop" class="pacing-editor-backdrop" aria-label="Fechar edição de meta" hidden></button><aside id="pacing-editor" class="pacing-editor" aria-label="Editar meta de tempo" hidden></aside></div>
+  </section>
+  <script src="/pacing-calendar.js" defer></script>
+  <script src="/pacing.js" defer></script>
+  <script src="/economy-trail.js" defer></script>
+  <script src="/economy-diary.js" defer></script>
+  <script src="/economy-stock.js" defer></script>
+  <script src="/economy.js" defer></script>
+</body>
+</html>

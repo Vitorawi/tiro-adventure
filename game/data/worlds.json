@@ -25,7 +25,9 @@
         "panel": "stations:stove+blender",
         "upgrades": [
           "stove_queue",
-          "stove_queue_2"
+          "stove_queue_2",
+          "stove_queue_3",
+          "blender_queue"
         ]
       },
       "fridge": {
@@ -36,18 +38,22 @@
         "panel": "fridge",
         "upgrades": [
           "fridge_2",
-          "fridge_3"
+          "fridge_3",
+          "fridge_4",
+          "fridge_5"
         ]
       },
       "chest": {
         "name": "Baú",
         "icon": "station_chest",
-        "description": "Produtos e acessórios.",
+        "description": "Achados dos passeios, produtos e acessórios.",
         "upgrade": "chest",
         "panel": "storage:chest",
         "upgrades": [
           "chest_2",
-          "chest_3"
+          "chest_3",
+          "chest_4",
+          "chest_5"
         ],
         "hidden": true
       },
@@ -139,7 +145,9 @@
         "panel": "storage:silo",
         "upgrades": [
           "silo_2",
-          "silo_3"
+          "silo_3",
+          "silo_4",
+          "silo_5"
         ],
         "hidden": true
       },
@@ -151,7 +159,9 @@
         "panel": "storage:warehouse",
         "upgrades": [
           "warehouse_2",
-          "warehouse_3"
+          "warehouse_3",
+          "warehouse_4",
+          "warehouse_5"
         ],
         "hidden": true
       },
@@ -219,7 +229,10 @@
         "hidden": true,
         "requirements": {
           "chapter": 5
-        }
+        },
+        "upgrades": [
+          "mill_queue"
+        ]
       },
       "dairy": {
         "name": "Queijaria",
@@ -230,7 +243,10 @@
         "hidden": true,
         "requirements": {
           "chapter": 5
-        }
+        },
+        "upgrades": [
+          "dairy_queue"
+        ]
       },
       "early_market": {
         "name": "Vender colheitas",
@@ -287,7 +303,7 @@
         "panel": "petshop",
         "requirements": {
           "quests": [
-            "nina_rare"
+            "nina_routes"
           ]
         }
       },
@@ -308,6 +324,7 @@
         "name": "Amigos",
         "icon": "friend_pipoca",
         "panel": "friends",
+        "hidden": true,
         "requirements": {
           "quests": [
             "nina_pipoca"
@@ -319,9 +336,49 @@
         "icon": "trick_paw",
         "description": "Truques com a Nina.",
         "panel": "tricks",
+        "hidden": true,
         "requirements": {
           "quests": [
             "nina_pipoca"
+          ]
+        }
+      },
+      "community": {
+        "name": "Nossa praça",
+        "icon": "project_bench",
+        "description": "Amigos, treino e obras da Praça.",
+        "panel": "community",
+        "services": [
+          "friends",
+          "training"
+        ],
+        "requirements": {
+          "quests": [
+            "nina_pipoca"
+          ]
+        }
+      },
+      "picnic": {
+        "name": "Piquenique da Praça",
+        "icon": "project_picnic",
+        "description": "Obra da Praça.",
+        "panel": "project:park_picnic",
+        "hidden": true,
+        "requirements": {
+          "projects": [
+            "park_bench"
+          ]
+        }
+      },
+      "bench": {
+        "name": "Banco da Praça",
+        "icon": "project_bench",
+        "description": "Obra da Praça.",
+        "panel": "project:park_bench",
+        "hidden": true,
+        "requirements": {
+          "quests": [
+            "atelier_open"
           ]
         }
       }
@@ -353,7 +410,10 @@
         "icon": "item_fabric",
         "description": "Tecidos e acessórios.",
         "upgrade": "atelier",
-        "panel": "station:atelier"
+        "panel": "station:atelier",
+        "upgrades": [
+          "atelier_queue"
+        ]
       },
       "gate": {
         "name": "Portão da trilha",
@@ -381,6 +441,48 @@
           "stall_3"
         ],
         "hidden": true
+      },
+      "community": {
+        "name": "Nossa vila",
+        "icon": "project_garden",
+        "description": "Obras da Vila e encomendas.",
+        "panel": "community:village",
+        "services": [
+          "orders"
+        ],
+        "requirements": {
+          "projects": [
+            "park_bench"
+          ]
+        }
+      },
+      "garden": {
+        "name": "Jardim da Vila",
+        "icon": "project_garden",
+        "description": "Obra da Vila.",
+        "panel": "project:village_garden",
+        "hidden": true,
+        "requirements": {
+          "projects": [
+            "park_bench"
+          ]
+        }
+      },
+      "festival": {
+        "name": "Festa da Vila",
+        "icon": "project_festival",
+        "description": "Obra da Vila.",
+        "panel": "project:village_festival",
+        "hidden": true,
+        "requirements": {
+          "projects": [
+            "village_garden",
+            "park_picnic"
+          ],
+          "owned": [
+            "stall_3"
+          ]
+        }
       }
     }
   },

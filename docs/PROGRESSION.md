@@ -407,7 +407,7 @@ passo ativo. Sem animação configurada, o NPC continua com seu retrato estátic
   contador `water`; gotinha sobre a planta no mapa, tocar rega. Primeira colheita pede regar.
 - **Nada preso a atributo escondido (cap. 1–5):** abóbora exige `bloblo_potato`, papinha exige `lais_stew`;
   `content_test` recusa `requirements.skills` sem capítulo ≥ 6 ou construção com materiais.
-- **Nível dá presente:** `progression.json → level_rewards` (por nível; `default.coins_per_level` × nível acima da
+- **Nível dá presente:** `progression.json → level_rewards` (por nível; `default`: `min(coins_max, coins_base + coins_per_level × nível)` (20 + 3n, máx. 80) acima da
   tabela). `Events.level_up(level, rewards)` abre a comemoração "Nível N!".
 - **Presente do dia:** `progression.json → daily_gift` (ciclo de 7 dias jogados, nunca zera),
   estado `progress.daily_gift {period, count}`, `GameState.claim_daily_gift/daily_gift_error`.
@@ -564,3 +564,296 @@ as encomendas introdutórias preservam `fresh`. `merchant_festival` pede uma ent
 missões canônicas sem novo pagamento. As melhorias permanecem em `owned`, e a etiqueta do
 mapa usa `label_levels` para mostrar o nível. `market_test.gd` percorre a linha inteira, confere
 venda inicial, margem das encomendas, canais, recarga, compras e compatibilidade de save.
+
+## Economia R1 — etapa 02: transações, snapshots e presentes para guardar
+
+Infraestrutura de proteção de saves antes de limitar estoques (17/10/2026). **Nenhum número de balanceamento mudou**
+e nenhuma categoria nova ganhou limite: o jogo continua com os limites anteriores. Plano: `docs/plans/economia/`.
+
+- **Migração sem reset.** `economy_revision` (conteúdo, `EconomyState.CURRENT_REVISION`, agora 1) é separada do formato
+  (`SAVE_VERSION` continua 12: os campos novos têm padrão). `EconomyMigration.migrate` é pura e idempotente (a segunda passada
+  encontra a revisão e não faz nada); roda em `SaveManager._migrate` (carregamento, resumo dos slots, "copiar da publicada") e
+  em `GameState.from_dict`. Não paga, não altera timestamps nem gera visita. O ramo histórico `<12` não foi ampliado.
+  Registra: piso de capacidade, recompensas automáticas já pagas, snapshots dos trabalhos em andamento e o capítulo concluído
+  segundo o mapa de missões ANTIGO. Tabelas antigas ficam em `data/legacy_r0.json` (gerado por `tools/freeze_legacy.py`,
+  imutável; só a migração lê). Estado novo: `GameState.economy` (`EconomyState`, bloco `economy` do save).
+- **Validação única.** `GameState.storage_shortage(entra, sai)` calcula o inventário PROJETADO por depósito
+  (usado − o que sai + o que entra) e devolve a falta real; `storage_full`/`storage_error` delegam a ela e `transaction_error`
+  junta moedas, ingredientes e espaço. Consulta pura (sem RNG, contador, recarga). Quem só consome/vende nunca é bloqueado,
+  mesmo acima do limite. Missões, encomendas, diárias/semanais, presente do dia, desejos, amigos, colheita, lotes, rotas,
+  Natureza, achados, tesouro, loja e visitas usam a mesma função; entregar e receber no mesmo depósito conta o que sai primeiro.
+- **Capacidade.** `max(curva do estágio, piso legado)`. O piso (`economy.storage_floor`, só sobe) vem das COMPRAS segundo a tabela
+  congelada, nunca do estoque; estoque acima do teto não some, só bloqueia novas entradas. `prebuild_capacity` (campo opcional em
+  `progression.json → storage.<depósito>`) liga o limite desde antes do prédio; sem o campo vale a regra antiga (nenhum depósito usa
+  o campo ainda: cada etapa 05–08 liga o seu).
+- **Snapshots.** Canteiro (`plots[i].job`: colheita, moedas, XP), lote de estação (`queue[i].job`: saída, quantidade, entradas pagas,
+  XP), rota/coleta (`rewards`, `player_xp`) e passeio (`current.snapshot`: caminho, lendário e tabelas de achados) guardam o
+  contrato do momento em que começaram (`WorkJobs`). Mudar receita, cultura ou tabela depois NÃO muda o que já está em andamento;
+  `ready_at` já gravado prevalece. Trabalhos de saves antigos recebem o contrato calculado UMA vez com as tabelas congeladas.
+- **Presentes para guardar.** Recompensas automáticas (nível, capítulo, vínculo; futuro: cliente, projeto) passam por
+  `GameState._grant_automatic(id, rewards)` com identidade estável (`level:8`, `chapter:6`, `bond:4`, `customer:<npc>:<n>`,
+  `project:<id>`): moedas, XP, coleções e desbloqueios saem uma vez (`economy.granted`); só os itens que não cabem ficam num
+  recibo (`economy.pending`), que não expira nem ressorteia. `claim_pending_rewards` guarda o que cabe de cada item e mantém o
+  saldo; `pending_reward_error/hint` explicam a falta real. Recompensas manuais continuam transacionais (bloqueiam antes de
+  consumir) e nunca viram recibo. Na Mochila, `InventoryList` mostra a seção recolhida "Presentes para guardar (N)" só quando há
+  algo esperando (chips tocáveis levam ao depósito, `Guardar` é o botão principal, cadeado + falta real quando nada cabe).
+- Testes: `economy_transactions_test.gd` (fixtures v12, capacidade, transações, snapshots, passeio, recibos, prebuild/piso,
+  migração pura, cinco slots) e `pending_gifts_test.gd` (toque real nas três resoluções); `friends_test.gd` agora separa
+  "passeio em andamento mantém a tabela" de "nova saída usa a tabela nova". Capturas: `tests/storage_shots.gd`, `ui_tour.gd` (`b04b_bag_gifts`).
+
+## Economia R1 — etapa 03: volta do Tiro × bagagem do passeio
+
+Viagem e bagagem passaram a ser estados diferentes (17/10/2026). **Nenhum número foi ajustado** (chances, tempos de viagem, garantias, recompensas
+e limites iguais; o baú continua sem limite para `trail`/`find`: a categoria só ganha depósito na etapa 08). Plano: `docs/plans/economia/`,
+contrato D de `05_SAVES_E_TRANSACOES.md`.
+
+- **Estado.** `WalkState.current` é só a VIAGEM não retornada; `WalkState.pending_return` é a BAGAGEM, no máximo uma:
+  `{id, started_at, ready_at, returned_at, seed, result, left, rewards_applied, result_shown}`. `result` é o resultado congelado
+  (itens, moedas, `first`, `rare`, `rare_duplicate`, `legendary`, `collections`, `new`, afeto e cuidados); `left` é o que ainda espera para
+  ser guardado. Vai no save em `walks.pending_return` (sem `SAVE_VERSION` novo; save antigo = sem bagagem). Bagagem já vista e vazia não persiste.
+- **`GameState.return_due_walk(announce := true)`** é idempotente (sem viagem vencida não faz nada) e não depende de tela: roda no tick de 1 s
+  do `GameState`, ao carregar (`from_dict`, sem emitir sinal) e antes de `start_walk`/`collect_walk`. Sorteia pela semente e pelo snapshot
+  (`walk_state.current.snapshot`), congela o resultado e, **uma única vez**, paga moedas/XP/afeto/coleções, aplica os `needs` do passeio,
+  conta `walk`, `walk:<id>`, `walk_rare(:<id>)` e `walk_legendary`, atualiza `history` e `pity`, move os achados para `pending_return` e emite
+  `Events.walk_collected` (um por viagem). Carregar um save com viagem vencida liquida do mesmo jeito, sem segundo sorteio; um save antigo
+  pronto e nunca recolhido vira bagagem com o resultado que o recolhimento antigo teria dado (com ou sem snapshot).
+- **`walking()`** vale só durante a viagem real (tempo restante > 0). Bagagem esperando NÃO prende o Tiro: ele reaparece nas salas e no
+  cantinho, e cuidados, sono, horta, projetos e troca de mundo/aba funcionam. `walk_ready()` passou a significar "há achados para guardar".
+- **Efeitos no Tiro no instante certo.** Os `needs` entram em `ready_at` (`dog.apply(..., max(ready_at, updated_at))`) e o tempo depois
+  segue normal; abrir o jogo horas depois não "cura" como se tivesse voltado agora. É a segmentação da seção G usando a política temporal
+  vigente; as metades de taxa, pisos e o teto de 8 h da ausência protegida são da etapa 04 e não foram antecipados.
+- **Guardar.** `claim_walk_baggage()` guarda por parcelas que cabem (`walk_baggage_plan`: `{moved, blocked, item, missing}`), mantém o resto
+  em `left`, repete sem duplicar e só então conta `walk_item`, `walk_item:<item>` e `find_item:<item>` (os contadores de voltar e de receber
+  ficaram separados). `walk_baggage_error/hint/depot` explicam a falta real ("Baú sem espaço: abra lugar para Graveto ×3") e apontam o depósito.
+  A bagagem nunca é ressorteada nem perdida por falta de espaço. `start_walk` recusa novo passeio enquanto houver bagagem com itens
+  (mensagem com o depósito); `cancel_walk` só vale na viagem (depois de voltar responde "O Tiro já voltou", sem devolver energia).
+- **Wrappers.** `collect_walk()` liquida a volta (se preciso) e tenta guardar, devolvendo o resumo; `collect_walk_error()`, `walk_loot()`
+  (prévia na viagem, resultado congelado na bagagem) e `cancel_walk()` continuam. `Events.walk_collected(resultado)` agora sai na VOLTA.
+- **Interface.** Tiro: `AwayView` só durante a viagem; com bagagem aparece `CollectWalk` ("Guardar achados", ou "Ver bagagem" quando não cabe,
+  que leva ao portão da Praça). Cartão "De volta!" (`WalkResult`): mostra tudo o que veio; com sobra, `StoreBaggage` ("Guardar achados"/"Ver
+  bagagem") + `CloseResult` "Depois"; abrir o cartão só marca `result_shown` (`mark_walk_result_shown`) e reabrir nunca premia
+  (`walk_result_unseen` recoloca o cartão na fila ao abrir o jogo se ele ainda não foi visto). Painel da Praça: espaço "Voltou!" com postal,
+  chips `Baggage_<item>`, `CollectWalk` ou `BaggageBlocked` + `GoDepot` ("Ir ao Baú"). Mochila: cartão `WalkBaggage` ("Achados do
+  passeio (N)", `StoreBaggage`/`BaggageBlocked`). Marcador do portão, contador de prontos do Mapa, "boas-vindas" e ações disponíveis usam a
+  bagagem. DEV: "Voltar do passeio" (`dev_walk_return`).
+- Testes: `walk_return_test.gd` (relógio antes/no/depois de `ready_at`, reload em cada transição, quatro depósitos cheios, parcelas, raro
+  e lendário garantidos, linha do tempo do Tiro, saves antigos, wrappers, superfícies) e `walk_return_ui_test.gd` (toque real nas três
+  resoluções). `park_test`, `walks_test`, `friends_test`, `petshop_test`, `pet_care_test`, `ready_badges_test`, `tricks_test`,
+  `economy_transactions_test` e o simulador (`bg_tick` liquida a volta como o tick real) foram adaptados à nova definição de `walking()`.
+
+
+## Economia R1 — etapa 04: ausência protegida do Tiro
+
+Fora do app o Tiro cuida de si (17/10/2026). Plano: `docs/plans/economia/` (02 G, 05 E e G). **Online nada mudou** (taxas e efeitos iguais).
+
+- **Regra.** Offline cada barra cai a `offline.rate` (0,5) da taxa online, por no máximo `offline.max_hours` (8) de queda por ausência contínua, e para no piso `needs.<id>.offline_floor` (fome 25, alegria 35, energia 25, higiene 30). Fórmula por trecho: `max(min(x, piso), x − taxa×0,5×horas_protegidas)`; uma barra que já estava abaixo do piso não sobe. Dormindo, a energia sobe `sleep_regen_per_hour` (40/h) até 100 e o Tiro só acorda ao voltar; as demais barras seguem a proteção. 100 acordado: 8 h e 24 h dão 68/80/76/88.
+- **Estado.** `DogState.away_since` (0 = online; salvo). `get_need` projeta `[updated_at, now]` em trecho online (antes de `away_since`) + trecho offline; tempo protegido do trecho = `min(b−início, 8 h) − min(a−início, 8 h)`, por isso `commit` no meio (volta do passeio) não reinicia o teto. `DogState.begin_absence/end_absence` (idempotentes).
+- **Fronteira.** `GameState.begin_absence(at)` / `end_absence()` chamadas pelo `SaveManager` (foco, pausa, fechar → começa; retorno e `load_game` → termina). Fechamento abrupto: início estimado = `friend_state.last_active_at`, aplicado em `GameState.from_dict` antes de `return_due_walk` (os efeitos do passeio entram em `ready_at` e o resto da ausência continua). Relógio para trás não gera ganho; trocar de slot não gera visita nem presente.
+- **Dados.** `config.json → offline {rate, max_hours}` e `needs.<id>.offline_floor` (`Database.offline`). DEV: `dev_advance_time` é uma ausência protegida.
+- **Interface.** Nenhum cartão novo: o "Que bom que você voltou!" já é neutro; o Manual (Recursos) ganhou uma linha curta. Testes: `absence_test.gd` (1 h/8 h/24 h/72 h, pisos, sono, recarregar, foco repetido, passeio de 30 min, relógio para trás, slot, DEV).
+
+
+## Economia R1 — etapa 05: espaço finito junto da primeira horta
+
+Só a categoria silo (colheitas e maçã) ficou finita nesta etapa (17/10/2026). Plano: `docs/plans/economia/` (02 A, 03 B, 05 B, 06).
+
+- **Capacidades.** Provisório 16 (`storage.silo.prebuild_capacity`, nome "Cesto da horta" em `prebuild_name`) → silo construído 32 (`base`) → `silo_2` +24 = 56 → `silo_3` +32 = 88. `silo_2`: 100 moedas, tábua 2 + parafuso 1, pede `main_4_bench`; `silo_3`: 260, tábua 4 + tijolo 2 + parafuso 1, pede `own_business` (sem aro de ferro). Sem `_4/_5` (etapa 18).
+- **Silo grátis.** Upgrade `silo`: custo 0, sem material, requisito `first_harvest` (não mais `main_9_cheese`); ação "Construir", balão "Grátis"; o painel mostra `16 → 32` (`GameState.storage_upgrade_preview`). Comprar com o cesto cheio amplia sem perder nada.
+- **Missão `bloblo_silo`** (ID preservado): ordem 27 da Bloblo (depois do faro 25, antes de `bloblo_more_crops` 30), objetivo `owned:silo`, 10 moedas, sem parafuso. Quem já a recebeu continua recebido. Fala de `first_harvest` avisa que o cesto cabe pouco.
+- **Piso legado só da migração.** `GameState.storage_floor` lê apenas `economy.storage_floor` (gravado por `EconomyMigration`); `_changed()` não o sobe mais com compras. Save antigo com silo 40 (ou `_2` 80) mantém a capacidade; jogo novo vale 32. Sem silo e com 100 cenouras: estoque preservado, entradas bloqueadas, vender/consumir funciona.
+- **Colheita cheia.** `harvest_error` diz "Cesto da horta sem espaço: abra lugar para Cenoura ×N" (falta real); planta continua madura, sem item/moeda/XP/contador. "Tudo" da foice valida cada lote (um menor ainda pode caber), colhe os que cabem e avisa "N ficaram prontos. …". Mochila: `storage_name` mostra "Cesto da horta" até o silo; a linha só aparece com item ou prédio.
+- **Fora desta etapa:** geladeira, armazém e baú seguem sem limite provisório (etapas 06–08). Testes: `silo_test.gd` (novo), `economy_transactions_test`, `storage_test`, `tasks_test`, `economy_sim_test`, `walk_return_test` ajustados à nova regra; capturas `tests/silo_shots.gd`.
+
+
+## Economia R1 — etapa 06: a despensa ligada à cozinha
+
+Só a categoria geladeira ficou finita nesta etapa (17/10/2026). Plano: `docs/plans/economia/` (02 A, 03 início da cozinha, 05 B, 06).
+
+- **Capacidades.** Despensa provisória 12 (`storage.fridge.prebuild_capacity`, nome "Despensa" em `prebuild_name`) → geladeira construída 24 (`base`) → `fridge_2` +16 = 40 → `fridge_3` +24 = 64. `fridge`: 40 moedas, sem material, pede `lais_first_crops` (como antes); `fridge_2`: 100, tábua 2 + parafuso 1, pede `main_4_bench`; `fridge_3`: 240, tábua 4 + tijolo 2 + parafuso 1, pede `own_business` (sem aro de ferro e sem exigir `bloblo_chest`/`bloblo_bigger`). Sem `_4/_5` (etapa 18). O fogão continua pedindo `owned fridge`; `main_2_fridge → first_kitchen` intactas.
+- **Classificação.** `storage: "fridge"` explícito em todo alimento (`carrot_snack`, `pumpkin_mash`, `vegetable_soup`, `apple_biscuit`, `cheese`, `strawberry_pop`, `mashed_potato`, `sweet_potato_chips`, `mint_snack`), além de `egg`, `milk`, `flour` e `strawberry_juice`. `dog_food` (e ração de segurança) segue `none`; ervas e mirtilo crus continuam no silo (categoria `crop`). Cada item resolve para um depósito só (`storage_of`).
+- **Lote que não cabe.** `collect` já validava com `storage_error`: o lote inteiro fica pronto na fila, sem item, XP, contador nem moeda ("Despensa sem espaço"/"Geladeira sem espaço"). Receita nova libera o espaço dos ingredientes pela validação projetada. Nada é vendido nem iniciado sozinho. `feed` tira do estoque (inclusive acima do piso legado).
+- **Interface.** `SheetBuilder.item_detail` ganhou a linha `DepotRow` (ícone do depósito + nome + `usado/total`, "Ver" quando o depósito tem lugar no mapa) só com o limite ligado; é a forma de distinguir a comida (vai à Despensa e ao Tiro) dos materiais. A Mochila mostra "Despensa 11/12" assim que há comida e a descrição da geladeira fala em despensa.
+- **Saves antigos.** Piso legado só da migração: geladeira antiga 30 / `_2` 50 mantém a capacidade; jogo novo vale 24. Sem geladeira e com 40 comidas, o estoque é preservado, entradas bloqueiam e vender/dar ao Tiro funciona.
+- **Fora desta etapa:** armazém e baú seguem sem limite (etapas 07–08). Testes: `fridge_test.gd` (novo, em `test_all.ps1`); capturas `tests/fridge_shots.gd`.
+
+## Economia R1 — etapa 07: o armazém junto da Natureza
+
+Só a categoria armazém ficou finita nesta etapa (17/10/2026). Plano: `docs/plans/economia/` (02 A, 03 Guia/materiais e linha `storage`, 05, 06).
+
+- **Capacidades.** "Pilha de materiais" provisória 16 (`storage.warehouse.prebuild_capacity`, nome em `prebuild_name`) → armazém construído 32 (`base`) → `warehouse_2` +24 = 56 → `warehouse_3` +32 = 88. `warehouse`: 40 moedas + madeira 4 + pedra 2, pede `lais_forest` (antes: 150 moedas, madeira 8, pedra 4, `bloblo_silo`); `warehouse_2`: 90, tábua 2 + parafuso 1, pede `main_4_bench`; `warehouse_3`: 240, tábua 4 + tijolo 2 + parafuso 1, pede `own_business` (sem aro). Sem `_4/_5` (etapa 18). O armazém **não** exige a Caverna comprada: a pedra vem da Pedreira (capítulo 5, `cave_open` 80 moedas), que por sua vez não exige armazém nem bancada, sem ciclo.
+- **Classificação.** Já estava certa: `wood/stone/copper/crystal/plank/brick/fiber/fabric/hardwood` (categoria `material`) moram no armazém; `bolt`, `iron_band`, `bed_gift` são `none`; `flour` é geladeira; materiais de passeio (`trail`) ainda sem depósito (baú, etapa 08).
+- **Guia.** Ordem: `guide_meet` 10 → `guide_wood` 20 → **`guide_open_cave` 22** (`owned cave_open`, 5 moedas) → **`bloblo_warehouse` 25** (mesmo ID e conclusão histórica, agora `npc`/`line` `guide`, `owned warehouse`, 10 moedas, sem parafuso) → `guide_stone` 30 → `guide_fibers` 40 → `guide_treasure` 50.
+- **Madeira.** `main_4_materials` = `owned warehouse` + `have wood 6` (não consome). O armazém gasta 4 e a bancada 6: são 10 madeiras no total, em duas pilhas dentro dos 16 provisórios.
+- **Linha `storage` (Bloblo).** Abre com `main_4_bench`: `storage_first_planks` 10 (`produce:plank` 2 *fresh*, 1 parafuso) → `storage_first_delivery` 20 (`orders` 1 *fresh*, 1 parafuso) → `bloblo_bigger` 30 "Mais espaço onde importa" (`storage_upgrades` ≥ 1; 15 moedas + 2 parafusos) → `bloblo_biggest` 40 "Uma casa organizada" (`storage_upgrades` ≥ 3; 40 moedas + 1 parafuso). Os dois últimos mantêm o ID e a conclusão; só o que ainda não foi pago mudou (o aro de ferro saiu). Parafusos determinísticos, sem sorteio.
+- **Contador `storage_upgrades`.** Derivado da posse em `GameState._changed` (`storage_upgrades_owned()`): conta `_2` em diante de qualquer depósito, nunca o edifício inicial. Saves antigos entram sozinhos; comprar conta uma vez; abrir painel nunca. Escolher silo, geladeira, armazém ou baú primeiro dá o mesmo resultado.
+- **TaskHelp.** Item sem receita/rota (o parafuso) aponta para o passo de missão aberto que o paga (`TaskHelp._reward_step`), em vez de "Veja na Mochila".
+- **Saves antigos.** Piso legado só da migração: armazém antigo 40/80/140 mantém a capacidade; jogo novo vale 32. Quem já recebeu `bloblo_warehouse` não recebe o prêmio de novo, e `guide_open_cave` aparece para quem ainda não abriu a Caverna.
+- **Fora desta etapa:** o baú segue sem limite (etapa 08). Testes: `warehouse_test.gd` (novo, em `test_all.ps1`); capturas `tests/warehouse_shots.gd`.
+
+## Economia R1 — etapa 08: o baú junto dos passeios
+
+Os quatro depósitos passaram a limitar desde o primeiro recebimento (17/10/2026). Plano: `docs/plans/economia/` (02 A, 03 Nina/bagagem, 05 D, 06).
+
+- **Capacidades.** "Sacola de passeio" provisória 12 (`storage.chest.prebuild_capacity`, nome em `prebuild_name`) → baú construído 24 (`base`) → `chest_2` +16 = 40 → `chest_3` +24 = 64. `chest`: **0 moedas + 2 gravetos**, pede `nina_walk` (antes: 80 moedas, madeira 4, `bloblo_warehouse`); `chest_2`: 80, tábua 2 + parafuso 1, pede `main_4_bench`; `chest_3`: 200, tábua 3 + tecido 1 + parafuso 1, pede `own_business` e `atelier`, sem aro (antes: 150/400, `bloblo_chest`/`bloblo_bigger`, aro). Sem `_4/_5` (etapa 18). O piso legado continua só da migração: baú antigo 20/40/70 não encolhe.
+- **Classificação.** Os **11 materiais `trail`** (`stick ribbon wildflower color_button yarn smooth_pebble river_shell wild_mint bird_feather golden_leaf moon_pebble`) trocaram `storage: none` por `storage: chest` (override por item); `treat_box` e `accessory_set` já caíam no baú pela categoria `product`. Continuam isentos: ração, `bed_gift`, `bolt`, `iron_band`, pedaços do mapa, coleções e os achados de álbum (`find`). Nenhum item novo cai numa categoria sem depósito.
+- **Nina.** `bloblo_chest` (mesmo ID e conclusão histórica) foi para a linha `nina`, ordem 25, entre `nina_walk` (20) e `nina_routes` (30): objetivo `owned chest`, 10 moedas, sem parafuso, fala "Trouxe gravetos? Vamos montar um baú para as coisas dos passeios."
+- **Gravetos garantidos.** Primeira volta da Volta na praça: `loot.first` já dava 2 gravetos + 1 fita. Novo campo `loot.guarantee` (`{item, count, until_owned}`) na `park_loop`: enquanto o jogador não tem o baú, a volta completa os gravetos até `count` (`GameState._roll_walk` soma só o que falta: inventário + sorteio). Sem dado aleatório novo; encerra com a compra do baú; quem já tem 2 não recebe nada; nunca vende nada sozinho. Save antigo sem baú e sem gravetos recebe os 2 na próxima volta. Vale o snapshot da viagem (viagens iniciadas antes não ganham a garantia).
+- **Bagagem.** Regras da etapa 03 intactas: o Tiro volta mesmo com a sacola cheia; a bagagem entra por parcelas (`claim_walk_baggage`), a recarga não repete prêmio/contador. A falta aparece como "Sacola de passeio sem espaço" até o baú existir. Saídas recuperáveis para qualquer bloqueio: vender na feira (os 11 itens têm preço), gastar na costura, dar o item no desejo, ampliar o baú.
+- **Medição.** `build/economy/etapa_08/bloqueio.md` (gerado por `chest_test`): nenhuma volta de nenhum dos 7 caminhos passa de 12 itens do baú, então a primeira bagagem sempre cabe vazia; com 10 itens já guardados, 56–86% das voltas bloqueiam parcialmente, sempre com saída.
+- **Interface.** O botão do cartão da bagagem bloqueada agora diz "Abrir <depósito>" (antes "Ir ao <depósito>", errado para "Despensa" e "Sacola de passeio"); a Mochila mostra o filtro "Sacola de passeio 9/12" desde o primeiro item de passeio e vira "Baú x/24" depois da compra; `worlds.json` descreve o baú como "Achados dos passeios, produtos e acessórios.".
+- **Testes.** `chest_test.gd` (novo, em `test_all.ps1`); `friends_test` e `tricks_test` marcam `bloblo_chest` (passo novo da linha da Nina); `walks_test` liga `unlimited_storage` (acumula voltas sem vender); `fridge_test`, `warehouse_test`, `economy_transactions_test`, `content_test` ajustados (o baú deixou de ser "sem limite"). Capturas `tests/chest_shots.gd` (`--antes` volta ao baú antigo).
+
+## Economia R1 — etapa 09: fontes de renda e transformação
+
+Colher deixou de pagar moeda (18/10/2026). Plano: `docs/plans/economia/` (02 B); números e cenários antes/depois em `DECISOES.md`.
+
+- **Sem moeda na produção.** `crops.json → coins` = 0 nas nove culturas e `activities.lane/trail.rewards.coins` = 0; itens, XP e tempos intactos. Plantar/regar continuam gratuitos. Plantios e rotas **já em andamento** pagam o snapshot (`plots[i].job.coins`, `activity.rewards`), então ninguém perde o que foi prometido ao começar. A UI esconde o chip de moeda quando o valor (ou o snapshot) é 0 (`SheetBuilder.seed_picker/growing_plot`, `RoomView.harvest_plot`).
+- **Renda recorrente = vender/entregar.** A venda inicial (`early_market`, `bloblo_meet`) permite recomeçar com zero moeda e zero estoque: plantar grátis → colher → vender. Nenhuma compra obrigatória antes disso exige moeda.
+- **Transformação sem perda.** `apple_biscuit` vale 30 (lote de 2: usa 26, entrega 60); `treat_box` 140 (insumos 101); `special_order` 600 (venda direta das 3 caixas: 420); `festival_contract` 940 (insumos vendidos: 696). Os demais preços ficam.
+- **Prêmios pontuais.** `merchant_stall` 30, `atelier_open` 40, `bloblo_biggest` 40 (da etapa 07); capítulos 1–9: 10/20/30/40/60/60/60/80/80. Itens, XP, coleções e `shared_with` preservados; nada retroativo.
+- **Presente de nível.** Tabela 2–10 igual; acima: `level_rewards.default` = `{coins_base: 20, coins_per_level: 3, coins_max: 80}` → `min(80, 20 + 3 × nível)` (`GameState.level_reward`).
+- **Medição.** `build/economy/etapa_09/report.md` (`compare.py`): origem do saldo por perfil, antes × depois; teste `coins_test.gd`; capturas `tests/coins_shots.gd` (`--antes` volta aos valores antigos em memória).
+
+## Economia R1 — etapa 10: colheitas para visitas curtas e para a volta
+
+Plano: `docs/plans/economia/` (02 C, 03 C); números e cenários em `DECISOES.md` (18/10/2026).
+
+- **Tabela de culturas** (`crops.json`: segundos / lote / `skill_xp`): cenoura 60/2/6, batata 300/3/16, trigo 600/4/18, morango 900/4/24, milho 1200/6/24, abóbora 3600/4/35, batata-doce 7200/6/45, ervas 7200/6/50, mirtilo 14400/8/65. Requisitos não trocados; `coins` continua 0.
+- **Canteiros 5–9** (`config.json → farm.unlock_costs`): 80/140/220/340/500. Quatro iniciais, índices e `lent_plots` iguais.
+- **Tempo efetivo:** `GameState.crop_seconds(índice, cultura)` = `seconds` × `greenhouse_speed` (0,7) se o canteiro é da estufa; `plant` grava `ready_at` com ele (uma vez) e a lista de sementes e a bandeja mostram o mesmo valor. Rega: 30% do tempo que falta, uma por plantio; não muda o lote.
+- **Linha `flavors`** (npc Bloblo): `bloblo_strawberry` 10 (`first_kitchen` + `bloblo_dig`), `bloblo_pumpkin` 20 (`first_kitchen` + `bloblo_potato`), `bloblo_sweet_potato` 30 (`first_kitchen` + `farm_deed`). A linha principal da Bloblo vai de `bloblo_stew` direto a `farm_deed` e aos animais: nenhum timer opcional segura a escritura.
+- **Medição:** mirtilo ×4 = 32 cabe no silo_2 com reserva 24; teste `garden_test.gd`; capturas `tests/garden_shots.gd` (`--antes`).
+
+
+## Economia R1 — etapa 11: aprender uma rota × ganhar mais vagas
+
+Plano: `docs/plans/economia/` (02 E); números, cenários e medições em `DECISOES.md` (18/10/2026).
+
+- **XP local por rota** (`progression.json → activities.*.nature_xp`, gravado no lote ao começar; `GameState.route_nature_xp`): `lane` 2, `pebbles` 2, `trail` 8, `quarry` 8, `meadow` 8, `woodcutting` 12, `copper_vein` 16, `crystal_cave` 26, `timber` 35, `deep_quarry` 35, `reeds` 35, `crystal_deep` 60. Tempos/saídas: lane 120 s wood 2; pebbles 120 s stone 2; trail 600 s wood 4+stone 3; quarry 600 s stone 6; woodcutting 900 s wood 8; timber 3600 s wood 8+hardwood 3; copper_vein 1200 s stone 3+copper 3; deep_quarry 3600 s stone 8+copper 5; crystal_cave 2400 s crystal 2+copper 2; crystal_deep 7200 s crystal 5+copper 4; meadow 600 s fiber 4+wood 2; reeds 3600 s fiber 10+wood 3. O XP de atributo (`skill_xp`) não mudou. `xp_per_collection` (10) ficou só como valor de compatibilidade para lotes/rotas guardados sem `nature_xp`. Pomar (`orchard_harvest`): 3600 s, 8 maçãs, sem local, sem XP local.
+- **Quatro patamares** por local (`nature_sites.*.levels`): XP 0/24/120/360, vagas 1/2/2/3. Cobre (e juncos do Prado) e a segunda vaga no nível 2; madeira dura e cristal no 3; **a terceira vaga só no nível 4**. `slot_levels: [2, 4]` diz em que nível cada token `*_slot_N` entra; os tokens `forest/cave/meadow_level_2/3` seguem liberando os recursos; o nível 4 não tem token próprio. `trees_slot_3`/`rocks_slot_3`/`fibers_slot_3` agora têm `nature_unlock.level` 4. `ProgressionState.sync_nature_tokens(site)` é a única sincronização (usada por `GameState._sync_nature_unlocks` e `from_dict`).
+- **Piso legado:** `nature_level` é o maior entre o nível do XP e o das ampliações já possuídas (`level_upgrades[i]` → i+1; `slot_upgrades[i]` → `nature_slot_level`). Quem tinha vaga 3 ou madeira dura/cristal (XP 90/120 antigos) continua com as três vagas e os recursos (nível 4, sem cobrar de novo); a barra nunca inventa XP retroativo (`nature_info.xp` é limitado a 0..patamar). Sem `SAVE_VERSION` novo e sem reset.
+- **Rota escolhida pelo jogador:** `start_gathering/start_next_gathering/start_gathering_all/gathering_error/next_gathering_error` aceitam `route_id` vazio (usa `GameState.default_gathering_route(recurso)`, a elegível mais curta); rota de outro local/material, desconhecida ou bloqueada devolve o motivo e não mexe no estado. `woodcutting` abre com o Bosque (`forest_open`, sem nível 2). Na interface, `NatureUi.eligible_routes/best_route/choose_route/route_choice` e `StationTray.material_detail`/painel `NatureUi.panel` mostram uma linha `RouteChoice_<material>` (botões `NotebookTab_<rota>` com a duração) quando há mais de uma rota elegível; a escolha vale só na sessão (`NatureUi.chosen`), nada troca sozinho e escolher não inicia a busca. O detalhe mostra saída, tempo e `+N XP` da rota selecionada; o "Ir" de uma missão (`NatureUi.open_route`) escolhe a rota exata.
+- **Textos:** "Faltam N XP" (sem "N buscas", que dependia de uma rota única); vagas fechadas mostram o nível de verdade (2 e 4).
+- Testes: `nature_routes_test` (novo), `nature_test`, `content_test`, `coins_test` ajustados. Capturas: `tests/nature_shots.gd` (`--antes` volta só os dados).
+
+## Economia R1 — etapa 12: filas e Preparar N
+
+- Tempos das receitas = tabela 02 D (`recipes.json`); ovos/leite são a duração do LOTE (um lote cobre até 3 animais, sem fila de animais).
+- Vagas: `stove_queue` (80, exige `first_kitchen`), `stove_queue_2` (220 + tábua 3, bancada + fila anterior), `blender_queue` (100 + tábua 1, bancada). Cada vaga é um trabalho sequencial, sem processamento paralelo.
+- `GameState.cook_many(receita, N)` (e `cook` = N 1): tudo ou nada, N jobs individuais com `ready_at` encadeado e snapshot próprio; `cook_max`, `cook_inputs`, `cook_finish_at`, `station_free_slots`, `cook_many_error`. Pronto e não pego ocupa a vaga. Criações e costura (`output_collection`): N = 1.
+- Interface: `StationTray.recipe_detail` mostra `− ×N + Tudo ×N`, ingredientes/saída/tempo totais e "Pronto às HH:MM"; `StationTray.quantity` guarda a escolha só na sessão. Teste `queue_test`.
+
+## Economia R1 — etapa 13: capítulos 1–9 sem tarefas repetidas
+
+- História que orienta, personagem que entrega: `main_5_pickaxe`→`guide_open_cave`, `stone_path`→`guide_stone`, `main_6_commerce`→`merchant_variety` (novo, linha merchant, ordem 45, 10 moedas) somam-se aos cruzamentos que já existiam (10 pares `shared_with` no total). O alias tem um único objetivo `quest` e prêmio vazio; save antigo com o marco recebido resolve a canônica sem pagar.
+- Objetivos reconhecem o histórico (sem `fresh`): `main_5_cooking` (lanche de cenoura 2, sopa de legumes 1, suco de morango 1), `main_7_greenhouse` (estufa + `harvest:herbs` 1; as ervas não exigem mais o atributo Horta 5), `main_8_building` (6 tábuas), `atelier_open` (ateliê + tecido 2 + conjunto de acessórios 1).
+- `GameState._sync_step` poda as bases de contadores que deixaram de ser `fresh` num passo ativo carregado de save antigo.
+- Testes: `journey_test` (pares, entrega única, saves antigos e dos capítulos 3/5/7/9, base obsoleta, ateliê); capturas `tests/journey_shots.gd` (`--antes` troca em memória as missões/ervas anteriores).
+
+## Economia R1 — etapa 14: investimentos e cadeia dos animais
+
+- Custos da tabela 02 F em `progression.json → upgrades` (escritura 220, bancada 160, galinheiro 260, curral 420, moinho 300, queijaria 420, pomar 400, banca 500, estufa 850, ateliê 1000); preços dos animais em `config.json → animals` (galinhas 120/150/180, vacas 220/280/340). Variedades ruiva/caramelo exigem 8 produtos recolhidos (`produced`), preta/malhada 24; rendimento igual para todas.
+- Linha da Bloblo 70–140: `main_9_flour` pede moinho + 2 farinhas (histórico, sem `fresh`); `bloblo_breakfast` (ordem 140, 15 moedas) reconhece o pedido `farm_breakfast` já existente (`order:farm_breakfast` 1), sem recolher queijo de novo.
+- Milho/trigo são sementes renováveis; nada exige colher produto animal antes de alimentar. A compra de animal durante um lote não altera o snapshot em andamento (`animals` do lote).
+- Teste: `animals_chain_test`.
+
+## Economia R1 — etapa 15: clientes e banca
+
+- `progression.json → orders[*].customer` (lais/bloblo/nina) e `customer_tiers` (3/8/18 entregas, variedade 1/2/2, prêmios 10/20+parafuso/30). `ProgressionState.customer_orders(npc)` (entregas e tipos), `customer_level(npc)` (0..3, derivado de `order:<id>`), `distinct_orders(canal)`. `GameState._pay_customer_tiers` (chamado em `fulfill_order`) paga cada patamar uma vez por `_grant_automatic("customer:<npc>:<n>")` e avisa por toast.
+- Requisito novo `distinct_orders: {"contracts": N}` (tipos de contrato com contador > 0; erro "Faça N tipos de contrato"). stall_2: 900 moedas, `contracts` 6 + 2 tipos; stall_3: 1500, 15 + 3 tipos. `banquet_contract` exige `stall` (não `stall_2`).
+- Interface: `MarketUi.customer_seals/customer_text/customer_row`, `CustomerSummary` no quadro dos vizinhos, `Customer_<npc>` no detalhe do pedido, cabeçalho da banca com "contratos · tipos". Selo = laço tingido (`Palette.SEAL_BRONZE/SILVER/GOLD`).
+- Testes: `customers_test`; capturas `tests/customers_shots.gd` (`--antes` remove o cliente em memória).
+
+## Economia R1 — etapa 16: vínculo útil e rotinas
+
+- Cuidado: `GameState.pet/play/feed/bathe` medem o ganho antes/depois (`_care_gain`) e contam `care_useful`/`care_useful:<ação>`; afeto do carinho (+1) e do brincar (+2 se útil) com recarga de 120 s em `progress.cooldowns` (`affection:pet`, `affection:play`, `useful:pet`). Exceções (`_care_exception`): desejo de ação que ainda falta (`slot.used`) ou passo de história; `_care_forced` na entrega de desejo de comida.
+- Desejos: moedas pela fórmula da tabela 02 G, teto 12 nos especiais, `wish_item:<item>`, `wish_item_reachable`, troca imediata do impossível (`swap_reason`). Vínculo 2–8 paga 10/15/20/25/30/40/50.
+- Rotinas: `routines.json → missions` (catálogo R1) e `legacy`; `routine_target/routine_phase`, snapshot `targets`/`catalog` em `progress.routines`; contador `production_jobs`. Cosméticos das semanais antigas migrados para as novas.
+- Nina: `nina_rare` na linha `nina_discoveries`; pet shop depende de `nina_routes`.
+- Teste: `bond_test`.
+
+
+## Economia R1 — etapa 17: três produtos e gravetos renováveis
+
+- Receitas em `recipes.json` (`braided_toy`, `picnic_pack`, `blueberry_treat`, `cut_sticks`); itens em `items.json` com ícones `item_braided_toy/picnic_pack/blueberry_treat.png` (PixelLab Pixen 32 px). Só `blueberry_treat` tem `feed` (fome 20, alegria 10) e `storage: fridge`; brinquedo/cesta são `product` (baú).
+- `player_xp` opcional por receita (`WorkJobs.batch`): substitui o XP global do cook e é congelado no snapshot do lote; sem o campo, vale o XP da ação. `cut_sticks`: 1 e `skill_xp` 0.
+- Encomendas `nina_toys`, `lais_picnic`, `nina_blueberries` (com `customer`, sem `channel`); linha `workshop` do Guia e `nina_blueberry` na linha `nina_flavors` (`wish_item:blueberry_treat`).
+- Desejos: `wishes.json → <id>.guarantee_quest` faz `GameState._pick_wish` oferecer o pedido na próxima vaga vazia enquanto a missão está ativa (`current_line_quest`), respeitando alcance, pedidos já ativos e o último pedido trocado do espaço.
+- Interface: `ActionTray` no modo `pick` rola quando tem mais de duas linhas (fogão com 10 receitas).
+- Teste: `products_test`.
+
+## Economia R1 — etapa 18: ampliações de conforto e maestria das estações
+
+- **Depósitos `_4` e `_5`** (`progression.json → upgrades`, `storage.<depósito>.levels` agora com quatro ampliações): totais 128/176 (silo e armazém) e 88/120 (geladeira e baú) somando só a diferença em `storage_capacity` (40/48, 24/32, 40/48, 24/32). Custos da tabela 02 A (silo 550/1000, geladeira 500/900, armazém 500/900, baú 400/750, tábuas, tijolos/tecido e 1/2 aros). `_4` exige o estágio anterior + `atelier_open`; `_5` exige o `_4` + `stats.contracts ≥ 12`. Nada pede o último estágio (campanha e projetos seguem sem ele). O piso legado continua gravado só pela migração: `max(curva, piso)`, recarregar não soma de novo.
+- **Filas novas** (`config.json → stations.<id>.slot_upgrades`): `stove_queue_3` (500 + tábua 4 + parafuso 1; exige `stove_queue_2` e `own_business`), `mill_queue` (250 + tábua 3), `dairy_queue` (350 + tábua 3 + tijolo 2), `atelier_queue` (450 + tábua 4 + tecido 1). Só dão +1 vaga (fogão 4, moinho/queijaria/ateliê 3); tempo e rendimento ficam como estavam; sem exigir maestria. Lugares em `worlds.json → places.<id>.upgrades`.
+- **Maestria** (`progression.json → mastery`: `stations` fogão/liquidificador/bancada/moinho/queijaria/ateliê e `tiers` 12/40/100 lotes com variedade 2/3/4): derivada de lotes recolhidos em `GameState.collect` (`_count_station_job`), contadores `station_jobs:<estação>` e `station_recipe_jobs:<estação>:<receita>`; um lote = 1 qualquer que seja a saída, repetir a coleta não conta, lote que não coube continua na fila e só conta ao ser recolhido. Variedade pedida = `min(meta, catálogo elegível)` (`mastery_catalog_size`: receitas comuns abertas ou já feitas, sem cosméticos), nunca menos de 1: o moinho (uma receita) alcança os três selos. O nível é "recebido ou alcançado": o que já foi pago (`mastery:<estação>:<n>`) não retrocede com receitas novas. Prêmios 10/20/30 moedas por `_grant_automatic`, sem multiplicador de renda/produção/velocidade; animais e costura de coleção ficam de fora.
+- **Histórico antigo:** `GameState._seed_mastery` (uma vez, marcado em `economy.mastery_method`: `"r1"` = jogo novo contado lote a lote, `"min_units_v1"` = saves anteriores, registrado também em `economy.legacy.mastery`) usa `produce:<item>` ÷ maior rendimento conhecido (arredondando para cima = mínimo comprovável). Saída compartilhada por duas receitas da estação (tábua: bancada comum e madeira de lei) só soma ao total da estação e deixa a variedade da receita em 0. Nada é pago na migração: o selo alcançado sai no próximo lote recolhido.
+- **Interface:** `SheetBuilder.mastery_row` (nó `Mastery_<estação>`: três selos de fita, "N/M lotes · k/n receitas" e "?") no cabeçalho da `StationTray` e em `station_view`; `mastery_help` lista total e variedade de cada patamar e diz que não acelera nada. A grade de receitas rolável da bandeja `pick` passou de 2,5 para 1,9 linha para o medidor caber na sala.
+- **Utilidade verificada** (`tests/expansion_capacity.gd` → `build/economy/etapa_18/capacidade.md`): volta de 24 h com todas as vagas cheias e uma reserva no depósito. Silo: reserva 24 → `_4` resolve (18 colheitas ficavam fora no `_3`); reserva 64 → só o `_5` resolve. Armazém: reserva 64 → `_4`; reserva 100 → `_5`. Geladeira (reserva 48) e baú (60): `_4` resolve, o `_5` é só conforto. Lotes que não cabem ficam prontos na fila.
+- Testes: `expansion_test` (novo); `chest_test`, `fridge_test`, `silo_test`, `warehouse_test`, `garden_test`, `pending_gifts_test`, `economy_transactions_test` ajustados (o `dev_unlock_everything` agora compra `_4/_5`); o simulador (`tests/helpers/economy_sim.gd`) declara as moedas dos selos na guarda de conservação. Capturas: `tests/expansion_shots.gd`.
+
+
+## Economia R1 — etapa 19: obras comunitárias (estado e motor, sem conteúdo)
+
+Só infraestrutura: o catálogo `game/data/projects.json` fica **vazio** (`{"schema": 1, "projects": {}}`) até as etapas 20–22; nenhum prédio, balão, missão ou tela de obra aparece para o jogador. O banco, o jardim, o piquenique e a festa entram com a interface, nunca antes.
+
+- **Esquema de `projects.json`** (lido por `Database.projects`; `Database.project(id)`, `project_ids()`): por projeto `id`, `name`, `npc`, `world`, `requirements` (avaliador comum, aceita `"projects": ["<id>"]`), `start_coins` (taxa **só ao começar**), `phases[{id, items{item: qtd}, visual_state}]` (material **total** da fase, entregável aos poucos, sem `fresh`), `rewards` (`coins`, `items`, `collections`, `unlocks`, `xp`), `go` (destino do "Ir", formato de `Places.goal_target`) e `interaction`. IDs de projeto e de fase são estáveis: texto/arte mudam, ID não. `Database.project_issue(id)` / `project_problems()` acusam fase sem id ou repetida, sem material, item inexistente ou quantidade não inteira, referência a projeto ausente e requisito **cíclico**; projeto com problema nunca começa nem aparece.
+- **Estado** (`scripts/state/project_state.gd`, `GameState.projects`, chave `projects` no save, `schema` 1): por id `started`, `paid_start`, `phase_index`, `contributions{fase{item: qtd}}`, `completed`, `completion_rewarded`, `used_once`, `cycles{}` (reservado ao "Encontro da turma" da etapa 22). Save sem a chave = sem projetos (nenhuma migração, sem `SAVE_VERSION` novo, sem reset). Entradas de ids que o catálogo atual não conhece, campos desconhecidos e `schema` mais novo são **preservados** no ciclo de save. Consultar (`ProjectState.entry`) devolve cópia e nunca cria entrada.
+- **APIs do `GameState`** (todas passam por `_changed`/`_count`): `project_available/started/completed`, `project_stage(id)` (consulta pura: `index`, `count`, `phase`, `needed`, `given`, `remaining`, `progress` da fase, `total_progress`, `done`), `project_ready`, `project_error/start_project`, `project_contribution_error/contribute_project(id, item, qty)`, `complete_project`, `project_use_error/use_project`.
+- **Regras.** Começar valida requisito + moedas e cobra numa só passada; segunda tentativa recusa sem cobrar. Contribuir aceita só quantidade **inteira positiva** (decimal inteiro vindo de JSON, como `2.0`, vale 2; `0`, negativo, `1.5`, texto e NaN são recusados), só item da fase atual, nunca acima do restante e nunca sem estoque; erro não consome nem avança. Aceito: o estoque sai e a contribuição entra na mesma chamada (mesmo `to_dict`), então o material não reaparece depois de recarregar. Fase cheia avança uma vez; a **última entrega conclui e premia no mesmo passo** (`_finish_project` → `_grant_automatic("project:<id>", rewards)` + `xp`): moedas/XP/coleções/desbloqueios uma vez, itens que não couberem viram recibo `project:<id>` ("Presentes para guardar"), e a obra concluída **nunca** é bloqueada por falta de espaço. Idempotência tripla: `completed`+`completion_rewarded` na obra e `economy.granted["project:<id>"]`.
+- **Recuperação.** `GameState._recover_projects()` roda ao carregar e no tick de 1 s: avança fases cheias e conclui/premia uma obra interrompida entre a última contribuição e o registro do prêmio (flag de prêmio faltando, `granted` já gravado = não paga de novo). `complete_project(id)` é o mesmo caminho, idempotente (`""` se já concluída); a interface **não** paga nada por conta própria.
+- **Objetivo, requisito, TaskHelp.** Objetivo `{"type": "project", "key": "<id>", "target": 1}` (`goal_value` consulta `completed`; `content_test` valida a chave), requisito `{"projects": [...]}` no avaliador único `GameState.requirement_error` (ausente = "Projeto desconhecido", pendente = "Depois de: <nome>"), `TaskHelp.describe("project", id)` (antes de começar: requisitos + taxa; depois: material restante da fase; pronto: "Obra pronta!"; destino = `go`), `TaskHelp._requirements/_need`, `Places.goal_target`, `ProgressionUi.goal_icon`. Nunca simular conclusão com `owned`.
+- **Eventos** (`Events`, emitidos **depois** de `_changed`/salvar, uma vez por transição, também na recuperação): `project_phase_completed(id, phase_id, index)`, `project_completed(id, result)` (`result` = o que o `_grant_automatic` devolveu: itens guardados e em recibo), `project_used(id, first)`.
+- **Uso.** `project_use_error` exige obra concluída e Tiro em casa e acordado; `use_project` conta `project_use:<id>` e `used_once` só na primeira vez; repetir só emite `project_used(id, false)` (sem moedas, XP, afeto nem necessidades). A interface chama quando a reação efetivamente começa em ponto alcançável.
+- Contadores novos: `project_start`, `project_contribution` (unidades), `projects` (concluídos), `project_use:<id>`.
+- Teste `projects_test` (fixture de três fases + jardim + ciclo/ausente/inválido; 158 verificações; em `tools/test_all.ps1`). A fixture vive só no teste (`Database.projects` é trocado em memória).
+
+## Economia R1 — etapa 20: Banco da Praça (primeiro projeto visível)
+
+Primeira obra comunitária entregue ao jogador, sobre o motor da etapa 19 (nada do estado mudou: a interface só chama `start_project`/`contribute_project`/`use_project`).
+
+- **Dados** (`game/data/projects.json`, tabela 07 E): `park_bench` — requisito `quests: [atelier_open]`, entrada **150 moedas**, fases `base` (tábua 4 + tijolo 2), `comfort` (tecido 2 + brinquedo trançado 1) e `welcome` (petisco de cenoura 3), prêmio **XP 40** (não devolve as moedas; sem itens), `npc: lais`, `icon: project_bench`, `pitch` (fala da Laís antes de começar), `go: {world: park, place: bench}`, `interaction: {kind: bench, hint}`. Nenhuma missão principal aponta para ele: é uma descoberta lateral — o "Novo!" do lugar `bench`/`community` e a fala da Laís no painel.
+- **Acesso "Nossa praça"** (`worlds.json → park.places`): lugar visível `community` (painel `community`, aparece com `nina_pipoca`) que agrupa as obras da Praça (`ProjectUi.community`, uma linha por projeto `world: park` já disponível) e os atalhos **Amigos** e **Treino**. Estes dois passaram a `hidden` (continuam com zona tocável na sala e com o mesmo painel) para a Praça manter no máximo quatro lugares visíveis (Passeio, Pet shop, Nossa praça + a Costura, escondida). `bench` é um lugar `hidden` com painel `project:park_bench`, alvo do `go` e do "Ir". Costura, treino, passeio e amigos seguem acessíveis (teste confere as ações da sala).
+- **Painel de projeto genérico** (`scripts/ui/project_ui.gd`, `ProjectUi.panel(id)`): fala do personagem (`SpeechBubble`), barra total, fases em fileira (feita = check), e UM botão primário: antes de começar "Começar por N moedas" (com o aviso de que a entrega é aos poucos e não vence/volta) ou o motivo em `lock_hint`; depois, a grade `ProjectItem_<item>` (ícone, nome, entregue/necessário, tocáveis), o seletor `− + Tudo` (`Qty_*`, limitado ao que falta e ao que se tem) e "Entregar ×N item" (`DeliverProject`). Sem material: chip `ProjectMissing` abre o "Como fazer". A seleção vive no modelo do painel e sobrevive às reconstruções (`LiveBox`); item completo passa o foco ao próximo que falta; o painel permanece aberto com um aviso "Entregue: …". Obra pronta: cartão verde com "Ir ao banco". `ProjectUi.open(id)` serve a qualquer projeto futuro.
+- **Cena** (`rooms/park.json → community_bench`): objeto com `project` e `project_sprites` por `visual_state` (`ghost`, `base`, `comfort`, `welcome`; PNGs `bench_base/comfort/welcome.png` em `areas/park/`, 48×40 e 56×44, geradas no PixelLab), `pos [400, 282]` (grama livre entre a árvore da frente e a cerca, medida na prévia), `footprint [[380,274],[402,264],[424,274],[402,286]]`, `approach [372, 280]` e etiqueta "Banco" em `[412, 298]` (longe da etiqueta "Amigos"). `RoomView._refresh_projects` (ligado a `state_changed`) usa `GameState.project_visual(id)` (nova consulta pura: `""` inexistente, `ghost` = marcação translúcida com balão "buy" da entrada, ou o `visual_state` da última fase entregue; concluída = o da última) e um balão `ProjectMarker` (entrada/progresso); o chão que o Tiro pisa recalcula só quando o desenho muda (o footprint só bloqueia quando a obra existe). `_refresh_gated` não mexe em objetos de projeto.
+- **Uso pelo Tiro**: tocar o banco pronto chama `RoomView._use_project` → `GameState.project_use_error` (dormindo: "Tiro está dormindo. Quando ele puder, é só tocar de novo!"; passeando: o texto de ausência; nada é consumido) → `DogWorld.react_at(&"bench", approach, on_start)`. A nova reação `bench` senta ao lado por 2,5 s e comemora (animações existentes; nada de controle direto do cachorro). `on_start` só roda quando ele chegou ao ponto (≤ 12 px): aí `use_project` conta `project_use:park_bench` na **primeira** vez; repetir só repete o visual (sem moedas/XP/afeto/necessidades).
+- **Conclusão**: `Events.project_completed` → `main.gd._queue_modal` → `Celebration.show_project` ("Obra pronta!", XP, dica de toque), mesmo com o Tiro dormindo/passeando; as fases intermediárias só dão um aviso. Manual: card "Obras" (só as já disponíveis) com a localização. Tour: `b16b`–`b16f`.
+- **Testes**: `bench_test` (dados e lugares, requisito/taxa, material feito por receitas reais com relógio avançado, entrega parcial, salvar/reabrir no meio, conclusão com depósito cheio, XP uma vez, desenho por fase, caminho ao banco, toque em três zooms, sono/passeio sem consumir, uso uma vez só, painel: um primário, seleção, "Tudo", permanência). Capturas `tests/bench_shots.gd` (antes/depois nas três resoluções).
+
+## Economia R1 — etapa 21: Jardim da Vila e Piquenique da Praça
+
+Duas obras que começam juntas depois do Banco, sobre o motor da 19 e a interface da 20 (nenhuma regra de estado mudou).
+
+- **Dados** (`projects.json`, tabela 07 E sem ajuste): `village_garden` (npc `bloblo`, mundo `village`) — canteiros tábua 4 + tijolo 4, plantio ervas 8 + madeira 6, abertura suco de morango 3; `park_picnic` (npc `nina`, mundo `park`) — cantinho tábua 3 + tecido 3, cesta cesta do encontro 2 + queijo 2, encontro petisco de cenoura 4 + picolé de morango 4. Entrada **250** cada, prêmio **XP 60**, requisito só `projects: [park_bench]`: ninguém exige o outro, contribuir a um não avança o outro, nenhum cobra manutenção. Campos novos para o painel genérico: `done_speech` (fala da obra pronta) e `interaction.go_label` ("Ir ao jardim"/"Ir à toalha"). `icon`: `project_garden`/`project_picnic`.
+- **Acesso**: a Vila ganha o lugar visível **Nossa vila** (`community:village`, requisito `projects: [park_bench]`; agrupa as obras da Vila e as Encomendas; `Feirante`, `Ateliê`, `Encomendas` e `Minha banca` continuam como estavam e a Vila fica com quatro lugares visíveis fora a viagem) e o lugar escondido `garden` para o "Ir". Praça: lugar escondido `picnic`; "Nossa praça" também lista o piquenique. `ProjectUi.community(world)` lê `services` do lugar `community` (Praça: Amigos/Treino; Vila: Encomendas) e `Places._panel` aceita `community:<mundo>`.
+- **Cena**: `community_garden` (Vila, pos [243, 290], approach [270, 268]) e `community_picnic` (Praça, pos [436, 168], `scale` 0,8, approach [436, 190]; a posição ao lado do banco prendia o Tiro numa fresta e foi trocada por uma faixa de grama livre a leste). Três desenhos por fase cada (`garden_beds/planting/opening.png` 64×48, `picnic_corner/basket/meeting.png` 56×40) + ícones 32 px, todos PixelLab (ver `ART_PIPELINE`). Reações novas no `DogWorld`: `garden` (fareja 2,5 s e comemora) e `picnic` (senta, mordisca e comemora); `RoomView._use_project` escolhe a reação por `interaction.kind`. Primeiro uso = `project_use:<id>` 1, repetição só visual; sono/passeio só adiam o convite e não impedem entregar nem concluir.
+- **Interface**: a fileira de fases virou `HFlowContainer` (os nomes com ✓ passavam de 360 px e empurravam o painel); o chip do que falta diz "Falta X: onde achar?" (a frase antiga estourava 360 px com "Suco de morango").
+- **Simulador**: `--until=projects` (e `economy_simulate.ps1 -Until projects`) injeta a fase `ph_projects` no robô (começa a obra que cabe na reserva da meta, entrega o que há sobrando, busca o que falta por `pursue_item` com escudo); ações permitidas `start_project`/`contribute_project` com conservação exata (moedas −entrada; itens −quantidade); o resumo ganha `projects` (começo e entregas com dia, horas, minutos ativos, sessão e saldo) e marcos `bench_done/garden_done/picnic_done/projects_all`. Fora de `until=projects` o robô não muda: a campanha é idêntica à da 20.
+- **Testes**: `garden_picnic_test` (dados, requisitos, taxa, as duas ordens, conclusões consecutivas, começar os dois + contribuir + recarregar, material faltante, sono, contador de uso e reconhecimento após reload, painel e lista em 360 px, desenho por fase, caminho e navegação). `projects_test` espera os três projetos no catálogo real. Capturas: `tests/garden_picnic_shots.gd`; tour `b16g`–`b16k`.
+
+**Esforço medido** (simulador, `until=projects`, `build/economy/etapa_21/*_s1_obras`):
+
+| Perfil (semente 1) | Campanha 90/90 | Banco | Jardim | Piquenique | Fim | Entregas / unidades | Sessões com progresso | Violações |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| reference | dia 16 | dia 13 | dia 14 | dia 17 | 17,8 d | 34 / 55 | 17 | 0 |
+| recovery | dia 17 | dia 13 | dia 17 | dia 18 | 18,8 d | 35 / 55 | 18 | 0 |
+| light | 86/90 (travado como antes em `nina_sewing`) | dia 35 | dia 38 | dia 50 | 50,3 d | 32 / 55 | 12 | 0 |
+| commercial | dia 18 | dia 17 | dia 22 | **não concluiu** (fase "Cesta": 1 de 2 cestas) | 42,1 d (travou) | 28 / 46 | 11 | 0 |
+
+Custo total das duas obras: 500 moedas de entrada + jardim 25 unidades (tábua 4, tijolo 4, ervas 8, madeira 6, suco 3) + piquenique 18 unidades (tábua 3, tecido 3, cesta 2, queijo 2, petisco 4, picolé 4); cada cesta ainda consome 2 petiscos + 2 picolés + 1 suco, ou seja, 8 petiscos e 8 picolés no total. O piquenique é a obra cara: leva 1–4 dias a mais que o jardim no robô ativo e 12 dias a mais no leve (ver DECISOES, "etapa 21", para a leitura do `commercial`).
+
+## Economia R1 — etapa 22: Festa da Vila, Lenço da nossa turma e capítulos 10–12
+
+Fecha a nova história sobre o motor da 19 e as obras das 20–21.
+
+- **Festa** (`projects.json → village_festival`, tabela 07 E sem ajuste): npc `lais`, mundo `village`, requisitos `projects: [village_garden, park_picnic]` + `owned: [stall_3]` (o jardim e o piquenique podem vir em qualquer ordem), entrada **500**, fases `decorate` (tecido 4 + tábua 6 + conjunto de acessórios 2), `table` (cesta do encontro 3 + biscoito de maçã 6 + queijo 4) e `gifts` (caixa de petiscos 3 + brinquedo trançado 2), prêmio **XP 100 + coleção `community_ribbon`** (sem moedas nem itens). Interação `festival`. **Não é o contrato comercial**: `festival_contract` continua do Feirante com o mesmo id e a missão `merchant_festival`, agora com o nome "Encomenda para eventos" (`progression.json → orders` e textos); as duas coisas não compartilham entrega, prêmio nem marco.
+- **Lenço da nossa turma** (`collections.json → community_ribbon`, slot `neck`, `source: project:village_festival`): overlay + 52 quadros por pose gerados do lenço vermelho (`tools/ribbon_recolor.gd`; mesma máscara e âncoras), ícone `outfit_community_ribbon`. Vem pelo prêmio da obra (`_apply_rewards → collections`), não ocupa depósito, entra na Coleção e se veste/tira como as demais roupas. O cartão "Obra pronta!" mostra o nome do lenço (`Celebration.show_project`).
+- **Cena**: objeto `community_festival` em `rooms/village.json` (pos [385, 236], approach [385, 258], footprint losango, requisitos iguais aos da obra), três desenhos 72×52 (`festival_decorate/table/gifts.png`) + ícone `project_festival`; lugar escondido `festival` (`panel: project:village_festival`, o "Ir" leva direto) — "Nossa vila" já lista a obra sozinha (a Vila continua com quatro lugares visíveis). Reação `festival` no `DogWorld` (senta, late de alegria e comemora). A festa **fica no mapa para sempre**.
+- **Uso**: igual às outras obras (`use_project`; o primeiro conta `project_use:village_festival`, repetir é só visual).
+- **Encontro da turma** (`village_festival.gathering`, só depois da festa): material `picnic_pack 1 + carrot_snack 2`, intervalo `hours: 24`, recompensa só **XP 10**, sem moedas, afeto, ferramentas nem material de ampliação, nada em rotina. `ProjectState` ganhou `completed_at` (Unix, gravado na primeira conclusão; entrada em branco passou a 9 campos, `SCHEMA` continua 1) e `cycles` (`{"1": {"at": Unix}}`); `GameState.meeting_def/meeting_ready_at/meeting_error/gather_project`: valida tudo antes (obra concluída, Tiro em casa e acordado, 24 h desde a **última** conclusão — a da festa ou a do último ciclo —, material) e só então consome, registra o ciclo e paga por `_grant_automatic("project_gather:<id>:<ciclo>")` (identidade própria por ciclo, XP uma vez); tudo no mesmo salvamento. Eventos: `Events.project_gathered(id, ciclo)` → `RoomView._on_project_gathered` manda o Tiro até a festa (primeiro uso conta). Contadores `project_gather` e `project_gather:<id>`. DEV: `dev_advance_time` também desloca `completed_at`/`cycles`. Interface: `ProjectUi._gathering_card` (nó `GatheringCard`, botão `GatherProject`, chips do material, espera em `lock_hint`).
+- **Capítulos 10–12** (`progression.json → chapters`, `final_chapter` continua, agora o 13º estado): 10 "Um lugar para descansar" (30 moedas), 11 "Um encontro especial" (40), 12 "A festa da nossa turma" (60). Nove missões principais em `quests.json` (31 + 9 = **40**; 81 + 18 = 99 no total): `community_10_meet` (`talk:lais` fresh), `community_10_bench` (`project park_bench`), `community_10_use` (`stat project_use:park_bench`, afeto 5), `community_11_garden`, `community_11_picnic`, `community_11_tiro` (afeto 5), `community_12_prepare` (`talk:nina` fresh), `community_12_festival` (`project village_festival`), `community_12_memory` (`project_use:village_festival`, afeto 10). Só as duas conversas pedem toque novo; obras e usos já feitos contam na hora (saves das etapas 20–21 entram no 10 sem refazer entregas e sem material novo). Missões não pagam moedas nem itens. `Places.goal_target` entende `project_use:<id>`; `content_test` aceita o contador e trata obra feita pela história como concluída ao validar destinos.
+- **Simulador/robô**: `pursue_project` (cumpre requisitos, começa, entrega e busca o que falta com escudo) serve de meta para os objetivos `project` e `project_use:` (nova ação permitida `use_project`, sem efeito em moedas/itens), `pursue_reqs` entende `projects`, `_protect_project` protege taxa e material da obra que a meta espera, e `ph_projects` busca o requisito de compra (a banca 3) de uma obra indisponível. A campanha agora **inclui a Festa**.
+- **Testes**: `festival_test` (dados, requisitos, taxa, prêmio e lenço, história de jogo novo até o final, legado do capítulo 9 e obras anteriores, recebimento repetido, Encontro antes/depois de 24 h, material, sono, reload, última entrega salva no meio, painel e sala). Capturas `tests/festival_shots.gd`; tour `b16l`/`b16m`.
+
+**Esforço medido** (simulador, referência, semente 1, `build/economy/etapa_22/`): campanha completa **99/99 em 21,1 dias** (antes: 15,1 d com 90 missões), 65 sessões, 648 min ativos, 0 violações; Banco dia 7–8, Jardim dia 8, Piquenique dia 8–10, **Festa dia 17–19** (espera a banca 3 e as 500 moedas; 31 875 moedas em caixa na entrada). Até as quatro obras (`until=projects`): 17,3 d, 0 violações. Custo da festa: 500 moedas + 30 unidades (tecido 4, tábua 6, conjunto de acessórios 2, cestas 3, biscoito 6, queijo 4, caixas 3, brinquedos 2), além dos ingredientes de cadeia de cada receita.
+

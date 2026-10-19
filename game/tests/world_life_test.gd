@@ -142,7 +142,8 @@ func _check_paths(room: Control) -> void:
 	var data: Dictionary = root.get_node("Database").call("room", room.get("room_id"))
 	var obstacles: Array[PackedVector2Array] = []
 	for object: Dictionary in data.objects:
-		if object.has("footprint"):
+		# Obra comunitária ainda não começada não ocupa o chão (só a marcação translúcida).
+		if object.has("footprint") and not object.has("project"):
 			obstacles.append(_polygon(object.footprint))
 	for obstacle: Dictionary in data.get("obstacles", []):
 		obstacles.append(_polygon(obstacle.polygon))

@@ -32,6 +32,21 @@ static func _resources(box: VBoxContainer) -> void:
 	row.add_child(UiKit.icon(UiKit.ui_icon("coin"), 32))
 	row.add_child(UiKit.fill_label("Moedas: colha, venda e cumpra missões.", &"SmallLabel"))
 	money.add_child(row)
+	var rest := UiKit.card(box)
+	var rest_row := UiKit.hbox(8)
+	rest_row.add_child(UiKit.icon(UiKit.ui_icon("need_happiness"), 32))
+	rest_row.add_child(UiKit.fill_label("Com o jogo fechado, o Tiro se cuida: a barra cai mais devagar e para antes de zerar.", &"SmallLabel"))
+	rest.add_child(rest_row)
+	# Obras da comunidade: só as que já apareceram para o jogador (não adianta o que vem depois).
+	for project_id: String in Database.project_ids():
+		if not GameState.project_available(project_id):
+			continue
+		var project := UiKit.card(box)
+		var project_row := UiKit.hbox(8)
+		project_row.add_child(UiKit.icon(UiKit.ui_icon(str(Database.project(project_id).get("icon", "tab_park"))), 32))
+		project_row.add_child(UiKit.fill_label("%s: junte o material e entregue aos poucos na Praça." % Database.project(project_id).name, &"SmallLabel"))
+		project.add_child(project_row)
+		_location(project, Database.project(project_id).get("go", {}))
 	for category: String in SheetBuilder.CATEGORIES:
 		box.add_child(UiKit.label(SheetBuilder.CATEGORIES[category], &"SectionLabel"))
 		var grid := GridContainer.new()
@@ -150,7 +165,7 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 		"walk":
 			var walk := GameState.walk_def(id)
 			card.add_child(UiKit.label(str(walk.name), &"SectionLabel"))
-			card.add_child(UiKit.label("Passear → esperar → pegar", &"SmallLabel"))
+			card.add_child(UiKit.label("Passear → esperar → guardar os achados", &"SmallLabel"))
 			card.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(walk.seconds))))
 			_requirements(card, walk)
 			_location(card, {"world": "park", "place": "walk"})

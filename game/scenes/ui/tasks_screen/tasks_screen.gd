@@ -68,7 +68,7 @@ func _shared_story_goal(card: VBoxContainer, target: String) -> void:
 
 ## Cartão de uma linha secundária (ex.: vovó Bloblo): passos da linha + o passo atual.
 func _line_card(box: VBoxContainer, id: String) -> void:
-	var card := UiKit.card(box, &"CardPanel")
+	var card := UiKit.card(box, &"ReadyCardPanel" if GameState.quest_error(id) == "" else &"CardPanel")
 	card.name = "LineCard_" + str(Database.quests[id].line)
 	var ids := GameState.progress.line_quests(str(Database.quests[id].line))
 	card.add_child(_step_dots(ids.size(), ids.find(id)))
@@ -78,6 +78,8 @@ func _line_card(box: VBoxContainer, id: String) -> void:
 func _quest_body(card: VBoxContainer, id: String, primary: bool = true) -> void:
 	var quest: Dictionary = Database.quests[id]
 	var who := UiKit.hbox(10)
+	if GameState.quest_error(id) == "":
+		who.add_child(UiKit.ready_dot())
 	who.add_child(UiKit.fill_label(quest.name, &"SectionLabel"))
 	who.add_child(_destination(Places.quest_target(id)))
 	card.add_child(who)

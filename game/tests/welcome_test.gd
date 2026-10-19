@@ -71,7 +71,7 @@ func _run() -> void:
 	check(state.get("coins") == coins + 35, "Recompensa entra uma vez")
 	state.call("_add_player_xp", 1000)
 	check(state.get("level") >= 4, "Continua subindo")
-	check(int(state.call("level_reward", 15).coins) == 150, "Níveis acima da tabela usam o padrão por nível")
+	check(int(state.call("level_reward", 15).coins) == 65 and int(state.call("level_reward", 30).coins) == 80, "Níveis acima da tabela: min(80, 20 + 3 × nível) vindo do JSON")
 	var persisted: Dictionary = state.call("to_dict")
 	state.call("from_dict", persisted)
 	check(state.get("level") >= 4, "Save preserva o nível")

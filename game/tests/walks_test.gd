@@ -37,6 +37,8 @@ func _run() -> void:
 	state = root.get_node("GameState")
 	db = root.get_node("Database")
 	state.call("reset")
+	# Estas voltas se acumulam sem vender nada: o limite da sacola (etapa 08) tem teste próprio (chest_test).
+	state.set("unlimited_storage", true)
 	var progress: RefCounted = state.get("progress")
 	progress.claimed_quests["main_2_order"] = true
 	progress.claimed_quests["nina_meet"] = true

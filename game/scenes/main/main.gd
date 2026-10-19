@@ -68,10 +68,21 @@ func _ready() -> void:
 	Events.walk_collected.connect(func(result: Dictionary) -> void:
 		_queue_modal(func() -> void: _walk_result.show_result(result))
 		_queue_modal(func() -> void: _announce()))
+	# Voltou com o jogo fechado: o resultado já foi aplicado ao carregar; o cartão sai uma vez só da marca salva.
+	if GameState.walk_result_unseen():
+		var unseen := GameState.walk_result_view()
+		_queue_modal(func() -> void: _walk_result.show_result(unseen))
+		_queue_modal(func() -> void: _announce())
 	Events.trick_learned.connect(func(id: String) -> void:
 		_queue_modal(func() -> void: _celebration.show_trick(id)))
 	Events.treasure_opened.connect(func(rewards: Dictionary) -> void:
 		_queue_modal(func() -> void: _celebration.show_treasure(rewards)))
+	Events.project_completed.connect(func(id: String, _result: Dictionary) -> void:
+		_queue_modal(func() -> void: _celebration.show_project(id)))
+	Events.project_phase_completed.connect(func(id: String, phase_id: String, index: int) -> void:
+		# A última fase vira o cartão da obra pronta; as outras ganham só um aviso.
+		if index < Database.project(id).get("phases", []).size() - 1:
+			_show_toast("%s: %s pronta!" % [Database.project(id).get("name", "Obra"), Database.project(id).phases[index].get("name", phase_id)]))
 	Events.cosmetic_received.connect(func(id: String) -> void:
 		_queue_modal(func() -> void:
 			_walk_result.show_result({"kind": "sewing", "name": "Roupa nova", "rare": id, "collections": [id]})))
@@ -217,30 +228,12 @@ func _build_tasks_badge() -> void:
 
 
 func _refresh_tasks_badge() -> void:
-	var npc_status := ""
-	for npc_id: String in Database.npcs:
-		if not GameState.progress.npc_visible(npc_id):
-			continue
-		var world_id := Database.npc_world(npc_id)
-		if GameState.requirement_error(Database.worlds.get(world_id, {}).get("requirements", {})) != "":
-			continue
-		var badge := Places.npc_badge(npc_id)
-		if badge == "ready":
-			npc_status = "ready"
-			break
-		if badge == "new":
-			npc_status = "new"
-	_map_badge.text = "✓" if npc_status == "ready" else "!"
-	_map_badge.visible = npc_status != ""
-	_map_badge.modulate = UiKit.GOOD if npc_status == "ready" else Palette.GOLD
+	var collections := 0
+	for count: int in GameState.world_ready_counts().values():
+		collections += count
+	_map_badge.text = str(collections)
+	_map_badge.visible = collections > 0
 	var count := GameState.ready_quest_count() + GameState.ready_routine_count()
-	for i in GameState.usable_plot_indices():
-		if GameState.plot_status(i) == "ready":
-			count += 1
-	for station_id: String in GameState.stations:
-		count += GameState.station(station_id).ready_count(GameState.now())
-	if not GameState.progress.activity.is_empty() and GameState.activity_remaining() == 0:
-		count += 1
 	_tasks_badge.text = str(count)
 	_tasks_badge.visible = count > 0
 	_wishes_badge.text = str(GameState.fulfillable_wish_count())

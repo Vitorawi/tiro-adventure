@@ -7,6 +7,8 @@ extends RefCounted
 ## Última receita / material usados nesta sessão (voltam selecionados). Não é salvo.
 static var last_recipe := {}
 static var last_material := {}
+## Quantos lotes o jogador escolheu por receita nesta sessão (Preparar N). Não é salvo e nunca começa produção.
+static var quantity := {}
 
 
 # --- Estações de produção (fogão, liquidificador, bancada, moinho, queijaria, costura, ateliê) ---
@@ -77,7 +79,9 @@ static func _header(station_id: String) -> Control:
 		var ready := GameState.station(station_id).ready_count(GameState.now())
 		parent.add_child(SheetBuilder.slot_strip(SheetBuilder.station_slot_row(station_id)))
 		if ready > 0:
-			parent.add_child(_collect_button(station_id, ready)))
+			parent.add_child(_collect_button(station_id, ready))
+		if GameState.mastery_enabled(station_id):
+			parent.add_child(SheetBuilder.mastery_row(station_id)))
 	box.name = "Header"
 	return box
 
@@ -89,7 +93,12 @@ static func _collect_button(station_id: String, ready: int) -> Button:
 	return collect
 
 
-## Detalhe da receita escolhida: nome, tempo/saída, ingredientes tocáveis e o botão principal.
+## Quantidade escolhida para a receita, sempre entre 1 e o máximo possível agora.
+static func chosen_count(recipe_id: String) -> int:
+	return clampi(int(quantity.get(recipe_id, 1)), 1, maxi(1, GameState.cook_max(recipe_id)))
+
+
+## Detalhe da receita escolhida: nome, tempo/saída, ingredientes tocáveis, quantidade e o botão principal.
 static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 	var box := UiKit.vbox(6)
 	box.name = "RecipeDetail"
@@ -97,19 +106,20 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 		return box
 	var recipe: Dictionary = Database.recipes[recipe_id]
 	var output: String = Database.recipe_output(recipe)
-	var qty := GameState.recipe_quantity(recipe_id)
+	var count := chosen_count(recipe_id)
+	var qty := GameState.recipe_quantity(recipe_id) * count
 	var title := UiKit.fill_label(Database.item_name(output) + (" ×%d" % qty if qty > 1 else ""), &"SectionLabel")
 	title.name = "RecipeName"
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(title)
 	var out := UiKit.flow(2)
-	out.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(recipe.get("seconds", 60)))))
+	out.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(recipe.get("seconds", 60)) * count)))
 	if not recipe.has("output_collection"):
 		out.add_child(UiKit.chip(Database.item_icon(output), "×%d" % qty))
 	for effect in UiKit.effect_chip_list(Database.items.get(output, {}).get("feed", {})):
 		out.add_child(effect)
 	box.add_child(out)
-	var inputs: Dictionary = GameState.recipe_inputs(recipe_id)
+	var inputs: Dictionary = GameState.cook_inputs(recipe_id, count)
 	if not inputs.is_empty():
 		var needs := UiKit.flow(2)
 		needs.name = "Ingredients"
@@ -120,38 +130,81 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 	if locked != "":
 		box.add_child(UiKit.lock_hint(locked, TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))))
 		return box
-	var error := GameState.cook_error(recipe_id)
+	var most := GameState.cook_max(recipe_id)
+	if most > 1:
+		box.add_child(_stepper(recipe_id, count, most))
+	var error := GameState.cook_many_error(recipe_id, count)
 	var verb := str(Database.stations.get(station_id, {}).get("action_label", "Fazer"))
-	var action := UiKit.primary(error if error != "" else verb, func() -> void: _cook(station_id, recipe_id))
+	var action := UiKit.primary(error if error != "" else (verb if count == 1 else "%s ×%d" % [verb, count]), func() -> void: _cook(station_id, recipe_id))
 	action.name = "Cook"
 	action.disabled = error != ""
 	box.add_child(action)
 	return box
 
 
+## Linha "− N +" com o horário do último lote; só muda a escolha, não começa nada.
+static func _stepper(recipe_id: String, count: int, most: int) -> Control:
+	var row := UiKit.hbox(8)
+	row.name = "Quantity"
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	var less := UiKit.icon_button(null, func() -> void: _set_count(recipe_id, count - 1), 44, "−")
+	less.name = "QuantityLess"
+	less.disabled = count <= 1
+	row.add_child(less)
+	var number := UiKit.short_label("×%d" % count, &"SectionLabel")
+	number.name = "QuantityValue"
+	row.add_child(number)
+	var more := UiKit.icon_button(null, func() -> void: _set_count(recipe_id, count + 1), 44, "+")
+	more.name = "QuantityMore"
+	more.disabled = count >= most
+	row.add_child(more)
+	var all := UiKit.secondary("Tudo ×%d" % most, func() -> void: _set_count(recipe_id, most), null, true)
+	all.name = "QuantityMax"
+	all.disabled = count >= most
+	row.add_child(all)
+	var done := UiKit.short_label("Pronto às %s" % GameState.clock_text(GameState.cook_finish_at(recipe_id, count)), &"SmallLabel")
+	done.name = "FinishAt"
+	done.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var column := UiKit.vbox(2)
+	column.name = "QuantityBox"
+	column.add_child(row)
+	column.add_child(done)
+	return column
+
+
+static func _set_count(recipe_id: String, count: int) -> void:
+	quantity[recipe_id] = clampi(count, 1, maxi(1, GameState.cook_max(recipe_id)))
+	var tray := ActionTray.current
+	if is_instance_valid(tray):
+		tray.refresh_detail()
+
+
 ## Põe na fila; a bolinha nova acende e o ícone da receita voa da grade até ela. A receita continua selecionada.
 static func _cook(station_id: String, recipe_id: String) -> void:
-	var reason := GameState.cook(recipe_id)
+	var count := chosen_count(recipe_id)
+	var before := GameState.station(station_id).queue.size()
+	var reason := GameState.cook_many(recipe_id, count)
 	if reason != "":
 		Events.toast_requested.emit(reason)
 		return
+	quantity[recipe_id] = 1
 	var tray := ActionTray.current
 	if not is_instance_valid(tray):
 		return
 	last_recipe[station_id] = recipe_id
 	var icon := Database.item_icon(Database.recipe_output(Database.recipes[recipe_id]))
 	var from := tray.item_center(recipe_id)
-	_light_new_slot(tray, station_id, icon, from)
+	for i in count:
+		_light_new_slot(tray, station_id, icon, from, before + i)
 
 
-## O cabeçalho se refaz no fim do quadro: espera e acende a bolinha da última vaga ocupada.
-static func _light_new_slot(tray: ActionTray, station_id: String, icon: Texture2D, from: Vector2) -> void:
+## O cabeçalho se refaz no fim do quadro: espera e acende a bolinha da vaga `index`.
+static func _light_new_slot(tray: ActionTray, station_id: String, icon: Texture2D, from: Vector2, index: int) -> void:
 	var tree := tray.get_tree()
 	await tree.process_frame
 	await tree.process_frame
 	if not is_instance_valid(tray) or tray.closing:
 		return
-	var index := GameState.station(station_id).queue.size() - 1
 	var dot := tray.find_in_panel("Slot_%d" % index) as Control
 	if dot == null:
 		return
@@ -280,10 +333,21 @@ static func material_detail(site: String, item: String) -> Control:
 	box.name = "MaterialDetail"
 	if item == "":
 		return box
-	var data: Dictionary = Database.progression.nature_sites[site]
+	_fill_material_detail(box, site, item)
+	return box
+
+
+## Desenha o detalhe da rota escolhida (tempo, saída e XP local); a troca de rota redesenha este mesmo corpo.
+static func _fill_material_detail(box: VBoxContainer, site: String, item: String) -> void:
+	for child in box.get_children():
+		box.remove_child(child)
+		child.queue_free()
 	var route_id := NatureUi.best_route(item)
 	var route: Dictionary = Database.progression.activities[route_id]
 	var primary := _primary_item(route, item)
+	var choice := NatureUi.route_choice(item, func() -> void: _fill_material_detail(box, site, item))
+	if choice != null:
+		box.add_child(choice)
 	var title := UiKit.fill_label("%s ×%d" % [Database.item_name(primary), int(route.rewards.items[primary])], &"SectionLabel")
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(title)
@@ -292,14 +356,14 @@ static func material_detail(site: String, item: String) -> Control:
 	for bonus: String in route.rewards.get("items", {}):
 		if bonus != primary:
 			chips.add_child(UiKit.chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), UiKit.GOOD))
-	chips.add_child(UiKit.chip(UiKit.ui_icon("xp"), "+%d XP" % int(data.xp_per_collection)))
+	chips.add_child(UiKit.chip(UiKit.ui_icon("xp"), "+%d XP" % NatureUi.route_xp(route_id)))
 	box.add_child(chips)
 	var level := NatureUi.route_level(route_id)
 	if GameState.progress.nature_level(site) < level:
 		var hint := UiKit.lock_hint("Nível %d" % level)
 		hint.name = "RequiredLevel_" + item
 		box.add_child(hint)
-		return box
+		return
 	var error := GameState.next_gathering_error(site, route_id, item)
 	var action := UiKit.primary(error if error != "" else "Buscar", func() -> void:
 		var reason := GameState.start_next_gathering(site, route_id, item)
@@ -308,4 +372,4 @@ static func material_detail(site: String, item: String) -> Control:
 	action.name = "Material_" + item
 	action.disabled = error != ""
 	box.add_child(action)
-	return box
+	return

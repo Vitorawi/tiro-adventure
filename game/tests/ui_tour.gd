@@ -147,6 +147,16 @@ func _run() -> void:
 	await shot("b03_tasks")
 	main.call("show_screen", &"bag")
 	await shot("b04_bag")
+	# Presentes para guardar (etapa 02 da economia): geladeira cheia, presente automático esperando.
+	var gift_fill := int(state.call("storage_space", "fridge"))
+	state.get("inventory").add("egg", gift_fill)
+	state.call("_grant_automatic", "customer:lais:1", {"items": {"carrot_snack": 2}})
+	state.call("_changed")
+	await shot("b04b_bag_gifts", 3.6)
+	state.get("economy").pending.clear()
+	state.get("economy").granted.erase("customer:lais:1")
+	state.get("inventory").remove("egg", gift_fill)
+	state.call("_changed")
 	main.call("show_screen", &"map")
 	main.find_child("WorldsScreen", true, false).call("show_map")
 	await shot("b05_map_list")
@@ -195,6 +205,74 @@ func _run() -> void:
 	await _world("park")
 	places.call("open", "park", "walk")
 	await shot("b16_walks")
+	await _close()
+	# Etapa 20 da economia: Nossa praça e as fases do Banco (marcação, base, conforto, pronto).
+	places.call("open", "park", "community")
+	await shot("b16b_community")
+	await _close()
+	var bench_ui: Script = load("res://scripts/ui/project_ui.gd")
+	state.set("coins", maxi(int(state.get("coins")), 300))
+	state.call("start_project", "park_bench")
+	await _sheet("Banco da Praça", bench_ui.call("panel", "park_bench"))
+	await shot("b16c_bench_start")
+	await _close()
+	for phase: Array in [["plank", 4, "b16d_bench_base"], ["fabric", 2, "b16e_bench_comfort"]]:
+		var phase_items: Dictionary = state.call("project_stage", "park_bench").needed
+		for item: String in phase_items:
+			state.get("inventory").add(item, int(phase_items[item]))
+			state.call("contribute_project", "park_bench", item, int(phase_items[item]))
+		await _world("park")
+		await shot(str(phase[2]))
+	await _sheet("Banco da Praça", bench_ui.call("panel", "park_bench"))
+	await shot("b16f_bench_last_phase")
+	await _close()
+	# Etapa 21: com o banco pronto, Jardim da Vila e Piquenique da Praça começam juntos.
+	var last_items: Dictionary = state.call("project_stage", "park_bench").needed
+	for item: String in last_items:
+		state.get("inventory").add(item, int(last_items[item]))
+		state.call("contribute_project", "park_bench", item, int(last_items[item]))
+	state.set("coins", maxi(int(state.get("coins")), 600))
+	state.call("start_project", "village_garden")
+	state.call("start_project", "park_picnic")
+	for id: String in ["village_garden", "park_picnic"]:
+		var first_items: Dictionary = state.call("project_stage", id).needed
+		for item: String in first_items:
+			state.get("inventory").add(item, int(first_items[item]))
+			state.call("contribute_project", id, item, int(first_items[item]))
+	await _world("park")
+	await shot("b16g_picnic_world")
+	await _sheet("Piquenique da Praça", bench_ui.call("panel", "park_picnic"))
+	await shot("b16h_picnic_panel")
+	await _close()
+	await _world("village")
+	await shot("b16i_garden_world")
+	places.call("open", "village", "community")
+	await shot("b16j_community_village")
+	await _close()
+	await _sheet("Jardim da Vila", bench_ui.call("panel", "village_garden"))
+	await shot("b16k_garden_panel")
+	await _close()
+	# Etapa 22: Festa da Vila pronta (obras anteriores concluídas, banca 3) e o Encontro da turma.
+	state.call("dev_grant_upgrade", "stall_3")
+	for id: String in ["village_garden", "park_picnic"]:
+		for index in range(1, int(state.call("project_stage", id).count)):
+			var phase: Dictionary = root.get_node("Database").project(id).phases[index]
+			for item: String in phase.items:
+				state.get("inventory").add(item, int(phase.items[item]))
+			for item: String in phase.items:
+				state.call("contribute_project", id, item, int(phase.items[item]))
+	state.set("coins", 500)
+	state.call("start_project", "village_festival")
+	for index in 3:
+		var festa_phase: Dictionary = root.get_node("Database").project("village_festival").phases[index]
+		for item: String in festa_phase.items:
+			state.get("inventory").add(item, int(festa_phase.items[item]))
+		for item: String in festa_phase.items:
+			state.call("contribute_project", "village_festival", item, int(festa_phase.items[item]))
+	await _world("village")
+	await shot("b16l_festival_world")
+	await _sheet("Festa da Vila", bench_ui.call("panel", "village_festival"))
+	await shot("b16m_festival_panel")
 	await _close()
 	await _world("house")
 	places.call("open_npc", "lais")

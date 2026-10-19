@@ -89,8 +89,9 @@ func _run() -> void:
 	p.tricks.erase("spin")
 	check(state.call("learn_trick", "spin") != "", "sono bloqueia aprender")
 	state.call("set_sleeping", false)
-	state.get("walk_state").current = {"id": "park_loop", "ready_at": 1.0}
-	check(state.call("perform_trick", "paw") == state.call("away_text") and state.call("learn_trick", "spin") == state.call("away_text"), "passeio bloqueia ambos mesmo pronto")
+	state.get("walk_state").current = {"id": "park_loop", "ready_at": state.call("now") + 600.0}
+	check(state.call("perform_trick", "paw") == state.call("away_text") and state.call("learn_trick", "spin") == state.call("away_text"), "passeio em andamento bloqueia ambos")
+	state.get("walk_state").current = {}
 	state.get("walk_state").current = {}
 	await _clothes()
 	var places: Script = load("res://scripts/ui/places.gd")
@@ -101,6 +102,7 @@ func _run() -> void:
 	for id: String in db.get("quests"):
 		if id.begins_with("nina_") and int(db.get("quests")[id].order) < 90:
 			p.claimed_quests[id] = true
+	p.claimed_quests["bloblo_chest"] = true  # passo da linha da Nina desde a etapa 08
 	state.call("_changed")
 	var coins: int = state.get("coins")
 	check(state.call("claim_quest", "nina_trick") == "" and state.get("coins") == coins + 20, "missão do truque paga uma vez")
@@ -110,7 +112,7 @@ func _run() -> void:
 	check(p.feature_unlocked("tricks"), "feature abre ao receber missão")
 	var wish: Dictionary = db.get("wishes").wishes.trick
 	check(wish.goal.key == "trick" and state.call("requirement_error", wish.requirements) == "", "desejo usa contador e história reais")
-	check(db.get("routines").daily.missions.trick.goal.target == 2, "diária pede dois truques")
+	check(db.get("routines").daily.legacy.trick.goal.target == 2, "diária pede dois truques")
 	var room: Control = load("res://scenes/levels/room/room.tscn").instantiate()
 	room.set("room_id", "park")
 	room.set("world_id", "park")

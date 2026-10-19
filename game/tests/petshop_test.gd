@@ -110,13 +110,14 @@ func _walks() -> void:
 	progress.owned[silo.building] = true
 	state.get("inventory").add("carrot", int(state.call("storage_capacity", "silo")))
 	state.get("walk_state").current.ready_at = 0.0
-	var pity: Dictionary = state.get("walk_state").pity.duplicate()
-	var history: Dictionary = state.get("walk_state").history.duplicate(true)
-	check(state.call("collect_walk_error") != "" and state.call("collect_walk").is_empty(), "bolsinha respeita depósito cheio")
-	check(state.get("walk_state").pity == pity and state.get("walk_state").history == history and not progress.collection.has("sponge_hat"), "falha não gasta garantia nem dá lendário")
+	var carrots: int = state.get("inventory").count("carrot")
+	state.call("return_due_walk")
+	check(not state.call("walking") and state.call("collect_walk_error") != "" and state.call("collect_walk").is_empty(), "bolsinha respeita depósito cheio")
+	check(state.get("inventory").count("carrot") == carrots and state.get("walk_state").baggage_count() == 2, "bagagem espera inteira, nada perdido")
+	check(progress.collection.has("sponge_hat") and progress.stat("walk_legendary") == 1, "a volta já deu o lendário, uma vez só")
 	state.get("inventory").remove("carrot", state.get("inventory").count("carrot"))
 	var result: Dictionary = state.call("collect_walk")
-	check(result.legendary == "sponge_hat" and state.get("inventory").count("carrot") == 2, "coleta recebe exatamente o sorteio validado")
+	check(state.get("inventory").count("carrot") == 2, "guarda exatamente o sorteio congelado")
 	check(progress.collection.has("sponge_hat") and progress.stat("walk_legendary") == 1, "lendário vai à coleção uma vez")
 	walk.loot = before
 	# Duas garantias no mesmo passeio: o lendário soma, sem consumir o lugar do raro.

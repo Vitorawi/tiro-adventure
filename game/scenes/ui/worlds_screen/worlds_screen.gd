@@ -39,6 +39,8 @@ func _ready() -> void:
 	timer.wait_time = 1.0
 	timer.autostart = true
 	timer.timeout.connect(_refresh_header)
+	timer.timeout.connect(func() -> void:
+		if is_map_open(): %MapView.refresh(current_world))
 	add_child(timer)
 	enter(current_world)
 

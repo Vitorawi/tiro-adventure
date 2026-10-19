@@ -78,7 +78,7 @@ func _run() -> void:
 				"owned": check(data.upgrades.has(key), id + ": construção " + key)
 				"skill": check(data.skills.has(key), id + ": atributo " + key)
 				"stat":
-					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "orders", "contracts", "explore", "build", "quests", "open:bag", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned"] or (key.begins_with("friend_gift:") and db.get("friends").friends.has(key.trim_prefix("friend_gift:"))) or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:"), id + ": contador desconhecido " + key)
+					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "orders", "contracts", "storage_upgrades", "explore", "build", "quests", "open:bag", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned"] or (key.begins_with("friend_gift:") and db.get("friends").friends.has(key.trim_prefix("friend_gift:"))) or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:") or key.begins_with("wish_item:") or (key.begins_with("project_use:") and not db.call("project", key.trim_prefix("project_use:")).is_empty()), id + ": contador desconhecido " + key)
 					if key.begins_with("harvest:"):
 						check(db.get("crops").has(key.trim_prefix("harvest:")), id + ": cultura " + key)
 					if key.begins_with("produce:"):
@@ -89,6 +89,7 @@ func _run() -> void:
 						check(data.orders.has(key.trim_prefix("order:")), id + ": pedido " + key)
 				"quest":
 					check(quests.has(key) and quests[key].get("kind", "") in ["main", "line"], id + ": cruzamento com missão inexistente " + key)
+				"project": check(db.get("projects").get("projects", {}).has(key), id + ": obra " + key)
 				"coins", "chapter":
 					check(int(g.get("target", 0)) > 0, id + ": alvo obrigatório")
 				_:
@@ -133,7 +134,7 @@ func _run() -> void:
 		for id: String in group.missions:
 			var m: Dictionary = group.missions[id]
 			var key: String = m.goal.key
-			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "contracts", "explore", "wish", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned"] or key.begins_with("activity:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
+			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "contracts", "explore", "wish", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned", "care_useful", "production_jobs"] or key.begins_with("activity:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
 			if key.begins_with("harvest:"):
 				check(db.get("crops").has(key.trim_prefix("harvest:")), kind + "/" + id + ": cultura inexistente")
 			if key.begins_with("produce:"):
@@ -142,11 +143,15 @@ func _run() -> void:
 			if key.begins_with("activity:"):
 				check(data.activities.has(key.trim_prefix("activity:")), kind + "/" + id + ": rota " + key)
 			check(int(m.goal.get("target", 0)) > 0 and int(m.rewards.get("coins", 0)) > 0, kind + "/" + id + ": alvo e moedas")
+			var targets: Dictionary = m.goal.get("targets", {})
+			check(int(targets.get("start", 0)) > 0 and int(targets.get("middle", 0)) >= int(targets.start) and int(targets.get("community", 0)) >= int(targets.middle), kind + "/" + id + ": metas por fase (começo ≤ meio ≤ comunidade)")
 			for reward: String in m.rewards.get("collections", []):
 				check(db.get("collections").has(reward), kind + "/" + id + ": coleção " + reward)
 			if m.get("requirements", {}).is_empty():
 				open += 1
-		check(open >= int(group.count), kind + ": precisa de modelos sem requisito para o primeiro sorteio")
+		check(open >= 2, kind + ": precisa de modelos sem requisito para o primeiro sorteio (o resto só entra quando acessível)")
+		for id: String in group.get("legacy", {}):
+			check(not group.missions.has(id) or id in ["harvest", "cook", "order", "big_harvest", "chef_week", "tiro_walk"], kind + "/" + id + ": legado com o mesmo id só se reaproveitado no catálogo R1")
 	for world: String in db.get("worlds"):
 		var w: Dictionary = db.get("worlds")[world]
 		for npc: String in w.get("npcs", []):
@@ -168,7 +173,8 @@ func _run() -> void:
 						check(data.activities.values().any(func(a: Dictionary) -> bool: return a.place == group), place + ": grupo de rotas inexistente " + group)
 				"market": check(arg in ["sell", "orders"], place + ": aba da feira")
 				"storage": check(data.storage.has(arg), place + ": depósito inexistente")
-				"inventory", "fridge", "feed", "sleep", "farm", "greenhouse", "sell", "orders", "contracts", "walks", "petshop", "friends", "tricks": pass
+				"inventory", "fridge", "feed", "sleep", "farm", "greenhouse", "sell", "orders", "contracts", "walks", "petshop", "friends", "tricks", "community": pass
+				"project": check(db.call("project", arg).size() > 0 and str(db.call("project", arg).get("world", "")) == world, place + ": obra inexistente ou de outro mundo")
 				_: check(false, place + ": painel desconhecido")
 			if p.has("upgrade"):
 				check(data.upgrades.has(p.upgrade), place + ": construção inexistente")
@@ -198,13 +204,16 @@ func _run() -> void:
 				check(db.get("finds").worlds.has(entry.find), walk_id + ": mundo de achados " + str(entry.find))
 			for item: String in entry.get("items", {}):
 				check(db.get("items").has(item), walk_id + ": item " + item)
-	# Materiais exclusivos de passeio nunca são colheita, produto de estação ou achado do faro.
+	# Materiais exclusivos de passeio (moram no baú) nunca são colheita, produto de estação ou achado do faro.
 	for item: String in db.get("items"):
 		if db.get("items")[item].get("category", "") != "trail":
 			continue
-		check(db.get("items")[item].get("storage", "") == "none", item + ": não ocupa depósito")
+		check(db.get("items")[item].get("storage", "") == "chest", item + ": mora no baú (etapa 08)")
 		check(not db.get("crops").has(item), item + ": não é colheita")
 		for recipe: Dictionary in db.get("recipes").values():
+			# Etapa 17: gravetos renováveis na bancada (`cut_sticks`), a única receita que devolve um material de passeio.
+			if item == "stick" and recipe == db.get("recipes").get("cut_sticks"):
+				continue
 			check(recipe.get("output", recipe.get("output_collection", "")) != item, item + ": não sai de estação")
 		for world: Dictionary in db.get("finds").worlds.values():
 			for entry: Dictionary in world.get("table", []) + world.get("guaranteed", []):
@@ -223,18 +232,28 @@ func _run() -> void:
 		var a: Dictionary = data.activities[id]
 		if a.place in ["walk", "mine"]:
 			check(int(a.requirements.get("chapter", 1)) >= 3, id + ": rota antes da Trilha abrir")
+	for id: String in data.activities:
+		if str(db.call("gathering_site", id)) != "":
+			check(int(data.activities[id].get("nature_xp", 0)) > 0, id + ": XP local próprio da rota")
+		else:
+			check(not data.activities[id].has("nature_xp"), id + ": rota sem local não dá XP local")
 	for id: String in data.get("nature_resources", {}):
 		check(db.get("items").has(id), id + ": material de coleta existente")
 		for route: String in data.nature_resources[id].routes:
 			check(data.activities.has(route) and data.activities[route].rewards.get("items", {}).has(id), id + ": rota rende este material")
 	for id: String in data.get("nature_sites", {}):
 		var site: Dictionary = data.nature_sites[id]
-		check(site.levels.size() == site.level_upgrades.size(), id + ": cadeia de níveis completa")
-		check(int(site.levels[0].xp) == 0 and int(site.xp_per_collection) > 0, id + ": XP de uso válido")
-		for level in range(1, site.levels.size()):
-			check(int(site.levels[level].xp) > int(site.levels[level - 1].xp), id + ": níveis de XP crescentes")
-			check(int(site.levels[level].slots) == level + 1, id + ": vaga acompanha nível")
-		check(site.slot_upgrades.size() == 2, id + ": começa com uma vaga e libera mais duas")
+		check(site.levels.size() == 4 and site.level_upgrades.size() == 3, id + ": quatro patamares (o nível 4 não tem token próprio)")
+		check(int(site.levels[0].xp) == 0 and int(site.xp_per_collection) > 0, id + ": XP de uso válido (o valor antigo só vale para lotes sem snapshot)")
+		var thresholds: Array = [0, 24, 120, 360]
+		var slot_counts: Array = [1, 2, 2, 3]
+		for level in site.levels.size():
+			check(int(site.levels[level].xp) == int(thresholds[level]), id + ": patamar de XP 0/24/120/360")
+			check(int(site.levels[level].slots) == int(slot_counts[level]), id + ": vagas 1/2/2/3")
+		check(site.slot_upgrades.size() == 2 and int(site.slot_levels[0]) == 2 and int(site.slot_levels[1]) == 4, id + ": segunda vaga no nível 2, terceira no nível 4")
+		for upgrade: String in site.slot_upgrades:
+			var index: int = site.slot_upgrades.find(upgrade)
+			check(int(data.upgrades[upgrade].nature_unlock.level) == int(site.slot_levels[index]), id + ": token da vaga alinhado ao nível " + upgrade)
 		for upgrade: String in site.slot_upgrades + site.level_upgrades:
 			check(data.upgrades.has(upgrade), id + ": compra existente " + upgrade)
 		for resource: String in site.resources:
@@ -322,6 +341,9 @@ func _sync_owned(state: Node) -> void:
 		for acquired: Dictionary in db.get("quests")[claimed_id].goals:
 			if acquired.type == "owned":
 				progress.owned[acquired.key] = true
+			elif acquired.type == "project":
+				# Obra feita pela história: a conclusão abre os lugares que dependem dela.
+				state.get("projects").projects[acquired.key] = {"completed": true}
 
 
 func _validate_quest(id: String, state: Node) -> void:

@@ -36,6 +36,13 @@ Imagens avulsas (create_image_*) não aceitam tags: registrar só aqui.
 
 ## Registro de assets
 
+### Ícone da cenoura — troca aprovada (18/10/2026, Codex)
+
+- Cenoura vertical confirmada pelo Vitor, referida como `cenoura_v2_x5.png`; fonte PixelLab `gallery:e090cc73-1df5-596c-ad06-57399d364552`, PNG transparente 96×96.
+- Original aplicado sem redesenho ou ampliação em `ui/icons/item_carrot.png`, preservando o caminho compartilhado dos menus. A UI ajusta o tamanho mantendo a proporção; a planta madura no canteiro permanece a mesma.
+- Fonte e ícone anterior em `build/art_sources/cenoura_v2/` (ignorado no git). Alteração local, sem publicação.
+- Conferência visual do PNG e reimportação headless no Godot concluídas sem erro (`build/carrot_import.log`); `.import` existente preservado.
+
 ### Interface nova — Etapa 09, cantinho e cuidados (15/10/2026, Codex)
 
 | Asset | Job / asset PixelLab | Destino / escolha |
@@ -813,3 +820,54 @@ seed 11 `lineless`/medium (`b6fc8c35-dc1e-4d26-a069-3da62542a97e`, **escolhido**
 O escolhido veio em marrom-ouro escuro; foi **reentonado sem PixelLab** (PowerShell/System.Drawing: luminância → 4 degraus entre `E8A530` e `FFF1B0`, alfa preservado)
 para virar o dourado suave da paleta. Originais, reentonado e prévia em `build/art_sources/interface_etapa12/`. Fica em `game/assets/sprites/ui/fx/` (não em `sprites/fx/`, que
 é dos efeitos do mundo). O confete é desenhado por código (retângulos 4×6 em `CPUParticles2D`), sem arte.
+
+
+### Economia R1 — etapa 17, ícones dos produtos (18/10/2026, Claude Code)
+
+Pixen 32×32 transparente, contorno preto, detalhe médio, aprovados na primeira tentativa: Brinquedo trançado (`78face52-08cf-59e5-87be-fb28665e6806` → `ui/icons/item_braided_toy.png`), Cesta do encontro (`5a35c5a0-f1a7-5718-9b9e-eae7fb644fa6` → `item_picnic_pack.png`) e Petisco de mirtilo (`9f2b1a8b-ea40-564f-a513-ba79437f806a` → `item_blueberry_treat.png`). Originais em `build/art_sources/economia_etapa17/`; PNGs e `.import` versionados.
+
+
+### Economia R1 — etapa 20, Banco da Praça (18/10/2026, Claude Code)
+
+`create_image_pixen`, transparente, contorno preto, detalhe médio, isométrico sudeste, `low top-down`, aprovados na primeira tentativa. Imagens avulsas não aceitam tags; registro local `tiro-adventure`, `cenario`, `ativo`.
+
+| Asset | Job / asset PixelLab | Destino |
+|---|---|---|
+| Banco com almofada vermelha e brinquedo (fase "conforto") | `7a05951a-183e-44bc-8b4c-4fa562d80fbd`; asset `88b2c4bc-1ad5-5cfa-97ed-07112fb34345`, seed 201, 48×40 | `areas/park/bench_comfort.png` |
+| Banco de madeira sem acabamento sobre base de tijolos (fase "base" e marcação translúcida) | `4810963c-df3b-4e99-a275-c18593a0e2fc`; asset `7f76f21c-deb0-5bd9-868c-ad5b05fe1ee2`, seed 201, 48×40 | `areas/park/bench_base.png` |
+| Banco completo com tigela de petiscos e bandeirinha (obra pronta) | `7c3aa638-5c22-40ee-8427-1aeb87b0a948`; asset `05e9619f-c790-51e0-98f8-7be4e2355a3e`, seed 201, 56×44 | `areas/park/bench_welcome.png` |
+| Ícone da obra | `45974a5e-bddd-4513-a5c5-8fcc96769795`; asset `2cf57678-6c0d-5cc9-844f-df9208df928d`, seed 202, 32×32 | `ui/icons/project_bench.png` |
+
+PNGs e `.import` versionados; posição, footprint e ponto de uso estão em `rooms/park.json` (`community_bench`).
+
+
+### Economia R1 — etapa 21, Jardim da Vila e Piquenique da Praça (18/10/2026, Claude Code)
+
+`create_image_pixen`, transparente, contorno preto, detalhe médio, `low top-down`, sudeste, aprovados na primeira tentativa (mesmo método do Banco). A marcação inicial de cada obra reutiliza o desenho da primeira fase a 50% de opacidade (como o banco).
+
+| Asset | Job / asset PixelLab | Destino |
+|---|---|---|
+| Canteiros de madeira vazios, terra à mostra (fase "beds" e marcação) | `9bfe2994-1080-45fb-98f7-9eeb1550ad27`; asset `6a3ea7e4-d419-5950-8544-be8f6e6fcf35`, seed 301, 64×48 | `areas/village/garden_beds.png` |
+| Canteiros com ervas e brotos (fase "planting") | `e64ee097-2bf5-4235-93df-a9452a3c7f08`; asset `1d76ea8f-019e-58ec-9da5-7d67f0d47b78`, seed 301, 64×48 | `areas/village/garden_planting.png` |
+| Jardim com flores ornamentais, placa e bandeirinha (obra pronta) | `309cdfc7-5e3b-45fd-ae71-008d6193b9e8`; asset `dd592420-ddc0-5520-a85c-2aeb9db9199b`, seed 301, 64×48 | `areas/village/garden_opening.png` |
+| Toalha xadrez vermelha estendida (fase "corner") | `7bd4c822-f2a9-4840-a888-61292fcc5948`; asset `f872eda0-13ad-5d57-ac9d-0b41c414ebdc`, seed 302, 56×40 | `areas/park/picnic_corner.png` |
+| Toalha com cesta de vime e queijo (fase "basket") | `1100ce63-d5e6-4432-8ff7-522c14aab78a`; asset `96b3082b-9aa3-57d2-a5ed-9145f43e4c20`, seed 302, 56×40 | `areas/park/picnic_basket.png` |
+| Toalha com cesta, tigela de petiscos, copos e bandeirinhas (obra pronta) | `f6a3db87-8ece-4bae-9070-420ad35ffe2e`; asset `b912d85b-dfd1-56ae-a7e2-adce2f596792`, seed 302, 56×40 | `areas/park/picnic_meeting.png` |
+| Ícone do jardim | `b4ad2761-a77d-4b72-9ee1-9f6ba31b563e`; asset `ef3897fb-27ad-5fa0-9043-e34af1d79bd1`, seed 303, 32×32 | `ui/icons/project_garden.png` |
+| Ícone do piquenique | `5141f41c-a4db-4ba1-b62f-5653e28bded8`; asset `b48979fa-519e-51b1-88a6-d31b7d7e53c9`, seed 304, 32×32 | `ui/icons/project_picnic.png` |
+
+PNGs e `.import` versionados. Posições, footprints e pontos de uso em `rooms/village.json` (`community_garden`) e `rooms/park.json` (`community_picnic`, `scale` 0,8).
+
+### Economia R1 — etapa 22, Festa da Vila e Lenço da nossa turma (18/10/2026, Claude Code)
+
+`create_image_pixen`, transparente, contorno preto, detalhe médio, `low top-down`, sudeste, seed 401 nos três desenhos (mesmo método do Jardim/Piquenique), aprovados na primeira tentativa. A marcação inicial reutiliza o desenho da primeira fase a 50% de opacidade. Originais em `build/art_sources/economia_etapa22/`.
+
+| Asset | Job / asset PixelLab | Destino |
+|---|---|---|
+| Palco de tábuas com varais de bandeirinhas (fase "decorate") | `25d261da-68b3-4d5e-b953-432a30a5f3e8`; asset `e59a2141-f09b-5103-9498-33663d6527b7`, 72×52 | `areas/village/festival_decorate.png` |
+| Mesa comprida com cestas, queijos e copos (fase "table") | `c3f950ad-c8df-4f56-a9ab-81ac3982b093`; asset `d9249640-74e9-591c-8632-7cd755989512`, 72×52 | `areas/village/festival_table.png` |
+| Festa pronta: mesa, presentes com fita, lanternas e balões (fase "gifts") | `5f62b50e-0d5f-43c4-bd10-b6eb236f1129`; asset `abf779f7-009b-5d11-911f-0f031d6d7c40`, 72×52 | `areas/village/festival_gifts.png` |
+| Ícone da festa (bandeirinhas + presente) | `229f05cc-4ce7-4709-9625-7c16e5412770`; asset `a26d3ceb-2b94-5efc-8723-ca2cadaddc3e`, seed 405, 32×32 | `ui/icons/project_festival.png` |
+
+**Lenço da nossa turma (`community_ribbon`, slot `neck`)**: combinado a partir de recursos do projeto, como a seção 07 E permite. `tools/ribbon_recolor.gd` (Godot headless) copia o lenço vermelho (`overlays/red_scarf.png` + as 52 camadas por quadro em `overlays/red_scarf/<pose>/`, poses `sad/eat/lick_paw/sleep/head_tilt`) trocando só o matiz (vermelho → verde-água, `HUE` 0,46) e o ícone `outfit_red_scarf.png` → `outfit_community_ribbon.png`. A máscara e as âncoras são as do lenço vermelho, então `overlay_anchors.json` não mudou (mesmas poses visíveis/ocultas, mesmos quadros variantes). Conferência: `festival_test` (todos os quadros existem) e capturas `20_tiro_com_lenco`/`21_tiro_dormindo_com_lenco` nas três resoluções em `build/screenshots/etapa22_depois/`. Posições, footprint e ponto de uso em `rooms/village.json` (`community_festival`).
+

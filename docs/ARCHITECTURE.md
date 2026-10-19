@@ -36,7 +36,7 @@ Utilitários (`game/scripts/util/`): `BuildInfo` (canal prod/dev e arquivo de sa
   equipamentos e culturas que já tinham (`legacy_owned`/`legacy_unlocks` em `progression.json`).
 - Save v3: `unlocked_plots` registra expansão sequencial. Migração v2 preserva os canteiros existentes.
 - Plantações novas guardam `planted_at` e `ready_at`; plantações antigas calculam início pelo tempo em `crops.json`.
-- `GameState.buy_plot`, `plant` e `harvest` validam ações; colheita credita moedas configuradas em `crops.json`.
+- `GameState.buy_plot`, `plant` e `harvest` validam ações; colheita entrega itens e XP do snapshot do plantio; desde a etapa 09 `crops.json → coins` é 0 (moeda vem de vender/entregar), e plantios antigos ainda pagam o que valiam.
 - `WorldBalloon` (base de `PlotIndicator`, `StationIndicator`, `RouteIndicator`, `WalkIndicator` e do marcador de compra) desenha o balão do mundo sem capturar toque; `RoomView` encaminha toques por `hit_rect` e atualiza o visual.
 - Testes: `tests/farm_test.gd`, `progression_test.gd` (campanha simulada), `dev_tools_test.gd`
   (rodam headless e removem o SaveManager antes de alterar o estado; comandos no `CLAUDE.md`).
@@ -51,6 +51,10 @@ Utilitários (`game/scripts/util/`): `BuildInfo` (canal prod/dev e arquivo de sa
   No iOS, o Safari pode limpar dados de sites não usados por ~7 dias; o app instalado na tela
   inicial é bem mais estável. Futuro: exportar/importar save como código (backup manual).
 - **Migração:** ao mudar o formato, incremente `SAVE_VERSION` e converta em `_migrate()`.
+- **Revisão de economia (conteúdo):** mudanças só de balanceamento/ordem NÃO incrementam `SAVE_VERSION`: usam
+  `EconomyState.CURRENT_REVISION` + `EconomyMigration` (pura, idempotente, sem reset; usa `data/legacy_r0.json`). Trabalhos em
+  andamento guardam o contrato de quando começaram (`WorkJobs`); presentes automáticos que não cabem ficam em `economy.pending`.
+  Detalhes em `docs/PROGRESSION.md` (Economia R1 — etapa 02).
 - Atenção: o PWA instalado no iPhone e o Safari normal têm armazenamentos **separados**.
 
 ## Cenas

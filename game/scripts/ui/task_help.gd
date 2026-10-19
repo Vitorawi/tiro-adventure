@@ -50,6 +50,13 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 				return _base(Database.item_name(id), "Você já tem.", {"screen": "tasks"}, "Missões")
 			var source := best_source(id)
 			if source.is_empty():
+				# Peça sem receita nem rota (ex.: o parafuso): vem do prêmio do passo de missão que está aberto.
+				var giver := _reward_step(id)
+				if giver != "":
+					result = describe("quest", giver, 1, visited)
+					result["title"] = Database.item_name(id)
+					result["stock"] = "%d/%d" % [GameState.inventory.count(id), amount]
+					return result
 				return _base(Database.item_name(id), "Veja na Mochila.", {"screen": "bag"}, "Mochila")
 			var source_amount := missing if source.kind == "recipe" else 1
 			result = describe(source.kind, source.id, source_amount, visited)
@@ -60,7 +67,7 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			result = _recipe(id, amount)
 		"walk":
 			var walk := GameState.walk_def(id)
-			result = _base(str(walk.get("name", id)), "Passeie e pegue na Praça.", {"world": "park", "place": "walk"}, "Ir")
+			result = _base(str(walk.get("name", id)), "Passeie na Praça e guarde os achados.", {"world": "park", "place": "walk"}, "Ir")
 			var error := GameState.walk_error(id)
 			if error != "":
 				result.detail = error
@@ -72,7 +79,7 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 				var config: Dictionary = Database.progression.nature_sites[site]
 				var missing := maxi(0, int(config.levels[level - 1].xp) - int(GameState.progress.nature_xp.get(site, 0)))
 				result = _base(upgrade.name, "Busque em %s para ganhar XP." % config.name, {"world":"nature", "place":"place:" + site}, "Buscar")
-				result.detail = "Faltam %d XP · %s" % [missing, searches(ceili(float(missing) / int(config.xp_per_collection)))]
+				result.detail = "Faltam %d XP" % missing
 				result.needs = _requirements({"owned":[config.level_upgrades[0]]})
 				return result
 			result = _base(upgrade.name, "Junte o que falta e construa.", Places.goal_target({"type": "owned", "key": id}), "Ir")
@@ -104,6 +111,8 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			var wait := GameState.progress.cooldown_left("order:" + id, GameState.now())
 			if wait > 0:
 				result.detail = "Novo pedido em %s" % TimeText.short(wait)
+		"project":
+			result = _project(id)
 		"skill":
 			var skill: Dictionary = Database.progression.skills[id]
 			var info := GameState.skill_info(id)
@@ -160,6 +169,7 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 		"skill": return describe("skill", key, amount, trail)
 		"coins", "chapter": return describe(type, "", amount, trail)
 		"quest": return describe("quest", key, 1, trail)
+		"project": return describe("project", key, 1, trail)
 		"have", "deliver":
 			var result := describe("item", key, amount, trail)
 			if type == "deliver":
@@ -226,6 +236,24 @@ static func _recipe(id: String, amount: int) -> Dictionary:
 	return result
 
 
+## Consulta pura de uma obra: o que falta para começar ou o material restante da fase atual.
+static func _project(id: String) -> Dictionary:
+	var def := Database.project(id)
+	var result := _base(str(def.get("name", id)), "Entregue o material da obra.", def.get("go", {}), "Ir")
+	if def.is_empty():
+		return result
+	if GameState.projects.is_completed(id):
+		result.detail = "Obra pronta!"
+		return result
+	if not GameState.project_started(id):
+		result.detail = "Comece a obra."
+		result.needs = _requirements(def.get("requirements", {}))
+		result.needs.append(_need("coins", "", int(def.get("start_coins", 0))))
+		return result
+	_materials(result.needs, GameState.project_stage(id).get("remaining", {}))
+	return result
+
+
 static func _need(kind: String, id: String, amount: int) -> Dictionary:
 	var have := 0
 	var label := ""
@@ -251,6 +279,9 @@ static func _need(kind: String, id: String, amount: int) -> Dictionary:
 		"chapter":
 			have = GameState.progress.chapter_index()
 			label = _chapter_name(amount)
+		"project":
+			have = 1 if GameState.projects.is_completed(id) else 0
+			label = str(Database.project(id).get("name", id))
 		"stat":
 			have = GameState.progress.stat(id)
 			label = str(Database.progression.settings.stat_labels.get(id, id))
@@ -271,6 +302,9 @@ static func _requirements(requirements: Dictionary) -> Array[Dictionary]:
 	for id: String in requirements.get("quests", []):
 		if not GameState.progress.claimed_quests.has(id):
 			needs.append(_need("quest", id, 1))
+	for id: String in requirements.get("projects", []):
+		if not GameState.projects.is_completed(id):
+			needs.append(_need("project", id, 1))
 	if GameState.progress.chapter_index() < int(requirements.get("chapter", 1)):
 		needs.append(_need("chapter", "", int(requirements.chapter)))
 	for id: String in requirements.get("skills", {}):
@@ -325,6 +359,14 @@ static func best_source(item: String) -> Dictionary:
 	if item == "dog_food":
 		return {"kind": "care", "id": "feed"}
 	return best
+
+
+## Passo de missão aberto agora (história ou linha de personagem) que paga este item ("" = nenhum).
+static func _reward_step(item: String) -> String:
+	for quest_id: String in GameState.progress.active_steps().values():
+		if int(Database.quests[quest_id].get("rewards", {}).get("items", {}).get(item, 0)) > 0:
+			return quest_id
+	return ""
 
 
 static func _best_order() -> String:

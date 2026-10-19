@@ -30,6 +30,24 @@ func show_level(level: int, rewards: Dictionary) -> void:
 	show()
 
 
+## Obra comunitária concluída: o prêmio já entrou (itens sem espaço ficaram em "Presentes para guardar").
+func show_project(id: String) -> void:
+	var def := Database.project(id)
+	var card := _open({"title": "Obra pronta!", "ribbon": Palette.PRIMARY, "icon": UiKit.ui_icon(str(def.get("icon", "tab_park"))), "icon_px": 96,
+		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "big"})
+	card.add_text(str(def.get("name", "")), &"SectionLabel")
+	var chips := ProgressionUi.reward_chips(def.get("rewards", {}))
+	if int(def.get("rewards", {}).get("xp", 0)) > 0:
+		chips.add_child(UiKit.chip(UiKit.ui_icon("xp"), "+%d" % int(def.rewards.xp)))
+	# A coleção já entrou no prêmio: o cartão a mostra pelo nome (lembrança da obra, sem ocupar baú).
+	for collection: String in def.get("rewards", {}).get("collections", []):
+		chips.add_child(UiKit.chip(UiKit.ui_icon(str(Database.collections.get(collection, {}).get("icon", "item_accessory_set"))), str(Database.collections.get(collection, {}).get("name", collection))))
+	card.add_chips(chips)
+	card.add_text(str(def.get("interaction", {}).get("hint", "")), &"SmallLabel")
+	card.add_primary("Oba!", hide)
+	show()
+
+
 ## Subiu de vínculo com o Tiro: o presente já entrou; o botão só fecha.
 func show_bond(level: int, rewards: Dictionary) -> void:
 	var card := _open({"title": "Vínculo %d!" % level, "ribbon": Palette.ACCENT, "icon": UiKit.ui_icon("bond_heart"),

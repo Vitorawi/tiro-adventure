@@ -25,14 +25,14 @@ func _run() -> void:
 	_check(state.call("accessible_plots") == 0, "Sem canteiros antes de conhecer a vovó Bloblo")
 	state.call("reset")
 	state.get("progress").owned["farm"] = true
-	state.set("coins", 50)
+	state.set("coins", 100)
 	_check(state.get("unlocked_plots") == 4, "Jogo novo começa com quatro terrenos")
 	_check(state.call("plant", 4, "carrot") != "", "Não pode plantar em terreno bloqueado")
 	_check(state.call("buy_plot", 5) != "", "Não pode pular a ordem de compra")
 	_check(state.call("buy_plot", -1) != "", "Índice inválido deve ser recusado")
 	_check(state.call("buy_plot", 4) == "", "Primeira expansão deve funcionar")
-	_check(state.get("coins") == 10, "Compra deve descontar uma única vez")
-	_check(state.call("buy_plot", 4) != "" and state.get("coins") == 10, "Compra repetida não deve cobrar")
+	_check(state.get("coins") == 20, "Compra deve descontar uma única vez")
+	_check(state.call("buy_plot", 4) != "" and state.get("coins") == 20, "Compra repetida não deve cobrar")
 	_check(state.call("buy_plot", 5) != "" and state.get("unlocked_plots") == 5, "Saldo insuficiente não pode liberar terreno")
 	_check(state.call("plant", 4, "carrot") == "", "Terreno comprado deve aceitar plantação")
 	_check((state.call("harvest", 4) as Dictionary).is_empty(), "Não pode colher antes da hora")
@@ -48,8 +48,8 @@ func _run() -> void:
 	plots[4]["ready_at"] = now - 1.0
 	var before: int = state.get("coins")
 	_check(not (state.call("harvest", 4) as Dictionary).is_empty(), "Plantação offline pronta deve render colheita")
-	_check(state.get("coins") == before + 3, "Colheita deve conceder moedas")
-	_check((state.call("harvest", 4) as Dictionary).is_empty() and state.get("coins") == before + 3, "Colheita repetida não pode duplicar moedas")
+	_check(state.get("coins") == before, "Colheita não paga moeda (etapa 09: o dinheiro vem de vender)")
+	_check((state.call("harvest", 4) as Dictionary).is_empty() and state.get("coins") == before, "Colheita repetida não pode duplicar nada")
 	# Regar: acelera uma vez por plantio, por timestamps.
 	_check(state.call("water_error", 0) == "Canteiro vazio", "Não rega canteiro vazio")
 	state.call("plant", 0, "carrot")
@@ -81,7 +81,7 @@ func _run() -> void:
 		state.get("plots")[1]["ready_at"] = float(state.call("now")) - 1.0
 		var count_before: int = state.get("inventory").count(crop_id)
 		state.call("harvest", 1)
-		_check(state.get("inventory").count(crop_id) == count_before + 2, crop_id + " rende duas unidades")
+		_check(state.get("inventory").count(crop_id) == count_before + (4 if crop_id == "strawberry" else 6), crop_id + " rende o lote da etapa 10 (4 e 6)")
 		_check((state.call("harvest", 1) as Dictionary).is_empty(), crop_id + " não duplica colheita")
 	if "--screenshots" in OS.get_cmdline_user_args():
 		await _screenshots(state)

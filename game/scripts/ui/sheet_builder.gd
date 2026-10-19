@@ -87,6 +87,9 @@ static func item_detail(id: String) -> Control:
 		if price > 0:
 			top.add_child(UiKit.chip(UiKit.ui_icon("coin"), str(price)))
 		box.add_child(top)
+		var depot_row := _depot_row(id)
+		if depot_row != null:
+			box.add_child(depot_row)
 		if item.has("feed"):
 			box.add_child(UiKit.effect_chips(item.feed))
 			if GameState.inventory.count(id) > 0:
@@ -104,6 +107,25 @@ static func item_detail(id: String) -> Control:
 			var place := Database.place_with_panel("sell")
 			if place[0] != "" and Places.world_error(place[0]) == "":
 				box.add_child(UiKit.button("Vender", Places.go.bind({"world": place[0], "place": "market:sell"}), &"", UiKit.ui_icon("coin"))))
+
+
+## Onde o item fica guardado: ícone + nome do depósito + "usado/total" (só com o limite ligado).
+## Tocar leva ao lugar do depósito quando ele tem um (a geladeira).
+static func _depot_row(id: String) -> Control:
+	var depot := GameState.storage_of(id)
+	if depot == "" or not GameState.storage_active(depot):
+		return null
+	var data: Dictionary = Database.progression.storage[depot]
+	var building: Dictionary = Database.progression.upgrades.get(str(data.get("building", "")), {})
+	var used := GameState.storage_used(depot)
+	var capacity := GameState.storage_capacity(depot)
+	var row := UiKit.hbox(8)
+	row.name = "DepotRow"
+	row.add_child(UiKit.icon(UiKit.ui_icon(str(building.get("icon", "station_" + depot))), 32))
+	row.add_child(UiKit.fill_label("%s  %d/%d" % [GameState.storage_name(depot), used, capacity], &"SmallLabel", Palette.BAD if used >= capacity else Palette.INK_SOFT))
+	if str(data.get("place", "")) != "" and Places.world_error(str(data.get("world", "house"))) == "":
+		row.add_child(UiKit.secondary("Ver", Places.go.bind({"world": str(data.get("world", "house")), "place": str(data.place)}), null, true))
+	return row
 
 
 ## Fontes do item: [ícone] nome curto → destino. Ex.: Canteiros, Bancada, Volta pelo bairro.
@@ -203,6 +225,7 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 		box.add_child(slot_strip(slot_row, "Pegar tudo (%d)" % ready if ready > 0 else "", func() -> void:
 			var received := GameState.collect(station_id)
 			Events.items_gained.emit(received, 0, Vector2(-1.0, -1.0))))
+		box.add_child(mastery_row(station_id))
 
 		if data.get("kind", "") == "animal":
 			box.add_child(UiKit.label(data.get("recipe_label", "Receitas"), &"SectionLabel"))  # estações comuns: a lista fala por si
@@ -306,6 +329,68 @@ static func slot_flow() -> HFlowContainer:
 	return row
 
 
+## Medidor de maestria da estação (etapa 18): três selos (bronze/prata/ouro), lotes e receitas até o próximo
+## patamar, e "?" com a explicação. Só aparece para estação comprada e com maestria (`Mastery_<estação>`).
+static func mastery_row(station_id: String) -> Control:
+	var row := UiKit.hbox(6)
+	row.name = "Mastery_" + station_id
+	if not GameState.mastery_enabled(station_id) or not GameState.has_upgrade(station_id):
+		row.visible = false
+		return row
+	var level := GameState.mastery_level(station_id)
+	var seals := UiKit.hbox(2)
+	seals.name = "MasterySeals"
+	var colors := [Palette.SEAL_BRONZE, Palette.SEAL_SILVER, Palette.SEAL_GOLD]
+	for index in 3:
+		var seal := UiKit.icon(UiKit.ui_icon("item_ribbon"), 20)
+		seal.modulate = colors[index] if index < level else Color(1, 1, 1, 0.22)
+		seals.add_child(seal)
+	row.add_child(seals)
+	var text := UiKit.fill_label(mastery_text(station_id), &"SmallLabel")
+	text.name = "MasteryText"
+	row.add_child(text)
+	row.add_child(UiKit.square_button("?", func() -> void:
+		Events.sheet_requested.emit("Maestria: %s" % str(Database.stations[station_id].name), mastery_help(station_id)), null, 30))
+	return row
+
+
+## "5/12 lotes · 1/2 receitas": o que falta para o próximo patamar (total e variedade); no ouro, só o total.
+static func mastery_text(station_id: String) -> String:
+	var tiers := GameState.mastery_tiers()
+	var level := GameState.mastery_level(station_id)
+	var jobs := GameState.mastery_jobs(station_id)
+	if level >= tiers.size():
+		return "%s · %d lotes" % [str(tiers[level - 1].name), jobs]
+	var next: Dictionary = tiers[level]
+	var needed := GameState.mastery_kinds_needed(station_id, level)
+	var done := GameState.mastery_kinds_done(station_id)
+	return "%d/%d lotes · %d/%d %s" % [mini(jobs, int(next.jobs)), int(next.jobs), mini(done, needed), needed, "receita" if needed == 1 else "receitas"]
+
+
+## Ajuda do medidor: o total e a variedade de cada patamar, em separado, e o que o selo NÃO faz.
+static func mastery_help(station_id: String) -> Control:
+	var box := UiKit.vbox(8)
+	box.name = "MasteryHelp"
+	box.add_child(UiKit.label("Cada lote recolhido vale 1, mesmo que saiam 2 ou 3 itens. Repetir a coleta não conta.", &"SmallLabel"))
+	var tiers := GameState.mastery_tiers()
+	var level := GameState.mastery_level(station_id)
+	var colors := [Palette.SEAL_BRONZE, Palette.SEAL_SILVER, Palette.SEAL_GOLD]
+	for index in tiers.size():
+		var line := UiKit.hbox(6)
+		line.name = "Tier_%d" % (index + 1)
+		var seal := UiKit.icon(UiKit.ui_icon("item_ribbon"), 24)
+		seal.modulate = colors[index] if index < level else Color(1, 1, 1, 0.22)
+		line.add_child(seal)
+		var needed := GameState.mastery_kinds_needed(station_id, index)
+		line.add_child(UiKit.fill_label("%s: %d lotes e %d %s diferentes" % [str(tiers[index].name), int(tiers[index].jobs), needed, "receita" if needed == 1 else "receitas"], &"SmallLabel"))
+		line.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(tiers[index].rewards.get("coins", 0))))
+		box.add_child(line)
+	var kinds := GameState.mastery_kinds_done(station_id)
+	box.add_child(UiKit.label("Feitos aqui: %d lotes, %d receitas diferentes (de %d abertas)." % [GameState.mastery_jobs(station_id), kinds, GameState.mastery_catalog_size(station_id)], &"SmallLabel"))
+	box.add_child(UiKit.label("É só um reconhecimento: não deixa nada mais rápido nem rende mais.", &"SmallLabel"))
+	return box
+
+
 ## Fileira de espaços e, ao lado, o botão "Pegar tudo (N)" (só aparece com `collect_text`; o único principal do painel).
 static func slot_strip(slots: Control, collect_text: String = "", on_collect: Callable = Callable(), collect_name: String = "") -> Control:
 	var strip := UiKit.hbox(8)
@@ -407,7 +492,7 @@ static func _animal_missing(body: VBoxContainer, animal: Dictionary, error: Stri
 		body.add_child(UiKit.label(error, &"SmallLabel"))
 
 
-## Sementes para um canteiro vazio: [planta] nome · tempo · moedas · colheita · [Plantar].
+## Sementes para um canteiro vazio: [planta] nome · tempo · colheita · [Plantar] (moeda só se o dado ainda pagar).
 ## Bloqueada: apagada, com "?" que mostra como liberar.
 static func seed_picker(plot_index: int, focus: String = "") -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
@@ -423,10 +508,9 @@ static func seed_picker(plot_index: int, focus: String = "") -> Control:
 				continue  # estufa: só plantas delicadas; sítio: sem as que só crescem na estufa
 			var crop: Dictionary = Database.crops[crop_id]
 			var locked := GameState.content_error("crop", crop_id, crop)
-			var chips: Array[Control] = [
-				UiKit.chip(UiKit.ui_icon("timer"), format_time(int(crop["seconds"]))),
-				UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(crop.get("coins", 0))),
-			]
+			var chips: Array[Control] = [UiKit.chip(UiKit.ui_icon("timer"), format_time(int(round(GameState.crop_seconds(plot_index, crop_id)))))]
+			if int(crop.get("coins", 0)) > 0:  # R1: colher não paga moeda; só mostra se o dado ainda pagar
+				chips.append(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(crop.get("coins", 0))))
 			var harvest: Dictionary = crop.get("yield", {})
 			for item_id: String in harvest:
 				chips.append(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), UiKit.GOOD))
@@ -556,9 +640,10 @@ static func growing_plot(index: int) -> Control:
 		var remaining := maxi(0, int(ceil(float(target["ready_at"]) - GameState.now())))
 		line.add_child(UiKit.short_label("Pronta!" if ready else format_time(remaining), &"", UiKit.GOOD if ready else null))
 		info.add_child(line)
-		var reward := int(Database.crops[crop_id].get("coins", 0))
+		var reward := int(GameState.plot_job(index).get("coins", 0))  # o que valia ao plantar
 		var gains := UiKit.flow(4)
-		gains.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % reward))
+		if reward > 0:
+			gains.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % reward))
 		var harvest: Dictionary = Database.crops[crop_id].get("yield", {})
 		for item_id: String in harvest:
 			gains.add_child(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), UiKit.GOOD))

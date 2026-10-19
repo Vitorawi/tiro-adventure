@@ -29,15 +29,18 @@ func _run() -> void:
 	_check(state.call("storage_of", "wood") == "warehouse", "Material mora no armazém")
 	_check(state.call("storage_of", "treat_box") == "chest", "Produto mora no baú")
 	_check(state.call("storage_of", "dog_food") == "", "Ração não tem limite")
-	# Sem o depósito construído, não há limite.
-	_check(state.call("storage_error", {"carrot": 999}) == "", "Sem silo não há limite")
-	# Geladeira: limite 30 por padrão.
+	# Etapa 05: a horta já nasce com um cesto de 16; o silo construído sobe para 32.
+	_check(state.call("storage_capacity", "silo") == 16, "Cesto da horta provisório = 16")
+	_check(state.call("storage_error", {"carrot": 16}) == "", "Cabe exatamente no cesto")
+	_check(state.call("storage_error", {"carrot": 17}) != "", "Sem silo o cesto é finito")
+	_check(state.call("storage_name", "silo") == "Cesto da horta", "Antes do silo: Cesto da horta")
+	# Geladeira: limite 24 por padrão.
 	progress.owned["fridge"] = true
-	_check(state.call("storage_capacity", "fridge") == 30, "Geladeira base = 30")
+	_check(state.call("storage_capacity", "fridge") == 24, "Geladeira base = 24")
 	inventory.counts.clear()
-	inventory.add("egg", 25)
+	inventory.add("egg", 19)
 	inventory.add("dog_food", 50)
-	_check(state.call("storage_used", "fridge") == 25, "Ração não conta na geladeira")
+	_check(state.call("storage_used", "fridge") == 19, "Ração não conta na geladeira")
 	_check(state.call("storage_space", "fridge") == 5, "Sobram 5 vagas")
 	_check(state.call("storage_error", {"milk": 5}) == "", "Cabe exatamente")
 	_check(state.call("storage_error", {"milk": 6}) != "", "Não cabe")
@@ -45,7 +48,7 @@ func _run() -> void:
 	# Ampliação via melhoria comum.
 	_check(state.call("storage_next_upgrade", "fridge") == "fridge_2", "Próxima ampliação")
 	progress.owned["fridge_2"] = true
-	_check(state.call("storage_capacity", "fridge") == 50, "Geladeira nível 2 = 50")
+	_check(state.call("storage_capacity", "fridge") == 40, "Geladeira nível 2 = 40")
 	_check(state.call("storage_error", {"milk": 6}) == "", "Cabe depois de ampliar")
 	# Colheita: bloqueada se não couber, sem perder nada.
 	progress.owned["silo"] = true
@@ -63,7 +66,7 @@ func _run() -> void:
 	progress.owned["stove"] = true
 	var station: Object = state.call("station", "stove")
 	inventory.counts.clear()
-	inventory.add("egg", 50)
+	inventory.add("egg", 40)
 	progress.owned["fridge_2"] = true
 	station.queue.append({"recipe": "vegetable_soup", "ready_at": 0.0, "qty": 1})
 	var got: Dictionary = state.call("collect", "stove")

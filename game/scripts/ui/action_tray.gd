@@ -232,6 +232,16 @@ func _build_items() -> Control:
 			current_row = _row()
 			rows.add_child(current_row)
 		current_row.add_child(_make_item(i))
+	# Muitas receitas (fogão com 10): mais de duas linhas rolam, para a bandeja caber na sala e abaixo do HUD.
+	if pick and count > per_row * 2:
+		var scroll := ScrollContainer.new()
+		scroll.name = "Scroll"
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		scroll.custom_minimum_size = Vector2(0.0, ITEM.y * 1.9 + 8.0)
+		scroll.add_child(rows)
+		rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		return scroll
 	return holder
 
 

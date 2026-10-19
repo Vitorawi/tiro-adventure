@@ -55,6 +55,7 @@ func _dev_mode() -> void:
 	state.call("reset")
 	state.call("dev_add_coins", 1000)
 	_check(state.get("coins") == int(database.get("start").coins) + 1000, "Deve somar moedas")
+	state.set("unlimited_storage", true)  # dev_add_items enche a pilha de materiais (16); o limite tem teste próprio
 	state.call("dev_add_items", 5, "material")
 	_check(state.get("inventory").count("plank") == 5 and state.get("inventory").count("carrot") == 0, "Deve somar só a categoria pedida")
 
@@ -81,7 +82,7 @@ func _dev_mode() -> void:
 	state.call("dev_advance_time", 3600.0)
 	_check(state.call("plot_status", 1) == "ready", "Avançar 1 h faz a cenoura (1 min) amadurecer")
 	var hunger_after: float = state.get("dog").get_need("hunger", state.call("now"))
-	_check(hunger_after < hunger_before - 5.0, "Avançar o tempo deve baixar a fome")
+	_check(hunger_after < hunger_before - 3.0, "Avançar o tempo deve baixar a fome (ausência protegida: metade da taxa)")
 	state.call("dev_add_coins", 40)
 	state.call("buy_upgrade", "forest_open")
 	_check(state.call("start_activity", "lane") == "", "Deve começar rota no Bosque desbloqueado")

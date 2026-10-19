@@ -2,12 +2,123 @@
   "daily": {
     "count": 3,
     "missions": {
+      "care": {
+        "name": "Cuide do Tiro",
+        "description": "Comida, banho, brincadeira ou carinho, quando ele precisar.",
+        "goal": {
+          "key": "care_useful",
+          "target": 1,
+          "targets": {
+            "start": 1,
+            "middle": 2,
+            "community": 2
+          }
+        },
+        "rewards": {
+          "coins": 5
+        },
+        "player_xp": 4
+      },
+      "harvest": {
+        "name": "Colha no sítio",
+        "description": "Colha os canteiros do sítio.",
+        "goal": {
+          "key": "harvest",
+          "target": 2,
+          "targets": {
+            "start": 2,
+            "middle": 4,
+            "community": 4
+          }
+        },
+        "rewards": {
+          "coins": 6
+        },
+        "player_xp": 5
+      },
+      "cook": {
+        "name": "Prepare lotes",
+        "description": "Faça e pegue lotes nas estações.",
+        "goal": {
+          "key": "production_jobs",
+          "target": 1,
+          "targets": {
+            "start": 1,
+            "middle": 2,
+            "community": 3
+          }
+        },
+        "rewards": {
+          "coins": 8
+        },
+        "player_xp": 6,
+        "requirements": {
+          "owned": [
+            "stove"
+          ]
+        }
+      },
+      "order": {
+        "name": "Encomenda de vizinho",
+        "description": "Entregue encomendas na feira.",
+        "goal": {
+          "key": "orders",
+          "target": 1,
+          "targets": {
+            "start": 1,
+            "middle": 1,
+            "community": 2
+          }
+        },
+        "rewards": {
+          "coins": 8
+        },
+        "player_xp": 6,
+        "requirements": {
+          "quests": [
+            "main_2_order"
+          ]
+        }
+      },
+      "tiro_walk": {
+        "name": "Passeie com o Tiro",
+        "description": "Leve o Tiro para passear na Praça.",
+        "goal": {
+          "key": "walk",
+          "target": 1,
+          "targets": {
+            "start": 1,
+            "middle": 1,
+            "community": 1
+          }
+        },
+        "rewards": {
+          "coins": 5
+        },
+        "player_xp": 5,
+        "requirements": {
+          "quests": [
+            "nina_walk"
+          ]
+        }
+      }
+    },
+    "legacy": {
       "wishes": {
         "name": "Realize 2 desejos",
         "description": "Abra a aba Desejos e atenda o Tiro.",
-        "goal": { "key": "wish", "target": 2 },
-        "rewards": { "coins": 15 },
-        "requirements": { "quests": ["lais_bed"] }
+        "goal": {
+          "key": "wish",
+          "target": 2
+        },
+        "rewards": {
+          "coins": 15
+        },
+        "requirements": {
+          "quests": [
+            "lais_bed"
+          ]
+        }
       },
       "feed": {
         "name": "Alimente o Tiro",
@@ -200,16 +311,34 @@
       "tiro_walk": {
         "name": "Passeie com o Tiro",
         "description": "Leve o Tiro para passear na Praça.",
-        "goal": {"key": "walk", "target": 1},
-        "rewards": {"coins": 12},
-        "requirements": {"quests": ["nina_walk"]}
+        "goal": {
+          "key": "walk",
+          "target": 1
+        },
+        "rewards": {
+          "coins": 12
+        },
+        "requirements": {
+          "quests": [
+            "nina_walk"
+          ]
+        }
       },
       "walk_items": {
         "name": "Ache 6 coisas passeando",
         "description": "Materiais e achados contam.",
-        "goal": {"key": "walk_item", "target": 6},
-        "rewards": {"coins": 15},
-        "requirements": {"quests": ["nina_walk"]}
+        "goal": {
+          "key": "walk_item",
+          "target": 6
+        },
+        "rewards": {
+          "coins": 15
+        },
+        "requirements": {
+          "quests": [
+            "nina_walk"
+          ]
+        }
       },
       "dig": {
         "name": "Cave 2 achados",
@@ -264,19 +393,148 @@
   "weekly": {
     "count": 2,
     "missions": {
+      "care_week": {
+        "name": "Semana de cuidado",
+        "description": "Cuide do Tiro nos momentos certos.",
+        "goal": {
+          "key": "care_useful",
+          "target": 5,
+          "targets": {
+            "start": 5,
+            "middle": 8,
+            "community": 10
+          }
+        },
+        "rewards": {
+          "coins": 20,
+          "collections": [
+            "clean_bow",
+            "heart_collar",
+            "walker_bandana"
+          ]
+        },
+        "player_xp": 15
+      },
+      "big_harvest": {
+        "name": "Grande colheita",
+        "description": "Colha os canteiros do sítio.",
+        "goal": {
+          "key": "harvest",
+          "target": 10,
+          "targets": {
+            "start": 10,
+            "middle": 16,
+            "community": 20
+          }
+        },
+        "rewards": {
+          "coins": 25,
+          "collections": [
+            "garden_hat",
+            "trail_bandana"
+          ]
+        },
+        "player_xp": 20
+      },
+      "chef_week": {
+        "name": "Chef da semana",
+        "description": "Faça e pegue lotes nas estações.",
+        "goal": {
+          "key": "production_jobs",
+          "target": 6,
+          "targets": {
+            "start": 6,
+            "middle": 10,
+            "community": 14
+          }
+        },
+        "rewards": {
+          "coins": 30,
+          "collections": [
+            "cook_apron"
+          ]
+        },
+        "player_xp": 20,
+        "requirements": {
+          "owned": [
+            "stove"
+          ]
+        }
+      },
+      "orders_week": {
+        "name": "Freguês fiel",
+        "description": "Entregue encomendas na feira.",
+        "goal": {
+          "key": "orders",
+          "target": 3,
+          "targets": {
+            "start": 3,
+            "middle": 5,
+            "community": 6
+          }
+        },
+        "rewards": {
+          "coins": 30,
+          "items": {
+            "bolt": 1
+          },
+          "collections": [
+            "merchant_apron",
+            "miner_helmet"
+          ]
+        },
+        "player_xp": 20,
+        "requirements": {
+          "quests": [
+            "main_2_order"
+          ]
+        }
+      }
+    },
+    "legacy": {
       "walker_week": {
         "name": "Passeador",
         "description": "Faça 10 passeios nesta semana.",
-        "goal": {"key": "walk", "target": 10},
-        "rewards": {"coins": 90, "items": {"ribbon": 3}, "collections": ["walker_bandana"]},
-        "requirements": {"quests": ["nina_walk"]}
+        "goal": {
+          "key": "walk",
+          "target": 10
+        },
+        "rewards": {
+          "coins": 90,
+          "items": {
+            "ribbon": 3
+          },
+          "collections": [
+            "walker_bandana"
+          ]
+        },
+        "requirements": {
+          "quests": [
+            "nina_walk"
+          ]
+        }
       },
       "best_friend": {
         "name": "Melhor amigo",
         "description": "Realize 12 desejos do Tiro.",
-        "goal": { "key": "wish", "target": 12 },
-        "rewards": { "coins": 90, "items": { "bolt": 1 }, "collections": ["heart_collar"] },
-        "requirements": { "quests": ["lais_bed"] }
+        "goal": {
+          "key": "wish",
+          "target": 12
+        },
+        "rewards": {
+          "coins": 90,
+          "items": {
+            "bolt": 1
+          },
+          "collections": [
+            "heart_collar"
+          ]
+        },
+        "requirements": {
+          "quests": [
+            "lais_bed"
+          ]
+        }
       },
       "clean_week": {
         "name": "Semana cheirosa",
@@ -286,7 +544,9 @@
           "target": 7
         },
         "rewards": {
-          "items": { "bolt": 1 },
+          "items": {
+            "bolt": 1
+          },
           "coins": 60,
           "collections": [
             "clean_bow"
@@ -301,7 +561,9 @@
           "target": 30
         },
         "rewards": {
-          "items": { "bolt": 1 },
+          "items": {
+            "bolt": 1
+          },
           "coins": 100,
           "collections": [
             "garden_hat"
@@ -316,7 +578,9 @@
           "target": 15
         },
         "rewards": {
-          "items": { "bolt": 1 },
+          "items": {
+            "bolt": 1
+          },
           "coins": 90,
           "collections": [
             "cook_apron"
@@ -336,7 +600,9 @@
           "target": 40
         },
         "rewards": {
-          "items": { "bolt": 1 },
+          "items": {
+            "bolt": 1
+          },
           "coins": 90,
           "collections": [
             "merchant_apron"
@@ -356,7 +622,9 @@
           "target": 7
         },
         "rewards": {
-          "items": { "bolt": 1 },
+          "items": {
+            "bolt": 1
+          },
           "coins": 100,
           "collections": [
             "trail_bandana"
@@ -376,7 +644,9 @@
           "target": 5
         },
         "rewards": {
-          "items": { "bolt": 1 },
+          "items": {
+            "bolt": 1
+          },
           "coins": 120,
           "collections": [
             "miner_helmet"
@@ -396,7 +666,9 @@
           "target": 5
         },
         "rewards": {
-          "items": { "bolt": 1 },
+          "items": {
+            "bolt": 1
+          },
           "coins": 100
         },
         "requirements": {

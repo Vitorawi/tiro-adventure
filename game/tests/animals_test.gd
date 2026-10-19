@@ -50,11 +50,11 @@ func _run() -> void:
 	var construction_coins: int = state.get("coins")
 	var buy_error: String = state.call("buy_upgrade", "chicken_coop")
 	check(buy_error == "", "Comprar galinheiro: " + buy_error)
-	check(state.get("coins") == construction_coins - 180 and state.get("inventory").count("plank") == planks - 4, "Cobra moedas e tábuas exatamente uma vez")
+	check(state.get("coins") == construction_coins - 260 and state.get("inventory").count("plank") == planks - 4, "Cobra moedas e tábuas exatamente uma vez")
 	check(not farm.find_child("Region_animals_area", true, false).visible, "Compra abre a área")
 	check(state.call("animal_count", "chicken_coop") == 1, "Abrigo inclui primeira galinha de presente")
 	check(farm.find_child("hen_1", true, false).visible, "Presente aparece no mapa")
-	check(state.call("buy_animal", "chicken_brown") != "", "Ruiva espera primeira coleta")
+	check(state.call("buy_animal", "chicken_brown") != "", "Ruiva espera 8 ovos")
 	var purchased: Dictionary = state.call("to_dict").duplicate(true)
 	check(state.call("buy_upgrade", "chicken_coop") != "", "Não recompra abrigo")
 	check(state.call("to_dict") == purchased, "Recompra não duplica presente nem cobra")
@@ -67,7 +67,7 @@ func _run() -> void:
 	await process_frame
 	var buy_button: Button
 	for button: Node in animal_shop.find_children("*", "Button", true, false):
-		if button.text == "Comprar · 60 moedas":
+		if button.text == "Comprar · 120 moedas":
 			buy_button = button
 	check(buy_button != null and not buy_button.disabled, "Loja permite comprar animal disponível")
 	check(state.call("animal_count", "chicken_coop") == 1, "Loja preserva animal presente")
@@ -79,7 +79,7 @@ func _run() -> void:
 	check(farm.find_child("Region_greenhouse_area", true, false).visible, "Corredor não libera outras expansões")
 	check(state.call("plant", 0, "corn") == "", "Plantar alimento das galinhas")
 	state.call("dev_finish_timers")
-	check(state.call("harvest", 0).get("corn", 0) == 3, "Milho rende três unidades")
+	check(state.call("harvest", 0).get("corn", 0) == 6, "Milho rende seis unidades")
 	var corn: int = state.get("inventory").count("corn")
 	check(state.call("cook_error", "eggs") == "", "UI e ação podem alimentar")
 	check(state.call("cook", "eggs") == "", "Alimentar galinhas")
@@ -91,13 +91,17 @@ func _run() -> void:
 	state.call("from_dict", saved)
 	check(state.call("station", "chicken_coop").queue.size() == 1, "Alimentação sobrevive ao save")
 	check(state.call("buy_animal", "chicken_brown") != "", "Esperar timer não libera variedade antes de recolher")
-	state.call("dev_advance_time", 180)
+	state.call("dev_advance_time", 900)
 	check(state.call("collect", "chicken_coop").get("egg", 0) == 2, "Ovos terminam offline")
 	check((state.call("collect", "chicken_coop") as Dictionary).is_empty(), "Não duplica coleta")
-	check(state.call("buy_animal", "chicken_brown") == "", "Primeira coleta libera ruiva")
+	check(state.call("buy_animal", "chicken_brown") != "", "Dois ovos ainda não liberam a ruiva (precisa de 8)")
+	_produce("chicken_coop", "eggs", 900, "egg", 8)
+	check(state.call("buy_animal", "chicken_brown") == "", "Oito ovos liberam ruiva")
 	check(state.call("cook", "eggs") == "", "Alimentar duas galinhas")
 	state.call("dev_finish_timers")
 	check(state.call("collect", "chicken_coop").get("egg", 0) == 4, "Quantidade acompanha animais alimentados")
+	check(state.call("buy_animal", "chicken_black") != "", "Preta espera 24 ovos")
+	_produce("chicken_coop", "eggs", 900, "egg", 24)
 	check(state.call("buy_animal", "chicken_black") == "", "Terceira variedade")
 	var full_save: Dictionary = state.call("to_dict").duplicate(true)
 	check(state.call("buy_animal", "chicken_white") != "", "Respeita três vagas")
@@ -106,11 +110,12 @@ func _run() -> void:
 	check(state.call("animal_count", "cow_barn") == 1, "Curral inclui vaca presente")
 	check(state.call("buy_animal", "cow_brown") != "", "Caramelo espera leite")
 	check(state.call("cook", "milk") == "", "Alimentar vacas")
-	state.call("dev_advance_time", 300)
+	state.call("dev_advance_time", 1800)
 	check(state.call("collect", "cow_barn").get("milk", 0) == 2, "Vacas dão leite")
+	check(state.call("buy_animal", "cow_brown") != "", "Dois leites ainda não liberam a caramelo (precisa de 8)")
 	check(state.call("buy_upgrade", "mill") == "", "Comprar moinho")
 	check(state.call("cook", "flour") == "", "Moer trigo")
-	state.call("dev_advance_time", 120)
+	state.call("dev_advance_time", 300)
 	check(state.call("collect", "mill").get("flour", 0) == 2, "Moinho dá farinha")
 	check(state.call("has_upgrade", "workbench"), "Bancada precede abrigos")
 	farm.call("_on_object_tapped", "place:mill")
@@ -125,16 +130,19 @@ func _run() -> void:
 	var milk: int = state.get("inventory").count("milk")
 	check(state.call("cook", "cheese") == "", "Fazer queijo")
 	check(state.get("inventory").count("milk") == milk - 2, "Queijo consome leite")
-	state.call("dev_advance_time", 240)
+	state.call("dev_advance_time", 1200)
 	check(state.call("collect", "dairy").get("cheese", 0) == 1, "Queijaria dá queijo")
 	check(farm.find_child("cow_1", true, false).self_modulate.a == 1, "Vacas aparecem no mapa")
 	check(farm.find_child("hen_1", true, false).self_modulate.a == 1, "Galinhas aparecem no mapa")
 	check(farm.find_child("hen_3", true, false).visible, "Três galinhas visíveis")
 	check(farm.find_child("hen_2", true, false).texture.resource_path.ends_with("chicken_brown.png"), "Variedade correta no mapa")
+	_produce("cow_barn", "milk", 1800, "milk", 8)
 	check(state.call("buy_animal", "cow_brown") == "", "Comprar vaca caramelo")
 	check(state.call("cook", "milk") == "", "Alimentar duas vacas")
 	state.call("dev_finish_timers")
-	check(state.call("collect", "cow_barn").get("milk", 0) == 4, "Mais leite libera malhada")
+	check(state.call("collect", "cow_barn").get("milk", 0) == 4, "Duas vacas dão 4 leites")
+	check(state.call("buy_animal", "cow_spotted") != "", "Malhada espera 24 leites")
+	_produce("cow_barn", "milk", 1800, "milk", 24)
 	check(state.call("buy_animal", "cow_spotted") == "", "Comprar vaca malhada")
 	var herd_save: Dictionary = state.call("to_dict").duplicate(true)
 	state.call("from_dict", JSON.parse_string(JSON.stringify(herd_save)))
@@ -193,6 +201,18 @@ func _run() -> void:
 	await process_frame
 	print("ANIMALS TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
+
+
+## Produz lotes reais (alimentar, esperar, recolher) até o contador `produce:<item>` chegar à meta.
+func _produce(station: String, recipe: String, seconds: int, item: String, target: int) -> void:
+	var guard := 0
+	while state.get("progress").stat("produce:" + item) < target and guard < 20:
+		guard += 1
+		state.call("dev_add_items", 20)
+		if state.call("cook", recipe) != "":
+			break
+		state.call("dev_advance_time", seconds)
+		state.call("collect", station)
 
 
 func _shot(file_name: String) -> void:

@@ -36,6 +36,8 @@ func _run() -> void:
 	state.call("dev_complete_quest", "bloblo_sell_surplus")
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_dig", "Depois da colheita a vovó manda cavar")
 	state.call("dev_complete_quest", "bloblo_dig")
+	check(state.get("progress").current_line_quest("bloblo") == "bloblo_silo", "Depois do faro a vovó manda arrumar o silo (ordem 27)")
+	state.call("dev_complete_quest", "bloblo_silo")
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_more_crops", "Passo da vovó é o atual")
 	check(state.get("progress").current_main_quest() == "lais_first_crops", "Conhecer a vovó já avança a história junto")
 	check(state.get("progress").claimed_quests.has("lais_meet_bloblo") and not state.call("quest_unlocked", "lais_meet_bloblo"), "Cruzamento não exige outro prêmio")
@@ -122,7 +124,7 @@ func _routines_check() -> void:
 	# Capítulo 3: diárias abrem com 3 missões; semanais só no 4.
 	state.call("dev_jump_to_chapter", 2)
 	check(state.get("progress").chapter_index() == 3, "Está no capítulo 3")
-	check(state.call("routines_unlocked", "daily") and (state.call("routine_ids", "daily") as Array).size() == 3, "Diárias abrem no capítulo 3 com 3 missões")
+	check(state.call("routines_unlocked", "daily") and (state.call("routine_ids", "daily") as Array).size() == 2, "Diárias abrem no capítulo 3 só com as 2 acessíveis (sem tarefa impossível)")
 	check(not state.call("routines_unlocked", "weekly"), "Semanais ainda fechadas no capítulo 3")
 	state.get("progress").stats["harvest"] = 7
 	state.call("dev_jump_to_chapter", 4)
@@ -137,7 +139,7 @@ func _routines_check() -> void:
 		var goal: Dictionary = state.call("routine_data", kind, id).goal
 		check(state.call("routine_value", kind, id) == 0, kind + ": progresso começa do zero")
 		check(state.call("claim_routine", kind, id) != "", kind + ": não recebe sem cumprir")
-		progress.stats[goal.key] = progress.stat(goal.key) + int(goal.target)
+		progress.stats[goal.key] = progress.stat(goal.key) + int(state.call("routine_target", kind, id))
 		check(state.call("routine_error", kind, id) == "", kind + ": pronta ao cumprir")
 		state.set("xp", 0)  # evita presente de nível no meio da conta
 		var coins: int = state.get("coins")

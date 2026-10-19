@@ -30,6 +30,37 @@ Invoke-Test "station_tray_test" @()
 Invoke-Test "pet_care_test" @()
 Invoke-Test "lists_test" @()
 Invoke-Test "market_test" @()
+Invoke-Test "ready_badges_test" @()
 Invoke-Test "texts_test" @()
 Invoke-Test "festa_test" @()
+Invoke-Test "economy_sim_test" @()
+Invoke-Test "economy_transactions_test" @()
+Invoke-Test "silo_test" @()
+Invoke-Test "fridge_test" @()
+Invoke-Test "warehouse_test" @()
+Invoke-Test "chest_test" @()
+Invoke-Test "coins_test" @()
+Invoke-Test "garden_test" @()
+Invoke-Test "nature_routes_test" @()
+Invoke-Test "queue_test" @()
+Invoke-Test "expansion_test" @()
+Invoke-Test "projects_test" @()
+Invoke-Test "bench_test" @()
+Invoke-Test "garden_picnic_test" @()
+Invoke-Test "journey_test" @()
+Invoke-Test "animals_chain_test" @()
+Invoke-Test "customers_test" @()
+Invoke-Test "bond_test" @()
+Invoke-Test "products_test" @()
+Invoke-Test "pending_gifts_test" @()
+Invoke-Test "absence_test" @()
+Invoke-Test "walk_return_test" @()
+Invoke-Test "walk_return_ui_test" @()
 Invoke-Test "dev_tools_test" @("--", "--prod")
+# Auditor de economia (Python): dados reais passam, cópia quebrada falha
+if (Get-Command py -ErrorAction SilentlyContinue) {
+  py -X utf8 -I tools/economy_audit_selftest.py
+  if ($LASTEXITCODE -ne 0) { throw "economy_audit_selftest falhou" }
+  py -X utf8 -I tools/economy_compare_selftest.py
+  if ($LASTEXITCODE -ne 0) { throw "economy_compare_selftest falhou" }
+}

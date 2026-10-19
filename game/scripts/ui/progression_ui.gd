@@ -120,12 +120,18 @@ static func upgrade_card(box: VBoxContainer, id: String) -> void:
 		cost.add_child(UiKit.chip(UiKit.ui_icon("coin"), "Grátis", UiKit.GOOD))
 	else:
 		cost.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [mini(GameState.coins, int(data.cost)), int(data.cost)], UiKit.GOOD if GameState.coins >= int(data.cost) else UiKit.BAD))
+	var space := GameState.storage_upgrade_preview(id)
+	if not space.is_empty():
+		var gain := UiKit.chip(UiKit.ui_icon(str(data.get("icon", "station_" + str(space.depot)))), "%d → %d" % [int(space.from), int(space.to)])
+		gain.name = "SpaceChip"
+		cost.add_child(gain)
 	card.add_child(cost)
 	_amounts(card, data.get("materials", {}))
 	if lock != "":
 		card.add_child(UiKit.lock_hint(lock, TaskHelp.open.bind("upgrade", id)))
 		return
-	_action(card, "Comprar", func() -> String: return GameState.buy_upgrade(id), GameState.upgrade_error(id), "%s é seu!" % data.name, TaskHelp.open.bind("upgrade", id))
+	var free: bool = int(data.cost) <= 0 and (data.get("materials", {}) as Dictionary).is_empty()
+	_action(card, "Construir" if free else "Comprar", func() -> String: return GameState.buy_upgrade(id), GameState.upgrade_error(id), "%s é seu!" % data.name, TaskHelp.open.bind("upgrade", id))
 
 
 # --- Vila: vender e encomendas --------------------------------------------------------
@@ -232,11 +238,13 @@ static func walks_panel() -> Control:
 			_walk_card(box, id, Database.walks.walks[id], true))
 
 
-## Espaço do passeio em bolinha: vazio, andando (tempo no anel) ou pronto; ao lado, o postal e a ação.
+## Espaço do passeio em bolinha: vazio, andando (tempo no anel) ou bagagem esperando; ao lado, o postal e a ação.
 static func _walk_slot() -> Control:
 	var strip := UiKit.hbox(10)
 	strip.mouse_filter = Control.MOUSE_FILTER_PASS
-	if not GameState.walking():
+	if GameState.walk_ready():
+		return _baggage_slot(strip)
+	if not GameState.walk_state.active():
 		var empty := UiKit.slot_dot(SlotDot.EMPTY)
 		empty.name = "WalkSlot"
 		strip.add_child(empty)
@@ -245,11 +253,9 @@ static func _walk_slot() -> Control:
 		strip.add_child(hint)
 		return strip
 	var entry: Dictionary = GameState.walk_state.current
-	var ready := GameState.walk_ready()
 	var remaining := GameState.walk_remaining()
 	var seconds := maxf(1.0, float(entry.ready_at) - float(entry.started_at))
-	var dot := UiKit.slot_dot(SlotDot.READY if ready else SlotDot.BUSY, UiKit.ui_icon("action_walk"), clampf(1.0 - remaining / seconds, 0.0, 1.0),
-			"Pronto!" if ready else TimeText.short(remaining), UiKit.GOOD if ready else null)
+	var dot := UiKit.slot_dot(SlotDot.BUSY, UiKit.ui_icon("action_walk"), clampf(1.0 - remaining / seconds, 0.0, 1.0), TimeText.short(remaining))
 	dot.name = "WalkSlot"
 	strip.add_child(dot)
 	var info := UiKit.vbox(6)
@@ -259,31 +265,62 @@ static func _walk_slot() -> Control:
 	heading.add_child(_postcard(GameState.walk_postcard(str(entry.id)), Vector2(64, 40)))
 	heading.add_child(UiKit.fill_label(str(GameState.walk_def(str(entry.id)).get("name", "")), &"SectionLabel"))
 	info.add_child(heading)
-	if ready:
-		var collect := UiKit.primary("Pegar", func() -> void:
-			var error := GameState.collect_walk_error()
-			if error != "":
-				Events.toast_requested.emit(error)
-			else:
-				Events.sheet_close_requested.emit()
-				GameState.collect_walk())
-		collect.name = "CollectWalk"
-		collect.disabled = GameState.collect_walk_error() != ""
-		info.add_child(collect)
-		if collect.disabled:
-			info.add_child(UiKit.label(GameState.collect_walk_error(), &"SmallLabel", UiKit.BAD))
+	var armed := GameState.now() < _cancel_armed_until
+	var call_back := UiKit.secondary("Toque de novo para chamar" if armed else "Chamar de volta", func() -> void:
+		if GameState.now() < _cancel_armed_until:
+			_cancel_armed_until = 0.0
+			GameState.cancel_walk()
+			Events.toast_requested.emit("Tiro voltou para casa")
+		else:
+			_cancel_armed_until = GameState.now() + 4.0
+			Events.toast_requested.emit("Sem prêmio se voltar agora. Toque de novo."), null, true)
+	call_back.name = "CancelWalk"
+	info.add_child(call_back)
+	strip.add_child(info)
+	return strip
+
+
+## O Tiro já voltou: a bagagem espera. Guardar o que cabe é uma ação à parte; o que sobra continua aqui.
+static func _baggage_slot(strip: HBoxContainer) -> Control:
+	var view := GameState.walk_result_view()
+	var dot := UiKit.slot_dot(SlotDot.READY, UiKit.ui_icon("action_walk"), 1.0, "Voltou!", UiKit.GOOD)
+	dot.name = "WalkSlot"
+	strip.add_child(dot)
+	var info := UiKit.vbox(6)
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var heading := UiKit.hbox(8)
+	heading.add_child(_postcard(str(view.get("postcard", "")), Vector2(64, 40)))
+	heading.add_child(UiKit.fill_label(str(view.get("name", "")), &"SectionLabel"))
+	info.add_child(heading)
+	var chips := UiKit.flow(4)
+	chips.name = "BaggageChips"
+	var left: Dictionary = GameState.walk_state.baggage_left()
+	for item_id: String in left:
+		var chip := UiKit.chip(Database.item_icon(item_id), "×%d" % int(left[item_id]))
+		chip.name = "Baggage_" + item_id
+		chips.add_child(chip)
+	info.add_child(chips)
+	var error := GameState.walk_baggage_error()
+	if error == "":
+		var store := UiKit.primary("Guardar achados", func() -> void: GameState.claim_walk_baggage())
+		store.name = "CollectWalk"
+		info.add_child(store)
+		var hint := GameState.walk_baggage_hint()
+		if hint != "":
+			info.add_child(UiKit.label(hint, &"SmallLabel", Palette.INK_SOFT))
 	else:
-		var armed := GameState.now() < _cancel_armed_until
-		var call_back := UiKit.secondary("Toque de novo para chamar" if armed else "Chamar de volta", func() -> void:
-			if GameState.now() < _cancel_armed_until:
-				_cancel_armed_until = 0.0
-				GameState.cancel_walk()
-				Events.toast_requested.emit("Tiro voltou para casa")
-			else:
-				_cancel_armed_until = GameState.now() + 4.0
-				Events.toast_requested.emit("Sem prêmio se voltar agora. Toque de novo."), null, true)
-		call_back.name = "CancelWalk"
-		info.add_child(call_back)
+		var lock := UiKit.lock_hint(error)
+		lock.name = "BaggageBlocked"
+		info.add_child(lock)
+		var depot := GameState.walk_baggage_depot()
+		if depot != "":
+			var data: Dictionary = Database.progression.storage[depot]
+			var go := UiKit.secondary("Abrir " + GameState.storage_name(depot), func() -> void:
+				Events.sheet_close_requested.emit()
+				Events.world_requested.emit(str(data.get("world", "house")), str(data.get("place", ""))), null, true)
+			go.name = "GoDepot"
+			info.add_child(go)
 	strip.add_child(info)
 	return strip
 
@@ -757,7 +794,7 @@ static func routine_card(box: VBoxContainer, kind: String, id: String, primary: 
 	if GameState.routine_claimed(kind, id): return
 	var data := GameState.routine_data(kind, id)
 	var goal: Dictionary = data.goal
-	var target := int(goal.get("target", 1))
+	var target := GameState.routine_target(kind, id)
 	var value := mini(GameState.routine_value(kind, id), target)
 	var ready := GameState.routine_error(kind, id) == ""
 	var action := func() -> void:
@@ -788,6 +825,8 @@ static func routine_card(box: VBoxContainer, kind: String, id: String, primary: 
 	var info := UiKit.vbox(0)
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var title := UiKit.hbox(2)
+	if ready:
+		title.add_child(UiKit.ready_dot())
 	var name_label := UiKit.fill_label(str(data.name))
 	name_label.add_theme_font_size_override("font_size", 18)
 	title.add_child(name_label)
@@ -875,6 +914,8 @@ static func goal_icon(goal: Dictionary) -> Texture2D:
 			return UiKit.ui_icon("tab_tasks")
 		"quest":
 			return npc_portrait(str(Database.quests.get(key, {}).get("npc", "")))
+		"project":
+			return UiKit.ui_icon(str(Database.project(key).get("icon", "tab_map")))
 	return stat_icon(key)
 
 
@@ -894,7 +935,7 @@ static func stat_icon(key: String) -> Texture2D:
 		return npc_portrait(arg)
 	if prefix == "open":
 		return UiKit.ui_icon(Database.worlds[arg].get("icon", "tab_map") if Database.worlds.has(arg) else "tab_" + arg)
-	var icons := {"feed": "need_hunger", "bathe": "action_bathe", "play": "action_play", "pet": "action_pet", "wish": "tab_wishes", "harvest": "tab_farm", "water": "action_water", "produce": "item_carrot_snack", "trade": "coin", "sold": "coin", "orders": "item_treat_box", "order": "item_treat_box", "explore": "tab_map", "quests": "tab_tasks", "build": "item_plank"}
+	var icons := {"feed": "need_hunger", "bathe": "action_bathe", "play": "action_play", "pet": "action_pet", "care_useful": "action_pet", "production_jobs": "item_carrot_snack", "wish": "tab_wishes", "harvest": "tab_farm", "water": "action_water", "produce": "item_carrot_snack", "trade": "coin", "sold": "coin", "orders": "item_treat_box", "order": "item_treat_box", "explore": "tab_map", "quests": "tab_tasks", "build": "item_plank"}
 	return UiKit.ui_icon(icons.get(prefix, "xp"))
 
 

@@ -6,7 +6,7 @@ const CARD_SIZE := Vector2(240, 330)
 var world_id: String = ""
 var _preview: Preview
 var _footer: Control
-var _badge: Label
+var _badge: Control
 
 
 func setup(id: String) -> void:
@@ -59,11 +59,9 @@ func setup(id: String) -> void:
 	_footer.position = Vector2(16, 244)
 	_footer.size = Vector2(208, 76)
 	add_child(_footer)
-	_badge = UiKit.label("!", &"BadgeLabel")
-	_badge.name = "MissionBadge"
+	_badge = UiKit.ready_dot(18)
+	_badge.name = "CollectionBadge"
 	_badge.position = Vector2(204, 18)
-	_badge.size = Vector2(24, 24)
-	_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(_badge)
 	_ignore_mouse(self)
 	mouse_filter = Control.MOUSE_FILTER_STOP
@@ -72,6 +70,7 @@ func setup(id: String) -> void:
 
 func refresh(current: String) -> void:
 	disabled = Places.world_error(world_id) != ""
+	var count := int(GameState.world_ready_counts().get(world_id, 0))
 	_preview.modulate.a = 0.55 if disabled else 1.0
 	for child: Node in _preview.get_children():
 		_preview.remove_child(child)
@@ -89,7 +88,7 @@ func refresh(current: String) -> void:
 		lock.name = "PreviewLock"
 		lock.position = Vector2(84, 48)
 		_preview.add_child(lock)
-	elif current == world_id:
+	elif current == world_id and count == 0:
 		status = UiKit.chip(UiKit.ui_icon("ui_check"), "Você está aqui", Palette.GOOD)
 		var pill_style := StyleBoxFlat.new()
 		pill_style.bg_color = Palette.PRIMARY.lightened(0.75)
@@ -98,15 +97,10 @@ func refresh(current: String) -> void:
 		pill_style.content_margin_right = 8
 		status.add_theme_stylebox_override("panel", pill_style)
 	else:
-		var count := Places.world_alerts(world_id).size()
 		status = UiKit.chip(UiKit.ui_icon("ui_check"), "%d pronto%s" % [count, "s" if count != 1 else ""], Palette.GOOD) if count > 0 else UiKit.label("Tocar para viajar", &"SmallLabel")
 	status.size = Vector2(_footer.size.x, 72 if disabled else 40)
 	_footer.add_child(status)
-	_badge.visible = false
-	if not disabled:
-		for npc_id: String in Places.visible_npcs(world_id):
-			if Places.npc_badge(npc_id) != "":
-				_badge.visible = true
+	_badge.visible = not disabled and count > 0
 	_ignore_mouse(self)
 	mouse_filter = Control.MOUSE_FILTER_STOP
 

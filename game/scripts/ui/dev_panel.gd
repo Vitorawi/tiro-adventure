@@ -79,11 +79,13 @@ static func _resources(box: VBoxContainer) -> void:
 	_tool(items, "+10 materiais", GameState.dev_add_items.bind(10, "material"))
 	_tool(items, "+10 colheitas", GameState.dev_add_items.bind(10, "crop"))
 	_tool(items, "+10 comidas", GameState.dev_add_items.bind(10, "food"))
+	_tool(items, "Presente para guardar", GameState.dev_add_pending_gift)
 
 	_section(box, "Tiro")
 	var dog := _grid(box)
 	_tool(dog, "Necessidades 100%", GameState.dev_fill_needs)
 	_tool(dog, "Achados agora", GameState.dev_spawn_finds)
+	_tool(dog, "Voltar do passeio", GameState.dev_walk_return)
 	_tool(dog, "Todas as roupas", GameState.dev_grant_cosmetics)
 	_tool(dog, "Vínculo +30", GameState.dev_add_affection.bind(30))
 	_tool(dog, "Sortear desejos já", GameState.dev_refresh_wishes)

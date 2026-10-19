@@ -56,6 +56,10 @@ static func _panel(kind: String, arg: String) -> Control:
 			return TrickUi.panel(true)
 		"friends":
 			return FriendUi.panel()
+		"community":
+			return ProjectUi.community(arg if arg != "" else "park")
+		"project":
+			return ProjectUi.panel(arg)
 		"petshop":
 			return ProgressionUi.petshop_panel()
 		"station":
@@ -440,6 +444,10 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			# Cruzamento: vai até o passo da outra linha (ex.: a vovó Bloblo).
 			if Database.quests.has(key):
 				return quest_target(key)
+		"project":
+			var project_go: Dictionary = Database.project(key).get("go", {})
+			if not project_go.is_empty():
+				return project_go
 		"have", "deliver":
 			for source: Dictionary in Database.item_sources(key):
 				var target := goal_target(source)
@@ -451,6 +459,10 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 		"stat":
 			if key == "trick_learned":
 				return _panel_target("tricks")
+			if key.begins_with("project_use:"):
+				var use_go: Dictionary = Database.project(key.trim_prefix("project_use:")).get("go", {})
+				if not use_go.is_empty():
+					return use_go
 			if key == "trick" or key.begins_with("trick:"):
 				return {"screen": "pet", "hint": "Tiro → Truques"}
 			if key.begins_with("friend_gift:"):
@@ -492,9 +504,18 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				return {"world": "village", "place": "order:" + order_id, "spot": "stall" if MarketUi.is_contract(order_id) else "orders"}
 			if key == "orders":
 				return _panel_target("orders")
+			if key == "storage_upgrades":
+				# Ampliar um depósito qualquer: leva à próxima ampliação de um que já existe (sítio ou casa).
+				var next := ""
+				for depot: String in Database.progression.storage:
+					var candidate := GameState.storage_next_upgrade(depot)
+					if candidate != "" and GameState.has_upgrade(str(Database.progression.storage[depot].building)):
+						next = candidate
+						break
+				return goal_target({"type": "owned", "key": next if next != "" else "silo"})
 			if key == "wish" or key.begins_with("wish:"):
 				return {"screen": "wishes", "hint": "Desejos do Tiro"}
-			if key in ["bathe", "play", "pet"]:
+			if key in ["bathe", "play", "pet", "care_useful"] or key.begins_with("care_useful:"):
 				return {"screen": "pet", "hint": "Tiro → cuidar e brincar"}
 			if key == "explore":
 				return _panel_target("routes:walk")
@@ -502,7 +523,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				var route: Dictionary = Database.progression.activities.get(key.trim_prefix("activity:"), {})
 				if not route.is_empty():
 					return _panel_target("routes:" + str(route.place))
-			if key == "produce":
+			if key in ["produce", "production_jobs"]:
 				return _panel_target("station:stove")
 			if key.begins_with("produce:"):
 				for recipe: Dictionary in Database.recipes.values():

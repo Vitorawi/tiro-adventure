@@ -363,7 +363,7 @@ func _test_coop() -> void:
 	check(current.call("find_in_panel", "Herd") != null, "fileirinha dos animais no cabeçalho")
 	var feed: String = (current.call("entry_ids") as Array)[0]
 	var item: Control = current.call("item_node", feed)
-	check((item.find_child("Caption", true, false) as Label).text == TimeText.short(180), "produto mostra tempo de preparo")
+	check((item.find_child("Caption", true, false) as Label).text == TimeText.short(int(root.get_node("Database").get("recipes")[feed].seconds)), "produto mostra tempo de preparo")
 	check((item.find_child("Icon", true, false) as TextureRect).texture == root.get_node("Database").call("item_icon", "egg"), "ícone da receita é ovo, não milho")
 	current.call("tap_item", feed)
 	check(state.get("inventory").call("count", "corn") == 10, "selecionar o ovo não gasta milho")

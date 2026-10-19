@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "projects": {
+    "park_bench": {
+      "name": "Banco da Praça",
+      "icon": "project_bench",
+      "npc": "lais",
+      "world": "park",
+      "requirements": {"quests": ["atelier_open"]},
+      "start_coins": 150,
+      "pitch": "A Praça merece um cantinho para a gente sentar com o Tiro! Eu cuido da ideia, você junta o material. Pode entregar aos poucos, nada se perde.",
+      "phases": [
+        {"id": "base", "name": "Base", "items": {"plank": 4, "brick": 2}, "visual_state": "base"},
+        {"id": "comfort", "name": "Conforto", "items": {"fabric": 2, "braided_toy": 1}, "visual_state": "comfort"},
+        {"id": "welcome", "name": "Boas-vindas", "items": {"carrot_snack": 3}, "visual_state": "welcome"}
+      ],
+      "rewards": {"xp": 40},
+      "go": {"world": "park", "place": "bench"},
+      "done_speech": "Ficou lindo! Chame o Tiro tocando no banco.",
+      "interaction": {"kind": "bench", "hint": "Toque no banco para chamar o Tiro.", "go_label": "Ir ao banco"}
+    },
+    "village_garden": {
+      "name": "Jardim da Vila",
+      "icon": "project_garden",
+      "npc": "bloblo",
+      "world": "village",
+      "requirements": {"projects": ["park_bench"]},
+      "start_coins": 250,
+      "pitch": "A Vila bem que podia ter um jardinzinho de todos! Eu cuido dos canteiros, você junta o material. Pode entregar aos poucos, nada se perde.",
+      "phases": [
+        {"id": "beds", "name": "Canteiros", "items": {"plank": 4, "brick": 4}, "visual_state": "beds"},
+        {"id": "planting", "name": "Plantio", "items": {"herbs": 8, "wood": 6}, "visual_state": "planting"},
+        {"id": "opening", "name": "Abertura", "items": {"strawberry_juice": 3}, "visual_state": "opening"}
+      ],
+      "rewards": {"xp": 60},
+      "go": {"world": "village", "place": "garden"},
+      "done_speech": "Que cheirinho bom! Toque no jardim para o Tiro farejar as flores.",
+      "interaction": {"kind": "garden", "hint": "Toque no jardim para o Tiro farejar as plantas.", "go_label": "Ir ao jardim"}
+    },
+    "park_picnic": {
+      "name": "Piquenique da Praça",
+      "icon": "project_picnic",
+      "npc": "nina",
+      "world": "park",
+      "requirements": {"projects": ["park_bench"]},
+      "start_coins": 250,
+      "pitch": "Que tal um piquenique na Praça? Eu levo a ideia, você junta o que falta. Pode entregar aos poucos, nada se perde.",
+      "phases": [
+        {"id": "corner", "name": "Cantinho", "items": {"plank": 3, "fabric": 3}, "visual_state": "corner"},
+        {"id": "basket", "name": "Cesta", "items": {"picnic_pack": 2, "cheese": 2}, "visual_state": "basket"},
+        {"id": "meeting", "name": "Encontro", "items": {"carrot_snack": 4, "strawberry_pop": 4}, "visual_state": "meeting"}
+      ],
+      "rewards": {"xp": 60},
+      "go": {"world": "park", "place": "picnic"},
+      "done_speech": "A cestinha está linda! Toque na toalha para o Tiro vir ao encontro.",
+      "interaction": {"kind": "picnic", "hint": "Toque na toalha para o Tiro vir ao encontro.", "go_label": "Ir à toalha"}
+    },
+    "village_festival": {
+      "name": "Festa da Vila",
+      "icon": "project_festival",
+      "npc": "lais",
+      "world": "village",
+      "requirements": {"projects": ["village_garden", "park_picnic"], "owned": ["stall_3"]},
+      "start_coins": 500,
+      "pitch": "Agora dá para fazer uma festa para a turma toda! Eu cuido dos convites, você junta o material. Pode entregar aos poucos, nada se perde.",
+      "phases": [
+        {"id": "decorate", "name": "Enfeites", "items": {"fabric": 4, "plank": 6, "accessory_set": 2}, "visual_state": "decorate"},
+        {"id": "table", "name": "Mesa", "items": {"picnic_pack": 3, "apple_biscuit": 6, "cheese": 4}, "visual_state": "table"},
+        {"id": "gifts", "name": "Presentes", "items": {"treat_box": 3, "braided_toy": 2}, "visual_state": "gifts"}
+      ],
+      "rewards": {"xp": 100, "collections": ["community_ribbon"]},
+      "go": {"world": "village", "place": "festival"},
+      "done_speech": "Que festa linda! Toque na mesa para o Tiro comemorar com a turma.",
+      "interaction": {"kind": "festival", "hint": "Toque na mesa para o Tiro comemorar.", "go_label": "Ir à festa"},
+      "gathering": {
+        "name": "Encontro da turma",
+        "hours": 24,
+        "items": {"picnic_pack": 1, "carrot_snack": 2},
+        "rewards": {"xp": 10},
+        "hint": "Uma tarde com a turma, quando quiser. Sem pressa e sem obrigação."
+      }
+    }
+  }
+}

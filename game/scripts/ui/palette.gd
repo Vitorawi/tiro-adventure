@@ -24,6 +24,9 @@ const GOOD := Color("3f8a2b")         # tem / ganho (texto)
 const BAD := Color("c2412f")          # falta (texto)
 const INFO := Color("4fa3d9")         # água, tempo, progresso
 const GOLD := Color("ffd23f")         # moeda, estrela, XP
+const SEAL_BRONZE := Color("c98a4b")  # selo de cliente: patamar 1
+const SEAL_SILVER := Color("b9c3cc")  # patamar 2
+const SEAL_GOLD := Color("f2c230")    # patamar 3
 const HUD := Color(0.17, 0.11, 0.07, 0.78)  # pílulas do HUD sobre o mundo
 # Cor de cada mundo (cabeçalho, pílula do mundo, seletor)
 const WORLD := {

@@ -318,7 +318,7 @@ func _test_harvest() -> void:
 		await process_frame
 		check(status(i) == "empty", "toque colhe a cenoura %d" % i)
 		check(tray() == null, "colher %d não abre sementes nem foice" % i)
-	check(state.get("coins") > coins_before, "colheita rendeu moedas")
+	check(state.get("coins") == coins_before, "colher não paga moeda (etapa 09)")
 	check(state.get("inventory").call("count", "carrot") == carrots_before + 12, "seis toques colhem seis canteiros sem perda")
 	# Plantar continua disponível no próximo toque deliberado num canteiro já vazio.
 	farm.call("_on_plot_tapped", 0)

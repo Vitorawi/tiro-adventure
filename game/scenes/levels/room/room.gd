@@ -68,6 +68,7 @@ var _owned_snapshot: Dictionary = {}
 var _animals_snapshot: Dictionary = {}
 var _region_open_snapshot: Array[bool] = []
 var _gated_snapshot: Array[String] = []
+var _projects_snapshot: Array[String] = []
 var _quests_snapshot := -1
 var _labels: Array[Label] = []
 var _regions: Array[Node2D] = []
@@ -156,10 +157,13 @@ func _ready() -> void:
 		_world.add_child(_walk_marker)
 	Events.state_changed.connect(_refresh_ownership)
 	Events.state_changed.connect(_refresh_gated)
+	Events.state_changed.connect(_refresh_projects)
+	Events.project_gathered.connect(_on_project_gathered)
 	Events.state_changed.connect(_refresh_find)
 	Events.world_activity.connect(_on_world_activity)
 	_refresh_ownership()
 	_refresh_gated()
+	_refresh_projects()
 	_refresh_find()
 	# Botões +/− saíram (a pinça, o duplo toque e a roda do mouse bastam); os nós ficam escondidos.
 	$ZoomControls.visible = false
@@ -286,6 +290,8 @@ func _build_navigation() -> void:
 				continue
 			if data.has("hide_seen") and GameState.progress.seen.get(data.hide_seen, false):
 				continue
+			if data.has("project") and GameState.project_visual(data.project) == "":
+				continue
 			blocked.append(_polygon(data["footprint"]))
 
 	_walkable.clear()
@@ -359,6 +365,15 @@ func _spawn_objects() -> void:
 			sprite.set_meta("seen_sprite", data.seen_sprite)
 		if data.has("hide_seen"):
 			sprite.set_meta("hide_seen", data.hide_seen)
+		if data.has("project"):
+			# Obra comunitária: o desenho muda a cada fase entregue (`project_sprites[visual_state]`).
+			sprite.set_meta("project", data.project)
+			sprite.set_meta("project_sprites", data.get("project_sprites", {}))
+			sprite.set_meta("base_texture_path", data.sprite)
+			var project_marker := WorldBalloon.new()
+			project_marker.name = "ProjectMarker"
+			project_marker.show_caption = true
+			sprite.add_child(project_marker)
 		if data.has("station"):
 			sprite.set_meta("station", data.station)
 			var indicator := StationIndicator.new()
@@ -371,7 +386,8 @@ func _spawn_objects() -> void:
 			var marker := WorldBalloon.new()
 			marker.name = "PurchaseMarker"
 			marker.state = "buy"
-			marker.caption = str(int(Database.progression.upgrades.get(data.upgrade, {}).get("cost", 0)))
+			var buy_cost := int(Database.progression.upgrades.get(data.upgrade, {}).get("cost", 0))
+			marker.caption = str(buy_cost) if buy_cost > 0 else "Grátis"
 			marker.show_caption = true
 			sprite.add_child(marker)
 		if data.has("busy_frames"):
@@ -1137,6 +1153,11 @@ func _tap_balloon(point: Vector2) -> bool:
 			_on_object_tapped("place:" + indicator.site)
 			return true
 	for sprite: Sprite2D in _objects:
+		if sprite.has_node("ProjectMarker"):
+			var project_marker := sprite.get_node("ProjectMarker") as WorldBalloon
+			if project_marker.visible and project_marker.hit_rect.has_point((point - sprite.position) / sprite.scale):
+				_on_object_tapped(sprite.get_meta("action"), sprite)
+				return true
 		if sprite.has_node("RouteIndicator"):
 			var indicator := sprite.get_node("RouteIndicator") as RouteIndicator
 			if indicator.active() and indicator.hit_rect.has_point((point - sprite.position) / sprite.scale):
@@ -1453,7 +1474,7 @@ func harvest_plot(index: int) -> bool:
 	if GameState.plot_status(index) != "ready":
 		return false
 	var sprite := _plot_sprite(index)
-	var reward := int(Database.crops.get(str(GameState.plot(index)["crop"]), {}).get("coins", 0))
+	var reward := int(GameState.plot_job(index).get("coins", 0))
 	var origin := world_to_screen(sprite.position) if sprite else Vector2(-1.0, -1.0)
 	var received := GameState.harvest(index)
 	if GameState.plot_status(index) == "ready":  # não coube no depósito: continua pronto
@@ -1612,6 +1633,8 @@ func _collect_station(station_id: String, point: Vector2) -> bool:
 func _refresh_gated() -> void:
 	var states: Array[String] = []
 	for sprite: Sprite2D in _objects:
+		if sprite.has_meta("project"):
+			continue  # quem mostra/esconde a obra é _refresh_projects
 		if not sprite.has_meta("requirements") and not sprite.has_meta("seen_sprite") and not sprite.has_meta("hide_seen"):
 			continue
 		var open := GameState.requirement_error(sprite.get_meta("requirements", {})) == ""
@@ -1631,6 +1654,64 @@ func _refresh_gated() -> void:
 	_build_navigation()
 
 
+## Obras comunitárias: mostram a marcação do lugar, o desenho da última fase entregue ou a obra pronta,
+## com balão de entrada (moedas) ou de progresso. Muda o chão que o Tiro pisa: recalcula a navegação.
+func _refresh_projects() -> void:
+	var states: Array[String] = []
+	for sprite: Sprite2D in _objects:
+		if not sprite.has_meta("project"):
+			continue
+		var id: String = sprite.get_meta("project")
+		var visual := GameState.project_visual(id)
+		var paths: Dictionary = sprite.get_meta("project_sprites", {})
+		var path: String = str(paths.get(visual, sprite.get_meta("base_texture_path")))
+		var marker := sprite.get_node("ProjectMarker") as WorldBalloon
+		var completed := GameState.project_completed(id)
+		sprite.visible = visual != ""
+		sprite.self_modulate.a = 0.5 if visual == "ghost" else 1.0
+		if sprite.texture.resource_path != path:
+			sprite.texture = load(path)
+			sprite.offset = -Vector2(sprite.texture.get_width() / 2.0, sprite.texture.get_height())
+		marker.visible = sprite.visible and not completed
+		if not GameState.project_started(id):
+			marker.state = "buy"
+			marker.caption = str(int(Database.project(id).get("start_coins", 0)))
+		else:
+			marker.state = "progress"
+			marker.progress = float(GameState.project_stage(id).total_progress)
+			marker.texture = UiKit.ui_icon(str(Database.project(id).get("icon", "tab_park")))
+			marker.caption = ""
+		marker.anchor = Vector2(0, -float(sprite.texture.get_height()) - 6.0)
+		marker.refresh()
+		states.append("%s:%s" % [id, visual])
+	if states == _projects_snapshot:
+		return
+	_projects_snapshot = states
+	_build_navigation()
+
+
+## Ciclo do encontro confirmado no painel: o Tiro vai até a obra e participa (conta o primeiro uso).
+func _on_project_gathered(id: String, _cycle: int) -> void:
+	if _dog == null:
+		return
+	for sprite: Sprite2D in _objects:
+		if sprite.has_meta("project") and sprite.get_meta("project") == id and sprite.visible:
+			_dog.react_at(StringName(str(Database.project(id).get("interaction", {}).get("kind", "bench"))), sprite.get_meta("approach"), func() -> void: GameState.use_project(id))
+			return
+
+
+## Toque na obra pronta: convida o Tiro. O uso só conta quando a reação do Tiro realmente começa.
+func _use_project(sprite: Sprite2D) -> void:
+	var id: String = sprite.get_meta("project")
+	var error := GameState.project_use_error(id)
+	if error != "":
+		Events.toast_requested.emit(error + (". Quando ele puder, é só tocar de novo!" if GameState.dog.sleeping or GameState.walking() else ""))
+		return
+	if _dog == null:
+		return
+	_dog.react_at(StringName(str(Database.project(id).get("interaction", {}).get("kind", "bench"))), sprite.get_meta("approach"), func() -> void: GameState.use_project(id))
+
+
 ## Toque no baú: abre uma vez (festa na casca) e troca para o desenho aberto.
 func _open_treasure(sprite: Sprite2D) -> void:
 	var error := GameState.open_treasure()
@@ -1647,20 +1728,26 @@ func _hits(sprite: Sprite2D, local: Vector2) -> bool:
 	return sprite.visible and sprite.texture != null and sprite.get_rect().has_point(unscaled) and sprite.is_pixel_opaque(unscaled)
 
 
-## Recolhe direto no mapa o passeio pronto; senão abre o painel de passeios.
+## Guarda direto no mapa os achados que o Tiro trouxe; senão abre o painel de passeios.
 func _collect_walk() -> void:
+	GameState.return_due_walk()
 	if GameState.walk_ready():
-		var error := GameState.collect_walk_error()
+		var error := GameState.walk_baggage_error()
 		if error != "":
+			# Não cabe: avisa o motivo e abre o painel, que tem o caminho até o depósito.
 			Events.toast_requested.emit(error)
+			Places.run(world_id, "place:walk")
 		else:
-			GameState.collect_walk()
+			GameState.claim_walk_baggage()
 	else:
 		Places.run(world_id, "place:walk")
 
 
 ## `target` é o sprite tocado (quando houver), para ações que dependem dele (canteiros).
 func _on_object_tapped(action: String, target: Node = null) -> void:
+	if target is Sprite2D and target.has_meta("project") and GameState.project_completed(target.get_meta("project")):
+		_use_project(target)
+		return
 	if action == "place:walk" and GameState.walk_ready():
 		_collect_walk()
 		return

@@ -27,6 +27,7 @@ func _run() -> void:
 		if id.begins_with("nina") and id not in ["nina_pipoca", "nina_friends"]:
 			p.claimed_quests[id] = true
 	p.claimed_quests["main_2_order"] = true
+	p.claimed_quests["bloblo_chest"] = true  # o baú agora é um passo da linha da Nina (etapa 08)
 	state.call("_changed")
 	check(p.current_line_quest("nina") == "nina_pipoca" and "pipoca" in state.call("friends_present"), "Pipoca acessível com missão ativa")
 	var inventory: RefCounted = state.get("inventory")
@@ -114,12 +115,25 @@ func _walks() -> void:
 	var original: Array = table.duplicate(true)
 	table.clear()
 	table.append({"weight": 1, "items": {"stick": 1}})
+	# O passeio em andamento guarda a tabela com que saiu (etapa 02 da economia): a nova tabela vale para a próxima saída.
+	check(state.call("walk_loot") == loot, "passeio em andamento mantém a tabela antiga")
+	_drop_walk()
+	state.get("dog").needs.energy = 100.0
+	state.get("dog").updated_at = state.get("test_time")
+	check(state.call("start_walk", "park_loop") == "", "novo passeio com a tabela alterada")
+	state.get("walk_state").current.ready_at = 1.0
 	var bonus: Dictionary = state.call("walk_loot")
 	var first_sticks: int = int(db.get("walks").walks.park_loop.loot.first.items.stick) if bonus.first else 0
 	check(int(bonus.items.stick) == int(db.get("walks").walks.park_loop.loot.rolls) + 2 + first_sticks, "base + bolsinha + Pipoca somam dois sorteios extras")
 	check(state.call("walk_loot") == bonus, "mesma seed mesmo resultado")
 	table.clear()
 	table.append_array(original)
+	check(state.call("walk_loot") == bonus, "restaurar a tabela não muda o passeio em andamento")
+	_drop_walk()
+	state.get("dog").needs.energy = 100.0
+	state.get("dog").updated_at = state.get("test_time")
+	check(state.call("start_walk", "park_loop") == "", "novo passeio com a tabela restaurada")
+	state.get("walk_state").current.ready_at = 1.0
 	check(state.call("walk_loot") == loot, "tabelas restauradas mantêm raro e lendário")
 	check(state.call("collect_walk_error") == "", "mesmo resultado na validação")
 	var result: Dictionary = state.call("collect_walk")
@@ -142,7 +156,7 @@ func _walks() -> void:
 		check(with_bonus.rare_item == rare_id and with_bonus.rare_item == without_bonus.rare_item and with_bonus.legendary == without_bonus.legendary and str(with_bonus.legendary) != "", id + ": raro e lendário independentes dos extras")
 		state.get("friend_state").entry("pipoca").gifts = gifts
 		p.owned.walk_bag = true
-		state.call("cancel_walk")
+		_drop_walk()
 		check(int(state.get("walk_state").pity[id]) == int(def.loot.rare.pity) - 1, id + ": cancelar preserva garantia")
 	# A mesma soma de itens é usada no erro e na coleta, inclusive com a geladeira cheia.
 	p.owned.fridge = true
@@ -150,12 +164,19 @@ func _walks() -> void:
 	state.get("walk_state").current = {"id": "park_loop", "seed": 1, "energy": 0, "started_at": 1.0, "ready_at": 1.0}
 	table.clear()
 	table.append({"weight": 1, "items": {"carrot_snack": 1}})
-	var snapshot: Dictionary = state.get("walk_state").to_dict()
-	check(state.call("collect_walk_error") != "" and state.call("collect_walk").is_empty(), "bônus não contorna armazenamento")
-	check(state.get("walk_state").to_dict() == snapshot, "falha preserva passeio, histórico e todas as garantias")
+	state.call("return_due_walk")
+	check(not state.call("walking") and state.call("collect_walk_error") != "" and state.call("collect_walk").is_empty(), "bônus não contorna armazenamento")
+	var kept: Dictionary = state.get("walk_state").pending_return.duplicate(true)
+	check(state.call("collect_walk").is_empty() and state.get("walk_state").pending_return == kept and state.get("walk_state").baggage_count() > 0, "falha preserva a bagagem inteira e nada se repete")
 	table.clear()
 	table.append_array(original)
-	state.call("cancel_walk")
+	_drop_walk()
+
+func _drop_walk() -> void:
+	## O teste põe o relógio do passeio no passado só para olhar o sorteio; descarta a viagem sem tick.
+	state.get("walk_state").current = {}
+	state.get("walk_state").pending_return = {}
+
 
 func _storage() -> void:
 	var p: RefCounted = state.get("progress")

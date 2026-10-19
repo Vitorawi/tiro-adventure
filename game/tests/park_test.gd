@@ -100,15 +100,17 @@ func _run() -> void:
 	check(loot_before == state.call("walk_loot"), "sorteio estável ao recarregar")
 	progress = state.get("progress")
 	state.get("walk_state").current["ready_at"] = state.call("now") - 1.0  # "app fechado": só o relógio andou
-	check(state.call("walk_ready"), "terminou sozinho")
-
-	# --- Recolher -------------------------------------------------------------
 	var had_coins: int = state.get("coins")
 	var happy_before: float = state.get("dog").get_need("happiness", state.call("now"))
 	var hygiene_before: float = state.get("dog").get_need("hygiene", state.call("now"))
 	var affection_before: int = state.get("dog").affection
+	check(not state.call("walking"), "tempo vencido: o Tiro já não está fora")
+	check(state.call("return_due_walk"), "o tick liquida a viagem")
+	check(state.call("walk_ready") and not state.call("return_due_walk"), "terminou sozinho, uma vez só")
+
+	# --- Recolher -------------------------------------------------------------
 	var result: Dictionary = state.call("collect_walk")
-	check(not result.is_empty() and result.id == "park_loop", "recolhe o passeio")
+	check(not result.is_empty() and result.id == "park_loop", "guarda a bagagem do passeio")
 	check(not state.call("walking"), "Tiro de volta")
 	check(state.get("coins") >= had_coins + 6, "moedas do passeio")
 	check(state.get("dog").affection == affection_before + 3, "vínculo +3")
@@ -159,10 +161,12 @@ func _run() -> void:
 	state.get("inventory").add("carrot", 100000)
 	state.call("start_walk", "park_loop")
 	state.get("walk_state").current["ready_at"] = 0.0
-	check(state.call("collect_walk_error") != "" and state.call("walking"), "sem espaço: continua pronto")
+	state.call("return_due_walk")
+	check(not state.call("walking") and state.call("walk_ready"), "sem espaço: o Tiro volta e a bagagem espera")
+	check(state.call("collect_walk_error") != "", "sem espaço: não guarda")
 	state.get("inventory").remove("carrot", 100000)
 	state.get("progress").owned.erase("silo")
-	check(state.call("collect_walk_error") == "", "com espaço volta a recolher")
+	check(state.call("collect_walk_error") == "", "com espaço volta a guardar")
 	state.call("collect_walk")
 	silo_full["table"] = original
 	_rest()
@@ -171,7 +175,7 @@ func _run() -> void:
 	check(db.get("wishes").wishes.has("walk") and db.get("routines").daily.missions.has("tiro_walk"), "desejo e diária do passeio")
 	state.call("start_walk", "park_loop")
 	state.call("dev_finish_timers")
-	check(state.call("walk_ready"), "dev termina o passeio")
+	check(state.call("return_due_walk") and state.call("walk_ready"), "dev termina o passeio")
 	state.call("collect_walk")
 
 	# --- Salas, navegação e telas --------------------------------------------
@@ -221,8 +225,9 @@ func _room_checks() -> void:
 	await process_frame
 	check(park.get("_dog") == null and house.get("_dog") == null, "Tiro fora das salas passeando")
 	state.get("walk_state").current["ready_at"] = 0.0
-	state.call("_changed")
-	check(park.get("_dog") == null, "pronto ainda não voltou")
+	state.call("return_due_walk")
+	await process_frame
+	check(park.get("_dog") != null and house.get("_dog") != null, "pronto: o Tiro já voltou às salas, com a bagagem esperando")
 	# Painel do portão, no molde das estações.
 	var panel: Control = load("res://scripts/ui/progression_ui.gd").call("walks_panel")
 	root.add_child(panel)
@@ -236,8 +241,8 @@ func _room_checks() -> void:
 	events.connect("walk_collected", func(r: Dictionary) -> void: results.append(r))
 	park.call("_collect_walk")
 	await process_frame
-	check(results.size() == 1, "recolher pelo mapa emite o cartão")
-	check(park.get("_dog") != null and house.get("_dog") != null, "Tiro volta ao recolher")
+	check(results.is_empty() and not state.call("walk_ready"), "guardar pelo mapa recebe a bagagem sem repetir o cartão")
+	check(park.get("_dog") != null and house.get("_dog") != null, "Tiro segue em casa")
 	# Painel andando e cancelamento com dois toques.
 	_rest()
 	state.call("start_walk", "park_loop")

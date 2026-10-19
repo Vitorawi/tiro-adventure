@@ -7,6 +7,8 @@ extends Node
 var items: Dictionary = {}
 var recipes: Dictionary = {}
 var needs: Dictionary = {}
+## Proteção da ausência (config.json "offline"): fração da taxa e teto de horas de queda por ausência contínua.
+var offline: Dictionary = {}
 var actions: Dictionary = {}
 var stations: Dictionary = {}
 var animals: Dictionary = {}
@@ -33,6 +35,10 @@ var finds: Dictionary = {}
 ## Passeios do Tiro (data/walks.json): configurações e caminhos.
 var walks: Dictionary = {}
 var friends: Dictionary = {}
+## Obras comunitárias (data/projects.json): fases, taxa, prêmio. Vazio até as etapas 20–22.
+var projects: Dictionary = {}
+## Tabelas congeladas antes da R1 (data/legacy_r0.json): capacidades, rendimentos, mapa de missões. Só a migração lê.
+var legacy: Dictionary = {}
 
 
 func _init() -> void:
@@ -42,6 +48,7 @@ func _init() -> void:
 	crops = _load("res://data/crops.json")
 	var config := _load("res://data/config.json")
 	needs = config.get("needs", {})
+	offline = config.get("offline", {})
 	actions = config.get("actions", {})
 	stations = config.get("stations", {})
 	animals = config.get("animals", {})
@@ -59,6 +66,8 @@ func _init() -> void:
 	finds = _load("res://data/finds.json")
 	walks = _load("res://data/walks.json")
 	friends = _load("res://data/friends.json")
+	projects = _load("res://data/projects.json")
+	legacy = _load("res://data/legacy_r0.json")
 
 
 ## Mundo onde o personagem mora ("" se nenhum).
@@ -255,6 +264,69 @@ func _load(path: String) -> Dictionary:
 		push_error("Database: falha ao ler %s" % path)
 		return {}
 	return parsed
+
+## Definição de um projeto ({} se o id não existe).
+func project(id: String) -> Dictionary:
+	return projects.get("projects", {}).get(id, {})
+
+
+## Ids dos projetos do catálogo.
+func project_ids() -> Array:
+	return projects.get("projects", {}).keys()
+
+
+## Por que o projeto não pode existir para o jogador ("" = definição válida e sem pendência quebrada):
+## fase sem id/repetida/sem material, item ou quantidade inválidos, requisito de projeto ausente ou cíclico.
+func project_issue(id: String) -> String:
+	return _project_issue(id, [])
+
+
+func _project_issue(id: String, trail: Array) -> String:
+	var def := project(id)
+	if def.is_empty():
+		return "Projeto desconhecido: " + id
+	if id in trail:
+		return "Requisito cíclico: " + " > ".join(trail) + " > " + id
+	var phases: Array = def.get("phases", [])
+	if phases.is_empty():
+		return id + ": sem fases"
+	var seen := {}
+	for phase: Dictionary in phases:
+		var phase_id := str(phase.get("id", ""))
+		if phase_id == "" or seen.has(phase_id):
+			return id + ": fase sem id ou repetida"
+		seen[phase_id] = true
+		var wanted: Dictionary = phase.get("items", {})
+		if wanted.is_empty():
+			return "%s/%s: fase sem material" % [id, phase_id]
+		for item: String in wanted:
+			if not self.items.has(item) or int(wanted[item]) <= 0 or float(wanted[item]) != float(int(wanted[item])):
+				return "%s/%s: material inválido %s" % [id, phase_id, item]
+	var gathering: Dictionary = def.get("gathering", {})
+	if not gathering.is_empty():
+		if float(gathering.get("hours", 0)) <= 0.0 or gathering.get("items", {}).is_empty():
+			return id + ": encontro sem intervalo ou sem material"
+		for item: String in gathering.items:
+			if not self.items.has(item) or int(gathering.items[item]) <= 0:
+				return "%s/encontro: material inválido %s" % [id, item]
+	var next_trail := trail.duplicate()
+	next_trail.append(id)
+	for required: String in def.get("requirements", {}).get("projects", []):
+		var reason := _project_issue(required, next_trail)
+		if reason != "":
+			return reason
+	return ""
+
+
+## Todos os problemas do catálogo (lista vazia = esquema coerente). Usado por testes e conteúdo.
+func project_problems() -> Array[String]:
+	var problems: Array[String] = []
+	for id: String in project_ids():
+		var reason := project_issue(id)
+		if reason != "":
+			problems.append(reason)
+	return problems
+
 
 ## Fontes como objetivos, compartilhadas pela navegação das missões.
 func item_sources(item_id: String) -> Array[Dictionary]:

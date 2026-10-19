@@ -1,0 +1,14 @@
+{
+  "schema": 1,
+  "unit": "active_minutes_since_start",
+  "source": "docs/plans/economia/04_SIMULACAO_E_ACEITE.md#e e 00_VISAO.md",
+  "targets": {
+    "event:first_harvest": {"min": null, "max": 4, "basis": "R1", "note": "Primeira colheita em até 4 minutos ativos."},
+    "event:first_wish": {"min": null, "max": 7, "basis": "R1", "note": "Primeiro desejo em até 7 minutos ativos."},
+    "event:first_find": {"min": null, "max": 10, "basis": "R1", "note": "Primeiro achado em até 10 minutos ativos."},
+    "upgrade:stove": {"min": 15, "max": 30, "basis": "R1", "note": "Referência R1: cozinha operando em 15–30 min. Compra do fogão é um indicador aproximado; não comprova primeira produção."},
+    "event:first_walk": {"min": null, "max": 60, "basis": "R1", "note": "Primeiro passeio concluído em até 60 minutos ativos."},
+    "event:chapter_9_done": {"min": 180, "max": 360, "basis": "R1", "note": "Jornada 1–9: 3–6 horas ativas. Faixa para investigar, sem alongar grind só para cumpri-la."},
+    "event:projects_all": {"min": 300, "max": 600, "basis": "R1_derived", "note": "Faixa acumulada derivada: jornada 3–6 h + comunidade 2–4 h. As três obras atuais são um recorte, não comprovam a Festa futura completa."}
+  }
+}

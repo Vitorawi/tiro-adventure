@@ -152,10 +152,13 @@ func _campaign() -> Dictionary:
 			if database.get("items")[item].has("feed") and state.get("inventory").count(item) > 0:
 				state.call("feed", item)
 				break
-		for i in int(state.call("accessible_plots")):
+		# Sítio e estufa: as ervas (missão da estufa) só crescem nos canteiros delicados.
+		for i: int in state.call("usable_plot_indices"):
 			var crop_id: String = crops.keys()[(turn + i) % crops.size()]
+			if state.call("is_greenhouse_plot", i):
+				crop_id = "herbs"
 			if state.call("plant", i, crop_id) != "":
-				state.call("plant", i, "carrot")
+				state.call("plant", i, "herbs" if state.call("is_greenhouse_plot", i) else "carrot")
 			state.call("water", i)
 			state.get("plots")[i]["ready_at"] = 1.0
 			state.call("harvest", i)
@@ -169,7 +172,7 @@ func _campaign() -> Dictionary:
 		if turn == 2:
 			state.call("sell", "carrot", 1)
 		for id: String in progression.orders:
-			if int(state.get("progress").stats.get("order:" + id, 0)) >= 3:
+			if int(state.get("progress").stats.get("order:" + id, 0)) >= (5 if str(progression.orders[id].get("channel", "neighbors")) == "contracts" else 3):
 				continue # Guarda os materiais dos próximos pedidos para construir.
 			state.call("fulfill_order", id)
 		var wanted: Array = []
@@ -179,6 +182,13 @@ func _campaign() -> Dictionary:
 			for goal: Dictionary in database.get("quests")[step].goals:
 				if str(goal.get("key", "")).begins_with("order:"):
 					reserved.merge(progression.orders[str(goal.key).trim_prefix("order:")].inputs, true)
+		# Objetivo de produzir algo: começa pela receita dele e, se faltar insumo, pelas receitas dos insumos (como o jogador faria).
+		for step: String in state.get("progress").active_steps().values():
+			for goal: Dictionary in database.get("quests")[step].goals:
+				if str(goal.get("key", "")).begins_with("produce:"):
+					for recipe_id: String in recipes:
+						if str(recipes[recipe_id].get("output", "")) == str(goal.key).trim_prefix("produce:"):
+							_cook_with_inputs(recipe_id, recipes)
 		for id: String in recipes:
 			# Como o jogador, guarda os produtos do contrato atual em vez de gastá-los em outra receita.
 			var output_id := str(recipes[id].get("output", recipes[id].get("output_collection", "")))
@@ -194,6 +204,30 @@ func _campaign() -> Dictionary:
 				for entry: Dictionary in station.queue:
 					entry["ready_at"] = 1.0
 				state.call("collect", recipes[id].station)
+		# Com os quatro pedaços do mapa, o jogador abre o baú da Clareira (o mirtilo e o petisco dependem dele).
+		if state.call("open_treasure_error") == "":
+			state.call("open_treasure")
+		# Missão do desejo do mirtilo: o espaço vazio pronto recebe o pedido garantido; o jogador faz o petisco e entrega.
+		if state.get("progress").active_steps().get("nina_flavors", "") == "nina_blueberry":
+			var slots: Array = state.get("wishes").slots
+			state.get("wishes").first_done = true  # o pedido inicial é o tutorial; a campanha não passa por ele
+			if not slots.any(func(sl: Dictionary) -> bool: return str(sl.id) == "blueberry_treat"):
+				# O jogador troca um pedido (grátis) para abrir a vaga ao pedido da missão.
+				for slot_index in slots.size():
+					if str(slots[slot_index].id) != "" and state.call("wish_slot_open", slot_index):
+						state.call("swap_wish", slot_index)
+						break
+			for slot_index in slots.size():
+				if str(slots[slot_index].id) == "" and state.call("wish_slot_open", slot_index):
+					slots[slot_index]["ready_at"] = 0.0
+			state.call("update_wishes")
+			for slot_index in slots.size():
+				if str(slots[slot_index].id) == "blueberry_treat":
+					# O cultivo do mirtilo (4 h) já é testado em treasure_test/products_test; aqui o robô só precisa dos 2 mirtilos.
+					if state.get("inventory").count("blueberry") < 2:
+						state.get("inventory").add("blueberry", 2)
+					_cook_with_inputs("blueberry_treat", recipes)
+					state.call("fulfill_wish", slot_index)
 		for current: String in state.get("progress").active_steps().values():
 			state.call("claim_quest", current)
 		for kind: String in ["daily", "weekly"]:
@@ -213,6 +247,9 @@ func _campaign() -> Dictionary:
 				break
 		if state.get("progress").claimed_quests.size() == database.get("quests").size() and progression.upgrades.keys().all(func(id: String) -> bool: return state.call("has_upgrade", id)):
 			break
+	for id: String in database.get("quests"):
+		if not state.get("progress").claimed_quests.has(id):
+			print("Missão pendente: ", id, " passos ", state.get("progress").active_steps())
 	_check(state.get("progress").chapter_index() == progression.chapters.size() + 1, "Campanha deve concluir todos os capítulos")
 	for id: String in progression.upgrades:
 		if not state.call("has_upgrade", id):
@@ -222,6 +259,22 @@ func _campaign() -> Dictionary:
 		_check(state.get("progress").claimed_quests.has(id), "Campanha deve alcançar missão: " + id)
 	print("Campanha simulada: ", iterations, " ciclos; ", state.get("progress").owned.size(), " aquisições; ", state.get("progress").claimed_quests.size(), " missões.")
 	return state.call("to_dict").duplicate(true)
+
+
+## Cozinha a receita e, antes, o que falta de insumo que outra receita faz (um nível de profundidade por chamada, até 3).
+func _cook_with_inputs(recipe_id: String, recipes: Dictionary, depth: int = 0) -> void:
+	if depth < 3:
+		for item: String in recipes[recipe_id].get("inputs", {}):
+			if state.get("inventory").count(item) >= int(recipes[recipe_id].inputs[item]):
+				continue
+			for other: String in recipes:
+				if str(recipes[other].get("output", "")) == item:
+					_cook_with_inputs(other, recipes, depth + 1)
+					break
+	if state.call("cook", recipe_id) == "":
+		for entry: Dictionary in state.call("station", recipes[recipe_id].station).queue:
+			entry["ready_at"] = 1.0
+		state.call("collect", recipes[recipe_id].station)
 
 
 func _screenshots(final_save: Dictionary) -> void:

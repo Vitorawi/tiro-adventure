@@ -8,12 +8,64 @@ static func open(site: String = "trees", resource: String = "", focus_route: Str
 	Events.sheet_requested.emit(data.name, panel(site, resource, focus_route))
 
 
-static func best_route(resource: String) -> String:
-	var routes: Array = Database.progression.nature_resources[resource].routes
-	for id: String in routes:
+## Rota escolhida por material (só nesta sessão; não vai para o save). Escolher não começa a busca.
+static var chosen: Dictionary = {}
+
+
+## Rotas do material que já valem, da mais curta para a mais longa.
+static func eligible_routes(resource: String) -> Array[String]:
+	var result: Array[String] = []
+	for id: String in Database.progression.nature_resources[resource].routes:
 		if GameState.requirement_error(Database.progression.activities[id].get("requirements", {})) == "":
-			return id
-	return str(routes.back())
+			result.append(id)
+	result.sort_custom(func(a: String, b: String) -> bool:
+		return int(Database.progression.activities[a].seconds) < int(Database.progression.activities[b].seconds))
+	return result
+
+
+## Rota usada pelo material: a escolhida (se ainda vale) ou a padrão, a elegível mais curta.
+static func best_route(resource: String) -> String:
+	var picked := str(chosen.get(resource, ""))
+	if picked != "" and picked in eligible_routes(resource):
+		return picked
+	return GameState.default_gathering_route(resource)
+
+
+## Guarda a escolha do jogador para o material. Rota bloqueada ou de outro material é recusada.
+static func choose_route(resource: String, route_id: String) -> bool:
+	if not Database.progression.nature_resources.has(resource) or not route_id in eligible_routes(resource):
+		return false
+	chosen[resource] = route_id
+	return true
+
+
+static func clear_choices() -> void:
+	chosen.clear()
+
+
+static func choice_count() -> int:
+	return chosen.size()
+
+
+## XP local que a rota dá ao local de busca.
+static func route_xp(route_id: String) -> int:
+	return GameState.route_nature_xp(route_id)
+
+
+## Escolha explícita de duração: um botão por rota elegível (tempo), só quando há mais de uma.
+## `changed` roda depois de guardar a escolha, para o chamador redesenhar.
+static func route_choice(resource: String, changed: Callable) -> Control:
+	var routes := eligible_routes(resource)
+	if routes.size() < 2:
+		return null
+	var entries: Array[Dictionary] = []
+	for id: String in routes:
+		entries.append({"id": id, "text": TimeText.short(int(Database.progression.activities[id].seconds))})
+	var row := UiKit.segmented(entries, best_route(resource), func(id: String) -> void:
+		if choose_route(resource, id):
+			changed.call())
+	row.name = "RouteChoice_" + resource
+	return row
 
 
 static func route_level(route_id: String) -> int:
@@ -29,10 +81,12 @@ static func open_route(route_id: String) -> void:
 	var route: Dictionary = Database.progression.activities[route_id]
 	for resource: String in Database.progression.nature_sites[site].resources:
 		if route.get("icon", "") == Database.progression.nature_resources[resource].icon:
+			choose_route(resource, route_id)
 			open(site, resource, route_id)
 			return
 	for item: String in Database.progression.activities[route_id].rewards.get("items", {}):
 		if item in Database.progression.nature_sites[site].resources:
+			choose_route(item, route_id)
 			open(site, item, route_id)
 			return
 	open(site, "", route_id)
@@ -62,8 +116,11 @@ static func panel(site: String = "trees", resource: String = "", focus_route: St
 		_progress(box, site)
 		box.add_child(UiKit.label("Materiais", &"SectionLabel"))
 		for item: String in data.resources:
-			var route_id := focus_route if item == selected and Database.gathering_site(focus_route) == site else best_route(item)
+			var route_id := best_route(item)
 			_material(box, site, item, route_id)
+			var choice := route_choice(item, func() -> void: (box as SheetBuilder.LiveBox).refresh())
+			if choice != null:
+				box.add_child(choice)
 		var refine := UiKit.button("Refinar materiais", func() -> void:
 			Events.sheet_requested.emit("Refinar · " + str(data.name), refining_panel(site)))
 		refine.name = "Refine_" + site
@@ -83,8 +140,7 @@ static func _progress(box: VBoxContainer, site: String) -> void:
 	box.add_child(UiKit.bar(100.0 if info.max else 100.0 * info.xp / maxi(1, int(info.needed)), UiKit.GOOD, 10))
 	if not info.max:
 		box.add_child(UiKit.label("Próximo: " + str(data.levels[info.level].label), &"SmallLabel"))
-		var count := ceili(float(info.remaining) / int(data.xp_per_collection))
-		box.add_child(UiKit.label("Mais %s · +%d XP cada" % [TaskHelp.searches(count), int(data.xp_per_collection)], &"SmallLabel"))
+		box.add_child(UiKit.label("Faltam %d XP · cada busca dá o XP da rota" % int(info.remaining), &"SmallLabel"))
 	else:
 		box.add_child(UiKit.label("Todos os materiais e espaços liberados", &"SmallLabel"))
 
@@ -102,7 +158,7 @@ static func levels_panel(site: String) -> Control:
 			row.add_child(UiKit.icon(Database.item_icon(str(milestone.materials[0]))))
 			row.add_child(UiKit.fill_label("Nível %d · %s" % [i + 1, milestone.label], &"SmallLabel"))
 			card.add_child(row)
-			card.add_child(UiKit.label("Liberado" if info.level > i else ("Desbloquear: %d moedas" % int(Database.progression.upgrades[data.level_upgrades[0]].cost) if i == 0 else "Faltam %d XP · %s" % [maxi(0, int(milestone.xp) - int(info.total)), TaskHelp.searches(ceili(float(maxi(0, int(milestone.xp) - int(info.total))) / int(data.xp_per_collection)))]), &"SmallLabel"))
+			card.add_child(UiKit.label("Liberado" if info.level > i else ("Desbloquear: %d moedas" % int(Database.progression.upgrades[data.level_upgrades[0]].cost) if i == 0 else "Faltam %d XP" % maxi(0, int(milestone.xp) - int(info.total))), &"SmallLabel"))
 		box.add_child(UiKit.button("Ir ao local", func() -> void:
 			Events.sheet_close_requested.emit()
 			Events.world_requested.emit("nature", "place:" + site), &"PrimaryButton")))
@@ -142,6 +198,7 @@ static func _material(parent: VBoxContainer, site: String, item: String, route_i
 	for bonus: String in route.rewards.get("items", {}):
 		if bonus != primary:
 			chips.append(UiKit.chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), UiKit.GOOD))
+	chips.append(UiKit.chip(UiKit.ui_icon("xp"), "+%d XP" % route_xp(route_id)))
 	var level := route_level(route_id)
 	var locked := GameState.progress.nature_level(site) < level
 	var button := UiKit.secondary("Buscar", func() -> void:
@@ -167,7 +224,7 @@ static func slot(parent: Control, site: String, index: int) -> void:
 	var entry := GameState.gathering_entry(site, index)
 	var remaining := GameState.gathering_remaining(site, index)
 	if index >= GameState.gathering_slots(site):
-		parent.add_child(_locked_slot(index))
+		parent.add_child(_locked_slot(site, index))
 		return
 	if entry.is_empty():
 		parent.add_child(SheetBuilder.slot_frame(null, "", 0.0, false, true))
@@ -184,8 +241,9 @@ static func slot(parent: Control, site: String, index: int) -> void:
 
 
 ## Espaço ainda fechado: cadeado e o nível (aqui o espaço abre usando, não comprando).
-static func _locked_slot(index: int) -> Control:
-	return UiKit.slot_dot(SlotDot.LEVEL, null, 0.0, "Nível %d" % (index + 1))
+static func _locked_slot(site: String, index: int) -> Control:
+	var level := GameState.progress.nature_slot_level(site, index - 1) if index > 0 else 1
+	return UiKit.slot_dot(SlotDot.LEVEL, null, 0.0, "Nível %d" % level)
 
 
 static func _result(error: String, done: String) -> void:

@@ -96,17 +96,44 @@ func has_upgrade(id: String) -> bool:
 
 
 ## Região aberta começa no nível 1; os demais vêm do XP de uso.
+## Piso legado: ampliações já possuídas (tokens de nível e de vaga) nunca deixam o nível cair,
+## mesmo que o XP guardado seja menor que o patamar novo (saves anteriores à etapa 11 da R1).
 func nature_level(site: String) -> int:
 	var data: Dictionary = Database.progression.nature_sites.get(site, {})
 	if data.is_empty() or not has_upgrade(str(data.level_upgrades[0])):
 		return 0
 	var level := 1
-	for milestone: Dictionary in data.levels:
-		if int(nature_xp.get(site, 0)) >= int(milestone.xp):
-			level = data.levels.find(milestone) + 1
-	return level
+	for i in data.levels.size():
+		if int(nature_xp.get(site, 0)) >= int(data.levels[i].xp):
+			level = i + 1
+	for i in data.level_upgrades.size():
+		if has_upgrade(str(data.level_upgrades[i])):
+			level = maxi(level, i + 1)
+	for i in data.slot_upgrades.size():
+		if has_upgrade(str(data.slot_upgrades[i])):
+			level = maxi(level, nature_slot_level(site, i))
+	return mini(level, data.levels.size())
 
 
+## Nível que libera a vaga extra `i` (0 = segunda vaga). Sem "slot_levels" vale o nível i + 2.
+func nature_slot_level(site: String, index: int) -> int:
+	var levels: Array = Database.progression.nature_sites[site].get("slot_levels", [])
+	return int(levels[index]) if index < levels.size() else index + 2
+
+
+## Marca as ampliações (nível e vaga) que o nível atual do local já contém.
+func sync_nature_tokens(site: String) -> void:
+	var config: Dictionary = Database.progression.nature_sites[site]
+	var level := nature_level(site)
+	for i in mini(level, config.level_upgrades.size()):
+		owned[str(config.level_upgrades[i])] = true
+	for i in config.slot_upgrades.size():
+		if level >= nature_slot_level(site, i):
+			owned[str(config.slot_upgrades[i])] = true
+
+
+## Progresso até o próximo patamar. Quem está acima do que o XP mostra (piso legado) não perde nada:
+## a barra fica no zero até o XP guardado alcançar o patamar, sem inventar XP retroativo.
 func nature_info(site: String) -> Dictionary:
 	var level := nature_level(site)
 	var levels: Array = Database.progression.nature_sites[site].levels
@@ -114,7 +141,41 @@ func nature_info(site: String) -> Dictionary:
 	var current := int(levels[maxi(0, level - 1)].xp)
 	var maximum := level >= levels.size()
 	var target := current if maximum else int(levels[level if level > 0 else 0].xp)
-	return {"level":level, "total":total, "xp":total - current, "needed":target - current, "remaining":maxi(0, target - total), "max":maximum}
+	return {"level":level, "total":total, "xp":clampi(total - current, 0, maxi(0, target - current)), "needed":target - current, "remaining":maxi(0, target - total), "max":maximum}
+
+
+## Tipos de pedido já entregues num canal ("contracts" ou "neighbors"): ids com contador > 0.
+func distinct_orders(channel: String) -> int:
+	var kinds := 0
+	for id: String in Database.progression.orders:
+		if str(Database.progression.orders[id].get("channel", "neighbors")) == channel and stat("order:" + id) > 0:
+			kinds += 1
+	return kinds
+
+
+## Confiança de um cliente: entregas totais e tipos distintos, derivados dos contadores `order:<id>`.
+func customer_orders(customer: String) -> Dictionary:
+	var total := 0
+	var kinds := 0
+	for id: String in Database.progression.orders:
+		if str(Database.progression.orders[id].get("customer", "")) != customer:
+			continue
+		var done := stat("order:" + id)
+		total += done
+		if done > 0:
+			kinds += 1
+	return {"count": total, "kinds": kinds}
+
+
+## Patamar de confiança (0..3) que o cliente já alcançou pelos contadores atuais.
+func customer_level(customer: String) -> int:
+	var seen := customer_orders(customer)
+	var level := 0
+	var tiers: Array = Database.progression.get("customer_tiers", [])
+	for index in tiers.size():
+		if int(seen.count) >= int(tiers[index].count) and int(seen.kinds) >= int(tiers[index].kinds):
+			level = index + 1
+	return level
 
 
 func stat(key: String) -> int:
@@ -225,6 +286,11 @@ func requirement_error(requirements: Dictionary) -> String:
 		if missing > 0:
 			var label: String = Database.progression.settings.get("stat_labels", {}).get(key, key)
 			return "Faça mais %d %s" % [missing, label]
+	for channel: String in requirements.get("distinct_orders", {}):
+		var kinds := distinct_orders(channel)
+		var wanted := int(requirements.distinct_orders[channel])
+		if kinds < wanted:
+			return "Faça %d tipos de contrato (tem %d)" % [wanted, kinds]
 	if chapter_index() < int(requirements.get("chapter", 1)):
 		var chapters: Array = Database.progression.get("chapters", [])
 		var opens := int(requirements.chapter) - 1
@@ -408,15 +474,10 @@ func from_dict(data: Dictionary) -> void:
 			for i in config.slot_upgrades.size():
 				if has_upgrade(str(config.slot_upgrades[i])):
 					owned[str(config.level_upgrades[0])] = true
-					total = maxi(total, int(config.levels[i + 1].xp))
+					total = maxi(total, int(config.levels[nature_slot_level(site, i) - 1].xp))
 			nature_xp[site] = total
 	for site: String in Database.progression.nature_sites:
-		var config: Dictionary = Database.progression.nature_sites[site]
-		var level := nature_level(site)
-		for i in level:
-			owned[str(config.level_upgrades[i])] = true
-		for i in maxi(0, level - 1):
-			owned[str(config.slot_upgrades[i])] = true
+		sync_nature_tokens(site)
 	claimed_quests = data.get("claimed_quests", {}).duplicate(true)
 	discoveries = data.get("discoveries", {}).duplicate(true)
 	collection = data.get("collection", {}).duplicate(true)

@@ -317,9 +317,14 @@
   },
   "main_4_materials": {
     "npc": "lais",
-    "name": "Madeira para construir",
-    "dialogue": "Junta madeira para a gente construir.",
+    "name": "Madeira e um lugar para ela",
+    "dialogue": "Primeiro um armazém para a madeira não se espalhar. Depois guarde 6 madeiras para a bancada.",
     "goals": [
+      {
+        "type": "owned",
+        "key": "warehouse",
+        "label": "Construir o armazém no sítio"
+      },
       {
         "type": "have",
         "key": "wood",
@@ -382,7 +387,7 @@
   "first_harvest": {
     "npc": "bloblo",
     "name": "A primeira colheita",
-    "dialogue": "Esse canteiro é seu. Planta uma cenoura e rega!",
+    "dialogue": "Esse canteiro é seu. Planta uma cenoura e rega! O que você colher vai para o cesto, que cabe pouquinho.",
     "goals": [
       {
         "type": "stat",
@@ -519,27 +524,19 @@
   "stone_path": {
     "npc": "lais",
     "name": "A primeira exploração",
-    "dialogue": "Desbloqueie a Caverna e recolha pedra para as construções.",
+    "dialogue": "Na Caverna tem pedra para as construções. O Guia mostra a Pedreira.",
     "goals": [
       {
-        "type": "stat",
-        "key": "activity:quarry",
-        "target": 1,
-        "label": "Explorar a pedreira"
+        "type": "quest",
+        "key": "guide_stone",
+        "label": "Pegar pedra na Pedreira"
       }
     ],
-    "rewards": {
-      "coins": 25,
-      "items": {
-        "copper": 2
-      },
-      "skill_xp": {
-        "adventure": 20
-      }
-    },
+    "rewards": {},
     "kind": "main",
     "chapter": 6,
-    "order": 20
+    "order": 20,
+    "shared_with": "guide_stone"
   },
   "market_day": {
     "npc": "lais",
@@ -603,16 +600,28 @@
   "atelier_open": {
     "npc": "lais",
     "name": "Um presente feito aqui",
-    "dialogue": "Monte seu ateliê. Agora podemos criar presentes aqui!",
+    "dialogue": "Monte seu ateliê e faça o primeiro conjunto de acessórios. Agora criamos presentes aqui!",
     "goals": [
       {
         "type": "owned",
         "key": "atelier",
         "label": "Montar o ateliê"
+      },
+      {
+        "type": "stat",
+        "key": "produce:fabric",
+        "target": 2,
+        "label": "Fazer 2 tecidos"
+      },
+      {
+        "type": "stat",
+        "key": "produce:accessory_set",
+        "target": 1,
+        "label": "Fazer 1 conjunto de acessórios"
       }
     ],
     "rewards": {
-      "coins": 200,
+      "coins": 40,
       "collections": [
         "artisan_outfit"
       ],
@@ -627,13 +636,19 @@
   "main_7_greenhouse": {
     "npc": "lais",
     "name": "Uma estufa cheia de vida",
-    "dialogue": "Vamos juntos: uma estufa cheia de vida.",
+    "dialogue": "Monte a estufa e colha as primeiras ervas, que só crescem lá dentro.",
     "goals": [
       {
         "type": "owned",
         "key": "greenhouse",
         "target": 1,
         "label": "Comprar a estufa"
+      },
+      {
+        "type": "stat",
+        "key": "harvest:herbs",
+        "target": 1,
+        "label": "Colher 1 erva na estufa"
       }
     ],
     "rewards": {
@@ -644,20 +659,18 @@
     "order": 30
   },
   "main_5_pickaxe": {
+    "shared_with": "guide_open_cave",
     "npc": "lais",
     "name": "Desbloquear a Caverna",
-    "dialogue": "Abra a Caverna para explorar os materiais da natureza.",
+    "dialogue": "O Guia sabe o caminho até a Caverna. Vá com ele!",
     "goals": [
       {
-        "type": "owned",
-        "key": "cave_open",
-        "target": 1,
-        "label": "Desbloquear a Caverna"
+        "type": "quest",
+        "key": "guide_open_cave",
+        "label": "Abrir a Caverna com o Guia"
       }
     ],
-    "rewards": {
-      "coins": 10
-    },
+    "rewards": {},
     "kind": "main",
     "chapter": 6,
     "order": 10
@@ -665,14 +678,25 @@
   "main_5_cooking": {
     "npc": "lais",
     "name": "Sabores de casa",
-    "dialogue": "Vamos juntos: sabores de casa.",
+    "dialogue": "Experimente três receitas da cozinha. O que você já fez vale!",
     "goals": [
       {
         "type": "stat",
-        "key": "produce",
-        "target": 5,
-        "fresh": true,
-        "label": "Cozinhe 5 receitas"
+        "key": "produce:carrot_snack",
+        "target": 2,
+        "label": "Cozinhar 2 lanches de cenoura"
+      },
+      {
+        "type": "stat",
+        "key": "produce:vegetable_soup",
+        "target": 1,
+        "label": "Cozinhar 1 sopa de legumes"
+      },
+      {
+        "type": "stat",
+        "key": "produce:strawberry_juice",
+        "target": 1,
+        "label": "Fazer 1 suco de morango"
       }
     ],
     "rewards": {
@@ -702,21 +726,18 @@
     "order": 40
   },
   "main_6_commerce": {
+    "shared_with": "merchant_variety",
     "npc": "lais",
     "name": "Conhecer a clientela",
-    "dialogue": "Vamos juntos: conhecer a clientela.",
+    "dialogue": "Cada vizinho gosta de uma coisa. Entregue dois pedidos diferentes na feira!",
     "goals": [
       {
-        "type": "stat",
-        "key": "sold",
-        "target": 15,
-        "fresh": true,
-        "label": "Venda 15 itens"
+        "type": "quest",
+        "key": "merchant_variety",
+        "label": "Entregar dois pedidos diferentes"
       }
     ],
-    "rewards": {
-      "coins": 10
-    },
+    "rewards": {},
     "kind": "main",
     "chapter": 7,
     "order": 20
@@ -769,8 +790,7 @@
         "type": "stat",
         "key": "produce:plank",
         "target": 6,
-        "fresh": true,
-        "label": "Faça 6 tábuas"
+        "label": "Fazer 6 tábuas"
       }
     ],
     "rewards": {
@@ -809,7 +829,7 @@
   "main_9_eggs": {
     "npc": "bloblo",
     "name": "Ovos fresquinhos",
-    "dialogue": "Sua galinha gosta de milho. Recolha os ovos para conhecer a ruiva!",
+    "dialogue": "Sua galinha gosta de milho. Recolha os ovos: com 8 você conhece a ruiva!",
     "goals": [
       {
         "type": "stat",
@@ -855,8 +875,12 @@
         "type": "stat",
         "key": "produce:flour",
         "target": 2,
-        "fresh": true,
         "label": "Moa trigo e pegue 2 farinhas"
+      },
+      {
+        "type": "owned",
+        "key": "mill",
+        "label": "Construir o moinho"
       }
     ],
     "rewards": {
@@ -893,7 +917,7 @@
   "bloblo_milk": {
     "npc": "bloblo",
     "name": "Leite fresquinho",
-    "dialogue": "Dê trigo à vaquinha. O primeiro leite libera a vaca caramelo!",
+    "dialogue": "Dê trigo à vaquinha. Com 8 leites a vaca caramelo chega à loja!",
     "goals": [
       {
         "type": "stat",
@@ -909,15 +933,164 @@
     "line": "bloblo",
     "order": 110
   },
+  "bloblo_breakfast": {
+    "npc": "bloblo",
+    "name": "Café da nossa fazenda",
+    "dialogue": "Ovos, farinha e queijo, tudo do nosso sítio! Entregue o café da manhã na Vila.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "order:farm_breakfast",
+        "target": 1,
+        "label": "Entregue o pedido Café da manhã"
+      }
+    ],
+    "rewards": {
+      "coins": 15
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 140
+  },
   "bloblo_silo": {
     "npc": "bloblo",
     "name": "A colheita não cabe!",
-    "dialogue": "Olha só, a colheita já não cabe no celeiro velho. Vamos construir um silo!",
+    "dialogue": "Vamos arrumar o silo. Assim sobra lugar para a próxima colheita.",
     "goals": [
       {
         "type": "owned",
         "key": "silo",
-        "label": "Construir o silo no sítio"
+        "label": "Arrumar o silo no sítio"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 27
+  },
+  "bloblo_warehouse": {
+    "npc": "guide",
+    "name": "Tudo no seu lugar",
+    "dialogue": "Madeira, pedra e fibra espalhadas por aí... Um armazém resolve! A pedra vem da Caverna.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "warehouse",
+        "label": "Construir o armazém no sítio"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "line",
+    "line": "guide",
+    "order": 25
+  },
+  "bloblo_chest": {
+    "npc": "nina",
+    "name": "Um baú para os passeios",
+    "dialogue": "Trouxe gravetos? Vamos montar um baú para as coisas dos passeios.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "chest",
+        "label": "Construir o baú na casa"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "line",
+    "line": "nina",
+    "order": 25
+  },
+  "storage_first_planks": {
+    "npc": "bloblo",
+    "name": "Tábuas para ampliar",
+    "dialogue": "Agora que tem bancada, faça duas tábuas. Elas servem para ampliar o que você quiser.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "produce:plank",
+        "target": 2,
+        "fresh": true,
+        "label": "Fazer 2 tábuas"
+      }
+    ],
+    "rewards": {
+      "items": {
+        "bolt": 1
+      }
+    },
+    "kind": "line",
+    "line": "storage",
+    "order": 10,
+    "requirements": {
+      "quests": [
+        "main_4_bench"
+      ]
+    }
+  },
+  "storage_first_delivery": {
+    "npc": "bloblo",
+    "name": "Uma entrega para o parafuso",
+    "dialogue": "Entregue uma encomenda na Vila. Leve este outro parafuso para o primeiro aumento.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "orders",
+        "target": 1,
+        "fresh": true,
+        "label": "Entregar 1 encomenda"
+      }
+    ],
+    "rewards": {
+      "items": {
+        "bolt": 1
+      }
+    },
+    "kind": "line",
+    "line": "storage",
+    "order": 20,
+    "go": {
+      "world": "village",
+      "place": "orders"
+    }
+  },
+  "bloblo_bigger": {
+    "npc": "bloblo",
+    "name": "Mais espaço onde importa",
+    "dialogue": "Amplie o que mais aperta: o silo, a geladeira ou o armazém. Você escolhe!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "storage_upgrades",
+        "target": 1,
+        "label": "Ampliar um depósito"
+      }
+    ],
+    "rewards": {
+      "coins": 15,
+      "items": {
+        "bolt": 2
+      }
+    },
+    "kind": "line",
+    "line": "storage",
+    "order": 30
+  },
+  "bloblo_biggest": {
+    "npc": "bloblo",
+    "name": "Uma casa organizada",
+    "dialogue": "Três ampliações e tudo tem seu lugar. Que casa organizada!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "storage_upgrades",
+        "target": 3,
+        "label": "Fazer 3 ampliações"
       }
     ],
     "rewards": {
@@ -927,99 +1100,8 @@
       }
     },
     "kind": "line",
-    "line": "bloblo",
-    "order": 140
-  },
-  "bloblo_warehouse": {
-    "npc": "bloblo",
-    "name": "Tudo no seu lugar",
-    "dialogue": "Madeira, pedra e fibra espalhadas por aí... Um armazém resolve!",
-    "goals": [
-      {
-        "type": "owned",
-        "key": "warehouse",
-        "label": "Construir o armazém no sítio"
-      }
-    ],
-    "rewards": {
-      "coins": 50,
-      "items": {
-        "bolt": 1
-      }
-    },
-    "kind": "line",
-    "line": "bloblo",
-    "order": 150
-  },
-  "bloblo_chest": {
-    "npc": "bloblo",
-    "name": "Um baú para a casa",
-    "dialogue": "Leve este parafuso: na casa, um baú guarda seus produtos.",
-    "goals": [
-      {
-        "type": "owned",
-        "key": "chest",
-        "label": "Construir o baú na casa"
-      }
-    ],
-    "rewards": {
-      "coins": 50,
-      "items": {
-        "bolt": 1
-      }
-    },
-    "kind": "line",
-    "line": "bloblo",
-    "order": 160
-  },
-  "bloblo_bigger": {
-    "npc": "bloblo",
-    "name": "Mais espaço",
-    "dialogue": "Com parafusos dá para ampliar. Aumente o silo e a geladeira!",
-    "goals": [
-      {
-        "type": "owned",
-        "key": "silo_2",
-        "label": "Ampliar o silo"
-      },
-      {
-        "type": "owned",
-        "key": "fridge_2",
-        "label": "Ampliar a geladeira"
-      }
-    ],
-    "rewards": {
-      "coins": 100,
-      "items": {
-        "bolt": 3,
-        "iron_band": 3
-      }
-    },
-    "kind": "line",
-    "line": "bloblo",
-    "order": 170
-  },
-  "bloblo_biggest": {
-    "npc": "bloblo",
-    "name": "Silo de gente grande",
-    "dialogue": "Agora o silo gigante, com cintas de ferro. Fica para a vida toda!",
-    "goals": [
-      {
-        "type": "owned",
-        "key": "silo_3",
-        "label": "Ampliar o silo ao máximo"
-      }
-    ],
-    "rewards": {
-      "coins": 200,
-      "items": {
-        "bolt": 3,
-        "iron_band": 2
-      }
-    },
-    "kind": "line",
-    "line": "bloblo",
-    "order": 180
+    "line": "storage",
+    "order": 40
   },
   "merchant_meet": {
     "npc": "merchant",
@@ -1115,6 +1197,35 @@
       "place": "orders"
     }
   },
+  "merchant_variety": {
+    "npc": "merchant",
+    "name": "Dois sabores na feira",
+    "dialogue": "Cada vizinho pede uma coisa. Entregue uma cesta de legumes e uns petiscos. O que você já entregou vale!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "order:vegetables",
+        "target": 1,
+        "label": "Entregar a Cesta da vizinhança"
+      },
+      {
+        "type": "stat",
+        "key": "order:snacks",
+        "target": 1,
+        "label": "Entregar os Petiscos para a feira"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "line",
+    "line": "merchant",
+    "order": 45,
+    "go": {
+      "world": "village",
+      "place": "orders"
+    }
+  },
   "guide_meet": {
     "npc": "guide",
     "name": "Além do portão",
@@ -1156,6 +1267,24 @@
     "kind": "line",
     "line": "guide",
     "order": 20
+  },
+  "guide_open_cave": {
+    "npc": "guide",
+    "name": "A porta da Caverna",
+    "dialogue": "Atrás do Bosque fica a Caverna. Abra-a para achar pedra.",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "cave_open",
+        "label": "Desbloquear a Caverna"
+      }
+    ],
+    "rewards": {
+      "coins": 5
+    },
+    "kind": "line",
+    "line": "guide",
+    "order": 22
   },
   "guide_stone": {
     "npc": "guide",
@@ -1261,8 +1390,9 @@
       }
     },
     "kind": "line",
-    "line": "bloblo",
-    "order": 62
+    "line": "flavors",
+    "order": 10,
+    "requirements": {"quests": ["first_kitchen", "bloblo_dig"]}
   },
   "bloblo_pumpkin": {
     "npc": "bloblo",
@@ -1283,8 +1413,9 @@
       }
     },
     "kind": "line",
-    "line": "bloblo",
-    "order": 65
+    "line": "flavors",
+    "order": 20,
+    "requirements": {"quests": ["first_kitchen", "bloblo_potato"]}
   },
   "bloblo_sweet_potato": {
     "npc": "bloblo",
@@ -1305,8 +1436,9 @@
       }
     },
     "kind": "line",
-    "line": "bloblo",
-    "order": 75
+    "line": "flavors",
+    "order": 30,
+    "requirements": {"quests": ["first_kitchen", "farm_deed"]}
   },
   "lais_blender": {
     "npc": "lais",
@@ -1435,8 +1567,13 @@
       "affection": 10
     },
     "kind": "line",
-    "line": "nina",
-    "order": 40
+    "line": "nina_discoveries",
+    "order": 10,
+    "requirements": {
+      "quests": [
+        "nina_walk"
+      ]
+    }
   },
   "nina_petshop": {
     "npc": "nina",
@@ -1647,7 +1784,7 @@
       }
     ],
     "rewards": {
-      "coins": 150,
+      "coins": 30,
       "skill_xp": {
         "commerce": 60
       }
@@ -1663,13 +1800,13 @@
     "kind": "line",
     "line": "merchant",
     "name": "Primeiros contratos",
-    "dialogue": "Sua banca está aberta! Entregue dois contratos. Você recebe moedas e materiais de ampliação.",
+    "dialogue": "Sua banca está aberta! Entregue seis contratos, de pelo menos dois tipos. Você recebe moedas e materiais de ampliação.",
     "goals": [
       {
         "type": "stat",
         "key": "contracts",
-        "target": 2,
-        "label": "Entregar 2 contratos da sua banca"
+        "target": 6,
+        "label": "Entregar 6 contratos da sua banca"
       }
     ],
     "rewards": {
@@ -1686,7 +1823,7 @@
     "kind": "line",
     "line": "merchant",
     "name": "Mais espaço na banca",
-    "dialogue": "Seus primeiros clientes chegaram. Amplie sua banca para receber novos contratos.",
+    "dialogue": "Seus primeiros clientes chegaram. Amplie sua banca (900 moedas) para receber novos contratos.",
     "goals": [
       {
         "type": "owned",
@@ -1708,13 +1845,13 @@
     "kind": "line",
     "line": "merchant",
     "name": "Clientes da vila",
-    "dialogue": "Continue atendendo os contratos e preparando seus produtos. Vamos chegar a cinco entregas da banca.",
+    "dialogue": "Continue atendendo os contratos e preparando seus produtos. Vamos chegar a doze entregas da banca, de pelo menos três tipos.",
     "goals": [
       {
         "type": "stat",
         "key": "contracts",
-        "target": 5,
-        "label": "Somar 5 contratos da sua banca"
+        "target": 12,
+        "label": "Somar 12 contratos da sua banca"
       }
     ],
     "rewards": {
@@ -1753,13 +1890,13 @@
     "kind": "line",
     "line": "merchant",
     "name": "A vila conta com você",
-    "dialogue": "Prepare o contrato Festa da vila. É o primeiro grande pedido da sua banca completa.",
+    "dialogue": "Prepare a Encomenda para eventos. É o primeiro grande pedido da sua banca completa.",
     "goals": [
       {
         "type": "stat",
         "key": "order:festival_contract",
         "target": 1,
-        "label": "Entregar o contrato Festa da vila"
+        "label": "Entregar a Encomenda para eventos"
       }
     ],
     "rewards": {
@@ -1774,5 +1911,216 @@
       "world": "village",
       "place": "order:festival_contract"
     }
+  },
+  "workshop_toy": {
+    "npc": "guide",
+    "name": "Um brinquedo para o Tiro",
+    "dialogue": "Com tecido e gravetos dá para trançar um brinquedo na bancada. Se faltar graveto, corte madeira lá mesmo!",
+    "goals": [
+      {"type": "stat", "key": "produce:braided_toy", "target": 1, "label": "Fazer 1 brinquedo trançado"}
+    ],
+    "rewards": {"coins": 10},
+    "kind": "line",
+    "line": "workshop",
+    "order": 10,
+    "requirements": {"quests": ["atelier_open"]}
+  },
+  "workshop_first_set": {
+    "npc": "guide",
+    "name": "Peças para os próximos planos",
+    "dialogue": "Aquele conjunto de acessórios que você fez no ateliê já conta. Guarde esta cinta de ferro para o que vem aí.",
+    "goals": [
+      {"type": "stat", "key": "produce:accessory_set", "target": 1, "label": "Ter feito 1 conjunto de acessórios"}
+    ],
+    "rewards": {"items": {"iron_band": 1}},
+    "kind": "line",
+    "line": "workshop",
+    "order": 20
+  },
+  "workshop_picnic": {
+    "npc": "guide",
+    "name": "Uma cesta para compartilhar",
+    "dialogue": "Petiscos e bebidas numa cesta: perfeito para dividir com os amigos da vila.",
+    "goals": [
+      {"type": "stat", "key": "produce:picnic_pack", "target": 1, "label": "Fazer 1 cesta do encontro"}
+    ],
+    "rewards": {"coins": 10},
+    "kind": "line",
+    "line": "workshop",
+    "order": 30
+  },
+  "nina_blueberry": {
+    "npc": "nina",
+    "name": "O sabor da descoberta",
+    "dialogue": "O mirtilo do tesouro virou petisco! Quando o Tiro pedir um, dê a ele.",
+    "goals": [
+      {"type": "stat", "key": "wish_item:blueberry_treat", "target": 1, "label": "Dar o petisco de mirtilo quando o Tiro pedir"}
+    ],
+    "rewards": {"affection": 8},
+    "kind": "line",
+    "line": "nina_flavors",
+    "order": 10,
+    "requirements": {"stats": {"treasure": 1}, "owned": ["greenhouse"]}
+  },
+  "community_10_meet": {
+    "npc": "lais",
+    "name": "Um lugar para a nossa turma",
+    "dialogue": "Tive uma ideia para a Praça! Vem conversar comigo.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "talk:lais",
+        "target": 1,
+        "label": "Falar com a Laís",
+        "fresh": true
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 10,
+    "order": 10
+  },
+  "community_10_bench": {
+    "npc": "lais",
+    "name": "Um banco para descansar",
+    "dialogue": "Com o banco, a Praça fica a nossa cara. Junte o material com calma, nada se perde.",
+    "goals": [
+      {
+        "type": "project",
+        "key": "park_bench",
+        "target": 1,
+        "label": "Terminar o banco da Praça"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 10,
+    "order": 20
+  },
+  "community_10_use": {
+    "npc": "lais",
+    "name": "Senta aqui comigo",
+    "dialogue": "Agora toque no banco e chame o Tiro para sentar.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "project_use:park_bench",
+        "target": 1,
+        "label": "Chamar o Tiro ao banco"
+      }
+    ],
+    "rewards": {
+      "affection": 5
+    },
+    "kind": "main",
+    "chapter": 10,
+    "order": 30
+  },
+  "community_11_garden": {
+    "npc": "lais",
+    "name": "A vila floresce",
+    "dialogue": "A vovó Bloblo quer um jardim para todos. Vamos ajudar?",
+    "goals": [
+      {
+        "type": "project",
+        "key": "village_garden",
+        "target": 1,
+        "label": "Terminar o jardim da Vila"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 11,
+    "order": 10
+  },
+  "community_11_picnic": {
+    "npc": "lais",
+    "name": "Vamos preparar um encontro",
+    "dialogue": "A Nina cuida do piquenique. Ele pode ser feito antes ou depois do jardim.",
+    "goals": [
+      {
+        "type": "project",
+        "key": "park_picnic",
+        "target": 1,
+        "label": "Terminar o piquenique da Praça"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 11,
+    "order": 20
+  },
+  "community_11_tiro": {
+    "npc": "lais",
+    "name": "Nossa tarde juntos",
+    "dialogue": "Toque na toalha e deixe o Tiro aproveitar o encontro.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "project_use:park_picnic",
+        "target": 1,
+        "label": "Chamar o Tiro ao piquenique"
+      }
+    ],
+    "rewards": {
+      "affection": 5
+    },
+    "kind": "main",
+    "chapter": 11,
+    "order": 30
+  },
+  "community_12_prepare": {
+    "npc": "nina",
+    "name": "Uma festa para a turma",
+    "dialogue": "Que tal uma festa com todo mundo? Vem falar comigo!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "talk:nina",
+        "target": 1,
+        "label": "Falar com a Nina",
+        "fresh": true
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 12,
+    "order": 10
+  },
+  "community_12_festival": {
+    "npc": "lais",
+    "name": "A festa da vila",
+    "dialogue": "A banca grande ajuda nos preparativos. Junte o material e a vila inteira vem.",
+    "goals": [
+      {
+        "type": "project",
+        "key": "village_festival",
+        "target": 1,
+        "label": "Terminar a festa da Vila"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 12,
+    "order": 20
+  },
+  "community_12_memory": {
+    "npc": "lais",
+    "name": "Uma lembrança da nossa turma",
+    "dialogue": "Toque na mesa da festa e deixe o Tiro comemorar com a turma.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "project_use:village_festival",
+        "target": 1,
+        "label": "Chamar o Tiro à festa"
+      }
+    ],
+    "rewards": {
+      "affection": 10
+    },
+    "kind": "main",
+    "chapter": 12,
+    "order": 30
   }
 }

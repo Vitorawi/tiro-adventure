@@ -15,3 +15,4 @@ static func short(seconds: int) -> String:
 	if seconds >= 60:
 		return "%d:%02d" % [seconds / 60, seconds % 60]
 	return "%ds" % seconds
+

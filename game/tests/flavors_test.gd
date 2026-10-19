@@ -60,7 +60,7 @@ func _run() -> void:
 	var texts: Array[String] = []
 	labels(picker, texts)
 	var previous := -1
-	for name: String in ["Cenoura", "Trigo", "Morango", "Milho", "Batata", "Batata-doce", "Abóbora"]:
+	for name: String in ["Cenoura", "Batata", "Trigo", "Morango", "Milho", "Abóbora", "Batata-doce"]:
 		var index := texts.find(name)
 		check(index > previous, "sementes ordenadas: " + name)
 		previous = index

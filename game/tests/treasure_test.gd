@@ -73,12 +73,12 @@ func _run() -> void:
 	check(state.call("plant", 9, "blueberry") == "", "planta mirtilo na estufa")
 	check(state.call("plant", 10, "carrot") != "", "cenoura não vai para a estufa")
 	check(state.call("crop_plot_error", 10, "strawberry") == "" and state.call("crop_plot_error", 0, "strawberry") == "", "morango cresce nos dois lugares")
-	state.call("dev_advance_time", 901.0)
+	state.call("dev_advance_time", 10081.0)
 	check(state.call("plot_status", 9) == "ready", "mirtilo cresce mais rápido na estufa")
 	var before: int = inv.count("blueberry")
 	state.call("harvest", 9)
-	check(inv.count("blueberry") == before + 3, "colhe 3 mirtilos")
-	check(db.get("items").blueberry.feed.happiness == 8 and db.get("crops").blueberry.coins == 20, "dados do mirtilo")
+	check(inv.count("blueberry") == before + 8, "colhe 8 mirtilos")
+	check(db.get("items").blueberry.feed.happiness == 8 and db.get("crops").blueberry.coins == 0, "dados do mirtilo")
 	# Desejo especial do mirtilo.
 	var wish: Dictionary = db.get("wishes").wishes.blueberry
 	check(wish.special and state.call("requirement_error", wish.requirements) == "", "desejo de mirtilo abre depois do baú")

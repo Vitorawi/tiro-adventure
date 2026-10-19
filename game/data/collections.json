@@ -252,5 +252,13 @@
     "slot": "neck",
     "icon": "friend_pipoca",
     "source": "friend:pipoca"
+  },
+  "community_ribbon": {
+    "name": "Lenço da nossa turma",
+    "slot": "neck",
+    "description": "Lembrança da festa da vila com toda a turma.",
+    "icon": "outfit_community_ribbon",
+    "source": "project:village_festival",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/community_ribbon.png"
   }
 }

@@ -42,6 +42,8 @@
     }
   ],
   "objects": [
+    {"id": "community_festival", "sprite": "res://assets/sprites/areas/village/festival_decorate.png", "pos": [385, 236], "project": "village_festival", "project_sprites": {"ghost": "res://assets/sprites/areas/village/festival_decorate.png", "decorate": "res://assets/sprites/areas/village/festival_decorate.png", "table": "res://assets/sprites/areas/village/festival_table.png", "gifts": "res://assets/sprites/areas/village/festival_gifts.png"}, "action": "place:festival", "label": "Festa", "label_pos": [385, 250], "requirements": {"projects": ["village_garden", "park_picnic"], "owned": ["stall_3"]}, "approach": [385, 258], "footprint": [[360, 236], [385, 228], [410, 236], [385, 244]]},
+    {"id": "community_garden", "sprite": "res://assets/sprites/areas/village/garden_beds.png", "pos": [243, 290], "project": "village_garden", "project_sprites": {"ghost": "res://assets/sprites/areas/village/garden_beds.png", "beds": "res://assets/sprites/areas/village/garden_beds.png", "planting": "res://assets/sprites/areas/village/garden_planting.png", "opening": "res://assets/sprites/areas/village/garden_opening.png"}, "action": "place:garden", "label": "Jardim", "label_pos": [243, 306], "requirements": {"projects": ["park_bench"]}, "approach": [270, 268], "footprint": [[222, 288], [243, 278], [264, 288], [243, 298]]},
     {
       "id": "stall_flags",
       "action": "place:stall",

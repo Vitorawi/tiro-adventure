@@ -140,6 +140,9 @@ func _brain() -> void:
 			await _go_to(reaction.target)
 			if not _reaction.is_empty() or GameState.dog.sleeping:
 				continue
+			# Só conta quando ele chegou: ponto inalcançável não gasta a "primeira vez".
+			if reaction.on_start.is_valid() and position.distance_to(reaction.target) <= 12.0:
+				reaction.on_start.call()
 			await _show_reaction(reaction.kind)
 			continue
 		if bowl_point != Vector2.INF and dog.get_need("hunger", GameState.now()) < HUNGRY and randf() < 0.6:
@@ -153,10 +156,11 @@ func _brain() -> void:
 
 
 ## Uma reação por vez; uma ação nova substitui a anterior sem somar caminhos.
-func react_at(kind: StringName, target: Vector2) -> void:
+## `on_start` (opcional) roda quando a reação realmente começa, já no ponto alcançado.
+func react_at(kind: StringName, target: Vector2, on_start: Callable = Callable()) -> void:
 	if GameState.dog.sleeping or not room.is_visible_in_tree():
 		return
-	_reaction = {"kind": kind, "target": room.nearest_floor_point(target)}
+	_reaction = {"kind": kind, "target": room.nearest_floor_point(target), "on_start": on_start}
 	set_meta("last_reaction", kind)
 
 
@@ -173,6 +177,38 @@ func _show_reaction(kind: StringName) -> void:
 		_play("sit", _facing)
 		await _wait(20.0)
 		return
+	if kind == &"bench":
+		# Senta ao lado do banco um instante e comemora (animações já existentes).
+		_play("sit", _facing)
+		await _wait(2.5)
+		if not _reaction.is_empty() or GameState.dog.sleeping:
+			return
+	if kind == &"garden":
+		# Fareja as plantas de perto e depois comemora.
+		_play("sniff", _facing)
+		await _wait(2.5)
+		if not _reaction.is_empty() or GameState.dog.sleeping:
+			return
+	if kind == &"festival":
+		# Comemora com a turma: senta, late de alegria e ainda pula (o fecho comum da reação).
+		_play("sit", _facing)
+		await _wait(1.2)
+		if not _reaction.is_empty() or GameState.dog.sleeping:
+			return
+		_play("bark", "south")
+		await _wait(1.0)
+		if not _reaction.is_empty() or GameState.dog.sleeping:
+			return
+	if kind == &"picnic":
+		# Senta na toalha, mordisca o petisco do encontro e comemora.
+		_play("sit", _facing)
+		await _wait(1.5)
+		if not _reaction.is_empty() or GameState.dog.sleeping:
+			return
+		_play("eat", _facing)
+		await _wait(1.5)
+		if not _reaction.is_empty() or GameState.dog.sleeping:
+			return
 	if kind == &"dig":
 		_play("dig", _facing)
 		await _wait(float(Database.finds.settings.get("dig_seconds", 0.8)))

@@ -17,7 +17,7 @@
     },
     "output": "pumpkin_mash",
     "qty": 1,
-    "seconds": 180,
+    "seconds": 300,
     "skill_xp": 22,
     "requirements": {
       "quests": [
@@ -33,7 +33,7 @@
     },
     "output": "vegetable_soup",
     "qty": 1,
-    "seconds": 120,
+    "seconds": 180,
     "skill": "cooking",
     "skill_xp": 30,
     "requirements": {
@@ -49,7 +49,7 @@
     },
     "output": "plank",
     "qty": 1,
-    "seconds": 90,
+    "seconds": 120,
     "skill": "adventure",
     "skill_xp": 15
   },
@@ -60,7 +60,7 @@
     },
     "output": "brick",
     "qty": 1,
-    "seconds": 120,
+    "seconds": 180,
     "skill": "adventure",
     "skill_xp": 18
   },
@@ -75,7 +75,7 @@
     },
     "output": "apple_biscuit",
     "qty": 2,
-    "seconds": 300,
+    "seconds": 480,
     "skill": "cooking",
     "skill_xp": 45
   },
@@ -88,7 +88,7 @@
     },
     "output": "treat_box",
     "qty": 1,
-    "seconds": 420,
+    "seconds": 900,
     "skill": "cooking",
     "skill_xp": 65,
     "requirements": {
@@ -105,7 +105,7 @@
     },
     "output": "fabric",
     "qty": 1,
-    "seconds": 180,
+    "seconds": 900,
     "skill": "adventure",
     "skill_xp": 25
   },
@@ -117,7 +117,7 @@
     },
     "output": "accessory_set",
     "qty": 1,
-    "seconds": 360,
+    "seconds": 1800,
     "skill": "adventure",
     "skill_xp": 55
   },
@@ -128,7 +128,7 @@
     },
     "output": "egg",
     "qty": 2,
-    "seconds": 180,
+    "seconds": 900,
     "skill": "agriculture",
     "skill_xp": 12,
     "requirements": {
@@ -142,7 +142,7 @@
     },
     "output": "milk",
     "qty": 2,
-    "seconds": 300,
+    "seconds": 1800,
     "skill": "agriculture",
     "skill_xp": 18,
     "requirements": {
@@ -156,7 +156,7 @@
     },
     "output": "flour",
     "qty": 2,
-    "seconds": 120,
+    "seconds": 300,
     "skill": "cooking",
     "skill_xp": 15,
     "requirements": {
@@ -170,7 +170,7 @@
     },
     "output": "plank",
     "qty": 3,
-    "seconds": 120,
+    "seconds": 480,
     "skill": "adventure",
     "skill_xp": 15,
     "requirements": {
@@ -184,7 +184,7 @@
     },
     "output": "cheese",
     "qty": 1,
-    "seconds": 240,
+    "seconds": 1200,
     "skill": "cooking",
     "skill_xp": 25,
     "requirements": {
@@ -198,7 +198,7 @@
     },
     "output": "strawberry_pop",
     "qty": 1,
-    "seconds": 90,
+    "seconds": 180,
     "skill": "cooking",
     "skill_xp": 12
   },
@@ -209,7 +209,7 @@
     },
     "output": "strawberry_juice",
     "qty": 1,
-    "seconds": 60,
+    "seconds": 120,
     "skill": "cooking",
     "skill_xp": 10
   },
@@ -220,7 +220,7 @@
     },
     "output": "mashed_potato",
     "qty": 1,
-    "seconds": 90,
+    "seconds": 120,
     "skill": "cooking",
     "skill_xp": 15,
     "requirements": {
@@ -236,7 +236,7 @@
     },
     "output": "sweet_potato_chips",
     "qty": 1,
-    "seconds": 150,
+    "seconds": 600,
     "skill": "cooking",
     "skill_xp": 25,
     "requirements": {
@@ -253,7 +253,7 @@
     },
     "output": "mint_snack",
     "qty": 1,
-    "seconds": 120,
+    "seconds": 240,
     "skill": "cooking",
     "skill_xp": 18,
     "requirements": {
@@ -318,5 +318,48 @@
     "seconds": 1200,
     "skill": "adventure",
     "skill_xp": 60
+  },
+  "cut_sticks": {
+    "station": "workbench",
+    "inputs": {"wood": 1},
+    "output": "stick",
+    "qty": 2,
+    "seconds": 60,
+    "skill": "adventure",
+    "skill_xp": 0,
+    "player_xp": 1
+  },
+  "braided_toy": {
+    "station": "workbench",
+    "inputs": {"fabric": 1, "stick": 2},
+    "output": "braided_toy",
+    "qty": 1,
+    "seconds": 720,
+    "skill": "adventure",
+    "skill_xp": 20,
+    "player_xp": 8,
+    "requirements": {"quests": ["atelier_open"]}
+  },
+  "picnic_pack": {
+    "station": "stove",
+    "inputs": {"carrot_snack": 2, "strawberry_pop": 2, "strawberry_juice": 1},
+    "output": "picnic_pack",
+    "qty": 1,
+    "seconds": 1080,
+    "skill": "cooking",
+    "skill_xp": 25,
+    "player_xp": 10,
+    "requirements": {"quests": ["atelier_open"], "owned": ["blender"]}
+  },
+  "blueberry_treat": {
+    "station": "stove",
+    "inputs": {"blueberry": 2, "herbs": 1, "carrot_snack": 1},
+    "output": "blueberry_treat",
+    "qty": 1,
+    "seconds": 900,
+    "skill": "cooking",
+    "skill_xp": 25,
+    "player_xp": 10,
+    "requirements": {"stats": {"treasure": 1}, "owned": ["greenhouse"]}
   }
 }
