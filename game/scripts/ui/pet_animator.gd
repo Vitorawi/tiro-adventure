@@ -10,6 +10,8 @@ const IDLE := &"idle_breathe"
 const SLEEP := &"sleep"
 const ROLL := &"roll_over"
 const CLOTHES_CACHE_LIMIT := 48
+static var _portrait_bounds: Dictionary = {}
+var _portrait_holder: Control
 ## Quadros por segundo de cada animação.
 const FPS := {
 	&"idle_breathe": 6.0, &"head_tilt": 7.0, &"scratch": 8.0, &"yawn": 6.0, &"sniff": 7.0,
@@ -67,12 +69,11 @@ static func portrait(px: int = 64) -> Control:
 	var target := TextureRect.new()
 	target.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	target.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	target.size = Vector2(px * 2, px * 2.0 * 216.0 / 256.0)
-	target.position = Vector2(-px * 0.5, -px * 9.0 / 64.0)
 	target.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	target.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	holder.add_child(target)
 	var animator := PetAnimator.new()
+	animator._portrait_holder = holder
 	holder.add_child(animator)
 	animator.setup(target)
 	animator.set_sleeping(GameState.dog.sleeping)
@@ -304,6 +305,7 @@ func _show() -> void:
 		return
 	var index := mini(_frame, list.size() - 1)
 	_target.texture = list[list.size() - 1 - index if _reverse else index]
+	_fit_portrait(list)
 	var drawn := list.size() - 1 - index if _reverse else index
 	for slot: String in _clothes:
 		var layer: TextureRect = _clothes[slot]
@@ -326,6 +328,27 @@ func _show() -> void:
 		var offset: Array = anchor.get("offset", [0, 0])
 		# Âncoras expressas no canvas 256×216, independentes do tamanho da tela.
 		layer.position = Vector2(float(offset[0]), float(offset[1])) * _target.size / Vector2(256, 216)
+
+
+## Usa a união dos quadros do clipe: cabe inteiro sem oscilar a cada quadro.
+## O canvas varia entre corpos/poses; o recorte antigo pressupunha o adulto em pé.
+func _fit_portrait(frames: Array) -> void:
+	if _portrait_holder == null: return
+	var key := str(_look.dir_pet) + str(_clip)
+	if not _portrait_bounds.has(key):
+		var bounds := Rect2()
+		for texture: Texture2D in frames:
+			var used := Rect2(texture.get_image().get_used_rect())
+			if used.has_area(): bounds = bounds.merge(used) if bounds.has_area() else used
+		_portrait_bounds[key] = bounds
+	var bounds: Rect2 = _portrait_bounds[key]
+	if not bounds.has_area(): return
+	var area := _portrait_holder.custom_minimum_size
+	var factor := minf((area.x - 8.0) / bounds.size.x, (area.y - 8.0) / bounds.size.y)
+	_target.size = _target.texture.get_size() * factor
+	_target.position = (area - bounds.size * factor) * 0.5 - bounds.position * factor
+	_party_hat.size = _target.size * Vector2(0.24, 0.28)
+	_party_hat.position = _target.size * Vector2(0.38, 0.10)
 
 
 func _fidget_delay() -> float:

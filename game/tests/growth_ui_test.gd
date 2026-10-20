@@ -72,6 +72,14 @@ func _run() -> void:
 			check(str(help.action) != "" and not help.target.is_empty(), "requisito tem ação e destino concretos")
 		check(primary(panel) <= 1, "no máximo um PrimaryButton")
 		if "--layout-shots" in OS.get_cmdline_user_args(): await layout_shot(str(phase.id))
+		if "--portrait-shots" in OS.get_cmdline_user_args():
+			await layout_shot(str(phase.id) + "_awake")
+			state.get("dog").sleeping = true
+			ui.call("open")
+			await frames()
+			await create_timer(3.0).timeout
+			await layout_shot(str(phase.id) + "_sleep")
+			state.get("dog").sleeping = false
 		ui.call("history")
 		await frames()
 		var history := main.find_child("GrowthHistory", true, false)

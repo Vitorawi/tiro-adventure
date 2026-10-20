@@ -41,6 +41,16 @@ func _run() -> void:
 		var look: Dictionary = state.call("dog_look")
 		check(look.body == expected[i], "corpo " + str(phase.id))
 		check(animator._look.dir_pet == look.dir_pet and small._look.body == look.body, "animador/retrato atualizados")
+		# Issue #2: cada quadro inteiro deve caber no retrato, inclusive o sono.
+		for clip: StringName in [&"idle_breathe", &"sleep"]:
+			small._play(clip, 1)
+			var target: TextureRect = small._target
+			var factor: Vector2 = target.size / target.texture.get_size()
+			for texture: Texture2D in small._frames[clip]:
+				var used := Rect2(texture.get_image().get_used_rect())
+				var drawn := Rect2(target.position + used.position * factor, used.size * factor)
+				check(Rect2(Vector2.ZERO, portrait.custom_minimum_size).encloses(drawn), "retrato inteiro " + str(phase.id) + "/" + str(clip))
+			check(is_equal_approx(factor.x, factor.y), "retrato sem distorção")
 		check(world.sprite_dir == look.dir_world, "mundo atualizado sem recarregar")
 		var world_frames: SpriteFrames = world.get("_sprite").sprite_frames
 		for action: String in ["idle", "walk", "sit", "sleep", "sniff", "dig", "eat", "bark"]:

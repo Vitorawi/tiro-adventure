@@ -88,6 +88,26 @@ func _run() -> void:
 	for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 		root.size = viewport
 		await frames()
+		var badge: Label = pet.find_child("NotebookNewBadge", true, false)
+		check(badge.text == "Novo" and badge.get_theme_color("font_color") == Color.WHITE, "caderninho: Novo branco sobre o selo vermelho")
+		check(badge.size.x >= badge.get_combined_minimum_size().x and badge.size.y > 0, "selo do caderninho tem espaço para o texto")
+		for need_id: String in ["hunger", "happiness", "energy", "hygiene"]:
+			var need_ring: Control = pet.find_child("Need_" + need_id, true, false)
+			var press := InputEventMouseButton.new()
+			press.button_index = MOUSE_BUTTON_LEFT
+			press.pressed = true
+			need_ring.gui_input.emit(press)
+			await frames()
+			var popover: Control = pet.get_node("PopoverCatcher/Popover")
+			check(popover.size.x >= 200 and popover.size.y < 160, "balão legível sem coluna de letras: " + need_id)
+			check(pet.get_global_rect().encloses(popover.get_global_rect()), "balão dentro da tela: " + need_id)
+			if need_id == "hunger" and "--popover-shots" in OS.get_cmdline_user_args():
+				badge.show()
+				var folder := ProjectSettings.globalize_path("res://../build/screenshots/pet_popovers")
+				DirAccess.make_dir_recursive_absolute(folder)
+				await RenderingServer.frame_post_draw
+				check(root.get_texture().get_image().save_png(folder.path_join("needs_%d.png" % viewport.x)) == OK, "captura dos balões")
+			pet.get_node("PopoverCatcher").free()
 		var circle_y := -1.0
 		for action: String in ["FoodButton", "Care_sponge", "Care_ball", "SleepButton"]:
 			var tile: Control = tray.find_child(action, true, false)

@@ -91,10 +91,12 @@ func _ready() -> void:
 	_manual = UiKit.icon_button(UiKit.ui_icon("ui_notebook"), PetNotebook.open, 52)
 	_manual.name = "ManualButton"
 	add_child(_manual)
-	_new_badge = UiKit.short_label("Novo", &"BadgeLabel", Palette.DANGER)
+	_new_badge = UiKit.short_label("Novo", &"BadgeLabel")
+	_new_badge.name = "NotebookNewBadge"
 	_new_badge.position = Vector2(-4, -8)
 	_new_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_manual.add_child(_new_badge)
+	_new_badge.reset_size()
 	_care = PetCareTray.new()
 	_care.pet_screen = self
 	%VBox.add_child(_care)

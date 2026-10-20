@@ -27,6 +27,8 @@ static func open(host: Control, anchor: Control, content: Control, seconds: floa
 	popover._catcher = catcher
 	popover.theme_type_variation = &"CardPanel"
 	popover.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# Texto com quebra automática não fornece largura mínima ao PanelContainer.
+	popover.custom_minimum_size.x = minf(200.0, maxf(0.0, host.size.x - EDGE * 2.0))
 	popover.add_child(content)
 	catcher.add_child(popover)
 	catcher.gui_input.connect(func(event: InputEvent) -> void:
