@@ -1,0 +1,141 @@
+{
+  "date": "2026-10-19",
+  "provider": "PixelLab",
+  "tool": "create_image_pixflux",
+  "reference": "game/assets/sprites/areas/house/dog_bed.png",
+  "preparation": "tools/house_art.gd",
+  "sources": [
+    {
+      "id": "arrival_box",
+      "job_id": "10f9c0dd-303b-455e-a734-47da3c8b0af0",
+      "asset_id": "af5b8c8f-38d2-5034-880c-0de9253ac64e",
+      "width": 32,
+      "height": 32,
+      "prompt": "Single small open cardboard puppy arrival box with a cream blanket inside, empty, seen from above at three quarters. Cozy home furniture game sprite, crisp pixel art, dark brown single pixel outlines, warm muted palette matching reference furniture, basic shading.",
+      "forced_palette": true,
+      "sha256": "360b365d900f33bd7c0661f367d6d767604b0a2d4c25c21fca79f947538595c5"
+    },
+    {
+      "id": "laundry_basket",
+      "job_id": "21ee1345-782f-418f-8b7a-a8571febe8ce",
+      "asset_id": "be9221e9-deef-5701-95f1-a793256f9871",
+      "width": 32,
+      "height": 32,
+      "prompt": "Single small wicker laundry basket with a white sock and pale blue cloth draped over its edge, seen from above at three quarters. Cozy home furniture game sprite, crisp pixel art, dark brown single pixel outlines, warm muted palette matching reference furniture, basic shading.",
+      "forced_palette": true,
+      "sha256": "c0a640bc3317a0fc8757856562b460aae29e8efe3116d11060c73c67093925c6"
+    },
+    {
+      "id": "paw_rug",
+      "job_id": "4b5c397d-2414-4f6f-9abd-1807af45d4d4",
+      "asset_id": "9e46a230-9e94-586e-b3b2-bae5fd713be6",
+      "width": 32,
+      "height": 32,
+      "prompt": "Single small flat oval dog rug with a single cream paw print, muted blue fabric, floor mat seen from above at three quarters. Cozy home furniture game sprite, crisp pixel art, dark brown single pixel outlines, warm muted palette matching reference furniture, basic shading.",
+      "forced_palette": true,
+      "sha256": "5556cf16667d6d6c8459276066fb8502bc0e73f67a604cb4d67072ddbb36be9f"
+    },
+    {
+      "id": "old_camera",
+      "job_id": "d15accaa-9db2-46d2-b5b6-fc2b9a1d4bdc",
+      "asset_id": "3e7e9449-4179-505c-8d19-8ef40b14b366",
+      "width": 32,
+      "height": 32,
+      "prompt": "Single tiny antique brown leather and black film camera with a round silver lens, seen from front at three quarters. Cozy home furniture game sprite, crisp pixel art, dark brown single pixel outlines, warm muted palette matching reference furniture, basic shading.",
+      "forced_palette": true,
+      "sha256": "0caa61c2c31aa07f4d38cb4e4e0afdec05fe58d16f4865918848dc7d766170d1"
+    },
+    {
+      "id": "height_chart",
+      "job_id": "c4974634-a2d5-4bb2-afe9-45247b1738bb",
+      "asset_id": "899facb4-b83e-5912-9e91-191e99d86eb9",
+      "width": 32,
+      "height": 64,
+      "prompt": "Single single narrow vertical pale wooden height measuring ruler mounted on a wall, fine brown measurement ticks, no writing or numbers, straight flat front view, entire ruler visible, centered. Cozy home furniture game sprite, crisp pixel art, dark brown single pixel outlines, warm muted palette matching reference furniture, basic shading.",
+      "forced_palette": true,
+      "sha256": "9726f53cacfa0d1a15acee04e81a781ce73d8d192c546aa066ee596c727d1708"
+    },
+    {
+      "id": "memory_shelf",
+      "job_id": "3f995394-93ae-4d37-804b-971f783c8645",
+      "asset_id": "7930db4a-3595-5519-9740-9fc74d3ee877",
+      "width": 64,
+      "height": 32,
+      "prompt": "Single single long simple thin wooden floating wall shelf, walnut wood, empty flat top, two tiny supports below, flat front view, isolated shelf, no background wall, no items, shelf along bottom third of canvas. Cozy home furniture game sprite, crisp pixel art, dark brown single pixel outlines, warm muted palette matching reference furniture, basic shading.",
+      "forced_palette": true,
+      "sha256": "b67c64ef1ba006e485eacc74d59b45f659022dca2401e46adfceafd97d581d92"
+    },
+    {
+      "id": "photo_wall",
+      "job_id": "10c05b84-2ee7-41be-b440-a9783abac8ba",
+      "asset_id": "07cd818b-ef4c-568c-baee-c9e04853fbbf",
+      "width": 64,
+      "height": 32,
+      "prompt": "Single a horizontal twine photo display, three empty cream square photo frames hanging from three tiny wooden pegs, frames side by side, simple warm brown cord, flat front view, no pictures inside, isolated. Cozy home furniture game sprite, crisp pixel art, dark brown single pixel outlines, warm muted palette matching reference furniture, basic shading.",
+      "forced_palette": true,
+      "sha256": "dfdd494c89f8ab96c3e7eaed805b3ad0ac6d49096ec9a594c05fa5e7b3e23945"
+    },
+    {
+      "id": "gold_frame",
+      "job_id": "8ee4c321-91bc-4774-9fcc-6e3b304c91f9",
+      "asset_id": "e37ee45c-6066-569a-b108-426fc1bee566",
+      "width": 32,
+      "height": 32,
+      "prompt": "Single single elegant square golden picture frame, thick warm gold rim with light corners, empty white center, flat front view, isolated, no picture or decoration outside. Cozy home furniture game sprite, crisp pixel art, dark brown single pixel outlines, warm muted palette matching reference furniture, basic shading.",
+      "forced_palette": true,
+      "sha256": "876c12bbda96814bb3983bc5ea9680665ee374640d96da0d63c960e0d09efa24"
+    },
+    {
+      "id": "star_garland",
+      "job_id": "9084fb1a-a9fc-4ecc-98f1-fe5ee5ab2449",
+      "asset_id": "0ac5e035-d17b-5569-9e8c-240667494126",
+      "width": 96,
+      "height": 32,
+      "prompt": "Single single long horizontal garland of five tiny golden five pointed stars suspended from a gently curved brown string, isolated, front view, no background. Cozy home furniture game sprite, crisp pixel art, dark brown single pixel outlines, warm muted palette matching reference furniture, basic shading.",
+      "forced_palette": true,
+      "sha256": "fa15f86a2f5b4b9b36c374fe1ac99a7412c966db01f1ae655466d35d3306396c"
+    },
+    {
+      "id": "bed_soft",
+      "job_id": "e3f60456-2885-4f44-ae99-13130f567f40",
+      "asset_id": "cbc97d4f-1d1c-5f14-a5af-750e2c058459",
+      "width": 64,
+      "height": 64,
+      "prompt": "Single small plush oval pet dog bed, padded soft dusty rose pink bolster around an ivory cushion, cozy rounded thick rim, seen from above three quarters, no animal, no background. Cozy home furniture game sprite, crisp pixel art, dark brown single pixel outlines, warm muted palette matching reference furniture, basic shading.",
+      "forced_palette": true,
+      "sha256": "e1777830df43a717ae273eac7842c85d28971610b8b75449e193af49851e044e"
+    },
+    {
+      "id": "bed_luxe",
+      "job_id": "93aeec26-576c-4a28-806e-d941370abfb4",
+      "asset_id": "924065c6-d93a-513e-8754-9f6981ee86da",
+      "width": 64,
+      "height": 64,
+      "prompt": "Single small plush oval luxury pet dog bed, padded muted lavender purple bolster around an ivory cushion, restrained gold piping trim, cozy rounded thick rim, seen from above three quarters, no animal, no background. Cozy home furniture game sprite, crisp pixel art, dark brown single pixel outlines, warm muted palette matching reference furniture, basic shading.",
+      "forced_palette": true,
+      "sha256": "9bab19a786b200882a51dc00436cc4f0b08dc2f115053342a6877753554032ce"
+    },
+    {
+      "id": "named_bowl",
+      "job_id": "de30e7a8-aa24-4c1d-a04f-05775be6f7f5",
+      "asset_id": "1ececce6-8a4d-5135-9f04-61c09bec56cb",
+      "width": 32,
+      "height": 32,
+      "prompt": "Single small round sky blue ceramic dog food bowl with brown kibble, small cream name plate on its front, name TIRO in tiny brown pixel letters, seen from above at three quarters. Cozy home furniture game sprite, crisp pixel art, dark brown single pixel outlines, warm muted palette matching reference furniture, basic shading.",
+      "forced_palette": true,
+      "sha256": "c51a1f61f7aa7b909c74fb16403c68cfd0e8dfdc9fa48d5f6c1e8d1adc3cb946"
+    },
+    {
+      "id": "toy_basket",
+      "job_id": "211acdf0-f9cb-4950-a46f-d076aa309b68",
+      "asset_id": "265ae0f1-6a54-56cd-969d-eb659111f312",
+      "width": 32,
+      "height": 32,
+      "prompt": "Single small wicker dog toy basket containing a red ball and a braided rope toy. Cozy isometric home furniture game sprite, crisp pixel art, warm muted beige and walnut brown palette, dark brown single pixel outlines, basic shading, three quarter view, isolated. No text.",
+      "forced_palette": false,
+      "sha256": "93086912525fe39c4ebafb67dbef20ee66df37bbd1dff0a6a1a35e0021be5c6d"
+    }
+  ],
+  "outputs": "14 objetos em game/assets/sprites/areas/house, mais gold_frame_front.png para o cantinho",
+  "postprocess": "Recorte alfa, nearest, SLOPE=0.37 nas paredes; paleta das caminhas rosa/lilás e molduras douradas derivada das fontes; height_chart exclui a faixa de piso isolada nas linhas 56–63. big_portrait usa hud_tiro.png atual."
+}

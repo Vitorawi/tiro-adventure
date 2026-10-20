@@ -7,7 +7,6 @@ extends CanvasLayer
 
 const NPC := "lais"
 const BACKGROUND := "res://assets/sprites/areas/house/room.png"
-const TIRO := "res://assets/sprites/characters/tiro_pet/tiro_pet_idle_front.png"
 const WAVE_FPS := 8.0
 
 var _lines: Array = []
@@ -85,7 +84,8 @@ func _build() -> void:
 	column.add_theme_constant_override("separation", 12)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(column)
-	_tiro = UiKit.icon(load(TIRO), 150)
+	_tiro = UiKit.icon(null, 150)
+	DogLook.bind(_tiro, "idle_front")
 	_tiro.modulate.a = 0.0
 	column.add_child(_tiro)
 	var card := UiKit.card(column, &"CardPanel")

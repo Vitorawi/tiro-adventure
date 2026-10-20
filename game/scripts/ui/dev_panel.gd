@@ -3,7 +3,7 @@ extends RefCounted
 ## Painel "Ferramentas DEV" (só na versão dev; aberto pelo selo DEV da barra superior).
 ## Cada botão chama um GameState.dev_*() ou o SaveManager. Ver docs/DEPLOY.md ("Versão dev").
 
-const PAGES := {"resources": "Recursos", "progress": "Progresso", "time": "Tempo", "pace": "Ritmo", "save": "Save"}
+const PAGES := {"resources": "Recursos", "progress": "Progresso", "growth": "Crescimento", "time": "Tempo", "pace": "Ritmo", "save": "Save"}
 
 static var _page: String = "resources"
 ## Toque duplo para recomeçar do zero: guarda até quando o segundo toque vale.
@@ -14,6 +14,8 @@ static func panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		_tabs(box)
 		match _page:
+			"growth":
+				_growth(box)
 			"progress":
 				_progress(box)
 			"time":
@@ -101,20 +103,14 @@ static func _progress(box: VBoxContainer) -> void:
 		Events.sheet_close_requested.emit()
 		(Engine.get_main_loop() as SceneTree).current_scene.add_child(IntroScene.new()), "")
 
-	_section(box, "Atributos", "Sobe todos para pelo menos o nível escolhido.")
-	var skills := _grid(box, 4)
-	var top := int(Database.progression.settings.max_skill_level)
-	for target: int in [3, 5, 10, top]:
-		_tool(skills, "Máx." if target == top else "Nív. %d" % target, GameState.dev_set_skills.bind(target))
-
-	_section(box, "Pular para o capítulo", "Libera de graça tudo o que vem antes (melhorias, missões e atributos exigidos).")
+	_section(box, "Pular para o capítulo", "Libera de graça as melhorias e missões anteriores.")
 	var chapters: Array = Database.progression.chapters
 	var jumps := _grid(box)
 	for i in chapters.size():
 		_tool(jumps, "%d. %s" % [i + 1, chapters[i].name], GameState.dev_jump_to_chapter.bind(i))
 	_tool(jumps, "%d. %s" % [chapters.size() + 1, Database.progression.final_chapter.name], GameState.dev_jump_to_chapter.bind(chapters.size()))
 	var all := _grid(box, 1)
-	_tool(all, "Liberar TUDO (melhorias, terrenos, missões, coleção, atributos máx.)", GameState.dev_unlock_everything)
+	_tool(all, "Liberar TUDO (melhorias, terrenos, missões e coleção)", GameState.dev_unlock_everything)
 
 	_section(box, "Melhorias", "Libera uma melhoria e o que ela exige, sem custo.")
 	var upgrades := _grid(box)
@@ -131,6 +127,29 @@ static func _progress(box: VBoxContainer) -> void:
 			_tool(quests, "%s %s" % [where, quest.name], GameState.dev_complete_quest.bind(id))
 	_section(box, "Diárias e semanais", "Zera o progresso e as recompensas do dia e da semana.")
 	_tool(_grid(box, 1), "Recomeçar diárias e semanais", GameState.dev_restart_routines)
+
+
+static func _growth(box: VBoxContainer) -> void:
+	var info := GameState.growth_info()
+	_section(box, "Crescimento", "Fase: " + GameState.growth.phase)
+	var phases := _grid(box, 3)
+	for phase: Dictionary in Database.growth.phases:
+		_tool(phases, str(phase.name), GameState.dev_set_phase.bind(str(phase.id)))
+	var pillars := _grid(box)
+	for id: String in Database.growth.pillars:
+		var data: Dictionary = info.pillars[id]
+		_tool(pillars, "%s %d/%d (+%d)" % [Database.growth.pillars[id].name, data.level, data.cap, data.reserve], GameState.dev_add_pillar.bind(id, 10))
+	for req: Dictionary in info.requirements:
+		box.add_child(UiKit.label("%s %d/%d %s" % [req.id, req.have, req.need, "✓" if req.done else ""], &"SmallLabel"))
+	_tool(box, "Completar requisitos", GameState.dev_complete_growth_reqs)
+	_tool(box, "Crescer", GameState.grow)
+	_section(box, "Álbum", "Fotos: %d" % GameState.photo_count())
+	_tool(box, "Tirar a próxima foto", func() -> void:
+		for entry: Dictionary in Database.album.photos:
+			if str(entry.section) in Database.album.active_sections and not GameState.album.has_photo(str(entry.id)):
+				GameState.dev_take_photo(str(entry.id))
+				return)
+	_tool(box, "Zerar álbum", GameState.dev_reset_album)
 
 
 static func _time(box: VBoxContainer) -> void:

@@ -67,7 +67,10 @@
   "apple_biscuit": {
     "station": "stove",
     "requirements": {
-      "owned": ["workbench", "fridge"]
+      "owned": [
+        "workbench",
+        "fridge"
+      ]
     },
     "inputs": {
       "apple": 2,
@@ -92,10 +95,11 @@
     "skill": "cooking",
     "skill_xp": 65,
     "requirements": {
-      "owned": ["workbench", "fridge"],
-      "skills": {
-        "cooking": 5
-      }
+      "owned": [
+        "workbench",
+        "fridge"
+      ],
+      "growth": "explorer"
     }
   },
   "fabric": {
@@ -321,7 +325,9 @@
   },
   "cut_sticks": {
     "station": "workbench",
-    "inputs": {"wood": 1},
+    "inputs": {
+      "wood": 1
+    },
     "output": "stick",
     "qty": 2,
     "seconds": 60,
@@ -331,35 +337,251 @@
   },
   "braided_toy": {
     "station": "workbench",
-    "inputs": {"fabric": 1, "stick": 2},
+    "inputs": {
+      "fabric": 1,
+      "stick": 2
+    },
     "output": "braided_toy",
     "qty": 1,
     "seconds": 720,
     "skill": "adventure",
     "skill_xp": 20,
     "player_xp": 8,
-    "requirements": {"quests": ["atelier_open"]}
+    "requirements": {
+      "quests": [
+        "atelier_open"
+      ]
+    }
   },
   "picnic_pack": {
     "station": "stove",
-    "inputs": {"carrot_snack": 2, "strawberry_pop": 2, "strawberry_juice": 1},
+    "inputs": {
+      "carrot_snack": 2,
+      "strawberry_pop": 2,
+      "strawberry_juice": 1
+    },
     "output": "picnic_pack",
     "qty": 1,
     "seconds": 1080,
     "skill": "cooking",
     "skill_xp": 25,
     "player_xp": 10,
-    "requirements": {"quests": ["atelier_open"], "owned": ["blender"]}
+    "requirements": {
+      "quests": [
+        "atelier_open"
+      ],
+      "owned": [
+        "blender"
+      ]
+    }
   },
   "blueberry_treat": {
     "station": "stove",
-    "inputs": {"blueberry": 2, "herbs": 1, "carrot_snack": 1},
+    "inputs": {
+      "blueberry": 2,
+      "herbs": 1,
+      "carrot_snack": 1
+    },
     "output": "blueberry_treat",
     "qty": 1,
     "seconds": 900,
     "skill": "cooking",
     "skill_xp": 25,
     "player_xp": 10,
-    "requirements": {"stats": {"treasure": 1}, "owned": ["greenhouse"]}
+    "requirements": {
+      "stats": {
+        "treasure": 1
+      },
+      "owned": [
+        "greenhouse"
+      ]
+    }
+  },
+  "frozen_carrot": {
+    "station": "blender",
+    "inputs": {
+      "carrot": 2
+    },
+    "output": "frozen_carrot",
+    "qty": 1,
+    "seconds": 120,
+    "player_xp": 0,
+    "requirements": {
+      "quests": [
+        "lais_blender"
+      ]
+    }
+  },
+  "puppy_mash": {
+    "station": "stove",
+    "inputs": {
+      "carrot": 1,
+      "potato": 1
+    },
+    "output": "puppy_mash",
+    "qty": 1,
+    "seconds": 120,
+    "player_xp": 0,
+    "requirements": {
+      "quests": [
+        "first_kitchen"
+      ]
+    }
+  },
+  "corn_crunch": {
+    "station": "stove",
+    "inputs": {
+      "corn": 2
+    },
+    "output": "corn_crunch",
+    "qty": 2,
+    "seconds": 300,
+    "player_xp": 0,
+    "requirements": {
+      "chapter": 5
+    }
+  },
+  "growth_kibble": {
+    "station": "stove",
+    "inputs": {
+      "corn": 1,
+      "carrot": 1,
+      "egg": 1
+    },
+    "output": "growth_kibble",
+    "qty": 2,
+    "seconds": 600,
+    "player_xp": 0,
+    "requirements": {
+      "owned": [
+        "chicken_coop"
+      ]
+    }
+  },
+  "egg_scramble": {
+    "station": "stove",
+    "inputs": {
+      "egg": 2
+    },
+    "output": "egg_scramble",
+    "qty": 1,
+    "seconds": 120,
+    "player_xp": 0,
+    "requirements": {
+      "owned": [
+        "chicken_coop"
+      ]
+    }
+  },
+  "cheese_bites": {
+    "station": "stove",
+    "inputs": {
+      "cheese": 1,
+      "flour": 1
+    },
+    "output": "cheese_bites",
+    "qty": 3,
+    "seconds": 300,
+    "player_xp": 0,
+    "requirements": {
+      "owned": [
+        "dairy"
+      ]
+    }
+  },
+  "milk_porridge": {
+    "station": "stove",
+    "inputs": {
+      "milk": 1,
+      "flour": 1
+    },
+    "output": "milk_porridge",
+    "qty": 2,
+    "seconds": 300,
+    "player_xp": 0,
+    "requirements": {
+      "owned": [
+        "cow_barn",
+        "mill"
+      ]
+    }
+  },
+  "herb_shampoo": {
+    "station": "blender",
+    "inputs": {
+      "herbs": 2,
+      "milk": 1
+    },
+    "output": "herb_shampoo",
+    "qty": 2,
+    "seconds": 300,
+    "player_xp": 0,
+    "requirements": {
+      "owned": [
+        "greenhouse"
+      ]
+    }
+  },
+  "stick_chew": {
+    "station": "workbench",
+    "inputs": {
+      "stick": 3,
+      "wood": 1
+    },
+    "output": "stick_chew",
+    "qty": 1,
+    "seconds": 300,
+    "skill": "adventure",
+    "skill_xp": 0,
+    "player_xp": 0
+  },
+  "soft_brush": {
+    "station": "workbench",
+    "inputs": {
+      "plank": 1,
+      "fiber": 2
+    },
+    "output": "soft_brush",
+    "qty": 1,
+    "seconds": 600,
+    "skill": "adventure",
+    "skill_xp": 0,
+    "player_xp": 0,
+    "requirements": {
+      "quests": [
+        "main_8_fiber"
+      ]
+    }
+  },
+  "sew_topknot_bow": {
+    "station": "sewing",
+    "inputs": {
+      "fabric": 1,
+      "ribbon": 2
+    },
+    "output_collection": "topknot_bow",
+    "seconds": 600,
+    "skill": "adventure",
+    "skill_xp": 0,
+    "requirements": {
+      "growth": "young"
+    }
+  },
+  "birthday_cake": {
+    "station": "stove",
+    "inputs": {
+      "flour": 1,
+      "apple": 1,
+      "egg": 1
+    },
+    "output": "birthday_cake",
+    "qty": 1,
+    "seconds": 600,
+    "skill": "cooking",
+    "skill_xp": 0,
+    "player_xp": 0,
+    "requirements": {
+      "album_photo": "d_gotcha"
+    }
   }
 }

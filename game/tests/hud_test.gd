@@ -64,7 +64,7 @@ func _structure() -> void:
 
 func _numbers() -> void:
 	var level_label: Label = main.find_child("LevelLabel", true, false)
-	check(level_label.text == str(state.get("level")), "LevelLabel mostra o nível")
+	check(level_label.text == "•", "LevelLabel mostra Recém-chegado")
 	var coins_label: Label = main.find_child("CoinsLabel", true, false)
 	var before: int = state.get("coins")
 	state.set("coins", before + 50)
@@ -80,7 +80,7 @@ func _numbers() -> void:
 	root.get_node("Events").emit_signal("state_changed")
 	await process_frame
 	var ring: RingProgress = main.find_child("XpRing", true, false)
-	check(absf(ring.progress - 0.5) < 0.02, "anel de XP mostra a metade (veio %f)" % ring.progress)
+	check(is_equal_approx(ring.progress, 1.0 - float(load("res://scripts/ui/growth_ui.gd").call("missing", state.call("growth_info"))) / state.call("growth_info").requirements.size()), "anel acompanha requisitos e ignora XP (veio %f)" % ring.progress)
 
 
 func _toast() -> void:
@@ -146,7 +146,7 @@ func _popover() -> void:
 	var texts := PackedStringArray()
 	for label: Node in main.get_node("PopoverCatcher").find_children("*", "Label", true, false):
 		texts.append((label as Label).text)
-	check(" ".join(texts).contains("Nível") and " ".join(texts).contains("XP"), "balão mostra nível e XP (%s)" % " | ".join(texts))
+	check(" ".join(texts).contains("Recém-chegado") and not " ".join(texts).contains("XP"), "balão mostra fase sem XP (%s)" % " | ".join(texts))
 	# Tocar fora fecha.
 	var click := InputEventMouseButton.new()
 	click.button_index = MOUSE_BUTTON_LEFT

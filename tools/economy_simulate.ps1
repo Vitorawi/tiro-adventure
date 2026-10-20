@@ -1,7 +1,12 @@
-# Invocador da simulação de economia (etapa 01 do plano docs/plans/economia).
+﻿# Invocador da simulação de economia (etapa 01 do plano docs/plans/economia).
 #
 #   powershell -ExecutionPolicy Bypass -File tools\economy_simulate.ps1 -Profile reference -Seed 1 -Days 30
 #   powershell -ExecutionPolicy Bypass -File tools\economy_simulate.ps1 -Profile reference -Seed 1..10 -Until campaign -Days 120
+#   powershell -ExecutionPolicy Bypass -File tools\economy_simulate.ps1 -Quick            # medida rápida (plano Tiro, etapa 00)
+#
+# -Quick = perfil reference, semente 1, -Until campaign, -Ledger off, -Days 60, -TimeoutMin 20, saída em
+# build/economy/quick/<AAAAMMDD_HHMM>/; -Days/-TimeoutMin/-OutRoot passados junto valem por cima.
+# No fim imprime o tempo de relógio gasto e os dias simulados.
 #
 # Cada execução usa o GameState REAL com relógio injetado (game/tests/economy_simulation.gd), sem tocar
 # no save pessoal. Saída em build/economy/etapa_01/<perfil>_s<semente>/ (summary.json + ledger.jsonl).
@@ -19,13 +24,22 @@ param(
   [int]$StallActiveMin = 600,
   [int]$TimeoutMin = 40,
   [int]$Parallel = 1,
-  [string]$Tag = ""
+  [string]$Tag = "",
+  [switch]$Quick
 )
 $ErrorActionPreference = "Continue"
 $root = Split-Path -Parent $PSScriptRoot
 Set-Location $root
 $godot = if ($env:GODOT_BIN) { $env:GODOT_BIN } else { "$env:USERPROFILE\Downloads\Godot_v4.7.2-stable_win64.exe\Godot_v4.7.2-stable_win64_console.exe" }
 if (-not (Test-Path $godot)) { throw "Godot não encontrado: $godot (defina GODOT_BIN)" }
+
+if ($Quick) {
+  $Profile = "reference"; $Seed = "1"; $Until = "campaign"; $Ledger = "off"; $Parallel = 1
+  if (-not $PSBoundParameters.ContainsKey("Days")) { $Days = 60 }
+  if (-not $PSBoundParameters.ContainsKey("TimeoutMin")) { $TimeoutMin = 20 }
+  if (-not $PSBoundParameters.ContainsKey("OutRoot")) { $OutRoot = "build/economy/quick/$(Get-Date -Format 'yyyyMMdd_HHmm')" }
+}
+$clock = [System.Diagnostics.Stopwatch]::StartNew()
 
 # "1..10", "1,2,3" ou "4"
 $seeds = @()
@@ -65,5 +79,14 @@ while ($queue.Count -gt 0 -or $running.Count -gt 0) {
   $code = Finish-Sim $job
   if ($code -ne 0 -and $code -gt $worst) { $worst = $code }
   $running = @($running | Select-Object -Skip 1)
+}
+if ($Quick) {
+  $summary = Get-ChildItem "$root/$OutRoot" -Recurse -Filter summary.json -ErrorAction SilentlyContinue | Select-Object -First 1
+  $simDays = "?"
+  if ($summary) {
+    $data = Get-Content $summary.FullName -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($data.end -and $null -ne $data.end.days) { $simDays = $data.end.days }
+  }
+  Write-Host ("QUICK: {0:N1} min de relógio; {1} dia(s) simulado(s); saída em {2}" -f $clock.Elapsed.TotalMinutes, $simDays, $OutRoot)
 }
 exit $worst

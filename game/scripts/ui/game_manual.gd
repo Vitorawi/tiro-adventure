@@ -106,6 +106,12 @@ static func sources(id: String) -> Array[Dictionary]:
 			found = found or reward.get("items", {}).has(id)
 		if found:
 			result.append({"kind": "find", "id": world})
+	# Dentinho de leite: o primeiro montinho a partir de Dentinhos o garante (GameState._milk_tooth_due).
+	if id == "milk_tooth":
+		result.append({"kind": "find", "id": "farm"})
+	for phase: Dictionary in Database.growth.get("phases", []):
+		if phase.get("rewards", {}).get("items", {}).has(id) and Database.items.get(id, {}).get("category", "") == "keepsake":
+			result.append({"kind": "growth", "id": str(phase.id)})
 	for source: Dictionary in Database.item_sources(id):
 		if source.key == "feed":
 			result.append({"kind": "care", "id": id})
@@ -202,6 +208,10 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 			var find_button := UiKit.button("Bloqueado" if find_error != "" else "Ir", Places.go.bind({"world": id, "place": "find"}), &"SecondaryButton")
 			find_button.disabled = find_error != ""
 			card.add_child(find_button)
+		"growth":
+			var phase_index: int = GameState.growth.phase_index(id)
+			card.add_child(UiKit.label("Presente do Tiro", &"SectionLabel"))
+			card.add_child(UiKit.label("Chega quando ele vira %s." % Database.growth.phases[phase_index].name, &"SmallLabel"))
 		"care":
 			card.add_child(UiKit.label("Ajuda da Bloblo", &"SectionLabel"))
 			card.add_child(UiKit.label("Sem comida? Abra Comer e peça ajuda.", &"SmallLabel"))

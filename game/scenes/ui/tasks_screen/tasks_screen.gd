@@ -98,7 +98,7 @@ func _destination(target: Dictionary) -> Control:
 	var texture := UiKit.ui_icon(str(place.get("icon", world.get("icon", "tab_pet"))))
 	if place_id.begins_with("npc:"): texture = ProgressionUi.npc_portrait(place_id.trim_prefix("npc:"))
 	if place_id.begins_with("buy:"): texture = UiKit.ui_icon(str(Database.progression.upgrades.get(place_id.trim_prefix("buy:"), {}).get("icon", "tab_map")))
-	if target.has("screen"): texture = UiKit.ui_icon("tab_pet")
+	if target.has("screen") or target.has("growth"): texture = UiKit.ui_icon("tab_pet")
 	var frame := PanelContainer.new()
 	frame.name = "QuestDestination"
 	frame.custom_minimum_size = Vector2(64, 64)

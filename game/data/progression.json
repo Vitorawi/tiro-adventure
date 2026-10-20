@@ -199,6 +199,7 @@
         "screen": "wishes"
       },
       "requirements": {
+        "growth": "puppy",
         "quests": [
           "lais_bed"
         ]
@@ -234,16 +235,6 @@
       },
       "requirements": {
         "chapter": 4
-      }
-    },
-    "skills": {
-      "name": "Atributos",
-      "icon": "xp",
-      "go": {
-        "screen": "pet"
-      },
-      "requirements": {
-        "chapter": 6
       }
     },
     "walk_diary": {
@@ -323,6 +314,16 @@
         "quests": [
           "nina_trick"
         ]
+      }
+    },
+    "growth_tab": {
+      "name": "Crescimento",
+      "icon": "pillar_body",
+      "go": {
+        "screen": "pet"
+      },
+      "requirements": {
+        "growth": "puppy"
       }
     }
   },
@@ -878,6 +879,55 @@
         "adventure": 15
       },
       "icon": "action_sleep"
+    },
+    "bed_soft": {
+      "name": "Caminha macia",
+      "world": "house",
+      "description": "Energia +10% enquanto ele dorme.",
+      "cost": 0,
+      "materials": {
+        "fabric": 2,
+        "yarn": 2
+      },
+      "requirements": {
+        "growth": "young",
+        "owned": [
+          "dog_bed"
+        ]
+      },
+      "icon": "action_sleep"
+    },
+    "bed_luxe": {
+      "name": "Caminha de luxo",
+      "world": "house",
+      "description": "Energia +20% enquanto ele dorme.",
+      "cost": 0,
+      "materials": {
+        "plank": 2,
+        "fabric": 2,
+        "hen_feather": 2
+      },
+      "requirements": {
+        "growth": "adult",
+        "owned": [
+          "bed_soft"
+        ]
+      },
+      "icon": "action_sleep"
+    },
+    "named_bowl": {
+      "name": "Tigela com nome",
+      "world": "house",
+      "description": "Comidas de crescimento rendem +10%.",
+      "cost": 0,
+      "materials": {
+        "plank": 1,
+        "brick": 1
+      },
+      "requirements": {
+        "growth": "teething"
+      },
+      "icon": "item_dog_food"
     },
     "workbench": {
       "name": "Bancada de trabalho",
@@ -1586,7 +1636,10 @@
         "trees_slot_2",
         "trees_slot_3"
       ],
-      "slot_levels": [2, 4],
+      "slot_levels": [
+        2,
+        4
+      ],
       "level_upgrades": [
         "forest_open",
         "forest_level_2",
@@ -1645,7 +1698,10 @@
         "rocks_slot_2",
         "rocks_slot_3"
       ],
-      "slot_levels": [2, 4],
+      "slot_levels": [
+        2,
+        4
+      ],
       "level_upgrades": [
         "cave_open",
         "cave_level_2",
@@ -1700,7 +1756,10 @@
         "fibers_slot_2",
         "fibers_slot_3"
       ],
-      "slot_levels": [2, 4],
+      "slot_levels": [
+        2,
+        4
+      ],
       "level_upgrades": [
         "meadow_open",
         "meadow_level_2",
@@ -2644,7 +2703,7 @@
   ],
   "final_chapter": {
     "name": "Nosso lugar no mundo",
-    "description": "Seu lar está completo. Descubra todas as receitas, conclua as missões e desenvolva seus atributos.",
+    "description": "O filhotinho da caixinha virou o Guardião do Vale. Continue cuidando do Tiro, com as receitas, as missões e a turma da vila.",
     "target": ""
   },
   "nature_legacy_upgrades": {
@@ -2672,6 +2731,7 @@
       "icon": "trick_paw",
       "animation": "give_paw",
       "requirements": {
+        "growth": "teething",
         "quests": [
           "nina_pipoca"
         ]
@@ -2684,6 +2744,7 @@
       "icon": "trick_talk",
       "animation": "bark",
       "requirements": {
+        "growth": "teething",
         "quests": [
           "nina_pipoca"
         ],
@@ -2697,6 +2758,7 @@
       "icon": "trick_roll",
       "animation": "roll_over",
       "requirements": {
+        "growth": "explorer",
         "quests": [
           "nina_pipoca"
         ],
@@ -2710,6 +2772,7 @@
       "icon": "trick_jump",
       "animation": "happy_jump",
       "requirements": {
+        "growth": "explorer",
         "quests": [
           "nina_pipoca"
         ],
@@ -2723,6 +2786,7 @@
       "icon": "trick_spin",
       "animation": "chase_tail",
       "requirements": {
+        "growth": "young",
         "quests": [
           "nina_pipoca"
         ],

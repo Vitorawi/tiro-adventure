@@ -1,5 +1,5 @@
 extends Control
-## Casca do jogo: barra superior (nível/moedas, selo DEV), abas Tiro / Desejos / Mapa (mundos) /
+## Casca do jogo: barra superior (crescimento/moedas, selo DEV), abas Tiro / Desejos / Mapa (mundos) /
 ## Missões / Mochila, painel inferior (Sheet) e mensagens rápidas (toast).
 ## Events.world_requested (botões "Ir") troca para o Mapa e entra no mundo pedido.
 
@@ -31,6 +31,11 @@ const TOAST_HOLD := 1.6
 const TOAST_FADE := 0.3
 
 var _toast_tween: Tween
+## Foto que o aviso "Nova foto!" abre ao ser tocado ("" = aviso comum, que ignora o toque).
+var _toast_photo: String = ""
+## Fotos novas esperando a vez do aviso (depois de qualquer cartão, sem entrar na fila de cartões).
+var _photo_queue: Array[String] = []
+const PHOTO_TOAST := "Nova foto!"
 var _faces: Dictionary = {}  # id da aba → NavTab
 var _current_screen: StringName = &""
 var _tasks_badge: Label
@@ -41,13 +46,14 @@ var _celebration: CanvasLayer
 ## Capítulo concluído nesta leva de missões (0 = nenhum); o anúncio sai uma vez, no fim do frame.
 var _chapter_done: int = 0
 var _announce_pending: bool = false
-## Cartões modais esperando a vez (nível, bem-vindo de volta): um por vez, depois da introdução/comemorações.
+## Cartões modais esperando a vez (crescimento, bem-vindo de volta): um por vez, depois da introdução/comemorações.
 var _modal_queue: Array[Callable] = []
 var _welcome: CanvasLayer
 var _walk_result: CanvasLayer
+var _growth_ceremony: GrowthCeremony
+var _growth_queued: Dictionary = {}
 var _intro: Node
 var _left_at: float = 0.0
-var _pending_level: Dictionary = {}
 
 
 func _ready() -> void:
@@ -65,6 +71,11 @@ func _ready() -> void:
 	add_child(_welcome)
 	_walk_result = load("res://scenes/ui/walk_result/walk_result.tscn").instantiate()
 	add_child(_walk_result)
+	_growth_ceremony = load("res://scenes/ui/growth_ceremony/growth_ceremony.tscn").instantiate()
+	add_child(_growth_ceremony)
+	Events.grew.connect(func(_phase: String) -> void: _check_growth_ceremonies())
+	Events.state_changed.connect(_check_growth_ceremonies)
+	_growth_ceremony.closed.connect(_growth_unlocks)
 	Events.walk_collected.connect(func(result: Dictionary) -> void:
 		_queue_modal(func() -> void: _walk_result.show_result(result))
 		_queue_modal(func() -> void: _announce()))
@@ -75,6 +86,8 @@ func _ready() -> void:
 		_queue_modal(func() -> void: _announce())
 	Events.trick_learned.connect(func(id: String) -> void:
 		_queue_modal(func() -> void: _celebration.show_trick(id)))
+	Events.silk_up.connect(func(level: int) -> void:
+		_queue_modal(func() -> void: _celebration.show_silk(level)))
 	Events.treasure_opened.connect(func(rewards: Dictionary) -> void:
 		_queue_modal(func() -> void: _celebration.show_treasure(rewards)))
 	Events.project_completed.connect(func(id: String, _result: Dictionary) -> void:
@@ -86,8 +99,10 @@ func _ready() -> void:
 	Events.cosmetic_received.connect(func(id: String) -> void:
 		_queue_modal(func() -> void:
 			_walk_result.show_result({"kind": "sewing", "name": "Roupa nova", "rare": id, "collections": [id]})))
-	Events.level_up.connect(_on_level_up)
 	Events.bond_up.connect(_on_bond_up)
+	# Foto nova do álbum: aviso tocável que abre a foto, depois de qualquer cartão (fila própria).
+	Events.photo_taken.connect(func(id: String) -> void: _photo_queue.append(id))
+	_toast.gui_input.connect(_on_toast_input)
 	Events.find_discovered.connect(func(result: Dictionary) -> void:
 		_queue_modal(func() -> void: _celebration.show_find(result)))
 	var modal_timer := Timer.new()
@@ -119,8 +134,17 @@ func _ready() -> void:
 		add_child(_intro)
 	# Voltou depois de um tempo (ou abriu o jogo): presente do dia e o que ficou pronto.
 	var saver := get_node_or_null("/root/SaveManager")
+	if saver:
+		var reset_notice: String = saver.take_reset_notice()
+		if reset_notice != "":
+			if is_instance_valid(_intro):
+				_intro.tree_exited.connect(func() -> void: _show_toast.call_deferred(reset_notice))
+			else:
+				_show_toast.call_deferred(reset_notice)
 	var saved_at: float = float(saver.last_saved_at) if saver else 0.0
 	_maybe_welcome(GameState.now() - saved_at if saved_at > 0.0 else 0.0)
+	GameState.note_app_opened()
+	_check_growth_ceremonies()
 
 
 ## Ao ir para o segundo plano guarda a hora; ao voltar, mostra o cartão se passou tempo suficiente.
@@ -130,30 +154,38 @@ func _notification(what: int) -> void:
 	elif (what == NOTIFICATION_APPLICATION_FOCUS_IN or what == NOTIFICATION_APPLICATION_RESUMED) and _left_at > 0.0:
 		var away := GameState.now() - _left_at
 		_left_at = 0.0
+		GameState.note_app_opened()
 		_maybe_welcome(away)
 
 
 func _maybe_welcome(away_seconds: float) -> void:
-	if away_seconds < float(Database.progression.settings.get("welcome_back_seconds", 300)):
+	if GameState.growth.pending_reveal == "" and away_seconds < float(Database.progression.settings.get("welcome_back_seconds", 300)):
 		return
 	_queue_modal(func() -> void:
 		if WelcomeBack.has_content():
 			_welcome.open())
 
 
-func _on_level_up(level: int, rewards: Dictionary) -> void:
-	# Níveis seguidos antes do cartão abrir viram um só (o último, com a soma).
-	var first := _pending_level.is_empty()
-	var sum: Dictionary = _pending_level.get("rewards", {"coins": 0, "affection": 0, "items": {}})
-	sum["coins"] = int(sum.coins) + int(rewards.get("coins", 0))
-	sum["affection"] = int(sum.affection) + int(rewards.get("affection", 0))
-	for id: String in rewards.get("items", {}):
-		sum.items[id] = int(sum.items.get(id, 0)) + int(rewards.items[id])
-	_pending_level = {"level": level, "rewards": sum}
-	if first:
+func _check_growth_ceremonies() -> void:
+	for phase: String in GameState.growth.ceremonies:
+		var at := float(GameState.growth.ceremonies[phase].get("at", 0.0))
+		if bool(GameState.growth.ceremonies[phase].get("seen", false)) or _growth_queued.get(phase, -1.0) == at: continue
+		if GameState.growth.pending_reveal == phase and GameState.dog.sleeping: continue
+		_growth_queued[phase] = at
 		_queue_modal(func() -> void:
-			_celebration.show_level(int(_pending_level.level), _pending_level.rewards)
-			_pending_level = {})
+			if bool(GameState.growth.ceremonies.get(phase, {}).get("seen", true)): return
+			if float(GameState.growth.ceremonies[phase].get("at", 0.0)) != at: return
+			Events.sheet_close_requested.emit()
+			_growth_ceremony.open(phase))
+
+
+func _growth_unlocks() -> void:
+	for key: String in GameState.new_unlocks():
+		_queue_modal(func() -> void:
+			if key not in GameState.new_unlocks(): return
+			var keys: Array[String] = [key]
+			_celebration.show_unlocks(keys)
+			GameState.mark_seen(keys))
 
 
 ## Vínculo novo: cartão com o presente (já entregue), na fila dos cartões.
@@ -168,11 +200,14 @@ func _queue_modal(callback: Callable) -> void:
 
 ## Abre o próximo cartão quando nada está na tela (introdução, comemoração ou outro cartão).
 func _flush_modals() -> void:
-	if _modal_queue.is_empty() or _announce_pending or _chapter_done > 0:
+	if (_modal_queue.is_empty() and _photo_queue.is_empty()) or _announce_pending or _chapter_done > 0:
 		return
-	if (is_instance_valid(_intro) and _intro.is_inside_tree()) or _celebration.visible or _welcome.visible or _walk_result.visible:
+	if (is_instance_valid(_intro) and _intro.is_inside_tree()) or _celebration.visible or _welcome.visible or _walk_result.visible or _growth_ceremony.visible:
 		return
-	_modal_queue.pop_front().call()
+	if not _modal_queue.is_empty():
+		_modal_queue.pop_front().call()
+	else:
+		_show_photo_toast(_photo_queue.pop_front())
 
 
 func show_screen(id: StringName) -> void:
@@ -248,10 +283,13 @@ func _refresh_top_bar() -> void:
 ## Aviso novo com outro ainda na tela: troca o texto, dá um pulinho e reinicia o tempo.
 func _show_toast(text: String) -> void:
 	var on_screen := _toast.visible and _toast.modulate.a > 0.0
+	if text != PHOTO_TOAST:
+		_toast_photo = ""
+		_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_toast_text.text = text
-	_toast_icon.visible = text.begins_with("Missão concluída")
+	_toast_icon.visible = text.begins_with("Missão concluída") or text == PHOTO_TOAST
 	if _toast_icon.visible:
-		_toast_icon.texture = UiKit.ui_icon("ui_check")
+		_toast_icon.texture = UiKit.ui_icon("album_story" if text == PHOTO_TOAST else "ui_check")
 	# Largura do texto (até 320 com o ícone e as margens); só então a pílula assume o tamanho certo.
 	var font := _toast_text.get_theme_font("font")
 	var font_size := _toast_text.get_theme_font_size("font_size")
@@ -280,6 +318,22 @@ func _show_toast(text: String) -> void:
 	_toast_tween.tween_interval(TOAST_HOLD)
 	_toast_tween.tween_property(_toast, "modulate:a", 0.0, TOAST_FADE)
 	_toast_tween.tween_callback(_toast.hide)
+
+
+func _show_photo_toast(id: String) -> void:
+	_show_toast(PHOTO_TOAST)
+	_toast_photo = id
+	_toast.mouse_filter = Control.MOUSE_FILTER_STOP
+
+
+func _on_toast_input(event: InputEvent) -> void:
+	if _toast_photo == "" or not (event is InputEventMouseButton and event.pressed):
+		return
+	var id := _toast_photo
+	_toast_photo = ""
+	_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_toast.hide()
+	AlbumView.open_photo(id)
 
 
 func _refresh_guide() -> void:

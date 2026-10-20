@@ -1,7 +1,7 @@
 class_name Hud
 extends Control
-## HUD flutuante sobre as telas (nó `TopBar` da casca): à esquerda o rostinho do Tiro com o anel de XP e o
-## número do nível; à direita a pílula de moedas, a engrenagem e, na versão dev, o selo DEV.
+## HUD flutuante sobre as telas (nó `TopBar` da casca): à esquerda o rostinho do Tiro com o anel de crescimento e o
+## número da fase; à direita a pílula de moedas, a engrenagem e, na versão dev, o selo DEV.
 ## Só as peças recebem toque (o resto é `MOUSE_FILTER_IGNORE`). Quem manda atualizar é a casca (`refresh`).
 
 const HEIGHT := 60.0
@@ -23,6 +23,8 @@ var _shown_level: int = -1
 var _coins_target: int = -1  # valor para onde o número está contando (-1 = ainda não mostrou)
 var _count_tween: Tween
 var _ring_tween: Tween
+var _ready_pulse: Tween
+var _pulsing := false
 
 
 func _ready() -> void:
@@ -52,7 +54,7 @@ func _build_avatar() -> void:
 	_avatar_group.add_child(_ring)
 	avatar_button = Button.new()
 	avatar_button.name = "HudAvatar"
-	avatar_button.icon = UiKit.ui_icon("hud_tiro")
+	DogLook.bind(avatar_button, "portrait", "icon")
 	avatar_button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	avatar_button.focus_mode = Control.FOCUS_NONE
 	avatar_button.custom_minimum_size = Vector2(AVATAR, AVATAR)
@@ -67,7 +69,7 @@ func _build_avatar() -> void:
 	avatar_button.pressed.connect(show_level_popover)
 	Motion.press(avatar_button)
 	_avatar_group.add_child(avatar_button)
-	# Selo do nível no canto de baixo à direita do avatar.
+	# Selo da fase no canto de baixo à direita do avatar.
 	var badge := Panel.new()
 	badge.name = "LevelBadge"
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -169,18 +171,23 @@ func _build_right() -> void:
 	right.add_child(settings_button)
 
 
-## Atualiza nível, anel de XP e moedas. `animate` falso = só põe os valores (primeira vez).
+## Atualiza fase, anel de crescimento e moedas. `animate` falso = só põe os valores (primeira vez).
 func refresh(animate: bool = true) -> void:
-	var needed := GameState.xp_to_next_level()
-	var fraction := clampf(float(GameState.xp) / maxf(float(needed), 1.0), 0.0, 1.0)
-	xp_bar.max_value = needed
-	xp_bar.value = GameState.xp
-	level_label.text = str(GameState.level)
-	if _shown_level >= 0 and GameState.level > _shown_level and animate:
-		_celebrate_level(fraction)
-	else:
-		_set_ring(fraction, animate and _shown_level >= 0)
-	_shown_level = GameState.level
+	var info := GameState.growth_info()
+	var total: int = info.requirements.size()
+	var missing := GrowthUi.missing(info)
+	var fraction := float(total - missing) / float(total) if total > 0 else 1.0
+	xp_bar.max_value = 1.0
+	xp_bar.value = fraction
+	var phase := GameState.growth.phase_index()
+	level_label.text = str(phase) if phase > 0 else "•"
+	_set_ring(fraction, animate and _shown_level >= 0)
+	_shown_level = phase
+	if _pulsing != (bool(info.ready) and not Motion.reduced):
+		_pulsing = bool(info.ready) and not Motion.reduced
+		if _ready_pulse: _ready_pulse.kill()
+		_avatar_group.scale = Vector2.ONE
+		if _pulsing: _ready_pulse = Motion.pulse(_avatar_group)
 	_set_coins(GameState.coins, animate)
 
 
@@ -192,20 +199,6 @@ func _set_ring(fraction: float, animate: bool) -> void:
 		return
 	_ring_tween = create_tween()
 	_ring_tween.tween_property(_ring, "progress", fraction, Motion.RESIZE)
-
-
-## Subiu de nível: o avatar pula, o anel enche até o fim e recomeça do que sobrou.
-func _celebrate_level(fraction: float) -> void:
-	if _ring_tween:
-		_ring_tween.kill()
-	if Motion.reduced:
-		_ring.progress = fraction
-		return
-	Motion.bounce(_avatar_group)
-	_ring_tween = create_tween()
-	_ring_tween.tween_property(_ring, "progress", 1.0, Motion.BOUNCE)
-	_ring_tween.tween_callback(func() -> void: _ring.progress = 0.0)
-	_ring_tween.tween_property(_ring, "progress", fraction, Motion.COUNT)
 
 
 func _set_coins(value: int, animate: bool) -> void:
@@ -229,20 +222,17 @@ func coins_target() -> Vector2:
 	return coins_label.get_global_rect().get_center()
 
 
-## Balão do avatar: nível, XP e o próximo presente. Some em 2 s ou ao tocar fora.
+## Consulta da fase; nome antigo mantido para ferramentas e testes existentes.
 func show_level_popover() -> Popover:
+	var info := GameState.growth_info()
 	var card := UiKit.vbox(4)
-	card.add_child(UiKit.short_label("Nível %d" % GameState.level))
-	var bar := ProgressBar.new()
-	bar.custom_minimum_size = Vector2(180, 14)
-	bar.show_percentage = false
-	bar.max_value = GameState.xp_to_next_level()
-	bar.value = GameState.xp
-	UiKit.tint_bar(bar, Palette.GOLD)
-	card.add_child(bar)
-	card.add_child(UiKit.short_label("%d/%d XP" % [GameState.xp, GameState.xp_to_next_level()], &"SmallLabel"))
-	var gift := GameState.level_reward(GameState.level + 1)
-	if not gift.is_empty():
-		card.add_child(UiKit.short_label("Próximo presente", &"SmallLabel"))
-		card.add_child(ProgressionUi.reward_chips(gift))
-	return Popover.open(get_parent() as Control, avatar_button, card)
+	card.add_child(UiKit.short_label(str(info.current.name)))
+	var missing := GrowthUi.missing(info)
+	card.add_child(UiKit.short_label("Ele já é o Guardião do Vale" if info.next.is_empty() else ("Pronto para crescer!" if info.ready else "Faltam %d" % missing), &"SmallLabel"))
+	var view := UiKit.secondary("Ver", func() -> void:
+		var catcher := get_parent().get_node_or_null("PopoverCatcher")
+		if catcher: catcher.queue_free()
+		GrowthUi.open(), null, true)
+	view.name = "ViewGrowth"
+	card.add_child(view)
+	return Popover.open(get_parent() as Control, avatar_button, card, 8.0)

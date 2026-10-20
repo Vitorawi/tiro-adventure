@@ -82,7 +82,7 @@ func _data_check() -> void:
 	check(int(phases[0].items.plank) == 4 and int(phases[0].items.brick) == 2 and phases[0].items.size() == 2, "base: tábua 4 + tijolo 2")
 	check(int(phases[1].items.fabric) == 2 and int(phases[1].items.braided_toy) == 1 and phases[1].items.size() == 2, "conforto: tecido 2 + brinquedo 1")
 	check(int(phases[2].items.carrot_snack) == 3 and phases[2].items.size() == 1, "boas-vindas: lanche 3")
-	check(int(def.rewards.xp) == 40 and int(def.rewards.get("coins", 0)) == 0 and not def.rewards.has("items"), "prêmio: só XP 40 (sem devolver as moedas)")
+	check(int(def.rewards.pillars.brave) == 5 and int(def.rewards.get("coins", 0)) == 0 and not def.rewards.has("items"), "prêmio: Coragem 5 (sem devolver as moedas)")
 	for phase: Dictionary in phases:
 		check(not (def.phases as Array).is_empty() and ResourceLoader.exists("res://assets/sprites/areas/park/bench_%s.png" % phase.visual_state), "arte da fase " + str(phase.id))
 	check(ResourceLoader.exists("res://assets/sprites/ui/icons/project_bench.png"), "ícone da obra")
@@ -153,16 +153,16 @@ func _build_check() -> void:
 	# Estoque cheio não bloqueia a conclusão (o prêmio é só XP).
 	for i in 40:
 		_inv().add("wood", 5)
-	var xp_before: int = state.get("xp") + int(state.get("level")) * 10000
+	var brave_before := _stat("pillar:brave")
 	check(state.call("contribute_project", "park_bench", "carrot_snack", 3) == "", "última entrega")
 	check(state.call("project_completed", "park_bench") and state.call("project_visual", "park_bench") == "welcome", "obra concluída e desenho final")
 	check(_stat("projects") == 1 and _stat("project_start") == 1, "contadores")
 	check(int(state.get("coins")) == coins_before, "moedas não voltam (nem saem) na conclusão")
-	check(int(state.get("xp")) + int(state.get("level")) * 10000 > xp_before or int(state.get("level")) > 1, "XP 40 pago")
-	var xp_after: int = state.get("xp")
+	check(_stat("pillar:brave") > brave_before, "Coragem paga ao concluir")
+	var brave_after := _stat("pillar:brave")
 	_reload()
-	check(state.call("project_completed", "park_bench") and int(state.get("xp")) == xp_after, "reabrir não paga de novo")
-	check(state.call("complete_project", "park_bench") == "" and int(state.get("xp")) == xp_after, "complete_project idempotente")
+	check(state.call("project_completed", "park_bench") and _stat("pillar:brave") == brave_after, "reabrir não paga de novo")
+	check(state.call("complete_project", "park_bench") == "" and _stat("pillar:brave") == brave_after, "complete_project idempotente")
 
 
 func _open_park() -> void:

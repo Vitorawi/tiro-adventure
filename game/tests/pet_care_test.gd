@@ -172,6 +172,7 @@ func _run() -> void:
 	collect_walk.pressed.emit()
 	check(progress.stat("walk") == walks_before + 1 and not pet.find_child("AwayView", true, false).visible, "não duplica prêmio")
 	(main.get("_walk_result") as CanvasLayer).hide()
+	state.call("dev_set_phase", "puppy")
 	state.call("dev_complete_quest", "lais_bed")
 	# Cenoura é um desejo de comida real; ração é o desejo de ação food_any.
 	var food_wish := "carrot"
@@ -192,11 +193,12 @@ func _run() -> void:
 	check(main.find_child("ManualPanel", true, false) != null, "caderninho abre Manual por padrão")
 	var notebook: Script = load("res://scripts/ui/pet_notebook.gd")
 	state.call("dev_unlock_everything")
+	state.call("dev_set_phase", "puppy")  # Crescimento aparece depois da primeira fase.
 	state.call("_mark_all_seen")
 	await create_timer(2.2).timeout
 	for member: String in ["_celebration", "_welcome", "_walk_result"]: (main.get(member) as CanvasLayer).hide()
 	main.set("_modal_queue", [] as Array[Callable])
-	check((notebook.call("tabs") as Array).size() == 4, "quatro consultas após liberar")
+	check((notebook.call("tabs") as Array).size() == 5, "cinco consultas após liberar (Manual, Crescimento, Álbum, Coleção, Truques)")
 	# As cinco mais usadas vêm primeiro; as demais continuam na mesma lista vertical.
 	var added := 0
 	for id: String in root.get_node("Database").get("items"):
@@ -221,7 +223,7 @@ func _run() -> void:
 	send(str(foods[0]), "move", scroll_from - Vector2(0, 110))
 	send(str(foods[0]), "release", scroll_from - Vector2(0, 110))
 	check(list.scroll_vertical > 0 and progress.stat("feed") == feeds, "rolar pelo nome mostra outras comidas sem alimentar")
-	for section: String in ["skills", "collection", "tricks"]:
+	for section: String in ["growth", "collection", "tricks"]:
 		notebook.call("open", section)
 		await frames()
 		check(main.find_child("PetNotebook", true, false) != null, "aba do caderninho: " + section)

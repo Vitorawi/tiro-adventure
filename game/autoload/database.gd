@@ -37,8 +37,198 @@ var walks: Dictionary = {}
 var friends: Dictionary = {}
 ## Obras comunitárias (data/projects.json): fases, taxa, prêmio. Vazio até as etapas 20–22.
 var projects: Dictionary = {}
+var growth: Dictionary = {}
+## Álbum de recordações (data/album.json): as 54 fotos, cenários e adereços.
+var album: Dictionary = {}
+var album_config: Dictionary = {}
+## A Casa que cresce (data/house.json): objetos que chegam, prateleira, brinquedos e bônus.
+var house: Dictionary = {}
 ## Tabelas congeladas antes da R1 (data/legacy_r0.json): capacidades, rendimentos, mapa de missões. Só a migração lê.
 var legacy: Dictionary = {}
+
+
+## Foto do álbum ({} se o id não existe).
+func photo(id: String) -> Dictionary:
+	for entry: Dictionary in album.get("photos", []):
+		if str(entry.id) == id:
+			return entry
+	return {}
+
+
+## Seções que já aparecem para o jogador (as outras ficam escondidas até a etapa delas).
+func album_sections() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for section: Dictionary in album.get("sections", []):
+		if str(section.id) in album.get("active_sections", []):
+			result.append(section)
+	return result
+
+
+func album_problems() -> Array[String]:
+	var problems: Array[String] = []
+	if int(album.get("schema", 0)) != 1:
+		problems.append("album: schema inválido")
+	var sections: Array[String] = []
+	for section: Dictionary in album.get("sections", []):
+		sections.append(str(section.get("id", "")))
+	for active: Variant in album.get("active_sections", []):
+		if str(active) not in sections:
+			problems.append("album: seção ativa desconhecida " + str(active))
+	var seen := {}
+	for entry: Dictionary in album.get("photos", []):
+		var id := str(entry.get("id", ""))
+		if id == "" or seen.has(id):
+			problems.append("album: id vazio ou repetido " + id)
+		seen[id] = true
+		if str(entry.get("section", "")) not in sections:
+			problems.append(id + ": seção desconhecida")
+		for event: Variant in AlbumRules.events_of(entry):
+			if str(event) not in AlbumRules.EVENTS:
+				problems.append(id + ": evento desconhecido " + str(event))
+		var when: Variant = entry.get("when")
+		if not when is Dictionary:
+			problems.append(id + ": 'when' ausente")
+		else:
+			if when.size() > 3:
+				problems.append(id + ": mais de 3 condições")
+			for key: String in when:
+				if key not in AlbumRules.CONDITIONS:
+					problems.append(id + ": condição desconhecida " + key)
+		var photo_def: Dictionary = entry.get("photo", {})
+		if not album.get("scenes", {}).has(str(photo_def.get("scene", ""))):
+			problems.append(id + ": cenário desconhecido")
+		if str(photo_def.get("pose", {}).get("clip", "")) == "":
+			problems.append(id + ": pose ausente")
+		var active_entry: bool = str(entry.get("section", "")) in album.get("active_sections", [])
+		for prop: Variant in photo_def.get("props", []):
+			var def: Dictionary = album.get("props", {}).get(str(prop), {})
+			if active_entry and (def.is_empty() or not ResourceLoader.exists(str(def.get("image", "")))):
+				problems.append(id + ": adereço inexistente " + str(prop))
+		for ref: Variant in [photo_def.get("compare", "")]:
+			if str(ref) != "" and photo(str(ref)).is_empty():
+				problems.append(id + ": foto de comparação inexistente " + str(ref))
+		if str(entry.get("section", "")) in ["tricks", "sleep"] and str(entry.get("hint", "")) == "":
+			problems.append(id + ": dica ausente")
+	if album.get("photos", []).size() != 54:
+		problems.append("album: esperadas 54 fotos")
+	return problems
+
+
+func house_problems() -> Array[String]:
+	var problems: Array[String] = []
+	if int(house.get("schema", 0)) != 1:
+		problems.append("house: schema inválido")
+	for id: String in house.get("items", {}):
+		var rule: Dictionary = house.items[id].get("rule", {})
+		if rule.is_empty():
+			problems.append("house: " + id + " sem regra")
+		if rule.has("upgrade") and not progression.upgrades.has(str(rule.upgrade)):
+			problems.append("house: " + id + " melhoria inexistente")
+		if rule.has("growth") and growth.phases.filter(func(p: Dictionary) -> bool: return str(p.id) == str(rule.growth)).is_empty():
+			problems.append("house: " + id + " fase inexistente")
+	for entry: Dictionary in house.get("shelf", []):
+		if photo(str(entry.get("photo", ""))).is_empty():
+			problems.append("house: prateleira " + str(entry.get("id", "")) + " sem foto")
+	for item: Variant in house.get("toys", []):
+		if not bool(items.get(str(item), {}).get("toy", false)):
+			problems.append("house: " + str(item) + " não é brinquedo")
+	return problems
+
+
+func growth_problems() -> Array[String]:
+	var problems: Array[String] = []
+	if int(growth.get("schema", 0)) != 1:
+		problems.append("growth: schema inválido")
+	for pillar: String in ["body", "coat", "smart", "brave"]:
+		if not growth.get("pillars", {}).has(pillar):
+			problems.append("growth: pilar ausente " + pillar)
+	var last := 0
+	for value: Variant in growth.get("levels", []):
+		if int(value) <= last:
+			problems.append("growth: níveis devem crescer")
+		last = int(value)
+	if growth.get("levels", []).size() != 10:
+		problems.append("growth: dez níveis")
+	var ids := {}
+	var phases: Variant = growth.get("phases", [])
+	if not phases is Array or phases.size() != 6:
+		problems.append("growth: seis fases")
+		return problems
+	for value: Variant in phases:
+		if not value is Dictionary:
+			problems.append("growth: fase inválida")
+			continue
+		var phase: Dictionary = value
+		var id := str(phase.get("id", ""))
+		if id == "" or ids.has(id):
+			problems.append("growth: fase duplicada ou vazia " + id)
+		ids[id] = true
+		if int(phase.get("cap", 0)) < 1 or int(phase.get("cap", 0)) > growth.get("levels", []).size():
+			problems.append(id + ": teto inválido")
+		var req_ids := {}
+		for entry: Variant in phase.get("requirements", []):
+			if not entry is Dictionary:
+				problems.append(id + ": requisito inválido")
+				continue
+			var req: Dictionary = entry
+			var req_id := str(req.get("id", ""))
+			if req_id == "" or req_ids.has(req_id):
+				problems.append(id + ": requisito duplicado ou vazio")
+			req_ids[req_id] = true
+			var ref := ""
+			var catalog := {}
+			match str(req.get("type", "")):
+				"given": pass
+				"stat":
+					if str(req.get("counter", "")) == "":
+						problems.append(id + ": contador vazio")
+				"pillars":
+					for pillar: String in req.get("levels", {}):
+						if not growth.get("pillars", {}).has(pillar) or int(req.levels[pillar]) < 1 or int(req.levels[pillar]) > growth.get("levels", []).size():
+							problems.append(id + ": pilar inválido " + pillar)
+				"deliver", "feed":
+					ref = str(req.get("item", ""))
+					catalog = items
+					if str(req.type) == "feed" and ref in ["any", "favorite"]:
+						ref = ""
+				"owned":
+					ref = str(req.get("upgrade", ""))
+					catalog = progression.get("upgrades", {})
+				"quest":
+					ref = str(req.get("quest", ""))
+					catalog = quests
+				"project":
+					ref = str(req.get("project", ""))
+					catalog = projects.get("projects", {})
+				"collection":
+					ref = str(req.get("collection", ""))
+					catalog = collections
+				_: problems.append(id + ": tipo de requisito desconhecido")
+			if str(req.get("type", "")) in ["deliver", "feed", "owned", "quest", "project", "collection"] and ref == "" and not (str(req.get("type", "")) == "feed" and str(req.get("item", "")) in ["any", "favorite"]):
+				problems.append(id + ": referência vazia")
+			if ref != "" and not catalog.has(ref):
+				problems.append(id + ": referência inexistente " + ref)
+			if str(req.get("type", "")) in ["feed", "deliver", "stat"] and int(req.get("qty", 0)) <= 0:
+				problems.append(id + ": quantidade inválida")
+		for item: String in phase.get("rewards", {}).get("items", {}):
+			if not items.has(item):
+				problems.append(id + ": presente inexistente " + item)
+	for item: String in items:
+		var food: Dictionary = items[item].get("growth", {})
+		for pillar: String in food.get("pillars", {}):
+			if not growth.pillars.has(pillar) or float(food.pillars[pillar]) <= 0:
+				problems.append(item + ": ganho de crescimento inválido")
+		for phase: String in food.get("phases", []):
+			if not ids.has(phase): problems.append(item + ": fase da comida inválida")
+	for pooled: Variant in growth.get("tastes", {}).get("favorite_pool", []):
+		if not items.get(str(pooled), {}).has("feed"): problems.append("favorita inválida " + str(pooled))
+	for source: String in growth.get("sources", {}):
+		var rules: Array = growth.sources[source].values() if source == "walk" else [growth.sources[source]]
+		for rule: Dictionary in rules:
+			for pillar: String in growth.pillars:
+				if float(rule.get(pillar, 0)) < 0: problems.append(source + ": ganho negativo")
+			if float(rule.get("cooldown", 0)) < 0: problems.append(source + ": recarga negativa")
+	return problems
 
 
 func _init() -> void:
@@ -47,6 +237,7 @@ func _init() -> void:
 	recipes = _load("res://data/recipes.json")
 	crops = _load("res://data/crops.json")
 	var config := _load("res://data/config.json")
+	album_config = config.get("album", {})
 	needs = config.get("needs", {})
 	offline = config.get("offline", {})
 	actions = config.get("actions", {})
@@ -67,6 +258,9 @@ func _init() -> void:
 	walks = _load("res://data/walks.json")
 	friends = _load("res://data/friends.json")
 	projects = _load("res://data/projects.json")
+	growth = _load("res://data/growth.json")
+	album = _load("res://data/album.json")
+	house = _load("res://data/house.json")
 	legacy = _load("res://data/legacy_r0.json")
 
 
@@ -244,6 +438,8 @@ func uses_of(item_id: String) -> PackedStringArray:
 				lines.append("Missão: " + str(quests[id].name))
 	if items.get(item_id, {}).has("feed"):
 		lines.append("Comida para o Tiro")
+	if item_id == "herb_shampoo":
+		lines.append("Tiro → Banho → Com xampu")
 	for id: String in friends.get("friends", {}):
 		if friends.friends[id].get("likes", "") == item_id:
 			lines.append("Petisco favorito: " + str(friends.friends[id].name))

@@ -27,6 +27,11 @@ Cenas (scenes/*)  ──métodos──▶  GameState  ◀──to_dict/from_dict
 | `Inventory` | `item_id -> quantidade`. |
 | `StationState` | Fila de produção com `ready_at` (timestamps Unix). |
 | `ProgressionState` | Jornada: XP dos atributos, construções (`owned`), contadores (`stats`), missões, descobertas, coleção, `unlocks`, recargas e rota em andamento. Consultas puras (`skill_info`, `requirement_error`, `current_chapter`). Acesso: `GameState.progress`. |
+| `GrowthState` | Plano "Tiro no centro" (chave `growth`): fase e instante, pontos/reserva dos pilares, requisitos, entregas, cerimônias, recibos, paladar, jeito/diário e seda. Dados em `data/growth.json`; ações `GameState.grow/deliver_growth/brush/brighten`. |
+| `AlbumState` | Chave `album`: fotos tiradas (fase/pelagem/roupa congeladas), lupas, dicas, locais de sono, datas. Dados em `data/album.json`; avaliador único `GameState._album_event` + `AlbumRules`. |
+| `ProjectState` | Chave `projects`: obras comunitárias da vila (`data/projects.json`). |
+| `EconomyState` | Revisão de economia, piso de capacidade, recibos e recompensas já pagas. |
+| `FriendState`, `WalkState`, `FindState`, `WishState` | Amigos, passeios (viagem × bagagem), faro e desejos do Tiro. |
 
 Utilitários (`game/scripts/util/`): `BuildInfo` (canal prod/dev e arquivo de save) e `TimeText`
 (texto de duração, usado pelo estado e pela UI).

@@ -10,6 +10,11 @@ var _pulses: Dictionary = {}
 var _animator: PetAnimator
 var _bond_chip: Button
 var _bond_ring: RingProgress
+var _growth_badge: Button
+var _growth_ring: RingProgress
+var _growth_number: Label
+var _growth_hint: Label
+var _growth_pulse: Tween
 var _bond_caption: Label
 var _wish_bubble: Button
 var _wish_icon: TextureRect
@@ -18,6 +23,8 @@ var _away_postcard: TextureRect
 var _away_name: Label
 var _away_time: Label
 var _away_collect: Button
+var _away_walker: AnimatedSprite2D
+var _away_body := ""
 var _stroke_distance := 0.0
 var _last_pet_reward := -10.0
 var _care: PetCareTray
@@ -30,6 +37,9 @@ var _mood_age := 20.0
 var _wish_age := 0.0
 var _sleep_age := 0.0
 var _minute := -1
+var _pillar_pending: Dictionary = {}
+var _pillar_showing := false
+var _knots: Array[Control] = []
 ## Apenas apresentação: testes/capturas podem forçar a hora, sem tocar no relógio do jogo.
 var preview_hour := -1
 
@@ -38,6 +48,11 @@ var preview_hour := -1
 
 func _ready() -> void:
 	_corner = %Corner
+	var decor := CornerDecor.new()
+	decor.name = "CornerDecor"
+	decor.backdrop = _corner
+	decor.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_corner.add_child(decor)
 	%DogArea.draw.connect(_draw_dog_shadow)
 	%Stars.draw.connect(func() -> void:
 		for point: Vector2 in [Vector2(8, 6), Vector2(42, 18), Vector2(24, 42)]:
@@ -86,6 +101,8 @@ func _ready() -> void:
 	_build_away_view()
 	_build_baggage_button()
 	Events.state_changed.connect(_refresh)
+	Events.pillar_gained.connect(_on_pillar_gained)
+	Events.taste_reacted.connect(_on_taste)
 	%RefreshTimer.timeout.connect(_refresh)
 	resized.connect(_layout_corner)
 	%DogArea.resized.connect(_layout_corner)
@@ -93,6 +110,43 @@ func _ready() -> void:
 		if not is_visible_in_tree(): _care.cancel())
 	_layout_corner.call_deferred()
 	_refresh()
+
+
+func _on_pillar_gained(id: String, points: int, _level_up: bool) -> void:
+	if not is_visible_in_tree(): return
+	_pillar_pending[id] = int(_pillar_pending.get(id, 0)) + points
+	if not _pillar_showing:
+		_pillar_showing = true
+		_show_pillar_gains.call_deferred()
+
+
+func _show_pillar_gains() -> void:
+	while not _pillar_pending.is_empty():
+		var id: String = _pillar_pending.keys()[0]
+		var points := int(_pillar_pending[id])
+		_pillar_pending.erase(id)
+		if is_visible_in_tree():
+			var head := head_rect()
+			var pos := Vector2(head.get_center().x - 28, head.position.y + 12) - global_position
+			Motion.float_text(self, pos, "+%d" % points, Palette.GOLD)
+			if not Motion.reduced:
+				var radiant := GameState.CARE_NEEDS.all(func(need: String) -> bool:
+					return GameState.dog.get_need(need, GameState.now()) >= float(Database.growth.radiant.min_need))
+				if radiant:
+					_dog_sprite.modulate = Color(1.3, 1.2, 1.0)
+					_dog_sprite.create_tween().tween_property(_dog_sprite, "modulate", Color.WHITE, Motion.FLOAT)
+				var icon := TextureRect.new()
+				icon.texture = UiKit.ui_icon(str(Database.growth.pillars[id].icon))
+				icon.position = pos + Vector2(40, 0)
+				icon.z_index = 100
+				icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				add_child(icon)
+				var tween := icon.create_tween().set_parallel()
+				tween.tween_property(icon, "position:y", icon.position.y - 28, Motion.FLOAT).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+				tween.tween_property(icon, "modulate:a", 0.0, Motion.FLOAT).set_delay(Motion.FLOAT * 0.4)
+				tween.chain().tween_callback(icon.queue_free)
+		await get_tree().create_timer(Motion.FLOAT).timeout
+	_pillar_showing = false
 
 
 func _build_need_rings() -> void:
@@ -136,7 +190,42 @@ func _build_need_rings() -> void:
 	_bond_caption.size = Vector2(48, 20)
 	_bond_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_bond_chip.add_child(_bond_caption)
-	%NeedRow.add_child(_bond_chip)
+	# Vínculo e crescimento lado a lado abaixo das necessidades, sem espremer os quatro anéis.
+	var badges := UiKit.hbox(12)
+	badges.name = "LifeBadges"
+	badges.position = Vector2(20, 204)
+	add_child(badges)
+	badges.add_child(_bond_chip)
+	_growth_badge = UiKit.ghost("", GrowthUi.open)
+	_growth_badge.name = "GrowthBadge"
+	for state: String in ["normal", "hover", "pressed", "focus"]:
+		_growth_badge.add_theme_stylebox_override(state, StyleBoxEmpty.new())
+	_growth_badge.custom_minimum_size = Vector2(92, 88)
+	_growth_ring = RingProgress.new()
+	_growth_ring.custom_minimum_size = Vector2(44, 44)
+	_growth_ring.size = Vector2(44, 44)
+	_growth_ring.position = Vector2(24, 8)
+	_growth_badge.add_child(_growth_ring)
+	_growth_number = UiKit.short_label("0", &"SectionLabel")
+	_growth_number.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_growth_number.position = Vector2(24, 16)
+	_growth_number.size = Vector2(44, 28)
+	_growth_number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_growth_badge.add_child(_growth_number)
+	_growth_hint = UiKit.short_label("Crescer", &"SmallLabel")
+	_growth_hint.name = "GrowthBadgeHint"
+	_growth_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_growth_hint.position = Vector2(0, 58)
+	_growth_hint.size = Vector2(92, 24)
+	_growth_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var hint_back := PanelContainer.new()
+	hint_back.theme_type_variation = &"ChipPanel"
+	hint_back.position = Vector2(0, 58)
+	hint_back.size = Vector2(92, 24)
+	hint_back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hint_back.add_child(_growth_hint)
+	_growth_badge.add_child(hint_back)
+	badges.add_child(_growth_badge)
 
 
 func _build_wish_widgets() -> void:
@@ -178,6 +267,7 @@ func _layout_corner() -> void:
 
 
 func _refresh() -> void:
+	_refresh_away_look()
 	if not is_instance_valid(_care): return
 	var dog := GameState.dog
 	var now := GameState.now()
@@ -195,6 +285,16 @@ func _refresh() -> void:
 	_away_collect.visible = not away and GameState.walk_ready()
 	if _away_collect.visible:
 		_away_collect.text = "Guardar achados" if GameState.walk_baggage_error() == "" else "Ver bagagem"
+	var growth := GameState.growth_info()
+	_growth_number.text = str(GameState.growth.phase_index())
+	_growth_ring.progress = 1.0 if growth.next.is_empty() else float(growth.requirements.size() - GrowthUi.missing(growth)) / maxi(1, growth.requirements.size())
+	_growth_hint.text = "Falta 1!" if GrowthUi.missing(growth) == 1 else ("Pronto!" if growth.ready else "Crescer")
+	if growth.ready and (_growth_pulse == null or not _growth_pulse.is_valid()):
+		_growth_pulse = Motion.pulse(_growth_ring)
+	elif not growth.ready and _growth_pulse != null:
+		if _growth_pulse.is_valid(): _growth_pulse.kill()
+		_growth_pulse = null
+		_growth_ring.scale = Vector2.ONE
 	_bond_caption.text = str(GameState.bond_level())
 	var bond := GameState.progress.bond_info(GameState.dog.affection)
 	_bond_ring.progress = 1.0 if bond.max else float(int(bond.affection) - int(bond.floor)) / maxi(1, int(bond.next) - int(bond.floor))
@@ -266,6 +366,67 @@ func dog_rect() -> Rect2:
 func head_rect() -> Rect2:
 	var rect := dog_rect()
 	return Rect2(rect.position + rect.size * Vector2(0.22, 0.16), rect.size * Vector2(0.56, 0.44))
+
+
+## As costas: faixa do corpo logo abaixo da cabeça.
+func back_rect() -> Rect2:
+	var rect := dog_rect()
+	return Rect2(rect.position + rect.size * Vector2(0.18, 0.42), rect.size * Vector2(0.64, 0.34))
+
+
+## Nós no pelo (um por ~200 px de escovada); só aparecem quando a escovada vai render.
+func brush_stroke() -> void:
+	_animator.scrub()
+	if not _knots.is_empty() or GameState.brush_error() != "": return
+	var back := back_rect()
+	for i in 3:
+		var knot := Panel.new()
+		knot.name = "BrushKnot"
+		knot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var style := StyleBoxFlat.new()
+		style.bg_color = Palette.INK_SOFT
+		style.border_color = Palette.PAPER
+		style.set_border_width_all(2)
+		style.set_corner_radius_all(8)
+		knot.add_theme_stylebox_override("panel", style)
+		knot.size = Vector2(16, 16)
+		add_child(knot)
+		knot.global_position = back.position + back.size * Vector2(0.2 + 0.3 * i, 0.3 + 0.2 * (i % 2))
+		_knots.append(knot)
+
+
+func brush_knot_off(at: Vector2) -> void:
+	if _knots.is_empty(): return
+	var knot: Control = _knots.pop_front()
+	var tween := create_tween().set_parallel()
+	var seconds := 0.0 if Motion.reduced else Motion.FLOAT
+	tween.tween_property(knot, "global_position:y", at.y - 40, seconds)
+	tween.tween_property(knot, "modulate:a", 0.0, seconds)
+	tween.chain().tween_callback(knot.queue_free)
+
+
+func brush_cleanup() -> void:
+	for knot: Control in _knots:
+		knot.queue_free()
+	_knots.clear()
+
+
+func _on_taste(_item: String, reaction: String) -> void:
+	if not is_visible_in_tree(): return
+	var texts := {"loved": "Amou!", "liked": "Gostou!", "odd": "Hmm...", "grimace": "Eca!"}
+	Motion.float_text(self, head_rect().get_center() - global_position - Vector2(24, 40), str(texts.get(reaction, "")), Palette.ACCENT)
+	if reaction == "loved":
+		for i in 3:
+			var heart := UiKit.icon(UiKit.ui_icon("bond_heart"), 16)
+			heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			heart.z_index = 100
+			add_child(heart)
+			heart.global_position = head_rect().get_center() + Vector2((i - 1) * 24, -30)
+			var tween := heart.create_tween().set_parallel()
+			var seconds := 0.0 if Motion.reduced else Motion.FLOAT
+			tween.tween_property(heart, "position:y", heart.position.y - 48, seconds)
+			tween.tween_property(heart, "modulate:a", 0.0, seconds)
+			tween.chain().tween_callback(heart.queue_free)
 
 
 func food_effects(id: String) -> void:
@@ -342,21 +503,14 @@ func _build_away_view() -> void:
 	_away_postcard.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	_away_postcard.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	stage.add_child(_away_postcard)
-	var frames := SpriteFrames.new()
-	frames.add_animation("walk")
-	frames.set_animation_speed("walk", 8.0)
-	for index in 8:
-		var path := "res://assets/sprites/characters/tiro_world/walk/east/frame_%02d.png" % index
-		if ResourceLoader.exists(path):
-			frames.add_frame("walk", load(path))
 	var walker := AnimatedSprite2D.new()
+	_away_walker = walker
 	walker.name = "AwayTiro"
-	walker.sprite_frames = frames
 	walker.scale = Vector2(2, 2)
 	walker.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	walker.position = Vector2(-40, 92)
 	stage.add_child(walker)
-	walker.play("walk")
+	_refresh_away_look()
 	var stroll := walker.create_tween().set_loops()
 	stroll.tween_property(walker, "position:x", 296.0, 5.0).from(-40.0)
 	_away_view.add_child(stage)
@@ -373,6 +527,23 @@ func _build_away_view() -> void:
 	caption_box.add_child(_away_time)
 	_away_view.add_child(caption)
 	%DogArea.add_child(_away_view)
+
+
+func _refresh_away_look() -> void:
+	if _away_walker == null: return
+	var look := GameState.dog_look()
+	if _away_body != look.body:
+		_away_body = look.body
+		var frames := SpriteFrames.new()
+		frames.add_animation("walk")
+		frames.set_animation_speed("walk", 8.0)
+		var index := 0
+		while ResourceLoader.exists("%swalk/east/frame_%02d.png" % [look.dir_world, index]):
+			frames.add_frame("walk", load("%swalk/east/frame_%02d.png" % [look.dir_world, index]))
+			index += 1
+		_away_walker.sprite_frames = frames
+		_away_walker.play("walk")
+	DogLook.tint(_away_walker)
 
 
 ## Botão da bagagem do passeio, sobre o cantinho (fora do AwayView): "Guardar achados" quando cabe,
@@ -403,7 +574,10 @@ func _on_dog_input(event: InputEvent) -> void:
 		return
 	if GameState.dog.sleeping:
 		if pressing:
-			Events.toast_requested.emit("Shh... ele está dormindo.")
+			if GameState.growth.pending_reveal != "":
+				GameState.set_sleeping(false)
+			else:
+				Events.toast_requested.emit("Shh... ele está dormindo.")
 		return
 	var local := (button.position if pressing else motion.position) as Vector2
 	var seconds := 0.5  # um toque conta como meio segundo de carinho

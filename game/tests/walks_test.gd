@@ -53,6 +53,10 @@ func _run() -> void:
 	check(state.call("walk_lock_error", "creek_walk") != "", "Riacho exige Bosque e vínculo")
 	progress.owned["forest_open"] = true
 	state.get("dog").affection = 0
+	state.get("dog").affection = 9999
+	check(state.call("walk_lock_error", "creek_walk") == "Quando ele for Aventureiro", "Riacho espera o Tiro ser Aventureiro (etapa 11)")
+	state.get("growth").phase = "explorer"
+	state.get("dog").affection = 0
 	check(state.call("walk_lock_error", "creek_walk") != "", "Bosque sozinho não libera")
 	var levels: Array = db.get("progression").bond_levels
 	state.get("dog").affection = int(levels[2].affection)

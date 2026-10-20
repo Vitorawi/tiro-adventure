@@ -164,7 +164,7 @@ static func _delivery_card(box: VBoxContainer, id: String, model: Dictionary) ->
 	var most := mini(int(remaining[chosen]), have)
 	card.add_child(UiKit.label("%s: faltam %d · você tem %d" % [Database.item_name(chosen), int(remaining[chosen]), have], &"SmallLabel"))
 	if most <= 0:
-		var help := UiKit.tap_chip(Database.item_icon(chosen), "Falta %s: onde achar?" % Database.item_name(chosen), TaskHelp.open.bind("item", chosen, int(remaining[chosen])), UiKit.BAD)
+		var help := UiKit.tap_chip(Database.item_icon(chosen), "%s: onde achar?" % Database.item_name(chosen), TaskHelp.open.bind("item", chosen, int(remaining[chosen])), UiKit.BAD)
 		help.name = "ProjectMissing"
 		card.add_child(help)
 		return
@@ -212,7 +212,6 @@ static func _gathering_card(box: VBoxContainer, id: String) -> void:
 	var chips := UiKit.flow()
 	for item: String in def.items:
 		chips.add_child(ProgressionUi.item_chip(item, int(def.items[item])))
-	chips.add_child(UiKit.chip(UiKit.ui_icon("xp"), "+%d" % int(def.get("rewards", {}).get("xp", 0))))
 	card.add_child(chips)
 	var reason := GameState.meeting_error(id)
 	if reason != "":

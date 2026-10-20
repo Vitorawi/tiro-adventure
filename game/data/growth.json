@@ -1,0 +1,844 @@
+{
+  "schema": 1,
+  "pillars": {
+    "body": {
+      "name": "Corpo",
+      "icon": "pillar_body"
+    },
+    "coat": {
+      "name": "Pelagem",
+      "icon": "pillar_coat"
+    },
+    "smart": {
+      "name": "Esperteza",
+      "icon": "pillar_smart"
+    },
+    "brave": {
+      "name": "Coragem",
+      "icon": "pillar_brave"
+    }
+  },
+  "levels": [
+    10,
+    25,
+    45,
+    70,
+    100,
+    135,
+    175,
+    220,
+    270,
+    330
+  ],
+  "radiant": {
+    "min_need": 60,
+    "multiplier": 1.5
+  },
+  "phases": [
+    {
+      "id": "newborn",
+      "name": "Recém-chegado",
+      "age": "2 meses",
+      "weight": "0,4 kg",
+      "body": "puppy",
+      "coat": 0,
+      "cap": 1,
+      "facts": [
+        "Yorkies nascem quase todos pretos, com manchinhas castanhas."
+      ],
+      "teaser": "Um pequeno curioso está chegando.",
+      "requirements": []
+    },
+    {
+      "id": "puppy",
+      "name": "Filhotinho",
+      "age": "3 meses",
+      "weight": "0,9 kg",
+      "body": "puppy",
+      "coat": 0,
+      "cap": 2,
+      "facts": [
+        "Filhotes pequenos fazem várias refeições pequenas por dia."
+      ],
+      "teaser": "Um sorriso cheio de descobertas.",
+      "requirements": [
+        {
+          "id": "home",
+          "type": "given",
+          "label": "Chegou em casa"
+        },
+        {
+          "id": "bed",
+          "type": "owned",
+          "upgrade": "dog_bed"
+        },
+        {
+          "id": "meals",
+          "type": "feed",
+          "item": "any",
+          "qty": 3
+        },
+        {
+          "id": "pillars",
+          "type": "pillars",
+          "levels": {
+            "body": 1,
+            "brave": 1
+          }
+        }
+      ],
+      "chapter": 1,
+      "rewards": {
+        "coins": 30,
+        "items": {
+          "dog_food": 3
+        }
+      },
+      "unlocks_text": [
+        "Desejos"
+      ]
+    },
+    {
+      "id": "teething",
+      "name": "Dentinhos",
+      "age": "5 meses",
+      "weight": "1,6 kg",
+      "body": "young",
+      "coat": 0,
+      "cap": 4,
+      "facts": [
+        "Os dentes de leite caem entre 4 e 7 meses; morder alivia a coceira."
+      ],
+      "teaser": "As orelhas vão acompanhar a curiosidade.",
+      "requirements": [
+        {
+          "id": "pillars",
+          "type": "pillars",
+          "levels": {
+            "body": 2,
+            "brave": 2
+          }
+        },
+        {
+          "id": "meals",
+          "type": "feed",
+          "item": "frozen_carrot",
+          "qty": 3
+        },
+        {
+          "id": "key",
+          "type": "deliver",
+          "item": "chew_ring",
+          "qty": 1
+        }
+      ],
+      "chapter": 3,
+      "rewards": {
+        "coins": 60,
+        "items": {
+          "basic_brush": 1
+        }
+      },
+      "unlocks_text": [
+        "Truques: Dá a pata · Fala"
+      ]
+    },
+    {
+      "id": "explorer",
+      "name": "Aventureiro",
+      "age": "8 meses",
+      "weight": "2,3 kg",
+      "body": "young",
+      "coat": 0,
+      "cap": 6,
+      "facts": [
+        "Yorkies eram caçadores de ratinhos nas fábricas de Yorkshire."
+      ],
+      "teaser": "Há um mundo inteiro para farejar.",
+      "requirements": [
+        {
+          "id": "pillars",
+          "type": "pillars",
+          "levels": {
+            "body": 4,
+            "smart": 3,
+            "brave": 4
+          }
+        },
+        {
+          "id": "meals",
+          "type": "feed",
+          "item": "growth_kibble",
+          "qty": 3
+        },
+        {
+          "id": "key",
+          "type": "deliver",
+          "item": "stick_chew",
+          "qty": 1
+        },
+        {
+          "id": "walks",
+          "type": "stat",
+          "counter": "walk",
+          "qty": 3
+        }
+      ],
+      "chapter": 6,
+      "rewards": {
+        "coins": 100
+      },
+      "unlocks_text": [
+        "Novos passeios · Rola · Pula"
+      ]
+    },
+    {
+      "id": "young",
+      "name": "Mocinho",
+      "age": "1 ano e meio",
+      "weight": "2,8 kg",
+      "body": "adult",
+      "coat": 0.3,
+      "cap": 8,
+      "facts": [
+        "O pelo do Yorkie é parecido com cabelo e cresce sem parar."
+      ],
+      "teaser": "Uma mudança começa na raiz do pelo.",
+      "requirements": [
+        {
+          "id": "pillars",
+          "type": "pillars",
+          "levels": {
+            "body": 6,
+            "coat": 6,
+            "smart": 6,
+            "brave": 6
+          }
+        },
+        {
+          "id": "meals",
+          "type": "feed",
+          "item": "milk_porridge",
+          "qty": 3
+        },
+        {
+          "id": "key",
+          "type": "deliver",
+          "item": "soft_brush",
+          "qty": 1
+        },
+        {
+          "id": "shampoo",
+          "type": "stat",
+          "counter": "shampoo_bath",
+          "qty": 2,
+          "label": "2 banhos com xampu"
+        }
+      ],
+      "chapter": 9,
+      "rewards": {
+        "coins": 150
+      },
+      "unlocks_text": [
+        "Truque Gira · Caminha macia"
+      ]
+    },
+    {
+      "id": "adult",
+      "name": "Azul e Dourado",
+      "age": "2 anos e meio",
+      "weight": "3,0 kg",
+      "body": "adult",
+      "coat": 1,
+      "cap": 10,
+      "facts": [
+        "Entre 1 e 3 anos o preto vira azul-aço e o castanho vira dourado."
+      ],
+      "teaser": "O amigo que cresceu com você.",
+      "requirements": [
+        {
+          "id": "pillars",
+          "type": "pillars",
+          "levels": {
+            "body": 8,
+            "coat": 8,
+            "smart": 8,
+            "brave": 8
+          }
+        },
+        {
+          "id": "key",
+          "type": "deliver",
+          "item": "courage_medal",
+          "qty": 1
+        },
+        {
+          "id": "meals",
+          "type": "feed",
+          "item": "favorite",
+          "qty": 3
+        },
+        {
+          "id": "bow",
+          "type": "collection",
+          "collection": "topknot_bow"
+        }
+      ],
+      "chapter": 12,
+      "rewards": {
+        "coins": 250
+      },
+      "unlocks_text": [
+        "Guardião do Vale · Pelagem de seda"
+      ]
+    }
+  ],
+  "food_multiplier": 0.5,
+  "sources": {
+    "bath": {
+      "coat": 3,
+      "cooldown": 7200
+    },
+    "shampoo_bath": {
+      "coat": 12,
+      "cooldown": 7200,
+      "cooldown_key": "bath"
+    },
+    "play": {
+      "brave": 2,
+      "smart": 1,
+      "cooldown": 1800,
+      "basket_smart": 1
+    },
+    "pet": {
+      "brave": 1
+    },
+    "wish": {
+      "brave": 3
+    },
+    "special_wish": {
+      "brave": 6
+    },
+    "dig": {
+      "smart": 3
+    },
+    "learn_trick": {
+      "smart": 12,
+      "first": true
+    },
+    "trick": {
+      "smart": 1
+    },
+    "friend_gift": {
+      "brave": 2
+    },
+    "friend_visit": {
+      "brave": 4
+    },
+    "talk": {
+      "brave": 3,
+      "first": true
+    },
+    "world": {
+      "brave": 2,
+      "smart": 2,
+      "first": true
+    },
+    "project": {
+      "brave": 3
+    },
+    "nap": {
+      "body": 2,
+      "cooldown": 43200,
+      "seconds": 3600,
+      "energy": 100
+    },
+    "walk": {
+      "park_loop": {
+        "brave": 3
+      },
+      "flower_street": {
+        "brave": 4
+      },
+      "village_fair": {
+        "brave": 5
+      },
+      "sunset_walk": {
+        "brave": 6
+      },
+      "creek_walk": {
+        "brave": 7
+      },
+      "bird_clearing": {
+        "brave": 8
+      },
+      "hill_view": {
+        "brave": 10
+      }
+    },
+    "brush": {
+      "coat": 5,
+      "soft_coat": 8,
+      "cooldown": 14400
+    }
+  },
+  "bodies": {
+    "adult": {
+      "dir": {
+        "pet": "res://assets/sprites/characters/tiro_pet/",
+        "world": "res://assets/sprites/characters/tiro_world/"
+      },
+      "portrait": "res://assets/sprites/ui/icons/hud_tiro.png",
+      "idle_front": "res://assets/sprites/characters/tiro_pet/tiro_pet_idle_front.png",
+      "clip_fallback": {},
+      "parts": {
+        "ears": [
+          [
+            72,
+            36,
+            39,
+            49
+          ],
+          [
+            139,
+            36,
+            40,
+            49
+          ]
+        ],
+        "tail": [
+          [
+            149,
+            132,
+            35,
+            52
+          ]
+        ],
+        "legs": [
+          [
+            87,
+            142,
+            70,
+            43
+          ]
+        ]
+      }
+    },
+    "young": {
+      "dir": {
+        "pet": "res://assets/sprites/characters/tiro_pet_young/",
+        "world": "res://assets/sprites/characters/tiro_world_young/"
+      },
+      "portrait": "res://assets/sprites/ui/icons/hud_tiro_young.png",
+      "idle_front": "res://assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+      "clip_fallback": {},
+      "parts": {
+        "ears": [
+          [
+            72,
+            36,
+            39,
+            49
+          ],
+          [
+            139,
+            36,
+            40,
+            49
+          ]
+        ],
+        "tail": [
+          [
+            149,
+            132,
+            35,
+            52
+          ]
+        ],
+        "legs": [
+          [
+            87,
+            142,
+            70,
+            43
+          ]
+        ]
+      }
+    },
+    "puppy": {
+      "dir": {
+        "pet": "res://assets/sprites/characters/tiro_pet_puppy/",
+        "world": "res://assets/sprites/characters/tiro_world_puppy/"
+      },
+      "portrait": "res://assets/sprites/ui/icons/hud_tiro_puppy.png",
+      "idle_front": "res://assets/sprites/characters/tiro_pet_puppy/tiro_pet_puppy_idle_front.png",
+      "clip_fallback": {
+        "give_paw": "wag_excited"
+      },
+      "parts": {
+        "ears": [
+          [
+            62,
+            48,
+            43,
+            42
+          ],
+          [
+            142,
+            48,
+            43,
+            42
+          ]
+        ],
+        "tail": [
+          [
+            145,
+            137,
+            38,
+            45
+          ]
+        ],
+        "legs": [
+          [
+            80,
+            140,
+            82,
+            45
+          ]
+        ]
+      }
+    }
+  },
+  "tastes": {
+    "favorite_pool": [
+      "pumpkin_mash",
+      "mashed_potato",
+      "vegetable_soup",
+      "apple_biscuit",
+      "puppy_mash",
+      "corn_crunch",
+      "egg_scramble",
+      "cheese_bites",
+      "milk_porridge"
+    ],
+    "odds": {
+      "liked": 60,
+      "odd": 30,
+      "grimace": 10
+    },
+    "grimace": [
+      "blueberry"
+    ],
+    "favorite_bonus": 0.5
+  },
+  "personality": {
+    "reveal_phase": "explorer",
+    "window_days": 14,
+    "daily_cap": 1.0,
+    "history_weight": 0.35,
+    "switch_margin": 0.2,
+    "switch_days": 3,
+    "default": "calm",
+    "title": "Tiro, o {name}",
+    "unlock": "O jeito dele apareceu",
+    "types": {
+      "explorer": {
+        "name": "Explorador",
+        "weights": {
+          "walk": 0.5,
+          "find": 0.15,
+          "world": 0.3
+        }
+      },
+      "foodie": {
+        "name": "Comilão",
+        "weights": {
+          "feed": 0.08,
+          "growth_food": 0.5
+        }
+      },
+      "playful": {
+        "name": "Brincalhão",
+        "weights": {
+          "play": 0.2,
+          "trick": 0.3,
+          "trick_learned": 0.6
+        }
+      },
+      "cuddly": {
+        "name": "Dengoso",
+        "weights": {
+          "care_useful:pet": 0.3,
+          "wish": 0.4
+        }
+      },
+      "calm": {
+        "name": "Tranquilo",
+        "weights": {
+          "nap": 0.6,
+          "bathe": 0.25
+        }
+      }
+    }
+  },
+  "behaviors": {
+    "phases": {
+      "newborn": {
+        "fidgets": {
+          "head_tilt": 3,
+          "scratch": 2,
+          "yawn": 9,
+          "sniff": 3,
+          "stretch": 1,
+          "bark": 1,
+          "look_around": 3,
+          "chase_tail": 0,
+          "lick_paw": 2,
+          "give_paw": 0,
+          "wag_excited": 1,
+          "sleep": 9
+        },
+        "idle_seconds": [
+          7,
+          12
+        ],
+        "world": {
+          "nap": 0.6,
+          "stumble": 0.15,
+          "zoomies": 0,
+          "social": 0.0,
+          "sit": 0.15,
+          "sniff": 0.1,
+          "home": 0.8
+        }
+      },
+      "puppy": {
+        "fidgets": {
+          "head_tilt": 3,
+          "scratch": 2,
+          "yawn": 7,
+          "sniff": 3,
+          "stretch": 1,
+          "bark": 1,
+          "look_around": 3,
+          "chase_tail": 1,
+          "lick_paw": 2,
+          "give_paw": 0,
+          "wag_excited": 1,
+          "sleep": 7
+        },
+        "idle_seconds": [
+          5,
+          9
+        ],
+        "world": {
+          "nap": 0.45,
+          "stumble": 0.3,
+          "zoomies": 0,
+          "social": 0.0,
+          "sit": 0.2,
+          "sniff": 0.1
+        }
+      },
+      "teething": {
+        "fidgets": {
+          "head_tilt": 3,
+          "scratch": 10,
+          "yawn": 2,
+          "sniff": 3,
+          "stretch": 1,
+          "bark": 1,
+          "look_around": 3,
+          "chase_tail": 1,
+          "lick_paw": 10,
+          "give_paw": 1,
+          "wag_excited": 1
+        },
+        "idle_seconds": [
+          4,
+          8
+        ],
+        "world": {
+          "nap": 0.12,
+          "stumble": 0,
+          "zoomies": 0,
+          "social": 0.1,
+          "sit": 0.25,
+          "sniff": 0.1
+        }
+      },
+      "explorer": {
+        "fidgets": {
+          "head_tilt": 3,
+          "scratch": 2,
+          "yawn": 2,
+          "sniff": 7,
+          "stretch": 1,
+          "bark": 1,
+          "look_around": 9,
+          "chase_tail": 9,
+          "lick_paw": 2,
+          "give_paw": 1,
+          "wag_excited": 1
+        },
+        "idle_seconds": [
+          3,
+          6
+        ],
+        "world": {
+          "nap": 0.03,
+          "stumble": 0,
+          "zoomies": 0.22,
+          "social": 0.1,
+          "sit": 0.15,
+          "sniff": 0.1
+        }
+      },
+      "young": {
+        "fidgets": {
+          "head_tilt": 8,
+          "scratch": 2,
+          "yawn": 2,
+          "sniff": 3,
+          "stretch": 1,
+          "bark": 1,
+          "look_around": 3,
+          "chase_tail": 1,
+          "lick_paw": 2,
+          "give_paw": 1,
+          "wag_excited": 1,
+          "idle_breathe": 12
+        },
+        "idle_seconds": [
+          9,
+          15
+        ],
+        "world": {
+          "nap": 0.05,
+          "stumble": 0,
+          "zoomies": 0,
+          "social": 0.75,
+          "sit": 0.45,
+          "sniff": 0.1
+        }
+      },
+      "adult": {
+        "fidgets": {
+          "head_tilt": 10,
+          "scratch": 2,
+          "yawn": 2,
+          "sniff": 3,
+          "stretch": 1,
+          "bark": 1,
+          "look_around": 3,
+          "chase_tail": 1,
+          "lick_paw": 2,
+          "give_paw": 1,
+          "wag_excited": 1,
+          "idle_breathe": 16
+        },
+        "idle_seconds": [
+          12,
+          18
+        ],
+        "world": {
+          "nap": 0.05,
+          "stumble": 0,
+          "zoomies": 0,
+          "social": 0.9,
+          "sit": 0.8,
+          "sniff": 0.1
+        }
+      }
+    },
+    "personalities": {
+      "explorer": {
+        "fidgets": {
+          "sniff": 3,
+          "look_around": 2
+        },
+        "world": {
+          "sniff": 0.25
+        }
+      },
+      "foodie": {
+        "fidgets": {
+          "lick_paw": 3
+        },
+        "world": {
+          "sniff": 0.15
+        }
+      },
+      "playful": {
+        "fidgets": {
+          "happy_jump": 4,
+          "chase_tail": 3
+        },
+        "world": {
+          "zoomies": 0.12
+        }
+      },
+      "cuddly": {
+        "fidgets": {
+          "wag_excited": 3,
+          "head_tilt": 2
+        },
+        "world": {
+          "social": 0.2
+        }
+      },
+      "calm": {
+        "fidgets": {
+          "yawn": 2,
+          "idle_breathe": 3
+        },
+        "world": {
+          "nap": 0.1,
+          "sit": 0.1
+        }
+      }
+    },
+    "world": {
+      "nap_seconds": [
+        3,
+        6
+      ],
+      "sit_seconds": [
+        3,
+        6
+      ],
+      "idle_seconds": [
+        1.5,
+        4
+      ],
+      "sniff_seconds": 2.0,
+      "stumble_seconds": 0.35,
+      "stumble_hop": 5,
+      "zoomies_steps": 3,
+      "zoomies_radius": 90,
+      "zoomies_speed": 1.8,
+      "social_radius": 40,
+      "bark": 0.1,
+      "stumble_min_distance": 20
+    },
+    "short_sleep_seconds": 3.0
+  },
+  "diary": {
+    "limit": 20,
+    "templates": {
+      "photo": "guardou a foto “{name}”.",
+      "taste": "provou {name} pela primeira vez.",
+      "grew": "virou {name}!",
+      "walk": "passeou por {name}.",
+      "rare": "encontrou {name}!",
+      "silk": "ganhou {name}!"
+    }
+  },
+  "silk": {
+    "levels": [
+      {"id": "silk_1", "name": "Pelagem de seda I", "sheen": 0.33, "coat": 10, "brush_days": 5, "shampoo": 3, "rewards": {"coins": 50}},
+      {"id": "silk_2", "name": "Pelagem de seda II", "sheen": 0.66, "coat": 10, "brush_days": 10, "shampoo": 6, "rewards": {"coins": 80}},
+      {"id": "silk_3", "name": "Pelagem de seda III", "sheen": 1.0, "coat": 10, "brush_days": 20, "shampoo": 10, "rewards": {"coins": 120}}
+    ]
+  }
+}

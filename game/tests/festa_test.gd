@@ -75,10 +75,10 @@ func _celebration_checks() -> void:
 	var rewards := {"coins": 50, "items": {"carrot": 3}}
 	var celebration := _open_celebration()
 	Haptics.calls.clear()
-	celebration.call("show_level", 6, rewards)
+	celebration.call("show_treasure", rewards)
 	var card := celebration.find_child("ModalCard", true, false) as Control
-	check(card != null and card.visible and celebration.visible, "show_level monta um ModalCard")
-	check(card.find_child("RibbonTitle", true, false) is Label and "Nível 6!" == (card.find_child("RibbonTitle", true, false) as Label).text, "fita traz o número do nível")
+	check(card != null and card.visible and celebration.visible, "show_treasure monta um ModalCard")
+	check(card.find_child("RibbonTitle", true, false) is Label and "Tesouro encontrado!" == (card.find_child("RibbonTitle", true, false) as Label).text, "fita traz o tesouro")
 	check(card.find_child("BigIcon", true, false) != null and card.find_child("Rays", true, false) != null, "ícone grande com raios")
 	check(((card.get("panel") as PanelContainer).get_theme_stylebox("panel") as StyleBoxFlat).corner_radius_top_left == 22 and (card.get("panel") as PanelContainer).custom_minimum_size.x == 320.0, "cartão 320 de largura, cantos 22")
 	check(primary_count(card) == 1, "um botão principal só (%d)" % primary_count(card))
@@ -115,7 +115,7 @@ func _celebration_checks() -> void:
 	check(celebration.find_child("Confetti", true, false) == null, "truque sem confete")
 	# "Menos animação": chips visíveis e com o número final na hora, sem confete.
 	Motion.reduced = true
-	celebration.call("show_level", 7, rewards)
+	celebration.call("show_treasure", rewards)
 	card = celebration.find_child("ModalCard", true, false) as Control
 	chips = (card.get("box") as Control).find_children("*", "HFlowContainer", true, false)[0] as Container
 	for chip: Node in chips.get_children():
@@ -147,7 +147,7 @@ func _haptics_checks() -> void:
 	await create_timer(0.2).timeout
 	check(Haptics.calls.is_empty(), "desligado não vibra (%s)" % str(Haptics.calls))
 	var celebration := _open_celebration()
-	celebration.call("show_level", 8, {"coins": 5})
+	celebration.call("show_treasure", {"coins": 5})
 	check(Haptics.calls.is_empty(), "desligado: comemoração também não vibra")
 	celebration.queue_free()
 	Haptics.enabled = true

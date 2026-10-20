@@ -95,6 +95,10 @@ func _brain() -> void:
 		if not room.is_visible_in_tree():
 			await get_tree().create_timer(0.3).timeout
 			continue
+		if friend_visit and friend_id == "pipoca" and GameState.dog.sleeping:
+			_play("sleep", "east")
+			await get_tree().create_timer(0.3).timeout
+			continue
 		_play("idle", _facing)
 		await get_tree().create_timer(randf_range(2.0, 5.0)).timeout
 		if not is_inside_tree():
@@ -212,4 +216,7 @@ func _build_frames() -> SpriteFrames:
 			for file: String in files:
 				if file.ends_with(".png"):
 					frames.add_frame(anim, load(folder + file))
+	if friend_id == "pipoca":
+		frames.add_animation("sleep_east")
+		frames.add_frame("sleep_east", load("res://assets/sprites/ui/album/pipoca_sleep.png"))
 	return frames

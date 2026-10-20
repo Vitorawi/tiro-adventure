@@ -43,6 +43,9 @@ var steps: Dictionary = {}
 ## Novidades já mostradas ao jogador ("feature:bag", "world:village", "place:village/gate", "npc:guide").
 ## O que está liberado e ainda não está aqui aparece na tela "Novo!".
 var seen: Dictionary = {}
+## A Casa que cresce (etapa 14): `toys` = brinquedos já no cesto; `arrived` = objetos que já chegaram
+## (id -> Unix da chegada, anunciados uma vez só).
+var house: Dictionary = {"toys": [], "arrived": {}}
 ## Momento em que o jogo começou (Unix) e a primeira vez de cada contador (chave -> Unix).
 ## Alimentam a seção "Ritmo" do painel DEV, para medir o começo do jogo.
 var started_at: float = 0.0
@@ -208,11 +211,16 @@ func skill_info(id: String) -> Dictionary:
 
 ## Recurso revelado pela história (progression.json → features: bag, daily, weekly, skills).
 func feature_unlocked(id: String) -> bool:
-	return requirement_error(Database.progression.get("features", {}).get(id, {}).get("requirements", {})) == ""
+	if not Database.progression.get("features", {}).has(id):
+		return false
+	var requirements: Dictionary = Database.progression.get("features", {}).get(id, {}).get("requirements", {})
+	if requirements.has("growth"):
+		return GameState.requirement_error(requirements) == ""
+	return requirement_error(requirements) == ""
 
 
 func skills_visible() -> bool:
-	return feature_unlocked("skills")
+	return false
 
 
 func npc_visible(id: String) -> bool:
@@ -428,7 +436,7 @@ func to_dict() -> Dictionary:
 		"skills": skills, "owned": owned, "stats": stats, "nature_levels_version": 2, "nature_xp": nature_xp,
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
 		"collection": collection, "equipped": equipped, "unlocks": unlocks,
-		"tricks": tricks, "cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "steps": steps, "seen": seen,
+		"tricks": tricks, "cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "steps": steps, "seen": seen, "house": house.duplicate(true),
 			"started_at": started_at, "firsts": firsts, "daily_gift": daily_gift, "claimed_bond_level": claimed_bond_level,
 	}
 
@@ -506,6 +514,9 @@ func from_dict(data: Dictionary) -> void:
 	routines = data.get("routines", {}).duplicate(true)
 	steps = data.get("steps", {}).duplicate(true)
 	seen = data.get("seen", {}).duplicate(true)
+	var saved_house: Dictionary = data.get("house", {}) if data.get("house") is Dictionary else {}
+	house = {"toys": saved_house.get("toys", []).duplicate() if saved_house.get("toys") is Array else [],
+		"arrived": saved_house.get("arrived", {}).duplicate() if saved_house.get("arrived") is Dictionary else {}}
 	started_at = float(data.get("started_at", 0.0))
 	firsts = data.get("firsts", {}).duplicate(true)
 	daily_gift = {"period": str(data.get("daily_gift", {}).get("period", "")), "count": int(data.get("daily_gift", {}).get("count", 0))}

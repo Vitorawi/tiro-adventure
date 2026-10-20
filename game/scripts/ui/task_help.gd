@@ -11,6 +11,10 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 	visited.append(key)
 	var result: Dictionary
 	match kind:
+		"growth_req":
+			return _growth_requirement(id, visited)
+		"growth":
+			result = _growth_phase(id)
 		"stat":
 			return _goal({"type": "stat", "key": id, "target": amount}, visited)
 		"wish":
@@ -170,12 +174,18 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 		"coins", "chapter": return describe(type, "", amount, trail)
 		"quest": return describe("quest", key, 1, trail)
 		"project": return describe("project", key, 1, trail)
+		"growth": return describe("growth", key, 1, trail)
 		"have", "deliver":
 			var result := describe("item", key, amount, trail)
 			if type == "deliver":
 				result.detail = "Será entregue ao pegar o prêmio."
 			return result
 		"stat":
+			if key == "shampoo_bath":
+				var result := _base("Banho com xampu", "Aba Tiro → marque Com xampu e dê Banho.", {"screen": "pet"}, "Ir")
+				if GameState.inventory.count("herb_shampoo") < 1:
+					result.needs.append(_need("item", "herb_shampoo", 1))
+				return result
 			if key.begins_with("produce:"):
 				for recipe_id: String in Database.recipes:
 					if Database.recipe_output(Database.recipes[recipe_id]) == key.trim_prefix("produce:"):
@@ -282,6 +292,10 @@ static func _need(kind: String, id: String, amount: int) -> Dictionary:
 		"project":
 			have = 1 if GameState.projects.is_completed(id) else 0
 			label = str(Database.project(id).get("name", id))
+		"growth":
+			var phase_index: int = GameState.growth.phase_index(id)
+			have = 1 if phase_index >= 0 and GameState.growth.phase_index() >= phase_index else 0
+			label = "Quando ele for " + str(Database.growth.phases[phase_index].name) if phase_index >= 0 else "Crescimento"
 		"stat":
 			have = GameState.progress.stat(id)
 			label = str(Database.progression.settings.stat_labels.get(id, id))
@@ -307,6 +321,8 @@ static func _requirements(requirements: Dictionary) -> Array[Dictionary]:
 			needs.append(_need("project", id, 1))
 	if GameState.progress.chapter_index() < int(requirements.get("chapter", 1)):
 		needs.append(_need("chapter", "", int(requirements.chapter)))
+	if requirements.has("growth") and int(_need("growth", str(requirements.growth), 1).have) < 1:
+		needs.append(_need("growth", str(requirements.growth), 1))
 	for id: String in requirements.get("skills", {}):
 		if GameState.progress.skill_level(id) < int(requirements.skills[id]):
 			needs.append(_need("skill", id, int(requirements.skills[id])))
@@ -443,6 +459,17 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 ## Ícone do que o painel explica (missão = objetivo atual).
 static func icon_for(kind: String, id: String) -> Texture2D:
 	match kind:
+		"growth":
+			return UiKit.ui_icon("tab_pet")
+		"growth_req":
+			for row: Dictionary in GameState.growth_info().requirements:
+				if str(row.id) != id: continue
+				match str(row.type):
+					"deliver": return Database.item_icon(str(row.item))
+					"feed": return UiKit.ui_icon("need_hunger")
+					"owned": return UiKit.ui_icon(Database.progression.upgrades[str(row.upgrade)].get("icon", "tab_house"))
+					"pillars": return UiKit.ui_icon(str(Database.growth.pillars[row.levels.keys()[0]].icon))
+			return UiKit.ui_icon("tab_pet")
 		"produced":
 			return Database.item_icon(id)
 		"quest":
@@ -474,6 +501,10 @@ static func need_icon(need: Dictionary) -> Texture2D:
 			return UiKit.ui_icon(Database.progression.skills[id].get("icon", "xp"))
 		"coins":
 			return UiKit.ui_icon("coin")
+		"growth_req":
+			return icon_for("growth_req", id)
+		"growth":
+			return icon_for("growth", id)
 	return UiKit.ui_icon("tab_tasks")
 
 
@@ -495,3 +526,62 @@ static func searches(count: int) -> String:
 static func _chapter_name(number: int) -> String:
 	var chapters: Array = Database.progression.get("chapters", [])
 	return str(chapters[number - 1].name) if number >= 1 and number <= chapters.size() else "Capítulo"
+
+
+## Objetivo "o Tiro chega à fase X": os requisitos da próxima fase que ainda faltam, cada um tocável.
+static func _growth_phase(id: String) -> Dictionary:
+	var index: int = GameState.growth.phase_index(id)
+	var name := str(Database.growth.phases[index].name) if index >= 0 else "Crescimento"
+	var result := _base(name, "Veja o que ele precisa para crescer.", {"growth": true}, "Ir")
+	if index < 0 or GameState.growth.phase_index() >= index:
+		result.detail = "Ele já cresceu!"
+		return result
+	var info := GameState.growth_info()
+	if info.ready:
+		result.detail = "Tudo pronto: toque em Crescer!"
+		return result
+	for row: Dictionary in info.requirements:
+		if not row.done:
+			result.needs.append({"kind": "growth_req", "id": str(row.id), "amount": int(row.need), "have": mini(int(row.have), int(row.need)), "label": str(row.label)})
+	return result
+
+
+## Cada requisito indica uma ação disponível agora; nunca conta nem entrega pela consulta.
+static func _growth_requirement(id: String, trail: Array[String]) -> Dictionary:
+	for row: Dictionary in GameState.growth_info().requirements:
+		if row.id != id: continue
+		var result := _base(str(row.label), "Continue cuidando do Tiro.", {"screen": "pet"}, "Ir")
+		match str(row.type):
+			"owned": result = describe("upgrade", str(row.upgrade), 1, trail)
+			"project": result = describe("project", str(row.project), 1, trail)
+			"quest": result = describe("quest", str(row.quest), 1, trail)
+			"deliver":
+				result = describe("item", str(row.item), int(row.need) - int(row.have), trail)
+				if GameState.inventory.count(str(row.item)) > 0:
+					result = _base(str(row.label), "Você já tem. Volte ao crescimento e toque em Dar.", {"growth": true}, "Ir")
+			"feed":
+				result.detail = "Dê comida ao Tiro nesta fase."
+				if row.item == "favorite" and not GameState.favorite_found():
+					result.detail = "Ele ainda não provou a favorita. Experimente comidas novas."
+					for food: String in GameState.untasted_foods().slice(0, 4):
+						result.needs.append(_need("item", food, 1))
+				elif row.item != "any":
+					var food_id := GameState.favorite_food() if row.item == "favorite" else str(row.item)
+					result = describe("item", food_id, 1, trail)
+					if GameState.inventory.count(food_id) > 0:
+						result = _base(str(row.label), "Tiro → Comida: dê " + Database.item_name(food_id), {"screen": "pet"}, "Ir")
+			"stat": result = describe("stat", str(row.counter), int(row.need), trail)
+			"collection": result = _base(str(row.label), "Faça na Costura da Praça.", {"world": "park", "place": "sewing"}, "Ir")
+			"pillars":
+				for pillar: String in row.levels:
+					if int(GameState.growth_info().pillars[pillar].level) >= int(row.levels[pillar]): continue
+					var hints := {"body": "Dê comida adequada à fase.", "coat": "Dê um banho quando ele precisar.", "smart": "Brinque com o Tiro ou cave um achado.", "brave": "Brinque ou faça carinho no Tiro."}
+					result.detail = "%s %d: %s" % [Database.growth.pillars[pillar].name, row.levels[pillar], hints[pillar]]
+					break
+		result.title = str(row.label)
+		result.detail += " (%d/%d%s)" % [mini(int(row.have), int(row.need)) if not row.done else int(row.need), row.need, " ✓" if row.done else ""]
+		result.target = result.get("next_target", result.target)
+		result.action = "Ir"
+		result.erase("next_action")
+		return result
+	return _base("Crescimento", "Veja a fase atual.", {"growth": true}, "Ir")

@@ -5,7 +5,7 @@ extends Node
 ## do jogador, ao sono e ao carinho com o dedo (cabeça, barriga ou patinhas).
 ## Às vezes ele rola de barriga para cima para ganhar carinho na barriga.
 
-const DIR := "res://assets/sprites/characters/tiro_pet/"
+const DIR := "res://assets/sprites/characters/tiro_pet/" # apenas roupas/âncoras originais
 const IDLE := &"idle_breathe"
 const SLEEP := &"sleep"
 const ROLL := &"roll_over"
@@ -19,22 +19,24 @@ const FPS := {
 	&"pet_head": 8.0, &"pet_paw": 9.0, &"belly_rub": 9.0, &"belly_kick": 10.0,
 }
 ## Travessuras sorteadas quando ele está parado (peso maior = mais comum).
-const FIDGETS := {
-	&"head_tilt": 3, &"scratch": 2, &"yawn": 2, &"sniff": 3, &"stretch": 1, &"bark": 1,
-	&"look_around": 3, &"chase_tail": 1, &"lick_paw": 2, &"give_paw": 1, &"wag_excited": 1,
-}
 ## Ação do jogador -> [animação, repetições].
 const REACTIONS := {
 	&"feed": [&"eat", 3], &"play": [&"happy_jump", 3], &"bathe": [&"shake_off", 3],
 	&"pet": [&"wag_excited", 1],
-	&"wish": [&"happy_jump", 2],
+	&"wish": [&"happy_jump", 2], &"brush": [&"wag_excited", 2],
+}
+## Reação ao paladar -> clipes depois de comer (o segundo, se houver, vem em seguida).
+const TASTE_CLIPS := {
+	"loved": [&"happy_jump"], "liked": [&"wag_excited"], "odd": [&"head_tilt", &"lick_paw"], "grimace": [&"shake_off"],
 }
 ## Quanto carinho (segundos de dedo na barriga/cabeça) até ele rolar de barriga.
 const ROLL_AFTER := 1.6
 ## Segundos de barriga para cima sem carinho até ele levantar.
 const BELLY_IDLE := 4.0
 
+var _party_hat: TextureRect
 var _target: TextureRect
+var _look: Dictionary = {}
 var _clothes: Dictionary = {}
 var _anchors: Dictionary = {}
 var _clothes_cache: Dictionary = {}
@@ -45,6 +47,8 @@ var _clock := 0.0
 var _loops_left := 0
 var _reverse := false
 var _next: StringName = &""
+var _chain: Array[StringName] = []
+var _taste: Array = []
 var _fidget_in := 5.0
 var _sleeping := false
 var _sad := false
@@ -77,6 +81,14 @@ static func portrait(px: int = 64) -> Control:
 
 func setup(target: TextureRect) -> void:
 	_target = target
+	_party_hat = TextureRect.new()
+	_party_hat.name = "PartyHat"
+	_party_hat.texture = load("res://assets/sprites/ui/album/prop_party_hat.png")
+	_party_hat.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_party_hat.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_party_hat.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_party_hat.z_index = 2
+	target.add_child(_party_hat)
 	_anchors = JSON.parse_string(FileAccess.get_file_as_string(DIR + "overlay_anchors.json"))
 	for slot: String in ["body", "neck", "head"]:
 		var layer := TextureRect.new()
@@ -88,18 +100,40 @@ func setup(target: TextureRect) -> void:
 		target.add_child(layer)
 		layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 		_clothes[slot] = layer
-	Events.state_changed.connect(_show)
-	for clip: StringName in FPS:
-		_load_clip(clip)
+	Events.state_changed.connect(_refresh_look)
+	Events.grew.connect(_on_grew)
+	_refresh_look()
 	Events.dog_action.connect(react)
+	Events.taste_reacted.connect(func(_item: String, reaction: String) -> void: _taste = TASTE_CLIPS.get(reaction, []).duplicate())
+	_show()
+
+
+func _on_grew(_phase: String) -> void:
+	_refresh_look()
+
+
+func _refresh_look() -> void:
+	var look := GameState.dog_look()
+	if _look.get("body", "") != look.body:
+		_look = look
+		_frames.clear()
+		_clothes_cache.clear()
+		for clip: StringName in FPS:
+			_load_clip(clip)
+		_frame = 0
+	else:
+		_look = look
+	DogLook.tint(_target)
 	_show()
 
 
 func _load_clip(clip: StringName) -> void:
+	var folder := str(_look.dir_pet)
+	var resolved := str(_look.clip_fallback.get(str(clip), str(clip)))
 	var list: Array[Texture2D] = []
 	var index := 0
-	while ResourceLoader.exists("%s%s/frame_%02d.png" % [DIR, clip, index]):
-		list.append(load("%s%s/frame_%02d.png" % [DIR, clip, index]))
+	while ResourceLoader.exists("%s%s/frame_%02d.png" % [folder, resolved, index]):
+		list.append(load("%s%s/frame_%02d.png" % [folder, resolved, index]))
 		index += 1
 	_frames[clip] = list
 
@@ -133,6 +167,17 @@ func react(action: StringName) -> void:
 		return  # o carinho com o dedo já está animando
 	var info: Array = REACTIONS[action]
 	_play(info[0], info[1])
+	_chain.clear()
+	if action == &"feed":
+		for clip: StringName in _taste: _chain.append(clip)
+	_taste = []
+
+
+## Escovando: balança o rabo enquanto o dedo passa pelas costas.
+func scrub() -> void:
+	if _sleeping or _belly_up or _clip != IDLE:
+		return
+	_play(&"wag_excited", 1)
 
 
 ## Carinho com o dedo. `zone`: &"head", &"belly" ou &"paw"; `seconds` = tempo desde o último aviso.
@@ -187,10 +232,13 @@ func _process(delta: float) -> void:
 	if resting and not _sleeping:
 		_fidget_in -= delta
 		if _fidget_in <= 0.0:
-			_fidget_in = randf_range(4.0, 9.0)
+			_fidget_in = _fidget_delay()
 			_play(_pick_fidget(), 1)
 			return
 	if _clip == SLEEP and _frame >= list.size() - 1:
+		if not _sleeping:
+			_fidget_in -= delta
+			if _fidget_in <= 0: _finish_clip()
 		return  # dormindo: segura o último quadro
 	_clock += delta
 	var step: float = 1.0 / float(FPS[_clip])
@@ -215,6 +263,9 @@ func _process(delta: float) -> void:
 
 
 func _finish_clip() -> void:
+	if not _chain.is_empty():
+		_play(_chain.pop_front(), 1)
+		return
 	if _next != &"":
 		var clip := _next
 		_next = &""
@@ -224,26 +275,30 @@ func _finish_clip() -> void:
 		_play(clip, 1)
 		return
 	_play(IDLE, 1)
-	_fidget_in = randf_range(2.0, 5.0)
+	_fidget_in = _fidget_delay()
 
 
 func _pick_fidget() -> StringName:
 	if _sad and randf() < 0.6:
 		return &"sad"
-	var total := 0
-	for clip: StringName in FIDGETS:
-		total += FIDGETS[clip]
-	var roll := randi() % total
-	for clip: StringName in FIDGETS:
-		roll -= FIDGETS[clip]
+	var weights: Dictionary = PersonalityRules.behavior(GameState.growth).fidgets
+	var total := 0.0
+	for clip: String in weights: total += float(weights[clip])
+	var roll := randf() * total
+	for clip: String in weights:
+		roll -= float(weights[clip])
 		if roll < 0:
-			return clip
+			if clip == "sleep": _fidget_in = float(Database.growth.behaviors.short_sleep_seconds)
+			return StringName(clip)
 	return &"head_tilt"
 
 
 func _show() -> void:
 	if _target == null:
 		return
+	_party_hat.visible = GameState.tiro_party() and _clip in [IDLE, &"head_tilt", &"wag_excited"]
+	_party_hat.size = _target.size * Vector2(0.24, 0.28)
+	_party_hat.position = _target.size * Vector2(0.38, 0.10)
 	var list: Array = _frames[_clip]
 	if list.is_empty():
 		return
@@ -254,7 +309,8 @@ func _show() -> void:
 		var layer: TextureRect = _clothes[slot]
 		var id := str(GameState.progress.equipped.get(slot, ""))
 		var path := str(Database.collections.get(id, {}).get("overlay", ""))
-		layer.visible = path != "" and str(_clip) in _anchors.get("show_in", [])
+		layer.visible = _look.body != "puppy" and path != "" and str(_clip) in Database.collections.get(id, {}).get("show_in", _anchors.get("show_in", []))
+		if slot == "head" and GameState.tiro_party(): layer.visible = false
 		if not layer.visible:
 			continue
 		var variant := DIR + "overlays/%s/%s/frame_%02d.png" % [id, _clip, drawn]
@@ -265,3 +321,13 @@ func _show() -> void:
 				_clothes_cache.erase(_clothes_cache.keys().front())
 			_clothes_cache[path] = load(path)
 		layer.texture = _clothes_cache[path]
+		var anchor: Dictionary = _anchors.get("bodies", {}).get(str(_look.body), {}).get(str(_clip), {}).get(slot, {})
+		layer.scale = Vector2.ONE * float(anchor.get("scale", 1.0))
+		var offset: Array = anchor.get("offset", [0, 0])
+		# Âncoras expressas no canvas 256×216, independentes do tamanho da tela.
+		layer.position = Vector2(float(offset[0]), float(offset[1])) * _target.size / Vector2(256, 216)
+
+
+func _fidget_delay() -> float:
+	var seconds: Array = PersonalityRules.behavior(GameState.growth).idle_seconds
+	return randf_range(float(seconds[0]), float(seconds[1]))

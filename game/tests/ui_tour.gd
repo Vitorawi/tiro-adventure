@@ -37,7 +37,7 @@ func _close() -> void:
 
 ## Esconde cartões modais (nível, boas-vindas, passeio, comemoração) que atrapalhariam a captura.
 func _hide_modals() -> void:
-	for member: String in ["_celebration", "_welcome", "_walk_result"]:
+	for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony"]:
 		var node: Variant = main.get(member)
 		if node is CanvasLayer:
 			(node as CanvasLayer).hide()
@@ -75,6 +75,44 @@ func _run() -> void:
 	var places: Script = load("res://scripts/ui/places.gd")
 	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
+	if "--ceremony-only" in OS.get_cmdline_user_args():
+		state.call("reset")
+		state.get("progress").seen["intro"] = true
+		await _start_main(1.0)
+		await _growth_panel_shots()
+		await _ceremony_shots()
+		quit(0)
+		return
+	if "--hud-growth-only" in OS.get_cmdline_user_args():
+		state.call("reset")
+		state.get("progress").seen["intro"] = true
+		await _start_main(1.0)
+		await shot("t05_hud_growth")
+		main.find_child("TopBar", true, false).call("show_level_popover")
+		await shot("t05_hud_popover", 0.3)
+		main.get_node("PopoverCatcher").free()
+		main.call("show_screen", &"tasks")
+		await shot("t05_mission_rewards")
+		quit(0)
+		return
+	if "--growth-panel-only" in OS.get_cmdline_user_args():
+		state.call("reset")
+		state.get("progress").seen["intro"] = true
+		state.call("dev_unlock_everything")
+		state.call("_mark_all_seen")
+		await _start_main(1.0)
+		await _growth_panel_shots()
+		quit(0)
+		return
+	if "--growth-only" in OS.get_cmdline_user_args():
+		state.call("reset")
+		state.get("progress").seen["intro"] = true
+		state.call("dev_unlock_everything")
+		state.call("_mark_all_seen")
+		await _start_main(1.0)
+		await _growth_visual_shots()
+		quit(0)
+		return
 	if "--pet-only" in OS.get_cmdline_user_args():
 		state.call("reset")
 		state.get("progress").seen["intro"] = true
@@ -281,7 +319,7 @@ func _run() -> void:
 	await _sheet("Cenoura", sb.call("item_detail", "carrot"))  # o painel do item leva o nome dele no título
 	await shot("b18_item_detail")
 	await _close()
-	await _sheet("Atributos", pu.call("skills_panel"))
+	await _sheet("Crescimento", pu.call("skills_panel"))
 	await shot("b19_skills")
 	await _close()
 	await _sheet("Coleção", pu.call("collection_panel"))
@@ -320,7 +358,7 @@ func _run() -> void:
 	var welcome: CanvasLayer = main.get("_welcome")
 	var walk_card: CanvasLayer = main.get("_walk_result")
 	main.call("show_screen", &"pet")
-	celebration.call("show_level", 6, {"coins": 50, "affection": 2, "items": {"carrot": 3}})
+	celebration.call("show_bond", 6, {"coins": 50, "affection": 2, "items": {"carrot": 3}})
 	await shot("c01_level_up")
 	celebration.hide()
 	var unlocks: Array[String] = ["place:farm/orchard"]
@@ -492,6 +530,8 @@ func _run() -> void:
 	await _pet_shots()
 	await _list_shots()
 	await _festa_shots()
+	await _growth_panel_shots()
+	await _ceremony_shots()
 	quit(0)
 
 
@@ -533,6 +573,9 @@ func _pet_shots() -> void:
 	var notebook: Script = load("res://scripts/ui/pet_notebook.gd")
 	notebook.call("open")
 	await shot("f05_notebook_manual")
+	state.get("growth").phase = "puppy"
+	notebook.call("open", "growth")
+	await shot("t06_notebook_growth")
 	notebook.call("open", "collection")
 	await shot("f06_notebook_collection")
 	await _close()
@@ -547,6 +590,56 @@ func _empty_plots() -> void:
 	for i in plots.size():
 		plots[i] = {"crop": "", "ready_at": 0.0}
 	state.call("_changed")
+
+
+## Etapa 05: só as telas que receberam os novos corpos, na mesma cena.
+func _growth_visual_shots() -> void:
+	Motion.reduced = true
+	var pet: Node = main.find_child("PetScreen", true, false)
+	var animator: Node = pet.get("_animator")
+	animator.set_process(false)
+	state.get("dog").sleeping = false
+	state.get("progress").equipped = {"head": "", "neck": "", "body": ""}
+	for entry: Array in [["puppy", "t12_pet_puppy"], ["teething", "t13_pet_young"], ["adult", "t15_pet_adult"]]:
+		state.call("dev_set_phase", entry[0])
+		animator.call("_play", &"idle_breathe", 1)
+		_hide_modals()
+		await shot(entry[1], 0.3)
+	# Igualdade do adulto renderizado com coat=1 e sem shader, mesma textura/tamanho/fundo.
+	var target: TextureRect = animator.get("_target")
+	var material := target.material
+	await RenderingServer.frame_post_draw
+	var with_shader := root.get_texture().get_image().get_region(Rect2i(target.get_global_rect()))
+	target.material = null
+	await process_frame
+	await RenderingServer.frame_post_draw
+	var original := root.get_texture().get_image().get_region(Rect2i(target.get_global_rect()))
+	var differences := 0
+	for y in original.get_height():
+		for x in original.get_width():
+			if original.get_pixel(x, y) != with_shader.get_pixel(x, y): differences += 1
+	var path := ProjectSettings.globalize_path(folder)
+	with_shader.save_png(path + "adult_shader.png")
+	original.save_png(path + "adult_original.png")
+	FileAccess.open(path + "adult_comparison.txt", FileAccess.WRITE).store_string("Pixels diferentes coat=1 vs sem shader: %d\n" % differences)
+	assert(differences == 0, "O adulto deve continuar idêntico")
+	target.material = material
+	state.call("dev_set_phase", "teething")
+	for id: String in ["red_scarf", "yellow_bow", "sponge_uniform"]:
+		state.get("progress").collection[id] = true
+		state.call("equip", id)
+	animator.call("_play", &"idle_breathe", 1)
+	await shot("t14_pet_young_outfit", 0.3)
+	await _world("farm")
+	var room: Node = main.find_child("World_farm", true, false)
+	var dog: Node = room.get("_dog")
+	dog.set_process(false)
+	for entry: Array in [["puppy", "t16_farm_puppy"], ["adult", "t17_farm_adult"]]:
+		state.call("dev_set_phase", entry[0])
+		dog.call("_play", "idle", "south")
+		(dog.get("_sprite") as AnimatedSprite2D).pause()
+		_hide_modals()
+		await shot(entry[1], 0.3)
 
 
 ## Posição do dedo que deixa o fantasma da bandeja sobre o canteiro `index`.
@@ -586,7 +679,7 @@ func _festa_shots() -> void:
 	_hide_modals()
 	Motion.reduced = false
 	var celebration: CanvasLayer = main.get("_celebration")
-	celebration.call("show_level", 6, {"coins": 50, "affection": 2, "items": {"carrot": 3}})
+	celebration.call("show_bond", 6, {"coins": 50, "affection": 2, "items": {"carrot": 3}})
 	await shot("h01_level_card", 1.0)
 	celebration.hide()
 	celebration.call("show_chapter", 2, ["world:village", "feature:bag"] as Array[String])
@@ -613,3 +706,63 @@ func _festa_shots() -> void:
 	load("res://scripts/ui/settings_panel.gd").call("open")
 	await shot("h05_settings_haptics", 0.8)
 	await _close()
+
+
+## Etapa 06: mesmos estados nas três resoluções, incluindo a caderneta em rolagem.
+func _growth_panel_shots() -> void:
+	var growth_ui: Script = load("res://scripts/ui/growth_ui.gd")
+	state.call("dev_set_phase", "puppy")
+	state.get("growth").done = {}
+	state.get("growth").points = {}
+	state.get("growth").reserve = {}
+	state.get("progress").owned.erase("blender")
+	state.call("_changed")
+	_hide_modals()
+	await shot("t00_growth_badge", 0.3)
+	growth_ui.call("open")
+	await shot("t01_growth_panel")
+	state.get("growth").points = {"body": 25, "brave": 25}
+	state.get("progress").owned["blender"] = true
+	state.call("_changed")
+	await shot("t02_growth_almost")
+	await _close()
+	await shot("t02b_growth_badge")
+	growth_ui.call("open")
+	await create_timer(0.3).timeout
+	state.get("progress").stats["feed:carrot_snack"] = int(state.get("growth").phase_stats.get("feed:carrot_snack", 0)) + 3
+	state.call("_changed")
+	await shot("t03_growth_ready")
+	var scroll := main.find_child("Sheet", true, false).find_child("Scroll", true, false) as ScrollContainer
+	scroll.scroll_vertical = 420
+	await shot("t03b_growth_notebook")
+	scroll.scroll_vertical = 1200
+	await shot("t03c_future_cards")
+	await _close()
+	for phase: String in ["newborn", "teething", "explorer", "young", "adult"]:
+		state.call("dev_set_phase", phase)
+		_hide_modals()
+		growth_ui.call("open")
+		await shot("t_phase_" + phase, 0.4)
+		await _close()
+
+
+## Portão 08: as cinco revelações reais pelo DEV, sem salvar o progresso pessoal.
+func _ceremony_shots() -> void:
+	await _close()
+	main.call("show_screen", &"pet")
+	var phases: Array = root.get_node("Database").get("growth").phases
+	for index in range(1, phases.size()):
+		_hide_modals()
+		state.call("dev_set_phase", str(phases[index - 1].id))
+		state.get("growth").ceremonies.erase(str(phases[index].id))
+		main.get("_growth_queued").erase(str(phases[index].id))
+		state.call("dev_complete_growth_reqs")
+		state.call("_mark_all_seen")
+		Motion.reduced = false
+		state.call("grow")
+		await create_timer(4.8).timeout
+		await shot("t04_ceremony_" + str(phases[index].id), 0.1)
+		if index == 2: await shot("t04_ceremony_before_after", 0.1)
+		main.get("_growth_ceremony").call("_close")
+		await create_timer(0.4).timeout
+	Motion.reduced = true

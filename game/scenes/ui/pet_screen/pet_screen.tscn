@@ -1,7 +1,6 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scenes/ui/pet_screen/pet_screen.gd" id="1_pet"]
-[ext_resource type="Texture2D" path="res://assets/sprites/characters/tiro_pet/tiro_pet_idle_front.png" id="2_tiro"]
 [ext_resource type="Script" path="res://scripts/ui/pet_backdrop.gd" id="4_backdrop"]
 
 [node name="PetScreen" type="Control"]
@@ -81,7 +80,6 @@ custom_minimum_size = Vector2(336, 284)
 layout_mode = 0
 offset_right = 336.0
 offset_bottom = 284.0
-texture = ExtResource("2_tiro")
 expand_mode = 1
 stretch_mode = 5
 

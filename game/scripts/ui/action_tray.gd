@@ -566,6 +566,7 @@ func find_in_panel(node_name: String) -> Node:
 
 func _begin_drag(index: int) -> void:
 	_drag_index = index
+	if str(entries[index].get("id", "")) == "water": GameState.begin_album_water_drag()
 	room.tray_dragging = true
 	_ghost = _gesture.begin(self, entries[index].get("icon") as Texture2D)
 	_items[index].modulate.a = 0.5
@@ -641,6 +642,7 @@ func _end_drag(allow_close: bool) -> void:
 	if _drag_index < 0:
 		return
 	var index := _drag_index
+	if str(entries[index].get("id", "")) == "water": GameState.end_album_water_drag()
 	_drag_index = -1
 	if is_instance_valid(room):
 		room.tray_dragging = false

@@ -256,5 +256,14 @@
     "inventory": {
       "dog_food": 3
     }
+  },
+  "album": {
+    "cold_months": [
+      6,
+      7,
+      8
+    ],
+    "hint_days": 3,
+    "hint_photos": 5
   }
 }

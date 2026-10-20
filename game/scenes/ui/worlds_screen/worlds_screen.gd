@@ -26,6 +26,8 @@ var _visit: int = 0  # invalida setas/painéis de uma viagem substituída por ou
 
 
 func _ready() -> void:
+	visibility_changed.connect(func() -> void:
+		if is_visible_in_tree(): GameState.note_world_visit(current_world))
 	_build_world_bar()
 	%MapButton.pressed.connect(show_map)
 	%MapView.chosen.connect(enter)
@@ -115,6 +117,7 @@ func _switch_world(world_id: String) -> void:
 	var entering := current_world != world_id or not _views.has(world_id) or not is_visible_in_tree()
 	current_world = world_id
 	GameState.note_screen_opened(world_id)
+	if is_visible_in_tree(): GameState.note_world_visit(world_id)
 	var fresh_view := not _views.has(world_id)
 	if fresh_view:
 		_views[world_id] = _build_world(world_id)

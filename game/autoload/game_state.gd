@@ -36,6 +36,14 @@ var walk_state := WalkState.new()
 var friend_state := FriendState.new()
 ## Obras comunitárias (contribuições persistentes; catálogo em Database.projects).
 var projects := ProjectState.new()
+var growth := GrowthState.new()
+## Álbum de recordações: fotos tiradas e janelas de eventos (etapa 13 do plano Tiro).
+var album := AlbumState.new()
+var album_world: String = "house"
+var album_sleep_spot: String:
+	get: return album.sleep_spot
+	set(value): album.sleep_spot = value
+var album_water_drag: bool = false
 ## Economia protegida: revisão, piso legado de capacidade, presentes a guardar e recompensas já pagas.
 var economy := EconomyState.new()
 
@@ -47,6 +55,7 @@ func _ready() -> void:
 	timer.autostart = true
 	timer.timeout.connect(func() -> void:
 		var changed_wishes := update_wishes()
+		changed_wishes = _finish_pillar_nap() or changed_wishes
 		# A volta do passeio não depende de nenhuma tela aberta: o tick liquida a viagem vencida.
 		return_due_walk()
 		changed_wishes = _recover_projects() or changed_wishes
@@ -64,8 +73,12 @@ func _count(key: String, amount: int = 1) -> void:
 	if progress.stat(key) == 0 and amount > 0 and not progress.firsts.has(key):
 		progress.firsts[key] = now()
 	progress.count(key, amount)
+	PersonalityRules.record(growth, key, amount, routine_period("daily"))
 
 func reset() -> void:
+	album_world = "house"
+	album_sleep_spot = ""
+	album_water_drag = false
 	dog = DogState.new()
 	dog.setup(now())
 	inventory = Inventory.new()
@@ -89,6 +102,13 @@ func reset() -> void:
 	walk_state = WalkState.new()
 	friend_state = FriendState.new()
 	projects = ProjectState.new()
+	growth = GrowthState.new()
+	growth.reset()
+	album = AlbumState.new()
+	album.reset()
+	growth.taste_seed = maxi(1, randi())
+	growth.phase_since = now()
+	growth.phase_stats = progress.stats.duplicate(true)
 	economy = EconomyState.new()
 	economy.reset()
 	_mark_all_seen()
@@ -145,7 +165,16 @@ func find_reward(world: String) -> Dictionary:
 		var items: Dictionary = reward.get("items", {}).duplicate()
 		items[quest_item] = maxi(1, int(items.get(quest_item, 0)))
 		reward["items"] = items
+	if _milk_tooth_due():
+		var with_tooth: Dictionary = reward.get("items", {}).duplicate()
+		with_tooth["milk_tooth"] = 1
+		reward["items"] = with_tooth
 	return reward
+
+
+## O primeiro montinho a partir da fase Dentinhos garante o dentinho de leite (uma vez só por save).
+func _milk_tooth_due() -> bool:
+	return growth.phase_index() >= growth.phase_index("teething") and progress.stat("find_item:milk_tooth") == 0
 
 func dig_error(world: String) -> String:
 	if walking():
@@ -165,6 +194,7 @@ func dig(world: String, origin: Vector2 = Vector2(-1, -1)) -> Dictionary:
 		if Database.items.get(id, {}).get("category", "") == "find" and progress.stat("find_item:" + id) == 0:
 			fresh.append(id)
 		_count("find_item:" + id, int(reward.items[id]))
+		if Database.items.get(id, {}).get("rare", false): _diary("rare", Database.item_name(id))
 	_apply_rewards(reward)
 	finds.worlds[world].pending = 0
 	finds.worlds[world].dug = int(finds.worlds[world].dug) + 1
@@ -172,6 +202,10 @@ func dig(world: String, origin: Vector2 = Vector2(-1, -1)) -> Dictionary:
 	finds.worlds[world].next_at = now() + float(Database.finds.worlds[world].interval)
 	_count("find")
 	_count("find:" + world)
+	_pillar_source("dig")
+	_album_event("dug", {"world": world})
+	for found: String in reward.get("items", {}):
+		_album_event("dug", {"world": world, "item": found})
 	_changed()
 	var result := {"items": reward.get("items", {}), "coins": int(reward.get("coins", 0)), "label": reward.get("label", ""), "icon": reward.get("icon", ""), "new": fresh}
 	result["announcement"] = reward.get("announcement", "")
@@ -418,9 +452,13 @@ func return_due_walk(announce: bool = true) -> bool:
 	walk_state.pity[id] = 0 if str(loot.rare) != "" or bool(loot.rare_duplicate) else int(walk_state.pity.get(id, 0)) + 1
 	_count("walk")
 	_count("walk:" + id)
+	_diary("walk", str(def.get("name", id)))
+	_pillar_source("walk", id)
 	if str(loot.rare) != "":
+		_diary("rare", Database.item_name(str(loot.rare)))
 		_count("walk_rare")
 		_count("walk_rare:" + id)
+	_album_event("walk_returned", {"route": id, "rare": str(loot.rare) != ""})
 	var result := {"id": id, "name": str(walk_def(id).get("name", id)), "postcard": walk_postcard(id), "items": loot.items.duplicate(), "coins": int(rewards.coins),
 			"loot_coins": int(loot.coins), "affection": int(def.get("rewards", {}).get("affection", 0)), "needs": def.get("needs", {}).duplicate(), "new": fresh, "new_items": fresh,
 			"first": bool(loot.first), "rare": str(loot.rare), "rare_item": str(loot.rare_item), "rare_duplicate": bool(loot.rare_duplicate), "legendary": legendary, "collections": costumes}
@@ -698,6 +736,8 @@ func learn_trick(id: String) -> String:
 		return error
 	progress.tricks[id] = true
 	_count("trick_learned")
+	_pillar_source("learn_trick", id)
+	_album_event("trick_learned", {"trick": id})
 	_changed()
 	Events.trick_learned.emit(id)
 	return ""
@@ -726,6 +766,7 @@ func perform_trick(id: String) -> String:
 	progress.cooldowns["trick:" + id] = now() + float(settings.cooldown)
 	_count("trick")
 	_count("trick:" + id)
+	_pillar_source("trick")
 	_changed()
 	Events.dog_action.emit(StringName(Database.progression.tricks[id].animation))
 	return ""
@@ -745,6 +786,9 @@ func feed(item_id: String) -> bool:
 	var gain := _care_gain(before)
 	_count("feed")
 	_count("feed:" + item_id)
+	_feed_pillars(item_id)
+	_taste(item_id)
+	_album_event("fed", {"item": item_id, "growth_food": Database.items.get(item_id, {}).has("growth")})
 	_care_useful("feed", gain, exception)
 	_care_reward("feed", useful)
 	_changed()
@@ -766,7 +810,9 @@ func pet() -> int:
 		_care_start("affection:pet")
 		gained = 1
 		dog.affection += 1
+		_pillar_source("pet")
 	_count("pet")
+	_album_event("petted")
 	var guard := "useful:pet"
 	if _care_ready(guard) and _care_useful("pet", gain, exception):
 		_care_start(guard)
@@ -784,6 +830,7 @@ func play() -> bool:
 	dog.apply(Database.actions.get("play", {}), now())
 	var gain := _care_gain(before)
 	_count("play")
+	_album_event("played")
 	if _care_useful("play", gain, exception) and _care_ready("affection:play"):
 		_care_start("affection:play")
 		dog.affection += 2
@@ -793,25 +840,42 @@ func play() -> bool:
 	return true
 
 
-func bathe() -> void:
-	if walking():
+func bathe(with_shampoo: bool = false) -> void:
+	if walking() or (with_shampoo and inventory.count("herb_shampoo") < 1):
 		return
 	var useful := _need_is_low("hygiene")
 	var exception := _care_exception("bathe")
 	var before := _needs_now()
+	if with_shampoo: inventory.remove("herb_shampoo")
 	dog.apply(Database.actions.get("bathe", {}), now())
 	var gain := _care_gain(before)
 	_count("bathe")
-	_care_useful("bathe", gain, exception)
+	_album_event("bathed")
+	if _care_useful("bathe", gain, exception):
+		_pillar_source("shampoo_bath" if with_shampoo else "bath")
+	if with_shampoo: _count("shampoo_bath")
 	_care_reward("bathe", useful)
 	_changed()
 	Events.dog_action.emit(&"bathe")
 
 
-func set_sleeping(value: bool) -> void:
+func set_sleeping(value: bool, spot: String = "") -> void:
 	if value and walking():
 		return
+	_finish_pillar_nap()
+	var started := value and not dog.sleeping
+	if started: growth.cooldowns["sleep_since"] = now()
+	if not value:
+		growth.cooldowns.erase("sleep_since")
+		album_sleep_spot = ""
 	dog.set_sleeping(value, now())
+	if value and not started and spot != "" and album_sleep_spot != spot:
+		album_sleep_spot = spot
+		_album_event("slept", {"spot": spot})
+	if started:
+		_count("sleep_started")
+		album_sleep_spot = spot if spot != "" else default_sleep_spot()
+		_album_event("slept", {"spot": album_sleep_spot})
 	_changed()
 
 
@@ -887,6 +951,7 @@ func _care_useful(action: String, gain: float, exception: Dictionary) -> bool:
 			progress.seen["care:" + str(exception.quest)] = true
 	_count("care_useful")
 	_count("care_useful:" + action)
+	if action == "play": _pillar_source("play")
 	return true
 
 
@@ -1393,6 +1458,9 @@ func water(index: int) -> String:
 	target.ready_at = now() + left * (1.0 - float(Database.farm.water.speedup))
 	target.watered = true
 	_count("water")
+	if album_water_drag:
+		album.note("water_drag", now())
+		_album_event("watered")
 	_add_player_xp(int(Database.farm.water.get("xp", 0)))
 	_changed()
 	Events.world_activity.emit(&"water", str(target.crop), index)
@@ -1437,6 +1505,7 @@ func harvest(index: int) -> Dictionary:
 		return {}
 	_count("harvest")
 	_count("harvest:" + crop_id)
+	_album_event("harvested", {"crop": crop_id})
 	_discover("crop:" + crop_id, str(job.get("skill", "agriculture")), int(job.get("skill_xp", 10)))
 	coins += int(job.get("coins", 0))
 	for item_id: String in received:
@@ -1503,30 +1572,10 @@ func _gain_xp(action: String) -> void:
 	_add_player_xp(int(Database.xp.get(action, 0)))
 
 
+## Contador interno preservado para snapshots e ferramentas; não sobe nível nem paga presentes.
 func _add_player_xp(amount: int) -> void:
 	xp += amount
-	var gained := {}
-	var leveled := false
-	while xp >= xp_to_next_level():
-		xp -= xp_to_next_level()
-		level += 1
-		leveled = true
-		var reward := level_reward(level)
-		# Só entra no cartão o que de fato foi guardado agora; o resto espera no recibo "level:N".
-		var paid := _grant_automatic("level:%d" % level, reward)
-		if not paid.paid:
-			continue
-		gained["coins"] = int(gained.get("coins", 0)) + int(reward.get("coins", 0))
-		gained["affection"] = int(gained.get("affection", 0)) + int(reward.get("affection", 0))
-		var items: Dictionary = gained.get("items", {})
-		for id: String in paid.items:
-			items[id] = int(items.get(id, 0)) + int(paid.items[id])
-		gained["items"] = items
-	if leveled:
-		Events.level_up.emit(level, gained)
 
-
-## Presente de subir de nível (progression.json → level_rewards; "default": min(coins_max, coins_base + coins_per_level × nível)).
 func level_reward(target_level: int) -> Dictionary:
 	var table: Dictionary = Database.progression.get("level_rewards", {})
 	if table.has(str(target_level)):
@@ -1539,11 +1588,7 @@ func level_reward(target_level: int) -> Dictionary:
 func _award_skill(id: String, amount: int) -> void:
 	if not Database.progression.skills.has(id) or amount <= 0:
 		return
-	var before := progress.skill_level(id)
 	progress.skills[id] = int(progress.skills.get(id, 0)) + amount
-	var after := progress.skill_level(id)
-	if after > before and progress.skills_visible():
-		Events.toast_requested.emit("%s · nível %d!" % [Database.progression.skills[id].name, after])
 
 
 ## Primeira vez (colher uma cultura, fazer uma receita) vale XP multiplicado.
@@ -1554,6 +1599,8 @@ func _discover(key: String, skill: String, amount: int) -> void:
 
 
 func _apply_rewards(rewards: Dictionary) -> void:
+	for id: String in rewards.get("pillars", {}):
+		_gain_pillar(id, float(rewards.pillars[id]), "reward")
 	coins += int(rewards.get("coins", 0))
 	for id: String in rewards.get("items", {}):
 		inventory.add(id, int(rewards["items"][id]))
@@ -1600,6 +1647,7 @@ func equip(id: String) -> String:
 		return ""
 	progress.equipped[slot] = id
 	_count("equip")
+	_album_event("equipped", {"item": id})
 	_changed()
 	return ""
 
@@ -1966,6 +2014,17 @@ func claim_pending_rewards(receipt_id: String = "") -> Dictionary:
 ## Requisitos que dependem de fora do ProgressionState (afeto do Tiro e hora local) são checados
 ## aqui; os demais vão para o `progress`. Todo conteúdo passa por este embrulho (content_error também).
 func requirement_error(requirements: Dictionary) -> String:
+	if requirements.has("album_photo") and not album.has_photo(str(requirements.album_photo)):
+		return "No Dia do Tiro"
+	if requirements.has("growth"):
+		var target := growth.phase_index(str(requirements.growth))
+		if target < 0:
+			return "Fase desconhecida"
+		if growth.phase_index() < target:
+			return "Quando ele for " + str(Database.growth.phases[target].name)
+	for house_id: String in requirements.get("house", []):
+		if not house_has(house_id):
+			return "Ainda não chegou: " + house_item_name(house_id)
 	var reason := progress.requirement_error(requirements)
 	if reason != "":
 		return reason
@@ -2095,6 +2154,7 @@ func fulfill_order(id: String) -> String:
 		_count("contracts")
 	_apply_rewards(order.rewards)
 	_pay_customer_tiers(str(order.get("customer", "")))
+	_album_event("customer_delivery")
 	_changed()
 	return ""
 
@@ -2394,6 +2454,10 @@ func goal_value(goal: Dictionary) -> int:
 			return 1 if progress.claimed_quests.has(goal.key) else 0
 		"project":
 			return 1 if projects.is_completed(str(goal.key)) else 0
+		"growth":
+			# Cumprido quando o Tiro já está nessa fase ou além (inclusive se cresceu antes da missão).
+			var target := growth.phase_index(str(goal.key))
+			return 1 if target >= 0 and growth.phase_index() >= target else 0
 		"stat":
 			# "fresh": conta só o que foi feito depois que o passo da linha começou.
 			if goal.get("fresh", false):
@@ -2414,6 +2478,8 @@ func _step_base(goal: Dictionary) -> Dictionary:
 ## Conversa aberta com o personagem (objetivos "Falar com…").
 func talk_to(npc_id: String) -> void:
 	_count("talk:" + npc_id)
+	if Database.npcs.has(npc_id) and not Database.npcs[npc_id].get("decor", false):
+		_pillar_source("talk", npc_id)
 	# Passos atuais deste personagem deixam de ser "novos" (balão "!" no mapa).
 	for id: String in progress.active_steps().values():
 		if Database.quests[id].get("npc", "") == npc_id:
@@ -2423,6 +2489,7 @@ func talk_to(npc_id: String) -> void:
 
 ## Tela aberta pelo jogador (objetivo "Abrir a Mochila" = "open:bag").
 func note_screen_opened(screen: String) -> void:
+	if screen == "pet": album_world = "house"
 	var key := "open:" + screen
 	if progress.stat(key) > 0:
 		return
@@ -2484,7 +2551,9 @@ func _finish_quest(id: String, grant_reward: bool = true) -> void:
 		_count("quests")
 		_add_player_xp(int(Database.quests[id].get("player_xp", 15)))
 		Events.quest_completed.emit(id)
+	_album_event("quest_claimed", {"quest": id})
 	if Database.quests[id].get("kind", "side") == "main" and progress.chapter_index() > chapter:
+		_album_event("chapter_done", {"chapter": chapter, "chapter_last": chapter >= Database.progression.chapters.size()})
 		var chapter_paid := _grant_automatic("chapter:%d" % chapter, Database.progression.chapters[chapter - 1].get("rewards", {}))
 		if chapter_paid.paid:
 			Events.chapter_completed.emit(chapter)
@@ -2493,9 +2562,15 @@ func _finish_quest(id: String, grant_reward: bool = true) -> void:
 # --- Novidades (revelar aos poucos) ---------------------------------------------------
 
 ## O que a história acabou de revelar e o jogador ainda não viu (chaves de ProgressionState.unlocked_keys).
+func _visible_unlock_keys() -> Array[String]:
+	var keys := progress.unlocked_keys() + walk_unlock_keys()
+	if PersonalityRules.id(growth) != "": keys.append("personality:revealed")
+	return keys
+
+
 func new_unlocks() -> Array[String]:
 	var result: Array[String] = []
-	for key in progress.unlocked_keys() + walk_unlock_keys():
+	for key in _visible_unlock_keys():
 		if not progress.seen.has(key):
 			result.append(key)
 	return result
@@ -2514,11 +2589,13 @@ func note_label_visit(world_id: String) -> bool:
 func mark_seen(keys: Array[String]) -> void:
 	for key in keys:
 		progress.seen[key] = true
+	if "intro" in keys:
+		_album_event("intro_done")
 	_changed()
 
 
 func _mark_all_seen() -> void:
-	for key in progress.unlocked_keys() + walk_unlock_keys():
+	for key in _visible_unlock_keys():
 		progress.seen[key] = true
 
 
@@ -2608,7 +2685,7 @@ func claim_routine(kind: String, id: String) -> String:
 	progress.routines[kind].claimed[id] = true
 	_apply_rewards(data.get("rewards", {}))
 	_count("routines")
-	_add_player_xp(int(data.get("player_xp", 10 if kind == "daily" else 30)))
+	_add_player_xp(int(data.get("player_xp", 0 if data.get("rewards", {}).has("pillars") else (10 if kind == "daily" else 30))))
 	_changed()
 	return ""
 
@@ -2822,6 +2899,7 @@ func fulfill_wish(i: int) -> String:
 		_count("wish_item:" + str(def.item))
 	_count("wish")
 	_count("wish:" + id)
+	_pillar_source("special_wish" if wishes.slots[i].get("special", false) else "wish")
 	wishes.done_count += 1
 	wishes.first_done = true
 	var settings := wish_settings()
@@ -2909,6 +2987,7 @@ func _check_bond() -> void:
 		for id: String in paid.items:
 			gained.items[id] = int(gained.items.get(id, 0)) + int(paid.items[id])
 	progress.claimed_bond_level = level
+	_album_event("bond_up")
 	Events.bond_up.emit(level, gained)
 
 
@@ -2983,6 +3062,12 @@ func _add_world_ready(counts: Dictionary, world: String, count: int) -> void:
 ## Todas trazem { kind, count, icon, world, target } (o destino do "Ir").
 func welcome_ready_lines(limit: int = 5) -> Array[Dictionary]:
 	var lines: Array[Dictionary] = []
+	var info := growth_info()
+	if growth.pending_reveal != "" or (info.ready and growth.ready_seen != str(info.next.id)):
+		lines.append({"kind": "growth", "count": 1, "world": "", "target": "", "sleeping": growth.pending_reveal != ""})
+	var new_photos := photos_unseen()
+	if not new_photos.is_empty():
+		lines.append({"kind": "photo", "count": new_photos.size(), "world": "", "target": ""})
 	for id: String in Database.friends.friends:
 		if bool(friend_state.entry(id).visit_pending):
 			lines.append({"kind": "friend_visit", "count": 1, "icon": "", "friend": id, "world": "house", "target": "friend_visit:" + id})
@@ -3400,6 +3485,8 @@ func _dev_complete_quest(id: String) -> void:
 	for goal: Dictionary in quest.goals:
 		if goal.type == "quest":
 			_dev_complete_quest(goal.key)
+		elif goal.type == "growth" and growth.phase_index() < growth.phase_index(str(goal.key)):
+			dev_set_phase(str(goal.key))
 	if not progress.claimed_quests.has(id):
 		_finish_quest(id)
 
@@ -3678,7 +3765,10 @@ func use_project(id: String) -> String:
 		entry["used_once"] = true
 		projects.projects[id] = entry
 		_count("project_use:" + id)
+		_pillar_source("project")
 		_changed()
+	_album_event("project_used", {"world": str(Database.project(id).get("world", album_world)), "object": id})
+	_changed()
 	Events.project_used.emit(id, first)
 	return ""
 
@@ -3740,8 +3830,826 @@ func gather_project(id: String) -> String:
 	_count("project_gather")
 	_count("project_gather:" + id)
 	_changed()
+	_album_event("project_gathered")
 	Events.project_gathered.emit(id, cycle)
 	return ""
+
+# --- Crescimento do Tiro ---------------------------------------------------
+
+## Requisitos pertencem à fase de destino; contadores têm a base da fase atual.
+## Aparência única para todas as telas; consulta pura, inclusive a pelagem dinâmica do Mocinho.
+func dog_look() -> Dictionary:
+	var phase: Dictionary = Database.growth.phases[maxi(0, growth.phase_index())]
+	var body := str(phase.body)
+	var art: Dictionary = Database.growth.bodies[body]
+	var coat := float(phase.coat)
+	if growth.phase == "young":
+		var total := 0.0
+		for id: String in Database.growth.pillars:
+			total += growth.level(id)
+		coat = 0.3 + 0.4 * total / (Database.growth.pillars.size() * growth.cap())
+	return {"body": body, "dir_pet": art.dir.pet, "dir_world": art.dir.world,
+		"portrait": art.portrait, "idle_front": art.idle_front, "coat": coat,
+		"clip_fallback": art.clip_fallback, "sheen": silk_sheen()}
+
+
+## Brilho da Pelagem de seda (0 sem seda); só existe no adulto.
+func silk_sheen() -> float:
+	if growth.phase != "adult" or growth.silk <= 0:
+		return 0.0
+	return float(Database.growth.silk.levels[growth.silk - 1].sheen)
+
+
+## Próximo nível da seda com requisitos (n/m) e se já dá para pedir "Mais brilho!". Consulta pura.
+func silk_info() -> Dictionary:
+	var levels: Array = Database.growth.get("silk", {}).get("levels", [])
+	var adult: bool = growth.phase == "adult"
+	var result := {"level": growth.silk, "max": levels.size(), "adult": adult, "next": {}, "requirements": [], "ready": false}
+	if not adult or growth.silk >= levels.size():
+		return result
+	var def: Dictionary = levels[growth.silk]
+	var rows: Array[Dictionary] = [
+		{"id": "coat", "label": "Pelagem %d" % int(def.coat), "have": growth.level("coat"), "need": int(def.coat)},
+		{"id": "brush_days", "label": "Escovar em dias diferentes", "have": growth.brush_days.size(), "need": int(def.brush_days)},
+		{"id": "shampoo", "label": "Banho com xampu", "have": progress.stat("shampoo_bath"), "need": int(def.shampoo)}]
+	var ready := true
+	for row: Dictionary in rows:
+		row["done"] = int(row.have) >= int(row.need)
+		ready = ready and bool(row.done)
+	result["next"] = def
+	result["requirements"] = rows
+	result["ready"] = ready
+	return result
+
+
+func silk_error() -> String:
+	var info := silk_info()
+	if not info.adult:
+		return "Só depois de adulto"
+	if info.next.is_empty():
+		return "A pelagem já está de seda"
+	for row: Dictionary in info.requirements:
+		if not row.done:
+			return "Falta: " + str(row.label)
+	return ""
+
+
+func brighten() -> String:
+	var reason := silk_error()
+	if reason != "":
+		return reason
+	var def: Dictionary = silk_info().next
+	growth.silk += 1
+	_grant_automatic("silk:" + str(def.id), def.get("rewards", {}))
+	_diary("silk", str(def.name), "silk:" + str(def.id))
+	_changed()
+	Events.silk_up.emit(growth.silk)
+	return ""
+
+
+func growth_info() -> Dictionary:
+	var index := growth.phase_index()
+	var phases: Array = Database.growth.get("phases", [])
+	var next: Dictionary = phases[index + 1] if index >= 0 and index + 1 < phases.size() else {}
+	var rows: Array[Dictionary] = []
+	var ready := not next.is_empty()
+	for req: Dictionary in next.get("requirements", []):
+		var row := req.duplicate(true)
+		row["label"] = _growth_label(req)
+		row["need"] = int(req.get("qty", 1))
+		row["have"] = _growth_have(req, str(next.id))
+		row["done"] = bool(growth.done.get(str(next.id), {}).get(str(req.id), false)) or int(row.have) >= int(row.need)
+		ready = ready and bool(row.done)
+		rows.append(row)
+	var pillars := {}
+	for id: String in Database.growth.get("pillars", {}):
+		pillars[id] = {"level": growth.level(id), "cap": growth.cap(), "points": int(growth.points.get(id, 0)), "reserve": int(growth.reserve.get(id, 0)), "title": str(Database.growth.pillars[id].name), "icon": str(Database.growth.pillars[id].icon)}
+	var catalog: Array[Dictionary] = []
+	for i in phases.size():
+		var phase: Dictionary = phases[i].duplicate(true)
+		phase["art"] = Database.growth.bodies[phase.body].duplicate(true)
+		phase["visited"] = i <= index
+		phase["at"] = float(growth.ceremonies.get(str(phase.id), {}).get("at", 0.0))
+		if i == index: phase["at"] = growth.phase_since
+		catalog.append(phase)
+	return {"phase": growth.phase, "current": catalog[index], "phases": catalog,
+		"next": catalog[index + 1] if not next.is_empty() else {}, "requirements": rows, "pillars": pillars, "ready": ready}
+
+
+func _growth_label(req: Dictionary) -> String:
+	if req.has("label"): return str(req.label)
+	match str(req.type):
+		"pillars":
+			var labels: PackedStringArray = []
+			for id: String in req.levels:
+				labels.append("%s %d" % [Database.growth.pillars[id].name, req.levels[id]])
+			return " · ".join(labels)
+		"owned": return str(Database.progression.upgrades[req.upgrade].name)
+		"feed":
+			if req.item == "any": return "Dar comida"
+			if req.item == "favorite": return "Comer " + Database.item_name(favorite_food()) if favorite_found() else "Descubra a favorita"
+			return "Comer " + Database.item_name(str(req.item))
+		"deliver": return Database.item_name(str(req.item))
+		"quest": return str(Database.quests[req.quest].name)
+		"project": return str(Database.project(str(req.project)).name)
+		"collection": return str(Database.collections[req.collection].name)
+		"stat": return str(Database.progression.settings.stat_labels.get(str(req.counter), "Passeios" if req.counter == "walk" else req.counter))
+	return str(req.id)
+
+
+func _growth_have(req: Dictionary, target: String) -> int:
+	match str(req.get("type", "")):
+		"given": return 1
+		"owned": return int(has_upgrade(str(req.upgrade)))
+		"quest": return int(progress.claimed_quests.has(str(req.quest)))
+		"project": return int(projects.is_completed(str(req.project)))
+		"collection": return int(progress.collection.has(str(req.collection)))
+		"deliver": return int(growth.delivered.get(target, {}).get(str(req.item), 0))
+		"pillars":
+			for id: String in req.levels:
+				if growth.level(id) < int(req.levels[id]):
+					return 0
+			return 1
+		"feed", "stat":
+			var key := str(req.get("counter", ""))
+			if str(req.type) == "feed":
+				key = "feed" if str(req.item) == "any" else "feed:" + (favorite_food() if str(req.item) == "favorite" else str(req.item))
+			return maxi(0, progress.stat(key) - int(growth.phase_stats.get(key, 0)))
+	return 0
+
+
+## Chamado nas mutações, nunca nas consultas. Um requisito visto cumprido fica definitivo.
+func _sync_growth() -> void:
+	var info := growth_info()
+	if info.next.is_empty():
+		return
+	var target := str(info.next.id)
+	if not growth.done.has(target):
+		growth.done[target] = {}
+	var was_ready := true
+	for row: Dictionary in info.requirements:
+		was_ready = was_ready and bool(growth.done[target].get(str(row.id), false))
+		if row.done and not growth.done[target].get(str(row.id), false):
+			growth.done[target][str(row.id)] = true
+			Events.growth_requirement_done.emit(target, str(row.id))
+	if info.ready and not was_ready:
+		Events.growth_ready.emit(target)
+
+
+func grow_error() -> String:
+	var info := growth_info()
+	if info.next.is_empty():
+		return "O Tiro já cresceu tudo"
+	for row: Dictionary in info.requirements:
+		if not row.done:
+			return "Falta: " + str(row.get("label", row.id))
+	return ""
+
+
+func grow() -> String:
+	var reason := grow_error()
+	if reason != "":
+		return reason
+	_sync_growth()
+	var next: Dictionary = growth_info().next
+	var target := str(next.id)
+	# Mesmo um clique repetido não cresce duas vezes com os mesmos requisitos.
+	if growth.ceremonies.has(target):
+		return "Já cresceu"
+	growth.ceremonies[target] = {"at": now(), "seen": false, "before": growth.phase, "before_coat": dog_look().coat,
+		"delivered": growth.delivered.get(target, {}).duplicate(true)}
+	if dog.sleeping and target in ["young", "adult"]:
+		growth.pending_reveal = target
+	growth.phase = target
+	growth.phase_since = now()
+	growth.phase_stats = progress.stats.duplicate(true)
+	var ceiling := int(Database.growth.levels[growth.cap() - 1])
+	for id: String in Database.growth.pillars:
+		var stored := int(growth.reserve.get(id, 0))
+		var applied := mini(stored, maxi(0, ceiling - int(growth.points.get(id, 0))))
+		growth.points[id] = int(growth.points.get(id, 0)) + applied
+		growth.reserve[id] = stored - applied
+	_grant_automatic("growth:" + target, next.get("rewards", {}))
+	growth.ceremonies[target]["after_coat"] = dog_look().coat
+	_diary("grew", str(next.name), "growth:" + target)
+	_album_event("grew", {"grew_to": target})
+	_changed()
+	Events.grew.emit(target)
+	return ""
+
+
+## Recibo confirmado apenas ao fechar o cartão: fechar o jogo durante a cena retoma uma única revelação.
+func acknowledge_growth(phase: String) -> void:
+	if not growth.ceremonies.has(phase): return
+	growth.ceremonies[phase]["seen"] = true
+	if growth.pending_reveal == phase: growth.pending_reveal = ""
+	_changed()
+
+
+func reveal_sleeping_growth() -> void:
+	if growth.pending_reveal == "": return
+	growth.pending_reveal = ""
+	_changed()
+
+
+func mark_growth_ready_seen() -> void:
+	var info := growth_info()
+	if info.ready:
+		growth.ready_seen = str(info.next.id)
+		_changed()
+
+
+func deliver_growth_error(item: String) -> String:
+	for row: Dictionary in growth_info().requirements:
+		if str(row.type) == "deliver" and str(row.item) == item:
+			if row.done:
+				return "Já entregue"
+			return "" if inventory.count(item) > 0 else "Falta " + Database.item_name(item)
+	return "O Tiro não precisa disso para crescer"
+
+
+func deliver_growth(item: String) -> String:
+	var reason := deliver_growth_error(item)
+	if reason != "":
+		return reason
+	var info := growth_info()
+	var target := str(info.next.id)
+	if not growth.delivered.has(target):
+		growth.delivered[target] = {}
+	for row: Dictionary in info.requirements:
+		if str(row.type) == "deliver" and str(row.item) == item:
+			var amount := mini(inventory.count(item), int(row.need) - int(row.have))
+			inventory.remove(item, amount)
+			growth.delivered[target][item] = int(row.have) + amount
+			break
+	_changed()
+	return ""
+
+
+# --- Álbum de recordações (etapa 13) -----------------------------------------------
+
+## Único avaliador do álbum: as ações do jogo avisam o evento e as fotos cujas condições valem são tiradas.
+## Foto tirada uma vez (`album.photos[id]`); devolve os ids novos. Quem chama grava (`_changed`) depois.
+func _album_event(event: String, ctx: Dictionary = {}) -> Array[String]:
+	var taken: Array[String] = []
+	if not Database.album.has("photos"):
+		return taken
+	var at := now()
+	ctx = ctx.duplicate()
+	if not ctx.has("world"): ctx["world"] = album_world
+	ctx["dog_world"] = "" if walking() else album_world
+	if not ctx.has("spot"): ctx["spot"] = album_sleep_spot if album_sleep_spot != "" else default_sleep_spot()
+	if event == "album_opened" and album.has_photo(str(ctx.get("photo", ""))) and friend_hearts("pipoca") >= 1 and not album.has_photo("s_photobomb"):
+		album.photobomb_pity += 1
+		var chance: Dictionary = Database.photo("s_photobomb").get("when", {}).get("chance", {})
+		ctx["photobomb"] = album.photobomb_pity >= int(chance.get("pity", 8)) or randi_range(1, maxi(1, int(chance.get("one_in", 8)))) == 1
+	album.note(event, at)
+	var active: Array = Database.album.get("active_sections", [])
+	for entry: Dictionary in Database.album.photos:
+		var id := str(entry.id)
+		if str(entry.section) not in active or album.has_photo(id):
+			continue
+		if event == "app_opened" and str(entry.section) == "sleep" and not dog.sleeping: continue
+		if AlbumRules.matches(entry, event, ctx, at):
+			_take_photo(id)
+			taken.append(id)
+	return taken
+
+
+func _take_photo(id: String) -> void:
+	album.photos[id] = {"at": now(), "phase": growth.phase, "coat": dog_look().coat, "seen": false, "equipped": progress.equipped.duplicate()}
+	_diary("photo", str(Database.photo(id).get("title", id)), "photo:" + id)
+	_count("photos")
+	Events.photo_taken.emit(id)
+
+
+## Local escolhido para a soneca. No mapa, DogWorld confirma o lugar ao chegar.
+func default_sleep_spot() -> String:
+	if album_world == "house":
+		return "bed" if has_upgrade("dog_bed") else "box"
+	return "sofa" if has_upgrade("sofa") else "floor"
+
+
+func note_sleep_spot(spot: String) -> void:
+	if not dog.sleeping: return
+	album_sleep_spot = spot
+	_album_event("slept", {"spot": spot})
+	if bool(friend_state.entry("pipoca").get("visit_pending", false)):
+		_album_event("friend_visit", {"item": "pipoca", "world": "house"})
+	_changed()
+
+
+func note_dog_tapped(world: String) -> void:
+	album_world = world
+	_album_event("tapped_dog", {"world": world})
+	_changed()
+
+
+func note_object_tapped(id: String, world: String) -> void:
+	album_world = world
+	album.note("tapped_object:" + id, now())
+	_album_event("tapped_object", {"object": id, "world": world})
+	_changed()
+
+
+## Só o arrasto atual conta; toque em Tudo e arrastos separados não se somam.
+func begin_album_water_drag() -> void:
+	album.recent.erase("water_drag")
+	album_water_drag = true
+
+
+func end_album_water_drag() -> void:
+	album_water_drag = false
+	album.recent.erase("water_drag")
+
+
+func note_app_opened() -> void:
+	var window := float(Database.photo("d_gotcha").get("when", {}).get("anniversary", 7))
+	var year := AlbumRules.anniversary_year(now(), window)
+	if year > int(album.years.get("gotcha", 0)):
+		album.years["gotcha"] = year
+		album.party_from = now()
+		var local := _local_time()
+		var date := Time.get_datetime_dict_from_unix_time(local)
+		var started := Time.get_datetime_dict_from_unix_time(_local_time(progress.started_at))
+		var day := int(started.day)
+		if int(started.month) == 2 and day == 29 and not (year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)): day = 28
+		var anniversary := Time.get_unix_time_from_datetime_dict({"year": date.year, "month": started.month, "day": day, "hour": 0, "minute": 0, "second": 0})
+		album.party_until = now() + anniversary + window * 86400.0 - local
+		Events.toast_requested.emit("É o Dia do Tiro! Vamos comemorar juntos.")
+	_album_event("app_opened")
+	if dog.sleeping and bool(friend_state.entry("pipoca").get("visit_pending", false)):
+		_album_event("friend_visit", {"item": "pipoca", "world": "house"})
+	_changed()
+
+
+func tiro_party() -> bool:
+	return album.party_from > 0.0 and now() >= album.party_from and now() < album.party_until
+
+
+func note_album_section(section: String) -> void:
+	var changed := false
+	for entry: Dictionary in Database.album.photos:
+		if str(entry.section) == section and section in ["tricks", "sleep"] and not album.opened_at.has(str(entry.id)):
+			album.opened_at[str(entry.id)] = now()
+			changed = true
+	if changed: _changed()
+
+
+func album_lupas_left() -> int:
+	var day := Time.get_date_string_from_unix_time(int(_local_time()))
+	var used := album.lupas_used if day <= album.lupa_day else 0
+	return maxi(0, 1 + int(house_has("old_camera")) - used)
+
+
+func reveal_photo_hint(id: String) -> String:
+	var entry := Database.photo(id)
+	if entry.is_empty() or str(entry.section) not in ["tricks", "sleep"] or album.has_photo(id): return "Essa foto não precisa de lupa"
+	if int(album.hints.get(id, 0)) > 0: return ""
+	if album_lupas_left() <= 0: return "A lupa volta amanhã"
+	var day := Time.get_date_string_from_unix_time(int(_local_time()))
+	if day > album.lupa_day:
+		album.lupa_day = day
+		album.lupas_used = 0
+	album.lupas_used += 1
+	album.hints[id] = 1
+	_changed()
+	return ""
+
+
+## Uma fala por conversa; recibo persistido antes de exibir, inclusive após recarregar.
+func album_talk(npc: String) -> String:
+	for entry: Dictionary in Database.album.photos:
+		var id := str(entry.id)
+		var key := "photo:" + id + ":" + npc
+		var people: Array = entry.get("photo", {}).get("friends", []).duplicate()
+		people.append(str(entry.get("photo", {}).get("friend", "")))
+		if album.has_photo(id) and npc in people and entry.has("photo_talk") and not album.spoken.has(key):
+			album.spoken[key] = true
+			_changed()
+			return str(entry.photo_talk)
+	var config: Dictionary = Database.album_config
+	if album.count() < int(config.get("hint_photos", 5)): return ""
+	for entry: Dictionary in Database.album.photos:
+		var id := str(entry.id)
+		if album.has_photo(id) or str(entry.get("hint_npc", "")) != npc or album.spoken.has("hint:" + id): continue
+		var opened := float(album.opened_at.get(id, now()))
+		if now() - opened < float(config.get("hint_days", 3)) * 86400.0: continue
+		album.spoken["hint:" + id] = true
+		_changed()
+		return str(entry.get("hint_talk", entry.get("hint", "")))
+	return ""
+
+
+func album_hint_glow(object: String) -> bool:
+	var ctx := {"world": album_world, "dog_world": "" if walking() else album_world, "object": object, "spot": album_sleep_spot}
+	for entry: Dictionary in Database.album.photos:
+		if album.has_photo(str(entry.id)) or str(entry.get("hint_object", "")) != object: continue
+		var when: Dictionary = entry.get("when", {})
+		if when.size() != 3: continue
+		var valid := 0
+		for key: String in when:
+			valid += int(AlbumRules.holds(key, when[key], ctx, "", now()))
+		if valid == 2: return true
+	return false
+
+
+## Foto tirada ({} se ainda não): data, fase e pelo gravados no dia.
+func photo_info(id: String) -> Dictionary:
+	return album.photos.get(id, {}).duplicate()
+
+
+func photo_count() -> int:
+	return album.count()
+
+
+## Fotos novas que o jogador ainda não abriu.
+func photos_unseen() -> Array[String]:
+	return album.unseen()
+
+
+# --- A Casa que cresce (etapa 14) --------------------------------------------------
+
+## O objeto da Casa já chegou? Regra viva, em `data/house.json` (fase, fotos, lembranças entregues ou melhoria).
+func house_has(id: String) -> bool:
+	var def: Dictionary = Database.house.get("items", {}).get(id, {})
+	if def.is_empty():
+		return false
+	var rule: Dictionary = def.get("rule", {})
+	if rule.has("before_house") and house_has(str(rule.before_house)):
+		return false
+	if rule.has("growth") and growth.phase_index() < growth.phase_index(str(rule.growth)):
+		return false
+	if rule.has("keepsakes") and keepsakes_delivered().size() < int(rule.keepsakes):
+		return false
+	if rule.has("photos") and album.count() < int(rule.photos):
+		return false
+	if rule.has("upgrade") and not has_upgrade(str(rule.upgrade)):
+		return false
+	return true
+
+
+func house_item_name(id: String) -> String:
+	return str(Database.house.get("items", {}).get(id, {}).get("name", id))
+
+
+## Lembrança entregue ao Tiro (item-chave dado ao crescer).
+func keepsake_delivered(item: String) -> bool:
+	for phase: String in growth.delivered:
+		if int((growth.delivered[phase] as Dictionary).get(item, 0)) > 0:
+			return true
+	return false
+
+
+func keepsakes_delivered() -> Array[String]:
+	var result: Array[String] = []
+	for entry: Dictionary in Database.house.get("shelf", []):
+		var id := str(entry.id)
+		if Database.items.get(id, {}).get("category", "") == "keepsake" and keepsake_delivered(id):
+			result.append(id)
+	return result
+
+
+## Bônus de energia dormindo da melhor caminha comprada (0 / 0,1 / 0,2).
+func house_sleep_bonus() -> float:
+	var best := 0.0
+	var bonuses: Dictionary = Database.house.get("sleep_bonus", {})
+	for id: String in bonuses:
+		if has_upgrade(id):
+			best = maxf(best, float(bonuses[id]))
+	return best
+
+
+## Anuncia cada objeto uma vez só e mantém o bônus da caminha no `DogState`.
+func _sync_house() -> void:
+	if Database.house.is_empty():
+		return
+	var bonus := house_sleep_bonus()
+	if not is_equal_approx(dog.sleep_bonus, bonus):
+		dog.commit(now())  # o trecho anterior vale com o bônus antigo
+		dog.sleep_bonus = bonus
+	var arrived: Dictionary = progress.house.arrived
+	for id: String in Database.house.items:
+		if arrived.has(id) or not house_has(id):
+			continue
+		arrived[id] = now()
+		if not bool(Database.house.items[id].get("silent", false)):
+			Events.house_item_arrived.emit(id)
+
+
+func toy_basket_count() -> int:
+	return mini(progress.house.toys.size(), int(Database.house.get("toy_basket_max", 3)))
+
+
+func give_toy_error(item: String) -> String:
+	if not bool(Database.items.get(item, {}).get("toy", false)):
+		return "Esse não é um brinquedo"
+	if not house_has("toy_basket"):
+		return "Falta o cesto de brinquedos"
+	if progress.house.toys.has(item):
+		return "Esse já está no cesto"
+	if inventory.count(item) < 1:
+		return "Falta " + Database.item_name(item)
+	return ""
+
+
+func give_toy(item: String) -> String:
+	var reason := give_toy_error(item)
+	if reason != "":
+		return reason
+	inventory.remove(item)
+	progress.house.toys.append(item)
+	progress.seen["house:" + item] = true
+	_count("toy")
+	_changed()
+	return ""
+
+
+func hang_photo_error(id: String, slot: int = -1) -> String:
+	if not house_has("photo_wall"):
+		return "Falta a parede de fotos"
+	if not album.has_photo(id):
+		return "Essa foto ainda não existe"
+	if album.wall.has(id):
+		return "Já está na parede"
+	var slots := int(Database.house.get("wall_slots", 3))
+	if slot >= slots:
+		return "A parede só tem %d lugares" % slots
+	if slot < 0 and album.wall.filter(func(entry: Variant) -> bool: return str(entry) != "").size() >= slots:
+		return "A parede está cheia"
+	return ""
+
+
+## Pendura a foto no lugar `slot` (ou no primeiro vazio). Trocar um lugar ocupado substitui a foto.
+func hang_photo(id: String, slot: int = -1) -> String:
+	var reason := hang_photo_error(id, slot)
+	if reason != "":
+		return reason
+	var slots := int(Database.house.get("wall_slots", 3))
+	while album.wall.size() < slots:
+		album.wall.append("")
+	if slot < 0:
+		slot = album.wall.find("")
+	album.wall[slot] = id
+	_changed()
+	return ""
+
+
+func unhang_photo(id: String) -> void:
+	var index := album.wall.find(id)
+	if index < 0:
+		return
+	album.wall[index] = ""
+	_changed()
+
+
+func main_photo_error(id: String) -> String:
+	if not house_has("gold_frame"):
+		return "Falta a moldura dourada"
+	if id != "" and not album.has_photo(id):
+		return "Essa foto ainda não existe"
+	return ""
+
+
+## Foto principal do cantinho do Tiro ("" tira a escolha).
+func set_main_photo(id: String) -> String:
+	var reason := main_photo_error(id)
+	if reason != "":
+		return reason
+	album.main_photo = id
+	_changed()
+	return ""
+
+
+## Lupas grátis por dia nas dicas do álbum (a lupa entra na etapa 15; aqui só o dado).
+func lupas_per_day() -> int:
+	return 1 + (1 if house_has("old_camera") else 0)
+
+
+func open_album_photo(id: String) -> void:
+	if not album.has_photo(id): return
+	_album_event("album_opened", {"photo": id})
+	mark_photo_seen(id)
+	_changed()
+
+
+func mark_photo_seen(id: String) -> void:
+	if album.photos.has(id) and not bool(album.photos[id].get("seen", false)):
+		album.photos[id]["seen"] = true
+		_changed()
+
+
+func dev_take_photo(id: String) -> void:
+	if not BuildInfo.is_dev(): return
+	if Database.photo(id).is_empty() or album.has_photo(id): return
+	_take_photo(id)
+	_changed()
+
+
+func dev_reset_album() -> void:
+	if not BuildInfo.is_dev(): return
+	album = AlbumState.new()
+	album.reset()
+	progress.stats.erase("photos")
+	_changed()
+
+
+func dev_set_phase(id: String) -> void:
+	if not BuildInfo.is_dev(): return
+	if growth.phase_index(id) < 0:
+		return
+	growth.phase = id
+	growth.phase_since = now()
+	growth.phase_stats = progress.stats.duplicate(true)
+	_changed()
+
+
+func _gain_pillar(id: String, points: float, origin: String) -> void:
+	if points <= 0.0 or not Database.growth.pillars.has(id): return
+	var radiant: Dictionary = Database.growth.radiant
+	var bright := CARE_NEEDS.all(func(need: String) -> bool: return dog.get_need(need, now()) >= float(radiant.min_need))
+	var earned := ceili(points * (float(radiant.multiplier) if bright and origin != "dev" else 1.0))
+	var previous := growth.level(id)
+	if not Database.growth.pillars.has(id) or earned <= 0:
+		return
+	var ceiling := int(Database.growth.levels[growth.cap() - 1])
+	var applied := mini(earned, maxi(0, ceiling - int(growth.points.get(id, 0))))
+	growth.points[id] = int(growth.points.get(id, 0)) + applied
+	var next_index := mini(growth.phase_index() + 1, Database.growth.phases.size() - 1)
+	var reserve_cap := int(Database.growth.levels[int(Database.growth.phases[next_index].cap) - 1])
+	growth.reserve[id] = mini(reserve_cap, int(growth.reserve.get(id, 0)) + earned - applied)
+	_count("pillar:" + id, earned)
+	Events.pillar_gained.emit(id, earned, growth.level(id) > previous)
+
+
+func _pillar_source(source: String, key: String = "") -> void:
+	var rule: Dictionary = Database.growth.get("sources", {}).get(source, {})
+	if source == "walk": rule = rule.get(key, {})
+	var guard := str(rule.get("cooldown_key", source)) + (":" + key if key != "" else "")
+	if rule.get("first", false) and growth.firsts.has(guard): return
+	if float(growth.cooldowns.get(guard, 0.0)) > now(): return
+	if rule.get("first", false): growth.firsts[guard] = true
+	if rule.has("cooldown"): growth.cooldowns[guard] = now() + float(rule.cooldown)
+	for id: String in Database.growth.pillars:
+		var points := float(rule.get(id, 0))
+		if source == "play" and id == "smart":
+			points += float(rule.get("basket_smart", 0)) * toy_basket_count()  # +1 por brinquedo diferente no cesto
+		_gain_pillar(id, points, guard)
+
+
+## Comida favorita deste save: fixa pela semente, entre o `favorite_pool`.
+func favorite_food() -> String:
+	var pool: Array = Database.growth.get("tastes", {}).get("favorite_pool", [])
+	if pool.is_empty(): return ""
+	return str(pool[growth.taste_seed % pool.size()])
+
+
+func favorite_found() -> bool:
+	var fav := favorite_food()
+	return fav != "" and growth.tastes.has(fav)
+
+
+## Reação fixa pela semente: loved (favorita), liked, odd ou grimace.
+func taste_reaction_for(item: String) -> String:
+	var rules: Dictionary = Database.growth.get("tastes", {})
+	if item == favorite_food(): return "loved"
+	if item in rules.get("grimace", []): return "grimace"
+	var roll := absi(hash("%d:%s" % [growth.taste_seed, item])) % 100
+	var odds: Dictionary = rules.get("odds", {"liked": 60, "odd": 30, "grimace": 10})
+	if roll < int(odds.liked): return "liked"
+	if roll < int(odds.liked) + int(odds.odd): return "odd"
+	return "grimace"
+
+
+## Primeira prova grava a reação; a favorita reage sempre. Devolve a reação a tocar ("" = nenhuma).
+func _taste(item: String) -> String:
+	if not Database.growth.has("tastes"): return ""
+	var first := not growth.tastes.has(item)
+	var reaction := taste_reaction_for(item)
+	if first:
+		growth.tastes[item] = reaction
+		_diary("taste", Database.item_name(item), "taste:" + item)
+		if Database.items.get(item, {}).has("growth"):
+			PersonalityRules.record(growth, "growth_food", 1, routine_period("daily"))
+		Events.taste_discovered.emit(item, reaction)
+	elif reaction != "loved":
+		return ""
+	Events.taste_reacted.emit(item, reaction)
+	return reaction
+
+
+## Comidas que ele ainda não provou e que podem ser a favorita ou estar na Mochila.
+func untasted_foods() -> Array[String]:
+	var result: Array[String] = []
+	var have: Array[String] = []
+	var pool: Array = Database.growth.get("tastes", {}).get("favorite_pool", [])
+	for id: String in Database.items:
+		if not Database.items[id].has("feed") or growth.tastes.has(id): continue
+		if inventory.count(id) > 0: have.append(id)
+		elif id in pool: result.append(id)
+	have.append_array(result)
+	return have
+
+
+# --- Escovar (etapa 12) ---
+
+func brush_owned() -> bool:
+	return inventory.count("basic_brush") > 0
+
+
+func soft_brush_given() -> bool:
+	for target: String in growth.delivered:
+		if int(growth.delivered[target].get("soft_brush", 0)) > 0: return true
+	return false
+
+
+func brush_error() -> String:
+	if not brush_owned(): return "Falta a escovinha"
+	if walking(): return away_text()
+	if dog.sleeping: return "Shh... ele está dormindo."
+	var wait := float(growth.cooldowns.get("brush", 0.0)) - now()
+	if wait > 0.0: return "Ele já está penteadinho"
+	return ""
+
+
+func brush() -> String:
+	var error := brush_error()
+	if error != "": return error
+	var rule: Dictionary = Database.growth.sources.brush
+	growth.cooldowns["brush"] = now() + float(rule.cooldown)
+	growth.brush_days[Time.get_date_string_from_unix_time(_local_time())] = true
+	_count("brush")
+	_album_event("brushed")
+	_gain_pillar("coat", float(rule.soft_coat if soft_brush_given() else rule.coat), "brush")
+	_changed()
+	Events.dog_action.emit(&"brush")
+	return ""
+
+
+func _feed_pillars(item: String) -> void:
+	growth.firsts["food:" + item] = true
+	var food: Dictionary = Database.items.get(item, {}).get("growth", {})
+	var suitable: bool = growth.phase in food.get("phases", [])
+	if not suitable and food.get("only_phases", false): return
+	var factor := 1.0 if suitable else float(Database.growth.food_multiplier)
+	if item == favorite_food(): factor *= 1.0 + float(Database.growth.tastes.get("favorite_bonus", 0.5))
+	if has_upgrade("named_bowl"):
+		factor *= 1.0 + float(Database.house.get("bowl_bonus", 0.1))
+	for id: String in food.get("pillars", {}):
+		_gain_pillar(id, snappedf(float(food.pillars[id]) * factor, 0.001), "feed:" + item)
+
+
+func note_world_visit(world: String) -> void:
+	if walking() or not Database.worlds.has(world) or requirement_error(Database.worlds[world].get("requirements", {})) != "": return
+	album_world = world
+	_album_event("world_entered", {"world": world})
+	_changed()
+	if walking() or not Database.worlds.has(world) or requirement_error(Database.worlds[world].get("requirements", {})) != "": return
+	var guard := "world:" + world
+	if growth.firsts.has(guard): return
+	PersonalityRules.record(growth, "world", 1, routine_period("daily"))
+	_pillar_source("world", world)
+	_changed()
+
+
+func _finish_pillar_nap() -> bool:
+	if not growth.cooldowns.has("sleep_since"): return false
+	var rule: Dictionary = Database.growth.sources.nap
+	if dog.get_need("energy", now()) < float(rule.energy):
+		if not dog.sleeping: growth.cooldowns.erase("sleep_since")
+		return false
+	# Chegou à energia cheia cedo: cochilo curto não vira soneca longa só por esperar.
+	if now() - float(growth.cooldowns.sleep_since) < float(rule.seconds):
+		growth.cooldowns.erase("sleep_since")
+		return false
+	growth.cooldowns.erase("sleep_since")
+	PersonalityRules.record(growth, "nap", 1, routine_period("daily"))
+	_pillar_source("nap")
+	return true
+
+
+func dev_add_pillar(id: String, amount: int) -> void:
+	if not BuildInfo.is_dev(): return
+	_gain_pillar(id, amount, "dev")
+	_changed()
+
+
+func dev_complete_growth_reqs() -> void:
+	if not BuildInfo.is_dev(): return
+	var info := growth_info()
+	if info.next.is_empty():
+		return
+	var target := str(info.next.id)
+	if not growth.done.has(target):
+		growth.done[target] = {}
+	for row: Dictionary in info.requirements:
+		if not growth.done[target].get(str(row.id), false):
+			growth.done[target][str(row.id)] = true
+			Events.growth_requirement_done.emit(target, str(row.id))
+	if not info.ready:
+		Events.growth_ready.emit(target)
+	_changed()
+
 
 # --- Save ------------------------------------------------------------------
 
@@ -3765,6 +4673,8 @@ func to_dict() -> Dictionary:
 		"walks": walk_state.to_dict(),
 		"friends": friend_state.to_dict(),
 		"projects": projects.to_dict(),
+		"growth": growth.to_dict(),
+		"album": album.to_dict(),
 		"economy": economy.to_dict(),
 	}
 
@@ -3814,6 +4724,23 @@ func from_dict(data: Dictionary) -> void:
 	friend_state.from_dict(data.get("friends", {}))
 	projects = ProjectState.new()
 	projects.from_dict(data.get("projects", {}))
+	growth = GrowthState.new()
+	growth.from_dict(data.get("growth", {}))
+	album = AlbumState.new()
+	album.from_dict(data.get("album", {}))
+	dog.sleep_bonus = house_sleep_bonus()  # sem commit: o tempo salvo já vale com a caminha atual
+	if growth.taste_seed == 0:
+		growth.taste_seed = maxi(1, absi(hash("taste:" + str(int(progress.started_at)))))
+	# A refeição final substitui a provisória só nos crescimentos ainda não alcançados.
+	if growth.foods_revision < 1:
+		for target: String in ["teething", "explorer", "young"]:
+			if growth.phase_index(target) <= growth.phase_index(): continue
+			if growth.done.has(target): growth.done[target].erase("meals")
+			if growth.ready_seen == target: growth.ready_seen = ""
+		for item: String in ["frozen_carrot", "growth_kibble", "milk_porridge"]:
+			growth.phase_stats["feed:" + item] = progress.stat("feed:" + item)
+		growth.phase_stats["shampoo_bath"] = progress.stat("shampoo_bath")
+		growth.foods_revision = 1
 	economy = EconomyState.new()
 	economy.from_dict(data.get("economy", {}))
 	_seed_mastery()
@@ -3852,6 +4779,7 @@ func _ensure_stations() -> void:
 
 
 func _changed() -> void:
+	_finish_pillar_nap()
 	sync_friend_window()
 	# Contratos antigos já entregues contam na evolução da banca, sem repetir prêmios.
 	var contracts := 0
@@ -3865,6 +4793,8 @@ func _changed() -> void:
 	update_wishes()
 	update_finds()
 	_check_bond()
+	_sync_growth()
+	_sync_house()
 	Events.state_changed.emit()
 
 
@@ -4033,6 +4963,8 @@ func give_friend(id: String) -> String:
 	_apply_rewards(reward)
 	_count("friend_gift")
 	_count("friend_gift:" + id)
+	_pillar_source("friend_gift")
+	_album_event("friend_heart", {"friend": id})
 	_sync_friend_level()
 	_changed()
 	Events.items_gained.emit(reward.items, int(reward.coins), Vector2(-1, -1))
@@ -4072,6 +5004,7 @@ func update_friend_visits(away_since: float = -1.0) -> void:
 		var reward := Loot.roll(gift.get("loot", []), 1, seed)
 		reward.coins += Loot.amount(gift.get("coins", 0), seed + 1)
 		entry.visit_pending = true
+		_album_event("friend_visit", {"item": id, "world": "house"})
 		entry.visit_gift = reward
 		entry.last_visit = now()
 		friend_state.friends[id] = entry
@@ -4095,7 +5028,20 @@ func collect_friend_visit(id: String) -> String:
 	var reward: Dictionary = entry.visit_gift.duplicate(true)
 	entry.visit_pending = false
 	entry.visit_gift = {}
+	_album_event("friend_visit", {"item": id, "world": "house"})
+	_pillar_source("friend_visit")
 	_apply_rewards(reward)
 	_changed()
 	Events.items_gained.emit(reward.get("items", {}), int(reward.get("coins", 0)), Vector2(-1, -1))
 	return ""
+
+
+# Jeito e diário são lembranças: nunca concedem prêmios nem alteram necessidades.
+func _diary(kind: String, title: String, receipt: String = "") -> void:
+	if receipt != "" and growth.diary_receipts.has(receipt): return
+	var rule: Dictionary = Database.growth.get("diary", {})
+	var template := str(rule.get("templates", {}).get(kind, ""))
+	if template == "": return
+	if receipt != "": growth.diary_receipts[receipt] = true
+	growth.diary.append({"at": now(), "day": routine_period("daily"), "kind": kind, "text": template.format({"name": title})})
+	while growth.diary.size() > int(rule.get("limit", 20)): growth.diary.pop_front()

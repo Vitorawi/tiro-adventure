@@ -24,12 +24,13 @@ static func npc_introduction(npc_id: String, index: int = 0) -> Control:
 
 ## Personagem: saudação, missões ativas e atalhos para os lugares dele ("services").
 static func npc_view(npc_id: String) -> Control:
+	var album_line := GameState.album_talk(npc_id)
 	var panel := UiKit.vbox(10)
 	var speech := npc_header(panel, npc_id, "", true)
 	panel.add_child(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var npc: Dictionary = Database.npcs.get(npc_id, {})
 		var active := Places.npc_active_quests(npc_id)
-		speech.text = str(Database.quests[active[0]].get("dialogue", "")) if not active.is_empty() else str(npc.get("greeting", ""))
+		speech.text = album_line if album_line != "" else (str(Database.quests[active[0]].get("dialogue", "")) if not active.is_empty() else str(npc.get("greeting", "")))
 		for id in active:
 			quest_card(box, id)
 		# Atalhos para os lugares que o personagem cuida.
@@ -505,53 +506,9 @@ static func _center(control: Control) -> Control:
 # --- Atributos e coleção --------------------------------------------------------------
 
 static func skills_panel() -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		for id: String in Database.progression.skills:
-			var data: Dictionary = Database.progression.skills[id]
-			var info := GameState.skill_info(id)
-			var card := UiKit.card(box)
-			var top := UiKit.hbox(8)
-			top.add_child(UiKit.icon(UiKit.ui_icon(data.icon), 32))
-			top.add_child(UiKit.fill_label(data.name, &"SectionLabel"))
-			top.add_child(UiKit.short_label("Nível %d" % int(info.level), &"SectionLabel"))
-			card.add_child(top)
-			var line := UiKit.hbox(6)
-			var bar := UiKit.bar(100 if info.max else float(info.xp) / float(info.needed) * 100, Color(data.color), 12)
-			bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			line.add_child(bar)
-			line.add_child(UiKit.short_label("★ completo" if info.max else "%d/%d" % [int(info.xp), int(info.needed)], &"SmallLabel"))
-			card.add_child(line)
-			var next := _next_milestone(id, int(info.level))
-			if not next.is_empty():
-				var unlock := UiKit.hbox(6)
-				unlock.add_child(UiKit.short_label("Nível %d:" % int(next.level), &"SmallLabel"))
-				unlock.add_child(UiKit.icon(next.icon, 32))
-				unlock.add_child(UiKit.fill_label(next.name, &"SmallLabel"))
-				card.add_child(unlock)
-		if GameState.requirement_error(Database.worlds.nature.requirements) == "":
-			box.add_child(UiKit.label("Buscas do Tiro · evoluem com o uso", &"SectionLabel"))
-			for site: String in Database.progression.nature_sites:
-				var data: Dictionary = Database.progression.nature_sites[site]
-				var info := GameState.progress.nature_info(site)
-				var card := UiKit.card(box)
-				card.name = "NatureSkill_" + site
-				var heading := UiKit.hbox(6)
-				heading.add_child(UiKit.icon(UiKit.ui_icon(data.icon)))
-				heading.add_child(UiKit.fill_label(data.name, &"SectionLabel"))
-				if info.level == 0:
-					heading.add_child(UiKit.lock_icon(24))
-				else:
-					heading.add_child(UiKit.short_label("Nível %d" % info.level, &"SmallLabel"))
-				card.add_child(heading)
-				if info.level > 0:
-					card.add_child(UiKit.bar(100 if info.max else 100.0 * info.xp / maxi(1, int(info.needed)), UiKit.GOOD, 10))
-					card.add_child(UiKit.label("★ completo" if info.max else "Próximo: " + str(data.levels[info.level].label), &"SmallLabel"))
-				card.add_child(UiKit.button("Ver evolução", func() -> void:
-					Events.sheet_requested.emit("Evolução · " + str(data.name), NatureUi.levels_panel(site))))
-	)
+	return GrowthUi.panel()
 
 
-## Próximo conteúdo que o atributo libera: { level, icon, name } (vazio se nada).
 static func _next_milestone(skill_id: String, current: int) -> Dictionary:
 	var best := {}
 	for kind: String in ["activity", "crop", "recipe"]:
@@ -699,8 +656,8 @@ static func rewards_text(rewards: Dictionary) -> String:
 		parts.append("%d moedas" % int(rewards.coins))
 	if not rewards.get("items", {}).is_empty():
 		parts.append(Database.describe_amounts(rewards["items"]))
-	for id: String in rewards.get("skill_xp", {}):
-		parts.append("+%d XP %s" % [int(rewards.skill_xp[id]), Database.progression.skills[id].name])
+	for id: String in rewards.get("pillars", {}):
+		parts.append("+%d %s" % [int(rewards.pillars[id]), Database.growth.pillars[id].name])
 	for id: String in rewards.get("collections", []):
 		parts.append(Database.collections.get(id, {}).get("name", id))
 	return " · ".join(parts)
@@ -916,6 +873,8 @@ static func goal_icon(goal: Dictionary) -> Texture2D:
 			return npc_portrait(str(Database.quests.get(key, {}).get("npc", "")))
 		"project":
 			return UiKit.ui_icon(str(Database.project(key).get("icon", "tab_map")))
+		"growth":
+			return UiKit.ui_icon("tab_pet")
 	return stat_icon(key)
 
 
@@ -943,7 +902,7 @@ static func stat_icon(key: String) -> Texture2D:
 static func goal_row(goal: Dictionary, value: int, px: int = 32) -> HBoxContainer:
 	var target := int(goal.get("target", 1))
 	var row := UiKit.hbox(8)
-	row.add_child(UiKit.icon(goal_icon(goal), px))
+	row.add_child(_growth_silhouette(goal, value, px) if str(goal.get("type", "")) == "growth" else UiKit.icon(goal_icon(goal), px))
 	var info := UiKit.vbox(4)
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.add_child(UiKit.label(goal.get("label", ""), &"SmallLabel"))
@@ -957,6 +916,25 @@ static func goal_row(goal: Dictionary, value: int, px: int = 32) -> HBoxContaine
 	return row
 
 
+## Objetivo de crescimento: a silhueta da fase que vem (vira o retrato quando ele já cresceu).
+static func _growth_silhouette(goal: Dictionary, value: int, px: int) -> Control:
+	var index: int = GameState.growth.phase_index(str(goal.key))
+	if index < 0:
+		return UiKit.icon(goal_icon(goal), px)
+	var info := GameState.growth_info()
+	var phase: Dictionary = info.phases[index]
+	if value >= int(goal.get("target", 1)):
+		var photo := UiKit.icon(load(str(phase.art.portrait)), px)
+		photo.name = "GrowthGoalPhoto"
+		photo.material = DogLook.material()
+		(photo.material as ShaderMaterial).set_shader_parameter("coat", float(phase.coat))
+		return photo
+	var done: int = info.requirements.size() - GrowthUi.missing(info)
+	var holder := GrowthUi.silhouette(phase, done, info.ready, "GrowthGoalSilhouette", px)
+	holder.custom_minimum_size.y = px
+	return holder
+
+
 ## Recompensas em chips: [moeda] +40  [cenoura] +2  [atributo] +20  [roupa] +1.
 static func reward_chips(rewards: Dictionary) -> HFlowContainer:
 	var row := UiKit.flow()
@@ -964,14 +942,13 @@ static func reward_chips(rewards: Dictionary) -> HFlowContainer:
 		row.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(rewards.coins)))
 	for id: String in rewards.get("items", {}):
 		row.add_child(UiKit.chip(Database.item_icon(id), "+%d" % int(rewards.items[id])))
-	for id: String in rewards.get("skill_xp", {}):
-		if Database.progression.skills.has(id) and GameState.progress.skills_visible():
-			row.add_child(UiKit.chip(UiKit.ui_icon(Database.progression.skills[id].get("icon", "xp")), "+%d" % int(rewards.skill_xp[id])))
 	for id: String in rewards.get("collections", []):
 		if not GameState.progress.collection.has(id):
 			row.add_child(UiKit.chip(UiKit.ui_icon("item_accessory_set"), "+1"))
 	if int(rewards.get("affection", 0)) > 0:
 		row.add_child(UiKit.chip(UiKit.ui_icon("bond_heart"), "+%d" % int(rewards.affection)))
+	for id: String in rewards.get("pillars", {}):
+		row.add_child(UiKit.chip(UiKit.ui_icon(str(Database.growth.pillars[id].icon)), "+%d %s" % [int(rewards.pillars[id]), Database.growth.pillars[id].name]))
 	return row
 
 

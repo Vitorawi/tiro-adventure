@@ -16,7 +16,7 @@ extends Node
 ## site, por isso a dev usa nomes próprios e não apaga o progresso real.
 ## O slot em que o jogo ENTRA fica em user://settings.json (settings_dev.json na dev).
 
-const SAVE_VERSION := 12
+const SAVE_VERSION := 13
 const MAX_SLOTS := 5
 
 ## Slot em uso agora e slot em que o jogo entra ao abrir.
@@ -24,6 +24,8 @@ var active_slot: int = 1
 var default_slot: int = 1
 ## Quando o save carregado foi gravado pela última vez (Unix; 0 = não havia save). Usado no "bem-vindo de volta".
 var last_saved_at: float = 0.0
+
+var reset_notice_pending := false
 
 var _save_pending := false
 var _save_path := BuildInfo.save_path()
@@ -101,6 +103,7 @@ func save_game() -> bool:
 
 
 func load_game() -> void:
+	reset_notice_pending = false
 	var allow_visits := _first_load
 	_first_load = false
 	if not FileAccess.file_exists(_save_path):
@@ -116,6 +119,7 @@ func load_game() -> void:
 		Events.game_loaded.emit()
 		return
 
+	reset_notice_pending = int(parsed.get("save_version", 1)) < SAVE_VERSION
 	var data := _migrate(parsed)
 	last_saved_at = float(data.get("saved_at", 0.0))
 	GameState.from_dict(data.get("state", {}))
@@ -298,6 +302,7 @@ func load_production_copy() -> String:
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(PROD_PATH))
 	if typeof(parsed) != TYPE_DICTIONARY:
 		return "Save da versão publicada ilegível"
+	reset_notice_pending = int(parsed.get("save_version", 1)) < SAVE_VERSION
 	GameState.from_dict(_migrate(parsed).get("state", {}))
 	return ""
 
@@ -305,13 +310,13 @@ func load_production_copy() -> String:
 ## Converte saves antigos para o formato atual, uma versão por vez.
 func _migrate(data: Dictionary) -> Dictionary:
 	var version := int(data.get("save_version", 1))
-	if version < 12:
-		# v12: começo refeito (plano docs/plans/comeco). Combinado com o Vitor em 13/10/2026:
+	if version < 13:
+		# v13: Tiro no centro, reset autorizado pelo Vitor em 19/10/2026.
 		# o progresso anterior é descartado e o jogo recomeça do zero.
 		return {"save_version": SAVE_VERSION, "state": {}}
 	# Revisão de ECONOMIA (conteúdo), separada do formato: migração pura, sem pagar nada e sem reset.
 	# Slots, "copiar da versão publicada" e o carregamento normal passam por aqui; os campos novos
-	# têm padrão em from_dict, então o SAVE_VERSION continua 12. Idempotente.
+	# têm padrão em from_dict. Idempotente.
 	if data.get("state") is Dictionary and EconomyMigration.needs(data.state):
 		data = data.duplicate()
 		data["state"] = EconomyMigration.migrate(data.state)
@@ -327,3 +332,11 @@ func _request_persistent_storage() -> void:
 		"if (navigator.storage && navigator.storage.persist) { navigator.storage.persist(); }",
 		true
 	)
+
+
+## A interface consome uma vez; o save já foi regravado como v13.
+func take_reset_notice() -> String:
+	if not reset_notice_pending:
+		return ""
+	reset_notice_pending = false
+	return "O Tiro chegou de novo, filhotinho!"

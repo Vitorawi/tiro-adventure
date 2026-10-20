@@ -53,6 +53,8 @@ func _run() -> void:
 	root.remove_child(saver)
 	saver.free()
 	state = root.get_node("GameState")
+	state.set_script(load("res://tests/friend_clock.gd"))
+	state.set("test_time", 1800000000.0)
 	database = root.get_node("Database")
 	_pet_check()
 	_play_check()
@@ -145,6 +147,7 @@ func _wish_check() -> void:
 	state.call("reset")
 	for id: String in ["lais_feed", "lais_bath", "lais_play"]:
 		state.call("dev_complete_quest", id)
+	state.call("dev_set_phase", "puppy")
 	state.call("dev_complete_quest", "lais_bed")
 	var slots: Array = state.get("wishes").slots
 	check(str(slots[0].id) == "pet", "primeiro desejo = carinho")
@@ -218,6 +221,7 @@ func _wish_economy_check() -> void:
 			var price := float(database.get("items")[str(w.item)].get("sell_price", 0))
 			check(coins == clampi(roundi(price * 0.5), 2, 8), "%s: %d moedas pela fórmula" % [id, coins])
 	# Especial: dobra, teto de 12.
+	state.call("dev_set_phase", "puppy")
 	state.call("dev_complete_quest", "lais_bed")
 	state.get("wishes").slots[0]["id"] = "sweet_potato_chips"
 	state.get("wishes").slots[0]["special"] = true
@@ -249,12 +253,12 @@ func _routines_check() -> void:
 	for id: String in table:
 		var m: Dictionary = routines.daily.missions[id]
 		var t: Dictionary = m.goal.targets
-		check([int(t.start), int(t.middle), int(t.community)] == table[id][0] and int(m.rewards.coins) == table[id][1] and int(m.player_xp) == table[id][2], "diária %s confere com a tabela" % id)
+		check([int(t.start), int(t.middle), int(t.community)] == table[id][0] and int(m.rewards.coins) == table[id][1] and (int(m.rewards.get("pillars", {}).get("brave", 0)) == 4 and not m.has("player_xp") if id in ["care", "tiro_walk"] else int(m.get("player_xp", 0)) == table[id][2]), "diária %s confere com a tabela" % id)
 	var weekly := {"care_week": [[5, 8, 10], 20, 15], "big_harvest": [[10, 16, 20], 25, 20], "chef_week": [[6, 10, 14], 30, 20], "orders_week": [[3, 5, 6], 30, 20]}
 	for id: String in weekly:
 		var m: Dictionary = routines.weekly.missions[id]
 		var t: Dictionary = m.goal.targets
-		check([int(t.start), int(t.middle), int(t.community)] == weekly[id][0] and int(m.rewards.coins) == weekly[id][1] and int(m.player_xp) == weekly[id][2], "semanal %s confere com a tabela" % id)
+		check([int(t.start), int(t.middle), int(t.community)] == weekly[id][0] and int(m.rewards.coins) == weekly[id][1] and (int(m.rewards.get("pillars", {}).get("brave", 0)) == 4 and not m.has("player_xp") if id == "care_week" else int(m.get("player_xp", 0)) == weekly[id][2]), "semanal %s confere com a tabela" % id)
 	check(int(routines.weekly.missions.orders_week.rewards.items.bolt) == 1, "semanal de encomendas dá 1 parafuso")
 	# Rotina antiga ativa mantém meta e prêmio.
 	state.call("reset")
@@ -264,7 +268,10 @@ func _routines_check() -> void:
 	progress.routines["daily"] = {"period": period, "ids": ["play", "harvest"], "base": {"play": 0, "harvest": 0}, "claimed": {}}
 	check(int(state.call("routine_target", "daily", "harvest")) == 3 and int(state.call("routine_data", "daily", "harvest").rewards.coins) == 15, "rotina antiga ativa mantém meta 3 e prêmio 15")
 	check(state.call("routine_ids", "daily") == ["play", "harvest"], "sorteio ativo não é trocado no meio do período")
-	# Novo sorteio: só acessíveis, snapshot de meta por fase, contagem por lote.
+	# Novo sorteio: fixture sem fogão nem passeio, mesmo após o salto DEV de capítulo.
+	progress.owned.erase("stove")
+	progress.claimed_quests.erase("nina_walk")
+	# Só acessíveis, snapshot de meta por fase, contagem por lote.
 	state.call("dev_restart_routines")
 	var ids: Array = state.call("routine_ids", "daily")
 	check(int(progress.routines.daily.catalog) == 2 and ids.size() == 3, "novo sorteio no catálogo R1 (%s)" % str(ids))

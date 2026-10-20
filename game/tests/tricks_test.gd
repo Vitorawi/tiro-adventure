@@ -28,6 +28,8 @@ func _run() -> void:
 	check(state.call("learn_trick", "invalid") != "" and state.call("perform_trick", "invalid") != "", "ids inválidos")
 	p.claimed_quests.nina_pipoca = true
 	p.claimed_quests.main_2_order = true
+	check(state.call("learn_trick_error", "paw") == "Quando ele for Dentinhos", "a pata espera os Dentinhos (etapa 11)")
+	state.get("growth").phase = "young"
 	check(state.call("learn_trick_error", "paw") == "", "pata abre após Pipoca")
 	check(state.call("learn_trick", "talk") != "", "vínculo e sequência bloqueiam")
 	root.get_node("Events").connect("trick_learned", func(_id: String) -> void: announcements += 1)
@@ -131,6 +133,8 @@ func _run() -> void:
 	quit(0 if failures == 0 else 1)
 
 func _clothes() -> void:
+	# Roupa é visível nos corpos jovem/adulto; o filhote já a oculta desde a etapa 05.
+	state.call("dev_set_phase", "adult")
 	var p: RefCounted = state.get("progress")
 	for id: String in ["yellow_bow", "red_scarf", "rain_coat"]:
 		p.collection[id] = true

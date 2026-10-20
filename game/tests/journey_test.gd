@@ -125,8 +125,8 @@ func _pairs() -> void:
 		var order := int(quests[str(quests[id].shared_with)].order)
 		check(order > int(last.get(line, -1)), id + ": ordem da canônica cresce na linha " + line)
 		last[line] = order
-	check(pairs.size() == 10, "dez pares shared_with reais (hoje: %s)" % str(pairs))
-	for required: String in ["main_5_pickaxe→guide_open_cave", "stone_path→guide_stone", "main_6_commerce→merchant_variety", "market_day→merchant_regular", "own_business→merchant_stall"]:
+	check(pairs.size() == 13, "treze pares shared_with (dez antigos + três do Tiro; hoje: %s)" % str(pairs))
+	for required: String in ["teeth_3_ring→bloblo_chew_ring", "explorer_6_eggs→main_9_eggs", "young_9_milk→main_9_flour", "main_5_pickaxe→guide_open_cave", "stone_path→guide_stone", "main_6_commerce→merchant_variety", "market_day→merchant_regular", "own_business→merchant_stall"]:
 		check(pairs.has(required), "par " + required)
 	report.append("Pares shared_with (%d): %s" % [pairs.size(), ", ".join(pairs)])
 

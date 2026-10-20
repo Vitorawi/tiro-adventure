@@ -2,6 +2,213 @@
 
 ## Estado atual
 
+**Tiro no centro — etapa 18 concluída, PLANO CONCLUÍDO (19/10/2026, Claude; local, nada publicado).** Suíte inteira 40,7 min: 76 PASS, seis falhas históricas (`npc_lines`, `onboarding`, `finds`, `park`, `petshop`, `ui_style`) e uma falha nova — `economy_sim_test` (recursão do robô do simulador) — corrigida em `game/tests/helpers/economy_bot.gd` e repetida PASS; `progression_test` PASS. Tour de capturas nas três resoluções (114 PNGs cada), export Web local e toque emulado curto. Conferência dos 10 itens da visão e **roteiro do celular (15 itens)** em `docs/plans/tiro/RESULTADOS.md`; docs finais atualizados; fora do plano em `docs/plans/tiro/FUTURO.md`. **Pendências para o Vitor:** testar o roteiro no celular (`/dev/`) e decidir se publica; ritmo das fases (Dentinhos/Aventureiro cedo, Mocinho/adulto tarde no simulador) sem ajuste. Próximo: o que o Vitor decidir (publicação, ritmo, FUTURO).
+
+**Tiro no centro — etapa 17 concluída (19/10/2026, Claude; local).** Pelagem de seda I–III só no adulto (`growth.json → silk`, `GrowthState.silk`, `GameState.silk_info/silk_error/brighten/silk_sheen`, `Events.silk_up`, shader `tiro_coat` com `sheen`/`reduced`, painel `GrowthUi` com `SilkSilhouette`/`SilkReq_*`/`SilkButton` "Mais brilho!", `Celebration.show_silk`, `SilkCard_n` na caderneta); `silk_test` e afetados PASS. Simulador: `growth_days`, `chapter_coins`, pilares no resumo e seção 4b do `economy_compare.py`; uma execução `-Quick` em 6,1 min (campanha completa em 38,8 dias). Dentinhos/Aventureiro saem cedo demais e Mocinho/adulto tarde; nada foi ajustado, diagnóstico em `docs/plans/tiro/RESULTADOS.md` para o Vitor decidir. Próxima: etapa 18 (fechamento, portão da suíte inteira + três resoluções).
+
+**Tiro no centro — etapa 16 implementada, portão em validação (19/10/2026, Codex; local).** Cinco jeitos revelados desde Aventureiro, memória dos últimos 14 dias jogados + histórico, confirmação lenta, título no painel/caderninho e Novo com recibo; comportamentos por fase/jeito no PetAnimator/DogWorld sem arte nova ou efeitos nas regras. Diário salvo de 20 lembranças com datas e recibos. Teste novo PASS; 24 focados = 23 PASS + UI_STYLE histórico. Passagem total única iniciada (82 testes); capturas nas três resoluções em revisão. Registro em `docs/plans/tiro/VALIDACAO_16.md`. Sem simulação de economia, reset, commit, push ou publicação. Etapa 17 não iniciada.
+
+O bloco da 15 e os demais abaixo são históricos.
+
+**Tiro no centro — etapa 15 concluída (19/10/2026, Codex; local).** O álbum tem as seis seções e 54 fotos, com 32 novas ligadas às ações reais. Pistas em silhueta, lupa diária (+1 com câmera), falas únicas após três dias, comentários dos personagens e brilho que preserva os bloqueios. Penetra tem garantia até a oitava foto revista; rega conta cinco canteiros no mesmo arrasto. Local do sono persistido, sofá selecionável e Pipoca com pose real de sono. Calendário local, lua cheia, frio configurável e aniversário da chegada: festa de sete dias, bolo na Casa/cantinho, chapéu de festa temporário e receita permanente do bolo. Chapéu de explorador agora vestível; fotos novas guardam roupas junto de fase/coat. Arte e manifesto em `tools/art/album_secrets_pixellab/`, preparo `tools/album_secrets_art.py`; corpos/PNGs anteriores do Tiro preservados. **19 testes distintos PASS**, incluindo os sete afetados obrigatórios; uma regressão de opacidade detectada e corrigida. Capturas 360×780 abertas, sem aparelho físico. Evidência em `docs/plans/tiro/VALIDACAO_15.md`, `build/test_logs/tiro15/` e `build/screenshots/tiro15/`. Sem reset, commit, push, publicação, suíte completa ou simulação. **Próxima: etapa 16 (`ETAPA_16_JEITO.md`), em sessão própria.**
+
+Encadeamento da 15: a ferramenta recusou criar o chat da etapa 16 (`approval policy is never`); abrir a próxima sessão manualmente no projeto local ClaudeGame.
+
+O bloco da 14 e os demais abaixo são históricos.
+
+**Tiro no centro — etapa 14 concluída (19/10/2026, Codex; local).** A Casa acompanha o crescimento: régua com nomes/datas das cerimônias, prateleira só com lembranças entregues, caminhas macia/luxo (+10%/+20% energia dormindo também na ausência), tigela (+10% pilares de comida), cesto com entrega de brinquedos e bônus até +3 Esperteza, três fotos penduradas, foto principal no cantinho e presentes do álbum. Histórico interrompido do Claude recuperado e lacunas funcionais completadas. **PixelLab voltou a funcionar no novo pedido do Vitor:** 13 fontes geradas/baixadas, 14 objetos e moldura frontal em pixel art preparados por `tools/house_art.gd`; fontes/prompts/jobs/hashes em `tools/art/house_pixellab/manifest.json`. Capturas 360×780 refeitas e abertas; 2.019 PNGs do Tiro idênticos. Validação funcional anterior: 27 PASS + falha histórica de encerramento do ui_style_test; após arte, house_test/pet_care_test/album_test PASS novamente (0,7 min), importação sem erros. Evidência em `docs/plans/tiro/VALIDACAO_14.md`, logs e capturas `build/test_logs/tiro14/` e `build/screenshots/tiro14/`. Sem reset, commit, push ou publicação. **Próxima: etapa 15 (`ETAPA_15_ALBUM_SEGREDOS.md`), em sessão própria.**
+
+O bloco da 13 e os demais abaixo são históricos.
+
+**Tiro no centro — etapa 13 concluída (19/10/2026, Claude Code; local).** Álbum de recordações, motor e fotos garantidas: `game/data/album.json` (54 fotos, `active_sections` = só História e Primeiras vezes; as outras quatro seções existem no dado e ficam escondidas até a 15), `AlbumState` (chave `album`), `AlbumRules` (eventos/condições conhecidos e avaliador único) e `GameState._album_event(evento, contexto)` chamado pelas ações reais (intro, soneca, missões recebidas, crescer, comida, banho, escovar, achado, passeio, truque, roupa, coração de amigo); foto tirada uma vez, guarda fase e pelo do dia, `Events.photo_taken`, contador `photos`. Achado `milk_tooth` garantido no primeiro montinho a partir de Dentinhos (`finds.json` intocado; `GameState._milk_tooth_due`). Interface: `PhotoCard` (polaroide: moldura 9-patch, recorte do cenário, quadro do Tiro no corpo/coat da foto, adereços `box`/`bowl`/`stall_sign`/`medal`), aba **Álbum** no caderninho (`AlbumView`, grade de 3 colunas, contador, detalhe com antes e depois do adulto), aviso tocável "Nova foto!" (`main.gd`, pela fila modal), selo Novo no caderninho e linha `Line_photo` nas boas-vindas; a caderneta do painel de crescimento usa a foto oficial da cerimônia. Arte gerada por `tools/album_art.gd` (moldura, quatro adereços, `item_milk_tooth`, seis ícones de seção). `album_test` PASS; afetados em `docs/plans/tiro/VALIDACAO_13.md`. Sem reset, commit, push ou publicação. **Próxima: etapa 14 (`ETAPA_14_CASA.md`), em nova sessão.**
+
+O bloco da 12 e os demais abaixo são históricos.
+
+**Tiro no centro — etapa 12 concluída (19/10/2026, Claude Code; local).** Escovar e paladar: `basic_brush` (lembrança) é o presente ao virar Dentinhos; `GameState.brush_error/brush` (Pelagem 5, 8 com `soft_brush` entregue, recarga 4 h, `brush_days`, contador `brush`); quinto cuidado `BrushTile` (arrastar ~600 px nas costas, nós somem a cada ~200 px; em recarga anima sem ganho e diz "Ele já está penteadinho"; `action_brush` PixelLab 32 px); paladar em `growth.json → tastes` (favorita sorteada pela `growth.taste_seed` do save, reações loved/liked/odd/grimace, mirtilo cru careta, favorita +50% nos pilares), `Events.taste_discovered/taste_reacted`, reação no `PetAnimator`, ♥/"Nova!" na guia de comida, `PillarUi.taste_guide` (Guia de sabores) na aba Crescimento e requisito do Azul e Dourado `feed favorite ×3` ("Descubra a favorita" até provar; Como fazer lista comidas não provadas). `brush_taste_test` PASS + afetados PASS. Detalhes: `docs/plans/tiro/VALIDACAO_12.md`. Sem reset, commit, push ou publicação. **Próxima: etapa 13 (`ETAPA_13_ALBUM_MOTOR.md`), em nova sessão.**
+
+O bloco da 11 e os demais abaixo são históricos.
+
+**Tiro no centro — etapa 11 concluída, portão (19/10/2026, Claude Code; local).** A história é conduzida pelo crescimento:
+objetivo e requisito `growth`, nove missões principais novas (crescer é o último passo dos capítulos 1/3/6/9/12; 49 principais, 109 no
+total), falas reescritas (Smoky na `community_12_memory`), truques e passeios longos por fase, cartão da História com a silhueta, robô
+do simulador que cresce (`pursue_growth`, ações `grow`/`deliver_growth`) e campanha do `progression_test` pelos cinco crescimentos e pelas
+obras da vila. `growth_story_test` PASS; `progression_test` PASS (109/109); suíte inteira 32,2 min com só as seis falhas históricas.
+Detalhes: `docs/plans/tiro/VALIDACAO_11.md`. Sem reset, commit, push ou publicação. **Próxima: etapa 12 (`ETAPA_12_ESCOVAR_PALADAR.md`), em nova sessão.**
+
+O bloco da 10 e os demais abaixo são históricos.
+
+**Tiro no centro — etapa 10 concluída (19/10/2026, Claude Code; local).** Itens-chave: categoria `keepsake`
+(sem depósito, não vende), `chew_ring`/`stick_chew`/`soft_brush`/`courage_medal` com ícones PixelLab, receitas de bancada
+e costura, missão da vovó `bloblo_chew_ring`, medalhinha na `community_12_memory`, roupa `topknot_bow` (adulto e jovem, derivada
+do lacinho amarelo) e `growth.json` final (adulto: medalhinha + lacinho + `feed any ×3`, a favorita é da 12). "Dar" com ícone
+voando, filtro "Para o Tiro" e Ir na Mochila. `keys_test` 6 s PASS + afetados PASS; `npc_lines_test`/`petshop_test` históricos.
+Capturas 360×780 abertas; sem navegador móvel/aparelho. Detalhes: `docs/plans/tiro/VALIDACAO_10.md`. Sem reset, commit, push
+ou publicação. **Próxima: etapa 11 (`ETAPA_11_HISTORIA.md`, portão: suíte inteira), em nova sessão.**
+
+O bloco da 09 e os demais abaixo são históricos.
+
+**Tiro no centro — etapa 09 concluída (19/10/2026, Codex; local).**
+Portão 08 confirmado com suas ressalvas históricas. Sete comidas e Xampu de ervas da tabela 03 C,
+oito ícones PixelLab 32×32, selos por fase e dica ao segurar. Chip Com xampu lembra a sessão e usa
+bathe(true); estoque, recarga de 2 h e 2 banhos para Mocinho conferidos. Refeições definitivas:
+cenoura gelada/ração de crescimento/mingau ×3. Itens-chave continuam provisórios; sem antecipar 10/12/15.
+A categoria Cuidados inclui o xampu no Manual/Mochila. foods_revision troca só requisitos futuros
+em saves v13 anteriores à 09; sem reset de saves nem perda de fases alcançadas.
+
+Validação: **18 testes distintos PASS + GROWTH FOODS UI PASS**; ui_style_test imprime PASS e mantém
+somente a falha histórica de recursos em uso ao sair (uma execução). Novo growth_foods_test **5,1 s**.
+Rodadas registradas ~3,5 min; sem suíte completa ou simulação. Capturas 360×780 antes/depois abertas;
+toque por eventos do Godot confirma chip, alimentação, banho, dica e selo. Sem novo gesto nem aparelho
+físico; touch_test.ps1 não exigido nesta etapa. Import original sem erros. **1.965 PNGs do Tiro
+idênticos à 08**, nenhum canvas alterado. Tabela em docs/plans/tiro/VALIDACAO_09.md,
+logs build/test_logs/tiro09/, capturas build/screenshots/tiro09_antes|depois/.
+Sem commit, push ou publicação. **Próxima: etapa 10 (ETAPA_10_ITENS_CHAVE.md), em nova sessão
+Tiro — Etapa 10 no mesmo projeto local.** A 10 não foi implementada nesta sessão.
+
+**Encadeamento da 09:** create_thread recusou abrir Tiro — Etapa 10 no projeto local ClaudeGame:
+MCP tool call requires approval, but approval policy is never. Nenhuma sessão criada; a ferramenta
+exige aprovação e a política impede solicitá-la. Não houve tentativa por outra ferramenta/host.
+Prompt completo pronto em build/tiro10_prompt.txt; abrir a 10 manualmente. A 09 permanece concluída.
+
+O bloco da 08 e demais estados abaixo são históricos.
+
+
+**Tiro no centro — etapa 08 concluída com ressalvas históricas do portão (19/10/2026, Codex; local).**
+07 confirmada. GrowthCeremony na fila modal: silhuetas ≤3/s, antes/depois, idade/peso/fato, miniatura
+HeightMark e Que lindo!. Menos animação dissolve 0,4 s sem confete/piscar. Recibo visto só ao fechar;
+recarregar retoma pendente uma vez. Mocinho/adulto dormindo adiam a revelação; toque no Tiro acorda,
+reabrir traz Line_growth e fechar boas-vindas revela. ready_seen evita repetir pronto. Novo! vem depois;
+Desejos soma Filhotinho à caminha. Pop/aviso provisórios removidos. Sem antecipar 09/10/13/14.
+
+Portão: **suíte única 32,4 min**, 73 entradas, bruto **65 PASS / 8 FAIL**. Corrigidas duas fixtures
+antigas (roupa no adulto; treat_box em Aventureiro) e repetidos só tricks/market: consolidado
+**67 PASS / 6 testes históricos FAIL**. Progression (14 asserts contra 9 da base) e onboarding (5)
+ainda não sabem crescer; diferenças explicitadas em `docs/plans/tiro/VALIDACAO_08.md`. NPC/Faro mesmas
+falhas; Park/UI_STYLE imprimem PASS mas runner acusa recursos ao sair. Petshop PASS. Nenhuma falha
+fora da lista histórica permanece. Não se declara suíte toda verde nem se antecipa o robô da 11.
+`ceremony_test` PASS **19,7 s**; todos os testes de crescimento PASS. Nenhuma economia adicional:
+só progression exigido no portão; economy_sim_test explicitamente excluído conforme pedido.
+
+Tour completo **114 PNGs**; painel e cinco cartões em 360×780/390×844/412×915, abertos e comparados
+com tiro00 (Tiro/HUD/caderninho). Toque Chrome móvel emulado PASS: Crescer e Que lindo!, visto uma vez.
+Sem aparelho físico. 1.965 PNGs do Tiro idênticos à 07, nenhum canvas alterado. Import original PASS.
+Logs/tabela `build/test_logs/tiro08/`, capturas `build/screenshots/tiro08_*`.
+Sem reset adicional, commit, push ou publicação. **Próxima: etapa 09 (`ETAPA_09_COMIDAS.md`),
+em nova sessão Tiro — Etapa 09 no mesmo projeto local.** Não implementada nesta sessão.
+
+O bloco da 07 e demais estados abaixo são históricos.
+
+
+**Tiro no centro — etapa 07 concluída (19/10/2026, Codex; local, sem commit/push/publicação).**
+Confirmada a 06. HUD mostra o retrato/coat da fase, anel pelos requisitos, •/1–5, pulso pronto
+e popover com Ver → Crescimento. Nível do jogador congelado; XP/skills só internos, sem presentes,
+eventos, cartões ou chips. Atributos saíram da feature, DEV e lista de saves. `treat_box` pede
+Aventureiro e mantém bancada/geladeira. Rotinas de cuidado/banho e quatro obras dão Coragem/Pelagem;
+lista exata, moedas e escolha de preservar campos internos em DECISOES. Sem mudar preços ou saves.
+
+Validação: **25 testes distintos PASS**, somente `npc_lines_test` com as falhas históricas;
+`hud_growth_test` final 13,1 s. Resumo/tabela no README e `build/test_logs/tiro07/acceptance_summary.csv`.
+Rodada efetiva ~5,6 min; todas as tentativas ~16 min, acima do alvo pela correção de fixtures (registrado).
+Import original PASS. Capturas 360×780 abertas, HUD/popover/missão antes/depois em
+`build/screenshots/tiro07_antes|depois/`. Sem arte nova, alteração de canvas, aparelho físico,
+gesto novo, suíte completa ou simulação. Sem reset adicional. **Próxima: etapa 08
+(`ETAPA_08_CERIMONIA.md`), em nova sessão Tiro — Etapa 08 no mesmo projeto local.**
+
+O bloco da 06 e demais estados abaixo são históricos.
+
+**Encadeamento da 07:** `create_thread` recusou abrir `Tiro — Etapa 08` no projeto local:
+`MCP tool call requires approval, but approval policy is never`. Nenhuma sessão criada;
+prompt pronto em `build/tiro08_prompt.txt`. Abrir a 08 manualmente; a 07 está concluída.
+
+**Tiro no centro — etapa 06 concluída (19/10/2026, Codex; local, sem commit/push/publicação).**
+Confirmada a conclusão da 05. `GrowthUi` abre o painel alto de crescimento: Tiro atual animado, futura
+silhueta por partes (só alfa), requisitos n/m e ✓ com Como fazer/Ir, anéis/reserva, Crescer ou primeiro
+motivo e caderneta por fase. `GrowthBadge` fica junto do vínculo, com Falta 1! e pulso pronto; caderninho
+leva ao painel. Mochila e painel usam `deliver_growth` e atualizam sem fechar. Feedback provisório com
+pop/aviso, sem antecipar a cerimônia. `growth_info` centraliza os dados de apresentação; `LiveBox` permite
+desligar tick no crescimento para não reiniciar a animação ociosa. Sem edição de PNG ou dos canvases do
+mundo (64/76/80/96), sem regra nova de crescimento nem alteração do save.
+
+Validação: **13 testes distintos PASS**, novo `growth_ui_test` + 12 afetados do mapa/etapa; tabela e
+explicação das correções no README do plano. Logs `build/test_logs/tiro06/`; importação original PASS.
+Capturas abertas em `build/screenshots/tiro06_360x780|390x844|412x915/`, incluindo estados normal/quase/pronto,
+caderneta, selo e fases até adulto; antes 360 em `tiro06_antes`. `touch_test.ps1` com Chrome headless em
+perfil descartável confirmou selo, ajuda, Ir, Dar (2 itens, uma vez) e Crescer para Filhotinho na mesma
+tela; PNGs/console/roteiro em `build/test_logs/tiro06/touch/`. Sem aparelho físico. Entrega testada por
+fixture no espelho; itens-chave reais só na 10. Fotos provisórias são retratos até a 13. Não rodadas
+suíte inteira/economia; nenhum reset adicional. **Próxima: etapa 07 (`ETAPA_07_HUD_SEM_NIVEL.md`),
+em nova sessão Tiro — Etapa 07 no mesmo projeto local.** Nenhuma implementação da 07 nesta sessão.
+
+O bloco da 05 e demais estados abaixo são históricos.
+
+**Tiro no centro — etapa 05 concluída (19/10/2026, Codex; local, sem commit/push/publicação).**
+A etapa 04 estava concluída e com continuação autorizada pelo Vitor. `GameState.dog_look()` agora escolhe
+corpo, pastas, retratos e pelagem a partir de `growth.json`. Tela do Tiro, retratos de cartões (incluindo
+boas-vindas), mundo, caminhada do passeio, HUD e introdução acompanham a fase na mesma cena. `DogLook`
+centraliza os materiais/vínculos de imagens estáticas; `PetAnimator` limpa os caches ao trocar de corpo,
+resolve o fallback do filhote e faz `Motion.pop_in` ao crescer/trocar pelo DEV. Mocinho: coat 0,3–0,7 pelos
+pilares; adulto: coat 1, sem diferença visual. As 19 roupas continuam equipáveis: ocultas no filhote
+(com aviso no caderninho) e com âncoras por clipe no jovem. Nenhum PNG do Tiro foi alterado ou redimensionado.
+
+Validação: `growth_visual_test` + 17 afetados PASS no espelho isolado `build/tiro05_game`
+(`TiroEtapa05Tests`); tabela `build/test_logs/tiro05/results_affected.csv`, teste novo final com todos os
+clipes do mundo em `results.csv` (11 s). Importação original PASS. Capturas 360×780 abertas em
+`build/screenshots/tiro05_visual/`, quatro pranchas `build/art/tiro_fases/roupas05_poses_*.png` abertas
+(19 roupas × 5 poses). Comparação GPU da pose adulta com coat=1 versus sem shader: **0 pixels diferentes**;
+comparação lado a lado com `tiro00_antes/a01_pet.png` também aberta. A primeira versão do teste novo teve
+um timeout de compilação e houve uma correção de tipagem no pop; ambos corrigidos antes da rodada final.
+Sem simulação, suíte inteira, novo gesto ou reset de saves. **Próxima: etapa 06
+(`ETAPA_06_TELA_CRESCIMENTO.md`), em sessão própria.** A 06 não foi implementada aqui.
+
+**Encadeamento da 05 (19/10/2026):** a tentativa de abrir `Tiro — Etapa 06` no projeto local ClaudeGame
+com `create_thread` foi recusada pela ferramenta: `MCP tool call requires approval, but approval policy
+is never`. Nenhuma sessão foi criada, e a etapa 06 não começou. A etapa 05 permanece concluída; abrir a
+06 manualmente com o bloco "Como passar", usando `ETAPA_06_TELA_CRESCIMENTO.md`. Não contornar a
+restrição com outra ferramenta/host. O bloqueio é de criação da sessão, sem pendência de implementação.
+
+O estado da 04 e os demais blocos abaixo são históricos.
+
+
+**Tiro no centro — etapa 04 concluída; aprovação final e continuação autorizadas pelo Vitor (19/10/2026, Codex; local).**
+Confirmada a conclusão da 03 e a aprovação da 01. Jovem: 22 clipes + `sleep_belly` (215 quadros); filhote:
+21 + `sleep_belly` (206; `give_paw` usa `wag_excited`); mundo: 99 PNGs por corpo, incluindo 8 rotações;
+nova pose estática `sleep_belly` adulto (1). Total 620 quadros, 616 PNGs novos. Frontais 160, retratos 48 e
+bases da 01 preservados; hashes dos PNGs adultos existentes iguais. `growth.json.bodies` tem pastas,
+retratos, fallback e partes da silhueta; sem ligação ao jogo. Ferramenta `tools/tiro_body_art.py` e receita
+em ART_PIPELINE. Conferência PASS, zero faltas/paleta/canvas/apoio; `growth_test`, `pillars_test`,
+`content_test` e smoke de 60 quadros PASS no espelho `TiroEtapa04Tests`; importação original PASS com
+acesso autorizado. Logs/tabela em `build/test_logs/tiro04/`, pranchas de cada clipe, `prancha_geral.png`
+e cinco GIFs em `build/art/tiro_fases/`. Nenhum reset, simulação, suíte inteira, commit, push ou publicação.
+**Autorização escrita do Vitor:** “Pode aprovar no final e continuar”. Aprovação final registrada após a
+revisão técnica e visual concluída. **Próximo: abrir `Tiro — Etapa 05` (`ETAPA_05_VISUAL_POR_FASE.md`)
+em sessão própria**, sem implementar a 05 nesta conversa. O registro de encadeamento bloqueado da 03 foi
+superado pela abertura autorizada desta 04.
+O estado anterior abaixo é histórico.
+
+
+
+**Tiro no centro — etapa 03 concluída (19/10/2026, Codex; local, sem commit/push/publicação).**
+Corpo/Pelagem/Esperteza/Coragem agora sobem pelas fontes da tabela 02 D, sempre em `_gain_pillar`:
+Radiante ×1,5 com quatro necessidades ≥60, teto/reserva, `pillar:<id>`, recargas e primeiras vezes salvas.
+Comidas existentes têm `growth.pillars/phases`; fora da fase ×0,5, ração só nas duas primeiras, "Ele quer!"
+alimenta uma vez. Prêmios aceitam `pillars`. Caderninho mostra Crescimento após puppy, com nome/idade,
+quatro anéis e reserva, ícones PixelLab e ganho flutuante agrupado no Tiro. `note_world_visit` só conta com
+Mapa visível e Tiro presente. Xampu tem apenas caminho interno com recarga comum ao banho (item/interface na
+09); escovar na 12, cesto visual na 14. `pillars_test` (8,2 s) e 19 afetados PASS; `npc_lines_test` extra
+reproduziu a falha histórica "Recebe etapa da venda" da 00. Evidência/tabela no README do plano, logs
+`build/test_logs/tiro03/`, capturas abertas 360×780 em `build/screenshots/tiro03_antes|depois/`.
+Nenhum reset/simulação/suíte inteira/toque real; testes em ambiente isolado. **Próxima: etapa 04
+(`ETAPA_04_ARTE_CORPOS.md`), portão de arte do Vitor**, em sessão própria via `create_thread` no projeto
+local ClaudeGame. Ao terminar a 04, aguardar aprovação por escrito antes da 05. Nenhuma pendência da 03.
+**Encadeamento da 03 superado (19/10/2026):** o Vitor autorizou nova tentativa e esta sessão 04 foi criada. O bloqueio anterior era daquela tentativa; a 04 agora aguarda apenas a aprovação de arte ao terminar.
+O estado anterior abaixo é histórico.
+
+**Tiro no centro — etapa 02 concluída (19/10/2026, Codex; local, sem commit/push/publicação).** Etapa 01 confirmada concluída e aprovada pelo Vitor no registro de 19/10. Motor do crescimento: seis fases em `growth.json`, `GrowthState` salvo, requisitos permanentes e contadores por fase, entregas parciais, reserva, presente único por `growth:<fase>`, eventos e requisito `growth` ainda sem uso nos demais dados. DEV ganhou Crescimento; arte e interface de crescimento do jogador ficam para as próximas etapas. `SAVE_VERSION` 13 zera qualquer slot <13 com aviso após a introdução e preferências preservadas. `growth_test` + `content_test`, `saves_test`, `economy_transactions_test`, DEV/prod, `hud_test`, `festa_test`, `welcome_test`, `texts_test` PASS; logs em `build/test_logs/tiro02/`, captura DEV 360×780 em `build/tiro02/`. Cópia do save real testada em dois slots; originais não alterados. Sem suíte inteira, simulação ou gesto novo. **Próxima: etapa 03 (`ETAPA_03_PILARES.md`)**, em sessão própria; `create_session` indisponível, usar `create_thread` no mesmo projeto local. Nenhuma pendência de implementação da 02; ganhos de pilares, novas artes, telas e itens continuam nas etapas previstas. O bloco anterior abaixo é histórico, incluindo a pendência de aprovação da primeira rodada da 01 (já resolvida).
+
+
+**Plano "Tiro no centro" — planejamento concluído (19/10/2026, Claude Code; nada implementado).** A pedido do Vitor, o objetivo do jogo passa a ser ver o Tiro crescer: 5 fases (Filhotinho, Dentinhos, Aventureiro, Mocinho, Azul e Dourado) casadas com os capítulos 1/3/6/9/12, quatro pilares do Tiro (Corpo, Pelagem, Esperteza, Coragem), itens-chave e refeições de cada fase feitos na fazenda, tela de crescimento com o futuro em silhueta, cerimônia, álbum de 54 fotos, Casa que cresce, paladar/favorita, jeito do Tiro, fim do nível do jogador (HUD mostra o crescimento). Regra de ouro: o adulto é o Tiro atual e as fases jovens são o mesmo cachorro (portões de arte do Vitor nas etapas 01 e 04). Testes enxutos: teste novo + afetados, suíte inteira só nos portões 08/11/16/18, sem simulação de economia por etapa. Plano em `docs/plans/tiro/` (README, 00–07, MAPA_DE_TESTES, DECISOES, FUTURO, ETAPA_00…18). Vitor depois pediu: **saves zerados** (etapa 02 sobe `SAVE_VERSION` para 13, sem migração) e **sessões encadeadas** (cada etapa concluída abre a sessão da próxima; para nos portões 01 e 04). **Etapa 00 concluída (19/10/2026, Claude Code; local, sem commit/push).** Nada mudou para o jogador. `tools/test_all.ps1` ganhou `-Only "a,b"` (ordem dada), `-Skip`, `-Fast` (sem `progression_test`, `economy_sim_test` e Python) e `-KeepGoing`; mede cada teste e grava `build/test_logs/last_run.csv`; sem parâmetros roda como antes. `tools/run_godot_test.ps1` com tempo máximo padrão de 5 min ("TEMPO ESGOTADO", código 124). `tools/economy_simulate.ps1 -Quick` (reference, semente 1, campanha, sem ledger, 60 dias, 20 min, `build/economy/quick/<data>/`, imprime tempo de relógio e dias simulados); `-Quick -Days 1` levou 0,2 min. Linha de base: suíte inteira 37,7 min (`progression_test` 24,5 min), 61/68; falhas pré-existentes `progression_test` (campanha não chega aos capítulos 10–12), `npc_lines_test`, `onboarding_test`, `finds_test`, `petshop_test` (SCRIPT ERROR em `rare`), `park_test`/`ui_style_test` (passam, mas caem no filtro de `ERROR:` por recursos ainda em uso ao sair) — lista no README do plano. `festival_test` e `economy_checkpoint_test` (falha) existem fora da suíte. Tempos no `MAPA_DE_TESTES`; capturas `build/screenshots/tiro00_antes/` (95). **Etapa 01 CONCLUÍDA e aprovada pelo Vitor (19/10/2026, Claude Code; local, sem commit/push).** Filhote = opção 1, jovem = opção 10, instalados em `tiro_pet_puppy/young`, `tiro_world_puppy/young`, `hud_tiro_puppy/young` (sem uso no código). Pelagem `tiro_coat.gdshader` refeita a pedido do Vitor: coat 0 = adulto com os mesmos pretos do jovem (textura `tiro_coat_darks.png`), azula até o original em 1, dourado intacto (coat 1 idêntico, 0/10090). **Próxima: etapa 02** (motor de crescimento e reset de saves v13); a sessão dela NÃO foi aberta, a pedido do Vitor. Histórico da 1ª rodada (19/10/2026, Claude Code; local, sem commit/push):** Nada mudou no jogo. Pranchas em `build/art/tiro_fases/` (`prancha_corpos.png` atual|jovem|filhote nas telas 256/160/64/48, `prancha_metodos.png` com 10 candidatos numerados, `prancha_pelagem.png` com coat 0/0,5/1 e silhuetas) feitas por `game/tests/growth_art_shots.gd` (`--step=prep|boards|install`, não é teste). Método escolhido: inpaint no corpo/orelhas + sela pelos pretos da própria paleta (81 cores) + `reduce_colors`; olhos, nariz, língua e máscara idênticos ao adulto. Shaders protótipo `game/assets/shaders/tiro_coat.gdshader` (coat = 1 idêntico, 0/10090 pixels) e `silhouette.gdshader`, sem uso. `--quit-after 60` sem erro. Ressalva: filhote ficou do tamanho do adulto (candidato #1 é a alternativa mais "bebê"). **Falta:** Vitor aprovar (ou pedir ajustes, até 3 rodadas); depois rodar `--step=install` (pastas `tiro_pet_puppy/young`, `tiro_world_puppy/young`, `hud_tiro_puppy/young`), `--import`, registrar a aprovação no README do plano e abrir a sessão da etapa 02.
+
+
 **Atlas ? di?rio de economia e recursos acumulados (19/10/2026, Codex; local).** Vis?o inicial ?Como foram os dias?: grade di?ria com minutos ativos, a??es, miss?es, ?cones dos marcos e saldo. Selecionar um dia abre resumo integrado; altern?ncia ?S? este dia? / ?Acumulado at? aqui? (at? o fim do dia, explicitamente) mostra a??es, conquistas e tabela recurso a recurso de entradas/sa?das/varia??o, origens e usos. Clicar num recurso abre barras di?rias e acumulados; clicar numa conquista abre sua trilha de requisitos. A??es principais e primeiros seis marcos vis?veis, demais recolhidos. Resumo global recolhido para priorizar a leitura dos dias. Adapter registra a??es bem-sucedidas, tentativas recusadas e fontes dos itens; n?o inventa estoque ou classifica automaticamente pacing como bom/ruim. Corrigida compatibilidade din?mica com novo `walks.loot.guarantee` em lista, mantendo objeto antigo. QA: 16 testes Python PASS; navegador desktop/celular (sele??o, acumulado, busca/material, trilha e aus?ncia de overflow/erros); capturas `build/atlas_diary_*.png`. Sem publica??o ou novas simula??es. Pr?ximo poss?vel: instrumentar estoque hist?rico e causa expl?cita de bloqueios, caso necess?rio; fluxo acumulado n?o substitui essas evid?ncias.
 
 

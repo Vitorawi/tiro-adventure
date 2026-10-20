@@ -54,7 +54,7 @@ static func food_picker() -> Control:
 				Events.toast_requested.emit(error if error != "" else "Bloblo trouxe comida!"), &"PrimaryButton", ProgressionUi.npc_portrait("bloblo"))))
 
 
-const CATEGORIES := {"food": "Comidas", "crop": "Colheitas", "material": "Materiais", "product": "Produtos", "find": "Achados", "trail": "Do passeio"}
+const CATEGORIES := {"food": "Comidas", "care": "Cuidados", "crop": "Colheitas", "material": "Materiais", "product": "Produtos", "find": "Achados", "trail": "Do passeio", "keepsake": "Para o Tiro"}
 
 
 ## Mochila: lugar único com todos os itens e a ocupação de cada depósito ("12/30" ao construir).
@@ -90,13 +90,37 @@ static func item_detail(id: String) -> Control:
 		var depot_row := _depot_row(id)
 		if depot_row != null:
 			box.add_child(depot_row)
-		if item.has("feed"):
+		var growth_delivery := false
+		for req: Dictionary in GameState.growth_info().requirements:
+			if req.type == "deliver" and str(req.item) == id and not req.done:
+				growth_delivery = true
+		if growth_delivery and amount > 0:
+			var give := UiKit.primary("Dar", GrowthUi._deliver.bind(id))
+			give.name = "GiveGrowth_" + id
+			box.add_child(give)
+		elif item.has("feed"):
 			box.add_child(UiKit.effect_chips(item.feed))
 			if GameState.inventory.count(id) > 0:
 				box.add_child(UiKit.primary("Dar ao Tiro", func() -> void:
 					var error := give_food(id)
 					if error != "":
 						Events.toast_requested.emit(error)))
+		if bool(item.get("toy", false)) and amount > 0:
+			var toy_error := GameState.give_toy_error(id)
+			if toy_error == "":
+				var toy_give := UiKit.primary("Dar ao Tiro", func() -> void:
+					var reason := GameState.give_toy(id)
+					if reason == "":
+						Events.sheet_close_requested.emit()
+					Events.toast_requested.emit(reason if reason != "" else "Foi para o cesto de brinquedos"))
+				toy_give.name = "GiveToy_" + id
+				box.add_child(toy_give)
+			elif not GameState.house_has("toy_basket"):
+				box.add_child(UiKit.lock_hint("Chega com o cesto de brinquedos"))
+		if str(item.get("category", "")) == "keepsake":
+			var go := UiKit.secondary("Ir", GrowthUi.open, null, true)
+			go.name = "KeepsakeGo"
+			box.add_child(go)
 		var sources := _sources(id)
 		var uses := _uses(id)
 		_link_section(box, "De onde vem", sources)
@@ -698,7 +722,7 @@ class LiveBox extends VBoxContainer:
 
 	func _on_tick() -> void:
 		# Não reconstrói com o dedo na tela, para não "roubar" um toque em andamento.
-		if is_visible_in_tree() and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		if bool(get_meta("tick_refresh", true)) and is_visible_in_tree() and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
 			_schedule_rebuild()
 
 	func _schedule_rebuild() -> void:

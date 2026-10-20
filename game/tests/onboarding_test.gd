@@ -126,6 +126,10 @@ func _turn() -> int:
 					for input: String in recipe.inputs:
 						if database.get("crops").has(input) and state.get("inventory").count(input) < int(recipe.inputs[input]):
 							wanted.append("harvest:" + input)
+	# Crescer (etapa 11): comidas e itens-chave que a fase pede entram na lista do que fazer.
+	for row: Dictionary in state.call("growth_info").requirements:
+		if not row.done and str(row.type) in ["feed", "deliver"] and str(row.item) != "any":
+			wanted.append(str(state.call("favorite_food")) if str(row.item) == "favorite" else str(row.item))
 	# 1. Recebe o que está pronto (missões e diárias).
 	for step: String in progress.active_steps().values():
 		if state.call("claim_quest", step) == "":
@@ -134,6 +138,7 @@ func _turn() -> int:
 		for id: String in state.call("routine_ids", kind):
 			if state.call("claim_routine", kind, id) == "":
 				acts += 1
+	acts += _grow_turn()
 	# 2. Conversas e telas pedidas pela história.
 	for npc_id: String in database.get("npcs"):
 		if progress.npc_visible(npc_id) and ("talk:" + npc_id) in wanted and progress.stat("talk:" + npc_id) == 0:
@@ -238,5 +243,38 @@ func _turn() -> int:
 		state.call("set_sleeping", false)
 		acts += 1
 	elif state.call("start_walk", "park_loop") == "":
+		acts += 1
+	return acts
+
+
+## O jogador simulado cuida do Tiro até ele crescer (etapa 11): dá a refeição da fase, entrega o item-chave e
+## aperta Crescer. Os pontos dos pilares usam `dev_add_pillar`: o ritmo deles é medido em pillars_test e na
+## calibração (etapa 17); aqui interessa o começo (primeiras vezes e ocioso), não os dias de cuidado.
+func _grow_turn() -> int:
+	var progress: RefCounted = state.get("progress")
+	var main: String = progress.current_main_quest()
+	if main == "" or str(database.get("quests")[main].goals[0].type) != "growth":
+		return 0
+	var acts := 0
+	for row: Dictionary in state.call("growth_info").requirements:
+		if row.done:
+			continue
+		match str(row.type):
+			"feed":
+				var food := str(state.call("favorite_food")) if str(row.item) == "favorite" else (str(row.item) if str(row.item) != "any" else "dog_food")
+				for _i in int(row.need) - int(row.have):
+					if food == "dog_food" and state.get("inventory").count(food) == 0:
+						state.call("emergency_food")
+					if state.call("feed", food):
+						acts += 1
+			"deliver":
+				if state.call("deliver_growth", str(row.item)) == "":
+					acts += 1
+			"pillars":
+				for id: String in row.levels:
+					var missing: int = int(database.get("growth").levels[int(row.levels[id]) - 1]) - int(state.get("growth").points.get(id, 0))
+					if missing > 0:
+						state.call("dev_add_pillar", id, missing)
+	if state.call("grow_error") == "" and state.call("grow") == "":
 		acts += 1
 	return acts

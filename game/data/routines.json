@@ -15,9 +15,11 @@
           }
         },
         "rewards": {
-          "coins": 5
-        },
-        "player_xp": 4
+          "coins": 5,
+          "pillars": {
+            "brave": 4
+          }
+        }
       },
       "harvest": {
         "name": "Colha no sítio",
@@ -93,9 +95,11 @@
           }
         },
         "rewards": {
-          "coins": 5
+          "coins": 5,
+          "pillars": {
+            "brave": 4
+          }
         },
-        "player_xp": 5,
         "requirements": {
           "quests": [
             "nina_walk"
@@ -112,7 +116,10 @@
           "target": 2
         },
         "rewards": {
-          "coins": 15
+          "coins": 15,
+          "pillars": {
+            "brave": 4
+          }
         },
         "requirements": {
           "quests": [
@@ -128,7 +135,10 @@
           "target": 2
         },
         "rewards": {
-          "coins": 10
+          "coins": 10,
+          "pillars": {
+            "brave": 4
+          }
         }
       },
       "bathe": {
@@ -139,7 +149,10 @@
           "target": 1
         },
         "rewards": {
-          "coins": 10
+          "coins": 10,
+          "pillars": {
+            "coat": 4
+          }
         }
       },
       "play": {
@@ -150,7 +163,10 @@
           "target": 2
         },
         "rewards": {
-          "coins": 10
+          "coins": 10,
+          "pillars": {
+            "brave": 4
+          }
         }
       },
       "harvest": {
@@ -316,7 +332,10 @@
           "target": 1
         },
         "rewards": {
-          "coins": 12
+          "coins": 12,
+          "pillars": {
+            "brave": 4
+          }
         },
         "requirements": {
           "quests": [
@@ -411,9 +430,11 @@
             "clean_bow",
             "heart_collar",
             "walker_bandana"
-          ]
-        },
-        "player_xp": 15
+          ],
+          "pillars": {
+            "brave": 4
+          }
+        }
       },
       "big_harvest": {
         "name": "Grande colheita",
@@ -506,7 +527,10 @@
           },
           "collections": [
             "walker_bandana"
-          ]
+          ],
+          "pillars": {
+            "brave": 4
+          }
         },
         "requirements": {
           "quests": [
@@ -528,7 +552,10 @@
           },
           "collections": [
             "heart_collar"
-          ]
+          ],
+          "pillars": {
+            "brave": 4
+          }
         },
         "requirements": {
           "quests": [
@@ -550,7 +577,10 @@
           "coins": 60,
           "collections": [
             "clean_bow"
-          ]
+          ],
+          "pillars": {
+            "coat": 4
+          }
         }
       },
       "big_harvest": {

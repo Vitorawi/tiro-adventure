@@ -129,7 +129,7 @@ func _campaign() -> Dictionary:
 			state.get("dog").sleeping = false
 			state.get("dog").needs["energy"] = 100.0
 		var walk_id := "flower_street" if state.get("progress").current_line_quest("nina") in ["nina_routes", "nina_petshop", "nina_dress", "nina_sewing"] and state.call("walk_lock_error", "flower_street") == "" else "park_loop"
-		if state.get("inventory").count("yarn") < 5 and not state.call("has_upgrade", "walk_bag") and state.call("walk_lock_error", "village_fair") == "":
+		if state.get("inventory").count("yarn") < 5 and (not state.call("has_upgrade", "walk_bag") or not state.call("has_upgrade", "bed_soft")) and state.call("walk_lock_error", "village_fair") == "":
 			walk_id = "village_fair"
 		if state.call("start_walk", walk_id) == "":
 			state.get("walk_state").current["ready_at"] = 1.0
@@ -228,6 +228,9 @@ func _campaign() -> Dictionary:
 						state.get("inventory").add("blueberry", 2)
 					_cook_with_inputs("blueberry_treat", recipes)
 					state.call("fulfill_wish", slot_index)
+		# História do Tiro (etapa 11): crescer e as obras da vila (capítulos 10–12) fazem parte da campanha.
+		_grow_story(recipes)
+		_projects_step()
 		for current: String in state.get("progress").active_steps().values():
 			state.call("claim_quest", current)
 		for kind: String in ["daily", "weekly"]:
@@ -259,6 +262,93 @@ func _campaign() -> Dictionary:
 		_check(state.get("progress").claimed_quests.has(id), "Campanha deve alcançar missão: " + id)
 	print("Campanha simulada: ", iterations, " ciclos; ", state.get("progress").owned.size(), " aquisições; ", state.get("progress").claimed_quests.size(), " missões.")
 	return state.call("to_dict").duplicate(true)
+
+
+## O Tiro cresce quando a história chega à missão de crescer: refeição da fase, item-chave entregue,
+## banhos com xampu e o lacinho vêm das ações reais do jogo (o resto da campanha já faz as receitas).
+## Só os pontos dos pilares usam `dev_add_pillar`: a taxa deles é validada em pillars_test e aqui
+## importa a história passar pelos cinco crescimentos, sem depender de dias de cuidado.
+func _grow_story(recipes: Dictionary) -> void:
+	# "Banho de ervas" (capítulo 8): a missão pede um banho com xampu antes de o Mocinho exigir dois.
+	for step: String in state.get("progress").active_steps().values():
+		for goal: Dictionary in database.get("quests")[step].goals:
+			if str(goal.get("key", "")) == "shampoo_bath" and state.call("goal_value", goal) < int(goal.get("target", 1)):
+				_make("herb_shampoo", recipes)
+				state.call("bathe", true)
+	var main: String = state.get("progress").current_main_quest()
+	if main == "" or str(database.get("quests")[main].goals[0].type) != "growth":
+		return
+	var info: Dictionary = state.call("growth_info")
+	if info.next.is_empty():
+		return
+	for row: Dictionary in info.requirements:
+		if row.done:
+			continue
+		match str(row.type):
+			"feed":
+				var food := str(state.call("favorite_food")) if str(row.item) == "favorite" else (str(row.item) if str(row.item) != "any" else "dog_food")
+				for _i in int(row.need) - int(row.have):
+					_make(food, recipes)
+					state.call("feed", food)
+			"deliver":
+				_make(str(row.item), recipes)
+				state.call("deliver_growth", str(row.item))
+			"stat":
+				if str(row.counter) == "shampoo_bath":
+					for _i in int(row.need) - int(row.have):
+						_make("herb_shampoo", recipes)
+						state.call("bathe", true)
+			"collection":
+				for recipe_id: String in recipes:
+					if str(recipes[recipe_id].get("output_collection", "")) == str(row.collection):
+						_cook_with_inputs(recipe_id, recipes)
+			"pillars":
+				for id: String in row.levels:
+					var missing: int = int(database.get("growth").levels[int(row.levels[id]) - 1]) - int(state.get("growth").points.get(id, 0))
+					if missing > 0:
+						state.call("dev_add_pillar", id, missing)
+	if state.call("grow_error") == "":
+		_check(state.call("grow") == "", "Crescer na campanha: " + str(info.next.id))
+
+
+## Garante uma unidade do item: faz pela receita (com os insumos) se a mochila não tem.
+func _make(item: String, recipes: Dictionary) -> void:
+	if state.get("inventory").count(item) > 0:
+		return
+	for recipe_id: String in recipes:
+		if str(recipes[recipe_id].get("output", "")) == item:
+			_cook_with_inputs(recipe_id, recipes)
+			break
+
+
+## Obras da vila que a história pede (banco, jardim, piquenique, festa): taxa, material e uso pelo Tiro.
+## O material vem da mochila quando a campanha já o produz; o que falta é posto na mochila (a cadeia de
+## produção de cada obra é validada em projects_test, festival_test e pelo robô do simulador).
+func _projects_step() -> void:
+	for step: String in state.get("progress").active_steps().values():
+		for goal: Dictionary in database.get("quests")[step].goals:
+			var key := str(goal.get("key", ""))
+			var id := key if str(goal.type) == "project" else (key.trim_prefix("project_use:") if key.begins_with("project_use:") else "")
+			if id == "":
+				continue
+			if not state.call("project_completed", id):
+				if not state.call("project_started", id):
+					if state.call("project_error", id) != "" and state.get("coins") < int(database.call("project", id).start_coins):
+						state.call("dev_add_coins", int(database.call("project", id).start_coins) - int(state.get("coins")))
+					state.call("start_project", id)
+				for _i in 6:
+					var stage: Dictionary = state.call("project_stage", id)
+					if bool(stage.done) or stage.remaining.is_empty():
+						break
+					for item: String in stage.remaining:
+						var need: int = int(stage.remaining[item])
+						if state.get("inventory").count(item) < need:
+							state.get("inventory").add(item, need - state.get("inventory").count(item))
+						state.call("contribute_project", id, item, need)
+				state.call("complete_project", id)
+			if key.begins_with("project_use:"):
+				state.get("dog").sleeping = false
+				state.call("use_project", id)
 
 
 ## Cozinha a receita e, antes, o que falta de insumo que outra receita faz (um nível de profundidade por chamada, até 3).

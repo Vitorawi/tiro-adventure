@@ -871,3 +871,251 @@ PNGs e `.import` versionados. Posições, footprints e pontos de uso em `rooms/v
 
 **Lenço da nossa turma (`community_ribbon`, slot `neck`)**: combinado a partir de recursos do projeto, como a seção 07 E permite. `tools/ribbon_recolor.gd` (Godot headless) copia o lenço vermelho (`overlays/red_scarf.png` + as 52 camadas por quadro em `overlays/red_scarf/<pose>/`, poses `sad/eat/lick_paw/sleep/head_tilt`) trocando só o matiz (vermelho → verde-água, `HUE` 0,46) e o ícone `outfit_red_scarf.png` → `outfit_community_ribbon.png`. A máscara e as âncoras são as do lenço vermelho, então `overlay_anchors.json` não mudou (mesmas poses visíveis/ocultas, mesmos quadros variantes). Conferência: `festival_test` (todos os quadros existem) e capturas `20_tiro_com_lenco`/`21_tiro_dormindo_com_lenco` nas três resoluções em `build/screenshots/etapa22_depois/`. Posições, footprint e ponto de uso em `rooms/village.json` (`community_festival`).
 
+
+### Tiro no centro — etapa 01, prova de identidade (19/10/2026, Claude Code) — APROVADA PELO VITOR (filhote = opção 1, jovem = opção 10, Mocinho do preto do jovem ao atual)
+Regra de ouro (seção E do `docs/plans/tiro/06_INTERFACE_E_ARTE.md`): o adulto é o Tiro atual e não é redesenhado; `puppy` e
+`young` são o mesmo cachorro mais novo. Pranchas em `build/art/tiro_fases/` (`prancha_corpos.png`, `prancha_metodos.png`,
+`prancha_pelagem.png`), feitas por `game/tests/growth_art_shots.gd` (não é teste): `--step=prep` (headless) monta paleta,
+candidatos exatos, alinhamento e finais; `--step=boards` (sem `--headless`) desenha com os shaders; `--step=install` copia os
+aprovados de `build/art/tiro_fases/final/` para as pastas definitivas (só depois da aprovação).
+
+**Paleta** (81 cores, todas das quatro imagens atuais: `tiro_pet/idle_breathe/frame_00.png`, `tiro_pet_idle_front.png`,
+`tiro_world/rotations/south.png`, `hud_tiro.png`; da mais escura à mais clara; `paleta.png`, `paleta_strip.png` 81×1 para o
+`reduce_colors`): #010001 #010005 #000102 #030101 #00010a #02010d #000113 #07010a #060207 #05030f #0a0505 #0e0608 #060a15
+#131620 #28150f #191921 #261719 #1e212c #272831 #372627 #392d32 #4c2b16 #34363e #4f302a #633011 #3c373f #5b3329 #403f44
+#3e4048 #523e32 #573d32 #613c2c #6c3c1d #474a52 #7b411b #544943 #764531 #505152 #7d4a27 #894a1f #7d4f35 #75553c #85522f
+#625c56 #8e542b #5e5f60 #ac4c5d #9a5728 #895c3f #676562 #956039 #7d6652 #a3602b #6b7079 #75716b #a06b41 #b2682b #75787f
+#94735a #9d734e #b87133 #ad7647 #e56371 #c37835 #cf7061 #bd7c4a #8f8a81 #b7855d #c2844e #b6895c #cb8642 #9e9183 #c7915d
+#d88f43 #d3955b #c2a074 #e39c4c #ebaa58 #d7b386 #f9feff #fdfffc. Os "pretos" do jovem/filhote são as 19 cores com brilho < 0,2
+desta mesma lista (nada de cor nova).
+
+**Métodos comparados no quadro base** (`idle_breathe` 0, 256×216; uploads do quadro atual como entrada):
+| # | Método | Ferramenta / semente | Prompt (resumo) | Resultado |
+|---|---|---|---|---|
+| 1 | a, filhote | `edit_image` texto, seed 101 | prompt base da seção E.2 (floppy ears, rounder head, black coat, thicker paws…) | muito filhote, mas olhos/língua redesenhados |
+| 2 | b, filhote | exato (script): sela cinza → pretos da paleta + reduzir 0,86 pelos pés | — | reduzir por vizinho mais próximo estraga o traço; orelhas continuam em pé |
+| 3 | c, filhote | `inpaint_image` caixa (64,28) 118×40, seed 301 | "soft floppy puppy ears folded down…" | orelhas caídas, rosto intacto |
+| 4 | c, filhote | `inpaint_image` sobre o #3, caixa (70,110) 116×78, seed 303 | "small chubby yorkshire terrier puppy body… solid black back… short thick legs" | corpo fofo e preto, rosto intacto |
+| 5 | **c + b, filhote (escolhido)** | #4 + sela cinza da cabeça → pretos da paleta (exato) + `reduce_colors` (paleta) | — | olhos, nariz, língua e máscara pixel a pixel iguais ao adulto |
+| 6 | a, jovem | `edit_image` texto, seed 201 | "young adolescent dog… ears standing up… saddle black" | quase igual ao adulto |
+| 7 | a, jovem | `edit_image` texto, seed 202 | "lanky teenage dog… scruffy messy… solid black" | bom jovem, mas o rosto muda e os pés descem 14 px |
+| 8 | b, jovem | exato: sela cinza → pretos da paleta | — | identidade perfeita, mas é só o adulto pintado |
+| 9 | c, jovem | `inpaint_image` caixa (70,110) 116×78, seed 302 | "slimmer young… solid black back… messy fur tufts, thinner legs" | corpo magro e bagunçado, rosto intacto |
+| 10 | **c + b, jovem (escolhido)** | #9 + sela cinza → pretos (exato) + `reduce_colors` | — | idem #5 |
+
+**Método escolhido: c + b** (inpaint só no corpo/orelhas, sela pela troca exata para os pretos da paleta, `reduce_colors` com
+`paleta_strip.png`, pés alinhados ao adulto pelo script). Motivo: é o único que mantém olhos, nariz, língua, máscara e contorno
+idênticos ao Tiro atual. **Escolha do Vitor (19/10/2026): filhote = #1** (o mais "bebê"; sai do PixelLab com 9 cores, reduzido localmente à paleta pelo
+`_quantize` do script); **jovem = #10** (c + b).
+
+**Outros tamanhos** (com o quadro escolhido como referência): `idle_front` 160 = `edit_image` modo referência sobre
+`tiro_pet_idle_front.png` (seeds 411 filhote #1 / 402 jovem); mundo `south` 64 = `edit_image` referência sobre
+`tiro_world/rotations/south.png` (seeds 511 / 502; 401/501 foram do filhote #5, descartados); os quatro passaram por `reduce_colors` com a paleta e foram alinhados aos pés
+(filhote 160: pés 147 → 156; mundo filhote: 55 → 59). Retrato 48 = mesmo recorte do adulto (caixa 98×98 em x=74, y=38 →
+44×44 vizinho mais próximo em (2, 3)); o script confirma que essa receita refaz `hud_tiro.png` idêntico.
+
+**Shaders (protótipos, sem uso no jogo):** `game/assets/shaders/tiro_coat.gdshader` (`coat` 0..1 + textura `darks` =
+`tiro_coat_darks.png`, os 19 pretos da paleta; a sela do adulto — saturação ≤ 0,22 e brilho 0,22–0,66 — vira em 0 exatamente o
+preto do jovem e azula até o original em 1; o dourado NÃO muda, a pedido do Vitor: escurecer o dourado deixava o Mocinho "torrado")
+e `silhouette.gdshader` (`tint`, `alpha_cut`). Comparação em `build/art/tiro_fases/comparacao_coat.txt`:
+**coat = 1 × frame_00.png: 0 pixels diferentes de 10090 (idêntico)**; coat = 0 × adulto com a sela do jovem: 0 diferentes.
+
+**Checklist conferido nas pranchas:** olhos, nariz, língua rosa e máscara castanha iguais (tela 256); contorno escuro de 1 px;
+mesma luz do adulto; mesmo tamanho de pixel; só cores da paleta; canvas 256×216 / 160×160 / 64×64 / 48×48; pés na mesma
+linha do adulto (184 na tela, 156 no `idle_front`, 59 no mundo). Gasto PixelLab: ~100 gerações.
+Destinos após aprovação: `characters/tiro_pet_<corpo>/idle_breathe/frame_00.png`, `characters/tiro_pet_<corpo>/tiro_pet_<corpo>_idle_front.png`,
+`characters/tiro_world_<corpo>/rotations/south.png`, `ui/icons/hud_tiro_<corpo>.png`.
+
+
+## Tiro no centro — etapa 03: ícones dos atributos (19/10/2026)
+
+PixelLab `create_image_pixflux`, 32×32, transparência, `single color outline`, `basic shading`,
+`low detail`. Quatro gerações. Arquivos em `game/assets/sprites/ui/icons/pillar_<id>.png`.
+Prompt comum: `Single <objeto>, cozy virtual pet game UI need icon, readable chunky pixel art,
+dark brown outline, pastel colors, centered, no text`.
+
+| id | objeto | seed | job PixelLab |
+|---|---|---|---|
+| body | ivory dog bone | 303 | b7e9fcd4-b5b5-4dbc-bc72-6022ff361e14 |
+| coat | teal grooming comb with a tiny golden sparkle | 304 | fe44c871-cb72-4931-97a6-758ed6deae4e |
+| smart | warm yellow light bulb | 305 | 6ba97a1e-20a7-43e3-bff7-487a232334d4 |
+| brave | golden five pointed star | 306 | ef508f80-5b26-432f-9c01-dad965c3c594 |
+
+PNG dos quatro ícones conferidos na captura 360×780 do caderninho:
+`build/screenshots/tiro03_antes/notebook.png` e `tiro03_depois/notebook.png` (abertas).
+Coragem usa estrela; coração continua reservado ao vínculo. Nenhuma arte do Tiro alterada.
+
+Captura adicional conferida: `build/screenshots/tiro03_depois/gain.png`, ganho Radiante +3 Corpo acima da cabeça, sem cobrir a fala; número e ícone usam a mesma curva/tempo.
+
+
+### Tiro no centro — etapa 04, produção dos corpos (19/10/2026, Codex) — CONCLUÍDA
+
+As bases da etapa 01 foram mantidas pixel a pixel: filhote #1 e jovem #10, incluindo frontais 160×160,
+retratos 48×48 e `rotations/south` 64×64. Adulto existente preservado por hash. Entrega: jovem 215 quadros
+(22 clipes + `sleep_belly`), filhote 206 (21 + `sleep_belly`, sem `give_paw`), mundo 99 por corpo e
+`sleep_belly` adulto 1: **620 quadros, dos quais 616 novos**. Pastas definitivas `tiro_pet_young/puppy`,
+`tiro_world_young/puppy`; **ainda não usadas pelo jogo**.
+
+Receita reproduzível em `tools/tiro_body_art.py`: `prepare` extrai recortes dos quadros adultos sem
+redimensionar, guarda a posição de volta no canvas e faz folhas até 512 px; `install` extrai as células,
+troca a sela do jovem pelos mesmos 19 pretos da 01, reduz por distância RGB à paleta, limpa pequenos
+fragmentos e alinha o apoio ao quadro adulto correspondente. `repair_tongues` restaura a língua rosa do
+latido do filhote e carinho na pata do jovem por ilha de cor isolada (e um polígono manual no quadro 06). `reprocess` reaplica a receita
+aos brutos; executar `repair_tongues` depois dele. `audit`, `boards` e `gifs` conferem/montam as evidências.
+Nada foi escalado nos arquivos finais: tela 256×216, mundo com o canvas de cada original (rotações 64, clipes 76/80/96); só as prévias recortam/ampliam para leitura.
+
+**Paleta:** 81 cores da 01 + cores já presentes nos demais clipes adultos, total **241**. A ampliação foi
+necessária para manter a tigela azul, a mão e os adereços existentes. Paleta final em
+`build/art/tiro_fases/producao04/paleta_clipes.json|png`; nenhuma cor externa aos originais foi acrescentada.
+
+**Geração:** `edit_image` em modo referência, seed **4401 jovem / 4501 filhote**, sem fundo. Entradas em
+`producao04/inputs/`; referência é `final/young_pet.png` ou `puppy_pet.png`, e `*_world.png` no mundo.
+Template usado (campos substituídos pelo manifesto):
+
+> Sprite sheet: {N} frames in {C} columns, reading order. Change EVERY dog to exactly the {body} reference
+> of the SAME Yorkshire terrier: [young: upright ears, scruffy lanky narrow body, thin legs, BLACK saddle;
+> puppy: floppy ears, large round head, short chubby puppy body, black coat with tan face/chest/paws].
+> Keep EVERY original pose/action ({clip}), orientation, eye expression, nose, pink tongue, 1-pixel dark
+> outline, light direction and pixel density. Preserve grid cell positions/count/spacing EXACT. Transparent,
+> no clothing, no new frames. Lying/jumping/back-facing poses must remain as input, not turn into sitting.
+> Same dog, younger.
+
+As duas primeiras provas `transfer_outfit` de 3 quadros foram guardadas em `samples/` e **não instaladas**
+(jovem `852373f5-6ca9-4925-9db2-79df2509da23`, filhote `021fa6cb-759f-464f-a568-afcd32e97b98`, seeds
+4101/4201). Folhas de respiração finais: jovem `aa0d0cc5-91a3-4fe0-919a-055faff254e7`, filhote
+`f566f533-2bfd-46be-b6e5-e6f4951d208b`. Todos os IDs de clipes, substituições e resultado bruto em
+`producao04/jobs.json` e `raw/`; metadados exatos dos recortes/células em `manifest.json`. Seis folhas do
+mundo jovem e dois lotes de um quadro foram refeitos para eliminar espaço vazio que gerava recorte/desvio
+na última pose. As folhas finais do mundo de nove quadros são 3×3; um único quadro não tem célula vazia.
+
+**Sono de barriga:** adulto veio de `belly_rub/frame_00`, `inpaint_image`, seed **4601**, máscara
+`(47,94,69,55)`, descrição "The exact same Yorkshire terrier lying on his back, now sleeping peacefully.
+Eyes gently closed, mouth closed relaxed (no open pink tongue), same tan muzzle and nose. Keep the head
+orientation and ears, black 1-pixel outline, existing pixel style and palette. Transparent outside the dog.
+Do not change the rest of the body." Job `d011ceaa-4063-4c45-bb02-ae214c2e9cb4`. Jovem e filhote por
+`edit_image` com esse resultado + base aprovada, seeds **4611/4621**, mantendo pose deitada/olhos e boca
+fechados: `3f7cd1e2-c7c9-4218-a1a2-dabf634c201f` / `84dada6b-9a8b-44d4-9b2e-c9604ead27f2`.
+
+**Custo observado:** delta de saldo MCP de 2.100 gerações depois das duas provas iniciais de 25 cada:
+aproximadamente **2.150 gerações** (incluindo provas, tentativas e reparos nativos) na produção completa, sem compra de créditos. Saldo final observado
+381,30. Consultas/downloads e tratamento local não geram novas imagens pagas.
+
+**QA:** `art_audit.log` PASS, zero faltas/canvas/paleta/apoio, bases aprovadas iguais e adulto existente
+igual por SHA-256. Pranchas comparativas de cada clipe em `clipes/`, `prancha_geral.png` (35 grupos) e
+GIFs de `idle_breathe` 6 FPS, `eat` 8, `sleep` 5, `happy_jump` 9, `walk/east` 8 em `gifs/`. Pranchas abertas
+para revisão técnica. Aprovação final e continuação autorizadas pelo Vitor em 19/10/2026: “Pode aprovar no final e continuar”. `growth.json.bodies` descreve diretórios,
+retratos, fallback do filhote e regiões da silhueta, sem trocar o visual em execução. Registros completos
+dos testes/importação no README do plano e `build/test_logs/tiro04/`. Sem roupas/âncoras nesta etapa.
+
+
+**Correção descoberta na revisão ampliada:** não são todos 64 px no mundo. Por corpo, os 99 PNGs são
+8 rotações 64×64, 45 quadros 76×76 (`dig/eat/sit/sleep/sniff`), 38 quadros 80×80 (`bark`, `idle` e
+`walk/east|south`) e 8 quadros 96×96 (`walk/north`). Finais mantêm cada dimensão original, sem escala.
+As duas sequências laterais `idle/east` e `walk/east` tinham células invadidas/cortes; foram substituídas
+por quadros completos 80×80 de `transfer_outfit`, referência `*_world.png`, seed 4701 jovem / 4801 filhote,
+instruindo preservar todas as poses east, movimento e o cachorro inteiro dentro do canvas, sem roupa/fundo.
+Jobs: jovem idle `4e8b51e0-f00e-48f0-b594-1508a14f9ea3`, walk `5f61ae5d-1cab-42c8-9117-a30e5f05f620`;
+filhote idle `d55a5724-152c-4af8-bc91-30b0ef557885`, walk `4197ac67-5b58-4bee-a9ef-bfac89e32949`.
+`producao04/native_jobs.json` e `native/<corpo>/<clipe>/frame_NN.png` guardam as fontes; `native_install`
+quantiza/alinha e instala sem recortar. `reprocess` já os aplica por último. A primeira tentativa com
+output 64 foi recusada pelo PixelLab porque a entrada era 80 (sem imagem produzida); não foram encolhidos
+quadros para contornar isso. A auditoria ganhou a verificação das bordas para não aceitar novamente
+uma folha quantitativamente completa com um cachorro cortado.
+
+## Tiro no centro — etapa 05: corpos integrados (19/10/2026)
+
+Sem geração/alteração de PNG nesta etapa. `growth.json.bodies` agora alimenta `GameState.dog_look()` e
+as aparições do Tiro no jogo. Shader da 01 integrado pelo helper `DogLook`, com material independente
+por desenho e modulate/alfa preservados; Mocinho 0,3–0,7 conforme média dos pilares/teto, adulto 1.
+
+Roupas: `tiro_pet/overlay_anchors.json → bodies.young` por clipe e slot. Cabeça/pescoço: escala 1 e
+(0,0); corpo: 0,94 e (6,8) no canvas 256×216. Reutiliza PNGs/variantes por quadro existentes. As 19
+roupas foram compostas e abertas em idle_breathe/eat/sleep/head_tilt/sad, com quadros de meio/fim:
+`build/art/tiro_fases/roupas05_poses_1.png`…`4.png`; script `build/tiro05_clothes.py`. Sem cortes visíveis
+nas poses conferidas; filhote oculta as roupas, mantendo o equipamento e aviso no caderninho.
+
+Capturas 360×780 abertas em `build/screenshots/tiro05_visual/` (t12/t13/t14, adulto e Sítio nos dois
+corpos); `adult_before_after.png` ao lado de `tiro00_antes/a01_pet.png`. Teste GPU com mesma textura,
+pose, tamanho e fundo: coat=1 versus sem shader = **0 pixels diferentes**, `adult_comparison.txt` e
+os dois recortes. Adulto e bases da 01 intactos; nenhum canvas de mundo foi modificado.
+Teste visual + 17 afetados PASS; logs em `build/test_logs/tiro05/`. Próxima: tela de crescimento (06).
+
+
+## Tiro no centro — etapa 06: silhueta na interface (19/10/2026)
+
+`silhouette.gdshader` usa apenas alfa do idle_breathe/frame_00 do corpo seguinte. Partes vêm dos
+retângulos de `growth.json.bodies.<body>.parts`: contorno, orelhas, rabo/pernas, brilho; tudo pronto
+intensifica o brilho. Palette.INK e contorno claro, amostragem por fwidth para manter a linha legível
+na redução, sem exibir RGB da textura futura. Menos animação mantém o brilho fixo. Futuras da caderneta
+usam sempre o mesmo shader. Nenhum PNG novo/editado; canvases originais 256×216 e 64/76/80/96 preservados.
+Capturas conferidas nas três resoluções em `build/screenshots/tiro06_*`.
+
+## Tiro no centro — etapa 09 (19/10/2026): oito ícones
+
+PixelLab create_image_pixflux; 32×32, transparente, single color outline, basic shading, low detail.
+Prompt exato: "Cute cozy farm game inventory icon, {objeto}, centered single object, warm pastel palette, crisp pixel art, no text, no shadow outside object".
+Destino de cada um: game/assets/sprites/ui/icons/item_{id}.png. Sem pós-processamento. Prancha aberta: build/art/tiro09/icons.png; capturas abertas 360×780 em build/screenshots/tiro09_depois/.
+
+| id | objeto do prompt | seed | job | asset |
+|---|---|---|---|---|
+| frozen_carrot | frosty orange carrot slices with tiny ice crystals | 9090 | 2f44defd-6046-4926-a38b-02901031da0b | a2142fa5-bc55-5c9c-8538-7500c5e27b1f |
+| puppy_mash | small terracotta bowl of orange carrot and potato mash | 9091 | a6795a55-cf8c-432a-8f38-857f8f5269d7 | 76c01e9a-9c40-5c9d-a127-fae7dcc99187 |
+| corn_crunch | two golden crunchy corn biscuits | 9092 | 33e3d162-ad80-4be2-a6fb-12a1f63579b9 | ab06051b-b24b-59f5-8f3c-f73b11cdd1e5 |
+| growth_kibble | small green bowl of brown kibble with egg and carrot pieces | 9093 | 942e0e5b-9bf8-4781-b7a9-69920ec8fdc3 | fb0283ce-9a07-56ff-be50-f5f189c04c04 |
+| egg_scramble | small cream plate of yellow scrambled eggs | 9094 | 035d05c9-68a9-445d-a28f-9be0da937b5b | 8d396f41-cd53-5cbb-92a2-c408ebca8716 |
+| cheese_bites | three small golden cheese bite biscuits | 9095 | bb52176e-95e9-4d69-a6f0-9728ddf622ea | 5d41fa2f-3651-50c6-be9c-5584f2f2ebb3 |
+| milk_porridge | small blue bowl of creamy milk porridge | 9096 | dbdd1a9c-02b1-4a07-9b0b-c2a823766781 | c67cec5a-9c79-51c3-93e7-38a0907882d6 |
+| herb_shampoo | small green shampoo bottle with a leaf emblem | 9097 | bac6e4c0-bd08-41a4-b601-a6acd62c8c61 | bafcdd58-e1a6-5f64-beba-4b74f006fd7a |
+
+
+## Tiro no centro — etapa 10 (19/10/2026): ícones dos itens-chave e Lacinho do topete
+
+**Ícones:** PixelLab create_image_pixflux, 32×32, transparente, single color outline, basic shading, low detail. Prompt: "Cute cozy farm game inventory icon, {objeto}, centered single object, warm pastel palette, crisp pixel art, no text, no shadow outside object". Destino `game/assets/sprites/ui/icons/item_{id}.png`, sem pós-processamento.
+
+| id | objeto do prompt | seed | job |
+|---|---|---|---|
+| chew_ring | soft knotted blue fabric teething ring for a puppy | 10100 | 44b9063d-d5b9-4a33-bbf5-0bf1127554d2 |
+| stick_chew | sanded wooden twig chew stick with a tiny rope bow | 10101 | ef9a70e6-0006-40c5-980b-167df4e48559 |
+| soft_brush | soft pet grooming brush with wooden handle and soft pink bristles | 10102 | ea48dfcc-5e83-4e9c-834d-4d0a22f52f36 |
+| courage_medal | round golden courage medal with a small star and a red ribbon | 10103 | 53714661-8343-4038-b447-3b3169d4f7d7 |
+
+**Lacinho do topete (`topknot_bow`):** derivado do `yellow_bow` por `tools/bow_recolor.gd` (mesma máscara, mesmo recorte por pose e mesmas âncoras; só gira o matiz de amarelo para vermelho, −0,15). Gera `overlays/topknot_bow.png`, `overlays/topknot_bow/<clip>/frame_NN.png` (cinco poses com variantes por quadro) e o ícone `outfit_topknot_bow.png` (55 imagens). Não houve edição manual nem PixelLab. Slot `head`; o jovem usa as âncoras `bodies.young.<clip>.head` já existentes (o lacinho amarelo ocupa o mesmo lugar, no alto da cabeça, entre as orelhas) e o adulto o deslocamento 0. Prancha 2×2 (adulto/jovem × amarelo/vermelho × idle, eat, sleep, head_tilt, sad), aberta e conferida: `build/art/tiro10/lacinho.png` (`tools/bow_board.gd`). Nenhum PNG do Tiro, canvas ou apoio alterado.
+
+## Tiro no centro — etapa 12 (19/10/2026): ícone `action_brush`
+
+`game/assets/sprites/ui/icons/action_brush.png` (32×32, PixelLab `create_image_pixflux`, seed 77, `no_background`, contorno preto, sombreado básico). Prompt: "pet grooming brush seen from the side, round wooden head full of soft pink bristles and short wooden handle". Usado no `BrushTile`, no gesto e como ícone do item `basic_brush`. Nenhum PNG do Tiro foi alterado.
+
+## Tiro no centro — etapa 13 (19/10/2026): arte do álbum
+
+Gerada por `tools/album_art.gd` (`godot --headless --path game -s ../tools/album_art.gd`, depois `--import`): grades de caracteres 16×16 ampliadas 2× (pixel art, sem suavização; sem PixelLab, nada do Tiro). `ui/album/polaroid.png` (9-patch 24×24, margem 8), adereços `ui/album/prop_box|bowl|stall_sign|medal.png`, `ui/icons/item_milk_tooth.png` e ícones de seção `ui/icons/album_story|firsts|tricks|sleep|friends|dates.png` (32 px). Os demais adereços (`foam`, `carrot_mouth`, `sock`, `drops`, `ball`, `moon`, `fireflies`, `mud`, `party_hat`, `cake`, sombra, linhas de velocidade) ficam para a 15. Nenhum PNG do Tiro foi gerado ou alterado: a foto reutiliza os quadros de `tiro_pet*` pelo corpo/coat gravado. Shader novo `assets/shaders/flat_silhouette.gdshader` (cor única, só o alfa da imagem). Cenários das fotos = recortes de `areas/*` (`album.json → scenes`).
+
+## Tiro no centro — etapa 14 (19/10/2026): primeira tentativa, histórica
+
+A sessão interrompida do Claude deixou `tools/house_art.gd` e 14 PNGs em `areas/house/`: arrival_box (28×20), height_chart (14×66), memory_shelf (60×45), photo_wall (62×57), laundry_basket (20×20), toy_basket (24×20), named_bowl, bed_soft, bed_luxe, paw_rug (30×13), old_camera (12×10), gold_frame (20×26), star_garland (100×51), big_portrait (40×55). São pixel art procedural; caminhas/tigela derivam dos móveis existentes e retrato usa o Tiro adulto existente. Paredes inclinadas por SLOPE=0,37; desenhos dinâmicos em HouseDecor usam a mesma transformação. Nenhum PNG do Tiro foi modificado nesta retomada.
+
+**Situação na primeira tentativa (resolvida abaixo): não atendiam ao requisito de produção PixelLab da etapa 14.** Tentadas cinco gerações `create_image_pixflux` (32×32, transparência, contorno de uma cor, sombra básica, low top-down): caixinha com coberta, cesto de roupa com meia, cesto de brinquedos com bola/corda, câmera antiga e tapete com patinha. Prefixo: "Single [objeto]. Cozy isometric home furniture game sprite, crisp pixel art, warm muted beige and walnut brown palette, dark brown single pixel outlines, basic shading, three quarter view, isolated. No text." Todas falharam no transporte HTTP para api.pixellab.ai/mcp; nenhuma imagem/job utilizável retornou. Manter estes sprites como provisórios e retomar a produção com referências dos móveis existentes quando o serviço voltar. Não marcar etapa concluída por causa desta pendência.
+
+## Tiro no centro — etapa 14: PixelLab concluído após nova tentativa (19/10/2026)
+
+Pedido do Vitor: "Tenta de novo o pixellab". Serviço voltou: 13 gerações `create_image_pixflux` concluídas e baixadas, fontes preservadas em `tools/art/house_pixellab/`. `manifest.json` registra cada prompt completo, tamanho, job_id, asset_id e SHA-256; referência de paleta = `areas/house/dog_bed.png` (forced_palette nas doze gerações após o primeiro cesto).
+
+Fontes: arrival_box/laundry_basket/toy_basket/paw_rug/old_camera/gold_frame/named_bowl 32×32; height_chart 32×64; memory_shelf/photo_wall 64×32; star_garland 96×32; bed_soft/bed_luxe 64×64. Descrições pedem móveis de casa aconchegante em pixel art, contorno marrom, sombras básicas, transparência; objetos de parede em vista frontal e os de chão em três quartos. A caminha original continua sendo a terceira arte (básica), sem alteração.
+
+`tools/house_art.gd` agora **prepara essas fontes** (não redesenha os objetos): recorte de alfa, escala nearest nos canvases já usados, inclinação SLOPE=0,37 para a parede, prateleira posicionada na base para receber as lembranças em código. A régua exclui a faixa de piso isolada nas últimas oito linhas da geração. Caminhas recebem variações rosa/lilás; moldura/estrelas, matiz dourada. `big_portrait` = moldura PixelLab + hud_tiro adulto existente. `gold_frame_front.png` mantém a vista frontal para o NinePatch do cantinho.
+
+Saída: 14 objetos existentes + uma moldura frontal, `.import` gerados. Prancha de fontes `build/art/tiro14/pixellab_sources.png`, capturas finais 360×780 e comparativo em `build/screenshots/tiro14/`, todos revisados. 2.019 PNGs do Tiro verificados por SHA-256: zero alterados. Sem nova geração de cachorro, troca de canvas ou posição dos pés.
+
+## Tiro no centro — etapa 15: adereços do álbum
+
+Fontes PixelLab e manifesto de prompts/jobs/hashes: `tools/art/album_secrets_pixellab/`. Preparo reproduzível: `tools/album_secrets_art.py` (Pillow; recorte alfa, nearest, centralização). Saídas em `game/assets/sprites/ui/album/`: espuma, cenoura, meia, gotas, bola, lua, vaga-lumes, lama, chapéu de festa, bolo e chapéu de explorador; ícone do explorador em UI/icons. A primeira lama trouxe um animal e foi rejeitada, preservada como `mud_rejected.png`. Sombra e linhas de velocidade são formas desenhadas pelo preparo.
+
+O chapéu de explorador usa overlay separado de 256×216 em UI/album, sem alterar os corpos nem overlays anteriores. As fotos reutilizam as âncoras/quadros das roupas existentes e guardam a roupa do momento. Bolo e chapéu de festa aparecem durante a janela anual. Prancha e capturas 360×780: `build/test_logs/tiro15/props_board.png`, `build/screenshots/tiro15/`. Nenhum PNG do Tiro anterior foi redesenhado.
+
+Pose adicional da Pipoca: referência `dog_pipoca/rotations/east.png`, PixelLab img2img com força 60, fonte `pipoca_curled.png`; a tentativa de força 220 manteve a pose em pé e foi rejeitada. Preparo mantém 64×64 e alinha à linha dos pés original, saída `ui/album/pipoca_sleep.png`. Usada na visita e em Encostadinhos. Total desta etapa: 14 gerações, 12 fontes aceitas e duas rejeitadas documentadas. Nenhuma imagem dos corpos do Tiro foi alterada. As fotos de sono reutilizam o último quadro do clipe sleep e a arte existente do sofá/caminha como fundo.
+
+## Tiro no centro — resumo final (etapa 18, 19/10/2026)
+
+Corpos do Tiro por fase: filhote (opção 1) e jovem (opção 10) aprovados pelo Vitor, adulto intocado;
+`tiro_coat` (pelagem dinâmica, `sheen` na seda) e `silhouette` em `game/assets/shaders/`; receita em
+`tools/tiro_body_art.py`. Casa: `tools/art/house_pixellab/` + `tools/house_art.gd`; álbum:
+`tools/album_art.gd` e `tools/album_secrets_art.py`. A etapa 18 não gerou nem alterou PNG.

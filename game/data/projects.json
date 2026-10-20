@@ -14,7 +14,7 @@
         {"id": "comfort", "name": "Conforto", "items": {"fabric": 2, "braided_toy": 1}, "visual_state": "comfort"},
         {"id": "welcome", "name": "Boas-vindas", "items": {"carrot_snack": 3}, "visual_state": "welcome"}
       ],
-      "rewards": {"xp": 40},
+      "rewards": {"pillars": {"brave": 5}},
       "go": {"world": "park", "place": "bench"},
       "done_speech": "Ficou lindo! Chame o Tiro tocando no banco.",
       "interaction": {"kind": "bench", "hint": "Toque no banco para chamar o Tiro.", "go_label": "Ir ao banco"}
@@ -32,7 +32,7 @@
         {"id": "planting", "name": "Plantio", "items": {"herbs": 8, "wood": 6}, "visual_state": "planting"},
         {"id": "opening", "name": "Abertura", "items": {"strawberry_juice": 3}, "visual_state": "opening"}
       ],
-      "rewards": {"xp": 60},
+      "rewards": {"pillars": {"brave": 5}},
       "go": {"world": "village", "place": "garden"},
       "done_speech": "Que cheirinho bom! Toque no jardim para o Tiro farejar as flores.",
       "interaction": {"kind": "garden", "hint": "Toque no jardim para o Tiro farejar as plantas.", "go_label": "Ir ao jardim"}
@@ -50,7 +50,7 @@
         {"id": "basket", "name": "Cesta", "items": {"picnic_pack": 2, "cheese": 2}, "visual_state": "basket"},
         {"id": "meeting", "name": "Encontro", "items": {"carrot_snack": 4, "strawberry_pop": 4}, "visual_state": "meeting"}
       ],
-      "rewards": {"xp": 60},
+      "rewards": {"pillars": {"brave": 5}},
       "go": {"world": "park", "place": "picnic"},
       "done_speech": "A cestinha está linda! Toque na toalha para o Tiro vir ao encontro.",
       "interaction": {"kind": "picnic", "hint": "Toque na toalha para o Tiro vir ao encontro.", "go_label": "Ir à toalha"}
@@ -68,7 +68,7 @@
         {"id": "table", "name": "Mesa", "items": {"picnic_pack": 3, "apple_biscuit": 6, "cheese": 4}, "visual_state": "table"},
         {"id": "gifts", "name": "Presentes", "items": {"treat_box": 3, "braided_toy": 2}, "visual_state": "gifts"}
       ],
-      "rewards": {"xp": 100, "collections": ["community_ribbon"]},
+      "rewards": {"pillars": {"brave": 5}, "collections": ["community_ribbon"]},
       "go": {"world": "village", "place": "festival"},
       "done_speech": "Que festa linda! Toque na mesa para o Tiro comemorar com a turma.",
       "interaction": {"kind": "festival", "hint": "Toque na mesa para o Tiro comemorar.", "go_label": "Ir à festa"},

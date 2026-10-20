@@ -54,6 +54,7 @@
     },
     {
       "id": "bowl",
+      "hidden_by": ["named_bowl"],
       "action": "place:bowl",
       "sprite": "res://assets/sprites/areas/house/bowl.png",
       "pos": [215, 238]
@@ -70,11 +71,118 @@
       "id": "dog_bed",
       "action": "place:bed",
       "upgrade": "dog_bed",
+      "hidden_by": ["bed_soft", "bed_luxe"],
       "sprite": "res://assets/sprites/areas/house/dog_bed.png",
       "scale": 1.5,
       "pos": [372, 336],
       "approach": [352, 346],
       "footprint": [[350, 330], [372, 318], [394, 330], [372, 342]]
+    },
+    {
+      "id": "bed_soft",
+      "action": "place:bed",
+      "upgrade": "bed_soft",
+      "hidden_by": ["bed_luxe"],
+      "sprite": "res://assets/sprites/areas/house/bed_soft.png",
+      "scale": 1.5,
+      "pos": [372, 336],
+      "approach": [352, 346],
+      "footprint": [[350, 330], [372, 318], [394, 330], [372, 342]]
+    },
+    {
+      "id": "bed_luxe",
+      "action": "place:bed",
+      "upgrade": "bed_luxe",
+      "sprite": "res://assets/sprites/areas/house/bed_luxe.png",
+      "scale": 1.5,
+      "pos": [372, 336],
+      "approach": [352, 346],
+      "footprint": [[350, 330], [372, 318], [394, 330], [372, 342]]
+    },
+    {
+      "id": "named_bowl",
+      "action": "place:bowl",
+      "upgrade": "named_bowl",
+      "sprite": "res://assets/sprites/areas/house/named_bowl.png",
+      "pos": [215, 238]
+    },
+    {
+      "id": "arrival_box",
+      "action": "house:arrival_box",
+      "requirements": {"house": ["arrival_box"]},
+      "sprite": "res://assets/sprites/areas/house/arrival_box.png",
+      "pos": [262, 324],
+      "footprint": [[252, 324], [262, 319], [272, 324], [262, 329]]
+    },
+    {
+      "id": "laundry_basket",
+      "action": "house:laundry_basket",
+      "requirements": {"house": ["laundry_basket"]},
+      "sprite": "res://assets/sprites/areas/house/laundry_basket.png",
+      "pos": [150, 306],
+      "footprint": [[140, 306], [150, 301], [160, 306], [150, 311]]
+    },
+    {
+      "id": "toy_basket",
+      "action": "house:toy_basket",
+      "requirements": {"house": ["toy_basket"]},
+      "sprite": "res://assets/sprites/areas/house/toy_basket.png",
+      "pos": [238, 336],
+      "footprint": [[228, 336], [238, 331], [248, 336], [238, 341]]
+    },
+    {
+      "id": "paw_rug",
+      "action": "house:paw_rug",
+      "requirements": {"house": ["paw_rug"]},
+      "sprite": "res://assets/sprites/areas/house/paw_rug.png",
+      "pos": [316, 336],
+      "sort_shift": 16
+    },
+    {
+      "id": "height_chart",
+      "action": "house:height_chart",
+      "decor": "chart",
+      "requirements": {"house": ["height_chart"]},
+      "sprite": "res://assets/sprites/areas/house/height_chart.png",
+      "pos": [76, 252]
+    },
+    {
+      "id": "memory_shelf",
+      "action": "house:memory_shelf",
+      "decor": "shelf",
+      "requirements": {"house": ["memory_shelf"]},
+      "sprite": "res://assets/sprites/areas/house/memory_shelf.png",
+      "pos": [128, 198]
+    },
+    {
+      "id": "photo_wall",
+      "action": "house:photo_wall",
+      "decor": "wall",
+      "requirements": {"house": ["photo_wall"]},
+      "sprite": "res://assets/sprites/areas/house/photo_wall.png",
+      "pos": [88, 140]
+    },
+    {
+      "id": "gold_frame",
+      "action": "house:gold_frame",
+      "decor": "frame",
+      "requirements": {"house": ["gold_frame"]},
+      "sprite": "res://assets/sprites/areas/house/gold_frame.png",
+      "pos": [146, 150]
+    },
+    {
+      "id": "big_portrait",
+      "action": "house:big_portrait",
+      "requirements": {"house": ["big_portrait"]},
+      "sprite": "res://assets/sprites/areas/house/big_portrait.png",
+      "pos": [38, 208]
+    },
+    {
+      "id": "star_garland",
+      "action": "house:star_garland",
+      "requirements": {"house": ["star_garland"]},
+      "sprite": "res://assets/sprites/areas/house/star_garland.png",
+      "pos": [118, 98]
     },
     {
       "id": "blender",
@@ -101,6 +209,8 @@
   ],
   "points": {
     "dog_start": [330, 310],
+    "box_sleep": [262, 318],
+    "box_approach": [282, 332],
     "npc_lais": [255, 262],
     "door_in": [212, 236],
     "bowl": [190, 238],

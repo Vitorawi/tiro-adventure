@@ -15,6 +15,8 @@ var updated_at: float = 0.0
 ## Início da ausência contínua em curso (Unix; 0 = online). Salvo, para a proteção valer após recarregar.
 var away_since: float = 0.0
 var sleeping: bool = false
+## Bônus da caminha (0,1 / 0,2): multiplica só a recuperação de energia dormindo. Não é salvo (vem da Casa).
+var sleep_bonus: float = 0.0
 var affection: int = 0
 var outfit: Dictionary = {}  # slot -> item_id (customização, futuro)
 
@@ -44,7 +46,7 @@ func _online(id: String, value: float, hours: float) -> float:
 	var config: Dictionary = Database.needs.get(id, {})
 	var rate := -float(config.get("decay_per_hour", 0.0))
 	if sleeping and config.has("sleep_regen_per_hour"):
-		rate = float(config["sleep_regen_per_hour"])
+		rate = float(config["sleep_regen_per_hour"]) * (1.0 + sleep_bonus if id == "energy" else 1.0)
 	return clampf(value + rate * hours, 0.0, 100.0)
 
 
@@ -54,7 +56,7 @@ func _online(id: String, value: float, hours: float) -> float:
 func _offline(id: String, value: float, from: float, to: float) -> float:
 	var config: Dictionary = Database.needs.get(id, {})
 	if sleeping and config.has("sleep_regen_per_hour"):
-		return clampf(value + float(config["sleep_regen_per_hour"]) * (to - from) / 3600.0, 0.0, 100.0)
+		return clampf(value + float(config["sleep_regen_per_hour"]) * (1.0 + sleep_bonus if id == "energy" else 1.0) * (to - from) / 3600.0, 0.0, 100.0)
 	var cap := float(Database.offline.get("max_hours", 8.0)) * 3600.0
 	var protected := maxf(0.0, minf(to - away_since, cap) - minf(from - away_since, cap)) / 3600.0
 	var floor_value := float(config.get("offline_floor", 0.0))

@@ -299,7 +299,7 @@ func _run() -> void:
 	chain.queue_free()
 	var skills: Control = load("res://scripts/ui/progression_ui.gd").call("skills_panel")
 	root.add_child(skills)
-	check(skills.find_child("NatureSkill_rocks", true, false) != null, "Caverna aparece nos atributos do Tiro")
+	check(skills.name == "GrowthPanel", "antigo painel de atributos abre Crescimento; níveis locais continuam no painel da Natureza")
 	skills.queue_free()
 	main.queue_free()
 	await process_frame

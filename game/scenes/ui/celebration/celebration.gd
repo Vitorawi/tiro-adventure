@@ -22,14 +22,6 @@ func show_chapter(index: int, unlocks: Array[String]) -> void:
 
 
 ## Subiu de nível: o presente já entrou; o botão só fecha.
-func show_level(level: int, rewards: Dictionary) -> void:
-	var card := _open({"title": "Nível %d!" % level, "ribbon": Palette.GOLD, "icon": UiKit.ui_icon("xp"),
-		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "big"})
-	card.add_chips(ProgressionUi.reward_chips(rewards))
-	card.add_primary("Oba!", hide)
-	show()
-
-
 ## Obra comunitária concluída: o prêmio já entrou (itens sem espaço ficaram em "Presentes para guardar").
 func show_project(id: String) -> void:
 	var def := Database.project(id)
@@ -37,8 +29,6 @@ func show_project(id: String) -> void:
 		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "big"})
 	card.add_text(str(def.get("name", "")), &"SectionLabel")
 	var chips := ProgressionUi.reward_chips(def.get("rewards", {}))
-	if int(def.get("rewards", {}).get("xp", 0)) > 0:
-		chips.add_child(UiKit.chip(UiKit.ui_icon("xp"), "+%d" % int(def.rewards.xp)))
 	# A coleção já entrou no prêmio: o cartão a mostra pelo nome (lembrança da obra, sem ocupar baú).
 	for collection: String in def.get("rewards", {}).get("collections", []):
 		chips.add_child(UiKit.chip(UiKit.ui_icon(str(Database.collections.get(collection, {}).get("icon", "item_accessory_set"))), str(Database.collections.get(collection, {}).get("name", collection))))
@@ -53,6 +43,17 @@ func show_bond(level: int, rewards: Dictionary) -> void:
 	var card := _open({"title": "Vínculo %d!" % level, "ribbon": Palette.ACCENT, "icon": UiKit.ui_icon("bond_heart"),
 		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "success"})
 	card.add_chips(ProgressionUi.reward_chips(rewards))
+	card.add_primary("Oba!", hide)
+	show()
+
+
+## Pelagem de seda: cartão curto; confete só a partir do nível II. O presente já entrou.
+func show_silk(level: int) -> void:
+	var def: Dictionary = Database.growth.silk.levels[level - 1]
+	var card := _open({"title": "Mais brilho!", "ribbon": Palette.GOLD, "icon": load(str(Database.growth.bodies.adult.portrait)),
+		"scroll_name": "CelebrationScroll", "confetti": level > 1, "haptic": "success"})
+	card.add_text(str(def.name), &"SectionLabel")
+	card.add_chips(ProgressionUi.reward_chips(def.get("rewards", {})))
 	card.add_primary("Oba!", hide)
 	show()
 

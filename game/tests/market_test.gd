@@ -133,6 +133,8 @@ func _merchant_missions() -> void:
 func _final_contract_production() -> void:
 	state.call("reset")
 	state.call("dev_unlock_everything")
+	# A caixa de petiscos exige Aventureiro desde a etapa 07.
+	state.call("dev_set_phase", "explorer")
 	state.set("level", 30)
 	state.get("inventory").from_dict({})
 	for item: String in db.get("progression").orders.festival_contract.inputs:

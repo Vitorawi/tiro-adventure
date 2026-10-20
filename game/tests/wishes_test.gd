@@ -67,7 +67,8 @@ func _run() -> void:
 
 	# Depois: 1 espaço; o primeiro é carinho.
 	state.call("dev_complete_quest", "lais_bed")
-	check(progress.feature_unlocked("wishes"), "aba liberada com a caminha")
+	state.call("dev_set_phase", "puppy")
+	check(progress.feature_unlocked("wishes"), "aba liberada com caminha e Filhotinho")
 	check("feature:wishes" in state.call("new_unlocks"), "Desejos entra no anúncio Novo!")
 	check(state.call("wish_slot_open", 0) and not state.call("wish_slot_open", 1), "só o 1º espaço está aberto")
 	check(slot(0).id == "pet", "primeiro desejo = carinho (%s)" % slot(0).id)
@@ -160,6 +161,7 @@ func _run() -> void:
 	# Vínculo: 2º espaço com vínculo 2; sem repetir desejo; presente de nível uma vez.
 	state.call("reset")
 	state.call("dev_complete_quest", "lais_bed")
+	state.call("dev_set_phase", "puppy")
 	bond_events.clear()
 	state.get("dog").affection = 0
 	state.get("progress").claimed_bond_level = 1
@@ -206,6 +208,7 @@ func _run() -> void:
 	check(database.get("collections").has("heart_collar"), "coleira de coração na coleção")
 	state.call("reset")
 	state.call("dev_complete_quest", "lais_bed")
+	state.call("dev_set_phase", "puppy")
 	for n in 3:
 		state.call("pet")
 	var kinds: Array = []
@@ -223,6 +226,7 @@ func _ui_checks() -> void:
 	Motion.reduced = true
 	state.call("reset")
 	state.call("dev_complete_quest", "lais_bed")
+	state.call("dev_set_phase", "puppy")
 	state.get("progress").seen["intro"] = true
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)

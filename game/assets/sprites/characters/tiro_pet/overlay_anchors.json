@@ -24,5 +24,377 @@
     "lick_paw",
     "sleep",
     "head_tilt"
-  ]
+  ],
+  "bodies": {
+    "young": {
+      "idle_breathe": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "wag_excited": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "head_tilt": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "look_around": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "yawn": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "sad": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "pet_head": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "pet_paw": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "eat": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "sniff": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "lick_paw": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "scratch": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "bark": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "give_paw": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "shake_off": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      },
+      "sleep": {
+        "head": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "neck": {
+          "offset": [
+            0,
+            0
+          ],
+          "scale": 1.0
+        },
+        "body": {
+          "offset": [
+            6,
+            8
+          ],
+          "scale": 0.94
+        }
+      }
+    }
+  }
 }

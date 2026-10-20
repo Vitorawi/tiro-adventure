@@ -31,6 +31,8 @@ static func open(world_id: String, place_id: String, from_object: bool = false) 
 	var kind := panel.get_slice(":", 0)
 	var arg := panel.get_slice(":", 1) if ":" in panel else ""
 	match kind:
+		"house":
+			Events.sheet_requested.emit(place.name, HouseUi.bed() if arg == "bed" else HouseUi.wall())
 		"travel":
 			Events.sheet_close_requested.emit()
 			Events.world_requested.emit(arg, "")
@@ -186,7 +188,9 @@ static func npc_badge(npc_id: String) -> String:
 ## Ações das salas e dos botões "Ir": "place:<id>" | "npc:<id>" | "buy:<construção>" |
 ## "market:<aba>" | foco direto em "recipe:", "route:", "order:" ou "crop:" <id>.
 static func run(world_id: String, action: String) -> void:
-	if action.begins_with("friend_visit:"):
+	if action == "growth":
+		GrowthUi.open()
+	elif action.begins_with("friend_visit:"):
 		var reason := GameState.collect_friend_visit(action.trim_prefix("friend_visit:"))
 		if reason != "":
 			Events.toast_requested.emit(reason)
@@ -312,6 +316,8 @@ static func unlock_view(key: String) -> Dictionary:
 	var kind := key.get_slice(":", 0)
 	var id := key.get_slice(":", 1)
 	match kind:
+		"personality":
+			return {"icon": UiKit.ui_icon("tab_pet"), "name": Database.growth.personality.unlock, "target": {"growth": true}}
 		"feature":
 			var feature: Dictionary = Database.progression.features.get(id, {})
 			return {"icon": UiKit.ui_icon(feature.get("icon", "")), "name": feature.get("name", id), "target": feature.get("go", {})}
@@ -432,6 +438,8 @@ static func world_alerts(world_id: String) -> PackedStringArray:
 static func goal_target(goal: Dictionary) -> Dictionary:
 	var key: String = goal.get("key", "")
 	match str(goal.get("type", "")):
+		"growth_req": return TaskHelp.describe("growth_req", key).target
+		"growth": return {"growth": true, "hint": "Tiro → Crescimento"}
 		"owned":
 			if Database.progression.upgrades.has(key):
 				# Compra/construção: vai ao "+" do objeto (seta) e abre a compra com o que é preciso ter.
@@ -515,7 +523,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				return goal_target({"type": "owned", "key": next if next != "" else "silo"})
 			if key == "wish" or key.begins_with("wish:"):
 				return {"screen": "wishes", "hint": "Desejos do Tiro"}
-			if key in ["bathe", "play", "pet", "care_useful"] or key.begins_with("care_useful:"):
+			if key in ["bathe", "shampoo_bath", "play", "pet", "care_useful"] or key.begins_with("care_useful:"):
 				return {"screen": "pet", "hint": "Tiro → cuidar e brincar"}
 			if key == "explore":
 				return _panel_target("routes:walk")
@@ -558,7 +566,7 @@ static func quest_target(id: String) -> Dictionary:
 ## "Onde": [ícone do mundo] › [ícone do lugar] Nome. Aba Tiro: [Tiro]. null se não houver lugar.
 static func target_view(target: Dictionary) -> HBoxContainer:
 	var row := UiKit.hbox(6)
-	if target.get("screen", "") == "pet":
+	if target.get("screen", "") == "pet" or target.has("growth"):
 		row.add_child(UiKit.icon(UiKit.ui_icon("tab_pet"), 32))
 		row.add_child(UiKit.fill_label("Tiro", &"SmallLabel"))
 		return row
@@ -596,7 +604,9 @@ static func target_view(target: Dictionary) -> HBoxContainer:
 
 static func go(target: Dictionary) -> void:
 	Events.sheet_close_requested.emit()
-	if target.has("screen"):
+	if target.has("growth"):
+		GrowthUi.open()
+	elif target.has("screen"):
 		Events.screen_requested.emit(StringName(target.screen))
 		if bool(target.get("collection", false)):
 			Events.sheet_requested.emit("Coleção", ProgressionUi.collection_panel())

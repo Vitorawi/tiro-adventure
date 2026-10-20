@@ -290,6 +290,8 @@ func _build_navigation() -> void:
 				continue
 			if data.has("hide_seen") and GameState.progress.seen.get(data.hide_seen, false):
 				continue
+			if _replaced(data.get("hidden_by", [])):
+				continue
 			if data.has("project") and GameState.project_visual(data.project) == "":
 				continue
 			blocked.append(_polygon(data["footprint"]))
@@ -340,6 +342,19 @@ func _spawn_objects() -> void:
 		sprite.centered = false
 		sprite.offset = -Vector2(sprite.texture.get_width() / 2.0, sprite.texture.get_height())
 		sprite.position = _vec(data["pos"])
+		# Tapete e afins ficam no chão, mas ordenam como se estivessem mais ao fundo (o Tiro passa por cima).
+		var sort_shift := float(data.get("sort_shift", 0.0))
+		if sort_shift != 0.0:
+			sprite.position.y -= sort_shift
+			sprite.offset.y += sort_shift
+		if data.has("hidden_by"):
+			sprite.set_meta("hidden_by", data.hidden_by)
+		if data.has("decor"):
+			var decor := HouseDecor.new()
+			decor.name = "Decor"
+			decor.kind = str(data.decor)
+			decor.size = sprite.texture.get_size()
+			sprite.add_child(decor)
 		# Objetos apoiados em móveis podem ficar acima das fatias do cenário.
 		sprite.z_index = int(data.get("z_index", 0))
 		sprite.scale = Vector2.ONE * float(data.get("scale", 1.0))
@@ -442,6 +457,10 @@ func _animate_objects() -> void:
 	for indicator: RouteIndicator in _route_markers:
 		indicator.refresh()
 	for sprite in _objects:
+		var hint_id := "plot" if sprite.has_meta("plot") else str(sprite.name)
+		var glowing := sprite.visible and GameState.album_hint_glow(hint_id)
+		var opacity := sprite.self_modulate.a
+		sprite.self_modulate = Color(1.12, 1.09, 1.0, opacity) if glowing and (Motion.reduced or _object_frame % 12 < 6) else Color(1, 1, 1, opacity)
 		if sprite.has_node("RouteIndicator"):
 			(sprite.get_node("RouteIndicator") as RouteIndicator).refresh()
 		if sprite.has_meta("idle_offset"):
@@ -490,6 +509,14 @@ func _update_plot(sprite: Sprite2D) -> void:
 	(sprite.get_node("Indicator") as PlotIndicator).refresh()
 
 
+## Algum dos upgrades de `hidden_by` já foi comprado? (objeto substituído por outro melhor)
+func _replaced(upgrades: Array) -> bool:
+	for id: Variant in upgrades:
+		if GameState.has_upgrade(str(id)):
+			return true
+	return false
+
+
 func _refresh_ownership() -> void:
 	_sync_dog()
 	for npc: NpcWorld in _npcs:
@@ -505,6 +532,8 @@ func _refresh_ownership() -> void:
 	_region_open_snapshot = opened
 	_quests_snapshot = GameState.progress.claimed_quests.size()
 	for sprite: Sprite2D in _objects:
+		if sprite.has_meta("hidden_by"):
+			sprite.visible = not _replaced(sprite.get_meta("hidden_by"))  # a caminha/tigela nova toma o lugar
 		if sprite.has_meta("upgrade"):
 			var purchased := GameState.has_upgrade(sprite.get_meta("upgrade"))
 			sprite.self_modulate.a = 1.0 if purchased else 0.0
@@ -553,10 +582,29 @@ func refresh_sleep_points() -> void:
 	if _dog == null:
 		return
 	var points: Dictionary = _room.get("points", {})
-	if GameState.has_upgrade("dog_bed") and points.has("bed_sleep") and points.has("bed_approach"):
+	if world_id == "house":
+		var cake := _world.get_node_or_null("PartyCake") as Sprite2D
+		if cake == null and GameState.tiro_party():
+			cake = Sprite2D.new()
+			cake.name = "PartyCake"
+			cake.texture = load("res://assets/sprites/ui/album/prop_cake.png")
+			cake.position = _point("bowl") + Vector2(28, -16)
+			_world.add_child(cake)
+		if cake: cake.visible = GameState.tiro_party()
+	if GameState.dog.sleeping and GameState.album_sleep_spot == "sofa" and points.has("sleep"):
+		_dog.sleep_spot = "sofa"
+		_dog.sleep_point = _point("sleep")
+		_dog.sleep_approach = _point("sleep_approach")
+	elif GameState.has_upgrade("dog_bed") and points.has("bed_sleep") and points.has("bed_approach"):
+		_dog.sleep_spot = "bed"
 		_dog.sleep_point = _point("bed_sleep")
 		_dog.sleep_approach = _point("bed_approach")
+	elif world_id == "house" and not GameState.has_upgrade("dog_bed"):
+		_dog.sleep_spot = "box"
+		_dog.sleep_point = _point("box_sleep")
+		_dog.sleep_approach = _point("box_approach")
 	elif points.has("sleep") and points.has("sleep_approach"):
+		_dog.sleep_spot = "sofa" if GameState.has_upgrade("sofa") else "floor"
 		_dog.sleep_approach = _point("sleep_approach")
 		_dog.sleep_point = _point("sleep") if GameState.has_upgrade("sofa") else _point("sleep_approach")
 
@@ -1117,6 +1165,7 @@ func _handle_tap(point: Vector2) -> bool:
 				Places.run(world_id, "npc:" + npc.npc_id)
 			return true
 	if _dog and _dog.hit_test(point):
+		GameState.note_dog_tapped(world_id)
 		Events.screen_requested.emit(&"wishes" if _dog.has_balloon() else &"pet")
 		return true
 	# Do mais à frente (maior Y) para o mais ao fundo.
@@ -1652,6 +1701,7 @@ func _refresh_gated() -> void:
 		return
 	_gated_snapshot = states
 	_build_navigation()
+	refresh_sleep_points()
 
 
 ## Obras comunitárias: mostram a marcação do lugar, o desenho da última fase entregue ou a obra pronta,
@@ -1745,6 +1795,11 @@ func _collect_walk() -> void:
 
 ## `target` é o sprite tocado (quando houver), para ações que dependem dele (canteiros).
 func _on_object_tapped(action: String, target: Node = null) -> void:
+	var album_object := action.get_slice(":", 1) if ":" in action else action
+	if target != null and target.has_meta("house_item"): album_object = str(target.get_meta("house_item"))
+	GameState.note_object_tapped(album_object, world_id)
+	if action == "place:sofa" and GameState.has_upgrade("sofa"):
+		GameState.set_sleeping(true, "sofa")
 	if target is Sprite2D and target.has_meta("project") and GameState.project_completed(target.get_meta("project")):
 		_use_project(target)
 		return
@@ -1780,6 +1835,8 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 		"treasure":
 			if target is Sprite2D:
 				_open_treasure(target)
+		_ when action.begins_with("house:"):
+			HouseUi.open(action.trim_prefix("house:"))
 		_:
 			if target is Sprite2D:
 				_lift_for_sheet(target)

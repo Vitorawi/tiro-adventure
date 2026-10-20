@@ -99,7 +99,7 @@ func _data_check() -> void:
 	var picnic: Dictionary = database.project(PICNIC)
 	check(int(garden.start_coins) == 250 and int(picnic.start_coins) == 250, "entrada 250 moedas nas duas")
 	check(garden.requirements == {"projects": [BENCH]} and picnic.requirements == {"projects": [BENCH]}, "só exigem o banco (um não exige o outro)")
-	check(int(garden.rewards.xp) == 60 and int(picnic.rewards.xp) == 60 and garden.rewards.size() == 1 and picnic.rewards.size() == 1, "prêmio: só XP 60")
+	check(int(garden.rewards.pillars.brave) == 5 and int(picnic.rewards.pillars.brave) == 5 and garden.rewards.size() == 1 and picnic.rewards.size() == 1, "prêmio: Coragem 5")
 	var g: Array = garden.phases
 	check(g.size() == 3 and g[0].id == "beds" and g[1].id == "planting" and g[2].id == "opening", "fases do jardim")
 	check(_ints(g[0].items) == {"plank": 4, "brick": 4} and _ints(g[1].items) == {"herbs": 8, "wood": 6} and _ints(g[2].items) == {"strawberry_juice": 3}, "material do jardim (tabela 07 E)")
@@ -163,7 +163,7 @@ func _both_orders() -> void:
 		_fresh()
 		_bench_done()
 		completed_events.clear()
-		var xp_before := int(state.get("xp")) + int(state.get("level")) * 100000
+		var brave_before := int(state.get("progress").stat("pillar:brave"))
 		for id: String in order:
 			state.set("coins", 250)
 			check(state.call("start_project", id) == "", "%s começa (ordem %s)" % [id, str(order)])
@@ -172,7 +172,7 @@ func _both_orders() -> void:
 			check(state.call("project_completed", id), id + " concluída")
 			check(int(state.get("coins")) == 0, id + ": prêmio não devolve a entrada")
 		check(completed_events == [order[0], order[1]], "conclusões consecutivas em ordem: %s" % str(completed_events))
-		check(int(state.get("xp")) + int(state.get("level")) * 100000 > xp_before, "XP dos dois prêmios entrou")
+		check(int(state.get("progress").stat("pillar:brave")) > brave_before, "Coragem dos dois prêmios entrou")
 		check(state.call("project_visual", GARDEN) == "opening" and state.call("project_visual", PICNIC) == "meeting", "cenas finais permanentes")
 		_reload()
 		check(state.call("project_completed", GARDEN) and state.call("project_completed", PICNIC), "reload preserva as duas conclusões")

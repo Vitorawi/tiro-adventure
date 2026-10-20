@@ -39,6 +39,7 @@ func _run() -> void:
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_silo", "Depois do faro a vovó manda arrumar o silo (ordem 27)")
 	state.call("dev_complete_quest", "bloblo_silo")
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_more_crops", "Passo da vovó é o atual")
+	state.call("dev_complete_quest", "growth_1_puppy")  # o capítulo 1 só fecha com o Tiro crescendo
 	check(state.get("progress").current_main_quest() == "lais_first_crops", "Conhecer a vovó já avança a história junto")
 	check(state.get("progress").claimed_quests.has("lais_meet_bloblo") and not state.call("quest_unlocked", "lais_meet_bloblo"), "Cruzamento não exige outro prêmio")
 	var fresh: Dictionary = database.get("quests").bloblo_more_crops.goals[0]
@@ -67,6 +68,7 @@ func _run() -> void:
 			match str(goal.type):
 				"stat": state.get("progress").stats[goal.key] = int(goal.get("target", 1))
 				"owned": state.get("progress").owned[goal.key] = true
+				"growth": state.call("dev_set_phase", str(goal.key))
 		var before_reward: int = state.get("coins")
 		check(state.call("claim_quest", id) == "", "Receber passo " + id)
 		var expected: int = int(database.get("quests")[id].rewards.get("coins", 0))
@@ -211,9 +213,9 @@ func _ui_check() -> void:
 	await create_timer(0.3).timeout
 	_shot("tasks_help")
 	events.emit_signal("sheet_close_requested")
-	events.emit_signal("sheet_requested", "Atributos", ui.call("skills_panel"))
+	events.emit_signal("sheet_requested", "Crescimento", ui.call("skills_panel"))
 	await create_timer(0.3).timeout
-	_shot("tasks_skills")
+	_shot("tasks_growth")
 	events.emit_signal("sheet_close_requested")
 	events.emit_signal("sheet_requested", "Coleção", ui.call("collection_panel"))
 	await create_timer(0.3).timeout
@@ -288,7 +290,7 @@ func _shared_quests_check() -> void:
 		var old: Dictionary = state.call("to_dict").duplicate(true)
 		check(state.call("claim_quest", shared) == "", "entrega única: " + shared)
 		var chapter_reward := 0
-		if alias in ["lais_first_crops", "lais_stew"]:
+		if alias == "lais_first_crops":  # lais_stew deixou de fechar o capítulo 3 (depois vêm os dentinhos)
 			chapter_reward = int(database.get("progression").chapters[int(quests[alias].chapter) - 1].get("rewards", {}).get("coins", 0))
 		check(progress.claimed_quests.has(alias), "história avança junto: " + alias)
 		check(state.get("coins") == before + int(quests[shared].rewards.get("coins", 0)) + chapter_reward, "só prêmio canônico e eventual capítulo")

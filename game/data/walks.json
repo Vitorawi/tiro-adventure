@@ -83,7 +83,7 @@
       "postcard": "creek_walk.png",
       "seconds": 1200,
       "energy": 15,
-      "requirements": {"bond": 3, "owned": ["forest_open"]},
+      "requirements": {"growth": "explorer", "bond": 3, "owned": ["forest_open"]},
       "needs": {"happiness": 30, "hygiene": -20},
       "rewards": {"coins": 22, "affection": 6, "skill_xp": {"adventure": 16}},
       "loot": {
@@ -106,7 +106,7 @@
       "postcard": "bird_clearing.png",
       "seconds": 1800,
       "energy": 18,
-      "requirements": {"stats": {"walk": 15}, "bond": 4},
+      "requirements": {"growth": "explorer", "stats": {"walk": 15}, "bond": 4},
       "needs": {"happiness": 35, "hygiene": -20},
       "rewards": {"coins": 30, "affection": 7, "skill_xp": {"adventure": 20}},
       "loot": {
@@ -129,7 +129,7 @@
       "postcard": "hill_view.png",
       "seconds": 3600,
       "energy": 25,
-      "requirements": {"stats": {"walk": 25}, "bond": 5},
+      "requirements": {"growth": "explorer", "stats": {"walk": 25}, "bond": 5},
       "needs": {"happiness": 40, "hygiene": -25},
       "rewards": {"coins": 50, "affection": 8, "skill_xp": {"adventure": 30}},
       "loot": {

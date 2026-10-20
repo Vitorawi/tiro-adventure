@@ -46,6 +46,13 @@ func _progress() -> Variant:
 
 func _dev_mode() -> void:
 	state.call("reset")
+	state.call("dev_add_pillar", "body", 30)
+	_check(state.get("growth").points.body == 10 and state.get("growth").reserve.body == 20, "DEV soma pilar com teto e reserva")
+	state.call("dev_complete_growth_reqs")
+	_check(state.call("growth_info").ready, "DEV completa requisitos")
+	state.call("dev_set_phase", "young")
+	_check(state.get("growth").phase == "young", "DEV muda fase")
+	state.call("reset")
 	state.call("dev_complete_main_step")
 	_check(_progress().claimed_quests.has("welcome") and _progress().current_main_quest() == "lais_feed", "Concluir passo DEV avança apenas um passo")
 	state.call("reset")
@@ -107,6 +114,13 @@ func _dev_mode() -> void:
 
 func _prod_mode() -> void:
 	state.call("reset")
+	var growth_before: Dictionary = state.get("growth").to_dict()
+	state.call("dev_set_phase", "adult")
+	state.call("dev_add_pillar", "body", 100)
+	state.call("dev_complete_growth_reqs")
+	_check(state.get("growth").to_dict() == growth_before, "Prod bloqueia todas as ferramentas de crescimento")
+	state.call("dev_take_photo", "f_bath")
+	_check(state.call("photo_count") == 0, "Prod não tira foto pelo DEV")
 	var training: Control = load("res://scenes/ui/trick_training/trick_training.tscn").instantiate()
 	training.set("marker", 0.1)
 	training.call("dev_force_marker", 0.9)

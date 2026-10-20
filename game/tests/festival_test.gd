@@ -118,7 +118,7 @@ func _data_check() -> void:
 	var ph: Array = def.phases
 	check(ph.size() == 3 and ph[0].id == "decorate" and ph[1].id == "table" and ph[2].id == "gifts", "fases decorate/table/gifts")
 	check(_ints(ph[0].items) == {"fabric": 4, "plank": 6, "accessory_set": 2} and _ints(ph[1].items) == {"picnic_pack": 3, "apple_biscuit": 6, "cheese": 4} and _ints(ph[2].items) == {"treat_box": 3, "braided_toy": 2}, "material (tabela 07 E)")
-	check(int(def.rewards.xp) == 100 and def.rewards.collections == [RIBBON] and def.rewards.size() == 2, "prêmio: XP 100 + coleção, sem moedas")
+	check(int(def.rewards.pillars.brave) == 5 and def.rewards.collections == [RIBBON] and def.rewards.size() == 2, "prêmio: Coragem 5 + coleção, sem moedas")
 	check(def.interaction.kind == "festival" and str(def.interaction.go_label) != "" and str(def.done_speech) != "", "interação própria")
 	check(ResourceLoader.exists("res://assets/sprites/ui/icons/%s.png" % def.icon), "ícone da festa")
 	for phase: Dictionary in ph:
@@ -171,12 +171,12 @@ func _rewards_and_ribbon() -> void:
 	state.set("coins", 600)
 	state.call("start_project", FEST)
 	var coins_after_fee: int = state.get("coins")
-	var xp_before: int = state.get("xp")
+	var brave_before := int(state.get("progress").stat("pillar:brave"))
 	check(not _progress().collection.has(RIBBON), "lenço ainda não existe")
 	_give_all(FEST)
 	check(_progress().collection.has(RIBBON), "festa entrega o lenço da turma")
 	check(state.get("coins") == coins_after_fee, "festa não paga moedas")
-	check(int(state.get("xp")) > xp_before, "festa paga XP")
+	check(int(state.get("progress").stat("pillar:brave")) > brave_before, "festa paga Coragem")
 	check(str(state.call("equip_error", RIBBON)) == "", "lenço pode ser vestido (overlay pronto)")
 	check(state.call("equip", RIBBON) == "" and _progress().equipped.neck == RIBBON, "lenço vai ao pescoço")
 	check(state.call("unequip", "neck") == "" and _progress().equipped.neck == "", "e sai")
@@ -204,7 +204,7 @@ func _story() -> void:
 	for id: String in database.quests:
 		if database.quests[id].get("kind", "side") == "main":
 			main_count += 1
-	check(main_count == 40 and database.progression.chapters.size() == 12, "40 principais (31 + 9) e 12 capítulos: %d / %d" % [main_count, database.progression.chapters.size()])
+	check(main_count == 49 and database.progression.chapters.size() == 12, "49 principais (31 + 9 da festa + 9 do crescimento) e 12 capítulos: %d / %d" % [main_count, database.progression.chapters.size()])
 	for id: String in NEW_QUESTS:
 		check(database.quests.has(id) and database.quests[id].kind == "main", id + " existe")
 	var order := {"community_10_meet": [10, 10], "community_10_bench": [10, 20], "community_10_use": [10, 30], "community_11_garden": [11, 10], "community_11_picnic": [11, 20], "community_11_tiro": [11, 30], "community_12_prepare": [12, 10], "community_12_festival": [12, 20], "community_12_memory": [12, 30]}
@@ -213,7 +213,10 @@ func _story() -> void:
 	var affection := {"community_10_use": 5, "community_11_tiro": 5, "community_12_memory": 10}
 	for id: String in NEW_QUESTS:
 		var rewards: Dictionary = database.quests[id].rewards
-		check(rewards.size() == (1 if affection.has(id) else 0) and int(rewards.get("affection", 0)) == int(affection.get(id, 0)), id + ": só o afeto previsto")
+		# A etapa 10 do plano Tiro soma a medalhinha de coragem à lembrança da festa.
+		var extra := 1 if id == "community_12_memory" else 0
+		check(rewards.size() == (1 if affection.has(id) else 0) + extra and int(rewards.get("affection", 0)) == int(affection.get(id, 0)), id + ": só o afeto previsto")
+		if extra == 1: check(rewards.items.size() == 1 and int(rewards.items.get("courage_medal", 0)) == 1, id + ": só a medalhinha")
 	check(int(database.progression.chapters[9].rewards.coins) == 30 and int(database.progression.chapters[10].rewards.coins) == 40 and int(database.progression.chapters[11].rewards.coins) == 60, "capítulos 10/11/12 pagam 30/40/60")
 	check(database.quests.community_12_festival.goals[0].type == "project" and database.quests.community_12_festival.goals[0].key == FEST, "objetivo da festa é o projeto")
 	check(database.quests.community_10_meet.goals[0].fresh == true and database.quests.community_12_prepare.goals[0].fresh == true, "só as duas conversas pedem toque novo")
@@ -261,6 +264,9 @@ func _story() -> void:
 	check(_progress().current_main_quest() == "community_12_memory", "falta só o uso")
 	state.call("use_project", FEST)
 	_claim("community_12_memory")
+	check(_progress().current_main_quest() == "growth_12_adult", "depois da festa só falta crescer (etapa 11)")
+	state.get("growth").phase = "adult"
+	_claim("growth_12_adult")
 	check(chapters_done == [10, 11, 12] and _progress().chapter_index() == 13 and _progress().current_main_quest() == "", "história completa: capítulos 10, 11 e 12")
 	check(str(_progress().current_chapter().name) == str(database.progression.final_chapter.name), "depois do 12 vale o capítulo final")
 	_reload()
@@ -294,9 +300,9 @@ func _legacy() -> void:
 	state.call("talk_to", "lais")
 	for id: String in ["community_10_meet", "community_10_bench", "community_10_use", "community_11_garden", "community_11_picnic", "community_11_tiro"]:
 		_claim(id)
-	# As missões não pagam moedas; o resto do saldo é o presente de nível que o XP das missões abre.
+	# As conversas também atingem vínculo 2 (10 moedas); XP não paga presentes.
 	check(state.get("economy").granted.has("chapter:10") and state.get("economy").granted.has("chapter:11") and not state.get("economy").granted.has("chapter:12"), "pagou só os capítulos 10 e 11")
-	check(state.get("coins") >= coins + 30 + 40 and state.get("coins") <= coins + 30 + 40 + 20, "capítulos 30 + 40 (+ presente de nível): %d -> %d" % [coins, state.get("coins")])
+	check(state.get("economy").granted.has("bond:2") and state.get("coins") == coins + 30 + 40 + 10, "capítulos 30 + 40 e vínculo 10, sem presente de nível: %d -> %d" % [coins, state.get("coins")])
 	check(_item_total() == items, "nada de material novo")
 	check(_progress().current_main_quest() == "community_12_prepare", "e segue para a festa")
 	# Uso nunca feito: não conta.

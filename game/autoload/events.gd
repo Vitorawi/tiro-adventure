@@ -67,3 +67,14 @@ signal plot_tray_requested(crop_id: String, plot_index: int)
 signal update_available
 
 @warning_ignore_restore("unused_signal")
+
+# Crescimento do Tiro (fases e ganhos dos quatro atributos).
+signal grew(phase: String)
+signal growth_ready(phase: String)
+signal silk_up(level: int)
+signal growth_requirement_done(phase: String, req_id: String)
+signal taste_discovered(item: String, reaction: String)
+signal taste_reacted(item: String, reaction: String)
+signal pillar_gained(pillar: String, points: int, level_up: bool)
+signal photo_taken(id: String)
+signal house_item_arrived(id: String)

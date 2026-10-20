@@ -84,8 +84,19 @@
   "explorer_hat": {
     "name": "Chapéu de explorador",
     "slot": "head",
-    "icon": "tab_map",
-    "sprite": ""
+    "icon": "outfit_explorer_hat",
+    "sprite": "",
+    "overlay": "res://assets/sprites/ui/album/explorer_hat_overlay.png",
+    "show_in": [
+      "idle_breathe",
+      "head_tilt",
+      "look_around",
+      "wag_excited",
+      "shake_off",
+      "sniff",
+      "bark",
+      "eat"
+    ]
   },
   "plaid_bow": {
     "name": "Laço xadrez",
@@ -195,6 +206,13 @@
     "shop": "petshop",
     "icon": "outfit_rain_coat",
     "overlay": "res://assets/sprites/characters/tiro_pet/overlays/rain_coat.png"
+  },
+  "topknot_bow": {
+    "name": "Lacinho do topete",
+    "slot": "head",
+    "recipe": "sew_topknot_bow",
+    "icon": "outfit_topknot_bow",
+    "overlay": "res://assets/sprites/characters/tiro_pet/overlays/topknot_bow.png"
   },
   "flower_crown": {
     "name": "Coroa de flores",

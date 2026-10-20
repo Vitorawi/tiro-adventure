@@ -1,9 +1,10 @@
 # Roda um teste headless do Godot com tempo máximo (mata o processo se travar) e guarda o log.
-#   powershell -ExecutionPolicy Bypass -File tools\run_godot_test.ps1 economy_sim_test [-TimeoutMin 10] [-Log build\economy\etapa_01\x.log]
+#   powershell -ExecutionPolicy Bypass -File tools\run_godot_test.ps1 economy_sim_test [-TimeoutMin 5] [-Log build\economy\etapa_01\x.log]
 # Útil quando o script pode travar (o Godot não encerra sozinho se o script não chamar quit()).
+# Tempo máximo padrão: 5 min. Estourou = "TEMPO ESGOTADO" e código 124 (nunca PASS).
 param(
   [Parameter(Mandatory = $true)][string]$Test,
-  [int]$TimeoutMin = 10,
+  [int]$TimeoutMin = 5,
   [string]$Log = ""
 )
 $root = Split-Path -Parent $PSScriptRoot

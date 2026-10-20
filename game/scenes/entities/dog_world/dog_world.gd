@@ -4,12 +4,12 @@ extends Node2D
 ## Anda sozinho pelo piso desviando dos móveis (caminho calculado pela sala),
 ## vai à tigela quando está com fome, dorme no sofá, senta e late de vez em quando.
 ##
-## Sprites (PixelLab) em SPRITE_DIR:
+## Sprites (PixelLab) na pasta retornada por GameState.dog_look().dir_world:
 ##   rotations/<direção>.png               pose parada por direção
 ##   <ação>/<direção>/frame_XX.png         animações (walk, idle, sit, bark, sleep, eat)
 ## Direções que faltam usam o espelho (oeste <-> leste) ou qualquer outra disponível.
 
-const SPRITE_DIR := "res://assets/sprites/characters/tiro_world/"
+var sprite_dir: String = ""
 ## Distância (px) do centro do canvas do sprite até as patas.
 const FEET_OFFSET := 26.0
 const HUNGRY := 30.0
@@ -25,10 +25,15 @@ var room: RoomView
 var bowl_point := Vector2.INF
 ## Lugar de dormir (em cima do sofá) e o ponto no chão, na frente dele, por onde sobe/desce.
 var sleep_point := Vector2.INF
+var sleep_spot: String = "floor"
+var _album_sleep_spot: String = ""
 var sleep_approach := Vector2.INF
+
+var _zooming := false
 
 var _facing := "south"
 var _on_sofa := false
+var _party_hat: Sprite2D
 var _sprite: AnimatedSprite2D
 var _reaction: Dictionary = {}
 var _move_tween: Tween
@@ -40,9 +45,19 @@ var _balloon_wish := ""
 
 func _ready() -> void:
 	_sprite = AnimatedSprite2D.new()
+	sprite_dir = GameState.dog_look().dir_world
 	_sprite.sprite_frames = _build_frames()
 	_sprite.position = Vector2(0.0, -FEET_OFFSET)
 	add_child(_sprite)
+	_party_hat = Sprite2D.new()
+	_party_hat.name = "PartyHat"
+	_party_hat.texture = load("res://assets/sprites/ui/album/prop_party_hat.png")
+	_party_hat.scale = Vector2.ONE * 0.3
+	_party_hat.position = Vector2(0, -51)
+	add_child(_party_hat)
+	_party_hat.visible = GameState.tiro_party()
+	DogLook.tint(_sprite)
+	Events.state_changed.connect(_refresh_look)
 	_play("idle", "south")
 	if position.is_equal_approx(sleep_point):
 		_set_on_sofa(true)
@@ -51,6 +66,21 @@ func _ready() -> void:
 	Events.state_changed.connect(_refresh_balloon)
 	_refresh_balloon()
 	_brain()
+
+
+func _refresh_look() -> void:
+	if _party_hat: _party_hat.visible = GameState.tiro_party() and not GameState.dog.sleeping and not str(_sprite.animation).begins_with("sleep_")
+	var folder := str(GameState.dog_look().dir_world)
+	if sprite_dir != folder:
+		sprite_dir = folder
+		var animation := _sprite.animation
+		var frame := _sprite.frame
+		_sprite.sprite_frames = _build_frames()
+		if _sprite.sprite_frames.has_animation(animation):
+			_sprite.play(animation)
+			_sprite.frame = mini(frame, _sprite.sprite_frames.get_frame_count(animation) - 1)
+		Motion.pop_in(_sprite)
+	DogLook.tint(_sprite)
 
 
 func _draw() -> void:
@@ -119,6 +149,7 @@ func _brain() -> void:
 		if dog.sleeping:
 			_reaction.clear()
 			if sleep_point == Vector2.INF:
+				_note_album_sleep("floor")
 				_play("sleep", _facing)
 				await _wait(2.0)
 				continue
@@ -128,9 +159,11 @@ func _brain() -> void:
 				_set_on_sofa(true)
 			if position.distance_to(sleep_point) > 4.0:
 				await _step_to(sleep_point)
+			_note_album_sleep(sleep_spot)
 			_play("sleep", "east")
 			await _wait(2.0)
 			continue
+		_album_sleep_spot = ""
 		if _on_sofa:
 			await _step_to(sleep_approach)
 			_set_on_sofa(false)
@@ -152,7 +185,7 @@ func _brain() -> void:
 			continue
 		await _idle_moment()
 		if is_inside_tree() and _reaction.is_empty():
-			await _go_to(room.random_floor_point(position))
+			await _wander()
 
 
 ## Uma reação por vez; uma ação nova substitui a anterior sem somar caminhos.
@@ -239,17 +272,61 @@ func _show_reaction(kind: StringName) -> void:
 	_play("idle", _facing)
 
 
+## Escolhas só visuais; não chamam set_sleeping, prêmios ou contadores de cuidado.
+func idle_choice(roll: float) -> String:
+	var weights: Dictionary = PersonalityRules.behavior(GameState.growth).world
+	for kind: String in ["nap", "sit", "sniff"]:
+		roll -= float(weights.get(kind, 0))
+		if roll < 0: return kind
+	return "idle"
+
+
 func _idle_moment() -> void:
-	var roll := randf()
-	if roll < 0.25:
+	var data: Dictionary = Database.growth.behaviors.world
+	var kind := idle_choice(randf())
+	var interval: Array = data.idle_seconds
+	match kind:
+		"nap":
+			_play("sleep", _facing)
+			interval = data.nap_seconds
+		"sit":
+			_play("sit", _facing)
+			interval = data.sit_seconds
+		"sniff":
+			_play("sniff", _facing)
+			await _wait(float(data.sniff_seconds))
+			return
+		_:
+			_play("bark" if randf() < float(data.bark) else "idle", _facing)
+	await _wait(randf_range(float(interval[0]), float(interval[1])))
+
+
+func _wander() -> void:
+	if GameState.dog.sleeping or not room.is_visible_in_tree(): return
+	var weights: Dictionary = PersonalityRules.behavior(GameState.growth).world
+	var data: Dictionary = Database.growth.behaviors.world
+	if randf() < float(weights.zoomies):
+		_zooming = true
+		for step in int(data.zoomies_steps):
+			await _go_to(room.floor_point_near(position, float(data.zoomies_radius)))
+			if not _reaction.is_empty() or GameState.dog.sleeping or not room.is_visible_in_tree(): break
+		_zooming = false
+		return
+	var target := room.random_floor_point(position)
+	if sleep_approach != Vector2.INF and randf() < float(weights.get("home", 0)):
+		target = room.floor_point_near(sleep_approach, float(data.social_radius))
+	if randf() < float(weights.social):
+		var company: Array[Vector2] = []
+		for npc: NpcWorld in room._npcs:
+			if npc.visible: company.append(npc.position)
+		for object: Sprite2D in room._objects:
+			if object.visible and object.self_modulate.a > 0 and object.has_meta("station") and GameState.station(str(object.get_meta("station"))).is_busy(GameState.now()):
+				company.append(object.position)
+		if not company.is_empty(): target = room.floor_point_near(company.pick_random(), float(data.social_radius))
+	await _go_to(target)
+	if GameState.growth.phase == "adult" and _reaction.is_empty() and not GameState.dog.sleeping:
 		_play("sit", _facing)
-		await _wait(randf_range(3.0, 6.0))
-	elif roll < 0.35:
-		_play("bark", "south")
-		await _wait(1.5)
-	else:
-		_play("idle", _facing)
-		await _wait(randf_range(1.5, 4.0))
+		await _wait(float(data.sit_seconds[0]))
 
 
 ## Em cima do sofá o Tiro é desenhado na frente dele (z_index), inclusive
@@ -286,11 +363,25 @@ func _step_to(point: Vector2) -> void:
 	_play("walk", _facing)
 	var energy := GameState.dog.get_need("energy", GameState.now())
 	var speed := lerpf(35.0, 80.0, energy / 100.0)
+	if _zooming: speed *= float(Database.growth.behaviors.world.zoomies_speed)
 	_move_tween = create_tween()
 	var revision := room.navigation_revision
 	_move_tween.tween_property(self, "position", point, delta.length() / speed)
+	var stumble := not _on_sofa and not _zooming and delta.length() > float(Database.growth.behaviors.world.stumble_min_distance) and randf() < float(PersonalityRules.behavior(GameState.growth).world.stumble)
+	var halfway := position + delta * 0.5
 	while _move_tween.is_running():
 		await get_tree().process_frame
+		if stumble and _move_tween.is_running() and position.distance_to(point) <= halfway.distance_to(point):
+			stumble = false
+			_move_tween.pause()
+			_play("idle", _facing)
+			var seconds := float(Database.growth.behaviors.world.stumble_seconds)
+			var hop := create_tween()
+			hop.tween_property(_sprite, "position:y", -FEET_OFFSET - float(Database.growth.behaviors.world.stumble_hop), seconds * 0.5)
+			hop.tween_property(_sprite, "position:y", -FEET_OFFSET, seconds * 0.5)
+			await hop.finished
+			_move_tween.play()
+			_play("walk", _facing)
 		if revision != room.navigation_revision:
 			_move_tween.kill()
 			if not _on_sofa:
@@ -327,6 +418,7 @@ func _wait(seconds: float) -> void:
 
 ## Toca "<ação>_<direção>"; sem ela, tenta o espelho e depois qualquer direção.
 func _play(action: String, direction: String) -> void:
+	if _party_hat: _party_hat.visible = GameState.tiro_party() and not GameState.dog.sleeping and action != "sleep"
 	var frames := _sprite.sprite_frames
 	var flip := false
 	var anim := "%s_%s" % [action, direction]
@@ -352,23 +444,23 @@ func _play(action: String, direction: String) -> void:
 
 func _build_frames() -> SpriteFrames:
 	var frames := SpriteFrames.new()
-	for file in ResourceLoader.list_directory(SPRITE_DIR + "rotations/"):
+	for file in ResourceLoader.list_directory(sprite_dir + "rotations/"):
 		if file.ends_with(".png"):
 			var anim := "pose_" + file.get_basename()
 			frames.add_animation(anim)
-			frames.add_frame(anim, load(SPRITE_DIR + "rotations/" + file))
-	for action in ResourceLoader.list_directory(SPRITE_DIR):
+			frames.add_frame(anim, load(sprite_dir + "rotations/" + file))
+	for action in ResourceLoader.list_directory(sprite_dir):
 		if not action.ends_with("/") or action == "rotations/":
 			continue
 		action = action.trim_suffix("/")
-		for direction in ResourceLoader.list_directory(SPRITE_DIR + action + "/"):
+		for direction in ResourceLoader.list_directory(sprite_dir + action + "/"):
 			if direction.ends_with("/"):
 				_add_animation(frames, action, direction.trim_suffix("/"))
 	return frames
 
 
 func _add_animation(frames: SpriteFrames, action: String, direction: String) -> void:
-	var folder := "%s%s/%s/" % [SPRITE_DIR, action, direction]
+	var folder := "%s%s/%s/" % [sprite_dir, action, direction]
 	var files := Array(ResourceLoader.list_directory(folder))
 	files.sort()
 	var anim := "%s_%s" % [action, direction]
@@ -378,3 +470,9 @@ func _add_animation(frames: SpriteFrames, action: String, direction: String) -> 
 	for file: String in files:
 		if file.ends_with(".png"):
 			frames.add_frame(anim, load(folder + file))
+
+
+func _note_album_sleep(spot: String) -> void:
+	if _album_sleep_spot == spot: return
+	_album_sleep_spot = spot
+	GameState.note_sleep_spot(spot)

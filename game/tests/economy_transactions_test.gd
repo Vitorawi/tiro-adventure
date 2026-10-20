@@ -440,24 +440,20 @@ func _automatic_receipts() -> void:
 	state.get("inventory").add("egg", 24)
 	var level_reward: Dictionary = {"coins": 60, "items": {"carrot_snack": 1}}
 	var gold := int(state.get("coins"))
-	state.call("_grant_automatic", "level:8", level_reward)
-	state.call("_grant_automatic", "level:8", level_reward)
-	_check(int(state.get("coins")) == gold + 60 and int(state.call("pending_reward_total")) == 1, "nível 8 pago uma vez, item no recibo uma vez")
+	state.call("_grant_automatic", "growth:puppy", level_reward)
+	state.call("_grant_automatic", "growth:puppy", level_reward)
+	_check(int(state.get("coins")) == gold + 60 and int(state.call("pending_reward_total")) == 1, "presente de fase pago uma vez, item no recibo uma vez")
 	var chapter_reward: Dictionary = {"coins": 140, "skill_xp": {"agriculture": 20}}
 	state.call("_grant_automatic", "chapter:6", chapter_reward)
 	state.call("_grant_automatic", "chapter:6", chapter_reward)
 	_check(int(state.get("coins")) == gold + 60 + 140, "capítulo compartilhado pago uma vez")
-	# Subir de nível de verdade: item que não cabe vira recibo, XP/moedas contam uma vez.
+	# Nível congelado: nenhum recibo ou presente automático ao somar XP.
 	_fresh()
-	state.get("progress").owned["fridge"] = true
-	state.get("inventory").add("egg", 24)
 	var level_before := int(state.get("level"))
-	state.call("_add_player_xp", 100 * level_before)  # sobe um nível
-	_check(int(state.get("level")) == level_before + 1, "subiu de nível")
-	var receipt_id := "level:%d" % int(state.get("level"))
-	_check(state.get("economy").granted.has(receipt_id), "nível registrado como pago")
-	if (state.call("level_reward", int(state.get("level"))).get("items", {}) as Dictionary).has("carrot_snack"):
-		_check((state.get("economy").pending as Dictionary).has(receipt_id), "carrot_snack do nível vira recibo com a geladeira cheia")
+	var coins_before_xp := int(state.get("coins"))
+	state.call("_add_player_xp", 10000)
+	_check(int(state.get("level")) == level_before and int(state.get("coins")) == coins_before_xp, "XP não sobe nível nem paga moeda")
+	_check((state.get("economy").granted as Dictionary).is_empty() and int(state.call("pending_reward_count")) == 0, "XP não cria recibo")
 	# Recompensas manuais não viram banco sem limite: nada vai para o recibo.
 	_fresh()
 	state.get("progress").owned["silo"] = true
@@ -518,14 +514,17 @@ func _pure_migration_and_slots() -> void:
 	_check(int(migrated.coins) == int(data.coins) and JSON.stringify(migrated.inventory) == JSON.stringify(data.inventory), "migração não paga nem muda estoque")
 	_check(JSON.stringify(migrated.dog) == JSON.stringify(data.dog), "migração não mexe em tempos do Tiro")
 	_check(JSON.stringify(migrated.friends) == JSON.stringify(data.friends), "migração não gera visita")
-	# O SaveManager usa o mesmo caminho (relatórios de slot, "copiar da publicada").
+	# Fixtures v13 exercitam a economia isoladamente; v12 agora deve zerar.
+	# O helper puro EconomyMigration continua sendo testado com o formato legado.
 	var manager: Node = (load("res://autoload/save_manager.gd") as GDScript).new()
-	var viaSave: Dictionary = manager.call("_migrate", {"save_version": 12, "saved_at": 1.0, "state": data})
+	var viaSave: Dictionary = manager.call("_migrate", {"save_version": 13, "saved_at": 1.0, "state": data})
 	_check(viaSave.state.has("economy") and int(viaSave.state.economy.revision) == 1, "SaveManager._migrate carimba a revisão")
 	var viaTwice: Dictionary = manager.call("_migrate", viaSave)
 	_check(JSON.stringify(viaTwice) == JSON.stringify(viaSave), "SaveManager._migrate idempotente")
 	var reset_case: Dictionary = manager.call("_migrate", {"save_version": 3, "state": {"coins": 5}})
-	_check((reset_case.state as Dictionary).is_empty(), "ramo histórico <12 continua igual (não amplia o reset)")
+	_check((reset_case.state as Dictionary).is_empty(), "ramo autorizado <13 recomeça do zero")
+	var reset_v12: Dictionary = manager.call("_migrate", {"save_version": 12, "state": data})
+	_check((reset_v12.state as Dictionary).is_empty(), "v12 é zerado antes da migração de economia")
 	manager.free()
 	# Carregar duas vezes e serializar: estado estável.
 	_reload(migrated)
@@ -545,11 +544,11 @@ func _five_slots() -> void:
 	var files: Array[Dictionary] = []
 	# 1: começo; 2: silo e geladeira; 3: tudo ampliado com excesso; 4: trabalhos em andamento; 5: recibo pendente.
 	_fresh()
-	files.append({"save_version": 12, "saved_at": 1.0, "state": _as_v12()})
+	files.append({"save_version": 13, "saved_at": 1.0, "state": _as_v12()})
 	_fresh()
 	state.get("progress").owned["silo"] = true
 	state.get("progress").owned["fridge"] = true
-	files.append({"save_version": 12, "saved_at": 2.0, "state": _as_v12()})
+	files.append({"save_version": 13, "saved_at": 2.0, "state": _as_v12()})
 	_fresh()
 	var storage: Dictionary = database.get("progression").storage
 	for depot: String in storage:
@@ -557,17 +556,17 @@ func _five_slots() -> void:
 		for level: String in storage[depot].levels:
 			state.get("progress").owned[level] = true
 	state.get("inventory").add("carrot", 500)
-	files.append({"save_version": 12, "saved_at": 3.0, "state": _as_v12()})
+	files.append({"save_version": 13, "saved_at": 3.0, "state": _as_v12()})
 	_fresh()
 	state.get("inventory").add("carrot", 4)
 	state.call("cook", "carrot_snack")
 	state.call("plant", 0, "carrot")
-	files.append({"save_version": 12, "saved_at": 4.0, "state": _as_v12()})
+	files.append({"save_version": 13, "saved_at": 4.0, "state": _as_v12()})
 	_fresh()
 	state.get("progress").owned["fridge"] = true
 	state.get("inventory").add("egg", 30)
 	state.call("_grant_automatic", "customer:lais:1", {"coins": 10, "items": {"carrot_snack": 2}})
-	var with_receipt: Dictionary = (JSON.parse_string(JSON.stringify({"save_version": 12, "saved_at": 5.0, "state": state.call("to_dict")})) as Dictionary)
+	var with_receipt: Dictionary = (JSON.parse_string(JSON.stringify({"save_version": 13, "saved_at": 5.0, "state": state.call("to_dict")})) as Dictionary)
 	files.append(with_receipt)
 	var seen: Array[String] = []
 	for index in 5:

@@ -49,6 +49,7 @@ func _run() -> void:
 	_test_reload_recipe()
 	_test_seed_and_agenda()
 	_test_reload_run()
+	_test_growth_bot()
 	print("ECONOMY SIM TEST: ", "PASS" if _failures == 0 else "FAIL (%d)" % _failures)
 	quit(0 if _failures == 0 else 1)
 
@@ -536,3 +537,95 @@ func _test_reload_run() -> void:
 	var s_reload: Dictionary = reloaded.run()
 	check(JSON.stringify(s_plain.end) == JSON.stringify(s_reload.end), "salvar/recarregar a cada sessão não muda o resultado (%s × %s)" % [JSON.stringify(s_plain.end), JSON.stringify(s_reload.end)])
 	check(s_reload.guards.violations == 0, "execução com reload sem violações")
+
+
+# --- 9. O robô sabe crescer e entregar itens-chave (etapa 11 do plano Tiro) -----------------------------
+
+## Roda o planejador do robô como o runner: cada ação passa por `perform` (guardas e conservação).
+## Sem ação, o tempo anda (o Tiro suja, a recarga acaba). Devolve os tipos de ação executados.
+func _bot_until(done: Callable, max_steps: int = 60, idle_seconds: float = 3600.0) -> Array[String]:
+	var kinds: Array[String] = []
+	sim.in_session = true
+	sim._digest_after = sim.digest()
+	for _i in max_steps:
+		if done.call():
+			break
+		var plan: Dictionary = sim.bot.plan(900.0, 7200.0)
+		if plan.is_empty() or str(plan.get("action", {}).get("kind", "")) == "":
+			gs.advance_clock(idle_seconds)
+			sim.bg_tick()
+			sim._digest_after = sim.digest()
+			continue
+		var action: Dictionary = plan.action
+		var cost: float = sim.action_cost(action)
+		sim.active_seconds += cost
+		sim.perform(action, cost)
+		kinds.append(str(action.kind))
+	return kinds
+
+
+## Estado da história logo antes da missão de crescer (a história é o foco do robô).
+func _growth_fixture(phase: String, previous_quest: String) -> void:
+	sim = _new_sim()
+	gs.dev_complete_quest(previous_quest)
+	gs.dev_fill_needs()
+	gs.dev_add_coins(500)
+	gs.inventory.counts.clear()
+	gs.growth.phase = phase
+	gs.growth.phase_since = gs.now()
+	gs.growth.phase_stats = gs.progress.stats.duplicate(true)
+
+
+func _top_up_pillars(level: int) -> void:
+	var points := int(root.get_node("Database").growth.levels[level - 1])
+	for id: String in ["body", "coat", "smart", "brave"]:
+		gs.dev_add_pillar(id, points)
+
+
+func _test_growth_bot() -> void:
+	# Dentinhos: a vovó faz a argolinha, o robô dá a cenoura gelada três vezes, entrega a argolinha e cresce.
+	_growth_fixture("puppy", "lais_stew")
+	check(gs.progress.current_main_quest() == "teeth_3_ring", "fixture: capítulo 3 espera a argolinha")
+	gs.inventory.add("carrot", 3)
+	gs.inventory.add("potato", 1)
+	gs.inventory.add("frozen_carrot", 3)
+	_top_up_pillars(2)
+	var kinds := _bot_until(func() -> bool: return gs.growth.phase == "teething")
+	check(gs.growth.phase == "teething", "o robô fez o Tiro crescer para Dentinhos (ações: %s)" % str(kinds))
+	check(kinds.count("feed") >= 3 and "deliver_growth" in kinds and "grow" in kinds, "alimentou, entregou o item-chave e apertou Crescer (%s)" % str(kinds))
+	check(gs.progress.claimed_quests.has("bloblo_chew_ring") and gs.growth.delivered.teething.get("chew_ring", 0) == 1, "a argolinha veio da missão da vovó e foi entregue")
+	check(sim.violations.is_empty(), "Dentinhos sem violações de guarda/conservação (%s)" % str(sim.violations))
+	# O robô também pega a missão de crescer (a história avança).
+	_bot_until(func() -> bool: return gs.progress.claimed_quests.has("growth_3_teething"), 20)
+	check(gs.progress.claimed_quests.has("growth_3_teething"), "pegou a missão 'As orelhinhas subiram!'")
+	# Mocinho: refeição da fase, escova entregue e dois banhos com xampu (espera o Tiro sujar entre um e outro).
+	_growth_fixture("explorer", "young_9_milk")
+	check(gs.progress.current_main_quest() == "growth_9_young", "fixture: a história espera o Mocinho")
+	_top_up_pillars(6)
+	gs.inventory.add("milk_porridge", 3)
+	gs.inventory.add("soft_brush", 1)
+	gs.inventory.add("herb_shampoo", 2)
+	gs.dog.needs["hygiene"] = 30.0
+	gs.dog.updated_at = gs.now()
+	var kinds2 := _bot_until(func() -> bool: return gs.growth.phase == "young", 80)
+	check(gs.growth.phase == "young", "o robô fez o Tiro crescer para Mocinho (ações: %s)" % str(kinds2))
+	check(gs.progress.stat("shampoo_bath") >= 2 and gs.inventory.count("herb_shampoo") == 0, "dois banhos com xampu gastaram o xampu")
+	check(kinds2.count("feed") >= 3 and "deliver_growth" in kinds2, "refeição de mocinho e escova entregue")
+	check(sim.violations.is_empty(), "Mocinho sem violações (%s)" % str(sim.violations))
+	# Azul e Dourado: medalhinha entregue, três refeições e o lacinho já feito.
+	_growth_fixture("young", "community_12_memory")
+	check(gs.progress.current_main_quest() == "growth_12_adult", "fixture: a história espera o Azul e Dourado")
+	_top_up_pillars(8)
+	gs.inventory.add("courage_medal", 1)
+	gs.inventory.add(gs.favorite_food(), 3)
+	gs.progress.collection["topknot_bow"] = true
+	var kinds3 := _bot_until(func() -> bool: return gs.growth.phase == "adult", 30)
+	check(gs.growth.phase == "adult", "o robô fez o Tiro crescer para Azul e Dourado (ações: %s)" % str(kinds3))
+	check(sim.violations.is_empty(), "Azul e Dourado sem violações (%s)" % str(sim.violations))
+	# Do zero: em dois dias o robô cuida do Tiro, pega a missão e passa do Filhotinho (sem atalhos).
+	var run = SimScript.new(root, {"profile": "reference", "seed": 1, "days": 2, "ledger": "off", "out": ""})
+	run.setup()
+	run.run()
+	check(run.gs.growth.phase_index() >= run.gs.growth.phase_index("puppy"), "em dois dias o robô já cresceu o Tiro (fase %s)" % run.gs.growth.phase)
+	check(run.gs.progress.claimed_quests.has("growth_1_puppy") and run.gs.progress.chapter_index() >= 2, "a missão de crescer abriu o capítulo 2")
+	check(run.violations.is_empty() and int(run.action_counts.get("grow", 0)) >= 1, "campanha de dois dias com 'grow' e sem violações (%s)" % str(run.action_counts.get("grow", 0)))

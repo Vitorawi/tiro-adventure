@@ -1,4 +1,19 @@
 # Progressão (Jornada)
+## Tiro no centro — etapa 07 (19/10/2026)
+
+O HUD mostra o retrato e a pelagem da fase, anel por fração de requisitos concluídos e número da fase
+(Recém-chegado = •; demais 1–5). O avatar pronto pulsa; Menos animação desliga o pulso. Toque abre
+nome da fase, quantos requisitos faltam e Ver → painel Crescimento. Nível/XP/atributos do jogador
+saíram da interface, inclusive prêmios, lista de saves e ferramentas DEV. `level` fica congelado;
+`xp`/`skills` são contadores internos preservados para snapshots/testes/simulador, sem presentes ou avisos.
+`Events.level_up` não é emitido; `Celebration.show_level` e sua conexão na casca foram removidos.
+`features.skills` foi removida; a antiga entrada `skills_panel()` encaminha ao Crescimento.
+`treat_box` exige `growth: explorer`, mantendo bancada e geladeira. Rotinas de cuidado dão Coragem 4,
+banho Pelagem 4; Banco/Jardim/Piquenique/Festa dão Coragem 5 pela ação única `_grant_automatic`.
+Radiante e reserva seguem `_gain_pillar`. Os demais XP ficam internos, inclusive Encontro da turma.
+XP/níveis locais da Natureza continuam válidos. Nenhum preço foi alterado: presentes de nível deixam
+de entrar; os cinco presentes de fase já existentes somam 590 moedas. Conferência econômica só na 17.
+
 
 ## Primeiros sabores (Etapa 04)
 
@@ -857,3 +872,192 @@ Fecha a nova história sobre o motor da 19 e as obras das 20–21.
 
 **Esforço medido** (simulador, referência, semente 1, `build/economy/etapa_22/`): campanha completa **99/99 em 21,1 dias** (antes: 15,1 d com 90 missões), 65 sessões, 648 min ativos, 0 violações; Banco dia 7–8, Jardim dia 8, Piquenique dia 8–10, **Festa dia 17–19** (espera a banca 3 e as 500 moedas; 31 875 moedas em caixa na entrada). Até as quatro obras (`until=projects`): 17,3 d, 0 violações. Custo da festa: 500 moedas + 30 unidades (tecido 4, tábua 6, conjunto de acessórios 2, cestas 3, biscoito 6, queijo 4, caixas 3, brinquedos 2), além dos ingredientes de cadeia de cada receita.
 
+
+
+## Crescimento do Tiro
+
+Etapa 02 do plano Tiro (19/10/2026): motor sem interface do jogador nem troca de arte.
+`growth.json` define Recém-chegado → Filhotinho → Dentinhos → Aventureiro → Mocinho → Azul e Dourado,
+quatro pilares (Corpo/Pelagem/Esperteza/Coragem), níveis 10/25/45/70/100/135/175/220/270/330 pontos,
+tetos 1/2/4/6/8/10 e os requisitos provisórios de `docs/plans/tiro/02_FASES_E_PILARES.md`, seção C.
+Itens-chave e presentes decorativos de etapas futuras ainda não existem: presentes atuais são
+30/60/100/150/250 moedas e três rações no Filhotinho. A etapa 03 usa `growth: puppy` na feature `growth_tab`.
+
+`GrowthState` persiste em `growth`: fase/instante, pontos/reserva, requisitos definitivos, entregas,
+base dos contadores, cerimônias, recargas e primeiras vezes. `GameState.growth_info()` e `grow_error()`
+são consultas puras; `_sync_growth` grava os requisitos cumpridos nas mutações. `feed`/`stat` usam a
+diferença em relação à base do começo da fase. `deliver_growth(item)` entrega até o restante necessário,
+consome itens e preserva a entrega parcial. `grow()` registra a cerimônia ainda não vista, aplica a reserva
+até o novo teto, usa o recibo `growth:<fase>` para pagar uma vez e emite `grew`.
+`growth_ready` e `growth_requirement_done` só anunciam novas conclusões. A etapa 03 emite
+`pillar_gained` nas fontes reais descritas abaixo.
+
+DEV → Crescimento permite escolher fase, somar pontos, completar requisitos e crescer.
+As três ferramentas `dev_*` têm guarda de canal. O requisito genérico `growth: "teething"` retorna
+"Quando ele for Dentinhos" antes de alcançar a fase e aceita fases posteriores.
+
+Save versão 13: abrir qualquer slot <13 recomeça no Recém-chegado, sem migração de crescimento.
+Preferências de `settings.json` permanecem; o timestamp de atividade continua sendo atualizado.
+O aviso "O Tiro chegou de novo, filhotinho!" aparece uma vez após a introdução (ou imediatamente
+se não houver introdução). Os testes usaram cópia do save do Vitor e armazenamento descartável.
+
+### Etapa 03 — Corpo, Pelagem, Esperteza e Coragem (19/10/2026)
+
+Todas as fontes da tabela 02 D do plano passam por `GameState._gain_pillar(id, pontos, origem)`:
+comida, banho útil, brincadeira útil, carinho com afeto, desejos, retorno de passeio, faro,
+truques, petiscos/visitas de amigos, primeira conversa, primeira visita com o Tiro e uso contado de obra.
+Soneca de pelo menos 1 h terminada com energia 100 soma Corpo 2, com recarga de 12 h.
+`growth.cooldowns.sleep_since` registra o começo; um cochilo que já encheu a energia antes de 1 h
+não passa a valer só por esperar. Recargas de banho (2 h) e brincar (30 min) ficam em `growth.cooldowns`;
+primeiras conversas/mundos/truques e comidas ficam em `growth.firsts`. Todos sobrevivem à recarga.
+
+Números em `growth.json.sources`. Radiante: quatro necessidades ≥60 no instante do ganho, ×1,5 e
+arredondamento para cima (após o fator da comida); sem perda de pontos por necessidade baixa.
+Teto e reserva usam o motor da 02. `pillar:<id>` conta os pontos concedidos; `pillar_gained` informa
+pontos e se houve novo nível. A ferramenta DEV usa a mesma função, com quantidade exata, sem Radiante.
+`_apply_rewards` aceita `pillars: {id: pontos}`; `_grant_automatic` preserva o recibo único.
+
+Dez comidas existentes têm `growth.pillars/phases`; fora da fase vale ×0,5; ração usa `only_phases`
+e só soma Corpo no Recém-chegado/Filhotinho. Cru continua sem pontos. `feed` é a única aplicação da
+comida, inclusive no "Ele quer!". Banho com xampu tem caminho interno `bathe(true)` e recarga comum ao
+banho normal; item/receita/opção visual só chegam na 09. Escovar continua na 12. Bônus de Esperteza +1
+ao brincar usa a fase Aventureiro em diante, quando o plano concede o cesto; decoração fica na 14.
+
+Caderninho substitui Atributos por Crescimento após a primeira fase (`growth_tab`, `growth: puppy`):
+nome/idade, quatro `PillarRing_<id>` com ícones, nível/teto e reserva. `PillarUi` atualiza enquanto aberto
+e anima uma subida de nível. Os níveis locais de Natureza continuam no painel próprio. A tela Tiro
+agrupa os eventos do mesmo quadro, mostra um ganho por vez com ícone e brilho Radiante, respeitando
+Menos animação. Sem troca da arte do cachorro, HUD, reset ou publicação nesta etapa.
+
+## Tiro no centro — etapa 05 (19/10/2026): visual por fase
+
+`GameState.dog_look()` retorna corpo, pastas pet/mundo, retrato, frontal, fallback e coat do catálogo
+`growth.json.phases/bodies`. Recém-chegado/Filhotinho usam puppy; Dentinhos/Aventureiro young;
+Mocinho/ Azul e Dourado adult. Mocinho: `0,3 + 0,4 × média(níveis dos pilares)/teto`; adulto: 1.
+Tela do Tiro, mapa, caminhada do passeio, cartões/retratos, introdução e HUD trocam sem recarregar a cena.
+Filhote permite equipar, mas oculta roupas e avisa no caderninho; jovem usa âncoras por clipe/slot.
+Sem mudança de crescimento, progressão, salvamento ou números econômicos nesta etapa.
+
+
+## Tiro no centro — etapa 06 (19/10/2026): tela de crescimento
+
+`GrowthUi.panel/open` consulta `GameState.growth_info()` (fase atual, catálogo/datas/arte, próxima,
+requisitos e atributos). `GrowthBadge` junto do vínculo abre o painel desde Recém-chegado; anel 44,
+número da fase, Falta 1! quando falta um requisito e pulso pronto. Caderninho → Crescimento tem
+Ver crescimento. Requisitos abrem `TaskHelp.describe("growth_req", id)` com Ir via `Places`.
+Entregáveis usam Dar no painel e no detalhe da Mochila, pelo mesmo `deliver_growth`; entrega parcial
+fica definitiva e o painel permanece aberto. Crescer só aparece pronto, caso contrário há cadeado
+com o primeiro motivo legível. Feedback provisório: pop no Tiro e aviso O Tiro cresceu!.
+Caderneta: retratos/datas/idade/peso/fato para passado/atual, atributos do atual, silhueta/teaser/Cap. N
+para futuras. Sem data própria de chegada histórica: Primeira chegada. Próxima fase nunca mostra
+cor/textura (shader só lê alfa). Adulto mostra Guardião do Vale. Não muda requisitos, custos ou save.
+
+
+## Tiro no centro — etapa 09: comidas e xampu (19/10/2026)
+
+As sete comidas de crescimento e Xampu de ervas da tabela docs/plans/tiro/03_COMIDAS_E_ECONOMIA.md C estão em items/recipes, com player_xp 0, storage fridge e preços 8/12/7/14/20/8/15/18. Adequação por fase dá ×1 ou ×0,5, além do Radiante existente. A guia mostra o selo do maior pilar (primeiro em empate); segurar outra comida dá a dica sem bloquear. Crus continuam sem selo. Com xampu aparece acima do banho quando há estoque e lembra a escolha na sessão. bathe(true) consome 1, conta shampoo_bath e dá Pelagem 12 em vez de 3, com a mesma recarga de 2 h e cuidado útil.
+
+Refeições para Dentinhos/Aventureiro/Mocinho: frozen_carrot/growth_kibble/milk_porridge ×3; Mocinho também pede 2 banhos com xampu. Itens-chave permanecem provisórios até a 10. Troca dos requisitos de saves v13 em andamento usa foods_revision uma vez (DECISOES); sem reset nem perda de fases alcançadas. Manual/Como fazer e categoria Cuidados incluem o xampu.
+
+
+## Tiro no centro — etapa 10: itens-chave e entregas (19/10/2026)
+
+Categoria `keepsake` (`storage: none`, sem `sell_price`, não some da Mochila antes de entregar) e quatro itens com ícone próprio: `chew_ring`, `stick_chew`, `soft_brush`, `courage_medal`. Receitas da bancada `stick_chew` (graveto 3 + madeira 1, 300 s) e `soft_brush` (tábua 1 + fibra 2, 600 s, `main_8_fiber`), ambas `player_xp` 0, e da costura `sew_topknot_bow` (tecido 1 + fita 2, 600 s, `growth: young`), que entrega a roupa `topknot_bow` (cabeça) pela coleção. Missão da vovó `bloblo_chew_ring` (linha `bloblo`, ordem 62, requisito `first_kitchen`; entrega cenoura 3 + batata 1 → `chew_ring` + 10 moedas). `community_12_memory` passa a dar também `courage_medal` (+ afeto 10).
+
+`growth.json` final dos itens-chave: Dentinhos `deliver chew_ring`; Aventureiro `deliver stick_chew`; Mocinho `deliver soft_brush`; Azul e Dourado `deliver courage_medal` + `feed any ×3` (provisório até a 12, favorita) + `collection topknot_bow`. O id do requisito `key` foi preservado nas três primeiras fases (recibos antigos continuam valendo); a fase adulta perdeu `festival` (a obra continua existindo, só não exige mais). A entrega usa o `deliver_growth` da 02 (definitivo, grava em `growth.delivered`).
+
+Interface: "Dar" no cartão do requisito e no detalhe do item da Mochila (`GiveGrowth_<id>`), com `Haptics.tap` e o ícone voando até o Tiro do painel (`GrowthUi._fly_to_tiro`, nó `FlyingKeepsake`, ignorado com Menos animação); o item some da Mochila ao entregar. Mochila: filtro "Para o Tiro" (`keepsake`) e botão "Ir" (`KeepsakeGo`) no detalhe, que abre o painel de crescimento; o Manual também lista a categoria. Teste `keys_test`; capturas `tests/keys_shots.gd`.
+
+
+## Tiro no centro — etapa 11: a história conduzida pelo crescimento (19/10/2026)
+
+**Objetivo `growth`** (`{"type": "growth", "key": "<fase>"}`): cumprido quando o Tiro **já está** nessa fase ou além (`GameState.goal_value`: `growth.phase_index() >= phase_index(key)`; vale também se ele cresceu antes de a missão ficar ativa). "Ir" abre o painel de crescimento (`Places.goal_target` → `{"growth": true}`); o "?" é `TaskHelp.describe("growth", fase)`, que lista os requisitos da próxima fase que ainda faltam como chips `growth_req` tocáveis (o mesmo `_growth_requirement` do painel). No cartão da História, `ProgressionUi.goal_row` mostra a **silhueta** da fase que vem (`GrowthGoalSilhouette`, a mesma do painel) e, cumprido, o retrato dela (`GrowthGoalPhoto`). Atalho dev: `_dev_complete_quest` de um objetivo `growth` coloca o Tiro na fase (`dev_set_phase`), então `dev_jump_to_chapter` e `dev_complete_quest` deixam a fase coerente com a história.
+
+**Requisito `growth`** (`requirements: {"growth": "<fase>"}`) no avaliador único (`GameState.requirement_error`, já da etapa 02): "Quando ele for Aventureiro". Ligado agora em truques (`paw`/`talk` Dentinhos, `roll`/`jump` Aventureiro, `spin` Mocinho) e nos passeios `creek_walk`/`bird_clearing`/`hill_view` (Aventureiro); a feature `wishes`, a receita `treat_box` (Aventureiro) e a costura `sew_topknot_bow` (Mocinho) já tinham sido ligadas nas etapas 02/07/10. O "Como fazer" de qualquer conteúdo com esse requisito ganha o passo "Quando ele for …" (`TaskHelp._requirements`, kind `growth`).
+
+**Nove missões principais novas** (40 → 49 principais; 99 → 109 no total com a da vovó da etapa 10), todas sem prêmio próprio (o presente vem da fase), com o crescimento como **último passo** dos capítulos 1, 3, 6, 9 e 12 — como o capítulo seguinte só abre com o anterior completo, crescer abre o próximo:
+
+| Cap. | Missão | Ordem | Objetivo |
+|---|---|---|---|
+| 1 | `growth_1_puppy` "Ele está crescendo!" | 70 | `growth: puppy` |
+| 3 | `teeth_3_ring` "Dentinhos coçando" | 35 | `quest: bloblo_chew_ring` (`shared_with`) |
+| 3 | `growth_3_teething` "As orelhinhas subiram!" | 40 | `growth: teething` |
+| 6 | `explorer_6_eggs` "Comida de quem cresce" | 45 | `quest: main_9_eggs` (`shared_with`) |
+| 6 | `growth_6_explorer` "Um pequeno aventureiro" | 50 | `growth: explorer` |
+| 8 | `young_8_shampoo` "Banho de ervas" | 40 | `stat: shampoo_bath` 1 (10 moedas) |
+| 9 | `young_9_milk` "Mingau de mocinho" | 35 | `quest: main_9_flour` (`shared_with`) |
+| 9 | `growth_9_young` "Pelo de mocinho" | 40 | `growth: young` |
+| 12 | `growth_12_adult` "Azul e dourado" | 40 | `growth: adult` |
+
+Os três pares `shared_with` novos seguem a regra de sempre (a principal só orienta, a linha da vovó entrega e paga uma vez; `journey_test` agora espera **13 pares**). Capítulos: o 1 passou a ter **7 passos** (`content_test` aceita 2–7); `lais_stew` deixou de fechar o capítulo 3 (o prêmio do capítulo agora sai em `growth_3_teething`). Depois de `community_12_memory`, só falta `growth_12_adult` e então vem o `final_chapter` ("O filhotinho da caixinha virou o Guardião do Vale…").
+
+**Falas reescritas** (só `dialogue`; IDs, objetivos e prêmios iguais): a Laís apresenta um filhote assustado ("ele tremia na caixinha") e banho/brincar/caminha viram "deixar ele à vontade"; capítulo 2 "filhote precisa de comida de verdade"; cozinha "papinha"/"algo geladinho para os dentinhos"; Vila "ele precisa conhecer gente nova" e a Praça "ótima para filhote aprender"; Bosque "energia demais" e bancada "coisas para ele roer"; "comida caseira para quem cresce"; clientes que perguntam pelo Tiro; estufa "banho cheiroso"; fibras "escova macia"; obras com o Tiro como membro da turma; `community_12_memory` com a homenagem à **Smoky** (Yorkie de 1,8 kg que, em 1944, passou um cabo por um cano de 20 m). Cada fala é curta e tem o Tiro como motivo (`growth_story_test` confere palavras proibidas e tamanho).
+
+**Robô do simulador:** `economy_bot.gd` ganhou `pursue_growth`/`_pursue_growth_req` (objetivo `growth` e requisito `growth` em `pursue_reqs`), refeição da fase, banho com xampu (`pursue_stat "shampoo_bath"`), entrega do item-chave (`deliver_growth`), lacinho pela costura, pilares por gesto quando a recarga deixa e `grow`; item `keepsake` sem receita vem do prêmio da missão. `economy_sim.gd` aceita as ações `grow`/`deliver_growth` e o `bathe` com xampu (conservação declarada). Ver `docs/plans/economia/SIMULADOR.md`. Em 14 dias simulados (semente 1, só diagnóstico, não é medida) o robô chegou ao Aventureiro e ao capítulo 9; em 40 dias, ao Mocinho e ao capítulo 12, sem violações.
+
+**Campanha do `progression_test`:** passa pelos cinco crescimentos (refeição da fase, item-chave, xampu, lacinho e `grow` pelas ações reais; só os **pontos dos pilares** usam `dev_add_pillar`, porque o ritmo deles é de `pillars_test`) e pelas obras da vila (capítulos 10–12: taxa e material postos na mochila, uso pelo Tiro) — antes a campanha parava em `community_10_*`. `onboarding_test` cresce o Tiro da mesma forma para chegar ao capítulo 4.
+
+Teste novo `growth_story_test`; capturas `tests/story_shots.gd`.
+
+## Tiro no centro — etapa 12: escovar e paladar (19/10/2026)
+
+- **Escovar:** `basic_brush` (keepsake, `growth.json` presente de Dentinhos). `GameState.brush_owned/brush_error/brush`: Pelagem 5 (`sources.brush.coat`), 8 se o `soft_brush` já foi entregue (`soft_coat`), recarga 4 h (`growth.cooldowns.brush`), grava o dia local em `growth.brush_days`, conta `brush`, emite `dog_action brush`. Bloqueado dormindo, passeando ou sem a escova.
+- **Paladar:** `growth.json → tastes` (`favorite_pool`, `odds`, `grimace`, `favorite_bonus` 0,5). `GameState.favorite_food/favorite_found/taste_reaction_for/untasted_foods`; `GrowthState.tastes/taste_seed/brush_days` (chaves novas do `growth`, sem reset). Favorita dá +50% nos pilares (`_feed_pillars`).
+- **Requisito do Azul e Dourado:** `feed favorite ×3` (`_growth_label` mostra "Descubra a favorita" até a primeira prova; `_growth_have` conta `feed:<favorita>`).
+- **Interface:** `PetCareTray._sync_brush` (BrushTile entre Banho e Brincar), `PetScreen.back_rect/brush_stroke/brush_knot_off/brush_cleanup/_on_taste`, ♥ (`FavoriteHeart`) e "Nova!" (`NewTaste`) na guia de comida, `PillarUi.taste_guide` (`TasteGuide`, `Taste_<item>`) na aba Crescimento. Teste: `brush_taste_test`; capturas: `tests/brush_taste_shots.gd`.
+
+## Tiro no centro — etapa 13: álbum de recordações (19/10/2026)
+
+- **Dados:** `game/data/album.json` (`schema`, `active_sections`, `sections`, `scenes`, `props`, `photos[54]`). Cada foto: `id`, `section`, `title`, `on` (evento ou lista), `when` (até 3 condições), `photo {scene, pose {clip, frame}, props, friend?, ribbon?, compare?}`; secretas/soninhos também `hint`, `icons`, `hint_npc`, `hint_object`. `Database.album/photo(id)/album_sections()/album_problems()` (rejeita evento/condição/cenário/adereço desconhecido, id repetido, mais de 3 condições, total ≠ 54).
+- **Estado:** `AlbumState` (`photos {id: {at, phase, coat, seen}}`, `hints`, `lupa_day`, `lupas_used`, `photobomb_pity`, `wall`, `main_photo`, `recent {evento: [instantes]}`), chave `album` do save; `SAVE_VERSION` continua 13.
+- **Motor:** `AlbumRules` (`EVENTS`, `CONDITIONS`, `matches`, `holds`, `full_moon`) e `GameState._album_event(evento, ctx)`, chamado por `mark_seen(["intro"])` (`intro_done`), `set_sleeping(true)` (`slept`), `_finish_quest` (`quest_claimed`, `chapter_done`), `grow` (`grew`), `feed` (`fed`, com `growth_food`), `bathe`, `pet`, `play`, `brush`, `dig` (`dug`, uma vez geral e uma por item), `return_due_walk` (`walk_returned`, com `route`/`rare`), `learn_trick`, `equip`, `give_friend` (`friend_heart`). Só fotos das seções ativas são avaliadas; foto tirada uma vez; `Events.photo_taken(id)`; contador `photos`.
+- **Fotos ativas hoje (22):** História `h_arrival`, `h_first_night`, `h_growth_puppy/teething/explorer/young/adult`, `h_kitchen`, `h_first_walk`, `h_first_trick`, `h_banca`, `h_bench`, `h_courage`, `h_guardian`; Primeiras vezes `f_bath`, `f_taste`, `f_dig`, `f_tooth`, `f_friend`, `f_outfit`, `f_rare`, `f_brush`.
+- **Dentinho de leite:** `milk_tooth` (categoria `find`, sem depósito) entra no primeiro montinho de Dentinhos em diante (`GameState._milk_tooth_due`, também reflete em `find_reward`).
+- **Interface:** `PhotoCard.make(id, largura, {locked, secret, caption})` (polaroide em 176×176 unidades; Tiro no corpo/coat gravado; silhueta `flat_silhouette.gdshader` quando falta), `AlbumView.panel(seção)`/`detail(id)`/`open_photo(id)` (nós `AlbumView`, `AlbumSections`, `AlbumGrid`, `Photo_<id>`, `NewBadge`, `PhotoDetail`, `PhotoWhen`, `BeforePhoto`), aba `album` no `PetNotebook` (`open("album:<seção>")`, aparece com a primeira foto), selo Novo (`GameState.photos_unseen`, `mark_photo_seen`), aviso "Nova foto!" tocável em `main.gd` (pela fila modal) e linha `photo` em `welcome_ready_lines`/`Line_photo`. Caderneta do painel de crescimento: `CeremonyPhoto_<fase>`.
+- **DEV:** `dev_take_photo(id)`, `dev_reset_album()` (botões "Tirar a próxima foto"/"Zerar álbum" na aba Crescimento).
+- **Teste:** `album_test` (~12 s). Capturas: `tests/album_shots.gd`.
+
+## Tiro no centro — etapa 14: Casa que cresce (19/10/2026, concluída)
+
+- Catálogo `data/house.json`, `Database.house/house_problems`, requisitos de sala `house`. Chegadas por fase, primeira lembrança entregue e metas do álbum 6/12/18/30/45. `_sync_house` grava `progress.house.arrived` e emite `house_item_arrived` uma vez; não usa inventário nem paga moedas. Caixinha sai do chão ao aparecer a prateleira; a prateleira mostra apenas lembranças entregues, além da caixinha e câmera ganha.
+- `HouseDecor`: régua por cerimônias persistidas (nome, data e proporção do peso), prateleira e fotos escolhidas compostas com `PhotoCard`. `HouseUi`: prateleira, parede, moldura, cesto e caminha. Caminha abre Dormir/Acordar e acesso à compra da próxima; tigela tem a melhoria no próprio painel. `hidden_by` substitui o desenho/footprint anterior.
+- Caminhas `bed_soft` (fase young, tecido 2 + novelo 2) e `bed_luxe` (adult, macia possuída, tábua 2 + tecido 2 + pena 2) são melhorias de zero moedas. `house_sleep_bonus` usa apenas a melhor (+10%/+20%), derivada no `DogState.sleep_bonus`, incluindo ausência e recarga sem ultrapassar 100. Sem caminha o ponto de sono da Casa é a caixinha.
+- `named_bowl` (Dentinhos+, tábua 1 + tijolo 1) multiplica os pilares da comida de crescimento por 1,1 antes do arredondamento e combina com favorita/Radiante.
+- Itens `toy: true`: `give_toy_error/give_toy` exige cesto e consome uma unidade por tipo. `progress.house.toys` persiste; brincar soma +1 Esperteza por tipo, limitado a +3, na recarga normal. Catálogo atual: `braided_toy` e `lost_ball`. Mochila oferece Dar ao Tiro; ambos entram no filtro Para o Tiro.
+- `hang_photo_error/hang_photo/unhang_photo`: três lugares, substituição por índice, sem foto inexistente ou duplicada. `main_photo_error/set_main_photo` exige moldura dourada. Escolhas persistem em `AlbumState.wall/main_photo`. `lupas_per_day` retorna 1/2 com câmera; uso da lupa continua fora desta etapa.
+- `CornerDecor`: tapete, foto principal e cesto (máximo três), régua pequena tocável e enfeites atrás do Tiro. Sem mudar o cenário original ou as imagens do cachorro.
+- Arte final PixelLab: 13 fontes em `tools/art/house_pixellab/`, manifesto com prompts/jobs/hashes; `tools/house_art.gd` recorta e prepara 14 objetos e `gold_frame_front.png`. Moldura frontal também no cantinho. Nenhum PNG do Tiro alterado. Testes/capturas: `house_test`, `house_shots`, `VALIDACAO_14.md`.
+
+## Tiro no centro — etapa 15: álbum completo e segredos
+
+As seis seções estão ativas: 54 fotos (22 anteriores + 32 novas). Travessuras e Soninhos têm uma pista permanente; tocar a foto que falta abre sua silhueta e a lupa. Uma lupa por dia local, duas após a câmera antiga (12 fotos); as condições reveladas ficam salvas. Após três dias desde a primeira abertura da seção, e com cinco fotos, o personagem dá uma dica por foto. Objetos ligados brilham quando duas de três condições valem, preservando bloqueios e Menos animação. Personagens comentam suas fotos uma vez na próxima conversa.
+
+Fotos vêm das ações: carinho após banho, colheita, dois toques no cesto, roupa, cinco regas num arrasto, sofá, fotos revistas (Penetra garantido até a oitava), banco ao luar, brincadeiras, geladeira, riacho, soninhos, vínculos, aulas, clientes e encontros. O lugar de sono fica no save; o sofá pode ser escolhido tocando nele. A bolinha precisa estar entregue no cesto, e a visita de sono exige a Pipoca e o Tiro na Casa. O chapéu de explorador do tesouro agora pode ser vestido. Fotos novas guardam também as roupas do momento.
+
+Um mês juntos tem janela de dias 30–36. Dia do Tiro reaparece a cada aniversário do início do save, numa janela de sete dias: bolo na Casa/cantinho, chapéu de festa temporário e receita permanente do Bolo do Tiro (fogão, farinha + maçã + ovo, 600 s, Coragem 5). A foto continua única; festa e lupas não reabrem ao atrasar o relógio. Lua cheia usa ciclo médio de 29,530588853 dias, margem de um dia, Praça/Natureza após 20h e Aventureiro+. Frio usa `config.json → album.cold_months`; Depois da festa vale a partir do dia civil seguinte à conclusão da Festa.
+
+Estado novo: `AlbumState.opened_at/spoken/years/party_from/party_until/sleep_spot`, além de hints/lupas/pity já existentes. Sem reset ou migração. Testes e tabela das 54 fotos: `docs/plans/tiro/VALIDACAO_15.md`.
+
+
+## Tiro no centro — etapa 16: jeito, comportamentos e diário
+
+`growth.json.personality/behaviors/diary` define pesos, janela, confirmação, intervalos visuais e modelos. `PersonalityRules.record/relative_scores/id/title/behavior` calcula o jeito; `_count` alimenta a memória a partir das ações reais, primeiras provas de comidas de crescimento e primeiros mundos acrescentam variedade. `GrowthState.personality/diary/diary_receipts` participa de reset/to_dict/from_dict sem reset de save. Janela de 14 dias jogados (sem ausência), teto 1 por jeito/dia, 65% recente + 35% histórico, troca com margem 0,20 e três dias de vantagem; relógio atrasado não cria outro dia.
+
+`PetAnimator` escolhe fidgets e intervalo pelo dado; cochilo visual termina sozinho. `DogWorld` escolhe cochilo/sentar/farejar, pausa/pulinho no caminho, sequência de três destinos próximos e preferência por NPCs/estações em uso. Caminho, interrupção de reação e revisão de navegação permanecem ativos. Só apresentação: sem ganho de energia, prêmio, pilar ou contagem de cuidado.
+
+`PillarUi` mostra título e diário na aba Crescimento do caderninho; `GrowthUi` mostra o mesmo título. Revelação desde Aventureiro, fila Novo existente com recibo `personality:revealed` e Ir para o painel. `_diary` recebe os eventos reais, descarta as linhas mais antigas acima de 20 e mantém recibos de fotos/provas/fases. Teste `personality_test` e passagem do portão em `docs/plans/tiro/VALIDACAO_16.md`.
+
+## Tiro no centro — etapa 17: Pelagem de seda e simulador (19/10/2026)
+
+* **Seda (pós-jogo, só cosmética):** `growth.json → silk.levels` (I–III: `sheen` 0,33/0,66/1; Pelagem 10 + escovações em 5/10/20 dias diferentes + banhos com xampu 3/6/10; presentes 50/80/120 moedas). `growth.silk` (0–3) é salvo em `GrowthState.to_dict/from_dict` (sem migração).
+* `GameState.silk_info()` (consulta pura, só no adulto), `silk_error()`, `brighten()` ("Mais brilho!": presente pelo recibo `silk:<id>` com `_grant_automatic`, diário, `Events.silk_up`) e `silk_sheen()`; `dog_look()` devolve `sheen`.
+* Contadores: dias = `growth.brush_days` (um por data local), banhos = `progress.stat("shampoo_bath")` total.
+* Shader `tiro_coat`: `sheen` (faixa de brilho que desliza no pelo claro) e `reduced` (Menos animação = faixa parada); `sheen = 0` não muda um pixel. `DogLook` aplica os dois em todos os usos.
+* Interface: no adulto, `GrowthUi` troca a próxima fase por `SilkSilhouette` + `SilkRequirements` (`SilkReq_<id>`) + `SilkButton` ("Mais brilho!") ou `SilkLock`; níveis ganhos viram `SilkCard_<n>` na caderneta; `Celebration.show_silk` (confete só a partir do II).
+* Simulador: `summary.json` ganha `growth_days` (dia e minutos ativos de cada fase), `chapter_coins` (moedas ao fechar cada capítulo) e `end.phase/silk/pillars`; `economy_compare.py` escreve a seção "4b. Fases do Tiro × dia" contra os alvos da 02 E. Teste: `silk_test`.
+
+## Tiro no centro — fechamento (etapa 18, 19/10/2026)
+
+Plano concluído: crescimento em seis estados (`growth.json`), pilares, itens-chave, comidas, escovar/paladar,
+álbum de 54 fotos, Casa que cresce, jeito e seda. A conferência dos dez itens da visão e o roteiro do celular
+estão em `docs/plans/tiro/RESULTADOS.md`; o que ficou de fora, em `docs/plans/tiro/FUTURO.md`.

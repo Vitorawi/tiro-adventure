@@ -2,7 +2,7 @@
   "welcome": {
     "npc": "lais",
     "name": "Oi, eu sou a Laís!",
-    "dialogue": "Oi! Eu sou a Laís, e esse é o Tiro. Agora ele é seu!",
+    "dialogue": "Oi! Eu sou a Laís, e este é o Tiro. Ele tremia na caixinha, mas agora é seu!",
     "goals": [
       {
         "type": "stat",
@@ -24,7 +24,7 @@
   "lais_feed": {
     "npc": "lais",
     "name": "Hora de comer",
-    "dialogue": "Ele está com fome. Enche a tigela?",
+    "dialogue": "Ele está com fome e ainda assustado. Enche a tigela para ele se sentir em casa?",
     "goals": [
       {
         "type": "stat",
@@ -44,7 +44,7 @@
   "lais_bath": {
     "npc": "lais",
     "name": "Banho de espuma",
-    "dialogue": "Eita, ele rolou na terra… Hora do banho!",
+    "dialogue": "Eita, ele rolou na terra… Um banho deixa ele limpinho e à vontade!",
     "goals": [
       {
         "type": "stat",
@@ -64,7 +64,7 @@
   "lais_play": {
     "npc": "lais",
     "name": "Vamos brincar!",
-    "dialogue": "Agora ele quer brincar!",
+    "dialogue": "Agora ele quer brincar! Brincar faz o medo passar.",
     "goals": [
       {
         "type": "stat",
@@ -84,7 +84,7 @@
   "lais_bag": {
     "npc": "lais",
     "name": "Um presente na mochila",
-    "dialogue": "Deixei um presente na sua mochila. Dá uma olhada!",
+    "dialogue": "Deixei um presente para ele na sua mochila. Dá uma olhada!",
     "goals": [
       {
         "type": "stat",
@@ -110,7 +110,7 @@
   "lais_bed": {
     "npc": "lais",
     "name": "Um cantinho para ele",
-    "dialogue": "É uma caminha! Escolhe um cantinho da casa pra ela.",
+    "dialogue": "É uma caminha! Escolhe um cantinho da casa para ele dormir sossegado.",
     "goals": [
       {
         "type": "owned",
@@ -135,7 +135,7 @@
     "shared_with": "bloblo_meet",
     "npc": "lais",
     "name": "A vovó do sítio",
-    "dialogue": "A vovó Bloblo tem um sítio aqui do lado. Vai lá conhecer!",
+    "dialogue": "Filhote precisa de comida de verdade. A vovó Bloblo tem um sítio aqui do lado: vai conhecer!",
     "goals": [
       {
         "type": "quest",
@@ -157,7 +157,7 @@
     "shared_with": "bloblo_more_crops",
     "npc": "lais",
     "name": "Mãos na terra",
-    "dialogue": "Já colheu alguma coisa? A vovó adora ajuda na horta!",
+    "dialogue": "A horta da vovó vai alimentar ele. Já colheu alguma coisa? Ela adora ajuda!",
     "goals": [
       {
         "type": "quest",
@@ -178,7 +178,7 @@
   "main_2_fridge": {
     "npc": "lais",
     "name": "Onde guardar?",
-    "dialogue": "Precisamos de um lugar para guardar a colheita.",
+    "dialogue": "A comida dele precisa ficar fresquinha. Precisamos de um lugar para guardar a colheita.",
     "goals": [
       {
         "type": "owned",
@@ -196,7 +196,7 @@
   "first_kitchen": {
     "npc": "lais",
     "name": "Cheirinho de comida",
-    "dialogue": "Com um fogão dá para cozinhar de verdade!",
+    "dialogue": "Com um fogão dá para fazer uma papinha caseira para ele!",
     "goals": [
       {
         "type": "owned",
@@ -218,7 +218,7 @@
     "shared_with": "bloblo_stew",
     "npc": "lais",
     "name": "Ensopado para a vovó",
-    "dialogue": "Vamos fazer um ensopado para a vovó Bloblo?",
+    "dialogue": "Vamos fazer um ensopado para a vovó Bloblo? Ela cuida tanto dele.",
     "goals": [
       {
         "type": "quest",
@@ -239,7 +239,7 @@
   "lais_village": {
     "npc": "lais",
     "name": "Passeio na Vila",
-    "dialogue": "Vamos passear na Vila? Tem uma feira!",
+    "dialogue": "Ele precisa conhecer gente nova. Vamos passear na Vila? Tem uma feira!",
     "goals": [
       {
         "type": "stat",
@@ -263,7 +263,7 @@
   "first_sale": {
     "npc": "lais",
     "name": "Seu primeiro cliente",
-    "dialogue": "Vende o que sobrou da colheita na feira.",
+    "dialogue": "Vende o que sobrou da colheita na feira, enquanto ele conhece o povo.",
     "goals": [
       {
         "type": "quest",
@@ -280,7 +280,7 @@
   "main_2_order": {
     "npc": "lais",
     "name": "Uma encomenda da vizinhança",
-    "dialogue": "Uma encomenda paga melhor!",
+    "dialogue": "Uma encomenda paga melhor! Depois leve o Tiro à Praça: lá é ótimo para filhote aprender.",
     "goals": [
       {
         "type": "quest",
@@ -297,7 +297,7 @@
   "lais_forest": {
     "npc": "lais",
     "name": "Além do portão",
-    "dialogue": "O portão da Vila dá numa natureza linda, cheia de madeira.",
+    "dialogue": "Ele tem energia demais! O portão da Vila dá numa natureza linda, cheia de madeira.",
     "goals": [
       {
         "type": "owned",
@@ -342,7 +342,7 @@
   "main_4_bench": {
     "npc": "lais",
     "name": "Montar a bancada",
-    "dialogue": "Com uma bancada a madeira vira tábua!",
+    "dialogue": "Com uma bancada a madeira vira tábua, e dá para fazer coisas para ele roer!",
     "goals": [
       {
         "type": "owned",
@@ -500,6 +500,39 @@
       ]
     }
   },
+  "bloblo_chew_ring": {
+    "npc": "bloblo",
+    "name": "Argolinha da vovó",
+    "dialogue": "Costurei uma argolinha de pano; molha, gela e ele morde à vontade. Só preciso de cenouras e uma batata para o recheio!",
+    "goals": [
+      {
+        "type": "deliver",
+        "key": "carrot",
+        "target": 3,
+        "label": "Entregar 3 cenouras"
+      },
+      {
+        "type": "deliver",
+        "key": "potato",
+        "target": 1,
+        "label": "Entregar 1 batata"
+      }
+    ],
+    "rewards": {
+      "coins": 10,
+      "items": {
+        "chew_ring": 1
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 62,
+    "requirements": {
+      "quests": [
+        "first_kitchen"
+      ]
+    }
+  },
   "farm_deed": {
     "npc": "bloblo",
     "name": "Um pedaço do sítio",
@@ -541,7 +574,7 @@
   "market_day": {
     "npc": "lais",
     "name": "Dia de feira",
-    "dialogue": "Complete três encomendas. Uma clientela fiel faz toda a diferença.",
+    "dialogue": "Os clientes perguntam pelo Tiro! Complete três encomendas: uma clientela fiel faz toda a diferença.",
     "goals": [
       {
         "type": "quest",
@@ -583,7 +616,7 @@
   "own_business": {
     "npc": "lais",
     "name": "Nossa banca",
-    "dialogue": "Sua clientela cresceu. Abra sua própria banca!",
+    "dialogue": "Sua clientela cresceu e todos querem ver o Tiro. Abra sua própria banca!",
     "goals": [
       {
         "type": "quest",
@@ -600,7 +633,7 @@
   "atelier_open": {
     "npc": "lais",
     "name": "Um presente feito aqui",
-    "dialogue": "Monte seu ateliê e faça o primeiro conjunto de acessórios. Agora criamos presentes aqui!",
+    "dialogue": "Monte seu ateliê e faça o primeiro conjunto de acessórios. Agora criamos presentes para ele aqui!",
     "goals": [
       {
         "type": "owned",
@@ -636,7 +669,7 @@
   "main_7_greenhouse": {
     "npc": "lais",
     "name": "Uma estufa cheia de vida",
-    "dialogue": "Monte a estufa e colha as primeiras ervas, que só crescem lá dentro.",
+    "dialogue": "Monte a estufa e colha as primeiras ervas: elas vão dar um banho cheiroso para ele.",
     "goals": [
       {
         "type": "owned",
@@ -678,7 +711,7 @@
   "main_5_cooking": {
     "npc": "lais",
     "name": "Sabores de casa",
-    "dialogue": "Experimente três receitas da cozinha. O que você já fez vale!",
+    "dialogue": "Comida caseira para quem cresce: experimente três receitas da cozinha. O que você já fez vale!",
     "goals": [
       {
         "type": "stat",
@@ -729,7 +762,7 @@
     "shared_with": "merchant_variety",
     "npc": "lais",
     "name": "Conhecer a clientela",
-    "dialogue": "Cada vizinho gosta de uma coisa. Entregue dois pedidos diferentes na feira!",
+    "dialogue": "Cada vizinho gosta de uma coisa. Entregue dois pedidos diferentes na feira, com o Tiro olhando!",
     "goals": [
       {
         "type": "quest",
@@ -745,7 +778,7 @@
   "main_7_orchard": {
     "npc": "lais",
     "name": "Nosso pomar",
-    "dialogue": "Vamos juntos: nosso pomar.",
+    "dialogue": "Vamos juntos: nosso pomar. Fruta fresca faz bem a quem está crescendo.",
     "goals": [
       {
         "type": "owned",
@@ -764,7 +797,7 @@
   "main_8_fiber": {
     "npc": "lais",
     "name": "Fibras do prado",
-    "dialogue": "Vamos juntos: fibras do prado.",
+    "dialogue": "Vamos juntos: fibras do prado para uma escova macia. O pelo dele merece.",
     "goals": [
       {
         "type": "have",
@@ -784,7 +817,7 @@
   "main_8_building": {
     "npc": "lais",
     "name": "Mãos experientes",
-    "dialogue": "Vamos juntos: mãos experientes.",
+    "dialogue": "Vamos juntos: mãos experientes. Tábuas para a escova e os brinquedos dele.",
     "goals": [
       {
         "type": "stat",
@@ -1443,7 +1476,7 @@
   "lais_blender": {
     "npc": "lais",
     "name": "Picolé pro calor",
-    "dialogue": "Com um liquidificador, o morango vira picolé pro Tiro!",
+    "dialogue": "Algo geladinho alivia os dentinhos dele. Com um liquidificador, o morango vira picolé!",
     "goals": [
       {
         "type": "owned",
@@ -1965,7 +1998,7 @@
   "community_10_meet": {
     "npc": "lais",
     "name": "Um lugar para a nossa turma",
-    "dialogue": "Tive uma ideia para a Praça! Vem conversar comigo.",
+    "dialogue": "Tive uma ideia para a Praça! O Tiro já é parte da turma. Vem conversar comigo.",
     "goals": [
       {
         "type": "stat",
@@ -1983,7 +2016,7 @@
   "community_10_bench": {
     "npc": "lais",
     "name": "Um banco para descansar",
-    "dialogue": "Com o banco, a Praça fica a nossa cara. Junte o material com calma, nada se perde.",
+    "dialogue": "Com o banco, a Praça fica a nossa cara e o Tiro tem onde descansar. Junte o material com calma, nada se perde.",
     "goals": [
       {
         "type": "project",
@@ -2019,7 +2052,7 @@
   "community_11_garden": {
     "npc": "lais",
     "name": "A vila floresce",
-    "dialogue": "A vovó Bloblo quer um jardim para todos. Vamos ajudar?",
+    "dialogue": "A vovó Bloblo quer um jardim para todos, e o Tiro vai farejar cada flor. Vamos ajudar?",
     "goals": [
       {
         "type": "project",
@@ -2036,7 +2069,7 @@
   "community_11_picnic": {
     "npc": "lais",
     "name": "Vamos preparar um encontro",
-    "dialogue": "A Nina cuida do piquenique. Ele pode ser feito antes ou depois do jardim.",
+    "dialogue": "A Nina cuida do piquenique, e o Tiro adora uma toalha no chão. Ele pode ser feito antes ou depois do jardim.",
     "goals": [
       {
         "type": "project",
@@ -2072,7 +2105,7 @@
   "community_12_prepare": {
     "npc": "nina",
     "name": "Uma festa para a turma",
-    "dialogue": "Que tal uma festa com todo mundo? Vem falar comigo!",
+    "dialogue": "Que tal uma festa com todo mundo, e o Tiro de convidado de honra? Vem falar comigo!",
     "goals": [
       {
         "type": "stat",
@@ -2090,7 +2123,7 @@
   "community_12_festival": {
     "npc": "lais",
     "name": "A festa da vila",
-    "dialogue": "A banca grande ajuda nos preparativos. Junte o material e a vila inteira vem.",
+    "dialogue": "A banca grande ajuda nos preparativos. Junte o material e a vila inteira vem ver o Tiro.",
     "goals": [
       {
         "type": "project",
@@ -2107,7 +2140,7 @@
   "community_12_memory": {
     "npc": "lais",
     "name": "Uma lembrança da nossa turma",
-    "dialogue": "Toque na mesa da festa e deixe o Tiro comemorar com a turma.",
+    "dialogue": "Em 1944, a Yorkie Smoky, de 1,8 kg, passou um cabo por um cano de 20 m. Hoje o Tiro leva o fio das bandeirolas pelo cano do coreto. Toque na mesa da festa!",
     "goals": [
       {
         "type": "stat",
@@ -2117,10 +2150,163 @@
       }
     ],
     "rewards": {
-      "affection": 10
+      "affection": 10,
+      "items": {
+        "courage_medal": 1
+      }
     },
     "kind": "main",
     "chapter": 12,
     "order": 30
+  },
+  "growth_1_puppy": {
+    "npc": "lais",
+    "name": "Ele está crescendo!",
+    "dialogue": "Olha só, ele já corre pela casa! Cuida bem dele e toque em Crescer.",
+    "goals": [
+      {
+        "type": "growth",
+        "key": "puppy",
+        "label": "Cuidar do Tiro até ele crescer"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 1,
+    "order": 70
+  },
+  "teeth_3_ring": {
+    "shared_with": "bloblo_chew_ring",
+    "npc": "lais",
+    "name": "Dentinhos coçando",
+    "dialogue": "Os dentinhos dele estão coçando! A vovó sabe fazer uma argolinha para ele morder.",
+    "goals": [
+      {
+        "type": "quest",
+        "key": "bloblo_chew_ring",
+        "label": "Fazer a argolinha com a vovó"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 3,
+    "order": 35
+  },
+  "growth_3_teething": {
+    "npc": "lais",
+    "name": "As orelhinhas subiram!",
+    "dialogue": "As orelhinhas dele subiram! Cresceu mais um pouquinho.",
+    "goals": [
+      {
+        "type": "growth",
+        "key": "teething",
+        "label": "Cuidar do Tiro até ele crescer"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 3,
+    "order": 40
+  },
+  "explorer_6_eggs": {
+    "shared_with": "main_9_eggs",
+    "npc": "lais",
+    "name": "Comida de quem cresce",
+    "dialogue": "Quem cresce precisa de ração com ovo. A vovó ensina: galinheiro, milho e ovos!",
+    "goals": [
+      {
+        "type": "quest",
+        "key": "main_9_eggs",
+        "label": "Fazer a ração com a vovó"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 6,
+    "order": 45
+  },
+  "growth_6_explorer": {
+    "npc": "lais",
+    "name": "Um pequeno aventureiro",
+    "dialogue": "Ele está mais forte e curioso. Um pequeno aventureiro!",
+    "goals": [
+      {
+        "type": "growth",
+        "key": "explorer",
+        "label": "Cuidar do Tiro até ele crescer"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 6,
+    "order": 50
+  },
+  "young_8_shampoo": {
+    "npc": "lais",
+    "name": "Banho de ervas",
+    "dialogue": "O pelo dele está mudando! Um banho de ervas deixa ele cheiroso: marque Com xampu na aba Tiro.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "shampoo_bath",
+        "target": 1,
+        "label": "Dar um banho com xampu de ervas"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "main",
+    "chapter": 8,
+    "order": 40
+  },
+  "young_9_milk": {
+    "shared_with": "main_9_flour",
+    "npc": "lais",
+    "name": "Mingau de mocinho",
+    "dialogue": "Mocinho precisa de mingau de leite. A vovó ensina: curral, leite e moinho!",
+    "goals": [
+      {
+        "type": "quest",
+        "key": "main_9_flour",
+        "label": "Fazer o mingau com a vovó"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 9,
+    "order": 35
+  },
+  "growth_9_young": {
+    "npc": "lais",
+    "name": "Pelo de mocinho",
+    "dialogue": "O pelo dele está mudando de cor! Que mocinho lindo.",
+    "goals": [
+      {
+        "type": "growth",
+        "key": "young",
+        "label": "Cuidar do Tiro até ele crescer"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 9,
+    "order": 40
+  },
+  "growth_12_adult": {
+    "npc": "lais",
+    "name": "Azul e dourado",
+    "dialogue": "Olha só: azul e dourado! O filhotinho da caixinha cresceu.",
+    "goals": [
+      {
+        "type": "growth",
+        "key": "adult",
+        "label": "Cuidar do Tiro até ele crescer"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 12,
+    "order": 40
   }
 }

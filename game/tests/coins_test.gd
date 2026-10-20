@@ -202,12 +202,7 @@ func _one_time_prizes() -> void:
 
 
 func _level_gift() -> void:
-	var table: Dictionary = db.get("progression").level_rewards
-	var kept := {"2": 15, "3": 20, "4": 25, "5": 30, "6": 40, "7": 50, "8": 60, "9": 70, "10": 100}
-	for key: String in kept:
-		check(int(state.call("level_reward", int(key)).get("coins", 0)) == int(kept[key]), "nível %s continua com %d" % [key, int(kept[key])])
-	check(table.default.has("coins_base") and table.default.has("coins_max"), "fallback guiado por dados (base, por nível, máximo)")
-	var wanted := {11: 53, 20: 80, 25: 80, 50: 80}
-	for level: int in wanted:
-		var coins := int(state.call("level_reward", level).get("coins", 0))
-		check(coins == int(wanted[level]), "nível %d: min(80, 20+3n) = %d (%d)" % [level, int(wanted[level]), coins])
+	_fresh()
+	state.call("_add_player_xp", 10000)
+	check(int(state.get("level")) == 1 and int(state.get("coins")) == 0, "XP não sobe nível nem paga presente")
+	check((state.get("economy").granted as Dictionary).is_empty(), "sem recibos de nível")

@@ -147,6 +147,7 @@ func _run() -> void:
 		check(button.text != "Vestir" and button.text != "Tirar", "sem botões repetidos")
 	clothes.queue_free()
 	# Vários desejos cumpríveis continuam com somente um principal.
+	state.call("dev_set_phase", "puppy")
 	main.call("show_screen", &"wishes")
 	state.get("wishes").slots[0].id = "carrot"
 	state.get("wishes").slots[1].id = "carrot_snack"

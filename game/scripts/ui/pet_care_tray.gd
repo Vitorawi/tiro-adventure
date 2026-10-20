@@ -5,6 +5,8 @@ extends PanelContainer
 const SCRUB_STEP := 260.0
 const SCRUB_TOTAL := 800.0
 const THROW_SPEED := -180.0
+const BRUSH_STEP := 200.0
+const BRUSH_TOTAL := 600.0
 var pet_screen: Control
 var gesture := DragGhost.new()
 var _row: HBoxContainer
@@ -23,6 +25,9 @@ var _bubbles_at := 0.0
 var _acted := false
 var _scrolling := false
 var _foods_ready := false
+var _food_phase := ""
+var _shampoo: Button
+static var use_shampoo := false
 
 
 func _ready() -> void:
@@ -76,6 +81,15 @@ func _ready() -> void:
 		if not GameState.walking(): GameState.set_sleeping(not GameState.dog.sleeping))
 	_sleep.name = "SleepButton"
 	_row.add_child(_sleep)
+	for tile: Control in _row.get_children(): tile.custom_minimum_size.x = 56  # cabem cinco cuidados em 360 px
+	_shampoo = UiKit.button("Com xampu", func() -> void: use_shampoo = _shampoo.button_pressed)
+	_shampoo.name = "ShampooToggle"
+	_shampoo.toggle_mode = true
+	_shampoo.button_pressed = use_shampoo
+	_shampoo.custom_minimum_size = Vector2(112, 44)
+	_shampoo.z_index = 5
+	pet_screen.add_child(_shampoo)
+	resized.connect(func() -> void: _place_menu.call_deferred())
 	Events.state_changed.connect(refresh)
 	visibility_changed.connect(func() -> void:
 		if not is_visible_in_tree(): cancel())
@@ -98,11 +112,36 @@ func food_ids() -> Array[String]:
 	return result
 
 
+## O Escovar só existe com a escovinha: o quinto cuidado entra entre o Banho e o Brincar.
+func _sync_brush() -> void:
+	var owned := GameState.brush_owned()
+	if owned and not _items.has("brush"):
+		var tile := UiKit.action_tile(UiKit.ui_icon("action_brush"), "Escovar", func() -> void: pass)
+		tile.name = "BrushTile"
+		tile.mouse_filter = Control.MOUSE_FILTER_STOP
+		tile.gui_input.connect(_on_item_input.bind("brush"))
+		_items["brush"] = tile
+		_row.add_child(tile)
+		_row.move_child(tile, (_items.sponge as Control).get_index() + 1)
+		tile.custom_minimum_size.x = 56
+	elif not owned and _items.has("brush"):
+		(_items.brush as Control).queue_free()
+		_items.erase("brush")
+
+
+## Muda quando a fase ou os sabores provados mudam (selos e "Nova!" da guia).
+func _phase_key() -> String:
+	return GameState.growth.phase + ":" + str(GameState.growth.tastes.size())
+
+
 func refresh() -> void:
 	visible = not GameState.walking()
+	_sync_brush()
+	_row.add_theme_constant_override("separation", 4 if _items.has("brush") else 8)
 	var ids := food_ids()
 	# Não libera o controle que ainda recebe o gesto; só atualiza as quantidades.
-	if (not _foods_ready or ids != _food_ids) and _pressed == "":
+	if (not _foods_ready or ids != _food_ids or _food_phase != _phase_key()) and _pressed == "":
+		_food_phase = _phase_key()
 		_foods_ready = true
 		for id in _food_ids: _items.erase(id)
 		for child in _foods.get_children():
@@ -122,7 +161,7 @@ func refresh() -> void:
 		item.modulate.a = 0.45 if GameState.dog.sleeping else 1.0
 		var caption := item.find_child("Caption", true, false) as Label
 		if Database.items.has(id): caption.text = "%s ×%d" % [Database.item_name(id), GameState.inventory.count(id)]
-		else: caption.text = "Banho" if id == "sponge" else "Brincar"
+		else: caption.text = {"sponge": "Banho", "brush": "Escovar"}.get(id, "Brincar")
 		if GameState.dog.sleeping: caption.text = "Zzz"
 		var badge := item.get_node_or_null("Badge") as Control
 		if badge: badge.visible = GameState.wish_slot_for_item(id) >= 0
@@ -132,6 +171,8 @@ func refresh() -> void:
 	(_sleep.find_child("Caption", true, false) as Label).text = "Acordar" if GameState.dog.sleeping else "Dormir"
 	(_sleep.find_child("CareIcon", true, false) as TextureRect).texture = UiKit.ui_icon("action_wake" if GameState.dog.sleeping else "action_sleep")
 	_sleep.disabled = GameState.walking()
+	_shampoo.visible = GameState.inventory.count("herb_shampoo") > 0 and not GameState.dog.sleeping and not _menu.visible and visible
+	_place_menu.call_deferred()
 
 
 func _item(id: String, texture: Texture2D, caption: String) -> Control:
@@ -191,6 +232,32 @@ func _food_item(id: String) -> Control:
 	badge.anchor_left = 0.0
 	badge.anchor_right = 0.0
 	badge.position = Vector2(36, 2)
+	var growth: Dictionary = Database.items[id].get("growth", {})
+	if GameState.growth.phase in growth.get("phases", []):
+		var pillars: Dictionary = growth.get("pillars", {})
+		var principal := ""
+		for pillar: String in pillars:
+			if principal == "" or float(pillars[pillar]) > float(pillars[principal]): principal = pillar
+		if principal != "":
+			var seal := UiKit.icon(UiKit.ui_icon("pillar_" + principal), 20)
+			seal.name = "GrowthSeal"
+			seal.position = Vector2(34, 38)
+			seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			item.add_child(seal)
+	elif not growth.is_empty():
+		item.tooltip_text = "Ele prefere outra coisa agora"
+	if GameState.favorite_found() and id == GameState.favorite_food():
+		var heart := UiKit.icon(UiKit.ui_icon("bond_heart"), 20)
+		heart.name = "FavoriteHeart"
+		heart.position = Vector2(180, 4)
+		heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		item.add_child(heart)
+	elif not GameState.growth.tastes.has(id):
+		var fresh := UiKit.short_label("Nova!", &"BadgeLabel", Palette.DANGER)
+		fresh.name = "NewTaste"
+		fresh.position = Vector2(2, 0)
+		fresh.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		item.add_child(fresh)
 	return item
 
 
@@ -203,6 +270,7 @@ func open_food_menu() -> void:
 		return
 	refresh()
 	_menu.show()
+	_shampoo.hide()
 	_scroll.scroll_vertical = 0
 	_place_menu()
 	Motion.pop_in(_menu)
@@ -210,11 +278,15 @@ func open_food_menu() -> void:
 
 func close_food_menu() -> void:
 	_menu.hide()
+	if _shampoo: _shampoo.visible = GameState.inventory.count("herb_shampoo") > 0 and not GameState.dog.sleeping and visible
 
 
 func _place_menu() -> void:
 	_menu.size = _menu.get_combined_minimum_size()
 	_menu.position = Vector2(12, global_position.y - pet_screen.global_position.y - _menu.size.y - 8)
+	if _shampoo and _items.has("sponge"):
+		_shampoo.size = _shampoo.get_combined_minimum_size()
+		_shampoo.position = Vector2(clampf((_items.sponge as Control).get_global_rect().get_center().x - pet_screen.global_position.x - _shampoo.size.x / 2.0, 8, pet_screen.size.x - _shampoo.size.x - 8), global_position.y - pet_screen.global_position.y - _shampoo.size.y - 4)
 
 
 func _input(event: InputEvent) -> void:
@@ -253,6 +325,11 @@ func press_item(id: String, point: Vector2) -> void:
 	_bubbles_at = 0.0
 	_acted = false
 	_scrolling = false
+	var food: Dictionary = Database.items.get(id, {}).get("growth", {})
+	if not food.is_empty() and GameState.growth.phase not in food.get("phases", []):
+		get_tree().create_timer(0.65).timeout.connect(func() -> void:
+			if _pressed == id and not _dragging and not _scrolling:
+				Events.toast_requested.emit("Ele prefere outra coisa agora"))
 
 
 func move_item(point: Vector2) -> void:
@@ -266,10 +343,22 @@ func move_item(point: Vector2) -> void:
 	if not _dragging:
 		if not crossed: return
 		_dragging = true
-		var texture := UiKit.ui_icon("action_sponge" if _pressed == "sponge" else "action_play") if _pressed in ["sponge", "ball"] else Database.item_icon(_pressed)
+		var texture := UiKit.ui_icon({"sponge": "action_sponge", "ball": "action_play", "brush": "action_brush"}[_pressed]) if _pressed in ["sponge", "ball", "brush"] else Database.item_icon(_pressed)
 		gesture.begin(pet_screen, texture)
 		_menu.modulate.a = 0.3
 	gesture.follow(pet_screen)
+	if _pressed == "brush" and not _acted:
+		var back: Rect2 = pet_screen.call("back_rect")
+		if back.has_point(gesture.target()) and back.has_point(gesture.previous - Vector2(0, DragGhost.LIFT)):
+			_distance += gesture.finger.distance_to(gesture.previous)
+			pet_screen.call("brush_stroke")
+		if _distance - _bubbles_at >= BRUSH_STEP:
+			_bubbles_at = _distance
+			pet_screen.call("brush_knot_off", gesture.target())
+		if _distance >= BRUSH_TOTAL:
+			_acted = true
+			_act("brush")
+			gesture.finish()
 	if _pressed == "sponge" and not _acted:
 		var dog: Rect2 = pet_screen.call("dog_rect")
 		if dog.has_point(gesture.target()) and dog.has_point(gesture.previous - Vector2(0, DragGhost.LIFT)):
@@ -293,14 +382,17 @@ func release_item(point: Vector2) -> void:
 	_pressed = ""
 	_dragging = false
 	if not acted and not scrolling:
-		if not dragged: _act(id)
+		if not dragged:
+			if id == "brush": Events.toast_requested.emit("Passe a escova nas costas dele")
+			else: _act(id)
 		elif id == "ball":
 			if gesture.release_velocity().y < THROW_SPEED and point.y < gesture.start.y - DragGhost.SLOP:
 				_act(id)
-		elif id != "sponge":
+		elif id not in ["sponge", "brush"]:
 			var head: Rect2 = pet_screen.call("head_rect")
 			if head.has_point(point - Vector2(0, DragGhost.LIFT)): _act(id)
 	gesture.finish()
+	if id == "brush": pet_screen.call("brush_cleanup")
 	_menu.modulate.a = 1.0
 	refresh()
 
@@ -319,8 +411,12 @@ func _act(id: String) -> void:
 	elif GameState.dog.sleeping: error = "Shh... ele está dormindo."
 	elif id == "sponge":
 		close_food_menu()
-		GameState.bathe()
+		GameState.bathe(use_shampoo and GameState.inventory.count("herb_shampoo") > 0)
 		pet_screen.call("care_bubbles", (pet_screen.call("dog_rect") as Rect2).get_center())
+	elif id == "brush":
+		close_food_menu()
+		error = GameState.brush()
+		pet_screen.call("brush_cleanup")
 	elif id == "ball":
 		close_food_menu()
 		if GameState.play(): pet_screen.call("throw_ball")

@@ -1,0 +1,1409 @@
+{
+  "schema": 1,
+  "active_sections": [
+    "story",
+    "firsts",
+    "tricks",
+    "sleep",
+    "friends",
+    "dates"
+  ],
+  "sections": [
+    {
+      "id": "story",
+      "name": "História",
+      "icon": "album_story"
+    },
+    {
+      "id": "firsts",
+      "name": "Primeiras vezes",
+      "icon": "album_firsts"
+    },
+    {
+      "id": "tricks",
+      "name": "Travessuras",
+      "icon": "album_tricks"
+    },
+    {
+      "id": "sleep",
+      "name": "Soninhos",
+      "icon": "album_sleep"
+    },
+    {
+      "id": "friends",
+      "name": "Amigos",
+      "icon": "album_friends"
+    },
+    {
+      "id": "dates",
+      "name": "Datas",
+      "icon": "album_dates"
+    }
+  ],
+  "scenes": {
+    "pet": {
+      "image": "res://assets/sprites/areas/pet/corner.png",
+      "region": [36, 120, 289, 243]
+    },
+    "house": {
+      "image": "res://assets/sprites/areas/house/room.png",
+      "region": [96, 20, 440, 370]
+    },
+    "park": {
+      "image": "res://assets/sprites/areas/park/park.png",
+      "region": [96, 20, 440, 370]
+    },
+    "village": {
+      "image": "res://assets/sprites/areas/village/banner.png",
+      "region": [96, 20, 440, 370]
+    },
+    "nature": {
+      "image": "res://assets/sprites/areas/nature/nature.png",
+      "region": [32, 10, 440, 370]
+    },
+    "farm": {
+      "image": "res://assets/sprites/areas/farm/farm_animals.png",
+      "region": [330, 10, 520, 438]
+    }
+  },
+  "props": {
+    "box": {
+      "image": "res://assets/sprites/ui/album/prop_box.png",
+      "pos": [0.5, 0.8],
+      "size": 72
+    },
+    "bowl": {
+      "image": "res://assets/sprites/ui/album/prop_bowl.png",
+      "pos": [0.2, 0.84],
+      "size": 44
+    },
+    "stall_sign": {
+      "image": "res://assets/sprites/ui/album/prop_stall_sign.png",
+      "pos": [0.8, 0.52],
+      "size": 60
+    },
+    "medal": {
+      "image": "res://assets/sprites/ui/album/prop_medal.png",
+      "pos": [0.5, 0.36],
+      "size": 36
+    },
+    "foam": {
+      "image": "res://assets/sprites/ui/album/prop_foam.png",
+      "pos": [0.24, 0.65],
+      "size": 48
+    },
+    "carrot_mouth": {
+      "image": "res://assets/sprites/ui/album/prop_carrot_mouth.png",
+      "pos": [0.51, 0.57],
+      "size": 32
+    },
+    "sock": {
+      "image": "res://assets/sprites/ui/album/prop_sock.png",
+      "pos": [0.57, 0.66],
+      "size": 38
+    },
+    "drops": {
+      "image": "res://assets/sprites/ui/album/prop_drops.png",
+      "pos": [0.5, 0.4],
+      "size": 108
+    },
+    "ball": {
+      "image": "res://assets/sprites/ui/album/prop_ball.png",
+      "pos": [0.55, 0.82],
+      "size": 30
+    },
+    "moon": {
+      "image": "res://assets/sprites/ui/album/prop_moon.png",
+      "pos": [0.8, 0.18],
+      "size": 34
+    },
+    "fireflies": {
+      "image": "res://assets/sprites/ui/album/prop_fireflies.png",
+      "pos": [0.5, 0.42],
+      "size": 116
+    },
+    "mud": {
+      "image": "res://assets/sprites/ui/album/prop_mud.png",
+      "pos": [0.5, 0.8],
+      "size": 80
+    },
+    "party_hat": {
+      "image": "res://assets/sprites/ui/album/prop_party_hat.png",
+      "pos": [0.5, 0.19],
+      "size": 34
+    },
+    "cake": {
+      "image": "res://assets/sprites/ui/album/prop_cake.png",
+      "pos": [0.2, 0.82],
+      "size": 48
+    },
+    "long_shadow": {
+      "image": "res://assets/sprites/ui/album/prop_long_shadow.png",
+      "pos": [0.4, 0.85],
+      "size": 120
+    },
+    "speed_lines": {
+      "image": "res://assets/sprites/ui/album/prop_speed_lines.png",
+      "pos": [0.22, 0.55],
+      "size": 100
+    },
+    "sofa": {
+      "image": "res://assets/sprites/areas/house/sofa.png",
+      "pos": [0.5, 0.76],
+      "size": 124,
+      "behind": true
+    },
+    "bed_luxe": {
+      "image": "res://assets/sprites/areas/house/bed_luxe.png",
+      "pos": [0.5, 0.8],
+      "size": 88,
+      "behind": true
+    }
+  },
+  "photos": [
+    {
+      "id": "h_arrival",
+      "section": "story",
+      "title": "Chegada",
+      "on": "intro_done",
+      "when": {},
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "look_around",
+          "frame": 0
+        },
+        "props": [
+          "box"
+        ]
+      }
+    },
+    {
+      "id": "h_first_night",
+      "section": "story",
+      "title": "Primeira noite",
+      "on": [
+        "slept",
+        "quest_claimed"
+      ],
+      "when": {
+        "quests": [
+          "lais_bed"
+        ],
+        "stat_min": {
+          "sleep_started": 1
+        }
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "h_growth_puppy",
+      "section": "story",
+      "title": "Filhotinho!",
+      "on": "grew",
+      "when": {
+        "grew_to": "puppy"
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": [],
+        "ribbon": "Filhotinho"
+      }
+    },
+    {
+      "id": "h_kitchen",
+      "section": "story",
+      "title": "Cheirinho de papinha",
+      "on": "fed",
+      "when": {
+        "item": "puppy_mash"
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "eat",
+          "frame": 1
+        },
+        "props": [
+          "bowl"
+        ]
+      }
+    },
+    {
+      "id": "h_growth_teething",
+      "section": "story",
+      "title": "As orelhas subiram",
+      "on": "grew",
+      "when": {
+        "grew_to": "teething"
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "head_tilt",
+          "frame": 2
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "h_first_walk",
+      "section": "story",
+      "title": "O mundo é grande",
+      "on": "walk_returned",
+      "when": {},
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "look_around",
+          "frame": 0
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "h_first_trick",
+      "section": "story",
+      "title": "Pata!",
+      "on": "trick_learned",
+      "when": {
+        "trick": "paw"
+      },
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "give_paw",
+          "frame": 2
+        },
+        "props": [],
+        "friend": "nina"
+      },
+      "photo_talk": "Guardei com carinho a foto “Pata!” com o Tiro!"
+    },
+    {
+      "id": "h_growth_explorer",
+      "section": "story",
+      "title": "Pequeno aventureiro",
+      "on": "grew",
+      "when": {
+        "grew_to": "explorer"
+      },
+      "photo": {
+        "scene": "nature",
+        "pose": {
+          "clip": "sniff",
+          "frame": 1
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "h_banca",
+      "section": "story",
+      "title": "Mascote da banca",
+      "on": "quest_claimed",
+      "when": {
+        "quest_is": "own_business"
+      },
+      "photo": {
+        "scene": "village",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 2
+        },
+        "props": [
+          "stall_sign"
+        ]
+      }
+    },
+    {
+      "id": "h_growth_young",
+      "section": "story",
+      "title": "Pelo de mocinho",
+      "on": "grew",
+      "when": {
+        "grew_to": "young"
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "h_bench",
+      "section": "story",
+      "title": "Um banco para a turma",
+      "on": "quest_claimed",
+      "when": {
+        "quest_is": "community_10_use"
+      },
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "h_courage",
+      "section": "story",
+      "title": "Coragem de verdade",
+      "on": "quest_claimed",
+      "when": {
+        "quest_is": "community_12_memory"
+      },
+      "photo": {
+        "scene": "village",
+        "pose": {
+          "clip": "happy_jump",
+          "frame": 3
+        },
+        "props": [
+          "medal"
+        ]
+      }
+    },
+    {
+      "id": "h_growth_adult",
+      "section": "story",
+      "title": "Azul e dourado",
+      "on": "grew",
+      "when": {
+        "grew_to": "adult"
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": [],
+        "compare": "h_arrival"
+      }
+    },
+    {
+      "id": "h_guardian",
+      "section": "story",
+      "title": "Guardião do Vale",
+      "on": "chapter_done",
+      "when": {
+        "chapter_last": true
+      },
+      "photo": {
+        "scene": "village",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": [],
+        "friends": [
+          "lais",
+          "nina",
+          "bloblo"
+        ]
+      },
+      "photo_talk": "Que foto bonita da nossa turma com o Tiro!"
+    },
+    {
+      "id": "f_bath",
+      "section": "firsts",
+      "title": "Primeiro banho",
+      "on": "bathed",
+      "when": {},
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "shake_off",
+          "frame": 1
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "f_taste",
+      "section": "firsts",
+      "title": "Primeira papinha",
+      "on": "fed",
+      "when": {
+        "growth_food": true
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "eat",
+          "frame": 1
+        },
+        "props": [
+          "bowl"
+        ]
+      }
+    },
+    {
+      "id": "f_dig",
+      "section": "firsts",
+      "title": "Primeiro achado",
+      "on": "dug",
+      "when": {},
+      "photo": {
+        "scene": "farm",
+        "pose": {
+          "clip": "sniff",
+          "frame": 1
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "f_tooth",
+      "section": "firsts",
+      "title": "Dentinho de leite",
+      "on": "dug",
+      "when": {
+        "item": "milk_tooth"
+      },
+      "photo": {
+        "scene": "farm",
+        "pose": {
+          "clip": "look_around",
+          "frame": 0
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "f_friend",
+      "section": "firsts",
+      "title": "Primeiro amigo",
+      "on": "friend_heart",
+      "when": {
+        "friend_hearts": {
+          "pipoca": 1
+        }
+      },
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 1
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "f_outfit",
+      "section": "firsts",
+      "title": "Primeira roupa",
+      "on": "equipped",
+      "when": {},
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "f_rare",
+      "section": "firsts",
+      "title": "Achado raro",
+      "on": "walk_returned",
+      "when": {
+        "rare": true
+      },
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "happy_jump",
+          "frame": 3
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "f_brush",
+      "section": "firsts",
+      "title": "Primeira escovada",
+      "on": "brushed",
+      "when": {},
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "stretch",
+          "frame": 1
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "s_foam_ghost",
+      "section": "tricks",
+      "title": "Fantasminha de espuma",
+      "on": "petted",
+      "when": {
+        "within": {
+          "event": "bathed",
+          "seconds": 10
+        }
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "shake_off",
+          "frame": 2
+        },
+        "props": [
+          "foam"
+        ]
+      },
+      "hint": "Bolhas de banho também pedem carinho.",
+      "icons": [
+        "action_bathe",
+        "action_pet"
+      ],
+      "hint_npc": "lais",
+      "hint_talk": "Dê carinho na cabeça logo depois do banho: pode virar uma foto!"
+    },
+    {
+      "id": "s_carrot_thief",
+      "section": "tricks",
+      "title": "Ladrão da horta",
+      "on": "harvested",
+      "when": {
+        "crop": "carrot",
+        "dog_in_world": "farm",
+        "need_below": {
+          "hunger": 30
+        }
+      },
+      "photo": {
+        "scene": "farm",
+        "pose": {
+          "clip": "happy_jump",
+          "frame": 3
+        },
+        "props": [
+          "carrot_mouth"
+        ]
+      },
+      "hint": "Barriga vazia não resiste a cenoura saindo da terra.",
+      "icons": [
+        "item_carrot",
+        "tab_farm",
+        "need_hunger"
+      ],
+      "hint_npc": "bloblo",
+      "hint_object": "plot",
+      "hint_talk": "Para a foto “Ladrão da horta”: Barriga vazia não resiste a cenoura saindo da terra."
+    },
+    {
+      "id": "s_hero_shadow",
+      "section": "tricks",
+      "title": "Sombra de herói",
+      "on": "tapped_dog",
+      "when": {
+        "world": "park",
+        "hour": [
+          17,
+          20
+        ]
+      },
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": [
+          "long_shadow"
+        ]
+      },
+      "hint": "O sol baixo faz qualquer cachorrinho parecer um lobo.",
+      "icons": [
+        "tab_map",
+        "need_energy"
+      ],
+      "hint_npc": "nina",
+      "hint_talk": "Para a foto “Sombra de herói”: O sol baixo faz qualquer cachorrinho parecer um lobo."
+    },
+    {
+      "id": "s_sock_hunter",
+      "section": "tricks",
+      "title": "Caçador de meias",
+      "on": "tapped_object",
+      "when": {
+        "phase_in": [
+          "teething",
+          "explorer"
+        ],
+        "object": "laundry_basket",
+        "count_in_window": {
+          "event": "tapped_object:laundry_basket",
+          "n": 2,
+          "seconds": 60
+        }
+      },
+      "photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "bark",
+          "frame": 1
+        },
+        "props": [
+          "sock"
+        ]
+      },
+      "hint": "Um cesto desprotegido é presa fácil.",
+      "icons": [
+        "tab_house",
+        "need_happiness"
+      ],
+      "hint_npc": "lais",
+      "hint_object": "laundry_basket",
+      "hint_talk": "Para a foto “Caçador de meias”: Um cesto desprotegido é presa fácil."
+    },
+    {
+      "id": "s_blueberry_face",
+      "section": "tricks",
+      "title": "A careta do mirtilo",
+      "on": "fed",
+      "when": {
+        "item": "blueberry"
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "shake_off",
+          "frame": 2
+        },
+        "props": []
+      },
+      "hint": "Nem toda fruta da mata é docinha.",
+      "icons": [
+        "item_blueberry"
+      ],
+      "hint_npc": "nina",
+      "hint_talk": "Para a foto “A careta do mirtilo”: Nem toda fruta da mata é docinha."
+    },
+    {
+      "id": "s_soap_explorer",
+      "section": "tricks",
+      "title": "Aventureiro de espuma",
+      "on": "bathed",
+      "when": {
+        "equipped": "explorer_hat"
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "shake_off",
+          "frame": 1
+        },
+        "props": [
+          "foam"
+        ]
+      },
+      "hint": "Aventureiro também toma banho... ou não?",
+      "icons": [
+        "outfit_explorer_hat",
+        "action_sponge"
+      ],
+      "hint_npc": "lais",
+      "hint_talk": "Para a foto “Aventureiro de espuma”: Aventureiro também toma banho... ou não?"
+    },
+    {
+      "id": "s_sprinkler",
+      "section": "tricks",
+      "title": "Chuva suspeita",
+      "on": "watered",
+      "when": {
+        "dog_in_world": "farm",
+        "count_in_window": {
+          "event": "water_drag",
+          "n": 5,
+          "seconds": 3600
+        }
+      },
+      "photo": {
+        "scene": "farm",
+        "pose": {
+          "clip": "chase_tail",
+          "frame": 1
+        },
+        "props": [
+          "drops"
+        ]
+      },
+      "hint": "Chuva que anda é muito suspeita.",
+      "icons": [
+        "tab_farm",
+        "action_water"
+      ],
+      "hint_npc": "bloblo",
+      "hint_object": "plot",
+      "hint_talk": "Para a foto “Chuva suspeita”: Chuva que anda é muito suspeita."
+    },
+    {
+      "id": "s_sofa_throne",
+      "section": "tricks",
+      "title": "Trono do sofá",
+      "on": "slept",
+      "when": {
+        "phase_min": "explorer",
+        "owned": "sofa",
+        "sleep_spot": "sofa"
+      },
+      "photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": [
+          "sofa"
+        ]
+      },
+      "hint": "Na ausência dos olhos, todo móvel é dele.",
+      "icons": [
+        "tab_house",
+        "need_energy"
+      ],
+      "hint_npc": "lais",
+      "hint_object": "sofa",
+      "hint_talk": "Para a foto “Trono do sofá”: Na ausência dos olhos, todo móvel é dele."
+    },
+    {
+      "id": "s_photobomb",
+      "section": "tricks",
+      "title": "Penetra",
+      "on": "album_opened",
+      "when": {
+        "friend_hearts": {
+          "pipoca": 1
+        },
+        "chance": {
+          "one_in": 8,
+          "pity": 8
+        }
+      },
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 1
+        },
+        "props": [],
+        "friend": "pipoca"
+      },
+      "hint": "Tem alguém sempre aparecendo onde não foi chamada.",
+      "icons": [
+        "album_friends"
+      ],
+      "hint_npc": "nina",
+      "hint_talk": "Para a foto “Penetra”: Tem alguém sempre aparecendo onde não foi chamada."
+    },
+    {
+      "id": "s_moon_friend",
+      "section": "tricks",
+      "title": "Amigo da lua",
+      "on": "project_used",
+      "when": {
+        "hour": [
+          21,
+          24
+        ],
+        "project_done": "park_bench",
+        "object": "park_bench"
+      },
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": [
+          "moon",
+          "fireflies"
+        ]
+      },
+      "hint": "Quem senta sob o luar recebe as luzes que piscam.",
+      "icons": [
+        "tab_map",
+        "need_energy"
+      ],
+      "hint_npc": "nina",
+      "hint_object": "community_bench",
+      "hint_talk": "Para a foto “Amigo da lua”: Quem senta sob o luar recebe as luzes que piscam."
+    },
+    {
+      "id": "s_zoomies",
+      "section": "tricks",
+      "title": "Corrida maluca",
+      "on": "played",
+      "when": {
+        "count_in_window": {
+          "event": "played",
+          "n": 3,
+          "seconds": 60
+        },
+        "phase_in": [
+          "explorer"
+        ]
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "chase_tail",
+          "frame": 2
+        },
+        "props": [
+          "speed_lines"
+        ]
+      },
+      "hint": "Às vezes a energia não cabe dentro dele.",
+      "icons": [
+        "need_happiness"
+      ],
+      "hint_npc": "nina",
+      "hint_talk": "Para a foto “Corrida maluca”: Às vezes a energia não cabe dentro dele."
+    },
+    {
+      "id": "s_begging",
+      "section": "tricks",
+      "title": "Pidão",
+      "on": "tapped_object",
+      "when": {
+        "object": "fridge",
+        "dog_in_world": "house",
+        "need_below": {
+          "hunger": 40
+        }
+      },
+      "photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "head_tilt",
+          "frame": 1
+        },
+        "props": []
+      },
+      "hint": "Tem um par de olhos seguindo cada porta que abre.",
+      "icons": [
+        "tab_house",
+        "need_hunger"
+      ],
+      "hint_npc": "lais",
+      "hint_object": "fridge",
+      "hint_talk": "Para a foto “Pidão”: Tem um par de olhos seguindo cada porta que abre."
+    },
+    {
+      "id": "s_muddy",
+      "section": "tricks",
+      "title": "Pé de lama",
+      "on": "walk_returned",
+      "when": {
+        "route": "creek_walk",
+        "need_below": {
+          "hygiene": 30
+        }
+      },
+      "photo": {
+        "scene": "nature",
+        "pose": {
+          "clip": "shake_off",
+          "frame": 1
+        },
+        "props": [
+          "mud"
+        ]
+      },
+      "hint": "Quem visita o riacho volta com um pedacinho dele.",
+      "icons": [
+        "tab_map",
+        "need_hygiene"
+      ],
+      "hint_npc": "nina",
+      "hint_talk": "Para a foto “Pé de lama”: Quem visita o riacho volta com um pedacinho dele."
+    },
+    {
+      "id": "p_curled",
+      "section": "sleep",
+      "title": "Emboladinho",
+      "on": "slept",
+      "when": {},
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": []
+      },
+      "hint": "Todo filhote precisa da primeira soneca.",
+      "icons": [
+        "need_energy"
+      ],
+      "hint_npc": "lais",
+      "hint_talk": "Para a foto “Emboladinho”: Todo filhote precisa da primeira soneca."
+    },
+    {
+      "id": "p_belly_up",
+      "section": "sleep",
+      "title": "Barriga pra cima",
+      "on": [
+        "slept",
+        "app_opened"
+      ],
+      "when": {
+        "need_min": {
+          "happiness": 90
+        },
+        "bond_min": 4
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "sleep_belly",
+          "frame": 0
+        },
+        "props": []
+      },
+      "hint": "Quem está bem feliz dorme de barriga para cima.",
+      "icons": [
+        "need_happiness",
+        "bond_heart"
+      ],
+      "hint_npc": "lais",
+      "hint_talk": "Para a foto “Barriga pra cima”: Quem está bem feliz dorme de barriga para cima."
+    },
+    {
+      "id": "p_ball_hug",
+      "section": "sleep",
+      "title": "Abraçado na bolinha",
+      "on": [
+        "slept",
+        "app_opened"
+      ],
+      "when": {
+        "hour": [
+          20,
+          6
+        ],
+        "house_item": "toy:lost_ball"
+      },
+      "photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": [
+          "ball"
+        ]
+      },
+      "hint": "Uma bolinha perdida faz companhia no escuro.",
+      "icons": [
+        "need_energy",
+        "item_lost_ball"
+      ],
+      "hint_npc": "lais",
+      "hint_talk": "Para a foto “Abraçado na bolinha”: Uma bolinha perdida faz companhia no escuro."
+    },
+    {
+      "id": "p_sofa",
+      "section": "sleep",
+      "title": "De bruços no sofá",
+      "on": "slept",
+      "when": {
+        "owned": "sofa",
+        "sleep_spot": "sofa"
+      },
+      "photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": [
+          "sofa"
+        ]
+      },
+      "hint": "Nem todo sono é na caminha.",
+      "icons": [
+        "tab_house"
+      ],
+      "hint_object": "sofa",
+      "hint_npc": "lais",
+      "hint_talk": "Para a foto “De bruços no sofá”: Nem todo sono é na caminha."
+    },
+    {
+      "id": "p_pipoca",
+      "section": "sleep",
+      "title": "Encostadinhos",
+      "on": "friend_visit",
+      "when": {
+        "sleeping": true,
+        "item": "pipoca",
+        "dog_in_world": "house"
+      },
+      "photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": [],
+        "friend": "pipoca"
+      },
+      "hint": "Uma visita quietinha pode dormir junto.",
+      "icons": [
+        "album_friends",
+        "need_energy"
+      ],
+      "hint_npc": "lais",
+      "hint_talk": "Para a foto “Encostadinhos”: Uma visita quietinha pode dormir junto."
+    },
+    {
+      "id": "p_crown",
+      "section": "sleep",
+      "title": "Cochilo real",
+      "on": [
+        "slept",
+        "app_opened"
+      ],
+      "when": {
+        "equipped": "flower_crown",
+        "need_min": {
+          "happiness": 100
+        }
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": []
+      },
+      "hint": "Coroa de flores e coração cheio.",
+      "icons": [
+        "outfit_flower_crown",
+        "need_happiness"
+      ],
+      "hint_npc": "lais",
+      "hint_talk": "Para a foto “Cochilo real”: Coroa de flores e coração cheio."
+    },
+    {
+      "id": "p_sweater",
+      "section": "sleep",
+      "title": "Quentinho",
+      "on": [
+        "slept",
+        "app_opened"
+      ],
+      "when": {
+        "equipped": "knit_sweater",
+        "months": "cold"
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": []
+      },
+      "hint": "Nos meses frios, um suéter ajuda.",
+      "icons": [
+        "outfit_knit_sweater",
+        "need_energy"
+      ],
+      "hint_npc": "lais",
+      "hint_talk": "Para a foto “Quentinho”: Nos meses frios, um suéter ajuda."
+    },
+    {
+      "id": "p_luxe",
+      "section": "sleep",
+      "title": "Sono de rei",
+      "on": [
+        "slept",
+        "app_opened"
+      ],
+      "when": {
+        "house_item": "bed_luxe",
+        "sleep_spot": "bed"
+      },
+      "photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": [
+          "bed_luxe"
+        ]
+      },
+      "hint": "Uma caminha de luxo faz diferença.",
+      "icons": [
+        "tab_house",
+        "need_energy"
+      ],
+      "hint_npc": "lais",
+      "hint_talk": "Para a foto “Sono de rei”: Uma caminha de luxo faz diferença."
+    },
+    {
+      "id": "a_pipoca",
+      "section": "friends",
+      "title": "Melhores amigas",
+      "on": "friend_heart",
+      "when": {
+        "friend_hearts": {
+          "pipoca": 3
+        }
+      },
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 1
+        },
+        "props": [],
+        "friend": "pipoca"
+      }
+    },
+    {
+      "id": "a_nina_class",
+      "section": "friends",
+      "title": "Aula particular",
+      "on": "trick_learned",
+      "when": {
+        "tricks_min": 5
+      },
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "give_paw",
+          "frame": 2
+        },
+        "props": [],
+        "friend": "nina"
+      },
+      "photo_talk": "Guardei com carinho a foto “Aula particular” com o Tiro!"
+    },
+    {
+      "id": "a_bloblo_helper",
+      "section": "friends",
+      "title": "Ajudante da vovó",
+      "on": "customer_delivery",
+      "when": {
+        "stat_min": {
+          "customer_orders:bloblo": 20
+        }
+      },
+      "photo": {
+        "scene": "village",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 2
+        },
+        "props": [],
+        "friend": "bloblo"
+      },
+      "photo_talk": "Guardei com carinho a foto “Ajudante da vovó” com o Tiro!"
+    },
+    {
+      "id": "a_gathering",
+      "section": "friends",
+      "title": "Piquenique da turma",
+      "on": "project_gathered",
+      "when": {
+        "stat_min": {
+          "project_gather:village_festival": 3
+        }
+      },
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "happy_jump",
+          "frame": 3
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "a_lais_lap",
+      "section": "friends",
+      "title": "No colo da Laís",
+      "on": "bond_up",
+      "when": {
+        "bond_min": 8
+      },
+      "photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": [],
+        "friend": "lais"
+      },
+      "photo_talk": "Guardei com carinho a foto “No colo da Laís” com o Tiro!"
+    },
+    {
+      "id": "a_four_friends",
+      "section": "friends",
+      "title": "Turma dos quatro",
+      "on": "friend_heart",
+      "when": {
+        "friend_hearts": {
+          "pipoca": 1,
+          "mel": 1,
+          "bolota": 1,
+          "fred": 1
+        }
+      },
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 1
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "d_month",
+      "section": "dates",
+      "title": "Um mês juntos",
+      "on": "app_opened",
+      "when": {
+        "start_days": [
+          30,
+          37
+        ]
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 1
+        },
+        "props": []
+      }
+    },
+    {
+      "id": "d_gotcha",
+      "section": "dates",
+      "title": "Dia do Tiro",
+      "on": "app_opened",
+      "when": {
+        "anniversary": 7
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "happy_jump",
+          "frame": 3
+        },
+        "props": [
+          "cake",
+          "party_hat"
+        ]
+      },
+      "yearly": true
+    },
+    {
+      "id": "d_full_moon",
+      "section": "dates",
+      "title": "Uivo para a lua",
+      "on": [
+        "world_entered",
+        "app_opened"
+      ],
+      "when": {
+        "full_moon": true,
+        "world_in": {
+          "ids": [
+            "park",
+            "nature"
+          ],
+          "phase_min": "explorer"
+        },
+        "hour": [
+          20,
+          24
+        ]
+      },
+      "photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "bark",
+          "frame": 2
+        },
+        "props": [
+          "moon"
+        ]
+      },
+      "yearly": true
+    },
+    {
+      "id": "d_first_cold",
+      "section": "dates",
+      "title": "Primeiro frio",
+      "on": "app_opened",
+      "when": {
+        "months": "cold",
+        "equipped": "knit_sweater"
+      },
+      "photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": []
+      },
+      "yearly": true
+    },
+    {
+      "id": "d_after_party",
+      "section": "dates",
+      "title": "Depois da festa",
+      "on": "world_entered",
+      "when": {
+        "world": "village",
+        "project_done": "village_festival",
+        "after_days": {
+          "project": "village_festival",
+          "days": 1
+        }
+      },
+      "photo": {
+        "scene": "village",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": []
+      }
+    }
+  ]
+}

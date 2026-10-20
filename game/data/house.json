@@ -1,0 +1,32 @@
+{
+  "schema": 1,
+  "items": {
+    "arrival_box": {"name": "Caixinha da chegada", "desc": "Foi aqui que o Tiro chegou.", "rule": {"before_house": "memory_shelf"}, "silent": true},
+    "height_chart": {"name": "Régua da parede", "desc": "Um risquinho para cada fase do Tiro.", "rule": {"growth": "puppy"}},
+    "memory_shelf": {"name": "Prateleira de lembranças", "desc": "Guarda as lembranças que ele ganhou ao crescer.", "rule": {"keepsakes": 1}},
+    "laundry_basket": {"name": "Cesto de roupa", "desc": "Cuidado com as meias!", "rule": {"growth": "teething"}},
+    "toy_basket": {"name": "Cesto de brinquedos", "desc": "Cada brinquedo diferente deixa o Tiro mais esperto.", "rule": {"growth": "explorer"}},
+    "bed_soft": {"name": "Caminha macia", "desc": "Ele dorme melhor: energia +10% ao dormir.", "rule": {"upgrade": "bed_soft"}, "silent": true},
+    "bed_luxe": {"name": "Caminha de luxo", "desc": "Sono de rei: energia +20% ao dormir.", "rule": {"upgrade": "bed_luxe"}, "silent": true},
+    "named_bowl": {"name": "Tigela com nome", "desc": "Comidas de crescimento rendem +10%.", "rule": {"upgrade": "named_bowl"}, "silent": true},
+    "photo_wall": {"name": "Parede de fotos", "desc": "Pendure até 3 fotos preferidas.", "rule": {"photos": 6}},
+    "paw_rug": {"name": "Tapete de patinha", "desc": "Um enfeite para o cantinho.", "rule": {"photos": 6}},
+    "old_camera": {"name": "Câmera antiga", "desc": "Mais uma lupa por dia nas dicas do álbum.", "rule": {"photos": 12}},
+    "gold_frame": {"name": "Moldura dourada", "desc": "Escolha a foto principal do cantinho.", "rule": {"photos": 18}},
+    "star_garland": {"name": "Varal de estrelinhas", "desc": "Luzinhas para a sala.", "rule": {"photos": 30}},
+    "big_portrait": {"name": "Retrato grande", "desc": "O Tiro, com carinho, na parede.", "rule": {"photos": 45}}
+  },
+  "shelf": [
+    {"id": "arrival_box", "name": "Caixinha da chegada", "icon": "res://assets/sprites/areas/house/arrival_box.png", "photo": "h_arrival"},
+    {"id": "chew_ring", "name": "Argolinha", "photo": "h_growth_teething"},
+    {"id": "stick_chew", "name": "Mordedor", "photo": "h_growth_explorer"},
+    {"id": "soft_brush", "name": "Escova", "photo": "h_growth_young"},
+    {"id": "courage_medal", "name": "Medalhinha", "photo": "h_courage"}
+  ],
+  "toys": ["braided_toy", "lost_ball"],
+  "toy_basket_max": 3,
+  "sleep_bonus": {"bed_soft": 0.1, "bed_luxe": 0.2},
+  "bowl_bonus": 0.1,
+  "wall_slots": 3,
+  "corner": ["paw_rug", "gold_frame", "toy_basket"]
+}

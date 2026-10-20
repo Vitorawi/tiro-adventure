@@ -24,7 +24,7 @@ const ALLOWED: Array[String] = [
 	"start_gathering", "collect_gathering", "start_walk", "collect_walk", "dig", "give_friend",
 	"collect_friend_visit", "fulfill_wish", "perform_trick", "learn_trick", "equip", "sell", "fulfill_order",
 	"buy_upgrade", "buy_plot", "buy_animal", "start_activity", "collect_activity", "open_treasure",
-	"start_project", "contribute_project", "use_project",
+	"start_project", "contribute_project", "use_project", "grow", "deliver_growth",
 ]
 
 const PROFILES := {
@@ -88,6 +88,9 @@ var pending_at_close: Array[Dictionary] = []
 var quest_times: Dictionary = {}
 ## Obras comunitárias (etapa 21): uma linha por começo/entrega/conclusão, com o momento e o saldo.
 var project_log: Array[Dictionary] = []
+## Dia simulado (fração) em que cada fase do Tiro começou e moedas ao fechar cada capítulo (etapa 17 do plano Tiro).
+var growth_days: Dictionary = {}
+var chapter_coins: Dictionary = {}
 var session_log: Array[Dictionary] = []
 var status: String = "running"
 var stall_reason: String = ""
@@ -589,7 +592,19 @@ func execute(action: Dictionary) -> Dictionary:
 			if not gs.feed(str(args.item)):
 				out.err = "Não aceitou a comida"
 		"bathe":
-			gs.bathe()
+			var shampoo := bool(args.get("shampoo", false))
+			out.extra = {"consumed": {"herb_shampoo": 1} if shampoo else {}}
+			gs.bathe(shampoo)
+		"grow":
+			out.err = gs.grow()
+		"deliver_growth":
+			var key_item := str(args.item)
+			var needed := 0
+			for row: Dictionary in gs.growth_info().requirements:
+				if str(row.type) == "deliver" and str(row.item) == key_item:
+					needed = mini(gs.inventory.count(key_item), int(row.need) - int(row.have))
+			out.extra = {"consumed": {key_item: needed}}
+			out.err = gs.deliver_growth(key_item)
 		"play":
 			if not gs.play():
 				out.err = "Não pôde brincar"
@@ -833,7 +848,7 @@ func _expected(action: Dictionary, outcome: Dictionary) -> Dictionary:
 		"harvest_many":
 			coins = int(extra.get("coins", 0))
 			items = extra.get("gained", {}).duplicate()
-		"cook", "feed":
+		"cook", "feed", "bathe", "deliver_growth":
 			for id: String in extra.get("consumed", {}):
 				items[id] = -int(extra.consumed[id])
 		"collect_station":
@@ -861,8 +876,8 @@ func _expected(action: Dictionary, outcome: Dictionary) -> Dictionary:
 		"contribute_project":
 			for id: String in extra.get("delivered", {}):
 				items[id] = -int(extra.delivered[id])
-		"dig", "collect_walk", "collect_friend_visit", "give_friend":
-			exact = false
+		"dig", "collect_walk", "collect_friend_visit", "give_friend", "grow":
+			exact = false  # "grow": o presente da fase pode virar recibo se a mochila estiver cheia
 	return {"coins": coins, "items": items, "exact": exact}
 
 
@@ -1185,6 +1200,14 @@ func _milestones() -> void:
 	for key: String in checks:
 		if bool(checks[key]) and not milestones.has(key):
 			milestones[key] = {"active_min": snappedf(active_seconds / 60.0, 0.1), "hours": snappedf(rel(gs.now()) / 3600.0, 0.1), "session": session_index, "day": int(rel(gs.now()) / DAY)}
+	var reached: int = gs.growth.phase_index()
+	for i in range(1, reached + 1):
+		var phase_id := str(Database.growth.phases[i].id)
+		if not growth_days.has(phase_id):
+			growth_days[phase_id] = {"day": snappedf(rel(gs.now()) / DAY, 0.01), "active_min": snappedf(active_seconds / 60.0, 0.1)}
+	for chapter in range(1, gs.progress.chapter_index()):
+		if not chapter_coins.has(str(chapter)):
+			chapter_coins[str(chapter)] = {"coins": gs.coins, "day": snappedf(rel(gs.now()) / DAY, 0.01)}
 
 
 # --- Próximo evento do jogo -------------------------------------------------------------------------
@@ -1284,7 +1307,9 @@ func summary() -> Dictionary:
 			"quests": gs.progress.claimed_quests.size(), "quests_total": Database.quests.size(),
 			"upgrades": upgrades_owned, "upgrades_total": Database.progression.upgrades.size(), "missing_upgrades": _missing_upgrades(), "plots": gs.unlocked_plots,
 			"affection": gs.dog.affection, "walks": gs.progress.stat("walk"), "finds": gs.progress.stat("find"),
+			"phase": gs.growth.phase, "silk": gs.growth.silk, "pillars": _pillar_levels(),
 		},
+		"growth_days": growth_days, "chapter_coins": chapter_coins,
 		"time": {
 			"active_min": snappedf(active_seconds / 60.0, 0.1), "forced_wait_min": snappedf(wait_seconds / 60.0, 0.1),
 			"nav_min": snappedf(nav_seconds / 60.0, 0.1), "sessions": session_index, "actions": action_index,
@@ -1306,6 +1331,13 @@ func summary() -> Dictionary:
 		"final_debug": final_debug,
 		"perf_ms": _perf_ms(),
 	}
+
+
+func _pillar_levels() -> Dictionary:
+	var result := {}
+	for id: String in Database.growth.pillars:
+		result[id] = {"level": gs.growth.level(id), "points": int(gs.growth.points.get(id, 0))}
+	return result
 
 
 ## Maior intervalo (em minutos ativos) entre duas missões recebidas seguidas: "tempo sem progresso" da história.

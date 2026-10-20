@@ -100,3 +100,18 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/run_godot_test.ps1 eco
 Testes focados executados: `economy_sim_test` PASS (24 ações × GameState direto, fila sequencial/estoque cheio, guardas, agenda 1×10/3×10, semente e reload); `economy_audit_selftest` e `economy_compare_selftest` PASS; `content_test`, `tasks_test`, `storage_test`, `farm_test` e `dev_tools_test` (dev e prod) PASS. Logs `retomada_*` no mesmo diretório. Os avisos `GUARDA` no stderr do teste do simulador são as violações injetadas de propósito pelas fixtures.
 
 Limitação de regressão: `progression_test` antigo excedeu o tempo máximo de **3 minutos**, encerrado pelo invocador após registrar os ciclos 0 e 100; **não é PASS**. A etapa 00 já havia documentado falha desse bot em `merchant_festival`. A retomada não alterou esse teste nem o usou como evidência de ritmo. Sem suíte completa, commit, export, captura visual ou teste no celular nesta etapa de ferramentas; sem publicação. A etapa 02 continua pendente.
+
+## O robô sabe crescer — Tiro no centro, etapa 11 (19/10/2026)
+
+Com a história conduzida pelo crescimento (a última missão dos capítulos 1, 3, 6, 9 e 12 é `growth: <fase>`), o jogador simulado precisou aprender a cuidar do Tiro até ele crescer, senão a campanha travava no fim do capítulo 1. Tudo pelas **mesmas ações do `GameState`**, sem `dev_*`:
+
+* `economy_bot.gd`: `pursue_growth(fase)` (objetivo `growth` em `pursue_goal` e requisito `growth` em `pursue_reqs`, o que cobre truques e passeios longos) resolve cada requisito da próxima fase — `owned`/`quest`/`project` pelos caminhos de sempre, `deliver` (entrega o item-chave com `deliver_growth`; item `keepsake` sem receita vem do prêmio da missão que o dá), `feed` (a refeição da fase, ou qualquer comida), `stat` (`walk` e `shampoo_bath`, que espera o Tiro sujar antes do banho com xampu), `collection` (lacinho pela costura) e `pillars` (banho com a recarga de 2 h, comida da fase, brincar e carinho nos momentos em que dão pontos) — e, com tudo pronto, aperta **Crescer** (`grow`).
+* `economy_sim.gd`: ações novas `grow` e `deliver_growth` (esta declara o item consumido) e `bathe` com `shampoo` (declara o xampu consumido); `grow` é conferida como efeito não exato porque o presente da fase pode virar recibo com a mochila cheia.
+* `economy_sim_test`: nova parte 9 — Dentinhos, Mocinho e Azul e Dourado crescem pelo robô em estados de fixture (argolinha pela missão da vovó, três refeições, escova, dois banhos com xampu, medalhinha), sem violação de guarda/conservação, e uma campanha do zero de dois dias passa do Filhotinho e abre o capítulo 2. Os pilares da fixture usam `dev_add_pillar` (só ali).
+* Diagnóstico (não é medida de ritmo, que fica para a etapa 17): semente 1, perfil referência, 14 dias → Aventureiro e capítulo 9; 40 dias → Mocinho e capítulo 12 (falta o Azul e Dourado, que espera os pilares em 8), zero violações.
+
+Limite conhecido: o ritmo de crescimento do robô (dias por fase) não foi calibrado; é exatamente o que a etapa 17 mede.
+
+## Campos de crescimento — Tiro no centro, etapa 17 (19/10/2026)
+
+`summary.json` ganhou `growth_days` (`{fase: {day, active_min}}`, dia simulado em que cada fase começou), `chapter_coins` (`{capítulo: {coins, day}}`, moedas ao fechar cada capítulo) e `end.phase`, `end.silk`, `end.pillars` (`{pilar: {level, points}}`). `tools/economy_compare.py` escreve a seção "4b. Fases do Tiro × dia" contra os alvos da 02 E. Resultado da única execução `-Quick`: `docs/plans/tiro/RESULTADOS.md`.

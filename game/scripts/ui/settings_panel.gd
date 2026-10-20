@@ -71,7 +71,6 @@ static func _slot_card(box: VBoxContainer, summary: Dictionary) -> void:
 		title.add_child(UiKit.short_label("Jogando", &"SmallLabel", UiKit.GOOD))
 	card.add_child(title)
 	var chips := UiKit.flow(4)
-	chips.add_child(UiKit.chip(UiKit.ui_icon("xp"), "Nível %d" % int(summary.level)))
 	var chapter := "Completo" if summary.finished else "Cap. %d/%d" % [int(summary.chapter), int(summary.chapters)]
 	chips.add_child(UiKit.chip(UiKit.ui_icon("tab_tasks"), chapter))
 	chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), str(int(summary.coins))))

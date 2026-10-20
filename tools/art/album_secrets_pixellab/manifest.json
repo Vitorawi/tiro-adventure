@@ -1,0 +1,148 @@
+[
+  {
+    "id": "foam",
+    "description": "a soft cluster of white soap foam bubbles, pale blue shadows, isolated small overlay",
+    "job": "08abf186-2ce5-4693-b8e6-fbacb8695b76",
+    "sha256": "a10df76664fc6f9cbc3f16407ec6af32d0089898cf6cf254aa3167e6848a20a1",
+    "width": 48,
+    "height": 48,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "carrot_mouth",
+    "description": "one small orange carrot with green leaves, horizontal, isolated",
+    "job": "6b823f13-25a2-4435-aef2-88b128c91708",
+    "sha256": "e29e77f8b268fe61347f7247d2f5915f91436d49f57c88f2ea58395c0d6ba9c4",
+    "width": 48,
+    "height": 48,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "sock",
+    "description": "one playful red striped sock, crumpled, isolated",
+    "job": "d0852f3b-1130-4440-a491-11d48f164b9d",
+    "sha256": "550d2414af323318439c9907fe47e2282a9a3f2b0cf80bb25d80a89df1903445",
+    "width": 48,
+    "height": 48,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "drops",
+    "description": "a scattering of seven blue water drops, isolated transparent spaces",
+    "job": "72ce0aff-b3eb-484c-b34f-a1430b48b5c9",
+    "sha256": "4937d5fff26b2450bc2af800595b5f81d5ae6d37cb491eafcb3952cb638c235d",
+    "width": 48,
+    "height": 48,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "ball",
+    "description": "one small red and cream dog toy ball, isolated",
+    "job": "eca8319b-7881-4310-8651-97085fc71148",
+    "sha256": "769c8cfdf1a1eac24687aff0657acf157d43e0014ecbbac7323a9e60a869c53b",
+    "width": 48,
+    "height": 48,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "moon",
+    "description": "one glowing pale yellow full moon, isolated",
+    "job": "63570be7-5484-40c7-9850-3d3c41aac194",
+    "sha256": "8a5e5c5429ec51a56cab4168f867cf4a07f5e388589423cae261517b59160cbd",
+    "width": 48,
+    "height": 48,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "fireflies",
+    "description": "a scattering of tiny golden fireflies with soft green wings, isolated transparent spaces",
+    "job": "ac3e1836-d647-4b92-8afd-3ea38b4bf58b",
+    "sha256": "36f40ca94d748b114440cb4ec374be8a8afa2fadc98e5ec4406ef3a68523dbda",
+    "width": 48,
+    "height": 48,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "mud_rejected",
+    "description": "a few small dark brown splashes of mud, isolated",
+    "job": "b87142d7-edca-4334-a7d5-b208b3218829",
+    "sha256": "b97ea49fdb5e81ea0657a2861b0769fab1d3f7a0e12f198b14d81fa4f97d82e1",
+    "rejected": "Geração incluiu um animal; não instalada.",
+    "width": 48,
+    "height": 48,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "party_hat",
+    "description": "one small red and gold striped cone party hat with a yellow pompom, isolated",
+    "job": "b05b36b5-b741-4c84-8c62-1ab0f81c4658",
+    "sha256": "da250d0b75d80fe6c3ba731b9818eaabce985ef6ea6e32a70503196c731d784d",
+    "width": 48,
+    "height": 48,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "cake",
+    "description": "one small dog friendly birthday cake with cream frosting, apple decoration, one candle, isolated",
+    "job": "1854e4eb-fe9b-46aa-acc9-52f6802da2a9",
+    "sha256": "02424f1c0d0614f54dbed2ff592b2ad5f6b5aaac53bf3c109fcbbb84a57ad66a",
+    "width": 48,
+    "height": 48,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "mud",
+    "job": "7edf154e-ccea-4267-9ed6-bf3ec8b0afb6",
+    "description": "Only 4 small flat muddy brown splash stains and a few brown dots. Flat abstract mud splatter decal, no person, no animal, no face, no object, no scene, transparent background, crisp pixel art, 48 pixel canvas",
+    "sha256": "28a57dd8030fec3af9b92263f9d808b127f0df06014fc7e396d57097362c5c0b",
+    "width": 48,
+    "height": 48,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "explorer_hat",
+    "job": "bb6abb3f-fe43-4f70-944e-ec7704837ee0",
+    "description": "One small beige safari explorer pith helmet hat, dark brown band, front view, isolated, warm cozy pixel art, dark brown outline, no character, no head, transparent background",
+    "sha256": "c6243e7a1361b53d57ec87eb2e5d75e3870e12208ef2875fed19ec46454d3481",
+    "width": 48,
+    "height": 48,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "pipoca_sleep",
+    "job": "585004e1-f43b-4c1a-85fb-cfc8f4a84cf7",
+    "reference": "game/assets/sprites/characters/dog_pipoca/rotations/east.png",
+    "strength": 220,
+    "rejected": "Pose ficou em pé; não instalada.",
+    "description": "Same caramel dog from reference, asleep curled on side, closed eyes.",
+    "sha256": "a5ee6bfd4abd3d7efc9df9331e31e25c4eb3890184e275c75c86b4aed08727c3",
+    "width": 64,
+    "height": 64,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  },
+  {
+    "id": "pipoca_curled",
+    "job": "ef50bc9b-7a6a-4cfa-bf57-935b8a6f1eb8",
+    "reference": "game/assets/sprites/characters/dog_pipoca/rotations/east.png",
+    "strength": 60,
+    "description": "Same caramel puppy, lying down completely curled, closed eyes, head resting on paws, four legs folded, dark floppy ears and white feet.",
+    "sha256": "1ac925b9fbf7fb28dbee020adfa4a7cda508d81134c49d9d34b5d345e2de0ee6",
+    "width": 64,
+    "height": 64,
+    "tool": "create_image_pixflux",
+    "transparent": true
+  }
+]

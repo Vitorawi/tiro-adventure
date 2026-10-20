@@ -58,23 +58,19 @@ func _run() -> void:
 	var lines: Array = state.call("welcome_ready_lines")
 	check(lines.size() == 1 and lines[0].kind == "ready" and lines[0].world == "farm" and int(lines[0].count) == 1 and lines[0].icon == "carrot", "Canteiro pronto vira linha do mundo com ícone e número")
 	check(card_script.call("has_content") == true, "Cartão abre com algo pronto")
-	# Nível: dois níveis juntos somam as recompensas e emitem um evento só.
+	# XP interno não paga presentes e o nível permanece congelado, inclusive ao recarregar.
 	var events: Node = root.get_node("Events")
 	var got: Array = []
 	events.connect("level_up", func(level: int, rewards: Dictionary) -> void: got.append([level, rewards]))
 	state.set("xp", 0)
 	state.set("level", 1)
 	coins = state.get("coins")
-	state.call("_add_player_xp", 100 + 200)
-	check(state.get("level") == 3 and got.size() == 1 and got[0][0] == 3, "Dois níveis, um evento")
-	check(int(got[0][1].coins) == 35 and got[0][1].items.dog_food == 2 and got[0][1].items.carrot_snack == 1, "Soma das recompensas dos níveis 2 e 3")
-	check(state.get("coins") == coins + 35, "Recompensa entra uma vez")
-	state.call("_add_player_xp", 1000)
-	check(state.get("level") >= 4, "Continua subindo")
-	check(int(state.call("level_reward", 15).coins) == 65 and int(state.call("level_reward", 30).coins) == 80, "Níveis acima da tabela: min(80, 20 + 3 × nível) vindo do JSON")
+	state.call("_add_player_xp", 1300)
+	check(state.get("level") == 1 and got.is_empty(), "XP não sobe nível nem emite level_up")
+	check(state.get("coins") == coins, "XP não paga moedas")
 	var persisted: Dictionary = state.call("to_dict")
 	state.call("from_dict", persisted)
-	check(state.get("level") >= 4, "Save preserva o nível")
+	check(state.get("level") == 1 and state.get("xp") == 1300, "Save mantém contador interno e nível congelado")
 	# Tela: cartão abre, recebe presente e fecha.
 	state.call("reset")
 	state.call("dev_complete_quest", "lais_bed")
@@ -99,9 +95,9 @@ func _run() -> void:
 	check(state.call("daily_gift_error") == "Já pegou hoje" and _find_button(welcome, "Pegar") == null, "Pegar entrega e some o botão")
 	_find_button(welcome, "Vamos lá!").emit_signal("pressed")
 	check(not welcome.visible, "Vamos lá fecha")
-	main.get("_celebration").call("show_level", 3, {"coins": 20, "items": {"carrot_snack": 1}})
+	main.get("_celebration").call("show_bond", 3, {"coins": 20, "items": {"carrot_snack": 1}})
 	await process_frame
-	_shot("level_up")
+	_shot("bond_up")
 	print("WELCOME TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(1 if failures > 0 else 0)
 

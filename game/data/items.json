@@ -18,6 +18,16 @@
     "icon": "res://assets/sprites/ui/icons/item_dog_food.png",
     "feed": {
       "hunger": 25
+    },
+    "growth": {
+      "pillars": {
+        "body": 2
+      },
+      "phases": [
+        "newborn",
+        "puppy"
+      ],
+      "only_phases": true
     }
   },
   "carrot_snack": {
@@ -30,7 +40,17 @@
       "happiness": 15
     },
     "sell_price": 12,
-    "trade_xp": 5
+    "trade_xp": 5,
+    "growth": {
+      "pillars": {
+        "body": 2
+      },
+      "phases": [
+        "newborn",
+        "puppy",
+        "teething"
+      ]
+    }
   },
   "pumpkin_mash": {
     "name": "Papinha de abóbora",
@@ -42,7 +62,16 @@
       "happiness": 10
     },
     "sell_price": 25,
-    "trade_xp": 8
+    "trade_xp": 8,
+    "growth": {
+      "pillars": {
+        "body": 5
+      },
+      "phases": [
+        "puppy",
+        "teething"
+      ]
+    }
   },
   "carrot": {
     "name": "Cenoura",
@@ -157,7 +186,17 @@
       "hunger": 40,
       "energy": 15
     },
-    "trade_xp": 7
+    "trade_xp": 7,
+    "growth": {
+      "pillars": {
+        "body": 4,
+        "brave": 1
+      },
+      "phases": [
+        "teething",
+        "explorer"
+      ]
+    }
   },
   "apple_biscuit": {
     "name": "Biscoito de maçã",
@@ -169,7 +208,18 @@
       "hunger": 30,
       "happiness": 20
     },
-    "trade_xp": 10
+    "trade_xp": 10,
+    "growth": {
+      "pillars": {
+        "body": 3,
+        "smart": 2
+      },
+      "phases": [
+        "explorer",
+        "young",
+        "adult"
+      ]
+    }
   },
   "treat_box": {
     "name": "Caixa de petiscos",
@@ -224,7 +274,11 @@
     "trade_xp": 3
   },
   "hardwood": {
-    "name": "Madeira dura", "category": "material", "icon": "res://assets/sprites/ui/icons/item_hardwood.png", "sell_price": 8, "trade_xp": 3
+    "name": "Madeira dura",
+    "category": "material",
+    "icon": "res://assets/sprites/ui/icons/item_hardwood.png",
+    "sell_price": 8,
+    "trade_xp": 3
   },
   "cheese": {
     "name": "Queijo",
@@ -273,6 +327,14 @@
     "feed": {
       "happiness": 25,
       "hunger": 5
+    },
+    "growth": {
+      "pillars": {
+        "brave": 2
+      },
+      "phases": [
+        "teething"
+      ]
     }
   },
   "strawberry_juice": {
@@ -293,6 +355,15 @@
     "feed": {
       "hunger": 35,
       "happiness": 5
+    },
+    "growth": {
+      "pillars": {
+        "body": 4
+      },
+      "phases": [
+        "puppy",
+        "teething"
+      ]
     }
   },
   "sweet_potato_chips": {
@@ -305,6 +376,16 @@
     "feed": {
       "hunger": 20,
       "happiness": 25
+    },
+    "growth": {
+      "pillars": {
+        "body": 3,
+        "smart": 1
+      },
+      "phases": [
+        "teething",
+        "explorer"
+      ]
     }
   },
   "old_horseshoe": {
@@ -345,7 +426,16 @@
     "storage": "none",
     "icon": "res://assets/sprites/ui/icons/item_lost_ball.png",
     "sell_price": 6,
-    "rare": false
+    "rare": false,
+    "toy": true
+  },
+  "milk_tooth": {
+    "name": "Dentinho de leite",
+    "category": "find",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_milk_tooth.png",
+    "sell_price": 0,
+    "rare": true
   },
   "bone_keychain": {
     "name": "Chaveiro de osso",
@@ -459,17 +549,96 @@
     "storage": "none",
     "icon": "res://assets/sprites/ui/icons/item_map_piece.png"
   },
-  "stick": {"name": "Graveto", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_stick.png", "sell_price": 2, "note": "O Tiro adora! E serve na costura."},
-  "ribbon": {"name": "Fita colorida", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_ribbon.png", "sell_price": 6, "note": "Serve para costurar apetrechos."},
-  "wildflower": {"name": "Flor do campo", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_wildflower.png", "sell_price": 4, "note": "Serve para uma coroa de flores."},
-  "color_button": {"name": "Botão colorido", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_color_button.png", "sell_price": 4, "note": "Serve para costurar roupinhas."},
-  "yarn": {"name": "Novelo de lã", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_yarn.png", "sell_price": 6, "note": "Serve para tricotar roupinhas."},
-  "smooth_pebble": {"name": "Pedrinha lisa", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_smooth_pebble.png", "sell_price": 4, "note": "Bonita para coleiras."},
-  "river_shell": {"name": "Conchinha", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_river_shell.png", "sell_price": 6, "note": "Serve para uma coleira de conchas."},
-  "wild_mint": {"name": "Hortelã silvestre", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_wild_mint.png", "sell_price": 5, "note": "Vira petisco de hortelã."},
-  "bird_feather": {"name": "Pena de passarinho", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_bird_feather.png", "sell_price": 6, "note": "Serve para um chapéu de pena."},
-  "golden_leaf": {"name": "Folha dourada", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_golden_leaf.png", "sell_price": 25, "rare": true, "note": "Rara! Serve para a capa dourada."},
-  "moon_pebble": {"name": "Pedrinha da lua", "category": "trail", "storage": "chest", "icon": "res://assets/sprites/ui/icons/item_moon_pebble.png", "sell_price": 30, "rare": true, "note": "Rara! Só aparece no fim da tarde."},
+  "stick": {
+    "name": "Graveto",
+    "category": "trail",
+    "storage": "chest",
+    "icon": "res://assets/sprites/ui/icons/item_stick.png",
+    "sell_price": 2,
+    "note": "O Tiro adora! E serve na costura."
+  },
+  "ribbon": {
+    "name": "Fita colorida",
+    "category": "trail",
+    "storage": "chest",
+    "icon": "res://assets/sprites/ui/icons/item_ribbon.png",
+    "sell_price": 6,
+    "note": "Serve para costurar apetrechos."
+  },
+  "wildflower": {
+    "name": "Flor do campo",
+    "category": "trail",
+    "storage": "chest",
+    "icon": "res://assets/sprites/ui/icons/item_wildflower.png",
+    "sell_price": 4,
+    "note": "Serve para uma coroa de flores."
+  },
+  "color_button": {
+    "name": "Botão colorido",
+    "category": "trail",
+    "storage": "chest",
+    "icon": "res://assets/sprites/ui/icons/item_color_button.png",
+    "sell_price": 4,
+    "note": "Serve para costurar roupinhas."
+  },
+  "yarn": {
+    "name": "Novelo de lã",
+    "category": "trail",
+    "storage": "chest",
+    "icon": "res://assets/sprites/ui/icons/item_yarn.png",
+    "sell_price": 6,
+    "note": "Serve para tricotar roupinhas."
+  },
+  "smooth_pebble": {
+    "name": "Pedrinha lisa",
+    "category": "trail",
+    "storage": "chest",
+    "icon": "res://assets/sprites/ui/icons/item_smooth_pebble.png",
+    "sell_price": 4,
+    "note": "Bonita para coleiras."
+  },
+  "river_shell": {
+    "name": "Conchinha",
+    "category": "trail",
+    "storage": "chest",
+    "icon": "res://assets/sprites/ui/icons/item_river_shell.png",
+    "sell_price": 6,
+    "note": "Serve para uma coleira de conchas."
+  },
+  "wild_mint": {
+    "name": "Hortelã silvestre",
+    "category": "trail",
+    "storage": "chest",
+    "icon": "res://assets/sprites/ui/icons/item_wild_mint.png",
+    "sell_price": 5,
+    "note": "Vira petisco de hortelã."
+  },
+  "bird_feather": {
+    "name": "Pena de passarinho",
+    "category": "trail",
+    "storage": "chest",
+    "icon": "res://assets/sprites/ui/icons/item_bird_feather.png",
+    "sell_price": 6,
+    "note": "Serve para um chapéu de pena."
+  },
+  "golden_leaf": {
+    "name": "Folha dourada",
+    "category": "trail",
+    "storage": "chest",
+    "icon": "res://assets/sprites/ui/icons/item_golden_leaf.png",
+    "sell_price": 25,
+    "rare": true,
+    "note": "Rara! Serve para a capa dourada."
+  },
+  "moon_pebble": {
+    "name": "Pedrinha da lua",
+    "category": "trail",
+    "storage": "chest",
+    "icon": "res://assets/sprites/ui/icons/item_moon_pebble.png",
+    "sell_price": 30,
+    "rare": true,
+    "note": "Rara! Só aparece no fim da tarde."
+  },
   "mint_snack": {
     "name": "Petisco de hortelã",
     "category": "food",
@@ -477,7 +646,20 @@
     "icon": "res://assets/sprites/ui/icons/item_mint_snack.png",
     "sell_price": 22,
     "trade_xp": 5,
-    "feed": {"hunger": 15, "happiness": 15, "hygiene": 10}
+    "feed": {
+      "hunger": 15,
+      "happiness": 15,
+      "hygiene": 10
+    },
+    "growth": {
+      "pillars": {
+        "coat": 4
+      },
+      "phases": [
+        "young",
+        "adult"
+      ]
+    }
   },
   "braided_toy": {
     "name": "Brinquedo trançado",
@@ -485,6 +667,7 @@
     "icon": "res://assets/sprites/ui/icons/item_braided_toy.png",
     "sell_price": 40,
     "trade_xp": 10,
+    "toy": true,
     "note": "Para brincar, não para comer. Vai em encomendas."
   },
   "picnic_pack": {
@@ -502,6 +685,230 @@
     "icon": "res://assets/sprites/ui/icons/item_blueberry_treat.png",
     "sell_price": 65,
     "trade_xp": 8,
-    "feed": {"hunger": 20, "happiness": 10}
+    "feed": {
+      "hunger": 20,
+      "happiness": 10
+    },
+    "growth": {
+      "pillars": {
+        "smart": 4,
+        "coat": 3
+      },
+      "phases": [
+        "young",
+        "adult"
+      ]
+    }
+  },
+  "frozen_carrot": {
+    "name": "Cenoura gelada",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_frozen_carrot.png",
+    "sell_price": 8,
+    "feed": {
+      "hunger": 20,
+      "happiness": 5
+    },
+    "growth": {
+      "pillars": {
+        "body": 4
+      },
+      "phases": [
+        "teething"
+      ]
+    }
+  },
+  "puppy_mash": {
+    "name": "Papinha da vovó",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_puppy_mash.png",
+    "sell_price": 12,
+    "feed": {
+      "hunger": 35,
+      "happiness": 10
+    },
+    "growth": {
+      "pillars": {
+        "body": 6
+      },
+      "phases": [
+        "newborn",
+        "puppy",
+        "teething"
+      ]
+    }
+  },
+  "corn_crunch": {
+    "name": "Crocante de milho",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_corn_crunch.png",
+    "sell_price": 7,
+    "feed": {
+      "hunger": 20,
+      "happiness": 5
+    },
+    "growth": {
+      "pillars": {
+        "body": 4,
+        "smart": 1
+      },
+      "phases": [
+        "teething",
+        "explorer"
+      ]
+    }
+  },
+  "growth_kibble": {
+    "name": "Ração de crescimento",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_growth_kibble.png",
+    "sell_price": 14,
+    "feed": {
+      "hunger": 35,
+      "happiness": 10
+    },
+    "growth": {
+      "pillars": {
+        "body": 10
+      },
+      "phases": [
+        "explorer",
+        "young"
+      ]
+    }
+  },
+  "egg_scramble": {
+    "name": "Ovinho mexido",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_egg_scramble.png",
+    "sell_price": 20,
+    "feed": {
+      "hunger": 30,
+      "happiness": 10
+    },
+    "growth": {
+      "pillars": {
+        "body": 6,
+        "coat": 2
+      },
+      "phases": [
+        "explorer",
+        "young",
+        "adult"
+      ]
+    }
+  },
+  "cheese_bites": {
+    "name": "Petisco de queijo",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_cheese_bites.png",
+    "sell_price": 8,
+    "feed": {
+      "hunger": 15,
+      "happiness": 10
+    },
+    "growth": {
+      "pillars": {
+        "smart": 4
+      },
+      "phases": [
+        "explorer",
+        "young",
+        "adult"
+      ]
+    }
+  },
+  "milk_porridge": {
+    "name": "Mingau de leite",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_milk_porridge.png",
+    "sell_price": 15,
+    "feed": {
+      "hunger": 30,
+      "happiness": 10
+    },
+    "growth": {
+      "pillars": {
+        "body": 6,
+        "coat": 6
+      },
+      "phases": [
+        "young",
+        "adult"
+      ]
+    }
+  },
+  "herb_shampoo": {
+    "name": "Xampu de ervas",
+    "category": "care",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_herb_shampoo.png",
+    "sell_price": 18
+  },
+  "chew_ring": {
+    "name": "Argolinha de morder",
+    "category": "keepsake",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_chew_ring.png",
+    "note": "Costurada pela vovó Bloblo. Dê ao Tiro no painel de crescimento."
+  },
+  "stick_chew": {
+    "name": "Mordedor de graveto",
+    "category": "keepsake",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_stick_chew.png",
+    "note": "Feito na bancada. Dê ao Tiro no painel de crescimento."
+  },
+  "soft_brush": {
+    "name": "Escova macia",
+    "category": "keepsake",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_soft_brush.png",
+    "note": "Feita na bancada. Dê ao Tiro no painel de crescimento."
+  },
+  "courage_medal": {
+    "name": "Medalhinha de coragem",
+    "category": "keepsake",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_courage_medal.png",
+    "note": "Lembrança da festa da turma. Dê ao Tiro no painel de crescimento."
+  },
+  "basic_brush": {
+    "name": "Escovinha",
+    "category": "keepsake",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/action_brush.png",
+    "note": "Presente da Laís. Passe no Tiro em Escovar, na tela dele."
+  },
+  "birthday_cake": {
+    "name": "Bolo do Tiro",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/album/prop_cake.png",
+    "sell_price": 0,
+    "feed": {
+      "hunger": 20,
+      "happiness": 15
+    },
+    "growth": {
+      "pillars": {
+        "brave": 5
+      },
+      "phases": [
+        "newborn",
+        "puppy",
+        "teething",
+        "explorer",
+        "young",
+        "adult"
+      ]
+    }
   }
 }

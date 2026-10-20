@@ -4,7 +4,6 @@ extends CanvasLayer
 ## que ficou pronto enquanto o jogador estava fora, UMA linha por tipo (achados juntos, prontos
 ## por mundo, visita de amigo, passeio). Sem estado próprio: tudo vem do GameState.
 
-const TIRO := "res://assets/sprites/characters/tiro_pet/tiro_pet_idle_front.png"
 
 
 ## Só vale a pena abrir se há presente para receber ou algo pronto (e a história já apresentou o jogo).
@@ -23,11 +22,18 @@ func open(animate: bool = true) -> void:
 		_gift_card(card)
 	for line: Dictionary in GameState.welcome_ready_lines():
 		card.add(_line_row(line))
+		if str(line.kind) == "growth" and not bool(line.get("sleeping", false)):
+			GameState.mark_growth_ready_seen()
 	if has_gift:
-		card.add_ghost("Vamos lá!", hide)
+		card.add_ghost("Vamos lá!", _close)
 	else:
-		card.add_primary("Vamos lá!", hide)
+		card.add_primary("Vamos lá!", _close)
 	show()
+
+
+func _close() -> void:
+	hide()
+	GameState.reveal_sleeping_growth()
 
 
 ## Presente do dia: cartão verde no topo, com o único botão principal.
@@ -59,6 +65,12 @@ func _line_row(line: Dictionary) -> Control:
 	var title := ""
 	var chips: Array[Control] = []
 	match kind:
+		"growth":
+			texture = UiKit.ui_icon("tab_pet")
+			title = "Ele cresceu enquanto dormia!" if bool(line.get("sleeping", false)) else "Ele pode crescer!"
+		"photo":
+			texture = UiKit.ui_icon("album_story")
+			title = "%d foto%s nova%s no álbum" % [count, "s" if count > 1 else "", "s" if count > 1 else ""]
 		"dig":
 			texture = UiKit.ui_icon("find_paw")
 			title = "%d achado%s" % [count, "s" if count > 1 else ""]
@@ -78,7 +90,12 @@ func _line_row(line: Dictionary) -> Control:
 	var target := {"world": line.world, "place": line.target}
 	var go := func() -> void:
 		hide()
-		if kind == "friend_visit":
+		if kind == "photo":
+			PetNotebook.open("album")
+		elif kind == "growth":
+			if bool(line.get("sleeping", false)): GameState.reveal_sleeping_growth()
+			else: GrowthUi.open()
+		elif kind == "friend_visit":
 			Events.world_requested.emit("house", "look:" + str(line.target))
 		else:
 			Places.go(target)

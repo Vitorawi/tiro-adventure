@@ -1,4 +1,44 @@
 # Game Design
+## O objetivo do jogo é o Tiro crescer (plano "Tiro no centro", fechado em 19/10/2026)
+
+As pessoas entram para ver o Tiro evoluir; a fazenda, a vila e as construções existem para isso.
+- **Fases:** Recém-chegado → Filhotinho → Dentinhos → Aventureiro → Mocinho → Azul e Dourado, casadas com os
+  capítulos 1/3/6/9/12. Cada fase muda corpo, pelagem e jeito; a próxima aparece em silhueta. É sempre o mesmo cachorro.
+- **Pilares:** Corpo, Pelagem, Esperteza e Coragem sobem com cuidados, comidas, passeios, obras e rotinas; cada
+  fase tem teto e crescer abre o próximo. Para crescer ele também precisa de um item-chave do capítulo e de uma
+  refeição da fase. O jogador aperta **Crescer!** quando quiser (cerimônia com antes e depois e risco na régua).
+- **A fazenda serve ao Tiro:** ração de crescimento, mingau, xampu, mordedor, escova, lacinho; paladar e comida favorita.
+- **Álbum:** 54 fotos em seis seções (história, primeiras vezes, travessuras, soninhos, amigos, datas), com dicas.
+- **Casa que cresce:** régua, prateleira de lembranças, caminhas, tigela, cesto e fotos penduradas.
+- **Jeito próprio** (Explorador, Comilão, Brincalhão, Dengoso, Tranquilo) e, no adulto, a Pelagem de seda I–III.
+- **HUD:** avatar e anel mostram o crescimento; o nível do jogador deixou de existir para quem joga.
+Detalhes: `docs/plans/tiro/00_VISAO.md` e `docs/PROGRESSION.md`.
+
+## Tiro no centro — etapa 11: a história é o crescimento (19/10/2026)
+
+A história principal agora gira em torno do Tiro: a Laís conta que ele chegou assustado, "tremia na caixinha", e
+cada arco termina com ele crescendo — Filhotinho no fim do capítulo 1, Dentinhos no 3, Aventureiro no 6, Mocinho
+no 9 e Azul e Dourado no 12. A última missão de cada arco é "o Tiro chega à fase" e o capítulo seguinte só abre
+quando ele cresce. A vovó Bloblo fala de comida (argolinha, ração com ovo, mingau), a Nina de passeio e coragem,
+o Feirante de clientes que perguntam pelo Tiro, o Guia de natureza e energia. Truques e passeios longos chegam
+quando ele tem idade ("Quando ele for Aventureiro"). O capítulo 12 termina com a homenagem à Smoky (a Yorkie que,
+em 1944, passou um cabo por um cano de 20 m) na Festa e, depois do Azul e Dourado, o capítulo final.
+
+## Tiro no centro — etapa 07 (19/10/2026)
+
+O HUD mostra o retrato e a pelagem da fase, anel por fração de requisitos concluídos e número da fase
+(Recém-chegado = •; demais 1–5). O avatar pronto pulsa; Menos animação desliga o pulso. Toque abre
+nome da fase, quantos requisitos faltam e Ver → painel Crescimento. Nível/XP/atributos do jogador
+saíram da interface, inclusive prêmios, lista de saves e ferramentas DEV. `level` fica congelado;
+`xp`/`skills` são contadores internos preservados para snapshots/testes/simulador, sem presentes ou avisos.
+`Events.level_up` não é emitido; `Celebration.show_level` e sua conexão na casca foram removidos.
+`features.skills` foi removida; a antiga entrada `skills_panel()` encaminha ao Crescimento.
+`treat_box` exige `growth: explorer`, mantendo bancada e geladeira. Rotinas de cuidado dão Coragem 4,
+banho Pelagem 4; Banco/Jardim/Piquenique/Festa dão Coragem 5 pela ação única `_grant_automatic`.
+Radiante e reserva seguem `_gain_pillar`. Os demais XP ficam internos, inclusive Encontro da turma.
+XP/níveis locais da Natureza continuam válidos. Nenhum preço foi alterado: presentes de nível deixam
+de entrar; os cinco presentes de fase já existentes somam 590 moedas. Conferência econômica só na 17.
+
 
 ## Voz do jogo (Interface nova — Etapa 11)
 Curta, calorosa, falando com o jogador, no presente. Sem "·" juntando frases, sem "Conclua:", sem abreviações ("Nv", "Máx."), sem "x0" e sem número de capítulo (mostre o nome). Um verbo por ação:
@@ -27,7 +67,7 @@ O cenário original ocupa a largura toda, sem moldura lateral nem deformar a art
 
 Comida abre uma guia vertical com até cinco opções visíveis e rolagem para todas as comidas da mochila. As mais usadas vêm primeiro (contadores existentes), com desempate pelo uso recente da sessão; coração indica o pedido. Tocar alimenta; arrastar pelo ícone só entrega ao soltar na cabeça. Arrastar pelo nome rola a guia. O desejo usa o mesmo caminho do “Ele quer!” e alimenta uma vez. Esfregar a esponja e arremessar a bola também têm toque simples equivalente. Dormindo só Acordar funciona; passeando a faixa dá lugar ao postal. Carinho direto permanece.
 
-O caderninho abre Manual por padrão, com Atributos/Coleção/Truques revelados conforme o progresso. Luz acompanha a hora local, sono tinge a tela, humor aparece em balão temporário e o desejo continua tocável. Nada altera regras, custos, tempos ou save.
+O caderninho abre Manual por padrão, com Crescimento/Coleção/Truques revelados conforme o progresso. Luz acompanha a hora local, sono tinge a tela, humor aparece em balão temporário e o desejo continua tocável. Nada altera regras, custos, tempos ou save.
 
 
 ## Listas (Interface nova — Etapa 10)
@@ -41,11 +81,11 @@ Coleção usa abas segmentadas Roupas/Achados/Amigos. Roupas e Amigos têm três
 
 
 ## Interface (Interface nova — visão geral e Etapa 12, festa)
-**O mundo é a tela.** Casa, Sítio, Praça, Vila e Natureza ocupam a tela inteira, com céu, paisagem e chão atrás da maquete; o HUD (avatar do Tiro com anel de XP, moedas, engrenagem), a pílula do mundo e as abas flutuam por cima. A câmera arrasta com inércia, aproxima por pinça ou duplo toque e volta ao enquadramento por um botão. A aba Mapa abre no último mundo; trocar de mundo é pelo carrossel (a pílula) e a viagem cobre a tela com nuvens de papel.
+**O mundo é a tela.** Casa, Sítio, Praça, Vila e Natureza ocupam a tela inteira, com céu, paisagem e chão atrás da maquete; o HUD (avatar do Tiro com anel de crescimento, moedas, engrenagem), a pílula do mundo e as abas flutuam por cima. A câmera arrasta com inércia, aproxima por pinça ou duplo toque e volta ao enquadramento por um botão. A aba Mapa abre no último mundo; trocar de mundo é pelo carrossel (a pílula) e a viagem cobre a tela com nuvens de papel.
 
 **A bandeja fica ao lado do dedo.** Plantar, regar, cozinhar, fazer, alimentar animais e iniciar buscas na Natureza usam uma bandeja pequena perto do alvo, sem tirar o mundo da vista; o painel grande continua para consulta ("Ver tudo"). **Arrastar** a semente ou o regador por vários canteiros age em todos de uma vez. **Coletar no mapa só coleta:** planta madura, estação/criação, Natureza e pomar prontos entregam os produtos sem abrir bandeja nem painel depois. O balão mostra o anel de progresso e o "pronto" pulando; tocar nele pega/colhe na hora.
 
-**O Tiro tem o próprio cantinho.** Quatro anéis de necessidade e o coração de vínculo; quatro cuidados iguais (Comida, Banho, Brincar, Dormir) por toque ou arrasto; o **caderninho** flutuante guarda Manual, Atributos, Coleção e Truques.
+**O Tiro tem o próprio cantinho.** Quatro anéis de necessidade e o coração de vínculo; quatro cuidados iguais (Comida, Banho, Brincar, Dormir) por toque ou arrasto; o **caderninho** flutuante guarda Manual, Crescimento, Coleção e Truques.
 
 **Quando se ganha algo, o jogo comemora.** Todos os cartões de comemoração (nível, capítulo, tesouro, vínculo, achado, truque, "Novo!", volta do passeio, roupa nova, boas-vindas) usam o mesmo `ModalCard`: fundo escurecido, cartão que salta, **fita** colorida com o título, ícone grande com **raios** girando devagar, prêmios em chips que entram um por um e **números que contam**, um botão verde e, às vezes, uma ação fraca. **Confete** (40 pedacinhos coloridos, uma vez) só nos grandes momentos: nível, capítulo, tesouro, vínculo e raro/lendário do passeio; o "Novo!" simples fica sem, para não banalizar. O celular **vibra de leve** (toque no canteiro do arrasto, colher/pegar, forte em nível/capítulo/tesouro/raro, duas batidinhas no "não dá"; iPhone/Safari ignora vibração na web).
 
@@ -181,7 +221,7 @@ produzir recursos no Mundo (plantar → colher → cozinhar/fabricar)
         ↓
 usar os produtos no Tiro (comida, brinquedos, cuidados, roupinhas)
         ↓
-Tiro feliz → vínculo e XP sobem  +  missões cumpridas → recompensas
+Tiro feliz → vínculo e crescimento avançam  +  missões cumpridas → recompensas
         ↓
 desbloquear áreas, estações, receitas, itens e personagens
 ```
@@ -222,7 +262,7 @@ Para números e campos dos dados, ver `PROGRESSION.md` e `WORLDS.md`.
 | Sistema | Descrição |
 |---|---|
 | **Necessidades** | Caem com o tempo real (ver tabela abaixo). |
-| **Evolução** | Nível do jogador, vínculo com o Tiro, truques. |
+| **Evolução** | Fases do Tiro, vínculo e truques. |
 | **Inventário** | Recursos e produtos (sementes, vegetais, pratos, tecidos, itens). |
 | **Plantação** | Canteiros com timer: plantar → esperar → colher. |
 | **Estações de produção** | Fogão, forno, tear etc.: receitas com fila e tempo, estilo Hay Day. |
@@ -295,11 +335,18 @@ cada um com personagens e lugares tocáveis; a aba Missões (História, Diárias
 Ver [WORLDS.md](WORLDS.md).
 
 ## Progressão — Jornada (implementada)
-Casa quase vazia no começo, 4 atributos (Horta, Cozinha, Comércio, Aventura), construções compradas, rotas de passeio/mineração, feira, capítulos, missões
+Casa quase vazia no começo, crescimento do Tiro (Corpo, Pelagem, Esperteza, Coragem), construções compradas, rotas de passeio/mineração, feira, capítulos, missões
 de NPCs e coleção de roupas/apetrechos. **Detalhes, formatos e versão dev em [PROGRESSION.md](PROGRESSION.md).**
 
 ## Evolução (ideias originais; parte já virou a Jornada)
-- **(a) Nível do jogador:** XP de produzir, cuidar e missões; desbloqueia áreas, receitas e estações.
+- **(a) Crescimento do Tiro:** cinco fases, requisitos e quatro pilares. O nível do jogador foi encerrado na etapa 07; história e fase orientam os desbloqueios.
+  Ao tocar Crescer!, a cerimônia escurece a tela, alterna silhuetas de forma acelerada (máximo
+  três trocas por segundo) e revela o Tiro com antes/depois, idade, peso, fato e miniatura de régua.
+  “Que lindo!” confirma a recordação; as novidades aparecem depois. Menos animação usa troca suave,
+  sem piscar nem confete. Mocinho e Azul e Dourado podem crescer dormindo: a revelação espera
+  acordar (tocar nele na tela Tiro) ou voltar ao jogo. Boas-vindas avisa “Ele cresceu enquanto dormia!”
+  ou “Ele pode crescer!” uma vez por fase pronta. Fotos oficiais e régua na Casa ficam para 13/14.
+
 - **(b) Carinho com o Tiro:** as necessidades (felicidade) mostram o cuidado; truques aprendidos também aumentam felicidade e afeto.
 - **(c) Truques (Etapa 10, implementada):** Nina ensina no lugar Treino da Praça, no cantinho dos cones, após `nina_pipoca`. Barra em ping-pong, zona verde e botão de 64 px “Agora!”. Três acertos aprendem; “Quase!” apenas repete, sem custo ou limite. Um truque por vez: Dá a pata, Fala (vínculo 2), Rola (3), Pula (4), Gira (5). A tela Tiro ganha Truques após aprender o primeiro; mostrar dá +3 felicidade e +1 afeto, com recarga individual de 2 min. Sono e passeio bloqueiam treino/execução. Reutiliza as cinco animações existentes: roupas permanecem na pata/latido, somem nas acrobacias e voltam ao descanso. “Novo truque!” usa a fila e o cartão com rolagem existentes. Missões Nina nas ordens 90 e 110, desejo e diária após `nina_trick`.
 
@@ -385,3 +432,25 @@ visitar a Casa após oito horas de ausência real e deixam um presente persistid
 O cartão de boas-vindas leva à visita; a Coleção tem álbum de amigos e silhuetas dos desconhecidos.
 Missões da Nina apresentam a turma; desejo, diária e semanal reutilizam dar petiscos.
 - **(d) Tesouro (Etapa 11, implementada):** com os quatro pedaços achados pelo Tiro (sítio, praça, vila, natureza), o Guia da trilha ganha o passo "O mapa completo". Ao recebê-lo, um baú aparece na Natureza (Clareira escondida). Tocar uma vez: festa, 150 moedas, Chapéu de explorador, parafusos e as mudas de mirtilo (cultura nova e desejo especial). Final do mistério que começou no pedaço 1; plano de 12 etapas concluído.
+
+
+## Crescimento — consulta e entrega (Tiro no centro, etapa 06)
+
+Na tela Tiro, o selo ao lado do vínculo mostra a fase e o progresso do crescimento. Toque abre a fase
+atual, a sombra da próxima e o que falta. Cada requisito leva à ajuda Como fazer com Ir; Dar entrega
+um item-chave definitivamente. Quando tudo está pronto, Crescer! espera o jogador escolher a hora.
+O painel permanece aberto ao entregar/crescer; a caderneta guarda fases anteriores e dicas das futuras.
+Verbos do crescimento: **Crescer** e **Dar**. Fotos oficiais e cerimônia entram nas etapas próprias.
+
+### Álbum completo — Tiro no centro, etapa 15
+
+O caderninho mostra as 54 recordações em seis seções. Fotos secretas têm título, pista e lupa diária (a câmera dá uma extra); personagens ajudam depois de três dias, e o objeto relacionado pode brilhar. As cenas são automáticas quando o jogador prepara a combinação: nenhuma exige apertar um obturador. Rever fotos pode trazer a Pipoca, com garantia na oitava abertura elegível. Soninhos registram caminha, sofá e visitas. O Dia do Tiro celebra o aniversário da chegada por sete dias, todo ano, com bolo, chapéu de festa e receita própria; a foto permanece única no álbum.
+
+
+### O jeito do Tiro (Tiro no centro — etapa 16)
+
+A rotina dá ao Tiro um jeito: Explorador, Comilão, Brincalhão, Dengoso ou Tranquilo. Ele aparece ao virar Aventureiro, com “O jeito dele apareceu” e o título “Tiro, o …” no Crescimento e no caderninho. Todos são bons; nenhum bloqueia ou dá vantagem. A média dos últimos 14 dias jogados se combina ao histórico, com limite diário e confirmação por vários dias para mudar devagar. Antes de Aventureiro, só a fase orienta os comportamentos.
+
+Filhotes bocejam/cochilam e às vezes pausam com um pulinho no caminho; Dentinhos mordisca as patinhas; Aventureiro corre em destinos próximos e olha/fareja mais; Mocinho e adulto descansam mais, procuram a turma e estações em uso. O adulto senta com ar importante. São animações existentes, sem alterar as necessidades, os prêmios ou o sono real.
+
+“Hoje o Tiro...” no caderninho guarda as últimas 20 lembranças: fotos, primeiras provas, crescimentos, passeios e achados raros. Fotos/provas/fases não repetem depois de recarregar; datas locais acompanham as linhas.

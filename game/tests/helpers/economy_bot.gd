@@ -17,6 +17,7 @@ const ACT := "act"
 const WAIT := "wait"
 const BLOCK := "block"
 const MAX_DEPTH := 28
+var _walk_nesting := 0
 const CARE_FEED_BELOW := 55.0
 const CARE_BATHE_BELOW := 40.0
 const CARE_PLAY_BELOW := 45.0
@@ -1102,6 +1103,8 @@ func pursue_goal(goal: Dictionary, shield: bool, depth: int, qid: String) -> Dic
 			return pursue_quest(key, shield, depth + 1)
 		"project":
 			return pursue_project(key, shield, depth + 1, qid)
+		"growth":
+			return _done() if value >= target else pursue_growth(key, shield, depth + 1, qid)
 		"have", "deliver":
 			return pursue_item(key, target, shield, depth + 1)
 		"coins":
@@ -1173,6 +1176,8 @@ func pursue_reqs(requirements: Dictionary, shield: bool, depth: int, who: String
 	for id: String in requirements.get("projects", []):
 		if not gs.project_completed(id):
 			results.append(pursue_project(id, shield, depth + 1, who))
+	if requirements.has("growth") and gs.growth.phase_index() < gs.growth.phase_index(str(requirements.growth)):
+		results.append(pursue_growth(str(requirements.growth), shield, depth + 1, who))
 	for id: String in requirements.get("skills", {}):
 		if gs.progress.skill_level(id) < int(requirements.skills[id]):
 			results.append(_block("skill:" + id, who))
@@ -1363,6 +1368,11 @@ func _pursue_item_inner(item: String, qty: int, shield: bool, depth: int) -> Dic
 		results.append(_pursue_walk_for(item))
 	elif category == "find":
 		results.append(_pursue_find())
+	# 6. lembrança do Tiro sem receita (argolinha, medalhinha): vem do prêmio de uma missão
+	if category == "keepsake":
+		for qid: String in Database.quests:
+			if Database.quests[qid].get("rewards", {}).get("items", {}).has(item) and not gs.progress.claimed_quests.has(qid):
+				results.append(pursue_quest(qid, shield, depth + 1))
 	if results.is_empty():
 		return _block("no_source:" + item)
 	var merged: Dictionary = _combine(results)
@@ -1524,8 +1534,12 @@ func _pursue_walk(wanted: String, rare: bool = false) -> Dictionary:
 			return _act(_action("sleep", {"value": true}, "pet", "goal"))
 	if wanted != "":
 		var def: Dictionary = gs.walk_def(wanted)
-		if not def.is_empty() and gs.walk_lock_error(wanted) != "":
-			return pursue_reqs(_walk_reqs(def), false, 4, wanted)
+		if not def.is_empty() and gs.walk_lock_error(wanted) != "" and _walk_nesting < 2:
+			# O passeio trancado pode pedir fase do Tiro, que pede item de passeio: limita a reentrada.
+			_walk_nesting += 1
+			var r: Dictionary = pursue_reqs(_walk_reqs(def), false, 4, wanted)
+			_walk_nesting -= 1
+			return r
 	return _block("walk_locked")
 
 
@@ -1619,6 +1633,8 @@ func pursue_stat(key: String, remaining: int, shield: bool, depth: int, qid: Str
 			if gs.walking():
 				return _wait("walk")
 			return _act(_action("bathe", {}, "pet", "goal"))
+		"shampoo_bath":
+			return _pursue_shampoo_bath(shield, depth)
 		"play":
 			return _pursue_play()
 		"pet":
@@ -1955,3 +1971,123 @@ func _pursue_trick(shield: bool, depth: int) -> Dictionary:
 			return _wait("walk")
 		return pursue_reqs(Database.progression.tricks[id].get("requirements", {}), shield, depth + 1, "trick")
 	return _done()
+
+
+# --- Crescimento do Tiro (etapa 11) ---------------------------------------------------------
+# Mesmas ações do jogador: dar a refeição da fase, banho com xampu, entregar o item-chave, passear,
+# cuidar dos pilares quando a recarga deixa e, por fim, apertar Crescer. Nada de dev_*.
+
+## Meta "o Tiro chega à fase X": cumpre os requisitos da próxima fase e aperta Crescer.
+func pursue_growth(phase: String, shield: bool, depth: int, qid: String) -> Dictionary:
+	if depth > MAX_DEPTH:
+		return _block("depth", qid)
+	var target: int = gs.growth.phase_index(phase)
+	if target < 0 or gs.growth.phase_index() >= target:
+		return _done()
+	if gs.grow_error() == "":
+		return _act(_action("grow", {}, "pet", "goal"))
+	var results: Array = []
+	for row: Dictionary in gs.growth_info().requirements:
+		if not row.done:
+			results.append(_pursue_growth_req(row, shield, depth + 1, qid))
+	return _combine(results)
+
+
+func _pursue_growth_req(row: Dictionary, shield: bool, depth: int, qid: String) -> Dictionary:
+	match str(row.type):
+		"owned":
+			return pursue_upgrade(str(row.upgrade), shield, depth + 1)
+		"quest":
+			return pursue_quest(str(row.quest), shield, depth + 1)
+		"project":
+			return pursue_project(str(row.project), shield, depth + 1, qid)
+		"collection":
+			return _pursue_collection(str(row.collection), shield, depth + 1)
+		"deliver":
+			var item := str(row.item)
+			if gs.deliver_growth_error(item) == "":
+				return _act(_action("deliver_growth", {"item": item}, "pet", "goal"))
+			return pursue_item(item, int(row.need) - int(row.have), shield, depth + 1)
+		"feed":
+			return _pursue_growth_feed(str(row.item), int(row.need) - int(row.have), shield, depth + 1)
+		"stat":
+			return pursue_stat(str(row.counter), int(row.need) - int(row.have), shield, depth + 1, qid)
+		"pillars":
+			return _pursue_pillars(row.levels, shield, depth + 1)
+	return _block("growth:" + str(row.type), qid)
+
+
+func _pursue_collection(collection: String, shield: bool, depth: int) -> Dictionary:
+	var results: Array = []
+	for rid: String in Database.recipes:
+		if str(Database.recipes[rid].get("output_collection", "")) == collection:
+			results.append(_pursue_recipe_sewing(rid, shield, depth + 1))
+	return _combine(results) if not results.is_empty() else _block("no_sewing:" + collection)
+
+
+## Refeição pedida pela fase ("any" = qualquer comida): dá a que tem; senão faz a comida.
+func _pursue_growth_feed(item: String, remaining: int, shield: bool, depth: int) -> Dictionary:
+	if gs.walking():
+		return _wait("walk")
+	if item == "any":
+		return _pursue_feed(shield, depth)
+	if item == "favorite":
+		item = str(gs.call("favorite_food"))
+	if have(item) > 0:
+		return _act(_action("feed", {"item": item}, "pet", "goal"))
+	return pursue_item(item, maxi(1, remaining), shield, depth + 1)
+
+
+## Banho com xampu de ervas: só quando o Tiro está mesmo sujo (vale pela pelagem e conta o banho).
+func _pursue_shampoo_bath(shield: bool, depth: int) -> Dictionary:
+	if gs.walking():
+		return _wait("walk")
+	if gs.dog.sleeping:
+		return _wait("sleep")
+	if have("herb_shampoo") < 1:
+		return pursue_item("herb_shampoo", 1, shield, depth + 1)
+	if gs.dog.get_need("hygiene", t()) >= 92.0:
+		return _wait("hygiene")
+	return _act(_action("bathe", {"shampoo": true}, "pet", "goal"))
+
+
+## Pilares que ainda faltam: cada gesto no momento em que a recarga e a necessidade dão pontos.
+func _pursue_pillars(levels: Dictionary, _shield: bool, _depth: int) -> Dictionary:
+	var lacking: Array[String] = []
+	for id: String in levels:
+		if gs.growth.level(id) < int(levels[id]):
+			lacking.append(id)
+	if lacking.is_empty():
+		return _done()
+	if gs.walking():
+		return _wait("walk")
+	if gs.dog.sleeping:
+		return _wait("sleep")
+	var now := t()
+	if "coat" in lacking and float(gs.growth.cooldowns.get("bath", 0.0)) <= now and gs.dog.get_need("hygiene", now) < 90.0:
+		return _act(_action("bathe", {"shampoo": have("herb_shampoo") > 0}, "pet", "goal"))
+	if "body" in lacking:
+		var food := _growth_food()
+		if food != "":
+			return _act(_action("feed", {"item": food}, "pet", "goal"))
+	if ("smart" in lacking or "brave" in lacking) and float(gs.growth.cooldowns.get("play", 0.0)) <= now \
+			and gs.dog.get_need("energy", now) >= 20.0 and gs.dog.get_need("happiness", now) < 90.0:
+		return _act(_action("play", {}, "pet", "goal"))
+	if "brave" in lacking and gs.progress.cooldown_left("affection:pet", now) <= 0.0:
+		return _act(_action("pet", {}, "pet", "goal"))
+	return _wait("pillars")
+
+
+## Comida da fase que mais cresce o corpo e que a meta reservada não protege.
+func _growth_food() -> String:
+	var best := ""
+	var best_body := 0.0
+	for item: String in sorted_keys(gs.inventory.counts):
+		var data: Dictionary = Database.items.get(item, {}).get("growth", {})
+		if data.is_empty() or avail(item, false) <= 0 or not gs.growth.phase in data.get("phases", []):
+			continue
+		var body := float(data.get("pillars", {}).get("body", 0))
+		if body > best_body:
+			best = item
+			best_body = body
+	return best

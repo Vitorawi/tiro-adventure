@@ -40,7 +40,7 @@ func _run() -> void:
 	# O detector precisa pegar cada palavra proibida (senão o teste não vigia nada).
 	for word: String in FORBIDDEN:
 		check(_forbidden("Frase com " + word + " no meio") == word, "detector acha '%s'" % word)
-	check(_forbidden("Colher, Pegar, Cozinhar, Fazer, Buscar, Ir") == "", "glossário passa")
+	check(_forbidden("Colher, Pegar, Cozinhar, Fazer, Buscar, Ir, Crescer, Dar") == "", "glossário passa")
 
 	for path in _files("res://data", ["json"]):
 		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))

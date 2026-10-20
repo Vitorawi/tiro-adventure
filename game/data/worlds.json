@@ -15,7 +15,8 @@
         "name": "Tigela do Tiro",
         "icon": "item_dog_food",
         "description": "Dê comida ao Tiro.",
-        "panel": "feed"
+        "panel": "feed",
+        "upgrades": ["named_bowl"]
       },
       "stove": {
         "name": "Cozinha",
@@ -73,7 +74,8 @@
         "icon": "action_sleep",
         "description": "Soneca do Tiro.",
         "upgrade": "dog_bed",
-        "panel": "sleep",
+        "panel": "house:bed",
+        "upgrades": ["bed_soft", "bed_luxe"],
         "hidden": true
       },
       "sofa": {

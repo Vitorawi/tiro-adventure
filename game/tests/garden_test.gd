@@ -187,7 +187,7 @@ func _flavors_line() -> void:
 	for id: String in progress.line_quests("bloblo"):
 		path.append(id)
 	check("bloblo_pumpkin" not in path and "bloblo_strawberry" not in path and "bloblo_sweet_potato" not in path, "nenhum sabor na linha principal da Bloblo")
-	check(path.find("bloblo_stew") >= 0 and path.find("farm_deed") == path.find("bloblo_stew") + 1, "ensopado e escritura em sequência")
+	check(path.find("bloblo_stew") >= 0 and path.find("farm_deed") == path.find("bloblo_chew_ring") + 1 and path.find("bloblo_chew_ring") == path.find("bloblo_stew") + 1, "ensopado, argolinha (etapa 10) e escritura em sequência")
 	var after_stew := path.slice(path.find("farm_deed") + 1)
 	check(not after_stew.is_empty() and not ("bloblo_pumpkin" in after_stew), "animais seguem a escritura")
 	# Com a escritura pronta e o sabor ainda aberto, a escritura é o passo ativo da linha principal.

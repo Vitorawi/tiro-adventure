@@ -10,6 +10,7 @@ const FILTERS := [
 	{"id": "product", "text": "Produtos", "icon": "station_chest"},
 	{"id": "find", "text": "Achados", "icon": "find_paw"},
 	{"id": "trail", "text": "Passeio", "icon": "action_walk"},
+	{"id": "keepsake", "text": "Para o Tiro", "icon": "tab_pet"},
 ]
 var storage: String = ""
 var category: String = "all"
@@ -199,6 +200,8 @@ func _build(box: VBoxContainer) -> void:
 	for id: String in GameState.inventory.counts:
 		if GameState.inventory.count(id) > 0 and (storage == "" or GameState.storage_of(id) == storage):
 			categories.append(str(Database.items.get(id, {}).get("category", "product")))
+			if bool(Database.items.get(id, {}).get("toy", false)):
+				categories.append("keepsake")
 	if category not in categories: category = "all"
 	var options: Array[Dictionary] = []
 	for entry: Dictionary in FILTERS:
@@ -220,7 +223,8 @@ func _build(box: VBoxContainer) -> void:
 	for id: String in GameState.inventory.counts:
 		if GameState.inventory.count(id) <= 0: continue
 		if storage != "" and GameState.storage_of(id) != storage: continue
-		if category != "all" and Database.items.get(id, {}).get("category", "product") != category: continue
+		if category != "all" and Database.items.get(id, {}).get("category", "product") != category:
+			if category != "keepsake" or not bool(Database.items.get(id, {}).get("toy", false)): continue
 		var tile := UiKit.grid_tile(Database.item_icon(id), "", func() -> void:
 			Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.item_detail(id)))
 		tile.name = "Item_" + id

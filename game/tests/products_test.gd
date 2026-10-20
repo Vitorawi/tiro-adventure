@@ -276,6 +276,7 @@ func _workshop_check() -> void:
 
 func _wish_check() -> void:
 	_after_atelier()
+	state.call("dev_set_phase", "puppy")
 	var wishes: RefCounted = state.get("wishes")
 	wishes.first_done = true
 	check(str(state.call("wish_def", "blueberry_treat").get("item", "")) == "blueberry_treat", "desejo cadastrado")

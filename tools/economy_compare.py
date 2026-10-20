@@ -41,6 +41,14 @@ EXPERIENCE = [
     ("first_find", "Primeiro achado ≤ 10 min", 10.0),
     ("first_walk", "Primeiro passeio ≤ 60 min", 60.0),
 ]
+# Alvos da seção E do plano Tiro (02_FASES_E_PILARES): dia de jogo em que cada crescimento acontece (mín, máx).
+GROWTH_TARGETS = [
+    ("puppy", "Filhotinho", 0.0, 0.1, "primeira sessão"),
+    ("teething", "Dentinhos", 1.0, 3.0, "dia 1–3"),
+    ("explorer", "Aventureiro", 5.0, 8.0, "dia 5–8"),
+    ("young", "Mocinho", 10.0, 14.0, "dia 10–14"),
+    ("adult", "Azul e Dourado", 18.0, 24.0, "dia 18–24"),
+]
 COLORS = ["#2b6cb0", "#c05621", "#2f855a", "#805ad5", "#b83280", "#718096"]
 
 
@@ -145,6 +153,42 @@ def section_experience(groups: dict[str, list[dict]]) -> str:
     note = ("\nAgente idealizado (04, seção B): tempos mostram o que a economia permite, **não** a experiência de uma pessoa. "
             "Calibrar com toque manual na etapa 23.")
     return table(["Critério (04, seção E)"] + list(groups), rows) + note
+
+
+def section_growth(groups: dict[str, list[dict]]) -> str:
+    """Tabela fase × dia contra os alvos; FORA quando passa de 2× o limite ou fica abaixo da metade do mínimo."""
+    rows = []
+    for key, label, low, high, target in GROWTH_TARGETS:
+        row = [label, target]
+        for name, runs in groups.items():
+            values = [float(r["growth_days"][key]["day"]) for r in runs if key in r.get("growth_days", {})]
+            if not values:
+                row.append("não atingiu")
+                continue
+            worst = max(values)
+            best = min(values)
+            verdict = "dentro" if low <= best and worst <= high else ("FORA >2×" if worst > 2 * high or best < low / 2 and low > 0 else "perto")
+            row.append(f"{spread(values, 2)} d ({verdict})")
+        rows.append(row)
+    final = ["Pilares no fim (Corpo/Pelagem/Esperteza/Coragem)", ""]
+    silk = ["Pelagem de seda no fim (0–3)", ""]
+    for name, runs in groups.items():
+        parts = []
+        for r in runs:
+            levels = r["end"].get("pillars", {})
+            parts.append("/".join(str(levels.get(k, {}).get("level", "?")) for k in ("body", "coat", "smart", "brave")))
+        final.append(" · ".join(parts) if parts else "—")
+        silk.append(" · ".join(str(r["end"].get("silk", 0)) for r in runs))
+    rows += [final, silk]
+    chapters = []
+    for chapter in range(1, 13):
+        row = [f"Moedas ao fechar o cap. {chapter}", "risco do meio do jogo (03 G)" if 5 <= chapter <= 9 else ""]
+        for name, runs in groups.items():
+            values = [float(r["chapter_coins"][str(chapter)]["coins"]) for r in runs if str(chapter) in r.get("chapter_coins", {})]
+            row.append(spread(values, 0) if values else "—")
+        chapters.append(row)
+    rows += chapters
+    return table(["Item", "Alvo"] + list(groups), rows) + "\n\nAlvos iniciais do plano, não resultado de playtest; agente idealizado."
 
 
 def section_coins(groups: dict[str, list[dict]]) -> str:
@@ -380,6 +424,7 @@ Pastas: {', '.join(r['_dir'] for r in runs)}
             "## 2. Marcos\n\n" + section_milestones(groups),
             "## 3. Critérios de experiência (indicativos)\n\n" + section_experience(groups),
             "## 4. Moedas: recorrente × prêmio único\n\n" + section_coins(groups),
+            "## 4b. Fases do Tiro × dia\n\n" + section_growth(groups),
             "## 5. Tempo: esperas e navegação\n\n" + section_waits(groups),
             "## 6. Gargalos reais: bloqueio do jogo × falha de política\n\n" + section_blocks(groups),
             "## 7. Produção, prontos ao fechar e itens fora de depósito\n\n" + section_items(groups),
