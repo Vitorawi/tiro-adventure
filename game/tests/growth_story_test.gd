@@ -49,6 +49,7 @@ func _run() -> void:
 	state.test_time = 1791936000.0
 	_data()
 	_chapter_one()
+	_first_growth_care()
 	_recognized()
 	_pairs()
 	_samples()
@@ -104,6 +105,48 @@ func _chapter_one() -> void:
 	# O botão Ir abre o painel de crescimento.
 	var places: Script = load("res://scripts/ui/places.gd")
 	check((places.call("goal_target", db.quests.growth_1_puppy.goals[0]) as Dictionary).has("growth"), "Ir abre o crescimento")
+
+
+## O primeiro crescimento é alcançável só com os cuidados e presentes do capítulo 1.
+func _first_growth_care() -> void:
+	_fresh()
+	state.talk_to("lais")
+	check(state.claim_quest("welcome") == "", "recebe a ração da Laís")
+	check(state.feed("dog_food"), "alimenta na missão Hora de comer")
+	check(state.claim_quest("lais_feed") == "", "recebe Hora de comer")
+	state.bathe()
+	check(state.claim_quest("lais_bath") == "", "recebe Banho de espuma")
+	state.play()
+	check(state.claim_quest("lais_play") == "", "recebe Vamos brincar")
+	state.note_screen_opened("bag")
+	check(state.claim_quest("lais_bag") == "", "recebe a caminha")
+	check(state.buy_upgrade("dog_bed") == "", "coloca a caminha")
+	check(state.claim_quest("lais_bed") == "", "recebe Um cantinho para ele")
+	var help: Script = load("res://scripts/ui/task_help.gd")
+	check(state.requirement_error(db.worlds.farm.requirements) != "", "caminha não abre o Sítio antes do crescimento")
+	check(state.requirement_error(db.worlds.house.places.door.requirements) != "", "porta da Casa também espera crescer")
+	check(not state.progress.npc_visible("bloblo") and not state.quest_unlocked("bloblo_meet"), "vovó e sua linha não antecipam a horta")
+	check(state.accessible_plots() == 0 and state.plant(0, "carrot") != "", "não planta antes de conhecer a vovó")
+	var meals: Dictionary = help.call("describe", "growth_req", "meals")
+	check("Qualquer comida" in str(meals.detail), "refeições explicam que não exigem receita")
+	var body: Dictionary = help.call("describe", "growth_req", "pillars")
+	check("Ração" in str(body.detail), "Corpo indica a ração inicial")
+	var places: Script = load("res://scripts/ui/places.gd")
+	check(body.target == places.call("goal_target", {"type": "stat", "key": "feed"}), "Ir de Corpo leva à Tigela")
+	for i in 4:
+		check(state.feed("dog_food"), "ração inicial restante %d" % i)
+	for i in 10:
+		state.pet()
+	check(state.growth_info().ready, "cuidados iniciais bastam, sem horta nem receita bloqueada")
+	check(state.grow() == "", "cresce pelas ações reais")
+	check(state.requirement_error(db.worlds.farm.requirements) != "", "crescer ainda pede receber a missão para concluir o capítulo")
+	check(state.claim_quest("growth_1_puppy") == "", "termina Um novo lar")
+	check(state.progress.chapter_index() == 2, "abre o sítio depois do primeiro crescimento")
+	check(state.requirement_error(db.worlds.farm.requirements) == "" and state.requirement_error(db.worlds.house.places.door.requirements) == "", "mapa e porta abrem juntos")
+	check(state.progress.npc_visible("bloblo") and state.quest_unlocked("bloblo_meet"), "vovó e missão abrem no capítulo 2")
+	state.talk_to("bloblo")
+	check(state.claim_quest("bloblo_meet") == "", "conhece a vovó depois do crescimento")
+	check(state.accessible_plots() == 2 and state.plant(0, "carrot") == "", "vovó libera os primeiros canteiros")
 
 
 ## Cada `growth_*` é reconhecida quando a fase chega, inclusive se ele já cresceu antes de a missão ficar ativa.

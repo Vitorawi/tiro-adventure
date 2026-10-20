@@ -65,6 +65,20 @@ func _run() -> void:
 			check(help.action == "Ir" and not help.target.is_empty(), "destino do requisito")
 		check(primary(panel) <= 1, "no máximo um PrimaryButton")
 	state.call("dev_set_phase", "newborn")
+	state.get("growth").points = {"body": 2, "brave": 0}
+	var helper: Script = load("res://scripts/ui/task_help.gd")
+	helper.call("open", "growth_req", "pillars")
+	await frames()
+	var care_sheet := main.find_child("Sheet", true, false)
+	check(text(care_sheet, "2/10 pontos") and text(care_sheet, "0/10 pontos"), "mostra pontos separados dos dois cuidados")
+	check(text(care_sheet, "Ração") and text(care_sheet, "Faça carinho"), "explica as duas ações sem outra ajuda")
+	check(care_sheet.find_child("GrowthCare_body", true, false) != null and care_sheet.find_child("GrowthCare_brave", true, false) != null, "cada cuidado tem seu atalho")
+	check(primary(care_sheet) == 1, "uma ação principal nos cuidados")
+	if "--screenshots" in OS.get_cmdline_user_args():
+		var shots := ProjectSettings.globalize_path("res://").path_join("../build/screenshots/first_growth").simplify_path()
+		DirAccess.make_dir_recursive_absolute(shots)
+		await RenderingServer.frame_post_draw
+		check(root.get_texture().get_image().save_png(shots.path_join("care_%d.png" % root.size.x)) == OK, "salva captura dos cuidados")
 	state.get("growth").done = {"puppy": {"home": true, "bed": true, "pillars": true}}
 	state.get("growth").phase_stats["feed"] = 0
 	state.get("progress").stats["feed"] = 2
@@ -83,7 +97,7 @@ func _run() -> void:
 		check(future.get_child(0).material.shader.resource_path.ends_with("silhouette.gdshader"), "cartão futuro sempre mascarado")
 	await click(panel.find_child("GrowthReq_meals", true, false))
 	check(main.find_child("Sheet", true, false).get_node("%Title").text == "Como fazer", "toque abre ajuda")
-	check(text(main.find_child("Sheet", true, false), "Dê comida"), "ajuda explica ação")
+	check(text(main.find_child("Sheet", true, false), "Qualquer comida") and text(main.find_child("Sheet", true, false), "ração"), "ajuda explica que a ração inicial conta")
 	# Dar usa o mesmo item no painel e na Mochila; parcial, atualização e repetição.
 	var original: Array = db.get("growth").phases[1].requirements.duplicate(true)
 	db.get("growth").phases[1].requirements = [{"id": "fixture_key", "type": "deliver", "item": "stick", "qty": 2, "label": "Chave de teste"}]

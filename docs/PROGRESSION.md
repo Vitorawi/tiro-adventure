@@ -977,6 +977,8 @@ Interface: "Dar" no cartão do requisito e no detalhe do item da Mochila (`GiveG
 
 **Nove missões principais novas** (40 → 49 principais; 99 → 109 no total com a da vovó da etapa 10), todas sem prêmio próprio (o presente vem da fase), com o crescimento como **último passo** dos capítulos 1, 3, 6, 9 e 12 — como o capítulo seguinte só abre com o anterior completo, crescer abre o próximo:
 
+**Abertura do Sítio (correção de 19/10/2026):** mapa, porta/área de toque da Casa, visibilidade da Bloblo e primeira missão da linha dela exigem receber `growth_1_puppy`, em vez de apenas `lais_bed`. Primeiro termina “Um novo lar” com o Tiro Filhotinho; depois conhece a vovó no capítulo 2 e recebe os dois canteiros de `bloblo_meet`. Nenhum save, canteiro ou item é apagado.
+
 | Cap. | Missão | Ordem | Objetivo |
 |---|---|---|---|
 | 1 | `growth_1_puppy` "Ele está crescendo!" | 70 | `growth: puppy` |

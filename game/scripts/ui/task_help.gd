@@ -431,6 +431,19 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 			title.add_child(UiKit.label(data.stock, &"", UiKit.GOOD if enough else UiKit.BAD))
 		top.add_child(title)
 		box.add_child(top)
+		if data.has("steps"):
+			var primary_used := false
+			for care: Dictionary in data.steps:
+				var card := UiKit.card(box, &"ReadyCardPanel" if care.done else &"CardPanel")
+				card.add_child(UiKit.label(care.title, &"SectionLabel"))
+				card.add_child(UiKit.label(care.progress, &"SmallLabel"))
+				if care.done: continue
+				card.add_child(UiKit.label(care.hint))
+				var go := UiKit.secondary(care.action, _go.bind(care.target)) if primary_used else UiKit.primary(care.action, _go.bind(care.target))
+				go.name = "GrowthCare_" + str(care.id)
+				card.add_child(go)
+				primary_used = true
+			return
 		# Próximo passo: ícone + o que fazer + Ir.
 		var step := UiKit.hbox(10)
 		var first: Dictionary = data.get("next_need", {})
@@ -561,7 +574,12 @@ static func _growth_requirement(id: String, trail: Array[String]) -> Dictionary:
 					result = _base(str(row.label), "Você já tem. Volte ao crescimento e toque em Dar.", {"growth": true}, "Ir")
 			"feed":
 				result.detail = "Dê comida ao Tiro nesta fase."
-				if row.item == "favorite" and not GameState.favorite_found():
+				if row.item == "any":
+					result.detail = "Qualquer comida conta. Casa → Tigela: escolha uma comida para dar."
+					if GameState.growth.phase == "newborn":
+						result.detail = "Qualquer comida conta. Casa → Tigela: dê a ração que você ganhou."
+					result.target = Places.goal_target({"type": "stat", "key": "feed"})
+				elif row.item == "favorite" and not GameState.favorite_found():
 					result.detail = "Ele ainda não provou a favorita. Experimente comidas novas."
 					for food: String in GameState.untasted_foods().slice(0, 4):
 						result.needs.append(_need("item", food, 1))
@@ -573,15 +591,43 @@ static func _growth_requirement(id: String, trail: Array[String]) -> Dictionary:
 			"stat": result = describe("stat", str(row.counter), int(row.need), trail)
 			"collection": result = _base(str(row.label), "Faça na Costura da Praça.", {"world": "park", "place": "sewing"}, "Ir")
 			"pillars":
-				for pillar: String in row.levels:
-					if int(GameState.growth_info().pillars[pillar].level) >= int(row.levels[pillar]): continue
-					var hints := {"body": "Dê comida adequada à fase.", "coat": "Dê um banho quando ele precisar.", "smart": "Brinque com o Tiro ou cave um achado.", "brave": "Brinque ou faça carinho no Tiro."}
-					result.detail = "%s %d: %s" % [Database.growth.pillars[pillar].name, row.levels[pillar], hints[pillar]]
+				result["steps"] = growth_care_steps(row)
+				for care: Dictionary in result.steps:
+					if care.done: continue
+					result.detail = care.hint
+					result.target = care.target
 					break
-		result.title = str(row.label)
+		result.title = "Cuidados para crescer" if row.type == "pillars" else str(row.label)
 		result.detail += " (%d/%d%s)" % [mini(int(row.have), int(row.need)) if not row.done else int(row.need), row.need, " ✓" if row.done else ""]
 		result.target = result.get("next_target", result.target)
 		result.action = "Ir"
 		result.erase("next_action")
 		return result
 	return _base("Crescimento", "Veja a fase atual.", {"growth": true}, "Ir")
+
+
+## Cada cuidado mostra pontos reais até o patamar pedido, em vez de um 0/1 agrupado.
+static func growth_care_steps(row: Dictionary) -> Array[Dictionary]:
+	var steps: Array[Dictionary] = []
+	var info := GameState.growth_info()
+	for pillar: String in row.levels:
+		var level := int(row.levels[pillar])
+		var goal := int(Database.growth.levels[level - 1])
+		var points := mini(int(info.pillars[pillar].points), goal)
+		var done := int(info.pillars[pillar].level) >= level
+		var hint := {"body": "Dê comida para ganhar Corpo.", "coat": "Dê banho quando ele precisar para ganhar Pelagem.", "smart": "Brinque ou cave achados para ganhar Esperteza.", "brave": "Faça carinho no Tiro com o dedo para ganhar Coragem."}[pillar] as String
+		var target := {"screen": "pet"}
+		var action := "Fazer carinho" if pillar == "brave" else "Cuidar do Tiro"
+		if pillar == "body":
+			var food := ""
+			for item: String in Database.items:
+				var growth: Dictionary = Database.items[item].get("growth", {})
+				if info.phase in growth.get("phases", []) and float(growth.get("pillars", {}).get("body", 0)) > 0:
+					food = item
+					break
+			if food != "":
+				hint = "Dê %s na Tigela para ganhar Corpo. Cada porção ajuda; repita até completar." % Database.item_name(food)
+			target = Places.goal_target({"type": "stat", "key": "feed"})
+			action = "Dar comida"
+		steps.append({"id": pillar, "title": "%s %d%s" % [Database.growth.pillars[pillar].name, level, " ✓" if done else ""], "progress": "%d/%d pontos%s" % [points, goal, " · Completo" if done else ""], "done": done, "hint": hint, "target": target, "action": action})
+	return steps

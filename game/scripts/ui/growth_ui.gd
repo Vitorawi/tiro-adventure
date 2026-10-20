@@ -96,6 +96,12 @@ static func _build(box: VBoxContainer) -> void:
 		tap.name = "GrowthReq_" + str(req.id)
 		card.add_child(tap)
 		var text := UiKit.label("%s\n%d/%d%s" % [req.label, mini(int(req.have), int(req.need)) if not req.done else int(req.need), int(req.need), " ✓" if req.done else ""], &"SmallLabel")
+		if str(req.type) == "pillars":
+			tap.custom_minimum_size.y = 104
+			var lines: PackedStringArray = []
+			for care: Dictionary in TaskHelp.growth_care_steps(req):
+				lines.append(str(care.title) + ": " + str(care.progress))
+			text.text = "\n".join(lines)
 		text.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tap.add_child(text)
 		text.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

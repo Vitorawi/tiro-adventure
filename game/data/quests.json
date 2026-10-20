@@ -380,7 +380,7 @@
     "order": 10,
     "requirements": {
       "quests": [
-        "lais_bed"
+        "growth_1_puppy"
       ]
     }
   },
@@ -2162,7 +2162,7 @@
   "growth_1_puppy": {
     "npc": "lais",
     "name": "Ele está crescendo!",
-    "dialogue": "Olha só, ele já corre pela casa! Cuida bem dele e toque em Crescer.",
+    "dialogue": "A ração que você ganhou ajuda o Corpo a crescer. Dê comida na Tigela e faça carinho para ganhar Coragem. Depois, toque em Crescer!",
     "goals": [
       {
         "type": "growth",
