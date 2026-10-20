@@ -1,4 +1,4 @@
-﻿# Roda a suíte de testes headless (sem parâmetros: todos, na ordem abaixo, parando na primeira falha).
+# Roda a suíte de testes headless (sem parâmetros: todos, na ordem abaixo, parando na primeira falha).
 #   powershell -ExecutionPolicy Bypass -File tools\test_all.ps1
 #   powershell -ExecutionPolicy Bypass -File tools\test_all.ps1 -Only "hud_test,texts_test"   # só esses, nesta ordem
 #   powershell -ExecutionPolicy Bypass -File tools\test_all.ps1 -Skip "progression_test"      # pula esses
@@ -27,14 +27,14 @@ $Suite = @(
   "?npc_lines_test", "?saves_test", "?storage_test", "?loot_test", "?welcome_test", "?onboarding_test",
   "?wishes_test", "?flavors_test", "?finds_test", "?park_test",
   "walks_test", "petshop_test", "friends_test", "tricks_test", "treasure_test", "ui_base_test",
-  "ui_style_test", "sheet_test", "hud_test", "world_view_test", "world_selector_test", "balloon_test",
-  "tray_test", "station_tray_test", "pet_care_test", "lists_test", "market_test", "ready_badges_test",
+  "ui_style_test", "sheet_test", "effects_layer_test", "hud_test", "world_view_test", "world_selector_test", "balloon_test",
+  "tray_test", "station_tray_test", "pet_care_test", "lists_test", "market_test", "ready_badges_test", "tasks_groups_test",
   "texts_test", "festa_test", "economy_sim_test", "economy_transactions_test", "silo_test", "fridge_test",
   "warehouse_test", "chest_test", "coins_test", "garden_test", "nature_routes_test", "queue_test",
   "expansion_test", "projects_test", "bench_test", "garden_picnic_test", "journey_test",
   "animals_chain_test", "customers_test", "bond_test", "products_test", "pending_gifts_test",
   "absence_test", "walk_return_test", "walk_return_ui_test", "dev_tools_test_prod",
-  "economy_audit_selftest", "economy_compare_selftest", "growth_test", "pillars_test", "growth_visual_test", "growth_ui_test", "hud_growth_test", "ceremony_test", "growth_foods_test", "keys_test", "growth_story_test", "album_test", "house_test", "album_secrets_test", "brush_taste_test", "personality_test", "silk_test"
+  "economy_audit_selftest", "economy_compare_selftest", "growth_test", "growth_meals_test", "pillars_test", "growth_visual_test", "growth_ui_test", "hud_growth_test", "ceremony_test", "growth_foods_test", "keys_test", "growth_story_test", "album_test", "house_test", "album_secrets_test", "brush_taste_test", "personality_test", "silk_test"
 )
 $python = @("economy_audit_selftest", "economy_compare_selftest")
 $slow = @("progression_test", "economy_sim_test") + $python

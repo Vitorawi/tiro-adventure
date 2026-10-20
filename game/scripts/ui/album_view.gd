@@ -23,13 +23,17 @@ static func panel(section: String = "") -> Control:
 	box.add_child(UiKit.collection_progress(taken_count(), total_count()))
 	var tabs: Array[Dictionary] = []
 	for entry: Dictionary in sections:
-		tabs.append({"id": str(entry.id), "text": str(entry.name), "icon": UiKit.ui_icon(str(entry.icon))})
+		var unseen := GameState.photos_unseen().any(func(id: String) -> bool: return str(Database.photo(id).section) == str(entry.id))
+		tabs.append({"id": str(entry.id), "text": str(entry.name), "icon": UiKit.ui_icon(str(entry.icon)), "alert": unseen})
 	var segmented := UiKit.segmented(tabs, section, func(id: String) -> void: PetNotebook.open("album:" + id))
 	segmented.name = "AlbumSections"
 	if sections.size() > 3:
 		for tab in segmented.get_children():
 			(tab as Button).text = ""  # só o ícone: seis nomes não cabem na largura do celular
-	box.add_child(segmented)
+	var tab_margin := MarginContainer.new()
+	tab_margin.add_theme_constant_override("margin_top", 8)
+	tab_margin.add_child(segmented)
+	box.add_child(tab_margin)
 	var title := UiKit.label(str(sections.filter(func(entry: Dictionary) -> bool: return str(entry.id) == section)[0].name), &"SectionLabel")
 	title.name = "AlbumSectionTitle"
 	box.add_child(title)
@@ -89,8 +93,7 @@ static func _tile(entry: Dictionary) -> Control:
 	column.add_child(caption)
 	tile.add_child(column)
 	if taken and not bool(GameState.album.photos[id].get("seen", false)):
-		var badge := UiKit.short_label("Novo!", &"BadgeLabel", Palette.INK_ON_DARK)
-		badge.name = "NewBadge"
+		var badge := UiKit.alert_badge()
 		badge.position = Vector2(4, 4)
 		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tile.add_child(badge)

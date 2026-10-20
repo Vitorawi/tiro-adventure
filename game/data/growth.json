@@ -76,15 +76,16 @@
           "id": "meals",
           "type": "feed",
           "item": "any",
-          "qty": 3
+          "qty": 3,
+          "body_level": 1
         },
         {
           "id": "pillars",
           "type": "pillars",
           "levels": {
-            "body": 1,
             "brave": 1
-          }
+          },
+          "label": "Fazer carinho"
         }
       ],
       "chapter": 1,
@@ -115,15 +116,16 @@
           "id": "pillars",
           "type": "pillars",
           "levels": {
-            "body": 2,
             "brave": 2
-          }
+          },
+          "label": "Fazer carinho"
         },
         {
           "id": "meals",
           "type": "feed",
           "item": "frozen_carrot",
-          "qty": 3
+          "qty": 3,
+          "body_level": 2
         },
         {
           "id": "key",
@@ -160,16 +162,24 @@
           "id": "pillars",
           "type": "pillars",
           "levels": {
-            "body": 4,
-            "smart": 3,
             "brave": 4
-          }
+          },
+          "label": "Fazer carinho"
+        },
+        {
+          "id": "care_smart",
+          "type": "pillars",
+          "levels": {
+            "smart": 3
+          },
+          "label": "Brincadeiras e descobertas"
         },
         {
           "id": "meals",
           "type": "feed",
           "item": "growth_kibble",
-          "qty": 3
+          "qty": 3,
+          "body_level": 4
         },
         {
           "id": "key",
@@ -209,17 +219,32 @@
           "id": "pillars",
           "type": "pillars",
           "levels": {
-            "body": 6,
-            "coat": 6,
-            "smart": 6,
             "brave": 6
-          }
+          },
+          "label": "Fazer carinho"
+        },
+        {
+          "id": "care_smart",
+          "type": "pillars",
+          "levels": {
+            "smart": 6
+          },
+          "label": "Brincadeiras e descobertas"
+        },
+        {
+          "id": "care_coat",
+          "type": "pillars",
+          "levels": {
+            "coat": 6
+          },
+          "label": "Banhos e escovação"
         },
         {
           "id": "meals",
           "type": "feed",
           "item": "milk_porridge",
-          "qty": 3
+          "qty": 3,
+          "body_level": 6
         },
         {
           "id": "key",
@@ -260,11 +285,25 @@
           "id": "pillars",
           "type": "pillars",
           "levels": {
-            "body": 8,
-            "coat": 8,
-            "smart": 8,
             "brave": 8
-          }
+          },
+          "label": "Fazer carinho"
+        },
+        {
+          "id": "care_smart",
+          "type": "pillars",
+          "levels": {
+            "smart": 8
+          },
+          "label": "Brincadeiras e descobertas"
+        },
+        {
+          "id": "care_coat",
+          "type": "pillars",
+          "levels": {
+            "coat": 8
+          },
+          "label": "Banhos e escovação"
         },
         {
           "id": "key",
@@ -276,7 +315,8 @@
           "id": "meals",
           "type": "feed",
           "item": "favorite",
-          "qty": 3
+          "qty": 3,
+          "body_level": 8
         },
         {
           "id": "bow",
@@ -836,9 +876,39 @@
   },
   "silk": {
     "levels": [
-      {"id": "silk_1", "name": "Pelagem de seda I", "sheen": 0.33, "coat": 10, "brush_days": 5, "shampoo": 3, "rewards": {"coins": 50}},
-      {"id": "silk_2", "name": "Pelagem de seda II", "sheen": 0.66, "coat": 10, "brush_days": 10, "shampoo": 6, "rewards": {"coins": 80}},
-      {"id": "silk_3", "name": "Pelagem de seda III", "sheen": 1.0, "coat": 10, "brush_days": 20, "shampoo": 10, "rewards": {"coins": 120}}
+      {
+        "id": "silk_1",
+        "name": "Pelagem de seda I",
+        "sheen": 0.33,
+        "coat": 10,
+        "brush_days": 5,
+        "shampoo": 3,
+        "rewards": {
+          "coins": 50
+        }
+      },
+      {
+        "id": "silk_2",
+        "name": "Pelagem de seda II",
+        "sheen": 0.66,
+        "coat": 10,
+        "brush_days": 10,
+        "shampoo": 6,
+        "rewards": {
+          "coins": 80
+        }
+      },
+      {
+        "id": "silk_3",
+        "name": "Pelagem de seda III",
+        "sheen": 1.0,
+        "coat": 10,
+        "brush_days": 20,
+        "shampoo": 10,
+        "rewards": {
+          "coins": 120
+        }
+      }
     ]
   }
 }

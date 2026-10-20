@@ -1293,7 +1293,8 @@ func _on_plot_tapped(index: int) -> void:
 
 ## Abre a bandeja que combina com o canteiro: sementes (vazio), cuidado (crescendo) ou colheita (pronto).
 ## `focus` = planta pedida pelo "Ir" (vem primeiro e destacada). `center_camera` leva a câmera até ele antes.
-func open_plot_tray(index: int, focus: String = "", center_camera: bool = false) -> void:
+## O Ir geral usa `harvest_on_open = false`: mostra a foice sem colher só por navegar.
+func open_plot_tray(index: int, focus: String = "", center_camera: bool = false, harvest_on_open: bool = true) -> void:
 	close_tray()
 	if _plot_sprite(index) == null or GameState.plot_status(index) == "locked":
 		return
@@ -1306,7 +1307,10 @@ func open_plot_tray(index: int, focus: String = "", center_camera: bool = false)
 		"growing":
 			PlotTray.care(self, index)
 		"ready":
-			harvest_plot(index)
+			if harvest_on_open:
+				harvest_plot(index)
+			else:
+				PlotTray.sickle(self, index)
 
 
 ## Leva a câmera até o ponto da sala se ele estiver fora da área confortável (ou se `force`), antes de abrir

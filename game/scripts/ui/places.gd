@@ -125,6 +125,14 @@ static func open_tray(world_id: String, place_id: String) -> bool:
 	for room: Node in (Engine.get_main_loop() as SceneTree).get_nodes_in_group("room_views"):
 		if not room is RoomView or room.world_id != world_id or not room.is_visible_in_tree():
 			continue
+		if panel in ["farm", "greenhouse"]:
+			# O Ir geral abre as sementes direto; sem espaço, mostra a ferramenta da plantação.
+			for status: String in ["empty", "ready", "growing"]:
+				for index: int in room.plot_indices():
+					if GameState.is_greenhouse_plot(index) == (panel == "greenhouse") and GameState.plot_status(index) == status:
+						Events.sheet_close_requested.emit()
+						room.open_plot_tray(index, "", true, false)
+						return true
 		if panel.get_slice(":", 0) in ["station", "stations"]:
 			for station_id: String in panel.get_slice(":", 1).split("+"):
 				if room.can_open_station_tray(station_id):
@@ -465,6 +473,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			var panels := {"agriculture": "farm", "cooking": "station:stove", "commerce": "sell", "adventure": "routes:walk"}
 			return _panel_target(panels.get(key, ""))
 		"stat":
+			if key == "open:album": return {"notebook": "album", "hint": "Tiro → caderninho → Álbum"}
 			if key == "trick_learned":
 				return _panel_target("tricks")
 			if key.begins_with("project_use:"):
@@ -605,7 +614,12 @@ static func target_view(target: Dictionary) -> HBoxContainer:
 
 static func go(target: Dictionary) -> void:
 	Events.sheet_close_requested.emit()
-	if target.has("growth"):
+	if target.has("storage"):
+		Events.sheet_requested.emit(GameState.storage_name(str(target.storage)), SheetBuilder.inventory_view(str(target.storage)))
+	elif target.has("notebook"):
+		Events.screen_requested.emit(&"pet")
+		PetNotebook.open(str(target.notebook))
+	elif target.has("growth"):
 		GrowthUi.open()
 	elif target.has("screen"):
 		Events.screen_requested.emit(StringName(target.screen))

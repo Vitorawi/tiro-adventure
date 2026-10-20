@@ -227,6 +227,7 @@ func _ui_checks() -> void:
 	state.call("reset")
 	state.call("dev_complete_quest", "lais_bed")
 	state.call("dev_set_phase", "puppy")
+	state.call("dev_complete_quest", "growth_1_puppy")  # o Sítio abre ao receber o primeiro crescimento
 	state.get("progress").seen["intro"] = true
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
@@ -261,6 +262,23 @@ func _ui_checks() -> void:
 		await process_frame
 	var farm_dog: Node2D = _find_dog(main.get_node("%WorldsScreen").get("_views")["farm"])
 	check(farm_dog != null and farm_dog.call("has_balloon"), "balão legível no Tiro pequeno do sítio")
+	# Cenoura alta e demais canvases: o ícone inteiro fica no miolo do balão.
+	var original_slot: Dictionary = slot(0).duplicate(true)
+	var balloon_icons: Script = load("res://scripts/ui/wish_ui.gd")
+	for id: String in database.get("wishes").wishes:
+		state.get("wishes").slots[0] = {"id": id, "base": 0, "since": 0.0, "ready_at": 0.0, "special": false, "last": ""}
+		for actor: Node2D in [dog, farm_dog]:
+			actor.call("_refresh_balloon")
+			var icon: Sprite2D = actor.get("_balloon_icon")
+			check(icon.texture != null, "ícone do desejo existe: " + id)
+			check(icon.texture == balloon_icons.call("icon", id), "balão trocou para o ícone pedido: " + id)
+			var drawn := Rect2(icon.position + icon.get_rect().position * icon.scale, icon.get_rect().size * icon.scale)
+			check(Rect2(-10, -12, 20, 20).encloses(drawn), "ícone cabe no balão: " + id)
+			check(is_equal_approx(icon.scale.x, icon.scale.y), "ícone mantém proporção: " + id)
+		if id == "carrot": await _shot("wishes_balloon_carrot", main)
+	state.get("wishes").slots[0] = original_slot
+	dog.call("_refresh_balloon")
+	farm_dog.call("_refresh_balloon")
 	await _shot("wishes_balloon_farm", main)
 	# Tela do Tiro: balão e chip de vínculo.
 	main.call("show_screen", &"pet")
@@ -271,6 +289,27 @@ func _ui_checks() -> void:
 	state.call("set_sleeping", true)
 	check(not dog.call("has_balloon") and not main.get_node("%PetScreen").find_child("WishBubble", true, false).visible, "balões somem dormindo")
 	state.call("set_sleeping", false)
+	# O cabeçalho de Desejos usa pose fixa: não tenta dormir nem altera sua posição.
+	main.call("show_screen", &"wishes")
+	for phase: String in ["puppy", "teething", "young"]:
+		state.call("dev_set_phase", phase)
+		for n in 4: await process_frame
+		var portrait := screen.find_child("WishesTiroPortrait", true, false) as TextureRect
+		check(portrait != null, "retrato fixo na aba Desejos: " + phase)
+		var texture := portrait.texture
+		var rect := portrait.get_global_rect()
+		check(texture.resource_path == str(state.call("dog_look").idle_front), "retrato acompanha corpo da fase")
+		check(portrait.find_children("*", "PetAnimator", true, false).is_empty(), "retrato não tem animador")
+		state.call("set_sleeping", true)
+		for n in 6: await process_frame
+		portrait = screen.find_child("WishesTiroPortrait", true, false) as TextureRect
+		check(state.get("dog").sleeping and portrait.texture == texture and portrait.get_global_rect() == rect, "sono preserva pose/tamanho/posição: " + phase)
+		if phase == "teething": await _shot("wishes_static_sleeping", main)
+		state.call("set_sleeping", false)
+		for n in 4: await process_frame
+		portrait = screen.find_child("WishesTiroPortrait", true, false) as TextureRect
+		check(portrait.texture == texture and portrait.get_global_rect() == rect, "acordar não move o retrato: " + phase)
+	state.call("dev_set_phase", "puppy")
 	# Cumpre: badge some, cartão vira espera.
 	for n in 3:
 		state.call("pet")

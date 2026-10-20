@@ -36,6 +36,9 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			result["detail"] = "Faça e pegue " + Database.item_name(id)
 		"quest":
 			var quest: Dictionary = Database.quests[id]
+			var shortage := GameState.quest_reward_shortage(id)
+			if not shortage.is_empty():
+				return _base(quest.name, "Missão cumprida! Libere %d vaga(s) em %s para receber o prêmio." % [int(shortage.missing), GameState.storage_name(str(shortage.depot))], {"storage": str(shortage.depot)}, "Liberar espaço")
 			if GameState.quest_error(id) == "":
 				return _base(quest.name, "Tudo pronto!", {"claim": id}, "Pegar prêmio")
 			var goal: Dictionary = quest.goals[0]
@@ -214,6 +217,8 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 			if key.begins_with("harvest:"):
 				return describe("crop", key.trim_prefix("harvest:"), 1, trail)
 	var target := Places.goal_target(goal)
+	if key == "open:album":
+		return _base("Conheça o Álbum", "Na aba Tiro, toque no caderninho e depois em Álbum. As primeiras lembranças já estão guardadas lá; avisos de fotos novas começam depois dessa visita.", target, "Abrir Álbum")
 	var hints := {"talk:lais": "Toque na Laís, na Casa.", "talk:bloblo": "Toque na vovó Bloblo, no Sítio.", "open:bag": "Toque na aba Mochila.", "feed": "Dê comida na Tigela.", "pet": "Aba Tiro → faça carinho com o dedo.", "harvest": "Plante e colha.", "water": "Toque na plantinha com a gota.", "bathe": "Aba Tiro → Banho.", "play": "Aba Tiro → Brincar.", "trade": "Venda na Vila.", "sold": "Venda na Vila.", "explore": "Faça um passeio.", "walk": "Praça → Passeio: leve o Tiro para passear.", "talk:nina": "Toque na Nina, na Praça.", "produce": "Cozinhe no Fogão."}
 	return _base(str(goal.get("label", "Seu objetivo")), hints.get(key, ""), target, "Ir")
 
@@ -555,22 +560,28 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 			source_label.name = "ItemSource"
 			box.add_child(source_label)
 		# Próximo passo: ícone + o que fazer + Ir.
+		# Produtos levam à própria receita; os chips continuam explicando onde buscar ingredientes.
+		var recipe_destination := str(data.target.get("place", "")).begins_with("recipe:")
 		var step: BoxContainer = UiKit.vbox(8) if data.get("reward_source", false) else UiKit.hbox(10)
-		var first: Dictionary = data.get("next_need", {})
+		var first: Dictionary = {} if recipe_destination else data.get("next_need", {})
 		if not data.get("reward_source", false):
 			step.add_child(UiKit.icon(need_icon(first) if not first.is_empty() else icon_for(kind, id), 48))
 		var step_text := str(data.get("next", str(data.detail).trim_prefix(str(data.get("source_text", "")) + "\n")))
+		if recipe_destination:
+			var recipe: Dictionary = Database.recipes[str(data.target.place).trim_prefix("recipe:")]
+			step_text = "%s → %s" % [Database.worlds[str(data.target.world)].name, Database.stations[str(recipe.station)].name]
 		if data.has("source_text") and data.has("next"):
 			step_text = "Primeiro: " + step_text
 			var destination := str(data.get("next_target", {}).get("hint", ""))
 			if destination != "": step_text += "\n" + destination
 		step.add_child(UiKit.fill_label(step_text))
-		var go := UiKit.button(data.get("next_action", data.action), _go.bind(data.get("next_target", data.target)), &"PrimaryButton")
+		var go := UiKit.button(data.action if recipe_destination else data.get("next_action", data.action), _go.bind(data.target if recipe_destination else data.get("next_target", data.target)), &"PrimaryButton")
+		go.name = "HelpGo"
 		go.custom_minimum_size = Vector2(92, 52)
 		go.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		step.add_child(go)
 		UiKit.card(box, &"ReadyCardPanel").add_child(step)
-		if data.has("next") and data.detail != "" and not data.has("source_text"):
+		if (recipe_destination or data.has("next")) and data.detail != "" and not data.has("source_text"):
 			box.add_child(UiKit.label(data.detail, &"SmallLabel"))
 		if data.needs.is_empty():
 			return
@@ -718,7 +729,9 @@ static func _growth_requirement(id: String, trail: Array[String]) -> Dictionary:
 					result.detail = care.hint
 					result.target = care.target
 					break
-		result.title = "Cuidados para crescer" if row.type == "pillars" else str(row.label)
+		result.title = str(row.label)
+		if row.type == "feed" and row.has("body_level"):
+			result.detail += " As %d refeições também completam o Corpo necessário para crescer." % int(row.need)
 		result.detail += " (%d/%d%s)" % [mini(int(row.have), int(row.need)) if not row.done else int(row.need), row.need, " ✓" if row.done else ""]
 		result.target = result.get("next_target", result.target)
 		result.action = "Ir"
@@ -768,6 +781,8 @@ static func _growth_food(row: Dictionary, food: String, recipe_id: String, trail
 		guide.action = "Ver como liberar" if guide.status != "Falta conseguir os ingredientes." else "Buscar ingredientes"
 		guide.target = preparation.get("next_target", preparation.target)
 	var result := _base(Database.item_name(food), "", guide.target, guide.action)
+	if row.has("body_level"):
+		guide.status += " Essas porções também completam o Corpo desta etapa."
 	result["food_guide"] = guide
 	result["progress_text"] = "Já comeu %d de %d · Você tem %d" % [mini(int(row.have), int(row.need)), int(row.need), stock]
 	return result
@@ -784,7 +799,8 @@ static func growth_care_steps(row: Dictionary) -> Array[Dictionary]:
 		var done := int(info.pillars[pillar].level) >= level
 		var hint := {"body": "Dê comida para ganhar Corpo.", "coat": "Dê banho quando ele precisar para ganhar Pelagem.", "smart": "Brinque ou cave achados para ganhar Esperteza.", "brave": "Faça carinho no Tiro com o dedo para ganhar Coragem."}[pillar] as String
 		var target := {"screen": "pet"}
-		var action := "Fazer carinho" if pillar == "brave" else "Cuidar do Tiro"
+		var action: String = {"body": "Dar comida", "brave": "Fazer carinho", "smart": "Brincar", "coat": "Dar banho"}[pillar]
+		if pillar == "brave": hint += " " + str(GameState.pet_growth_info().hint)
 		if pillar == "body":
 			var food := ""
 			for item: String in Database.items:

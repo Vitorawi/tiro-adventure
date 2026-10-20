@@ -160,7 +160,7 @@ func orders_open() -> bool:
 
 
 func emergency_ready() -> bool:
-	## Mesma regra de GameState.emergency_food: só sem comida na mochila e fora da recarga.
+	## O robô só pede quando está sem comida; o jogador pode pedir também com estoque.
 	for id: String in sorted_keys(gs.inventory.counts):
 		if Database.items.get(id, {}).has("feed"):
 			return false

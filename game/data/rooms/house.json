@@ -101,6 +101,7 @@
     },
     {
       "id": "named_bowl",
+      "decoration": true,
       "action": "place:bowl",
       "upgrade": "named_bowl",
       "sprite": "res://assets/sprites/areas/house/named_bowl.png",

@@ -95,6 +95,26 @@ func run() -> void:
 	needs(40)
 	state.pet()
 	check(count('brave')==2,'carinho após 120 s')
+	# Relato 68/70 em Dentinhos: recarga visível, limite e reserva sem alterar a regra.
+	fresh('teething')
+	state.growth.points.brave = 68
+	check(state.pet_growth_info().seconds == 0, 'carinho disponível antes do primeiro ganho')
+	state.pet()
+	check(state.pet_growth_info().points == 69 and state.pet_growth_info().cap == 70, '68/70 sobe para 69/70')
+	check(state.pet_growth_info().seconds == 120 and '2 min' in str(state.pet_growth_info().hint), 'explica a espera real de dois minutos')
+	state.pet()
+	check(state.growth.points.brave == 69, 'reagir de novo não ignora a recarga')
+	reload_state()
+	check(state.pet_growth_info().seconds == 120, 'tempo restante sobrevive ao save')
+	state.test_time += 119
+	check(state.pet_growth_info().seconds == 1, 'contagem perto do fim')
+	state.test_time += 1
+	state.pet()
+	check(state.growth.points.brave == 70, 'carinho depois da espera completa 70/70')
+	state.test_time += 120
+	state.pet()
+	check(state.pet_growth_info().points == 70 and state.pet_growth_info().reserve == 1, 'no teto guarda em vez de prometer aumento')
+	check('guardados' in str(state.pet_growth_info().hint), 'explica o teto da fase')
 	fresh()
 	state.talk_to('lais')
 	state.talk_to('lais')

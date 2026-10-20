@@ -2,7 +2,7 @@ class_name CollectFx
 extends Control
 ## Animação de recolher: miniaturas "ícone +N" saltam do ponto tocado, sobem e somem.
 ## Escuta Events.items_gained(itens, moedas, origem); origem em coordenadas da tela
-## (Vector2(-1, -1) = sem origem: usa o meio da tela). Fica acima do mundo e do Sheet.
+## (Vector2(-1, -1) = sem origem: usa o meio da tela). Fica acima do mundo, abaixo das janelas.
 
 const RISE := 70.0
 const STAGGER := 0.14
@@ -13,7 +13,8 @@ const FLY := 0.45  # voo das moedas até a pílula do HUD
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	z_index = 20  # acima do Sheet (10), do toast (11) e da barra (12)
+	z_as_relative = false
+	z_index = Motion.WORLD_FX_Z
 	Events.items_gained.connect(_on_items_gained)
 
 

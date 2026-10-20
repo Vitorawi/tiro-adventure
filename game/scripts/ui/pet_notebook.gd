@@ -10,10 +10,14 @@ static func tabs() -> Array[Dictionary]:
 		result.append({"id": "collection", "text": "Coleção"})
 	if GameState.progress.feature_unlocked("tricks"):
 		result.append({"id": "tricks", "text": "Truques"})
+	for entry: Dictionary in result:
+		entry["alert"] = section_has_new(str(entry.id))
 	return result
 
 
 static func open(section: String = "manual") -> void:
+	var keys := section_unlocks(section)
+	if not keys.is_empty(): GameState.mark_seen(keys)
 	Events.sheet_requested.emit("Caderninho", panel(section))
 
 
@@ -27,7 +31,10 @@ static func panel(section: String = "manual") -> Control:
 	var box := UiKit.vbox(8)
 	box.name = "PetNotebook"
 	box.set_meta("sheet_size", "tall")
-	box.add_child(UiKit.segmented(entries, section, open))
+	var tab_margin := MarginContainer.new()
+	tab_margin.add_theme_constant_override("margin_top", 8)
+	tab_margin.add_child(UiKit.segmented(entries, section, open))
+	box.add_child(tab_margin)
 	match section:
 		"growth":
 			box.add_child(PillarUi.panel())
@@ -43,9 +50,20 @@ static func panel(section: String = "manual") -> Control:
 
 
 static func has_new() -> bool:
-	if not GameState.photos_unseen().is_empty():
-		return true
+	return tabs().any(func(entry: Dictionary) -> bool: return entry.alert)
+
+
+static func section_has_new(section: String) -> bool:
+	if section == "album": return GameState.photo_alerts_enabled() and not GameState.photos_unseen().is_empty()
+	return not section_unlocks(section).is_empty()
+
+
+## Cada aba confirma só suas próprias novidades; fotos são vistas uma a uma.
+static func section_unlocks(section: String) -> Array[String]:
+	var result: Array[String] = []
 	for key in GameState.new_unlocks():
-		if key in ["feature:growth_tab", "feature:dress", "feature:finds", "feature:tricks"] or key.begins_with("collection:") or key.begins_with("trick:"):
-			return true
-	return false
+		if (section == "growth" and key == "feature:growth_tab"
+			or section == "collection" and (key in ["feature:dress", "feature:finds"] or key.begins_with("collection:"))
+			or section == "tricks" and (key == "feature:tricks" or key.begins_with("trick:"))):
+			result.append(key)
+	return result

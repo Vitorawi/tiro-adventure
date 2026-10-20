@@ -66,6 +66,8 @@ func _run() -> void:
 	main.call("show_screen", &"tasks")
 	await frames()
 	var tasks: Control = main.find_child("TasksScreen", true, false)
+	tasks.call("choose_group", "timed")
+	await frames()
 	var daily: Control = tasks.find_child("Routines_daily", true, false)
 	check(daily != null, "seção diária existe")
 	if daily:

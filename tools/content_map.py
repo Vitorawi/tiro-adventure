@@ -34,6 +34,8 @@ KINDS = {
     "chapter": "Capítulos", "feature": "Funcionalidades", "shop": "Compras",
     "reward": "Presentes e marcos", "counter": "Contadores", "condition": "Condições",
     "resource": "Moedas e necessidades", "rule": "Configurações",
+    "growth": "Crescimento do Tiro", "pillar": "Pilares do Tiro",
+    "album": "Álbum e fotos", "house": "Decorações da Casa",
 }
 
 
@@ -145,6 +147,8 @@ class ContentGraph:
                     self.link(self.ref(kind, item), target, "precisa concluir" if key != "owned" else "precisa ter", "requirement")
             elif key == "chapter":
                 self.link(self.ref("chapter", value), target, "a partir deste capítulo", "requirement")
+            elif key == "growth":
+                self.link(self.ref("growth", value), target, f"fase {value}", "requirement")
             elif key == "skills":
                 for skill, level in value.items():
                     self.link(self.ref("skill", skill), target, f"nível ≥ {level}", "requirement")
@@ -186,10 +190,12 @@ class ContentGraph:
         kind = goal.get("type", "stat")
         amount = goal.get("target", 1)
         label = {"deliver": f"entregar ×{amount}", "have": f"guardar ×{amount}",
-                 "owned": "comprar / ter", "quest": "concluir missão", "project": "concluir obra"}.get(kind, f"meta ≥ {amount}")
+                 "owned": "comprar / ter", "quest": "concluir missão", "project": "concluir obra",
+                 "growth": "alcançar fase"}.get(kind, f"meta ≥ {amount}")
         if goal.get("fresh"):
             label += " · após aceitar"
-        ref_kind = {"deliver": "item", "have": "item", "owned": "upgrade", "quest": "quest", "project": "project"}.get(kind)
+        ref_kind = {"deliver": "item", "have": "item", "owned": "upgrade", "quest": "quest", "project": "project",
+                    "growth": "growth"}.get(kind)
         source = self.ref(ref_kind, key) if ref_kind else self.counter(key)
         self.link(source, target, label, "goal")
 

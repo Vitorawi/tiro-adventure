@@ -610,12 +610,36 @@ func _test_other_paths() -> void:
 	check(tray() == null and "Todos os canteiros estão ocupados" in toasts, "sem vazio: aviso 'Todos os canteiros estão ocupados'")
 	check(farm.find_child("Pointer", true, false) != null, "e a seta aponta o primeiro canteiro")
 	farm.call("clear_pointer")
-	# Painel de canteiros: tocar na grade abre a bandeja e some o painel.
+	# Ir geral: abre as sementes direto, sem passar pelo resumo antigo.
 	empty_plots()
 	var worlds: Control = main.find_child("WorldsScreen", true, false)
 	worlds.call("enter", "farm", "plots")
 	await create_timer(1.3).timeout
 	var sheet: Control = main.find_child("Sheet", true, false)
+	check(tray() != null and "carrot" in tray().call("entry_ids"), "Ir para canteiros abre sementes direto")
+	check(not sheet.call("is_open"), "Ir para canteiros não abre o painel antigo")
+	farm.call("close_tray")
+	# Estufa respeita seus próprios canteiros, mesmo com a horta vazia.
+	places.call("run", "farm", "place:greenhouse")
+	await process_frame
+	check(tray() != null and "herbs" in tray().call("entry_ids"), "Ir para estufa abre suas sementes")
+	farm.call("close_tray")
+	for i in 9:
+		state.call("plant", i, "carrot")
+	places.call("run", "farm", "plots")
+	await process_frame
+	check(tray() != null and "water" in tray().call("entry_ids"), "horta ocupada abre cuidado, sem usar vazios da estufa")
+	farm.call("close_tray")
+	state.call("dev_finish_timers")
+	places.call("run", "farm", "plots")
+	await process_frame
+	check(tray() != null and "sickle" in tray().call("entry_ids"), "horta pronta abre foice direto")
+	check(status(0) == "ready", "Ir não colhe automaticamente")
+	farm.call("close_tray")
+	empty_plots()
+	# A consulta explícita continua disponível e leva à bandeja ao tocar na grade.
+	places.call("open", "farm", "plots")
+	await create_timer(0.3).timeout
 	var tile: Button = null
 	for button: Button in sheet.find_children("*", "Button", true, false):
 		if button.text == "Livre":

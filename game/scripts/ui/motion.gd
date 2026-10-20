@@ -19,6 +19,8 @@ const PULSE := 0.9
 const COUNT := 0.5
 const SHAKE := 0.24
 const FLOAT := 0.7
+## Efeitos do jogo ficam acima do cenário, abaixo das abas (6), HUD (8) e painéis (10).
+const WORLD_FX_Z := 5
 const FADE := 0.12  # conteúdo novo entrando num painel que já está aberto
 const RESIZE := 0.18  # painel que acompanha o tamanho do conteúdo (e volta ao lugar depois de arrastado)
 const CLOSE := 0.2  # painel que desce ao fechar
@@ -165,7 +167,8 @@ static func float_text(parent: Node, pos: Vector2, text: String, color: Color) -
 	var label := Label.new()
 	label.text = text
 	label.position = pos
-	label.z_index = 100
+	label.z_as_relative = false
+	label.z_index = WORLD_FX_Z
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.add_theme_font_size_override("font_size", 22)
 	label.add_theme_color_override("font_color", color)

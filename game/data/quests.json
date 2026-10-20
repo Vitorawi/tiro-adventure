@@ -81,6 +81,30 @@
     "chapter": 1,
     "order": 40
   },
+  "lais_album": {
+    "npc": "lais",
+    "name": "Nossas primeiras lembranças",
+    "dialogue": "As primeiras fotos do Tiro já estão guardadas! Na aba Tiro, abra o caderninho e toque em Álbum. Depois dessa visita, eu aviso quando tiver foto nova.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "open:album",
+        "target": 1,
+        "label": "Abrir o Álbum no caderninho do Tiro"
+      }
+    ],
+    "rewards": {},
+    "kind": "line",
+    "line": "lais_memories",
+    "order": 10,
+    "requirements": {
+      "quests": ["lais_play"]
+    },
+    "go": {
+      "notebook": "album",
+      "hint": "Tiro → caderninho → Álbum"
+    }
+  },
   "lais_bag": {
     "npc": "lais",
     "name": "Um presente na mochila",
@@ -836,7 +860,7 @@
   "main_9_coop": {
     "npc": "bloblo",
     "name": "Novos moradores",
-    "dialogue": "Com tábuas fazemos um galinheiro! A primeira galinha é meu presente.",
+    "dialogue": "Com tábuas fazemos um galinheiro! Depois, compre sua primeira galinha no galinheiro. Plante milho nos canteiros para alimentar sua nova amiga.",
     "goals": [
       {
         "type": "owned",
@@ -845,10 +869,7 @@
       }
     ],
     "rewards": {
-      "coins": 35,
-      "items": {
-        "corn": 4
-      }
+      "coins": 35
     },
     "kind": "line",
     "order": 80,
@@ -862,7 +883,7 @@
   "main_9_eggs": {
     "npc": "bloblo",
     "name": "Ovos fresquinhos",
-    "dialogue": "Sua galinha gosta de milho. Recolha os ovos: com 8 você conhece a ruiva!",
+    "dialogue": "Sua galinha gosta de milho. Plante nos canteiros, colha e leve ao galinheiro para alimentá-la. Recolha os ovos: com 8 você conhece a ruiva!",
     "goals": [
       {
         "type": "stat",

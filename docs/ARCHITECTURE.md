@@ -8,7 +8,16 @@ Cenas (scenes/*)  ──métodos──▶  GameState  ◀──to_dict/from_dict
                                                                                      (IndexedDB na Web)
 ```
 
+## Camadas visuais
+
+Camadas de desenho: efeitos do cenário usam `Motion.WORLD_FX_Z = 5` com
+`z_as_relative = false`. Isso inclui Zz, textos flutuantes, ícones de atributos,
+corações e `CollectFx`. Abas (6), HUD (8), Sheet (10), avisos/popovers e os
+CanvasLayers dos modais ficam acima deles. Um efeito do Tiro não deve usar z alto
+para atravessar a interface; janelas cobrem o cenário e suas animações.
+
 ## Autoloads (ordem de carregamento importa)
+
 | Nome          | Arquivo                       | Responsabilidade |
 |---------------|-------------------------------|------------------|
 | `Events`      | `game/autoload/events.gd`     | Sinais globais: estado mudou, toast, abrir/fechar sheet, trocar tela. |

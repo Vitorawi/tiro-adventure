@@ -112,9 +112,9 @@ func _run() -> void:
 	helper.call("open", "growth_req", "pillars")
 	await frames()
 	var care_sheet := main.find_child("Sheet", true, false)
-	check(text(care_sheet, "2/10 pontos") and text(care_sheet, "0/10 pontos"), "mostra pontos separados dos dois cuidados")
-	check(text(care_sheet, "Ração") and text(care_sheet, "Faça carinho"), "explica as duas ações sem outra ajuda")
-	check(care_sheet.find_child("GrowthCare_body", true, false) != null and care_sheet.find_child("GrowthCare_brave", true, false) != null, "cada cuidado tem seu atalho")
+	check(text(care_sheet, "0/10 pontos"), "carinho mostra seus pontos de Coragem")
+	check(text(care_sheet, "Faça carinho"), "explica a ação que ainda falta")
+	check(care_sheet.find_child("GrowthCare_body", true, false) == null and care_sheet.find_child("GrowthCare_brave", true, false) != null, "Corpo pertence às refeições e não é cobrado nos cuidados")
 	check(primary(care_sheet) == 1, "uma ação principal nos cuidados")
 	if "--screenshots" in OS.get_cmdline_user_args():
 		var shots := ProjectSettings.globalize_path("res://").path_join("../build/screenshots/first_growth").simplify_path()
@@ -177,6 +177,7 @@ func _run() -> void:
 	check(state.get("growth").phase == "puppy", "toque Crescer muda fase")
 	check(main.get("_growth_queued").has("puppy"), "Crescer enfileira a cerimônia que assume a tela")
 	db.get("growth").phases[1].requirements = original
+	if "--meal-shots" in OS.get_cmdline_user_args(): await meal_shots()
 	main.queue_free()
 	await frames()
 	print("GROWTH_UI TEST: ", "PASS" if failures == 0 else "FAIL")
@@ -188,3 +189,26 @@ func layout_shot(label: String) -> void:
 	DirAccess.make_dir_recursive_absolute(folder)
 	await RenderingServer.frame_post_draw
 	check(root.get_texture().get_image().save_png(folder.path_join("%s_%d.png" % [label, root.size.x])) == OK, "captura do layout " + label)
+
+
+func meal_shots() -> void:
+	for phase: String in ["newborn", "teething"]:
+		state.call("reset")
+		state.get("progress").seen.intro = true
+		state.get("progress").owned.dog_bed = true
+		state.get("growth").phase = phase
+		state.get("growth").points = {}
+		var info: Dictionary = state.call("growth_info")
+		var meals: Dictionary = info.requirements.filter(func(row: Dictionary) -> bool: return row.type == "feed")[0]
+		var item := "dog_food" if meals.item == "any" else str(meals.item)
+		state.get("inventory").add(item, int(meals.need))
+		for n in int(meals.need):
+			state.call("feed", item)
+			if n != 0 and n + 1 != int(meals.need): continue
+			ui.call("open")
+			await frames()
+			for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony"]: main.get(member).hide()
+			main.get("_modal_queue").clear()
+			main.get("_toast").hide()
+			await layout_shot("%s_meals%d" % [phase, n + 1])
+		check(text(main.find_child("GrowthPanel", true, false), "Corpo completo"), "refeições completas explicam Corpo atendido")

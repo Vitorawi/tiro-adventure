@@ -75,6 +75,7 @@ func _run() -> void:
 	_milk_tooth()
 	_inactive()
 	db.album.active_sections = active
+	_introduction()
 	_interface()
 	print("ALBUM TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(0 if failures == 0 else 1)
@@ -330,20 +331,59 @@ func _inactive() -> void:
 	panel.free()
 
 
+func _introduction() -> void:
+	_fresh()
+	state.dev_take_photo("h_arrival")
+	var arrival: Dictionary = state.photo_info("h_arrival")
+	check(not state.photo_alerts_enabled(), "chegada não ativa avisos de foto")
+	check(not notebook.section_has_new("album"), "Álbum desconhecido não recebe sinal de novidade")
+	check(state.welcome_ready_lines().all(func(line: Dictionary) -> bool: return line.kind != "photo"), "boas-vindas não anuncia fotos antes da primeira visita")
+	check(not state.quest_unlocked("lais_album"), "apresentação espera as primeiras brincadeiras")
+	state.progress.claimed_quests.lais_play = true
+	check(state.quest_unlocked("lais_album"), "Laís apresenta o Álbum depois de brincar")
+	check(db.quests.lais_album.kind == "line", "apresentação opcional não reabre a história antiga")
+	var target: Dictionary = load("res://scripts/ui/progression_ui.gd").call("quest_go_target", "lais_album")
+	check(target.get("notebook", "") == "album", "Ir tem como destino a aba Álbum")
+	var view: Control = album_view.panel("story")
+	root.add_child(view)
+	check(state.photo_alerts_enabled() and state.progress.stat("open:album") == 1, "primeira visita habilita avisos e cumpre objetivo")
+	check(state.quest_error("lais_album") == "", "visita cumpre a missão de apresentação")
+	check(state.photo_info("h_arrival") == arrival, "primeira visita preserva a foto anterior e seu snapshot")
+	view.free()
+	_reload()
+	check(state.photo_alerts_enabled(), "descoberta do Álbum persiste no save")
+	# Save anterior, sem o contador novo: foto já vista prova que conhecia o Álbum.
+	state.progress.stats.erase("open:album")
+	state.mark_photo_seen("h_arrival")
+	_reload()
+	check(state.photo_alerts_enabled(), "compatibilidade com save que já tinha foto vista")
+
+
 func _interface() -> void:
 	_fresh()
 	_unlock()
 	state.bathe()
 	state.set_sleeping(true)
 	state.set_sleeping(false)
+	for id: String in state.photos_unseen():
+		if str(db.photo(id).section) != "firsts": state.mark_photo_seen(id)
 	check(notebook.has_new(), "caderninho ganha o selo Novo com foto não vista")
 	var ids: Array = notebook.tabs().map(func(t: Dictionary) -> String: return t.id)
 	check("album" in ids, "aba Álbum aparece depois da primeira foto")
+	var notebook_panel: Control = notebook.panel("manual")
+	root.add_child(notebook_panel)
+	check(notebook_panel.find_child("NotebookTab_album", true, false).find_child("NewBadge", true, false) != null, "Manual aponta novidade na aba Álbum")
+	check(notebook_panel.find_child("NotebookTab_manual", true, false).find_child("NewBadge", true, false) == null, "Manual não recebe aviso de outra aba")
+	notebook_panel.free()
+	check(not state.photos_unseen().is_empty(), "abrir Manual não marca fotos como vistas")
 	var panel: Control = album_view.panel("firsts")
 	root.add_child(panel)
 	var grid := panel.find_child("AlbumGrid", true, false) as GridContainer
 	check(grid != null and grid.columns == 3 and grid.get_child_count() == 8, "grade de 3 colunas com as 8 primeiras vezes")
 	check(panel.find_child("Photo_f_bath", true, false).find_child("NewBadge", true, false) != null, "foto nova tem selo Novo!")
+	check(panel.find_child("Photo_f_bath", true, false).find_child("NewBadge", true, false).text == "!", "foto nova usa exclamação")
+	check(panel.find_child("NotebookTab_firsts", true, false).find_child("NewBadge", true, false) != null, "seção Primeiras vezes aponta as fotos novas")
+	check(panel.find_child("NotebookTab_story", true, false).find_child("NewBadge", true, false) == null, "seção sem foto nova fica sem aviso")
 	check(panel.find_child("Photo_f_dig", true, false).find_child("NewBadge", true, false) == null, "foto que falta não tem selo")
 	check(panel.find_child("PhotoCard", true, false) != null, "polaroides montadas")
 	var counter := "%d/%d" % [album_view.taken_count(), album_view.total_count()]
@@ -362,6 +402,10 @@ func _interface() -> void:
 	detail.free()
 	for id: String in state.photos_unseen():
 		state.mark_photo_seen(id)
+	notebook_panel = notebook.panel("manual")
+	root.add_child(notebook_panel)
+	check(notebook_panel.find_child("NotebookTab_album", true, false).find_child("NewBadge", true, false) == null, "aba Álbum perde a exclamação após ver as fotos")
+	notebook_panel.free()
 	check(not notebook.has_new() or not state.new_unlocks().is_empty(), "selo some depois de ver as fotos")
 	lines = state.welcome_ready_lines().filter(func(l: Dictionary) -> bool: return l.kind == "photo")
 	check(lines.is_empty(), "linha de foto some depois de vista")

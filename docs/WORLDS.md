@@ -17,7 +17,7 @@ atualiza os sprites e recalcula a navegação. A posição é fixa, com moviment
 |---|---|
 | **Tiro** | Tela do Pet (necessidades, carinho, comer, brincar, banho, dormir) e botão **Manual** para consultar recursos/estações. |
 | **Mapa** | O mundo em que você está (sala tocável) com cabeçalho: botão **Mapa**, nome do mundo, botão **Lugares** ("O que tem aqui?") e os **personagens** dali (verdes com "!" quando há missão pronta). Tocar em "Mapa" (ou na aba de novo) mostra a lista de mundos com miniatura, personagens e avisos ("Canteiros: 2 prontos para colher!"). |
-| **Missões** | "O que eu faço agora?": **História** (um passo por vez: rosto de quem pede, instrução breve + ícone + `0/6`, ícone do lugar, ingredientes que faltam em chips tocáveis, recompensa em chips, **Ir** + **?**), **Diárias** (3, renovam à meia-noite) e **Semanais** (2, renovam na segunda), também com instrução breve. A bolinha vermelha conta o que está pronto. Atributos e Coleção ficam na aba Tiro. |
+| **Missões** | Três grupos fixos: **Principal** (história, um passo por vez, Ir/?), **Personagens** (secundárias agrupadas por NPC, Abrir/Fechar) e **Temporárias** (Diárias/Semanais, um período por vez, Pegar tudo). **!** vermelho indica prêmio disponível no grupo, no personagem e na missão. Prêmios prontos aparecem primeiro no grupo Personagens. |
 | **Mochila** | Ícone + quantidade por categoria (aparece após a 1ª colheita). Tocar num item: preço, efeitos, **De onde vem** e **Usado em** (chips que levam ao lugar), "Dar ao Tiro" e "Vender". |
 
 ## Instruções das missões

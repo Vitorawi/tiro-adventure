@@ -62,7 +62,7 @@ func _run() -> void:
 
 ## Dados: nove missões novas da história, ordem e objetivos exatos.
 func _data() -> void:
-	check(db.quests.size() == 109, "109 missões (99 + 9 principais + 1 da vovó): %d" % db.quests.size())
+	check(db.quests.size() == 110, "110 missões (109 + apresentação opcional do Álbum): %d" % db.quests.size())
 	var mains := 0
 	for id: String in db.quests:
 		if db.quests[id].get("kind", "") == "main":
@@ -129,12 +129,14 @@ func _first_growth_care() -> void:
 	check(state.accessible_plots() == 0 and state.plant(0, "carrot") != "", "não planta antes de conhecer a vovó")
 	var meals: Dictionary = help.call("describe", "growth_req", "meals")
 	check("Qualquer comida" in str(meals.detail), "refeições explicam que não exigem receita")
-	var body: Dictionary = help.call("describe", "growth_req", "pillars")
-	check("Ração" in str(body.detail), "Corpo indica a ração inicial")
+	check("Corpo" in str(meals.detail), "refeições já completam Corpo")
+	var care: Dictionary = help.call("describe", "growth_req", "pillars")
+	check("carinho" in str(care.detail), "cuidados pedem apenas a ação distinta")
 	var places: Script = load("res://scripts/ui/places.gd")
-	check(body.target == places.call("goal_target", {"type": "stat", "key": "feed"}), "Ir de Corpo leva à Tigela")
-	for i in 4:
+	check(care.target == {"screen": "pet"}, "Ir de Carinho leva ao Tiro")
+	for i in 2:
 		check(state.feed("dog_food"), "ração inicial restante %d" % i)
+	check(state.growth.level("body") == 1, "três refeições fecham o Corpo do primeiro crescimento")
 	for i in 10:
 		state.pet()
 	check(state.growth_info().ready, "cuidados iniciais bastam, sem horta nem receita bloqueada")

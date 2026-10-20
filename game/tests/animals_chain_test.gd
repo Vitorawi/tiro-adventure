@@ -72,8 +72,71 @@ func _run() -> void:
 	db = root.get_node("Database")
 	_data()
 	_chain()
+	await _coop_storage()
 	print("ANIMALS CHAIN TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
+
+
+func _coop_storage() -> void:
+	state.call("reset")
+	state.set("unlimited_storage", false)
+	state.call("dev_jump_to_chapter", 5)
+	for id: String in ["farm_deed", "first_harvest", "main_4_bench", "main_4_materials"]:
+		state.call("dev_complete_quest", id)
+	state.call("dev_grant_upgrade", "farm")
+	state.call("dev_grant_upgrade", "workbench")
+	state.set("coins", 1000)
+	var bag: Object = state.get("inventory")
+	bag.call("from_dict", {"plank": 4})
+	bag.call("add", "carrot", state.call("storage_capacity", "silo"))
+	check(state.call("buy_upgrade", "chicken_coop") == "", "galinheiro construído com silo cheio")
+	check(state.call("quest_error", "main_9_coop") == "", "missão do galinheiro recebe mesmo com silo cheio")
+	check(not db.get("quests").main_9_coop.rewards.has("items"), "galinheiro não dá milho pronto")
+	var original_coins := _coins()
+	check(state.call("claim_quest", "main_9_coop") == "" and _coins() == original_coins + 35 and _inv("corn") == 0, "galinheiro paga só 35 moedas")
+	check(state.call("content_error", "crop", "corn", db.get("crops").corn) == "", "milho já está liberado para plantar")
+	# Prêmios com itens ainda explicam espaço: fixture isolada mantém a regressão genérica.
+	var fixture: Dictionary = db.get("quests").main_9_coop.duplicate(true)
+	fixture.kind = "side"
+	fixture.erase("line")
+	fixture.erase("order")
+	fixture.requirements = {}
+	fixture.rewards = {"coins": 35, "items": {"corn": 4}}
+	db.get("quests")["__coop_storage"] = fixture
+	await _storage_reward_card()
+	db.get("quests").erase("__coop_storage")
+
+
+func _storage_reward_card() -> void:
+	var bag: Object = state.get("inventory")
+	check(state.call("quest_objectives_error", "__coop_storage") == "", "objetivo do galinheiro já cumprido")
+	check(state.call("quest_reward_shortage", "__coop_storage") == {"depot": "silo", "missing": 4}, "prêmio com itens informa as quatro vagas")
+	var coins := _coins()
+	check(state.call("claim_quest", "__coop_storage") != "" and _coins() == coins and _inv("corn") == 0, "prêmio bloqueado não consome nem paga parcialmente")
+	var ui: Script = load("res://scripts/ui/progression_ui.gd")
+	var card := VBoxContainer.new()
+	root.add_child(card)
+	ui.call("quest_card", card, "__coop_storage")
+	await process_frame
+	var release: Button = null
+	for button: Button in card.find_children("*", "Button", true, false):
+		check(button.text != "Ir", "missão concluída não manda reconstruir")
+		if button.text == "Liberar espaço": release = button
+	check(release != null, "cartão oferece Liberar espaço")
+	var help: Dictionary = load("res://scripts/ui/task_help.gd").call("describe", "quest", "__coop_storage")
+	check(help.target == {"storage": "silo"} and "4" in help.detail, "ajuda explica quantidade e aponta ao silo")
+	var panels: Array[Control] = []
+	var opened := func(_title: String, content: Control) -> void: panels.append(content)
+	root.get_node("Events").sheet_requested.connect(opened)
+	if release: release.pressed.emit()
+	check(panels.size() == 1, "atalho abre consulta do depósito")
+	root.get_node("Events").sheet_requested.disconnect(opened)
+	for panel in panels: panel.free()
+	card.queue_free()
+	bag.call("remove", "carrot", 4)
+	check(state.call("quest_error", "__coop_storage") == "", "quatro vagas liberam recebimento")
+	check(state.call("claim_quest", "__coop_storage") == "" and _inv("corn") == 4 and _coins() == coins + 35, "recebe prêmio completo sem refazer galinheiro")
+	check(state.call("claim_quest", "__coop_storage") != "" and _inv("corn") == 4, "prêmio recebido só uma vez")
 
 
 func _data() -> void:
@@ -153,12 +216,14 @@ func _chain() -> void:
 	check(state.call("plant", 1, "wheat") == "", "Trigo planta sem produto animal")
 	state.call("dev_finish_timers")
 	check(int(state.call("harvest", 0).get("corn", 0)) == 6 and int(state.call("harvest", 1).get("wheat", 0)) == 4, "Colheita renova a ração")
-	# Elo 1: galinheiro (260 + 4 tábuas) e a primeira galinha de presente.
+	# Elo 1: galinheiro (260 + 4 tábuas) vazio; a primeira galinha é comprada separadamente.
 	var coins := _coins()
 	var planks := _inv("plank")
 	check(state.call("buy_upgrade", "chicken_coop") == "", "Comprar galinheiro")
 	check(_coins() == coins - 260 and _inv("plank") == planks - 4, "Galinheiro cobra 260 + 4 tábuas")
-	check(state.call("animal_count", "chicken_coop") == 1, "Primeira galinha presente")
+	check(state.call("animal_count", "chicken_coop") == 0, "Galinheiro começa vazio")
+	check(state.call("buy_animal", "chicken_white") == "", "Comprar primeira galinha")
+	check(state.call("animal_count", "chicken_coop") == 1 and _coins() == coins - 260 - 120, "Primeira compra entrega só uma galinha e cobra 120")
 	_claim("main_9_coop")
 	# Elo 2: ovos. O lote usa só os animais presentes; comprar durante não entra no lote.
 	check(state.call("cook", "eggs") == "", "Alimentar a galinha")

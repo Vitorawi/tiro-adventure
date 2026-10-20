@@ -51,6 +51,16 @@ static func panel() -> Control:
 			Events.pillar_gained.connect(gained))
 		ring.tree_exiting.connect(func() -> void:
 			if Events.pillar_gained.is_connected(gained): Events.pillar_gained.disconnect(gained))
+	var pet_hint := UiKit.label("", &"SmallLabel")
+	pet_hint.name = "PetGrowthHint"
+	var refresh_pet := func() -> void: pet_hint.text = str(GameState.pet_growth_info().hint)
+	refresh_pet.call()
+	var pet_timer := Timer.new()
+	pet_timer.wait_time = 1.0
+	pet_timer.autostart = true
+	pet_timer.timeout.connect(refresh_pet)
+	pet_hint.add_child(pet_timer)
+	box.add_child(pet_hint)
 	box.add_child(diary())
 	box.add_child(taste_guide())
 	return box

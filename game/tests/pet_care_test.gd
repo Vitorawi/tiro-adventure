@@ -89,7 +89,7 @@ func _run() -> void:
 		root.size = viewport
 		await frames()
 		var badge: Label = pet.find_child("NotebookNewBadge", true, false)
-		check(badge.text == "Novo" and badge.get_theme_color("font_color") == Color.WHITE, "caderninho: Novo branco sobre o selo vermelho")
+		check(badge.text == "!" and badge.get_theme_color("font_color") == Color.WHITE, "caderninho: exclamação branca sobre bolinha vermelha")
 		check(badge.size.x >= badge.get_combined_minimum_size().x and badge.size.y > 0, "selo do caderninho tem espaço para o texto")
 		for need_id: String in ["hunger", "happiness", "energy", "hygiene"]:
 			var need_ring: Control = pet.find_child("Need_" + need_id, true, false)
@@ -212,6 +212,37 @@ func _run() -> void:
 	await frames()
 	check(main.find_child("ManualPanel", true, false) != null, "caderninho abre Manual por padrão")
 	var notebook: Script = load("res://scripts/ui/pet_notebook.gd")
+	# Antes da primeira visita, fotos ficam guardadas sem avisos ou fila retroativa.
+	state.call("dev_reset_album")
+	state.get("progress").stats.erase("open:album")
+	main.get("_photo_queue").clear()
+	state.call("dev_take_photo", "h_arrival")
+	check(state.call("photo_count") == 1 and not state.call("photo_alerts_enabled"), "foto da chegada existe antes de conhecer o Álbum")
+	check(main.get("_photo_queue").is_empty(), "primeira foto não anuncia Álbum ainda desconhecido")
+	check(not notebook.call("section_has_new", "album"), "sem exclamação de foto antes da primeira visita")
+	if "--album-intro-shots" in OS.get_cmdline_user_args():
+		for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
+			root.size = viewport
+			var intro_box: VBoxContainer = load("res://scripts/ui/ui_kit.gd").call("vbox", 8)
+			load("res://scripts/ui/progression_ui.gd").call("npc_header", intro_box, "lais", str(root.get_node("Database").get("quests").lais_album.dialogue))
+			load("res://scripts/ui/progression_ui.gd").call("quest_card", intro_box, "lais_album")
+			root.get_node("Events").sheet_requested.emit("Laís", intro_box)
+			await frames()
+			for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony"]:
+				(main.get(member) as CanvasLayer).hide()
+			main.get("_modal_queue").clear()
+			(main.get("_toast") as Control).hide()
+			var folder := ProjectSettings.globalize_path("res://../build/screenshots/album_introduction")
+			DirAccess.make_dir_recursive_absolute(folder)
+			await RenderingServer.frame_post_draw
+			check(root.get_texture().get_image().save_png(folder.path_join("mission_%d.png" % viewport.x)) == OK, "captura da apresentação do Álbum")
+	load("res://scripts/ui/places.gd").call("go", {"notebook": "album"})
+	await frames()
+	check(main.find_child("AlbumView", true, false) != null and state.call("photo_alerts_enabled"), "Ir abre o Álbum e ativa avisos")
+	check(main.get("_photo_queue").is_empty() and state.call("photo_count") == 1, "abrir preserva o passado sem disparar avisos retroativos")
+	state.call("dev_take_photo", "h_growth_adult")
+	check(main.get("_photo_queue").has("h_growth_adult"), "depois da visita fotos novas entram na fila")
+	main.get("_photo_queue").clear()
 	state.call("dev_unlock_everything")
 	state.call("dev_set_phase", "puppy")  # Crescimento aparece depois da primeira fase.
 	state.call("_mark_all_seen")
@@ -219,6 +250,27 @@ func _run() -> void:
 	for member: String in ["_celebration", "_welcome", "_walk_result"]: (main.get(member) as CanvasLayer).hide()
 	main.set("_modal_queue", [] as Array[Callable])
 	check((notebook.call("tabs") as Array).size() == 5, "cinco consultas após liberar (Manual, Crescimento, Álbum, Coleção, Truques)")
+	# Consultar uma aba confirma só seus desbloqueios, sem apagar novidades das outras.
+	for key: String in ["feature:growth_tab", "feature:dress", "feature:tricks"]:
+		progress.seen.erase(key)
+	notebook.call("open", "manual")
+	await frames()
+	for section: String in ["growth", "collection", "tricks", "album"]:
+		var tab: Button = main.find_child("NotebookTab_" + section, true, false)
+		check(tab.find_child("NewBadge", true, false) != null, "aba com novidades marcada: " + section)
+	notebook.call("open", "growth")
+	await frames()
+	check(not notebook.call("section_has_new", "growth"), "abrir Crescimento confirma só essa aba")
+	check(notebook.call("section_has_new", "collection") and notebook.call("section_has_new", "tricks") and notebook.call("section_has_new", "album"), "outras abas continuam com aviso")
+	if "--notebook-shots" in OS.get_cmdline_user_args():
+		for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
+			root.size = viewport
+			notebook.call("open", "manual")
+			await frames()
+			var folder := ProjectSettings.globalize_path("res://../build/screenshots/notebook_alerts")
+			DirAccess.make_dir_recursive_absolute(folder)
+			await RenderingServer.frame_post_draw
+			check(root.get_texture().get_image().save_png(folder.path_join("manual_%d.png" % viewport.x)) == OK, "captura das abas com aviso")
 	# As cinco mais usadas vêm primeiro; as demais continuam na mesma lista vertical.
 	var added := 0
 	for id: String in root.get_node("Database").get("items"):
@@ -253,7 +305,93 @@ func _run() -> void:
 	pet.set("preview_hour", 12)
 	pet.call("_update_light")
 	check(not pet.find_child("Stars", true, false).visible, "dia sem estrelas")
+	# Carinho pelo mesmo input da cabeça: ganho nomeado e espera, mesmo com menos animação.
+	main.call("show_screen", &"pet")
+	state.get("growth").phase = "teething"
+	state.get("growth").points.brave = 68
+	state.get("growth").reserve.brave = 0
+	state.get("progress").cooldowns.erase("affection:pet")
+	state.get("dog").sleeping = false
+	for need: String in ["hunger", "happiness", "energy", "hygiene"]: state.get("dog").needs[need] = 40.0
+	state.get("dog").updated_at = state.call("now")
+	var sprite: TextureRect = pet.get("_dog_sprite")
+	var touch := InputEventMouseButton.new()
+	touch.button_index = MOUSE_BUTTON_LEFT
+	touch.pressed = true
+	touch.position = sprite.size * Vector2(0.5, 0.3)
+	pet.set("_last_pet_reward", -10.0)
+	sprite.gui_input.emit(touch)
+	var feedback: Label = pet.find_child("MoodLabel", true, false)
+	check("Coragem +1" in feedback.text and "69/70" in feedback.text, "carinho anuncia pontos e progresso reais")
+	pet.set("_last_pet_reward", -10.0)
+	pet.set("_last_pet_feedback", -10.0)
+	sprite.gui_input.emit(touch)
+	check(feedback.text.begins_with("Próximo ganho de Coragem em "), "reação sem pontos explica recarga")
+	pet.call("_refresh")
+	check(feedback.text.begins_with("Próximo ganho de Coragem em "), "atualização do humor preserva retorno do carinho")
+	check(state.get("growth").points.brave == 69, "toque repetido não promete pontos extras")
+	if "--pet-growth-shots" in OS.get_cmdline_user_args():
+		for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
+			root.size = viewport
+			root.get_node("Events").sheet_close_requested.emit()
+			pet.set("_last_pet_reward", -10.0)
+			pet.set("_last_pet_feedback", -10.0)
+			sprite.gui_input.emit(touch)
+			await frames()
+			var folder := ProjectSettings.globalize_path("res://../build/screenshots/pet_growth_feedback")
+			DirAccess.make_dir_recursive_absolute(folder)
+			await RenderingServer.frame_post_draw
+			check(root.get_texture().get_image().save_png(folder.path_join("cooldown_%d.png" % viewport.x)) == OK, "captura do retorno do carinho")
+	await _test_food_help()
 	main.queue_free()
 	await process_frame
 	print("PET CARE TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
+
+
+func _test_food_help() -> void:
+	var bag: Object = state.get("inventory")
+	var progress: Object = state.get("progress")
+	var events: Node = root.get_node("Events")
+	events.sheet_close_requested.emit()
+	state.get("dog").sleeping = false
+	bag.call("from_dict", {"carrot_snack": 1})
+	progress.cooldowns.erase("emergency_food")
+	var picker: Control = load("res://scripts/ui/sheet_builder.gd").call("food_picker")
+	root.add_child(picker)
+	await frames()
+	var button: Button = picker.find_child("FoodHelpButton", true, false)
+	check(button != null and not button.disabled, "Tigela sempre permite pedir, mesmo com outra comida")
+	button.pressed.emit()
+	await frames()
+	check(bag.call("count", "dog_food") == 2, "vovó dá duas rações sem cobrar")
+	check(state.call("emergency_food") != "" and bag.call("count", "dog_food") == 2, "recarga impede duplicar o pedido")
+	check(picker.find_child("FoodHelpButton", true, false).disabled, "Tigela mostra pedido indisponível durante recarga")
+	check(picker.find_child("FoodHelpTimer", true, false).text.begins_with("Pedir de novo em "), "Tigela mostra tempo restante")
+	var saved: Dictionary = progress.call("to_dict")
+	check(float(saved.cooldowns.emergency_food) > float(state.call("now")), "recarga fica no save")
+	picker.queue_free()
+	bag.call("from_dict", {})
+	tray.call("refresh")
+	tray.call("close_food_menu")
+	tray.call("open_food_menu")
+	await frames()
+	var menu: Control = pet.find_child("FoodMenu", true, false)
+	check(menu.find_child("FoodHelpButton", true, false).disabled, "guia vazia compartilha a recarga da Tigela")
+	progress.cooldowns.emergency_food = float(state.call("now")) - 1.0
+	var help: Control = menu.find_child("FoodHelp", true, false)
+	help.call("_on_tick")
+	await frames()
+	check(not menu.find_child("FoodHelpButton", true, false).disabled, "timer libera pedido automaticamente ao vencer")
+	for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
+		root.size = viewport
+		await frames()
+		check(menu.get_global_rect().encloses(help.get_global_rect()), "pedido cabe na guia em %d" % viewport.x)
+		if "--food-help-shots" in OS.get_cmdline_user_args():
+			var folder := ProjectSettings.globalize_path("res://../build/screenshots/food_help")
+			DirAccess.make_dir_recursive_absolute(folder)
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png(folder.path_join("empty_%d.png" % viewport.x))
+	menu.find_child("FoodHelpButton", true, false).pressed.emit()
+	await frames()
+	check(bag.call("count", "dog_food") == 2 and menu.find_child("FoodHelp", true, false) == null, "pedido direto na guia devolve a lista com a ração")

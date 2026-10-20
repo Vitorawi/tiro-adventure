@@ -49,9 +49,26 @@ static func food_picker() -> Control:
 			box.add_child(UiKit.list_row(Database.item_icon(id), "%s ×%d" % [Database.item_name(id), GameState.inventory.count(id)], chips, give))
 		if not any:
 			_empty_message(box, "Acabou a comida!", "")
-			box.add_child(UiKit.button("Pedir à Bloblo", func() -> void:
-				var error := GameState.emergency_food()
-				Events.toast_requested.emit(error if error != "" else "Bloblo trouxe comida!"), &"PrimaryButton", ProgressionUi.npc_portrait("bloblo"))))
+		box.add_child(food_help(not any))
+	)
+
+
+## Ajuda da vovó sempre na Tigela e na guia vazia, com a mesma recarga salva.
+static func food_help(primary: bool = true) -> Control:
+	var help := LiveBox.new(func(box: VBoxContainer) -> void:
+		var wait := GameState.progress.cooldown_left("emergency_food", GameState.now())
+		var button := UiKit.button("Pedir à vovó", func() -> void:
+			var error := GameState.emergency_food()
+			Events.toast_requested.emit(error if error != "" else "A vovó trouxe %d rações!" % int(Database.progression.settings.emergency_food_amount)), &"PrimaryButton" if primary else &"")
+		button.name = "FoodHelpButton"
+		button.disabled = wait > 0
+		box.add_child(button)
+		var caption := UiKit.label("Pedir de novo em " + TimeText.short(ceilf(wait)) if wait > 0 else "%d rações grátis" % int(Database.progression.settings.emergency_food_amount), &"SmallLabel")
+		caption.name = "FoodHelpTimer"
+		box.add_child(caption)
+	)
+	help.name = "FoodHelp"
+	return help
 
 
 const CATEGORIES := {"food": "Comidas", "care": "Cuidados", "crop": "Colheitas", "material": "Materiais", "product": "Produtos", "find": "Achados", "trail": "Do passeio", "keepsake": "Para o Tiro"}

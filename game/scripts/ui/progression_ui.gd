@@ -715,9 +715,14 @@ static func _amounts(card: VBoxContainer, amounts: Dictionary) -> void:
 ## [Ir | Receber] + "?". O Ir leva ao lugar da missão; o "?" explica o que falta.
 static func quest_action(box: VBoxContainer, id: String, primary: bool = true) -> void:
 	var ready := GameState.quest_error(id) == ""
+	var shortage := GameState.quest_reward_shortage(id)
+	if not shortage.is_empty():
+		box.add_child(UiKit.label("Missão cumprida! Libere %d vaga(s) em %s para receber o prêmio." % [int(shortage.missing), GameState.storage_name(str(shortage.depot))], &"SmallLabel"))
 	var row := UiKit.hbox(8)
-	var main := UiKit.button("Pegar prêmio" if ready else "Ir", func() -> void:
-		if ready:
+	var main := UiKit.button("Liberar espaço" if not shortage.is_empty() else ("Pegar prêmio" if ready else "Ir"), func() -> void:
+		if not shortage.is_empty():
+			Places.go({"storage": str(shortage.depot)})
+		elif ready:
 			var error := GameState.claim_quest(id)
 			if error != "":
 				Events.toast_requested.emit(error)
@@ -783,7 +788,9 @@ static func routine_card(box: VBoxContainer, kind: String, id: String, primary: 
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var title := UiKit.hbox(2)
 	if ready:
-		title.add_child(UiKit.ready_dot())
+		var badge := UiKit.alert_badge()
+		badge.name = "ReadyDot"
+		title.add_child(badge)
 	var name_label := UiKit.fill_label(str(data.name))
 	name_label.add_theme_font_size_override("font_size", 18)
 	title.add_child(name_label)
@@ -880,6 +887,7 @@ static func goal_icon(goal: Dictionary) -> Texture2D:
 
 ## Ícone de um contador ("harvest", "produce:plank", "activity:lane"...).
 static func stat_icon(key: String) -> Texture2D:
+	if key == "open:album": return UiKit.ui_icon("album_story")
 	var prefix := key.get_slice(":", 0)
 	var arg := key.get_slice(":", 1) if ":" in key else ""
 	if prefix in ["trick", "trick_learned"]:

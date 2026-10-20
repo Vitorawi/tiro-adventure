@@ -104,6 +104,7 @@ func reset() -> void:
 	projects = ProjectState.new()
 	growth = GrowthState.new()
 	growth.reset()
+	growth.firsts["care_actions_v1"] = true
 	album = AlbumState.new()
 	album.reset()
 	growth.taste_seed = maxi(1, randi())
@@ -821,6 +822,19 @@ func pet() -> int:
 	return gained
 
 
+## Consulta do carinho: usa a mesma recarga persistida que concede afeto/Coragem.
+func pet_growth_info() -> Dictionary:
+	var seconds := ceili(maxf(0.0, float(progress.cooldowns.get("affection:pet", 0.0)) - now()))
+	var interval := int(Database.progression.settings.get("care_affection_cooldown", 120))
+	var cap := int(Database.growth.levels[growth.cap() - 1])
+	var wait := "%d min %02d s" % [seconds / 60, seconds % 60] if seconds >= 60 else "%d s" % seconds
+	var hint := "Carinho dá Coragem a cada %d min." % (interval / 60)
+	hint += " Próximo ganho em %s." % wait if seconds > 0 else " Já pode ganhar pontos."
+	if int(growth.points.get("brave", 0)) >= cap:
+		hint += " No limite da fase, os pontos ficam guardados para depois de crescer."
+	return {"points": int(growth.points.get("brave", 0)), "cap": cap, "reserve": int(growth.reserve.get("brave", 0)), "seconds": seconds, "wait": wait, "hint": hint}
+
+
 func play() -> bool:
 	if walking() or dog.sleeping or dog.get_need("energy", now()) < 15.0:
 		return false
@@ -881,9 +895,6 @@ func set_sleeping(value: bool, spot: String = "") -> void:
 
 ## Ajuda sem moedas para nunca travar o cuidado com o Tiro (recarga em progression.json).
 func emergency_food() -> String:
-	for id: String in inventory.counts:
-		if Database.items.get(id, {}).has("feed"):
-			return "Você ainda tem comida na mochila"
 	var wait := progress.cooldown_left("emergency_food", now())
 	if wait > 0:
 		return "A ajuda volta em " + TimeText.short(wait)
@@ -2503,7 +2514,8 @@ func note_screen_opened(screen: String) -> void:
 	_changed()
 
 
-func quest_error(id: String) -> String:
+## Objetivos e entregas separados do espaço para receber o prêmio.
+func quest_objectives_error(id: String) -> String:
 	if not quest_unlocked(id):
 		return "Termine as missões anteriores"
 	if progress.claimed_quests.has(id):
@@ -2513,6 +2525,19 @@ func quest_error(id: String) -> String:
 			return "Falta cumprir os objetivos"
 	if not inventory.has_all(_quest_deliveries(id)):
 		return _missing_text(_quest_deliveries(id), "Faltam itens")
+	return ""
+
+
+func quest_reward_shortage(id: String) -> Dictionary:
+	if quest_objectives_error(id) != "":
+		return {}
+	return storage_shortage(Database.quests[id].get("rewards", {}).get("items", {}), _quest_deliveries(id))
+
+
+func quest_error(id: String) -> String:
+	var reason := quest_objectives_error(id)
+	if reason != "":
+		return reason
 	# Entrega e prêmio juntos: o espaço é o que sobra DEPOIS de entregar os ingredientes.
 	return storage_error(Database.quests[id].get("rewards", {}).get("items", {}), _quest_deliveries(id))
 
@@ -3072,7 +3097,7 @@ func welcome_ready_lines(limit: int = 5) -> Array[Dictionary]:
 	if growth.pending_reveal != "" or (info.ready and growth.ready_seen != str(info.next.id)):
 		lines.append({"kind": "growth", "count": 1, "world": "", "target": "", "sleeping": growth.pending_reveal != ""})
 	var new_photos := photos_unseen()
-	if not new_photos.is_empty():
+	if photo_alerts_enabled() and not new_photos.is_empty():
 		lines.append({"kind": "photo", "count": new_photos.size(), "world": "", "target": ""})
 	for id: String in Database.friends.friends:
 		if bool(friend_state.entry(id).visit_pending):
@@ -3986,6 +4011,7 @@ func _growth_have(req: Dictionary, target: String) -> int:
 
 ## Chamado nas mutações, nunca nas consultas. Um requisito visto cumprido fica definitivo.
 func _sync_growth() -> void:
+	_sync_meal_body()
 	var info := growth_info()
 	if info.next.is_empty():
 		return
@@ -4000,6 +4026,28 @@ func _sync_growth() -> void:
 			Events.growth_requirement_done.emit(target, str(row.id))
 	if info.ready and not was_ready:
 		Events.growth_ready.emit(target)
+
+
+## Refeições e Corpo formam uma única tarefa. Completar as porções garante o patamar,
+## sem multiplicador, moeda, reserva extra ou prêmio repetido ao recarregar.
+func _sync_meal_body() -> void:
+	var index := growth.phase_index() + 1
+	if index <= 0 or index >= Database.growth.phases.size(): return
+	var phase: Dictionary = Database.growth.phases[index]
+	var receipt := "meal_body:" + str(phase.id)
+	if growth.firsts.has(receipt): return
+	for req: Dictionary in phase.requirements:
+		if req.type != "feed" or not req.has("body_level"): continue
+		var complete := bool(growth.done.get(str(phase.id), {}).get(str(req.id), false)) or _growth_have(req, str(phase.id)) >= int(req.qty)
+		if not complete: return
+		growth.firsts[receipt] = true
+		var goal := int(Database.growth.levels[int(req.body_level) - 1])
+		var previous := growth.level("body")
+		var gain := maxi(0, goal - int(growth.points.get("body", 0)))
+		if gain == 0: return
+		growth.points["body"] = goal
+		_count("pillar:body", gain)
+		Events.pillar_gained.emit("body", gain, growth.level("body") > previous)
 
 
 func grow_error() -> String:
@@ -4194,6 +4242,7 @@ func tiro_party() -> bool:
 
 
 func note_album_section(section: String) -> void:
+	note_screen_opened("album")
 	var changed := false
 	for entry: Dictionary in Database.album.photos:
 		if str(entry.section) == section and section in ["tricks", "sleep"] and not album.opened_at.has(str(entry.id)):
@@ -4272,6 +4321,12 @@ func photo_count() -> int:
 ## Fotos novas que o jogador ainda não abriu.
 func photos_unseen() -> Array[String]:
 	return album.unseen()
+
+
+## Fotos são registradas desde a chegada; avisos começam só depois de conhecer o Álbum.
+## Saves que já têm fotos vistas/seções exploradas preservam essa descoberta.
+func photo_alerts_enabled() -> bool:
+	return progress.stat("open:album") > 0 or not album.opened_at.is_empty() or album.photos.values().any(func(photo: Dictionary) -> bool: return bool(photo.get("seen", false)))
 
 
 # --- A Casa que cresce (etapa 14) --------------------------------------------------
@@ -4434,6 +4489,7 @@ func lupas_per_day() -> int:
 
 func open_album_photo(id: String) -> void:
 	if not album.has_photo(id): return
+	note_screen_opened("album")
 	_album_event("album_opened", {"photo": id})
 	mark_photo_seen(id)
 	_changed()
@@ -4732,6 +4788,14 @@ func from_dict(data: Dictionary) -> void:
 	projects.from_dict(data.get("projects", {}))
 	growth = GrowthState.new()
 	growth.from_dict(data.get("growth", {}))
+	# O antigo grupo Cuidados podia estar confirmado mesmo após mudanças nos pontos.
+	# Copia essa confirmação uma única vez antes de passar a gravar cada ação separada.
+	if not growth.firsts.has("care_actions_v1"):
+		for phase: Dictionary in Database.growth.phases:
+			if not bool(growth.done.get(str(phase.id), {}).get("pillars", false)): continue
+			for req: Dictionary in phase.requirements:
+				if req.type == "pillars": growth.done[str(phase.id)][str(req.id)] = true
+		growth.firsts["care_actions_v1"] = true
 	album = AlbumState.new()
 	album.from_dict(data.get("album", {}))
 	dog.sleep_bonus = house_sleep_bonus()  # sem commit: o tempo salvo já vale com a caminha atual

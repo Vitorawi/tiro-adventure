@@ -27,7 +27,7 @@ static func compact_steps(info: Dictionary) -> Array[Dictionary]:
 		var have := mini(int(req.have), int(req.need))
 		var need := int(req.need)
 		if req.type == "pillars":
-			title = "Cuidados"
+			title = str({"brave": "Carinho", "smart": "Brincar", "coat": "Banho"}.get(str(req.levels.keys()[0]), req.label))
 			var cares := TaskHelp.growth_care_steps(req)
 			have = cares.filter(func(care: Dictionary) -> bool: return care.done).size()
 			need = cares.size()
@@ -36,7 +36,7 @@ static func compact_steps(info: Dictionary) -> Array[Dictionary]:
 		elif req.type == "owned": title = str(Database.progression.upgrades[str(req.upgrade)].name).get_slice(" ", 0)
 		elif req.type == "stat" and req.get("counter", "") == "walk": title = "Passeios"
 		var icon := TaskHelp.icon_for("growth_req", str(req.id))
-		if req.type == "pillars": icon = UiKit.ui_icon("action_pet")
+		if req.type == "pillars": icon = UiKit.ui_icon(str({"brave": "action_pet", "smart": "action_play", "coat": "action_bathe"}.get(str(req.levels.keys()[0]), "action_pet")))
 		elif req.type == "stat" and req.get("counter", "") == "walk": icon = UiKit.ui_icon("action_walk")
 		steps.append({"id": str(req.id), "title": title, "have": have, "need": need, "icon": icon})
 	return steps
@@ -145,8 +145,15 @@ static func _next_step(box: VBoxContainer, info: Dictionary) -> void:
 			title = "Consiga " + Database.item_name(str(first.item))
 			action = "Onde conseguir"
 	elif first.type == "pillars":
-		title = "Carinho, comida e brincadeiras ajudam o Tiro a crescer."
-		action = "Ver cuidados"
+		var care: Dictionary = TaskHelp.growth_care_steps(first)[0]
+		var pillar := str(first.levels.keys()[0])
+		title = str({"brave": "Faça carinho no Tiro.", "smart": "Brinque com o Tiro.", "coat": "Dê banho quando o Tiro precisar."}.get(pillar, care.hint))
+		detail = str(care.progress)
+		if pillar == "brave":
+			var pet := GameState.pet_growth_info()
+			detail += " · Próximo ganho em " + str(pet.wait) if int(pet.seconds) > 0 else " · Coragem a cada 2 min"
+		action = str(care.action)
+		callback = TaskHelp._go.bind(care.target)
 	card.add_child(UiKit.label("Agora: " + title))
 	if detail != "": card.add_child(UiKit.label(detail, &"SmallLabel"))
 	var button := UiKit.primary(action, callback)
@@ -159,14 +166,13 @@ static func _requirement_row(box: VBoxContainer, req: Dictionary) -> void:
 	var detail := "%d/%d%s" % [int(req.need) if req.done else mini(int(req.have), int(req.need)), int(req.need), " · Feito!" if req.done else ""]
 	var action := "Ver"
 	if req.type == "pillars":
-		title = "Cuidar do Tiro"
-		var steps := TaskHelp.growth_care_steps(req)
-		var count := steps.filter(func(step: Dictionary) -> bool: return step.done).size()
-		detail = "%d de %d cuidados prontos" % [steps.size() if req.done else count, steps.size()]
-		action = "Cuidar"
+		var care: Dictionary = TaskHelp.growth_care_steps(req)[0]
+		detail = str(care.progress)
+		action = "Ver como"
 	elif req.type == "feed":
-		title = "Comida do Tiro" if req.item == "any" else ("Comida favorita" if req.item == "favorite" else Database.item_name(str(req.item)))
+		title = "Dar comida" if req.item == "any" else ("Dar a comida favorita" if req.item == "favorite" else "Dar " + Database.item_name(str(req.item)))
 		detail = "%d/%d refeições" % [int(req.need) if req.done else mini(int(req.have), int(req.need)), int(req.need)]
+		if req.has("body_level"): detail += " · Corpo completo" if req.done else " · Desenvolve Corpo"
 	elif req.type == "deliver":
 		title = Database.item_name(str(req.item))
 		detail += " entregue" if not req.done else ""

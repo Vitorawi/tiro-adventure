@@ -1343,7 +1343,7 @@
     "chicken_coop": {
       "name": "Galinheiro",
       "world": "farm",
-      "description": "Inclui uma galinha branca de presente. Milho vira ovos.",
+      "description": "Compre suas galinhas e alimente com milho para produzir ovos.",
       "cost": 260,
       "materials": {
         "plank": 4
@@ -1361,8 +1361,7 @@
         "adventure": 25
       },
       "icon": "station_coop",
-      "station": "chicken_coop",
-      "gift_animal": "chicken_white"
+      "station": "chicken_coop"
     },
     "cow_barn": {
       "name": "Curral",

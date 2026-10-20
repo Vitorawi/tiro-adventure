@@ -149,13 +149,10 @@ func refresh() -> void:
 			child.queue_free()
 		_food_ids = ids
 		for id in ids: _foods.add_child(_food_item(id))
-		_scroll.custom_minimum_size = Vector2(204, mini(5, maxi(1, ids.size())) * 64 - 4)
+		_scroll.custom_minimum_size = Vector2(204, 112 if ids.is_empty() else mini(5, ids.size()) * 64 - 4)
 		_place_menu.call_deferred()
 		if ids.is_empty():
-			var help := UiKit.icon_button(Database.item_icon("dog_food"), func() -> void:
-				Events.sheet_requested.emit("Comidinha", SheetBuilder.food_picker()), 60, "+")
-			help.name = "FoodHelp"
-			_foods.add_child(help)
+			_foods.add_child(SheetBuilder.food_help())
 	for id: String in _items:
 		var item: Control = _items[id]
 		item.modulate.a = 0.45 if GameState.dog.sleeping else 1.0

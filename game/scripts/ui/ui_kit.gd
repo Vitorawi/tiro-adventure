@@ -41,6 +41,21 @@ static func ready_dot(px: int = 14) -> Control:
 	return dot
 
 
+## Novidade pendente: o mesmo sinal no atalho, na aba e no conteúdo.
+static func alert_badge() -> Label:
+	var badge := short_label("!", &"BadgeLabel", Color.WHITE)
+	badge.name = "NewBadge"
+	badge.custom_minimum_size = Vector2(24, 24)
+	badge.size = badge.custom_minimum_size
+	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := StyleBoxFlat.new()
+	style.bg_color = Palette.DANGER
+	style.set_corner_radius_all(12)
+	badge.add_theme_stylebox_override("normal", style)
+	return badge
+
+
 static func label(text: String, variation: StringName = &"", color: Variant = null) -> Label:
 	var result := Label.new()
 	result.text = text
@@ -346,6 +361,11 @@ static func segmented(entries: Array[Dictionary], selected: String, choose: Call
 		for state: String in ["normal", "hover", "pressed"]:
 			tab.add_theme_stylebox_override(state, style)
 		row.add_child(tab)
+		if entry.get("alert", false):
+			var badge := alert_badge()
+			tab.add_child(badge)
+			badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+			badge.position += Vector2(-24, -6)
 	return row
 
 

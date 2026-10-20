@@ -36,13 +36,31 @@ func run() -> void:
  for item: String in db.items:
   var info: Dictionary = help.describe("item", item)
   check("Veja na Mochila" not in str(info) and "fonte disponível no catálogo" not in str(info), "item tem origem concreta: " + item)
+ # O Ir do produto abre a receita, mesmo com insumos só para parte da meta (ou nenhum).
+ state.dev_unlock_everything()
+ var destinations: Array[Dictionary] = []
+ root.get_node("Events").world_requested.connect(func(world: String, place: String) -> void: destinations.append({"world": world, "place": place}))
+ for wood: int in [8, 0]:
+  state.inventory.from_dict({"wood": wood})
+  for entry: Array in [["item", "plank"], ["recipe", "plank"], ["produced", "plank"], ["item", "carrot_snack"]]:
+   var panel: Control = help.panel(entry[0], entry[1], 4)
+   root.add_child(panel)
+   await process_frame
+   var button: Button = panel.find_child("HelpGo", true, false)
+   destinations.clear()
+   button.pressed.emit()
+   check(not destinations.is_empty() and str(destinations.back().place).begins_with("recipe:"), "Ir mantém receita de %s com %d madeiras" % [entry[1], wood])
+   check(destinations.back().world == ("house" if entry[1] == "carrot_snack" else "farm"), "Ir leva ao mundo da estação")
+   check(state.inventory.count("wood") == wood, "consulta não consome ingredientes")
+   panel.queue_free()
+   await process_frame
  if "--shots" in OS.get_cmdline_user_args():
   state.reset()
   state.progress.seen.intro = true
   var main = load("res://scenes/main/main.tscn").instantiate()
   root.add_child(main)
   for i in 8: await process_frame
-  for mode in ["mission", "contract"]:
+  for mode in ["mission", "contract", "plank"]:
    if mode == "contract":
     main.queue_free()
     await process_frame
@@ -51,8 +69,8 @@ func run() -> void:
     main = load("res://scenes/main/main.tscn").instantiate()
     root.add_child(main)
     for i in 8: await process_frame
-   state.inventory.from_dict({})
-   help.open("item", "bolt", 1)
+   state.inventory.from_dict({"wood": 8} if mode == "plank" else {})
+   help.open("item", "plank" if mode == "plank" else "bolt", 4 if mode == "plank" else 1)
    for i in 20: await process_frame
    await create_timer(0.4).timeout
    var folder := "res://../build/screenshots/item_sources"

@@ -119,7 +119,6 @@ func _build_balloon() -> void:
 	bubble.texture = UiKit.ui_icon("wish_bubble")
 	_balloon.add_child(bubble)
 	_balloon_icon = Sprite2D.new()
-	_balloon_icon.scale = Vector2.ONE * 0.6
 	_balloon_icon.position = Vector2(0.0, -2.0)
 	_balloon.add_child(_balloon_icon)
 	_balloon.visible = false
@@ -134,6 +133,10 @@ func _refresh_balloon() -> void:
 	_balloon.visible = wish != ""
 	if wish != "" and wish != _balloon_wish:
 		_balloon_icon.texture = WishUi.icon(wish)
+		if _balloon_icon.texture:
+			# Ícones de itens têm canvases diferentes; cabem no mesmo espaço, sem distorcer.
+			var image_size := _balloon_icon.texture.get_size()
+			_balloon_icon.scale = Vector2.ONE * (19.2 / maxf(image_size.x, image_size.y))
 	_balloon_wish = wish
 
 # --- Comportamento -----------------------------------------------------------

@@ -101,7 +101,8 @@ func _ready() -> void:
 			_walk_result.show_result({"kind": "sewing", "name": "Roupa nova", "rare": id, "collections": [id]})))
 	Events.bond_up.connect(_on_bond_up)
 	# Foto nova do álbum: aviso tocável que abre a foto, depois de qualquer cartão (fila própria).
-	Events.photo_taken.connect(func(id: String) -> void: _photo_queue.append(id))
+	Events.photo_taken.connect(func(id: String) -> void:
+		if GameState.photo_alerts_enabled(): _photo_queue.append(id))
 	_toast.gui_input.connect(_on_toast_input)
 	Events.find_discovered.connect(func(result: Dictionary) -> void:
 		_queue_modal(func() -> void: _celebration.show_find(result)))

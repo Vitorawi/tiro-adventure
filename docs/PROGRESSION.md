@@ -165,7 +165,7 @@ As criações reutilizam `StationState` e os timestamps Unix das receitas, com u
 |---|---|---|---|---|
 | Plantar milho | Semente gratuita | 3 min | 3 milhos | Sítio próprio |
 | Plantar trigo | Semente gratuita | 2 min | 3 trigos | Sítio próprio |
-| Alimentar galinhas | 2 milhos | 3 min | 2 ovos | Galinheiro (inclui duas galinhas) |
+| Alimentar galinhas | 2 milhos por galinha | 15 min | 2 ovos por galinha | Galinheiro (galinhas compradas separadamente) |
 | Alimentar vacas | 2 trigos | 5 min | 2 leites | Curral (inclui duas vacas) |
 | Moer trigo | 3 trigos | 2 min | 2 farinhas | Moinho |
 | Fazer queijo | 2 leites | 4 min | 1 queijo | Queijaria |
@@ -324,11 +324,11 @@ falha se alguma construção ou missão ficar inalcançável. Rode-o depois de m
 ## Interface
 Desde a reorganização da navegação, a progressão não fica mais num menu único: cada coisa mora
 num lugar de um mundo (feira, ateliê e portão da trilha na Vila; cada construção comprada no próprio lugar) e a aba **Missões** mostra a História (um passo por vez: quem pede, ícone + `0/6`, onde,
-o que falta em chips tocáveis), as Diárias e as Semanais em linhas com anel, instrução e prêmio. História mantém **Ir** e **?** ("Como fazer"); rotinas usam **Ir/Pegar** e **Pegar tudo** quando há várias prontas. Detalhes em **`docs/WORLDS.md`**. Painéis em `scripts/ui/progression_ui.gd`.
+o que falta em chips tocáveis). Três pílulas fixas separam **Principal**, **Personagens** e **Temporárias**. Principal mostra só a história; Personagens agrupa as linhas por NPC, recolhidas até Abrir (um personagem aberto por vez), com prêmios disponíveis primeiro; Temporárias alterna **Diárias/Semanais**, preservando **Pegar tudo** para as rotinas prontas. Exclamação vermelha no grupo, personagem e missão significa prêmio que já pode ser recebido, sem confundir missão nova com concluída; o cartão também diz “Prêmio pronto!”. História mantém **Ir** e **?** ("Como fazer"); marcos compartilhados têm Ver missões do personagem, abrindo o grupo correto. Seleção de grupo/personagem/período fica na sessão e resiste ao refresh por segundo; nada muda no save, metas ou prêmios. Detalhes em **`docs/WORLDS.md`**. Painéis em `scripts/ui/progression_ui.gd`.
 - Casa: móveis com `"upgrade"` em `rooms/house.json` só aparecem depois de comprados; antes há um
   marcador "+" que abre a compra. Sítio: canteiros bloqueados mostram "Sítio" (antes da escritura)
   ou o preço do próximo terreno.
-- **Ajuda de comida:** sem nenhuma comida na mochila, a Bloblo dá ração grátis (recarga de 5 min)
+- **Ajuda de comida:** “Pedir à vovó” fica sempre na Tigela, mesmo com comida no estoque, e aparece direto na guia Comida do cantinho quando ela está vazia. Bloblo dá 2 rações grátis por pedido, com recarga salva de 5 min; botão desabilitado e contagem “Pedir de novo em…” até liberar automaticamente. As duas telas compartilham o mesmo pedido/relógio.
   — o cuidado com o Tiro nunca trava por falta de moedas.
 
 ## Versão dev (testar as partes avançadas)
@@ -384,11 +384,12 @@ sprite próprio da planta de ervas, e balancear o ritmo real (hoje medido só pe
 
 B8–B13: galinheiro → 2 ovos → curral → 2 leites → farinha → queijo.
 B8 espera a Bancada da Laís (`main_4_bench`); as linhas continuam em paralelo.
-Galinheiro: 180 moedas + 4 tábuas e uma galinha branca; curral: 300 moedas +
-6 tábuas e uma vaca pintadinha. O presente é concedido em `_grant_upgrade`, somente
-na primeira aquisição, antes de salvar; carregar um save não repete a concessão.
-`requirements.produced` usa os contadores de coleta: 2 ovos/leites liberam ruiva/caramelo,
-6 liberam preta/malhada. Alimentar ou esperar sem recolher não libera variedades.
+Galinheiro: 260 moedas + 4 tábuas, começa vazio; galinhas são compradas separadamente
+(branca 120, ruiva 150, preta 180 moedas). Curral: 420 moedas + 6 tábuas e uma vaca
+pintadinha; esse presente continua em `_grant_upgrade`, somente na primeira aquisição.
+Carregar um save preserva os animais já possuídos. `requirements.produced` usa os contadores
+de coleta: 8 ovos/leites liberam ruiva/caramelo, 24 liberam preta/malhada.
+Alimentar ou esperar sem recolher não libera variedades.
 O requisito também aparece no Como fazer, e as ferramentas DEV o respeitam.
 
 ### Apresentação dos NPCs e avisos
@@ -703,7 +704,9 @@ Só a categoria armazém ficou finita nesta etapa (17/10/2026). Plano: `docs/pla
 - **Madeira.** `main_4_materials` = `owned warehouse` + `have wood 6` (não consome). O armazém gasta 4 e a bancada 6: são 10 madeiras no total, em duas pilhas dentro dos 16 provisórios.
 - **Linha `storage` (Bloblo).** Abre com `main_4_bench`: `storage_first_planks` 10 (`produce:plank` 2 *fresh*, 1 parafuso) → `storage_first_delivery` 20 (`orders` 1 *fresh*, 1 parafuso) → `bloblo_bigger` 30 "Mais espaço onde importa" (`storage_upgrades` ≥ 1; 15 moedas + 2 parafusos) → `bloblo_biggest` 40 "Uma casa organizada" (`storage_upgrades` ≥ 3; 40 moedas + 1 parafuso). Os dois últimos mantêm o ID e a conclusão; só o que ainda não foi pago mudou (o aro de ferro saiu). Parafusos determinísticos, sem sorteio.
 - **Contador `storage_upgrades`.** Derivado da posse em `GameState._changed` (`storage_upgrades_owned()`): conta `_2` em diante de qualquer depósito, nunca o edifício inicial. Saves antigos entram sozinhos; comprar conta uma vez; abrir painel nunca. Escolher silo, geladeira, armazém ou baú primeiro dá o mesmo resultado.
-- **TaskHelp.** Item sem receita/rota (o parafuso) aponta para o passo de missão aberto que o paga (`TaskHelp._reward_step`), em vez de "Veja na Mochila".
+- **TaskHelp.** Item sem receita/rota (o parafuso) aponta para o passo de missão aberto que o paga (`TaskHelp._reward_step`), em vez de "Veja na Mochila". Na ajuda de produtos com receita, o botão principal Ir abre a estação com a receita selecionada mesmo sem ingredientes para toda a meta; não desvia para a matéria-prima. Os chips dos ingredientes continuam abrindo suas origens separadamente.
+- **Missão cumprida e prêmio sem espaço.** Objetivos/entregas são consultados por `GameState.quest_objectives_error`, separadamente da capacidade para o prêmio (`quest_reward_shortage`, saldo após entregar). O cartão e a ajuda explicam o depósito e as vagas que faltam; Liberar espaço abre esse depósito. O recebimento continua manual e atômico, sem refazer o objetivo ou pagar parcialmente.
+- **Galinheiro e milho (20/10/2026).** Novos moradores (`main_9_coop`) paga só 35 moedas, sem milho; o galinheiro começa vazio e a primeira galinha é comprada separadamente por 120 moedas. Bloblo orienta comprar a galinha, plantar milho, colher e alimentar no abrigo. O plantio já abre no capítulo 5 com `farm`, independente de receber essa missão ou produzir ovos. Saves que receberam os antigos presentes mantêm seus itens e animais.
 - **Saves antigos.** Piso legado só da migração: armazém antigo 40/80/140 mantém a capacidade; jogo novo vale 32. Quem já recebeu `bloblo_warehouse` não recebe o prêmio de novo, e `guide_open_cave` aparece para quem ainda não abriu a Caverna.
 - **Fora desta etapa:** o baú segue sem limite (etapa 08). Testes: `warehouse_test.gd` (novo, em `test_all.ps1`); capturas `tests/warehouse_shots.gd`.
 
@@ -905,6 +908,31 @@ se não houver introdução). Os testes usaram cópia do save do Vitor e armazen
 
 ### Etapa 03 — Corpo, Pelagem, Esperteza e Coragem (19/10/2026)
 
+**Refeições e Corpo alinhados (20/10/2026):** as porções de cada crescimento são uma única tarefa
+de alimentação. `feed.body_level` garante o patamar de Corpo ao completar a quantidade pedida:
+
+| Próxima fase | Refeições na fase atual | Corpo garantido |
+|---|---|---|
+| Filhotinho | Qualquer comida ×3 | 10 pontos (nível 1) |
+| Dentinhos | Cenoura gelada ×3 | 25 pontos (nível 2) |
+| Aventureiro | Ração de crescimento ×3 | 70 pontos (nível 4) |
+| Mocinho | Mingau de leite ×3 | 135 pontos (nível 6) |
+| Azul e Dourado | Comida favorita ×3 | 220 pontos (nível 8) |
+
+Os ganhos próprios dos alimentos continuam valendo. `_sync_meal_body`, chamado nas mutações,
+completa apenas a diferença até o patamar, sem bônus Radiante nessa diferença ou reserva extra;
+`growth.firsts[meal_body:<fase>]` impede repetição. Consultas continuam puras. Saves que já
+concluíram as porções recebem o reconhecimento no carregamento. Nenhuma refeição da fase anterior
+passa a contar para a próxima. Corpo não é cobrado outra vez em `pillars`.
+
+Os demais cuidados são requisitos `pillars` independentes de um único atributo: `pillars` = Fazer
+carinho/Coragem, `care_smart` = Brincadeiras e descobertas/Esperteza, `care_coat` = Banhos e
+escovação/Pelagem. A migração única `care_actions_v1`, em `growth.firsts`, copia confirmações do
+antigo grupo para os novos cuidados; saves novos não propagam uma confirmação entre ações.
+Os patamares e recargas dos cuidados foram preservados. O painel mostra cada ação, seus pontos
+e o próximo passo real. A comida informa Desenvolve Corpo/Corpo completo, incluindo a comida
+especial/favorita na ajuda. Teste `growth_meals_test`; capturas `growth_ui_test --meal-shots`.
+
 Todas as fontes da tabela 02 D do plano passam por `GameState._gain_pillar(id, pontos, origem)`:
 comida, banho útil, brincadeira útil, carinho com afeto, desejos, retorno de passeio, faro,
 truques, petiscos/visitas de amigos, primeira conversa, primeira visita com o Tiro e uso contado de obra.
@@ -924,6 +952,12 @@ e só soma Corpo no Recém-chegado/Filhotinho. Cru continua sem pontos. `feed` �
 comida, inclusive no "Ele quer!". Banho com xampu tem caminho interno `bathe(true)` e recarga comum ao
 banho normal; item/receita/opção visual só chegam na 09. Escovar continua na 12. Bônus de Esperteza +1
 ao brincar usa a fase Aventureiro em diante, quando o plano concede o cesto; decoração fica na 14.
+
+Carinho concede Coragem junto do afeto uma vez a cada 120 s, sem limite diário; reage livremente
+durante a espera. `GameState.pet_growth_info()` consulta a recarga persistida, pontos, teto e reserva.
+O balão do Tiro mostra o ganho real (ex.: Coragem +1 · 69/70), a espera ou o ganho guardado após
+atingir o teto. Caderninho e ajuda de Coragem explicam o intervalo; a contagem no caderninho atualiza
+a cada segundo. Não muda a regra de Radiante nem os pontos/recargas existentes.
 
 Caderninho substitui Atributos por Crescimento após a primeira fase (`growth_tab`, `growth: puppy`):
 nome/idade, quatro `PillarRing_<id>` com ícones, nível/teto e reserva. `PillarUi` atualiza enquanto aberto
@@ -1019,6 +1053,18 @@ Teste novo `growth_story_test`; capturas `tests/story_shots.gd`.
 - **Interface:** `PetCareTray._sync_brush` (BrushTile entre Banho e Brincar), `PetScreen.back_rect/brush_stroke/brush_knot_off/brush_cleanup/_on_taste`, ♥ (`FavoriteHeart`) e "Nova!" (`NewTaste`) na guia de comida, `PillarUi.taste_guide` (`TasteGuide`, `Taste_<item>`) na aba Crescimento. Teste: `brush_taste_test`; capturas: `tests/brush_taste_shots.gd`.
 
 ## Tiro no centro — etapa 13: álbum de recordações (19/10/2026)
+
+**Apresentação e avisos (20/10/2026):** o Álbum aparece no caderninho com a primeira foto,
+mas fotos registradas antes de conhecê-lo não geram aviso, bolinha nem linha de boas-vindas.
+`lais_album` (Laís, “Nossas primeiras lembranças”) é uma missão opcional da linha
+`lais_memories`, disponível após `lais_play`, sem prêmio nem bloqueio da história principal.
+O objetivo `stat: open:album` e o botão Ir (`{notebook: "album"}` em `Places.go`) levam direto
+à aba Álbum; a ajuda explica Tiro → caderninho → Álbum. Total atual: 110 missões, 49 principais.
+`note_album_section/open_album_photo` registram a primeira visita no contador persistido
+`open:album`. `photo_alerts_enabled` preserva também saves anteriores com foto vista ou seção
+já explorada. Os snapshots anteriores ficam intactos; a primeira visita não anuncia o passado.
+Só fotos tiradas depois da descoberta entram na fila de “Nova foto!”. A bolinha nas abas/seções
+e fotos continua até a leitura das fotos. Nenhum reset ou mudança de versão de save.
 
 - **Dados:** `game/data/album.json` (`schema`, `active_sections`, `sections`, `scenes`, `props`, `photos[54]`). Cada foto: `id`, `section`, `title`, `on` (evento ou lista), `when` (até 3 condições), `photo {scene, pose {clip, frame}, props, friend?, ribbon?, compare?}`; secretas/soninhos também `hint`, `icons`, `hint_npc`, `hint_object`. `Database.album/photo(id)/album_sections()/album_problems()` (rejeita evento/condição/cenário/adereço desconhecido, id repetido, mais de 3 condições, total ≠ 54).
 - **Estado:** `AlbumState` (`photos {id: {at, phase, coat, seen}}`, `hints`, `lupa_day`, `lupas_used`, `photobomb_pity`, `wall`, `main_photo`, `recent {evento: [instantes]}`), chave `album` do save; `SAVE_VERSION` continua 13.

@@ -27,6 +27,9 @@ var _away_walker: AnimatedSprite2D
 var _away_body := ""
 var _stroke_distance := 0.0
 var _last_pet_reward := -10.0
+var _last_pet_feedback := -10.0
+var _pet_message := ""
+var _pet_message_until := 0.0
 var _care: PetCareTray
 var _mood_bubble: SpeechBubble
 var _mood_label: Label
@@ -91,9 +94,9 @@ func _ready() -> void:
 	_manual = UiKit.icon_button(UiKit.ui_icon("ui_notebook"), PetNotebook.open, 52)
 	_manual.name = "ManualButton"
 	add_child(_manual)
-	_new_badge = UiKit.short_label("Novo", &"BadgeLabel")
+	_new_badge = UiKit.alert_badge()
 	_new_badge.name = "NotebookNewBadge"
-	_new_badge.position = Vector2(-4, -8)
+	_new_badge.position = Vector2(32, -4)
 	_new_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_manual.add_child(_new_badge)
 	_new_badge.reset_size()
@@ -140,7 +143,8 @@ func _show_pillar_gains() -> void:
 				var icon := TextureRect.new()
 				icon.texture = UiKit.ui_icon(str(Database.growth.pillars[id].icon))
 				icon.position = pos + Vector2(40, 0)
-				icon.z_index = 100
+				icon.z_as_relative = false
+				icon.z_index = Motion.WORLD_FX_Z
 				icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 				add_child(icon)
 				var tween := icon.create_tween().set_parallel()
@@ -321,6 +325,8 @@ func _refresh() -> void:
 	_animator.set_sleeping(dog.sleeping)
 	_animator.set_sad(dog.get_need(dog.lowest_need(now), now) < MOOD_LOW)
 	var text := GameState.away_text() if away else ("Zzz... %s está dormindo" % dog.name if dog.sleeping else str(MOOD_TEXTS.get(dog.lowest_need(now), "")) if dog.get_need(dog.lowest_need(now), now) < MOOD_LOW else "%s está feliz da vida!" % dog.name)
+	if not away and not dog.sleeping and Time.get_ticks_msec() / 1000.0 < _pet_message_until:
+		text = _pet_message
 	if text != _mood_label.text:
 		_mood_label.text = text
 		_show_mood()
@@ -421,7 +427,8 @@ func _on_taste(_item: String, reaction: String) -> void:
 		for i in 3:
 			var heart := UiKit.icon(UiKit.ui_icon("bond_heart"), 16)
 			heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			heart.z_index = 100
+			heart.z_as_relative = false
+			heart.z_index = Motion.WORLD_FX_Z
 			add_child(heart)
 			heart.global_position = head_rect().get_center() + Vector2((i - 1) * 24, -30)
 			var tween := heart.create_tween().set_parallel()
@@ -595,7 +602,25 @@ func _on_dog_input(event: InputEvent) -> void:
 	var now := Time.get_ticks_msec() / 1000.0
 	if now - _last_pet_reward >= PET_REWARD_EVERY:
 		_last_pet_reward = now
+		var before := GameState.pet_growth_info()
 		var gained := GameState.pet()
+		var after := GameState.pet_growth_info()
+		var points := int(after.points) - int(before.points)
+		var stored := int(after.reserve) - int(before.reserve)
+		if points > 0 or stored > 0 or now - _last_pet_feedback >= 5.0:
+			_last_pet_feedback = now
+			var message := "Próximo ganho de Coragem em %s." % after.wait
+			if points > 0:
+				message = "Coragem +%d · %d/%d" % [points, after.points, after.cap]
+			if stored > 0:
+				message = (message + "\n" if points > 0 else "Coragem %d/%d · " % [after.points, after.cap]) + "+%d guardado para depois de crescer." % stored
+			elif points == 0 and int(after.seconds) == 0:
+				message = "Coragem no limite da fase; a reserva também está cheia."
+			# Fica junto do Tiro e não disputa o aviso superior com "Nova foto!".
+			_pet_message = message
+			_pet_message_until = now + 4.0
+			_mood_label.text = message
+			_show_mood()
 		if gained > 0:
 			_float_text("+carinho", _dog_sprite.get_global_transform() * local)
 

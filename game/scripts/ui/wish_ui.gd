@@ -17,7 +17,13 @@ static func icon(wish_id: String) -> Texture2D:
 static func header(box: VBoxContainer) -> void:
 	var card := UiKit.card(box, &"CardPanel")
 	var row := UiKit.hbox(10)
-	row.add_child(PetAnimator.portrait())
+	# Retrato de consulta: mesma pose, mesmo enquadramento, independente do sono/reações.
+	var portrait := UiKit.icon(null, 64)
+	portrait.name = "WishesTiroPortrait"
+	portrait.custom_minimum_size.y = 84
+	portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	DogLook.bind(portrait, "idle_front")
+	row.add_child(portrait)
 	var info := UiKit.vbox(4)
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.add_child(UiKit.label("O que o Tiro quer", &"SectionLabel"))
