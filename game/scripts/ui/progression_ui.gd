@@ -138,8 +138,8 @@ static func upgrade_card(box: VBoxContainer, id: String) -> void:
 # --- Vila: vender e encomendas --------------------------------------------------------
 
 ## Acessos antigos continuam válidos; cada lugar abre só sua função.
-static func market_panel(tab: String = "sell") -> Control:
-	return MarketUi.orders() if tab == "orders" else MarketUi.sell()
+static func market_panel(tab: String = "sell", world_id: String = "village") -> Control:
+	return MarketUi.orders() if tab == "orders" else MarketUi.sell(world_id)
 
 static func sell_panel() -> Control:
 	return MarketUi.sell()
@@ -941,7 +941,10 @@ static func reward_chips(rewards: Dictionary) -> HFlowContainer:
 	if int(rewards.get("coins", 0)) > 0:
 		row.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(rewards.coins)))
 	for id: String in rewards.get("items", {}):
-		row.add_child(UiKit.chip(Database.item_icon(id), "+%d" % int(rewards.items[id])))
+		var label := "+%d" % int(rewards.items[id])
+		if Database.items.get(id, {}).get("category", "") == "keepsake":
+			label += " " + Database.item_name(id)
+		row.add_child(UiKit.chip(Database.item_icon(id), label))
 	for id: String in rewards.get("collections", []):
 		if not GameState.progress.collection.has(id):
 			row.add_child(UiKit.chip(UiKit.ui_icon("item_accessory_set"), "+1"))

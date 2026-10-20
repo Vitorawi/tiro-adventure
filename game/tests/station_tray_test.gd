@@ -111,6 +111,11 @@ func _run() -> void:
 	main = (load("res://scenes/main/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
 	await frames(4)
+	if "--route-shots" in OS.get_cmdline_user_args():
+		await _test_nature()
+		print("NATURE ROUTE UI: ", "PASS" if failures == 0 else "FAIL")
+		quit(0 if failures == 0 else 1)
+		return
 
 	await _test_stove_cooks()
 	await _test_full_queue()
@@ -445,6 +450,31 @@ func _test_nature() -> void:
 	check(state.get("inventory").call("count", "wood") > wood, "o toque recolhe a coleta pronta")
 	check(tray() == null, "Natureza: coleta não abre bandeja")
 	nature.call("close_tray")
+	# O Ir de missões/ingredientes abre a mesma bandeja, com o material pedido selecionado.
+	for entry: Array in [["woodcutting", "wood"], ["quarry", "stone"]]:
+		sheet_titles.clear()
+		places.call("run", "nature", "route:" + str(entry[0]))
+		await frames(8)
+		current = tray()
+		check(current != null and sheet_titles.is_empty(), "Ir da rota %s usa bandeja, sem painel antigo" % str(entry[0]))
+		if current != null:
+			check(str(current.get("selected")) == str(entry[1]), "Ir seleciona " + str(entry[1]))
+			check(load("res://scripts/ui/nature_ui.gd").call("best_route", str(entry[1])) == str(entry[0]), "Ir mantém a duração da rota pedida")
+			check(current.call("find_in_panel", "Material_" + str(entry[1])) != null, "detalhe do material já aberto")
+			check(primaries(current) == 1, "rota com uma ação principal")
+			if "--route-shots" in OS.get_cmdline_user_args():
+				var folder := ProjectSettings.globalize_path("res://").path_join("../build/screenshots/route_tray").simplify_path()
+				DirAccess.make_dir_recursive_absolute(folder)
+				await RenderingServer.frame_post_draw
+				check(root.get_texture().get_image().save_png(folder.path_join("%s_%d.png" % [entry[1], root.size.x])) == OK, "captura da rota")
+		nature.call("close_tray")
+	await enter("house")
+	sheet_titles.clear()
+	events.emit_signal("world_requested", "nature", "route:quarry")
+	await create_timer(1.0).timeout
+	await frames(8)
+	check(tray() != null and str(tray().get("selected")) == "stone" and sheet_titles.is_empty(), "viagem pelo Ir também termina na bandeja de pedra")
+	nature.call("close_tray")
 	# Local fechado: continua abrindo o painel/compra.
 	progress.owned.erase("cave_open")
 	progress.nature_xp.erase("rocks")
@@ -453,6 +483,10 @@ func _test_nature() -> void:
 	nature.call("_on_object_tapped", "place:rocks")
 	await frames()
 	check(tray() == null and not sheet_titles.is_empty(), "local fechado abre o painel de compra, não a bandeja")
+	sheet_titles.clear()
+	places.call("run", "nature", "route:quarry")
+	await frames()
+	check(tray() == null and not sheet_titles.is_empty(), "Ir para rota da caverna fechada mantém orientação de desbloqueio")
 	events.emit_signal("sheet_close_requested")
 	await frames()
 

@@ -1782,13 +1782,14 @@
     "kind": "line",
     "line": "merchant",
     "name": "Moedas na hora",
-    "dialogue": "Eu compro seus excedentes. Os pedidos dos vizinhos ficam no quadro, e sua banca terá contratos próprios.",
+    "dialogue": "Traga um produto que sobrou e venda aqui comigo. As vendas que você fez no sítio não contam para esta missão.",
     "goals": [
       {
         "type": "stat",
-        "key": "sold",
+        "key": "sold:village",
         "target": 1,
-        "label": "Vender um produto"
+        "fresh": true,
+        "label": "Vender um produto ao Feirante"
       }
     ],
     "rewards": {

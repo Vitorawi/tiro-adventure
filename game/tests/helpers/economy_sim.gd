@@ -716,7 +716,8 @@ func execute(action: Dictionary) -> Dictionary:
 		"sell":
 			var qty: int = mini(int(args.qty), gs.inventory.count(str(args.item)))
 			out.extra = {"sold": {str(args.item): qty}, "coins": qty * int(Database.items[str(args.item)].get("sell_price", 0))}
-			out.err = gs.sell(str(args.item), qty)
+			var sale_world := str(args.get("world", "village" if gs.requirement_error(Database.worlds.village.get("requirements", {})) == "" else "farm"))
+			out.err = gs.sell(str(args.item), qty, sale_world)
 		"fulfill_order":
 			var order: Dictionary = Database.progression.orders[str(args.id)]
 			var order_rewards: Dictionary = order.rewards.duplicate(true)

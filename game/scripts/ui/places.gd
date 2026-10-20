@@ -41,7 +41,7 @@ static func open(world_id: String, place_id: String, from_object: bool = false) 
 			GameState.set_sleeping(sleeping)
 			Events.toast_requested.emit("Hora da soneca!" if sleeping else "Tiro acordou!")
 		_:
-			var content := _panel(kind, arg) if kind in ["nature", "petshop", "contracts"] else _with_upgrades(_panel(kind, arg), place.get("upgrades", []))
+			var content := _panel(kind, arg, world_id) if kind in ["nature", "petshop", "contracts"] else _with_upgrades(_panel(kind, arg, world_id), place.get("upgrades", []))
 			# Ao tocar na estação do mapa, deixa o objeto à vista; puxar a alça para cima amplia a consulta.
 			if from_object and kind in ["station", "stations"]:
 				content.set_meta("sheet_size", "half")
@@ -52,7 +52,7 @@ static func place_error(place: Dictionary) -> String:
 	return GameState.requirement_error(place.get("requirements", {}))
 
 
-static func _panel(kind: String, arg: String) -> Control:
+static func _panel(kind: String, arg: String, world_id: String = "village") -> Control:
 	match kind:
 		"tricks":
 			return TrickUi.panel(true)
@@ -81,9 +81,9 @@ static func _panel(kind: String, arg: String) -> Control:
 		"greenhouse":
 			return SheetBuilder.farm_view("", true)
 		"market":
-			return ProgressionUi.market_panel(arg)
+			return ProgressionUi.market_panel(arg, world_id)
 		"sell":
-			return MarketUi.sell()
+			return MarketUi.sell(world_id)
 		"orders":
 			return MarketUi.orders()
 		"contracts":
@@ -132,7 +132,7 @@ static func open_tray(world_id: String, place_id: String) -> bool:
 					room.open_station_tray(station_id)
 					return true
 		var site := nature_site(world_id, place_id)
-		if site != "" and GameState.progress.nature_level(site) > 0:
+		if site != "" and room.can_open_nature_tray(site):
 			Events.sheet_close_requested.emit()
 			room.open_nature_tray(site)
 			return true
@@ -230,7 +230,7 @@ static func run(world_id: String, action: String) -> void:
 				Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.farm_view(id, Database.crops.get(id, {}).get("greenhouse", "") == "only"))
 	elif action.begins_with("market:"):
 		var orders := action.trim_prefix("market:") == "orders"
-		Events.sheet_requested.emit("Encomendas" if orders else "Vender", ProgressionUi.market_panel("orders" if orders else "sell"))
+		Events.sheet_requested.emit("Encomendas" if orders else "Vender", ProgressionUi.market_panel("orders" if orders else "sell", world_id))
 	elif action.begins_with("npc:"):
 		open_npc(action.trim_prefix("npc:"))
 	elif action.begins_with("buy:"):
@@ -503,6 +503,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 							world = id
 							break
 				return {"world": world, "place": "find", "hint": "Cavar onde o Tiro farejou"}
+			if key == "sold:village": return {"world": "village", "place": "market"}
 			if key in ["trade", "sold"]:
 				return {"world": "village", "place": "market"} if GameState.requirement_error(Database.worlds.village.get("requirements", {})) == "" else {"world": "farm", "place": "early_market"}
 			if key == "contracts":

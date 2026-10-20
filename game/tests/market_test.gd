@@ -79,10 +79,41 @@ func _run() -> void:
 	check(board.find_child("OrderGrid", true, false).get_child_count() <= 4, "quatro encomendas por página")
 	check(board.find_child("DeliverOrder", true, false) != null, "detalhe e entrega na mesma tela")
 	board.queue_free()
+	await _first_sale_context()
 	_merchant_missions()
 	_final_contract_production()
 	print("MARKET TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(0 if failures == 0 else 1)
+
+
+func _first_sale_context() -> void:
+	state.call("reset")
+	state.call("dev_jump_to_chapter", 3)
+	state.get("inventory").from_dict({"carrot": 12})
+	check(state.call("sell", "carrot", 1, "farm") == "", "venda anterior no Sítio")
+	check(state.call("sell", "carrot", 1, "village") == "", "venda anterior na Vila")
+	state.call("talk_to", "merchant")
+	check(state.call("claim_quest", "merchant_meet") == "", "conhece o feirante")
+	var goal: Dictionary = db.get("quests").merchant_first_sale.goals[0]
+	check(state.call("goal_value", goal) == 0 and state.call("quest_error", "merchant_first_sale") != "", "nem venda antiga na Vila cumpre o tutorial novo")
+	state.call("from_dict", JSON.parse_string(JSON.stringify(state.call("to_dict"))))
+	check(state.call("goal_value", goal) == 0, "base da missão sobrevive ao save")
+	var farm_board: Control = market.call("sell", "farm")
+	root.add_child(farm_board)
+	await process_frame
+	(farm_board.find_child("SellSelected", true, false) as Button).pressed.emit()
+	check(state.call("goal_value", goal) == 0, "vender no painel do Sítio não conta para o Feirante")
+	farm_board.queue_free()
+	var village_board: Control = market.call("sell", "village")
+	root.add_child(village_board)
+	await process_frame
+	(village_board.find_child("SellSelected", true, false) as Button).pressed.emit()
+	check(state.call("goal_value", goal) == 1 and state.call("quest_error", "merchant_first_sale") == "", "venda nova no painel do Feirante cumpre")
+	village_board.queue_free()
+	check(state.call("claim_quest", "merchant_first_sale") == "", "recebe o prêmio depois da venda certa")
+	var coins: int = state.get("coins")
+	state.call("from_dict", JSON.parse_string(JSON.stringify(state.call("to_dict"))))
+	check(state.call("claim_quest", "merchant_first_sale") != "" and state.get("coins") == coins, "recebido permanece recebido sem duplicar prêmio")
 func _deliver(id: String) -> void:
 	state.get("progress").cooldowns["order:" + id] = 0.0
 	_supply()
@@ -107,7 +138,7 @@ func _merchant_missions() -> void:
 		_supply()
 		match id:
 			"merchant_meet": state.call("talk_to", "merchant")
-			"merchant_first_sale": state.call("sell", "carrot", 1)
+			"merchant_first_sale": state.call("sell", "carrot", 1, "village")
 			"merchant_surplus": state.call("sell", "carrot", 5)
 			"merchant_orders": state.call("fulfill_order", "vegetables")
 			"merchant_regular":

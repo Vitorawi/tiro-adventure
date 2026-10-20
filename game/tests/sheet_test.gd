@@ -34,12 +34,20 @@ func _run() -> void:
 	await process_frame
 	usable = sheet.size.y
 	check(usable > 0.0, "o painel tem altura útil")
+	if "--npc-shots" in OS.get_cmdline_user_args():
+		await _npc_introductions()
+		await _small_content_growth()
+		print("NPC SPEECH UI: ", "PASS" if failures == 0 else "FAIL")
+		quit(1 if failures else 0)
+		return
 	await _heights()
 	await _closing()
 	await _dragging()
 	await _stations_title()
 	await _stove_rows()
 	await _pieces()
+	await _npc_introductions()
+	await _small_content_growth()
 	print("SHEET TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
 
@@ -49,6 +57,39 @@ func _open(title: String, content: Control) -> void:
 	for i in 4:
 		await process_frame
 	await create_timer(0.35).timeout  # deixa terminar o tween de altura (0,18 s) e a animação de abrir
+
+
+## Falas sucessivas mudam de altura ao quebrar linhas; a última não pode cortar o Vamos!.
+func _npc_introductions() -> void:
+	var progression_ui: Script = load("res://scripts/ui/progression_ui.gd")
+	var db: Node = root.get_node("Database")
+	for npc: String in db.npcs:
+		var lines: Array = db.npcs[npc].get("introduction", [])
+		for index in lines.size():
+			await _open(str(db.npcs[npc].name), progression_ui.call("npc_introduction", npc, index))
+			var content: Control = sheet.get_node("%ContentHolder").get_child(0)
+			var button := content.get_child(content.get_child_count() - 1) as Button
+			var scroll := sheet.get_node("%ContentHolder").get_parent() as Control
+			check(button.get_global_rect().end.y <= scroll.get_global_rect().end.y + 1, "%s fala %d: botão inteiro sem rolar" % [npc, index])
+			var speech := content.find_child("SpeechBubble", true, false) as Control
+			check(speech.get_global_rect().end.x <= scroll.get_global_rect().end.x + 1, "%s fala %d: balão cabe na largura" % [npc, index])
+			if "--npc-shots" in OS.get_cmdline_user_args():
+				var folder := ProjectSettings.globalize_path("res://").path_join("../build/screenshots/npc_speech_fixed").simplify_path()
+				DirAccess.make_dir_recursive_absolute(folder)
+				await RenderingServer.frame_post_draw
+				check(root.get_texture().get_image().save_png(folder.path_join("%s_%d_%d.png" % [npc, index, root.size.x])) == OK, "captura da fala")
+
+
+## Uma quebra de linha pode aumentar menos que RESIZE_MIN e ainda assim cortar o botão.
+func _small_content_growth() -> void:
+	var content := _lines(1)
+	var line := content.get_child(0) as Control
+	line.custom_minimum_size.y = usable * 0.32
+	await _open("Fala que muda", content)
+	line.custom_minimum_size.y += 16.0
+	await create_timer(0.4).timeout
+	var scroll := sheet.get_node("%ContentHolder").get_parent() as Control
+	check(line.get_global_rect().end.y <= scroll.get_global_rect().end.y + 1, "crescimento menor que 24 px não corta conteúdo")
 
 
 func _panel_height() -> float:

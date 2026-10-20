@@ -225,14 +225,43 @@ func coins_target() -> Vector2:
 ## Consulta da fase; nome antigo mantido para ferramentas e testes existentes.
 func show_level_popover() -> Popover:
 	var info := GameState.growth_info()
-	var card := UiKit.vbox(4)
-	card.add_child(UiKit.short_label(str(info.current.name)))
-	var missing := GrowthUi.missing(info)
-	card.add_child(UiKit.short_label("Ele já é o Guardião do Vale" if info.next.is_empty() else ("Pronto para crescer!" if info.ready else "Faltam %d" % missing), &"SmallLabel"))
-	var view := UiKit.secondary("Ver", func() -> void:
+	var card := UiKit.vbox(8)
+	card.name = "GrowthQuickSummary"
+	card.custom_minimum_size.x = 248
+	card.add_child(UiKit.label(str(info.current.name), &"SmallLabel"))
+	card.add_child(UiKit.label("Guardião do Vale" if info.next.is_empty() else "Rumo a " + str(info.next.name), &"SectionLabel"))
+	if info.ready:
+		card.add_child(UiKit.label("Tudo pronto para crescer!", &"SmallLabel", Palette.GOOD))
+	elif not info.next.is_empty():
+		card.add_child(UiKit.label("Ainda falta", &"SmallLabel"))
+		var grid := GridContainer.new()
+		grid.name = "GrowthQuickGrid"
+		grid.columns = 2
+		grid.add_theme_constant_override("h_separation", 8)
+		grid.add_theme_constant_override("v_separation", 8)
+		for step: Dictionary in GrowthUi.compact_steps(info):
+			var tile := UiKit.hbox(4)
+			tile.name = "GrowthQuick_" + str(step.id)
+			tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			var ring := RingProgress.new()
+			ring.custom_minimum_size = Vector2(36, 36)
+			ring.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			ring.texture = step.icon
+			ring.progress = float(step.have) / maxf(1.0, float(step.need))
+			tile.add_child(ring)
+			var label := UiKit.vbox(0)
+			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			label.add_child(UiKit.label(str(step.title), &"SmallLabel"))
+			label.add_child(UiKit.label("%d/%d" % [step.have, step.need], &"SmallLabel"))
+			tile.add_child(label)
+			grid.add_child(tile)
+		card.add_child(grid)
+	else:
+		card.add_child(UiKit.label("Ele cresceu com você!", &"SmallLabel"))
+	var view := UiKit.secondary("Ver detalhes", func() -> void:
 		var catcher := get_parent().get_node_or_null("PopoverCatcher")
 		if catcher: catcher.queue_free()
 		GrowthUi.open(), null, true)
 	view.name = "ViewGrowth"
 	card.add_child(view)
-	return Popover.open(get_parent() as Control, avatar_button, card, 8.0)
+	return Popover.open(get_parent() as Control, avatar_button, card, 0.0)

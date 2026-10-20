@@ -37,6 +37,33 @@ func run() -> void:
  db = root.get_node('Database')
  state.set_script(load('res://tests/friend_clock.gd'))
  state.test_time = 1791936000.0
+ # Ajuda de comida: receita visível mesmo bloqueada, ícone real e ação conforme preparo/estoque.
+ var help: Script = load('res://scripts/ui/task_help.gd')
+ fresh('teething')
+ state.progress.owned['stove'] = true
+ var guide: Dictionary = help.call('describe','growth_req','meals')
+ check(guide.title=='Ração de crescimento' and guide.food_guide.place=='Casa → Fogão','nome da comida e local explícitos')
+ check('Galinheiro' in str(guide.food_guide.status),'explica o bloqueio direto antes da missão distante')
+ check(guide.food_guide.inputs.size()==3 and guide.food_guide.inputs[0].label!='','ingredientes têm nomes')
+ check(help.call('icon_for','growth_req','meals')==db.item_icon('growth_kibble'),'ícone da comida, não osso genérico')
+ fresh('teething')
+ state.dev_unlock_everything()
+ state.growth.phase = 'teething'
+ state.inventory.from_dict({'corn':1,'carrot':1,'egg':1})
+ guide = help.call('describe','growth_req','meals')
+ check(guide.action=='Preparar no Fogão','com tudo disponível leva à receita')
+ check(state.cook('growth_kibble')=='','prepara a comida da ajuda')
+ guide = help.call('describe','growth_req','meals')
+ check(guide.action=='Ver preparo','não manda preparar de novo durante a produção')
+ state.test_time += 601
+ guide = help.call('describe','growth_req','meals')
+ check(guide.action=='Pegar no Fogão','comida pronta orienta pegar')
+ state.collect('stove')
+ guide = help.call('describe','growth_req','meals')
+ check(guide.action=='Dar ao Tiro' and 'Você tem 2' in str(guide.progress_text),'com estoque orienta alimentar')
+ state.feed('growth_kibble')
+ guide = help.call('describe','growth_req','meals')
+ check('Já comeu 1 de 3' in str(guide.progress_text),'progresso das refeições separado do estoque')
  for i in FOODS.size():
   var id: String = FOODS[i]
   fresh()

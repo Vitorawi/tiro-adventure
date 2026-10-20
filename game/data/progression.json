@@ -34,6 +34,8 @@
     "idle_hint_seconds": 15,
     "idle_hint_max_chapter": 4,
     "stat_labels": {
+      "sold:village": "produtos vendidos ao Feirante",
+      "sold:farm": "produtos vendidos no Sítio",
       "walk": "passeios",
       "find": "achados",
       "wish": "desejos",

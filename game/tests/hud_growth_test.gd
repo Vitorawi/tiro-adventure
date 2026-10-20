@@ -53,6 +53,8 @@ func _run() -> void:
 	for i in db.get("growth").phases.size():
 		var phase: Dictionary = db.get("growth").phases[i]
 		state.call("dev_set_phase", str(phase.id))
+		if phase.id == "teething" and "--summary-shots" in OS.get_cmdline_user_args():
+			state.get("growth").points = {"body": 34, "coat": 0, "smart": 19, "brave": 61}
 		await frames()
 		hud.refresh(false)
 		check(hud.level_label.text == (str(i) if i > 0 else "•"), "número da fase " + phase.id)
@@ -66,6 +68,21 @@ func _run() -> void:
 		await frames()
 		var popover := main.get_node("PopoverCatcher")
 		check_text(popover)
+		check(popover.find_child("ViewGrowth", true, false).text == "Ver detalhes", "botão nomeia o destino")
+		var surface := popover.get_node("Popover") as Control
+		check(surface.get_global_rect().end.x <= main.get_global_rect().end.x + 1, "resumo cabe na largura")
+		check(surface.get_global_rect().end.y <= main.get_global_rect().end.y + 1, "resumo cabe na altura")
+		var grid := popover.find_child("GrowthQuickGrid", true, false)
+		if not info.next.is_empty() and not info.ready:
+			var pending: Array = info.requirements.filter(func(req: Dictionary) -> bool: return not req.done and req.type != "given")
+			check(grid != null and grid.get_child_count() == pending.size(), "um ícone por requisito pendente")
+			for req: Dictionary in info.requirements:
+				check((popover.find_child("GrowthQuick_" + str(req.id), true, false) != null) == (not req.done and req.type != "given"), "não repete requisito pronto " + str(req.id))
+		if "--summary-shots" in OS.get_cmdline_user_args():
+			var folder := ProjectSettings.globalize_path("res://").path_join("../build/screenshots/growth_summary").simplify_path()
+			DirAccess.make_dir_recursive_absolute(folder)
+			await RenderingServer.frame_post_draw
+			check(root.get_texture().get_image().save_png(folder.path_join("%s_%d.png" % [phase.id, root.size.x])) == OK, "captura do resumo " + str(phase.id))
 		(popover.find_child("ViewGrowth", true, false) as Button).pressed.emit()
 		await frames()
 		check(main.find_child("GrowthPanel", true, false) != null, "Ver abre crescimento " + phase.id)
@@ -80,6 +97,16 @@ func _run() -> void:
 	Motion.reduced = true
 	hud.refresh(false)
 	check(not hud.get("_pulsing") and hud.find_child("AvatarGroup", true, false).scale == Vector2.ONE, "menos animação encerra pulso")
+	var ready_summary: Control = hud.show_level_popover()
+	await frames()
+	check(ready_summary.find_child("GrowthQuickGrid", true, false) == null, "pronto não lista pendências antigas")
+	check(ready_summary.get("_tween") == null, "resumo permanece aberto para leitura")
+	if "--summary-shots" in OS.get_cmdline_user_args():
+		var folder := ProjectSettings.globalize_path("res://").path_join("../build/screenshots/growth_summary").simplify_path()
+		await RenderingServer.frame_post_draw
+		check(root.get_texture().get_image().save_png(folder.path_join("ready_%d.png" % root.size.x)) == OK, "captura do resumo pronto")
+	ready_summary.call("close")
+	await frames()
 	# Todos os catálogos usam o mesmo construtor: XP e skill_xp nunca criam chips/textos.
 	var ui := load("res://scripts/ui/progression_ui.gd")
 	for id: String in db.get("recipes"):

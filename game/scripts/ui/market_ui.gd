@@ -229,7 +229,7 @@ static func _stall_header(box: VBoxContainer) -> void:
 		box.add_child(button)
 	box.add_child(UiKit.label("Contratos maiores, com moedas e materiais. Sem prazo para entregar.", &"SmallLabel"))
 
-static func sell() -> Control:
+static func sell(world_id: String = "village") -> Control:
 	var model := {"page": 0, "selected": "", "quantity": 1}
 	return SheetBuilder.tall(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		box.name = "SellBoard"
@@ -270,7 +270,7 @@ static func sell() -> Control:
 		box.add_child(row)
 		var qty := int(model.quantity)
 		var action := UiKit.primary("Vender ×%d · +%d moedas" % [qty, qty * int(Database.items[id].sell_price)], func() -> void:
-			var error := GameState.sell(id, qty)
+			var error := GameState.sell(id, qty, world_id)
 			if error != "":
 				Events.toast_requested.emit(error)
 			else:

@@ -252,7 +252,9 @@ func _direct(action: Dictionary) -> String:
 				got += gs.harvest(i).size()
 			return "" if got > 0 else "Colheita recusada"
 		"sell":
-			return gs.sell(str(args.item), mini(int(args.qty), gs.inventory.count(str(args.item))))
+			var worlds: Dictionary = root.get_node("Database").get("worlds")
+			var sale_world := str(args.get("world", "village" if gs.requirement_error(worlds.village.get("requirements", {})) == "" else "farm"))
+			return gs.sell(str(args.item), mini(int(args.qty), gs.inventory.count(str(args.item))), sale_world)
 		"cook":
 			return gs.cook(str(args.recipe))
 		"collect_station":

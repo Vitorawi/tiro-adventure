@@ -194,8 +194,10 @@ func _queue_fit() -> void:
 	if not _open or _closing or _dragging:
 		return
 	var target := _target_height()
-	if absf(target - _height) <= RESIZE_MIN:
-		return  # só cresce/diminui se mudar de verdade
+	var scroll := _content_holder.get_parent() as Control
+	var overflowing := _content_holder.get_combined_minimum_size().y > scroll.size.y + 1.0
+	if absf(target - _height) <= RESIZE_MIN and (target <= _height or not overflowing):
+		return  # evita oscilações, mas nunca ignora crescimento que deixa a fala/botão cortados
 	_height = target
 	_animate_top(-target)
 

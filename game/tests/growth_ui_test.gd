@@ -55,15 +55,49 @@ func _run() -> void:
 	# Destinos e painel em qualquer fase, incluindo o adulto sem próximo corpo.
 	for phase: Dictionary in db.get("growth").phases:
 		state.call("dev_set_phase", str(phase.id))
+		if str(phase.id) == "teething" and "--layout-shots" in OS.get_cmdline_user_args():
+			state.get("growth").points = {"body": 34, "coat": 0, "smart": 19, "brave": 61}
+			state.get("progress").owned["stove"] = true
+		if str(phase.id) == "puppy" and "--ring-shots" in OS.get_cmdline_user_args():
+			state.get("progress").claimed_quests["growth_1_puppy"] = true
 		ui.call("open")
 		await frames()
 		var panel := main.find_child("GrowthPanel", true, false)
-		check(panel != null and panel.find_child("GrowthCard_" + str(phase.id), true, false) != null, "caderneta " + str(phase.id))
+		check(panel != null and panel.find_child("GrowthHero", true, false) != null, "cabeçalho compacto " + str(phase.id))
+		check(panel.find_child("GrowthCard_" + str(phase.id), true, false) == null, "histórico fora da lista de tarefas")
 		for row: Dictionary in state.call("growth_info").requirements:
+			if row.type == "given": continue
 			check(panel.find_child("GrowthReq_" + str(row.id), true, false) != null, "requisito " + str(row.id))
 			var help: Dictionary = load("res://scripts/ui/task_help.gd").call("describe", "growth_req", str(row.id))
-			check(help.action == "Ir" and not help.target.is_empty(), "destino do requisito")
+			check(str(help.action) != "" and not help.target.is_empty(), "requisito tem ação e destino concretos")
 		check(primary(panel) <= 1, "no máximo um PrimaryButton")
+		if "--layout-shots" in OS.get_cmdline_user_args(): await layout_shot(str(phase.id))
+		ui.call("history")
+		await frames()
+		var history := main.find_child("GrowthHistory", true, false)
+		check(history != null and history.find_child("GrowthCard_" + str(phase.id), true, false) != null, "caderneta preservada " + str(phase.id))
+		ui.call("open")
+		await frames()
+		if str(phase.id) == "teething" and "--food-shots" in OS.get_cmdline_user_args():
+			state.get("progress").owned["stove"] = true
+			state.get("progress").claimed_quests["growth_1_puppy"] = true
+			var helper: Script = load("res://scripts/ui/task_help.gd")
+			helper.call("open", "growth_req", "meals")
+			await frames()
+			var folder := ProjectSettings.globalize_path("res://").path_join("../build/screenshots/food_help").simplify_path()
+			DirAccess.make_dir_recursive_absolute(folder)
+			await RenderingServer.frame_post_draw
+			check(root.get_texture().get_image().save_png(folder.path_join("meal_%d.png" % root.size.x)) == OK, "captura da ajuda de comida")
+		if str(phase.id) == "puppy" and "--ring-shots" in OS.get_cmdline_user_args():
+			var folder := ProjectSettings.globalize_path("res://").path_join("../build/screenshots/ring_help").simplify_path()
+			DirAccess.make_dir_recursive_absolute(folder)
+			await RenderingServer.frame_post_draw
+			check(root.get_texture().get_image().save_png(folder.path_join("growth_%d.png" % root.size.x)) == OK, "captura da origem no crescimento")
+			var help: Script = load("res://scripts/ui/task_help.gd")
+			help.call("open", "growth_req", "key")
+			await frames()
+			await RenderingServer.frame_post_draw
+			check(root.get_texture().get_image().save_png(folder.path_join("source_%d.png" % root.size.x)) == OK, "captura de onde conseguir")
 	state.call("dev_set_phase", "newborn")
 	state.get("growth").points = {"body": 2, "brave": 0}
 	var helper: Script = load("res://scripts/ui/task_help.gd")
@@ -86,15 +120,19 @@ func _run() -> void:
 	ui.call("open")
 	await frames()
 	var panel := main.find_child("GrowthPanel", true, false)
-	for name: String in ["LifeDots", "CurrentDog", "NextSilhouette", "NextUnlocks", "PillarRing_body", "GrowthLock"]:
+	for name: String in ["GrowthHero", "CurrentDog", "NextSilhouette", "NextUnlocks", "GrowthNextAction", "GrowthSummary", "GrowthProgress"]:
 		check(panel.find_child(name, true, false) != null, "nó " + name)
-	check(text(panel, "2/3") and text(panel, "✓"), "quantidade e marca de cumprido")
-	check(text(panel.find_child("GrowthLock", true, false), "Dar comida"), "primeiro motivo legível")
+	check(text(panel, "2/3") and text(panel, "2 de 3 passos"), "quantidade e resumo dos passos visíveis")
+	check(panel.find_child("GrowthNextAction", true, false).text == "Dar comida", "próxima ação nomeada")
+	check(panel.find_child("PillarRing_body", true, false) == null, "não repete pontos e anéis no painel principal")
 	check(main.find_child("GrowthBadgeHint", true, false).text == "Falta 1!", "selo quase pronto")
 	var shadow: ShaderMaterial = panel.find_child("NextSilhouette", true, false).get_child(0).material
 	check(shadow.shader.resource_path.ends_with("silhouette.gdshader") and int(shadow.get_shader_parameter("stage")) == 3, "estágio por requisitos")
 	for future: Control in panel.find_children("Future_*", "", true, false):
 		check(future.get_child(0).material.shader.resource_path.ends_with("silhouette.gdshader"), "cartão futuro sempre mascarado")
+	var list_scroll := main.find_child("Sheet", true, false).find_child("Scroll", true, false) as ScrollContainer
+	list_scroll.ensure_control_visible(panel.find_child("GrowthReq_meals", true, false))
+	await frames()
 	await click(panel.find_child("GrowthReq_meals", true, false))
 	check(main.find_child("Sheet", true, false).get_node("%Title").text == "Como fazer", "toque abre ajuda")
 	check(text(main.find_child("Sheet", true, false), "Qualquer comida") and text(main.find_child("Sheet", true, false), "ração"), "ajuda explica que a ração inicial conta")
@@ -120,6 +158,7 @@ func _run() -> void:
 	give.pressed.emit()
 	await frames()
 	check(panel.find_child("GrowButton", true, false) != null and primary(panel) == 1, "pronto acende na mesma árvore")
+	if "--layout-shots" in OS.get_cmdline_user_args(): await layout_shot("ready")
 	check(state.call("deliver_growth", "stick") != "", "entrega repetida não consome")
 	item_panel.queue_free()
 	# Crescer pelo caminho de input, após colocar o botão na área visível do Sheet.
@@ -134,3 +173,10 @@ func _run() -> void:
 	await frames()
 	print("GROWTH_UI TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
+
+
+func layout_shot(label: String) -> void:
+	var folder := ProjectSettings.globalize_path("res://").path_join("../build/screenshots/growth_layout").simplify_path()
+	DirAccess.make_dir_recursive_absolute(folder)
+	await RenderingServer.frame_post_draw
+	check(root.get_texture().get_image().save_png(folder.path_join("%s_%d.png" % [label, root.size.x])) == OK, "captura do layout " + label)

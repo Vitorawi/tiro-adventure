@@ -2111,7 +2111,12 @@ func _grant_upgrade(id: String) -> void:
 
 # --- Feira (venda direta e encomendas) --------------------------------------------
 
-func sell(item_id: String, amount: int = 1) -> String:
+func sell(item_id: String, amount: int = 1, world_id: String = "") -> String:
+	if world_id not in ["", "farm", "village"]:
+		return "Lugar de venda desconhecido"
+	if world_id != "":
+		var reason := requirement_error(Database.worlds[world_id].get("requirements", {}))
+		if reason != "": return reason
 	var price := int(Database.items.get(item_id, {}).get("sell_price", 0))
 	if amount <= 0 or price <= 0:
 		return "Venda inválida"
@@ -2120,6 +2125,7 @@ func sell(item_id: String, amount: int = 1) -> String:
 	coins += price * amount
 	_count("trade")
 	_count("sold", amount)
+	if world_id != "": _count("sold:" + world_id, amount)
 	_award_skill("commerce", int(Database.items[item_id].get("trade_xp", 1)) * amount)
 	_changed()
 	return ""

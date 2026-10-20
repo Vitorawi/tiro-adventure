@@ -82,14 +82,24 @@ static func open_route(route_id: String) -> void:
 	for resource: String in Database.progression.nature_sites[site].resources:
 		if route.get("icon", "") == Database.progression.nature_resources[resource].icon:
 			choose_route(resource, route_id)
-			open(site, resource, route_id)
+			_open_route_view(site, resource, route_id)
 			return
 	for item: String in Database.progression.activities[route_id].rewards.get("items", {}):
 		if item in Database.progression.nature_sites[site].resources:
 			choose_route(item, route_id)
-			open(site, item, route_id)
+			_open_route_view(site, item, route_id)
 			return
-	open(site, "", route_id)
+	_open_route_view(site, "", route_id)
+
+
+## O Ir usa a mesma bandeja do toque no mundo; Ver tudo continua sendo a consulta completa.
+static func _open_route_view(site: String, resource: String, route_id: String) -> void:
+	for room: Node in (Engine.get_main_loop() as SceneTree).get_nodes_in_group("room_views"):
+		if room is RoomView and room.is_visible_in_tree() and room.can_open_nature_tray(site):
+			Events.sheet_close_requested.emit()
+			room.open_nature_tray(site, resource)
+			return
+	open(site, resource, route_id)
 
 
 static func panel(site: String = "trees", resource: String = "", focus_route: String = "") -> Control:

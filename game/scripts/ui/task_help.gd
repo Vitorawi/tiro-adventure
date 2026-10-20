@@ -57,11 +57,19 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 				# Peça sem receita nem rota (ex.: o parafuso): vem do prêmio do passo de missão que está aberto.
 				var giver := _reward_step(id)
 				if giver != "":
-					result = describe("quest", giver, 1, visited)
+					var step := giver
+					var line := str(Database.quests[giver].get("line", ""))
+					if line != "" and not GameState.quest_unlocked(giver):
+						step = GameState.progress.current_line_quest(line)
+					if step == "": step = giver
+					result = describe("quest", step, 1, visited)
 					result["title"] = Database.item_name(id)
 					result["stock"] = "%d/%d" % [GameState.inventory.count(id), amount]
+					result["source_text"] = reward_source_text(id, giver)
+					result["detail"] = result.source_text + "\n" + ("Antes, avance até essa missão. " if step != giver else "") + str(result.detail)
+					result["reward_source"] = true
 					return result
-				return _base(Database.item_name(id), "Veja na Mochila.", {"screen": "bag"}, "Mochila")
+				return _gift_source(id, amount, visited)
 			var source_amount := missing if source.kind == "recipe" else 1
 			result = describe(source.kind, source.id, source_amount, visited)
 			result["title"] = Database.item_name(id)
@@ -159,6 +167,11 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 	var type: String = goal.type
 	var key: String = goal.get("key", "")
 	var amount := int(goal.get("target", 1))
+	if type == "stat" and key.begins_with("find:"):
+		var world := key.trim_prefix("find:")
+		return _base("Achados do Tiro", "%s: toque no montinho que o Tiro farejou. Os achados variam; volte para cavar outros." % Database.worlds.get(world, {}).get("name", world), Places.goal_target(goal), "Procurar achados")
+	if type == "stat" and key == "sold:village":
+		return _base("Vender ao Feirante", "Vila → Feirante: escolha um produto e toque em Vender. Vendas no Sítio não contam.", {"world": "village", "place": "market"}, "Ir ao Feirante")
 	if type == "stat" and (key == "trick_learned" or key == "trick" or key.begins_with("trick:")):
 		return _base(str(goal.get("label", "Truques")), "Treine 3 acertos na Praça." if key == "trick_learned" else "Peça um truque; recarga por truque.", Places.goal_target(goal), "Ir")
 	if type == "stat" and (key == "friend_level" or key.begins_with("friend_gift")):
@@ -178,7 +191,7 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 		"have", "deliver":
 			var result := describe("item", key, amount, trail)
 			if type == "deliver":
-				result.detail = "Será entregue ao pegar o prêmio."
+				result.detail += "\nSerá entregue ao pegar o prêmio."
 			return result
 		"stat":
 			if key == "shampoo_bath":
@@ -357,6 +370,9 @@ static func best_source(item: String) -> Dictionary:
 			var route: String = str(source.key).trim_prefix("activity:")
 			candidate = {"kind": "route", "id": route}
 			requirements = Database.progression.activities[route].get("requirements", {})
+		elif str(source.key).begins_with("find:"):
+			candidate = {"kind": "stat", "id": str(source.key)}
+			requirements = Database.finds.worlds.get(str(source.key).trim_prefix("find:"), {}).get("requirements", {})
 		elif str(source.key).begins_with("walk:"):
 			var walk_id := str(source.key).trim_prefix("walk:")
 			candidate = {"kind": "walk", "id": walk_id}
@@ -377,12 +393,79 @@ static func best_source(item: String) -> Dictionary:
 	return best
 
 
-## Passo de missão aberto agora (história ou linha de personagem) que paga este item ("" = nenhum).
+## Prefere a missão aberta; também revela a origem de um presente futuro.
 static func _reward_step(item: String) -> String:
 	for quest_id: String in GameState.progress.active_steps().values():
 		if int(Database.quests[quest_id].get("rewards", {}).get("items", {}).get(item, 0)) > 0:
 			return quest_id
+	for quest_id: String in Database.quests:
+		if not GameState.progress.claimed_quests.has(quest_id) and int(Database.quests[quest_id].get("rewards", {}).get("items", {}).get(item, 0)) > 0:
+			return quest_id
 	return ""
+
+
+static func reward_source_text(item: String, giver: String = "") -> String:
+	for quest_id: String in Database.quests:
+		if giver != "" and giver != quest_id: continue
+		var quest: Dictionary = Database.quests[quest_id]
+		if int(quest.get("rewards", {}).get("items", {}).get(item, 0)) <= 0: continue
+		var npc := str(Database.npcs.get(str(quest.get("npc", "")), {}).get("name", ""))
+		var target := Places.quest_target(quest_id)
+		var world := str(Database.worlds.get(str(target.get("world", "")), {}).get("in_name", ""))
+		var text := "%s %s · Missão “%s”." % [npc, world, quest.name]
+		var deliveries := {}
+		for goal: Dictionary in quest.goals:
+			if goal.type == "deliver": deliveries[str(goal.key)] = int(deliveries.get(str(goal.key), 0)) + int(goal.target)
+		if not deliveries.is_empty(): text += " Entregue " + Database.describe_amounts(deliveries) + " para receber."
+		return text
+	return ""
+
+
+## Fontes sem receita: contratos repetíveis e presentes de crescimento.
+static func _gift_source(item: String, amount: int, trail: Array[String]) -> Dictionary:
+	var best := ""
+	var score := INF
+	for id: String in Database.progression.orders:
+		var order: Dictionary = Database.progression.orders[id]
+		if int(order.get("rewards", {}).get("items", {}).get(item, 0)) <= 0: continue
+		var value := float(_requirements(order.get("requirements", {})).size() * 1000)
+		for input: String in order.inputs:
+			value += maxi(0, int(order.inputs[input]) - GameState.inventory.count(input))
+		value += minf(100, GameState.progress.cooldown_left("order:" + id, GameState.now()))
+		if value < score:
+			score = value
+			best = id
+	var result := {}
+	if best != "":
+		var order: Dictionary = Database.progression.orders[best]
+		result = describe("order", best, 1, trail)
+		result["source_text"] = "Vila → %s: “%s”. Entregue %s para receber %d %s. Pode repetir após a espera." % ["Minha banca" if MarketUi.is_contract(best) else "Encomendas", order.name, Database.describe_amounts(order.inputs), int(order.rewards.items[item]), Database.item_name(item)]
+	else:
+		for phase: Dictionary in Database.growth.phases:
+			if int(phase.get("rewards", {}).get("items", {}).get(item, 0)) <= 0: continue
+			result = _base(Database.item_name(item), "Veja os requisitos no Crescimento.", {"growth": true}, "Ver crescimento")
+			result["source_text"] = "Presente ao chegar à fase %s do Tiro." % phase.name
+			if GameState.growth.phase_index() >= GameState.growth.phase_index(str(phase.id)):
+				result.source_text += " Você já recebeu esse presente uma vez."
+			break
+		if item == "milk_tooth":
+			result = _base(Database.item_name(item), "Toque no montinho que o Tiro farejou na Casa.", {"world": "house", "place": "find"}, "Ir à Casa")
+			result["source_text"] = "O primeiro montinho cavado a partir de Dentinhos traz o Dentinho de leite. É uma recordação única."
+			if GameState.growth.phase_index() < GameState.growth.phase_index("teething"):
+				result.target = {"growth": true}
+				result.action = "Ver crescimento"
+				result.detail = "Primeiro, ajude o Tiro a chegar a Dentinhos."
+	if result.is_empty():
+		var past := reward_source_text(item)
+		if past != "":
+			result = _base(Database.item_name(item), "Você já recebeu esse prêmio único. Ele não pode ser recebido de novo.", {"screen": "tasks"}, "Ver missões")
+			result["source_text"] = past
+	if result.is_empty():
+		result = _base(Database.item_name(item), "Este item não tem uma fonte disponível no catálogo.", {"screen": "tasks"}, "Ver história")
+	result.title = Database.item_name(item)
+	result["stock"] = "%d/%d" % [GameState.inventory.count(item), amount]
+	result["reward_source"] = true
+	return result
 
 
 static func _best_order() -> String:
@@ -426,11 +509,33 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 		var title := UiKit.vbox(2)
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		title.add_child(UiKit.label(data.title, &"SectionLabel"))
-		if data.has("stock"):
+		if data.has("progress_text"):
+			title.add_child(UiKit.label(data.progress_text, &"SmallLabel"))
+		elif data.has("stock"):
 			var enough := GameState.inventory.count(id) >= amount
 			title.add_child(UiKit.label(data.stock, &"", UiKit.GOOD if enough else UiKit.BAD))
 		top.add_child(title)
 		box.add_child(top)
+		if data.has("food_guide"):
+			var guide: Dictionary = data.food_guide
+			box.add_child(UiKit.label(guide.place, &"SectionLabel"))
+			box.add_child(UiKit.label(guide.preparation, &"SmallLabel"))
+			var card := UiKit.card(box, &"ReadyCardPanel")
+			card.add_child(UiKit.label(guide.status))
+			if guide.next != "": card.add_child(UiKit.label(guide.next, &"SmallLabel"))
+			var action := UiKit.primary(guide.action, _go.bind(guide.target))
+			action.name = "FoodGuideAction"
+			card.add_child(action)
+			box.add_child(UiKit.label("Ingredientes por preparo", &"SectionLabel"))
+			for input: Dictionary in guide.inputs:
+				var row := UiKit.hbox(8)
+				row.add_child(UiKit.icon(Database.item_icon(input.id), 32))
+				row.add_child(UiKit.fill_label("%s · %d/%d\n%s" % [input.label, input.have, input.amount, input.where], &"SmallLabel"))
+				var path: Array[Dictionary] = history.duplicate()
+				path.append({"kind": kind, "id": id, "amount": amount})
+				row.add_child(UiKit.secondary("Buscar", open.bind("item", str(input.id), int(input.amount), path), null, true))
+				box.add_child(row)
+			return
 		if data.has("steps"):
 			var primary_used := false
 			for care: Dictionary in data.steps:
@@ -444,17 +549,28 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 				card.add_child(go)
 				primary_used = true
 			return
+		if data.get("source_text", "") != "":
+			box.add_child(UiKit.label("Onde conseguir", &"SectionLabel"))
+			var source_label := UiKit.label(data.source_text, &"SmallLabel")
+			source_label.name = "ItemSource"
+			box.add_child(source_label)
 		# Próximo passo: ícone + o que fazer + Ir.
-		var step := UiKit.hbox(10)
+		var step: BoxContainer = UiKit.vbox(8) if data.get("reward_source", false) else UiKit.hbox(10)
 		var first: Dictionary = data.get("next_need", {})
-		step.add_child(UiKit.icon(need_icon(first) if not first.is_empty() else icon_for(kind, id), 48))
-		step.add_child(UiKit.fill_label(data.get("next", data.detail)))
+		if not data.get("reward_source", false):
+			step.add_child(UiKit.icon(need_icon(first) if not first.is_empty() else icon_for(kind, id), 48))
+		var step_text := str(data.get("next", str(data.detail).trim_prefix(str(data.get("source_text", "")) + "\n")))
+		if data.has("source_text") and data.has("next"):
+			step_text = "Primeiro: " + step_text
+			var destination := str(data.get("next_target", {}).get("hint", ""))
+			if destination != "": step_text += "\n" + destination
+		step.add_child(UiKit.fill_label(step_text))
 		var go := UiKit.button(data.get("next_action", data.action), _go.bind(data.get("next_target", data.target)), &"PrimaryButton")
 		go.custom_minimum_size = Vector2(92, 52)
 		go.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		step.add_child(go)
 		UiKit.card(box, &"ReadyCardPanel").add_child(step)
-		if data.has("next") and data.detail != "":
+		if data.has("next") and data.detail != "" and not data.has("source_text"):
 			box.add_child(UiKit.label(data.detail, &"SmallLabel"))
 		if data.needs.is_empty():
 			return
@@ -479,7 +595,9 @@ static func icon_for(kind: String, id: String) -> Texture2D:
 				if str(row.id) != id: continue
 				match str(row.type):
 					"deliver": return Database.item_icon(str(row.item))
-					"feed": return UiKit.ui_icon("need_hunger")
+					"feed":
+						var food := GameState.favorite_food() if row.item == "favorite" else str(row.item)
+						return Database.item_icon(food) if Database.items.has(food) else UiKit.ui_icon("need_hunger")
 					"owned": return UiKit.ui_icon(Database.progression.upgrades[str(row.upgrade)].get("icon", "tab_house"))
 					"pillars": return UiKit.ui_icon(str(Database.growth.pillars[row.levels.keys()[0]].icon))
 			return UiKit.ui_icon("tab_pet")
@@ -585,6 +703,9 @@ static func _growth_requirement(id: String, trail: Array[String]) -> Dictionary:
 						result.needs.append(_need("item", food, 1))
 				elif row.item != "any":
 					var food_id := GameState.favorite_food() if row.item == "favorite" else str(row.item)
+					for recipe_id: String in Database.recipes:
+						if Database.recipe_output(Database.recipes[recipe_id]) == food_id:
+							return _growth_food(row, food_id, recipe_id, trail)
 					result = describe("item", food_id, 1, trail)
 					if GameState.inventory.count(food_id) > 0:
 						result = _base(str(row.label), "Tiro → Comida: dê " + Database.item_name(food_id), {"screen": "pet"}, "Ir")
@@ -604,6 +725,52 @@ static func _growth_requirement(id: String, trail: Array[String]) -> Dictionary:
 		result.erase("next_action")
 		return result
 	return _base("Crescimento", "Veja a fase atual.", {"growth": true}, "Ir")
+
+
+## Receita e próximo passo juntos: o jogador sabe qual comida, onde preparar e por que está bloqueada.
+static func _growth_food(row: Dictionary, food: String, recipe_id: String, trail: Array[String]) -> Dictionary:
+	var recipe: Dictionary = Database.recipes[recipe_id]
+	var station := str(recipe.station)
+	var station_name := str(Database.stations[station].name)
+	var preparation := describe("recipe", recipe_id, 1, trail)
+	var stock := GameState.inventory.count(food)
+	var world_name := str(Database.worlds.get(str(preparation.target.get("world", "")), {}).get("name", ""))
+	var guide := {"place": world_name + " → " + station_name,
+		"preparation": "%s · rende %d porções" % [TimeText.short(int(recipe.seconds)), GameState.recipe_quantity(recipe_id)],
+		"status": "Prepare a comida e depois dê ao Tiro na Tigela.", "next": "",
+		"action": "Preparar no " + station_name, "target": preparation.target, "inputs": []}
+	for input: String in GameState.recipe_inputs(recipe_id):
+		var need := _need("item", input, int(GameState.recipe_inputs(recipe_id)[input]))
+		var source := best_source(input)
+		need["where"] = ""
+		if source.get("kind", "") == "crop": need.where = "Horta"
+		elif source.get("kind", "") == "recipe": need.where = str(Database.stations[Database.recipes[source.id].station].name)
+		elif source.get("kind", "") == "route": need.where = str(Database.progression.activities[source.id].name)
+		guide.inputs.append(need)
+	if row.done:
+		guide.status = "Ele já comeu todas as porções necessárias."
+		guide.action = "Ver crescimento"
+		guide.target = {"growth": true}
+	elif stock > 0:
+		guide.status = "Você já tem %d. Dê essa comida ao Tiro na Tigela." % stock
+		guide.action = "Dar ao Tiro"
+		guide.target = Places.goal_target({"type": "stat", "key": "feed"})
+	elif int(preparation.get("pending", 0)) > 0:
+		guide.status = preparation.detail
+		guide.action = "Pegar no " + station_name if preparation.action == "Pegar" else "Ver preparo"
+	elif preparation.has("next"):
+		guide.status = "Falta conseguir os ingredientes."
+		for need: Dictionary in preparation.needs:
+			if int(need.have) >= int(need.amount) or need.kind == "item": continue
+			guide.status = "Para preparar, falta: " + str(need.label) + "."
+			break
+		guide.next = "Primeiro: " + str(preparation.next)
+		guide.action = "Ver como liberar" if guide.status != "Falta conseguir os ingredientes." else "Buscar ingredientes"
+		guide.target = preparation.get("next_target", preparation.target)
+	var result := _base(Database.item_name(food), "", guide.target, guide.action)
+	result["food_guide"] = guide
+	result["progress_text"] = "Já comeu %d de %d · Você tem %d" % [mini(int(row.have), int(row.need)), int(row.need), stock]
+	return result
 
 
 ## Cada cuidado mostra pontos reais até o patamar pedido, em vez de um 0/1 agrupado.

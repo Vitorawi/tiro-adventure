@@ -1,7 +1,7 @@
 class_name Popover
 extends PanelContainer
 ## Balão pequeno que abre embaixo de um botão (ex.: o avatar do HUD) e some sozinho em 2 s
-## ou ao tocar em qualquer lugar. Um só por vez: abrir outro fecha o anterior.
+## ou ao tocar fora. `seconds = 0` mantém resumos abertos para leitura. Um só por vez.
 
 const LIFETIME := 2.0
 const GAP := 6.0
@@ -34,6 +34,7 @@ static func open(host: Control, anchor: Control, content: Control, seconds: floa
 		if click and click.pressed:
 			popover.close())
 	popover._place(host, anchor)
+	popover._settle.call_deferred(host, anchor)
 	popover._start(seconds)
 	return popover
 
@@ -45,7 +46,18 @@ func _place(host: Control, anchor: Control) -> void:
 	position = Vector2(x, origin.y + anchor.size.y + GAP)
 
 
+## Rótulos com quebra de linha só informam a altura correta depois de receber a largura.
+func _settle(host: Control, anchor: Control) -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if is_instance_valid(_catcher) and not _catcher.is_queued_for_deletion() and is_instance_valid(host) and is_instance_valid(anchor):
+		_place(host, anchor)
+
+
 func _start(seconds: float) -> void:
+	if seconds <= 0:
+		if not Motion.reduced: Motion.pop_in(self)
+		return  # resumos de leitura ficam até tocar fora ou abrir os detalhes
 	if Motion.reduced:
 		_tween = create_tween()
 	else:

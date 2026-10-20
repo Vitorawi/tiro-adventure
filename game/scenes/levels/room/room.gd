@@ -1389,6 +1389,10 @@ func open_station_tray(station_id: String, focus: String = "", center_camera: bo
 
 
 ## Local da Natureza aberto: bandeja com as coletas e os materiais. `focus` = material pedido.
+func can_open_nature_tray(site: String) -> bool:
+	return _nature_marker(site) != null and GameState.progress.nature_level(site) > 0
+
+
 func open_nature_tray(site: String, focus: String = "") -> void:
 	var marker := _nature_marker(site)
 	if marker == null:

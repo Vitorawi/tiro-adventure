@@ -18,116 +18,60 @@ static func missing(info: Dictionary) -> int:
 	return info.requirements.filter(func(row: Dictionary) -> bool: return not row.done).size()
 
 
+## Resumo do avatar: só o que falta, com a mesma contagem dos requisitos reais.
+static func compact_steps(info: Dictionary) -> Array[Dictionary]:
+	var steps: Array[Dictionary] = []
+	for req: Dictionary in info.requirements:
+		if req.done or req.type == "given": continue
+		var title := str(req.label)
+		var have := mini(int(req.have), int(req.need))
+		var need := int(req.need)
+		if req.type == "pillars":
+			title = "Cuidados"
+			var cares := TaskHelp.growth_care_steps(req)
+			have = cares.filter(func(care: Dictionary) -> bool: return care.done).size()
+			need = cares.size()
+		elif req.type == "feed": title = "Refeições"
+		elif req.type == "deliver": title = Database.item_name(str(req.item)).get_slice(" ", 0)
+		elif req.type == "owned": title = str(Database.progression.upgrades[str(req.upgrade)].name).get_slice(" ", 0)
+		elif req.type == "stat" and req.get("counter", "") == "walk": title = "Passeios"
+		var icon := TaskHelp.icon_for("growth_req", str(req.id))
+		if req.type == "pillars": icon = UiKit.ui_icon("action_pet")
+		elif req.type == "stat" and req.get("counter", "") == "walk": icon = UiKit.ui_icon("action_walk")
+		steps.append({"id": str(req.id), "title": title, "have": have, "need": need, "icon": icon})
+	return steps
+
+
 static func _build(box: VBoxContainer) -> void:
 	var info := GameState.growth_info()
-	box.set_meta("phase", info.phase)
-	box.add_child(PillarUi.personality_title())
-	var dots := UiKit.hbox(8)
-	dots.custom_minimum_size.y = 22
-	dots.name = "LifeDots"
-	dots.alignment = BoxContainer.ALIGNMENT_CENTER
-	for phase: Dictionary in info.phases:
-		var dot := Control.new()
-		dot.custom_minimum_size = Vector2(12, 18)
-		dot.draw.connect(func() -> void:
-			dot.draw_circle(Vector2(6, 9), 4, Palette.PRIMARY if phase.visited else Palette.SUNKEN)
-			if phase.id == info.phase: dot.draw_arc(Vector2(6, 9), 6, 0, TAU, 20, Palette.INK, 1, true))
-		dots.add_child(dot)
-	box.add_child(dots)
-	var portraits := UiKit.hbox(8)
-	portraits.alignment = BoxContainer.ALIGNMENT_CENTER
-	var current := UiKit.vbox(0)
-	current.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var dog := PetAnimator.portrait(120)
-	dog.custom_minimum_size.y = 112
-	dog.get_child(0).scale = Vector2(0.85, 0.85)
-	dog.get_child(0).position.x = -42
-	dog.name = "CurrentDog"
-	dog.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	current.add_child(dog)
-	current.add_child(_center(str(info.current.name)))
-	current.add_child(_center(str(info.current.age) + " · " + str(info.current.weight), &"SmallLabel"))
-	portraits.add_child(current)
-	if not info.next.is_empty():
-		portraits.add_child(_center("→", &"SectionLabel"))
-		var future := UiKit.vbox(0)
-		future.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		future.add_child(silhouette(info.next, info.requirements.size() - missing(info), info.ready, "NextSilhouette", 96))
-		future.add_child(_center(str(info.next.name)))
-		future.add_child(_center("Cap. %d" % int(info.next.chapter), &"SmallLabel"))
-		portraits.add_child(future)
 	var silk := GameState.silk_info()
-	var silk_open: bool = info.next.is_empty() and silk.adult and not silk.next.is_empty()
-	if silk_open:
-		portraits.add_child(_center("→", &"SectionLabel"))
-		var shiny := UiKit.vbox(0)
-		shiny.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var done_rows: int = silk.requirements.filter(func(row: Dictionary) -> bool: return row.done).size()
-		shiny.add_child(silhouette(info.current, done_rows, silk.ready, "SilkSilhouette", 96))
-		shiny.add_child(_center(str(silk.next.name)))
-		portraits.add_child(shiny)
-	box.add_child(portraits)
-	var closing := "Ele já é o Guardião do Vale"
-	if silk.adult and silk.level >= silk.max: closing = "Guardião do Vale, de pelagem de seda"
-	var unlocks := UiKit.fill_label("Próximo brilho: o pelo cada vez mais sedoso" if silk_open else ("Próxima fase: " + " · ".join(info.next.get("unlocks_text", [])) if not info.next.is_empty() else closing), &"SmallLabel")
-	unlocks.name = "NextUnlocks"
-	var unlock_row := UiKit.hbox(4)
-	unlock_row.add_child(UiKit.icon(UiKit.ui_icon("tab_tasks"), 24))
-	unlock_row.add_child(unlocks)
-	box.add_child(unlock_row)
-	if silk_open: _silk_requirements(box, silk)
-	if missing(info) == 1:
-		var almost := UiKit.chip(null, "Falta 1!", Palette.INK)
-		almost.name = "GrowthAlmost"
-		box.add_child(almost)
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 8)
-	box.add_child(grid)
-	for req: Dictionary in info.requirements:
-		var tile := VBoxContainer.new()
-		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var card := UiKit.card(tile, &"ReadyCardPanel" if req.done else &"CardPanel")
-		var tap := UiKit.ghost("", TaskHelp.open.bind("growth_req", str(req.id)))
-		tap.custom_minimum_size.y = 64
-		for state: String in ["normal", "hover", "pressed", "focus"]:
-			tap.add_theme_stylebox_override(state, StyleBoxEmpty.new())
-		tap.name = "GrowthReq_" + str(req.id)
-		card.add_child(tap)
-		var text := UiKit.label("%s\n%d/%d%s" % [req.label, mini(int(req.have), int(req.need)) if not req.done else int(req.need), int(req.need), " ✓" if req.done else ""], &"SmallLabel")
-		if str(req.type) == "pillars":
-			tap.custom_minimum_size.y = 104
-			var lines: PackedStringArray = []
-			for care: Dictionary in TaskHelp.growth_care_steps(req):
-				lines.append(str(care.title) + ": " + str(care.progress))
-			text.text = "\n".join(lines)
-		text.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		tap.add_child(text)
-		text.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		if str(req.type) == "deliver" and not req.done and GameState.deliver_growth_error(str(req.item)) == "":
-			var give := UiKit.secondary("Dar", _deliver.bind(str(req.item)), null, true)
-			give.name = "GiveGrowth_" + str(req.item)
-			card.add_child(give)
-		grid.add_child(tile)
-	var rings := UiKit.hbox(8)
-	box.add_child(rings)
-	for id: String in info.pillars:
-		var data: Dictionary = info.pillars[id]
-		var column := UiKit.vbox(2)
-		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var ring := RingProgress.new()
-		ring.name = "PillarRing_" + id
-		ring.custom_minimum_size = Vector2(44, 44)
-		ring.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		ring.texture = UiKit.ui_icon(data.icon)
-		ring.progress = float(data.level) / int(data.cap)
-		column.add_child(ring)
-		column.add_child(_center(str(data.title), &"SmallLabel"))
-		column.add_child(_center("%d/%d" % [data.level, data.cap], &"SmallLabel"))
-		if int(data.reserve) > 0: column.add_child(_center("+%d guardado" % data.reserve, &"SmallLabel"))
-		rings.add_child(column)
+	box.set_meta("phase", info.phase)
+	var hero := UiKit.hbox(12)
+	hero.name = "GrowthHero"
+	var dog := PetAnimator.portrait(64)
+	dog.name = "CurrentDog"
+	hero.add_child(dog)
+	var heading := UiKit.vbox(4)
+	heading.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	heading.add_child(UiKit.label(str(info.current.name), &"SectionLabel"))
+	heading.add_child(UiKit.label("Próxima fase: " + str(info.next.name) if not info.next.is_empty() else "Guardião do Vale", &"SmallLabel"))
+	hero.add_child(heading)
 	if not info.next.is_empty():
+		hero.add_child(silhouette(info.next, info.requirements.size() - missing(info), info.ready, "NextSilhouette", 48))
+	box.add_child(hero)
+	if not info.next.is_empty():
+		var visible_steps: Array = info.requirements.filter(func(req: Dictionary) -> bool: return req.type != "given")
+		var complete: int = visible_steps.filter(func(req: Dictionary) -> bool: return req.done).size()
+		var summary := UiKit.label("Tudo pronto para crescer!" if info.ready else "%d de %d passos concluídos" % [complete, visible_steps.size()], &"SmallLabel")
+		summary.name = "GrowthSummary"
+		box.add_child(summary)
+		var progress := ProgressBar.new()
+		progress.name = "GrowthProgress"
+		progress.custom_minimum_size.y = 8
+		progress.max_value = maxi(1, visible_steps.size())
+		progress.value = complete
+		progress.show_percentage = false
+		box.add_child(progress)
 		if info.ready:
 			var grow := UiKit.primary("Crescer!", func() -> void:
 				var error := GameState.grow()
@@ -135,11 +79,17 @@ static func _build(box: VBoxContainer) -> void:
 			grow.name = "GrowButton"
 			box.add_child(grow)
 		else:
-			var first: Dictionary = info.requirements.filter(func(row: Dictionary) -> bool: return not row.done)[0]
-			var lock := UiKit.lock_hint("Falta: " + str(first.label), TaskHelp.open.bind("growth_req", str(first.id)))
-			lock.name = "GrowthLock"
-			box.add_child(lock)
-	if silk_open:
+			_next_step(box, info)
+		box.add_child(UiKit.label("Para crescer", &"SectionLabel"))
+		for req: Dictionary in info.requirements:
+			if req.type != "given": _requirement_row(box, req)
+		var unlocks := UiKit.label("Depois: " + " · ".join(info.next.get("unlocks_text", [])), &"SmallLabel")
+		unlocks.name = "NextUnlocks"
+		box.add_child(unlocks)
+	elif silk.adult and not silk.next.is_empty():
+		box.add_child(silhouette(info.current, silk.requirements.filter(func(row: Dictionary) -> bool: return row.done).size(), silk.ready, "SilkSilhouette", 64))
+		box.add_child(UiKit.label(str(silk.next.name), &"SectionLabel"))
+		_silk_requirements(box, silk)
 		if silk.ready:
 			var shine := UiKit.primary("Mais brilho!", func() -> void:
 				var error := GameState.brighten()
@@ -151,6 +101,127 @@ static func _build(box: VBoxContainer) -> void:
 			var wait := UiKit.lock_hint("Falta: " + str(lacking.label))
 			wait.name = "SilkLock"
 			box.add_child(wait)
+	else:
+		box.add_child(UiKit.label("Ele cresceu com você. Continue cuidando do Tiro!"))
+	var details := UiKit.secondary("Ver cuidados", func() -> void: Events.sheet_requested.emit("Cuidados do Tiro", PillarUi.panel()), null, true)
+	details.name = "GrowthDetails"
+	box.add_child(details)
+	var book := UiKit.ghost("Caderneta · fases e lembranças", history)
+	book.name = "GrowthHistoryButton"
+	box.add_child(book)
+
+
+static func _next_step(box: VBoxContainer, info: Dictionary) -> void:
+	var pending: Array = info.requirements.filter(func(row: Dictionary) -> bool: return not row.done)
+	var first: Dictionary = pending[0]
+	# A comida é um começo concreto; entregar uma lembrança já possuída vem primeiro.
+	for req: Dictionary in pending:
+		if req.type == "feed": first = req
+	for req: Dictionary in pending:
+		if req.type == "deliver" and GameState.deliver_growth_error(str(req.item)) == "": first = req
+	var help := TaskHelp.describe("growth_req", str(first.id))
+	var card := UiKit.card(box, &"ReadyCardPanel")
+	card.get_parent().name = "GrowthNextStep"
+	var title := str(first.label)
+	var detail := ""
+	var action := "Ver como fazer"
+	var callback := TaskHelp.open.bind("growth_req", str(first.id))
+	if first.type == "feed":
+		if help.has("food_guide"):
+			title = str(help.title)
+			detail = str(help.food_guide.status)
+			action = str(help.food_guide.action)
+			callback = TaskHelp._go.bind(help.food_guide.target)
+		else:
+			title = "Dê comida ao Tiro na Tigela."
+			action = "Dar comida"
+			callback = TaskHelp._go.bind(help.target)
+	elif first.type == "deliver":
+		if GameState.deliver_growth_error(str(first.item)) == "":
+			title = "Você já tem: " + Database.item_name(str(first.item))
+			action = "Dar ao Tiro"
+			callback = _deliver.bind(str(first.item))
+		else:
+			title = "Consiga " + Database.item_name(str(first.item))
+			action = "Onde conseguir"
+	elif first.type == "pillars":
+		title = "Carinho, comida e brincadeiras ajudam o Tiro a crescer."
+		action = "Ver cuidados"
+	card.add_child(UiKit.label("Agora: " + title))
+	if detail != "": card.add_child(UiKit.label(detail, &"SmallLabel"))
+	var button := UiKit.primary(action, callback)
+	button.name = "GrowthNextAction"
+	card.add_child(button)
+
+
+static func _requirement_row(box: VBoxContainer, req: Dictionary) -> void:
+	var title := str(req.label)
+	var detail := "%d/%d%s" % [int(req.need) if req.done else mini(int(req.have), int(req.need)), int(req.need), " · Feito!" if req.done else ""]
+	var action := "Ver"
+	if req.type == "pillars":
+		title = "Cuidar do Tiro"
+		var steps := TaskHelp.growth_care_steps(req)
+		var count := steps.filter(func(step: Dictionary) -> bool: return step.done).size()
+		detail = "%d de %d cuidados prontos" % [steps.size() if req.done else count, steps.size()]
+		action = "Cuidar"
+	elif req.type == "feed":
+		title = "Comida do Tiro" if req.item == "any" else ("Comida favorita" if req.item == "favorite" else Database.item_name(str(req.item)))
+		detail = "%d/%d refeições" % [int(req.need) if req.done else mini(int(req.have), int(req.need)), int(req.need)]
+	elif req.type == "deliver":
+		title = Database.item_name(str(req.item))
+		detail += " entregue" if not req.done else ""
+		action = "Conseguir"
+	elif req.type == "stat" and str(req.get("counter", "")) == "walk":
+		title = "Passear com o Tiro"
+		detail = "%d/%d passeios" % [int(req.need) if req.done else mini(int(req.have), int(req.need)), int(req.need)]
+		action = "Passear"
+	var callback := TaskHelp.open.bind("growth_req", str(req.id))
+	var button_name := "GrowthReq_" + str(req.id)
+	if req.type == "deliver" and not req.done and GameState.deliver_growth_error(str(req.item)) == "":
+		action = "Dar"
+		button_name = "GiveGrowth_" + str(req.item)
+		callback = _deliver.bind(str(req.item))
+	var button := UiKit.secondary(action, callback, null, true)
+	button.name = button_name
+	if req.done:
+		button.text = "✓"
+		button.disabled = true
+	var row := UiKit.list_row(TaskHelp.icon_for("growth_req", str(req.id)), title, [], button)
+	if button_name.begins_with("GiveGrowth_"): row.name = "GrowthReq_" + str(req.id)
+	var body := row.get_child(0) as VBoxContainer
+	var top := body.get_child(0) as HBoxContainer
+	(top.get_child(0) as Control).custom_minimum_size = Vector2(32, 32)
+	var old_label := top.get_child(1)
+	top.remove_child(old_label)
+	old_label.queue_free()
+	var labels := UiKit.vbox(2)
+	labels.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	labels.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	labels.add_child(UiKit.label(title, &"SmallLabel"))
+	labels.add_child(UiKit.label(detail, &"SmallLabel", Palette.GOOD if req.done else Palette.INK_SOFT))
+	top.add_child(labels)
+	top.move_child(labels, 1)
+	if req.type == "deliver" and not req.done:
+		var source := TaskHelp.reward_source_text(str(req.item))
+		if source != "":
+			var hint := UiKit.label(source.split(" · ")[0], &"SmallLabel")
+			hint.name = "GrowthSource_" + str(req.item)
+			body.add_child(hint)
+	box.add_child(row)
+
+
+static func history() -> void:
+	var book := SheetBuilder.LiveBox.new(_build_history)
+	book.name = "GrowthHistory"
+	book.set_meta("sheet_size", "tall")
+	Events.sheet_requested.emit("Caderneta", book)
+
+
+static func _build_history(box: VBoxContainer) -> void:
+	var info := GameState.growth_info()
+	var silk := GameState.silk_info()
+	box.add_child(UiKit.secondary("Voltar ao crescimento", open, null, true))
+	box.add_child(PillarUi.personality_title())
 	box.add_child(UiKit.label("Caderneta", &"SectionLabel"))
 	for phase: Dictionary in info.phases:
 		var card := UiKit.card(box)

@@ -57,6 +57,17 @@ func run() -> void:
   for input: String in db.recipes[recipe_id].inputs:
    check(db.item_sources(input).size()>0,'origem de '+input+' ('+recipe_id+')')
  # Missão da vovó: entrega uma vez, consome os ingredientes, dá argolinha + 10 moedas.
+ fresh('puppy')
+ var help: Script = load('res://scripts/ui/task_help.gd')
+ var origin: Dictionary = help.call('describe','growth_req','key')
+ check('Vovó Bloblo' in str(origin.detail) and 'Sítio' in str(origin.detail) and 'Argolinha da vovó' in str(origin.detail),'origem visível antes de liberar a missão')
+ check('3' in str(origin.detail) and '1' in str(origin.detail),'origem informa as quantidades da troca')
+ check(origin.target.get('screen','')!='bag','sem argolinha não manda procurar na mochila')
+ var source_panel: Control = load('res://scripts/ui/growth_ui.gd').panel()
+ root.add_child(source_panel)
+ await process_frame
+ check(source_panel.find_child('GrowthSource_chew_ring',true,false)!=null,'origem aparece diretamente no crescimento')
+ source_panel.queue_free()
  fresh()
  state.dev_complete_quest('bloblo_stew')
  check(state.quest_unlocked('bloblo_chew_ring'),'missão da vovó aparece depois do ensopado')
@@ -67,6 +78,16 @@ func run() -> void:
  check(state.claim_quest('bloblo_chew_ring')=='','entrega a argolinha')
  check(state.inventory.count('chew_ring')==1 and state.inventory.count('carrot')==0 and state.inventory.count('potato')==0,'argolinha e ingredientes')
  check(state.coins-coins==10,'dez moedas')
+ state.growth.phase = 'puppy'
+ origin = help.call('describe','growth_req','key')
+ check('Você já tem' in str(origin.detail) and origin.target.has('growth'),'depois de receber orienta Dar no crescimento')
+ var rewards: Control = load('res://scripts/ui/progression_ui.gd').reward_chips(db.quests.bloblo_chew_ring.rewards)
+ root.add_child(rewards)
+ var named_reward := false
+ for label: Label in rewards.find_children('*','Label',true,false):
+  if 'Argolinha de morder' in label.text: named_reward = true
+ check(named_reward,'recompensa mostra o nome, além do ícone')
+ rewards.queue_free()
  check(state.claim_quest('bloblo_chew_ring')!='' and state.inventory.count('chew_ring')==1,'uma vez só')
  # Dar: erro sem item, definitivo, some depois de entregar, exigido para crescer.
  fresh('puppy')

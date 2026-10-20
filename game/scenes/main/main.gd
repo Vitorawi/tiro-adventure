@@ -353,6 +353,11 @@ func _refresh_guide() -> void:
 
 func _on_quest_completed(id: String) -> void:
 	var text := "Missão concluída!"
+	for item: String in Database.quests[id].get("rewards", {}).get("items", {}):
+		if Database.items.get(item, {}).get("category", "") == "keepsake":
+			var npc: String = Database.npcs.get(str(Database.quests[id].get("npc", "")), {}).get("name", "")
+			text = "%s te deu: %s! Crescimento → Dar." % [npc, Database.item_name(item)]
+			break
 	if Database.quests[id].get("kind", "main") == "main":
 		var next := GameState.progress.current_main_quest()
 		text += " Próximo: " + str(Database.quests[next].name) if next != "" else " História completa!"
