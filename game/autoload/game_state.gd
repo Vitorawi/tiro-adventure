@@ -781,6 +781,11 @@ func feed(item_id: String) -> bool:
 	if walking() or effects.is_empty() or inventory.count(item_id) < 1:
 		return false
 	var exception := {"forced": true} if _care_forced else _care_exception("feed")
+	var meal_before: Dictionary = {}
+	for row: Dictionary in growth_info().requirements:
+		if row.type == "feed" and not row.done:
+			meal_before = row
+	var body_before := int(growth.points.get("body", 0))
 	var before := _needs_now()
 	inventory.remove(item_id)
 	dog.apply(effects, now())
@@ -794,6 +799,14 @@ func feed(item_id: String) -> bool:
 	_care_reward("feed", useful)
 	_changed()
 	Events.dog_action.emit(&"feed")
+	if not meal_before.is_empty():
+		for row: Dictionary in growth_info().requirements:
+			if row.id == meal_before.id and int(row.have) > int(meal_before.have):
+				var message := "Refeições para crescer: %d/%d" % [mini(int(row.have), int(row.need)), int(row.need)]
+				var body_gain := int(growth.points.get("body", 0)) - body_before
+				if body_gain > 0: message += " · Corpo +%d" % body_gain
+				if row.done: message = "Refeições completas! Corpo pronto para crescer."
+				Events.toast_requested.emit(message)
 	return true
 
 

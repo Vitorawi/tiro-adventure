@@ -4,6 +4,7 @@ extends SceneTree
 var state: Node
 var db: Node
 var failures := 0
+var feedback: Array[String] = []
 
 func _initialize() -> void:
 	_run.call_deferred()
@@ -27,6 +28,7 @@ func _run() -> void:
 	saver.free()
 	state = root.get_node("GameState")
 	db = root.get_node("Database")
+	root.get_node("Events").toast_requested.connect(func(message: String) -> void: feedback.append(message))
 	for index in range(1, db.growth.phases.size()):
 		var phase: Dictionary = db.growth.phases[index]
 		fresh(str(db.growth.phases[index - 1].id))
@@ -46,7 +48,9 @@ func _run() -> void:
 			check(not state.growth.firsts.has("meal_body:" + str(phase.id)), "comida diferente não cumpre a especial")
 		state.inventory.add(item, int(meals.qty))
 		for n in int(meals.qty):
+			feedback.clear()
 			check(state.feed(item), "porção real " + str(phase.id))
+			check(feedback.any(func(message: String) -> bool: return message.begins_with("Refeições")), "porção anuncia impacto no crescimento " + str(phase.id))
 			if n + 1 < int(meals.qty):
 				check(not state.growth.firsts.has("meal_body:" + str(phase.id)), "parcial não antecipa a garantia")
 		check(int(state.growth.points.get("body", 0)) >= goal, "porções completam Corpo " + str(phase.id))

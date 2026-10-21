@@ -73,7 +73,7 @@ func _table() -> void:
 	check(crops.size() == TABLE.size(), "nenhuma cultura fora da tabela")
 	# Requisitos não trocados continuam como estavam.
 	check(crops.carrot.get("requirements", {}).is_empty(), "cenoura sem requisito")
-	check(crops.potato.requirements.quests == ["bloblo_carrots"], "batata: bloblo_carrots")
+	check(crops.potato.requirements.quests == ["bloblo_more_crops"], "batata libera depois de colher três vezes")
 	check(crops.strawberry.requirements.quests == ["bloblo_dig"], "morango: bloblo_dig")
 	check(crops.pumpkin.requirements.quests == ["bloblo_potato"], "abóbora: bloblo_potato")
 	check(crops.sweet_potato.requirements.quests == ["farm_deed"], "batata-doce: farm_deed")

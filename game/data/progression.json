@@ -2011,7 +2011,7 @@
           "adventure": 10
         }
       },
-      "icon": "action_play"
+      "icon": "item_wood"
     },
     "trail": {
       "name": "Trilha do riacho",
@@ -2603,8 +2603,8 @@
       "unlocks_text": "Abre a Vila e as missões diárias"
     },
     {
-      "name": "Conhecendo a Vila",
-      "description": "Passeie na Vila, venda e entregue encomendas.",
+      "name": "Vila e primeiros passeios",
+      "description": "Conheça a Vila e a Nina na Praça, passeie e monte o baú dos passeios.",
       "target": "",
       "rewards": {
         "coins": 40,
@@ -2612,7 +2612,7 @@
           "commerce": 20
         }
       },
-      "unlocks_text": "Abre o portão para a Natureza"
+      "unlocks_text": "Baú pronto e missão recebida: abre o portão para a Natureza e o Guia."
     },
     {
       "name": "Além do portão",

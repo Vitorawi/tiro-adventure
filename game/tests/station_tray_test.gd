@@ -111,6 +111,16 @@ func _run() -> void:
 	main = (load("res://scenes/main/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
 	await frames(4)
+	if "--ingredient-shots" in OS.get_cmdline_user_args():
+		await _test_missing_ingredients()
+		print("INGREDIENT TRAY UI: ", "PASS" if failures == 0 else "FAIL")
+		quit(0 if failures == 0 else 1)
+		return
+	if "--spacing-shots" in OS.get_cmdline_user_args():
+		await _test_roomy_station()
+		print("STATION SPACING UI: ", "PASS" if failures == 0 else "FAIL")
+		quit(0 if failures == 0 else 1)
+		return
 	if "--route-shots" in OS.get_cmdline_user_args():
 		await _test_nature()
 		print("NATURE ROUTE UI: ", "PASS" if failures == 0 else "FAIL")
@@ -129,6 +139,7 @@ func _run() -> void:
 	await _test_blender_and_focus()
 	await _test_see_all()
 	await _test_growth_food_focus()
+	await _test_roomy_station()
 	await _test_coop()
 	await _test_animal_spaces()
 	await _test_nature()
@@ -252,7 +263,7 @@ func _test_full_queue() -> void:
 	house.call("close_tray")
 
 
-# --- 3. faltam ingredientes: selo "!" e "Como fazer" --------------------------------------------
+# --- 3. faltam ingredientes: esmaecer sem cadeado e "Como fazer" ---------------------------
 
 func _test_missing_ingredients() -> void:
 	reset_world_state()
@@ -263,7 +274,9 @@ func _test_missing_ingredients() -> void:
 		return
 	var item: Control = current.call("item_node", "carrot_snack")
 	var badge := item.find_child("Badge", true, false) as Label
-	check(badge != null and badge.visible and badge.text == "!", "selo \"!\" na receita sem ingredientes")
+	check(badge == null, "falta de ingredientes não cria exclamação de missão na receita")
+	check((item.get_node("Body") as Control).modulate.a < 1.0, "receita sem ingredientes fica esmaecida")
+	check(not (item.get_node("Lock") as Control).visible, "ingredientes faltantes não exibem cadeado")
 	var cook := current.call("find_in_panel", "Cook") as Button
 	check(cook != null and cook.disabled and cook.text == state.call("cook_error", "carrot_snack") and cook.text.begins_with("Falta "), "primary desabilitado mostra o que falta (%s)" % (cook.text if cook else "?"))
 	var chips := current.call("find_in_panel", "Ingredients") as Control
@@ -273,13 +286,21 @@ func _test_missing_ingredients() -> void:
 		(chips.get_child(0) as Button).pressed.emit()
 		await frames()
 	check(not sheet_titles.is_empty(), "o chip abre o \"Como fazer\" (%s)" % str(sheet_titles))
-	# Com ingredientes o selo some sozinho.
+	events.sheet_close_requested.emit()
+	await frames()
+	# Ingredientes continuam atualizando a ação, sem aviso de missão.
 	var reopened := await tap(house, "place:stove", "stove")
 	add("carrot", 2)
 	state.call("_changed")
 	await frames()
 	var badge_now := reopened.call("item_node", "carrot_snack").find_child("Badge", true, false) as Label
-	check(badge_now != null and not badge_now.visible, "o selo some quando os ingredientes chegam")
+	check(badge_now == null, "receita com ingredientes também fica sem exclamação")
+	check(is_equal_approx((reopened.call("item_node", "carrot_snack").get_node("Body") as Control).modulate.a, 1.0), "ingredientes recebidos retiram o esmaecimento na hora")
+	if "--ingredient-shots" in OS.get_cmdline_user_args():
+		var folder := ProjectSettings.globalize_path("res://../build/screenshots/recipe_ingredients")
+		DirAccess.make_dir_recursive_absolute(folder)
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(folder.path_join("ingredients_arrived.png"))
 	house.call("close_tray")
 
 
@@ -300,6 +321,61 @@ func _test_collect_without_opening() -> void:
 
 
 # --- 5. liquidificador (outra estação do mesmo lugar) e "Ir" com receita ------------------------
+
+func _test_roomy_station() -> void:
+	reset_world_state()
+	state.get("progress").owned.erase("stove_queue_2")
+	state.get("progress").owned.erase("stove_queue_3")
+	add("carrot", 4)
+	add("potato", 4)
+	var house := await enter("house")
+	places.call("run", "house", "recipe:puppy_mash")
+	await frames(12)
+	var current := tray()
+	check(current != null, "fogão abre no caso da foto")
+	if current == null: return
+	var body := current.call("find_in_panel", "TrayBodyScroll") as ScrollContainer
+	check(body != null, "conteúdo tem rolagem quando necessário")
+	var cook := current.call("find_in_panel", "Cook") as Button
+	var footer := current.call("find_in_panel", "FooterGhost") as Button
+	var quantity := current.call("find_in_panel", "QuantityMore") as Button
+	check(quantity != null and not quantity.disabled, "caso da foto permite dois lotes")
+	var nav := main.find_child("TabBar", true, false) as Control
+	for button: Button in [cook, footer]:
+		check(button != null, "ações existem")
+		if button:
+			check(button.get_global_rect().end.y <= nav.global_position.y - 4, "ação acima das abas: " + button.name)
+			check(not body.is_ancestor_of(button), "ação permanece fixa fora da rolagem: " + button.name)
+	check(cook != null and not cook.disabled, "Cozinhar acessível com ingredientes e vagas")
+	var panel: Control = current.get("_box")
+	check(panel.position.y >= 119 and panel.get_global_rect().end.y < nav.global_position.y, "painel cabe entre HUD e abas")
+	check(current.call("find_in_panel", "RecipeScroll") != null, "receitas em faixa horizontal")
+	if "--spacing-shots" in OS.get_cmdline_user_args():
+		(main.get("_toast") as Control).hide()
+		var folder := ProjectSettings.globalize_path("res://").path_join("../build/screenshots/station_spacing").simplify_path()
+		DirAccess.make_dir_recursive_absolute(folder)
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(folder.path_join("stove_%d.png" % root.size.x))
+	if quantity:
+		body.ensure_control_visible(quantity)
+		await frames(4)
+		check(body.get_global_rect().encloses(quantity.get_global_rect()), "rolagem revela toda a quantidade")
+		check(cook.get_global_rect().end.y < nav.global_position.y and footer.get_global_rect().end.y < nav.global_position.y, "rolagem mantém as ações acima das abas")
+	if quantity: quantity.pressed.emit()
+	await frames(8)
+	cook = current.call("find_in_panel", "Cook") as Button
+	check(cook != null and not cook.disabled and "×2" in cook.text, "seletor atualiza botão fixo para dois lotes")
+	if cook: cook.pressed.emit()
+	await frames(8)
+	check((state.call("station", "stove").queue as Array).size() == 2, "botão fixo cozinha dois lotes de verdade")
+	footer = current.call("find_in_panel", "FooterGhost") as Button
+	sheet_titles.clear()
+	if footer: footer.pressed.emit()
+	await frames(4)
+	check(not sheet_titles.is_empty(), "Ver tudo continua abrindo o painel completo")
+	events.emit_signal("sheet_close_requested")
+	house.call("close_tray")
+
 
 func _test_growth_food_focus() -> void:
 	reset_world_state()

@@ -54,10 +54,9 @@ static func orders(focus: String = "", channel: String = "neighbors") -> Control
 		if channel == "contracts":
 			_stall_header(box)
 		else:
-			box.add_child(UiKit.label("Pedidos pequenos dos vizinhos. Sem prazo para entregar.", &"SmallLabel"))
 			_customers_summary(box)
 		var ids := order_ids(channel)
-		if ids.any(func(id: String) -> bool: return not mission_quests(id).is_empty()):
+		if channel == "contracts" and ids.any(func(id: String) -> bool: return not mission_quests(id).is_empty()):
 			box.add_child(UiKit.label("! Pedido de missão · aparece primeiro", &"SmallLabel"))
 		if focus != "" and not focus in ids:
 			var data: Dictionary = Database.progression.orders[focus]
@@ -85,7 +84,7 @@ static func orders(focus: String = "", channel: String = "neighbors") -> Control
 			_order_detail(box, str(model.selected))
 		else:
 			box.add_child(UiKit.label("Novos contratos chegam com a evolução da banca." if channel == "contracts" else "Os pedidos chegam depois da primeira colheita.", &"SmallLabel"))
-		_next_order(box, channel)
+		if channel == "contracts": _next_order(box, channel)
 	))
 
 ## Selos de confiança do cliente (bronze/prata/ouro; o coração é do vínculo com o Tiro).
@@ -127,11 +126,35 @@ static func _customers_summary(box: VBoxContainer) -> void:
 		var customer := str(Database.progression.orders[id].get("customer", ""))
 		if customer != "" and not customer in seen and GameState.requirement_error(Database.progression.orders[id].get("requirements", {})) == "":
 			seen.append(customer)
-	var card := UiKit.vbox(2)
+	var card := UiKit.hbox(6)
 	card.name = "CustomerSummary"
 	for customer in seen:
-		card.add_child(customer_row(customer))
+		var button := UiKit.secondary("Nv. %d" % GameState.progress.customer_level(customer), func() -> void:
+			Events.sheet_requested.emit(str(Database.npcs[customer].name), _customer_info(customer)), ProgressionUi.npc_portrait(customer), true)
+		button.name = "Customer_" + customer
+		button.expand_icon = true
+		button.add_theme_constant_override("icon_max_width", 24)
+		button.add_theme_font_size_override("font_size", 14)
+		button.tooltip_text = customer_text(customer)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		card.add_child(button)
+	var help := UiKit.icon_button(null, func() -> void:
+		var content := UiKit.vbox(8)
+		content.add_child(UiKit.label("Pedidos dos vizinhos, sem prazo para entregar. Pedidos com ! ajudam uma missão e aparecem primeiro."))
+		for customer in seen: content.add_child(customer_row(customer))
+		_next_order(content, "neighbors")
+		content.add_child(UiKit.secondary("Voltar às encomendas", func() -> void: Events.sheet_requested.emit("Encomendas", orders())))
+		Events.sheet_requested.emit("Sobre as encomendas", content), 44, "?")
+	help.name = "OrdersHelp"
+	card.add_child(help)
 	box.add_child(card)
+
+static func _customer_info(customer: String) -> Control:
+	var box := UiKit.vbox(8)
+	box.add_child(customer_row(customer))
+	box.add_child(UiKit.label("Entregue encomendas deste cliente para ganhar confiança e novos selos."))
+	box.add_child(UiKit.secondary("Voltar às encomendas", func() -> void: Events.sheet_requested.emit("Encomendas", orders())))
+	return box
 
 static func _page(box: VBoxContainer, model: Dictionary, total: int, count: int) -> void:
 	var pages := maxi(1, ceili(float(total) / count))
@@ -157,7 +180,7 @@ static func _order_tile(id: String, selected: bool, action: Callable) -> Button:
 	var first: String = data.inputs.keys()[0]
 	var tile := UiKit.grid_tile(Database.item_icon(first), str(data.name), action, 100, 28)
 	tile.name = "Order_" + id
-	tile.custom_minimum_size.y = 122
+	tile.custom_minimum_size.y = 92
 	if not mission_quests(id).is_empty():
 		var badge := UiKit.alert_badge()
 		badge.name = "OrderMissionBadge"
@@ -171,10 +194,6 @@ static func _order_tile(id: String, selected: bool, action: Callable) -> Button:
 	for item: String in data.inputs:
 		var product := UiKit.vbox(0)
 		product.add_child(UiKit.icon(Database.item_icon(item), 24))
-		var amount := UiKit.short_label("%d/%d" % [GameState.inventory.count(item), int(data.inputs[item])], &"SmallLabel", Palette.GOOD if GameState.inventory.count(item) >= int(data.inputs[item]) else Palette.BAD)
-		amount.add_theme_font_size_override("font_size", 12)
-		amount.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		product.add_child(amount)
 		products.add_child(product)
 	body.add_child(products)
 	body.move_child(products, 0)
@@ -205,20 +224,29 @@ static func _order_detail(box: VBoxContainer, id: String) -> void:
 	var data: Dictionary = Database.progression.orders[id]
 	var detail := UiKit.vbox(6)
 	detail.name = "OrderDetail"
-	detail.add_child(UiKit.label(str(data.name), &"SectionLabel"))
+	var heading := UiKit.hbox(6)
+	heading.add_child(UiKit.fill_label(str(data.name), &"SectionLabel"))
+	if str(data.get("customer", "")) != "":
+		var portrait := UiKit.icon(ProgressionUi.npc_portrait(str(data.customer)), 24)
+		portrait.name = "Customer_" + str(data.customer)
+		portrait.tooltip_text = customer_text(str(data.customer))
+		heading.add_child(portrait)
+	detail.add_child(heading)
 	for quest_id in mission_quests(id):
 		var row := UiKit.hbox(6)
 		row.name = "OrderMission_" + quest_id
 		row.add_child(UiKit.alert_badge())
 		row.add_child(UiKit.fill_label("Missão: " + str(Database.quests[quest_id].name), &"SmallLabel"))
 		detail.add_child(row)
-	if str(data.get("customer", "")) != "":
-		detail.add_child(customer_row(str(data.customer)))
 	var ingredients := UiKit.flow(2)
 	for item: String in data.inputs:
 		ingredients.add_child(ProgressionUi.item_chip(item, int(data.inputs[item])))
+	var rewards := ProgressionUi.reward_chips(data.rewards)
+	for chip in rewards.get_children():
+		rewards.remove_child(chip)
+		ingredients.add_child(chip)
+	rewards.free()
 	detail.add_child(ingredients)
-	detail.add_child(ProgressionUi.reward_chips(data.rewards))
 	var reason := GameState.order_error(id)
 	var action := UiKit.primary("Entregar contrato" if is_contract(id) else "Entregar", func() -> void:
 		var error := GameState.fulfill_order(id)

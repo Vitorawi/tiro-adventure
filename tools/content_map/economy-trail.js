@@ -18,7 +18,7 @@ window.EconomyTrail=(()=>{
       if(amount)return {state:"done",text:`${amount} consumido(s) · dia ${day(transaction)}`,point:transaction};
       return {state:"unknown",text:recorded?`1ª aquisição: dia ${day(recorded)} · quantidade não comprovada`:"Quantidade exigida sem data comprovada"};
     }
-    if(["upgrade","quest","project","animal","world"].includes(kind)&&recorded){
+    if(["growth","upgrade","quest","project","animal","world"].includes(kind)&&recorded){
       if(!context.matching)return {state:"historical",text:`Registro histórico · dia ${day(recorded)}`,point:recorded};
       if(target.point&&recorded.active_min>target.point.active_min+.051)return {state:"unknown",text:`Registro posterior · dia ${day(recorded)}`,point:recorded};
       return {state:"done",text:clock(recorded),point:recorded};
@@ -45,7 +45,7 @@ window.EconomyTrail=(()=>{
     const costs=deps.filter(e=>["input","cost","phase"].includes(e.relation));
     if(costs.length){before.append(E("h4","","Materiais, moedas e etapas"));for(const edge of costs){before.append(edgeButton(edge,target));if(edge.relation==="phase")for(const material of (adjacency.get(edge.source)||[]).filter(e=>e.target===edge.source&&e.relation==="input"))before.append(edgeButton(material,target));}}
     const arrival=E("section","trail-arrival");arrival.append(E("h4","","2 · Marco alcançado"));const n=nodes.get(target.node);if(n)arrival.append(icon(n));arrival.append(E("h3","",target.name));
-    if(target.point){arrival.append(E("strong","",`Semana ${Math.ceil(day(target.point)/7)} · dia ${day(target.point)}`),E("p","",`${fmt(target.point.hours)} h corridas desde o início\n${fmt(target.point.active_min)} min ativos acumulados`));
+    if(target.point){arrival.append(E("strong","",`Semana ${Math.ceil(day(target.point)/7)} · dia ${day(target.point)}`),E("p","",`${fmt(target.point.hours)} h corridas desde o início${target.point.approximate?" (dia aproximado do resumo)":""}\n${fmt(target.point.active_min)} min ativos acumulados`));
       const known=progression.map(e=>evidence(e,target)).filter(v=>v.state==="done"&&v.point&&v.point.active_min<=target.point.active_min&&v.point.hours<=target.point.hours);
       if(known.length){const last=known.reduce((a,b)=>a.point.hours>b.point.hours?a:b);arrival.append(E("small","",`${fmt(target.point.hours-last.point.hours)} h corridas entre o último requisito com registro anterior e este marco. Isso não identifica a causa da demora.`));}
     }else arrival.append(E("p","","Marco sem registro nesta execução."));

@@ -343,6 +343,7 @@ func _run() -> void:
 			await RenderingServer.frame_post_draw
 			check(root.get_texture().get_image().save_png(folder.path_join("cooldown_%d.png" % viewport.x)) == OK, "captura do retorno do carinho")
 	await _test_play_feedback()
+	await _test_care_pointer()
 	await _test_food_help()
 	main.queue_free()
 	await process_frame
@@ -379,6 +380,36 @@ func _test_play_feedback() -> void:
 			root.get_texture().get_image().save_png(folder.path_join("wait_%d.png" % viewport.x))
 
 
+func _test_care_pointer() -> void:
+	var places: Script = load("res://scripts/ui/places.gd")
+	state.get("dog").sleeping = false
+	for pair: Array in [["bathe", "sponge"], ["play", "ball"]]:
+		var target: Dictionary = places.call("goal_target", {"type": "stat", "key": pair[0], "target": 1})
+		check(target.get("care", "") == pair[1], "Ir aponta o cuidado de " + str(pair[0]))
+		places.call("go", target)
+		await frames()
+		var tile: Control = tray.call("item_node", pair[1])
+		var pointer: Node2D = tile.get_node_or_null("CarePointer")
+		check(pointer != null and pointer.is_visible_in_tree(), "seta visível no cuidado " + str(pair[1]))
+		if pointer:
+			check(is_equal_approx(pointer.position.x, tile.size.x * 0.5), "seta centralizada no botão")
+			if "--care-guide-shots" in OS.get_cmdline_user_args():
+				var folder := ProjectSettings.globalize_path("res://../build/screenshots/care_guides")
+				DirAccess.make_dir_recursive_absolute(folder)
+				await RenderingServer.frame_post_draw
+				root.get_texture().get_image().save_png(folder.path_join(str(pair[1]) + ".png"))
+		tap(str(pair[1]))
+		await frames()
+		check(tile.get_node_or_null("CarePointer") == null, "ação remove a seta de " + str(pair[1]))
+	places.call("go", {"screen": "pet", "care": "ball"})
+	await frames()
+	root.get_node("Events").screen_requested.emit(&"tasks")
+	await frames()
+	check(tray.find_child("CarePointer", true, false) == null, "sair do Tiro limpa a seta")
+	root.get_node("Events").screen_requested.emit(&"pet")
+	await frames()
+
+
 func _test_food_help() -> void:
 	var bag: Object = state.get("inventory")
 	var progress: Object = state.get("progress")
@@ -387,11 +418,26 @@ func _test_food_help() -> void:
 	state.get("dog").sleeping = false
 	bag.call("from_dict", {"carrot_snack": 1})
 	progress.cooldowns.erase("emergency_food")
+	progress.seen.erase("npc_intro:bloblo")
+	progress.claimed_quests.erase("bloblo_meet")
 	var picker: Control = load("res://scripts/ui/sheet_builder.gd").call("food_picker")
 	root.add_child(picker)
 	await frames()
+	check(picker.find_child("FoodHelpButton", true, false) == null and picker.find_child("FoodHelpTimer", true, false) == null, "Tigela esconde pedido e recarga antes de conhecer a vovó")
+	bag.call("from_dict", {})
+	tray.call("refresh")
+	tray.call("close_food_menu")
+	tray.call("open_food_menu")
+	await frames()
+	var early_menu: Control = pet.find_child("FoodMenu", true, false)
+	check(early_menu.find_child("FoodHelpButton", true, false) == null and not early_menu.find_child("FoodHelp", true, false).visible, "guia vazia também esconde ajuda antes da apresentação")
+	tray.call("close_food_menu")
+	bag.call("from_dict", {"carrot_snack": 1})
+	var introduction: Array[String] = ["npc_intro:bloblo"]
+	state.call("mark_seen", introduction)
+	await frames()
 	var button: Button = picker.find_child("FoodHelpButton", true, false)
-	check(button != null and not button.disabled, "Tigela sempre permite pedir, mesmo com outra comida")
+	check(button != null and not button.disabled, "depois da apresentação permite pedir, mesmo com outra comida")
 	button.pressed.emit()
 	await frames()
 	check(bag.call("count", "dog_food") == 2, "vovó dá duas rações sem cobrar")

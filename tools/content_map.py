@@ -201,6 +201,70 @@ class ContentGraph:
         for counter in goal.get("also_counts", []):
             self.link(self.counter(counter), target, "também conta para a meta", "goal")
 
+    def growth_catalog(self):
+        growth = self.docs.get("growth", {})
+        for key, pillar in growth.get("pillars", {}).items():
+            self.add("pillar", key, {**pillar, "levels": growth.get("levels", [])}, "growth", f"/pillars/{key}")
+        previous = None
+        for i, phase in enumerate(growth.get("phases", [])):
+            node = self.add("growth", phase["id"], phase, "growth", f"/phases/{i}")
+            if previous:
+                self.link(previous, node, "crescimento seguinte", "sequence")
+            previous = node
+            for req in phase.get("requirements", []):
+                kind = req["type"]
+                if kind == "owned":
+                    self.link(self.ref("upgrade", req["upgrade"]), node, "precisa ter", "requirement")
+                elif kind in {"feed", "deliver"}:
+                    item = req["item"]
+                    source = self.ref("item", item) if item not in {"any", "favorite"} else self.condition(
+                        f"growth_food:{item}", "Qualquer comida" if item == "any" else "Comida favorita descoberta")
+                    self.link(source, node, f"{'alimentar' if kind == 'feed' else 'entregar'} ×{req['qty']}",
+                              "goal" if kind == "feed" else "input", amount=req["qty"])
+                    if req.get("body_level"):
+                        self.link(node, self.ref("pillar", "body"), f"refeições garantem Corpo nível {req['body_level']}", "care")
+                elif kind == "pillars":
+                    for pillar, level in req["levels"].items():
+                        levels = growth.get("levels", [])
+                        points = levels[level-1] if 0 < level <= len(levels) else "?"
+                        self.link(self.ref("pillar", pillar), node, f"nível ≥ {level} · {points} pontos", "requirement")
+                elif kind == "stat":
+                    self.link(self.counter(req["counter"]), node, f"≥ {req['qty']}", "goal")
+                elif kind == "collection":
+                    self.link(self.ref("collection", req["collection"]), node, "precisa ter", "requirement")
+                else:
+                    self.link(self.condition(f"growth:{phase['id']}:{req['id']}", req.get("label", kind), req), node, "condição", "requirement")
+        for key, source in growth.get("sources", {}).items():
+            node = self.add("rule", f"growth_source:{key}", source, "growth", f"/sources/{key}", name=f"Crescimento · {key}")
+            values = source.items() if key != "walk" else []
+            for pillar, amount in values:
+                if pillar in growth.get("pillars", {}):
+                    self.link(node, self.ref("pillar", pillar), f"ganho base +{amount} · sujeito às regras da fonte", "care")
+            if key == "walk":
+                for route, gains in source.items():
+                    for pillar, amount in gains.items():
+                        self.link(self.ref("walk", route), self.ref("pillar", pillar), f"ganho base +{amount}", "care")
+        previous = "growth:adult"
+        for i, tier in enumerate(growth.get("silk", {}).get("levels", [])):
+            node = self.add("growth", tier["id"], tier, "growth", f"/silk/levels/{i}")
+            self.link(previous, node, "precisa concluir", "requirement")
+            previous = node
+            self.link(self.ref("pillar", "coat"), node, f"nível ≥ {tier['coat']}", "requirement")
+            for counter, amount in [("brush_days", tier["brush_days"]), ("shampoo_bath", tier["shampoo"])]:
+                self.link(self.counter(counter), node, f"≥ {amount}", "goal")
+        for i, photo in enumerate(self.docs.get("album", {}).get("photos", [])):
+            node = self.add("album", photo["id"], photo, "album", f"/photos/{i}", name=photo["title"])
+            when = photo.get("when", {})
+            if when.get("grew_to"):
+                self.link(self.ref("growth", when["grew_to"]), node, "registra foto ao crescer", "reward")
+        for key, decor in self.docs.get("house", {}).get("items", {}).items():
+            node = self.add("house", key, decor, "house", f"/items/{key}")
+            rule = decor.get("rule", {})
+            if rule.get("growth"):
+                self.link(self.ref("growth", rule["growth"]), node, "libera decoração", "unlock")
+            if rule.get("upgrade"):
+                self.link(self.ref("upgrade", rule["upgrade"]), node, "precisa ter", "requirement")
+
     def build(self):
         for key, name in {"coins": "Moedas", "xp": "XP do jogador", "affection": "Afeto"}.items():
             self.add("resource", key, name=name)
@@ -269,18 +333,24 @@ class ContentGraph:
                                name=f"{self.config.get('stations', {}).get(station, {}).get('name', station)} · {tier['name']}")
                 self.link(self.ref("station", station), rid, f"{tier['jobs']} lotes / {tier['kinds']} receitas", "goal")
 
+        self.growth_catalog()
         # Todas as definições existem antes de resolver as referências.
         for node in list(self.nodes.values()):
             nid, kind, key, d = node["id"], node["kind"], node["key"], node["data"]
             if not isinstance(d, dict):
                 continue
-            self.requirements(nid, d.get("requirements", {}))
+            if isinstance(d.get("requirements", {}), dict):
+                self.requirements(nid, d.get("requirements", {}))
+            if kind in {"item", "collection"} and isinstance(d.get("growth"), str):
+                self.link(self.ref("growth", d["growth"]), nid, "a partir desta fase", "requirement")
             self.rewards(nid, d.get("rewards", {}))
             if d.get("world"):
                 self.link(self.ref("world", d["world"]), nid, "local", "location")
             if d.get("npc"):
                 self.link(self.ref("npc", d["npc"]), nid, "personagem", "location")
             if kind == "item":
+                for pillar, amount in d.get("growth", {}).get("pillars", {}).items() if isinstance(d.get("growth"), dict) else []:
+                    self.link(nid, self.ref("pillar", pillar), f"alimentar +{amount} base · fases e bônus no detalhe", "care")
                 storage = d.get("storage")
                 if not storage:
                     storage = next((sid for sid, sd in self.p.get("storage", {}).items() if d.get("category", "product") in sd.get("categories", [])), None)

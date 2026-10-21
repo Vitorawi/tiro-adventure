@@ -53,9 +53,12 @@ static func food_picker() -> Control:
 	)
 
 
-## Ajuda da vovó sempre na Tigela e na guia vazia, com a mesma recarga salva.
+## Ajuda na Tigela e na guia vazia só depois de conhecer a vovó, com a mesma recarga salva.
 static func food_help(primary: bool = true) -> Control:
 	var help := LiveBox.new(func(box: VBoxContainer) -> void:
+		box.visible = GameState.progress.seen.has("npc_intro:bloblo") or GameState.progress.claimed_quests.has("bloblo_meet")
+		if not box.visible:
+			return
 		var wait := GameState.progress.cooldown_left("emergency_food", GameState.now())
 		var button := UiKit.button("Pedir à vovó", func() -> void:
 			var error := GameState.emergency_food()

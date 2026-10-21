@@ -158,7 +158,6 @@ func _run() -> void:
 	main.find_child("WorldsScreen", true, false).call("show_map")
 	await process_frame
 	await process_frame
-	main.find_child("WorldsScreen", true, false).get_node("%MapView").call("center_on", "farm", false)
 	await shot("a03_map")
 	await _world("house")
 	await shot("a04_house")

@@ -16,7 +16,7 @@ atualiza os sprites e recalcula a navegação. A posição é fixa, com moviment
 | Aba | O que tem |
 |---|---|
 | **Tiro** | Tela do Pet (necessidades, carinho, comer, brincar, banho, dormir) e botão **Manual** para consultar recursos/estações. |
-| **Mapa** | O mundo em que você está (sala tocável) com cabeçalho: botão **Mapa**, nome do mundo, botão **Lugares** ("O que tem aqui?") e os **personagens** dali (verdes com "!" quando há missão pronta). Tocar em "Mapa" (ou na aba de novo) mostra a lista de mundos com miniatura, personagens e avisos ("Canteiros: 2 prontos para colher!"). |
+| **Mapa** | O mundo em que você está (sala tocável), com pílula do mundo, botão **Lugares** e rostos dos personagens. Tocar na pílula ou na aba de novo mostra cinco destinos juntos: ícone, nome e avisos curtos de coletas, missões, prêmios, achados e tesouro. Um toque na linha viaja. |
 | **Missões** | Três grupos fixos: **Principal** (história, um passo por vez, Ir/?), **Personagens** (secundárias agrupadas por NPC, Abrir/Fechar) e **Temporárias** (Diárias/Semanais, um período por vez, Pegar tudo). **!** vermelho indica prêmio disponível no grupo, no personagem e na missão. Prêmios prontos aparecem primeiro no grupo Personagens. |
 | **Mochila** | Ícone + quantidade por categoria (aparece após a 1ª colheita). Tocar num item: preço, efeitos, **De onde vem** e **Usado em** (chips que levam ao lugar), "Dar ao Tiro" e "Vender". |
 
@@ -81,17 +81,20 @@ separados impedem andar na água, árvores ou penhascos. O save mantém os ids d
 
 A aba Mapa retoma o último mundo da sessão (Casa no começo, sem gravação em disco). Tocar novamente
 na aba ou na pílula do mundo abre `MapView`, seletor sobre o mundo escurecido, sem esconder a sala.
-`WorldSelector` organiza cinco cartões 240×330 em carrossel horizontal, com margens para centralizar
-o primeiro/último, encaixe ao soltar e laterais menores. Tocar num lateral centraliza; tocar no central
-aberto viaja. Fecha pelo ✕, fora dos cartões ou arrastando para baixo. A pinça da sala fica suspensa
-enquanto ele está aberto, sem alterar o zoom ou desalinhamento da textura do chão.
+`WorldSelector` organiza cinco linhas numa lista, na ordem Casa → Sítio → Vila → Praça → Natureza.
+Todas ficam visíveis sem rolagem, entre HUD e abas, inclusive em 360×640. Cada linha mede 72 px
+(64 px quando há menos altura) e aceita um toque para viajar. O mundo atual fica verde e marcado
+“Aqui”. Fecha pelo ✕, toque no fundo ou Voltar/Escape. A pinça da sala fica suspensa enquanto a
+lista está aberta, sem alterar o zoom ou o enquadramento.
 
-`WorldCard` mostra miniatura sobre céu/chão do `backdrop`, faixa `Palette.WORLD`, nome, legenda,
-"Você está aqui", quantidade de avisos (`Places.world_alerts`) e selo de missão. `map_name`, `map_caption`
-e `icon` de `worlds.json` fornecem os textos/ícones; os cinco ícones próprios são `tab_house`, `tab_farm`,
-`tab_park`, `tab_village` e `tab_nature`. Mundo fechado fica desabilitado, com cadeado e
-`Places.unlock_hint`: "Abre no capítulo N", nome da história ou missão e seu ícone/retrato.
-Quando o requisito é uma missão, o capítulo vem do próprio `quests.json`, sem alterar a regra de abertura.
+`WorldCard` mantém o nome `WorldCard_<mundo>`, mas agora é uma linha com o ícone original, nome
+e até duas linhas de avisos de `Places.world_summary`: prêmios, coletas, missões, achados e tesouro,
+sem misturar as contagens. Sem pendências, mostra “Tudo em dia”. `map_name` e `icon` de
+`worlds.json` fornecem o nome e a arte. Mundo fechado fica desabilitado, com cadeado e motivo
+curto: missão necessária ou capítulo. O campo opcional `map_locked_hint` permite explicar o marco
+concreto (Natureza: concluir o baú de passeios com a Nina), sem mudar os requisitos de abertura.
+Os nós de aviso continuam `WorldStatus_<categoria>`; o estado atual usa `CurrentWorld` e o cadeado,
+`WorldLock`. Não há mais miniaturas, centralização ou segundo toque.
 
 `WorldsScreen.enter` usa `WorldTransition` quando muda o mundo com a aba visível. Duas massas de papel
 arredondadas entram em 0,22 s, a sala troca coberta e elas saem em 0,22 s (alternativa permitida pelo plano).

@@ -95,6 +95,9 @@ def read_run(path):
         times[f"quest:{key}"] = value
     for key, value in run.get("milestones", {}).items():
         times[f"event:{key}"] = value
+    for key, value in run.get("growth_days", {}).items():
+        times[f"growth:{key}"] = {"active_min": value["active_min"],
+                                  "hours": value["day"] * 24, "approximate": True}
     for milestone, upgrade in {"stove": "stove", "workbench": "workbench", "stall": "stall"}.items():
         if milestone in run.get("milestones", {}):
             times[f"upgrade:{upgrade}"] = run["milestones"][milestone]
@@ -142,9 +145,13 @@ def spread(values):
 
 def build_pacing(graph, data_dir, batch="", profile="reference", until="", plan_path=PLAN, evidence_dir=EVIDENCE):
     plan = read_plan(plan_path)
-    batches = sorted((p for p in evidence_dir.glob("etapa_*") if p.is_dir() and any(p.glob("*/summary.json"))),
-                     key=lambda p: int(p.name.split("_")[1]) if p.name.split("_")[1].isdigit() else -1, reverse=True)
-    selected = next((p for p in batches if p.name == batch), batches[0] if batches else None)
+    # Agrupa pela pasta que contém as jornadas, inclusive quick/<data>.
+    reports = [p for p in evidence_dir.rglob("summary.json")
+               if not any(part.startswith(("_", ".")) for part in p.relative_to(evidence_dir).parts)]
+    batches = sorted({p.parent.parent for p in reports},
+                     key=lambda folder: max(p.stat().st_mtime_ns for p in reports if p.parent.parent == folder), reverse=True)
+    batch_id = lambda p: p.relative_to(evidence_dir).as_posix()
+    selected = next((p for p in batches if batch_id(p) == batch), batches[0] if batches else None)
     candidates, ignored = [], 0
     for path in selected.glob("*/summary.json") if selected else []:
         if path.parent.name.startswith("_"):
@@ -183,7 +190,7 @@ def build_pacing(graph, data_dir, batch="", profile="reference", until="", plan_
     rows = []
     ids = [(f"event:{k}", name, node, "event") for k, (name, node) in SPECIAL.items()]
     for n in graph["nodes"]:
-        if n["kind"] in {"upgrade", "quest", "project", "animal", "item", "recipe", "world"}:
+        if n["kind"] in {"upgrade", "quest", "project", "animal", "item", "recipe", "world", "growth"}:
             ids.append((n["id"], n["name"], n["id"], n["kind"]))
     # Capítulo concluído = todos os seus marcos principais recebidos, inclusive shared_with.
     for n in graph["nodes"]:
@@ -228,10 +235,12 @@ def build_pacing(graph, data_dir, batch="", profile="reference", until="", plan_
                      "target": target, "active": active, "hours": hours,
                      "sessions": spread([v.get("session") for v in samples]), "reached": len(samples), "total": len(runs), "result": result,
                      "definition": index.get(node, {}).get("data", {})})
+        if kind == "growth":
+            rows[-1]["highlight"] = True
     return {
         "plan": plan, "rows": rows, "current_hash": current_hash, "journeys": journeys(runs),
-        "datasets": [p.name for p in batches], "profiles": [{"id": k, "name": PROFILES.get(k, k)} for k in profiles],
-        "horizons": horizons, "batch": selected.name if selected else "", "profile": profile, "until": until,
+        "datasets": [batch_id(p) for p in batches], "profiles": [{"id": k, "name": PROFILES.get(k, k)} for k in profiles],
+        "horizons": horizons, "batch": batch_id(selected) if selected else "", "profile": profile, "until": until,
         "evidence": {"runs": len(runs), "matching": bool(runs) and chosen_hash == current_hash, "hash": chosen_hash,
                      "ignored": ignored, "complete": sum(r.get("status") == "complete" for r in runs),
                      "sources": [{"file": r["_path"], "seed": r.get("seed"), "status": r.get("status"), "stall": r.get("stall", "")} for r in runs]},

@@ -29,7 +29,7 @@ func _run() -> void:
 	await create_timer(0.3).timeout
 	var nature: Button = worlds.find_child("WorldCard_nature", true, false)
 	check(nature != null and nature.disabled, "Natureza fechada antes da história")
-	check(worlds.find_child("WorldCard_house", true, false).custom_minimum_size.y >= 100, "Cartão inteiro é alvo grande")
+	check(worlds.find_child("WorldCard_house", true, false).custom_minimum_size.y >= 64, "Linha inteira é alvo grande")
 	_shot("worlds_locked")
 	state.call("dev_jump_to_chapter", 4)
 	await create_timer(0.3).timeout
@@ -42,10 +42,7 @@ func _run() -> void:
 	nature = worlds.find_child("WorldCard_nature", true, false)
 	check(not nature.disabled, "Cartão libera conforme história")
 	_shot("worlds_select")
-	# Tocar no cartão lateral primeiro o centraliza; o segundo toque viaja.
-	nature.pressed.emit()
-	await process_frame
-	check(worlds.get("current_world") == "house", "Cartão lateral só centraliza")
+	# Todos os destinos visíveis viajam com um único toque.
 	nature.pressed.emit()
 	await create_timer(0.2).timeout
 	check(worlds.get("current_world") == "nature", "Um toque entra no mundo")

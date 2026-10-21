@@ -1,5 +1,5 @@
 extends SceneTree
-## Carrossel real, retomada da aba, bloqueios e viagem com o painel esperando a nuvem.
+## Lista real de cinco destinos, toque único, bloqueios e viagem com o painel esperando a nuvem.
 
 var failures: int = 0
 var main: Control
@@ -35,6 +35,7 @@ func _run() -> void:
 	await frames()
 	worlds = main.find_child("WorldsScreen", true, false)
 	selector = worlds.get_node("%MapView")
+	check(root.get_node("Database").get("worlds").keys() == ["house", "farm", "village", "park", "nature"], "lista acompanha abertura: Casa, Sítio, Vila, Praça e Natureza")
 	check(selector.z_index > 5 and selector.z_index < 8, "seletor cobre indicadores do mundo e fica abaixo do HUD")
 	main.call("_on_tab_pressed", &"map")
 	check(not worlds.call("is_map_open"), "Primeira entrada na aba mostra a Casa")
@@ -52,47 +53,37 @@ func _run() -> void:
 		hint = places.call("unlock_hint", id)
 		check(str(hint.text).begins_with("Abre no capítulo 4\n"), id + ": abertura real no capítulo 4")
 		var locked_card: Button = worlds.find_child("WorldCard_" + id, true, false)
-		check(locked_card.disabled and locked_card.find_child("PreviewLock", true, false) != null, id + ": cartão bloqueado com cadeado")
+		check(locked_card.disabled and locked_card.find_child("WorldLock", true, false).visible, id + ": destino bloqueado com cadeado")
 		locked_card.pressed.emit()
 		check(worlds.get("current_world") == "house", id + ": cartão fechado não permite viajar")
+	await _check_list("locked")
 	state.call("dev_unlock_everything")
 	state.call("_mark_all_seen")
 	_hide_modals()
 	worlds.call("show_map")
 	await frames()
 	var farm: Button = worlds.find_child("WorldCard_farm", true, false)
-	farm.pressed.emit()
-	check(worlds.get("current_world") == "house", "Lateral só centraliza")
-	farm.pressed.emit()
+	await _tap(farm.get_global_rect().get_center())
 	await frames()
-	check(worlds.get("current_world") == "farm" and not worlds.call("is_map_open"), "Central viaja e fecha")
+	check(worlds.get("current_world") == "farm" and not worlds.call("is_map_open"), "Um toque real na linha viaja e fecha")
+	if worlds.get("current_world") != "farm":
+		main.queue_free()
+		await process_frame
+		quit(1)
+		return
 	main.call("_on_tab_pressed", &"pet")
 	main.call("_on_tab_pressed", &"map")
 	check(worlds.get("current_world") == "farm" and not worlds.call("is_map_open"), "Aba retoma o último mundo da sessão")
 	worlds.call("show_map")
 	await frames()
-	check(selector.get("centered_world") == "farm", "Carrossel abre no mundo atual")
-	for id: String in ["house", "nature"]:
-		selector.call("center_on", id, false)
-		await frames()
-		var card: Control = worlds.find_child("WorldCard_" + id, true, false)
-		check(absf(card.get_global_rect().get_center().x - selector.get_global_rect().get_center().x) < 2, "Primeiro/último cartão centraliza: " + id)
-	selector.call("center_on", "farm", false)
-	await frames()
-	var start := selector.global_position + Vector2(selector.size.x / 2, selector.size.y / 2)
-	_mouse_button(start, true)
-	var motion := InputEventMouseMotion.new()
-	motion.position = start - Vector2(220, 0)
-	motion.button_mask = MOUSE_BUTTON_MASK_LEFT
-	selector.call("_input", motion)
-	_mouse_button(motion.position, false)
-	check(selector.get("centered_world") == "park", "Arrasto horizontal encaixa no mais próximo")
-	_mouse_button(start, true)
-	motion.position = start + Vector2(0, 90)
-	selector.call("_input", motion)
-	_mouse_button(motion.position, false)
-	check(not worlds.call("is_map_open"), "Arrasto para baixo fecha")
+	check(farm.find_child("CurrentWorld", true, false).visible, "lista identifica o mundo atual com Aqui")
+	await _check_list("open")
+	await _tap(selector.global_position + Vector2(3, 80))
+	check(not worlds.call("is_map_open"), "toque no fundo fecha a lista")
 	check((main.find_child("World_farm", true, false) as Node).is_processing_input(), "Fechar restaura pinça da sala")
+	worlds.call("show_map")
+	selector.find_child("CloseSelector", true, false).pressed.emit()
+	check(not worlds.call("is_map_open"), "X também fecha")
 	# O Ir funciona imediato em movimento reduzido, preservando a seta e o atraso do painel.
 	root.get_node("Events").emit_signal("world_requested", "village", "market")
 	check(worlds.get("current_world") == "village", "Ir troca imediatamente com movimento reduzido")
@@ -131,15 +122,49 @@ func _run() -> void:
 	quit(1 if failures else 0)
 
 
-func _mouse_button(point: Vector2, pressed: bool) -> void:
-	var event := InputEventMouseButton.new()
-	event.button_index = MOUSE_BUTTON_LEFT
-	event.pressed = pressed
-	event.position = point
-	selector.call("_input", event)
+func _tap(point: Vector2) -> void:
+	_hide_modals()
+	var motion := InputEventMouseMotion.new()
+	motion.position = root.get_final_transform() * point
+	root.push_input(motion)
+	await frames()
+	_hide_modals()
+	for pressed: bool in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = pressed
+		event.position = root.get_final_transform() * point
+		event.global_position = event.position
+		root.push_input(event)
+		await frames()
+
+
+func _check_list(phase: String) -> void:
+	for viewport: Vector2i in [Vector2i(360, 640), Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
+		root.size = viewport
+		await frames()
+		var panel: Control = selector.find_child("WorldListPanel", true, false)
+		var list: Control = selector.find_child("WorldList", true, false)
+		check(list.get_child_count() == 5, "cinco mundos juntos")
+		check(panel.get_global_rect().position.y >= 64 and panel.get_global_rect().end.y <= main.get_node("Layout/TabBar").global_position.y, "lista entre HUD e abas em %s" % viewport)
+		for row: Control in list.get_children():
+			check(row.is_visible_in_tree() and panel.get_global_rect().encloses(row.get_global_rect()), "destino inteiro visível em %s: %s" % [viewport, row.name])
+			check(row.size.y >= 64, "alvo de toque grande")
+			var hint: Control = row.get_node("WorldHint")
+			if hint.visible: check(row.get_global_rect().encloses(hint.get_global_rect()), "bloqueio cabe na linha: " + row.name)
+		check(selector.find_children("*", "ScrollContainer", true, false).is_empty(), "todos os destinos dispensam rolagem")
+		if "--list-shots" in OS.get_cmdline_user_args():
+			_hide_modals()
+			(main.get("_toast") as Control).hide()
+			var folder := ProjectSettings.globalize_path("res://../build/screenshots/world_list")
+			DirAccess.make_dir_recursive_absolute(folder)
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png(folder.path_join("%s_%dx%d.png" % [phase, viewport.x, viewport.y]))
 
 
 func _hide_modals() -> void:
-	for member: String in ["_celebration", "_welcome", "_walk_result"]:
+	for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony"]:
 		(main.get(member) as CanvasLayer).hide()
 	main.set("_modal_queue", [] as Array[Callable])
+	main.set("_chapter_done", 0)
+	main.set("_announce_pending", false)

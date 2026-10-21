@@ -57,6 +57,8 @@ signal sheet_close_requested
 signal sheet_closed
 ## Pede para trocar de aba ("pet", "map", "tasks", "bag").
 signal screen_requested(screen: StringName)
+## Aponta para um cuidado na tela do Tiro depois de usar Ir.
+signal care_requested(item: String)
 ## Pede para ir a um mundo (aba Mapa) e, se `place` vier, abrir um lugar ("stove")
 ## ou personagem ("npc:bloblo") dele. Usado pelos botões "Ir" das Missões e da Mochila.
 signal world_requested(world: String, place: String)

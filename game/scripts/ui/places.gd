@@ -430,6 +430,25 @@ static func place_alert(world_id: String, place_id: String) -> String:
 
 
 ## Avisos de um mundo inteiro (cartões do mapa).
+## Resumo do carrossel: categorias independentes, sem transformar achado em coleta ou missão.
+static func world_summary(world_id: String) -> Dictionary:
+	var result := {"missions": 0, "rewards": 0, "collections": 0, "finds": 0, "treasure": 0}
+	if world_error(world_id) != "": return result
+	var pending := int(GameState.finds.worlds.get(world_id, {}).get("pending", 0))
+	result.finds = 1 if pending > 0 else 0
+	result.collections = maxi(0, int(GameState.world_ready_counts().get(world_id, 0)) - int(result.finds))
+	for npc_id: String in visible_npcs(world_id):
+		for id: String in npc_active_quests(npc_id):
+			if GameState.quest_error(id) == "": result.rewards += 1
+			elif not GameState.progress.seen.has("quest:" + id): result.missions += 1
+	if not GameState.treasure_opened() and GameState.requirement_error(Database.progression.get("treasure", {}).get("requirements", {})) == "":
+		for object: Dictionary in Database.room(str(Database.worlds[world_id].get("room", ""))).get("objects", []):
+			if str(object.get("action", "")) == "treasure":
+				result.treasure = 1
+				break
+	return result
+
+
 static func world_alerts(world_id: String) -> PackedStringArray:
 	var alerts: PackedStringArray = []
 	var world: Dictionary = Database.worlds.get(world_id, {})
@@ -534,6 +553,8 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			if key == "wish" or key.begins_with("wish:"):
 				return {"screen": "wishes", "hint": "Desejos do Tiro"}
 			if key in ["bathe", "shampoo_bath", "play", "pet", "care_useful"] or key.begins_with("care_useful:"):
+				if key in ["bathe", "shampoo_bath", "play"]:
+					return {"screen": "pet", "care": "ball" if key == "play" else "sponge", "hint": "Tiro → Brincar" if key == "play" else "Tiro → Banho"}
 				return {"screen": "pet", "hint": "Tiro → cuidar e brincar"}
 			if key == "explore":
 				return _panel_target("routes:walk")
@@ -628,6 +649,8 @@ static func go(target: Dictionary) -> void:
 		GrowthUi.open()
 	elif target.has("screen"):
 		Events.screen_requested.emit(StringName(target.screen))
+		if target.has("care"):
+			Events.care_requested.emit(str(target.care))
 		if bool(target.get("collection", false)):
 			Events.sheet_requested.emit("Coleção", ProgressionUi.collection_panel())
 	elif target.has("world"):

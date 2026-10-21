@@ -1041,7 +1041,7 @@ func _process(delta: float) -> void:
 
 ## Seta pulsando sobre o objeto/zona com a ação ("place:stove", "npc:bloblo", "market:orders"
 ## ou "plot" = primeiro canteiro). Mostra o jogador ONDE fica a coisa. Devolve se achou o alvo.
-func point_at(action: String) -> bool:
+func point_at(action: String, seconds: float = 5.0) -> bool:
 	clear_pointer()
 	var anchor := Vector2.INF
 	if action == "find":
@@ -1100,9 +1100,11 @@ func point_at(action: String) -> bool:
 	var bounce := _pointer.create_tween().set_loops()
 	bounce.tween_property(arrow, "position:y", -10.0, 0.35).set_trans(Tween.TRANS_SINE)
 	bounce.tween_property(arrow, "position:y", 0.0, 0.35).set_trans(Tween.TRANS_SINE)
-	get_tree().create_timer(5.0).timeout.connect(func() -> void:
-		if is_instance_valid(_pointer) and _pointer.position == anchor:
-			clear_pointer())
+	if seconds > 0:
+		var shown_pointer := _pointer
+		get_tree().create_timer(seconds).timeout.connect(func() -> void:
+			if is_instance_valid(shown_pointer) and _pointer == shown_pointer:
+				clear_pointer())
 	return true
 
 
@@ -1515,12 +1517,23 @@ func plant_plot(index: int, crop_id: String) -> String:
 	var reason := GameState.plant(index, crop_id)
 	if reason == "":
 		plot_feedback(index, &"plant")
+		_show_first_water_hint.call_deferred(index)
 	return reason
+
+
+## Antes da primeira rega, mostra onde tocar sem regar nem abrir outra bandeja sozinho.
+func _show_first_water_hint(index: int) -> void:
+	if not is_visible_in_tree() or not GameState.quest_unlocked("first_harvest") or GameState.progress.stat("water") > 0 or GameState.progress.claimed_quests.has("first_harvest"):
+		return
+	if GameState.water_error(index) == "":
+		point_at("plot:%d" % index, 0.0)
+		Events.toast_requested.emit("Toque na plantinha para regar!")
 
 
 func water_plot(index: int) -> String:
 	var reason := GameState.water(index)
 	if reason == "":
+		clear_pointer()
 		plot_feedback(index, &"water")
 	return reason
 

@@ -23,8 +23,7 @@ var _shown_level: int = -1
 var _coins_target: int = -1  # valor para onde o número está contando (-1 = ainda não mostrou)
 var _count_tween: Tween
 var _ring_tween: Tween
-var _ready_pulse: Tween
-var _pulsing := false
+var _growth_alert: Button
 
 
 func _ready() -> void:
@@ -33,6 +32,21 @@ func _ready() -> void:
 	offset_bottom = HEIGHT
 	_build_avatar()
 	_build_right()
+	_growth_alert = UiKit.button("! Pode\nCrescer!", func() -> void: GrowthUi.open())
+	_growth_alert.name = "GrowthReadyAlert"
+	_growth_alert.position = Vector2(72, 4)
+	_growth_alert.custom_minimum_size = Vector2(100, 48)
+	_growth_alert.add_theme_font_size_override("font_size", 20)
+	for kind: String in ["normal", "hover", "pressed"]:
+		var style := StyleBoxFlat.new()
+		style.bg_color = Palette.BAD
+		style.set_corner_radius_all(12)
+		style.content_margin_left = 8
+		style.content_margin_right = 8
+		_growth_alert.add_theme_stylebox_override(kind, style)
+		_growth_alert.add_theme_color_override("font_" + (kind + "_" if kind != "normal" else "") + "color", Color.WHITE)
+	_growth_alert.hide()
+	add_child(_growth_alert)
 
 
 func _build_avatar() -> void:
@@ -183,11 +197,7 @@ func refresh(animate: bool = true) -> void:
 	level_label.text = str(phase) if phase > 0 else "•"
 	_set_ring(fraction, animate and _shown_level >= 0)
 	_shown_level = phase
-	if _pulsing != (bool(info.ready) and not Motion.reduced):
-		_pulsing = bool(info.ready) and not Motion.reduced
-		if _ready_pulse: _ready_pulse.kill()
-		_avatar_group.scale = Vector2.ONE
-		if _pulsing: _ready_pulse = Motion.pulse(_avatar_group)
+	_growth_alert.visible = bool(info.ready)
 	_set_coins(GameState.coins, animate)
 
 

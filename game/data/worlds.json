@@ -251,7 +251,7 @@
         ]
       },
       "early_market": {
-        "name": "Vender colheitas",
+        "name": "Vender",
         "icon": "coin",
         "description": "Venda o que sobrou e receba moedas na hora.",
         "panel": "sell",
@@ -259,6 +259,108 @@
         "requirements": {
           "quests": [
             "bloblo_meet"
+          ]
+        }
+      }
+    }
+  },
+  "village": {
+    "name": "Vila",
+    "in_name": "na Vila",
+    "map_caption": "Vender e fabricar",
+    "icon": "tab_village",
+    "description": "Feira, ateliê e o portão para Natureza.",
+    "room": "village",
+    "requirements": {
+      "chapter": 4
+    },
+    "npcs": [
+      "merchant",
+      "artisan"
+    ],
+    "places": {
+      "market": {
+        "name": "Feirante",
+        "icon": "coin",
+        "description": "Venda excedentes por moedas.",
+        "panel": "sell"
+      },
+      "atelier": {
+        "name": "Ateliê",
+        "icon": "item_fabric",
+        "description": "Tecidos e acessórios.",
+        "upgrade": "atelier",
+        "panel": "station:atelier",
+        "upgrades": [
+          "atelier_queue"
+        ]
+      },
+      "gate": {
+        "name": "Portão da trilha",
+        "icon": "action_play",
+        "description": "Ir para Natureza.",
+        "panel": "travel:nature",
+        "requirements": {
+          "chapter": 5
+        }
+      },
+      "orders": {
+        "name": "Encomendas",
+        "icon": "item_treat_box",
+        "description": "Pedidos pequenos da vizinhança.",
+        "panel": "orders"
+      },
+      "stall": {
+        "name": "Minha banca",
+        "icon": "station_stall",
+        "description": "Contratos maiores e evolução da sua banca.",
+        "panel": "contracts",
+        "upgrade": "stall",
+        "upgrades": [
+          "stall_2",
+          "stall_3"
+        ],
+        "hidden": true
+      },
+      "community": {
+        "name": "Nossa vila",
+        "icon": "project_garden",
+        "description": "Obras da Vila e encomendas.",
+        "panel": "community:village",
+        "services": [
+          "orders"
+        ],
+        "requirements": {
+          "projects": [
+            "park_bench"
+          ]
+        }
+      },
+      "garden": {
+        "name": "Jardim da Vila",
+        "icon": "project_garden",
+        "description": "Obra da Vila.",
+        "panel": "project:village_garden",
+        "hidden": true,
+        "requirements": {
+          "projects": [
+            "park_bench"
+          ]
+        }
+      },
+      "festival": {
+        "name": "Festa da Vila",
+        "icon": "project_festival",
+        "description": "Obra da Vila.",
+        "panel": "project:village_festival",
+        "hidden": true,
+        "requirements": {
+          "projects": [
+            "village_garden",
+            "park_picnic"
+          ],
+          "owned": [
+            "stall_3"
           ]
         }
       }
@@ -386,110 +488,9 @@
       }
     }
   },
-  "village": {
-    "name": "Vila",
-    "in_name": "na Vila",
-    "map_caption": "Vender e fabricar",
-    "icon": "tab_village",
-    "description": "Feira, ateliê e o portão para Natureza.",
-    "room": "village",
-    "requirements": {
-      "chapter": 4
-    },
-    "npcs": [
-      "merchant",
-      "artisan"
-    ],
-    "places": {
-      "market": {
-        "name": "Feirante",
-        "icon": "coin",
-        "description": "Venda excedentes por moedas.",
-        "panel": "sell"
-      },
-      "atelier": {
-        "name": "Ateliê",
-        "icon": "item_fabric",
-        "description": "Tecidos e acessórios.",
-        "upgrade": "atelier",
-        "panel": "station:atelier",
-        "upgrades": [
-          "atelier_queue"
-        ]
-      },
-      "gate": {
-        "name": "Portão da trilha",
-        "icon": "action_play",
-        "description": "Ir para Natureza.",
-        "panel": "travel:nature",
-        "requirements": {
-          "chapter": 5
-        }
-      },
-      "orders": {
-        "name": "Encomendas",
-        "icon": "item_treat_box",
-        "description": "Pedidos pequenos da vizinhança.",
-        "panel": "orders"
-      },
-      "stall": {
-        "name": "Minha banca",
-        "icon": "station_stall",
-        "description": "Contratos maiores e evolução da sua banca.",
-        "panel": "contracts",
-        "upgrade": "stall",
-        "upgrades": [
-          "stall_2",
-          "stall_3"
-        ],
-        "hidden": true
-      },
-      "community": {
-        "name": "Nossa vila",
-        "icon": "project_garden",
-        "description": "Obras da Vila e encomendas.",
-        "panel": "community:village",
-        "services": [
-          "orders"
-        ],
-        "requirements": {
-          "projects": [
-            "park_bench"
-          ]
-        }
-      },
-      "garden": {
-        "name": "Jardim da Vila",
-        "icon": "project_garden",
-        "description": "Obra da Vila.",
-        "panel": "project:village_garden",
-        "hidden": true,
-        "requirements": {
-          "projects": [
-            "park_bench"
-          ]
-        }
-      },
-      "festival": {
-        "name": "Festa da Vila",
-        "icon": "project_festival",
-        "description": "Obra da Vila.",
-        "panel": "project:village_festival",
-        "hidden": true,
-        "requirements": {
-          "projects": [
-            "village_garden",
-            "park_picnic"
-          ],
-          "owned": [
-            "stall_3"
-          ]
-        }
-      }
-    }
-  },
   "nature": {
     "name": "Natureza",
+    "map_locked_hint": "Conclua o baú de passeios com a Nina",
     "in_name": "na Natureza",
     "map_caption": "Desbloquear e evoluir locais",
     "icon": "tab_nature",

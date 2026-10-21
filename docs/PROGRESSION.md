@@ -1,5 +1,17 @@
 # Progressão (Jornada)
 
+**Passeios antes da Natureza (21/10/2026):** capítulo 4 agora inclui `main_4_nina_chest` (“Os primeiros passeios”), marco sem prêmio próprio com `shared_with: bloblo_chest`. Após a encomenda da Vila, a principal acompanha `nina_meet` → `nina_walk` → `bloblo_chest`; o primeiro passeio garante os dois gravetos do baú, sem precisar da Natureza. Comprar o baú não basta: receber a missão da Nina encerra o marco/capítulo e leva a `lais_forest` (“Além do portão”). Natureza, portão da Vila, Guia/`guide_meet` e Bosque continuam exigindo capítulo 5, portanto aguardam essa conclusão. Saves com `bloblo_chest` já recebido reconhecem o marco via sincronização existente, sem repetir recompensa; quem ainda não o recebeu vê a principal voltar a esse passo, preservando compras, itens e missões já registradas. Capítulo 4 se chama “Vila e primeiros passeios”; 110 missões, 50 principais e 14 pares compartilhados. A rota `lane` (“Trilha do bosque”), usada em “Primeiro caminho”, agora usa `item_wood` no lugar de `action_play`.
+
+**Estado das receitas nas bandejas (21/10/2026):** sem ingredientes = ícone esmaecido, sem exclamação/cadeado; bloqueada por progressão = esmaecida com cadeado; disponível com ingredientes = cor normal. A mudança acompanha o inventário enquanto a bandeja está aberta, sem impedir selecionar uma receita para consultar seus ingredientes. Motivos e ingredientes tocáveis continuam no detalhe. O antigo “!” de ingredientes faltantes foi retirado para não parecer missão.
+
+**Primeiros cuidados e passos da horta (20/10/2026):** ajuda de ração só aparece após terminar a apresentação da vovó (`npc_intro:bloblo`) ou já ter concluído `bloblo_meet`. Ir de Banho/Brincar mostra seta no cuidado correspondente; a primeira plantação enquanto `first_harvest` estiver aberta e sem nenhuma rega aponta o canteiro para tocar e regar. Refeições necessárias ao próximo crescimento anunciam progresso/ganho efetivo de Corpo e conclusão; HUD pronto usa aviso vermelho “! Pode Crescer!” no lugar do pulso do avatar. A missão de entregar quatro cenouras `bloblo_carrots` saiu do catálogo: `bloblo_more_crops` libera diretamente a batata e segue para `bloblo_potato`. Saves na entrega retirada seguem para batatas, sem descontar cenouras, reset ou novo prêmio; registros antigos dessa missão podem permanecer no histórico. Catálogo atual: 109 missões, 49 principais.
+
+**Quadro de encomendas compacto (20/10/2026):** resumo superior em uma linha com retratos e nível dos clientes; tocar abre os selos/progresso. “?” guarda explicação, legenda de missão e próximo pedido. Quatro cartões menores por página e detalhe com cliente no título, ingredientes/prêmio juntos e Entregar, sem exigir rolar a tela da vizinhança. Destaques de missão e acesso aos ingredientes preservados. Nenhuma alteração de estoque, pagamentos, objetivos ou save.
+
+**Resumo dos mundos (20/10/2026):** `Places.world_summary` separa missões disponíveis (passos ativos ainda não vistos), prêmios de missão para receber, coletas de produção/passeio/visita, achados do Tiro e tesouro da Clareira. Os cartões do seletor têm uma linha por categoria não vazia, com ícone e contagem; o ponto verde continua indicando coleta. O resumo não modifica o save nem o total legado de `world_ready_counts` usado pelas abas. Mundos bloqueados mostram só o bloqueio.
+
+**Espaço das bandejas de estação (20/10/2026):** receitas em faixa horizontal; corpo com rolagem vertical limitada ao espaço entre HUD e abas, com espaçamentos maiores. Cabeçalho/fechar, Cozinhar e Ver tudo ficam fora da rolagem, acima da barra de navegação. O seletor de lotes não aumenta a bandeja para fora da área útil. Ações/custos/filas preservados.
+
 **Atalhos de comida e receitas (20/10/2026):** a ajuda de refeição do crescimento leva à receita da estação mesmo com ingredientes faltantes/fila cheia. Ingredientes completos mostram Pronto ✓; só os faltantes têm Buscar. Fila cheia orienta esperar/pegar com Ver fila no Fogão. A bandeja põe a receita do Ir primeiro e selecionada; sem foco, prioriza comida ainda pedida pelo próximo crescimento, incluindo favorita já descoberta. Grades longas têm dica explícita de rolagem. Produção só começa pelo botão Cozinhar/Fazer existente.
 
 ## Tiro no centro — etapa 07 (19/10/2026)
@@ -1070,7 +1082,7 @@ mas fotos registradas antes de conhecê-lo não geram aviso, bolinha nem linha d
 `lais_album` (Laís, “Nossas primeiras lembranças”) é uma missão opcional da linha
 `lais_memories`, disponível após `lais_play`, sem prêmio nem bloqueio da história principal.
 O objetivo `stat: open:album` e o botão Ir (`{notebook: "album"}` em `Places.go`) levam direto
-à aba Álbum; a ajuda explica Tiro → caderninho → Álbum. Total atual: 110 missões, 49 principais.
+à aba Álbum; a ajuda explica Tiro → caderninho → Álbum. Total atual: 110 missões, 50 principais (entrega repetida `bloblo_carrots` retirada em 20/10/2026 e marco do baú dos passeios acrescentado em 21/10/2026).
 `note_album_section/open_album_photo` registram a primeira visita no contador persistido
 `open:album`. `photo_alerts_enabled` preserva também saves anteriores com foto vista ou seção
 já explorada. Os snapshots anteriores ficam intactos; a primeira visita não anuncia o passado.

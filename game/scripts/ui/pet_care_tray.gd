@@ -28,6 +28,8 @@ var _scrolling := false
 var _foods_ready := false
 var _food_phase := ""
 var _shampoo: Button
+var _pointer: Polygon2D
+var _pointed_item := ""
 static var use_shampoo := false
 
 
@@ -98,10 +100,52 @@ func _ready() -> void:
 	pet_screen.add_child(_shampoo)
 	resized.connect(func() -> void: _place_menu.call_deferred())
 	Events.state_changed.connect(refresh)
+	Events.care_requested.connect(point_at)
+	Events.dog_action.connect(func(action: StringName) -> void:
+		if (action == &"bathe" and _pointed_item == "sponge") or (action == &"play" and _pointed_item == "ball"):
+			clear_pointer())
 	visibility_changed.connect(func() -> void:
 		if not is_visible_in_tree(): cancel())
 	Events.sheet_requested.connect(func(_title: String, _content: Control) -> void: cancel())
 	refresh()
+
+
+## Seta junto do botão, sem capturar toque; acompanha o controle em qualquer resolução.
+func point_at(id: String) -> void:
+	clear_pointer()
+	if not _items.has(id): return
+	close_food_menu()
+	_pointed_item = id
+	var tile: Control = _items[id]
+	_pointer = Polygon2D.new()
+	_pointer.name = "CarePointer"
+	_pointer.z_index = Motion.WORLD_FX_Z
+	_pointer.z_as_relative = false
+	_pointer.color = Palette.GOLD
+	_pointer.polygon = PackedVector2Array([Vector2(-7, -42), Vector2(7, -42), Vector2(7, -25), Vector2(15, -25), Vector2(0, -10), Vector2(-15, -25), Vector2(-7, -25)])
+	var outline := Line2D.new()
+	outline.points = _pointer.polygon
+	outline.closed = true
+	outline.width = 2.0
+	outline.default_color = Palette.OUTLINE
+	_pointer.add_child(outline)
+	tile.add_child(_pointer)
+	_pointer.position = Vector2(tile.size.x * 0.5, 0)
+	tile.resized.connect(func() -> void:
+		if is_instance_valid(_pointer) and _pointed_item == id:
+			_pointer.position.x = tile.size.x * 0.5)
+	if not Motion.reduced:
+		var bounce := _pointer.create_tween().set_loops()
+		bounce.tween_property(_pointer, "position:y", -6.0, 0.4).set_trans(Tween.TRANS_SINE)
+		bounce.tween_property(_pointer, "position:y", 0.0, 0.4).set_trans(Tween.TRANS_SINE)
+
+
+func clear_pointer() -> void:
+	if is_instance_valid(_pointer):
+		_pointer.get_parent().remove_child(_pointer)
+		_pointer.queue_free()
+	_pointer = null
+	_pointed_item = ""
 
 
 func food_ids() -> Array[String]:
@@ -404,6 +448,7 @@ func release_item(point: Vector2) -> void:
 
 
 func cancel() -> void:
+	clear_pointer()
 	_pressed = ""
 	_dragging = false
 	gesture.finish()

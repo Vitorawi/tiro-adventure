@@ -124,9 +124,40 @@ func _run() -> void:
 	await _test_hint()
 	await _test_real_input()
 	await _test_other_paths()
+	await _test_first_water_hint()
 
 	print("TRAY TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(0 if failures == 0 else 1)
+
+
+func _test_first_water_hint() -> void:
+	main.call("_on_world_requested", "farm", "")
+	for i in 4: await process_frame
+	empty_plots()
+	state.get("progress").claimed_quests.erase("first_harvest")
+	state.get("progress").stats.water = 0
+	farm.call("clear_pointer")
+	check(farm.call("plant_plot", 0, "carrot") == "", "primeira plantação real")
+	for i in 4: await process_frame
+	check(is_instance_valid(farm.get("_pointer")), "plantar antes da primeira rega aponta o canteiro")
+	check(not bool(state.call("plot", 0).get("watered", false)), "seta não rega sozinha")
+	if "--water-guide-shots" in OS.get_cmdline_user_args():
+		var folder := ProjectSettings.globalize_path("res://../build/screenshots/care_guides")
+		DirAccess.make_dir_recursive_absolute(folder)
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(folder.path_join("first_water.png"))
+	farm.call("_on_plot_tapped", 0)
+	check(bool(state.call("plot", 0).get("watered", false)), "toque indicado rega de verdade")
+	check(not is_instance_valid(farm.get("_pointer")), "rega remove indicação")
+	farm.call("plant_plot", 1, "carrot")
+	for i in 4: await process_frame
+	check(not is_instance_valid(farm.get("_pointer")), "não repete orientação depois de aprender a regar")
+	empty_plots()
+	state.get("progress").stats.water = 0
+	state.get("progress").claimed_quests.first_harvest = true
+	farm.call("plant_plot", 0, "carrot")
+	for i in 4: await process_frame
+	check(not is_instance_valid(farm.get("_pointer")), "missão concluída também dispensa seta")
 
 
 # --- 7.1 plant_error / harvest_error ----------------------------------------------------

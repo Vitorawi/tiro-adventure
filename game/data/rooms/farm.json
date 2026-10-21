@@ -346,10 +346,10 @@
     {
       "id": "early_market",
       "action": "place:early_market",
-      "label": "Vender colheitas",
-      "label_pos": [450, 205],
+      "label": "Vender",
+      "label_pos": [650, 130],
       "requirements": {"quests": ["bloblo_meet"]},
-      "polygon": [[425, 180], [450, 192], [425, 204], [400, 192]]
+      "polygon": [[625, 130], [650, 118], [675, 130], [650, 142]]
     },
     {
       "id": "bloblo_house",

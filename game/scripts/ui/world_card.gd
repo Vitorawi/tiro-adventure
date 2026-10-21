@@ -1,146 +1,141 @@
 class_name WorldCard
 extends Button
-## Cartão do carrossel: a maquete aparece sobre o mesmo céu e chão do mundo.
+## Linha de destino: ícone, nome e avisos curtos; o mundo inteiro cabe no seletor.
 
-const CARD_SIZE := Vector2(240, 330)
-var world_id: String = ""
-var _preview: Preview
-var _footer: Control
-var _badge: Control
+const ROW_HEIGHT := 72.0
+const COMPACT_HEIGHT := 64.0
+const ICON_SIZE := 40
+var world_id := ""
+var _picture: TextureRect
+var _title: Label
+var _here: Label
+var _lock: TextureRect
+var _arrow: Label
+var _status: HFlowContainer
+var _hint: Label
+var _style: StyleBoxFlat
 
 
 func setup(id: String) -> void:
 	world_id = id
 	name = "WorldCard_" + id
-	custom_minimum_size = CARD_SIZE
-	size = CARD_SIZE
-	mouse_filter = Control.MOUSE_FILTER_STOP
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.PAPER
-	style.border_color = Palette.CARD_LINE
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(14)
-	style.shadow_color = Palette.SHADE
-	style.shadow_size = 3
-	for state: String in ["normal", "hover", "pressed", "hover_pressed", "disabled", "focus"]:
-		add_theme_stylebox_override(state, style)
-	var stripe := Panel.new()
-	stripe.position = Vector2(2, 2)
-	stripe.size = Vector2(236, 8)
-	var stripe_style := StyleBoxFlat.new()
-	stripe_style.bg_color = Palette.WORLD.get(id, Palette.ACCENT)
-	stripe_style.corner_radius_top_left = 12
-	stripe_style.corner_radius_top_right = 12
-	stripe.add_theme_stylebox_override("panel", stripe_style)
-	add_child(stripe)
-	_preview = Preview.new()
-	_preview.name = "WorldPreview"
-	_preview.position = Vector2(12, 18)
-	_preview.size = Vector2(216, 144)
-	_preview.setup(id)
-	add_child(_preview)
+	custom_minimum_size = Vector2(0, ROW_HEIGHT)
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	focus_mode = Control.FOCUS_NONE
+	_style = StyleBoxFlat.new()
+	_style.bg_color = Palette.CARD
+	_style.border_color = Palette.CARD_LINE
+	_style.set_border_width_all(2)
+	_style.set_corner_radius_all(16)
+	for kind: String in ["normal", "hover", "pressed", "hover_pressed", "disabled", "focus"]:
+		add_theme_stylebox_override(kind, _style)
 	var world: Dictionary = Database.worlds[id]
-	var heading := UiKit.hbox(6)
-	heading.position = Vector2(16, 170)
-	heading.size = Vector2(208, 36)
-	heading.add_child(UiKit.icon(UiKit.ui_icon(str(world.get("icon", "tab_map"))), 32))
-	var title := UiKit.label(str(world.get("map_name", world.name)), &"TitleLabel")
-	title.add_theme_font_size_override("font_size", 26)
-	title.autowrap_mode = TextServer.AUTOWRAP_OFF
-	heading.add_child(title)
-	add_child(heading)
-	var caption := UiKit.label(str(world.get("map_caption", "")), &"SmallLabel")
-	caption.position = Vector2(16, 210)
-	caption.size = Vector2(208, 24)
-	caption.autowrap_mode = TextServer.AUTOWRAP_OFF
-	caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	add_child(caption)
-	_footer = Control.new()
-	_footer.position = Vector2(16, 244)
-	_footer.size = Vector2(208, 76)
-	add_child(_footer)
-	_badge = UiKit.ready_dot(18)
-	_badge.name = "CollectionBadge"
-	_badge.position = Vector2(204, 18)
-	add_child(_badge)
-	_ignore_mouse(self)
-	mouse_filter = Control.MOUSE_FILTER_STOP
+	_picture = UiKit.icon(UiKit.ui_icon(str(world.get("icon", "tab_map"))), ICON_SIZE)
+	_picture.name = "WorldIcon"
+	add_child(_picture)
+	_title = UiKit.label(str(world.get("map_name", world.name)), &"SectionLabel")
+	_title.name = "WorldName"
+	_title.add_theme_font_size_override("font_size", 24)
+	_title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	add_child(_title)
+	_here = UiKit.label("Aqui", &"SmallLabel", Palette.GOOD)
+	_here.name = "CurrentWorld"
+	_here.add_theme_font_size_override("font_size", 16)
+	_here.autowrap_mode = TextServer.AUTOWRAP_OFF
+	add_child(_here)
+	_lock = UiKit.lock_icon(20)
+	_lock.name = "WorldLock"
+	add_child(_lock)
+	_arrow = UiKit.label("›", &"SectionLabel", Palette.INK_SOFT)
+	_arrow.add_theme_font_size_override("font_size", 30)
+	add_child(_arrow)
+	_status = UiKit.flow(6)
+	_status.name = "WorldStatusRows"
+	_status.add_theme_constant_override("v_separation", 0)
+	add_child(_status)
+	_hint = UiKit.label("", &"SmallLabel", Palette.INK_SOFT)
+	_hint.name = "WorldHint"
+	_hint.add_theme_font_size_override("font_size", 16)
+	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(_hint)
+	resized.connect(_layout)
 	refresh("")
 
 
 func refresh(current: String) -> void:
 	disabled = Places.world_error(world_id) != ""
-	var count := int(GameState.world_ready_counts().get(world_id, 0))
-	_preview.modulate.a = 0.55 if disabled else 1.0
-	for child: Node in _preview.get_children():
-		_preview.remove_child(child)
+	_here.visible = not disabled and current == world_id
+	_lock.visible = disabled
+	_arrow.visible = not disabled and not _here.visible
+	_picture.modulate.a = 0.45 if disabled else 1.0
+	_style.bg_color = Palette.CARD.lerp(Palette.PRIMARY, 0.12) if _here.visible else Palette.CARD
+	_style.border_color = Palette.PRIMARY if _here.visible else Palette.CARD_LINE
+	for child: Node in _status.get_children():
+		_status.remove_child(child)
 		child.queue_free()
-	for child: Node in _footer.get_children():
-		_footer.remove_child(child)
-		child.queue_free()
-	var status: Control
-	if disabled:
-		var hint := Places.unlock_hint(world_id)
-		status = UiKit.lock_hint(str(hint.text))
-		# O motivo usa a história/retrato; o cadeado grande continua sobre a miniatura.
-		(status.get_child(0) as TextureRect).texture = hint.icon
-		var lock := UiKit.lock_icon(48)
-		lock.name = "PreviewLock"
-		lock.position = Vector2(84, 48)
-		_preview.add_child(lock)
-	elif current == world_id and count == 0:
-		status = UiKit.chip(UiKit.ui_icon("ui_check"), "Você está aqui", Palette.GOOD)
-		var pill_style := StyleBoxFlat.new()
-		pill_style.bg_color = Palette.PRIMARY.lightened(0.75)
-		pill_style.set_corner_radius_all(20)
-		pill_style.content_margin_left = 8
-		pill_style.content_margin_right = 8
-		status.add_theme_stylebox_override("panel", pill_style)
-	else:
-		status = UiKit.chip(UiKit.ui_icon("ui_check"), "%d pronto%s" % [count, "s" if count != 1 else ""], Palette.GOOD) if count > 0 else UiKit.label("Tocar para viajar", &"SmallLabel")
-	status.size = Vector2(_footer.size.x, 72 if disabled else 40)
-	_footer.add_child(status)
-	_badge.visible = not disabled and count > 0
+	var summary := Places.world_summary(world_id)
+	if not disabled:
+		for entry: Array in [
+			["rewards", "tab_tasks", "prêmio", "prêmios", Palette.GOOD],
+			["collections", "ui_check", "coleta", "coletas", Palette.GOOD],
+			["missions", "tab_tasks", "missão", "missões", Palette.ACCENT_EDGE],
+			["finds", "find_paw", "achado", "achados", Palette.INFO],
+			["treasure", "item_map_piece", "tesouro", "tesouros", Palette.ACCENT_EDGE],
+		]:
+			var amount := int(summary[str(entry[0])])
+			if amount <= 0: continue
+			var notice := UiKit.hbox(3)
+			notice.name = "WorldStatus_" + str(entry[0])
+			notice.add_child(UiKit.icon(UiKit.ui_icon(str(entry[1])), 14))
+			var caption := UiKit.label("%d %s" % [amount, str(entry[2] if amount == 1 else entry[3])], &"SmallLabel", entry[4])
+			caption.autowrap_mode = TextServer.AUTOWRAP_OFF
+			caption.add_theme_font_size_override("font_size", 16)
+			notice.add_child(caption)
+			_status.add_child(notice)
+	_status.visible = _status.get_child_count() > 0
+	_hint.visible = not _status.visible
+	_hint.text = _locked_hint() if disabled else "Tudo em dia"
+	_layout()
 	_ignore_mouse(self)
 	mouse_filter = Control.MOUSE_FILTER_STOP
+
+
+func _locked_hint() -> String:
+	var world: Dictionary = Database.worlds[world_id]
+	if world.has("map_locked_hint"):
+		return str(world.map_locked_hint)
+	var requirements: Dictionary = world.get("requirements", {})
+	for id: String in requirements.get("quests", []):
+		if not GameState.progress.claimed_quests.has(id):
+			return "Após " + str(Database.quests.get(id, {}).get("name", id))
+	if requirements.has("chapter"):
+		var chapter := int(requirements.chapter)
+		var chapters: Array = Database.progression.chapters
+		return "Capítulo %d · %s" % [chapter, str(chapters[chapter - 1].name)] if chapter > 0 and chapter <= chapters.size() else Places.world_error(world_id)
+	return Places.world_error(world_id)
+
+
+func _layout() -> void:
+	if not is_instance_valid(_hint): return
+	var extra := maxf(0, (size.y - COMPACT_HEIGHT) * 0.5)
+	var text_width := maxf(0, size.x - 86)
+	_picture.position = Vector2(12, (size.y - ICON_SIZE) * 0.5)
+	_picture.size = Vector2(ICON_SIZE, ICON_SIZE)
+	_title.position = Vector2(62, 3 + extra)
+	_title.size = Vector2(text_width - (34 if _here.visible else 0), 26)
+	_here.position = Vector2(size.x - 48, 8 + extra)
+	_here.size = Vector2(36, 20)
+	_lock.position = Vector2(size.x - 30, (size.y - 20) * 0.5)
+	_lock.size = Vector2(20, 20)
+	_arrow.position = Vector2(size.x - 25, (size.y - 32) * 0.5)
+	_arrow.size = Vector2(16, 32)
+	_status.position = Vector2(62, 29 + extra)
+	_status.size = Vector2(text_width, 32)
+	_hint.position = Vector2(62, 29 + extra)
+	_hint.size = Vector2(text_width, 32)
 
 
 func _ignore_mouse(node: Control) -> void:
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	for child: Node in node.get_children():
-		if child is Control:
-			_ignore_mouse(child)
-
-
-class Preview extends Control:
-	var _sky: GradientTexture2D
-	var _ground: Color = Palette.SUNKEN
-	var _image: Texture2D
-	var _far: Texture2D
-
-	func setup(id: String) -> void:
-		var world: Dictionary = Database.worlds[id]
-		var room: Dictionary = Database.room(str(world.get("room", "")))
-		var backdrop: Dictionary = room.get("backdrop", {})
-		var colors: Array = backdrop.get("sky", [])
-		var gradient := Gradient.new()
-		gradient.colors = PackedColorArray([Color(str(colors[0])), Color(str(colors[1]))]) if colors.size() >= 2 else PackedColorArray([Palette.INFO, Palette.PAPER])
-		_sky = GradientTexture2D.new()
-		_sky.gradient = gradient
-		_sky.fill_to = Vector2(0, 1)
-		_ground = Color(str(backdrop.get("ground", Palette.SUNKEN.to_html())))
-		var path: String = world.get("banner", room.get("background", ""))
-		_image = load(path) if ResourceLoader.exists(path) else null
-		path = str(backdrop.get("texture", ""))
-		_far = load(path) if path != "" and ResourceLoader.exists(path) else null
-		clip_contents = true
-
-	func _draw() -> void:
-		draw_texture_rect(_sky, Rect2(Vector2.ZERO, Vector2(size.x, size.y * 0.6)), false)
-		draw_rect(Rect2(0, size.y * 0.6, size.x, size.y * 0.4), _ground)
-		if _far:
-			draw_texture_rect(_far, Rect2(0, 0, size.x, size.y * 0.7), false)
-		if _image:
-			var factor := minf((size.x - 8) / _image.get_width(), (size.y - 8) / _image.get_height())
-			var extent := _image.get_size() * factor
-			draw_texture_rect(_image, Rect2((size - extent) / 2, extent), false)
+		if child is Control: _ignore_mouse(child)

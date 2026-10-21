@@ -23,7 +23,7 @@
     const dataNode=typeof nodes!=="undefined"?nodes.get(row.node):null;
     const icon=make("span","calendar-card-icon");
     if(dataNode?.icon){const image=make("img");image.src=dataNode.icon;image.alt="";icon.append(image);}
-    else icon.textContent={quest:"✓",world:"◎",upgrade:"⌂",project:"✿",event:"★",recipe:"♨",chapter:"§",item:"◇"}[row.kind]||"·";
+    else icon.textContent={growth:"♥",quest:"✓",world:"◎",upgrade:"⌂",project:"✿",event:"★",recipe:"♨",chapter:"§",item:"◇"}[row.kind]||"·";
     top.append(icon,make("strong","",row.name));button.append(top);
     if(!unplaced){
       if(mode==="actual"){

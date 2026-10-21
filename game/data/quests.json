@@ -318,10 +318,27 @@
     "order": 30,
     "shared_with": "merchant_orders"
   },
+  "main_4_nina_chest": {
+    "npc": "nina",
+    "name": "Os primeiros passeios",
+    "dialogue": "Antes de conhecer a Natureza, vamos passear na Praça e montar um baú para guardar o que o Tiro encontrar!",
+    "goals": [
+      {
+        "type": "quest",
+        "key": "bloblo_chest",
+        "label": "Concluir Um baú para os passeios"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 4,
+    "order": 40,
+    "shared_with": "bloblo_chest"
+  },
   "lais_forest": {
     "npc": "lais",
     "name": "Além do portão",
-    "dialogue": "Ele tem energia demais! O portão da Vila dá numa natureza linda, cheia de madeira.",
+    "dialogue": "O baú dos passeios está pronto! Agora o portão da Vila leva a novos caminhos na Natureza, com madeira para as próximas descobertas.",
     "goals": [
       {
         "type": "owned",
@@ -456,29 +473,10 @@
     "line": "bloblo",
     "order": 30
   },
-  "bloblo_carrots": {
-    "npc": "bloblo",
-    "name": "Cenouras para a vovó",
-    "dialogue": "Me traz umas cenouras? Te ensino a plantar batata!",
-    "goals": [
-      {
-        "type": "deliver",
-        "key": "carrot",
-        "target": 4,
-        "label": "Entregar cenouras"
-      }
-    ],
-    "rewards": {
-      "coins": 20
-    },
-    "kind": "line",
-    "line": "bloblo",
-    "order": 40
-  },
   "bloblo_potato": {
     "npc": "bloblo",
     "name": "Batata rende mais",
-    "dialogue": "Batata demora um pouco, mas rende mais!",
+    "dialogue": "Você já pegou o jeito das cenouras! Agora vamos plantar batata: demora um pouco, mas rende mais!",
     "goals": [
       {
         "type": "stat",

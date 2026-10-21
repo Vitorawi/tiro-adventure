@@ -83,8 +83,56 @@ func _run() -> void:
 	_merchant_missions()
 	_final_contract_production()
 	await _mission_priority()
+	await _compact_layout()
 	print("MARKET TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(0 if failures == 0 else 1)
+
+
+func _compact_layout() -> void:
+	var previous_motion := Motion.reduced
+	Motion.reduced = true
+	state.get("progress").seen.intro = true
+	var main: Control = load("res://scenes/main/main.tscn").instantiate()
+	root.add_child(main)
+	for i in 6: await process_frame
+	var original := root.size
+	var events: Node = root.get_node("Events")
+	var ids: Array = market.call("order_ids", "neighbors")
+	for viewport: Vector2i in [Vector2i(360, 740), Vector2i(390, 844), Vector2i(430, 932), Vector2i(360, 640)]:
+		root.size = viewport
+		for focus: String in ids:
+			events.sheet_requested.emit("Encomendas", market.call("orders", focus))
+			for i in 8: await process_frame
+			var board: Control = main.find_child("OrderBoard", true, false)
+			var scroll := board.get_parent().get_parent() as ScrollContainer
+			var deliver: Button = board.find_child("DeliverOrder", true, false)
+			check(scroll != null and scroll.get_v_scroll_bar().max_value <= scroll.get_v_scroll_bar().page + 1, "encomenda inteira sem rolar: %s %s" % [focus, viewport])
+			check(deliver != null and scroll.get_global_rect().encloses(deliver.get_global_rect()), "Entregar visível sem rolar: %s %s" % [focus, viewport])
+			check(board.get_global_rect().position.x >= 0 and board.get_global_rect().end.x <= main.size.x + 1, "quadro inteiro dentro da largura: %s %s" % [focus, viewport])
+			check(board.find_child("CustomerSummary", true, false).get_combined_minimum_size().y <= 46, "clientes em uma única linha")
+			if focus == "vegetables" and ("--compact-shots" in OS.get_cmdline_user_args()):
+				for member: String in ["_celebration", "_welcome", "_growth_ceremony", "_walk_result"]:
+					var modal: CanvasLayer = main.get(member)
+					if modal: modal.hide()
+				main.set("_modal_queue", [] as Array[Callable])
+				(main.get("_toast") as Control).hide()
+				await RenderingServer.frame_post_draw
+				var folder := ProjectSettings.globalize_path("res://../build/screenshots/orders_compact")
+				DirAccess.make_dir_recursive_absolute(folder)
+				root.get_texture().get_image().save_png(folder.path_join("orders_%dx%d.png" % [viewport.x, viewport.y]))
+	state.get("inventory").from_dict({"carrot": 4})
+	state.get("progress").cooldowns.erase("order:vegetables")
+	events.sheet_requested.emit("Encomendas", market.call("orders", "vegetables"))
+	for i in 8: await process_frame
+	var deliver: Button = main.find_child("DeliverOrder", true, false)
+	var before: int = state.get("progress").stat("order:vegetables")
+	check(deliver != null and not deliver.disabled, "pedido completo permite entregar")
+	if deliver: deliver.pressed.emit()
+	check(state.get("progress").stat("order:vegetables") == before + 1 and state.get("inventory").count("carrot") == 0, "entrega real pelo botão consome e conta uma vez")
+	main.queue_free()
+	await process_frame
+	root.size = original
+	Motion.reduced = previous_motion
 
 
 func _mission_priority() -> void:

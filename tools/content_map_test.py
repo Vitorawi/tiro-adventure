@@ -57,6 +57,20 @@ class ContentMapTests(unittest.TestCase):
         self.assertTrue(self.has_edge("phase:park_bench:base", "phase:park_bench:comfort", "sequence"))
         self.assertTrue(self.has_edge("reward:treasure", "crop:blueberry", "unlock"))
 
+    def test_growth_materials_pillars_and_memories(self):
+        self.assertTrue(self.has_edge("item:chew_ring", "growth:teething", "input"))
+        self.assertTrue(self.has_edge("item:growth_kibble", "growth:explorer", "goal"))
+        self.assertTrue(self.has_edge("item:growth_kibble", "pillar:body", "care"))
+        self.assertTrue(self.has_edge("pillar:smart", "growth:explorer", "requirement"))
+        self.assertTrue(self.has_edge("growth:teething", "growth:explorer", "sequence"))
+        self.assertTrue(self.has_edge("growth:puppy", "album:h_growth_puppy", "reward"))
+        self.assertTrue(self.has_edge("growth:puppy", "house:height_chart", "unlock"))
+        self.assertTrue(self.has_edge("growth:adult", "growth:silk_1", "requirement"))
+        self.assertTrue(self.has_edge("growth:young", "recipe:sew_topknot_bow", "requirement"))
+        phase = self.nodes["growth:explorer"]
+        req = next(r for r in phase["data"]["requirements"] if r["id"] == "care_smart")
+        self.assertEqual(req["levels"]["smart"], 2)
+
     def test_reloads_changed_files_and_new_definitions_without_generation(self):
         with tempfile.TemporaryDirectory() as temp:
             directory = Path(temp)

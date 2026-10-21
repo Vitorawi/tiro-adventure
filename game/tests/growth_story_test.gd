@@ -53,6 +53,7 @@ func _run() -> void:
 	_recognized()
 	_pairs()
 	_samples()
+	_walks_before_nature()
 	_unlocks()
 	_task_help()
 	_texts()
@@ -61,13 +62,49 @@ func _run() -> void:
 
 
 ## Dados: nove missões novas da história, ordem e objetivos exatos.
+func _walks_before_nature() -> void:
+	_fresh("teething")
+	for id: String in db.quests:
+		var quest: Dictionary = db.quests[id]
+		if quest.get("kind", "") == "main" and int(quest.get("chapter", 0)) <= 4 and id != "main_4_nina_chest":
+			state.progress.claimed_quests[id] = true
+	state._changed()
+	check(state.progress.chapter_index() == 4 and state.progress.current_main_quest() == "main_4_nina_chest", "primeira encomenda mantém história nos passeios")
+	check(state.progress.displayed_main_quest() == "nina_meet", "principal começa apresentando a Nina")
+	check(state.requirement_error(db.worlds.park.requirements) == "" and state.requirement_error(db.worlds.village.requirements) == "", "Vila e Praça acessíveis sem Natureza")
+	check(state.requirement_error(db.worlds.nature.requirements) != "" and not state.progress.npc_visible("guide"), "Natureza e Guia aguardam o baú")
+	check(state.requirement_error(db.worlds.village.places.gate.requirements) != "" and state.requirement_error(db.progression.upgrades.forest_open.requirements) != "", "portão e Bosque também aguardam")
+	state.talk_to("nina")
+	check(state.claim_quest("nina_meet") == "", "conhece a Nina")
+	check(state.progress.displayed_main_quest() == "nina_walk", "principal segue ao primeiro passeio")
+	check(state.start_walk("park_loop") == "", "primeiro passeio não exige Natureza")
+	state.test_time += float(db.walks.walks.park_loop.seconds) + 1.0
+	check(state.return_due_walk(false), "Tiro volta do passeio")
+	state.claim_walk_baggage()
+	check(state.inventory.count("stick") >= 2, "passeio garante os gravetos sem madeira da Natureza")
+	check(state.claim_quest("nina_walk") == "", "recebe missão do passeio")
+	check(state.progress.displayed_main_quest() == "bloblo_chest", "principal aponta o baú da Nina")
+	check(state.buy_upgrade("chest") == "", "constrói baú com os achados")
+	_reload()
+	check(state.progress.chapter_index() == 4 and state.requirement_error(db.worlds.nature.requirements) != "", "baú construído sem receber missão ainda não abre Natureza, inclusive após reload")
+	var coins_before: int = state.coins
+	check(state.claim_quest("bloblo_chest") == "", "recebe missão do baú")
+	check(state.progress.claimed_quests.has("main_4_nina_chest") and state.progress.current_main_quest() == "lais_forest", "baú recebido leva diretamente a Além do portão")
+	check(state.coins == coins_before + 10 + int(db.progression.chapters[3].rewards.coins), "só missão canônica e capítulo pagam, sem prêmio duplicado")
+	check(state.progress.npc_visible("guide") and state.quest_unlocked("guide_meet") and state.requirement_error(db.worlds.nature.requirements) == "", "Natureza e Guia abrem juntos depois da missão")
+	coins_before = state.coins
+	state.progress.claimed_quests.erase("main_4_nina_chest")
+	_reload()
+	check(state.progress.current_main_quest() == "lais_forest" and state.coins == coins_before, "save com baú já recebido reconhece marco sem repetir prêmio")
+
+
 func _data() -> void:
-	check(db.quests.size() == 110, "110 missões (109 + apresentação opcional do Álbum): %d" % db.quests.size())
+	check(db.quests.size() == 110, "110 missões com marco principal do baú dos passeios: %d" % db.quests.size())
 	var mains := 0
 	for id: String in db.quests:
 		if db.quests[id].get("kind", "") == "main":
 			mains += 1
-	check(mains == 49, "49 missões principais: %d" % mains)
+	check(mains == 50, "50 missões principais: %d" % mains)
 	for id: String in GROWTH_QUESTS:
 		var quest: Dictionary = db.quests[id]
 		var rule: Array = GROWTH_QUESTS[id]

@@ -42,6 +42,34 @@ class PacingTests(unittest.TestCase):
         self.assertEqual(row["target"]["min"], 15)
         self.assertEqual(row["result"], "unmeasured")
 
+    def test_nested_quick_summary_growth_without_ledger(self):
+        path = self.run_file(growth_days={"explorer": {"day": 1.82, "active_min": 67.2}},
+                             end={"phase": "explorer", "pillars": {"smart": {"level": 2, "points": 25}}})
+        quick = self.evidence / "quick" / "20261019_1928" / "reference_s1"
+        quick.mkdir(parents=True)
+        quick_path = quick / "summary.json"
+        quick_path.write_bytes(path.read_bytes())
+        # Pastas de testes não devem virar relatórios do painel.
+        hidden = self.evidence / "_teste" / "reference_s1"
+        hidden.mkdir(parents=True)
+        (hidden / "summary.json").write_bytes(path.read_bytes())
+        import os
+        os.utime(quick_path, ns=(path.stat().st_mtime_ns + 1000000000,) * 2)
+        result = self.load()
+        self.assertEqual(result["batch"], "quick/20261019_1928")
+        self.assertNotIn("_teste", result["datasets"])
+        journey = result["journeys"][0]
+        self.assertFalse(journey["ledger"]["available"])
+        point = journey["milestones"]["growth:explorer"]
+        self.assertAlmostEqual(point["hours"], 1.82 * 24)
+        self.assertTrue(point["approximate"])
+        row = next(r for r in result["rows"] if r["id"] == "growth:explorer")
+        self.assertEqual(row["active"]["median"], 67.2)
+        self.assertTrue(row["highlight"])
+        self.assertEqual(journey["end"]["pillars"]["smart"]["points"], 25)
+        self.assertNotIn("growth:adult", journey["milestones"])
+        self.assertEqual(self.load(batch="etapa_99")["batch"], "etapa_99")
+
     def test_same_content_compares_stale_does_not(self):
         path = self.run_file()
         p = self.load()

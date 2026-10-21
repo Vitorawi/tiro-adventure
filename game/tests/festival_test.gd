@@ -204,7 +204,7 @@ func _story() -> void:
 	for id: String in database.quests:
 		if database.quests[id].get("kind", "side") == "main":
 			main_count += 1
-	check(main_count == 49 and database.progression.chapters.size() == 12, "49 principais (31 + 9 da festa + 9 do crescimento) e 12 capítulos: %d / %d" % [main_count, database.progression.chapters.size()])
+	check(main_count == 50 and database.progression.chapters.size() == 12, "50 principais (incluindo baú dos passeios) e 12 capítulos: %d / %d" % [main_count, database.progression.chapters.size()])
 	for id: String in NEW_QUESTS:
 		check(database.quests.has(id) and database.quests[id].kind == "main", id + " existe")
 	var order := {"community_10_meet": [10, 10], "community_10_bench": [10, 20], "community_10_use": [10, 30], "community_11_garden": [11, 10], "community_11_picnic": [11, 20], "community_11_tiro": [11, 30], "community_12_prepare": [12, 10], "community_12_festival": [12, 20], "community_12_memory": [12, 30]}

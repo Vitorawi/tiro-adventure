@@ -79,5 +79,6 @@ def journeys(runs):
     return [{"id": r["_path"], "seed": r.get("seed"), "status": r.get("status"),
              "end": r.get("end", {}), "time": r.get("time", {}),
              "coin_flow": r.get("coin_flow", {}), "blocks": r.get("blocks", {}),
+             "growth_days": r.get("growth_days", {}), "chapter_coins": r.get("chapter_coins", {}),
              "milestones": r["_times"], "transactions": r.get("_transactions", {}),
              "ledger": r["_economy"]} for r in runs]

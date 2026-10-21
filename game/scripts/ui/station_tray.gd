@@ -26,9 +26,9 @@ static func station(room: RoomView, station_id: String, anchor: Dictionary, focu
 			"id": id,
 			"icon": Database.item_icon(Database.recipe_output(recipe)),
 			"caption": TimeText.short(int(recipe.get("seconds", 60))),
-			"badge_fn": func() -> String: return "!" if _missing(id) else "",
 			"error": GameState.content_error("recipe", id, recipe),
 			"error_fn": func() -> String: return GameState.content_error("recipe", id, recipe),
+			"dim_fn": func() -> bool: return not GameState.inventory.has_all(GameState.recipe_inputs(id)),
 			"highlight": id == focus,
 		})
 	var selected := focus if focus in ids else str(last_recipe.get(station_id, ""))
@@ -36,6 +36,7 @@ static func station(room: RoomView, station_id: String, anchor: Dictionary, focu
 		selected = _first_open(entries)
 	var options := {
 		"mode": "pick",
+		"recipe_selector": true,
 		"title": str(Database.stations[station_id].name),
 		"selected": selected,
 		"on_select": func(id: String) -> void: last_recipe[station_id] = id,
@@ -80,21 +81,13 @@ static func _first_open(entries: Array[Dictionary]) -> String:
 	return str(entries[0].id) if not entries.is_empty() else ""
 
 
-## Falta algum ingrediente (e a receita está aberta)?
-static func _missing(recipe_id: String) -> bool:
-	return GameState.content_error("recipe", recipe_id, Database.recipes[recipe_id]) == "" \
-			and not GameState.inventory.has_all(GameState.recipe_inputs(recipe_id))
-
-
 ## Cabeçalho: bolinhas da fila + ampliações ("+") e "Pegar tudo (N)" quando algo fica pronto.
 static func _header(station_id: String) -> Control:
 	var box := SheetBuilder.LiveBox.new(func(parent: VBoxContainer) -> void:
 		var ready := GameState.station(station_id).ready_count(GameState.now())
 		parent.add_child(SheetBuilder.slot_strip(SheetBuilder.station_slot_row(station_id)))
 		if ready > 0:
-			parent.add_child(_collect_button(station_id, ready))
-		if GameState.mastery_enabled(station_id):
-			parent.add_child(SheetBuilder.mastery_row(station_id)))
+			parent.add_child(_collect_button(station_id, ready)))
 	box.name = "Header"
 	return box
 
@@ -113,7 +106,7 @@ static func chosen_count(recipe_id: String) -> int:
 
 ## Detalhe da receita escolhida: nome, tempo/saída, ingredientes tocáveis, quantidade e o botão principal.
 static func recipe_detail(station_id: String, recipe_id: String) -> Control:
-	var box := UiKit.vbox(6)
+	var box := UiKit.vbox(10)
 	box.name = "RecipeDetail"
 	if not Database.recipes.has(recipe_id):
 		return box
@@ -248,8 +241,9 @@ static func animal(room: RoomView, station_id: String, anchor: Dictionary) -> Ac
 			"id": id,
 			"icon": Database.item_icon(Database.recipe_output(recipe)),
 			"caption": TimeText.short(int(recipe.seconds)),
-			"badge_fn": func() -> String: return "!" if _missing(id) else "",
 			"error": GameState.content_error("recipe", id, recipe),
+			"error_fn": func() -> String: return GameState.content_error("recipe", id, recipe),
+			"dim_fn": func() -> bool: return not GameState.inventory.has_all(GameState.recipe_inputs(id)),
 		})
 	return ActionTray.open(room, anchor.above, entries, {
 		"mode": "pick", "title": str(data.name), "selected": _first_open(entries),

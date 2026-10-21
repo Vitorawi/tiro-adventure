@@ -3,6 +3,7 @@
 const $ = (id) => document.getElementById(id);
 const NS = "http://www.w3.org/2000/svg";
 const palette = {
+  growth:["#b18098","#f7edf3","♥"], pillar:["#738e48","#f0f4e6","◆"], album:["#aa8b61","#f6efe3","▣"], house:["#aa8b61","#f6efe3","⌂"],
   item:["#738e48","#f0f4e6","◇"], recipe:["#b88a4e","#faf1e2","♨"], crop:["#60915e","#edf4e9","✿"],
   quest:["#9d7bb3","#f1ebf5","!"], upgrade:["#aa8e61","#f5f0e6","⌂"], station:["#b19463","#f6efe2","▦"],
   world:["#6e9aaa","#eaf3f4","◎"], place:["#6e9aaa","#edf4f4","⌖"], npc:["#b38b8d","#f8eeee","☺"],

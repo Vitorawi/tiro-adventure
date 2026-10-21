@@ -1,5 +1,5 @@
 extends Control
-## Aba Mapa: mundo atual (WorldView) e seletor em carrossel por cima (MapView).
+## Aba Mapa: mundo atual (WorldView) e lista de cinco destinos por cima (MapView).
 ##
 ## Os mundos vêm de data/worlds.json. Mundo com "room" vira uma sala (RoomView:
 ## casa, sítio); sem "room" vira uma tela com a imagem "banner" + cartões dos

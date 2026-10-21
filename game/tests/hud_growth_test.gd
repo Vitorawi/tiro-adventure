@@ -88,15 +88,21 @@ func _run() -> void:
 		check(main.find_child("GrowthPanel", true, false) != null, "Ver abre crescimento " + phase.id)
 		events.sheet_close_requested.emit()
 		await frames()
-	# Pronto pulsa; reduzir animação ou crescer encerra o pulso.
+	# Pronto tem aviso vermelho explícito, sem movimento no avatar.
 	state.call("dev_set_phase", "newborn")
 	state.call("dev_complete_growth_reqs")
 	Motion.reduced = false
 	hud.refresh(false)
-	check(hud.get("_pulsing"), "avatar pulsa pronto")
+	var alert: Button = hud.find_child("GrowthReadyAlert", true, false)
+	check(alert.visible and alert.text.contains("Crescer!"), "aviso explícito quando pode crescer")
+	for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
+		root.size = viewport
+		await frames()
+		check(alert.get_global_rect().end.x < hud.find_child("CoinsColumn", true, false).global_position.x, "aviso cabe antes das moedas em %d" % viewport.x)
+	check(hud.find_child("AvatarGroup", true, false).scale == Vector2.ONE, "avatar pronto permanece parado")
 	Motion.reduced = true
 	hud.refresh(false)
-	check(not hud.get("_pulsing") and hud.find_child("AvatarGroup", true, false).scale == Vector2.ONE, "menos animação encerra pulso")
+	check(alert.visible and hud.find_child("AvatarGroup", true, false).scale == Vector2.ONE, "aviso também aparece com menos animação")
 	var ready_summary: Control = hud.show_level_popover()
 	await frames()
 	check(ready_summary.find_child("GrowthQuickGrid", true, false) == null, "pronto não lista pendências antigas")

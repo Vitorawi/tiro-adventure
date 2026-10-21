@@ -40,6 +40,28 @@ os JSONs e as imagens do projeto.
 
 ## Economia: tela inicial
 
+### Crescimento e relatórios recentes (20/10/2026)
+
+O Atlas também encontra `build/economy/quick/<data>/*/summary.json` e outras
+pastas de jornadas, além das etapas. A seleção inicial usa o lote com o relatório
+mais recente por data de modificação. Pastas iniciadas por `_` ou `.` são ignoradas;
+perfil, horizonte, revisão e semente continuam separados.
+
+As fases do Tiro aparecem no diário, nas conquistas e nas metas de tempo. O resumo
+mostra fase final, Pelagem de seda e nível/pontos finais dos quatro pilares.
+As datas de `growth_days` são aproximadas (dias arredondados pelo simulador), sem
+inventar sessão ou conquista ausente. Execuções Quick sem `ledger.jsonl` mostram
+os marcos e o estado final disponíveis; fluxos diários e movimentações de materiais
+continuam indisponíveis. Para medir as regras atuais com esses detalhes é preciso
+gerar outra simulação com ledger; abrir o Atlas não inicia essa execução.
+
+Conexões inclui as fases e seus presentes, refeições, entregas de itens-chave,
+pilares e fontes, patamares de seda, fotos do álbum e decorações da Casa. Fotos e
+decorações têm suas definições completas; as ligações específicas cobrem crescimento
+e melhorias, sem interpretar todos os gatilhos do álbum. Itens e receitas novos
+continuam entrando automaticamente pelos JSONs. O aviso de relatório histórico
+permanece quando os JSONs mudaram desde a simulação.
+
 A navega??o come?a em **Economia**, com vers?o do relat?rio, perfil, objetivo e
 semente expl?citos. Cada jornada ? independente. Clique numa semana para filtrar
 as tr?s ?reas: **Conquistas e tempo**, **Moedas**, **Recursos e dep?sitos**.

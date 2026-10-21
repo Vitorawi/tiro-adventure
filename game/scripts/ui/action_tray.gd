@@ -8,6 +8,7 @@ extends Control
 ##   "id": String, "icon": Texture2D, "caption": String (tempo/quantidade), "badge": String ("", "!", "♥"),
 ##   "caption_fn": Callable () -> String (opcional, relida depois de cada ação), "badge_fn" idem para o selo,
 ##   "error": String ("" = disponível; senão aparece apagado com cadeado e o toque mostra o motivo),
+##   "dim_fn": Callable () -> bool (opcional; apaga só o visual, sem cadeado nem bloquear o toque),
 ##   "help": Callable (opcional, abre "Como fazer" quando bloqueado),
 ##   "highlight": bool (borda verde: o item pedido pelo "Ir"),
 ##   "keep_open": bool (o toque deu certo, mas a bandeja continua),
@@ -19,6 +20,7 @@ extends Control
 ## (borda verde) em vez de agir; embaixo fica o detalhe do escolhido (`options.detail: Callable(id) -> Control`,
 ## refeito sozinho a cada mudança), com o único botão principal. Largura 328, ✕ no canto, não fecha ao agir.
 ## `options.selected` = id inicial; `options.on_select: Callable(id)` avisa quem lembra a última escolha.
+## `recipe_selector` usa faixa horizontal. Corpo rolável respeita HUD/abas; Cook e rodapé ficam fixos.
 
 signal closed
 signal selected_changed(id: String)
@@ -82,6 +84,11 @@ var _tip := Vector2.ZERO
 var _circle_styles: Array[StyleBoxFlat] = []
 var _detail: SheetBuilder.LiveBox
 var _last_min := Vector2.ZERO
+var _body_scroll: ScrollContainer
+var _body_column: VBoxContainer
+var _actions: VBoxContainer
+var _nav_bar: Control
+var _reveal_frames := 0
 
 
 ## Abre a bandeja apontando para `anchor_world` (ponto da sala). `options`: "title", "header" (Control),
@@ -150,6 +157,7 @@ func _build() -> void:
 	column.add_theme_constant_override("separation", 4)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_child(column)
+	_body_column = column
 	pick = str(options.get("mode", "")) == "pick"
 	if pick:
 		_panel.custom_minimum_size.x = PICK_WIDTH
@@ -162,6 +170,25 @@ func _build() -> void:
 		close_button.mouse_filter = Control.MOUSE_FILTER_STOP
 		heading.add_child(close_button)
 		column.add_child(heading)
+		column.add_theme_constant_override("separation", 8)
+		_body_scroll = ScrollContainer.new()
+		_body_scroll.name = "TrayBodyScroll"
+		_body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		_body_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		var track := StyleBoxFlat.new()
+		track.bg_color = Palette.CARD_LINE
+		track.content_margin_left = 4
+		track.content_margin_right = 4
+		track.set_corner_radius_all(4)
+		_body_scroll.get_v_scroll_bar().add_theme_stylebox_override("scroll", track)
+		column.add_child(_body_scroll)
+		_body_column = UiKit.vbox(12)
+		_body_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_body_scroll.add_child(_body_column)
+		_actions = UiKit.vbox(8)
+		_actions.name = "TrayActions"
+		column.add_child(_actions)
+		_nav_bar = get_tree().root.find_child("TabBar", true, false) as Control
 	elif str(options.get("title", "")) != "":
 		var title := UiKit.label(str(options.title), &"SmallLabel")
 		title.name = "Title"
@@ -169,14 +196,22 @@ func _build() -> void:
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(title)
 	if options.get("header") is Control:
-		column.add_child(options.header)
+		_body_column.add_child(options.header)
 	if not entries.is_empty():
-		column.add_child(_build_items())
+		_body_column.add_child(_build_items())
 	if pick and options.get("detail") is Callable:
 		_detail = SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-			box.add_child((options.detail as Callable).call(selected)))
+			var detail := (options.detail as Callable).call(selected) as Control
+			box.add_child(detail)
+			for old in _actions.get_children():
+				_actions.remove_child(old)
+				old.queue_free()
+			var cook := detail.find_child("Cook", true, false) as Button
+			if cook:
+				cook.get_parent().remove_child(cook)
+				_actions.add_child(cook))
 		_detail.name = "Detail"
-		column.add_child(_detail)
+		_body_column.add_child(_detail)
 	var hint: Dictionary = options.get("hint", {})
 	if not hint.is_empty():
 		_hint_label = UiKit.label(str(hint.get("caption", "")), &"SmallLabel")
@@ -200,7 +235,7 @@ func _build() -> void:
 	_place()
 	_refresh_captions()
 	if pick:
-		Events.state_changed.connect(_refresh_captions)  # selo "!" e legendas acompanham a mochila
+		Events.state_changed.connect(_refresh_captions)  # aparência e legendas acompanham a mochila
 	_animate_in()
 	if not hint.is_empty():
 		_start_hint.call_deferred()
@@ -208,6 +243,23 @@ func _build() -> void:
 
 func _build_items() -> Control:
 	var count := entries.size()
+	if pick and bool(options.get("recipe_selector", false)):
+		var group := UiKit.vbox(8)
+		var hint := UiKit.label("Receitas: deslize para o lado", &"SmallLabel")
+		hint.name = "RecipeScrollHint"
+		group.add_child(hint)
+		var scroll := ScrollContainer.new()
+		scroll.name = "RecipeScroll"
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.custom_minimum_size.y = ITEM.y + 12
+		var row := _row()
+		row.alignment = BoxContainer.ALIGNMENT_BEGIN
+		row.add_theme_constant_override("separation", 12)
+		scroll.add_child(row)
+		for i in count: row.add_child(_make_item(i))
+		group.add_child(scroll)
+		return group
 	var holder: Control
 	var per_row := PICK_PER_ROW if pick else PER_ROW
 	if count > SCROLL_FROM and not pick:
@@ -269,7 +321,7 @@ func _make_item(index: int) -> Control:
 	var body := Control.new()
 	body.name = "Body"
 	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	body.modulate.a = 0.45 if blocked else 1.0
+	body.modulate.a = 0.45 if blocked or _entry_dimmed(entry) else 1.0
 	item.add_child(body)
 	var circle := Panel.new()
 	circle.name = "Circle"
@@ -306,7 +358,8 @@ func _make_item(index: int) -> Control:
 		badge.name = "Badge"
 		badge.autowrap_mode = TextServer.AUTOWRAP_OFF
 		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		badge.position = circle.position + Vector2(CIRCLE - 14.0, -4.0)
+		badge.reset_size()
+		badge.position = Vector2(ITEM.x - badge.size.x - 2.0, 2.0)
 		badge.visible = badge_text != ""
 		item.add_child(badge)
 	_badges.append(badge)
@@ -326,6 +379,13 @@ func _make_item(index: int) -> Control:
 
 ## Acima do alvo (a menos que não caiba abaixo do HUD); setinha sempre no alvo, mesmo com a bandeja deslocada.
 func _place() -> void:
+	var bottom := room.size.y - BOTTOM_LIMIT
+	if is_instance_valid(_nav_bar) and _nav_bar.is_visible_in_tree():
+		bottom = minf(bottom, _nav_bar.global_position.y - room.global_position.y - 8.0)
+	if _body_scroll:
+		var fixed := _panel.get_combined_minimum_size().y - _body_scroll.get_combined_minimum_size().y
+		var available := maxf(48.0, bottom - TOP_LIMIT - fixed)
+		_body_scroll.custom_minimum_size.y = minf(_body_column.get_combined_minimum_size().y, available)
 	var panel_size := _panel.get_combined_minimum_size()
 	_panel.size = panel_size
 	var origin := room.global_position
@@ -338,7 +398,7 @@ func _place() -> void:
 		top = below.y + ARROW
 		tip = below
 		points_up = true
-	var bottom_limit := room.size.y - BOTTOM_LIMIT - panel_size.y
+	var bottom_limit := bottom - panel_size.y
 	top = clampf(top, minf(TOP_LIMIT, bottom_limit), maxf(TOP_LIMIT, bottom_limit))
 	var left := clampf(tip.x - panel_size.x / 2.0, SIDE, maxf(SIDE, room.size.x - SIDE - panel_size.x))
 	_box.position = Vector2(left, top)
@@ -543,12 +603,14 @@ func select(id: String) -> void:
 		selected_changed.emit(id)
 		if _detail:
 			_detail.refresh()
+			_reveal_frames = 3
 
 
 ## Faz o detalhe se refazer já (depois de uma ação que mudou o que ele mostra).
 func refresh_detail() -> void:
 	if _detail:
 		_detail.refresh()
+		_reveal_frames = 3
 
 
 ## Ícone voando de um ponto da tela a outro (a receita indo da grade para a bolinha da fila).
@@ -620,9 +682,16 @@ func _process(delta: float) -> void:
 	if pick or options.get("header") is Control:
 		# O detalhe e o cabeçalho mudam de altura: a bandeja acompanha e continua dentro da tela.
 		var minimum := _panel.get_combined_minimum_size()
-		if not minimum.is_equal_approx(_last_min):
+		if pick or not minimum.is_equal_approx(_last_min):
 			_last_min = minimum
 			_place()
+	if pick and _reveal_frames > 0:
+		_reveal_frames -= 1
+		if _reveal_frames == 0 and is_instance_valid(_detail):
+			_body_scroll.ensure_control_visible(_detail)
+			var recipes := find_in_panel("RecipeScroll") as ScrollContainer
+			var item := item_node(selected)
+			if recipes and item: recipes.ensure_control_visible(item)
 	if _drag_index >= 0:
 		# Rolagem na borda: o dedo perto da lateral/embaixo (ou o fantasma perto do HUD) anda a câmera.
 		var local := _finger - room.global_position
@@ -691,15 +760,20 @@ func _note_success() -> void:
 		GameState.mark_seen(keys)
 
 
+func _entry_dimmed(entry: Dictionary) -> bool:
+	var dim_fn: Variant = entry.get("dim_fn")
+	return dim_fn is Callable and (dim_fn as Callable).is_valid() and bool((dim_fn as Callable).call())
+
+
 func _refresh_captions() -> void:
 	for i in entries.size():
 		var error_fn: Variant = entries[i].get("error_fn")
 		if error_fn is Callable and (error_fn as Callable).is_valid():
 			entries[i]["error"] = (error_fn as Callable).call()
 			var blocked := str(entries[i].error) != ""
-			(_items[i].get_node("Body") as Control).modulate.a = 0.55 if blocked else 1.0
 			var lock := _items[i].get_node_or_null("Lock") as Control
 			if lock: lock.visible = blocked
+		(_items[i].get_node("Body") as Control).modulate.a = 0.45 if str(entries[i].get("error", "")) != "" or _entry_dimmed(entries[i]) else 1.0
 		var fn: Variant = entries[i].get("caption_fn")
 		if fn is Callable and (fn as Callable).is_valid():
 			_captions[i].text = (fn as Callable).call()
