@@ -110,6 +110,7 @@ func _ready() -> void:
 	Events.taste_reacted.connect(_on_taste)
 	%RefreshTimer.timeout.connect(_refresh)
 	resized.connect(_layout_corner)
+	_corner.resized.connect(_layout_corner)
 	%DogArea.resized.connect(_layout_corner)
 	visibility_changed.connect(func() -> void:
 		if not is_visible_in_tree(): _care.cancel())
@@ -279,9 +280,9 @@ func _layout_corner() -> void:
 	if not is_instance_valid(_manual): return
 	_manual.position = Vector2(size.x - 76, 212)
 	_manual.size = Vector2(52, 52)
-	# A base das patas acompanha o centro do tapete na imagem, em qualquer proporção de tela.
-	var feet := _corner.global_position + _corner.pet_feet()
-	_dog_sprite.global_position = feet - Vector2(_dog_sprite.size.x * 0.5, _dog_sprite.size.y * 0.81)
+	# Cenário e Tiro são irmãos: a ordenação diferida do VBox/CenterContainer
+	# não pode mover o sprite depois deste cálculo absoluto, nem ao trocar de aba.
+	_dog_sprite.position = _corner.position + _corner.pet_feet() - _dog_sprite.size * Vector2(0.5, 0.81)
 	%Stars.position = _corner.scene_rect().position + Vector2(34, 58)
 	%Stars.size = Vector2(64, 64)
 	%DogArea.queue_redraw()

@@ -28,7 +28,7 @@ $Suite = @(
   "?wishes_test", "?flavors_test", "?finds_test", "?park_test",
   "walks_test", "petshop_test", "friends_test", "tricks_test", "treasure_test", "ui_base_test",
   "ui_style_test", "sheet_test", "effects_layer_test", "hud_test", "world_view_test", "world_selector_test", "balloon_test",
-  "tray_test", "station_tray_test", "pet_care_test", "lists_test", "market_test", "ready_badges_test", "tasks_groups_test",
+  "tray_test", "station_tray_test", "pet_care_test", "pet_anchor_test", "lists_test", "market_test", "ready_badges_test", "tasks_groups_test",
   "texts_test", "festa_test", "economy_sim_test", "economy_transactions_test", "silo_test", "fridge_test",
   "warehouse_test", "chest_test", "coins_test", "garden_test", "nature_routes_test", "queue_test",
   "expansion_test", "projects_test", "bench_test", "garden_picnic_test", "journey_test",

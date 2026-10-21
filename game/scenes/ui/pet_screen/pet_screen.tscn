@@ -74,7 +74,7 @@ custom_minimum_size = Vector2(336, 284)
 layout_mode = 2
 mouse_filter = 2
 
-[node name="DogSprite" type="TextureRect" parent="Margin/VBox/DogArea/DogCanvas"]
+[node name="DogSprite" type="TextureRect" parent="."]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(336, 284)
 layout_mode = 0
