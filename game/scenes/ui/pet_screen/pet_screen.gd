@@ -117,6 +117,22 @@ func _ready() -> void:
 	_refresh()
 
 
+func play_growth_feedback(before: Dictionary, after: Dictionary) -> void:
+	var gained := int(after.points) - int(before.points)
+	var stored := int(after.reserve) - int(before.reserve)
+	var message := str(after.status)
+	if gained > 0:
+		message = "Esperteza +%d · %d/%d" % [gained, after.points, after.cap]
+	if stored > 0:
+		message = (message + "\n" if gained > 0 else "Esperteza · ") + "+%d guardado para depois de crescer." % stored
+	elif gained == 0 and int(after.seconds) == 0:
+		message = str(after.hint)
+	_pet_message = message
+	_pet_message_until = Time.get_ticks_msec() / 1000.0 + 4.0
+	_mood_label.text = message
+	_show_mood()
+
+
 func _on_pillar_gained(id: String, points: int, _level_up: bool) -> void:
 	if not is_visible_in_tree(): return
 	_pillar_pending[id] = int(_pillar_pending.get(id, 0)) + points

@@ -82,8 +82,80 @@ func _run() -> void:
 	await _first_sale_context()
 	_merchant_missions()
 	_final_contract_production()
+	await _mission_priority()
 	print("MARKET TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(0 if failures == 0 else 1)
+
+
+func _mission_priority() -> void:
+	state.call("reset")
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	var progress: Object = state.get("progress")
+	progress.claimed_quests.erase("main_6_commerce")
+	progress.claimed_quests.erase("main_2_order")
+	progress.claimed_quests.erase("merchant_variety")
+	progress.stats["order:vegetables"] = 0
+	progress.stats["order:snacks"] = 0
+	state.get("inventory").from_dict({"strawberry": 8})
+	state.call("_changed")
+	var ids: Array = market.call("order_ids", "neighbors")
+	check(ids.slice(0, 2).has("vegetables") and ids.slice(0, 2).has("snacks"), "pedidos da missão vêm antes de encomenda comum pronta")
+	check(market.call("mission_quests", "vegetables") == ["merchant_variety"], "associa o pedido à missão ativa")
+	var board: Control = market.call("orders", "vegetables")
+	root.add_child(board)
+	for i in 4: await process_frame
+	check(board.find_child("Order_vegetables", true, false).find_child("OrderMissionBadge", true, false) != null, "pedido de missão tem exclamação na primeira página")
+	check(board.find_child("OrderMission_merchant_variety", true, false) != null, "detalhe explica qual missão")
+	progress.stats["order:vegetables"] = 1
+	state.call("_changed")
+	for i in 4: await process_frame
+	check((market.call("mission_quests", "vegetables") as Array).is_empty(), "objetivo já cumprido perde prioridade mesmo sem receber missão")
+	check((market.call("order_ids", "neighbors") as Array)[0] == "snacks", "outro pedido que ainda falta continua primeiro")
+	check(not (market.call("mission_quests", "snacks") as Array).is_empty(), "petisco continua destacado")
+	progress.stats["order:snacks"] = 1
+	state.call("_changed")
+	check((market.call("mission_quests", "snacks") as Array).is_empty(), "todos os objetivos feitos removem destaque")
+	board.queue_free()
+	await process_frame
+	progress.claimed_quests.merchant_variety = true
+	progress.claimed_quests.erase("merchant_contracts")
+	progress.stats.contracts = 0
+	state.call("_changed")
+	check(not (market.call("mission_quests", "building_order") as Array).is_empty(), "meta genérica de contratos destaca contratos")
+	check((market.call("mission_quests", "vegetables") as Array).is_empty(), "meta de contratos não destaca pedido da vizinhança")
+	progress.claimed_quests.merchant_contracts = true
+	progress.claimed_quests.erase("main_2_order")
+	progress.claimed_quests.erase("merchant_orders")
+	state.call("_changed")
+	check(not (market.call("mission_quests", "fruit_basket") as Array).is_empty(), "meta de entregar qualquer encomenda aceita qualquer pedido")
+	# Volta à missão específica para a conferência visual com um pedido comum já pronto.
+	progress.claimed_quests.merchant_orders = true
+	progress.claimed_quests.erase("main_6_commerce")
+	progress.claimed_quests.erase("merchant_variety")
+	progress.stats["order:vegetables"] = 0
+	progress.stats["order:snacks"] = 0
+	state.call("_changed")
+	if "--mission-shots" in OS.get_cmdline_user_args():
+		progress.seen.intro = true
+		var main: Control = load("res://scenes/main/main.tscn").instantiate()
+		root.add_child(main)
+		for i in 6: await process_frame
+		main.call("show_screen", &"map")
+		for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
+			root.size = viewport
+			main.set("_modal_queue", [] as Array[Callable])
+			for member: String in ["_celebration", "_welcome", "_growth_ceremony", "_walk_result"]:
+				var modal: CanvasLayer = main.get(member)
+				if modal: modal.hide()
+			root.get_node("Events").sheet_requested.emit("Encomendas", market.call("orders", "vegetables"))
+			await create_timer(0.6).timeout
+			await RenderingServer.frame_post_draw
+			var folder := ProjectSettings.globalize_path("res://../build/screenshots/order_missions")
+			DirAccess.make_dir_recursive_absolute(folder)
+			root.get_texture().get_image().save_png(folder.path_join("orders_%d.png" % viewport.x))
+		main.queue_free()
+		await process_frame
 
 
 func _first_sale_context() -> void:

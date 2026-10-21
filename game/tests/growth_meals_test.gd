@@ -83,5 +83,23 @@ func _run() -> void:
 	check(state.growth.done.young.get("pillars", false) and not state.growth.done.young.get("care_coat", false), "Carinho sozinho não completa Banhos")
 	state.from_dict(state.to_dict())
 	check(not state.growth.done.young.get("care_coat", false), "reload novo não espalha confirmação entre ações")
+	# Dentinhos → Aventureiro: a Esperteza do save já vale para o patamar reduzido de 25.
+	fresh("teething")
+	state.growth.points.smart = 24
+	state._changed()
+	var smart_req: Dictionary
+	for req: Dictionary in state.growth_info().requirements:
+		if req.id == "care_smart": smart_req = req
+	check(int(smart_req.levels.smart) == 2 and not smart_req.done, "brincadeiras pedem 25 pontos, 24 ainda não completa")
+	state.growth.points.smart = 25
+	state._changed()
+	check(state.growth.done.explorer.care_smart, "25 pontos completam brincadeiras para Aventureiro")
+	fresh("teething")
+	state.growth.points.smart = 29
+	var previous: Dictionary = state.to_dict().duplicate(true)
+	state.from_dict(previous)
+	state._changed()
+	check(state.growth.done.explorer.care_smart and state.growth.points.smart == 29, "save da foto com 29 pontos completa sem perder pontos")
+	check(not state.growth.done.explorer.get("meals", false) and not state.growth_info().ready, "ajuste não dispensa refeições e demais passos")
 	print("GROWTH MEALS TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(1 if failures else 0)

@@ -170,7 +170,7 @@
           "id": "care_smart",
           "type": "pillars",
           "levels": {
-            "smart": 3
+            "smart": 2
           },
           "label": "Brincadeiras e descobertas"
         },
@@ -346,8 +346,8 @@
     },
     "play": {
       "brave": 2,
-      "smart": 1,
-      "cooldown": 1800,
+      "smart": 3,
+      "cooldown": 300,
       "basket_smart": 1
     },
     "pet": {

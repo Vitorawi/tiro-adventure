@@ -198,6 +198,8 @@ class ContentGraph:
                     "growth": "growth"}.get(kind)
         source = self.ref(ref_kind, key) if ref_kind else self.counter(key)
         self.link(source, target, label, "goal")
+        for counter in goal.get("also_counts", []):
+            self.link(self.counter(counter), target, "também conta para a meta", "goal")
 
     def build(self):
         for key, name in {"coins": "Moedas", "xp": "XP do jogador", "affection": "Afeto"}.items():

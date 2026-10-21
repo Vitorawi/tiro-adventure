@@ -68,23 +68,45 @@ func run() -> void:
 	state.bathe()
 	check(count('coat')==6,'banho após 2 h')
 	fresh('puppy')
+	check(state.play_growth_info().seconds == 0, 'brincar pode ganhar antes da primeira espera')
 	state.play()
-	check(count('brave')==2 and count('smart')==1,'brincar útil')
+	check(count('brave')==2 and count('smart')==3,'brincar dá três de Esperteza')
+	check(state.play_growth_info().seconds == 300 and '5 min' in str(state.play_growth_info().hint), 'brincar explica recarga real de cinco minutos')
 	needs(40)
 	state.play()
 	reload_state()
 	needs(40)
 	state.play()
-	check(count('smart')==1,'brincar recarga salva')
-	state.test_time += 1800
+	check(count('smart')==3,'brincar recarga salva')
+	check(state.play_growth_info().seconds == 300, 'consulta usa a espera salva')
+	state.test_time += 299
+	check(state.play_growth_info().seconds == 1, 'timer de brincar marca último segundo')
+	state.test_time += 1
+	check(state.play_growth_info().seconds == 0, 'brincar libera ao completar espera')
 	needs(40)
 	state.play()
-	check(count('smart')==2,'brincar após 30 min')
+	check(count('smart')==6,'brincar após cinco minutos')
+	state.test_time += 300
+	needs(100)
+	state.dog.needs.hunger = 40
+	var useful_before: int = state.progress.stat('care_useful:play')
+	check(state.play(), 'pode brincar feliz')
+	check(count('smart')==9, 'felicidade cheia não bloqueia Esperteza')
+	check(state.progress.stat('care_useful:play') == useful_before, 'brincar feliz não fabrica cuidado útil')
+	state.growth.cooldowns.play = state.now() + 1800
+	reload_state()
+	check(state.play_growth_info().seconds == 300, 'espera antiga cai para no máximo cinco minutos')
+	state.test_time += 299
+	reload_state()
+	check(state.play_growth_info().seconds == 1, 'reabrir não reinicia a espera')
+	state.test_time += 1
+	state.dog.needs.energy = 14
+	check(not state.play() and count('smart')==9, 'sem energia não recebe pontos')
 	fresh('explorer')
 	state.inventory.add('braided_toy')
 	check(state.give_toy('braided_toy') == '', 'dar brinquedo para o cesto')
 	state.play()
-	check(count('smart')==2,'cesto da fase aventureiro')
+	check(count('smart')==4,'cesto da fase aventureiro')
 	fresh()
 	check(state.pet()==1 and count('brave')==1,'carinho com afeto')
 	state.pet()

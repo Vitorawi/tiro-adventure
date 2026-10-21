@@ -1343,14 +1343,14 @@
   "guide_stone": {
     "npc": "guide",
     "name": "Pedras da caverna",
-    "dialogue": "Na Caverna encontramos pedra para construir. Experimente a Pedreira.",
+    "dialogue": "Na Caverna encontramos pedra para construir. Busque pedra e depois toque para pegar. Pedras da margem ou Pedreira contam, inclusive as buscas que você já pegou.",
     "goals": [
       {
         "type": "stat",
         "key": "activity:quarry",
+        "also_counts": ["activity:pebbles", "activity:deep_quarry"],
         "target": 1,
-        "fresh": true,
-        "label": "Pegar 1 busca na Pedreira"
+        "label": "Pegar 1 busca de pedra na Caverna"
       }
     ],
     "rewards": {

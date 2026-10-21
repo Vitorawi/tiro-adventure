@@ -116,6 +116,11 @@ func _run() -> void:
 		print("NATURE ROUTE UI: ", "PASS" if failures == 0 else "FAIL")
 		quit(0 if failures == 0 else 1)
 		return
+	if "--food-shots" in OS.get_cmdline_user_args():
+		await _test_growth_food_focus()
+		print("GROWTH FOOD TRAY UI: ", "PASS" if failures == 0 else "FAIL")
+		quit(0 if failures == 0 else 1)
+		return
 
 	await _test_stove_cooks()
 	await _test_full_queue()
@@ -123,6 +128,7 @@ func _run() -> void:
 	await _test_collect_without_opening()
 	await _test_blender_and_focus()
 	await _test_see_all()
+	await _test_growth_food_focus()
 	await _test_coop()
 	await _test_animal_spaces()
 	await _test_nature()
@@ -294,6 +300,55 @@ func _test_collect_without_opening() -> void:
 
 
 # --- 5. liquidificador (outra estação do mesmo lugar) e "Ir" com receita ------------------------
+
+func _test_growth_food_focus() -> void:
+	reset_world_state()
+	state.get("growth").phase = "teething"
+	state.get("growth").done.erase("explorer")
+	state.get("progress").stats.erase("feed:growth_kibble")
+	state.get("growth").phase_stats.clear()
+	var house := await enter("house")
+	var stations_ui: Script = load("res://scripts/ui/station_tray.gd")
+	var ids: Array = stations_ui.call("recipe_ids", "stove")
+	check(ids[0] == "growth_kibble", "comida do próximo crescimento vem primeiro")
+	check(stations_ui.call("recipe_ids", "stove", "vegetable_soup")[0] == "vegetable_soup", "Ir explícito tem prioridade sobre crescimento")
+	add("corn", 20)
+	add("carrot", 20)
+	add("egg", 8)
+	for i in state.call("station_slots", "stove"):
+		check(state.call("cook", "carrot_snack") == "", "enche fila sem usar comida de crescimento")
+	var help: Script = load("res://scripts/ui/task_help.gd")
+	var data: Dictionary = help.call("describe", "growth_req", "meals")
+	check(data.target.get("place") == "recipe:growth_kibble", "ajuda com fila cheia mantém receita")
+	# Percorre o mesmo destino do botão da ajuda até a bandeja real.
+	places.call("run", "house", str(data.target.place))
+	await frames(8)
+	var current := tray()
+	check(current != null, "ajuda abre bandeja do fogão")
+	if current == null: return
+	check(current.get("selected") == "growth_kibble" and current.call("entry_ids")[0] == "growth_kibble", "receita pedida já selecionada e visível na primeira posição")
+	check(current.call("find_in_panel", "RecipeScrollHint") != null, "receitas extras têm instrução de rolagem")
+	check((current.call("find_in_panel", "Cook") as Button).disabled, "fila cheia continua impedindo produção")
+	var panel: Control = current.get("_box")
+	check(Rect2(Vector2.ZERO, house.size).encloses(Rect2(panel.position, panel.size)), "receita focada e dica cabem na tela")
+	check((state.call("station", "stove").queue as Array).size() == state.call("station_slots", "stove"), "navegar não inicia outra produção")
+	if "--food-shots" in OS.get_cmdline_user_args():
+		var folder := ProjectSettings.globalize_path("res://").path_join("../build/screenshots/growth_food_focus").simplify_path()
+		DirAccess.make_dir_recursive_absolute(folder)
+		(main.get("_toast") as Control).hide()
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(folder.path_join("stove_%d.png" % root.size.x))
+		house.call("close_tray")
+		help.call("open", "growth_req", "meals")
+		await frames(8)
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png(folder.path_join("help_%d.png" % root.size.x))
+		events.emit_signal("sheet_close_requested")
+	house.call("close_tray")
+	# Concluído o pedido de comida, a estação volta à ordem comum.
+	state.get("growth").phase = "adult"
+	check(stations_ui.call("recipe_ids", "stove")[0] == "carrot_snack", "sem refeição pendente a ordem normal volta")
+
 
 func _test_blender_and_focus() -> void:
 	reset_world_state()

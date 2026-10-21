@@ -538,9 +538,14 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			if key == "explore":
 				return _panel_target("routes:walk")
 			if key.begins_with("activity:"):
-				var route: Dictionary = Database.progression.activities.get(key.trim_prefix("activity:"), {})
+				var route_id := key.trim_prefix("activity:")
+				var route: Dictionary = Database.progression.activities.get(route_id, {})
 				if not route.is_empty():
-					return _panel_target("routes:" + str(route.place))
+					var target := _panel_target("routes:" + str(route.place))
+					if not target.is_empty():
+						target["spot"] = target.place
+						target["place"] = "route:" + route_id
+					return target
 			if key in ["produce", "production_jobs"]:
 				return _panel_target("station:stove")
 			if key.begins_with("produce:"):

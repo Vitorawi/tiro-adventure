@@ -21,10 +21,26 @@ static func order_ids(channel: String) -> Array[String]:
 		if GameState.requirement_error(data.get("requirements", {})) == "":
 			ids.append(id)
 	ids.sort_custom(func(a: String, b: String) -> bool:
+		var mission_a := not mission_quests(a).is_empty()
+		var mission_b := not mission_quests(b).is_empty()
+		if mission_a != mission_b: return mission_a
 		var rank_a := _rank(a)
 		var rank_b := _rank(b)
 		return rank_a < rank_b if rank_a != rank_b else a < b)
 	return ids
+
+
+## Só objetivos pendentes das missões ativas; não promete avanço em tarefas futuras ou já feitas.
+static func mission_quests(order_id: String) -> Array[String]:
+	var result: Array[String] = []
+	for quest_id: String in GameState.progress.active_steps().values():
+		for goal: Dictionary in Database.quests[quest_id].goals:
+			if str(goal.type) != "stat" or GameState.goal_value(goal) >= int(goal.get("target", 1)):
+				continue
+			var key := str(goal.key)
+			if key == "order:" + order_id or key == "orders" or (key == "contracts" and is_contract(order_id)):
+				if not quest_id in result: result.append(quest_id)
+	return result
 
 static func _rank(id: String) -> int:
 	if GameState.order_error(id) == "": return 0
@@ -41,6 +57,8 @@ static func orders(focus: String = "", channel: String = "neighbors") -> Control
 			box.add_child(UiKit.label("Pedidos pequenos dos vizinhos. Sem prazo para entregar.", &"SmallLabel"))
 			_customers_summary(box)
 		var ids := order_ids(channel)
+		if ids.any(func(id: String) -> bool: return not mission_quests(id).is_empty()):
+			box.add_child(UiKit.label("! Pedido de missão · aparece primeiro", &"SmallLabel"))
 		if focus != "" and not focus in ids:
 			var data: Dictionary = Database.progression.orders[focus]
 			box.add_child(UiKit.label(str(data.name), &"SectionLabel"))
@@ -140,6 +158,12 @@ static func _order_tile(id: String, selected: bool, action: Callable) -> Button:
 	var tile := UiKit.grid_tile(Database.item_icon(first), str(data.name), action, 100, 28)
 	tile.name = "Order_" + id
 	tile.custom_minimum_size.y = 122
+	if not mission_quests(id).is_empty():
+		var badge := UiKit.alert_badge()
+		badge.name = "OrderMissionBadge"
+		tile.add_child(badge)
+		badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+		badge.position += Vector2(-28, 4)
 	var body := tile.get_node("Visual") as VBoxContainer
 	body.get_node("Picture").hide()
 	var products := UiKit.hbox(6)
@@ -182,6 +206,12 @@ static func _order_detail(box: VBoxContainer, id: String) -> void:
 	var detail := UiKit.vbox(6)
 	detail.name = "OrderDetail"
 	detail.add_child(UiKit.label(str(data.name), &"SectionLabel"))
+	for quest_id in mission_quests(id):
+		var row := UiKit.hbox(6)
+		row.name = "OrderMission_" + quest_id
+		row.add_child(UiKit.alert_badge())
+		row.add_child(UiKit.fill_label("Missão: " + str(Database.quests[quest_id].name), &"SmallLabel"))
+		detail.add_child(row)
 	if str(data.get("customer", "")) != "":
 		detail.add_child(customer_row(str(data.customer)))
 	var ingredients := UiKit.flow(2)

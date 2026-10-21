@@ -538,7 +538,13 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 				row.add_child(UiKit.fill_label("%s · %d/%d\n%s" % [input.label, input.have, input.amount, input.where], &"SmallLabel"))
 				var path: Array[Dictionary] = history.duplicate()
 				path.append({"kind": kind, "id": id, "amount": amount})
-				row.add_child(UiKit.secondary("Buscar", open.bind("item", str(input.id), int(input.amount), path), null, true))
+				if int(input.have) < int(input.amount):
+					row.add_child(UiKit.secondary("Buscar", open.bind("item", str(input.id), int(input.amount), path), null, true))
+				else:
+					var ready := UiKit.label("Pronto ✓", &"SmallLabel", UiKit.GOOD)
+					ready.custom_minimum_size.x = 80
+					ready.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+					row.add_child(ready)
 				box.add_child(row)
 			return
 		if data.has("steps"):
@@ -777,9 +783,13 @@ static func _growth_food(row: Dictionary, food: String, recipe_id: String, trail
 			if int(need.have) >= int(need.amount) or need.kind == "item": continue
 			guide.status = "Para preparar, falta: " + str(need.label) + "."
 			break
-		guide.next = "Primeiro: " + str(preparation.next)
-		guide.action = "Ver como liberar" if guide.status != "Falta conseguir os ingredientes." else "Buscar ingredientes"
-		guide.target = preparation.get("next_target", preparation.target)
+		if str(preparation.next).begins_with("Fila cheia"):
+			guide.status = "A fila do %s está cheia. Pegue o que ficou pronto ou espere uma vaga." % station_name
+			guide.action = "Ver fila no " + station_name
+		elif guide.status == "Falta conseguir os ingredientes.":
+			guide.next = "Veja abaixo o que falta. No %s, a receita já abre selecionada." % station_name
+		else:
+			guide.next = "Abra a receita para ver como liberar."
 	var result := _base(Database.item_name(food), "", guide.target, guide.action)
 	if row.has("body_level"):
 		guide.status += " Essas porções também completam o Corpo desta etapa."
@@ -801,6 +811,7 @@ static func growth_care_steps(row: Dictionary) -> Array[Dictionary]:
 		var target := {"screen": "pet"}
 		var action: String = {"body": "Dar comida", "brave": "Fazer carinho", "smart": "Brincar", "coat": "Dar banho"}[pillar]
 		if pillar == "brave": hint += " " + str(GameState.pet_growth_info().hint)
+		if pillar == "smart": hint += " " + str(GameState.play_growth_info().hint)
 		if pillar == "body":
 			var food := ""
 			for item: String in Database.items:

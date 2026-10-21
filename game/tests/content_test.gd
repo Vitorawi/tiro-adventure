@@ -85,6 +85,8 @@ func _run() -> void:
 						check(db.get("recipes").values().any(func(r: Dictionary) -> bool: return r.get("output", r.get("output_collection", "")) == key.trim_prefix("produce:")), id + ": produção " + key)
 					if key.begins_with("activity:"):
 						check(data.activities.has(key.trim_prefix("activity:")), id + ": rota " + key)
+					for alternate: String in g.get("also_counts", []):
+						check(not g.get("fresh", false) and alternate.begins_with("activity:") and data.activities.has(alternate.trim_prefix("activity:")), id + ": rota histórica alternativa " + alternate)
 					if key.begins_with("order:"):
 						check(data.orders.has(key.trim_prefix("order:")), id + ": pedido " + key)
 				"quest":
@@ -394,6 +396,11 @@ func _validate_target(target: Dictionary, id: String, state: Node) -> void:
 		check(db.call("place_with_panel", "sell")[0] == world, id + ": feira fora do mundo")
 	elif place.begins_with("order:"):
 		check(db.get("progression").orders.has(place.trim_prefix("order:")) and world == "village", id + ": encomenda fora da Vila")
+	elif place.begins_with("route:"):
+		var route_id := place.trim_prefix("route:")
+		var route: Dictionary = db.get("progression").activities.get(route_id, {})
+		check(not route.is_empty(), id + ": rota inexistente")
+		check(db.call("place_with_panel", "routes:" + str(route.get("place", "")))[0] == world, id + ": rota fora do mundo")
 	elif place == "find":
 		pass
 	elif place == "":

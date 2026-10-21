@@ -106,13 +106,13 @@ func _toys() -> void:
 	check(state.toy_basket_count() == 2, "brinquedos persistem")
 	var before: int = state.progress.stat("pillar:smart")
 	check(state.play(), "brincar pelo caminho real")
-	check(state.progress.stat("pillar:smart") - before == 3, "+1 por brinquedo na Esperteza")
+	check(state.progress.stat("pillar:smart") - before == 5, "+1 por brinquedo na Esperteza")
 	state.progress.house.toys.append_array(["futuro_3", "futuro_4"])
 	check(state.toy_basket_count() == 3, "bônus máximo +3")
 	before = state.progress.stat("pillar:smart")
 	state.growth.cooldowns.erase("play")
 	state.play()
-	check(state.progress.stat("pillar:smart") - before == 4, "brincar respeita teto do bônus")
+	check(state.progress.stat("pillar:smart") - before == 6, "brincar respeita teto do bônus")
 
 func _sleep() -> void:
 	for bed: String in ["", "bed_soft", "bed_luxe"]:

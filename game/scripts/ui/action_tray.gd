@@ -234,14 +234,20 @@ func _build_items() -> Control:
 		current_row.add_child(_make_item(i))
 	# Muitas receitas (fogão com 10): mais de duas linhas rolam, para a bandeja caber na sala e abaixo do HUD.
 	if pick and count > per_row * 2:
+		var group := VBoxContainer.new()
+		group.add_theme_constant_override("separation", 4)
+		var hint := UiKit.label("Deslize para ver mais ↓", &"SmallLabel")
+		hint.name = "RecipeScrollHint"
+		group.add_child(hint)
 		var scroll := ScrollContainer.new()
 		scroll.name = "Scroll"
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-		scroll.custom_minimum_size = Vector2(0.0, ITEM.y * 1.9 + 8.0)
+		scroll.custom_minimum_size = Vector2(0.0, ITEM.y * 1.9 + 8.0 - hint.get_combined_minimum_size().y - 4.0)
 		scroll.add_child(rows)
 		rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		return scroll
+		group.add_child(scroll)
+		return group
 	return holder
 
 

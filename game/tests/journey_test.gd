@@ -89,6 +89,7 @@ func _run() -> void:
 	_old_saves()
 	_midway_saves()
 	_stale_base()
+	_stone_routes()
 	_atelier_goal()
 	_repetition_report()
 	print("JOURNEY TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
@@ -266,14 +267,45 @@ func _stale_base() -> void:
 	check(state.call("quest_error", "main_5_cooking") == "", "base antiga: produção anterior já conta")
 	var before: int = state.get("coins")
 	check(state.call("claim_quest", "main_5_cooking") == "" and int(state.get("coins")) == before + 10, "base antiga: paga 10 uma vez")
-	# Quem ainda tem fresh de verdade mantém a base (guide_stone).
+	# A pedra já recolhida conta mesmo com a antiga base fresh no save.
 	_fresh()
 	_claim_before("stone_path")
 	_p().stats["activity:quarry"] = 3
 	_p().steps["guide"] = {"quest": "guide_stone", "base": {"activity:quarry": 3}}
 	state.call("_changed")
-	check(int(_p().steps.guide.base.get("activity:quarry", -1)) == 3, "fresh que continua fresh mantém a base")
-	check(state.call("quest_error", "guide_stone") != "", "pedreira antiga não conta como nova")
+	check((_p().steps.guide.base as Dictionary).is_empty(), "base fresh antiga da pedra não precisa mais ser repetida")
+	check(state.call("quest_error", "guide_stone") == "", "pedreira já recolhida conclui a missão")
+
+
+func _stone_routes() -> void:
+	var places: Script = load("res://scripts/ui/places.gd")
+	for route: String in ["pebbles", "quarry", "deep_quarry"]:
+		_fresh()
+		_claim_before("stone_path")
+		state.call("dev_grant_upgrade", "cave_open")
+		if route == "deep_quarry": state.call("dev_grant_upgrade", "cave_level_2")
+		check(state.call("quest_error", "guide_stone") != "", "pedra começa pendente: " + route)
+		check(state.call("start_gathering", "rocks", 0, route, "stone") == "", "inicia busca real: " + route)
+		check(state.call("quest_error", "guide_stone") != "", "mandar buscar ainda não conclui: " + route)
+		state.call("dev_finish_timers")
+		check(state.call("quest_error", "guide_stone") != "", "timer pronto sem recolher não conclui: " + route)
+		check(state.call("collect_gathering", "rocks", 0) == "", "recolhe busca real: " + route)
+		check(state.call("quest_error", "guide_stone") == "", "coleta conclui missão: " + route)
+		# Mesmo que a pedra já tenha sido usada e exista a base fresh antiga, não pede repetir.
+		state.get("inventory").call("from_dict", {})
+		_p().steps.guide.base = {"activity:quarry": _p().stat("activity:quarry")}
+		_roundtrip()
+		check(state.call("quest_error", "guide_stone") == "", "histórico do save conta sem pedra no estoque: " + route)
+		var before: int = state.get("coins")
+		check(state.call("claim_quest", "guide_stone") == "" and state.get("coins") == before + 25, "recebe uma vez: " + route)
+		check(state.call("claim_quest", "guide_stone") != "", "não duplica missão: " + route)
+	var target: Dictionary = places.call("goal_target", {"type": "stat", "key": "activity:quarry"})
+	check(target.get("place") == "route:quarry" and target.get("world") == "nature", "Ir preserva a rota Pedreira")
+	_fresh()
+	_claim_before("stone_path")
+	_p().stats["activity:lane"] = 2
+	_p().stats["activity:copper_vein"] = 1
+	check(state.call("quest_error", "guide_stone") != "", "madeira e veio de cobre não contam como busca de pedra")
 
 
 func _atelier_goal() -> void:

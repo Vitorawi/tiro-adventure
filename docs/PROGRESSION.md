@@ -1,4 +1,7 @@
 # Progressão (Jornada)
+
+**Atalhos de comida e receitas (20/10/2026):** a ajuda de refeição do crescimento leva à receita da estação mesmo com ingredientes faltantes/fila cheia. Ingredientes completos mostram Pronto ✓; só os faltantes têm Buscar. Fila cheia orienta esperar/pegar com Ver fila no Fogão. A bandeja põe a receita do Ir primeiro e selecionada; sem foco, prioriza comida ainda pedida pelo próximo crescimento, incluindo favorita já descoberta. Grades longas têm dica explícita de rolagem. Produção só começa pelo botão Cozinhar/Fazer existente.
+
 ## Tiro no centro — etapa 07 (19/10/2026)
 
 O HUD mostra o retrato e a pelagem da fase, anel por fração de requisitos concluídos e número da fase
@@ -322,6 +325,10 @@ O `progression_test.gd` joga uma **campanha simulada** do zero (só ações reai
 falha se alguma construção ou missão ficar inalcançável. Rode-o depois de mexer em números.
 
 ## Interface
+**Encomendas ligadas às missões (20/10/2026).** `MarketUi.mission_quests` consulta objetivos pendentes das linhas ativas: `order:<id>`, `orders` e `contracts` (este último só canal da banca). Esses pedidos vêm primeiro em `order_ids`, antes do critério normal pronto/preparar/espera; recebem ! na grade e o nome da missão no detalhe. Objetivos já cumpridos deixam de destacar mesmo com prêmio da missão ainda não recebido; missões futuras não geram destaque. Paginação e foco explícito são preservados, sem alterar pagamentos, recargas ou progresso.
+
+**Pedras da caverna (20/10/2026).** `guide_stone` aceita buscas recolhidas em Pedras da margem (`pebbles`), Pedreira (`quarry`) e Veio profundo (`deep_quarry`), sem `fresh`. O objetivo `stat` histórico soma o contador principal às alternativas de `also_counts`; usa os contadores já existentes no save, mesmo sem pedra restante no inventário. Iniciar ou terminar o timer sem pegar não conta. Recompensa de 25 moedas e cruzamento `stone_path` preservados. Atalhos `activity:<rota>` agora abrem `route:<rota>` com foco, em vez de apenas o local genérico.
+
 Desde a reorganização da navegação, a progressão não fica mais num menu único: cada coisa mora
 num lugar de um mundo (feira, ateliê e portão da trilha na Vila; cada construção comprada no próprio lugar) e a aba **Missões** mostra a História (um passo por vez: quem pede, ícone + `0/6`, onde,
 o que falta em chips tocáveis). Três pílulas fixas separam **Principal**, **Personagens** e **Temporárias**. Principal mostra só a história; Personagens agrupa as linhas por NPC, recolhidas até Abrir (um personagem aberto por vez), com prêmios disponíveis primeiro; Temporárias alterna **Diárias/Semanais**, preservando **Pegar tudo** para as rotinas prontas. Exclamação vermelha no grupo, personagem e missão significa prêmio que já pode ser recebido, sem confundir missão nova com concluída; o cartão também diz “Prêmio pronto!”. História mantém **Ir** e **?** ("Como fazer"); marcos compartilhados têm Ver missões do personagem, abrindo o grupo correto. Seleção de grupo/personagem/período fica na sessão e resiste ao refresh por segundo; nada muda no save, metas ou prêmios. Detalhes em **`docs/WORLDS.md`**. Painéis em `scripts/ui/progression_ui.gd`.
@@ -959,6 +966,8 @@ O balão do Tiro mostra o ganho real (ex.: Coragem +1 · 69/70), a espera ou o g
 atingir o teto. Caderninho e ajuda de Coragem explicam o intervalo; a contagem no caderninho atualiza
 a cada segundo. Não muda a regra de Radiante nem os pontos/recargas existentes.
 
+**Brincar e Esperteza (20/10/2026):** cada brincadeira pode render **3 de Esperteza a cada 5 min**, mesmo com Felicidade cheia; bônus do cesto (+1 por brinquedo, até +3) e Radiante continuam. `_pillar_source("play")` roda no brincar bem-sucedido, separado de `_care_useful`: afeto e contadores de cuidado útil ainda exigem recuperação ≥5 ou pedido, sem recompensar cuidado vazio. Energia mínima 15, sono/passeio e custos de necessidades preservados. Carregamento limita uma espera antiga ao novo intervalo, sem zerar pontos nem reiniciar o relógio ao reabrir. `GameState.play_growth_info()` consulta `growth.cooldowns.play`, sem consumir a espera. `PetCareTray` mostra `PlayGrowthTimer` abaixo dos cuidados, atualizado pelo refresh; a reação junto ao Tiro diz Esperteza +N/progresso/reserva ou o motivo de não ganhar. Ajuda de Esperteza e caderninho Crescimento (`PlayGrowthHint`) repetem ganho, regra e espera real. Pode brincar durante a espera, sem pontos extras.
+
 Caderninho substitui Atributos por Crescimento após a primeira fase (`growth_tab`, `growth: puppy`):
 nome/idade, quatro `PillarRing_<id>` com ícones, nível/teto e reserva. `PillarUi` atualiza enquanto aberto
 e anima uma subida de nível. Os níveis locais de Natureza continuam no painel próprio. A tela Tiro
@@ -1014,6 +1023,8 @@ Interface: "Dar" no cartão do requisito e no detalhe do item da Mochila (`GiveG
 
 
 ## Tiro no centro — etapa 11: a história conduzida pelo crescimento (19/10/2026)
+
+**Ajuste de ritmo em 20/10/2026:** Dentinhos → Aventureiro pede Esperteza nível 2 (25 pontos) em Brincadeiras e descobertas, antes nível 3 (45). O histórico de pontos do save já vale, sem ações extras; as demais condições e os ganhos/recargas continuam iguais. Referência atual: `growth.json → explorer.requirements.care_smart`.
 
 **Objetivo `growth`** (`{"type": "growth", "key": "<fase>"}`): cumprido quando o Tiro **já está** nessa fase ou além (`GameState.goal_value`: `growth.phase_index() >= phase_index(key)`; vale também se ele cresceu antes de a missão ficar ativa). "Ir" abre o painel de crescimento (`Places.goal_target` → `{"growth": true}`); o "?" é `TaskHelp.describe("growth", fase)`, que lista os requisitos da próxima fase que ainda faltam como chips `growth_req` tocáveis (o mesmo `_growth_requirement` do painel). No cartão da História, `ProgressionUi.goal_row` mostra a **silhueta** da fase que vem (`GrowthGoalSilhouette`, a mesma do painel) e, cumprido, o retrato dela (`GrowthGoalPhoto`). Atalho dev: `_dev_complete_quest` de um objetivo `growth` coloca o Tiro na fase (`dev_set_phase`), então `dev_jump_to_chapter` e `dev_complete_quest` deixam a fase coerente com a história.
 

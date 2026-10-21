@@ -18,7 +18,7 @@ static var quantity := {}
 static func station(room: RoomView, station_id: String, anchor: Dictionary, focus: String = "") -> ActionTray:
 	if str(Database.stations[station_id].get("kind", "")) == "animal":
 		return animal(room, station_id, anchor)
-	var ids := recipe_ids(station_id)
+	var ids := recipe_ids(station_id, focus)
 	var entries: Array[Dictionary] = []
 	for id in ids:
 		var recipe: Dictionary = Database.recipes[id]
@@ -48,16 +48,29 @@ static func station(room: RoomView, station_id: String, anchor: Dictionary, focu
 	return ActionTray.open(room, anchor.above, entries, options)
 
 
-## Receitas da estação: as que já dá para fazer primeiro (na ordem do JSON), as fechadas no fim.
-static func recipe_ids(station_id: String) -> Array[String]:
+## O destino do Ir vem primeiro; depois a comida do próximo crescimento, abertas e fechadas.
+static func recipe_ids(station_id: String, focus: String = "") -> Array[String]:
 	var open: Array[String] = []
 	var closed: Array[String] = []
+	var priority: Array[String] = []
+	var foods: Array[String] = []
+	for row: Dictionary in GameState.growth_info().requirements:
+		if row.type != "feed" or bool(row.done): continue
+		var food := str(row.item)
+		if food == "favorite":
+			if not GameState.favorite_found(): continue
+			food = GameState.favorite_food()
+		if food != "any": foods.append(food)
 	for id in Database.recipes_for(station_id):
-		if GameState.content_error("recipe", id, Database.recipes[id]) == "":
+		if id == focus:
+			priority.push_front(id)
+		elif Database.recipe_output(Database.recipes[id]) in foods:
+			priority.append(id)
+		elif GameState.content_error("recipe", id, Database.recipes[id]) == "":
 			open.append(id)
 		else:
 			closed.append(id)
-	return open + closed
+	return priority + open + closed
 
 
 static func _first_open(entries: Array[Dictionary]) -> String:

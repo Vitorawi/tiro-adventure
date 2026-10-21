@@ -61,6 +61,12 @@ static func panel() -> Control:
 	pet_timer.timeout.connect(refresh_pet)
 	pet_hint.add_child(pet_timer)
 	box.add_child(pet_hint)
+	var play_hint := UiKit.label("", &"SmallLabel")
+	play_hint.name = "PlayGrowthHint"
+	var refresh_play := func() -> void: play_hint.text = str(GameState.play_growth_info().hint)
+	refresh_play.call()
+	pet_timer.timeout.connect(refresh_play)
+	box.add_child(play_hint)
 	box.add_child(diary())
 	box.add_child(taste_guide())
 	return box

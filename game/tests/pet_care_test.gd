@@ -342,11 +342,41 @@ func _run() -> void:
 			DirAccess.make_dir_recursive_absolute(folder)
 			await RenderingServer.frame_post_draw
 			check(root.get_texture().get_image().save_png(folder.path_join("cooldown_%d.png" % viewport.x)) == OK, "captura do retorno do carinho")
+	await _test_play_feedback()
 	await _test_food_help()
 	main.queue_free()
 	await process_frame
 	print("PET CARE TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
+
+
+func _test_play_feedback() -> void:
+	root.get_node("Events").sheet_close_requested.emit()
+	state.get("dog").sleeping = false
+	for need: String in ["hunger", "happiness", "energy", "hygiene"]: state.get("dog").needs[need] = 40.0
+	state.get("dog").updated_at = state.call("now")
+	state.get("growth").cooldowns.erase("play")
+	state.get("growth").points.smart = 10
+	state.get("growth").reserve.smart = 0
+	tap("ball")
+	var mood: Label = pet.find_child("MoodLabel", true, false)
+	check(mood.text.begins_with("Esperteza +"), "brincar anuncia o ganho nomeado")
+	check(pet.find_child("PlayGrowthTimer", true, false).text.begins_with("Esperteza: próximo ganho em "), "espera aparece na faixa de cuidados")
+	tap("ball")
+	check(mood.text.begins_with("Esperteza: próximo ganho em "), "brincadeira sem pontos explica espera")
+	pet.call("_refresh")
+	check(mood.text.begins_with("Esperteza: próximo ganho em "), "refresh não apaga retorno da brincadeira")
+	if "--play-growth-shots" in OS.get_cmdline_user_args():
+		for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
+			root.size = viewport
+			state.get("dog").needs.energy = 100.0
+			await frames()
+			tap("ball")
+			await frames()
+			var folder := ProjectSettings.globalize_path("res://../build/screenshots/play_growth")
+			DirAccess.make_dir_recursive_absolute(folder)
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png(folder.path_join("wait_%d.png" % viewport.x))
 
 
 func _test_food_help() -> void:

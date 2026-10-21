@@ -835,6 +835,23 @@ func pet_growth_info() -> Dictionary:
 	return {"points": int(growth.points.get("brave", 0)), "cap": cap, "reserve": int(growth.reserve.get("brave", 0)), "seconds": seconds, "wait": wait, "hint": hint}
 
 
+## Consulta a recarga real de Esperteza e o cuidado útil sem iniciar espera nem consumir exceções.
+func play_growth_info() -> Dictionary:
+	var wait := maxi(0, ceili(float(growth.cooldowns.get("play", 0.0)) - now()))
+	var interval := int(Database.growth.sources.play.get("cooldown", 0))
+	var status := "Esperteza: pode ganhar ao brincar"
+	var hint := "Brincar dá %d de Esperteza a cada %d min, mesmo com Felicidade cheia. Brinquedos no cesto e Radiante dão bônus. Ele precisa de energia para brincar." % [int(Database.growth.sources.play.smart), interval / 60]
+	if wait > 0:
+		status = "Esperteza: próximo ganho em " + TimeText.short(wait)
+		hint += " Próximo ganho em %s. Pode brincar durante a espera, mas sem ganhar Esperteza." % TimeText.short(wait)
+	elif dog.get_need("energy", now()) < 15.0:
+		status = "Esperteza: deixe o Tiro descansar"
+		hint += " Ele está cansado demais para brincar."
+	else:
+		hint += " Já pode ganhar pontos."
+	return {"seconds": wait, "wait": TimeText.short(wait), "points": int(growth.points.get("smart", 0)), "reserve": int(growth.reserve.get("smart", 0)), "cap": int(Database.growth.levels[growth.cap() - 1]), "status": status, "hint": hint}
+
+
 func play() -> bool:
 	if walking() or dog.sleeping or dog.get_need("energy", now()) < 15.0:
 		return false
@@ -845,6 +862,7 @@ func play() -> bool:
 	var gain := _care_gain(before)
 	_count("play")
 	_album_event("played")
+	_pillar_source("play")
 	if _care_useful("play", gain, exception) and _care_ready("affection:play"):
 		_care_start("affection:play")
 		dog.affection += 2
@@ -962,7 +980,6 @@ func _care_useful(action: String, gain: float, exception: Dictionary) -> bool:
 			progress.seen["care:" + str(exception.quest)] = true
 	_count("care_useful")
 	_count("care_useful:" + action)
-	if action == "play": _pillar_source("play")
 	return true
 
 
@@ -2479,7 +2496,11 @@ func goal_value(goal: Dictionary) -> int:
 			# "fresh": conta só o que foi feito depois que o passo da linha começou.
 			if goal.get("fresh", false):
 				return maxi(0, progress.stat(goal.key) - int(_step_base(goal).get(goal.key, progress.stat(goal.key))))
-			return progress.stat(goal.key)
+			# Objetivos históricos podem aceitar outras rotas equivalentes já registradas no save.
+			var total := progress.stat(goal.key)
+			for key: String in goal.get("also_counts", []):
+				total += progress.stat(key)
+			return total
 	return 0
 
 
@@ -4788,6 +4809,9 @@ func from_dict(data: Dictionary) -> void:
 	projects.from_dict(data.get("projects", {}))
 	growth = GrowthState.new()
 	growth.from_dict(data.get("growth", {}))
+	# Esperas da regra antiga não podem prender o jogador por mais que o intervalo novo.
+	if growth.cooldowns.has("play"):
+		growth.cooldowns["play"] = minf(float(growth.cooldowns.play), now() + float(Database.growth.sources.play.cooldown))
 	# O antigo grupo Cuidados podia estar confirmado mesmo após mudanças nos pontos.
 	# Copia essa confirmação uma única vez antes de passar a gravar cada ação separada.
 	if not growth.firsts.has("care_actions_v1"):

@@ -10,6 +10,7 @@ const BRUSH_TOTAL := 600.0
 var pet_screen: Control
 var gesture := DragGhost.new()
 var _row: HBoxContainer
+var _play_hint: Label
 var _scroll: ScrollContainer
 var _foods: VBoxContainer
 var _food_button: Button
@@ -45,7 +46,13 @@ func _ready() -> void:
 	style.content_margin_bottom = 8
 	add_theme_stylebox_override("panel", style)
 	_row = UiKit.hbox(8)
-	add_child(_row)
+	var care_column := UiKit.vbox(2)
+	add_child(care_column)
+	care_column.add_child(_row)
+	_play_hint = UiKit.label("", &"SmallLabel")
+	_play_hint.name = "PlayGrowthTimer"
+	_play_hint.add_theme_font_size_override("font_size", 14)
+	care_column.add_child(_play_hint)
 	_food_button = UiKit.action_tile(Database.item_icon("dog_food"), "Comida", open_food_menu)
 	_food_button.name = "FoodButton"
 	_row.add_child(_food_button)
@@ -136,6 +143,8 @@ func _phase_key() -> String:
 
 func refresh() -> void:
 	visible = not GameState.walking()
+	_play_hint.text = str(GameState.play_growth_info().status)
+	_play_hint.visible = not GameState.dog.sleeping
 	_sync_brush()
 	_row.add_theme_constant_override("separation", 4 if _items.has("brush") else 8)
 	var ids := food_ids()
@@ -416,7 +425,10 @@ func _act(id: String) -> void:
 		pet_screen.call("brush_cleanup")
 	elif id == "ball":
 		close_food_menu()
-		if GameState.play(): pet_screen.call("throw_ball")
+		var before := GameState.play_growth_info()
+		if GameState.play():
+			pet_screen.call("throw_ball")
+			pet_screen.call("play_growth_feedback", before, GameState.play_growth_info())
 		else: error = "Tiro está cansado demais para brincar."
 	else:
 		error = SheetBuilder.give_food(id)
