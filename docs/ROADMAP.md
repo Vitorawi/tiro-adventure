@@ -2,6 +2,8 @@
 
 ## Estado atual
 
+**PUBLICADO - versão `533624b` (23/10/2026, a pedido do Vitor).** Entrou o Plano Cuidado - "Cuidar é crescer" completo (etapas 00-07, `docs/plans/cuidado/`): momentos de cuidado como base do crescimento, um desejo por período (vínculo/afeto removidos, sai `wishes_screen`), tela do Tiro com balão do desejo e anéis que pedem, gestos de cuidado, Tiro animado e missões de cuidado; `SAVE_VERSION` 15 (saves antigos zerados). 203 arquivos no commit. Validação aceita pelo Vitor: Quick 110/111 + teste focado `nina_blueberry` PASS (logs `build/cuidado07_*_final.log`). Export local prod/dev terminou com "Build pronto" (`build/test_logs/publish_cuidado/export.log`); sem suíte inteira nem reset de save local. [Deploy Web 39974411229](https://github.com/Vitorawi/tiro-adventure/actions/runs/39974411229) concluiu com sucesso; site e `/dev/` respondem HTTP 200. Próximo: conferir no iPhone tocando em Nova versão! Os registros "local" abaixo descrevem a situação anterior a esta publicação.
+
 **Plano Cuidado — “Cuidar é crescer” CONCLUÍDO (etapas 00–07) e aprovado pelo Vitor em
 23/10/2026, com ressalvas aceitas; local.** Ritmo atual aprovado por enquanto, sem nova calibração:
 Filhotinho 1,5 min de jogo ativo; Dentinhos 0,34 dia; Aventureiro 2,08 dias; Mocinho 8,84 dias;
