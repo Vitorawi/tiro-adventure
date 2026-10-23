@@ -81,7 +81,7 @@ func _run() -> void:
 	_capacities()
 	_classification()
 	_first_walk()
-	_old_save_guarantee()
+	_repeat_walk_guarantee()
 	_nina_line()
 	_baggage_over_space()
 	_requirement_graph()
@@ -196,7 +196,7 @@ func _first_walk() -> void:
 		check(int(loot.items.get("stick", 0)) >= 2, "semente %d: primeira volta com 2 gravetos" % seed_value)
 
 
-# --- saves antigos: a rota inicial garante os gravetos ate comprar --------------------------------------
+# --- voltas repetidas: a rota inicial garante os gravetos ate comprar --------------------------------------
 
 func _only_ribbon_table() -> Dictionary:
 	var def: Dictionary = db.get("walks").walks.park_loop
@@ -210,7 +210,7 @@ func _restore_table(before: Dictionary) -> void:
 	db.get("walks").walks.park_loop.loot = before
 
 
-func _old_save_guarantee() -> void:
+func _repeat_walk_guarantee() -> void:
 	var before := _only_ribbon_table()
 	# Sem baú e sem gravetos, depois da primeira volta: a próxima rota inicial traz os 2.
 	_fresh()
@@ -279,14 +279,14 @@ func _nina_line() -> void:
 	check(state.call("claim_quest", "bloblo_chest") == "", "recebe a missão")
 	check(int(state.get("coins")) == coins + 10 and _inv("bolt") == 0, "10 moedas, sem parafuso")
 	check(_p().current_line_quest("nina") == "nina_routes", "depois, nina_routes")
-	# Save antigo: já recebeu na Bloblo; não reabre o prêmio.
+	# Missão já recebida; não reabre o prêmio.
 	_fresh()
 	_after_nina_walk()
 	_p().claimed_quests["nina_walk"] = true
 	_p().claimed_quests["bloblo_chest"] = true
 	_p().owned["chest"] = true
 	var before := int(state.get("coins"))
-	check(state.call("claim_quest", "bloblo_chest") != "" and int(state.get("coins")) == before, "prêmio antigo não reabre")
+	check(state.call("claim_quest", "bloblo_chest") != "" and int(state.get("coins")) == before, "prêmio recebido não reabre")
 	check(_p().current_line_quest("nina") == "nina_routes", "a próxima missão da Nina aparece")
 
 

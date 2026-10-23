@@ -33,12 +33,12 @@ func _run() -> void:
 	for child: Node in saver.get_children():
 		if child is Timer:
 			child.queue_free()
-	saver.set("_save_path", "user://silk_shots_descartavel.json")
+	saver.set("_save_path", (str(load("res://scripts/util/build_info.gd").call("data_dir")) + "silk_shots_descartavel.json"))
 	state = root.get_node("GameState")
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
 	state.get("growth").phase = "adult"
-	state.get("growth").points["coat"] = 330
+	state.get("growth").phase_moments["coat"] = 330
 	state.get("growth").silk = 1
 	state.get("growth").brush_days = {"a": true, "b": true, "c": true, "d": true, "e": true, "f": true, "g": true, "h": true, "i": true, "j": true}
 	state.get("progress").stats["shampoo_bath"] = 6

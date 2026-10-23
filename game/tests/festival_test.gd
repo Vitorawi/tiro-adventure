@@ -96,7 +96,7 @@ func _run() -> void:
 	_gates()
 	_rewards_and_ribbon()
 	_story()
-	_legacy()
+	_completed_history()
 	_meeting()
 	_meeting_edges()
 	await _scene_and_ui()
@@ -118,7 +118,7 @@ func _data_check() -> void:
 	var ph: Array = def.phases
 	check(ph.size() == 3 and ph[0].id == "decorate" and ph[1].id == "table" and ph[2].id == "gifts", "fases decorate/table/gifts")
 	check(_ints(ph[0].items) == {"fabric": 4, "plank": 6, "accessory_set": 2} and _ints(ph[1].items) == {"picnic_pack": 3, "apple_biscuit": 6, "cheese": 4} and _ints(ph[2].items) == {"treat_box": 3, "braided_toy": 2}, "material (tabela 07 E)")
-	check(int(def.rewards.pillars.brave) == 5 and def.rewards.collections == [RIBBON] and def.rewards.size() == 2, "prêmio: Coragem 5 + coleção, sem moedas")
+	check(not def.rewards.has("pillars") and def.rewards.collections == [RIBBON] and def.rewards.size() == 1, "coleção sem pontos ou moedas; momento vem da conclusão")
 	check(def.interaction.kind == "festival" and str(def.interaction.go_label) != "" and str(def.done_speech) != "", "interação própria")
 	check(ResourceLoader.exists("res://assets/sprites/ui/icons/%s.png" % def.icon), "ícone da festa")
 	for phase: Dictionary in ph:
@@ -171,12 +171,12 @@ func _rewards_and_ribbon() -> void:
 	state.set("coins", 600)
 	state.call("start_project", FEST)
 	var coins_after_fee: int = state.get("coins")
-	var brave_before := int(state.get("progress").stat("pillar:brave"))
+	var brave_before := int(state.get("progress").stat("moment:brave"))
 	check(not _progress().collection.has(RIBBON), "lenço ainda não existe")
 	_give_all(FEST)
 	check(_progress().collection.has(RIBBON), "festa entrega o lenço da turma")
 	check(state.get("coins") == coins_after_fee, "festa não paga moedas")
-	check(int(state.get("progress").stat("pillar:brave")) > brave_before, "festa paga Coragem")
+	check(int(state.get("progress").stat("moment:brave")) > brave_before, "festa paga Coragem")
 	check(str(state.call("equip_error", RIBBON)) == "", "lenço pode ser vestido (overlay pronto)")
 	check(state.call("equip", RIBBON) == "" and _progress().equipped.neck == RIBBON, "lenço vai ao pescoço")
 	check(state.call("unequip", "neck") == "" and _progress().equipped.neck == "", "e sai")
@@ -204,18 +204,18 @@ func _story() -> void:
 	for id: String in database.quests:
 		if database.quests[id].get("kind", "side") == "main":
 			main_count += 1
-	check(main_count == 50 and database.progression.chapters.size() == 12, "50 principais (incluindo baú dos passeios) e 12 capítulos: %d / %d" % [main_count, database.progression.chapters.size()])
+	check(main_count == 51 and database.progression.chapters.size() == 12, "51 principais (incluindo primeiro desejo) e 12 capítulos: %d / %d" % [main_count, database.progression.chapters.size()])
 	for id: String in NEW_QUESTS:
 		check(database.quests.has(id) and database.quests[id].kind == "main", id + " existe")
 	var order := {"community_10_meet": [10, 10], "community_10_bench": [10, 20], "community_10_use": [10, 30], "community_11_garden": [11, 10], "community_11_picnic": [11, 20], "community_11_tiro": [11, 30], "community_12_prepare": [12, 10], "community_12_festival": [12, 20], "community_12_memory": [12, 30]}
 	for id: String in order:
 		check(int(database.quests[id].chapter) == order[id][0] and int(database.quests[id].order) == order[id][1], id + ": capítulo/ordem")
-	var affection := {"community_10_use": 5, "community_11_tiro": 5, "community_12_memory": 10}
+	var paid := {"community_10_use": 10, "community_11_tiro": 10}
 	for id: String in NEW_QUESTS:
 		var rewards: Dictionary = database.quests[id].rewards
 		# A etapa 10 do plano Tiro soma a medalhinha de coragem à lembrança da festa.
 		var extra := 1 if id == "community_12_memory" else 0
-		check(rewards.size() == (1 if affection.has(id) else 0) + extra and int(rewards.get("affection", 0)) == int(affection.get(id, 0)), id + ": só o afeto previsto")
+		check(rewards.size() == (1 if paid.has(id) else 0) + extra and int(rewards.get("coins", 0)) == int(paid.get(id, 0)), id + ": só a recompensa prevista")
 		if extra == 1: check(rewards.items.size() == 1 and int(rewards.items.get("courage_medal", 0)) == 1, id + ": só a medalhinha")
 	check(int(database.progression.chapters[9].rewards.coins) == 30 and int(database.progression.chapters[10].rewards.coins) == 40 and int(database.progression.chapters[11].rewards.coins) == 60, "capítulos 10/11/12 pagam 30/40/60")
 	check(database.quests.community_12_festival.goals[0].type == "project" and database.quests.community_12_festival.goals[0].key == FEST, "objetivo da festa é o projeto")
@@ -240,10 +240,8 @@ func _story() -> void:
 	state.call("start_project", BENCH)
 	_give_all(BENCH)
 	_claim("community_10_bench")
-	var affection_before: int = int(state.get("dog").affection)
 	state.call("use_project", BENCH)
 	_claim("community_10_use")
-	check(int(state.get("dog").affection) - affection_before == 5, "uso do banco: +5 de afeto")
 	check(chapters_done == [10], "capítulo 10 concluído uma vez: %s" % str(chapters_done))
 	for id: String in [PICNIC, GARDEN]:
 		state.set("coins", 250)
@@ -280,7 +278,7 @@ func _claim(id: String) -> void:
 
 
 ## Quem já tinha tudo até o capítulo 9 e as obras das etapas 20–21 entra no 10 sem refazer nada.
-func _legacy() -> void:
+func _completed_history() -> void:
 	_fresh()
 	for chapter in range(1, 10):
 		for id: String in _progress().main_quests(chapter):
@@ -293,16 +291,16 @@ func _legacy() -> void:
 	chapters_done.clear()
 	var coins: int = state.get("coins")
 	var items: int = _item_total()
-	check(_progress().chapter_index() == 10, "legado completo no 9 entra no 10")
+	check(_progress().chapter_index() == 10, "histórico completo no 9 entra no 10")
 	check(state.call("goal_value", database.quests.community_10_bench.goals[0]) == 1 and state.call("goal_value", database.quests.community_11_garden.goals[0]) == 1 and state.call("goal_value", database.quests.community_11_picnic.goals[0]) == 1, "obras já feitas contam, sem refazer")
 	check(state.call("goal_value", database.quests.community_10_use.goals[0]) == 1 and state.call("goal_value", database.quests.community_11_tiro.goals[0]) == 1, "usos já feitos contam")
 	check(state.call("goal_value", database.quests.community_10_meet.goals[0]) == 0, "só a conversa pede toque novo")
 	state.call("talk_to", "lais")
 	for id: String in ["community_10_meet", "community_10_bench", "community_10_use", "community_11_garden", "community_11_picnic", "community_11_tiro"]:
 		_claim(id)
-	# As conversas também atingem vínculo 2 (10 moedas); XP não paga presentes.
+	# Os usos pagam 10 moedas cada; XP não paga presentes.
 	check(state.get("economy").granted.has("chapter:10") and state.get("economy").granted.has("chapter:11") and not state.get("economy").granted.has("chapter:12"), "pagou só os capítulos 10 e 11")
-	check(state.get("economy").granted.has("bond:2") and state.get("coins") == coins + 30 + 40 + 10, "capítulos 30 + 40 e vínculo 10, sem presente de nível: %d -> %d" % [coins, state.get("coins")])
+	check(state.get("coins") == coins + 30 + 40 + 20, "capítulos 30 + 40 e usos 20, sem presente de nível: %d -> %d" % [coins, state.get("coins")])
 	check(_item_total() == items, "nada de material novo")
 	check(_progress().current_main_quest() == "community_12_prepare", "e segue para a festa")
 	# Uso nunca feito: não conta.
@@ -354,10 +352,9 @@ func _meeting() -> void:
 	state.call("set_sleeping", true)
 	check(str(state.call("gather_project", FEST)) != "" and _inv().count("picnic_pack") == 1 and _inv().count("carrot_snack") == 2, "dormindo: nada consumido")
 	state.call("set_sleeping", false)
-	var affection: int = int(state.get("dog").affection)
 	check(state.call("gather_project", FEST) == "", "encontro confirmado")
 	check(_inv().count("picnic_pack") == 0 and _inv().count("carrot_snack") == 0, "consumiu o material")
-	check(int(state.get("xp")) - xp_mark == 10 and state.get("coins") == coins and int(state.get("dog").affection) == affection, "XP 10; sem moedas nem afeto")
+	check(int(state.get("xp")) - xp_mark == 10 and state.get("coins") == coins, "XP 10; sem moedas")
 	check(gathered == [[FEST, 1]], "evento do ciclo 1: %s" % str(gathered))
 	check(state.get("economy").granted.has("project_gather:%s:1" % FEST), "prêmio com identidade do ciclo")
 	check(str(state.call("meeting_error", FEST)).begins_with("Disponível em"), "novo ciclo espera outras 24 h")

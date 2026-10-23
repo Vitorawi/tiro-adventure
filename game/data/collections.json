@@ -65,7 +65,7 @@
   "heart_collar": {
     "name": "Coleira de coração",
     "description": "Prêmio por realizar muitos desejos.",
-    "icon": "bond_heart",
+    "icon": "heart",
     "slot": "neck",
     "sprite": ""
   },

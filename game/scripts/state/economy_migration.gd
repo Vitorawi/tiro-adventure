@@ -31,9 +31,6 @@ static func migrate(state: Dictionary) -> Dictionary:
 	var chapter := legacy_chapter_index(progression.get("claimed_quests", {}))
 	for done in range(1, chapter):
 		granted["chapter:%d" % done] = true
-	var claimed_bond := int(progression.claimed_bond_level) if progression.has("claimed_bond_level") else _bond_level_for(int(data.get("dog", {}).get("affection", 0)))
-	for reached in range(2, claimed_bond + 1):
-		granted["bond:%d" % reached] = true
 	# Piso legado: capacidade anterior comprada.
 	var floors: Dictionary = economy.get("storage_floor", {}).duplicate()
 	var owned: Dictionary = progression.get("owned", {})
@@ -76,15 +73,6 @@ static func legacy_chapter_index(claimed: Dictionary) -> int:
 			if str(map[id].kind) == "main" and int(map[id].get("chapter", 0)) == index and not claimed.has(id):
 				return index
 	return chapters + 1
-
-
-static func _bond_level_for(affection: int) -> int:
-	var level := 1
-	var levels: Array = Database.progression.get("bond_levels", [])
-	for i in levels.size():
-		if affection >= int(levels[i].get("affection", 0)):
-			level = i + 1
-	return level
 
 
 static func _freeze_plots(data: Dictionary, legacy: Dictionary) -> void:

@@ -18,22 +18,6 @@
       "icon": "pillar_brave"
     }
   },
-  "levels": [
-    10,
-    25,
-    45,
-    70,
-    100,
-    135,
-    175,
-    220,
-    270,
-    330
-  ],
-  "radiant": {
-    "min_need": 60,
-    "multiplier": 1.5
-  },
   "phases": [
     {
       "id": "newborn",
@@ -42,7 +26,6 @@
       "weight": "0,4 kg",
       "body": "puppy",
       "coat": 0,
-      "cap": 1,
       "facts": [
         "Yorkies nascem quase todos pretos, com manchinhas castanhas."
       ],
@@ -56,7 +39,6 @@
       "weight": "0,9 kg",
       "body": "puppy",
       "coat": 0,
-      "cap": 2,
       "facts": [
         "Filhotes pequenos fazem várias refeições pequenas por dia."
       ],
@@ -81,11 +63,10 @@
         },
         {
           "id": "pillars",
-          "type": "pillars",
-          "levels": {
-            "brave": 1
-          },
-          "label": "Fazer carinho"
+          "type": "moments",
+          "pillar": "brave",
+          "qty": 2,
+          "label": "Carinho e novidades"
         }
       ],
       "chapter": 1,
@@ -106,7 +87,6 @@
       "weight": "1,6 kg",
       "body": "young",
       "coat": 0,
-      "cap": 4,
       "facts": [
         "Os dentes de leite caem entre 4 e 7 meses; morder alivia a coceira."
       ],
@@ -114,11 +94,10 @@
       "requirements": [
         {
           "id": "pillars",
-          "type": "pillars",
-          "levels": {
-            "brave": 2
-          },
-          "label": "Fazer carinho"
+          "type": "moments",
+          "pillar": "brave",
+          "qty": 3,
+          "label": "Carinho e novidades"
         },
         {
           "id": "meals",
@@ -152,7 +131,6 @@
       "weight": "2,3 kg",
       "body": "young",
       "coat": 0,
-      "cap": 6,
       "facts": [
         "Yorkies eram caçadores de ratinhos nas fábricas de Yorkshire."
       ],
@@ -160,18 +138,16 @@
       "requirements": [
         {
           "id": "pillars",
-          "type": "pillars",
-          "levels": {
-            "brave": 4
-          },
-          "label": "Fazer carinho"
+          "type": "moments",
+          "pillar": "brave",
+          "qty": 4,
+          "label": "Carinho e novidades"
         },
         {
           "id": "care_smart",
-          "type": "pillars",
-          "levels": {
-            "smart": 2
-          },
+          "type": "moments",
+          "pillar": "smart",
+          "qty": 3,
           "label": "Brincadeiras e descobertas"
         },
         {
@@ -209,7 +185,6 @@
       "weight": "2,8 kg",
       "body": "adult",
       "coat": 0.3,
-      "cap": 8,
       "facts": [
         "O pelo do Yorkie é parecido com cabelo e cresce sem parar."
       ],
@@ -217,27 +192,24 @@
       "requirements": [
         {
           "id": "pillars",
-          "type": "pillars",
-          "levels": {
-            "brave": 6
-          },
-          "label": "Fazer carinho"
+          "type": "moments",
+          "pillar": "brave",
+          "qty": 4,
+          "label": "Carinho e novidades"
         },
         {
           "id": "care_smart",
-          "type": "pillars",
-          "levels": {
-            "smart": 6
-          },
+          "type": "moments",
+          "pillar": "smart",
+          "qty": 4,
           "label": "Brincadeiras e descobertas"
         },
         {
           "id": "care_coat",
-          "type": "pillars",
-          "levels": {
-            "coat": 6
-          },
-          "label": "Banhos e escovação"
+          "type": "moments",
+          "pillar": "coat",
+          "qty": 4,
+          "label": "Banho e escova"
         },
         {
           "id": "meals",
@@ -251,13 +223,6 @@
           "type": "deliver",
           "item": "soft_brush",
           "qty": 1
-        },
-        {
-          "id": "shampoo",
-          "type": "stat",
-          "counter": "shampoo_bath",
-          "qty": 2,
-          "label": "2 banhos com xampu"
         }
       ],
       "chapter": 9,
@@ -275,7 +240,6 @@
       "weight": "3,0 kg",
       "body": "adult",
       "coat": 1,
-      "cap": 10,
       "facts": [
         "Entre 1 e 3 anos o preto vira azul-aço e o castanho vira dourado."
       ],
@@ -283,27 +247,24 @@
       "requirements": [
         {
           "id": "pillars",
-          "type": "pillars",
-          "levels": {
-            "brave": 8
-          },
-          "label": "Fazer carinho"
+          "type": "moments",
+          "pillar": "brave",
+          "qty": 5,
+          "label": "Carinho e novidades"
         },
         {
           "id": "care_smart",
-          "type": "pillars",
-          "levels": {
-            "smart": 8
-          },
+          "type": "moments",
+          "pillar": "smart",
+          "qty": 5,
           "label": "Brincadeiras e descobertas"
         },
         {
           "id": "care_coat",
-          "type": "pillars",
-          "levels": {
-            "coat": 8
-          },
-          "label": "Banhos e escovação"
+          "type": "moments",
+          "pillar": "coat",
+          "qty": 5,
+          "label": "Banho e escova"
         },
         {
           "id": "key",
@@ -333,95 +294,6 @@
       ]
     }
   ],
-  "food_multiplier": 0.5,
-  "sources": {
-    "bath": {
-      "coat": 3,
-      "cooldown": 7200
-    },
-    "shampoo_bath": {
-      "coat": 12,
-      "cooldown": 7200,
-      "cooldown_key": "bath"
-    },
-    "play": {
-      "brave": 2,
-      "smart": 3,
-      "cooldown": 300,
-      "basket_smart": 1
-    },
-    "pet": {
-      "brave": 1
-    },
-    "wish": {
-      "brave": 3
-    },
-    "special_wish": {
-      "brave": 6
-    },
-    "dig": {
-      "smart": 3
-    },
-    "learn_trick": {
-      "smart": 12,
-      "first": true
-    },
-    "trick": {
-      "smart": 1
-    },
-    "friend_gift": {
-      "brave": 2
-    },
-    "friend_visit": {
-      "brave": 4
-    },
-    "talk": {
-      "brave": 3,
-      "first": true
-    },
-    "world": {
-      "brave": 2,
-      "smart": 2,
-      "first": true
-    },
-    "project": {
-      "brave": 3
-    },
-    "nap": {
-      "body": 2,
-      "cooldown": 43200,
-      "seconds": 3600,
-      "energy": 100
-    },
-    "walk": {
-      "park_loop": {
-        "brave": 3
-      },
-      "flower_street": {
-        "brave": 4
-      },
-      "village_fair": {
-        "brave": 5
-      },
-      "sunset_walk": {
-        "brave": 6
-      },
-      "creek_walk": {
-        "brave": 7
-      },
-      "bird_clearing": {
-        "brave": 8
-      },
-      "hill_view": {
-        "brave": 10
-      }
-    },
-    "brush": {
-      "coat": 5,
-      "soft_coat": 8,
-      "cooldown": 14400
-    }
-  },
   "bodies": {
     "adult": {
       "dir": {
@@ -568,8 +440,7 @@
     },
     "grimace": [
       "blueberry"
-    ],
-    "favorite_bonus": 0.5
+    ]
   },
   "personality": {
     "reveal_phase": "explorer",
@@ -863,6 +734,24 @@
     },
     "short_sleep_seconds": 3.0
   },
+  "gestures": {
+    "hold_seconds": 1.2,
+    "rub_distance": 160,
+    "spots": {
+      "head": "na cabeça",
+      "chin": "no queixo",
+      "belly": "na barriga"
+    },
+    "hide_seek": {
+      "phase": "explorer",
+      "cups": 3,
+      "swaps": {
+        "explorer": 3,
+        "young": 4,
+        "adult": 5
+      }
+    }
+  },
   "diary": {
     "limit": 20,
     "templates": {
@@ -871,7 +760,8 @@
       "grew": "virou {name}!",
       "walk": "passeou por {name}.",
       "rare": "encontrou {name}!",
-      "silk": "ganhou {name}!"
+      "silk": "ganhou {name}!",
+      "spot": "descobriu que ama carinho {name}."
     }
   },
   "silk": {
@@ -910,5 +800,135 @@
         }
       }
     ]
+  },
+  "moments": {
+    "periods": [
+      {
+        "id": "dawn",
+        "start": 0
+      },
+      {
+        "id": "morning",
+        "start": 6
+      },
+      {
+        "id": "afternoon",
+        "start": 12
+      },
+      {
+        "id": "night",
+        "start": 18
+      }
+    ],
+    "period_cap": 2,
+    "sources": {
+      "pet": {
+        "label": "Carinho quando ele pede",
+        "go": "screen:pet",
+        "pillar": "brave",
+        "qty": 1,
+        "capped": true,
+        "first": false
+      },
+      "walk": {
+        "label": "Voltar de um passeio",
+        "go": "place:park:walk",
+        "pillar": "brave",
+        "qty": 1,
+        "capped": true,
+        "first": false
+      },
+      "talk": {
+        "label": "Conhecer um personagem",
+        "pillar": "brave",
+        "qty": 1,
+        "capped": false,
+        "first": true
+      },
+      "world": {
+        "label": "Chegar a um lugar novo",
+        "pillar": "brave",
+        "qty": 1,
+        "capped": false,
+        "first": true
+      },
+      "friend": {
+        "label": "Fazer um amigo",
+        "pillar": "brave",
+        "qty": 1,
+        "capped": false,
+        "first": true
+      },
+      "project": {
+        "label": "Terminar uma obra da vila",
+        "pillar": "brave",
+        "qty": 1,
+        "capped": false,
+        "first": true
+      },
+      "play": {
+        "label": "Brincar quando ele pede",
+        "go": "screen:pet",
+        "pillar": "smart",
+        "qty": 1,
+        "capped": true,
+        "first": false
+      },
+      "hide": {
+        "label": "Esconde-esconde",
+        "go": "screen:pet",
+        "pillar": "smart",
+        "qty": 1,
+        "capped": true,
+        "first": false
+      },
+      "learn_trick": {
+        "label": "Aprender um truque",
+        "go": "place:park:training",
+        "pillar": "smart",
+        "qty": 1,
+        "capped": false,
+        "first": true
+      },
+      "dig": {
+        "label": "Achar algo novo no faro",
+        "pillar": "smart",
+        "qty": 1,
+        "capped": false,
+        "first": true
+      },
+      "trick": {
+        "label": "Mostrar um truque",
+        "go": "screen:pet",
+        "pillar": "smart",
+        "qty": 1,
+        "capped": true,
+        "first": false
+      },
+      "bath": {
+        "label": "Banho quando ele pede",
+        "go": "screen:pet",
+        "pillar": "coat",
+        "qty": 1,
+        "capped": true,
+        "first": false
+      },
+      "shampoo_bath": {
+        "label": "Banho de xampu",
+        "go": "screen:pet",
+        "pillar": "coat",
+        "qty": 2,
+        "capped": true,
+        "first": false
+      },
+      "brush": {
+        "label": "Escovar (uma vez por dia)",
+        "go": "screen:pet",
+        "pillar": "coat",
+        "qty": 1,
+        "capped": false,
+        "first": true
+      }
+    }
   }
 }

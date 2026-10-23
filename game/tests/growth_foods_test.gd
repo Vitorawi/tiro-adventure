@@ -103,9 +103,7 @@ func run() -> void:
    avoid_favorite(id)
    state.inventory.add(id,1)
    check(state.feed(id),'come '+id)
-   for pillar: String in growth.pillars:
-    var expected := ceili(float(growth.pillars[pillar])*(1.0 if phase in growth.phases else 0.5))
-    check(state.progress.stat('pillar:'+pillar)==expected,'ganho '+id+' '+phase+' '+pillar)
+   check(state.progress.stat('feed:'+id)==1,'comida conta refeição sem pontos '+id)
  # Os bloqueios dizem exatamente a construção/missão que falta.
  for pair in [['growth_kibble','chicken_coop'],['egg_scramble','chicken_coop'],['cheese_bites','dairy'],['milk_porridge','cow_barn'],['herb_shampoo','greenhouse']]:
   fresh()
@@ -139,33 +137,20 @@ func run() -> void:
  fresh('explorer')
  state.inventory.add('herb_shampoo',4)
  state.bathe(true)
- check(state.inventory.count('herb_shampoo')==3 and state.progress.stat('pillar:coat')==12,'xampu consome e dá 12')
+ check(state.inventory.count('herb_shampoo')==3 and state.progress.stat('moment:coat')==2,'xampu útil vale dois')
  needs()
  state.bathe(true)
- check(state.progress.stat('pillar:coat')==12 and row('shampoo').done,'recarga e dois banhos')
+ check(state.progress.stat('moment:coat')==2,'teto compartilhado de banhos')
  reload_state()
  needs()
  state.bathe()
- check(state.progress.stat('pillar:coat')==12,'recarga compartilhada e salva')
- state.test_time += 7201
+ check(state.progress.stat('moment:coat')==2,'reload não libera teto')
+ state.test_time += 6 * 3600
  needs()
  state.bathe()
- check(state.progress.stat('pillar:coat')==15,'banho comum dá 3')
+ check(state.progress.stat('moment:coat')==3,'novo período libera banho comum')
  fresh()
  state.bathe(true)
  check(state.progress.stat('bathe')==0,'sem xampu não consome nem conta')
- # Troca da refeição provisória: somente futuros requisitos; id estável e sem reset.
- fresh('puppy')
- var saved: Dictionary = state.to_dict().duplicate(true)
- saved.growth.erase('foods_revision')
- saved.growth.done = {'puppy':{'meals':true},'teething':{'meals':true,'key':true}}
- saved.growth.ready_seen = 'teething'
- state.from_dict(saved)
- check(not row('meals').done and state.growth.done.teething.key and state.growth.done.puppy.meals,'substitui só refeição futura')
- check(state.growth.ready_seen=='','nova refeição pode avisar pronto de novo')
- state.inventory.add('frozen_carrot',1)
- state.feed('frozen_carrot')
- reload_state()
- check(row('meals').have==1 and state.growth.foods_revision==1,'troca não repete ao recarregar')
  print('GROWTH FOODS TEST: '+('PASS' if failures==0 else 'FAIL (%d)'%failures))
  quit(0 if failures==0 else 1)

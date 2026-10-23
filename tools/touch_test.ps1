@@ -6,6 +6,8 @@
 # Uso:  powershell -File tools/touch_test.ps1 [-Url http://localhost:8000/] [-Steps steps.json]
 # Sem -Steps, roda o roteiro padrao (abre Casa, arrasta, toca na geladeira).
 # Coordenadas sao em pixels CSS de um celular 390x844.
+# Roteiro: hold usa x/y/ms e name opcional para capturar o anel antes de soltar;
+# tap aceita ms opcional (padrao 60) para builds Web mais lentos.
 
 param(
     [string]$Url = "http://localhost:8000/",
@@ -71,7 +73,17 @@ try {
         switch ($s.do) {
             "wait" { Start-Sleep -Milliseconds $s.ms }
             "tap" {
-                Touch "touchStart" @(, @($s.x, $s.y, 0)); Start-Sleep -Milliseconds 60
+                Touch "touchStart" @(, @($s.x, $s.y, 0))
+                Start-Sleep -Milliseconds $(if ($s.ms) { $s.ms } else { 60 })
+                Touch "touchEnd" @()
+            }
+            "hold" {
+                Touch "touchStart" @(, @($s.x, $s.y, 0))
+                Start-Sleep -Milliseconds $s.ms
+                if ($s.name) {
+                    $png = (Send-Cdp "Page.captureScreenshot" @{ format = "png" }).data
+                    [IO.File]::WriteAllBytes((Join-Path $Out "$($s.name).png"), [Convert]::FromBase64String($png))
+                }
                 Touch "touchEnd" @()
             }
             "drag" {
@@ -156,6 +168,7 @@ try {
                 if ($result.exceptionDetails) { throw "Nao foi possivel capturar o save de teste: $($result.exceptionDetails.text)" }
                 $result.result.value | ConvertTo-Json -Depth 100 | Set-Content (Join-Path $Out "$($s.name).json") -Encoding UTF8
             }
+            default { throw "Passo de toque desconhecido: '$($s.do)'" }
         }
     }
 

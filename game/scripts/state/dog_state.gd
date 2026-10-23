@@ -17,13 +17,12 @@ var away_since: float = 0.0
 var sleeping: bool = false
 ## Bônus da caminha (0,1 / 0,2): multiplica só a recuperação de energia dormindo. Não é salvo (vem da Casa).
 var sleep_bonus: float = 0.0
-var affection: int = 0
 var outfit: Dictionary = {}  # slot -> item_id (customização, futuro)
 
 
 func setup(now: float) -> void:
 	for id: String in Database.needs:
-		needs[id] = DEFAULT_NEED
+		needs[id] = float(Database.needs[id].get("initial", DEFAULT_NEED))
 	updated_at = now
 
 
@@ -130,7 +129,6 @@ func to_dict() -> Dictionary:
 		"updated_at": updated_at,
 		"away_since": away_since,
 		"sleeping": sleeping,
-		"affection": affection,
 		"outfit": outfit,
 	}
 
@@ -144,5 +142,4 @@ func from_dict(data: Dictionary, now: float) -> void:
 	updated_at = float(data.get("updated_at", now))
 	away_since = float(data.get("away_since", 0.0))
 	sleeping = bool(data.get("sleeping", false))
-	affection = int(data.get("affection", 0))
 	outfit = data.get("outfit", {})

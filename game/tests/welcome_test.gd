@@ -95,9 +95,6 @@ func _run() -> void:
 	check(state.call("daily_gift_error") == "Já pegou hoje" and _find_button(welcome, "Pegar") == null, "Pegar entrega e some o botão")
 	_find_button(welcome, "Vamos lá!").emit_signal("pressed")
 	check(not welcome.visible, "Vamos lá fecha")
-	main.get("_celebration").call("show_bond", 3, {"coins": 20, "items": {"carrot_snack": 1}})
-	await process_frame
-	_shot("bond_up")
 	print("WELCOME TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(1 if failures > 0 else 0)
 

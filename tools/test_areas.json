@@ -1,0 +1,554 @@
+{
+  "always": [
+    "content_test",
+    "texts_test"
+  ],
+  "broad": [
+    "game/autoload/game_state.gd",
+    "game/autoload/database.gd",
+    "game/autoload/events.gd",
+    "game/autoload/save_manager.gd"
+  ],
+  "campaign": [
+    "progression_test",
+    "economy_sim_test",
+    "economy_audit_selftest",
+    "economy_compare_selftest",
+    "economy_quick",
+    "test_circuit_selftest"
+  ],
+  "suite": [
+    "farm_test",
+    "progression_test",
+    "dev_tools_test",
+    "tasks_test",
+    "content_test",
+    "navigation_test",
+    "manual_test",
+    "world_life_test",
+    "animals_test",
+    "nature_test",
+    "worlds_test",
+    "intro_test",
+    "npc_lines_test",
+    "saves_test",
+    "storage_test",
+    "loot_test",
+    "welcome_test",
+    "onboarding_test",
+    "flavors_test",
+    "finds_test",
+    "park_test",
+    "walks_test",
+    "petshop_test",
+    "friends_test",
+    "tricks_test",
+    "treasure_test",
+    "ui_base_test",
+    "ui_style_test",
+    "sheet_test",
+    "effects_layer_test",
+    "hud_test",
+    "world_view_test",
+    "world_selector_test",
+    "balloon_test",
+    "tray_test",
+    "station_tray_test",
+    "pet_care_test",
+    "pet_anchor_test",
+    "lists_test",
+    "market_test",
+    "ready_badges_test",
+    "tasks_groups_test",
+    "texts_test",
+    "festa_test",
+    "economy_sim_test",
+    "economy_transactions_test",
+    "silo_test",
+    "fridge_test",
+    "warehouse_test",
+    "chest_test",
+    "coins_test",
+    "garden_test",
+    "nature_routes_test",
+    "queue_test",
+    "expansion_test",
+    "projects_test",
+    "bench_test",
+    "garden_picnic_test",
+    "journey_test",
+    "animals_chain_test",
+    "customers_test",
+    "wish_moments_test",
+    "products_test",
+    "pending_gifts_test",
+    "absence_test",
+    "walk_return_test",
+    "walk_return_ui_test",
+    "dev_tools_test_prod",
+    "economy_audit_selftest",
+    "economy_compare_selftest",
+    "growth_test",
+    "growth_meals_test",
+    "moments_test",
+    "growth_visual_test",
+    "growth_ui_test",
+    "hud_growth_test",
+    "ceremony_test",
+    "growth_foods_test",
+    "keys_test",
+    "growth_story_test",
+    "album_test",
+    "house_test",
+    "album_secrets_test",
+    "brush_taste_test",
+    "personality_test",
+    "silk_test",
+    "recipe_help_test",
+    "farm_market_label_test",
+    "item_sources_test",
+    "festival_test",
+    "test_circuit_selftest",
+    "care_ui_test",
+    "gestures_test",
+    "mood_test",
+    "care_story_test",
+    "care_bot_test"
+  ],
+  "areas": {
+    "growth": {
+      "paths": [
+        "game/data/growth.json",
+        "game/scripts/state/growth_state.gd",
+        "game/scripts/ui/growth_ui.gd",
+        "game/scripts/ui/pillar_ui.gd",
+        "game/tests/growth_test.gd",
+        "game/tests/moments_test.gd",
+        "game/tests/growth_meals_test.gd",
+        "game/tests/growth_ui_test.gd",
+        "game/tests/hud_growth_test.gd",
+        "game/tests/ceremony_test.gd",
+        "game/tests/personality_test.gd",
+        "game/tests/silk_test.gd",
+        "game/tests/growth_visual_test.gd",
+        "game/tests/growth_foods_test.gd",
+        "game/tests/keys_test.gd",
+        "game/tests/care_ui_test.gd",
+        "game/tests/gestures_test.gd",
+        "game/scripts/ui/hide_seek_ui.gd"
+      ],
+      "tests": [
+        "growth_test",
+        "moments_test",
+        "growth_meals_test",
+        "growth_ui_test",
+        "hud_growth_test",
+        "ceremony_test",
+        "personality_test",
+        "silk_test",
+        "growth_visual_test",
+        "growth_foods_test",
+        "keys_test",
+        "care_ui_test"
+      ]
+    },
+    "wishes": {
+      "paths": [
+        "game/data/wishes.json",
+        "game/scripts/state/wish_state.gd",
+        "game/scripts/ui/wish_ui.gd",
+        "game/tests/wish_moments_test.gd",
+        "game/tests/care_ui_test.gd"
+      ],
+      "tests": [
+        "wish_moments_test",
+        "care_ui_test"
+      ]
+    },
+    "pet": {
+      "paths": [
+        "game/scenes/ui/pet_screen/*",
+        "game/scripts/ui/pet_care_tray.gd",
+        "game/scripts/ui/pet_animator.gd",
+        "game/scripts/ui/pet_notebook.gd",
+        "game/scripts/ui/game_manual.gd",
+        "game/tests/pet_care_test.gd",
+        "game/tests/pet_anchor_test.gd",
+        "game/tests/brush_taste_test.gd",
+        "game/tests/manual_test.gd",
+        "game/tests/care_ui_test.gd",
+        "game/tests/gestures_test.gd",
+        "game/scripts/ui/hide_seek_ui.gd"
+      ],
+      "tests": [
+        "pet_care_test",
+        "pet_anchor_test",
+        "brush_taste_test",
+        "manual_test",
+        "care_ui_test",
+        "gestures_test"
+      ]
+    },
+    "needs": {
+      "paths": [
+        "game/data/config.json",
+        "game/scripts/state/dog_state.gd",
+        "game/tests/absence_test.gd",
+        "game/tests/pet_care_test.gd",
+        "game/tests/mood_test.gd"
+      ],
+      "tests": [
+        "absence_test",
+        "pet_care_test",
+        "mood_test"
+      ]
+    },
+    "story": {
+      "paths": [
+        "game/data/quests.json",
+        "game/data/progression.json",
+        "game/data/routines.json",
+        "game/data/npcs.json",
+        "game/scripts/state/progression_state.gd",
+        "game/scripts/ui/npc*",
+        "game/tests/growth_story_test.gd",
+        "game/tests/journey_test.gd",
+        "game/tests/tasks_test.gd",
+        "game/tests/tasks_groups_test.gd",
+        "game/tests/npc_lines_test.gd",
+        "game/tests/onboarding_test.gd",
+        "game/tests/care_story_test.gd"
+      ],
+      "tests": [
+        "growth_story_test",
+        "journey_test",
+        "tasks_test",
+        "tasks_groups_test",
+        "npc_lines_test",
+        "onboarding_test",
+        "care_story_test"
+      ]
+    },
+    "walks": {
+      "paths": [
+        "game/data/walks.json",
+        "game/scripts/state/walk_state.gd",
+        "game/scenes/ui/walk_result/*",
+        "game/tests/walks_test.gd",
+        "game/tests/park_test.gd",
+        "game/tests/walk_return_test.gd",
+        "game/tests/walk_return_ui_test.gd"
+      ],
+      "tests": [
+        "walks_test",
+        "park_test",
+        "walk_return_test",
+        "walk_return_ui_test"
+      ]
+    },
+    "friends": {
+      "paths": [
+        "game/data/friends.json",
+        "game/scripts/state/friend*",
+        "game/scripts/ui/friend*",
+        "game/tests/friends_test.gd"
+      ],
+      "tests": [
+        "friends_test"
+      ]
+    },
+    "collections": {
+      "paths": [
+        "game/data/collections.json",
+        "game/scripts/ui/collection*",
+        "game/assets/sprites/characters/tiro_pet/overlay_anchors.json",
+        "game/tests/petshop_test.gd",
+        "game/tests/lists_test.gd"
+      ],
+      "tests": [
+        "petshop_test",
+        "lists_test"
+      ]
+    },
+    "tricks": {
+      "paths": [
+        "game/scripts/ui/trick_ui.gd",
+        "game/scenes/ui/trick_training/*",
+        "game/tests/tricks_test.gd"
+      ],
+      "tests": [
+        "tricks_test"
+      ]
+    },
+    "finds": {
+      "paths": [
+        "game/data/finds.json",
+        "game/scripts/state/find_state.gd",
+        "game/scripts/ui/find*",
+        "game/tests/finds_test.gd",
+        "game/tests/treasure_test.gd"
+      ],
+      "tests": [
+        "finds_test",
+        "treasure_test"
+      ]
+    },
+    "farm": {
+      "paths": [
+        "game/data/crops.json",
+        "game/data/rooms/farm.json",
+        "game/scripts/ui/plot_tray.gd",
+        "game/tests/farm_test.gd",
+        "game/tests/garden_test.gd",
+        "game/tests/tray_test.gd",
+        "game/tests/flavors_test.gd",
+        "game/tests/farm_market_label_test.gd"
+      ],
+      "tests": [
+        "farm_test",
+        "garden_test",
+        "tray_test",
+        "flavors_test",
+        "farm_market_label_test"
+      ]
+    },
+    "album": {
+      "paths": [
+        "game/data/album.json",
+        "game/scripts/state/album_*.gd",
+        "game/scripts/ui/album_view.gd",
+        "game/scripts/ui/photo_card.gd",
+        "game/tests/album_test.gd",
+        "game/tests/album_secrets_test.gd"
+      ],
+      "tests": [
+        "album_test",
+        "album_secrets_test"
+      ]
+    },
+    "shell": {
+      "paths": [
+        "game/scenes/main/*",
+        "game/scripts/ui/hud.gd",
+        "game/scripts/ui/modal_card.gd",
+        "game/scenes/ui/celebration/*",
+        "game/scenes/ui/welcome_back/*",
+        "game/tests/hud_test.gd",
+        "game/tests/festa_test.gd",
+        "game/tests/welcome_test.gd",
+        "game/tests/effects_layer_test.gd",
+        "game/tests/ready_badges_test.gd",
+        "game/tests/care_ui_test.gd"
+      ],
+      "tests": [
+        "hud_test",
+        "festa_test",
+        "welcome_test",
+        "effects_layer_test",
+        "ready_badges_test",
+        "care_ui_test"
+      ]
+    },
+    "ui_kit": {
+      "paths": [
+        "game/scripts/ui/ui_kit.gd",
+        "game/scripts/ui/sheet_builder.gd",
+        "game/scripts/ui/progression_ui.gd",
+        "game/assets/theme/*",
+        "game/scripts/ui/action_tray.gd",
+        "game/tests/ui_style_test.gd",
+        "game/tests/sheet_test.gd",
+        "game/tests/lists_test.gd",
+        "game/tests/ui_base_test.gd",
+        "game/tests/tray_test.gd",
+        "game/tests/station_tray_test.gd"
+      ],
+      "tests": [
+        "ui_style_test",
+        "sheet_test",
+        "lists_test",
+        "ui_base_test",
+        "tray_test",
+        "station_tray_test"
+      ]
+    },
+    "navigation": {
+      "paths": [
+        "game/scripts/ui/places.gd",
+        "game/scripts/ui/task_help.gd",
+        "game/tests/navigation_test.gd",
+        "game/tests/tasks_test.gd",
+        "game/tests/recipe_help_test.gd",
+        "game/tests/item_sources_test.gd"
+      ],
+      "tests": [
+        "navigation_test",
+        "tasks_test",
+        "recipe_help_test",
+        "item_sources_test"
+      ]
+    },
+    "dev": {
+      "paths": [
+        "game/scripts/ui/dev_panel.gd",
+        "game/tests/dev_tools_test.gd",
+        "game/tests/dev_tools_test.gd"
+      ],
+      "tests": [
+        "dev_tools_test",
+        "dev_tools_test_prod"
+      ]
+    },
+    "saves": {
+      "paths": [
+        "game/autoload/save_manager.gd",
+        "game/scripts/util/build_info.gd",
+        "game/scripts/state/inventory.gd",
+        "game/scripts/state/economy_state.gd",
+        "game/tests/saves_test.gd",
+        "game/tests/economy_transactions_test.gd",
+        "game/tests/storage_test.gd",
+        "game/tests/silo_test.gd",
+        "game/tests/fridge_test.gd",
+        "game/tests/warehouse_test.gd",
+        "game/tests/chest_test.gd",
+        "game/tests/pending_gifts_test.gd"
+      ],
+      "tests": [
+        "saves_test",
+        "economy_transactions_test",
+        "storage_test",
+        "silo_test",
+        "fridge_test",
+        "warehouse_test",
+        "chest_test",
+        "pending_gifts_test"
+      ]
+    },
+    "stations": {
+      "paths": [
+        "game/data/items.json",
+        "game/data/recipes.json",
+        "game/scripts/ui/station_tray.gd",
+        "game/scripts/state/station_state.gd",
+        "game/scripts/state/work_jobs.gd",
+        "game/tests/station_tray_test.gd",
+        "game/tests/queue_test.gd",
+        "game/tests/products_test.gd",
+        "game/tests/animals_test.gd",
+        "game/tests/animals_chain_test.gd",
+        "game/tests/expansion_test.gd"
+      ],
+      "tests": [
+        "station_tray_test",
+        "queue_test",
+        "products_test",
+        "animals_test",
+        "animals_chain_test",
+        "expansion_test"
+      ]
+    },
+    "nature": {
+      "paths": [
+        "game/scripts/ui/nature_ui.gd",
+        "game/data/rooms/nature.json",
+        "game/scripts/state/nature*",
+        "game/tests/nature_test.gd",
+        "game/tests/nature_routes_test.gd",
+        "game/tests/loot_test.gd"
+      ],
+      "tests": [
+        "nature_test",
+        "nature_routes_test",
+        "loot_test"
+      ]
+    },
+    "world": {
+      "paths": [
+        "game/data/worlds.json",
+        "game/data/rooms/*",
+        "game/scenes/levels/*",
+        "game/scripts/ui/world*",
+        "game/scenes/ui/worlds_screen/*",
+        "game/scenes/ui/world_transition/*",
+        "game/tests/worlds_test.gd",
+        "game/tests/world_life_test.gd",
+        "game/tests/world_view_test.gd",
+        "game/tests/world_selector_test.gd",
+        "game/tests/balloon_test.gd",
+        "game/tests/intro_test.gd"
+      ],
+      "tests": [
+        "worlds_test",
+        "world_life_test",
+        "world_view_test",
+        "world_selector_test",
+        "balloon_test",
+        "intro_test"
+      ]
+    },
+    "market": {
+      "paths": [
+        "game/scripts/ui/market_ui.gd",
+        "game/scripts/ui/depot*",
+        "game/tests/market_test.gd",
+        "game/tests/customers_test.gd",
+        "game/tests/coins_test.gd"
+      ],
+      "tests": [
+        "market_test",
+        "customers_test",
+        "coins_test"
+      ]
+    },
+    "projects": {
+      "paths": [
+        "game/data/projects.json",
+        "game/scripts/state/project_state.gd",
+        "game/scripts/ui/project_ui.gd",
+        "game/tests/projects_test.gd",
+        "game/tests/bench_test.gd",
+        "game/tests/garden_picnic_test.gd",
+        "game/tests/festival_test.gd"
+      ],
+      "tests": [
+        "projects_test",
+        "bench_test",
+        "garden_picnic_test",
+        "festival_test"
+      ]
+    },
+    "house": {
+      "paths": [
+        "game/data/house.json",
+        "game/scripts/ui/house*",
+        "game/scripts/ui/corner_decor.gd",
+        "game/tests/house_test.gd"
+      ],
+      "tests": [
+        "house_test"
+      ]
+    },
+    "sim": {
+      "paths": [
+        "game/tests/helpers/economy_*.gd",
+        "game/tests/economy_simulation.gd",
+        "game/tests/care_bot_test.gd"
+      ],
+      "tests": [
+        "care_bot_test"
+      ]
+    },
+    "checks": {
+      "paths": [
+        "game/autoload/database.gd",
+        "game/tests/content_test.gd",
+        "game/tests/texts_test.gd"
+      ],
+      "tests": [
+        "content_test",
+        "texts_test"
+      ]
+    }
+  }
+}

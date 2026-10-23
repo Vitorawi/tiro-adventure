@@ -101,7 +101,7 @@ func _run() -> void:
 	for child: Node in saver.get_children():
 		if child is Timer:
 			child.queue_free()
-	saver.set("_save_path", "user://story_shots_descartavel.json")
+	saver.set("_save_path", (str(load("res://scripts/util/build_info.gd").call("data_dir")) + "story_shots_descartavel.json"))
 	state = root.get_node("GameState")
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
@@ -113,8 +113,7 @@ func _run() -> void:
 	# 1. Capítulo 1: depois da caminha, só falta ele crescer (silhueta + "Ir").
 	await _card("01_cap1_crescer", "growth_1_puppy", "newborn", func(p: Object) -> void:
 		p.claimed_quests["lais_bed"] = true
-		state.get("growth").points["body"] = 10
-		state.get("dog").affection = 10)
+		state.get("growth").phase_moments["body"] = 10)
 	check(main.find_child("GrowthGoalSilhouette", true, false) != null, "a silhueta do Filhotinho aparece no cartão da história")
 	check(_story_button("Ir") != null, "cartão tem Ir")
 	# Toque no Ir: abre o painel de crescimento.

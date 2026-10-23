@@ -25,6 +25,12 @@ func _slot_info(manager: Node, slot: int) -> Dictionary:
 func _run() -> void:
 	var manager: Node = root.get_node("SaveManager")
 	var state: Node = root.get_node("GameState")
+	var build: Script = load("res://scripts/util/build_info.gd")
+	if OS.get_environment("TIRO_TEST_TAG") != "":
+		var directory: String = build.call("data_dir")
+		check(directory.contains("/test_" + OS.get_environment("TIRO_TEST_TAG") + "/"), "tag delimita a pasta descartável")
+		check(str(manager.call("slot_path", 4)).begins_with(directory), "slots isolados pela tag")
+		check(str(manager.call("_settings_path")).begins_with(directory), "preferências isoladas pela mesma tag")
 	var original_default: int = manager.get("default_slot")
 	# Começa num slot de teste (4), sem tocar no save em uso pelo desenvolvedor.
 	manager.set("active_slot", 4)
@@ -55,14 +61,6 @@ func _run() -> void:
 	check(not FileAccess.file_exists(manager.call("slot_path", created)), "Excluir apaga o arquivo")
 	check(manager.get("default_slot") == manager.get("active_slot"), "Padrão nunca aponta para um save apagado")
 	check(_slot_info(manager, created).is_empty(), "Save excluído some da lista")
-
-	# Save v11 (formato antigo) aparece na lista como jogo novo, sem quebrar.
-	var legacy := FileAccess.open(manager.call("slot_path", 5), FileAccess.WRITE)
-	legacy.store_string(JSON.stringify({"save_version": 11, "state": {"coins": 999, "level": 7}}))
-	legacy.close()
-	var legacy_info := _slot_info(manager, 5)
-	check(not legacy_info.is_empty() and int(legacy_info.coins) == 0 and int(legacy_info.level) == 1 and int(legacy_info.chapter) == 1, "Slot v11 aparece como jogo novo")
-	manager.call("delete_slot", 5)
 
 	# Interface: engrenagem no topo e painel com os saves.
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()

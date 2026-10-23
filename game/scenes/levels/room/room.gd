@@ -1168,7 +1168,7 @@ func _handle_tap(point: Vector2) -> bool:
 			return true
 	if _dog and _dog.hit_test(point):
 		GameState.note_dog_tapped(world_id)
-		Events.screen_requested.emit(&"wishes" if _dog.has_balloon() else &"pet")
+		Events.screen_requested.emit(&"pet")
 		return true
 	# Do mais à frente (maior Y) para o mais ao fundo.
 	var ordered := _objects.duplicate()

@@ -20,7 +20,7 @@ const LF := "\n"
 ## Ações que o jogador simulado pode pedir. Qualquer outra (inclusive dev_*) é violação de guarda.
 const ALLOWED: Array[String] = [
 	"claim_quest", "claim_routine", "claim_daily_gift", "talk", "open_screen", "feed", "bathe", "play", "pet",
-	"sleep", "emergency_food", "plant_many", "water_many", "harvest_many", "cook", "collect_station",
+	"brush", "hide", "sleep", "emergency_food", "plant_many", "water_many", "harvest_many", "cook", "collect_station",
 	"start_gathering", "collect_gathering", "start_walk", "collect_walk", "dig", "give_friend",
 	"collect_friend_visit", "fulfill_wish", "perform_trick", "learn_trick", "equip", "sell", "fulfill_order",
 	"buy_upgrade", "buy_plot", "buy_animal", "start_activity", "collect_activity", "open_treasure",
@@ -42,7 +42,7 @@ const PROFILES := {
 	},
 	"affective": {
 		"agenda": "reference", "lines": ["nina", "main", "bloblo", "merchant", "guide"], "reserve_story": true, "water": true,
-		"phases": ["ph_claim", "ph_care_urgent", "ph_wishes", "ph_wish_goals", "ph_collect", "ph_bond_extras", "ph_care_optional", "ph_water", "ph_focus", "ph_others", "ph_upgrade_goals", "ph_orders", "ph_produce", "ph_spend", "ph_sell", "ph_closing"],
+		"phases": ["ph_claim", "ph_care_urgent", "ph_wishes", "ph_wish_goals", "ph_collect", "ph_affective_extras", "ph_care_optional", "ph_water", "ph_focus", "ph_others", "ph_upgrade_goals", "ph_orders", "ph_produce", "ph_spend", "ph_sell", "ph_closing"],
 	},
 	"commercial": {
 		"agenda": "reference", "lines": ["merchant", "main", "bloblo", "nina", "guide"], "reserve_story": false, "water": true,
@@ -147,6 +147,7 @@ func setup() -> void:
 	var offset: float = float(posmod((seed_value - 1) * 977, 1800))
 	t0 = day0 + 12.0 * 3600.0 + offset
 	gs.set_clock(t0)
+	seed(seed_value)  # Inclui a semente do cachorro e as fotos do save novo.
 	gs.reset()
 	_apply_scenario()
 	var bot_script: GDScript = load(str(params.get("bot_script", "res://tests/helpers/economy_bot.gd")))
@@ -195,7 +196,7 @@ func digest() -> String:
 		"p": gs.plots, "s": stations_state, "a": gs.animals, "g": gs.progress.gathering, "ac": gs.progress.activity,
 		"w": gs.walk_state.current, "q": gs.progress.claimed_quests, "u": gs.unlocked_plots, "st": gs.progress.stats,
 		"sk": gs.progress.skills, "cd": gs.progress.cooldowns, "col": gs.progress.collection,
-		"d": [gs.dog.needs, gs.dog.updated_at, gs.dog.affection, gs.dog.sleeping],
+		"d": [gs.dog.needs, gs.dog.updated_at, gs.dog.sleeping],
 	}
 	return JSON.stringify(data, "", true).md5_text()
 
@@ -345,6 +346,7 @@ func _session(session: Dictionary) -> void:
 	if start > gs.now():
 		gs.set_clock(start)
 	if session_index > 0:
+		gs.end_absence()
 		gs.update_friend_visits(last_session_end)
 	bg_tick()
 	session_start_time = gs.now()
@@ -408,6 +410,8 @@ func _session(session: Dictionary) -> void:
 	if session_index == 1:
 		_first_session_wait = first_wait
 	in_session = false
+	gs.begin_absence(gs.now())
+	_digest_after = digest()
 	last_session_end = gs.now()
 	_record_blocks()
 	_collect_pending_at_close()
@@ -465,7 +469,7 @@ func bg_tick() -> void:
 
 
 func action_cost(action: Dictionary) -> float:
-	var cost := TOUCH_SECONDS
+	var cost := 12.0 if str(action.kind) == "hide" else TOUCH_SECONDS
 	var targets: int = 1
 	var args: Dictionary = action.args
 	if args.has("plots"):
@@ -537,7 +541,7 @@ func _failure_key(action: Dictionary) -> String:
 		"start_walk":
 			return "walk" + str(args.id)
 		"fulfill_wish":
-			return "wish%d" % int(args.slot)
+			return "wish"
 		"give_friend":
 			return "friend" + str(args.id)
 	return str(action.kind) + JSON.stringify(args)
@@ -608,6 +612,13 @@ func execute(action: Dictionary) -> Dictionary:
 		"play":
 			if not gs.play():
 				out.err = "Não pôde brincar"
+		"brush":
+			out.err = gs.brush()
+		"hide":
+			out.err = gs.hide_and_seek(str(args.item))
+			if out.err == "":
+				out.extra = {"consumed": {str(args.item): 1}}
+				gs.finish_hide_and_seek(true)
 		"pet":
 			gs.pet()
 		"sleep":
@@ -700,13 +711,12 @@ func execute(action: Dictionary) -> Dictionary:
 			out.extra = {"rewards": Database.progression.get("treasure", {}).get("rewards", {}).duplicate(true)}
 			out.err = gs.open_treasure()
 		"fulfill_wish":
-			var slot: int = int(args.slot)
-			var def: Dictionary = gs.wish_at(slot)
+			var def: Dictionary = gs.wish_now()
 			var consumed: Dictionary = {}
 			if str(def.get("type", "")) in ["feed", "give"]:
 				consumed[str(def.item)] = 1
-			out.extra = {"rewards": gs.wish_rewards(slot), "consumed": consumed}
-			out.err = gs.fulfill_wish(slot)
+			out.extra = {"rewards": {}, "consumed": consumed}
+			out.err = gs.fulfill_wish()
 		"perform_trick":
 			out.err = gs.perform_trick(str(args.id))
 		"learn_trick":
@@ -754,7 +764,7 @@ func _station_had_cosmetic(_args: Dictionary) -> bool:
 func snap() -> Dictionary:
 	return {
 		"coins": gs.coins, "inv": gs.inventory.counts.duplicate(), "level": gs.level,
-		"bond": gs.progress.claimed_bond_level, "chapter": gs.progress.chapter_index(),
+		"chapter": gs.progress.chapter_index(),
 		"claimed": gs.progress.claimed_quests.size(),
 	}
 
@@ -775,20 +785,13 @@ func _item_delta(before: Dictionary, after: Dictionary) -> Dictionary:
 func side_effects(before: Dictionary, after: Dictionary) -> Dictionary:
 	var coins := 0
 	var items := {}
-	var parts := {"level": 0, "bond": 0, "chapter": 0}
+	var parts := {"level": 0, "chapter": 0}
 	for lv in range(int(before.level) + 1, int(after.level) + 1):
 		var reward: Dictionary = gs.level_reward(lv)
 		coins += int(reward.get("coins", 0))
 		parts.level = int(parts.level) + int(reward.get("coins", 0))
 		for id: String in reward.get("items", {}):
 			items[id] = int(items.get(id, 0)) + int(reward.items[id])
-	var levels: Array = Database.progression.get("bond_levels", [])
-	for reached in range(int(before.bond) + 1, int(after.bond) + 1):
-		var reward2: Dictionary = levels[reached - 1].get("rewards", {}) if reached - 1 < levels.size() else {}
-		coins += int(reward2.get("coins", 0))
-		parts.bond = int(parts.bond) + int(reward2.get("coins", 0))
-		for id: String in reward2.get("items", {}):
-			items[id] = int(items.get(id, 0)) + int(reward2.items[id])
 	for chapter in range(int(before.chapter), int(after.chapter)):
 		var reward3: Dictionary = Database.progression.chapters[chapter - 1].get("rewards", {}) if chapter - 1 < Database.progression.chapters.size() else {}
 		coins += int(reward3.get("coins", 0))
@@ -849,7 +852,7 @@ func _expected(action: Dictionary, outcome: Dictionary) -> Dictionary:
 		"harvest_many":
 			coins = int(extra.get("coins", 0))
 			items = extra.get("gained", {}).duplicate()
-		"cook", "feed", "bathe", "deliver_growth":
+		"cook", "feed", "bathe", "deliver_growth", "hide":
 			for id: String in extra.get("consumed", {}):
 				items[id] = -int(extra.consumed[id])
 		"collect_station":
@@ -1115,7 +1118,7 @@ func _record_blocks() -> void:
 func _classify_block(why: String) -> String:
 	var head := why.get_slice(":", 0)
 	match head:
-		"no_source", "chapter", "bond", "skill", "luck":
+		"no_source", "chapter", "skill", "luck":
 			return "jogo:" + head
 		"storage":
 			return "jogo:storage"
@@ -1236,9 +1239,6 @@ func next_event() -> Dictionary:
 		consider.call(float(gs.progress.activity.ready_at), "natureza")
 	if gs.walking():
 		consider.call(float(gs.walk_state.current.ready_at), "passeio")
-	for i in gs.wishes.slots.size():
-		if gs.wish_slot_open(i) and str(gs.wishes.slots[i].id) == "":
-			consider.call(float(gs.wishes.slots[i].ready_at), "desejo")
 	for world: String in gs.finds.worlds:
 		consider.call(float(gs.finds.worlds[world].next_at), "faro")
 	for key: String in gs.progress.cooldowns:
@@ -1253,7 +1253,7 @@ func next_event() -> Dictionary:
 			if value < target and up > 0.0:
 				consider.call(now + (target - value) / up * 3600.0 + 1.0, "sono")
 		elif rate > 0.0:
-			for threshold: float in [bot.CARE_FEED_BELOW, bot.CARE_BATHE_BELOW, bot.CARE_PLAY_BELOW, bot.SLEEP_BELOW, 30.0, 25.0]:
+			for threshold: float in [float(Database.needs[need].get("ask_below", 50)), bot.SLEEP_BELOW]:
 				if value > threshold:
 					consider.call(now + (value - threshold) / rate * 3600.0 + 1.0, "necessidade")
 	# Virada do dia local (diárias, presente do dia, janela de passeio) e janela de amigos.
@@ -1307,7 +1307,7 @@ func summary() -> Dictionary:
 			"days": snappedf(rel(gs.now()) / DAY, 0.01), "coins": gs.coins, "level": gs.level, "chapter": gs.progress.chapter_index(),
 			"quests": gs.progress.claimed_quests.size(), "quests_total": Database.quests.size(),
 			"upgrades": upgrades_owned, "upgrades_total": Database.progression.upgrades.size(), "missing_upgrades": _missing_upgrades(), "plots": gs.unlocked_plots,
-			"affection": gs.dog.affection, "walks": gs.progress.stat("walk"), "finds": gs.progress.stat("find"),
+			"walks": gs.progress.stat("walk"), "finds": gs.progress.stat("find"),
 			"phase": gs.growth.phase, "silk": gs.growth.silk, "pillars": _pillar_levels(),
 		},
 		"growth_days": growth_days, "chapter_coins": chapter_coins,
@@ -1337,7 +1337,7 @@ func summary() -> Dictionary:
 func _pillar_levels() -> Dictionary:
 	var result := {}
 	for id: String in Database.growth.pillars:
-		result[id] = {"level": gs.growth.level(id), "points": int(gs.growth.points.get(id, 0))}
+		result[id] = {"phase": int(gs.growth.phase_moments.get(id, 0)), "total": int(gs.growth.moments.get(id, 0)), "need": gs.growth.phase_need(id)}
 	return result
 
 

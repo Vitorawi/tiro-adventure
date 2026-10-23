@@ -1146,3 +1146,45 @@ estão em `docs/plans/tiro/RESULTADOS.md`; o que ficou de fora, em `docs/plans/t
 ### Ajuda de origem dos itens (20/10/2026)
 
 O Como fazer não manda buscar um material ausente na Mochila. Missões com prêmio mostram personagem/lugar/nome da missão e orientam a etapa atual da linha; o texto usa a missão escolhida. Sem prêmio de missão pendente, contratos com o material na recompensa são classificados pelos bloqueios, insumos faltantes e espera. O painel mostra onde entregar, qual contrato, produtos e quantidade do prêmio, além do próximo passo para desbloquear/preparar. Fontes de crescimento/achados e o Dentinho de leite também têm orientação própria. Presentes únicos já recebidos são identificados como tais, sem sugerir recebê-los novamente. Nenhuma fonte nova nem recompensa foi criada. Regressões: `item_sources_test`, `keys_test`, `warehouse_test`, `texts_test`.
+
+## Cuidar é crescer — etapa 05: Tiro animado
+
+O estado é calculado por `GameState.tiro_animated()`: acordado e nenhuma necessidade abaixo de `ask_below`. Não tem barra, duração nem campo salvo próprio. `config.json → mood.animated` define as três ajudas: `harvest_chance` 0,2; `walk_extra_rolls` 1; `dig_extra_per_period` 1.
+
+Cada plantio tem sorteio determinístico pela semente do Tiro, índice e instante do plantio. O extra só entra se o lote inteiro com +1 couber; se só o lote normal cabe, ele é colhido normalmente. A sala usa o CollectFx existente e o aviso é “O Tiro ajudou!”. No passeio, `animated` e `animated_rolls` ficam no snapshot antes de gastar energia; mudanças de necessidades e de configuração posteriores não alteram esse bônus.
+
+O faro mantém um montinho pendente por mundo. Depois de uma escavação, estar animado pode liberar imediatamente mais um, em mundo aberto: um extra global por período local, inclusive madrugada. O limite e o montinho são persistidos em `FindState` (`bonus_period/bonus_used`, `animated_bonus`); o extra não adia o próximo montinho normal e não rerrola ao carregar. A geração e o local usam o fluxo existente. HUD: selo Animado e ajuda no avatar; tela do Tiro: brilho discreto, estático em Menos animação. Save 16 recomeça versões anteriores, sem migração.
+
+## Cuidar é crescer — etapa 06 (23/10/2026, local)
+
+Rotinas são só da fazenda: `harvest/cook/order` e `big_harvest/chef_week/orders_week`.
+Saem `care`, `care_week`, `tiro_walk` e os catálogos de rotinas legados. As três roupas continuam nas
+semanais: `clean_bow`/`walker_bandana` em Grande colheita, `heart_collar` em Freguês fiel.
+`lais_first_wish` é o primeiro passo do capítulo 2, após a caminha e o primeiro crescimento (desejos
+exigem Filhotinho); objetivo histórico `wish: 1`, sem fresh nem prêmio extra. Laís apresenta momento e
+desejo nesse passo e Tiro animado em `lais_first_crops`. Os três cuidados iniciais continuam como tutorial.
+São 111 missões, 51 principais. Como fazer explica `stat: wish`, `moments` e as fontes reais do requisito
+de crescimento. `SAVE_VERSION` 17, reset pelo fluxo existente, sem migração. Teste `care_story_test`.
+
+
+## Cuidar é crescer — etapa 07: robô e fechamento (23/10/2026, local)
+
+`economy_bot.gd` usa as necessidades reais (`need_asking`), escolhe carinho/brincadeira pelo pilar
+faltante, atende o desejo do período e resolve requisitos `moments` pelas fontes públicas. Não usa
+pontos, níveis ou recargas de pilar. Copinhos só com Esperteza faltante, petisco disponível e espaço no
+teto; escova uma vez por dia local; passeio e truques continuam sendo fontes. Pedidos explícitos e
+tutoriais podem motivar um cuidado mesmo satisfeito, sem criar momento útil indevido.
+
+O runner aceita `brush` e `hide` (início e conclusão públicos, um petisco consumido, 12 s de gesto),
+reproduz `begin_absence/end_absence` entre sessões e fixa a semente antes de criar o cachorro. O resumo
+mostra `growth_days` e pilares `{phase,total,need}`. `economy_compare.py` exibe momentos e compara fases
+à linha de base. `care_bot_test` cobre política, pureza, desejo, teto e conservação dos copinhos.
+
+`progression_test` usa a mesma política de cuidados e cresce sem conceder momentos por DEV. Continua
+sendo fixture econômica acelerada (estoque/timers/obras preparados), portanto não mede dias de jogo.
+O relógio e cache são os mesmos do simulador; encomendas fresh continuam possíveis mesmo depois da
+reserva inicial de três entregas por modelo. A medida de ritmo é exclusivamente o Quick reference.
+
+Evidências, dias por fase, comparação com a 00 e pendências de aprovação em
+`docs/plans/cuidado/RESULTADOS.md`. Saves atuais descartáveis; formato não alterado nesta etapa,
+`SAVE_VERSION` 17; sem migração. Nada publicado.

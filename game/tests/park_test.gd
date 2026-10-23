@@ -33,6 +33,7 @@ func _run() -> void:
 	saver.free()
 	state = root.get_node("GameState")
 	db = root.get_node("Database")
+	seed(12345)
 	state.call("reset")
 	var places: Script = load("res://scripts/ui/places.gd")
 	var progress: Object = state.get("progress")
@@ -42,7 +43,7 @@ func _run() -> void:
 	check(not progress.npc_visible("nina") and not progress.npc_visible("dog_pipoca"), "Nina e Pipoca escondidas")
 	check(not (progress.unlocked_keys() as Array).has("world:park"), "Novo! ainda não lista a Praça")
 	var order: Array = db.get("worlds").keys()
-	check(order.find("park") == order.find("farm") + 1 and order.find("park") == order.find("village") - 1, "Praça entre Sítio e Vila: " + str(order))
+	check(order.find("park") == order.find("village") + 1 and order.find("park") == order.find("nature") - 1, "Praça depois da Vila: " + str(order))
 	progress.claimed_quests["main_2_order"] = true
 	state.call("_changed")
 	check(places.call("world_error", "park") == "", "Praça abre depois da primeira encomenda")
@@ -55,7 +56,10 @@ func _run() -> void:
 	# --- Conversa e missões ---------------------------------------------------
 	check(state.call("quest_error", "nina_meet") != "", "nina_meet pede conversa")
 	check(places.call("npc_badge", "nina") == "new", "Nina chama com !")
+	var discard := func(_title: String, content: Control) -> void: content.free()
+	root.get_node("Events").sheet_requested.connect(discard)
 	places.call("open_npc", "nina")
+	root.get_node("Events").sheet_requested.disconnect(discard)
 	check(state.call("quest_error", "nina_meet") == "", "conversa conclui nina_meet")
 	check((db.get("npcs").nina.introduction as Array).size() == 3, "apresentação com 3 falas")
 	check(state.call("claim_quest", "nina_meet") == "", "recebe nina_meet")
@@ -103,7 +107,6 @@ func _run() -> void:
 	var had_coins: int = state.get("coins")
 	var happy_before: float = state.get("dog").get_need("happiness", state.call("now"))
 	var hygiene_before: float = state.get("dog").get_need("hygiene", state.call("now"))
-	var affection_before: int = state.get("dog").affection
 	check(not state.call("walking"), "tempo vencido: o Tiro já não está fora")
 	check(state.call("return_due_walk"), "o tick liquida a viagem")
 	check(state.call("walk_ready") and not state.call("return_due_walk"), "terminou sozinho, uma vez só")
@@ -113,7 +116,6 @@ func _run() -> void:
 	check(not result.is_empty() and result.id == "park_loop", "guarda a bagagem do passeio")
 	check(not state.call("walking"), "Tiro de volta")
 	check(state.get("coins") >= had_coins + 6, "moedas do passeio")
-	check(state.get("dog").affection == affection_before + 3, "vínculo +3")
 	check(state.get("dog").get_need("happiness", state.call("now")) > happy_before - 0.01, "volta mais feliz")
 	check(state.get("dog").get_need("hygiene", state.call("now")) < hygiene_before, "volta sujinho")
 	check(progress.stat("walk") == 1 and progress.stat("walk:park_loop") == 1, "contadores walk")
@@ -155,8 +157,9 @@ func _run() -> void:
 	_rest()
 
 	# --- Armazenamento cheio mantém o passeio pronto -------------------------
-	var silo_full: Dictionary = db.get("walks").walks.park_loop.loot
-	silo_full["table"] = [{"weight": 1, "items": {"carrot": 1}}]
+	var previous_loot: Dictionary = db.get("walks").walks.park_loop.loot.duplicate(true)
+	# Só cenoura: garantias e consolo do raro poderiam caber parcialmente em outro depósito.
+	db.get("walks").walks.park_loop.loot = {"rolls": 1, "table": [{"weight": 1, "items": {"carrot": 1}}]}
 	state.get("progress").owned["silo"] = true
 	state.get("inventory").add("carrot", 100000)
 	state.call("start_walk", "park_loop")
@@ -168,11 +171,11 @@ func _run() -> void:
 	state.get("progress").owned.erase("silo")
 	check(state.call("collect_walk_error") == "", "com espaço volta a guardar")
 	state.call("collect_walk")
-	silo_full["table"] = original
+	db.get("walks").walks.park_loop.loot = previous_loot
 	_rest()
 
 	# --- Desejo, diária e desejos de comida ----------------------------------
-	check(db.get("wishes").wishes.has("walk") and db.get("routines").daily.missions.has("tiro_walk"), "desejo e diária do passeio")
+	check(db.get("wishes").wishes.has("walk") and not db.get("routines").daily.missions.has("tiro_walk"), "passeio pertence ao desejo; rotinas são da fazenda")
 	state.call("start_walk", "park_loop")
 	state.call("dev_finish_timers")
 	check(state.call("return_due_walk") and state.call("walk_ready"), "dev termina o passeio")
@@ -217,9 +220,11 @@ func _room_checks() -> void:
 		for npc: Node2D in [nina, pipoca]:
 			var floor_point: Vector2 = park.call("nearest_floor_point", npc.position)
 			check(floor_point.distance_to(npc.position) < 12.0, "personagem no chão: %s" % npc.position)
+		# O sorteio retorna o centro da célula: admite meia diagonal de arredondamento.
+		var rounding := (park.get("_nav") as AStarGrid2D).cell_size.length() / 2.0
 		for attempt in 8:
 			var near: Vector2 = park.call("floor_point_near", nina.position, 40.0)
-			check(near.distance_to(nina.position) <= 41.0, "destino da Pipoca perto da Nina")
+			check(near.distance_to(nina.position) <= 40.0 + rounding + 0.01, "destino da Pipoca perto da Nina")
 	# O Tiro some das salas durante o passeio e volta ao recolher.
 	state.call("start_walk", "park_loop")
 	await process_frame
@@ -260,7 +265,7 @@ func _room_checks() -> void:
 	# Cartão "Volta do passeio".
 	var card: CanvasLayer = load("res://scenes/ui/walk_result/walk_result.tscn").instantiate()
 	root.add_child(card)
-	card.call("show_result", {"id": "park_loop", "name": "Volta na praça", "postcard": state.call("walk_postcard", "park_loop"), "items": {"lost_ball": 1, "dog_food": 2}, "coins": 5, "affection": 3, "needs": {"happiness": 20, "hygiene": -10}, "new": ["lost_ball"]})
+	card.call("show_result", {"id": "park_loop", "name": "Volta na praça", "postcard": state.call("walk_postcard", "park_loop"), "items": {"lost_ball": 1, "dog_food": 2}, "coins": 5, "needs": {"happiness": 20, "hygiene": -10}, "new": ["lost_ball"]})
 	await process_frame
 	check(card.visible and card.find_child("Found_lost_ball", true, false) != null, "cartão mostra achados")
 	card.queue_free()

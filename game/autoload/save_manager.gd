@@ -6,9 +6,9 @@ extends Node
 ## %APPDATA%/Godot/app_userdata/<projeto>/.
 ##
 ## Formato: JSON { "save_version": int, "saved_at": float, "state": {...} }.
-## Ao mudar o formato do estado: incremente SAVE_VERSION e trate a versão
-## antiga em _migrate() para não perder o progresso dos jogadores. Mudanças só de CONTEÚDO/economia
-## usam `EconomyState.CURRENT_REVISION` + `EconomyMigration` (sem tocar no SAVE_VERSION).
+## Ao mudar o formato do estado: incremente SAVE_VERSION e recomece os saves anteriores.
+## Regra atual do Vitor (23/10/2026): saves sempre zerados, sem migração nova ou teste de save antigo.
+## O código legado de EconomyMigration fica preservado por ora (docs/plans/cuidado/DECISOES.md).
 ##
 ## Vários saves (slots 1..MAX_SLOTS): o slot 1 é o arquivo de sempre (user://save.json na versão
 ## publicada, user://save_dev.json na dev, ver BuildInfo.save_path()); os outros ganham o número
@@ -16,7 +16,7 @@ extends Node
 ## site, por isso a dev usa nomes próprios e não apaga o progresso real.
 ## O slot em que o jogo ENTRA fica em user://settings.json (settings_dev.json na dev).
 
-const SAVE_VERSION := 13
+const SAVE_VERSION := 17
 const MAX_SLOTS := 5
 
 ## Slot em uso agora e slot em que o jogo entra ao abrir.
@@ -265,7 +265,7 @@ func _slot_summary(slot: int) -> Dictionary:
 
 
 func _settings_path() -> String:
-	return BuildInfo.save_path().replace("save", "settings")
+	return BuildInfo.settings_path()
 
 
 func _load_settings() -> void:
@@ -307,11 +307,11 @@ func load_production_copy() -> String:
 	return ""
 
 
-## Converte saves antigos para o formato atual, uma versão por vez.
+## Formatos anteriores recomeçam; preferências são preservadas.
 func _migrate(data: Dictionary) -> Dictionary:
 	var version := int(data.get("save_version", 1))
-	if version < 13:
-		# v13: Tiro no centro, reset autorizado pelo Vitor em 19/10/2026.
+	if version < SAVE_VERSION:
+		# v14: momentos; saves sempre zerados a pedido do Vitor (23/10/2026).
 		# o progresso anterior é descartado e o jogo recomeça do zero.
 		return {"save_version": SAVE_VERSION, "state": {}}
 	# Revisão de ECONOMIA (conteúdo), separada do formato: migração pura, sem pagar nada e sem reset.
@@ -334,7 +334,7 @@ func _request_persistent_storage() -> void:
 	)
 
 
-## A interface consome uma vez; o save já foi regravado como v13.
+## A interface consome uma vez; o save já foi regravado na versão atual.
 func take_reset_notice() -> String:
 	if not reset_notice_pending:
 		return ""

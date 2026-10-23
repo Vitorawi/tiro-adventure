@@ -7,11 +7,11 @@ const EVENTS: Array[String] = [
 	"fed", "bathed", "petted", "played", "brushed", "slept", "woke", "walk_returned", "dug", "harvested", "watered",
 	"tapped_dog", "tapped_object", "equipped", "grew", "quest_claimed", "project_used", "project_gathered",
 	"friend_heart", "friend_visit", "trick_learned", "world_entered", "album_opened", "app_opened",
-	"intro_done", "chapter_done", "customer_delivery", "bond_up",
+	"intro_done", "chapter_done", "customer_delivery",
 ]
 const CONDITIONS: Array[String] = [
 	"phase_min", "phase_in", "hour", "months", "full_moon", "world", "world_in", "dog_in_world", "need_below", "need_min",
-	"sleeping", "sleep_spot", "equipped", "owned", "house_item", "stat_min", "bond_min", "friend_hearts", "within",
+	"sleeping", "sleep_spot", "equipped", "owned", "house_item", "stat_min", "friend_hearts", "within",
 	"item", "crop", "route", "count_in_window", "quests", "quest_is", "grew_to", "trick", "tricks_min", "growth_food",
 	"rare", "chapter_last", "object", "project_done", "start_days", "anniversary", "after_days", "chance",
 ]
@@ -92,8 +92,6 @@ static func holds(key: String, value: Variant, ctx: Dictionary, event: String, a
 				if amount < int(value[stat]):
 					return false
 			return true
-		"bond_min":
-			return GameState.bond_level() >= int(value)
 		"friend_hearts":
 			for friend: String in value:
 				if GameState.friend_hearts(friend) < int(value[friend]):

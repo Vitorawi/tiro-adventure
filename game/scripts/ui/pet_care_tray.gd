@@ -214,7 +214,7 @@ func refresh() -> void:
 		else: caption.text = {"sponge": "Banho", "brush": "Escovar"}.get(id, "Brincar")
 		if GameState.dog.sleeping: caption.text = "Zzz"
 		var badge := item.get_node_or_null("Badge") as Control
-		if badge: badge.visible = GameState.wish_slot_for_item(id) >= 0
+		if badge: badge.visible = GameState.wish_wants_item(id)
 	_food_button.modulate.a = 0.45 if GameState.dog.sleeping else 1.0
 	(_food_button.find_child("Caption", true, false) as Label).text = "Zzz" if GameState.dog.sleeping else "Comida"
 	if GameState.dog.sleeping or GameState.walking(): close_food_menu()
@@ -247,7 +247,7 @@ func _item(id: String, texture: Texture2D, caption: String) -> Control:
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	item.add_child(label)
-	var badge := UiKit.icon(UiKit.ui_icon("bond_heart"), 16)
+	var badge := UiKit.icon(UiKit.ui_icon("heart"), 16)
 	badge.name = "Badge"
 	badge.position = Vector2(40, 0)
 	badge.size = Vector2(16, 16)
@@ -284,20 +284,15 @@ func _food_item(id: String) -> Control:
 	badge.position = Vector2(36, 2)
 	var growth: Dictionary = Database.items[id].get("growth", {})
 	if GameState.growth.phase in growth.get("phases", []):
-		var pillars: Dictionary = growth.get("pillars", {})
-		var principal := ""
-		for pillar: String in pillars:
-			if principal == "" or float(pillars[pillar]) > float(pillars[principal]): principal = pillar
-		if principal != "":
-			var seal := UiKit.icon(UiKit.ui_icon("pillar_" + principal), 20)
-			seal.name = "GrowthSeal"
-			seal.position = Vector2(34, 38)
-			seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			item.add_child(seal)
+		var seal := UiKit.icon(UiKit.ui_icon("pillar_body"), 20)
+		seal.name = "GrowthSeal"
+		seal.position = Vector2(34, 38)
+		seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		item.add_child(seal)
 	elif not growth.is_empty():
 		item.tooltip_text = "Ele prefere outra coisa agora"
 	if GameState.favorite_found() and id == GameState.favorite_food():
-		var heart := UiKit.icon(UiKit.ui_icon("bond_heart"), 20)
+		var heart := UiKit.icon(UiKit.ui_icon("heart"), 20)
 		heart.name = "FavoriteHeart"
 		heart.position = Vector2(180, 4)
 		heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -434,6 +429,7 @@ func release_item(point: Vector2) -> void:
 	if not acted and not scrolling:
 		if not dragged:
 			if id == "brush": Events.toast_requested.emit("Passe a escova nas costas dele")
+			elif id == "ball" and GameState.hide_unlocked(): open_play_choice()
 			else: _act(id)
 		elif id == "ball":
 			if gesture.release_velocity().y < THROW_SPEED and point.y < gesture.start.y - DragGhost.SLOP:
@@ -484,3 +480,38 @@ func _act(id: String) -> void:
 	if error != "":
 		Events.toast_requested.emit(error)
 		if _items.has(id): Motion.shake(_items[id])
+
+
+## Brincar com um toque, desde o Aventureiro: bola (arremessar continua pelo arrasto) ou copinhos.
+func open_play_choice() -> void:
+	close_food_menu()
+	var box := UiKit.vbox(6)
+	box.name = "PlayChoice"
+	var holder: Array[Popover] = []
+	var choose := func(action: Callable) -> void:
+		if not holder.is_empty() and is_instance_valid(holder[0]): holder[0].close()
+		action.call()
+	var ball := UiKit.secondary("Bola", choose.bind(func() -> void: _act("ball")), UiKit.ui_icon("action_play"))
+	ball.name = "PlayBall"
+	box.add_child(ball)
+	var treats := GameState.hide_treats()
+	if treats.is_empty():
+		var hint := UiKit.lock_hint("Copinhos: falta um petisco")
+		hint.name = "PlayCupsLocked"
+		box.add_child(hint)
+	else:
+		var treat: String = treats[0]
+		var cups := UiKit.secondary("Copinhos", choose.bind(func() -> void: start_hide_and_seek(treat)), Database.item_icon(treat))
+		cups.name = "PlayCups"
+		box.add_child(cups)
+	holder.append(Popover.open(pet_screen, _items["ball"], box, 0.0))
+
+
+func start_hide_and_seek(treat: String) -> void:
+	var game := HideSeekUi.new()
+	game.name = "HideSeek"
+	Events.sheet_requested.emit("Esconde-esconde", game)
+	var error := game.start(treat)
+	if error != "":
+		Events.toast_requested.emit(error)
+		Events.sheet_close_requested.emit()

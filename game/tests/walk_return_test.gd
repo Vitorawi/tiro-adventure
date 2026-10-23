@@ -38,7 +38,6 @@ func _run() -> void:
 	_partial_and_repeat()
 	_rare_and_legendary()
 	_dog_timeline()
-	_legacy_saves()
 	_compat_and_cancel()
 	_surfaces()
 	print("WALK RETURN TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
@@ -121,7 +120,6 @@ func _clock_edges() -> void:
 	check(state.call("walking") and not state.call("return_due_walk"), "um segundo antes: ainda viaja e nada liquida")
 	check(state.call("walk_error", "park_loop") == "O Tiro já está passeando", "um passeio por vez")
 	var coins: int = state.get("coins")
-	var affection: int = state.get("dog").affection
 	_at(120.0)
 	check(not state.call("walking"), "no instante de ready_at o Tiro já não está fora")
 	check(state.call("return_due_walk"), "no instante de ready_at a viagem é liquidada")
@@ -130,7 +128,6 @@ func _clock_edges() -> void:
 	check(not state.call("return_due_walk"), "muito depois também é idempotente")
 	check(_walk().current.is_empty() and _walk().has_baggage(), "viagem vira uma única bagagem")
 	check(state.get("coins") - coins == int(_walk().pending_return.result.coins), "moedas pagas uma vez")
-	check(state.get("dog").affection == affection + 3, "afeto pago uma vez")
 	check(_p().stat("walk") == 1 and _p().stat("walk:park_loop") == 1 and int(_walk().history.park_loop.count) == 1, "contadores e histórico uma vez")
 	check(_p().stat("walk_item") == 0 and _p().stat("walk_item:stick") == 0, "contador de itens só anda quando os itens entram")
 	check(returned_events == 1, "um resultado visual por viagem")
@@ -313,38 +310,6 @@ func _dog_timeline() -> void:
 
 
 # --- Saves antigos ----------------------------------------------------------------------
-
-func _legacy_saves() -> void:
-	# Passeio pronto e nunca recolhido (formato anterior à etapa): sem pending_return, com e sem snapshot.
-	for with_snapshot in [true, false]:
-		_fresh()
-		_walk().pity["park_loop"] = 2
-		check(state.call("start_walk", "park_loop") == "", "sai (legado)")
-		var data: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
-		data.walks.erase("pending_return")
-		if not with_snapshot:
-			data.walks.current.erase("snapshot")
-		var expected_items: Dictionary = state.call("walk_loot").items
-		_at(500.0)
-		state.call("from_dict", data)
-		check(_walk().current.is_empty() and _walk().has_baggage(), "legado pronto vira bagagem (snapshot=%s)" % with_snapshot)
-		check(_walk().pending_return.result.items == expected_items, "sem segundo sorteio no legado (snapshot=%s)" % with_snapshot)
-		check(_p().stat("walk") == 1 and int(_walk().pity.park_loop) == 3, "contado uma vez, garantia +1")
-		state.call("from_dict", JSON.parse_string(JSON.stringify(state.call("to_dict"))))
-		check(state.get("progress").stat("walk") == 1 and int(_walk().pity.park_loop) == 3, "recarregar o legado migrado não repete")
-		var collected: Dictionary = state.call("collect_walk")
-		check(not collected.is_empty() and state.call("collect_walk").is_empty(), "wrapper antigo guarda e não repete")
-	# Passeio ainda andando em save antigo.
-	_fresh()
-	check(state.call("start_walk", "park_loop") == "", "sai (legado em curso)")
-	var running: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
-	running.walks.erase("pending_return")
-	_at(10.0)
-	state.call("from_dict", running)
-	check(state.call("walking") and not _walk().has_baggage(), "legado em curso segue viajando")
-
-
-# --- API antiga e cancelamento ------------------------------------------------------------
 
 func _compat_and_cancel() -> void:
 	_fresh()

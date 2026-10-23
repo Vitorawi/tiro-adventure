@@ -99,12 +99,12 @@ func _walks_before_nature() -> void:
 
 
 func _data() -> void:
-	check(db.quests.size() == 110, "110 missões com marco principal do baú dos passeios: %d" % db.quests.size())
+	check(db.quests.size() == 111, "111 missões com tutorial do primeiro desejo: %d" % db.quests.size())
 	var mains := 0
 	for id: String in db.quests:
 		if db.quests[id].get("kind", "") == "main":
 			mains += 1
-	check(mains == 50, "50 missões principais: %d" % mains)
+	check(mains == 51, "51 missões principais: %d" % mains)
 	for id: String in GROWTH_QUESTS:
 		var quest: Dictionary = db.quests[id]
 		var rule: Array = GROWTH_QUESTS[id]
@@ -137,7 +137,7 @@ func _chapter_one() -> void:
 	check(state.goal_value(db.quests.growth_1_puppy.goals[0]) == 1 and state.quest_error("growth_1_puppy") == "", "fase alcançada cumpre o objetivo")
 	var coins: int = state.coins
 	check(state.claim_quest("growth_1_puppy") == "", "pega a missão de crescer")
-	check(state.progress.chapter_index() == 2 and state.progress.current_main_quest() == "lais_meet_bloblo", "o capítulo 2 abriu")
+	check(state.progress.chapter_index() == 2 and state.progress.current_main_quest() == "lais_first_wish", "o capítulo 2 abriu")
 	check(state.coins - coins == int(db.progression.chapters[0].rewards.coins), "só o prêmio do capítulo 1 (sem extra na missão)")
 	# O botão Ir abre o painel de crescimento.
 	var places: Script = load("res://scripts/ui/places.gd")
@@ -147,6 +147,7 @@ func _chapter_one() -> void:
 ## O primeiro crescimento é alcançável só com os cuidados e presentes do capítulo 1.
 func _first_growth_care() -> void:
 	_fresh()
+	state.note_world_visit("house")
 	state.talk_to("lais")
 	check(state.claim_quest("welcome") == "", "recebe a ração da Laís")
 	check(state.feed("dog_food"), "alimenta na missão Hora de comer")
@@ -168,12 +169,12 @@ func _first_growth_care() -> void:
 	check("Qualquer comida" in str(meals.detail), "refeições explicam que não exigem receita")
 	check("Corpo" in str(meals.detail), "refeições já completam Corpo")
 	var care: Dictionary = help.call("describe", "growth_req", "pillars")
-	check("carinho" in str(care.detail), "cuidados pedem apenas a ação distinta")
+	check("carinho" in str(care.steps[0].hint).to_lower(), "ajuda explica momentos de carinho e novidades, inclusive depois de cumprir")
 	var places: Script = load("res://scripts/ui/places.gd")
 	check(care.target == {"screen": "pet"}, "Ir de Carinho leva ao Tiro")
 	for i in 2:
 		check(state.feed("dog_food"), "ração inicial restante %d" % i)
-	check(state.growth.level("body") == 1, "três refeições fecham o Corpo do primeiro crescimento")
+	check(state.growth.body_level == 1, "três refeições fecham o Corpo do primeiro crescimento")
 	for i in 10:
 		state.pet()
 	check(state.growth_info().ready, "cuidados iniciais bastam, sem horta nem receita bloqueada")
@@ -270,7 +271,7 @@ func _pairs() -> void:
 ## Saves de exemplo nos capítulos 2, 5, 8 e 11 entram na fase certa com a próxima missão certa.
 func _samples() -> void:
 	var cases := [
-		[2, "puppy", "lais_meet_bloblo"],
+		[2, "puppy", "lais_first_wish"],
 		[5, "teething", "lais_forest"],
 		[8, "explorer", "main_7_orchard"],
 		[11, "young", "community_11_garden"],
@@ -300,7 +301,6 @@ func _unlocks() -> void:
 	_fresh("newborn")
 	state.dev_complete_quest("nina_pipoca")
 	state.growth.phase = "newborn"  # o atalho dev também faz o Tiro crescer junto da história
-	state.dog.affection = 9999
 	var expect := {"paw": "Dentinhos", "talk": "Dentinhos", "roll": "Aventureiro", "jump": "Aventureiro", "spin": "Mocinho"}
 	for trick: String in expect:
 		check(state.trick_available_error(trick) == "Quando ele for " + expect[trick], "truque %s: %s (veio %s)" % [trick, expect[trick], state.trick_available_error(trick)])
@@ -312,15 +312,15 @@ func _unlocks() -> void:
 	check(state.trick_available_error("spin") == "Quando ele for Mocinho", "gira ainda trava")
 	state.growth.phase = "young"
 	check(state.trick_available_error("spin") == "", "mocinho libera gira")
+	var walk_phase := {"creek_walk": ["explorer", "Aventureiro"], "bird_clearing": ["young", "Mocinho"], "hill_view": ["adult", "Azul e Dourado"]}
 	for id: String in ["creek_walk", "bird_clearing", "hill_view"]:
 		_fresh("teething")
 		state.dev_unlock_everything()
 		state.growth.phase = "teething"
-		state.dog.affection = 9999
 		state.progress.stats["walk"] = 99
-		check(state.walk_lock_error(id) == "Quando ele for Aventureiro", "passeio %s trava (veio %s)" % [id, state.walk_lock_error(id)])
-		state.growth.phase = "explorer"
-		check(state.walk_lock_error(id) == "", "passeio %s abre no aventureiro (veio %s)" % [id, state.walk_lock_error(id)])
+		check(state.walk_lock_error(id) == "Quando ele for " + walk_phase[id][1], "passeio %s trava (veio %s)" % [id, state.walk_lock_error(id)])
+		state.growth.phase = walk_phase[id][0]
+		check(state.walk_lock_error(id) == "", "passeio %s abre na fase (veio %s)" % [id, state.walk_lock_error(id)])
 	check(db.progression.features.wishes.requirements.growth == "puppy", "Desejos só depois de filhotinho")
 	_fresh("newborn")
 	state.dev_complete_quest("lais_bed")

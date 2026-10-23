@@ -24,6 +24,8 @@ var _coins_target: int = -1  # valor para onde o número está contando (-1 = ai
 var _count_tween: Tween
 var _ring_tween: Tween
 var _growth_alert: Button
+var _animated_badge: Label
+var _ask_icon: TextureRect
 
 
 func _ready() -> void:
@@ -107,6 +109,24 @@ func _build_avatar() -> void:
 	level_label.add_theme_constant_override("outline_size", 0)
 	level_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	badge.add_child(level_label)
+	# Selo do que ele pede agora: o desejo do balão ou, sem desejo, a necessidade que está pedindo.
+	_ask_icon = UiKit.icon(null, 22)
+	_ask_icon.name = "AvatarAsk"
+	_ask_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ask_icon.position = Vector2(RING - 18.0, -4.0)
+	_ask_icon.visible = false
+	_avatar_group.add_child(_ask_icon)
+	_animated_badge = UiKit.label("Animado", &"SmallLabel", Palette.GOOD)
+	_animated_badge.name = "AnimatedBadge"
+	_animated_badge.add_theme_font_size_override("font_size", 13)
+	_animated_badge.add_theme_color_override("font_outline_color", Palette.PAPER)
+	_animated_badge.add_theme_constant_override("outline_size", 4)
+	_animated_badge.position = Vector2(0, 53)
+	_animated_badge.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_animated_badge.size = Vector2(64, 20)
+	_animated_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_animated_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_avatar_group.add_child(_animated_badge)
 	# Mantida só por compatibilidade (testes e ferramentas leem); o anel mostra o progresso.
 	xp_bar = ProgressBar.new()
 	xp_bar.name = "XpBar"
@@ -188,9 +208,7 @@ func _build_right() -> void:
 ## Atualiza fase, anel de crescimento e moedas. `animate` falso = só põe os valores (primeira vez).
 func refresh(animate: bool = true) -> void:
 	var info := GameState.growth_info()
-	var total: int = info.requirements.size()
-	var missing := GrowthUi.missing(info)
-	var fraction := float(total - missing) / float(total) if total > 0 else 1.0
+	var fraction := GrowthUi.fraction(info)
 	xp_bar.max_value = 1.0
 	xp_bar.value = fraction
 	var phase := GameState.growth.phase_index()
@@ -198,7 +216,23 @@ func refresh(animate: bool = true) -> void:
 	_set_ring(fraction, animate and _shown_level >= 0)
 	_shown_level = phase
 	_growth_alert.visible = bool(info.ready)
+	_refresh_ask()
 	_set_coins(GameState.coins, animate)
+
+
+## Ícone do que o Tiro pede: o desejo do balão, senão a necessidade que está pedindo.
+func _refresh_ask() -> void:
+	_animated_badge.visible = GameState.tiro_animated()
+	var texture: Texture2D = null
+	if not GameState.dog.sleeping and not GameState.walking():
+		var wish := GameState.balloon_wish()
+		if wish != "":
+			texture = WishUi.icon(wish)
+		else:
+			var need := GameState.asking_need()
+			if need != "": texture = Database.need_icon(need)
+	_ask_icon.texture = texture
+	_ask_icon.visible = texture != null
 
 
 func _set_ring(fraction: float, animate: bool) -> void:
@@ -238,6 +272,11 @@ func show_level_popover() -> Popover:
 	var card := UiKit.vbox(8)
 	card.name = "GrowthQuickSummary"
 	card.custom_minimum_size.x = 248
+	if GameState.tiro_animated():
+		var help := UiKit.label(GameState.animated_help(), &"SmallLabel", Palette.GOOD)
+		help.name = "AnimatedHelp"
+		help.add_theme_font_size_override("font_size", 14)
+		card.add_child(help)
 	card.add_child(UiKit.label(str(info.current.name), &"SmallLabel"))
 	card.add_child(UiKit.label("Guardião do Vale" if info.next.is_empty() else "Rumo a " + str(info.next.name), &"SectionLabel"))
 	if info.ready:

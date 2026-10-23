@@ -43,7 +43,7 @@ EXPERIENCE = [
 ]
 # Alvos da seção E do plano Tiro (02_FASES_E_PILARES): dia de jogo em que cada crescimento acontece (mín, máx).
 GROWTH_TARGETS = [
-    ("puppy", "Filhotinho", 0.0, 0.1, "primeira sessão"),
+    ("puppy", "Filhotinho", 0.0, 30 / 1440, "primeira sessão (≤30 min)"),
     ("teething", "Dentinhos", 1.0, 3.0, "dia 1–3"),
     ("explorer", "Aventureiro", 5.0, 8.0, "dia 5–8"),
     ("young", "Mocinho", 10.0, 14.0, "dia 10–14"),
@@ -170,13 +170,13 @@ def section_growth(groups: dict[str, list[dict]]) -> str:
             verdict = "dentro" if low <= best and worst <= high else ("FORA >2×" if worst > 2 * high or best < low / 2 and low > 0 else "perto")
             row.append(f"{spread(values, 2)} d ({verdict})")
         rows.append(row)
-    final = ["Pilares no fim (Corpo/Pelagem/Esperteza/Coragem)", ""]
+    final = ["Momentos totais no fim (Pelagem/Esperteza/Coragem)", ""]
     silk = ["Pelagem de seda no fim (0–3)", ""]
     for name, runs in groups.items():
         parts = []
         for r in runs:
             levels = r["end"].get("pillars", {})
-            parts.append("/".join(str(levels.get(k, {}).get("level", "?")) for k in ("body", "coat", "smart", "brave")))
+            parts.append("/".join(str(levels.get(k, {}).get("total", levels.get(k, {}).get("level", "?"))) for k in ("coat", "smart", "brave")))
         final.append(" · ".join(parts) if parts else "—")
         silk.append(" · ".join(str(r["end"].get("silk", 0)) for r in runs))
     rows += [final, silk]

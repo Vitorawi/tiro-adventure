@@ -37,7 +37,7 @@ func _run() -> void:
 	main = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	main.call("_on_world_requested", "farm", "")
-	await create_timer(0.4).timeout
+	await _settle()
 	var farm: Control = main.find_child("World_farm", true, false)
 	check(farm.find_child("Region_animals_area", true, false).visible, "Área começa cercada")
 	check(not farm.find_child("hen_1", true, false).get_node("PurchaseMarker").visible, "Não mostra marcador duplicado nas galinhas")
@@ -123,7 +123,7 @@ func _run() -> void:
 	check(state.call("collect", "mill").get("flour", 0) == 2, "Moinho dá farinha")
 	check(state.call("has_upgrade", "workbench"), "Bancada precede abrigos")
 	farm.call("_on_object_tapped", "place:mill")
-	await create_timer(0.2).timeout
+	await _settle()
 	var sheet: Control = main.find_child("Sheet", true, false)
 	var tray_script: Script = load("res://scripts/ui/action_tray.gd")
 	var mill_tray: Control = tray_script.get("current")
@@ -162,18 +162,6 @@ func _run() -> void:
 	state.call("dev_finish_timers")
 	check(state.call("collect", "chicken_coop").get("egg", 0) == 4, "Animal novo não aumenta lote em andamento")
 	state.call("from_dict", herd_save)
-	# Saves anteriores não tinham estas estações; o loader cria filas vazias.
-	var old: Dictionary = state.call("to_dict").duplicate(true)
-	old.erase("animals")
-	for id: String in ["chicken_coop", "cow_barn", "mill", "dairy"]:
-		old.stations.erase(id)
-	state.call("from_dict", old)
-	check(state.call("station", "cow_barn").queue.is_empty(), "Save antigo compatível")
-	check(state.call("animal_count", "cow_barn") == 2 and state.call("animal_count", "chicken_coop") == 2, "Preserva animais da versão anterior")
-	var legacy: Dictionary = state.call("to_dict").duplicate(true)
-	state.call("from_dict", legacy)
-	check(state.call("animal_count", "cow_barn") == 2, "Migração não duplica animais")
-	state.call("from_dict", herd_save)
 	state.call("dev_unlock_everything")
 	state.set("unlimited_storage", true)
 	state.call("dev_add_items", 20)
@@ -182,10 +170,10 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	farm.call("_zoom_at", farm.size / 2, 0.32)
-	await create_timer(0.2).timeout
+	await _settle()
 	_shot("animals_farm_overview")
 	load("res://scripts/ui/sheet_builder.gd").call("open_animal_shop", "cow_barn")
-	await create_timer(0.5).timeout
+	await _settle()
 	_shot("animals_shop")
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	state.call("cook", "eggs")
@@ -199,7 +187,7 @@ func _run() -> void:
 	_shot("animals_dairy")
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	load("res://scripts/ui/game_manual.gd").call("open_item", "milk")
-	await create_timer(0.3).timeout
+	await _settle()
 	_shot("animals_manual_milk")
 	main.queue_free()
 	await process_frame
@@ -224,3 +212,8 @@ func _shot(file_name: String) -> void:
 		var folder := ProjectSettings.globalize_path("res://../build/screenshots/")
 		DirAccess.make_dir_recursive_absolute(folder)
 		root.get_texture().get_image().save_png(folder + file_name + ".png")
+
+
+func _settle() -> void:
+	for _frame in 6:
+		await process_frame

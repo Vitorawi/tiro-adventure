@@ -88,9 +88,9 @@ func _run() -> void:
 				for clip: String in animator._anchors.show_in:
 					check(animator._anchors.bodies.young[clip].has(str(data.slot)), "âncora " + id + "/" + clip)
 	state.call("dev_set_phase", "young")
-	for id: String in state.get("growth").points: state.get("growth").points[id] = 0
+	for id: String in state.get("growth").phase_moments: state.get("growth").phase_moments[id] = 0
 	check(is_equal_approx(state.call("dog_look").coat, 0.3), "Mocinho mínimo")
-	for id: String in state.get("growth").points: state.get("growth").points[id] = 220
+	for id: String in state.get("growth").phase_moments: state.get("growth").phase_moments[id] = 220
 	state.call("_changed")
 	check(is_equal_approx(state.call("dog_look").coat, 0.7), "Mocinho máximo")
 	check(is_equal_approx(float((animator._target.material as ShaderMaterial).get_shader_parameter("coat")), 0.7), "pilares atualizam pelagem sem trocar corpo")

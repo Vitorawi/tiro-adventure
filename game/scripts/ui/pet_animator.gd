@@ -181,6 +181,15 @@ func scrub() -> void:
 	_play(&"wag_excited", 1)
 
 
+## Lugar favorito acariciado: rola de barriga para cima na hora.
+func love() -> void:
+	if _sleeping or _belly_up or _clip == ROLL:
+		return
+	_stroke_time = 0.0
+	_next = &"belly_rub"
+	_play(ROLL, 1)
+
+
 ## Carinho com o dedo. `zone`: &"head", &"belly" ou &"paw"; `seconds` = tempo desde o último aviso.
 func stroke(zone: StringName, seconds: float) -> void:
 	if _sleeping:

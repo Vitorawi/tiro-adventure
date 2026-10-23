@@ -10,7 +10,7 @@ const BAD := Palette.BAD
 
 
 static func ui_icon(icon_name: String) -> Texture2D:
-	var path := ICON_DIR + icon_name + ".png"
+	var path := icon_name if icon_name.begins_with("res://") else ICON_DIR + icon_name + ".png"
 	return load(path) if ResourceLoader.exists(path) else null
 
 

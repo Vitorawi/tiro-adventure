@@ -78,14 +78,15 @@ func _theme() -> void:
 
 
 func _kit() -> void:
+	var owned: Array[Node] = []
 	var noop := func() -> void: pass
-	check((ui_kit.call("primary", "a", noop) as Button).theme_type_variation == &"PrimaryButton", "UiKit.primary")
-	check((ui_kit.call("secondary", "a", noop) as Button).theme_type_variation == &"SecondaryButton", "UiKit.secondary")
-	check((ui_kit.call("secondary", "a", noop, null, true) as Button).custom_minimum_size.y == 44, "secondary pequeno tem altura 44")
-	check((ui_kit.call("ghost", "a", noop) as Button).theme_type_variation == &"GhostButton", "UiKit.ghost")
+	check((_own(owned, ui_kit.call("primary", "a", noop)) as Button).theme_type_variation == &"PrimaryButton", "UiKit.primary")
+	check((_own(owned, ui_kit.call("secondary", "a", noop)) as Button).theme_type_variation == &"SecondaryButton", "UiKit.secondary")
+	check((_own(owned, ui_kit.call("secondary", "a", noop, null, true)) as Button).custom_minimum_size.y == 44, "secondary pequeno tem altura 44")
+	check((_own(owned, ui_kit.call("ghost", "a", noop)) as Button).theme_type_variation == &"GhostButton", "UiKit.ghost")
 	var help: Button = ui_kit.call("square_button", "?", noop)
 	check(help.theme_type_variation == &"IconButton" and help.text == "?", "square_button devolve um icon_button com '?'")
-	check((ui_kit.call("icon_button", null, noop, 44, "?") as Button).custom_minimum_size == Vector2(44, 44), "icon_button 44")
+	check((_own(owned, ui_kit.call("icon_button", null, noop, 44, "?")) as Button).custom_minimum_size == Vector2(44, 44), "icon_button 44")
 	var pill: PanelContainer = ui_kit.call("pill", null, "12")
 	check(pill.theme_type_variation == &"PillPanel", "UiKit.pill")
 	var lock_texture: Texture2D = ui_kit.call("ui_icon", "ui_lock")
@@ -99,6 +100,10 @@ func _kit() -> void:
 	var plain: HBoxContainer = ui_kit.call("lock_hint", "x")
 	check(plain.get_child_count() == 2, "lock_hint sem ajuda: cadeado + texto")
 	check(ui_kit.call("ui_icon", "ui_close") != null and ui_kit.call("ui_icon", "ui_check") != null, "ícones ui_close e ui_check existem")
+	for node: Node in owned:
+		node.free()
+	help.free()
+	pill.free()
 	hint.free()
 	plain.free()
 
@@ -158,3 +163,8 @@ func _primary_per_panel() -> void:
 ## O .tres guarda a cor em decimais (3 casas); a Palette vem do hexadecimal: compara com folga.
 func _near(a: Color, b: Color) -> bool:
 	return absf(a.r - b.r) < 0.01 and absf(a.g - b.g) < 0.01 and absf(a.b - b.b) < 0.01
+
+
+func _own(nodes: Array[Node], node: Node) -> Node:
+	nodes.append(node)
+	return node

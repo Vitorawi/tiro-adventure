@@ -52,13 +52,11 @@ func _run() -> void:
 	state.get("progress").seen.intro = true
 	state.call("_mark_all_seen")
 	state.call("dev_restart_routines")
-	# Três descrições completas e compridas: não depende da diária sorteada no dia.
+	# Três descrições atuais: não depende da diária sorteada no dia.
 	state.call("routine_ids", "daily")
-	state.get("progress").routines.daily.ids = ["feed", "water", "order"]
+	state.get("progress").routines.daily.ids = ["harvest", "cook", "order"]
 	state.get("progress").routines.daily.claimed = {}
 	state.get("progress").routines.daily.base = state.get("progress").stats.duplicate()
-	state.get("progress").routines.daily.erase("catalog")  # rotinas antigas ativas mantêm a definição de antes
-	state.get("progress").routines.daily.erase("targets")
 	main = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	Motion.reduced = true
@@ -73,11 +71,11 @@ func _run() -> void:
 	if daily:
 		print("LISTS: altura diária = ", daily.size.y)
 		check(daily.size.y < 300, "três diárias e título ocupam menos de 300 px")
-		check(has_text(daily, "Toque nas plantinhas com gota para regar."), "instrução inteira preservada")
+		check(has_text(daily, "Colha os canteiros do sítio."), "instrução inteira preservada")
 		check(daily.find_children("*", "RingProgress", true, false).size() == 3, "três anéis de progresso")
 	for id: String in state.call("routine_ids", "daily"):
 		var goal: Dictionary = state.call("routine_data", "daily", id).goal
-		state.get("progress").stats[goal.key] = state.get("progress").stat(goal.key) + int(goal.target)
+		state.get("progress").stats[goal.key] = state.get("progress").stat(goal.key) + int(state.call("routine_target", "daily", id))
 	state.call("_changed")
 	await frames()
 	check(tasks.find_child("ClaimAllRoutines", true, false) != null, "Pegar tudo com várias prontas")
@@ -94,10 +92,10 @@ func _run() -> void:
 	await frames()
 	check(state.get("coins") == before + reward, "Pegar tudo paga exatamente as três diárias")
 	check(gains == reward, "CollectFx recebe as moedas exatas")
-	check(tasks.find_child("Routine_daily_feed", true, false) == null, "linha recebida sai da lista")
+	check(tasks.find_child("Routine_daily_harvest", true, false) == null, "linha recebida sai da lista")
 	check(tasks.find_child("ClaimAllRoutines", true, false) == null, "ação some após receber")
 	var after: int = state.get("coins")
-	check(state.call("claim_routine", "daily", "feed") != "" and state.get("coins") == after, "não duplica prêmio")
+	check(state.call("claim_routine", "daily", "harvest") != "" and state.get("coins") == after, "não duplica prêmio")
 	# Mochila: quantidade zero, depósito, categorias, Novo e reabertura.
 	state.get("inventory").call("from_dict", {"carrot": 4, "carrot_snack": 3, "dog_food": 3, "wood": 2, "wheat": 0})
 	state.get("progress").seen.erase("ui:bag:carrot")
@@ -150,13 +148,15 @@ func _run() -> void:
 	clothes.queue_free()
 	# Vários desejos cumpríveis continuam com somente um principal.
 	state.call("dev_set_phase", "puppy")
-	main.call("show_screen", &"wishes")
-	state.get("wishes").slots[0].id = "carrot"
-	state.get("wishes").slots[1].id = "carrot_snack"
+	main.call("show_screen", &"pet")
+	state.get("wishes").current = {"id": "meal", "item": "carrot_snack", "period": "x", "progress": 0, "since": 0.0}
 	state.get("inventory").call("add", "carrot_snack", 2)
 	state.call("_changed")
 	await frames()
-	check(primary_count(main.find_child("WishesScreen", true, false)) == 1, "Desejos respeita um principal")
+	var wish_card: Control = load("res://scripts/ui/wish_ui.gd").call("balloon_card")
+	main.add_child(wish_card)
+	check(primary_count(wish_card) == 1, "Desejo do balão respeita um principal")
+	wish_card.queue_free()
 	main.queue_free()
 	await frames()
 	print("LISTS TEST: ", "PASS" if failures == 0 else "FAIL")

@@ -126,10 +126,10 @@ func screenshots() -> void:
 	root.get_node("Events").emit_signal("sheet_requested", "Plantar", builder.call("seed_picker", 2))
 	await shot("seeds")
 	root.get_node("Events").emit_signal("sheet_close_requested")
-	state.get("wishes").slots[0] = {"id": "strawberry_pop", "base": 0, "since": state.call("now"), "ready_at": 0.0, "special": false, "last": ""}
+	state.get("wishes").current = {"id": "meal", "item": "strawberry_pop", "period": "x", "progress": 0, "since": state.call("now")}
 	state.call("set_sleeping", false)
 	root.get_node("Events").emit_signal("state_changed")
-	main.call("show_screen", &"wishes")
+	main.call("show_screen", &"pet")
 	await shot("wish_pop")
 	main.call("_on_world_requested", "village", "")
 	var ui: Script = load("res://scripts/ui/progression_ui.gd")

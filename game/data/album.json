@@ -976,7 +976,7 @@
         "need_min": {
           "happiness": 90
         },
-        "bond_min": 4
+        "phase_min": "explorer"
       },
       "photo": {
         "scene": "pet",
@@ -988,8 +988,7 @@
       },
       "hint": "Quem está bem feliz dorme de barriga para cima.",
       "icons": [
-        "need_happiness",
-        "bond_heart"
+        "need_happiness"
       ],
       "hint_npc": "lais",
       "hint_talk": "Para a foto “Barriga pra cima”: Quem está bem feliz dorme de barriga para cima."
@@ -1252,9 +1251,9 @@
       "id": "a_lais_lap",
       "section": "friends",
       "title": "No colo da Laís",
-      "on": "bond_up",
+      "on": "petted",
       "when": {
-        "bond_min": 8
+        "phase_min": "adult"
       },
       "photo": {
         "scene": "house",

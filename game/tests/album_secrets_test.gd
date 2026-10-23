@@ -27,7 +27,6 @@ func _fresh() -> void:
 	state.progress.house.toys = []
 	state.progress.tricks = {}
 	state.growth.phase = "explorer"
-	state.dog.affection = 0
 	state.dog.setup(state.now())
 	for need: String in state.dog.needs: state.dog.needs[need] = 50.0
 	state.friend_state.friends = {}
@@ -61,7 +60,7 @@ func _photo(id: String, act: Callable, positive: bool) -> void:
 		var snapshot: Dictionary = state.photo_info(id)
 		state.from_dict(JSON.parse_string(JSON.stringify(state.to_dict())))
 		act.call()
-		check(state.photo_info(id) == snapshot, id + " recarga sem duplicar/regravar")
+		check(JSON.stringify(state.photo_info(id), "", true) == JSON.stringify(snapshot, "", true), id + " recarga sem duplicar/regravar")
 
 func _run() -> void:
 	var saver: Node = root.get_node("SaveManager")
@@ -149,7 +148,6 @@ func _case(id: String, yes: bool) -> void:
 		"p_curled":
 			_photo(id, func() -> void: state.set_sleeping(yes), yes)
 		"p_belly_up":
-			state.dog.affection = 1000
 			state.dog.needs.happiness = 100.0 if yes else 50.0
 			_photo(id, func() -> void: state.set_sleeping(true), yes)
 		"p_ball_hug":
@@ -181,7 +179,6 @@ func _case(id: String, yes: bool) -> void:
 			state.inventory.add("carrot_snack", 5)
 			_photo(id, func() -> void: state.give_friend("pipoca"), yes)
 		"a_nina_class":
-			state.dog.affection = 1000
 			state.growth.phase = "young"
 			for key: String in db.progression.tricks:
 				if key != "spin": state.progress.tricks[key] = yes
@@ -196,7 +193,7 @@ func _case(id: String, yes: bool) -> void:
 			for item: String in state.meeting_def("village_festival").items: state.inventory.add(item, 10)
 			_photo(id, func() -> void: state.gather_project("village_festival"), yes)
 		"a_lais_lap":
-			state.dog.affection = 1000 if yes else 0
+			state.growth.phase = "adult" if yes else "puppy"
 			_photo(id, func() -> void: state.pet(), yes)
 		"a_four_friends":
 			for friend: String in ["pipoca", "mel", "bolota", "fred"]: _friend(friend, 1 if yes else 0)

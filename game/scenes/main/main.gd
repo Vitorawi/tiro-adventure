@@ -1,18 +1,16 @@
 extends Control
-## Casca do jogo: barra superior (crescimento/moedas, selo DEV), abas Tiro / Desejos / Mapa (mundos) /
+## Casca do jogo: barra superior (crescimento/moedas, selo DEV), abas Tiro / Mapa (mundos) /
 ## Missões / Mochila, painel inferior (Sheet) e mensagens rápidas (toast).
 ## Events.world_requested (botões "Ir") troca para o Mapa e entra no mundo pedido.
 
 @onready var _screens := {
 	&"pet": %PetScreen,
-	&"wishes": %WishesScreen,
 	&"map": %WorldsScreen,
 	&"tasks": %TasksScreen,
 	&"bag": %BagScreen,
 }
 @onready var _tabs := {
 	&"pet": %PetTab,
-	&"wishes": %WishesTab,
 	&"map": %MapTab,
 	&"tasks": %TasksTab,
 	&"bag": %BagTab,
@@ -40,7 +38,6 @@ var _faces: Dictionary = {}  # id da aba → NavTab
 var _current_screen: StringName = &""
 var _tasks_badge: Label
 var _map_badge: Label
-var _wishes_badge: Label
 var _tasks_pulse: Tween
 var _celebration: CanvasLayer
 ## Capítulo concluído nesta leva de missões (0 = nenhum); o anúncio sai uma vez, no fim do frame.
@@ -54,6 +51,14 @@ var _growth_ceremony: GrowthCeremony
 var _growth_queued: Dictionary = {}
 var _intro: Node
 var _left_at: float = 0.0
+## Aviso "Momento de Coragem!": pílula curta com o ícone do pilar, que voa até o avatar do HUD.
+var _moment_notice: PanelContainer
+var _moment_icon: TextureRect
+var _moment_text: Label
+var _moment_queue: Array[String] = []
+var _moment_busy := false
+const MOMENT_Y := 120.0
+const MOMENT_HOLD := 1.0
 
 
 func _ready() -> void:
@@ -99,7 +104,6 @@ func _ready() -> void:
 	Events.cosmetic_received.connect(func(id: String) -> void:
 		_queue_modal(func() -> void:
 			_walk_result.show_result({"kind": "sewing", "name": "Roupa nova", "rare": id, "collections": [id]})))
-	Events.bond_up.connect(_on_bond_up)
 	# Foto nova do álbum: aviso tocável que abre a foto, depois de qualquer cartão (fila própria).
 	Events.photo_taken.connect(func(id: String) -> void:
 		if GameState.photo_alerts_enabled(): _photo_queue.append(id))
@@ -117,6 +121,8 @@ func _ready() -> void:
 	_build_tasks_badge()
 	_refresh_guide()
 	Events.toast_requested.connect(_show_toast)
+	_build_moment_notice()
+	Events.moment_gained.connect(_on_moment_gained)
 	Events.state_changed.connect(_refresh_top_bar)
 	Events.update_available.connect(%UpdateBanner.show)
 	%UpdateBanner.pressed.connect(PwaUpdater.apply_update)
@@ -189,12 +195,6 @@ func _growth_unlocks() -> void:
 			GameState.mark_seen(keys))
 
 
-## Vínculo novo: cartão com o presente (já entregue), na fila dos cartões.
-func _on_bond_up(level: int, rewards: Dictionary) -> void:
-	_queue_modal(func() -> void:
-		_celebration.show_bond(level, rewards))
-
-
 func _queue_modal(callback: Callable) -> void:
 	_modal_queue.append(callback)
 
@@ -242,11 +242,8 @@ func _build_tasks_badge() -> void:
 	_map_badge = _tasks_badge.duplicate() as Label
 	_map_badge.name = "NpcMapBadge"
 	%MapTab.add_child(_map_badge)
-	_wishes_badge = _tasks_badge.duplicate() as Label
-	_wishes_badge.name = "WishesBadge"
-	%WishesTab.add_child(_wishes_badge)
 	# O selo fica no canto de cima, à direita do ÍCONE (não da aba): centro do ícone + (14, −20).
-	for pair: Array in [[&"tasks", _tasks_badge], [&"map", _map_badge], [&"wishes", _wishes_badge]]:
+	for pair: Array in [[&"tasks", _tasks_badge], [&"map", _map_badge]]:
 		var tab: Button = _tabs[pair[0]]
 		var face: NavTab = _faces[pair[0]]
 		var badge: Label = pair[1]
@@ -272,8 +269,6 @@ func _refresh_tasks_badge() -> void:
 	var count := GameState.ready_quest_count() + GameState.ready_routine_count()
 	_tasks_badge.text = str(count)
 	_tasks_badge.visible = count > 0
-	_wishes_badge.text = str(GameState.fulfillable_wish_count())
-	_wishes_badge.visible = GameState.fulfillable_wish_count() > 0
 
 
 func _refresh_top_bar() -> void:
@@ -341,7 +336,6 @@ func _refresh_guide() -> void:
 	_refresh_tasks_badge()
 	# Mochila só aparece quando a história a apresenta.
 	%BagTab.visible = GameState.progress.feature_unlocked("bag")
-	%WishesTab.visible = GameState.progress.feature_unlocked("wishes")
 	if GameState.progress.claimed_quests.has("welcome"):
 		if _tasks_pulse:
 			_tasks_pulse.kill()
@@ -390,3 +384,66 @@ func _announce() -> void:
 	_chapter_done = 0
 	if not unlocks.is_empty():
 		GameState.mark_seen(unlocks)
+
+
+func _build_moment_notice() -> void:
+	_moment_notice = PanelContainer.new()
+	_moment_notice.name = "MomentNotice"
+	_moment_notice.theme_type_variation = &"PillPanel"
+	_moment_notice.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_moment_notice.visible = false
+	var row := UiKit.hbox(6)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_moment_icon = UiKit.icon(null, 28)
+	_moment_icon.name = "MomentIcon"
+	row.add_child(_moment_icon)
+	_moment_text = UiKit.short_label("", &"SectionLabel")
+	_moment_text.name = "MomentText"
+	row.add_child(_moment_text)
+	_moment_notice.add_child(row)
+	add_child(_moment_notice)
+
+
+func _on_moment_gained(pillar: String, _source: String) -> void:
+	if not Database.growth.pillars.has(pillar): return
+	_moment_queue.append(pillar)
+	if not _moment_busy:
+		_run_moments.call_deferred()
+
+
+## Mostra um aviso por momento (um depois do outro); o ícone voa até o avatar, que dá um pulinho.
+func _run_moments() -> void:
+	_moment_busy = true
+	while not _moment_queue.is_empty():
+		var pillar: String = _moment_queue.pop_front()
+		var data: Dictionary = Database.growth.pillars[pillar]
+		_moment_icon.texture = UiKit.ui_icon(str(data.icon))
+		_moment_text.text = "Momento de %s!" % data.name
+		_moment_notice.visible = true
+		_moment_notice.modulate.a = 1.0
+		_moment_notice.reset_size()
+		_moment_notice.position = Vector2((size.x - _moment_notice.size.x) / 2.0, MOMENT_Y)
+		Motion.pop_in(_moment_notice)
+		Haptics.success()
+		await get_tree().create_timer(0.0 if Motion.reduced else MOMENT_HOLD).timeout
+		_fly_moment_icon()
+		_moment_notice.visible = false
+		await get_tree().process_frame
+	_moment_busy = false
+
+
+func _fly_moment_icon() -> void:
+	var target := _hud.avatar_button.get_global_rect().get_center()
+	if Motion.reduced:
+		return
+	var token := UiKit.icon(_moment_icon.texture, 28)
+	token.name = "FlyingMoment"
+	token.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	token.z_index = 20
+	add_child(token)
+	token.global_position = _moment_icon.get_global_rect().position
+	var tween := token.create_tween()
+	tween.tween_property(token, "global_position", target - token.size / 2.0, Motion.SLIDE).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tween.tween_callback(func() -> void:
+		token.queue_free()
+		Motion.bounce(_hud.avatar_button))

@@ -10,8 +10,7 @@ extends RefCounted
 static func give_food(id: String) -> String:
 	if GameState.walking(): return GameState.away_text()
 	if GameState.dog.sleeping: return "Shh... ele está dormindo."
-	var slot := GameState.wish_slot_for_item(id)
-	if slot >= 0: return GameState.fulfill_wish(slot)
+	if GameState.wish_wants_item(id): return GameState.fulfill_wish()
 	return "" if GameState.feed(id) else "Você não tem essa comida."
 
 
@@ -20,29 +19,29 @@ static func food_picker() -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var any := false
 		var primary_used := false
-		# A comida que o Tiro está pedindo (aba Desejos) vem primeiro, com um coração.
+		# A comida que o Tiro está pedindo (balão do desejo) vem primeiro, com um coração.
 		var foods: Array[String] = []
 		for id: String in Database.items:
 			if Database.items[id].has("feed") and GameState.inventory.count(id) > 0:
 				foods.append(id)
 		foods.sort_custom(func(a: String, b: String) -> bool:
-			return GameState.wish_slot_for_item(a) >= 0 and GameState.wish_slot_for_item(b) < 0)
+			return GameState.wish_wants_item(a) and not GameState.wish_wants_item(b))
 		for id: String in foods:
 			any = true
-			var wish_slot := GameState.wish_slot_for_item(id)
+			var wished := GameState.wish_wants_item(id)
 			var chips: Array[Control] = []
-			if wish_slot >= 0:
-				chips.append(UiKit.chip(UiKit.ui_icon("bond_heart"), "Ele quer!", UiKit.GOOD))
+			if wished:
+				chips.append(UiKit.chip(UiKit.ui_icon("heart"), "Ele quer!", UiKit.GOOD))
 			chips.append_array(UiKit.effect_chip_list(Database.items[id]["feed"]))
 			var on_give := func() -> void:
 				var error := give_food(id)
-				var message := error if error != "" else ("Era isso que ele queria!" if wish_slot >= 0 else "")
+				var message := error if error != "" else ("Era isso que ele queria!" if wished else "")
 				if message != "":
 					Events.toast_requested.emit(message)
 				if error == "":
 					Events.sheet_close_requested.emit()
 			# Só a comida que o Tiro quer ("Ele quer!") é o botão principal; as outras são secundárias.
-			var wanted := wish_slot >= 0 and not primary_used
+			var wanted := wished and not primary_used
 			primary_used = primary_used or wanted
 			var give := UiKit.primary("Dar", on_give) if wanted else UiKit.secondary("Dar", on_give, null, true)
 			give.custom_minimum_size = Vector2(76, 52 if wanted else 44)

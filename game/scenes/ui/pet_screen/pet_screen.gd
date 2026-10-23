@@ -4,20 +4,25 @@ extends Control
 const MOOD_LOW := 25.0
 const MOOD_TEXTS := {"hunger": "Estou com fome!", "happiness": "Quero brincar...", "energy": "Que soninho...", "hygiene": "Preciso de um banho!"}
 const STROKE_STEP := 28.0
-const PET_REWARD_EVERY := 1.2
+## Zonas do carinho, em frações do quadro do Tiro (como `back_rect`).
+const SPOTS := {
+	"head": Rect2(0.22, 0.16, 0.56, 0.20),
+	"chin": Rect2(0.30, 0.36, 0.40, 0.14),
+	"belly": Rect2(0.18, 0.50, 0.64, 0.26),
+}
+
 var _bars: Dictionary = {}
 var _pulses: Dictionary = {}
 var _animator: PetAnimator
-var _bond_chip: Button
-var _bond_ring: RingProgress
 var _growth_badge: Button
 var _growth_ring: RingProgress
 var _growth_number: Label
 var _growth_hint: Label
 var _growth_pulse: Tween
-var _bond_caption: Label
 var _wish_bubble: Button
 var _wish_icon: TextureRect
+var _wish_pillar: TextureRect
+var _need_pillars: Dictionary = {}
 var _away_view: VBoxContainer
 var _away_postcard: TextureRect
 var _away_name: Label
@@ -26,7 +31,12 @@ var _away_collect: Button
 var _away_walker: AnimatedSprite2D
 var _away_body := ""
 var _stroke_distance := 0.0
-var _last_pet_reward := -10.0
+var _holding := false
+var _hold_time := 0.0
+var _hold_done := false
+var _hold_rub := 0.0
+var _hold_local := Vector2.ZERO
+var _hold_ring: RingProgress
 var _last_pet_feedback := -10.0
 var _pet_message := ""
 var _pet_message_until := 0.0
@@ -40,8 +50,6 @@ var _mood_age := 20.0
 var _wish_age := 0.0
 var _sleep_age := 0.0
 var _minute := -1
-var _pillar_pending: Dictionary = {}
-var _pillar_showing := false
 var _knots: Array[Control] = []
 ## Apenas apresentação: testes/capturas podem forçar a hora, sem tocar no relógio do jogo.
 var preview_hour := -1
@@ -106,8 +114,8 @@ func _ready() -> void:
 	_build_away_view()
 	_build_baggage_button()
 	Events.state_changed.connect(_refresh)
-	Events.pillar_gained.connect(_on_pillar_gained)
 	Events.taste_reacted.connect(_on_taste)
+	Events.favorite_spot_loved.connect(_on_spot_loved)
 	%RefreshTimer.timeout.connect(_refresh)
 	resized.connect(_layout_corner)
 	_corner.resized.connect(_layout_corner)
@@ -119,57 +127,11 @@ func _ready() -> void:
 
 
 func play_growth_feedback(before: Dictionary, after: Dictionary) -> void:
-	var gained := int(after.points) - int(before.points)
-	var stored := int(after.reserve) - int(before.reserve)
-	var message := str(after.status)
-	if gained > 0:
-		message = "Esperteza +%d · %d/%d" % [gained, after.points, after.cap]
-	if stored > 0:
-		message = (message + "\n" if gained > 0 else "Esperteza · ") + "+%d guardado para depois de crescer." % stored
-	elif gained == 0 and int(after.seconds) == 0:
-		message = str(after.hint)
-	_pet_message = message
+	var gained := int(after.have) - int(before.have)
+	_pet_message = "Momento de Esperteza!" if gained > 0 else str(after.hint)
 	_pet_message_until = Time.get_ticks_msec() / 1000.0 + 4.0
-	_mood_label.text = message
+	_mood_label.text = _pet_message
 	_show_mood()
-
-
-func _on_pillar_gained(id: String, points: int, _level_up: bool) -> void:
-	if not is_visible_in_tree(): return
-	_pillar_pending[id] = int(_pillar_pending.get(id, 0)) + points
-	if not _pillar_showing:
-		_pillar_showing = true
-		_show_pillar_gains.call_deferred()
-
-
-func _show_pillar_gains() -> void:
-	while not _pillar_pending.is_empty():
-		var id: String = _pillar_pending.keys()[0]
-		var points := int(_pillar_pending[id])
-		_pillar_pending.erase(id)
-		if is_visible_in_tree():
-			var head := head_rect()
-			var pos := Vector2(head.get_center().x - 28, head.position.y + 12) - global_position
-			Motion.float_text(self, pos, "+%d" % points, Palette.GOLD)
-			if not Motion.reduced:
-				var radiant := GameState.CARE_NEEDS.all(func(need: String) -> bool:
-					return GameState.dog.get_need(need, GameState.now()) >= float(Database.growth.radiant.min_need))
-				if radiant:
-					_dog_sprite.modulate = Color(1.3, 1.2, 1.0)
-					_dog_sprite.create_tween().tween_property(_dog_sprite, "modulate", Color.WHITE, Motion.FLOAT)
-				var icon := TextureRect.new()
-				icon.texture = UiKit.ui_icon(str(Database.growth.pillars[id].icon))
-				icon.position = pos + Vector2(40, 0)
-				icon.z_as_relative = false
-				icon.z_index = Motion.WORLD_FX_Z
-				icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-				add_child(icon)
-				var tween := icon.create_tween().set_parallel()
-				tween.tween_property(icon, "position:y", icon.position.y - 28, Motion.FLOAT).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-				tween.tween_property(icon, "modulate:a", 0.0, Motion.FLOAT).set_delay(Motion.FLOAT * 0.4)
-				tween.chain().tween_callback(icon.queue_free)
-		await get_tree().create_timer(Motion.FLOAT).timeout
-	_pillar_showing = false
 
 
 func _build_need_rings() -> void:
@@ -183,42 +145,29 @@ func _build_need_rings() -> void:
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 				var value := GameState.dog.get_need(id, GameState.now())
 				var text := "%s %d%%" % [Database.needs[id].name, roundi(value)]
-				if value < MOOD_LOW: text += "\n" + str(MOOD_TEXTS.get(id, ""))
+				if GameState.need_asking(id): text += "\n" + str(MOOD_TEXTS.get(id, ""))
 				Popover.open(self, ring, UiKit.label(text, &"SmallLabel")))
 		var need := UiKit.vbox(2)
 		need.add_child(ring)
+		# O cuidado que atende a necessidade faz este pilar crescer: o ícone só aparece enquanto ela pede.
+		var mark := UiKit.icon(null, 22)
+		mark.name = "NeedPillar_" + id
+		mark.position = Vector2(44, -6)
+		mark.visible = false
+		mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		ring.add_child(mark)
+		_need_pillars[id] = mark
 		var caption := UiKit.short_label(str(Database.needs[id].name), &"SmallLabel")
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		need.add_child(caption)
 		%NeedsGrid.add_child(need)
 		_bars[id] = ring
-	_bond_chip = UiKit.ghost("", func() -> void:
-		Events.sheet_requested.emit("Vínculo", WishUi.bond_panel()))
-	_bond_chip.name = "BondChip"
-	_bond_chip.custom_minimum_size = Vector2(48, 88)
-	for state: String in ["normal", "hover", "pressed", "focus"]:
-		_bond_chip.add_theme_stylebox_override(state, StyleBoxEmpty.new())
-	_bond_ring = RingProgress.new()
-	_bond_ring.custom_minimum_size = Vector2(48, 48)
-	_bond_ring.size = Vector2(48, 48)
-	_bond_ring.texture = UiKit.ui_icon("bond_heart")
-	_bond_ring.color = Palette.DANGER
-	_bond_ring.done_color = Palette.DANGER
-	_bond_ring.position = Vector2(0, 8)
-	_bond_chip.add_child(_bond_ring)
-	_bond_caption = UiKit.short_label("1", &"SmallLabel")
-	_bond_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_bond_caption.position = Vector2(0, 66)
-	_bond_caption.size = Vector2(48, 20)
-	_bond_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_bond_chip.add_child(_bond_caption)
-	# Vínculo e crescimento lado a lado abaixo das necessidades, sem espremer os quatro anéis.
+	# O crescimento fica abaixo das necessidades, sem espremer os quatro anéis.
 	var badges := UiKit.hbox(12)
 	badges.name = "LifeBadges"
 	badges.position = Vector2(20, 204)
 	add_child(badges)
-	badges.add_child(_bond_chip)
 	_growth_badge = UiKit.ghost("", GrowthUi.open)
 	_growth_badge.name = "GrowthBadge"
 	for state: String in ["normal", "hover", "pressed", "focus"]:
@@ -252,8 +201,7 @@ func _build_need_rings() -> void:
 
 
 func _build_wish_widgets() -> void:
-	_wish_bubble = UiKit.icon_button(UiKit.ui_icon("wish_bubble"), func() -> void:
-		Events.screen_requested.emit(&"wishes"), 64)
+	_wish_bubble = UiKit.icon_button(UiKit.ui_icon("wish_bubble"), _open_wish_card, 64)
 	_wish_bubble.name = "WishBubble"
 	_wish_bubble.add_theme_constant_override("icon_max_width", 64)
 	for style: String in ["normal", "hover", "pressed", "focus", "disabled"]:
@@ -261,8 +209,23 @@ func _build_wish_widgets() -> void:
 	_wish_icon = UiKit.icon(null, 32)
 	_wish_icon.position = Vector2(16, 12)
 	_wish_bubble.add_child(_wish_icon)
+	_wish_pillar = UiKit.icon(null, 20)
+	_wish_pillar.name = "WishPillar"
+	_wish_pillar.position = Vector2(40, 0)
+	_wish_pillar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wish_bubble.add_child(_wish_pillar)
 	add_child(_wish_bubble)
 	_dog_sprite.item_rect_changed.connect(_place_bubble)
+
+
+## Toque no balão: o pedido em uma linha, com Pegar/Dar ou Ir; fecha sozinho ao atender.
+func _open_wish_card() -> void:
+	if GameState.balloon_wish() == "": return
+	var card := WishUi.balloon_card()
+	var popover := Popover.open(self, _wish_bubble, card, 0.0)
+	for button_name: String in ["WishTake", "WishGo"]:
+		var button := card.find_child(button_name, true, false) as Button
+		if button: button.pressed.connect(popover.close, CONNECT_DEFERRED)
 
 
 func _place_bubble() -> void:
@@ -310,7 +273,7 @@ func _refresh() -> void:
 		_away_collect.text = "Guardar achados" if GameState.walk_baggage_error() == "" else "Ver bagagem"
 	var growth := GameState.growth_info()
 	_growth_number.text = str(GameState.growth.phase_index())
-	_growth_ring.progress = 1.0 if growth.next.is_empty() else float(growth.requirements.size() - GrowthUi.missing(growth)) / maxi(1, growth.requirements.size())
+	_growth_ring.progress = 1.0 if growth.next.is_empty() else GrowthUi.fraction(growth)
 	_growth_hint.text = "Falta 1!" if GrowthUi.missing(growth) == 1 else ("Pronto!" if growth.ready else "Crescer")
 	if growth.ready and (_growth_pulse == null or not _growth_pulse.is_valid()):
 		_growth_pulse = Motion.pulse(_growth_ring)
@@ -318,23 +281,25 @@ func _refresh() -> void:
 		if _growth_pulse.is_valid(): _growth_pulse.kill()
 		_growth_pulse = null
 		_growth_ring.scale = Vector2.ONE
-	_bond_caption.text = str(GameState.bond_level())
-	var bond := GameState.progress.bond_info(GameState.dog.affection)
-	_bond_ring.progress = 1.0 if bond.max else float(int(bond.affection) - int(bond.floor)) / maxi(1, int(bond.next) - int(bond.floor))
-	_bond_chip.visible = GameState.progress.feature_unlocked("wishes")
 	var wish_id := GameState.balloon_wish()
 	_wish_bubble.visible = wish_id != "" and not dog.sleeping and not away
 	_wish_icon.texture = WishUi.icon(wish_id) if wish_id != "" else null
+	_wish_pillar.texture = WishUi.pillar_icon(GameState.wish_pillar()) if wish_id != "" else null
 	_new_badge.visible = PetNotebook.has_new()
 	for id: String in _bars:
 		var ring: RingProgress = _bars[id]
 		var value := dog.get_need(id, now)
+		var asking := GameState.need_asking(id)
 		ring.progress = value / 100.0
-		ring.color = Palette.PRIMARY if value > 50.0 else (Palette.ACCENT if value >= MOOD_LOW else Palette.DANGER)
-		if value < MOOD_LOW and not _pulses.has(id):
+		ring.color = Palette.PRIMARY if not asking else (Palette.ACCENT if value >= MOOD_LOW else Palette.DANGER)
+		var mark: TextureRect = _need_pillars[id]
+		var pillar := GameState.need_pillar(id)
+		mark.visible = asking and pillar != ""
+		mark.texture = WishUi.pillar_icon(pillar) if mark.visible else null
+		if asking and not _pulses.has(id):
 			ring.pivot_offset = ring.size / 2.0
 			_pulses[id] = Motion.pulse(ring)
-		elif value >= MOOD_LOW and _pulses.has(id):
+		elif not asking and _pulses.has(id):
 			var pulse: Tween = _pulses[id]
 			if pulse and pulse.is_valid(): pulse.kill()
 			_pulses.erase(id)
@@ -358,6 +323,8 @@ func _show_mood() -> void:
 
 func _process(delta: float) -> void:
 	if not is_visible_in_tree(): return
+	hold_tick(delta)
+	if GameState.tiro_animated() and not Motion.reduced: %DogArea.queue_redraw()
 	_mood_age += delta
 	_wish_age += delta
 	_sleep_age += delta
@@ -442,7 +409,7 @@ func _on_taste(_item: String, reaction: String) -> void:
 	Motion.float_text(self, head_rect().get_center() - global_position - Vector2(24, 40), str(texts.get(reaction, "")), Palette.ACCENT)
 	if reaction == "loved":
 		for i in 3:
-			var heart := UiKit.icon(UiKit.ui_icon("bond_heart"), 16)
+			var heart := UiKit.icon(UiKit.ui_icon("heart"), 16)
 			heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			heart.z_as_relative = false
 			heart.z_index = Motion.WORLD_FX_Z
@@ -509,6 +476,14 @@ func _draw_dog_shadow() -> void:
 	area.draw_set_transform(feet, 0.0, Vector2(1.0, 0.25))
 	area.draw_circle(Vector2.ZERO, _dog_sprite.size.x * 0.26, Palette.SHADE, true, -1.0, false)
 	area.draw_set_transform(Vector2.ZERO)
+	if GameState.tiro_animated():
+		var glow := Palette.GOLD
+		glow.a = 0.12 if Motion.reduced else 0.12 + 0.035 * sin(_mood_age * 2.0)
+		for offset in [Vector2(-0.15, -0.65), Vector2(0.85, -0.8), Vector2(1.1, -0.35)]:
+			var point: Vector2 = feet + Vector2(offset.x - 0.5, offset.y) * _dog_sprite.size
+			area.draw_circle(point, 7.0, glow, true, -1.0, true)
+			area.draw_line(point - Vector2(0, 4), point + Vector2(0, 4), Palette.GOLD, 1.0, true)
+			area.draw_line(point - Vector2(4, 0), point + Vector2(4, 0), Palette.GOLD, 1.0, true)
 
 
 ## Durante o passeio: no lugar do Tiro grande, o postal com o Tiro do mapa andando (2x), nome e tempo.
@@ -588,58 +563,125 @@ func _build_baggage_button() -> void:
 	add_child(_away_collect)
 
 
-## Toque ou arrastar o dedo no Tiro = carinho. A zona (cabeça, barriga, patas) vem de onde o dedo está.
+## Segurar o dedo no Tiro (1,2 s, com anel) ou esfregar sem parar = UM carinho por gesto. Um toque curto só
+## faz festa. Onde o dedo está (cabeça, queixo, barriga) decide se é o lugar favorito dele.
 func _on_dog_input(event: InputEvent) -> void:
 	var motion := event as InputEventMouseMotion
 	var button := event as InputEventMouseButton
-	var pressing := button != null and button.pressed and button.button_index == MOUSE_BUTTON_LEFT
-	var dragging := motion != null and (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0
-	if not pressing and not dragging:
-		return
-	if GameState.walking() or _care.get("_pressed") != "":
-		return
-	if GameState.dog.sleeping:
-		if pressing:
+	if button != null and button.button_index == MOUSE_BUTTON_LEFT:
+		if not button.pressed:
+			hold_end()
+			return
+		if GameState.walking() or _care.get("_pressed") != "":
+			return
+		if GameState.dog.sleeping:
 			if GameState.growth.pending_reveal != "":
 				GameState.set_sleeping(false)
 			else:
 				Events.toast_requested.emit("Shh... ele está dormindo.")
-		return
-	var local := (button.position if pressing else motion.position) as Vector2
-	var seconds := 0.5  # um toque conta como meio segundo de carinho
-	if dragging:
-		_stroke_distance += motion.relative.length()
-		if _stroke_distance < STROKE_STEP:
 			return
+		hold_begin(button.position)
+	elif motion != null and _holding and (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
+		hold_move(motion.position, motion.relative.length())
+
+
+func hold_begin(local: Vector2) -> void:
+	_holding = true
+	_hold_time = 0.0
+	_hold_done = false
+	_hold_rub = 0.0
+	_stroke_distance = 0.0
+	_hold_local = local
+	_animator.stroke(&"head" if local.y / maxf(_dog_sprite.size.y, 1.0) < 0.5 else &"belly", 0.5)
+	if _hold_ring == null:
+		_hold_ring = RingProgress.new()
+		_hold_ring.name = "HoldRing"
+		_hold_ring.custom_minimum_size = Vector2(40, 40)
+		_hold_ring.size = Vector2(40, 40)
+		_hold_ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_hold_ring.z_as_relative = false
+		_hold_ring.z_index = Motion.WORLD_FX_Z
+		add_child(_hold_ring)
+	_hold_ring.progress = 0.0
+	_hold_ring.show()
+	_place_hold_ring()
+
+
+func hold_move(local: Vector2, length: float) -> void:
+	if not _holding: return
+	_hold_local = local
+	_hold_rub += length
+	_stroke_distance += length
+	if _stroke_distance >= STROKE_STEP:
 		_stroke_distance = 0.0
-		seconds = 0.2
-	var y := local.y / maxf(_dog_sprite.size.y, 1.0)
-	var zone := &"head" if y < 0.5 else (&"belly" if y < 0.76 else &"paw")
-	_animator.stroke(zone, seconds)
+		var y := local.y / maxf(_dog_sprite.size.y, 1.0)
+		_animator.stroke(&"head" if y < 0.5 else (&"belly" if y < 0.76 else &"paw"), 0.2)
+	_place_hold_ring()
+	if not _hold_done and _hold_rub >= float(Database.growth.gestures.rub_distance):
+		_hold_reward()
+
+
+func hold_tick(delta: float) -> void:
+	if not _holding or _hold_done: return
+	if GameState.dog.sleeping or GameState.walking():
+		hold_end()
+		return
+	_hold_time += delta
+	var seconds := float(Database.growth.gestures.hold_seconds)
+	_hold_ring.progress = minf(_hold_time / seconds, 1.0)
+	if _hold_time >= seconds:
+		_hold_reward()
+
+
+func hold_end() -> void:
+	_holding = false
+	_hold_done = false
+	if _hold_ring != null: _hold_ring.hide()
+
+
+func _hold_reward() -> void:
+	_hold_done = true
+	_hold_ring.progress = 1.0
+	var spot := spot_at(_hold_local)
+	var before := GameState.pet_growth_info()
+	var gained := GameState.pet(spot)
+	var after := GameState.pet_growth_info()
+	var earned := int(after.have) - int(before.have)
 	var now := Time.get_ticks_msec() / 1000.0
-	if now - _last_pet_reward >= PET_REWARD_EVERY:
-		_last_pet_reward = now
-		var before := GameState.pet_growth_info()
-		var gained := GameState.pet()
-		var after := GameState.pet_growth_info()
-		var points := int(after.points) - int(before.points)
-		var stored := int(after.reserve) - int(before.reserve)
-		if points > 0 or stored > 0 or now - _last_pet_feedback >= 5.0:
-			_last_pet_feedback = now
-			var message := "Próximo ganho de Coragem em %s." % after.wait
-			if points > 0:
-				message = "Coragem +%d · %d/%d" % [points, after.points, after.cap]
-			if stored > 0:
-				message = (message + "\n" if points > 0 else "Coragem %d/%d · " % [after.points, after.cap]) + "+%d guardado para depois de crescer." % stored
-			elif points == 0 and int(after.seconds) == 0:
-				message = "Coragem no limite da fase; a reserva também está cheia."
-			# Fica junto do Tiro e não disputa o aviso superior com "Nova foto!".
-			_pet_message = message
-			_pet_message_until = now + 4.0
-			_mood_label.text = message
-			_show_mood()
-		if gained > 0:
-			_float_text("+carinho", _dog_sprite.get_global_transform() * local)
+	if earned > 0 or now - _last_pet_feedback >= 5.0:
+		_last_pet_feedback = now
+		_pet_message = "Momento de Coragem!" if earned > 0 else str(after.hint)
+		_pet_message_until = now + 4.0
+		_mood_label.text = _pet_message
+		_show_mood()
+	if gained > 0:
+		_float_text("+carinho", _dog_sprite.global_position + _hold_local)
+
+
+func _place_hold_ring() -> void:
+	if _hold_ring != null:
+		_hold_ring.position = _dog_sprite.global_position - global_position + _hold_local - Vector2(20, 76)
+
+
+func spot_rect(spot: String) -> Rect2:
+	var rect := dog_rect()
+	var part: Rect2 = SPOTS[spot]
+	return Rect2(rect.position + rect.size * part.position, rect.size * part.size)
+
+
+## Zona sob o ponto (local ao sprite do Tiro); "" fora das três (patas, orelhas).
+func spot_at(local: Vector2) -> String:
+	var global_point := dog_rect().position + local
+	for spot: String in SPOTS:
+		if spot_rect(spot).has_point(global_point): return spot
+	return ""
+
+
+## O Tiro rola de barriga para cima e solta corações no lugar favorito.
+func _on_spot_loved(_zone: String, _first: bool) -> void:
+	if not is_visible_in_tree(): return
+	_animator.love()
+	_on_taste("", "loved")
 
 
 func _float_text(text: String, at: Vector2) -> void:

@@ -111,6 +111,11 @@ func _run() -> void:
 	main = (load("res://scenes/main/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
 	await frames(4)
+	if "--scroll-shots" in OS.get_cmdline_user_args():
+		await _test_recipe_scroll()
+		print("RECIPE SCROLL UI: ", "PASS" if failures == 0 else "FAIL")
+		quit(0 if failures == 0 else 1)
+		return
 	if "--ingredient-shots" in OS.get_cmdline_user_args():
 		await _test_missing_ingredients()
 		print("INGREDIENT TRAY UI: ", "PASS" if failures == 0 else "FAIL")
@@ -132,6 +137,7 @@ func _run() -> void:
 		quit(0 if failures == 0 else 1)
 		return
 
+	await _test_recipe_scroll()
 	await _test_stove_cooks()
 	await _test_full_queue()
 	await _test_missing_ingredients()
@@ -148,6 +154,147 @@ func _run() -> void:
 
 	print("STATION TRAY TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(0 if failures == 0 else 1)
+
+
+## Eventos roteados pelo viewport, sem chamar os métodos de gesto da bandeja.
+func recipe_pointer(point: Vector2, kind: String, touch: bool) -> void:
+	point = root.get_final_transform() * point
+	var event: InputEvent
+	if touch:
+		if kind == "move":
+			var drag := InputEventScreenDrag.new()
+			drag.position = point
+			event = drag
+		else:
+			var finger := InputEventScreenTouch.new()
+			finger.position = point
+			finger.pressed = kind == "down"
+			event = finger
+	else:
+		if kind == "move":
+			var motion := InputEventMouseMotion.new()
+			motion.position = point
+			motion.global_position = point
+			motion.button_mask = MOUSE_BUTTON_MASK_LEFT
+			event = motion
+		else:
+			var button := InputEventMouseButton.new()
+			button.position = point
+			button.global_position = point
+			button.button_index = MOUSE_BUTTON_LEFT
+			button.pressed = kind == "down"
+			event = button
+	Input.parse_input_event(event)
+	Input.flush_buffered_events()
+	if touch:
+		# Simula também o mouse duplicado produzido pelas plataformas de toque.
+		var duplicate: InputEventMouse
+		if kind == "move":
+			var mouse := InputEventMouseMotion.new()
+			mouse.button_mask = MOUSE_BUTTON_MASK_LEFT
+			duplicate = mouse
+		else:
+			var mouse := InputEventMouseButton.new()
+			mouse.button_index = MOUSE_BUTTON_LEFT
+			mouse.pressed = kind == "down"
+			duplicate = mouse
+		duplicate.position = point
+		duplicate.global_position = point
+		duplicate.device = InputEvent.DEVICE_ID_EMULATION
+		Input.parse_input_event(duplicate)
+		Input.flush_buffered_events()
+	await frames(2)
+
+
+func recipe_shot(label: String) -> void:
+	if DisplayServer.get_name() == "headless": return
+	await RenderingServer.frame_post_draw
+	var folder := ProjectSettings.globalize_path("res://../build/screenshots/recipes_slider_fluid")
+	DirAccess.make_dir_recursive_absolute(folder)
+	root.get_texture().get_image().save_png(folder.path_join("%s_%d.png" % [label, root.size.x]))
+
+
+func _test_recipe_scroll() -> void:
+	reset_world_state()
+	var house := await enter("house")
+	var current := await tap(house, "place:stove", "stove")
+	await frames(8)
+	var scroll := current.call("find_in_panel", "RecipeScroll") as ScrollContainer
+	var ids: Array = current.call("entry_ids")
+	var initial := str(current.get("selected"))
+	await recipe_shot("before")
+	var camera: Vector2 = (house.get("_content") as Control).position
+	for touch: bool in [false, true]:
+		for gap: bool in [false, true]:
+			current.set("_recipe_velocity", 0.0)
+			scroll.scroll_horizontal = 60
+			await frames()
+			var start := scroll.global_position + Vector2(110, 25)
+			if gap:
+				var item: Control = current.call("item_node", str(ids[2]))
+				start.x = item.global_position.x - 6
+			await recipe_pointer(start, "down", touch)
+			var expected := 60
+			var previous := 0
+			for offset: int in [2, 5, 9, 14, 35, 70, 95, 83, 61, 89, 105, 250, 330, 300, 80, 40, 0, -90, -110, -130, -125, -119]:
+				expected = clampi(expected + offset - previous, 0, int(scroll.get_h_scroll_bar().max_value - scroll.get_h_scroll_bar().page))
+				await recipe_pointer(start - Vector2(offset, 0), "move", touch)
+				check(absi(scroll.scroll_horizontal - expected) <= 1, "1:1/reversão touch=%s gap=%s offset=%d: %d/%d" % [touch, gap, offset, scroll.scroll_horizontal, expected])
+				previous = offset
+			await create_timer(0.13).timeout
+			await recipe_pointer(start - Vector2(previous, 0), "up", touch)
+			check(str(current.get("selected")) == initial, "arrasto não seleciona (%s/%s)" % [touch, gap])
+			var stopped := scroll.scroll_horizontal
+			await frames(5)
+			check(scroll.scroll_horizontal == stopped, "pausa antes de soltar não gera flick")
+		await recipe_shot("touch_reverse" if touch else "mouse_reverse")
+		scroll.scroll_horizontal = 0
+		var start := scroll.global_position + Vector2(190, 25)
+		await recipe_pointer(start, "down", touch)
+		for offset: int in [12, 24, 40, 58, 80]:
+			await recipe_pointer(start - Vector2(offset, 0), "move", touch)
+		await recipe_pointer(start - Vector2(80, 0), "up", touch)
+		var released := scroll.scroll_horizontal
+		await create_timer(0.15).timeout
+		check(scroll.scroll_horizontal > released + 3, "flick continua após soltar (%s)" % touch)
+		await recipe_shot("touch_flick" if touch else "mouse_flick")
+		await create_timer(1.0).timeout
+		check(is_zero_approx(float(current.get("_recipe_velocity"))), "inércia termina (%s)" % touch)
+		# Também inverte imediatamente no limite direito, sem pagar o excesso.
+		var limit := int(scroll.get_h_scroll_bar().max_value - scroll.get_h_scroll_bar().page)
+		scroll.scroll_horizontal = limit - 20
+		start = scroll.global_position + Vector2(190, 25)
+		await recipe_pointer(start, "down", touch)
+		await recipe_pointer(start - Vector2(80, 0), "move", touch)
+		await recipe_pointer(start - Vector2(75, 0), "move", touch)
+		check(absi(scroll.scroll_horizontal - (limit - 5)) <= 1, "inversão imediata no limite direito")
+		await create_timer(0.13).timeout
+		await recipe_pointer(start - Vector2(75, 0), "up", touch)
+		scroll.scroll_horizontal = 0
+		await frames()
+		start = current.call("item_center", str(ids[1]))
+		current.set("_recipe_position", float(scroll.scroll_horizontal))
+		current.set("_recipe_velocity", 600.0)
+		await recipe_pointer(start, "down", touch)
+		check(is_zero_approx(float(current.get("_recipe_velocity"))), "novo toque interrompe inércia")
+		await recipe_pointer(start + Vector2(2, 0), "up", touch)
+		check(str(current.get("selected")) == str(ids[1]), "tap com tremor seleciona (%s)" % touch)
+		await frames(6)
+		await recipe_shot("touch_tap" if touch else "mouse_tap")
+		current.call("select", initial)
+		await frames(6)
+	check(camera == (house.get("_content") as Control).position, "gesto não move a câmera")
+	# A barra continua recebendo o próprio gesto, fora dos itens.
+	scroll.scroll_horizontal = 0
+	await frames()
+	var bar := scroll.get_h_scroll_bar()
+	var thumb := bar.global_position + Vector2(8, bar.size.y / 2)
+	await recipe_pointer(thumb, "down", false)
+	await recipe_pointer(thumb + Vector2(45, 0), "move", false)
+	await recipe_pointer(thumb + Vector2(45, 0), "up", false)
+	check(scroll.scroll_horizontal > 0, "barra ainda arrasta")
+	house.call("close_tray")
+	await frames()
 
 
 ## Compra durante produção: cada animal tem seu espaço e o rodapé abre a loja diretamente.

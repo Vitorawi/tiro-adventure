@@ -40,6 +40,7 @@ var projects: Dictionary = {}
 var growth: Dictionary = {}
 ## Álbum de recordações (data/album.json): as 54 fotos, cenários e adereços.
 var album: Dictionary = {}
+var mood: Dictionary = {}
 var album_config: Dictionary = {}
 ## A Casa que cresce (data/house.json): objetos que chegam, prateleira, brinquedos e bônus.
 var house: Dictionary = {}
@@ -142,13 +143,16 @@ func growth_problems() -> Array[String]:
 	for pillar: String in ["body", "coat", "smart", "brave"]:
 		if not growth.get("pillars", {}).has(pillar):
 			problems.append("growth: pilar ausente " + pillar)
-	var last := 0
-	for value: Variant in growth.get("levels", []):
-		if int(value) <= last:
-			problems.append("growth: níveis devem crescer")
-		last = int(value)
-	if growth.get("levels", []).size() != 10:
-		problems.append("growth: dez níveis")
+	var moments: Dictionary = growth.get("moments", {})
+	if int(moments.get("period_cap", 0)) <= 0: problems.append("growth: teto de período inválido")
+	var starts: Array = []
+	var period_ids := {}
+	for period: Dictionary in moments.get("periods", []):
+		starts.append(int(period.get("start", -1)))
+		var period_id := str(period.get("id", ""))
+		if period_id == "" or period_ids.has(period_id): problems.append("growth: período inválido")
+		period_ids[period_id] = true
+	if starts != [0, 6, 12, 18]: problems.append("growth: horários de período inválidos")
 	var ids := {}
 	var phases: Variant = growth.get("phases", [])
 	if not phases is Array or phases.size() != 6:
@@ -163,8 +167,6 @@ func growth_problems() -> Array[String]:
 		if id == "" or ids.has(id):
 			problems.append("growth: fase duplicada ou vazia " + id)
 		ids[id] = true
-		if int(phase.get("cap", 0)) < 1 or int(phase.get("cap", 0)) > growth.get("levels", []).size():
-			problems.append(id + ": teto inválido")
 		var req_ids := {}
 		for entry: Variant in phase.get("requirements", []):
 			if not entry is Dictionary:
@@ -182,10 +184,9 @@ func growth_problems() -> Array[String]:
 				"stat":
 					if str(req.get("counter", "")) == "":
 						problems.append(id + ": contador vazio")
-				"pillars":
-					for pillar: String in req.get("levels", {}):
-						if not growth.get("pillars", {}).has(pillar) or int(req.levels[pillar]) < 1 or int(req.levels[pillar]) > growth.get("levels", []).size():
-							problems.append(id + ": pilar inválido " + pillar)
+				"moments":
+					if str(req.get("pillar", "")) not in ["brave", "smart", "coat"] or int(req.get("qty", 0)) <= 0:
+						problems.append(id + ": momento inválido")
 				"deliver", "feed":
 					ref = str(req.get("item", ""))
 					catalog = items
@@ -215,19 +216,14 @@ func growth_problems() -> Array[String]:
 				problems.append(id + ": presente inexistente " + item)
 	for item: String in items:
 		var food: Dictionary = items[item].get("growth", {})
-		for pillar: String in food.get("pillars", {}):
-			if not growth.pillars.has(pillar) or float(food.pillars[pillar]) <= 0:
-				problems.append(item + ": ganho de crescimento inválido")
 		for phase: String in food.get("phases", []):
 			if not ids.has(phase): problems.append(item + ": fase da comida inválida")
 	for pooled: Variant in growth.get("tastes", {}).get("favorite_pool", []):
 		if not items.get(str(pooled), {}).has("feed"): problems.append("favorita inválida " + str(pooled))
-	for source: String in growth.get("sources", {}):
-		var rules: Array = growth.sources[source].values() if source == "walk" else [growth.sources[source]]
-		for rule: Dictionary in rules:
-			for pillar: String in growth.pillars:
-				if float(rule.get(pillar, 0)) < 0: problems.append(source + ": ganho negativo")
-			if float(rule.get("cooldown", 0)) < 0: problems.append(source + ": recarga negativa")
+	for source: String in moments.get("sources", {}):
+		var rule: Dictionary = moments.sources[source]
+		if str(rule.get("pillar", "")) not in ["brave", "smart", "coat"] or int(rule.get("qty", 0)) <= 0:
+			problems.append(source + ": fonte de momento inválida")
 	return problems
 
 
@@ -237,6 +233,7 @@ func _init() -> void:
 	recipes = _load("res://data/recipes.json")
 	crops = _load("res://data/crops.json")
 	var config := _load("res://data/config.json")
+	mood = config.get("mood", {})
 	album_config = config.get("album", {})
 	needs = config.get("needs", {})
 	offline = config.get("offline", {})

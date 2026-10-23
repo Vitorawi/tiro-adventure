@@ -48,7 +48,7 @@ func seed_for_favorite(item: String) -> int:
 
 
 func earned(pillar: String) -> int:
-	return int(state.get("progress").call("stat", "pillar:" + pillar))
+	return int(state.get("progress").call("stat", "moment:" + pillar))
 
 
 func send(id: String, kind: String, point: Vector2) -> void:
@@ -151,21 +151,13 @@ func _run() -> void:
 	state.growth.tastes.erase(fav_item)
 	check(not state.call("favorite_found"), "favorita ainda é ?")
 
-	# --- Favorita: +50% nos pilares.
+	# A favorita mantém reação e descoberta; Corpo só vem das refeições completas.
 	fresh("puppy")
 	seed_for_favorite("pumpkin_mash")
-	var base_body := int(db.items.pumpkin_mash.growth.pillars.body)
 	state.inventory.add("pumpkin_mash", 2)
 	state.feed("pumpkin_mash")
-	var with_bonus := earned("body")
-	check(with_bonus == ceili(base_body * 1.5), "favorita +50%%: %d" % with_bonus)
-	check(state.call("favorite_found") and state.growth.tastes.pumpkin_mash == "loved", "favorita descoberta amou")
-	fresh("puppy")
-	state.growth.taste_seed = seed_for_favorite("mashed_potato")
-	state.inventory.add("pumpkin_mash", 1)
-	state.feed("pumpkin_mash")
-	check(earned("body") == base_body, "não favorita sem bônus")
-
+	check(earned("body") == 0, "favorita não cria pontos de Corpo")
+	check(state.favorite_found() and state.growth.tastes.pumpkin_mash == "loved", "favorita descoberta amou")
 	# --- Requisito do adulto: Descubra a favorita, depois conta ×3.
 	fresh("young", 77)
 	var meals: Dictionary = {}
@@ -193,10 +185,10 @@ func _run() -> void:
 	state.inventory.add("basic_brush", 1)
 	check(state.call("brush_error") == "", "com escova pode")
 	check(state.call("brush") == "", "escova uma vez")
-	check(earned("coat") == 5 and state.progress.stat("brush") == 1, "Pelagem 5, conta brush")
-	check(state.call("brush") == "Ele já está penteadinho" and earned("coat") == 5, "recarga sem ganho")
+	check(earned("coat") == 1 and state.progress.stat("brush") == 1, "um momento, conta brush")
+	check(state.call("brush") == "" and earned("coat") == 1, "mesmo dia sem momento extra")
 	state.test_time += 4.0 * 3600.0 + 1.0
-	check(state.call("brush") == "" and earned("coat") == 10, "depois de 4 h escova de novo")
+	check(state.call("brush") == "" and earned("coat") == 1, "mesmo dia continua sem momento extra")
 	check(state.growth.brush_days.size() == 1, "mesmo dia, uma data")
 	state.test_time += 86400.0
 	state.call("brush")
@@ -209,7 +201,7 @@ func _run() -> void:
 	state.inventory.add("basic_brush", 1)
 	state.growth.delivered["young"] = {"soft_brush": 1}
 	state.call("brush")
-	check(earned("coat") == 8, "escova macia dá 8: %d" % earned("coat"))
+	check(earned("coat") == 1, "escova macia dá um momento: %d" % earned("coat"))
 
 	# --- Interface: cinco cuidados, gesto de escovar, guia de comida e de sabores.
 	fresh("puppy", 55)
@@ -244,7 +236,6 @@ func _run() -> void:
 			circle_y = circle.global_position.y
 	root.size = Vector2i(360, 780)
 	await frames()
-	state.growth.cooldowns.erase("brush")
 	var coat_before := earned("coat")
 	var count_before: int = state.progress.stat("brush")
 	scrub(180.0)
@@ -252,13 +243,12 @@ func _run() -> void:
 	await frames()
 	scrub(400.0)
 	check(state.progress.stat("brush") == count_before, "400 px ainda não escova")
-	state.growth.cooldowns.erase("brush")
 	scrub(720.0)
 	check(state.progress.stat("brush") == count_before + 1 and earned("coat") > coat_before, "~600 px = uma escovação")
 	await frames()
 	check(knots() == 0, "nós somem")
 	scrub(720.0)
-	check(state.progress.stat("brush") == count_before + 1, "em recarga: sem ganho")
+	check(earned("coat") == coat_before + 1, "repetir gesto não duplica momento do dia")
 	check(tray.find_child("BrushTile", true, false) != null, "tile continua")
 
 	# Guia de comida: Nova! nas não provadas; ♥ na favorita depois de descoberta.

@@ -25,4 +25,22 @@ static func is_dev() -> bool:
 
 
 static func save_path() -> String:
-	return "user://save_dev.json" if is_dev() else "user://save.json"
+	return data_dir() + ("save_dev.json" if is_dev() else "save.json")
+
+
+static func settings_path() -> String:
+	return data_dir() + ("settings_dev.json" if is_dev() else "settings.json")
+
+
+## Pasta descartável por processo de teste. Produção ignora a variável.
+static func data_dir() -> String:
+	var tag := OS.get_environment("TIRO_TEST_TAG")
+	if tag.is_empty() or not is_dev():
+		return "user://"
+	# Uma tag é um nome, nunca um caminho fornecido pelo ambiente.
+	var safe := ""
+	for character: String in tag:
+		safe += character if character.to_lower() in "abcdefghijklmnopqrstuvwxyz0123456789_-" else "_"
+	var path := "user://test_%s/" % safe
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(path))
+	return path

@@ -82,7 +82,7 @@ func _data_check() -> void:
 	check(int(phases[0].items.plank) == 4 and int(phases[0].items.brick) == 2 and phases[0].items.size() == 2, "base: tábua 4 + tijolo 2")
 	check(int(phases[1].items.fabric) == 2 and int(phases[1].items.braided_toy) == 1 and phases[1].items.size() == 2, "conforto: tecido 2 + brinquedo 1")
 	check(int(phases[2].items.carrot_snack) == 3 and phases[2].items.size() == 1, "boas-vindas: lanche 3")
-	check(int(def.rewards.pillars.brave) == 5 and int(def.rewards.get("coins", 0)) == 0 and not def.rewards.has("items"), "prêmio: Coragem 5 (sem devolver as moedas)")
+	check(not def.rewards.has("pillars") and int(def.rewards.get("coins", 0)) == 0 and not def.rewards.has("items"), "sem prêmio de pontos ou moedas; momento vem da primeira conclusão")
 	for phase: Dictionary in phases:
 		check(not (def.phases as Array).is_empty() and ResourceLoader.exists("res://assets/sprites/areas/park/bench_%s.png" % phase.visual_state), "arte da fase " + str(phase.id))
 	check(ResourceLoader.exists("res://assets/sprites/ui/icons/project_bench.png"), "ícone da obra")
@@ -153,16 +153,16 @@ func _build_check() -> void:
 	# Estoque cheio não bloqueia a conclusão (o prêmio é só XP).
 	for i in 40:
 		_inv().add("wood", 5)
-	var brave_before := _stat("pillar:brave")
+	var brave_before := _stat("moment:brave")
 	check(state.call("contribute_project", "park_bench", "carrot_snack", 3) == "", "última entrega")
 	check(state.call("project_completed", "park_bench") and state.call("project_visual", "park_bench") == "welcome", "obra concluída e desenho final")
 	check(_stat("projects") == 1 and _stat("project_start") == 1, "contadores")
 	check(int(state.get("coins")) == coins_before, "moedas não voltam (nem saem) na conclusão")
-	check(_stat("pillar:brave") > brave_before, "Coragem paga ao concluir")
-	var brave_after := _stat("pillar:brave")
+	check(_stat("moment:brave") > brave_before, "Coragem paga ao concluir")
+	var brave_after := _stat("moment:brave")
 	_reload()
-	check(state.call("project_completed", "park_bench") and _stat("pillar:brave") == brave_after, "reabrir não paga de novo")
-	check(state.call("complete_project", "park_bench") == "" and _stat("pillar:brave") == brave_after, "complete_project idempotente")
+	check(state.call("project_completed", "park_bench") and _stat("moment:brave") == brave_after, "reabrir não paga de novo")
+	check(state.call("complete_project", "park_bench") == "" and _stat("moment:brave") == brave_after, "complete_project idempotente")
 
 
 func _open_park() -> void:
@@ -257,10 +257,17 @@ func _use_check() -> void:
 	for i in 6: await process_frame
 	dog = park.get("_dog")
 	check(dog != null, "o Tiro volta do passeio")
+	# dev_finish_timers também apronta o faro: ele não deve interromper esta interação isolada.
+	if state.get("finds").worlds.has("park"):
+		state.get("finds").worlds.park.pending = 0
+		state.get("finds").worlds.park.next_at = state.call("now") + 3600.0
+	park.call("_refresh_find")
 	var energy_before: float = state.get("dog").get_need("energy", state.call("now"))
 	var coins_before: int = state.get("coins")
 	var xp_before: int = state.get("xp")
-	park.call("_on_tap_released", screen)
+	# O toque já foi coberto nos três zooms; após o passeio pode haver um montinho no mesmo pixel.
+	# Exercita o manipulador da obra, preservando caminho e callback só na chegada.
+	park.call("_use_project", bench)
 	var waited := 0.0
 	while _stat("project_use:park_bench") == 0 and waited < 30.0:
 		await create_timer(0.25).timeout
@@ -268,12 +275,10 @@ func _use_check() -> void:
 	check(_stat("project_use:park_bench") == 1, "o uso conta quando a reação começa (esperou %.1f s; Tiro em %s, destino %s, reação %s, última %s, visível %s)" % [waited, str(dog.position), str(bench.get_meta("approach")), str(dog.get("_reaction")), str(dog.get_meta("last_reaction", "")), str(park.is_visible_in_tree())])
 	check(dog.position.distance_to(bench.get_meta("approach")) < 40.0, "o Tiro foi até o banco")
 	await create_timer(4.0).timeout
-	park.call("_on_tap_released", screen)
+	park.call("_use_project", bench)
 	await create_timer(1.0).timeout
-	var again := 0.0
-	while again < 12.0:
-		await create_timer(0.5).timeout
-		again += 0.5
+	# A reação inicial já percorreu o caminho; a ação repetida também é idempotente no motor.
+	state.call("use_project", "park_bench")
 	check(_stat("project_use:park_bench") == 1, "repetir não conta de novo")
 	check(int(state.get("coins")) == coins_before and int(state.get("xp")) == xp_before, "repetir não paga moedas nem XP")
 	check(absf(float(state.get("dog").get_need("energy", state.call("now"))) - energy_before) < 3.0, "necessidades intactas")

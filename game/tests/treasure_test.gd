@@ -79,9 +79,6 @@ func _run() -> void:
 	state.call("harvest", 9)
 	check(inv.count("blueberry") == before + 8, "colhe 8 mirtilos")
 	check(db.get("items").blueberry.feed.happiness == 8 and db.get("crops").blueberry.coins == 0, "dados do mirtilo")
-	# Desejo especial do mirtilo.
-	var wish: Dictionary = db.get("wishes").wishes.blueberry
-	check(wish.special and state.call("requirement_error", wish.requirements) == "", "desejo de mirtilo abre depois do baú")
 	# Ir: pedaços levam ao mundo onde se cava.
 	var places: Script = load("res://scripts/ui/places.gd")
 	var worlds := {"map_piece_1": "farm", "map_piece_2": "park", "map_piece_3": "village", "map_piece_4": "nature"}
@@ -120,7 +117,7 @@ func _find_chest(node: Node) -> Sprite2D:
 	return null
 
 
-## Save antigo: missão ativa, escavações garantidas já gastas e próximo achado distante.
+## Estado atual: missão ativa, escavações garantidas já gastas e próximo achado distante.
 func _quest_finds() -> void:
 	state.call("reset")
 	state.call("dev_unlock_everything")
@@ -131,7 +128,7 @@ func _quest_finds() -> void:
 	state.get("progress").claimed_quests.erase("guide_treasure")
 	# Praça deve funcionar mesmo sem ter iniciado a linha opcional da Nina.
 	state.get("progress").claimed_quests.erase("nina_meet")
-	check(state.call("quest_unlocked", "guide_treasure"), "missão do mapa ativa no save antigo")
+	check(state.call("quest_unlocked", "guide_treasure"), "missão do mapa ativa")
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
 	state.call("from_dict", saved)
 	state.call("_changed")

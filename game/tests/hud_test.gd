@@ -54,7 +54,7 @@ func _structure() -> void:
 	check(main.find_child("DevButton", true, false).visible == load("res://scripts/util/build_info.gd").call("is_dev"), "DEV só aparece na versão dev")
 	check(not (main.find_child("XpBar", true, false) as Control).visible, "XpBar fica invisível (só compatibilidade)")
 	# Telas sem mundo não ficam embaixo do HUD (60 px).
-	for pair: Array in [["PetScreen", "Margin"], ["WishesScreen", "Margin"], ["TasksScreen", "Margin"], ["BagScreen", "Margin"]]:
+	for pair: Array in [["PetScreen", "Margin"], ["TasksScreen", "Margin"], ["BagScreen", "Margin"]]:
 		var margin := main.find_child(pair[0], true, false).find_child(pair[1], true, false) as MarginContainer
 		check(margin != null and margin.get_theme_constant("margin_top") >= 64, "%s deixa 64 px para o HUD" % pair[0])
 	# Pílula de moedas com 40 px de altura e engrenagem 44.
@@ -131,7 +131,7 @@ func _tab_bounces() -> void:
 		await create_timer(0.03).timeout
 	main.call("show_screen", &"pet")
 	await create_timer(0.6).timeout
-	for tab_name: String in ["PetTab", "MapTab", "TasksTab", "WishesTab", "BagTab"]:
+	for tab_name: String in ["PetTab", "MapTab", "TasksTab", "BagTab"]:
 		var face: NavTab = main.find_child(tab_name, true, false).find_child("Face", false, false)
 		check(is_equal_approx(face.icon_node().position.y, NavTab.ICON_CENTER_Y - NavTab.ICON_ACTIVE / 2.0), tab_name + ": pulinhos repetidos não acumulam altura")
 		check(is_equal_approx(face.lift_node().position.y, -NavTab.LIFT if face.is_active() else 0.0), tab_name + ": só a aba selecionada fica elevada")

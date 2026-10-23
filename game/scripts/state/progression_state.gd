@@ -52,8 +52,6 @@ var started_at: float = 0.0
 var firsts: Dictionary = {}
 ## Presente do dia: { period: "AAAA-MM-DD" do último recebido, count: dias jogados que receberam }. Nunca zera.
 var daily_gift: Dictionary = {"period": "", "count": 0}
-## Maior nível de vínculo cujo presente já foi entregue (1 = nenhum).
-var claimed_bond_level: int = 1
 
 
 func setup() -> void:
@@ -70,28 +68,6 @@ func pace_lines() -> PackedStringArray:
 		var seconds := maxi(0, int(float(firsts[key]) - started_at))
 		lines.append("%02d:%02d  %s" % [seconds / 60, seconds % 60, key])
 	return lines
-
-
-## Nível de vínculo (1..N) para um afeto, pela lista progression.json → bond_levels.
-func bond_level(affection: int) -> int:
-	var level := 1
-	var levels: Array = Database.progression.get("bond_levels", [])
-	for i in levels.size():
-		if affection >= int(levels[i].get("affection", 0)):
-			level = i + 1
-	return level
-
-
-## Vínculo em detalhe: nível, afeto, base do nível, afeto do próximo (-1 = máximo) e o presente do próximo.
-func bond_info(affection: int) -> Dictionary:
-	var levels: Array = Database.progression.get("bond_levels", [])
-	var level := bond_level(affection)
-	var maximum := level >= levels.size()
-	return {
-		"level": level, "affection": affection, "floor": int(levels[level - 1].get("affection", 0)) if not levels.is_empty() else 0,
-		"next": -1 if maximum else int(levels[level].get("affection", 0)), "max": maximum,
-		"rewards": {} if maximum else levels[level].get("rewards", {}),
-	}
 
 
 func has_upgrade(id: String) -> bool:
@@ -437,7 +413,7 @@ func to_dict() -> Dictionary:
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
 		"collection": collection, "equipped": equipped, "unlocks": unlocks,
 		"tricks": tricks, "cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "steps": steps, "seen": seen, "house": house.duplicate(true),
-			"started_at": started_at, "firsts": firsts, "daily_gift": daily_gift, "claimed_bond_level": claimed_bond_level,
+			"started_at": started_at, "firsts": firsts, "daily_gift": daily_gift,
 	}
 
 
@@ -520,7 +496,6 @@ func from_dict(data: Dictionary) -> void:
 	started_at = float(data.get("started_at", 0.0))
 	firsts = data.get("firsts", {}).duplicate(true)
 	daily_gift = {"period": str(data.get("daily_gift", {}).get("period", "")), "count": int(data.get("daily_gift", {}).get("count", 0))}
-	claimed_bond_level = int(data.get("claimed_bond_level", 1))
 	# Rota removida do JSON não pode travar o jogador para sempre.
 	if not activity.is_empty() and not Database.progression.activities.has(str(activity.get("id", ""))):
 		activity = {}

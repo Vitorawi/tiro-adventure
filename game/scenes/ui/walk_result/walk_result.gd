@@ -53,8 +53,6 @@ func show_result(result: Dictionary) -> void:
 	var chips := UiKit.flow()
 	if int(result.get("coins", 0)) > 0:
 		chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(result.coins)))
-	if int(result.get("affection", 0)) > 0:
-		chips.add_child(UiKit.chip(UiKit.ui_icon("bond_heart"), "+%d" % int(result.affection)))
 	var needs: Dictionary = result.get("needs", {})
 	for need_id: String in needs:
 		chips.add_child(UiKit.chip(Database.need_icon(need_id), "%+d" % int(needs[need_id]), UiKit.GOOD if float(needs[need_id]) > 0 else UiKit.BAD))

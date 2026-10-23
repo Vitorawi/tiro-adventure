@@ -476,14 +476,12 @@ static func _walk_requirement_chips(requirements: Dictionary) -> Array[Control]:
 	for key: String in requirements.get("stats", {}):
 		var label := "%d/%d" % [mini(GameState.progress.stat(key), int(requirements.stats[key])), int(requirements.stats[key])]
 		chips.append(UiKit.chip(UiKit.ui_icon("action_walk"), label + " passeios" if key == "walk" else label))
-	if requirements.has("bond"):
-		chips.append(UiKit.chip(UiKit.ui_icon("bond_heart"), str(int(requirements.bond))))
 	for upgrade: String in requirements.get("owned", []):
 		var built: Dictionary = Database.progression.upgrades.get(upgrade, {})
 		chips.append(UiKit.chip(UiKit.ui_icon(str(built.get("icon", "tab_map"))), str(built.get("name", upgrade)).trim_prefix("Desbloquear ")))
 	if requirements.has("hours"):
 		chips.append(UiKit.chip(UiKit.ui_icon("timer"), "%dh" % int(requirements.hours[0])))
-	if requirements.has("quests") and not requirements.has("stats") and not requirements.has("bond"):
+	if requirements.has("quests") and not requirements.has("stats"):
 		chips.append(UiKit.chip(UiKit.ui_icon("tab_tasks"), "Missão"))
 	return chips
 
@@ -656,8 +654,6 @@ static func rewards_text(rewards: Dictionary) -> String:
 		parts.append("%d moedas" % int(rewards.coins))
 	if not rewards.get("items", {}).is_empty():
 		parts.append(Database.describe_amounts(rewards["items"]))
-	for id: String in rewards.get("pillars", {}):
-		parts.append("+%d %s" % [int(rewards.pillars[id]), Database.growth.pillars[id].name])
 	for id: String in rewards.get("collections", []):
 		parts.append(Database.collections.get(id, {}).get("name", id))
 	return " · ".join(parts)
@@ -893,7 +889,7 @@ static func stat_icon(key: String) -> Texture2D:
 	if prefix in ["trick", "trick_learned"]:
 		return UiKit.ui_icon("trick_" + (arg if arg != "" else "paw"))
 	if prefix in ["friend_gift", "friend_level"]:
-		return UiKit.ui_icon(str(GameState.friend_def(arg if arg != "" else "pipoca").get("icon", "bond_heart")))
+		return UiKit.ui_icon(str(GameState.friend_def(arg if arg != "" else "pipoca").get("icon", "heart")))
 	if arg != "" and prefix in ["harvest", "produce"]:
 		return Database.item_icon(arg)
 	if prefix == "activity":
@@ -956,10 +952,6 @@ static func reward_chips(rewards: Dictionary) -> HFlowContainer:
 	for id: String in rewards.get("collections", []):
 		if not GameState.progress.collection.has(id):
 			row.add_child(UiKit.chip(UiKit.ui_icon("item_accessory_set"), "+1"))
-	if int(rewards.get("affection", 0)) > 0:
-		row.add_child(UiKit.chip(UiKit.ui_icon("bond_heart"), "+%d" % int(rewards.affection)))
-	for id: String in rewards.get("pillars", {}):
-		row.add_child(UiKit.chip(UiKit.ui_icon(str(Database.growth.pillars[id].icon)), "+%d %s" % [int(rewards.pillars[id]), Database.growth.pillars[id].name]))
 	return row
 
 

@@ -22,6 +22,7 @@ func _run() -> void:
 	check(state.get("finds").worlds.is_empty(), "antes da primeira colheita não há faro")
 	state.get("progress").claimed_quests["bloblo_meet"] = true
 	state.get("progress").claimed_quests["first_harvest"] = true
+	state.get("progress").claimed_quests["bloblo_sell_surplus"] = true
 	state.call("_changed")
 	check(state.get("finds").worlds.farm.pending == 0, "primeiro espera vinte segundos")
 	state.call("dev_advance_time", 21.0)
@@ -72,6 +73,7 @@ func _run() -> void:
 func _map_checks() -> void:
 	state.call("reset")
 	state.get("progress").claimed_quests["first_harvest"] = true
+	state.get("progress").claimed_quests["bloblo_sell_surplus"] = true
 	state.get("progress").claimed_quests["bloblo_dig"] = true
 	state.get("progress").seen["intro"] = true
 	state.call("_changed")

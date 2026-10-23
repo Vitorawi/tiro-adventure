@@ -56,7 +56,7 @@ func _run() -> void:
 	for phase: Dictionary in db.get("growth").phases:
 		state.call("dev_set_phase", str(phase.id))
 		if str(phase.id) == "teething" and "--layout-shots" in OS.get_cmdline_user_args():
-			state.get("growth").points = {"body": 34, "coat": 0, "smart": 19, "brave": 61}
+			state.get("growth").phase_moments = {"body": 34, "coat": 0, "smart": 19, "brave": 61}
 			state.get("progress").owned["stove"] = true
 		if str(phase.id) == "puppy" and "--ring-shots" in OS.get_cmdline_user_args():
 			state.get("progress").claimed_quests["growth_1_puppy"] = true
@@ -107,12 +107,12 @@ func _run() -> void:
 			await RenderingServer.frame_post_draw
 			check(root.get_texture().get_image().save_png(folder.path_join("source_%d.png" % root.size.x)) == OK, "captura de onde conseguir")
 	state.call("dev_set_phase", "newborn")
-	state.get("growth").points = {"body": 2, "brave": 0}
+	state.get("growth").phase_moments = {"body": 2, "brave": 0}
 	var helper: Script = load("res://scripts/ui/task_help.gd")
 	helper.call("open", "growth_req", "pillars")
 	await frames()
 	var care_sheet := main.find_child("Sheet", true, false)
-	check(text(care_sheet, "0/10 pontos"), "carinho mostra seus pontos de Coragem")
+	check(text(care_sheet, "0/2 momentos"), "carinho mostra momentos de Coragem")
 	check(text(care_sheet, "Faça carinho"), "explica a ação que ainda falta")
 	check(care_sheet.find_child("GrowthCare_body", true, false) == null and care_sheet.find_child("GrowthCare_brave", true, false) != null, "Corpo pertence às refeições e não é cobrado nos cuidados")
 	check(primary(care_sheet) == 1, "uma ação principal nos cuidados")
@@ -197,7 +197,7 @@ func meal_shots() -> void:
 		state.get("progress").seen.intro = true
 		state.get("progress").owned.dog_bed = true
 		state.get("growth").phase = phase
-		state.get("growth").points = {}
+		state.get("growth").phase_moments = {}
 		var info: Dictionary = state.call("growth_info")
 		var meals: Dictionary = info.requirements.filter(func(row: Dictionary) -> bool: return row.type == "feed")[0]
 		var item := "dog_food" if meals.item == "any" else str(meals.item)

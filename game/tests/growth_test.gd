@@ -30,7 +30,7 @@ func _run() -> void:
 	root.remove_child(saver)
 	saver.free()
 	saver = load("res://tests/helpers/growth_test_save_manager.gd").new()
-	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("user://growth_test_fixture"))
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path((str(load("res://scripts/util/build_info.gd").call("data_dir")) + "growth_test_fixture")))
 	events.growth_ready.connect(func(_id: String) -> void: ready_count += 1)
 	events.growth_requirement_done.connect(func(_id: String, _req: String) -> void: done_count += 1)
 	state.call("reset")
@@ -51,11 +51,8 @@ func _run() -> void:
 	state.get("progress").stats["feed"] = 3
 	state.call("dev_grant_upgrade", "dog_bed")
 	state.get("progress").claimed_quests["lais_bed"] = true
-	# A partir da 03 feed ganha pontos; esta fixture isola a transferência exata de reserva.
-	state.get("growth").points["body"] = 0
-	state.get("growth").reserve["body"] = 0
-	state.call("dev_add_pillar", "body", 30)
-	state.call("dev_add_pillar", "brave", 10)
+	state.call("dev_add_moment", "brave")
+	state.call("dev_add_moment", "brave")
 	check(state.call("grow_error") == "", "todos os requisitos reais cumpridos")
 	check(ready_count == 1, "pronto uma vez")
 	state.call("_changed")
@@ -65,7 +62,7 @@ func _run() -> void:
 	check(state.call("grow") == "", "cresce")
 	var growth: Variant = state.get("growth")
 	check(growth.phase == "puppy" and growth.ceremonies.puppy.seen == false, "fase e cerimônia")
-	check(growth.points.body == 25 and growth.reserve.body == 5, "reserva entra até teto novo")
+	check(growth.phase_moments.is_empty() and growth.moments.brave == 2, "fase nova sem sobra e total preservado")
 	check(state.get("coins") == before_coins + 30 and state.get("inventory").count("dog_food") == before_food + 3, "presente exato")
 	check(state.call("grow") != "" and state.get("coins") == before_coins + 30, "clique repetido não paga")
 	check(row("meals").have == 0, "fase nova começa sem refeições antigas")
@@ -73,12 +70,12 @@ func _run() -> void:
 	state.call("feed", "frozen_carrot")
 	state.call("feed", "dog_food")
 	check(row("meals").have == 1, "refeição específica só conta o item pedido")
-	state.get("growth").cooldowns["bath"] = 123.0
+	state.get("growth").period_moments[state.call("moment_period") + ":coat"] = 1
 	state.get("growth").firsts["npc:lais"] = true
 	var growth_saved: Dictionary = state.get("growth").to_dict()
 	state.call("from_dict", state.call("to_dict"))
 	check(state.get("growth").to_dict() == growth_saved, "todos os campos de crescimento sobrevivem à recarga")
-	check(state.get("growth").reserve.body == growth_saved.reserve.body and state.get("economy").granted.has("growth:puppy"), "reload mantém reserva e recibo")
+	check(state.get("growth").period_moments == growth_saved.period_moments and state.get("economy").granted.has("growth:puppy"), "reload mantém período e recibo")
 	check(state.get("coins") == before_coins + 30, "reload não premia")
 	check(state.call("requirement_error", {"growth": "teething"}) == "Quando ele for Dentinhos", "texto do requisito")
 	check(state.call("requirement_error", {"growth": "puppy"}) == "", "fase já alcançada")
@@ -113,12 +110,12 @@ func _run() -> void:
 	check(row("project").done, "projeto cumprido não regride")
 	db.set("growth", content.duplicate(true))
 	check(db.call("growth_problems").is_empty(), "JSON válido")
-	for mutation: String in ["phase", "levels", "item", "quest", "owned", "project", "type", "req_id"]:
+	for mutation: String in ["phase", "moments", "item", "quest", "owned", "project", "type", "req_id"]:
 		db.set("growth", content.duplicate(true))
 		var broken: Dictionary = db.get("growth")
 		match mutation:
 			"phase": broken.phases[1].id = "newborn"
-			"levels": broken.levels[1] = 1
+			"moments": broken.moments.period_cap = 0
 			"item": broken.phases[2].requirements[1].item = "missing"
 			"quest": broken.phases[1].requirements.append({"id": "quest", "type": "quest", "quest": "missing"})
 			"owned": broken.phases[1].requirements[1].upgrade = "missing"
@@ -135,71 +132,8 @@ func _run() -> void:
 		check(state.call("grow") == "" and state.get("growth").phase == phase, "transição para " + phase)
 	check(state.get("coins") == before_coins + 590, "soma dos cinco presentes")
 	check(not state.call("growth_info").ready and state.call("grow") != "", "adulto sem sexta transição")
-	await _reset_saves()
 	check(done_count > 0, "eventos de requisito")
 	print("GROWTH TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	saver.free()
 	quit(0 if failures == 0 else 1)
-
-func _reset_saves() -> void:
-	var settings_path: String = saver.call("_settings_path")
-	saver.call("set_vibrate", false)
-	saver.call("set_reduced_motion", true)
-	var settings: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(settings_path))
-	settings.erase("last_session_active")
-	var real_save := {"save_version": 12, "state": state.call("to_dict")}
-	for path: String in ["res://../tiro02/vitor_save_copy.json", "res://../build/tiro02/vitor_save_copy.json"]:
-		if FileAccess.file_exists(path):
-			real_save = JSON.parse_string(FileAccess.get_file_as_string(path))
-			print("Cópia do save atual: ", path)
-			break
-	for slot: int in [4, 5]:
-		var path: String = saver.call("slot_path", slot)
-		var file := FileAccess.open(path, FileAccess.WRITE)
-		real_save["save_version"] = 12
-		file.store_string(JSON.stringify(real_save))
-		file.close()
-		saver.set("active_slot", slot)
-		saver.set("_save_path", path)
-		saver.call("load_game")
-		check(state.get("growth").phase == "newborn" and state.get("progress").claimed_quests.is_empty(), "slot v12 zerado: %d" % slot)
-		check(state.get("coins") == int(db.get("start").get("coins", 0)), "saldo inicial")
-		check(int(JSON.parse_string(FileAccess.get_file_as_string(path)).save_version) == 13, "regrava v13")
-		check(saver.call("take_reset_notice") == "O Tiro chegou de novo, filhotinho!", "aviso carinhoso")
-		check(saver.call("take_reset_notice") == "", "aviso uma vez")
-		saver.call("load_game")
-		check(saver.call("take_reset_notice") == "", "reabrir não repete aviso")
-	var after_settings: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(settings_path))
-	after_settings.erase("last_session_active")
-	check(after_settings == settings, "todas as preferências de settings preservadas (timestamp de atividade é atualizado)")
-	# Imagem somente da nova página DEV em 360×780.
-	if "--shot" in OS.get_cmdline_user_args():
-		state.get("progress").seen["intro"] = true
-		var main: Node = load("res://scenes/main/main.tscn").instantiate()
-		root.add_child(main)
-		var panel: Script = load("res://scripts/ui/dev_panel.gd")
-		panel.set("_page", "growth")
-		events.sheet_requested.emit("Ferramentas DEV", panel.call("panel"))
-		await create_timer(0.5).timeout
-		root.get_texture().get_image().save_png("res://../tiro02/dev_growth.png")
-		main.queue_free()
-		await process_frame
-		# O aviso de reset espera a introdução sair, para não ficar escondido atrás dela.
-		state.get("progress").seen.erase("intro")
-		saver.name = "SaveManager"
-		saver.set("reset_notice_pending", true)
-		root.add_child(saver)
-		main = load("res://scenes/main/main.tscn").instantiate()
-		root.add_child(main)
-		await process_frame
-		var intro: Node = main.get("_intro")
-		check(is_instance_valid(intro), "reset reapresenta a chegada")
-		check(not main.find_child("Toast", true, false).visible, "aviso espera a introdução")
-		intro.call("_finish")
-		await create_timer(0.5).timeout
-		check(main.find_child("ToastText", true, false).text == "O Tiro chegou de novo, filhotinho!", "aviso visível após a chegada")
-		root.get_texture().get_image().save_png("res://../tiro02/reset_notice.png")
-		main.queue_free()
-		root.remove_child(saver)
-		await process_frame
 

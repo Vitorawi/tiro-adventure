@@ -78,7 +78,7 @@ func _run() -> void:
 				"owned": check(data.upgrades.has(key), id + ": construção " + key)
 				"skill": check(data.skills.has(key), id + ": atributo " + key)
 				"stat":
-					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "sold:village", "sold:farm", "orders", "contracts", "storage_upgrades", "explore", "build", "quests", "open:bag", "open:album", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned", "shampoo_bath"] or (key.begins_with("friend_gift:") and db.get("friends").friends.has(key.trim_prefix("friend_gift:"))) or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:") or key.begins_with("wish_item:") or (key.begins_with("project_use:") and not db.call("project", key.trim_prefix("project_use:")).is_empty()), id + ": contador desconhecido " + key)
+					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "sold:village", "sold:farm", "orders", "contracts", "storage_upgrades", "explore", "build", "quests", "open:bag", "open:album", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned", "shampoo_bath", "wish"] or (key.begins_with("friend_gift:") and db.get("friends").friends.has(key.trim_prefix("friend_gift:"))) or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:") or key.begins_with("feed:") or (key.begins_with("project_use:") and not db.call("project", key.trim_prefix("project_use:")).is_empty()), id + ": contador desconhecido " + key)
 					if key.begins_with("harvest:"):
 						check(db.get("crops").has(key.trim_prefix("harvest:")), id + ": cultura " + key)
 					if key.begins_with("produce:"):
@@ -152,9 +152,7 @@ func _run() -> void:
 				check(db.get("collections").has(reward), kind + "/" + id + ": coleção " + reward)
 			if m.get("requirements", {}).is_empty():
 				open += 1
-		check(open >= 2, kind + ": precisa de modelos sem requisito para o primeiro sorteio (o resto só entra quando acessível)")
-		for id: String in group.get("legacy", {}):
-			check(not group.missions.has(id) or id in ["harvest", "cook", "order", "big_harvest", "chef_week", "tiro_walk"], kind + "/" + id + ": legado com o mesmo id só se reaproveitado no catálogo R1")
+		check(open >= 1 and int(group.count) <= group.missions.size(), kind + ": precisa de modelos sem requisito para o primeiro sorteio (o resto só entra quando acessível)")
 	for world: String in db.get("worlds"):
 		var w: Dictionary = db.get("worlds")[world]
 		for npc: String in w.get("npcs", []):

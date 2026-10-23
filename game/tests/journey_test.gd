@@ -86,9 +86,7 @@ func _run() -> void:
 	_pairs()
 	_data()
 	_new_pairs_flow()
-	_old_saves()
 	_midway_saves()
-	_stale_base()
 	_stone_routes()
 	_atelier_goal()
 	_repetition_report()
@@ -196,36 +194,6 @@ func _new_pairs_flow() -> void:
 		check(int(state.get("coins")) == before + int(quests[target].rewards.get("coins", 0)) + chapter_coins, alias + ": recarregar não paga de novo")
 
 
-func _old_saves() -> void:
-	# Save antigo: o marco da história foi recebido pelo objetivo antigo; a canônica não vale prêmio de novo.
-	var pairs := {"main_5_pickaxe": "guide_open_cave", "stone_path": "guide_stone", "main_6_commerce": "merchant_variety"}
-	for alias: String in pairs:
-		_fresh()
-		_claim_before(alias)
-		_p().claimed_quests[alias] = true
-		var coins_before: int = state.get("coins")
-		_roundtrip()
-		check(_p().claimed_quests.has(pairs[alias]), alias + ": save antigo resolve a canônica")
-		check(int(state.get("coins")) == coins_before, alias + ": migrar não paga")
-		check(not state.call("quest_unlocked", pairs[alias]) and state.call("quest_error", pairs[alias]) != "", alias + ": a canônica não volta a ficar ativa")
-		_roundtrip()
-		check(_p().claimed_quests.has(pairs[alias]) and int(state.get("coins")) == coins_before, alias + ": idempotente")
-	# Save antigo com a banca montada e a variedade ainda pendente: a missão aparece uma vez, paga 10 e não trava o resto.
-	_fresh()
-	_claim_before("main_6_commerce")
-	_p().claimed_quests.erase("merchant_variety")
-	_p().claimed_quests["merchant_regular"] = true
-	_p().claimed_quests["merchant_stall"] = true
-	state.call("_changed")
-	_roundtrip()
-	check(_p().current_line_quest("merchant") == "merchant_variety", "banca antiga: a variedade pendente aparece na linha")
-	_satisfy("merchant_variety")
-	var before: int = state.get("coins")
-	var chapter_seven: int = int(db.get("progression").chapters[6].rewards.coins)
-	check(state.call("claim_quest", "merchant_variety") == "" and int(state.get("coins")) == before + 10 + chapter_seven, "banca antiga: variedade paga 10 uma vez (+capítulo 7 que fecha junto)")
-	check(_p().current_line_quest("merchant") == "merchant_contracts", "banca antiga: a linha segue para os contratos")
-
-
 func _midway_saves() -> void:
 	# Capítulos 3, 5, 7 e 9 no meio: salvar/recarregar não muda o passo nem repete prêmio.
 	for chapter in [3, 5, 7, 9]:
@@ -248,33 +216,6 @@ func _midway_saves() -> void:
 		check(int(state.get("coins")) == coins, "capítulo %d: recarregar não paga" % chapter)
 		check(_p().active_steps() == active_before, "capítulo %d: passos ativos iguais" % chapter)
 		check(_p().chapter_index() == chapter, "capítulo %d: continua no capítulo" % chapter)
-
-
-func _stale_base() -> void:
-	# main_5_cooking era fresh em "produce": a base antiga some e o histórico passa a valer.
-	_fresh()
-	_claim_before("main_5_cooking")
-	_p().claimed_quests["main_5_pickaxe"] = true
-	_p().claimed_quests["stone_path"] = true
-	_p().stats["produce"] = 9
-	_p().stats["produce:carrot_snack"] = 2
-	_p().stats["produce:vegetable_soup"] = 1
-	_p().stats["produce:strawberry_juice"] = 1
-	_p().steps = {"main": {"quest": "main_5_cooking", "base": {"produce": 9}}}
-	state.call("_changed")
-	check(_p().current_main_quest() == "main_5_cooking", "base antiga: cozinha é o passo")
-	check((_p().steps.main.base as Dictionary).is_empty(), "base antiga: contador fresh obsoleto some")
-	check(state.call("quest_error", "main_5_cooking") == "", "base antiga: produção anterior já conta")
-	var before: int = state.get("coins")
-	check(state.call("claim_quest", "main_5_cooking") == "" and int(state.get("coins")) == before + 10, "base antiga: paga 10 uma vez")
-	# A pedra já recolhida conta mesmo com a antiga base fresh no save.
-	_fresh()
-	_claim_before("stone_path")
-	_p().stats["activity:quarry"] = 3
-	_p().steps["guide"] = {"quest": "guide_stone", "base": {"activity:quarry": 3}}
-	state.call("_changed")
-	check((_p().steps.guide.base as Dictionary).is_empty(), "base fresh antiga da pedra não precisa mais ser repetida")
-	check(state.call("quest_error", "guide_stone") == "", "pedreira já recolhida conclui a missão")
 
 
 func _stone_routes() -> void:

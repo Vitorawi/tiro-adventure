@@ -1,5 +1,5 @@
 extends SceneTree
-## Coleta por local: três tarefas realmente paralelas, save antigo e interação simples.
+## Coleta por local: três tarefas realmente paralelas, persistência atual e interação simples.
 
 var failures: int = 0
 var main: Node
@@ -22,28 +22,13 @@ func _run() -> void:
 	root.remove_child(saver)
 	saver.free()
 	var state: Node = root.get_node("GameState")
+	# O tempo dos três toques é controlado; carga da máquina não muda o contrato de simultaneidade.
+	state.set_script(load("res://tests/friend_clock.gd"))
+	state.set("test_time", 1792411200.0)
 	var ui: Script = load("res://scripts/ui/nature_ui.gd")
 	var places: Script = load("res://scripts/ui/places.gd")
 	state.call("reset")
 	state.set("unlimited_storage", true)  # a Natureza enche a pilha de materiais (16); o limite tem teste próprio (warehouse_test)
-	var legacy: Dictionary = state.call("to_dict").duplicate(true)
-	legacy.progression.erase("nature_levels_version")
-	legacy.progression.owned = {"axe_reinforced": true, "pickaxe_crystal": true, "sickle": true}
-	legacy.progression.claimed_quests = {"main_5_pickaxe": true}
-	legacy.progression.gathering = {"trees": [{"id":"timber", "resource":"wood", "started_at":state.call("now"), "ready_at":state.call("now") + 240, "rewards":{"items":{"wood":5,"hardwood":2}}}]}
-	state.call("from_dict", legacy)
-	check(state.get("progress").nature_level("trees") == 3 and state.get("progress").nature_level("rocks") == 3 and state.get("progress").nature_level("fibers") == 2, "Ferramentas antigas viram níveis incluindo ampliações anteriores")
-	check(not state.get("progress").owned.has("axe_reinforced"), "Save deixa de guardar ferramentas")
-	check(state.get("coins") == legacy.coins and state.get("progress").claimed_quests.has("main_5_pickaxe"), "Conversão não cobra nem perde missão recebida")
-	check(state.call("gathering_entry", "trees", 0) == legacy.progression.gathering.trees[0], "Conversão preserva prazo, material e recompensa em curso")
-	var converted: Dictionary = state.call("to_dict").duplicate(true)
-	state.call("from_dict", converted)
-	check(state.call("to_dict") == converted, "Migração de níveis é idempotente")
-	legacy.progression.owned = {}
-	legacy.progression.gathering = {}
-	legacy.progression.stats = {"activity:lane": 1}
-	state.call("from_dict", legacy)
-	check(state.get("progress").nature_level("trees") == 1 and state.get("progress").nature_level("rocks") == 0, "Save antigo preserva só o local que já foi explorado")
 	state.call("reset")
 	check(state.call("start_gathering", "trees", 0, "lane") != "", "História bloqueia coleta antecipada")
 	state.call("dev_jump_to_chapter", 4)
@@ -53,11 +38,11 @@ func _run() -> void:
 	root.add_child(main)
 	main.call("_on_world_requested", "village", "")
 	places.call("open", "village", "gate")
-	await create_timer(0.3).timeout
+	await _settle()
 	var room: Control = main.find_child("World_nature", true, false)
 	check(room != null and room.is_visible_in_tree(), "Portão continua entrando na Natureza")
 	ui.call("open", "trees")
-	await create_timer(0.2).timeout
+	await _settle()
 	_shot("nature_forest_locked")
 	check(main.find_child("Material_wood", true, false) == null, "Local fechado oferece desbloqueio")
 	check(state.call("buy_upgrade", "forest_open") == "", "Desbloquear Bosque só com moedas")
@@ -72,22 +57,6 @@ func _run() -> void:
 	check(state.call("start_gathering", "rocks", 0, "pebbles") == "", "Pedras trabalham junto com madeira")
 	check(state.call("start_gathering", "trees", 0, "lane") != "", "Não sobrescreve espaço ocupado")
 	var parallel_save: Dictionary = state.call("to_dict").duplicate(true)
-	# Migração da versão anterior: uma atividade global continua no local certo.
-	var old: Dictionary = before.duplicate(true)
-	old.progression.erase("gathering")
-	old.progression.activity = {"id": "trail", "started_at": state.call("now") - 20, "ready_at": state.call("now") + 160}
-	state.call("from_dict", old)
-	check(state.get("progress").activity.is_empty(), "Migração tira antiga coleta da fila global")
-	check(state.call("gathering_entry", "rocks", 0).id == "trail", "Coleta antiga preservada em Pedras")
-	check(state.call("gathering_remaining", "rocks", 0) >= 158, "Mantém tempo restante")
-	var migrated: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
-	state.call("from_dict", migrated)
-	check(state.call("gathering_jobs", "rocks").size() == 1, "Carregar de novo não duplica tarefa")
-	state.call("dev_advance_time", 180)
-	var stone_before: int = state.get("inventory").count("stone")
-	check(state.call("collect_gathering", "rocks", 0) == "", "Recolher atividade migrada")
-	check(state.get("inventory").count("stone") == stone_before + 3, "Coleta antiga sem snapshot usa a tabela vigente da rota (trilha: 3 pedras)")
-	check(state.call("collect_gathering", "rocks", 0) != "", "Migração não duplica recompensa")
 	state.call("from_dict", parallel_save)
 	state.call("dev_finish_timers")
 	check(int(state.get("progress").nature_xp.get("trees", 0)) == 0, "Timer pronto ainda não concede experiência")
@@ -95,14 +64,14 @@ func _run() -> void:
 	check(int(state.get("progress").nature_xp.get("trees", 0)) == 2, "Uma coleta recolhida dá o XP local da rota (lane = 2) uma vez")
 	check(state.call("collect_gathering", "rocks", 0) == "", "Recolher pedra inicial")
 	ui.call("open", "rocks")
-	await create_timer(0.2).timeout
+	await _settle()
 	check(main.find_child("Material_copper", true, false).disabled, "Cobre bloqueado não vira seleção nem inicia tarefa")
 	before = state.call("to_dict").duplicate(true)
 	main.find_child("Material_copper", true, false).pressed.emit()
 	check(state.call("to_dict") == before, "Falta de ferramenta não altera a fila")
 	# Tocar no cenário abre diretamente o painel daquele tipo.
 	room.call("_handle_tap", Vector2(150, 150))
-	await create_timer(0.2).timeout
+	await _settle()
 	var sheet: Control = main.find_child("Sheet", true, false)
 	var tray_script: Script = load("res://scripts/ui/action_tray.gd")
 	var current_tray: Control = tray_script.get("current")
@@ -113,7 +82,7 @@ func _run() -> void:
 	check(current_tray.call("find_in_panel", "RequiredLevel_hardwood") != null, "Madeira dura bloqueada pelo nível na bandeja")
 	# A consulta completa continua verificando todos os materiais e suas restrições.
 	ui.call("open", "trees")
-	await create_timer(0.2).timeout
+	await _settle()
 	check(main.find_child("Material_hardwood", true, false).disabled, "Madeira dura exige nível 3 do Bosque")
 	check(main.find_child("Material_copper", true, false) == null, "Árvores não mistura cobre")
 	_shot("nature_trees_initial")
@@ -133,7 +102,7 @@ func _run() -> void:
 		state.call("start_next_gathering", "trees", "woodcutting", "wood")
 		state.call("dev_finish_timers")
 		state.call("collect_gathering_all", "trees")
-	await create_timer(0.2).timeout
+	await _settle()
 	check(state.call("gathering_slots", "trees") == 2 and state.get("progress").nature_level("trees") == 3, "Nível 3 libera madeira dura, mas ainda só dois espaços")
 	check(state.call("start_next_gathering", "trees", "timber", "hardwood") == "", "Madeira dura no nível 3")
 	state.call("dev_finish_timers")
@@ -146,10 +115,10 @@ func _run() -> void:
 	check(state.get("coins") >= coins, "Evolução não cobra moedas")
 	check(state.call("gathering_slots", "rocks") == 1, "Árvores não libera vagas de Pedras")
 	ui.call("open_route", "lane")
-	await create_timer(0.2).timeout
+	await _settle()
 	for count in 3:
 		main.find_child("Material_wood", true, false).pressed.emit()
-		await create_timer(0.1).timeout
+		await _settle()
 		check(state.call("gathering_jobs", "trees").size() == count + 1, "Cada toque no material inicia exatamente uma coleta")
 	check(main.find_child("Material_wood", true, false).disabled, "Material desabilita quando as três vagas estão ocupadas")
 	before = state.call("to_dict").duplicate(true)
@@ -195,11 +164,11 @@ func _run() -> void:
 		if node.get_script() != null and str(node.get_script().resource_path).ends_with("collect_fx.gd"):
 			fx = node
 	check(fx != null and fx.get_child_count() >= 1, "Miniaturas aparecem na tela")
-	await create_timer(0.3).timeout
+	await _settle()
 	for node in main.get_children():
 		if node is CanvasLayer and node.layer == 20:
 			node.queue_free()
-	await create_timer(0.1).timeout
+	await _settle()
 	_shot("collect_fx")
 	check(state.call("buy_upgrade", "forest_level_3") != "", "Nível por uso não é compra")
 	check(state.get("progress").nature_level("trees") == 4, "Bosque 4 mantém madeira dura refinável")
@@ -217,26 +186,26 @@ func _run() -> void:
 		if index == 1:
 			check(state.get("progress").nature_level("rocks") == 2 and state.call("gathering_slots", "rocks") == 2, "Três coletas da pedreira liberam cobre e segundo espaço")
 			ui.call("open", "rocks")
-			await create_timer(0.2).timeout
+			await _settle()
 			check(not main.find_child("Material_copper", true, false).disabled and main.find_child("Material_crystal", true, false).disabled, "Nível 2 mostra cobre liberado e cristal futuro")
 			check(main.find_child("NatureProgress_rocks", true, false).text.contains("/96 XP"), "Painel mostra o progresso até o próximo nível")
 			_shot("nature_cave_level_2")
 	check(state.get("progress").nature_level("rocks") == 3 and state.call("gathering_slots", "rocks") == 2, "Quatorze coletas da pedreira liberam cristais, com dois espaços")
 	room.call("_handle_tap", Vector2(400, 200))
-	await create_timer(0.2).timeout
+	await _settle()
 	current_tray = tray_script.get("current")
 	check(current_tray != null and "crystal" in current_tray.call("entry_ids"), "Um toque abre a bandeja da Caverna")
 	ui.call("open", "rocks")
-	await create_timer(0.2).timeout
+	await _settle()
 	check(main.find_child("NextTool_trees", true, false) == null, "Pedras não mistura machados")
 	check(ui.call("choose_route", "crystal", "crystal_deep"), "Cristal profundo pode ser escolhido")
 	ui.call("open", "rocks")
-	await create_timer(0.2).timeout
+	await _settle()
 	main.find_child("Material_crystal", true, false).pressed.emit()
-	await create_timer(0.2).timeout
+	await _settle()
 	check(state.call("gathering_entry", "rocks", 0).id == "crystal_deep", "Um toque no cristal já inicia com ferramenta correta")
 	main.find_child("Material_copper", true, false).pressed.emit()
-	await create_timer(0.2).timeout
+	await _settle()
 	check(state.call("gathering_entry", "rocks", 1).resource == "copper", "Guarda material selecionado na segunda vaga")
 	check(main.find_child("GatherItem_rocks_0", true, false).texture.resource_path.ends_with("item_crystal.png"), "Trocar material não muda a primeira coleta")
 	check(main.find_child("GatherItem_rocks_1", true, false).texture.resource_path.ends_with("item_copper.png"), "Coleta de cobre mostra cobre, mesmo rendendo pedras extras")
@@ -248,7 +217,7 @@ func _run() -> void:
 	check(places.call("highlight_action", "route:quarry") == "place:rocks", "Missão aponta para pedras")
 	# Ir de uma missão preserva a rota exata, mesmo com ferramentas melhores.
 	ui.call("open_route", "lane")
-	await create_timer(0.2).timeout
+	await _settle()
 	main.find_child("Material_wood", true, false).pressed.emit()
 	check(state.call("gathering_entry", "trees", 0).id == "lane", "Missão da rota inicial continua concluível")
 	state.call("dev_finish_timers")
@@ -259,10 +228,10 @@ func _run() -> void:
 	state.call("collect_gathering_all", "rocks")
 	check(state.get("inventory").count("copper") == copper_before + 7 and state.get("inventory").count("stone") == stones_before + 3 and state.get("inventory").count("crystal") == crystals_before + 5, "Seleção do material mantém todos os produtos dos dois lotes")
 	ui.call("open", "trees")
-	await create_timer(0.2).timeout
+	await _settle()
 	for index in 3:
 		main.find_child("Material_wood", true, false).pressed.emit()
-		await create_timer(0.1).timeout
+		await _settle()
 	state.call("dev_finish_timers")
 	await create_timer(1.2).timeout
 	_shot("nature_trees_ready")
@@ -312,3 +281,8 @@ func _shot(file_name: String) -> void:
 		var folder := ProjectSettings.globalize_path("res://../build/screenshots/")
 		DirAccess.make_dir_recursive_absolute(folder)
 		root.get_texture().get_image().save_png(folder + file_name + ".png")
+
+
+func _settle() -> void:
+	for _frame in 6:
+		await process_frame

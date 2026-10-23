@@ -32,7 +32,7 @@ func _run() -> void:
 	for child: Node in saver.get_children():
 		if child is Timer:
 			child.queue_free()
-	saver.set("_save_path", "user://album_shots_descartavel.json")
+	saver.set("_save_path", (str(load("res://scripts/util/build_info.gd").call("data_dir")) + "album_shots_descartavel.json"))
 	state = root.get_node("GameState")
 	state.call("reset")
 	state.get("progress").seen["intro"] = true

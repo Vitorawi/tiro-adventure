@@ -64,9 +64,8 @@ func _run() -> void:
 	await process_frame
 	state.get("dog").needs.happiness = 40.0
 	state.get("dog").updated_at = state.call("now")
-	var affection: int = state.get("dog").affection
 	check(state.call("perform_trick", "paw") == "", "executa aprendido")
-	check(is_equal_approx(state.get("dog").get_need("happiness", state.call("now")), 43.0) and state.get("dog").affection == affection + 1, "+3 felicidade +1 afeto")
+	check(is_equal_approx(state.get("dog").get_need("happiness", state.call("now")), 43.0), "+3 felicidade")
 	check(p.stat("trick") == 1 and p.stat("trick:paw") == 1, "contadores total e específico")
 	check(state.call("perform_trick", "paw") != "" and p.stat("trick") == 1, "recarga evita repetição")
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
@@ -77,13 +76,14 @@ func _run() -> void:
 	check(state.call("perform_trick_error", "paw") != "", "119 s ainda bloqueado")
 	state.set("test_time", state.get("test_time") + 1)
 	check(state.call("perform_trick_error", "paw") == "", "120 s libera")
+	var phase_of := {"talk": "teething", "roll": "explorer", "jump": "explorer", "spin": "young"}
 	for id: String in ["talk", "roll", "jump", "spin"]:
 		var def: Dictionary = db.get("progression").tricks[id]
-		var level: int = def.requirements.bond
-		state.get("dog").affection = int(db.get("progression").bond_levels[level - 1].affection) - 1
-		check(state.call("learn_trick_error", id) != "", "vínculo abaixo " + id)
-		state.get("dog").affection += 1
-		check(state.call("learn_trick", id) == "", "aprende no vínculo " + id)
+		check(not def.requirements.has("bond") and str(def.requirements.growth) == phase_of[id], "truque %s abre pela fase" % id)
+		state.get("growth").phase = "newborn"
+		check(state.call("learn_trick_error", id) != "", "fase abaixo " + id)
+		state.get("growth").phase = "adult"
+		check(state.call("learn_trick", id) == "", "aprende na fase " + id)
 		check(state.call("perform_trick", id) == "", "recargas independentes " + id)
 	check(p.stat("trick_learned") == 5, "cinco únicos")
 	state.call("set_sleeping", true)
@@ -114,7 +114,7 @@ func _run() -> void:
 	check(p.feature_unlocked("tricks"), "feature abre ao receber missão")
 	var wish: Dictionary = db.get("wishes").wishes.trick
 	check(wish.goal.key == "trick" and state.call("requirement_error", wish.requirements) == "", "desejo usa contador e história reais")
-	check(db.get("routines").daily.legacy.trick.goal.target == 2, "diária pede dois truques")
+	check(not db.get("routines").daily.has("legacy") and not db.get("routines").daily.missions.has("trick"), "truques ficam nos desejos; rotinas só da fazenda")
 	var room: Control = load("res://scenes/levels/room/room.tscn").instantiate()
 	room.set("room_id", "park")
 	room.set("world_id", "park")
@@ -125,10 +125,6 @@ func _run() -> void:
 	check(target.distance_to(Vector2(150, 195)) < 16 and not room.call("find_path", start, target).is_empty(), "cones alcançáveis sem mudar obstáculos")
 	room.queue_free()
 	await process_frame
-	var old: Dictionary = p.to_dict()
-	old.erase("tricks")
-	p.from_dict(old)
-	check(p.tricks.is_empty(), "save anterior sem migração")
 	print("TRICKS TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(0 if failures == 0 else 1)
 

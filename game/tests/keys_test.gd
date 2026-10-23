@@ -1,4 +1,4 @@
-﻿extends SceneTree
+extends SceneTree
 var state: Node
 var db: Node
 var failures := 0
@@ -105,7 +105,7 @@ func run() -> void:
  # Crescer exige o item-chave.
  fresh('puppy')
  state.progress.stats['feed:frozen_carrot'] = 3
- for id in ['body','brave']: state.growth.points[id] = 25
+ state.growth.phase_moments['brave'] = 3
  check(state.grow_error().contains('Argolinha'),'não cresce sem argolinha')
  state.inventory.add('chew_ring',1)
  state.deliver_growth('chew_ring')

@@ -1,5 +1,5 @@
 extends SceneTree
-## Refeições e Corpo: uma tarefa, nas cinco etapas, inclusive saves anteriores.
+## Refeições e Corpo: uma tarefa, nas cinco etapas, nas regras atuais.
 
 var state: Node
 var db: Node
@@ -17,8 +17,6 @@ func check(ok: bool, message: String) -> void:
 func fresh(phase: String) -> void:
 	state.reset()
 	state.growth.phase = phase
-	state.growth.points = {}
-	state.growth.reserve = {}
 	for need: String in state.dog.needs: state.dog.needs[need] = 40.0
 	state.dog.updated_at = state.now()
 
@@ -35,10 +33,9 @@ func _run() -> void:
 		var meals: Dictionary
 		for req: Dictionary in phase.requirements:
 			if req.type == "feed": meals = req
-			if req.type == "pillars":
-				check(req.levels.size() == 1 and not req.levels.has("body"), "cuidados independentes sem Corpo " + str(phase.id))
-		var goal := int(db.growth.levels[int(meals.body_level) - 1])
-		check(goal <= int(db.growth.levels[state.growth.cap() - 1]), "patamar cabe na fase atual")
+			if req.type == "moments":
+				check(req.pillar != "body", "cuidados independentes sem Corpo " + str(phase.id))
+		var goal := int(meals.body_level)
 		var item := str(meals.item)
 		if item == "any": item = "carrot"  # Até comida sem XP próprio cumpre refeições comuns.
 		elif item == "favorite": item = str(state.favorite_food())
@@ -53,57 +50,33 @@ func _run() -> void:
 			check(feedback.any(func(message: String) -> bool: return message.begins_with("Refeições")), "porção anuncia impacto no crescimento " + str(phase.id))
 			if n + 1 < int(meals.qty):
 				check(not state.growth.firsts.has("meal_body:" + str(phase.id)), "parcial não antecipa a garantia")
-		check(int(state.growth.points.get("body", 0)) >= goal, "porções completam Corpo " + str(phase.id))
+		check(state.growth.body_level >= goal, "porções completam Corpo " + str(phase.id))
 		check(not state.growth_info().ready, "refeições não dispensam outros objetivos " + str(phase.id))
-		var points := int(state.growth.points.body)
-		var earned := int(state.progress.stat("pillar:body"))
-		var reserve := int(state.growth.reserve.get("body", 0))
+		var body_level: int = state.growth.body_level
+		var earned := int(state.progress.stat("moment:body"))
 		var snapshot: Dictionary = state.to_dict().duplicate(true)
 		state.growth_info()
 		state.grow_error()
 		check(state.to_dict() == snapshot, "consultas continuam puras")
 		state.from_dict(snapshot)
 		state._changed()
-		check(state.growth.points.body == points and state.progress.stat("pillar:body") == earned, "reload não duplica pontos")
-		check(int(state.growth.reserve.get("body", 0)) == reserve, "garantia não cria reserva repetida")
-	# Save antigo: três refeições feitas, Corpo ainda em 6/10. Reconhece sem exigir repetir.
-	fresh("newborn")
-	state.progress.stats.feed = 3
-	state.growth.points.body = 6
-	state.growth.done = {"puppy": {"meals": true}}
-	state.from_dict(state.to_dict())
-	check(state.growth.points.body == 10, "save anterior com refeições completas recebe o Corpo faltante")
-	state.from_dict(state.to_dict())
-	check(state.growth.points.body == 10 and state.progress.stat("feed") == 3, "save não precisa de quarta refeição")
-	# Grupo antigo confirmado preserva todos os cuidados, sem concluir os demais por engano.
+		check(state.growth.body_level == body_level and state.progress.stat("moment:body") == earned, "reload mantém Corpo")
 	fresh("explorer")
-	state.growth.firsts.erase("care_actions_v1")
-	state.growth.done = {"young": {"pillars": true}}
-	state.from_dict(state.to_dict())
-	check(state.growth.done.young.care_smart and state.growth.done.young.care_coat, "confirmação antiga do grupo é preservada")
-	fresh("explorer")
-	state.growth.points.brave = 135
+	state.growth.phase_moments.brave = 4
 	state._changed()
 	check(state.growth.done.young.get("pillars", false) and not state.growth.done.young.get("care_coat", false), "Carinho sozinho não completa Banhos")
 	state.from_dict(state.to_dict())
 	check(not state.growth.done.young.get("care_coat", false), "reload novo não espalha confirmação entre ações")
-	# Dentinhos → Aventureiro: a Esperteza do save já vale para o patamar reduzido de 25.
 	fresh("teething")
-	state.growth.points.smart = 24
+	state.growth.phase_moments.smart = 2
 	state._changed()
 	var smart_req: Dictionary
 	for req: Dictionary in state.growth_info().requirements:
 		if req.id == "care_smart": smart_req = req
-	check(int(smart_req.levels.smart) == 2 and not smart_req.done, "brincadeiras pedem 25 pontos, 24 ainda não completa")
-	state.growth.points.smart = 25
+	check(smart_req.need == 3 and not smart_req.done, "três momentos de Esperteza pedidos")
+	state.growth.phase_moments.smart = 3
 	state._changed()
-	check(state.growth.done.explorer.care_smart, "25 pontos completam brincadeiras para Aventureiro")
-	fresh("teething")
-	state.growth.points.smart = 29
-	var previous: Dictionary = state.to_dict().duplicate(true)
-	state.from_dict(previous)
-	state._changed()
-	check(state.growth.done.explorer.care_smart and state.growth.points.smart == 29, "save da foto com 29 pontos completa sem perder pontos")
-	check(not state.growth.done.explorer.get("meals", false) and not state.growth_info().ready, "ajuste não dispensa refeições e demais passos")
+	check(state.growth.done.explorer.care_smart, "três momentos completam brincadeiras")
+	check(not state.growth.done.explorer.get("meals", false) and not state.growth_info().ready, "momentos não dispensam refeições")
 	print("GROWTH MEALS TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(1 if failures else 0)

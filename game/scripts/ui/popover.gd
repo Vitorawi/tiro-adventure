@@ -33,7 +33,8 @@ static func open(host: Control, anchor: Control, content: Control, seconds: floa
 	catcher.add_child(popover)
 	catcher.gui_input.connect(func(event: InputEvent) -> void:
 		var click := event as InputEventMouseButton
-		if click and click.pressed:
+		# Botões PASS deixam a pressão subir até o fundo; só o lado de fora fecha.
+		if click and click.pressed and not popover.get_rect().has_point(click.position):
 			popover.close())
 	popover._place(host, anchor)
 	popover._settle.call_deferred(host, anchor)
@@ -45,7 +46,12 @@ func _place(host: Control, anchor: Control) -> void:
 	reset_size()
 	var origin := anchor.global_position - host.global_position
 	var x := clampf(origin.x, EDGE, maxf(EDGE, host.size.x - size.x - EDGE))
-	position = Vector2(x, origin.y + anchor.size.y + GAP)
+	var y := origin.y + anchor.size.y + GAP
+	# Cuidados ficam no rodapé: sem espaço abaixo, abre acima do botão.
+	if y + size.y > host.size.y - EDGE:
+		y = origin.y - size.y - GAP
+	y = clampf(y, EDGE, maxf(EDGE, host.size.y - size.y - EDGE))
+	position = Vector2(x, y)
 
 
 ## Rótulos com quebra de linha só informam a altura correta depois de receber a largura.

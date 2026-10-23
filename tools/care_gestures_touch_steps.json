@@ -1,0 +1,234 @@
+[
+  {
+    "do": "wait",
+    "ms": 8000
+  },
+  {
+    "do": "tap",
+    "x": 196,
+    "y": 775,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "tap",
+    "x": 196,
+    "y": 775,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "tap",
+    "x": 196,
+    "y": 775,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "tap",
+    "x": 196,
+    "y": 775,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "tap",
+    "x": 196,
+    "y": 775,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "wait",
+    "ms": 1500
+  },
+  {
+    "do": "tap",
+    "x": 300,
+    "y": 65,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "tap",
+    "x": 290,
+    "y": 555,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "tap",
+    "x": 250,
+    "y": 210,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "shot",
+    "name": "growth_dev"
+  },
+  {
+    "do": "tap",
+    "x": 75,
+    "y": 445,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "tap",
+    "x": 195,
+    "y": 616,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "tap",
+    "x": 350,
+    "y": 160,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "tap",
+    "x": 65,
+    "y": 806,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "wait",
+    "ms": 1200
+  },
+  {
+    "do": "shot",
+    "name": "pet_ready"
+  },
+  {
+    "do": "save",
+    "name": "before_hold"
+  },
+  {
+    "do": "hold",
+    "x": 140,
+    "y": 450,
+    "ms": 800,
+    "name": "hold_short_ring"
+  },
+  {
+    "do": "save",
+    "name": "after_short"
+  },
+  {
+    "do": "hold",
+    "x": 140,
+    "y": 450,
+    "ms": 3000,
+    "name": "hold_long"
+  },
+  {
+    "do": "wait",
+    "ms": 500
+  },
+  {
+    "do": "shot",
+    "name": "hold_result"
+  },
+  {
+    "do": "save",
+    "name": "after_hold"
+  },
+  {
+    "do": "tap",
+    "x": 238,
+    "y": 660,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 700
+  },
+  {
+    "do": "shot",
+    "name": "play_choice"
+  },
+  {
+    "do": "tap",
+    "x": 270,
+    "y": 580,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 500
+  },
+  {
+    "do": "shot",
+    "name": "cups_start"
+  },
+  {
+    "do": "wait",
+    "ms": 4000
+  },
+  {
+    "do": "shot",
+    "name": "cups_pick"
+  },
+  {
+    "do": "save",
+    "name": "cups_started"
+  },
+  {
+    "do": "tap",
+    "x": 105,
+    "y": 748,
+    "ms": 200
+  },
+  {
+    "do": "wait",
+    "ms": 1000
+  },
+  {
+    "do": "shot",
+    "name": "cups_result"
+  },
+  {
+    "do": "save",
+    "name": "after_cups"
+  }
+]

@@ -517,7 +517,6 @@ def section_coins(d: Data) -> dict:
         "price_fields": sorted(price_fields, key=lambda r: (r["file"], r["path"])),
         "quests_coin_totals": {k: {"entries": v["entries"], "coins": num(v["coins"])} for k, v in quest_split.items()},
         "chapters_coin_total": chapters_total, "level_rewards_2_to_10_coins": levels_total,
-        "bond_levels_coins": [lv.get("rewards", {}).get("coins", 0) for lv in d.prog["bond_levels"]],
         "daily_gift_cycle": d.prog["daily_gift"],
     }
 
@@ -581,7 +580,6 @@ def section_reward_bank(d: Data) -> dict:
         for item_id, amount in q["rewards"].get("items", {}).items():
             items[item_id] += amount
     collections = sorted({c for q in d.quests.values() for c in q["rewards"].get("collections", [])})
-    affection = sum(q["rewards"].get("affection", 0) for q in d.quests.values())
     skill_xp = Counter()
     for q in d.quests.values():
         for k, v in q["rewards"].get("skill_xp", {}).items():
@@ -595,11 +593,11 @@ def section_reward_bank(d: Data) -> dict:
             by_chapter[key]["items"][k] += v
     return {
         "quest_items_total": dict(sorted(items.items())), "quest_collections": collections,
-        "quest_affection_total": affection, "quest_skill_xp_total": dict(sorted(skill_xp.items())),
+        "quest_skill_xp_total": dict(sorted(skill_xp.items())),
         "by_group": {k: {"quests": v["quests"], "coins": v["coins"], "items": dict(sorted(v["items"].items()))} for k, v in sorted(by_chapter.items())},
         "chapters": [{"index": i + 1, "name": c["name"], "coins": c["rewards"].get("coins", 0), "skill_xp": c["rewards"].get("skill_xp", {}),
                       "target": c.get("target")} for i, c in enumerate(d.prog["chapters"])],
-        "level_rewards": d.prog["level_rewards"], "bond_levels": d.prog["bond_levels"],
+        "level_rewards": d.prog["level_rewards"],
         "treasure": d.prog["treasure"]["rewards"],
     }
 
@@ -666,7 +664,7 @@ def section_quest_graph(d: Data) -> dict:
             "id": q_id, "npc": q["npc"], "kind": q["kind"], "line": q.get("line") or "main", "chapter": q.get("chapter"),
             "order": q["order"], "shared_with": q.get("shared_with"), "requirements": q.get("requirements", {}),
             "goals": goals, "coins": q["rewards"].get("coins", 0), "items": q["rewards"].get("items", {}),
-            "affection": q["rewards"].get("affection", 0), "collections": q["rewards"].get("collections", []),
+            "collections": q["rewards"].get("collections", []),
             "go": q.get("go"),
         })
     order_chain = {"main": mains, **{k: v for k, v in sorted(lines.items())}}
@@ -1037,8 +1035,6 @@ def reachability(d: Data) -> dict:
                     gain(entry.get("items", {}))
         for lv in d.prog["level_rewards"].values():
             gain(lv.get("items", {}))
-        for lv in d.prog["bond_levels"]:
-            gain(lv.get("rewards", {}).get("items", {}))
         for g in d.prog["daily_gift"]:
             gain(g.get("items", {}))
         for o in d.orders.values():
@@ -1131,8 +1127,8 @@ def code_checks(code_dir: Path) -> list[dict]:
         "return Database.progression.storage.has(id) and has_upgrade(str(Database.progression.storage[id].building))")
     add("C2", "Colheita paga crop.coins além do produto", 'coins += int(crop.get("coins", 0))')
     add("C3", "Receita multiplica saída por `qty` (e por animais nas criações)", 'return int(recipe.get("qty", 1)) * factor')
-    add("C4", "Carinho (`pet`) soma +1 afeto sem recarga no GameState", "dog.affection += 1")
-    add("C5", "Brincar soma +2 afeto", "dog.affection += 2")
+    add("C4", "Carinho ?til concede momento", '_moment_source("pet")')
+    add("C5", "Brincar ?til concede momento", '_moment_source("play")')
     add("C6", "Recompensa de cuidado usa recarga `care:<ação>` e só se a necessidade estava baixa", "func _care_reward(action_id: String, useful: bool)")
     add("C7", "Limite de armazenamento desligável por teste (`unlimited_storage`)", "var unlimited_storage := false")
     add("C8", "Cozinhar valida e consome tudo de uma vez (validação atômica)", "inventory.remove_all(recipe_inputs(recipe_id))")
@@ -1320,7 +1316,7 @@ def render_markdown(report: dict) -> str:
     L.append("\n## Fluxos de moedas (fontes pelo campo `coins`)\n")
     L.append(md_table(["origem", "entradas", "soma mín", "soma máx"], [[k, v["entries"], v["sum_min"], v["sum_max"]] for k, v in report["coins"]["by_source"].items()]))
     c = report["coins"]
-    L.append(f"\n- Missões: principais {c['quests_coin_totals']['main']}; linhas {c['quests_coin_totals']['line']}; capítulos {c['chapters_coin_total']}; níveis 2–10 {c['level_rewards_2_to_10_coins']}; vínculo {c['bond_levels_coins']}.")
+    L.append(f"\n- Missões: principais {c['quests_coin_totals']['main']}; linhas {c['quests_coin_totals']['line']}; capítulos {c['chapters_coin_total']}; níveis 2–10 {c['level_rewards_2_to_10_coins']}.")
     L.append(f"- Início: {report['sources_start']} moedas; {c['sources_extra']['sell_price_items']} itens têm `sell_price` (venda direta, taxa de uso desconhecida).")
     L.append(f"- Sumidouros: melhorias {c['sinks']['upgrades_coins_total']} moedas; terrenos {c['sinks']['plots_unlock_total']}; animais {c['sinks']['animals_total']}; loja {c['sinks']['shop_items']}.\n")
 
@@ -1339,7 +1335,7 @@ def render_markdown(report: dict) -> str:
 
     L.append("\n## Banco de recompensas únicas\n")
     rb = report["reward_bank"]
-    L.append(f"- Itens por missões: {amounts_text(rb['quest_items_total'])}; coleções: {', '.join(rb['quest_collections'])}; afeto {rb['quest_affection_total']}.")
+    L.append(f"- Itens por missões: {amounts_text(rb['quest_items_total'])}; coleções: {', '.join(rb['quest_collections'])}.")
     L.append(md_table(["grupo", "missões", "moedas", "itens"], [[k, v["quests"], v["coins"], amounts_text(v["items"])] for k, v in rb["by_group"].items()]))
 
     L.append("\n## Missões (ordem e prêmios)\n")
@@ -1417,10 +1413,10 @@ def build_report(data_dir: Path, code_dir: Path, matrix: Path) -> dict:
         "stations": safe("stations", lambda: section_stations(d)["stations"], []),
         "upgrades": safe("upgrades", lambda: section_upgrades(d), {}),
         "nature": safe("nature", lambda: section_nature(d), {"activities": []}),
-        "coins": safe("coins", lambda: section_coins(d), {"by_source": {}, "quests_coin_totals": {"main": {}, "line": {}}, "chapters_coin_total": 0, "level_rewards_2_to_10_coins": 0, "bond_levels_coins": [], "sources_extra": {"sell_price_items": 0}, "sinks": {"upgrades_coins_total": 0, "plots_unlock_total": 0, "animals_total": 0, "shop_items": {}}}),
+        "coins": safe("coins", lambda: section_coins(d), {"by_source": {}, "quests_coin_totals": {"main": {}, "line": {}}, "chapters_coin_total": 0, "level_rewards_2_to_10_coins": 0, "sources_extra": {"sell_price_items": 0}, "sinks": {"upgrades_coins_total": 0, "plots_unlock_total": 0, "animals_total": 0, "shop_items": {}}}),
         "sources_start": d.config["start"]["coins"],
         "bolts": safe("bolts", lambda: section_bolts(d), {}),
-        "reward_bank": safe("reward_bank", lambda: section_reward_bank(d), {"quest_items_total": {}, "quest_collections": [], "quest_affection_total": 0, "by_group": {}}),
+        "reward_bank": safe("reward_bank", lambda: section_reward_bank(d), {"quest_items_total": {}, "quest_collections": [], "by_group": {}}),
         "purchases": safe("purchases", lambda: section_purchases(d)["purchases"], []),
         "early_game": safe("early_game", lambda: section_early_game(d), {}),
         "quest_graph": safe("quest_graph", lambda: section_quest_graph(d), {"quests": [], "order": {}}),

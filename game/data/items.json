@@ -20,9 +20,6 @@
       "hunger": 25
     },
     "growth": {
-      "pillars": {
-        "body": 2
-      },
       "phases": [
         "newborn",
         "puppy"
@@ -35,6 +32,7 @@
     "category": "food",
     "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_carrot_snack.png",
+    "treat": true,
     "feed": {
       "hunger": 20,
       "happiness": 15
@@ -42,9 +40,6 @@
     "sell_price": 12,
     "trade_xp": 5,
     "growth": {
-      "pillars": {
-        "body": 2
-      },
       "phases": [
         "newborn",
         "puppy",
@@ -64,9 +59,6 @@
     "sell_price": 25,
     "trade_xp": 8,
     "growth": {
-      "pillars": {
-        "body": 5
-      },
       "phases": [
         "puppy",
         "teething"
@@ -188,10 +180,6 @@
     },
     "trade_xp": 7,
     "growth": {
-      "pillars": {
-        "body": 4,
-        "brave": 1
-      },
       "phases": [
         "teething",
         "explorer"
@@ -203,6 +191,7 @@
     "category": "food",
     "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_apple_biscuit.png",
+    "treat": true,
     "sell_price": 30,
     "feed": {
       "hunger": 30,
@@ -210,10 +199,6 @@
     },
     "trade_xp": 10,
     "growth": {
-      "pillars": {
-        "body": 3,
-        "smart": 2
-      },
       "phases": [
         "explorer",
         "young",
@@ -329,9 +314,6 @@
       "hunger": 5
     },
     "growth": {
-      "pillars": {
-        "brave": 2
-      },
       "phases": [
         "teething"
       ]
@@ -357,9 +339,6 @@
       "happiness": 5
     },
     "growth": {
-      "pillars": {
-        "body": 4
-      },
       "phases": [
         "puppy",
         "teething"
@@ -378,10 +357,6 @@
       "happiness": 25
     },
     "growth": {
-      "pillars": {
-        "body": 3,
-        "smart": 1
-      },
       "phases": [
         "teething",
         "explorer"
@@ -644,6 +619,7 @@
     "category": "food",
     "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_mint_snack.png",
+    "treat": true,
     "sell_price": 22,
     "trade_xp": 5,
     "feed": {
@@ -652,9 +628,6 @@
       "hygiene": 10
     },
     "growth": {
-      "pillars": {
-        "coat": 4
-      },
       "phases": [
         "young",
         "adult"
@@ -690,10 +663,6 @@
       "happiness": 10
     },
     "growth": {
-      "pillars": {
-        "smart": 4,
-        "coat": 3
-      },
       "phases": [
         "young",
         "adult"
@@ -711,9 +680,6 @@
       "happiness": 5
     },
     "growth": {
-      "pillars": {
-        "body": 4
-      },
       "phases": [
         "teething"
       ]
@@ -730,9 +696,6 @@
       "happiness": 10
     },
     "growth": {
-      "pillars": {
-        "body": 6
-      },
       "phases": [
         "newborn",
         "puppy",
@@ -745,16 +708,13 @@
     "category": "food",
     "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_corn_crunch.png",
+    "treat": true,
     "sell_price": 7,
     "feed": {
       "hunger": 20,
       "happiness": 5
     },
     "growth": {
-      "pillars": {
-        "body": 4,
-        "smart": 1
-      },
       "phases": [
         "teething",
         "explorer"
@@ -772,9 +732,6 @@
       "happiness": 10
     },
     "growth": {
-      "pillars": {
-        "body": 10
-      },
       "phases": [
         "explorer",
         "young"
@@ -792,10 +749,6 @@
       "happiness": 10
     },
     "growth": {
-      "pillars": {
-        "body": 6,
-        "coat": 2
-      },
       "phases": [
         "explorer",
         "young",
@@ -808,15 +761,13 @@
     "category": "food",
     "storage": "fridge",
     "icon": "res://assets/sprites/ui/icons/item_cheese_bites.png",
+    "treat": true,
     "sell_price": 8,
     "feed": {
       "hunger": 15,
       "happiness": 10
     },
     "growth": {
-      "pillars": {
-        "smart": 4
-      },
       "phases": [
         "explorer",
         "young",
@@ -835,10 +786,6 @@
       "happiness": 10
     },
     "growth": {
-      "pillars": {
-        "body": 6,
-        "coat": 6
-      },
       "phases": [
         "young",
         "adult"
@@ -898,9 +845,6 @@
       "happiness": 15
     },
     "growth": {
-      "pillars": {
-        "brave": 5
-      },
       "phases": [
         "newborn",
         "puppy",

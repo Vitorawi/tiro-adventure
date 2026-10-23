@@ -65,7 +65,6 @@ func _run() -> void:
 	_full_harvest()
 	_free_silo()
 	_quest_order()
-	_legacy_saves()
 	await _all_partial()
 	print("SILO TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(0 if failures == 0 else 1)
@@ -179,47 +178,9 @@ func _quest_order() -> void:
 	# Quem já recebeu a missão não a perde nem repete.
 	_progress().claimed_quests["bloblo_silo"] = true
 	state.call("_changed")
-	check(_progress().claimed_quests.has("bloblo_silo") and _progress().current_line_quest("bloblo") != "bloblo_silo", "recebida em save antigo continua recebida")
+	check(_progress().claimed_quests.has("bloblo_silo") and _progress().current_line_quest("bloblo") != "bloblo_silo", "missão recebida não reabre")
 
 
-# --- saves antigos -------------------------------------------------------------------------------
-
-func _v12(data: Dictionary) -> Dictionary:
-	var copy: Dictionary = JSON.parse_string(JSON.stringify(data))
-	copy.erase("economy")
-	return copy
-
-
-func _legacy_saves() -> void:
-	# Silo antigo (capacidade 40): não cai para 32.
-	_fresh()
-	_progress().owned["silo"] = true
-	state.get("inventory").add("carrot", 36)
-	var old: Dictionary = _v12(state.call("to_dict"))
-	state.call("from_dict", old)
-	check(int(state.call("storage_floor", "silo")) == 40 and int(state.call("storage_capacity", "silo")) == 40, "silo antigo continua com 40")
-	check(_inv("carrot") == 36 and state.call("storage_error", {"carrot": 4}) == "" and state.call("storage_error", {"carrot": 5}) != "", "40 vale até o fim")
-	# Silo_2 antigo (80) é maior que o 56 novo.
-	_fresh()
-	_progress().owned["silo"] = true
-	_progress().owned["silo_2"] = true
-	state.call("from_dict", _v12(state.call("to_dict")))
-	check(int(state.call("storage_capacity", "silo")) == 80, "silo_2 antigo mantém 80")
-	# Sem silo e com 100 cenouras: o estoque é preservado, entradas bloqueiam, saídas funcionam.
-	_fresh()
-	state.get("inventory").add("carrot", 100)
-	state.call("from_dict", _v12(state.call("to_dict")))
-	check(_inv("carrot") == 100, "estoque de 100 preservado")
-	check(int(state.call("storage_capacity", "silo")) == 16 and int(state.call("storage_excess", "silo")) == 84, "capacidade 16, excesso 84")
-	check(state.call("storage_error", {"carrot": 1}) != "", "entradas bloqueadas")
-	check(state.call("sell", "carrot", 10) == "" and _inv("carrot") == 90, "saída permitida (vender)")
-	state.get("inventory").add("potato", 1)  # deixa claro que o excesso não some
-	check(_inv("carrot") == 90, "nada some sozinho")
-	_ready_plot(0)
-	check(state.call("harvest_error", 0) != "", "acima do teto não colhe")
-
-
-# --- "Tudo" parcial na bandeja da foice ---------------------------------------------------
 
 func _all_partial() -> void:
 	_fresh()

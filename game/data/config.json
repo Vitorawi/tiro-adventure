@@ -9,14 +9,18 @@
       "decay_per_hour": 8,
       "offline_floor": 25,
       "icon": "res://assets/sprites/ui/icons/need_hunger.png",
-      "color": "#f0a04b"
+      "color": "#f0a04b",
+      "ask_below": 50,
+      "initial": 40
     },
     "happiness": {
       "name": "Felicidade",
       "decay_per_hour": 5,
       "offline_floor": 35,
       "icon": "res://assets/sprites/ui/icons/need_happiness.png",
-      "color": "#ef6f8f"
+      "color": "#ef6f8f",
+      "ask_below": 50,
+      "initial": 40
     },
     "energy": {
       "name": "Energia",
@@ -24,19 +28,29 @@
       "sleep_regen_per_hour": 40,
       "offline_floor": 25,
       "icon": "res://assets/sprites/ui/icons/need_energy.png",
-      "color": "#f2cf4a"
+      "color": "#f2cf4a",
+      "ask_below": 50,
+      "initial": 80
     },
     "hygiene": {
       "name": "Higiene",
       "decay_per_hour": 3,
       "offline_floor": 30,
       "icon": "res://assets/sprites/ui/icons/need_hygiene.png",
-      "color": "#5fb3e8"
+      "color": "#5fb3e8",
+      "ask_below": 50,
+      "initial": 70
     }
   },
   "actions": {
     "pet": {
       "happiness": 3
+    },
+    "pet_favorite": {
+      "happiness": 25
+    },
+    "hide": {
+      "happiness": 10
     },
     "play": {
       "happiness": 20,
@@ -265,5 +279,12 @@
     ],
     "hint_days": 3,
     "hint_photos": 5
+  },
+  "mood": {
+    "animated": {
+      "harvest_chance": 0.2,
+      "walk_extra_rolls": 1,
+      "dig_extra_per_period": 1
+    }
   }
 }

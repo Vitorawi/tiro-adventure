@@ -25,50 +25,97 @@ static func panel() -> Control:
 		var title := UiKit.label(str(Database.growth.pillars[id].name), &"SmallLabel")
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(title)
+		var dots := UiKit.hbox(4)
+		dots.name = "PillarDots_" + id
+		dots.alignment = BoxContainer.ALIGNMENT_CENTER
+		column.add_child(dots)
 		var value := UiKit.label("", &"SmallLabel")
 		value.name = "PillarValue_" + id
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(value)
-		var reserve := UiKit.label("", &"SmallLabel")
-		reserve.name = "PillarReserve_" + id
-		reserve.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		column.add_child(reserve)
 		grid.add_child(column)
 		var refresh := func() -> void:
-			ring.progress = float(GameState.growth.level(id)) / GameState.growth.cap()
-			value.text = "%d/%d" % [GameState.growth.level(id), GameState.growth.cap()]
-			reserve.text = "+%d guardado" % int(GameState.growth.reserve.get(id, 0))
-			reserve.visible = int(GameState.growth.reserve.get(id, 0)) > 0
+			var have := int(GameState.growth.phase_moments.get(id, 0))
+			var need := GameState.growth.phase_need(id)
+			if id == "body":
+				for row: Dictionary in GameState.growth_info().requirements:
+					if row.type == "feed":
+						have = int(row.have)
+						need = int(row.need)
+			ring.progress = minf(1.0, float(have) / maxf(1.0, need))
+			dots.visible = need > 0
+			if need > 0: fill_dots(dots, have, need)
+			value.text = "refeições" if id == "body" and need > 0 else ("" if need > 0 else "%d na vida" % int(GameState.growth.moments.get(id, 0)))
+			value.visible = value.text != ""
 		refresh.call()
 		# As conexões existem somente enquanto o anel está na árvore.
 		ring.tree_exiting.connect(func() -> void:
 			if Events.state_changed.is_connected(refresh): Events.state_changed.disconnect(refresh))
-		var gained := func(pillar: String, _points: int, level_up: bool) -> void:
-			if pillar == id and level_up and ring.is_inside_tree(): Motion.bounce(ring)
+		var gained := func(pillar: String, _source: String) -> void:
+			if pillar == id and ring.is_inside_tree(): Motion.bounce(ring)
 		ring.tree_entered.connect(func() -> void:
 			refresh.call()
 			Events.state_changed.connect(refresh)
-			Events.pillar_gained.connect(gained))
+			Events.moment_gained.connect(gained))
 		ring.tree_exiting.connect(func() -> void:
-			if Events.pillar_gained.is_connected(gained): Events.pillar_gained.disconnect(gained))
-	var pet_hint := UiKit.label("", &"SmallLabel")
-	pet_hint.name = "PetGrowthHint"
-	var refresh_pet := func() -> void: pet_hint.text = str(GameState.pet_growth_info().hint)
-	refresh_pet.call()
-	var pet_timer := Timer.new()
-	pet_timer.wait_time = 1.0
-	pet_timer.autostart = true
-	pet_timer.timeout.connect(refresh_pet)
-	pet_hint.add_child(pet_timer)
-	box.add_child(pet_hint)
-	var play_hint := UiKit.label("", &"SmallLabel")
-	play_hint.name = "PlayGrowthHint"
-	var refresh_play := func() -> void: play_hint.text = str(GameState.play_growth_info().hint)
-	refresh_play.call()
-	pet_timer.timeout.connect(refresh_play)
-	box.add_child(play_hint)
+			if Events.moment_gained.is_connected(gained): Events.moment_gained.disconnect(gained))
+	box.add_child(origins())
 	box.add_child(diary())
 	box.add_child(taste_guide())
+	return box
+
+
+## Bolinhas de momentos (●●●○): uma por momento pedido, cheias até o que já tem.
+static func fill_dots(row: HBoxContainer, have: int, need: int) -> void:
+	for child in row.get_children():
+		row.remove_child(child)
+		child.queue_free()
+	for i in need:
+		var dot := Panel.new()
+		dot.name = "Dot_%d" % i
+		dot.custom_minimum_size = Vector2(14, 14)
+		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var style := StyleBoxFlat.new()
+		style.set_corner_radius_all(7)
+		style.bg_color = Palette.GOLD if i < have else Color(0, 0, 0, 0)
+		style.border_color = Palette.INK
+		style.set_border_width_all(2)
+		dot.add_theme_stylebox_override("panel", style)
+		dot.set_meta("filled", i < have)
+		row.add_child(dot)
+
+
+## Linha de bolinhas pronta para um requisito de momentos.
+static func dots(have: int, need: int) -> HBoxContainer:
+	var row := UiKit.hbox(4)
+	fill_dots(row, mini(have, need), need)
+	return row
+
+
+## "De onde vêm": as fontes dos momentos de cada pilar (Coragem, Esperteza, Pelagem), com Ir quando há lugar.
+static func origins() -> Control:
+	var box := UiKit.vbox(6)
+	box.name = "MomentOrigins"
+	box.add_child(UiKit.label("De onde vêm os momentos", &"SectionLabel"))
+	for pillar: String in ["brave", "smart", "coat"]:
+		var group := UiKit.vbox(4)
+		group.name = "Origins_" + pillar
+		var head := UiKit.hbox(6)
+		head.add_child(UiKit.icon(UiKit.ui_icon(str(Database.growth.pillars[pillar].icon)), 24))
+		head.add_child(UiKit.fill_label(str(Database.growth.pillars[pillar].name), &"SectionLabel"))
+		group.add_child(head)
+		for source: String in Database.growth.moments.sources:
+			var rule: Dictionary = Database.growth.moments.sources[source]
+			if str(rule.pillar) != pillar or not rule.has("label"): continue
+			var go: Control = null
+			if rule.has("go"):
+				var target := WishUi.go_target({"go": rule.go})
+				go = UiKit.secondary("Ir", Places.go.bind(target), null, true)
+				go.name = "OriginGo_" + source
+			var row := UiKit.list_row(UiKit.ui_icon(str(Database.growth.pillars[pillar].icon)), str(rule.label), [], go)
+			row.name = "Origin_" + source
+			group.add_child(row)
+		box.add_child(group)
 	return box
 
 
@@ -104,7 +151,7 @@ static func taste_guide() -> Control:
 			var reaction := str(GameState.growth.tastes[id])
 			tile.tooltip_text = Database.item_name(id)
 			if reaction == "loved" or (GameState.favorite_found() and id == GameState.favorite_food()):
-				var heart := UiKit.icon(UiKit.ui_icon("bond_heart"), 18)
+				var heart := UiKit.icon(UiKit.ui_icon("heart"), 18)
 				heart.name = "FavoriteHeart"
 				heart.position = Vector2(34, 0)
 				tile.add_child(heart)

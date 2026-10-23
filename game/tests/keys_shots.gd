@@ -35,7 +35,7 @@ func run() -> void:
  state.progress.seen.intro = true
  state.growth.phase = 'puppy'
  state.progress.stats['feed:frozen_carrot'] = 3
- for id in ['body','brave']: state.growth.points[id] = 25
+ state.growth.phase_moments['brave'] = 3
  state.inventory.from_dict({'chew_ring':1,'stick_chew':1,'soft_brush':1,'courage_medal':1,'carrot':3})
  root.size=Vector2i(360,780)
  main=load('res://scenes/main/main.tscn').instantiate()

@@ -1,7 +1,7 @@
 extends SceneTree
 ## Etapa 07 do plano de economia: o armazém junto da Natureza (Pilha de materiais → Armazém → _2 → _3).
 ## Cobre: capacidades 16/32/56/88, custos e requisitos, classificação dos materiais, capítulo 5 de um save novo
-## (caverna, armazém, material, bancada), sequência do Guia, dois parafusos sem sorteio, save antigo com o armazém
+## (caverna, armazém, material, bancada), sequência do Guia, dois parafusos sem sorteio, persistência do armazém
 ## recebido na Bloblo, grafo de requisitos com custos materiais e as primeiras ampliações em quatro ordens.
 ## --headless --path game -s res://tests/warehouse_test.gd
 
@@ -53,7 +53,6 @@ func _run() -> void:
 	_capacities()
 	_classification()
 	_chapter_five()
-	_old_save()
 	_requirement_graph()
 	_four_orders()
 	print("WAREHOUSE TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
@@ -228,40 +227,6 @@ func _chapter_five() -> void:
 	check(int(state.get("coins")) >= coins_now + 15 and _inv("bolt") >= bolts_now + 2 and _inv("iron_band") == 0 and int(quests.bloblo_bigger.rewards.coins) == 15 and int(quests.bloblo_bigger.rewards.items.bolt) == 2 and int(quests.bloblo_biggest.rewards.coins) == 40 and int(quests.bloblo_biggest.rewards.items.bolt) == 1 and not quests.bloblo_biggest.rewards.items.has("iron_band"), "15 moedas, 2 parafusos e nenhum aro (%d/%d, %d/%d, %d)" % [int(state.get("coins")), coins_now, _inv("bolt"), bolts_now, _inv("iron_band")])
 
 
-# --- save antigo ---------------------------------------------------------------------------------------
-
-func _old_save() -> void:
-	_fresh()
-	state.call("dev_jump_to_chapter", 5)
-	var claimed: Dictionary = _progress().claimed_quests
-	for id: String in ["guide_meet", "guide_wood", "bloblo_warehouse", "bloblo_bigger", "bloblo_biggest"]:
-		claimed[id] = true
-	_progress().owned["warehouse"] = true
-	_progress().owned["silo_2"] = true
-	_progress().owned["fridge_2"] = true
-	_progress().owned["silo_3"] = true
-	var snapshot: Dictionary = state.call("to_dict").duplicate(true)
-	# Como um save de antes da R1: sem revisão, para a migração rodar.
-	snapshot.erase("economy")
-	state.call("reset")
-	state.call("from_dict", snapshot)
-	var saved_claimed: Dictionary = _progress().claimed_quests
-	check(saved_claimed.has("bloblo_warehouse") and saved_claimed.has("bloblo_bigger") and saved_claimed.has("bloblo_biggest"), "conclusões históricas preservadas")
-	var coins_before := int(state.get("coins"))
-	check(state.call("claim_quest", "bloblo_warehouse") != "", "o prêmio do armazém não reabre")
-	check(state.call("claim_quest", "bloblo_bigger") != "" and state.call("claim_quest", "bloblo_biggest") != "", "ampliações antigas não reabrem")
-	check(int(state.get("coins")) == coins_before, "nenhuma moeda a mais")
-	check(int(_progress().stat("storage_upgrades")) == 3, "a posse antiga vira contador (silo_2, fridge_2, silo_3)")
-	# Próxima missão não some: a caverna (nova) aparece para quem ainda não abriu.
-	check(_progress().current_line_quest("guide") == "guide_open_cave" or _progress().current_line_quest("guide") == "guide_stone", "o Guia continua com a próxima missão (%s)" % _progress().current_line_quest("guide"))
-	check(_progress().current_line_quest("storage") == "storage_first_planks", "a linha storage oferece as tábuas")
-	# Capacidade antiga é preservada: armazém comprado antes mantém o que tinha.
-	check(int(state.call("storage_capacity", "warehouse")) >= 40, "armazém antigo não encolhe (%d)" % int(state.call("storage_capacity", "warehouse")))
-	# Um save com o armazém recebido mas sem a caverna: guide_open_cave não fica preso atrás do armazém.
-	check(state.call("quest_error", "guide_open_cave") != "" or _progress().claimed_quests.has("guide_open_cave"), "guide_open_cave espera a caverna")
-
-
-# --- grafo de requisitos -------------------------------------------------------------------------------
 
 func _quest_deps(id: String, seen: Dictionary = {}) -> Dictionary:
 	if seen.has(id):

@@ -102,7 +102,9 @@ func _run() -> void:
 	var cover: Control = worlds.find_child("CloudCover", true, false)
 	check(main.get_node("TopBar").z_index > cover.z_index and main.get_node("Layout/TabBar").z_index > cover.z_index, "HUD e abas ficam acima da cobertura")
 	# Além da viagem/seta, a bandeja espera a câmera levar a estação à área confortável.
-	await create_timer(1.6).timeout
+	var tray_deadline := Time.get_ticks_msec() + 4000
+	while tray_script.get("current") == null and Time.get_ticks_msec() < tray_deadline:
+		await process_frame
 	var destination_tray: Control = tray_script.get("current")
 	check(destination_tray != null and "plank" in destination_tray.call("entry_ids"), "Bandeja da Bancada abre após a viagem, a seta e o enquadramento")
 	check(not main.get_node("Sheet").call("is_open"), "Destino de produção dispensa painel grande")

@@ -98,7 +98,9 @@
     "line": "lais_memories",
     "order": 10,
     "requirements": {
-      "quests": ["lais_play"]
+      "quests": [
+        "lais_play"
+      ]
     },
     "go": {
       "notebook": "album",
@@ -143,8 +145,7 @@
       }
     ],
     "rewards": {
-      "coins": 10,
-      "affection": 5
+      "coins": 10
     },
     "kind": "main",
     "chapter": 1,
@@ -181,7 +182,7 @@
     "shared_with": "bloblo_more_crops",
     "npc": "lais",
     "name": "Mãos na terra",
-    "dialogue": "A horta da vovó vai alimentar ele. Já colheu alguma coisa? Ela adora ajuda!",
+    "dialogue": "Olha o Tiro animado! Ele adora te ajudar quando está bem cuidado. Na colheita, no passeio e no faro, ele pode trazer um extra! A vovó também adora ajuda na horta.",
     "goals": [
       {
         "type": "quest",
@@ -1346,7 +1347,10 @@
       {
         "type": "stat",
         "key": "activity:quarry",
-        "also_counts": ["activity:pebbles", "activity:deep_quarry"],
+        "also_counts": [
+          "activity:pebbles",
+          "activity:deep_quarry"
+        ],
         "target": 1,
         "label": "Pegar 1 busca de pedra na Caverna"
       }
@@ -1444,7 +1448,12 @@
     "kind": "line",
     "line": "flavors",
     "order": 10,
-    "requirements": {"quests": ["first_kitchen", "bloblo_dig"]}
+    "requirements": {
+      "quests": [
+        "first_kitchen",
+        "bloblo_dig"
+      ]
+    }
   },
   "bloblo_pumpkin": {
     "npc": "bloblo",
@@ -1467,7 +1476,12 @@
     "kind": "line",
     "line": "flavors",
     "order": 20,
-    "requirements": {"quests": ["first_kitchen", "bloblo_potato"]}
+    "requirements": {
+      "quests": [
+        "first_kitchen",
+        "bloblo_potato"
+      ]
+    }
   },
   "bloblo_sweet_potato": {
     "npc": "bloblo",
@@ -1490,7 +1504,12 @@
     "kind": "line",
     "line": "flavors",
     "order": 30,
-    "requirements": {"quests": ["first_kitchen", "farm_deed"]}
+    "requirements": {
+      "quests": [
+        "first_kitchen",
+        "farm_deed"
+      ]
+    }
   },
   "lais_blender": {
     "npc": "lais",
@@ -1573,8 +1592,7 @@
       "coins": 15,
       "items": {
         "dog_food": 2
-      },
-      "affection": 5
+      }
     },
     "kind": "line",
     "line": "nina",
@@ -1615,8 +1633,7 @@
       }
     ],
     "rewards": {
-      "coins": 30,
-      "affection": 10
+      "coins": 30
     },
     "kind": "line",
     "line": "nina_discoveries",
@@ -1661,8 +1678,7 @@
       }
     ],
     "rewards": {
-      "coins": 20,
-      "affection": 10
+      "coins": 20
     },
     "kind": "line",
     "line": "nina",
@@ -1723,12 +1739,11 @@
         "type": "stat",
         "key": "friend_level",
         "target": 4,
-        "label": "Somar 4 corações de amizade"
+        "label": "Chegar a 4 de amizade com a turma"
       }
     ],
     "rewards": {
-      "coins": 50,
-      "affection": 10
+      "coins": 50
     },
     "kind": "line",
     "line": "nina",
@@ -1747,8 +1762,7 @@
       }
     ],
     "rewards": {
-      "coins": 20,
-      "affection": 5
+      "coins": 20
     },
     "kind": "line",
     "line": "nina",
@@ -1970,22 +1984,42 @@
     "name": "Um brinquedo para o Tiro",
     "dialogue": "Com tecido e gravetos dá para trançar um brinquedo na bancada. Se faltar graveto, corte madeira lá mesmo!",
     "goals": [
-      {"type": "stat", "key": "produce:braided_toy", "target": 1, "label": "Fazer 1 brinquedo trançado"}
+      {
+        "type": "stat",
+        "key": "produce:braided_toy",
+        "target": 1,
+        "label": "Fazer 1 brinquedo trançado"
+      }
     ],
-    "rewards": {"coins": 10},
+    "rewards": {
+      "coins": 10
+    },
     "kind": "line",
     "line": "workshop",
     "order": 10,
-    "requirements": {"quests": ["atelier_open"]}
+    "requirements": {
+      "quests": [
+        "atelier_open"
+      ]
+    }
   },
   "workshop_first_set": {
     "npc": "guide",
     "name": "Peças para os próximos planos",
     "dialogue": "Aquele conjunto de acessórios que você fez no ateliê já conta. Guarde esta cinta de ferro para o que vem aí.",
     "goals": [
-      {"type": "stat", "key": "produce:accessory_set", "target": 1, "label": "Ter feito 1 conjunto de acessórios"}
+      {
+        "type": "stat",
+        "key": "produce:accessory_set",
+        "target": 1,
+        "label": "Ter feito 1 conjunto de acessórios"
+      }
     ],
-    "rewards": {"items": {"iron_band": 1}},
+    "rewards": {
+      "items": {
+        "iron_band": 1
+      }
+    },
     "kind": "line",
     "line": "workshop",
     "order": 20
@@ -1995,9 +2029,16 @@
     "name": "Uma cesta para compartilhar",
     "dialogue": "Petiscos e bebidas numa cesta: perfeito para dividir com os amigos da vila.",
     "goals": [
-      {"type": "stat", "key": "produce:picnic_pack", "target": 1, "label": "Fazer 1 cesta do encontro"}
+      {
+        "type": "stat",
+        "key": "produce:picnic_pack",
+        "target": 1,
+        "label": "Fazer 1 cesta do encontro"
+      }
     ],
-    "rewards": {"coins": 10},
+    "rewards": {
+      "coins": 10
+    },
     "kind": "line",
     "line": "workshop",
     "order": 30
@@ -2007,13 +2048,27 @@
     "name": "O sabor da descoberta",
     "dialogue": "O mirtilo do tesouro virou petisco! Quando o Tiro pedir um, dê a ele.",
     "goals": [
-      {"type": "stat", "key": "wish_item:blueberry_treat", "target": 1, "label": "Dar o petisco de mirtilo quando o Tiro pedir"}
+      {
+        "type": "stat",
+        "key": "feed:blueberry_treat",
+        "target": 1,
+        "label": "Dar o petisco de mirtilo ao Tiro"
+      }
     ],
-    "rewards": {"affection": 8},
+    "rewards": {
+      "coins": 15
+    },
     "kind": "line",
     "line": "nina_flavors",
     "order": 10,
-    "requirements": {"stats": {"treasure": 1}, "owned": ["greenhouse"]}
+    "requirements": {
+      "stats": {
+        "treasure": 1
+      },
+      "owned": [
+        "greenhouse"
+      ]
+    }
   },
   "community_10_meet": {
     "npc": "lais",
@@ -2063,7 +2118,7 @@
       }
     ],
     "rewards": {
-      "affection": 5
+      "coins": 10
     },
     "kind": "main",
     "chapter": 10,
@@ -2116,7 +2171,7 @@
       }
     ],
     "rewards": {
-      "affection": 5
+      "coins": 10
     },
     "kind": "main",
     "chapter": 11,
@@ -2170,7 +2225,6 @@
       }
     ],
     "rewards": {
-      "affection": 10,
       "items": {
         "courage_medal": 1
       }
@@ -2328,5 +2382,26 @@
     "kind": "main",
     "chapter": 12,
     "order": 40
+  },
+  "lais_first_wish": {
+    "npc": "lais",
+    "name": "Atender o primeiro desejo",
+    "dialogue": "Quando ele pede, é hora de cuidar. Cada cuidado assim vira um momento que faz ele crescer! Toque no balão do Tiro e atenda o desejo.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "wish",
+        "target": 1,
+        "label": "Atender o primeiro desejo"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 2,
+    "order": 5,
+    "go": {
+      "screen": "pet",
+      "hint": "Tiro → balão do desejo"
+    }
   }
 }

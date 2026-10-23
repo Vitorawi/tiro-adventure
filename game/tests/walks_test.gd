@@ -50,28 +50,22 @@ func _run() -> void:
 	check(state.call("walk_lock_error", "village_fair") != "", "Feira exige 6")
 	progress.count("walk", 3)
 	check(state.call("walk_lock_error", "village_fair") == "", "Feira abre com 6")
-	check(state.call("walk_lock_error", "creek_walk") != "", "Riacho exige Bosque e vínculo")
+	check(state.call("walk_lock_error", "creek_walk") != "", "Riacho exige Bosque e fase")
 	progress.owned["forest_open"] = true
-	state.get("dog").affection = 0
-	state.get("dog").affection = 9999
 	check(state.call("walk_lock_error", "creek_walk") == "Quando ele for Aventureiro", "Riacho espera o Tiro ser Aventureiro (etapa 11)")
 	state.get("growth").phase = "explorer"
-	state.get("dog").affection = 0
-	check(state.call("walk_lock_error", "creek_walk") != "", "Bosque sozinho não libera")
-	var levels: Array = db.get("progression").bond_levels
-	state.get("dog").affection = int(levels[2].affection)
-	check(state.call("walk_lock_error", "creek_walk") == "", "Riacho abre vínculo 3 + Bosque")
+	check(state.call("walk_lock_error", "creek_walk") == "", "Riacho abre com Aventureiro + Bosque")
 	progress.owned.erase("forest_open")
-	check(state.call("walk_lock_error", "creek_walk") != "", "vínculo sozinho não libera")
+	check(state.call("walk_lock_error", "creek_walk") != "", "fase sozinha não libera")
 	progress.count("walk", 9)
-	check(state.call("walk_lock_error", "bird_clearing") != "", "Clareira precisa vínculo 4")
-	state.get("dog").affection = int(levels[3].affection)
-	check(state.call("walk_lock_error", "bird_clearing") == "", "Clareira abre 15 + vínculo 4")
+	check(state.call("walk_lock_error", "bird_clearing") != "", "Clareira precisa do Mocinho")
+	state.get("growth").phase = "young"
+	check(state.call("walk_lock_error", "bird_clearing") == "", "Clareira abre 15 passeios + Mocinho")
 	check(state.call("walk_lock_error", "hill_view") != "", "Mirante fechado")
 	progress.count("walk", 10)
-	check(state.call("walk_lock_error", "hill_view") != "", "Mirante precisa vínculo 5")
-	state.get("dog").affection = int(levels[4].affection)
-	check(state.call("walk_lock_error", "hill_view") == "", "Mirante abre 25 + vínculo 5")
+	check(state.call("walk_lock_error", "hill_view") != "", "Mirante precisa de Azul e Dourado")
+	state.get("growth").phase = "adult"
+	check(state.call("walk_lock_error", "hill_view") == "", "Mirante abre 25 passeios + Azul e Dourado")
 	for hour in [0, 16, 21, 23]:
 		check(state.call("walk_hours_error", "sunset_walk", hour) == "Abre às 17h", "pôr do sol fechado às %dh" % hour)
 	for hour in [17, 18, 20]:
@@ -177,7 +171,7 @@ func _ui_checks() -> void:
 	check(card.find_child("FirstTime", true, false) != null and card.find_child("RareStar", true, false) != null, "primeira vez e festa do raro")
 	var panel: PanelContainer = card.get("_panel")
 	check(panel.size.y <= root.get_visible_rect().size.y - 31.0, "cartão raro cabe e rola")
-	card.call("show_result", {"name": "Clareira dos passarinhos", "postcard": state.call("walk_postcard", "bird_clearing"), "first": true, "rare": "explorer_backpack", "items": {"bird_feather": 2, "wild_mint": 3, "wildflower": 1, "pinecone": 1, "creek_shell": 1}, "new": ["bird_feather", "wild_mint", "wildflower", "pinecone", "creek_shell"], "coins": 30, "affection": 7, "needs": {"happiness": 35, "hygiene": -20}})
+	card.call("show_result", {"name": "Clareira dos passarinhos", "postcard": state.call("walk_postcard", "bird_clearing"), "first": true, "rare": "explorer_backpack", "items": {"bird_feather": 2, "wild_mint": 3, "wildflower": 1, "pinecone": 1, "creek_shell": 1}, "new": ["bird_feather", "wild_mint", "wildflower", "pinecone", "creek_shell"], "coins": 30, "needs": {"happiness": 35, "hygiene": -20}})
 	await process_frame
 	await process_frame
 	var scroll: ScrollContainer = card.find_child("WalkResultScroll", true, false)

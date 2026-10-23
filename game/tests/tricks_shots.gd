@@ -36,7 +36,6 @@ func _run() -> void:
 	main.get("_modal_queue").clear()
 	main.call("_on_world_requested", "park", "look:training")
 	await shot("02_treino_mapa")
-	state.get("dog").affection = 0
 	var ui: Script = load("res://scripts/ui/trick_ui.gd")
 	load("res://scripts/ui/places.gd").call("open", "park", "training")
 	await shot("03_lista_bloqueados")
@@ -87,7 +86,6 @@ func _run() -> void:
 	main.get("_modal_queue").clear()
 	main.call("show_screen", &"pet")
 	await shot("09_botao_truques")
-	state.get("dog").affection = 500
 	for id: String in db.get("progression").tricks:
 		state.call("learn_trick", id)
 	main.get("_modal_queue").clear()

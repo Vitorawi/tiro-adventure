@@ -2,7 +2,7 @@ extends SceneTree
 ## Guarda dos textos: nenhum texto visível usa as palavras fora do glossário (docs/GAME_DESIGN.md → "Voz do jogo").
 ## Lê os mesmos JSON e scripts que tools/list_texts.ps1; ao mudar a lógica de um, mude a do outro.
 
-const FORBIDDEN: Array[String] = ["Recolher", "Coletar", "Conclua:", " · Conclua", "Nv ", "Máx.", "capítulo %d", "x0", "Produzir"]
+const FORBIDDEN: Array[String] = ["Recolher", "Coletar", "Conclua:", " · Conclua", "Nv ", "Máx.", "capítulo %d", "x0", "Produzir", "vínculo", "afeto", "corações", "aba Desejos", "a cada 2 minutos"]
 
 ## Campos JSON cujo valor aparece para o jogador.
 const JSON_KEYS: Array[String] = ["name", "description", "label", "dialogue", "map_name", "map_caption", "instruction", "action_label",
@@ -82,7 +82,7 @@ func _run() -> void:
 ## Procura as palavras proibidas; devolve a primeira ou "".
 func _forbidden(text: String) -> String:
 	for word: String in FORBIDDEN:
-		if word in text:
+		if word in text or (word in FORBIDDEN.slice(10) and word.to_lower() in text.to_lower()):
 			return word
 	return ""
 

@@ -645,7 +645,9 @@ func _test_other_paths() -> void:
 	empty_plots()
 	var worlds: Control = main.find_child("WorldsScreen", true, false)
 	worlds.call("enter", "farm", "plots")
-	await create_timer(1.3).timeout
+	var tray_deadline := Time.get_ticks_msec() + 3000
+	while tray() == null and Time.get_ticks_msec() < tray_deadline:
+		await process_frame
 	var sheet: Control = main.find_child("Sheet", true, false)
 	check(tray() != null and "carrot" in tray().call("entry_ids"), "Ir para canteiros abre sementes direto")
 	check(not sheet.call("is_open"), "Ir para canteiros não abre o painel antigo")

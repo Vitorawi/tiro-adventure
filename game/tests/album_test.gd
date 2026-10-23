@@ -100,7 +100,7 @@ func _data() -> void:
 			"event": entry.on = "voou"
 			"prop": entry.photo.props = ["asa_delta"]
 			"scene": entry.photo.scene = "marte"
-			"many": entry.when = {"hour": [1, 2], "months": [1], "bond_min": 1, "phase_min": "puppy"}
+			"many": entry.when = {"hour": [1, 2], "months": [1], "phase_min": "puppy", "chance": 1}
 			"duplicate": broken.photos[1].id = entry.id
 		db.album = broken
 		check(not db.album_problems().is_empty(), "rejeita: " + mutation)
@@ -352,11 +352,6 @@ func _introduction() -> void:
 	view.free()
 	_reload()
 	check(state.photo_alerts_enabled(), "descoberta do Álbum persiste no save")
-	# Save anterior, sem o contador novo: foto já vista prova que conhecia o Álbum.
-	state.progress.stats.erase("open:album")
-	state.mark_photo_seen("h_arrival")
-	_reload()
-	check(state.photo_alerts_enabled(), "compatibilidade com save que já tinha foto vista")
 
 
 func _interface() -> void:

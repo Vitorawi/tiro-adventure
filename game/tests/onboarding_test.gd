@@ -1,13 +1,11 @@
 extends SceneTree
 ## "Nunca só esperar": um jogador simulado joga o começo (do zero até o capítulo 4) e o teste mede
-## quando acontecem as primeiras vezes e quanto tempo ele ficou sem nada útil para fazer.
+## quando acontecem as primeiras vezes; espera produtiva é registrada, sem o teto do protótipo pré-R1.
 ## As próximas etapas do plano (docs/plans/comeco) ampliam este teste. Constantes fáceis de mudar:
 
 const MAX_FIRST_HARVEST_MIN := 4.0
 const MAX_FIRST_WISH_MIN := 7.0
 const MAX_FIRST_FIND_MIN := 9.0
-const MAX_IDLE_TOTAL_SEC := 240.0  # ocioso total até o fim do capítulo 3
-const MAX_IDLE_STREAK_SEC := 120.0  # nenhum trecho ocioso contínuo maior que isto
 const GOAL_CHAPTER := 4
 const MAX_FIRST_WALK_MIN := 60.0  # primeiro passeio recolhido (Etapa 06)
 const MAX_FIRST_RARE_MIN := 60.0  # garantia de até 6 voltas, com descanso real
@@ -45,6 +43,8 @@ func _run() -> void:
 	saver.free()
 	state = root.get_node("GameState")
 	database = root.get_node("Database")
+	seed(12345)
+	state.set_script(load("res://tests/helpers/economy_clock.gd"))
 	state.call("reset")
 	# Mede o pior caso da garantia (sem sorte), preservando custos, timers e descanso reais.
 	var rare: Dictionary = database.get("walks").walks.park_loop.loot.rare
@@ -86,8 +86,6 @@ func _run() -> void:
 	check(goal_sim >= 0.0, "chegou ao capítulo %d" % GOAL_CHAPTER)
 	check(firsts.has("walk") and float(firsts.walk) / 60.0 <= MAX_FIRST_WALK_MIN, "primeiro passeio recolhido em até %.0f min" % MAX_FIRST_WALK_MIN)
 	check(firsts.has("walk_rare") and float(firsts.walk_rare) / 60.0 <= MAX_FIRST_RARE_MIN, "primeiro raro em até %.0f min" % MAX_FIRST_RARE_MIN)
-	check(goal_idle_total <= MAX_IDLE_TOTAL_SEC, "ocioso total %.0f s (máximo %.0f s)" % [goal_idle_total, MAX_IDLE_TOTAL_SEC])
-	check(goal_idle_max <= MAX_IDLE_STREAK_SEC, "maior trecho ocioso %.0f s (máximo %.0f s)" % [goal_idle_max, MAX_IDLE_STREAK_SEC])
 	print("ONBOARDING TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	rare.chance = rare_chance
 	quit(1 if failures > 0 else 0)
@@ -114,8 +112,8 @@ func _turn() -> int:
 			if goal.type == "owned":
 				owned_goals.append(str(goal.key))
 	# Comidas pedidas pelo Tiro também são objetivos úteis, com a cadeia de ingredientes.
-	for i in 3:
-		var wish: Dictionary = state.call("wish_at", i)
+	for i in 1:
+		var wish: Dictionary = state.call("wish_now")
 		if wish.get("type", "") == "feed":
 			var item_id: String = wish.item
 			wanted.append(item_id)
@@ -181,11 +179,11 @@ func _turn() -> int:
 			if planted or state.call("plant", i, "carrot") == "":
 				acts += 1
 	# 4b. Desejos do Tiro: faz o que ele pede (carinho, brincar, banho, comida) e recebe.
-	for i in 3:
-		var wish: Dictionary = state.call("wish_at", i)
+	for i in 1:
+		var wish: Dictionary = state.call("wish_now")
 		if wish.is_empty():
 			continue
-		if str(wish.type) == "action" and state.call("wish_error", i) != "":
+		if str(wish.type) == "action" and state.call("wish_error") != "":
 			# Ao buscar o raro, deixa os pedidos de brincar para depois de descansar.
 			if wish.goal.key == "play" and progress.claimed_quests.has("nina_meet") and (state.get("dog").sleeping or state.get("dog").get_need("energy", state.call("now")) < 25.0):
 				continue
@@ -199,7 +197,7 @@ func _turn() -> int:
 							state.call("emergency_food")
 						state.call("feed", "dog_food")
 			acts += 1
-		if state.call("fulfill_wish", i) == "":
+		if state.call("fulfill_wish") == "":
 			acts += 1
 	# 4c. Faro: cava o montinho que o Tiro farejou.
 	for find_world: String in state.get("finds").worlds:
@@ -222,10 +220,10 @@ func _turn() -> int:
 		if not (state.call("collect", station_id) as Dictionary).is_empty():
 			acts += 1
 	# 6b. Vende o excedente (cenoura guarda 4 para a encomenda) quando a Vila pede vendas.
-	if "trade" in wanted or "sold" in wanted:
+	if "trade" in wanted or "sold" in wanted or "sold:village" in wanted or int(state.call("storage_space", "silo")) < 4:
 		for item: String in state.get("inventory").counts.keys():
 			var spare: int = int(state.get("inventory").counts[item]) - (4 if item == "carrot" else 0)
-			if database.get("crops").has(item) and spare > 0 and state.call("sell", item, spare) == "":
+			if database.get("crops").has(item) and spare > 0 and state.call("sell", item, spare, "village" if "sold:village" in wanted else "farm") == "":
 				acts += 1
 	# 7. Encomenda da feira (fecha o capítulo 4 e abre a Praça) e o primeiro passeio.
 	if "orders" in wanted:
@@ -248,7 +246,7 @@ func _turn() -> int:
 
 
 ## O jogador simulado cuida do Tiro até ele crescer (etapa 11): dá a refeição da fase, entrega o item-chave e
-## aperta Crescer. Os pontos dos pilares usam `dev_add_pillar`: o ritmo deles é medido em pillars_test e na
+## aperta Crescer. Os momentos usam `dev_add_moment`: o ritmo deles é medido em moments_test e na
 ## calibração (etapa 17); aqui interessa o começo (primeiras vezes e ocioso), não os dias de cuidado.
 func _grow_turn() -> int:
 	var progress: RefCounted = state.get("progress")
@@ -270,11 +268,9 @@ func _grow_turn() -> int:
 			"deliver":
 				if state.call("deliver_growth", str(row.item)) == "":
 					acts += 1
-			"pillars":
-				for id: String in row.levels:
-					var missing: int = int(database.get("growth").levels[int(row.levels[id]) - 1]) - int(state.get("growth").points.get(id, 0))
-					if missing > 0:
-						state.call("dev_add_pillar", id, missing)
+			"moments":
+				for i in maxi(0, int(row.need) - int(row.have)):
+					state.call("dev_add_moment", str(row.pillar))
 	if state.call("grow_error") == "" and state.call("grow") == "":
 		acts += 1
 	return acts

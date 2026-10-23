@@ -104,15 +104,16 @@ func _toys() -> void:
 	check(state.give_toy("carrot") != "", "recusa item sem toy")
 	reload_state()
 	check(state.toy_basket_count() == 2, "brinquedos persistem")
-	var before: int = state.progress.stat("pillar:smart")
+	state.dog.needs.happiness = 40.0
+	var before: int = state.progress.stat("moment:smart")
 	check(state.play(), "brincar pelo caminho real")
-	check(state.progress.stat("pillar:smart") - before == 5, "+1 por brinquedo na Esperteza")
+	check(state.progress.stat("moment:smart") - before == 1, "brincar útil rende um momento com brinquedos")
 	state.progress.house.toys.append_array(["futuro_3", "futuro_4"])
 	check(state.toy_basket_count() == 3, "bônus máximo +3")
-	before = state.progress.stat("pillar:smart")
-	state.growth.cooldowns.erase("play")
+	before = state.progress.stat("moment:smart")
+	state.dog.needs.happiness = 40.0
 	state.play()
-	check(state.progress.stat("pillar:smart") - before == 6, "brincar respeita teto do bônus")
+	check(state.progress.stat("moment:smart") - before == 1, "brinquedos não multiplicam momentos")
 
 func _sleep() -> void:
 	for bed: String in ["", "bed_soft", "bed_luxe"]:
@@ -151,14 +152,11 @@ func _purchases() -> void:
 func _food() -> void:
 	for bowl: bool in [false, true]:
 		fresh("puppy")
-		# A mesma comida e semente nos dois cenários, longe de Radiante.
 		state.growth.taste_seed = 1
 		if bowl: state.progress.owned.named_bowl = true
 		state.inventory.add("puppy_mash")
-		var before: int = state.progress.stat("pillar:body")
 		check(state.feed("puppy_mash"), "alimentar real")
-		var factor := 1.5 if state.favorite_food() == "puppy_mash" else 1.0
-		check(state.progress.stat("pillar:body") - before == ceili(6.0 * factor * (1.1 if bowl else 1.0)), "tigela multiplica +10% antes de arredondar")
+		check(state.growth.body_level == 0, "uma porção não antecipa Corpo nem dá pontos")
 
 func _room_and_ui() -> void:
 	fresh()

@@ -18,9 +18,6 @@ const WAIT := "wait"
 const BLOCK := "block"
 const MAX_DEPTH := 28
 var _walk_nesting := 0
-const CARE_FEED_BELOW := 55.0
-const CARE_BATHE_BELOW := 40.0
-const CARE_PLAY_BELOW := 45.0
 const SLEEP_BELOW := 25.0
 const WAKE_ABOVE := 90.0
 const FOOD_KEEP := 3
@@ -398,7 +395,7 @@ func ph_care_optional(_steps: Array[String]) -> Dictionary:
 	return _care(false)
 
 
-func _care(urgent: bool) -> Dictionary:
+func _care(_urgent: bool) -> Dictionary:
 	var now := t()
 	var dog = gs.dog
 	if dog.sleeping:
@@ -407,22 +404,20 @@ func _care(urgent: bool) -> Dictionary:
 		return {}
 	if gs.walking():
 		return {}
-	var hunger: float = dog.get_need("hunger", now)
-	var limit_feed := 30.0 if urgent else CARE_FEED_BELOW
-	if hunger < limit_feed:
+	if gs.need_asking("hunger"):
 		var food: String = best_food()
 		if food != "":
 			return _action("feed", {"item": food}, "pet", "care")
 		if emergency_ready():
 			return _action("emergency_food", {}, "pet", "care")
-	if dog.get_need("hygiene", now) < (25.0 if urgent else CARE_BATHE_BELOW):
-		return _action("bathe", {}, "pet", "care")
-	var happy: float = dog.get_need("happiness", now)
-	if happy < (30.0 if urgent else CARE_PLAY_BELOW):
-		if dog.get_need("energy", now) >= 20.0:
+	if gs.need_asking("hygiene"):
+		return _action("bathe", {"shampoo": have("herb_shampoo") > 0}, "pet", "care")
+	if gs.need_asking("happiness"):
+		var brave: int = gs.growth.phase_need("brave") - int(gs.growth.phase_moments.get("brave", 0))
+		var smart: int = gs.growth.phase_need("smart") - int(gs.growth.phase_moments.get("smart", 0))
+		if smart > brave and dog.get_need("energy", now) >= 20.0:
 			return _action("play", {}, "pet", "care")
-		if not urgent:
-			return _action("pet", {}, "pet", "care")
+		return _action("pet", {}, "pet", "care")
 	if dog.get_need("energy", now) < SLEEP_BELOW:
 		return _action("sleep", {"value": true}, "pet", "care")
 	return {}
@@ -445,36 +440,33 @@ func best_food(shield: bool = false) -> String:
 
 
 func ph_wishes(_steps: Array[String]) -> Dictionary:
-	if gs.walking():
+	if gs.walking() or gs.wish_now().is_empty() or gs.wish_error() != "":
 		return {}
-	for i in gs.wishes.slots.size():
-		if gs.wish_at(i).is_empty():
-			continue
-		if gs.wish_error(i) == "":
-			var def: Dictionary = gs.wish_at(i)
-			if str(def.get("type", "")) in ["feed", "give"] and avail(str(def.item), false) <= 0:
-				continue
-			if is_avoided("wish%d" % i):
-				continue
-			return _action("fulfill_wish", {"slot": i}, "wishes", "wish")
-	return {}
+	var def: Dictionary = gs.wish_now()
+	if str(def.get("type", "")) in ["feed", "give"] and avail(str(def.item), false) <= 0:
+		return {}
+	if is_avoided("wish"):
+		return {}
+	return _action("fulfill_wish", {}, "wishes", "wish")
 
 
 ## Desejos de ação (fazer carinho, brincar, passear...): o jogador faz o que o balão pede.
 func ph_wish_goals(_steps: Array[String]) -> Dictionary:
 	if gs.walking():
 		return {}
-	for i in gs.wishes.slots.size():
-		var def: Dictionary = gs.wish_at(i)
-		if def.is_empty() or str(def.get("type", "")) != "action" or gs.wish_error(i) == "":
-			continue
-		var remaining: int = gs.wish_target(i) - gs.wish_value(i)
-		if remaining <= 0:
-			continue
-		var r: Dictionary = pursue_stat(str(def.goal.key), remaining, false, 1, "wish")
-		if str(r.state) == ACT:
-			r.action["why"] = "wish"
-			return r.action
+	var def: Dictionary = gs.wish_now()
+	if def.is_empty() or gs.wish_error() == "":
+		return {}
+	if str(def.get("type", "")) == "feed":
+		var food_result := pursue_item(str(def.item), 1, false, 1)
+		return food_result.action if str(food_result.state) == ACT else {}
+	var remaining: int = gs.wish_target() - gs.wish_value()
+	if remaining <= 0:
+		return {}
+	var r: Dictionary = pursue_stat(str(def.goal.key), remaining, false, 1, "wish")
+	if str(r.state) == ACT:
+		r.action["why"] = "wish"
+		return r.action
 	return {}
 
 
@@ -803,16 +795,16 @@ func _sell_best(depot_filter: String) -> Dictionary:
 	return _action("sell", {"item": best, "qty": qty}, "market", "sell")
 
 
-func ph_bond_extras(_steps: Array[String]) -> Dictionary:
+func ph_affective_extras(_steps: Array[String]) -> Dictionary:
 	## Perfil afetivo: truques e amigos quando dá, sem estragar a meta reservada.
 	if gs.walking() or gs.dog.sleeping:
 		return {}
 	for id: String in Database.progression.tricks:
 		if gs.perform_trick_error(id) == "":
-			return _action("perform_trick", {"id": id}, "pet", "bond")
+			return _action("perform_trick", {"id": id}, "pet", "extras")
 	for id: String in gs.friends_present():
 		if gs.give_friend_error(id) == "" and avail(str(gs.friend_def(id).likes), false) > 0 and not is_avoided("friend" + id):
-			return _action("give_friend", {"id": id}, "friends", "bond")
+			return _action("give_friend", {"id": id}, "friends", "extras")
 	return {}
 
 
@@ -1181,8 +1173,6 @@ func pursue_reqs(requirements: Dictionary, shield: bool, depth: int, who: String
 	for id: String in requirements.get("skills", {}):
 		if gs.progress.skill_level(id) < int(requirements.skills[id]):
 			results.append(_block("skill:" + id, who))
-	if requirements.has("bond") and gs.progress.bond_level(gs.dog.affection) < int(requirements.bond):
-		results.append(_block("bond", who))
 	if requirements.has("hours") and gs.requirement_error({"hours": requirements.hours}) != "":
 		results.append(_wait("hours"))
 	return _combine(results)
@@ -1628,6 +1618,7 @@ func pursue_stat(key: String, remaining: int, shield: bool, depth: int, qid: Str
 				return pursue_reqs(Database.worlds[arg].get("requirements", {}), shield, depth + 1, qid)
 			return _act(_action("open_screen", {"screen": arg}, "screen:" + arg, "goal"))
 		"feed":
+			if arg != "": return _pursue_growth_feed(arg, remaining, shield, depth + 1)
 			return _pursue_feed(shield, depth)
 		"bathe":
 			if gs.walking():
@@ -1637,6 +1628,12 @@ func pursue_stat(key: String, remaining: int, shield: bool, depth: int, qid: Str
 			return _pursue_shampoo_bath(shield, depth)
 		"play":
 			return _pursue_play()
+		"brush":
+			return _act(_action("brush", {}, "pet", "goal")) if gs.brush_error() == "" else _wait("brush")
+		"wish":
+			var wish_action := ph_wishes([] as Array[String])
+			if wish_action.is_empty(): wish_action = ph_wish_goals([] as Array[String])
+			return _act(wish_action) if not wish_action.is_empty() else _wait("wish")
 		"pet":
 			if gs.walking():
 				return _wait("walk")
@@ -1693,9 +1690,8 @@ func pursue_stat(key: String, remaining: int, shield: bool, depth: int, qid: Str
 func _pursue_wish_item(item: String, shield: bool, depth: int) -> Dictionary:
 	if gs.walking():
 		return _wait("walk")
-	var slot: int = gs.wish_slot_for_item(item)
-	if slot >= 0:
-		return _act(_action("fulfill_wish", {"slot": slot}, "wish", "goal"))
+	if gs.wish_wants_item(item):
+		return _act(_action("fulfill_wish", {}, "wish", "goal"))
 	var made: Dictionary = pursue_item(item, 1, shield, depth + 1)
 	if str(made.state) != DONE:
 		return made
@@ -2012,8 +2008,8 @@ func _pursue_growth_req(row: Dictionary, shield: bool, depth: int, qid: String) 
 			return _pursue_growth_feed(str(row.item), int(row.need) - int(row.have), shield, depth + 1)
 		"stat":
 			return pursue_stat(str(row.counter), int(row.need) - int(row.have), shield, depth + 1, qid)
-		"pillars":
-			return _pursue_pillars(row.levels, shield, depth + 1)
+		"moments":
+			return _pursue_moment(str(row.pillar))
 	return _block("growth:" + str(row.type), qid)
 
 
@@ -2046,48 +2042,34 @@ func _pursue_shampoo_bath(shield: bool, depth: int) -> Dictionary:
 		return _wait("sleep")
 	if have("herb_shampoo") < 1:
 		return pursue_item("herb_shampoo", 1, shield, depth + 1)
-	if gs.dog.get_need("hygiene", t()) >= 92.0:
+	if not gs.need_asking("hygiene"):
 		return _wait("hygiene")
 	return _act(_action("bathe", {"shampoo": true}, "pet", "goal"))
 
 
-## Pilares que ainda faltam: cada gesto no momento em que a recarga e a necessidade dão pontos.
-func _pursue_pillars(levels: Dictionary, _shield: bool, _depth: int) -> Dictionary:
-	var lacking: Array[String] = []
-	for id: String in levels:
-		if gs.growth.level(id) < int(levels[id]):
-			lacking.append(id)
-	if lacking.is_empty():
-		return _done()
-	if gs.walking():
-		return _wait("walk")
-	if gs.dog.sleeping:
-		return _wait("sleep")
-	var now := t()
-	if "coat" in lacking and float(gs.growth.cooldowns.get("bath", 0.0)) <= now and gs.dog.get_need("hygiene", now) < 90.0:
-		return _act(_action("bathe", {"shampoo": have("herb_shampoo") > 0}, "pet", "goal"))
-	if "body" in lacking:
-		var food := _growth_food()
-		if food != "":
-			return _act(_action("feed", {"item": food}, "pet", "goal"))
-	if ("smart" in lacking or "brave" in lacking) and float(gs.growth.cooldowns.get("play", 0.0)) <= now \
-			and gs.dog.get_need("energy", now) >= 20.0 and gs.dog.get_need("happiness", now) < 90.0:
-		return _act(_action("play", {}, "pet", "goal"))
-	if "brave" in lacking and gs.progress.cooldown_left("affection:pet", now) <= 0.0:
-		return _act(_action("pet", {}, "pet", "goal"))
-	return _wait("pillars")
-
-
-## Comida da fase que mais cresce o corpo e que a meta reservada não protege.
-func _growth_food() -> String:
-	var best := ""
-	var best_body := 0.0
-	for item: String in sorted_keys(gs.inventory.counts):
-		var data: Dictionary = Database.items.get(item, {}).get("growth", {})
-		if data.is_empty() or avail(item, false) <= 0 or not gs.growth.phase in data.get("phases", []):
-			continue
-		var body := float(data.get("pillars", {}).get("body", 0))
-		if body > best_body:
-			best = item
-			best_body = body
-	return best
+## Fontes reais de momentos: não repete carinho/brincadeira com a necessidade satisfeita.
+func _pursue_moment(pillar: String) -> Dictionary:
+	if gs.walking(): return _wait("walk")
+	if gs.dog.sleeping: return _wait("sleep")
+	var key: String = gs.moment_period() + ":" + pillar
+	var room: bool = int(gs.growth.period_moments.get(key, 0)) < int(Database.growth.moments.period_cap)
+	if pillar == "coat":
+		var day := Time.get_date_string_from_unix_time(gs._local_time())
+		if gs.brush_error() == "" and not gs.growth.brush_days.has(day):
+			return _act(_action("brush", {}, "pet", "goal"))
+		if room and gs.need_asking("hygiene"):
+			return _act(_action("bathe", {"shampoo": have("herb_shampoo") > 0}, "pet", "goal"))
+	if room and pillar == "brave":
+		if gs.need_asking("happiness"):
+			return _act(_action("pet", {}, "pet", "goal"))
+		return _pursue_walk("")
+	if room and pillar == "smart":
+		if gs.need_asking("happiness") and gs.dog.get_need("energy", t()) >= 20.0:
+			return _act(_action("play", {}, "pet", "goal"))
+		for item: String in sorted_keys(gs.inventory.counts):
+			if avail(item, false) > 0 and gs.hide_and_seek_error(item) == "":
+				return _act(_action("hide", {"item": item}, "pet", "goal"))
+		for id: String in Database.progression.tricks:
+			if gs.perform_trick_error(id) == "":
+				return _act(_action("perform_trick", {"id": id}, "pet", "goal"))
+	return _wait("moments:" + pillar)

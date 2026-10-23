@@ -11,6 +11,8 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 	visited.append(key)
 	var result: Dictionary
 	match kind:
+		"moments":
+			return _moments(id)
 		"growth_req":
 			return _growth_requirement(id, visited)
 		"growth":
@@ -18,9 +20,9 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 		"stat":
 			return _goal({"type": "stat", "key": id, "target": amount}, visited)
 		"wish":
-			var wish := GameState.wish_def(id)
+			var wish := GameState.wish_now() if id == GameState.wish_id() else GameState.wish_def(id)
 			if wish.is_empty():
-				return _base("Desejos", "Veja o que o Tiro quer.", {"screen": "wishes"}, "Ir")
+				return _base("Desejos", "Veja o balão do Tiro.", {"screen": "pet"}, "Ir")
 			if wish.get("type", "") != "action":
 				return describe("item", str(wish.item), amount, visited)
 			var goal: Dictionary = wish.goal.duplicate()
@@ -197,6 +199,8 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 				result.detail += "\nSerá entregue ao pegar o prêmio."
 			return result
 		"stat":
+			if key == "wish" or key.begins_with("wish:"):
+				return _base("Desejo do Tiro", "Toque no balão do Tiro, faça o que ele pede e toque em Pegar ou Dar. Atender rende um momento para crescer.", {"screen": "pet"}, "Ir")
 			if key == "shampoo_bath":
 				var result := _base("Banho com xampu", "Aba Tiro → marque Com xampu e dê Banho.", {"screen": "pet"}, "Ir")
 				if GameState.inventory.count("herb_shampoo") < 1:
@@ -228,6 +232,8 @@ static func _recipe(id: String, amount: int) -> Dictionary:
 	var station: String = recipe.station
 	var target := _focused("station:" + station, "recipe:" + id)
 	var result := _base(Database.item_name(Database.recipe_output(recipe)), "", target, "Ir")
+	# Bloqueios orientam o próximo passo; a faixa da receita mostra só ingredientes diretos.
+	result["ingredients"] = []
 	var pending := 0
 	var ready := 0
 	var remaining := 0
@@ -251,6 +257,7 @@ static func _recipe(id: String, amount: int) -> Dictionary:
 		result.needs.append(_need("upgrade", station, 1))
 	if GameState.content_error("recipe", id, recipe) != "":
 		result.needs.append_array(_requirements(recipe.get("requirements", {})))
+	_materials(result.ingredients, GameState.recipe_inputs(id), batches)
 	if Database.stations[station].get("kind", "") == "animal" and GameState.animal_count(station) == 0:
 		result["next"] = "Compre seu primeiro animal no abrigo"
 		result["next_target"] = target
@@ -589,10 +596,11 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 		UiKit.card(box, &"ReadyCardPanel").add_child(step)
 		if (recipe_destination or data.has("next")) and data.detail != "" and not data.has("source_text"):
 			box.add_child(UiKit.label(data.detail, &"SmallLabel"))
-		if data.needs.is_empty():
+		var visible_needs: Array = data.get("ingredients", data.needs)
+		if visible_needs.is_empty():
 			return
 		var chips := UiKit.flow()
-		for need: Dictionary in data.needs:
+		for need: Dictionary in visible_needs:
 			var ok := int(need.have) >= int(need.amount)
 			chips.add_child(UiKit.tap_chip(need_icon(need), "%d/%d" % [int(need.have), int(need.amount)], func() -> void:
 				var path: Array[Dictionary] = history.duplicate()
@@ -605,6 +613,8 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 ## Ícone do que o painel explica (missão = objetivo atual).
 static func icon_for(kind: String, id: String) -> Texture2D:
 	match kind:
+		"moments":
+			return UiKit.ui_icon(str(Database.growth.pillars.get(id, {}).get("icon", "tab_pet")))
 		"growth":
 			return UiKit.ui_icon("tab_pet")
 		"growth_req":
@@ -616,7 +626,7 @@ static func icon_for(kind: String, id: String) -> Texture2D:
 						var food := GameState.favorite_food() if row.item == "favorite" else str(row.item)
 						return Database.item_icon(food) if Database.items.has(food) else UiKit.ui_icon("need_hunger")
 					"owned": return UiKit.ui_icon(Database.progression.upgrades[str(row.upgrade)].get("icon", "tab_house"))
-					"pillars": return UiKit.ui_icon(str(Database.growth.pillars[row.levels.keys()[0]].icon))
+					"moments": return UiKit.ui_icon(str(Database.growth.pillars[row.pillar].icon))
 			return UiKit.ui_icon("tab_pet")
 		"produced":
 			return Database.item_icon(id)
@@ -728,7 +738,8 @@ static func _growth_requirement(id: String, trail: Array[String]) -> Dictionary:
 						result = _base(str(row.label), "Tiro → Comida: dê " + Database.item_name(food_id), {"screen": "pet"}, "Ir")
 			"stat": result = describe("stat", str(row.counter), int(row.need), trail)
 			"collection": result = _base(str(row.label), "Faça na Costura da Praça.", {"world": "park", "place": "sewing"}, "Ir")
-			"pillars":
+			"moments":
+				result = _moments(str(row.pillar))
 				result["steps"] = growth_care_steps(row)
 				for care: Dictionary in result.steps:
 					if care.done: continue
@@ -798,30 +809,26 @@ static func _growth_food(row: Dictionary, food: String, recipe_id: String, trail
 	return result
 
 
-## Cada cuidado mostra pontos reais até o patamar pedido, em vez de um 0/1 agrupado.
+## Um cuidado por requisito, com momentos acumulados nesta fase.
 static func growth_care_steps(row: Dictionary) -> Array[Dictionary]:
-	var steps: Array[Dictionary] = []
-	var info := GameState.growth_info()
-	for pillar: String in row.levels:
-		var level := int(row.levels[pillar])
-		var goal := int(Database.growth.levels[level - 1])
-		var points := mini(int(info.pillars[pillar].points), goal)
-		var done := int(info.pillars[pillar].level) >= level
-		var hint := {"body": "Dê comida para ganhar Corpo.", "coat": "Dê banho quando ele precisar para ganhar Pelagem.", "smart": "Brinque ou cave achados para ganhar Esperteza.", "brave": "Faça carinho no Tiro com o dedo para ganhar Coragem."}[pillar] as String
-		var target := {"screen": "pet"}
-		var action: String = {"body": "Dar comida", "brave": "Fazer carinho", "smart": "Brincar", "coat": "Dar banho"}[pillar]
-		if pillar == "brave": hint += " " + str(GameState.pet_growth_info().hint)
-		if pillar == "smart": hint += " " + str(GameState.play_growth_info().hint)
-		if pillar == "body":
-			var food := ""
-			for item: String in Database.items:
-				var growth: Dictionary = Database.items[item].get("growth", {})
-				if info.phase in growth.get("phases", []) and float(growth.get("pillars", {}).get("body", 0)) > 0:
-					food = item
-					break
-			if food != "":
-				hint = "Dê %s na Tigela para ganhar Corpo. Cada porção ajuda; repita até completar." % Database.item_name(food)
-			target = Places.goal_target({"type": "stat", "key": "feed"})
-			action = "Dar comida"
-		steps.append({"id": pillar, "title": "%s %d%s" % [Database.growth.pillars[pillar].name, level, " ✓" if done else ""], "progress": "%d/%d pontos%s" % [points, goal, " · Completo" if done else ""], "done": done, "hint": hint, "target": target, "action": action})
-	return steps
+	var pillar := str(row.pillar)
+	var have := int(row.get("have", GameState.growth.phase_moments.get(pillar, 0)))
+	var need := int(row.get("need", row.get("qty", 1)))
+	var done := bool(row.get("done", have >= need))
+	var hint := str(_moments(pillar).detail) + " " + str({"coat": "Dê banho quando ele pedir ou escove uma vez por dia.", "smart": "Brinque quando ele pedir ou descubra achados e truques novos.", "brave": "Faça carinho quando ele pedir, passeie ou conheça novidades."}[pillar])
+	if pillar == "brave": hint += " " + str(GameState.pet_growth_info().hint)
+	if pillar == "smart": hint += " " + str(GameState.play_growth_info().hint)
+	var action := str({"brave": "Fazer carinho", "smart": "Brincar", "coat": "Dar banho"}[pillar])
+	return [{"id": pillar, "title": str(Database.growth.pillars[pillar].name), "progress": "%d/%d momentos%s" % [have, need, " · Completo" if done else ""], "done": done, "hint": hint, "target": {"screen": "pet"}, "action": action}]
+
+
+## Fontes do catálogo, compartilhadas com o caderninho; consulta sem conceder momentos.
+static func _moments(pillar: String) -> Dictionary:
+	var labels: PackedStringArray = []
+	for source: Dictionary in Database.growth.moments.sources.values():
+		if source.pillar == pillar and source.has("label"):
+			labels.append(str(source.label))
+	var name := str(Database.growth.pillars.get(pillar, {}).get("name", "Crescimento"))
+	var result := _base("Momentos de " + name, "De onde vêm: " + "; ".join(labels) + ". Atender desejos também conta.", {"screen": "pet"}, "Ir")
+	result["sources"] = labels
+	return result

@@ -37,11 +37,6 @@ static func panel(training: bool = false) -> Control:
 				card.add_child(train)
 			if reason != "":
 				card.add_child(UiKit.label(reason, &"SmallLabel"))
-				if not learned:
-					var chips := UiKit.flow()
-					if def.requirements.has("bond"):
-						chips.add_child(UiKit.chip(UiKit.ui_icon("bond_heart"), "%d/%d" % [GameState.bond_level(), int(def.requirements.bond)]))
-					card.add_child(chips)
 		if not training:
 			box.add_child(UiKit.button("Treinar com a Nina", Places.go.bind({"world": "park", "place": "training"}))))
 

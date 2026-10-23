@@ -163,8 +163,7 @@ static func _set_main(id: String) -> void:
 static func toys() -> Control:
 	var box := UiKit.vbox(8)
 	box.name = "ToysPanel"
-	var bonus := GameState.toy_basket_count()
-	box.add_child(UiKit.fill_label("Cada brinquedo diferente deixa o Tiro mais esperto ao brincar: +%d agora." % bonus, &"SmallLabel"))
+	box.add_child(UiKit.fill_label("Guarde aqui os brinquedos favoritos do Tiro.", &"SmallLabel"))
 	for item: String in Database.house.get("toys", []):
 		var inside: bool = GameState.progress.house.toys.has(item)
 		var action: Control = null

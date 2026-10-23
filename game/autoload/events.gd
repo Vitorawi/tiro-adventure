@@ -23,8 +23,8 @@ signal quest_completed(id: String)
 signal chapter_completed(index: int)
 ## Subiu de nível; `rewards` já foi entregue (soma dos níveis atingidos).
 signal level_up(level: int, rewards: Dictionary)
-## Subiu de vínculo com o Tiro; `rewards` já foi entregue (soma dos níveis atingidos).
-signal bond_up(level: int, rewards: Dictionary)
+## O desejo do Tiro mudou (chegou um novo ou foi atendido).
+signal wish_changed
 
 ## Emitido pelo GameState quando o jogador cuida do Tiro ("feed", "play", "bathe", "pet").
 signal dog_action(action: StringName)
@@ -77,6 +77,7 @@ signal silk_up(level: int)
 signal growth_requirement_done(phase: String, req_id: String)
 signal taste_discovered(item: String, reaction: String)
 signal taste_reacted(item: String, reaction: String)
-signal pillar_gained(pillar: String, points: int, level_up: bool)
+signal moment_gained(pillar: String, source: String)
+signal favorite_spot_loved(zone: String, first: bool)
 signal photo_taken(id: String)
 signal house_item_arrived(id: String)

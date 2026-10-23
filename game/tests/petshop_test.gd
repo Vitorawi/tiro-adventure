@@ -22,6 +22,7 @@ func _run() -> void:
 	saver.free()
 	state = root.get_node("GameState")
 	db = root.get_node("Database")
+	seed(12345)
 	state.call("reset")
 	var progress: RefCounted = state.get("progress")
 	check(state.call("equip_error", "red_scarf") != "", "não veste o que não tem")
@@ -65,11 +66,6 @@ func _run() -> void:
 	check(state.get("inventory").count("flower_crown") == 0, "roupa não vira material de mochila")
 	state.call("collect", "sewing")
 	check(progress.stat("sew") == 1 and state.call("cook_error", "sew_flower_crown") == "Você já tem", "coleta única e receita concluída bloqueada")
-	# Save anterior à Etapa 08 continua com progresso, sem roupa fantasma.
-	saved.progression.erase("equipped")
-	state.call("from_dict", saved)
-	progress = state.get("progress")
-	check(progress.equipped.head == "" and progress.collection.has("red_scarf"), "save antigo preservado")
 	await _walks()
 	await _ui()
 	for id: String in db.get("collections"):
@@ -86,6 +82,8 @@ func _run() -> void:
 
 
 func _walks() -> void:
+	# A costura anterior deixou materiais; esta fixture começa com espaço conhecido.
+	state.get("inventory").counts.clear()
 	var progress: RefCounted = state.get("progress")
 	progress.collection.erase("sponge_uniform")
 	check(state.call("_walk_legendary", 1) == "", "lendário bloqueado antes do marco")
@@ -127,7 +125,7 @@ func _walks() -> void:
 	state.call("start_walk", "park_loop")
 	state.get("walk_state").current.ready_at = 0.0
 	result = state.call("collect_walk")
-	check(result.rare == "plaid_bow" and result.legendary == "sponge_uniform", "raro e segundo lendário juntos")
+	check(result.get("rare", "") == "plaid_bow" and result.get("legendary", "") == "sponge_uniform", "raro e segundo lendário juntos")
 	check(progress.collection.has("sponge_uniform") and state.get("walk_state").pity.park_loop == 0, "garantias independentes e sem lendário repetido")
 	var full_pity: Dictionary = state.get("walk_state").pity.duplicate()
 	state.get("dog").needs.energy = 100.0

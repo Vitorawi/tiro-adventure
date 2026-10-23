@@ -4,10 +4,6 @@
     "skill_xp_step": 20,
     "max_skill_level": 20,
     "first_discovery_multiplier": 2,
-    "care_reward_cooldown": 120,
-    "care_affection_cooldown": 120,
-    "care_useful_gain": 5,
-    "care_useful_gain_pet": 3,
     "emergency_food_amount": 2,
     "emergency_food_cooldown": 300,
     "initial_owned": [],
@@ -24,7 +20,6 @@
       "crop:pumpkin",
       "recipe:pumpkin_mash"
     ],
-    "care_need_threshold": 95,
     "welcome_requirements": {
       "quests": [
         "lais_bed"
@@ -75,8 +70,7 @@
       }
     },
     "5": {
-      "coins": 30,
-      "affection": 5
+      "coins": 30
     },
     "6": {
       "coins": 40,
@@ -137,68 +131,12 @@
       "coins": 40
     }
   ],
-  "bond_levels": [
-    {
-      "affection": 0
-    },
-    {
-      "affection": 20,
-      "rewards": {
-        "coins": 10
-      }
-    },
-    {
-      "affection": 50,
-      "rewards": {
-        "coins": 15,
-        "items": {
-          "carrot_snack": 2
-        }
-      }
-    },
-    {
-      "affection": 100,
-      "rewards": {
-        "coins": 20
-      }
-    },
-    {
-      "affection": 170,
-      "rewards": {
-        "coins": 25,
-        "items": {
-          "bolt": 1
-        }
-      }
-    },
-    {
-      "affection": 260,
-      "rewards": {
-        "coins": 30
-      }
-    },
-    {
-      "affection": 380,
-      "rewards": {
-        "coins": 40,
-        "items": {
-          "bolt": 1
-        }
-      }
-    },
-    {
-      "affection": 520,
-      "rewards": {
-        "coins": 50
-      }
-    }
-  ],
   "features": {
     "wishes": {
-      "name": "Desejos do Tiro",
+      "name": "Desejo do Tiro",
       "icon": "tab_wishes",
       "go": {
-        "screen": "wishes"
+        "screen": "pet"
       },
       "requirements": {
         "growth": "puppy",
@@ -1280,7 +1218,7 @@
       "skill_xp": {
         "adventure": 50
       },
-      "icon": "item_herbs"
+      "icon": "res://assets/sprites/areas/farm/greenhouse.png"
     },
     "stall": {
       "name": "Minha banca",
@@ -2748,8 +2686,7 @@
         "growth": "teething",
         "quests": [
           "nina_pipoca"
-        ],
-        "bond": 2
+        ]
       },
       "zone": 0.25,
       "speed": 1.2
@@ -2762,8 +2699,7 @@
         "growth": "explorer",
         "quests": [
           "nina_pipoca"
-        ],
-        "bond": 3
+        ]
       },
       "zone": 0.22,
       "speed": 1.1
@@ -2776,8 +2712,7 @@
         "growth": "explorer",
         "quests": [
           "nina_pipoca"
-        ],
-        "bond": 4
+        ]
       },
       "zone": 0.2,
       "speed": 1.0
@@ -2790,8 +2725,7 @@
         "growth": "young",
         "quests": [
           "nina_pipoca"
-        ],
-        "bond": 5
+        ]
       },
       "zone": 0.18,
       "speed": 0.95
@@ -2822,8 +2756,7 @@
     "hits": 3,
     "cooldown": 120,
     "perform": {
-      "happiness": 3,
-      "affection": 1
+      "happiness": 3
     }
   },
   "mastery": {

@@ -81,7 +81,7 @@ func _run() -> void:
 	for child: Node in saver.get_children():
 		if child is Timer:
 			child.queue_free()
-	saver.set("_save_path", "user://journey_shots_descartavel.json")
+	saver.set("_save_path", (str(load("res://scripts/util/build_info.gd").call("data_dir")) + "journey_shots_descartavel.json"))
 	state = root.get_node("GameState")
 	var database: Node = root.get_node("Database")
 	if before:

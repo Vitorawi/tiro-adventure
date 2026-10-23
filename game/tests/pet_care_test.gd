@@ -194,11 +194,10 @@ func _run() -> void:
 	(main.get("_walk_result") as CanvasLayer).hide()
 	state.call("dev_set_phase", "puppy")
 	state.call("dev_complete_quest", "lais_bed")
-	# Cenoura é um desejo de comida real; ração é o desejo de ação food_any.
+	# Cenoura é um desejo de comida real; sem comida da fase, o desejo é "qualquer comida".
 	var food_wish := "carrot"
 	bag.call("add", "carrot", 3)
-	state.get("wishes").slots[0] = WishState.empty_slot(0.0)
-	state.get("wishes").slots[0].id = food_wish
+	state.get("wishes").current = {"id": "meal", "item": food_wish, "period": "x", "progress": 0, "since": 0.0}
 	state.call("_changed")
 	await frames()
 	before = bag.call("count", "carrot")
@@ -308,9 +307,8 @@ func _run() -> void:
 	# Carinho pelo mesmo input da cabeça: ganho nomeado e espera, mesmo com menos animação.
 	main.call("show_screen", &"pet")
 	state.get("growth").phase = "teething"
-	state.get("growth").points.brave = 68
-	state.get("growth").reserve.brave = 0
-	state.get("progress").cooldowns.erase("affection:pet")
+	state.get("growth").phase_moments.brave = 0
+	state.get("growth").period_moments.clear()
 	state.get("dog").sleeping = false
 	for need: String in ["hunger", "happiness", "energy", "hygiene"]: state.get("dog").needs[need] = 40.0
 	state.get("dog").updated_at = state.call("now")
@@ -319,24 +317,28 @@ func _run() -> void:
 	touch.button_index = MOUSE_BUTTON_LEFT
 	touch.pressed = true
 	touch.position = sprite.size * Vector2(0.5, 0.3)
-	pet.set("_last_pet_reward", -10.0)
+	pet.call("hold_end")
 	sprite.gui_input.emit(touch)
+	pet.call("hold_tick", 1.3)
 	var feedback: Label = pet.find_child("MoodLabel", true, false)
-	check("Coragem +1" in feedback.text and "69/70" in feedback.text, "carinho anuncia pontos e progresso reais")
-	pet.set("_last_pet_reward", -10.0)
+	check("Momento de Coragem!" in feedback.text, "carinho anuncia momento real")
+	state.get("dog").needs.happiness = 100.0
+	pet.call("hold_end")
 	pet.set("_last_pet_feedback", -10.0)
 	sprite.gui_input.emit(touch)
-	check(feedback.text.begins_with("Próximo ganho de Coragem em "), "reação sem pontos explica recarga")
+	pet.call("hold_tick", 1.3)
+	check("satisfeito" in feedback.text, "reação satisfeita explica ausência de momento")
 	pet.call("_refresh")
-	check(feedback.text.begins_with("Próximo ganho de Coragem em "), "atualização do humor preserva retorno do carinho")
-	check(state.get("growth").points.brave == 69, "toque repetido não promete pontos extras")
+	check("satisfeito" in feedback.text, "atualização do humor preserva retorno do carinho")
+	check(state.get("growth").phase_moments.brave == 1, "toque repetido não promete pontos extras")
 	if "--pet-growth-shots" in OS.get_cmdline_user_args():
 		for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 			root.size = viewport
 			root.get_node("Events").sheet_close_requested.emit()
-			pet.set("_last_pet_reward", -10.0)
+			pet.call("hold_end")
 			pet.set("_last_pet_feedback", -10.0)
 			sprite.gui_input.emit(touch)
+			pet.call("hold_tick", 1.3)
 			await frames()
 			var folder := ProjectSettings.globalize_path("res://../build/screenshots/pet_growth_feedback")
 			DirAccess.make_dir_recursive_absolute(folder)
@@ -356,17 +358,16 @@ func _test_play_feedback() -> void:
 	state.get("dog").sleeping = false
 	for need: String in ["hunger", "happiness", "energy", "hygiene"]: state.get("dog").needs[need] = 40.0
 	state.get("dog").updated_at = state.call("now")
-	state.get("growth").cooldowns.erase("play")
-	state.get("growth").points.smart = 10
-	state.get("growth").reserve.smart = 0
+	state.get("growth").period_moments.clear()
+	state.get("growth").phase_moments.smart = 0
 	tap("ball")
 	var mood: Label = pet.find_child("MoodLabel", true, false)
-	check(mood.text.begins_with("Esperteza +"), "brincar anuncia o ganho nomeado")
-	check(pet.find_child("PlayGrowthTimer", true, false).text.begins_with("Esperteza: próximo ganho em "), "espera aparece na faixa de cuidados")
+	check(mood.text.begins_with("Momento de Esperteza"), "brincar anuncia o ganho nomeado")
+	check("satisfeito" in pet.find_child("PlayGrowthTimer", true, false).text, "necessidade aparece na faixa de cuidados")
 	tap("ball")
-	check(mood.text.begins_with("Esperteza: próximo ganho em "), "brincadeira sem pontos explica espera")
+	check("satisfeito" in mood.text, "brincadeira satisfeita explica ausência de momento")
 	pet.call("_refresh")
-	check(mood.text.begins_with("Esperteza: próximo ganho em "), "refresh não apaga retorno da brincadeira")
+	check("satisfeito" in mood.text, "refresh não apaga retorno da brincadeira")
 	if "--play-growth-shots" in OS.get_cmdline_user_args():
 		for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 			root.size = viewport

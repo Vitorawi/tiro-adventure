@@ -19,7 +19,7 @@ static func tray(room: RoomView, id: String, anchor: Vector2) -> ActionTray:
 		row.add_child(UiKit.icon(load(str(def.portrait)), 48))
 		var hearts := GameState.friend_hearts(id)
 		for i in Database.friends.settings.hearts.size():
-			var heart := UiKit.icon(UiKit.ui_icon("bond_heart"), 24)
+			var heart := UiKit.icon(UiKit.ui_icon("heart"), 24)
 			if i >= hearts:
 				heart.modulate = Palette.SUNKEN
 			row.add_child(heart)
@@ -88,7 +88,7 @@ static func _card(box: VBoxContainer, id: String, album: bool = false) -> void:
 	text.add_child(UiKit.label(str(def.breed) if known or not album else "Amigo da vizinhança", &"SmallLabel"))
 	var heart_row := UiKit.hbox(4)
 	for i in maximum:
-		var heart := UiKit.icon(UiKit.ui_icon("bond_heart"), 24)
+		var heart := UiKit.icon(UiKit.ui_icon("heart"), 24)
 		if i >= hearts:
 			heart.modulate = Palette.SUNKEN
 		heart_row.add_child(heart)

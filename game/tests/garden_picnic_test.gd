@@ -99,7 +99,7 @@ func _data_check() -> void:
 	var picnic: Dictionary = database.project(PICNIC)
 	check(int(garden.start_coins) == 250 and int(picnic.start_coins) == 250, "entrada 250 moedas nas duas")
 	check(garden.requirements == {"projects": [BENCH]} and picnic.requirements == {"projects": [BENCH]}, "só exigem o banco (um não exige o outro)")
-	check(int(garden.rewards.pillars.brave) == 5 and int(picnic.rewards.pillars.brave) == 5 and garden.rewards.size() == 1 and picnic.rewards.size() == 1, "prêmio: Coragem 5")
+	check(garden.rewards.is_empty() and picnic.rewards.is_empty(), "sem prêmio avulso de pontos")
 	var g: Array = garden.phases
 	check(g.size() == 3 and g[0].id == "beds" and g[1].id == "planting" and g[2].id == "opening", "fases do jardim")
 	check(_ints(g[0].items) == {"plank": 4, "brick": 4} and _ints(g[1].items) == {"herbs": 8, "wood": 6} and _ints(g[2].items) == {"strawberry_juice": 3}, "material do jardim (tabela 07 E)")
@@ -163,7 +163,7 @@ func _both_orders() -> void:
 		_fresh()
 		_bench_done()
 		completed_events.clear()
-		var brave_before := int(state.get("progress").stat("pillar:brave"))
+		var brave_before := int(state.get("progress").stat("moment:brave"))
 		for id: String in order:
 			state.set("coins", 250)
 			check(state.call("start_project", id) == "", "%s começa (ordem %s)" % [id, str(order)])
@@ -172,7 +172,7 @@ func _both_orders() -> void:
 			check(state.call("project_completed", id), id + " concluída")
 			check(int(state.get("coins")) == 0, id + ": prêmio não devolve a entrada")
 		check(completed_events == [order[0], order[1]], "conclusões consecutivas em ordem: %s" % str(completed_events))
-		check(int(state.get("progress").stat("pillar:brave")) > brave_before, "Coragem dos dois prêmios entrou")
+		check(int(state.get("progress").stat("moment:brave")) > brave_before, "Coragem dos dois prêmios entrou")
 		check(state.call("project_visual", GARDEN) == "opening" and state.call("project_visual", PICNIC) == "meeting", "cenas finais permanentes")
 		_reload()
 		check(state.call("project_completed", GARDEN) and state.call("project_completed", PICNIC), "reload preserva as duas conclusões")
@@ -250,7 +250,7 @@ func _scene_and_ui() -> void:
 	state.call("start_project", PICNIC)
 	var main: Control = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
-	await create_timer(0.5).timeout
+	await _settle()
 	# Painel com nome comprido em 360 px: o texto do título e das fases não pode estourar a largura.
 	_give_phase(GARDEN, 0)
 	_give_phase(GARDEN, 1)
@@ -263,7 +263,7 @@ func _scene_and_ui() -> void:
 		root.add_child(host)
 		host.add_child(panel)
 		panel.size = Vector2(360, 700)
-		await create_timer(0.2).timeout
+		await _settle()
 		check(panel.find_child("ProjectPhases", true, false) != null and panel.find_child("StartProject", true, false) == null, id + ": painel em andamento sem botão de começar")
 		var deliver := panel.find_child("DeliverProject", true, false)
 		check(deliver != null or panel.find_child("ProjectMissing", true, false) != null, id + ": entrega ou chip do que falta")
@@ -281,7 +281,7 @@ func _scene_and_ui() -> void:
 	var village_list: Control = load("res://scripts/ui/project_ui.gd").call("community", "village")
 	root.add_child(park_list)
 	root.add_child(village_list)
-	await create_timer(0.2).timeout
+	await _settle()
 	check(park_list.find_child("Project_" + PICNIC, true, false) != null and park_list.find_child("Project_" + BENCH, true, false) != null, "Nossa praça lista banco e piquenique")
 	check(park_list.find_child("Project_" + GARDEN, true, false) == null, "Nossa praça não lista o jardim")
 	check(village_list.find_child("Project_" + GARDEN, true, false) != null and village_list.find_child("Service_orders", true, false) != null, "Nossa vila lista o jardim e as Encomendas")
@@ -309,7 +309,7 @@ func _scene_and_ui() -> void:
 		var revision_before: int = room.get("navigation_revision")
 		for index: int in 3:
 			_give_phase(entry[2], index)
-			await create_timer(0.3).timeout
+			await _settle()
 			var path := str((room.find_child(entry[3], true, false) as Sprite2D).texture.resource_path)
 			check(path.ends_with("_%s.png" % expected[index]), "%s: desenho da fase %d (%s)" % [entry[2], index + 1, path])
 		check(int(room.get("navigation_revision")) > revision_before, entry[2] + ": navegação recalculada")
@@ -323,3 +323,8 @@ func _give_phase(id: String, index: int) -> void:
 		_inv().add(item, int(phase.items[item]))
 		var error: String = state.call("contribute_project", id, item, int(phase.items[item]))
 		check(error == "", "%s/%s: %s" % [id, item, error])
+
+
+func _settle() -> void:
+	for _frame in 6:
+		await process_frame

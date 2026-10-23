@@ -70,7 +70,7 @@ func _run() -> void:
 	for child: Node in saver.get_children():
 		if child is Timer:
 			child.queue_free()
-	saver.set("_save_path", "user://ui_tour_descartavel.json")
+	saver.set("_save_path", (str(load("res://scripts/util/build_info.gd").call("data_dir")) + "ui_tour_descartavel.json"))
 	state = root.get_node("GameState")
 	var places: Script = load("res://scripts/ui/places.gd")
 	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
@@ -137,8 +137,8 @@ func _run() -> void:
 		state.call("dev_unlock_everything")
 		state.call("_mark_all_seen")
 		await _start_main(1.5)
-		main.call("show_screen", &"wishes")
-		await shot("b02_wishes")
+		main.call("show_screen", &"pet")
+		await shot("b02_pet")
 		main.call("show_screen", &"tasks")
 		await shot("b03_tasks")
 		main.call("show_screen", &"bag")
@@ -178,8 +178,8 @@ func _run() -> void:
 	state.call("_changed")
 	await _start_main(1.5)
 	await shot("b01_pet")
-	main.call("show_screen", &"wishes")
-	await shot("b02_wishes")
+	main.call("show_screen", &"pet")
+	await shot("b02_pet")
 	main.call("show_screen", &"tasks")
 	await shot("b03_tasks")
 	main.call("show_screen", &"bag")
@@ -357,7 +357,7 @@ func _run() -> void:
 	var welcome: CanvasLayer = main.get("_welcome")
 	var walk_card: CanvasLayer = main.get("_walk_result")
 	main.call("show_screen", &"pet")
-	celebration.call("show_bond", 6, {"coins": 50, "affection": 2, "items": {"carrot": 3}})
+	celebration.call("show_silk", 2)
 	await shot("c01_level_up")
 	celebration.hide()
 	var unlocks: Array[String] = ["place:farm/orchard"]
@@ -372,7 +372,7 @@ func _run() -> void:
 	await shot("c03_welcome_back")
 	welcome.hide()
 	var result := {"id": "park_loop", "name": "Volta na praça", "postcard": state.call("walk_postcard", "park_loop"),
-		"items": {"stick": 2, "ribbon": 1}, "coins": 12, "affection": 3, "needs": {"happiness": 20, "hygiene": -10}, "new": []}
+		"items": {"stick": 2, "ribbon": 1}, "coins": 12, "needs": {"happiness": 20, "hygiene": -10}, "new": []}
 	walk_card.call("show_result", result)
 	await shot("c04_walk_result")
 	walk_card.hide()
@@ -388,6 +388,10 @@ func _run() -> void:
 	await create_timer(2.2).timeout
 	main.get_node("TopBar").call("show_level_popover")
 	await shot("c06_hud_popover", 0.4)
+	# O resumo do avatar é persistente: fecha antes das próximas telas do tour.
+	var summary_popover := main.find_child("Popover", true, false)
+	if summary_popover: summary_popover.call("close")
+	await create_timer(0.3).timeout
 	# --- Etapa 04: câmera dos mundos (zoom mínimo, duplo toque, painel aberto sobre um objeto) ---
 	await create_timer(2.2).timeout
 	await _world("farm")
@@ -678,7 +682,7 @@ func _festa_shots() -> void:
 	_hide_modals()
 	Motion.reduced = false
 	var celebration: CanvasLayer = main.get("_celebration")
-	celebration.call("show_bond", 6, {"coins": 50, "affection": 2, "items": {"carrot": 3}})
+	celebration.call("show_silk", 2)
 	await shot("h01_level_card", 1.0)
 	celebration.hide()
 	celebration.call("show_chapter", 2, ["world:village", "feature:bag"] as Array[String])
@@ -712,15 +716,14 @@ func _growth_panel_shots() -> void:
 	var growth_ui: Script = load("res://scripts/ui/growth_ui.gd")
 	state.call("dev_set_phase", "puppy")
 	state.get("growth").done = {}
-	state.get("growth").points = {}
-	state.get("growth").reserve = {}
+	state.get("growth").phase_moments = {}
 	state.get("progress").owned.erase("blender")
 	state.call("_changed")
 	_hide_modals()
 	await shot("t00_growth_badge", 0.3)
 	growth_ui.call("open")
 	await shot("t01_growth_panel")
-	state.get("growth").points = {"body": 25, "brave": 25}
+	state.get("growth").phase_moments = {"body": 25, "brave": 25}
 	state.get("progress").owned["blender"] = true
 	state.call("_changed")
 	await shot("t02_growth_almost")

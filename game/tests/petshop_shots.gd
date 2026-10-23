@@ -76,7 +76,7 @@ func _run() -> void:
 	await shot("lendarios_juntos")
 	pose("sleep", 16)
 	await shot("lendarios_dormindo")
-	main.call("show_screen", &"wishes")
+	main.call("show_screen", &"pet")
 	await shot("desejos_vestido")
 	await sheet("Coleção", ui.call("collection_panel"))
 	await shot("colecao_topo")

@@ -5,7 +5,7 @@ func _ready() -> void:
 	pass
 
 func slot_path(slot: int) -> String:
-	return "user://growth_test_fixture/save_%d.json" % slot
+	return (str(load("res://scripts/util/build_info.gd").call("data_dir")) + "growth_test_fixture/save_%d.json") % slot
 
 func _settings_path() -> String:
-	return "user://growth_test_fixture/settings.json"
+	return (str(load("res://scripts/util/build_info.gd").call("data_dir")) + "growth_test_fixture/settings.json")

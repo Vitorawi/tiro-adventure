@@ -2,7 +2,7 @@ extends SceneTree
 ## Etapa 06 do plano de economia: a despensa ligada à cozinha (Despensa → Geladeira).
 ## Cobre: capacidades 12/24/40/64, preço e requisito da geladeira, classificação dos itens, cozinha inicial
 ## inteira num jogo novo, lote que não cabe (sem XP nem contador), saldo pós-entrega das missões, alimentar
-## libera espaço, snapshot de comida pendente, farinha/leite, presente de nível com a despensa cheia e saves antigos.
+## libera espaço, snapshot de comida pendente, farinha/leite, presente de nível com a despensa cheia e persistência atual.
 ## --headless --path game -s res://tests/fridge_test.gd
 
 var failures := 0
@@ -68,7 +68,6 @@ func _run() -> void:
 	_pending_snapshot()
 	_flour_and_milk()
 	_level_gift_full()
-	_legacy_saves()
 	print("FRIDGE TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(0 if failures == 0 else 1)
 
@@ -232,13 +231,6 @@ func _feeding_frees_space() -> void:
 	check(state.call("storage_error", {"carrot_snack": 1}) != "", "despensa cheia")
 	check(bool(state.call("feed", "carrot_snack")) and _inv("carrot_snack") == 11, "alimentar tira o item")
 	check(state.call("storage_error", {"carrot_snack": 1}) == "", "e libera a vaga")
-	# Acima do piso legado também: capacidade 30 antiga, estoque 30.
-	_fresh()
-	_progress().owned["fridge"] = true
-	state.get("economy").storage_floor["fridge"] = 30
-	state.get("inventory").add("carrot_snack", 30)
-	check(state.call("storage_error", {"carrot_snack": 1}) != "", "piso 30 cheio")
-	check(bool(state.call("feed", "carrot_snack")) and state.call("storage_error", {"carrot_snack": 1}) == "", "alimentar libera acima do piso")
 	# O Tiro continua comendo mesmo acima do teto.
 	_fresh()
 	state.get("inventory").add("carrot_snack", 40)
@@ -308,34 +300,3 @@ func _level_gift_full() -> void:
 	state.get("inventory").remove("carrot_snack", 2)
 	var moved: Dictionary = state.call("claim_pending_rewards")
 	check(int(moved.get("carrot_snack", 0)) == 2 and _inv("carrot_snack") == 12, "guarda quando abre espaço")
-
-
-# --- saves antigos -------------------------------------------------------------------------------------------
-
-func _v12(data: Dictionary) -> Dictionary:
-	var copy: Dictionary = JSON.parse_string(JSON.stringify(data))
-	copy.erase("economy")
-	return copy
-
-
-func _legacy_saves() -> void:
-	# Geladeira antiga (30): não cai para 24.
-	_fresh()
-	_progress().owned["fridge"] = true
-	state.get("inventory").add("carrot_snack", 28)
-	state.call("from_dict", _v12(state.call("to_dict")))
-	check(int(state.call("storage_floor", "fridge")) == 30 and int(state.call("storage_capacity", "fridge")) == 30, "geladeira antiga continua com 30")
-	check(state.call("storage_error", {"carrot_snack": 2}) == "" and state.call("storage_error", {"carrot_snack": 3}) != "", "30 vale até o fim")
-	# Geladeira_2 antiga (50) é maior que os 40 novos.
-	_fresh()
-	_progress().owned["fridge"] = true
-	_progress().owned["fridge_2"] = true
-	state.call("from_dict", _v12(state.call("to_dict")))
-	check(int(state.call("storage_capacity", "fridge")) == 50, "fridge_2 antiga mantém 50")
-	# Sem geladeira e com 40 comidas: estoque preservado, entradas bloqueiam, saídas funcionam.
-	_fresh()
-	state.get("inventory").add("carrot_snack", 40)
-	state.call("from_dict", _v12(state.call("to_dict")))
-	check(_inv("carrot_snack") == 40 and int(state.call("storage_capacity", "fridge")) == 12 and int(state.call("storage_excess", "fridge")) == 28, "estoque de 40 preservado, capacidade 12")
-	check(state.call("storage_error", {"cheese": 1}) != "", "entradas bloqueadas")
-	check(state.call("sell", "carrot_snack", 10) == "" and _inv("carrot_snack") == 30, "vender continua funcionando")

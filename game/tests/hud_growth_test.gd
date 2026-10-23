@@ -54,7 +54,7 @@ func _run() -> void:
 		var phase: Dictionary = db.get("growth").phases[i]
 		state.call("dev_set_phase", str(phase.id))
 		if phase.id == "teething" and "--summary-shots" in OS.get_cmdline_user_args():
-			state.get("growth").points = {"body": 34, "coat": 0, "smart": 19, "brave": 61}
+			state.get("growth").phase_moments = {"body": 34, "coat": 0, "smart": 19, "brave": 61}
 		await frames()
 		hud.refresh(false)
 		check(hud.level_label.text == (str(i) if i > 0 else "•"), "número da fase " + phase.id)
@@ -151,25 +151,19 @@ func _run() -> void:
 	check(state.call("requirement_error", {"growth": "explorer"}) != "", "Dentinhos não faz caixa")
 	state.call("dev_set_phase", "explorer")
 	check(state.call("requirement_error", {"growth": "explorer"}) == "", "Aventureiro faz caixa")
-	# Rotina real, sem sorteio dependente de semente: fixture só seleciona a diária de cuidado.
+	# Rotina atual da fazenda não concede momentos avulsos ao recebê-la.
 	state.call("reset")
 	state.call("dev_set_phase", "puppy")
 	state.get("dog").needs.hunger = 40
 	state.call("dev_restart_routines")
-	var routine := {"period": state.call("routine_period", "daily"), "catalog": 2, "base": {}, "targets": {"care": 1}}
+	var routine := {"period": state.call("routine_period", "daily"), "catalog": 2, "base": {}, "targets": {"harvest": 1}}
 	state.get("progress").routines["daily"] = routine
-	routine["ids"] = ["care"]
+	routine["ids"] = ["harvest"]
 	routine["claimed"] = {}
-	state.get("progress").stats["care_useful"] = int(routine.get("base", {}).get("care_useful", 0)) + 20
-	var before: int = state.get("growth").points.brave
-	check(state.call("claim_routine", "daily", "care") == "", "recebe rotina de cuidado")
-	check(state.get("growth").points.brave == before + 4, "cuidado paga Coragem 4")
-	var after: int = state.get("growth").points.brave
-	state.call("claim_routine", "daily", "care")
-	check(state.get("growth").points.brave == after, "rotina não duplica pilar")
-	state.call("_grant_automatic", "fixture:project", {"pillars": {"brave": 5}})
-	state.call("_grant_automatic", "fixture:project", {"pillars": {"brave": 5}})
-	check(state.get("growth").points.brave == after + 5, "prêmio automático passa por pilares uma vez")
+	state.get("progress").stats["harvest"] = 20
+	var before: Dictionary = state.get("growth").moments.duplicate()
+	check(state.call("claim_routine", "daily", "harvest") == "", "recebe rotina da fazenda")
+	check(state.get("growth").moments == before, "rotinas não concedem pontos ou momentos avulsos")
 	print("HUD GROWTH TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	main.queue_free()
 	await frames()

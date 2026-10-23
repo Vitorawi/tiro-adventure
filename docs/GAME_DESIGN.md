@@ -35,7 +35,7 @@ saíram da interface, inclusive prêmios, lista de saves e ferramentas DEV. `lev
 `features.skills` foi removida; a antiga entrada `skills_panel()` encaminha ao Crescimento.
 `treat_box` exige `growth: explorer`, mantendo bancada e geladeira. Rotinas de cuidado dão Coragem 4,
 banho Pelagem 4; Banco/Jardim/Piquenique/Festa dão Coragem 5 pela ação única `_grant_automatic`.
-Radiante e reserva seguem `_gain_pillar`. Os demais XP ficam internos, inclusive Encontro da turma.
+Este registro da etapa 07 do plano anterior é histórico: no plano Cuidar é crescer, rotinas são só da fazenda e obras rendem momentos de primeira vez. Radiante e reserva foram removidos; os demais XP ficam internos, inclusive Encontro da turma.
 XP/níveis locais da Natureza continuam válidos. Nenhum preço foi alterado: presentes de nível deixam
 de entrar; os cinco presentes de fase já existentes somam 590 moedas. Conferência econômica só na 17.
 
@@ -63,7 +63,7 @@ Curta, calorosa, falando com o jogador, no presente. Sem "·" juntando frases, s
 Números: `3/6` é meta, `×3` é quantidade de um item, `+20` é ganho; tempo pelo `TimeText`. Nunca `×0`. Erros curtos e com o que fazer: "Falta Cenoura ×2" (`GameState._missing_text`). Mensagem de sucesso que repete a animação (plantou, preparou, vendeu, comida dada) não aparece. As falas da história (`dialogue`, `introduction`, `greeting`) não foram reescritas. A guarda é `tests/texts_test.gd`; a lista de todos os textos sai de `tools/list_texts.ps1` (`build/texts.csv`).
 
 ## Interface do cantinho do Tiro (Interface nova — Etapa 09)
-O cenário original ocupa a largura toda, sem moldura lateral nem deformar a arte; Tiro e sombra ficam sobre o tapete. Quatro necessidades em anéis e o coração de vínculo ficam na mesma fileira, sem o nome Tiro acima; o caderninho flutua à direita. A faixa de cuidados flutua acima das abas: Comida, Banho, Brincar e Dormir/Acordar usam o mesmo círculo, tamanho e alinhamento.
+O cenário original ocupa a largura toda, sem moldura lateral nem deformar a arte; Tiro e sombra ficam sobre o tapete. Quatro necessidades em anéis mostram o que pede cuidado, sem o nome Tiro acima; o caderninho flutua à direita. A faixa de cuidados flutua acima das abas: Comida, Banho, Brincar e Dormir/Acordar usam o mesmo círculo, tamanho e alinhamento.
 
 Comida abre uma guia vertical com até cinco opções visíveis e rolagem para todas as comidas da mochila. As mais usadas vêm primeiro (contadores existentes), com desempate pelo uso recente da sessão; coração indica o pedido. Tocar alimenta; arrastar pelo ícone só entrega ao soltar na cabeça. Arrastar pelo nome rola a guia. O desejo usa o mesmo caminho do “Ele quer!” e alimenta uma vez. Esfregar a esponja e arremessar a bola também têm toque simples equivalente. Dormindo só Acordar funciona; passeando a faixa dá lugar ao postal. Carinho direto permanece.
 
@@ -73,7 +73,7 @@ O caderninho abre Manual por padrão, com Crescimento/Coleção/Truques revelado
 ## Listas (Interface nova — Etapa 10)
 Missões mantém a História como cartão com pontinhos dos passos, nome do capítulo, miniatura do destino e progresso. Diárias e semanais usam linhas compactas com anel, instrução inteira, prêmio e Ir/Pegar; as recebidas saem da lista. Com duas ou mais rotinas prontas, um único **Pegar tudo (N)** recebe diárias e semanais elegíveis, sem repetir recompensas. A História e as outras linhas usam ações secundárias enquanto esse principal aparece.
 
-Desejos mantém retrato e vínculo no cabeçalho, troca no canto, ajuda e Ir/Dar/Pegar conforme o estado. Só o primeiro pedido cumprível usa o botão principal; os demais continuam tocáveis como ações secundárias. Espaços fechados mostram o vínculo exigido; espera mostra anel e tempo.
+O balão do desejo mostra um único pedido e a ação Pegar/Dar/Ir. A ajuda indica a origem do alimento ou o cuidado pedido.
 
 Mochila mostra os depósitos construídos em linhas com nome, ícone próprio e capacidade. Tocar filtra os itens daquele depósito; tocar de novo volta a todos. Filtros segmentados com ícones rolam na horizontal e aparecem só para categorias presentes (Tudo, Comidas, Colheitas, Materiais, Produtos, Achados, Passeio). Uma grade de quatro colunas substitui as seções empilhadas. O selo Novo dura a abertura e usa as marcações opcionais `ui:bag:<item>`, sem migração. Item sem quantidade fica fora da grade; o detalhe diz “Você não tem”. Comida no detalhe compartilha `SheetBuilder.give_food` com os cuidados, preservando desejo e consumo único; vender continua na feira.
 
@@ -85,9 +85,9 @@ Coleção usa abas segmentadas Roupas/Achados/Amigos. Roupas e Amigos têm três
 
 **A bandeja fica ao lado do dedo.** Plantar, regar, cozinhar, fazer, alimentar animais e iniciar buscas na Natureza usam uma bandeja pequena perto do alvo, sem tirar o mundo da vista; o painel grande continua para consulta ("Ver tudo"). **Arrastar** a semente ou o regador por vários canteiros age em todos de uma vez. **Coletar no mapa só coleta:** planta madura, estação/criação, Natureza e pomar prontos entregam os produtos sem abrir bandeja nem painel depois. O balão mostra o anel de progresso e o "pronto" pulando; tocar nele pega/colhe na hora.
 
-**O Tiro tem o próprio cantinho.** Quatro anéis de necessidade e o coração de vínculo; quatro cuidados iguais (Comida, Banho, Brincar, Dormir) por toque ou arrasto; o **caderninho** flutuante guarda Manual, Crescimento, Coleção e Truques.
+**O Tiro tem o próprio cantinho.** Quatro anéis de necessidade e o progresso de crescimento; quatro cuidados iguais (Comida, Banho, Brincar, Dormir) por toque ou arrasto; o **caderninho** flutuante guarda Manual, Crescimento, Coleção e Truques.
 
-**Quando se ganha algo, o jogo comemora.** Todos os cartões de comemoração (nível, capítulo, tesouro, vínculo, achado, truque, "Novo!", volta do passeio, roupa nova, boas-vindas) usam o mesmo `ModalCard`: fundo escurecido, cartão que salta, **fita** colorida com o título, ícone grande com **raios** girando devagar, prêmios em chips que entram um por um e **números que contam**, um botão verde e, às vezes, uma ação fraca. **Confete** (40 pedacinhos coloridos, uma vez) só nos grandes momentos: nível, capítulo, tesouro, vínculo e raro/lendário do passeio; o "Novo!" simples fica sem, para não banalizar. O celular **vibra de leve** (toque no canteiro do arrasto, colher/pegar, forte em nível/capítulo/tesouro/raro, duas batidinhas no "não dá"; iPhone/Safari ignora vibração na web).
+**Quando se ganha algo, o jogo comemora.** Cartões de capítulo, tesouro, achado, truque, "Novo!", volta do passeio, roupa e boas-vindas usam `ModalCard`: fundo escurecido, fita com título, ícone com raios, prêmios em chips e um botão verde. Crescimento tem cerimônia própria. Confete fica nos grandes momentos; o "Novo!" simples fica sem. O celular vibra de leve nos gestos e prêmios, conforme preferências (iPhone/Safari ignora vibração na web).
 
 **Configurações do aparelho** (engrenagem → "Jogo"): **Vibrar** (Sim por padrão) e **Menos animação** (Não por padrão; zera os tempos das animações e desliga confete e raios girando). Valem para todos os saves e ficam em `settings.json`, não no save.
 
@@ -108,11 +108,11 @@ Depois da Vila (primeira encomenda entregue) abre a **Praça**, entre Sítio e V
 adestradora, passeia com a Pipoca (vira-lata caramelo, só enfeite por enquanto). Conversar com a Nina
 abre a missão do primeiro passeio. No portão **Passeio** o jogador manda o Tiro passear: ele gasta
 energia, **sai de casa** (some dos mapas; a tela do Tiro mostra o postal com ele andando) e volta
-quando o tempo acaba. Recolher mostra o cartão "Volta do passeio" com achados, moedas e vínculo. Ele
+quando o tempo acaba. Recolher mostra o cartão "Volta do passeio" com achados e moedas. Ele
 volta mais feliz, um pouco cansado e sujinho (laço com o banho). Não há punição: dá para chamar o Tiro de
 volta (devolve a energia, sem prêmio). Só um passeio por vez.
 
-Sete caminhos abrem por passeios feitos, vínculo e Bosque aberto. O Pôr do sol só começa das 17h às 21h
+Sete caminhos abrem por passeios feitos, fase de crescimento e Bosque aberto. O Pôr do sol só começa das 17h às 21h
 (hora do aparelho); pode ser recolhido depois. O painel mostra os liberados e dois próximos bloqueados.
 Cada caminho tem postal, materiais e apetrecho raro próprio. A primeira volta garante materiais; o raro
 vem por sorte ou em até 6–12 voltas daquele caminho, sem perder a garantia ao fechar o jogo. Duplicados
@@ -121,24 +121,32 @@ para a garantia. Raros ficam na Coleção; vestir e costurar ficam para a Etapa 
 Mochila → Do passeio, sem ocupar depósitos. Hortelã + cenoura rendem petisco no fogão após a Clareira.
 
 
-## Desejos do Tiro e vínculo (Etapa 03, 14/10/2026)
+## Cuidar é crescer — necessidades e desejos (23/10/2026)
 
-Depois da caminha, a aba Desejos aparece entre Tiro e Mapa. O primeiro pedido é 3 carinhos.
-Um espaço abre com a caminha, outro com vínculo 2 e o terceiro com vínculo 4. Pedidos não vencem;
-trocar é grátis e espera 5 min. Cumprir dá moedas e afeto, com festa do Tiro; o próximo chega em
-1 min nos três primeiros cumpridos e em 10 min depois. Necessidades baixas têm prioridade.
+Necessidade pedindo → cuidado útil → momento → crescimento. Barriga, Felicidade, Higiene e Energia
+pedem abaixo de `config.json → needs.*.ask_below` (50). Carinho útil dá Coragem; brincar útil dá
+Esperteza; banho útil dá Pelagem (xampu vale dois, dentro do teto). Escovar vale uma vez por dia.
+Corpo vem das refeições da fase. Passeios, descobertas, truques e primeiras vezes também dão momentos.
+Momentos são contados desde o início da fase; o total da vida fica no caderninho. As fontes repetíveis
+têm teto de dois por pilar em cada um dos quatro períodos locais. Repetir um cuidado satisfeito anima
+e melhora a necessidade, sem dar momento. Segurar 1,2 s faz um carinho; um gesto contínuo vale uma vez.
+Copinhos, desde Aventureiro, gastam um petisco e dão Esperteza mesmo quando o jogador erra.
 
-Cartões mostram ícone, progresso e recompensa; Dar entrega uma comida, Pegar conclui ações,
-Ir e ? levam ao cuidado ou à origem do alimento. O seletor de comida põe primeiro o pedido com
-"Ele quer!": Dar ali também cumpre o desejo. Alimentar diretamente por outras ações só alimenta.
-Balão no mapa e na tela Tiro abre Desejos; some dormindo. Badge conta os pedidos prontos.
+Após caminha e Filhotinho, o Tiro faz **um desejo por período**: manhã, tarde e noite; o da noite
+continua na madrugada. Primeiro pede carinho. A escolha considera necessidade pedindo, pilar faltante
+da próxima fase e o que já é acessível. O balão na tela Tiro abre pedido em uma linha e Pegar/Dar/Ir;
+o avatar do HUD também indica o pedido. A comida pode exigir cozinhar para ele. Atender rende um momento
+do pilar, fora do teto; comida conta pela refeição. O próximo período troca o pedido sem castigo.
+Não existe vínculo, afeto, troca de pedido, espaços adicionais nem aba Desejos.
+As abas são **Tiro · Mapa · Missões · Mochila**. Laís apresenta o primeiro desejo no capítulo 2;
+diárias e semanais cuidam só da fazenda.
 
-Vínculo usa o afeto acumulado, fica visível nas duas telas e entrega presentes uma vez por nível.
-O chip mostra a barra, próximo presente e liberações. A partir do vínculo 3, há 5% de chance de
-um pedido especial elegível, com borda dourada e prêmio dobrado. Nesta etapa entram carinho,
-brincar, banho, qualquer comida, cenoura, petisco de cenoura e ensopado especial; alimentos,
-passeios e apetrechos das próximas etapas ficam para elas. Diária: 2 desejos; semanal: 12,
-com Coleira de coração na coleção (ainda sem sprite de vestir).
+Acordado e sem necessidade pedindo, o **Tiro animado** ajuda: 20% de chance de +1 na colheita se couber,
+um sorteio extra no passeio (condição congelada na saída) e um montinho extra global por período.
+Ausência mantém metade do decaimento, limite de 8 h e pisos protegidos; necessidade baixa não tira
+itens, progresso ou momentos. Apenas deixa de oferecer o bônus de Animado.
+Ritmo medido e aprovação pendente do Vitor: `docs/plans/cuidado/RESULTADOS.md`.
+
 
 ## Natureza: evolução dos locais (13/10/2026)
 Desbloqueie Bosque, Caverna e Prado com moedas. Depois, cada busca recolhida dá o XP **da rota escolhida**
@@ -221,7 +229,7 @@ produzir recursos no Mundo (plantar → colher → cozinhar/fabricar)
         ↓
 usar os produtos no Tiro (comida, brinquedos, cuidados, roupinhas)
         ↓
-Tiro feliz → vínculo e crescimento avançam  +  missões cumpridas → recompensas
+Cuidado útil → momentos e crescimento avançam  +  missões cumpridas → recompensas
         ↓
 desbloquear áreas, estações, receitas, itens e personagens
 ```
@@ -262,7 +270,7 @@ Para números e campos dos dados, ver `PROGRESSION.md` e `WORLDS.md`.
 | Sistema | Descrição |
 |---|---|
 | **Necessidades** | Caem com o tempo real (ver tabela abaixo). |
-| **Evolução** | Fases do Tiro, vínculo e truques. |
+| **Evolução** | Fases do Tiro, momentos e truques. |
 | **Inventário** | Recursos e produtos (sementes, vegetais, pratos, tecidos, itens). |
 | **Plantação** | Canteiros com timer: plantar → esperar → colher. |
 | **Estações de produção** | Fogão, forno, tear etc.: receitas com fila e tempo, estilo Hay Day. |
@@ -281,7 +289,7 @@ Para números e campos dos dados, ver `PROGRESSION.md` e `WORLDS.md`.
 | Higiene | Tempo, passeio, sujeira | Banho (casa ou Clínica) | Tiro suja/cheira, felicidade cai mais rápido |
 | Passeio | Tempo dentro de casa | Passeio no Parque | Tiro inquieto, felicidade cai |
 
-- O Tiro **nunca morre nem foge**: necessidades baixas só deixam ele triste/lento (punição leve).
+- O Tiro **nunca morre nem foge**: necessidades baixas indicam o cuidado que ele pede; não removem progresso.
 
 ## Produzir no mapa (Interface nova, Etapa 08)
 
@@ -347,8 +355,8 @@ de NPCs e coleção de roupas/apetrechos. **Detalhes, formatos e versão dev em 
   acordar (tocar nele na tela Tiro) ou voltar ao jogo. Boas-vindas avisa “Ele cresceu enquanto dormia!”
   ou “Ele pode crescer!” uma vez por fase pronta. Fotos oficiais e régua na Casa ficam para 13/14.
 
-- **(b) Carinho com o Tiro:** as necessidades (felicidade) mostram o cuidado; truques aprendidos também aumentam felicidade e afeto.
-- **(c) Truques (Etapa 10, implementada):** Nina ensina no lugar Treino da Praça, no cantinho dos cones, após `nina_pipoca`. Barra em ping-pong, zona verde e botão de 64 px “Agora!”. Três acertos aprendem; “Quase!” apenas repete, sem custo ou limite. Um truque por vez: Dá a pata, Fala (vínculo 2), Rola (3), Pula (4), Gira (5). A tela Tiro ganha Truques após aprender o primeiro; mostrar dá +3 felicidade e +1 afeto, com recarga individual de 2 min. Sono e passeio bloqueiam treino/execução. Reutiliza as cinco animações existentes: roupas permanecem na pata/latido, somem nas acrobacias e voltam ao descanso. “Novo truque!” usa a fila e o cartão com rolagem existentes. Missões Nina nas ordens 90 e 110, desejo e diária após `nina_trick`.
+- **(b) Carinho com o Tiro:** Felicidade pedindo indica quando o carinho rende Coragem; a favorita tem reação própria. Truques e novidades também rendem momentos.
+- **(c) Truques:** Nina ensina no lugar Treino da Praça, após `nina_pipoca`. Barra em ping-pong, zona verde e botão “Agora!”. Três acertos aprendem; “Quase!” permite repetir sem custo. Dá a pata, Fala, Rola, Pula e Gira abrem pela fase do Tiro. Mostrar tem recarga individual de 2 min e concede Esperteza dentro do teto do período. Sono e passeio bloqueiam treino/execução. Reutiliza as animações e roupas existentes. “Novo truque!” usa a fila de comemorações. Desejos podem pedir um truque; as rotinas são só da fazenda.
 
 - **(d) Moedas:** vender produtos e entregar pedidos.
 - **(e) Melhorias:** estações (fila maior, mais rápido), canteiros extras, geladeira maior.
@@ -380,7 +388,7 @@ de NPCs e coleção de roupas/apetrechos. **Detalhes, formatos e versão dev em 
 |---|---|---|
 | Pedidos | Quadro de pedidos estilo Hay Day: entregar X itens | Moedas + XP |
 | História | Por personagem; cumprir destrava a área/NPC seguinte | Áreas, itens |
-| Cuidado | Ex.: dar banho no Tiro, alimentar 3 vezes | XP, vínculo |
+| Cuidado pedido pelo Tiro | Desejo do período; cuidado útil quando a necessidade pede | Momento do pilar; refeição para Corpo |
 | Minigames | Treino de truques, passeio | Truques, moedas |
 
 ## Referências
@@ -436,7 +444,7 @@ Missões da Nina apresentam a turma; desejo, diária e semanal reutilizam dar pe
 
 ## Crescimento — consulta e entrega (Tiro no centro, etapa 06)
 
-Na tela Tiro, o selo ao lado do vínculo mostra a fase e o progresso do crescimento. Toque abre a fase
+Na tela Tiro, o avatar do HUD mostra a fase e o progresso do crescimento. Toque abre a fase
 atual, a sombra da próxima e o que falta. Cada requisito leva à ajuda Como fazer com Ir; Dar entrega
 um item-chave definitivamente. Quando tudo está pronto, Crescer! espera o jogador escolher a hora.
 O painel permanece aberto ao entregar/crescer; a caderneta guarda fases anteriores e dicas das futuras.

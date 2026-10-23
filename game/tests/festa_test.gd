@@ -49,7 +49,7 @@ func _run() -> void:
 	for child: Node in saver.get_children():
 		if child is Timer:
 			child.queue_free()
-	saver.set("_save_path", "user://festa_descartavel.json")
+	saver.set("_save_path", (str(load("res://scripts/util/build_info.gd").call("data_dir")) + "festa_descartavel.json"))
 	state = root.get_node("GameState")
 	state.call("reset")
 	state.call("dev_complete_quest", "lais_bed")
@@ -100,13 +100,13 @@ func _celebration_checks() -> void:
 	celebration.call("show_unlocks", unlocks)
 	await frames()
 	check(celebration.find_child("Confetti", true, false) == null, "Novo! sem confete")
-	# Capítulo, tesouro e vínculo soltam.
+	# Capítulo, seda e tesouro soltam.
 	celebration.call("show_chapter", 2, [] as Array[String])
 	await frames()
 	check(celebration.find_child("Confetti", true, false) != null, "capítulo com confete")
-	celebration.call("show_bond", 3, {"coins": 25})
+	celebration.call("show_silk", 2)
 	await frames()
-	check(celebration.find_child("Confetti", true, false) != null, "vínculo com confete")
+	check(celebration.find_child("Confetti", true, false) != null, "seda II com confete")
 	celebration.call("show_treasure", {"coins": 100, "items": {}})
 	await frames()
 	check(celebration.find_child("Confetti", true, false) != null and primary_count(celebration) == 1, "tesouro com confete e um botão")
@@ -176,7 +176,7 @@ func Events_items_gained() -> void:
 
 
 func _settings_checks() -> void:
-	var path := "user://settings_dev.json"
+	var path := (str(load("res://scripts/util/build_info.gd").call("data_dir")) + "settings_dev.json")
 	var original := FileAccess.get_file_as_string(path) if FileAccess.file_exists(path) else ""
 	var existed := FileAccess.file_exists(path)
 	# Painel: duas linhas com Sim/Não.

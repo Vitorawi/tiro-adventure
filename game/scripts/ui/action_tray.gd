@@ -77,6 +77,16 @@ var _ghost: Control
 var _gesture := DragGhost.new()
 var _pressed := -1
 var _press_global := Vector2.ZERO
+var _recipe_scroll: ScrollContainer
+var _recipe_swiping := false
+var _recipe_active := false
+var _recipe_touch := -1
+var _recipe_last := Vector2.ZERO
+var _recipe_position := 0.0
+var _recipe_velocity := 0.0
+var _recipe_sample_usec := 0
+var _recipe_motion_usec := 0
+var _recipe_mouse_until := 0
 var _drag_index := -1
 var _finger := Vector2.ZERO
 var _idle := 0.0
@@ -250,6 +260,7 @@ func _build_items() -> Control:
 		group.add_child(hint)
 		var scroll := ScrollContainer.new()
 		scroll.name = "RecipeScroll"
+		_recipe_scroll = scroll
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		scroll.custom_minimum_size.y = ITEM.y + 12
@@ -491,7 +502,100 @@ func item_center(id: String) -> Vector2:
 	return item.global_position + item.size / 2.0 if item else Vector2.ZERO
 
 
+## Captura única: ícones, legendas e vãos seguem o mesmo gesto. Consome o toque
+## antes do ScrollContainer; o mouse sintético não pode rolar uma segunda vez.
+func _input(event: InputEvent) -> void:
+	if closing or not is_visible_in_tree() or not is_instance_valid(_recipe_scroll): return
+	var touch := event as InputEventScreenTouch
+	var drag := event as InputEventScreenDrag
+	var button := event as InputEventMouseButton
+	var motion := event as InputEventMouseMotion
+	var point := Vector2.ZERO
+	var down := false
+	var up := false
+	if touch:
+		if _recipe_active and touch.index != _recipe_touch: return
+		point = touch.position
+		down = touch.pressed
+		up = not touch.pressed
+	elif drag:
+		if not _recipe_active or drag.index != _recipe_touch: return
+		point = drag.position
+	elif button or motion:
+		point = button.position if button else motion.position
+		if event.device == InputEvent.DEVICE_ID_EMULATION:
+			if _recipe_active or Time.get_ticks_msec() < _recipe_mouse_until:
+				get_viewport().set_input_as_handled()
+			return
+		if _recipe_touch >= 0: return
+		if button:
+			if button.button_index != MOUSE_BUTTON_LEFT: return
+			down = button.pressed
+			up = not button.pressed
+	else:
+		return
+	if down:
+		if _recipe_active or not _recipe_scroll.get_global_rect().has_point(point): return
+		_recipe_velocity = 0.0
+		# A barra conserva o gesto nativo, inclusive mouse emulado.
+		if _recipe_scroll.get_h_scroll_bar().get_global_rect().has_point(point): return
+		_recipe_active = true
+		_recipe_touch = touch.index if touch else -1
+		_recipe_swiping = false
+		_press_global = point
+		_recipe_last = point
+		_recipe_position = _recipe_scroll.scroll_horizontal
+		_recipe_sample_usec = Time.get_ticks_usec()
+		_recipe_motion_usec = _recipe_sample_usec
+		_reveal_frames = 0
+		_pressed = -1
+		for i in _items.size():
+			if _items[i].get_global_rect().has_point(point):
+				_pressed = i
+				break
+		_touched()
+		_stop_hint()
+	elif not _recipe_active:
+		return
+	else:
+		_recipe_move(point)
+		if up:
+			var index := _pressed
+			_pressed = -1
+			_recipe_active = false
+			_recipe_touch = -1
+			if touch and touch.canceled:
+				_recipe_velocity = 0.0
+			elif not _recipe_swiping:
+				_recipe_velocity = 0.0
+				if index >= 0: _tap(index)
+			elif Time.get_ticks_usec() - _recipe_motion_usec > 100000:
+				_recipe_velocity = 0.0  # soltar depois de uma pausa não é flick
+	if touch or drag: _recipe_mouse_until = Time.get_ticks_msec() + 100
+	get_viewport().set_input_as_handled()
+
+
+func _recipe_move(point: Vector2) -> void:
+	if point.distance_to(_press_global) > TAP_SLOP: _recipe_swiping = true
+	var dx := _recipe_last.x - point.x
+	var now := Time.get_ticks_usec()
+	if not is_zero_approx(dx):
+		var seconds := maxf(float(now - _recipe_sample_usec) / 1000000.0, 0.001)
+		_recipe_velocity = clampf(dx / seconds, -2400.0, 2400.0)
+		_recipe_motion_usec = now
+		_recipe_set_position(_recipe_position + dx)
+	_recipe_last = point
+	_recipe_sample_usec = now
+
+
+func _recipe_set_position(value: float) -> void:
+	var bar := _recipe_scroll.get_h_scroll_bar()
+	_recipe_position = clampf(value, 0.0, maxf(0.0, bar.max_value - bar.page))
+	_recipe_scroll.scroll_horizontal = roundi(_recipe_position)
+
+
 func _on_item_input(event: InputEvent, index: int) -> void:
+	if is_instance_valid(_recipe_scroll): return
 	var button := event as InputEventMouseButton
 	if button and button.button_index == MOUSE_BUTTON_LEFT:
 		if button.pressed:
@@ -679,6 +783,13 @@ func _act_here() -> void:
 func _process(delta: float) -> void:
 	if closing:
 		return
+	if is_instance_valid(_recipe_scroll) and not _recipe_active and not is_zero_approx(_recipe_velocity):
+		var before := _recipe_position
+		var decay := exp(-7.0 * delta)
+		_recipe_set_position(before + _recipe_velocity * (1.0 - decay) / 7.0)
+		_recipe_velocity *= decay
+		if absf(_recipe_velocity) < 8.0 or is_equal_approx(before, _recipe_position):
+			_recipe_velocity = 0.0
 	if pick or options.get("header") is Control:
 		# O detalhe e o cabeçalho mudam de altura: a bandeja acompanha e continua dentro da tela.
 		var minimum := _panel.get_combined_minimum_size()

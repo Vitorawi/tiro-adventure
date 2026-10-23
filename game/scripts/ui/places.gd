@@ -551,7 +551,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 						break
 				return goal_target({"type": "owned", "key": next if next != "" else "silo"})
 			if key == "wish" or key.begins_with("wish:"):
-				return {"screen": "wishes", "hint": "Desejos do Tiro"}
+				return {"screen": "pet", "hint": "Tiro → desejo"}
 			if key in ["bathe", "shampoo_bath", "play", "pet", "care_useful"] or key.begins_with("care_useful:"):
 				if key in ["bathe", "shampoo_bath", "play"]:
 					return {"screen": "pet", "care": "ball" if key == "play" else "sponge", "hint": "Tiro → Brincar" if key == "play" else "Tiro → Banho"}

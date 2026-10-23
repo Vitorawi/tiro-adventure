@@ -64,8 +64,8 @@ func _run() -> void:
 	coins_before = state.get("coins")
 	_check(state.call("collect_activity") != "" and state.get("coins") == coins_before, "Não deve duplicar coleta de atividade")
 	state.call("reset")
-	state.set_script(load("res://tests/friend_clock.gd"))
-	state.set("test_time", Time.get_unix_time_from_system())
+	state.set_script(load("res://tests/helpers/economy_clock.gd"))
+	state.call("set_clock", 1792411200.0)
 	state.call("reset")
 	var final_save := _campaign()
 	state.call("from_dict", JSON.parse_string(JSON.stringify(final_save)))
@@ -77,7 +77,7 @@ func _run() -> void:
 	quit(0 if _failures == 0 else 1)
 
 
-## Peças da Etapa 00: requisitos stats/bond/hours, recompensas affection/needs e bond_level.
+## Peças da Etapa 00: requisitos stats/hours e recompensas needs.
 func _foundation() -> void:
 	var progress: RefCounted = state.get("progress")
 	_check(state.call("requirement_error", {"stats": {"walk": 5}}) == "Faça mais 5 passeios", "Requisito stats pede mais passeios")
@@ -85,20 +85,11 @@ func _foundation() -> void:
 	_check(state.call("requirement_error", {"stats": {"walk": 5}}) == "", "Requisito stats cumprido")
 	progress.call("count", "xyz", 1)
 	_check(state.call("requirement_error", {"stats": {"xyz": 3}}) == "Faça mais 2 xyz", "Chave sem rótulo usa a própria chave")
-	var dog: RefCounted = state.get("dog")
-	var affection_before: int = dog.get("affection")
-	dog.set("affection", 0)
-	_check(state.call("requirement_error", {"bond": 3}) == "Vínculo 3", "Requisito bond bloqueia")
-	dog.set("affection", 50)
-	_check(state.call("requirement_error", {"bond": 3}) == "", "Requisito bond cumprido")
-	_check(progress.call("bond_level", 0) == 1 and progress.call("bond_level", 20) == 2 and progress.call("bond_level", 9999) == 8, "bond_level segue bond_levels")
 	var hour: int = Time.get_datetime_dict_from_unix_time(state.call("_local_time")).hour
 	_check(state.call("requirement_error", {"hours": [hour, (hour + 1) % 24]}) == "", "Requisito hours dentro da faixa")
 	var outside: String = state.call("requirement_error", {"hours": [(hour + 1) % 24, (hour + 2) % 24]})
 	_check(outside.begins_with("Só das "), "Requisito hours fora da faixa")
-	dog.set("affection", affection_before)
-	state.call("_apply_rewards", {"affection": 7, "needs": {"happiness": -10}})
-	_check(dog.get("affection") == affection_before + 7, "Recompensa affection soma ao afeto")
+	state.call("_apply_rewards", {"needs": {"happiness": -10}})
 
 
 func _campaign() -> Dictionary:
@@ -112,14 +103,18 @@ func _campaign() -> Dictionary:
 	for turn in 1500:
 		iterations = turn + 1
 		# Uma janela por ciclo; só tempo simulado e petiscos produzidos pelas receitas abaixo.
-		state.set("test_time", state.get("test_time") + 10800.0)
+		state.call("advance_clock", 10800.0)
 		state.call("_changed")
 		for friend: String in state.call("friends_present"):
 			state.call("give_friend", friend)
 		if turn % 100 == 0:
-			print("Campanha: ciclo ", turn, "; passos ", state.get("progress").active_steps(), "; passeios ", state.get("progress").stat("walk"))
+			print("Campanha: ciclo ", turn, "; passos ", state.get("progress").active_steps(), "; passeios ", state.get("progress").stat("walk"), "; principal ", state.get("progress").current_main_quest(), "; fase ", state.get("growth").phase)
+			var checkpoint := FileAccess.open("res://../build/cuidado07_campaign_checkpoint.json", FileAccess.WRITE)
+			checkpoint.store_string(JSON.stringify(state.call("to_dict")))
+			checkpoint.close()
 		state.get("progress").cooldowns.clear()
 		state.get("dog").updated_at -= 3600.0
+		state.call("update_wishes")
 		state.call("update_finds")
 		for find_world: String in state.get("finds").worlds:
 			state.get("finds").worlds[find_world].pending = 1
@@ -139,18 +134,19 @@ func _campaign() -> Dictionary:
 		for trick: String in progression.tricks:
 			state.call("learn_trick", trick)
 			state.call("perform_trick", trick)
-		state.call("emergency_food")
-		state.call("bathe")
-		state.call("play")
+		_care_step()
 		for npc_id: String in database.get("npcs"):
 			if not state.get("progress").npc_visible(npc_id):
 				continue
 			state.call("talk_to", npc_id)
 		for screen: String in ["bag", "village"]:
 			state.call("note_screen_opened", screen)
+		# A apresentação opcional do Álbum também faz parte do catálogo atual de missões.
+		if state.call("quest_unlocked", "lais_album"):
+			state.call("note_album_section", "story")
 		for item: String in database.get("items"):
 			if database.get("items")[item].has("feed") and state.get("inventory").count(item) > 0:
-				state.call("feed", item)
+				if state.call("need_asking", "hunger"): state.call("feed", item)
 				break
 		# Sítio e estufa: as ervas (missão da estufa) só crescem nos canteiros delicados.
 		for i: int in state.call("usable_plot_indices"):
@@ -168,11 +164,18 @@ func _campaign() -> Dictionary:
 		for item: String in database.get("items"):
 			var amount: int = state.get("inventory").count(item) - 12
 			if amount > 0 and state.call("requirement_error", database.get("worlds").village.requirements) == "":
-				state.call("sell", item, amount)
+				state.call("sell", item, amount, "village")
+		if state.get("progress").current_line_quest("merchant") == "merchant_first_sale" and state.get("inventory").count("carrot") > 0:
+			state.call("sell", "carrot", 1, "village")
 		if turn == 2:
 			state.call("sell", "carrot", 1)
+		var needs_new_order := false
+		for step: String in state.get("progress").active_steps().values():
+			for goal: Dictionary in database.get("quests")[step].goals:
+				if str(goal.get("key", "")) == "orders" and state.call("goal_value", goal) < int(goal.get("target", 1)):
+					needs_new_order = true
 		for id: String in progression.orders:
-			if int(state.get("progress").stats.get("order:" + id, 0)) >= (5 if str(progression.orders[id].get("channel", "neighbors")) == "contracts" else 3):
+			if not needs_new_order and int(state.get("progress").stats.get("order:" + id, 0)) >= (5 if str(progression.orders[id].get("channel", "neighbors")) == "contracts" else 3):
 				continue # Guarda os materiais dos próximos pedidos para construir.
 			state.call("fulfill_order", id)
 		var wanted: Array = []
@@ -207,27 +210,13 @@ func _campaign() -> Dictionary:
 		# Com os quatro pedaços do mapa, o jogador abre o baú da Clareira (o mirtilo e o petisco dependem dele).
 		if state.call("open_treasure_error") == "":
 			state.call("open_treasure")
-		# Missão do desejo do mirtilo: o espaço vazio pronto recebe o pedido garantido; o jogador faz o petisco e entrega.
+		# Missão do mirtilo: o jogador faz o petisco (dois mirtilos) e dá ao Tiro.
 		if state.get("progress").active_steps().get("nina_flavors", "") == "nina_blueberry":
-			var slots: Array = state.get("wishes").slots
-			state.get("wishes").first_done = true  # o pedido inicial é o tutorial; a campanha não passa por ele
-			if not slots.any(func(sl: Dictionary) -> bool: return str(sl.id) == "blueberry_treat"):
-				# O jogador troca um pedido (grátis) para abrir a vaga ao pedido da missão.
-				for slot_index in slots.size():
-					if str(slots[slot_index].id) != "" and state.call("wish_slot_open", slot_index):
-						state.call("swap_wish", slot_index)
-						break
-			for slot_index in slots.size():
-				if str(slots[slot_index].id) == "" and state.call("wish_slot_open", slot_index):
-					slots[slot_index]["ready_at"] = 0.0
-			state.call("update_wishes")
-			for slot_index in slots.size():
-				if str(slots[slot_index].id) == "blueberry_treat":
-					# O cultivo do mirtilo (4 h) já é testado em treasure_test/products_test; aqui o robô só precisa dos 2 mirtilos.
-					if state.get("inventory").count("blueberry") < 2:
-						state.get("inventory").add("blueberry", 2)
-					_cook_with_inputs("blueberry_treat", recipes)
-					state.call("fulfill_wish", slot_index)
+			# O cultivo do mirtilo (4 h) já é testado em treasure_test/products_test; aqui o robô só precisa dos 2 mirtilos.
+			if state.get("inventory").count("blueberry") < 2:
+				state.get("inventory").add("blueberry", 2)
+			_cook_with_inputs("blueberry_treat", recipes)
+			state.call("feed", "blueberry_treat")
 		# História do Tiro (etapa 11): crescer e as obras da vila (capítulos 10–12) fazem parte da campanha.
 		_grow_story(recipes)
 		_projects_step()
@@ -266,8 +255,7 @@ func _campaign() -> Dictionary:
 
 ## O Tiro cresce quando a história chega à missão de crescer: refeição da fase, item-chave entregue,
 ## banhos com xampu e o lacinho vêm das ações reais do jogo (o resto da campanha já faz as receitas).
-## Só os pontos dos pilares usam `dev_add_pillar`: a taxa deles é validada em pillars_test e aqui
-## importa a história passar pelos cinco crescimentos, sem depender de dias de cuidado.
+## Momentos vêm exclusivamente dos cuidados úteis, desejos, novidades e passeios reais.
 func _grow_story(recipes: Dictionary) -> void:
 	# "Banho de ervas" (capítulo 8): a missão pede um banho com xampu antes de o Mocinho exigir dois.
 	for step: String in state.get("progress").active_steps().values():
@@ -302,11 +290,7 @@ func _grow_story(recipes: Dictionary) -> void:
 				for recipe_id: String in recipes:
 					if str(recipes[recipe_id].get("output_collection", "")) == str(row.collection):
 						_cook_with_inputs(recipe_id, recipes)
-			"pillars":
-				for id: String in row.levels:
-					var missing: int = int(database.get("growth").levels[int(row.levels[id]) - 1]) - int(state.get("growth").points.get(id, 0))
-					if missing > 0:
-						state.call("dev_add_pillar", id, missing)
+
 	if state.call("grow_error") == "":
 		_check(state.call("grow") == "", "Crescer na campanha: " + str(info.next.id))
 
@@ -438,3 +422,47 @@ func _shot(file_name: String) -> void:
 	var folder := ProjectSettings.globalize_path("res://../build/screenshots/")
 	DirAccess.make_dir_recursive_absolute(folder)
 	root.get_texture().get_image().save_png(folder + file_name + ".png")
+
+
+## Mesma política de cuidados do simulador; fixture econômica acelerada acima não mede ritmo.
+func _care_step() -> void:
+	var bot = load("res://tests/helpers/economy_bot.gd").new(state, {}, 1)
+	if state.get("dog").sleeping: state.call("set_sleeping", false)
+	for _i in 20:
+		var action: Dictionary = bot._care(false)
+		if action.is_empty(): break
+		_execute_care(action)
+	# Os tutoriais pedem explicitamente banho/brincadeira, inclusive satisfeitos.
+	var main_quest: String = state.get("progress").current_main_quest()
+	if main_quest in ["lais_bath", "lais_play"]:
+		var key := "bathe" if main_quest == "lais_bath" else "play"
+		var result: Dictionary = bot.pursue_stat(key, 1, false, 1, main_quest)
+		if result.state == "act": _execute_care(result.action)
+	for pillar: String in ["brave", "smart", "coat"]:
+		if state.get("growth").phase_need(pillar) > int(state.get("growth").phase_moments.get(pillar, 0)):
+			var result: Dictionary = bot._pursue_moment(pillar)
+			if str(result.state) == "act": _execute_care(result.action)
+	var wish: Dictionary = state.call("wish_now")
+	if not wish.is_empty():
+		if state.call("wish_error") == "": state.call("fulfill_wish")
+		elif str(wish.type) == "action":
+			var result: Dictionary = bot.pursue_stat(str(wish.goal.key), 1, false, 1, "wish")
+			if str(result.state) == "act": _execute_care(result.action)
+			if state.call("wish_error") == "": state.call("fulfill_wish")
+
+
+func _execute_care(action: Dictionary) -> void:
+	if action.is_empty(): return
+	var args: Dictionary = action.args
+	match str(action.kind):
+		"feed": state.call("feed", str(args.item))
+		"pet": state.call("pet")
+		"play": state.call("play")
+		"bathe": state.call("bathe", bool(args.get("shampoo", false)))
+		"brush": state.call("brush")
+		"hide":
+			if state.call("hide_and_seek", str(args.item)) == "": state.call("finish_hide_and_seek", true)
+		"sleep": state.call("set_sleeping", bool(args.value))
+		"emergency_food": state.call("emergency_food")
+		"perform_trick": state.call("perform_trick", str(args.id))
+		"talk": state.call("talk_to", str(args.npc))

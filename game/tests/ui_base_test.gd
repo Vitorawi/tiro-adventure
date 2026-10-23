@@ -76,7 +76,8 @@ func _palette() -> void:
 
 
 func _icon_exists(icon: String) -> bool:
-	return ResourceLoader.exists("res://assets/sprites/ui/icons/%s.png" % icon)
+	var ui_kit: Script = load("res://scripts/ui/ui_kit.gd")
+	return ui_kit.call("ui_icon", icon) != null
 
 
 func _icons() -> void:

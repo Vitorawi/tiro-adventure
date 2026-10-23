@@ -217,53 +217,12 @@ func _run() -> void:
 	ui.call("clear_choices")
 	check(ui.call("best_route", "wood") == "lane", "sem escolha, o padrão volta a ser a mais curta")
 
-	# --- Piso legado: vaga 3 + XP 90 mantém o acesso, sem cobrar de novo -----------
-	_fresh()
-	var coins_before: int = state.get("coins")
-	var legacy: Dictionary = state.call("to_dict").duplicate(true)
-	legacy.progression.nature_levels_version = 2
-	legacy.progression.nature_xp = {"trees": 90, "rocks": 90, "fibers": 90}
-	for token in ["forest_level_2", "forest_level_3", "trees_slot_2", "trees_slot_3", "cave_level_2", "cave_level_3", "rocks_slot_2", "rocks_slot_3"]:
-		legacy.progression.owned[token] = true
-	state.call("from_dict", legacy)
-	check(_p().nature_level("trees") == 4 and state.call("gathering_slots", "trees") == 3, "Bosque antigo (vaga 3, XP 90) mantém as três vagas")
-	check(_p().nature_level("rocks") == 4 and state.call("gathering_slots", "rocks") == 3, "Caverna antiga mantém as três vagas")
-	check(state.call("activity_error", "timber") == "" and state.call("activity_error", "crystal_cave") == "", "madeira dura e cristal continuam abertos")
-	check(_p().nature_level("fibers") == 2 and state.call("gathering_slots", "fibers") == 2, "Prado só com XP 90: nível 2, duas vagas (sem inventar XP)")
-	check(_xp("trees") == 90 and _xp("fibers") == 90, "XP guardado não é alterado pela migração")
-	check(state.get("coins") == coins_before, "migração não cobra moedas")
-	var info: Dictionary = _p().nature_info("trees")
-	check(info.level == 4 and info.max, "nível exibido não cai (4, máximo)")
-	var again: Dictionary = state.call("to_dict").duplicate(true)
-	state.call("from_dict", again)
-	check(state.call("to_dict") == again, "recarregar é idempotente")
-	# Legado em nível 2 (token do nível 2 e XP baixo, ex.: machado antigo) continua no 2.
-	_fresh()
-	var low: Dictionary = state.call("to_dict").duplicate(true)
-	low.progression.nature_levels_version = 2
-	low.progression.nature_xp = {"trees": 10}
-	low.progression.owned["forest_level_2"] = true
-	state.call("from_dict", low)
-	var low_info: Dictionary = _p().nature_info("trees")
-	check(_p().nature_level("trees") == 2 and low_info.xp == 0 and low_info.remaining == 110, "token do nível 2 vale 2; a barra começa no zero e falta 110 até o 3")
-	check(state.call("gathering_slots", "trees") == 2, "token do nível 2 mantém duas vagas")
-	# Save sem versão de níveis: as ferramentas antigas viram os níveis pelos tokens.
-	_fresh()
-	var ancient: Dictionary = state.call("to_dict").duplicate(true)
-	ancient.progression.erase("nature_levels_version")
-	ancient.progression.nature_xp = {}
-	ancient.progression.owned = {"axe_reinforced": true, "pickaxe_crystal": true, "sickle": true}
-	state.call("from_dict", ancient)
-	check(_p().nature_level("trees") == 3 and _p().nature_level("rocks") == 3 and _p().nature_level("fibers") == 2, "ferramentas antigas viram 3/3/2")
 
 	# --- Snapshot velho mantém o lote antigo ---------------------------------------
 	_fresh()
 	var now_time: float = state.call("now")
 	_p().gathering["trees"] = [{"id": "woodcutting", "resource": "wood", "started_at": now_time - 300.0, "ready_at": now_time - 1.0, "rewards": {"items": {"wood": 4}}, "player_xp": 5, "nature_xp": 10}]
 	check(state.call("collect_gathering", "trees", 0) == "" and _inv("wood") == 4 and _xp("trees") == 10, "lote antigo: 4 madeiras e 10 XP, mesmo com a tabela nova")
-	_p().gathering["trees"] = [{"id": "woodcutting", "resource": "wood", "started_at": now_time - 300.0, "ready_at": now_time - 1.0, "rewards": {"items": {"wood": 4}}}]
-	var xp_trees := _xp("trees")
-	check(state.call("collect_gathering", "trees", 0) == "" and _xp("trees") == xp_trees + 10, "lote sem XP guardado usa o valor antigo do local (10)")
 	# Rota antiga sem ser da tabela: lote iniciado com a regra nova guarda o XP da rota.
 	state.call("start_gathering", "trees", 0, "timber" if _p().has_upgrade("forest_level_3") else "woodcutting", "wood")
 	check(int(state.call("gathering_entry", "trees", 0).nature_xp) == 12, "lote novo guarda o XP da rota escolhida")

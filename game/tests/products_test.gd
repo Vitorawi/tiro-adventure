@@ -117,7 +117,7 @@ func _gating_check() -> void:
 		check(state.call("order_error", id) != "", "%s não vale antes das origens" % id)
 	_after_atelier()
 	check(state.call("cook_error", "blueberry_treat") != "", "petisco pede tesouro e estufa")
-	check(state.call("order_error", "nina_blueberries") != "" and not state.call("wish_item_reachable", state.call("wish_def", "blueberry_treat")), "encomenda e desejo do petisco esperam tesouro + estufa")
+	check(state.call("order_error", "nina_blueberries") != "" and not state.call("wish_item_reachable", {"type": "feed", "item": "blueberry_treat"}), "encomenda e desejo do petisco esperam tesouro + estufa")
 	_inv().add("fabric", 1)
 	_inv().add("stick", 2)
 	check(state.call("cook_error", "braided_toy") == "", "brinquedo depois do ateliê")
@@ -277,60 +277,17 @@ func _workshop_check() -> void:
 func _wish_check() -> void:
 	_after_atelier()
 	state.call("dev_set_phase", "puppy")
-	var wishes: RefCounted = state.get("wishes")
-	wishes.first_done = true
-	check(str(state.call("wish_def", "blueberry_treat").get("item", "")) == "blueberry_treat", "desejo cadastrado")
-	# Antes do tesouro/estufa a missão nem está ativa e o pedido não é oferecido.
+	# Antes do tesouro/estufa a missão nem está ativa.
 	check(_progress().current_line_quest("nina_flavors") == "", "missão do mirtilo fechada")
 	state.call("dev_grant_upgrade", "greenhouse")
 	_progress().stats["treasure"] = 1
 	check(_progress().current_line_quest("nina_flavors") == "nina_blueberry", "missão do mirtilo aberta")
-	check(not state.call("wish_item_reachable", state.call("wish_def", "blueberry_treat")) == false, "pedido alcançável (receita liberada)")
-	# Vaga ocupada por outro pedido: nunca é substituída.
-	var open_slots: Array[int] = []
-	for i in wishes.slots.size():
-		if state.call("wish_slot_open", i):
-			open_slots.append(i)
-	check(open_slots.size() >= 1, "há espaço de desejo aberto")
-	for i in open_slots:
-		wishes.slots[i] = {"id": "pet", "base": 0, "since": 0.0, "ready_at": 0.0, "special": false, "last": "", "used": false}
-	state.call("update_wishes")
-	for i in open_slots:
-		check(str(wishes.slots[i].id) == "pet", "pedido atual não é substituído")
-	# Próxima vaga vazia e pronta recebe o desejo garantido.
-	wishes.slots[open_slots[0]] = {"id": "", "base": 0, "since": 0.0, "ready_at": 0.0, "special": false, "last": "", "used": false}
-	state.call("update_wishes")
-	check(str(wishes.slots[open_slots[0]].id) == "blueberry_treat", "desejo de mirtilo garantido na próxima vaga")
-	check(_inv().count("blueberry_treat") == 0 and _inv().count("blueberry") == 0, "não gera ingrediente nem item")
-	# Troca voluntária: sem custo, e o mesmo espaço não repete na hora.
-	check(state.call("swap_wish", open_slots[0]) == "", "troca voluntária funciona")
-	wishes.slots[open_slots[0]].ready_at = 0.0
-	state.call("update_wishes")
-	check(str(wishes.slots[open_slots[0]].id) != "blueberry_treat", "depois de trocar, outro pedido ocupa o espaço")
-	# Em outra vaga vazia ele volta (a missão continua ativa).
-	if open_slots.size() > 1:
-		wishes.slots[open_slots[1]] = {"id": "", "base": 0, "since": 0.0, "ready_at": 0.0, "special": false, "last": "", "used": false}
-		state.call("update_wishes")
-		check(str(wishes.slots[open_slots[1]].id) == "blueberry_treat", "volta na próxima vaga elegível")
-	# Entregar: conta uma vez, o item sai e a missão fecha.
-	var slot := -1
-	for i in open_slots:
-		if str(wishes.slots[i].id) == "blueberry_treat":
-			slot = i
-	if slot < 0:
-		wishes.slots[open_slots[0]] = {"id": "blueberry_treat", "base": 0, "since": 0.0, "ready_at": 0.0, "special": true, "last": "", "used": false}
-		slot = open_slots[0]
+	check(state.call("wish_item_reachable", {"type": "feed", "item": "blueberry_treat"}), "petisco alcançável (receita liberada)")
+	# Dar o petisco ao Tiro conta uma vez, o item sai e a missão fecha.
 	_inv().add("blueberry_treat", 1)
-	check(state.call("fulfill_wish", slot) == "", "entrega o desejo")
-	check(_stat("wish_item:blueberry_treat") == 1 and _inv().count("blueberry_treat") == 0, "contador uma vez e item consumido")
+	check(state.call("feed", "blueberry_treat"), "dá o petisco")
+	check(_stat("feed:blueberry_treat") == 1 and _inv().count("blueberry_treat") == 0, "contador uma vez e item consumido")
 	check(state.call("claim_quest", "nina_blueberry") == "", "missão do mirtilo pronta")
 	check(_progress().claimed_quests.has("nina_blueberry"), "missão recebida")
-	state.call("update_wishes")
-	for i in wishes.slots.size():
-		if i != slot:
-			wishes.slots[i] = {"id": "", "base": 0, "since": 0.0, "ready_at": 0.0, "special": false, "last": "", "used": false}
-	state.call("update_wishes")
-	for i in wishes.slots.size():
-		check(str(wishes.slots[i].id) != "blueberry_treat" or not state.call("wish_slot_open", i) or false, "depois da missão deixa de ser garantido")
 	# Sem rare: o contador walk_rare continua 0.
 	check(_stat("walk_rare") == 0, "mirtilo sem depender de raro")

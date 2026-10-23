@@ -89,8 +89,7 @@ static func _resources(box: VBoxContainer) -> void:
 	_tool(dog, "Achados agora", GameState.dev_spawn_finds)
 	_tool(dog, "Voltar do passeio", GameState.dev_walk_return)
 	_tool(dog, "Todas as roupas", GameState.dev_grant_cosmetics)
-	_tool(dog, "Vínculo +30", GameState.dev_add_affection.bind(30))
-	_tool(dog, "Sortear desejos já", GameState.dev_refresh_wishes)
+	_tool(dog, "Desejo novo já", GameState.dev_refresh_wishes)
 	_tool(dog, "Abrir mochila", func() -> void:
 		Events.sheet_requested.emit("Mochila", SheetBuilder.inventory_view()), "")
 
@@ -135,10 +134,13 @@ static func _growth(box: VBoxContainer) -> void:
 	var phases := _grid(box, 3)
 	for phase: Dictionary in Database.growth.phases:
 		_tool(phases, str(phase.name), GameState.dev_set_phase.bind(str(phase.id)))
+	_tool(box, "Próximo período", GameState.dev_next_period)
+	for need: String in Database.needs:
+		_tool(box, str(Database.needs[need].name) + " → 40", GameState.dev_set_need.bind(need, 40.0))
 	var pillars := _grid(box)
-	for id: String in Database.growth.pillars:
+	for id: String in ["brave", "smart", "coat"]:
 		var data: Dictionary = info.pillars[id]
-		_tool(pillars, "%s %d/%d (+%d)" % [Database.growth.pillars[id].name, data.level, data.cap, data.reserve], GameState.dev_add_pillar.bind(id, 10))
+		_tool(pillars, "%s %d/%d" % [Database.growth.pillars[id].name, data.have, data.need], GameState.dev_add_moment.bind(id))
 	for req: Dictionary in info.requirements:
 		box.add_child(UiKit.label("%s %d/%d %s" % [req.id, req.have, req.need, "✓" if req.done else ""], &"SmallLabel"))
 	_tool(box, "Completar requisitos", GameState.dev_complete_growth_reqs)

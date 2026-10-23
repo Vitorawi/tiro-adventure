@@ -1,184 +1,48 @@
 {
   "settings": {
-    "slots": [
-      {"requirements": {"quests": ["lais_bed"]}},
-      {"requirements": {"bond": 2}},
-      {"requirements": {"bond": 4}}
-    ],
-    "refill_seconds": 600,
-    "first_refill_seconds": 60,
-    "first_count": 3,
-    "swap_seconds": 300,
     "first": "pet",
-    "need_threshold": 35,
-    "need_wishes": {"hygiene": "bath", "hunger": "food_any", "happiness": "play"},
-    "special_chance": 0.05,
-    "special_requirements": {"bond": 3},
-    "special_multiplier": 2,
-    "special_coin_cap": 12
+    "periods": ["morning", "afternoon", "night"],
+    "keep_last": 2
   },
   "wishes": {
-    "pet": {"type": "action", "name": "Quero carinho", "icon": "action_pet",
-      "goal": {"key": "pet", "target": 3}, "go": "screen:pet",
-      "rewards": {"coins": 2, "affection": 5}, "weight": 3},
-    "play": {"type": "action", "name": "Quero brincar", "icon": "action_play",
-      "goal": {"key": "play", "target": 1}, "go": "screen:pet",
-      "rewards": {"coins": 2, "affection": 5}, "weight": 3},
-    "bath": {"type": "action", "name": "Quero um banho", "icon": "action_bathe",
-      "goal": {"key": "bathe", "target": 1}, "go": "screen:pet",
-      "rewards": {"coins": 2, "affection": 4}, "weight": 1},
-    "food_any": {"type": "action", "name": "Tô com fome", "icon": "item_dog_food",
-      "goal": {"key": "feed", "target": 1}, "go": "screen:pet",
-      "rewards": {"coins": 2, "affection": 4}, "weight": 1},
-    "carrot": {"type": "feed", "item": "carrot", "name": "Quero cenoura",
-      "rewards": {"coins": 2, "affection": 5}, "weight": 3,
-      "requirements": {"quests": ["first_harvest"]}},
-    "carrot_snack": {"type": "feed", "item": "carrot_snack", "name": "Quero petisco de cenoura",
-      "rewards": {"coins": 6, "affection": 8}, "weight": 4,
-      "requirements": {"owned": ["stove"]}},
-    "vegetable_soup": {"type": "feed", "item": "vegetable_soup", "name": "Quero ensopado",
-      "rewards": {"coins": 8, "affection": 10}, "weight": 2, "special": true,
-      "requirements": {"quests": ["bloblo_stew"]}},
-    "strawberry": {
-      "type": "feed",
-      "item": "strawberry",
-      "name": "Quero morango",
-      "rewards": {
-        "coins": 3,
-        "affection": 6
-      },
-      "weight": 3,
-      "requirements": {
-        "quests": [
-          "bloblo_strawberry"
-        ]
-      }
-    },
-    "strawberry_pop": {
-      "type": "feed",
-      "item": "strawberry_pop",
-      "name": "Quero picolé!",
-      "rewards": {
-        "coins": 8,
-        "affection": 10
-      },
-      "weight": 4,
-      "requirements": {
-        "owned": [
-          "blender"
-        ]
-      }
-    },
-    "mashed_potato": {
-      "type": "feed",
-      "item": "mashed_potato",
-      "name": "Quero purê",
-      "rewards": {
-        "coins": 8,
-        "affection": 8
-      },
-      "weight": 2,
-      "requirements": {
-        "quests": [
-          "bloblo_potato"
-        ],
-        "owned": [
-          "stove"
-        ]
-      }
-    },
-    "pumpkin_mash": {
-      "type": "feed",
-      "item": "pumpkin_mash",
-      "name": "Quero papinha",
-      "rewards": {
-        "coins": 8,
-        "affection": 10
-      },
-      "weight": 2,
-      "special": true,
-      "requirements": {
-        "quests": [
-          "bloblo_pumpkin"
-        ]
-      }
-    },
-    "sweet_potato_chips": {
-      "type": "feed",
-      "item": "sweet_potato_chips",
-      "name": "Quero chips!",
-      "rewards": {
-        "coins": 8,
-        "affection": 12
-      },
-      "weight": 2,
-      "special": true,
-      "requirements": {
-        "quests": [
-          "bloblo_sweet_potato"
-        ]
-      }
-    },
-    "walk": {
-      "type": "action",
-      "name": "Quero passear!",
-      "icon": "action_walk",
-      "goal": {"key": "walk", "target": 1},
-      "go": "place:park:walk",
-      "rewards": {"coins": 2, "affection": 8},
-      "weight": 3,
-      "requirements": {"quests": ["nina_walk"]}
-    },
-    "stick": {"type": "give", "item": "stick", "name": "Quero um graveto!", "rewards": {"coins": 2, "affection": 6},
-      "weight": 3, "requirements": {"quests": ["nina_walk"]}},
-    "wildflower": {"type": "give", "item": "wildflower", "name": "Quero cheirar flor", "rewards": {"coins": 2, "affection": 6},
-      "weight": 2, "requirements": {"stats": {"walk:flower_street": 1}}},
-    "mint_snack": {"type": "feed", "item": "mint_snack", "name": "Quero hortelã!", "rewards": {"coins": 8, "affection": 10},
-      "weight": 2, "special": true, "requirements": {"stats": {"walk:bird_clearing": 1}}},
-    "blueberry": {"type": "feed", "item": "blueberry", "name": "Quero mirtilo!", "rewards": {"coins": 5, "affection": 10},
-      "weight": 2, "special": true, "requirements": {"stats": {"treasure": 1}}},
-    "blueberry_treat": {"type": "feed", "item": "blueberry_treat", "name": "Quero petisco de mirtilo!", "rewards": {"coins": 8, "affection": 10},
-      "weight": 2, "special": true, "guarantee_quest": "nina_blueberry",
-      "requirements": {"stats": {"treasure": 1}, "owned": ["greenhouse"]}},
-    "friend": {
-      "type": "action",
-      "name": "Saudade da Pipoca",
-      "icon": "friend_pipoca",
-      "goal": {
-        "key": "friend_gift",
-        "target": 1
-      },
-      "go": "place:park:friends",
-      "rewards": {
-        "coins": 2,
-        "affection": 8
-      },
-      "weight": 2,
-      "requirements": {
-        "quests": [
-          "nina_pipoca"
-        ]
-      }
-    },
-    "trick": {
-      "type": "action",
-      "name": "Quero mostrar um truque",
-      "icon": "trick_paw",
-      "goal": {
-        "key": "trick",
-        "target": 1
-      },
-      "go": "screen:pet",
-      "rewards": {
-        "coins": 2,
-        "affection": 6
-      },
-      "weight": 2,
-      "requirements": {
-        "quests": [
-          "nina_trick"
-        ]
-      }
-    }
+    "pet": {"type": "action", "name": "Quero carinho", "icon": "action_pet", "pillar": "brave", "need": "happiness",
+      "phases": ["puppy", "teething"],
+      "goal": {"key": "pet", "target": 1}, "go": "screen:pet"},
+    "meet": {"type": "action", "name": "Quero ver a vovó", "icon": "tab_map", "pillar": "brave",
+      "phases": ["teething"],
+      "goal": {"key": "talk:bloblo", "target": 1}, "go": "place:farm:npc:bloblo",
+      "requirements": {"quests": ["bloblo_meet"]}},
+    "walk": {"type": "action", "name": "Quero passear!", "icon": "action_walk", "pillar": "brave",
+      "phases": ["explorer", "young"],
+      "goal": {"key": "walk", "target": 1}, "go": "place:park:walk",
+      "requirements": {"quests": ["nina_walk"]}},
+    "walk_long": {"type": "action", "name": "Quero um passeio longo!", "icon": "action_walk", "pillar": "brave",
+      "phases": ["adult"],
+      "goal": {"key": "walk", "target": 1}, "go": "place:park:walk",
+      "requirements": {"quests": ["nina_walk"]}},
+    "play": {"type": "action", "name": "Quero brincar", "icon": "action_play", "pillar": "smart", "need": "happiness",
+      "phases": ["teething", "explorer"],
+      "goal": {"key": "play", "target": 1}, "go": "screen:pet"},
+    "dig": {"type": "action", "name": "Quero cavar um montinho", "icon": "action_walk", "pillar": "smart",
+      "phases": ["explorer"],
+      "goal": {"key": "find", "target": 1}, "go": "screen:pet",
+      "requirements": {"quests": ["nina_walk"]}},
+    "trick": {"type": "action", "name": "Quero mostrar um truque", "icon": "trick_paw", "pillar": "smart",
+      "phases": ["young", "adult"],
+      "goal": {"key": "trick", "target": 1}, "go": "screen:pet",
+      "requirements": {"quests": ["nina_trick"]}},
+    "bath": {"type": "action", "name": "Quero um banho", "icon": "action_bathe", "pillar": "coat", "need": "hygiene",
+      "phases": ["young"],
+      "goal": {"key": "bathe", "target": 1}, "go": "screen:pet"},
+    "shampoo": {"type": "action", "name": "Quero banho de xampu", "icon": "action_bathe", "pillar": "coat",
+      "phases": ["young"],
+      "goal": {"key": "shampoo_bath", "target": 1}, "go": "screen:pet",
+      "have_item": "herb_shampoo"},
+    "brush": {"type": "action", "name": "Quero ser escovado", "icon": "action_bathe", "pillar": "coat",
+      "phases": ["young", "adult"],
+      "goal": {"key": "brush", "target": 1}, "go": "screen:pet",
+      "have_item": "basic_brush"},
+    "meal": {"type": "feed", "item": "meal", "name": "Quero comer", "icon": "item_dog_food", "pillar": "body", "need": "hunger",
+      "phases": ["puppy", "teething", "explorer", "young", "adult"]}
   }
 }

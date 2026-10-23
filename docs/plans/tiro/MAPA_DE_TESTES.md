@@ -1,5 +1,8 @@
 # Mapa de testes — o que rodar quando mexer em cada área
 
+> Substituído por `tools/test_areas.json` e `tools/test.ps1` (Cuidar é crescer, etapa 00).
+> O restante deste arquivo é histórico do plano Tiro; as falhas aceitas abaixo não valem no circuito novo.
+
 Regra (ver [01](01_REGRAS_DE_EXECUCAO.md)): numa etapa, rode **o teste novo da etapa + as linhas abaixo que
 correspondem aos arquivos que você mudou**. Nada além disso, salvo nos portões (suíte inteira).
 Tempos medidos na linha de base da etapa 00 (19/10/2026, Windows do Vitor), somando os testes da linha.
@@ -17,9 +20,9 @@ autotestes Python; `-KeepGoing` não para na primeira falha.
 | `finds.json` (dentinho de leite) | `finds_test`*, `growth_story_test` | 6 s + novo |
 | `walks.json` (requisito de fase nos passeios) | `walks_test`, `park_test` | 16 s |
 | truques (`progression.json → tricks`) | `tricks_test` | 10 s |
-| `wishes.json` / feature `wishes` | `wishes_test`, `bond_test` | 14 s |
+| `wishes.json` / feature `wishes` | `wish_moments_test` | 14 s |
 | `save_manager.gd`, migração, chaves novas no save | `saves_test`, `economy_transactions_test`, o teste da etapa | 11 s + novo |
-| `pet_screen.gd`, `pet_care_tray.gd`, `pet_animator.gd` | `pet_care_test`, `brush_taste_test`, `personality_test`, `wishes_test`, `manual_test` | 40 s |
+| `pet_screen.gd`, `pet_care_tray.gd`, `pet_animator.gd` | `pet_care_test`, `brush_taste_test`, `personality_test`, `wish_moments_test`, `manual_test` | 40 s |
 | `pet_notebook.gd`, `game_manual.gd`, aba Atributos/Crescimento | `manual_test`, `lists_test` | 30 s |
 | `hud.gd`, `main.gd` (fila modal, avatar) | `hud_test`, `festa_test`, `welcome_test` | 25 s |
 | `celebration.gd`, `modal_card.gd`, `welcome_back.gd` | `festa_test`, `welcome_test` | 16 s |

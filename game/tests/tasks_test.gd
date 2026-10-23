@@ -1,5 +1,5 @@
 extends SceneTree
-## Contratos da história e da migração, sem escrever o save pessoal.
+## Contratos da história e da persistência atual, sem escrever o save pessoal.
 var failures: int = 0
 var state: Node
 var database: Node
@@ -20,13 +20,6 @@ func _run() -> void:
 	var saver: Node = root.get_node("SaveManager")
 	root.remove_child(saver)
 	state.call("reset")
-	# v12: começo refeito; qualquer save anterior recomeça do zero.
-	var old: Dictionary = state.call("to_dict").duplicate(true)
-	old.coins = 137
-	var migrated: Dictionary = saver.call("_migrate", {"save_version": 11, "state": old})
-	check((migrated.state as Dictionary).is_empty(), "Save anterior à v12 recomeça do zero")
-	var current: Dictionary = {"save_version": saver.get("SAVE_VERSION"), "state": old}
-	check(saver.call("_migrate", current) == current, "Save atual não é alterado")
 	saver.free()
 	# Linhas em paralelo: a vovó tem passo próprio e o "fresh" usa a base da linha dela.
 	state.call("reset")
@@ -40,6 +33,8 @@ func _run() -> void:
 	state.call("dev_complete_quest", "bloblo_silo")
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_more_crops", "Passo da vovó é o atual")
 	state.call("dev_complete_quest", "growth_1_puppy")  # o capítulo 1 só fecha com o Tiro crescendo
+	state.get("progress").stats["wish"] = 1
+	check(state.call("claim_quest", "lais_first_wish") == "", "tutorial do desejo concluído antes do cruzamento")
 	check(state.get("progress").current_main_quest() == "lais_first_crops", "Conhecer a vovó já avança a história junto")
 	check(state.get("progress").claimed_quests.has("lais_meet_bloblo") and not state.call("quest_unlocked", "lais_meet_bloblo"), "Cruzamento não exige outro prêmio")
 	var fresh: Dictionary = database.get("quests").bloblo_more_crops.goals[0]
@@ -118,14 +113,10 @@ func _unlocks_check() -> void:
 	check(not "npc:guide" in news, "Guia ainda não apresentado")
 	state.call("mark_seen", news)
 	check((state.call("new_unlocks") as Array).is_empty(), "Novidade aparece uma vez só")
-	# Save antigo (sem "seen"): o que já estava aberto não vira novidade.
-	var old: Dictionary = state.call("to_dict")
-	old.progression.erase("seen")
-	state.call("from_dict", old)
-	check((state.call("new_unlocks") as Array).is_empty(), "Save antigo não anuncia o que já tinha")
 
 
-## Diárias e semanais: liberação, sorteio estável, progresso pela base, recompensa única e virada de período.
+
+## Diárias e semanais: liberação, sorteio, progresso e recompensa única no formato atual.
 func _routines_check() -> void:
 	state.call("reset")
 	check(not state.call("routines_unlocked", "daily"), "Diárias escondidas no capítulo 1")
@@ -133,7 +124,7 @@ func _routines_check() -> void:
 	# Capítulo 3: diárias abrem com 3 missões; semanais só no 4.
 	state.call("dev_jump_to_chapter", 2)
 	check(state.get("progress").chapter_index() == 3, "Está no capítulo 3")
-	check(state.call("routines_unlocked", "daily") and (state.call("routine_ids", "daily") as Array).size() == 2, "Diárias abrem no capítulo 3 só com as 2 acessíveis (sem tarefa impossível)")
+	check(state.call("routines_unlocked", "daily") and (state.call("routine_ids", "daily") as Array).size() == 1, "Diárias abrem no capítulo 3 só com a colheita acessível (sem tarefa impossível)")
 	check(not state.call("routines_unlocked", "weekly"), "Semanais ainda fechadas no capítulo 3")
 	state.get("progress").stats["harvest"] = 7
 	state.call("dev_jump_to_chapter", 4)
@@ -194,6 +185,8 @@ func _ui_check() -> void:
 	await create_timer(0.2).timeout
 	_shot("tasks_start")
 	state.call("dev_jump_to_chapter", 1)
+	state.get("progress").stats["wish"] = 1
+	check(state.call("claim_quest", "lais_first_wish") == "", "prepara a orientação da vovó após o desejo")
 	state.call("_changed")
 	await process_frame
 	await process_frame
@@ -306,7 +299,6 @@ func _shared_quests_check() -> void:
 		check(progress.displayed_main_quest() == shared, "história mostra missão canônica: " + alias)
 		var before: int = state.get("coins")
 		var count_before: int = progress.stat("quests")
-		var old: Dictionary = state.call("to_dict").duplicate(true)
 		check(state.call("claim_quest", shared) == "", "entrega única: " + shared)
 		var chapter_reward := 0
 		if alias == "lais_first_crops":  # lais_stew deixou de fechar o capítulo 3 (depois vêm os dentinhos)
@@ -315,8 +307,3 @@ func _shared_quests_check() -> void:
 		check(state.get("coins") == before + int(quests[shared].rewards.get("coins", 0)) + chapter_reward, "só prêmio canônico e eventual capítulo")
 		check(progress.stat("quests") == count_before + 1, "conta só uma missão")
 		check(state.call("claim_quest", alias) != "" and state.call("claim_quest", shared) != "", "sem segunda entrega")
-		# Save antigo com missão secundária recebida, mas marco da Laís ainda pendente.
-		old.progression.claimed_quests[shared] = true
-		state.call("from_dict", old)
-		check(state.get("progress").claimed_quests.has(alias), "save antigo resolve marco pendente")
-		check(state.get("coins") == before + chapter_reward, "carregar não paga de novo a missão")

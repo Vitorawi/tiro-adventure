@@ -83,7 +83,7 @@ func _run() -> void:
 	state.set_script(load("res://tests/friend_clock.gd"))
 	_totals_and_data()
 	_chain_and_buy()
-	_legacy_floor_and_excess()
+	_excess()
 	_queues()
 	_mastery_counting()
 	_mastery_variety()
@@ -160,21 +160,7 @@ func _chain_and_buy() -> void:
 	check(int(_p().stat("storage_upgrades")) == 4, "ampliações _2.._5 contam 4")
 
 
-func _legacy_floor_and_excess() -> void:
-	_fresh()
-	_p().owned["silo"] = true
-	_p().owned["silo_2"] = true
-	_p().owned["silo_3"] = true
-	state.get("economy").raise_floor("silo", 300)  # save antigo com 300 comprados
-	check(int(state.call("storage_capacity", "silo")) == 300, "piso legado vale 300")
-	_p().owned["silo_4"] = true
-	_p().owned["silo_5"] = true
-	check(int(state.call("storage_capacity", "silo")) == 300, "_4/_5 não somam ao piso (max, não soma)")
-	var dumped: Dictionary = state.call("to_dict")
-	state.call("from_dict", dumped)
-	check(int(state.call("storage_capacity", "silo")) == 300 and int(state.call("storage_floor", "silo")) == 300, "recarregar não aplica o piso de novo")
-	state.call("from_dict", state.call("to_dict"))
-	check(int(state.call("storage_capacity", "silo")) == 300, "duas recargas: mesma capacidade")
+func _excess() -> void:
 	# Estoque acima do limite: consumir e vender continuam livres.
 	_fresh()
 	state.get("inventory").counts["carrot"] = 40
@@ -326,27 +312,6 @@ func _mastery_reload_and_seed() -> void:
 	state.call("from_dict", state.call("to_dict"))
 	check(int(_p().stat("station_jobs:mill")) == 12 and int(state.call("mastery_level", "mill")) == 1, "recarregar conserva contador e selo")
 	check(int(state.get("coins")) == coins and _eco().mastery_method == "r1", "recarregar não paga nem muda o método")
-	# Save antigo: sem contadores de lote; só o histórico de unidades.
-	var old: Dictionary = state.call("to_dict")
-	old.progression.stats = {"produce:plank": 125, "produce:stick": 10, "produce:flour": 31, "produce:carrot_snack": 7}
-	old.economy.erase("mastery_method")
-	old.economy.granted = {}
-	state.call("from_dict", old)
-	check(_eco().mastery_method == "min_units_v1", "método do histórico registrado")
-	check(int(_p().stat("station_jobs:workbench")) == 47, "tábua compartilhada: 125 unidades ÷ 3 = no mínimo 42 lotes (+5 de gravetos), não 125")
-	check(int(_p().stat("station_recipe_jobs:workbench:plank")) == 0 and int(_p().stat("station_recipe_jobs:workbench:hardwood_planks")) == 0, "saída ambígua: variedade da receita fica em 0")
-	check(int(_p().stat("station_recipe_jobs:workbench:cut_sticks")) == 5, "10 gravetos de saída 2 = 5 lotes")
-	check(int(_p().stat("station_recipe_jobs:mill:flour")) == 16, "31 farinhas de saída 2 = 16 lotes")
-	check(int(_p().stat("station_recipe_jobs:stove:carrot_snack")) == 7, "petisco rende 1")
-	check(int(_p().stat("produce:plank")) == 125, "histórico antigo permanece")
-	check(_eco().legacy.has("mastery") and str(_eco().legacy.mastery.method) == "min_units_v1", "método gravado em economy.legacy")
-	var coins_before := int(state.get("coins"))
-	check(not _eco().granted.has("mastery:mill:1"), "semeadura não paga selo")
-	# O selo atingido pelo histórico sai no próximo lote recolhido.
-	_finish("mill", "flour")
-	check(_eco().granted.has("mastery:mill:1") and int(state.get("coins")) == coins_before + 10, "bronze do moinho pago no próximo lote")
-	state.call("from_dict", state.call("to_dict"))
-	check(_eco().mastery_method == "min_units_v1" and int(_p().stat("station_jobs:mill")) == 17, "semeadura acontece uma única vez")
 
 
 func _mastery_ui() -> void:

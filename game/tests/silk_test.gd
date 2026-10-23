@@ -13,9 +13,9 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 		push_error("SILK: " + message)
 
-func _prepare(days: int, baths: int, coat_points: int = 330) -> void:
+func _prepare(days: int, baths: int, coat_moments: int = 10) -> void:
 	state.growth.phase = "adult"
-	state.growth.points["coat"] = coat_points
+	state.growth.moments["coat"] = coat_moments
 	state.growth.brush_days.clear()
 	for day in days:
 		state.growth.brush_days["2026-11-%02d" % (day + 1)] = true
@@ -32,7 +32,7 @@ func _run() -> void:
 	# Só no adulto
 	for phase: Dictionary in db.growth.phases:
 		state.growth.phase = phase.id
-		state.growth.points["coat"] = 330
+		state.growth.moments["coat"] = 10
 		check((state.silk_error() == "Só depois de adulto") == (phase.id != "adult"), "seda só no adulto: " + str(phase.id))
 		check(is_equal_approx(state.dog_look().sheen, 0.0), "sem brilho antes da seda")
 	check(state.silk_info().adult == false or state.growth.phase == "adult", "consulta fora do adulto")

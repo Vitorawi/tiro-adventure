@@ -76,7 +76,7 @@ func _run() -> void:
 	await shot("diario_bloqueados")
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	var card: Node = main.get_node("WalkResult")
-	var result := {"id": "park_loop", "name": "Volta na praça", "postcard": state.call("walk_postcard", "park_loop"), "items": {"stick": 2, "ribbon": 1}, "coins": 12, "affection": 3, "needs": {"happiness": 20, "hygiene": -10}, "new": []}
+	var result := {"id": "park_loop", "name": "Volta na praça", "postcard": state.call("walk_postcard", "park_loop"), "items": {"stick": 2, "ribbon": 1}, "coins": 12, "needs": {"happiness": 20, "hygiene": -10}, "new": []}
 	card.call("show_result", result)
 	await shot("volta_normal")
 	result["first"] = true

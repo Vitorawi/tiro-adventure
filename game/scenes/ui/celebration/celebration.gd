@@ -38,15 +38,6 @@ func show_project(id: String) -> void:
 	show()
 
 
-## Subiu de vínculo com o Tiro: o presente já entrou; o botão só fecha.
-func show_bond(level: int, rewards: Dictionary) -> void:
-	var card := _open({"title": "Vínculo %d!" % level, "ribbon": Palette.ACCENT, "icon": UiKit.ui_icon("bond_heart"),
-		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "success"})
-	card.add_chips(ProgressionUi.reward_chips(rewards))
-	card.add_primary("Oba!", hide)
-	show()
-
-
 ## Pelagem de seda: cartão curto; confete só a partir do nível II. O presente já entrou.
 func show_silk(level: int) -> void:
 	var def: Dictionary = Database.growth.silk.levels[level - 1]

@@ -100,14 +100,6 @@ func _test_clock_mapping() -> void:
 	gs.advance_clock(61.0)
 	check(gs.order_error("vegetables") == "" or gs.order_error("vegetables").begins_with("Falt"), "a recarga termina quando o relógio passa")
 	gs.update_wishes()
-	var assigned := false
-	for i in gs.wishes.slots.size():
-		if str(gs.wishes.slots[i].id) != "":
-			assigned = true
-			var swap_at: float = gs.now()
-			check(gs.swap_wish(i) == "" and absf(float(gs.wishes.slots[i].ready_at) - (swap_at + 300.0)) < 0.001, "trocar desejo espera 300 s do relógio")
-			break
-	check(assigned, "desejos são sorteados quando o relógio chega")
 	# faro e janela de amigos, dia e semana, hora local
 	gs.update_finds()
 	var world: String = str(gs.finds.worlds.keys()[0])
@@ -288,6 +280,8 @@ func _direct(action: Dictionary) -> String:
 func _test_fidelity() -> void:
 	sim = _new_sim()
 	var fixture := _fixture_dict()
+	# Isola a aritm?tica da cadeia; o b?nus animado tem teste pr?prio.
+	fixture.dog.needs.happiness = 10.0
 	var start_time: float = gs.now()
 	# O runner e a execução direta partem do MESMO estado recarregado (from_dict) no mesmo instante.
 	gs.from_dict(fixture)
@@ -578,10 +572,9 @@ func _growth_fixture(phase: String, previous_quest: String) -> void:
 	gs.growth.phase_stats = gs.progress.stats.duplicate(true)
 
 
-func _top_up_pillars(level: int) -> void:
-	var points := int(root.get_node("Database").growth.levels[level - 1])
-	for id: String in ["body", "coat", "smart", "brave"]:
-		gs.dev_add_pillar(id, points)
+func _top_up_moments() -> void:
+	for id: String in ["coat", "smart", "brave"]:
+		for _i in gs.growth.phase_need(id): gs.dev_add_moment(id)
 
 
 func _test_growth_bot() -> void:
@@ -591,7 +584,7 @@ func _test_growth_bot() -> void:
 	gs.inventory.add("carrot", 3)
 	gs.inventory.add("potato", 1)
 	gs.inventory.add("frozen_carrot", 3)
-	_top_up_pillars(2)
+	_top_up_moments()
 	var kinds := _bot_until(func() -> bool: return gs.growth.phase == "teething")
 	check(gs.growth.phase == "teething", "o robô fez o Tiro crescer para Dentinhos (ações: %s)" % str(kinds))
 	check(kinds.count("feed") >= 3 and "deliver_growth" in kinds and "grow" in kinds, "alimentou, entregou o item-chave e apertou Crescer (%s)" % str(kinds))
@@ -603,7 +596,7 @@ func _test_growth_bot() -> void:
 	# Mocinho: refeição da fase, escova entregue e dois banhos com xampu (espera o Tiro sujar entre um e outro).
 	_growth_fixture("explorer", "young_9_milk")
 	check(gs.progress.current_main_quest() == "growth_9_young", "fixture: a história espera o Mocinho")
-	_top_up_pillars(6)
+	_top_up_moments()
 	gs.inventory.add("milk_porridge", 3)
 	gs.inventory.add("soft_brush", 1)
 	gs.inventory.add("herb_shampoo", 2)
@@ -611,13 +604,13 @@ func _test_growth_bot() -> void:
 	gs.dog.updated_at = gs.now()
 	var kinds2 := _bot_until(func() -> bool: return gs.growth.phase == "young", 80)
 	check(gs.growth.phase == "young", "o robô fez o Tiro crescer para Mocinho (ações: %s)" % str(kinds2))
-	check(gs.progress.stat("shampoo_bath") >= 2 and gs.inventory.count("herb_shampoo") == 0, "dois banhos com xampu gastaram o xampu")
+	check(gs.progress.stat("shampoo_bath") >= 1 and gs.inventory.count("herb_shampoo") == 1, "banho útil gastou um xampu; a fase não exige dois banhos")
 	check(kinds2.count("feed") >= 3 and "deliver_growth" in kinds2, "refeição de mocinho e escova entregue")
 	check(sim.violations.is_empty(), "Mocinho sem violações (%s)" % str(sim.violations))
 	# Azul e Dourado: medalhinha entregue, três refeições e o lacinho já feito.
 	_growth_fixture("young", "community_12_memory")
 	check(gs.progress.current_main_quest() == "growth_12_adult", "fixture: a história espera o Azul e Dourado")
-	_top_up_pillars(8)
+	_top_up_moments()
 	gs.inventory.add("courage_medal", 1)
 	gs.inventory.add(gs.favorite_food(), 3)
 	gs.progress.collection["topknot_bow"] = true
