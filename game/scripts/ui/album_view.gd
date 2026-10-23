@@ -20,33 +20,105 @@ static func panel(section: String = "") -> Control:
 	GameState.note_album_section(section)
 	var box := UiKit.vbox(8)
 	box.name = "AlbumView"
-	box.add_child(UiKit.collection_progress(taken_count(), total_count()))
+	var current: Dictionary = sections.filter(func(entry: Dictionary) -> bool: return str(entry.id) == section)[0]
+	# Cabeçalho: seção atual (ícone + nome + quantas já foram tiradas) e o progresso geral discreto.
+	var head := UiKit.hbox(8)
+	head.name = "AlbumHeader"
+	head.add_child(UiKit.icon(UiKit.ui_icon(str(current.icon)), 32))
+	var title := UiKit.label(str(current.name), &"SectionLabel")
+	title.name = "AlbumSectionTitle"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(title)
+	var counts := _section_counts(section)
+	var section_count := UiKit.short_label("%d/%d" % [counts.x, counts.y], &"SectionLabel", Palette.INK_SOFT)
+	section_count.name = "AlbumSectionCount"
+	head.add_child(section_count)
+	box.add_child(head)
+	var overall := UiKit.collection_progress(taken_count(), total_count())
+	overall.name = "AlbumProgress"
+	box.add_child(overall)
+	# Seletor: chips com ícone e nome, em rolagem horizontal.
+	var unseen_sections: Array = GameState.photos_unseen().map(func(id: String) -> String: return str(Database.photo(id).section))
 	var tabs: Array[Dictionary] = []
 	for entry: Dictionary in sections:
-		var unseen := GameState.photos_unseen().any(func(id: String) -> bool: return str(Database.photo(id).section) == str(entry.id))
-		tabs.append({"id": str(entry.id), "text": str(entry.name), "icon": UiKit.ui_icon(str(entry.icon)), "alert": unseen})
+		tabs.append({"id": str(entry.id), "text": str(entry.name), "icon": UiKit.ui_icon(str(entry.icon)), "alert": str(entry.id) in unseen_sections})
 	var segmented := UiKit.segmented(tabs, section, func(id: String) -> void: PetNotebook.open("album:" + id))
 	segmented.name = "AlbumSections"
-	if sections.size() > 3:
-		for tab in segmented.get_children():
-			(tab as Button).text = ""  # só o ícone: seis nomes não cabem na largura do celular
-	var tab_margin := MarginContainer.new()
-	tab_margin.add_theme_constant_override("margin_top", 8)
-	tab_margin.add_child(segmented)
-	box.add_child(tab_margin)
-	var title := UiKit.label(str(sections.filter(func(entry: Dictionary) -> bool: return str(entry.id) == section)[0].name), &"SectionLabel")
-	title.name = "AlbumSectionTitle"
-	box.add_child(title)
+	for tab in segmented.get_children():
+		var button := tab as Button
+		button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		button.custom_minimum_size = Vector2(0, 40)
+		button.add_theme_font_size_override("font_size", 16)
+		var badge := button.find_child("NewBadge", false, false) as Label
+		if badge != null:
+			_make_dot(badge, 10)
+			badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+			badge.position += Vector2(-2, 8)
+	var strip := ScrollContainer.new()
+	strip.name = "AlbumSectionScroll"
+	strip.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	strip.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	strip.custom_minimum_size = Vector2(0, 52)
+	var strip_pad := MarginContainer.new()
+	strip_pad.add_theme_constant_override("margin_top", 6)
+	strip_pad.add_theme_constant_override("margin_right", 10)
+	strip_pad.add_child(segmented)
+	strip.add_child(strip_pad)
+	box.add_child(strip)
+	var selected_tab := segmented.find_child("NotebookTab_" + section, false, false) as Control
+	if selected_tab != null:
+		_reveal_tab.call_deferred(strip, selected_tab)
 	var grid := GridContainer.new()
 	grid.name = "AlbumGrid"
 	grid.columns = COLUMNS
 	grid.add_theme_constant_override("h_separation", 6)
-	grid.add_theme_constant_override("v_separation", 6)
+	grid.add_theme_constant_override("v_separation", 10)
 	for entry: Dictionary in Database.album.photos:
 		if str(entry.section) == section:
 			grid.add_child(_tile(entry))
 	box.add_child(grid)
 	return box
+
+
+## Transforma o selo de novidade numa bolinha sem texto visível.
+static func _make_dot(badge: Label, px: int) -> void:
+	# A altura mínima do Label não encolhe abaixo de 24: reduz por escala.
+	badge.custom_minimum_size = Vector2(24, 24)
+	badge.size = Vector2(24, 24)
+	badge.scale = Vector2.ONE * (px / 24.0)
+	badge.add_theme_color_override("font_color", Color(1, 1, 1, 0))
+	badge.add_theme_font_size_override("font_size", 6)
+	badge.add_theme_font_size_override("outline_size", 0)
+	badge.clip_text = true
+	badge.theme_type_variation = &""
+	var style := StyleBoxFlat.new()
+	style.bg_color = Palette.DANGER
+	style.set_corner_radius_all(12)
+	badge.add_theme_stylebox_override("normal", style)
+
+
+## Rola o seletor até o chip da seção aberta, depois do primeiro layout.
+static func _reveal_tab(strip_ref: Variant, tab_ref: Variant) -> void:
+	var strip := strip_ref as ScrollContainer if is_instance_valid(strip_ref) else null
+	var tab := tab_ref as Control if is_instance_valid(tab_ref) else null
+	if strip == null or tab == null:
+		return
+	if not is_instance_valid(strip) or not strip.is_inside_tree():
+		return
+	await strip.get_tree().process_frame
+	if is_instance_valid(strip) and is_instance_valid(tab):
+		strip.scroll_horizontal = maxi(0, int(tab.position.x + tab.size.x * 0.5 - strip.size.x * 0.5))
+
+
+## (tiradas, total) de uma seção.
+static func _section_counts(section: String) -> Vector2i:
+	var taken := 0
+	var total := 0
+	for entry: Dictionary in Database.album.photos:
+		if str(entry.section) == section:
+			total += 1
+			taken += 1 if GameState.album.has_photo(str(entry.id)) else 0
+	return Vector2i(taken, total)
 
 
 ## Fotos tiradas nas seções ativas e quantas existem nelas.
@@ -71,14 +143,17 @@ static func _tile(entry: Dictionary) -> Control:
 	var secret: bool = str(entry.section) == "tricks"
 	var tile := UiKit.button("", func() -> void: _tap(id), &"GhostButton")
 	tile.name = "Photo_" + id
-	tile.custom_minimum_size = Vector2(0, 150)
+	tile.custom_minimum_size = Vector2(0, 130)
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var clear := StyleBoxEmpty.new()
+	for state: String in ["normal", "hover", "pressed", "focus", "disabled"]:
+		tile.add_theme_stylebox_override(state, clear)
 	var column := UiKit.vbox(2)
 	column.name = "Visual"
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	column.alignment = BoxContainer.ALIGNMENT_BEGIN
-	var card := PhotoCard.make(id, 98.0, {"secret": secret})
+	var card := PhotoCard.make(id, 100.0, {"secret": secret, "thumb": true})
 	var holder := CenterContainer.new()
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder.add_child(card)
@@ -93,9 +168,10 @@ static func _tile(entry: Dictionary) -> Control:
 	column.add_child(caption)
 	tile.add_child(column)
 	if taken and not bool(GameState.album.photos[id].get("seen", false)):
+		# Bolinha no canto superior direito da moldura; o "!" fica invisível só para manter o nó NewBadge.
 		var badge := UiKit.alert_badge()
-		badge.position = Vector2(4, 4)
-		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_make_dot(badge, 11)
+		badge.position = Vector2(88, -2)
 		tile.add_child(badge)
 	return tile
 

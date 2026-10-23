@@ -225,8 +225,8 @@ func _pairs() -> void:
 	check(state.progress.current_main_quest() == "teeth_3_ring", "depois do ensopado vem 'Dentinhos coçando'")
 	check(not state.quest_unlocked("teeth_3_ring"), "o alias não é entregável")
 	check(state.progress.displayed_main_quest() == "bloblo_chew_ring", "a história mostra a missão da vovó")
-	state.inventory.add("carrot", 3)
-	state.inventory.add("potato", 1)
+	state.inventory.add("carrot", 6)
+	state.inventory.add("strawberry", 3)
 	var coins: int = state.coins
 	var quests_before: int = state.progress.stat("quests")
 	check(state.claim_quest("bloblo_chew_ring") == "", "vovó entrega a argolinha")

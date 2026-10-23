@@ -298,11 +298,14 @@ func _food_item(id: String) -> Control:
 		heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		item.add_child(heart)
 	elif not GameState.growth.tastes.has(id):
-		var fresh := UiKit.short_label("Nova!", &"BadgeLabel", Palette.DANGER)
+		# Etiqueta "Provar" à direita do nome (nunca provou). Texto na cor do tema (branco sobre o fundo do selo).
+		var fresh := UiKit.short_label("Provar", &"BadgeLabel")
 		fresh.name = "NewTaste"
-		fresh.position = Vector2(2, 0)
 		fresh.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		item.add_child(fresh)
+		fresh.reset_size()
+		fresh.position = Vector2(200.0 - fresh.size.x, 4)
+		label.size = Vector2(fresh.position.x - 64.0, 52)
 	return item
 
 

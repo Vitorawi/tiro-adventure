@@ -10,7 +10,7 @@ const FRAME := preload("res://assets/sprites/ui/album/polaroid.png")
 const MONTHS := ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
 
 
-## `options`: `locked` (silhueta cinza), `secret` ("?" no lugar da silhueta), `caption` (título e data na moldura).
+## `options`: `locked` (silhueta cinza), `secret` ("?" no lugar da silhueta), `caption` (título e data na moldura), `thumb` (miniatura da grade: sem a faixa de fase).
 static func make(id: String, width: float = 104.0, options: Dictionary = {}) -> Control:
 	var entry := Database.photo(id)
 	var info := GameState.photo_info(id)
@@ -100,7 +100,7 @@ static func _finish(root: Control, entry: Dictionary, info: Dictionary, width: f
 		mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(mark)
 	var ribbon := str(entry.get("photo", {}).get("ribbon", ""))
-	if ribbon != "" and not locked:
+	if ribbon != "" and not locked and not bool(options.get("thumb", false)):
 		var band := ColorRect.new()
 		band.name = "RibbonBand"
 		band.color = Palette.PRIMARY

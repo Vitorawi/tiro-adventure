@@ -72,11 +72,11 @@ func run() -> void:
  state.dev_complete_quest('bloblo_stew')
  check(state.quest_unlocked('bloblo_chew_ring'),'missão da vovó aparece depois do ensopado')
  check(state.claim_quest('bloblo_chew_ring')!='','sem ingredientes não entrega')
- state.inventory.add('carrot',3)
- state.inventory.add('potato',1)
+ state.inventory.add('carrot',6)
+ state.inventory.add('strawberry',3)
  var coins: int = state.coins
  check(state.claim_quest('bloblo_chew_ring')=='','entrega a argolinha')
- check(state.inventory.count('chew_ring')==1 and state.inventory.count('carrot')==0 and state.inventory.count('potato')==0,'argolinha e ingredientes')
+ check(state.inventory.count('chew_ring')==1 and state.inventory.count('carrot')==0 and state.inventory.count('strawberry')==0,'argolinha e ingredientes')
  check(state.coins-coins==10,'dez moedas')
  state.growth.phase = 'puppy'
  origin = help.call('describe','growth_req','key')

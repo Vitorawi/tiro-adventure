@@ -526,19 +526,19 @@
   "bloblo_chew_ring": {
     "npc": "bloblo",
     "name": "Argolinha da vovó",
-    "dialogue": "Costurei uma argolinha de pano; molha, gela e ele morde à vontade. Só preciso de cenouras e uma batata para o recheio!",
+    "dialogue": "Costurei uma argolinha de pano; molha, gela e ele morde à vontade. Só preciso de cenouras para a massa e uns moranguinhos para o recheio!",
     "goals": [
       {
         "type": "deliver",
         "key": "carrot",
-        "target": 3,
-        "label": "Entregar 3 cenouras"
+        "target": 6,
+        "label": "Entregar 6 cenouras"
       },
       {
         "type": "deliver",
-        "key": "potato",
-        "target": 1,
-        "label": "Entregar 1 batata"
+        "key": "strawberry",
+        "target": 3,
+        "label": "Entregar 3 morangos"
       }
     ],
     "rewards": {

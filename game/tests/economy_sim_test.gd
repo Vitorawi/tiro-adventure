@@ -581,8 +581,8 @@ func _test_growth_bot() -> void:
 	# Dentinhos: a vovó faz a argolinha, o robô dá a cenoura gelada três vezes, entrega a argolinha e cresce.
 	_growth_fixture("puppy", "lais_stew")
 	check(gs.progress.current_main_quest() == "teeth_3_ring", "fixture: capítulo 3 espera a argolinha")
-	gs.inventory.add("carrot", 3)
-	gs.inventory.add("potato", 1)
+	gs.inventory.add("carrot", 6)
+	gs.inventory.add("strawberry", 3)
 	gs.inventory.add("frozen_carrot", 3)
 	_top_up_moments()
 	var kinds := _bot_until(func() -> bool: return gs.growth.phase == "teething")
