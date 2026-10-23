@@ -32,6 +32,11 @@ func primary(node: Node) -> int:
 	for child: Node in node.get_children(): count += primary(child)
 	return count
 
+func visible_help(panel: Node) -> Control:
+	for help: Control in panel.find_children("GrowthHelp", "Control", true, false):
+		if help.is_visible_in_tree(): return help
+	return null
+
 func text(node: Node, value: String) -> bool:
 	for label: Label in node.find_children("*", "Label", true, false):
 		if value in label.text: return true
@@ -71,6 +76,11 @@ func _run() -> void:
 			var help: Dictionary = load("res://scripts/ui/task_help.gd").call("describe", "growth_req", str(row.id))
 			check(str(help.action) != "" and not help.target.is_empty(), "requisito tem ação e destino concretos")
 		check(primary(panel) <= 1, "no máximo um PrimaryButton")
+		# Sem rolagem nas fases com próxima fase: cabe nos 360x780 do celular.
+		if not state.call("growth_info").next.is_empty():
+			var sheet_scroll := main.find_child("Sheet", true, false).find_child("Scroll", true, false) as ScrollContainer
+			var bar := sheet_scroll.get_v_scroll_bar()
+			check(bar.max_value <= bar.page + 1.0, "painel sem rolagem em %s (%d de %d)" % [phase.id, int(bar.max_value), int(bar.page)])
 		if "--layout-shots" in OS.get_cmdline_user_args(): await layout_shot(str(phase.id))
 		if "--portrait-shots" in OS.get_cmdline_user_args():
 			await layout_shot(str(phase.id) + "_awake")
@@ -108,6 +118,7 @@ func _run() -> void:
 			check(root.get_texture().get_image().save_png(folder.path_join("source_%d.png" % root.size.x)) == OK, "captura de onde conseguir")
 	state.call("dev_set_phase", "newborn")
 	state.get("growth").phase_moments = {"body": 2, "brave": 0}
+	state.get("growth").done = {}  # o laço acima pode ter deixado o carinho marcado como feito
 	var helper: Script = load("res://scripts/ui/task_help.gd")
 	helper.call("open", "growth_req", "pillars")
 	await frames()
@@ -141,7 +152,11 @@ func _run() -> void:
 	var list_scroll := main.find_child("Sheet", true, false).find_child("Scroll", true, false) as ScrollContainer
 	list_scroll.ensure_control_visible(panel.find_child("GrowthReq_meals", true, false))
 	await frames()
+	# Tocar no quadradinho só escolhe o passo; o "?" do detalhe visível abre o Como fazer.
 	await click(panel.find_child("GrowthReq_meals", true, false))
+	check(main.find_child("Sheet", true, false).get_node("%Title").text != "Como fazer", "toque no quadradinho só escolhe")
+	check(panel.find_child("GrowthNextStep", true, false).visible, "passo recomendado é o escolhido")
+	await click(visible_help(panel))
 	check(main.find_child("Sheet", true, false).get_node("%Title").text == "Como fazer", "toque abre ajuda")
 	check(text(main.find_child("Sheet", true, false), "Qualquer comida") and text(main.find_child("Sheet", true, false), "ração"), "ajuda explica que a ração inicial conta")
 	# Dar usa o mesmo item no painel e na Mochila; parcial, atualização e repetição.

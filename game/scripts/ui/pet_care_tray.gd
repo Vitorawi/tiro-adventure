@@ -113,10 +113,10 @@ func _ready() -> void:
 ## Seta junto do botão, sem capturar toque; acompanha o controle em qualquer resolução.
 func point_at(id: String) -> void:
 	clear_pointer()
-	if not _items.has(id): return
+	var tile: Control = pet_screen.find_child("WishBubble", true, false) if id == "wish" else _items.get(id)
+	if tile == null or not tile.is_visible_in_tree(): return
 	close_food_menu()
 	_pointed_item = id
-	var tile: Control = _items[id]
 	_pointer = Polygon2D.new()
 	_pointer.name = "CarePointer"
 	_pointer.z_index = Motion.WORLD_FX_Z

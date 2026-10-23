@@ -88,6 +88,19 @@ func _run() -> void:
 		check(main.find_child("GrowthPanel", true, false) != null, "Ver abre crescimento " + phase.id)
 		events.sheet_close_requested.emit()
 		await frames()
+	# Cada passo do resumo é tocável: fecha o resumo e leva a fazer (carinho → tela do Tiro).
+	state.call("dev_set_phase", "newborn")
+	state.get("growth").done = {}
+	state.get("growth").phase_moments = {}
+	hud.refresh(false)
+	hud.show_level_popover()
+	await frames()
+	var tile := main.get_node("PopoverCatcher").find_child("GrowthQuick_pillars", true, false) as Button
+	check(tile != null, "carinho pendente vira quadradinho tocável")
+	if tile:
+		tile.pressed.emit()
+		await frames()
+		check(main.get_node_or_null("PopoverCatcher") == null, "tocar no passo fecha o resumo")
 	# Pronto tem aviso vermelho explícito, sem movimento no avatar.
 	state.call("dev_set_phase", "newborn")
 	state.call("dev_complete_growth_reqs")

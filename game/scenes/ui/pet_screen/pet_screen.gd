@@ -22,6 +22,7 @@ var _growth_pulse: Tween
 var _wish_bubble: Button
 var _wish_icon: TextureRect
 var _wish_pillar: TextureRect
+var _wish_badge: Label
 var _need_pillars: Dictionary = {}
 var _away_view: VBoxContainer
 var _away_postcard: TextureRect
@@ -214,12 +215,18 @@ func _build_wish_widgets() -> void:
 	_wish_pillar.position = Vector2(40, 0)
 	_wish_pillar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_wish_bubble.add_child(_wish_pillar)
+	_wish_badge = UiKit.alert_badge()
+	_wish_badge.name = "WishReadyBadge"
+	_wish_badge.position = Vector2(46, 20)
+	_wish_bubble.add_child(_wish_badge)
+	_wish_badge.reset_size()
 	add_child(_wish_bubble)
 	_dog_sprite.item_rect_changed.connect(_place_bubble)
 
 
 ## Toque no balão: o pedido em uma linha, com Pegar/Dar ou Ir; fecha sozinho ao atender.
 func _open_wish_card() -> void:
+	if _care.get("_pointed_item") == "wish": _care.clear_pointer()
 	if GameState.balloon_wish() == "": return
 	var card := WishUi.balloon_card()
 	var popover := Popover.open(self, _wish_bubble, card, 0.0)
@@ -283,6 +290,8 @@ func _refresh() -> void:
 		_growth_ring.scale = Vector2.ONE
 	var wish_id := GameState.balloon_wish()
 	_wish_bubble.visible = wish_id != "" and not dog.sleeping and not away
+	_wish_badge.visible = _wish_bubble.visible and GameState.fulfillable_wish_count() > 0
+	if not _wish_bubble.visible and _care.get("_pointed_item") == "wish": _care.clear_pointer()
 	_wish_icon.texture = WishUi.icon(wish_id) if wish_id != "" else null
 	_wish_pillar.texture = WishUi.pillar_icon(GameState.wish_pillar()) if wish_id != "" else null
 	_new_badge.visible = PetNotebook.has_new()

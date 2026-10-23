@@ -267,50 +267,94 @@ func coins_target() -> Vector2:
 
 
 ## Consulta da fase; nome antigo mantido para ferramentas e testes existentes.
+## Resumo visual: rumo a qual fase, barra em segmentos e um quadradinho tocável por passo que falta.
 func show_level_popover() -> Popover:
 	var info := GameState.growth_info()
 	var card := UiKit.vbox(8)
 	card.name = "GrowthQuickSummary"
-	card.custom_minimum_size.x = 248
-	if GameState.tiro_animated():
-		var help := UiKit.label(GameState.animated_help(), &"SmallLabel", Palette.GOOD)
-		help.name = "AnimatedHelp"
-		help.add_theme_font_size_override("font_size", 14)
-		card.add_child(help)
-	card.add_child(UiKit.label(str(info.current.name), &"SmallLabel"))
-	card.add_child(UiKit.label("Guardião do Vale" if info.next.is_empty() else "Rumo a " + str(info.next.name), &"SectionLabel"))
+	card.custom_minimum_size.x = 264
+	var visible_steps: Array = info.requirements.filter(func(req: Dictionary) -> bool: return req.type != "given")
+	var complete: int = visible_steps.filter(func(req: Dictionary) -> bool: return req.done).size()
+	var head := UiKit.hbox(8)
+	if not info.next.is_empty():
+		head.add_child(GrowthUi.silhouette(info.next, info.requirements.size() - GrowthUi.missing(info), info.ready, "QuickSilhouette", 40))
+	var titles := UiKit.vbox(0)
+	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	titles.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	titles.add_child(UiKit.label("Guardião do Vale" if info.next.is_empty() else "Rumo a " + str(info.next.name), &"SectionLabel"))
 	if info.ready:
-		card.add_child(UiKit.label("Tudo pronto para crescer!", &"SmallLabel", Palette.GOOD))
+		titles.add_child(UiKit.label("Tudo pronto para crescer!", &"SmallLabel", Palette.GOOD))
 	elif not info.next.is_empty():
-		card.add_child(UiKit.label("Ainda falta", &"SmallLabel"))
+		titles.add_child(UiKit.label("%s · falta %d" % [str(info.current.name), visible_steps.size() - complete], &"SmallLabel", Palette.INK_SOFT))
+	else:
+		titles.add_child(UiKit.label("Ele cresceu com você!", &"SmallLabel"))
+	head.add_child(titles)
+	card.add_child(head)
+	if not info.next.is_empty():
+		card.add_child(GrowthUi.progress_strip(complete, visible_steps.size(), 8))
+	if not info.next.is_empty() and not info.ready:
 		var grid := GridContainer.new()
 		grid.name = "GrowthQuickGrid"
 		grid.columns = 2
-		grid.add_theme_constant_override("h_separation", 8)
-		grid.add_theme_constant_override("v_separation", 8)
+		grid.add_theme_constant_override("h_separation", 6)
+		grid.add_theme_constant_override("v_separation", 6)
 		for step: Dictionary in GrowthUi.compact_steps(info):
-			var tile := UiKit.hbox(4)
-			tile.name = "GrowthQuick_" + str(step.id)
-			tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			var ring := RingProgress.new()
-			ring.custom_minimum_size = Vector2(36, 36)
-			ring.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			ring.texture = step.icon
-			ring.progress = float(step.have) / maxf(1.0, float(step.need))
-			tile.add_child(ring)
-			var label := UiKit.vbox(0)
-			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			label.add_child(UiKit.label(str(step.title), &"SmallLabel"))
-			label.add_child(UiKit.label("%d/%d" % [step.have, step.need], &"SmallLabel"))
-			tile.add_child(label)
-			grid.add_child(tile)
+			grid.add_child(_quick_tile(step))
 		card.add_child(grid)
-	else:
-		card.add_child(UiKit.label("Ele cresceu com você!", &"SmallLabel"))
+		var tip := UiKit.label("Toque num passo para fazer", &"SmallLabel", Palette.INK_SOFT)
+		tip.name = "QuickTip"
+		tip.add_theme_font_size_override("font_size", 14)
+		tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		card.add_child(tip)
+	if GameState.tiro_animated():
+		var mood := UiKit.hbox(6)
+		mood.name = "AnimatedRow"
+		mood.add_child(UiKit.icon(UiKit.ui_icon("need_happiness"), 24))
+		var words := UiKit.vbox(0)
+		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		words.add_child(UiKit.label("Ele está animado!", &"SmallLabel", Palette.GOOD))
+		var help := UiKit.label(GameState.animated_help(), &"SmallLabel", Palette.INK_SOFT)
+		help.name = "AnimatedHelp"
+		help.add_theme_font_size_override("font_size", 14)
+		words.add_child(help)
+		mood.add_child(words)
+		card.add_child(mood)
 	var view := UiKit.secondary("Ver detalhes", func() -> void:
-		var catcher := get_parent().get_node_or_null("PopoverCatcher")
-		if catcher: catcher.queue_free()
+		_close_popover()
 		GrowthUi.open(), null, true)
 	view.name = "ViewGrowth"
 	card.add_child(view)
 	return Popover.open(get_parent() as Control, avatar_button, card, 0.0)
+
+
+## Quadradinho de um passo: anel com ícone, nome e quantidade. Tocar fecha o resumo e leva a fazer.
+func _quick_tile(step: Dictionary) -> Button:
+	var tile := UiKit.button("", func() -> void:
+		_close_popover()
+		(step.callback as Callable).call(), &"GhostButton")
+	tile.name = "GrowthQuick_" + str(step.id)
+	tile.custom_minimum_size = Vector2(0, 56)
+	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var style := StyleBoxFlat.new()
+	style.bg_color = Palette.SUNKEN
+	style.set_corner_radius_all(12)
+	for state: String in ["normal", "hover", "pressed", "focus"]:
+		tile.add_theme_stylebox_override(state, style)
+	var row := UiKit.hbox(4)
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.offset_left = 4
+	row.offset_right = -4
+	tile.add_child(row)
+	row.add_child(GrowthUi.step_ring(step, 40))
+	var words := UiKit.vbox(0)
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	words.add_child(UiKit.short_label(str(step.title), &"SmallLabel"))
+	words.add_child(UiKit.short_label("%d/%d" % [step.have, step.need], &"SmallLabel", Palette.GOOD if step.hint_good else Palette.INK_SOFT))
+	row.add_child(words)
+	return tile
+
+
+func _close_popover() -> void:
+	var catcher := get_parent().get_node_or_null("PopoverCatcher")
+	if catcher: catcher.queue_free()

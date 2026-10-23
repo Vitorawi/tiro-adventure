@@ -551,7 +551,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 						break
 				return goal_target({"type": "owned", "key": next if next != "" else "silo"})
 			if key == "wish" or key.begins_with("wish:"):
-				return {"screen": "pet", "hint": "Tiro → desejo"}
+				return {"screen": "pet", "care": "wish", "hint": "Tiro → desejo"}
 			if key in ["bathe", "shampoo_bath", "play", "pet", "care_useful"] or key.begins_with("care_useful:"):
 				if key in ["bathe", "shampoo_bath", "play"]:
 					return {"screen": "pet", "care": "ball" if key == "play" else "sponge", "hint": "Tiro → Brincar" if key == "play" else "Tiro → Banho"}
@@ -594,6 +594,9 @@ static func quest_target(id: String) -> Dictionary:
 			goal = candidate
 			break
 	var result: Dictionary = quest.get("go", goal_target(goal)).duplicate()
+	# O conteúdo pode personalizar o texto/destino da Home sem perder a indicação do desejo.
+	if result.get("screen", "") == "pet" and goal_target(goal).get("care", "") == "wish":
+		result["care"] = "wish"
 	if quest.has("hint"):
 		result["hint"] = quest.hint
 	return result
