@@ -196,7 +196,7 @@ na almofada), `world_selector_test` (se o `TabBar` mudou de altura, as contas `e
 ## 8. Pronto quando
 - [ ] Rodapé claro translúcido preso à borda, com nomes; o mundo aparece atrás dele no Mapa.
 - [ ] HUD em duas linhas igual ao protótipo; nada sobrepõe em 360/390/412.
-- [ ] Seguir a história do save novo até `lais_bag` só pela pílula funciona (teste 3–4 + conferência à mão).
+- [x] Seguir a história do save novo até `lais_bag` só pela pílula funciona (teste 3–4 + conferência à mão).
 - [ ] Avisos nunca empilham; erro tem o ícone do que falta.
 - [ ] Testes da lista verdes. `CLAUDE.md`/`AGENTS.md`: linhas novas para `NextStep`, `QuestGuide`, `Notice`,
       `Events.notice_requested` e o rodapé preso.

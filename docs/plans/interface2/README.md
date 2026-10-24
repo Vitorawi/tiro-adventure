@@ -170,3 +170,14 @@ cabia em duas linhas na linha de 64 (`world_selector_test` falhava). Diferenças
 Mapa fica só com ✓ (compacto); (d) os conteúdos da tela do Tiro (anéis, cuidados) continuam os de antes, só deslocados 40 px
 para baixo do novo HUD: a 04 os refaz. Pendências: `StepCard` não abre o nome do capítulo (02 §2.2, opcional); aviso toca
 Como fazer só para erro com item. Capturas: `i2_03_antes`, `i2_03_depois`, `_390`, `_412`.
+
+**Etapa 03, conferência a mão até `lais_bag` (24/10/2026):** script `game/tests/pill_walk_shots.gd` (não é teste; sem
+`--headless`) dirige o `main` com save novo e só usa a pílula do próximo passo: em cada passo captura, abre o cartão,
+toca em `Ir` (anota o destino), faz no lugar o que a missão pede e toca na pílula verde. Ordem e destinos do `Ir`:
+`welcome` (mundo `house`, `npc:lais`) → `lais_feed` (`house`, `bowl`; abriu a tigela) → `lais_bath` (tela Tiro) →
+`lais_play` (tela Tiro) → `lais_bag` (tela Mochila; o próprio `Ir` conta o objetivo `open:bag`). Os cinco passaram a
+`ready`, a pílula verde concluiu cada um (`claimed_quests`) e o seguinte apareceu. Capturas abertas em
+`build/screenshots/i2_03_mao/` (20 PNGs: antes/cartão/destino/pronto por passo), log em `build/i2_03_mao.log`. Nada
+quebrou; lista fechada não precisou rodar de novo (nenhum código do jogo mudou). Observação: um aviso do Godot
+"Lambda capture ... was freed" aparece uma vez ao tocar `Ir` com o cartão aberto (do fechamento do `PopoverCatcher`,
+padrão já usado em `Hud._close_popover`); não derruba nada.
