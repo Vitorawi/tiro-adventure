@@ -55,7 +55,6 @@ func setup(id: String) -> void:
 	add_child(_status)
 	_hint = UiKit.label("", &"SmallLabel", Palette.INK_SOFT)
 	_hint.name = "WorldHint"
-	_hint.add_theme_font_size_override("font_size", 16)
 	_hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_hint)
 	resized.connect(_layout)

@@ -1,6 +1,6 @@
 extends Control
-## Casca do jogo: barra superior (crescimento/moedas, selo DEV), abas Tiro / Mapa (mundos) /
-## Missões / Mochila, painel inferior (Sheet) e mensagens rápidas (toast).
+## Casca do jogo: HUD de duas linhas (crescimento/moedas, próximo passo), rodapé preso com as abas Tiro / Mapa
+## (mundos) / Missões / Mochila, painel inferior (Sheet) e a central de avisos (`Notice`).
 ## Events.world_requested (botões "Ir") troca para o Mapa e entra no mundo pedido.
 
 @onready var _screens := {
@@ -16,29 +16,23 @@ extends Control
 	&"bag": %BagTab,
 }
 @onready var _hud: Hud = %TopBar
-@onready var _toast: Control = %Toast
+@onready var _toast: PanelContainer = %Toast
 @onready var _toast_text: Label = %ToastText
 @onready var _toast_icon: TextureRect = %ToastIcon
 
-## Aviso (toast) desce de y = TOAST_FROM_Y até TOAST_Y, logo abaixo do HUD; com o banner de atualização aberto, desce mais.
-const TOAST_FROM_Y := -40.0
-const TOAST_Y := 68.0
-const TOAST_BELOW_BANNER_Y := 116.0
-const TOAST_MAX_WIDTH := 320.0
-const TOAST_HOLD := 1.6
-const TOAST_FADE := 0.3
+## Os avisos moram na central: um por vez, erro > momento > foto > info, abaixo da linha 2 do HUD.
+const NOTICE_Y := 136.0
+const NOTICE_BELOW_BANNER_Y := 188.0
 
-var _toast_tween: Tween
-## Foto que o aviso "Nova foto!" abre ao ser tocado ("" = aviso comum, que ignora o toque).
-var _toast_photo: String = ""
+var _notice: Notice
 ## Fotos novas esperando a vez do aviso (depois de qualquer cartão, sem entrar na fila de cartões).
 var _photo_queue: Array[String] = []
-const PHOTO_TOAST := "Nova foto!"
 var _faces: Dictionary = {}  # id da aba → NavTab
 var _current_screen: StringName = &""
 var _tasks_badge: Label
 var _map_badge: Label
-var _tasks_pulse: Tween
+## Quem pede para esconder a linha 2 do HUD (além dos bloqueios automáticos: folha, bandeja, viagem, cartões).
+var _row2_blockers: Dictionary = {}
 var _celebration: CanvasLayer
 ## Capítulo concluído nesta leva de missões (0 = nenhum); o anúncio sai uma vez, no fim do frame.
 var _chapter_done: int = 0
@@ -51,20 +45,17 @@ var _growth_ceremony: GrowthCeremony
 var _growth_queued: Dictionary = {}
 var _intro: Node
 var _left_at: float = 0.0
-## Aviso "Momento de Coragem!": pílula curta com o ícone do pilar, que voa até o avatar do HUD.
-var _moment_notice: PanelContainer
-var _moment_icon: TextureRect
-var _moment_text: Label
-var _moment_queue: Array[String] = []
-var _moment_busy := false
-const MOMENT_Y := 120.0
-const MOMENT_HOLD := 1.0
 
 
 func _ready() -> void:
+	_notice = Notice.new()
+	add_child(_notice)
+	_notice.setup(self, _hud, _toast, _toast_text, _toast_icon)
+	_notice.blocked = notice_blocked
+	_notice.top_y = notice_top
 	for id: StringName in _tabs:
 		_tabs[id].pressed.connect(_on_tab_pressed.bind(id))
-		# Ícone em cima e nome embaixo; a aba ativa ganha o círculo e sobe (as cinco cabem em 360 px).
+		# Almofada com o ícone e o nome embaixo; a aba ativa ganha a almofada mel (as quatro cabem em 360 px).
 		_faces[id] = NavTab.attach(_tabs[id])
 		_tabs[id].pressed.connect(func() -> void: _faces[id].bounce_icon())
 	Events.screen_requested.connect(show_screen)
@@ -107,7 +98,6 @@ func _ready() -> void:
 	# Foto nova do álbum: aviso tocável que abre a foto, depois de qualquer cartão (fila própria).
 	Events.photo_taken.connect(func(id: String) -> void:
 		if GameState.photo_alerts_enabled(): _photo_queue.append(id))
-	_toast.gui_input.connect(_on_toast_input)
 	Events.find_discovered.connect(func(result: Dictionary) -> void:
 		_queue_modal(func() -> void: _celebration.show_find(result)))
 	var modal_timer := Timer.new()
@@ -120,9 +110,14 @@ func _ready() -> void:
 	Events.state_changed.connect(_refresh_guide)
 	_build_tasks_badge()
 	_refresh_guide()
-	Events.toast_requested.connect(_show_toast)
-	_build_moment_notice()
 	Events.moment_gained.connect(_on_moment_gained)
+	var row2_timer := Timer.new()
+	row2_timer.wait_time = 0.2
+	row2_timer.autostart = true
+	row2_timer.timeout.connect(_check_row2)
+	add_child(row2_timer)
+	Events.sheet_requested.connect(func(_title: String, _content: Control) -> void: _check_row2.call_deferred())
+	Events.sheet_close_requested.connect(func() -> void: _check_row2.call_deferred())
 	Events.state_changed.connect(_refresh_top_bar)
 	Events.update_available.connect(%UpdateBanner.show)
 	%UpdateBanner.pressed.connect(PwaUpdater.apply_update)
@@ -132,7 +127,7 @@ func _ready() -> void:
 	_hud.dev_button.visible = BuildInfo.is_dev()
 	_hud.dev_button.pressed.connect(func() -> void:
 		Events.sheet_requested.emit("Ferramentas DEV", DevPanel.panel()))
-	UiKit.tint_bar(_hud.xp_bar, Palette.GOLD)
+	UiKit.tint_bar(_hud.xp_bar, Palette.HONEY)
 	_hud.refresh(false)
 	show_screen(&"pet")
 	# Jogo novo: a Laís chega com o Tiro e apresenta a casa (uma vez só).
@@ -203,12 +198,63 @@ func _queue_modal(callback: Callable) -> void:
 func _flush_modals() -> void:
 	if (_modal_queue.is_empty() and _photo_queue.is_empty()) or _announce_pending or _chapter_done > 0:
 		return
-	if (is_instance_valid(_intro) and _intro.is_inside_tree()) or _celebration.visible or _welcome.visible or _walk_result.visible or _growth_ceremony.visible:
+	if _card_open():
 		return
 	if not _modal_queue.is_empty():
 		_modal_queue.pop_front().call()
 	else:
 		_show_photo_toast(_photo_queue.pop_front())
+
+
+## Algum cartão grande (introdução, comemoração, boas-vindas, volta do passeio, cerimônia) está na tela.
+func _card_open() -> bool:
+	return (is_instance_valid(_intro) and _intro.is_inside_tree()) or _celebration.visible or _welcome.visible or _walk_result.visible or _growth_ceremony.visible
+
+
+## Avisos esperam enquanto houver cartão aberto ou cartão na fila (mesma regra do `_flush_modals`).
+func notice_blocked() -> bool:
+	return _card_open() or not _modal_queue.is_empty() or _announce_pending or _chapter_done > 0
+
+
+## Onde o aviso nasce: logo abaixo da linha 2 do HUD (ou da pílula do mundo e dos rostos, no Mapa).
+func notice_top() -> float:
+	var y := NOTICE_BELOW_BANNER_Y if %UpdateBanner.visible else NOTICE_Y
+	if _current_screen == &"map":
+		y = maxf(y, %WorldsScreen.toast_top())
+	return y
+
+
+## Linha 2 do HUD: esconde por uma chave (a roleta, a barra da horta... pedem por aqui) ou pelos bloqueios
+## automáticos de `_check_row2`.
+func set_row2_blocker(key: String, on: bool) -> void:
+	if on:
+		_row2_blockers[key] = true
+	else:
+		_row2_blockers.erase(key)
+	_check_row2()
+
+
+func _check_row2() -> void:
+	var blocked: bool = not _row2_blockers.is_empty() or _card_open() or (get_node("Sheet") as Control).call("is_open") \
+		or ActionTray.current != null or %WorldsScreen.is_traveling()
+	_hud.set_row2_shown(not blocked)
+
+
+## Com `true`, o rodapé se junta à tela de cima (sem cantos nem sombra, divisória de 1 px): a etapa 04 apoia o
+## botão Cuidar nele. Padrão `false`.
+func set_tab_joined(on: bool) -> void:
+	var bar := get_node("Layout/TabBar") as PanelContainer
+	if not on:
+		bar.remove_theme_stylebox_override("panel")
+		return
+	var style := UiKit.surface(Palette.BASE_GLASS, 0)
+	style.border_color = Palette.BASE_LINE
+	style.border_width_top = 1
+	style.content_margin_left = 8.0
+	style.content_margin_right = 8.0
+	style.content_margin_top = 8.0
+	style.content_margin_bottom = 14.0
+	bar.add_theme_stylebox_override("panel", style)
 
 
 func show_screen(id: StringName) -> void:
@@ -233,21 +279,19 @@ func _on_world_requested(world_id: String, place: String) -> void:
 	show_screen(&"map")
 
 
-## Bolinha com o número de coisas prontas (missões e colheitas/produções) na aba Missões.
+## Selo com o número de coisas prontas (missões e colheitas/produções) nas abas Missões e Mapa.
+## Fica no canto de cima, à direita da almofada: centro do ícone + (22, −16).
 func _build_tasks_badge() -> void:
-	_tasks_badge = Label.new()
-	_tasks_badge.theme_type_variation = &"BadgeLabel"
-	_tasks_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_tasks_badge = UiKit.badge(1, Palette.BASE)
 	%TasksTab.add_child(_tasks_badge)
-	_map_badge = _tasks_badge.duplicate() as Label
+	_map_badge = UiKit.badge(1, Palette.BASE)
 	_map_badge.name = "NpcMapBadge"
 	%MapTab.add_child(_map_badge)
-	# O selo fica no canto de cima, à direita do ÍCONE (não da aba): centro do ícone + (14, −20).
 	for pair: Array in [[&"tasks", _tasks_badge], [&"map", _map_badge]]:
 		var tab: Button = _tabs[pair[0]]
 		var face: NavTab = _faces[pair[0]]
 		var badge: Label = pair[1]
-		var place := func() -> void: badge.position = face.icon_center() + Vector2(14.0, -20.0) - badge.size / 2.0
+		var place := func() -> void: badge.position = face.icon_center() + Vector2(22.0, -16.0) - badge.size / 2.0
 		tab.resized.connect(place)
 		badge.resized.connect(place)
 		tab.toggled.connect(func(_pressed: bool) -> void: place.call())
@@ -275,77 +319,20 @@ func _refresh_top_bar() -> void:
 	_hud.refresh()
 
 
-## Aviso: pílula que desce de cima até logo abaixo do HUD, fica 1,6 s e some em 0,3 s.
-## Aviso novo com outro ainda na tela: troca o texto, dá um pulinho e reinicia o tempo.
+## Aviso comum ("info"): vai para a central. Mantido para chamadores antigos.
 func _show_toast(text: String) -> void:
-	var on_screen := _toast.visible and _toast.modulate.a > 0.0
-	if text != PHOTO_TOAST:
-		_toast_photo = ""
-		_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_toast_text.text = text
-	_toast_icon.visible = text.begins_with("Missão concluída") or text == PHOTO_TOAST
-	if _toast_icon.visible:
-		_toast_icon.texture = (UiKit.ui_icon("album_story") if text == PHOTO_TOAST else UiKit.ctl_icon("check"))
-		_toast_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if text == PHOTO_TOAST else CanvasItem.TEXTURE_FILTER_LINEAR
-		_toast_icon.self_modulate = Color.WHITE if text == PHOTO_TOAST else Palette.GO_INK
-	# Largura do texto (até 320 com o ícone e as margens); só então a pílula assume o tamanho certo.
-	var font := _toast_text.get_theme_font("font")
-	var font_size := _toast_text.get_theme_font_size("font_size")
-	var limit := TOAST_MAX_WIDTH - 20.0 - (38.0 if _toast_icon.visible else 0.0)
-	_toast_text.custom_minimum_size.x = minf(font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x + 2.0, limit)
-	_toast_text.custom_minimum_size.y = 0.0
-	_toast.reset_size()
-	_toast.pivot_offset = _toast.size / 2.0
-	var target_y := TOAST_BELOW_BANNER_Y if %UpdateBanner.visible else TOAST_Y
-	if _current_screen == &"map":
-		target_y = maxf(target_y, %WorldsScreen.toast_top())
-	_toast.position.x = (size.x - _toast.size.x) / 2.0
-	if _toast_tween:
-		_toast_tween.kill()
-	_toast.show()
-	_toast.modulate.a = 1.0
-	_toast_tween = create_tween()
-	if on_screen:
-		_toast.position.y = target_y
-		Motion.bounce(_toast)
-	elif Motion.reduced:
-		_toast.position.y = target_y
-	else:
-		_toast.position.y = TOAST_FROM_Y
-		_toast_tween.tween_property(_toast, "position:y", target_y, Motion.SLIDE).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	_toast_tween.tween_interval(TOAST_HOLD)
-	_toast_tween.tween_property(_toast, "modulate:a", 0.0, TOAST_FADE)
-	_toast_tween.tween_callback(_toast.hide)
+	_notice.notify("info", text)
 
 
 func _show_photo_toast(id: String) -> void:
-	_show_toast(PHOTO_TOAST)
-	_toast_photo = id
-	_toast.mouse_filter = Control.MOUSE_FILTER_STOP
-
-
-func _on_toast_input(event: InputEvent) -> void:
-	if _toast_photo == "" or not (event is InputEventMouseButton and event.pressed):
-		return
-	var id := _toast_photo
-	_toast_photo = ""
-	_toast.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_toast.hide()
-	AlbumView.open_photo(id)
+	_notice.notify("photo", "Nova foto!", null, AlbumView.open_photo.bind(id))
 
 
 func _refresh_guide() -> void:
 	_refresh_tasks_badge()
 	# Mochila só aparece quando a história a apresenta.
 	%BagTab.visible = GameState.progress.feature_unlocked("bag")
-	if GameState.progress.claimed_quests.has("welcome"):
-		if _tasks_pulse:
-			_tasks_pulse.kill()
-			_tasks_pulse = null
-			_faces[&"tasks"].lift_node().scale = Vector2.ONE
-	elif not _tasks_pulse:
-		# Chama o olhar para a aba Missões pulsando o ícone (sem frase na tela do Tiro).
-		_tasks_pulse = Motion.pulse(_faces[&"tasks"].lift_node())
+	# O próximo passo (linha 2 do HUD) chama o olhar para a história; a aba Missões não pulsa mais.
 
 
 func _on_quest_completed(id: String) -> void:
@@ -388,64 +375,7 @@ func _announce() -> void:
 		GameState.mark_seen(unlocks)
 
 
-func _build_moment_notice() -> void:
-	_moment_notice = PanelContainer.new()
-	_moment_notice.name = "MomentNotice"
-	_moment_notice.theme_type_variation = &"PillPanel"
-	_moment_notice.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_moment_notice.visible = false
-	var row := UiKit.hbox(6)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_moment_icon = UiKit.icon(null, 28)
-	_moment_icon.name = "MomentIcon"
-	row.add_child(_moment_icon)
-	_moment_text = UiKit.short_label("", &"SectionLabel")
-	_moment_text.name = "MomentText"
-	row.add_child(_moment_text)
-	_moment_notice.add_child(row)
-	add_child(_moment_notice)
-
-
 func _on_moment_gained(pillar: String, _source: String) -> void:
 	if not Database.growth.pillars.has(pillar): return
-	_moment_queue.append(pillar)
-	if not _moment_busy:
-		_run_moments.call_deferred()
-
-
-## Mostra um aviso por momento (um depois do outro); o ícone voa até o avatar, que dá um pulinho.
-func _run_moments() -> void:
-	_moment_busy = true
-	while not _moment_queue.is_empty():
-		var pillar: String = _moment_queue.pop_front()
-		var data: Dictionary = Database.growth.pillars[pillar]
-		_moment_icon.texture = UiKit.ui_icon(str(data.icon))
-		_moment_text.text = "Momento de %s!" % data.name
-		_moment_notice.visible = true
-		_moment_notice.modulate.a = 1.0
-		_moment_notice.reset_size()
-		_moment_notice.position = Vector2((size.x - _moment_notice.size.x) / 2.0, MOMENT_Y)
-		Motion.pop_in(_moment_notice)
-		Haptics.success()
-		await get_tree().create_timer(0.0 if Motion.reduced else MOMENT_HOLD).timeout
-		_fly_moment_icon()
-		_moment_notice.visible = false
-		await get_tree().process_frame
-	_moment_busy = false
-
-
-func _fly_moment_icon() -> void:
-	var target := _hud.avatar_button.get_global_rect().get_center()
-	if Motion.reduced:
-		return
-	var token := UiKit.icon(_moment_icon.texture, 28)
-	token.name = "FlyingMoment"
-	token.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	token.z_index = 20
-	add_child(token)
-	token.global_position = _moment_icon.get_global_rect().position
-	var tween := token.create_tween()
-	tween.tween_property(token, "global_position", target - token.size / 2.0, Motion.SLIDE).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tween.tween_callback(func() -> void:
-		token.queue_free()
-		Motion.bounce(_hud.avatar_button))
+	var data: Dictionary = Database.growth.pillars[pillar]
+	_notice.notify("moment", "Momento de %s!" % data.name, UiKit.ui_icon(str(data.icon)))

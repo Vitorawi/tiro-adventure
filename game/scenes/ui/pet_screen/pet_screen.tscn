@@ -39,9 +39,9 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 96
+theme_override_constants/margin_top = 136
 theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 42
+theme_override_constants/margin_bottom = 96
 
 [node name="VBox" type="VBoxContainer" parent="Margin"]
 unique_name_in_owner = true

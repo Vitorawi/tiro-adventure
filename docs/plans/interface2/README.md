@@ -81,7 +81,7 @@ flowchart TD
 | [x] | 00 | plano, bíblia, jornada, telas, regras/testes, 12 etapas, protótipos e pranchas; decisões do Vitor | — |
 | [x] | [01](etapas/ETAPA_01_BASE.md) | fontes, `Palette`, ícones vetoriais, tema; ferramentas enxutas de teste/captura | médio |
 | [x] | [02](etapas/ETAPA_02_PECAS.md) | peças do `UiKit` | médio |
-| [ ] | [03](etapas/ETAPA_03_CASCA.md) | rodapé claro preso, HUD em 2 linhas, `NextStep`/`QuestGuide`, `Notice` | grande |
+| [x] | [03](etapas/ETAPA_03_CASCA.md) | rodapé claro preso, HUD em 2 linhas, `NextStep`/`QuestGuide`, `Notice` | grande |
 | [ ] | [04](etapas/ETAPA_04_TIRO.md) | cenário aproximado, anéis no topo, botão Cuidar + roleta | grande |
 | [ ] | [05](etapas/ETAPA_05_MISSOES.md) | Missões em 3 abas, `claim_quest_fx`, `QuestReward` | grande |
 | [ ] | [06](etapas/ETAPA_06_MUNDO.md) | mapa sem texto, balões, `WorldPin`, cartões-postais, conversa, compra | grande |
@@ -154,3 +154,19 @@ vitrine abertas. Diferenças: vitrine em duas páginas para preservar alvos/tama
 2 px (StyleBoxFlat usa inteiros); composições das telas ainda antigas, conforme etapas 03–10.
 Registro completo e pendências em [VALIDACAO_02.md](VALIDACAO_02.md). **Próxima: 03**, não iniciada.
 Sem regra/save/fala alterada, push ou publicação.
+
+**Etapa 03 (24/10/2026, Claude Sonnet 5.5; local):** rodapé preso claro (84, translúcido), `NavTab` com nomes,
+HUD em 2 linhas (`HudProfile`, `HudRow2`), `NextStep` + `QuestGuide`, `Notice` + `Events.notice_requested`; pulsar da aba
+Missões saiu. Lista fechada + rápido **12/12 PASS em 163,7 s** (`build/test_logs/r20261024_191708_2c0e9e2b/`;
+`next_step_test` 28,8 s e `notice_test` 10,1 s novos). Extras rodados e justificados por tocarem no que mudei:
+`tasks_test` (conferia `_tasks_pulse`; agora confere a pílula, mesma garantia de "o jogador é chamado à história"),
+`care_ui_test`/`mood_test` (momento e `AnimatedBadge`), `ui_style_test`, `world_view_test` (aviso no Mapa): 5/5 PASS
+(`build/test_logs/r20261024_192004_f7e19286/`). Testes alterados por mudança de fluxo, sem enfraquecer: `hud_test`
+(HUD 128, linha 2, alvo 44 da engrenagem, aviso um por vez a y ≥ 136, almofada no lugar do círculo que subia) e
+`tasks_test`. `world_card.gd`: tirei o override de fonte 16 da dica de bloqueio (volta a 12 da bíblia) porque a dica não
+cabia em duas linhas na linha de 64 (`world_selector_test` falhava). Diferenças do protótipo: (a) o ícone de objetivo
+`talk` usa o rosto do personagem (a bíblia pede balão de fala vetorial, que não está nos 17 controles): no estado
+`talk` a pílula mostra só rosto + `0/1`; (b) o avatar tem retrato 40 em disco 58, um pouco menor que o desenho; (c) "Pegar" no
+Mapa fica só com ✓ (compacto); (d) os conteúdos da tela do Tiro (anéis, cuidados) continuam os de antes, só deslocados 40 px
+para baixo do novo HUD: a 04 os refaz. Pendências: `StepCard` não abre o nome do capítulo (02 §2.2, opcional); aviso toca
+Como fazer só para erro com item. Capturas: `i2_03_antes`, `i2_03_depois`, `_390`, `_412`.

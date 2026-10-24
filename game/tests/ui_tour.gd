@@ -77,6 +77,35 @@ func _run() -> void:
 	var places: Script = load("res://scripts/ui/places.gd")
 	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
+	if "--i2-03-only" in OS.get_cmdline_user_args():
+		# Casca: HUD de duas linhas, próximo passo (pílula, cartão, pronto), mapa, Missões, aviso e resumo do avatar.
+		state.call("reset")
+		state.get("progress").seen["intro"] = true
+		await _start_main(1.5)
+		main.call("show_screen", &"pet")
+		await shot("i2_03_pet")
+		var hud: Control = main.find_child("TopBar", true, false)
+		hud.get("next_step").pressed.emit()
+		await shot("i2_03_step_card", 0.4)
+		main.get_node("PopoverCatcher").free()
+		state.call("talk_to", "lais")
+		await shot("i2_03_step_ready", 0.5)
+		main.call("show_screen", &"tasks")
+		await shot("i2_03_tasks")
+		# Fecha o capítulo 1 (o Sítio abre) e deixa a história em andamento para a pílula compacta do Mapa.
+		for quest_id: String in state.get("progress").main_quests(1):
+			state.call("dev_complete_quest", quest_id)
+		state.call("_mark_all_seen")
+		await _world("farm")
+		await shot("i2_03_map_farm")
+		main.call("show_screen", &"pet")
+		root.get_node("Events").emit_signal("notice_requested", "error", "Falta 1 cenoura", "carrot")
+		await shot("i2_03_notice_error", 0.5)
+		main.get("_notice").call("finish_current")
+		hud.call("show_level_popover")
+		await shot("i2_03_popover")
+		quit(0)
+		return
 	if "--i2-02-only" in OS.get_cmdline_user_args():
 		i2_prefix = "i2_02_"
 	if "--i2-01-only" in OS.get_cmdline_user_args() or "--i2-02-only" in OS.get_cmdline_user_args():

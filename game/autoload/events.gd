@@ -42,6 +42,9 @@ signal project_gathered(id: String, cycle: int)
 
 ## Pede para a tela principal mostrar uma mensagem curta.
 signal toast_requested(text: String)
+## Aviso da central `Notice`: `kind` = "error" | "moment" | "photo" | "info"; `item` = id do item cujo ícone vai
+## no aviso ("" = sem ícone). `toast_requested` continua valendo e chega como "info".
+signal notice_requested(kind: String, text: String, item: String)
 ## Recolheu algo: itens (id → qtd) e moedas; a tela mostra miniaturas saltando de `origin`
 ## (coordenadas da tela; Vector2(-1, -1) = meio da tela). Ver CollectFx.
 signal items_gained(items: Dictionary, coins: int, origin: Vector2)

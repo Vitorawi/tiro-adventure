@@ -1,6 +1,6 @@
 extends SceneTree
-## Etapa 03 da interface nova: HUD flutuante (avatar com anel de XP, moedas, DEV), abas com rosto animado,
-## balão do nível (Popover) e aviso (toast) que desce abaixo do HUD.
+## Etapa 03 da interface nova (refeita na Interface 2, etapa 03): HUD flutuante de duas linhas (avatar com anel mel,
+## perfil, moedas, engrenagem, DEV), abas com almofada e nome, balão do nível (Popover) e aviso (toast) abaixo da linha 2.
 ## Sem `Motion.reduced` os tempos seriam de animação; aqui ele fica ligado para os números chegarem na hora.
 
 var failures: int = 0
@@ -56,10 +56,17 @@ func _structure() -> void:
 	# Telas sem mundo não ficam embaixo do HUD (60 px).
 	for pair: Array in [["PetScreen", "Margin"], ["TasksScreen", "Margin"], ["BagScreen", "Margin"]]:
 		var margin := main.find_child(pair[0], true, false).find_child(pair[1], true, false) as MarginContainer
-		check(margin != null and margin.get_theme_constant("margin_top") >= 64, "%s deixa 64 px para o HUD" % pair[0])
-	# Pílula de moedas com 40 px de altura e engrenagem 44.
+		check(margin != null and margin.get_theme_constant("margin_top") >= 136, "%s deixa 136 px para as duas linhas do HUD" % pair[0])
+		check(margin.get_theme_constant("margin_bottom") >= 96, "%s deixa 96 px para o rodapé" % pair[0])
+	# Pílula de moedas com 40 px de altura; engrenagem com disco 40 e ALVO de 44.
 	check(main.find_child("CoinsPill", true, false).size.y >= 40.0, "pílula de moedas tem 40 px")
-	check(main.find_child("SettingsButton", true, false).size.x == 44.0, "engrenagem de 44 px")
+	var gear := main.find_child("SettingsButton", true, false) as Control
+	check(gear.size.x >= 44.0 and gear.size.y >= 44.0, "engrenagem com alvo de toque de 44 px")
+	check(is_equal_approx((gear.find_child("Disc", true, false) as Control).size.x, 40.0), "disco da engrenagem de 40 px")
+	check(is_equal_approx((top as Control).size.y, 128.0), "o HUD tem 128 px de altura (duas linhas)")
+	var row2 := main.find_child("HudRow2", true, false) as Control
+	check(row2 != null and is_equal_approx(row2.size.y, 52.0) and is_equal_approx(row2.position.y, 76.0), "linha 2: 52 px de altura a 76 do topo")
+	check(main.find_child("HudProfile", true, false) != null and main.find_child("NextStep", true, false) != null, "perfil e próximo passo existem")
 
 
 func _numbers() -> void:
@@ -86,19 +93,25 @@ func _numbers() -> void:
 func _toast() -> void:
 	var toast: Control = main.get_node("Toast")
 	var text: Label = main.find_child("ToastText", true, false)
+	var notice: Object = main.get("_notice")
 	root.get_node("Events").emit_signal("toast_requested", "Primeiro aviso")
 	root.get_node("Events").emit_signal("toast_requested", "Segundo aviso")
 	await process_frame
-	check(toast.visible and text.text == "Segundo aviso", "dois avisos seguidos mostram o último texto")
+	check(toast.visible and text.text == "Primeiro aviso", "dois avisos seguidos: um por vez, o primeiro primeiro")
+	notice.finish_current()
+	await process_frame
+	check(toast.visible and text.text == "Segundo aviso", "o segundo aparece depois do primeiro")
 	check(not main.find_child("ToastIcon", true, false).visible, "aviso comum sem ícone")
-	check(toast.position.y >= 60.0 and toast.position.y < 130.0, "aviso fica logo abaixo do HUD (y = %f)" % toast.position.y)
+	check(toast.position.y >= 136.0 and toast.position.y < 200.0, "aviso fica logo abaixo da linha 2 do HUD (y = %f)" % toast.position.y)
 	check(toast.size.x <= 320.0, "aviso com até 320 px de largura")
 	var middle := toast.position.x + toast.size.x / 2.0
 	check(absf(middle - main.size.x / 2.0) < 2.0, "aviso centralizado")
+	notice.finish_current()
 	root.get_node("Events").emit_signal("toast_requested", "Missão concluída! Próximo: um texto bem comprido para quebrar em duas linhas no celular")
 	await process_frame
 	check(main.find_child("ToastIcon", true, false).visible, "Missão concluída leva o ícone de check")
 	check(toast.size.x <= 320.0 and toast.size.y <= 90.0, "aviso comprido quebra em até duas linhas (%s)" % str(toast.size))
+	notice.finish_current()
 	toast.hide()
 
 
@@ -110,14 +123,15 @@ func _tabs() -> void:
 	var map_face: NavTab = main.find_child("MapTab", true, false).find_child("Face", false, false)
 	var pet_face: NavTab = main.find_child("PetTab", true, false).find_child("Face", false, false)
 	check(map_face.is_active() and not pet_face.is_active(), "só a aba do Mapa fica ativa")
-	check(absf(map_face.lift_node().position.y + 6.0) < 0.5, "aba ativa sobe 6 px")
-	check(pet_face.lift_node().position.y == 0.0, "aba comum fica no lugar")
-	check(map_face.icon_node().scale.x > pet_face.icon_node().scale.x, "ícone da aba ativa é maior (36 contra 32)")
-	check(map_face.find_child("Circle", true, false).modulate.a == 1.0, "círculo atrás do ícone ativo")
+	check(map_face.cushion_color().is_equal_approx(Palette.TAB_ON), "almofada da aba ativa é TAB_ON")
+	check(pet_face.cushion_color().a == 0.0, "almofada de aba comum fica sem fundo")
+	check(pet_face.lift_node().position.y == map_face.lift_node().position.y, "nenhuma aba sobe: ativa e comum na mesma altura")
+	check(map_face.lift_node().size.is_equal_approx(NavTab.CUSHION), "almofada de 60×38")
+	check(map_face.find_child("Cushion", true, false) == map_face.lift_node(), "lift_node é a almofada")
 	main.call("show_screen", &"pet")
 	await process_frame
 	check(pet_face.is_active() and not map_face.is_active(), "voltar ao Tiro troca a aba ativa")
-	# Selo da aba Missões fica perto do ícone (centro + (14, −20)).
+	# Selo da aba Missões fica perto do ícone (centro + (22, −16)).
 	var badge: Control = main.find_child("TasksTab", true, false).get_child(-1)
 	check(badge is Label or main.find_child("TasksTab", true, false).get_child_count() >= 2, "selo mora na aba")
 
@@ -133,8 +147,8 @@ func _tab_bounces() -> void:
 	await create_timer(0.6).timeout
 	for tab_name: String in ["PetTab", "MapTab", "TasksTab", "BagTab"]:
 		var face: NavTab = main.find_child(tab_name, true, false).find_child("Face", false, false)
-		check(is_equal_approx(face.icon_node().position.y, NavTab.ICON_CENTER_Y - NavTab.ICON_ACTIVE / 2.0), tab_name + ": pulinhos repetidos não acumulam altura")
-		check(is_equal_approx(face.lift_node().position.y, -NavTab.LIFT if face.is_active() else 0.0), tab_name + ": só a aba selecionada fica elevada")
+		check(is_equal_approx(face.icon_node().position.y, NavTab.ICON_CENTER_Y - NavTab.ICON / 2.0), tab_name + ": pulinhos repetidos não acumulam altura")
+		check(is_equal_approx(face.lift_node().position.y, 0.0), tab_name + ": a almofada nunca sobe")
 	Motion.reduced = true
 
 

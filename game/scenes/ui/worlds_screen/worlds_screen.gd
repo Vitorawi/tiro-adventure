@@ -11,9 +11,11 @@ const ROOM_SCENE := preload("res://scenes/levels/room/room.tscn")
 const TRANSITION_SCENE := preload("res://scenes/ui/world_transition/world_transition.tscn")
 ## Segundos com a seta à vista antes de abrir o painel do destino.
 const POINT_DELAY := 0.8
-## Barra do mundo: margem lateral e altura (logo abaixo do HUD, que tem 60).
+## Barra do mundo: margem lateral e altura (na linha 2 do HUD, que começa em 76).
 const BAR_MARGIN := 10.0
-const BAR_TOP := 64.0
+const BAR_TOP := 76.0
+## Folga entre a pílula do mundo e o próximo passo, e entre o próximo passo e os rostos.
+const ROW2_GAP := 8.0
 
 var current_world := "house"
 var _views: Dictionary = {}  # world_id -> Control (criado na primeira visita e mantido)
@@ -27,7 +29,9 @@ var _visit: int = 0  # invalida setas/painéis de uma viagem substituída por ou
 
 func _ready() -> void:
 	visibility_changed.connect(func() -> void:
-		if is_visible_in_tree(): GameState.note_world_visit(current_world))
+		if is_visible_in_tree(): GameState.note_world_visit(current_world)
+		sync_row2.call_deferred())
+	resized.connect(sync_row2)
 	_build_world_bar()
 	%MapButton.pressed.connect(show_map)
 	%MapView.chosen.connect(enter)
@@ -70,6 +74,11 @@ func _resume_room_input() -> void:
 		view.set_process_input(true)
 
 
+## A viagem entre mundos (nuvens) está acontecendo: a linha 2 do HUD espera.
+func is_traveling() -> bool:
+	return _transition != null and _transition.busy
+
+
 func is_map_open() -> bool:
 	return %MapView.visible
 
@@ -78,7 +87,7 @@ func is_map_open() -> bool:
 func toast_top() -> float:
 	if not is_visible_in_tree() or not %WorldView.visible:
 		return 0.0
-	var bottom: float = %MapButton.get_global_rect().end.y
+	var bottom: float = maxf(%MapButton.get_global_rect().end.y, Hud.HEIGHT)
 	if %NpcRow.visible:
 		bottom = maxf(bottom, %NpcRow.get_global_rect().end.y)
 	return bottom + 8.0
@@ -202,7 +211,7 @@ func _build_world_bar() -> void:
 	left.name = "BarLeft"
 	left.add_theme_constant_override("separation", 6)
 	left.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	left.position = Vector2(BAR_MARGIN, BAR_TOP)
+	left.position = Vector2(Hud.SIDE, BAR_TOP + (Hud.ROW2_HEIGHT - WorldPill.HEIGHT) / 2.0)
 	bar.add_child(left)
 	var pill := WorldPill.new()
 	pill.name = "MapButton"
@@ -211,7 +220,13 @@ func _build_world_bar() -> void:
 	pill.unique_name_in_owner = true
 	var places := UiKit.icon_button(UiKit.ui_icon("tab_tasks"), _open_places, 44)
 	places.name = "PlacesButton"
-	left.add_child(places)
+	places.anchor_left = 1.0
+	places.anchor_right = 1.0
+	places.offset_left = -(BAR_MARGIN + 44.0)
+	places.offset_right = -BAR_MARGIN
+	places.offset_top = BAR_TOP
+	places.offset_bottom = BAR_TOP + 44.0
+	bar.add_child(places)  # fica embaixo dos rostos, na coluna da direita
 	places.owner = self
 	places.unique_name_in_owner = true
 	var title := Label.new()  # só guarda o nome do mundo (testes e leitores de tela); não aparece
@@ -256,6 +271,36 @@ func _refresh_header() -> void:
 		%NpcRow.add_child(face)
 		face.setup(npc_id, Places.npc_badge(npc_id))
 		Motion.pop_in(face)
+	# O botão Lugares desce para baixo dos rostos (nunca sobrepõe).
+	var faces_count := Places.visible_npcs(current_world).size()
+	var places_top := BAR_TOP + faces_count * (NpcFace.SIZE + 8.0)
+	%PlacesButton.offset_top = places_top
+	%PlacesButton.offset_bottom = places_top + 44.0
+	sync_row2.call_deferred()
+
+
+## Linha 2 do HUD no Mapa: o próximo passo vai à direita da pílula do mundo, em modo compacto, e só mostra
+## retrato + número se não couber antes dos rostos. Fora do Mapa tudo volta ao normal.
+func sync_row2() -> void:
+	var hud := get_tree().root.find_child("TopBar", true, false) as Hud
+	if hud == null:
+		return
+	var on_map: bool = is_visible_in_tree() and %WorldView.visible and not is_map_open()
+	if not on_map:
+		hud.set_row2_inset(0.0)
+		hud.next_step.compact = false
+		hud.next_step.mini = false
+		return
+	hud.next_step.compact = true
+	hud.set_row2_inset((%MapButton as Control).size.x + ROW2_GAP)
+	# Limite: antes da coluna dos rostos (360 px: x ≤ 360 − 12 − 48 − 8 = 292).
+	var limit := size.x - Hud.SIDE - NpcFace.SIZE - ROW2_GAP
+	if not %NpcRow.visible:
+		limit = size.x - Hud.SIDE
+	var start := Hud.SIDE + (%MapButton as Control).size.x + ROW2_GAP
+	hud.next_step.mini = false
+	if start + hud.next_step.wanted_width() > limit:
+		hud.next_step.mini = true
 
 
 # --- Mapa ----------------------------------------------------------------------

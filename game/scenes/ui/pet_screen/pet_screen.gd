@@ -91,8 +91,8 @@ func _ready() -> void:
 	need_back.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
 	need_back.offset_left = 12
 	need_back.offset_right = -12
-	need_back.offset_top = 88
-	need_back.offset_bottom = 196
+	need_back.offset_top = 128
+	need_back.offset_bottom = 236
 	_mood_bubble = SpeechBubble.new()
 	_mood_bubble.name = "MoodBubble"
 	_mood_label = _mood_bubble.label
@@ -167,7 +167,7 @@ func _build_need_rings() -> void:
 	# O crescimento fica abaixo das necessidades, sem espremer os quatro anéis.
 	var badges := UiKit.hbox(12)
 	badges.name = "LifeBadges"
-	badges.position = Vector2(20, 204)
+	badges.position = Vector2(20, 244)
 	add_child(badges)
 	_growth_badge = UiKit.ghost("", GrowthUi.open)
 	_growth_badge.name = "GrowthBadge"
@@ -242,13 +242,13 @@ func _place_bubble() -> void:
 		var area: Control = %DogArea
 		_away_collect.position = Vector2((size.x - _away_collect.size.x) * 0.5, area.global_position.y - global_position.y + area.size.y - _away_collect.size.y - 12.0)
 	if _mood_bubble:
-		_mood_bubble.position = Vector2(24, maxf(210, _dog_sprite.global_position.y - global_position.y - 20))
+		_mood_bubble.position = Vector2(24, maxf(250, _dog_sprite.global_position.y - global_position.y - 20))
 		_mood_bubble.size = Vector2(size.x - 104, 48)
 
 
 func _layout_corner() -> void:
 	if not is_instance_valid(_manual): return
-	_manual.position = Vector2(size.x - 76, 212)
+	_manual.position = Vector2(size.x - 76, 252)
 	_manual.size = Vector2(52, 52)
 	# Cenário e Tiro são irmãos: a ordenação diferida do VBox/CenterContainer
 	# não pode mover o sprite depois deste cálculo absoluto, nem ao trocar de aba.

@@ -164,8 +164,9 @@ func _ui_check() -> void:
 	await create_timer(0.2).timeout
 	var card: Control = main.find_child("StoryCard", true, false)
 	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
-	check(main.get("_tasks_pulse") != null, "Guia pulsa no começo")
-	check(main.find_child("MoodLabel", true, false).text == "Tiro está feliz da vida!", "Humor do Tiro substitui a instrução fixa (Etapa 09); guia nas abas continua pulsando")
+	var step: Control = main.find_child("NextStep", true, false)
+	check(step != null and step.visible and (load("res://scripts/ui/quest_guide.gd") as GDScript).call("current").id == "welcome", "O próximo passo (linha 2 do HUD) chama o olhar no começo, no lugar da aba pulsando")
+	check(main.find_child("MoodLabel", true, false).text == "Tiro está feliz da vida!", "Humor do Tiro substitui a instrução fixa (Etapa 09)")
 	check(not main.find_child("BagTab", true, false).visible, "Aba Mochila escondida no começo")
 	# "Ir": seta sobre o objeto do destino, depois o painel.
 	main.call("_on_world_requested", "house", "place:bowl")
@@ -212,7 +213,7 @@ func _ui_check() -> void:
 	await process_frame
 	await process_frame
 	main.call("show_screen", &"tasks")
-	check(main.get("_tasks_pulse") == null, "Guia para após welcome")
+	check((load("res://scripts/ui/quest_guide.gd") as GDScript).call("current").id != "welcome", "O próximo passo avança depois de welcome")
 	check(main.find_child("LineCard_bloblo", true, false) != null, "personagem aberto continua selecionado ao atualizar")
 	_shot("tasks_middle")
 	var ui: Script = load("res://scripts/ui/progression_ui.gd")

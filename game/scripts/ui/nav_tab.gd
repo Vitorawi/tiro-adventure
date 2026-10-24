@@ -1,20 +1,17 @@
 class_name NavTab
 extends Control
-## Rosto de uma aba da barra inferior: ícone + nome. A aba ativa ganha um círculo `PAPER` atrás do
-## ícone, que cresce (32 → 36) e sobe 6 px; o nome fica em 100% (as outras, em 70%).
-## Fica dentro de um Button de alternância (TabButton): `NavTab.attach(botão, ícone, nome)`.
+## Rosto de uma aba do rodapé (Interface 2): almofada 60×38 com o ícone pixel 32 e o nome embaixo.
+## A aba ativa ganha a almofada `TAB_ON` e o nome em `INK`; as outras ficam sem fundo e com `INK_SOFT`.
+## Nada sobe nem cresce. Fica dentro de um Button de alternância (TabButton): `NavTab.attach(botão)`.
 
-const CIRCLE := 52.0
-const ICON_BASE := 32.0
-const ICON_ACTIVE := 36.0
-const LIFT := 6.0
-const ICON_CENTER_Y := 30.0  # centro do ícone com a aba em repouso
-const TEXT_CENTER_Y := 60.0
-const FADED := 0.7
+const CUSHION := Vector2(60.0, 38.0)
+const ICON := 32.0
+const ICON_CENTER_Y := 19.0  # centro da almofada (e do ícone) em relação ao botão
+const TITLE_TOP := 40.0
 
 var button: Button
-var _lift: Control  # círculo + ícone: sobe junto
-var _circle: Panel
+var _cushion: Panel  # almofada + ícone: é o que pulsa/pula
+var _style: StyleBoxFlat
 var _icon: TextureRect
 var _title: Label
 var _active := false
@@ -41,56 +38,47 @@ func _build(texture: Texture2D, title: String) -> void:
 	name = "Face"
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_lift = Control.new()
-	_lift.name = "Lift"
-	_lift.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_lift.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	_lift.resized.connect(func() -> void: _lift.pivot_offset = _lift.size / 2.0)  # o pulso gira pelo centro da aba
-	add_child(_lift)
-	_circle = Panel.new()
-	_circle.name = "Circle"
-	_circle.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.PAPER
-	style.set_corner_radius_all(int(CIRCLE / 2.0))
-	_circle.add_theme_stylebox_override("panel", style)
-	_circle.modulate.a = 0.0
-	_center_at(_circle, CIRCLE, ICON_CENTER_Y)
-	_lift.add_child(_circle)
+	_cushion = Panel.new()
+	_cushion.name = "Cushion"
+	_cushion.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_style = StyleBoxFlat.new()
+	_style.bg_color = Color(Palette.TAB_ON, 0.0)
+	_style.set_corner_radius_all(int(CUSHION.y / 2.0))
+	_cushion.add_theme_stylebox_override("panel", _style)
+	_cushion.anchor_left = 0.5
+	_cushion.anchor_right = 0.5
+	_cushion.offset_left = -CUSHION.x / 2.0
+	_cushion.offset_right = CUSHION.x / 2.0
+	_cushion.offset_top = 0.0
+	_cushion.offset_bottom = CUSHION.y
+	_cushion.resized.connect(func() -> void: _cushion.pivot_offset = _cushion.size / 2.0)
+	add_child(_cushion)
 	_icon = TextureRect.new()
 	_icon.name = "Icon"
 	_icon.texture = texture
 	_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_center_at(_icon, ICON_ACTIVE, ICON_CENTER_Y)
-	_icon.pivot_offset = Vector2(ICON_ACTIVE, ICON_ACTIVE) / 2.0
-	_icon.scale = Vector2.ONE * (ICON_BASE / ICON_ACTIVE)
-	_lift.add_child(_icon)
+	_icon.position = _icon_rest()
+	_icon.size = Vector2(ICON, ICON)
+	_icon.pivot_offset = Vector2(ICON, ICON) / 2.0
+	_cushion.add_child(_icon)
 	_title = Label.new()
 	_title.name = "Title"
 	_title.text = title
 	_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_title.theme_type_variation = &"StrongLabel"
-	_title.add_theme_color_override("font_color", Palette.INK_ON_DARK)
+	_title.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	_title.theme_type_variation = &"SmallLabel"
 	_title.anchor_left = 0.0
 	_title.anchor_right = 1.0
-	_title.offset_top = TEXT_CENTER_Y - 12.0
-	_title.offset_bottom = TEXT_CENTER_Y + 12.0
-	_title.modulate.a = FADED
+	_title.offset_top = TITLE_TOP
+	_title.offset_bottom = TITLE_TOP + 18.0
 	add_child(_title)
 
 
-## Caixa de `px` pixels centrada na horizontal da aba, com o centro vertical em `center_y`.
-func _center_at(node: Control, px: float, center_y: float) -> void:
-	node.anchor_left = 0.5
-	node.anchor_right = 0.5
-	node.offset_left = -px / 2.0
-	node.offset_right = px / 2.0
-	node.offset_top = center_y - px / 2.0
-	node.offset_bottom = center_y + px / 2.0
+func _icon_rest() -> Vector2:
+	return (CUSHION - Vector2(ICON, ICON)) / 2.0
 
 
 func is_active() -> bool:
@@ -111,17 +99,22 @@ func bounce_icon() -> void:
 func _reset_icon_bounce() -> void:
 	if _icon_bounce:
 		_icon_bounce.kill()
-	_icon.position.y = ICON_CENTER_Y - ICON_ACTIVE / 2.0
+	_icon.position = _icon_rest()
 
 
-## Círculo + ícone, que sobem juntos: é o que pulsa (`Motion.pulse`) quando a aba chama atenção.
+## A almofada (com o ícone dentro): é o que pulsa (`Motion.pulse`) e pula quando a aba chama atenção.
 func lift_node() -> Control:
-	return _lift
+	return _cushion
 
 
-## Centro do ícone em relação ao botão (o selo fica em centro + (14, −20)).
+## Cor atual do fundo da almofada (`TAB_ON` na aba ativa, transparente nas outras).
+func cushion_color() -> Color:
+	return _style.bg_color
+
+
+## Centro da almofada em relação ao botão (o selo fica em centro + (22, −16)).
 func icon_center() -> Vector2:
-	return Vector2(button.size.x / 2.0, ICON_CENTER_Y - (LIFT if _active else 0.0))
+	return Vector2(button.size.x / 2.0, ICON_CENTER_Y)
 
 
 func set_active(active: bool, animate: bool) -> void:
@@ -129,18 +122,15 @@ func set_active(active: bool, animate: bool) -> void:
 	_active = active
 	if _tween:
 		_tween.kill()
-	var lift_y := -LIFT if active else 0.0
-	var icon_scale := Vector2.ONE * (1.0 if active else ICON_BASE / ICON_ACTIVE)
-	var alpha := 1.0 if active else 0.0
-	var text_alpha := 1.0 if active else FADED
+	var fill := Color(Palette.TAB_ON, 1.0 if active else 0.0)
+	var ink := Palette.INK if active else Palette.INK_SOFT
 	if not animate or Motion.reduced:
-		_lift.position.y = lift_y
-		_icon.scale = icon_scale
-		_circle.modulate.a = alpha
-		_title.modulate.a = text_alpha
+		_style.bg_color = fill
+		_title.add_theme_color_override("font_color", ink)
+		_cushion.queue_redraw()
 		return
 	_tween = create_tween().set_parallel()
-	_tween.tween_property(_lift, "position:y", lift_y, Motion.TAB).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_tween.tween_property(_icon, "scale", icon_scale, Motion.TAB)
-	_tween.tween_property(_circle, "modulate:a", alpha, Motion.TAB)
-	_tween.tween_property(_title, "modulate:a", text_alpha, Motion.TAB)
+	_tween.tween_method(func(color: Color) -> void:
+		_style.bg_color = color
+		_cushion.queue_redraw(), _style.bg_color, fill, Motion.TAB)
+	_tween.tween_method(func(color: Color) -> void: _title.add_theme_color_override("font_color", color), _title.get_theme_color("font_color"), ink, Motion.TAB)

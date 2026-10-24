@@ -2,6 +2,20 @@
 
 ## Estado atual
 
+**Interface 2 — etapa 03 concluída (24/10/2026, Claude Sonnet 5.5; local).** Casca nova: rodapé claro
+translúcido preso à borda (84 px, `Layout` virou `Control` de tela cheia; as telas de papel reservam 96 embaixo e o Mapa
+vai até a borda), `NavTab` com almofada 60×38 e nome embaixo de todas as abas, HUD de duas linhas
+(avatar com anel mel + `HudProfile` "Tiro 1/4" · moedas brancas "2.645" · engrenagem vetorial · selo DEV; `HudRow2`
+com `Row2Left`/`Row2Right`, `set_row2_right/inset/shown`), pílula do **próximo passo** (`NextStep` + `QuestGuide`, só a
+história, mini-cartão com `?` e `Ir`, verde "Pegar" que entrega uma vez) e a central de avisos `Notice` + sinal
+`Events.notice_requested(kind, text, item)` (um por vez, erro > momento > foto > info). A aba Missões não pulsa mais.
+`main.set_row2_blocker/set_tab_joined/notice_blocked/notice_top`, `WorldsScreen.is_traveling/sync_row2`, pílula do
+mundo na linha 2 e botão Lugares sob os rostos. Lista fechada (+ rápido) **12/12 PASS em 163,7 s**
+(`build/test_logs/r20261024_191708_2c0e9e2b/`), mais `tasks_test`, `care_ui_test`, `mood_test`, `ui_style_test` e
+`world_view_test` PASS (justificados no registro do plano). Capturas `i2_03_depois(_390|_412)` abertas; detalhes em
+`docs/plans/interface2/README.md`. Sem regra/save/fala alterada, push ou publicação. **Próxima: 04** (Tiro),
+não iniciada.
+
 **Interface 2 — etapa 02 concluída (24/10/2026, Codex; local).** UiKit com botões calmos/pequenos,
 controles vetoriais com alvo mínimo 44, chips semânticos, listas de 64, seleção branca, tiles,
 interruptor, anéis/passos/quantidade; SlotDot 52, fala, folha e Popover atualizados. `Motion.fly_arc`
