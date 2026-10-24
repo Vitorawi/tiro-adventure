@@ -2,6 +2,21 @@
 
 Os assets são gerados pelo **MCP PixelLab** (personagens, animações, tilesets, objetos, UI).
 
+## Interface 2 — fontes e controles lisos (24/10/2026)
+
+Controles em `game/assets/sprites/ui/ctl/`: 17 SVGs brancos, traço 2,4 com pontas e junções
+arredondadas, coloridos pela interface. Miolos fornecidos pelo plano `interface2/etapas/ETAPA_01_BASE.md`
+e por `interface2/prototipo/proto.js`, no estilo Lucide (licença ISC). Importação `svg/scale=4.0`
+(96×96), filtro linear no desenho; itens e personagens continuam pixel art. Catálogo:
+`x/back/chev/down/check/lock/plus/minus/clock/help/list/arrow/spark/gear/recenter/talk/info`.
+Não apagar os PNGs legados nesta etapa. `UiKit.ctl_icon` faz cache; `UiKit.ctl` cria o controle tingido.
+
+Fredoka e Nunito variáveis foram copiadas de `docs/plans/interface2/prototipo/fonts/` para
+`game/assets/fonts/`, com suas licenças `OFL_Fredoka.txt` e `OFL_Nunito.txt`.
+FontVariation: Fredoka 600 (`font_display`), Nunito 700 (`font_body`/`main_font`) e Nunito 800
+(`font_caption`), eixo `wght` = 2003265652, números tabulares, fallback `story_symbols.fnt` preservado.
+Importação: antialiasing cinza, hinting leve, sem mipmaps nem MSDF. Jersey10 permanece no disco.
+
 ## Fluxo
 1. Definir o asset (tamanho em px, direções, animações, paleta) — registrar decisões aqui.
 2. Gerar no PixelLab (jobs são assíncronos: criar → aguardar → baixar).

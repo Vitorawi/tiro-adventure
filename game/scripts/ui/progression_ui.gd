@@ -179,7 +179,7 @@ static func routes_panel(place: String, focus: String = "") -> Control:
 			var data: Dictionary = Database.progression.activities[id]
 			if not str(data.get("place", "walk")) in groups or (focus != "" and id != focus):
 				continue
-			var chips: Array[Control] = [UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(data.seconds)))]
+			var chips: Array[Control] = [UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(data.seconds)))]
 			for item: String in data.rewards.get("items", {}):
 				chips.append(UiKit.chip(Database.item_icon(item), "+%d" % int(data.rewards.items[item]), UiKit.GOOD))
 			if int(data.rewards.get("coins", 0)) > 0:
@@ -196,7 +196,7 @@ static func routes_panel(place: String, focus: String = "") -> Control:
 			if reason != "":
 				var hint := UiKit.hbox(8)
 				hint.add_child(UiKit.fill_label(reason, &"SmallLabel"))
-				hint.add_child(UiKit.square_button("?", TaskHelp.open.bind("route", id), null, 44))
+				hint.add_child(UiKit.icon_button(UiKit.ctl_icon("help"), TaskHelp.open.bind("route", id), 44))
 				(row.get_child(0) as VBoxContainer).add_child(hint)
 	)
 
@@ -342,7 +342,7 @@ static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, lock
 		for chip: Control in _walk_requirement_chips(data.get("requirements", {})):
 			details.add_child(chip)
 	else:
-		details.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(data.seconds))))
+		details.add_child(UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(data.seconds))))
 		details.add_child(UiKit.chip(Database.need_icon("energy"), str(int(data.get("energy", 0)))))
 	info.add_child(details)
 	top.add_child(info)
@@ -353,7 +353,7 @@ static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, lock
 		blocked.disabled = true
 		blocked.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		actions.add_child(blocked)
-		actions.add_child(UiKit.square_button("?", TaskHelp.open.bind("walk", id)))
+		actions.add_child(UiKit.icon_button(UiKit.ctl_icon("help"), TaskHelp.open.bind("walk", id)))
 		body.add_child(actions)
 		return
 	body.add_child(walk_exclusives(id, 32))
@@ -369,12 +369,12 @@ static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, lock
 	var row := UiKit.hbox(8)
 	row.add_child(go)
 	if go.disabled:
-		row.add_child(UiKit.square_button("?", TaskHelp.open.bind("walk", id)))
+		row.add_child(UiKit.icon_button(UiKit.ctl_icon("help"), TaskHelp.open.bind("walk", id)))
 	body.add_child(row)
 	if go.disabled:
 		var reason := UiKit.hbox(6)
 		if GameState.walk_hours_error(id) != "":
-			reason.add_child(UiKit.icon(UiKit.ui_icon("timer"), 24))
+			reason.add_child(UiKit.icon(UiKit.ctl_icon("clock"), 24))
 		reason.add_child(UiKit.fill_label(GameState.walk_error(id), &"SmallLabel", UiKit.BAD))
 		body.add_child(reason)
 
@@ -480,7 +480,7 @@ static func _walk_requirement_chips(requirements: Dictionary) -> Array[Control]:
 		var built: Dictionary = Database.progression.upgrades.get(upgrade, {})
 		chips.append(UiKit.chip(UiKit.ui_icon(str(built.get("icon", "tab_map"))), str(built.get("name", upgrade)).trim_prefix("Desbloquear ")))
 	if requirements.has("hours"):
-		chips.append(UiKit.chip(UiKit.ui_icon("timer"), "%dh" % int(requirements.hours[0])))
+		chips.append(UiKit.chip(UiKit.ctl_icon("clock"), "%dh" % int(requirements.hours[0])))
 	if requirements.has("quests") and not requirements.has("stats"):
 		chips.append(UiKit.chip(UiKit.ui_icon("tab_tasks"), "Missão"))
 	return chips
@@ -609,7 +609,7 @@ static func _clothes_panel() -> Control:
 			tile.custom_minimum_size.y = 120
 			tile.name = "Equip_" + id
 			var wearing := str(GameState.progress.equipped.get(str(data.slot), "")) == id
-			var mark := UiKit.icon(UiKit.ui_icon("ui_check" if wearing else "ui_lock"), 24)
+			var mark := UiKit.icon(UiKit.ctl_icon("check" if wearing else "lock"), 24)
 			mark.name = "EquippedCheck" if wearing else "ClothingLock"
 			mark.visible = wearing or not earned
 			tile.add_child(mark)
@@ -690,7 +690,7 @@ static func _action(box: VBoxContainer, text: String, action: Callable, reason: 
 	var row := UiKit.hbox(8)
 	row.add_child(button)
 	if reason != "" and help.is_valid():
-		row.add_child(UiKit.square_button("?", help, null, 44))
+		row.add_child(UiKit.icon_button(UiKit.ctl_icon("help"), help, 44))
 	box.add_child(row)
 	if reason != "":
 		_text(box, reason, true)
@@ -728,7 +728,7 @@ static func quest_action(box: VBoxContainer, id: String, primary: bool = true) -
 	main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(main)
 	if not ready:
-		row.add_child(UiKit.square_button("?", TaskHelp.open.bind("quest", id)))
+		row.add_child(UiKit.icon_button(UiKit.ctl_icon("help"), TaskHelp.open.bind("quest", id)))
 	box.add_child(row)
 
 
@@ -787,8 +787,7 @@ static func routine_card(box: VBoxContainer, kind: String, id: String, primary: 
 		var badge := UiKit.alert_badge()
 		badge.name = "ReadyDot"
 		title.add_child(badge)
-	var name_label := UiKit.fill_label(str(data.name))
-	name_label.add_theme_font_size_override("font_size", 18)
+	var name_label := UiKit.fill_label(str(data.name), &"StrongLabel")
 	title.add_child(name_label)
 	info.add_child(title)
 	info.add_child(UiKit.label(str(data.get("description", data.name)), &"SmallLabel"))

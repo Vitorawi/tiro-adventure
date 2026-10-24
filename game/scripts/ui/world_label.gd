@@ -11,7 +11,8 @@ var _zoom := 1.0
 
 
 func restyle() -> void:
-	add_theme_font_size_override("font_size", 18)
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	theme_type_variation = &"StrongLabel"
 	add_theme_color_override("font_color", Palette.INK)
 	var box := StyleBoxFlat.new()
 	box.bg_color = Color(Palette.PAPER, 0.9)
@@ -51,4 +52,4 @@ func set_world_zoom(value: float) -> void:
 
 
 func _draw() -> void:
-	if icon: draw_texture_rect(icon, Rect2(6, (size.y - 16) / 2, 16, 16), false)
+	if icon: draw_texture_rect(icon, Rect2(6, (size.y - 16) / 2, 16, 16), false, Palette.INK_SOFT if icon.resource_path.begins_with(UiKit.CTL_DIR) else Color.WHITE)

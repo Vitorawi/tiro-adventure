@@ -22,9 +22,10 @@ var _font: Font
 
 
 func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	add_to_group("world_balloons")
 	add_child(_bob)
-	_check = UiKit.ui_icon("ui_check")
+	_check = UiKit.ctl_icon("check")
 	_font = load("res://assets/theme/main_theme.tres").default_font
 	refresh()
 
@@ -71,7 +72,7 @@ func _draw() -> void:
 	var corner := _check if ready else corner_texture
 	if corner:
 		draw_circle(center + Vector2(17, 15), 10, Palette.PAPER)
-		draw_texture_rect(corner, Rect2(center + Vector2(9, 7), Vector2(16, 16)), false)
+		draw_texture_rect(corner, Rect2(center + Vector2(9, 7), Vector2(16, 16)), false, Palette.GO_INK if ready else Color.WHITE)
 	if show_caption and caption != "":
 		var width := _font.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x + 12
 		var box := StyleBoxFlat.new()

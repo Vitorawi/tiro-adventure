@@ -43,7 +43,7 @@ static func community(world: String = "park") -> Control:
 			var completed := GameState.project_completed(id)
 			var chips: Array[Control] = []
 			if completed:
-				chips.append(UiKit.chip(UiKit.ui_icon("ui_check"), "Pronto", UiKit.GOOD))
+				chips.append(UiKit.chip(UiKit.ctl_icon("check"), "Pronto", UiKit.GOOD))
 			elif GameState.project_started(id):
 				chips.append(UiKit.chip(null, "Fase %d/%d" % [mini(int(stage.index) + 1, int(stage.count)), int(stage.count)]))
 				chips.append(UiKit.chip(null, "%d%%" % int(round(float(stage.total_progress) * 100.0))))
@@ -96,7 +96,7 @@ static func _phase_row(box: VBoxContainer, id: String, def: Dictionary) -> void:
 	var phases: Array = def.phases
 	for position: int in phases.size():
 		var done: bool = position < int(stage.index) or GameState.project_completed(id)
-		var chip := UiKit.chip(UiKit.ui_icon("ui_check") if done else null, str(phases[position].get("name", phases[position].id)), UiKit.GOOD if done else null)
+		var chip := UiKit.chip(UiKit.ctl_icon("check") if done else null, str(phases[position].get("name", phases[position].id)), UiKit.GOOD if done else null)
 		chip.name = "Phase_" + str(phases[position].id)
 		if not done and position != int(stage.index):
 			chip.modulate.a = 0.55

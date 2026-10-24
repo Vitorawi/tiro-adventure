@@ -119,7 +119,7 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(title)
 	var out := UiKit.flow(2)
-	out.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(recipe.get("seconds", 60)) * count)))
+	out.add_child(UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(recipe.get("seconds", 60)) * count)))
 	if not recipe.has("output_collection"):
 		out.add_child(UiKit.chip(Database.item_icon(output), "×%d" % qty))
 	for effect in UiKit.effect_chip_list(Database.items.get(output, {}).get("feed", {})):
@@ -359,7 +359,7 @@ static func _fill_material_detail(box: VBoxContainer, site: String, item: String
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(title)
 	var chips := UiKit.flow(2)
-	chips.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(route.seconds))))
+	chips.add_child(UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(route.seconds))))
 	for bonus: String in route.rewards.get("items", {}):
 		if bonus != primary:
 			chips.add_child(UiKit.chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), UiKit.GOOD))

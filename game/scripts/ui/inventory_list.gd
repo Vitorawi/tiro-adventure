@@ -231,7 +231,7 @@ func _build(box: VBoxContainer) -> void:
 		tile.tooltip_text = Database.item_name(id)
 		var number := UiKit.short_label("×%d" % GameState.inventory.count(id), &"NumberLabel")
 		number.name = "Quantity"
-		number.add_theme_font_size_override("font_size", 18)
+
 		number.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
 		number.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 		number.grow_vertical = Control.GROW_DIRECTION_BEGIN

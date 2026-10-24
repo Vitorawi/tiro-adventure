@@ -175,7 +175,7 @@ func _build() -> void:
 		var heading := UiKit.hbox(4)
 		var title := UiKit.fill_label(str(options.get("title", "")), &"SectionLabel")
 		heading.add_child(title)
-		var close_button := UiKit.icon_button(UiKit.ui_icon("ui_close"), close, 44)
+		var close_button := UiKit.icon_button(UiKit.ctl_icon("x"), close, 44)
 		close_button.name = "CloseTray"
 		close_button.mouse_filter = Control.MOUSE_FILTER_STOP
 		heading.add_child(close_button)
@@ -375,7 +375,7 @@ func _make_item(index: int) -> Control:
 		item.add_child(badge)
 	_badges.append(badge)
 	if blocked or entry.has("error_fn"):
-		var lock := UiKit.icon(UiKit.ui_icon("ui_lock"), 16)
+		var lock := UiKit.icon(UiKit.ctl_icon("lock"), 16)
 		lock.name = "Lock"
 		lock.visible = blocked
 		lock.position = circle.position + Vector2(CIRCLE - 18.0, CIRCLE - 18.0)

@@ -630,7 +630,7 @@ func _spawn_labels() -> void:
 		tag.world_id = world_id
 		var action: String = data.get("action", "")
 		var place: Dictionary = Database.worlds.get(world_id, {}).get("places", {}).get(action.trim_prefix("place:"), {})
-		tag.icon = UiKit.ui_icon("ui_lock") if data.get("locked_label", false) else UiKit.ui_icon(place.get("icon", ""))
+		tag.icon = UiKit.ctl_icon("lock") if data.get("locked_label", false) else UiKit.ui_icon(place.get("icon", ""))
 		tag.restyle()
 		tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tag.z_index = 4
@@ -2036,7 +2036,7 @@ func _settle_content() -> void:
 # --- Botão de centralizar ----------------------------------------------------
 
 func _build_recenter_button() -> void:
-	_recenter = UiKit.icon_button(UiKit.ui_icon("ui_recenter"), recenter, 44)
+	_recenter = UiKit.icon_button(UiKit.ctl_icon("recenter"), recenter, 44)
 	_recenter.name = "RecenterButton"
 	_recenter.mouse_filter = Control.MOUSE_FILTER_STOP  # o botão do UiKit deixa o toque passar; aqui ele chegaria ao mapa
 	_recenter.visible = false

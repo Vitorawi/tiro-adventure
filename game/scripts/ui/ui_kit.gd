@@ -5,6 +5,8 @@ extends RefCounted
 ## Ícones são pixel art de 32 px: usar tamanhos inteiros (32, 64) para ficarem nítidos.
 
 const ICON_DIR := "res://assets/sprites/ui/icons/"
+const CTL_DIR := "res://assets/sprites/ui/ctl/"
+static var _ctl_cache: Dictionary[String, Texture2D] = {}
 const GOOD := Palette.GOOD
 const BAD := Palette.BAD
 
@@ -17,11 +19,29 @@ static func ui_icon(icon_name: String) -> Texture2D:
 static func icon(texture: Texture2D, px: int = 32) -> TextureRect:
 	var rect := TextureRect.new()
 	rect.texture = texture
+	if texture and texture.resource_path.begins_with(CTL_DIR):
+		rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		rect.self_modulate = Palette.INK_SOFT
 	rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	rect.custom_minimum_size = Vector2(px, px)
 	rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return rect
+
+
+## Controles lisos: cache próprio, sem mudar a filtragem dos itens pixel.
+static func ctl_icon(name: String) -> Texture2D:
+	if not _ctl_cache.has(name):
+		var path := CTL_DIR + name + ".svg"
+		_ctl_cache[name] = load(path) if ResourceLoader.exists(path) else null
+	return _ctl_cache[name]
+
+
+static func ctl(name: String, px: int = 20, color: Color = Palette.INK_SOFT) -> TextureRect:
+	var result := icon(ctl_icon(name), px)
+	result.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	result.self_modulate = color
+	return result
 
 
 ## Bolinha de conclusão: só aparece quando há algo pronto para receber/coletar.
@@ -96,6 +116,12 @@ static func tap_chip(texture: Texture2D, text: String, on_pressed: Callable, col
 ## Botão redondo só com ícone ou um símbolo curto (ex.: "?", "↔"): círculo `CARD` com borda fina.
 ## Alvo de toque = `px` (o desenho é o círculo inteiro).
 static func icon_button(texture: Texture2D, on_pressed: Callable, px: int = 44, text: String = "") -> Button:
+	# Compatibilidade com chamadas antigas: símbolos de controle também viram SVG.
+	if texture == null:
+		var control_name := str({"?": "help", "‹": "back", "›": "chev", "+": "plus", "−": "minus"}.get(text, ""))
+		if control_name != "":
+			texture = ctl_icon(control_name)
+			text = ""
 	var result := button(text, on_pressed, &"IconButton", texture)
 	result.custom_minimum_size = Vector2(px, px)
 	result.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -108,6 +134,8 @@ static func icon_button(texture: Texture2D, on_pressed: Callable, px: int = 44, 
 
 ## Mesma peça de antes (assinatura antiga), agora um `icon_button`.
 static func square_button(text: String, on_pressed: Callable, texture: Texture2D = null, px: int = 52) -> Button:
+	if text == "?":
+		return icon_button(ctl_icon("help"), on_pressed, px)
 	return icon_button(texture, on_pressed, px, text)
 
 
@@ -148,9 +176,9 @@ static func pill(texture: Texture2D, text: String) -> PanelContainer:
 	return panel
 
 
-## Cadeado de 32 px (`ui_lock`), usado no `lock_hint` e nos cartões fechados.
+## Cadeado vetorial de 32 px, usado no `lock_hint` e nos cartões fechados.
 static func lock_icon(px: int = 32) -> TextureRect:
-	var lock := icon(ui_icon("ui_lock"), px)
+	var lock := icon(ctl_icon("lock"), px)
 	lock.name = "LockIcon"
 	return lock
 
@@ -162,7 +190,7 @@ static func lock_hint(text: String, on_help: Callable = Callable()) -> HBoxConta
 	row.add_child(lock_icon())
 	row.add_child(fill_label(text, &"SmallLabel"))
 	if on_help.is_valid():
-		row.add_child(icon_button(null, on_help, 44, "?"))
+		row.add_child(icon_button(ctl_icon("help"), on_help, 44))
 	return row
 
 
@@ -274,6 +302,10 @@ static func button(text: String, on_pressed: Callable, variation: StringName = &
 	result.text = text
 	result.theme_type_variation = variation
 	result.icon = texture
+	if texture and texture.resource_path.begins_with(CTL_DIR):
+		result.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		for state: String in ["icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_focus_color"]:
+			result.add_theme_color_override(state, Palette.INK_SOFT)
 	result.custom_minimum_size = Vector2(0, 52)
 	result.mouse_filter = Control.MOUSE_FILTER_PASS  # deixa rolar arrastando em cima do botão
 	result.pressed.connect(on_pressed)

@@ -392,8 +392,8 @@ static func mastery_row(station_id: String) -> Control:
 	var text := UiKit.fill_label(mastery_text(station_id), &"SmallLabel")
 	text.name = "MasteryText"
 	row.add_child(text)
-	row.add_child(UiKit.square_button("?", func() -> void:
-		Events.sheet_requested.emit("Maestria: %s" % str(Database.stations[station_id].name), mastery_help(station_id)), null, 30))
+	row.add_child(UiKit.icon_button(UiKit.ctl_icon("help"), func() -> void:
+		Events.sheet_requested.emit("Maestria: %s" % str(Database.stations[station_id].name), mastery_help(station_id)), 30))
 	return row
 
 
@@ -456,7 +456,7 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 	var qty := GameState.recipe_quantity(recipe_id)
 
 	# Chips: tempo, efeitos (comidas) e ingredientes (tocáveis quando faltam: mostram de onde vêm).
-	var chips: Array[Control] = [UiKit.chip(UiKit.ui_icon("timer"), format_time(int(recipe["seconds"])))]
+	var chips: Array[Control] = [UiKit.chip(UiKit.ctl_icon("clock"), format_time(int(recipe["seconds"])))]
 	chips.append_array(UiKit.effect_chip_list(Database.items.get(output, {}).get("feed", {})))
 	var has_all := true
 	for item_id: String in inputs:
@@ -551,7 +551,7 @@ static func seed_picker(plot_index: int, focus: String = "") -> Control:
 				continue  # estufa: só plantas delicadas; sítio: sem as que só crescem na estufa
 			var crop: Dictionary = Database.crops[crop_id]
 			var locked := GameState.content_error("crop", crop_id, crop)
-			var chips: Array[Control] = [UiKit.chip(UiKit.ui_icon("timer"), format_time(int(round(GameState.crop_seconds(plot_index, crop_id)))))]
+			var chips: Array[Control] = [UiKit.chip(UiKit.ctl_icon("clock"), format_time(int(round(GameState.crop_seconds(plot_index, crop_id)))))]
 			if int(crop.get("coins", 0)) > 0:  # R1: colher não paga moeda; só mostra se o dado ainda pagar
 				chips.append(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(crop.get("coins", 0))))
 			var harvest: Dictionary = crop.get("yield", {})

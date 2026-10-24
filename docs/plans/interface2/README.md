@@ -79,7 +79,7 @@ flowchart TD
 | Feita | Etapa | Entrega | Tamanho |
 |---|---|---|---|
 | [x] | 00 | plano, bíblia, jornada, telas, regras/testes, 12 etapas, protótipos e pranchas; decisões do Vitor | — |
-| [ ] | [01](etapas/ETAPA_01_BASE.md) | fontes, `Palette`, ícones vetoriais, tema; ferramentas enxutas de teste/captura | médio |
+| [x] | [01](etapas/ETAPA_01_BASE.md) | fontes, `Palette`, ícones vetoriais, tema; ferramentas enxutas de teste/captura | médio |
 | [ ] | [02](etapas/ETAPA_02_PECAS.md) | peças do `UiKit` | médio |
 | [ ] | [03](etapas/ETAPA_03_CASCA.md) | rodapé claro preso, HUD em 2 linhas, `NextStep`/`QuestGuide`, `Notice` | grande |
 | [ ] | [04](etapas/ETAPA_04_TIRO.md) | cenário aproximado, anéis no topo, botão Cuidar + roleta | grande |
@@ -141,3 +141,5 @@ puxa áreas inteiras sozinho (→ `-Exact` na 01); etiquetas do mapa também sã
 `CarePointer` como `Polygon2D` (→ roleta mantém ordem e raiz); `tasks_groups_test` espera personagens
 recolhidos e diárias/semanais separadas (→ testes mudam na 05 com a mesma garantia). Nenhum arquivo do
 jogo alterado; sem testes, commit, push ou publicação. **Pronto para a etapa 01.**
+
+**Etapa 01 (24/10/2026, Codex; local):** fontes Fredoka/Nunito (PCK 7.210.824 → 7.504.112 bytes, +286,4 KiB), Palette nova com apelidos, 17 controles SVG 4× e tema liso; `-Exact` e `--i2-01-only`. Lista fechada + rápido: **8/8 PASS em 68 s**, logs `build/test_logs/r20261024_181601_774176ce/`. Nove capturas antes/depois nas três resoluções e tour completo (114 PNGs); acentos conferidos. Quebras: Caderninho excede largura, prêmios de contratos apertados, bloqueios/etiquetas de mapas cortados ou sobrepostos, bandejas altas e títulos de modais em duas linhas. Diferenças do protótipo são as composições antigas, reservadas às etapas seguintes. Auditoria, arquivos e PNGs em [VALIDACAO_01.md](VALIDACAO_01.md). Margens legadas de PillPanel/RowPanel preservadas para manter os contratos existentes; nenhum layout refeito. **Próxima: 02**, não iniciada. Sem push/publicação.

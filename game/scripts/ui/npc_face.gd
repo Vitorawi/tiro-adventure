@@ -41,7 +41,7 @@ func setup(new_npc_id: String, new_badge: String) -> void:
 		mark.position = Vector2(SIZE - 18.0, -6.0)
 		add_child(mark)
 	elif badge == "ready":
-		var check := UiKit.icon(UiKit.ui_icon("ui_check"), 32)
+		var check := UiKit.icon(UiKit.ctl_icon("check"), 32)
 		check.position = Vector2(SIZE - 24.0, -10.0)
 		check.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		add_child(check)

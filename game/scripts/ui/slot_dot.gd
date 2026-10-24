@@ -42,7 +42,7 @@ func _init(new_state: String = EMPTY, texture: Texture2D = null, progress: float
 			_dot.add_child(ring)
 			_add_icon(texture, 1.0)
 			if state == READY:
-				var check := UiKit.icon(UiKit.ui_icon("ui_check"), 16)
+				var check := UiKit.icon(UiKit.ctl_icon("check"), 16)
 				check.name = "Check"
 				check.position = Vector2(DOT - 18.0, 0.0)
 				_dot.add_child(check)

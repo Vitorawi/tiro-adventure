@@ -239,7 +239,7 @@ func _routines(box: VBoxContainer, kind: String) -> void:
 	box.add_child(section)
 	var header := UiKit.hbox(8)
 	header.add_child(UiKit.fill_label("Diárias" if kind == "daily" else "Semanais", &"SectionLabel"))
-	header.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(GameState.routine_seconds_left(kind))))
+	header.add_child(UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(GameState.routine_seconds_left(kind))))
 	section.add_child(header)
 	# Uma única ação principal para todas as rotinas prontas, inclusive entre seções.
 	if _ready_routines.size() >= 2:

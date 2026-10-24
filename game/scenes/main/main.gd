@@ -285,7 +285,9 @@ func _show_toast(text: String) -> void:
 	_toast_text.text = text
 	_toast_icon.visible = text.begins_with("Missão concluída") or text == PHOTO_TOAST
 	if _toast_icon.visible:
-		_toast_icon.texture = UiKit.ui_icon("album_story" if text == PHOTO_TOAST else "ui_check")
+		_toast_icon.texture = (UiKit.ui_icon("album_story") if text == PHOTO_TOAST else UiKit.ctl_icon("check"))
+		_toast_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if text == PHOTO_TOAST else CanvasItem.TEXTURE_FILTER_LINEAR
+		_toast_icon.self_modulate = Color.WHITE if text == PHOTO_TOAST else Palette.GO_INK
 	# Largura do texto (até 320 com o ícone e as margens); só então a pílula assume o tamanho certo.
 	var font := _toast_text.get_theme_font("font")
 	var font_size := _toast_text.get_theme_font_size("font_size")

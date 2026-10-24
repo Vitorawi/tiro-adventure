@@ -73,7 +73,7 @@ func _build(texture: Texture2D, title: String) -> void:
 	_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_title.add_theme_font_size_override("font_size", 18)
+	_title.theme_type_variation = &"StrongLabel"
 	_title.add_theme_color_override("font_color", Palette.INK_ON_DARK)
 	_title.anchor_left = 0.0
 	_title.anchor_right = 1.0

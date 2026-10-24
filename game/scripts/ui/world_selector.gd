@@ -43,7 +43,7 @@ func _ready() -> void:
 	title.name = "SelectorTitle"
 	title.add_theme_font_size_override("font_size", 26)
 	header.add_child(title)
-	var close_button := UiKit.icon_button(UiKit.ui_icon("ui_close"), dismiss, 44)
+	var close_button := UiKit.icon_button(UiKit.ctl_icon("x"), dismiss, 44)
 	close_button.name = "CloseSelector"
 	header.add_child(close_button)
 	body.add_child(header)

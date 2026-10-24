@@ -97,7 +97,7 @@ func _ready() -> void:
 	_mood_bubble.name = "MoodBubble"
 	_mood_label = _mood_bubble.label
 	_mood_label.name = "MoodLabel"
-	_mood_label.add_theme_font_size_override("font_size", 18)
+	_mood_label.theme_type_variation = &"StrongLabel"
 	add_child(_mood_bubble)
 	_build_wish_widgets()
 	_manual = UiKit.icon_button(UiKit.ui_icon("ui_notebook"), PetNotebook.open, 52)

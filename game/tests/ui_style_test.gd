@@ -58,23 +58,23 @@ func count_primary(node: Node) -> int:
 func _theme() -> void:
 	var theme: Theme = load("res://assets/theme/main_theme.tres")
 	var card := theme.get_stylebox("panel", "CardPanel") as StyleBoxFlat
-	check(card.border_width_bottom == 2, "Cartão sem degrau (borda de baixo = 2)")
-	check(_near(card.border_color, Palette.CARD_LINE) and _near(card.bg_color, Palette.CARD), "Cartão usa CARD / CARD_LINE")
+	check(card.border_width_bottom == 0, "Cartão liso sem borda")
+	check(_near(card.bg_color, Palette.CARD), "Cartão usa CARD / CARD_LINE")
 	var button := theme.get_stylebox("normal", "Button") as StyleBoxFlat
-	check(button.border_width_bottom == 5, "Botão tem degrau de 5 px")
-	check(_near(button.bg_color, Palette.ACCENT), "Botão comum é mel (secundário)")
+	check(button.border_width_bottom == 0, "Botão calmo sem degrau")
+	check(_near(button.bg_color, Palette.SUNKEN), "Botão comum é afundado")
 	var pressed := theme.get_stylebox("pressed", "Button") as StyleBoxFlat
-	check(pressed.border_width_bottom == 2, "Botão afunda ao tocar (degrau 2)")
+	check(pressed.border_width_bottom == 0, "Botão calmo pressionado sem borda")
 	var primary := theme.get_stylebox("normal", "PrimaryButton") as StyleBoxFlat
 	check(_near(primary.bg_color, Palette.PRIMARY) and _near(primary.border_color, Palette.PRIMARY_EDGE), "PrimaryButton é verde")
 	var types := theme.get_type_list()
 	for type_name: String in ["SecondaryButton", "GhostButton", "IconButton", "PillPanel", "NumberLabel", "BadgeLabel"]:
 		check(types.has(type_name), "Tema tem a variação " + type_name)
 	var chip := theme.get_stylebox("panel", "ChipPanel") as StyleBoxFlat
-	check(chip.border_width_left == 0 and chip.corner_radius_top_left >= 20, "Chip é pílula sem borda")
-	check(theme.get_font_size("font_size", "TitleLabel") == 30 and theme.get_font_size("font_size", "SmallLabel") == 18, "Tipografia: título 30, pequeno 18")
+	check(chip.border_width_left == 0 and chip.corner_radius_top_left == 14, "Chip é pílula sem borda")
+	check(theme.get_font_size("font_size", "TitleLabel") == 24 and theme.get_font_size("font_size", "SmallLabel") == 12, "Tipografia: título 24, pequeno 12")
 	var sheet := theme.get_stylebox("panel", "SheetPanel") as StyleBoxFlat
-	check(sheet.border_width_left == 0 and sheet.corner_radius_top_left == 22, "Painel sem borda, cantos de cima 22")
+	check(sheet.border_width_left == 0 and sheet.corner_radius_top_left == 28, "Painel sem borda, cantos de cima 28")
 
 
 func _kit() -> void:
@@ -85,11 +85,11 @@ func _kit() -> void:
 	check((_own(owned, ui_kit.call("secondary", "a", noop, null, true)) as Button).custom_minimum_size.y == 44, "secondary pequeno tem altura 44")
 	check((_own(owned, ui_kit.call("ghost", "a", noop)) as Button).theme_type_variation == &"GhostButton", "UiKit.ghost")
 	var help: Button = ui_kit.call("square_button", "?", noop)
-	check(help.theme_type_variation == &"IconButton" and help.text == "?", "square_button devolve um icon_button com '?'")
+	check(help.theme_type_variation == &"IconButton" and help.text == "" and help.icon == ui_kit.call("ctl_icon", "help"), "square_button devolve um icon_button com ajuda vetorial")
 	check((_own(owned, ui_kit.call("icon_button", null, noop, 44, "?")) as Button).custom_minimum_size == Vector2(44, 44), "icon_button 44")
 	var pill: PanelContainer = ui_kit.call("pill", null, "12")
 	check(pill.theme_type_variation == &"PillPanel", "UiKit.pill")
-	var lock_texture: Texture2D = ui_kit.call("ui_icon", "ui_lock")
+	var lock_texture: Texture2D = ui_kit.call("ctl_icon", "lock")
 	var hint: HBoxContainer = ui_kit.call("lock_hint", "Depois do fogão", noop)
 	var has_lock := false
 	for child: Node in hint.get_children():

@@ -375,7 +375,7 @@ static func unlock_hint(world_id: String) -> Dictionary:
 			if chapter > 0:
 				text = "Abre no capítulo %d\n%s" % [chapter, text]
 			return {"icon": ProgressionUi.npc_portrait(str(quest.get("npc", ""))), "text": text}
-	return {"icon": UiKit.ui_icon("ui_lock"), "text": world_error(world_id)}
+	return {"icon": UiKit.ctl_icon("lock"), "text": world_error(world_id)}
 
 
 ## Texto curto se o personagem tem missão com recompensa pronta.

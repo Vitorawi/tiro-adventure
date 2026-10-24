@@ -204,7 +204,7 @@ static func refining_panel(site: String) -> Control:
 static func _material(parent: VBoxContainer, site: String, item: String, route_id: String) -> void:
 	var route: Dictionary = Database.progression.activities[route_id]
 	var primary := item if route.rewards.get("items", {}).has(item) else str(route.rewards.items.keys()[0])
-	var chips: Array[Control] = [UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(route.seconds)))]
+	var chips: Array[Control] = [UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(route.seconds)))]
 	for bonus: String in route.rewards.get("items", {}):
 		if bonus != primary:
 			chips.append(UiKit.chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), UiKit.GOOD))

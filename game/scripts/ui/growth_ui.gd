@@ -383,7 +383,7 @@ static func _step_tile(step: Dictionary) -> Button:
 		count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(count)
 	if step.done:
-		var check := UiKit.icon(UiKit.ui_icon("ui_check"), 22)
+		var check := UiKit.icon(UiKit.ctl_icon("check"), 22)
 		check.name = "StepCheck"
 		check.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 		check.offset_left = -26
@@ -413,7 +413,7 @@ static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> 
 	var head := UiKit.hbox(8)
 	head.add_child(UiKit.fill_label(str(step.title)))
 	if not step.done:
-		var help := UiKit.square_button("?", TaskHelp.open.bind("growth_req", str(step.id)), null, 40)
+		var help := UiKit.icon_button(UiKit.ctl_icon("help"), TaskHelp.open.bind("growth_req", str(step.id)), 40)
 		help.name = "GrowthHelp"
 		help.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		head.add_child(help)

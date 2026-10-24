@@ -1,33 +1,56 @@
 class_name Palette
 extends RefCounted
 ## Cores da interface. Use sempre estas constantes (nada de Color("...") solto no código novo).
-## Guia completo em docs/plans/interface/01_REGRAS_E_ESTILO.md (seção B.1).
+## Guia completo em docs/plans/interface2/01_BIBLIA_VISUAL.md (seção B).
 
-# Superfícies
-const PAPER := Color("fff6e3")        # fundo dos painéis
-const CARD := Color("f8ead0")         # cartão (informação agrupada)
-const CARD_LINE := Color("e3cba3")    # borda fina do cartão (2 px)
-const SUNKEN := Color("eedcb8")       # chip/pílula dentro de cartão, trilho de barra
-const SHADE := Color(0.17, 0.11, 0.07, 0.18)  # sombra suave
-const DIM := Color(0.12, 0.08, 0.05, 0.45)    # fundo escurecido atrás de painel/modal
-# Texto
-const INK := Color("3d2618")          # texto principal
-const INK_SOFT := Color("7a5c44")     # texto secundário
-const INK_ON_DARK := Color("fff1d6")  # texto sobre HUD escuro
-# Ações
-const PRIMARY := Color("6cc24a")      # botão principal (verde folha)
-const PRIMARY_EDGE := Color("3f8a2b") # degrau do botão principal
-const ACCENT := Color("f6b85e")       # mel: botão secundário forte, destaque
-const ACCENT_EDGE := Color("c9822f")
-const DANGER := Color("e0574b")       # falta / fechar
-const GOOD := Color("3f8a2b")         # tem / ganho (texto)
-const BAD := Color("c2412f")          # falta (texto)
-const INFO := Color("4fa3d9")         # água, tempo, progresso
-const GOLD := Color("ffd23f")         # moeda, estrela, XP
+const PAPER := Color("fff8ee")
+const CARD := Color("ffffff")
+const SUNKEN := Color("f6ede0")
+const LINE := Color("eee2d1")
+const BASE := Color("fbf1e2")
+const BASE_LINE := Color("efe0cb")
+const INK := Color("3a2a1f")
+const INK_SOFT := Color("745e4d")
+const INK_FAINT := Color("bca894")
+const GO := Color("2b9946")
+const GO_EDGE := Color("1f7a37")
+const GO_INK := Color("23783a")
+const GO_SOFT := Color("e7f6ea")
+const HONEY := Color("ffb730")
+const HONEY_SOFT := Color("fff1d3")
+const HONEY_INK := Color("8c5800")
+const TAB_ON := Color("ffe2a6")
+const SKY := Color("3e9fe4")
+const SKY_SOFT := Color("e2f1fc")
+const SKY_INK := Color("22679a")
+const ALERT := Color("e5483c")
+const ALERT_SOFT := Color("fde6e3")
+const ALERT_INK := Color("b0322a")
+const SHADOW := Color(0.43, 0.27, 0.12, 0.13)
+const SCRIM := Color(0.23, 0.16, 0.12, 0.38)
+const BASE_GLASS := Color(0.984, 0.945, 0.886, 0.92)
+
+# Apelidos temporários
+const PRIMARY := GO # apelido da Interface 2; sai na etapa 11
+const PRIMARY_EDGE := GO_EDGE # apelido da Interface 2; sai na etapa 11
+const ACCENT := HONEY # apelido da Interface 2; sai na etapa 11
+const ACCENT_EDGE := Color("e2961a") # apelido da Interface 2; sai na etapa 11
+const DANGER := ALERT # apelido da Interface 2; sai na etapa 11
+const GOOD := GO_INK # apelido da Interface 2; sai na etapa 11
+const BAD := ALERT_INK # apelido da Interface 2; sai na etapa 11
+const INFO := SKY # apelido da Interface 2; sai na etapa 11
+const GOLD := HONEY # apelido da Interface 2; sai na etapa 11
+const CARD_LINE := LINE # apelido da Interface 2; sai na etapa 11
+const SHADE := SHADOW # apelido da Interface 2; sai na etapa 11
+const DIM := SCRIM # apelido da Interface 2; sai na etapa 11
+const HUD := CARD # apelido da Interface 2; sai na etapa 11
+const INK_ON_DARK := INK # apelido da Interface 2; sai na etapa 11
+const PET_SURFACE := BASE # apelido da Interface 2; sai na etapa 11
+
+# Selos de clientes (cores próprias preservadas).
 const SEAL_BRONZE := Color("c98a4b")  # selo de cliente: patamar 1
 const SEAL_SILVER := Color("b9c3cc")  # patamar 2
 const SEAL_GOLD := Color("f2c230")    # patamar 3
-const HUD := Color(0.17, 0.11, 0.07, 0.78)  # pílulas do HUD sobre o mundo
 # Cor de cada mundo (cabeçalho, pílula do mundo, seletor)
 const WORLD := {
 	"house": Color("c98b5a"), "farm": Color("7db84a"), "park": Color("e9b93a"),
@@ -39,7 +62,6 @@ const PET_DAY := Color.WHITE
 const PET_SUNSET := Color(1.0, 0.83, 0.66)
 const PET_NIGHT := Color(0.42, 0.52, 0.74)
 const PET_SLEEP := Color(0.76, 0.79, 0.88)
-const PET_SURFACE := Color(1.0, 0.965, 0.89, 0.96)
 const PET_BUTTON := Color(0.9, 0.83, 0.69, 0.55)
 
 # Desenho do mundo e do treino (cores que não são de painel, mas também não ficam soltas no código).

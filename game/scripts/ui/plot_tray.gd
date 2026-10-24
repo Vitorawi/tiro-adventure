@@ -218,7 +218,7 @@ class CareHeader extends HBoxContainer:
 		column.add_child(_time)
 		_watered = UiKit.hbox(4)
 		_watered.name = "Watered"
-		_watered.add_child(UiKit.icon(UiKit.ui_icon("ui_check"), 16))
+		_watered.add_child(UiKit.icon(UiKit.ctl_icon("check"), 16))
 		var done_label := UiKit.label("Regado", &"SmallLabel", Palette.GOOD)
 		done_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		_watered.add_child(done_label)

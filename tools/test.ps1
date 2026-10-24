@@ -1,10 +1,11 @@
 ﻿# Circuito: rapido, etapa (áreas dos arquivos mudados), portao e campanha.
+# -Exact limita etapa ao rápido + -Tests, sem descobrir áreas pelos arquivos mudados.
 param(
   [ValidateSet('rapido','etapa','portao','campanha')][string]$Level = 'etapa',
   [string]$Tests = '', [string]$Areas = '', [string]$Since = '',
   [string]$ChangeList = '',
   [ValidateRange(1,16)][int]$Jobs = 1,
-  [switch]$KeepGoing, [switch]$DryRun
+  [switch]$KeepGoing, [switch]$DryRun, [switch]$Exact
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
@@ -35,6 +36,8 @@ if ($Level -in @('rapido','etapa')) {
   $plan += @($map.always)
 }
 if ($Level -eq 'etapa') {
+  # -Exact: só rapido + -Tests, sem descoberta automática de áreas.
+  if (-not $Exact) {
   if ($ChangeList) {
     if ($Since) { throw 'Use -ChangeList ou -Since, não ambos.' }
     $changed = @(Get-Content -LiteralPath $ChangeList | ForEach-Object { $_.Trim() } | Where-Object { $_ -and -not $_.StartsWith('#') })
@@ -61,6 +64,7 @@ if ($Level -eq 'etapa') {
     foreach ($area in $map.areas.PSObject.Properties) {
       if (@($area.Value.paths | Where-Object { $path -like $_ }).Count) { $selectedAreas += $area.Name }
     }
+  }
   }
   $plan += @(Names $Tests)
 }

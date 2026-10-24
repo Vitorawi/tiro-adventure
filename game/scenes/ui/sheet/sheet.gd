@@ -45,7 +45,7 @@ func _ready() -> void:
 	_dim.color = Palette.DIM
 	_dim.gui_input.connect(_on_dim_input)
 	# Botão redondo com o ícone "✕" próprio (a fonte pixel art não tem o glifo).
-	_close_button = UiKit.icon_button(UiKit.ui_icon("ui_close"), close, 44)
+	_close_button = UiKit.icon_button(UiKit.ctl_icon("x"), close, 44)
 	_close_button.name = "CloseButton"
 	%Header.add_child(_close_button)
 	_handle.draw.connect(_draw_handle)

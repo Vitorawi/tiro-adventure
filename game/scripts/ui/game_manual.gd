@@ -172,7 +172,7 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 			var walk := GameState.walk_def(id)
 			card.add_child(UiKit.label(str(walk.name), &"SectionLabel"))
 			card.add_child(UiKit.label("Passear → esperar → guardar os achados", &"SmallLabel"))
-			card.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(int(walk.seconds))))
+			card.add_child(UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(walk.seconds))))
 			_requirements(card, walk)
 			_location(card, {"world": "park", "place": "walk"})
 		"recipe":
@@ -233,7 +233,7 @@ static func _recipe(box: VBoxContainer, id: String) -> void:
 
 
 static func _timer(box: VBoxContainer, seconds: int) -> void:
-	box.add_child(UiKit.chip(UiKit.ui_icon("timer"), TimeText.short(seconds)))
+	box.add_child(UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(seconds)))
 
 
 static func _requirements(box: VBoxContainer, data: Dictionary) -> void:

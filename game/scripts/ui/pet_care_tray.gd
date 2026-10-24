@@ -69,7 +69,7 @@ func _ready() -> void:
 	_menu.add_child(column)
 	var header := UiKit.hbox(4)
 	header.add_child(UiKit.fill_label("Comidinhas", &"SectionLabel"))
-	header.add_child(UiKit.icon_button(UiKit.ui_icon("ui_close"), close_food_menu, 44))
+	header.add_child(UiKit.icon_button(UiKit.ctl_icon("x"), close_food_menu, 44))
 	column.add_child(header)
 	_scroll = ScrollContainer.new()
 	_scroll.name = "FoodScroll"

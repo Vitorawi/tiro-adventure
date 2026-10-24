@@ -104,7 +104,6 @@ func _build_avatar() -> void:
 	level_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	level_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	level_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	level_label.add_theme_font_size_override("font_size", 18)
 	level_label.add_theme_color_override("font_color", Palette.INK)
 	level_label.add_theme_constant_override("outline_size", 0)
 	level_label.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -199,7 +198,7 @@ func _build_right() -> void:
 		dev_button.add_theme_stylebox_override(style_name, dev_style)
 	Motion.press(dev_button)
 	column.add_child(dev_button)
-	settings_button = UiKit.icon_button(UiKit.ui_icon("settings"), SettingsPanel.open, 44)
+	settings_button = UiKit.icon_button(UiKit.ctl_icon("gear"), SettingsPanel.open, 44)
 	settings_button.name = "SettingsButton"
 	settings_button.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	right.add_child(settings_button)

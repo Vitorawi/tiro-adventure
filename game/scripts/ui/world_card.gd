@@ -33,9 +33,9 @@ func setup(id: String) -> void:
 	_picture = UiKit.icon(UiKit.ui_icon(str(world.get("icon", "tab_map"))), ICON_SIZE)
 	_picture.name = "WorldIcon"
 	add_child(_picture)
-	_title = UiKit.label(str(world.get("map_name", world.name)), &"SectionLabel")
+	_title = UiKit.label(str(world.get("map_name", world.name)), &"TitleLabel")
 	_title.name = "WorldName"
-	_title.add_theme_font_size_override("font_size", 24)
+
 	_title.autowrap_mode = TextServer.AUTOWRAP_OFF
 	add_child(_title)
 	_here = UiKit.label("Aqui", &"SmallLabel", Palette.GOOD)
@@ -77,7 +77,7 @@ func refresh(current: String) -> void:
 	if not disabled:
 		for entry: Array in [
 			["rewards", "tab_tasks", "prêmio", "prêmios", Palette.GOOD],
-			["collections", "ui_check", "coleta", "coletas", Palette.GOOD],
+			["collections", "check", "coleta", "coletas", Palette.GOOD],
 			["missions", "tab_tasks", "missão", "missões", Palette.ACCENT_EDGE],
 			["finds", "find_paw", "achado", "achados", Palette.INFO],
 			["treasure", "item_map_piece", "tesouro", "tesouros", Palette.ACCENT_EDGE],
@@ -86,7 +86,7 @@ func refresh(current: String) -> void:
 			if amount <= 0: continue
 			var notice := UiKit.hbox(3)
 			notice.name = "WorldStatus_" + str(entry[0])
-			notice.add_child(UiKit.icon(UiKit.ui_icon(str(entry[1])), 14))
+			notice.add_child(UiKit.icon(UiKit.ctl_icon("check") if str(entry[1]) == "check" else UiKit.ui_icon(str(entry[1])), 14))
 			var caption := UiKit.label("%d %s" % [amount, str(entry[2] if amount == 1 else entry[3])], &"SmallLabel", entry[4])
 			caption.autowrap_mode = TextServer.AUTOWRAP_OFF
 			caption.add_theme_font_size_override("font_size", 16)

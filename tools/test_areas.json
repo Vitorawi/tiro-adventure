@@ -115,7 +115,8 @@
     "gestures_test",
     "mood_test",
     "care_story_test",
-    "care_bot_test"
+    "care_bot_test",
+    "ui2_tokens_test"
   ],
   "areas": {
     "growth": {
@@ -367,7 +368,10 @@
         "game/tests/lists_test.gd",
         "game/tests/ui_base_test.gd",
         "game/tests/tray_test.gd",
-        "game/tests/station_tray_test.gd"
+        "game/tests/station_tray_test.gd",
+        "game/tests/ui2_tokens_test.gd",
+        "game/assets/fonts/*",
+        "game/assets/sprites/ui/ctl/*"
       ],
       "tests": [
         "ui_style_test",
@@ -375,7 +379,8 @@
         "lists_test",
         "ui_base_test",
         "tray_test",
-        "station_tray_test"
+        "station_tray_test",
+        "ui2_tokens_test"
       ]
     },
     "navigation": {
