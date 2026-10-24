@@ -149,6 +149,7 @@ func _first_growth_care() -> void:
 	_fresh()
 	state.note_world_visit("house")
 	state.talk_to("lais")
+	state.pet()  # terceiro momento: cuidado útil antes de a brincadeira satisfazer a felicidade
 	check(state.claim_quest("welcome") == "", "recebe a ração da Laís")
 	check(state.feed("dog_food"), "alimenta na missão Hora de comer")
 	check(state.claim_quest("lais_feed") == "", "recebe Hora de comer")

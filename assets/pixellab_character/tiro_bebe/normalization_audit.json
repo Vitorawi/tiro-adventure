@@ -1,0 +1,5770 @@
+[
+  {
+    "clip": "idle_breathe",
+    "source": "idle_breathe",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      74,
+      48,
+      172,
+      185
+    ],
+    "reference_bbox": [
+      71,
+      46,
+      175,
+      185
+    ],
+    "sha256": "9816421af4f0f12493ce0cb13e60dfec125a51af8ccdc6e712f5fbd3754cfec3"
+  },
+  {
+    "clip": "idle_breathe",
+    "source": "idle_breathe",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      0
+    ],
+    "bbox": [
+      75,
+      47,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      51,
+      174,
+      185
+    ],
+    "sha256": "8a959d734668f98ee5fa6216008a90ebc5361796e7eb5d1e3fdf2d4c97478a6b"
+  },
+  {
+    "clip": "idle_breathe",
+    "source": "idle_breathe",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      78,
+      44,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      51,
+      181,
+      185
+    ],
+    "sha256": "f1a078617afe4f0993b7c7a02cb27c308e9c1e7d6b8ebab7e28343eccfabc000"
+  },
+  {
+    "clip": "idle_breathe",
+    "source": "idle_breathe",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      23,
+      0
+    ],
+    "bbox": [
+      77,
+      42,
+      175,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      50,
+      178,
+      185
+    ],
+    "sha256": "3d6fd1a18560c515e3473e81572fca4015f055b5d1c910ef91768e33b1d19501"
+  },
+  {
+    "clip": "idle_breathe",
+    "source": "idle_breathe",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      0
+    ],
+    "bbox": [
+      75,
+      40,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      50,
+      174,
+      185
+    ],
+    "sha256": "7bce778341444afb72903f7fcdf8df14873012bf62c218fe3dda91f20c20b5f2"
+  },
+  {
+    "clip": "idle_breathe",
+    "source": "idle_breathe",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      75,
+      40,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      50,
+      174,
+      185
+    ],
+    "sha256": "29e70924c0420e006a4bb054cfd3df556eeffeeddf9128a42cd77a3458a66a3b"
+  },
+  {
+    "clip": "idle_breathe",
+    "source": "idle_breathe",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      0
+    ],
+    "bbox": [
+      75,
+      43,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      50,
+      174,
+      185
+    ],
+    "sha256": "ee0ede6e1f5cddba16b80a8853d782fa23b06b62cec00f3d9cb4f973fdb45cb9"
+  },
+  {
+    "clip": "idle_breathe",
+    "source": "idle_breathe",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      0
+    ],
+    "bbox": [
+      75,
+      45,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      50,
+      174,
+      185
+    ],
+    "sha256": "691a7e55057f87f1bb73abbb478775f8cedc70daa0df3aa1a601fe4676d038f3"
+  },
+  {
+    "clip": "idle_breathe",
+    "source": "idle_breathe",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      78,
+      47,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      50,
+      181,
+      185
+    ],
+    "sha256": "463c58d4f8f21fa596219069da9ac316bcd6fd632fc723f97489bc5a281c6102"
+  },
+  {
+    "clip": "eat",
+    "source": "eat",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      -4
+    ],
+    "bbox": [
+      75,
+      44,
+      174,
+      190
+    ],
+    "reference_bbox": [
+      72,
+      45,
+      176,
+      185
+    ],
+    "sha256": "264643b088ccc079605d31f540d33bac98834859795d9d7346331ac8cfcf7f5f"
+  },
+  {
+    "clip": "eat",
+    "source": "eat",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      -4
+    ],
+    "bbox": [
+      83,
+      46,
+      182,
+      190
+    ],
+    "reference_bbox": [
+      74,
+      45,
+      192,
+      190
+    ],
+    "sha256": "5bad8741c69bc18503155c9773ecfd8468b0ed3815f21de59de96bf87779c4eb"
+  },
+  {
+    "clip": "eat",
+    "source": "eat",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      14,
+      -4
+    ],
+    "bbox": [
+      77,
+      77,
+      173,
+      190
+    ],
+    "reference_bbox": [
+      59,
+      66,
+      192,
+      190
+    ],
+    "sha256": "7a3b76eda880aea479ecae04c52af743448cd474dffe9f02447f9cb4a9f1f2e6"
+  },
+  {
+    "clip": "eat",
+    "source": "eat",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      16,
+      -4
+    ],
+    "bbox": [
+      79,
+      82,
+      177,
+      190
+    ],
+    "reference_bbox": [
+      61,
+      92,
+      194,
+      190
+    ],
+    "sha256": "2dbdcc88ea837a353efade63066826e9ae4b9f47a3d0d071574e59301f7cef2e"
+  },
+  {
+    "clip": "eat",
+    "source": "eat",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      -4
+    ],
+    "bbox": [
+      85,
+      82,
+      181,
+      190
+    ],
+    "reference_bbox": [
+      73,
+      83,
+      192,
+      190
+    ],
+    "sha256": "64e823a1e8f3482e18dc20ca6035c18610cda89b424b6af3981e45b68c32af3d"
+  },
+  {
+    "clip": "eat",
+    "source": "eat",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      -3
+    ],
+    "bbox": [
+      91,
+      83,
+      186,
+      191
+    ],
+    "reference_bbox": [
+      84,
+      78,
+      192,
+      191
+    ],
+    "sha256": "eee2f8600370953861c7ce09964e05b8255a8911b5e414f6646c9f289e8d492e"
+  },
+  {
+    "clip": "eat",
+    "source": "eat",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      -4
+    ],
+    "bbox": [
+      84,
+      82,
+      179,
+      190
+    ],
+    "reference_bbox": [
+      64,
+      85,
+      199,
+      190
+    ],
+    "sha256": "c4fd4dedd0c7f3af6b90dff6ce566e1aca17151da2d60f1d7c2515660bac0c53"
+  },
+  {
+    "clip": "eat",
+    "source": "eat",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      18,
+      -4
+    ],
+    "bbox": [
+      81,
+      82,
+      179,
+      190
+    ],
+    "reference_bbox": [
+      63,
+      87,
+      197,
+      190
+    ],
+    "sha256": "b0a0e5604a99d1340dafe6e1e11ebb29f373f9dd4a4610aabb72c9ffc6809d55"
+  },
+  {
+    "clip": "eat",
+    "source": "eat",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      -4
+    ],
+    "bbox": [
+      85,
+      82,
+      181,
+      190
+    ],
+    "reference_bbox": [
+      72,
+      81,
+      195,
+      190
+    ],
+    "sha256": "0255c5c77cdbdd0aef14acc428f7192da09d550e928cc8ea55a0bece6cf3a007"
+  },
+  {
+    "clip": "happy_jump",
+    "source": "happy_jump",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      16,
+      0
+    ],
+    "bbox": [
+      70,
+      48,
+      168,
+      185
+    ],
+    "reference_bbox": [
+      69,
+      49,
+      170,
+      185
+    ],
+    "sha256": "c08bc96c1972e7cf9d0b20841719dc3f122417fef23e51010aab6fece9147ae3"
+  },
+  {
+    "clip": "happy_jump",
+    "source": "happy_jump",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      16,
+      5
+    ],
+    "bbox": [
+      70,
+      55,
+      168,
+      185
+    ],
+    "reference_bbox": [
+      67,
+      49,
+      170,
+      185
+    ],
+    "sha256": "6bd37f073b8d5e073bcfd212cacb0a2abd9f825f98bc0ea1dfab62281a6117b9"
+  },
+  {
+    "clip": "happy_jump",
+    "source": "happy_jump",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      4
+    ],
+    "bbox": [
+      74,
+      45,
+      172,
+      181
+    ],
+    "reference_bbox": [
+      69,
+      45,
+      176,
+      181
+    ],
+    "sha256": "2778817625c86f5d9d1972c7a893354225bec97af06f0c7e2fee33cb94951f1b"
+  },
+  {
+    "clip": "happy_jump",
+    "source": "happy_jump",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      16,
+      9
+    ],
+    "bbox": [
+      70,
+      41,
+      168,
+      175
+    ],
+    "reference_bbox": [
+      68,
+      37,
+      171,
+      175
+    ],
+    "sha256": "7f09a34c9e434103b72b4bacf48b80797acc27099afc58bbbe505d4f5d267d01"
+  },
+  {
+    "clip": "happy_jump",
+    "source": "happy_jump",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      18,
+      0
+    ],
+    "bbox": [
+      70,
+      35,
+      172,
+      172
+    ],
+    "reference_bbox": [
+      67,
+      29,
+      174,
+      172
+    ],
+    "sha256": "0f1cef0077e8ff00dadddf99a5e6e1960e95c33b7e5d41b784a7e01dfac2db31"
+  },
+  {
+    "clip": "happy_jump",
+    "source": "happy_jump",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      18,
+      -10
+    ],
+    "bbox": [
+      66,
+      23,
+      175,
+      167
+    ],
+    "reference_bbox": [
+      68,
+      30,
+      173,
+      167
+    ],
+    "sha256": "9d17d7e6d227905aade5b3611d6030dc9fc81df15a310a08ac2443ea0b172959"
+  },
+  {
+    "clip": "happy_jump",
+    "source": "happy_jump",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      23,
+      -15
+    ],
+    "bbox": [
+      69,
+      23,
+      181,
+      170
+    ],
+    "reference_bbox": [
+      74,
+      37,
+      176,
+      170
+    ],
+    "sha256": "449852dfd1850dea40a0c45c4fd5bad41feaa90347d9fb1f68106d41c04754e6"
+  },
+  {
+    "clip": "happy_jump",
+    "source": "happy_jump",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      30,
+      0
+    ],
+    "bbox": [
+      83,
+      51,
+      182,
+      185
+    ],
+    "reference_bbox": [
+      76,
+      48,
+      188,
+      185
+    ],
+    "sha256": "50ba2812088858dd9b1b7737a2c32bd4c108b3fddc353be2c9957f3409629b87"
+  },
+  {
+    "clip": "happy_jump",
+    "source": "happy_jump",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      32,
+      0
+    ],
+    "bbox": [
+      86,
+      45,
+      184,
+      185
+    ],
+    "reference_bbox": [
+      85,
+      48,
+      185,
+      185
+    ],
+    "sha256": "ce84b87caacc304b70a073bb5777f9c5f444b430584b57c2fdeaf45bd05917a2"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      48,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      73,
+      44,
+      177,
+      185
+    ],
+    "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      -9
+    ],
+    "bbox": [
+      78,
+      45,
+      177,
+      176
+    ],
+    "reference_bbox": [
+      75,
+      36,
+      179,
+      176
+    ],
+    "sha256": "75287aed43db734783ea19b4d574a961e13e09df602f6d106666c7df6704918b"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      10,
+      -4
+    ],
+    "bbox": [
+      73,
+      55,
+      175,
+      181
+    ],
+    "reference_bbox": [
+      64,
+      34,
+      183,
+      181
+    ],
+    "sha256": "783ca959a34c5efd076a739d01d13193daaf037510f4a3e8d02a987360f74e91"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      8,
+      1
+    ],
+    "bbox": [
+      73,
+      57,
+      179,
+      186
+    ],
+    "reference_bbox": [
+      52,
+      38,
+      199,
+      186
+    ],
+    "sha256": "db88ff3af9148fd2aaa09868a8248d64a5d7ffd965142659adb0de81984fb1b0"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      8,
+      6
+    ],
+    "bbox": [
+      72,
+      42,
+      176,
+      182
+    ],
+    "reference_bbox": [
+      43,
+      67,
+      204,
+      182
+    ],
+    "sha256": "c3ca399813eac5e170a7a3b5e126d2e8f9bb73e70ee69706e3127beabca398c3"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      -12
+    ],
+    "bbox": [
+      77,
+      16,
+      182,
+      164
+    ],
+    "reference_bbox": [
+      43,
+      80,
+      216,
+      164
+    ],
+    "sha256": "8efad9f346fb0523ea158c3d92565d750d65cce80bf4757180289daac85abcbb"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      19,
+      -10
+    ],
+    "bbox": [
+      55,
+      41,
+      207,
+      172
+    ],
+    "reference_bbox": [
+      37,
+      92,
+      225,
+      172
+    ],
+    "sha256": "d0b35d25d8830b9903cafb4788ef9cf7a4742e4ddf04f06ff6e05c717c9070b1"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      15
+    ],
+    "bbox": [
+      51,
+      95,
+      212,
+      175
+    ],
+    "reference_bbox": [
+      47,
+      92,
+      215,
+      175
+    ],
+    "sha256": "c1157f3c6cdb6e1bde89172df2a814e0015905292a7cb025f94870dcb1a5c17f"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      14
+    ],
+    "bbox": [
+      45,
+      96,
+      208,
+      176
+    ],
+    "reference_bbox": [
+      41,
+      87,
+      211,
+      176
+    ],
+    "sha256": "cfdd2e048f38fc066fb53296a62cbb579e5132fdf35cd8615ccfdcbe860541f7"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_09.png",
+    "frame": "frame_09.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      18,
+      11
+    ],
+    "bbox": [
+      43,
+      97,
+      208,
+      176
+    ],
+    "reference_bbox": [
+      41,
+      89,
+      211,
+      176
+    ],
+    "sha256": "ff5e52786f9df058843724f79a6c0456fcb2fa0d27055a32e1ffa556437e0681"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_10.png",
+    "frame": "frame_10.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      18,
+      2
+    ],
+    "bbox": [
+      44,
+      93,
+      208,
+      176
+    ],
+    "reference_bbox": [
+      39,
+      84,
+      214,
+      176
+    ],
+    "sha256": "d38c995a1083a7f74a8a0d0079b8a4742fb28a85b1749c1a147c44059f6a9e2d"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_11.png",
+    "frame": "frame_11.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      -9
+    ],
+    "bbox": [
+      47,
+      85,
+      208,
+      176
+    ],
+    "reference_bbox": [
+      40,
+      84,
+      214,
+      176
+    ],
+    "sha256": "5c214f3340eb32c406cfdb43fc54ed38a0702c236901280c3aa63d5a901d84aa"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_12.png",
+    "frame": "frame_12.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      -6
+    ],
+    "bbox": [
+      47,
+      88,
+      209,
+      176
+    ],
+    "reference_bbox": [
+      39,
+      90,
+      217,
+      176
+    ],
+    "sha256": "bc9aeeb7fcfd153f3f227f022ce5684b45a3920d4f5c1a6bb766813ba723ca0b"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_13.png",
+    "frame": "frame_13.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      -7
+    ],
+    "bbox": [
+      48,
+      87,
+      208,
+      176
+    ],
+    "reference_bbox": [
+      39,
+      90,
+      217,
+      176
+    ],
+    "sha256": "d4e8447ffd9808516c9037ee3284c58091fa068722dddc7da0fd87153259654a"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_14.png",
+    "frame": "frame_14.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      -8
+    ],
+    "bbox": [
+      49,
+      85,
+      208,
+      176
+    ],
+    "reference_bbox": [
+      39,
+      90,
+      217,
+      176
+    ],
+    "sha256": "90e6d829182036227e92c2d6fffffe00852ea828557d22e64f9d02be4b3dd20f"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_15.png",
+    "frame": "frame_15.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      -8
+    ],
+    "bbox": [
+      49,
+      85,
+      208,
+      176
+    ],
+    "reference_bbox": [
+      39,
+      90,
+      217,
+      176
+    ],
+    "sha256": "90e6d829182036227e92c2d6fffffe00852ea828557d22e64f9d02be4b3dd20f"
+  },
+  {
+    "clip": "roll_over",
+    "source": "roll_over",
+    "source_frame": "frame_16.png",
+    "frame": "frame_16.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      -8
+    ],
+    "bbox": [
+      49,
+      85,
+      208,
+      176
+    ],
+    "reference_bbox": [
+      39,
+      90,
+      217,
+      176
+    ],
+    "sha256": "90e6d829182036227e92c2d6fffffe00852ea828557d22e64f9d02be4b3dd20f"
+  },
+  {
+    "clip": "belly_rub",
+    "source": "belly_rub",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      0,
+      -8
+    ],
+    "bbox": [
+      45,
+      85,
+      204,
+      176
+    ],
+    "reference_bbox": [
+      38,
+      92,
+      212,
+      176
+    ],
+    "sha256": "ec3cb709998919b1f107ac21043217e969144234bc1d6c1077e030e9dc5ce3c7"
+  },
+  {
+    "clip": "belly_rub",
+    "source": "belly_rub",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      1,
+      -8
+    ],
+    "bbox": [
+      45,
+      79,
+      207,
+      175
+    ],
+    "reference_bbox": [
+      39,
+      94,
+      213,
+      175
+    ],
+    "sha256": "1d70fbf0d4bf1989b957d77185e9bc0b0cfb7553305b0f0025cb8faf2997daf0"
+  },
+  {
+    "clip": "belly_rub",
+    "source": "belly_rub",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      -2,
+      -8
+    ],
+    "bbox": [
+      41,
+      80,
+      206,
+      173
+    ],
+    "reference_bbox": [
+      37,
+      97,
+      211,
+      173
+    ],
+    "sha256": "eecb93a59b68b44dcda4067de78707e879057fc8830fbffe5873bf094549dca4"
+  },
+  {
+    "clip": "belly_rub",
+    "source": "belly_rub",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      0,
+      -5
+    ],
+    "bbox": [
+      42,
+      89,
+      210,
+      174
+    ],
+    "reference_bbox": [
+      38,
+      99,
+      213,
+      174
+    ],
+    "sha256": "22cd7851c958c4e067dbc62beaa5a5ea1ac0dccee8ab6a0de714b9841887f383"
+  },
+  {
+    "clip": "belly_rub",
+    "source": "belly_rub",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      2,
+      0
+    ],
+    "bbox": [
+      44,
+      94,
+      214,
+      173
+    ],
+    "reference_bbox": [
+      40,
+      101,
+      218,
+      173
+    ],
+    "sha256": "d3e02cb5e292f006bc93c38dabe190b137dc9913fa0f37bab0be30a686c35a3a"
+  },
+  {
+    "clip": "belly_rub",
+    "source": "belly_rub",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      2,
+      2
+    ],
+    "bbox": [
+      44,
+      96,
+      217,
+      173
+    ],
+    "reference_bbox": [
+      41,
+      101,
+      220,
+      173
+    ],
+    "sha256": "5284715a4e34200a9a851a361f11eb4ed36e3b989723cd28d3a1b6295cf72eb2"
+  },
+  {
+    "clip": "belly_rub",
+    "source": "belly_rub",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      0,
+      4
+    ],
+    "bbox": [
+      42,
+      98,
+      213,
+      173
+    ],
+    "reference_bbox": [
+      37,
+      97,
+      217,
+      173
+    ],
+    "sha256": "e7495ca820ae1611a67dc8abf5a9c5e4698a9128e7dbb22d2d1500a49c295ed5"
+  },
+  {
+    "clip": "belly_rub",
+    "source": "belly_rub",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      2,
+      5
+    ],
+    "bbox": [
+      45,
+      99,
+      209,
+      174
+    ],
+    "reference_bbox": [
+      37,
+      93,
+      217,
+      174
+    ],
+    "sha256": "098d2171cb9ace31695f2d832ca26dc0a006031c95518e36a116d7d35c73c41d"
+  },
+  {
+    "clip": "belly_rub",
+    "source": "belly_rub",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      2,
+      1
+    ],
+    "bbox": [
+      46,
+      95,
+      208,
+      176
+    ],
+    "reference_bbox": [
+      38,
+      90,
+      216,
+      176
+    ],
+    "sha256": "9c6c2bf0cba1b8a1013ce0cbe1cb9a2fd94ba823187caf619c40b353515e3ec2"
+  },
+  {
+    "clip": "belly_kick",
+    "source": "belly_kick_v2",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      5,
+      -8
+    ],
+    "bbox": [
+      48,
+      85,
+      207,
+      176
+    ],
+    "reference_bbox": [
+      39,
+      90,
+      216,
+      176
+    ],
+    "sha256": "23f250dbbd42ebc8cab41fd0aba6b374db702c6bbb8cef79a4bf31cc1da9867a"
+  },
+  {
+    "clip": "belly_kick",
+    "source": "belly_kick_v2",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      4,
+      -8
+    ],
+    "bbox": [
+      46,
+      83,
+      207,
+      176
+    ],
+    "reference_bbox": [
+      39,
+      91,
+      215,
+      176
+    ],
+    "sha256": "b2a934b844258fc90eef9837b6be5bc45d75d6c6ac943cbbcf2228da6d25c913"
+  },
+  {
+    "clip": "belly_kick",
+    "source": "belly_kick_v2",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      6,
+      -4
+    ],
+    "bbox": [
+      48,
+      89,
+      212,
+      176
+    ],
+    "reference_bbox": [
+      43,
+      91,
+      217,
+      176
+    ],
+    "sha256": "e17ecd49cf1f6947374e86022319d6f7279e95a34bafac151ee5d0d4ea1e7047"
+  },
+  {
+    "clip": "belly_kick",
+    "source": "belly_kick_v2",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      3,
+      7
+    ],
+    "bbox": [
+      45,
+      100,
+      213,
+      176
+    ],
+    "reference_bbox": [
+      42,
+      91,
+      216,
+      176
+    ],
+    "sha256": "0bde185e2afa3a5b5d08626701829d69df661fd2df039962ee7a3f9eb1808449"
+  },
+  {
+    "clip": "belly_kick",
+    "source": "belly_kick_v2",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      2,
+      7
+    ],
+    "bbox": [
+      44,
+      100,
+      211,
+      176
+    ],
+    "reference_bbox": [
+      40,
+      90,
+      216,
+      176
+    ],
+    "sha256": "a06841f720c5baa5f359e4685893fad23548a00a573e81eade29f7a06da9f9f4"
+  },
+  {
+    "clip": "belly_kick",
+    "source": "belly_kick_v2",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      6,
+      7
+    ],
+    "bbox": [
+      48,
+      100,
+      209,
+      176
+    ],
+    "reference_bbox": [
+      41,
+      91,
+      216,
+      176
+    ],
+    "sha256": "3ae3af8ba094ccc9e7577da1fbf376e72bb346ba111cf5fdc90dbd99d8b42187"
+  },
+  {
+    "clip": "belly_kick",
+    "source": "belly_kick_v2",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      6,
+      7
+    ],
+    "bbox": [
+      48,
+      100,
+      208,
+      176
+    ],
+    "reference_bbox": [
+      46,
+      85,
+      210,
+      176
+    ],
+    "sha256": "e229c1278a42d6a605f8eb40d05dc46c6dd1cf564f4717a72cdbd1f416b0ada0"
+  },
+  {
+    "clip": "belly_kick",
+    "source": "belly_kick_v2",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      3,
+      7
+    ],
+    "bbox": [
+      45,
+      101,
+      211,
+      176
+    ],
+    "reference_bbox": [
+      46,
+      85,
+      210,
+      176
+    ],
+    "sha256": "8a4e893471feec819efecb638dba7b3f1204f768db2815f9c6e10232f61174f5"
+  },
+  {
+    "clip": "belly_kick",
+    "source": "belly_kick_v2",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      1,
+      6
+    ],
+    "bbox": [
+      44,
+      99,
+      213,
+      176
+    ],
+    "reference_bbox": [
+      46,
+      88,
+      211,
+      176
+    ],
+    "sha256": "acd11b434bed20753019baadf97f4aa00b46b4f47e11322a862f328d42ba64c4"
+  },
+  {
+    "clip": "sad",
+    "source": "sad",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      0
+    ],
+    "bbox": [
+      75,
+      48,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      73,
+      47,
+      175,
+      185
+    ],
+    "sha256": "5a2f11af07bab392252b78529194fc34c20a5e1da06d04078eeb35c9d0bcf9a0"
+  },
+  {
+    "clip": "sad",
+    "source": "sad",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      78,
+      48,
+      175,
+      185
+    ],
+    "reference_bbox": [
+      72,
+      44,
+      181,
+      185
+    ],
+    "sha256": "9155e73d6dd0e2c987cfe92ffacf07765b10ae0fc83b1860b3118d17021a088a"
+  },
+  {
+    "clip": "sad",
+    "source": "sad",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      26,
+      0
+    ],
+    "bbox": [
+      81,
+      52,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      72,
+      55,
+      185,
+      185
+    ],
+    "sha256": "0d72971a1085eae81edc96fdb2abb70cd0edea87488850d2a1b1e7dcdfb452d6"
+  },
+  {
+    "clip": "sad",
+    "source": "sad",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      23,
+      0
+    ],
+    "bbox": [
+      78,
+      53,
+      172,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      59,
+      176,
+      185
+    ],
+    "sha256": "531411eedaed48fbe3605a5ce30a8233972e0c246ad2f5584a4271f541cc94ae"
+  },
+  {
+    "clip": "sad",
+    "source": "sad",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      0
+    ],
+    "bbox": [
+      76,
+      55,
+      170,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      60,
+      172,
+      185
+    ],
+    "sha256": "5eaf4b030ef894c8734021482906b518054eb8bbcc7d673b5368029baa5dd810"
+  },
+  {
+    "clip": "sad",
+    "source": "sad",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      0
+    ],
+    "bbox": [
+      76,
+      55,
+      170,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      60,
+      172,
+      185
+    ],
+    "sha256": "0f333e2ad58a8a3d27b0bb86088c830a09596475c083a1b4cd76009ae4b4aaee"
+  },
+  {
+    "clip": "sad",
+    "source": "sad",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      77,
+      55,
+      171,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      62,
+      174,
+      185
+    ],
+    "sha256": "003aeb50b2ad79737ad90d81e0c02815f505f5b4696e4dcf23dd87b9a1496690"
+  },
+  {
+    "clip": "sad",
+    "source": "sad",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      0
+    ],
+    "bbox": [
+      83,
+      55,
+      177,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      62,
+      185,
+      185
+    ],
+    "sha256": "75c63fe742f7e0ca3d033268664aa78b0b71f4f3cbbf31e832f208d595272b5a"
+  },
+  {
+    "clip": "sad",
+    "source": "sad",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      26,
+      0
+    ],
+    "bbox": [
+      81,
+      52,
+      177,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      62,
+      183,
+      185
+    ],
+    "sha256": "97c6863f525ff11e024e52ed4c6056d027717393b1dfa7b9381129c5da0bef76"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      48,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      48,
+      175,
+      185
+    ],
+    "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      18,
+      0
+    ],
+    "bbox": [
+      75,
+      50,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      73,
+      48,
+      174,
+      185
+    ],
+    "sha256": "24bc0791d87c435cb49cb3fda0f335f1feb04ce9284eb150dff2f9e1e1cf23b1"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      14,
+      4
+    ],
+    "bbox": [
+      76,
+      56,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      48,
+      174,
+      185
+    ],
+    "sha256": "e6bef52528802ad06dd698e22fc0822b5bbefc76dcfc090a9cb0a355a3e99935"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      12,
+      -3
+    ],
+    "bbox": [
+      76,
+      58,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      76,
+      54,
+      173,
+      185
+    ],
+    "sha256": "d224426679cdb14dfd3b4149042135c562b8f38b53ae66ba1d4ad906366adc6a"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      13,
+      -3
+    ],
+    "bbox": [
+      73,
+      74,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      76,
+      173,
+      185
+    ],
+    "sha256": "38d3def870e471ac5b18ae237d718b9bb1a722824f964b58e0189c415de9bf51"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      14,
+      -3
+    ],
+    "bbox": [
+      73,
+      95,
+      175,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      108,
+      173,
+      185
+    ],
+    "sha256": "d7b674f1842eb8e93907919801e3f27d29c95dceecc7373752faf4f6cf426df9"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      14,
+      0
+    ],
+    "bbox": [
+      72,
+      114,
+      176,
+      188
+    ],
+    "reference_bbox": [
+      75,
+      112,
+      174,
+      188
+    ],
+    "sha256": "4b76efb1c2f78b2f13f9a5b8a7ad4418be3fc2094576d366ca25439b9c6e2dfe"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      14,
+      0
+    ],
+    "bbox": [
+      72,
+      114,
+      176,
+      189
+    ],
+    "reference_bbox": [
+      74,
+      117,
+      174,
+      189
+    ],
+    "sha256": "ba060c9a54de20822b95b775ea8acb08448bbe79fe8645d419ad8ce13eeb0fe3"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      14,
+      1
+    ],
+    "bbox": [
+      72,
+      115,
+      176,
+      189
+    ],
+    "reference_bbox": [
+      74,
+      117,
+      174,
+      189
+    ],
+    "sha256": "991b3c0fd582b90bf2a835148dd25ca4afdc530a46906c7f66d6641e0f35c2bb"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_09.png",
+    "frame": "frame_09.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      10,
+      1
+    ],
+    "bbox": [
+      68,
+      115,
+      172,
+      189
+    ],
+    "reference_bbox": [
+      69,
+      106,
+      172,
+      189
+    ],
+    "sha256": "33e274171ad8cded6c59269fbdf7899d77978cabb323c707ab856ba60e7f2040"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_10.png",
+    "frame": "frame_10.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      10,
+      1
+    ],
+    "bbox": [
+      68,
+      115,
+      172,
+      189
+    ],
+    "reference_bbox": [
+      68,
+      118,
+      172,
+      189
+    ],
+    "sha256": "a054171612bb73aa12b741015dcf455996c52adbd6ebc32e4691c99a65b46412"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_11.png",
+    "frame": "frame_11.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      10,
+      1
+    ],
+    "bbox": [
+      68,
+      115,
+      172,
+      189
+    ],
+    "reference_bbox": [
+      68,
+      118,
+      171,
+      189
+    ],
+    "sha256": "34b64432576a00afd162be3352ab614e9a354c723b2fce9a1c40b30d80ce3194"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_12.png",
+    "frame": "frame_12.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      10,
+      1
+    ],
+    "bbox": [
+      68,
+      115,
+      172,
+      189
+    ],
+    "reference_bbox": [
+      69,
+      118,
+      172,
+      189
+    ],
+    "sha256": "b960d2e93741d8b4942da1f283ff344b471c42fa594472e1a7162feb6f09f7c7"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_13.png",
+    "frame": "frame_13.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      10,
+      1
+    ],
+    "bbox": [
+      68,
+      115,
+      172,
+      189
+    ],
+    "reference_bbox": [
+      68,
+      118,
+      172,
+      189
+    ],
+    "sha256": "5bb89c48fd015a146e143e9a11932b2b005498de69527e9dfe845b77b4d70da7"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_14.png",
+    "frame": "frame_14.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      10,
+      1
+    ],
+    "bbox": [
+      68,
+      115,
+      172,
+      189
+    ],
+    "reference_bbox": [
+      68,
+      118,
+      171,
+      189
+    ],
+    "sha256": "993493ca8028131737f1b93f03a80fef1a19ec9e6ca8e24bd7ebec355e4ce7c7"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_15.png",
+    "frame": "frame_15.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      10,
+      1
+    ],
+    "bbox": [
+      68,
+      115,
+      172,
+      189
+    ],
+    "reference_bbox": [
+      69,
+      118,
+      172,
+      189
+    ],
+    "sha256": "55b18cf8213d9707ab83de4eeebe1ab494220219004b5e05c667534adfca181c"
+  },
+  {
+    "clip": "sleep",
+    "source": "sleep_v2",
+    "source_frame": "frame_16.png",
+    "frame": "frame_16.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      10,
+      1
+    ],
+    "bbox": [
+      68,
+      115,
+      172,
+      189
+    ],
+    "reference_bbox": [
+      68,
+      118,
+      172,
+      189
+    ],
+    "sha256": "b69d65c1a289f27e5ef122018e3ba093602957810d77e5741915f4b3270042bf"
+  },
+  {
+    "clip": "shake_off",
+    "source": "shake_off_v2",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      48,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      48,
+      176,
+      185
+    ],
+    "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+  },
+  {
+    "clip": "shake_off",
+    "source": "shake_off_v2",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      23,
+      0
+    ],
+    "bbox": [
+      75,
+      46,
+      175,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      48,
+      176,
+      185
+    ],
+    "sha256": "58f564e89a91ea7bc18a8d28f7bf48c14081982dc69f95b595cc355cf51f4f3a"
+  },
+  {
+    "clip": "shake_off",
+    "source": "shake_off_v2",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      76,
+      45,
+      180,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      48,
+      183,
+      185
+    ],
+    "sha256": "25893cdfb4fcaf856963b798062d64abb6c6149a177ee251c8bb35504a13a013"
+  },
+  {
+    "clip": "shake_off",
+    "source": "shake_off_v2",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      74,
+      39,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      47,
+      176,
+      185
+    ],
+    "sha256": "00185178c2460e6e8524909b65e4cd70111fc12eff665b78890f22a4ccb61a52"
+  },
+  {
+    "clip": "shake_off",
+    "source": "shake_off_v2",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      23,
+      0
+    ],
+    "bbox": [
+      83,
+      27,
+      167,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      47,
+      176,
+      185
+    ],
+    "sha256": "dc3adc00b7be0d17c6158ac76a45e0679b74fa8645bb8953bf4eefde9262d8d5"
+  },
+  {
+    "clip": "shake_off",
+    "source": "shake_off_v2",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      23,
+      0
+    ],
+    "bbox": [
+      83,
+      27,
+      167,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      47,
+      176,
+      185
+    ],
+    "sha256": "18e8aaecc14784b7f426d66c75125212f2b12d10439789b6849430b5a692bcfc"
+  },
+  {
+    "clip": "shake_off",
+    "source": "shake_off_v2",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      79,
+      31,
+      170,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      49,
+      176,
+      185
+    ],
+    "sha256": "48e4bb34d527af9a7355ae42c24bdd0e243ae6d5b6b177a429d9b9284524f5d8"
+  },
+  {
+    "clip": "shake_off",
+    "source": "shake_off_v2",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      0
+    ],
+    "bbox": [
+      74,
+      44,
+      185,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      49,
+      185,
+      185
+    ],
+    "sha256": "3d0e09949310d3eca755318fda32f9e220b606296fc090d7ff6e1ad0fad49b54"
+  },
+  {
+    "clip": "shake_off",
+    "source": "shake_off_v2",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      74,
+      46,
+      178,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      47,
+      176,
+      185
+    ],
+    "sha256": "dd7b5bfa4c6293ea638f6e3dc2644b260b36dbd989a4102413bb582769d94036"
+  },
+  {
+    "clip": "wag_excited",
+    "source": "wag_excited",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      0
+    ],
+    "bbox": [
+      75,
+      48,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      47,
+      174,
+      185
+    ],
+    "sha256": "5a2f11af07bab392252b78529194fc34c20a5e1da06d04078eeb35c9d0bcf9a0"
+  },
+  {
+    "clip": "wag_excited",
+    "source": "wag_excited",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      0
+    ],
+    "bbox": [
+      75,
+      46,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      47,
+      174,
+      185
+    ],
+    "sha256": "297168595c8ce8a337115ddb493cf17ea5f5190833ca81d81b1b81418b4a051b"
+  },
+  {
+    "clip": "wag_excited",
+    "source": "wag_excited",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      26,
+      0
+    ],
+    "bbox": [
+      80,
+      44,
+      184,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      47,
+      189,
+      185
+    ],
+    "sha256": "02d249bb51144aceadf718f69b358e0e5f806087ba7ec00174f51bbf552bcc35"
+  },
+  {
+    "clip": "wag_excited",
+    "source": "wag_excited",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      16,
+      0
+    ],
+    "bbox": [
+      70,
+      41,
+      187,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      48,
+      184,
+      185
+    ],
+    "sha256": "0016a9ded14683edd0891a134a17a8cc6d6db3ea103a1ca548c0ca52c48f6042"
+  },
+  {
+    "clip": "wag_excited",
+    "source": "wag_excited",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      6,
+      0
+    ],
+    "bbox": [
+      63,
+      38,
+      185,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      48,
+      174,
+      185
+    ],
+    "sha256": "eb744071b76ca0df47e5cc07400d2297093aba8e9868685bd3280d055323564c"
+  },
+  {
+    "clip": "wag_excited",
+    "source": "wag_excited",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      2,
+      0
+    ],
+    "bbox": [
+      57,
+      39,
+      183,
+      185
+    ],
+    "reference_bbox": [
+      65,
+      48,
+      174,
+      185
+    ],
+    "sha256": "9dac932cb434987920b1d7b46cb1e2333de8e989815e5951c231e805ee5645bc"
+  },
+  {
+    "clip": "wag_excited",
+    "source": "wag_excited",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      2,
+      0
+    ],
+    "bbox": [
+      56,
+      42,
+      185,
+      185
+    ],
+    "reference_bbox": [
+      68,
+      49,
+      173,
+      185
+    ],
+    "sha256": "0010faf9e7877ad1b52f1dc2a667a1f16a32db37092e7349a6cd35cdc2ae39bd"
+  },
+  {
+    "clip": "wag_excited",
+    "source": "wag_excited",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      12,
+      0
+    ],
+    "bbox": [
+      66,
+      46,
+      183,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      49,
+      174,
+      185
+    ],
+    "sha256": "22d0cb2ddb1d6acbfb30cfe36514f87085ccf6c964ec0738f529f64cf02ca895"
+  },
+  {
+    "clip": "wag_excited",
+    "source": "wag_excited",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      25,
+      0
+    ],
+    "bbox": [
+      79,
+      48,
+      185,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      49,
+      189,
+      185
+    ],
+    "sha256": "4c0e661776eb812cd77a1bfb0bcf295c8162b2a090c0247e305ea5fd1ab54c26"
+  },
+  {
+    "clip": "pet_head",
+    "source": "pet_head_v2",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      74,
+      48,
+      172,
+      185
+    ],
+    "reference_bbox": [
+      71,
+      46,
+      174,
+      185
+    ],
+    "sha256": "9816421af4f0f12493ce0cb13e60dfec125a51af8ccdc6e712f5fbd3754cfec3"
+  },
+  {
+    "clip": "pet_head",
+    "source": "pet_head_v2",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      74,
+      44,
+      172,
+      185
+    ],
+    "reference_bbox": [
+      70,
+      26,
+      177,
+      185
+    ],
+    "sha256": "61d4206454749e2ad93ddd9276ce6ae593317107e8d03386195cbc0286c6e53c"
+  },
+  {
+    "clip": "pet_head",
+    "source": "pet_head_v2",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      0
+    ],
+    "bbox": [
+      75,
+      43,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      70,
+      31,
+      178,
+      185
+    ],
+    "sha256": "2b708fc63442a8b036aa71b6d9fb99b4d7e5c959df4164e60ce8e2685157cfb4"
+  },
+  {
+    "clip": "pet_head",
+    "source": "pet_head_v2",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      19,
+      0
+    ],
+    "bbox": [
+      72,
+      46,
+      172,
+      185
+    ],
+    "reference_bbox": [
+      72,
+      41,
+      172,
+      185
+    ],
+    "sha256": "9d255b7f09197654cd31582719b91decc2ff9d09268ea650340dbf519abd4c06"
+  },
+  {
+    "clip": "pet_head",
+    "source": "pet_head_v2",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      17,
+      0
+    ],
+    "bbox": [
+      71,
+      50,
+      169,
+      185
+    ],
+    "reference_bbox": [
+      68,
+      38,
+      172,
+      185
+    ],
+    "sha256": "d764a66c9144031b12508f95daadbe54f1dd42b6a912defd9f09adf30fc84d45"
+  },
+  {
+    "clip": "pet_head",
+    "source": "pet_head_v2",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      23,
+      0
+    ],
+    "bbox": [
+      79,
+      53,
+      172,
+      185
+    ],
+    "reference_bbox": [
+      71,
+      36,
+      180,
+      185
+    ],
+    "sha256": "d8bda1ccfe11306c5b5223483a7da07f02a1da6a37f4b889809c057146f9fd70"
+  },
+  {
+    "clip": "pet_head",
+    "source": "pet_head_v2",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      5,
+      0
+    ],
+    "bbox": [
+      61,
+      53,
+      156,
+      185
+    ],
+    "reference_bbox": [
+      59,
+      33,
+      158,
+      185
+    ],
+    "sha256": "390396d2c92e26fff16ced494e72ac810953f99f97e9b27aead974d2b4e76193"
+  },
+  {
+    "clip": "pet_head",
+    "source": "pet_head_v2",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      74,
+      53,
+      172,
+      185
+    ],
+    "reference_bbox": [
+      70,
+      34,
+      176,
+      185
+    ],
+    "sha256": "0186909350fe4b688cf0ed7b7c94e81ba5572a8676251a0ef2e9d527c766b1ff"
+  },
+  {
+    "clip": "pet_head",
+    "source": "pet_head_v2",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      36,
+      0
+    ],
+    "bbox": [
+      90,
+      53,
+      189,
+      185
+    ],
+    "reference_bbox": [
+      90,
+      34,
+      189,
+      185
+    ],
+    "sha256": "2cabc89f8220a4e5f3203a5576e6c1f64b735658dab1f904e908d5b72c7fe029"
+  },
+  {
+    "clip": "pet_paw",
+    "source": "pet_paw",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      48,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      47,
+      175,
+      185
+    ],
+    "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+  },
+  {
+    "clip": "pet_paw",
+    "source": "pet_paw",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      49,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      47,
+      175,
+      185
+    ],
+    "sha256": "eae95db73fa7494313f4b1281ab3c5c792ed5133cb8d1b0cd8d8434fc4c805a1"
+  },
+  {
+    "clip": "pet_paw",
+    "source": "pet_paw",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      23,
+      9
+    ],
+    "bbox": [
+      77,
+      53,
+      175,
+      185
+    ],
+    "reference_bbox": [
+      73,
+      47,
+      179,
+      185
+    ],
+    "sha256": "7dee3ed8b6e89feeeb4da97a762a54a48549bfdcd6e8dd5be290a42505700861"
+  },
+  {
+    "clip": "pet_paw",
+    "source": "pet_paw",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      10
+    ],
+    "bbox": [
+      76,
+      47,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      43,
+      176,
+      185
+    ],
+    "sha256": "22a3bed1ff52531d4c513bc6feb23a55585146afbee926381cdd0907afd9c6e8"
+  },
+  {
+    "clip": "pet_paw",
+    "source": "pet_paw",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      10
+    ],
+    "bbox": [
+      78,
+      43,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      77,
+      43,
+      178,
+      185
+    ],
+    "sha256": "7605b907d687a27c51241a76ba505239ee958333d7cd3ddb662768255ed40736"
+  },
+  {
+    "clip": "pet_paw",
+    "source": "pet_paw",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      10
+    ],
+    "bbox": [
+      82,
+      43,
+      180,
+      185
+    ],
+    "reference_bbox": [
+      78,
+      43,
+      184,
+      185
+    ],
+    "sha256": "0343f76537cc431308310fd9bfda55d07ffb0ddd0224918edece49269203acf6"
+  },
+  {
+    "clip": "pet_paw",
+    "source": "pet_paw",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      26,
+      10
+    ],
+    "bbox": [
+      80,
+      43,
+      178,
+      185
+    ],
+    "reference_bbox": [
+      78,
+      45,
+      179,
+      185
+    ],
+    "sha256": "acc543cee97a8db341f18ade44abb7516d8355e997bfbb2ec44918f5dcdb64e8"
+  },
+  {
+    "clip": "pet_paw",
+    "source": "pet_paw",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      26,
+      10
+    ],
+    "bbox": [
+      80,
+      47,
+      178,
+      185
+    ],
+    "reference_bbox": [
+      78,
+      44,
+      180,
+      185
+    ],
+    "sha256": "3cd687f7d80620458fa9195b7a68d918112f7892cd88a2bf2a5919f62091cf03"
+  },
+  {
+    "clip": "pet_paw",
+    "source": "pet_paw",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      7
+    ],
+    "bbox": [
+      78,
+      49,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      42,
+      179,
+      185
+    ],
+    "sha256": "5453b2d89c3f66a0021659fe40b24026d0753a5bdeea531c3d5c0a7f7e6b090b"
+  },
+  {
+    "clip": "bark",
+    "source": "bark",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      74,
+      48,
+      172,
+      185
+    ],
+    "reference_bbox": [
+      71,
+      44,
+      174,
+      185
+    ],
+    "sha256": "9816421af4f0f12493ce0cb13e60dfec125a51af8ccdc6e712f5fbd3754cfec3"
+  },
+  {
+    "clip": "bark",
+    "source": "bark",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      73,
+      49,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      71,
+      41,
+      175,
+      185
+    ],
+    "sha256": "bcf0babb40594cf8332cfd7470ebfe2d10ea2092ccc9b0f78460893101253d94"
+  },
+  {
+    "clip": "bark",
+    "source": "bark",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      73,
+      43,
+      172,
+      185
+    ],
+    "reference_bbox": [
+      71,
+      38,
+      175,
+      185
+    ],
+    "sha256": "204998f61d350e25d3525fbd135f89618497e3d87c081046af5bacab39d397b5"
+  },
+  {
+    "clip": "bark",
+    "source": "bark",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      73,
+      40,
+      172,
+      185
+    ],
+    "reference_bbox": [
+      70,
+      37,
+      175,
+      185
+    ],
+    "sha256": "d41c0422d6a21c0526e07d53832c8ab7d954c14132b0f1ee3a70c98bbeb13c19"
+  },
+  {
+    "clip": "bark",
+    "source": "bark",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      74,
+      37,
+      171,
+      185
+    ],
+    "reference_bbox": [
+      70,
+      41,
+      176,
+      185
+    ],
+    "sha256": "23d097fd1a95b34a3e18513a296945e8ba42cfe0990565c8c33967d04e9c5a56"
+  },
+  {
+    "clip": "bark",
+    "source": "bark",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      72,
+      37,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      70,
+      37,
+      175,
+      185
+    ],
+    "sha256": "d10567a1b40a62f38c0dd6be67bdf153b0b6cfe7fa7ddcf77dcbfb0a96fb3c59"
+  },
+  {
+    "clip": "bark",
+    "source": "bark",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      72,
+      42,
+      173,
+      185
+    ],
+    "reference_bbox": [
+      71,
+      39,
+      174,
+      185
+    ],
+    "sha256": "ac7f3f37899561702af76ff833cf0bae88b5c09d972bd7af8fc4b6bf9f51662c"
+  },
+  {
+    "clip": "bark",
+    "source": "bark",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      0
+    ],
+    "bbox": [
+      73,
+      47,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      72,
+      44,
+      175,
+      185
+    ],
+    "sha256": "da493df6a8a0baaa3f6f12e96205126cdcab2e98fac2b5f2b307b6344932dea3"
+  },
+  {
+    "clip": "bark",
+    "source": "bark",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      76,
+      50,
+      169,
+      185
+    ],
+    "reference_bbox": [
+      72,
+      41,
+      174,
+      185
+    ],
+    "sha256": "314d39b7882648da1492fd878a9e8e8f2dfe643ed7540fa09b7bc8c0609e7567"
+  },
+  {
+    "clip": "chase_tail",
+    "source": "chase_tail_v4",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      23,
+      0
+    ],
+    "bbox": [
+      77,
+      48,
+      175,
+      185
+    ],
+    "reference_bbox": [
+      76,
+      50,
+      176,
+      185
+    ],
+    "sha256": "5ccdbba3bef5160d229bbb1d6cf005d75d92c360c6243488605b87ab58c6bae2"
+  },
+  {
+    "clip": "chase_tail",
+    "source": "chase_tail_v4",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      6,
+      1
+    ],
+    "bbox": [
+      65,
+      50,
+      161,
+      186
+    ],
+    "reference_bbox": [
+      57,
+      50,
+      169,
+      186
+    ],
+    "sha256": "1003baea789e10beca1add498e5d672d4577d35772d974be0786577270018f21"
+  },
+  {
+    "clip": "chase_tail",
+    "source": "chase_tail_v4",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      8,
+      2
+    ],
+    "bbox": [
+      65,
+      50,
+      176,
+      187
+    ],
+    "reference_bbox": [
+      48,
+      51,
+      194,
+      187
+    ],
+    "sha256": "f516202fe53155cfd4c9cf8da04623d510df296baa14d9dcc46a28708034276a"
+  },
+  {
+    "clip": "chase_tail",
+    "source": "chase_tail_v4",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      9
+    ],
+    "bbox": [
+      57,
+      49,
+      201,
+      182
+    ],
+    "reference_bbox": [
+      49,
+      48,
+      208,
+      182
+    ],
+    "sha256": "3581bdcb1424e3aee8306d723eb0075db66a9bdfad2168ba252f18e1ed98eb2c"
+  },
+  {
+    "clip": "chase_tail",
+    "source": "chase_tail_v4",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      1,
+      8
+    ],
+    "bbox": [
+      34,
+      50,
+      182,
+      186
+    ],
+    "reference_bbox": [
+      49,
+      35,
+      167,
+      186
+    ],
+    "sha256": "43d7a982df90ffadb5b55063c3dc98c0a80280079209aa04337e174e6d6ea16d"
+  },
+  {
+    "clip": "chase_tail",
+    "source": "chase_tail_v4",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      14,
+      6
+    ],
+    "bbox": [
+      75,
+      55,
+      167,
+      184
+    ],
+    "reference_bbox": [
+      72,
+      36,
+      171,
+      184
+    ],
+    "sha256": "49c863fcd00a6fe5b8f48627912ccc370fa99d9c1bb0f50d67ae1c77dbb567a6"
+  },
+  {
+    "clip": "chase_tail",
+    "source": "chase_tail_v4",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      5
+    ],
+    "bbox": [
+      55,
+      52,
+      192,
+      187
+    ],
+    "reference_bbox": [
+      55,
+      42,
+      191,
+      187
+    ],
+    "sha256": "f221e0811a5bdfa9f6094b117dc7ef3a6eeb80cd99c37517784cc59cc928d424"
+  },
+  {
+    "clip": "chase_tail",
+    "source": "chase_tail_v4",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      21,
+      10
+    ],
+    "bbox": [
+      49,
+      53,
+      202,
+      186
+    ],
+    "reference_bbox": [
+      49,
+      48,
+      202,
+      186
+    ],
+    "sha256": "b5060c7be83d54415b976e24c1175f402f9f0d44e4fa265a39b689a370da3f1b"
+  },
+  {
+    "clip": "chase_tail",
+    "source": "chase_tail_v4",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      9
+    ],
+    "bbox": [
+      63,
+      50,
+      205,
+      186
+    ],
+    "reference_bbox": [
+      77,
+      52,
+      192,
+      186
+    ],
+    "sha256": "52dc0e5beb6ca16f80d613910df34dd317ddb50b4d7b0253f6b616bc8b708e37"
+  },
+  {
+    "clip": "head_tilt",
+    "source": "head_tilt_v3",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      48,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      46,
+      175,
+      185
+    ],
+    "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+  },
+  {
+    "clip": "head_tilt",
+    "source": "head_tilt_v3",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      0
+    ],
+    "bbox": [
+      82,
+      44,
+      180,
+      185
+    ],
+    "reference_bbox": [
+      80,
+      43,
+      181,
+      185
+    ],
+    "sha256": "49438acfeaf8fd1eab57b2aebcf8f8a9ef64b80b5c089d1336187c4ff1a599f9"
+  },
+  {
+    "clip": "head_tilt",
+    "source": "head_tilt_v3",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      30,
+      0
+    ],
+    "bbox": [
+      84,
+      38,
+      181,
+      185
+    ],
+    "reference_bbox": [
+      82,
+      43,
+      183,
+      185
+    ],
+    "sha256": "c661e044906d897bdc7294f210b7d60c77be0d421538d18b0a3a8e33588e806b"
+  },
+  {
+    "clip": "head_tilt",
+    "source": "head_tilt_v3",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      32,
+      0
+    ],
+    "bbox": [
+      84,
+      35,
+      180,
+      185
+    ],
+    "reference_bbox": [
+      82,
+      40,
+      182,
+      185
+    ],
+    "sha256": "aaf1cbc8e0e3e9181036046f232b64dac069efc4c09e5feafc1099937a7e276b"
+  },
+  {
+    "clip": "head_tilt",
+    "source": "head_tilt_v3",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      38,
+      0
+    ],
+    "bbox": [
+      88,
+      35,
+      179,
+      185
+    ],
+    "reference_bbox": [
+      83,
+      41,
+      183,
+      185
+    ],
+    "sha256": "96d221a2c13c1ae6ca3e0cf0fbc4aa6fa3174fbe3367978f644b879daf5cac84"
+  },
+  {
+    "clip": "head_tilt",
+    "source": "head_tilt_v3",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      39,
+      0
+    ],
+    "bbox": [
+      88,
+      35,
+      180,
+      185
+    ],
+    "reference_bbox": [
+      84,
+      40,
+      184,
+      185
+    ],
+    "sha256": "83d59ec3424564e67113d6d89a27f7b0e3c1a2a32cdb809ff35ffe0b688baf62"
+  },
+  {
+    "clip": "head_tilt",
+    "source": "head_tilt_v3",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      39,
+      0
+    ],
+    "bbox": [
+      88,
+      35,
+      182,
+      185
+    ],
+    "reference_bbox": [
+      84,
+      40,
+      186,
+      185
+    ],
+    "sha256": "918636b352fb9a8c67c76079afaa09fe506242610987614d8b063973791a4052"
+  },
+  {
+    "clip": "head_tilt",
+    "source": "head_tilt_v3",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      32,
+      0
+    ],
+    "bbox": [
+      85,
+      38,
+      181,
+      185
+    ],
+    "reference_bbox": [
+      82,
+      47,
+      183,
+      185
+    ],
+    "sha256": "d15f2756baf8c3a2067e8201c992999ec43ee3b96cabd26f723991116d1225b6"
+  },
+  {
+    "clip": "head_tilt",
+    "source": "head_tilt_v3",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      33,
+      0
+    ],
+    "bbox": [
+      87,
+      42,
+      185,
+      185
+    ],
+    "reference_bbox": [
+      85,
+      49,
+      187,
+      185
+    ],
+    "sha256": "33f0c71b2ef78ccf137213ebfcb1ec796d5856f63a47f1a4506858689a80632c"
+  },
+  {
+    "clip": "scratch",
+    "source": "scratch_v4",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      18,
+      0
+    ],
+    "bbox": [
+      64,
+      58,
+      187,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      47,
+      176,
+      185
+    ],
+    "sha256": "da7d4fd9bf5396acd27fff49ecc76a3d2b0d5bf92b9ff9b18ccd71d5048ac5e1"
+  },
+  {
+    "clip": "scratch",
+    "source": "scratch_v4",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      70,
+      59,
+      191,
+      185
+    ],
+    "reference_bbox": [
+      80,
+      44,
+      180,
+      185
+    ],
+    "sha256": "3ef7c0c5be8ff29c1cdd69da0800e60324e94288c615a1efcf41d3c641f66d98"
+  },
+  {
+    "clip": "scratch",
+    "source": "scratch_v4",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      26,
+      0
+    ],
+    "bbox": [
+      74,
+      56,
+      190,
+      185
+    ],
+    "reference_bbox": [
+      82,
+      43,
+      182,
+      185
+    ],
+    "sha256": "f84ea75ed4a0d41c6a33fddff8574c4db0d7fda18535c051387ca7a6b90108af"
+  },
+  {
+    "clip": "scratch",
+    "source": "scratch_v4",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      70,
+      54,
+      188,
+      185
+    ],
+    "reference_bbox": [
+      80,
+      46,
+      179,
+      185
+    ],
+    "sha256": "d4b7646a1ec004bb2e02f56672472b1e30bc3cf03d6a024362bdc8840d01e6e1"
+  },
+  {
+    "clip": "scratch",
+    "source": "scratch_v4",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      70,
+      57,
+      193,
+      185
+    ],
+    "reference_bbox": [
+      83,
+      44,
+      181,
+      185
+    ],
+    "sha256": "65b65e6f1a599027f06007cf2052f042d7b735de41ff24e36bad845a5e65de77"
+  },
+  {
+    "clip": "scratch",
+    "source": "scratch_v4",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      70,
+      60,
+      193,
+      185
+    ],
+    "reference_bbox": [
+      83,
+      44,
+      181,
+      185
+    ],
+    "sha256": "e58ab637fa1ca89fabcca3b9c2a0a4189ef78ac4f3e08be757c75f0b79c39ea0"
+  },
+  {
+    "clip": "scratch",
+    "source": "scratch_v4",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      19,
+      0
+    ],
+    "bbox": [
+      65,
+      58,
+      184,
+      185
+    ],
+    "reference_bbox": [
+      72,
+      43,
+      177,
+      185
+    ],
+    "sha256": "37b627125b2bb4ca86b2b038481dbf9287ef2af3478393c14b6cf8c3f527a69b"
+  },
+  {
+    "clip": "scratch",
+    "source": "scratch_v4",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      69,
+      56,
+      185,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      43,
+      179,
+      185
+    ],
+    "sha256": "286aaa9c235a25f473c88059049942edeccf227c9dbe81d0d2b9cf9e0b6c7818"
+  },
+  {
+    "clip": "scratch",
+    "source": "scratch_v4",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      26,
+      0
+    ],
+    "bbox": [
+      75,
+      53,
+      195,
+      185
+    ],
+    "reference_bbox": [
+      82,
+      43,
+      187,
+      185
+    ],
+    "sha256": "5d98ba544d66578d5039411a19ad14ad70d02fde90bccf441723309bdb617bfb"
+  },
+  {
+    "clip": "yawn",
+    "source": "yawn",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      78,
+      48,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      43,
+      179,
+      185
+    ],
+    "sha256": "4251210cfdbb8ff0497afd7ea5533466d15b0341add7502563a6786d2f9a14f3"
+  },
+  {
+    "clip": "yawn",
+    "source": "yawn",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      78,
+      46,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      43,
+      179,
+      185
+    ],
+    "sha256": "53c8dba2b967f847e6083d476eace8b016122aa3c8c7b743524a51ad77a5eacb"
+  },
+  {
+    "clip": "yawn",
+    "source": "yawn",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      78,
+      42,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      43,
+      179,
+      185
+    ],
+    "sha256": "43beed9c05f3bec0e841247b3b441f99669def55a869c434e23ba19c64c5a21d"
+  },
+  {
+    "clip": "yawn",
+    "source": "yawn",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      78,
+      38,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      39,
+      178,
+      185
+    ],
+    "sha256": "5a206f67bacc4dc4657645c35114b3be7bf1a97e9ba2f2971226384f636d7359"
+  },
+  {
+    "clip": "yawn",
+    "source": "yawn",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      78,
+      36,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      39,
+      178,
+      185
+    ],
+    "sha256": "8e0016b9d064ca7e6b404c359e7a9853c530ec139003ea650ba9eaf0b3c829fb"
+  },
+  {
+    "clip": "yawn",
+    "source": "yawn",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      78,
+      36,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      39,
+      178,
+      185
+    ],
+    "sha256": "64f52fc39ecc3624b53bfe4a136b6ffd6ad34ffd530078468afba8dff3903297"
+  },
+  {
+    "clip": "yawn",
+    "source": "yawn",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      23,
+      0
+    ],
+    "bbox": [
+      77,
+      39,
+      175,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      40,
+      177,
+      185
+    ],
+    "sha256": "70aecc667a5cf60e2bdf4dd50f30f1ed90bac9d756cbceee6d3893cc59cd2b9c"
+  },
+  {
+    "clip": "yawn",
+    "source": "yawn",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      78,
+      44,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      42,
+      178,
+      185
+    ],
+    "sha256": "e636b33363548ae10b2029d88ba187292debf37e30933cf99d7a29850c3dfb10"
+  },
+  {
+    "clip": "yawn",
+    "source": "yawn",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      78,
+      48,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      45,
+      178,
+      185
+    ],
+    "sha256": "3375f315cae1c0db2569e53200c343dac7df0f0b176a8379eed2ceae230429eb"
+  },
+  {
+    "clip": "sniff",
+    "source": "sniff_v3",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      48,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      46,
+      177,
+      185
+    ],
+    "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+  },
+  {
+    "clip": "sniff",
+    "source": "sniff_v3",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      46,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      46,
+      177,
+      185
+    ],
+    "sha256": "e1f2ee7212c37c392793b3f6467f1c205c4b66e831837ea18a35fa7233bb8ff4"
+  },
+  {
+    "clip": "sniff",
+    "source": "sniff_v3",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      43,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      46,
+      177,
+      185
+    ],
+    "sha256": "fa83668663286ff82a690858b4b0ae869c786fdb89fa728c7178e559f3ddfecb"
+  },
+  {
+    "clip": "sniff",
+    "source": "sniff_v3",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      78,
+      41,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      45,
+      178,
+      185
+    ],
+    "sha256": "5eeb9d01273135a0825d53f20986ccd3f7370dc06f61d8755b8185b089b1c80c"
+  },
+  {
+    "clip": "sniff",
+    "source": "sniff_v3",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      77,
+      40,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      45,
+      178,
+      185
+    ],
+    "sha256": "84e92fd0b57a24e0498967968126bd4d616af6ff30d26b74996bc3258d1df587"
+  },
+  {
+    "clip": "sniff",
+    "source": "sniff_v3",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      23,
+      0
+    ],
+    "bbox": [
+      76,
+      39,
+      175,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      45,
+      177,
+      185
+    ],
+    "sha256": "c65e79c0eda491d26c9ea7fa42eda3e2d5e6b13fde18b13e58a2e0c62704cd8a"
+  },
+  {
+    "clip": "sniff",
+    "source": "sniff_v3",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      77,
+      37,
+      176,
+      185
+    ],
+    "reference_bbox": [
+      76,
+      46,
+      177,
+      185
+    ],
+    "sha256": "57182436e88bb781015bd047cd35842d59b504d80d3493a3668178cb63c0412d"
+  },
+  {
+    "clip": "sniff",
+    "source": "sniff_v3",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      74,
+      38,
+      178,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      47,
+      177,
+      185
+    ],
+    "sha256": "747c8ca5ee2ab312869b0af85c4570ce01f5b5d3a19ebaf5b4f2884264b62cde"
+  },
+  {
+    "clip": "sniff",
+    "source": "sniff_v3",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      72,
+      42,
+      177,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      46,
+      176,
+      185
+    ],
+    "sha256": "f7d8b6314bcb4a1b39a7f5f50ee278785142299545d6021e782b78c2175a1131"
+  },
+  {
+    "clip": "stretch",
+    "source": "stretch",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      74,
+      48,
+      172,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      52,
+      173,
+      185
+    ],
+    "sha256": "9816421af4f0f12493ce0cb13e60dfec125a51af8ccdc6e712f5fbd3754cfec3"
+  },
+  {
+    "clip": "stretch",
+    "source": "stretch",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      -10
+    ],
+    "bbox": [
+      82,
+      42,
+      180,
+      175
+    ],
+    "reference_bbox": [
+      82,
+      43,
+      181,
+      175
+    ],
+    "sha256": "a933700977555ac2291242ed9b8f5b37ac814a1a64aa6bde15c9edbba95c5b63"
+  },
+  {
+    "clip": "stretch",
+    "source": "stretch",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      31,
+      10
+    ],
+    "bbox": [
+      81,
+      67,
+      185,
+      195
+    ],
+    "reference_bbox": [
+      80,
+      62,
+      186,
+      195
+    ],
+    "sha256": "046f1369ea011247aa1bc515c1a0b7fd17c692db001cc7a15d98ac2d43ddf358"
+  },
+  {
+    "clip": "stretch",
+    "source": "stretch",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      30,
+      10
+    ],
+    "bbox": [
+      79,
+      55,
+      186,
+      195
+    ],
+    "reference_bbox": [
+      78,
+      62,
+      187,
+      195
+    ],
+    "sha256": "bef58e90115b9c3524dca554ef3e66e2db92409fb5e401a2b76978a4359cd409"
+  },
+  {
+    "clip": "stretch",
+    "source": "stretch",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      30,
+      10
+    ],
+    "bbox": [
+      81,
+      42,
+      184,
+      195
+    ],
+    "reference_bbox": [
+      79,
+      62,
+      187,
+      195
+    ],
+    "sha256": "7b2598ad6fa868beeebce0cf9eb5ee3084e3bc3e0954a896a7fcd9368eabc636"
+  },
+  {
+    "clip": "stretch",
+    "source": "stretch",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      30,
+      10
+    ],
+    "bbox": [
+      78,
+      39,
+      187,
+      195
+    ],
+    "reference_bbox": [
+      78,
+      62,
+      186,
+      195
+    ],
+    "sha256": "0ecbd851670169ab9bbfaef1f40a5dee92152b25662da724063b1e3d04f585a3"
+  },
+  {
+    "clip": "stretch",
+    "source": "stretch",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      10
+    ],
+    "bbox": [
+      76,
+      45,
+      185,
+      195
+    ],
+    "reference_bbox": [
+      75,
+      68,
+      186,
+      195
+    ],
+    "sha256": "b711d04a071edaea1283d3f50336ea6b3b2ef57a9f43586dc31510ce77a6e4eb"
+  },
+  {
+    "clip": "stretch",
+    "source": "stretch",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      29,
+      4
+    ],
+    "bbox": [
+      83,
+      59,
+      181,
+      189
+    ],
+    "reference_bbox": [
+      83,
+      64,
+      181,
+      189
+    ],
+    "sha256": "43ca6ff17edd18ed9049652ad48f88488dcd7a129eae43b15c19fcbe058508c1"
+  },
+  {
+    "clip": "stretch",
+    "source": "stretch",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      52,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      75,
+      51,
+      174,
+      185
+    ],
+    "sha256": "6c0952755b24a12bca087f272bb381990298ecf3af6d9edb5d25fe925358b2b6"
+  },
+  {
+    "clip": "look_around",
+    "source": "look_around_v2",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      48,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      45,
+      177,
+      185
+    ],
+    "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+  },
+  {
+    "clip": "look_around",
+    "source": "look_around_v2",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      46,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      76,
+      43,
+      175,
+      185
+    ],
+    "sha256": "fe56b7e492448e4e673307af43ee03847f54b1084671f7039c9d708bbb37f7f1"
+  },
+  {
+    "clip": "look_around",
+    "source": "look_around_v2",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      26,
+      0
+    ],
+    "bbox": [
+      81,
+      42,
+      178,
+      185
+    ],
+    "reference_bbox": [
+      76,
+      40,
+      184,
+      185
+    ],
+    "sha256": "ef28f2d4c2c3097c00f937ba1b4f71eba2c8c829e7859a7860313b43ea1c0d55"
+  },
+  {
+    "clip": "look_around",
+    "source": "look_around_v2",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      20,
+      0
+    ],
+    "bbox": [
+      83,
+      39,
+      171,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      44,
+      179,
+      185
+    ],
+    "sha256": "b5664fc9a8a2e1e31b3fde9311180373ae10a470769d01f74b1f21c4db1870e3"
+  },
+  {
+    "clip": "look_around",
+    "source": "look_around_v2",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      24,
+      0
+    ],
+    "bbox": [
+      84,
+      39,
+      170,
+      185
+    ],
+    "reference_bbox": [
+      76,
+      45,
+      179,
+      185
+    ],
+    "sha256": "d982f5b2b71aca6666fd4e34a2c308826ea2cee5d037d7fba6ef933851ab5f46"
+  },
+  {
+    "clip": "look_around",
+    "source": "look_around_v2",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      25,
+      0
+    ],
+    "bbox": [
+      83,
+      39,
+      171,
+      185
+    ],
+    "reference_bbox": [
+      77,
+      44,
+      177,
+      185
+    ],
+    "sha256": "1f27518c083c21e7eb40e48a69cb1febe22be9b4296b8241a0441b84eae7d645"
+  },
+  {
+    "clip": "look_around",
+    "source": "look_around_v2",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      0
+    ],
+    "bbox": [
+      86,
+      39,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      76,
+      41,
+      183,
+      185
+    ],
+    "sha256": "591894ba1d527d36f27c4aa3c71e4e4182340cf805a8e00e70ecc537b1fe2b0f"
+  },
+  {
+    "clip": "look_around",
+    "source": "look_around_v2",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      0
+    ],
+    "bbox": [
+      87,
+      39,
+      178,
+      185
+    ],
+    "reference_bbox": [
+      79,
+      41,
+      185,
+      185
+    ],
+    "sha256": "fc56c535dc580a80df58c40be1c61162f5de00d7fc9c4c1206a86f7db86b0f99"
+  },
+  {
+    "clip": "look_around",
+    "source": "look_around_v2",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      32,
+      0
+    ],
+    "bbox": [
+      87,
+      39,
+      184,
+      185
+    ],
+    "reference_bbox": [
+      79,
+      41,
+      193,
+      185
+    ],
+    "sha256": "9b6c57affee221e6f59c7610c96d294b47bb5e51aafd50e2975ef226591b109b"
+  },
+  {
+    "clip": "lick_paw",
+    "source": "lick_paw",
+    "source_frame": "frame_00.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      22,
+      0
+    ],
+    "bbox": [
+      76,
+      48,
+      174,
+      185
+    ],
+    "reference_bbox": [
+      74,
+      46,
+      177,
+      185
+    ],
+    "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+  },
+  {
+    "clip": "lick_paw",
+    "source": "lick_paw",
+    "source_frame": "frame_01.png",
+    "frame": "frame_01.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      30,
+      0
+    ],
+    "bbox": [
+      85,
+      45,
+      183,
+      185
+    ],
+    "reference_bbox": [
+      82,
+      57,
+      185,
+      185
+    ],
+    "sha256": "7bffe1c86d666493eb555e94fa63866e289b02261bcc7ec5d7f70295bee9790d"
+  },
+  {
+    "clip": "lick_paw",
+    "source": "lick_paw",
+    "source_frame": "frame_02.png",
+    "frame": "frame_02.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      0
+    ],
+    "bbox": [
+      85,
+      43,
+      184,
+      185
+    ],
+    "reference_bbox": [
+      86,
+      70,
+      182,
+      185
+    ],
+    "sha256": "ad79fd63543442c1b283c740f3255925c7b56c62c976c9989ef6fea98501deca"
+  },
+  {
+    "clip": "lick_paw",
+    "source": "lick_paw",
+    "source_frame": "frame_03.png",
+    "frame": "frame_03.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      27,
+      0
+    ],
+    "bbox": [
+      84,
+      46,
+      183,
+      185
+    ],
+    "reference_bbox": [
+      86,
+      67,
+      181,
+      185
+    ],
+    "sha256": "fb7d6ec1a7f987e212497a9acbb0ac5b5539ed107c562f29731ee0b16bfbfc06"
+  },
+  {
+    "clip": "lick_paw",
+    "source": "lick_paw",
+    "source_frame": "frame_04.png",
+    "frame": "frame_04.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      28,
+      0
+    ],
+    "bbox": [
+      84,
+      50,
+      184,
+      185
+    ],
+    "reference_bbox": [
+      86,
+      67,
+      182,
+      185
+    ],
+    "sha256": "1db5c887c59ab08ca30614d31809147ff14678bd84cd741b739858ebccbc1776"
+  },
+  {
+    "clip": "lick_paw",
+    "source": "lick_paw",
+    "source_frame": "frame_05.png",
+    "frame": "frame_05.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      30,
+      0
+    ],
+    "bbox": [
+      84,
+      51,
+      185,
+      185
+    ],
+    "reference_bbox": [
+      86,
+      67,
+      182,
+      185
+    ],
+    "sha256": "6b20deb475449f62f4deb903d1afd04f3fc10e0a3a88b8958b96e6be09e08272"
+  },
+  {
+    "clip": "lick_paw",
+    "source": "lick_paw",
+    "source_frame": "frame_06.png",
+    "frame": "frame_06.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      31,
+      0
+    ],
+    "bbox": [
+      83,
+      52,
+      185,
+      185
+    ],
+    "reference_bbox": [
+      86,
+      67,
+      182,
+      185
+    ],
+    "sha256": "c6e3dd5f4c66c0e1dc22a6c455d592cbb76a17a0bf1e775f529bf4349319ea12"
+  },
+  {
+    "clip": "lick_paw",
+    "source": "lick_paw",
+    "source_frame": "frame_07.png",
+    "frame": "frame_07.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      34,
+      0
+    ],
+    "bbox": [
+      86,
+      49,
+      184,
+      185
+    ],
+    "reference_bbox": [
+      86,
+      66,
+      183,
+      185
+    ],
+    "sha256": "360b2733b49db078a1da26aecfa34ac8efbeabb73dedf3dcd9a6e3206936cb84"
+  },
+  {
+    "clip": "lick_paw",
+    "source": "lick_paw",
+    "source_frame": "frame_08.png",
+    "frame": "frame_08.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      26,
+      0
+    ],
+    "bbox": [
+      80,
+      46,
+      179,
+      185
+    ],
+    "reference_bbox": [
+      84,
+      61,
+      176,
+      185
+    ],
+    "sha256": "a35d9ebfd365f3d9c6241ae899035416e4414446645fa0615847b8c5593d49da"
+  },
+  {
+    "clip": "sleep_belly",
+    "source": "sleep_belly",
+    "source_frame": "frame_04.png",
+    "frame": "frame_00.png",
+    "canvas": [
+      256,
+      216
+    ],
+    "scale": 1,
+    "offset": [
+      10,
+      -18
+    ],
+    "bbox": [
+      44,
+      84,
+      211,
+      176
+    ],
+    "reference_bbox": [
+      39,
+      86,
+      217,
+      176
+    ],
+    "sha256": "d9004c95c4d5675c77ddb89bb00c4da76f1b1024db4d413d0ad2576aea6a1f0f"
+  }
+]

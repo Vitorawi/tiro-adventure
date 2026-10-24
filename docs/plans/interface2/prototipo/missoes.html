@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><link rel="stylesheet" href="proto.css">
+<style>
+  .page { position: absolute; left: 0; right: 0; top: 76px; bottom: 0; padding: 0 16px; overflow: hidden; }
+  .head { display: flex; align-items: center; height: 44px; margin-bottom: 8px; }
+  .story { padding: 14px 14px 12px; }
+  .steps { display: flex; gap: 3px; }
+  .steps i { width: 12px; height: 6px; border-radius: 3px; background: var(--sunken); }
+  .steps i.done { background: var(--go); } .steps i.now { background: var(--honey); }
+  .npc { width: 56px; height: 56px; border-radius: 50%; background: var(--sunken); overflow: hidden; flex: none; }
+  .npc img { width: 56px; height: 56px; }
+  .npc.sm { width: 44px; height: 44px; } .npc.sm img { width: 44px; height: 44px; }
+  .goal { background: var(--paper); border-radius: 14px; padding: 6px 10px 6px 6px; gap: 8px; margin-top: 10px; }
+  .goal img { width: 32px; height: 32px; }
+  .sec { display: flex; align-items: center; gap: 8px; margin: 18px 4px 8px; }
+  .list { padding: 4px 0; }
+  .item { display: flex; align-items: center; gap: 10px; height: 64px; padding: 0 12px; }
+  .item + .item { border-top: 1px solid var(--line); }
+  .item.ready { background: var(--go-soft); border-radius: 16px; }
+  .item.ready + .item { border-top-color: transparent; }
+  .item .meta { display: flex; align-items: center; gap: 4px; }
+  .item .meta img { width: 20px; height: 20px; }
+  .mini { width: 44px; height: 44px; flex: none; }
+  .mini img { width: 24px; height: 24px; position: relative; }
+  .fade { position: absolute; left: 0; right: 0; bottom: 70px; height: 60px; background: linear-gradient(rgba(255,248,238,0), var(--paper) 70%); z-index: 15; }
+
+  /* Quadro 2: prêmio do passo da história (folha baixa, não um modal de tela cheia) */
+  body:not(.premio) .reward, body:not(.premio) .scrim, body:not(.premio) .fly { display: none; }
+  .scrim { position: absolute; inset: 0; background: rgba(58, 42, 31, .38); z-index: 30; }
+  .reward { position: absolute; left: 8px; right: 8px; bottom: 8px; border-radius: 28px; background: var(--paper); z-index: 31;
+    box-shadow: 0 -6px 24px rgba(58, 42, 31, .25); padding: 10px 16px 16px; }
+  .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 10px; }
+  .ribbon { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 14px 0 10px; border-radius: 15px; background: var(--go); color: #fff; }
+  .big-chip { height: 44px; border-radius: 22px; background: var(--honey-soft); color: var(--honey-ink); display: inline-flex; align-items: center; gap: 6px; padding: 0 16px 0 6px; }
+  .big-chip img { width: 36px; height: 36px; }
+  .next { background: var(--card); border-radius: 18px; box-shadow: var(--shadow-sm); padding: 10px 12px; gap: 10px; }
+  .fly img { position: absolute; width: 28px; height: 28px; z-index: 32; filter: drop-shadow(0 2px 3px rgba(110,70,30,.3)); }
+  body.premio .coins { box-shadow: 0 0 0 3px var(--honey), var(--shadow); }
+</style></head>
+<body><div class="screen">
+  <div class="hud">
+    <div class="avatar"><div class="abs" data-ring="58,5,0.62,#FFB730"></div>
+      <img class="px" src="../../../../game/assets/sprites/ui/icons/hud_tiro.png" style="z-index:1"></div>
+    <div class="profile"><div class="t-strong">Tiro</div>
+      <div class="row" style="gap:6px"><div class="bar grow" style="width:58px"><i style="width:62%"></i></div><span class="t-cap">3/5</span></div></div>
+    <div class="grow"></div>
+    <div class="pill coins"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png" style="width:28px;height:28px"><span class="num" style="font-size:18px" id="coins">2.645</span></div>
+    <div class="icon-btn"><i data-ic="gear" data-size="22"></i></div>
+  </div>
+
+  <div class="page">
+    <div class="head"><span class="t-title grow">Missões</span><span class="btn sm go">Pegar tudo (2)</span></div>
+
+    <!-- História: o passo atual, com quem pede e o que fazer -->
+    <div class="card story">
+      <div class="row"><div class="grow"><div class="t-over" style="color:var(--honey-ink)">História</div><div class="t-strong">Um novo lar</div></div>
+        <div class="steps"><i class="done"></i><i class="done"></i><i class="now"></i><i></i><i></i><i></i></div></div>
+      <div class="row" style="gap:10px;margin-top:10px">
+        <div class="npc"><img class="px" src="../../../../game/assets/sprites/characters/npc_lais/portrait.png"></div>
+        <div class="bubble tail-left grow" style="background:var(--paper);box-shadow:none">Bora plantar as primeiras cenouras do Tiro?</div></div>
+      <div class="row goal"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_carrot.png">
+        <div class="grow"><div class="t-body">Colher cenouras</div><div class="bar" style="margin-top:4px"><i style="width:50%"></i></div></div>
+        <span class="num" style="font-size:16px">3/6</span></div>
+      <div class="row" style="gap:6px;margin-top:10px">
+        <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+30</span></span>
+        <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_dog_food.png"><span class="num">+2</span></span>
+        <span class="grow"></span><span class="btn sm soft">Ir <i data-ic="arrow" data-size="18"></i></span></div>
+    </div>
+
+    <!-- Personagens: uma linha por missão ativa; pronta sobe e fica verde -->
+    <div class="sec"><span class="t-over grow">Personagens</span></div>
+    <div class="card list">
+      <div class="item ready"><div class="npc sm"><img class="px" src="../../../../game/assets/sprites/characters/npc_bloblo/portrait.png"></div>
+        <div class="grow"><div class="t-body">Ovos para o bolo</div><div class="meta t-cap"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_egg.png"><span style="color:var(--go-ink)">6/6</span></div></div>
+        <span class="btn sm go">Pegar</span></div>
+      <div class="item"><div class="npc sm"><img class="px" src="../../../../game/assets/sprites/characters/npc_nina/portrait.png"></div>
+        <div class="grow"><div class="t-body">Primeiro passeio</div><div class="meta t-cap"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_walk.png">0/1</div></div>
+        <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+15</span></span><span class="chev"><i data-ic="chev"></i></span></div>
+      <div class="item"><div class="npc sm"><img class="px" src="../../../../game/assets/sprites/characters/npc_merchant/portrait.png"></div>
+        <div class="grow"><div class="t-body">Primeira venda</div><div class="meta t-cap"><img class="px" src="../../../../game/assets/sprites/ui/icons/station_stall.png">0/1</div></div>
+        <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+10</span></span><span class="chev"><i data-ic="chev"></i></span></div>
+    </div>
+
+    <!-- Hoje: rotinas com anel; o tempo que falta fica no título da seção -->
+    <div class="sec"><span class="t-over grow">Hoje</span><span class="chip time"><i data-ic="clock" data-size="16"></i><span class="num">3 h 19</span></span></div>
+    <div class="card list">
+      <div class="item ready"><div class="ringbox mini" data-ring="44,4,1,#2B9946,#D4EEDA"><img class="px" src="../../../../game/assets/sprites/ui/icons/station_stove.png"></div>
+        <div class="grow"><div class="t-body">Cozinhar 3 receitas</div><div class="t-cap" style="color:var(--go-ink)">3/3</div></div>
+        <span class="btn sm go">Pegar</span></div>
+      <div class="item"><div class="ringbox mini" data-ring="44,4,0.6,#3E9FE4"><img class="px" src="../../../../game/assets/sprites/ui/icons/tool_sickle.png"></div>
+        <div class="grow"><div class="t-body">Colher 10 vezes</div><div class="t-cap">6/10</div></div>
+        <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+8</span></span><span class="chev"><i data-ic="chev"></i></span></div>
+      <div class="item"><div class="ringbox mini" data-ring="44,4,0.02,#3E9FE4"><img class="px" src="../../../../game/assets/sprites/ui/icons/station_stall.png"></div>
+        <div class="grow"><div class="t-body">Entregar 2 encomendas</div><div class="t-cap">0/2</div></div>
+        <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+12</span></span><span class="chev"><i data-ic="chev"></i></span></div>
+    </div>
+  </div>
+  <div class="fade"></div>
+
+  <nav class="tabbar" data-active="tasks" data-badges="map:4,tasks:2"></nav>
+
+  <!-- Quadro 2 -->
+  <div class="scrim"></div>
+  <div class="fly">
+    <img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png" style="left:236px;top:112px;opacity:.55;width:22px;height:22px">
+    <img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png" style="left:214px;top:178px;opacity:.8">
+    <img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png" style="left:186px;top:262px">
+  </div>
+  <div class="reward">
+    <div class="grab"></div>
+    <div class="row" style="gap:8px"><span class="ribbon"><i data-ic="check" data-size="18" data-stroke="3"></i><span class="t-strong" style="font-size:16px">Passo concluído!</span></span>
+      <span class="grow"></span><span class="icon-btn sm"><i data-ic="x" data-size="18"></i></span></div>
+    <div class="row" style="gap:10px;margin-top:12px">
+      <div class="npc"><img class="px" src="../../../../game/assets/sprites/characters/npc_lais/portrait.png"></div>
+      <div class="bubble tail-left grow">Que cenouras lindas! Agora vamos fazer um petisco pra ele.</div></div>
+    <div class="row" style="gap:8px;margin-top:14px;justify-content:center">
+      <span class="big-chip"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num" style="font-size:20px">+30</span></span>
+      <span class="big-chip"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_dog_food.png"><span class="num" style="font-size:20px">+2</span></span></div>
+    <div class="t-over" style="margin:16px 4px 6px">Próximo passo</div>
+    <div class="row next"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_carrot_snack.png" style="width:40px;height:40px">
+      <div class="grow"><div class="t-body">Cozinhar petisco de cenoura</div><div class="t-cap">No fogão da Casa</div></div><span class="t-cap">0/1</span></div>
+    <div class="row" style="gap:8px;margin-top:14px"><span class="btn soft" style="flex:1">Depois</span><span class="btn go" style="flex:2">Ir para o fogão</span></div>
+  </div>
+</div>
+<script src="proto.js"></script>
+<script>if (location.hash === '#premio') { document.body.classList.add('premio'); document.getElementById('coins').textContent = '2.675'; const g = document.querySelector('.goal'); g.querySelector('.num').textContent = '6/6'; g.querySelector('.bar i').style.cssText = 'width:100%;background:var(--go)'; }</script>
+</body></html>

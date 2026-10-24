@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><link rel="stylesheet" href="proto.css">
+<style>
+  html, body { width: 1180px; height: 900px; background: #EFE4D4; }
+  body { padding: 24px 28px; }
+  .cols { display: flex; gap: 28px; margin-top: 18px; }
+  .phone { width: 360px; }
+  .phone .frame { width: 360px; height: 780px; border-radius: 28px; overflow: hidden; box-shadow: 0 10px 30px rgba(58, 42, 31, .25); background: #fff; }
+  .phone img { width: 360px; height: 780px; display: block; }
+  .tag { display: inline-block; height: 26px; border-radius: 13px; padding: 0 12px; font-family: "Fredoka"; font-weight: 600; font-size: 14px; line-height: 26px; margin-bottom: 8px; }
+  .tag.old { background: #D9CBB8; color: var(--ink2); } .tag.new { background: var(--go); color: #fff; }
+</style></head>
+<body>
+  <div class="t-title" id="title"></div>
+  <div class="cols" id="cols"></div>
+<script>
+  // prancha.html#tela → antes (tour atual) + depois (protótipo)
+  const SHOTS = '../../../../build/screenshots/interface2_antes/';
+  const BOARDS = {
+    tiro: ['Tela do Tiro', [['Hoje', SHOTS + 'b02_pet.png'], ['Proposta', 'tiro.png']]],
+    missoes: ['Missões e prêmio', [['Hoje', SHOTS + 'a02_tasks.png'], ['Proposta', 'missoes.png'], ['Proposta · ao pegar o prêmio', 'missoes_premio.png']]],
+    rodape: ['Parte de baixo: base presa à tela', [['Clara · Tiro', 'tiro.png', 1], ['Clara · Missões', 'missoes.png', 1], ['Madeira · Tiro', 'tiro_escuro.png', 1], ['Madeira · Missões', 'missoes_escuro.png', 1]]],
+    horta: ['Horta: escolher embaixo, arrastar em cima', [['Hoje', SHOTS + 'e02_tray_drag.png'], ['Proposta · plantar', 'horta_plantar.png'], ['Proposta · colher', 'horta_colher.png']]],
+    seta: ['Seta até o lugar da missão', [['Proposta · alfinete + anel no chão', 'horta_seta.png', 1]]],
+    mundos: ['Lista de mundos', [['Hoje', SHOTS + 'b05_map_list.png'], ['Proposta', 'mundos.png']]],
+    missoes2: ['Missões separadas: História · Pessoas · Diárias', [['Hoje', SHOTS + 'a02_tasks.png'], ['História', 'missoes2_historia.png'], ['Pessoas', 'missoes2_personagens.png'], ['Diárias', 'missoes2_diarias.png'], ['Ao pegar o prêmio da história', 'missoes_premio.png']]],
+    roleta: ['Cuidados do Tiro: botão Cuidar + roleta', [['Fechado · o pote mostra o pedido', 'tiro_cuidar.png', 1], ['Aberto · roleta espaçada e meio transparente', 'tiro_roleta.png', 1]]],
+    cuidados: ['Cuidados do Tiro: três jeitos', [['Barra apoiada', 'tiro.png', 1], ['A · objetos no cenário (recomendada)', 'tiro_objetos.png', 1], ['B · botão Cuidar', 'tiro_arco.png', 1]]],
+    fogao: ['Bandeja do fogão', [['Hoje', SHOTS + 'e07_tray_stove.png'], ['Proposta', 'fogao.png']]],
+  };
+  const [title, list] = BOARDS[location.hash.slice(1)];
+  document.getElementById('title').textContent = title;
+  document.getElementById('cols').innerHTML = list.map(([label, src, isNew], i) =>
+    `<div class="phone"><span class="tag ${i || isNew ? 'new' : 'old'}">${label}</span><div class="frame"><img src="${src}"></div></div>`).join('');
+  document.body.style.width = document.documentElement.style.width = (56 + list.length * 388 - 28) + 'px';
+</script>
+</body></html>

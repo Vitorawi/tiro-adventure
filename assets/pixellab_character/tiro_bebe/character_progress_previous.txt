@@ -1,0 +1,76 @@
+status: completed
+id: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9
+name: Tiro bebê — Filhotinho (teste character)
+state_name: Idle
+directions: 8 (south, east, north, west, south-east, north-east, north-west, south-west)
+size: 160x160px
+view: side
+style: -, -, -
+group: 0688fd7b-d168-4174-8854-ca0bdb5edb55 (1 state)
+
+rotations:
+  south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/south.png?t=1792865705
+  east: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/east.png?t=1792865705
+  north: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/north.png?t=1792865705
+  west: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/west.png?t=1792865705
+  south-east: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/south-east.png?t=1792865705
+  north-east: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/north-east.png?t=1792865705
+  north-west: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/north-west.png?t=1792865705
+  south-west: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/south-west.png?t=1792865705
+
+animations (22 groups, 22 total):
+  yawn — 1 dir (south), 9f 2026-10-24 [type=custom-Remain seated, yawn widely wit] [group: c0feb50f-be9c-42c6-b535-2c2904d9df46]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/7c997bf0-427d-4c42-8931-26a9c0064cb8/south/{i}.png?t=1792870044768 (i=0..8)
+  lick_paw — 1 dir (south), 9f 2026-10-24 [type=custom-Remain seated, raise one front] [group: 5cb29e7d-64cb-4118-9d0b-136b3691b34c]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/f9f39422-4bb3-431a-aab9-ddc6a35f6674/south/{i}.png?t=1792870036746 (i=0..8)
+  look_around — 1 dir (south), 9f 2026-10-24 [type=custom-Remain seated, slowly look lef] [group: 99c5ee10-a670-451f-8e52-556036aff3b0]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/c83d71b6-2209-45ed-a792-ffa2546de178/south/{i}.png?t=1792870029919 (i=0..8)
+  stretch — 1 dir (south), 9f 2026-10-24 [type=custom-Starting seated, extend front ] [group: bbdfb08f-6e8d-4cec-bc1e-8f927f87c2aa]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/d1c6060b-a3b0-4028-a328-30b8ce928c54/south/{i}.png?t=1792870016408 (i=0..8)
+  sniff — 1 dir (south), 9f 2026-10-24 [type=custom-Remain seated, sniff the air w] [group: b96851e5-510d-48de-980e-883c91e6d529]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/5d6133fd-4707-4a34-a7f9-03b75d7a8610/south/{i}.png?t=1792870005563 (i=0..8)
+  sad — 1 dir (south), 9f 2026-10-24 [type=custom-Sitting sadly, ears drooping, ] [group: 912e7a2b-6cc6-42ca-9a81-2f99e8ff3448]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/65b86047-11fd-4df8-b913-7e804ed10889/south/{i}.png?t=1792869930021 (i=0..8)
+  shake_off — 1 dir (south), 9f 2026-10-24 [type=custom-Sitting or standing in place, ] [group: 79b8aa73-797d-4625-be21-11d75fde028a]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/ab41ad2e-f644-475a-aff7-ed4602bdb66a/south/{i}.png?t=1792869914512 (i=0..8)
+  chase_tail — 1 dir (south), 9f 2026-10-24 [type=custom-Playfully chase own tail with ] [group: 8eedaf51-4fc5-46f0-97b5-6f0e037d6c2c]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/e03a35fa-07c1-42d7-9b55-1fb85e046010/south/{i}.png?t=1792869913429 (i=0..8)
+  head_tilt — 1 dir (south), 9f 2026-10-24 [type=custom-Remain seated, tilt head curio] [group: 192329c7-0a1f-4eff-9d69-c7257c16cc78]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/fdc7d920-281e-4399-80b0-fd36dcbd5ee5/south/{i}.png?t=1792869909465 (i=0..8)
+  pet_head — 1 dir (south), 9f 2026-10-24 [type=custom-Sitting and enjoying a gentle ] [group: 65836ea2-d081-4ce7-91a8-4947f3f933d9]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/279a78b9-03ff-495c-b990-caed39a8beaa/south/{i}.png?t=1792869905949 (i=0..8)
+  pet_paw — 1 dir (south), 9f 2026-10-24 [type=custom-Sitting with ticklish front pa] [group: 8100fad9-6adb-4149-b4e9-71746d125219]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/79f0170d-0596-4bcc-b5c5-9cee199f7894/south/{i}.png?t=1792869902835 (i=0..8)
+  scratch — 1 dir (south), 9f 2026-10-24 [type=custom-Sitting, lift one hind paw to ] [group: 808f6a0a-947f-4bef-af8e-fa2d7ef75214]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/abb8c47c-c57e-4094-b2c4-0716593425f3/south/{i}.png?t=1792869900967 (i=0..8)
+  bark — 1 dir (south), 9f 2026-10-24 [type=custom-Sitting and barking happily, m] [group: 912316e0-5ea2-4bab-a636-13d9fa780324]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/cb6bad7b-a41e-44f7-8bbd-6f3c378b24f9/south/{i}.png?t=1792869889606 (i=0..8)
+  wag_excited — 1 dir (south), 9f 2026-10-24 [type=custom-Sitting excitedly, tail waggin] [group: 3f9555ab-11c5-4a0b-83fe-5b37636c02c7]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/c1441192-95da-41e8-9163-85dc2331a6dd/south/{i}.png?t=1792869887204 (i=0..8)
+  sleep — 1 dir (south), 17f 2026-10-24 [type=custom-Starting seated, slowly lie do] [group: cbb7e406-bd36-49a8-a882-26862a441eca]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/9f0b5813-d72a-489c-a12c-a0f0d9d9c227/south/{i}.png?t=1792869880780 (i=0..16)
+  belly_kick_v2 — 1 dir (south), 9f 2026-10-24 [type=custom-Continue LYING FLAT ON ITS BAC] [group: dd63f85b-4a2b-4922-889b-1083f58acc08]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/263d781d-a68c-44aa-8cb0-60bc71bed6b0/south/{i}.png?t=1792868990914 (i=0..8)
+  belly_kick — 1 dir (south), 9f 2026-10-24 [type=custom-Continue LYING FLAT ON ITS BAC] [group: b0d3fd12-5225-491f-8d07-58384640a1c8]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/039e3233-dbbd-4a2d-aced-6285f57f770f/south/{i}.png?t=1792867127279 (i=0..8)
+  belly_rub — 1 dir (south), 9f 2026-10-24 [type=custom-Continue LYING FLAT ON ITS BAC] [group: 926b3fb5-d616-4cd4-b647-48f59b03e22d]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/7c4eee3d-842e-4fcd-a665-0f3c35cc1663/south/{i}.png?t=1792867106167 (i=0..8)
+  eat — 1 dir (south), 9f 2026-10-24 [type=custom-The puppy leans its whole uppe] [group: 0d3130e9-9ab2-4476-8db4-0db11d15f99b]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/f7cb275d-892c-40a6-8944-e776cd32abba/south/{i}.png?t=1792867064236 (i=0..8)
+  roll_over — 1 dir (south), 17f 2026-10-24 [type=custom-Rolling sideways onto its back] [group: a7e7173a-4eef-4248-9961-5a4f00303728]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/7d279cc5-42dc-4ee5-ac44-234ecb647768/south/{i}.png?t=1792866822902 (i=0..16)
+  idle_breathe — 1 dir (south), 9f 2026-10-24 [type=custom-Sitting still facing the viewe] [group: 9fb5ae47-0550-49b3-b3f3-fdf03593456d]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/08d84fb2-f5e8-4a65-8684-273e43b44588/south/{i}.png?t=1792866715094 (i=0..8)
+  happy_jump — 1 dir (south), 9f 2026-10-24 [type=custom-Jumping up and down happily in] [group: 6aba9e1c-d18c-4592-9ca9-01d4ed2a138d]
+    south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/7e02456f-cb7e-456e-a862-dd973601441a/south/{i}.png?t=1792866701871 (i=0..8)
+
+pending jobs (1):
+  custom-Continue lying flat on its bac(south): 92% ~60s
+
+download: https://api.pixellab.ai/mcp/characters/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/download
+spritesheet: https://api.pixellab.ai/mcp/characters/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/spritesheet (this state only — one uniform-grid sheet PNG + layout JSON, zipped; cells pivot-centred)
+  (returns HTTP 423 until jobs complete — use curl --fail)
+
+available_animations: bark, fast-walk, idle, running-4-frames, running-6-frames, running-8-frames, sneaking, walk-4-frames, walk-6-frames, walk-8-frames
+
+actions: animate_character(character_id="3ecaecbe-a058-41cc-926c-084bfbb7a3a9", ...) | create_character_state(character_id="3ecaecbe-a058-41cc-926c-084bfbb7a3a9", ...) | delete_animation(character_id="3ecaecbe-a058-41cc-926c-084bfbb7a3a9", animation_group_id="<group>") | delete_character(character_id="3ecaecbe-a058-41cc-926c-084bfbb7a3a9")

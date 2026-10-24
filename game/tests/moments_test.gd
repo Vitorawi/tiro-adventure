@@ -100,13 +100,14 @@ func _run() -> void:
 	check(count("coat") == 2, "xampu com só uma vaga rende só um")
 	# Filhotinho em uma sessão: ações reais, sem avançar relógio e sem completar requisitos por DEV.
 	fresh()
+	state.note_world_visit("house")  # momento automático da primeira chegada, antes dos cuidados
 	state.progress.owned.dog_bed = true
 	for n in 3: state.feed("dog_food")
 	state.pet()
 	state.talk_to("lais")
 	check(state.growth_info().ready and state.grow_error() == "", "Filhotinho alcançável na primeira sessão")
 	var lifetime := count("brave")
-	check(lifetime == 2 and state.growth_info().pillars.brave.have == 2 and state.growth_info().pillars.brave.need == 2, "have/need de momentos")
+	check(lifetime == 3 and state.growth_info().pillars.brave.have == 3 and state.growth_info().pillars.brave.need == 3, "have/need de momentos")
 	check(state.grow() == "", "cresce com os requisitos reais")
 	check(state.growth.phase_moments.is_empty() and count("brave") == lifetime, "nova fase zera progresso e mantém total da vida")
 	need("happiness", 40)
@@ -118,7 +119,7 @@ func _run() -> void:
 	state.growth_info()
 	state.pet_growth_info()
 	check(state.to_dict() == snapshot, "consultas puras")
-	check(signals.size() == 3, "um evento por momento concedido")
+	check(signals.size() == 4, "um evento por momento concedido")
 	# Fronteiras locais, inclusive a madrugada e a virada de data.
 	var midnight := int(state._local_time()) - posmod(int(state._local_time()), 86400) - int(state.zone_bias)
 	var periods: Array[String] = []

@@ -53,6 +53,7 @@ func _run() -> void:
 	state.get("progress").claimed_quests["lais_bed"] = true
 	state.call("dev_add_moment", "brave")
 	state.call("dev_add_moment", "brave")
+	state.call("dev_add_moment", "brave")
 	check(state.call("grow_error") == "", "todos os requisitos reais cumpridos")
 	check(ready_count == 1, "pronto uma vez")
 	state.call("_changed")
@@ -62,7 +63,7 @@ func _run() -> void:
 	check(state.call("grow") == "", "cresce")
 	var growth: Variant = state.get("growth")
 	check(growth.phase == "puppy" and growth.ceremonies.puppy.seen == false, "fase e cerimônia")
-	check(growth.phase_moments.is_empty() and growth.moments.brave == 2, "fase nova sem sobra e total preservado")
+	check(growth.phase_moments.is_empty() and growth.moments.brave == 3, "fase nova sem sobra e total preservado")
 	check(state.get("coins") == before_coins + 30 and state.get("inventory").count("dog_food") == before_food + 3, "presente exato")
 	check(state.call("grow") != "" and state.get("coins") == before_coins + 30, "clique repetido não paga")
 	check(row("meals").have == 0, "fase nova começa sem refeições antigas")

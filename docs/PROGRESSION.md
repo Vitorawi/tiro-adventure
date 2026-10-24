@@ -900,6 +900,18 @@ Fecha a nova história sobre o motor da 19 e as obras das 20–21.
 
 ## Crescimento do Tiro
 
+**Primeira Coragem (decisão do Vitor, 23/10/2026):** `puppy/pillars` mantém o desenho original
+(`type: moments`, `pillar: brave`, label “Carinho e novidades”), com meta **2 → 3**.
+Na primeira entrada na Casa após a introdução, `WorldsScreen` chama `GameState.note_world_visit`;
+a fonte `world`, “Chegar a um lugar novo” (`growth.json:848`), concede 1 momento sem teto, uma única
+vez por mundo (`growth.firsts["world:house"]`). O sinal é `Events.moment_gained("brave", "world:house")`
+e o aviso literal é **“Momento de Coragem!”** (`main.gd:421`). Antes da entrada o saldo é 0/3;
+depois da chegada é **1/3**, incompleto (na grade atual: Carinho com uma de três bolinhas preenchida).
+Carinho útil acrescenta um momento (2/3); conhecer Laís também continua válido (3/3).
+Sem reset, migração ou mudança de formato do save; conclusões já gravadas continuam definitivas.
+`courage_start_test` cobre chegada/aviso, 1/3, repetição/reload e avanço real; substitui a regressão
+anterior de contagem exclusiva de carinhos. `growth_ui.gd` restaurado ao HEAD e `hud.gd` intacto.
+
 Etapa 02 do plano Tiro (19/10/2026): motor sem interface do jogador nem troca de arte.
 `growth.json` define Recém-chegado → Filhotinho → Dentinhos → Aventureiro → Mocinho → Azul e Dourado,
 quatro pilares (Corpo/Pelagem/Esperteza/Coragem), níveis 10/25/45/70/100/135/175/220/270/330 pontos,

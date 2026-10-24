@@ -1,0 +1,17 @@
+# Validação local — Filhotinho, 24/10/2026
+
+- MCP PixelLab: personagem `3ecaecbe-a058-41cc-926c-084bfbb7a3a9`, direção south, custom por texto; 30 gerações novas (16 movimentos/pose + 14 revisões). As 37 entradas do manifesto incluem as sete versões anteriores. Nenhuma operação de exclusão usada.
+- Fonte: 357 PNGs brutos em 37 versões, todos vistos em pranchas ampliadas 2×. IDs, jobs, prompts, canvas, rejeições e versões finais estão no manifesto.
+- Backup completo: `assets/backup_tiro_pet_puppy_20261024/` (207 PNGs + arquivos `.import`, incluindo a imagem estática separada).
+- Instalação: 206 frames, 21 clipes + uma pose `sleep_belly`; nomes e contagens preservados, canvas 256×216, escala comum 1:1, sem cortes. Auditoria por SHA-256 em `normalization_audit.json`; `.import` e `idle_front` idênticos ao backup.
+- Eat: tigela do frame 01 composta no frame 00 apenas na versão normalizada; fontes brutas intactas. Sleep_belly: frame 04 da fonte instalado como pose única.
+- Ressalva: `scratch_v4` coça a lateral da bochecha, sem reproduzir exatamente a pata traseira atrás da orelha. Quatro tentativas preservadas; ver RELATORIO.
+- Pixels quase brancos: `R,G,B>220`, alpha>0. Zero fora do corpo nas versões finais, exceto 1.956 pixels da tigela autorizada de eat na fonte. Auditoria combina componentes, exposição ao fundo e revisão visual para efeitos que se sobrepõem ao corpo; dentes/olhos internos excluídos.
+- Import Godot: PASS, código 0 (`build/puppy_baby_import.log`).
+- Quick: PASS, 111/111 missões, zero violações, 21,09 dias simulados, 202,7 s reais (`build/economy/puppy_baby_20261024/reference_s1/summary.json`). Não houve calibração.
+- Portão: bruto **91 PASS / 2 FAIL em 534,1 s**, três processos, 93 testes (`build/test_logs/r20261024_163719_34f8a241/results.csv`). Acima da meta de 8 min; não ocultar o resultado bruto.
+- Reexecução sequencial: `walks_test` PASS (`build/puppy_baby_walks_retry.log`); `world_selector_test` repetiu FAIL na abertura da Bancada após viagem (`build/puppy_baby_selector_retry.log.err`). A mesma mensagem já existia em `build/test_logs/r20261023_010831_033c9283/world_selector_test.log.err` e `build/cuidado04_etapa_final.log`. Resultado por teste após reexecuções: **92 PASS / 1 falha histórica**. Sem mudar fixtures/interface.
+- Testes afetados PASS: `growth_visual_test`, `pet_anchor_test` (desvio 0,000 px), `pet_care_test`, `care_ui_test`, `house_test`, `album_test`, `album_secrets_test`, além dos demais registros do portão.
+- Capturas próprias: PASS; três homes (360×780, 390×844, 412×915) + eat/sleep/roll_over/belly_rub/belly_kick abertas e conferidas (`build/screenshots/puppy_baby_20261024/`). Script `tools/puppy_baby_shots.gd`; SaveManager removido apenas da árvore temporária, sem gravar save pessoal.
+- Export DEV: **PASS, código 0, sem erros**, em `build/web/dev` (`build/puppy_baby_export_dev.log`); HTML, PCK e WASM atualizados, título/cache DEV conferidos. O script original `tools/export_web.ps1` foi executado em memória pelo wrapper `export_dev_without_cleanup.ps1`: linha de limpeza desativada e saída do canal dev corrigida para `build/web/dev`. Nenhum arquivo do script original alterado; conteúdo existente de build/web preservado. `game/data/version.json` restaurado pelo próprio exportador.
+- Mudanças anteriores: comparadas por SHA-256 com `preexisting_hashes.json` e preservadas, exceto a inserção autorizada no Estado atual do ROADMAP. Nenhum commit, push ou publicação.

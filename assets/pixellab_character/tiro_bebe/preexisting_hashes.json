@@ -1,0 +1,42 @@
+﻿[
+    {
+        "path":  "AGENTS.md",
+        "hash":  "CA862F4BE00190D54A6BACBF0C334E8BB88EE21A4E8C9E73C57A596B5DEE0B15"
+    },
+    {
+        "path":  "CLAUDE.md",
+        "hash":  "CA862F4BE00190D54A6BACBF0C334E8BB88EE21A4E8C9E73C57A596B5DEE0B15"
+    },
+    {
+        "path":  "docs/PROGRESSION.md",
+        "hash":  "2289F8F2A48F1F8E20D9CE3A2256066DDEC1B27724E9AB40160C1E1E5FAA1391"
+    },
+    {
+        "path":  "docs/ROADMAP.md",
+        "hash":  "62E2C40FFBDB11C3E8B8D7C20424C00CDC10D7FADB0ECEF42254290D12653FC4"
+    },
+    {
+        "path":  "game/data/growth.json",
+        "hash":  "50F643110B4007156F231DC3F86F1DCDCD796AD4757095BF5D72955B0B282A18"
+    },
+    {
+        "path":  "game/tests/growth_story_test.gd",
+        "hash":  "71D8370D17300336A300D0104A270E927C0397546CEF340984488CC9E0EB308D"
+    },
+    {
+        "path":  "game/tests/growth_test.gd",
+        "hash":  "E808D5C94A084315CF41B9CFD1AF178E57A9543B685F0FABD05822E4791FF6AD"
+    },
+    {
+        "path":  "game/tests/growth_ui_test.gd",
+        "hash":  "B54EF30229483B672D1B55040B7DF0CAC416E724E6B9E7975AC3B02EA12E3218"
+    },
+    {
+        "path":  "game/tests/moments_test.gd",
+        "hash":  "E586853334A4A83EC6682611AC797FA1377A834BFD969DE65B3755B60E908A91"
+    },
+    {
+        "path":  "tools/test_areas.json",
+        "hash":  "29F1766DBFF0C965B14FB3A0A5B6B043BED08519E20A38FAD60F34300650676F"
+    }
+]

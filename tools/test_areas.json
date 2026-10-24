@@ -90,6 +90,7 @@
     "economy_audit_selftest",
     "economy_compare_selftest",
     "growth_test",
+    "courage_start_test",
     "growth_meals_test",
     "moments_test",
     "growth_visual_test",
@@ -124,6 +125,7 @@
         "game/scripts/ui/growth_ui.gd",
         "game/scripts/ui/pillar_ui.gd",
         "game/tests/growth_test.gd",
+        "game/tests/courage_start_test.gd",
         "game/tests/moments_test.gd",
         "game/tests/growth_meals_test.gd",
         "game/tests/growth_ui_test.gd",
@@ -140,6 +142,7 @@
       ],
       "tests": [
         "growth_test",
+        "courage_start_test",
         "moments_test",
         "growth_meals_test",
         "growth_ui_test",

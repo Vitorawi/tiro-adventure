@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><link rel="stylesheet" href="proto.css">
+<style>
+  body { background: #7f9150; }
+  #world { position: absolute; inset: 0; }
+  .worldbar { position: absolute; top: 76px; left: 12px; right: 12px; display: flex; align-items: center; gap: 8px; z-index: 20; }
+  .worldpill { height: 44px; border-radius: 22px; background: var(--card); box-shadow: var(--shadow); display: flex; align-items: center; gap: 6px; padding: 0 12px 0 6px; }
+  .worldpill img { width: 32px; height: 32px; }
+  .guide { height: 52px; border-radius: 26px; background: var(--card); box-shadow: var(--shadow); display: flex; align-items: center; gap: 6px; padding: 0 10px 0 6px; }
+  .guide .face { width: 40px; height: 40px; border-radius: 50%; background: var(--sunken); overflow: hidden; }
+  .guide .face img { width: 40px; height: 40px; }
+  /* Barra da horta: ferramenta escolhida fica embaixo, longe dos canteiros */
+  .farmdock { position: absolute; left: 0; right: 0; bottom: 84px; border-radius: 28px 28px 0 0; background: rgba(251, 241, 226, .94);
+    box-shadow: 0 -6px 20px rgba(60, 50, 20, .18); padding: 12px 12px 10px; z-index: 21; }
+  .tools { display: none; gap: 6px; align-items: center; }
+  .seed { position: relative; width: 52px; height: 64px; border-radius: 16px; background: var(--card); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0; flex: none; box-shadow: var(--shadow-sm); }
+  .seed img { width: 36px; height: 36px; }
+  .seed.on { box-shadow: 0 0 0 2.5px var(--ink), var(--shadow-sm); }
+  .seed.lock img { opacity: .35; }
+  .seed.lock .l { position: absolute; top: 18px; color: var(--ink2); }
+  .sep { width: 1px; height: 48px; background: var(--base-line); flex: none; margin: 0 2px; }
+  .hint { position: absolute; left: 50%; transform: translateX(-50%); bottom: 220px; z-index: 22; background: var(--ink); color: #fff; border-radius: 16px;
+    height: 32px; display: flex; align-items: center; gap: 6px; padding: 0 14px 0 10px; white-space: nowrap; font-family: "Nunito"; font-weight: 800; font-size: 13px; }
+  .finger { position: absolute; width: 34px; height: 34px; border-radius: 50%; background: rgba(255, 255, 255, .45); border: 2px solid rgba(255, 255, 255, .9); z-index: 12; }
+  .ghost { position: absolute; width: 52px; height: 52px; border-radius: 50%; background: var(--card); box-shadow: var(--shadow); display: grid; place-items: center; z-index: 13; }
+  .ghost img { width: 36px; height: 36px; }
+  .ghost .n { position: absolute; right: -6px; top: -6px; min-width: 22px; height: 22px; border-radius: 11px; background: var(--go); color: #fff; font-family: "Fredoka"; font-weight: 600; font-size: 12px;
+    display: grid; place-items: center; border: 2px solid var(--card); }
+  /* Seta nova: alfinete liso com o ícone do destino + anel no chão */
+  .pin { position: absolute; z-index: 14; display: flex; flex-direction: column; align-items: center; }
+  .pin .head { width: 52px; height: 52px; border-radius: 50%; background: var(--card); box-shadow: 0 0 0 4px var(--honey), 0 8px 16px rgba(60, 40, 10, .3); display: grid; place-items: center; }
+  .pin .head img { width: 36px; height: 36px; }
+  .pin .tail { width: 0; height: 0; border-left: 9px solid transparent; border-right: 9px solid transparent; border-top: 12px solid var(--honey); margin-top: 3px; }
+  .ring { position: absolute; border-radius: 50%; border: 3px solid rgba(255, 183, 48, .95); background: rgba(255, 183, 48, .18); z-index: 9; }
+  .ring.out { border-width: 2px; background: none; opacity: .5; }
+  .frame { display: none; } body.f-plantar .plantar, body.f-colher .colher, body.f-seta .seta { display: block; }
+  body.f-plantar .tools.plantar, body.f-colher .tools.colher { display: flex; }
+</style></head>
+<body class="f-plantar"><div class="screen">
+  <canvas id="world" width="720" height="1560" style="width:360px;height:780px"></canvas>
+
+  <div class="hud">
+    <div class="avatar"><div class="abs" data-ring="58,5,0.62,#FFB730"></div>
+      <img class="px" src="../../../../game/assets/sprites/ui/icons/hud_tiro.png" style="z-index:1"></div>
+    <div class="grow"></div>
+    <div class="pill"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png" style="width:28px;height:28px"><span class="num" style="font-size:18px">2.645</span></div>
+    <div class="icon-btn"><i data-ic="gear" data-size="22"></i></div>
+  </div>
+  <div class="worldbar">
+    <div class="worldpill"><img class="px" src="../../../../game/assets/sprites/ui/icons/tab_farm.png"><span class="t-strong">Sítio</span><span style="color:var(--ink2)"><i data-ic="down" data-size="18"></i></span></div>
+    <div class="grow"></div>
+  </div>
+  <div class="frame seta abs" style="left:12px;top:132px;z-index:20">
+    <div class="guide"><div class="face"><img class="px" src="../../../../game/assets/sprites/characters/npc_bloblo/portrait.png"></div>
+      <img class="px" src="../../../../game/assets/sprites/ui/icons/item_plank.png" style="width:32px;height:32px"><span class="num" style="font-size:16px">0/2</span><span class="chev"><i data-ic="chev" data-size="18"></i></span></div></div>
+
+  <!-- Quadro 1: plantar arrastando (dedo passou por 3 canteiros) -->
+  <div class="frame plantar">
+    <div class="ghost" id="ghost"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_carrot.png"><span class="n">3</span></div>
+    <div class="finger" id="finger"></div>
+  </div>
+  <!-- Quadro 3: seta até o lugar da missão -->
+  <div class="frame seta"><div class="ring out" id="ring2"></div><div class="ring" id="ring"></div>
+    <div class="pin" id="pin"><div class="head"><img class="px" src="../../../../game/assets/sprites/ui/icons/station_workbench.png"></div><div class="tail"></div></div></div>
+
+  <div class="hint frame plantar" style="display:none" id="hint"><i data-ic="spark" data-size="16" data-stroke="2.4"></i>Arraste pelos canteiros</div>
+
+  <div class="farmdock frame plantar colher" id="dock">
+    <div class="tools plantar">
+      <div class="seed on"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_carrot.png"><span class="t-cap">1 min</span></div>
+      <div class="seed"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_potato.png"><span class="t-cap">5 min</span></div>
+      <div class="seed"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_strawberry.png"><span class="t-cap">15 min</span></div>
+      <div class="seed lock"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_corn.png"><span class="l"><i data-ic="lock" data-size="18"></i></span><span class="t-cap">20 min</span></div>
+      <div class="sep"></div>
+      <div class="seed"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_water.png"><span class="t-cap">Regar</span></div>
+      <span class="icon-btn sm" style="margin-left:auto"><i data-ic="check" data-size="18" data-stroke="3"></i></span>
+    </div>
+    <div class="tools colher">
+      <div class="seed on"><img class="px" src="../../../../game/assets/sprites/ui/icons/tool_sickle.png"><span class="t-cap">Foice</span></div>
+      <span class="btn go grow">Colher tudo (6)</span>
+      <span class="icon-btn sm"><i data-ic="x" data-size="18"></i></span>
+    </div>
+  </div>
+
+  <nav class="tabbar joined" data-active="map" data-badges="tasks:2"></nav>
+</div>
+<script src="proto.js"></script>
+<script>
+  const frame = location.hash.slice(1) || 'plantar';
+  document.body.className = 'f-' + frame;
+  if (frame === 'seta') document.querySelector('nav.tabbar').classList.remove('joined');
+  document.querySelectorAll('.frame').forEach((el) => { if (el.classList.contains(frame)) el.style.display = el.classList.contains('tools') ? 'flex' : ''; });
+  const A = '../../../../game/assets/sprites/areas/farm/';
+  const S = 2, Z = frame === 'seta' ? 1.0 : 1.2, CAM = frame === 'seta' ? [600, 250] : [562, 262], CENTER = frame === 'seta' ? [180, 380] : [180, 330];
+  const plots = [[562, 224], [614, 249], [666, 274], [510, 249], [562, 274], [614, 299], [458, 274], [510, 299], [562, 324]];
+  // Estado de cada canteiro por quadro: '' vazio, 's' broto, 'c' cenoura madura, 't' alvo (vazio destacado)
+  const STATE = {
+    plantar: ['s', 's', 's', 's', 's', 's', 't', 't', 't'],
+    colher: ['c', 'c', 'c', 'c', 'c', 'c', 's', 's', ''],
+    seta: ['s', 's', 'c', '', 's', '', '', '', ''],
+  }[frame];
+  const objects = [['workbench.png', [649, 176]], ['silo.png', [745, 245]], ['warehouse.png', [400, 222]], ['chicken_coop.png', [510, 476]], ['mill.png', [416, 497]]];
+  const toScreen = (x, y) => [((x - CAM[0]) * Z + CENTER[0]), ((y - CAM[1]) * Z + CENTER[1])];
+  const ctx = document.getElementById('world').getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.fillStyle = '#7f9150'; ctx.fillRect(0, 0, 720, 1560);
+  const load = (src) => new Promise((ok) => { const im = new Image(); im.onload = () => ok(im); im.src = A + src; });
+  Promise.all(['farm_animals.png', 'plot.png', 'crop_sprout.png', 'crop_carrot.png', ...objects.map((o) => o[0])].map(load)).then(([bg, plot, sprout, carrot, ...objs]) => {
+    const [bx, by] = toScreen(0, 0);
+    ctx.drawImage(bg, bx * S, by * S, bg.width * Z * S, bg.height * Z * S);
+    const draws = [];
+    objects.forEach(([_, pos], i) => draws.push([pos[1], () => { const im = objs[i]; const [x, y] = toScreen(pos[0] - im.width / 2, pos[1] - im.height); ctx.drawImage(im, x * S, y * S, im.width * Z * S, im.height * Z * S); }]));
+    plots.forEach((pos, i) => draws.push([pos[1], () => {
+      const [x, y] = toScreen(pos[0] - plot.width / 2, pos[1] - plot.height);
+      ctx.drawImage(plot, x * S, y * S, plot.width * Z * S, plot.height * Z * S);
+      const st = STATE[i];
+      if (st === 't') { // alvo: losango claro tracejado sobre a terra
+        const [cx, cy] = toScreen(pos[0], pos[1] - 30);
+        ctx.save(); ctx.setLineDash([8, 6]); ctx.lineWidth = 4; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.fillStyle = 'rgba(255,255,255,.16)';
+        ctx.beginPath(); ctx.moveTo(cx * S, (cy - 13 * Z) * S); ctx.lineTo((cx + 27 * Z) * S, cy * S); ctx.lineTo(cx * S, (cy + 13 * Z) * S); ctx.lineTo((cx - 27 * Z) * S, cy * S); ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+      }
+      const crop = st === 's' ? sprout : st === 'c' ? carrot : null;
+      if (crop) { const [cx, cy] = toScreen(pos[0], pos[1] - 26 - 8); ctx.drawImage(crop, (cx - crop.width * Z / 2) * S, (cy - crop.height * Z / 2) * S, crop.width * Z * S, crop.height * Z * S); }
+    }]));
+    draws.sort((a, b) => a[0] - b[0]).forEach((d) => d[1]());
+    if (frame === 'plantar') {
+      // rastro do dedo pelos canteiros 3 → 4 → 5 e o dedo indo para o 8
+      const path = [3, 4, 5].map((i) => toScreen(plots[i][0], plots[i][1] - 30));
+      const end = toScreen(plots[8][0] - 8, plots[8][1] - 36);
+      ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.lineWidth = 14 * S; ctx.strokeStyle = 'rgba(255, 241, 211, .55)';
+      ctx.beginPath(); ctx.moveTo(path[0][0] * S, path[0][1] * S); [...path.slice(1), end].forEach(([x, y]) => ctx.lineTo(x * S, y * S)); ctx.stroke(); ctx.restore();
+      const f = document.getElementById('finger'); f.style.left = (end[0] - 17) + 'px'; f.style.top = (end[1] - 17) + 'px';
+      const g = document.getElementById('ghost'); g.style.left = (end[0] - 26) + 'px'; g.style.top = (end[1] - 26 - 56) + 'px';
+      document.querySelectorAll('.plantar .hint, #hint').forEach((h) => h.style.display = 'flex');
+    }
+    if (frame === 'colher') {
+      // balões de pronto (✓) sobre as cenouras maduras
+      plots.forEach((pos, i) => { if (STATE[i] !== 'c') return; const [x, y] = toScreen(pos[0], pos[1] - 62);
+        document.querySelector('.screen').insertAdjacentHTML('beforeend', `<div class="abs" style="left:${x - 13}px;top:${y - 13}px;width:26px;height:26px;border-radius:50%;background:var(--go);color:#fff;display:grid;place-items:center;box-shadow:0 0 0 3px #fff, var(--shadow-sm);z-index:11"><svg class="ic" style="width:15px;height:15px;stroke-width:3.4" viewBox="0 0 24 24">${ICONS.check}</svg></div>`); });
+    }
+    if (frame === 'seta') {
+      const [x, y] = toScreen(649, 176);
+      const r = document.getElementById('ring'); r.style.cssText += `left:${x - 46}px;top:${y - 18}px;width:92px;height:36px`;
+      const r2 = document.getElementById('ring2'); r2.style.cssText += `left:${x - 62}px;top:${y - 25}px;width:124px;height:50px`;
+      const p = document.getElementById('pin'); p.style.left = (x - 26) + 'px'; p.style.top = (y - 78 * Z - 70) + 'px';
+    }
+  });
+</script>
+</body></html>

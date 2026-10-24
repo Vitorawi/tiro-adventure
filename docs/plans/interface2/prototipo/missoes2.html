@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><link rel="stylesheet" href="proto.css">
+<style>
+  /* Missões separadas em três abas (decisão do Vitor, 24/10/2026): História · Personagens · Diárias */
+  .page { position: absolute; left: 0; right: 0; top: 136px; bottom: 84px; padding: 0 16px; overflow: hidden; }
+  .head { position: absolute; left: 16px; right: 16px; top: 76px; display: flex; align-items: center; height: 52px; gap: 8px; z-index: 5; }
+  .guide { height: 52px; border-radius: 26px; background: var(--card); box-shadow: var(--shadow); display: flex; align-items: center; gap: 6px; padding: 0 10px 0 6px; }
+  .guide .face { width: 40px; height: 40px; border-radius: 50%; background: var(--sunken); overflow: hidden; }
+  .guide .face img { width: 40px; height: 40px; }
+  .seg { display: flex; background: var(--sunken); border-radius: 22px; padding: 4px; gap: 2px; margin: 4px 0 14px; }
+  .seg .opt { position: relative; flex: 1; height: 40px; border-radius: 18px; display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-family: "Fredoka"; font-weight: 600; font-size: 15px; color: var(--ink2); }
+  .seg .opt img { width: 24px; height: 24px; }
+  .seg .opt.on { background: var(--card); color: var(--ink); box-shadow: var(--shadow-sm); }
+  .seg .badge { position: static; margin-left: 2px; border: 0; }
+  .story { padding: 14px 14px 12px; }
+  .steps { display: flex; gap: 3px; }
+  .steps i { width: 12px; height: 6px; border-radius: 3px; background: var(--sunken); }
+  .steps i.done { background: var(--go); } .steps i.now { background: var(--honey); }
+  .npc { width: 56px; height: 56px; border-radius: 50%; background: var(--sunken); overflow: hidden; flex: none; }
+  .npc img { width: 56px; height: 56px; }
+  .npc.sm { width: 44px; height: 44px; } .npc.sm img { width: 44px; height: 44px; }
+  .goal { background: var(--paper); border-radius: 14px; padding: 6px 10px 6px 6px; gap: 8px; margin-top: 10px; }
+  .goal img { width: 32px; height: 32px; }
+  .sec { display: flex; align-items: center; gap: 8px; margin: 18px 4px 8px; }
+  .list { padding: 4px 0; }
+  .item { display: flex; align-items: center; gap: 10px; height: 64px; padding: 0 12px; }
+  .item + .item { border-top: 1px solid var(--line); }
+  .item.ready { background: var(--go-soft); border-radius: 16px; }
+  .item.ready + .item { border-top-color: transparent; }
+  .item.done .t-body { color: var(--ink2); }
+  .item.later { opacity: .5; }
+  .item .meta { display: flex; align-items: center; gap: 4px; }
+  .item .meta img { width: 20px; height: 20px; }
+  .mini { width: 44px; height: 44px; flex: none; }
+  .mini img { width: 24px; height: 24px; position: relative; }
+  .ok { width: 28px; height: 28px; border-radius: 50%; background: var(--go-soft); color: var(--go); display: grid; place-items: center; flex: none; }
+  .pane { display: none; } body.t-historia .historia, body.t-personagens .personagens, body.t-diarias .diarias { display: block; }
+  .ghost { text-align: center; margin-top: 14px; color: var(--ink2); font-family: "Fredoka"; font-weight: 600; font-size: 15px; }
+</style></head>
+<body class="t-historia"><div class="screen">
+  <div class="hud">
+    <div class="avatar"><div class="abs" data-ring="58,5,0.62,#FFB730"></div>
+      <img class="px" src="../../../../game/assets/sprites/ui/icons/hud_tiro.png" style="z-index:1"></div>
+    <div class="profile"><div class="t-strong">Tiro</div>
+      <div class="row" style="gap:6px"><div class="bar grow" style="width:58px"><i style="width:62%"></i></div><span class="t-cap">3/5</span></div></div>
+    <div class="grow"></div>
+    <div class="pill"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png" style="width:28px;height:28px"><span class="num" style="font-size:18px">2.645</span></div>
+    <div class="icon-btn"><i data-ic="gear" data-size="22"></i></div>
+  </div>
+
+  <!-- Linha 2: próximo passo da história (sempre) + título da tela -->
+  <div class="head">
+    <div class="guide"><div class="face"><img class="px" src="../../../../game/assets/sprites/characters/npc_lais/portrait.png"></div>
+      <img class="px" src="../../../../game/assets/sprites/ui/icons/item_carrot.png" style="width:32px;height:32px">
+      <span class="num" style="font-size:16px">3/6</span><span class="chev"><i data-ic="chev" data-size="18"></i></span></div>
+    <span class="grow"></span>
+    <span class="btn sm go personagens-only" id="claimall">Pegar tudo (2)</span>
+  </div>
+
+  <div class="page">
+    <div class="seg">
+      <div class="opt" data-t="historia"><img class="px" src="../../../../game/assets/sprites/ui/icons/tab_tasks.png">História</div>
+      <div class="opt" data-t="personagens"><img class="px" src="../../../../game/assets/sprites/characters/npc_bloblo/portrait.png" style="border-radius:50%">Pessoas<span class="badge">1</span></div>
+      <div class="opt" data-t="diarias"><img class="px" src="../../../../game/assets/sprites/ui/icons/timer.png">Diárias<span class="badge">1</span></div>
+    </div>
+
+    <!-- História: o passo atual grande + os passos do capítulo -->
+    <div class="pane historia">
+      <div class="card story">
+        <div class="row"><div class="grow"><div class="t-over" style="color:var(--honey-ink)">Capítulo</div><div class="t-strong">Um novo lar</div></div>
+          <div class="steps"><i class="done"></i><i class="done"></i><i class="now"></i><i></i><i></i><i></i></div></div>
+        <div class="row" style="gap:10px;margin-top:10px">
+          <div class="npc"><img class="px" src="../../../../game/assets/sprites/characters/npc_lais/portrait.png"></div>
+          <div class="bubble tail-left grow" style="background:var(--paper);box-shadow:none">Bora plantar as primeiras cenouras do Tiro?</div></div>
+        <div class="row goal"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_carrot.png">
+          <div class="grow"><div class="t-body">Colher cenouras</div><div class="bar" style="margin-top:4px"><i style="width:50%"></i></div></div>
+          <span class="num" style="font-size:16px">3/6</span></div>
+        <div class="row" style="gap:6px;margin-top:10px">
+          <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+30</span></span>
+          <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_dog_food.png"><span class="num">+2</span></span>
+          <span class="grow"></span><span class="icon-btn sm"><i data-ic="help" data-size="18"></i></span><span class="btn sm go">Ir <i data-ic="arrow" data-size="18"></i></span></div>
+      </div>
+      <div class="sec"><span class="t-over grow">Neste capítulo</span><span class="t-cap">2 de 6</span></div>
+      <div class="card list">
+        <div class="item done"><span class="ok"><i data-ic="check" data-size="16" data-stroke="3"></i></span><div class="grow t-body">Falar com a Laís</div></div>
+        <div class="item done"><span class="ok"><i data-ic="check" data-size="16" data-stroke="3"></i></span><div class="grow t-body">Dar comida ao Tiro</div></div>
+        <div class="item later"><span class="ok" style="background:var(--sunken);color:var(--ink2)"><i data-ic="lock" data-size="15"></i></span><div class="grow t-body">Cozinhar um petisco</div></div>
+      </div>
+      <div class="ghost">História completa <i data-ic="chev" data-size="16" style="display:inline"></i></div>
+    </div>
+
+    <!-- Personagens: uma linha por missão ativa; pronta sobe -->
+    <div class="pane personagens">
+      <div class="card list">
+        <div class="item ready"><div class="npc sm"><img class="px" src="../../../../game/assets/sprites/characters/npc_bloblo/portrait.png"></div>
+          <div class="grow"><div class="t-body">Ovos para o bolo</div><div class="meta t-cap"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_egg.png"><span style="color:var(--go-ink)">6/6</span></div></div>
+          <span class="btn sm go">Pegar</span></div>
+        <div class="item"><div class="npc sm"><img class="px" src="../../../../game/assets/sprites/characters/npc_nina/portrait.png"></div>
+          <div class="grow"><div class="t-body">Primeiro passeio</div><div class="meta t-cap"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_walk.png">0/1</div></div>
+          <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+15</span></span><span class="chev"><i data-ic="chev"></i></span></div>
+        <div class="item"><div class="npc sm"><img class="px" src="../../../../game/assets/sprites/characters/npc_merchant/portrait.png"></div>
+          <div class="grow"><div class="t-body">Primeira venda</div><div class="meta t-cap"><img class="px" src="../../../../game/assets/sprites/ui/icons/station_stall.png">0/1</div></div>
+          <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+10</span></span><span class="chev"><i data-ic="chev"></i></span></div>
+        <div class="item"><div class="npc sm"><img class="px" src="../../../../game/assets/sprites/characters/npc_lais/portrait.png"></div>
+          <div class="grow"><div class="t-body">Fotos do álbum</div><div class="meta t-cap"><img class="px" src="../../../../game/assets/sprites/ui/icons/album_story.png">1/3</div></div>
+          <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+12</span></span><span class="chev"><i data-ic="chev"></i></span></div>
+      </div>
+      <!-- linha expandida (toque na linha) -->
+      <div class="sec"><span class="t-over grow">Tocar na linha abre o detalhe</span></div>
+      <div class="card" style="padding:12px">
+        <div class="row" style="gap:10px"><div class="npc sm"><img class="px" src="../../../../game/assets/sprites/characters/npc_nina/portrait.png"></div>
+          <div class="grow t-strong">Primeiro passeio</div><span class="chev" style="transform:rotate(90deg)"><i data-ic="chev"></i></span></div>
+        <div class="row goal"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_walk.png"><div class="grow"><div class="t-body">Passear na Praça</div><div class="bar" style="margin-top:4px"><i style="width:2%"></i></div></div><span class="num" style="font-size:16px">0/1</span></div>
+        <div class="row" style="gap:6px;margin-top:10px"><span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+15</span></span><span class="grow"></span><span class="icon-btn sm"><i data-ic="help" data-size="18"></i></span><span class="btn sm soft">Ir <i data-ic="arrow" data-size="18"></i></span></div>
+      </div>
+    </div>
+
+    <!-- Diárias: Hoje + Semana -->
+    <div class="pane diarias">
+      <div class="sec" style="margin-top:0"><span class="t-over grow">Hoje</span><span class="chip time"><i data-ic="clock" data-size="16"></i><span class="num">3 h 19</span></span></div>
+      <div class="card list">
+        <div class="item ready"><div class="ringbox mini" data-ring="44,4,1,#2B9946,#D4EEDA"><img class="px" src="../../../../game/assets/sprites/ui/icons/station_stove.png"></div>
+          <div class="grow"><div class="t-body">Cozinhar 3 receitas</div><div class="t-cap" style="color:var(--go-ink)">3/3</div></div><span class="btn sm go">Pegar</span></div>
+        <div class="item"><div class="ringbox mini" data-ring="44,4,0.6,#3E9FE4"><img class="px" src="../../../../game/assets/sprites/ui/icons/tool_sickle.png"></div>
+          <div class="grow"><div class="t-body">Colher 10 vezes</div><div class="t-cap">6/10</div></div>
+          <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+8</span></span><span class="chev"><i data-ic="chev"></i></span></div>
+        <div class="item"><div class="ringbox mini" data-ring="44,4,0.02,#3E9FE4"><img class="px" src="../../../../game/assets/sprites/ui/icons/station_stall.png"></div>
+          <div class="grow"><div class="t-body">Entregar 2 encomendas</div><div class="t-cap">0/2</div></div>
+          <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+12</span></span><span class="chev"><i data-ic="chev"></i></span></div>
+      </div>
+      <div class="sec"><span class="t-over grow">Semana</span><span class="chip time"><i data-ic="clock" data-size="16"></i><span class="num">6 d 3 h</span></span></div>
+      <div class="card list">
+        <div class="item"><div class="ringbox mini" data-ring="44,4,0.33,#3E9FE4"><img class="px" src="../../../../game/assets/sprites/ui/icons/station_stall.png"></div>
+          <div class="grow"><div class="t-body">Freguês fiel</div><div class="t-cap">2/6</div></div>
+          <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+30</span></span><span class="chev"><i data-ic="chev"></i></span></div>
+        <div class="item"><div class="ringbox mini" data-ring="44,4,0.5,#3E9FE4"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_pumpkin.png"></div>
+          <div class="grow"><div class="t-body">Grande colheita</div><div class="t-cap">20/40</div></div>
+          <span class="chip prize"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png"><span class="num">+40</span></span><span class="chev"><i data-ic="chev"></i></span></div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="tabbar" data-active="tasks" data-badges="map:4,tasks:2"></nav>
+</div>
+<script src="proto.js"></script>
+<script>
+  const t = location.hash.slice(1) || 'historia';
+  document.body.className = 't-' + t;
+  document.querySelectorAll('.seg .opt').forEach((o) => o.classList.toggle('on', o.dataset.t === t));
+  document.getElementById('claimall').style.display = t === 'historia' ? 'none' : '';
+  if (t === 'diarias') document.getElementById('claimall').style.display = 'none';
+</script>
+</body></html>

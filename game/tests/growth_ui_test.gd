@@ -123,7 +123,7 @@ func _run() -> void:
 	helper.call("open", "growth_req", "pillars")
 	await frames()
 	var care_sheet := main.find_child("Sheet", true, false)
-	check(text(care_sheet, "0/2 momentos"), "carinho mostra momentos de Coragem")
+	check(text(care_sheet, "0/3 momentos"), "carinho mostra momentos de Coragem")
 	check(text(care_sheet, "Faça carinho"), "explica a ação que ainda falta")
 	check(care_sheet.find_child("GrowthCare_body", true, false) == null and care_sheet.find_child("GrowthCare_brave", true, false) != null, "Corpo pertence às refeições e não é cobrado nos cuidados")
 	check(primary(care_sheet) == 1, "uma ação principal nos cuidados")

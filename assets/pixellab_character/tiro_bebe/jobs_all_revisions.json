@@ -1,0 +1,597 @@
+[
+  {
+    "name": "sad",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "sad",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Sitting sadly, ears drooping, head slightly lowered, softly whimpering with little mouth movements and sad eyes. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Sitting sadly, ears drooping, head slightly lowered, softly whimpering with little mouth movements and sad eyes. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=518b72f2-1bea-47fb-91da-9d91cc18b191\ngroup: 912e7a2b-6cc6-42ca-9a81-2f99e8ff3448\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Sitting sadly, ears drooping, head slightly lowered, softly whimpering with little mouth movements and sad eyes. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"912e7a2b-6cc6-42ca-9a81-2f99e8ff3448\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "sleep",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "sleep",
+      "directions": [
+        "south"
+      ],
+      "mode": "pixminimax",
+      "frame_count": 16,
+      "action_description": "Starting seated, slowly lie down on belly, front paws forward, rest chin on front paws, close eyes and sleep peacefully with gentle breathing. End fully lying asleep. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: pixminimax custom (Starting seated, slowly lie down on belly, front paws forward, rest chin on front paws, close eyes and sleep peacefully with gentle breathing. End fully lying asleep. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=589fac62-6be0-4b4a-ad70-56c650e9a362\ngroup: cbb7e406-bd36-49a8-a882-26862a441eca\nframes: 17 (1 reference + 16 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 2 generations (2/dir x 1)\neta: ~2 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Starting seated, slowly lie down on belly, front paws forward, rest chin on front paws, close eyes and sleep peacefully with gentle breathing. End fully lying asleep. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", mode=\"pixminimax\", animation_group_id=\"cbb7e406-bd36-49a8-a882-26862a441eca\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "shake_off",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "shake_off",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Sitting or standing in place, shake whole body vigorously side to side to dry off, ears and fur wobble then settle. Dry dog, no water droplets. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Sitting or standing in place, shake whole body vigorously side to side to dry off, ears and fur wobble then settle. Dry dog, no water droplets. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=93e80abe-584e-4f30-a818-c7f93094c3e7\ngroup: 79b8aa73-797d-4625-be21-11d75fde028a\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Sitting or standing in place, shake whole body vigorously side to side to dry off, ears and fur wobble then settle. Dry dog, no water droplets. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"79b8aa73-797d-4625-be21-11d75fde028a\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "wag_excited",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "wag_excited",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Sitting excitedly, tail wagging rapidly side to side, whole seated body gently wiggling with happy anticipation. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Sitting excitedly, tail wagging rapidly side to side, whole seated body gently wiggling with happy anticipation. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=9aa1f89f-8940-4aca-9aa9-aecc4699a3dc\ngroup: 3f9555ab-11c5-4a0b-83fe-5b37636c02c7\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Sitting excitedly, tail wagging rapidly side to side, whole seated body gently wiggling with happy anticipation. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"3f9555ab-11c5-4a0b-83fe-5b37636c02c7\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "pet_head",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "pet_head",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Sitting and enjoying a gentle head pet, eyes closing happily, head dipping slightly and leaning into the touch. No visible human or hand. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Sitting and enjoying a gentle head pet, eyes closing happily, head dipping slightly and leaning into the touch. No visible human or hand. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=ae1566ee-d50f-4d0a-9423-a6c769d17bdb\ngroup: 65836ea2-d081-4ce7-91a8-4947f3f933d9\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Sitting and enjoying a gentle head pet, eyes closing happily, head dipping slightly and leaning into the touch. No visible human or hand. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"65836ea2-d081-4ce7-91a8-4947f3f933d9\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "pet_paw",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "pet_paw",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Sitting with ticklish front paws, alternately lifting one front paw and drawing it toward chest, toes wiggling, happy little reaction. No visible human or hand. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Sitting with ticklish front paws, alternately lifting one front paw and drawing it toward chest, toes wiggling, happy little reaction. No visible human or hand. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=5c294009-2d49-4420-a00e-ae9bfe598653\ngroup: 8100fad9-6adb-4149-b4e9-71746d125219\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Sitting with ticklish front paws, alternately lifting one front paw and drawing it toward chest, toes wiggling, happy little reaction. No visible human or hand. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"8100fad9-6adb-4149-b4e9-71746d125219\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "bark",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "bark",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Sitting and barking happily, mouth opens and closes in short barks, head bobs gently, paws stay planted. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Sitting and barking happily, mouth opens and closes in short barks, head bobs gently, paws stay planted. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=4ef15c57-c7ef-45f0-a4a5-9cfa761a3843\ngroup: 912316e0-5ea2-4bab-a636-13d9fa780324\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Sitting and barking happily, mouth opens and closes in short barks, head bobs gently, paws stay planted. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"912316e0-5ea2-4bab-a636-13d9fa780324\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "chase_tail",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "chase_tail",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Playfully chase own tail with one full turn in place, showing side and back briefly during rotation, ending facing viewer again. Keep body centered. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Playfully chase own tail with one full turn in place, showing side and back briefly during rotation, ending facing viewer again. Keep body centered. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=d04574f6-4504-47ed-b458-c7c6c95feb5e\ngroup: 8eedaf51-4fc5-46f0-97b5-6f0e037d6c2c\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Playfully chase own tail with one full turn in place, showing side and back briefly during rotation, ending facing viewer again. Keep body centered. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"8eedaf51-4fc5-46f0-97b5-6f0e037d6c2c\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "head_tilt",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "head_tilt",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Remain seated, tilt head curiously to one side, hold a moment, then straighten. Keep body still. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Remain seated, tilt head curiously to one side, hold a moment, then straighten. Keep body still. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=3491abfc-b580-48fe-af44-0f3328456e6d\ngroup: 192329c7-0a1f-4eff-9d69-c7257c16cc78\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Remain seated, tilt head curiously to one side, hold a moment, then straighten. Keep body still. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"192329c7-0a1f-4eff-9d69-c7257c16cc78\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "scratch",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "scratch",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Sitting, lift one hind paw to scratch behind ear repeatedly, head tilts toward scratching paw, then lower leg. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Sitting, lift one hind paw to scratch behind ear repeatedly, head tilts toward scratching paw, then lower leg. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=cccf4ff1-237e-49cb-9e79-e24226f1fde9\ngroup: 808f6a0a-947f-4bef-af8e-fa2d7ef75214\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Sitting, lift one hind paw to scratch behind ear repeatedly, head tilts toward scratching paw, then lower leg. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"808f6a0a-947f-4bef-af8e-fa2d7ef75214\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "yawn",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "yawn",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Remain seated, yawn widely with mouth gradually opening and tongue visible, eyes squinting, then close mouth sleepily. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Remain seated, yawn widely with mouth gradually opening and tongue visible, eyes squinting, then close mouth sleepily. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=b6b799e0-64dd-418b-8514-9aa85c188ceb\ngroup: c0feb50f-be9c-42c6-b535-2c2904d9df46\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Remain seated, yawn widely with mouth gradually opening and tongue visible, eyes squinting, then close mouth sleepily. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"c0feb50f-be9c-42c6-b535-2c2904d9df46\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "sniff",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "sniff",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Remain seated, sniff the air with nose twitching, lift muzzle slightly, subtle nostril and head movements. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Remain seated, sniff the air with nose twitching, lift muzzle slightly, subtle nostril and head movements. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=20a36e7b-aa3d-42d3-9dc0-008ff4c8f500\ngroup: b96851e5-510d-48de-980e-883c91e6d529\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Remain seated, sniff the air with nose twitching, lift muzzle slightly, subtle nostril and head movements. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"b96851e5-510d-48de-980e-883c91e6d529\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "stretch",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "stretch",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Starting seated, extend front paws forward into a deep puppy bow, chest lowered and hindquarters raised, then return seated. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Starting seated, extend front paws forward into a deep puppy bow, chest lowered and hindquarters raised, then return seated. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=d5a87b15-e8f8-48e6-958c-880c3b4c4295\ngroup: bbdfb08f-6e8d-4cec-bc1e-8f927f87c2aa\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Starting seated, extend front paws forward into a deep puppy bow, chest lowered and hindquarters raised, then return seated. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"bbdfb08f-6e8d-4cec-bc1e-8f927f87c2aa\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "look_around",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "look_around",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Remain seated, slowly look left then right then slightly upward with curious eyes, body and paws remain still. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Remain seated, slowly look left then right then slightly upward with curious eyes, body and paws remain still. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=b01ed2cd-a29f-46fe-8a87-1d0aaebc4a99\ngroup: 99c5ee10-a670-451f-8e52-556036aff3b0\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Remain seated, slowly look left then right then slightly upward with curious eyes, body and paws remain still. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"99c5ee10-a670-451f-8e52-556036aff3b0\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "lick_paw",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "lick_paw",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Remain seated, raise one front paw to mouth, lower head and lick paw repeatedly with small pink tongue, then lower paw. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Remain seated, raise one front paw to mouth, lower head and lick paw repeatedly with small pink tongue, then lower paw. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=1d8b03a9-4c40-4f13-a6e6-b1f0eec21067\ngroup: 5cb29e7d-64cb-4118-9d0b-136b3691b34c\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Remain seated, raise one front paw to mouth, lower head and lick paw repeatedly with small pink tongue, then lower paw. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"5cb29e7d-64cb-4118-9d0b-136b3691b34c\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "sleep_belly",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "sleep_belly",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Continue lying flat on its back with belly facing up, head resting sideways on floor, paws loosely curled above belly, eyes fully closed asleep. Remain supine, never sit or stand, very subtle breathing. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.",
+      "custom_start_frame_url": "https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/7d279cc5-42dc-4ee5-ac44-234ecb647768/south/16.png?t=1792866822902"
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Continue lying flat on its back with belly facing up, head resting sideways on floor, paws loosely curled above belly, eyes fully closed asleep. Remain supine, never sit or stand, very subtle breathing. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=1f0fb1c9-872d-4cfb-aae2-e3d487cd5f07\ngroup: 665daa3f-6cc0-4ceb-9afb-b43926c727e8\nframes: 9 (1 reference + 8 animated)\ncanvas: south 228x216 (generated at this size; with custom frames the stored canvas is re-measured around the motion)\ncost: 7 generations (7/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Continue lying flat on its back with belly facing up, head resting sideways on floor, paws loosely curled above belly, eyes fully closed asleep. Remain supine, never sit or stand, very subtle breathing. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"665daa3f-6cc0-4ceb-9afb-b43926c727e8\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "pet_head_v2",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "pet_head_v2",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Only the puppy is visible. Seated puppy closes eyes, smiles and gently lowers forehead as if relaxing into an invisible caress. Paws planted, soft floppy ears remain folded down. EMPTY transparent space around puppy. Absolutely no hand, arm, human or extra object in any frame. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Only the puppy is visible. Seated puppy closes eyes, smiles and gently lowers forehead as if relaxing into an invisible caress. Paws planted, soft floppy ears remain folded down. EMPTY transparent space around puppy. Absolutely no hand, arm, human or extra object in any frame. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=2f7c07cf-c817-4403-8ed0-5912b56d49a7\ngroup: 69624ea5-a35c-4f1f-aedf-4b5b68e20421\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Only the puppy is visible. Seated puppy closes eyes, smiles and gently lowers forehead as if relaxing into an invisible caress. Paws planted, soft floppy ears remain folded down. EMPTY transparent space around puppy. Absolutely no hand, arm, human or extra object in any frame. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"69624ea5-a35c-4f1f-aedf-4b5b68e20421\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "scratch_v2",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "scratch_v2",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "The seated puppy leans head left and uses its own LEFT HIND FOOT to rapidly rub the side of its neck just behind its floppy ear, then returns foot to floor. Keep both front paws grounded. Preserve the starting puppy's short folded floppy ears and plain tail, all markings identical. Absolutely no white marks anywhere outside the dog. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (The seated puppy leans head left and uses its own LEFT HIND FOOT to rapidly rub the side of its neck just behind its floppy ear, then returns foot to floor. Keep both front paws grounded. Preserve the starting puppy's short folded floppy ears and plain tail, all markings identical. Absolutely no white marks anywhere outside the dog. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=4d74c983-20a4-4c25-9133-746efd095cca\ngroup: 8f8e1119-cde1-4399-a341-582ebe117e5e\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"The seated puppy leans head left and uses its own LEFT HIND FOOT to rapidly rub the side of its neck just behind its floppy ear, then returns foot to floor. Keep both front paws grounded. Preserve the starting puppy's short folded floppy ears and plain tail, all markings identical. Absolutely no white marks anywhere outside the dog. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"8f8e1119-cde1-4399-a341-582ebe117e5e\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "shake_off_v2",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "shake_off_v2",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "The exact same small floppy-eared puppy remains seated and rapidly twists head and shoulders left-right-left-right to shake its fur, then settles. Ears remain short soft drooping triangular folds; never long, pointed or erect. Fur moves only within its outline, no droplets or drawn effects. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (The exact same small floppy-eared puppy remains seated and rapidly twists head and shoulders left-right-left-right to shake its fur, then settles. Ears remain short soft drooping triangular folds; never long, pointed or erect. Fur moves only within its outline, no droplets or drawn effects. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=d35573c9-eb1b-40cc-a5df-fc03cc25157d\ngroup: 0cb54fda-8ce3-4cad-97cf-d53b44d3a79f\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"The exact same small floppy-eared puppy remains seated and rapidly twists head and shoulders left-right-left-right to shake its fur, then settles. Ears remain short soft drooping triangular folds; never long, pointed or erect. Fur moves only within its outline, no droplets or drawn effects. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"0cb54fda-8ce3-4cad-97cf-d53b44d3a79f\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "head_tilt_v2",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "head_tilt_v2",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Seated puppy with both front paws planted. Tilt the entire head sideways clearly 25 degrees so LEFT EAR is LOWER than right ear, nose stays facing camera, neck bends sideways; then return head upright. This is a sideways head roll, NOT turning to look sideways. Same short floppy ears as reference. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Seated puppy with both front paws planted. Tilt the entire head sideways clearly 25 degrees so LEFT EAR is LOWER than right ear, nose stays facing camera, neck bends sideways; then return head upright. This is a sideways head roll, NOT turning to look sideways. Same short floppy ears as reference. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=9103e277-b8f5-4425-8f15-b405fdf36e64\ngroup: 6c37ba2c-059f-4e97-8b3e-3c84a280c3e6\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Seated puppy with both front paws planted. Tilt the entire head sideways clearly 25 degrees so LEFT EAR is LOWER than right ear, nose stays facing camera, neck bends sideways; then return head upright. This is a sideways head roll, NOT turning to look sideways. Same short floppy ears as reference. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"6c37ba2c-059f-4e97-8b3e-3c84a280c3e6\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "chase_tail_v2",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "chase_tail_v2",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Puppy rises onto all four paws, curls body toward its own tail and makes a complete 360 degree spin IN PLACE chasing tail. Frames show front then left profile then BACK OF HEAD AND BACK then right profile then front again. Four short dog legs on ground, never bipedal. Tail short and plain dark with tan tip, no stripes. Preserve floppy ears and puppy identity. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Puppy rises onto all four paws, curls body toward its own tail and makes a complete 360 degree spin IN PLACE chasing tail. Frames show front then left profile then BACK OF HEAD AND BACK then right profile then front again. Four short dog legs on ground, never bipedal. Tail short and plain dark with tan tip, no stripes. Preserve floppy ears and puppy identity. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=a52f83c9-eb60-4e82-ac62-e698e028b800\ngroup: 08c63b1b-8817-4f80-bfa9-2ffbc4740e90\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Puppy rises onto all four paws, curls body toward its own tail and makes a complete 360 degree spin IN PLACE chasing tail. Frames show front then left profile then BACK OF HEAD AND BACK then right profile then front again. Four short dog legs on ground, never bipedal. Tail short and plain dark with tan tip, no stripes. Preserve floppy ears and puppy identity. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"08c63b1b-8817-4f80-bfa9-2ffbc4740e90\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "sleep_v2",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "sleep_v2",
+      "directions": [
+        "south"
+      ],
+      "mode": "pixminimax",
+      "frame_count": 16,
+      "action_description": "Same floppy-eared puppy starts sitting FRONT VIEW. Slowly slide both front paws forward, lower chest straight down, tuck back legs underneath, rest chin between front paws and close eyes. END asleep belly-down facing viewer directly with body behind head and nose centered. Calm natural breathing. Absolutely empty transparent background in every frame, no drawn marks of any color. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: pixminimax custom (Same floppy-eared puppy starts sitting FRONT VIEW. Slowly slide both front paws forward, lower chest straight down, tuck back legs underneath, rest chin between front paws and close eyes. END asleep belly-down facing viewer directly with body behind head and nose centered. Calm natural breathing. Absolutely empty transparent background in every frame, no drawn marks of any color. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=c713297f-3bdf-4efd-a358-129cd4b3b281\ngroup: 66acb112-b38b-46fe-b770-724ab05d488d\nframes: 17 (1 reference + 16 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 2 generations (2/dir x 1)\neta: ~2 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Same floppy-eared puppy starts sitting FRONT VIEW. Slowly slide both front paws forward, lower chest straight down, tuck back legs underneath, rest chin between front paws and close eyes. END asleep belly-down facing viewer directly with body behind head and nose centered. Calm natural breathing. Absolutely empty transparent background in every frame, no drawn marks of any color. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", mode=\"pixminimax\", animation_group_id=\"66acb112-b38b-46fe-b770-724ab05d488d\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "sniff_v2",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "sniff_v2",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "A small puppy SMELLING THE AIR silently, nose pointing upward and nostrils twitching. Mouth stays CLOSED, no sneezing, no exhaling, no breath cloud. Seated, paws on floor. Only dark charcoal and tan puppy pixels, empty transparent space around nose, no yellow or white decorations. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (A small puppy SMELLING THE AIR silently, nose pointing upward and nostrils twitching. Mouth stays CLOSED, no sneezing, no exhaling, no breath cloud. Seated, paws on floor. Only dark charcoal and tan puppy pixels, empty transparent space around nose, no yellow or white decorations. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=7c4e5aad-9188-423d-8454-0cc211b32322\ngroup: bfc1559e-e1a8-4636-9195-43ad62a9fc26\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"A small puppy SMELLING THE AIR silently, nose pointing upward and nostrils twitching. Mouth stays CLOSED, no sneezing, no exhaling, no breath cloud. Seated, paws on floor. Only dark charcoal and tan puppy pixels, empty transparent space around nose, no yellow or white decorations. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"bfc1559e-e1a8-4636-9195-43ad62a9fc26\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "look_around_v2",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "look_around_v2",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Seated puppy keeps chest facing viewer and rotates head toward its left so its NOSE POINTS LEFT in profile. Then head rotates to the right so NOSE POINTS RIGHT in profile. Then looks upward and returns to front. Clear neck turning, curious dark eyes stay open throughout. All paws grounded. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Seated puppy keeps chest facing viewer and rotates head toward its left so its NOSE POINTS LEFT in profile. Then head rotates to the right so NOSE POINTS RIGHT in profile. Then looks upward and returns to front. Clear neck turning, curious dark eyes stay open throughout. All paws grounded. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=1a1ed78e-66de-4fd7-9893-5521a4be1fb6\ngroup: fac38497-82af-4a64-9f10-f085118ddfd5\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Seated puppy keeps chest facing viewer and rotates head toward its left so its NOSE POINTS LEFT in profile. Then head rotates to the right so NOSE POINTS RIGHT in profile. Then looks upward and returns to front. Clear neck turning, curious dark eyes stay open throughout. All paws grounded. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"fac38497-82af-4a64-9f10-f085118ddfd5\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "chase_tail_v3",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "chase_tail_v3",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Spinning around in a tight circle chasing its own tail, playful puppy turning its whole body through side, back, other side, and front views. Remain quadrupedal, turning on all four feet. One complete circular spin. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Spinning around in a tight circle chasing its own tail, playful puppy turning its whole body through side, back, other side, and front views. Remain quadrupedal, turning on all four feet. One complete circular spin. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=32199550-2244-44c5-92ca-617fd811de8a\ngroup: e6ac4e21-9903-4f4b-a260-d37c9e5beb36\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Spinning around in a tight circle chasing its own tail, playful puppy turning its whole body through side, back, other side, and front views. Remain quadrupedal, turning on all four feet. One complete circular spin. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"e6ac4e21-9903-4f4b-a260-d37c9e5beb36\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "head_tilt_v3",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "head_tilt_v3",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Tilting its head sideways inquisitively, left ear lower, right ear higher, nose and eyes pointing at viewer. Head angled diagonally like a curious listening puppy. Head tilts left, then returns upright. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Tilting its head sideways inquisitively, left ear lower, right ear higher, nose and eyes pointing at viewer. Head angled diagonally like a curious listening puppy. Head tilts left, then returns upright. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=97fbcb53-3b42-4a9c-9c29-6e92ca75529d\ngroup: 4ed212d2-faa8-40d4-bb92-be81c399b64b\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Tilting its head sideways inquisitively, left ear lower, right ear higher, nose and eyes pointing at viewer. Head angled diagonally like a curious listening puppy. Head tilts left, then returns upright. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"4ed212d2-faa8-40d4-bb92-be81c399b64b\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  },
+  {
+    "name": "scratch_v3",
+    "args": {
+      "character_id": "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+      "animation_name": "scratch_v3",
+      "directions": [
+        "south"
+      ],
+      "mode": "v3",
+      "frame_count": 8,
+      "action_description": "Scratching behind its ear with a hind leg. Sitting dog leans to one side while back foot rubs ear rapidly. Two front feet stay on floor. The back foot reaches behind the ear. Same black and tan floppy-eared baby dog. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing."
+    },
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "character: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9\nanimation: v3 custom (Scratching behind its ear with a hind leg. Sitting dog leans to one side while back foot rubs ear rapidly. Two front feet stay on floor. The back foot reaches behind the ear. Same black and tan floppy-eared baby dog. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.)\ndirections: south (1 jobs)\njob_ids: south=876ea358-2940-40af-a90d-9f463f462f6d\ngroup: 5b6fd60b-1e27-4d22-8d29-b4c778842630\nframes: 9 (1 reference + 8 animated)\ncanvas: south 216x216 (frames are stored at this size: the character plus room to move)\ncost: 6 generations (6/dir x 1)\neta: ~2-4 min/direction\n\nhint: get_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\")\nadd more directions to this group: animate_character(character_id=\"3ecaecbe-a058-41cc-926c-084bfbb7a3a9\", action_description=\"Scratching behind its ear with a hind leg. Sitting dog leans to one side while back foot rubs ear rapidly. Two front feet stay on floor. The back foot reaches behind the ear. Same black and tan floppy-eared baby dog. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles, no props unless stated. Fixed camera, stay in place, front-facing.\", animation_group_id=\"5b6fd60b-1e27-4d22-8d29-b4c778842630\", directions=[...])"
+        }
+      ],
+      "isError": false
+    }
+  }
+]

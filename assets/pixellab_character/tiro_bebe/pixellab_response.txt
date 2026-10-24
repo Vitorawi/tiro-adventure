@@ -1,0 +1,33 @@
+status: completed
+id: 3ecaecbe-a058-41cc-926c-084bfbb7a3a9
+name: Tiro bebê — Filhotinho (teste character)
+state_name: Idle
+directions: 8 (south, east, north, west, south-east, north-east, north-west, south-west)
+size: 160x160px
+view: side
+style: -, -, -
+group: 0688fd7b-d168-4174-8854-ca0bdb5edb55 (1 state)
+
+rotations:
+  south: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/south.png?t=1792864686
+  east: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/east.png?t=1792864686
+  north: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/north.png?t=1792864686
+  west: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/west.png?t=1792864686
+  south-east: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/south-east.png?t=1792864686
+  north-east: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/north-east.png?t=1792864686
+  north-west: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/north-west.png?t=1792864686
+  south-west: https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/rotations/south-west.png?t=1792864686
+
+animations: none
+
+pending jobs (1):
+  8-directions: 95% ~60s
+
+download: https://api.pixellab.ai/mcp/characters/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/download
+spritesheet: https://api.pixellab.ai/mcp/characters/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/spritesheet (this state only — one uniform-grid sheet PNG + layout JSON, zipped; cells pivot-centred)
+  (returns HTTP 423 until jobs complete — use curl --fail)
+
+available_animations: bark, fast-walk, idle, running-4-frames, running-6-frames, running-8-frames, sneaking, walk-4-frames, walk-6-frames, walk-8-frames
+
+actions: animate_character(character_id="3ecaecbe-a058-41cc-926c-084bfbb7a3a9", ...) | create_character_state(character_id="3ecaecbe-a058-41cc-926c-084bfbb7a3a9", ...) | delete_character(character_id="3ecaecbe-a058-41cc-926c-084bfbb7a3a9")
+hint: animate_character(character_id="3ecaecbe-a058-41cc-926c-084bfbb7a3a9", template_animation_id="bark")

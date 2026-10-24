@@ -1,0 +1,104 @@
+/* Protótipo da Interface 2 ("aconchego moderno"). Só para aprovação visual; não é código do jogo.
+   Os valores aqui são os mesmos da 01_BIBLIA_VISUAL.md. */
+@font-face { font-family: "Fredoka"; src: url("fonts/Fredoka.ttf"); font-weight: 300 700; }
+@font-face { font-family: "Nunito"; src: url("fonts/Nunito.ttf"); font-weight: 200 1000; }
+
+:root {
+  /* 60% neutro */
+  --paper: #FFF8EE;      /* fundo das telas e das folhas */
+  --card: #FFFFFF;       /* superfície elevada */
+  --sunken: #F6EDE0;     /* afundado: trilho, chip, espaço vazio */
+  --line: #EEE2D1;       /* divisória fina */
+  /* 30% tinta */
+  --ink: #3A2A1F;
+  --ink2: #745E4D;
+  --ink3: #BCA894;
+  /* 10% destaque, um significado por cor */
+  --go: #2B9946;  --go-edge: #1F7A37; --go-ink: #23783A;  --go-soft: #E7F6EA;   /* fazer / pronto */
+  --honey: #FFB730; --honey-edge: #E2961A; --honey-soft: #FFF1D3; --honey-ink: #8C5800; /* prêmio, moeda, crescimento */
+  --alert: #E5483C;                                          /* pede atenção / falta */
+  --sky: #3E9FE4; --sky-soft: #E2F1FC;                        /* tempo, progresso, água */
+  --shadow: 0 6px 18px rgba(110, 70, 30, .13), 0 1px 3px rgba(110, 70, 30, .10);
+  --shadow-sm: 0 2px 8px rgba(110, 70, 30, .12);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 360px; height: 780px; overflow: hidden; background: var(--paper); }
+body { font-family: "Nunito", sans-serif; font-weight: 700; font-size: 15px; line-height: 20px; color: var(--ink);
+  -webkit-font-smoothing: antialiased; }
+img.px { image-rendering: pixelated; display: block; }
+svg.ic { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; display: block; }
+
+/* Tipografia: 4 tamanhos, 2 famílias, 2 pesos */
+.t-title { font-family: "Fredoka"; font-weight: 600; font-size: 24px; line-height: 28px; }
+.t-strong { font-family: "Fredoka"; font-weight: 600; font-size: 18px; line-height: 22px; }
+.t-body { font-family: "Nunito"; font-weight: 700; font-size: 15px; line-height: 20px; }
+.t-cap { font-family: "Nunito"; font-weight: 800; font-size: 12px; line-height: 16px; color: var(--ink2); }
+.t-over { font-family: "Nunito"; font-weight: 800; font-size: 12px; line-height: 16px; letter-spacing: .06em; text-transform: uppercase; color: var(--ink2); }
+.num { font-family: "Fredoka"; font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.screen { position: relative; width: 360px; height: 780px; overflow: hidden; }
+.abs { position: absolute; }
+.row { display: flex; align-items: center; }
+.col { display: flex; flex-direction: column; }
+.grow { flex: 1; min-width: 0; }
+
+/* ---------- HUD ---------- */
+.hud { position: absolute; left: 12px; right: 12px; top: 10px; display: flex; align-items: flex-start; gap: 8px; z-index: 20; }
+.avatar { position: relative; width: 58px; height: 58px; border-radius: 50%; background: var(--card); box-shadow: var(--shadow); }
+.avatar svg.ring { position: absolute; inset: 0; width: 58px; height: 58px; transform: rotate(-90deg); }
+.avatar img { position: absolute; left: 9px; top: 9px; width: 40px; height: 40px; border-radius: 50%; }
+.avatar .ask { position: absolute; right: -4px; bottom: -2px; width: 24px; height: 24px; border-radius: 50%; background: var(--card); box-shadow: var(--shadow-sm); display: grid; place-items: center; }
+.profile { margin-top: 7px; background: var(--card); border-radius: 22px; box-shadow: var(--shadow); padding: 5px 12px 6px 12px; min-width: 104px; }
+.profile .bar { height: 6px; border-radius: 3px; background: var(--sunken); margin-top: 3px; overflow: hidden; }
+.profile .bar i { display: block; height: 100%; border-radius: 3px; background: var(--honey); }
+.pill { height: 40px; border-radius: 20px; background: var(--card); box-shadow: var(--shadow); display: flex; align-items: center; gap: 6px; padding: 0 14px 0 8px; }
+.icon-btn { width: 40px; height: 40px; border-radius: 50%; background: var(--card); box-shadow: var(--shadow); display: grid; place-items: center; color: var(--ink2); }
+.icon-btn.sm { width: 32px; height: 32px; box-shadow: none; background: var(--sunken); }
+
+/* ---------- Abas: base presa ao rodapé (não flutua) ---------- */
+:root { --base-glass: rgba(251, 241, 226, .92); --base: #FBF1E2; --base-line: #EFE0CB; --tab-on: #FFE2A6; --tab-label: #745E4D; --tab-label-on: #3A2A1F; }
+body.nav-dark { --base-glass: #4A3426; --base: #4A3426; --base-line: #5C4331; --tab-on: #6E4E38; --tab-label: #CDB59B; --tab-label-on: #FFD27A; }
+.tabbar { position: absolute; left: 0; right: 0; bottom: 0; height: 84px; padding: 8px 6px 14px; background: var(--base-glass, var(--base));
+  border-radius: 24px 24px 0 0; box-shadow: 0 -4px 18px rgba(110, 70, 30, .10); display: flex; z-index: 20; }
+.tabbar.joined { border-radius: 0; box-shadow: none; border-top: 1px solid var(--base-line); }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; position: relative; }
+.tab .ico { position: relative; width: 60px; height: 38px; border-radius: 19px; display: grid; place-items: center; }
+.tab .ico img { width: 32px; height: 32px; }
+.tab .l { font-family: "Nunito"; font-weight: 800; font-size: 12px; line-height: 16px; color: var(--tab-label); }
+.tab.on .ico { background: var(--tab-on); }
+.tab.on .l { color: var(--tab-label-on); }
+.badge { position: absolute; min-width: 20px; height: 20px; border-radius: 10px; background: var(--alert); color: #fff; border: 2px solid var(--card);
+  font-family: "Fredoka"; font-weight: 600; font-size: 12px; line-height: 16px; text-align: center; padding: 0 5px; }
+.tab .badge { right: 4px; top: -5px; border-color: var(--base); }
+.dot { position: absolute; width: 12px; height: 12px; border-radius: 50%; background: var(--alert); border: 2px solid var(--card); }
+
+/* ---------- Botões ---------- */
+.btn { height: 44px; border-radius: 22px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 18px;
+  font-family: "Fredoka"; font-weight: 600; font-size: 18px; white-space: nowrap; }
+.btn.go { background: var(--go); color: #fff; box-shadow: 0 3px 0 var(--go-edge), 0 6px 14px rgba(31, 122, 55, .25); }
+.btn.soft { background: var(--sunken); color: var(--ink); }
+.btn.sm { height: 36px; border-radius: 18px; padding: 0 14px; font-size: 16px; }
+.btn.sm.go { box-shadow: 0 2px 0 var(--go-edge), 0 4px 10px rgba(31, 122, 55, .22); }
+.chev { color: var(--ink3); }
+
+/* ---------- Cartões, chips, linhas ---------- */
+.card { background: var(--card); border-radius: 20px; box-shadow: var(--shadow); }
+.chip { height: 28px; border-radius: 14px; background: var(--sunken); display: inline-flex; align-items: center; gap: 4px; padding: 0 10px 0 4px; }
+.chip img { width: 24px; height: 24px; }
+.chip.prize { background: var(--honey-soft); color: var(--honey-ink); }
+.chip.time { background: var(--sky-soft); color: #22679A; padding-left: 8px; }
+.chip.ok { background: var(--go-soft); color: var(--go-ink); }
+.chip.no { background: #FDE6E3; color: #B0322A; }
+.chip .num { font-size: 15px; }
+.bar { height: 8px; border-radius: 4px; background: var(--sunken); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 4px; background: var(--sky); }
+.bar.go i { background: var(--go); }
+
+/* Balão de fala */
+.bubble { position: relative; background: var(--card); border-radius: 16px; padding: 8px 12px; box-shadow: var(--shadow-sm); }
+.bubble.tail-left::before { content: ""; position: absolute; left: -7px; bottom: 12px; border: 7px solid transparent; border-right-color: var(--card); border-left: 0; }
+
+/* Anel de progresso pequeno (SVG) */
+.ringbox { position: relative; display: grid; place-items: center; }
+.ringbox > svg:first-child { position: absolute; inset: 0; transform: rotate(-90deg); }

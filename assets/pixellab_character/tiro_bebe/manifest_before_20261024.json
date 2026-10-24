@@ -1,0 +1,192 @@
+{
+    "character_id":  "3ecaecbe-a058-41cc-926c-084bfbb7a3a9",
+    "reference_character_id":  "1082c03d-9eda-41ee-a5e1-19ba1a6ccf50",
+    "direction":  "south",
+    "animations":  [
+                       {
+                           "nome":  "idle_breathe",
+                           "animation_group_id":  "9fb5ae47-0550-49b3-b3f3-fdf03593456d",
+                           "job_id":  "ce233329-6f48-4569-a751-b7cd8b75cf10",
+                           "tipo":  "custom",
+                           "modo":  "v3",
+                           "template":  null,
+                           "descricao":  "Sentado de frente, respirando suavemente.",
+                           "action_description":  "Sitting still facing the viewer, breathing gently and softly, subtle chest rise and fall. Remain seated front-facing throughout, paws planted, calm puppy. Fixed camera, no turning or walking.",
+                           "numero_frames":  9,
+                           "status":  "completed",
+                           "canvas":  [
+                                          216,
+                                          216
+                                      ],
+                           "frame_url_template":  "https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/08d84fb2-f5e8-4a65-8684-273e43b44588/south/{i}.png?t=1792866715094",
+                           "animation_id":  "08d84fb2-f5e8-4a65-8684-273e43b44588",
+                           "download_status":  "downloaded",
+                           "arquivos":  "idle_breathe/frame_00.png ... frame_08.png"
+                       },
+                       {
+                           "nome":  "eat",
+                           "animation_group_id":  "0d3130e9-9ab2-4476-8db4-0db11d15f99b",
+                           "job_id":  "a11c96ab-cfa5-4bfc-b4e0-b6210ea1d2d4",
+                           "tipo":  "custom",
+                           "modo":  "pixminimax",
+                           "template":  null,
+                           "descricao":  "Abaixa a cabeça numa tigela de ração e mastiga.",
+                           "action_description":  "The puppy leans its whole upper body forward and lowers its muzzle down into a kibble bowl DIRECTLY IN FRONT OF its front paws, centered underneath its mouth, then chews with muzzle at bowl level. Clear deep downward head bend, nose touching the food. Bowl never beside the puppy. Fixed camera, stay in place.",
+                           "numero_frames":  9,
+                           "status":  "completed",
+                           "canvas":  [
+                                          216,
+                                          216
+                                      ],
+                           "download_status":  "downloaded",
+                           "arquivos":  "eat/frame_00.png ... frame_08.png",
+                           "tentativas_anteriores":  [
+                                                         {
+                                                             "animation_group_id":  "4bf7eef2-25a0-4839-9a9d-83db1fd56a39",
+                                                             "animation_id":  "8f0e8b8a-97eb-4f08-83e7-30ff7a540717",
+                                                             "job_id":  "8177855a-5e9b-476b-a3ca-e7ef2eb8b5cd",
+                                                             "modo":  "v3",
+                                                             "action_description":  "Lowering its head to eat kibble from a small food bowl in front of its front paws, chewing gently, then raising its head. Front-facing puppy, fixed camera, stays in place.",
+                                                             "motivo":  "Movimento inadequado na conferência visual; substituída no PixelLab."
+                                                         }
+                                                     ],
+                           "frame_url_template":  "https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/f7cb275d-892c-40a6-8944-e776cd32abba/south/{i}.png?t=1792867064236",
+                           "animation_id":  "f7cb275d-892c-40a6-8944-e776cd32abba"
+                       },
+                       {
+                           "nome":  "happy_jump",
+                           "animation_group_id":  "6aba9e1c-d18c-4592-9ca9-01d4ed2a138d",
+                           "job_id":  "6ff65d9c-dd4a-4306-b42a-91bb36890652",
+                           "tipo":  "custom",
+                           "modo":  "v3",
+                           "template":  null,
+                           "descricao":  "Pulinhos alegres no lugar, com o rabo abanando.",
+                           "action_description":  "Jumping up and down happily in place, small joyful hops, tail wagging excitedly, soft landing. Front-facing puppy, fixed camera, no travel.",
+                           "numero_frames":  9,
+                           "status":  "completed",
+                           "canvas":  [
+                                          216,
+                                          216
+                                      ],
+                           "frame_url_template":  "https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/7e02456f-cb7e-456e-a862-dd973601441a/south/{i}.png?t=1792866701871",
+                           "animation_id":  "7e02456f-cb7e-456e-a862-dd973601441a",
+                           "download_status":  "downloaded",
+                           "arquivos":  "happy_jump/frame_00.png ... frame_08.png"
+                       },
+                       {
+                           "nome":  "roll_over",
+                           "animation_group_id":  "a7e7173a-4eef-4248-9961-5a4f00303728",
+                           "job_id":  "31590979-b379-4a2b-972b-4700513c5f2f",
+                           "tipo":  "custom",
+                           "modo":  "pixminimax",
+                           "template":  null,
+                           "descricao":  "Rola de lado até ficar de barriga para cima.",
+                           "action_description":  "Rolling sideways onto its back, ending lying belly up with four little paws raised, playful puppy. Start seated facing the viewer, lean to one side and roll until belly up. Fixed camera, stay centered.",
+                           "numero_frames":  17,
+                           "status":  "completed",
+                           "canvas":  [
+                                          216,
+                                          216
+                                      ],
+                           "observacao":  "v3 recusou 16 frames gerados no canvas 216x216; enviado em pixminimax.",
+                           "frame_url_template":  "https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/7d279cc5-42dc-4ee5-ac44-234ecb647768/south/{i}.png?t=1792866822902",
+                           "animation_id":  "7d279cc5-42dc-4ee5-ac44-234ecb647768",
+                           "download_status":  "downloaded",
+                           "arquivos":  "roll_over/frame_00.png ... frame_16.png"
+                       },
+                       {
+                           "nome":  "belly_rub",
+                           "animation_group_id":  "926b3fb5-d616-4cd4-b647-48f59b03e22d",
+                           "job_id":  "319bdfc9-ea99-42a4-86e7-288d33e1b248",
+                           "tipo":  "custom",
+                           "modo":  "v3",
+                           "template":  null,
+                           "descricao":  "De barriga para cima, mexe as patinhas recebendo carinho.",
+                           "action_description":  "Continue LYING FLAT ON ITS BACK, BELLY FACING UP, exactly matching the supplied starting frame. Gently wiggle and curl all four paws up in the air while enjoying a belly rub. Head rests on the ground. Stay supine throughout, never sit or stand up. No person or hands. Fixed camera.",
+                           "numero_frames":  9,
+                           "status":  "completed",
+                           "canvas":  [
+                                          252,
+                                          216
+                                      ],
+                           "download_status":  "downloaded",
+                           "arquivos":  "belly_rub/frame_00.png ... frame_08.png",
+                           "tentativas_anteriores":  [
+                                                         {
+                                                             "animation_group_id":  "06e94f01-3b2e-4c03-a437-09e56fb100ab",
+                                                             "animation_id":  "c0119aa0-5d78-48ea-bc3f-e29504b1fa65",
+                                                             "job_id":  "ecf5f035-f5f1-4a59-9ca3-fa15732960d7",
+                                                             "modo":  "v3",
+                                                             "action_description":  "Lying on its back belly up, wiggling its little paws gently while enjoying a belly rub, relaxed happy puppy, belly exposed. No human or hands visible. Fixed front camera, stay in place.",
+                                                             "motivo":  "Movimento inadequado na conferência visual; substituída no PixelLab."
+                                                         }
+                                                     ],
+                           "custom_start_frame_url":  "https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/7d279cc5-42dc-4ee5-ac44-234ecb647768/south/16.png?t=1792866822902",
+                           "frame_url_template":  "https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/7c4eee3d-842e-4fcd-a665-0f3c35cc1663/south/{i}.png?t=1792867106167",
+                           "animation_id":  "7c4eee3d-842e-4fcd-a665-0f3c35cc1663"
+                       },
+                       {
+                           "nome":  "belly_kick",
+                           "animation_group_id":  "b0d3fd12-5225-491f-8d07-58384640a1c8",
+                           "job_id":  "722a212c-874d-449f-8f4f-452ee719c2d0",
+                           "tipo":  "custom",
+                           "modo":  "v3",
+                           "template":  null,
+                           "descricao":  "De barriga para cima, dá chutinhos com a pata traseira.",
+                           "action_description":  "Continue LYING FLAT ON ITS BACK, BELLY FACING UP, exactly matching the supplied starting frame. Repeatedly kick and pedal one hind leg in the air, other paws curled above belly. Head rests on ground. Stay supine throughout, never sit or stand up. No person or hands. Fixed camera.",
+                           "numero_frames":  9,
+                           "status":  "completed",
+                           "canvas":  [
+                                          244,
+                                          224
+                                      ],
+                           "download_status":  "downloaded",
+                           "arquivos":  "belly_kick/frame_00.png ... frame_08.png",
+                           "tentativas_anteriores":  [
+                                                         {
+                                                             "animation_group_id":  "4bbf3722-b280-4ca9-97a4-2c1f5c1883da",
+                                                             "animation_id":  "6bf8f4d1-7dcd-4f75-a34e-1a69ad11c13e",
+                                                             "job_id":  "a7e74329-84d9-422d-87f3-3e37e89e85fc",
+                                                             "modo":  "v3",
+                                                             "action_description":  "Lying on its back belly up, giving little repeated kicks with one hind leg, front paws curled, relaxed happy puppy enjoying a belly scratch. No human or hands visible. Fixed front camera, stay in place.",
+                                                             "motivo":  "Movimento inadequado na conferência visual; substituída no PixelLab."
+                                                         }
+                                                     ],
+                           "custom_start_frame_url":  "https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/7d279cc5-42dc-4ee5-ac44-234ecb647768/south/16.png?t=1792866822902",
+                           "frame_url_template":  "https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/039e3233-dbbd-4a2d-aced-6285f57f770f/south/{i}.png?t=1792867127279",
+                           "animation_id":  "039e3233-dbbd-4a2d-aced-6285f57f770f",
+                           "observacao_visual":  "Pequenos traços claros de movimento em alguns quadros, preservados conforme gerados pelo PixelLab."
+                       }
+                       ,
+                       {
+                           "nome": "belly_kick_v2",
+                           "animation_id": "263d781d-a68c-44aa-8cb0-60bc71bed6b0",
+                           "animation_group_id": "dd63f85b-4a2b-4922-889b-1083f58acc08",
+                           "job_id": "7bd1a98a-c30a-4d27-a6ce-d5fc03f1fa71",
+                           "tipo": "custom",
+                           "modo": "v3",
+                           "directions": [
+                               "south"
+                           ],
+                           "descricao": "De barriga para cima, dá chutinhos com a pata traseira, sem traços de movimento.",
+                           "action_description": "Continue LYING FLAT ON ITS BACK, BELLY FACING UP, exactly matching the supplied starting frame. Repeatedly kick and pedal one hind leg in the air, other paws curled above belly, head resting on the ground. Clean pixel art only: no motion lines, no speed lines, no white streaks, no effects, no particles, no sparkles. Stay supine throughout, never sit or stand. No person or hands. Fixed camera.",
+                           "frames": 9,
+                           "numero_frames": 9,
+                           "canvas": [
+                               248,
+                               216
+                           ],
+                           "status": "completed",
+                           "tem_tracos": "nao",
+                           "custom_start_frame_url": "https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/7d279cc5-42dc-4ee5-ac44-234ecb647768/south/16.png?t=1792866822902",
+                           "frame_url_template": "https://backblaze.pixellab.ai/file/pixellab-characters/9ae1d957-963b-497a-a885-9969e8b343d3/3ecaecbe-a058-41cc-926c-084bfbb7a3a9/animations/263d781d-a68c-44aa-8cb0-60bc71bed6b0/south/{i}.png?t=1792868990914",
+                           "download_status": "downloaded",
+                           "arquivos": "belly_kick_v2/frame_00.png ... frame_08.png",
+                           "observacao_visual": "Todos os 9 frames conferidos visualmente ampliados em 2×: sem riscos brancos ou claros soltos fora do corpo; permanece de barriga para cima.",
+                           "conferencia": "belly_kick_v2/conferencia_todos_frames.png"
+                       }
+                   ],
+    "status":  "completed",
+    "total_frames":  71,
+    "validation":  "Contagem, sequência, formato PNG, dimensões e conferência visual por amostragem."
+}

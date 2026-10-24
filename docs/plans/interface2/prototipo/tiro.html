@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><link rel="stylesheet" href="proto.css">
+<style>
+  #scene { position: absolute; inset: 0; }
+  .needs { position: absolute; top: 80px; right: 12px; background: var(--card); border-radius: 26px; box-shadow: var(--shadow);
+    padding: 6px; display: flex; gap: 4px; z-index: 10; }
+  .needs .ringbox img { width: 26px; height: 26px; position: relative; }
+  .needs .dot { right: 0; top: 0; }
+  .guide { position: absolute; top: 80px; left: 12px; height: 52px; border-radius: 26px; background: var(--card); box-shadow: var(--shadow);
+    display: flex; align-items: center; gap: 6px; padding: 0 10px 0 6px; z-index: 10; }
+  .guide .face { width: 40px; height: 40px; border-radius: 50%; background: var(--sunken); overflow: hidden; }
+  .guide .face img { width: 40px; height: 40px; }
+  .wish { position: absolute; left: 244px; top: 222px; z-index: 6; }
+  .wish .bubble { display: flex; align-items: center; gap: 4px; padding: 6px 8px 6px 6px; border-radius: 20px; }
+  .wish .bubble::after { content: ""; position: absolute; left: 14px; bottom: -9px; width: 14px; height: 14px; background: var(--card);
+    border-radius: 50%; box-shadow: var(--shadow-sm); }
+  .wish .bubble::before { content: ""; position: absolute; left: 6px; bottom: -18px; width: 7px; height: 7px; background: var(--card); border-radius: 50%; }
+  .mood { position: absolute; left: 50%; transform: translateX(-50%); top: 548px; background: rgba(255, 255, 255, .86); border-radius: 14px;
+    padding: 3px 12px; z-index: 6; box-shadow: var(--shadow-sm); }
+  .notebook { position: absolute; right: 12px; top: 460px; width: 52px; height: 52px; z-index: 10; }
+  .notebook img { width: 32px; height: 32px; }
+  .dock { position: absolute; left: 0; right: 0; bottom: 84px; height: 104px; border-radius: 28px 28px 0 0; background: var(--base);
+    box-shadow: 0 -6px 20px rgba(110, 70, 30, .12); display: flex; justify-content: space-around; align-items: center; padding: 4px 10px 0; z-index: 21; }
+  body.nav-dark .dock { background: #FBF1E2; }
+  .care { position: relative; display: flex; flex-direction: column; align-items: center; gap: 4px; width: 60px; }
+  .care .disc { width: 56px; height: 56px; border-radius: 50%; background: var(--card); box-shadow: var(--shadow-sm); display: grid; place-items: center; }
+  .care .disc img { width: 40px; height: 40px; }
+  .care .t-cap { color: var(--ink); }
+  .care .spark { position: absolute; top: -4px; right: 0; width: 22px; height: 22px; border-radius: 50%; background: var(--honey); color: #fff;
+    display: grid; place-items: center; border: 2px solid var(--card); }
+  .care .dot { top: 0; right: 4px; }
+  .care.ask .disc { background: #FDE6E3; }
+  /* Ideia A: os cuidados são objetos do cenário (sem fileira de botões) */
+  .obj { position: absolute; z-index: 7; display: none; }
+  .obj img { display: block; }
+  .obj .shadow { position: absolute; left: 10%; right: 10%; bottom: -5px; height: 12px; border-radius: 50%; background: rgba(60, 35, 15, .28); z-index: -1; }
+  .obj .glow { position: absolute; left: -14px; right: -14px; bottom: -14px; height: 34px; border-radius: 50%; border: 3px solid rgba(229, 72, 60, .9);
+    background: rgba(229, 72, 60, .12); z-index: -1; }
+  .obj .dot { right: -2px; top: -4px; }
+  .obj .tag { position: absolute; left: 50%; transform: translateX(-50%); bottom: -30px; white-space: nowrap; background: rgba(255,255,255,.92); border-radius: 12px; padding: 2px 10px;
+    font-family: "Nunito"; font-weight: 800; font-size: 12px; box-shadow: var(--shadow-sm); }
+  body.m-objetos .obj { display: block; }
+  body.m-objetos .dock { display: none; }
+  /* Roleta de cuidados (escolha do Vitor): botão Cuidar + roda espaçada e meio transparente */
+  .fab { position: absolute; left: 50%; bottom: 96px; width: 72px; height: 72px; margin-left: -36px; border-radius: 50%;
+    background: rgba(255, 255, 255, .9); box-shadow: 0 0 0 4px var(--honey), 0 8px 18px rgba(80, 50, 20, .25); display: none; place-items: center; z-index: 23; }
+  .fab img { width: 42px; height: 42px; }
+  .fab .ask { position: absolute; right: -8px; top: -8px; width: 30px; height: 30px; border-radius: 50%; background: #FDE6E3; border: 2px solid #fff;
+    display: grid; place-items: center; box-shadow: var(--shadow-sm); }
+  .fab .ask img { width: 22px; height: 22px; }
+  .fab-label { position: absolute; left: 50%; transform: translateX(-50%); bottom: 88px; z-index: 23; display: none; background: rgba(255, 255, 255, .85);
+    border-radius: 10px; padding: 0 10px; font-family: "Nunito"; font-weight: 800; font-size: 12px; line-height: 18px; }
+  .wheel { position: absolute; inset: 0; display: none; z-index: 22; }
+  .wheel .veil { position: absolute; inset: 0; background: radial-gradient(circle at 50% 84%, rgba(58, 42, 31, .26), rgba(58, 42, 31, .10) 60%); }
+  .wheel .track { position: absolute; left: 50%; top: 650px; width: 0; height: 0; }
+  .wheel .track svg { position: absolute; left: -200px; top: -200px; }
+  .slot { position: absolute; width: 64px; margin-left: -32px; margin-top: -32px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .slot .disc { position: relative; width: 64px; height: 64px; border-radius: 50%; background: rgba(255, 255, 255, .82);
+    box-shadow: 0 6px 16px rgba(80, 50, 20, .18), inset 0 0 0 1.5px rgba(255, 255, 255, .9); display: grid; place-items: center; }
+  .slot .disc img { width: 40px; height: 40px; }
+  .slot .name { background: rgba(255, 255, 255, .8); border-radius: 10px; padding: 0 9px; font-family: "Nunito"; font-weight: 800; font-size: 12px; line-height: 18px; color: var(--ink); }
+  .slot.ask .disc { background: rgba(253, 230, 227, .92); }
+  .slot .dot { right: 2px; top: 2px; }
+  .slot .spark { position: absolute; right: -4px; top: -4px; width: 22px; height: 22px; border-radius: 50%; background: var(--honey); color: #fff;
+    display: grid; place-items: center; border: 2px solid #fff; }
+  body.m-roleta .fab, body.m-cuidar .fab { display: grid; }
+  body.m-cuidar .fab-label { display: block; }
+  body.m-roleta .wheel { display: block; }
+  body.m-roleta .mood, body.m-roleta .notebook { display: none; }
+  body.m-roleta .fab { box-shadow: 0 0 0 4px var(--honey), 0 0 0 12px rgba(255, 183, 48, .22), 0 8px 18px rgba(80, 50, 20, .25); }
+  body.m-roleta .dock, body.m-cuidar .dock { display: none; }
+</style></head>
+<body><div class="screen">
+  <canvas id="scene" width="720" height="1560" style="width:360px;height:780px"></canvas>
+
+  <!-- HUD: avatar + perfil à esquerda; moedas + engrenagem à direita -->
+  <div class="hud">
+    <div class="avatar"><div class="abs" data-ring="58,5,0.62,#FFB730"></div>
+      <img class="px" src="../../../../game/assets/sprites/ui/icons/hud_tiro.png" style="z-index:1"></div>
+    <div class="profile"><div class="t-strong">Tiro</div>
+      <div class="row" style="gap:6px"><div class="bar grow" style="width:58px"><i style="width:62%"></i></div><span class="t-cap">3/5</span></div></div>
+    <div class="grow"></div>
+    <div class="pill"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png" style="width:28px;height:28px"><span class="num" style="font-size:18px">2.645</span></div>
+    <div class="icon-btn"><i data-ic="gear" data-size="22"></i></div>
+  </div>
+
+  <!-- Próximo passo da história (rastreador) -->
+  <div class="guide"><div class="face"><img class="px" src="../../../../game/assets/sprites/characters/npc_lais/portrait.png"></div>
+    <img class="px" src="../../../../game/assets/sprites/ui/icons/item_carrot.png" style="width:32px;height:32px">
+    <span class="num" style="font-size:16px">3/6</span><span class="chev"><i data-ic="chev" data-size="18"></i></span></div>
+
+  <!-- Necessidades: só anéis; a que pede ganha o pontinho -->
+  <div class="needs">
+    <div class="ringbox" data-ring="40,4,0.35,#E5483C"><img class="px" src="../../../../game/assets/sprites/ui/icons/need_hunger.png"><span class="dot"></span></div>
+    <div class="ringbox" data-ring="40,4,0.8,#2B9946"><img class="px" src="../../../../game/assets/sprites/ui/icons/need_happiness.png"></div>
+    <div class="ringbox" data-ring="40,4,0.7,#2B9946"><img class="px" src="../../../../game/assets/sprites/ui/icons/need_energy.png"></div>
+    <div class="ringbox" data-ring="40,4,0.9,#2B9946"><img class="px" src="../../../../game/assets/sprites/ui/icons/need_hygiene.png"></div>
+  </div>
+
+  <!-- Desejo do período -->
+  <div class="wish"><div class="bubble">
+    <img class="px" src="../../../../game/assets/sprites/ui/icons/item_carrot_snack.png" style="width:36px;height:36px">
+    <span class="spark" style="position:absolute;right:-6px;top:-6px;width:22px;height:22px;border-radius:50%;background:var(--honey);color:#fff;display:grid;place-items:center;border:2px solid var(--card)"><i data-ic="spark" data-size="14" data-stroke="2.6"></i></span>
+  </div></div>
+
+  <div class="mood t-cap" style="color:var(--ink)">Feliz da vida</div>
+  <div class="notebook icon-btn"><img class="px" src="../../../../game/assets/sprites/ui/icons/ui_notebook.png"></div>
+
+  <!-- Cuidados -->
+  <div class="dock">
+    <div class="care ask"><div class="disc"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_dog_food.png"></div><span class="dot"></span><span class="t-cap">Comida</span></div>
+    <div class="care"><div class="disc"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_bathe.png"></div><span class="t-cap">Banho</span></div>
+    <div class="care"><div class="disc"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_brush.png"></div><span class="t-cap">Escovar</span></div>
+    <div class="care"><div class="disc"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_play.png"></div><span class="spark"><i data-ic="spark" data-size="14" data-stroke="2.6"></i></span><span class="t-cap">Brincar</span></div>
+    <div class="care"><div class="disc"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_sleep.png"></div><span class="t-cap">Dormir</span></div>
+  </div>
+
+
+  <!-- Ideia A: objetos no chão do cantinho -->
+  <div class="obj" id="o_bed"><img class="px" src="../../../../game/assets/sprites/areas/house/bed_soft.png" style="width:101px;height:81px"><span class="shadow"></span></div>
+  <div class="obj" id="o_bowl"><span class="glow"></span><img class="px" src="../../../../game/assets/sprites/areas/house/bowl.png" style="width:68px;height:52px"><span class="shadow"></span><span class="dot"></span><span class="tag">Comida</span></div>
+  <div class="obj" id="o_ball"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_lost_ball.png" style="width:44px;height:44px"><span class="shadow"></span></div>
+  <div class="obj" id="o_basket"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_sponge.png" style="width:40px;height:40px;position:absolute;left:4px;top:-22px"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_brush.png" style="width:36px;height:36px;position:absolute;left:30px;top:-18px;transform:rotate(18deg)"><img class="px" src="../../../../game/assets/sprites/areas/house/toy_basket.png" style="width:72px;height:60px;position:relative"><span class="shadow"></span></div>
+
+  <!-- Roleta de cuidados -->
+  <div class="wheel"><div class="veil"></div>
+    <div class="track"><svg width="400" height="400" viewBox="0 0 400 400">
+      <path d="M 59 149 A 150 150 0 0 1 341 149" fill="none" stroke="rgba(255,255,255,.30)" stroke-width="82" stroke-linecap="round"/></svg></div>
+    <div class="slot ask" style="left:39px;top:599px"><div class="disc"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_dog_food.png"><span class="dot"></span></div><span class="name">Comida</span></div>
+    <div class="slot" style="left:94px;top:527px"><div class="disc"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_bathe.png"></div><span class="name">Banho</span></div>
+    <div class="slot" style="left:180px;top:500px"><div class="disc"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_play.png"><span class="spark"><i data-ic="spark" data-size="13" data-stroke="2.6"></i></span></div><span class="name">Brincar</span></div>
+    <div class="slot" style="left:266px;top:527px"><div class="disc"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_brush.png"></div><span class="name">Escovar</span></div>
+    <div class="slot" style="left:321px;top:599px"><div class="disc"><img class="px" src="../../../../game/assets/sprites/ui/icons/action_sleep.png"></div><span class="name">Dormir</span></div>
+  </div>
+  <div class="fab"><img class="px" src="../../../../game/assets/sprites/ui/icons/heart.png"><span class="ask"><img class="px" src="../../../../game/assets/sprites/ui/icons/item_dog_food.png"></span></div>
+  <div class="fab-label">Cuidar</div>
+  <nav class="tabbar joined" data-active="pet" data-badges="map:4,tasks:2"></nav>
+</div>
+<script src="proto.js"></script>
+<script>
+  let MODE = location.hash.slice(1);
+  if (MODE === 'arco') MODE = 'roleta';
+  if (['objetos', 'roleta', 'cuidar'].includes(MODE)) {
+    document.body.classList.add('m-' + MODE);
+    document.querySelector('nav.tabbar').classList.remove('joined');
+  }
+  // Mesmo enquadramento do PetBackdrop: recorte da moldura, parede e piso continuam até as bordas.
+  // Proposta: cenário aproximado (escala 1,75 em vez de 1,25) para o Tiro ocupar o meio da tela.
+  const OBJ = MODE === 'objetos';
+  const S = 2, W = 360, FEET_Y = OBJ ? 520 : 540, ZOOM = OBJ ? 1.6 : 1.75, RUG_X = 0.39, DOG_X = OBJ ? 176 : 168, SRC = { x: 36, y: 72, w: 289, h: 277 };
+  const ctx = document.getElementById('scene').getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  const room = new Image();
+  room.src = '../../../../game/assets/sprites/areas/pet/corner.png';
+  const dog = new Image();
+  dog.src = '../../../../game/assets/sprites/characters/tiro_pet/idle_breathe/frame_00.png';
+  let loaded = 0;
+  const draw = () => {
+    if (++loaded < 2) return;
+    const w = SRC.w * ZOOM, h = SRC.h * ZOOM;
+    const top = FEET_Y - h * 0.8, left = DOG_X - w * RUG_X;
+    ctx.drawImage(room, 204, 82, 1, 1, 0, 0, W * S, top * S + 2);
+    ctx.drawImage(room, SRC.x, SRC.y, SRC.w, SRC.h, left * S, top * S, w * S, h * S);
+    ctx.drawImage(room, 36, 336, 289, 12, left * S, (top + h) * S - 1, w * S, (780 - top - h) * S + 2);
+    const k = 1.2 * ZOOM / 1.2457, dw = 256 * k, dh = 216 * k;
+    ctx.drawImage(dog, 0, 0, 256, 216, (DOG_X - dw / 2) * S, (FEET_Y - dh * 0.9) * S, dw * S, dh * S);
+  };
+  room.onload = draw; dog.onload = draw;
+  if (OBJ) {
+    // base de cada objeto (meio de baixo) no chão
+    const put = (id, x, y) => { const el = document.getElementById(id); el.style.left = (x - el.offsetWidth / 2) + 'px'; el.style.top = (y - el.offsetHeight) + 'px'; };
+    put('o_bed', 58, 640); put('o_bowl', 150, 668); put('o_ball', 238, 650); put('o_basket', 312, 640);
+    document.querySelector('.mood').style.top = '520px';
+    document.querySelector('.notebook').style.top = '400px';
+    document.querySelector('.wish').style.cssText += 'left:246px;top:214px';
+  }
+
+</script>
+</body></html>

@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><link rel="stylesheet" href="proto.css">
+<style>
+  body { background: #7f9150; }
+  #world { position: absolute; inset: 0; background: url("../../../../game/assets/sprites/areas/farm/farm_animals.png") -380px -40px / 1208px 683px no-repeat, #7f9150;
+    image-rendering: pixelated; filter: saturate(.9); }
+  .scrim { position: absolute; inset: 0; background: rgba(58, 42, 31, .32); z-index: 25; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; top: 118px; border-radius: 28px 28px 0 0; background: var(--paper); z-index: 26;
+    box-shadow: 0 -6px 24px rgba(58, 42, 31, .25); padding: 10px 16px 0; }
+  .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 0 auto 8px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px; }
+  /* Cartão-postal: foto do mundo com moldura branca, nome embaixo */
+  .postal { background: var(--card); border-radius: 20px; padding: 6px 6px 8px; box-shadow: var(--shadow); position: relative; }
+  .postal .pic { height: 104px; border-radius: 15px; background-repeat: no-repeat; image-rendering: pixelated; position: relative; overflow: hidden; }
+  .postal.wide .pic { height: 92px; }
+  .postal .name { display: flex; align-items: center; gap: 6px; padding: 8px 4px 0 4px; }
+  .postal .name img { width: 28px; height: 28px; }
+  .postal .chips { position: absolute; left: 8px; bottom: 8px; display: flex; gap: 4px; }
+  .mini { height: 26px; border-radius: 13px; background: rgba(255, 255, 255, .94); display: inline-flex; align-items: center; gap: 3px; padding: 0 8px 0 3px;
+    font-family: "Fredoka"; font-weight: 600; font-size: 13px; box-shadow: var(--shadow-sm); }
+  .mini img { width: 20px; height: 20px; border-radius: 50%; }
+  .mini.ok { color: var(--go-ink); } .mini.ok svg { color: var(--go); }
+  .here { position: absolute; right: 8px; top: 8px; height: 26px; border-radius: 13px; background: var(--honey); color: #fff; display: inline-flex; align-items: center; gap: 4px;
+    padding: 0 10px 0 6px; font-family: "Fredoka"; font-weight: 600; font-size: 13px; box-shadow: var(--shadow-sm); }
+  .postal.on { box-shadow: 0 0 0 3px var(--honey), var(--shadow); }
+  .postal.locked .pic { filter: grayscale(1) brightness(1.05) contrast(.85); opacity: .6; }
+  .postal.locked .lockchip { position: absolute; inset: 0; display: grid; place-items: center; }
+  .postal.locked .lockchip span { width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,.95); display: grid; place-items: center; color: var(--ink2); box-shadow: var(--shadow-sm); }
+</style></head>
+<body><div class="screen">
+  <div id="world"></div>
+  <div class="hud">
+    <div class="avatar"><div class="abs" data-ring="58,5,0.62,#FFB730"></div>
+      <img class="px" src="../../../../game/assets/sprites/ui/icons/hud_tiro.png" style="z-index:1"></div>
+    <div class="grow"></div>
+    <div class="pill"><img class="px" src="../../../../game/assets/sprites/ui/icons/coin.png" style="width:28px;height:28px"><span class="num" style="font-size:18px">2.645</span></div>
+    <div class="icon-btn"><i data-ic="gear" data-size="22"></i></div>
+  </div>
+  <div class="scrim"></div>
+  <div class="sheet">
+    <div class="grab"></div>
+    <div class="row"><span class="t-title grow">Para onde vamos?</span><span class="icon-btn sm"><i data-ic="x" data-size="18"></i></span></div>
+    <div class="grid">
+      <div class="postal">
+        <div class="pic" style="background-image:url(fogao_vazio.png);background-size:250px auto;background-position:-40px -14px;background-color:#f1dcc0"></div>
+        <div class="chips"></div>
+        <div class="name"><img class="px" src="../../../../game/assets/sprites/ui/icons/tab_house.png"><span class="t-strong">Casa</span></div>
+      </div>
+      <div class="postal on">
+        <div class="pic" style="background-image:url(../../../../game/assets/sprites/areas/farm/farm_animals.png);background-size:560px auto;background-position:-160px -18px">
+          <span class="here"><i data-ic="check" data-size="14" data-stroke="3"></i>Aqui</span>
+          <div class="chips"><span class="mini ok"><i data-ic="check" data-size="14" data-stroke="3.2"></i>6</span></div></div>
+        <div class="name"><img class="px" src="../../../../game/assets/sprites/ui/icons/tab_farm.png"><span class="t-strong">Sítio</span></div>
+      </div>
+      <div class="postal">
+        <div class="pic" style="background-image:url(../../../../game/assets/sprites/areas/village/banner.png);background-size:360px auto;background-position:-110px -60px">
+          <div class="chips"><span class="mini"><img class="px" src="../../../../game/assets/sprites/characters/npc_bloblo/portrait.png"><span style="color:var(--alert)">!</span></span><span class="mini ok"><i data-ic="check" data-size="14" data-stroke="3.2"></i>2</span></div></div>
+        <div class="name"><img class="px" src="../../../../game/assets/sprites/ui/icons/tab_village.png"><span class="t-strong">Vila</span></div>
+      </div>
+      <div class="postal">
+        <div class="pic" style="background-image:url(../../../../game/assets/sprites/areas/park/park.png);background-size:360px auto;background-position:-100px -60px">
+          <div class="chips"><span class="mini"><img class="px" src="../../../../game/assets/sprites/characters/npc_nina/portrait.png"><span style="color:var(--alert)">!</span></span></div></div>
+        <div class="name"><img class="px" src="../../../../game/assets/sprites/ui/icons/tab_park.png"><span class="t-strong">Praça</span></div>
+      </div>
+      <div class="postal wide locked" style="grid-column: span 2">
+        <div class="pic" style="background-image:url(../../../../game/assets/sprites/areas/nature/nature.png);background-size:400px auto;background-position:-40px -110px"></div>
+        <div class="lockchip" style="top:6px;height:92px"><span><i data-ic="lock" data-size="20"></i></span></div>
+        <div class="name"><img class="px" src="../../../../game/assets/sprites/ui/icons/tab_nature.png"><span class="t-strong">Natureza</span>
+          <span class="grow"></span><span class="t-cap row" style="gap:4px">Depois do baú da Nina <img class="px" src="../../../../game/assets/sprites/characters/npc_nina/portrait.png" style="width:22px;height:22px;border-radius:50%"></span></div>
+      </div>
+    </div>
+  </div>
+  <nav class="tabbar" data-active="map" data-badges="tasks:2" style="z-index:27"></nav>
+</div>
+<script src="proto.js"></script>
+</body></html>
