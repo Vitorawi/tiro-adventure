@@ -63,17 +63,9 @@ static func ready_dot(px: int = 14) -> Control:
 
 ## Novidade pendente: o mesmo sinal no atalho, na aba e no conteúdo.
 static func alert_badge() -> Label:
-	var badge := short_label("!", &"BadgeLabel", Color.WHITE)
-	badge.name = "NewBadge"
-	badge.custom_minimum_size = Vector2(24, 24)
-	badge.size = badge.custom_minimum_size
-	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.DANGER
-	style.set_corner_radius_all(12)
-	badge.add_theme_stylebox_override("normal", style)
-	return badge
+	var result := badge(0)
+	result.name = "NewBadge"
+	return result
 
 
 static func label(text: String, variation: StringName = &"", color: Variant = null) -> Label:
@@ -88,16 +80,24 @@ static func label(text: String, variation: StringName = &"", color: Variant = nu
 
 
 ## Etiqueta arredondada com ícone + texto (ex.: ingrediente "2/6", efeito "+20").
-static func chip(texture: Texture2D, text: String, color: Variant = null) -> PanelContainer:
+static func chip(texture: Texture2D, text: String, color: Variant = null, kind: String = "neutral") -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.theme_type_variation = &"ChipPanel"
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var row := hbox(2)
+	panel.custom_minimum_size.y = 28
+	var colors := _chip_colors(kind)
+	var style := surface(colors[0], 14)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	panel.add_theme_stylebox_override("panel", style)
+	var row := hbox(4)
 	if texture:
-		row.add_child(icon(texture, 32))
-	var text_label := label(text, &"", color)
-	text_label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	row.add_child(text_label)
+		row.add_child(icon(texture, 24))
+	elif kind == "time":
+		row.add_child(ctl("clock", 16, Palette.SKY_INK))
+	row.add_child(short_label(text, &"ChipLabel", color if color is Color else colors[1]))
+	if kind == "have":
+		row.add_child(ctl("check", 14, Palette.GO_INK))
 	panel.add_child(row)
 	return panel
 
@@ -123,7 +123,7 @@ static func icon_button(texture: Texture2D, on_pressed: Callable, px: int = 44, 
 			texture = ctl_icon(control_name)
 			text = ""
 	var result := button(text, on_pressed, &"IconButton", texture)
-	result.custom_minimum_size = Vector2(px, px)
+	result.custom_minimum_size = Vector2(maxi(44, px), maxi(44, px))
 	result.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	if texture:
 		result.expand_icon = true
@@ -144,23 +144,19 @@ static func primary(text: String, on_pressed: Callable, texture: Texture2D = nul
 	return button(text, on_pressed, &"PrimaryButton", texture)
 
 
-## Ação alternativa (mel). `small` = linha de lista (altura 44).
+## Apelido compatível de soft. `small` = texto 16 na linha de lista (alvo 44).
 static func secondary(text: String, on_pressed: Callable, texture: Texture2D = null, small: bool = false) -> Button:
-	var result := button(text, on_pressed, &"SecondaryButton", texture)
-	if small:
-		result.custom_minimum_size = Vector2(0, 44)
-		result.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	return result
+	return soft(text, on_pressed, texture, small)
 
 
 ## Ação fraca ("Ver tudo", "Cancelar"): sem fundo, texto suave sublinhado.
 static func ghost(text: String, on_pressed: Callable) -> Button:
 	var result := button(text, on_pressed, &"GhostButton")
-	result.custom_minimum_size = Vector2(0, 44)
+	result.custom_minimum_size = Vector2(44, 44)
 	return result
 
 
-## Pílula escura do HUD sobre o mundo: ícone + número com contorno.
+## Pílula clara do HUD sobre o mundo: ícone + número.
 static func pill(texture: Texture2D, text: String) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.theme_type_variation = &"PillPanel"
@@ -184,38 +180,56 @@ static func lock_icon(px: int = 32) -> TextureRect:
 
 
 ## "Ainda não dá": cadeado + motivo curto (+ "?" se houver `on_help`). Substitui o botão cinza largo.
-static func lock_hint(text: String, on_help: Callable = Callable()) -> HBoxContainer:
+static func lock_hint(text: String, on_help: Callable = Callable(), missing: Texture2D = null) -> HBoxContainer:
 	var row := hbox(8)
 	row.name = "LockHint"
-	row.add_child(lock_icon())
-	row.add_child(fill_label(text, &"SmallLabel"))
+	var lock := ctl("lock", 18)
+	lock.name = "LockIcon"
+	row.add_child(lock)
+	if missing:
+		row.add_child(disc(missing, 32, 24))
+	row.add_child(fill_label(text))
 	if on_help.is_valid():
-		row.add_child(icon_button(ctl_icon("help"), on_help, 44))
+		row.add_child(ctl_button("help", on_help, 32, "sunken"))
+		row.mouse_filter = Control.MOUSE_FILTER_PASS
+		row.gui_input.connect(func(event: InputEvent) -> void:
+			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+				on_help.call())
 	return row
 
 
-## Espaço de produção compacto: bolinha de 56 px + legenda. `state` = SlotDot.EMPTY/QUEUED/BUSY/READY/BUY/LEVEL;
+## Espaço de produção compacto: bolinha de 52 px + legenda. `state` = SlotDot.EMPTY/QUEUED/BUSY/READY/BUY/LEVEL;
 ## `progress` 0..1 (em BUY, 1 = dá para comprar agora); `caption_icon` vai antes da legenda (moeda do preço).
 static func slot_dot(state: String, texture: Texture2D = null, progress: float = 0.0, caption: String = "", caption_color: Variant = null, caption_icon: Texture2D = null) -> SlotDot:
 	return SlotDot.new(state, texture, progress, caption, caption_color, caption_icon)
 
 
-## Linha baixa de lista: [ícone 48] [título] [ação à direita] e, embaixo, os chips na largura toda (quebram se faltar espaço).
+## Linha baixa de lista: [disco 44] [título + chips] [ação à direita]; chips quebram se faltar espaço.
 ## Toque na linha = `on_tap` (opcional).
 ## O corpo (VBox, filho 0) aceita rodapés, como o `lock_hint` de uma linha fechada.
-static func list_row(texture: Texture2D, title: String, chips: Array[Control], action: Control = null, on_tap: Callable = Callable()) -> PanelContainer:
+static func list_row(texture: Texture2D, title: String, chips: Array[Control], action: Control = null, on_tap: Callable = Callable(), ready: bool = false) -> PanelContainer:
 	var panel := PanelContainer.new()
-	panel.theme_type_variation = &"RowPanel"  # cartão com margens menores (8 em cima e embaixo)
+	panel.theme_type_variation = &"RowPanel"
+	if ready:
+		var style := surface(Palette.GO_SOFT, 16)
+		style.content_margin_left = 8
+		style.content_margin_right = 8
+		style.content_margin_top = 5
+		style.content_margin_bottom = 5
+		panel.add_theme_stylebox_override("panel", style)
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	panel.custom_minimum_size = Vector2(0, 64)
 	panel.mouse_filter = Control.MOUSE_FILTER_PASS
 	var body := vbox(2)
 	panel.add_child(body)
 	var top := hbox(8)
-	top.add_child(icon(texture, 48))
+	top.add_child(disc(texture, 44, 32))
 	var name_label := fill_label(title)
 	name_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	top.add_child(name_label)
+	var text_column := vbox(0)
+	text_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text_column.add_child(name_label)
+	top.add_child(text_column)
 	if action:
 		action.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		top.add_child(action)
@@ -224,7 +238,7 @@ static func list_row(texture: Texture2D, title: String, chips: Array[Control], a
 		var chip_row := flow(2)
 		for chip_control: Control in chips:
 			chip_row.add_child(chip_control)
-		body.add_child(chip_row)
+		text_column.add_child(chip_row)
 	if on_tap.is_valid():
 		panel.gui_input.connect(func(event: InputEvent) -> void:
 			var click := event as InputEventMouseButton
@@ -306,7 +320,7 @@ static func button(text: String, on_pressed: Callable, variation: StringName = &
 		result.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		for state: String in ["icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_focus_color"]:
 			result.add_theme_color_override(state, Palette.INK_SOFT)
-	result.custom_minimum_size = Vector2(0, 52)
+	result.custom_minimum_size = Vector2(44, 44)
 	result.mouse_filter = Control.MOUSE_FILTER_PASS  # deixa rolar arrastando em cima do botão
 	result.pressed.connect(on_pressed)
 	Motion.press(result)
@@ -337,7 +351,7 @@ static func flow(separation: int = 6) -> HFlowContainer:
 
 
 ## Barra de progresso com a cor dada.
-static func bar(value: float, color: Color, height: int = 14) -> ProgressBar:
+static func bar(value: float, color: Color, height: int = 8) -> ProgressBar:
 	var result := ProgressBar.new()
 	result.show_percentage = false
 	result.custom_minimum_size = Vector2(0, height)
@@ -370,34 +384,39 @@ static func effect_chip_list(effects: Dictionary) -> Array[Control]:
 	return chips
 
 
-## Abas de consulta em pílulas; a seleção é uma borda verde, sem botão principal.
+## Abas num trilho afundado; seleção branca com sombra, sem botão principal.
 static func segmented(entries: Array[Dictionary], selected: String, choose: Callable) -> HBoxContainer:
-	var row := hbox(4)
-	for entry in entries:
+	var row := hbox(0)
+	row.custom_minimum_size.y = 48
+	row.draw.connect(func() -> void: row.draw_style_box(surface(Palette.SUNKEN, 22), Rect2(Vector2.ZERO, row.size)))
+	row.resized.connect(row.queue_redraw)
+	for entry: Dictionary in entries:
 		var id := str(entry.id)
 		var tab := ghost(str(entry.text), choose.bind(id))
-		tab.pressed.connect(func() -> void: Motion.bounce(tab))
-		if entry.get("icon") is Texture2D:
-			tab.icon = entry.icon
-			tab.add_theme_constant_override("icon_max_width", 24)
 		tab.name = "NotebookTab_" + id
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		tab.add_theme_font_size_override("font_size", 18)
-		var style := StyleBoxFlat.new()
-		style.bg_color = Palette.PAPER if id == selected else Palette.SUNKEN
-		style.set_corner_radius_all(16)
-		style.set_content_margin_all(6)
-		style.border_color = Palette.PRIMARY
-		style.set_border_width_all(2 if id == selected else 0)
-		tab.add_theme_color_override("font_color", Palette.INK if id == selected else Palette.INK_SOFT)
-		for state: String in ["normal", "hover", "pressed"]:
-			tab.add_theme_stylebox_override(state, style)
+		tab.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		tab.theme_type_variation = &"SmallButton"
+		var active := id == selected
+		var style := surface(Palette.CARD if active else Palette.SUNKEN, 22, active)
+		style.set_content_margin_all(4)
+		style.expand_margin_left = -4
+		style.expand_margin_right = -4
+		for phase: String in ["normal", "hover", "pressed", "hover_pressed"]:
+			tab.add_theme_stylebox_override(phase, style)
+		for phase: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+			tab.add_theme_color_override(phase, Palette.INK if active else Palette.INK_SOFT)
+		if entry.get("icon") is Texture2D:
+			tab.icon = entry.icon
+			tab.expand_icon = true
+			tab.add_theme_constant_override("icon_max_width", 24)
 		row.add_child(tab)
-		if entry.get("alert", false):
-			var badge := alert_badge()
-			tab.add_child(badge)
-			badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-			badge.position += Vector2(-24, -6)
+		if entry.has("count") or entry.get("alert", false):
+			var mark := badge(int(entry.get("count", 0)))
+			mark.name = "NewBadge"
+			tab.add_child(mark)
+			mark.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+			mark.position += Vector2(-12, -2)
 	return row
 
 
@@ -444,3 +463,263 @@ static func collection_progress(count: int, total: int) -> HBoxContainer:
 	row.add_child(progress)
 	row.add_child(short_label("%d/%d" % [count, total], &"SmallLabel"))
 	return row
+
+
+## Superfície lisa compartilhada: nenhuma tela precisa montar um StyleBoxFlat.
+static func surface(color: Color, radius: int, shadow: bool = false) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = color
+	style.set_corner_radius_all(radius)
+	if shadow:
+		style.shadow_color = Palette.SHADOW
+		style.shadow_size = 4
+		style.shadow_offset = Vector2(0, 2)
+	return style
+
+
+static func disc(texture: Texture2D, px: int = 44, icon_px: int = 32) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.custom_minimum_size = Vector2(px, px)
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	panel.add_theme_stylebox_override("panel", surface(Palette.SUNKEN, px / 2))
+	panel.add_child(icon(texture, icon_px))
+	return panel
+
+
+static func soft(text: String, on_pressed: Callable, texture: Texture2D = null, small: bool = false) -> Button:
+	var result := button(text, on_pressed, &"SecondaryButton", texture)
+	result.custom_minimum_size = Vector2(44, 44)
+	if not small:
+		result.add_theme_font_size_override("font_size", 18)
+	result.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	return result
+
+
+static func small_go(text: String, on_pressed: Callable) -> Button:
+	var result := button(text, on_pressed, &"SmallGoButton")
+	result.custom_minimum_size = Vector2(44, 44)
+	return result
+
+
+## O botão conserva 44 px de toque; a superfície menor é desenhada ao centro.
+static func ctl_button(name: String, on_pressed: Callable, px: int = 40, surface_name: String = "card") -> Button:
+	var result := button("", on_pressed, &"IconButton" if surface_name == "card" else &"CloseButton")
+	for phase: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+		result.add_theme_stylebox_override(phase, StyleBoxEmpty.new())
+	var visual := PanelContainer.new()
+	visual.name = "Disc"
+	visual.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	visual.add_theme_stylebox_override("panel", surface(Palette.CARD if surface_name == "card" else Palette.SUNKEN, px / 2, surface_name == "card"))
+	var center := CenterContainer.new()
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	center.add_child(ctl(name, 22 if px >= 40 else 18))
+	visual.add_child(center)
+	result.add_child(visual)
+	var layout := func() -> void:
+		visual.size = Vector2(px, px)
+		visual.position = (result.size - visual.size) / 2
+	result.resized.connect(layout)
+	result.custom_minimum_size = Vector2(maxi(44, px), maxi(44, px))
+	return result
+
+
+static func list_card(parent: Control) -> VBoxContainer:
+	var box := card(parent)
+	box.add_theme_constant_override("separation", 0)
+	var style := surface(Palette.CARD, 20, true)
+	style.content_margin_top = 4
+	style.content_margin_bottom = 4
+	(box.get_parent() as PanelContainer).add_theme_stylebox_override("panel", style)
+	box.child_entered_tree.connect(func(child: Node) -> void:
+		if child is Control and not child.has_meta("divider") and box.get_child_count() > 1:
+			var line := ColorRect.new()
+			line.name = "Divider"
+			line.set_meta("divider", true)
+			line.color = Palette.LINE
+			line.custom_minimum_size.y = 1
+			line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var insert := func() -> void:
+				if not is_instance_valid(child):
+					line.free()
+					return
+				box.add_child(line, true)
+				box.move_child(line, child.get_index())
+			insert.call_deferred())
+	return box
+
+
+static func section(text: String, right: Control = null) -> HBoxContainer:
+	var row := hbox(8)
+	var title := fill_label(text, &"SmallLabel", Palette.INK_SOFT)
+	title.uppercase = true
+	title.add_theme_font_override("font", preload("res://assets/fonts/font_caption_spaced.tres"))
+	row.add_child(title)
+	if right:
+		row.add_child(right)
+	return row
+
+
+static func _chip_colors(kind: String) -> Array[Color]:
+	match kind:
+		"prize": return [Palette.HONEY_SOFT, Palette.HONEY_INK]
+		"time": return [Palette.SKY_SOFT, Palette.SKY_INK]
+		"have": return [Palette.GO_SOFT, Palette.GO_INK]
+		"missing": return [Palette.ALERT_SOFT, Palette.ALERT_INK]
+	return [Palette.SUNKEN, Palette.INK]
+
+
+static func badge(count: int, edge: Color = Palette.CARD) -> Label:
+	var mark := short_label(str(count) if count > 0 else "", &"BadgeLabel", Palette.CARD)
+	mark.custom_minimum_size = Vector2(20, 20) if count > 0 else Vector2(12, 12)
+	mark.size = mark.custom_minimum_size
+	mark.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := surface(Palette.ALERT, 12)
+	style.border_color = edge
+	style.set_border_width_all(2)
+	mark.add_theme_stylebox_override("normal", style)
+	if count <= 0:
+		# Label preserva a altura da fonte mesmo vazio; o pontinho desenha só 12 px no centro.
+		mark.add_theme_stylebox_override("normal", StyleBoxEmpty.new())
+		mark.draw.connect(func() -> void:
+			mark.draw_circle(mark.size / 2, 6, edge, true, -1, true)
+			mark.draw_circle(mark.size / 2, 4, Palette.ALERT, true, -1, true))
+		mark.resized.connect(mark.queue_redraw)
+	return mark
+
+
+static func dot() -> Control:
+	return badge(0)
+
+
+static func spark() -> Control:
+	var panel := PanelContainer.new()
+	panel.custom_minimum_size = Vector2(22, 22)
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.add_theme_stylebox_override("panel", surface(Palette.HONEY, 11))
+	var center := CenterContainer.new()
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	center.add_child(ctl("spark", 13, Palette.CARD))
+	panel.add_child(center)
+	return panel
+
+
+static func ring(texture: Texture2D, progress: float, color: Color = Palette.SKY, px: int = 44) -> RingProgress:
+	var result := RingProgress.new()
+	result.custom_minimum_size = Vector2(px, px)
+	result.texture = texture
+	result.progress = progress
+	result.color = color
+	result.done_color = color
+	return result
+
+
+static func steps(total: int, current: int) -> HBoxContainer:
+	var row := hbox(3)
+	for i in total:
+		var dash := Panel.new()
+		dash.custom_minimum_size = Vector2(12, 6)
+		dash.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		dash.add_theme_stylebox_override("panel", surface(Palette.GO if i < current else (Palette.HONEY if i == current else Palette.SUNKEN), 3))
+		row.add_child(dash)
+	return row
+
+
+static func stepper(value: int, min_value: int, max_value: int, on_change: Callable) -> HBoxContainer:
+	var row := hbox(4)
+	row.custom_minimum_size.y = 44
+	row.draw.connect(func() -> void: row.draw_style_box(surface(Palette.SUNKEN, 22), Rect2(Vector2.ZERO, row.size)))
+	row.resized.connect(row.queue_redraw)
+	for delta: int in [-1, 1]:
+		if delta == 1:
+			row.add_child(short_label("×%d" % value, &"NumberLabel"))
+		var control := ctl_button("minus" if delta < 0 else "plus", func() -> void: on_change.call(clampi(value + delta, min_value, max_value)), 36)
+		control.name = "Minus" if delta < 0 else "Plus"
+		control.disabled = value <= min_value if delta < 0 else value >= max_value
+		if control.disabled:
+			control.get_node("Disc").hide()
+			var sign := ctl("minus" if delta < 0 else "plus", 20, Palette.INK_FAINT)
+			control.add_child(sign)
+			sign.position = Vector2(12, 12)
+		row.add_child(control)
+	return row
+
+
+static func tile(texture: Texture2D, caption: String, state: String = "normal", missing: Texture2D = null) -> Button:
+	var result := button("", func() -> void: pass, &"GhostButton")
+	result.custom_minimum_size = Vector2(72, 76)
+	var style := surface(Palette.CARD if state == "selected" else Palette.PAPER, 16, state == "selected")
+	if state == "selected":
+		style.border_color = Palette.INK
+		style.set_border_width_all(2)
+		style.border_blend = true
+	for phase: String in ["normal", "hover", "pressed", "hover_pressed"]:
+		result.add_theme_stylebox_override(phase, style)
+	var body := vbox(4)
+	body.name = "Visual"
+	result.add_child(body)
+	body.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	body.offset_top = 8
+	body.offset_bottom = -8
+	body.alignment = BoxContainer.ALIGNMENT_CENTER
+	var picture := icon(texture, 40)
+	picture.name = "Picture"
+	picture.modulate.a = 0.45 if state == "missing" else (0.35 if state == "locked" else 1.0)
+	body.add_child(picture)
+	var title := short_label(caption, &"SmallLabel")
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	body.add_child(title)
+	if state == "missing" and missing:
+		var mark := disc(missing, 22, 16)
+		mark.name = "Missing"
+		mark.add_theme_stylebox_override("panel", surface(Palette.ALERT_SOFT, 11))
+		result.add_child(mark)
+		mark.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+		mark.position += Vector2(-22, 0)
+	if state == "locked":
+		var lock := ctl("lock", 18)
+		lock.name = "LockIcon"
+		result.add_child(lock)
+		lock.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+		lock.position -= Vector2(9, 9)
+	return result
+
+
+static func toggle(on: bool, on_change: Callable) -> Button:
+	var result := button("", func() -> void: pass, &"GhostButton")
+	result.custom_minimum_size = Vector2(48, 44)
+	result.toggle_mode = true
+	result.button_pressed = on
+	for phase: String in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
+		result.add_theme_stylebox_override(phase, StyleBoxEmpty.new())
+	var track := Panel.new()
+	track.name = "Track"
+	track.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	track.size = Vector2(48, 28)
+	result.add_child(track)
+	var knob := Panel.new()
+	knob.name = "Knob"
+	knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	knob.size = Vector2(22, 22)
+	knob.add_theme_stylebox_override("panel", surface(Palette.CARD, 11, true))
+	track.add_child(knob)
+	var update := func(animate: bool) -> void:
+		track.add_theme_stylebox_override("panel", surface(Palette.GO if result.button_pressed else Palette.SUNKEN, 14))
+		var target := Vector2(23 if result.button_pressed else 3, 3)
+		if result.has_meta("tween"):
+			(result.get_meta("tween") as Tween).kill()
+		if animate and not Motion.reduced:
+			var tween := result.create_tween()
+			tween.tween_property(knob, "position", target, 0.15)
+			result.set_meta("tween", tween)
+		else:
+			knob.position = target
+	result.resized.connect(func() -> void: track.position = (result.size - track.size) / 2)
+	result.toggled.connect(func(value: bool) -> void:
+		update.call(true)
+		on_change.call(value))
+	update.call(false)
+	return result

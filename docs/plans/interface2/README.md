@@ -80,7 +80,7 @@ flowchart TD
 |---|---|---|---|
 | [x] | 00 | plano, bíblia, jornada, telas, regras/testes, 12 etapas, protótipos e pranchas; decisões do Vitor | — |
 | [x] | [01](etapas/ETAPA_01_BASE.md) | fontes, `Palette`, ícones vetoriais, tema; ferramentas enxutas de teste/captura | médio |
-| [ ] | [02](etapas/ETAPA_02_PECAS.md) | peças do `UiKit` | médio |
+| [x] | [02](etapas/ETAPA_02_PECAS.md) | peças do `UiKit` | médio |
 | [ ] | [03](etapas/ETAPA_03_CASCA.md) | rodapé claro preso, HUD em 2 linhas, `NextStep`/`QuestGuide`, `Notice` | grande |
 | [ ] | [04](etapas/ETAPA_04_TIRO.md) | cenário aproximado, anéis no topo, botão Cuidar + roleta | grande |
 | [ ] | [05](etapas/ETAPA_05_MISSOES.md) | Missões em 3 abas, `claim_quest_fx`, `QuestReward` | grande |
@@ -143,3 +143,14 @@ recolhidos e diárias/semanais separadas (→ testes mudam na 05 com a mesma gar
 jogo alterado; sem testes, commit, push ou publicação. **Pronto para a etapa 01.**
 
 **Etapa 01 (24/10/2026, Codex; local):** fontes Fredoka/Nunito (PCK 7.210.824 → 7.504.112 bytes, +286,4 KiB), Palette nova com apelidos, 17 controles SVG 4× e tema liso; `-Exact` e `--i2-01-only`. Lista fechada + rápido: **8/8 PASS em 68 s**, logs `build/test_logs/r20261024_181601_774176ce/`. Nove capturas antes/depois nas três resoluções e tour completo (114 PNGs); acentos conferidos. Quebras: Caderninho excede largura, prêmios de contratos apertados, bloqueios/etiquetas de mapas cortados ou sobrepostos, bandejas altas e títulos de modais em duas linhas. Diferenças do protótipo são as composições antigas, reservadas às etapas seguintes. Auditoria, arquivos e PNGs em [VALIDACAO_01.md](VALIDACAO_01.md). Margens legadas de PillPanel/RowPanel preservadas para manter os contratos existentes; nenhum layout refeito. **Próxima: 02**, não iniciada. Sem push/publicação.
+
+**Etapa 02 (24/10/2026, Codex; local):** peças novas no UiKit (`soft`, `small_go`, `ctl_button`,
+`list_card`, `section`, chip por tipo, `badge/dot/spark`, `ring`, `steps`, `stepper`, `tile`, `toggle`),
+SlotDot 52, SpeechBubble, Sheet, Popover, `Motion.fly_arc/stagger_in` e voo da coleta. APIs antigas e
+filhos-botões de `segmented` preservados. Lista fechada + rápido: **8/8 PASS em 69 s**
+(`build/test_logs/r20261024_184430_01997809/`); teste de peças repetido após o ajuste visual do pontinho:
+PASS em 2,6 s (`build/i2_02_kit_final.log`). Capturas antes e depois (nove telas, três resoluções) e
+vitrine abertas. Diferenças: vitrine em duas páginas para preservar alvos/tamanhos; contorno de tile
+2 px (StyleBoxFlat usa inteiros); composições das telas ainda antigas, conforme etapas 03–10.
+Registro completo e pendências em [VALIDACAO_02.md](VALIDACAO_02.md). **Próxima: 03**, não iniciada.
+Sem regra/save/fala alterada, push ou publicação.

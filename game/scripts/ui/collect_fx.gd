@@ -44,7 +44,7 @@ func _spawn(texture: Texture2D, amount: int, start: Vector2, index: int, total: 
 	chip.add_child(UiKit.icon(texture, ICON_PX))
 	var label := Label.new()
 	label.text = "+%d" % amount
-	label.add_theme_font_size_override("font_size", 22)
+	label.theme_type_variation = &"NumberLabel"
 	label.add_theme_color_override("font_color", Palette.INK_ON_DARK)
 	label.add_theme_color_override("font_outline_color", Palette.INK)
 	label.add_theme_constant_override("outline_size", 8)
@@ -61,6 +61,9 @@ func _spawn(texture: Texture2D, amount: int, start: Vector2, index: int, total: 
 	chip.position = Vector2(x, y)
 	chip.pivot_offset = Vector2(width / 2.0, ICON_PX / 2.0)
 	chip.scale = Vector2.ONE * 0.3
+	if Motion.reduced:
+		chip.queue_free()
+		return
 	var tween := chip.create_tween()
 	tween.tween_interval(index * STAGGER)
 	tween.tween_property(chip, "modulate:a", 1.0, 0.12)
@@ -71,7 +74,9 @@ func _spawn(texture: Texture2D, amount: int, start: Vector2, index: int, total: 
 	if fly_to.x >= 0.0:
 		# Voa até a pílula de moedas (centro do chip no centro do número) e encolhe ao chegar.
 		var landing := fly_to - Vector2(width, ICON_PX) / 2.0
-		tween.tween_property(chip, "position", landing, FLY).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN).set_delay(0.1)
+		tween.tween_interval(0.1)
+		tween.tween_callback(func() -> void: Motion.fly_arc(chip, chip.position, landing))
+		tween.tween_interval(Motion.FLY)
 		tween.parallel().tween_property(chip, "scale", Vector2.ONE * 0.5, FLY).set_delay(0.1)
 		tween.tween_property(chip, "modulate:a", 0.0, 0.1)
 	else:

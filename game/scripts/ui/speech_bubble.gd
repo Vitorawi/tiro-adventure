@@ -9,9 +9,11 @@ const TAIL_SIZE := 9.0  # meia altura da base do rabinho
 ## Texto da fala (22), para quem precisa atualizá-lo.
 var label: Label
 var _tail: Control
+var _inside := false
 
 
-func _init(text: String = "", speaker: String = "") -> void:
+func _init(text: String = "", speaker: String = "", inside_card: bool = false) -> void:
+	_inside = inside_card
 	name = "SpeechBubble"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_theme_constant_override("separation", -2)  # o rabinho cobre a borda do cartão
@@ -22,7 +24,7 @@ func _init(text: String = "", speaker: String = "") -> void:
 	_tail.draw.connect(_draw_tail)
 	_tail.resized.connect(_tail.queue_redraw)
 	add_child(_tail)
-	var stack := UiKit.vbox(-12)  # etiqueta e cartão se sobrepõem
+	var stack := UiKit.vbox(4)
 	stack.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	add_child(stack)
 	if speaker != "":
@@ -32,15 +34,16 @@ func _init(text: String = "", speaker: String = "") -> void:
 		indent.custom_minimum_size = Vector2(12, 0)
 		indent.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tag_row.add_child(indent)
-		var tag := PanelContainer.new()
+		var tag := UiKit.short_label(speaker, &"SmallLabel", Palette.INK_SOFT)
 		tag.name = "NameTag"
-		tag.theme_type_variation = &"PillPanel"
 		tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		tag.add_child(UiKit.short_label(speaker, &"SmallLabel", Palette.INK_ON_DARK))
 		tag_row.add_child(tag)
 		stack.add_child(tag_row)
 	var card := PanelContainer.new()
 	card.theme_type_variation = &"CardPanel"
+	var style := UiKit.surface(Palette.PAPER if inside_card else Palette.CARD, 16, not inside_card)
+	style.set_content_margin_all(12)
+	card.add_theme_stylebox_override("panel", style)
 	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label = UiKit.label(text)
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -52,6 +55,4 @@ func _draw_tail() -> void:
 	var center_y := clampf(_tail.size.y - 32.0, TAIL_SIZE + 6.0, maxf(TAIL_SIZE + 6.0, _tail.size.y - TAIL_SIZE - 6.0))
 	var points := PackedVector2Array([
 		Vector2(0.0, center_y), Vector2(TAIL_WIDTH + 2.0, center_y - TAIL_SIZE), Vector2(TAIL_WIDTH + 2.0, center_y + TAIL_SIZE)])
-	_tail.draw_colored_polygon(points, Palette.CARD)
-	_tail.draw_line(points[0], points[1], Palette.CARD_LINE, 2.0, true)
-	_tail.draw_line(points[0], points[2], Palette.CARD_LINE, 2.0, true)
+	_tail.draw_colored_polygon(points, Palette.PAPER if _inside else Palette.CARD)

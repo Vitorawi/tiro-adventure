@@ -19,6 +19,10 @@ const PULSE := 0.9
 const COUNT := 0.5
 const SHAKE := 0.24
 const FLOAT := 0.7
+const FLY := 0.45
+const SHEET_IN := 0.26
+const SHEET_OUT := 0.18
+const TRAY_IN := 0.18
 ## Efeitos do jogo ficam acima do cenário, abaixo das abas (6), HUD (8) e painéis (10).
 const WORLD_FX_Z := 5
 const FADE := 0.12  # conteúdo novo entrando num painel que já está aberto
@@ -45,14 +49,16 @@ static func _finished(node: Node) -> Tween:
 	return tween
 
 
-## Botão que afunda ao tocar: escala 0,94 ao apertar e volta ao soltar. Só conecta os sinais.
+## Botão que afunda ao tocar: escala 0,96 ao apertar e volta ao soltar. Só conecta os sinais.
 static func press(button: BaseButton) -> void:
-	if reduced:
-		return
 	button.button_down.connect(func() -> void:
+		if reduced: return
 		_pivot(button)
-		button.create_tween().tween_property(button, "scale", Vector2.ONE * 0.94, PRESS_DOWN))
+		button.create_tween().tween_property(button, "scale", Vector2.ONE * 0.96, PRESS_DOWN))
 	button.button_up.connect(func() -> void:
+		if reduced:
+			button.scale = Vector2.ONE
+			return
 		_pivot(button)
 		button.create_tween().tween_property(button, "scale", Vector2.ONE, PRESS_UP) \
 			.set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT))
@@ -71,6 +77,32 @@ static func pop_in(node: CanvasItem, target_scale: Vector2 = Vector2.ONE, from: 
 	tween.tween_property(node, "scale", target_scale, POP_IN).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(node, "modulate:a", 1.0, POP_IN)
 	return tween
+
+
+## Voo em arco; coordenadas locais no pai do nó, destino aplicado imediatamente com Menos animação.
+static func fly_arc(node: CanvasItem, from: Vector2, to: Vector2, seconds: float = FLY) -> Tween:
+	if reduced:
+		node.set("position", to)
+		return _finished(node)
+	node.set("position", from)
+	var control := (from + to) / 2.0 - Vector2(0, 80)
+	var tween := node.create_tween()
+	tween.tween_method(func(t: float) -> void:
+		node.set("position", (1.0 - t) * (1.0 - t) * from + 2.0 * (1.0 - t) * t * control + t * t * to), 0.0, 1.0, seconds).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	return tween
+
+
+static func stagger_in(nodes: Array, gap: float = 0.03) -> void:
+	for i in nodes.size():
+		var node := nodes[i] as CanvasItem
+		if not is_instance_valid(node): continue
+		if reduced:
+			pop_in(node)
+		else:
+			node.modulate.a = 0.0
+			var tween := node.create_tween()
+			tween.tween_interval(i * gap)
+			tween.tween_callback(func() -> void: pop_in(node))
 
 
 ## Aparece só com o alfa de 0 a 1 (troca de conteúdo dentro de um painel aberto).

@@ -2,6 +2,16 @@
 
 ## Estado atual
 
+**Interface 2 — etapa 02 concluída (24/10/2026, Codex; local).** UiKit com botões calmos/pequenos,
+controles vetoriais com alvo mínimo 44, chips semânticos, listas de 64, seleção branca, tiles,
+interruptor, anéis/passos/quantidade; SlotDot 52, fala, folha e Popover atualizados. `Motion.fly_arc`
+e `stagger_in`; coleta usa o arco até o destino existente. Lista fechada + rápido **8/8 PASS em 69 s**
+(`build/test_logs/r20261024_184430_01997809/`), peça revalidada após ajuste visual do pontinho.
+Vitrine em duas páginas e nove capturas nas três resoluções abertas; diferenças e alertas em
+`docs/plans/interface2/VALIDACAO_02.md`. APIs antigas preservadas; composições antigas permanecem
+para as etapas específicas. **Próxima: 03** (casca), não iniciada. Sem mudança de regras/save/falas,
+push ou publicação.
+
 **Interface 2 — etapa 01 concluída (24/10/2026, Codex; local).** Fredoka/Nunito, Palette com apelidos, 17 controles SVG e tema liso; ferramentas `test.ps1 -Exact` e `ui_tour.gd --i2-01-only`. Lista fechada + rápido: 8/8 PASS em 68 s (`build/test_logs/r20261024_181601_774176ce/`). PCK 7.210.824 → 7.504.112 bytes (+286,4 KiB). Capturas antes/depois nas três resoluções e tour completo de 114 telas. Quebras de layout e overrides preservados em `docs/plans/interface2/VALIDACAO_01.md` (Caderninho largo, contratos/etiquetas apertados, bandejas e títulos antigos); não corrigidos nesta etapa. Próxima: 02, não iniciada. Sem alteração de regras/save/falas, push ou publicação.
 
 **PUBLICADO - versão `357160a` (24/10/2026, a pedido do Vitor).** Entraram: sprites do filhote (`tiro_pet_puppy`) refeitos e as fontes do PixelLab em `assets/pixellab_character/tiro_bebe` (sem a cópia da biblioteca Pillow `python_libs/`, 71 MB, nem o backup `assets/backup_tiro_pet_puppy_20261024/` — os dois ficaram fora do git por `.git/info/exclude` local, nada apagado); primeira Coragem (meta 2 → 3, `courage_start_test`); e o plano "Interface 2" completo em `docs/plans/interface2/` (só documentação e protótipos; nenhuma tela do jogo mudou por ele). Commit feito pelo Claude Code sem rodar testes (pedido do Vitor: "comita tudo, não precisa nem olhar"). [Deploy Web 40131483194](https://github.com/Vitorawi/tiro-adventure/actions/runs/40131483194) concluiu com sucesso; site e `/dev/` respondem HTTP 200. Próximo: soltar o orquestrador da Interface 2 (`docs/plans/interface2/ORQUESTRACAO.md`) a partir da etapa 01.

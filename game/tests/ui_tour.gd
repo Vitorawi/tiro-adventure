@@ -8,6 +8,7 @@ extends SceneTree
 var state: Node
 var main: Node
 var folder := "res://../build/screenshots/ui_tour/"
+var i2_prefix := "i2_01_"
 
 
 func _initialize() -> void:
@@ -18,6 +19,7 @@ func _initialize() -> void:
 
 
 func shot(shot_name: String, wait: float = 0.8) -> void:
+	shot_name = shot_name.replace("i2_01_", i2_prefix)
 	await create_timer(wait).timeout
 	await RenderingServer.frame_post_draw
 	var path := ProjectSettings.globalize_path(folder)
@@ -75,7 +77,9 @@ func _run() -> void:
 	var places: Script = load("res://scripts/ui/places.gd")
 	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
-	if "--i2-01-only" in OS.get_cmdline_user_args():
+	if "--i2-02-only" in OS.get_cmdline_user_args():
+		i2_prefix = "i2_02_"
+	if "--i2-01-only" in OS.get_cmdline_user_args() or "--i2-02-only" in OS.get_cmdline_user_args():
 		state.call("reset")
 		state.get("progress").seen["intro"] = true
 		state.call("dev_unlock_everything")

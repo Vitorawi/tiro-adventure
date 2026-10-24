@@ -1,6 +1,6 @@
 class_name SlotDot
 extends VBoxContainer
-## Espaço de produção compacto: bolinha de 56 px + legenda de uma linha (~76 px de altura).
+## Espaço de produção compacto: bolinha de 52 px + legenda de uma linha (~76 px de altura).
 ## Estados: vazio (círculo tracejado), na fila (ícone apagado), produzindo (anel de tempo),
 ## pronto (anel cheio verde + check, pulsando), comprar ("+" e preço) e nível (cadeado).
 ## Peça só de desenho: o toque (quando houver) é ligado por quem usa, no próprio SlotDot.
@@ -12,7 +12,7 @@ const READY := "ready"
 const BUY := "buy"
 const LEVEL := "level"
 
-const DOT := 56.0
+const DOT := 52.0
 
 var state := EMPTY
 ## Ícone do produto (para dar nome ao nó em quem precisa achá-lo).
@@ -36,32 +36,43 @@ func _init(new_state: String = EMPTY, texture: Texture2D = null, progress: float
 		BUSY, READY:
 			var ring := RingProgress.new()
 			ring.name = "Ring"
-			ring.thickness = 5.0
+			ring.thickness = 4.0
+			ring.custom_minimum_size = Vector2(DOT, DOT)
 			ring.progress = 1.0 if state == READY else progress
 			ring.size = Vector2(DOT, DOT)
 			_dot.add_child(ring)
 			_add_icon(texture, 1.0)
 			if state == READY:
-				var check := UiKit.icon(UiKit.ctl_icon("check"), 16)
+				var check_disc := PanelContainer.new()
+				check_disc.name = "CheckDisc"
+				check_disc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				check_disc.add_theme_stylebox_override("panel", UiKit.surface(Palette.GO, 11))
+				check_disc.size = Vector2(22, 22)
+				check_disc.position = Vector2(DOT - 20.0, -2.0)
+				var check := UiKit.ctl("check", 16, Palette.CARD)
 				check.name = "Check"
-				check.position = Vector2(DOT - 18.0, 0.0)
-				_dot.add_child(check)
+				check_disc.add_child(check)
+				_dot.add_child(check_disc)
 				_pulse = not Motion.reduced
 		QUEUED:
 			_add_icon(texture, 0.6)
-		BUY:
-			var plus := UiKit.label("+", &"TitleLabel", UiKit.GOOD if progress >= 1.0 else Palette.INK_SOFT)
+		EMPTY:
+			var plus := UiKit.ctl("plus", 20, Palette.INK_FAINT)
 			plus.name = "Plus"
-			plus.add_theme_font_size_override("font_size", 40)
-			plus.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			plus.size = Vector2(DOT, DOT)
-			plus.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			plus.position = Vector2((DOT - 20) / 2, (DOT - 20) / 2)
 			_dot.add_child(plus)
-		LEVEL:
-			var lock := UiKit.lock_icon()
-			lock.position = Vector2((DOT - 32.0) / 2.0, (DOT - 32.0) / 2.0)
-			_dot.add_child(lock)
-	_add_caption(caption, caption_color, caption_icon)
+		BUY, LEVEL:
+			var lock := UiKit.lock_icon(20)
+			lock.position = Vector2((DOT - 20) / 2, (DOT - 20) / 2)
+			if state == BUY:
+				var legacy_plus := Control.new()
+				legacy_plus.name = "Plus"
+				legacy_plus.mouse_filter = Control.MOUSE_FILTER_IGNORE
+				legacy_plus.add_child(lock)
+				_dot.add_child(legacy_plus)
+			else:
+				_dot.add_child(lock)
+	_add_caption(caption, Palette.SKY_INK if state == BUSY else caption_color, caption_icon)
 	set_process(_pulse)
 
 
@@ -86,18 +97,29 @@ func _add_caption(caption: String, color: Variant, icon: Texture2D) -> void:
 		row.add_child(UiKit.icon(icon, 16))
 	var text := UiKit.short_label(caption, &"SmallLabel", color)
 	row.add_child(text)
-	add_child(row)
+	if state == BUY:
+		var chip := PanelContainer.new()
+		chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		chip.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		var style := UiKit.surface(Palette.SUNKEN, 11)
+		style.content_margin_left = 4
+		style.content_margin_right = 4
+		chip.add_theme_stylebox_override("panel", style)
+		chip.add_child(row)
+		add_child(chip)
+	else:
+		add_child(row)
 
 
 func _draw_dot() -> void:
 	var center := Vector2(DOT, DOT) / 2.0
 	match state:
-		EMPTY:
+		EMPTY, QUEUED:
 			# 12 arcos curtos formam o círculo tracejado.
 			for i in 12:
 				var start := TAU * i / 12.0
-				_dot.draw_arc(center, DOT / 2.0 - 2.0, start, start + TAU / 24.0 * 1.4, 6, Palette.CARD_LINE, 3.0, true)
-		QUEUED, BUY, LEVEL:
+				_dot.draw_arc(center, DOT / 2.0 - 2.0, start, start + TAU / 24.0 * 1.4, 6, Palette.SKY if state == QUEUED else Palette.INK_FAINT, 2.0, true)
+		BUY, LEVEL:
 			_dot.draw_circle(center, DOT / 2.0 - 1.0, Palette.SUNKEN)
 
 

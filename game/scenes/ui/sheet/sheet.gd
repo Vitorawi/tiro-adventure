@@ -45,7 +45,7 @@ func _ready() -> void:
 	_dim.color = Palette.DIM
 	_dim.gui_input.connect(_on_dim_input)
 	# Botão redondo com o ícone "✕" próprio (a fonte pixel art não tem o glifo).
-	_close_button = UiKit.icon_button(UiKit.ctl_icon("x"), close, 44)
+	_close_button = UiKit.ctl_button("x", close, 32, "sunken")
 	_close_button.name = "CloseButton"
 	%Header.add_child(_close_button)
 	_handle.draw.connect(_draw_handle)
@@ -140,8 +140,8 @@ func _dismiss(from_y: float) -> void:
 	_closing = true
 	_stop_tweens()
 	var tween := create_tween().set_parallel()
-	tween.tween_property(_panel, "position:y", size.y, Motion.CLOSE).from(from_y).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
-	tween.tween_property(_dim, "modulate:a", 0.0, Motion.CLOSE)
+	tween.tween_property(_panel, "position:y", size.y, Motion.SHEET_OUT).from(from_y).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	tween.tween_property(_dim, "modulate:a", 0.0, Motion.SHEET_OUT)
 	tween.chain().tween_callback(_finish_close)
 	_slide_tween = tween
 
@@ -225,10 +225,7 @@ func _animate_top(top: float, back: bool = false) -> void:
 # --- Arrastar para fechar -------------------------------------------------------------
 
 func _draw_handle() -> void:
-	var bar := StyleBoxFlat.new()
-	bar.bg_color = Palette.CARD_LINE
-	bar.set_corner_radius_all(3)
-	_handle.draw_style_box(bar, Rect2((_handle.size.x - 40.0) / 2.0, 6.0, 40.0, 5.0))
+	_handle.draw_style_box(UiKit.surface(Palette.LINE, 3), Rect2((_handle.size.x - 40.0) / 2.0, 0.0, 40.0, 5.0))
 
 
 ## O próprio painel só arrasta pela faixa do topo; o resto pertence à rolagem do conteúdo.

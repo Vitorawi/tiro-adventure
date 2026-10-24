@@ -26,6 +26,9 @@ static func open(host: Control, anchor: Control, content: Control, seconds: floa
 	popover.name = "Popover"
 	popover._catcher = catcher
 	popover.theme_type_variation = &"CardPanel"
+	var style := UiKit.surface(Palette.CARD, 16, true)
+	style.set_content_margin_all(12)
+	popover.add_theme_stylebox_override("panel", style)
 	popover.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Texto com quebra automática não fornece largura mínima ao PanelContainer.
 	popover.custom_minimum_size.x = minf(200.0, maxf(0.0, host.size.x - EDGE * 2.0))
@@ -52,6 +55,17 @@ func _place(host: Control, anchor: Control) -> void:
 		y = origin.y - size.y - GAP
 	y = clampf(y, EDGE, maxf(EDGE, host.size.y - size.y - EDGE))
 	position = Vector2(x, y)
+	var tip := Vector2(clampf(origin.x + anchor.size.x / 2 - x, 16, maxf(16, size.x - 16)), 0 if y > origin.y else size.y)
+	set_meta("tail_tip", tip)
+	set_meta("tail_above", y < origin.y)
+	queue_redraw()
+
+
+func _draw() -> void:
+	if not has_meta("tail_tip"): return
+	var tip: Vector2 = get_meta("tail_tip")
+	var direction := 1.0 if bool(get_meta("tail_above")) else -1.0
+	draw_colored_polygon(PackedVector2Array([tip + Vector2(-8, 0), tip + Vector2(0, direction * 8), tip + Vector2(8, 0)]), Palette.CARD)
 
 
 ## Rótulos com quebra de linha só informam a altura correta depois de receber a largura.
