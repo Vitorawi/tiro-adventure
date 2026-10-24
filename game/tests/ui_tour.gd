@@ -106,6 +106,42 @@ func _run() -> void:
 		await shot("i2_03_popover")
 		quit(0)
 		return
+	if "--i2-04-only" in OS.get_cmdline_user_args():
+		# Tiro: cenário aproximado, anéis na linha 2, botão Cuidar fechado/aberto, menu de comida, sono, alfinete.
+		state.call("reset")
+		state.get("progress").seen["intro"] = true
+		state.call("dev_unlock_everything")
+		state.call("_mark_all_seen")
+		await _start_main(1.5)
+		main.call("show_screen", &"pet")
+		var care: Control = main.find_child("CareTray", true, false)
+		for id: String in ["hunger", "happiness", "energy", "hygiene"]:
+			state.call("dev_set_need", id, 100.0)
+		await shot("i2_04_pet")
+		state.call("dev_set_need", "hunger", 10.0)
+		await shot("i2_04_pet_ask")
+		state.get("inventory").call("add", "basic_brush", 1)
+		state.get("inventory").call("add", "dog_food", 3)
+		state.call("_changed")
+		if care.has_method("open_wheel"): care.call("open_wheel")
+		await shot("i2_04_wheel", 0.6)
+		if care.has_method("close_wheel"): care.call("close_wheel")
+		state.get("inventory").call("remove", "basic_brush", state.get("inventory").call("count", "basic_brush"))
+		await create_timer(0.3).timeout
+		if care.has_method("open_wheel"): care.call("open_wheel")
+		await shot("i2_04_wheel_four", 0.6)
+		if care.has_method("close_wheel"): care.call("close_wheel")
+		care.call("open_food_menu")
+		await shot("i2_04_food_menu", 0.5)
+		care.call("close_food_menu")
+		root.get_node("Events").emit_signal("care_requested", "sponge")
+		await shot("i2_04_pointer", 0.5)
+		care.call("cancel")
+		state.call("set_sleeping", true)
+		await shot("i2_04_sleep", 2.5)
+		state.call("set_sleeping", false)
+		quit(0)
+		return
 	if "--i2-02-only" in OS.get_cmdline_user_args():
 		i2_prefix = "i2_02_"
 	if "--i2-01-only" in OS.get_cmdline_user_args() or "--i2-02-only" in OS.get_cmdline_user_args():

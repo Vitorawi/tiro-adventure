@@ -4,6 +4,8 @@ extends Control
 ## O recorte tira só a moldura vazia; parede e piso continuam até as bordas da tela.
 
 const SOURCE := Rect2(36, 72, 289, 277)
+const ZOOM := 1.75
+const FOCUS_X := 168.0
 const RUG := Vector2(0.39, 0.8)
 var texture: Texture2D = preload("res://assets/sprites/areas/pet/corner.png")
 var _wall := Palette.PAPER
@@ -21,12 +23,13 @@ func _ready() -> void:
 
 
 func pet_feet() -> Vector2:
-	return Vector2(size.x * RUG.x, size.y * 0.73)
+	return Vector2(size.x * FOCUS_X / 360.0, size.y * 0.71)
 
 
 func scene_rect() -> Rect2:
-	var height := size.x * SOURCE.size.y / SOURCE.size.x
-	return Rect2(Vector2(0, pet_feet().y - height * RUG.y), Vector2(size.x, height))
+	var width := size.x * ZOOM
+	var height := width * SOURCE.size.y / SOURCE.size.x
+	return Rect2(Vector2(pet_feet().x - width * RUG.x, pet_feet().y - height * RUG.y), Vector2(width, height))
 
 
 func _draw() -> void:

@@ -82,7 +82,7 @@ flowchart TD
 | [x] | [01](etapas/ETAPA_01_BASE.md) | fontes, `Palette`, ícones vetoriais, tema; ferramentas enxutas de teste/captura | médio |
 | [x] | [02](etapas/ETAPA_02_PECAS.md) | peças do `UiKit` | médio |
 | [x] | [03](etapas/ETAPA_03_CASCA.md) | rodapé claro preso, HUD em 2 linhas, `NextStep`/`QuestGuide`, `Notice` | grande |
-| [ ] | [04](etapas/ETAPA_04_TIRO.md) | cenário aproximado, anéis no topo, botão Cuidar + roleta | grande |
+| [x] | [04](etapas/ETAPA_04_TIRO.md) | cenário aproximado, anéis no topo, botão Cuidar + roleta | grande |
 | [ ] | [05](etapas/ETAPA_05_MISSOES.md) | Missões em 3 abas, `claim_quest_fx`, `QuestReward` | grande |
 | [ ] | [06](etapas/ETAPA_06_MUNDO.md) | mapa sem texto, balões, `WorldPin`, cartões-postais, conversa, compra | grande |
 | [ ] | [07](etapas/ETAPA_07_HORTA_BANDEJAS.md) | `FarmDock`, bandejas das estações | grande |
@@ -181,3 +181,15 @@ toca em `Ir` (anota o destino), faz no lugar o que a missão pede e toca na píl
 quebrou; lista fechada não precisou rodar de novo (nenhum código do jogo mudou). Observação: um aviso do Godot
 "Lambda capture ... was freed" aparece uma vez ao tocar `Ir` com o cartão aberto (do fechamento do `PopoverCatcher`,
 padrão já usado em `Hud._close_popover`); não derruba nada.
+
+**Etapa 04 (24/10/2026, Codex; continuação local):** cenário 1,75×, anéis 40 na linha 2 do HUD,
+MoodLabel de 2,5 s, WishBubble branco com estrela, PetCareTray como botão Cuidar + roleta
+(CareButton, CareAsk, CareWheelOpen), FoodMenu acima do botão e CarePointer alfinete.
+Lista fechada + rápido **10/10 PASS em 142,1 s** (`build/test_logs/r20261024_200942_9af303fe/`);
+`growth_ui_test` adicional justificado pela remoção de GrowthBadgeHint: PASS em 15,3 s
+(`build/i2_04_growth_final.log`), total 157,4 s. Toque Web emulado PASS: banho e alimentação
+por arrasto (higiene 70→99,997; barriga 40→64,958; ração 3→2), seis PNGs abertos.
+Sete capturas depois nas três resoluções abertas. Diferenças: ordem original dos cuidados;
+ZOOM multiplicativo conforme passo a passo; contorno inteiro 2 px; rótulo Cuidar sobre o pé do disco;
+ícones existentes preservados. Registro completo: [VALIDACAO_04.md](VALIDACAO_04.md).
+Próxima: **05**, não iniciada. Sem regra/save/fala alterada, push ou publicação.

@@ -14,14 +14,8 @@ const SPOTS := {
 var _bars: Dictionary = {}
 var _pulses: Dictionary = {}
 var _animator: PetAnimator
-var _growth_badge: Button
-var _growth_ring: RingProgress
-var _growth_number: Label
-var _growth_hint: Label
-var _growth_pulse: Tween
 var _wish_bubble: Button
 var _wish_icon: TextureRect
-var _wish_pillar: TextureRect
 var _wish_badge: Label
 var _need_pillars: Dictionary = {}
 var _away_view: VBoxContainer
@@ -42,7 +36,8 @@ var _last_pet_feedback := -10.0
 var _pet_message := ""
 var _pet_message_until := 0.0
 var _care: PetCareTray
-var _mood_bubble: SpeechBubble
+var _needs_pill: PanelContainer
+var _mood_bubble: PanelContainer
 var _mood_label: Label
 var _manual: Button
 var _new_badge: Label
@@ -74,30 +69,14 @@ func _ready() -> void:
 	add_child(_animator)
 	_animator.setup(_dog_sprite)
 	_build_need_rings()
-	var need_back := Panel.new()
-	need_back.name = "NeedsPanel"
-	need_back.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var paper := StyleBoxFlat.new()
-	paper.bg_color = Palette.PET_SURFACE
-	paper.set_corner_radius_all(24)
-	paper.shadow_color = Palette.SHADE
-	paper.shadow_size = 5
-	paper.shadow_offset = Vector2(0, 2)
-	paper.border_color = Palette.CARD_LINE
-
-	need_back.add_theme_stylebox_override("panel", paper)
-	add_child(need_back)
-	move_child(need_back, %Margin.get_index())
-	need_back.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
-	need_back.offset_left = 12
-	need_back.offset_right = -12
-	need_back.offset_top = 128
-	need_back.offset_bottom = 236
-	_mood_bubble = SpeechBubble.new()
+	_mood_bubble = PanelContainer.new()
 	_mood_bubble.name = "MoodBubble"
-	_mood_label = _mood_bubble.label
+	_mood_bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_mood_bubble.add_theme_stylebox_override("panel", UiKit.surface(Color(Palette.CARD, 0.86), 14))
+	_mood_label = UiKit.short_label("", &"SmallLabel", Palette.INK)
 	_mood_label.name = "MoodLabel"
-	_mood_label.theme_type_variation = &"StrongLabel"
+	_mood_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_mood_bubble.add_child(_mood_label)
 	add_child(_mood_bubble)
 	_build_wish_widgets()
 	_manual = UiKit.icon_button(UiKit.ui_icon("ui_notebook"), PetNotebook.open, 52)
@@ -111,7 +90,7 @@ func _ready() -> void:
 	_new_badge.reset_size()
 	_care = PetCareTray.new()
 	_care.pet_screen = self
-	%VBox.add_child(_care)
+	add_child(_care)
 	_build_away_view()
 	_build_baggage_button()
 	Events.state_changed.connect(_refresh)
@@ -122,7 +101,9 @@ func _ready() -> void:
 	_corner.resized.connect(_layout_corner)
 	%DogArea.resized.connect(_layout_corner)
 	visibility_changed.connect(func() -> void:
-		if not is_visible_in_tree(): _care.cancel())
+		if not is_visible_in_tree(): _care.cancel()
+		sync_hud())
+	sync_hud.call_deferred()
 	_layout_corner.call_deferred()
 	_refresh()
 
@@ -136,85 +117,67 @@ func play_growth_feedback(before: Dictionary, after: Dictionary) -> void:
 
 
 func _build_need_rings() -> void:
+	_needs_pill = PanelContainer.new()
+	_needs_pill.name = "NeedsPanel"
+	_needs_pill.add_theme_stylebox_override("panel", UiKit.surface(Palette.CARD, 26, true))
+	var row := UiKit.hbox(4)
+	_needs_pill.add_child(row)
 	for id: String in Database.needs:
-		var ring := RingProgress.new()
+		var ring := UiKit.ring(Database.need_icon(id), 1.0, Palette.GO, 40)
 		ring.name = "Need_" + id
-		ring.custom_minimum_size = Vector2(64, 64)
-		ring.texture = Database.need_icon(id)
 		ring.mouse_filter = Control.MOUSE_FILTER_STOP
 		ring.gui_input.connect(func(event: InputEvent) -> void:
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+				_care.close_wheel()
 				var value := GameState.dog.get_need(id, GameState.now())
 				var text := "%s %d%%" % [Database.needs[id].name, roundi(value)]
-				if GameState.need_asking(id): text += "\n" + str(MOOD_TEXTS.get(id, ""))
 				Popover.open(self, ring, UiKit.label(text, &"SmallLabel")))
-		var need := UiKit.vbox(2)
-		need.add_child(ring)
-		# O cuidado que atende a necessidade faz este pilar crescer: o ícone só aparece enquanto ela pede.
-		var mark := UiKit.icon(null, 22)
+		row.add_child(ring)
+		var mark := UiKit.dot()
 		mark.name = "NeedPillar_" + id
-		mark.position = Vector2(44, -6)
-		mark.visible = false
-		mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		mark.hide()
+		mark.position = Vector2(30, 0)
 		ring.add_child(mark)
 		_need_pillars[id] = mark
-		var caption := UiKit.short_label(str(Database.needs[id].name), &"SmallLabel")
-		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		need.add_child(caption)
-		%NeedsGrid.add_child(need)
 		_bars[id] = ring
-	# O crescimento fica abaixo das necessidades, sem espremer os quatro anéis.
-	var badges := UiKit.hbox(12)
-	badges.name = "LifeBadges"
-	badges.position = Vector2(20, 244)
-	add_child(badges)
-	_growth_badge = UiKit.ghost("", GrowthUi.open)
-	_growth_badge.name = "GrowthBadge"
-	for state: String in ["normal", "hover", "pressed", "focus"]:
-		_growth_badge.add_theme_stylebox_override(state, StyleBoxEmpty.new())
-	_growth_badge.custom_minimum_size = Vector2(92, 88)
-	_growth_ring = RingProgress.new()
-	_growth_ring.custom_minimum_size = Vector2(44, 44)
-	_growth_ring.size = Vector2(44, 44)
-	_growth_ring.position = Vector2(24, 8)
-	_growth_badge.add_child(_growth_ring)
-	_growth_number = UiKit.short_label("0", &"SectionLabel")
-	_growth_number.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_growth_number.position = Vector2(24, 16)
-	_growth_number.size = Vector2(44, 28)
-	_growth_number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_growth_badge.add_child(_growth_number)
-	_growth_hint = UiKit.short_label("Crescer", &"SmallLabel")
-	_growth_hint.name = "GrowthBadgeHint"
-	_growth_hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_growth_hint.position = Vector2(0, 58)
-	_growth_hint.size = Vector2(92, 24)
-	_growth_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var hint_back := PanelContainer.new()
-	hint_back.theme_type_variation = &"ChipPanel"
-	hint_back.position = Vector2(0, 58)
-	hint_back.size = Vector2(92, 24)
-	hint_back.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	hint_back.add_child(_growth_hint)
-	_growth_badge.add_child(hint_back)
-	badges.add_child(_growth_badge)
+
+
+## A pílula pertence ao HUD somente enquanto esta tela está aberta.
+func sync_hud() -> void:
+	var shell := get_tree().get_first_node_in_group("main")
+	if shell == null: shell = get_parent().get_parent().get_parent()
+	if not shell.has_method("set_tab_joined"): return
+	shell.call("set_tab_joined", is_visible_in_tree())
+	var hud := shell.find_child("TopBar", true, false)
+	if hud != null and hud.has_method("set_row2_right"):
+		if is_visible_in_tree(): hud.call("set_row2_right", _needs_pill)
+		elif _needs_pill.get_parent() != null: hud.call("set_row2_right", null)
+
+
+func wheel_changed(open: bool) -> void:
+	_manual.visible = not open
+	if open: _mood_bubble.hide()
+
+
+func _exit_tree() -> void:
+	if is_instance_valid(_needs_pill): _needs_pill.queue_free()
 
 
 func _build_wish_widgets() -> void:
-	_wish_bubble = UiKit.icon_button(UiKit.ui_icon("wish_bubble"), _open_wish_card, 64)
+	_wish_bubble = UiKit.icon_button(null, _open_wish_card, 64)
 	_wish_bubble.name = "WishBubble"
-	_wish_bubble.add_theme_constant_override("icon_max_width", 64)
 	for style: String in ["normal", "hover", "pressed", "focus", "disabled"]:
-		_wish_bubble.add_theme_stylebox_override(style, StyleBoxEmpty.new())
-	_wish_icon = UiKit.icon(null, 32)
-	_wish_icon.position = Vector2(16, 12)
+		_wish_bubble.add_theme_stylebox_override(style, UiKit.surface(Palette.CARD, 20, true))
+	_wish_bubble.draw.connect(func() -> void:
+		_wish_bubble.draw_circle(Vector2(18, 68), 7, Palette.CARD, true, -1, true)
+		_wish_bubble.draw_circle(Vector2(6, 82), 3.5, Palette.CARD, true, -1, true))
+	_wish_icon = UiKit.icon(null, 36)
+	_wish_icon.position = Vector2(14, 14)
 	_wish_bubble.add_child(_wish_icon)
-	_wish_pillar = UiKit.icon(null, 20)
-	_wish_pillar.name = "WishPillar"
-	_wish_pillar.position = Vector2(40, 0)
-	_wish_pillar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_wish_bubble.add_child(_wish_pillar)
+	var spark := UiKit.spark()
+	spark.name = "WishSpark"
+	spark.position = Vector2(48, -8)
+	_wish_bubble.add_child(spark)
 	_wish_badge = UiKit.alert_badge()
 	_wish_badge.name = "WishReadyBadge"
 	_wish_badge.position = Vector2(46, 20)
@@ -238,20 +201,23 @@ func _open_wish_card() -> void:
 func _place_bubble() -> void:
 	if _wish_bubble:
 		_wish_bubble.position = _dog_sprite.global_position - global_position + Vector2(_dog_sprite.size.x * 0.72, _dog_sprite.size.y * 0.18)
+		_wish_bubble.position.x = minf(_wish_bubble.position.x, size.x - _wish_bubble.size.x - 16)
 	if _away_collect:
 		var area: Control = %DogArea
 		_away_collect.position = Vector2((size.x - _away_collect.size.x) * 0.5, area.global_position.y - global_position.y + area.size.y - _away_collect.size.y - 12.0)
 	if _mood_bubble:
-		_mood_bubble.position = Vector2(24, maxf(250, _dog_sprite.global_position.y - global_position.y - 20))
-		_mood_bubble.size = Vector2(size.x - 104, 48)
+		_mood_bubble.size = _mood_bubble.get_combined_minimum_size()
+		_mood_bubble.position = Vector2((_dog_sprite.position.x + _dog_sprite.size.x / 2.0) - _mood_bubble.size.x / 2.0, _corner.pet_feet().y + 8)
 
 
 func _layout_corner() -> void:
 	if not is_instance_valid(_manual): return
-	_manual.position = Vector2(size.x - 76, 252)
+	_manual.position = Vector2(size.x - 68, size.y * 0.46)
 	_manual.size = Vector2(52, 52)
 	# Cenário e Tiro são irmãos: a ordenação diferida do VBox/CenterContainer
 	# não pode mover o sprite depois deste cálculo absoluto, nem ao trocar de aba.
+	_dog_sprite.custom_minimum_size = Vector2(336, 284) * PetBackdrop.ZOOM
+	_dog_sprite.size = _dog_sprite.custom_minimum_size
 	_dog_sprite.position = _corner.position + _corner.pet_feet() - _dog_sprite.size * Vector2(0.5, 0.81)
 	%Stars.position = _corner.scene_rect().position + Vector2(34, 58)
 	%Stars.size = Vector2(64, 64)
@@ -278,33 +244,21 @@ func _refresh() -> void:
 	_away_collect.visible = not away and GameState.walk_ready()
 	if _away_collect.visible:
 		_away_collect.text = "Guardar achados" if GameState.walk_baggage_error() == "" else "Ver bagagem"
-	var growth := GameState.growth_info()
-	_growth_number.text = str(GameState.growth.phase_index())
-	_growth_ring.progress = 1.0 if growth.next.is_empty() else GrowthUi.fraction(growth)
-	_growth_hint.text = "Falta 1!" if GrowthUi.missing(growth) == 1 else ("Pronto!" if growth.ready else "Crescer")
-	if growth.ready and (_growth_pulse == null or not _growth_pulse.is_valid()):
-		_growth_pulse = Motion.pulse(_growth_ring)
-	elif not growth.ready and _growth_pulse != null:
-		if _growth_pulse.is_valid(): _growth_pulse.kill()
-		_growth_pulse = null
-		_growth_ring.scale = Vector2.ONE
 	var wish_id := GameState.balloon_wish()
 	_wish_bubble.visible = wish_id != "" and not dog.sleeping and not away
 	_wish_badge.visible = _wish_bubble.visible and GameState.fulfillable_wish_count() > 0
 	if not _wish_bubble.visible and _care.get("_pointed_item") == "wish": _care.clear_pointer()
 	_wish_icon.texture = WishUi.icon(wish_id) if wish_id != "" else null
-	_wish_pillar.texture = WishUi.pillar_icon(GameState.wish_pillar()) if wish_id != "" else null
+	(_wish_bubble.get_node("WishSpark") as Control).visible = wish_id != "" and GameState.wish_pillar() != ""
 	_new_badge.visible = PetNotebook.has_new()
 	for id: String in _bars:
 		var ring: RingProgress = _bars[id]
 		var value := dog.get_need(id, now)
 		var asking := GameState.need_asking(id)
 		ring.progress = value / 100.0
-		ring.color = Palette.PRIMARY if not asking else (Palette.ACCENT if value >= MOOD_LOW else Palette.DANGER)
-		var mark: TextureRect = _need_pillars[id]
-		var pillar := GameState.need_pillar(id)
-		mark.visible = asking and pillar != ""
-		mark.texture = WishUi.pillar_icon(pillar) if mark.visible else null
+		ring.color = Palette.ALERT if asking else Palette.GO
+		var mark: Control = _need_pillars[id]
+		mark.visible = asking
 		if asking and not _pulses.has(id):
 			ring.pivot_offset = ring.size / 2.0
 			_pulses[id] = Motion.pulse(ring)
@@ -326,7 +280,9 @@ func _refresh() -> void:
 
 func _show_mood() -> void:
 	_mood_age = 0.0
+	if _care != null and (_care.get("_row") as Control).visible: return
 	_mood_bubble.show()
+	_place_bubble()
 	Motion.pop_in(_mood_bubble)
 
 
@@ -337,8 +293,7 @@ func _process(delta: float) -> void:
 	_mood_age += delta
 	_wish_age += delta
 	_sleep_age += delta
-	if _mood_age > 20.0: _show_mood()
-	elif _mood_age > 4.0: _mood_bubble.hide()
+	if _mood_age > 2.5: _mood_bubble.hide()
 	if _wish_age >= 3.0:
 		_wish_age = 0.0
 		if _wish_bubble.visible: Motion.bounce(_wish_bubble)
@@ -589,6 +544,7 @@ func _on_dog_input(event: InputEvent) -> void:
 			else:
 				Events.toast_requested.emit("Shh... ele está dormindo.")
 			return
+		_show_mood()
 		hold_begin(button.position)
 	elif motion != null and _holding and (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
 		hold_move(motion.position, motion.relative.length())

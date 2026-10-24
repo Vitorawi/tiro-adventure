@@ -226,14 +226,16 @@ func _run() -> void:
 	for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 		root.size = viewport
 		await frames()
-		var circle_y := -1.0
+		tray.call("open_wheel")
+		await frames()
+		var previous_center := Vector2.ZERO
 		for action: String in ["FoodButton", "Care_sponge", "BrushTile", "Care_ball", "SleepButton"]:
 			var item: Control = tray.find_child(action, true, false)
 			var circle: Control = item.find_child("Circle", true, false)
-			check(circle.size == Vector2(56, 56), "círculos iguais: " + action)
+			check(circle.size.is_equal_approx(Vector2(64, 64)), "círculos iguais: " + action)
 			check(tray.get_global_rect().encloses(item.get_global_rect()), "dentro da faixa: %s %s" % [action, str(viewport)])
-			if circle_y >= 0: check(is_equal_approx(circle_y, circle.global_position.y), "mesma linha: " + action)
-			circle_y = circle.global_position.y
+			if previous_center != Vector2.ZERO: check(previous_center.distance_to(circle.get_global_rect().get_center()) >= 80, "espaçamento no arco: " + action)
+			previous_center = circle.get_global_rect().get_center()
 	root.size = Vector2i(360, 780)
 	await frames()
 	var coat_before := earned("coat")

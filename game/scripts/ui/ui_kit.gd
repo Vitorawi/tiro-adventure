@@ -63,8 +63,9 @@ static func ready_dot(px: int = 14) -> Control:
 
 ## Novidade pendente: o mesmo sinal no atalho, na aba e no conteúdo.
 static func alert_badge() -> Label:
-	var result := badge(0)
+	var result := badge(1)
 	result.name = "NewBadge"
+	result.text = "!"
 	return result
 
 
@@ -308,6 +309,55 @@ static func action_tile(texture: Texture2D, caption: String, on_pressed: Callabl
 	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	visual.add_child(text)
+	return result
+
+
+## Disco da roleta de cuidados (Interface 2, etapa 04): 64 px branco 82%, contorno interno claro, nome em pílula
+## embaixo (fora do retângulo de toque, que é só o disco). Nós: `Circle`, `CareIcon`, `CaptionPill`/`Caption`.
+static func care_disc(texture: Texture2D, caption: String, on_pressed: Callable, px: int = 64, overlap_caption: bool = false) -> Button:
+	var result := button("", on_pressed, &"GhostButton")
+	result.custom_minimum_size = Vector2(px, px)
+	result.size = Vector2(px, px)
+	for phase: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+		result.add_theme_stylebox_override(phase, StyleBoxEmpty.new())
+	var circle := PanelContainer.new()
+	circle.name = "Circle"
+	circle.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	circle.custom_minimum_size = Vector2(px, px)
+	var style := surface(Color(Palette.CARD, 0.82), px / 2, true)
+	style.shadow_size = 8
+	style.border_color = Color(Palette.CARD, 0.9)
+	style.set_border_width_all(2)
+	circle.add_theme_stylebox_override("panel", style)
+	var center := CenterContainer.new()
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var picture := icon(texture, 40)
+	picture.name = "CareIcon"
+	center.add_child(picture)
+	circle.add_child(center)
+	result.add_child(circle)
+	circle.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var pill := PanelContainer.new()
+	pill.name = "CaptionPill"
+	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var pill_style := surface(Color(Palette.CARD, 0.8), 12)
+	pill_style.content_margin_left = 10.0
+	pill_style.content_margin_right = 10.0
+	pill_style.content_margin_top = 1.0
+	pill_style.content_margin_bottom = 1.0
+	pill.add_theme_stylebox_override("panel", pill_style)
+	var text := short_label(caption, &"SmallLabel", Palette.INK)
+	text.name = "Caption"
+	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.add_child(text)
+	result.add_child(pill)
+	var place := func() -> void:
+		pill.size = pill.get_combined_minimum_size()
+		pill.position = Vector2((result.size.x - pill.size.x) / 2.0, result.size.y - 12.0 if overlap_caption else result.size.y + 2.0)
+	pill.minimum_size_changed.connect(place)
+	result.resized.connect(place)
+	place.call_deferred()
 	return result
 
 

@@ -259,6 +259,7 @@ func set_tab_joined(on: bool) -> void:
 
 func show_screen(id: StringName) -> void:
 	_current_screen = id
+	set_tab_joined(id == &"pet")
 	GameState.note_screen_opened(String(id))
 	for screen_id: StringName in _screens:
 		_screens[screen_id].visible = screen_id == id

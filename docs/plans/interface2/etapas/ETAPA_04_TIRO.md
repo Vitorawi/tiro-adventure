@@ -149,11 +149,11 @@ shot; tap fora → shot.
 `tiro_cuidar.png` e `tiro_roleta.png`.
 
 ## 8. Pronto quando
-- [ ] Embaixo só o rodapé e o botão Cuidar; a roleta abre espaçada, meio transparente, sem cobrir o rosto
+- [x] Embaixo só o rodapé e o botão Cuidar; a roleta abre espaçada, meio transparente, sem cobrir o rosto
       do Tiro com o véu escuro.
-- [ ] Todos os cuidados funcionam pela roleta, com toque e com arrasto, como antes.
-- [ ] O atalho do pedido no botão funciona para as quatro necessidades.
-- [ ] Testes da lista verdes; toque real feito e capturas abertas.
+- [x] Todos os cuidados funcionam pela roleta, com toque e com arrasto, como antes.
+- [x] O atalho do pedido no botão funciona para as quatro necessidades.
+- [x] Testes da lista verdes; toque real feito e capturas abertas.
 
 ## 9. Registro
 ```

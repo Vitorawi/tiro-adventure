@@ -48,6 +48,7 @@ func send(id: String, kind: String, point: Vector2) -> void:
 
 
 func tap(id: String) -> void:
+	if id in ["sponge", "ball", "brush"]: tray.call("open_wheel")
 	var center: Vector2 = tray.call("item_center", id)
 	send(id, "press", center)
 	send(id, "release", center)
@@ -84,7 +85,7 @@ func _run() -> void:
 	check(tray.find_child("FoodButton", true, false) != null, "um botão fixo abre as comidas")
 	var menu: Control = pet.find_child("FoodMenu", true, false)
 	check(menu.visible and pet.find_child("FoodScroll", true, false).horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED, "comidas abrem na vertical")
-	check(menu.position.x >= 0 and menu.get_global_rect().end.y <= tray.global_position.y, "guia fica dentro da tela e acima dos controles")
+	check(menu.position.x >= 0 and menu.get_global_rect().end.y < tray.find_child("CareButton", true, false).global_position.y, "guia fica dentro da tela e acima dos controles")
 	for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 		root.size = viewport
 		await frames()
@@ -92,7 +93,7 @@ func _run() -> void:
 		check(badge.text == "!" and badge.get_theme_color("font_color") == Color.WHITE, "caderninho: exclamação branca sobre bolinha vermelha")
 		check(badge.size.x >= badge.get_combined_minimum_size().x and badge.size.y > 0, "selo do caderninho tem espaço para o texto")
 		for need_id: String in ["hunger", "happiness", "energy", "hygiene"]:
-			var need_ring: Control = pet.find_child("Need_" + need_id, true, false)
+			var need_ring: Control = main.find_child("Need_" + need_id, true, false)
 			var press := InputEventMouseButton.new()
 			press.button_index = MOUSE_BUTTON_LEFT
 			press.pressed = true
@@ -108,21 +109,26 @@ func _run() -> void:
 				await RenderingServer.frame_post_draw
 				check(root.get_texture().get_image().save_png(folder.path_join("needs_%d.png" % viewport.x)) == OK, "captura dos balões")
 			pet.get_node("PopoverCatcher").free()
-		var circle_y := -1.0
+		tray.call("open_wheel")
+		await frames()
+		var previous_center := Vector2.ZERO
 		for action: String in ["FoodButton", "Care_sponge", "Care_ball", "SleepButton"]:
 			var tile: Control = tray.find_child(action, true, false)
 			var circle: Control = tile.find_child("Circle", true, false)
 			var icon: Control = tile.find_child("CareIcon", true, false)
-			check(circle.size == Vector2(56, 56), "quatro círculos iguais: " + action)
+			check(circle.size.is_equal_approx(Vector2(64, 64)), "quatro círculos iguais: %s (%s)" % [action, circle.size])
 			check(tray.get_global_rect().encloses(icon.get_global_rect()), "ícone dentro da faixa: " + action)
-			if circle_y >= 0: check(is_equal_approx(circle_y, circle.global_position.y), "cuidados alinhados na mesma linha")
-			circle_y = circle.global_position.y
+			if previous_center != Vector2.ZERO: check(previous_center.distance_to(circle.get_global_rect().get_center()) >= 80, "cuidados espaçados no arco")
+			previous_center = circle.get_global_rect().get_center()
 	root.size = Vector2i(360, 780)
 	await frames()
 	check(pet.find_child("Extras", true, false) == null, "chips antigos removidos")
 	for id: String in ["hunger", "happiness", "energy", "hygiene"]:
-		var ring: Control = pet.find_child("Need_" + id, true, false)
-		check(ring != null and ring.size == Vector2(64, 64), "anel 64: " + id)
+		var ring: Control = main.find_child("Need_" + id, true, false)
+		check(ring != null and ring.size == Vector2(40, 40), "anel 40: " + id)
+	tray.call("close_food_menu")
+	tray.call("open_food_menu")
+	await frames()
 	var bag: RefCounted = state.get("inventory")
 	var progress: RefCounted = state.get("progress")
 	var before := int(bag.call("count", "dog_food"))
@@ -286,7 +292,7 @@ func _run() -> void:
 	tray.call("open_food_menu")
 	await frames()
 	var list: ScrollContainer = pet.find_child("FoodScroll", true, false)
-	check(list.custom_minimum_size.y == 316, "cinco opções visíveis antes de rolar")
+	check(list.custom_minimum_size.y == 276, "cinco opções visíveis antes de rolar")
 	var row: Control = tray.call("item_node", str(foods[0]))
 	var scroll_from := row.global_position + Vector2(150, 24)
 	var feeds: int = progress.stat("feed")

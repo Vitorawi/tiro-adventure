@@ -56,6 +56,7 @@
     "balloon_test",
     "tray_test",
     "station_tray_test",
+    "care_wheel_test",
     "pet_care_test",
     "pet_anchor_test",
     "lists_test",
@@ -188,9 +189,11 @@
         "game/tests/manual_test.gd",
         "game/tests/care_ui_test.gd",
         "game/tests/gestures_test.gd",
-        "game/scripts/ui/hide_seek_ui.gd"
+        "game/scripts/ui/hide_seek_ui.gd",
+        "game/tests/care_wheel_test.gd"
       ],
       "tests": [
+        "care_wheel_test",
         "pet_care_test",
         "pet_anchor_test",
         "brush_taste_test",

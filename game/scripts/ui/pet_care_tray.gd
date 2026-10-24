@@ -1,5 +1,5 @@
 class_name PetCareTray
-extends PanelContainer
+extends Control
 ## Faixa permanente de cuidados. Gestos nunca alteram estado antes de validar o alvo.
 
 const SCRUB_STEP := 260.0
@@ -9,7 +9,7 @@ const BRUSH_STEP := 200.0
 const BRUSH_TOTAL := 600.0
 var pet_screen: Control
 var gesture := DragGhost.new()
-var _row: HBoxContainer
+var _row: Control
 var _play_hint: Label
 var _scroll: ScrollContainer
 var _foods: VBoxContainer
@@ -28,6 +28,9 @@ var _scrolling := false
 var _foods_ready := false
 var _food_phase := ""
 var _shampoo: Button
+var _care_button: Button
+var _ask: Button
+var _ask_icon: TextureRect
 var _pointer: Polygon2D
 var _pointed_item := ""
 static var use_shampoo := false
@@ -35,27 +38,49 @@ static var use_shampoo := false
 
 func _ready() -> void:
 	name = "CareTray"
-	custom_minimum_size.y = 104
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.PET_SURFACE
-	style.set_corner_radius_all(26)
-	style.shadow_color = Palette.SHADE
-	style.shadow_size = 6
-	style.shadow_offset = Vector2(0, 3)
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 8
-	style.content_margin_bottom = 8
-	add_theme_stylebox_override("panel", style)
-	_row = UiKit.hbox(8)
-	var care_column := UiKit.vbox(2)
-	add_child(care_column)
-	care_column.add_child(_row)
+	mouse_filter = Control.MOUSE_FILTER_PASS
+	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_row = Control.new()
+	_row.name = "CareWheelOpen"
+	_row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_row.mouse_filter = Control.MOUSE_FILTER_STOP
+	add_child(_row)
+	_row.draw.connect(_draw_wheel)
+	_row.gui_input.connect(_on_veil_input)
+	_row.hide()
+	_care_button = UiKit.care_disc(UiKit.ui_icon("heart"), "Cuidar", _toggle_wheel, 72, true)
+	_care_button.name = "CareButton"
+	_care_button.custom_minimum_size = Vector2(72, 72)
+	_care_button.size = Vector2(72, 72)
+	_care_button.z_index = 2
+	add_child(_care_button)
+	var picture := _care_button.find_child("CareIcon", true, false) as TextureRect
+	picture.custom_minimum_size = Vector2(42, 42)
+	_ask = UiKit.icon_button(null, _asked_care, 44)
+	_ask.name = "CareAsk"
+	_ask.size = Vector2(44, 44)
+	for phase: String in ["normal", "hover", "pressed", "focus"]:
+		_ask.add_theme_stylebox_override(phase, StyleBoxEmpty.new())
+	var ask_disc := Panel.new()
+	ask_disc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ask_disc.position = Vector2(7, 7)
+	ask_disc.size = Vector2(30, 30)
+	var ask_style := UiKit.surface(Palette.ALERT_SOFT, 15)
+	ask_style.border_color = Palette.CARD
+	ask_style.set_border_width_all(2)
+	ask_disc.add_theme_stylebox_override("panel", ask_style)
+	_ask.add_child(ask_disc)
+	_ask_icon = UiKit.icon(null, 24)
+	_ask_icon.name = "CareAskIcon"
+	_ask_icon.position = Vector2(10, 10)
+	_ask.add_child(_ask_icon)
+	_care_button.add_child(_ask)
+	_ask.position = Vector2(48, -16)
 	_play_hint = UiKit.label("", &"SmallLabel")
 	_play_hint.name = "PlayGrowthTimer"
-	_play_hint.add_theme_font_size_override("font_size", 14)
-	care_column.add_child(_play_hint)
-	_food_button = UiKit.action_tile(Database.item_icon("dog_food"), "Comida", open_food_menu)
+	_play_hint.hide()
+	add_child(_play_hint)
+	_food_button = UiKit.care_disc(Database.item_icon("dog_food"), "Comida", open_food_menu)
 	_food_button.name = "FoodButton"
 	_row.add_child(_food_button)
 	_menu = PanelContainer.new()
@@ -80,17 +105,17 @@ func _ready() -> void:
 	_foods.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_scroll.add_child(_foods)
 	for entry: Array in [["sponge", "action_sponge", "Banho"], ["ball", "action_play", "Brincar"]]:
-		var item := UiKit.action_tile(UiKit.ui_icon(entry[1]), entry[2], func() -> void: pass)
+		var item := UiKit.care_disc(UiKit.ui_icon(entry[1]), entry[2], func() -> void: pass)
 		item.name = "Care_" + str(entry[0])
 		item.mouse_filter = Control.MOUSE_FILTER_STOP
 		item.gui_input.connect(_on_item_input.bind(str(entry[0])))
 		_items[entry[0]] = item
 		_row.add_child(item)
-	_sleep = UiKit.action_tile(UiKit.ui_icon("action_sleep"), "Dormir", func() -> void:
-		if not GameState.walking(): GameState.set_sleeping(not GameState.dog.sleeping))
+	_sleep = UiKit.care_disc(UiKit.ui_icon("action_sleep"), "Dormir", func() -> void:
+		if not GameState.walking(): GameState.set_sleeping(not GameState.dog.sleeping)
+		close_wheel())
 	_sleep.name = "SleepButton"
 	_row.add_child(_sleep)
-	for tile: Control in _row.get_children(): tile.custom_minimum_size.x = 56  # cabem cinco cuidados em 360 px
 	_shampoo = UiKit.button("Com xampu", func() -> void: use_shampoo = _shampoo.button_pressed)
 	_shampoo.name = "ShampooToggle"
 	_shampoo.toggle_mode = true
@@ -98,7 +123,9 @@ func _ready() -> void:
 	_shampoo.custom_minimum_size = Vector2(112, 44)
 	_shampoo.z_index = 5
 	pet_screen.add_child(_shampoo)
-	resized.connect(func() -> void: _place_menu.call_deferred())
+	resized.connect(func() -> void:
+		_refresh_wheel()
+		_place_menu.call_deferred())
 	Events.state_changed.connect(refresh)
 	Events.care_requested.connect(point_at)
 	Events.dog_action.connect(func(action: StringName) -> void:
@@ -113,6 +140,7 @@ func _ready() -> void:
 ## Seta junto do botão, sem capturar toque; acompanha o controle em qualquer resolução.
 func point_at(id: String) -> void:
 	clear_pointer()
+	if id != "wish": open_wheel()
 	var tile: Control = pet_screen.find_child("WishBubble", true, false) if id == "wish" else _items.get(id)
 	if tile == null or not tile.is_visible_in_tree(): return
 	close_food_menu()
@@ -122,13 +150,19 @@ func point_at(id: String) -> void:
 	_pointer.z_index = Motion.WORLD_FX_Z
 	_pointer.z_as_relative = false
 	_pointer.color = Palette.GOLD
-	_pointer.polygon = PackedVector2Array([Vector2(-7, -42), Vector2(7, -42), Vector2(7, -25), Vector2(15, -25), Vector2(0, -10), Vector2(-15, -25), Vector2(-7, -25)])
-	var outline := Line2D.new()
-	outline.points = _pointer.polygon
-	outline.closed = true
-	outline.width = 2.0
-	outline.default_color = Palette.OUTLINE
-	_pointer.add_child(outline)
+	_pointer.polygon = PackedVector2Array([Vector2(-8, -16), Vector2(8, -16), Vector2(0, -4)])
+	var pin := Panel.new()
+	pin.position = Vector2(-20, -52)
+	pin.size = Vector2(40, 40)
+	pin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := UiKit.surface(Palette.CARD, 20, true)
+	style.border_color = Palette.HONEY
+	style.set_border_width_all(3)
+	pin.add_theme_stylebox_override("panel", style)
+	_pointer.add_child(pin)
+	var icon := UiKit.icon(WishUi.icon(GameState.balloon_wish()) if id == "wish" else UiKit.ui_icon({"sponge": "action_sponge", "ball": "action_play", "brush": "action_brush"}.get(id, "heart")), 24)
+	icon.position = Vector2(8, 8)
+	pin.add_child(icon)
 	tile.add_child(_pointer)
 	_pointer.position = Vector2(tile.size.x * 0.5, 0)
 	tile.resized.connect(func() -> void:
@@ -167,16 +201,17 @@ func food_ids() -> Array[String]:
 func _sync_brush() -> void:
 	var owned := GameState.brush_owned()
 	if owned and not _items.has("brush"):
-		var tile := UiKit.action_tile(UiKit.ui_icon("action_brush"), "Escovar", func() -> void: pass)
+		var tile := UiKit.care_disc(UiKit.ui_icon("action_brush"), "Escovar", func() -> void: pass)
 		tile.name = "BrushTile"
 		tile.mouse_filter = Control.MOUSE_FILTER_STOP
 		tile.gui_input.connect(_on_item_input.bind("brush"))
 		_items["brush"] = tile
 		_row.add_child(tile)
 		_row.move_child(tile, (_items.sponge as Control).get_index() + 1)
-		tile.custom_minimum_size.x = 56
 	elif not owned and _items.has("brush"):
-		(_items.brush as Control).queue_free()
+		var old := _items.brush as Control
+		_row.remove_child(old)
+		old.queue_free()
 		_items.erase("brush")
 
 
@@ -188,9 +223,9 @@ func _phase_key() -> String:
 func refresh() -> void:
 	visible = not GameState.walking()
 	_play_hint.text = str(GameState.play_growth_info().status)
-	_play_hint.visible = not GameState.dog.sleeping
+	_play_hint.hide()
 	_sync_brush()
-	_row.add_theme_constant_override("separation", 4 if _items.has("brush") else 8)
+	_refresh_wheel()
 	var ids := food_ids()
 	# Não libera o controle que ainda recebe o gesto; só atualiza as quantidades.
 	if (not _foods_ready or ids != _food_ids or _food_phase != _phase_key()) and _pressed == "":
@@ -202,7 +237,7 @@ func refresh() -> void:
 			child.queue_free()
 		_food_ids = ids
 		for id in ids: _foods.add_child(_food_item(id))
-		_scroll.custom_minimum_size = Vector2(204, 112 if ids.is_empty() else mini(5, ids.size()) * 64 - 4)
+		_scroll.custom_minimum_size = Vector2(300, 112 if ids.is_empty() else mini(5, ids.size()) * 56 - 4)
 		_place_menu.call_deferred()
 		if ids.is_empty():
 			_foods.add_child(SheetBuilder.food_help())
@@ -210,7 +245,9 @@ func refresh() -> void:
 		var item: Control = _items[id]
 		item.modulate.a = 0.45 if GameState.dog.sleeping else 1.0
 		var caption := item.find_child("Caption", true, false) as Label
-		if Database.items.has(id): caption.text = "%s ×%d" % [Database.item_name(id), GameState.inventory.count(id)]
+		if Database.items.has(id):
+			caption.text = Database.item_name(id)
+			(item.get_node("Quantity") as Label).text = "×%d" % GameState.inventory.count(id)
 		else: caption.text = {"sponge": "Banho", "brush": "Escovar"}.get(id, "Brincar")
 		if GameState.dog.sleeping: caption.text = "Zzz"
 		var badge := item.get_node_or_null("Badge") as Control
@@ -221,7 +258,7 @@ func refresh() -> void:
 	(_sleep.find_child("Caption", true, false) as Label).text = "Acordar" if GameState.dog.sleeping else "Dormir"
 	(_sleep.find_child("CareIcon", true, false) as TextureRect).texture = UiKit.ui_icon("action_wake" if GameState.dog.sleeping else "action_sleep")
 	_sleep.disabled = GameState.walking()
-	_shampoo.visible = GameState.inventory.count("herb_shampoo") > 0 and not GameState.dog.sleeping and not _menu.visible and visible
+	_shampoo.visible = GameState.inventory.count("herb_shampoo") > 0 and not GameState.dog.sleeping and not _menu.visible and visible and _row.visible
 	_place_menu.call_deferred()
 
 
@@ -265,19 +302,37 @@ func _item(id: String, texture: Texture2D, caption: String) -> Control:
 ## Linhas verticais: o ícone é a pega de arrasto; o nome permite rolar a lista.
 func _food_item(id: String) -> Control:
 	var item := _item(id, Database.item_icon(id), "")
-	item.custom_minimum_size = Vector2(204, 60)
+	item.custom_minimum_size = Vector2(300, 52)
 	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var background := Panel.new()
+	background.name = "FoodDisc"
+	background.position = Vector2(0, 2)
+	background.size = Vector2(48, 48)
+	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	background.add_theme_stylebox_override("panel", UiKit.surface(Palette.SUNKEN, 24))
+	item.add_child(background)
+	item.move_child(background, 0)
+	var quantity := UiKit.short_label("", &"SmallLabel", Palette.INK_SOFT)
+	quantity.name = "Quantity"
+	quantity.position = Vector2(248, 28)
+	var chip := UiKit.surface(Palette.SUNKEN, 10)
+	chip.content_margin_left = 8
+	chip.content_margin_right = 8
+	quantity.add_theme_stylebox_override("normal", chip)
+	item.add_child(quantity)
 	var label := item.get_node("Caption") as Label
+	label.theme_type_variation = &"Label"
 	label.anchor_right = 0.0
 	label.position = Vector2(60, 4)
-	label.size = Vector2(136, 52)
+	label.size = Vector2(180, 44)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	var icon := item.get_node("CareIcon") as Control
 	icon.anchor_left = 0.0
 	icon.anchor_right = 0.0
 	icon.position = Vector2(4, 6)
-	icon.size = Vector2(48, 48)
+	icon.custom_minimum_size = Vector2(40, 40)
+	icon.size = Vector2(40, 40)
 	var badge := item.get_node("Badge") as Control
 	badge.anchor_left = 0.0
 	badge.anchor_right = 0.0
@@ -286,7 +341,7 @@ func _food_item(id: String) -> Control:
 	if GameState.growth.phase in growth.get("phases", []):
 		var seal := UiKit.icon(UiKit.ui_icon("pillar_body"), 20)
 		seal.name = "GrowthSeal"
-		seal.position = Vector2(34, 38)
+		seal.position = Vector2(28, 28)
 		seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		item.add_child(seal)
 	elif not growth.is_empty():
@@ -294,7 +349,7 @@ func _food_item(id: String) -> Control:
 	if GameState.favorite_found() and id == GameState.favorite_food():
 		var heart := UiKit.icon(UiKit.ui_icon("heart"), 20)
 		heart.name = "FavoriteHeart"
-		heart.position = Vector2(180, 4)
+		heart.position = Vector2(268, 4)
 		heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		item.add_child(heart)
 	elif not GameState.growth.tastes.has(id):
@@ -304,8 +359,8 @@ func _food_item(id: String) -> Control:
 		fresh.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		item.add_child(fresh)
 		fresh.reset_size()
-		fresh.position = Vector2(200.0 - fresh.size.x, 4)
-		label.size = Vector2(fresh.position.x - 64.0, 52)
+		fresh.position = Vector2(292.0 - fresh.size.x, 4)
+		label.size = Vector2(fresh.position.x - 64.0, 44)
 	return item
 
 
@@ -316,6 +371,7 @@ func open_food_menu() -> void:
 	if _menu.visible:
 		close_food_menu()
 		return
+	close_wheel()
 	refresh()
 	_menu.show()
 	_shampoo.hide()
@@ -326,21 +382,21 @@ func open_food_menu() -> void:
 
 func close_food_menu() -> void:
 	_menu.hide()
-	if _shampoo: _shampoo.visible = GameState.inventory.count("herb_shampoo") > 0 and not GameState.dog.sleeping and visible
+	if _shampoo: _shampoo.visible = GameState.inventory.count("herb_shampoo") > 0 and not GameState.dog.sleeping and visible and _row.visible
 
 
 func _place_menu() -> void:
 	_menu.size = _menu.get_combined_minimum_size()
-	_menu.position = Vector2(12, global_position.y - pet_screen.global_position.y - _menu.size.y - 8)
+	_menu.position = Vector2(12, _care_button.global_position.y - pet_screen.global_position.y - _menu.size.y - 12)
 	if _shampoo and _items.has("sponge"):
 		_shampoo.size = _shampoo.get_combined_minimum_size()
-		_shampoo.position = Vector2(clampf((_items.sponge as Control).get_global_rect().get_center().x - pet_screen.global_position.x - _shampoo.size.x / 2.0, 8, pet_screen.size.x - _shampoo.size.x - 8), global_position.y - pet_screen.global_position.y - _shampoo.size.y - 4)
+		_shampoo.position = Vector2(clampf((_items.sponge as Control).get_global_rect().get_center().x - pet_screen.global_position.x - _shampoo.size.x / 2.0, 8, pet_screen.size.x - _shampoo.size.x - 8), (_items.sponge as Control).global_position.y - pet_screen.global_position.y - _shampoo.size.y - 4)
 
 
 func _input(event: InputEvent) -> void:
 	if not is_visible_in_tree() or not _menu.visible or _pressed != "": return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if not _menu.get_global_rect().has_point(event.global_position) and not get_global_rect().has_point(event.global_position):
+		if not _menu.get_global_rect().has_point(event.global_position) and not _care_button.get_global_rect().has_point(event.global_position):
 			close_food_menu()
 			get_viewport().set_input_as_handled()
 
@@ -394,6 +450,7 @@ func move_item(point: Vector2) -> void:
 		var texture := UiKit.ui_icon({"sponge": "action_sponge", "ball": "action_play", "brush": "action_brush"}[_pressed]) if _pressed in ["sponge", "ball", "brush"] else Database.item_icon(_pressed)
 		gesture.begin(pet_screen, texture)
 		_menu.modulate.a = 0.3
+		_row.modulate.a = 0.3
 	gesture.follow(pet_screen)
 	if _pressed == "brush" and not _acted:
 		var back: Rect2 = pet_screen.call("back_rect")
@@ -440,6 +497,7 @@ func release_item(point: Vector2) -> void:
 		elif id not in ["sponge", "brush"]:
 			var head: Rect2 = pet_screen.call("head_rect")
 			if head.has_point(point - Vector2(0, DragGhost.LIFT)): _act(id)
+	close_wheel()
 	gesture.finish()
 	if id == "brush": pet_screen.call("brush_cleanup")
 	_menu.modulate.a = 1.0
@@ -447,6 +505,7 @@ func release_item(point: Vector2) -> void:
 
 
 func cancel() -> void:
+	close_wheel()
 	clear_pointer()
 	_pressed = ""
 	_dragging = false
@@ -518,3 +577,120 @@ func start_hide_and_seek(treat: String) -> void:
 	if error != "":
 		Events.toast_requested.emit(error)
 		Events.sheet_close_requested.emit()
+
+
+## A roleta é só apresentação: as ações continuam nos mesmos métodos do motor.
+func _toggle_wheel() -> void:
+	if GameState.dog.sleeping:
+		GameState.set_sleeping(false)
+	elif _row.visible: close_wheel()
+	else: open_wheel()
+
+
+func open_wheel() -> void:
+	if GameState.dog.sleeping or GameState.walking(): return
+	var popover := pet_screen.get_node_or_null("PopoverCatcher")
+	if popover: popover.free()
+	close_food_menu()
+	_row.show()
+	_row.modulate.a = 1.0
+	_refresh_wheel()
+	Motion.stagger_in(_row.get_children())
+	if not Motion.reduced:
+		var center := _care_button.position + _care_button.size / 2.0
+		for disc: Control in _row.get_children():
+			var target := disc.position
+			disc.position = center - disc.size / 2.0
+			disc.scale = Vector2.ONE * 0.6
+			var tween := disc.create_tween().set_parallel()
+			tween.tween_property(disc, "position", target, Motion.POP_IN).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(disc, "scale", Vector2.ONE, Motion.POP_IN).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	pet_screen.call("wheel_changed", true)
+
+
+func close_wheel() -> void:
+	_row.hide()
+	_row.modulate.a = 1.0
+	_shampoo.hide()
+	_refresh_wheel()
+	pet_screen.call("wheel_changed", false)
+
+
+func _on_veil_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		close_wheel()
+		_row.accept_event()
+	elif event is InputEventMouseMotion and event.button_mask & MOUSE_BUTTON_MASK_LEFT and event.relative.y > 0:
+		close_wheel()
+		_row.accept_event()
+
+
+func _asked_care() -> void:
+	match GameState.asking_need():
+		"hunger": open_food_menu()
+		"hygiene": _act("sponge")
+		"happiness":
+			if GameState.hide_unlocked(): open_play_choice()
+			else: _act("ball")
+		"energy": GameState.set_sleeping(true)
+	close_wheel()
+
+
+func _refresh_wheel() -> void:
+	_care_button.position = Vector2(size.x / 2.0 - 36, size.y - 126 - 36)
+	var sleeping := GameState.dog.sleeping
+	(_care_button.find_child("CareIcon", true, false) as TextureRect).texture = UiKit.ui_icon("action_wake" if sleeping else "heart")
+	(_care_button.find_child("Caption", true, false) as Label).text = "Acordar" if sleeping else "Cuidar"
+	(_care_button.find_child("CaptionPill", true, false) as Control).visible = not _row.visible
+	var style := UiKit.surface(Color(Palette.CARD, 0.9), 36, true)
+	style.border_color = Palette.HONEY
+	style.set_border_width_all(4)
+	style.shadow_color = Color(Palette.HONEY, 0.22) if _row.visible else Palette.SHADOW
+	style.shadow_size = 12 if _row.visible else 8
+	(_care_button.find_child("Circle", true, false) as PanelContainer).add_theme_stylebox_override("panel", style)
+	var need := GameState.asking_need()
+	_ask.visible = need != "" and not sleeping
+	_ask_icon.texture = Database.item_icon("dog_food") if need == "hunger" else UiKit.ui_icon({"hygiene": "action_sponge", "happiness": "action_play", "energy": "action_sleep"}.get(need, "heart"))
+	var angles: Array = [160, 125, 90, 55, 20] if _items.has("brush") else [155, 112, 68, 25]
+	var center := _care_button.position + _care_button.size / 2.0
+	var discs := _row.get_children()
+	for i in discs.size():
+		var disc := discs[i] as Control
+		disc.position = center + Vector2(cos(deg_to_rad(angles[i])), -sin(deg_to_rad(angles[i]))) * 150 - disc.size / 2.0
+		var asking: bool = {"FoodButton": "hunger", "Care_sponge": "hygiene", "Care_ball": "happiness", "SleepButton": "energy"}.get(str(disc.name), "") == need and need != ""
+		var circle := disc.find_child("Circle", true, false) as PanelContainer
+		var surface := UiKit.surface(Color(Palette.ALERT_SOFT, 0.92) if asking else Color(Palette.CARD, 0.82), 32, true)
+		surface.border_color = Palette.CARD
+		surface.set_border_width_all(2)
+		circle.add_theme_stylebox_override("panel", surface)
+		var dot := disc.get_node_or_null("AskDot") as Control
+		if dot == null:
+			dot = UiKit.dot()
+			dot.name = "AskDot"
+			dot.position = Vector2(52, 0)
+			disc.add_child(dot)
+		dot.visible = asking
+		var spark := disc.get_node_or_null("MomentSpark") as Control
+		if spark == null:
+			spark = UiKit.spark()
+			spark.name = "MomentSpark"
+			spark.position = Vector2(46, -8)
+			disc.add_child(spark)
+		var pillar: String = {"Care_sponge": "coat", "Care_ball": "smart", "FoodButton": "body"}.get(str(disc.name), "")
+		spark.visible = (asking and GameState.need_pillar(need) == pillar and pillar != "")
+	_shampoo.visible = _row.visible and GameState.inventory.count("herb_shampoo") > 0 and not sleeping
+	_row.queue_redraw()
+
+
+func _draw_wheel() -> void:
+	var center := _care_button.position + _care_button.size / 2.0
+	_row.draw_rect(Rect2(Vector2.ZERO, size), Color(Palette.INK, 0.18 if Motion.reduced else 0.10))
+	if not Motion.reduced:
+		for i in 20:
+			_row.draw_circle(center, 320.0 - i * 16.0, Color(Palette.INK, 0.008), true, -1, true)
+	_row.draw_arc(center, 150, deg_to_rad(-160), deg_to_rad(-20), 64, Color(Palette.CARD, 0.30), 82, true)
+
+
+## O fundo PASS não deve impedir o carinho ou o balão, que são irmãos.
+func _has_point(_point: Vector2) -> bool:
+	return false

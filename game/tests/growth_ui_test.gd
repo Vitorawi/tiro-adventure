@@ -144,7 +144,7 @@ func _run() -> void:
 	check(text(panel, "2/3") and text(panel, "2 de 3 passos"), "quantidade e resumo dos passos visíveis")
 	check(panel.find_child("GrowthNextAction", true, false).text == "Dar comida", "próxima ação nomeada")
 	check(panel.find_child("PillarRing_body", true, false) == null, "não repete pontos e anéis no painel principal")
-	check(main.find_child("GrowthBadgeHint", true, false).text == "Falta 1!", "selo quase pronto")
+	check(main.find_child("ProfileCount", true, false).text == "3/4" and main.find_child("ProfileCount", true, false).is_visible_in_tree(), "HUD mostra que falta um dos quatro requisitos (%s)" % main.find_child("ProfileCount", true, false).text)
 	var shadow: ShaderMaterial = panel.find_child("NextSilhouette", true, false).get_child(0).material
 	check(shadow.shader.resource_path.ends_with("silhouette.gdshader") and int(shadow.get_shader_parameter("stage")) == 3, "estágio por requisitos")
 	for future: Control in panel.find_children("Future_*", "", true, false):

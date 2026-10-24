@@ -2,6 +2,16 @@
 
 ## Estado atual
 
+**Interface 2 — etapa 04 concluída (24/10/2026, Codex; local).** Tela do Tiro com cenário aproximado
+(ZOOM 1,75), anéis 40 na linha 2 do HUD só nesta aba, humor discreto de 2,5 s, desejo branco com estrela,
+caderninho lateral e botão Cuidar 72 com atalho CareAsk. PetCareTray agora é Control com roleta de quatro/cinco
+discos 64, véu translúcido, gestos preservados, menu de comida acima do botão, xampu junto ao Banho e alfinete
+CarePointer. Rodapé unido no Tiro. Lista fechada + rápido **10/10 PASS em 142,1 s**
+(`build/test_logs/r20261024_200942_9af303fe/`); extra growth_ui_test justificado pela retirada do selo solto:
+PASS em 15,3 s. Toque Web local emulado PASS (banho e ração arrastada: 3→2); sete capturas nas três resoluções
+abertas. Registro em `docs/plans/interface2/VALIDACAO_04.md`. Sem mudança de regra/save/falas, push ou publicação.
+**Próxima: 05** (Missões e folha de prêmio), não iniciada.
+
 **Interface 2 — etapa 03 concluída (24/10/2026, Claude Sonnet 5.5; local).** Casca nova: rodapé claro
 translúcido preso à borda (84 px, `Layout` virou `Control` de tela cheia; as telas de papel reservam 96 embaixo e o Mapa
 vai até a borda), `NavTab` com almofada 60×38 e nome embaixo de todas as abas, HUD de duas linhas
