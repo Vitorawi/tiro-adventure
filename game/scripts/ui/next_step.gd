@@ -192,9 +192,7 @@ func _on_pressed() -> void:
 	if id == "":
 		return
 	if _is_ready():
-		var error := GameState.claim_quest(id)
-		if error != "":
-			Events.notice_requested.emit("error", error, "")
+		ProgressionUi.claim_quest_fx(id, get_global_rect().get_center())
 		return
 	var host := get_tree().root.find_child("Main", true, false) as Control
 	if host == null:

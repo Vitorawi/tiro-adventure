@@ -39,7 +39,7 @@ func _close() -> void:
 
 ## Esconde cartões modais (nível, boas-vindas, passeio, comemoração) que atrapalhariam a captura.
 func _hide_modals() -> void:
-	for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony"]:
+	for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony", "_quest_reward"]:
 		var node: Variant = main.get(member)
 		if node is CanvasLayer:
 			(node as CanvasLayer).hide()
@@ -47,6 +47,8 @@ func _hide_modals() -> void:
 	if is_instance_valid(intro) and (intro as Node).is_inside_tree():
 		(intro as Node).queue_free()
 	main.set("_modal_queue", [] as Array[Callable])
+	main.get("_notice").set("_queue", [] as Array[Dictionary])
+	main.get("_notice").call("finish_current")
 
 
 func _world(id: String) -> void:
@@ -77,6 +79,65 @@ func _run() -> void:
 	var places: Script = load("res://scripts/ui/places.gd")
 	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
+	if "--i2-05-only" in OS.get_cmdline_user_args():
+		state.call("reset")
+		state.get("progress").seen.intro = true
+		await _start_main(1.0)
+		main.call("show_screen", &"tasks")
+		await shot("i2_05_story")
+		state.call("dev_jump_to_chapter", 1)
+		state.get("progress").stats.wish = 1
+		state.call("claim_quest", "lais_first_wish")
+		await create_timer(0.3).timeout
+		_hide_modals()
+		await shot("i2_05_story_shared")
+		state.call("dev_unlock_everything")
+		state.call("_mark_all_seen")
+		for id: String in ["main_9_coop", "nina_walk", "lais_album", "merchant_surplus"]:
+			state.get("progress").claimed_quests.erase(id)
+		state.get("progress").stats["walk:park_loop"] = 0
+		state.get("progress").stats["sold:village"] = 0
+		state.get("progress").stats["open:album"] = 1
+		state.get("inventory").call("from_dict", {})
+		state.call("_changed")
+		await create_timer(0.3).timeout
+		_hide_modals()
+		var tasks: Control = main.find_child("TasksScreen", true, false)
+		tasks.call("choose_group", "characters")
+		await shot("i2_05_people")
+		tasks.call("choose_character", "nina")
+		await shot("i2_05_people_open")
+		state.call("dev_restart_routines")
+		var daily: Array = state.call("routine_ids", "daily")
+		if not daily.is_empty():
+			var goal: Dictionary = state.call("routine_data", "daily", daily[0]).goal
+			state.get("progress").count(str(goal.key), int(state.call("routine_target", "daily", daily[0])))
+		state.call("_changed")
+		tasks.call("choose_group", "timed")
+		await shot("i2_05_daily")
+		state.call("reset")
+		state.get("progress").seen.intro = true
+		state.call("talk_to", "lais")
+		tasks.call("choose_group", "story")
+		await create_timer(0.3).timeout
+		_hide_modals()
+		pu.call("claim_quest_fx", "welcome", Vector2(250, 350))
+		await shot("i2_05_reward", 1.5)
+		_hide_modals()
+		for id: String in state.get("progress").main_quests(1):
+			if id != "growth_1_puppy": state.call("dev_complete_quest", id)
+		await create_timer(0.3).timeout
+		_hide_modals()
+		state.call("dev_set_phase", "puppy")
+		await create_timer(0.3).timeout
+		_hide_modals()
+		pu.call("claim_quest_fx", "growth_1_puppy", Vector2(250, 350))
+		await create_timer(1.0).timeout
+		var chapter_scroll := main.find_child("CelebrationScroll", true, false) as ScrollContainer
+		chapter_scroll.scroll_vertical = int(chapter_scroll.get_v_scroll_bar().max_value)
+		await shot("i2_05_chapter", 0.5)
+		quit(0)
+		return
 	if "--i2-03-only" in OS.get_cmdline_user_args():
 		# Casca: HUD de duas linhas, próximo passo (pílula, cartão, pronto), mapa, Missões, aviso e resumo do avatar.
 		state.call("reset")

@@ -712,25 +712,85 @@ static func _amounts(card: VBoxContainer, amounts: Dictionary) -> void:
 static func quest_action(box: VBoxContainer, id: String, primary: bool = true) -> void:
 	var ready := GameState.quest_error(id) == ""
 	var shortage := GameState.quest_reward_shortage(id)
-	if not shortage.is_empty():
-		box.add_child(UiKit.label("Missão cumprida! Libere %d vaga(s) em %s para receber o prêmio." % [int(shortage.missing), GameState.storage_name(str(shortage.depot))], &"SmallLabel"))
 	var row := UiKit.hbox(8)
-	var main := UiKit.button("Liberar espaço" if not shortage.is_empty() else ("Pegar prêmio" if ready else "Ir"), func() -> void:
-		if not shortage.is_empty():
-			Places.go({"storage": str(shortage.depot)})
-		elif ready:
-			var error := GameState.claim_quest(id)
-			if error != "":
-				Events.toast_requested.emit(error)
-		else:
-			Places.go(quest_go_target(id)), &"PrimaryButton" if primary else &"SecondaryButton")
-	if ready and primary: Motion.pulse.call_deferred(main)
-	main.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(main)
-	if not ready:
-		row.add_child(UiKit.icon_button(UiKit.ctl_icon("help"), TaskHelp.open.bind("quest", id)))
+	row.alignment = BoxContainer.ALIGNMENT_END
+	row.add_child(UiKit.ctl_button("help", TaskHelp.open.bind("quest", id), 32, "sunken"))
+	var action := func() -> void:
+		if not shortage.is_empty(): Places.go({"storage": str(shortage.depot)})
+		elif ready: claim_quest_fx(id, box.get_global_rect().get_center())
+		else: Places.go(quest_go_target(id))
+	var button := UiKit.small_go("Pegar" if ready else "Ir →", action) if primary or ready else UiKit.soft("Ir →", action, null, true)
+	button.name = "ClaimQuest_" + id if ready else "QuestGo_" + id
+	if not shortage.is_empty():
+		button.free()
+		button = UiKit.soft("Liberar espaço", action, UiKit.ui_icon(str(Database.progression.storage.get(str(shortage.depot), {}).get("icon", "tab_bag"))), true)
+		button.name = "QuestSpace_" + id
+	row.add_child(button)
 	box.add_child(row)
 
+
+## Toda entrega de missão usa o motor uma vez; o sinal só apresenta o prêmio já recebido.
+static func claim_quest_fx(id: String, origin: Vector2) -> String:
+	var rewards: Dictionary = Database.quests.get(id, {}).get("rewards", {}).duplicate(true)
+	var error := GameState.claim_quest(id)
+	if error == "": Events.items_gained.emit(rewards.get("items", {}), int(rewards.get("coins", 0)), origin)
+	else: Events.notice_requested.emit("error", error, "")
+	return error
+
+
+static func quest_speech(id: String, inside: bool = false) -> HBoxContainer:
+	var quest: Dictionary = Database.quests[id]
+	var row := UiKit.hbox(8)
+	row.add_child(UiKit.disc(npc_portrait(str(quest.get("npc", ""))), 56, 56))
+	var bubble := SpeechBubble.new(str(quest.get("dialogue", "")), "", inside)
+	bubble.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(bubble)
+	return row
+
+
+static func quest_goal_strip(goal: Dictionary) -> Control:
+	var strip := PanelContainer.new()
+	var style := UiKit.surface(Palette.PAPER, 16)
+	style.set_content_margin_all(8)
+	strip.add_theme_stylebox_override("panel", style)
+	var row := goal_row(goal, GameState.goal_value(goal), 32)
+	for bar_control: ProgressBar in row.find_children("*", "ProgressBar", true, false):
+		bar_control.add_theme_stylebox_override("fill", UiKit.surface(Palette.SKY, 4))
+	strip.add_child(row)
+	return strip
+
+
+## Mesmo próximo destino na folha e na festa de capítulo, sem estado persistente.
+static func next_step_card(id: String) -> Control:
+	var holder := UiKit.vbox(0)
+	holder.name = "NextStepCard"
+	holder.set_meta("quest", id)
+	var card := UiKit.card(holder)
+	var goal := current_goal(id)
+	var target := Places.quest_target(id)
+	var row := UiKit.hbox(8)
+	row.add_child(UiKit.disc(goal_icon(goal), 44, 40))
+	var info := UiKit.vbox(4)
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_child(UiKit.fill_label(str(Database.quests[id].name)))
+	var destination := UiKit.label(quest_place_name(target), &"SmallLabel", Palette.INK_SOFT)
+	destination.name = "QuestDestination"
+	info.add_child(destination)
+	row.add_child(info)
+	row.add_child(UiKit.short_label("%d/%d" % [mini(GameState.goal_value(goal), int(goal.get("target", 1))), int(goal.get("target", 1))], &"SmallLabel"))
+	card.add_child(row)
+	return holder
+
+
+static func quest_place_name(target: Dictionary) -> String:
+	if target.has("growth") or target.get("screen", "") == "pet" or target.has("care"): return "Tiro"
+	if target.get("screen", "") == "bag" or target.has("storage"): return "Mochila"
+	if target.has("notebook"): return "Caderninho"
+	var world: Dictionary = Database.worlds.get(str(target.get("world", "house")), {})
+	var spot := str(target.get("spot", target.get("place", ""))).trim_prefix("place:")
+	if spot.begins_with("npc:"): return str(Database.npcs.get(spot.trim_prefix("npc:"), {}).get("name", ""))
+	if spot.begins_with("buy:"): return str(Database.progression.upgrades.get(spot.trim_prefix("buy:"), {}).get("name", ""))
+	return str(world.get("places", {}).get(spot, {}).get("name", world.get("name", "Tiro")))
 
 ## Leva ao lugar do OBJETIVO da missão (ex.: ensopado → fogão), sem pular para o ingrediente
 ## que falta; a cadeia de passos fica no "?" (TaskHelp).
@@ -833,27 +893,22 @@ static func claim_routine_rows(host: Control, entries: Array[Dictionary]) -> voi
 static func story_panel() -> Control:
 	return SheetBuilder.tall(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var current := GameState.progress.chapter_index()
+		var list := UiKit.list_card(box)
 		for i in Database.progression.chapters.size():
 			var chapter: Dictionary = Database.progression.chapters[i]
 			var index: int = i + 1
-			var card := UiKit.card(box, &"ReadyCardPanel" if index == current else &"CardPanel")
-			if index > current:
-				card.get_parent().modulate.a = 0.5
-			var title := "%d · %s" % [index, chapter.name] if index <= current else "%d · ?" % index
-			card.add_child(UiKit.label(("✓ " if index < current else "") + title, &"SectionLabel", UiKit.GOOD if index < current else null))
+			var row := UiKit.list_row(UiKit.ctl_icon("check" if index < current else ("chev" if index == current else "lock")), str(chapter.name), [])
+			list.add_child(row)
+			if index > current: row.modulate.a = 0.5
 			if index == current:
-				for id in GameState.progress.main_quests(index):
+				var details := UiKit.vbox(8)
+				(row.get_child(0) as VBoxContainer).add_child(details)
+				for id: String in GameState.progress.main_quests(index):
 					var claimed := GameState.progress.claimed_quests.has(id)
-					var row := UiKit.hbox(8)
-					row.add_child(UiKit.icon(goal_icon(current_goal(id)), 32))
-					row.add_child(UiKit.fill_label(Database.quests[id].name, &"SmallLabel", UiKit.GOOD if claimed else null))
-					if claimed:
-						row.add_child(UiKit.short_label("✓", &"", UiKit.GOOD))
-					card.add_child(row)
-			if index >= current:
-				card.add_child(reward_chips(chapter.get("rewards", {})))
+					var step := UiKit.list_row(UiKit.ctl_icon("check" if claimed else "lock"), str(Database.quests[id].name), [])
+					if claimed: step.modulate = Palette.INK_SOFT
+					details.add_child(step)
 	))
-
 
 # --- Peças visuais de missão ---------------------------------------------------------------
 
@@ -942,12 +997,12 @@ static func _growth_silhouette(goal: Dictionary, value: int, px: int) -> Control
 static func reward_chips(rewards: Dictionary) -> HFlowContainer:
 	var row := UiKit.flow()
 	if int(rewards.get("coins", 0)) > 0:
-		row.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(rewards.coins)))
+		row.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(rewards.coins), null, "prize"))
 	for id: String in rewards.get("items", {}):
 		var label := "+%d" % int(rewards.items[id])
 		if Database.items.get(id, {}).get("category", "") == "keepsake":
 			label += " " + Database.item_name(id)
-		row.add_child(UiKit.chip(Database.item_icon(id), label))
+		row.add_child(UiKit.chip(Database.item_icon(id), label, null, "prize"))
 	for id: String in rewards.get("collections", []):
 		if not GameState.progress.collection.has(id):
 			row.add_child(UiKit.chip(UiKit.ui_icon("item_accessory_set"), "+1"))

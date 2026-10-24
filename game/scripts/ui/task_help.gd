@@ -668,9 +668,8 @@ static func need_icon(need: Dictionary) -> Texture2D:
 
 static func _go(target: Dictionary) -> void:
 	if target.has("claim"):
-		var error := GameState.claim_quest(target.claim)
-		if error != "":
-			Events.toast_requested.emit(error)
+		var tree := Engine.get_main_loop() as SceneTree
+		ProgressionUi.claim_quest_fx(str(target.claim), tree.root.get_mouse_position())
 	else:
 		Places.go(target)
 

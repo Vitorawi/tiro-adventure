@@ -83,7 +83,7 @@ flowchart TD
 | [x] | [02](etapas/ETAPA_02_PECAS.md) | peças do `UiKit` | médio |
 | [x] | [03](etapas/ETAPA_03_CASCA.md) | rodapé claro preso, HUD em 2 linhas, `NextStep`/`QuestGuide`, `Notice` | grande |
 | [x] | [04](etapas/ETAPA_04_TIRO.md) | cenário aproximado, anéis no topo, botão Cuidar + roleta | grande |
-| [ ] | [05](etapas/ETAPA_05_MISSOES.md) | Missões em 3 abas, `claim_quest_fx`, `QuestReward` | grande |
+| [x] | [05](etapas/ETAPA_05_MISSOES.md) | Missões em 3 abas, `claim_quest_fx`, `QuestReward` | grande |
 | [ ] | [06](etapas/ETAPA_06_MUNDO.md) | mapa sem texto, balões, `WorldPin`, cartões-postais, conversa, compra | grande |
 | [ ] | [07](etapas/ETAPA_07_HORTA_BANDEJAS.md) | `FarmDock`, bandejas das estações | grande |
 | [ ] | [08](etapas/ETAPA_08_MOCHILA.md) | Mochila, detalhe, caderninho, Coleção, Álbum | médio |
@@ -193,3 +193,14 @@ Sete capturas depois nas três resoluções abertas. Diferenças: ordem original
 ZOOM multiplicativo conforme passo a passo; contorno inteiro 2 px; rótulo Cuidar sobre o pé do disco;
 ícones existentes preservados. Registro completo: [VALIDACAO_04.md](VALIDACAO_04.md).
 Próxima: **05**, não iniciada. Sem regra/save/fala alterada, push ou publicação.
+
+**Etapa 05 (24/10/2026, Codex; local):** Missões em História/Pessoas/Diárias, ChapterSteps,
+linhas com sanfona e Pegar tudo na linha 2. `claim_quest_fx` dá voo em cartão, pílula, conversa, linha,
+Pegar tudo e no atalho do Como fazer; QuestReward na fila modal, capítulo com próximo destino,
+aviso genérico de missão removido. Lista fechada + rápido **10/10 PASS em 158,6 s**
+(`build/test_logs/r20261024_204158_b60ee618/`); reexecução final do teste novo descrita em
+[VALIDACAO_05.md](VALIDACAO_05.md). Sete capturas nas três resoluções, quinze da conferência guiada
+até o fim do capítulo 1; PNGs abertos. Diferenças: dados/falas reais completos, capítulos/listas com
+rolagem e cartão grande com composição preservada para a 10. AGENTS/CLAUDE idênticos.
+Sem alteração de regra/save/fala/prêmio; nenhuma pendência funcional da 05. Aviso antigo de lambda ao
+fechar painel reaparece no roteiro, sem travar. Próxima **06**, não iniciada. Sem push/publicação.

@@ -18,7 +18,7 @@ func check(ok: bool, message: String) -> void:
 
 func clear_modals() -> void:
 	main.set("_modal_queue", [] as Array[Callable])
-	for member: String in ["_celebration", "_welcome", "_growth_ceremony", "_walk_result"]:
+	for member: String in ["_celebration", "_welcome", "_growth_ceremony", "_walk_result", "_quest_reward"]:
 		var modal: CanvasLayer = main.get(member)
 		if modal: modal.hide()
 	main.find_child("Toast", true, false).hide()
@@ -55,7 +55,7 @@ func _run() -> void:
 		await frames()
 		var tabs: Control = tasks.find_child("GroupTabs", true, false)
 		check(tabs.size.x <= viewport.x, "grupos cabem em %d" % viewport.x)
-		var last: Control = tasks.find_child("NotebookTab_timed", true, false)
+		var last: Control = tasks.find_child("NotebookTab_story", true, false)
 		check(last.get_global_rect().end.x <= tasks.get_global_rect().end.x, "último grupo não corta em %d" % viewport.x)
 		await capture("principal")
 	state.call("dev_unlock_everything")
@@ -69,29 +69,35 @@ func _run() -> void:
 	tasks.call("choose_group", "characters")
 	await frames()
 	check(tasks.find_child("NotebookTab_characters", true, false).find_child("NewBadge", true, false) != null, "secundária pronta avisa mesmo com personagem fechado")
-	check(tasks.find_child("Character_bloblo", true, false).find_child("NewBadge", true, false) != null, "personagem com prêmio tem exclamação")
-	check(tasks.find_child("LineCard_bloblo", true, false) == null, "personagem começa recolhido")
+	check(tasks.find_child("LineCard_bloblo", true, false).find_child("ClaimQuest_main_9_coop", true, false) != null, "linha pronta tem Pegar")
+	check(tasks.find_child("LineDetail_bloblo", true, false) == null, "linha começa recolhida")
 	for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 		root.size = viewport
 		await frames()
+		for tab_id: String in ["story", "characters", "timed"]:
+			var tab := tasks.find_child("NotebookTab_" + tab_id, true, false) as Button
+			check(tab != null and tab.get_global_rect().position.x >= 0 and tab.get_global_rect().end.x <= tasks.get_global_rect().end.x, "as três abas cabem em %d: %s" % [viewport.x, tab_id])
 		await capture("personagens")
 		tasks.call("choose_character", "bloblo")
 		await frames()
-		check(tasks.find_child("LineCard_bloblo", true, false) != null, "abre missões da Bloblo")
+		check(tasks.find_child("LineDetail_bloblo", true, false) != null, "expande detalhe da Bloblo")
 		await capture("bloblo")
 		tasks.call("choose_character", "bloblo")
 		await frames()
 	check(state.call("claim_quest", "main_9_coop") == "", "recebe missão real")
 	await frames()
-	check(tasks.find_child("Character_bloblo", true, false) == null, "personagem sem missão ativa sai da lista após receber")
+	check(tasks.find_child("LineCard_bloblo", true, false) == null, "personagem sem missão ativa sai da lista após receber")
 	tasks.call("choose_group", "timed")
 	tasks.call("choose_routine", "daily")
 	await frames()
-	check(tasks.find_child("Routines_daily", true, false) != null and tasks.find_child("Routines_weekly", true, false) == null, "temporárias mostram só período escolhido")
+	check(tasks.find_child("Routines_daily", true, false) != null and tasks.find_child("Routines_weekly", true, false) != null, "Diárias mostra Hoje e Semana")
 	await capture("diarias")
 	tasks.call("choose_routine", "weekly")
 	await frames()
-	check(tasks.find_child("Routines_weekly", true, false) != null and tasks.find_child("Routines_daily", true, false) == null, "semanais separadas")
+	check(tasks.find_child("Routines_weekly", true, false) != null and tasks.find_child("Routines_daily", true, false) != null, "Semana continua separada na mesma lista")
+	var scroll := tasks.find_child("Scroll", true, false) as ScrollContainer
+	var weekly := tasks.find_child("Routines_weekly", true, false) as Control
+	check(weekly.get_global_rect().position.y >= scroll.get_global_rect().position.y - 1 and weekly.get_global_rect().end.y <= scroll.get_global_rect().end.y + 1, "choose_routine deixa a seção semanal inteira visível")
 	await capture("semanais")
 	print("TASK GROUPS TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)

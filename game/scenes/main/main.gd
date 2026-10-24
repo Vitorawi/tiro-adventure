@@ -33,6 +33,9 @@ var _tasks_badge: Label
 var _map_badge: Label
 ## Quem pede para esconder a linha 2 do HUD (além dos bloqueios automáticos: folha, bandeja, viagem, cartões).
 var _row2_blockers: Dictionary = {}
+var _quest_reward: CanvasLayer
+var _quest_rewards: Array[Dictionary] = []
+var _reward_not_before := 0
 var _celebration: CanvasLayer
 ## Capítulo concluído nesta leva de missões (0 = nenhum); o anúncio sai uma vez, no fim do frame.
 var _chapter_done: int = 0
@@ -62,6 +65,8 @@ func _ready() -> void:
 	Events.world_requested.connect(_on_world_requested)
 	_celebration = load("res://scenes/ui/celebration/celebration.tscn").instantiate()
 	add_child(_celebration)
+	_quest_reward = load("res://scenes/ui/quest_reward/quest_reward.tscn").instantiate()
+	add_child(_quest_reward)
 	add_child(CollectFx.new())
 	_welcome = load("res://scenes/ui/welcome_back/welcome_back.tscn").instantiate()
 	add_child(_welcome)
@@ -198,6 +203,7 @@ func _queue_modal(callback: Callable) -> void:
 func _flush_modals() -> void:
 	if (_modal_queue.is_empty() and _photo_queue.is_empty()) or _announce_pending or _chapter_done > 0:
 		return
+	if Time.get_ticks_msec() < _reward_not_before: return
 	if _card_open():
 		return
 	if not _modal_queue.is_empty():
@@ -208,7 +214,7 @@ func _flush_modals() -> void:
 
 ## Algum cartão grande (introdução, comemoração, boas-vindas, volta do passeio, cerimônia) está na tela.
 func _card_open() -> bool:
-	return (is_instance_valid(_intro) and _intro.is_inside_tree()) or _celebration.visible or _welcome.visible or _walk_result.visible or _growth_ceremony.visible
+	return (is_instance_valid(_intro) and _intro.is_inside_tree()) or _celebration.visible or _welcome.visible or _walk_result.visible or _growth_ceremony.visible or _quest_reward.visible
 
 
 ## Avisos esperam enquanto houver cartão aberto ou cartão na fila (mesma regra do `_flush_modals`).
@@ -258,12 +264,15 @@ func set_tab_joined(on: bool) -> void:
 
 
 func show_screen(id: StringName) -> void:
+	_hud.set_row2_right(null)
 	_current_screen = id
 	set_tab_joined(id == &"pet")
 	GameState.note_screen_opened(String(id))
 	for screen_id: StringName in _screens:
 		_screens[screen_id].visible = screen_id == id
 		_tabs[screen_id].button_pressed = screen_id == id
+	%TasksScreen.sync_hud()
+	%PetScreen.sync_hud()
 
 
 ## A aba Mapa retoma o mundo; tocar de novo abre o carrossel.
@@ -337,18 +346,15 @@ func _refresh_guide() -> void:
 
 
 func _on_quest_completed(id: String) -> void:
-	var text := "Missão concluída!"
-	for item: String in Database.quests[id].get("rewards", {}).get("items", {}):
-		if Database.items.get(item, {}).get("category", "") == "keepsake":
-			var npc: String = Database.npcs.get(str(Database.quests[id].get("npc", "")), {}).get("name", "")
-			text = "%s te deu: %s! Crescimento → Dar." % [npc, Database.item_name(item)]
-			break
-	if Database.quests[id].get("kind", "main") == "main":
-		var next := GameState.progress.current_main_quest()
-		text += " Próximo: " + str(Database.quests[next].name) if next != "" else " História completa!"
-	_show_toast.call_deferred(text)
+	var quest: Dictionary = Database.quests[id]
+	_reward_not_before = Time.get_ticks_msec() + (0 if Motion.reduced else int(Motion.FLY * 1000))
+	if quest.get("kind", "") == "main":
+		_quest_rewards.append({"id": id, "next": GameState.progress.current_main_quest()})
+	else:
+		for item: String in quest.get("rewards", {}).get("items", {}):
+			if Database.items.get(item, {}).get("category", "") == "keepsake":
+				_notice.notify("info", "%s te deu: %s" % [str(Database.npcs.get(str(quest.get("npc", "")), {}).get("name", "")), Database.item_name(item)])
 	_schedule_announce()
-
 
 func _on_chapter_completed(index: int) -> void:
 	_chapter_done = index
@@ -365,16 +371,24 @@ func _schedule_announce() -> void:
 func _announce() -> void:
 	_announce_pending = false
 	var unlocks := GameState.new_unlocks()
-	if _chapter_done > 0:
-		Events.sheet_close_requested.emit()
-		_celebration.show_chapter(_chapter_done, unlocks)
-	elif not unlocks.is_empty():
-		Events.sheet_close_requested.emit()
-		_celebration.show_unlocks(unlocks)
+	var chapter := _chapter_done
 	_chapter_done = 0
-	if not unlocks.is_empty():
-		GameState.mark_seen(unlocks)
-
+	if chapter > 0:
+		_quest_rewards.clear()
+		_queue_modal(func() -> void:
+			Events.sheet_close_requested.emit()
+			_celebration.show_chapter(chapter, unlocks))
+	else:
+		for entry: Dictionary in _quest_rewards:
+			_queue_modal(func() -> void:
+				Events.sheet_close_requested.emit()
+				_quest_reward.call("open", str(entry.id), str(entry.next)))
+		_quest_rewards.clear()
+		if not unlocks.is_empty():
+			_queue_modal(func() -> void:
+				Events.sheet_close_requested.emit()
+				_celebration.show_unlocks(unlocks))
+	if not unlocks.is_empty(): GameState.mark_seen(unlocks)
 
 func _on_moment_gained(pillar: String, _source: String) -> void:
 	if not Database.growth.pillars.has(pillar): return

@@ -48,11 +48,12 @@ func _step() -> Control:
 
 func _reset_fresh() -> void:
 	# Cartões de comemoração de testes anteriores não podem sobrar na tela.
-	for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony"]:
+	for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony", "_quest_reward"]:
 		var card: Variant = main.get(member)
 		if card is CanvasLayer:
 			(card as CanvasLayer).hide()
 	main.set("_modal_queue", [] as Array[Callable])
+	main.set("_quest_rewards", [] as Array[Dictionary])
 	main.set("_chapter_done", 0)
 	main.call("show_screen", &"pet")
 	state.call("reset")

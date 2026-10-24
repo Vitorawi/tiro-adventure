@@ -2,6 +2,17 @@
 
 ## Estado atual
 
+**Interface 2 — etapa 05 concluída (24/10/2026, Codex; local).** Missões em História/Pessoas/Diárias,
+ChapterSteps, linhas com sanfona e Hoje/Semana juntos; Pegar tudo na linha 2. ProgressionUi.claim_quest_fx
+centraliza a entrega com voo (cartão, pílula, conversa, linha, Pegar tudo e Como fazer). QuestReward com
+fala, chips e próximo destino na fila modal; fim de capítulo só mostra o cartão grande com próximo passo
++ Ir. Aviso genérico Missão concluída retirado. Lista fechada + rápido **10/10 PASS em 158,6 s**
+(`build/test_logs/r20261024_204158_b60ee618/`), reexecução do teste novo para o atalho de Como fazer no
+registro `docs/plans/interface2/VALIDACAO_05.md`. Sete capturas nas três resoluções e quinze da conferência
+guiada do save novo até o capítulo 2, abertas. Nenhuma regra/save/fala/prêmio alterado; sem suíte inteira,
+campanha, export, push ou publicação. Aviso antigo de lambda ao fechar painel permanece sem interromper o
+fluxo. **Próxima: 06** (mundo), não iniciada.
+
 **Interface 2 — etapa 04 concluída (24/10/2026, Codex; local).** Tela do Tiro com cenário aproximado
 (ZOOM 1,75), anéis 40 na linha 2 do HUD só nesta aba, humor discreto de 2,5 s, desejo branco com estrela,
 caderninho lateral e botão Cuidar 72 com atalho CareAsk. PetCareTray agora é Control com roleta de quatro/cinco

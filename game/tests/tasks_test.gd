@@ -192,20 +192,20 @@ func _ui_check() -> void:
 	await process_frame
 	await process_frame
 	var guidance: Label = main.find_child("SharedQuestGuidance", true, false)
-	check(guidance != null and guidance.text.contains("A vovó Bloblo"), "principal orienta até o marco da linha")
+	check(guidance != null and guidance.text.contains(str(database.get("npcs").bloblo.name)), "principal orienta até o marco da linha")
 	var tasks: Control = main.find_child("TasksScreen", true, false)
 	check(tasks.find_child("LineCard_bloblo", true, false) == null, "principal não repete as secundárias")
 	_shot("tasks_shared_guidance")
 	tasks.call("choose_group", "characters")
 	await process_frame
 	await process_frame
-	check(tasks.find_child("Character_bloblo", true, false) != null, "personagens agrupados por nome")
-	check(tasks.find_child("LineCard_bloblo", true, false) == null, "missões ficam recolhidas até abrir personagem")
+	check(tasks.find_child("LineCard_bloblo", true, false) != null and tasks.find_child("LineCard_bloblo", true, false).find_children("*", "TextureRect", true, false).any(func(picture: TextureRect) -> bool: return picture.texture != null and picture.texture.resource_path == str(database.get("npcs").bloblo.portrait)), "uma linha por missão com retrato")
+	check(tasks.find_child("LineDetail_bloblo", true, false) == null, "detalhe começa recolhido")
 	_shot("tasks_characters")
 	tasks.call("choose_character", "bloblo")
 	await process_frame
 	await process_frame
-	check(tasks.find_child("LineCard_bloblo", true, false) != null, "abrir Bloblo mostra sua missão")
+	check(tasks.find_child("LineDetail_bloblo", true, false) != null, "abrir Bloblo mostra o detalhe da missão")
 	check(tasks.find_child("StoryCard", true, false) == null, "personagens não repetem a principal")
 	state.call("dev_jump_to_chapter", 3)
 	await create_timer(2.2).timeout
@@ -214,7 +214,7 @@ func _ui_check() -> void:
 	await process_frame
 	main.call("show_screen", &"tasks")
 	check((load("res://scripts/ui/quest_guide.gd") as GDScript).call("current").id != "welcome", "O próximo passo avança depois de welcome")
-	check(main.find_child("LineCard_bloblo", true, false) != null, "personagem aberto continua selecionado ao atualizar")
+	check(main.find_child("LineDetail_bloblo", true, false) != null, "linha aberta continua selecionada ao atualizar")
 	_shot("tasks_middle")
 	var ui: Script = load("res://scripts/ui/progression_ui.gd")
 	var events: Node = root.get_node("Events")

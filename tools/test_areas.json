@@ -18,6 +18,7 @@
     "test_circuit_selftest"
   ],
   "suite": [
+    "quest_reward_test",
     "farm_test",
     "progression_test",
     "dev_tools_test",
@@ -230,7 +231,9 @@
         "game/tests/tasks_groups_test.gd",
         "game/tests/npc_lines_test.gd",
         "game/tests/onboarding_test.gd",
-        "game/tests/care_story_test.gd"
+        "game/tests/care_story_test.gd",
+        "game/tests/quest_reward_test.gd",
+        "game/scenes/ui/quest_reward/*"
       ],
       "tests": [
         "growth_story_test",
@@ -239,7 +242,8 @@
         "tasks_groups_test",
         "npc_lines_test",
         "onboarding_test",
-        "care_story_test"
+        "care_story_test",
+        "quest_reward_test"
       ]
     },
     "walks": {

@@ -71,29 +71,34 @@ func _run() -> void:
 	if daily:
 		print("LISTS: altura diária = ", daily.size.y)
 		check(daily.size.y < 300, "três diárias e título ocupam menos de 300 px")
-		check(has_text(daily, "Colha os canteiros do sítio."), "instrução inteira preservada")
+		tasks.call("choose_routine_detail", "daily", "harvest")
+		await frames()
+		check(has_text(tasks.find_child("RoutineDetail_daily_harvest", true, false), "Colha os canteiros do sítio."), "instrução inteira preservada no detalhe")
+		tasks.call("choose_routine_detail", "daily", "harvest")
+		await frames()
+		daily = tasks.find_child("Routines_daily", true, false)
 		check(daily.find_children("*", "RingProgress", true, false).size() == 3, "três anéis de progresso")
 	for id: String in state.call("routine_ids", "daily"):
 		var goal: Dictionary = state.call("routine_data", "daily", id).goal
 		state.get("progress").stats[goal.key] = state.get("progress").stat(goal.key) + int(state.call("routine_target", "daily", id))
 	state.call("_changed")
 	await frames()
-	check(tasks.find_child("ClaimAllRoutines", true, false) != null, "Pegar tudo com várias prontas")
-	check(primary_count(tasks) == 1, "um único principal com Pegar tudo")
+	check(main.find_child("ClaimAllRoutines", true, false) != null, "Pegar tudo com várias prontas")
+	check(primary_count(tasks) == 0 and main.find_child("ClaimAllRoutines", true, false).theme_type_variation == &"SmallGoButton", "Pegar tudo pequeno no HUD, sem principal repetido")
 	state.set("xp", 0)
 	var before: int = state.get("coins")
 	var reward := 0
 	for id: String in state.call("routine_ids", "daily"):
 		reward += int(state.call("routine_data", "daily", id).rewards.coins)
 	events.items_gained.connect(func(_items: Dictionary, coins: int, _origin: Vector2) -> void: gains += coins)
-	var claim: Button = tasks.find_child("ClaimAllRoutines", true, false)
+	var claim: Button = main.find_child("ClaimAllRoutines", true, false)
 	if claim: claim.pressed.emit()
 	await create_timer(0.1).timeout
 	await frames()
 	check(state.get("coins") == before + reward, "Pegar tudo paga exatamente as três diárias")
 	check(gains == reward, "CollectFx recebe as moedas exatas")
 	check(tasks.find_child("Routine_daily_harvest", true, false) == null, "linha recebida sai da lista")
-	check(tasks.find_child("ClaimAllRoutines", true, false) == null, "ação some após receber")
+	check(main.find_child("ClaimAllRoutines", true, false) == null, "ação some após receber")
 	var after: int = state.get("coins")
 	check(state.call("claim_routine", "daily", "harvest") != "" and state.get("coins") == after, "não duplica prêmio")
 	# Mochila: quantidade zero, depósito, categorias, Novo e reabertura.

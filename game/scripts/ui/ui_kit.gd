@@ -86,6 +86,7 @@ static func chip(texture: Texture2D, text: String, color: Variant = null, kind: 
 	panel.theme_type_variation = &"ChipPanel"
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.custom_minimum_size.y = 28
+	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var colors := _chip_colors(kind)
 	var style := surface(colors[0], 14)
 	style.content_margin_left = 8
@@ -456,10 +457,20 @@ static func segmented(entries: Array[Dictionary], selected: String, choose: Call
 			tab.add_theme_stylebox_override(phase, style)
 		for phase: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
 			tab.add_theme_color_override(phase, Palette.INK if active else Palette.INK_SOFT)
-		if entry.get("icon") is Texture2D:
+		if entry.get("icon") is Texture2D and not entry.get("inline_icon", false):
 			tab.icon = entry.icon
 			tab.expand_icon = true
 			tab.add_theme_constant_override("icon_max_width", 24)
+		if entry.get("inline_icon", false):
+			tab.text = ""
+			var inline := hbox(4)
+			inline.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			inline.alignment = BoxContainer.ALIGNMENT_CENTER
+			inline.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			inline.add_child(disc(entry.icon, 24, 24))
+			inline.add_child(short_label(str(entry.text), &"ChipLabel", Palette.INK if active else Palette.INK_SOFT))
+			tab.add_child(inline)
+			tab.custom_minimum_size.x = inline.get_combined_minimum_size().x + 8
 		row.add_child(tab)
 		if entry.has("count") or entry.get("alert", false):
 			var mark := badge(int(entry.get("count", 0)))

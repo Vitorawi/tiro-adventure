@@ -134,3 +134,11 @@ func set_active(active: bool, animate: bool) -> void:
 		_style.bg_color = color
 		_cushion.queue_redraw(), _style.bg_color, fill, Motion.TAB)
 	_tween.tween_method(func(color: Color) -> void: _title.add_theme_color_override("font_color", color), _title.get_theme_color("font_color"), ink, Motion.TAB)
+
+## Chegada de item à Mochila: pulinho e almofada mel, voltando à seleção atual.
+func reward_arrived() -> void:
+	bounce_icon()
+	if Motion.reduced: return
+	_style.bg_color = Palette.TAB_ON
+	_cushion.queue_redraw()
+	get_tree().create_timer(0.6).timeout.connect(func() -> void: set_active(_active, false))

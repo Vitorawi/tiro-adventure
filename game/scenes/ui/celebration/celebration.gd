@@ -13,10 +13,14 @@ func show_chapter(index: int, unlocks: Array[String]) -> void:
 	card.add_text(str(chapter.name), &"SectionLabel")
 	card.add_chips(ProgressionUi.reward_chips(chapter.get("rewards", {})))
 	_unlock_rows(card, unlocks)
-	card.add_primary("Próximo passo", func() -> void:
-		hide()
-		Events.sheet_close_requested.emit()
-		Events.screen_requested.emit(&"tasks"))
+	var next := GameState.progress.displayed_main_quest()
+	if next != "":
+		card.add(ProgressionUi.next_step_card(next))
+		card.add_primary("Ir para " + ProgressionUi.quest_place_name(Places.quest_target(next)), func() -> void:
+			hide()
+			Events.sheet_close_requested.emit()
+			Places.go(Places.quest_target(next)))
+	else: card.add_primary("Que bom!", hide)
 	card.add_ghost("Continuar", hide)
 	show()
 

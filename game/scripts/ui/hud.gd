@@ -513,3 +513,13 @@ func _quick_tile(step: Dictionary) -> Button:
 func _close_popover() -> void:
 	var catcher := get_parent().get_node_or_null("PopoverCatcher")
 	if catcher: catcher.queue_free()
+
+## O prêmio chegou à pílula: contorno mel curto, independente da contagem das moedas.
+func flash_coins() -> void:
+	if Motion.reduced: return
+	var style := UiKit.surface(Palette.CARD, 20, true)
+	style.border_color = Palette.HONEY
+	style.set_border_width_all(3)
+	coins_pill.add_theme_stylebox_override("panel", style)
+	get_tree().create_timer(0.6).timeout.connect(func() -> void:
+		if is_instance_valid(coins_pill): coins_pill.remove_theme_stylebox_override("panel"))
