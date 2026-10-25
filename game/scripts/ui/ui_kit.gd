@@ -731,8 +731,9 @@ static func stepper(value: int, min_value: int, max_value: int, on_change: Calla
 static func tile(texture: Texture2D, caption: String, state: String = "normal", missing: Texture2D = null) -> Button:
 	var result := button("", func() -> void: pass, &"GhostButton")
 	result.custom_minimum_size = Vector2(72, 76)
-	var style := surface(Palette.CARD if state == "selected" else Palette.PAPER, 16, state == "selected")
-	if state == "selected":
+	# "sunken" = afundado sobre papel (Mochila); "worn" = vestido (Coleção): contorno de tinta sem sombra.
+	var style := surface(Palette.CARD if state in ["selected", "worn"] else (Palette.SUNKEN if state == "sunken" else Palette.PAPER), 16, state == "selected")
+	if state == "selected" or state == "worn":
 		style.border_color = Palette.INK
 		style.set_border_width_all(2)
 		style.border_blend = true
@@ -768,6 +769,88 @@ static func tile(texture: Texture2D, caption: String, state: String = "normal", 
 		result.add_child(lock)
 		lock.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
 		lock.position -= Vector2(9, 9)
+	return result
+
+
+## Mini-cartão de depósito da Mochila (64 de altura): ícone, nome, `usado/limite` e barrinha de 6 px.
+## Cheio (≥ 90%) = barra `ALERT`; acima do limite = número vermelho; filtrado = contorno de tinta.
+static func depot_card(texture: Texture2D, caption: String, used: int, capacity: int, selected: bool, on_pressed: Callable) -> Button:
+	var result := button("", on_pressed, &"GhostButton")
+	result.custom_minimum_size = Vector2(0, 64)
+	result.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var style := surface(Palette.CARD, 16, true)
+	if selected:
+		style.border_color = Palette.INK
+		style.set_border_width_all(2)
+		style.border_blend = true
+	for phase: String in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
+		result.add_theme_stylebox_override(phase, style)
+	var body := vbox(4)
+	body.name = "Visual"
+	result.add_child(body)
+	body.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	body.offset_left = 10
+	body.offset_right = -10
+	body.offset_top = 6
+	body.offset_bottom = -8
+	body.alignment = BoxContainer.ALIGNMENT_CENTER
+	var top := hbox(8)
+	top.add_child(icon(texture, 32))
+	var words := vbox(0)
+	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var name_label := label(caption, &"SmallLabel", Palette.INK_SOFT)
+	name_label.name = "DepotName"
+	name_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	name_label.clip_text = true
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	words.add_child(name_label)
+	var amount := short_label("%d/%d" % [used, capacity], &"NumberLabel", Palette.ALERT_INK if used > capacity else Palette.INK)
+	amount.name = "DepotAmount"
+	words.add_child(amount)
+	top.add_child(words)
+	body.add_child(top)
+	var meter := bar(100.0 * used / maxi(1, capacity), Palette.ALERT if used >= capacity * 0.9 else Palette.SKY, 6)
+	meter.name = "DepotBar"
+	meter.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.add_child(meter)
+	return result
+
+
+## Quadrado de item da Mochila: ícone 40, quantidade num chip `×9` no canto de baixo e, se `fresh`,
+## um pontinho mel no canto de cima (nó `NewBadge`). Sem texto de legenda.
+static func bag_tile(texture: Texture2D, quantity: int, fresh: bool, on_pressed: Callable) -> Button:
+	var result := tile(texture, "", "sunken")
+	result.custom_minimum_size = Vector2(76, 76)
+	result.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	result.pressed.connect(on_pressed)
+	result.pressed.connect(func() -> void: Motion.bounce(result))
+	var body := result.get_node("Visual") as Control
+	body.offset_top = 6
+	body.offset_bottom = -22
+	body.get_child(1).visible = false
+	var amount := chip(null, "×%d" % quantity)
+	amount.name = "Quantity"
+	result.add_child(amount)
+	amount.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
+	amount.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	amount.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	amount.offset_left = -4.0
+	amount.offset_right = -4.0
+	amount.offset_top = -4.0
+	amount.offset_bottom = -4.0
+	if fresh:
+		var dot := Panel.new()
+		dot.name = "NewBadge"
+		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		dot.custom_minimum_size = Vector2(10, 10)
+		dot.size = Vector2(10, 10)
+		dot.add_theme_stylebox_override("panel", surface(Palette.HONEY, 5))
+		result.add_child(dot)
+		dot.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+		dot.offset_left = -16.0
+		dot.offset_right = -6.0
+		dot.offset_top = 6.0
+		dot.offset_bottom = 16.0
 	return result
 
 

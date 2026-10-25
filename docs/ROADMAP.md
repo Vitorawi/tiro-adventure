@@ -2,6 +2,20 @@
 
 ## Estado atual
 
+**Interface 2 — etapa 08 concluída (25/10/2026, Claude Sonnet 5.5; local).** Mochila (`InventoryList`): depósitos
+em grade 2×2 de `UiKit.depot_card` (`Storage_<id>`, `DepotName/DepotAmount/DepotBar`, ≥ 90% = barra `ALERT`, filtrado =
+contorno de tinta), filtros `UiKit.segmented` só com ícone (nome na selecionada), grade 4×N de `UiKit.bag_tile`
+(`Item_<id>`, chip `Quantity` ×N, `NewBadge` = pontinho mel, mesma regra de "Novo"), presentes e bagagem em cartão
+`HONEY_SOFT` canto 20 (`StoreGifts` agora `small_go`; `GiftsToggle`/`GiftsBlocked`/`Gift_<item>`/`WalkBaggage` mantidos).
+`SheetBuilder.item_detail`: disco 88 com ícone 64, "Você tem N"/"Você não tem", chips (`Vende por`, efeitos, `DepotRow`
+agora chip tocável do depósito), UMA ação verde (`ItemActions`: Dar > Dar ao Tiro > Dar ao cesto > Ir > Vender; as outras
+`soft`) logo acima de "De onde vem"/"Usado em" em `list_card` de linhas com `chev`. Caderninho com ícone em todas as abas
+(`PetNotebook.TAB_ICONS`) e nome só na aberta; Coleção em `UiKit.tile` ("worn" = contorno de tinta + disquinho verde
+`EquippedCheck`; bloqueada = silhueta + `ClothingLock`/`RareHint_`); Álbum com abas só-ícone e sem `StyleBoxFlat`/
+tamanho de fonte soltos. `UiKit.tile` ganhou os estados `sunken` e `worn`. Tour `--i2-08-only` (8 PNGs). Nenhuma regra/save/
+fala alterada. Lista fechada 8/8 PASS (96,7 s) + extras PASS (growth_ui, keys, walk_return_ui, ui_style, pet_care, ui2_kit);
+ver registro no README do plano. Próxima: **09**, não iniciada. Sem push/publicação.
+
 **Interface 2 — etapa 07 concluída (24/10/2026, Claude Sonnet 5.5; local).** `FarmDock` (`scripts/ui/farm_dock.gd`):
 barra da horta presa acima do rodapé, sementes + Regar (`plant`) ou foice + "Colher tudo (N)" (`harvest`); o dedo que
 começa num canteiro usa a ferramenta por onde passa (ficha com contador, rastro, losangos tracejados, rolagem na

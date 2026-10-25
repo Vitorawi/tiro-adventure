@@ -79,17 +79,14 @@ func store_gifts() -> void:
 func _gifts_card() -> Control:
 	var card := PanelContainer.new()
 	card.name = "PendingGifts"
-	card.theme_type_variation = &"ReadyCardPanel"
+	card.add_theme_stylebox_override("panel", _warm_card())
 	var inner := UiKit.vbox(6)
 	card.add_child(inner)
 	var head := UiKit.hbox(8)
-	head.add_child(UiKit.icon(UiKit.ui_icon("item_treat_box"), 32))
+	head.add_child(UiKit.disc(UiKit.ui_icon("item_treat_box"), 40, 32))
 	var title := UiKit.fill_label("Presentes para guardar (%d)" % GameState.pending_reward_total())
 	title.name = "GiftsTitle"
 	head.add_child(title)
-	var toggle := UiKit.ghost("Ocultar" if _gifts_open else "Ver", toggle_gifts)
-	toggle.name = "GiftsToggle"
-	head.add_child(toggle)
 	inner.add_child(head)
 	var summary := {}
 	for receipt: Dictionary in GameState.economy.pending.values():
@@ -103,17 +100,34 @@ func _gifts_card() -> Control:
 	else:
 		inner.add_child(_gift_chips(summary))
 	var hint := GameState.pending_reward_hint()
+	var actions := UiKit.hbox(8)
+	var toggle := UiKit.ghost("Ocultar" if _gifts_open else "Ver", toggle_gifts)
+	toggle.name = "GiftsToggle"
+	actions.add_child(toggle)
 	if GameState.pending_reward_error() == "":
-		var save := UiKit.primary("Guardar", store_gifts)
+		var spacer := Control.new()
+		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		actions.add_child(spacer)
+		var save := UiKit.small_go("Guardar", store_gifts)
 		save.name = "StoreGifts"
-		inner.add_child(save)
+		actions.add_child(save)
+		inner.add_child(actions)
 		if hint != "":
 			inner.add_child(UiKit.label(hint, &"SmallLabel", Palette.INK_SOFT))
 	else:
+		inner.add_child(actions)
 		var lock := UiKit.lock_hint(hint)
 		lock.name = "GiftsBlocked"
 		inner.add_child(lock)
 	return card
+
+
+## Cartão quente do topo da Mochila (presentes e bagagem esperando): mel suave, canto 20.
+func _warm_card() -> StyleBoxFlat:
+	var style := UiKit.surface(Palette.HONEY_SOFT, 20)
+	style.set_content_margin_all(12)
+	return style
 
 
 ## Guarda o que cabe da bagagem do último passeio. O resto continua esperando, sem perder nada.
@@ -129,11 +143,11 @@ func store_baggage() -> void:
 func _baggage_card() -> Control:
 	var card := PanelContainer.new()
 	card.name = "WalkBaggage"
-	card.theme_type_variation = &"ReadyCardPanel"
+	card.add_theme_stylebox_override("panel", _warm_card())
 	var inner := UiKit.vbox(6)
 	card.add_child(inner)
 	var head := UiKit.hbox(8)
-	head.add_child(UiKit.icon(UiKit.ui_icon("action_walk"), 32))
+	head.add_child(UiKit.disc(UiKit.ui_icon("action_walk"), 40, 32))
 	var title := UiKit.fill_label("Achados do passeio (%d)" % GameState.walk_state.baggage_count())
 	title.name = "BaggageTitle"
 	head.add_child(title)
@@ -142,7 +156,7 @@ func _baggage_card() -> Control:
 	var error := GameState.walk_baggage_error()
 	if error == "":
 		# Um botão verde por tela: com presentes também esperando, este vira secundário.
-		var save := UiKit.secondary("Guardar achados", store_baggage) if GameState.pending_reward_count() > 0 else UiKit.primary("Guardar achados", store_baggage)
+		var save := UiKit.soft("Guardar achados", store_baggage) if GameState.pending_reward_count() > 0 else UiKit.primary("Guardar achados", store_baggage)
 		save.name = "StoreBaggage"
 		inner.add_child(save)
 		var hint := GameState.walk_baggage_hint()
@@ -175,27 +189,22 @@ func _build(box: VBoxContainer) -> void:
 		box.add_child(_baggage_card())
 	if GameState.pending_reward_count() > 0:
 		box.add_child(_gifts_card())
+	# Depósitos: mini-cartões 2×2. Acima do limite (estoque que já existia) o número fica vermelho, nada some.
+	var depots := GridContainer.new()
+	depots.name = "Depots"
+	depots.columns = 2
+	depots.add_theme_constant_override("h_separation", 8)
+	depots.add_theme_constant_override("v_separation", 8)
 	for id: String in Database.progression.storage:
 		if not GameState.storage_active(id) or (not GameState.has_upgrade(str(Database.progression.storage[id].building)) and GameState.storage_used(id) == 0): continue
 		var data: Dictionary = Database.progression.storage[id]
 		var building: Dictionary = Database.progression.upgrades.get(str(data.building), {})
-		var button := UiKit.ghost("", choose_storage.bind(id))
-		button.name = "Storage_" + id
-		button.custom_minimum_size.y = 40
-		var contents := UiKit.hbox(6)
-		contents.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		contents.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-		contents.add_child(UiKit.icon(UiKit.ui_icon(str(building.get("icon", "station_" + id))), 32))
-		contents.add_child(UiKit.fill_label(GameState.storage_name(id), &"SmallLabel", Palette.GOOD if storage == id else Palette.INK))
-		var capacity := GameState.storage_capacity(id)
-		var used := GameState.storage_used(id)
-		var bar := UiKit.bar(100.0 * used / maxi(1, capacity), Palette.BAD if used >= capacity else Palette.INFO, 8)
-		bar.custom_minimum_size.x = 64
-		contents.add_child(bar)
-		# Acima do limite (estoque que já existia): o número fica vermelho, nada some.
-		contents.add_child(UiKit.short_label("%d/%d" % [used, capacity], &"SmallLabel", Palette.BAD if used > capacity else null))
-		button.add_child(contents)
-		box.add_child(button)
+		var card := UiKit.depot_card(UiKit.ui_icon(str(building.get("icon", "station_" + id))), GameState.storage_name(id),
+			GameState.storage_used(id), GameState.storage_capacity(id), storage == id, choose_storage.bind(id))
+		card.name = "Storage_" + id
+		depots.add_child(card)
+	if depots.get_child_count() > 0:
+		box.add_child(depots)
 	var categories: Array[String] = []
 	for id: String in GameState.inventory.counts:
 		if GameState.inventory.count(id) > 0 and (storage == "" or GameState.storage_of(id) == storage):
@@ -206,7 +215,8 @@ func _build(box: VBoxContainer) -> void:
 	var options: Array[Dictionary] = []
 	for entry: Dictionary in FILTERS:
 		if entry.id == "all" or entry.id in categories:
-			options.append({"id": entry.id, "text": entry.text, "icon": UiKit.ui_icon(entry.icon)})
+			# O texto só na selecionada: com ícone nas outras cabem em 360 px.
+			options.append({"id": entry.id, "text": entry.text if entry.id == category else "", "icon": UiKit.ui_icon(entry.icon)})
 	var scroll := ScrollContainer.new()
 	scroll.name = "BagFilters"
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -218,30 +228,17 @@ func _build(box: VBoxContainer) -> void:
 	var grid := GridContainer.new()
 	grid.name = "BagGrid"
 	grid.columns = 4
-	grid.add_theme_constant_override("h_separation", 4)
-	grid.add_theme_constant_override("v_separation", 4)
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
 	for id: String in GameState.inventory.counts:
 		if GameState.inventory.count(id) <= 0: continue
 		if storage != "" and GameState.storage_of(id) != storage: continue
 		if category != "all" and Database.items.get(id, {}).get("category", "product") != category:
 			if category != "keepsake" or not bool(Database.items.get(id, {}).get("toy", false)): continue
-		var tile := UiKit.grid_tile(Database.item_icon(id), "", func() -> void:
+		var tile := UiKit.bag_tile(Database.item_icon(id), GameState.inventory.count(id), fresh.has(id), func() -> void:
 			Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.item_detail(id)))
 		tile.name = "Item_" + id
 		tile.tooltip_text = Database.item_name(id)
-		var number := UiKit.short_label("×%d" % GameState.inventory.count(id), &"NumberLabel")
-		number.name = "Quantity"
-
-		number.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-		number.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-		number.grow_vertical = Control.GROW_DIRECTION_BEGIN
-		number.position = Vector2(-30, -24)
-		tile.add_child(number)
-		if fresh.has(id):
-			var badge := UiKit.short_label("Novo", &"SmallLabel", Palette.GOOD)
-			badge.name = "NewBadge"
-			badge.position = Vector2(4, 0)
-			tile.add_child(badge)
 		grid.add_child(tile)
 	box.add_child(grid)
 	if grid.get_child_count() == 0:

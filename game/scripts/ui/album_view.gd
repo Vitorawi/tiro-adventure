@@ -41,14 +41,13 @@ static func panel(section: String = "") -> Control:
 	var unseen_sections: Array = GameState.photos_unseen().map(func(id: String) -> String: return str(Database.photo(id).section))
 	var tabs: Array[Dictionary] = []
 	for entry: Dictionary in sections:
-		tabs.append({"id": str(entry.id), "text": str(entry.name), "icon": UiKit.ui_icon(str(entry.icon)), "alert": str(entry.id) in unseen_sections})
+		tabs.append({"id": str(entry.id), "text": str(entry.name) if str(entry.id) == section else "", "icon": UiKit.ui_icon(str(entry.icon)), "alert": str(entry.id) in unseen_sections})
 	var segmented := UiKit.segmented(tabs, section, func(id: String) -> void: PetNotebook.open("album:" + id))
 	segmented.name = "AlbumSections"
 	for tab in segmented.get_children():
 		var button := tab as Button
 		button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		button.custom_minimum_size = Vector2(0, 40)
-		button.add_theme_font_size_override("font_size", 16)
 		var badge := button.find_child("NewBadge", false, false) as Label
 		if badge != null:
 			_make_dot(badge, 10)
@@ -88,13 +87,9 @@ static func _make_dot(badge: Label, px: int) -> void:
 	badge.scale = Vector2.ONE * (px / 24.0)
 	badge.add_theme_color_override("font_color", Color(1, 1, 1, 0))
 	badge.add_theme_font_size_override("font_size", 6)
-	badge.add_theme_font_size_override("outline_size", 0)
 	badge.clip_text = true
 	badge.theme_type_variation = &""
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.DANGER
-	style.set_corner_radius_all(12)
-	badge.add_theme_stylebox_override("normal", style)
+	badge.add_theme_stylebox_override("normal", UiKit.surface(Palette.ALERT, 12))
 
 
 ## Rola o seletor até o chip da seção aberta, depois do primeiro layout.
@@ -162,7 +157,6 @@ static func _tile(entry: Dictionary) -> Control:
 	caption.name = "Caption"
 	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	caption.add_theme_font_size_override("font_size", 13)
 	caption.custom_minimum_size = Vector2(90, 0)
 	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	column.add_child(caption)

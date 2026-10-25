@@ -79,6 +79,51 @@ func _run() -> void:
 	var places: Script = load("res://scripts/ui/places.gd")
 	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
+	if "--i2-08-only" in OS.get_cmdline_user_args():
+		state.call("reset")
+		state.get("progress").seen["intro"] = true
+		state.call("dev_unlock_everything")
+		state.call("_mark_all_seen")
+		state.get("inventory").call("from_dict", {"carrot": 9, "carrot_snack": 4, "dog_food": 6, "wood": 6, "plank": 2, "stick": 3, "egg": 5, "milk": 2, "wheat": 0})
+		for id: String in ["carrot", "dog_food", "wood"]:
+			state.get("progress").seen.erase("ui:bag:" + id)
+		await _start_main(1.5)
+		main.call("show_screen", &"bag")
+		await shot("i2_08_bag")
+		main.find_child("InventoryList", true, false).call("choose_category", "crop")
+		await shot("i2_08_bag_filter", 0.4)
+		main.find_child("InventoryList", true, false).call("choose_category", "all")
+		var gift_fill := int(state.call("storage_space", "fridge"))
+		state.get("inventory").add("egg", gift_fill)
+		state.call("_grant_automatic", "customer:lais:1", {"items": {"carrot_snack": 2}})
+		state.call("_changed")
+		await shot("i2_08_bag_gifts", 0.8)
+		state.get("economy").pending.clear()
+		state.get("economy").granted.erase("customer:lais:1")
+		state.get("inventory").remove("egg", gift_fill)
+		state.call("_changed")
+		await _sheet("Cenoura", sb.call("item_detail", "carrot"))
+		await shot("i2_08_item")
+		await _close()
+		await _sheet("Trigo", sb.call("item_detail", "wheat"))
+		await shot("i2_08_item_empty")
+		await _close()
+		var notebook: Script = load("res://scripts/ui/pet_notebook.gd")
+		notebook.call("open", "manual")
+		await create_timer(0.5).timeout
+		await shot("i2_08_notebook_manual")
+		state.get("progress").collection.red_scarf = true
+		state.call("equip", "red_scarf")
+		notebook.call("open", "collection")
+		await create_timer(0.5).timeout
+		await shot("i2_08_collection")
+		for photo_id: String in ["f_bath", "f_meal"]:
+			state.call("dev_take_photo", photo_id)
+		notebook.call("open", "album")
+		await create_timer(0.5).timeout
+		await shot("i2_08_album")
+		quit(0)
+		return
 	if "--i2-07-only" in OS.get_cmdline_user_args():
 		await _i2_07_shots()
 		quit(0)

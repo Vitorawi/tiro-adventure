@@ -2,6 +2,9 @@ class_name PetNotebook
 extends RefCounted
 ## Consultas do Tiro reunidas; cada abertura começa no Manual.
 
+const TAB_ICONS := {"manual": "ui_notebook", "growth": "item_growth_kibble", "album": "album_story", "collection": "outfit_star_glasses", "tricks": "trick_paw"}
+
+
 static func tabs() -> Array[Dictionary]:
 	var result: Array[Dictionary] = [{"id": "manual", "text": "Manual"}]
 	if GameState.progress.feature_unlocked("growth_tab"): result.append({"id": "growth", "text": "Crescimento"})
@@ -33,7 +36,15 @@ static func panel(section: String = "manual") -> Control:
 	box.set_meta("sheet_size", "tall")
 	var tab_margin := MarginContainer.new()
 	tab_margin.add_theme_constant_override("margin_top", 8)
-	tab_margin.add_child(UiKit.segmented(entries, section, open))
+	# Ícone em todas as abas e o nome só na aberta: cinco abas cabem em 360 px.
+	var shown: Array[Dictionary] = []
+	for entry: Dictionary in entries:
+		var copy := entry.duplicate()
+		copy["icon"] = UiKit.ui_icon(str(TAB_ICONS.get(str(entry.id), "ui_notebook")))
+		if str(entry.id) != section:
+			copy["text"] = ""
+		shown.append(copy)
+	tab_margin.add_child(UiKit.segmented(shown, section, open))
 	box.add_child(tab_margin)
 	match section:
 		"growth":

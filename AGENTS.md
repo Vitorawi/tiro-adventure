@@ -414,6 +414,8 @@ powershell -ExecutionPolicy Bypass -File tools\run_godot_test.ps1 economy_sim_te
 ```
 Deploy: `git push` na `main` → GitHub Actions → GitHub Pages (prod em `/`, dev em `/dev/`).
 
+**Interface 2 — etapa 08 (25/10/2026):** `UiKit.depot_card` (depósito 2×2 da Mochila), `UiKit.bag_tile` (quadrado de item com chip `Quantity` e pontinho `NewBadge`), `UiKit.tile` com estados `sunken`/`worn`; `SheetBuilder.item_detail` com `ItemHero`/`ItemActions` (uma ação verde; `GiveFood_<item>` novo nome do Dar ao Tiro de comida) e `_link_section` em `list_card`; `PetNotebook.TAB_ICONS`; Coleção em `UiKit.tile`; tour `--i2-08-only` (8 PNGs: `i2_08_bag/bag_filter/bag_gifts/item/item_empty/notebook_manual/collection/album`). Lista do teste: lists, pending_gifts, album, petshop, item_sources.
+
 **Interface 2 — etapa 06 (24/10/2026):** RoomView mantém WorldLabel oculta; `_target_at` é consulta pura,
 `_hold_name` mostra por 1,5 s após 500 ms parado; soltar não age, arrastar cancela. Auditoria 34 etiquetas,
 nenhuma zona nova. `ui:places_entered:<mundo>`/`ui:place_tapped:<mundo>:<lugar>` via GameState.mark_seen

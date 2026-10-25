@@ -645,8 +645,8 @@ static func _clothes_panel() -> Control:
 		var grid := GridContainer.new()
 		grid.name = "ClothesGrid"
 		grid.columns = 3
-		grid.add_theme_constant_override("h_separation", 4)
-		grid.add_theme_constant_override("v_separation", 4)
+		grid.add_theme_constant_override("h_separation", 8)
+		grid.add_theme_constant_override("v_separation", 8)
 		for id: String in Database.collections:
 			var data: Dictionary = Database.collections[id]
 			var earned := GameState.progress.collection.has(id)
@@ -655,26 +655,45 @@ static func _clothes_panel() -> Control:
 			if data.get("rarity", "") == "legendary" and not earned and not GameState.progress.feature_unlocked("legendary_walks"): continue
 			total += 1
 			count += 1 if earned else 0
-			var tile := UiKit.grid_tile(UiKit.ui_icon(data.icon), str(data.name) if earned else "?", func() -> void:
+			var wearing := earned and str(GameState.progress.equipped.get(str(data.slot), "")) == id
+			var tile := UiKit.tile(UiKit.ui_icon(data.icon), str(data.name) if earned else "?", "worn" if wearing else "sunken")
+			tile.pressed.connect(func() -> void:
 				if not earned:
 					Events.sheet_requested.emit(str(data.name), _clothing_source(id))
 					return
-				var wearing := str(GameState.progress.equipped.get(str(data.slot), "")) == id
-				var error := GameState.unequip(str(data.slot)) if wearing else GameState.equip(id)
-				if error != "": Events.toast_requested.emit(error), 100, 64)
-			tile.custom_minimum_size.y = 120
+				var on_now := str(GameState.progress.equipped.get(str(data.slot), "")) == id
+				var error := GameState.unequip(str(data.slot)) if on_now else GameState.equip(id)
+				if error != "": Events.toast_requested.emit(error))
+			tile.custom_minimum_size = Vector2(0, 112)
+			tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 			tile.name = "Equip_" + id
-			var wearing := str(GameState.progress.equipped.get(str(data.slot), "")) == id
-			var mark := UiKit.icon(UiKit.ctl_icon("check" if wearing else "lock"), 24)
-			mark.name = "EquippedCheck" if wearing else "ClothingLock"
-			mark.visible = wearing or not earned
-			tile.add_child(mark)
-			if not earned:
+			var caption := tile.get_node("Visual").get_child(1) as Label
+			caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			caption.custom_minimum_size.x = 80
+			var mark: Control = null
+			if wearing:
+				# Disquinho verde com ✓ no canto: vestida.
+				mark = UiKit.disc(UiKit.ctl_icon("check"), 24, 16)
+				mark.add_theme_stylebox_override("panel", UiKit.surface(Palette.GO, 12))
+				var tick := mark.get_child(0) as TextureRect
+				tick.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+				tick.self_modulate = Palette.CARD
+				mark.name = "EquippedCheck"
+			elif not earned:
+				mark = UiKit.ctl("lock", 18)
+				mark.name = "ClothingLock"
 				_silhouette(tile.get_node("Visual/Picture"))
-				tile.modulate.a = 0.55
 				if str(data.get("source", "")).begins_with("walk:") or str(data.get("source", "")).begins_with("legendary:"):
 					mark.name = "RareHint_" + id
 					mark.tooltip_text = "Raro de passeio"
+			if mark != null:
+				tile.add_child(mark)
+				mark.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+				mark.offset_left = -30.0
+				mark.offset_right = -6.0
+				mark.offset_top = 6.0
+				mark.offset_bottom = 30.0
 			grid.add_child(tile)
 		box.add_child(UiKit.collection_progress(count, total))
 		box.add_child(grid)

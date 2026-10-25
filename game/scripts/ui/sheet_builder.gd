@@ -94,66 +94,86 @@ static func tall(content: Control) -> Control:
 	return content
 
 
-## Detalhe do item: ícone + quantidade, efeitos, de onde vem e onde usa (tocáveis, com Ir) e preço.
+## Detalhe do item (folha meia, altura automática): ícone 64 em disco, quantidade, uma linha de uso, chips
+## (vende por / onde guarda), "De onde vem" em linhas e UMA ação verde contextual (a primeira possível de
+## Dar > Dar ao Tiro > Dar ao cesto > Ir > Vender; as outras ficam suaves ao lado).
 static func item_detail(id: String) -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var item: Dictionary = Database.items.get(id, {})
-		var top := UiKit.hbox(10)
-		top.add_child(UiKit.icon(Database.item_icon(id), 64))
 		var amount := GameState.inventory.count(id)
-		top.add_child(UiKit.fill_label("Você tem %d" % amount if amount > 0 else "Você não tem", &"", Palette.INK if amount > 0 else Palette.INK_SOFT))
 		var price := int(item.get("sell_price", 0))
-		if price > 0:
-			top.add_child(UiKit.chip(UiKit.ui_icon("coin"), str(price)))
+		var top := UiKit.hbox(12)
+		var hero := UiKit.disc(Database.item_icon(id), 88, 64)
+		hero.name = "ItemHero"
+		top.add_child(hero)
+		var words := UiKit.vbox(4)
+		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		words.add_child(UiKit.label("Você tem %d" % amount if amount > 0 else "Você não tem", &"StrongLabel" if amount > 0 else &"", Palette.INK if amount > 0 else Palette.INK_SOFT))
+		var use_line := str(item.get("note", ""))
+		if use_line != "":
+			words.add_child(UiKit.label(use_line, &"", Palette.INK_SOFT))
+		top.add_child(words)
 		box.add_child(top)
+		var chips := UiKit.flow(8)
+		if price > 0:
+			chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), "Vende por %d" % price, null, "prize"))
+		if item.has("feed"):
+			for effect: Control in UiKit.effect_chip_list(item.feed):
+				chips.add_child(effect)
 		var depot_row := _depot_row(id)
 		if depot_row != null:
-			box.add_child(depot_row)
+			chips.add_child(depot_row)
+		if chips.get_child_count() > 0:
+			box.add_child(chips)
+		# Ações possíveis, na ordem de prioridade: a primeira vira o botão verde.
+		var actions: Array[Dictionary] = []
 		var growth_delivery := false
 		for req: Dictionary in GameState.growth_info().requirements:
 			if req.type == "deliver" and str(req.item) == id and not req.done:
 				growth_delivery = true
 		if growth_delivery and amount > 0:
-			var give := UiKit.primary("Dar", GrowthUi._deliver.bind(id))
-			give.name = "GiveGrowth_" + id
-			box.add_child(give)
-		elif item.has("feed"):
-			box.add_child(UiKit.effect_chips(item.feed))
-			if GameState.inventory.count(id) > 0:
-				box.add_child(UiKit.primary("Dar ao Tiro", func() -> void:
-					var error := give_food(id)
-					if error != "":
-						Events.toast_requested.emit(error)))
+			actions.append({"name": "GiveGrowth_" + id, "text": "Dar", "fn": GrowthUi._deliver.bind(id)})
+		elif item.has("feed") and amount > 0:
+			actions.append({"name": "GiveFood_" + id, "text": "Dar ao Tiro", "fn": func() -> void:
+				var error := give_food(id)
+				if error != "":
+					Events.toast_requested.emit(error)})
 		if bool(item.get("toy", false)) and amount > 0:
-			var toy_error := GameState.give_toy_error(id)
-			if toy_error == "":
-				var toy_give := UiKit.primary("Dar ao Tiro", func() -> void:
+			if GameState.give_toy_error(id) == "":
+				actions.append({"name": "GiveToy_" + id, "text": "Dar ao Tiro", "fn": func() -> void:
 					var reason := GameState.give_toy(id)
 					if reason == "":
 						Events.sheet_close_requested.emit()
-					Events.toast_requested.emit(reason if reason != "" else "Foi para o cesto de brinquedos"))
-				toy_give.name = "GiveToy_" + id
-				box.add_child(toy_give)
+					Events.toast_requested.emit(reason if reason != "" else "Foi para o cesto de brinquedos")})
 			elif not GameState.house_has("toy_basket"):
 				box.add_child(UiKit.lock_hint("Chega com o cesto de brinquedos"))
 		if str(item.get("category", "")) == "keepsake":
-			var go := UiKit.secondary("Ir", GrowthUi.open, null, true)
-			go.name = "KeepsakeGo"
-			box.add_child(go)
-		var sources := _sources(id)
-		var uses := _uses(id)
-		_link_section(box, "De onde vem", sources)
-		_link_section(box, "Usado em", uses)
-		if uses.is_empty() and str(item.get("note", "")) != "":
-			box.add_child(UiKit.label(str(item.note), &"SmallLabel"))
-		if price > 0 and GameState.inventory.count(id) > 0:
+			actions.append({"name": "KeepsakeGo", "text": "Ir", "fn": GrowthUi.open})
+		if price > 0 and amount > 0:
 			var place := Database.place_with_panel("sell")
 			if place[0] != "" and Places.world_error(place[0]) == "":
-				box.add_child(UiKit.button("Vender", Places.go.bind({"world": place[0], "place": "market:sell"}), &"", UiKit.ui_icon("coin"))))
+				actions.append({"name": "SellItem", "text": "Vender", "icon": UiKit.ui_icon("coin"), "fn": Places.go.bind({"world": place[0], "place": "market:sell"})})
+		if not actions.is_empty():
+			var row := UiKit.hbox(8)
+			row.name = "ItemActions"
+			for i in actions.size():
+				var entry: Dictionary = actions[i]
+				var button: Button
+				if i == 0:
+					button = UiKit.primary(str(entry.text), entry.fn, entry.get("icon"))
+					button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				else:
+					button = UiKit.soft(str(entry.text), entry.fn, entry.get("icon"), true)
+				button.name = str(entry.name)
+				row.add_child(button)
+			box.add_child(row)
+		_link_section(box, "De onde vem", _sources(id))
+		_link_section(box, "Usado em", _uses(id)))
 
 
-## Onde o item fica guardado: ícone + nome do depósito + "usado/total" (só com o limite ligado).
-## Tocar leva ao lugar do depósito quando ele tem um (a geladeira).
+## Onde o item fica guardado, em chip: "Geladeira 4/24" (só com o limite ligado). O nó se chama `DepotRow`;
+## com lugar no mundo, tocar leva até o depósito. Cheio = chip vermelho.
 static func _depot_row(id: String) -> Control:
 	var depot := GameState.storage_of(id)
 	if depot == "" or not GameState.storage_active(depot):
@@ -162,12 +182,15 @@ static func _depot_row(id: String) -> Control:
 	var building: Dictionary = Database.progression.upgrades.get(str(data.get("building", "")), {})
 	var used := GameState.storage_used(depot)
 	var capacity := GameState.storage_capacity(depot)
-	var row := UiKit.hbox(8)
-	row.name = "DepotRow"
-	row.add_child(UiKit.icon(UiKit.ui_icon(str(building.get("icon", "station_" + depot))), 32))
-	row.add_child(UiKit.fill_label("%s  %d/%d" % [GameState.storage_name(depot), used, capacity], &"SmallLabel", Palette.BAD if used >= capacity else Palette.INK_SOFT))
+	var text := "%s %d/%d" % [GameState.storage_name(depot), used, capacity]
+	var icon := UiKit.ui_icon(str(building.get("icon", "station_" + depot)))
+	var kind := "missing" if used >= capacity else "neutral"
+	var row: Control
 	if str(data.get("place", "")) != "" and Places.world_error(str(data.get("world", "house"))) == "":
-		row.add_child(UiKit.secondary("Ver", Places.go.bind({"world": str(data.get("world", "house")), "place": str(data.place)}), null, true))
+		row = UiKit.tap_chip(icon, text, Places.go.bind({"world": str(data.get("world", "house")), "place": str(data.place)}), null, kind)
+	else:
+		row = UiKit.chip(icon, text, null, kind)
+	row.name = "DepotRow"
 	return row
 
 
@@ -211,15 +234,15 @@ static func _uses(id: String) -> Array[Dictionary]:
 static func _link_section(box: VBoxContainer, title: String, links: Array[Dictionary]) -> void:
 	if links.is_empty():
 		return
-	box.add_child(UiKit.label(title, &"SectionLabel"))
-	var flow := UiKit.flow()
+	box.add_child(UiKit.section(title))
+	var list := UiKit.list_card(box)
 	for link: Dictionary in links:
 		var target: Dictionary = link.target
-		var chip := UiKit.tap_chip(link.icon, link.name, Places.go.bind(target))
+		var row := UiKit.list_row(link.icon, str(link.name), [], UiKit.ctl("chev", 18), Places.go.bind(target))
+		row.custom_minimum_size.y = 56
 		if target.has("world") and Places.world_error(str(target.world)) != "":
-			chip.modulate.a = 0.5
-		flow.add_child(chip)
-	box.add_child(flow)
+			row.modulate.a = 0.55
+		list.add_child(row)
 
 
 ## Várias estações num painel (Cozinha = fogão + forno): título com ícone e a estação embaixo.

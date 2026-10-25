@@ -86,7 +86,7 @@ flowchart TD
 | [x] | [05](etapas/ETAPA_05_MISSOES.md) | Missões em 3 abas, `claim_quest_fx`, `QuestReward` | grande |
 | [x] | [06](etapas/ETAPA_06_MUNDO.md) | mapa sem texto, balões, `WorldPin`, cartões-postais, conversa, compra | grande |
 | [x] | [07](etapas/ETAPA_07_HORTA_BANDEJAS.md) | `FarmDock`, bandejas das estações | grande |
-| [ ] | [08](etapas/ETAPA_08_MOCHILA.md) | Mochila, detalhe, caderninho, Coleção, Álbum | médio |
+| [x] | [08](etapas/ETAPA_08_MOCHILA.md) | Mochila, detalhe, caderninho, Coleção, Álbum | médio |
 | [ ] | [09](etapas/ETAPA_09_PAINEIS.md) | painéis grandes | grande |
 | [ ] | [10](etapas/ETAPA_10_FESTA.md) | `ModalCard` novo, `RewardSheet`, boas-vindas, Novo! | médio |
 | [ ] | [11](etapas/ETAPA_11_TEXTO.md) | orçamento de texto, Texto maior, limpeza | médio |
@@ -233,3 +233,20 @@ world_view, balloon, ui_style). Toque real PASS (plantar, arrasto, regar, colher
 Desvios: fila cheia mostra só o motivo no `lock_hint` (preço das vagas fica no cabeçalho); "Ver tudo" não mudou;
 mexer na câmera não fecha a barra (regra nova, só a `ActionTray` fecha). Nenhuma regra/save/fala/prêmio alterado.
 Próxima **08**, não iniciada. Sem push/publicação.
+
+**Etapa 08 (25/10/2026, Claude Sonnet 5.5; local):** Mochila (depósitos 2×2 `depot_card`, filtros só-ícone, grade de
+`bag_tile` com chip ×N, Novo em pontinho mel, presentes/bagagem em cartão mel com `small_go`), detalhe do item (disco 88,
+chips, uma ação verde `ItemActions` acima das listas, "De onde vem"/"Usado em" em `list_card` com chevron), caderninho com
+ícones nas abas, Coleção em `UiKit.tile` (vestida = contorno + ✓ verde; bloqueada = silhueta + cadeado) e Álbum limpo.
+Testes: lista fechada (lists, pending_gifts, album, petshop, item_sources) + rápido **8/8 PASS em 96,7 s**
+(`build/test_logs/r20261025_001908_41cbc58d/`); extras justificados por tocarem nós que mudei (`GiveGrowth_`/`KeepsakeGo`,
+bagagem, abas do caderninho, estilo): growth_ui, keys, walk_return_ui, ui_style, pet_care, ui2_kit PASS
+(`build/test_logs/r20261025_002049_4e2417df/`). Capturas `build/screenshots/i2_08_antes` e `i2_08_depois(_390,_412)`
+(bag, bag_filter, bag_gifts, item, item_empty, notebook_manual, collection, album), PNGs abertos. Desvios: sem protótipo
+de tela inteira (só peças); o nome do item NÃO repete no corpo (já é o título da folha); a ação verde sobe para logo
+depois dos chips (a lista "Usado em" pode ser longa); "Ver"/"Ocultar" dos presentes ficou ghost ao lado de Guardar;
+`Quantity` virou `Panel` chip (não mais `Label`), `NewBadge` da Mochila é `Panel` sem texto (o teste só confere
+existência); os botões "Vestir/Tirar" não existem (toque no quadrado). Pendências: abas do caderninho ficam com larguras
+desiguais (selecionada maior); contratos apertados (09) e títulos de modais (10) seguem para suas etapas.
+Checklist 04 §B: Mochila ✓, detalhe ✓, caderninho/Manual ✓, Coleção ✓, Álbum ✓ (sem ×0; uma ação verde por folha).
+Próxima **09**, não iniciada. Sem push/publicação.
