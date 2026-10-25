@@ -2,6 +2,17 @@
 
 ## Estado atual
 
+**Interface 2 — etapa 06 concluída (24/10/2026, Codex; local).** Mapas sem nomes fixos, segurar mostra o
+nome sem agir, brilho até o primeiro toque de lugar recém-aberto, balões lisos e WorldPin com anel na
+base. Auditoria de 34 etiquetas elegíveis: todos os caminhos físicos preservados, nenhum polígono novo.
+Seletor com cartões-postais e fotos/cinzas de saves novos, WorldPill/NpcFace/Lugares novos; conversa
+reutiliza o detalhe expandido de Pessoas e compra mostra capacidade e preço no botão. Lista fechada + rápido **10/10 PASS em 125 s (Jobs=2)**;
+foco final world_pin_test PASS; resultados/tempos, oito capturas nas três resoluções e diferenças em `docs/plans/interface2/VALIDACAO_06.md`.
+Ferramenta `tools/world_thumbs.gd` registrada em ART_PIPELINE; AGENTS/CLAUDE idênticos.
+Nenhuma regra/save/fala/prêmio alterado; sem suíte inteira, campanha, export, push ou publicação.
+**Próxima: 07** (horta/bandejas), não iniciada.
+
+
 **Interface 2 — etapa 05 concluída (24/10/2026, Codex; local).** Missões em História/Pessoas/Diárias,
 ChapterSteps, linhas com sanfona e Hoje/Semana juntos; Pegar tudo na linha 2. ProgressionUi.claim_quest_fx
 centraliza a entrega com voo (cartão, pílula, conversa, linha, Pegar tudo e Como fazer). QuestReward com

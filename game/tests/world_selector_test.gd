@@ -42,6 +42,7 @@ func _run() -> void:
 	main.call("_on_tab_pressed", &"map")
 	await frames()
 	check(worlds.call("is_map_open") and worlds.get_node("%WorldView").visible, "Seletor sobre o mundo visível")
+	check(not main.find_child("HudRow2", true, false).visible, "folha de mundos não compete com o próximo passo")
 	var nature: Button = worlds.find_child("WorldCard_nature", true, false)
 	check(nature.disabled, "Natureza bloqueada no começo")
 	var places: Script = load("res://scripts/ui/places.gd")
@@ -65,7 +66,7 @@ func _run() -> void:
 	var farm: Button = worlds.find_child("WorldCard_farm", true, false)
 	await _tap(farm.get_global_rect().get_center())
 	await frames()
-	check(worlds.get("current_world") == "farm" and not worlds.call("is_map_open"), "Um toque real na linha viaja e fecha")
+	check(worlds.get("current_world") == "farm" and not worlds.call("is_map_open"), "Um toque real no cartão viaja e fecha")
 	if worlds.get("current_world") != "farm":
 		main.queue_free()
 		await process_frame
@@ -154,6 +155,11 @@ func _check_list(phase: String) -> void:
 			check(row.size.y >= 64, "alvo de toque grande")
 			var hint: Control = row.get_node("WorldHint")
 			if hint.visible: check(row.get_global_rect().encloses(hint.get_global_rect()), "bloqueio cabe na linha: " + row.name)
+		var first: Control = list.get_child(0)
+		var second: Control = list.get_child(1)
+		var last: Control = list.get_child(4)
+		check(is_equal_approx(first.position.y, second.position.y) and second.position.x > first.position.x, "cartões em duas colunas")
+		check(last.size.x > first.size.x * 1.9, "último cartão ocupa as duas colunas")
 		check(selector.find_children("*", "ScrollContainer", true, false).is_empty(), "todos os destinos dispensam rolagem")
 		if "--list-shots" in OS.get_cmdline_user_args():
 			_hide_modals()
@@ -165,7 +171,7 @@ func _check_list(phase: String) -> void:
 
 
 func _hide_modals() -> void:
-	for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony"]:
+	for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony", "_quest_reward"]:
 		(main.get(member) as CanvasLayer).hide()
 	main.set("_modal_queue", [] as Array[Callable])
 	main.set("_chapter_done", 0)

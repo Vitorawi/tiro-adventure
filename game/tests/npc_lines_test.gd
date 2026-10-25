@@ -78,6 +78,9 @@ func _run() -> void:
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	current_scene = main
+	# Isola o retrato da fila modal da casca: o prêmio da história agora fecha o Sheet (etapa 05).
+	# O sinal continua chegando ao NpcPortrait e o LiveBox continua reconstruindo seus objetivos.
+	root.get_node("Events").disconnect("quest_completed", Callable(main, "_on_quest_completed"))
 	var places: Script = load("res://scripts/ui/places.gd")
 	places.call("open_npc", "lais")
 	await create_timer(0.2).timeout

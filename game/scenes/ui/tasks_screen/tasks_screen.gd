@@ -231,6 +231,9 @@ func _story_card(box: VBoxContainer) -> void:
 	box.add_child(full)
 
 func _quest_detail(box: VBoxContainer, id: String, main_action: bool) -> void:
+	if not main_action:
+		ProgressionUi.character_quest_detail(box, id)
+		return
 	for goal: Dictionary in Database.quests[id].goals: box.add_child(ProgressionUi.quest_goal_strip(goal))
 	var bottom := UiKit.hbox(4)
 	var prizes := ProgressionUi.reward_chips(Database.quests[id].rewards)

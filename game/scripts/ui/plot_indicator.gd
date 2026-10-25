@@ -22,8 +22,8 @@ func refresh() -> void:
 		state = "buy"
 		texture = null
 		corner_texture = null
-		caption = str(GameState.plot_cost(GameState.unlocked_plots)) if GameState.has_upgrade("farm") else "Vovó"
-		show_caption = true
+		caption = str(GameState.plot_cost(GameState.unlocked_plots)) if GameState.has_upgrade("farm") else ""
+		show_caption = caption != ""
 		queue_redraw()
 		return
 	if not visible: return

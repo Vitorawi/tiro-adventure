@@ -12,19 +12,16 @@ var _zoom := 1.0
 
 func restyle() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-	theme_type_variation = &"StrongLabel"
+	theme_type_variation = &"SmallLabel"
 	add_theme_color_override("font_color", Palette.INK)
-	var box := StyleBoxFlat.new()
-	box.bg_color = Color(Palette.PAPER, 0.9)
-	box.border_color = Palette.WORLD.get(world_id, Palette.CARD_LINE) if important else Palette.CARD_LINE
-	box.set_border_width_all(2 if important else 0)
-	box.set_corner_radius_all(12)
+	var box := UiKit.surface(Palette.CARD, 12, true)
 	box.content_margin_left = 26 if icon else 8
 	box.content_margin_right = 8
 	box.content_margin_top = 3
 	box.content_margin_bottom = 3
 	add_theme_stylebox_override("normal", box)
 	reset_size()
+	hide()
 	queue_redraw()
 
 

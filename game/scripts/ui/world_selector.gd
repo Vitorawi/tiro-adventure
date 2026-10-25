@@ -1,21 +1,21 @@
 class_name WorldSelector
 extends Control
-## Cinco destinos juntos, com ícone e avisos. Um toque viaja; fundo ou X fecham.
+## Folha com cinco cartões-postais. Um toque viaja; fundo, X e Escape fecham.
 
 signal chosen(world_id: String)
 signal closed
 
-const GAP := 6
+const GAP := 12
 const TOP := 72.0
 var _panel: PanelContainer
-var _rows: VBoxContainer
+var _rows: Control
 var _buttons: Array[WorldCard] = []
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	var dim := ColorRect.new()
-	dim.color = Palette.DIM
+	dim.color = Palette.SCRIM
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	dim.gui_input.connect(_on_background_input)
@@ -23,31 +23,26 @@ func _ready() -> void:
 	_panel = PanelContainer.new()
 	_panel.name = "WorldListPanel"
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.PAPER
-	style.border_color = Palette.CARD_LINE
-	style.set_border_width_all(2)
-	style.set_corner_radius_all(24)
-	style.shadow_color = Palette.SHADE
-	style.shadow_size = 4
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 12
-	style.content_margin_bottom = 12
+	var style := UiKit.surface(Palette.PAPER, 28, true)
+	style.set_content_margin_all(16)
 	_panel.add_theme_stylebox_override("panel", style)
 	add_child(_panel)
 	var body := UiKit.vbox(8)
 	_panel.add_child(body)
+	var handle := ColorRect.new()
+	handle.color = Palette.LINE
+	handle.custom_minimum_size = Vector2(40, 5)
+	handle.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	body.add_child(handle)
 	var header := UiKit.hbox(8)
 	var title := UiKit.fill_label("Para onde vamos?", &"TitleLabel")
 	title.name = "SelectorTitle"
-	title.add_theme_font_size_override("font_size", 26)
 	header.add_child(title)
-	var close_button := UiKit.icon_button(UiKit.ctl_icon("x"), dismiss, 44)
+	var close_button := UiKit.ctl_button("x", dismiss, 32)
 	close_button.name = "CloseSelector"
 	header.add_child(close_button)
 	body.add_child(header)
-	_rows = UiKit.vbox(GAP)
+	_rows = Control.new()
 	_rows.name = "WorldList"
 	body.add_child(_rows)
 	for world_id: String in Database.worlds:
@@ -67,11 +62,34 @@ func _layout() -> void:
 	if is_instance_valid(tab_bar) and tab_bar.size.y > 0:
 		bottom = minf(size.y, tab_bar.global_position.y - global_position.y - 8)
 	var available := maxf(0, bottom - TOP)
-	var height := WorldCard.ROW_HEIGHT if available >= 460 else WorldCard.COMPACT_HEIGHT
-	for row: WorldCard in _buttons:
-		row.custom_minimum_size.y = height
-	_panel.size = Vector2(minf(440, size.x - 24), 24 + 44 + 8 + _buttons.size() * height + maxi(0, _buttons.size() - 1) * GAP)
-	_panel.position = Vector2((size.x - _panel.size.x) * 0.5, TOP + maxf(0, (available - _panel.size.y) * 0.5))
+	var width := minf(440, size.x)
+	var inner := width - 32
+	var column_width := (inner - GAP) / 2
+	# A altura das dicas reais decide a linha; nenhum nome de missão é truncado.
+	var extras: Array[float] = [56.0, 56.0]
+	for i: int in 4:
+		var card := _buttons[i]
+		card.wide = false
+		card.size.x = column_width
+		card.call("_layout")
+		if card.disabled:
+			var hint: Control = card.get_node("WorldHint")
+			extras[i / 2] = maxf(extras[i / 2], 48 + hint.size.y + 8)
+	var photo := clampf(floorf((available - 97 - 24 - 44 - extras[0] - extras[1]) / 3), 28, 104)
+	var y := 0.0
+	for i: int in _buttons.size():
+		var card := _buttons[i]
+		card.wide = i == _buttons.size() - 1 and _buttons.size() % 2 == 1
+		card.photo_height = photo - 12 if card.wide else photo
+		var height := photo + 44 if card.wide else photo + extras[i / 2]
+		card.position = Vector2(0 if card.wide else (i % 2) * (column_width + GAP), y)
+		card.size = Vector2(inner if card.wide else column_width, height)
+		card.call("_layout")
+		if i % 2 == 1 or card.wide: y += height + GAP
+	var cards_height := y - GAP
+	_rows.custom_minimum_size = Vector2(inner, cards_height)
+	_panel.size = Vector2(width, 32 + 5 + 8 + 44 + 8 + cards_height)
+	_panel.position = Vector2((size.x - width) / 2, maxf(64, bottom - _panel.size.y))
 
 
 func open(current: String) -> void:

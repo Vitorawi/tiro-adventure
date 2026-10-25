@@ -92,17 +92,20 @@ func _run() -> void:
 	check(int(state.get("progress").seen["ui:labels:farm"]) == 2, "visitas limitadas a dois")
 	farm.set("_label_intro_until", 0.0)
 	farm.call("_place_labels")
-	var quiet_shown := 0
 	for tag: Label in farm.get("_labels"):
-		if tag.visible and not tag.get_meta("always_visible", false): quiet_shown += 1
-	check(quiet_shown > 0, "zoom baixo mantém os nomes dos lugares (etiquetas fixas)")
+		check(not tag.visible, "sem nomes permanentes mesmo nas primeiras visitas")
 	var overview: Label
 	for tag: Label in farm.get("_labels"):
 		if tag.get_meta("overview_label", false): overview = tag
-	check(overview != null and overview.visible, "nome do conjunto (Animais) aparece afastado")
+	check(overview != null and not overview.visible, "nome do conjunto também fica oculto")
 	farm.call("_zoom_at", farm.size / 2, 1.2)
 	farm.call("_place_labels")
-	check(not overview.visible, "nome do conjunto some quando os nomes de detalhe aparecem")
+	check(not overview.visible, "aproximar não escreve nomes")
+	var spark: Node2D = load("res://scripts/ui/world_balloon.gd").new()
+	spark.set("state", "spark")
+	farm.add_child(spark)
+	check((spark.get("hit_rect") as Rect2).size.x >= 44, "brilho novo preserva alvo de toque")
+	spark.queue_free()
 	check(farm.find_child("plot_0", true, false) != null, "zoom próximo preserva objetos")
 	var house := await enter("house")
 	state.get("inventory").add("carrot", 2)
@@ -114,8 +117,8 @@ func _run() -> void:
 	var kitchen := false
 	for tag: Label in house.get("_labels"):
 		if tag.get_meta("tap_data").get("action", "") == "place:stove":
-			kitchen = tag.visible and tag.get_meta("always_visible", false)
-	check(kitchen, "cozinha pronta aparece mesmo afastada")
+			kitchen = not tag.visible
+	check(kitchen, "cozinha pronta continua sem nome fixo; balão dá o estado")
 	var stove: Sprite2D = house.find_child("stove", true, false)
 	var production: Node2D = stove.get_node("ProductionIndicator")
 	center = stove.position + (production.get("hit_rect") as Rect2).get_center() * stove.scale

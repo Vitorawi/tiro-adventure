@@ -105,10 +105,29 @@ static func chip(texture: Texture2D, text: String, color: Variant = null, kind: 
 
 
 ## Chip tocável (ex.: ingrediente que falta: tocar mostra de onde ele vem).
-static func tap_chip(texture: Texture2D, text: String, on_pressed: Callable, color: Variant = null) -> Button:
+static func postcard_chip(texture: Texture2D, text: String, current: bool = false) -> PanelContainer:
+	var ink := Palette.HONEY_INK if current else (Palette.ALERT_INK if text == "!" else Palette.GO_INK)
+	var panel := chip(texture, text, ink)
+	var style := surface(Palette.HONEY if current else Color(Palette.CARD, 0.94), 14)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	panel.add_theme_stylebox_override("panel", style)
+	var picture := panel.get_child(0).get_child(0) as TextureRect
+	picture.custom_minimum_size = Vector2(20, 20)
+	if texture != null and texture.resource_path.begins_with(CTL_DIR): picture.modulate = Palette.HONEY_INK if current else Palette.GO_INK
+	return panel
+
+
+static func tap_chip(texture: Texture2D, text: String, on_pressed: Callable, color: Variant = null, kind: String = "") -> Button:
 	var result := button(text, on_pressed, &"ChipButton", texture)
 	result.custom_minimum_size = Vector2(0, 44)
 	result.add_theme_constant_override("icon_max_width", 32)
+	if kind != "":
+		var colors := _chip_colors(kind)
+		var style := surface(colors[0], 22)
+		style.content_margin_left = 12
+		style.content_margin_right = 12
+		for state: String in ["normal", "hover", "pressed", "focus"]: result.add_theme_stylebox_override(state, style)
 	if color is Color:
 		for state: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
 			result.add_theme_color_override(state, color)

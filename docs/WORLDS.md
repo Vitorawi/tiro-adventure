@@ -81,20 +81,18 @@ separados impedem andar na água, árvores ou penhascos. O save mantém os ids d
 
 A aba Mapa retoma o último mundo da sessão (Casa no começo, sem gravação em disco). Tocar novamente
 na aba ou na pílula do mundo abre `MapView`, seletor sobre o mundo escurecido, sem esconder a sala.
-`WorldSelector` organiza cinco linhas numa lista, na ordem Casa → Sítio → Vila → Praça → Natureza.
-Todas ficam visíveis sem rolagem, entre HUD e abas, inclusive em 360×640. Cada linha mede 72 px
-(64 px quando há menos altura) e aceita um toque para viajar. O mundo atual fica verde e marcado
-“Aqui”. Fecha pelo ✕, toque no fundo ou Voltar/Escape. A pinça da sala fica suspensa enquanto a
-lista está aberta, sem alterar o zoom ou o enquadramento.
+`WorldSelector` é uma folha alta com alça, título e X, sobre véu SCRIM. Cinco cartões-postais em duas
+colunas, na ordem Casa → Sítio → Vila → Praça → Natureza; o último ocupa a largura toda. O atual tem
+contorno mel e chip Aqui. Um toque viaja; Aqui, X, fundo e Escape fecham. A pinça fica suspensa e a linha 2
+do HUD recolhe enquanto a folha está aberta. A altura das fotos se adapta à tela e às dicas completas,
+inclusive em 360×640, mantendo os cinco destinos sem rolagem.
 
-`WorldCard` mantém o nome `WorldCard_<mundo>`, mas agora é uma linha com o ícone original, nome
-e até duas linhas de avisos de `Places.world_summary`: prêmios, coletas, missões, achados e tesouro,
-sem misturar as contagens. Sem pendências, mostra “Tudo em dia”. `map_name` e `icon` de
-`worlds.json` fornecem o nome e a arte. Mundo fechado fica desabilitado, com cadeado e motivo
-curto: missão necessária ou capítulo. O campo opcional `map_locked_hint` permite explicar o marco
-concreto (Natureza: concluir o baú de passeios com a Nina), sem mudar os requisitos de abertura.
-Os nós de aviso continuam `WorldStatus_<categoria>`; o estado atual usa `CurrentWorld` e o cadeado,
-`WorldLock`. Não há mais miniaturas, centralização ou segundo toque.
+`WorldCard_<mundo>` conserva setup/refresh; WorldPhoto usa miniatura fixa 300×200, gerada a partir do
+começo de cada mundo por `tools/world_thumbs.gd` (ver ART_PIPELINE). Fechado usa `_locked.png` cinza,
+disco com cadeado e `_locked_hint`, com retrato de quem abre quando a missão requerida o informa.
+Sobre a foto: personagem com missão e número de coletas prontas de `Places.world_summary`.
+`CurrentWorld`, `WorldLock` e `WorldStatus_<categoria>` preservam as consultas dos testes.
+`map_locked_hint` só apresenta o marco; requisitos de abertura continuam no catálogo.
 
 `WorldsScreen.enter` usa `WorldTransition` quando muda o mundo com a aba visível. Duas massas de papel
 arredondadas entram em 0,22 s, a sala troca coberta e elas saem em 0,22 s (alternativa permitida pelo plano).
@@ -163,10 +161,15 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   e sem afastamento: ao afastar, encolhe com o mapa e pode se sobrepor aos vizinhos. No zoom de abertura mostra o tempo só por 2 s depois de tocar o canteiro (ou com zoom ≥ 1,2).
   Balões continuam na própria âncora em qualquer zoom; `RoomView._layout_balloons` mantém o afastamento zerado. O seletor de mundos (`MapView`, z 6) cobre os indicadores do mundo (até z 5), abaixo do HUD (z 8). O toque no balão vale como tocar no objeto
   (pronto = pegar; ver `RoomView._tap_balloon`).
-  As etiquetas (`WorldLabel`: pílula `PAPER`, ícone do lugar, borda na cor do mundo quando importam) aparecem sempre só se houver
-  algo a fazer (alerta do lugar, compra disponível, passo de missão apontando, personagem com missão); as outras só com zoom ≥ 0,9.
-  Nas duas primeiras entradas em cada mundo (`progress.seen["ui:labels:<mundo>"]`) todas aparecem por 4 s e somem com fade.
-  Região fechada mostra cadeado + nome ("Estufa"); o preço fica no balão `buy` dentro da região.
+  Interface 2, etapa 06: discos CARD, anel SKY/GO, check vetorial, compra HONEY com preço em chip CARD,
+  alert como ponto e spark mel de 26. Regiões fechadas mostram cadeado/preço no centro, sem nome.
+  `WorldLabel` fica escondida, inclusive nas primeiras visitas. Segurar 500 ms parado mostra o nome por
+  1,5 s, com Haptics; soltar depois não age. Arrasto cancela o timer e continua movendo a câmera.
+  `_target_at` consulta os alvos físicos sem agir; `_handle_tap` não usa mais `_tap_label`.
+  Lugar recém-aberto brilha até `ui:place_tapped:<mundo>:<lugar>`. `ui:places_entered:<mundo>` inicializa
+  como vistos os lugares já abertos na primeira entrada, via GameState.mark_seen, sem campo/save novo.
+  `WorldPin` no nó Pointer substitui a seta: ícone do destino, disco 52 e elipses no chão; escala inversa
+  ao zoom e ground_offset recalculado para manter a base. Menos animação deixa tudo parado.
 - **Bandeja de ação (Etapa 07):** tocar num canteiro não abre mais painel: `RoomView._on_plot_tapped` abre uma `ActionTray` (filha da
   sala, por cima do mundo e da pílula do mundo, abaixo das abas/HUD/painéis) apontando para o canteiro: acima dele, ou abaixo se não
   couber sob o HUD (y < 120). Ela fecha ao tocar fora (o toque é consumido), arrastar/dar zoom no mundo, abrir um painel ou trocar de
@@ -174,7 +177,7 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   e a câmera rola quando ele chega a 36 px da borda. O "Ir" de uma planta (`crop:<id>`) e a grade do painel Canteiros também abrem a
   bandeja (`Events.plot_tray_requested`). Detalhes de código na tabela "Bandeja de ação" do `CLAUDE.md`.
 - `WorldsScreen`: sem cabeçalho. `WorldBar` (abaixo do HUD, y 64, ignora o mouse): pílula `WorldPill` (`MapButton`: ícone do mundo +
-  `map_name` + seta, borda na cor `Palette.WORLD`; abre o seletor de mundos), botão de ícone `PlacesButton` (painel "Lugares", sempre
+  `map_name` + down vetorial em pílula CARD com sombra; abre o seletor de mundos), botão de ícone `PlacesButton` (painel "Lugares", sempre
   esse título) e, à direita em coluna, `NpcFace` por personagem (`NpcRow`; selo "!" = missão nova, check = pronta; `Places.npc_badge`).
 
 ## Como criar um mundo novo (receita)
@@ -216,9 +219,8 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   painéis exatos para o Ir do manual/missões. Compras pendentes mostram "+" após abrir a área.
 - Estações com requisito ainda pendente não entram no painel múltiplo. Manual permite
   consulta de futuras receitas/construções, e os botões de compra continuam validando requisitos.
-- Etiquetas detalhadas só no zoom ≥0,9 (Interface nova, Etapa 06; antes 0,5). Ao afastar, aparece uma etiqueta Animais
-  (`overview_label`) para evitar sobreposição. `StationIndicator` é um balão (`WorldBalloon`) com o produto, o anel de tempo
-  e "×N" quando há vários prontos, e é tocável.
+- Interface 2: nomes de detalhe/conjunto só aparecem ao segurar; detail_label/overview_label ficam
+  como metadados sem alternância visual por zoom. `StationIndicator` mantém produto, anel e ×N, tocável.
   Objetos aceitam `z_index` (padrão 0): use 1 para um objeto apoiado sobre um móvel fatiado,
   como o liquidificador em `[318,186]` na ilha da Casa. O campo altera a camada visual,
   sem criar bloqueio de chão; o liquidificador não tem `footprint` e reage em `[300,292]`.

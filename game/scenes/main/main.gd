@@ -242,7 +242,8 @@ func set_row2_blocker(key: String, on: bool) -> void:
 
 func _check_row2() -> void:
 	var blocked: bool = not _row2_blockers.is_empty() or _card_open() or (get_node("Sheet") as Control).call("is_open") \
-		or ActionTray.current != null or %WorldsScreen.is_traveling()
+		or ActionTray.current != null or %WorldsScreen.is_traveling() \
+		or (%WorldsScreen.is_visible_in_tree() and %WorldsScreen.is_map_open())
 	_hud.set_row2_shown(not blocked)
 
 

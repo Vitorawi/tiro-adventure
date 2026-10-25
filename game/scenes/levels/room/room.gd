@@ -108,6 +108,11 @@ var _clouds_ready := false
 ## Seta do "Ir": pulsa sobre o objeto do destino até o próximo toque (ou alguns segundos).
 var _pointer: Node2D
 var _label_intro_until := 0.0
+var _hold_timer: Timer
+var _held_label: WorldLabel
+var _held_until := 0.0
+var _sparks: Dictionary = {}
+var _places_initialized := false
 var _label_tick := 0.0
 ## A bandeja de ação está arrastando um item: o mundo não move a câmera nem trata toques.
 var tray_dragging := false
@@ -120,6 +125,11 @@ var _swallow_touch := false
 
 
 func _ready() -> void:
+	_hold_timer = Timer.new()
+	_hold_timer.one_shot = true
+	_hold_timer.wait_time = 0.5
+	_hold_timer.timeout.connect(_hold_name)
+	add_child(_hold_timer)
 	add_to_group("room_views")  # o "Ir" de uma receita acha a sala do mundo (open_station_tray)
 	_room = Database.room(room_id)
 	_background.texture = load(_room["background"])
@@ -175,6 +185,9 @@ func _ready() -> void:
 	Events.plot_tray_requested.connect(_on_plot_tray_requested)
 	visibility_changed.connect(func() -> void:
 		if not is_visible_in_tree():
+			_hold_timer.stop()
+			if is_instance_valid(_held_label): _held_label.hide()
+			_held_label = null
 			close_tray())
 	resized.connect(_on_resized)
 	_show_whole_room.call_deferred()
@@ -401,6 +414,7 @@ func _spawn_objects() -> void:
 			var marker := WorldBalloon.new()
 			marker.name = "PurchaseMarker"
 			marker.state = "buy"
+			marker.corner_texture = UiKit.ctl_icon("lock")
 			var buy_cost := int(Database.progression.upgrades.get(data.upgrade, {}).get("cost", 0))
 			marker.caption = str(buy_cost) if buy_cost > 0 else "Grátis"
 			marker.show_caption = true
@@ -563,15 +577,7 @@ func _refresh_ownership() -> void:
 			for token: String in label_data.label_levels:
 				if GameState.has_upgrade(token):
 					tag.text = str(label_data.label_levels[token])
-		if tag.has_meta("requirements"):
-			var blocked := GameState.requirement_error(tag.get_meta("requirements")) != ""
-			tag.visible = blocked if tag.get_meta("locked_label", false) else not blocked
-		var upgrade: String = tag.get_meta("upgrade", "")
-		if upgrade != "":
-			tag.visible = GameState.has_upgrade(upgrade)
-		var locked_upgrade: String = tag.get_meta("locked_upgrade", "")
-		if locked_upgrade != "":
-			tag.visible = not GameState.has_upgrade(locked_upgrade)
+		# Elegibilidade não mostra o nome: só a consulta por segurar controla a apresentação.
 	_place_labels()
 	_build_navigation()
 	refresh_sleep_points()
@@ -620,7 +626,7 @@ func region_error(data: Dictionary) -> String:
 
 
 ## Etiquetas sobre o que dá para tocar ("label" + "label_pos" em zonas e objetos):
-## mostram ao jogador onde fica cada coisa sem precisar adivinhar.
+## aparecem somente ao tocar e segurar; os alvos físicos continuam recebendo o toque comum.
 func _spawn_labels() -> void:
 	for data: Dictionary in _room.get("zones", []) + _room.get("objects", []) + _room.get("regions", []):
 		if not data.has("label"):
@@ -686,7 +692,8 @@ func _spawn_regions() -> void:
 		if data.has("upgrade"):
 			var marker := WorldBalloon.new()
 			marker.name = "PurchaseMarker"
-			marker.position = _vec(data.get("label_pos", data.gate[0])) + Vector2(0, -42)
+			marker.position = _vec(data.get("label_pos", data.gate[0]))
+			marker.anchor = Vector2.ZERO
 			marker.state = "buy"
 			marker.caption = str(int(Database.progression.upgrades.get(data.upgrade, {}).get("cost", 0)))
 			marker.show_caption = true
@@ -711,55 +718,126 @@ func _on_world_activity(kind: StringName, subject: String, plot_index: int) -> v
 ## Etiquetas mantêm o mesmo tamanho na tela em qualquer zoom (escala 1/zoom),
 ## centradas no ponto "label_pos".
 func _place_labels() -> void:
-	var targets: Array[String] = []
-	for quest_id: String in GameState.progress.active_steps().values():
-		var quest: Dictionary = Database.quests.get(quest_id, {})
-		for goal: Dictionary in quest.get("goals", []):
-			var target := Places.goal_target(goal)
-			if target.get("world", "") == world_id: targets.append(str(target.get("place", "")))
-	for tag in _labels:
-		var upgrade: String = tag.get_meta("upgrade", "")
-		var locked: String = tag.get_meta("locked_upgrade", "")
-		var eligible := (upgrade == "" or GameState.has_upgrade(upgrade)) and (locked == "" or not GameState.has_upgrade(locked))
-		if tag.has_meta("requirements"):
-			var blocked := GameState.requirement_error(tag.get_meta("requirements")) != ""
-			eligible = eligible and (blocked if tag.get_meta("locked_label", false) else not blocked)
-		if tag.has_meta("hide_seen") and GameState.progress.seen.get(tag.get_meta("hide_seen"), false):
-			eligible = false
-		var data: Dictionary = tag.get_meta("tap_data")
-		var action: String = data.get("action", "")
-		var purchase := locked if locked != "" else upgrade
-		var buy_available := purchase != "" and not GameState.has_upgrade(purchase) and GameState.requirement_error(Database.progression.upgrades.get(purchase, {}).get("requirements", {})) == ""
-		var important := buy_available or targets.has(action.trim_prefix("place:")) or targets.has("buy:" + purchase)
-		if action.begins_with("place:"): important = important or Places.place_alert(world_id, action.trim_prefix("place:")) != ""
-		if action.begins_with("npc:"): important = important or Places.npc_badge(action.trim_prefix("npc:")) != "" or targets.has(action)
-		var label := tag as WorldLabel
-		if label.important != important:
-			label.important = important
-			label.restyle()
-		# Etiquetas ficam fixas no mapa e aparecem em qualquer zoom; só o nome do conjunto
-		# (ex.: "Animais") troca com os nomes de detalhe quando o zoom os afasta demais.
-		var shown := true
-		if tag.get_meta("overview_label", false):
-			shown = _zoom < 0.9
-			important = shown
-		elif tag.get_meta("detail_label", false):
-			shown = _zoom >= 0.9
-		label.set_meta("always_visible", important)
-		label.set_world_zoom(_zoom)
-		label.reveal(eligible and shown)
+	for tag: WorldLabel in _labels:
+		tag.set_world_zoom(_zoom)
+		tag.reveal(_label_eligible(tag) and tag == _held_label and Time.get_ticks_msec() / 1000.0 < _held_until)
 		tag.position = (tag.get_meta("anchor") as Vector2) - tag.size * tag.scale / 2.0
 	for region: Node2D in _regions:
 		if region.has_node("PurchaseMarker"):
 			var data: Dictionary = region.get_meta("data")
 			region.get_node("PurchaseMarker").visible = GameState.requirement_error(Database.progression.upgrades.get(data.upgrade, {}).get("requirements", {})) == ""
+	_refresh_sparks()
 
 
-## Chamado ao entrar, sem persistir estado de apresentação fora do GameState.
+func _label_eligible(tag: Label) -> bool:
+	var data: Dictionary = tag.get_meta("tap_data")
+	var upgrade: String = data.get("upgrade", "")
+	if upgrade != "" and GameState.has_upgrade(upgrade) == bool(data.get("locked_label", false)): return false
+	if data.has("requirements"):
+		var blocked := GameState.requirement_error(data.requirements) != ""
+		if blocked != bool(data.get("locked_label", false)): return false
+	return not GameState.progress.seen.get(str(data.get("hide_seen", "")), false)
+
+
+## Na primeira entrada, só os lugares que já estão abertos nascem vistos.
 func present_labels() -> void:
-	if GameState.note_label_visit(world_id):
-		_label_intro_until = Time.get_ticks_msec() / 1000.0 + Motion.WORLD_LABELS
+	GameState.note_label_visit(world_id)
+	_places_initialized = true
+	var key := "ui:places_entered:" + world_id
+	if not GameState.progress.seen.get(key, false):
+		var keys: Array[String] = [key]
+		for tag: Label in _labels:
+			var action: String = tag.get_meta("tap_data").get("action", "")
+			if _place_available(tag): keys.append(_place_seen_key(action))
+		GameState.mark_seen(keys)
 	_place_labels()
+
+
+func _place_seen_key(action: String) -> String:
+	return "ui:place_tapped:%s:%s" % [world_id, action.trim_prefix("place:")]
+
+
+func _place_available(tag: Label) -> bool:
+	var action: String = tag.get_meta("tap_data").get("action", "")
+	if not action.begins_with("place:") or not _label_eligible(tag): return false
+	var place: Dictionary = Database.worlds.get(world_id, {}).get("places", {}).get(action.trim_prefix("place:"), {})
+	var upgrade: String = place.get("upgrade", "")
+	return not place.is_empty() and Places.place_error(place) == "" and (upgrade == "" or GameState.has_upgrade(upgrade))
+
+
+func _refresh_sparks() -> void:
+	if not _places_initialized: return
+	for spark: WorldBalloon in _sparks.values(): spark.hide()
+	for tag: Label in _labels:
+		if not _place_available(tag): continue
+		var action: String = tag.get_meta("tap_data").get("action", "")
+		if GameState.progress.seen.get(_place_seen_key(action), false): continue
+		if not _sparks.has(action):
+			var spark := WorldBalloon.new()
+			spark.name = "PlaceSpark_" + action.trim_prefix("place:")
+			spark.state = "spark"
+			spark.anchor = Vector2.ZERO
+			spark.z_index = 4
+			_world.add_child(spark)
+			_sparks[action] = spark
+		var spark: WorldBalloon = _sparks[action]
+		spark.position = tag.get_meta("anchor")
+		spark.set_zoom(_zoom)
+		spark.show()
+
+
+## Consulta pura: a ordem acompanha os alvos físicos do toque, sem disparar nenhuma ação.
+func _target_at(point: Vector2) -> Dictionary:
+	if is_instance_valid(_dig_spot) and point.distance_to(_dig_spot.position) <= 28.0 / maxf(_zoom, 0.01): return {}
+	for action: String in _sparks:
+		var spark: WorldBalloon = _sparks[action]
+		if spark.visible and spark.hit_rect.has_point(point - spark.position): return _named_target(action)
+	if _walk_marker and _walk_marker.active() and _walk_marker.hit_rect.has_point(point - _walk_marker.position): return _named_target("place:walk")
+	for indicator: RouteIndicator in _route_markers:
+		if indicator.active() and indicator.hit_rect.has_point(point - indicator.position): return _named_target("place:" + indicator.site)
+	for sprite: Sprite2D in _objects:
+		for marker_name: String in ["ProjectMarker", "RouteIndicator", "ProductionIndicator", "Indicator"]:
+			if not sprite.has_node(marker_name): continue
+			var balloon := sprite.get_node(marker_name) as WorldBalloon
+			if balloon.is_visible_in_tree() and balloon.hit_rect.has_point((point - sprite.position) / sprite.scale): return _named_target(str(sprite.get_meta("action", "")), sprite)
+	for region: Dictionary in _room.get("regions", []):
+		if region_error(region) != "" and Geometry2D.is_point_in_polygon(point, _polygon(region.polygon)):
+			return _named_target(str(region.get("action", "")), null, region)
+	for npc: NpcWorld in _npcs:
+		if npc.visible and npc.hit_test(point): return _named_target("npc:" + npc.npc_id)
+	if _dog and _dog.hit_test(point): return {}
+	var ordered := _objects.duplicate()
+	ordered.sort_custom(func(a: Sprite2D, b: Sprite2D) -> bool: return a.position.y > b.position.y)
+	for sprite: Sprite2D in ordered:
+		if sprite.has_meta("upgrade") and not GameState.has_upgrade(sprite.get_meta("upgrade")): continue
+		if _hits(sprite, point - sprite.position) or (sprite.has_node("Crop") and _hits(sprite.get_node("Crop"), point - sprite.position - sprite.get_node("Crop").position)):
+			return _named_target(str(sprite.get_meta("action", "")), sprite)
+	for zone: Dictionary in _room.get("zones", []):
+		if Geometry2D.is_point_in_polygon(point, _polygon(zone.polygon)):
+			return _named_target(str(zone.get("action", "")), null, zone)
+	return {}
+
+
+func _named_target(action: String, sprite: Sprite2D = null, data: Dictionary = {}) -> Dictionary:
+	for tag: WorldLabel in _labels:
+		var source: Dictionary = tag.get_meta("tap_data")
+		if not _label_eligible(tag): continue
+		if not data.is_empty() and source == data: return {"label": tag, "sprite": sprite}
+		if action != "" and source.get("action", "") == action:
+			if sprite != null and source.has("pos") and _vec(source.pos) != sprite.position: continue
+			return {"label": tag, "sprite": sprite}
+	return {}
+
+
+func _hold_name() -> void:
+	if _dragged or tray_dragging or _is_pinching() or not is_visible_in_tree(): return
+	var target := _target_at((_press_position - _content.position) / _zoom)
+	if target.is_empty(): return
+	_held_label = target.label
+	_held_until = Time.get_ticks_msec() / 1000.0 + 1.5
+	_swallow_touch = true
+	_place_labels()
+	Haptics.tap()
 
 
 func _zoom_balloons() -> void:
@@ -949,6 +1027,7 @@ func _gui_input(event: InputEvent) -> void:
 			close_tray()
 			_swallow_touch = true
 			return
+		if not button.pressed: _hold_timer.stop()
 		if not button.pressed and _swallow_touch:
 			_swallow_touch = false
 			return
@@ -958,6 +1037,7 @@ func _gui_input(event: InputEvent) -> void:
 			_press_position = button.position
 			_dragged = false
 			_drag_samples.clear()
+			_hold_timer.start()
 		elif _dragged:
 			_launch_inertia()
 		else:
@@ -967,6 +1047,7 @@ func _gui_input(event: InputEvent) -> void:
 	if motion and motion.button_mask & MOUSE_BUTTON_MASK_LEFT and not _swallow_touch:
 		if motion.position.distance_to(_press_position) > TAP_SLOP:
 			_dragged = true
+			_hold_timer.stop()
 		if _dragged:
 			_content.position += motion.relative
 			_clamp_content(OVERSCROLL)
@@ -1037,12 +1118,16 @@ func _process(delta: float) -> void:
 			_velocity = Vector2.ZERO
 		_camera_changed()
 	_drift_clouds(delta)
+	if is_instance_valid(_held_label) and Time.get_ticks_msec() / 1000.0 >= _held_until:
+		_held_label.reveal(false)
+		_held_label = null
 
 
 ## Seta pulsando sobre o objeto/zona com a ação ("place:stove", "npc:bloblo", "market:orders"
 ## ou "plot" = primeiro canteiro). Mostra o jogador ONDE fica a coisa. Devolve se achou o alvo.
 func point_at(action: String, seconds: float = 5.0) -> bool:
 	clear_pointer()
+	var requested_action := action
 	var anchor := Vector2.INF
 	if action == "find":
 		_refresh_find()
@@ -1080,26 +1165,24 @@ func point_at(action: String, seconds: float = 5.0) -> bool:
 	get_tree().create_timer(0.2).timeout.connect(func() -> void:
 		if is_instance_valid(_pointer):
 			_reveal(anchor))
-	_pointer = Node2D.new()
-	_pointer.name = "Pointer"
-	_pointer.z_index = 5
-	_pointer.z_as_relative = false
-	_pointer.position = anchor
-	_pointer.scale = Vector2.ONE / _zoom
-	var arrow := Polygon2D.new()
-	arrow.polygon = PackedVector2Array([Vector2(-14, -34), Vector2(14, -34), Vector2(14, -20), Vector2(24, -20), Vector2(0, 0), Vector2(-24, -20), Vector2(-14, -20)])
-	arrow.color = Palette.GOLD
-	var outline := Line2D.new()
-	outline.points = arrow.polygon
-	outline.closed = true
-	outline.width = 3.0
-	outline.default_color = Palette.OUTLINE
-	arrow.add_child(outline)
-	_pointer.add_child(arrow)
-	_world.add_child(_pointer)
-	var bounce := _pointer.create_tween().set_loops()
-	bounce.tween_property(arrow, "position:y", -10.0, 0.35).set_trans(Tween.TRANS_SINE)
-	bounce.tween_property(arrow, "position:y", 0.0, 0.35).set_trans(Tween.TRANS_SINE)
+	var pin := WorldPin.new()
+	pin.texture = WorldPin.destination_icon(world_id, requested_action)
+	pin.name = "Pointer"
+	pin.z_index = 5
+	pin.z_as_relative = false
+	pin.position = anchor
+	pin.scale = Vector2.ONE / _zoom
+	_pointer = pin
+	_world.add_child(pin)
+	var base := anchor
+	for sprite: Sprite2D in _objects:
+		if sprite.get_meta("action", "") == action or (requested_action.begins_with("buy:") and sprite.get_meta("upgrade", "") == requested_action.trim_prefix("buy:")) or (action == "plot" and sprite.has_meta("plot")) or action == "plot:%d" % int(sprite.get_meta("plot", -1)):
+			base = sprite.position
+			break
+	for npc: NpcWorld in _npcs:
+		if action == "npc:" + npc.npc_id: base = npc.position
+	pin.set_meta("ground_base", base)
+	pin.ground_offset = (base - anchor) * _zoom
 	if seconds > 0:
 		var shown_pointer := _pointer
 		get_tree().create_timer(seconds).timeout.connect(func() -> void:
@@ -1137,8 +1220,6 @@ func _handle_tap(point: Vector2) -> bool:
 			npc.react()
 			FriendUi.open(npc.friend_id)
 			return true
-	if _tap_label(point):
-		return true
 	for region: Node2D in _regions:
 		if region.visible and region.has_node("PurchaseMarker"):
 			var marker := region.get_node("PurchaseMarker") as WorldBalloon
@@ -1195,6 +1276,11 @@ func _handle_tap(point: Vector2) -> bool:
 
 ## Balões ficam acima do cenário: seu toque tem prioridade sobre etiquetas e personagens.
 func _tap_balloon(point: Vector2) -> bool:
+	for action: String in _sparks:
+		var spark: WorldBalloon = _sparks[action]
+		if spark.visible and spark.hit_rect.has_point(point - spark.position):
+			_on_object_tapped(action)
+			return true
 	if _walk_marker and _walk_marker.active() and _walk_marker.hit_rect.has_point(point - _walk_marker.position):
 		_collect_walk()
 		return true
@@ -1816,6 +1902,10 @@ func _collect_walk() -> void:
 
 ## `target` é o sprite tocado (quando houver), para ações que dependem dele (canteiros).
 func _on_object_tapped(action: String, target: Node = null) -> void:
+	clear_pointer()
+	if action.begins_with("place:"):
+		GameState.mark_seen([_place_seen_key(action)])
+		_refresh_sparks()
 	var album_object := action.get_slice(":", 1) if ":" in action else action
 	if target != null and target.has_meta("house_item"): album_object = str(target.get_meta("house_item"))
 	GameState.note_object_tapped(album_object, world_id)
@@ -1933,6 +2023,7 @@ func _zoom_at(pivot: Vector2, new_zoom: float) -> void:
 	_place_labels()
 	if is_instance_valid(_pointer):
 		_pointer.scale = Vector2.ONE / _zoom
+		(_pointer as WorldPin).ground_offset = ((_pointer.get_meta("ground_base", _pointer.position) as Vector2) - _pointer.position) * _zoom
 	_camera_changed()
 
 
@@ -1974,6 +2065,7 @@ func _set_camera(center: Vector2, new_zoom: float, margin: float = 0.0) -> void:
 	_place_labels()
 	if is_instance_valid(_pointer):
 		_pointer.scale = Vector2.ONE / _zoom
+		(_pointer as WorldPin).ground_offset = ((_pointer.get_meta("ground_base", _pointer.position) as Vector2) - _pointer.position) * _zoom
 	_camera_changed()
 
 

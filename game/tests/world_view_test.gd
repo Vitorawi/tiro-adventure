@@ -280,13 +280,13 @@ func _world_bar() -> void:
 	check(pill.get_script() == load("res://scripts/ui/world_pill.gd") and pill.text == "Sítio" and pill.icon != null, "pílula mostra ícone e nome do mundo")
 	check(pill.size.y >= 44.0 and pill.global_position.y >= 60.0, "pílula fica abaixo do HUD")
 	var places := worlds.get_node("%PlacesButton") as Button
-	check(places.text == "" and places.icon != null and places.size.x >= 44.0, "lugares é um botão de ícone de 44")
+	check(places.text == "" and places.find_child("Disc", true, false) != null and places.size.x >= 44.0, "lugares é um botão de ícone de 44")
 	check(worlds.get_node("%WorldTitle").text == "Sítio da Bloblo", "WorldTitle guarda o nome")
 	var faces := worlds.get_node("%NpcRow")
 	check(faces is VBoxContainer and faces.mouse_filter == Control.MOUSE_FILTER_IGNORE, "rostos em coluna que ignora o mouse")
 	check(faces.get_child_count() >= 1 and faces.get_child(0).get_script() == load("res://scripts/ui/npc_face.gd"), "o Sítio mostra o rosto da vovó")
 	var face := faces.get_child(0) as Button
-	check(face.size.x >= 48.0 and face.size.y >= 48.0, "rosto tem 48 de alvo de toque")
+	check(face.size.x >= 44.0 and face.size.y >= 44.0, "rosto tem 44 de alvo de toque")
 	check(face.global_position.x + face.size.x <= worlds.size.x - 8.0, "rosto fica dentro da tela")
 	# O aviso precisa deixar a navegação do mundo e os rostos tocáveis.
 	for id: String in ["farm", "village"]:
@@ -310,7 +310,7 @@ func _world_bar() -> void:
 	var ready_face: Button = face_script.new()
 	main.add_child(ready_face)
 	ready_face.call("setup", "bloblo", "ready")
-	check(ready_face.get_child_count() == 1 and ready_face.get_child(0) is TextureRect, "missão pronta mostra o check")
+	check(ready_face.get_child_count() == 1 and ready_face.get_child(0) is PanelContainer, "missão pronta mostra o check")
 	var new_face: Button = face_script.new()
 	main.add_child(new_face)
 	new_face.call("setup", "bloblo", "new")
@@ -329,6 +329,12 @@ func _labels() -> void:
 	var farm := await _enter("farm")
 	var tags: Array = farm.get("_labels")
 	var content: Control = farm.get("_content")
+	var coop: Sprite2D = farm.find_child("chicken_coop", true, false)
+	var local := _on_screen(farm, coop.position + _opaque_point(coop))
+	farm.set("_press_position", local)
+	farm.call("_hold_name")
+	var held: Label = farm.get("_held_label")
+	check(held != null and held.visible, "etiqueta consultada aparece antes do arrasto")
 	var before: Array[Vector2] = []
 	for tag: Label in tags: before.append(tag.position)
 	for dx in [-120.0, 90.0, -60.0]:
@@ -338,15 +344,16 @@ func _labels() -> void:
 		var after: Array[Vector2] = []
 		for tag: Label in tags: after.append(tag.position)
 		check(after == before, "etiquetas não andam ao arrastar %d" % int(dx))
-	for tag: Label in tags:
-		var data: Dictionary = tag.get_meta("tap_data")
-		if not data.has("polygon") or not data.get("locked_label", false) or not data.has("gate"): continue
+	for region: Node2D in farm.get("_regions"):
+		if not region.has_node("PurchaseMarker"): continue
+		var data: Dictionary = region.get_meta("data")
 		var polygon: PackedVector2Array = farm.call("_polygon", data.polygon)
 		var middle := Vector2.ZERO
 		for point: Vector2 in polygon: middle += point
 		middle /= polygon.size()
-		var anchor: Vector2 = tag.get_meta("anchor")
-		check(Geometry2D.is_point_in_polygon(anchor, polygon) and anchor.distance_to(middle) < 120.0, "etiqueta de %s fica no meio da área bloqueada" % str(data.get("id", "")))
+		var marker: Node2D = region.get_node("PurchaseMarker")
+		var anchor: Vector2 = marker.position + (marker.get("anchor") as Vector2)
+		check(Geometry2D.is_point_in_polygon(anchor, polygon) and anchor.distance_to(middle) < 120.0, "cadeado/preço de %s fica no centro da área" % str(data.id))
 	farm.call("recenter")
 
 

@@ -1134,3 +1134,22 @@ Corpos do Tiro por fase: filhote (opção 1) e jovem (opção 10) aprovados pelo
 `tiro_coat` (pelagem dinâmica, `sheen` na seda) e `silhouette` em `game/assets/shaders/`; receita em
 `tools/tiro_body_art.py`. Casa: `tools/art/house_pixellab/` + `tools/house_art.gd`; álbum:
 `tools/album_art.gd` e `tools/album_secrets_art.py`. A etapa 18 não gerou nem alterou PNG.
+
+## Interface 2 — etapa 06 (24/10/2026): cartões-postais dos mundos
+
+`tools/world_thumbs.gd` monta cada RoomView com save descartável novo e somente compras básicas por
+`dev_grant_upgrade`: Casa (geladeira/fogão), Sítio (escritura/bancada), Natureza (Bosque); Vila/Praça
+sem construções extras. Não usa `dev_unlock_everything`, não lê/grava o save pessoal, preserva a arte
+original. Desliga HUD, etiquetas, balões e cercas de compra só na captura; usa o enquadramento inicial.
+Renderiza em 720×480, recorta os 600×400 centrais, reduz por nearest para 300×200 e recorta cantos
+com alfa; também gera a versão cinza `_locked` (mesmo alfa). Filtro nearest no WorldPhoto.
+
+```powershell
+& $env:GODOT_BIN --path game --resolution 720x480 -s ../tools/world_thumbs.gd
+& $env:GODOT_BIN --headless --path game --import --quit
+```
+
+Saídas versionadas: `game/assets/sprites/ui/worlds/{house,farm,village,park,nature}.png`, suas versões
+`_locked.png` e dez `.import`. Reexecutar os dois comandos quando a arte/layout dos mundos mudar.
+As fotos são ilustrativas do começo de cada mundo, sem simular as compras do jogador atual.
+Nenhum sprite do Tiro nem fonte PixelLab foi alterado. Alfinete e controles usam desenho/ícones vetoriais.

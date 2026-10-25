@@ -84,7 +84,7 @@ flowchart TD
 | [x] | [03](etapas/ETAPA_03_CASCA.md) | rodapé claro preso, HUD em 2 linhas, `NextStep`/`QuestGuide`, `Notice` | grande |
 | [x] | [04](etapas/ETAPA_04_TIRO.md) | cenário aproximado, anéis no topo, botão Cuidar + roleta | grande |
 | [x] | [05](etapas/ETAPA_05_MISSOES.md) | Missões em 3 abas, `claim_quest_fx`, `QuestReward` | grande |
-| [ ] | [06](etapas/ETAPA_06_MUNDO.md) | mapa sem texto, balões, `WorldPin`, cartões-postais, conversa, compra | grande |
+| [x] | [06](etapas/ETAPA_06_MUNDO.md) | mapa sem texto, balões, `WorldPin`, cartões-postais, conversa, compra | grande |
 | [ ] | [07](etapas/ETAPA_07_HORTA_BANDEJAS.md) | `FarmDock`, bandejas das estações | grande |
 | [ ] | [08](etapas/ETAPA_08_MOCHILA.md) | Mochila, detalhe, caderninho, Coleção, Álbum | médio |
 | [ ] | [09](etapas/ETAPA_09_PAINEIS.md) | painéis grandes | grande |
@@ -204,3 +204,18 @@ até o fim do capítulo 1; PNGs abertos. Diferenças: dados/falas reais completo
 rolagem e cartão grande com composição preservada para a 10. AGENTS/CLAUDE idênticos.
 Sem alteração de regra/save/fala/prêmio; nenhuma pendência funcional da 05. Aviso antigo de lambda ao
 fechar painel reaparece no roteiro, sem travar. Próxima **06**, não iniciada. Sem push/publicação.
+
+**Etapa 06 (24/10/2026, Codex; local):** mapas sem etiquetas permanentes; segurar 500 ms mostra o nome
+por 1,5 s sem agir, arrastar cancela a consulta. Auditoria: 34 etiquetas elegíveis nos cinco mundos,
+zero ações sem caminho físico, zero polígonos novos. Brilho de lugar novo com marcas em `progress.seen`,
+balões lisos e `WorldPin` no nó Pointer com anel na base real; WorldPill/NpcFace/Lugares atualizados.
+Seletor em cartões-postais, fotos/cinzas geradas por `tools/world_thumbs.gd`, conversa com detalhe de Pessoas
+e serviços em linhas; compra com figura 64, SpaceChip e preço no botão. Lista fechada + rápido
+**10/10 PASS em 125 s (Jobs=2; 247,8 s somados por processo, acima do orçamento estrito)**;
+foco final world_pin_test PASS. Resultado e tempos na
+[VALIDACAO_06.md](VALIDACAO_06.md), com oito capturas nas três resoluções e auditoria de toque.
+Desvios: miniaturas mostram os enquadramentos reais com compras básicas; fotos se adaptam à altura
+para manter cinco destinos e dicas completas; teste de retrato isola a fila de prêmio da etapa 05.
+Nenhuma regra/save/fala/prêmio alterado. Próxima **07**, não iniciada. Sem push/publicação.
+
+**Etapa 06, pausa por limite (24/10/2026, 21:45, orquestrador):** o Codex parou às 21:19 com a cota de 5 h em 100% (volta por volta de 01:02 de 25/10) e a continuação no Claude Sonnet 5.5 (aberta às 21:31 com `build/orquestrador/etapa06_continuacao.md`) foi recusada na hora por limite de sessão (volta às 22:20). Estado no disco: etapa 06 quase pronta, sem commit (último commit `abd4b5d`, etapa 05); README já marca a 06, mas falta a conferência e o commit local. Retomar pelo Claude após 22:20 com o mesmo arquivo de continuação.

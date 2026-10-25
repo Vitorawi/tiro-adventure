@@ -218,7 +218,7 @@ func _build_world_bar() -> void:
 	left.add_child(pill)
 	pill.owner = self
 	pill.unique_name_in_owner = true
-	var places := UiKit.icon_button(UiKit.ui_icon("tab_tasks"), _open_places, 44)
+	var places := UiKit.ctl_button("list", _open_places, 40)
 	places.name = "PlacesButton"
 	places.anchor_left = 1.0
 	places.anchor_right = 1.0

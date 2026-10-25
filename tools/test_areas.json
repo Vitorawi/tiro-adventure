@@ -121,7 +121,8 @@
     "care_story_test",
     "care_bot_test",
     "ui2_tokens_test",
-    "ui2_kit_test"
+    "ui2_kit_test",
+    "world_pin_test"
   ],
   "areas": {
     "growth": {
@@ -507,7 +508,8 @@
         "game/tests/world_view_test.gd",
         "game/tests/world_selector_test.gd",
         "game/tests/balloon_test.gd",
-        "game/tests/intro_test.gd"
+        "game/tests/intro_test.gd",
+        "game/tests/world_pin_test.gd"
       ],
       "tests": [
         "worlds_test",
@@ -515,7 +517,8 @@
         "world_view_test",
         "world_selector_test",
         "balloon_test",
-        "intro_test"
+        "intro_test",
+        "world_pin_test"
       ]
     },
     "market": {

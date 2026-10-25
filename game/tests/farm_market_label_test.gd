@@ -50,8 +50,12 @@ func _run() -> void:
 		await settle()
 		room.call("recenter")
 		await settle()
+		check(not market.is_visible_in_tree(), "venda sem nome fixo")
+		var hold_point: Vector2 = (room.get("_content") as Control).position + (market.get_meta("anchor") as Vector2) * float(room.get("_zoom"))
+		room.set("_press_position", hold_point)
+		room.call("_hold_name")
 		var bounds := market.get_global_rect()
-		check(market.is_visible_in_tree(), "venda visível")
+		check(market.is_visible_in_tree(), "segurar na zona revela venda")
 		if not before:
 			# Faixa da fachada no próprio fundo da sala, abaixo do telhado e acima dos canteiros.
 			var anchor: Vector2 = market.get_meta("anchor")
@@ -86,5 +90,7 @@ func _run() -> void:
 			check(main.get_node("Sheet").get_node("%Title").text == "Vender", "toque abre o painel correto")
 			root.get_node("Events").sheet_close_requested.emit()
 			await settle()
+		room.set("_held_label", null)
+		market.hide()
 	print("FARM MARKET LABEL TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)

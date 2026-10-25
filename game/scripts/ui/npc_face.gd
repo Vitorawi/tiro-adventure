@@ -1,11 +1,11 @@
 class_name NpcFace
 extends Button
-## Rosto redondo de um personagem do mundo (coluna do canto direito do mapa): círculo de 48 com o
-## retrato e borda `PAPER`. Selo no canto: "!" (missão nova) ou o check verde (missão pronta).
+## Rosto redondo de um personagem do mundo (coluna do canto direito do mapa): círculo de 44 com o
+## retrato 40 e fundo `CARD`. Selo no canto: "!" (missão nova) ou o check verde (missão pronta).
 ## Sem nome escrito: o nome aparece no balão da fala. Tocar abre a conversa (`Places.open_npc`).
 
-const SIZE := 48.0
-const PORTRAIT_RADIUS := 21.0
+const SIZE := 44.0
+const PORTRAIT_RADIUS := 20.0
 const CIRCLE_POINTS := 40
 
 var npc_id := ""
@@ -41,12 +41,11 @@ func setup(new_npc_id: String, new_badge: String) -> void:
 		mark.position = Vector2(SIZE - 18.0, -6.0)
 		add_child(mark)
 	elif badge == "ready":
-		var check := UiKit.icon(UiKit.ctl_icon("check"), 32)
-		check.position = Vector2(SIZE - 24.0, -10.0)
-		check.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var check := UiKit.disc(UiKit.ctl_icon("check"), 20, 16)
+		check.add_theme_stylebox_override("panel", UiKit.surface(Palette.GO, 10))
+		check.position = Vector2(SIZE - 16, -4)
+		check.get_child(0).modulate = Palette.CARD
 		add_child(check)
-	if badge == "ready" and not Motion.reduced:
-		_start_pulse.call_deferred()  # o pivô no centro só vale depois do layout
 	queue_redraw()
 
 
@@ -57,8 +56,8 @@ func _start_pulse() -> void:
 
 func _draw() -> void:
 	var center := Vector2(SIZE, SIZE) / 2.0
-	draw_circle(center + Vector2(0, 2), SIZE / 2.0, Palette.SHADE)
-	draw_circle(center, SIZE / 2.0, Palette.PAPER)
+	draw_circle(center + Vector2(0, 2), SIZE / 2.0, Palette.SHADOW)
+	draw_circle(center, SIZE / 2.0, Palette.CARD)
 	if _portrait == null:
 		return
 	var points := PackedVector2Array()

@@ -13,13 +13,23 @@ static func npc_introduction(npc_id: String, index: int = 0) -> Control:
 	var lines: Array = npc.get("introduction", [])
 	var box := UiKit.vbox(12)
 	box.name = "NpcIntroduction"
-	npc_header(box, npc_id, str(lines[index]))
-	box.add_child(UiKit.button("Vamos!" if index == lines.size() - 1 else "Continuar", func() -> void:
+	var advance := func() -> void:
 		if index + 1 < lines.size():
 			Events.sheet_requested.emit(npc.name, npc_introduction(npc_id, index + 1))
 		else:
 			GameState.mark_seen(["npc_intro:" + npc_id])
-			Events.sheet_requested.emit(npc.name, npc_view(npc_id)), &"PrimaryButton"))
+			Events.sheet_requested.emit(npc.name, npc_view(npc_id))
+	var speech := npc_header(box, npc_id, str(lines[index]), true)
+	if index == lines.size() - 1:
+		box.add_child(UiKit.primary("Vamos!", advance))
+	else:
+		var bubble := speech.get_parent().get_parent().get_parent() as Control
+		bubble.mouse_filter = Control.MOUSE_FILTER_STOP
+		bubble.gui_input.connect(func(event: InputEvent) -> void:
+			if event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT: advance.call())
+		var next := UiKit.ctl_button("chev", advance, 32, "sunken")
+		next.name = "IntroductionNext"
+		(speech.get_parent().get_parent() as VBoxContainer).add_child(next)
 	return box
 
 ## Personagem: saudação, missões ativas e atalhos para os lugares dele ("services").
@@ -32,9 +42,11 @@ static func npc_view(npc_id: String) -> Control:
 		var active := Places.npc_active_quests(npc_id)
 		speech.text = album_line if album_line != "" else (str(Database.quests[active[0]].get("dialogue", "")) if not active.is_empty() else str(npc.get("greeting", "")))
 		for id in active:
-			quest_card(box, id)
+			npc_quest_card(box, id)
 		# Atalhos para os lugares que o personagem cuida.
 		var world_id := Database.npc_world(npc_id)
+		var services := UiKit.list_card(box)
+		services.name = "NpcServices"
 		for place_id: String in npc.get("services", []):
 			var place: Dictionary = Database.worlds[world_id].places.get(place_id, {})
 			if place.is_empty() or Places.place_error(place) != "":
@@ -42,9 +54,37 @@ static func npc_view(npc_id: String) -> Control:
 			var upgrade: String = place.get("upgrade", "")
 			if upgrade != "" and not GameState.has_upgrade(upgrade):
 				continue
-			box.add_child(UiKit.button(place.get("name", place_id), Places.open.bind(world_id, place_id), &"", UiKit.ui_icon(place.get("icon", ""))))
+			var go := Places.open.bind(world_id, place_id)
+			var row := UiKit.list_row(UiKit.ui_icon(str(place.get("icon", ""))), str(place.get("name", place_id)), [], UiKit.ctl_button("chev", go, 32, "sunken"), go)
+			row.custom_minimum_size.y = 56
+			services.add_child(row)
 	))
 	return panel
+
+
+## Mesmo detalhe expandido de Pessoas, compartilhado com a conversa.
+static func character_quest_detail(box: VBoxContainer, id: String) -> void:
+	for goal: Dictionary in Database.quests[id].goals: box.add_child(quest_goal_strip(goal))
+	var bottom := UiKit.hbox(4)
+	var prizes := reward_chips(Database.quests[id].rewards)
+	prizes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	bottom.add_child(prizes)
+	var actions := UiKit.vbox(0)
+	bottom.add_child(actions)
+	quest_action(actions, id, false)
+	box.add_child(bottom)
+
+
+static func npc_quest_card(box: VBoxContainer, id: String) -> void:
+	var quest: Dictionary = Database.quests[id]
+	var list := UiKit.list_card(box)
+	var row := UiKit.list_row(npc_portrait(str(quest.npc)), str(quest.name), [], null, Callable(), GameState.quest_error(id) == "")
+	row.name = "LineCard_" + str(quest.get("line", id))
+	list.add_child(row)
+	var detail := UiKit.vbox(8)
+	detail.name = "LineDetail_" + str(quest.get("line", id))
+	(row.get_child(0) as VBoxContainer).add_child(detail)
+	character_quest_detail(detail, id)
 
 
 static func npc_portrait(npc_id: String) -> Texture2D:
@@ -70,6 +110,7 @@ static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", 
 		picture = portrait
 	else:
 		picture = UiKit.icon(npc_portrait(npc_id), 96)
+		picture.name = "NpcPortrait"
 	picture.size_flags_vertical = Control.SIZE_SHRINK_END  # o retrato fica embaixo e o balão aponta para ele
 	row.add_child(picture)
 	var balloon := SpeechBubble.new(speech if speech != "" else str(npc.get("greeting", "")), str(npc.get("name", "")))
@@ -103,36 +144,51 @@ static func upgrade_card(box: VBoxContainer, id: String) -> void:
 	if data.has("nature_unlock"):
 		box.add_child(NatureUi.levels_panel(str(data.nature_unlock.site)))
 		return
-	var card := UiKit.card(box, &"ReadyCardPanel" if GameState.upgrade_error(id) == "" else &"CardPanel")
-	_title(card, data.get("icon", ""), data.name)
+	var card := UiKit.card(box)
+	var hero := UiKit.disc(UiKit.ui_icon(str(data.get("icon", ""))), 96, 64)
+	hero.name = "UpgradeHero"
+	hero.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	card.add_child(hero)
+	card.add_child(UiKit.label(str(data.name), &"TitleLabel"))
 	_text(card, data.description, true)
 	if GameState.has_upgrade(id):
 		_text(card, "Adquirido!", true)
 		var place := Database.place_with_panel("station:" + id)
-		if place[0] != "":
-			card.add_child(UiKit.button("Abrir " + Database.stations[id].name, Places.open.bind(place[0], place[1])))
+		if place[0] != "": card.add_child(UiKit.soft("Abrir " + str(Database.stations[id].name), Places.open.bind(place[0], place[1])))
 		return
-	# Bloqueio por requisito (não por moedas): cartão apagado e cadeado com o motivo, sem botão.
 	var lock := GameState.requirement_error(data.get("requirements", {}))
-	if lock != "":
-		card.get_parent().modulate.a = 0.55
-	var cost := UiKit.flow()
-	if int(data.cost) <= 0:
-		cost.add_child(UiKit.chip(UiKit.ui_icon("coin"), "Grátis", UiKit.GOOD))
-	else:
-		cost.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [mini(GameState.coins, int(data.cost)), int(data.cost)], UiKit.GOOD if GameState.coins >= int(data.cost) else UiKit.BAD))
+	if lock != "": card.get_parent().modulate.a = 0.55
 	var space := GameState.storage_upgrade_preview(id)
 	if not space.is_empty():
-		var gain := UiKit.chip(UiKit.ui_icon(str(data.get("icon", "station_" + str(space.depot)))), "%d → %d" % [int(space.from), int(space.to)])
+		var gain := UiKit.chip(UiKit.ui_icon(str(data.get("icon", ""))), "%d → %d" % [int(space.from), int(space.to)], null, "neutral")
 		gain.name = "SpaceChip"
-		cost.add_child(gain)
-	card.add_child(cost)
-	_amounts(card, data.get("materials", {}))
+		card.add_child(gain)
+	var materials := UiKit.flow(8)
+	for item: String in data.get("materials", {}):
+		materials.add_child(item_chip(item, int(data.materials[item]), true))
+	if materials.get_child_count() > 0: card.add_child(materials)
+	else: materials.free()
 	if lock != "":
 		card.add_child(UiKit.lock_hint(lock, TaskHelp.open.bind("upgrade", id)))
 		return
-	var free: bool = int(data.cost) <= 0 and (data.get("materials", {}) as Dictionary).is_empty()
-	_action(card, "Construir" if free else "Comprar", func() -> String: return GameState.buy_upgrade(id), GameState.upgrade_error(id), "%s é seu!" % data.name, TaskHelp.open.bind("upgrade", id))
+	var reason := GameState.upgrade_error(id)
+	if reason != "":
+		var missing: Texture2D = UiKit.ui_icon("coin")
+		var message := "Faltam %d" % maxi(0, int(data.cost) - GameState.coins)
+		if GameState.coins >= int(data.cost):
+			message = reason
+			for item: String in data.get("materials", {}):
+				if GameState.inventory.count(item) < int(data.materials[item]):
+					missing = Database.item_icon(item)
+					break
+		card.add_child(UiKit.lock_hint(message, TaskHelp.open.bind("upgrade", id), missing))
+		return
+	var buy := UiKit.primary("Construir · %d" % int(data.cost) if int(data.cost) > 0 else "Construir", func() -> void:
+		var error := GameState.buy_upgrade(id)
+		if error == "": Events.sheet_close_requested.emit()
+		else: Events.toast_requested.emit(error), UiKit.ui_icon("coin") if int(data.cost) > 0 else null)
+	buy.name = "BuildUpgrade"
+	card.add_child(buy)
 
 
 # --- Vila: vender e encomendas --------------------------------------------------------
@@ -1010,6 +1066,6 @@ static func reward_chips(rewards: Dictionary) -> HFlowContainer:
 
 
 ## Ingrediente: ícone + tem/precisa (verde/vermelho); tocar mostra de onde vem.
-static func item_chip(id: String, need: int) -> Button:
+static func item_chip(id: String, need: int, semantic: bool = false) -> Button:
 	var have := GameState.inventory.count(id)
-	return UiKit.tap_chip(Database.item_icon(id), "%d/%d" % [have, need], TaskHelp.open.bind("item", id, need), UiKit.GOOD if have >= need else UiKit.BAD)
+	return UiKit.tap_chip(Database.item_icon(id), "%d/%d" % [have, need], TaskHelp.open.bind("item", id, need), UiKit.GOOD if have >= need else UiKit.BAD, ("have" if have >= need else "missing") if semantic else "")
