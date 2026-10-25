@@ -60,7 +60,7 @@ static func orders(focus: String = "", channel: String = "neighbors") -> Control
 			box.add_child(UiKit.label("! Pedido de missão · aparece primeiro", &"SmallLabel"))
 		if focus != "" and not focus in ids:
 			var data: Dictionary = Database.progression.orders[focus]
-			box.add_child(UiKit.label(str(data.name), &"SectionLabel"))
+			box.add_child(UiKit.label(str(data.name), &"StrongLabel"))
 			box.add_child(UiKit.lock_hint(GameState.requirement_error(data.get("requirements", {})), TaskHelp.open.bind("order", focus)))
 			return
 		var count := 2 if channel == "contracts" else 4
@@ -190,6 +190,10 @@ static func _order_tile(id: String, selected: bool, action: Callable) -> Button:
 		badge.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 		badge.position += Vector2(-28, 4)
 	var body := tile.get_node("Visual") as VBoxContainer
+	var caption := body.get_node("Caption") as Label
+	caption.theme_type_variation = &"StrongLabel"
+	caption.max_lines_visible = 1
+	caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	body.get_node("Picture").hide()
 	var products := UiKit.hbox(6)
 	products.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -231,7 +235,7 @@ static func _order_detail(box: VBoxContainer, id: String) -> void:
 	var detail := UiKit.vbox(6)
 	detail.name = "OrderDetail"
 	var heading := UiKit.hbox(6)
-	heading.add_child(UiKit.fill_label(str(data.name), &"SectionLabel"))
+	heading.add_child(UiKit.fill_label(str(data.name), &"StrongLabel"))
 	if str(data.get("customer", "")) != "":
 		var portrait := UiKit.icon(ProgressionUi.npc_portrait(str(data.customer)), 24)
 		portrait.name = "Customer_" + str(data.customer)
@@ -278,7 +282,7 @@ static func _next_order(box: VBoxContainer, channel: String) -> void:
 
 static func _stall_header(box: VBoxContainer) -> void:
 	var level := stall_level()
-	box.add_child(UiKit.label("Minha banca · nível %d/3" % level, &"SectionLabel"))
+	box.add_child(UiKit.label("Minha banca · nível %d/3" % level, &"StrongLabel"))
 	box.add_child(UiKit.label(["Monte sua banca para receber contratos.", "Banca de bairro · primeiros contratos.", "Banca ampliada · novos produtos e materiais.", "Banca da vila · contratos especiais."][level], &"SmallLabel"))
 	if level < 3:
 		var next_id := "stall" if level == 0 else "stall_%d" % (level + 1)
@@ -311,10 +315,10 @@ static func sell(world_id: String = "village") -> Control:
 		grid.add_theme_constant_override("h_separation", 6)
 		grid.add_theme_constant_override("v_separation", 6)
 		for id in visible_ids:
-			var tile := UiKit.grid_tile(Database.item_icon(id), "%s ×%d" % [Database.item_name(id), GameState.inventory.count(id)], func() -> void:
+			var tile := _sell_tile(id, id == model.selected, func() -> void:
 				model.selected = id
 				model.quantity = 1
-				(box as SheetBuilder.LiveBox).refresh(), 100, 32)
+				(box as SheetBuilder.LiveBox).refresh())
 			tile.name = "Sell_" + id
 			grid.add_child(tile)
 		box.add_child(grid)
@@ -323,7 +327,7 @@ static func sell(world_id: String = "village") -> Control:
 			box.add_child(UiKit.label("Colha para ter produtos para vender.", &"SmallLabel"))
 			return
 		model.quantity = clampi(int(model.quantity), 1, GameState.inventory.count(id))
-		box.add_child(UiKit.label(Database.item_name(id), &"SectionLabel"))
+		box.add_child(UiKit.label(Database.item_name(id), &"StrongLabel"))
 		var row := UiKit.hbox(8)
 		row.add_child(UiKit.stepper(int(model.quantity), 1, GameState.inventory.count(id), func(value: int) -> void:
 			model.quantity = value
@@ -339,3 +343,34 @@ static func sell(world_id: String = "village") -> Control:
 		action.name = "SellSelected"
 		box.add_child(action)
 	))
+
+
+## Produto vendável: a seleção da primeira abertura usa o mesmo contorno das seleções por toque.
+static func _sell_tile(id: String, selected: bool, choose: Callable) -> Button:
+	var tile := UiKit.tile(Database.item_icon(id), "%s ×%d" % [Database.item_name(id), GameState.inventory.count(id)], "selected" if selected else "normal")
+	tile.custom_minimum_size = Vector2(0, 120)
+	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	tile.set_meta("selected", selected)
+	tile.pressed.connect(choose)
+	var surface := tile.get_theme_stylebox("normal").duplicate() as StyleBoxFlat
+	surface.bg_color = Palette.CARD
+	for phase: String in ["normal", "hover", "pressed", "hover_pressed"]:
+		tile.add_theme_stylebox_override(phase, surface)
+	var body := tile.get_node("Visual") as VBoxContainer
+	body.offset_left = 8
+	body.offset_right = -8
+	var picture := body.get_node("Picture")
+	body.remove_child(picture)
+	picture.free()
+	var disc := UiKit.disc(Database.item_icon(id), 48, 40)
+	disc.name = "Picture"
+	disc.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	body.add_child(disc)
+	body.move_child(disc, 0)
+	var title := body.get_child(1) as Label
+	title.name = "Caption"
+	title.theme_type_variation = &"StrongLabel"
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.max_lines_visible = 2
+	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	return tile

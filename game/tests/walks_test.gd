@@ -145,6 +145,9 @@ func _run() -> void:
 
 
 func _ui_checks() -> void:
+	root.size = Vector2i(360, 780)
+	var previous_motion := Motion.reduced
+	Motion.reduced = true
 	var ui: Script = load("res://scripts/ui/progression_ui.gd")
 	var diary: Control = ui.call("walk_diary")
 	diary.theme = load("res://assets/theme/main_theme.tres")
@@ -172,17 +175,17 @@ func _ui_checks() -> void:
 	var panel: PanelContainer = card.get("_panel")
 	check(panel.size.y <= root.get_visible_rect().size.y - 31.0, "cartão raro cabe e rola")
 	card.call("show_result", {"name": "Clareira dos passarinhos", "postcard": state.call("walk_postcard", "bird_clearing"), "first": true, "rare": "explorer_backpack", "items": {"bird_feather": 2, "wild_mint": 3, "wildflower": 1, "pinecone": 1, "creek_shell": 1}, "new": ["bird_feather", "wild_mint", "wildflower", "pinecone", "creek_shell"], "coins": 30, "needs": {"happiness": 35, "hygiene": -20}})
-	await process_frame
-	await process_frame
+	for i in 10: await process_frame
 	var scroll: ScrollContainer = card.find_child("WalkResultScroll", true, false)
 	scroll.scroll_vertical = 10000
-	await process_frame
+	for i in 4: await process_frame
 	var close: Button = card.find_child("CloseResult", true, false)
 	check(scroll.get_global_rect().encloses(close.get_global_rect()), "Oba inteiro acessível no cartão grande")
 	close.pressed.emit()
 	check(not card.visible, "Oba fecha cartão grande")
 	card.queue_free()
 	await process_frame
+	Motion.reduced = previous_motion
 
 
 func _announce_checks() -> void:

@@ -140,7 +140,7 @@ static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", 
 static func quest_card(box: VBoxContainer, id: String) -> void:
 	var quest: Dictionary = Database.quests[id]
 	var card := UiKit.card(box, &"ReadyCardPanel" if GameState.quest_error(id) == "" else &"CardPanel")
-	card.add_child(UiKit.label(quest.name, &"SectionLabel"))
+	card.add_child(UiKit.label(quest.name, &"StrongLabel"))
 	for goal: Dictionary in quest.goals:
 		card.add_child(goal_row(goal, GameState.goal_value(goal)))
 	card.add_child(reward_chips(quest.rewards))
@@ -246,7 +246,7 @@ static func routes_panel(place: String, focus: String = "") -> Control:
 				Events.toast_requested.emit(error)
 			else:
 				Events.items_gained.emit(running_data.get("rewards", {}).get("items", {}), int(running_data.get("rewards", {}).get("coins", 0)), Vector2(-1.0, -1.0))))
-		box.add_child(UiKit.label("Rotas", &"SectionLabel"))
+		box.add_child(UiKit.section("Rotas"))
 		for id: String in Database.progression.activities:
 			var data: Dictionary = Database.progression.activities[id]
 			if not str(data.get("place", "walk")) in groups or (focus != "" and id != focus):
@@ -282,14 +282,14 @@ static var _cancel_armed_until := 0.0
 ## Painel do portão da Praça, no molde das estações: um espaço em cima (o Tiro é um só) e os passeios embaixo.
 ## Liberados primeiro (do mais curto ao mais longo), depois só os 2 próximos bloqueados.
 static func walks_panel() -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+	var panel := SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		if GameState.friend_walk_bonus() > 0:
 			box.add_child(UiKit.label("Pipoca vai junto · +1 achado", &"SmallLabel"))
 		if GameState.has_upgrade("walk_bag"):
 			box.add_child(UiKit.label("Bolsinha de passeio · +1 achado", &"SmallLabel"))
 		box.add_child(_walk_slot())
 		var heading := UiKit.hbox(8)
-		heading.add_child(UiKit.fill_label("Passeios", &"SectionLabel"))
+		heading.add_child(UiKit.section("Passeios"))
 		if GameState.progress.feature_unlocked("walk_diary"):
 			var diary := UiKit.soft("Diário", func() -> void:
 				Events.sheet_requested.emit("Diário de passeios", walk_diary()), UiKit.ui_icon("item_accessory_set"), true)
@@ -309,6 +309,16 @@ static func walks_panel() -> Control:
 			_walk_card(box, id, Database.walks.walks[id], false)
 		for id: String in closed:
 			_walk_card(box, id, Database.walks.walks[id], true))
+	panel.name = "WalksPanel"
+	panel.set_meta("sheet_actions", _walk_header_actions)
+	return panel
+
+
+static func _walk_header_actions() -> Array[Control]:
+	var info := UiKit.ctl_button("info", func() -> void:
+		TaskHelp.open("stat", "walk"), 32, "sunken")
+	info.name = "WalksInfo"
+	return [info]
 
 
 ## Espaço do passeio em bolinha: vazio, andando (tempo no anel) ou bagagem esperando; ao lado, o postal e a ação.
@@ -336,7 +346,7 @@ static func _walk_slot() -> Control:
 	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var heading := UiKit.hbox(8)
 	heading.add_child(_postcard(GameState.walk_postcard(str(entry.id)), Vector2(64, 40)))
-	heading.add_child(UiKit.fill_label(str(GameState.walk_def(str(entry.id)).get("name", "")), &"SectionLabel"))
+	heading.add_child(UiKit.fill_label(str(GameState.walk_def(str(entry.id)).get("name", "")), &"StrongLabel"))
 	info.add_child(heading)
 	var armed := GameState.now() < _cancel_armed_until
 	var call_back := UiKit.soft("Toque de novo para chamar" if armed else "Chamar de volta", func() -> void:
@@ -364,7 +374,7 @@ static func _baggage_slot(strip: HBoxContainer) -> Control:
 	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	var heading := UiKit.hbox(8)
 	heading.add_child(_postcard(str(view.get("postcard", "")), Vector2(64, 40)))
-	heading.add_child(UiKit.fill_label(str(view.get("name", "")), &"SectionLabel"))
+	heading.add_child(UiKit.fill_label(str(view.get("name", "")), &"StrongLabel"))
 	info.add_child(heading)
 	var chips := UiKit.flow(4)
 	chips.name = "BaggageChips"
@@ -407,7 +417,7 @@ static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, lock
 	top.add_child(_postcard(GameState.walk_postcard(id), Vector2(64, 40)))
 	var info := UiKit.vbox(4)
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	info.add_child(UiKit.label(str(data.name)))
+	info.add_child(UiKit.label(str(data.name), &"StrongLabel"))
 	var details := UiKit.flow()
 	if locked:
 		details.add_child(UiKit.lock_icon())
@@ -426,7 +436,6 @@ static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, lock
 		actions.add_child(UiKit.ctl_button("help", TaskHelp.open.bind("walk", id), 40, "soft"))
 		body.add_child(actions)
 		return
-	body.add_child(walk_exclusives(id, 32))
 	var go := UiKit.small_go("Passear", func() -> void:
 		var error := GameState.start_walk(id)
 		if error != "":
@@ -436,7 +445,9 @@ static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, lock
 	go.name = "StartWalk_" + id
 	go.disabled = GameState.walk_error(id) != ""
 	var row := UiKit.hbox(8)
-	row.alignment = BoxContainer.ALIGNMENT_END
+	var finds := walk_exclusives(id, 32)
+	finds.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(finds)
 	row.add_child(go)
 	if go.disabled:
 		row.add_child(UiKit.ctl_button("help", TaskHelp.open.bind("walk", id), 40, "soft"))
@@ -482,7 +493,7 @@ static func walk_exclusives(id: String, px: int) -> Control:
 			_silhouette(picture)
 		cell.add_child(picture)
 		if own:
-			cell.add_child(UiKit.label("✓", &"SectionLabel", UiKit.GOOD))
+			cell.add_child(UiKit.label("✓", &"SmallLabel", UiKit.GOOD))
 		row.add_child(cell)
 	return row
 
@@ -497,7 +508,7 @@ static func walk_diary() -> Control:
 		var legendary: Dictionary = Database.walks.get("legendary", {})
 		if not legendary.is_empty() and GameState.progress.feature_unlocked("legendary_walks"):
 			var card := UiKit.card(box)
-			card.add_child(UiKit.label("Conjunto de esponjinha · LENDÁRIO", &"SectionLabel"))
+			card.add_child(UiKit.label("Conjunto de esponjinha · LENDÁRIO", &"StrongLabel"))
 			for id: String in legendary.get("collections", []):
 				var row := UiKit.hbox(8)
 				row.add_child(UiKit.icon(Database.item_icon(id), 48))
@@ -520,7 +531,7 @@ static func walk_diary() -> Control:
 			top.add_child(picture)
 			var info := UiKit.vbox(4)
 			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			info.add_child(UiKit.label("???" if locked else str(data.name), &"SectionLabel"))
+			info.add_child(UiKit.label("???" if locked else str(data.name), &"StrongLabel"))
 			if locked:
 				var chips := UiKit.flow()
 				chips.add_child(UiKit.lock_icon())
@@ -788,7 +799,7 @@ static func _title(card: VBoxContainer, icon_name: String, text: String) -> void
 	var texture := UiKit.ui_icon(icon_name) if icon_name != "" else null
 	if texture:
 		row.add_child(UiKit.icon(texture, 32))
-	var title := UiKit.label(text, &"SectionLabel")
+	var title := UiKit.label(text, &"StrongLabel")
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(title)
 	card.add_child(row)

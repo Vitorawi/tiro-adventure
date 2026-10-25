@@ -144,7 +144,7 @@ func show_card() -> void:
 		pair.add_child(column)
 	var card := ModalCard.open(self, {"title": "O Tiro cresceu!", "ribbon": Palette.HONEY,
 		"hero": hero, "confetti": not Motion.reduced, "haptic": "big"})
-	card.add_text(str(_after.age) + " · " + str(_after.weight), &"SectionLabel")
+	card.add_text(str(_after.age) + " · " + str(_after.weight), &"SmallLabel")
 	card.add_text(str(_after.facts[0]), &"SmallLabel")
 	var ruler := Control.new()
 	ruler.name = "HeightMark"

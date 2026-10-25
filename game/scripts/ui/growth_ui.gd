@@ -542,7 +542,7 @@ static func _build_history(box: VBoxContainer) -> void:
 	var silk := GameState.silk_info()
 	box.add_child(UiKit.soft("Voltar ao crescimento", open, null, true))
 	box.add_child(PillarUi.personality_title())
-	box.add_child(UiKit.label("Caderneta", &"SectionLabel"))
+	box.add_child(UiKit.section("Caderneta"))
 	for phase: Dictionary in info.phases:
 		var card := UiKit.card(box)
 		card.get_parent().name = "GrowthCard_" + str(phase.id)
@@ -560,7 +560,7 @@ static func _build_history(box: VBoxContainer) -> void:
 			row.add_child(photo)
 		else:
 			row.add_child(silhouette(phase, 0, false, "Future_" + str(phase.id), 64))
-		row.add_child(UiKit.fill_label(str(phase.name), &"SectionLabel"))
+		row.add_child(UiKit.fill_label(str(phase.name), &"StrongLabel"))
 		card.add_child(row)
 		if phase.visited:
 			card.add_child(UiKit.label(str(phase.age) + " · " + str(phase.weight), &"SmallLabel"))
@@ -577,7 +577,7 @@ static func _build_history(box: VBoxContainer) -> void:
 		var def: Dictionary = Database.growth.silk.levels[n]
 		var card := UiKit.card(box)
 		card.get_parent().name = "SilkCard_%d" % (n + 1)
-		card.add_child(UiKit.label(str(def.name), &"SectionLabel"))
+		card.add_child(UiKit.label(str(def.name), &"StrongLabel"))
 		card.add_child(UiKit.label("Brilho %d de %d" % [n + 1, silk.max], &"SmallLabel"))
 
 

@@ -34,7 +34,7 @@ func show_result(result: Dictionary) -> void:
 		_box = _sheet.body
 	_box.name = "WalkResultBox"
 	if not sewing and str(result.get("name", "")) != "":
-		_text(str(result.name), &"SectionLabel")
+		_text(str(result.name), &"StrongLabel")
 	var postcard := postcard_texture(str(result.get("postcard", "")))
 	if postcard:
 		var picture := UiKit.icon(postcard, 0)
@@ -44,7 +44,7 @@ func show_result(result: Dictionary) -> void:
 		picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		_put(_center(picture))
 	if bool(result.get("first", false)):
-		var first_label := UiKit.label("Primeira vez!", &"SectionLabel", UiKit.GOOD)
+		var first_label := UiKit.label("Primeira vez!", &"", UiKit.GOOD)
 		first_label.name = "FirstTime"
 		_put(_center(first_label))
 	if rare != "":
@@ -203,5 +203,5 @@ func _rare_banner(card: ModalCard, rare: String) -> void:
 	var title := UiKit.label("LENDÁRIO!" if data.get("rarity", "") == "legendary" else ("RARO!" if data.get("rarity", "") == "rare" else "ROUPA NOVA!"), &"TitleLabel", Palette.HONEY_EDGE)
 	title.name = "RareTitle"
 	card.add(_center(title))
-	card.add_text(str(data.get("name", rare)), &"SectionLabel")
+	card.add_text(str(data.get("name", rare)), &"StrongLabel")
 	card.add_text("Guardado na Coleção", &"SmallLabel", UiKit.GOOD)

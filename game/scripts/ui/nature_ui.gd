@@ -124,7 +124,7 @@ static func panel(site: String = "trees", resource: String = "", focus_route: St
 				Events.items_gained.emit(GameState.last_gain, GameState.last_coins, Vector2(-1.0, -1.0))
 			_result(error, "%s nível %d!" % [data.name, level_now] if level_now > previous_level else "+%d XP em %s" % [int(GameState.progress.nature_xp.get(site, 0)) - before, data.name]), "CollectAll_" + site))
 		_progress(box, site)
-		box.add_child(UiKit.label("Materiais", &"SectionLabel"))
+		box.add_child(UiKit.section("Materiais"))
 		for item: String in data.resources:
 			var route_id := best_route(item)
 			_material(box, site, item, route_id)
@@ -141,7 +141,7 @@ static func _progress(box: VBoxContainer, site: String) -> void:
 	var data: Dictionary = Database.progression.nature_sites[site]
 	var info := GameState.progress.nature_info(site)
 	var heading := UiKit.hbox(6)
-	var title := UiKit.fill_label(("Nível %d ★" % info.level) if info.max else "Nível %d · %d/%d XP" % [info.level, info.xp, info.needed], &"SectionLabel")
+	var title := UiKit.fill_label(("Nível %d ★" % info.level) if info.max else "Nível %d · %d/%d XP" % [info.level, info.xp, info.needed], &"StrongLabel")
 	title.name = "NatureProgress_" + site
 	heading.add_child(title)
 	heading.add_child(UiKit.ctl_button("help", func() -> void:
@@ -172,6 +172,7 @@ static func levels_panel(site: String) -> Control:
 			else:
 				chips.append(UiKit.chip(UiKit.ui_icon("xp"), "faltam %d" % maxi(0, int(milestone.xp) - int(info.total)), null, "time"))
 			var row := UiKit.list_row(Database.item_icon(str(milestone.materials[0])), "Nível %d · %s" % [i + 1, milestone.label], chips, null, Callable(), done)
+			(row.find_children("*", "Label", true, false)[0] as Label).theme_type_variation = &"StrongLabel"
 			row.name = "NatureLevel_%s_%d" % [site, i + 1]
 			cards.add_child(row)
 		var go := UiKit.primary("Ir ao local", func() -> void:
@@ -222,6 +223,7 @@ static func _material(parent: VBoxContainer, site: String, item: String, route_i
 	button.disabled = GameState.next_gathering_error(site, route_id, item) != ""
 	button.custom_minimum_size.x = 88
 	var row := UiKit.list_row(Database.item_icon(primary), "%s ×%d" % [Database.item_name(primary), int(route.rewards.items[primary])], chips, null if locked else button)
+	(row.find_children("*", "Label", true, false)[0] as Label).theme_type_variation = &"StrongLabel"
 	parent.add_child(row)
 	var footer := row.get_child(0) as VBoxContainer
 	if locked:

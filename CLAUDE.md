@@ -502,3 +502,17 @@ ProgressionUi.npc_quest_card(..., show_face := true), false só na conversa; npc
 speaker opcional do SpeechBubble; NpcServices centralizado. UpgradeHero/SpaceChip nítidos no
 bloqueio (LockHint só no rodapé), BuildUpgrade preservado. Tour `--aj-09-only` (oito PNGs).
 Registro no README do plano de ajustes; próxima 10. Sem mudança de regra/save/fala, push/publicação.
+
+
+**Interface 2 — ajustes, etapa 10 (25/10/2026):** SectionLabel removida após classificar 75 usos
+(47 StrongLabel, seis Label, 15 UiKit.section/OverLabel, sete SmallLabel); inventário e provas em
+docs/plans/interface2_ajustes/VALIDACAO_10.md. UiKit.section expande em HBox e usa OverLabel com
+font_caption_spaced no tema. WalksPanel tem sheet_actions/_walk_header_actions → WalksInfo no Header
+da Sheet; abre TaskHelp stat:walk. WalkExclusives e StartWalk_<id> na mesma linha. MarketUi._sell_tile
+reutiliza tile/disc, Picture é PanelContainer (disco 48/ícone 40), Caption StrongLabel, meta selected;
+Sell_<id>/SellGrid/SellSelected preservados. Nomes longos da grade de encomendas: uma linha com
+reticências e nome inteiro no detalhe. ui_style_test monta as quatro telas reais e detecta o primeiro
+texto em SectionLabel, com controle negativo. tasks_test acompanha a grade rolável/Continuar fixo
+da etapa 07; walks_test estabiliza a geometria em 360×780/Menos animação; park_test usa bagagem
+determinística só no caso do temporizador DEV. Tour --aj-10-only (16 PNGs).
+Etapa concluída; próxima 11. Sem mudança de regra/save/falas, push/publicação.

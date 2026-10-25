@@ -42,7 +42,7 @@ func _gift_card(sheet: RewardSheet, animate: bool) -> void:
 	var rewards := GameState.daily_gift_rewards()
 	var gift := UiKit.card(sheet.body, &"ReadyCardPanel")
 	gift.name = "DailyGift"
-	var title := UiKit.label("Presente do dia", &"SectionLabel")
+	var title := UiKit.label("Presente do dia", &"StrongLabel")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	gift.add_child(title)
 	var chips := ProgressionUi.reward_chips(rewards)

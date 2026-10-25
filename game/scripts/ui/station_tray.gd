@@ -254,7 +254,7 @@ static func animal(room: RoomView, station_id: String, anchor: Dictionary) -> Ac
 	if GameState.animal_count(station_id) == 0:
 		var empty := UiKit.vbox(6)
 		empty.name = "EmptyShelter"
-		var note := UiKit.label("Abrigo vazio", &"SectionLabel")
+		var note := UiKit.label("Abrigo vazio", &"")
 		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty.add_child(note)
 		shop_footer["primary"] = true
@@ -348,7 +348,7 @@ static func _nature_header(site: String) -> Control:
 		ring.progress = 1.0 if info.max else float(info.xp) / maxf(1.0, float(info.needed))
 		ring.texture = Database.item_icon(str(data.resources[0]))
 		level_row.add_child(ring)
-		var level_label := UiKit.short_label("Nível %d" % info.level, &"SectionLabel")
+		var level_label := UiKit.short_label("Nível %d" % info.level, &"SmallLabel")
 		level_label.name = "NatureLevel"
 		level_row.add_child(level_label)
 		var help := UiKit.ctl_button("help", func() -> void:
@@ -381,7 +381,7 @@ static func _fill_material_detail(box: VBoxContainer, site: String, item: String
 	var choice := NatureUi.route_choice(item, func() -> void: _fill_material_detail(box, site, item))
 	if choice != null:
 		box.add_child(choice)
-	var title := UiKit.fill_label("%s ×%d" % [Database.item_name(primary), int(route.rewards.items[primary])], &"SectionLabel")
+	var title := UiKit.fill_label("%s ×%d" % [Database.item_name(primary), int(route.rewards.items[primary])], &"StrongLabel")
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(title)
 	var chips := UiKit.flow(2)

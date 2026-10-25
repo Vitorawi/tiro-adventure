@@ -71,7 +71,7 @@ func _build() -> void:
 	var game_name := UiKit.label("Tiro Adventure", &"TitleLabel", Palette.HONEY)
 	game_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_child(game_name)
-	var chapter := UiKit.label(str(Database.progression.chapters[0].name), &"SectionLabel", Palette.INK)
+	var chapter := UiKit.label(str(Database.progression.chapters[0].name), &"StrongLabel", Palette.INK)
 	chapter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_child(chapter)
 	root.add_child(title)
@@ -94,7 +94,7 @@ func _build() -> void:
 	row.add_child(_avatar)
 	var speech := UiKit.vbox(6)
 	speech.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	speech.add_child(UiKit.label(str(Database.npcs.get(NPC, {}).get("name", "")), &"SectionLabel"))
+	speech.add_child(UiKit.label(str(Database.npcs.get(NPC, {}).get("name", "")), &"StrongLabel"))
 	_text = UiKit.fill_label("", &"")
 	_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_text.custom_minimum_size = Vector2(0, 72)

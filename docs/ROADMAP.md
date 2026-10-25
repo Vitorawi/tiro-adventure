@@ -2,6 +2,20 @@
 
 ## Estado atual
 
+**Interface 2 — ajustes, etapa 10 concluída localmente (25/10/2026, Codex).** Itens 6/27/28:
+75 usos de SectionLabel classificados e convertidos; nomes 18, frases 15, seções OverLabel e
+legendas 12. SectionLabel removida do tema; section expande em HBox. Passeios compactos com
+WalksInfo no Header; Feira com disco/ícone 40 e contorno no selecionado inicial. Regra nova em
+ui_style_test com telas reais e controle negativo. Lista 15/15 PASS (343.7 s), portão final
+102/102 PASS após foco de park_test (passada 101/102 em 657.3 s,
+`build/test_logs/r20261025_162708_55e3d716/results.csv`; foco 4/4 em 35,5 s, `r20261025_163151_0c95ef13/results.csv`).
+Capturas antes/depois nas três resoluções + tours completos 360×780 abertos/comparados.
+Inventário, resultados individuais e causas das correções em docs/plans/interface2_ajustes/VALIDACAO_10.md.
+Fixtures de tasks/walks/park atualizadas sem enfraquecer garantias. AGENTS/CLAUDE idênticos; exclusões
+preexistentes de python_libs preservadas. Regras/save/falas/arte sem mudança. Próxima: 11,
+não iniciada. Sem push/publicação.
+
+
 **Interface 2 — ajustes, etapa 09 concluída localmente (25/10/2026, Codex).** Itens 10/13/14/34:
 Como fazer em list_card/list_row com anéis, chips de estoque e um primário no primeiro passo
 pendente; item já disponível tem Ir calmo ao uso. HelpGo mantém o destino da receita.

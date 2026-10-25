@@ -1,10 +1,12 @@
-[gd_resource type="Theme" load_steps=28 format=3]
+[gd_resource type="Theme" load_steps=29 format=3]
 
 ; Interface 2: tokens de 01_BIBLIA_VISUAL.md, sem alterar os layouts.
 [ext_resource type="FontVariation" path="res://assets/fonts/main_font.tres" id="main"]
 [ext_resource type="FontVariation" path="res://assets/fonts/font_display.tres" id="display"]
 [ext_resource type="FontVariation" path="res://assets/fonts/font_body.tres" id="body"]
 [ext_resource type="FontVariation" path="res://assets/fonts/font_caption.tres" id="caption"]
+
+[ext_resource type="FontVariation" path="res://assets/fonts/font_caption_spaced.tres" id="over"]
 
 [sub_resource type="StyleBoxEmpty" id="empty"]
 
@@ -296,18 +298,13 @@ StrongLabel/fonts/font = ExtResource("display")
 StrongLabel/font_sizes/font_size = 18
 StrongLabel/colors/font_color = Color(0.22745098, 0.16470588, 0.12156863, 1)
 StrongLabel/constants/outline_size = 0
-SectionLabel/base_type = &"Label"
-SectionLabel/fonts/font = ExtResource("caption")
-SectionLabel/font_sizes/font_size = 12
-SectionLabel/colors/font_color = Color(0.45490196, 0.36862745, 0.30196078, 1)
-SectionLabel/constants/outline_size = 0
 SmallLabel/base_type = &"Label"
 SmallLabel/fonts/font = ExtResource("caption")
 SmallLabel/font_sizes/font_size = 12
 SmallLabel/colors/font_color = Color(0.45490196, 0.36862745, 0.30196078, 1)
 SmallLabel/constants/outline_size = 0
 OverLabel/base_type = &"Label"
-OverLabel/fonts/font = ExtResource("caption")
+OverLabel/fonts/font = ExtResource("over")
 OverLabel/font_sizes/font_size = 12
 OverLabel/colors/font_color = Color(0.45490196, 0.36862745, 0.30196078, 1)
 OverLabel/constants/outline_size = 0

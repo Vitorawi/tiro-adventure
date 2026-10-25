@@ -73,11 +73,11 @@ Bloco `--aj-10-only`: `b14_market`, `i2_09_market`, `b14b_neighbor_orders`, `b14
 em 360×780 (`--out=aj_10_tour`) para varrer telas não listadas.
 
 ## 8. Pronto quando
-- [ ] Tabela de classificação em `VALIDACAO_10.md`; nenhum nome de coisa em 12.
-- [ ] `UiKit.section` em `OverLabel`; nenhuma variação órfã.
-- [ ] Passeios com `?` no cabeçalho e cartões compactos; Feira com contorno no selecionado (inclusive o 1º).
-- [ ] Regra nova do `ui_style_test` verde.
-- [ ] Lista da etapa e **portão** verdes (logs citados).
+- [x] Tabela de classificação em `VALIDACAO_10.md`; nenhum nome de coisa em 12.
+- [x] `UiKit.section` em `OverLabel`; nenhuma variação órfã.
+- [x] Passeios com `?` no cabeçalho e cartões compactos; Feira com contorno no selecionado (inclusive o 1º).
+- [x] Regra nova do `ui_style_test` verde.
+- [x] Lista da etapa e **portão** verdes (logs citados).
 
 ## 9. Handoff
 Pontos naturais: após o inventário (passo 1: a tabela é o mapa para quem continuar); depois de cada arquivo

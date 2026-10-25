@@ -176,10 +176,14 @@ func _run() -> void:
 
 	# --- Desejo, diária e desejos de comida ----------------------------------
 	check(db.get("wishes").wishes.has("walk") and not db.get("routines").daily.missions.has("tiro_walk"), "passeio pertence ao desejo; rotinas são da fazenda")
-	state.call("start_walk", "park_loop")
+	# Este caso mede o temporizador DEV e a bagagem, não o sorteio (que pode trazer só moedas).
+	var timer_loot: Dictionary = db.get("walks").walks.park_loop.loot.duplicate(true)
+	db.get("walks").walks.park_loop.loot = {"rolls": 1, "table": [{"weight": 1, "items": {"stick": 1}}]}
+	check(state.call("start_walk", "park_loop") == "", "inicia o passeio do teste de temporizador DEV")
 	state.call("dev_finish_timers")
 	check(state.call("return_due_walk") and state.call("walk_ready"), "dev termina o passeio")
 	state.call("collect_walk")
+	db.get("walks").walks.park_loop.loot = timer_loot
 
 	# --- Salas, navegação e telas --------------------------------------------
 	await _room_checks()

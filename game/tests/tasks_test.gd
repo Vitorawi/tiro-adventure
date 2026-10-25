@@ -157,6 +157,7 @@ func _routines_check() -> void:
 
 
 func _ui_check() -> void:
+	root.size = Vector2i(360, 780)
 	state.call("reset")
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
@@ -244,7 +245,12 @@ func _ui_check() -> void:
 	check((short_scroll.get_parent() as Control).size.y < root.get_visible_rect().size.y - 32, "Comemoração curta mantém cartão centrado e compacto")
 	_shot("tasks_celebration")
 	# Muitas novidades: o cartão cabe no celular e o último botão fica acessível pela rolagem.
-	var many_news: Array[String] = ["feature:wishes", "feature:bag", "feature:daily", "world:farm", "npc:bloblo", "world:village"]
+	# Desde a etapa 07 só a grade rola. Use destinos reais suficientes para exceder a grade compacta.
+	var many_news: Array[String] = []
+	for world_id: String in root.get_node("Database").get("worlds"):
+		many_news.append("world:" + world_id)
+		for place_id: String in root.get_node("Database").get("worlds")[world_id].places:
+			many_news.append("place:" + world_id + "/" + place_id)
 	main.get_node("Celebration").call("show_chapter", 2, many_news)
 	await create_timer(0.2).timeout
 	var scroll := main.find_child("CelebrationScroll", true, false) as ScrollContainer
@@ -254,9 +260,13 @@ func _ui_check() -> void:
 	_shot("unlocks_scroll_top")
 	scroll.scroll_vertical = int(scroll.get_v_scroll_bar().max_value)
 	await create_timer(0.2).timeout
-	var content := scroll.get_child(0) as VBoxContainer
-	var last_button := content.get_child(content.get_child_count() - 1) as Button
-	check(last_button.text == "Continuar" and last_button.get_global_rect().position.y >= scroll.get_global_rect().position.y and last_button.get_global_rect().end.y <= scroll.get_global_rect().end.y + 1, "Rolagem chega ao botão Continuar inteiro")
+	var content := scroll.get_child(0) as GridContainer
+	var last_tile := content.get_child(content.get_child_count() - 1) as Control
+	check(scroll.get_global_rect().encloses(last_tile.get_global_rect()), "Rolagem chega à última novidade inteira")
+	var last_button: Button = null
+	for button: Button in main.get_node("Celebration").find_children("*", "Button", true, false):
+		if button.text == "Continuar": last_button = button
+	check(last_button != null and panel.get_global_rect().encloses(last_button.get_global_rect()) and not scroll.is_ancestor_of(last_button), "Continuar inteiro e fixo após rolar as novidades")
 	_shot("unlocks_scroll_bottom")
 	last_button.emit_signal("pressed")
 	check(not main.get_node("Celebration").visible, "Continuar fecha o desbloqueio após rolar")

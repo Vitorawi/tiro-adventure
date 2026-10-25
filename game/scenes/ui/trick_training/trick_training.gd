@@ -33,7 +33,7 @@ func _ready() -> void:
 	_bar.custom_minimum_size = Vector2(0, 56)
 	_bar.draw.connect(_draw_bar)
 	add_child(_bar)
-	_feedback = UiKit.label("Sem pressa!", &"SectionLabel")
+	_feedback = UiKit.label("Sem pressa!", &"")
 	_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(_feedback)
 	_button = UiKit.button("Agora!", attempt, &"PrimaryButton")

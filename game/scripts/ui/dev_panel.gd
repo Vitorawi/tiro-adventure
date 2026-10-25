@@ -63,7 +63,7 @@ static func _tool(grid: Container, text: String, action: Callable, done: String 
 
 
 static func _section(box: VBoxContainer, title: String, hint: String = "") -> void:
-	box.add_child(UiKit.label(title, &"SectionLabel"))
+	box.add_child(UiKit.label(title, &"SmallLabel"))
 	if hint != "":
 		box.add_child(UiKit.label(hint, &"SmallLabel"))
 

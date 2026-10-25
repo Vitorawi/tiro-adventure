@@ -20,12 +20,12 @@ static func album() -> Control:
 			number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			piece.add_child(number)
 			pieces.add_child(piece)
-		map_card.add_child(UiKit.label("Mapa rasgado · %d/4" % found, &"SectionLabel"))
+		map_card.add_child(UiKit.label("Mapa rasgado · %d/4" % found, &"StrongLabel"))
 		map_card.add_child(pieces)
 		for world: String in Database.finds.album_groups:
 			var items: Array = Database.finds.album_groups[world]
 			var card := UiKit.card(box)
-			card.add_child(UiKit.label(str(Database.finds.album_names[world]), &"SectionLabel"))
+			card.add_child(UiKit.label(str(Database.finds.album_names[world]), &"StrongLabel"))
 			var grid := GridContainer.new()
 			grid.columns = 4
 			grid.add_theme_constant_override("h_separation", 4)

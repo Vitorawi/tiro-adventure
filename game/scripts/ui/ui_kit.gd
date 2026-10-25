@@ -682,9 +682,9 @@ static func _add_divider(box_id: int, child_id: int) -> void:
 
 static func section(text: String, right: Control = null) -> HBoxContainer:
 	var row := hbox(8)
-	var title := fill_label(text, &"SmallLabel", Palette.INK_SOFT)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var title := fill_label(text, &"OverLabel", Palette.INK_SOFT)
 	title.uppercase = true
-	title.add_theme_font_override("font", preload("res://assets/fonts/font_caption_spaced.tres"))
 	row.add_child(title)
 	if right:
 		row.add_child(right)

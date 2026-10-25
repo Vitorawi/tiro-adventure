@@ -457,7 +457,7 @@ func show_level_popover() -> Popover:
 	var titles := UiKit.vbox(0)
 	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	titles.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	titles.add_child(UiKit.label("Guardião do Vale" if info.next.is_empty() else "Rumo a " + str(info.next.name), &"SectionLabel"))
+	titles.add_child(UiKit.label("Guardião do Vale" if info.next.is_empty() else "Rumo a " + str(info.next.name), &"StrongLabel"))
 	if info.ready:
 		titles.add_child(UiKit.label("Tudo pronto para crescer!", &"SmallLabel", Palette.GO_INK))
 	elif not info.next.is_empty():

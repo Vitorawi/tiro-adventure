@@ -34,7 +34,7 @@ static func balloon_card() -> Control:
 		return card
 	var row := UiKit.hbox(8)
 	row.add_child(UiKit.icon(icon(GameState.wish_id()), 40))
-	var title := UiKit.fill_label(str(def.name) + "!", &"SectionLabel")
+	var title := UiKit.fill_label(str(def.name) + "!", &"StrongLabel")
 	title.name = "WishTitle"
 	row.add_child(title)
 	card.add_child(row)

@@ -11,7 +11,7 @@ static func open(section: String = "resources") -> void:
 static func panel(section: String = "resources") -> Control:
 	var box := UiKit.vbox(10)
 	box.name = "ManualPanel"
-	box.add_child(UiKit.label("Toque para ver como conseguir e onde ir.", &"SmallLabel"))
+	box.add_child(UiKit.label("Toque para ver como conseguir e onde ir.", &""))
 	var tabs := UiKit.hbox(8)
 	for entry: Array in [["Recursos", "resources", "tab_bag"], ["Estações", "stations", "item_plank"]]:
 		var tab := UiKit.button(entry[0], open.bind(entry[1]), &"SecondaryButton" if section == entry[1] else &"GhostButton", UiKit.ui_icon(entry[2]))
@@ -30,12 +30,12 @@ static func _resources(box: VBoxContainer) -> void:
 	var money := UiKit.card(box)
 	var row := UiKit.hbox(8)
 	row.add_child(UiKit.icon(UiKit.ui_icon("coin"), 32))
-	row.add_child(UiKit.fill_label("Moedas: colha, venda e cumpra missões.", &"SmallLabel"))
+	row.add_child(UiKit.fill_label("Moedas: colha, venda e cumpra missões.", &""))
 	money.add_child(row)
 	var rest := UiKit.card(box)
 	var rest_row := UiKit.hbox(8)
 	rest_row.add_child(UiKit.icon(UiKit.ui_icon("need_happiness"), 32))
-	rest_row.add_child(UiKit.fill_label("Com o jogo fechado, o Tiro se cuida: a barra cai mais devagar e para antes de zerar.", &"SmallLabel"))
+	rest_row.add_child(UiKit.fill_label("Com o jogo fechado, o Tiro se cuida: a barra cai mais devagar e para antes de zerar.", &""))
 	rest.add_child(rest_row)
 	# Obras da comunidade: só as que já apareceram para o jogador (não adianta o que vem depois).
 	for project_id: String in Database.project_ids():
@@ -44,11 +44,11 @@ static func _resources(box: VBoxContainer) -> void:
 		var project := UiKit.card(box)
 		var project_row := UiKit.hbox(8)
 		project_row.add_child(UiKit.icon(UiKit.ui_icon(str(Database.project(project_id).get("icon", "tab_park"))), 32))
-		project_row.add_child(UiKit.fill_label("%s: junte o material e entregue aos poucos na Praça." % Database.project(project_id).name, &"SmallLabel"))
+		project_row.add_child(UiKit.fill_label("%s: junte o material e entregue aos poucos na Praça." % Database.project(project_id).name, &""))
 		project.add_child(project_row)
 		_location(project, Database.project(project_id).get("go", {}))
 	for category: String in SheetBuilder.CATEGORIES:
-		box.add_child(UiKit.label(SheetBuilder.CATEGORIES[category], &"SectionLabel"))
+		box.add_child(UiKit.section(SheetBuilder.CATEGORIES[category]))
 		var grid := GridContainer.new()
 		grid.columns = 3
 		grid.add_theme_constant_override("h_separation", 6)
@@ -127,7 +127,7 @@ static func item_panel(id: String) -> Control:
 	header.add_child(UiKit.icon(Database.item_icon(id), 64))
 	header.add_child(UiKit.fill_label(Database.item_name(id), &"TitleLabel"))
 	box.add_child(header)
-	box.add_child(UiKit.label("Como conseguir", &"SectionLabel"))
+	box.add_child(UiKit.section("Como conseguir"))
 	for source: Dictionary in sources(id):
 		_source_card(box, source)
 	var uses := UiKit.flow()
@@ -145,7 +145,7 @@ static func item_panel(id: String) -> Control:
 	if int(item.get("sell_price", 0)) > 0:
 		uses.add_child(UiKit.chip(UiKit.ui_icon("coin"), "Venda: %d" % int(item.sell_price)))
 	if uses.get_child_count() > 0:
-		box.add_child(UiKit.label("Serve para", &"SectionLabel"))
+		box.add_child(UiKit.section("Serve para"))
 		box.add_child(uses)
 	else:
 		uses.free()
@@ -169,8 +169,8 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 	match str(source.kind):
 		"walk":
 			var walk := GameState.walk_def(id)
-			card.add_child(UiKit.label(str(walk.name), &"SectionLabel"))
-			card.add_child(UiKit.label("Passear → esperar → guardar os achados", &"SmallLabel"))
+			card.add_child(UiKit.label(str(walk.name), &"StrongLabel"))
+			card.add_child(UiKit.label("Passear → esperar → guardar os achados", &""))
 			card.add_child(UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(walk.seconds))))
 			_requirements(card, walk)
 			_location(card, {"world": "park", "place": "walk"})
@@ -178,30 +178,30 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 			_recipe(card, id)
 		"crop":
 			var crop: Dictionary = Database.crops[id]
-			card.add_child(UiKit.label("Plantar → esperar → colher", &"SectionLabel"))
+			card.add_child(UiKit.label("Plantar → esperar → colher", &""))
 			_timer(card, int(crop.seconds))
 			_amounts(card, crop.get("yield", {}))
 			_requirements(card, crop)
 			_location(card, _focused("farm", "crop:" + id))
 		"route":
 			var route: Dictionary = Database.progression.activities[id]
-			card.add_child(UiKit.label(route.name, &"SectionLabel"))
-			card.add_child(UiKit.label("Comece a rota e pegue ao terminar.", &"SmallLabel"))
+			card.add_child(UiKit.label(route.name, &"StrongLabel"))
+			card.add_child(UiKit.label("Comece a rota e pegue ao terminar.", &""))
 			_timer(card, int(route.seconds))
 			_amounts(card, route.rewards.get("items", {}))
 			_requirements(card, route)
 			_location(card, _focused("routes:" + str(route.place), "route:" + id))
 		"quest":
-			card.add_child(UiKit.label("Recompensa de missão", &"SectionLabel"))
-			card.add_child(UiKit.label(Database.quests[id].name, &"SmallLabel"))
+			card.add_child(UiKit.label("Recompensa de missão", &"StrongLabel"))
+			card.add_child(UiKit.label(Database.quests[id].name, &"StrongLabel"))
 			card.add_child(UiKit.button("Ir às missões", Places.go.bind({"screen": "tasks"})))
 		"find":
-			card.add_child(UiKit.label("Faro do Tiro", &"SectionLabel"))
-			card.add_child(UiKit.label("Toque no montinho onde o Tiro farejou.", &"SmallLabel"))
+			card.add_child(UiKit.label("Faro do Tiro", &"StrongLabel"))
+			card.add_child(UiKit.label("Toque no montinho onde o Tiro farejou.", &""))
 			var find_world: Dictionary = Database.worlds[id]
 			var find_row := UiKit.hbox(8)
 			find_row.add_child(UiKit.icon(UiKit.ui_icon(find_world.get("icon", "")), 32))
-			find_row.add_child(UiKit.fill_label(find_world.name, &"SmallLabel"))
+			find_row.add_child(UiKit.fill_label(find_world.name, &"StrongLabel"))
 			card.add_child(find_row)
 			var find_error := Places.world_error(id)
 			var find_button := UiKit.button("Bloqueado" if find_error != "" else "Ir", Places.go.bind({"world": id, "place": "find"}), &"SecondaryButton")
@@ -209,22 +209,22 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 			card.add_child(find_button)
 		"growth":
 			var phase_index: int = GameState.growth.phase_index(id)
-			card.add_child(UiKit.label("Presente do Tiro", &"SectionLabel"))
-			card.add_child(UiKit.label("Chega quando ele vira %s." % Database.growth.phases[phase_index].name, &"SmallLabel"))
+			card.add_child(UiKit.label("Presente do Tiro", &"StrongLabel"))
+			card.add_child(UiKit.label("Chega quando ele vira %s." % Database.growth.phases[phase_index].name, &""))
 		"care":
-			card.add_child(UiKit.label("Ajuda da Bloblo", &"SectionLabel"))
-			card.add_child(UiKit.label("Sem comida? Abra Comer e peça ajuda.", &"SmallLabel"))
+			card.add_child(UiKit.label("Ajuda da Bloblo", &"StrongLabel"))
+			card.add_child(UiKit.label("Sem comida? Abra Comer e peça ajuda.", &""))
 			_location(card, Places.goal_target({"type": "stat", "key": "feed"}))
 
 
 static func _recipe(box: VBoxContainer, id: String) -> void:
 	var recipe: Dictionary = Database.recipes[id]
 	var station_id: String = recipe.station
-	box.add_child(UiKit.label(Database.stations[station_id].name, &"SectionLabel"))
+	box.add_child(UiKit.label(Database.stations[station_id].name, &"StrongLabel"))
 	if Database.stations[station_id].get("kind", "") == "animal":
-		box.add_child(UiKit.label("Compre animais no abrigo. Quantidades abaixo são por animal.", &"SmallLabel"))
+		box.add_child(UiKit.label("Compre animais no abrigo. Quantidades abaixo são por animal.", &""))
 	_amounts(box, recipe.get("inputs", {}))
-	box.add_child(UiKit.label("↓ Alimentar → esperar → pegar" if Database.stations[station_id].get("kind", "") == "animal" else "↓ Fazer → esperar → pegar", &"SmallLabel"))
+	box.add_child(UiKit.label("↓ Alimentar → esperar → pegar" if Database.stations[station_id].get("kind", "") == "animal" else "↓ Fazer → esperar → pegar", &""))
 	_amounts(box, {Database.recipe_output(recipe): int(recipe.get("qty", 1))})
 	_timer(box, int(recipe.seconds))
 	_requirements(box, recipe)
@@ -238,7 +238,7 @@ static func _timer(box: VBoxContainer, seconds: int) -> void:
 static func _requirements(box: VBoxContainer, data: Dictionary) -> void:
 	var error := GameState.requirement_error(data.get("requirements", {}))
 	if error != "":
-		box.add_child(UiKit.label("Falta: " + error, &"SmallLabel", UiKit.BAD))
+		box.add_child(UiKit.label("Falta: " + error, &"", UiKit.BAD))
 
 
 static func _focused(panel_id: String, focus: String = "") -> Dictionary:
@@ -258,7 +258,7 @@ static func _location(box: VBoxContainer, target: Dictionary, upgrade: String = 
 	var place: Dictionary = world.places[target.get("spot", target.place)]
 	var row := UiKit.hbox(8)
 	row.add_child(UiKit.icon(UiKit.ui_icon(world.get("icon", "")), 32))
-	row.add_child(UiKit.fill_label("%s › %s" % [world.name, place.name], &"SmallLabel"))
+	row.add_child(UiKit.fill_label("%s › %s" % [world.name, place.name], &""))
 	box.add_child(row)
 	var error := Places.world_error(target.world)
 	if error == "":
@@ -269,25 +269,25 @@ static func _location(box: VBoxContainer, target: Dictionary, upgrade: String = 
 	button.disabled = error != ""
 	box.add_child(button)
 	if error != "":
-		box.add_child(UiKit.label(error, &"SmallLabel", UiKit.BAD))
+		box.add_child(UiKit.label(error, &"", UiKit.BAD))
 	elif needs_buy:
-		box.add_child(UiKit.label("Compre: " + str(Database.stations[station_id].name), &"SmallLabel"))
+		box.add_child(UiKit.label("Compre: " + str(Database.stations[station_id].name), &""))
 
 
 static func _stations(box: VBoxContainer) -> void:
-	box.add_child(UiKit.label("Onde fazer", &"SectionLabel"))
+	box.add_child(UiKit.section("Onde fazer"))
 	for id: String in Database.stations:
 		var card := UiKit.card(box)
-		card.add_child(UiKit.label(Database.stations[id].name, &"SectionLabel"))
+		card.add_child(UiKit.label(Database.stations[id].name, &"StrongLabel"))
 		var products := UiKit.flow()
 		for recipe_id: String in Database.recipes_for(id):
 			products.add_child(_item_chip(Database.recipe_output(Database.recipes[recipe_id]), 0))
 		card.add_child(products)
 		_location(card, _focused("station:" + id), id)
-	box.add_child(UiKit.label("Onde buscar", &"SectionLabel"))
+	box.add_child(UiKit.section("Onde buscar"))
 	var crops := UiKit.card(box)
-	crops.add_child(UiKit.label("Canteiros", &"SectionLabel"))
-	crops.add_child(UiKit.label("Plante uma semente. Espere e toque para colher.", &"SmallLabel"))
+	crops.add_child(UiKit.label("Canteiros", &"StrongLabel"))
+	crops.add_child(UiKit.label("Plante uma semente. Espere e toque para colher.", &""))
 	for id: String in Database.crops:
 		_amounts(crops, Database.crops[id].get("yield", {}))
 	_location(crops, _focused("farm"))

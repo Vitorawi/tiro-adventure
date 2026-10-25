@@ -43,7 +43,7 @@ static func _treat_detail(id: String) -> Control:
 	var box := UiKit.vbox(6)
 	var def := GameState.friend_def(id)
 	var item := str(def.likes)
-	box.add_child(UiKit.label(Database.item_name(item), &"SectionLabel"))
+	box.add_child(UiKit.label(Database.item_name(item), &"StrongLabel"))
 	box.add_child(ProgressionUi.item_chip(item, 1))
 	var reason := GameState.give_friend_error(id)
 	var give := UiKit.primary("Dar petisco", func() -> void:
@@ -84,7 +84,7 @@ static func _card(box: VBoxContainer, id: String, album: bool = false) -> void:
 	row.add_child(portrait)
 	var text := UiKit.vbox(4)
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	text.add_child(UiKit.label(str(def.name) if known or not album else "?", &"SectionLabel"))
+	text.add_child(UiKit.label(str(def.name) if known or not album else "?", &"StrongLabel"))
 	text.add_child(UiKit.label(str(def.breed) if known or not album else "Amigo da vizinhança", &"SmallLabel"))
 	var heart_row := UiKit.hbox(4)
 	for i in maximum:

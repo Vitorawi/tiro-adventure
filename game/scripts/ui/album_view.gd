@@ -25,12 +25,12 @@ static func panel(section: String = "") -> Control:
 	var head := UiKit.hbox(8)
 	head.name = "AlbumHeader"
 	head.add_child(UiKit.icon(UiKit.ui_icon(str(current.icon)), 32))
-	var title := UiKit.label(str(current.name), &"SectionLabel")
+	var title := UiKit.label(str(current.name), &"StrongLabel")
 	title.name = "AlbumSectionTitle"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	head.add_child(title)
 	var counts := _section_counts(section)
-	var section_count := UiKit.short_label("%d/%d" % [counts.x, counts.y], &"SectionLabel", Palette.INK_SOFT)
+	var section_count := UiKit.short_label("%d/%d" % [counts.x, counts.y], &"SmallLabel", Palette.INK_SOFT)
 	section_count.name = "AlbumSectionCount"
 	head.add_child(section_count)
 	box.add_child(head)

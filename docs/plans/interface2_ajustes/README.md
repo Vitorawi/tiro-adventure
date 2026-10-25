@@ -6,7 +6,7 @@
 > mesmo estilo do plano Interface 2". Depois, **aprovou os 35 itens como o revisor sugeriu, inclusive as
 > decisões**. Nenhuma decisão fica pendente.
 
-**Estado:** etapas 01–09 concluídas. **Próxima: etapa 10.**
+**Estado:** etapas 01–10 concluídas. **Próxima: etapa 11.**
 
 ## A ideia em uma linha
 
@@ -76,7 +76,7 @@ flowchart TD
 | [x] | [07](etapas/ETAPA_07_COMEMORACOES_TEXTOS.md) | 16, 31 | cartão de capítulo com grade de novidades; textos do Novo! e do passeio | médio |
 | [x] | [08](etapas/ETAPA_08_CRESCIMENTO.md) | 35, 11 | prancha HTML do Crescimento → implementação na mesma etapa; seda no padrão do Crescimento | grande |
 | [x] | [09](etapas/ETAPA_09_PAINEIS_MUNDO.md) | 10, 13, 14, 34 | Como fazer com peças novas; Lugares em `list_card`; conversa sem repetições; compra bloqueada nítida | grande |
-| [ ] | [10](etapas/ETAPA_10_HIERARQUIA.md) | 6, 27, 28 | `SectionLabel` revisada (nomes em 18); passeios e Feira; regra nova no `ui_style_test`; **portão** | grande |
+| [x] | [10](etapas/ETAPA_10_HIERARQUIA.md) | 6, 27, 28 | `SectionLabel` revisada (nomes em 18); passeios e Feira; regra nova no `ui_style_test`; **portão** | grande |
 | [ ] | [11](etapas/ETAPA_11_BLOQUEIOS_VERMELHO.md) | 12, 20 | nenhum botão cinza com texto em folha/bandeja; obras e encomendas com um chip e uma barra | grande |
 | [ ] | [12](etapas/ETAPA_12_LIMPEZA_FECHAMENTO.md) | 32 | limpeza de apelidos e tema; **portão**, tour completo nas 3 resoluções, toque real, desempenho, docs | médio |
 
@@ -543,3 +543,38 @@ texts_test 3,3; recipe_help_test 12,0; item_sources_test 8,1; growth_ui_test 17,
 ui_style_test 8,3; npc_lines_test 19,6; worlds_test 19,4; navigation_test 16,2;
 sheet_test 22,6; storage_test 2,2. Total do runner: 148,9 s. Cada log foi conferido
 pelo runner (inclusive os rótulos históricos ITEM SOURCES: PASS e UI_STYLE TEST: PASS).
+
+
+**Etapa 10 (25/10/2026, Codex):** itens **6, 27 e 28** concluídos localmente. Hierarquia restaurada:
+75 usos de SectionLabel → 47 StrongLabel, seis Label, 15 UiKit.section, sete SmallLabel;
+tabela completa em [VALIDACAO_10.md](VALIDACAO_10.md). SectionLabel saiu do tema; OverLabel usa
+font_caption_spaced no tema e UiKit.section expande dentro de HBox. Nomes de encomenda/material e
+frases do Manual também corrigidos. Passeios com WalksInfo no Header via sheet_actions e achados/
+StartWalk na mesma linha. Feira com _sell_tile: ícone 40 em disco 48, nome 18 e contorno no primeiro
+selecionado/troca por toque. Nomes longos: quebra na venda, reticências na grade de encomendas;
+nome completo no detalhe. Sem fonte reduzida.
+
+**Pronto quando:** ✓ inventário e classificação; ✓ section/OverLabel sem variação órfã;
+✓ passeios compactos/info no cabeçalho e Feira selecionada desde a abertura;
+✓ regra nova no ui_style_test (telas reais + controle negativo); ✓ lista e portão verdes.
+Provas por item, checklist por tela, causas/correções e resultados individuais em VALIDACAO_10.md.
+
+**Testes:** lista fechada **15/15 PASS, 343.7 s**, `build/test_logs/r20261025_161350_fcc901b8/results.csv`.
+Portão **102/102 PASS após foco de park_test**: passada completa 101/102 em 657.3 s
+(11.0 min), `build/test_logs/r20261025_162708_55e3d716/results.csv`; foco 4/4 em 35,5 s
+(`build/test_logs/r20261025_163151_0c95ef13/results.csv`). Reexecuções das falhas estão registradas na validação:
+encomendas compactas em 360×640; seção aninhada/cardápio; fixture de capítulo que esperava o layout
+anterior à 07; geometria do cartão de passeio medida antes de estabilizar; park_test exigia bagagem
+de um sorteio que podia trazer só moedas (fixture determinística). Testes mantidos/fortalecidos,
+nenhuma garantia removida. Sem campanha/simulador.
+
+**Capturas:** --aj-10-only com 16 PNGs em aj_10_antes/depois e variantes _390/_412;
+tour completo antes/depois em 360×780 (114 cada). Todas abertas em pranchas e comparadas com a
+evidência original. Nomes maiores, seções pequenas, passeios menores e contorno inicial visível;
+Manual usa mais quebras por ter corpo 15. Diferenças temporais de pose/avisos/fixtures e avisos de
+RIDs/ObjectDB já vistos no antes registrados na validação. Nenhum protótipo novo previsto.
+
+**Próxima 11:** nenhuma pendência da 10. Herdadas: corpo rolável no Galinheiro, custo do tique de
+update_finds/update_wishes e Tudo junto da borda direita. WalksInfo agora fica no Header da Sheet;
+não buscar SectionLabel em scripts/cenas/tema. AGENTS/CLAUDE idênticos; bibliotecas python_libs
+preexistentes fora do commit. Sem regra/save/fala/JSON/arte alterados; sem push/publicação.

@@ -40,6 +40,7 @@ func _run() -> void:
 	state.call("dev_add_items", 20)
 	state.call("dev_add_coins", 5000)
 	await _primary_per_panel()
+	await _text_hierarchy()
 	print("UI_STYLE TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
 
@@ -176,3 +177,78 @@ func _near(a: Color, b: Color) -> bool:
 func _own(nodes: Array[Node], node: Node) -> Node:
 	nodes.append(node)
 	return node
+
+
+## Primeiro texto de cada cartão/linha/tile; aplica-se dentro da folha e das superfícies modais.
+func _first_text(node: Node) -> Label:
+	if node is Label and not (node as Label).text.strip_edges().is_empty():
+		return node as Label
+	for child: Node in node.get_children():
+		var found := _first_text(child)
+		if found != null: return found
+	return null
+
+
+func _flat_card_texts(node: Node) -> bool:
+	var card := node is Control and (node as Control).theme_type_variation in [&"CardPanel", &"ReadyCardPanel", &"RowPanel"]
+	var tile := node is Button and node.has_node("Visual")
+	if card or tile:
+		var first := _first_text(node)
+		if first != null and first.theme_type_variation == &"SectionLabel": return false
+	for child: Node in node.get_children():
+		if not _flat_card_texts(child): return false
+	return true
+
+
+func _text_hierarchy() -> void:
+	root.size = Vector2i(360, 780)
+	root.content_scale_size = Vector2i(360, 780)
+	var sheet: Control = load("res://scenes/ui/sheet/sheet.tscn").instantiate()
+	sheet.theme = load("res://assets/theme/main_theme.tres")
+	root.add_child(sheet)
+	var manual: Script = load("res://scripts/ui/game_manual.gd")
+	var panels := {
+		"Feira": load("res://scripts/ui/market_ui.gd").call("sell", "village"),
+		"Manual": manual.call("panel", "stations"),
+		"Passeios": progression_ui.call("walks_panel"),
+		"Como fazer": load("res://scripts/ui/task_help.gd").call("panel", "item", "carrot_snack"),
+	}
+	for title: String in panels:
+		sheet.call("open", title, panels[title])
+		await process_frame
+		await process_frame
+		check(_flat_card_texts(sheet), "%s real: primeiro texto de cartão/linha/tile nunca é SectionLabel" % title)
+		if title == "Feira":
+			var grid := sheet.find_child("SellGrid", true, false)
+			var first := grid.get_child(0) as Button
+			var style := first.get_theme_stylebox("normal") as StyleBoxFlat
+			check(bool(first.get_meta("selected", false)) and style.border_width_left == 2 and _near(style.border_color, Palette.INK), "Feira: primeiro produto selecionado tem contorno de tinta")
+			check((first.find_child("Caption", true, false) as Label).theme_type_variation == &"StrongLabel", "Feira: nome do produto em 18")
+			var picture := first.find_child("Picture", true, false) as PanelContainer
+			check(picture != null and (picture.get_child(0) as TextureRect).custom_minimum_size == Vector2(40, 40), "Feira: ícone 40 dentro do disco")
+			var second := grid.get_child(1) as Button
+			second.pressed.emit()
+			await process_frame
+			await process_frame
+			grid = sheet.find_child("SellGrid", true, false)
+			check(not bool(grid.get_child(0).get_meta("selected", false)) and bool(grid.get_child(1).get_meta("selected", false)), "Feira: toque transfere seleção e contorno")
+		if title == "Passeios":
+			var info := sheet.find_child("WalksInfo", true, false)
+			check(info != null and info.get_parent().name == "Header", "Passeios: info no cabeçalho real da folha")
+			for label: Node in panels[title].find_children("*", "Label", true, false):
+				if (label as Label).theme_type_variation == &"OverLabel":
+					check((label as Label).size.x >= (label as Label).get_theme_font("font").get_string_size((label as Label).text.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, (label as Label).get_theme_font_size("font_size")).x, "Passeios: rótulo de seção cabe em uma linha")
+			for go: Node in sheet.find_children("StartWalk_*", "Button", true, false):
+				var finds := go.get_parent().find_child("WalkExclusives", false, false) as Control
+				check(finds != null and absf(finds.global_position.y - (go as Control).global_position.y) < 16, "Passeios: achados e Passear na mesma linha")
+	# Controle negativo: a regra precisa acusar o antigo erro, não apenas passar nas telas novas.
+	var bad := ui_kit.call("vbox") as VBoxContainer
+	var body: VBoxContainer = ui_kit.call("card", bad)
+	body.add_child(ui_kit.call("label", "Produto", &"SectionLabel"))
+	check(not _flat_card_texts(bad), "controle negativo detecta primeiro nome em SectionLabel")
+	bad.free()
+	var section: Control = ui_kit.call("section", "Materiais")
+	check((section.get_child(0) as Label).theme_type_variation == &"OverLabel", "seção usa OverLabel do tema")
+	section.free()
+	sheet.queue_free()
+	await process_frame

@@ -94,13 +94,13 @@ static func dots(have: int, need: int) -> HBoxContainer:
 static func origins() -> Control:
 	var box := UiKit.vbox(6)
 	box.name = "MomentOrigins"
-	box.add_child(UiKit.label("De onde vêm os momentos", &"SectionLabel"))
+	box.add_child(UiKit.section("De onde vêm os momentos"))
 	for pillar: String in ["brave", "smart", "coat"]:
 		var group := UiKit.vbox(4)
 		group.name = "Origins_" + pillar
 		var head := UiKit.hbox(6)
 		head.add_child(UiKit.icon(UiKit.ui_icon(str(Database.growth.pillars[pillar].icon)), 24))
-		head.add_child(UiKit.fill_label(str(Database.growth.pillars[pillar].name), &"SectionLabel"))
+		head.add_child(UiKit.fill_label(str(Database.growth.pillars[pillar].name), &"StrongLabel"))
 		group.add_child(head)
 		for source: String in Database.growth.moments.sources:
 			var rule: Dictionary = Database.growth.moments.sources[source]
@@ -130,7 +130,7 @@ static func taste_guide() -> Control:
 		if Database.items[id].has("feed"): foods.append(id)
 	for id: String in foods:
 		if GameState.growth.tastes.has(id): found += 1
-	box.add_child(UiKit.label("Guia de sabores %d/%d" % [found, foods.size()], &"SectionLabel"))
+	box.add_child(UiKit.section("Guia de sabores %d/%d" % [found, foods.size()]))
 	var grid := GridContainer.new()
 	grid.columns = 5
 	grid.add_theme_constant_override("h_separation", 8)
@@ -163,7 +163,7 @@ static func taste_guide() -> Control:
 
 
 static func personality_title() -> Control:
-	var title := UiKit.fill_label(PersonalityRules.title(GameState.growth), &"SectionLabel")
+	var title := UiKit.fill_label(PersonalityRules.title(GameState.growth), &"StrongLabel")
 	title.name = "PersonalityTitle"
 	title.visible = title.text != ""
 	return title
@@ -172,7 +172,7 @@ static func personality_title() -> Control:
 static func diary() -> Control:
 	var box := UiKit.vbox(6)
 	box.name = "GrowthDiary"
-	box.add_child(UiKit.label("Hoje o Tiro...", &"SectionLabel"))
+	box.add_child(UiKit.section("Hoje o Tiro..."))
 	var entries := GameState.growth.diary.duplicate()
 	entries.reverse()
 	if entries.is_empty(): box.add_child(UiKit.fill_label("As lembranças dele vão aparecer aqui.", &"SmallLabel"))

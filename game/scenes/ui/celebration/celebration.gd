@@ -13,7 +13,7 @@ func show_chapter(index: int, unlocks: Array[String]) -> void:
 	var chapter: Dictionary = Database.progression.chapters[index - 1]
 	var card := _open({"title": "Capítulo concluído!", "ribbon": Palette.GO, "ribbon_icon": "check", "icon": UiKit.ui_icon("xp"),
 		"scroll_name": "CelebrationScroll", "fixed_body": true, "confetti": true, "haptic": "big"})
-	card.add_text(str(chapter.name), &"SectionLabel")
+	card.add_text(str(chapter.name), &"StrongLabel")
 	card.add_chips(ProgressionUi.reward_chips(chapter.get("rewards", {})))
 	_unlock_rows(card, unlocks)
 	var next := GameState.progress.displayed_main_quest()
@@ -34,7 +34,7 @@ func show_project(id: String) -> void:
 	var def := Database.project(id)
 	var card := _open({"title": "Obra pronta!", "ribbon": Palette.GO, "ribbon_icon": "check", "icon": UiKit.ui_icon(str(def.get("icon", "tab_park"))), "icon_px": 96,
 		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "big"})
-	card.add_text(str(def.get("name", "")), &"SectionLabel")
+	card.add_text(str(def.get("name", "")), &"StrongLabel")
 	var chips := ProgressionUi.reward_chips(def.get("rewards", {}))
 	# A coleção já entrou no prêmio: o cartão a mostra pelo nome (lembrança da obra, sem ocupar baú).
 	for collection: String in def.get("rewards", {}).get("collections", []):
@@ -50,7 +50,7 @@ func show_silk(level: int) -> void:
 	var def: Dictionary = Database.growth.silk.levels[level - 1]
 	var card := _open({"title": "Mais brilho!", "ribbon": Palette.HONEY, "icon": load(str(Database.growth.bodies.adult.portrait)),
 		"scroll_name": "CelebrationScroll", "confetti": level > 1, "haptic": "success"})
-	card.add_text(str(def.name), &"SectionLabel")
+	card.add_text(str(def.name), &"StrongLabel")
 	card.add_chips(ProgressionUi.reward_chips(def.get("rewards", {})))
 	card.add_primary("Oba!", hide)
 	show()
@@ -63,7 +63,7 @@ func show_find(result: Dictionary) -> void:
 	var texture: Texture2D = Database.item_icon(item) if item != "" else UiKit.ui_icon(str(result.get("icon", "find_paw")))
 	var card := _open({"title": "Novo achado!", "ribbon": Palette.SKY, "ribbon_icon": "spark", "icon": texture,
 		"scroll_name": "CelebrationScroll", "haptic": "success"})
-	card.add_text(Database.item_name(item) if item != "" else str(result.get("announcement", result.label)), &"SectionLabel")
+	card.add_text(Database.item_name(item) if item != "" else str(result.get("announcement", result.label)), &"StrongLabel")
 	var progress_text := "%d/16" % GameState.find_album_count()
 	if item.begins_with("map_piece_"):
 		var pieces := 0
@@ -83,7 +83,7 @@ func show_treasure(rewards: Dictionary) -> void:
 	var card := _open({"title": "Tesouro encontrado!", "ribbon": Palette.HONEY,
 		"icon": UiKit.ui_icon(str(def.get("icon", "item_map_piece"))), "icon_px": 96,
 		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "big"})
-	card.add_text(str(def.get("name", "")), &"SectionLabel")
+	card.add_text(str(def.get("name", "")), &"StrongLabel")
 	var chips := UiKit.flow()
 	if int(rewards.get("coins", 0)) > 0:
 		chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(rewards.coins)))
@@ -104,7 +104,7 @@ func show_trick(id: String) -> void:
 	var def: Dictionary = Database.progression.tricks[id]
 	var card := _open({"title": "Novo truque!", "ribbon": Palette.SKY, "ribbon_icon": "spark", "icon": UiKit.ui_icon(str(def.icon)),
 		"scroll_name": "CelebrationScroll", "haptic": "success"})
-	card.add_text(str(def.name), &"SectionLabel")
+	card.add_text(str(def.name), &"StrongLabel")
 	card.add_primary("Oba!", hide)
 	show()
 

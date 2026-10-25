@@ -109,7 +109,7 @@ static func wall() -> Control:
 			cell.add_child(empty)
 		hung.add_child(cell)
 	box.add_child(hung)
-	box.add_child(UiKit.label("Suas fotos", &"SectionLabel"))
+	box.add_child(UiKit.section("Suas fotos"))
 	var grid := UiKit.flow(6)
 	grid.name = "WallPhotos"
 	for id: String in _photo_ids():

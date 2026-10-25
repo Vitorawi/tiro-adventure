@@ -280,7 +280,7 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 		if data.get("instruction", "") != "":
 			box.add_child(UiKit.label(data.instruction, &"SmallLabel"))
 		if data.get("kind", "") == "animal":
-			box.add_child(UiKit.label("%d de %d animais" % [GameState.animal_count(station_id), int(data.animal_capacity)], &"SectionLabel"))
+			box.add_child(UiKit.label("%d de %d animais" % [GameState.animal_count(station_id), int(data.animal_capacity)], &"SmallLabel"))
 			box.add_child(UiKit.button("Comprar animais", open_animal_shop.bind(station_id)))
 			if GameState.animal_count(station_id) == 0:
 				box.add_child(UiKit.label("Abrigo vazio. Escolha seu primeiro animal.", &"SmallLabel"))
@@ -294,7 +294,7 @@ static func station_view(station_id: String, focus: String = "") -> Control:
 		box.add_child(mastery_row(station_id))
 
 		if data.get("kind", "") == "animal":
-			box.add_child(UiKit.label(data.get("recipe_label", "Receitas"), &"SectionLabel"))  # estações comuns: a lista fala por si
+			box.add_child(UiKit.section(data.get("recipe_label", "Receitas")))  # estações comuns: a lista fala por si
 		for recipe_id in Database.recipes_for(station_id):
 			if focus != "" and recipe_id != focus:
 				continue
@@ -512,7 +512,7 @@ static func open_animal_shop(station_id: String) -> void:
 static func animal_shop(station_id: String) -> Control:
 	return LiveBox.new(func(box: VBoxContainer) -> void:
 		var data: Dictionary = Database.stations[station_id]
-		box.add_child(UiKit.label("%s · %d/%d animais" % [data.name, GameState.animal_count(station_id), int(data.animal_capacity)], &"SectionLabel"))
+		box.add_child(UiKit.label("%s · %d/%d animais" % [data.name, GameState.animal_count(station_id), int(data.animal_capacity)], &"StrongLabel"))
 		box.add_child(UiKit.label("Escolha o visual. Cada animal produz 2 unidades por alimentação.", &"SmallLabel"))
 		# Cartões de 2 colunas (referência de loja): figura em disco, nome e preço em pílula verde pequena.
 		var grid := GridContainer.new()
@@ -686,7 +686,7 @@ static func plot_purchase(index: int) -> Control:
 			return
 		var row := UiKit.hbox(8)
 		row.add_child(UiKit.icon(UiKit.ui_icon("tab_farm"), 48))
-		row.add_child(UiKit.fill_label("Terreno %d" % (index + 1), &"SectionLabel"))
+		row.add_child(UiKit.fill_label("Terreno %d" % (index + 1), &"StrongLabel"))
 		row.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [mini(GameState.coins, cost), cost], UiKit.GOOD if GameState.coins >= cost else UiKit.BAD))
 		box.add_child(row)
 		if not available:

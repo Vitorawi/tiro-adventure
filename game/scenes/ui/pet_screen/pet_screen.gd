@@ -509,7 +509,7 @@ func _build_away_view() -> void:
 	caption.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var caption_box := UiKit.vbox(2)
 	caption.add_child(caption_box)
-	_away_name = UiKit.short_label("", &"SectionLabel")
+	_away_name = UiKit.short_label("", &"StrongLabel")
 	_away_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	caption_box.add_child(_away_name)
 	_away_time = UiKit.short_label("", &"SmallLabel")

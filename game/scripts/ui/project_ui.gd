@@ -131,7 +131,7 @@ static func _delivery_card(box: VBoxContainer, id: String, model: Dictionary) ->
 		box.add_child(UiKit.label("Quase! A obra termina já já.", &"SmallLabel"))
 		return
 	var card := UiKit.card(box)
-	card.add_child(UiKit.label("Fase %d de %d" % [int(stage.index) + 1, int(stage.count)], &"SectionLabel"))
+	card.add_child(UiKit.label("Fase %d de %d" % [int(stage.index) + 1, int(stage.count)], &"SmallLabel"))
 	# A seleção sobrevive às reconstruções; se o item já está completo, passa ao próximo que falta.
 	var remaining: Dictionary = stage.remaining
 	if int(remaining.get(str(model.item), 0)) <= 0:
@@ -195,7 +195,7 @@ static func _delivery_card(box: VBoxContainer, id: String, model: Dictionary) ->
 
 static func _done_card(box: VBoxContainer, def: Dictionary) -> void:
 	var card := UiKit.card(box, &"ReadyCardPanel")
-	card.add_child(UiKit.label("Obra pronta!", &"SectionLabel"))
+	card.add_child(UiKit.label("Obra pronta!", &""))
 	card.add_child(UiKit.label(str(def.get("interaction", {}).get("hint", "")), &"SmallLabel"))
 	var go: Dictionary = def.get("go", {})
 	if not go.is_empty():
@@ -212,7 +212,7 @@ static func _gathering_card(box: VBoxContainer, id: String) -> void:
 	var card := UiKit.card(box)
 	card.name = "GatheringCard"
 	(card.get_parent() as PanelContainer).add_theme_stylebox_override("panel", UiKit.surface(Palette.HONEY_SOFT, 20))  # cartão mel
-	card.add_child(UiKit.label(str(def.get("name", "Encontro")), &"SectionLabel"))
+	card.add_child(UiKit.label(str(def.get("name", "Encontro")), &"StrongLabel"))
 	card.add_child(UiKit.label(str(def.get("hint", "")), &"SmallLabel"))
 	var chips := UiKit.flow()
 	for item: String in def.items:

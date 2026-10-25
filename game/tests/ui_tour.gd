@@ -81,6 +81,10 @@ func _run() -> void:
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
 	# Plano "Interface 2 — ajustes": um bloco --aj-NN-only por etapa, reaproveitando os nomes de captura que
 	# já existem (b05_map_list, i2_07_stove...); capturas novas levam o prefixo aj_NN_<tela>.
+	if "--aj-10-only" in OS.get_cmdline_user_args():
+		await _aj_10_shots()
+		quit(0)
+		return
 	if "--aj-09-only" in OS.get_cmdline_user_args():
 		await _aj_09_shots()
 		quit(0)
@@ -1574,6 +1578,55 @@ func _ceremony_shots() -> void:
 	Motion.reduced = true
 
 ## Etapa 08: crescimento nas fases, quase/pronto, seda e resumo do avatar.
+func _aj_10_shots() -> void:
+	state.call("reset")
+	state.get("progress").seen.intro = true
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	state.call("dev_add_items", 20)
+	await _start_main(1.5)
+	var places: Script = load("res://scripts/ui/places.gd")
+	for entry: Array in [["village", "market", "b14_market"], ["village", "market", "i2_09_market"], ["village", "orders", "b14b_neighbor_orders"], ["village", "stall", "b14c_own_stall"], ["nature", "trees", "b15_nature_trees"], ["park", "walk", "b16_walks"], ["park", "walk", "i2_09_walks"]]:
+		await _world(str(entry[0]))
+		places.call("open", str(entry[0]), str(entry[1]))
+		await shot(str(entry[2]))
+		await _close()
+	var manual: Script = load("res://scripts/ui/game_manual.gd")
+	manual.call("open")
+	await shot("b24_manual")
+	await _close()
+	manual.call("open", "stations")
+	await shot("b24b_manual_stations")
+	await _close()
+	state.set("coins", 2000)
+	state.call("start_project", "park_bench")
+	var projects: Script = load("res://scripts/ui/project_ui.gd")
+	await _sheet("Banco da Praça", projects.call("panel", "park_bench"))
+	await shot("b16c_bench_start")
+	await _close()
+	for capture: String in ["b16d_bench_base", "b16e_bench_comfort"]:
+		var needed: Dictionary = state.call("project_stage", "park_bench").needed
+		for item: String in needed:
+			state.get("inventory").add(item, int(needed[item]))
+			state.call("contribute_project", "park_bench", item, int(needed[item]))
+		await _world("park")
+		await shot(capture)
+	await _sheet("Banco da Praça", projects.call("panel", "park_bench"))
+	await shot("b16f_bench_last_phase")
+	await _close()
+	_hide_modals()
+	state.get("inventory").call("from_dict", {})
+	load("res://scripts/ui/task_help.gd").call("open", "item", "carrot_snack")
+	await shot("i2_09_taskhelp")
+	await _close()
+	var walk: CanvasLayer = main.get("_walk_result")
+	walk.call("show_result", {"id": "park_loop", "name": "Volta na praça", "postcard": state.call("walk_postcard", "park_loop"), "items": {"stick": 2, "ribbon": 1}, "coins": 12, "needs": {"happiness": 20, "hygiene": -10}, "new": []})
+	await shot("c04_walk_result")
+	walk.hide()
+	main.get("_celebration").call("show_unlocks", ["world:village"] as Array[String])
+	await shot("i2_10_unlock")
+
+
 func _aj_09_shots() -> void:
 	var help: Script = load("res://scripts/ui/task_help.gd")
 	var places: Script = load("res://scripts/ui/places.gd")
