@@ -7,6 +7,8 @@
 > recompensa, essas coisas." E, no fim: "faça um plano bem estruturado, bem detalhado, testes que façam
 > sentido, seja o mais detalhista possível, porque vão ser outros modelos que vão fazer."
 
+**PLANO CONCLUÍDO LOCALMENTE (25/10/2026).** As etapas 00–12 terminaram. Evidência, checklist e roteiro do celular em [RESULTADOS.md](RESULTADOS.md); melhorias posteriores em [FUTURO.md](FUTURO.md). Publicação depende de pedido do Vitor.
+
 ## A ideia em uma linha
 
 > **Pixel é o que está no mundo; liso é o que você toca.** O Tiro, os personagens, os mapas e os itens
@@ -90,7 +92,7 @@ flowchart TD
 | [x] | [09](etapas/ETAPA_09_PAINEIS.md) | painéis grandes | grande |
 | [x] | [10](etapas/ETAPA_10_FESTA.md) | `ModalCard` novo, `RewardSheet`, boas-vindas, Novo! | médio |
 | [x] | [11](etapas/ETAPA_11_TEXTO.md) | orçamento de texto, Texto maior, limpeza | médio |
-| [ ] | [12](etapas/ETAPA_12_FECHAMENTO.md) | suíte inteira, toque real, desempenho, docs | médio |
+| [x] | [12](etapas/ETAPA_12_FECHAMENTO.md) | suíte inteira, toque real, desempenho, docs | médio |
 
 ## Como passar para o próximo agente
 
@@ -281,3 +283,28 @@ Configurações (orçamento de texto). Próxima **10**, não iniciada. Sem push/
 **Etapa 10 (25/10/2026, Claude Sonnet 5.5; local):** `ModalCard` grande no visual novo (cantos 28, fita-pílula com `StrongLabel` branco e `ribbon_icon` opcional, raios alfa 0,35, chips grandes 44/ícone 36 via `RewardSheet.grow_chip`) e `RewardSheet` (`scripts/ui/reward_sheet.gd`, folha média: alça, fita, fala opcional, chips, bloco livre, `add_actions` soft+primary, arrastar/fundo/X/Escape fecham por `on_close`), base de `QuestReward` (nós `Reward*` preservados), `WelcomeBack` (Tiro no topo, `DailyGift` com Pegar, `Line_*` com `list_row` + seta, Depois/Vamos lá!), passeio comum (`WalkResult`: folha; raro/lendário/roupa = `ModalCard` com confete; título agora `De volta!` e o nome do passeio vira linha abaixo; achados em cartões mel `Found_<item>`) e Novo! (`Celebration.show_unlocks`: uma folha pequena por novidade, Depois passa para a próxima, Ir encerra a lista; `UnlockGo`). Cerimônia: só a pele (fita mel). Regra `nunca dois` conferida por captura (`--i2-10-only` imprime `PAR ...: visíveis=1` para capítulo+Novo! e passeio+Novo!; crescimento+Novo! usa a mesma `_card_open`, sem captura própria). Testes ajustados de propósito: `festa_test` (cantos 28, boas-vindas acha `RewardSheet`, ícones de achado sem a seta do botão). Testes 13/13 PASS (lista da etapa + ui_style, walks, park, petshop, tasks) em 170 s; log `build/test_logs/r20261025_013204_53b7bf0c/`; reexecução dos 7 afetados após trocar o `Ir` do capítulo por seta: 10/10 PASS em 143 s. Capturas `i2_10_antes`, `i2_10_depois` (+ `_390`, `_412`).
 
 **Etapa 11 (25/10/2026, Claude Sonnet 5.5; local):** orçamento de texto aplicado (≈40 palavras cortadas: textos de apoio da feira/contratos/cliente e da Natureza; falas e nomes intocados), Texto maior (`LargeText` em `scripts/ui/large_text.gd` multiplica por 1,15 as fontes do tema a partir dos valores originais guardados no próprio tema, sem acumular; `SaveManager.set_large_text/large_text_enabled`, `large_text` em `settings.json`, padrão desligado, `LargeTextToggle` nas Configurações), 15 apelidos da `Palette` removidos (usos trocados pelos nomes novos; novo `HONEY_EDGE`), 8 `add_theme_font_size_override` equivalentes ao tema removidos (ficam só os escalados/de mundo: `photo_card`, `motion`, `album_view`, `npc_world`), PNGs de controle `ui_close/ui_lock/ui_check/ui_recenter/settings/timer` e a `Jersey10.ttf` apagados (`ui_style_test`/`ui_base_test` passaram a conferir os ícones vetoriais `x`/`check`/`lock`, mesma garantia). `tools/list_texts.ps1 -ByScreen`; `game/tests/text_budget_test.gd` (área `checks`; conta palavras por tela no `main.tscn` real e confere o limite do §C; com Texto maior confere que nenhum Label sai da tela e que ligar duas vezes não acumula). Glossário em `docs/GAME_DESIGN.md` (Ir para <lugar>, Depois, Cuidar, Pegar tudo). Tour `--i2-11-only` (as 9 telas da 01 com Texto maior; `i2_11_antes` = sem). Testes: scripts_check, content, texts, text_budget, ui_style, ui_base, ui2_tokens, festa, market, nature, lists, hud PASS em ~215 s (`build/test_logs/r20261025_015226_6168cf50` + `r20261025_015642_19c10b90` para o festa_test após acrescentar os checks do Texto maior). `sheet_test` (fora da lista) já falhava no HEAD 242d4fe ("uma só estação visível: sem título repetido" + nó nulo em `_npc_introductions`): não é desta etapa, fica para a 12. Capturas: `i2_11_antes`, `i2_11_depois`, `_390`, `_412` (9 PNGs cada), abertas nas 3 resoluções: nada cortou com Texto maior; sem protótipo próprio (é a mesma tela da 01 maior).
+
+**Etapa 12 (25/10/2026, Claude Sonnet 5.5 + Codex; local): PLANO CONCLUÍDO.** Portão único:
+**102/102 PASS consolidados**, após 97/102 na primeira passada em **645 s (10 min 45 s)**;
+logs `build/portao_i2_12.log`, `build/test_logs/r20261025_024012_262fb8d0/` e reexecução
+focada `r20261025_025125_56c030cb/`. `world_life_test` e `world_pin_test` passaram na
+reexecução, com as instabilidades preservadas. Ajustes de testes acompanham os nós/fluxos
+novos sem retirar garantias; chips independentes dos mundos restaurados, DEV em duas colunas,
+bagagem acima de Cuidar/recolhida na roleta e callbacks de Motion/conversa protegidos contra
+nós liberados. Testes focados posteriores PASS, discriminados em [RESULTADOS.md](RESULTADOS.md).
+Toque Web emulado no Chrome por eventos reais: pílula/prêmio/Ir, cozinha, quatro plantios,
+mundos/Praça, roleta/banho/Mochila; log `build/i2_12_touch_final3.log`, 16 PNGs em
+`build/screenshots/i2_12_toque/`. Preparação DEV feita após a primeira folha, respeitando
+os bloqueios do save novo; tentativas inválidas não contam como evidência.
+Quadro médio (requestAnimationFrame): folha **17,54 ms** (pico 83,4), Sítio **28,25 ms**
+(pico 150,1), roleta **19,65 ms** (pico 150,0); **meta de 20 ms não atingida no Sítio**.
+Tour: 114 PNGs por resolução em `build/screenshots/i2_12_tour/`, `_390/`, `_412/`,
+mais 22 complementos por tamanho em `i2_12_extra_<resolução>/`; sete pranchas finais
+`prototipo/prancha.html#final_*` abertas (`build/i2_12_review/`). Checklist por tela,
+desvios dos protótipos, ressalvas visuais e roteiro do celular em RESULTADOS; pendências
+em [FUTURO.md](FUTURO.md). AGENTS/CLAUDE idênticos. Sem nova suíte inteira,
+campanha/simulador, mudança de regra/save/fala, push ou publicação.
+Export Web final refeito após o reinício: **código 0, sem erros no log**
+`build/i2_12_export_final.log`; PCK produção **7.913.280 bytes**, dev **7.913.264 bytes**
+(7.727,8 KiB). Tentativa com restrições do sandbox preservada separadamente e substituída
+pela execução válida. `version.json` restaurado; somente arquivos da etapa no commit local.

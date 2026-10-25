@@ -29,7 +29,8 @@ func _run() -> void:
 	await create_timer(0.3).timeout
 	var nature: Button = worlds.find_child("WorldCard_nature", true, false)
 	check(nature != null and nature.disabled, "Natureza fechada antes da história")
-	check(worlds.find_child("WorldCard_house", true, false).custom_minimum_size.y >= 64, "Linha inteira é alvo grande")
+	var house_card := worlds.find_child("WorldCard_house", true, false) as Control
+	check(maxf(house_card.custom_minimum_size.y, house_card.size.y) >= 64, "Linha inteira é alvo grande")
 	_shot("worlds_locked")
 	state.call("dev_jump_to_chapter", 4)
 	await create_timer(0.3).timeout
@@ -48,7 +49,11 @@ func _run() -> void:
 	check(worlds.get("current_world") == "nature", "Um toque entra no mundo")
 	check(not worlds.call("is_map_open"), "Seleção fecha após entrar")
 	var collect: Button = worlds.get_node("%PlacesButton")
-	check(collect.text == "" and collect.icon != null, "Lugares é um botão só de ícone (Natureza também)")
+	# O botão de ícone liso (ctl_button) desenha o ícone num disco filho, sem texto.
+	var has_icon := collect.icon != null
+	for picture: TextureRect in collect.find_children("*", "TextureRect", true, false):
+		has_icon = has_icon or picture.texture != null
+	check(collect.text == "" and has_icon, "Lugares é um botão só de ícone (Natureza também)")
 	check((worlds.get_node("%MapButton") as Button).text == "Natureza", "Pílula do mundo mostra o nome")
 	collect.pressed.emit()
 	await create_timer(0.2).timeout

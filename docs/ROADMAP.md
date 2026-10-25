@@ -2,6 +2,19 @@
 
 ## Estado atual
 
+**Interface 2 — etapa 12 concluída localmente (25/10/2026, Claude Sonnet 5.5 + Codex). Plano encerrado.**
+Portão único: 97/102 na primeira passada (645 s), 102/102 após correções/reexecuções focadas;
+`world_life_test` e `world_pin_test` tiveram falhas intermitentes, preservadas no registro.
+Tour completo com 114 PNGs em cada resolução (360/390/412), mais 22 complementos em cada tamanho;
+sete pranchas finais abertas. Chips independentes dos mundos restaurados, DEV em duas colunas,
+bagagem acima de Cuidar/recolhida na roleta e callback do voo protegido contra ícone já liberado.
+Testes focados das correções PASS. Resultados, checklist com ressalvas, toque Web, desempenho e
+roteiro do celular: `docs/plans/interface2/RESULTADOS.md`; melhorias posteriores: `FUTURO.md`.
+AGENTS/CLAUDE idênticos. Sem campanha/simulador, alteração de regra/save/fala, push ou publicação.
+Export final refeito na continuação após o reinício: código 0, sem erros em
+`build/i2_12_export_final.log`; PCK produção 7.913.280 bytes, dev 7.913.264 bytes.
+Próximo: conferência do Vitor em aparelho quando pedir a publicação; nenhuma nova etapa aberta.
+
 **Interface 2 — etapa 11 concluída (25/10/2026, Claude Sonnet 5.5; local).** Texto mínimo e "Texto maior" (Configurações → `LargeText`, ×1,15 nas fontes do tema, `large_text` em `settings.json`), orçamento de texto guardado por `text_budget_test` e `list_texts.ps1 -ByScreen`, limpeza (apelidos da `Palette`, overrides de fonte, 6 PNGs de controle, Jersey10). Sem regra/save/fala alterada. Pendência herdada: `sheet_test` já falha no HEAD da etapa 10 (fora da lista da 11). Próxima: 12 (fechamento: suíte inteira, toque real, desempenho, docs), sem push/publicação.
 
 **Interface 2 — etapa 10 concluída (25/10/2026, Claude Sonnet 5.5; local).** Comemorações nos quatro tamanhos: `ModalCard` novo (grande), `RewardSheet` (folha média) usada por `QuestReward`, boas-vindas, passeio comum e Novo!; cerimônia só com a pele. Fila e regras de jogo intactas. Próxima: etapa 11 (texto). Sem push/publicação. Ver registro no README do plano.

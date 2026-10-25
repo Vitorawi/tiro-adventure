@@ -134,6 +134,12 @@ func _scenario(size: Vector2i) -> void:
 	var collect: Button = pet.find_child("CollectWalk", true, false)
 	check(collect.visible and collect.text == "Ver bagagem", "%s: cantinho do Tiro mostra Ver bagagem" % tag)
 	check(collect.size.x >= 44 and collect.size.y >= 44 and root.get_visible_rect().encloses(Rect2(collect.global_position, collect.size)), "%s: botão na tela e com alvo grande" % tag)
+	var care_button := pet.find_child("CareButton", true, false) as Control
+	check(not collect.get_global_rect().intersects(care_button.get_global_rect()), "%s: bagagem não cobre Cuidar" % tag)
+	await click(care_button)
+	check(not collect.visible, "%s: roleta aberta recolhe o botão da bagagem" % tag)
+	await click(care_button)
+	check(collect.visible, "%s: fechar roleta devolve a bagagem" % tag)
 	await shot(tag, "pet_bagagem_bloqueada")
 	requested.clear()
 	await click(collect)

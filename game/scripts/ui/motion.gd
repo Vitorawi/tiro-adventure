@@ -87,9 +87,16 @@ static func fly_arc(node: CanvasItem, from: Vector2, to: Vector2, seconds: float
 	node.set("position", from)
 	var control := (from + to) / 2.0 - Vector2(0, 80)
 	var tween := node.create_tween()
-	tween.tween_method(func(t: float) -> void:
-		node.set("position", (1.0 - t) * (1.0 - t) * from + 2.0 * (1.0 - t) * t * control + t * t * to), 0.0, 1.0, seconds).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
+	# O voo e o efeito de chegada podem terminar no mesmo quadro. Só o id atravessa
+	# o callback não retém uma captura de nó que pode ser liberado durante a chegada.
+	tween.tween_method(_arc_at.bind(node.get_instance_id(), from, control, to), 0.0, 1.0, seconds).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)
 	return tween
+
+
+static func _arc_at(t: float, node_id: int, from: Vector2, control: Vector2, to: Vector2) -> void:
+	var node := instance_from_id(node_id) as CanvasItem
+	if is_instance_valid(node):
+		node.set("position", (1.0 - t) * (1.0 - t) * from + 2.0 * (1.0 - t) * t * control + t * t * to)
 
 
 static func stagger_in(nodes: Array, gap: float = 0.03) -> void:
@@ -102,7 +109,13 @@ static func stagger_in(nodes: Array, gap: float = 0.03) -> void:
 			node.modulate.a = 0.0
 			var tween := node.create_tween()
 			tween.tween_interval(i * gap)
-			tween.tween_callback(func() -> void: pop_in(node))
+			tween.tween_callback(_pop_if_alive.bind(node.get_instance_id()))
+
+
+static func _pop_if_alive(node_id: int) -> void:
+	var node := instance_from_id(node_id) as CanvasItem
+	if is_instance_valid(node) and node.is_inside_tree():
+		pop_in(node)
 
 
 ## Aparece só com o alfa de 0 a 1 (troca de conteúdo dentro de um painel aberto).
@@ -172,10 +185,16 @@ static func count_up(label: Label, from: int, to: int, fmt: String = "%d") -> Tw
 		return _finished(label)
 	label.text = fmt % from
 	var tween := label.create_tween()
-	tween.tween_method(func(value: float) -> void: label.text = fmt % roundi(value), float(from), float(to), COUNT) \
+	tween.tween_method(_count_at.bind(label.get_instance_id(), fmt), float(from), float(to), COUNT) \
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	tween.tween_callback(func() -> void: label.text = fmt % to)
+	tween.tween_callback(_count_at.bind(float(to), label.get_instance_id(), fmt))
 	return tween
+
+
+static func _count_at(value: float, label_id: int, fmt: String) -> void:
+	var label := instance_from_id(label_id) as Label
+	if is_instance_valid(label):
+		label.text = fmt % roundi(value)
 
 
 ## "Não dá": balança 4 px para os lados três vezes.

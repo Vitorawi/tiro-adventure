@@ -68,7 +68,7 @@ func _npc_introductions() -> void:
 		for index in lines.size():
 			await _open(str(db.npcs[npc].name), progression_ui.call("npc_introduction", npc, index))
 			var content: Control = sheet.get_node("%ContentHolder").get_child(0)
-			var button := content.get_child(content.get_child_count() - 1) as Button
+			var button := (content.find_child("IntroductionNext", true, false) if index < lines.size() - 1 else content.get_child(content.get_child_count() - 1)) as Control
 			var scroll := sheet.get_node("%ContentHolder").get_parent() as Control
 			check(button.get_global_rect().end.y <= scroll.get_global_rect().end.y + 1, "%s fala %d: botão inteiro sem rolar" % [npc, index])
 			var speech := content.find_child("SpeechBubble", true, false) as Control
@@ -195,8 +195,9 @@ func _stations_title() -> void:
 	await process_frame
 	await process_frame
 	var titles := 0
+	# Só o título de cabeçalho da estação conta (o cartão de compra tem o próprio TitleLabel).
 	for node: Node in panel.find_children("*", "Label", true, false):
-		if (node as Label).theme_type_variation == &"TitleLabel":
+		if (node as Label).theme_type_variation == &"TitleLabel" and node.get_parent().get_parent() == panel:
 			titles += 1
 	check(titles == 0, "uma só estação visível: sem título repetido")
 	panel.queue_free()
@@ -207,7 +208,7 @@ func _stations_title() -> void:
 	await process_frame
 	titles = 0
 	for node: Node in both.find_children("*", "Label", true, false):
-		if (node as Label).theme_type_variation == &"TitleLabel":
+		if (node as Label).theme_type_variation == &"TitleLabel" and node.get_parent().get_parent() == both:
 			titles += 1
 	check(titles == 2, "duas estações visíveis: um título para cada (%d)" % titles)
 	both.queue_free()

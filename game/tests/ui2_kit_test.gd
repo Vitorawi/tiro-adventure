@@ -198,6 +198,18 @@ func _caso_motion() -> void:
 	Motion.stagger_in([node])
 	check(node.modulate.a == 1, "entrada reduzida aparece no mesmo quadro")
 	node.free()
+	# O efeito de chegada pode liberar o ícone no mesmo quadro do último passo do arco.
+	Motion.reduced = false
+	var flying := Control.new()
+	mount(flying)
+	var flying_id := flying.get_instance_id()
+	Motion.fly_arc(flying, Vector2.ZERO, Vector2(20, 30), 0.08)
+	var arrival := flying.create_tween()
+	arrival.tween_interval(0.08)
+	arrival.tween_callback(flying.queue_free)
+	await create_timer(0.16).timeout
+	check(not is_instance_id_valid(flying_id), "chegada libera o ícone sem callback com captura morta")
+	Motion.reduced = true
 
 
 func _caso_slots() -> void:

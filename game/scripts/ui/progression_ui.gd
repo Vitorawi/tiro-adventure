@@ -37,10 +37,15 @@ static func npc_view(npc_id: String) -> Control:
 	var album_line := GameState.album_talk(npc_id)
 	var panel := UiKit.vbox(10)
 	var speech := npc_header(panel, npc_id, "", true)
+	var speech_id := speech.get_instance_id()
 	panel.add_child(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		# O cabeçalho é irmão da lista e pode sair antes de uma atualização diferida.
+		# Capturar só o id evita chamar uma lambda com o Label já liberado ao fechar.
+		var current_speech := instance_from_id(speech_id) as Label
+		if not is_instance_valid(current_speech): return
 		var npc: Dictionary = Database.npcs.get(npc_id, {})
 		var active := Places.npc_active_quests(npc_id)
-		speech.text = album_line if album_line != "" else (str(Database.quests[active[0]].get("dialogue", "")) if not active.is_empty() else str(npc.get("greeting", "")))
+		current_speech.text = album_line if album_line != "" else (str(Database.quests[active[0]].get("dialogue", "")) if not active.is_empty() else str(npc.get("greeting", "")))
 		for id in active:
 			npc_quest_card(box, id)
 		# Atalhos para os lugares que o personagem cuida.

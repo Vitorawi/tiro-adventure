@@ -71,11 +71,19 @@ func refresh(current: String) -> void:
 			badge.name = "WorldStatus_missions"
 			_status.add_child(badge)
 			break
-		var amount := int(summary.get("collections", 0))
-		if amount > 0:
-			var ready := UiKit.postcard_chip(UiKit.ctl_icon("check"), str(amount))
-			ready.name = "WorldStatus_collections"
-			_status.add_child(ready)
+		# Categorias independentes: prêmio de missão, coleta, achado do Tiro e tesouro.
+		for entry: Array in [["rewards", UiKit.ctl_icon("check")], ["collections", UiKit.ctl_icon("check")],
+				["finds", UiKit.ui_icon("find_paw")], ["treasure", UiKit.ui_icon("item_map_piece")]]:
+			var amount := int(summary.get(entry[0], 0))
+			if amount <= 0: continue
+			var chip := UiKit.postcard_chip(entry[1], str(amount))
+			chip.name = "WorldStatus_" + str(entry[0])
+			# Com até quatro categorias a fileira precisa caber na largura do cartão (2 colunas em 360 px).
+			var style := chip.get_theme_stylebox("panel") as StyleBoxFlat
+			style.content_margin_left = 5
+			style.content_margin_right = 6
+			chip.get_child(0).add_theme_constant_override("separation", 2)
+			_status.add_child(chip)
 	_status.visible = _status.get_child_count() > 0
 	_hint.visible = disabled
 	_hint.text = _locked_hint() if disabled else ""

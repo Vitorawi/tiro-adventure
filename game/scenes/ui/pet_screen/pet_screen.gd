@@ -156,6 +156,7 @@ func sync_hud() -> void:
 
 func wheel_changed(open: bool) -> void:
 	_manual.visible = not open
+	_away_collect.visible = not open and not GameState.walking() and GameState.walk_ready()
 	if open: _mood_bubble.hide()
 
 
@@ -204,7 +205,11 @@ func _place_bubble() -> void:
 		_wish_bubble.position.x = minf(_wish_bubble.position.x, size.x - _wish_bubble.size.x - 16)
 	if _away_collect:
 		var area: Control = %DogArea
-		_away_collect.position = Vector2((size.x - _away_collect.size.x) * 0.5, area.global_position.y - global_position.y + area.size.y - _away_collect.size.y - 12.0)
+		var bottom := area.global_position.y - global_position.y + area.size.y - 12.0
+		var care_button := _care.find_child("CareButton", true, false) as Control
+		if care_button:
+			bottom = minf(bottom, care_button.position.y - 16.0)
+		_away_collect.position = Vector2((size.x - _away_collect.size.x) * 0.5, bottom - _away_collect.size.y)
 	if _mood_bubble:
 		_mood_bubble.size = _mood_bubble.get_combined_minimum_size()
 		_mood_bubble.position = Vector2((_dog_sprite.position.x + _dog_sprite.size.x / 2.0) - _mood_bubble.size.x / 2.0, _corner.pet_feet().y + 8)
@@ -241,7 +246,7 @@ func _refresh() -> void:
 		_away_name.text = str(GameState.walk_def(walk_id).get("name", ""))
 		_away_time.text = TimeText.short(GameState.walk_remaining())
 	# O Tiro volta mesmo com a bagagem cheia: guardar os achados é um botão à parte, nunca uma ausência.
-	_away_collect.visible = not away and GameState.walk_ready()
+	_away_collect.visible = not away and GameState.walk_ready() and not (_care.find_child("CareWheelOpen", true, false) as Control).visible
 	if _away_collect.visible:
 		_away_collect.text = "Guardar achados" if GameState.walk_baggage_error() == "" else "Ver bagagem"
 	var wish_id := GameState.balloon_wish()

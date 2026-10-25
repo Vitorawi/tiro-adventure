@@ -1153,3 +1153,21 @@ Saídas versionadas: `game/assets/sprites/ui/worlds/{house,farm,village,park,nat
 `_locked.png` e dez `.import`. Reexecutar os dois comandos quando a arte/layout dos mundos mudar.
 As fotos são ilustrativas do começo de cada mundo, sem simular as compras do jogador atual.
 Nenhum sprite do Tiro nem fonte PixelLab foi alterado. Alfinete e controles usam desenho/ícones vetoriais.
+
+## Interface 2 — fechamento (25/10/2026): fontes e controles lisos
+
+Fredoka e Nunito variáveis ficam em `game/assets/fonts/`, com suas licenças OFL;
+`font_display/body/caption.tres` e `main_font.tres` definem os pesos. Nunito no corpo,
+Fredoka em títulos/botões/números; tamanhos vêm do tema. `LargeText` escala o tema em
+×1,15 sem acumular, pela preferência Texto maior. Jersey10 foi removida na etapa 11.
+
+Os 17 controles em `game/assets/sprites/ui/ctl/*.svg` seguem Lucide (ISC, referência no plano),
+importados com `svg/scale=4.0` e filtro linear via `UiKit.ctl_icon/ctl/ctl_button`.
+Itens, retratos e mundos continuam pixel art, com filtro nearest. Não criar PNG de X,
+ajuda, cadeado, check, engrenagem, relógio ou seta. Cores/medidas: `Palette`, tema e
+`docs/plans/interface2/01_BIBLIA_VISUAL.md`; animações: `Motion`.
+
+Miniaturas: receita da etapa 06 acima (`tools/world_thumbs.gd`), cinco fotos + cinco
+cinzas, sem modificar a arte de origem. Pranchas finais: `prototipo/prancha.html#final_*`
+no plano Interface 2, comparando o tour inicial com `build/screenshots/i2_12_tour/` e
+os complementos `i2_12_extra_360x780/`. A etapa 12 não gerou arte nova do Tiro.

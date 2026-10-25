@@ -30,7 +30,8 @@ static func panel() -> Control:
 
 
 static func _tabs(box: VBoxContainer) -> void:
-	var row := _grid(box, 4)
+	# Duas colunas preservam os alvos e a largura da folha em celulares de 360 px.
+	var row := _grid(box, 2)
 	for id: String in PAGES:
 		var tab := UiKit.button(PAGES[id], func() -> void:
 			_page = id

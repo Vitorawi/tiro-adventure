@@ -78,8 +78,8 @@ func _run() -> void:
 		main.add_child(actions)
 		PROGRESSION.quest_action(actions, "lais_first_wish")
 		await frames()
-		var go: Button = actions.find_children("*", "Button", true, false)[0]
-		check(go.text == "Ir", "missão oferece Ir")
+		var go: Button = actions.find_child("QuestGo_lais_first_wish", true, false)
+		check(go != null and go.text.begins_with("Ir"), "missão oferece Ir")
 		await tap(go)
 		actions.queue_free()
 		await frames()

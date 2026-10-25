@@ -131,6 +131,16 @@ try {
                 $png = (Send-Cdp "Page.captureScreenshot" @{ format = "png" }).data
                 [IO.File]::WriteAllBytes((Join-Path $Out "$($s.name).png"), [Convert]::FromBase64String($png))
             }
+            "perf_start" {
+                # Registra o intervalo entre quadros (requestAnimationFrame) até o próximo perf_stop.
+                Send-Cdp "Runtime.evaluate" @{ expression = "window.__t=[];window.__p=performance.now();window.__run=true;(function f(n){if(!window.__run)return;window.__t.push(n-window.__p);window.__p=n;requestAnimationFrame(f)})(performance.now());1" } | Out-Null
+            }
+            "perf_stop" {
+                $r = Send-Cdp "Runtime.evaluate" @{ expression = "window.__run=false;(()=>{const a=window.__t.slice(2).sort((x,y)=>x-y);if(!a.length)return null;const s=a.reduce((x,y)=>x+y,0);return {n:a.length,avg:s/a.length,p95:a[Math.floor(a.length*.95)],max:a[a.length-1],over33:a.filter(v=>v>33.4).length}})()"; returnByValue = $true }
+                $line = "PERF " + $s.name + ": " + ($r.result.value | ConvertTo-Json -Compress)
+                Write-Host $line
+                Add-Content (Join-Path $Out "perf.txt") $line -Encoding UTF8
+            }
             "save" {
                 # Lê só o save do perfil descartável deste teste, após a gravação no IndexedDB.
                 Start-Sleep -Milliseconds 1600
@@ -180,7 +190,7 @@ try {
     Start-Sleep -Seconds 12
 
     if ($Steps) {
-        $plan = Get-Content $Steps -Raw | ConvertFrom-Json
+        $plan = Get-Content $Steps -Raw -Encoding UTF8 | ConvertFrom-Json
     } else {
         $plan = @(
             @{ do = "shot"; name = "01_pet" },

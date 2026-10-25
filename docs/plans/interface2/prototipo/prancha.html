@@ -16,6 +16,8 @@
 <script>
   // prancha.html#tela → antes (tour atual) + depois (protótipo)
   const SHOTS = '../../../../build/screenshots/interface2_antes/';
+  const DEPOIS = '../../../../build/screenshots/i2_12_tour/';
+  const EXTRA = '../../../../build/screenshots/i2_12_extra_360x780/';
   const BOARDS = {
     tiro: ['Tela do Tiro', [['Hoje', SHOTS + 'b02_pet.png'], ['Proposta', 'tiro.png']]],
     missoes: ['Missões e prêmio', [['Hoje', SHOTS + 'a02_tasks.png'], ['Proposta', 'missoes.png'], ['Proposta · ao pegar o prêmio', 'missoes_premio.png']]],
@@ -26,6 +28,14 @@
     missoes2: ['Missões separadas: História · Pessoas · Diárias', [['Hoje', SHOTS + 'a02_tasks.png'], ['História', 'missoes2_historia.png'], ['Pessoas', 'missoes2_personagens.png'], ['Diárias', 'missoes2_diarias.png'], ['Ao pegar o prêmio da história', 'missoes_premio.png']]],
     roleta: ['Cuidados do Tiro: botão Cuidar + roleta', [['Fechado · o pote mostra o pedido', 'tiro_cuidar.png', 1], ['Aberto · roleta espaçada e meio transparente', 'tiro_roleta.png', 1]]],
     cuidados: ['Cuidados do Tiro: três jeitos', [['Barra apoiada', 'tiro.png', 1], ['A · objetos no cenário (recomendada)', 'tiro_objetos.png', 1], ['B · botão Cuidar', 'tiro_arco.png', 1]]],
+    // Etapa 12: antes (tour de 24/10) × depois (tour i2_12_tour). Uso: prancha.html#final_tiro, #final_missoes...
+    final_tiro: ['Final · Tela do Tiro', [['Antes', SHOTS + 'b02_pet.png'], ['Depois', EXTRA + 'i2_04_pet.png', 1], ['Depois · roleta', EXTRA + 'i2_04_wheel.png', 1]]],
+    final_missoes: ['Final · Missões', [['Antes', SHOTS + 'a02_tasks.png'], ['Depois · História', EXTRA + 'i2_05_story.png', 1], ['Depois · Pessoas', EXTRA + 'i2_05_people.png', 1], ['Depois · Diárias', EXTRA + 'i2_05_daily.png', 1]]],
+    final_premio: ['Final · Folha de prêmio', [['Antes · conclusão', SHOTS + 'g01_tasks_ready_many.png'], ['Depois · prêmio', EXTRA + 'i2_05_reward.png', 1]]],
+    final_alfinete: ['Final · Alfinete', [['Antes · mapa', SHOTS + 'b06_world_farm.png'], ['Depois · alfinete', EXTRA + 'i2_06_pin.png', 1]]],
+    final_mapa: ['Final · Mapa, mundos e horta', [['Antes · lista', SHOTS + 'b05_map_list.png'], ['Depois · lista', DEPOIS + 'b05_map_list.png', 1], ['Depois · Sítio', DEPOIS + 'b06_world_farm.png', 1], ['Depois · plantar', DEPOIS + 'e02_tray_drag.png', 1]]],
+    final_bandejas: ['Final · Fogão e Mochila', [['Antes · fogão', SHOTS + 'e07_tray_stove.png'], ['Depois · fogão', DEPOIS + 'e07_tray_stove.png', 1], ['Antes · Mochila', SHOTS + 'b04_bag.png'], ['Depois · Mochila', DEPOIS + 'b04_bag.png', 1]]],
+    final_festa: ['Final · Crescimento e boas-vindas', [['Antes · Crescimento', SHOTS + 't01_growth_panel.png'], ['Depois · Crescimento', DEPOIS + 't01_growth_panel.png', 1], ['Antes · boas-vindas', SHOTS + 'h04_welcome_grouped.png'], ['Depois · boas-vindas', DEPOIS + 'h04_welcome_grouped.png', 1]]],
     fogao: ['Bandeja do fogão', [['Hoje', SHOTS + 'e07_tray_stove.png'], ['Proposta', 'fogao.png']]],
   };
   const [title, list] = BOARDS[location.hash.slice(1)];

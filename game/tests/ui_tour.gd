@@ -714,16 +714,19 @@ func _run() -> void:
 	world_farm.call("open_plot_tray", 4)
 	await shot("e01_tray_seeds", 0.5)
 	world_farm.call("close_tray")
-	var tray_script: Script = load("res://scripts/ui/action_tray.gd")
+	# Interface 2: o plantio arrastando agora é a barra da horta (FarmDock), não mais a ActionTray.
+	var dock_script: Script = load("res://scripts/ui/farm_dock.gd")
 	world_farm.call("open_plot_tray", 1)
 	await create_timer(0.3).timeout
-	var tray: Control = tray_script.get("current")
+	var dock: Control = dock_script.call("current")
 	var path: Array[Vector2] = []
 	for i in [1, 2, 3]:
-		path.append(_finger(world_farm, i))
-	tray.call("drag_through", "carrot", path, false)
+		path.append(_finger(world_farm, i) - Vector2(0, 40))
+	if dock != null:
+		dock.call("drag_points", path, false)
 	await shot("e02_tray_drag", 0.4)
-	tray.call("release_item", path[2])
+	if dock != null:
+		dock.call("release_drag")
 	await create_timer(0.3).timeout
 	_empty_plots()
 	world_farm.call("open_plot_tray", 9)
