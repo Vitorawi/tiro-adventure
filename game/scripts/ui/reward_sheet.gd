@@ -10,8 +10,6 @@ extends Control
 ## hero (Control logo abaixo do cabeçalho), speech ({npc, text}), close_button (true), on_close (Callable),
 ## scroll_name, animate (true; false = folha reaberta sem repetir a entrada), haptic ("success").
 
-const REVEAL_START := 0.28
-const REVEAL_GAP := 0.08
 
 var host: Node
 var panel: PanelContainer
@@ -285,26 +283,4 @@ static func prize_chip(chip_name: String, texture: Texture2D, amount: int, keeps
 ## Os filhos de `container` entram um por um (pop_in, 80 ms entre eles); "+N" e "×N" contam de 0.
 ## Com Motion.reduced ficam visíveis e com o número final na hora.
 static func reveal_in(container: Container) -> void:
-	if Motion.reduced:
-		return
-	var index := 0
-	for child: Node in container.get_children():
-		var item := child as Control
-		if item == null:
-			continue
-		item.modulate.a = 0.0
-		var tween := item.create_tween()
-		tween.tween_interval(REVEAL_START + index * REVEAL_GAP)
-		tween.tween_callback(_show_item.bind(item))
-		index += 1
-
-
-static func _show_item(item: Control) -> void:
-	if not is_instance_valid(item) or not item.is_inside_tree():
-		return
-	Motion.pop_in(item)
-	for label: Node in item.find_children("*", "Label", true, false):
-		var text := (label as Label).text
-		for prefix: String in ["+", "×"]:
-			if text.begins_with(prefix) and text.substr(prefix.length()).is_valid_int():
-				Motion.count_up(label as Label, 0, text.substr(prefix.length()).to_int(), prefix + "%d")
+	Motion.reveal_rewards(container)

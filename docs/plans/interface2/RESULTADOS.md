@@ -4,6 +4,10 @@ Etapas 00–12 encerradas localmente por Claude Sonnet 5.5 e Codex. Sem push ou 
 campanha/simulador, mudança de regras, falas, dados de conteúdo ou formato do save.
 O teste em aparelho físico continua sendo a conferência do Vitor após pedir publicação.
 
+> Este é o registro histórico do primeiro fechamento. O plano posterior de 35 ajustes tem provas e
+> situação atual em [Interface 2 — ajustes: RESULTADOS](../interface2_ajustes/RESULTADOS.md).
+> Ressalvas abaixo devem ser lidas junto desse resultado posterior.
+
 ## Critérios de pronto
 
 - [x] Portão completo executado uma vez; 102/102 têm resultado PASS após correções/reexecuções focadas.

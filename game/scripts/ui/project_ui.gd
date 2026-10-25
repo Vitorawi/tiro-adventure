@@ -42,7 +42,7 @@ static func community(world: String = "park") -> Control:
 			var completed := GameState.project_completed(id)
 			var chips: Array[Control] = []
 			if completed:
-				chips.append(UiKit.chip(UiKit.ctl_icon("check"), "Pronto", UiKit.GOOD))
+				chips.append(UiKit.chip(UiKit.ctl_icon("check"), "Pronto", Palette.GO_INK))
 			elif GameState.project_started(id):
 				chips.append(UiKit.chip(null, "Fase %d/%d" % [mini(int(stage.index) + 1, int(stage.count)), int(stage.count)]))
 				chips.append(UiKit.chip(null, "%d%%" % int(round(float(stage.total_progress) * 100.0))))

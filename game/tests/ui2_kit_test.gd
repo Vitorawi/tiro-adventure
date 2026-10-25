@@ -68,7 +68,7 @@ func _run() -> void:
 
 func _caso_alvos_e_variacoes() -> void:
 	var noop := func() -> void: pass
-	for spec: Array in [["primary", "PrimaryButton"], ["soft", "SecondaryButton"], ["secondary", "SecondaryButton"], ["small_go", "SmallGoButton"], ["ghost", "GhostButton"]]:
+	for spec: Array in [["primary", "PrimaryButton"], ["soft", "SecondaryButton"], ["small_go", "SmallGoButton"], ["ghost", "GhostButton"]]:
 		var control: Button = mount(kit.call(spec[0], "Ação", noop))
 		check(control.theme_type_variation == StringName(spec[1]), str(spec[0]) + " preserva a variação")
 		_target(control, str(spec[0]))

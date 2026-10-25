@@ -128,7 +128,7 @@ static func _header(station_id: String) -> Control:
 
 
 static func _collect_button(station_id: String, ready: int) -> Button:
-	var collect := UiKit.secondary("Pegar tudo (%d)" % ready, func() -> void:
+	var collect := UiKit.soft("Pegar tudo (%d)" % ready, func() -> void:
 		Events.items_gained.emit(GameState.collect(station_id), 0, Vector2(-1.0, -1.0)), null, true)
 	collect.name = "CollectAll_" + station_id
 	return collect
@@ -333,7 +333,7 @@ static func _nature_header(site: String) -> Control:
 			NatureUi.slot(slots, site, index)
 		parent.add_child(SheetBuilder.slot_strip(slots))
 		if ready > 0:
-			var collect := UiKit.secondary("Pegar tudo (%d)" % ready, func() -> void:
+			var collect := UiKit.soft("Pegar tudo (%d)" % ready, func() -> void:
 				var error := GameState.collect_gathering_all(site)
 				if error == "":
 					Events.items_gained.emit(GameState.last_gain, GameState.last_coins, Vector2(-1.0, -1.0)), null, true)
@@ -388,7 +388,7 @@ static func _fill_material_detail(box: VBoxContainer, site: String, item: String
 	chips.add_child(UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(route.seconds))))
 	for bonus: String in route.rewards.get("items", {}):
 		if bonus != primary:
-			chips.add_child(UiKit.chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), UiKit.GOOD))
+			chips.add_child(UiKit.chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), Palette.GO_INK))
 	chips.add_child(UiKit.chip(UiKit.ui_icon("xp"), "+%d XP" % NatureUi.route_xp(route_id)))
 	box.add_child(chips)
 	var level := NatureUi.route_level(route_id)

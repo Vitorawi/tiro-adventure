@@ -95,7 +95,7 @@ func show_treasure(rewards: Dictionary) -> void:
 	for unlock: String in rewards.get("unlocks", []):
 		if unlock.begins_with("crop:"):
 			var crop := unlock.trim_prefix("crop:")
-			card.add_text("Muda nova: %s" % Database.item_name(crop), &"SmallLabel", UiKit.GOOD)
+			card.add_text("Muda nova: %s" % Database.item_name(crop), &"SmallLabel", Palette.GO_INK)
 	card.add_primary("Oba!", hide)
 	show()
 

@@ -223,7 +223,7 @@ static func detail(id: String) -> Control:
 		box.add_child(pair)
 	if GameState.house_has("photo_wall"):
 		var hung: bool = GameState.album.wall.has(id)
-		var hang := UiKit.secondary("Tirar da parede" if hung else "Pendurar na parede", func() -> void:
+		var hang := UiKit.soft("Tirar da parede" if hung else "Pendurar na parede", func() -> void:
 			var reason := ""
 			if hung:
 				GameState.unhang_photo(id)
@@ -237,12 +237,12 @@ static func detail(id: String) -> Control:
 		box.add_child(hang)
 	if GameState.house_has("gold_frame"):
 		var main: bool = GameState.album.main_photo == id
-		var pick := UiKit.secondary("Tirar do cantinho" if main else "Foto do cantinho", func() -> void:
+		var pick := UiKit.soft("Tirar do cantinho" if main else "Foto do cantinho", func() -> void:
 			GameState.set_main_photo("" if main else id)
 			open_photo(id))
 		pick.name = "MainButton"
 		box.add_child(pick)
-	box.add_child(UiKit.secondary("Voltar ao álbum", func() -> void: PetNotebook.open("album:" + str(entry.section))))
+	box.add_child(UiKit.soft("Voltar ao álbum", func() -> void: PetNotebook.open("album:" + str(entry.section))))
 	return box
 
 
@@ -263,11 +263,11 @@ static func secret_detail(id: String) -> Control:
 				row.add_child(UiKit.icon(UiKit.ui_icon(str(icon)), 32))
 			box.add_child(row)
 		else:
-			var button := UiKit.secondary("?  Lupa · %d" % GameState.album_lupas_left(), func() -> void:
+			var button := UiKit.soft("?  Lupa · %d" % GameState.album_lupas_left(), func() -> void:
 				var error := GameState.reveal_photo_hint(id)
 				if error != "": Events.toast_requested.emit(error)
 				else: Events.sheet_requested.emit(str(entry.title), secret_detail(id)))
 			button.name = "HintButton"
 			box.add_child(button)
-	box.add_child(UiKit.secondary("Voltar ao álbum", func() -> void: PetNotebook.open("album:" + str(entry.section))))
+	box.add_child(UiKit.soft("Voltar ao álbum", func() -> void: PetNotebook.open("album:" + str(entry.section))))
 	return box

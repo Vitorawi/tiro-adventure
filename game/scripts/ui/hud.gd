@@ -493,7 +493,7 @@ func show_level_popover() -> Popover:
 		words.add_child(help)
 		mood.add_child(words)
 		card.add_child(mood)
-	var view := UiKit.secondary("Ver detalhes", func() -> void:
+	var view := UiKit.soft("Ver detalhes", func() -> void:
 		_close_popover()
 		GrowthUi.open(), null, true)
 	view.name = "ViewGrowth"

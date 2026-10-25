@@ -1,6 +1,12 @@
 # Roadmap
 
 ## Estado atual
+**Interface 2 — ajustes, etapa 12 concluída: PLANO DE AJUSTES CONCLUÍDO LOCALMENTE (25/10/2026, Codex + Claude).**
+Limpeza: `UiKit.GOOD/BAD/secondary` apagados, variações de tema mortas removidas, `Motion.reveal_rewards` único.
+Portão 102 testes (3 intermitentes sob carga, verdes isolados/reexecutados), toque real PASS, Sítio 17,5 ms (base 28,4),
+tour 114 PNGs nas três resoluções (`aj_12_tour*`). Roteiro do celular e pendências (Galinheiro rolável, tique de 1 s,
+"Tudo" na borda, testes sensíveis à carga) em docs/plans/interface2_ajustes/RESULTADOS.md. Sem push/publicação.
+
 **Interface 2 — ajustes, etapa 11 concluída localmente (25/10/2026, Codex).** Itens 12/20:
 23 atribuições disabled convertidas/removidas; sete só na lista branca de controles. UiKit.action_or_hint
 retorna Locked_<nome> com motivo real/ícone/consulta. Saves com chips; obras com um ProjectCount por item,

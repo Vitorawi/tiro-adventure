@@ -1,4 +1,4 @@
-[gd_resource type="Theme" load_steps=29 format=3]
+[gd_resource type="Theme" load_steps=28 format=3]
 
 ; Interface 2: tokens de 01_BIBLIA_VISUAL.md, sem alterar os layouts.
 [ext_resource type="FontVariation" path="res://assets/fonts/main_font.tres" id="main"]
@@ -116,20 +116,6 @@ corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_left = 12
 corner_radius_bottom_right = 12
-
-[sub_resource type="StyleBoxFlat" id="toast"]
-content_margin_left = 16.0
-content_margin_top = 8.0
-content_margin_right = 16.0
-content_margin_bottom = 10.0
-bg_color = Color(1, 1, 1, 1)
-corner_radius_top_left = 20
-corner_radius_top_right = 20
-corner_radius_bottom_left = 20
-corner_radius_bottom_right = 20
-shadow_color = Color(0.43, 0.27, 0.12, 0.13)
-shadow_size = 8
-shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxFlat" id="panel"]
 content_margin_left = 12.0
@@ -318,23 +304,12 @@ BadgeLabel/fonts/font = ExtResource("display")
 BadgeLabel/font_sizes/font_size = 12
 BadgeLabel/colors/font_color = Color(1, 1, 1, 1)
 BadgeLabel/constants/outline_size = 0
-BarLabel/base_type = &"Label"
-BarLabel/fonts/font = ExtResource("body")
-BarLabel/font_sizes/font_size = 15
-BarLabel/colors/font_color = Color(0.22745098, 0.16470588, 0.12156863, 1)
-BarLabel/constants/outline_size = 0
-ToastLabel/base_type = &"Label"
-ToastLabel/fonts/font = ExtResource("body")
-ToastLabel/font_sizes/font_size = 15
-ToastLabel/colors/font_color = Color(0.22745098, 0.16470588, 0.12156863, 1)
-ToastLabel/constants/outline_size = 0
 ChipLabel/base_type = &"Label"
 ChipLabel/fonts/font = ExtResource("display")
 ChipLabel/font_sizes/font_size = 15
 ChipLabel/colors/font_color = Color(0.22745098, 0.16470588, 0.12156863, 1)
 ChipLabel/constants/outline_size = 0
 BadgeLabel/styles/normal = SubResource("badge")
-ToastLabel/styles/normal = SubResource("toast")
 Button/fonts/font = ExtResource("display")
 Button/font_sizes/font_size = 16
 Button/constants/outline_size = 0
@@ -500,8 +475,6 @@ PillPanel/base_type = &"PanelContainer"
 PillPanel/styles/panel = SubResource("pill")
 SheetPanel/base_type = &"PanelContainer"
 SheetPanel/styles/panel = SubResource("sheet")
-TopBarPanel/base_type = &"PanelContainer"
-TopBarPanel/styles/panel = SubResource("empty")
 TabBarPanel/base_type = &"PanelContainer"
 TabBarPanel/styles/panel = SubResource("tabs")
 ProgressBar/styles/background = SubResource("track")

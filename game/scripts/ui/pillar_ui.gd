@@ -108,7 +108,7 @@ static func origins() -> Control:
 			var go: Control = null
 			if rule.has("go"):
 				var target := WishUi.go_target({"go": rule.go})
-				go = UiKit.secondary("Ir", Places.go.bind(target), null, true)
+				go = UiKit.soft("Ir", Places.go.bind(target), null, true)
 				go.name = "OriginGo_" + source
 			var row := UiKit.list_row(UiKit.ui_icon(str(Database.growth.pillars[pillar].icon)), str(rule.label), [], go)
 			row.name = "Origin_" + source

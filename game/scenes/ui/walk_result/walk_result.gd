@@ -44,7 +44,7 @@ func show_result(result: Dictionary) -> void:
 		picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		_put(_center(picture))
 	if bool(result.get("first", false)):
-		var first_label := UiKit.label("Primeira vez!", &"", UiKit.GOOD)
+		var first_label := UiKit.label("Primeira vez!", &"", Palette.GO_INK)
 		first_label.name = "FirstTime"
 		_put(_center(first_label))
 	if rare != "":
@@ -66,7 +66,7 @@ func show_result(result: Dictionary) -> void:
 		column.add_child(_center(UiKit.icon(Database.item_icon(id), 48)))
 		column.add_child(_center(UiKit.label("×%d" % int(items[id]), &"NumberLabel")))
 		if id in fresh:
-			column.add_child(_center(UiKit.label("Novo!", &"SmallLabel", UiKit.GOOD)))
+			column.add_child(_center(UiKit.label("Novo!", &"SmallLabel", Palette.GO_INK)))
 		cell.add_child(column)
 		found.add_child(cell)
 	var chips := UiKit.flow()
@@ -74,7 +74,7 @@ func show_result(result: Dictionary) -> void:
 		chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(result.coins), null, "prize"))
 	var needs: Dictionary = result.get("needs", {})
 	for need_id: String in needs:
-		chips.add_child(UiKit.chip(Database.need_icon(need_id), "%+d" % int(needs[need_id]), UiKit.GOOD if float(needs[need_id]) > 0 else UiKit.BAD))
+		chips.add_child(UiKit.chip(Database.need_icon(need_id), "%+d" % int(needs[need_id]), Palette.GO_INK if float(needs[need_id]) > 0 else Palette.ALERT_INK))
 	if bool(result.get("rare_duplicate", false)):
 		var duplicate_name := str(Database.collections.get(str(result.get("rare_item", "")), {}).get("name", "apetrecho"))
 		var consolation := _text("Você já tem o %s!" % duplicate_name, &"SmallLabel")
@@ -89,7 +89,7 @@ func show_result(result: Dictionary) -> void:
 		clothes = clothes.duplicate()
 		clothes.append(rare)
 	for id: String in clothes:
-		var dress := UiKit.secondary("Vestir agora · " + Database.item_name(id), func() -> void:
+		var dress := UiKit.soft("Vestir agora · " + Database.item_name(id), func() -> void:
 			var error := GameState.equip(id)
 			if error != "":
 				Events.toast_requested.emit(error)
@@ -203,4 +203,4 @@ func _rare_banner(card: ModalCard, rare: String) -> void:
 	title.name = "RareTitle"
 	card.add(_center(title))
 	card.add_text(str(data.get("name", rare)), &"StrongLabel")
-	card.add_text("Guardado na Coleção", &"SmallLabel", UiKit.GOOD)
+	card.add_text("Guardado na Coleção", &"SmallLabel", Palette.GO_INK)

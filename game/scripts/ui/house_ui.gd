@@ -36,7 +36,7 @@ static func bed() -> Control:
 	var next := "bed_luxe" if GameState.has_upgrade("bed_soft") else "bed_soft"
 	if not GameState.has_upgrade(next):
 		# A compra fica em outro painel para manter uma ação principal por vez.
-		box.add_child(UiKit.secondary(str(Database.progression.upgrades[next].name), func() -> void:
+		box.add_child(UiKit.soft(str(Database.progression.upgrades[next].name), func() -> void:
 			Events.sheet_requested.emit(str(Database.progression.upgrades[next].name), ProgressionUi.purchase(next))))
 	return box
 
@@ -53,7 +53,7 @@ static func shelf() -> Control:
 		var action: Control = null
 		var tap := Callable()
 		if photo != "" and GameState.album.has_photo(photo):
-			action = UiKit.secondary("Ver foto", AlbumView.open_photo.bind(photo), null, true)
+			action = UiKit.soft("Ver foto", AlbumView.open_photo.bind(photo), null, true)
 			action.name = "ShelfPhoto_" + id
 			tap = AlbumView.open_photo.bind(photo)
 		var no_chips: Array[Control] = []
@@ -147,7 +147,7 @@ static func frame() -> Control:
 		grid.add_child(button)
 	box.add_child(grid)
 	if GameState.album.main_photo != "":
-		box.add_child(UiKit.secondary("Tirar a foto", _set_main.bind("")))
+		box.add_child(UiKit.soft("Tirar a foto", _set_main.bind("")))
 	return box
 
 
@@ -168,7 +168,7 @@ static func toys() -> Control:
 		var inside: bool = GameState.progress.house.toys.has(item)
 		var action: Control = null
 		if not inside and GameState.inventory.count(item) > 0:
-			action = UiKit.secondary("Dar", _give.bind(item), null, true)
+			action = UiKit.soft("Dar", _give.bind(item), null, true)
 			action.name = "GiveToy_" + item
 		var chips: Array[Control] = []
 		if inside:

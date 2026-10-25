@@ -71,8 +71,8 @@ func _palette() -> void:
 	for id: String in ["house", "farm", "park", "village", "nature"]:
 		check(Palette.WORLD.has(id), "Paleta: cor do mundo " + id)
 	var ui_kit: Script = load("res://scripts/ui/ui_kit.gd")
-	check(ui_kit.get_script_constant_map().get("GOOD") == Palette.GO_INK, "UiKit.GOOD aponta para Palette.GO_INK")
-	check(ui_kit.get_script_constant_map().get("BAD") == Palette.ALERT_INK, "UiKit.BAD aponta para Palette.ALERT_INK")
+	check(not ui_kit.get_script_constant_map().has("GOOD"), "Apelido GOOD removido")
+	check(not ui_kit.get_script_constant_map().has("BAD"), "Apelido BAD removido")
 
 
 func _icon_exists(icon: String) -> bool:

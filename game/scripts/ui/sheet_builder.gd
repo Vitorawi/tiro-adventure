@@ -31,7 +31,7 @@ static func food_picker() -> Control:
 			var wished := GameState.wish_wants_item(id)
 			var chips: Array[Control] = []
 			if wished:
-				chips.append(UiKit.chip(UiKit.ui_icon("heart"), "Ele quer!", UiKit.GOOD))
+				chips.append(UiKit.chip(UiKit.ui_icon("heart"), "Ele quer!", Palette.GO_INK))
 			chips.append_array(UiKit.effect_chip_list(Database.items[id]["feed"]))
 			var on_give := func() -> void:
 				var error := give_food(id)
@@ -43,7 +43,7 @@ static func food_picker() -> Control:
 			# Só a comida que o Tiro quer ("Ele quer!") é o botão principal; as outras são secundárias.
 			var wanted := wished and not primary_used
 			primary_used = primary_used or wanted
-			var give := UiKit.primary("Dar", on_give) if wanted else UiKit.secondary("Dar", on_give, null, true)
+			var give := UiKit.primary("Dar", on_give) if wanted else UiKit.soft("Dar", on_give, null, true)
 			give.custom_minimum_size = Vector2(76, 52 if wanted else 44)
 			box.add_child(UiKit.list_row(Database.item_icon(id), "%s ×%d" % [Database.item_name(id), GameState.inventory.count(id)], chips, give))
 		if not any:
@@ -372,7 +372,7 @@ static func _locked_slot(upgrade_id: String) -> Control:
 	var ready := GameState.upgrade_error(upgrade_id) == ""
 	var cost := int(data.cost)
 	var dot := UiKit.slot_dot(SlotDot.BUY, null, 1.0 if ready else 0.0, "Grátis" if cost <= 0 else str(cost),
-			UiKit.GOOD if GameState.coins >= cost else UiKit.BAD, UiKit.ui_icon("coin") if cost > 0 else null)
+			Palette.GO_INK if GameState.coins >= cost else Palette.ALERT_INK, UiKit.ui_icon("coin") if cost > 0 else null)
 	dot.name = "LockedSlot_" + upgrade_id
 	if not ready:
 		dot.modulate.a = 0.75
@@ -387,7 +387,7 @@ static func _locked_slot(upgrade_id: String) -> Control:
 ## `text` é a legenda (tempo, "Na fila", "Pronto!").
 static func slot_frame(texture: Texture2D, text: String, progress: float, done: bool, empty: bool, queued: bool = false) -> Control:
 	var state := SlotDot.EMPTY if empty else (SlotDot.READY if done else (SlotDot.QUEUED if queued else SlotDot.BUSY))
-	return UiKit.slot_dot(state, texture, progress, text, UiKit.GOOD if done else null)
+	return UiKit.slot_dot(state, texture, progress, text, Palette.GO_INK if done else null)
 
 
 ## Fileira de bolinhas (quebra para a linha de baixo se não couber).
@@ -493,14 +493,14 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 		var label: String = Database.stations.get(recipe.station, {}).get("action_label", "Fazer")
 		if recipe.has("output_collection") and GameState.cook_error(recipe_id) in ["Você já tem", "Já está sendo costurado"]:
 			label = GameState.cook_error(recipe_id)
-		action = UiKit.secondary("Fila cheia" if station_full and has_all else label, func() -> void:
+		action = UiKit.soft("Fila cheia" if station_full and has_all else label, func() -> void:
 			var error := GameState.cook(recipe_id)
 			if error != "":
 				Events.toast_requested.emit(error), null, true)
+		action.custom_minimum_size.x = 88
 		if GameState.cook_error(recipe_id) != "":
 			action.free()
 			action = null
-		action.custom_minimum_size.x = 88
 	var row := UiKit.list_row(Database.item_icon(output), Database.item_name(output) + (" ×%d" % qty if qty > 1 else ""), chips, action)
 	parent.add_child(row)
 	if locked != "":
@@ -573,9 +573,9 @@ static func _animal_missing(body: VBoxContainer, animal: Dictionary, error: Stri
 	for item_id: String in produced:
 		var done := GameState.progress.stat("produce:" + item_id)
 		if done < int(produced[item_id]):
-			chips.add_child(UiKit.chip(Database.item_icon(item_id), "%d/%d" % [done, int(produced[item_id])], UiKit.BAD))
+			chips.add_child(UiKit.chip(Database.item_icon(item_id), "%d/%d" % [done, int(produced[item_id])], Palette.ALERT_INK))
 	if GameState.coins < int(animal.price):
-		chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [GameState.coins, int(animal.price)], UiKit.BAD))
+		chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [GameState.coins, int(animal.price)], Palette.ALERT_INK))
 	if chips.get_child_count() > 0:
 		body.add_child(chips)
 	else:
@@ -604,10 +604,10 @@ static func seed_picker(plot_index: int, focus: String = "") -> Control:
 				chips.append(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(crop.get("coins", 0))))
 			var harvest: Dictionary = crop.get("yield", {})
 			for item_id: String in harvest:
-				chips.append(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), UiKit.GOOD))
+				chips.append(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), Palette.GO_INK))
 			var plant: Button = null
 			if locked == "":
-				plant = UiKit.secondary("Plantar", func() -> void:
+				plant = UiKit.soft("Plantar", func() -> void:
 					var error := GameState.plant(plot_index, crop_id)
 					if error != "":
 						Events.toast_requested.emit(error)
@@ -641,7 +641,7 @@ static func farm_view(focus: String = "", greenhouse_only: bool = false) -> Cont
 			ProgressionUi.upgrade_card(box, "farm")
 		var land := UiKit.hbox(8)
 		land.add_child(UiKit.icon(UiKit.ui_icon("tab_farm"), 32))
-		var bar := UiKit.bar(100.0 * GameState.accessible_plots() / total, UiKit.GOOD, 12)
+		var bar := UiKit.bar(100.0 * GameState.accessible_plots() / total, Palette.GO_INK, 12)
 		bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		land.add_child(bar)
 		land.add_child(UiKit.short_label("%d/%d" % [GameState.accessible_plots(), total]))
@@ -690,12 +690,12 @@ static func plot_purchase(index: int) -> Control:
 		var cost := GameState.plot_cost(index)
 		var available := index == GameState.unlocked_plots
 		if index < GameState.unlocked_plots:
-			box.add_child(UiKit.label("Este terreno já é seu!", &"", UiKit.GOOD))
+			box.add_child(UiKit.label("Este terreno já é seu!", &"", Palette.GO_INK))
 			return
 		var row := UiKit.hbox(8)
 		row.add_child(UiKit.icon(UiKit.ui_icon("tab_farm"), 48))
 		row.add_child(UiKit.fill_label("Terreno %d" % (index + 1), &"StrongLabel"))
-		row.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [mini(GameState.coins, cost), cost], UiKit.GOOD if GameState.coins >= cost else UiKit.BAD))
+		row.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [mini(GameState.coins, cost), cost], Palette.GO_INK if GameState.coins >= cost else Palette.ALERT_INK))
 		box.add_child(row)
 		# Consulta das mesmas condições/textos de buy_plot; nunca chama a ação para obter o erro.
 		var reason := ""
@@ -732,11 +732,11 @@ static func growing_plot(index: int) -> Control:
 		var info := UiKit.vbox(6)
 		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		var line := UiKit.hbox(6)
-		var bar := UiKit.bar(GameState.plot_progress(index) * 100, UiKit.GOOD, 14)
+		var bar := UiKit.bar(GameState.plot_progress(index) * 100, Palette.GO_INK, 14)
 		bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		line.add_child(bar)
 		var remaining := maxi(0, int(ceil(float(target["ready_at"]) - GameState.now())))
-		line.add_child(UiKit.short_label("Pronta!" if ready else format_time(remaining), &"", UiKit.GOOD if ready else null))
+		line.add_child(UiKit.short_label("Pronta!" if ready else format_time(remaining), &"", Palette.GO_INK if ready else null))
 		info.add_child(line)
 		var reward := int(GameState.plot_job(index).get("coins", 0))  # o que valia ao plantar
 		var gains := UiKit.flow(4)
@@ -744,7 +744,7 @@ static func growing_plot(index: int) -> Control:
 			gains.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % reward))
 		var harvest: Dictionary = Database.crops[crop_id].get("yield", {})
 		for item_id: String in harvest:
-			gains.add_child(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), UiKit.GOOD))
+			gains.add_child(UiKit.chip(Database.item_icon(item_id), "+%d" % int(harvest[item_id]), Palette.GO_INK))
 		info.add_child(gains)
 		top.add_child(info)
 		box.add_child(top)

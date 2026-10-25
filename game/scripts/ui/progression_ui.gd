@@ -253,11 +253,11 @@ static func routes_panel(place: String, focus: String = "") -> Control:
 				continue
 			var chips: Array[Control] = [UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(data.seconds)))]
 			for item: String in data.rewards.get("items", {}):
-				chips.append(UiKit.chip(Database.item_icon(item), "+%d" % int(data.rewards.items[item]), UiKit.GOOD))
+				chips.append(UiKit.chip(Database.item_icon(item), "+%d" % int(data.rewards.items[item]), Palette.GO_INK))
 			if int(data.rewards.get("coins", 0)) > 0:
-				chips.append(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(data.rewards.coins), UiKit.GOOD))
+				chips.append(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(data.rewards.coins), Palette.GO_INK))
 			var reason := GameState.activity_error(id)
-			var go := UiKit.secondary("Começar", func() -> void:
+			var go := UiKit.soft("Começar", func() -> void:
 				var error := GameState.start_activity(id)
 				if error != "":
 					Events.toast_requested.emit(error), null, true)
@@ -364,7 +364,7 @@ static func _walk_slot() -> Control:
 ## O Tiro já voltou: a bagagem espera. Guardar o que cabe é uma ação à parte; o que sobra continua aqui.
 static func _baggage_slot(strip: HBoxContainer) -> Control:
 	var view := GameState.walk_result_view()
-	var dot := UiKit.slot_dot(SlotDot.READY, UiKit.ui_icon("action_walk"), 1.0, "Voltou!", UiKit.GOOD)
+	var dot := UiKit.slot_dot(SlotDot.READY, UiKit.ui_icon("action_walk"), 1.0, "Voltou!", Palette.GO_INK)
 	dot.name = "WalkSlot"
 	strip.add_child(dot)
 	var info := UiKit.vbox(6)
@@ -397,7 +397,7 @@ static func _baggage_slot(strip: HBoxContainer) -> Control:
 		var depot := GameState.walk_baggage_depot()
 		if depot != "":
 			var data: Dictionary = Database.progression.storage[depot]
-			var go := UiKit.secondary("Abrir " + GameState.storage_name(depot), func() -> void:
+			var go := UiKit.soft("Abrir " + GameState.storage_name(depot), func() -> void:
 				Events.sheet_close_requested.emit()
 				Events.world_requested.emit(str(data.get("world", "house")), str(data.get("place", ""))), null, true)
 			go.name = "GoDepot"
@@ -491,7 +491,7 @@ static func walk_exclusives(id: String, px: int) -> Control:
 			_silhouette(picture)
 		cell.add_child(picture)
 		if own:
-			cell.add_child(UiKit.label("✓", &"SmallLabel", UiKit.GOOD))
+			cell.add_child(UiKit.label("✓", &"SmallLabel", Palette.GO_INK))
 		row.add_child(cell)
 	return row
 
@@ -545,7 +545,7 @@ static func walk_diary() -> Control:
 			body.add_child(walk_exclusives(id, 32))
 			if rare != "":
 				var left := GameState.walk_pity_left(id)
-				var note := UiKit.label("Raro encontrado ✓" if found else "Raro garantido em até %d passeios" % left, &"SmallLabel", UiKit.GOOD if found else null)
+				var note := UiKit.label("Raro encontrado ✓" if found else "Raro garantido em até %d passeios" % left, &"SmallLabel", Palette.GO_INK if found else null)
 				note.name = "Pity"
 				body.add_child(note)))
 
@@ -765,15 +765,15 @@ static func _clothing_source(id: String) -> Control:
 	var source := str(data.get("source", ""))
 	if source.begins_with("walk:") or source.begins_with("legendary:"):
 		box.add_child(UiKit.label("Lendário de passeio" if source.begins_with("legendary:") else "Raro de passeio: " + str(GameState.walk_def(source.trim_prefix("walk:")).get("name", "")), &"SmallLabel"))
-		box.add_child(UiKit.secondary("Ir", Places.go.bind({"world": "park", "place": "walk"}), null, true))
+		box.add_child(UiKit.soft("Ir", Places.go.bind({"world": "park", "place": "walk"}), null, true))
 	elif source.begins_with("friend:"):
 		var friend_id := source.trim_prefix("friend:")
 		box.add_child(UiKit.label(str(GameState.friend_def(friend_id).name) + " ♥3", &"SmallLabel"))
-		box.add_child(UiKit.secondary("Ir", Places.go.bind({"world": "park", "place": "friend:" + friend_id}), null, true))
+		box.add_child(UiKit.soft("Ir", Places.go.bind({"world": "park", "place": "friend:" + friend_id}), null, true))
 	elif data.has("recipe"):
-		box.add_child(UiKit.secondary("Costura", Places.go.bind({"world": "park", "place": "sewing"}), null, true))
+		box.add_child(UiKit.soft("Costura", Places.go.bind({"world": "park", "place": "sewing"}), null, true))
 	elif data.get("shop", "") == "petshop":
-		box.add_child(UiKit.secondary("Pet shop", Places.go.bind({"world": "park", "place": "petshop"}), null, true))
+		box.add_child(UiKit.soft("Pet shop", Places.go.bind({"world": "park", "place": "petshop"}), null, true))
 	return box
 
 
@@ -818,7 +818,7 @@ static func _action(box: VBoxContainer, text: String, action: Callable, reason: 
 		var error: String = action.call()
 		if error != "" or done != "":
 			Events.toast_requested.emit(error if error != "" else done)
-	var button := UiKit.primary(text, on_press) if primary else UiKit.secondary(text, on_press, null, true)
+	var button := UiKit.primary(text, on_press) if primary else UiKit.soft(text, on_press, null, true)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var row := UiKit.hbox(8)
 	row.add_child(button)
@@ -947,7 +947,7 @@ static func routine_card(box: VBoxContainer, kind: String, id: String, primary: 
 	var action := func() -> void:
 		if ready: claim_routine_rows(box, [{"kind": kind, "id": id}])
 		else: Places.go(Places.goal_target({"type": "stat", "key": goal.key}))
-	var button := UiKit.primary("Pegar", action) if ready and primary else UiKit.secondary("Pegar" if ready else "Ir", action, null, true)
+	var button := UiKit.primary("Pegar", action) if ready and primary else UiKit.soft("Pegar" if ready else "Ir", action, null, true)
 	button.custom_minimum_size = Vector2(60, 44)
 	var action_column := UiKit.vbox(0)
 	action_column.add_child(button)
@@ -1093,10 +1093,10 @@ static func goal_row(goal: Dictionary, value: int, px: int = 32) -> HBoxContaine
 	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	info.add_child(UiKit.label(goal.get("label", ""), &"SmallLabel"))
 	var progress := UiKit.hbox(8)
-	var bar := UiKit.bar(100.0 * mini(value, target) / maxi(1, target), UiKit.GOOD, 12)
+	var bar := UiKit.bar(100.0 * mini(value, target) / maxi(1, target), Palette.GO_INK, 12)
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	progress.add_child(bar)
-	progress.add_child(UiKit.short_label("%d/%d" % [mini(value, target), target], &"", UiKit.GOOD if value >= target else null))
+	progress.add_child(UiKit.short_label("%d/%d" % [mini(value, target), target], &"", Palette.GO_INK if value >= target else null))
 	info.add_child(progress)
 	row.add_child(info)
 	return row
@@ -1140,4 +1140,4 @@ static func reward_chips(rewards: Dictionary) -> HFlowContainer:
 ## Ingrediente: ícone + tem/precisa (verde/vermelho); tocar mostra de onde vem.
 static func item_chip(id: String, need: int, semantic: bool = false) -> Button:
 	var have := GameState.inventory.count(id)
-	return UiKit.tap_chip(Database.item_icon(id), "%d/%d" % [have, need], TaskHelp.open.bind("item", id, need), UiKit.GOOD if have >= need else UiKit.BAD, ("have" if have >= need else "missing") if semantic else "")
+	return UiKit.tap_chip(Database.item_icon(id), "%d/%d" % [have, need], TaskHelp.open.bind("item", id, need), Palette.GO_INK if have >= need else Palette.ALERT_INK, ("have" if have >= need else "missing") if semantic else "")

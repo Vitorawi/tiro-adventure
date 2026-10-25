@@ -232,3 +232,35 @@ static func float_text(parent: Node, pos: Vector2, text: String, color: Color) -
 	tween.tween_property(label, "modulate:a", 0.0, FLOAT).set_delay(FLOAT * 0.4)
 	tween.chain().tween_callback(label.queue_free)
 	return tween
+
+
+## Entrada escalonada dos prêmios, compartilhada pelas folhas e cartões.
+const REWARD_START := 0.28
+const REWARD_GAP := 0.08
+
+
+static func reveal_rewards(container: Container, animate: bool = true) -> void:
+	if Motion.reduced or not animate:
+		return
+	var index := 0
+	for child: Node in container.get_children():
+		var item := child as Control
+		if item == null:
+			continue
+		item.modulate.a = 0.0
+		var tween := item.create_tween()
+		tween.tween_interval(REWARD_START + index * REWARD_GAP)
+		tween.tween_callback(_show_reward.bind(item.get_instance_id()))
+		index += 1
+
+
+static func _show_reward(item_id: int) -> void:
+	var item := instance_from_id(item_id) as Control
+	if not is_instance_valid(item) or not item.is_inside_tree():
+		return
+	Motion.pop_in(item)
+	for label: Node in item.find_children("*", "Label", true, false):
+		var text := (label as Label).text
+		for prefix: String in ["+", "×"]:
+			if text.begins_with(prefix) and text.substr(prefix.length()).is_valid_int():
+				Motion.count_up(label as Label, 0, text.substr(prefix.length()).to_int(), prefix + "%d")

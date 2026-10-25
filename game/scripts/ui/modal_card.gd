@@ -17,8 +17,6 @@ const INNER := 292  # largura útil do corpo (cartão 320 − margens 14)
 const RAYS_PATH := "res://assets/sprites/ui/fx/rays.png"
 const RAYS_PX := 128
 const RAYS_DEGREES_PER_SECOND := 20.0
-const REVEAL_START := 0.28  # primeiro chip entra depois do cartão
-const REVEAL_GAP := 0.08  # entre um chip e o próximo
 const CONFETTI_COUNT := 40
 
 static var _confetti_texture: ImageTexture
@@ -305,29 +303,7 @@ func add_ghost(text: String, on_pressed: Callable) -> Button:
 ## Os filhos de `container` entram um por um (pop_in, 80 ms entre eles); "+N" e "×N" contam de 0.
 ## Com Motion.reduced ficam visíveis e com o número final na hora.
 func reveal(container: Container) -> void:
-	if Motion.reduced or not _animate:
-		return
-	var index := 0
-	for child: Node in container.get_children():
-		var item := child as Control
-		if item == null:
-			continue
-		item.modulate.a = 0.0
-		var tween := item.create_tween()
-		tween.tween_interval(REVEAL_START + index * REVEAL_GAP)
-		tween.tween_callback(_show_item.bind(item))
-		index += 1
-
-
-func _show_item(item: Control) -> void:
-	if not is_instance_valid(item) or not item.is_inside_tree():
-		return
-	Motion.pop_in(item)
-	for label: Node in item.find_children("*", "Label", true, false):
-		var text := (label as Label).text
-		for prefix: String in ["+", "×"]:
-			if text.begins_with(prefix) and text.substr(prefix.length()).is_valid_int():
-				Motion.count_up(label as Label, 0, text.substr(prefix.length()).to_int(), prefix + "%d")
+	Motion.reveal_rewards(container, _animate)
 
 
 func _centered(control: Control) -> Control:

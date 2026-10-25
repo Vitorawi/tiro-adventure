@@ -83,8 +83,8 @@ func _kit() -> void:
 	var owned: Array[Node] = []
 	var noop := func() -> void: pass
 	check((_own(owned, ui_kit.call("primary", "a", noop)) as Button).theme_type_variation == &"PrimaryButton", "UiKit.primary")
-	check((_own(owned, ui_kit.call("secondary", "a", noop)) as Button).theme_type_variation == &"SecondaryButton", "UiKit.secondary")
-	check((_own(owned, ui_kit.call("secondary", "a", noop, null, true)) as Button).custom_minimum_size.y == 44, "secondary pequeno tem altura 44")
+	check((_own(owned, ui_kit.call("soft", "a", noop)) as Button).theme_type_variation == &"SecondaryButton", "UiKit.soft")
+	check((_own(owned, ui_kit.call("soft", "a", noop, null, true)) as Button).custom_minimum_size.y == 44, "soft pequeno tem altura 44")
 	check((_own(owned, ui_kit.call("ghost", "a", noop)) as Button).theme_type_variation == &"GhostButton", "UiKit.ghost")
 	var help: Button = ui_kit.call("square_button", "?", noop)
 	check(help.theme_type_variation == &"IconButton" and help.text == "" and help.icon == ui_kit.call("ctl_icon", "help"), "square_button devolve um icon_button com ajuda vetorial")

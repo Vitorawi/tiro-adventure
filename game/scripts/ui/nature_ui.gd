@@ -213,7 +213,7 @@ static func _material(parent: VBoxContainer, site: String, item: String, route_i
 	var chips: Array[Control] = [UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(route.seconds)))]
 	for bonus: String in route.rewards.get("items", {}):
 		if bonus != primary:
-			chips.append(UiKit.chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), UiKit.GOOD))
+			chips.append(UiKit.chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), Palette.GO_INK))
 	chips.append(UiKit.chip(UiKit.ui_icon("xp"), "+%d XP" % route_xp(route_id)))
 	var level := route_level(route_id)
 	var locked := GameState.progress.nature_level(site) < level

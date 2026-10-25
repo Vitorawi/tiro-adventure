@@ -132,7 +132,7 @@ static func _customers_summary(box: VBoxContainer) -> void:
 	var card := UiKit.hbox(6)
 	card.name = "CustomerSummary"
 	for customer in seen:
-		var button := UiKit.secondary("Nv. %d" % GameState.progress.customer_level(customer), func() -> void:
+		var button := UiKit.soft("Nv. %d" % GameState.progress.customer_level(customer), func() -> void:
 			Events.sheet_requested.emit(str(Database.npcs[customer].name), _customer_info(customer)), ProgressionUi.npc_portrait(customer), true)
 		button.name = "Customer_" + customer
 		button.expand_icon = true
@@ -145,7 +145,7 @@ static func _customers_summary(box: VBoxContainer) -> void:
 		content.add_child(UiKit.label("Sem prazo. Pedidos com ! ajudam uma missão."))
 		for customer in seen: content.add_child(customer_row(customer))
 		_next_order(content, "neighbors")
-		content.add_child(UiKit.secondary("Voltar às encomendas", func() -> void: Events.sheet_requested.emit("Encomendas", orders())))
+		content.add_child(UiKit.soft("Voltar às encomendas", func() -> void: Events.sheet_requested.emit("Encomendas", orders())))
 		Events.sheet_requested.emit("Sobre as encomendas", content), 40)
 	help.name = "OrdersHelp"
 	card.add_child(help)
@@ -154,7 +154,7 @@ static func _customers_summary(box: VBoxContainer) -> void:
 static func _customer_info(customer: String) -> Control:
 	var box := UiKit.vbox(8)
 	box.add_child(customer_row(customer))
-	box.add_child(UiKit.secondary("Voltar às encomendas", func() -> void: Events.sheet_requested.emit("Encomendas", orders())))
+	box.add_child(UiKit.soft("Voltar às encomendas", func() -> void: Events.sheet_requested.emit("Encomendas", orders())))
 	return box
 
 static func _page(box: VBoxContainer, model: Dictionary, total: int, count: int) -> void:
@@ -294,7 +294,7 @@ static func _stall_header(box: VBoxContainer) -> void:
 		if goal > 0:
 			box.add_child(UiKit.label("Próxima ampliação: %d/%d contratos · %d/%d tipos" % [mini(GameState.progress.stat("contracts"), goal), goal, mini(GameState.progress.distinct_orders("contracts"), int(need.get("distinct_orders", {}).get("contracts", 0))), int(need.get("distinct_orders", {}).get("contracts", 0))], &"SmallLabel"))
 		var upgrade := "stall" if level == 0 else "stall_%d" % (level + 1)
-		var button := UiKit.secondary("Montar banca" if level == 0 else "Ampliar banca", func() -> void:
+		var button := UiKit.soft("Montar banca" if level == 0 else "Ampliar banca", func() -> void:
 			Events.sheet_requested.emit(str(Database.progression.upgrades[upgrade].name), ProgressionUi.purchase(upgrade)), UiKit.ui_icon("station_stall"), true)
 		button.name = "UpgradeStall"
 		box.add_child(button)

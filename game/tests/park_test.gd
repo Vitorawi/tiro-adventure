@@ -243,7 +243,15 @@ func _room_checks() -> void:
 	await process_frame
 	check(panel.find_child("WalkSlot", true, false) != null, "espaço do passeio")
 	check(panel.find_child("CollectWalk", true, false) != null, "botão Recolher")
-	check(panel.find_child("StartWalk_park_loop", true, false) != null, "cartão do passeio")
+	check(panel.find_child("WalkCard_park_loop", true, false) != null, "cartão do passeio")
+	var walk_error: String = state.call("walk_error", "park_loop")
+	var start := panel.find_child("StartWalk_park_loop", true, false)
+	if walk_error == "":
+		check(start is Button, "passeio disponível tem ação de iniciar")
+	else:
+		var locked := panel.find_child("Locked_StartWalk_park_loop", true, false)
+		check(start == null and locked != null and str(locked.get_meta("reason", "")) == walk_error,
+			"bagagem pendente troca a ação pelo motivo real consultável")
 	panel.queue_free()
 	var results: Array = []
 	var events: Node = root.get_node("Events")

@@ -527,3 +527,5 @@ preservado. FoodHelpButton sai durante recarga; FoodHelpTimer permanece. `TrickA
 nomeiam controles da lista branca. `ui_style_test._disabled_text` percorre folhas/bandejas/prêmios e
 usa lista branca fechada por nome; --aj-11-only no tour. Inventário e provas em
 `docs/plans/interface2_ajustes/VALIDACAO_11.md`. Próxima 12; sem regra/save/falas, push ou publicação.
+
+**Interface 2 — ajustes, etapa 12 (25/10/2026): plano de ajustes concluído localmente.** `UiKit.GOOD/BAD/secondary` não existem mais (use `Palette.GO_INK/ALERT_INK` e `UiKit.soft`); variações de tema `TopBarPanel`/`BarLabel`/`ToastLabel` removidas; entrada dos prêmios em `Motion.reveal_rewards(container, animate)` (`ModalCard.reveal`/`RewardSheet.reveal_in` são fachadas). Peças dos ajustes: `UiKit.stepper(..., max_label)` com `QuantityMax`, `UiKit.action_or_hint` (`Locked_<nome>`), blocos `ui_tour.gd -- --aj-NN-only`, variações de tema da 06 (`PhotoRibbonLabel`, `PhotoCaptionLabel`, `PhotoDateLabel`, `WorldBadgeLabel`, `FloatLabel`), meta `sheet_actions` da folha, regra de lista branca do `ui_style_test`. Registro em `docs/plans/interface2_ajustes/README.md` e `RESULTADOS.md`.

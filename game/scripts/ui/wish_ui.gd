@@ -51,7 +51,7 @@ static func balloon_card() -> Control:
 		take.name = "WishTake"
 		card.add_child(take)
 	elif needs_trip(def):
-		var go := UiKit.secondary("Ir", func() -> void: Places.go(go_target(def)), null, true)
+		var go := UiKit.soft("Ir", func() -> void: Places.go(go_target(def)), null, true)
 		go.name = "WishGo"
 		card.add_child(go)
 	return card

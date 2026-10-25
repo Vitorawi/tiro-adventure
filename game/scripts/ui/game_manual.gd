@@ -238,7 +238,7 @@ static func _timer(box: VBoxContainer, seconds: int) -> void:
 static func _requirements(box: VBoxContainer, data: Dictionary) -> void:
 	var error := GameState.requirement_error(data.get("requirements", {}))
 	if error != "":
-		box.add_child(UiKit.label("Falta: " + error, &"", UiKit.BAD))
+		box.add_child(UiKit.label("Falta: " + error, &"", Palette.ALERT_INK))
 
 
 static func _focused(panel_id: String, focus: String = "") -> Dictionary:

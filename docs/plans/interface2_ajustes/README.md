@@ -6,7 +6,7 @@
 > mesmo estilo do plano Interface 2". Depois, **aprovou os 35 itens como o revisor sugeriu, inclusive as
 > decisões**. Nenhuma decisão fica pendente.
 
-**Estado:** etapas 01–11 concluídas. **Próxima: etapa 12.**
+**Estado:** etapas 01–12 concluídas — **PLANO CONCLUÍDO LOCALMENTE** (sem push/publicação).
 
 ## A ideia em uma linha
 
@@ -78,7 +78,7 @@ flowchart TD
 | [x] | [09](etapas/ETAPA_09_PAINEIS_MUNDO.md) | 10, 13, 14, 34 | Como fazer com peças novas; Lugares em `list_card`; conversa sem repetições; compra bloqueada nítida | grande |
 | [x] | [10](etapas/ETAPA_10_HIERARQUIA.md) | 6, 27, 28 | `SectionLabel` revisada (nomes em 18); passeios e Feira; regra nova no `ui_style_test`; **portão** | grande |
 | [x] | [11](etapas/ETAPA_11_BLOQUEIOS_VERMELHO.md) | 12, 20 | nenhum botão cinza com texto em folha/bandeja; obras e encomendas com um chip e uma barra | grande |
-| [ ] | [12](etapas/ETAPA_12_LIMPEZA_FECHAMENTO.md) | 32 | limpeza de apelidos e tema; **portão**, tour completo nas 3 resoluções, toque real, desempenho, docs | médio |
+| [x] | [12](etapas/ETAPA_12_LIMPEZA_FECHAMENTO.md) | 32 | limpeza de apelidos e tema; **portão**, tour completo nas 3 resoluções, toque real, desempenho, docs | médio |
 
 Cobertura: 17, 33 · 1, 2, 3, 5, 18, 21 · 4, 23 · 7, 8, 9, 26 · 15, 19, 30 · 22, 24, 25, 29 · 16, 31 ·
 35, 11 · 10, 13, 14, 34 · 6, 27, 28 · 12, 20 · 32 = **35 itens**, cada um em exatamente uma etapa.
@@ -609,3 +609,15 @@ update_finds/update_wishes e Tudo na borda direita. Buscar Locked_Material_* (n�
 Playing_*/DefaultState_* e FoodHelpTimer na recarga. Portão final deve incluir as fixtures adaptadas
 de pet_care/walk_return_ui. AGENTS/CLAUDE idênticos byte a byte; python_libs fora do commit.
 Etapa 12 não executada. Sem push/publicação.
+
+**Etapa 12 (25/10/2026, Codex + Claude Sonnet 5.5): PLANO DE AJUSTES CONCLUÍDO LOCALMENTE.** Limpeza (item 32):
+`UiKit.GOOD/BAD/secondary` apagados (chamadores em `Palette.GO_INK/ALERT_INK` e `UiKit.soft`), variações mortas
+`TopBarPanel`/`BarLabel`/`ToastLabel` removidas do tema (`SoftButton` já não existia), `reveal` único em
+`Motion.reveal_rewards` (`ModalCard.reveal`/`RewardSheet.reveal_in` viraram fachadas). Lista fechada 10/10 PASS (144 s).
+Portão: 102 testes, 99 PASS + 3 intermitentes sob carga (pet_care, manual, gestures; `build/test_logs/r20261025_173340_449db815`)
+que passaram isolados e em reexecução via `test.ps1 -Jobs 3` (`r20261025_174537_16684557`, 4/4 com sheet_test); a primeira
+passada do Codex (`r20261025_171506_4aa26fab`) falhava por bug real em `_recipe_card` (`custom_minimum_size` após `free()`),
+corrigido, mais `park_test` adaptado ao `Locked_StartWalk_*`. Toque real PASS inteiro (fogão e horta);
+Sítio 17,5 ms média (base 28,4), folha 17,4 ms/pico 83, roleta 17,3 ms/pico 67, 11 quadros >33 ms no Sítio (tique de 1 s,
+pendência herdada). Tour `aj_12_tour`, `_390`, `_412` com 114 PNGs; pranchas e checklist em RESULTADOS.md; roteiro do
+celular escrito. Sem push, sem publicação, sem regra/save/fala alterados.

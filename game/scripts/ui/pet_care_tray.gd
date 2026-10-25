@@ -556,7 +556,7 @@ func open_play_choice() -> void:
 	var choose := func(action: Callable) -> void:
 		if not holder.is_empty() and is_instance_valid(holder[0]): holder[0].close()
 		action.call()
-	var ball := UiKit.secondary("Bola", choose.bind(func() -> void: _act("ball")), UiKit.ui_icon("action_play"))
+	var ball := UiKit.soft("Bola", choose.bind(func() -> void: _act("ball")), UiKit.ui_icon("action_play"))
 	ball.name = "PlayBall"
 	box.add_child(ball)
 	var treats := GameState.hide_treats()
@@ -566,7 +566,7 @@ func open_play_choice() -> void:
 		box.add_child(hint)
 	else:
 		var treat: String = treats[0]
-		var cups := UiKit.secondary("Copinhos", choose.bind(func() -> void: start_hide_and_seek(treat)), Database.item_icon(treat))
+		var cups := UiKit.soft("Copinhos", choose.bind(func() -> void: start_hide_and_seek(treat)), Database.item_icon(treat))
 		cups.name = "PlayCups"
 		box.add_child(cups)
 	holder.append(Popover.open(pet_screen, _items["ball"], box, 0.0))

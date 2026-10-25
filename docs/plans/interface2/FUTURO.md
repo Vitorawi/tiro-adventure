@@ -14,23 +14,27 @@ O plano "Interface 2 — aconchego moderno" terminou na etapa 12. O que ficou de
 - **Câmera de cinema** nos capítulos: a câmera passeia até o lugar novo quando ele abre.
 - **Ícones das abas animados** (Tiro piscando, mochila balançando quando chega item).
 - **Mão que ensina** (a dica de arrasto da horta) reaproveitada para outros gestos novos.
-- **Reduzir o duplicado** `ModalCard.reveal` × `RewardSheet.reveal_in` (hoje são dois códigos quase iguais).
-- **Balão do humor do Tiro** ("Tiro está feliz da vida!") encosta no tapete na tela do Tiro em 360×780; ajustar
-  a âncora do balão.
 - **Fontes embutidas em tamanho maior:** "Texto maior" escala o tema em ×1,15; um segundo nível (×1,3) exigiria
   rever as grades de 4 colunas da Mochila.
 
 Já feitos dentro do plano (não repetir): Texto maior (etapa 11), vibração e "Menos animação" (plano anterior).
 
-Ressalvas observadas no fechamento (25/10/2026):
+## Após o plano Interface 2 — ajustes
 
-- Comparar o desempenho do Sítio em navegador visível/aparelho: amostras exploratórias da retomada
-  ultrapassaram 20 ms; manter os números brutos junto dos resultados finais, sem prometer 60 FPS.
-- Estabilizar as fixtures de `world_life_test` e `world_pin_test` (Amigos): passaram na reexecução,
-  mas houve falhas intermitentes no portão. Não foram apagadas nem tiveram as garantias reduzidas.
-- Atualizar as fixtures históricas `g01_tasks_ready_many` e `t03_growth_ready` do tour completo.
-  Os complementos/testes reais cobrem os estados; o nome desses PNGs não prova que ficaram prontos.
-- Revisar aviso de momento já visível ao abrir o seletor, que pode cobrir o título transitoriamente;
-  Manual com exemplos/instruções e alguns ícones junto ao texto; vários balões de pronto pulando.
-- A fala de prêmio real excede o orçamento ilustrativo de 14 palavras. Preservada por ser fala
-  da história; uma redução depende de pedido do Vitor, não de uma limpeza visual automática.
+Fechamento original e ressalvas históricas permanecem em `RESULTADOS.md`; resultado atual em
+[`../interface2_ajustes/RESULTADOS.md`](../interface2_ajustes/RESULTADOS.md).
+
+Resolvidos no plano de ajustes: fixtures world_life/world_pin e g01/t03 (01), aviso/folha/HUD (02),
+recálculo de 8 Hz e um balão pronto pulando por sala (03), fogão/Tudo/regador (04), humor/cardápio/cerimônia
+(05), fontes/caderninho/abas (06), capítulo/Novo! (07), Crescimento/seda (08), Como fazer/Lugares/conversa/compra
+(09), hierarquia de texto (10), bloqueios/obras (11), apelidos/tema e reveal compartilhado (12).
+
+Pendências preservadas para o Vitor, fora do plano:
+
+- Corpo da bandeja do Galinheiro ainda precisa rolar com os animais e a fila.
+- Custo de `GameState.update_finds/update_wishes` no tique de 1 s; comparar desempenho em navegador visível
+  e aparelho, sem prometer 60 FPS. Números finais e brutos no resultado do plano de ajustes.
+- Pílula Tudo próxima à borda direita do seletor de quantidade.
+- A fala real do prêmio excede o orçamento ilustrativo de 14 palavras: preservada; redução depende de pedido.
+- Manual mantém instruções e exemplos de catálogo; alguns ícones de conteúdo ficam junto ao texto.
+- Roteiro físico de PWA, vibração, polegar e latência: executar quando o Vitor pedir publicação.

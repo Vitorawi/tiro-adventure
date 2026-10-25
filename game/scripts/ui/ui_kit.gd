@@ -7,8 +7,6 @@ extends RefCounted
 const ICON_DIR := "res://assets/sprites/ui/icons/"
 const CTL_DIR := "res://assets/sprites/ui/ctl/"
 static var _ctl_cache: Dictionary[String, Texture2D] = {}
-const GOOD := Palette.GO_INK
-const BAD := Palette.ALERT_INK
 
 
 static func ui_icon(icon_name: String) -> Texture2D:
@@ -167,14 +165,9 @@ static func square_button(text: String, on_pressed: Callable, texture: Texture2D
 	return icon_button(texture, on_pressed, px, text)
 
 
-## O botão principal da tela/painel (verde). Só um por vez: listas usam `secondary(..., small = true)`.
+## O botão principal da tela/painel (verde). Só um por vez: listas usam `soft(..., small = true)`.
 static func primary(text: String, on_pressed: Callable, texture: Texture2D = null) -> Button:
 	return button(text, on_pressed, &"PrimaryButton", texture)
-
-
-## Apelido compatível de soft. `small` = texto 16 na linha de lista (alvo 44).
-static func secondary(text: String, on_pressed: Callable, texture: Texture2D = null, small: bool = false) -> Button:
-	return soft(text, on_pressed, texture, small)
 
 
 ## Ação fraca ("Ver tudo", "Cancelar"): sem fundo, texto suave sublinhado.
@@ -469,7 +462,7 @@ static func effect_chip_list(effects: Dictionary) -> Array[Control]:
 	var chips: Array[Control] = []
 	for need_id: String in effects:
 		var amount := int(effects[need_id])
-		chips.append(chip(Database.need_icon(need_id), "%+d" % amount, GOOD if amount > 0 else BAD))
+		chips.append(chip(Database.need_icon(need_id), "%+d" % amount, Palette.GO_INK if amount > 0 else Palette.ALERT_INK))
 	return chips
 
 
