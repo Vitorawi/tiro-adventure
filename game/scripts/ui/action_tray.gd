@@ -45,8 +45,12 @@ const SCROLL_FROM := 10
 ## A bandeja fica translúcida enquanto o item é arrastado (os canteiros atrás dela aparecem).
 const DRAG_ALPHA := 0.3
 ## Modo "pick": largura da bandeja (cabe em 360 com 16 de margem) e itens por linha.
-const PICK_WIDTH := 328.0
+const PICK_WIDTH := 336.0
 const PICK_PER_ROW := 4
+## Modo "pick": tile da grade e altura da grade quando há mais de 8 (2,5 linhas, rola na vertical).
+const PICK_TILE := Vector2(70, 76)
+const PICK_GAP := 6
+const PICK_ROWS_SHOWN := 2.5
 ## Tempo do ícone da receita voando da grade até a bolinha da fila.
 const FLY_TIME := 0.3
 
@@ -92,6 +96,7 @@ var _finger := Vector2.ZERO
 var _idle := 0.0
 var _tip := Vector2.ZERO
 var _circle_styles: Array[StyleBoxFlat] = []
+var _item_states: Array[String] = []
 var _detail: SheetBuilder.LiveBox
 var _last_min := Vector2.ZERO
 var _body_scroll: ScrollContainer
@@ -149,17 +154,30 @@ func _build() -> void:
 	_panel.name = "Panel"
 	_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.PAPER
-	style.set_corner_radius_all(16)
-	style.set_border_width_all(2)
-	style.border_color = Palette.CARD_LINE
-	style.shadow_color = Palette.SHADE
-	style.shadow_size = 6
-	style.shadow_offset = Vector2(0, 2)
-	style.content_margin_left = 10.0
-	style.content_margin_right = 10.0
-	style.content_margin_top = 8.0
-	style.content_margin_bottom = 8.0
+	pick = str(options.get("mode", "")) == "pick"
+	if pick:
+		# Cartão claro de 24 com sombra funda (Interface 2): a bandeja das estações fica presa ao objeto.
+		style.bg_color = Palette.CARD
+		style.set_corner_radius_all(24)
+		style.shadow_color = Color(Palette.SHADOW, 0.25)
+		style.shadow_size = 16
+		style.shadow_offset = Vector2(0, 10)
+		style.content_margin_left = 14.0
+		style.content_margin_right = 14.0
+		style.content_margin_top = 12.0
+		style.content_margin_bottom = 14.0
+	else:
+		style.bg_color = Palette.PAPER
+		style.set_corner_radius_all(16)
+		style.set_border_width_all(2)
+		style.border_color = Palette.CARD_LINE
+		style.shadow_color = Palette.SHADE
+		style.shadow_size = 6
+		style.shadow_offset = Vector2(0, 2)
+		style.content_margin_left = 10.0
+		style.content_margin_right = 10.0
+		style.content_margin_top = 8.0
+		style.content_margin_bottom = 8.0
 	_panel.add_theme_stylebox_override("panel", style)
 	_box.add_child(_panel)
 	var column := VBoxContainer.new()
@@ -168,14 +186,29 @@ func _build() -> void:
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_panel.add_child(column)
 	_body_column = column
-	pick = str(options.get("mode", "")) == "pick"
 	if pick:
 		_panel.custom_minimum_size.x = PICK_WIDTH
 		selected = str(options.get("selected", ""))
-		var heading := UiKit.hbox(4)
-		var title := UiKit.fill_label(str(options.get("title", "")), &"SectionLabel")
+		# Cabeçalho: ícone da estação, nome, selo de maestria, ≡ Ver tudo e ✕.
+		var heading := UiKit.hbox(8)
+		heading.name = "TrayHeading"
+		if options.get("icon") is Texture2D:
+			var station_icon := UiKit.icon(options.icon as Texture2D, 32)
+			station_icon.name = "StationIcon"
+			heading.add_child(station_icon)
+		var title := UiKit.fill_label(str(options.get("title", "")), &"StrongLabel")
+		title.name = "TrayTitle"
 		heading.add_child(title)
-		var close_button := UiKit.icon_button(UiKit.ctl_icon("x"), close, 44)
+		if options.get("badge") is Control:
+			heading.add_child(options.badge as Control)
+		if options.get("see_all") is Callable:
+			var see_all := UiKit.ctl_button("list", func() -> void:
+				_touched()
+				(options.see_all as Callable).call(), 32, "sunken")
+			see_all.name = "SeeAll"
+			see_all.mouse_filter = Control.MOUSE_FILTER_STOP
+			heading.add_child(see_all)
+		var close_button := UiKit.ctl_button("x", close, 32, "sunken")
 		close_button.name = "CloseTray"
 		close_button.mouse_filter = Control.MOUSE_FILTER_STOP
 		heading.add_child(close_button)
@@ -216,10 +249,13 @@ func _build() -> void:
 			for old in _actions.get_children():
 				_actions.remove_child(old)
 				old.queue_free()
+			# O rodapé fixo leva "Actions" (quantidade + botão verde) quando o detalhe monta um.
+			var actions := detail.find_child("Actions", true, false) as Control
 			var cook := detail.find_child("Cook", true, false) as Button
-			if cook:
-				cook.get_parent().remove_child(cook)
-				_actions.add_child(cook))
+			var moved: Control = actions if actions else cook
+			if moved:
+				moved.get_parent().remove_child(moved)
+				_actions.add_child(moved))
 		_detail.name = "Detail"
 		_body_column.add_child(_detail)
 	var hint: Dictionary = options.get("hint", {})
@@ -234,12 +270,20 @@ func _build() -> void:
 		var action := func() -> void:
 			_touched()
 			(footer.action as Callable).call()
-		var ghost := UiKit.primary(str(footer.text), action) if footer.get("primary", false) else UiKit.ghost(str(footer.text), action)
+		var ghost: Button
+		if footer.get("primary", false):
+			ghost = UiKit.primary(str(footer.text), action)
+		elif pick:
+			ghost = _footer_row(str(footer.text), action)
+		else:
+			ghost = UiKit.ghost(str(footer.text), action)
 		ghost.name = str(footer.get("name", "FooterGhost"))
 		ghost.mouse_filter = Control.MOUSE_FILTER_STOP
 		column.add_child(ghost)
 	_arrow = TrayArrow.new()
 	_arrow.name = "Arrow"
+	_arrow.fill = Palette.CARD if pick else Palette.PAPER
+	_arrow.edge = Color(Palette.CARD, 0.0) if pick else Palette.CARD_LINE
 	_box.add_child(_arrow)
 	_panel.reset_size()
 	_place()
@@ -251,26 +295,28 @@ func _build() -> void:
 		_start_hint.call_deferred()
 
 
+## Linha do rodapé ("Comprar animais"): botão claro com ícone, texto e seta, no estilo das listas.
+func _footer_row(text: String, action: Callable) -> Button:
+	var row := UiKit.button("", action, &"GhostButton")
+	row.custom_minimum_size = Vector2(0, 52)
+	for phase: String in ["normal", "hover", "pressed", "hover_pressed"]:
+		row.add_theme_stylebox_override(phase, UiKit.surface(Palette.SUNKEN, 16))
+	var content := UiKit.hbox(8)
+	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(content)
+	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	content.offset_left = 12
+	content.offset_right = -10
+	content.add_child(UiKit.ctl("plus", 20, Palette.INK_SOFT))
+	var label := UiKit.fill_label(text, &"StrongLabel")
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	content.add_child(label)
+	content.add_child(UiKit.ctl("chev", 20, Palette.INK_FAINT))
+	return row
+
+
 func _build_items() -> Control:
 	var count := entries.size()
-	if pick and bool(options.get("recipe_selector", false)):
-		var group := UiKit.vbox(8)
-		var hint := UiKit.label("Receitas: deslize para o lado", &"SmallLabel")
-		hint.name = "RecipeScrollHint"
-		group.add_child(hint)
-		var scroll := ScrollContainer.new()
-		scroll.name = "RecipeScroll"
-		_recipe_scroll = scroll
-		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-		scroll.custom_minimum_size.y = ITEM.y + 12
-		var row := _row()
-		row.alignment = BoxContainer.ALIGNMENT_BEGIN
-		row.add_theme_constant_override("separation", 12)
-		scroll.add_child(row)
-		for i in count: row.add_child(_make_item(i))
-		group.add_child(scroll)
-		return group
 	var holder: Control
 	var per_row := PICK_PER_ROW if pick else PER_ROW
 	if count > SCROLL_FROM and not pick:
@@ -286,31 +332,28 @@ func _build_items() -> Control:
 		return scroll
 	var rows := VBoxContainer.new()
 	rows.name = "Rows"
-	rows.add_theme_constant_override("separation", 4)
+	rows.add_theme_constant_override("separation", PICK_GAP if pick else 4)
 	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	holder = rows
 	var current_row: HBoxContainer = null
 	for i in count:
 		if i % per_row == 0:
 			current_row = _row()
+			if pick:
+				current_row.add_theme_constant_override("separation", PICK_GAP)
+				current_row.alignment = BoxContainer.ALIGNMENT_BEGIN
 			rows.add_child(current_row)
 		current_row.add_child(_make_item(i))
-	# Muitas receitas (fogão com 10): mais de duas linhas rolam, para a bandeja caber na sala e abaixo do HUD.
+	# Mais de duas linhas (fogão com 10): a grade mostra 2,5 linhas e rola na vertical, nunca na horizontal.
 	if pick and count > per_row * 2:
-		var group := VBoxContainer.new()
-		group.add_theme_constant_override("separation", 4)
-		var hint := UiKit.label("Deslize para ver mais ↓", &"SmallLabel")
-		hint.name = "RecipeScrollHint"
-		group.add_child(hint)
 		var scroll := ScrollContainer.new()
 		scroll.name = "Scroll"
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-		scroll.custom_minimum_size = Vector2(0.0, ITEM.y * 1.9 + 8.0 - hint.get_combined_minimum_size().y - 4.0)
+		scroll.custom_minimum_size = Vector2(0.0, PICK_TILE.y * PICK_ROWS_SHOWN + PICK_GAP * 2.0)
 		scroll.add_child(rows)
 		rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		group.add_child(scroll)
-		return group
+		return scroll
 	return holder
 
 
@@ -322,7 +365,91 @@ func _row() -> HBoxContainer:
 	return row
 
 
+## Estado do tile (modo pick): locked (cadeado) > selected > missing (falta ingrediente) > normal.
+func _tile_state(index: int) -> String:
+	var entry := entries[index]
+	if str(entry.get("error", "")) != "":
+		return "locked"
+	if str(entry.get("id", "")) == selected:
+		return "selected"
+	return "missing" if _missing_icon(entry) != null else "normal"
+
+
+func _missing_icon(entry: Dictionary) -> Texture2D:
+	var fn: Variant = entry.get("missing_fn")
+	if fn is Callable and (fn as Callable).is_valid():
+		return (fn as Callable).call() as Texture2D
+	return null
+
+
+## Tile da grade das estações: `UiKit.tile` + marca vermelha com o ingrediente que falta.
+func _make_tile(index: int) -> Control:
+	var tile := _build_tile(index)
+	_captions.append(tile.get_node("Visual").get_child(1) as Label)
+	_badges.append(null)
+	_item_states.append(_tile_signature(index))
+	_items.append(tile)
+	return tile
+
+
+func _tile_signature(index: int) -> String:
+	var missing := _missing_icon(entries[index])
+	return "%s|%s" % [_tile_state(index), missing.resource_path if missing else ""]
+
+
+func _build_tile(index: int) -> Control:
+	var entry := entries[index]
+	var state := _tile_state(index)
+	var missing := _missing_icon(entry)
+	var tile := UiKit.tile(entry.get("icon") as Texture2D, str(entry.get("caption", "")), state, missing)
+	if missing != null and state != "missing":
+		(tile.get_node("Visual/Picture") as Control).modulate.a = 0.45  # selecionada e faltando: ainda apagada
+		var mark := UiKit.disc(missing, 22, 16)
+		mark.name = "Missing"
+		mark.add_theme_stylebox_override("panel", UiKit.surface(Palette.ALERT_SOFT, 11))
+		tile.add_child(mark)
+		mark.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		mark.offset_left = -24.0
+		mark.offset_right = -2.0
+		mark.offset_top = 2.0
+		mark.offset_bottom = 24.0
+	tile.name = "Item_" + str(entry.get("id", index))
+	tile.custom_minimum_size = PICK_TILE
+	tile.mouse_filter = Control.MOUSE_FILTER_STOP
+	if bool(entry.get("highlight", false)) and state != "selected":
+		tile.add_theme_stylebox_override("normal", UiKit.surface(Palette.GO_SOFT, 16))
+	tile.gui_input.connect(_on_item_input.bind(index))
+	return tile
+
+
+## O estado do tile mudou (selecionado, faltando ingrediente, bloqueado): troca o tile no mesmo lugar da grade.
+func _refresh_tiles() -> void:
+	for i in entries.size():
+		var error_fn: Variant = entries[i].get("error_fn")
+		if error_fn is Callable and (error_fn as Callable).is_valid():
+			entries[i]["error"] = (error_fn as Callable).call()
+		var signature := _tile_signature(i)
+		var caption_fn: Variant = entries[i].get("caption_fn")
+		if caption_fn is Callable and (caption_fn as Callable).is_valid():
+			_captions[i].text = (caption_fn as Callable).call()
+		if signature == _item_states[i]:
+			continue
+		var old := _items[i]
+		var parent := old.get_parent()
+		var position_in_parent := old.get_index()
+		var fresh := _build_tile(i)
+		parent.remove_child(old)
+		old.queue_free()
+		parent.add_child(fresh)
+		parent.move_child(fresh, position_in_parent)
+		_items[i] = fresh
+		_captions[i] = fresh.get_node("Visual").get_child(1) as Label
+		_item_states[i] = signature
+
+
 func _make_item(index: int) -> Control:
+	if pick:
+		return _make_tile(index)
 	var entry := entries[index]
 	var blocked := str(entry.get("error", "")) != ""
 	var item := Control.new()
@@ -425,6 +552,14 @@ func _place() -> void:
 
 func _animate_in() -> void:
 	if Motion.reduced:
+		return
+	if pick:
+		# Sai da setinha: escala 0,92 para 1 em `Motion.TRAY_IN`.
+		_box.scale = Vector2.ONE * 0.92
+		_box.modulate.a = 0.0
+		var quick := create_tween().set_parallel()
+		quick.tween_property(_box, "scale", Vector2.ONE, Motion.TRAY_IN).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		quick.tween_property(_box, "modulate:a", 1.0, Motion.TRAY_IN)
 		return
 	_box.scale = Vector2.ONE * 0.6
 	_box.modulate.a = 0.0
@@ -651,6 +786,8 @@ func release_item(global_point: Vector2) -> void:
 		_finger = global_point
 		_end_drag(true)
 		return
+	if pick and global_point.distance_to(_gesture.start) > TAP_SLOP:
+		return  # arrastou a grade para rolar: não escolhe o tile em que o dedo soltou
 	if not closing:
 		_tap(index)
 
@@ -698,6 +835,8 @@ func select(id: String) -> void:
 		return
 	var changed := id != selected
 	selected = id
+	if pick:
+		_refresh_tiles()
 	for i in _circle_styles.size():
 		_circle_styles[i].set_border_width_all(3 if i == index else 0)
 	Motion.bounce(_items[index])
@@ -877,6 +1016,9 @@ func _entry_dimmed(entry: Dictionary) -> bool:
 
 
 func _refresh_captions() -> void:
+	if pick:
+		_refresh_tiles()
+		return
 	for i in entries.size():
 		var error_fn: Variant = entries[i].get("error_fn")
 		if error_fn is Callable and (error_fn as Callable).is_valid():
@@ -944,6 +1086,8 @@ func _stop_hint() -> void:
 ## Setinha de 12 px na borda da bandeja, apontando para o alvo.
 class TrayArrow extends Control:
 	var points_up := false
+	var fill := Palette.PAPER
+	var edge := Palette.CARD_LINE
 
 	func _init() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -955,8 +1099,8 @@ class TrayArrow extends Control:
 		var base_y := h if points_up else 0.0
 		var left := Vector2(0.0, base_y)
 		var right := Vector2(w, base_y)
-		draw_colored_polygon(PackedVector2Array([left, right, tip]), Palette.PAPER)
-		draw_line(left, tip, Palette.CARD_LINE, 2.0)
-		draw_line(right, tip, Palette.CARD_LINE, 2.0)
+		draw_colored_polygon(PackedVector2Array([left, right, tip]), fill)
+		draw_line(left, tip, edge, 2.0)
+		draw_line(right, tip, edge, 2.0)
 		# Cobre a borda da bandeja sob a base da setinha.
-		draw_line(left + Vector2(2, 0), right - Vector2(2, 0), Palette.PAPER, 3.0)
+		draw_line(left + Vector2(2, 0), right - Vector2(2, 0), fill, 3.0)

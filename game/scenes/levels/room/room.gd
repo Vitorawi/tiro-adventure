@@ -1019,6 +1019,24 @@ func _gui_input(event: InputEvent) -> void:
 		var factor := ZOOM_STEP if button.button_index == MOUSE_BUTTON_WHEEL_UP else 1.0 / ZOOM_STEP
 		_zoom_at(button.position, _zoom * factor)
 		return
+	var dock := FarmDock.current()
+	if dock and dock.room == self:
+		# Barra da horta aberta: o dedo que começa num canteiro usa a ferramenta; o resto é câmera normal.
+		if dock.gesture_active():
+			var held := event as InputEventMouseMotion
+			if held and held.button_mask & MOUSE_BUTTON_MASK_LEFT:
+				dock.move(held.global_position)
+			elif button and button.button_index == MOUSE_BUTTON_LEFT and not button.pressed:
+				dock.release(button.global_position)
+			accept_event()
+			return
+		if button and button.pressed and button.button_index == MOUSE_BUTTON_LEFT and not _is_pinching() and not tray_dragging:
+			if dock.press(button.global_position):
+				_hold_timer.stop()
+				_swallow_touch = false
+				_stop_camera()
+				accept_event()
+				return
 	if _is_pinching() or tray_dragging:
 		return  # durante a pinça (ou o arrasto da bandeja), não arrasta nem toca
 	if button and button.button_index == MOUSE_BUTTON_LEFT:
@@ -1057,6 +1075,11 @@ func _gui_input(event: InputEvent) -> void:
 
 ## Toque solto sem arrastar: age na hora; dois toques seguidos em área vazia dão zoom.
 func _on_tap_released(local: Vector2) -> void:
+	if FarmDock.is_open_for(self):
+		# Tocar fora dos canteiros e da barra só fecha a barra: o toque não age no mundo.
+		FarmDock.current().close()
+		_last_tap_empty = false
+		return
 	var now := Time.get_ticks_msec()
 	var empty := not _handle_tap((local - _content.position) / _zoom)
 	var double_tap := empty and _last_tap_empty and now - _last_tap_ms <= DOUBLE_TAP_MS and local.distance_to(_last_tap_position) <= DOUBLE_TAP_DISTANCE
@@ -1361,6 +1384,8 @@ func _on_plot_tapped(index: int) -> void:
 	close_tray()
 	if GameState.plot_status(index) == "ready":
 		harvest_plot(index)
+		if not ready_plots().is_empty():
+			open_farm_dock("harvest", ready_plots()[0])  # sobraram prontos: a barra abre em "colher"
 		return
 	if GameState.plot_status(index) == "locked" and not GameState.has_upgrade("farm") and GameState.requirement_error(Database.progression.upgrades.farm.get("requirements", {})) != "":
 		Places.open_npc("bloblo")
@@ -1368,44 +1393,82 @@ func _on_plot_tapped(index: int) -> void:
 	if GameState.water_error(index) == "":
 		water_plot(index)
 		if not waterable_plots().is_empty():
-			PlotTray.water(self, index)
+			open_farm_dock("plant", -1, "water")
 		return
 	if GameState.plot_status(index) == "locked":
 		# Qualquer canteiro fechado abre a mesma compra, mantendo a ordem de liberação.
 		Events.sheet_requested.emit("Abrir área", SheetBuilder.plot_purchase(GameState.unlocked_plots) if GameState.has_upgrade("farm") else ProgressionUi.purchase("farm"))
 		return
-	open_plot_tray(index)
+	open_plot_tray(index, "", false, true, true)
 
 
-# --- Bandeja de ação da horta ------------------------------------------------------
+# --- Barra da horta ----------------------------------------------------------------
 
-## Abre a bandeja que combina com o canteiro: sementes (vazio), cuidado (crescendo) ou colheita (pronto).
-## `focus` = planta pedida pelo "Ir" (vem primeiro e destacada). `center_camera` leva a câmera até ele antes.
-## O Ir geral usa `harvest_on_open = false`: mostra a foice sem colher só por navegar.
-func open_plot_tray(index: int, focus: String = "", center_camera: bool = false, harvest_on_open: bool = true) -> void:
+## Abre o que combina com o canteiro: a barra da horta (vazio = sementes e Regar; pronto = foice e "Colher tudo")
+## ou o cuidado num balão (crescendo). `focus` = planta pedida pelo "Ir" ("water" = regador escolhido);
+## `center_camera` leva a câmera até ele antes. `plant_now` (toque num canteiro vazio) já planta nele com a
+## semente escolhida, se ela não for o regador. O Ir geral usa `harvest_on_open = false`: mostra a barra sem
+## colher só por navegar.
+func open_plot_tray(index: int, focus: String = "", center_camera: bool = false, harvest_on_open: bool = true, plant_now: bool = false) -> void:
 	close_tray()
 	if _plot_sprite(index) == null or GameState.plot_status(index) == "locked":
 		return
 	clear_pointer()
-	if not await _bring_into_view(plot_center(index), center_camera):
+	if not await _bring_into_view(plot_center(index), center_camera, FarmDock.BAR_LIFT if GameState.plot_status(index) != "growing" else 0.0):
 		return
 	match GameState.plot_status(index):
 		"empty":
-			PlotTray.seeds(self, index, focus)
+			var dock := FarmDock.open(self, "plant", index, focus)
+			if plant_now and dock.selected != "" and dock.selected != "water":
+				var reason := plant_plot(index, dock.selected)
+				if reason != "":
+					Events.toast_requested.emit(reason)
+				else:
+					PlotTray.last_crop = dock.selected
 		"growing":
 			PlotTray.care(self, index)
 		"ready":
 			if harvest_on_open:
 				harvest_plot(index)
-			else:
-				PlotTray.sickle(self, index)
+			if not ready_plots().is_empty() or not harvest_on_open:
+				FarmDock.open(self, "harvest", index)
+
+
+## Abre a barra da horta sem plantar nem colher (depois de regar ou colher um canteiro). `index` leva a cÃ¢mera.
+func open_farm_dock(mode: String, index: int, focus: String = "") -> void:
+	close_tray()
+	var look := index if index >= 0 else (plot_indices()[0] if not plot_indices().is_empty() else -1)
+	if look >= 0 and not await _bring_into_view(plot_center(look), false, FarmDock.BAR_LIFT):
+		return
+	FarmDock.open(self, mode, -1, focus)
+
+
+## Toque simples num canteiro com a barra aberta e nada feito pelo gesto: tenta a ferramenta uma vez (com o motivo
+## do erro) ou cai no toque normal do canteiro (cuidado, compra).
+func dock_plot_tap(index: int, dock: FarmDock) -> void:
+	if GameState.plot_status(index) == "empty" and dock.selected != "" and dock.selected != "water" and dock.mode == "plant":
+		var reason := plant_plot(index, dock.selected)
+		if reason != "":
+			Events.toast_requested.emit(reason)
+		else:
+			PlotTray.last_crop = dock.selected
+		return
+	_on_plot_tapped(index)
+
+
+## Losango do chão do canteiro (pontos da sala), para marcar os alvos do gesto.
+func plot_diamond(index: int) -> PackedVector2Array:
+	var sprite := _plot_sprite(index)
+	var center := plot_center(index)
+	var half: Vector2 = sprite.get_meta("plot_half", Vector2(37, 25)) if sprite else Vector2(37, 25)
+	return PackedVector2Array([center + Vector2(0, -half.y), center + Vector2(half.x, 0), center + Vector2(0, half.y), center + Vector2(-half.x, 0)])
 
 
 ## Leva a câmera até o ponto da sala se ele estiver fora da área confortável (ou se `force`), antes de abrir
 ## uma bandeja. Devolve false se a sala deixou de estar à mostra no meio do caminho.
-func _bring_into_view(center: Vector2, force: bool = false) -> bool:
+func _bring_into_view(center: Vector2, force: bool = false, bottom_extra: float = 0.0) -> bool:
 	var on_screen := _content.position + center * _zoom
-	var comfortable := Rect2(Vector2(48, 150), size - Vector2(96, 260))
+	var comfortable := Rect2(Vector2(48, 150), size - Vector2(96, 260 + bottom_extra))
 	if size.x > 0.0 and (force or not comfortable.has_point(on_screen)):
 		_tween_camera(center, _zoom)
 		if not Motion.reduced and is_inside_tree():
@@ -1418,6 +1481,8 @@ func _bring_into_view(center: Vector2, force: bool = false) -> bool:
 func close_tray() -> void:
 	if ActionTray.is_open(self):
 		ActionTray.close_current()
+	if FarmDock.is_open_for(self):
+		FarmDock.current().close()
 
 
 # --- Bandeja de ação das estações, criações e Natureza (Etapa 08) -------------------
@@ -2071,8 +2136,8 @@ func _set_camera(center: Vector2, new_zoom: float, margin: float = 0.0) -> void:
 
 ## Depois de qualquer movimento: etiquetas dentro da tela, fundo com parallax, botão de centralizar.
 func _camera_changed() -> void:
-	if not tray_dragging:
-		close_tray()  # a bandeja aponta para um ponto da tela: se a câmera mexe, ela fecha
+	if not tray_dragging and ActionTray.is_open(self):
+		ActionTray.close_current()  # a bandeja aponta para um ponto da tela: se a câmera mexe, ela fecha (a barra da horta não)
 	_layout_backdrop()
 	_update_recenter()
 

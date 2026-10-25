@@ -28,7 +28,7 @@ static func station(room: RoomView, station_id: String, anchor: Dictionary, focu
 			"caption": TimeText.short(int(recipe.get("seconds", 60))),
 			"error": GameState.content_error("recipe", id, recipe),
 			"error_fn": func() -> String: return GameState.content_error("recipe", id, recipe),
-			"dim_fn": func() -> bool: return not GameState.inventory.has_all(GameState.recipe_inputs(id)),
+			"missing_fn": func() -> Texture2D: return missing_icon(id),
 			"highlight": id == focus,
 		})
 	var selected := focus if focus in ids else str(last_recipe.get(station_id, ""))
@@ -36,17 +36,52 @@ static func station(room: RoomView, station_id: String, anchor: Dictionary, focu
 		selected = _first_open(entries)
 	var options := {
 		"mode": "pick",
-		"recipe_selector": true,
 		"title": str(Database.stations[station_id].name),
+		"icon": station_icon(station_id),
+		"badge": mastery_badge(station_id),
 		"selected": selected,
 		"on_select": func(id: String) -> void: last_recipe[station_id] = id,
 		"header": _header(station_id),
 		"detail": func(id: String) -> Control: return recipe_detail(station_id, id),
 		"below": anchor.below,
-		"footer_ghost": {"text": "Ver tudo", "action": func() -> void:
-			Events.sheet_requested.emit(str(Database.stations[station_id].name), SheetBuilder.station_view(station_id, focus))},
+		"see_all": func() -> void:
+			Events.sheet_requested.emit(str(Database.stations[station_id].name), SheetBuilder.station_view(station_id, focus)),
 	}
 	return ActionTray.open(room, anchor.above, entries, options)
+
+
+## Ícone da estação (o mesmo da compra no mapa); sem ícone próprio, a bandeja abre só com o nome.
+static func station_icon(station_id: String) -> Texture2D:
+	return UiKit.ui_icon(str(Database.progression.upgrades.get(station_id, {}).get("icon", "")))
+
+
+## Selo pequeno de maestria ao lado do nome: disquinho bronze/prata/ouro com o número do patamar (some no zero).
+static func mastery_badge(station_id: String) -> Control:
+	if not GameState.mastery_enabled(station_id) or not GameState.has_upgrade(station_id):
+		return null
+	var level := GameState.mastery_level(station_id)
+	if level <= 0:
+		return null
+	var colors := [Palette.SEAL_BRONZE, Palette.SEAL_SILVER, Palette.SEAL_GOLD]
+	var seal := PanelContainer.new()
+	seal.name = "MasteryBadge"
+	seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	seal.custom_minimum_size = Vector2(22, 22)
+	seal.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	seal.add_theme_stylebox_override("panel", UiKit.surface(colors[mini(level, 3) - 1], 11))
+	var number := UiKit.short_label(str(level), &"BadgeLabel", Palette.INK)
+	number.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	seal.add_child(number)
+	return seal
+
+
+## O primeiro ingrediente que falta na mochila (para a marca vermelha do tile); null se tem tudo.
+static func missing_icon(recipe_id: String) -> Texture2D:
+	var inputs: Dictionary = GameState.recipe_inputs(recipe_id)
+	for item_id: String in inputs:
+		if GameState.inventory.count(item_id) < int(inputs[item_id]):
+			return Database.item_icon(item_id)
+	return null
 
 
 ## O destino do Ir vem primeiro; depois a comida do próximo crescimento, abertas e fechadas.
@@ -104,7 +139,8 @@ static func chosen_count(recipe_id: String) -> int:
 	return clampi(int(quantity.get(recipe_id, 1)), 1, maxi(1, GameState.cook_max(recipe_id)))
 
 
-## Detalhe da receita escolhida: nome, tempo/saída, ingredientes tocáveis, quantidade e o botão principal.
+## Detalhe da receita escolhida: nome + tempo, "entra → sai" e, embaixo (rodapé fixo `Actions`), a quantidade e
+## o botão principal. Receita bloqueada ou fila cheia trocam o verde por um `lock_hint`.
 static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 	var box := UiKit.vbox(10)
 	box.name = "RecipeDetail"
@@ -114,68 +150,58 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 	var output: String = Database.recipe_output(recipe)
 	var count := chosen_count(recipe_id)
 	var qty := GameState.recipe_quantity(recipe_id) * count
-	var title := UiKit.fill_label(Database.item_name(output) + (" ×%d" % qty if qty > 1 else ""), &"SectionLabel")
+	var heading := UiKit.hbox(8)
+	var title := UiKit.fill_label(Database.item_name(output) + (" ×%d" % qty if qty > 1 else ""), &"StrongLabel")
 	title.name = "RecipeName"
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	box.add_child(title)
-	var out := UiKit.flow(2)
-	out.add_child(UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(recipe.get("seconds", 60)) * count)))
-	if not recipe.has("output_collection"):
-		out.add_child(UiKit.chip(Database.item_icon(output), "×%d" % qty))
-	for effect in UiKit.effect_chip_list(Database.items.get(output, {}).get("feed", {})):
-		out.add_child(effect)
-	box.add_child(out)
+	heading.add_child(title)
+	var time_chip := UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(recipe.get("seconds", 60)) * count), null, "time")
+	time_chip.name = "RecipeTime"
+	heading.add_child(time_chip)
+	box.add_child(heading)
+	# entra → sai
+	var flow := UiKit.flow(4)
+	flow.name = "Ingredients"
 	var inputs: Dictionary = GameState.cook_inputs(recipe_id, count)
+	for item_id: String in inputs:
+		flow.add_child(ProgressionUi.item_chip(item_id, int(inputs[item_id]), true))
 	if not inputs.is_empty():
-		var needs := UiKit.flow(2)
-		needs.name = "Ingredients"
-		for item_id: String in inputs:
-			needs.add_child(ProgressionUi.item_chip(item_id, int(inputs[item_id])))
-		box.add_child(needs)
+		flow.add_child(UiKit.ctl("arrow", 20, Palette.INK_FAINT))
+	if not recipe.has("output_collection"):
+		flow.add_child(UiKit.chip(Database.item_icon(output), "×%d" % qty, null, "prize"))
+	for effect in UiKit.effect_chip_list(Database.items.get(output, {}).get("feed", {})):
+		flow.add_child(effect)
+	box.add_child(flow)
+	var actions := UiKit.hbox(8)
+	actions.name = "Actions"
+	box.add_child(actions)
 	var locked := GameState.content_error("recipe", recipe_id, recipe)
 	if locked != "":
-		box.add_child(UiKit.lock_hint(locked, TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))))
+		actions.add_child(UiKit.lock_hint(locked, TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))))
 		return box
 	var most := GameState.cook_max(recipe_id)
 	if most > 1:
-		box.add_child(_stepper(recipe_id, count, most))
+		var stepper := UiKit.stepper(count, 1, most, func(value: int) -> void: _set_count(recipe_id, value))
+		stepper.name = "Quantity"
+		stepper.custom_minimum_size.x = 132
+		stepper.get_child(1).name = "QuantityValue"
+		var done := UiKit.short_label("Pronto às %s" % GameState.clock_text(GameState.cook_finish_at(recipe_id, count)), &"SmallLabel")
+		done.name = "FinishAt"
+		box.add_child(done)
+		box.move_child(done, actions.get_index())
+		actions.add_child(stepper)
 	var error := GameState.cook_many_error(recipe_id, count)
+	if error != "":
+		var hint := UiKit.lock_hint(error)
+		hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		actions.add_child(hint)
+		return box
 	var verb := str(Database.stations.get(station_id, {}).get("action_label", "Fazer"))
-	var action := UiKit.primary(error if error != "" else (verb if count == 1 else "%s ×%d" % [verb, count]), func() -> void: _cook(station_id, recipe_id))
+	var action := UiKit.primary(verb if count == 1 else "%s ×%d" % [verb, count], func() -> void: _cook(station_id, recipe_id))
 	action.name = "Cook"
-	action.disabled = error != ""
-	box.add_child(action)
+	action.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	actions.add_child(action)
 	return box
-
-
-## Linha "− N +" com o horário do último lote; só muda a escolha, não começa nada.
-static func _stepper(recipe_id: String, count: int, most: int) -> Control:
-	var row := UiKit.hbox(8)
-	row.name = "Quantity"
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	var less := UiKit.icon_button(null, func() -> void: _set_count(recipe_id, count - 1), 44, "−")
-	less.name = "QuantityLess"
-	less.disabled = count <= 1
-	row.add_child(less)
-	var number := UiKit.short_label("×%d" % count, &"SectionLabel")
-	number.name = "QuantityValue"
-	row.add_child(number)
-	var more := UiKit.icon_button(null, func() -> void: _set_count(recipe_id, count + 1), 44, "+")
-	more.name = "QuantityMore"
-	more.disabled = count >= most
-	row.add_child(more)
-	var all := UiKit.secondary("Tudo ×%d" % most, func() -> void: _set_count(recipe_id, most), null, true)
-	all.name = "QuantityMax"
-	all.disabled = count >= most
-	row.add_child(all)
-	var done := UiKit.short_label("Pronto às %s" % GameState.clock_text(GameState.cook_finish_at(recipe_id, count)), &"SmallLabel")
-	done.name = "FinishAt"
-	done.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	var column := UiKit.vbox(2)
-	column.name = "QuantityBox"
-	column.add_child(row)
-	column.add_child(done)
-	return column
 
 
 static func _set_count(recipe_id: String, count: int) -> void:
@@ -233,7 +259,7 @@ static func animal(room: RoomView, station_id: String, anchor: Dictionary) -> Ac
 		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty.add_child(note)
 		shop_footer["primary"] = true
-		return ActionTray.open(room, anchor.above, [], {"mode": "pick", "title": str(data.name), "header": empty, "below": anchor.below, "footer_ghost": shop_footer})
+		return ActionTray.open(room, anchor.above, [], {"mode": "pick", "title": str(data.name), "icon": station_icon(station_id), "header": empty, "below": anchor.below, "footer_ghost": shop_footer})
 	var entries: Array[Dictionary] = []
 	for id in recipe_ids(station_id):
 		var recipe: Dictionary = Database.recipes[id]
@@ -243,10 +269,10 @@ static func animal(room: RoomView, station_id: String, anchor: Dictionary) -> Ac
 			"caption": TimeText.short(int(recipe.seconds)),
 			"error": GameState.content_error("recipe", id, recipe),
 			"error_fn": func() -> String: return GameState.content_error("recipe", id, recipe),
-			"dim_fn": func() -> bool: return not GameState.inventory.has_all(GameState.recipe_inputs(id)),
+			"missing_fn": func() -> Texture2D: return missing_icon(id),
 		})
 	return ActionTray.open(room, anchor.above, entries, {
-		"mode": "pick", "title": str(data.name), "selected": _first_open(entries),
+		"mode": "pick", "title": str(data.name), "icon": station_icon(station_id), "selected": _first_open(entries),
 		"header": _header(station_id),
 		"detail": func(id: String) -> Control: return recipe_detail(station_id, id),
 		"below": anchor.below, "footer_ghost": shop_footer,
@@ -288,8 +314,9 @@ static func nature(room: RoomView, site: String, anchor: Dictionary, focus: Stri
 		"header": _nature_header(site),
 		"detail": func(id: String) -> Control: return material_detail(site, id),
 		"below": anchor.below,
-		"footer_ghost": {"text": "Ver tudo", "action": func() -> void:
-			Events.sheet_requested.emit(str(data.name), NatureUi.panel(site))},
+		"icon": Database.item_icon(str(data.resources[0])),
+		"see_all": func() -> void:
+			Events.sheet_requested.emit(str(data.name), NatureUi.panel(site)),
 	}
 	return ActionTray.open(room, anchor.above, entries, options)
 
@@ -325,8 +352,8 @@ static func _nature_header(site: String) -> Control:
 		var level_label := UiKit.short_label("Nível %d" % info.level, &"SectionLabel")
 		level_label.name = "NatureLevel"
 		level_row.add_child(level_label)
-		var help := UiKit.icon_button(null, func() -> void:
-			Events.sheet_requested.emit("Evolução · " + str(data.name), NatureUi.levels_panel(site)), 44, "?")
+		var help := UiKit.ctl_button("help", func() -> void:
+			Events.sheet_requested.emit("Evolução · " + str(data.name), NatureUi.levels_panel(site)), 32, "sunken")
 		help.name = "LevelsHelp"
 		level_row.add_child(help)
 		parent.add_child(level_row))

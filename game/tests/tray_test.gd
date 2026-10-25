@@ -9,6 +9,7 @@ var events: Node
 var main: Control
 var farm: Control
 var tray_script: Script
+var dock_script: Script
 var toasts: Array[String] = []
 var sheets := 0
 
@@ -78,6 +79,7 @@ func _run() -> void:
 	state = root.get_node("GameState")
 	events = root.get_node("Events")
 	tray_script = load("res://scripts/ui/action_tray.gd")
+	dock_script = load("res://scripts/ui/farm_dock.gd")
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
 	state.call("dev_unlock_everything")
@@ -205,6 +207,35 @@ func _test_plot_at() -> void:
 
 # --- 1. toque no canteiro vazio -------------------------------------------------------------
 
+## Barra da horta aberta agora (null se não há ou se está fechando).
+func dock() -> Control:
+	var current: Variant = dock_script.call("current")
+	return current as Control if current is Control and is_instance_valid(current) else null
+
+
+func open_dock(index: int) -> Control:
+	farm.call("close_tray")
+	farm.call("open_plot_tray", index)
+	await process_frame
+	await process_frame
+	return dock()
+
+
+func center_of(index: int) -> Vector2:
+	return farm.call("world_to_screen", farm.call("plot_center", index)) as Vector2
+
+
+func PlotTrayScript() -> Script:
+	return load("res://scripts/ui/plot_tray.gd")
+
+
+func tile_caption(current: Control, id: String) -> String:
+	var tile: Control = current.call("tile_node", id)
+	return (tile.get_node("Visual").get_child(1) as Label).text
+
+
+# --- 1. toque no canteiro vazio ----------------------------------------------------------------
+
 func _test_tap_plants() -> void:
 	toasts.clear()
 	empty_plots()
@@ -213,37 +244,33 @@ func _test_tap_plants() -> void:
 	check(farm.call("_handle_tap", point), "toque no canteiro 0 é tratado")
 	await process_frame
 	await process_frame
-	var current := tray()
-	check(current != null, "tocar no canteiro vazio abre a bandeja")
+	var current := dock()
+	check(current != null, "tocar no canteiro vazio abre a barra da horta")
 	if current == null:
 		return
 	check(sheets == 0, "nenhum painel grande abriu")
+	check(tray() == null, "nenhuma bandeja de ação sobre os canteiros")
 	var ids: Array = current.call("entry_ids")
-	check("carrot" in ids, "bandeja de sementes oferece cenoura")
+	check("carrot" in ids, "barra oferece cenoura")
 	check(not ("herbs" in ids), "sítio não oferece plantas da estufa")
 	check(ids[0] != "blueberry", "bloqueadas vão para o fim")
-	var box: Control = current.get("_box")
-	check(box.position.y >= 119.0, "bandeja não fica sob o HUD (y %.0f)" % box.position.y)
-	check(Rect2(Vector2.ZERO, farm.size).encloses(Rect2(box.position, box.size)), "bandeja inteira dentro da sala")
-	check(current.get_parent() == farm, "bandeja é filha da sala")
-	current.call("tap_item", "carrot")
-	check(status(0) == "growing", "tocar na cenoura planta o canteiro 0")
-	check(tray() == null, "depois de plantar a bandeja fecha")
+	check(status(0) == "growing", "o toque que abriu a barra já plantou")
+	var nav := main.find_child("TabBar", true, false) as Control
+	check(current.global_position.y + current.size.y <= nav.global_position.y + 1.0, "barra apoiada acima do rodapé")
 	check(toasts.is_empty(), "plantar não gera aviso de erro")
-	# A última semente usada passa a vir primeiro.
+	# A última semente usada vem selecionada.
 	empty_plots()
-	state.call("plant", 1, "potato")
-	farm.call("plant_plot", 2, "pumpkin")
-	var again := await open_tray(3)
-	check(again != null and (again.call("entry_ids") as Array)[0] in ["pumpkin", "potato", "carrot"], "bandeja reabre")
-	again.call("tap_item", "potato")
-	await open_tray(4)
-	check((tray().call("entry_ids") as Array)[0] == "potato", "última semente usada vem primeiro")
+	current.call("tap_tile", "potato")
+	await process_frame
+	current.call("drag_plots", [3])
+	check(status(3) == "growing" and state.call("plot", 3)["crop"] == "potato", "escolher a batata e tocar no canteiro planta batata")
+	var again := await open_dock(4)
+	check(again != null and again.get("selected") == "potato", "última semente usada vem selecionada")
 	farm.call("close_tray")
 	empty_plots()
 
 
-# --- 2. arrastar a semente -------------------------------------------------------------------
+# --- 2. arrastar a partir do canteiro ----------------------------------------------------------
 
 func _test_drag_plant() -> void:
 	toasts.clear()
@@ -251,39 +278,31 @@ func _test_drag_plant() -> void:
 	state.call("plant", 0, "carrot")
 	var planted_at: float = state.call("plot", 0)["planted_at"]
 	var before: Vector2 = farm.get("_content").position
-	var current := await open_tray(1)
-	check(current != null, "bandeja no canteiro 1")
-	var path: Array[Vector2] = [finger_for(1), finger_for(2), finger_for(3), finger_for(0)]
-	current.call("drag_through", "carrot", path, false)
-	check(current.call("is_dragging"), "arrastando: fantasma ativo")
-	check(farm.get("tray_dragging") == true, "mundo sabe que a bandeja arrasta")
-	check(current.find_child("Ghost", true, false) != null, "fantasma aparece")
-	check((farm.get("_content") as Control).position == before, "câmera parada durante o arrasto")
-	current.call("release_item", path[3])
+	var current := await open_dock(1)
+	check(current != null, "barra no canteiro 1")
+	var path: Array[Vector2] = [center_of(1), center_of(2), center_of(3), center_of(0)]
+	current.call("drag_points", path, false)
+	check(current.call("gesture_active"), "arrastando: o gesto está ativo")
+	check(farm.find_child("Ghost", true, false) != null, "ficha da semente aparece")
+	check(farm.find_child("FarmGesture", true, false) != null, "rastro e alvos desenhados")
+	check((farm.get("_content") as Control).position == before, "câmera parada durante o gesto")
+	current.call("release_drag")
 	check(status(1) == "growing" and status(2) == "growing" and status(3) == "growing", "arrasto plantou 1, 2 e 3")
 	check(float(state.call("plot", 0)["planted_at"]) == planted_at, "canteiro 0 (já plantado) ficou intacto")
 	check(state.call("plot", 0)["crop"] == "carrot", "0 continua cenoura")
 	check(toasts.is_empty(), "nenhum aviso de erro no arrasto")
-	check(tray() == null and farm.get("tray_dragging") == false, "agiu: a bandeja fecha e o mundo volta ao normal")
-	# Arrasto que não pega nenhum canteiro vazio: a bandeja continua.
-	current = await open_tray(4)
-	current.call("drag_through", "carrot", [Vector2(180, 700), Vector2(200, 705)] as Array[Vector2])
-	check(tray() != null and status(4) == "empty", "arrasto no vazio não planta e não fecha")
-	# Plantar a horta inteira: 1 toque + 1 arrasto.
+	check(dock() != null and not current.call("gesture_active"), "a barra continua aberta e o gesto acabou")
+	# Plantar a horta inteira com um arrasto começando em qualquer canteiro.
 	farm.call("close_tray")
 	empty_plots()
 	toasts.clear()
-	var whole := await open_tray(0)
-	whole.call("tap_item", "carrot")
-	var second := await open_tray(1)
-	var every: Array[Vector2] = []
-	for i in range(1, 9):
-		every.append(finger_for(i))
-	second.call("drag_through", "carrot", every)
+	var whole := await open_dock(0)
+	check(whole != null and status(0) == "empty", "abrir pelo Ir não planta")
+	whole.call("drag_plots", [0, 1, 2, 3, 4, 5, 6, 7, 8])
 	var planted := 0
 	for i in 9:
 		if status(i) == "growing": planted += 1
-	check(planted == 9, "horta inteira (9) com 1 toque + 1 arrasto (%d)" % planted)
+	check(planted == 9, "horta inteira (9) com um arrasto (%d)" % planted)
 	empty_plots()
 
 
@@ -292,45 +311,38 @@ func _test_drag_plant() -> void:
 func _test_greenhouse_and_locked() -> void:
 	empty_plots()
 	toasts.clear()
-	var current := await open_tray(9)
-	check(current != null, "bandeja na estufa")
+	var current := await open_dock(9)
+	check(current != null, "barra na estufa")
 	if current == null:
 		return
 	var ids: Array = current.call("entry_ids")
 	check(not ("carrot" in ids) and ("herbs" in ids) and ("strawberry" in ids), "estufa oferece ervas/morango, não cenoura")
-	check(current.find_child("Title", true, false) != null, "título Estufa")
 	var seconds := int(Database_crop_seconds("herbs"))
-	var caption := _caption_of(current, "herbs")
+	var caption := tile_caption(current, "herbs")
 	check(caption == TimeText.short(int(round(seconds * 0.7))), "legenda considera a estufa (%s)" % caption)
+	# Arrastar de um canteiro comum para a estufa só age nos compatíveis.
+	current.call("tap_tile", "herbs")
+	await process_frame
+	current.call("drag_plots", [0, 9, 10])
+	check(status(0) == "empty", "ervas não entram no canteiro comum")
+	check(status(9) == "growing" and status(10) == "growing", "mas entram na estufa")
+	empty_plots()
 	# Planta bloqueada: apagada, toque não planta e abre o "Como fazer".
 	check("blueberry" in ids, "mirtilo aparece na estufa")
-	var locked_item: Control = current.call("item_node", "blueberry")
-	check(locked_item.find_child("Lock", true, false) != null, "bloqueada mostra cadeado")
-	check((locked_item.find_child("Body", true, false) as Control).modulate.a < 0.6, "bloqueada fica apagada")
+	var locked_tile: Control = current.call("tile_node", "blueberry")
+	check(locked_tile.find_child("LockIcon", true, false) != null, "bloqueada mostra cadeado")
+	check((locked_tile.get_node("Visual/Picture") as Control).modulate.a < 0.6, "bloqueada fica apagada")
 	sheets = 0
 	toasts.clear()
-	current.call("tap_item", "blueberry")
+	current.call("tap_tile", "blueberry")
 	check(status(9) == "empty", "tocar na bloqueada não planta")
 	check(sheets == 1, "tocar na bloqueada abre o Como fazer")
-	check(toasts.size() == 1, "e mostra o motivo")
-	check(tray() == null, "o painel fecha a bandeja")
-	# Rodapé "Ver tudo" abre o painel antigo.
-	var again := await open_tray(9)
-	var footer := again.find_child("FooterGhost", true, false) as Button
-	check(footer != null, "rodapé Ver tudo")
-	sheets = 0
-	footer.pressed.emit()
-	check(sheets == 1 and tray() == null, "Ver tudo abre o painel de sementes e fecha a bandeja")
+	check(dock() == null, "o painel fecha a barra")
 	events.emit_signal("sheet_close_requested")
 
 
 func Database_crop_seconds(crop_id: String) -> float:
 	return float((root.get_node("Database").get("crops") as Dictionary)[crop_id].seconds)
-
-
-func _caption_of(current: Control, id: String) -> String:
-	var item: Control = current.call("item_node", id)
-	return (item.find_child("Caption", true, false) as Label).text
 
 
 # --- 5. colher e foice -------------------------------------------------------------------------------
@@ -347,16 +359,21 @@ func _test_harvest() -> void:
 	for i in 6:
 		farm.call("_on_plot_tapped", i)
 		await process_frame
+		await process_frame
 		check(status(i) == "empty", "toque colhe a cenoura %d" % i)
-		check(tray() == null, "colher %d não abre sementes nem foice" % i)
+		check(tray() == null, "colher %d não abre bandeja sobre os canteiros" % i)
+		if i < 5:
+			check(dock() != null and dock().get("mode") == "harvest", "sobraram prontos: barra em colher (%d)" % i)
+	check(dock() == null, "sem prontos a barra de colher se fecha")
 	check(state.get("coins") == coins_before, "colher não paga moeda (etapa 09)")
 	check(state.get("inventory").call("count", "carrot") == carrots_before + 12, "seis toques colhem seis canteiros sem perda")
 	# Plantar continua disponível no próximo toque deliberado num canteiro já vazio.
 	farm.call("_on_plot_tapped", 0)
 	await process_frame
-	check(tray() != null, "tocar depois no canteiro vazio abre sementes")
+	check(dock() != null and dock().get("mode") == "plant", "tocar depois no canteiro vazio abre a barra de sementes")
 	farm.call("close_tray")
 	empty_plots()
+
 
 # --- 6. armazenamento cheio -----------------------------------------------------------------------------
 
@@ -372,29 +389,26 @@ func _test_full_storage() -> void:
 	inventory.call("add", "carrot", 5000)
 	check(state.call("harvest_error", 1) != "", "depósito cheio: harvest_error explica")
 	farm.call("_on_plot_tapped", 1)
+	await process_frame
+	await process_frame
 	check(status(1) == "ready", "toque com depósito cheio não colhe")
 	check(toasts.size() == 1, "um aviso só (do próprio harvest)")
-	check(tray() == null, "e sem bandeja da foice (nada foi colhido)")
-	# Foice na mão mesmo assim: arrastar não colhe nem perde plantas.
-	var sickle_tray := PlotTrayScript().call("sickle", farm, 1) as Control
-	await process_frame
+	var current := dock()
+	check(current != null and current.find_child("LockHint", true, false) != null, "a barra de colher mostra o depósito cheio")
+	check(current != null and current.find_child("HarvestAll", true, false) == null, "sem botão de colher tudo")
+	# Foice na mão mesmo assim: arrastar não colhe nem perde plantas, avisando uma vez.
 	toasts.clear()
-	sickle_tray.call("drag_through", "sickle", [finger_for(2), finger_for(3)] as Array[Vector2])
+	if current:
+		current.call("drag_plots", [2, 3])
 	check(status(2) == "ready" and status(3) == "ready", "arrasto com depósito cheio mantém as plantas")
 	check(toasts.size() == 1, "o arrasto avisa só uma vez")
 	toasts.clear()
-	sickle_tray = PlotTrayScript().call("sickle", farm, 1) as Control
-	await process_frame
-	sickle_tray.call("tap_item", "all")
-	check(status(2) == "ready", "Tudo também respeita o depósito")
-	check(toasts.size() >= 1, "Tudo explica o motivo")
+	var entries: Array = PlotTrayScript().call("sickle_entries", farm)
+	var reason: String = (entries[1].tap as Callable).call()
+	check(status(2) == "ready" and reason != "", "Tudo também respeita o depósito e explica")
 	inventory.call("remove", "carrot", int(inventory.call("count", "carrot")) - carrots)
 	farm.call("close_tray")
 	empty_plots()
-
-
-func PlotTrayScript() -> Script:
-	return load("res://scripts/ui/plot_tray.gd")
 
 
 # --- 9. regar -------------------------------------------------------------------------------------------------
@@ -409,42 +423,50 @@ func _test_water() -> void:
 	farm.call("_on_plot_tapped", 0)
 	check(state.call("water_error", 0) == "Já foi regado", "toque num crescendo regável rega na hora")
 	await process_frame
-	var current := tray()
-	check(current != null and (current.call("entry_ids") as Array) == ["water"], "bandeja do regador")
+	await process_frame
+	var current := dock()
+	check(current != null and current.get("selected") == "water", "a barra abre com o regador escolhido")
 	if current == null:
 		return
-	check(_caption_of(current, "water") == "×3", "regador mostra os que faltam (%s)" % _caption_of(current, "water"))
-	await process_frame
-	current.call("drag_through", "water", [finger_for(1), finger_for(2), finger_for(1)] as Array[Vector2])
+	check(tile_caption(current, "water") == "×3", "regador mostra os que faltam (%s)" % tile_caption(current, "water"))
+	current.call("drag_plots", [1, 2, 1])
 	check(state.call("water_error", 1) != "" and state.call("water_error", 2) != "", "arrasto regou 1 e 2")
 	check(state.call("water_error", 3) == "", "3 ficou sem regar")
 	check(state.get("progress").stat("water") == water_before + 3, "cada canteiro só uma vez (%d)" % (state.get("progress").stat("water") - water_before))
-	# Tocar no regador rega o que faltar.
+	# Tocar no último rega e não abre mais nada.
 	await process_frame
 	farm.call("_on_plot_tapped", 3)
 	check(state.call("water_error", 3) != "", "toque rega o 3")
-	check(tray() == null, "sem outros para regar não abre a bandeja")
-	# Já regado: o toque mostra o tempo (cabeçalho com anel).
+	await process_frame
+	check(dock() == null, "sem outros para regar não abre a barra")
+	# Já regado: o toque mostra o tempo (cabeçalho com anel) num balão.
 	farm.call("_on_plot_tapped", 3)
 	await process_frame
-	var care := tray()
-	check(care != null and care.find_child("CareHeader", true, false) != null, "canteiro regado mostra o cabeçalho de tempo")
+	await process_frame
+	var care := farm.find_child("CareHeader", true, false)
+	check(care != null, "canteiro regado mostra o cabeçalho de tempo")
 	check(care != null and (care.find_child("Time", true, false) as Label).text != "", "com o tempo restante")
 	check(care != null and (care.find_child("Watered", true, false) as Control).visible, "e a marca de regado")
-	check(care != null and care.find_child("FooterGhost", true, false) != null, "e Ver tudo")
-	check(sheets == 0, "nada de painel grande")
+	check(care != null and farm.find_child("Popover", true, false) != null, "dentro de um balão (Popover)")
+	check(sheets == 0 and tray() == null and dock() == null, "nada de painel grande nem de barra")
+	var popover := farm.find_child("Popover", true, false)
+	if popover:
+		popover.call("close")
+		await process_frame
 	farm.call("close_tray")
-	# Regador em tudo com um toque.
+	# Regador em tudo: escolhido, arrastando por todos.
 	empty_plots()
 	for i in 4:
 		state.call("plant", i, "carrot")
 	farm.call("_on_plot_tapped", 0)
 	await process_frame
-	tray().call("tap_item", "water")
+	await process_frame
+	dock().call("drag_plots", [0, 1, 2, 3])
 	var dry := 0
 	for i in 4:
 		if state.call("water_error", i) == "": dry += 1
-	check(dry == 0, "tocar no regador rega todos")
+	check(dry == 0, "arrastar o regador rega todos")
+	farm.call("close_tray")
 	empty_plots()
 
 
@@ -452,57 +474,38 @@ func _test_water() -> void:
 
 func _test_closing() -> void:
 	empty_plots()
-	var current := await open_tray(5)
-	check(current != null, "bandeja aberta")
+	var current := await open_dock(5)
+	check(current != null, "barra aberta")
 	sheets = 0
 	events.emit_signal("sheet_requested", "Teste", Label.new())
-	check(tray() == null, "abrir um painel fecha a bandeja")
+	check(dock() == null, "abrir um painel fecha a barra")
 	events.emit_signal("sheet_close_requested")
-	# Tocar fora fecha sem plantar (o toque é consumido).
-	current = await open_tray(5)
-	var outside: Vector2 = (farm.call("world_to_screen", farm.call("plot_center", 4)) as Vector2) - (farm.get("global_position") as Vector2)
+	# Tocar fora de canteiros e da barra fecha sem plantar (o toque é consumido).
+	current = await open_dock(5)
+	var outside := farm.global_position + Vector2(20, 200)
 	farm.call("_gui_input", mouse_event("press", outside))
-	check(tray() == null, "tocar fora fecha a bandeja")
 	farm.call("_gui_input", mouse_event("release", outside))
+	check(dock() == null, "tocar fora fecha a barra")
 	check(status(4) == "empty" and status(5) == "empty", "o toque que fechou não plantou nada")
-	check(tray() == null, "e não abriu outra bandeja")
-	# O gesto seguinte volta ao normal.
-	farm.call("_gui_input", mouse_event("press", outside))
-	farm.call("_gui_input", mouse_event("release", outside))
-	await process_frame
-	check(tray() != null, "o próximo toque no canteiro abre a bandeja de novo")
-	# Só existe uma bandeja por vez.
-	farm.call("open_plot_tray", 6)
-	await process_frame
-	var trays := 0
-	for child in farm.get_children():
-		if child.get_script() == tray_script and not bool(child.get("closing")): trays += 1
-	check(trays == 1, "uma bandeja por vez (%d)" % trays)
-	# Câmera mexeu: fecha.
+	# Só existe uma barra por vez.
+	await open_dock(5)
+	await open_dock(6)
+	var docks := 0
+	for node in main.find_children("FarmDock", "", true, false):
+		if not bool(node.get("closing")): docks += 1
+	check(docks == 1, "uma barra por vez (%d)" % docks)
+	# Mexer na câmera não fecha a barra (ela não aponta para um ponto do mundo).
 	var zoom: float = farm.get("_zoom")
 	farm.call("_zoom_at", farm.size / 2.0, zoom * 1.3)
-	check(tray() == null, "mexer na câmera fecha a bandeja")
+	check(dock() != null, "mexer na câmera não fecha a barra")
 	farm.call("recenter")
 	await process_frame
 	# Trocar de aba esconde a sala: fecha.
-	await open_tray(5)
 	main.call("show_screen", &"pet")
 	await process_frame
-	check(tray() == null, "trocar de aba fecha a bandeja")
+	check(dock() == null, "trocar de aba fecha a barra")
 	main.call("show_screen", &"map")
 	await process_frame
-	# Fecha sozinha (auto_close) depois de ficar parada.
-	farm.call("_on_plot_tapped", 0)  # vazio: abre sementes (sem auto_close)
-	farm.call("close_tray")
-	state.call("plant", 7, "carrot")
-	state.call("water", 7)
-	farm.call("_on_plot_tapped", 7)
-	await process_frame
-	var care := tray()
-	check(care != null, "bandeja de cuidado")
-	if care:
-		care.call("_process", 3.5)
-		check(tray() == null, "auto_close fecha a bandeja depois de 3 s")
 	empty_plots()
 
 
@@ -512,66 +515,50 @@ func _test_edge_scroll() -> void:
 	empty_plots()
 	farm.call("recenter")
 	await process_frame
-	var current := await open_tray(1)
+	var current := await open_dock(1)
 	var before: Vector2 = farm.get("_content").position
-	var edge := Vector2(farm.size.x - 10.0, finger_for(1).y)
-	current.call("press_item", 0, current.call("item_center", "carrot"))
-	current.call("move_item", edge)
+	var edge := Vector2(farm.size.x - 10.0, center_of(1).y)
+	current.call("press", center_of(1))
+	current.call("move", edge)
 	for i in 5:
 		await process_frame
 	var after: Vector2 = farm.get("_content").position
-	check(after.x < before.x, "fantasma na borda direita rola a câmera (%.1f → %.1f)" % [before.x, after.x])
-	check(tray() != null and current.call("is_dragging"), "rolar não fecha a bandeja")
-	current.call("release_item", edge)
+	check(after.x < before.x, "dedo na borda direita rola a câmera (%.1f → %.1f)" % [before.x, after.x])
+	check(dock() != null and current.call("gesture_active"), "rolar não fecha a barra nem acaba o gesto")
+	current.call("release", edge)
 	farm.call("close_tray")
 	farm.call("recenter")
 	await process_frame
 	empty_plots()
 
 
-# --- 7.5 mãozinha de ensino ---------------------------------------------------------------------------------------------
+# --- Dica "Arraste pelos canteiros" (três primeiras aberturas) ---------------------------------------------------------
 
 func _test_hint() -> void:
 	empty_plots()
 	farm.call("recenter")
 	await process_frame
 	state.get("progress").seen.erase("ui:tray_drag_hint")
-	var current := await open_tray(0)
+	for time in 3:
+		var current := await open_dock(0)
+		await process_frame
+		check(current != null and main.find_child("DragHint", true, false) != null, "abertura %d com 2+ vazios mostra a dica" % (time + 1))
+		check(int(state.get("progress").seen.get("ui:tray_drag_hint", 0)) == time + 1, "a abertura conta (%s)" % str(state.get("progress").seen.get("ui:tray_drag_hint")))
+		farm.call("close_tray")
+		await process_frame
+	var fourth := await open_dock(0)
 	await process_frame
-	check(current.find_child("HintHand", true, false) != null, "primeira bandeja com 2+ vazios mostra a mãozinha")
-	var label := current.find_child("HintLabel", true, false) as Label
-	check(label != null and label.text == "Arraste até a terra", "legenda do arrasto")
-	check(not bool(state.get("progress").seen.get("ui:tray_drag_hint", false)), "ainda não marcou como visto")
-	current.call("tap_item", "carrot")
-	check(bool(state.get("progress").seen.get("ui:tray_drag_hint", false)), "plantar marca a dica como vista")
-	empty_plots()
-	var second := await open_tray(0)
-	await process_frame
-	check(second.find_child("HintHand", true, false) == null, "depois de vista a dica não volta")
+	check(fourth != null and main.find_child("DragHint", true, false) == null, "na quarta abertura a dica não volta")
 	farm.call("close_tray")
-	# Pegou no item: a mãozinha some.
+	# Com menos de dois canteiros vazios a dica não aparece.
 	state.get("progress").seen.erase("ui:tray_drag_hint")
-	var third := await open_tray(0)
-	await process_frame
-	third.call("press_item", 0, third.call("item_center", "carrot"))
-	await process_frame
-	check(third.find_child("HintHand", true, false) == null, "tocar no item esconde a mãozinha")
-	third.call("release_item", Vector2.ZERO)
-	farm.call("close_tray")
-	# A foice ensina uma vez.
 	empty_plots()
-	for i in 4:
-		state.call("plant", i, "carrot")
-	state.call("dev_finish_timers")
-	state.get("progress").seen.erase("ui:tray_harvest_hint")
-	PlotTrayScript().call("sickle", farm, 0)
+	for i in range(1, 13):
+		state.call("plant", i, "carrot" if i < 9 else "herbs")
+	var few := await open_dock(0)
 	await process_frame
-	await process_frame
-	var sickle := tray()
-	check(sickle != null and sickle.find_child("HintHand", true, false) != null, "foice mostra a mãozinha na primeira vez")
-	if sickle:
-		sickle.call("drag_through", "sickle", [finger_for(1), finger_for(2)] as Array[Vector2])
-	check(bool(state.get("progress").seen.get("ui:tray_harvest_hint", false)), "colher marca a dica da foice")
+	check(few != null and main.find_child("DragHint", true, false) == null, "um canteiro vazio só: sem dica")
+	farm.call("close_tray")
 	empty_plots()
 
 
@@ -581,29 +568,30 @@ func _test_real_input() -> void:
 	empty_plots()
 	farm.call("recenter")
 	await process_frame
-	var current := await open_tray(1)
-	if current == null:
-		check(false, "bandeja para o teste de eventos")
-		return
-	var start: Vector2 = current.call("item_center", "carrot")
-	send("carrot", mouse_event("press", start))
-	for point: Vector2 in [start + Vector2(0, -30), finger_for(1), finger_for(2), finger_for(3)]:
-		send("carrot", mouse_event("motion", point))
+	await open_dock(0)
+	empty_plots()
+	var start := center_of(1)
+	farm.call("_gui_input", mouse_event("press", start))
+	for point: Vector2 in [start + Vector2(3, 2), center_of(2), center_of(3)]:
+		farm.call("_gui_input", mouse_event("motion", point))
 		await process_frame
-	check(current.call("is_dragging"), "evento de mouse real começa o arrasto")
-	send("carrot", mouse_event("release", finger_for(3)))
+	farm.call("_gui_input", mouse_event("release", center_of(3)))
 	await process_frame
 	check(status(1) == "growing" and status(2) == "growing" and status(3) == "growing", "arrasto por eventos reais planta 1, 2 e 3")
-	check(farm.get("tray_dragging") == false, "e solta o mundo no fim")
-	# Toque simples (sem mover) num item é toque.
+	check(farm.get("tray_dragging") == false, "e o mundo não fica preso")
+	# Toque simples com tremida pequena (< 12 px) continua sendo toque: planta um só.
 	empty_plots()
-	var tap_tray := await open_tray(4)
-	var item: Vector2 = tap_tray.call("item_center", "carrot")
-	send("carrot", mouse_event("press", item))
-	send("carrot", mouse_event("motion", item + Vector2(3, 2)))
-	send("carrot", mouse_event("release", item + Vector2(3, 2)))
+	await open_dock(4)
+	var spot := center_of(4)
+	farm.call("_gui_input", mouse_event("press", spot))
+	farm.call("_gui_input", mouse_event("motion", spot + Vector2(3, 2)))
+	farm.call("_gui_input", mouse_event("release", spot + Vector2(3, 2)))
 	await process_frame
-	check(status(4) == "growing", "toque com tremida pequena (< 12 px) continua sendo toque")
+	var planted := 0
+	for i in 9:
+		if status(i) == "growing": planted += 1
+	check(status(4) == "growing" and planted == 1, "toque com tremida pequena planta só o canteiro tocado (%d)" % planted)
+	farm.call("close_tray")
 	empty_plots()
 
 
@@ -615,20 +603,19 @@ func _test_other_paths() -> void:
 	await process_frame
 	toasts.clear()
 	var places: Script = load("res://scripts/ui/places.gd")
-	# "Ir" com planta pedida: bandeja no primeiro canteiro vazio, planta em primeiro e destacada.
+	# "Ir" com planta pedida: barra no primeiro canteiro vazio, planta pedida escolhida.
 	state.call("plant", 0, "carrot")
 	places.call("run", "farm", "crop:potato")
 	await process_frame
 	await process_frame
-	var current := tray()
-	check(current != null, "Ir com planta abre a bandeja")
+	var current := dock()
+	check(current != null, "Ir com planta abre a barra")
 	if current:
-		check((current.call("entry_ids") as Array)[0] == "potato", "planta pedida vem primeiro")
-		var circle := (current.call("item_node", "potato") as Control).find_child("Circle", true, false) as Panel
-		var style := circle.get_theme_stylebox("panel") as StyleBoxFlat
-		check(style.border_width_left == 3 and style.border_color == Palette.PRIMARY, "e destacada com borda verde")
-		current.call("tap_item", "potato")
-		check(status(1) == "growing", "plantou no primeiro vazio (o 1, porque o 0 está ocupado)")
+		check(current.get("selected") == "potato", "planta pedida já vem escolhida")
+		check((current.call("entry_ids") as Array)[0] == "potato", "e vem primeiro")
+		check(status(1) == "empty", "navegar não planta sozinho")
+		current.call("drag_plots", [1])
+		check(status(1) == "growing" and state.call("plot", 1)["crop"] == "potato", "plantou no canteiro tocado com a planta pedida")
 	# Sem canteiro vazio: aponta e avisa.
 	for i in 9:
 		if status(i) == "empty":
@@ -636,41 +623,40 @@ func _test_other_paths() -> void:
 	for i in range(9, 13):
 		state.call("plant", i, "herbs")
 	toasts.clear()
+	farm.call("close_tray")
 	places.call("run", "farm", "crop:carrot")
 	await process_frame
-	check(tray() == null and "Todos os canteiros estão ocupados" in toasts, "sem vazio: aviso 'Todos os canteiros estão ocupados'")
-	check(farm.find_child("Pointer", true, false) != null, "e a seta aponta o primeiro canteiro")
+	check(dock() == null and "Todos os canteiros estão ocupados" in toasts, "sem vazio: aviso 'Todos os canteiros estão ocupados'")
+	check(farm.find_child("Pointer", true, false) != null, "e o alfinete aponta o primeiro canteiro")
 	farm.call("clear_pointer")
-	# Ir geral: abre as sementes direto, sem passar pelo resumo antigo.
+	# Ir geral: abre a barra direto, sem passar pelo resumo antigo.
 	empty_plots()
 	var worlds: Control = main.find_child("WorldsScreen", true, false)
 	worlds.call("enter", "farm", "plots")
-	var tray_deadline := Time.get_ticks_msec() + 3000
-	while tray() == null and Time.get_ticks_msec() < tray_deadline:
+	var deadline := Time.get_ticks_msec() + 3000
+	while dock() == null and Time.get_ticks_msec() < deadline:
 		await process_frame
 	var sheet: Control = main.find_child("Sheet", true, false)
-	check(tray() != null and "carrot" in tray().call("entry_ids"), "Ir para canteiros abre sementes direto")
+	check(dock() != null and "carrot" in dock().call("entry_ids"), "Ir para canteiros abre a barra de sementes direto")
 	check(not sheet.call("is_open"), "Ir para canteiros não abre o painel antigo")
 	farm.call("close_tray")
 	# Estufa respeita seus próprios canteiros, mesmo com a horta vazia.
 	places.call("run", "farm", "place:greenhouse")
 	await process_frame
-	check(tray() != null and "herbs" in tray().call("entry_ids"), "Ir para estufa abre suas sementes")
+	check(dock() != null and "herbs" in dock().call("entry_ids"), "Ir para estufa abre suas sementes")
 	farm.call("close_tray")
+	empty_plots()
 	for i in 9:
 		state.call("plant", i, "carrot")
-	places.call("run", "farm", "plots")
-	await process_frame
-	check(tray() != null and "water" in tray().call("entry_ids"), "horta ocupada abre cuidado, sem usar vazios da estufa")
-	farm.call("close_tray")
 	state.call("dev_finish_timers")
 	places.call("run", "farm", "plots")
 	await process_frame
-	check(tray() != null and "sickle" in tray().call("entry_ids"), "horta pronta abre foice direto")
+	await process_frame
+	check(dock() != null and dock().get("mode") == "harvest", "horta pronta abre a barra de colher direto")
 	check(status(0) == "ready", "Ir não colhe automaticamente")
 	farm.call("close_tray")
 	empty_plots()
-	# A consulta explícita continua disponível e leva à bandeja ao tocar na grade.
+	# A consulta explícita continua disponível e leva à barra ao tocar na grade.
 	places.call("open", "farm", "plots")
 	await create_timer(0.3).timeout
 	var tile: Button = null
@@ -683,14 +669,7 @@ func _test_other_paths() -> void:
 	if tile:
 		tile.pressed.emit()
 		for i in 30: await process_frame
-		check(tray() != null, "tocar numa linha do resumo abre a bandeja")
+		check(dock() != null, "tocar numa linha do resumo abre a barra")
 		check(not sheet.call("is_open"), "e fecha o painel")
 	farm.call("close_tray")
 	empty_plots()
-
-
-## Entrega o evento ao item da bandeja pelo mesmo sinal que o motor usa (o DisplayServer sem janela não despacha GUI).
-func send(id: String, event: InputEvent) -> void:
-	var current: Control = tray_script.get("current")
-	if is_instance_valid(current):
-		(current.call("item_node", id) as Control).gui_input.emit(event)

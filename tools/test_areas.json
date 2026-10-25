@@ -55,6 +55,7 @@
     "world_view_test",
     "world_selector_test",
     "balloon_test",
+    "farm_dock_test",
     "tray_test",
     "station_tray_test",
     "care_wheel_test",
@@ -316,6 +317,8 @@
         "game/data/crops.json",
         "game/data/rooms/farm.json",
         "game/scripts/ui/plot_tray.gd",
+        "game/scripts/ui/farm_dock.gd",
+        "game/tests/farm_dock_test.gd",
         "game/tests/farm_test.gd",
         "game/tests/garden_test.gd",
         "game/tests/tray_test.gd",
@@ -325,6 +328,7 @@
       "tests": [
         "farm_test",
         "garden_test",
+        "farm_dock_test",
         "tray_test",
         "flavors_test",
         "farm_market_label_test"
@@ -398,6 +402,7 @@
         "sheet_test",
         "lists_test",
         "ui_base_test",
+        "farm_dock_test",
         "tray_test",
         "station_tray_test",
         "ui2_tokens_test",

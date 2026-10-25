@@ -757,8 +757,11 @@ static func tile(texture: Texture2D, caption: String, state: String = "normal", 
 		mark.name = "Missing"
 		mark.add_theme_stylebox_override("panel", surface(Palette.ALERT_SOFT, 11))
 		result.add_child(mark)
-		mark.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-		mark.position += Vector2(-22, 0)
+		mark.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		mark.offset_left = -24.0
+		mark.offset_right = -2.0
+		mark.offset_top = 2.0
+		mark.offset_bottom = 24.0
 	if state == "locked":
 		var lock := ctl("lock", 18)
 		lock.name = "LockIcon"

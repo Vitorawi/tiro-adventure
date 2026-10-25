@@ -2,6 +2,18 @@
 
 ## Estado atual
 
+**Interface 2 — etapa 07 concluída (24/10/2026, Claude Sonnet 5.5; local).** `FarmDock` (`scripts/ui/farm_dock.gd`):
+barra da horta presa acima do rodapé, sementes + Regar (`plant`) ou foice + "Colher tudo (N)" (`harvest`); o dedo que
+começa num canteiro usa a ferramenta por onde passa (ficha com contador, rastro, losangos tracejados, rolagem na
+borda, pinça cancela), tocar fora fecha sem agir, mexer na câmera não fecha. Entradas do `PlotTray` extraídas
+(`seed_entries/water_entry/sickle_entries`); `CareHeader` num `Popover`; dica "Arraste pelos canteiros" contada
+(`seen["ui:tray_drag_hint"]` numérico, 3 vezes). `ActionTray` pick/`StationTray` no visual novo (cartão 24, 336 px,
+cabeçalho com ícone + selo de maestria + ≡ `SeeAll` + ✕, grade de `UiKit.tile` sem rolagem lateral, `tile missing`,
+`UiKit.stepper`, `lock_hint` em fila cheia/falta item). Lista fechada PASS + extras PASS; toque real PASS
+(`build/touch_steps_i2_07*.json`); capturas em `i2_07_antes/depois(_390,_412)/toque`. Detalhes, desvios e tempos em
+`docs/plans/interface2/VALIDACAO_07.md`. Nenhuma regra/save/fala/prêmio alterado; sem suíte inteira, campanha,
+push ou publicação. **Próxima: 08** (Mochila/caderninho), não iniciada.
+
 **Interface 2 — etapa 06 concluída (24/10/2026, Codex; local).** Mapas sem nomes fixos, segurar mostra o
 nome sem agir, brilho até o primeiro toque de lugar recém-aberto, balões lisos e WorldPin com anel na
 base. Auditoria de 34 etiquetas elegíveis: todos os caminhos físicos preservados, nenhum polígono novo.

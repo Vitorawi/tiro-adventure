@@ -10,10 +10,9 @@ const HINT_HARVEST := "ui:tray_harvest_hint"
 static var last_crop := ""
 
 
-## Sementes para um canteiro vazio: toque planta aqui; arrastar a semente planta em vários canteiros.
-## `focus` = planta pedida pelo "Ir" (primeira e destacada).
-static func seeds(room: RoomView, index: int, focus: String = "") -> ActionTray:
-	var greenhouse := GameState.is_greenhouse_plot(index)
+## Entradas das sementes para um canteiro (ordem: foco, última usada, tempo; bloqueadas no fim). Só monta;
+## quem mostra é o `FarmDock` ou a bandeja antiga. Respeita a estufa (`crop_plot_error`).
+static func seed_entries(room: RoomView, index: int, focus: String = "") -> Array[Dictionary]:
 	var ids: Array[String] = []
 	for crop_id: String in Database.crops:
 		if GameState.crop_plot_error(index, crop_id) == "":
@@ -50,6 +49,14 @@ static func seeds(room: RoomView, index: int, focus: String = "") -> ActionTray:
 				last_crop = crop_id
 				return true,
 		})
+	return entries
+
+
+## Sementes para um canteiro vazio: toque planta aqui; arrastar a semente planta em vários canteiros.
+## `focus` = planta pedida pelo "Ir" (primeira e destacada).
+static func seeds(room: RoomView, index: int, focus: String = "") -> ActionTray:
+	var greenhouse := GameState.is_greenhouse_plot(index)
+	var entries := seed_entries(room, index, focus)
 	var anchor := room.plot_anchor(index)
 	var options := {
 		"title": "Estufa" if greenhouse else "",
@@ -85,28 +92,27 @@ static func _first_open(entries: Array[Dictionary]) -> int:
 
 
 ## Planta crescendo: anel com o tempo que falta (e o regador, se ainda dá para regar).
-static func care(room: RoomView, index: int) -> ActionTray:
-	var entries: Array[Dictionary] = []
-	if GameState.water_error(index) == "":
-		entries.append(_water_entry(room, index))
-	var anchor := room.plot_anchor(index)
-	return ActionTray.open(room, anchor.above, entries, {
-		"header": CareHeader.new(index),
-		"below": anchor.below,
-		"auto_close": 3.0,
-		"footer_ghost": {"text": "Ver tudo", "action": func() -> void:
-			Events.sheet_requested.emit("Plantação", SheetBuilder.growing_plot(index))},
-	})
+static func care(room: RoomView, index: int) -> Popover:
+	# Só o `CareHeader` num balão embaixo do canteiro (o regador agora vive na barra da horta).
+	var anchor := Control.new()
+	anchor.name = "CareAnchor"
+	anchor.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	anchor.size = Vector2(2, 2)
+	room.add_child(anchor)
+	anchor.position = room.world_to_screen(room.plot_anchor(index).below) - room.global_position
+	var popover := Popover.open(room, anchor, CareHeader.new(index), 3.0)
+	popover.tree_exited.connect(anchor.queue_free)
+	return popover
 
 
 ## Regador: arraste por outros canteiros crescendo (uma rega por plantio). Tocar rega todos os que faltam.
 static func water(room: RoomView, index: int) -> ActionTray:
-	var entries: Array[Dictionary] = [_water_entry(room, index)]
+	var entries: Array[Dictionary] = [water_entry(room)]
 	var anchor := room.plot_anchor(index)
 	return ActionTray.open(room, anchor.above, entries, {"below": anchor.below, "auto_close": 3.0})
 
 
-static func _water_entry(room: RoomView, _index: int) -> Dictionary:
+static func water_entry(room: RoomView) -> Dictionary:
 	return {
 		"id": "water",
 		"icon": UiKit.ui_icon("action_water"),
@@ -124,7 +130,7 @@ static func _water_entry(room: RoomView, _index: int) -> Dictionary:
 
 
 ## Foice (arraste) e "Tudo" (toque) para colher os que sobraram prontos.
-static func sickle(room: RoomView, index: int) -> ActionTray:
+static func sickle_entries(room: RoomView) -> Array[Dictionary]:
 	var warned := {"storage": false}
 	var common := _most_common_ready_crop(room)
 	var entries: Array[Dictionary] = [
@@ -170,6 +176,12 @@ static func sickle(room: RoomView, index: int) -> ActionTray:
 				return "",
 		},
 	]
+	return entries
+
+
+## Foice e "Tudo" numa bandeja antiga (o Ir geral usa quando não quer colher só por navegar).
+static func sickle(room: RoomView, index: int) -> ActionTray:
+	var entries := sickle_entries(room)
 	var anchor := room.plot_anchor(index)
 	var options := {"below": anchor.below, "auto_close": 4.0}
 	var ready := room.ready_plots()

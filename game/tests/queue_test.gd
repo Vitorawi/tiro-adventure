@@ -327,7 +327,7 @@ func _interface() -> void:
 	root.add_child(detail)
 	check(detail.find_child("QuantityValue", true, false) != null and detail.find_child("FinishAt", true, false) != null, "seletor de quantidade e horário aparecem")
 	check(str((detail.find_child("QuantityValue", true, false) as Label).text) == "×1", "começa em ×1")
-	check((detail.find_child("QuantityLess", true, false) as Button).disabled, "− desligado em ×1")
+	check((detail.find_child("Minus", true, false) as Button).disabled, "− desligado em ×1")
 	check(_station("stove").queue.is_empty(), "só selecionar não começa a produção")
 	detail.queue_free()
 	tray.call("_set_count", "carrot_snack", 3)
@@ -337,7 +337,7 @@ func _interface() -> void:
 	detail = tray.call("recipe_detail", "stove", "carrot_snack")
 	root.add_child(detail)
 	var ing: Node = detail.find_child("Ingredients", true, false)
-	check(ing != null and ing.get_child_count() == 1, "ingredientes totais numa chip só")
+	check(ing != null and ing.get_children().filter(func(n: Node) -> bool: return n is Button).size() == 1, "ingredientes totais numa chip só")
 	check(str((detail.find_child("Cook", true, false) as Button).text) == "Cozinhar ×3", "botão mostra ×3")
 	detail.queue_free()
 	# ingredientes que sobraram depois de gastar
@@ -350,7 +350,7 @@ func _interface() -> void:
 	detail = tray.call("recipe_detail", "stove", "carrot_snack")
 	root.add_child(detail)
 	check(detail.find_child("Quantity", true, false) == null, "sem vaga livre não há seletor")
-	check((detail.find_child("Cook", true, false) as Button).disabled, "botão desligado com a fila cheia")
+	check(detail.find_child("Cook", true, false) == null and detail.find_child("LockHint", true, false) != null, "sem botão verde com a fila cheia (aviso de fila cheia)")
 	detail.queue_free()
 	tray.get("quantity").clear()
 

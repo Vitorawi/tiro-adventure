@@ -85,7 +85,7 @@ flowchart TD
 | [x] | [04](etapas/ETAPA_04_TIRO.md) | cenário aproximado, anéis no topo, botão Cuidar + roleta | grande |
 | [x] | [05](etapas/ETAPA_05_MISSOES.md) | Missões em 3 abas, `claim_quest_fx`, `QuestReward` | grande |
 | [x] | [06](etapas/ETAPA_06_MUNDO.md) | mapa sem texto, balões, `WorldPin`, cartões-postais, conversa, compra | grande |
-| [ ] | [07](etapas/ETAPA_07_HORTA_BANDEJAS.md) | `FarmDock`, bandejas das estações | grande |
+| [x] | [07](etapas/ETAPA_07_HORTA_BANDEJAS.md) | `FarmDock`, bandejas das estações | grande |
 | [ ] | [08](etapas/ETAPA_08_MOCHILA.md) | Mochila, detalhe, caderninho, Coleção, Álbum | médio |
 | [ ] | [09](etapas/ETAPA_09_PAINEIS.md) | painéis grandes | grande |
 | [ ] | [10](etapas/ETAPA_10_FESTA.md) | `ModalCard` novo, `RewardSheet`, boas-vindas, Novo! | médio |
@@ -219,3 +219,17 @@ para manter cinco destinos e dicas completas; teste de retrato isola a fila de p
 Nenhuma regra/save/fala/prêmio alterado. Próxima **07**, não iniciada. Sem push/publicação.
 
 **Etapa 06, pausa por limite (24/10/2026, 21:45, orquestrador):** o Codex parou às 21:19 com a cota de 5 h em 100% (volta por volta de 01:02 de 25/10) e a continuação no Claude Sonnet 5.5 (aberta às 21:31 com `build/orquestrador/etapa06_continuacao.md`) foi recusada na hora por limite de sessão (volta às 22:20). Estado no disco: etapa 06 quase pronta, sem commit (último commit `abd4b5d`, etapa 05); README já marca a 06, mas falta a conferência e o commit local. Retomar pelo Claude após 22:20 com o mesmo arquivo de continuação.
+
+**Etapa 07 (24/10/2026, Claude Sonnet 5.5; local):** `FarmDock` (barra da horta acima do rodapé: sementes + Regar,
+ou foice + "Colher tudo (N)"; o dedo que começa em qualquer canteiro planta/rega/colhe por onde passa, com ficha,
+rastro e alvos tracejados), entradas do `PlotTray` extraídas (`seed_entries/water_entry/sickle_entries`),
+`CareHeader` em `Popover`, dica contada nas três primeiras aberturas; `ActionTray`/`StationTray` no visual novo
+(cartão 24/336, cabeçalho com ícone + selo de maestria + ≡ + ✕, grade 4 colunas de `UiKit.tile` sem rolagem
+lateral, `tile missing`, `UiKit.stepper`, `lock_hint` na fila cheia). Testes: lista fechada
+(farm_dock_test, tray_test, garden_test, queue_test, recipe_help_test, station_tray_test) + rápido 9/9 PASS em 291 s — tempos e
+log em [VALIDACAO_07.md](VALIDACAO_07.md); extras PASS (nature, nature_routes, animals, friends, ui2_kit,
+world_view, balloon, ui_style). Toque real PASS (plantar, arrasto, regar, colher tudo, fogão; PNGs em
+`build/screenshots/i2_07_toque`). Capturas nas três resoluções em `build/screenshots/i2_07_depois(_390,_412)`.
+Desvios: fila cheia mostra só o motivo no `lock_hint` (preço das vagas fica no cabeçalho); "Ver tudo" não mudou;
+mexer na câmera não fecha a barra (regra nova, só a `ActionTray` fecha). Nenhuma regra/save/fala/prêmio alterado.
+Próxima **08**, não iniciada. Sem push/publicação.

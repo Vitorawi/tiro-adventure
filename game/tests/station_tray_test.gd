@@ -214,90 +214,35 @@ func recipe_shot(label: String) -> void:
 	root.get_texture().get_image().save_png(folder.path_join("%s_%d.png" % [label, root.size.x]))
 
 
+## Interface 2: a grade das receitas não rola na horizontal. Com mais de 8 receitas ela mostra 2,5 linhas e rola só
+## na vertical (a meia linha de baixo avisa que tem mais).
 func _test_recipe_scroll() -> void:
 	reset_world_state()
 	var house := await enter("house")
 	var current := await tap(house, "place:stove", "stove")
 	await frames(8)
-	var scroll := current.call("find_in_panel", "RecipeScroll") as ScrollContainer
+	check(current != null, "fogão abre")
+	if current == null:
+		return
+	check(current.call("find_in_panel", "RecipeScroll") == null, "sem faixa horizontal de receitas")
 	var ids: Array = current.call("entry_ids")
-	var initial := str(current.get("selected"))
-	await recipe_shot("before")
-	var camera: Vector2 = (house.get("_content") as Control).position
-	for touch: bool in [false, true]:
-		for gap: bool in [false, true]:
-			current.set("_recipe_velocity", 0.0)
-			scroll.scroll_horizontal = 60
-			await frames()
-			var start := scroll.global_position + Vector2(110, 25)
-			if gap:
-				var item: Control = current.call("item_node", str(ids[2]))
-				start.x = item.global_position.x - 6
-			await recipe_pointer(start, "down", touch)
-			var expected := 60
-			var previous := 0
-			for offset: int in [2, 5, 9, 14, 35, 70, 95, 83, 61, 89, 105, 250, 330, 300, 80, 40, 0, -90, -110, -130, -125, -119]:
-				expected = clampi(expected + offset - previous, 0, int(scroll.get_h_scroll_bar().max_value - scroll.get_h_scroll_bar().page))
-				await recipe_pointer(start - Vector2(offset, 0), "move", touch)
-				check(absi(scroll.scroll_horizontal - expected) <= 1, "1:1/reversão touch=%s gap=%s offset=%d: %d/%d" % [touch, gap, offset, scroll.scroll_horizontal, expected])
-				previous = offset
-			await create_timer(0.13).timeout
-			await recipe_pointer(start - Vector2(previous, 0), "up", touch)
-			check(str(current.get("selected")) == initial, "arrasto não seleciona (%s/%s)" % [touch, gap])
-			var stopped := scroll.scroll_horizontal
-			await frames(5)
-			check(scroll.scroll_horizontal == stopped, "pausa antes de soltar não gera flick")
-		await recipe_shot("touch_reverse" if touch else "mouse_reverse")
-		scroll.scroll_horizontal = 0
-		var start := scroll.global_position + Vector2(190, 25)
-		await recipe_pointer(start, "down", touch)
-		for offset: int in [12, 24, 40, 58, 80]:
-			await recipe_pointer(start - Vector2(offset, 0), "move", touch)
-		await recipe_pointer(start - Vector2(80, 0), "up", touch)
-		var released := scroll.scroll_horizontal
-		await create_timer(0.15).timeout
-		check(scroll.scroll_horizontal > released + 3, "flick continua após soltar (%s)" % touch)
-		await recipe_shot("touch_flick" if touch else "mouse_flick")
-		await create_timer(1.0).timeout
-		check(is_zero_approx(float(current.get("_recipe_velocity"))), "inércia termina (%s)" % touch)
-		# Também inverte imediatamente no limite direito, sem pagar o excesso.
-		var limit := int(scroll.get_h_scroll_bar().max_value - scroll.get_h_scroll_bar().page)
-		scroll.scroll_horizontal = limit - 20
-		start = scroll.global_position + Vector2(190, 25)
-		await recipe_pointer(start, "down", touch)
-		await recipe_pointer(start - Vector2(80, 0), "move", touch)
-		await recipe_pointer(start - Vector2(75, 0), "move", touch)
-		check(absi(scroll.scroll_horizontal - (limit - 5)) <= 1, "inversão imediata no limite direito")
-		await create_timer(0.13).timeout
-		await recipe_pointer(start - Vector2(75, 0), "up", touch)
-		scroll.scroll_horizontal = 0
-		await frames()
-		start = current.call("item_center", str(ids[1]))
-		current.set("_recipe_position", float(scroll.scroll_horizontal))
-		current.set("_recipe_velocity", 600.0)
-		await recipe_pointer(start, "down", touch)
-		check(is_zero_approx(float(current.get("_recipe_velocity"))), "novo toque interrompe inércia")
-		await recipe_pointer(start + Vector2(2, 0), "up", touch)
-		check(str(current.get("selected")) == str(ids[1]), "tap com tremor seleciona (%s)" % touch)
-		await frames(6)
-		await recipe_shot("touch_tap" if touch else "mouse_tap")
-		current.call("select", initial)
-		await frames(6)
-	check(camera == (house.get("_content") as Control).position, "gesto não move a câmera")
-	# A barra continua recebendo o próprio gesto, fora dos itens.
-	scroll.scroll_horizontal = 0
-	await frames()
-	var bar := scroll.get_h_scroll_bar()
-	var thumb := bar.global_position + Vector2(8, bar.size.y / 2)
-	await recipe_pointer(thumb, "down", false)
-	await recipe_pointer(thumb + Vector2(45, 0), "move", false)
-	await recipe_pointer(thumb + Vector2(45, 0), "up", false)
-	check(scroll.scroll_horizontal > 0, "barra ainda arrasta")
+	var scroll := current.call("find_in_panel", "Scroll") as ScrollContainer
+	if ids.size() > 8:
+		check(scroll != null, "mais de 8 receitas: grade rola na vertical")
+		if scroll:
+			check(scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED, "nunca rola na horizontal")
+			check(scroll.vertical_scroll_mode == ScrollContainer.SCROLL_MODE_AUTO, "rola na vertical")
+			var tile: Vector2 = (load("res://scripts/ui/action_tray.gd") as Script).get_script_constant_map()["PICK_TILE"]
+			check(scroll.custom_minimum_size.y < tile.y * 3.0 and scroll.custom_minimum_size.y > tile.y * 2.0, "altura de 2,5 linhas (%.0f)" % scroll.custom_minimum_size.y)
+	else:
+		check(scroll == null, "até 8 receitas: grade inteira, sem rolagem")
+	var first: Control = current.call("item_node", str(ids[0]))
+	var last: Control = current.call("item_node", str(ids[ids.size() - 1]))
+	var box: Control = current.get("_box")
+	check(first != null and last != null and box.get_global_rect().encloses(first.get_global_rect()), "primeira receita dentro da bandeja")
 	house.call("close_tray")
-	await frames()
 
 
-## Compra durante produção: cada animal tem seu espaço e o rodapé abre a loja diretamente.
 func _test_animal_spaces() -> void:
 	reset_world_state()
 	state.set("animals", {"chicken_brown": 1})
@@ -354,7 +299,7 @@ func _test_stove_cooks() -> void:
 	var ids: Array = current.call("entry_ids")
 	check(ids.size() >= 3 and ids[0] == "carrot_snack", "receitas do fogão em grade (%d)" % ids.size())
 	var box: Control = current.get("_box")
-	check(is_equal_approx(box.size.x, 328.0), "largura 328 (%.0f)" % box.size.x)
+	check(is_equal_approx(box.size.x, 336.0), "largura 336 (%.0f)" % box.size.x)
 	check(box.position.y >= 119.0, "bandeja não fica sob o HUD (y %.0f)" % box.position.y)
 	check(Rect2(Vector2.ZERO, house.size).encloses(Rect2(box.position, box.size)), "bandeja inteira dentro da sala")
 	var close_button: Control = current.call("find_in_panel", "CloseTray")
@@ -401,12 +346,14 @@ func _test_full_queue() -> void:
 	if current == null:
 		return
 	var cook := current.call("find_in_panel", "Cook") as Button
-	check(cook != null and cook.disabled, "botão desabilitado com a fila cheia")
-	check(cook != null and cook.text == state.call("cook_error", "carrot_snack") and cook.text == "Fila cheia", "o botão mostra o motivo (%s)" % (cook.text if cook else "?"))
-	var carrots: int = state.get("inventory").call("count", "carrot")
-	if cook:
-		cook.pressed.emit()
-	check(state.get("inventory").call("count", "carrot") == carrots, "nada é descontado com a fila cheia")
+	check(cook == null, "fila cheia: sem botão verde")
+	var hint := current.call("find_in_panel", "LockHint") as Control
+	check(hint != null, "fila cheia: o verde vira lock_hint")
+	var reason := hint.find_children("*", "Label", true, false) if hint else []
+	check(not reason.is_empty() and (reason[0] as Label).text == state.call("cook_error", "carrot_snack") and (reason[0] as Label).text == "Fila cheia", "o aviso mostra o motivo")
+	var carrots_before: int = state.get("inventory").call("count", "carrot")
+	check(state.call("cook", "carrot_snack") == "Fila cheia", "o GameState também recusa com a fila cheia")
+	check(state.get("inventory").call("count", "carrot") == carrots_before, "nada é descontado com a fila cheia")
 	house.call("close_tray")
 
 
@@ -422,10 +369,13 @@ func _test_missing_ingredients() -> void:
 	var item: Control = current.call("item_node", "carrot_snack")
 	var badge := item.find_child("Badge", true, false) as Label
 	check(badge == null, "falta de ingredientes não cria exclamação de missão na receita")
-	check((item.get_node("Body") as Control).modulate.a < 1.0, "receita sem ingredientes fica esmaecida")
-	check(not (item.get_node("Lock") as Control).visible, "ingredientes faltantes não exibem cadeado")
+	check((item.get_node("Visual/Picture") as Control).modulate.a < 1.0, "receita sem ingredientes fica esmaecida")
+	check(item.find_child("LockIcon", true, false) == null, "ingredientes faltantes não exibem cadeado")
+	check(item.find_child("Missing", true, false) != null, "tile mostra o ingrediente que falta num mini-disco")
 	var cook := current.call("find_in_panel", "Cook") as Button
-	check(cook != null and cook.disabled and cook.text == state.call("cook_error", "carrot_snack") and cook.text.begins_with("Falta "), "primary desabilitado mostra o que falta (%s)" % (cook.text if cook else "?"))
+	var hint := current.call("find_in_panel", "LockHint") as Control
+	var reason := hint.find_children("*", "Label", true, false) if hint else []
+	check(cook == null and not reason.is_empty() and (reason[0] as Label).text == state.call("cook_error", "carrot_snack") and (reason[0] as Label).text.begins_with("Falta "), "lock_hint mostra o que falta")
 	var chips := current.call("find_in_panel", "Ingredients") as Control
 	check(chips != null and chips.get_child_count() > 0 and chips.get_child(0) is Button, "ingrediente que falta é chip tocável")
 	sheet_titles.clear()
@@ -442,7 +392,8 @@ func _test_missing_ingredients() -> void:
 	await frames()
 	var badge_now := reopened.call("item_node", "carrot_snack").find_child("Badge", true, false) as Label
 	check(badge_now == null, "receita com ingredientes também fica sem exclamação")
-	check(is_equal_approx((reopened.call("item_node", "carrot_snack").get_node("Body") as Control).modulate.a, 1.0), "ingredientes recebidos retiram o esmaecimento na hora")
+	var now_item: Control = reopened.call("item_node", "carrot_snack")
+	check(is_equal_approx((now_item.get_node("Visual/Picture") as Control).modulate.a, 1.0) and now_item.find_child("Missing", true, false) == null, "ingredientes recebidos retiram o esmaecimento na hora")
 	if "--ingredient-shots" in OS.get_cmdline_user_args():
 		var folder := ProjectSettings.globalize_path("res://../build/screenshots/recipe_ingredients")
 		DirAccess.make_dir_recursive_absolute(folder)
@@ -484,8 +435,8 @@ func _test_roomy_station() -> void:
 	var body := current.call("find_in_panel", "TrayBodyScroll") as ScrollContainer
 	check(body != null, "conteúdo tem rolagem quando necessário")
 	var cook := current.call("find_in_panel", "Cook") as Button
-	var footer := current.call("find_in_panel", "FooterGhost") as Button
-	var quantity := current.call("find_in_panel", "QuantityMore") as Button
+	var footer := current.call("find_in_panel", "SeeAll") as Button
+	var quantity := (current.call("find_in_panel", "Quantity") as Node).find_child("Plus", true, false) as Button
 	check(quantity != null and not quantity.disabled, "caso da foto permite dois lotes")
 	var nav := main.find_child("TabBar", true, false) as Control
 	for button: Button in [cook, footer]:
@@ -496,7 +447,7 @@ func _test_roomy_station() -> void:
 	check(cook != null and not cook.disabled, "Cozinhar acessível com ingredientes e vagas")
 	var panel: Control = current.get("_box")
 	check(panel.position.y >= 119 and panel.get_global_rect().end.y < nav.global_position.y, "painel cabe entre HUD e abas")
-	check(current.call("find_in_panel", "RecipeScroll") != null, "receitas em faixa horizontal")
+	check(current.call("find_in_panel", "RecipeScroll") == null, "receitas em grade, sem faixa horizontal")
 	if "--spacing-shots" in OS.get_cmdline_user_args():
 		(main.get("_toast") as Control).hide()
 		var folder := ProjectSettings.globalize_path("res://").path_join("../build/screenshots/station_spacing").simplify_path()
@@ -504,10 +455,9 @@ func _test_roomy_station() -> void:
 		await RenderingServer.frame_post_draw
 		root.get_texture().get_image().save_png(folder.path_join("stove_%d.png" % root.size.x))
 	if quantity:
-		body.ensure_control_visible(quantity)
 		await frames(4)
-		check(body.get_global_rect().encloses(quantity.get_global_rect()), "rolagem revela toda a quantidade")
-		check(cook.get_global_rect().end.y < nav.global_position.y and footer.get_global_rect().end.y < nav.global_position.y, "rolagem mantém as ações acima das abas")
+		check(quantity.get_global_rect().end.y < nav.global_position.y, "a quantidade fica fixa acima das abas")
+		check(cook.get_global_rect().end.y < nav.global_position.y and footer.get_global_rect().end.y < nav.global_position.y, "ações acima das abas")
 	if quantity: quantity.pressed.emit()
 	await frames(8)
 	cook = current.call("find_in_panel", "Cook") as Button
@@ -515,7 +465,7 @@ func _test_roomy_station() -> void:
 	if cook: cook.pressed.emit()
 	await frames(8)
 	check((state.call("station", "stove").queue as Array).size() == 2, "botão fixo cozinha dois lotes de verdade")
-	footer = current.call("find_in_panel", "FooterGhost") as Button
+	footer = current.call("find_in_panel", "SeeAll") as Button
 	sheet_titles.clear()
 	if footer: footer.pressed.emit()
 	await frames(4)
@@ -550,8 +500,8 @@ func _test_growth_food_focus() -> void:
 	check(current != null, "ajuda abre bandeja do fogão")
 	if current == null: return
 	check(current.get("selected") == "growth_kibble" and current.call("entry_ids")[0] == "growth_kibble", "receita pedida já selecionada e visível na primeira posição")
-	check(current.call("find_in_panel", "RecipeScrollHint") != null, "receitas extras têm instrução de rolagem")
-	check((current.call("find_in_panel", "Cook") as Button).disabled, "fila cheia continua impedindo produção")
+	check(current.call("find_in_panel", "Scroll") != null or (current.call("entry_ids") as Array).size() <= 8, "receitas extras rolam na vertical dentro da grade")
+	check(current.call("find_in_panel", "Cook") == null and current.call("find_in_panel", "LockHint") != null, "fila cheia continua impedindo produção")
 	var panel: Control = current.get("_box")
 	check(Rect2(Vector2.ZERO, house.size).encloses(Rect2(panel.position, panel.size)), "receita focada e dica cabem na tela")
 	check((state.call("station", "stove").queue as Array).size() == state.call("station_slots", "stove"), "navegar não inicia outra produção")
@@ -608,7 +558,7 @@ func _test_see_all() -> void:
 	if current == null:
 		return
 	sheet_titles.clear()
-	press(current, "FooterGhost")
+	press(current, "SeeAll")
 	await frames()
 	check(sheet_titles == ["Fogão"], "\"Ver tudo\" abre o painel antigo do fogão (%s)" % str(sheet_titles))
 	check(tray() == null, "e a bandeja fecha")
@@ -646,8 +596,8 @@ func _test_coop() -> void:
 	check(current.call("find_in_panel", "Herd") != null, "fileirinha dos animais no cabeçalho")
 	var feed: String = (current.call("entry_ids") as Array)[0]
 	var item: Control = current.call("item_node", feed)
-	check((item.find_child("Caption", true, false) as Label).text == TimeText.short(int(root.get_node("Database").get("recipes")[feed].seconds)), "produto mostra tempo de preparo")
-	check((item.find_child("Icon", true, false) as TextureRect).texture == root.get_node("Database").call("item_icon", "egg"), "ícone da receita é ovo, não milho")
+	check((item.get_node("Visual").get_child(1) as Label).text == TimeText.short(int(root.get_node("Database").get("recipes")[feed].seconds)), "produto mostra tempo de preparo")
+	check((item.get_node("Visual/Picture") as TextureRect).texture == root.get_node("Database").call("item_icon", "egg"), "ícone da receita é ovo, não milho")
 	current.call("tap_item", feed)
 	check(state.get("inventory").call("count", "corn") == 10, "selecionar o ovo não gasta milho")
 	var ingredients: Control = current.call("find_in_panel", "Ingredients")
@@ -708,7 +658,7 @@ func _test_nature() -> void:
 		await frames()
 		check(current.call("find_in_panel", "RequiredLevel_" + locked) != null, "o detalhe mostra o cadeado com o nível")
 		check(current.call("find_in_panel", "Material_" + locked) == null, "sem botão para o material bloqueado")
-		check((current.call("item_node", locked).find_child("Caption", true, false) as Label).text.begins_with("Nível"), "legenda do bloqueado = Nível N")
+		check((current.call("item_node", locked).get_node("Visual").get_child(1) as Label).text.begins_with("Nível"), "legenda do bloqueado = Nível N")
 	current.call("tap_item", "wood")
 	await frames()
 	check(primaries(current) == 1, "um único botão principal")
@@ -790,7 +740,10 @@ func _test_sewing() -> void:
 	var ids: Array = current.call("entry_ids")
 	check("sew_flower_crown" in ids, "receitas de costura em grade")
 	var cook := current.call("find_in_panel", "Cook") as Button
-	check(cook != null and (cook.text in ["Costurar", "Você já tem"] or cook.text.begins_with("Falta ")), "verbo da costura (%s)" % (cook.text if cook else "?"))
+	var sew_hint := current.call("find_in_panel", "LockHint") as Control
+	var sew_reason := sew_hint.find_children("*", "Label", true, false) if sew_hint else []
+	var sew_text := cook.text if cook else (str((sew_reason[0] as Label).text) if not sew_reason.is_empty() else "?")
+	check(sew_text in ["Costurar", "Você já tem"] or sew_text.begins_with("Falta "), "verbo da costura (%s)" % sew_text)
 	park.call("close_tray")
 
 

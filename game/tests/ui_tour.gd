@@ -79,6 +79,10 @@ func _run() -> void:
 	var places: Script = load("res://scripts/ui/places.gd")
 	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
+	if "--i2-07-only" in OS.get_cmdline_user_args():
+		await _i2_07_shots()
+		quit(0)
+		return
 	if "--i2-06-only" in OS.get_cmdline_user_args():
 		state.call("reset")
 		state.get("progress").seen.intro = true
@@ -804,6 +808,104 @@ func _pet_shots() -> void:
 	state.get("dog").updated_at = state.call("now")
 	state.call("_changed")
 	await shot("f07_pet_low_needs")
+
+
+## Interface 2, etapa 07: barra da horta e bandejas das estações (as mesmas capturas antes e depois).
+func _i2_07_shots() -> void:
+	state.call("reset")
+	state.get("progress").seen.intro = true
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	var progress_seen: Dictionary = state.get("progress").seen
+	progress_seen["ui:tray_drag_hint"] = 9
+	progress_seen["ui:tray_harvest_hint"] = true
+	var bag: RefCounted = state.get("inventory")
+	bag.call("from_dict", {})
+	await _start_main(1.5)
+	await _world("farm")
+	var farm: Node = main.find_child("World_farm", true, false)
+	farm.call("recenter")
+	await create_timer(0.5).timeout
+	bag.call("add", "carrot", 20)
+	bag.call("add", "potato", 20)
+	_empty_plots()
+	farm.call("_on_plot_tapped", 1)
+	await shot("i2_07_dock_plant", 0.6)
+	var dock_script: Script = load("res://scripts/ui/farm_dock.gd") if ResourceLoader.exists("res://scripts/ui/farm_dock.gd") else null
+	if dock_script != null:
+		var dock: Control = dock_script.call("current")
+		var path: Array[Vector2] = []
+		for i in [1, 2, 3]:
+			path.append(_finger(farm, i) - Vector2(0, 40))
+		dock.call("drag_points", path, false)
+		await shot("i2_07_dock_drag", 0.4)
+		dock.call("release_drag")
+		await create_timer(0.3).timeout
+	farm.call("close_tray")
+	_empty_plots()
+	progress_seen.erase("ui:tray_drag_hint")
+	farm.call("open_plot_tray", 0)
+	await shot("i2_07_dock_hint", 0.6)
+	progress_seen["ui:tray_drag_hint"] = 9
+	farm.call("close_tray")
+	bag.call("from_dict", {})
+	bag.call("add", "carrot", 20)
+	for i in 4:
+		state.call("plant", i, "carrot")
+	state.call("dev_finish_timers")
+	farm.call("_animate_objects")
+	farm.call("_on_plot_tapped", 1)
+	await shot("i2_07_dock_harvest", 0.6)
+	farm.call("close_tray")
+	_empty_plots()
+	state.call("plant", 5, "carrot")
+	state.call("water", 5)
+	farm.call("_on_plot_tapped", 5)
+	await shot("i2_07_growing", 0.5)
+	farm.call("close_tray")
+	for id: String in state.get("stations"):
+		state.get("stations")[id].queue.clear()
+	state.set("animals", {})
+	bag.call("from_dict", {})
+	await _world("house")
+	var house: Node = main.find_child("World_house", true, false)
+	house.call("_animate_objects")
+	house.call("recenter")
+	bag.call("add", "carrot", 5)
+	bag.call("add", "potato", 1)
+	state.call("cook", "carrot_snack")
+	await create_timer(0.5).timeout
+	house.call("_on_object_tapped", "place:stove", house.find_child("stove", true, false))
+	await shot("i2_07_stove", 0.6)
+	house.call("close_tray")
+	bag.call("from_dict", {})
+	state.call("_changed")
+	house.call("_on_object_tapped", "place:stove", house.find_child("stove", true, false))
+	await shot("i2_07_stove_missing", 0.6)
+	house.call("close_tray")
+	await _world("farm")
+	farm.call("recenter")
+	await create_timer(0.5).timeout
+	state.call("buy_animal", "chicken_white")
+	state.call("buy_animal", "chicken_brown")
+	bag.call("add", "corn", 5)
+	state.call("_changed")
+	state.call("cook", "eggs")
+	farm.call("_on_object_tapped", "place:chicken_coop", farm.find_child("chicken_coop", true, false))
+	await shot("i2_07_coop", 0.6)
+	farm.call("close_tray")
+	await _world("nature")
+	var nature_room: Node = main.find_child("World_nature", true, false)
+	nature_room.call("recenter")
+	await create_timer(0.5).timeout
+	nature_room.call("_on_object_tapped", "place:trees")
+	await shot("i2_07_trees", 0.6)
+	nature_room.call("close_tray")
+	await _world("house")
+	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
+	await _sheet("Fogão", sb.call("station_view", "stove"))
+	await shot("i2_07_station_full", 0.4)
+	await _close()
 
 
 func _empty_plots() -> void:
