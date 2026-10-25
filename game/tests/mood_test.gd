@@ -142,8 +142,9 @@ func ui_checks() -> void:
 	var hud: Control = main.get_node("TopBar")
 	hud.refresh(false)
 	check(hud.get_node("AvatarGroup/AnimatedBadge").visible, "HUD mostra selo Animado")
-	var badge: Label = hud.get_node("AvatarGroup/AnimatedBadge")
-	check(badge.size.x >= badge.get_minimum_size().x and badge.get_line_count() == 1, "selo tem largura para uma linha")
+	var badge: Control = hud.get_node("AvatarGroup/AnimatedBadge")
+	check(badge is PanelContainer and badge.size == Vector2(18, 18), "selo Animado é disco compacto de 18 px: tamanho %s, mínimo %s" % [badge.size, badge.get_combined_minimum_size()])
+	check(not badge.find_children("*", "TextureRect", true, false).is_empty(), "selo contém estrela vetorial")
 	var pop: Control = hud.show_level_popover()
 	for i in 8: await process_frame
 	var help: Label = pop.find_child("AnimatedHelp", true, false)

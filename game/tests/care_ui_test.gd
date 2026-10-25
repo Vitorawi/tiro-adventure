@@ -70,6 +70,22 @@ func _run() -> void:
 	await frames()
 	var pet: Control = main.find_child("PetScreen", true, false)
 	var events := root.get_node("Events")
+	# O humor dura três segundos, não reaparece a cada atualização e pode ser revisto por toque.
+	var mood: Control = pet.find_child("MoodBubble", true, false)
+	pet.call("_show_mood")
+	pet.call("_process", 2.9)
+	check(mood.visible, "humor permanece antes de três segundos")
+	pet.call("_process", 0.11)
+	check(not mood.visible, "humor some após três segundos com Menos animação")
+	pet.call("_refresh")
+	check(not mood.visible, "humor igual não reaparece no tique")
+	var mood_touch := InputEventMouseButton.new()
+	mood_touch.button_index = MOUSE_BUTTON_LEFT
+	mood_touch.pressed = true
+	pet.call("_on_dog_input", mood_touch)
+	check(mood.visible, "toque no Tiro revela a pílula de humor")
+	mood_touch.pressed = false
+	pet.call("_on_dog_input", mood_touch)
 
 	# --- Abas: só Tiro · Mapa · Missões · Mochila, sem tela nem nó de vínculo ---
 	check(main.find_child("WishesTab", true, false) == null and main.find_child("WishesScreen", true, false) == null, "aba e tela Desejos saíram")

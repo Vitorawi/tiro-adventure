@@ -89,6 +89,9 @@ func _run() -> void:
 	for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 		root.size = viewport
 		await frames()
+		var menu_rect := menu.get_global_rect()
+		check(not menu_rect.intersects(pet.call("head_rect")), "cardápio preserva o alvo da cabeça em " + str(viewport))
+		check(menu_rect.end.y < tray.find_child("CareButton", true, false).global_position.y, "cardápio acima de Cuidar em " + str(viewport))
 		var badge: Label = pet.find_child("NotebookNewBadge", true, false)
 		check(badge.text == "!" and badge.get_theme_color("font_color") == Color.WHITE, "caderninho: exclamação branca sobre bolinha vermelha")
 		check(badge.size.x >= badge.get_combined_minimum_size().x and badge.size.y > 0, "selo do caderninho tem espaço para o texto")
@@ -292,7 +295,8 @@ func _run() -> void:
 	tray.call("open_food_menu")
 	await frames()
 	var list: ScrollContainer = pet.find_child("FoodScroll", true, false)
-	check(list.custom_minimum_size.y == 276, "cinco opções visíveis antes de rolar")
+	check(list.custom_minimum_size.y > 52 and list.custom_minimum_size.y <= 276, "lista mostra ao menos uma opção e encolhe antes de cobrir a cabeça")
+	check(not pet.find_child("FoodMenu", true, false).get_global_rect().intersects(pet.call("head_rect")), "lista longa também preserva a cabeça")
 	var row: Control = tray.call("item_node", str(foods[0]))
 	var scroll_from := row.global_position + Vector2(150, 24)
 	var feeds: int = progress.stat("feed")

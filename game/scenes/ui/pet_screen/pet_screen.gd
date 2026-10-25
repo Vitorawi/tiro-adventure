@@ -43,6 +43,8 @@ var _manual: Button
 var _new_badge: Label
 var _corner: PetBackdrop
 var _mood_age := 20.0
+var _mood_tween: Tween
+var _mood_closing := false
 var _wish_age := 0.0
 var _sleep_age := 0.0
 var _minute := -1
@@ -72,7 +74,12 @@ func _ready() -> void:
 	_mood_bubble = PanelContainer.new()
 	_mood_bubble.name = "MoodBubble"
 	_mood_bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_mood_bubble.add_theme_stylebox_override("panel", UiKit.surface(Color(Palette.CARD, 0.86), 14))
+	var mood_style := UiKit.surface(Color(Palette.CARD, 0.85), 14)
+	mood_style.content_margin_left = 12
+	mood_style.content_margin_right = 12
+	mood_style.content_margin_top = 6
+	mood_style.content_margin_bottom = 6
+	_mood_bubble.add_theme_stylebox_override("panel", mood_style)
 	_mood_label = UiKit.short_label("", &"SmallLabel", Palette.INK)
 	_mood_label.name = "MoodLabel"
 	_mood_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -212,7 +219,8 @@ func _place_bubble() -> void:
 		_away_collect.position = Vector2((size.x - _away_collect.size.x) * 0.5, bottom - _away_collect.size.y)
 	if _mood_bubble:
 		_mood_bubble.size = _mood_bubble.get_combined_minimum_size()
-		_mood_bubble.position = Vector2((_dog_sprite.position.x + _dog_sprite.size.x / 2.0) - _mood_bubble.size.x / 2.0, _corner.pet_feet().y + 8)
+		var feet := _corner.position + _corner.pet_feet()
+		_mood_bubble.position = Vector2(feet.x - _mood_bubble.size.x / 2.0, feet.y + 8)
 
 
 func _layout_corner() -> void:
@@ -286,9 +294,21 @@ func _refresh() -> void:
 func _show_mood() -> void:
 	_mood_age = 0.0
 	if _care != null and (_care.get("_row") as Control).visible: return
+	if _mood_tween and _mood_tween.is_valid(): _mood_tween.kill()
+	_mood_closing = false
 	_mood_bubble.show()
 	_place_bubble()
-	Motion.pop_in(_mood_bubble)
+	_mood_tween = Motion.pop_in(_mood_bubble)
+
+
+func _hide_mood() -> void:
+	_mood_closing = true
+	if _mood_tween and _mood_tween.is_valid(): _mood_tween.kill()
+	_mood_tween = Motion.pop_out(_mood_bubble, false)
+	if Motion.reduced:
+		_mood_bubble.hide()
+	else:
+		_mood_tween.chain().tween_callback(_mood_bubble.hide)
 
 
 func _process(delta: float) -> void:
@@ -298,7 +318,7 @@ func _process(delta: float) -> void:
 	_mood_age += delta
 	_wish_age += delta
 	_sleep_age += delta
-	if _mood_age > 2.5: _mood_bubble.hide()
+	if _mood_age >= 3.0 and _mood_bubble.visible and not _mood_closing: _hide_mood()
 	if _wish_age >= 3.0:
 		_wish_age = 0.0
 		if _wish_bubble.visible: Motion.bounce(_wish_bubble)

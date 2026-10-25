@@ -450,3 +450,13 @@ Validação em docs/plans/interface2/VALIDACAO_06.md. Próxima 07, sem push/publ
 **Interface 2 — ajustes, etapa 03 (25/10/2026):** `RoomView._animate_fast` (8 Hz: animação + fatia 1/8 do recálculo), `_refresh_world(full)` (state_changed/volta à vista/`_animate_objects()`), `_refresh_markers/_refresh_object/_update_bouncer`, `_glow_map`; `GameState.album_hint_glow_map()`; `WorldBalloon.bounces/ready_since` (um balão `ready` pula por sala) e redesenho só ao mudar a assinatura; `WorldPin` com `_body`/`_pulse` e balanço em tween; `main._warm_glyphs`; `ui_tour.gd -- --aj-03-only`. `_layout_balloons` não existe mais.
 
 **Interface 2 — ajustes, etapa 04 (25/10/2026):** `RoomView._raise_for_tray(anchor, force)` (sobe o objeto antes de abrir bandeja `pick`; `_tray_lifted`, `_watch_tray`, constantes `TRAY_OBJECT_TOP/TRAY_BASE_MAX/TRAY_NAV_SPACE`), `object_anchor` com `top`, `ActionTray.PICK_HEIGHT` e `_place` com `below_first`, `PICK_ROWS_SHOWN` 2.0; `UiKit.stepper(value, min, max, on_change, max_label := "")` com a pílula `QuantityMax` (estações, Feira, obras; `Qty_all` saiu); `PlotTray.water_entry` com `caption` "Regar" e `count_fn` → selo `Count` no tile da `FarmDock`; a câmera e a pinça não fecham a barra da horta (`02_JORNADA.md` §6.1); `ui_tour.gd -- --aj-04-only`.
+
+**Interface 2 — ajustes, etapa 05 (25/10/2026):** `MoodBubble` preserva `MoodLabel` (Label), CARD a 85%,
+âncora nos pés e margens; `_show_mood/_hide_mood` com entrada/saída Motion, 3 s ao mudar/tocar.
+`AnimatedBadge` agora é PanelContainer: `UiKit.spark(18)` no avatar; `spark(px := 22)` preserva os selos
+existentes sem argumento. `FoodMenu` limita a lista entre `PetScreen.head_rect()` e Cuidar;
+`NewTaste` é PanelContainer mel (estrela + "Nova! ×N"), `Quantity` é Label aninhado no chip,
+`FavoriteHeart` preservado. `CeremonyHero` com raios atrás de `BeforeAfter`, sem BigIcon extra;
+`HeightMark` com marcas a cada 10 px e `HeightPhase` (nome da fase; sem dado novo de altura).
+Tour `ui_tour.gd -- --aj-05-only` (oito PNGs). Lista fechada de testes e capturas nas três resoluções
+registradas em `docs/plans/interface2_ajustes/README.md`; próxima 06, não iniciada. Sem push/publicação.

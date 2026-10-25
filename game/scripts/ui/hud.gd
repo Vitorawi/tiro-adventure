@@ -32,7 +32,7 @@ var _coins_shown: int = 0
 var _count_tween: Tween
 var _ring_tween: Tween
 var _growth_alert: Button
-var _animated_badge: Label
+var _animated_badge: Control
 var _ask_icon: TextureRect
 var _profile: Button
 var _profile_box: Control
@@ -124,14 +124,10 @@ func _build_avatar() -> void:
 	_ask_icon.position = Vector2(AVATAR - 18.0, -4.0)
 	_ask_icon.visible = false
 	_avatar_group.add_child(_ask_icon)
-	_animated_badge = UiKit.label("Animado", &"SmallLabel", Palette.GO_INK)
+	_animated_badge = UiKit.spark(18)
 	_animated_badge.name = "AnimatedBadge"
-	_animated_badge.add_theme_color_override("font_outline_color", Palette.CARD)
-	_animated_badge.add_theme_constant_override("outline_size", 4)
-	_animated_badge.position = Vector2(0, AVATAR - 14.0)
-	_animated_badge.autowrap_mode = TextServer.AUTOWRAP_OFF
-	_animated_badge.size = Vector2(AVATAR, 16)
-	_animated_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_animated_badge.position = Vector2(AVATAR - 18.0, AVATAR - 18.0)
+	_animated_badge.size = Vector2(18, 18)
 	_animated_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_avatar_group.add_child(_animated_badge)
 	# Mantida só por compatibilidade (testes e ferramentas leem); o anel mostra o progresso.

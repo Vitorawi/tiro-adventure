@@ -93,6 +93,10 @@ func _run() -> void:
 		await _aj_03_shots()
 		quit(0)
 		return
+	if "--aj-05-only" in OS.get_cmdline_user_args():
+		await _aj_05_shots()
+		quit(0)
+		return
 	if "--aj-04-only" in OS.get_cmdline_user_args():
 		await _aj_04_shots()
 		quit(0)
@@ -840,6 +844,45 @@ func _run() -> void:
 
 
 ## Etapa 09: usa os mesmos gestos públicos que o gui_input dos cuidados.
+func _aj_05_shots() -> void:
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	await _start_main(1.5)
+	main.call("show_screen", &"pet")
+	var pet: Control = main.find_child("PetScreen", true, false)
+	var care: Control = pet.find_child("CareTray", true, false)
+	for id: String in ["hunger", "happiness", "energy", "hygiene"]:
+		state.call("dev_set_need", id, 100.0)
+	pet.call("_show_mood")
+	await shot("i2_04_pet", 0.3)
+	await shot("aj_05_hud_animated", 0.3)
+	state.call("dev_set_need", "hunger", 10.0)
+	await shot("i2_04_pet_ask", 0.3)
+	for id: String in ["hunger", "happiness", "energy", "hygiene"]:
+		state.call("dev_set_need", id, 15.0)
+	await shot("f07_pet_low_needs", 0.3)
+	state.get("inventory").call("from_dict", {"dog_food": 5, "carrot": 3, "carrot_snack": 2})
+	state.call("_changed")
+	care.call("open_food_menu")
+	await shot("i2_04_food_menu", 0.5)
+	await shot("f08_pet_food_menu", 0.3)
+	care.call("close_food_menu")
+	var phases: Array = root.get_node("Database").get("growth").phases
+	state.call("dev_set_phase", str(phases[1].id))
+	state.get("growth").ceremonies.erase(str(phases[2].id))
+	main.get("_growth_queued").erase(str(phases[2].id))
+	state.call("dev_complete_growth_reqs")
+	state.call("_mark_all_seen")
+	Motion.reduced = false
+	state.call("grow")
+	await create_timer(4.8).timeout
+	await shot("i2_10_ceremony", 0.1)
+	await shot("t04_ceremony_before_after", 0.1)
+	main.get("_growth_ceremony").call("_close")
+
+
 func _pet_shots() -> void:
 	await _close()
 	main.call("show_screen", &"pet")

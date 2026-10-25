@@ -247,7 +247,7 @@ func refresh() -> void:
 		var caption := item.find_child("Caption", true, false) as Label
 		if Database.items.has(id):
 			caption.text = Database.item_name(id)
-			(item.get_node("Quantity") as Label).text = "×%d" % GameState.inventory.count(id)
+			(item.find_child("Quantity", true, false) as Label).text = ("Nova! ×%d" if item.has_meta("new_taste") else "×%d") % GameState.inventory.count(id)
 		else: caption.text = {"sponge": "Banho", "brush": "Escovar"}.get(id, "Brincar")
 		if GameState.dog.sleeping: caption.text = "Zzz"
 		var badge := item.get_node_or_null("Badge") as Control
@@ -312,21 +312,26 @@ func _food_item(id: String) -> Control:
 	background.add_theme_stylebox_override("panel", UiKit.surface(Palette.SUNKEN, 24))
 	item.add_child(background)
 	item.move_child(background, 0)
-	var quantity := UiKit.short_label("", &"SmallLabel", Palette.INK_SOFT)
-	quantity.name = "Quantity"
-	quantity.position = Vector2(248, 28)
-	var chip := UiKit.surface(Palette.SUNKEN, 10)
-	chip.content_margin_left = 8
-	chip.content_margin_right = 8
-	quantity.add_theme_stylebox_override("normal", chip)
+	var fresh := not GameState.growth.tastes.has(id)
+	var quantity := UiKit.chip(null, "", null, "prize" if fresh else "neutral")
+	quantity.name = "NewTaste" if fresh else "FoodQuantity"
+	quantity.position = Vector2(60, 24)
+	var quantity_row := quantity.get_child(0) as HBoxContainer
+	(quantity_row.get_child(0) as Label).name = "Quantity"
+	if fresh:
+		item.set_meta("new_taste", true)
+		var spark := UiKit.ctl("spark", 16, Palette.HONEY_INK)
+		quantity_row.add_child(spark)
+		quantity_row.move_child(spark, 0)
 	item.add_child(quantity)
 	var label := item.get_node("Caption") as Label
 	label.theme_type_variation = &"Label"
 	label.anchor_right = 0.0
-	label.position = Vector2(60, 4)
-	label.size = Vector2(180, 44)
+	label.position = Vector2(60, 0)
+	label.size = Vector2(204, 24)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	var icon := item.get_node("CareIcon") as Control
 	icon.anchor_left = 0.0
 	icon.anchor_right = 0.0
@@ -352,15 +357,6 @@ func _food_item(id: String) -> Control:
 		heart.position = Vector2(268, 4)
 		heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		item.add_child(heart)
-	elif not GameState.growth.tastes.has(id):
-		# Etiqueta "Provar" à direita do nome (nunca provou). Texto na cor do tema (branco sobre o fundo do selo).
-		var fresh := UiKit.short_label("Provar", &"BadgeLabel")
-		fresh.name = "NewTaste"
-		fresh.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		item.add_child(fresh)
-		fresh.reset_size()
-		fresh.position = Vector2(292.0 - fresh.size.x, 4)
-		label.size = Vector2(fresh.position.x - 64.0, 44)
 	return item
 
 
@@ -386,8 +382,15 @@ func close_food_menu() -> void:
 
 
 func _place_menu() -> void:
+	# A cabeça é o alvo de soltar a comida: a lista só usa a faixa abaixo dela,
+	# terminando acima de Cuidar. O restante continua acessível por rolagem.
+	var top := (pet_screen.call("head_rect") as Rect2).end.y - pet_screen.global_position.y + 8.0
+	var bottom := _care_button.global_position.y - pet_screen.global_position.y - 12.0
+	var chrome := _menu.get_combined_minimum_size().y - _scroll.custom_minimum_size.y
+	var wanted := 112.0 if _food_ids.is_empty() else float(mini(5, _food_ids.size()) * 56 - 4)
+	_scroll.custom_minimum_size.y = minf(wanted, maxf(0.0, bottom - top - chrome))
 	_menu.size = _menu.get_combined_minimum_size()
-	_menu.position = Vector2(12, _care_button.global_position.y - pet_screen.global_position.y - _menu.size.y - 12)
+	_menu.position = Vector2((pet_screen.size.x - _menu.size.x) * 0.5, bottom - _menu.size.y)
 	if _shampoo and _items.has("sponge"):
 		_shampoo.size = _shampoo.get_combined_minimum_size()
 		_shampoo.position = Vector2(clampf((_items.sponge as Control).get_global_rect().get_center().x - pet_screen.global_position.x - _shampoo.size.x / 2.0, 8, pet_screen.size.x - _shampoo.size.x - 8), (_items.sponge as Control).global_position.y - pet_screen.global_position.y - _shampoo.size.y - 4)

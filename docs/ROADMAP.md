@@ -2,6 +2,18 @@
 
 ## Estado atual
 
+**Interface 2 — ajustes, etapa 05 concluída localmente (25/10/2026, Codex).** Itens 15, 19 e 30:
+`MoodBubble` com CARD a 85%, margens e `MoodLabel` preservado, ancorada nos pés; aparece ao mudar/tocar,
+some após 3 s por `_hide_mood`/Motion (instantâneo em Menos animação). `AnimatedBadge` agora é
+`PanelContainer`, disco mel de 18 px com estrela branca (`UiKit.spark(px := 22)`). `FoodMenu` encolhe a
+lista entre `PetScreen.head_rect()` e Cuidar; `NewTaste` é chip mel com estrela + "Nova! ×N", `Quantity`
+fica dentro do chip, `FavoriteHeart` preservado. Cerimônia com `CeremonyHero`: raios atrás de `BeforeAfter`,
+sem BigIcon duplicado; `HeightMark` com marcas a cada 10 px e `HeightPhase` (nome da fase, sem altura nova).
+Lista fechada final 10/10 PASS em 146,1 s (`r20261025_143347_6f001cef`), incluindo garantia de 3 s/toque
+do humor em `care_ui_test`. Capturas antes/depois
+nas três resoluções em `build/screenshots/aj_05_antes|depois[_390|_412]`, oito por pasta, abertas em pranchas.
+Registro completo no README do plano. Nenhuma regra/save/fala alterada. Próxima: 06, não iniciada. Sem push/publicação.
+
 **Interface 2 — ajustes, etapa 04 concluída localmente (25/10/2026, Claude Sonnet 5.5).** Bandejas e horta (itens 7, 8, 9, 26).
 Fogão visível: `RoomView._raise_for_tray(anchor, force)` sobe o objeto ao terço de cima antes de abrir a bandeja `pick`
 (topo ≥ 150 px, base ≤ 250 e a bandeja inteira cabendo embaixo, `ActionTray.PICK_HEIGHT`), pode passar do limite do mundo

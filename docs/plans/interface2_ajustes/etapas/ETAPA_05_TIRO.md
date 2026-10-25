@@ -64,10 +64,10 @@ Bloco `--aj-05-only`: `i2_04_pet`, `i2_04_pet_ask`, `f07_pet_low_needs`, `i2_04_
 `aj_05_hud_animated` se não houver). Antes e depois nas 3 resoluções.
 
 ## 8. Pronto quando
-- [ ] Humor legível sobre o tapete, só ao mudar/tocar; Animado como selo no avatar.
-- [ ] Nenhum vermelho no cardápio; o cardápio não cruza a cabeça do Tiro nas 3 resoluções.
-- [ ] Cerimônia sem Tiro repetido; régua com marcas.
-- [ ] Testes verdes.
+- [x] Humor legível sobre o tapete, só ao mudar/tocar; Animado como selo no avatar.
+- [x] Nenhum vermelho no cardápio; o cardápio não cruza a cabeça do Tiro nas 3 resoluções.
+- [x] Cerimônia sem Tiro repetido; régua com marcas.
+- [x] Testes verdes.
 
 ## 9. Handoff
 Pontos naturais: após cada passo 1–4. Diga quais nós mudaram de tipo (Label → contêiner) e onde ficou o nome.

@@ -678,16 +678,20 @@ static func dot() -> Control:
 	return badge(0)
 
 
-static func spark() -> Control:
+static func spark(px: int = 22) -> Control:
 	var panel := PanelContainer.new()
-	panel.custom_minimum_size = Vector2(22, 22)
+	panel.custom_minimum_size = Vector2(px, px)
 	panel.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	panel.add_theme_stylebox_override("panel", surface(Palette.HONEY, 11))
+	var style := surface(Palette.HONEY, px / 2)
+	if px != 22: style.set_content_margin_all(0)
+	panel.add_theme_stylebox_override("panel", style)
 	var center := CenterContainer.new()
 	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	center.add_child(ctl("spark", 13, Palette.CARD))
 	panel.add_child(center)
+	# Só o tamanho explícito ajusta o mínimo provisório; preserve os selos existentes.
+	if px != 22: panel.reset_size.call_deferred()
 	return panel
 
 

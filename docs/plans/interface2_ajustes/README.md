@@ -6,7 +6,7 @@
 > mesmo estilo do plano Interface 2". Depois, **aprovou os 35 itens como o revisor sugeriu, inclusive as
 > decisões**. Nenhuma decisão fica pendente.
 
-**Estado:** etapas 01–04 concluídas. **Próxima: etapa 05.**
+**Estado:** etapas 01–05 concluídas. **Próxima: etapa 06.**
 
 ## A ideia em uma linha
 
@@ -71,7 +71,7 @@ flowchart TD
 | [x] | [02](etapas/ETAPA_02_CASCA.md) | 1, 2, 3, 5, 18, 21 | aviso nunca sobre o título; folha acompanha o conteúdo; HUD/Configurações com Texto maior; "Depois de:"; sem título "Mochila" e sem vão; `WorldBar` escondida atrás do seletor | médio |
 | [x] | [03](etapas/ETAPA_03_DESEMPENHO.md) | 4, 23 | tique de 8 Hz enxuto, brilho do álbum em cache, balões sem redesenho parado, aquecimento de glifos; um balão pulando por vez | grande |
 | [x] | [04](etapas/ETAPA_04_BANDEJAS_HORTA.md) | 7, 8, 9, 26 | fogão visível acima da bandeja; "Tudo" no `stepper`; barra da horta documentada; tile Regar | grande |
-| [ ] | [05](etapas/ETAPA_05_TIRO.md) | 15, 19, 30 | humor em pílula translúcida; selo Animado; cardápio sem vermelho e sem cobrir o focinho; cerimônia sem Tiro repetido e régua melhor | médio |
+| [x] | [05](etapas/ETAPA_05_TIRO.md) | 15, 19, 30 | humor em pílula translúcida; selo Animado; cardápio sem vermelho e sem cobrir o focinho; cerimônia sem Tiro repetido e régua melhor | médio |
 | [ ] | [06](etapas/ETAPA_06_MISSOES_CADERNINHO.md) | 22, 24, 25, 29 | "Neste capítulo" leve; segmentado de uma opção some; caderninho legível; fontes < 12 resolvidas; história concluída | médio |
 | [ ] | [07](etapas/ETAPA_07_COMEMORACOES_TEXTOS.md) | 16, 31 | cartão de capítulo com grade de novidades; textos do Novo! e do passeio | médio |
 | [ ] | [08](etapas/ETAPA_08_CRESCIMENTO.md) | 35, 11 | prancha HTML do Crescimento → implementação na mesma etapa; seda no padrão do Crescimento | grande |
@@ -187,3 +187,55 @@ não fecham; pinça cancela o gesto), market, bench (acha `QuantityMax`), ui2_ki
 Capturas `aj_04_antes|depois[_390|_412]` (o fogão passou de coberto para visível acima da bandeja). Pendências: a bandeja do
 Galinheiro (dois animais + fila) ainda precisa rolar o corpo; o botão Lugares não ficou escondido nas capturas (nenhum ajuste
 na `WorldBar` foi necessário). Sem push.
+
+**Etapa 05 (25/10/2026, Codex):** itens **15, 19 e 30** concluídos. `MoodBubble` já era contêiner:
+preservado o `Label` interno `MoodLabel`, agora com CARD a 85%, margens 12/6 e âncora nos pés do Tiro;
+`_show_mood` reinicia a entrada e `_hide_mood` usa `Motion.pop_out` após 3 s, instantâneo em Menos animação.
+`AnimatedBadge` mudou de Label para PanelContainer: `UiKit.spark(18)`, disco mel com estrela branca no canto
+inferior do avatar; ajuda do avatar preservada. `spark(px := 22)` conserva a construção anterior quando
+chamado sem argumento (incluindo os selos da roleta/desejo); só o tamanho explícito remove as margens
+automáticas e reajusta o mínimo depois de o tema assentar na árvore.
+
+`FoodMenu` usa o espaço entre o fim de `head_rect()` + 8 e Cuidar − 12; a lista encolhe e rola sem cruzar
+o alvo de soltar. `NewTaste` mudou de Label para PanelContainer (chip mel, estrela vetorial e "Nova! ×N");
+`Quantity` continua Label, agora dentro do chip, e `FavoriteHeart` foi preservado. Os nomes das comidas
+ficam numa linha, com reticências se necessário. Cerimônia: `CeremonyHero` contém raios recortados ao herói
+e `BeforeAfter`; sem `BigIcon` adicional. `HeightMark` tem marcas a cada 10 px, destaque da fase e
+`HeightPhase` com o nome existente. Não existe altura em `growth.json`; nenhum número foi inventado.
+
+**Provas/pronto:** ✓ 15: `i2_04_pet`, `f07_pet_low_needs`, `aj_05_hud_animated`; ✓ 19: os dois cardápios,
+cabeça livre nas três resoluções; ✓ 30: as duas cerimônias, par único e régua marcada; ✓ testes verdes.
+Checklist visual/celular nas telas tocadas: ✓ Fredoka/Nunito e tokens; ✓ controles vetoriais; ✓ itens
+em superfícies; ✓ semântica mel/verde; ✓ um primário na cerimônia; ✓ margens/contraste; ✓ sem conteúdo
+atrás do rodapé; ✓ Menos animação. Roleta, regras, save e falas preservados.
+
+**Testes:** lista fechada, com `-DryRun` antes (10, contando scripts_check/content/texts). Primeira execução
+restrita parou por acesso aos certificados do Windows (`r20261025_142525_fe4afcc2`); reexecutada com acesso
+normal do sistema. Falha real do tamanho provisório do selo (37 px antes de o tema assentar) encontrada e
+corrigida; registros `r20261025_142657_f0deaae8` e `r20261025_142832_a3fa9dd7` preservados. Lista completa
+10/10 PASS em 143,4 s (`build/test_logs/r20261025_142936_f2b5ac7f`); depois `care_ui_test` ganhou garantia
+determinística de aparecer até 3 s, sumir depois, não reaparecer no tique e reaparecer ao tocar: PASS
+(`r20261025_143214_58f03347`, 35,5 s com o rápido). **Execução final: 10/10 PASS em 146,1 s**
+(`build/test_logs/r20261025_143347_6f001cef/results.csv`): scripts_check 10,1; content 7,3; texts 3,4;
+care_ui 17,0; care_wheel 17,1; mood 10,5; brush_taste 11,6; pet_care 31,8; ceremony 23,2; hud 12,4 s.
+Reexecução completa após limitar a adaptação de tamanho de `spark` ao selo explícito, preservando os
+selos originais da roleta; as capturas finais também foram regeneradas.
+Outros testes alterados: `mood_test` verifica disco de 18 px + ícone em vez da antiga legenda em uma linha;
+`pet_care_test` troca cinco linhas fixas pela lista adaptável, acrescenta cabeça livre nas três resoluções
+e preserva a garantia de rolar sem alimentar; `ceremony_test` acrescenta ausência de duplicação, raios
+no mesmo herói e nome correto da fase. Nenhuma garantia apagada ou teste fora da lista.
+
+**Capturas:** oito PNGs em cada `build/screenshots/aj_05_antes`, `_antes_390`, `_antes_412`, `_depois`,
+`_depois_390`, `_depois_412`; abertos em seis pranchas `aj_05_*_prancha.png`. Comparadas com a evidência
+`aj_base`/revisão e com `tiro_roleta.png`/`prancha_roleta.png`. Diferenças do protótipo: texto original
+do humor mantido (o mock usa "Feliz da vida"), lista mostra cerca de uma linha e meia antes de rolar
+para preservar a cabeça; a cerimônia mantém seus textos/arte existentes e régua relativa por fase.
+O recorte novo usa o adulto em `f07_pet_low_needs` (a evidência `aj_base` usava o filhote), tanto no antes
+quanto no depois; a comparação desse estado cobre humor/necessidades, sem alterar a arte de nenhuma fase.
+Nenhum desvio de regra ou escopo. A roleta não foi redesenhada.
+
+**Pendências/próxima 06:** nenhuma desta etapa. Permanecem as pendências herdadas da 04 (corpo da bandeja
+do Galinheiro rolável, tique de finds/wishes e pílula Tudo encostada à direita). Exclusões preexistentes
+em `assets/pixellab_character/tiro_bebe/python_libs/` preservadas e fora do commit. Atenção aos tipos
+novos de `AnimatedBadge`/`NewTaste` e ao `Quantity` aninhado. `--aj-05-only` acrescentado ao tour.
+Sem push/publicação; etapa 06 não iniciada.

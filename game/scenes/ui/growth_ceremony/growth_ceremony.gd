@@ -121,13 +121,20 @@ func _play() -> void:
 
 
 func show_card() -> void:
-	var card := ModalCard.open(self, {"title": "O Tiro cresceu!", "ribbon": Palette.HONEY, "icon": load(str(Database.growth.bodies[_after.body].portrait)),
-		"icon_px": 64, "confetti": not Motion.reduced, "haptic": "big"})
-	card.icon_node.material = DogLook.material()
-	(card.icon_node.material as ShaderMaterial).set_shader_parameter("coat", float(_after.coat))
+	var hero := Control.new()
+	hero.name = "CeremonyHero"
+	hero.custom_minimum_size = Vector2(256, 168)
+	hero.clip_contents = true
+	var rays := UiKit.icon(load(ModalCard.RAYS_PATH), 256)
+	rays.name = "Rays"
+	rays.position = Vector2(0, -44)
+	rays.modulate.a = 0.35
+	hero.add_child(rays)
 	var pair := UiKit.hbox(8)
 	pair.name = "BeforeAfter"
 	pair.alignment = BoxContainer.ALIGNMENT_CENTER
+	pair.size = Vector2(256, 168)
+	hero.add_child(pair)
 	for def: Dictionary in [_before, _after]:
 		var column := UiKit.vbox(2)
 		column.add_child(pose(def, 124))
@@ -135,21 +142,27 @@ func show_card() -> void:
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(label)
 		pair.add_child(column)
-	card.add(pair)
+	var card := ModalCard.open(self, {"title": "O Tiro cresceu!", "ribbon": Palette.HONEY,
+		"hero": hero, "confetti": not Motion.reduced, "haptic": "big"})
 	card.add_text(str(_after.age) + " · " + str(_after.weight), &"SectionLabel")
 	card.add_text(str(_after.facts[0]), &"SmallLabel")
 	var ruler := Control.new()
 	ruler.name = "HeightMark"
-	ruler.custom_minimum_size = Vector2(280, 32)
+	ruler.custom_minimum_size = Vector2(280, 48)
+	var phase_label := UiKit.short_label(str(_after.name), &"SmallLabel", Palette.INK)
+	phase_label.name = "HeightPhase"
+	phase_label.position = Vector2(12, 0)
+	ruler.add_child(phase_label)
 	card.add(ruler)
 	var index := GameState.growth.phase_index(phase)
 	_mark_progress = 1.0 if Motion.reduced else 0.0
 	ruler.draw.connect(func() -> void:
-		ruler.draw_line(Vector2(12, 25), Vector2(268, 25), Palette.LINE, 2)
-		for i in 6:
-			var x := 18.0 + i * 48.0
-			var tip := lerpf(25.0, 19.0 - i * 3.0, _mark_progress) if i == index else 19.0 - i * 3.0
-			ruler.draw_line(Vector2(x, 25), Vector2(x, tip), Palette.GO if i == index else Palette.LINE, 3 if i == index else 1))
+		ruler.draw_line(Vector2(12, 44), Vector2(272, 44), Palette.INK_SOFT, 2)
+		for i in 27:
+			var x := 12.0 + i * 10.0
+			ruler.draw_line(Vector2(x, 44), Vector2(x, 32 if i % 5 == 0 else 38), Palette.INK_SOFT, 1)
+		var mark := 12.0 + float(index) / float(Database.growth.phases.size() - 1) * 260.0
+		ruler.draw_line(Vector2(mark, 44), Vector2(mark, lerpf(44, 24, _mark_progress)), Palette.HONEY_INK, 3))
 	if not Motion.reduced:
 		create_tween().tween_method(func(value: float) -> void:
 			_mark_progress = value
