@@ -88,6 +88,15 @@ func _run() -> void:
 	await process_frame
 	check(panel.find_child("SilkButton", true, false) != null and panel.find_child("GrowButton", true, false) == null, "botão Mais brilho!")
 	check(panel.find_child("SilkSilhouette", true, false) != null and panel.find_child("SilkReq_shampoo", true, false) != null, "silhueta e requisitos")
+	check(panel.find_child("SilkRequirements", true, false).columns == 3, "seda na mesma grade de três colunas")
+	var preview: Control = panel.find_child("SilkSilhouette", true, false)
+	var preview_material: ShaderMaterial = preview.get_child(0).material
+	check(preview_material.shader.resource_path.ends_with("tiro_coat.gdshader") and is_equal_approx(float(preview_material.get_shader_parameter("sheen")), float(state.silk_info().next.sheen)), "prévia usa o brilho do próximo nível")
+	check(is_equal_approx(state.silk_sheen(), 0.0), "prévia não aplica seda no estado")
+	for req: Dictionary in state.silk_info().requirements:
+		var tile: Control = panel.find_child("SilkReq_" + str(req.id), true, false)
+		var rings: Array[Node] = tile.find_children("*", "RingProgress", true, false)
+		check(rings.size() == 1 and rings[0].get_child_count() == 1 and rings[0].get_child(0).texture != null, "requisito com anel e ícone: " + str(req.id))
 	panel.queue_free()
 	await process_frame
 	_prepare(1, 0)
@@ -95,6 +104,7 @@ func _run() -> void:
 	root.add_child(panel)
 	await process_frame
 	check(panel.find_child("SilkLock", true, false) != null and panel.find_child("SilkButton", true, false) == null, "cadeado com o que falta")
+	check(panel.find_child("SilkLock", true, false).find_children("*", "TextureRect", true, false).size() >= 2, "bloqueio com cadeado e ícone do requisito")
 	panel.queue_free()
 	await process_frame
 	# Shader: brilho passa para o material e respeita Menos animação

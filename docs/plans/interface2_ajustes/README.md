@@ -6,7 +6,7 @@
 > mesmo estilo do plano Interface 2". Depois, **aprovou os 35 itens como o revisor sugeriu, inclusive as
 > decisões**. Nenhuma decisão fica pendente.
 
-**Estado:** etapas 01–07 concluídas. **Próxima: etapa 08.**
+**Estado:** etapas 01–08 concluídas. **Próxima: etapa 09.**
 
 ## A ideia em uma linha
 
@@ -74,7 +74,7 @@ flowchart TD
 | [x] | [05](etapas/ETAPA_05_TIRO.md) | 15, 19, 30 | humor em pílula translúcida; selo Animado; cardápio sem vermelho e sem cobrir o focinho; cerimônia sem Tiro repetido e régua melhor | médio |
 | [x] | [06](etapas/ETAPA_06_MISSOES_CADERNINHO.md) | 22, 24, 25, 29 | "Neste capítulo" leve; segmentado de uma opção some; caderninho legível; fontes < 12 resolvidas; história concluída | médio |
 | [x] | [07](etapas/ETAPA_07_COMEMORACOES_TEXTOS.md) | 16, 31 | cartão de capítulo com grade de novidades; textos do Novo! e do passeio | médio |
-| [ ] | [08](etapas/ETAPA_08_CRESCIMENTO.md) | 35, 11 | prancha HTML do Crescimento → implementação na mesma etapa; seda no padrão do Crescimento | grande |
+| [x] | [08](etapas/ETAPA_08_CRESCIMENTO.md) | 35, 11 | prancha HTML do Crescimento → implementação na mesma etapa; seda no padrão do Crescimento | grande |
 | [ ] | [09](etapas/ETAPA_09_PAINEIS_MUNDO.md) | 10, 13, 14, 34 | Como fazer com peças novas; Lugares em `list_card`; conversa sem repetições; compra bloqueada nítida | grande |
 | [ ] | [10](etapas/ETAPA_10_HIERARQUIA.md) | 6, 27, 28 | `SectionLabel` revisada (nomes em 18); passeios e Feira; regra nova no `ui_style_test`; **portão** | grande |
 | [ ] | [11](etapas/ETAPA_11_BLOQUEIOS_VERMELHO.md) | 12, 20 | nenhum botão cinza com texto em folha/bandeja; obras e encomendas com um chip e uma barra | grande |
@@ -388,3 +388,79 @@ bandeja rolável, custo de update_finds/update_wishes no tique de 1 s e Tudo jun
 CelebrationScroll no capítulo agora contém só ChapterUnlocks; nos outros cartões mantém o corpo
 anterior. `fixed_body` só é usado no capítulo. AGENTS/CLAUDE idênticos byte a byte; exclusões
 preexistentes de python_libs preservadas fora do commit. Etapa 08 não iniciada.
+
+
+**Etapa 08 (25/10/2026, Codex):** itens **35 e 11** concluídos localmente. Prancha feita primeiro,
+renderizada e aberta antes da implementação, seguindo direto pela aprovação prévia do Vitor:
+`../interface2/prototipo/crescimento.html#filhote|pronto`, `crescimento_filhote.png`,
+`crescimento_pronto.png` e `prancha_crescimento.png` (`prancha.html#crescimento`, três estados antes
+× duas propostas). Item 35 é sugestão do revisor aprovada; nenhuma aprovação adicional foi pedida.
+
+**✓ 35 / provas:** `GrowthHero` tem CurrentDog e NextSilhouette em discos de 96, nomes StrongLabel
+e seta vetorial. A silhueta do herói começa preenchida sem interrogação; o shader original e a
+apresentação dos outros consumidores de `silhouette` foram preservados. `_fit_static` enquadra
+os pixels opacos sem trocar UVs/arte. `GrowthDetails`/`GrowthHistoryButton` no Header do Sheet,
+discos sunken de 32, alvos de 44 e um CloseButton. `GrowthSummary` contém só UiKit.steps e n/m;
+`GrowthProgress` preservado. Tiles com ícone 40, anel 4, NumberLabel e bolinhas 10; seleção em tinta,
+concluído em verde com check. `GrowthDetail` com StrongLabel 18, `GrowthPath_<id>` derivado do
+destino da ajuda, GrowthHelp ctl 32 e uma ação primária na largura. `_select_detail` garante que
+só o detalhe escolhido tenha botão primário, inclusive após reconstrução. `GrowthQuick_*` e
+compact_steps não mudaram de fluxo; t05_hud_popover e care_ui_test confirmam o resumo do avatar.
+
+Sheet ganhou dois opt-ins: `sheet_actions` (Callable que cria os botões no Header, limpos por
+`_clear_actions`) e `sheet_fit_content` (altura medida até o limite do HUD). Só GrowthPanel os usa;
+as outras folhas mantêm o cálculo anterior. Sem sheet_size fixo no crescimento. Os textos já
+existentes de Ao crescer viraram chips mel em NextUnlocks, separados pelo delimitador existente
+“ · ” e sem alterar o conteúdo. O título Ao crescer fica na dica dos chips para poupar uma linha.
+
+**✓ 11 / provas:** b19_skills/t_phase_adult mostram SilkRequirements com três colunas e SilkReq_*
+usando `_step_tile`, ícone do pilar/escova/xampu, anel, n/m e check. SilkSilhouette agora é prévia
+do corpo adulto com material independente tiro_coat e sheen de silk.next, sem alterar o estado.
+SilkLock usa lock_hint com cadeado e ícone do requisito. SilkButton/SilkCard_n preservados.
+
+**Pronto quando:** ✓ prancha PNG + entrada no HTML abertas e registradas; ✓ duas fases/nomes,
+consultas no título, indicador único, anéis e um verde; ✓ folha medida pelo conteúdo sem metade
+vazia e sem rolagem nas fases com próxima fase em 360×780; ✓ seda na mesma grade, brilho seguinte
+e bloqueio com ícone; ✓ testes verdes. Checklist das telas tocadas: ✓ Fredoka/Nunito/Palette;
+✓ controles vetoriais; ✓ ícones pixel em discos/tiles/chips; ✓ cores semânticas e seleção em tinta;
+✓ uma ação verde visível; ✓ nomes/valores hierarquizados; ✓ alvos 44 (inclusive ajuda); ✓ nenhuma
+sobreposição/corte nas três resoluções; ✓ Menos animação funcional, sem nova animação bloqueante.
+
+**Testes:** -DryRun confirmou a lista fechada de sete + três rápidos obrigatórios. Final
+**10/10 PASS, 129,3 s** em `build/test_logs/r20261025_152707_2d858ff2/results.csv`:
+scripts_check 10,6; content_test 7,1; texts_test 2,7; growth_ui_test 16,7; growth_story_test 10,9;
+ceremony_test 23,9; care_ui_test 15,1; silk_test 8,5; hud_growth_test 16,8; growth_visual_test 15,4 s.
+Cada log tem seu TEST: PASS. Nenhum teste fora da lista, portão, campanha ou simulador.
+
+growth_ui_test usa explicitamente 360×780, troca a busca da frase antiga pelo indicador n/m único
+e acrescenta consultas no Header, X único, altura pelo conteúdo, seleção por toque preservada após
+state_changed e primário único. A garantia anterior de não rolar continua e passou nas seis fases.
+silk_test ganhou grade de três colunas, ícones/anel, próximo sheen sem mudar o estado e bloqueio com
+dois ícones. Entregas parciais, repetição, navegação da ajuda e Crescer pela entrada real continuam.
+Primeiras rodadas r20261025_152046_814cbe4a e r20261025_152242_38d92046 encontraram quebras indevidas
+no indicador/prêmios e altura excessiva nas fases com duas linhas; corrigidas. Rodada intermediária
+r20261025_152443_e1509a7a: 10 PASS em 132,5 s. A final inclui as garantias novas e o ícone correto
+do xampu. Avisos de RIDs/ObjectDB ao encerrar alguns processos permanecem nos logs, sem SCRIPT ERROR.
+
+**Capturas:** bloco `--aj-08-only`, onze PNGs por pasta, em
+`build/screenshots/aj_08_antes`, `_antes_390`, `_antes_412`, `_depois`, `_depois_390`, `_depois_412`.
+Todos abertos em seis pranchas `aj_08_*_prancha.png`; detalhes abertos individualmente. Conferidos
+com os três renders do protótipo e com t01/t02/i2_09/b19 da evidência anterior. As seis execuções
+finais do tour terminaram com saída 0, sem erro de script. A primeira tentativa restrita teve
+erros de user:// e certificados; os três antes foram regenerados com acesso normal antes do jogo mudar.
+
+**Diferenças/decisões:** o protótipo usa retratos HUD; o jogo conserva o corpo inteiro animado atual
+e o corpo inteiro futuro no mesmo enquadramento de 96. O n/m fica ao lado do anel (em vez de abaixo)
+e os tiles têm 88 de altura para as duas linhas caberem sem rolar; ícone 40, fonte 18 e bolinhas 10
+preservados. A ajuda visível de 32 fica em alvo de 44 com folga sobre o caminho não tocável. O detalhe
+da fixture segue recommended: Argolinha já em mãos, em vez do Carinho escolhido no mock. Caminhos
+aparecem quando o destino real tem mundo/lugar, como Casa › Cozinha e Casa › Tigela do Tiro;
+não se inventa destino para consultas sem mundo. Prêmios usam os nomes reais e dividem os chips
+na largura disponível. Nada de regra, requisitos, dados, save, arte ou fala da história mudou.
+
+**Pendências / próxima 09:** nenhuma desta etapa. Permanecem as herdadas: corpo da bandeja do
+Galinheiro rolável, custo de update_finds/update_wishes no tique de 1 s e Tudo junto da borda direita.
+GrowthDetails/GrowthHistoryButton agora são filhos do Header do Sheet, não do GrowthPanel; busque
+na folha. SilkSilhouette é um Control com TextureRect/material de prévia. `silhouette(..., filled_hero)`
+mantém o padrão antigo nos demais consumidores. AGENTS/CLAUDE idênticos byte a byte; exclusões
+preexistentes de python_libs fora do commit. Etapa 09 não iniciada. Sem push/publicação.

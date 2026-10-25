@@ -43,6 +43,8 @@ func text(node: Node, value: String) -> bool:
 	return false
 
 func _run() -> void:
+	root.size = Vector2i(360, 780)
+	root.content_scale_size = Vector2i(360, 780)
 	var saver := root.get_node("SaveManager")
 	root.remove_child(saver)
 	saver.free()
@@ -76,11 +78,26 @@ func _run() -> void:
 			var help: Dictionary = load("res://scripts/ui/task_help.gd").call("describe", "growth_req", str(row.id))
 			check(str(help.action) != "" and not help.target.is_empty(), "requisito tem ação e destino concretos")
 		check(primary(panel) <= 1, "no máximo um PrimaryButton")
+		var sheet: Control = main.find_child("Sheet", true, false)
+		for action_name: String in ["GrowthDetails", "GrowthHistoryButton"]:
+			var action: Control = sheet.find_child(action_name, true, false)
+			check(action != null and action.get_parent().name == "Header", "consulta no título: " + action_name)
+		check(sheet.find_children("CloseButton", "Button", true, false).size() == 1, "um único X ao reconstruir/abrir")
+		check(not panel.has_meta("sheet_size") and panel.get_meta("sheet_fit_content", false), "crescimento pede altura pelo conteúdo")
 		# Sem rolagem nas fases com próxima fase: cabe nos 360x780 do celular.
 		if not state.call("growth_info").next.is_empty():
 			var sheet_scroll := main.find_child("Sheet", true, false).find_child("Scroll", true, false) as ScrollContainer
 			var bar := sheet_scroll.get_v_scroll_bar()
 			check(bar.max_value <= bar.page + 1.0, "painel sem rolagem em %s (%d de %d)" % [phase.id, int(bar.max_value), int(bar.page)])
+			var recommended: Dictionary = ui.call("recommended", state.call("growth_info"))
+			var pending: Array = state.call("growth_info").requirements.filter(func(req: Dictionary) -> bool: return not req.done and req.type != "given" and req.id != recommended.get("id", ""))
+			if not pending.is_empty():
+				var selected_id := str(pending[0].id)
+				await click(panel.find_child("GrowthReq_" + selected_id, true, false))
+				state.call("_changed")
+				await frames()
+				check(panel.get_meta("selected", "") == selected_id and panel.find_child("GrowthDetail_" + selected_id, true, false).is_visible_in_tree(), "seleção persiste na reconstrução: " + str(phase.id))
+				check(primary(panel) == 1, "só a ação escolhida é primária")
 		if "--layout-shots" in OS.get_cmdline_user_args(): await layout_shot(str(phase.id))
 		if "--portrait-shots" in OS.get_cmdline_user_args():
 			await layout_shot(str(phase.id) + "_awake")
@@ -141,7 +158,7 @@ func _run() -> void:
 	var panel := main.find_child("GrowthPanel", true, false)
 	for name: String in ["GrowthHero", "CurrentDog", "NextSilhouette", "NextUnlocks", "GrowthNextAction", "GrowthSummary", "GrowthProgress"]:
 		check(panel.find_child(name, true, false) != null, "nó " + name)
-	check(text(panel, "2/3") and text(panel, "2 de 3 passos"), "quantidade e resumo dos passos visíveis")
+	check(text(panel, "2/3") and text(panel.find_child("GrowthSummary", true, false), "2/3") and not text(panel, "de 3 passos"), "quantidade e único resumo dos passos visíveis")
 	check(panel.find_child("GrowthNextAction", true, false).text == "Dar comida", "próxima ação nomeada")
 	check(panel.find_child("PillarRing_body", true, false) == null, "não repete pontos e anéis no painel principal")
 	check(main.find_child("ProfileCount", true, false).text == "3/4" and main.find_child("ProfileCount", true, false).is_visible_in_tree(), "HUD mostra que falta um dos quatro requisitos (%s)" % main.find_child("ProfileCount", true, false).text)

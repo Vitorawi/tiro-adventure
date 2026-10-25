@@ -10,7 +10,9 @@ static func panel() -> Control:
 	var box := SheetBuilder.LiveBox.new(_build)
 	box.name = "GrowthPanel"
 	box.set_meta("tick_refresh", false)
-	box.set_meta("sheet_size", "tall")
+	box.add_theme_constant_override("separation", 4)
+	box.set_meta("sheet_fit_content", true)
+	box.set_meta("sheet_actions", _header_actions)
 	return box
 
 
@@ -209,7 +211,16 @@ static func step_ring(step: Dictionary, px: int) -> RingProgress:
 	var ring := RingProgress.new()
 	ring.custom_minimum_size = Vector2(px, px)
 	ring.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	ring.texture = step.icon
+	ring.color = Palette.HONEY
+	ring.thickness = 4.0
+	# Ícone 40 independente do cálculo geométrico do RingProgress genérico.
+	var image := UiKit.icon(step.icon, 40)
+	image.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	image.offset_left = -20
+	image.offset_top = -20
+	image.offset_right = 20
+	image.offset_bottom = 20
+	ring.add_child(image)
 	ring.progress = float(step.have) / maxf(1.0, float(step.need))
 	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return ring
@@ -223,14 +234,14 @@ static func _build(box: VBoxContainer) -> void:
 	var complete: int = visible_steps.filter(func(req: Dictionary) -> bool: return req.done).size()
 	box.add_child(_hero(info))
 	if not info.next.is_empty():
-		var text := "Tudo pronto para crescer!" if info.ready else "%d de %d passos · falta %d" % [complete, visible_steps.size(), visible_steps.size() - complete]
-		var summary := UiKit.label(text, &"SmallLabel", Palette.GO_INK if info.ready else Palette.INK_SOFT)
+		var summary := UiKit.hbox(8)
 		summary.name = "GrowthSummary"
-		summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		box.add_child(summary)
-		var progress := progress_strip(complete, visible_steps.size(), 8)
+		summary.alignment = BoxContainer.ALIGNMENT_CENTER
+		var progress := UiKit.steps(visible_steps.size(), complete)
 		progress.name = "GrowthProgress"
-		box.add_child(progress)
+		summary.add_child(progress)
+		summary.add_child(UiKit.short_label("%d/%d" % [complete, visible_steps.size()], &"NumberLabel"))
+		box.add_child(summary)
 		_steps(box, info, visible_steps)
 		if info.ready:
 			var grow := UiKit.primary("Crescer!", func() -> void:
@@ -240,8 +251,6 @@ static func _build(box: VBoxContainer) -> void:
 			box.add_child(grow)
 		box.add_child(_unlocks(info))
 	elif silk.adult and not silk.next.is_empty():
-		box.add_child(silhouette(info.current, silk.requirements.filter(func(row: Dictionary) -> bool: return row.done).size(), silk.ready, "SilkSilhouette", 64))
-		box.add_child(UiKit.label(str(silk.next.name), &"SectionLabel"))
 		_silk_requirements(box, silk)
 		if silk.ready:
 			var shine := UiKit.primary("Mais brilho!", func() -> void:
@@ -251,50 +260,69 @@ static func _build(box: VBoxContainer) -> void:
 			box.add_child(shine)
 		else:
 			var lacking: Dictionary = silk.requirements.filter(func(row: Dictionary) -> bool: return not row.done)[0]
-			var wait := UiKit.lock_hint("Falta: " + str(lacking.label))
+			var wait := UiKit.lock_hint("Falta: " + str(lacking.label), Callable(), _silk_step(lacking).icon)
 			wait.name = "SilkLock"
 			box.add_child(wait)
 	else:
 		box.add_child(UiKit.label("Ele cresceu com você. Continue cuidando do Tiro!"))
 
 
-## Agora → depois: o Tiro de hoje e a silhueta da próxima fase, que se revela a cada passo feito.
-## À direita, dois botões pequenos: Cuidados do Tiro e Caderneta.
+## A folha recebe os controles de consulta no título; o herói fica só com as fases.
+static func _header_actions() -> Array[Control]:
+	var details := UiKit.ctl_button("info", func() -> void: Events.sheet_requested.emit("Cuidados do Tiro", PillarUi.panel()), 32, "sunken")
+	details.name = "GrowthDetails"
+	var book := UiKit.ctl_button("list", history, 32, "sunken")
+	book.name = "GrowthHistoryButton"
+	return [details, book]
+
+
+## Agora → depois: retratos do mesmo tamanho em discos, com nomes abaixo.
 static func _hero(info: Dictionary) -> Control:
-	var hero := UiKit.hbox(4)
+	var hero := UiKit.hbox(8)
 	hero.name = "GrowthHero"
-	var trio := UiKit.hbox(4)
-	trio.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	trio.alignment = BoxContainer.ALIGNMENT_CENTER
-	var now := UiKit.vbox(2)
-	var dog := PetAnimator.portrait(64)
+	hero.alignment = BoxContainer.ALIGNMENT_CENTER
+	var now := UiKit.vbox(4)
+	now.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var dog := PetAnimator.portrait(96)
+	dog.custom_minimum_size = Vector2(96, 96)
 	dog.name = "CurrentDog"
-	dog.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	now.add_child(dog)
+	var disc := UiKit.disc(null, 96, 96)
+	disc.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	disc.add_child(dog)
+	now.add_child(disc)
 	now.add_child(_phase_name(str(info.current.name)))
-	trio.add_child(now)
-	if not info.next.is_empty():
-		var arrow := _center("→", &"TitleLabel")
+	hero.add_child(now)
+	var silk := GameState.silk_info()
+	if not info.next.is_empty() or (silk.adult and not silk.next.is_empty()):
+		var arrow := UiKit.ctl("arrow", 20)
 		arrow.name = "GrowthArrow"
 		arrow.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		arrow.add_theme_color_override("font_color", Palette.GO_INK if info.ready else Palette.INK_SOFT)
-		trio.add_child(arrow)
-		var then := UiKit.vbox(2)
-		then.add_child(silhouette(info.next, info.requirements.size() - missing(info), info.ready, "NextSilhouette", 64))
-		then.add_child(_phase_name(str(info.next.name)))
-		trio.add_child(then)
-	hero.add_child(trio)
-	var side := UiKit.vbox(6)
-	side.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var details := UiKit.ctl_button("info", func() -> void: Events.sheet_requested.emit("Cuidados do Tiro", PillarUi.panel()), 40)
-	details.name = "GrowthDetails"
-	side.add_child(details)
-	var book := UiKit.ctl_button("list", history, 40)
-	book.name = "GrowthHistoryButton"
-	side.add_child(book)
-	hero.add_child(side)
+		hero.add_child(arrow)
+		var then := UiKit.vbox(4)
+		then.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var next_disc := UiKit.disc(null, 96, 96)
+		next_disc.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		if not info.next.is_empty():
+			next_disc.add_child(silhouette(info.next, maxi(1, info.requirements.size() - missing(info)), info.ready, "NextSilhouette", 96, true))
+			then.add_child(next_disc)
+			var name_label := _phase_name(str(info.next.name))
+			name_label.add_theme_color_override("font_color", Palette.INK_SOFT)
+			then.add_child(name_label)
+		else:
+			var preview_holder := Control.new()
+			preview_holder.name = "SilkSilhouette"
+			preview_holder.custom_minimum_size = Vector2(96, 96)
+			preview_holder.clip_contents = true
+			var preview := UiKit.icon(load(str(info.current.art.dir.pet) + "idle_breathe/frame_00.png"), 0)
+			preview.material = DogLook.material()
+			(preview.material as ShaderMaterial).set_shader_parameter("sheen", float(silk.next.sheen))
+			preview_holder.add_child(preview)
+			_fit_static(preview, 96)
+			next_disc.add_child(preview_holder)
+			then.add_child(next_disc)
+			then.add_child(_phase_name(str(silk.next.name)))
+		hero.add_child(then)
 	return hero
-
 
 ## Nome da fase sob o retrato: uma linha só, um pouco menor para caber lado a lado.
 static func _phase_name(text: String) -> Label:
@@ -329,7 +357,7 @@ static func _steps(box: VBoxContainer, info: Dictionary, visible_steps: Array) -
 		box.set_meta("selected_done", bool(views[id].done))
 		for key: String in tiles:
 			_style_tile(tiles[key], bool(views[key].done), key == id)
-			if details.has(key): details[key].visible = key == id
+			if details.has(key): _select_detail(details[key], key == id)
 	for req: Dictionary in visible_steps:
 		var id := str(req.id)
 		var tile := _step_tile(views[id])
@@ -344,7 +372,7 @@ static func _steps(box: VBoxContainer, info: Dictionary, visible_steps: Array) -
 	for req: Dictionary in visible_steps:
 		var id := str(req.id)
 		var detail := _step_detail(views[id], id == first_id, req)
-		detail.visible = id == chosen
+		_select_detail(detail, id == chosen)
 		details[id] = detail
 		strip.add_child(detail)
 
@@ -353,7 +381,7 @@ static func _steps(box: VBoxContainer, info: Dictionary, visible_steps: Array) -
 static func _step_tile(step: Dictionary) -> Button:
 	var tile := UiKit.button("", func() -> void: pass, &"GhostButton")
 	tile.name = "GrowthReq_" + str(step.id)
-	tile.custom_minimum_size = Vector2(0, 92)
+	tile.custom_minimum_size = Vector2(0, 88)
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tile.clip_contents = true
 	var column := UiKit.vbox(2)
@@ -362,9 +390,14 @@ static func _step_tile(step: Dictionary) -> Button:
 	column.offset_right = -4
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	tile.add_child(column)
-	var ring := step_ring(step, 44)
+	var ring := step_ring(step, 48)
 	ring.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	column.add_child(ring)
+	var amount := UiKit.hbox(4)
+	amount.alignment = BoxContainer.ALIGNMENT_CENTER
+	amount.add_child(ring)
+	var count := UiKit.short_label("%d/%d" % [step.have, step.need], &"NumberLabel", Palette.GO_INK if step.done else Palette.INK)
+	amount.add_child(count)
+	column.add_child(amount)
 	var name_label := UiKit.short_label(str(step.short), &"SmallLabel")
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
@@ -375,18 +408,14 @@ static func _step_tile(step: Dictionary) -> Button:
 		dots.name = "GrowthDots_" + str(step.pillar)
 		dots.alignment = BoxContainer.ALIGNMENT_CENTER
 		column.add_child(dots)
-	else:
-		var count := UiKit.short_label("%d/%d" % [step.have, step.need], &"SmallLabel", Palette.GO_INK if step.done else Palette.INK_SOFT)
-		count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		column.add_child(count)
 	if step.done:
 		var check := UiKit.disc(UiKit.ctl_icon("check"), 20, 14)
 		check.name = "StepCheck"
 		check.add_theme_stylebox_override("panel", UiKit.surface(Palette.GO, 10))
 		(check.get_child(0) as Control).modulate = Palette.CARD
-		check.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-		check.offset_left = -26
-		check.offset_right = -6
+		check.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+		check.offset_left = 4
+		check.offset_right = 24
 		check.offset_top = 6
 		check.offset_bottom = 26
 		tile.add_child(check)
@@ -406,17 +435,32 @@ static func _style_tile(tile: Button, done: bool, selected: bool) -> void:
 
 
 ## Detalhe de um passo (um só fica visível): nome, dica de uma linha, uma ação e o "?".
+static func _select_detail(detail: Control, selected: bool) -> void:
+	detail.visible = selected
+	for action: Button in detail.find_children("*", "Button", true, false):
+		if action.has_meta("growth_action"):
+			action.theme_type_variation = &"PrimaryButton" if selected else &"SecondaryButton"
+
+
 static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> Control:
 	var detail := UiKit.vbox(4)
 	detail.name = "GrowthNextStep" if highlight else "GrowthDetail_" + str(step.id)
 	var head := UiKit.hbox(8)
-	head.add_child(UiKit.fill_label(str(step.title)))
+	head.add_child(UiKit.fill_label(str(step.title), &"StrongLabel"))
 	if not step.done:
-		var help := UiKit.icon_button(UiKit.ctl_icon("help"), TaskHelp.open.bind("growth_req", str(step.id)), 40)
+		var help := UiKit.ctl_button("help", TaskHelp.open.bind("growth_req", str(step.id)), 32, "sunken")
 		help.name = "GrowthHelp"
-		help.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		head.add_child(help)
+		# O alvo segue com 44; só o espaço da linha é 22, com a folga sobre o caminho não tocável.
+		var help_slot := Control.new()
+		help_slot.custom_minimum_size = Vector2(44, 22)
+		help_slot.add_child(help)
+		help.position.y = -8
+		head.add_child(help_slot)
 	detail.add_child(head)
+	if not step.done:
+		var target: Dictionary = TaskHelp.describe("growth_req", str(step.id)).target
+		var path := _step_path(target, step)
+		if path != null: detail.add_child(path)
 	var hint_text := str(step.hint)
 	var good: bool = step.hint_good
 	if step.done:
@@ -433,10 +477,11 @@ static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> 
 		button = UiKit.primary(str(step.action), step.callback)
 		button.name = "GrowthNextAction"
 	else:
-		button = UiKit.soft(str(step.action), step.callback, null, true)
+		button = UiKit.primary(str(step.action), step.callback)
 		button.name = "GrowthAct_" + str(step.id)
 	button.custom_minimum_size = Vector2(160, 44)
-	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	button.set_meta("growth_action", true)
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	if step.give != "":
 		button.name = "GiveGrowth_" + str(step.give)  # mesmo nome do Dar da Mochila
@@ -446,15 +491,44 @@ static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> 
 
 ## O que muda quando ele crescer: dá vontade de completar.
 static func _unlocks(info: Dictionary) -> Control:
-	var row := UiKit.hbox(8)
+	var row := HFlowContainer.new()
 	row.name = "GrowthUnlocks"
-	row.add_child(UiKit.icon(UiKit.ui_icon("rare_star"), 24))
-	var unlocks := UiKit.fill_label("Ao crescer: " + " · ".join(info.next.get("unlocks_text", [])), &"SmallLabel")
-	unlocks.name = "NextUnlocks"
-	unlocks.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(unlocks)
+	row.add_theme_constant_override("h_separation", 4)
+	row.add_theme_constant_override("v_separation", 4)
+	row.tooltip_text = "Ao crescer"
+	var prizes := HFlowContainer.new()
+	prizes.name = "NextUnlocks"
+	prizes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	prizes.add_theme_constant_override("h_separation", 4)
+	prizes.add_theme_constant_override("v_separation", 4)
+	for text: String in info.next.get("unlocks_text", []):
+		for prize: String in text.split(" · "):
+			prizes.add_child(UiKit.chip(UiKit.ui_icon("rare_star"), prize, null, "prize"))
+	row.add_child(prizes)
 	return row
 
+
+## Caminho visual derivado do destino já usado pela ajuda, sem inventar destino ou regra.
+static func _step_path(target: Dictionary, step: Dictionary) -> Control:
+	var row := UiKit.hbox(4)
+	row.name = "GrowthPath_" + str(step.id)
+	var world: Dictionary = Database.worlds.get(str(target.get("world", "")), {})
+	var place := str(target.get("spot", target.get("place", ""))).trim_prefix("place:")
+	var data: Dictionary = world.get("places", {}).get(place, {})
+	if target.get("screen", "") == "pet":
+		row.add_child(UiKit.disc(UiKit.ui_icon("tab_pet"), 24, 24))
+		row.add_child(UiKit.short_label("Tiro", &"SmallLabel"))
+	elif not world.is_empty():
+		row.add_child(UiKit.disc(UiKit.ui_icon(str(world.get("icon", ""))), 24, 24))
+		row.add_child(UiKit.short_label(str(world.name), &"SmallLabel"))
+	else:
+		row.free()
+		return null
+	if not data.is_empty():
+		row.add_child(UiKit.ctl("chev", 16))
+		row.add_child(UiKit.disc(UiKit.ui_icon(str(data.get("icon", ""))), 24, 24))
+		row.add_child(UiKit.fill_label(str(data.name), &"SmallLabel"))
+	return row
 
 static func history() -> void:
 	var book := SheetBuilder.LiveBox.new(_build_history)
@@ -507,21 +581,26 @@ static func _build_history(box: VBoxContainer) -> void:
 		card.add_child(UiKit.label("Brilho %d de %d" % [n + 1, silk.max], &"SmallLabel"))
 
 
+static func _silk_step(req: Dictionary) -> Dictionary:
+	var id := str(req.id)
+	var icon := str({"coat": "pillar_coat", "brush_days": "action_brush", "shampoo": "item_herb_shampoo"}[id])
+	return {"id": id, "type": "silk", "short": str({"coat": "Pelagem", "brush_days": "Escovar", "shampoo": "Xampu"}[id]),
+		"have": mini(int(req.have), int(req.need)), "need": int(req.need), "done": bool(req.done), "icon": UiKit.ui_icon(icon)}
+
+
 static func _silk_requirements(box: VBoxContainer, silk: Dictionary) -> void:
 	var grid := GridContainer.new()
-	grid.columns = 2
+	grid.columns = 3
 	grid.name = "SilkRequirements"
 	grid.add_theme_constant_override("h_separation", 8)
 	grid.add_theme_constant_override("v_separation", 8)
 	box.add_child(grid)
 	for req: Dictionary in silk.requirements:
-		var tile := VBoxContainer.new()
-		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var card := UiKit.card(tile, &"ReadyCardPanel" if req.done else &"CardPanel")  # mesmo cartão liso do tema
-		card.add_child(UiKit.label("%s\n%d/%d%s" % [req.label, mini(int(req.have), int(req.need)), int(req.need), " ✓" if req.done else ""], &"SmallLabel"))
+		var step := _silk_step(req)
+		var tile := _step_tile(step)
 		tile.name = "SilkReq_" + str(req.id)
+		_style_tile(tile, bool(req.done), false)
 		grid.add_child(tile)
-
 
 static func _center(text: String, variation: StringName = &"") -> Label:
 	var result := UiKit.label(text, variation)
@@ -566,10 +645,22 @@ static func _fly_to_tiro(root: Window, icon: Texture2D, from: Vector2) -> void:
 	tween.tween_callback(token.queue_free)
 
 
-static func silhouette(phase: Dictionary, completed: int, ready: bool, node_name: String, px: int) -> Control:
+## Enquadra os pixels opacos sem alterar UVs/partes do shader ou a arte.
+static func _fit_static(image: TextureRect, px: int) -> void:
+	var bounds := Rect2(image.texture.get_image().get_used_rect())
+	if not bounds.has_area(): return
+	var area := Vector2(px, px)
+	var factor := minf((px - 8.0) / bounds.size.x, (px - 8.0) / bounds.size.y)
+	image.custom_minimum_size = Vector2.ZERO
+	image.size = image.texture.get_size() * factor
+	image.position = (area - bounds.size * factor) * 0.5 - bounds.position * factor
+
+
+static func silhouette(phase: Dictionary, completed: int, ready: bool, node_name: String, px: int, filled_hero: bool = false) -> Control:
 	var holder := Control.new()
 	holder.name = node_name
-	holder.custom_minimum_size = Vector2(px, px + 20)
+	holder.custom_minimum_size = Vector2(px, px if filled_hero else px + 20)
+	holder.clip_contents = filled_hero
 	holder.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var image := UiKit.icon(load(str(phase.art.dir.pet) + "idle_breathe/frame_00.png"), px)
@@ -591,10 +682,14 @@ static func silhouette(phase: Dictionary, completed: int, ready: bool, node_name
 	material.set_shader_parameter("parts", regions)
 	image.material = material
 	holder.add_child(image)
-	var question := _center("?", &"TitleLabel")
-	question.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	question.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	question.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	question.add_theme_color_override("font_color", Palette.INK if completed == 0 else (Palette.HONEY if phase.id == "adult" else Palette.INK))
-	holder.add_child(question)
+	if filled_hero:
+		image.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		_fit_static(image, px)
+	else:
+		var question := _center("?", &"TitleLabel")
+		question.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		question.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		question.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		question.add_theme_color_override("font_color", Palette.INK if completed == 0 else (Palette.HONEY if phase.id == "adult" else Palette.INK))
+		holder.add_child(question)
 	return holder

@@ -2,6 +2,18 @@
 
 ## Estado atual
 
+**Interface 2 — ajustes, etapa 08 concluída localmente (25/10/2026, Codex).** Itens 35/11:
+prancha HTML primeiro (`prototipo/crescimento.html#filhote|pronto`, dois PNGs + prancha_crescimento),
+depois GrowthUi com duas fases em 96, silhueta preenchida, consultas no título, indicador único,
+tiles com anel/ícone 40/número 18/bolinhas 10 e detalhe com uma ação verde na largura.
+Sheet aceita `sheet_actions` e `sheet_fit_content` optativos; crescimento sem altura fixa e sem
+rolagem em 360×780, prêmios em chips. Seda na mesma grade de três colunas, prévia do próximo sheen
+e lock_hint com ícone. Lista fechada 10/10 PASS em 129,3 s (`r20261025_152707_2d858ff2/results.csv`),
+incluindo novas garantias de seleção persistente, cabeçalho e prévia sem alterar o estado.
+Onze capturas antes/depois em cada resolução, abertas/comparadas; diferenças da prancha e provas
+no README do plano. AGENTS/CLAUDE idênticos; nenhuma regra/save/fala/arte alterada. Próxima: 09,
+não iniciada. Sem push/publicação.
+
 **Interface 2 — ajustes, etapa 07 concluída localmente (25/10/2026, Codex).** Itens 16/31:
 capítulo usa `ModalCard.fixed_body` + `add_scroll_area`: fita, herói, prêmios e ações fixos,
 só `ChapterUnlocks` rola (três colunas, ícones 40, legenda numa linha e toque via Places.go).

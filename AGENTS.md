@@ -481,3 +481,15 @@ UnlockGo preservado. Passeio = "Voltou do passeio!", roupa = "Roupa pronta!". To
 (oito PNGs); festa/quest_reward/walk_return_ui/welcome/texts/text_budget + rápido: 8 PASS em 125,3 s.
 Registro e capturas antes/depois nas três resoluções em docs/plans/interface2_ajustes/README.md.
 Próxima 08, não iniciada; sem mudança de regra/save/fala, push ou publicação.
+
+**Interface 2 — ajustes, etapa 08 (25/10/2026):** GrowthUi mantém os nós do contrato; GrowthDetails e
+GrowthHistoryButton agora são filhos do Header do Sheet via meta `sheet_actions` (Callable `_header_actions`).
+`sheet_fit_content` mede a altura exata até o HUD; só GrowthPanel usa ambos. `GrowthSummary` contém
+GrowthProgress (UiKit.steps) + n/m; tiles de 88 com ícone 40/anel 4, número ao lado e dots 10.
+`_select_detail` deixa só a ação escolhida primária; `GrowthPath_<id>` em `_step_path` deriva o destino.
+NextUnlocks contém chips de prêmio. `silhouette(..., filled_hero := false)` preserva o padrão dos outros
+consumidores; herói preenchido sem ? usa `_fit_static`, sem mudar shader/UVs. SilkSilhouette é Control
+com TextureRect e material tiro_coat independente (próximo sheen); `_silk_step`/`_silk_requirements`
+compartilham a grade e tiles. `Sheet._clear_actions` limpa consultas ao trocar/fechar a folha.
+Tour `--aj-08-only` (onze PNGs), protótipo `docs/plans/interface2/prototipo/crescimento.html#filhote|pronto`.
+Registro no README do plano de ajustes; próxima 09. Sem push/publicação.

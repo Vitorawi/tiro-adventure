@@ -95,11 +95,11 @@ Bloco `--aj-08-only`: `t01_growth_panel`, `t02_growth_almost`, `t03_growth_ready
 `crescimento_filhote.png`/`crescimento_pronto.png`.
 
 ## 8. Pronto quando
-- [ ] Prancha `crescimento*.png` + entrada no `prancha.html`, abertas e citadas no registro.
-- [ ] Herói com as duas fases e nomes; ⓘ/≡ no título; um só indicador; tiles com anel; detalhe com um verde.
-- [ ] Folha do tamanho do conteúdo, sem metade vazia, cabendo sem rolar em 360×780.
-- [ ] Seda na mesma grade, prévia do brilho, bloqueio com `lock_hint`.
-- [ ] Testes verdes.
+- [x] Prancha `crescimento*.png` + entrada no `prancha.html`, abertas e citadas no registro.
+- [x] Herói com as duas fases e nomes; ⓘ/≡ no título; um só indicador; tiles com anel; detalhe com um verde.
+- [x] Folha do tamanho do conteúdo, sem metade vazia, cabendo sem rolar em 360×780.
+- [x] Seda na mesma grade, prévia do brilho, bloqueio com `lock_hint`.
+- [x] Testes verdes.
 
 ## 9. Handoff
 Pontos naturais: (1) prancha pronta e renderizada; (2) herói + cabeçalho; (3) indicador + passos; (4) detalhe

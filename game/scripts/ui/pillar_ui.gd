@@ -73,11 +73,9 @@ static func fill_dots(row: HBoxContainer, have: int, need: int) -> void:
 	for i in need:
 		var dot := Panel.new()
 		dot.name = "Dot_%d" % i
-		dot.custom_minimum_size = Vector2(14, 14)
+		dot.custom_minimum_size = Vector2(10, 10)
 		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var style := StyleBoxFlat.new()
-		style.set_corner_radius_all(7)
-		style.bg_color = Palette.HONEY if i < have else Color(0, 0, 0, 0)
+		var style := UiKit.surface(Palette.HONEY if i < have else Palette.SUNKEN, 5)
 		style.border_color = Palette.INK
 		style.set_border_width_all(2)
 		dot.add_theme_stylebox_override("panel", style)

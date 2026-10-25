@@ -19,6 +19,7 @@
   const DEPOIS = '../../../../build/screenshots/i2_12_tour/';
   const EXTRA = '../../../../build/screenshots/i2_12_extra_360x780/';
   const BOARDS = {
+    crescimento: ['Crescimento · antes × proposta', [['Antes · Filhotinho', '../../../../build/screenshots/aj_08_antes/t01_growth_panel.png'], ['Antes · quase', '../../../../build/screenshots/aj_08_antes/t02_growth_almost.png'], ['Antes · painel 09', '../../../../build/screenshots/aj_08_antes/i2_09_growth.png'], ['Proposta · Filhotinho', 'crescimento_filhote.png'], ['Proposta · pronto', 'crescimento_pronto.png']]],
     tiro: ['Tela do Tiro', [['Hoje', SHOTS + 'b02_pet.png'], ['Proposta', 'tiro.png']]],
     missoes: ['Missões e prêmio', [['Hoje', SHOTS + 'a02_tasks.png'], ['Proposta', 'missoes.png'], ['Proposta · ao pegar o prêmio', 'missoes_premio.png']]],
     rodape: ['Parte de baixo: base presa à tela', [['Clara · Tiro', 'tiro.png', 1], ['Clara · Missões', 'missoes.png', 1], ['Madeira · Tiro', 'tiro_escuro.png', 1], ['Madeira · Missões', 'missoes_escuro.png', 1]]],
@@ -43,5 +44,11 @@
   document.getElementById('cols').innerHTML = list.map(([label, src, isNew], i) =>
     `<div class="phone"><span class="tag ${i || isNew ? 'new' : 'old'}">${label}</span><div class="frame"><img src="${src}"></div></div>`).join('');
   document.body.style.width = document.documentElement.style.width = (56 + list.length * 388 - 28) + 'px';
+  if (location.hash === '#crescimento') {
+    document.body.style.width = document.documentElement.style.width = '1180px';
+    document.querySelector('.cols').style.gap = '16px';
+    document.querySelectorAll('.phone').forEach(el => el.style.width = '212px');
+    document.querySelectorAll('.frame, .phone img').forEach(el => { el.style.width = '212px'; el.style.height = '459.33px'; });
+  }
 </script>
 </body></html>

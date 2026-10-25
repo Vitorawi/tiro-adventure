@@ -26,6 +26,8 @@ var _open := false  # há conteúdo aberto (falso já ao pedir o fechamento, mes
 var _closing := false  # deslizando para fora
 var _height := 0.0  # altura alvo do painel, em px
 var _size_meta := "auto"
+var _fit_content := false
+var _header_actions: Array[Control] = []
 var _pulled_tall := false  # o jogador puxou para cima: fica alto até trocar de conteúdo
 var _open_id := 0
 var _fit_pending := false
@@ -76,7 +78,15 @@ func open(title: String, content: Control) -> void:
 	for child in _content_holder.get_children():
 		_content_holder.remove_child(child)
 		child.queue_free()
+	_clear_actions()
 	_title.text = title
+	_fit_content = bool(content.get_meta("sheet_fit_content", false))
+	if content.has_meta("sheet_actions"):
+		var factory: Callable = content.get_meta("sheet_actions")
+		for action: Control in factory.call():
+			%Header.add_child(action)
+			%Header.move_child(action, _close_button.get_index())
+			_header_actions.append(action)
 	_size_meta = str(content.get_meta("sheet_size", "auto"))
 	_content_holder.add_child(content)
 	var gap := Control.new()
@@ -126,6 +136,7 @@ func close() -> void:
 	if not _open and not visible:
 		return
 	_open = false
+	_clear_actions()
 	_open_id += 1
 	_dragging = false
 	for child in _content_holder.get_children():
@@ -151,7 +162,16 @@ func _dismiss(from_y: float) -> void:
 	_slide_tween = tween
 
 
+func _clear_actions() -> void:
+	for action: Control in _header_actions:
+		if is_instance_valid(action):
+			action.get_parent().remove_child(action)
+			action.queue_free()
+	_header_actions.clear()
+
+
 func _finish_close() -> void:
+	_clear_actions()
 	_closing = false
 	_stop_tweens()
 	hide()
@@ -183,6 +203,8 @@ func _target_height() -> float:
 	var scroll := _content_holder.get_parent() as Control
 	var chrome := _panel.get_combined_minimum_size().y - scroll.get_combined_minimum_size().y
 	var needed := chrome + _content_holder.get_combined_minimum_size().y
+	if _fit_content:
+		return clampf(needed, usable * MIN, tall)
 	if needed <= usable * HALF:
 		return maxf(needed, usable * MIN)
 	return tall

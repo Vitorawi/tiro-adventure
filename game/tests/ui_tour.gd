@@ -81,6 +81,10 @@ func _run() -> void:
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
 	# Plano "Interface 2 — ajustes": um bloco --aj-NN-only por etapa, reaproveitando os nomes de captura que
 	# já existem (b05_map_list, i2_07_stove...); capturas novas levam o prefixo aj_NN_<tela>.
+	if "--aj-08-only" in OS.get_cmdline_user_args():
+		await _aj_08_shots()
+		quit(0)
+		return
 	if "--aj-01-only" in OS.get_cmdline_user_args():
 		await _aj_01_shots()
 		quit(0)
@@ -1564,6 +1568,53 @@ func _ceremony_shots() -> void:
 		main.get("_growth_ceremony").call("_close")
 		await create_timer(0.4).timeout
 	Motion.reduced = true
+
+## Etapa 08: crescimento nas fases, quase/pronto, seda e resumo do avatar.
+func _aj_08_shots() -> void:
+	var ui: Script = load("res://scripts/ui/growth_ui.gd")
+	state.call("reset")
+	state.get("progress").seen.intro = true
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	await _start_main(1.5)
+	main.call("show_screen", &"pet")
+	state.call("dev_set_phase", "puppy")
+	state.get("growth").done = {}
+	state.get("growth").phase_moments = {}
+	state.get("progress").owned.erase("blender")
+	state.call("_changed")
+	_hide_modals()
+	ui.call("open")
+	await shot("t01_growth_panel")
+	state.get("growth").phase_moments = {"body": 25, "brave": 25}
+	state.get("progress").owned["blender"] = true
+	state.call("_changed")
+	await shot("t02_growth_almost")
+	state.call("dev_complete_growth_reqs")
+	await shot("t03_growth_ready")
+	await _close()
+	for phase: String in ["newborn", "teething", "explorer", "young", "adult"]:
+		state.call("dev_set_phase", phase)
+		_hide_modals()
+		ui.call("open")
+		await shot("t_phase_" + phase, 0.4)
+		await _close()
+	state.call("dev_set_phase", "adult")
+	_hide_modals()
+	ui.call("open")
+	await shot("b19_skills")
+	await _close()
+	state.call("dev_set_phase", "puppy")
+	state.get("growth").done = {}
+	state.get("growth").phase_moments = {"body": 25}
+	state.call("_changed")
+	_hide_modals()
+	ui.call("open")
+	await shot("i2_09_growth")
+	await _close()
+	main.find_child("TopBar", true, false).call("show_level_popover")
+	await shot("t05_hud_popover", 0.3)
+
 
 func _aj_07_shots() -> void:
 	state.call("reset")
