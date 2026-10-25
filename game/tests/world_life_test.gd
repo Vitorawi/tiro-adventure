@@ -23,6 +23,9 @@ func _run() -> void:
 	root.remove_child(saver)
 	saver.free()
 	state = root.get_node("GameState")
+	# Relógio fixo ao meio-dia local: sem foto noturna, desejo ou janela de amigos dependendo da hora real.
+	state.set_script(load("res://tests/helpers/economy_clock.gd"))
+	state.call("set_clock", 1792411200.0 + 3.0 * 3600.0)
 	state.call("reset")
 	state.call("dev_complete_quest", "bloblo_meet")  # vovó Bloblo já emprestou o canteiro
 	main = load("res://scenes/main/main.tscn").instantiate()
@@ -44,7 +47,11 @@ func _run() -> void:
 	check(not (state.call("harvest", 0) as Dictionary).is_empty(), "Colher cenoura")
 	check(dog.get_meta("last_reaction", "") == &"harvest", "Tiro reage à colheita")
 	var before_walk := dog.position
-	await create_timer(0.3).timeout
+	# Espera por condição (com limite), não por tempo fixo: o portão roda três processos ao mesmo tempo.
+	var waited := 0
+	while dog.position.distance_to(before_walk) <= 1.0 and waited < 180:
+		await process_frame
+		waited += 1
 	check(dog.position.distance_to(before_walk) > 1.0, "Tiro interrompe o passeio e se aproxima da colheita")
 	var sprite: AnimatedSprite2D = dog.get("_sprite")
 	var deadline := Time.get_ticks_msec() + 10000
@@ -129,8 +136,11 @@ func _run() -> void:
 	check(village_dog.get_meta("last_reaction", "") == before, "Não acorda o Tiro para comemorar")
 	state.call("set_sleeping", false)
 	main.call("show_screen", &"pet")
+	# A referência vem DEPOIS de trocar de tela e assentar: acordar e abrir o Tiro ainda dispara eventos reais.
+	for i: int in 4: await process_frame
+	var hidden_before: Variant = village_dog.get_meta("last_reaction", "")
 	village_dog.call("react_at", &"happy", Vector2(300, 220))
-	check(village_dog.get_meta("last_reaction", "") == before, "Não reage em mapa oculto")
+	check(village_dog.get_meta("last_reaction", "") == hidden_before, "Não reage em mapa oculto")
 	main.queue_free()
 	await process_frame
 	print("WORLD LIFE TEST: ", "PASS" if failures == 0 else "FAIL")

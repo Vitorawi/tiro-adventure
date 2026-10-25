@@ -2,6 +2,14 @@
 
 ## Estado atual
 
+**Interface 2 — ajustes, etapa 01 concluída localmente (25/10/2026, Claude Sonnet 5.5).** Linha de base do
+plano: tour completo em `build/screenshots/aj_base`, `aj_base_390`, `aj_base_412` (114 PNGs cada); Sítio na
+Web (`touch_steps_i2_12.json`): média 28,4 / 28,2 ms, p95 66,6 ms, 123 / 114 quadros > 33 ms, picos 183 / 217 ms
+(base da etapa 03). `world_pin_test` e `world_life_test` agora 10/10 PASS em 10 rodadas com `-Jobs 3`
+(`build/estabilidade_aj01.txt`). Bloco `--aj-NN-only` no `ui_tour.gd` (um por etapa; o 01 tem `g01`, `t03`,
+`b05_map_list`, `i2_06_npc`); fixtures `g01_tasks_ready_many` (7 passos prontos, três abas com selo) e
+`t03_growth_ready` (grade toda ✓ + Crescer) corrigidas. Só `game/tests/` e docs mudaram. Próxima: 02. Sem push.
+
 **Interface 2 — etapa 12 concluída localmente (25/10/2026, Claude Sonnet 5.5 + Codex). Plano encerrado.**
 Portão único: 97/102 na primeira passada (645 s), 102/102 após correções/reexecuções focadas;
 `world_life_test` e `world_pin_test` tiveram falhas intermitentes, preservadas no registro.

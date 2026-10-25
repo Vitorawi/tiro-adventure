@@ -151,6 +151,7 @@ func _audit() -> void:
 		room.set("world_id", id)
 		root.add_child(room)
 		await process_frame
+		_quiet(room)
 		for tag: Label in room.get("_labels"): tag.hide()
 		for tag: Label in room.get("_labels"):
 			var data: Dictionary = tag.get_meta("tap_data")
@@ -175,15 +176,53 @@ func _audit() -> void:
 				for zone: Dictionary in room.get("_room").get("zones", []):
 					if zone.get("action", "") != action: continue
 					var p: PackedVector2Array = room.call("_polygon", zone.polygon)
-					var center: Vector2 = Vector2.ZERO
-					for v: Vector2 in p: center += v
-					center /= p.size()
-					room.set("audited_action", "")
-					var handled: bool = room.call("_handle_tap", center)
-					found = handled and room.get("audited_action") == action
+					# Vários pontos dentro do polígono: basta um chegar ao alvo (um sprite pode cobrir um ponto).
+					for candidate: Vector2 in _zone_points(p):
+						room.set("audited_action", "")
+						var handled: bool = room.call("_handle_tap", candidate)
+						if handled and room.get("audited_action") == action:
+							found = true
+							break
 					if found: break
 			print("AUDIT ", id, " ", action, " ", "OK" if found else "SEM CAMINHO")
 			if not found: missing += 1
 			check(found, id + ": ação sem toque físico: " + action)
 		room.queue_free()
 		await process_frame
+
+
+## A auditoria confere só o chão e os objetos da sala: personagens, montinho do faro e balões (que dependem
+## do relógio e de sorteios) saem de cena e param, para nada ficar na frente do ponto tocado.
+func _quiet(room: Control) -> void:
+	var dig: Variant = room.get("_dig_spot")
+	if is_instance_valid(dig):
+		(dig as Node).free()
+	var stack: Array[Node] = [room]
+	while not stack.is_empty():
+		var node: Node = stack.pop_back()
+		stack.append_array(node.get_children())
+		var script: Script = node.get_script()
+		var kind: StringName = script.get_global_name() if script != null else &""
+		if kind in [&"NpcWorld", &"DogWorld", &"WorldBalloon", &"PlotIndicator", &"StationIndicator", &"RouteIndicator", &"WalkIndicator"]:
+			node.set_process(false)
+			(node as CanvasItem).visible = false
+
+
+## Centro e pontos de uma grade dentro do polígono (até 9), do mais central para os cantos.
+func _zone_points(polygon: PackedVector2Array) -> Array[Vector2]:
+	var center := Vector2.ZERO
+	for v: Vector2 in polygon: center += v
+	center /= polygon.size()
+	var points: Array[Vector2] = []
+	if Geometry2D.is_point_in_polygon(center, polygon):
+		points.append(center)
+	var box := Rect2(polygon[0], Vector2.ZERO)
+	for v: Vector2 in polygon: box = box.expand(v)
+	for fy: float in [0.5, 0.25, 0.75]:
+		for fx: float in [0.5, 0.25, 0.75]:
+			var candidate := box.position + box.size * Vector2(fx, fy)
+			if Geometry2D.is_point_in_polygon(candidate, polygon) and not points.has(candidate):
+				points.append(candidate)
+	if points.is_empty():
+		points.append(center)
+	return points

@@ -79,6 +79,12 @@ func _run() -> void:
 	var places: Script = load("res://scripts/ui/places.gd")
 	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
+	# Plano "Interface 2 — ajustes": um bloco --aj-NN-only por etapa, reaproveitando os nomes de captura que
+	# já existem (b05_map_list, i2_07_stove...); capturas novas levam o prefixo aj_NN_<tela>.
+	if "--aj-01-only" in OS.get_cmdline_user_args():
+		await _aj_01_shots()
+		quit(0)
+		return
 	if "--i2-10-only" in OS.get_cmdline_user_args():
 		await _i2_10_shots()
 		quit(0)
@@ -1031,18 +1037,88 @@ func _finger(room: Node, index: int) -> Vector2:
 	return (room.call("world_to_screen", room.call("plot_center", index)) as Vector2) + Vector2(0, 40)
 
 
-## Etapa 10: rotinas prontas, filtro de colheitas e toque nas roupas.
-func _list_shots() -> void:
+## Etapa 01 dos ajustes: as quatro telas da linha de base (Missões prontas, Crescimento pronto, lista de
+## mundos e conversa da Bloblo), cada uma com o próprio estado.
+func _aj_01_shots() -> void:
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	await _start_main(1.5)
+	await _g01_tasks_ready_many()
+	await _t03_growth_ready()
+	main.call("show_screen", &"map")
+	main.find_child("WorldsScreen", true, false).call("show_map")
+	await shot("b05_map_list")
+	main.find_child("WorldsScreen", true, false).call("close_map")
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	state.call("dev_jump_to_chapter", 3)
+	state.call("_mark_all_seen")
+	await create_timer(1.0).timeout
+	_hide_modals()
+	await _world("farm")
+	await _sheet("Vovó Bloblo", load("res://scripts/ui/progression_ui.gd").call("npc_view", "bloblo"))
+	await shot("i2_06_npc")
 	await _close()
+
+
+## Missões com várias prontas ao mesmo tempo: o passo da história, passos de personagens e as rotinas.
+## Sai do capítulo 5 (história em andamento, linhas abertas) e cumpre só objetivos de contador/entrega.
+func _g01_tasks_ready_many() -> void:
+	var database: Node = root.get_node("Database")
+	var before: Dictionary = state.call("to_dict")  # o tour segue depois com o estado em que estava
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	state.call("dev_jump_to_chapter", 5)
+	state.call("_mark_all_seen")
 	state.call("dev_restart_routines")
+	var steps: Dictionary = state.get("progress").call("active_steps")
+	for quest_id: String in steps.values():
+		for goal: Dictionary in database.quests[quest_id].goals:
+			match str(goal.type):
+				"stat":
+					state.get("progress").stats[goal.key] = state.get("progress").stat(goal.key) + int(goal.get("target", 1))
+				"deliver", "have":
+					state.get("inventory").call("add", goal.key, int(goal.get("target", 1)))
 	for kind: String in ["daily", "weekly"]:
 		for id: String in state.call("routine_ids", kind):
 			var goal: Dictionary = state.call("routine_data", kind, id).goal
 			state.get("progress").stats[goal.key] = state.get("progress").stat(goal.key) + int(goal.target)
 	state.call("_changed")
+	var ready := 0
+	for quest_id: String in steps.values():
+		if state.call("quest_objectives_error", quest_id) == "":
+			ready += 1
+	print("g01: passos prontos = %d de %d" % [ready, steps.size()])
+	await create_timer(1.0).timeout
 	_hide_modals()
 	main.call("show_screen", &"tasks")
 	await shot("g01_tasks_ready_many")
+	state.call("from_dict", before)
+	_hide_modals()
+
+
+## Painel de Crescimento com um passo a mais feito.
+func _t03_growth_ready() -> void:
+	var growth_ui: Script = load("res://scripts/ui/growth_ui.gd")
+	state.call("dev_set_phase", "puppy")
+	state.get("growth").done = {}
+	state.get("growth").phase_moments = {"body": 25, "brave": 25}
+	state.get("progress").owned["blender"] = true
+	state.call("_changed")
+	_hide_modals()
+	growth_ui.call("open")
+	await create_timer(0.3).timeout
+	state.call("dev_complete_growth_reqs")
+	await shot("t03_growth_ready")
+	await _close()
+
+
+## Etapa 10: rotinas prontas, filtro de colheitas e toque nas roupas.
+func _list_shots() -> void:
+	await _close()
+	await _g01_tasks_ready_many()
 	state.get("inventory").call("from_dict", {"carrot": 4, "wheat": 3, "dog_food": 5, "plank": 2})
 	main.call("show_screen", &"bag")
 	await create_timer(0.3).timeout
@@ -1261,8 +1337,7 @@ func _growth_panel_shots() -> void:
 	await shot("t02b_growth_badge")
 	growth_ui.call("open")
 	await create_timer(0.3).timeout
-	state.get("progress").stats["feed:carrot_snack"] = int(state.get("growth").phase_stats.get("feed:carrot_snack", 0)) + 3
-	state.call("_changed")
+	state.call("dev_complete_growth_reqs")
 	await shot("t03_growth_ready")
 	var scroll := main.find_child("Sheet", true, false).find_child("Scroll", true, false) as ScrollContainer
 	scroll.scroll_vertical = 420

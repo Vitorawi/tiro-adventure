@@ -395,6 +395,7 @@ powershell -ExecutionPolicy Bypass -File tools\test_all.ps1
 # Tour de capturas da interface (114 PNGs em build/screenshots/<pasta>/; não grava o save):
 & $env:GODOT_BIN --path game --resolution 360x780 -s res://tests/ui_tour.gd -- --out=etapaNN_antes
 
+# Interface 2 ajustes: --aj-NN-only (um bloco por etapa, ui_tour.gd; 01 = g01/t03/b05/i2_06_npc) → --out=aj_NN_antes/depois(_390/_412); linha de base aj_base(_390/_412).
 # Interface 2: --i2-01-only até --i2-11-only recortam as telas de cada etapa.
 # 04 Tiro/roleta; 05 Missões/prêmio; 06 mundos/alfinete; 07 horta/bandejas;
 # 08 Mochila/caderninho; 09 painéis; 10 festa; 11 Texto maior.
