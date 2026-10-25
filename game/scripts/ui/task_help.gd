@@ -517,65 +517,79 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 				var back: Array[Dictionary] = history.duplicate()
 				back.pop_back()
 				open(previous.kind, previous.id, previous.amount, back)))
-		top.add_child(UiKit.icon(icon_for(kind, id), 64))
+		top.add_child(UiKit.disc(icon_for(kind, id), 80, 64))
 		var title := UiKit.vbox(2)
 		title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		title.add_child(UiKit.label(data.title, &"SectionLabel"))
+		title.add_child(UiKit.label(data.title, &"StrongLabel"))
 		if data.has("progress_text"):
 			title.add_child(UiKit.label(data.progress_text, &"SmallLabel"))
-		elif data.has("stock"):
+		elif data.has("stock") or kind == "item":
 			var enough := GameState.inventory.count(id) >= amount
-			title.add_child(UiKit.label(data.stock, &"", UiKit.GOOD if enough else UiKit.BAD))
+			title.add_child(UiKit.chip(null, str(data.get("stock", "%d/%d" % [GameState.inventory.count(id), amount])), null, "have" if enough else "missing"))
 		top.add_child(title)
 		box.add_child(top)
+		if kind == "item" and GameState.inventory.count(id) >= amount:
+			var uses := SheetBuilder._uses(id)
+			var target: Dictionary = uses[0].target if not uses.is_empty() else data.target
+			# Comida usa o mesmo destino da Tigela; os outros usos vêm do catálogo do item.
+			if Database.items[id].has("feed"): target = Places.goal_target({"type": "stat", "key": "feed"})
+			if str(Database.items[id].get("category", "")) == "keepsake": target = {"growth": true}
+			for req: Dictionary in GameState.growth_info().requirements:
+				if str(req.type) == "deliver" and str(req.item) == id and not req.done: target = {"growth": true}
+			var have_list := UiKit.list_card(box)
+			have_list.add_child(_help_row(icon_for(kind, id), "Você já tem.", [], _calm_go(_go.bind(target)), true, 1.0, &""))
+			return
 		if data.has("food_guide"):
 			var guide: Dictionary = data.food_guide
-			box.add_child(UiKit.label(guide.place, &"SectionLabel"))
-			box.add_child(UiKit.label(guide.preparation, &"SmallLabel"))
-			var card := UiKit.card(box, &"ReadyCardPanel")
-			card.add_child(UiKit.label(guide.status))
-			if guide.next != "": card.add_child(UiKit.label(guide.next, &"SmallLabel"))
-			var action := UiKit.primary(guide.action, _go.bind(guide.target))
-			action.name = "FoodGuideAction"
-			card.add_child(action)
-			box.add_child(UiKit.label("Ingredientes por preparo", &"SectionLabel"))
 			var chain := UiKit.list_card(box)
+			var action := _calm_go(_go.bind(guide.target))
+			action.name = "FoodGuideAction"
+			var prep := _help_row(icon_for(kind, id), str(guide.place), [UiKit.chip(null, str(guide.preparation), null, "time")], action)
+			var prep_body := prep.get_child(0) as VBoxContainer
+			prep_body.add_child(UiKit.label(guide.status))
+			if guide.next != "": prep_body.add_child(UiKit.label(guide.next))
+			chain.add_child(prep)
+			box.add_child(UiKit.section("Ingredientes por preparo"))
+			var inputs := UiKit.list_card(box)
+			var primary_used := false
 			for input: Dictionary in guide.inputs:
 				var path: Array[Dictionary] = history.duplicate()
 				path.append({"kind": kind, "id": id, "amount": amount})
 				var enough := int(input.have) >= int(input.amount)
 				var chips: Array[Control] = [UiKit.chip(null, "%d/%d" % [input.have, input.amount], null, "have" if enough else "missing")]
-				var buy: Button = null
-				if not enough:
-					buy = UiKit.soft("Buscar", open.bind("item", str(input.id), int(input.amount), path), null, true)
-				var where := "" if enough or str(input.where) == "" else "\n" + str(input.where)  # onde achar quebra de linha no título
-				chain.add_child(UiKit.list_row(Database.item_icon(input.id), str(input.label) + where, chips, buy, Callable(), enough))
+				var seek := open.bind("item", str(input.id), int(input.amount), path)
+				var buy := _calm_go(seek) if enough or primary_used else UiKit.primary("Ir", seek)
+				if not enough: primary_used = true
+				var row := _help_row(Database.item_icon(input.id), str(input.label), chips, buy, enough, float(input.have) / maxi(1, int(input.amount)))
+				if not enough and str(input.where) != "": (row.get_child(0) as VBoxContainer).add_child(UiKit.label(str(input.where)))
+				inputs.add_child(row)
+			if not primary_used:
+				action.theme_type_variation = &"SecondaryButton" if guide.done else &"PrimaryButton"
 			return
 		if data.has("steps"):
 			var primary_used := false
+			var chain := UiKit.list_card(box)
 			for care: Dictionary in data.steps:
-				var card := UiKit.card(box, &"ReadyCardPanel" if care.done else &"CardPanel")
-				card.add_child(UiKit.label(care.title, &"SectionLabel"))
-				card.add_child(UiKit.label(care.progress, &"SmallLabel"))
-				if care.done: continue
-				card.add_child(UiKit.label(care.hint))
-				var go := UiKit.soft(care.action, _go.bind(care.target)) if primary_used else UiKit.primary(care.action, _go.bind(care.target))
+				var go := _calm_go(_go.bind(care.target)) if care.done or primary_used else UiKit.primary("Ir", _go.bind(care.target))
 				go.name = "GrowthCare_" + str(care.id)
-				card.add_child(go)
-				primary_used = true
+				var row := _help_row(UiKit.ui_icon(str(Database.growth.pillars[care.id].icon)), str(care.title), [UiKit.chip(null, str(care.progress), null, "have" if care.done else "neutral")], go, bool(care.done), float(care.fraction))
+				if not care.done:
+					(row.get_child(0) as VBoxContainer).add_child(UiKit.label(care.hint))
+					primary_used = true
+				chain.add_child(row)
 			return
 		if data.get("source_text", "") != "":
-			box.add_child(UiKit.label("Onde conseguir", &"SectionLabel"))
-			var source_label := UiKit.label(data.source_text, &"SmallLabel")
+			box.add_child(UiKit.section("Onde conseguir"))
+			var sources := UiKit.list_card(box)
+			var source_row := _help_row(icon_for(kind, id), str(data.title), [], UiKit.row_chevron(_go.bind(data.target)))
+			var source_label := UiKit.label(data.source_text)
 			source_label.name = "ItemSource"
-			box.add_child(source_label)
+			(source_row.get_child(0) as VBoxContainer).add_child(source_label)
+			sources.add_child(source_row)
 		# Próximo passo: ícone + o que fazer + Ir.
 		# Produtos levam à própria receita; os chips continuam explicando onde buscar ingredientes.
 		var recipe_destination := str(data.target.get("place", "")).begins_with("recipe:")
-		var step: BoxContainer = UiKit.vbox(8) if data.get("reward_source", false) else UiKit.hbox(10)
 		var first: Dictionary = {} if recipe_destination else data.get("next_need", {})
-		if not data.get("reward_source", false):
-			step.add_child(UiKit.icon(need_icon(first) if not first.is_empty() else icon_for(kind, id), 48))
 		var step_text := str(data.get("next", str(data.detail).trim_prefix(str(data.get("source_text", "")) + "\n")))
 		if recipe_destination:
 			var recipe: Dictionary = Database.recipes[str(data.target.place).trim_prefix("recipe:")]
@@ -584,27 +598,56 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 			step_text = "Primeiro: " + step_text
 			var destination := str(data.get("next_target", {}).get("hint", ""))
 			if destination != "": step_text += "\n" + destination
-		step.add_child(UiKit.fill_label(step_text))
-		var go := UiKit.button(data.action if recipe_destination else data.get("next_action", data.action), _go.bind(data.target if recipe_destination else data.get("next_target", data.target)), &"PrimaryButton")
-		go.name = "HelpGo"
-		go.custom_minimum_size = Vector2(92, 52)
-		go.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		step.add_child(go)
-		UiKit.card(box, &"ReadyCardPanel").add_child(step)
-		if (recipe_destination or data.has("next")) and data.detail != "" and not data.has("source_text"):
-			box.add_child(UiKit.label(data.detail, &"SmallLabel"))
 		var visible_needs: Array = data.get("ingredients", data.needs)
+		var missing_index := -1
+		for index in visible_needs.size():
+			if int(visible_needs[index].have) < int(visible_needs[index].amount):
+				missing_index = index
+				break
+		var destination: Dictionary = data.target if recipe_destination else data.get("next_target", data.target)
+		var go := UiKit.primary("Ir", _go.bind(destination)) if missing_index < 0 else _calm_go(_go.bind(destination))
+		go.name = "HelpGo"
+		var chain := UiKit.list_card(box)
+		chain.add_child(_help_row(need_icon(first) if not first.is_empty() else icon_for(kind, id), step_text, [], go, false, 0.0, &"StrongLabel" if recipe_destination else &""))
+		if (recipe_destination or data.has("next")) and data.detail != "" and not data.has("source_text"):
+			box.add_child(UiKit.label(data.detail))
 		if visible_needs.is_empty():
 			return
-		var chips := UiKit.flow()
-		for need: Dictionary in visible_needs:
+		var ingredients := UiKit.list_card(box)
+		for index in visible_needs.size():
+			var need: Dictionary = visible_needs[index]
 			var ok := int(need.have) >= int(need.amount)
-			chips.add_child(UiKit.tap_chip(need_icon(need), "%d/%d" % [int(need.have), int(need.amount)], func() -> void:
-				var path: Array[Dictionary] = history.duplicate()
-				path.append({"kind": kind, "id": id, "amount": amount})
-				open(need.kind, need.id, int(need.amount), path), UiKit.GOOD if ok else UiKit.BAD))
-		box.add_child(chips)
+			var path: Array[Dictionary] = history.duplicate()
+			path.append({"kind": kind, "id": id, "amount": amount})
+			var seek := open.bind(str(need.kind), str(need.id), int(need.amount), path)
+			var chip := UiKit.tap_chip(need_icon(need), "%d/%d" % [int(need.have), int(need.amount)], seek, Palette.GO_INK if ok else Palette.ALERT_INK, "have" if ok else "missing")
+			var action := UiKit.primary("Ir", seek) if index == missing_index else _calm_go(seek)
+			ingredients.add_child(_help_row(need_icon(need), str(need.label), [chip], action, ok, float(need.have) / maxi(1, int(need.amount))))
 	)
+
+
+## Linha da cadeia: nome forte, disco com anel e ✓ vetorial quando completo.
+static func _help_row(texture: Texture2D, title: String, chips: Array[Control], action: Control, done: bool = false, fraction: float = 0.0, title_style: StringName = &"StrongLabel") -> PanelContainer:
+	var row := UiKit.list_row(texture, title, chips, action, Callable(), done)
+	var top := row.get_child(0).get_child(0) as HBoxContainer
+	var disc := top.get_child(0)
+	top.remove_child(disc)
+	disc.free()
+	var ring := UiKit.ring(texture, 1.0 if done else clampf(fraction, 0.0, 1.0), Palette.GO if done else Palette.SKY)
+	top.add_child(ring)
+	top.move_child(ring, 0)
+	var column := top.get_child(1) as VBoxContainer
+	column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	(column.get_child(0) as Label).theme_type_variation = title_style
+	if done: column.add_child(UiKit.ctl("check", 16, Palette.GO_INK))
+	return row
+
+
+## Ir secundário conserva o alvo de 44 px e deixa o verde só no primeiro passo pendente.
+static func _calm_go(go: Callable) -> Button:
+	var button := UiKit.small_go("Ir", go)
+	button.theme_type_variation = &"SecondaryButton"
+	return button
 
 
 ## Ícone do que o painel explica (missão = objetivo atual).
@@ -764,7 +807,7 @@ static func _growth_food(row: Dictionary, food: String, recipe_id: String, trail
 	var guide := {"place": world_name + " → " + station_name,
 		"preparation": "%s · rende %d porções" % [TimeText.short(int(recipe.seconds)), GameState.recipe_quantity(recipe_id)],
 		"status": "Prepare a comida e depois dê ao Tiro na Tigela.", "next": "",
-		"action": "Preparar no " + station_name, "target": preparation.target, "inputs": []}
+		"action": "Preparar no " + station_name, "target": preparation.target, "inputs": [], "done": bool(row.done)}
 	for input: String in GameState.recipe_inputs(recipe_id):
 		var need := _need("item", input, int(GameState.recipe_inputs(recipe_id)[input]))
 		var source := best_source(input)
@@ -815,7 +858,7 @@ static func growth_care_steps(row: Dictionary) -> Array[Dictionary]:
 	if pillar == "brave": hint += " " + str(GameState.pet_growth_info().hint)
 	if pillar == "smart": hint += " " + str(GameState.play_growth_info().hint)
 	var action := str({"brave": "Fazer carinho", "smart": "Brincar", "coat": "Dar banho"}[pillar])
-	return [{"id": pillar, "title": str(Database.growth.pillars[pillar].name), "progress": "%d/%d momentos%s" % [have, need, " · Completo" if done else ""], "done": done, "hint": hint, "target": {"screen": "pet"}, "action": action}]
+	return [{"id": pillar, "title": str(Database.growth.pillars[pillar].name), "progress": "%d/%d momentos%s" % [have, need, " · Completo" if done else ""], "fraction": float(have) / maxi(1, need), "done": done, "hint": hint, "target": {"screen": "pet"}, "action": action}]
 
 
 ## Fontes do catálogo, compartilhadas com o caderninho; consulta sem conceder momentos.

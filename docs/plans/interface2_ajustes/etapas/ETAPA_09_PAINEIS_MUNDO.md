@@ -76,18 +76,22 @@ Como fazer "Você já tem" (crie `aj_09_taskhelp_have`), `b22b_places_list`, `i2
 `i2_06_buy`, `a05_fridge_sheet`. Antes e depois nas 3 resoluções.
 
 ## 8. Pronto quando
-- [ ] Como fazer em linhas com um verde só (no primeiro passo que falta); sem `ReadyCardPanel`/`GOOD`/`BAD`.
-- [ ] Lugares em `list_card` sem verde por linha.
-- [ ] Conversa sem nome/retrato repetidos; serviços centralizados.
-- [ ] Compra bloqueada nítida, com `lock_hint` só no rodapé.
-- [ ] Nenhum nome de coisa em `SectionLabel` nestes quatro painéis.
-- [ ] Testes verdes.
+- [x] Como fazer em linhas com um verde só (no primeiro passo que falta); sem `ReadyCardPanel`/`GOOD`/`BAD`.
+- [x] Lugares em `list_card` sem verde por linha.
+- [x] Conversa sem nome/retrato repetidos; serviços centralizados.
+- [x] Compra bloqueada nítida, com `lock_hint` só no rodapé.
+- [x] Nenhum nome de coisa em `SectionLabel` nestes quatro painéis.
+- [x] Testes verdes.
 
 ## 9. Handoff
 Pontos naturais: após 5.1, 5.2, 5.3, 5.4. O Como fazer é o maior: se parar no meio, diga quais casos de
 `TaskHelp.describe` já estão no visual novo.
 
 ## 10. Registro
+
+Concluída por Codex em 25/10/2026. Registro completo, provas por item, checklist, testes,
+capturas e decisões no README do plano, entrada **Etapa 09**. Próxima: 10, não iniciada.
+
 ```
 **Etapa 09 (data, executor[es]):** Como fazer em list_card com um verde no primeiro passo que falta; Lugares em
 linhas; conversa sem repetições e serviços centralizados; compra bloqueada nítida com lock_hint. Testes … PASS

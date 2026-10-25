@@ -81,6 +81,10 @@ func _run() -> void:
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
 	# Plano "Interface 2 — ajustes": um bloco --aj-NN-only por etapa, reaproveitando os nomes de captura que
 	# já existem (b05_map_list, i2_07_stove...); capturas novas levam o prefixo aj_NN_<tela>.
+	if "--aj-09-only" in OS.get_cmdline_user_args():
+		await _aj_09_shots()
+		quit(0)
+		return
 	if "--aj-08-only" in OS.get_cmdline_user_args():
 		await _aj_08_shots()
 		quit(0)
@@ -1570,6 +1574,58 @@ func _ceremony_shots() -> void:
 	Motion.reduced = true
 
 ## Etapa 08: crescimento nas fases, quase/pronto, seda e resumo do avatar.
+func _aj_09_shots() -> void:
+	var help: Script = load("res://scripts/ui/task_help.gd")
+	var places: Script = load("res://scripts/ui/places.gd")
+	var pu: Script = load("res://scripts/ui/progression_ui.gd")
+	state.call("reset")
+	state.get("progress").seen.intro = true
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	await _start_main(1.5)
+	help.call("open", "item", "carrot_snack")
+	await shot("i2_09_taskhelp")
+	await _close()
+	state.call("dev_set_phase", "puppy")
+	state.get("growth").done = {}
+	state.get("growth").phase_moments = {}
+	_hide_modals()
+	help.call("open", "growth_req", "pillars")
+	await shot("aj_09_taskhelp_growth")
+	await _close()
+	state.get("inventory").add("carrot_snack", 1)
+	help.call("open", "item", "carrot_snack")
+	await shot("aj_09_taskhelp_have")
+	await _close()
+	await _world("farm")
+	await _sheet("O que tem aqui?", places.call("world_list", "farm"))
+	await shot("b22b_places_list")
+	await _close()
+	await _world("house")
+	places.call("open_npc", "lais")
+	await shot("b17_npc_lais")
+	await _close()
+	state.call("reset")
+	state.get("progress").seen.intro = true
+	state.call("dev_jump_to_chapter", 3)
+	state.call("_mark_all_seen")
+	await _world("farm")
+	await _sheet("Vovó Bloblo", pu.call("npc_view", "bloblo"))
+	await shot("i2_06_npc")
+	await _close()
+	state.call("dev_complete_quest", "bloblo_silo")
+	state.get("progress").owned.erase("silo")
+	await _sheet("Silo", pu.call("purchase", "silo"))
+	await shot("i2_06_buy")
+	await _close()
+	state.call("reset")
+	state.get("progress").seen.intro = true
+	await _world("house")
+	places.call("open", "house", "fridge")
+	await shot("a05_fridge_sheet")
+	await _close()
+
+
 func _aj_08_shots() -> void:
 	var ui: Script = load("res://scripts/ui/growth_ui.gd")
 	state.call("reset")

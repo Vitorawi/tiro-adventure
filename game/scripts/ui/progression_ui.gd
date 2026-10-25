@@ -47,7 +47,7 @@ static func npc_view(npc_id: String) -> Control:
 		var active := Places.npc_active_quests(npc_id)
 		current_speech.text = album_line if album_line != "" else (str(Database.quests[active[0]].get("dialogue", "")) if not active.is_empty() else str(npc.get("greeting", "")))
 		for id in active:
-			npc_quest_card(box, id)
+			npc_quest_card(box, id, false)
 		# Atalhos para os lugares que o personagem cuida.
 		var world_id := Database.npc_world(npc_id)
 		var services := UiKit.list_card(box)
@@ -60,7 +60,10 @@ static func npc_view(npc_id: String) -> Control:
 			if upgrade != "" and not GameState.has_upgrade(upgrade):
 				continue
 			var go := Places.open.bind(world_id, place_id)
-			var row := UiKit.list_row(UiKit.ui_icon(str(place.get("icon", ""))), str(place.get("name", place_id)), [], UiKit.ctl_button("chev", go, 32, "sunken"), go)
+			var row := UiKit.list_row(UiKit.ui_icon(str(place.get("icon", ""))), str(place.get("name", place_id)), [], UiKit.row_chevron(go), go)
+			var column := row.get_child(0).get_child(0).get_child(1) as VBoxContainer
+			column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			(column.get_child(0) as Label).theme_type_variation = &"StrongLabel"
 			row.custom_minimum_size.y = 56
 			services.add_child(row)
 		# Sem serviços (Laís na casa com a história concluída) o cartão vazio vira só uma faixa fina: sai.
@@ -83,10 +86,16 @@ static func character_quest_detail(box: VBoxContainer, id: String) -> void:
 	box.add_child(bottom)
 
 
-static func npc_quest_card(box: VBoxContainer, id: String) -> void:
+static func npc_quest_card(box: VBoxContainer, id: String, show_face: bool = true) -> void:
 	var quest: Dictionary = Database.quests[id]
 	var list := UiKit.list_card(box)
 	var row := UiKit.list_row(npc_portrait(str(quest.npc)), str(quest.name), [], null, Callable(), GameState.quest_error(id) == "")
+	var heading := row.get_child(0).get_child(0) as HBoxContainer
+	(heading.get_child(1).get_child(0) as Label).theme_type_variation = &"StrongLabel"
+	if not show_face:
+		var face := heading.get_child(0)
+		heading.remove_child(face)
+		face.free()
 	row.name = "LineCard_" + str(quest.get("line", id))
 	list.add_child(row)
 	var detail := UiKit.vbox(8)
@@ -121,7 +130,7 @@ static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", 
 		picture.name = "NpcPortrait"
 	picture.size_flags_vertical = Control.SIZE_SHRINK_END  # o retrato fica embaixo e o balão aponta para ele
 	row.add_child(picture)
-	var balloon := SpeechBubble.new(speech if speech != "" else str(npc.get("greeting", "")), str(npc.get("name", "")))
+	var balloon := SpeechBubble.new(speech if speech != "" else str(npc.get("greeting", "")))
 	balloon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(balloon)
 	box.add_child(row)
@@ -157,15 +166,14 @@ static func upgrade_card(box: VBoxContainer, id: String) -> void:
 	hero.name = "UpgradeHero"
 	hero.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	card.add_child(hero)
-	card.add_child(UiKit.label(str(data.name), &"TitleLabel"))
-	_text(card, data.description, true)
+	card.add_child(UiKit.label(str(data.name), &"StrongLabel"))
+	_text(card, data.description)
 	if GameState.has_upgrade(id):
 		_text(card, "Adquirido!", true)
 		var place := Database.place_with_panel("station:" + id)
 		if place[0] != "": card.add_child(UiKit.soft("Abrir " + str(Database.stations[id].name), Places.open.bind(place[0], place[1])))
 		return
 	var lock := GameState.requirement_error(data.get("requirements", {}))
-	if lock != "": card.get_parent().modulate.a = 0.55
 	var space := GameState.storage_upgrade_preview(id)
 	if not space.is_empty():
 		var gain := UiKit.chip(UiKit.ui_icon(str(data.get("icon", ""))), "%d → %d" % [int(space.from), int(space.to)], null, "neutral")

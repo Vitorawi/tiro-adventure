@@ -86,6 +86,11 @@ func _run() -> void:
 	await create_timer(0.2).timeout
 	var portrait: TextureRect = main.find_child("NpcPortrait", true, false)
 	check(is_instance_valid(portrait), "Laís tem retrato animado")
+	var conversation := main.find_child("ContentHolder", true, false)
+	check(conversation.find_child("NameTag", true, false) == null, "nome da folha não se repete no balão")
+	for card: Control in conversation.find_children("LineCard_*", "Control", true, false):
+		var heading := card.get_child(0).get_child(0)
+		check(heading.find_children("*", "TextureRect", true, false).is_empty(), "missão da conversa não repete o retrato")
 	check(portrait.texture.resource_path.contains("quest_request"), "Missão usa animação Pedindo algo")
 	await _shot("npc_lais_request")
 	check(state.call("claim_quest", "welcome") == "", "Receber missão da Laís")

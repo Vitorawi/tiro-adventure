@@ -54,6 +54,23 @@ func run() -> void:
    check(state.inventory.count("wood") == wood, "consulta não consome ingredientes")
    panel.queue_free()
    await process_frame
+ # Item já disponível: Ir aponta ao uso real, sem oferecer Missões em verde nem consumir.
+ for item: String in ["carrot_snack", "wood"]:
+  state.inventory.from_dict({item: 2})
+  var have_panel: Control = help.panel("item", item)
+  root.add_child(have_panel)
+  await process_frame
+  var have_go: Button = null
+  for button: Button in have_panel.find_children("*", "Button", true, false):
+   check(button.theme_type_variation != &"PrimaryButton", "Você já tem sem primário: " + item)
+   if button.text == "Ir": have_go = button
+  check(have_go != null, "Você já tem oferece Ir: " + item)
+  destinations.clear()
+  if have_go != null: have_go.pressed.emit()
+  check(not destinations.is_empty() and destinations.back().world == ("house" if item == "carrot_snack" else "farm"), "Ir leva ao uso de " + item)
+  check(state.inventory.count(item) == 2, "atalho não consome " + item)
+  have_panel.queue_free()
+  await process_frame
  if "--shots" in OS.get_cmdline_user_args():
   state.reset()
   state.progress.seen.intro = true

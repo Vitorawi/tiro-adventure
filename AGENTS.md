@@ -493,3 +493,12 @@ com TextureRect e material tiro_coat independente (próximo sheen); `_silk_step`
 compartilham a grade e tiles. `Sheet._clear_actions` limpa consultas ao trocar/fechar a folha.
 Tour `--aj-08-only` (onze PNGs), protótipo `docs/plans/interface2/prototipo/crescimento.html#filhote|pronto`.
 Registro no README do plano de ajustes; próxima 09. Sem push/publicação.
+
+**Interface 2 — ajustes, etapa 09 (25/10/2026):** TaskHelp.panel em list_card/list_row,
+`_help_row` (anel proporcional/check/nome forte) e `_calm_go`; HelpGo continua na receita,
+um primário no primeiro ingrediente/cuidado pendente, ItemSource/FoodGuideAction/GrowthCare_* mantidos.
+Places.world_list com PlacesList/PlaceNpc_<id>/Place_<id> e `_place_row`, badges e row_chevron.
+ProgressionUi.npc_quest_card(..., show_face := true), false só na conversa; npc_header omite o
+speaker opcional do SpeechBubble; NpcServices centralizado. UpgradeHero/SpaceChip nítidos no
+bloqueio (LockHint só no rodapé), BuildUpgrade preservado. Tour `--aj-09-only` (oito PNGs).
+Registro no README do plano de ajustes; próxima 10. Sem mudança de regra/save/fala, push/publicação.

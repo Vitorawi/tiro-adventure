@@ -128,6 +128,12 @@ func _lock_cards() -> void:
 	await process_frame
 	check(box.find_child("LockHint", true, false) != null, "Construção bloqueada por requisito mostra cadeado")
 	check(count_primary(box) == 0, "Construção bloqueada não tem botão verde")
+	var hero := box.find_child("UpgradeHero", true, false) as Control
+	check(hero != null, "compra mantém UpgradeHero")
+	var ancestor: Control = hero
+	while ancestor != null:
+		check(is_equal_approx(ancestor.modulate.a, 1.0), "figura e ganho bloqueados mantêm opacidade total")
+		ancestor = ancestor.get_parent() as Control
 	var any_buy := false
 	for node: Node in box.find_children("*", "Button", true, false):
 		if (node as Button).text == "Comprar":
@@ -139,6 +145,7 @@ func _lock_cards() -> void:
 
 func _primary_per_panel() -> void:
 	var panels := {
+		"lugares": load("res://scripts/ui/places.gd").call("world_list", "farm"),
 		"fogão": sheet_builder.call("station_view", "stove"),
 		"sementes": sheet_builder.call("seed_picker", 3),
 		"comida": sheet_builder.call("food_picker"),
@@ -155,6 +162,7 @@ func _primary_per_panel() -> void:
 		await process_frame
 		var total := count_primary(panel)
 		check(total <= 1, "Painel %s tem no máximo um botão principal (tem %d)" % [panel_name, total])
+		if panel_name == "lugares": check(total == 0, "Lugares usa linhas sem primário")
 		check(panel.find_children("*", "Button", true, false).size() > 0, "Painel %s tem botões" % panel_name)
 		panel.queue_free()
 		await process_frame

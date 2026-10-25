@@ -2,6 +2,16 @@
 
 ## Estado atual
 
+**Interface 2 — ajustes, etapa 09 concluída localmente (25/10/2026, Codex).** Itens 10/13/14/34:
+Como fazer em list_card/list_row com anéis, chips de estoque e um primário no primeiro passo
+pendente; item já disponível tem Ir calmo ao uso. HelpGo mantém o destino da receita.
+Lugares em linhas sem primário; conversa com um único retrato/nome e serviços centralizados;
+compra bloqueada nítida, LockHint só no rodapé. StrongLabel para nomes, Label para frases.
+Lista fechada: 12/12 PASS em 148,9 s; log build/test_logs/r20261025_155030_e042b5d9/results.csv. Oito capturas antes/depois nas três resoluções, abertas e
+comparadas; provas, decisões e checklist no README do plano. AGENTS/CLAUDE idênticos;
+exclusões preexistentes de python_libs preservadas. Regras/save/falas/arte sem alteração.
+Próxima: 10, não iniciada. Sem push/publicação.
+
 **Interface 2 — ajustes, etapa 08 concluída localmente (25/10/2026, Codex).** Itens 35/11:
 prancha HTML primeiro (`prototipo/crescimento.html#filhote|pronto`, dois PNGs + prancha_crescimento),
 depois GrowthUi com duas fases em 96, silhueta preenchida, consultas no título, indicador único,

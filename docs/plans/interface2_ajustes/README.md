@@ -6,7 +6,7 @@
 > mesmo estilo do plano Interface 2". Depois, **aprovou os 35 itens como o revisor sugeriu, inclusive as
 > decisões**. Nenhuma decisão fica pendente.
 
-**Estado:** etapas 01–08 concluídas. **Próxima: etapa 09.**
+**Estado:** etapas 01–09 concluídas. **Próxima: etapa 10.**
 
 ## A ideia em uma linha
 
@@ -75,7 +75,7 @@ flowchart TD
 | [x] | [06](etapas/ETAPA_06_MISSOES_CADERNINHO.md) | 22, 24, 25, 29 | "Neste capítulo" leve; segmentado de uma opção some; caderninho legível; fontes < 12 resolvidas; história concluída | médio |
 | [x] | [07](etapas/ETAPA_07_COMEMORACOES_TEXTOS.md) | 16, 31 | cartão de capítulo com grade de novidades; textos do Novo! e do passeio | médio |
 | [x] | [08](etapas/ETAPA_08_CRESCIMENTO.md) | 35, 11 | prancha HTML do Crescimento → implementação na mesma etapa; seda no padrão do Crescimento | grande |
-| [ ] | [09](etapas/ETAPA_09_PAINEIS_MUNDO.md) | 10, 13, 14, 34 | Como fazer com peças novas; Lugares em `list_card`; conversa sem repetições; compra bloqueada nítida | grande |
+| [x] | [09](etapas/ETAPA_09_PAINEIS_MUNDO.md) | 10, 13, 14, 34 | Como fazer com peças novas; Lugares em `list_card`; conversa sem repetições; compra bloqueada nítida | grande |
 | [ ] | [10](etapas/ETAPA_10_HIERARQUIA.md) | 6, 27, 28 | `SectionLabel` revisada (nomes em 18); passeios e Feira; regra nova no `ui_style_test`; **portão** | grande |
 | [ ] | [11](etapas/ETAPA_11_BLOQUEIOS_VERMELHO.md) | 12, 20 | nenhum botão cinza com texto em folha/bandeja; obras e encomendas com um chip e uma barra | grande |
 | [ ] | [12](etapas/ETAPA_12_LIMPEZA_FECHAMENTO.md) | 32 | limpeza de apelidos e tema; **portão**, tour completo nas 3 resoluções, toque real, desempenho, docs | médio |
@@ -464,3 +464,82 @@ GrowthDetails/GrowthHistoryButton agora são filhos do Header do Sheet, não do 
 na folha. SilkSilhouette é um Control com TextureRect/material de prévia. `silhouette(..., filled_hero)`
 mantém o padrão antigo nos demais consumidores. AGENTS/CLAUDE idênticos byte a byte; exclusões
 preexistentes de python_libs fora do commit. Etapa 09 não iniciada. Sem push/publicação.
+
+**Etapa 09 (25/10/2026, Codex):** itens **10, 13, 14 e 34** concluídos localmente.
+Pré-checagem: etapa 08 [x], HEAD 5dc69d5; exclusões preexistentes de python_libs preservadas.
+
+**✓ 10 / provas:** TaskHelp.panel usa ícone 64 em disco, nome StrongLabel e estoque have/missing.
+Guia de preparo, ingredientes e cuidados em list_card/list_row, com anel proporcional e ✓ vetorial.
+`_help_row` compartilha a apresentação; `_calm_go` conserva alvo 44 e usa SecondaryButton para o
+Ir calmo. Só o primeiro ingrediente/cuidado pendente recebe PrimaryButton. `HelpGo` continua abrindo
+a receita mesmo sem ingredientes: o primário da origem é uma ação separada. `FoodGuideAction`,
+`GrowthCare_*`, ItemSource e a navegação de voltar continuam. Onde conseguir tem linha com chev.
+Você já tem usa chip have e Ir calmo: comida → Tigela, entrega/keepsake → Crescimento; outros usos
+vêm de SheetBuilder._uses. Sem ReadyCardPanel/UiKit.GOOD/UiKit.BAD/SectionLabel neste arquivo.
+Provas: i2_09_taskhelp, aj_09_taskhelp_growth, aj_09_taskhelp_have + recipe_help/item_sources/growth_ui.
+
+**✓ 13 / provas:** Places.world_list em PlacesList/list_card, linhas PlaceNpc_<id>/Place_<id>,
+nomes StrongLabel, ícones em disco e row_chevron. Selo UiKit.badge com ! ou check para personagem;
+pronto em GO_SOFT, nenhum primário/prefixo ! no nome. Bloqueados continuam consultáveis e apagados.
+Prova: b22b_places_list; worlds/navigation/ui_style verdes.
+
+**✓ 14 / provas:** npc_header reutiliza o speaker opcional que SpeechBubble já tinha: sem NameTag
+na folha. Não foi necessário alterar speech_bubble.gd. npc_quest_card(..., show_face := true)
+recebe false só em npc_view; Pessoas mantém o padrão com retrato. Missões continuam antes dos serviços,
+na ordem original; NpcPortrait continua fora do LiveBox e IntroductionNext mantém fluxo/hierarquia.
+NpcServices com coluna centralizada verticalmente, StrongLabel e row_chevron. Provas: i2_06_npc,
+b17_npc_lais + npc_lines/sheet; o aceno após pegar missão continua testado.
+
+**✓ 34 / provas:** upgrade_card sem modulate 0,55; UpgradeHero, descrição Label, nome StrongLabel,
+SpaceChip e materiais nítidos. LockHint somente ao fim; BuildUpgrade preservado quando construível.
+Provas: a05_fridge_sheet/i2_06_buy e ui_style_test (opacidade de todos os ancestrais do herói).
+
+**Pronto quando:** ✓ Como fazer em linhas, um verde no primeiro passo pendente, sem cartões/cores
+antigos; ✓ Lugares em list_card sem primário por linha; ✓ conversa sem nome/retrato repetidos e
+serviços centralizados; ✓ compra bloqueada nítida com lock_hint no rodapé; ✓ nenhum nome de coisa
+em SectionLabel nestes quatro painéis; ✓ testes verdes. Checklist das quatro telas: ✓ Fredoka/Nunito
+pelas variações do tema; ✓ Palette/controles vetoriais; ✓ pixel em disco/anel/chip; ✓ nomes fortes e
+frases Label; ✓ no máximo um primário; ✓ alvos 44 e rolagem funcional; ✓ sem corte/sobreposição nas
+três resoluções; ✓ Menos animação preservado. Textos longos das fontes/cuidados mantidos integralmente,
+com quebra em vez de truncar a explicação; nenhum dado/fala/requisito/preço/save mudou.
+
+**Testes:** DryRun confirmou nove pedidos + três rápidos obrigatórios. Resultado final e tempos
+em 12/12 PASS em 148,9 s; log build/test_logs/r20261025_155030_e042b5d9/results.csv. Nenhum teste fora da lista, suíte inteira, campanha ou simulador.
+Primeira tentativa restrita r20261025_154436_2e0ac8d0 falhou no acesso a user:// (antes da validação).
+Reexecução normal r20261025_154522_d252f5b8: 12/12 PASS em 145,1 s. Após novas garantias,
+r20261025_154825_2f25957a: 12/12 PASS em 145,6 s. Última rodada valida a versão tipográfica final.
+Testes existentes de receita/origem preservam conteúdo, quantidades, ícones, voltar e destino da receita;
+nenhuma busca precisou mudar. item_sources ganhou Ir ao uso de item já disponível sem consumir e sem
+primário. npc_lines ganhou ausência de NameTag/retrato nos cartões, preservando teste do retrato vivo.
+ui_style ganhou opacidade por ancestral e nenhum primário na lista Lugares. Nenhuma garantia apagada.
+
+**Capturas:** oito por pasta, antes/depois nas três resoluções:
+`build/screenshots/aj_09_antes`, `aj_09_antes_390`, `aj_09_antes_412`,
+`aj_09_depois`, `aj_09_depois_390`, `aj_09_depois_412`; seis pranchas `aj_09_*_prancha.png`.
+Todas abertas/comparadas, com detalhes individuais. Evidência da revisão aberta:
+`i2_09_depois/i2_09_taskhelp`, `i2_06_depois/i2_06_npc`, `aj_base/a05_fridge_sheet`.
+Antes: nome pequeno, Missões verde no item disponível, Bloblo repetida e compra esmaecida.
+Depois: nomes fortes, cadeia de ingredientes, Ir calmo no disponível, um retrato e compra nítida.
+A captura antiga i2_09_taskhelp era o caso disponível; o bloco novo separa esse caso em
+aj_09_taskhelp_have e mostra a receita sem estoque em i2_09_taskhelp. O cenário de fundo é a Casa,
+pois o bloco isolado não visita Natureza antes; as poses podem variar pela animação. Sem mock novo
+previsto nesta etapa: a comparação segue a bíblia e a evidência real. RIDs/ObjectDB no encerramento
+já aparecem no antes; sem erro de script nas capturas finais. Antes restrito regenerado com acesso
+normal antes de mexer no jogo. Sem export, push ou publicação.
+
+**Decisões / desvios:** small_go é verde por padrão; para respeitar o Ir calmo aprovado, `_calm_go`
+usa a fábrica e aplica SecondaryButton só nestes painéis, sem mudar o UiKit global. SpeechBubble
+já tinha nome opcional e foi reutilizado. Nenhuma mudança de escopo ou regra. `fraction` e `done`
+acrescentados só aos dicionários consultivos da apresentação; nada persistido.
+
+**Pendências / próxima 10:** nenhuma da 09. Continuam as herdadas: bandeja do Galinheiro com corpo
+rolável, custo de update_finds/update_wishes no tique de 1 s e Tudo perto da borda direita.
+Não procurar NameTag na conversa nem retrato nos LineCard da própria folha; npc_quest_card mantém
+show_face true por padrão. GrowthDetails/GrowthHistoryButton seguem no Header da etapa 08.
+AGENTS/CLAUDE idênticos byte a byte; exclusões de python_libs fora do commit. Etapa 10 não iniciada.
+
+Tempos finais por teste (s), todos PASS: scripts_check 11,0; content_test 7,3;
+texts_test 3,3; recipe_help_test 12,0; item_sources_test 8,1; growth_ui_test 17,2;
+ui_style_test 8,3; npc_lines_test 19,6; worlds_test 19,4; navigation_test 16,2;
+sheet_test 22,6; storage_test 2,2. Total do runner: 148,9 s. Cada log foi conferido
+pelo runner (inclusive os rótulos históricos ITEM SOURCES: PASS e UI_STYLE TEST: PASS).

@@ -253,15 +253,27 @@ static func run(world_id: String, action: String) -> void:
 			open(world_id, action)
 
 
-## "O que tem aqui?": personagens e lugares do mundo, um botão grande com ícone cada.
-## Verde = tem algo pronto; apagado = fechado ou ainda não construído.
+## "O que tem aqui?": linhas tocáveis; pronto ganha fundo verde, nunca botão primário.
 static func world_list(world_id: String) -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var world: Dictionary = Database.worlds.get(world_id, {})
+		var list := UiKit.list_card(box)
+		list.name = "PlacesList"
 		for npc_id: String in visible_npcs(world_id):
-			var ready := npc_alert(npc_id) != ""
-			var button := UiKit.button(("! " if ready else "") + str(Database.npcs.get(npc_id, {}).get("name", npc_id)), open_npc.bind(npc_id), &"PrimaryButton" if ready else &"", ProgressionUi.npc_portrait(npc_id))
-			_list_button(box, button)
+			var badge := npc_badge(npc_id)
+			var chips: Array[Control] = []
+			if badge != "":
+				var mark := UiKit.badge(1)
+				mark.text = ""
+				if badge == "ready":
+					mark.add_theme_stylebox_override("normal", UiKit.surface(Palette.GO, 12))
+					mark.add_child(UiKit.ctl("check", 16, Palette.CARD))
+				else: mark.text = "!"
+				chips.append(mark)
+			var go := open_npc.bind(npc_id)
+			var row := _place_row(ProgressionUi.npc_portrait(npc_id), str(Database.npcs.get(npc_id, {}).get("name", npc_id)), chips, go, badge == "ready")
+			row.name = "PlaceNpc_" + npc_id
+			list.add_child(row)
 		var places: Dictionary = world.get("places", {})
 		for place_id: String in places:
 			var place: Dictionary = places[place_id]
@@ -270,11 +282,20 @@ static func world_list(world_id: String) -> Control:
 			var upgrade: String = place.get("upgrade", "")
 			var dim := place_error(place) != "" or (upgrade != "" and not GameState.has_upgrade(upgrade))
 			var ready := place_alert(world_id, place_id) != ""
-			var button := UiKit.button(place.name, open.bind(world_id, place_id), &"PrimaryButton" if ready else &"", UiKit.ui_icon(place.get("icon", "")))
+			var row := _place_row(UiKit.ui_icon(place.get("icon", "")), str(place.name), [], open.bind(world_id, place_id), ready)
+			row.name = "Place_" + place_id
 			if dim:
-				button.modulate.a = 0.6
-			_list_button(box, button)
+				row.modulate.a = 0.55
+			list.add_child(row)
 	)
+
+
+static func _place_row(texture: Texture2D, title: String, chips: Array[Control], go: Callable, ready: bool) -> PanelContainer:
+	var row := UiKit.list_row(texture, title, chips, UiKit.row_chevron(go), go, ready)
+	var column := row.get_child(0).get_child(0).get_child(1) as VBoxContainer
+	column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	(column.get_child(0) as Label).theme_type_variation = &"StrongLabel"
+	return row
 
 
 ## Ação do lugar onde a construção é feita (usada quando a sala não tem o "+" dela).
