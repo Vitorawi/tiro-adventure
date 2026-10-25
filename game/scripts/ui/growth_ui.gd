@@ -197,9 +197,7 @@ static func progress_strip(done: int, total: int, height: int = 10) -> HBoxConta
 		piece.custom_minimum_size = Vector2(0, height)
 		piece.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		piece.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var style := StyleBoxFlat.new()
-		style.set_corner_radius_all(height / 2)
-		style.bg_color = Palette.GOOD if i < done else Palette.SUNKEN
+		var style := UiKit.surface(Palette.GO if i < done else Palette.SUNKEN, height / 2)
 		piece.add_theme_stylebox_override("panel", style)
 		piece.set_meta("filled", i < done)
 		strip.add_child(piece)
@@ -288,10 +286,10 @@ static func _hero(info: Dictionary) -> Control:
 	hero.add_child(trio)
 	var side := UiKit.vbox(6)
 	side.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	var details := UiKit.icon_button(UiKit.ui_icon("heart"), func() -> void: Events.sheet_requested.emit("Cuidados do Tiro", PillarUi.panel()), 40)
+	var details := UiKit.ctl_button("info", func() -> void: Events.sheet_requested.emit("Cuidados do Tiro", PillarUi.panel()), 40)
 	details.name = "GrowthDetails"
 	side.add_child(details)
-	var book := UiKit.icon_button(UiKit.ui_icon("ui_notebook"), history, 40)
+	var book := UiKit.ctl_button("list", history, 40)
 	book.name = "GrowthHistoryButton"
 	side.add_child(book)
 	hero.add_child(side)
@@ -300,9 +298,8 @@ static func _hero(info: Dictionary) -> Control:
 
 ## Nome da fase sob o retrato: uma linha só, um pouco menor para caber lado a lado.
 static func _phase_name(text: String) -> Label:
-	var result := UiKit.short_label(text, &"SmallLabel")
+	var result := UiKit.short_label(text, &"StrongLabel")
 	result.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	result.add_theme_font_size_override("font_size", 16)
 	return result
 
 
@@ -342,7 +339,7 @@ static func _steps(box: VBoxContainer, info: Dictionary, visible_steps: Array) -
 		grid.add_child(tile)
 	if first_id == "" or info.ready:
 		return
-	var strip := UiKit.card(box, &"ReadyCardPanel")
+	var strip := UiKit.card(box)
 	strip.get_parent().name = "GrowthDetail"
 	for req: Dictionary in visible_steps:
 		var id := str(req.id)
@@ -379,16 +376,18 @@ static func _step_tile(step: Dictionary) -> Button:
 		dots.alignment = BoxContainer.ALIGNMENT_CENTER
 		column.add_child(dots)
 	else:
-		var count := UiKit.short_label("%d/%d" % [step.have, step.need], &"SmallLabel", Palette.GOOD if step.done else Palette.INK_SOFT)
+		var count := UiKit.short_label("%d/%d" % [step.have, step.need], &"SmallLabel", Palette.GO_INK if step.done else Palette.INK_SOFT)
 		count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(count)
 	if step.done:
-		var check := UiKit.icon(UiKit.ctl_icon("check"), 22)
+		var check := UiKit.disc(UiKit.ctl_icon("check"), 20, 14)
 		check.name = "StepCheck"
+		check.add_theme_stylebox_override("panel", UiKit.surface(Palette.GO, 10))
+		(check.get_child(0) as Control).modulate = Palette.CARD
 		check.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 		check.offset_left = -26
-		check.offset_right = -4
-		check.offset_top = 4
+		check.offset_right = -6
+		check.offset_top = 6
 		check.offset_bottom = 26
 		tile.add_child(check)
 	return tile
@@ -396,12 +395,12 @@ static func _step_tile(step: Dictionary) -> Button:
 
 ## Fundo do quadradinho: feito = tom verde; escolhido = borda verde mais grossa.
 static func _style_tile(tile: Button, done: bool, selected: bool) -> void:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.SUNKEN.lerp(Palette.PRIMARY, 0.3) if done else Palette.SUNKEN
-	style.set_corner_radius_all(12)
+	# Feito = verde claro; escolhido = fundo branco com contorno de tinta (nunca verde).
+	var style := UiKit.surface(Palette.CARD if selected else (Palette.GO_SOFT if done else Palette.SUNKEN), 16, selected)
 	if selected:
-		style.set_border_width_all(3)
-		style.border_color = Palette.GOOD
+		style.set_border_width_all(2)
+		style.border_color = Palette.INK
+		style.border_blend = true
 	for state: String in ["normal", "hover", "pressed", "focus"]:
 		tile.add_theme_stylebox_override(state, style)
 
@@ -434,7 +433,7 @@ static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> 
 		button = UiKit.primary(str(step.action), step.callback)
 		button.name = "GrowthNextAction"
 	else:
-		button = UiKit.secondary(str(step.action), step.callback, null, true)
+		button = UiKit.soft(str(step.action), step.callback, null, true)
 		button.name = "GrowthAct_" + str(step.id)
 	button.custom_minimum_size = Vector2(160, 44)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
@@ -467,7 +466,7 @@ static func history() -> void:
 static func _build_history(box: VBoxContainer) -> void:
 	var info := GameState.growth_info()
 	var silk := GameState.silk_info()
-	box.add_child(UiKit.secondary("Voltar ao crescimento", open, null, true))
+	box.add_child(UiKit.soft("Voltar ao crescimento", open, null, true))
 	box.add_child(PillarUi.personality_title())
 	box.add_child(UiKit.label("Caderneta", &"SectionLabel"))
 	for phase: Dictionary in info.phases:
@@ -518,7 +517,7 @@ static func _silk_requirements(box: VBoxContainer, silk: Dictionary) -> void:
 	for req: Dictionary in silk.requirements:
 		var tile := VBoxContainer.new()
 		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var card := UiKit.card(tile, &"ReadyCardPanel" if req.done else &"CardPanel")
+		var card := UiKit.card(tile, &"ReadyCardPanel" if req.done else &"CardPanel")  # mesmo cartão liso do tema
 		card.add_child(UiKit.label("%s\n%d/%d%s" % [req.label, mini(int(req.have), int(req.need)), int(req.need), " ✓" if req.done else ""], &"SmallLabel"))
 		tile.name = "SilkReq_" + str(req.id)
 		grid.add_child(tile)

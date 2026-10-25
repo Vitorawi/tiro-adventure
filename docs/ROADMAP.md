@@ -2,6 +2,15 @@
 
 ## Estado atual
 
+**Interface 2 — etapa 09 concluída (25/10/2026, Claude Sonnet 5.5; local).** Painéis grandes no visual novo: Crescimento,
+Feira/Encomendas/Banca, lojas (animais e pet shop em grade 2×2 com preço em pílula verde), Obras (`steps`, `tile`, `stepper`),
+Passeios, Amigos, Truques, Natureza (níveis), Como fazer e Configurações (`UiKit.toggle`, saves em `list_card`). `ctl_button`
+e `list_card` não geram mais "Lambda capture was freed". Testes: 17/17 PASS em 165,4 s (lista fechada + extras; `walks_test`
+já falhava na base e foi ajustado para esperar o voo do prêmio; `animals_test`/`festa_test` mudaram só a forma de achar o nó).
+Tour `--i2-09-only` (15 PNGs `i2_09_<painel>`); registro e checklist em `docs/plans/interface2/README.md`. Sem regra/save/fala
+alterados, sem push. Próxima: **10** (festa: `ModalCard`, boas-vindas, Novo!).
+
+
 **Interface 2 — etapa 08 concluída (25/10/2026, Claude Sonnet 5.5; local).** Mochila (`InventoryList`): depósitos
 em grade 2×2 de `UiKit.depot_card` (`Storage_<id>`, `DepotName/DepotAmount/DepotBar`, ≥ 90% = barra `ALERT`, filtrado =
 contorno de tinta), filtros `UiKit.segmented` só com ícone (nome na selecionada), grade 4×N de `UiKit.bag_tile`

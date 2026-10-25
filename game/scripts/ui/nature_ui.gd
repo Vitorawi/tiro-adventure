@@ -131,7 +131,7 @@ static func panel(site: String = "trees", resource: String = "", focus_route: St
 			var choice := route_choice(item, func() -> void: (box as SheetBuilder.LiveBox).refresh())
 			if choice != null:
 				box.add_child(choice)
-		var refine := UiKit.button("Refinar materiais", func() -> void:
+		var refine := UiKit.soft("Refinar materiais", func() -> void:
 			Events.sheet_requested.emit("Refinar · " + str(data.name), refining_panel(site)))
 		refine.name = "Refine_" + site
 		box.add_child(refine))
@@ -144,10 +144,10 @@ static func _progress(box: VBoxContainer, site: String) -> void:
 	var title := UiKit.fill_label(("Nível %d ★" % info.level) if info.max else "Nível %d · %d/%d XP" % [info.level, info.xp, info.needed], &"SectionLabel")
 	title.name = "NatureProgress_" + site
 	heading.add_child(title)
-	heading.add_child(UiKit.icon_button(null, func() -> void:
-		Events.sheet_requested.emit("Evolução · " + str(data.name), levels_panel(site)), 44, "?"))
+	heading.add_child(UiKit.ctl_button("help", func() -> void:
+		Events.sheet_requested.emit("Evolução · " + str(data.name), levels_panel(site)), 40))
 	box.add_child(heading)
-	box.add_child(UiKit.bar(100.0 if info.max else 100.0 * info.xp / maxi(1, int(info.needed)), UiKit.GOOD, 10))
+	box.add_child(UiKit.bar(100.0 if info.max else 100.0 * info.xp / maxi(1, int(info.needed)), Palette.SKY, 10))
 	if not info.max:
 		box.add_child(UiKit.label("Próximo: " + str(data.levels[info.level].label), &"SmallLabel"))
 		box.add_child(UiKit.label("Faltam %d XP · cada busca dá o XP da rota" % int(info.remaining), &"SmallLabel"))
@@ -159,19 +159,25 @@ static func levels_panel(site: String) -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var data: Dictionary = Database.progression.nature_sites[site]
 		var info := GameState.progress.nature_info(site)
-		box.add_child(UiKit.label("Busque para ganhar XP neste local", &"SmallLabel"))
+		box.add_child(UiKit.steps(data.levels.size(), int(info.level)))
+		var cards := UiKit.list_card(box)
 		for i in data.levels.size():
 			var milestone: Dictionary = data.levels[i]
-			var card := UiKit.card(box, &"ReadyCardPanel" if info.level > i else &"CardPanel")
-			card.name = "NatureLevel_%s_%d" % [site, i + 1]
-			var row := UiKit.hbox(6)
-			row.add_child(UiKit.icon(Database.item_icon(str(milestone.materials[0]))))
-			row.add_child(UiKit.fill_label("Nível %d · %s" % [i + 1, milestone.label], &"SmallLabel"))
-			card.add_child(row)
-			card.add_child(UiKit.label("Liberado" if info.level > i else ("Desbloquear: %d moedas" % int(Database.progression.upgrades[data.level_upgrades[0]].cost) if i == 0 else "Faltam %d XP" % maxi(0, int(milestone.xp) - int(info.total))), &"SmallLabel"))
-		box.add_child(UiKit.button("Ir ao local", func() -> void:
+			var done: bool = info.level > i
+			var chips: Array[Control] = []
+			if done:
+				chips.append(UiKit.chip(null, "Liberado", null, "have"))
+			elif i == 0:
+				chips.append(UiKit.chip(UiKit.ui_icon("coin"), "%d" % int(Database.progression.upgrades[data.level_upgrades[0]].cost), null, "prize"))
+			else:
+				chips.append(UiKit.chip(UiKit.ui_icon("xp"), "faltam %d" % maxi(0, int(milestone.xp) - int(info.total)), null, "time"))
+			var row := UiKit.list_row(Database.item_icon(str(milestone.materials[0])), "Nível %d · %s" % [i + 1, milestone.label], chips, null, Callable(), done)
+			row.name = "NatureLevel_%s_%d" % [site, i + 1]
+			cards.add_child(row)
+		var go := UiKit.primary("Ir ao local", func() -> void:
 			Events.sheet_close_requested.emit()
-			Events.world_requested.emit("nature", "place:" + site), &"PrimaryButton")))
+			Events.world_requested.emit("nature", "place:" + site))
+		box.add_child(go))
 
 
 ## Receitas existentes que usam os materiais deste local, com destino direto à estação.
@@ -190,10 +196,9 @@ static func refining_panel(site: String) -> Control:
 		for item: String in recipe.inputs:
 			ingredients.add_child(UiKit.chip(Database.item_icon(item), str(int(recipe.inputs[item]))))
 		box.add_child(ingredients)
-		var button := UiKit.button("%s ×%d · %s" % [Database.item_name(Database.recipe_output(recipe)), int(recipe.get("qty", 1)), Database.stations[recipe.station].name], func() -> void:
+		var button := UiKit.soft("%s ×%d · %s" % [Database.item_name(Database.recipe_output(recipe)), int(recipe.get("qty", 1)), Database.stations[recipe.station].name], func() -> void:
 			Events.sheet_close_requested.emit()
-			Events.world_requested.emit(place[0], "place:" + place[1]), &"", Database.item_icon(Database.recipe_output(recipe)))
-		button.add_theme_font_size_override("font_size", 16)
+			Events.world_requested.emit(place[0], "place:" + place[1]), Database.item_icon(Database.recipe_output(recipe)), true)
 		button.name = "RefineRecipe_" + id
 		button.add_theme_constant_override("icon_max_width", 32)
 		box.add_child(button)
@@ -211,8 +216,8 @@ static func _material(parent: VBoxContainer, site: String, item: String, route_i
 	chips.append(UiKit.chip(UiKit.ui_icon("xp"), "+%d XP" % route_xp(route_id)))
 	var level := route_level(route_id)
 	var locked := GameState.progress.nature_level(site) < level
-	var button := UiKit.secondary("Buscar", func() -> void:
-		_result(GameState.start_next_gathering(site, route_id, item), ""), null, true)
+	var button := UiKit.small_go("Buscar", func() -> void:
+		_result(GameState.start_next_gathering(site, route_id, item), ""))
 	button.name = "Material_" + item
 	button.disabled = GameState.next_gathering_error(site, route_id, item) != ""
 	button.custom_minimum_size.x = 88

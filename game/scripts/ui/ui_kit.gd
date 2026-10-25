@@ -596,10 +596,12 @@ static func ctl_button(name: String, on_pressed: Callable, px: int = 40, surface
 	center.add_child(ctl(name, 22 if px >= 40 else 18))
 	visual.add_child(center)
 	result.add_child(visual)
-	var layout := func() -> void:
-		visual.size = Vector2(px, px)
-		visual.position = (result.size - visual.size) / 2
-	result.resized.connect(layout)
+	# Centralizado por âncoras (sem lambda em `resized`: ele disparava "Lambda capture was freed" ao recarregar painéis).
+	visual.set_anchors_preset(Control.PRESET_CENTER)
+	visual.offset_left = -px / 2.0
+	visual.offset_right = px / 2.0
+	visual.offset_top = -px / 2.0
+	visual.offset_bottom = px / 2.0
 	result.custom_minimum_size = Vector2(maxi(44, px), maxi(44, px))
 	return result
 
@@ -613,20 +615,24 @@ static func list_card(parent: Control) -> VBoxContainer:
 	(box.get_parent() as PanelContainer).add_theme_stylebox_override("panel", style)
 	box.child_entered_tree.connect(func(child: Node) -> void:
 		if child is Control and not child.has_meta("divider") and box.get_child_count() > 1:
-			var line := ColorRect.new()
-			line.name = "Divider"
-			line.set_meta("divider", true)
-			line.color = Palette.LINE
-			line.custom_minimum_size.y = 1
-			line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			var insert := func() -> void:
-				if not is_instance_valid(child):
-					line.free()
-					return
-				box.add_child(line, true)
-				box.move_child(line, child.get_index())
-			insert.call_deferred())
+			# Só ids atravessam o diferido: capturar nós liberados dispara "Lambda capture was freed".
+			_add_divider.bind(box.get_instance_id(), child.get_instance_id()).call_deferred())
 	return box
+
+
+static func _add_divider(box_id: int, child_id: int) -> void:
+	var box := instance_from_id(box_id) as Container
+	var child := instance_from_id(child_id) as Control
+	if box == null or child == null or child.get_parent() != box:
+		return
+	var line := ColorRect.new()
+	line.name = "Divider"
+	line.set_meta("divider", true)
+	line.color = Palette.LINE
+	line.custom_minimum_size.y = 1
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(line, true)
+	box.move_child(line, child.get_index())
 
 
 static func section(text: String, right: Control = null) -> HBoxContainer:

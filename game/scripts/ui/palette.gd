@@ -69,7 +69,7 @@ const OUTLINE := Color("4a2e21")      # contorno de seta/selo sobre o mundo
 const FENCE_RAIL := Color("a67843")   # cerca das áreas fechadas
 const FENCE_POST := Color("654529")
 const INTRO_SHADE := Color("2a1a12")  # véu da chegada da Laís
-const TRACK_DARK := Color("352c39")   # barra do treino de truques
-const TRACK_ZONE := Color("66cc73")
-const TRACK_MARKER := Color("fff2b0")
+const TRACK_DARK := SUNKEN            # barra do treino de truques: trilho afundado
+const TRACK_ZONE := GO                # zona certa (GO_SOFT some sobre o trilho; verde = acertar)
+const TRACK_MARKER := INK             # marcador
 const WARN_TINT := Color(1.0, 0.6, 0.55)  # botão armado ("Certeza?")

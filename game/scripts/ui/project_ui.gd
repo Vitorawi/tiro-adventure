@@ -49,14 +49,16 @@ static func community(world: String = "park") -> Control:
 				chips.append(UiKit.chip(null, "%d%%" % int(round(float(stage.total_progress) * 100.0))))
 			else:
 				chips.append(UiKit.chip(UiKit.ui_icon("coin"), str(int(def.get("start_coins", 0)))))
-			var row := UiKit.list_row(UiKit.ui_icon(str(def.get("icon", "tab_park"))), str(def.name), chips, UiKit.secondary("Ver" if completed or GameState.project_started(id) else "Começar", open.bind(id), null, true), open.bind(id))
+			var seen := completed or GameState.project_started(id)
+			var action: Button = UiKit.soft("Ver", open.bind(id), null, true) if seen else UiKit.small_go("Começar", open.bind(id))
+			var row := UiKit.list_row(UiKit.ui_icon(str(def.get("icon", "tab_park"))), str(def.name), chips, action, open.bind(id))
 			row.name = "Project_" + id
 			box.add_child(row)
 		for place_id: String in Database.worlds[world].places.get("community", {}).get("services", []):
 			var place: Dictionary = Database.worlds[world].places.get(place_id, {})
 			if place.is_empty() or Places.place_error(place) != "":
 				continue
-			var row := UiKit.list_row(UiKit.ui_icon(str(place.icon)), str(place.name), [], UiKit.secondary("Ir", Places.open.bind(world, place_id), null, true), Places.open.bind(world, place_id))
+			var row := UiKit.list_row(UiKit.ui_icon(str(place.icon)), str(place.name), [], UiKit.soft("Ir", Places.open.bind(world, place_id), null, true), Places.open.bind(world, place_id))
 			row.name = "Service_" + place_id
 			box.add_child(row)
 	))
@@ -78,7 +80,7 @@ static func _speech(id: String, def: Dictionary, started: bool, completed: bool)
 static func _title_row(box: VBoxContainer, id: String, def: Dictionary) -> void:
 	var row := UiKit.hbox(8)
 	row.add_child(UiKit.icon(UiKit.ui_icon(str(def.get("icon", "tab_park"))), 48))
-	var bar := UiKit.bar(float(GameState.project_stage(id).total_progress) * 100.0, Palette.PRIMARY, 14)
+	var bar := UiKit.bar(float(GameState.project_stage(id).total_progress) * 100.0, Palette.SKY, 14)
 	bar.name = "ProjectBar"
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(bar)
@@ -88,19 +90,22 @@ static func _title_row(box: VBoxContainer, id: String, def: Dictionary) -> void:
 ## Fases em fileira: feita (check), atual (destaque) e próximas (apagadas).
 static func _phase_row(box: VBoxContainer, id: String, def: Dictionary) -> void:
 	var stage := GameState.project_stage(id)
-	# Quebra de linha: nomes de fase mais compridos com ✓ não cabem lado a lado em 360 px.
-	var row := HFlowContainer.new()
-	row.add_theme_constant_override("h_separation", 6)
-	row.add_theme_constant_override("v_separation", 6)
-	row.name = "ProjectPhases"
+	# Traços grandes (feita verde, atual mel, próximas afundadas) + o nome da fase atual num chip.
 	var phases: Array = def.phases
-	for position: int in phases.size():
-		var done: bool = position < int(stage.index) or GameState.project_completed(id)
-		var chip := UiKit.chip(UiKit.ctl_icon("check") if done else null, str(phases[position].get("name", phases[position].id)), UiKit.GOOD if done else null)
-		chip.name = "Phase_" + str(phases[position].id)
-		if not done and position != int(stage.index):
-			chip.modulate.a = 0.55
-		row.add_child(chip)
+	var completed := GameState.project_completed(id)
+	var current := phases.size() if completed else int(stage.index)
+	var row := UiKit.vbox(8)
+	row.name = "ProjectPhases"
+	var dashes := UiKit.steps(phases.size(), current)
+	dashes.name = "ProjectSteps"
+	for dash: Node in dashes.get_children():
+		(dash as Control).custom_minimum_size = Vector2(0, 8)
+		(dash as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(dashes)
+	var shown := mini(current, phases.size() - 1)
+	var chip := UiKit.chip(null, str(phases[shown].get("name", phases[shown].id)), null, "have" if completed else "neutral")
+	chip.name = "Phase_" + str(phases[shown].id)
+	row.add_child(chip)
 	box.add_child(row)
 
 
@@ -139,22 +144,20 @@ static func _delivery_card(box: VBoxContainer, id: String, model: Dictionary) ->
 	var tiles := GridContainer.new()
 	tiles.name = "ProjectItems"
 	tiles.columns = 3
-	tiles.add_theme_constant_override("h_separation", 6)
-	tiles.add_theme_constant_override("v_separation", 6)
+	tiles.add_theme_constant_override("h_separation", 8)
+	tiles.add_theme_constant_override("v_separation", 8)
 	for item: String in stage.needed:
 		var left := int(remaining[item])
-		var selected := str(model.item) == item
 		var caption := "%d/%d" % [int(stage.given[item]), int(stage.needed[item])]
-		var tile := UiKit.grid_tile(Database.item_icon(item), "%s\n%s" % [Database.item_name(item), caption], func() -> void:
+		var tile := UiKit.tile(Database.item_icon(item), caption, "selected" if str(model.item) == item else "normal")
+		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tile.pressed.connect(func() -> void:
 			model.item = item
 			model.qty = 1
-			(box as SheetBuilder.LiveBox).refresh(), 100, 40)
-		tile.custom_minimum_size = Vector2(0, 120)
+			(box as SheetBuilder.LiveBox).refresh())
 		tile.name = "ProjectItem_" + item
 		if left <= 0:
 			tile.modulate.a = 0.5
-		if selected:
-			tile.add_theme_stylebox_override("normal", _selected_style())
 		tiles.add_child(tile)
 	card.add_child(tiles)
 	var chosen := str(model.item)
@@ -162,23 +165,29 @@ static func _delivery_card(box: VBoxContainer, id: String, model: Dictionary) ->
 		return
 	var have := GameState.inventory.count(chosen)
 	var most := mini(int(remaining[chosen]), have)
-	card.add_child(UiKit.label("%s: faltam %d · você tem %d" % [Database.item_name(chosen), int(remaining[chosen]), have], &"SmallLabel"))
+	var counts := UiKit.flow(4)
+	counts.add_child(UiKit.chip(Database.item_icon(chosen), "faltam %d" % int(remaining[chosen])))
+	counts.add_child(UiKit.chip(null, "tem %d" % have, null, "have" if have > 0 else "missing"))
+	card.add_child(counts)
 	if most <= 0:
 		var help := UiKit.tap_chip(Database.item_icon(chosen), "%s: onde achar?" % Database.item_name(chosen), TaskHelp.open.bind("item", chosen, int(remaining[chosen])), UiKit.BAD)
 		help.name = "ProjectMissing"
 		card.add_child(help)
 		return
 	model.qty = clampi(int(model.qty), 1, most)
-	var row := UiKit.hbox(6)
-	row.name = "ProjectQuantity"
-	for entry: Dictionary in [{"label": "−", "change": -1}, {"label": "+", "change": 1}, {"label": "Tudo", "change": 0}]:
-		var button := UiKit.secondary(str(entry.label), func() -> void:
-			model.qty = most if int(entry.change) == 0 else clampi(int(model.qty) + int(entry.change), 1, most)
-			(box as SheetBuilder.LiveBox).refresh(), null, true)
-		button.name = "Qty_" + ("all" if int(entry.change) == 0 else "plus" if int(entry.change) > 0 else "minus")
-		row.add_child(button)
-	card.add_child(row)
 	var amount := int(model.qty)
+	var row := UiKit.hbox(8)
+	row.name = "ProjectQuantity"
+	var stepper := UiKit.stepper(amount, 1, most, func(value: int) -> void:
+		model.qty = value
+		(box as SheetBuilder.LiveBox).refresh())
+	row.add_child(stepper)
+	var all := UiKit.soft("Tudo", func() -> void:
+		model.qty = most
+		(box as SheetBuilder.LiveBox).refresh(), null, true)
+	all.name = "Qty_all"
+	row.add_child(all)
+	card.add_child(row)
 	var deliver := UiKit.primary("Entregar ×%d %s" % [amount, Database.item_name(chosen)], func() -> void:
 		var error := GameState.contribute_project(id, chosen, amount)
 		if error != "":
@@ -195,7 +204,7 @@ static func _done_card(box: VBoxContainer, def: Dictionary) -> void:
 	card.add_child(UiKit.label(str(def.get("interaction", {}).get("hint", "")), &"SmallLabel"))
 	var go: Dictionary = def.get("go", {})
 	if not go.is_empty():
-		var button := UiKit.secondary(str(def.get("interaction", {}).get("go_label", "Ir até lá")), func() -> void:
+		var button := UiKit.soft(str(def.get("interaction", {}).get("go_label", "Ir até lá")), func() -> void:
 			Events.sheet_close_requested.emit()
 			Events.world_requested.emit(str(go.get("world", "")), str(go.get("place", ""))))
 		button.name = "GoProject"
@@ -207,6 +216,7 @@ static func _gathering_card(box: VBoxContainer, id: String) -> void:
 	var def := GameState.meeting_def(id)
 	var card := UiKit.card(box)
 	card.name = "GatheringCard"
+	(card.get_parent() as PanelContainer).add_theme_stylebox_override("panel", UiKit.surface(Palette.HONEY_SOFT, 20))  # cartão mel
 	card.add_child(UiKit.label(str(def.get("name", "Encontro")), &"SectionLabel"))
 	card.add_child(UiKit.label(str(def.get("hint", "")), &"SmallLabel"))
 	var chips := UiKit.flow()
@@ -225,10 +235,3 @@ static func _gathering_card(box: VBoxContainer, id: String) -> void:
 	card.add_child(go)
 
 
-static func _selected_style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.CARD
-	style.border_color = Palette.PRIMARY
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(12)
-	return style

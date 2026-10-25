@@ -514,29 +514,46 @@ static func animal_shop(station_id: String) -> Control:
 		var data: Dictionary = Database.stations[station_id]
 		box.add_child(UiKit.label("%s · %d/%d animais" % [data.name, GameState.animal_count(station_id), int(data.animal_capacity)], &"SectionLabel"))
 		box.add_child(UiKit.label("Escolha o visual. Cada animal produz 2 unidades por alimentação.", &"SmallLabel"))
+		# Cartões de 2 colunas (referência de loja): figura em disco, nome e preço em pílula verde pequena.
+		var grid := GridContainer.new()
+		grid.name = "AnimalGrid"
+		grid.columns = 2
+		grid.add_theme_constant_override("h_separation", 12)
+		grid.add_theme_constant_override("v_separation", 12)
+		box.add_child(grid)
 		for id: String in Database.animals:
 			var animal: Dictionary = Database.animals[id]
 			if animal.station != station_id:
 				continue
-			var body := UiKit.card(box)
-			var row := UiKit.hbox(8)
-			row.add_child(UiKit.icon(load(animal.sprite), 64))
-			var info := UiKit.vbox(4)
-			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			info.add_child(UiKit.label(animal.name))
-			info.add_child(UiKit.label("Você tem %d" % int(GameState.animals.get(id, 0)), &"SmallLabel"))
-			row.add_child(info)
-			body.add_child(row)
+			var cell := VBoxContainer.new()
+			cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			var body := UiKit.card(cell)
+			body.get_parent().name = "AnimalCard_" + id
+			body.add_theme_constant_override("separation", 6)
 			var error := GameState.buy_animal_error(id)
-			var buy := UiKit.button("Comprar · %d moedas" % int(animal.price), func() -> void:
+			var figure := UiKit.disc(load(animal.sprite), 80, 64)
+			figure.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			figure.modulate.a = 0.55 if error != "" else 1.0
+			body.add_child(figure)
+			var title := UiKit.short_label(str(animal.name), &"StrongLabel")
+			title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			title.modulate.a = 0.55 if error != "" else 1.0
+			body.add_child(title)
+			var owned := UiKit.short_label("Você tem %d" % int(GameState.animals.get(id, 0)), &"SmallLabel", Palette.INK_SOFT)
+			owned.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			body.add_child(owned)
+			var buy := UiKit.button("%d" % int(animal.price), func() -> void:
 				var reason := GameState.buy_animal(id)
 				if reason != "":
-					Events.toast_requested.emit(reason), &"PrimaryButton")
+					Events.toast_requested.emit(reason), &"SmallGoButton", UiKit.ui_icon("coin"))
+			buy.name = "Buy_" + id
+			buy.custom_minimum_size = Vector2(44, 44)
 			buy.disabled = error != ""
 			body.add_child(buy)
 			if error != "":
 				_animal_missing(body, animal, error)
-		box.add_child(UiKit.button("Ver meus animais", func() -> void:
+			grid.add_child(cell)
+		box.add_child(UiKit.soft("Ver meus animais", func() -> void:
 			Events.sheet_requested.emit(data.name, station_view(station_id)))))
 
 

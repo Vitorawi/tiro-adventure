@@ -200,6 +200,7 @@ func _announce_checks() -> void:
 	var result: CanvasLayer = main.get("_walk_result")
 	check(result.visible, "cartão de volta aparece antes do Novo!")
 	result.hide()
+	await create_timer(0.5).timeout  # a casca espera o voo do prêmio (Motion.FLY) antes do próximo cartão
 	main.call("_flush_modals")
 	check(main.get_node("Celebration").visible, "passeio novo anunciado sem receber missão")
 	check(state.get("progress").seen.has("walk:flower_street"), "passeio anunciado fica visto")

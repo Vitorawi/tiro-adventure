@@ -513,7 +513,7 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 		var top := UiKit.hbox(10)
 		if not history.is_empty():
 			var previous: Dictionary = history.back()
-			top.add_child(UiKit.square_button("‹", func() -> void:
+			top.add_child(UiKit.ctl_button("back", func() -> void:
 				var back: Array[Dictionary] = history.duplicate()
 				back.pop_back()
 				open(previous.kind, previous.id, previous.amount, back)))
@@ -539,20 +539,17 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 			action.name = "FoodGuideAction"
 			card.add_child(action)
 			box.add_child(UiKit.label("Ingredientes por preparo", &"SectionLabel"))
+			var chain := UiKit.list_card(box)
 			for input: Dictionary in guide.inputs:
-				var row := UiKit.hbox(8)
-				row.add_child(UiKit.icon(Database.item_icon(input.id), 32))
-				row.add_child(UiKit.fill_label("%s · %d/%d\n%s" % [input.label, input.have, input.amount, input.where], &"SmallLabel"))
 				var path: Array[Dictionary] = history.duplicate()
 				path.append({"kind": kind, "id": id, "amount": amount})
-				if int(input.have) < int(input.amount):
-					row.add_child(UiKit.secondary("Buscar", open.bind("item", str(input.id), int(input.amount), path), null, true))
-				else:
-					var ready := UiKit.label("Pronto ✓", &"SmallLabel", UiKit.GOOD)
-					ready.custom_minimum_size.x = 80
-					ready.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-					row.add_child(ready)
-				box.add_child(row)
+				var enough := int(input.have) >= int(input.amount)
+				var chips: Array[Control] = [UiKit.chip(null, "%d/%d" % [input.have, input.amount], null, "have" if enough else "missing")]
+				var buy: Button = null
+				if not enough:
+					buy = UiKit.soft("Buscar", open.bind("item", str(input.id), int(input.amount), path), null, true)
+				var where := "" if enough or str(input.where) == "" else "\n" + str(input.where)  # onde achar quebra de linha no título
+				chain.add_child(UiKit.list_row(Database.item_icon(input.id), str(input.label) + where, chips, buy, Callable(), enough))
 			return
 		if data.has("steps"):
 			var primary_used := false
@@ -562,7 +559,7 @@ static func panel(kind: String, id: String, amount: int = 1, history: Array[Dict
 				card.add_child(UiKit.label(care.progress, &"SmallLabel"))
 				if care.done: continue
 				card.add_child(UiKit.label(care.hint))
-				var go := UiKit.secondary(care.action, _go.bind(care.target)) if primary_used else UiKit.primary(care.action, _go.bind(care.target))
+				var go := UiKit.soft(care.action, _go.bind(care.target)) if primary_used else UiKit.primary(care.action, _go.bind(care.target))
 				go.name = "GrowthCare_" + str(care.id)
 				card.add_child(go)
 				primary_used = true

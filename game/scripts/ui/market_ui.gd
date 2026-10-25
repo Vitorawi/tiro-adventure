@@ -94,8 +94,11 @@ static func customer_seals(customer: String, px: int = 20) -> HBoxContainer:
 	var level := GameState.progress.customer_level(customer)
 	var colors := [Palette.SEAL_BRONZE, Palette.SEAL_SILVER, Palette.SEAL_GOLD]
 	for index in 3:
-		var seal := UiKit.icon(UiKit.ui_icon("item_ribbon"), px)
-		seal.modulate = colors[index] if index < level else Color(1, 1, 1, 0.22)
+		# Disquinho bronze/prata/ouro com ✓; patamar ainda não ganho fica afundado.
+		var earned := index < level
+		var seal := UiKit.disc(UiKit.ctl_icon("check"), px, int(px * 0.65))
+		seal.add_theme_stylebox_override("panel", UiKit.surface(colors[index] if earned else Palette.SUNKEN, px / 2))
+		(seal.get_child(0) as Control).modulate = Palette.CARD if earned else Palette.INK_FAINT
 		row.add_child(seal)
 	return row
 
@@ -134,17 +137,16 @@ static func _customers_summary(box: VBoxContainer) -> void:
 		button.name = "Customer_" + customer
 		button.expand_icon = true
 		button.add_theme_constant_override("icon_max_width", 24)
-		button.add_theme_font_size_override("font_size", 14)
 		button.tooltip_text = customer_text(customer)
 		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		card.add_child(button)
-	var help := UiKit.icon_button(null, func() -> void:
+	var help := UiKit.ctl_button("help", func() -> void:
 		var content := UiKit.vbox(8)
 		content.add_child(UiKit.label("Pedidos dos vizinhos, sem prazo para entregar. Pedidos com ! ajudam uma missão e aparecem primeiro."))
 		for customer in seen: content.add_child(customer_row(customer))
 		_next_order(content, "neighbors")
 		content.add_child(UiKit.secondary("Voltar às encomendas", func() -> void: Events.sheet_requested.emit("Encomendas", orders())))
-		Events.sheet_requested.emit("Sobre as encomendas", content), 44, "?")
+		Events.sheet_requested.emit("Sobre as encomendas", content), 40)
 	help.name = "OrdersHelp"
 	card.add_child(help)
 	box.add_child(card)
@@ -161,12 +163,13 @@ static func _page(box: VBoxContainer, model: Dictionary, total: int, count: int)
 	model.page = clampi(int(model.page), 0, pages - 1)
 	var row := UiKit.hbox(6)
 	for direction in [-1, 1]:
-		var button := UiKit.secondary("‹" if direction < 0 else "›", func() -> void:
+		var button := UiKit.ctl_button("back" if direction < 0 else "chev", func() -> void:
 			model.page = int(model.page) + direction
 			model.selected = ""
-			(box as SheetBuilder.LiveBox).refresh(), null, true)
+			(box as SheetBuilder.LiveBox).refresh(), 36, "soft")
 		button.name = "PreviousPage" if direction < 0 else "NextPage"
 		button.disabled = int(model.page) == (0 if direction < 0 else pages - 1)
+		button.modulate.a = 0.4 if button.disabled else 1.0
 		row.add_child(button)
 		if direction < 0:
 			var caption := UiKit.fill_label("%d / %d" % [int(model.page) + 1, pages], &"SmallLabel")
@@ -199,20 +202,24 @@ static func _order_tile(id: String, selected: bool, action: Callable) -> Button:
 	body.move_child(products, 0)
 	_ignore(products)
 	if selected:
+		# Escolhido = contorno de tinta (nunca verde).
 		var style := tile.get_theme_stylebox("normal").duplicate() as StyleBoxFlat
-		style.border_color = Palette.GOOD
-		style.set_border_width_all(3)
+		style.border_color = Palette.INK
+		style.set_border_width_all(2)
 		for state: String in ["normal", "hover", "pressed"]:
 			tile.add_theme_stylebox_override(state, style)
-	var label := body.find_child("Caption", true, false) as Label
-	if label: label.add_theme_font_size_override("font_size", 16)
-	var status := "Pronto ✓" if _rank(id) == 0 else "Preparar"
+	# Prêmio em chip mel; o estado (pronto/tempo) aparece num chip ao lado.
+	var status_kind := "have" if _rank(id) == 0 else ("time" if _rank(id) == 2 else "neutral")
+	var status := "Pronto" if _rank(id) == 0 else "Preparar"
 	if _rank(id) == 2:
 		status = TimeText.short(GameState.progress.cooldown_left("order:" + id, GameState.now()))
-	var summary := UiKit.short_label("%d moedas · %s" % [int(data.rewards.get("coins", 0)), status], &"SmallLabel")
-	summary.add_theme_font_size_override("font_size", 14)
-	summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	var summary := UiKit.flow(4)
+	summary.alignment = FlowContainer.ALIGNMENT_CENTER
+	summary.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d" % int(data.rewards.get("coins", 0)), null, "prize"))
+	summary.add_child(UiKit.chip(null, status, null, status_kind))
+	_ignore(summary)
 	body.add_child(summary)
+	tile.custom_minimum_size.y = 112
 	return tile
 
 static func _ignore(node: Control) -> void:
@@ -258,7 +265,7 @@ static func _order_detail(box: VBoxContainer, id: String) -> void:
 	action.name = "DeliverOrder"
 	action.disabled = reason != ""
 	detail.add_child(action)
-	if reason != "": detail.add_child(UiKit.label(reason, &"SmallLabel"))
+	if reason != "": detail.add_child(UiKit.lock_hint(reason))
 	box.add_child(detail)
 
 static func _next_order(box: VBoxContainer, channel: String) -> void:
@@ -319,12 +326,13 @@ static func sell(world_id: String = "village") -> Control:
 			return
 		model.quantity = clampi(int(model.quantity), 1, GameState.inventory.count(id))
 		box.add_child(UiKit.label(Database.item_name(id), &"SectionLabel"))
-		var row := UiKit.hbox(6)
-		for entry: Dictionary in [{"label": "−", "change": -1}, {"label": "+", "change": 1}, {"label": "Tudo", "change": 0}]:
-			var button := UiKit.secondary(str(entry.label), func() -> void:
-				model.quantity = GameState.inventory.count(id) if int(entry.change) == 0 else clampi(int(model.quantity) + int(entry.change), 1, GameState.inventory.count(id))
-				(box as SheetBuilder.LiveBox).refresh(), null, true)
-			row.add_child(button)
+		var row := UiKit.hbox(8)
+		row.add_child(UiKit.stepper(int(model.quantity), 1, GameState.inventory.count(id), func(value: int) -> void:
+			model.quantity = value
+			(box as SheetBuilder.LiveBox).refresh()))
+		row.add_child(UiKit.soft("Tudo", func() -> void:
+			model.quantity = GameState.inventory.count(id)
+			(box as SheetBuilder.LiveBox).refresh(), null, true))
 		box.add_child(row)
 		var qty := int(model.quantity)
 		var action := UiKit.primary("Vender ×%d · +%d moedas" % [qty, qty * int(Database.items[id].sell_price)], func() -> void:

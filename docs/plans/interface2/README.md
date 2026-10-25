@@ -87,7 +87,7 @@ flowchart TD
 | [x] | [06](etapas/ETAPA_06_MUNDO.md) | mapa sem texto, balões, `WorldPin`, cartões-postais, conversa, compra | grande |
 | [x] | [07](etapas/ETAPA_07_HORTA_BANDEJAS.md) | `FarmDock`, bandejas das estações | grande |
 | [x] | [08](etapas/ETAPA_08_MOCHILA.md) | Mochila, detalhe, caderninho, Coleção, Álbum | médio |
-| [ ] | [09](etapas/ETAPA_09_PAINEIS.md) | painéis grandes | grande |
+| [x] | [09](etapas/ETAPA_09_PAINEIS.md) | painéis grandes | grande |
 | [ ] | [10](etapas/ETAPA_10_FESTA.md) | `ModalCard` novo, `RewardSheet`, boas-vindas, Novo! | médio |
 | [ ] | [11](etapas/ETAPA_11_TEXTO.md) | orçamento de texto, Texto maior, limpeza | médio |
 | [ ] | [12](etapas/ETAPA_12_FECHAMENTO.md) | suíte inteira, toque real, desempenho, docs | médio |
@@ -249,4 +249,30 @@ depois dos chips (a lista "Usado em" pode ser longa); "Ver"/"Ocultar" dos presen
 existência); os botões "Vestir/Tirar" não existem (toque no quadrado). Pendências: abas do caderninho ficam com larguras
 desiguais (selecionada maior); contratos apertados (09) e títulos de modais (10) seguem para suas etapas.
 Checklist 04 §B: Mochila ✓, detalhe ✓, caderninho/Manual ✓, Coleção ✓, Álbum ✓ (sem ×0; uma ação verde por folha).
-Próxima **09**, não iniciada. Sem push/publicação.
+Próxima **09** (ver registro abaixo).
+
+**Etapa 09 (25/10/2026, Claude Sonnet 5.5; local):** painéis grandes no visual novo — Crescimento (tiles com anel, feito `GO_SOFT`
++ disquinho ✓, escolhido com contorno de tinta, `ctl_button` info/list, detalhe em cartão branco), Feira/Encomendas/Banca
+(chips prêmio/estado, selos de cliente em disquinhos bronze/prata/ouro, `stepper` + "Tudo" na venda, paginação `ctl_button`
+back/chev, bloqueio em `lock_hint`), lojas (animais e pet shop em grade 2×2: figura em disco, nome, preço em pílula verde
+pequena com moeda), Obras (`UiKit.steps` grandes, itens em `UiKit.tile`, chips faltam/tem, `stepper`, encontro da turma em
+cartão mel), Passeios (`small_go` por cartão, "?" em `ctl_button`), Amigos (tiles `sunken`, `lock_hint`), Truques (`list_card`,
+trilho/zona/marcador pelas cores novas), Natureza (níveis em `list_card` + `steps`, barra `SKY`), Como fazer (guia em
+`list_card`, voltar `ctl back`), Configurações (`UiKit.toggle`, saves em `list_card`, versão `INK_SOFT`).
+Testes: lista fechada (growth_ui, market, bench, walks, tricks, ui_style) + rápido, e extras por tocarem nós mexidos
+(friends, animals, festa, saves, petshop, nature, lists, item_sources): **17/17 PASS em 165,4 s**
+(`build/test_logs/r20261025_011633_f7900281/`). Testes alterados SEM enfraquecer: `animals_test` (acha `Buy_chicken_white`
+em vez do texto do botão), `festa_test` (liga o interruptor com `button_pressed` em vez de apertar `NotebookTab_*`),
+`walks_test` (já falhava na base: espera 0,5 s o voo do prêmio da casca, `_reward_not_before`, antes do próximo cartão).
+Correções de peça: `ctl_button` centraliza por âncoras e `list_card` insere divisória por ids (acabou o aviso "Lambda
+capture was freed", que o runner conta como falha). Capturas `build/screenshots/i2_09_antes` e `i2_09_depois(_390,_412)`
+(growth, market, orders, stall, animal_shop, petshop, walks, community, project, friends, tricks, nature, nature_levels,
+taskhelp, settings), PNGs abertos. Desvios do plano: zona do truque usa `GO` (não `GO_SOFT`, que some sobre o trilho
+`SUNKEN`); `DeliverProject` continua o botão verde grande ("Entregar ×N Item", o `bench_test` confere texto e um primário);
+passeio em andamento mantém o `SlotDot` com anel (já é anel + tempo) em vez de `UiKit.ring` maior; `HideSeekUi`, DEV e
+`WalkResult` não foram redesenhados (esconde-esconde já usa as peças; DEV só troca de peças; o resultado é da 10);
+tela de Natureza (`panel`) manteve slots/`Material_` com `small_go`. Sem alvo de captura do esconde-esconde (é um nó de jogo).
+Checklist 04 §B: Crescimento ✓, Feira/Encomendas/Banca ✓, Lojas ✓, Obras ✓, Passeios ✓, Amigos ✓, Truques ✓, Natureza ✓,
+Como fazer ✓ (lista; passo único ainda é um cartão), Configurações ✓, Esconde-esconde ? (não capturado), DEV ? (não tocado).
+Pendências: Como fazer com passos de crescimento ainda em cartões `ReadyCardPanel`; texto "Toque em Jogar…" foi removido das
+Configurações (orçamento de texto). Próxima **10**, não iniciada. Sem push/publicação.

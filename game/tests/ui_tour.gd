@@ -79,6 +79,10 @@ func _run() -> void:
 	var places: Script = load("res://scripts/ui/places.gd")
 	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
+	if "--i2-09-only" in OS.get_cmdline_user_args():
+		await _i2_09_shots()
+		quit(0)
+		return
 	if "--i2-08-only" in OS.get_cmdline_user_args():
 		state.call("reset")
 		state.get("progress").seen["intro"] = true
@@ -1073,6 +1077,79 @@ func _festa_shots() -> void:
 	welcome.hide()
 	load("res://scripts/ui/settings_panel.gd").call("open")
 	await shot("h05_settings_haptics", 0.8)
+	await _close()
+
+
+## Interface 2, etapa 09: uma captura de cada painel grande (i2_09_<painel>).
+func _i2_09_shots() -> void:
+	var places: Script = load("res://scripts/ui/places.gd")
+	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
+	var pu: Script = load("res://scripts/ui/progression_ui.gd")
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	state.set("coins", 2000)
+	state.get("inventory").call("from_dict", {"carrot": 9, "carrot_snack": 4, "dog_food": 6, "wood": 6, "plank": 3, "stick": 3, "egg": 5, "milk": 2, "wheat": 3, "fabric": 1})
+	await _start_main(1.5)
+	# Crescimento: Filhote com passos pela metade.
+	state.call("dev_set_phase", "puppy")
+	state.get("growth").done = {}
+	state.get("growth").phase_moments = {"body": 25}
+	state.call("_changed")
+	_hide_modals()
+	load("res://scripts/ui/growth_ui.gd").call("open")
+	await shot("i2_09_growth")
+	await _close()
+	await _world("village")
+	places.call("open", "village", "market")
+	await shot("i2_09_market")
+	await _close()
+	places.call("open", "village", "orders")
+	await shot("i2_09_orders")
+	await _close()
+	places.call("open", "village", "stall")
+	await shot("i2_09_stall")
+	await _close()
+	await _sheet("Comprar animais", sb.call("animal_shop", "chicken_coop"))
+	await shot("i2_09_animal_shop")
+	await _close()
+	await _world("park")
+	places.call("open", "park", "petshop")
+	await shot("i2_09_petshop")
+	await _close()
+	places.call("open", "park", "walk")
+	await shot("i2_09_walks")
+	await _close()
+	places.call("open", "park", "community")
+	await shot("i2_09_community")
+	await _close()
+	state.set("coins", 2000)
+	state.call("start_project", "park_bench")
+	var bench_ui: Script = load("res://scripts/ui/project_ui.gd")
+	await _sheet("Banco da Praça", bench_ui.call("panel", "park_bench"))
+	await shot("i2_09_project")
+	await _close()
+	state.get("progress").tricks["paw"] = true
+	state.get("friend_state").entry("pipoca").gifts = 2
+	await _sheet("Amigos", load("res://scripts/ui/friend_ui.gd").call("album"))
+	await shot("i2_09_friends")
+	await _close()
+	load("res://scripts/ui/trick_ui.gd").call("open")
+	await shot("i2_09_tricks")
+	await _close()
+	await _world("nature")
+	places.call("open", "nature", "trees")
+	await shot("i2_09_nature")
+	await _close()
+	await _sheet("Níveis", load("res://scripts/ui/nature_ui.gd").call("levels_panel", "trees"))
+	await shot("i2_09_nature_levels")
+	await _close()
+	load("res://scripts/ui/task_help.gd").call("open", "item", "carrot_snack")
+	await shot("i2_09_taskhelp")
+	await _close()
+	load("res://scripts/ui/settings_panel.gd").call("open")
+	await shot("i2_09_settings")
 	await _close()
 
 

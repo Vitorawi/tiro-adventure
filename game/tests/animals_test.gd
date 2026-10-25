@@ -67,9 +67,7 @@ func _run() -> void:
 	root.add_child(animal_shop)
 	await process_frame
 	var buy_button: Button
-	for button: Node in animal_shop.find_children("*", "Button", true, false):
-		if button.text == "Comprar · 120 moedas":
-			buy_button = button
+	buy_button = animal_shop.find_child("Buy_chicken_white", true, false) as Button  # galinha branca: 120 moedas
 	check(buy_button != null and not buy_button.disabled, "Loja permite comprar animal disponível")
 	check(state.call("animal_count", "chicken_coop") == 0, "Abrir loja não entrega galinha")
 	if buy_button: buy_button.pressed.emit()

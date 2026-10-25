@@ -113,20 +113,22 @@ static func _card(box: VBoxContainer, id: String, album: bool = false) -> void:
 	card.add_child(food)
 	var reason := GameState.give_friend_error(id)
 	if not album or id in GameState.friends_present():
-		var give := UiKit.button("Dar petisco", func() -> void:
+		var give := UiKit.small_go("Dar petisco", func() -> void:
 			var error := GameState.give_friend(id)
 			if error != "":
-				Events.toast_requested.emit(error), &"SecondaryButton")
+				Events.toast_requested.emit(error))
 		give.disabled = reason != ""
+		give.size_flags_horizontal = Control.SIZE_SHRINK_END
 		card.add_child(give)
 	if reason != "":
-		card.add_child(UiKit.label(reason, &"SmallLabel"))
+		card.add_child(UiKit.lock_hint(reason, func() -> void: Events.sheet_requested.emit(Database.item_name(item), TaskHelp.panel("item", item))))
 		var actions := UiKit.hbox(8)
+		actions.alignment = BoxContainer.ALIGNMENT_END
 		if GameState.inventory.count(item) == 0:
-			actions.add_child(UiKit.button("Ir", func() -> void: Places.go(Places.goal_target({"type": "have", "key": item}))))
+			actions.add_child(UiKit.soft("Ir", func() -> void: Places.go(Places.goal_target({"type": "have", "key": item})), null, true))
 		else:
-			actions.add_child(UiKit.button("Ir à praça", func() -> void: Places.go({"world": "park", "place": "friends"})))
-		actions.add_child(UiKit.button("?", func() -> void: Events.sheet_requested.emit(Database.item_name(item), TaskHelp.panel("item", item))))
+			actions.add_child(UiKit.soft("Ir à praça", func() -> void: Places.go({"world": "park", "place": "friends"}), null, true))
+		actions.add_child(UiKit.ctl_button("help", func() -> void: Events.sheet_requested.emit(Database.item_name(item), TaskHelp.panel("item", item)), 40, "soft"))
 		card.add_child(actions)
 
 
@@ -134,17 +136,19 @@ static func album() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var grid := GridContainer.new()
 		grid.columns = 3
-		grid.add_theme_constant_override("h_separation", 4)
-		grid.add_theme_constant_override("v_separation", 4)
+		grid.add_theme_constant_override("h_separation", 8)
+		grid.add_theme_constant_override("v_separation", 8)
 		var known_count := 0
 		for id: String in Database.friends.friends:
 			var def := GameState.friend_def(id)
 			var known := int(GameState.friend_state.entry(id).gifts) > 0
 			known_count += 1 if known else 0
-			var tile := UiKit.grid_tile(load(str(def.portrait)), str(def.name) if known else "?", func() -> void:
-				Events.sheet_requested.emit(str(def.name) if known else "Amigo da vizinhança", panel(id)), 100, 64)
+			var tile := UiKit.tile(load(str(def.portrait)), str(def.name) if known else "?", "sunken")
+			tile.pressed.connect(func() -> void:
+				Events.sheet_requested.emit(str(def.name) if known else "Amigo da vizinhança", panel(id)))
 			tile.name = "Friend_" + id
-			tile.custom_minimum_size.y = 120
+			tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			tile.custom_minimum_size.y = 96
 			if not known:
 				tile.get_node("Visual/Picture").modulate = Palette.INK
 				tile.modulate.a = 0.55

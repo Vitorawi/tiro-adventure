@@ -275,8 +275,8 @@ static func walks_panel() -> Control:
 		var heading := UiKit.hbox(8)
 		heading.add_child(UiKit.fill_label("Passeios", &"SectionLabel"))
 		if GameState.progress.feature_unlocked("walk_diary"):
-			var diary := UiKit.button("Diário", func() -> void:
-				Events.sheet_requested.emit("Diário de passeios", walk_diary()), &"", UiKit.ui_icon("item_accessory_set"))
+			var diary := UiKit.soft("Diário", func() -> void:
+				Events.sheet_requested.emit("Diário de passeios", walk_diary()), UiKit.ui_icon("item_accessory_set"), true)
 			diary.name = "WalkDiaryButton"
 			heading.add_child(diary)
 		box.add_child(heading)
@@ -323,7 +323,7 @@ static func _walk_slot() -> Control:
 	heading.add_child(UiKit.fill_label(str(GameState.walk_def(str(entry.id)).get("name", "")), &"SectionLabel"))
 	info.add_child(heading)
 	var armed := GameState.now() < _cancel_armed_until
-	var call_back := UiKit.secondary("Toque de novo para chamar" if armed else "Chamar de volta", func() -> void:
+	var call_back := UiKit.soft("Toque de novo para chamar" if armed else "Chamar de volta", func() -> void:
 		if GameState.now() < _cancel_armed_until:
 			_cancel_armed_until = 0.0
 			GameState.cancel_walk()
@@ -404,28 +404,26 @@ static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, lock
 	top.add_child(info)
 	body.add_child(top)
 	if locked:
+		# Bloqueado: cadeado + requisitos acima; o "?" leva ao Como fazer (nada de botão cinza mudo).
 		var actions := UiKit.hbox(8)
-		var blocked := UiKit.button("Passear", func() -> void: pass)
-		blocked.disabled = true
-		blocked.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		actions.add_child(blocked)
-		actions.add_child(UiKit.icon_button(UiKit.ctl_icon("help"), TaskHelp.open.bind("walk", id)))
+		actions.alignment = BoxContainer.ALIGNMENT_END
+		actions.add_child(UiKit.ctl_button("help", TaskHelp.open.bind("walk", id), 40, "soft"))
 		body.add_child(actions)
 		return
 	body.add_child(walk_exclusives(id, 32))
-	var go := UiKit.button("Passear", func() -> void:
+	var go := UiKit.small_go("Passear", func() -> void:
 		var error := GameState.start_walk(id)
 		if error != "":
 			Events.toast_requested.emit(error)
 		else:
-			Events.sheet_close_requested.emit(), &"PrimaryButton")
+			Events.sheet_close_requested.emit())
 	go.name = "StartWalk_" + id
 	go.disabled = GameState.walk_error(id) != ""
-	go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var row := UiKit.hbox(8)
+	row.alignment = BoxContainer.ALIGNMENT_END
 	row.add_child(go)
 	if go.disabled:
-		row.add_child(UiKit.icon_button(UiKit.ctl_icon("help"), TaskHelp.open.bind("walk", id)))
+		row.add_child(UiKit.ctl_button("help", TaskHelp.open.bind("walk", id), 40, "soft"))
 	body.add_child(row)
 	if go.disabled:
 		var reason := UiKit.hbox(6)
@@ -588,39 +586,73 @@ static var _collection_tab := "clothes"
 ## Compras do quiosque; a costura tem acesso próprio e usa StationTray.
 static func petshop_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		box.add_child(UiKit.label("Comprar", &"SectionLabel"))
+		box.add_child(UiKit.section("Comprar"))
+		# Cartões de 2 colunas: figura em disco, nome e preço em pílula verde pequena.
+		var grid := GridContainer.new()
+		grid.name = "ShopGrid"
+		grid.columns = 2
+		grid.add_theme_constant_override("h_separation", 12)
+		grid.add_theme_constant_override("v_separation", 12)
+		box.add_child(grid)
 		for id: String in Database.collections:
 			var data: Dictionary = Database.collections[id]
 			if data.get("shop", "") != "petshop":
 				continue
 			var own := GameState.progress.collection.has(id)
-			var card := UiKit.card(box)
-			var row := UiKit.hbox(8)
-			row.add_child(UiKit.icon(Database.item_icon(id), 64))
-			row.add_child(UiKit.fill_label(str(data.name)))
-			card.add_child(row)
-			var button := UiKit.secondary("Vestir" if own else "Comprar · %d" % int(data.price), func() -> void:
+			var blocked := (GameState.equip_error(id) if own else GameState.buy_cosmetic_error(id)) != ""
+			var card := _shop_card(grid, "ShopCard_" + id, Database.item_icon(id), str(data.name), blocked and not own)
+			var button: Button
+			var act := func() -> void:
 				var error := GameState.equip(id) if own else GameState.buy_cosmetic(id)
 				if error != "":
-					Events.toast_requested.emit(error), null, true)
-			button.disabled = (GameState.equip_error(id) if own else GameState.buy_cosmetic_error(id)) != ""
+					Events.toast_requested.emit(error)
+			if own:
+				button = UiKit.soft("Vestir", act, null, true)
+			else:
+				button = UiKit.button("%d" % int(data.price), act, &"SmallGoButton", UiKit.ui_icon("coin"))
+				button.custom_minimum_size = Vector2(44, 44)
+			button.disabled = blocked
 			card.add_child(button)
 		for id: String in Database.progression.get("shop_items", {}):
 			var data: Dictionary = Database.progression.shop_items[id]
 			if data.get("shop", "") != "petshop":
 				continue
-			var card := UiKit.card(box)
-			card.add_child(UiKit.label(str(data.name), &"SectionLabel"))
-			card.add_child(reward_chips({"items": data.items}))
-			var button := UiKit.secondary("Comprar · %d" % int(data.price), func() -> void:
+			var blocked := GameState.buy_shop_item_error(id) != ""
+			var first_item := str(data.items.keys()[0])
+			var card := _shop_card(grid, "ShopCard_" + id, Database.item_icon(first_item), str(data.name), blocked)
+			var chips := reward_chips({"items": data.items})
+			chips.alignment = FlowContainer.ALIGNMENT_CENTER
+			card.add_child(chips)
+			var button := UiKit.button("%d" % int(data.price), func() -> void:
 				var error := GameState.buy_shop_item(id)
 				if error != "":
-					Events.toast_requested.emit(error), null, true)
-			button.disabled = GameState.buy_shop_item_error(id) != ""
+					Events.toast_requested.emit(error), &"SmallGoButton", UiKit.ui_icon("coin"))
+			button.custom_minimum_size = Vector2(44, 44)
+			button.disabled = blocked
 			card.add_child(button)
 		if not GameState.has_upgrade("walk_bag"):
 			box.add_child(purchase("walk_bag"))
 	)
+
+## Cartão de loja de uma coluna da grade: figura em disco + nome; o chamador acrescenta chips e o botão.
+## `dim` apaga figura e nome (indisponível); o motivo vem em chips/dica, nunca num botão cinza mudo.
+static func _shop_card(grid: GridContainer, card_name: String, texture: Texture2D, title: String, dim: bool) -> VBoxContainer:
+	var cell := VBoxContainer.new()
+	cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var body := UiKit.card(cell)
+	body.get_parent().name = card_name
+	body.add_theme_constant_override("separation", 6)
+	var figure := UiKit.disc(texture, 80, 48)
+	figure.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	figure.modulate.a = 0.55 if dim else 1.0
+	body.add_child(figure)
+	var name_label := UiKit.short_label(title, &"StrongLabel")
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.modulate.a = 0.55 if dim else 1.0
+	body.add_child(name_label)
+	grid.add_child(cell)
+	return body
+
 
 static func collection_panel() -> Control:
 	return SheetBuilder.tall(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:

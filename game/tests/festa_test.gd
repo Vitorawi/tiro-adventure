@@ -189,11 +189,11 @@ func _settings_checks() -> void:
 	check(vibrate != null and reduced != null, "configurações têm Vibrar e Menos animação")
 	check(has_text(panel, "Vibrar") and has_text(panel, "Menos animação"), "textos das preferências")
 	check(saver.get("vibrate_enabled") == true and saver.get("reduced_motion") == false, "padrão: vibra, animação normal")
-	(vibrate.find_child("NotebookTab_off", true, false) as Button).pressed.emit()
+	(vibrate as Button).button_pressed = false  # interruptor liso (UiKit.toggle): mesmo efeito do toque
 	check(saver.get("vibrate_enabled") == false and Haptics.enabled == false, "Vibrar = Não desliga Haptics")
 	await frames()
 	reduced = panel.find_child("ReducedMotionToggle", true, false)
-	(reduced.find_child("NotebookTab_on", true, false) as Button).pressed.emit()
+	(reduced as Button).button_pressed = true
 	check(saver.get("reduced_motion") == true and Motion.reduced == true, "Menos animação = Sim liga Motion.reduced")
 	await frames()
 	# Fica em settings.json (preferência do aparelho, não do save).

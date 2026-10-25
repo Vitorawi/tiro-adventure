@@ -39,7 +39,7 @@ func _ready() -> void:
 	_button = UiKit.button("Agora!", attempt, &"PrimaryButton")
 	_button.custom_minimum_size.y = 64
 	add_child(_button)
-	add_child(UiKit.button("Voltar ao treino", func() -> void:
+	add_child(UiKit.soft("Voltar ao treino", func() -> void:
 		Events.sheet_requested.emit("Treino", TrickUi.panel(true))))
 	Events.state_changed.connect(_validate)
 	_attempt_ready()
@@ -56,7 +56,7 @@ func _attempt_ready() -> void:
 	marker = 0.0
 	_busy = false
 	for i in _points.get_child_count():
-		_points.get_child(i).modulate = Color.WHITE if i < hits else Color(0.4, 0.4, 0.4, 0.35)
+		_points.get_child(i).modulate = Color.WHITE if i < hits else Color(1, 1, 1, 0.3)
 	_motion = create_tween().set_loops()
 	var seconds := float(Database.progression.tricks[trick_id].speed)
 	_motion.tween_property(self, "marker", 1.0, seconds).from(0.0)
@@ -80,10 +80,10 @@ func _process(_delta: float) -> void:
 
 func _draw_bar() -> void:
 	var width := _bar.size.x - 12.0
-	_bar.draw_rect(Rect2(6, 8, width, 40), Palette.TRACK_DARK)
+	_bar.draw_style_box(UiKit.surface(Palette.TRACK_DARK, 20), Rect2(6, 8, width, 40))
 	var zone := float(Database.progression.tricks[trick_id].zone)
-	_bar.draw_rect(Rect2(6 + (zone_center - zone * 0.5) * width, 8, zone * width, 40), Palette.TRACK_ZONE)
-	_bar.draw_rect(Rect2(4 + marker * width, 0, 4, 56), Palette.TRACK_MARKER)
+	_bar.draw_style_box(UiKit.surface(Palette.TRACK_ZONE, 20), Rect2(6 + (zone_center - zone * 0.5) * width, 8, zone * width, 40))
+	_bar.draw_style_box(UiKit.surface(Palette.TRACK_MARKER, 2), Rect2(4 + marker * width, 0, 4, 56))
 
 
 func attempt() -> void:
