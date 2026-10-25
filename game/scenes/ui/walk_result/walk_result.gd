@@ -1,26 +1,40 @@
 class_name WalkResult
 extends CanvasLayer
-## Cartão "Volta do passeio": postal, achados em fila (ícone + quantidade, "Novo!" na primeira vez),
+## Cartão "Volta do passeio": postal, achados em chips (ícone + quantidade, "Novo!" na primeira vez),
 ## moedas e vínculo. Sem estado: o resumo vem de Events.walk_collected (GameState.return_due_walk), UM por viagem.
 ## O Tiro já está em casa; se sobrou bagagem, o cartão oferece "Guardar achados" (ou "Ver bagagem" quando não cabe).
 ## Abrir o cartão só marca o resultado como visto (`mark_walk_result_shown`): nunca premia.
-## Usa o `ModalCard`; raro e lendário ganham moldura dourada, estrela e confete.
+## Passeio comum = folha média (`RewardSheet`); raro, lendário e roupa pronta = `ModalCard` grande com
+## moldura dourada, estrela e confete.
 
 var _panel: PanelContainer
 var _box: VBoxContainer
+var _sheet: RewardSheet
+var _card: ModalCard
+var _actions: Dictionary = {}
 
 
 func show_result(result: Dictionary) -> void:
 	var rare := str(result.get("rare", ""))
 	var legendary := str(result.get("legendary", ""))
 	var sewing: bool = result.get("kind", "") == "sewing"
-	var title := "Roupa pronta!" if sewing else "De volta! %s" % str(result.get("name", ""))
-	var card := ModalCard.open(self, {"title": title, "ribbon": Palette.ACCENT if sewing else Palette.INFO,
-		"scroll_name": "WalkResultScroll", "separation": 10,
-		"confetti": rare != "" or legendary != "", "haptic": "big" if (rare != "" or legendary != "") else "success"})
-	_panel = card.panel
-	_box = card.box
+	var festive := rare != "" or legendary != ""
+	var title := "Roupa pronta!" if sewing else "De volta!"
+	_sheet = null
+	_card = null
+	if festive:
+		_card = ModalCard.open(self, {"title": title, "ribbon": Palette.HONEY,
+			"scroll_name": "WalkResultScroll", "separation": 10, "confetti": true, "haptic": "big"})
+		_panel = _card.panel
+		_box = _card.box
+	else:
+		_sheet = RewardSheet.open(self, {"title": title, "ribbon": Palette.HONEY if sewing else Palette.GO,
+			"ribbon_icon": "" if sewing else "check", "scroll_name": "WalkResultScroll"})
+		_panel = _sheet.panel
+		_box = _sheet.body
 	_box.name = "WalkResultBox"
+	if not sewing and str(result.get("name", "")) != "":
+		_text(str(result.name), &"SectionLabel")
 	var postcard := postcard_texture(str(result.get("postcard", "")))
 	if postcard:
 		var picture := UiKit.icon(postcard, 0)
@@ -28,43 +42,48 @@ func show_result(result: Dictionary) -> void:
 		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		_box.add_child(_center(picture))
+		_put(_center(picture))
 	if bool(result.get("first", false)):
 		var first_label := UiKit.label("Primeira vez!", &"SectionLabel", UiKit.GOOD)
 		first_label.name = "FirstTime"
-		_box.add_child(_center(first_label))
+		_put(_center(first_label))
 	if rare != "":
-		_rare_banner(card, rare)
+		_rare_banner(_card, rare)
 	if legendary != "":
-		_rare_banner(card, legendary)
-	var found := UiKit.flow(10)
+		_rare_banner(_card, legendary)
+	var found := UiKit.flow(8)
 	found.name = "Found"
 	var fresh: Array = result.get("new", [])
 	var items: Dictionary = result.get("items", {})
 	for id: String in items:
-		var cell := UiKit.vbox(2)
+		var cell := PanelContainer.new()
 		cell.name = "Found_" + id
-		cell.add_child(_center(UiKit.icon(Database.item_icon(id), 48)))
-		var count := UiKit.label("×%d" % int(items[id]), &"SectionLabel")
-		cell.add_child(_center(count))
+		cell.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var cell_style := UiKit.surface(Palette.HONEY_SOFT, 16)
+		cell_style.set_content_margin_all(8)
+		cell.add_theme_stylebox_override("panel", cell_style)
+		var column := UiKit.vbox(2)
+		column.add_child(_center(UiKit.icon(Database.item_icon(id), 48)))
+		column.add_child(_center(UiKit.label("×%d" % int(items[id]), &"NumberLabel")))
 		if id in fresh:
-			cell.add_child(_center(UiKit.label("Novo!", &"SmallLabel", UiKit.GOOD)))
+			column.add_child(_center(UiKit.label("Novo!", &"SmallLabel", UiKit.GOOD)))
+		cell.add_child(column)
 		found.add_child(cell)
 	var chips := UiKit.flow()
 	if int(result.get("coins", 0)) > 0:
-		chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(result.coins)))
+		chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(result.coins), null, "prize"))
 	var needs: Dictionary = result.get("needs", {})
 	for need_id: String in needs:
 		chips.add_child(UiKit.chip(Database.need_icon(need_id), "%+d" % int(needs[need_id]), UiKit.GOOD if float(needs[need_id]) > 0 else UiKit.BAD))
 	if bool(result.get("rare_duplicate", false)):
 		var duplicate_name := str(Database.collections.get(str(result.get("rare_item", "")), {}).get("name", "apetrecho"))
-		var consolation := card.add_text("Você já tem o %s!" % duplicate_name, &"SmallLabel")
+		var consolation := _text("Você já tem o %s!" % duplicate_name, &"SmallLabel")
 		consolation.name = "Consolation"
 	if found.get_child_count() > 0:
-		card.add_chips(found)
+		_chips(found)
 	else:
 		found.queue_free()
-	card.add_chips(chips)
+	_chips(chips)
 	var clothes: Array = result.get("collections", [])
 	if rare != "" and not rare in clothes:
 		clothes = clothes.duplicate()
@@ -78,14 +97,14 @@ func show_result(result: Dictionary) -> void:
 				hide())
 		dress.name = "Equip_" + id
 		dress.disabled = GameState.equip_error(id) != ""
-		card.add(dress)
+		_put(dress)
 	var left: Dictionary = GameState.walk_state.baggage_left() if not sewing else {}
 	if left.is_empty():
-		var close := card.add_primary("Oba!", hide)
+		var close := _primary("Oba!", hide)
 		close.name = "CloseResult"
 	else:
 		var blocked := GameState.walk_baggage_error() != ""
-		var store := card.add_primary("Ver bagagem" if blocked else "Guardar achados", func() -> void:
+		var store := _primary("Ver bagagem" if blocked else "Guardar achados", func() -> void:
 			if blocked:
 				var at := Database.place_with_panel("walks")
 				hide()
@@ -97,11 +116,47 @@ func show_result(result: Dictionary) -> void:
 				Events.toast_requested.emit(hint)
 			hide())
 		store.name = "StoreBaggage"
-		var later := card.add_ghost("Depois", hide)
+		var later := _later("Depois", hide)
 		later.name = "CloseResult"
 	show()
+	if _sheet:
+		_sheet.present()
 	if not sewing:
 		GameState.mark_walk_result_shown()
+
+
+func _put(control: Control) -> Control:
+	return _sheet.add(control) if _sheet else _card.add(control)
+
+
+func _text(text: String, variation: StringName = &"", color: Variant = null) -> Label:
+	return _sheet.add_text(text, variation, color) if _sheet else _card.add_text(text, variation, color)
+
+
+func _chips(chips: Container) -> void:
+	if _sheet:
+		_sheet.add_chips(chips)
+	else:
+		_card.add_chips(chips)
+
+
+## Botão principal (um só): no cartão grande vai no corpo; na folha ocupa o resto da linha de botões.
+func _primary(text: String, on_pressed: Callable) -> Button:
+	if _card:
+		return _card.add_primary(text, on_pressed)
+	_actions = _sheet.add_actions("", Callable(), text, on_pressed)
+	return _actions.primary as Button
+
+
+## Ação fraca ("Depois"): fantasma no cartão grande; na folha é o `soft` à esquerda do principal.
+func _later(text: String, on_pressed: Callable) -> Button:
+	if _card:
+		return _card.add_ghost(text, on_pressed)
+	var soft := UiKit.soft(text, on_pressed)
+	var row: Node = (_actions.primary as Button).get_parent()
+	row.add_child(soft)
+	row.move_child(soft, 0)
+	return soft
 
 
 ## Postal do passeio (arquivo em walks.json); null se não existir.

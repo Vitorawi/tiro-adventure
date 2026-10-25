@@ -88,7 +88,7 @@ flowchart TD
 | [x] | [07](etapas/ETAPA_07_HORTA_BANDEJAS.md) | `FarmDock`, bandejas das estações | grande |
 | [x] | [08](etapas/ETAPA_08_MOCHILA.md) | Mochila, detalhe, caderninho, Coleção, Álbum | médio |
 | [x] | [09](etapas/ETAPA_09_PAINEIS.md) | painéis grandes | grande |
-| [ ] | [10](etapas/ETAPA_10_FESTA.md) | `ModalCard` novo, `RewardSheet`, boas-vindas, Novo! | médio |
+| [x] | [10](etapas/ETAPA_10_FESTA.md) | `ModalCard` novo, `RewardSheet`, boas-vindas, Novo! | médio |
 | [ ] | [11](etapas/ETAPA_11_TEXTO.md) | orçamento de texto, Texto maior, limpeza | médio |
 | [ ] | [12](etapas/ETAPA_12_FECHAMENTO.md) | suíte inteira, toque real, desempenho, docs | médio |
 
@@ -276,3 +276,6 @@ Checklist 04 §B: Crescimento ✓, Feira/Encomendas/Banca ✓, Lojas ✓, Obras 
 Como fazer ✓ (lista; passo único ainda é um cartão), Configurações ✓, Esconde-esconde ? (não capturado), DEV ? (não tocado).
 Pendências: Como fazer com passos de crescimento ainda em cartões `ReadyCardPanel`; texto "Toque em Jogar…" foi removido das
 Configurações (orçamento de texto). Próxima **10**, não iniciada. Sem push/publicação.
+
+
+**Etapa 10 (25/10/2026, Claude Sonnet 5.5; local):** `ModalCard` grande no visual novo (cantos 28, fita-pílula com `StrongLabel` branco e `ribbon_icon` opcional, raios alfa 0,35, chips grandes 44/ícone 36 via `RewardSheet.grow_chip`) e `RewardSheet` (`scripts/ui/reward_sheet.gd`, folha média: alça, fita, fala opcional, chips, bloco livre, `add_actions` soft+primary, arrastar/fundo/X/Escape fecham por `on_close`), base de `QuestReward` (nós `Reward*` preservados), `WelcomeBack` (Tiro no topo, `DailyGift` com Pegar, `Line_*` com `list_row` + seta, Depois/Vamos lá!), passeio comum (`WalkResult`: folha; raro/lendário/roupa = `ModalCard` com confete; título agora `De volta!` e o nome do passeio vira linha abaixo; achados em cartões mel `Found_<item>`) e Novo! (`Celebration.show_unlocks`: uma folha pequena por novidade, Depois passa para a próxima, Ir encerra a lista; `UnlockGo`). Cerimônia: só a pele (fita mel). Regra `nunca dois` conferida por captura (`--i2-10-only` imprime `PAR ...: visíveis=1` para capítulo+Novo! e passeio+Novo!; crescimento+Novo! usa a mesma `_card_open`, sem captura própria). Testes ajustados de propósito: `festa_test` (cantos 28, boas-vindas acha `RewardSheet`, ícones de achado sem a seta do botão). Testes 13/13 PASS (lista da etapa + ui_style, walks, park, petshop, tasks) em 170 s; log `build/test_logs/r20261025_013204_53b7bf0c/`; reexecução dos 7 afetados após trocar o `Ir` do capítulo por seta: 10/10 PASS em 143 s. Capturas `i2_10_antes`, `i2_10_depois` (+ `_390`, `_412`).

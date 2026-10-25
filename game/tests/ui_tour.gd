@@ -79,6 +79,10 @@ func _run() -> void:
 	var places: Script = load("res://scripts/ui/places.gd")
 	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
+	if "--i2-10-only" in OS.get_cmdline_user_args():
+		await _i2_10_shots()
+		quit(0)
+		return
 	if "--i2-09-only" in OS.get_cmdline_user_args():
 		await _i2_09_shots()
 		quit(0)
@@ -1078,6 +1082,82 @@ func _festa_shots() -> void:
 	load("res://scripts/ui/settings_panel.gd").call("open")
 	await shot("h05_settings_haptics", 0.8)
 	await _close()
+
+
+## Interface 2, etapa 10: comemorações nos quatro tamanhos (i2_10_<cartão>) e os pares da fila.
+func _i2_10_shots() -> void:
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	await _start_main(1.5)
+	main.call("show_screen", &"pet")
+	_hide_modals()
+	Motion.reduced = false
+	var celebration: CanvasLayer = main.get("_celebration")
+	celebration.call("show_chapter", 2, ["world:village", "feature:bag"] as Array[String])
+	await shot("i2_10_chapter", 1.0)
+	celebration.hide()
+	celebration.call("show_unlocks", ["world:village"] as Array[String])
+	await shot("i2_10_unlock", 0.8)
+	celebration.hide()
+	var progress: RefCounted = state.get("progress")
+	progress.daily_gift["period"] = ""
+	var finds: RefCounted = state.get("finds")
+	var world_ids: Array = root.get_node("Database").get("finds").worlds.keys()
+	for i in mini(3, world_ids.size()):
+		finds.worlds[world_ids[i]] = {"next_at": 0.0, "pending": 1, "spot": 0, "dug": 0, "seed": 0}
+	_empty_plots()
+	for i in 3:
+		state.call("plant", i, "carrot")
+	state.call("dev_finish_timers")
+	var welcome: CanvasLayer = main.get("_welcome")
+	welcome.call("open")
+	await shot("i2_10_welcome", 1.0)
+	welcome.hide()
+	var walk: CanvasLayer = main.get("_walk_result")
+	var postcard: String = state.call("walk_postcard", "park_loop")
+	walk.call("show_result", {"name": "Volta na praça", "postcard": postcard, "first": true, "items": {"stick": 2, "ribbon": 1}, "new": ["stick"], "coins": 30, "needs": {"happiness": 35, "hygiene": -20}})
+	await shot("i2_10_walk", 1.0)
+	walk.hide()
+	walk.call("show_result", {"name": "Volta na praça", "postcard": postcard, "first": true, "rare": "plaid_bow", "items": {"stick": 2}, "new": ["stick"], "coins": 30})
+	await shot("i2_10_walk_rare", 1.0)
+	walk.hide()
+	celebration.call("show_trick", "paw")
+	await shot("i2_10_trick", 0.8)
+	celebration.hide()
+	celebration.call("show_treasure", {"coins": 200, "items": {"carrot": 3}, "collections": ["explorer_hat"], "unlocks": ["crop:blueberry"]})
+	await shot("i2_10_treasure", 0.6)
+	celebration.hide()
+	var phases: Array = root.get_node("Database").get("growth").phases
+	state.call("dev_set_phase", str(phases[1].id))
+	state.get("growth").ceremonies.erase(str(phases[2].id))
+	main.get("_growth_queued").erase(str(phases[2].id))
+	state.call("dev_complete_growth_reqs")
+	state.call("_mark_all_seen")
+	state.call("grow")
+	await create_timer(4.8).timeout
+	await shot("i2_10_ceremony", 0.1)
+	main.get("_growth_ceremony").call("_close")
+	await create_timer(0.4).timeout
+	# Pares da fila: nunca dois cartões ao mesmo tempo.
+	_hide_modals()
+	var pairs := [
+		["i2_10_pair_chapter", func() -> void: celebration.call("show_chapter", 2, [] as Array[String])],
+		["i2_10_pair_walk", func() -> void: walk.call("show_result", {"name": "Volta na praça", "postcard": postcard, "items": {"stick": 1}})],
+	]
+	for entry: Array in pairs:
+		main.call("_queue_modal", entry[1])
+		main.call("_queue_modal", func() -> void: celebration.call("show_unlocks", ["world:village"] as Array[String]))
+		main.call("_flush_modals")
+		await shot(str(entry[0]) + "_1", 0.8)
+		var visible_count := 0
+		for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony", "_quest_reward"]:
+			if (main.get(member) as CanvasLayer).visible:
+				visible_count += 1
+		print("PAR ", entry[0], ": visíveis=", visible_count)
+		_hide_modals()
+	Motion.reduced = true
 
 
 ## Interface 2, etapa 09: uma captura de cada painel grande (i2_09_<painel>).

@@ -16,19 +16,20 @@ static func has_content() -> bool:
 ## `animate` falso reabre o cartão sem repetir a entrada (depois de pegar o presente).
 func open(animate: bool = true) -> void:
 	var has_gift := GameState.daily_gift_error() == ""
-	var card := ModalCard.open(self, {"title": "Que bom que você voltou!", "ribbon": Palette.ACCENT,
-		"hero": PetAnimator.portrait(), "scroll_name": "WelcomeScroll", "animate": animate})
+	var sheet := RewardSheet.open(self, {"title": "Que bom que você voltou!", "ribbon": Palette.HONEY, "ribbon_icon": "",
+		"hero": PetAnimator.portrait(), "scroll_name": "WelcomeScroll", "animate": animate, "haptic": "", "on_close": _close})
 	if has_gift:
-		_gift_card(card)
+		_gift_card(sheet, animate)
 	for line: Dictionary in GameState.welcome_ready_lines():
-		card.add(_line_row(line))
+		sheet.add(_line_row(line))
 		if str(line.kind) == "growth" and not bool(line.get("sleeping", false)):
 			GameState.mark_growth_ready_seen()
 	if has_gift:
-		card.add_ghost("Vamos lá!", _close)
+		sheet.add_actions("Depois", _close, "", Callable())
 	else:
-		card.add_primary("Vamos lá!", _close)
+		sheet.add_actions("", Callable(), "Vamos lá!", _close)
 	show()
+	sheet.present()
 
 
 func _close() -> void:
@@ -36,18 +37,21 @@ func _close() -> void:
 	GameState.reveal_sleeping_growth()
 
 
-## Presente do dia: cartão verde no topo, com o único botão principal.
-func _gift_card(card: ModalCard) -> void:
+## Presente do dia: cartão verde no topo, chips grandes e o único botão principal (Pegar).
+func _gift_card(sheet: RewardSheet, animate: bool) -> void:
 	var rewards := GameState.daily_gift_rewards()
-	var gift := UiKit.card(card.box, &"ReadyCardPanel")
+	var gift := UiKit.card(sheet.body, &"ReadyCardPanel")
 	gift.name = "DailyGift"
 	var title := UiKit.label("Presente do dia", &"SectionLabel")
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	gift.add_child(title)
 	var chips := ProgressionUi.reward_chips(rewards)
 	chips.alignment = FlowContainer.ALIGNMENT_CENTER
+	for chip: Node in chips.get_children():
+		RewardSheet.grow_chip(chip as Control)
 	gift.add_child(chips)
-	card.reveal(chips)
+	if animate:
+		RewardSheet.reveal_in(chips)
 	gift.add_child(UiKit.primary("Pegar", func() -> void:
 		var items: Dictionary = rewards.get("items", {})
 		var coins := int(rewards.get("coins", 0))
@@ -99,8 +103,7 @@ func _line_row(line: Dictionary) -> Control:
 			Events.world_requested.emit("house", "look:" + str(line.target))
 		else:
 			Places.go(target)
-	var button := UiKit.secondary("Ir", go, null, true)
-	button.custom_minimum_size = Vector2(72, 44)
+	var button := UiKit.ctl_button("chev", go, 40, "sunken")
 	var row := UiKit.list_row(texture, title, chips, button, go)
 	row.name = "Line_" + kind + ("_" + str(line.world) if kind == "ready" else "")
 	return row

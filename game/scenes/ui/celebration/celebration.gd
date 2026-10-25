@@ -5,10 +5,13 @@ extends CanvasLayer
 ## Confete só nos grandes momentos: nível, capítulo, tesouro e vínculo.
 
 
+var _pending_unlocks: Array[Dictionary] = []
+
+
 ## Capítulo concluído: recompensas + novidades.
 func show_chapter(index: int, unlocks: Array[String]) -> void:
 	var chapter: Dictionary = Database.progression.chapters[index - 1]
-	var card := _open({"title": "Capítulo concluído!", "ribbon": Palette.PRIMARY, "icon": UiKit.ui_icon("xp"),
+	var card := _open({"title": "Capítulo concluído!", "ribbon": Palette.GO, "ribbon_icon": "check", "icon": UiKit.ui_icon("xp"),
 		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "big"})
 	card.add_text(str(chapter.name), &"SectionLabel")
 	card.add_chips(ProgressionUi.reward_chips(chapter.get("rewards", {})))
@@ -29,7 +32,7 @@ func show_chapter(index: int, unlocks: Array[String]) -> void:
 ## Obra comunitária concluída: o prêmio já entrou (itens sem espaço ficaram em "Presentes para guardar").
 func show_project(id: String) -> void:
 	var def := Database.project(id)
-	var card := _open({"title": "Obra pronta!", "ribbon": Palette.PRIMARY, "icon": UiKit.ui_icon(str(def.get("icon", "tab_park"))), "icon_px": 96,
+	var card := _open({"title": "Obra pronta!", "ribbon": Palette.GO, "ribbon_icon": "check", "icon": UiKit.ui_icon(str(def.get("icon", "tab_park"))), "icon_px": 96,
 		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "big"})
 	card.add_text(str(def.get("name", "")), &"SectionLabel")
 	var chips := ProgressionUi.reward_chips(def.get("rewards", {}))
@@ -58,7 +61,7 @@ func show_find(result: Dictionary) -> void:
 	var ids: Array = result.get("new", [])
 	var item := str(ids[0]) if not ids.is_empty() else ""
 	var texture: Texture2D = Database.item_icon(item) if item != "" else UiKit.ui_icon(str(result.get("icon", "find_paw")))
-	var card := _open({"title": "Novo achado!", "ribbon": Palette.INFO, "icon": texture,
+	var card := _open({"title": "Novo achado!", "ribbon": Palette.INFO, "ribbon_icon": "spark", "icon": texture,
 		"scroll_name": "CelebrationScroll", "haptic": "success"})
 	card.add_text(Database.item_name(item) if item != "" else str(result.get("announcement", result.label)), &"SectionLabel")
 	var progress_text := "%d/16" % GameState.find_album_count()
@@ -99,18 +102,54 @@ func show_treasure(rewards: Dictionary) -> void:
 
 func show_trick(id: String) -> void:
 	var def: Dictionary = Database.progression.tricks[id]
-	var card := _open({"title": "Novo truque!", "ribbon": Palette.ACCENT, "icon": UiKit.ui_icon(str(def.icon)),
+	var card := _open({"title": "Novo truque!", "ribbon": Palette.INFO, "ribbon_icon": "spark", "icon": UiKit.ui_icon(str(def.icon)),
 		"scroll_name": "CelebrationScroll", "haptic": "success"})
 	card.add_text(str(def.name), &"SectionLabel")
 	card.add_primary("Oba!", hide)
 	show()
 
 
+## "Novo!": uma folha pequena por novidade (ícone, nome, uma linha, Ir/Depois); Depois passa para a próxima.
 func show_unlocks(unlocks: Array[String]) -> void:
-	var card := _open({"title": "Novo!", "ribbon": Palette.PRIMARY, "scroll_name": "CelebrationScroll"})
-	_unlock_rows(card, unlocks)
-	card.add_primary("Continuar", hide)
+	_pending_unlocks.clear()
+	for key in unlocks:
+		var view := Places.unlock_view(key)
+		if not view.is_empty():
+			view["key"] = key
+			_pending_unlocks.append(view)
+	_next_unlock()
+
+
+func _next_unlock() -> void:
+	if _pending_unlocks.is_empty():
+		hide()
+		return
+	var view: Dictionary = _pending_unlocks.pop_front()
+	var target: Dictionary = view.target
+	var sheet := RewardSheet.open(self, {"title": "Novo!", "ribbon": Palette.INFO, "ribbon_icon": "spark",
+		"scroll_name": "CelebrationScroll", "haptic": "success", "on_close": _next_unlock})
+	var icon := UiKit.icon(view.icon, 64)
+	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	sheet.add(icon)
+	sheet.add_text(str(view.name), &"TitleLabel")
+	sheet.add_text(_unlock_line(str(view.key)), &"SmallLabel")
+	var actions := sheet.add_actions("Depois", sheet.close, "Ir", func() -> void:
+		_pending_unlocks.clear()
+		hide()
+		Places.go(target))
+	(actions.primary as Button).name = "UnlockGo"
 	show()
+	sheet.present()
+
+
+func _unlock_line(key: String) -> String:
+	match key.get_slice(":", 0):
+		"world": return "Um mundo novo para explorar"
+		"place": return "Um lugar novo"
+		"npc": return "Uma nova amizade"
+		"walk": return "Um passeio novo"
+	return "Uma novidade"
 
 
 ## Uma linha por novidade: [ícone] Nome  [Ir].
@@ -124,10 +163,9 @@ func _unlock_rows(card: ModalCard, unlocks: Array[String]) -> void:
 		name_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		name_box.add_child(UiKit.label("Novo!", &"SmallLabel", UiKit.GOOD))
 		name_box.add_child(UiKit.label(view.name, &"SectionLabel"))
-		var go := UiKit.secondary("Ir", func() -> void:
+		var go := UiKit.ctl_button("chev", func() -> void:
 			hide()
-			Places.go(target), null, true)
-		go.custom_minimum_size = Vector2(72, 48)
+			Places.go(target), 40, "sunken")
 		var inner := UiKit.card(card.box, &"CardPanel")
 		var row := UiKit.hbox(10)
 		row.add_child(UiKit.icon(view.icon, 48))
@@ -137,4 +175,5 @@ func _unlock_rows(card: ModalCard, unlocks: Array[String]) -> void:
 
 
 func _open(options: Dictionary) -> ModalCard:
+	_pending_unlocks.clear()
 	return ModalCard.open(self, options)

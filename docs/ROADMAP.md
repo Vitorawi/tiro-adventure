@@ -2,6 +2,8 @@
 
 ## Estado atual
 
+**Interface 2 — etapa 10 concluída (25/10/2026, Claude Sonnet 5.5; local).** Comemorações nos quatro tamanhos: `ModalCard` novo (grande), `RewardSheet` (folha média) usada por `QuestReward`, boas-vindas, passeio comum e Novo!; cerimônia só com a pele. Fila e regras de jogo intactas. Próxima: etapa 11 (texto). Sem push/publicação. Ver registro no README do plano.
+
 **Interface 2 — etapa 09 concluída (25/10/2026, Claude Sonnet 5.5; local).** Painéis grandes no visual novo: Crescimento,
 Feira/Encomendas/Banca, lojas (animais e pet shop em grade 2×2 com preço em pílula verde), Obras (`steps`, `tile`, `stepper`),
 Passeios, Amigos, Truques, Natureza (níveis), Como fazer e Configurações (`UiKit.toggle`, saves em `list_card`). `ctl_button`

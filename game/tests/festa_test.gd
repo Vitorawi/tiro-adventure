@@ -80,7 +80,7 @@ func _celebration_checks() -> void:
 	check(card != null and card.visible and celebration.visible, "show_treasure monta um ModalCard")
 	check(card.find_child("RibbonTitle", true, false) is Label and "Tesouro encontrado!" == (card.find_child("RibbonTitle", true, false) as Label).text, "fita traz o tesouro")
 	check(card.find_child("BigIcon", true, false) != null and card.find_child("Rays", true, false) != null, "ícone grande com raios")
-	check(((card.get("panel") as PanelContainer).get_theme_stylebox("panel") as StyleBoxFlat).corner_radius_top_left == 22 and (card.get("panel") as PanelContainer).custom_minimum_size.x == 320.0, "cartão 320 de largura, cantos 22")
+	check(((card.get("panel") as PanelContainer).get_theme_stylebox("panel") as StyleBoxFlat).corner_radius_top_left == 28 and (card.get("panel") as PanelContainer).custom_minimum_size.x == 320.0, "cartão 320 de largura, cantos 28")
 	check(primary_count(card) == 1, "um botão principal só (%d)" % primary_count(card))
 	check(Haptics.calls == [Haptics.BIG_MS], "nível vibra forte uma vez (%s)" % str(Haptics.calls))
 	var chips := (card.get("box") as Control).find_children("*", "HFlowContainer", true, false)[0] as Container
@@ -240,13 +240,19 @@ func _welcome_checks() -> void:
 	root.add_child(welcome)
 	welcome.call("open")
 	await frames()
-	var card := welcome.find_child("ModalCard", true, false) as Control
-	check(card != null and welcome.visible, "boas-vindas usa o ModalCard")
+	var card := welcome.find_child("RewardSheet", true, false) as Control
+	check(card != null and welcome.visible, "boas-vindas usa a folha (RewardSheet)")
 	var dig_rows := welcome.find_children("Line_dig", "", true, false)
 	check(dig_rows.size() == 1 and has_text(dig_rows[0], "3 achados"), "boas-vindas com 3 achados mostra UMA linha de achados")
 	var world_icons := 0
 	for icon: Node in dig_rows[0].find_children("*", "TextureRect", true, false):
-		world_icons += 1
+		var inside_button := false  # a seta do Ir (botão ctl) não é ícone de achado
+		var up := icon.get_parent()
+		while up != null and up != dig_rows[0]:
+			inside_button = inside_button or up is Button
+			up = up.get_parent()
+		if not inside_button:
+			world_icons += 1
 	check(world_icons == 4, "linha de achados: ícone da pata + 3 ícones de mundo (%d)" % world_icons)
 	var ready_rows := welcome.find_children("Line_ready_farm", "", true, false)
 	check(ready_rows.size() == 1 and has_text(ready_rows[0], "2 prontos no Sítio"), "2 prontos no Sítio")

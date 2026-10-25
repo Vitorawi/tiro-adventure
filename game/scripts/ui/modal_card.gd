@@ -75,7 +75,7 @@ func _build(options: Dictionary) -> void:
 	scroll.add_child(box)
 	var title := str(options.get("title", ""))
 	if title != "":
-		box.add_child(_ribbon(title, options.get("ribbon", Palette.GOLD) as Color))
+		box.add_child(_ribbon(title, options.get("ribbon", Palette.GOLD) as Color, str(options.get("ribbon_icon", ""))))
 	if options.get("hero") is Control:
 		box.add_child(_centered(options.hero as Control))
 	elif options.get("icon") is Texture2D:
@@ -96,7 +96,7 @@ func _build(options: Dictionary) -> void:
 static func _panel_style() -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Palette.PAPER
-	style.set_corner_radius_all(22)
+	style.set_corner_radius_all(28)
 	style.set_border_width_all(3)
 	style.border_color = Palette.CARD_LINE
 	style.set_content_margin_all(14)
@@ -106,25 +106,26 @@ static func _panel_style() -> StyleBoxFlat:
 	return style
 
 
-## Faixa no topo com o título (NumberLabel 26) e um degrau mais escuro embaixo.
-func _ribbon(title: String, color: Color) -> Control:
+## Pílula colorida no topo (verde = concluído, mel = crescimento/prêmio, azul = descoberta)
+## com o título em StrongLabel branco e um ícone opcional (`ribbon_icon`, nome ctl).
+func _ribbon(title: String, color: Color, icon_name: String = "") -> Control:
 	ribbon = PanelContainer.new()
 	ribbon.name = "Ribbon"
-	var style := StyleBoxFlat.new()
-	style.bg_color = color
-	style.set_corner_radius_all(12)
-	style.border_width_bottom = 4
-	style.border_color = color.darkened(0.3)
-	style.content_margin_left = 12
-	style.content_margin_right = 12
-	style.content_margin_top = 6
-	style.content_margin_bottom = 4
+	var style := UiKit.surface(color, 20)
+	style.content_margin_left = 16
+	style.content_margin_right = 16
+	style.content_margin_top = 8
+	style.content_margin_bottom = 8
 	ribbon.add_theme_stylebox_override("panel", style)
-	var label := UiKit.label(title, &"NumberLabel")
+	ribbon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var row := UiKit.hbox(6)
+	if icon_name != "":
+		row.add_child(UiKit.ctl(icon_name, 20, Palette.CARD))
+	var label := UiKit.short_label(title, &"StrongLabel", Palette.CARD)
 	label.name = "RibbonTitle"
-	label.add_theme_font_size_override("font_size", 26)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	ribbon.add_child(label)
+	row.add_child(label)
+	ribbon.add_child(row)
 	return ribbon
 
 
@@ -142,7 +143,7 @@ func _stage(texture: Texture2D, icon_px: int, with_rays: bool) -> Control:
 		rays.size = Vector2(RAYS_PX, RAYS_PX)
 		rays.position = Vector2((INNER - RAYS_PX) / 2.0, 0)
 		rays.pivot_offset = rays.size / 2.0
-		rays.modulate.a = 0.6
+		rays.modulate.a = 0.35
 		rays.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		rays.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		stage.add_child(rays)
@@ -251,6 +252,8 @@ func add_chips(chips: Container) -> Container:
 		return chips
 	if chips is FlowContainer:
 		(chips as FlowContainer).alignment = FlowContainer.ALIGNMENT_CENTER
+	for chip: Node in chips.get_children():
+		RewardSheet.grow_chip(chip as Control)
 	box.add_child(chips)
 	reveal(chips)
 	return chips

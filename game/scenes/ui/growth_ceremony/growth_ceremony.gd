@@ -121,7 +121,7 @@ func _play() -> void:
 
 
 func show_card() -> void:
-	var card := ModalCard.open(self, {"title": "O Tiro cresceu!", "icon": load(str(Database.growth.bodies[_after.body].portrait)),
+	var card := ModalCard.open(self, {"title": "O Tiro cresceu!", "ribbon": Palette.HONEY, "icon": load(str(Database.growth.bodies[_after.body].portrait)),
 		"icon_px": 64, "confetti": not Motion.reduced, "haptic": "big"})
 	card.icon_node.material = DogLook.material()
 	(card.icon_node.material as ShaderMaterial).set_shader_parameter("coat", float(_after.coat))
