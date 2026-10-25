@@ -19,7 +19,7 @@ func show_result(result: Dictionary) -> void:
 	var legendary := str(result.get("legendary", ""))
 	var sewing: bool = result.get("kind", "") == "sewing"
 	var festive := rare != "" or legendary != ""
-	var title := "Roupa pronta!" if sewing else "De volta!"
+	var title := "Roupa pronta!" if sewing else "Voltou do passeio!"
 	_sheet = null
 	_card = null
 	if festive:

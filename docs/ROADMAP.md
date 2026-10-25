@@ -2,6 +2,17 @@
 
 ## Estado atual
 
+**Interface 2 — ajustes, etapa 07 concluída localmente (25/10/2026, Codex).** Itens 16/31:
+capítulo usa `ModalCard.fixed_body` + `add_scroll_area`: fita, herói, prêmios e ações fixos,
+só `ChapterUnlocks` rola (três colunas, ícones 40, legenda numa linha e toque via Places.go).
+Destinos iguais e mundo/lugar homônimos são juntados, com prioridade do mundo. Novo! informa
+onde está pelo target/in_name e `UnlockGo` diz "Ir para a/o …"; sem mundo ou sem largura usa "Ir".
+Passeio: "Voltou do passeio!", preservando "Roupa pronta!" e o nome da rota. Lista fechada
+8/8 PASS em 125,3 s (`build/test_logs/r20261025_150725_4408f80c/results.csv`), glossário conferido.
+Capturas antes/depois nas três resoluções abertas/comparadas; `--aj-07-only`, oito PNGs por pasta.
+Registro e casos de "Ir" no README do plano. AGENTS/CLAUDE idênticos; regras/save/falas preservados.
+Próxima: 08, não iniciada. Sem push/publicação.
+
 **Interface 2 — ajustes, etapa 06 concluída localmente (25/10/2026, Codex).** Itens 22/24/25/29:
 capítulo com vetores 20 e linhas 56; nomes de Pessoas/Diárias numa linha, setas sem disco e prêmios
 junto do progresso. Segmentado único recolhe; caderninho opção A (nomes + ícones 20 e rolagem),

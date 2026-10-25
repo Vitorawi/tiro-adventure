@@ -56,6 +56,8 @@ func _run() -> void:
 	Motion.reduced = false
 	Haptics.enabled = true
 	await _celebration_checks()
+	await _chapter_unlock_checks()
+	await _unlock_text_checks()
 	await _haptics_checks()
 	await _settings_checks()
 	await _welcome_checks()
@@ -134,6 +136,77 @@ func _celebration_checks() -> void:
 	check(not celebration.visible, "Oba! fecha")
 	celebration.queue_free()
 	await frames()
+
+
+func _chapter_unlock_checks() -> void:
+	root.size = Vector2i(360, 780)
+	Motion.reduced = true
+	var celebration := _open_celebration()
+	var unlocks: Array[String] = ["world:farm", "world:village", "world:house", "npc:nina", "place:farm/orchard", "feature:bag"]
+	celebration.call("show_chapter", 2, unlocks)
+	await frames(10)
+	var card := celebration.find_child("ModalCard", true, false) as Control
+	var panel := card.get("panel") as Control
+	var scroll := card.find_child("CelebrationScroll", true, false) as ScrollContainer
+	var grid := card.find_child("ChapterUnlocks", true, false) as GridContainer
+	check(grid != null and grid.columns == 3 and grid.get_child_count() == 6, "seis novidades em três colunas")
+	var names: Array[String] = []
+	for tile: Button in grid.get_children():
+		var caption := str(tile.get_meta("unlock_name"))
+		check(caption not in names and not has_text(tile, "Novo!"), "nome único, sem Novo em cada chip: " + caption)
+		names.append(caption)
+		check(tile.size.x >= 44 and tile.size.y >= 44 and tile.modulate.a == 1.0, "chip tocável e imediato com Menos animação")
+	var ribbon := card.find_child("Ribbon", true, false) as Control
+	var hero := card.find_child("Stage", true, false) as Control
+	var ribbon_rect := ribbon.get_global_rect()
+	var hero_rect := hero.get_global_rect()
+	check(panel.get_global_rect().encloses(ribbon_rect) and panel.get_global_rect().encloses(hero_rect), "fita e herói dentro do cartão com seis novidades")
+	scroll.scroll_vertical = int(scroll.get_v_scroll_bar().max_value)
+	await frames()
+	check(ribbon.get_global_rect() == ribbon_rect and hero.get_global_rect() == hero_rect, "rolar só as novidades mantém fita e herói fixos")
+	check(not scroll.is_ancestor_of(ribbon) and not scroll.is_ancestor_of(hero), "cabeçalho fora da área rolável")
+	# Mesmo destino com ordem diferente de chaves e mundo/lugar homônimos: prevalece o mundo.
+	var db := root.get_node("Database")
+	var original: String = db.get("worlds").farm.places.plots.name
+	db.get("worlds").farm.places.plots.name = db.get("worlds").farm.name
+	celebration.call("show_chapter", 2, ["place:farm/plots", "world:farm", "world:farm"] as Array[String])
+	await frames()
+	grid = celebration.find_child("ChapterUnlocks", true, false) as GridContainer
+	check(grid.get_child_count() == 1 and grid.get_child(0).get_meta("target") == {"world": "farm", "place": ""}, "repetições juntadas no mundo mesmo vindo depois do lugar")
+	db.get("worlds").farm.places.plots.name = original
+	var visited: Array = []
+	var on_world := func(world: String, place: String) -> void: visited.append([world, place])
+	events.connect("world_requested", on_world)
+	(grid.get_child(0) as Button).pressed.emit()
+	check(not celebration.visible and visited == [["farm", ""]], "chip fecha e navega ao destino por Places.go")
+	events.disconnect("world_requested", on_world)
+	celebration.queue_free()
+	await frames()
+	Motion.reduced = false
+
+
+func _unlock_text_checks() -> void:
+	root.size = Vector2i(360, 780)
+	Motion.reduced = true
+	var celebration := _open_celebration()
+	for example: Array in [["world:village", "Já está no Mapa", "Ir para a Vila"], ["place:farm/orchard", "No Sítio", "Ir para o Sítio"], ["npc:nina", "Na Praça", "Ir para a Praça"], ["walk:park_loop", "Na Praça", "Ir para a Praça"], ["feature:bag", "Uma novidade", "Ir"]]:
+		celebration.call("show_unlocks", [str(example[0])] as Array[String])
+		await frames()
+		check(has_text(celebration, str(example[1])), "Novo informa onde: " + str(example[0]))
+		var button := celebration.find_child("UnlockGo", true, false) as Button
+		check(button != null and button.text == str(example[2]), "botão informa destino: " + str(example[0]))
+	# in_name é a fonte, inclusive quando o nome visível do mundo é diferente.
+	var db := root.get_node("Database")
+	var original: String = db.get("worlds").farm.in_name
+	db.get("worlds").farm.in_name = "no Destino de nome muito comprido para caber no botão"
+	celebration.call("show_unlocks", ["place:farm/orchard"] as Array[String])
+	await frames()
+	check(has_text(celebration, "No Destino de nome muito comprido"), "local vem do in_name em vez de texto fixo")
+	check((celebration.find_child("UnlockGo", true, false) as Button).text == "Ir", "destino que não cabe usa Ir")
+	db.get("worlds").farm.in_name = original
+	celebration.queue_free()
+	await frames()
+	Motion.reduced = false
 
 
 func _haptics_checks() -> void:

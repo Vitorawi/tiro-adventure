@@ -471,3 +471,13 @@ Variações de tema `PhotoRibbonLabel` 12, `PhotoCaptionLabel` 13, `PhotoDateLab
 Lista branca de override: só `main._warm_glyphs`; guardada no `text_budget_test`.
 Tour `--aj-06-only` (9 PNGs); junto com `--i2-11-only` usa Texto maior em memória.
 11 testes PASS em 164,7 s; registro no README do plano de ajustes. Próxima 07. Sem push/publicação.
+**Interface 2 — ajustes, etapa 07 (25/10/2026):** capítulo com `ModalCard.open(..., {fixed_body: true})`
+e `add_scroll_area(content)`: só `CelebrationScroll/ChapterUnlocks` rola; fita, herói, prêmios,
+próximo passo e ações ficam fixos. `ChapterUnlock_<chave>` são UiKit.tile em três colunas, ícones 40,
+legenda numa linha e metadados target/unlock_name; destinos iguais ou mundo/lugar homônimos se juntam,
+priorizando mundo. `Celebration._unlock_line` e `_unlock_go_text` usam Places.unlock_view/target e
+worlds.in_name; `_fit_unlock_go` abrevia para Ir se faltar largura (sem mundo/in_name também fica Ir).
+UnlockGo preservado. Passeio = "Voltou do passeio!", roupa = "Roupa pronta!". Tour `--aj-07-only`
+(oito PNGs); festa/quest_reward/walk_return_ui/welcome/texts/text_budget + rápido: 8 PASS em 125,3 s.
+Registro e capturas antes/depois nas três resoluções em docs/plans/interface2_ajustes/README.md.
+Próxima 08, não iniciada; sem mudança de regra/save/fala, push ou publicação.

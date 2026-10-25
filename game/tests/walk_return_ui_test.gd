@@ -121,7 +121,7 @@ func _scenario(size: Vector2i) -> void:
 	var close: Button = walk_card.find_child("CloseResult", true, false)
 	var store_card: Button = walk_card.find_child("StoreBaggage", true, false)
 	check(close != null and store_card != null and store_card.text == "Ver bagagem", "%s: cartão oferece Ver bagagem (não cabe) e Depois" % tag)
-	check(has_text(walk_card, "De volta!"), "%s: título do cartão" % tag)
+	check(has_text(walk_card, "Voltou do passeio!"), "%s: título do cartão" % tag)
 	check(not state.call("walk_result_unseen"), "%s: abrir o cartão marca como visto" % tag)
 	await shot(tag, "cartao_bloqueado")
 	# "Ver bagagem" no cartão: fecha e leva ao portão da Praça, sem mexer no inventário.

@@ -9,7 +9,8 @@ extends Control
 ##
 ## Opções de `open`: title, ribbon (Color), icon (Texture2D), icon_px (64), rays (true com ícone),
 ## hero (Control no lugar do ícone), scroll_name, separation (12), confetti (false),
-## haptic ("" | "big" | "success"), animate (true; false = cartão reaberto sem repetir a entrada).
+## haptic ("" | "big" | "success"), animate (true; false = cartão reaberto sem repetir a entrada),
+## fixed_body (false; true mantém o corpo fixo e reserva a rolagem para add_scroll_area).
 
 const WIDTH := 320
 const INNER := 292  # largura útil do corpo (cartão 320 − margens 14)
@@ -33,6 +34,8 @@ var rays: TextureRect
 var confetti: CPUParticles2D
 var _want_confetti := false
 var _animate := true
+var _fixed_body := false
+var _scroll_content: Control
 
 
 ## Troca o cartão que estiver em `host` por um novo, já com fita, ícone e raios.
@@ -68,11 +71,16 @@ func _build(options: Dictionary) -> void:
 	scroll.name = str(options.get("scroll_name", "ModalScroll"))
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.follow_focus = true
-	panel.add_child(scroll)
+	_fixed_body = bool(options.get("fixed_body", false))
+	if not _fixed_body:
+		panel.add_child(scroll)
 	box = UiKit.vbox(int(options.get("separation", 12)))
 	box.custom_minimum_size.x = INNER
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(box)
+	if _fixed_body:
+		panel.add_child(box)
+	else:
+		scroll.add_child(box)
 	var title := str(options.get("title", ""))
 	if title != "":
 		box.add_child(_ribbon(title, options.get("ribbon", Palette.HONEY) as Color, str(options.get("ribbon_icon", ""))))
@@ -80,6 +88,9 @@ func _build(options: Dictionary) -> void:
 		box.add_child(_centered(options.hero as Control))
 	elif options.get("icon") is Texture2D:
 		box.add_child(_stage(options.icon as Texture2D, int(options.get("icon_px", 64)), bool(options.get("rays", true))))
+	if _fixed_body:
+		box.add_child(scroll)
+		scroll.hide()
 	_animate = bool(options.get("animate", true))
 	_want_confetti = bool(options.get("confetti", false))
 	match str(options.get("haptic", "")):
@@ -227,6 +238,13 @@ func _resize_panel() -> void:
 	if not is_instance_valid(panel) or not is_instance_valid(box) or not is_inside_tree():
 		return
 	var frame_height := panel.get_theme_stylebox("panel").get_minimum_size().y
+	if _fixed_body and is_instance_valid(_scroll_content):
+		# Só a grade cede altura: fita, herói e ações nunca entram na rolagem.
+		var fixed_height := box.get_combined_minimum_size().y - scroll.custom_minimum_size.y
+		var available := get_viewport().get_visible_rect().size.y - 32.0 - frame_height - fixed_height
+		var height := minf(_scroll_content.get_combined_minimum_size().y, maxf(0.0, available))
+		if not is_equal_approx(scroll.custom_minimum_size.y, height):
+			scroll.custom_minimum_size.y = height
 	var content_height := box.get_combined_minimum_size().y + frame_height
 	panel.custom_minimum_size.y = minf(content_height, maxf(0.0, get_viewport().get_visible_rect().size.y - 32.0))
 
@@ -235,6 +253,17 @@ func _resize_panel() -> void:
 func add(control: Control) -> Control:
 	box.add_child(control)
 	return control
+
+
+## Corpo fixo opcional: somente este conteúdo rola no espaço restante do cartão.
+func add_scroll_area(content: Control) -> void:
+	_scroll_content = content
+	box.move_child(scroll, -1)
+	scroll.show()
+	scroll.add_child(content)
+	content.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	content.minimum_size_changed.connect(_resize_panel)
+	_resize_panel.call_deferred()
 
 
 ## Texto centralizado no corpo.

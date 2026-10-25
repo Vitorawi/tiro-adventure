@@ -6,7 +6,7 @@
 > mesmo estilo do plano Interface 2". Depois, **aprovou os 35 itens como o revisor sugeriu, inclusive as
 > decisões**. Nenhuma decisão fica pendente.
 
-**Estado:** etapas 01–06 concluídas. **Próxima: etapa 07.**
+**Estado:** etapas 01–07 concluídas. **Próxima: etapa 08.**
 
 ## A ideia em uma linha
 
@@ -73,7 +73,7 @@ flowchart TD
 | [x] | [04](etapas/ETAPA_04_BANDEJAS_HORTA.md) | 7, 8, 9, 26 | fogão visível acima da bandeja; "Tudo" no `stepper`; barra da horta documentada; tile Regar | grande |
 | [x] | [05](etapas/ETAPA_05_TIRO.md) | 15, 19, 30 | humor em pílula translúcida; selo Animado; cardápio sem vermelho e sem cobrir o focinho; cerimônia sem Tiro repetido e régua melhor | médio |
 | [x] | [06](etapas/ETAPA_06_MISSOES_CADERNINHO.md) | 22, 24, 25, 29 | "Neste capítulo" leve; segmentado de uma opção some; caderninho legível; fontes < 12 resolvidas; história concluída | médio |
-| [ ] | [07](etapas/ETAPA_07_COMEMORACOES_TEXTOS.md) | 16, 31 | cartão de capítulo com grade de novidades; textos do Novo! e do passeio | médio |
+| [x] | [07](etapas/ETAPA_07_COMEMORACOES_TEXTOS.md) | 16, 31 | cartão de capítulo com grade de novidades; textos do Novo! e do passeio | médio |
 | [ ] | [08](etapas/ETAPA_08_CRESCIMENTO.md) | 35, 11 | prancha HTML do Crescimento → implementação na mesma etapa; seda no padrão do Crescimento | grande |
 | [ ] | [09](etapas/ETAPA_09_PAINEIS_MUNDO.md) | 10, 13, 14, 34 | Como fazer com peças novas; Lugares em `list_card`; conversa sem repetições; compra bloqueada nítida | grande |
 | [ ] | [10](etapas/ETAPA_10_HIERARQUIA.md) | 6, 27, 28 | `SectionLabel` revisada (nomes em 18); passeios e Feira; regra nova no `ui_style_test`; **portão** | grande |
@@ -317,3 +317,74 @@ do mundo, com escala geométrica documentada; não reintroduzir overrides. `NewB
 com texto invisível nas bolinhas do Álbum; `NotebookTab_<id>` continua nos seletores com escolhas.
 Com uma opção existe só o contêiner, não o botão. Exclusões preexistentes de python_libs preservadas
 fora do commit. AGENTS/CLAUDE idênticos byte a byte. Etapa 07 não iniciada. Sem push/publicação.
+
+**Etapa 07 (25/10/2026, Codex):** itens **16 e 31** concluídos localmente. Capítulo com fita e
+herói fixos: opção `fixed_body` do ModalCard e `add_scroll_area(content)` reservam a rolagem só
+para a grade `ChapterUnlocks` (nó `CelebrationScroll` preservado). Prêmios, próximo passo e botões
+também ficam fora da rolagem. Grade de três colunas com UiKit.tile afundado, ícone 40 e legenda
+SmallLabel numa linha com reticências, sem Novo! em cada ficha. `ChapterUnlock_<chave>` guarda
+metadados target/unlock_name; toque fecha e usa Places.go. Mundos têm prioridade ao juntar targets
+iguais ou mundo/lugar do mesmo mundo com o mesmo nome visível. O fluxo real do capítulo 1 junta
+Desejo do Tiro/Crescimento (mesmo target); porta "Ir para o sítio" e "Sítio da Bloblo" continuam
+separados porque seus nomes e targets são diferentes, conforme o critério aprovado.
+
+Novo! usa `_unlock_line`: mundo = "Já está no Mapa"; lugar/npc/passeio consultam o mundo do
+Places.unlock_view(key).target e capitalizam seu in_name; demais = "Uma novidade". Botão
+`UnlockGo` preservado: `_unlock_go_text(target)` transforma na/no em a/o, e `_fit_unlock_go`
+compara a largura real da fonte + margens com o espaço depois de Depois. Nenhum mundo fixo novo.
+Passeio mudou para "Voltou do passeio!"; "Roupa pronta!" e o nome do caminho permanecem.
+A fila modal e os prêmios não mudaram.
+
+**Provas por item:** ✓ **16**: i2_05_chapter agora mostra a fita e o herói completos mesmo após
+mandar rolar até o fim; h02_chapter_card/i2_10_chapter com grade compacta. festa_test cobre seis
+novidades, fita/herói dentro do cartão e imóveis após rolar, nomes únicos, ausência de Novo! por
+chip, alvo >=44, Menos animação, repetição com mundo vindo depois do lugar e navegação real do chip.
+✓ **31**: i2_10_unlock = Já está no Mapa/Ir para a Vila; aj_07_unlock_place = No Sítio/Ir para o Sítio;
+aj_07_unlock_npc = Na Praça/Ir para a Praça; i2_10_walk e c04_walk_result com Voltou do passeio!.
+Passeio como novidade também coberto no festa_test com Na Praça/Ir para a Praça.
+
+**Pronto quando:** ✓ fita e herói sempre visíveis, novidades em grade sem destinos repetidos;
+✓ Novo! informa onde e o botão informa o mundo de destino; ✓ passeio com título aprovado;
+✓ testes verdes e nenhuma fala da história alterada. Checklist das telas tocadas: ✓ fontes do tema
+Fredoka/Nunito e Palette; ✓ controles vetoriais; ✓ fichas de novidade com superfície lisa;
+✓ semântica mel/verde/azul preservada; ✓ um primário por cartão; ✓ alvos >=44 e legendas numa linha;
+✓ sem cortes/sobreposição nas três resoluções; ✓ Menos animação imediato e sem confete.
+Cartão grande continua modal, acima da casca; nenhum elemento novo pulando fora dos efeitos existentes.
+
+**Testes:** DryRun confirmou oito (lista fechada + scripts_check/content obrigatórios). Final
+**8/8 PASS, 125,3 s**: scripts_check 10,7; content_test 7,7; texts_test 2,8; festa_test 12,4;
+quest_reward_test 27,2; walk_return_ui_test 25,0; welcome_test 12,5; text_budget_test 25,8 s.
+Log: `build/test_logs/r20261025_150725_4408f80c/results.csv` (cada log contém seu TEST: PASS).
+Primeira rodada `r20261025_150549_b56e15f0` parou no teste do destino artificial comprido:
+a fixture usava a janela padrão do runner, não 360. Corrigida para 360x780 nos casos novos; a lista
+inteira passou depois. walk_return_ui_test só trocou a busca pelo novo título, mesma garantia;
+festa_test ganhou as garantias acima, sem apagar as antigas. Nenhum teste fora da lista,
+suíte inteira, campanha ou simulador. Glossário: `tools/list_texts.ps1 -ByScreen`, saída em
+`build/aj_07_glossario.log`, tabela `build/texts.csv`; verbos preservados.
+
+**Capturas:** bloco `--aj-07-only` com oito PNGs por pasta:
+`build/screenshots/aj_07_antes`, `_antes_390`, `_antes_412`, `_depois`, `_depois_390`, `_depois_412`.
+Todos abertos em seis pranchas `aj_07_*_prancha.png`; detalhes de capítulo/Novo!/passeio abertos
+individualmente. Comparados com `i2_05_depois/i2_05_chapter`, `aj_base/h02_chapter_card` e
+`i2_10_depois/i2_10_unlock` da evidência. Antes, i2_05_chapter escondia a fita e cortava o herói;
+depois, ambos ficam inteiros e cinco linhas grandes viram quatro fichas após deduplicar o target.
+O cartão curto do capítulo 2 fica menor. A grade substitui as linhas da evidência por decisão do item 16;
+arte, raios, confete, prêmios, próximo passo e fundo continuam os mesmos. O plano não cita mock novo
+para esta etapa; foram usados os cartões reais anteriores como referência. Novo!/passeio mantêm
+a composição, mudando os textos aprovados. Variações da pose do Tiro/confete são animação da fixture.
+As primeiras duas capturas restritas tiveram erros de acesso a user:// e certificados; todas as
+pastas antes foram regeneradas com acesso normal antes de alterar o jogo. Seis execuções finais
+com saída 0, sem erro de script; avisos de RIDs/ObjectDB ao encerrar o tour já existiam no antes.
+
+**Decisões / casos de Ir:** nenhum dos destinos mundo/lugar/npc capturados precisou abreviar em 360.
+O teste usa um in_name artificial comprido só em memória para provar o fallback de largura; ele
+vira Ir. Targets sem mundo/in_name (features wishes, bag, daily, weekly, finds, dress, tricks, growth_tab e
+personality:revealed) conservam Ir porque não existe in_name para derivar o destino; nenhuma frase
+nova foi inventada para esses casos. Features com mundo usam o in_name normalmente. Sem desvio de
+escopo, regras, falas, JSON, save ou arte. Sem export/push/publicação.
+
+**Pendências / próxima 08:** nenhuma desta etapa. Permanecem as herdadas: Galinheiro com corpo da
+bandeja rolável, custo de update_finds/update_wishes no tique de 1 s e Tudo junto da borda direita.
+CelebrationScroll no capítulo agora contém só ChapterUnlocks; nos outros cartões mantém o corpo
+anterior. `fixed_body` só é usado no capítulo. AGENTS/CLAUDE idênticos byte a byte; exclusões
+preexistentes de python_libs preservadas fora do commit. Etapa 08 não iniciada.

@@ -93,6 +93,10 @@ func _run() -> void:
 		await _aj_03_shots()
 		quit(0)
 		return
+	if "--aj-07-only" in OS.get_cmdline_user_args():
+		await _aj_07_shots()
+		quit(0)
+		return
 	if "--aj-06-only" in OS.get_cmdline_user_args():
 		await _aj_06_shots()
 		quit(0)
@@ -1560,6 +1564,46 @@ func _ceremony_shots() -> void:
 		main.get("_growth_ceremony").call("_close")
 		await create_timer(0.4).timeout
 	Motion.reduced = true
+
+func _aj_07_shots() -> void:
+	state.call("reset")
+	state.get("progress").seen.intro = true
+	await _start_main(1.0)
+	var pu: Script = load("res://scripts/ui/progression_ui.gd")
+	for id: String in state.get("progress").main_quests(1):
+		if id != "growth_1_puppy": state.call("dev_complete_quest", id)
+	await create_timer(0.3).timeout
+	_hide_modals()
+	state.call("dev_set_phase", "puppy")
+	await create_timer(0.3).timeout
+	_hide_modals()
+	pu.call("claim_quest_fx", "growth_1_puppy", Vector2(250, 350))
+	await create_timer(1.0).timeout
+	var chapter_scroll := main.find_child("CelebrationScroll", true, false) as ScrollContainer
+	chapter_scroll.scroll_vertical = int(chapter_scroll.get_v_scroll_bar().max_value)
+	await shot("i2_05_chapter", 0.5)
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	await create_timer(0.3).timeout
+	_hide_modals()
+	var celebration: CanvasLayer = main.get("_celebration")
+	celebration.call("show_chapter", 2, ["world:village", "feature:bag"] as Array[String])
+	await shot("h02_chapter_card", 1.0)
+	await shot("i2_10_chapter", 0.1)
+	for pair: Array in [["world:village", "i2_10_unlock"], ["place:farm/orchard", "aj_07_unlock_place"], ["npc:nina", "aj_07_unlock_npc"]]:
+		celebration.call("show_unlocks", [str(pair[0])] as Array[String])
+		await shot(str(pair[1]))
+		celebration.hide()
+	var walk: CanvasLayer = main.get("_walk_result")
+	var postcard: String = state.call("walk_postcard", "park_loop")
+	walk.call("show_result", {"name": "Volta na praça", "postcard": postcard, "first": true, "items": {"stick": 2, "ribbon": 1}, "new": ["stick"], "coins": 30, "needs": {"happiness": 35, "hygiene": -20}})
+	await shot("i2_10_walk", 1.0)
+	walk.hide()
+	walk.call("show_result", {"id": "park_loop", "name": "Volta na praça", "postcard": postcard,
+		"items": {"stick": 2, "ribbon": 1}, "coins": 12, "needs": {"happiness": 20, "hygiene": -10}, "new": []})
+	await shot("c04_walk_result")
+	walk.hide()
+
 
 func _aj_06_shots() -> void:
 	# Os dois filtros juntos repetem este recorte com Texto maior, sem gravar a preferência.

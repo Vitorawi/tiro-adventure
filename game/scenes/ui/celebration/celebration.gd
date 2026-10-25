@@ -12,7 +12,7 @@ var _pending_unlocks: Array[Dictionary] = []
 func show_chapter(index: int, unlocks: Array[String]) -> void:
 	var chapter: Dictionary = Database.progression.chapters[index - 1]
 	var card := _open({"title": "Capítulo concluído!", "ribbon": Palette.GO, "ribbon_icon": "check", "icon": UiKit.ui_icon("xp"),
-		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "big"})
+		"scroll_name": "CelebrationScroll", "fixed_body": true, "confetti": true, "haptic": "big"})
 	card.add_text(str(chapter.name), &"SectionLabel")
 	card.add_chips(ProgressionUi.reward_chips(chapter.get("rewards", {})))
 	_unlock_rows(card, unlocks)
@@ -134,44 +134,82 @@ func _next_unlock() -> void:
 	sheet.add(icon)
 	sheet.add_text(str(view.name), &"TitleLabel")
 	sheet.add_text(_unlock_line(str(view.key)), &"SmallLabel")
-	var actions := sheet.add_actions("Depois", sheet.close, "Ir", func() -> void:
+	var actions := sheet.add_actions("Depois", sheet.close, _unlock_go_text(target), func() -> void:
 		_pending_unlocks.clear()
 		hide()
 		Places.go(target))
 	(actions.primary as Button).name = "UnlockGo"
+	_fit_unlock_go.call_deferred(actions.primary as Button, actions.soft as Button)
 	show()
 	sheet.present()
 
 
 func _unlock_line(key: String) -> String:
 	match key.get_slice(":", 0):
-		"world": return "Um mundo novo para explorar"
-		"place": return "Um lugar novo"
-		"npc": return "Uma nova amizade"
-		"walk": return "Um passeio novo"
+		"world": return "Já está no Mapa"
+		"place", "npc", "walk":
+			var target: Dictionary = Places.unlock_view(key).get("target", {})
+			var in_name := str(Database.worlds.get(str(target.get("world", "")), {}).get("in_name", ""))
+			if in_name != "": return in_name.left(1).to_upper() + in_name.substr(1)
 	return "Uma novidade"
 
 
-## Uma linha por novidade: [ícone] Nome  [Ir].
+func _unlock_go_text(target: Dictionary) -> String:
+	var in_name := str(Database.worlds.get(str(target.get("world", "")), {}).get("in_name", ""))
+	if in_name.begins_with("na "): return "Ir para a " + in_name.trim_prefix("na ")
+	if in_name.begins_with("no "): return "Ir para o " + in_name.trim_prefix("no ")
+	return "Ir"
+
+
+func _fit_unlock_go(button: Button, later: Button) -> void:
+	if not is_instance_valid(button) or not is_instance_valid(later): return
+	var width := get_viewport().get_visible_rect().size.x - 48.0 - 8.0 - later.get_combined_minimum_size().x
+	var text_width := button.get_theme_font("font").get_string_size(button.text, HORIZONTAL_ALIGNMENT_LEFT, -1, button.get_theme_font_size("font_size")).x
+	if text_width + button.get_theme_stylebox("normal").get_minimum_size().x > width:
+		button.text = "Ir"
+
+
+## Grade de novidades, com prioridade do mundo ao juntar destinos repetidos.
 func _unlock_rows(card: ModalCard, unlocks: Array[String]) -> void:
+	var views: Array[Dictionary] = []
+	# Mundos primeiro: se um lugar tiver o mesmo nome/destino, fica o mundo.
+	var ordered: Array[String] = []
 	for key in unlocks:
+		if key.begins_with("world:"): ordered.append(key)
+	for key in unlocks:
+		if not key.begins_with("world:"): ordered.append(key)
+	for key in ordered:
 		var view := Places.unlock_view(key)
-		if view.is_empty():
-			continue
+		if view.is_empty(): continue
+		var duplicate := false
+		for previous: Dictionary in views:
+			if previous.target == view.target or (str(previous.key).begins_with("world:") and key.begins_with("place:") and previous.target.get("world") == view.target.get("world") and previous.name == view.name):
+				duplicate = true
+		if duplicate: continue
+		view["key"] = key
+		views.append(view)
+	if views.is_empty(): return
+	card.add_text("Novidades", &"SmallLabel")
+	var grid := GridContainer.new()
+	grid.name = "ChapterUnlocks"
+	grid.columns = 3
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
+	for view: Dictionary in views:
 		var target: Dictionary = view.target
-		var name_box := UiKit.vbox(0)
-		name_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		name_box.add_child(UiKit.label("Novo!", &"SmallLabel", UiKit.GOOD))
-		name_box.add_child(UiKit.label(view.name, &"SectionLabel"))
-		var go := UiKit.ctl_button("chev", func() -> void:
+		var tile := UiKit.tile(view.icon, str(view.name), "sunken")
+		tile.name = "ChapterUnlock_" + str(view.key).replace(":", "_").replace("/", "_")
+		tile.set_meta("target", target)
+		tile.set_meta("unlock_name", str(view.name))
+		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var caption := tile.find_child("Visual", true, false).get_child(1) as Label
+		caption.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		tile.pressed.connect(func() -> void:
 			hide()
-			Places.go(target), 40, "sunken")
-		var inner := UiKit.card(card.box, &"CardPanel")
-		var row := UiKit.hbox(10)
-		row.add_child(UiKit.icon(view.icon, 48))
-		row.add_child(name_box)
-		row.add_child(go)
-		inner.add_child(row)
+			Places.go(target))
+		grid.add_child(tile)
+	card.add_scroll_area(grid)
+	card.reveal(grid)
 
 
 func _open(options: Dictionary) -> ModalCard:
