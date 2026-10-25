@@ -105,7 +105,7 @@ func _locked_hint() -> String:
 	var requirements: Dictionary = world.get("requirements", {})
 	for id: String in requirements.get("quests", []):
 		if not GameState.progress.claimed_quests.has(id):
-			return "Após " + str(Database.quests.get(id, {}).get("name", id))
+			return "Depois de: " + str(Database.quests.get(id, {}).get("name", id))
 	if requirements.has("chapter"):
 		return "Capítulo %d" % int(requirements.chapter)
 	return Places.world_error(world_id)

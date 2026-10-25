@@ -85,6 +85,10 @@ func _run() -> void:
 		await _aj_01_shots()
 		quit(0)
 		return
+	if "--aj-02-only" in OS.get_cmdline_user_args():
+		await _aj_02_shots()
+		quit(0)
+		return
 	if "--i2-10-only" in OS.get_cmdline_user_args():
 		await _i2_10_shots()
 		quit(0)
@@ -1061,6 +1065,71 @@ func _aj_01_shots() -> void:
 	await _sheet("Vovó Bloblo", load("res://scripts/ui/progression_ui.gd").call("npc_view", "bloblo"))
 	await shot("i2_06_npc")
 	await _close()
+
+
+## Etapa 02 dos ajustes: casca. Aviso de momento sobre o seletor, conversa, Mochila/Missões e Texto maior.
+func _aj_02_shots() -> void:
+	var events: Node = root.get_node("Events")
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	await _start_main(1.5)
+	main.call("show_screen", &"map")
+	main.find_child("WorldsScreen", true, false).call("show_map")
+	_hide_modals()  # limpa avisos anteriores: só o de momento da captura fica
+	events.emit_signal("notice_requested", "moment", "Momento de Coragem!", "")
+	await shot("b05_map_list", 0.6)
+	main.find_child("WorldsScreen", true, false).call("close_map")
+	_hide_modals()
+	main.call("show_screen", &"tasks")
+	await shot("b03_tasks")
+	main.call("show_screen", &"bag")
+	await shot("b04_bag")
+	await _world("house")
+	load("res://scripts/ui/places.gd").call("open_npc", "lais")
+	await shot("b17_npc_lais")
+	await _close()
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	state.call("dev_jump_to_chapter", 3)
+	state.call("_mark_all_seen")
+	await create_timer(1.0).timeout
+	_hide_modals()
+	main.call("show_screen", &"map")
+	main.find_child("WorldsScreen", true, false).call("show_map")
+	await shot("i2_06_worlds_locked")
+	main.find_child("WorldsScreen", true, false).call("close_map")
+	await _world("farm")
+	main.find_child("WorldsScreen", true, false).call("show_map")
+	await shot("i2_06_worlds")
+	main.find_child("WorldsScreen", true, false).call("close_map")
+	await _sheet("Vovó Bloblo", load("res://scripts/ui/progression_ui.gd").call("npc_view", "bloblo"))
+	await shot("i2_06_npc")
+	await _close()
+	# Texto maior: as mesmas telas da etapa 11 do Interface 2.
+	root.get_node("SaveManager").set("large_text", true)
+	load("res://scripts/ui/large_text.gd").call("apply", true)
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	main.queue_free()
+	await create_timer(0.3).timeout
+	await _start_main(1.5)
+	main.call("show_screen", &"pet")
+	await shot("i2_11_pet")
+	main.call("show_screen", &"tasks")
+	await shot("i2_11_tasks")
+	await _world("house")
+	var house: Node = main.find_child("World_house", true, false)
+	house.call("_on_object_tapped", "place:stove", house.find_child("stove", true, false))
+	await shot("i2_11_stove_tray")
+	house.call("close_tray")
+	load("res://scripts/ui/settings_panel.gd").call("open")
+	await shot("i2_11_settings")
+	await _close()
+	load("res://scripts/ui/large_text.gd").call("apply", false)
 
 
 ## Missões com várias prontas ao mesmo tempo: o passo da história, passos de personagens e as rotinas.

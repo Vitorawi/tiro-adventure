@@ -281,3 +281,8 @@ func _routines(box: VBoxContainer, kind: String) -> void:
 			detail.add_child(UiKit.soft("Ir →", func() -> void: Places.go(Places.goal_target({"type": "stat", "key": data.goal.key})), null, true))
 			Motion.pop_in(detail)
 	if shown == 0: list.add_child(UiKit.list_row(UiKit.ctl_icon("check"), "Tudo feito por hoje!" if kind == "daily" else "Tudo feito nesta semana!", []))
+
+
+## A casca sobe o conteúdo quando a linha 2 do HUD está vazia (história concluída): `top` = margem de cima.
+func set_content_top(top: float) -> void:
+	$Margin.add_theme_constant_override("margin_top", roundi(top))

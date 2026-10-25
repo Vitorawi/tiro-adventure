@@ -139,3 +139,58 @@ func _photo_tap() -> void:
 	check(opened.size() == 1, "tocar chama a abertura da foto")
 	check(not toast.visible, "o aviso some ao tocar")
 	await _clear()
+
+
+## 6. Etapa 02 dos ajustes: com seletor ou folha abertos o aviso nasce na faixa da linha 2 recolhida e nunca
+## cruza o título da folha (que não sobe de 128 px).
+func _above_sheet() -> void:
+	await _clear()
+	var worlds: Node = main.find_child("WorldsScreen", true, false)
+	main.call("show_screen", &"map")
+	worlds.call("show_map")
+	for i in 3:
+		await process_frame
+	var bar := main.find_child("WorldBar", true, false) as Control
+	check(bar != null and not bar.visible, "WorldBar fica invisível com o seletor aberto")
+	check(float(worlds.call("toast_top")) == 0.0, "toast_top devolve 0 com o seletor aberto")
+	notice.notify("moment", "Momento de Coragem!")
+	await process_frame
+	await process_frame
+	var panel := main.get_node("Sheet/Panel") as Control
+	var map_view := main.find_child("MapView", true, false) as Control
+	var title_top := 128.0  # o título do seletor mora abaixo do HUD
+	check(toast.visible, "o aviso aparece")
+	check(toast.get_global_rect().end.y <= title_top + 1.0, "aviso de momento termina acima de 128 px com o seletor aberto (%d)" % toast.get_global_rect().end.y)
+	await _clear()
+	worlds.call("close_map")
+	await process_frame
+	check(bar != null and bar.visible, "WorldBar volta ao fechar o seletor")
+	# Aviso já na tela quando a folha abre: acompanha a faixa da linha 2.
+	notice.notify("info", "já na tela")
+	await process_frame
+	await process_frame
+	check(toast.visible and toast.position.y >= 130.0, "sem nada aberto o aviso fica abaixo da linha 2")
+	root.get_node("Events").emit_signal("sheet_requested", "Qualquer", Control.new())
+	for i in 4:
+		await process_frame
+	main.call("_check_row2")
+	check(toast.position.y <= 90.0, "aviso já visível sobe para a faixa da linha 2 quando a folha abre (%d)" % toast.position.y)
+	await _clear()
+	root.get_node("Events").emit_signal("sheet_close_requested")
+	await process_frame
+	# Folha alta + erro.
+	var tall := Control.new()
+	tall.custom_minimum_size.y = 900.0
+	tall.set_meta("sheet_size", "tall")
+	root.get_node("Events").emit_signal("sheet_requested", "Folha alta", tall)
+	for i in 6:
+		await process_frame
+	await create_timer(0.4).timeout
+	check(panel.get_global_rect().position.y >= 128.0 - 1.0, "folha alta começa em ≥ 128 (%d)" % panel.get_global_rect().position.y)
+	notice.notify("error", "Falta algo")
+	await process_frame
+	await process_frame
+	check(toast.get_global_rect().end.y <= panel.get_global_rect().position.y + 1.0, "aviso de erro não cruza o topo da folha (%d × %d)" % [toast.get_global_rect().end.y, panel.get_global_rect().position.y])
+	await _clear()
+	root.get_node("Events").emit_signal("sheet_close_requested")
+	await process_frame

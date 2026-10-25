@@ -12,6 +12,7 @@ const ROW2_TOP := 76.0
 const ROW2_HEIGHT := 52.0
 const SIDE := 12.0
 const PROFILE_SIZE := Vector2(116.0, 44.0)
+const PROFILE_MIN := 80.0
 
 var level_label: Label
 var xp_bar: ProgressBar
@@ -34,6 +35,7 @@ var _growth_alert: Button
 var _animated_badge: Label
 var _ask_icon: TextureRect
 var _profile: Button
+var _profile_box: Control
 var _profile_bar: ProgressBar
 var _profile_count: Label
 var _row2_inset: Control
@@ -151,7 +153,7 @@ func _build_profile() -> void:
 	_profile = Button.new()
 	_profile.name = "HudProfile"
 	_profile.focus_mode = Control.FOCUS_NONE
-	_profile.custom_minimum_size = PROFILE_SIZE
+	_profile.custom_minimum_size = Vector2(PROFILE_MIN, PROFILE_SIZE.y)
 	_profile.size = PROFILE_SIZE
 	_profile.position = Vector2(SIDE + AVATAR + 8.0, ROW1_TOP + (AVATAR - PROFILE_SIZE.y) / 2.0)
 	for style_name: String in ["normal", "hover", "disabled", "focus"]:
@@ -166,13 +168,16 @@ func _build_profile() -> void:
 	box.size = PROFILE_SIZE - Vector2(28.0, 8.0)
 	var name_label := UiKit.short_label("Tiro", &"StrongLabel")
 	name_label.name = "ProfileName"
+	name_label.clip_text = true
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_child(name_label)
 	var line := UiKit.hbox(6)
 	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_profile_bar = UiKit.bar(0.0, Palette.HONEY, 6)
 	_profile_bar.name = "ProfileBar"
 	_profile_bar.max_value = 1.0
-	_profile_bar.custom_minimum_size = Vector2(44, 6)
+	_profile_bar.custom_minimum_size = Vector2(20, 6)
 	_profile_bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_profile_bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	line.add_child(_profile_bar)
@@ -180,8 +185,21 @@ func _build_profile() -> void:
 	_profile_count.name = "ProfileCount"
 	line.add_child(_profile_count)
 	box.add_child(line)
+	_profile_box = box
 	_profile.add_child(box)
 	add_child(_profile)
+
+
+## O perfil encolhe (nome com reticências) até encostar nas moedas, que crescem para a esquerda com Texto maior;
+## nunca se sobrepõem. Largura entre `PROFILE_MIN` e `PROFILE_SIZE.x`.
+func _fit_profile() -> void:
+	var right := get_node_or_null("Right") as Control
+	if right == null or _profile == null:
+		return
+	var width := clampf(right.position.x - 6.0 - _profile.position.x, PROFILE_MIN, PROFILE_SIZE.x)
+	_profile.size.x = width
+	_profile.custom_minimum_size.x = 0.0
+	_profile_box.size.x = width - 28.0
 
 
 func _build_right() -> void:
@@ -197,6 +215,7 @@ func _build_right() -> void:
 	right.offset_top = ROW1_TOP + (AVATAR - 44.0) / 2.0
 	right.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	add_child(right)
+	right.resized.connect(_fit_profile)
 	var column := VBoxContainer.new()
 	column.name = "CoinsColumn"
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -341,6 +360,11 @@ func row2_shown() -> bool:
 	return _row2_shown
 
 
+## Há algo da tela na metade direita da linha 2 (ex.: "Pegar tudo").
+func row2_right_used() -> bool:
+	return _row2_right.get_child_count() > 0
+
+
 ## Atualiza fase, anel de crescimento e moedas. `animate` falso = só põe os valores (primeira vez).
 func refresh(animate: bool = true) -> void:
 	var info := GameState.growth_info()
@@ -358,6 +382,7 @@ func refresh(animate: bool = true) -> void:
 	_profile.visible = not _growth_alert.visible
 	_refresh_ask()
 	_set_coins(GameState.coins, animate)
+	_fit_profile.call_deferred()
 
 
 ## Ícone do que o Tiro pede: o desejo do balão, senão a necessidade que está pedindo.

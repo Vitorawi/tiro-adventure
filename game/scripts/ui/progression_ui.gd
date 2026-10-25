@@ -63,6 +63,9 @@ static func npc_view(npc_id: String) -> Control:
 			var row := UiKit.list_row(UiKit.ui_icon(str(place.get("icon", ""))), str(place.get("name", place_id)), [], UiKit.ctl_button("chev", go, 32, "sunken"), go)
 			row.custom_minimum_size.y = 56
 			services.add_child(row)
+		# Sem serviços (Laís na casa com a história concluída) o cartão vazio vira só uma faixa fina: sai.
+		if services.get_child_count() == 0:
+			services.get_parent().queue_free()
 	))
 	return panel
 

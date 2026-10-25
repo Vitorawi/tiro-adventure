@@ -4,11 +4,11 @@ extends Control
 ## arrastando a alça/título para baixo ou via Events.sheet_close_requested.
 ##
 ## Altura: o conteúdo pode pedir `content.set_meta("sheet_size", "half" | "tall")`;
-## sem meta = automático (altura do conteúdo se couber em 55% da tela, senão 88% com rolagem).
+## sem meta = automático (altura do conteúdo se couber em 55% da tela, senão a altura até o HUD, com rolagem).
 ## O painel fica preso embaixo e a altura muda por `offset_top`.
 
 const HALF := 0.55  # fração da altura útil: "half" e limite do automático
-const TALL := 0.88  # "tall" e automático com conteúdo comprido
+const BOTTOM_GAP := 16.0  # folga fixa no fim da rolagem: a última linha nunca encosta na borda
 const MIN := 0.30  # altura mínima do automático
 const RESIZE_MIN := 24.0  # só acompanha mudança de conteúdo se passar disso (não "respira")
 const DRAG_STRIP := 28.0  # faixa do topo do painel que também arrasta
@@ -79,6 +79,11 @@ func open(title: String, content: Control) -> void:
 	_title.text = title
 	_size_meta = str(content.get_meta("sheet_size", "auto"))
 	_content_holder.add_child(content)
+	var gap := Control.new()
+	gap.name = "SheetBottom"
+	gap.custom_minimum_size.y = BOTTOM_GAP
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_content_holder.add_child(gap)
 	var scroll := _content_holder.get_parent() as ScrollContainer
 	if scroll:
 		scroll.set_deferred("scroll_vertical", 0)
@@ -162,10 +167,15 @@ func _stop_tweens() -> void:
 
 # --- Altura ---------------------------------------------------------------------------
 
+## Altura máxima: o topo da folha nunca sobe acima do HUD (`Hud.HEIGHT`), para o aviso e a linha 2 ficarem livres.
+func _tall_height() -> float:
+	return size.y - float((load("res://scripts/ui/hud.gd") as GDScript).get_script_constant_map()["HEIGHT"])
+
+
 ## Altura útil do painel (px) para o conteúdo atual: meia, alta ou a do conteúdo.
 func _target_height() -> float:
 	var usable := size.y
-	var tall := usable * TALL
+	var tall := _tall_height()
 	if _size_meta == "tall" or _pulled_tall:
 		return tall
 	if _size_meta == "half":
@@ -275,7 +285,7 @@ func _drag_move(y: float) -> void:
 	else:
 		# Para cima: o painel cresce até a altura alta.
 		_panel.offset_bottom = 0.0
-		_panel.offset_top = maxf(_drag_top0 + delta, -size.y * TALL)
+		_panel.offset_top = maxf(_drag_top0 + delta, -_tall_height())
 		_dim.modulate.a = 1.0
 
 
@@ -295,7 +305,7 @@ func _drag_end(y: float) -> void:
 		else:
 			_dismiss(_panel.position.y)
 		return
-	if delta < -8.0 and (delta < -_height * 0.1 or speed < -FLICK) and _height < size.y * TALL - 1.0:
+	if delta < -8.0 and (delta < -_height * 0.1 or speed < -FLICK) and _height < _tall_height() - 1.0:
 		_pulled_tall = true
 		_height = _target_height()
 		_animate_top(-_height, true)

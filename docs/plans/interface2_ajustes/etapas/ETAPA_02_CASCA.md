@@ -111,13 +111,13 @@ Bloco `--aj-02-only`: `b05_map_list`, `i2_06_worlds`, `i2_06_worlds_locked`, `b1
 `i2_11_stove_tray`, `i2_11_settings`). Antes (`aj_02_antes`) e depois nas 3 resoluções.
 
 ## 8. Pronto quando
-- [ ] Nenhuma captura com aviso cruzando título de folha; folha alta começa em ≥ 128.
-- [ ] `b17_npc_lais` mostra a conversa inteira até o último botão, com folga embaixo, nas 3 resoluções.
-- [ ] Texto maior: perfil e moedas sem interseção; Configurações com margem 16 e sem rolagem lateral.
-- [ ] Seletor: "Depois de: …" ou dica própria, em ≤ 2 linhas.
-- [ ] Mochila sem título; Missões/Mochila sem vão com a história concluída.
-- [ ] `WorldBar` invisível com o seletor aberto.
-- [ ] Testes verdes; `git diff --stat` em `game/data/` só toca `worlds.json` (`map_locked_hint`).
+- [x] Nenhuma captura com aviso cruzando título de folha; folha alta começa em ≥ 128.
+- [x] `b17_npc_lais` mostra a conversa inteira até o último botão, com folga embaixo, nas 3 resoluções.
+- [x] Texto maior: perfil e moedas sem interseção; Configurações com margem 16 e sem rolagem lateral.
+- [x] Seletor: "Depois de: …" ou dica própria, em ≤ 2 linhas.
+- [x] Mochila sem título; Missões/Mochila sem vão com a história concluída.
+- [x] `WorldBar` invisível com o seletor aberto.
+- [x] Testes verdes; `git diff --stat` em `game/data/` só toca `worlds.json` (`map_locked_hint`).
 
 ## 9. Handoff (pontos naturais de parada)
 Um ponto por subseção (5.1 … 5.6). Os §5.1 e §5.2 mexem no mesmo `sheet.gd`: se parar entre eles, diga

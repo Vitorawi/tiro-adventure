@@ -2,6 +2,19 @@
 
 ## Estado atual
 
+**Interface 2 — ajustes, etapa 02 concluída localmente (25/10/2026, Claude Sonnet 5.5).** Casca: com folha,
+seletor ou bandeja abertos o aviso nasce na faixa da linha 2 recolhida (`main._row2_hidden/_row2_empty`,
+`notice_top` = `Hud.ROW2_TOP + 4`; `Notice.retarget` move o aviso que já estava na tela; no Mapa com o seletor
+fechado segue abaixo da pílula e dos rostos). Folha alta pára em `Hud.HEIGHT` (`Sheet._tall_height`, no lugar de
+`TALL` 0,88) e ganha folga fixa de 16 px (`SheetBottom`). Item 2: as guardas do `_queue_fit` já acompanhavam o
+crescimento (caso novo do `sheet_test` passa sem mexer nelas); a "folha cortada" do `b17_npc_lais` era o cartão
+`NpcServices` vazio (faixa fina) quando a Laís não tem serviço: `ProgressionUi.npc_view` agora o remove. Texto
+maior: `Hud._fit_profile` (perfil 80–116 px com reticências, moedas à esquerda), saves das Configurações em
+`flow`. Seletor: "Depois de: …" e `map_locked_hint` para Sítio, Vila e Praça. Mochila sem título e linha 2
+recolhida sem pílula/"Pegar tudo" (`set_content_top` em Missões e Mochila, conteúdo começa em 84).
+`WorldBar` oculta com o seletor aberto. Testes: lista fechada PASS; capturas `aj_02_antes|depois[_390|_412]`
+(`--aj-02-only`). Sem push.
+
 **Interface 2 — ajustes, etapa 01 concluída localmente (25/10/2026, Claude Sonnet 5.5).** Linha de base do
 plano: tour completo em `build/screenshots/aj_base`, `aj_base_390`, `aj_base_412` (114 PNGs cada); Sítio na
 Web (`touch_steps_i2_12.json`): média 28,4 / 28,2 ms, p95 66,6 ms, 123 / 114 quadros > 33 ms, picos 183 / 217 ms

@@ -105,6 +105,7 @@
     "name": "Sítio da Bloblo",
     "map_name": "Sítio",
     "in_name": "no Sítio",
+    "map_locked_hint": "Depois do Tiro crescer",
     "map_caption": "Plantar, criar e fazer",
     "icon": "tab_farm",
     "description": "Plantar, colher e crescer.",
@@ -267,6 +268,7 @@
   "village": {
     "name": "Vila",
     "in_name": "na Vila",
+    "map_locked_hint": "Depois do capítulo 3",
     "map_caption": "Vender e fabricar",
     "icon": "tab_village",
     "description": "Feira, ateliê e o portão para Natureza.",
@@ -369,6 +371,7 @@
   "park": {
     "name": "Praça",
     "in_name": "na Praça",
+    "map_locked_hint": "Depois da encomenda da Laís",
     "map_caption": "Passear e fazer amigos",
     "icon": "tab_park",
     "description": "Passeios com o Tiro, amigos e novidades.",

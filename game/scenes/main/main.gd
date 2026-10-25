@@ -33,6 +33,7 @@ var _tasks_badge: Label
 var _map_badge: Label
 ## Quem pede para esconder a linha 2 do HUD (além dos bloqueios automáticos: folha, bandeja, viagem, cartões).
 var _row2_blockers: Dictionary = {}
+var _row2_was_hidden := false
 var _quest_reward: CanvasLayer
 var _quest_rewards: Array[Dictionary] = []
 var _reward_not_before := 0
@@ -225,7 +226,11 @@ func notice_blocked() -> bool:
 ## Onde o aviso nasce: logo abaixo da linha 2 do HUD (ou da pílula do mundo e dos rostos, no Mapa).
 func notice_top() -> float:
 	var y := NOTICE_BELOW_BANNER_Y if %UpdateBanner.visible else NOTICE_Y
-	if _current_screen == &"map":
+	# Com folha, seletor ou bandeja abertos a linha 2 recolhe: o aviso nasce nessa faixa livre, acima do topo
+	# da folha (que nunca sobe de `Hud.HEIGHT`), e não cobre o título dela.
+	if _row2_hidden():
+		y = Hud.ROW2_TOP + 4.0
+	if _current_screen == &"map" and not %WorldsScreen.is_map_open():
 		y = maxf(y, %WorldsScreen.toast_top())
 	return y
 
@@ -240,11 +245,27 @@ func set_row2_blocker(key: String, on: bool) -> void:
 	_check_row2()
 
 
-func _check_row2() -> void:
-	var blocked: bool = not _row2_blockers.is_empty() or _card_open() or (get_node("Sheet") as Control).call("is_open") \
+## Sem pílula do próximo passo nem peça da tela, a linha 2 de Missões e Mochila fica vazia: recolhe e o conteúdo sobe.
+func _row2_empty() -> bool:
+	return _current_screen in [&"tasks", &"bag"] and not _hud.next_step.visible and not _hud.row2_right_used()
+
+
+## A linha 2 está recolhida (folha, seletor, bandeja, viagem, cartão, bloqueio por chave ou vazia).
+func _row2_hidden() -> bool:
+	return _row2_empty() or not _row2_blockers.is_empty() or _card_open() or (get_node("Sheet") as Control).call("is_open") \
 		or ActionTray.current != null or FarmDock.current() != null or %WorldsScreen.is_traveling() \
 		or (%WorldsScreen.is_visible_in_tree() and %WorldsScreen.is_map_open())
-	_hud.set_row2_shown(not blocked)
+
+
+func _check_row2() -> void:
+	var hidden := _row2_hidden()
+	_hud.set_row2_shown(not hidden)
+	if hidden != _row2_was_hidden:
+		_row2_was_hidden = hidden
+		_notice.retarget()
+	var top := Hud.ROW2_TOP + 8.0 if _row2_empty() else Hud.HEIGHT + 8.0
+	for screen_id: StringName in [&"tasks", &"bag"]:
+		_screens[screen_id].call("set_content_top", top)
 
 
 ## Com `true`, o rodapé se junta à tela de cima (sem cantos nem sombra, divisória de 1 px): a etapa 04 apoia o

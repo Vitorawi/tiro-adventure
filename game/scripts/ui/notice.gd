@@ -212,6 +212,14 @@ func _show_toast() -> void:
 	_tween.tween_callback(finish_current)
 
 
+## O HUD mudou (folha ou seletor abriu, linha 2 voltou): o aviso que já está na tela acompanha a nova posição.
+func retarget() -> void:
+	if _current.is_empty() or not _on_screen():
+		return
+	var node: Control = _moment if str(_current.kind) == "moment" else _toast
+	node.position.y = _target_y()
+
+
 func _target_y() -> float:
 	return float(top_y.call()) if top_y.is_valid() else 136.0
 

@@ -48,6 +48,7 @@ func _run() -> void:
 	await _pieces()
 	await _npc_introductions()
 	await _small_content_growth()
+	await _conversation_growth()
 	print("SHEET TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
 
@@ -113,11 +114,11 @@ func _heights() -> void:
 	check(small >= usable * 0.30 - 1.0, "altura mínima de 30%")
 	check(sheet.call("is_open"), "painel aberto")
 	await _open("Longo", _lines(30))
-	check(absf(_panel_height() - usable * 0.88) <= 1.0, "30 linhas: altura alta de 88%% (%d)" % _panel_height())
+	check(absf(_panel_height() - (usable - 128.0)) <= 1.0, "30 linhas: altura alta de 88%% (%d)" % _panel_height())
 	var tall_small := _lines(1)
 	tall_small.set_meta("sheet_size", "tall")
 	await _open("Alto", tall_small)
-	check(absf(_panel_height() - usable * 0.88) <= 1.0, "meta tall: 88%")
+	check(absf(_panel_height() - (usable - 128.0)) <= 1.0, "meta tall: 88%")
 	var half := _lines(30)
 	half.set_meta("sheet_size", "half")
 	await _open("Meio", half)
@@ -177,13 +178,13 @@ func _dragging() -> void:
 	check(not sheet.visible, "painel arrastado some depois de deslizar")
 	# Arrastar para cima num painel automático: vira alto.
 	await _open("Subir", _lines(2))
-	check(_panel_height() < usable * 0.88 - 5.0, "painel pequeno começa baixo")
+	check(_panel_height() < (usable - 128.0) - 5.0, "painel pequeno começa baixo")
 	start = usable - _panel_height() + 10.0
 	sheet.call("_drag_input", _mouse_button(start, true))
 	sheet.call("_drag_input", _mouse_move(start - 120.0))
 	sheet.call("_drag_input", _mouse_button(start - 120.0, false))
 	await create_timer(0.5).timeout
-	check(absf(_panel_height() - usable * 0.88) <= 1.5, "arrastar para cima vira alto (%d)" % _panel_height())
+	check(absf(_panel_height() - (usable - 128.0)) <= 1.5, "arrastar para cima vira alto (%d)" % _panel_height())
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	await create_timer(0.4).timeout
 
@@ -248,3 +249,34 @@ func _pieces() -> void:
 	check(row.size.y >= 64.0 and row.size.y <= 100.0, "linha de lista baixa (%d)" % row.size.y)
 	row.queue_free()
 	await process_frame
+
+
+## Conversa com missão ativa: a folha acompanha o conteúdo que a `LiveBox` reconstrói (Etapa 02 dos ajustes,
+## item 2) até o limite do HUD, e o último botão fica inteiro, com folga embaixo.
+func _conversation_growth() -> void:
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	state.call("dev_jump_to_chapter", 3)
+	state.call("_mark_all_seen")
+	var progression_ui: Script = load("res://scripts/ui/progression_ui.gd")
+	for npc: String in ["lais", "bloblo"]:
+		await _open("Conversa", progression_ui.call("npc_view", npc))
+		await create_timer(0.5).timeout
+		var holder := sheet.get_node("%ContentHolder") as Control
+		var scroll := holder.get_parent() as Control
+		var content := holder.get_child(0) as Control
+		var needed := holder.get_combined_minimum_size().y
+		check(needed <= scroll.size.y + 1.0 or absf(_panel_height() - (usable - 128.0)) <= 1.0,
+			"%s: conteúdo (%d) cabe na rolagem (%d) ou a folha chegou ao limite" % [npc, needed, scroll.size.y])
+		check(content.get_global_rect().end.y <= scroll.get_global_rect().end.y + 1.0 or absf(_panel_height() - (usable - 128.0)) <= 1.0, "%s: conversa inteira visível" % npc)
+		# Crescimento depois de aberta (reconstrução em state_changed).
+		var before := _panel_height()
+		var extra := Control.new()
+		extra.custom_minimum_size.y = 120.0
+		content.add_child(extra)
+		await create_timer(0.5).timeout
+		check(_panel_height() >= minf(before + 100.0, usable - 128.0) - 1.0, "%s: a folha cresce com o conteúdo (%d → %d)" % [npc, before, _panel_height()])
+		check(_panel_height() <= usable - 128.0 + 1.0, "%s: topo da folha nunca acima do HUD (%d)" % [npc, _panel_height()])
+		var tail := holder.get_child(holder.get_child_count() - 1) as Control
+		check(tail.name == "SheetBottom" and tail.custom_minimum_size.y >= 16.0, "%s: folga fixa de 16 px no fim da rolagem" % npc)
+

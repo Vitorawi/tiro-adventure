@@ -110,8 +110,7 @@ func count(label: String, root_node: Node, rect: Rect2 = Rect2()) -> void:
 
 func _run() -> void:
 	var saver: Node = root.get_node("SaveManager")
-	root.remove_child(saver)
-	saver.free()
+	root.remove_child(saver)  # fica de fora (sem gravar); volta só para abrir as Configurações
 	state = root.get_node("GameState")
 	var db: Node = root.get_node("Database")
 	for field: String in ["items", "recipes", "stations", "animals", "crops", "npcs", "worlds", "quests", "collections", "progression", "projects", "growth", "walks", "friends", "routines", "wishes", "config"]:
@@ -177,6 +176,24 @@ func _run() -> void:
 		main.call("show_screen", screen_id)
 		await frames(6)
 		_overflow(String(screen_id), main.find_child({&"pet": "PetScreen", &"tasks": "TasksScreen", &"bag": "BagScreen"}[screen_id], true, false))
+	# Etapa 02 dos ajustes: perfil e moedas sem interseção e Configurações com margem de 16 px, sem rolagem lateral.
+	main.call("show_screen", &"pet")
+	state.set("coins", 2645)
+	state.call("_changed")
+	await frames(8)
+	var profile := main.find_child("HudProfile", true, false) as Control
+	var pill := main.find_child("CoinsPill", true, false) as Control
+	check(not profile.get_global_rect().intersects(pill.get_global_rect()), "Texto maior: perfil %s e moedas %s não se sobrepõem" % [profile.get_global_rect(), pill.get_global_rect()])
+	root.add_child(saver)
+	load("res://scripts/ui/settings_panel.gd").call("open")
+	await frames(30)
+	var sheet_scroll := main.get_node("Sheet/%ContentHolder").get_parent() as ScrollContainer
+	var sheet_title := main.get_node("Sheet/%Title") as Control
+	check(sheet_title.get_global_rect().position.x >= 15.0, "Texto maior: título de Configurações com margem >= 16 (x = %d)" % sheet_title.get_global_rect().position.x)
+	check(sheet_scroll.get_h_scroll_bar().max_value <= sheet_scroll.size.x + 1.0 and sheet_scroll.get_global_rect().end.x <= root.get_visible_rect().size.x - 15.0, "Texto maior: Configurações sem rolagem lateral e com margem direita")
+	root.get_node("Events").emit_signal("sheet_close_requested")
+	await frames(6)
+	root.remove_child(saver)
 	LargeText.apply(false)
 	var theme: Theme = load("res://assets/theme/main_theme.tres")
 	check(theme.get_font_size("font_size", "TitleLabel") == 24 and theme.get_font_size("font_size", "SmallLabel") == 12, "Texto maior desligado volta aos tamanhos originais")
@@ -188,6 +205,8 @@ func _run() -> void:
 	Motion.reduced = false
 	main.queue_free()
 	await frames()
+	if is_instance_valid(saver) and not saver.is_inside_tree():
+		saver.free()
 	print("TEXT BUDGET TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
 

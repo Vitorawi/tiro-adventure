@@ -90,7 +90,8 @@ static func _slot_card(box: VBoxContainer, summary: Dictionary) -> void:
 	chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), str(int(summary.coins))))
 	body.add_child(title)
 	body.add_child(chips)
-	var row := UiKit.hbox(6)
+	# Flow: com Texto maior os três botões quebram de linha em vez de alargar a folha além da tela.
+	var row := UiKit.flow(6)
 	var play := UiKit.soft("Jogando" if summary.active else "Jogar", func() -> void:
 		SaveManager.switch_slot(slot)
 		_restart(), null, true)

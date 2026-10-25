@@ -36,6 +36,10 @@ func _ready() -> void:
 	%MapButton.pressed.connect(show_map)
 	%MapView.chosen.connect(enter)
 	%MapView.closed.connect(_resume_room_input)
+	# A pílula do mundo e os rostos não aparecem atrás do seletor.
+	%MapView.visibility_changed.connect(func() -> void:
+		var bar := find_child("WorldBar", true, false)
+		if bar: bar.visible = not %MapView.visible)
 	_transition = TRANSITION_SCENE.instantiate()
 	add_child(_transition)
 	Events.state_changed.connect(_refresh_header)
@@ -85,7 +89,8 @@ func is_map_open() -> bool:
 
 ## Reserva espaço para o aviso abaixo da pílula e dos rostos, sem cobrir os botões do mapa.
 func toast_top() -> float:
-	if not is_visible_in_tree() or not %WorldView.visible:
+	# Com o seletor aberto os controles medidos ficam atrás dele.
+	if not is_visible_in_tree() or not %WorldView.visible or is_map_open():
 		return 0.0
 	var bottom: float = maxf(%MapButton.get_global_rect().end.y, Hud.HEIGHT)
 	if %NpcRow.visible:
