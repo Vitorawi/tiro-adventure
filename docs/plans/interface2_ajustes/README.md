@@ -6,7 +6,7 @@
 > mesmo estilo do plano Interface 2". Depois, **aprovou os 35 itens como o revisor sugeriu, inclusive as
 > decisões**. Nenhuma decisão fica pendente.
 
-**Estado:** etapa 01 concluída (testes estáveis, linha de base medida). **Próxima: etapa 02.**
+**Estado:** etapas 01–03 concluídas. **Próxima: etapa 04.**
 
 ## A ideia em uma linha
 
@@ -69,7 +69,7 @@ flowchart TD
 | [x] | 00 | — | este plano | — |
 | [x] | [01](etapas/ETAPA_01_BASE_E_TESTES.md) | 17, 33 | capturas e medição "antes" do plano; `world_pin_test`/`world_life_test` 10/10; fixtures `g01`/`t03`; bloco `--aj-NN-only` | médio |
 | [x] | [02](etapas/ETAPA_02_CASCA.md) | 1, 2, 3, 5, 18, 21 | aviso nunca sobre o título; folha acompanha o conteúdo; HUD/Configurações com Texto maior; "Depois de:"; sem título "Mochila" e sem vão; `WorldBar` escondida atrás do seletor | médio |
-| [ ] | [03](etapas/ETAPA_03_DESEMPENHO.md) | 4, 23 | tique de 8 Hz enxuto, brilho do álbum em cache, balões sem redesenho parado, aquecimento de glifos; um balão pulando por vez | grande |
+| [x] | [03](etapas/ETAPA_03_DESEMPENHO.md) | 4, 23 | tique de 8 Hz enxuto, brilho do álbum em cache, balões sem redesenho parado, aquecimento de glifos; um balão pulando por vez | grande |
 | [ ] | [04](etapas/ETAPA_04_BANDEJAS_HORTA.md) | 7, 8, 9, 26 | fogão visível acima da bandeja; "Tudo" no `stepper`; barra da horta documentada; tile Regar | grande |
 | [ ] | [05](etapas/ETAPA_05_TIRO.md) | 15, 19, 30 | humor em pílula translúcida; selo Animado; cardápio sem vermelho e sem cobrir o focinho; cerimônia sem Tiro repetido e régua melhor | médio |
 | [ ] | [06](etapas/ETAPA_06_MISSOES_CADERNINHO.md) | 22, 24, 25, 29 | "Neste capítulo" leve; segmentado de uma opção some; caderninho legível; fontes < 12 resolvidas; história concluída | médio |
@@ -150,3 +150,25 @@ sem título na Mochila e linha 2 recolhida sem pílula (`set_content_top`); `Wor
 Testes notice/sheet/hud/text_budget/next_step/world_selector/worlds/lists/texts/tasks PASS. Capturas
 `aj_02_antes|depois[_390|_412]`. Pendências: a captura `b17` mostra o aviso a 136 porque no Mapa com o
 seletor fechado ele fica abaixo da pílula (por desenho). Sem push.
+
+**Etapa 03 (25/10/2026, Claude Sonnet 5.5):** Sítio Web antes 28,2–28,4 ms (p95 66,6, 114–123 quadros > 33 ms, pico
+183–217 ms) → depois 17,4–17,8 ms (p95 16,8, 11 quadros > 33 ms, pico 83–117 ms; 613–633 quadros no mesmo roteiro, quatro
+rodadas pós-mudança). Profiler desktop (antes de mexer): `_place_labels` ≈ 17 ms por chamada (dentro dele
+`_refresh_sparks` ≈ 12 ms e regiões ≈ 3 ms), rodando 8×/s; o resto do tique ≈ 2–5 ms. Feito: `GameState.album_hint_glow_map()`
+(uma passada nas 54 fotos; `album_hint_glow(objeto)` consulta o mapa) guardado em `RoomView._glow_map`; o tique de 8 Hz
+(`_animate_fast`) só anima (`idle_offset`, quadros `busy_frames`, piscar do brilho) e recalcula uma fatia de 1/8 dos
+objetos por tique (indicadores, canteiros, estações; cada um 1×/s); `_refresh_world(full)` refaz tudo em `state_changed`
+(e `full` também etiquetas, regiões e brilhos de lugar novo), na volta da sala à vista e em `_animate_objects()` (atalho de
+testes/capturas); `_layout_balloons` removida; `WorldBalloon` só redesenha quando a assinatura visível muda (anel em 1/48),
+com `_process` ligado só enquanto há pulinho, `StyleBox` da legenda em cache; `WorldPin` desenha base e balão uma vez,
+balanço em tween de posição e só o anel que se expande redesenha; um balão `ready` pula por sala (`bounces`/`ready_since`,
+`RoomView._update_bouncer`: o pronto há mais tempo), os outros ficam verdes e parados; glifos aquecidos em `main._warm_glyphs`
+(rótulo 1×1 px quase invisível com o alfabeto em cada par fonte/tamanho do tema, 3 quadros). Pico da roleta/folha
+83–150 ms → 66–117 ms (aquecimento não eliminou: resta provável compilação de shader/primeiro desenho; não investigado
+além de 1 h). **Restante medido:** os 11 quadros > 33 ms do Sítio são 1/s e vêm do tique de 1 s do próprio `GameState`
+(`update_finds` ≈ 10 ms e `update_wishes` ≈ 2,5 ms no desktop, medidos por `get_ticks_usec`); não faziam parte do plano e
+ficaram para depois (ver pendências). Testes balloon/world_view/world_life/album_secrets/tray/farm_dock/effects_layer/garden
+PASS em 104 s. Desvios: a escolha do balão que pula é "o mais antigo pronto" (sem preferência pela missão ativa: não há API
+que ligue a missão a um balão); `balloon_test` perdeu só a chamada de `_layout_balloons` e ganhou a conferência de um só
+pulando. Pendências: `GameState.update_finds` (requirement_error e `tiro_animated` a cada segundo) para zerar o último
+quadro lento por segundo. Sem push.

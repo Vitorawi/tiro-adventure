@@ -89,6 +89,10 @@ func _run() -> void:
 		await _aj_02_shots()
 		quit(0)
 		return
+	if "--aj-03-only" in OS.get_cmdline_user_args():
+		await _aj_03_shots()
+		quit(0)
+		return
 	if "--i2-10-only" in OS.get_cmdline_user_args():
 		await _i2_10_shots()
 		quit(0)
@@ -1065,6 +1069,49 @@ func _aj_01_shots() -> void:
 	await _sheet("Vovó Bloblo", load("res://scripts/ui/progression_ui.gd").call("npc_view", "bloblo"))
 	await shot("i2_06_npc")
 	await _close()
+
+
+## Etapa 03 dos ajustes: desempenho do mundo. As imagens têm de ser iguais antes e depois,
+## salvo a posição do pulo dos balões prontos (só um pula por sala).
+func _aj_03_shots() -> void:
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	state.get("progress").seen["ui:tray_drag_hint"] = 9
+	state.get("progress").seen["ui:tray_harvest_hint"] = true
+	var bag: RefCounted = state.get("inventory")
+	bag.call("from_dict", {"carrot": 20, "potato": 20, "corn": 5})
+	await _start_main(1.5)
+	await _world("farm")
+	var farm: Node = main.find_child("World_farm", true, false)
+	farm.call("recenter")
+	await create_timer(0.5).timeout
+	_empty_plots()
+	farm.call("_on_plot_tapped", 1)
+	await shot("i2_07_dock_plant", 0.6)
+	farm.call("close_tray")
+	var dock_script: Script = load("res://scripts/ui/farm_dock.gd")
+	var dock: Control = dock_script.call("current")
+	if dock != null: dock.call("close")
+	for i: int in 4:
+		state.call("plant", i, "carrot")
+	state.call("buy_animal", "chicken_white")
+	state.call("buy_animal", "chicken_brown")
+	state.call("cook", "eggs")
+	state.call("dev_finish_timers")
+	farm.call("_animate_objects")
+	await shot("aj_03_farm_ready", 0.8)
+	farm.call("point_at", "place:workbench", 0.0)
+	await shot("i2_06_pin")
+	farm.call("clear_pointer")
+	state.call("start_next_gathering", "trees", "lane", "wood")
+	state.call("start_next_gathering", "rocks", "", "stone")
+	state.call("dev_finish_timers")
+	await _world("nature")
+	var nature_room: Node = main.find_child("World_nature", true, false)
+	nature_room.call("recenter")
+	await shot("aj_03_nature_ready", 0.8)
 
 
 ## Etapa 02 dos ajustes: casca. Aviso de momento sobre o seletor, conversa, Mochila/Missões e Texto maior.

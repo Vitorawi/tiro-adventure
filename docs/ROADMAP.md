@@ -2,6 +2,14 @@
 
 ## Estado atual
 
+**Interface 2 — ajustes, etapa 03 concluída localmente (25/10/2026, Claude Sonnet 5.5).** Desempenho do mundo: Sítio na Web
+28,3 → 17,6 ms de média (p95 66,6 → 16,8; quadros > 33 ms 119 → 11). `GameState.album_hint_glow_map()` (uma passada, consultada
+por `album_hint_glow`); `RoomView._animate_fast` (8 Hz, só anima + fatia 1/8 do recálculo) e `_refresh_world(full)` (state_changed,
+volta à vista, `_animate_objects()`); `_layout_balloons` saiu; `WorldBalloon` redesenha só ao mudar (`bounces`, `ready_since`;
+`RoomView._update_bouncer` escolhe um balão pronto para pular); `WorldPin` com balanço em tween; glifos aquecidos em
+`main._warm_glyphs`. Resta 1 quadro lento por segundo vindo do tique de 1 s do `GameState` (`update_finds` ≈ 10 ms no
+desktop): pendência. Captura `ui_tour.gd -- --aj-03-only`. Registro em `docs/plans/interface2_ajustes/README.md`. Sem push.
+
 **Interface 2 — ajustes, etapa 02 concluída localmente (25/10/2026, Claude Sonnet 5.5).** Casca: com folha,
 seletor ou bandeja abertos o aviso nasce na faixa da linha 2 recolhida (`main._row2_hidden/_row2_empty`,
 `notice_top` = `Hud.ROW2_TOP + 4`; `Notice.retarget` move o aviso que já estava na tela; no Mapa com o seletor

@@ -79,11 +79,11 @@ Bloco `--aj-03-only`: `i2_07_dock_plant`, Sítio com vários prontos (crie `aj_0
 As imagens devem ser **iguais** às de antes, exceto pelos balões que deixaram de pular (posição do pulo).
 
 ## 8. Pronto quando
-- [ ] Números antes × depois no registro (Web: média, p95, > 33 ms, pico; profiler desktop: top 5).
-- [ ] Média ≤ 20 ms e sem padrão de 8 Hz — ou, se não atingido, causa restante medida e anotada.
-- [ ] Só um balão pulando por sala; `Motion.reduced` sem pulo.
-- [ ] Capturas iguais às de antes (salvo o pulo).
-- [ ] Testes verdes.
+- [x] Números antes × depois no registro (Web: média, p95, > 33 ms, pico; profiler desktop: top 5).
+- [x] Média ≤ 20 ms e sem padrão de 8 Hz — ou, se não atingido, causa restante medida e anotada.
+- [x] Só um balão pulando por sala; `Motion.reduced` sem pulo.
+- [x] Capturas iguais às de antes (salvo o pulo).
+- [x] Testes verdes.
 
 ## 9. Handoff
 Pontos naturais: após cada passo 2–7. Sempre diga o último número medido e com qual export (hash do commit

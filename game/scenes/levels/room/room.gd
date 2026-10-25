@@ -74,6 +74,8 @@ var _labels: Array[Label] = []
 var _regions: Array[Node2D] = []
 var _route_markers: Array[RouteIndicator] = []
 var _ready_counts: Dictionary = {}
+## Brilho de pista do álbum por objeto, calculado no recálculo lento.
+var _glow_map: Dictionary = {}
 var navigation_revision: int = 0
 ## A sala já foi enquadrada (zoom inicial aplicado com tamanho de tela válido).
 var _framed := false
@@ -170,6 +172,7 @@ func _ready() -> void:
 	Events.state_changed.connect(_refresh_projects)
 	Events.project_gathered.connect(_on_project_gathered)
 	Events.state_changed.connect(_refresh_find)
+	Events.state_changed.connect(_refresh_world)
 	Events.world_activity.connect(_on_world_activity)
 	_refresh_ownership()
 	_refresh_gated()
@@ -193,9 +196,11 @@ func _ready() -> void:
 	_show_whole_room.call_deferred()
 	var timer := Timer.new()
 	timer.wait_time = 1.0 / OBJECT_FPS
-	timer.timeout.connect(_animate_objects)
+	timer.timeout.connect(_animate_fast)
 	add_child(timer)
 	timer.start()
+	visibility_changed.connect(func() -> void:
+		if is_visible_in_tree(): _refresh_world.call_deferred())
 
 
 # --- Navegação (usada pelo DogWorld) -----------------------------------------
@@ -460,42 +465,100 @@ func _load_frames(folder: String) -> Array[Texture2D]:
 	return frames
 
 
-## Troca o quadro dos móveis animados; parados mostram a imagem base.
+## Recalcula tudo de uma vez (usado por quem precisa do estado em dia, como testes e capturas).
 func _animate_objects() -> void:
-	_refresh_find()
+	_refresh_world()
+	_animate_fast()
+
+
+## Tique de 8 Hz: o que se mexe (quadros das estações ocupadas, balanço dos animais, piscar do brilho)
+## e uma fatia do recálculo lento: cada objeto é recalculado uma vez por segundo, espalhado pelos oito
+## tiques para não criar um quadro lento por segundo.
+func _animate_fast() -> void:
 	if not is_visible_in_tree():
 		return
 	_object_frame += 1
+	for sprite in _objects:
+		if sprite.has_meta("idle_offset"):
+			var phase := float(_object_frame) / OBJECT_FPS + sprite.position.x
+			sprite.offset = (sprite.get_meta("idle_offset") as Vector2) + Vector2(sin(phase * 1.5) * 1.3, sin(phase) * 0.8)
+		if sprite.has_meta("glowing"):
+			var opacity := sprite.self_modulate.a
+			sprite.self_modulate = Color(1.12, 1.09, 1.0, opacity) if Motion.reduced or _object_frame % 12 < 6 else Color(1, 1, 1, opacity)
+		if sprite.has_meta("busy_frames") and sprite.get_meta("busy", false):
+			var frames: Array[Texture2D] = sprite.get_meta("busy_frames")
+			if not frames.is_empty(): sprite.texture = frames[_object_frame % frames.size()]
+	var slices := int(OBJECT_FPS)
+	var slice := _object_frame % slices
+	if slice == 0:
+		_refresh_find()
+		_refresh_markers()
+	for i: int in range(slice, _objects.size(), slices):
+		_refresh_object(_objects[i])
+	if slice == slices / 2:
+		_update_bouncer()
+
+
+## Recalcula tudo de uma vez: em state_changed (full: também etiquetas e regiões) e para quem precisa do
+## estado em dia na hora, como testes e capturas.
+func _refresh_world(full := true) -> void:
+	_refresh_find()
+	if not is_visible_in_tree():
+		return
+	_refresh_markers()
+	for sprite in _objects:
+		_refresh_object(sprite)
+	if full: _place_labels()
+	_update_bouncer()
+
+
+## Marcadores que não pertencem a um objeto da sala e o mapa de brilhos do álbum (uma passada só).
+func _refresh_markers() -> void:
 	if _walk_marker:
 		_walk_marker.refresh()
 	for indicator: RouteIndicator in _route_markers:
 		indicator.refresh()
-	for sprite in _objects:
-		var hint_id := "plot" if sprite.has_meta("plot") else str(sprite.name)
-		var glowing := sprite.visible and GameState.album_hint_glow(hint_id)
-		var opacity := sprite.self_modulate.a
-		sprite.self_modulate = Color(1.12, 1.09, 1.0, opacity) if glowing and (Motion.reduced or _object_frame % 12 < 6) else Color(1, 1, 1, opacity)
-		if sprite.has_node("RouteIndicator"):
-			(sprite.get_node("RouteIndicator") as RouteIndicator).refresh()
-		if sprite.has_meta("idle_offset"):
-			var phase := float(_object_frame) / OBJECT_FPS + sprite.position.x
-			sprite.offset = (sprite.get_meta("idle_offset") as Vector2) + Vector2(sin(phase * 1.5) * 1.3, sin(phase) * 0.8)
-		if sprite.has_meta("station") and (not sprite.has_meta("upgrade") or GameState.has_upgrade(sprite.get_meta("upgrade"))):
-			(sprite.get_node("ProductionIndicator") as StationIndicator).refresh()
-			var station_id: String = sprite.get_meta("station")
-			var ready := GameState.station(station_id).ready_count(GameState.now())
-			if ready > int(_ready_counts.get(station_id, 0)) and _dog:
-				_dog.react_at(&"ready", sprite.get_meta("approach"))
-			_ready_counts[station_id] = ready
-		if sprite.has_meta("plot"):
-			_update_plot(sprite)
-		if not sprite.has_meta("busy_frames"):
-			continue
-		var frames: Array[Texture2D] = sprite.get_meta("busy_frames")
+	_glow_map = GameState.album_hint_glow_map()
+
+
+## Um objeto: brilho de pista, indicadores, canteiro e quadros de estação ocupada.
+func _refresh_object(sprite: Sprite2D) -> void:
+	var hint_id := "plot" if sprite.has_meta("plot") else str(sprite.name)
+	var glowing := sprite.visible and bool(_glow_map.get(hint_id, false)) and not sprite.has_meta("plot")
+	if glowing:
+		sprite.set_meta("glowing", true)
+	elif sprite.has_meta("glowing"):
+		sprite.remove_meta("glowing")
+		sprite.self_modulate = Color(1, 1, 1, sprite.self_modulate.a)
+	if sprite.has_node("RouteIndicator"):
+		(sprite.get_node("RouteIndicator") as RouteIndicator).refresh()
+	if sprite.has_meta("station") and (not sprite.has_meta("upgrade") or GameState.has_upgrade(sprite.get_meta("upgrade"))):
+		(sprite.get_node("ProductionIndicator") as StationIndicator).refresh()
+		var station_id: String = sprite.get_meta("station")
+		var ready := GameState.station(station_id).ready_count(GameState.now())
+		if ready > int(_ready_counts.get(station_id, 0)) and _dog:
+			_dog.react_at(&"ready", sprite.get_meta("approach"))
+		_ready_counts[station_id] = ready
+	if sprite.has_meta("plot"):
+		_update_plot(sprite)
+	if sprite.has_meta("busy_frames"):
 		var busy := GameState.station(sprite.get_meta("station")).is_busy(GameState.now())
-		sprite.texture = frames[_object_frame % frames.size()] if busy and not frames.is_empty() else sprite.get_meta("base_texture")
-	_place_labels()
-	_layout_balloons()
+		sprite.set_meta("busy", busy)
+		if not busy: sprite.texture = sprite.get_meta("base_texture")
+
+
+## Orçamento de atenção: só um balão pronto pula por sala (o mais antigo); os outros ficam verdes e parados.
+func _update_bouncer() -> void:
+	var chosen: WorldBalloon = null
+	var balloons: Array[WorldBalloon] = []
+	for member: Node in get_tree().get_nodes_in_group("world_balloons"):
+		if not is_ancestor_of(member): continue
+		var balloon := member as WorldBalloon
+		balloons.append(balloon)
+		if balloon.state == "ready" and balloon.is_visible_in_tree() and (chosen == null or balloon.ready_since < chosen.ready_since):
+			chosen = balloon
+	for balloon: WorldBalloon in balloons:
+		balloon.bounces = balloon == chosen
 
 
 ## Mostra o broto enquanto cresce e a planta madura quando dá para colher.
@@ -844,15 +907,6 @@ func _zoom_balloons() -> void:
 	# Só esta sala: um call_group global mudaria também os mundos ocultos em outro zoom.
 	for balloon: Node in get_tree().get_nodes_in_group("world_balloons"):
 		if is_ancestor_of(balloon): balloon.call("set_zoom", _zoom)
-
-
-## Balões ficam na própria âncora; sobreposição no zoom distante é intencional.
-func _layout_balloons() -> void:
-	for member: Node in get_tree().get_nodes_in_group("world_balloons"):
-		if not is_ancestor_of(member): continue
-		var balloon := member as WorldBalloon
-		balloon.draw_offset = Vector2.ZERO
-		balloon.queue_redraw()
 
 
 ## Pulinho de "ficou pronto".

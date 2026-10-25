@@ -16,7 +16,7 @@ func refresh() -> void:
 		progress = 1.0
 		caption = ""
 		show_caption = false
-		queue_redraw()
+		super.refresh()
 		return
 	var entry: Dictionary = GameState.walk_state.current
 	var remaining := GameState.walk_remaining()
@@ -24,4 +24,4 @@ func refresh() -> void:
 	progress = clampf(1.0 - remaining / maxf(1, float(entry.ready_at) - float(entry.started_at)), 0, 1)
 	caption = TimeText.short(remaining)
 	show_caption = state != "ready" and room_zoom >= 1.2
-	queue_redraw()
+	super.refresh()

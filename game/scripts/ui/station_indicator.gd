@@ -18,4 +18,4 @@ func refresh() -> void:
 	progress = clampf(1.0 - remaining / maxf(1, float(recipe.get("seconds", 1))), 0, 1)
 	caption = "×%d" % ready if ready > 1 else TimeText.short(remaining)
 	show_caption = ready > 1 or (ready == 0 and room_zoom >= 1.2)
-	queue_redraw()
+	super.refresh()

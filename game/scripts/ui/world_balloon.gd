@@ -15,10 +15,20 @@ var draw_offset := Vector2.ZERO
 var hit_rect: Rect2:
 	get:
 		return Rect2((anchor + draw_offset + Vector2(-22, -22 + _bob.position.y)) * scale, Vector2(44, 72 if show_caption and caption != "" else 52) * scale)
+## Só o balão escolhido pela sala pula (orçamento de atenção); avulso, pula como sempre.
+var bounces := true:
+	set(value):
+		bounces = value
+		_wake()
+## Quando ficou pronto (ms): o mais antigo é o que a sala escolhe para pular.
+var ready_since := 0
 var _elapsed := 0.0
 var _bob := Node2D.new()
 var _check: Texture2D
 var _font: Font
+var _signature: Array = []
+var _last_bob := Vector2.ZERO
+static var _legend_box: StyleBox
 
 
 func _ready() -> void:
@@ -30,8 +40,16 @@ func _ready() -> void:
 	refresh()
 
 
+## Só redesenha quando algo visível mudou (o anel muda em passos de 1/48).
 func refresh() -> void:
-	queue_redraw()
+	var ready := state == "ready"
+	if ready and ready_since == 0: ready_since = Time.get_ticks_msec()
+	elif not ready: ready_since = 0
+	var signature: Array = [state, texture, roundi(progress * 48.0), caption, show_caption, corner_texture, anchor, draw_offset, room_zoom]
+	if signature != _signature:
+		_signature = signature
+		queue_redraw()
+	_wake()
 
 
 ## Acompanha o zoom sem tamanho mínimo nem afastamento: a âncora fica presa ao mapa.
@@ -43,13 +61,25 @@ func set_zoom(value: float) -> void:
 	refresh()
 
 
+## Só gira o `_process` quando há pulinho a disparar ou a acompanhar.
+func _needs_tick() -> bool:
+	return state == "spark" or (state == "ready" and bounces) or _bob.position != _last_bob or _bob.position != Vector2.ZERO
+
+
+func _wake() -> void:
+	if is_inside_tree(): set_process(_needs_tick())
+
+
 func _process(delta: float) -> void:
 	if not is_visible_in_tree(): return
 	_elapsed += delta
-	if state in ["ready", "spark"] and not Motion.reduced and _elapsed >= (2.0 if state == "spark" else Motion.WORLD_BOUNCE):
+	if state in ["ready", "spark"] and (bounces or state == "spark") and not Motion.reduced and _elapsed >= (2.0 if state == "spark" else Motion.WORLD_BOUNCE):
 		_elapsed = 0.0
 		Motion.bounce(_bob)
-	queue_redraw()
+	if _bob.position != _last_bob:
+		_last_bob = _bob.position
+		queue_redraw()
+	if not _needs_tick(): set_process(false)
 
 
 func _draw() -> void:
@@ -88,7 +118,8 @@ func _draw() -> void:
 		draw_texture_rect(corner, Rect2(center + Vector2(9, 7), Vector2(16, 16)), false, Palette.CARD)
 	if show_caption and caption != "":
 		var width := _font.get_string_size(caption, HORIZONTAL_ALIGNMENT_LEFT, -1, 12).x + 16
-		draw_style_box(UiKit.surface(Palette.CARD, 12, true), Rect2(center + Vector2(-width / 2, 28), Vector2(width, 24)))
+		if _legend_box == null: _legend_box = UiKit.surface(Palette.CARD, 12, true)
+		draw_style_box(_legend_box, Rect2(center + Vector2(-width / 2, 28), Vector2(width, 24)))
 		_text(caption, center + Vector2(0, 44), 12, Palette.INK)
 
 

@@ -24,7 +24,7 @@ func refresh() -> void:
 		corner_texture = null
 		caption = str(GameState.plot_cost(GameState.unlocked_plots)) if GameState.has_upgrade("farm") else ""
 		show_caption = caption != ""
-		queue_redraw()
+		super.refresh()
 		return
 	if not visible: return
 	state = "ready" if status == "ready" else "progress"
@@ -33,4 +33,4 @@ func refresh() -> void:
 	caption = TimeText.short(maxi(0, ceili(float(GameState.plot(plot_index).ready_at) - GameState.now())))
 	show_caption = state != "ready" and (room_zoom >= 1.2 or Time.get_ticks_msec() / 1000.0 < _caption_until)
 	corner_texture = UiKit.ui_icon("action_water") if GameState.water_error(plot_index) == "" else null
-	queue_redraw()
+	super.refresh()

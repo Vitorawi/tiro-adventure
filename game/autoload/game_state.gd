@@ -4302,16 +4302,26 @@ func album_talk(npc: String) -> String:
 
 
 func album_hint_glow(object: String) -> bool:
-	var ctx := {"world": album_world, "dog_world": "" if walking() else album_world, "object": object, "spot": album_sleep_spot}
+	return bool(album_hint_glow_map().get(object, false))
+
+
+## {objeto: brilha} de todas as fotos com pista, numa só passada (a sala guarda o resultado
+## e só o recalcula em state_changed e a cada segundo).
+func album_hint_glow_map() -> Dictionary:
+	var glow := {}
+	var dog_world := "" if walking() else album_world
+	var moment := now()
 	for entry: Dictionary in Database.album.photos:
-		if album.has_photo(str(entry.id)) or str(entry.get("hint_object", "")) != object: continue
+		var object := str(entry.get("hint_object", ""))
+		if object == "" or glow.has(object) or album.has_photo(str(entry.id)): continue
 		var when: Dictionary = entry.get("when", {})
 		if when.size() != 3: continue
+		var ctx := {"world": album_world, "dog_world": dog_world, "object": object, "spot": album_sleep_spot}
 		var valid := 0
 		for key: String in when:
-			valid += int(AlbumRules.holds(key, when[key], ctx, "", now()))
-		if valid == 2: return true
-	return false
+			valid += int(AlbumRules.holds(key, when[key], ctx, "", moment))
+		if valid == 2: glow[object] = true
+	return glow
 
 
 ## Foto tirada ({} se ainda não): data, fase e pelo gravados no dia.

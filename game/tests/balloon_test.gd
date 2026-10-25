@@ -59,7 +59,6 @@ func _run() -> void:
 	for i in range(1, 4): state.call("plant", i, "carrot")
 	farm.call("_animate_objects")
 	farm.call("_set_camera", Vector2(200, 200), 2.0)
-	farm.call("_layout_balloons")
 	var before: Array[Vector2] = []
 	for member: Node in farm.get_tree().get_nodes_in_group("world_balloons"):
 		if farm.is_ancestor_of(member): before.append(member.get("draw_offset"))
@@ -80,6 +79,14 @@ func _run() -> void:
 	state.call("dev_finish_timers")
 	farm.call("_animate_objects")
 	check(balloon.get("state") == "ready", "terminar timer deixa balão pronto")
+	# Orçamento de atenção: vários prontos, mas só um balão pula por sala; os outros ficam verdes e parados.
+	var ready_balloons: Array[Node] = []
+	for member: Node in farm.get_tree().get_nodes_in_group("world_balloons"):
+		if farm.is_ancestor_of(member) and member.is_visible_in_tree() and member.get("state") == "ready": ready_balloons.append(member)
+	check(ready_balloons.size() >= 3, "vários canteiros prontos ao mesmo tempo")
+	var bouncing := ready_balloons.filter(func(node: Node) -> bool: return node.get("bounces"))
+	check(bouncing.size() == 1, "só um balão pronto pula por sala")
+	check(ready_balloons.all(func(node: Node) -> bool: return bouncing[0].get("ready_since") <= node.get("ready_since")), "pula o pronto há mais tempo")
 	var center: Vector2 = plot.position + (balloon.get("hit_rect") as Rect2).get_center() * plot.scale
 	check(farm.call("_handle_tap", center), "toque no centro do balão é tratado")
 	check(state.call("plot_status", 0) == "empty", "toque no balão pronto colhe")

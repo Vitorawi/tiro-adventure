@@ -73,6 +73,7 @@ func _ready() -> void:
 	add_child(_welcome)
 	_walk_result = load("res://scenes/ui/walk_result/walk_result.tscn").instantiate()
 	add_child(_walk_result)
+	_warm_glyphs.call_deferred()
 	_growth_ceremony = load("res://scenes/ui/growth_ceremony/growth_ceremony.tscn").instantiate()
 	add_child(_growth_ceremony)
 	Events.grew.connect(func(_phase: String) -> void: _check_growth_ceremonies())
@@ -298,6 +299,42 @@ func show_screen(id: StringName) -> void:
 
 
 ## A aba Mapa retoma o mundo; tocar de novo abre o carrossel.
+## Aquece o cache de glifos: a primeira vez que a Fredoka/Nunito (variáveis) aparece num tamanho novo
+## custa ~150 ms (roleta, folha). Um rótulo quase invisível, preso a 1×1 px, desenha o alfabeto em cada
+## par fonte/tamanho do tema (inclusive Texto maior) por alguns quadros e some.
+func _warm_glyphs() -> void:
+	var theme := load("res://assets/theme/main_theme.tres") as Theme
+	var pairs: Dictionary = {}
+	if theme != null:
+		pairs["%d/%d" % [theme.default_font.get_instance_id(), theme.default_font_size]] = [theme.default_font, theme.default_font_size]
+		for type_name: String in theme.get_font_size_type_list():
+			for item: String in theme.get_font_size_list(type_name):
+				var font: Font = theme.get_font(item, type_name) if theme.has_font(item, type_name) else theme.default_font
+				var size := theme.get_font_size(item, type_name)
+				pairs["%d/%d" % [font.get_instance_id(), size]] = [font, size]
+	for path: String in ["font_display", "font_body", "font_caption"]:
+		var extra := load("res://assets/fonts/%s.tres" % path) as Font
+		if extra == null: continue
+		for size: int in [12, 15, 18, 24, 26]:
+			pairs["%d/%d" % [extra.get_instance_id(), size]] = [extra, size]
+	var holder := Control.new()
+	holder.name = "GlyphWarmup"
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.clip_contents = true
+	holder.size = Vector2.ONE
+	holder.modulate.a = 0.01
+	add_child(holder)
+	for entry: Array in pairs.values():
+		var label := Label.new()
+		label.text = "AÁÀÂÃBCÇDEÉÊFGHIÍJKLMNOÓÔÕPQRSTUÚVWXYZ aáàâãbcçdeéêfghiíjklmnoóôõpqrstuúvwxyz 0123456789 .,!?:;+-×%/()"
+		label.add_theme_font_override("font", entry[0])
+		label.add_theme_font_size_override("font_size", entry[1])
+		holder.add_child(label)
+	for i: int in 3:
+		await get_tree().process_frame
+	holder.queue_free()
+
+
 func _on_tab_pressed(id: StringName) -> void:
 	if id == &"map" and _current_screen == &"map":
 		%WorldsScreen.show_map()
