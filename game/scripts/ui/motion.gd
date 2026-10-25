@@ -221,7 +221,8 @@ static func float_text(parent: Node, pos: Vector2, text: String, color: Color) -
 	label.z_as_relative = false
 	label.z_index = WORLD_FX_Z
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.add_theme_font_size_override("font_size", 22)
+	label.theme = load("res://assets/theme/main_theme.tres")
+	label.theme_type_variation = &"FloatLabel"
 	label.add_theme_color_override("font_color", color)
 	label.add_theme_color_override("font_outline_color", Palette.INK)
 	label.add_theme_constant_override("outline_size", 4)

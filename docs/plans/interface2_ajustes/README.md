@@ -6,7 +6,7 @@
 > mesmo estilo do plano Interface 2". Depois, **aprovou os 35 itens como o revisor sugeriu, inclusive as
 > decisões**. Nenhuma decisão fica pendente.
 
-**Estado:** etapas 01–05 concluídas. **Próxima: etapa 06.**
+**Estado:** etapas 01–06 concluídas. **Próxima: etapa 07.**
 
 ## A ideia em uma linha
 
@@ -72,7 +72,7 @@ flowchart TD
 | [x] | [03](etapas/ETAPA_03_DESEMPENHO.md) | 4, 23 | tique de 8 Hz enxuto, brilho do álbum em cache, balões sem redesenho parado, aquecimento de glifos; um balão pulando por vez | grande |
 | [x] | [04](etapas/ETAPA_04_BANDEJAS_HORTA.md) | 7, 8, 9, 26 | fogão visível acima da bandeja; "Tudo" no `stepper`; barra da horta documentada; tile Regar | grande |
 | [x] | [05](etapas/ETAPA_05_TIRO.md) | 15, 19, 30 | humor em pílula translúcida; selo Animado; cardápio sem vermelho e sem cobrir o focinho; cerimônia sem Tiro repetido e régua melhor | médio |
-| [ ] | [06](etapas/ETAPA_06_MISSOES_CADERNINHO.md) | 22, 24, 25, 29 | "Neste capítulo" leve; segmentado de uma opção some; caderninho legível; fontes < 12 resolvidas; história concluída | médio |
+| [x] | [06](etapas/ETAPA_06_MISSOES_CADERNINHO.md) | 22, 24, 25, 29 | "Neste capítulo" leve; segmentado de uma opção some; caderninho legível; fontes < 12 resolvidas; história concluída | médio |
 | [ ] | [07](etapas/ETAPA_07_COMEMORACOES_TEXTOS.md) | 16, 31 | cartão de capítulo com grade de novidades; textos do Novo! e do passeio | médio |
 | [ ] | [08](etapas/ETAPA_08_CRESCIMENTO.md) | 35, 11 | prancha HTML do Crescimento → implementação na mesma etapa; seda no padrão do Crescimento | grande |
 | [ ] | [09](etapas/ETAPA_09_PAINEIS_MUNDO.md) | 10, 13, 14, 34 | Como fazer com peças novas; Lugares em `list_card`; conversa sem repetições; compra bloqueada nítida | grande |
@@ -239,3 +239,81 @@ do Galinheiro rolável, tique de finds/wishes e pílula Tudo encostada à direit
 em `assets/pixellab_character/tiro_bebe/python_libs/` preservadas e fora do commit. Atenção aos tipos
 novos de `AnimatedBadge`/`NewTaste` e ao `Quantity` aninhado. `--aj-05-only` acrescentado ao tour.
 Sem push/publicação; etapa 06 não iniciada.
+
+**Etapa 06 (25/10/2026, Codex):** itens **22, 24, 25 e 29** concluídos localmente.
+Capítulo com ✓/cadeado vetoriais de 20 px, linhas de 56 e atual em HONEY_SOFT sem seta/disco.
+`ChapterSteps`/`ChapterStep_<id>` preservados. Pessoas/Diárias usam `UiKit.row_chevron` (vetor 20,
+sem disco; a linha inteira é tocável), espaçamento 4 e nomes em uma linha. Prêmios passaram para a
+linha de progresso; nas Pessoas prontas, Pegar também fica nessa linha. Isso libera os nomes reais
+mais longos em 360, inclusive com Texto maior, sem reduzir fonte nem mudar objetivo/recompensa.
+História/Pessoas/Diárias e Hoje/Semana conservam o agrupamento e a sanfona.
+
+`UiKit.segmented` com zero/uma opção devolve o contêiner invisível, vazio e sem mínimo; `GroupTabs`
+também recolhe. Caderninho com **opção A**: `NotebookTabs` em `NotebookTabScroll`, nomes sempre
+presentes e ícones de 20, com rolagem e revelação da aba ativa. `_fit_notebook_tab` reserva largura
+real para texto + ícone e acompanha `theme_changed`. Coleção e Álbum usam `UiKit.section_links`,
+links sem trilho para não empilhar outro segmentado. `NotebookTab_<id>`/`AlbumSections` preservados;
+seção única do Álbum recolhe também `AlbumSectionScroll`. Novidades do Álbum viraram pontos mel,
+sem número vermelho/∞; os nós NewBadge e a novidade por foto/seção continuam existindo.
+
+Fontes locais saíram de AlbumView, PhotoCard, NpcWorld e Motion. Variações novas no tema:
+`PhotoRibbonLabel` 12, `PhotoCaptionLabel` 13 (base existente), `PhotoDateLabel` 12,
+`WorldBadgeLabel` 28 e `FloatLabel` 22. Todas passam pelo LargeText existente, sem motor novo.
+**Lista branca documentada:** só `main._warm_glyphs` pode usar override de tamanho, pois copia
+fontes >=12 do tema para aquecer glifos. Polaroide é texto do mundo: a geometria escala junto da
+foto; as fontes são do tema e acompanham Texto maior, inclusive em foto já montada. Essa exceção
+geométrica está comentada em PhotoCard e no teste; não há override <12 visível. O selo de 6 px saiu.
+`text_budget_test` agora recusa overrides fora da lista branca, tamanhos de tema <12 e verifica
+as cinco variações e uma polaroide já aberta ao ligar Texto maior.
+
+História concluída tem cartão `StoryCard` próprio: "Nosso lugar no mundo" em StrongLabel + check
+verde, `StoryFull` abre os capítulos existentes e `StoryAlbum` abre `PetNotebook.open("album")`.
+**Decisão de apresentação:** o arquivo pede simultaneamente small_go e "Sem botão verde"; usei
+`UiKit.soft(..., true)` no atalho Álbum, mantendo tamanho pequeno e ação calma, como o objetivo pede.
+Nenhuma regra, fala, dado, save ou prêmio mudou.
+
+**Provas / pronto quando:** ✓ 22: `i2_05_story/people/people_open/daily` nas três resoluções;
+✓ 24: `aj_06_tasks_first`, `i2_08_notebook_manual/collection/album`, nomes ativos inteiros,
+links sem segundo trilho e ponto mel; ✓ 25: variações + guardas do text_budget e capturas com Texto maior;
+✓ 29: `aj_06_story_done` e teste do atalho real. ✓ capítulo 20/56 e nomes em uma linha;
+✓ nenhum segmentado único visível; ✓ fontes resolvidas e escaláveis; ✓ cartão final próprio;
+✓ testes verdes. Checklist das mudanças: Fredoka/Nunito e Palette, controles vetoriais, sem novo
+primário grande, seleção neutra, linhas tocáveis, conteúdo rolável acima do rodapé, sem novo movimento.
+As telas foram conferidas em 360×780, 390×844 e 412×915; testes usam Menos animação.
+
+**Testes:** -DryRun antes; só a lista fechada + rápido obrigatório. Final **11/11 PASS, 164,7 s**:
+scripts_check 10,2; content_test 7,2; texts_test 2,8; tasks_test 24,6; tasks_groups_test 17,1;
+quest_reward_test 27,9; album_test 15,4; album_secrets_test 11,5; lists_test 19,7;
+text_budget_test 24,2; ui2_kit_test 2,3 s.
+Log: `build/test_logs/r20261025_145321_e627044f/results.csv`.
+Primeira rodada `r20261025_144621_9a3229cc` interrompida no tasks_groups: teste buscava o botão da
+aba única removida. Agora garante contêiner recolhido + aviso real na aba Missões; as três abas,
+recompensas e agrupamento continuam conferidos. Rodada `r20261025_145016_6a35bcaf`: 10 PASS e
+fixture nova de ui2_kit com Array sem tipo (o script imprimia PASS, mas o runner corretamente acusou
+SCRIPT ERROR). Corrigido para Array[Dictionary]; execução final inteira verde. tasks_test ganhou
+linha 56, início sem seletor e navegação real do Álbum no final; album_test ganhou seção única e
+ponto mel; ui2_kit ganhou contêiner único vazio e nomes dos links secundários. Nenhuma garantia foi
+apagada; as buscas foram adaptadas à apresentação aprovada. Sem suíte inteira/campanha/simulador.
+
+**Capturas:** bloco `--aj-06-only`, nove PNGs por pasta:
+`build/screenshots/aj_06_antes`, `_antes_390`, `_antes_412`, `_depois`, `_depois_390`, `_depois_412`.
+Todos abertos em seis pranchas `aj_06_*_prancha.png`, com detalhes abertos individualmente.
+Também `aj_06_texto_maior` (`--i2-11-only`, nove telas) e `aj_06_listas_texto_maior`
+(`--aj-06-only --i2-11-only`, nove telas, preferência só em memória).
+Comparados com as três pranchas `missoes2_*`, `aj_base/a02_tasks`, `aj_base/f05_notebook_manual`
+e `i2_08_depois/i2_08_album` da evidência da revisão. Diferenças do mock: textos/objetivos reais
+preservados; prêmios junto do progresso e Pegar abaixo do nome para acomodar os nomes longos;
+abas do caderninho rolam (opção A aprovada), deixando abas vizinhas parcialmente fora da janela,
+com nome/ícone da ativa inteiros. O Manual mantém seus seletores Recursos/Estações e conteúdo;
+a revisão da sua hierarquia fica na etapa 10. Aviso Nova foto e silhuetas vêm da fixture existente.
+Capturas apresentam avisos de liberação de RIDs/ObjectDB no encerramento do tour, sem erro de script;
+a lista fechada terminou verde. As capturas antes foram corrigidas ainda sem mudar o jogo para
+fechar a folha de prêmio pendente da fixture; duas imagens de tour completo iniciadas por engano
+antes de instalar o filtro foram removidas da pasta gerada. Sem alteração de arte.
+
+**Pendências / próxima 07:** nenhuma da 06. Permanecem Galinheiro com corpo rolável, custo do tique
+finds/wishes e pílula Tudo junto da borda direita (fora desta etapa). Fontes da polaroide são texto
+do mundo, com escala geométrica documentada; não reintroduzir overrides. `NewBadge` continua Label
+com texto invisível nas bolinhas do Álbum; `NotebookTab_<id>` continua nos seletores com escolhas.
+Com uma opção existe só o contêiner, não o botão. Exclusões preexistentes de python_libs preservadas
+fora do commit. AGENTS/CLAUDE idênticos byte a byte. Etapa 07 não iniciada. Sem push/publicação.

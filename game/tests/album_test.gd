@@ -378,6 +378,8 @@ func _interface() -> void:
 	check(panel.find_child("Photo_f_bath", true, false).find_child("NewBadge", true, false) != null, "foto nova tem selo Novo!")
 	check(panel.find_child("Photo_f_bath", true, false).find_child("NewBadge", true, false).text == "!", "foto nova usa exclamação")
 	check(panel.find_child("NotebookTab_firsts", true, false).find_child("NewBadge", true, false) != null, "seção Primeiras vezes aponta as fotos novas")
+	var section_badge := panel.find_child("NotebookTab_firsts", true, false).find_child("NewBadge", true, false) as Label
+	check(section_badge.get_theme_color("font_color").a == 0 and (section_badge.get_theme_stylebox("normal") as StyleBoxFlat).bg_color == Palette.HONEY, "novidade de seção é ponto mel sem número vermelho")
 	check(panel.find_child("NotebookTab_story", true, false).find_child("NewBadge", true, false) == null, "seção sem foto nova fica sem aviso")
 	check(panel.find_child("Photo_f_dig", true, false).find_child("NewBadge", true, false) == null, "foto que falta não tem selo")
 	check(panel.find_child("PhotoCard", true, false) != null, "polaroides montadas")
@@ -411,3 +413,11 @@ func _interface() -> void:
 	root.add_child(pair)
 	check(pair.find_child("BeforePhoto", true, false) != null, "foto do adulto mostra a chegada ao lado")
 	pair.free()
+	var all_sections: Array = db.album.active_sections.duplicate()
+	db.album.active_sections = ["story"]
+	var single: Control = album_view.panel("story")
+	root.add_child(single)
+	check(single.find_child("AlbumSections", true, false) != null and not single.find_child("AlbumSections", true, false).visible, "seção única mantém contêiner invisível")
+	check(not single.find_child("AlbumSectionScroll", true, false).visible, "seção única não deixa faixa vazia")
+	single.free()
+	db.album.active_sections = all_sections

@@ -39,7 +39,8 @@ func _ready() -> void:
 	add_child(_sprite)
 	_sprite.position = Vector2(0.0, -_feet)
 	_badge = Label.new()
-	_badge.add_theme_font_size_override("font_size", 28)
+	_badge.theme = load("res://assets/theme/main_theme.tres")
+	_badge.theme_type_variation = &"WorldBadgeLabel"
 	_badge.add_theme_color_override("font_outline_color", Palette.OUTLINE)
 	_badge.add_theme_constant_override("outline_size", 8)
 	_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

@@ -36,15 +36,24 @@ static func panel(section: String = "manual") -> Control:
 	box.set_meta("sheet_size", "tall")
 	var tab_margin := MarginContainer.new()
 	tab_margin.add_theme_constant_override("margin_top", 8)
-	# Ícone em todas as abas e o nome só na aberta: cinco abas cabem em 360 px.
+	# Opção A: nomes inteiros e ícones 20; o trilho rola quando as cinco abas não cabem.
 	var shown: Array[Dictionary] = []
 	for entry: Dictionary in entries:
 		var copy := entry.duplicate()
 		copy["icon"] = UiKit.ui_icon(str(TAB_ICONS.get(str(entry.id), "ui_notebook")))
-		if str(entry.id) != section:
-			copy["text"] = ""
+		copy["icon_px"] = 20
 		shown.append(copy)
-	tab_margin.add_child(UiKit.segmented(shown, section, open))
+	var tabs_row := UiKit.segmented(shown, section, open)
+	tabs_row.name = "NotebookTabs"
+	var strip := ScrollContainer.new()
+	strip.name = "NotebookTabScroll"
+	strip.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	strip.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	strip.custom_minimum_size.y = 56 if entries.size() > 1 else 0
+	strip.add_child(tabs_row)
+	tab_margin.add_child(strip)
+	var active := tabs_row.find_child("NotebookTab_" + section, false, false) as Control
+	if active: AlbumView._reveal_tab.call_deferred(strip, active)
 	box.add_child(tab_margin)
 	match section:
 		"growth":

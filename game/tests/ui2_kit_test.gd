@@ -173,6 +173,14 @@ func _caso_segmented() -> void:
 	var selected := row.find_child("NotebookTab_a", true, false) as Button
 	check((selected.get_theme_stylebox("normal") as StyleBoxFlat).bg_color == Palette.CARD, "aba ativa branca")
 	row.free()
+	var one_entry: Array[Dictionary] = [{"id": "only", "text": "História"}]
+	var single: Control = mount(kit.call("segmented", one_entry, "only", func(_id: String) -> void: pass))
+	single.name = "SingleTabs"
+	check(not single.visible and single.get_child_count() == 0 and single.custom_minimum_size == Vector2.ZERO, "uma opção preserva o contêiner, sem desenho nem altura")
+	single.free()
+	var links: Control = mount(kit.call("section_links", entries, "a", func(_id: String) -> void: pass))
+	check(links.find_child("NotebookTab_b", true, false) != null, "links secundários mantêm destinos e nomes das abas")
+	links.free()
 
 
 func _caso_steps() -> void:

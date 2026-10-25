@@ -62,6 +62,7 @@ func _update_groups(characters: Dictionary) -> void:
 		entries.append({"id": "timed", "text": "Diárias", "icon": UiKit.ctl_icon("clock")})
 		if not _ready_routines.is_empty(): entries.back().count = _ready_routines.size()
 	for entry: Dictionary in entries: entry.inline_icon = true
+	%GroupTabs.visible = entries.size() > 1
 	%GroupTabs.add_child(UiKit.segmented(entries, _group, choose_group))
 
 ## A casca chama depois de trocar a tela, liberando o espaço dos anéis do Tiro.
@@ -147,17 +148,20 @@ func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 		var meta := UiKit.hbox(4)
 		meta.add_child(UiKit.icon(ProgressionUi.goal_icon(goal), 20))
 		meta.add_child(UiKit.short_label("%d/%d" % [mini(GameState.goal_value(goal), target), target], &"SmallLabel", Palette.GO_INK if ready else Palette.INK_SOFT))
-		var action := UiKit.small_go("Pegar", func() -> void: _claim_characters([id])) if ready else UiKit.ctl_button("chev", choose_line.bind(line), 32, "sunken")
+		var action := UiKit.small_go("Pegar", func() -> void: _claim_characters([id])) if ready else UiKit.row_chevron(choose_line.bind(line))
 		action.name = "ClaimQuest_" + id if ready else "OpenLine_" + line
 		var row := UiKit.list_row(ProgressionUi.npc_portrait(str(quest.npc)), str(quest.name), [meta], action, choose_line.bind(line), ready)
 		row.name = "LineCard_" + line
 		row.set_meta("quest", id)
 		var top := row.get_child(0).get_child(0) as HBoxContainer
+		_compact_name(top)
 		var face := top.get_child(0) as PanelContainer
 		(face.get_child(0) as TextureRect).custom_minimum_size = Vector2(44, 44)
+		if ready:
+			top.remove_child(action)
+			meta.add_child(action)
 		if not ready and int(quest.rewards.get("coins", 0)) > 0:
-			top.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(quest.rewards.get("coins", 0)), null, "prize"))
-			top.move_child(action, top.get_child_count() - 1)
+			meta.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(quest.rewards.get("coins", 0)), null, "prize"))
 		var seen_key := "ui:quest_new:" + id
 		if not GameState.progress.seen.has(seen_key):
 			var overlay := Control.new()
@@ -178,9 +182,9 @@ func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 			if _animate_detail == line:
 				Motion.pop_in(detail)
 				_animate_detail = ""
-			var disc := action.find_child("Disc", true, false) as Control
+			var disc := action.find_child("RowChevron", true, false) as Control
 			if not ready and disc:
-				disc.pivot_offset = Vector2(16, 16)
+				disc.pivot_offset = Vector2(10, 10)
 				disc.rotation = PI / 2
 
 func _story_card(box: VBoxContainer) -> void:
@@ -189,12 +193,21 @@ func _story_card(box: VBoxContainer) -> void:
 	var displayed := GameState.progress.displayed_main_quest()
 	var card := UiKit.card(box)
 	card.name = "StoryCard"
+	if index > Database.progression.chapters.size():
+		var heading := UiKit.hbox(8)
+		heading.add_child(UiKit.fill_label("Nosso lugar no mundo", &"StrongLabel"))
+		heading.add_child(UiKit.ctl("check", 20, Palette.GO))
+		card.add_child(heading)
+		var full := UiKit.ghost("História completa ›", func() -> void: Events.sheet_requested.emit("História", ProgressionUi.story_panel()))
+		full.name = "StoryFull"
+		card.add_child(full)
+		var album := UiKit.soft("Álbum", func() -> void: PetNotebook.open("album"), UiKit.ui_icon("album_story"), true)
+		album.name = "StoryAlbum"
+		card.add_child(album)
+		return
 	if displayed != "" and GameState.quest_error(displayed) == "": card.add_child(UiKit.ready_dot())
 	card.add_child(UiKit.section("Capítulo"))
 	card.add_child(UiKit.label(str(GameState.current_chapter().get("name", "História")), &"StrongLabel"))
-	if index > Database.progression.chapters.size():
-		card.add_child(UiKit.label("História concluída!", &"StrongLabel", Palette.GO_INK))
-		return
 	var ids := GameState.progress.main_quests(index)
 	card.add_child(UiKit.steps(ids.size(), ids.find(current)))
 	if displayed != "":
@@ -221,9 +234,26 @@ func _story_card(box: VBoxContainer) -> void:
 	var list := UiKit.list_card(steps)
 	for id: String in ids:
 		var claimed := GameState.progress.claimed_quests.has(id)
-		var row := UiKit.list_row(UiKit.ctl_icon("check" if claimed else ("chev" if id == current else "lock")), str(Database.quests[id].name), [])
+		var row := UiKit.list_row(null, str(Database.quests[id].name), [])
+		row.custom_minimum_size.y = 56
+		var top := row.get_child(0).get_child(0) as HBoxContainer
+		(row.get_child(0) as VBoxContainer).alignment = BoxContainer.ALIGNMENT_CENTER
+		top.get_child(0).free()
+		# O atual é indicado pelo fundo mel; feitos e futuros usam somente o vetor de 20 px.
+		if id != current:
+			var mark := UiKit.ctl("check" if claimed else "lock", 20, Palette.GO if claimed else Palette.INK_SOFT)
+			mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			top.add_child(mark)
+			top.move_child(mark, 0)
+		_compact_name(top)
 		row.name = "ChapterStep_" + id
-		if id == current: row.add_theme_stylebox_override("panel", UiKit.surface(Palette.HONEY_SOFT, 16))
+		if id == current:
+			var style := UiKit.surface(Palette.HONEY_SOFT, 16)
+			style.content_margin_left = 8
+			style.content_margin_right = 8
+			style.content_margin_top = 5
+			style.content_margin_bottom = 5
+			row.add_theme_stylebox_override("panel", style)
 		elif not claimed: row.modulate.a = 0.5
 		list.add_child(row)
 	var full := UiKit.ghost("História completa ›", func() -> void: Events.sheet_requested.emit("História", ProgressionUi.story_panel()))
@@ -260,17 +290,18 @@ func _routines(box: VBoxContainer, kind: String) -> void:
 		var value := mini(GameState.routine_value(kind, id), target)
 		var ready := GameState.routine_error(kind, id) == ""
 		var key := kind + "_" + id
-		var action := UiKit.small_go("Pegar", func() -> void: ProgressionUi.claim_routine_rows(_content, [{"kind": kind, "id": id}])) if ready else UiKit.ctl_button("chev", choose_routine_detail.bind(kind, id), 32, "sunken")
+		var action := UiKit.small_go("Pegar", func() -> void: ProgressionUi.claim_routine_rows(_content, [{"kind": kind, "id": id}])) if ready else UiKit.row_chevron(choose_routine_detail.bind(kind, id))
 		var row := UiKit.list_row(null, str(data.name), [UiKit.short_label("%d/%d" % [value, target], &"SmallLabel", Palette.GO_INK if ready else Palette.INK_SOFT)], action, choose_routine_detail.bind(kind, id), ready)
 		row.name = "Routine_" + key
 		var top := row.get_child(0).get_child(0) as HBoxContainer
+		_compact_name(top)
 		top.get_child(0).free()
 		var ring := UiKit.ring(ProgressionUi.stat_icon(str(data.goal.key)), float(value) / maxi(1, target), Palette.GO if ready else Palette.SKY, 44)
 		top.add_child(ring)
 		top.move_child(ring, 0)
 		if not ready and int(data.rewards.get("coins", 0)) > 0:
-			top.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(data.rewards.get("coins", 0)), null, "prize"))
-			top.move_child(action, top.get_child_count() - 1)
+			var meta := top.get_child(1).get_child(1) as FlowContainer
+			meta.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(data.rewards.get("coins", 0)), null, "prize"))
 		list.add_child(row)
 		if _routine == key:
 			var detail := UiKit.vbox(8)
@@ -281,6 +312,17 @@ func _routines(box: VBoxContainer, kind: String) -> void:
 			detail.add_child(UiKit.soft("Ir →", func() -> void: Places.go(Places.goal_target({"type": "stat", "key": data.goal.key})), null, true))
 			Motion.pop_in(detail)
 	if shown == 0: list.add_child(UiKit.list_row(UiKit.ctl_icon("check"), "Tudo feito por hoje!" if kind == "daily" else "Tudo feito nesta semana!", []))
+
+
+## A linha inteira abre o detalhe; nome curto não disputa espaço com o disco de uma seta.
+func _compact_name(top: HBoxContainer) -> void:
+	top.add_theme_constant_override("separation", 4)
+	for node: Node in top.find_children("*", "Label", true, false):
+		var title := node as Label
+		if title.theme_type_variation == &"":
+			title.autowrap_mode = TextServer.AUTOWRAP_OFF
+			title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+			title.clip_text = true
 
 
 ## A casca sobe o conteúdo quando a linha 2 do HUD está vazia (história concluída): `top` = margem de cima.

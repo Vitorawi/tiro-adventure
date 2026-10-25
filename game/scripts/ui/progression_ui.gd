@@ -668,7 +668,7 @@ static func collection_panel() -> Control:
 		for entry: Dictionary in [{"id": "finds", "text": "Achados"}, {"id": "friends", "text": "Amigos"}]:
 			if GameState.progress.feature_unlocked(entry.id): entries.append(entry)
 		if not entries.any(func(entry: Dictionary) -> bool: return entry.id == _collection_tab): _collection_tab = "clothes"
-		box.add_child(UiKit.segmented(entries, _collection_tab, func(id: String) -> void:
+		box.add_child(UiKit.section_links(entries, _collection_tab, func(id: String) -> void:
 			_collection_tab = id
 			(box as SheetBuilder.LiveBox).refresh()))
 		match _collection_tab:

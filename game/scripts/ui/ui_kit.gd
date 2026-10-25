@@ -457,6 +457,10 @@ static func effect_chip_list(effects: Dictionary) -> Array[Control]:
 ## Abas num trilho afundado; seleção branca com sombra, sem botão principal.
 static func segmented(entries: Array[Dictionary], selected: String, choose: Callable) -> HBoxContainer:
 	var row := hbox(0)
+	# Sem escolha não há seletor; o contêiner continua disponível para quem o nomeia.
+	if entries.size() <= 1:
+		row.hide()
+		return row
 	row.custom_minimum_size.y = 48
 	row.draw.connect(func() -> void: row.draw_style_box(surface(Palette.SUNKEN, 22), Rect2(Vector2.ZERO, row.size)))
 	row.resized.connect(row.queue_redraw)
@@ -479,24 +483,51 @@ static func segmented(entries: Array[Dictionary], selected: String, choose: Call
 		if entry.get("icon") is Texture2D and not entry.get("inline_icon", false):
 			tab.icon = entry.icon
 			tab.expand_icon = true
-			tab.add_theme_constant_override("icon_max_width", 24)
+			tab.add_theme_constant_override("icon_max_width", int(entry.get("icon_px", 24)))
 		if entry.get("inline_icon", false):
 			tab.text = ""
 			var inline := hbox(4)
 			inline.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			inline.alignment = BoxContainer.ALIGNMENT_CENTER
 			inline.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			inline.add_child(disc(entry.icon, 24, 24))
+			inline.add_child(disc(entry.icon, int(entry.get("icon_px", 24)), int(entry.get("icon_px", 24))))
 			inline.add_child(short_label(str(entry.text), &"ChipLabel", Palette.INK if active else Palette.INK_SOFT))
 			tab.add_child(inline)
 			tab.custom_minimum_size.x = inline.get_combined_minimum_size().x + 8
 		row.add_child(tab)
+		if entry.has("icon_px") and not entry.get("inline_icon", false):
+			# Button.expand_icon não reserva largura no mínimo: reserva o ícone junto do texto.
+			tab.theme_changed.connect(_fit_notebook_tab.bind(tab.get_instance_id(), int(entry.icon_px)))
+			_fit_notebook_tab.call_deferred(tab.get_instance_id(), int(entry.icon_px))
 		if entry.has("count") or entry.get("alert", false):
 			var mark := badge(int(entry.get("count", 0)))
 			mark.name = "NewBadge"
 			tab.add_child(mark)
 			mark.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 			mark.position += Vector2(-12, -2)
+	return row
+
+
+static func _fit_notebook_tab(tab_id: int, icon_px: int) -> void:
+	var tab := instance_from_id(tab_id) as Button
+	if tab == null: return
+	var font := tab.get_theme_font("font")
+	var width := font.get_string_size(tab.text, HORIZONTAL_ALIGNMENT_LEFT, -1, tab.get_theme_font_size("font_size")).x
+	tab.custom_minimum_size.x = ceilf(width) + icon_px + 16
+
+
+## Navegação secundária sem trilho: não empilha outro segmentado dentro do caderninho.
+static func section_links(entries: Array[Dictionary], selected: String, choose: Callable) -> HBoxContainer:
+	var row := hbox(8)
+	if entries.size() <= 1:
+		row.hide()
+		return row
+	for entry: Dictionary in entries:
+		var tab := ghost(str(entry.text), choose.bind(str(entry.id)))
+		tab.name = "NotebookTab_" + str(entry.id)
+		if str(entry.id) == selected:
+			tab.add_theme_stylebox_override("normal", surface(Palette.SUNKEN, 16))
+		row.add_child(tab)
 	return row
 
 
@@ -601,6 +632,22 @@ static func ctl_button(name: String, on_pressed: Callable, px: int = 40, surface
 	visual.offset_top = -px / 2.0
 	visual.offset_bottom = px / 2.0
 	result.custom_minimum_size = Vector2(maxi(44, px), maxi(44, px))
+	return result
+
+
+## Seta sem disco para linhas: a área da própria linha mantém o alvo de 44 px.
+static func row_chevron(on_pressed: Callable) -> Button:
+	var result := button("", on_pressed, &"GhostButton")
+	for phase: String in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
+		result.add_theme_stylebox_override(phase, StyleBoxEmpty.new())
+	result.custom_minimum_size = Vector2(20, 44)
+	var center := CenterContainer.new()
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result.add_child(center)
+	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var arrow := ctl("chev", 20, Palette.INK_FAINT)
+	arrow.name = "RowChevron"
+	center.add_child(arrow)
 	return result
 
 

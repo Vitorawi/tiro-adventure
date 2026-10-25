@@ -460,3 +460,14 @@ existentes sem argumento. `FoodMenu` limita a lista entre `PetScreen.head_rect()
 `HeightMark` com marcas a cada 10 px e `HeightPhase` (nome da fase; sem dado novo de altura).
 Tour `ui_tour.gd -- --aj-05-only` (oito PNGs). Lista fechada de testes e capturas nas três resoluções
 registradas em `docs/plans/interface2_ajustes/README.md`; próxima 06, não iniciada. Sem push/publicação.
+
+**Interface 2 — ajustes, etapa 06 (25/10/2026):** `UiKit.row_chevron` (vetor 20 sem disco, linha tocável),
+`UiKit.section_links` (navegação secundária sem trilho), `segmented` único invisível e vazio;
+`_fit_notebook_tab`/`icon_px` reservam texto + ícone e acompanham tema. `NotebookTabs`/`NotebookTabScroll`
+na opção A do caderninho; `AlbumSections`/`AlbumSectionScroll` recolhem com uma seção, pontos mel.
+`TasksScreen._compact_name`, capítulo 20/56 e `StoryAlbum`/`StoryFull` no cartão de história concluída.
+Variações de tema `PhotoRibbonLabel` 12, `PhotoCaptionLabel` 13, `PhotoDateLabel` 12,
+`WorldBadgeLabel` 28, `FloatLabel` 22; PhotoCard escala geometria (texto do mundo), fonte pelo LargeText.
+Lista branca de override: só `main._warm_glyphs`; guardada no `text_budget_test`.
+Tour `--aj-06-only` (9 PNGs); junto com `--i2-11-only` usa Texto maior em memória.
+11 testes PASS em 164,7 s; registro no README do plano de ajustes. Próxima 07. Sem push/publicação.

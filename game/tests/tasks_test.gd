@@ -164,6 +164,9 @@ func _ui_check() -> void:
 	await create_timer(0.2).timeout
 	var card: Control = main.find_child("StoryCard", true, false)
 	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
+	check(not main.find_child("GroupTabs", true, false).visible, "só História no início não desenha seletor")
+	var chapter_step := main.find_child("ChapterStep_welcome", true, false) as Control
+	check(chapter_step != null and chapter_step.custom_minimum_size.y == 56, "passo do capítulo tem linha de 56")
 	var step: Control = main.find_child("NextStep", true, false)
 	check(step != null and step.visible and (load("res://scripts/ui/quest_guide.gd") as GDScript).call("current").id == "welcome", "O próximo passo (linha 2 do HUD) chama o olhar no começo, no lugar da aba pulsando")
 	check(main.find_child("MoodLabel", true, false).text == "Tiro está feliz da vida!", "Humor do Tiro substitui a instrução fixa (Etapa 09)")
@@ -266,6 +269,11 @@ func _ui_check() -> void:
 	await process_frame
 	main.call("show_screen", &"tasks")
 	_shot("tasks_end")
+	check(main.find_child("StoryAlbum", true, false) != null and main.find_child("StoryFull", true, false) != null, "história concluída oferece Álbum e capítulos anteriores")
+	main.find_child("StoryAlbum", true, false).emit_signal("pressed")
+	await process_frame
+	await process_frame
+	check(main.find_child("NotebookTab_album", true, false) != null, "atalho final abre o Álbum do caderninho")
 	main.queue_free()
 	await process_frame
 

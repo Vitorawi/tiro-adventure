@@ -93,6 +93,10 @@ func _run() -> void:
 		await _aj_03_shots()
 		quit(0)
 		return
+	if "--aj-06-only" in OS.get_cmdline_user_args():
+		await _aj_06_shots()
+		quit(0)
+		return
 	if "--aj-05-only" in OS.get_cmdline_user_args():
 		await _aj_05_shots()
 		quit(0)
@@ -1556,3 +1560,53 @@ func _ceremony_shots() -> void:
 		main.get("_growth_ceremony").call("_close")
 		await create_timer(0.4).timeout
 	Motion.reduced = true
+
+func _aj_06_shots() -> void:
+	# Os dois filtros juntos repetem este recorte com Texto maior, sem gravar a preferência.
+	if "--i2-11-only" in OS.get_cmdline_user_args():
+		root.get_node("SaveManager").set("large_text", true)
+		load("res://scripts/ui/large_text.gd").call("apply", true)
+	state.call("reset")
+	state.get("progress").seen.intro = true
+	await _start_main(1.0)
+	main.call("show_screen", &"tasks")
+	await shot("aj_06_tasks_first")
+	state.call("dev_complete_quest", "welcome")
+	state.call("_mark_all_seen")
+	await create_timer(0.3).timeout
+	_hide_modals()
+	await shot("i2_05_story")
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	for id: String in ["main_9_coop", "nina_walk", "lais_album", "merchant_surplus"]:
+		state.get("progress").claimed_quests.erase(id)
+	state.get("progress").stats["walk:park_loop"] = 0
+	state.get("progress").stats["sold:village"] = 0
+	state.get("progress").stats["open:album"] = 1
+	state.get("inventory").call("from_dict", {})
+	state.call("_changed")
+	await create_timer(0.3).timeout
+	_hide_modals()
+	var tasks: Control = main.find_child("TasksScreen", true, false)
+	tasks.call("choose_group", "characters")
+	await shot("i2_05_people")
+	tasks.call("choose_character", "nina")
+	await shot("i2_05_people_open")
+	state.call("dev_restart_routines")
+	tasks.call("choose_group", "timed")
+	await shot("i2_05_daily")
+	var notebook: Script = load("res://scripts/ui/pet_notebook.gd")
+	for pair: Array in [["manual", "i2_08_notebook_manual"], ["collection", "i2_08_collection"], ["album", "i2_08_album"]]:
+		state.call("dev_take_photo", "f_bath")
+		notebook.call("open", pair[0])
+		await shot(pair[1])
+		await _close()
+	var db: Node = root.get_node("Database")
+	for id: String in db.get("quests"):
+		if not state.get("progress").claimed_quests.has(id):
+			state.call("dev_complete_quest", id)
+	state.call("_mark_all_seen")
+	await create_timer(0.3).timeout
+	_hide_modals()
+	tasks.call("choose_group", "story")
+	await shot("aj_06_story_done")

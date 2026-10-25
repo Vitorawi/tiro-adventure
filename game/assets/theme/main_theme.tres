@@ -526,3 +526,14 @@ SmallGoButton/styles/hover = SubResource("small_go")
 SmallGoButton/styles/pressed = SubResource("small_go_pressed")
 SmallGoButton/styles/hover_pressed = SubResource("small_go_pressed")
 SmallGoButton/styles/focus = SubResource("empty")
+
+PhotoRibbonLabel/base_type = &"BadgeLabel"
+PhotoRibbonLabel/font_sizes/font_size = 12
+PhotoCaptionLabel/base_type = &"SmallLabel"
+PhotoCaptionLabel/font_sizes/font_size = 13
+PhotoDateLabel/base_type = &"SmallLabel"
+PhotoDateLabel/font_sizes/font_size = 12
+WorldBadgeLabel/base_type = &"BadgeLabel"
+WorldBadgeLabel/font_sizes/font_size = 28
+FloatLabel/base_type = &"NumberLabel"
+FloatLabel/font_sizes/font_size = 22

@@ -108,31 +108,32 @@ static func _finish(root: Control, entry: Dictionary, info: Dictionary, width: f
 		band.size = Vector2(WINDOW.size.x, 18) * scale_factor
 		band.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(band)
-		var text := UiKit.label(ribbon, &"BadgeLabel")
+		var text := UiKit.label(ribbon, &"PhotoRibbonLabel")
 		text.name = "RibbonText"
 		text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		text.size = band.size
-		text.add_theme_font_size_override("font_size", maxi(9, int(12 * scale_factor)))
+		# Texto do mundo: a polaroide escala a geometria, e a fonte do tema acompanha Texto maior.
+		text.size = band.size / scale_factor
+		text.scale = Vector2.ONE * scale_factor
 		text.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		band.add_child(text)
 	if bool(options.get("caption", false)):
-		var title := UiKit.label(str(entry.get("title", "")) if not locked or not bool(options.get("secret", false)) else "???", &"SmallLabel")
+		var title := UiKit.label(str(entry.get("title", "")) if not locked or not bool(options.get("secret", false)) else "???", &"PhotoCaptionLabel")
 		title.name = "PhotoTitle"
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		title.position = Vector2(WINDOW.position.x, 143) * scale_factor
-		title.size = Vector2(WINDOW.size.x * scale_factor, 18 * scale_factor)
-		title.add_theme_font_size_override("font_size", maxi(11, int(13 * scale_factor)))
+		title.size = Vector2(WINDOW.size.x, 18)
+		title.scale = Vector2.ONE * scale_factor
 		title.clip_text = true
 		title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(title)
 		if not locked:
-			var date := UiKit.label(date_text(float(info.at)), &"SmallLabel", Palette.INK_SOFT)
+			var date := UiKit.label(date_text(float(info.at)), &"PhotoDateLabel", Palette.INK_SOFT)
 			date.name = "PhotoDate"
 			date.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			date.position = Vector2(WINDOW.position.x, 158) * scale_factor
-			date.size = Vector2(WINDOW.size.x * scale_factor, 14 * scale_factor)
-			date.add_theme_font_size_override("font_size", maxi(9, int(11 * scale_factor)))
+			date.size = Vector2(WINDOW.size.x, 14)
+			date.scale = Vector2.ONE * scale_factor
 			date.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			root.add_child(date)
 	return root

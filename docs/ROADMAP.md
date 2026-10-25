@@ -2,6 +2,18 @@
 
 ## Estado atual
 
+**Interface 2 — ajustes, etapa 06 concluída localmente (25/10/2026, Codex).** Itens 22/24/25/29:
+capítulo com vetores 20 e linhas 56; nomes de Pessoas/Diárias numa linha, setas sem disco e prêmios
+junto do progresso. Segmentado único recolhe; caderninho opção A (nomes + ícones 20 e rolagem),
+Coleção/Álbum com links secundários sem trilho, novidades do Álbum em ponto mel. Cinco variações
+PhotoRibbonLabel/PhotoCaptionLabel/PhotoDateLabel/WorldBadgeLabel/FloatLabel acompanham Texto maior;
+text_budget_test impede fontes <12 e overrides fora da lista branca (só aquecimento de glifos;
+polaroide com geometria escalada e fonte do tema). Cartão final "Nosso lugar no mundo" + check,
+StoryFull e StoryAlbum. Lista fechada 11/11 PASS em 164,7 s (`r20261025_145321_e627044f`);
+capturas antes/depois nas três resoluções e Texto maior abertas/comparadas. Registro completo no
+README do plano. AGENTS/CLAUDE idênticos; sem regra/save/fala alterada. Próxima: 07, não iniciada.
+Sem push/publicação.
+
 **Interface 2 — ajustes, etapa 05 concluída localmente (25/10/2026, Codex).** Itens 15, 19 e 30:
 `MoodBubble` com CARD a 85%, margens e `MoodLabel` preservado, ancorada nos pés; aparece ao mudar/tocar,
 some após 3 s por `_hide_mood`/Motion (instantâneo em Menos animação). `AnimatedBadge` agora é

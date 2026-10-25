@@ -37,13 +37,19 @@ static func panel(section: String = "") -> Control:
 	var overall := UiKit.collection_progress(taken_count(), total_count())
 	overall.name = "AlbumProgress"
 	box.add_child(overall)
-	# Seletor: chips com ícone e nome, em rolagem horizontal.
+	# Seções são links calmos, sem um segundo trilho segmentado sob o do caderninho.
 	var unseen_sections: Array = GameState.photos_unseen().map(func(id: String) -> String: return str(Database.photo(id).section))
 	var tabs: Array[Dictionary] = []
 	for entry: Dictionary in sections:
-		tabs.append({"id": str(entry.id), "text": str(entry.name) if str(entry.id) == section else "", "icon": UiKit.ui_icon(str(entry.icon)), "alert": str(entry.id) in unseen_sections})
-	var segmented := UiKit.segmented(tabs, section, func(id: String) -> void: PetNotebook.open("album:" + id))
+		tabs.append({"id": str(entry.id), "text": str(entry.name), "alert": str(entry.id) in unseen_sections})
+	var segmented := UiKit.section_links(tabs, section, func(id: String) -> void: PetNotebook.open("album:" + id))
 	segmented.name = "AlbumSections"
+	if tabs.size() > 1:
+		for entry: Dictionary in tabs:
+			var link := segmented.find_child("NotebookTab_" + str(entry.id), false, false)
+			if entry.alert:
+				var dot := UiKit.alert_badge()
+				link.add_child(dot)
 	for tab in segmented.get_children():
 		var button := tab as Button
 		button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
@@ -58,6 +64,7 @@ static func panel(section: String = "") -> Control:
 	strip.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	strip.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	strip.custom_minimum_size = Vector2(0, 52)
+	strip.visible = tabs.size() > 1
 	var strip_pad := MarginContainer.new()
 	strip_pad.add_theme_constant_override("margin_top", 6)
 	strip_pad.add_theme_constant_override("margin_right", 10)
@@ -85,11 +92,10 @@ static func _make_dot(badge: Label, px: int) -> void:
 	badge.custom_minimum_size = Vector2(24, 24)
 	badge.size = Vector2(24, 24)
 	badge.scale = Vector2.ONE * (px / 24.0)
-	badge.add_theme_color_override("font_color", Color(1, 1, 1, 0))
-	badge.add_theme_font_size_override("font_size", 6)
+	badge.add_theme_color_override("font_color", Color(Palette.CARD, 0))
 	badge.clip_text = true
-	badge.theme_type_variation = &""
-	badge.add_theme_stylebox_override("normal", UiKit.surface(Palette.ALERT, 12))
+	badge.theme_type_variation = &"BadgeLabel"
+	badge.add_theme_stylebox_override("normal", UiKit.surface(Palette.HONEY, 12))
 
 
 ## Rola o seletor até o chip da seção aberta, depois do primeiro layout.

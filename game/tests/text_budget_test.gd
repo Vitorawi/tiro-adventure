@@ -109,6 +109,7 @@ func count(label: String, root_node: Node, rect: Rect2 = Rect2()) -> void:
 
 
 func _run() -> void:
+	_font_overrides("res://")
 	var saver: Node = root.get_node("SaveManager")
 	root.remove_child(saver)  # fica de fora (sem gravar); volta só para abrir as Configurações
 	state = root.get_node("GameState")
@@ -169,9 +170,19 @@ func _run() -> void:
 	_hide_modals()
 
 	# Texto maior: nenhum Label de uma linha passa da largura do pai.
+	var photo := load("res://scripts/ui/photo_card.gd").call("make", "h_arrival", 264.0, {"caption": true}) as Control
+	photo.theme = load("res://assets/theme/main_theme.tres")
+	root.add_child(photo)
+	var photo_title := photo.find_child("PhotoTitle", true, false) as Label
+	check(photo_title != null and not photo_title.has_theme_font_size_override("font_size"), "polaroide usa fonte do tema, sem override local")
 	LargeText.apply(true)
 	check(LargeText.is_on(), "Texto maior liga")
+	var scaled_theme := load("res://assets/theme/main_theme.tres") as Theme
+	for pair: Array in [["PhotoRibbonLabel", 12], ["PhotoCaptionLabel", 13], ["PhotoDateLabel", 12], ["WorldBadgeLabel", 28], ["FloatLabel", 22]]:
+		check(scaled_theme.get_font_size("font_size", pair[0]) == roundi(int(pair[1]) * LargeText.SCALE), str(pair[0]) + " acompanha Texto maior")
 	await frames(10)
+	check(photo_title.get_theme_font_size("font_size") == roundi(13 * LargeText.SCALE), "polaroide já montada acompanha Texto maior")
+	photo.free()
 	for screen_id: StringName in [&"pet", &"tasks", &"bag"]:
 		main.call("show_screen", screen_id)
 		await frames(6)
@@ -209,6 +220,27 @@ func _run() -> void:
 		saver.free()
 	print("TEXT BUDGET TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
+
+
+## Lista branca: só main._warm_glyphs, que copia tamanhos >=12 do tema para aquecer glifos.
+## Polaroides são texto do mundo (PhotoCard._finish): escala geométrica da foto, fonte sempre do tema;
+## não precisam de override e acompanham LargeText inclusive depois de já montadas.
+func _font_overrides(path: String) -> void:
+	for file: String in DirAccess.get_files_at(path):
+		if not file.ends_with(".gd"): continue
+		var full := path.path_join(file)
+		var source := FileAccess.get_file_as_string(full)
+		if not source.contains("add_theme_font_size_override"): continue
+		check(full == "res://scenes/main/main.gd", "override de fonte fora da lista branca: " + full)
+	for folder: String in DirAccess.get_directories_at(path):
+		if folder.begins_with(".") or folder == "tests": continue
+		_font_overrides(path.path_join(folder))
+	if path == "res://":
+		var theme := load("res://assets/theme/main_theme.tres") as Theme
+		check(theme.default_font_size >= 12, "fonte padrão >=12")
+		for type_name: String in theme.get_font_size_type_list():
+			for item: String in theme.get_font_size_list(type_name):
+				check(theme.get_font_size(item, type_name) >= 12, "fonte do tema >=12: " + type_name)
 
 
 func _hide_modals() -> void:
