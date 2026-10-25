@@ -300,6 +300,9 @@ func _panel_check() -> void:
 	check(state.call("project_started", "park_bench") and int(state.get("coins")) == 250, "tocar começa e cobra")
 	check(panel.find_child("StartProject", true, false) == null and panel.find_child("ProjectItem_plank", true, false) != null, "painel passa à entrega, com itens tocáveis")
 	check(panel.find_child("ProjectMissing", true, false) != null, "sem material: mostra o que falta e de onde vem")
+	check(panel.find_child("ProjectBar", true, false) == null and panel.find_child("ProjectSteps", true, false) != null, "obra tem um único indicador de fase, os tracinhos")
+	check(panel.find_children("ProjectCount_*", "PanelContainer", true, false).size() == 2, "um chip M/N por item da fase, sem contadores duplicados")
+	check(panel.find_child("ProjectMissing", true, false) is PanelContainer and panel.find_child("RowChevron", true, false) != null, "onde achar usa linha calma com seta vetorial")
 	_inv().add("plank", 4)
 	_inv().add("brick", 1)
 	await create_timer(1.3).timeout

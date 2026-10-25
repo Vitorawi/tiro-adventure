@@ -1,6 +1,16 @@
 # Roadmap
 
 ## Estado atual
+**Interface 2 — ajustes, etapa 11 concluída localmente (25/10/2026, Codex).** Itens 12/20:
+23 atribuições disabled convertidas/removidas; sete só na lista branca de controles. UiKit.action_or_hint
+retorna Locked_<nome> com motivo real/ícone/consulta. Saves com chips; obras com um ProjectCount por item,
+origem em list_row calma e ProjectSteps único (sem barra azul). HaveCheck vetorial nas encomendas.
+Regra nova ui_style com controles negativos; lista fechada **17/17 PASS, 319 s**,
+`build/test_logs/r20261025_165928_1ccf3f74/results.csv`. 23 capturas antes/depois nas três resoluções,
+abertas/comparadas; tabela, provas e resultados em docs/plans/interface2_ajustes/VALIDACAO_11.md.
+Fixtures pet_care/walk_return_ui adaptadas sem executar fora da lista; conferir no portão da 12.
+AGENTS/CLAUDE idênticos; exclusões preexistentes python_libs preservadas. Regras/save/falas/arte
+sem mudança. Próxima: 12, não executada. Sem push/publicação.
 
 **Interface 2 — ajustes, etapa 10 concluída localmente (25/10/2026, Codex).** Itens 6/27/28:
 75 usos de SectionLabel classificados e convertidos; nomes 18, frases 15, seções OverLabel e

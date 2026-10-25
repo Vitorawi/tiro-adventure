@@ -6,7 +6,7 @@
 > mesmo estilo do plano Interface 2". Depois, **aprovou os 35 itens como o revisor sugeriu, inclusive as
 > decisões**. Nenhuma decisão fica pendente.
 
-**Estado:** etapas 01–10 concluídas. **Próxima: etapa 11.**
+**Estado:** etapas 01–11 concluídas. **Próxima: etapa 12.**
 
 ## A ideia em uma linha
 
@@ -77,7 +77,7 @@ flowchart TD
 | [x] | [08](etapas/ETAPA_08_CRESCIMENTO.md) | 35, 11 | prancha HTML do Crescimento → implementação na mesma etapa; seda no padrão do Crescimento | grande |
 | [x] | [09](etapas/ETAPA_09_PAINEIS_MUNDO.md) | 10, 13, 14, 34 | Como fazer com peças novas; Lugares em `list_card`; conversa sem repetições; compra bloqueada nítida | grande |
 | [x] | [10](etapas/ETAPA_10_HIERARQUIA.md) | 6, 27, 28 | `SectionLabel` revisada (nomes em 18); passeios e Feira; regra nova no `ui_style_test`; **portão** | grande |
-| [ ] | [11](etapas/ETAPA_11_BLOQUEIOS_VERMELHO.md) | 12, 20 | nenhum botão cinza com texto em folha/bandeja; obras e encomendas com um chip e uma barra | grande |
+| [x] | [11](etapas/ETAPA_11_BLOQUEIOS_VERMELHO.md) | 12, 20 | nenhum botão cinza com texto em folha/bandeja; obras e encomendas com um chip e uma barra | grande |
 | [ ] | [12](etapas/ETAPA_12_LIMPEZA_FECHAMENTO.md) | 32 | limpeza de apelidos e tema; **portão**, tour completo nas 3 resoluções, toque real, desempenho, docs | médio |
 
 Cobertura: 17, 33 · 1, 2, 3, 5, 18, 21 · 4, 23 · 7, 8, 9, 26 · 15, 19, 30 · 22, 24, 25, 29 · 16, 31 ·
@@ -578,3 +578,34 @@ RIDs/ObjectDB já vistos no antes registrados na validação. Nenhum protótipo 
 update_finds/update_wishes e Tudo junto da borda direita. WalksInfo agora fica no Header da Sheet;
 não buscar SectionLabel em scripts/cenas/tema. AGENTS/CLAUDE idênticos; bibliotecas python_libs
 preexistentes fora do commit. Sem regra/save/fala/JSON/arte alterados; sem push/publicação.
+
+**Etapa 11 (25/10/2026, Codex):** itens **12 e 20** concluídos localmente. 30 atribuições disabled
+classificadas: 23 convertidas/removidas, sete mantidas nos controles autorizados. Tabela completa e
+provas em [VALIDACAO_11.md](VALIDACAO_11.md). `UiKit.action_or_hint` substitui ação bloqueada por
+`Locked_<nome>` com reason, ícone e consulta. Saves em chips Jogando ✓/É o padrão; FoodHelpButton
+some na recarga. Obras com um ProjectCount por item, origem list_row/chev calma e só ProjectSteps;
+ProjectBar removido. Encomendas/Encontro com chips semânticos M/N; have com HaveCheck vetorial.
+DeliverProject continua único verde. Nenhuma variação de tema nova.
+
+**Pronto quando:** ✓ tabela/sem cinza fora da lista branca; ✓ um chip/origem calma/um indicador;
+✓ regra ui_style (lista por nome, superfícies reais, controles negativos); ✓ testes verdes.
+**Testes:** DryRun confirmou 14 + três rápidos: **17/17 PASS, 319 s**, em
+`build/test_logs/r20261025_165928_1ccf3f74/results.csv`. Resultados individuais/tempos na validação.
+Primeira rodada interrompida por chamada row_chevron sem Callable (corrigida); intermediária 17/17
+em 394,7 s. Mesmas garantias ou mais fortes; market/saves/manual/nature/bench/ui_style adaptados.
+pet_care e walk_return_ui tiveram só asserções do antigo disabled adaptadas para ausência da ação
++ motivo/timer; estão fora da lista e não foram executados, conforme a restrição desta etapa.
+Sem portão/campanha/simulador/export.
+
+**Capturas:** --aj-11-only, 23 PNGs em cada aj_11_antes/depois e variantes _390/_412; todos abertos
+em 18 pranchas e detalhes individuais. Somem ações cinza e barra azul; chip faltante fica dentro do
+tile 104, origem sem vermelho. A primeira geometria cortou os chips e foi corrigida/regenerada nas
+três resoluções. Diferenças da evidência: estados vazios determinísticos para mostrar bloqueios,
+álbum de amigos/geladeira mantêm a composição; nomes longos da origem quebram, grade de pedidos
+mantém reticências/detalhe completo. Sem mock novo previsto. Sem regra/save/fala/arte alterados.
+
+**Próxima 12:** nenhuma pendência de implementação da 11; herdadas Galinheiro rolável, tique de
+update_finds/update_wishes e Tudo na borda direita. Buscar Locked_Material_* (não .disabled),
+Playing_*/DefaultState_* e FoodHelpTimer na recarga. Portão final deve incluir as fixtures adaptadas
+de pet_care/walk_return_ui. AGENTS/CLAUDE idênticos byte a byte; python_libs fora do commit.
+Etapa 12 não executada. Sem push/publicação.

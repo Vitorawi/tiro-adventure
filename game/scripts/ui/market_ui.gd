@@ -250,7 +250,7 @@ static func _order_detail(box: VBoxContainer, id: String) -> void:
 		detail.add_child(row)
 	var ingredients := UiKit.flow(2)
 	for item: String in data.inputs:
-		ingredients.add_child(ProgressionUi.item_chip(item, int(data.inputs[item])))
+		ingredients.add_child(ProgressionUi.item_chip(item, int(data.inputs[item]), true))
 	var rewards := ProgressionUi.reward_chips(data.rewards)
 	for chip in rewards.get_children():
 		rewards.remove_child(chip)
@@ -266,9 +266,12 @@ static func _order_detail(box: VBoxContainer, id: String) -> void:
 			Events.items_gained.emit(data.rewards.get("items", {}), int(data.rewards.get("coins", 0)), Vector2(-1, -1))
 			Haptics.success())
 	action.name = "DeliverOrder"
-	action.disabled = reason != ""
-	detail.add_child(action)
-	if reason != "": detail.add_child(UiKit.lock_hint(reason))
+	var missing: Texture2D = null
+	for item: String in data.inputs:
+		if GameState.inventory.count(item) < int(data.inputs[item]):
+			missing = Database.item_icon(item)
+			break
+	detail.add_child(UiKit.action_or_hint(action, reason, TaskHelp.open.bind("order", id), missing))
 	box.add_child(detail)
 
 static func _next_order(box: VBoxContainer, channel: String) -> void:

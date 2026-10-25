@@ -83,7 +83,9 @@ static func _slot_card(box: VBoxContainer, summary: Dictionary) -> void:
 	var title := UiKit.hbox(8)
 	title.add_child(UiKit.fill_label("Save %d" % slot, &"StrongLabel"))
 	if summary.active:
-		title.add_child(UiKit.chip(null, "Jogando", null, "have"))
+		var playing := UiKit.chip(null, "Jogando", null, "have")
+		playing.name = "Playing_%d" % slot
+		title.add_child(playing)
 	var chips := UiKit.flow(4)
 	var chapter := "Completo" if summary.finished else "Cap. %d/%d" % [int(summary.chapter), int(summary.chapters)]
 	chips.add_child(UiKit.chip(UiKit.ui_icon("tab_tasks"), chapter))
@@ -96,15 +98,22 @@ static func _slot_card(box: VBoxContainer, summary: Dictionary) -> void:
 		SaveManager.switch_slot(slot)
 		_restart(), null, true)
 	play.name = "Play_%d" % slot
-	play.disabled = summary.active
 	play.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(play)
+	if not summary.active:
+		row.add_child(play)
+	else:
+		play.free()
 	var default_button := UiKit.soft("É o padrão" if summary.default else "Tornar padrão", func() -> void:
 		SaveManager.set_default_slot(slot)
 		Events.state_changed.emit(), null, true)
 	default_button.name = "Default_%d" % slot
-	default_button.disabled = summary.default
-	row.add_child(default_button)
+	if summary.default:
+		default_button.free()
+		var current := UiKit.chip(null, "É o padrão", null, "have")
+		current.name = "DefaultState_%d" % slot
+		row.add_child(current)
+	else:
+		row.add_child(default_button)
 	row.add_child(_delete_button(slot))
 	body.add_child(row)
 

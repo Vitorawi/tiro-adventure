@@ -37,6 +37,7 @@ func _ready() -> void:
 	_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	add_child(_feedback)
 	_button = UiKit.button("Agora!", attempt, &"PrimaryButton")
+	_button.name = "TrickAttempt"
 	_button.custom_minimum_size.y = 64
 	add_child(_button)
 	add_child(UiKit.soft("Voltar ao treino", func() -> void:

@@ -393,7 +393,7 @@ static func _fill_material_detail(box: VBoxContainer, site: String, item: String
 	box.add_child(chips)
 	var level := NatureUi.route_level(route_id)
 	if GameState.progress.nature_level(site) < level:
-		var hint := UiKit.lock_hint("Nível %d" % level)
+		var hint := UiKit.lock_hint(GameState.next_gathering_error(site, route_id, item), TaskHelp.open.bind("route", route_id), Database.item_icon(item))
 		hint.name = "RequiredLevel_" + item
 		box.add_child(hint)
 		return
@@ -403,6 +403,5 @@ static func _fill_material_detail(box: VBoxContainer, site: String, item: String
 		if reason != "":
 			Events.toast_requested.emit(reason))
 	action.name = "Material_" + item
-	action.disabled = error != ""
-	box.add_child(action)
+	box.add_child(UiKit.action_or_hint(action, error, TaskHelp.open.bind("route", route_id), Database.item_icon(item)))
 	return

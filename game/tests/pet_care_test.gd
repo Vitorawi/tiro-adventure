@@ -453,7 +453,7 @@ func _test_food_help() -> void:
 	await frames()
 	check(bag.call("count", "dog_food") == 2, "vovó dá duas rações sem cobrar")
 	check(state.call("emergency_food") != "" and bag.call("count", "dog_food") == 2, "recarga impede duplicar o pedido")
-	check(picker.find_child("FoodHelpButton", true, false).disabled, "Tigela mostra pedido indisponível durante recarga")
+	check(picker.find_child("FoodHelpButton", true, false) == null, "Tigela remove pedido indisponível durante recarga; timer continua visível")
 	check(picker.find_child("FoodHelpTimer", true, false).text.begins_with("Pedir de novo em "), "Tigela mostra tempo restante")
 	var saved: Dictionary = progress.call("to_dict")
 	check(float(saved.cooldowns.emergency_food) > float(state.call("now")), "recarga fica no save")
@@ -464,7 +464,7 @@ func _test_food_help() -> void:
 	tray.call("open_food_menu")
 	await frames()
 	var menu: Control = pet.find_child("FoodMenu", true, false)
-	check(menu.find_child("FoodHelpButton", true, false).disabled, "guia vazia compartilha a recarga da Tigela")
+	check(menu.find_child("FoodHelpButton", true, false) == null and menu.find_child("FoodHelpTimer", true, false) != null, "guia vazia compartilha recarga da Tigela sem botão cinza")
 	progress.cooldowns.emergency_food = float(state.call("now")) - 1.0
 	var help: Control = menu.find_child("FoodHelp", true, false)
 	help.call("_on_tick")

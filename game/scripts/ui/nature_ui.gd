@@ -220,20 +220,16 @@ static func _material(parent: VBoxContainer, site: String, item: String, route_i
 	var button := UiKit.small_go("Buscar", func() -> void:
 		_result(GameState.start_next_gathering(site, route_id, item), ""))
 	button.name = "Material_" + item
-	button.disabled = GameState.next_gathering_error(site, route_id, item) != ""
+	var error := GameState.next_gathering_error(site, route_id, item)
 	button.custom_minimum_size.x = 88
-	var row := UiKit.list_row(Database.item_icon(primary), "%s ×%d" % [Database.item_name(primary), int(route.rewards.items[primary])], chips, null if locked else button)
+	var row := UiKit.list_row(Database.item_icon(primary), "%s ×%d" % [Database.item_name(primary), int(route.rewards.items[primary])], chips, button if error == "" else null)
 	(row.find_children("*", "Label", true, false)[0] as Label).theme_type_variation = &"StrongLabel"
 	parent.add_child(row)
 	var footer := row.get_child(0) as VBoxContainer
-	if locked:
-		# Nível ainda não alcançado: linha apagada e cadeado no lugar do botão (que fica escondido e desabilitado).
-		row.modulate.a = 0.55
-		var hint := UiKit.lock_hint("Nível %d" % level)
-		hint.name = "RequiredLevel_" + item
+	if error != "":
+		if locked: row.modulate.a = 0.55
+		var hint := UiKit.action_or_hint(button, error, TaskHelp.open.bind("route", route_id), Database.item_icon(item))
 		footer.add_child(hint)
-		button.visible = false
-		footer.add_child(button)
 
 
 ## Espaço de coleta, igual ao das estações: bolinha com ícone e tempo; fechado mostra o nível.

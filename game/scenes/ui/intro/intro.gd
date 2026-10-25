@@ -145,7 +145,7 @@ func _advance() -> void:
 
 func _finish() -> void:
 	_finished = true
-	_next.disabled = true
+	_next.hide()
 	GameState.mark_seen(["intro"])
 	queue_free()
 	Events.sheet_close_requested.emit()

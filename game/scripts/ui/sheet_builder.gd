@@ -63,8 +63,10 @@ static func food_help(primary: bool = true) -> Control:
 			var error := GameState.emergency_food()
 			Events.toast_requested.emit(error if error != "" else "A vovó trouxe %d rações!" % int(Database.progression.settings.emergency_food_amount)), &"PrimaryButton" if primary else &"")
 		button.name = "FoodHelpButton"
-		button.disabled = wait > 0
-		box.add_child(button)
+		if wait <= 0:
+			box.add_child(button)
+		else:
+			button.free()  # FoodHelpTimer já explica a espera.
 		var caption := UiKit.label("Pedir de novo em " + TimeText.short(ceilf(wait)) if wait > 0 else "%d rações grátis" % int(Database.progression.settings.emergency_food_amount), &"SmallLabel")
 		caption.name = "FoodHelpTimer"
 		box.add_child(caption)
@@ -495,7 +497,9 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 			var error := GameState.cook(recipe_id)
 			if error != "":
 				Events.toast_requested.emit(error), null, true)
-		action.disabled = GameState.cook_error(recipe_id) != ""
+		if GameState.cook_error(recipe_id) != "":
+			action.free()
+			action = null
 		action.custom_minimum_size.x = 88
 	var row := UiKit.list_row(Database.item_icon(output), Database.item_name(output) + (" ×%d" % qty if qty > 1 else ""), chips, action)
 	parent.add_child(row)
@@ -503,6 +507,13 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, station_full:
 		# Receita fechada: linha apagada e cadeado com o motivo, no lugar do botão.
 		row.modulate.a = 0.55
 		(row.get_child(0) as VBoxContainer).add_child(UiKit.lock_hint(locked, TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))))
+	elif GameState.cook_error(recipe_id) != "":
+		var missing: Texture2D = null
+		for item: String in inputs:
+			if GameState.inventory.count(item) < int(inputs[item]):
+				missing = Database.item_icon(item)
+				break
+		(row.get_child(0) as VBoxContainer).add_child(UiKit.lock_hint(GameState.cook_error(recipe_id), TaskHelp.open.bind("recipe", recipe_id), missing))
 
 
 static func open_animal_shop(station_id: String) -> void:
@@ -548,10 +559,7 @@ static func animal_shop(station_id: String) -> Control:
 					Events.toast_requested.emit(reason), &"SmallGoButton", UiKit.ui_icon("coin"))
 			buy.name = "Buy_" + id
 			buy.custom_minimum_size = Vector2(44, 44)
-			buy.disabled = error != ""
-			body.add_child(buy)
-			if error != "":
-				_animal_missing(body, animal, error)
+			body.add_child(UiKit.action_or_hint(buy, error, TaskHelp.open.bind("item", "egg" if station_id == "chicken_coop" else "milk"), UiKit.ui_icon("coin") if GameState.coins < int(animal.price) else null))
 			grid.add_child(cell)
 		box.add_child(UiKit.soft("Ver meus animais", func() -> void:
 			Events.sheet_requested.emit(data.name, station_view(station_id)))))
@@ -689,16 +697,24 @@ static func plot_purchase(index: int) -> Control:
 		row.add_child(UiKit.fill_label("Terreno %d" % (index + 1), &"StrongLabel"))
 		row.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [mini(GameState.coins, cost), cost], UiKit.GOOD if GameState.coins >= cost else UiKit.BAD))
 		box.add_child(row)
-		if not available:
-			box.add_child(UiKit.label("Compre o terreno %d antes." % (GameState.unlocked_plots + 1), &"SmallLabel"))
+		# Consulta das mesmas condições/textos de buy_plot; nunca chama a ação para obter o erro.
+		var reason := ""
+		if not GameState.has_upgrade("farm"):
+			reason = "Compre a escritura do sítio primeiro"
+		elif not available:
+			reason = "Compre o terreno %d primeiro" % (GameState.unlocked_plots + 1)
+		elif cost < 0:
+			reason = "Terreno indisponível"
+		elif GameState.coins < cost:
+			reason = "Faltam %d moedas" % (cost - GameState.coins)
 		var buy := UiKit.button("Comprar", func() -> void:
 			var error := GameState.buy_plot(index)
 			if error != "":
 				Events.toast_requested.emit(error)
 			if error == "":
 				Events.sheet_close_requested.emit(), &"PrimaryButton")
-		buy.disabled = not available or GameState.coins < cost or cost < 0
-		box.add_child(buy))
+		buy.name = "BuyPlot"
+		box.add_child(UiKit.action_or_hint(buy, reason, TaskHelp.open.bind("upgrade", "farm"), UiKit.ui_icon("coin") if GameState.coins < cost else null)))
 
 
 ## Planta crescendo: ícone, barra com tempo e o que vai render.

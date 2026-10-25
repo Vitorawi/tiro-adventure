@@ -51,10 +51,7 @@ static func _treat_detail(id: String) -> Control:
 		if error != "":
 			Events.toast_requested.emit(error))
 	give.name = "GiveTreat"
-	give.disabled = reason != ""
-	box.add_child(give)
-	if reason != "":
-		box.add_child(UiKit.label(reason, &"SmallLabel"))
+	box.add_child(UiKit.action_or_hint(give, reason, TaskHelp.open.bind("item", item), Database.item_icon(item) if GameState.inventory.count(item) == 0 else null))
 	box.add_child(UiKit.label("Um petisco a cada %d horas" % int(Database.friends.settings.window_hours), &"SmallLabel"))
 	return box
 
@@ -112,16 +109,15 @@ static func _card(box: VBoxContainer, id: String, album: bool = false) -> void:
 	food.add_child(UiKit.short_label("%d/1" % GameState.inventory.count(item), &"SmallLabel"))
 	card.add_child(food)
 	var reason := GameState.give_friend_error(id)
-	if not album or id in GameState.friends_present():
+	if reason == "" and (not album or id in GameState.friends_present()):
 		var give := UiKit.small_go("Dar petisco", func() -> void:
 			var error := GameState.give_friend(id)
 			if error != "":
 				Events.toast_requested.emit(error))
-		give.disabled = reason != ""
 		give.size_flags_horizontal = Control.SIZE_SHRINK_END
 		card.add_child(give)
 	if reason != "":
-		card.add_child(UiKit.lock_hint(reason, func() -> void: Events.sheet_requested.emit(Database.item_name(item), TaskHelp.panel("item", item))))
+		card.add_child(UiKit.lock_hint(reason, func() -> void: Events.sheet_requested.emit(Database.item_name(item), TaskHelp.panel("item", item)), Database.item_icon(item) if GameState.inventory.count(item) == 0 else null))
 		var actions := UiKit.hbox(8)
 		actions.alignment = BoxContainer.ALIGNMENT_END
 		if GameState.inventory.count(item) == 0:

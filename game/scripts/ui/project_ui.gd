@@ -17,7 +17,6 @@ static func panel(id: String) -> Control:
 		var completed := GameState.project_completed(id)
 		var started := GameState.project_started(id)
 		ProgressionUi.npc_header(box, str(def.get("npc", "lais")), _speech(id, def, started, completed))
-		_title_row(box, id, def)
 		_phase_row(box, id, def)
 		if completed:
 			_done_card(box, def)
@@ -75,16 +74,6 @@ static func _speech(id: String, def: Dictionary, started: bool, completed: bool)
 		return str(def.get("pitch", ""))
 	var stage := GameState.project_stage(id)
 	return "Falta pouco, vamos juntos! Fase %d de %d." % [mini(int(stage.index) + 1, int(stage.count)), int(stage.count)]
-
-
-static func _title_row(box: VBoxContainer, id: String, def: Dictionary) -> void:
-	var row := UiKit.hbox(8)
-	row.add_child(UiKit.icon(UiKit.ui_icon(str(def.get("icon", "tab_park"))), 48))
-	var bar := UiKit.bar(float(GameState.project_stage(id).total_progress) * 100.0, Palette.SKY, 14)
-	bar.name = "ProjectBar"
-	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(bar)
-	box.add_child(row)
 
 
 ## Fases em fileira: feita (check), atual (destaque) e próximas (apagadas).
@@ -148,16 +137,23 @@ static func _delivery_card(box: VBoxContainer, id: String, model: Dictionary) ->
 	tiles.add_theme_constant_override("v_separation", 8)
 	for item: String in stage.needed:
 		var left := int(remaining[item])
-		var caption := "%d/%d" % [int(stage.given[item]), int(stage.needed[item])]
-		var tile := UiKit.tile(Database.item_icon(item), caption, "selected" if str(model.item) == item else "normal")
+		var tile := UiKit.tile(Database.item_icon(item), "", "selected" if str(model.item) == item else "normal")
+		tile.custom_minimum_size.y = 104  # ícone + chip 28 inteiros dentro do tile.
+		var visual := tile.get_node("Visual") as VBoxContainer
+		var empty_caption := visual.get_child(1)
+		visual.remove_child(empty_caption)
+		empty_caption.free()
+		var count := UiKit.chip(null, "%d/%d" % [int(stage.given[item]), int(stage.needed[item])], null, "have" if left <= 0 else "missing")
+		count.name = "ProjectCount_" + item
+		count.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		count.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		visual.add_child(count)
 		tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tile.pressed.connect(func() -> void:
 			model.item = item
 			model.qty = 1
 			(box as SheetBuilder.LiveBox).refresh())
 		tile.name = "ProjectItem_" + item
-		if left <= 0:
-			tile.modulate.a = 0.5
 		tiles.add_child(tile)
 	card.add_child(tiles)
 	var chosen := str(model.item)
@@ -165,12 +161,8 @@ static func _delivery_card(box: VBoxContainer, id: String, model: Dictionary) ->
 		return
 	var have := GameState.inventory.count(chosen)
 	var most := mini(int(remaining[chosen]), have)
-	var counts := UiKit.flow(4)
-	counts.add_child(UiKit.chip(Database.item_icon(chosen), "faltam %d" % int(remaining[chosen])))
-	counts.add_child(UiKit.chip(null, "tem %d" % have, null, "have" if have > 0 else "missing"))
-	card.add_child(counts)
 	if most <= 0:
-		var help := UiKit.tap_chip(Database.item_icon(chosen), "%s: onde achar?" % Database.item_name(chosen), TaskHelp.open.bind("item", chosen, int(remaining[chosen])), UiKit.BAD)
+		var help := UiKit.list_row(Database.item_icon(chosen), "%s: onde achar?" % Database.item_name(chosen), [], UiKit.row_chevron(TaskHelp.open.bind("item", chosen, int(remaining[chosen]))), TaskHelp.open.bind("item", chosen, int(remaining[chosen])))
 		help.name = "ProjectMissing"
 		card.add_child(help)
 		return
@@ -216,7 +208,7 @@ static func _gathering_card(box: VBoxContainer, id: String) -> void:
 	card.add_child(UiKit.label(str(def.get("hint", "")), &"SmallLabel"))
 	var chips := UiKit.flow()
 	for item: String in def.items:
-		chips.add_child(ProgressionUi.item_chip(item, int(def.items[item])))
+		chips.add_child(ProgressionUi.item_chip(item, int(def.items[item]), true))
 	card.add_child(chips)
 	var reason := GameState.meeting_error(id)
 	if reason != "":

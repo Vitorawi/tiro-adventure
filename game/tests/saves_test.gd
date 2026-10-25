@@ -70,7 +70,9 @@ func _run() -> void:
 	main.find_child("SettingsButton", true, false).pressed.emit()
 	await create_timer(0.4).timeout
 	check(main.find_child("Save_4", true, false) != null and main.find_child("NewSave", true, false) != null, "Painel lista o save e oferece um novo")
-	check(main.find_child("Play_4", true, false).disabled, "Save em uso aparece como 'Jogando'")
+	var playing := main.find_child("Playing_4", true, false)
+	check(playing != null and main.find_child("Play_4", true, false) == null, "Save em uso aparece como chip Jogando ✓, sem ação de trocar para si")
+	check(playing != null and playing.find_children("*", "Label", true, false).any(func(n: Node) -> bool: return n.text == "Jogando"), "Chip mantém o estado Jogando")
 
 	# Limpeza: remove os arquivos de teste e devolve o padrão original.
 	manager.call("delete_slot", 4)

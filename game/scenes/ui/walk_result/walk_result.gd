@@ -96,8 +96,7 @@ func show_result(result: Dictionary) -> void:
 			else:
 				hide())
 		dress.name = "Equip_" + id
-		dress.disabled = GameState.equip_error(id) != ""
-		_put(dress)
+		_put(UiKit.action_or_hint(dress, GameState.equip_error(id), TaskHelp.open.bind("item", id)))
 	var left: Dictionary = GameState.walk_state.baggage_left() if not sewing else {}
 	if left.is_empty():
 		var close := _primary("Oba!", hide)

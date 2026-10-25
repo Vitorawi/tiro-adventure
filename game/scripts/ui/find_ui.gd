@@ -52,7 +52,6 @@ static func album() -> Control:
 				var receive := UiKit.button("Já pegou" if set_id in GameState.finds.claimed_sets else "Pegar", func() -> void:
 					var result := GameState.claim_find_set(set_id)
 					if result != "": Events.toast_requested.emit(result), &"SecondaryButton")
-				receive.disabled = error != ""
-				receive.tooltip_text = error
-				card.add_child(receive)
+				receive.name = "ClaimFind_" + set_id
+				card.add_child(UiKit.action_or_hint(receive, error, TaskHelp.open.bind("item", str(items[0]))))
 	)

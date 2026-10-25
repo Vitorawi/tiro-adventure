@@ -1,4 +1,10 @@
 extends SceneTree
+
+
+## Bloqueio consultável substitui o botão: conserva o motivo real e impede iniciar uma coleta.
+func _material_locked(item: String) -> bool:
+	var hint := main.find_child("Locked_Material_" + item, true, false)
+	return main.find_child("Material_" + item, true, false) == null and hint != null and str(hint.get_meta("reason", "")) != "" and hint.find_child("LockIcon", true, false) != null
 ## Coleta por local: três tarefas realmente paralelas, persistência atual e interação simples.
 
 var failures: int = 0
@@ -65,9 +71,10 @@ func _run() -> void:
 	check(state.call("collect_gathering", "rocks", 0) == "", "Recolher pedra inicial")
 	ui.call("open", "rocks")
 	await _settle()
-	check(main.find_child("Material_copper", true, false).disabled, "Cobre bloqueado não vira seleção nem inicia tarefa")
+	check(_material_locked("copper"), "Cobre bloqueado não vira seleção nem inicia tarefa; cadeado com motivo")
 	before = state.call("to_dict").duplicate(true)
-	main.find_child("Material_copper", true, false).pressed.emit()
+	var copper_lock := main.find_child("Locked_Material_copper", true, false)
+	(copper_lock.find_children("*", "Button", true, false)[0] as Button).pressed.emit()
 	check(state.call("to_dict") == before, "Falta de ferramenta não altera a fila")
 	# Tocar no cenário abre diretamente o painel daquele tipo.
 	room.call("_handle_tap", Vector2(150, 150))
@@ -83,7 +90,7 @@ func _run() -> void:
 	# A consulta completa continua verificando todos os materiais e suas restrições.
 	ui.call("open", "trees")
 	await _settle()
-	check(main.find_child("Material_hardwood", true, false).disabled, "Madeira dura exige nível 3 do Bosque")
+	check(_material_locked("hardwood"), "Madeira dura exige nível 3 do Bosque")
 	check(main.find_child("Material_copper", true, false) == null, "Árvores não mistura cobre")
 	_shot("nature_trees_initial")
 	var coins: int = state.get("coins")
@@ -120,7 +127,7 @@ func _run() -> void:
 		main.find_child("Material_wood", true, false).pressed.emit()
 		await _settle()
 		check(state.call("gathering_jobs", "trees").size() == count + 1, "Cada toque no material inicia exatamente uma coleta")
-	check(main.find_child("Material_wood", true, false).disabled, "Material desabilita quando as três vagas estão ocupadas")
+	check(_material_locked("wood"), "Material vira cadeado quando as três vagas estão ocupadas")
 	before = state.call("to_dict").duplicate(true)
 	check(state.call("start_next_gathering", "trees", "lane", "wood") != "", "Fila cheia recusa novo material")
 	check(state.call("to_dict") == before, "Fila cheia não sobrescreve coletas")
@@ -187,7 +194,7 @@ func _run() -> void:
 			check(state.get("progress").nature_level("rocks") == 2 and state.call("gathering_slots", "rocks") == 2, "Três coletas da pedreira liberam cobre e segundo espaço")
 			ui.call("open", "rocks")
 			await _settle()
-			check(not main.find_child("Material_copper", true, false).disabled and main.find_child("Material_crystal", true, false).disabled, "Nível 2 mostra cobre liberado e cristal futuro")
+			check(main.find_child("Material_copper", true, false) is Button and _material_locked("crystal"), "Nível 2 mostra cobre liberado e cristal futuro")
 			check(main.find_child("NatureProgress_rocks", true, false).text.contains("/96 XP"), "Painel mostra o progresso até o próximo nível")
 			_shot("nature_cave_level_2")
 	check(state.get("progress").nature_level("rocks") == 3 and state.call("gathering_slots", "rocks") == 2, "Quatorze coletas da pedreira liberam cristais, com dois espaços")

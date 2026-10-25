@@ -25,11 +25,15 @@ static func panel(training: bool = false) -> Control:
 					else:
 						Events.sheet_close_requested.emit()
 						Events.screen_requested.emit(&"pet"))
-				action.disabled = reason != ""
 			else:
 				action = UiKit.soft("Treinar", start.bind(id), null, true)
-				action.disabled = reason != "" or next_found
+				if next_found:
+					action.free()
+					action = null
 				next_found = true
+			if reason != "" and action != null:
+				action.free()
+				action = null
 			var chips: Array[Control] = []
 			if learned:
 				chips.append(UiKit.chip(null, "Aprendeu", null, "have"))
@@ -39,7 +43,10 @@ static func panel(training: bool = false) -> Control:
 			row.name = "Trick_" + id
 			cards.add_child(row)
 			if reason != "":
-				cards.add_child(UiKit.lock_hint(reason))  # o motivo quebra de linha; chip comprido alargava o painel
+				var hint := UiKit.lock_hint(reason, TaskHelp.open.bind("stat", "trick:" + id))
+				hint.name = "Locked_Trick_" + id
+				hint.set_meta("reason", reason)
+				cards.add_child(hint)
 		if not training:
 			box.add_child(UiKit.soft("Treinar com a Nina", Places.go.bind({"world": "park", "place": "training"}))))
 

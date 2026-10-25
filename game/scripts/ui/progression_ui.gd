@@ -261,14 +261,12 @@ static func routes_panel(place: String, focus: String = "") -> Control:
 				var error := GameState.start_activity(id)
 				if error != "":
 					Events.toast_requested.emit(error), null, true)
-			go.disabled = reason != ""
 			go.custom_minimum_size.x = 88
-			var row := UiKit.list_row(UiKit.ui_icon(data.get("icon", "")), str(data.name), chips, go)
+			var row := UiKit.list_row(UiKit.ui_icon(data.get("icon", "")), str(data.name), chips, go if reason == "" else null)
 			box.add_child(row)
 			if reason != "":
-				var hint := UiKit.hbox(8)
-				hint.add_child(UiKit.fill_label(reason, &"SmallLabel"))
-				hint.add_child(UiKit.icon_button(UiKit.ctl_icon("help"), TaskHelp.open.bind("route", id), 44))
+				go.free()
+				var hint := UiKit.lock_hint(reason, TaskHelp.open.bind("route", id))
 				(row.get_child(0) as VBoxContainer).add_child(hint)
 	)
 
@@ -443,21 +441,21 @@ static func _walk_card(parent: VBoxContainer, id: String, data: Dictionary, lock
 		else:
 			Events.sheet_close_requested.emit())
 	go.name = "StartWalk_" + id
-	go.disabled = GameState.walk_error(id) != ""
+	var error := GameState.walk_error(id)
 	var row := UiKit.hbox(8)
 	var finds := walk_exclusives(id, 32)
 	finds.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(finds)
-	row.add_child(go)
-	if go.disabled:
-		row.add_child(UiKit.ctl_button("help", TaskHelp.open.bind("walk", id), 40, "soft"))
+	if error == "":
+		row.add_child(go)
+	else:
+		go.free()
 	body.add_child(row)
-	if go.disabled:
-		var reason := UiKit.hbox(6)
-		if GameState.walk_hours_error(id) != "":
-			reason.add_child(UiKit.icon(UiKit.ctl_icon("clock"), 24))
-		reason.add_child(UiKit.fill_label(GameState.walk_error(id), &"SmallLabel", UiKit.BAD))
-		body.add_child(reason)
+	if error != "":
+		var hint := UiKit.lock_hint(error, TaskHelp.open.bind("walk", id), Database.need_icon("energy") if float(GameState.dog.needs.energy) < int(data.get("energy", 0)) else null)
+		hint.name = "Locked_StartWalk_" + id
+		hint.set_meta("reason", error)
+		body.add_child(hint)
 
 
 ## Materiais do passeio (trail) que aparecem na primeira volta ou na tabela, sem repetir.
@@ -638,8 +636,8 @@ static func petshop_panel() -> Control:
 			else:
 				button = UiKit.button("%d" % int(data.price), act, &"SmallGoButton", UiKit.ui_icon("coin"))
 				button.custom_minimum_size = Vector2(44, 44)
-			button.disabled = blocked
-			card.add_child(button)
+			var reason := GameState.equip_error(id) if own else GameState.buy_cosmetic_error(id)
+			card.add_child(UiKit.action_or_hint(button, reason, TaskHelp.open.bind("item", id), UiKit.ui_icon("coin") if not own and GameState.coins < int(data.price) else null))
 		for id: String in Database.progression.get("shop_items", {}):
 			var data: Dictionary = Database.progression.shop_items[id]
 			if data.get("shop", "") != "petshop":
@@ -655,8 +653,7 @@ static func petshop_panel() -> Control:
 				if error != "":
 					Events.toast_requested.emit(error), &"SmallGoButton", UiKit.ui_icon("coin"))
 			button.custom_minimum_size = Vector2(44, 44)
-			button.disabled = blocked
-			card.add_child(button)
+			card.add_child(UiKit.action_or_hint(button, GameState.buy_shop_item_error(id), TaskHelp.open.bind("item", first_item), UiKit.ui_icon("coin") if GameState.coins < int(data.price) else null))
 		if not GameState.has_upgrade("walk_bag"):
 			box.add_child(purchase("walk_bag"))
 	)
@@ -814,20 +811,18 @@ static func _text(box: VBoxContainer, text: String, small: bool = false) -> void
 ## se houver `help`, um "?" ao lado que abre o "Como fazer".
 ## `primary` = botão principal do painel; em listas de cartões repetidos use `false` (secundário pequeno).
 static func _action(box: VBoxContainer, text: String, action: Callable, reason: String = "", done: String = "", help: Callable = Callable(), primary: bool = true) -> void:
+	if reason != "":
+		box.add_child(UiKit.lock_hint(reason, help if help.is_valid() else TaskHelp.open.bind("stat", "growth")))
+		return
 	var on_press := func() -> void:
 		var error: String = action.call()
 		if error != "" or done != "":
 			Events.toast_requested.emit(error if error != "" else done)
 	var button := UiKit.primary(text, on_press) if primary else UiKit.secondary(text, on_press, null, true)
-	button.disabled = reason != ""
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var row := UiKit.hbox(8)
 	row.add_child(button)
-	if reason != "" and help.is_valid():
-		row.add_child(UiKit.icon_button(UiKit.ctl_icon("help"), help, 44))
 	box.add_child(row)
-	if reason != "":
-		_text(box, reason, true)
 
 
 ## Chips "tem/precisa" com ícone de cada item (verde = suficiente).

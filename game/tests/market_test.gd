@@ -77,7 +77,7 @@ func _run() -> void:
 	root.add_child(board)
 	await process_frame
 	check(board.find_child("OrderGrid", true, false).get_child_count() <= 4, "quatro encomendas por página")
-	check(board.find_child("DeliverOrder", true, false) != null, "detalhe e entrega na mesma tela")
+	check(board.find_child("DeliverOrder", true, false) != null or board.find_child("Locked_DeliverOrder", true, false) != null, "detalhe e entrega ou seu motivo na mesma tela")
 	board.queue_free()
 	await _first_sale_context()
 	_merchant_missions()
@@ -105,9 +105,12 @@ func _compact_layout() -> void:
 			for i in 8: await process_frame
 			var board: Control = main.find_child("OrderBoard", true, false)
 			var scroll := board.get_parent().get_parent() as ScrollContainer
-			var deliver: Button = board.find_child("DeliverOrder", true, false)
+			var deliver: Control = board.find_child("DeliverOrder", true, false)
+			if deliver == null:
+				deliver = board.find_child("Locked_DeliverOrder", true, false)
+				check(deliver != null and str(deliver.get_meta("reason", "")) == str(state.call("order_error", focus)), "bloqueio mantém o motivo real: " + focus)
 			check(scroll != null and scroll.get_v_scroll_bar().max_value <= scroll.get_v_scroll_bar().page + 1, "encomenda inteira sem rolar: %s %s" % [focus, viewport])
-			check(deliver != null and scroll.get_global_rect().encloses(deliver.get_global_rect()), "Entregar visível sem rolar: %s %s" % [focus, viewport])
+			check(deliver != null and scroll.get_global_rect().encloses(deliver.get_global_rect()), "Entregar ou cadeado visível sem rolar: %s %s" % [focus, viewport])
 			check(board.get_global_rect().position.x >= 0 and board.get_global_rect().end.x <= main.size.x + 1, "quadro inteiro dentro da largura: %s %s" % [focus, viewport])
 			check(board.find_child("CustomerSummary", true, false).get_combined_minimum_size().y <= 46, "clientes em uma única linha")
 			if focus == "vegetables" and ("--compact-shots" in OS.get_cmdline_user_args()):

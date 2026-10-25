@@ -37,6 +37,7 @@ static func _tabs(box: VBoxContainer) -> void:
 			_page = id
 			(box as SheetBuilder.LiveBox).refresh())
 		tab.custom_minimum_size = Vector2(0, 40)
+		tab.name = "DevTab_" + id
 		tab.disabled = id == _page
 		row.add_child(tab)
 

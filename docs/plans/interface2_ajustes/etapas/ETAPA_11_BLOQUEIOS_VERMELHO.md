@@ -66,10 +66,10 @@ Bloco `--aj-11-only`: `b14b_neighbor_orders`, `b14c_own_stall`, `i2_09_orders`, 
 depois nas 3 resoluções.
 
 ## 8. Pronto quando
-- [ ] Tabela em `VALIDACAO_11.md`; nenhum botão cinza com texto fora da lista branca.
-- [ ] Obras/encomendas: um chip por item, "onde achar?" calma, um indicador de fase.
-- [ ] Regra nova do `ui_style_test` verde.
-- [ ] Testes verdes.
+- [x] Tabela em `VALIDACAO_11.md`; nenhum botão cinza com texto fora da lista branca.
+- [x] Obras/encomendas: um chip por item, "onde achar?" calma, um indicador de fase.
+- [x] Regra nova do `ui_style_test` verde.
+- [x] Testes verdes.
 
 ## 9. Handoff
 Pontos naturais: após a tabela (passo 1); a cada arquivo convertido (diga quais linhas da tabela já estão

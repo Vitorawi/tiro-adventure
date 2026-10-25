@@ -41,6 +41,7 @@ func _run() -> void:
 	state.call("dev_add_coins", 5000)
 	await _primary_per_panel()
 	await _text_hierarchy()
+	await _blocked_actions()
 	print("UI_STYLE TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
 
@@ -163,6 +164,7 @@ func _primary_per_panel() -> void:
 		await process_frame
 		var total := count_primary(panel)
 		check(total <= 1, "Painel %s tem no máximo um botão principal (tem %d)" % [panel_name, total])
+		check(_disabled_text(panel).is_empty(), "%s: nenhum botão cinza com texto fora da lista branca" % panel_name)
 		if panel_name == "lugares": check(total == 0, "Lugares usa linhas sem primário")
 		check(panel.find_children("*", "Button", true, false).size() > 0, "Painel %s tem botões" % panel_name)
 		panel.queue_free()
@@ -177,6 +179,109 @@ func _near(a: Color, b: Color) -> bool:
 func _own(nodes: Array[Node], node: Node) -> Node:
 	nodes.append(node)
 	return node
+
+
+## Lista branca fechada por nome de nó: controles, nunca ações de jogo bloqueadas.
+func _disabled_text(node: Node) -> String:
+	const ALLOWED := [
+		"Minus",  # stepper: limite inferior da quantidade.
+		"Plus",  # stepper: limite superior da quantidade.
+		"PreviousPage",  # paginação: primeira página.
+		"NextPage",  # paginação: última página.
+		"SleepButton",  # roleta: sono indisponível durante passeio.
+		"TrickAttempt",  # minijogo: impede outra tentativa enquanto anima.
+		"DevTab_resources",  # DEV: aba Recursos selecionada.
+		"DevTab_progress",  # DEV: aba Progresso selecionada.
+		"DevTab_growth",  # DEV: aba Crescimento selecionada.
+		"DevTab_time",  # DEV: aba Tempo selecionada.
+		"DevTab_pace",  # DEV: aba Ritmo selecionada.
+		"DevTab_save",  # DEV: aba Save selecionada.
+	]
+	if node is Button:
+		var button := node as Button
+		if button.disabled and button.is_visible_in_tree() and not button.text.strip_edges().is_empty() and not str(button.name) in ALLOWED:
+			return str(button.get_path()) + ": " + button.text
+	for child: Node in node.get_children():
+		var found := _disabled_text(child)
+		if found != "": return found
+	return ""
+
+
+## Superfícies reais com inventário vazio/recargas/filas: a regra visita também os rodapés.
+func _blocked_actions() -> void:
+	state.call("dev_unlock_everything")
+	state.get("inventory").call("from_dict", {})
+	state.set("coins", 0)
+	state.get("dog").needs.energy = 0.0
+	state.get("progress").tricks["paw"] = true
+	state.get("progress").cooldowns["trick:paw"] = float(state.call("now")) + 300
+	var sheet: Control = load("res://scenes/ui/sheet/sheet.tscn").instantiate()
+	sheet.theme = load("res://assets/theme/main_theme.tres")
+	root.add_child(sheet)
+	var panels := {
+		"Encomendas": load("res://scripts/ui/market_ui.gd").call("orders"),
+		"Banca": load("res://scripts/ui/market_ui.gd").call("orders", "", "contracts"),
+		"Truques": load("res://scripts/ui/trick_ui.gd").call("panel", true),
+		"Passeios": progression_ui.call("walks_panel"),
+		"Amigo": load("res://scripts/ui/friend_ui.gd").call("panel", "pipoca"),
+		"Achados": load("res://scripts/ui/find_ui.gd").call("album"),
+		"Manual": load("res://scripts/ui/game_manual.gd").call("panel", "stations"),
+		"Animais": sheet_builder.call("animal_shop", "chicken_coop"),
+		"Pet shop": progression_ui.call("petshop_panel"),
+		"Natureza": nature_ui.call("panel", "trees"),
+		"Terreno": sheet_builder.call("plot_purchase", int(state.get("unlocked_plots"))),
+	}
+	for title: String in panels:
+		sheet.call("open", title, panels[title])
+		await process_frame
+		await process_frame
+		check(_disabled_text(sheet) == "", "%s em Sheet: sem ação cinza (%s)" % [title, _disabled_text(sheet)])
+		if title == "Encomendas" or title == "Banca":
+			var hint := sheet.find_child("Locked_DeliverOrder", true, false)
+			check(hint != null and hint.find_child("LockIcon", true, false) != null and str(hint.get_meta("reason", "")) != "", "entrega bloqueada conserva motivo, cadeado e consulta")
+		if title == "Truques":
+			var hint := sheet.find_child("Locked_Trick_paw", true, false)
+			check(hint != null and hint.get_meta("reason") == state.call("perform_trick_error", "paw"), "truque em recarga mantém motivo real sem Mostrar cinza")
+		if title == "Passeios":
+			var hint := sheet.find_child("Locked_StartWalk_park_loop", true, false)
+			check(hint != null and hint.get_meta("reason") == state.call("walk_error", "park_loop"), "passeio sem energia mantém motivo real sem Passear cinza")
+	# A mesma regra percorre os componentes reais de prêmio e o detalhe da bandeja.
+	for path: String in ["res://scripts/ui/modal_card.gd", "res://scripts/ui/reward_sheet.gd"]:
+		var host := CanvasLayer.new()
+		root.add_child(host)
+		var surface: Control = load(path).call("open", host, {"title": "Prêmio", "animate": false})
+		surface.call("add", ui_kit.call("action_or_hint", ui_kit.call("primary", "Vestir", func() -> void: pass), "Falta Cenoura ×2", func() -> void: pass))
+		await process_frame
+		check(_disabled_text(surface) == "", path + ": bloqueio real no prêmio sem botão cinza")
+		host.queue_free()
+	var tray_detail: Control = load("res://scripts/ui/friend_ui.gd").call("_treat_detail", "pipoca")
+	root.add_child(tray_detail)
+	await process_frame
+	check(_disabled_text(tray_detail) == "" and tray_detail.find_child("Locked_GiveTreat", true, false) != null, "bandeja de amigo: motivo consultável sem ação proibida")
+	tray_detail.queue_free()
+	# Controle negativo em cada tipo de superfície; detectar descendentes, sem depender de cor/fonte.
+	for surface_name: String in ["Sheet", "ActionTray", "ModalCard", "RewardSheet"]:
+		var surface := Control.new()
+		surface.name = surface_name
+		root.add_child(surface)
+		var bad := Button.new()
+		bad.text = "Entregar"
+		bad.disabled = true
+		surface.add_child(bad)
+		check(_disabled_text(surface) != "", surface_name + ": controle negativo detecta ação cinza")
+		bad.hide()
+		check(_disabled_text(surface) == "", surface_name + ": texto invisível não é falso positivo")
+		surface.free()
+	var action := ui_kit.call("primary", "Entregar", func() -> void: failures += 1) as Button
+	action.name = "Forbidden"
+	var hint: Control = ui_kit.call("action_or_hint", action, "Falta Cenoura ×2", func() -> void: pass, db.call("item_icon", "carrot"))
+	check(hint.name == "Locked_Forbidden" and hint.find_child("LockIcon", true, false) != null and hint.get_child_count() == 4, "cadeado tem motivo + ícone ausente + ajuda e remove ação proibida")
+	hint.free()
+	var complete: Control = ui_kit.call("tap_chip", db.call("item_icon", "carrot"), "4/4", func() -> void: pass, null, "have")
+	check(complete.find_child("HaveCheck", true, false) != null, "ingrediente completo tem check vetorial no único chip have")
+	complete.free()
+	sheet.queue_free()
+	await process_frame
 
 
 ## Primeiro texto de cada cartão/linha/tile; aplica-se dentro da folha e das superfícies modais.

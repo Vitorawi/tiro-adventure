@@ -205,8 +205,8 @@ static func _source_card(box: VBoxContainer, source: Dictionary) -> void:
 			card.add_child(find_row)
 			var find_error := Places.world_error(id)
 			var find_button := UiKit.button("Bloqueado" if find_error != "" else "Ir", Places.go.bind({"world": id, "place": "find"}), &"SecondaryButton")
-			find_button.disabled = find_error != ""
-			card.add_child(find_button)
+			find_button.name = "FindGo_" + id
+			card.add_child(UiKit.action_or_hint(find_button, find_error, TaskHelp.open.bind("item", str(Database.finds.album_groups.get(id, ["stick"])[0]))))
 		"growth":
 			var phase_index: int = GameState.growth.phase_index(id)
 			card.add_child(UiKit.label("Presente do Tiro", &"StrongLabel"))
@@ -266,11 +266,9 @@ static func _location(box: VBoxContainer, target: Dictionary, upgrade: String = 
 	var needs_buy: bool = upgrade != "" and Database.progression.upgrades.has(upgrade) and not GameState.has_upgrade(upgrade)
 	var destination := Places.goal_target({"type": "owned", "key": upgrade}) if needs_buy else target
 	var button := UiKit.button("Bloqueado" if error != "" else "Ir", Places.go.bind(destination), &"SecondaryButton")
-	button.disabled = error != ""
-	box.add_child(button)
-	if error != "":
-		box.add_child(UiKit.label(error, &"", UiKit.BAD))
-	elif needs_buy:
+	button.name = "ManualGo_" + str(target.world) + "_" + str(target.get("spot", target.place))
+	box.add_child(UiKit.action_or_hint(button, error, TaskHelp.open.bind("upgrade", upgrade) if needs_buy else TaskHelp.open.bind("stat", "harvest")))
+	if error == "" and needs_buy:
 		box.add_child(UiKit.label("Compre: " + str(Database.stations[station_id].name), &""))
 
 

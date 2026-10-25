@@ -516,3 +516,14 @@ texto em SectionLabel, com controle negativo. tasks_test acompanha a grade rolá
 da etapa 07; walks_test estabiliza a geometria em 360×780/Menos animação; park_test usa bagagem
 determinística só no caso do temporizador DEV. Tour --aj-10-only (16 PNGs).
 Etapa concluída; próxima 11. Sem mudança de regra/save/falas, push/publicação.
+
+**Interface 2 — ajustes, etapa 11 (25/10/2026):** `UiKit.action_or_hint(action, reason, on_help, missing)`
+substitui a ação bloqueada por `Locked_<nome>` (meta `reason`, cadeado/ícone/ajuda); sem botão desabilitado
+oculto. `HaveCheck` vetorial nos tap_chip have. Saves: `Playing_<slot>` e `DefaultState_<slot>` em chips,
+sem Play no save ativo. Obras: `ProjectCount_<item>` único por tile (104 px), `ProjectMissing` em list_row
+com row_chevron; ProjectBar/_title_row removidos, ProjectSteps preservado. Natureza: bloqueio completo
+agora é Locked_Material_<item> em vez de Material_<item>.disabled; RequiredLevel_<item> na bandeja
+preservado. FoodHelpButton sai durante recarga; FoodHelpTimer permanece. `TrickAttempt` e `DevTab_<id>`
+nomeiam controles da lista branca. `ui_style_test._disabled_text` percorre folhas/bandejas/prêmios e
+usa lista branca fechada por nome; --aj-11-only no tour. Inventário e provas em
+`docs/plans/interface2_ajustes/VALIDACAO_11.md`. Próxima 12; sem regra/save/falas, push ou publicação.

@@ -81,6 +81,10 @@ func _run() -> void:
 	var pu: Script = load("res://scripts/ui/progression_ui.gd")
 	# Plano "Interface 2 — ajustes": um bloco --aj-NN-only por etapa, reaproveitando os nomes de captura que
 	# já existem (b05_map_list, i2_07_stove...); capturas novas levam o prefixo aj_NN_<tela>.
+	if "--aj-11-only" in OS.get_cmdline_user_args():
+		await _aj_11_shots()
+		quit(0)
+		return
 	if "--aj-10-only" in OS.get_cmdline_user_args():
 		await _aj_10_shots()
 		quit(0)
@@ -1814,3 +1818,116 @@ func _aj_06_shots() -> void:
 	_hide_modals()
 	tasks.call("choose_group", "story")
 	await shot("aj_06_story_done")
+
+
+## Ajustes 11: bloqueios, encomendas e obras nas três resoluções.
+func _aj_11_shots() -> void:
+	var places: Script = load("res://scripts/ui/places.gd")
+	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
+	state.call("reset")
+	state.get("progress").seen.intro = true
+	state.call("dev_unlock_everything")
+	state.call("_mark_all_seen")
+	state.set("coins", 2000)
+	state.get("inventory").call("from_dict", {})
+	await _start_main(1.5)
+	await _world("village")
+	for entry: Array in [["orders", "b14b_neighbor_orders"], ["stall", "b14c_own_stall"], ["orders", "i2_09_orders"], ["stall", "i2_09_stall"]]:
+		places.call("open", "village", str(entry[0]))
+		await shot(str(entry[1]))
+		await _close()
+	load("res://scripts/ui/settings_panel.gd").call("open")
+	await shot("i2_09_settings")
+	await shot("b23_settings")
+	await _close()
+	await _world("park")
+	state.call("dev_set_phase", "puppy")
+	state.get("progress").tricks["paw"] = true
+	state.get("progress").cooldowns["trick:paw"] = int(Time.get_unix_time_from_system()) + 300
+	load("res://scripts/ui/trick_ui.gd").call("open")
+	await shot("i2_09_tricks")
+	await _close()
+	places.call("open", "park", "walk")
+	await shot("i2_09_walks")
+	await _close()
+	await _sheet("Amigos", load("res://scripts/ui/friend_ui.gd").call("album"))
+	await shot("i2_09_friends")
+	await _close()
+	# Etapa 20 da economia: Nossa praça e as fases do Banco (marcação, base, conforto, pronto).
+	places.call("open", "park", "community")
+	await shot("b16b_community")
+	await _close()
+	var bench_ui: Script = load("res://scripts/ui/project_ui.gd")
+	state.set("coins", maxi(int(state.get("coins")), 300))
+	state.call("start_project", "park_bench")
+	await _sheet("Banco da Praça", bench_ui.call("panel", "park_bench"))
+	await shot("b16c_bench_start")
+	await _close()
+	for phase: Array in [["plank", 4, "b16d_bench_base"], ["fabric", 2, "b16e_bench_comfort"]]:
+		var phase_items: Dictionary = state.call("project_stage", "park_bench").needed
+		for item: String in phase_items:
+			state.get("inventory").add(item, int(phase_items[item]))
+			state.call("contribute_project", "park_bench", item, int(phase_items[item]))
+		await _world("park")
+		await shot(str(phase[2]))
+	await _sheet("Banco da Praça", bench_ui.call("panel", "park_bench"))
+	await shot("b16f_bench_last_phase")
+	await _close()
+	# Etapa 21: com o banco pronto, Jardim da Vila e Piquenique da Praça começam juntos.
+	var last_items: Dictionary = state.call("project_stage", "park_bench").needed
+	for item: String in last_items:
+		state.get("inventory").add(item, int(last_items[item]))
+		state.call("contribute_project", "park_bench", item, int(last_items[item]))
+	state.set("coins", maxi(int(state.get("coins")), 600))
+	state.call("start_project", "village_garden")
+	state.call("start_project", "park_picnic")
+	for id: String in ["village_garden", "park_picnic"]:
+		var first_items: Dictionary = state.call("project_stage", id).needed
+		for item: String in first_items:
+			state.get("inventory").add(item, int(first_items[item]))
+			state.call("contribute_project", id, item, int(first_items[item]))
+	await _world("park")
+	await shot("b16g_picnic_world")
+	await _sheet("Piquenique da Praça", bench_ui.call("panel", "park_picnic"))
+	await shot("b16h_picnic_panel")
+	await _close()
+	await _world("village")
+	await shot("b16i_garden_world")
+	places.call("open", "village", "community")
+	await shot("b16j_community_village")
+	await _close()
+	await _sheet("Jardim da Vila", bench_ui.call("panel", "village_garden"))
+	await shot("b16k_garden_panel")
+	await _close()
+	# Etapa 22: Festa da Vila pronta (obras anteriores concluídas, banca 3) e o Encontro da turma.
+	state.call("dev_grant_upgrade", "stall_3")
+	for id: String in ["village_garden", "park_picnic"]:
+		for index in range(1, int(state.call("project_stage", id).count)):
+			var phase: Dictionary = root.get_node("Database").project(id).phases[index]
+			for item: String in phase.items:
+				state.get("inventory").add(item, int(phase.items[item]))
+			for item: String in phase.items:
+				state.call("contribute_project", id, item, int(phase.items[item]))
+	state.set("coins", 500)
+	state.call("start_project", "village_festival")
+	for index in 3:
+		var festa_phase: Dictionary = root.get_node("Database").project("village_festival").phases[index]
+		for item: String in festa_phase.items:
+			state.get("inventory").add(item, int(festa_phase.items[item]))
+		for item: String in festa_phase.items:
+			state.call("contribute_project", "village_festival", item, int(festa_phase.items[item]))
+	await _world("village")
+	await shot("b16l_festival_world")
+	await _sheet("Festa da Vila", bench_ui.call("panel", "village_festival"))
+	await shot("b16m_festival_panel")
+	await _close()
+
+	await _sheet("Banco da Praça", bench_ui.call("panel", "park_bench"))
+	await shot("i2_09_project")
+	await _close()
+	await _world("house")
+	state.get("progress").owned.erase("fridge")
+	state.set("coins", 0)
+	places.call("open", "house", "fridge")
+	await shot("a05_fridge_sheet")
+	await _close()

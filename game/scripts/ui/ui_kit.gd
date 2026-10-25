@@ -127,6 +127,13 @@ static func tap_chip(texture: Texture2D, text: String, on_pressed: Callable, col
 		var style := surface(colors[0], 22)
 		style.content_margin_left = 12
 		style.content_margin_right = 12
+		if kind == "have":
+			style.content_margin_right = 32
+			var check := ctl("check", 14, Palette.GO_INK)
+			check.name = "HaveCheck"
+			result.add_child(check)
+			check.set_anchors_and_offsets_preset(Control.PRESET_CENTER_RIGHT)
+			check.position += Vector2(-24, -7)
 		for state: String in ["normal", "hover", "pressed", "focus"]: result.add_theme_stylebox_override(state, style)
 	if color is Color:
 		for state: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color"]:
@@ -217,6 +224,18 @@ static func lock_hint(text: String, on_help: Callable = Callable(), missing: Tex
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 				on_help.call())
 	return row
+
+
+## Mantém a ação disponível ou a substitui por bloqueio consultável, sem conectar a ação proibida.
+## Locked_<nome> e reason permitem conferir o mesmo contrato sem um botão cinza escondido.
+static func action_or_hint(action: Button, reason: String, on_help: Callable, missing: Texture2D = null) -> Control:
+	if reason == "":
+		return action
+	var hint := lock_hint(reason, on_help, missing)
+	hint.name = "Locked_" + str(action.name)
+	hint.set_meta("reason", reason)
+	action.free()
+	return hint
 
 
 ## Espaço de produção compacto: bolinha de 52 px + legenda. `state` = SlotDot.EMPTY/QUEUED/BUSY/READY/BUY/LEVEL;
