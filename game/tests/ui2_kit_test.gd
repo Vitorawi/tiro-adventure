@@ -128,6 +128,23 @@ func _caso_stepper() -> void:
 	row.free()
 	row = mount(kit.call("stepper", 3, 1, 3, func(_value: int) -> void: pass))
 	check((row.find_child("Plus", true, false) as Button).disabled, "limite superior desliga mais")
+	check(row.find_child("QuantityMax", true, false) == null, "sem max_label não há atalho")
+	row.free()
+	# Ajustes, etapa 04: `max_label` acrescenta a pílula QuantityMax (vai ao máximo; apagada e sem toque no limite).
+	var picked: Array[int] = []
+	row = mount(kit.call("stepper", 1, 1, 5, func(value: int) -> void: picked.append(value), "Tudo"))
+	for i in 4: await process_frame
+	var all := row.find_child("QuantityMax", true, false) as Button
+	check(all != null and all.text == "Tudo", "QuantityMax mostra o texto pedido")
+	if all:
+		_target(all, "tudo")
+		check(all.modulate.a == 1.0 and all.mouse_filter != Control.MOUSE_FILTER_IGNORE, "no meio do caminho o Tudo está aceso")
+		all.pressed.emit()
+		check(picked == [5], "Tudo chama cb(máximo)")
+	row.free()
+	row = mount(kit.call("stepper", 5, 1, 5, func(_value: int) -> void: pass, "Tudo"))
+	var dim := row.find_child("QuantityMax", true, false) as Button
+	check(dim != null and dim.modulate.a < 0.6 and dim.mouse_filter == Control.MOUSE_FILTER_IGNORE, "no máximo o Tudo fica apagado e sem toque")
 	row.free()
 
 

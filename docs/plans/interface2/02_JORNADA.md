@@ -223,7 +223,10 @@ arrasto tem que começar exatamente no ícone dentro da bandeja. Proposta — a 
 6. **Colher:** quando há prontos, a barra abre no modo colher: **foice + "Colher tudo (6)" verde**. Tocar
    no verde colhe todos os que cabem; arrastar com a foice colhe por onde passar; tocar num pronto colhe
    só ele (como hoje). Depósito cheio: o verde vira `lock_hint` com o ícone do silo.
-7. **Fechar:** `✓`/`X`, tocar fora dos canteiros e da barra, trocar de aba ou de mundo.
+7. **Fechar:** `✓`/`X`, tocar fora dos canteiros e da barra, trocar de aba ou de mundo. Mexer na câmera **não**
+   fecha a barra da horta (aprovado pelo Vitor em 25/10/2026): ela é presa ao rodapé, não ao objeto, e plantar em
+   canteiros fora da tela pede arrastar a câmera sem perder a semente escolhida. A regra "arrastar a câmera fecha"
+   (§6 item 4) vale para as bandejas presas ao objeto. A pinça cancela o gesto da ferramenta sem fechar a barra.
 8. **Dica** "Arraste pelos canteiros" (pílula escura acima da barra) só nas três primeiras vezes
    (`progress.seen["ui:farm_drag_hint"]`, que já existe com outro nome: reaproveitar).
 

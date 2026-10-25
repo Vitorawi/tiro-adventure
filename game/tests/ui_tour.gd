@@ -93,6 +93,10 @@ func _run() -> void:
 		await _aj_03_shots()
 		quit(0)
 		return
+	if "--aj-04-only" in OS.get_cmdline_user_args():
+		await _aj_04_shots()
+		quit(0)
+		return
 	if "--i2-10-only" in OS.get_cmdline_user_args():
 		await _i2_10_shots()
 		quit(0)
@@ -951,12 +955,12 @@ func _i2_07_shots() -> void:
 	state.call("cook", "carrot_snack")
 	await create_timer(0.5).timeout
 	house.call("_on_object_tapped", "place:stove", house.find_child("stove", true, false))
-	await shot("i2_07_stove", 0.6)
+	await shot("i2_07_stove", 1.2)
 	house.call("close_tray")
 	bag.call("from_dict", {})
 	state.call("_changed")
 	house.call("_on_object_tapped", "place:stove", house.find_child("stove", true, false))
-	await shot("i2_07_stove_missing", 0.6)
+	await shot("i2_07_stove_missing", 1.2)
 	house.call("close_tray")
 	await _world("farm")
 	farm.call("recenter")
@@ -967,14 +971,14 @@ func _i2_07_shots() -> void:
 	state.call("_changed")
 	state.call("cook", "eggs")
 	farm.call("_on_object_tapped", "place:chicken_coop", farm.find_child("chicken_coop", true, false))
-	await shot("i2_07_coop", 0.6)
+	await shot("i2_07_coop", 1.2)
 	farm.call("close_tray")
 	await _world("nature")
 	var nature_room: Node = main.find_child("World_nature", true, false)
 	nature_room.call("recenter")
 	await create_timer(0.5).timeout
 	nature_room.call("_on_object_tapped", "place:trees")
-	await shot("i2_07_trees", 0.6)
+	await shot("i2_07_trees", 1.2)
 	nature_room.call("close_tray")
 	await _world("house")
 	var sb: Script = load("res://scripts/ui/sheet_builder.gd")
@@ -1068,6 +1072,26 @@ func _aj_01_shots() -> void:
 	await _world("farm")
 	await _sheet("Vovó Bloblo", load("res://scripts/ui/progression_ui.gd").call("npc_view", "bloblo"))
 	await shot("i2_06_npc")
+	await _close()
+
+
+## Etapa 04 dos ajustes: bandejas das estações (fogão visível), "Tudo" do seletor e barra da horta.
+## Reaproveita as capturas i2_07_* (barra, fogão, galinheiro, árvores, painel cheio) e i2_09_market/project.
+func _aj_04_shots() -> void:
+	await _i2_07_shots()
+	var places: Script = load("res://scripts/ui/places.gd")
+	state.set("coins", 2000)
+	state.get("inventory").call("from_dict", {"carrot": 9, "carrot_snack": 4, "dog_food": 6, "wood": 6, "plank": 3, "stick": 3, "egg": 5, "milk": 2, "wheat": 3, "fabric": 1})
+	state.call("_changed")
+	await _world("village")
+	places.call("open", "village", "market")
+	await shot("i2_09_market")
+	await _close()
+	await _world("park")
+	state.set("coins", 2000)
+	state.call("start_project", "park_bench")
+	await _sheet("Banco da Praça", load("res://scripts/ui/project_ui.gd").call("panel", "park_bench"))
+	await shot("i2_09_project")
 	await _close()
 
 

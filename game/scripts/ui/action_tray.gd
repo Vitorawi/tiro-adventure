@@ -50,7 +50,10 @@ const PICK_PER_ROW := 4
 ## Modo "pick": tile da grade e altura da grade quando há mais de 8 (2,5 linhas, rola na vertical).
 const PICK_TILE := Vector2(70, 76)
 const PICK_GAP := 6
-const PICK_ROWS_SHOWN := 2.5
+const PICK_ROWS_SHOWN := 2.0
+## Altura prevista de uma bandeja `pick` (cabeçalho + fila + 2 linhas de grade + detalhe + rodapé): a sala usa
+## para subir o objeto ao terço de cima e deixar a bandeja inteira embaixo dele.
+const PICK_HEIGHT := 440.0
 ## Tempo do ícone da receita voando da grade até a bolinha da fila.
 const FLY_TIME := 0.3
 
@@ -344,7 +347,7 @@ func _build_items() -> Control:
 				current_row.alignment = BoxContainer.ALIGNMENT_BEGIN
 			rows.add_child(current_row)
 		current_row.add_child(_make_item(i))
-	# Mais de duas linhas (fogão com 10): a grade mostra 2,5 linhas e rola na vertical, nunca na horizontal.
+	# Mais de duas linhas (fogão com 10): a grade mostra 2 linhas e rola na vertical, nunca na horizontal.
 	if pick and count > per_row * 2:
 		var scroll := ScrollContainer.new()
 		scroll.name = "Scroll"
@@ -520,19 +523,24 @@ func _place() -> void:
 	var bottom := room.size.y - BOTTOM_LIMIT
 	if is_instance_valid(_nav_bar) and _nav_bar.is_visible_in_tree():
 		bottom = minf(bottom, _nav_bar.global_position.y - room.global_position.y - 8.0)
-	if _body_scroll:
-		var fixed := _panel.get_combined_minimum_size().y - _body_scroll.get_combined_minimum_size().y
-		var available := maxf(48.0, bottom - TOP_LIMIT - fixed)
-		_body_scroll.custom_minimum_size.y = minf(_body_column.get_combined_minimum_size().y, available)
-	var panel_size := _panel.get_combined_minimum_size()
-	_panel.size = panel_size
 	var origin := room.global_position
 	var above := room.world_to_screen(_anchor_world) - origin
 	var below := room.world_to_screen(_below_world) - origin
+	var below_first := false  # bandeja `pick` que não cabe em cima do objeto abre embaixo dele, sem cobri-lo
+	if _body_scroll:
+		var fixed := _panel.get_combined_minimum_size().y - _body_scroll.get_combined_minimum_size().y
+		var natural := _body_column.get_combined_minimum_size().y
+		var available := maxf(48.0, bottom - TOP_LIMIT - fixed)
+		if pick and above.y - ARROW - TOP_LIMIT - fixed < natural:
+			below_first = true
+			available = maxf(48.0, bottom - (below.y + ARROW) - fixed)
+		_body_scroll.custom_minimum_size.y = minf(natural, available)
+	var panel_size := _panel.get_combined_minimum_size()
+	_panel.size = panel_size
 	var top := above.y - ARROW - panel_size.y
 	var points_up := false  # a ponta da setinha aponta para cima quando a bandeja fica embaixo do alvo
 	var tip := above
-	if top < TOP_LIMIT:
+	if top < TOP_LIMIT or below_first:
 		top = below.y + ARROW
 		tip = below
 		points_up = true

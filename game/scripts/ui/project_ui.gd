@@ -180,13 +180,8 @@ static func _delivery_card(box: VBoxContainer, id: String, model: Dictionary) ->
 	row.name = "ProjectQuantity"
 	var stepper := UiKit.stepper(amount, 1, most, func(value: int) -> void:
 		model.qty = value
-		(box as SheetBuilder.LiveBox).refresh())
+		(box as SheetBuilder.LiveBox).refresh(), "Tudo")
 	row.add_child(stepper)
-	var all := UiKit.soft("Tudo", func() -> void:
-		model.qty = most
-		(box as SheetBuilder.LiveBox).refresh(), null, true)
-	all.name = "Qty_all"
-	row.add_child(all)
 	card.add_child(row)
 	var deliver := UiKit.primary("Entregar ×%d %s" % [amount, Database.item_name(chosen)], func() -> void:
 		var error := GameState.contribute_project(id, chosen, amount)

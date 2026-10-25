@@ -712,7 +712,9 @@ static func steps(total: int, current: int) -> HBoxContainer:
 	return row
 
 
-static func stepper(value: int, min_value: int, max_value: int, on_change: Callable) -> HBoxContainer:
+## Seletor de quantidade − ×N +. Com `max_label` (ex.: "Tudo"), uma pílula `QuantityMax` leva ao máximo e fica
+## apagada (sem toque) quando já está nele; o mesmo atalho nas estações, na Feira e nas obras.
+static func stepper(value: int, min_value: int, max_value: int, on_change: Callable, max_label: String = "") -> HBoxContainer:
 	var row := hbox(4)
 	row.custom_minimum_size.y = 44
 	row.draw.connect(func() -> void: row.draw_style_box(surface(Palette.SUNKEN, 22), Rect2(Vector2.ZERO, row.size)))
@@ -729,6 +731,23 @@ static func stepper(value: int, min_value: int, max_value: int, on_change: Calla
 			control.add_child(sign)
 			sign.position = Vector2(12, 12)
 		row.add_child(control)
+	if max_label != "":
+		var at_max := value >= max_value
+		var all := soft(max_label, func() -> void: on_change.call(max_value), null, true)
+		all.name = "QuantityMax"
+		all.custom_minimum_size = Vector2(52, 44)
+		var pill := surface(Palette.CARD, 18)  # pílula clara sobre o fundo afundado do seletor, como o disco do +
+		pill.content_margin_left = 10
+		pill.content_margin_right = 10
+		pill.expand_margin_top = -4  # desenho 36, alvo de toque 44
+		pill.expand_margin_bottom = -4
+		for phase: String in ["normal", "hover", "pressed", "hover_pressed", "focus"]:
+			all.add_theme_stylebox_override(phase, pill)
+		if at_max:
+			all.modulate.a = 0.4
+			all.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			all.focus_mode = Control.FOCUS_NONE
+		row.add_child(all)
 	return row
 
 

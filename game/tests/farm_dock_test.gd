@@ -99,6 +99,7 @@ func _run() -> void:
 	await _test_tap_plants()
 	await _test_drag_plants()
 	await _test_drag_outside_moves_camera()
+	await _test_camera_and_pinch_keep_dock()
 	await _test_water()
 	await _test_harvest()
 	await _test_outside_closes()
@@ -198,6 +199,34 @@ func _test_drag_outside_moves_camera() -> void:
 		if status(i) != "empty" and status(i) != "locked":
 			planted += 1
 	check(planted == 0, "e nada é plantado")
+	farm.call("close_tray")
+
+
+# 3b — ajustes, etapa 04 (item 9): mexer na câmera e a pinça NÃO fecham a barra da horta; a pinça só cancela o gesto.
+func _test_camera_and_pinch_keep_dock() -> void:
+	empty_plots()
+	farm.call("recenter")
+	await process_frame
+	await open_plant(0)
+	check(dock() != null, "a barra abre")
+	farm.call("scroll_by", Vector2(40, 0))
+	farm.call("_set_camera", (farm.call("screen_to_world", farm.global_position + farm.size / 2.0) as Vector2) + Vector2(30, 0), farm.get("_zoom") as float)
+	await process_frame
+	check(dock() != null, "mexer na câmera não fecha a barra")
+	var current := dock()
+	var before: int = (state.get("plots") as Array).filter(func(p: Dictionary) -> bool: return str(p.get("crop", "")) != "").size()
+	current.call("press", center(1))
+	check(bool(current.call("gesture_active")), "o gesto começa no canteiro")
+	farm.call("_set_touch", 0, center(1))
+	farm.call("_set_touch", 1, center(1) + Vector2(80, 0))
+	check(bool(farm.call("_is_pinching")), "dois dedos são uma pinça")
+	current.call("move", center(2))
+	check(not bool(current.call("gesture_active")), "a pinça cancela o gesto")
+	check(dock() == current, "a pinça não fecha a barra")
+	(farm.get("_touches") as Dictionary).clear()
+	current.call("release_drag")
+	var after: int = (state.get("plots") as Array).filter(func(p: Dictionary) -> bool: return str(p.get("crop", "")) != "").size()
+	check(after <= before + 1, "a pinça não planta nos canteiros seguintes (%d → %d)" % [before, after])
 	farm.call("close_tray")
 
 

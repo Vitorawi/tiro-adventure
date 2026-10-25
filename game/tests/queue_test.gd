@@ -328,6 +328,12 @@ func _interface() -> void:
 	check(detail.find_child("QuantityValue", true, false) != null and detail.find_child("FinishAt", true, false) != null, "seletor de quantidade e horário aparecem")
 	check(str((detail.find_child("QuantityValue", true, false) as Label).text) == "×1", "começa em ×1")
 	check((detail.find_child("Minus", true, false) as Button).disabled, "− desligado em ×1")
+	var max_pill := detail.find_child("QuantityMax", true, false) as Button
+	check(max_pill != null and max_pill.text == "Tudo", "Tudo (QuantityMax) ao lado do seletor com 2+ vagas livres")
+	if max_pill:
+		max_pill.pressed.emit()
+		check(int(tray.call("chosen_count", "carrot_snack")) == int(state.call("cook_max", "carrot_snack")) and int(state.call("cook_max", "carrot_snack")) > 1, "Tudo leva ao máximo (×%d)" % int(state.call("cook_max", "carrot_snack")))
+		tray.get("quantity").clear()
 	check(_station("stove").queue.is_empty(), "só selecionar não começa a produção")
 	detail.queue_free()
 	tray.call("_set_count", "carrot_snack", 3)

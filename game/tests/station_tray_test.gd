@@ -138,6 +138,7 @@ func _run() -> void:
 		return
 
 	await _test_recipe_scroll()
+	await _test_tray_below_object()
 	await _test_stove_cooks()
 	await _test_full_queue()
 	await _test_missing_ingredients()
@@ -214,8 +215,8 @@ func recipe_shot(label: String) -> void:
 	root.get_texture().get_image().save_png(folder.path_join("%s_%d.png" % [label, root.size.x]))
 
 
-## Interface 2: a grade das receitas não rola na horizontal. Com mais de 8 receitas ela mostra 2,5 linhas e rola só
-## na vertical (a meia linha de baixo avisa que tem mais).
+## Interface 2: a grade das receitas não rola na horizontal. Com mais de 8 receitas ela mostra 2 linhas e rola só
+## na vertical (ajustes, etapa 04: a bandeja fica baixa para não cobrir o fogão).
 func _test_recipe_scroll() -> void:
 	reset_world_state()
 	var house := await enter("house")
@@ -233,7 +234,7 @@ func _test_recipe_scroll() -> void:
 			check(scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED, "nunca rola na horizontal")
 			check(scroll.vertical_scroll_mode == ScrollContainer.SCROLL_MODE_AUTO, "rola na vertical")
 			var tile: Vector2 = (load("res://scripts/ui/action_tray.gd") as Script).get_script_constant_map()["PICK_TILE"]
-			check(scroll.custom_minimum_size.y < tile.y * 3.0 and scroll.custom_minimum_size.y > tile.y * 2.0, "altura de 2,5 linhas (%.0f)" % scroll.custom_minimum_size.y)
+			check(scroll.custom_minimum_size.y < tile.y * 2.5 and scroll.custom_minimum_size.y >= tile.y * 2.0, "altura de 2 linhas (%.0f)" % scroll.custom_minimum_size.y)
 	else:
 		check(scroll == null, "até 8 receitas: grade inteira, sem rolagem")
 	var first: Control = current.call("item_node", str(ids[0]))
@@ -241,6 +242,33 @@ func _test_recipe_scroll() -> void:
 	var box: Control = current.get("_box")
 	check(first != null and last != null and box.get_global_rect().encloses(first.get_global_rect()), "primeira receita dentro da bandeja")
 	house.call("close_tray")
+
+
+## Ajustes, etapa 04: o objeto sobe ao terço de cima e a bandeja abre embaixo dele, sem cobri-lo (fogão,
+## liquidificador, bancada). O retângulo da bandeja nunca cruza o do sprite e a grade mostra no máximo 2 linhas.
+func _test_tray_below_object() -> void:
+	reset_world_state()
+	var cases := [["house", "place:stove", "stove"], ["house", "place:blender", "blender"], ["farm", "place:workbench", "workbench"]]
+	for entry: Array in cases:
+		var room := await enter(str(entry[0]))
+		room.call("recenter")
+		await frames(4)
+		var current := await tap(room, str(entry[1]), str(entry[2]))
+		await frames(6)
+		check(current != null, "%s abre a bandeja" % entry[2])
+		if current == null:
+			continue
+		var sprite := room.find_child(str(entry[2]), true, false) as Sprite2D
+		var anchor: Dictionary = room.call("object_anchor", sprite)
+		var object_rect := Rect2(room.call("world_to_screen", anchor.top), Vector2.ZERO).expand(room.call("world_to_screen", anchor.below))
+		var panel_rect: Rect2 = (current.get("_panel") as Control).get_global_rect()
+		check(not panel_rect.intersects(object_rect.grow_individual(0, -2, 0, -2)), "%s: a bandeja %s não cobre o objeto %s" % [entry[2], panel_rect, object_rect])
+		check(object_rect.position.y >= 120.0, "%s: o objeto fica abaixo da linha 2 (%.0f)" % [entry[2], object_rect.position.y])
+		var grid := current.call("find_in_panel", "Scroll") as ScrollContainer
+		var tile: Vector2 = (load("res://scripts/ui/action_tray.gd") as Script).get_script_constant_map()["PICK_TILE"]
+		check(grid == null or grid.custom_minimum_size.y < tile.y * 2.5, "%s: grade com no máximo 2 linhas" % entry[2])
+		room.call("close_tray")
+		await frames(3)
 
 
 func _test_animal_spaces() -> void:

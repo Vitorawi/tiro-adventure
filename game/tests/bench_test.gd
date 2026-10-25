@@ -309,7 +309,7 @@ func _panel_check() -> void:
 			primary_count += 1
 	check(primary_count == 1, "um único botão primário (%d)" % primary_count)
 	check((panel.find_child("DeliverProject", true, false) as Button).text.begins_with("Entregar ×1"), "quantidade 1 por padrão (%s)" % (panel.find_child("DeliverProject", true, false) as Button).text)
-	(panel.find_child("Qty_all", true, false) as Button).pressed.emit()
+	(panel.find_child("QuantityMax", true, false) as Button).pressed.emit()
 	for i in 4: await process_frame
 	check((panel.find_child("DeliverProject", true, false) as Button).text.begins_with("Entregar ×4"), "Tudo = o que falta e eu tenho")
 	(panel.find_child("DeliverProject", true, false) as Button).pressed.emit()

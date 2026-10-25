@@ -24,6 +24,10 @@ const DOUBLE_TAP_MS := 300
 const DOUBLE_TAP_DISTANCE := 24.0
 ## Quanto dá para arrastar além da borda do mundo (volta sozinho ao soltar).
 const OVERSCROLL := 48.0
+## Bandeja `pick`: topo do objeto no terço de cima (abaixo da linha 2), base no máximo a 250 px e rodapé de 84 + 8.
+const TRAY_OBJECT_TOP := 150.0
+const TRAY_BASE_MAX := 250.0
+const TRAY_NAV_SPACE := 92.0
 ## Inércia: velocidade dos últimos 80 ms, que perde 10% por quadro (a 60 fps) até parar.
 const INERTIA_WINDOW_MS := 80
 const INERTIA_DECAY := 0.9
@@ -97,6 +101,7 @@ var _last_tap_empty := false
 var _recenter: Button
 ## A câmera subiu um objeto para ele não ficar atrás do painel aberto.
 var _lifted := false
+var _tray_lifted := false  # a câmera subiu um objeto para a bandeja e pode estar além do limite do mundo
 var _sheet_open := false
 ## Fundo (céu, paisagem, nuvens) vindo de "backdrop" no JSON; parallax = fração do movimento da câmera.
 var _has_backdrop := false
@@ -1532,6 +1537,49 @@ func _bring_into_view(center: Vector2, force: bool = false, bottom_extra: float 
 	return true
 
 
+## Antes de abrir uma bandeja `pick` (estação, criação, Natureza): leva o objeto ao terço de cima da sala (topo
+## abaixo da linha 2, base a tempo de a bandeja inteira caber embaixo dele) para o objeto e o anel do lote
+## ficarem visíveis. Se a borda da sala não deixa subir, a bandeja abre em cima dele (regra do `ActionTray`).
+## Mexe na câmera ANTES de abrir: `_camera_changed` fecharia a bandeja nova.
+func _raise_for_tray(anchor: Dictionary, force: bool = false) -> bool:
+	if size.x <= 0.0 or size.y <= 0.0:
+		return true
+	var below_world: Vector2 = anchor.below
+	var top_world: Vector2 = anchor.get("top", anchor.above)
+	var base := _content.position + below_world * _zoom
+	var top := _content.position + top_world * _zoom
+	var base_target := minf(minf(TRAY_OBJECT_TOP + (base.y - top.y), TRAY_BASE_MAX), size.y - TRAY_NAV_SPACE - ActionTray.PICK_HEIGHT - 20.0)
+	var in_band := base.x > 48.0 and base.x < size.x - 48.0 and top.y >= TRAY_OBJECT_TOP - 8.0 and base.y <= base_target + 8.0
+	if not force and in_band:
+		return true
+	var target_x := base.x if base.x > 48.0 and base.x < size.x - 48.0 else size.x / 2.0
+	var center := below_world + Vector2((size.x / 2.0 - target_x) / _zoom, (size.y / 2.0 - base_target) / _zoom)
+	# Sala menor que a tela (a Casa) ou objeto perto da borda: pode passar do limite o quanto for preciso, a
+	# bandeja cobre o que aparecer ali; ao fechar, `_settle_after_tray` devolve a câmera ao limite do mundo.
+	var margin := clampf(absf(base.y - base_target) + 4.0, OVERSCROLL, size.y * 0.5)
+	_tray_lifted = true
+	_tween_camera(center, _zoom, Motion.CAMERA, margin)
+	# Espera o último quadro da câmera (o tempo corrido pode acabar antes dele e `_camera_changed` fecharia a bandeja).
+	if _camera_tween != null and _camera_tween.is_valid() and is_inside_tree():
+		await _camera_tween.finished
+	return is_inside_tree() and is_visible_in_tree() and not tray_dragging
+
+
+## Quando a bandeja que subiu o objeto sai, a câmera volta ao limite do mundo (a menos que outra bandeja,
+## um painel ou um gesto já esteja mexendo nela).
+func _watch_tray(tray: ActionTray) -> void:
+	if tray == null or not _tray_lifted:
+		return
+	tray.tree_exited.connect(func() -> void:
+		if not _tray_lifted or not is_inside_tree():
+			return
+		await get_tree().process_frame
+		if not is_inside_tree() or ActionTray.is_open(self) or _sheet_open or tray_dragging or _lifted:
+			return
+		_tray_lifted = false
+		_settle_content())
+
+
 func close_tray() -> void:
 	if ActionTray.is_open(self):
 		ActionTray.close_current()
@@ -1563,7 +1611,7 @@ func station_sprite(station_id: String) -> Sprite2D:
 ## Pontos da sala onde a bandeja aponta: `above` = em cima do sprite, `below` = embaixo dele.
 func object_anchor(sprite: Sprite2D) -> Dictionary:
 	var height := float(sprite.texture.get_height()) * absf(sprite.scale.y) if sprite.texture else 40.0
-	return {"above": sprite.position - Vector2(0, height * 0.9), "below": sprite.position + Vector2(0, 6)}
+	return {"above": sprite.position - Vector2(0, height * 0.9), "below": sprite.position + Vector2(0, 6), "top": sprite.position - Vector2(0, height)}
 
 
 ## Esta sala tem a estação (já comprada) para mostrar a bandeja?
@@ -1594,9 +1642,9 @@ func open_station_tray(station_id: String, focus: String = "", center_camera: bo
 	close_tray()
 	clear_pointer()
 	var anchor := object_anchor(home)
-	if not await _bring_into_view(anchor.above, center_camera):
+	if not await _raise_for_tray(anchor, center_camera):
 		return
-	StationTray.station(self, station_id, anchor, focus)
+	_watch_tray(StationTray.station(self, station_id, anchor, focus))
 
 
 ## Local da Natureza aberto: bandeja com as coletas e os materiais. `focus` = material pedido.
@@ -1610,10 +1658,10 @@ func open_nature_tray(site: String, focus: String = "") -> void:
 		return
 	close_tray()
 	clear_pointer()
-	var anchor := {"above": marker.position - Vector2(0, 26), "below": marker.position + Vector2(0, 12)}
-	if not await _bring_into_view(anchor.above):
+	var anchor := {"above": marker.position - Vector2(0, 26), "below": marker.position + Vector2(0, 12), "top": marker.position - Vector2(0, 52)}
+	if not await _raise_for_tray(anchor):
 		return
-	StationTray.nature(self, site, anchor, focus)
+	_watch_tray(StationTray.nature(self, site, anchor, focus))
 
 
 ## Marcador de coleta da Natureza deste local (é onde a bandeja aponta).

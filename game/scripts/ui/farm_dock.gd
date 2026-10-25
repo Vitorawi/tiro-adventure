@@ -14,6 +14,8 @@ const TOP_LIMIT := 120.0
 ## Quanto a câmera sobe para o canteiro tocado ficar acima da barra.
 const BAR_LIFT := 70.0
 
+## Mexer na câmera NÃO fecha esta barra (decisão do Vitor, 25/10/2026): ela é presa ao rodapé, não ao objeto, e
+## plantar fora da tela pede arrastar a câmera sem perder a semente. Só as bandejas presas ao objeto fecham.
 static var _current: FarmDock
 
 var room: RoomView
@@ -207,7 +209,7 @@ func _build_plant() -> void:
 	_row.add_child(_scroll)
 	var divider := ColorRect.new()
 	divider.name = "Divider"
-	divider.color = Palette.BASE_LINE
+	divider.color = Palette.LINE
 	divider.custom_minimum_size = Vector2(1, TILE.y - 12.0)
 	divider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_row.add_child(divider)
@@ -275,7 +277,8 @@ func _tile(entry: Dictionary) -> Button:
 	var state := "locked" if locked else ("selected" if id == selected else "normal")
 	var caption := str(entry.get("caption", ""))
 	var caption_fn: Variant = entry.get("caption_fn")
-	if caption_fn is Callable:
+	var count_fn: Variant = entry.get("count_fn")
+	if caption_fn is Callable and not count_fn is Callable:
 		caption = (caption_fn as Callable).call()
 	var tile := UiKit.tile(entry.icon as Texture2D, caption, state)
 	tile.name = "Tile_" + id
@@ -287,6 +290,18 @@ func _tile(entry: Dictionary) -> Button:
 	var picture := visual.get_node("Picture") as TextureRect
 	picture.custom_minimum_size = Vector2(36, 36)
 	_captions[id] = visual.get_child(1) as Label
+	if count_fn is Callable:
+		# "Regar" na legenda e a quantidade de canteiros para regar num selo no canto (como a Mochila).
+		var seal := UiKit.chip(null, "×%d" % (count_fn as Callable).call())
+		seal.name = "Count"
+		tile.add_child(seal)
+		seal.set_anchors_preset(Control.PRESET_TOP_RIGHT)
+		seal.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+		seal.offset_left = 2.0
+		seal.offset_right = 2.0
+		seal.offset_top = -6.0
+		seal.offset_bottom = -6.0
+		seal.visible = int((count_fn as Callable).call()) > 0
 	_tiles[id] = tile
 	tile.pressed.connect(func() -> void: _on_tile(id))
 	return tile
@@ -379,7 +394,14 @@ func _on_state_changed() -> void:
 	for id: String in _captions:
 		var entry := _entry(id)
 		var caption_fn: Variant = entry.get("caption_fn")
-		if caption_fn is Callable and is_instance_valid(_captions[id]):
+		var count_fn: Variant = entry.get("count_fn")
+		if count_fn is Callable:
+			var seal := (_tiles[id] as Control).get_node_or_null("Count") as Control
+			if seal != null:
+				var amount := int((count_fn as Callable).call())
+				seal.visible = amount > 0
+				((seal.get_child(0) as Control).get_child(-1) as Label).text = "×%d" % amount
+		elif caption_fn is Callable and is_instance_valid(_captions[id]):
 			(_captions[id] as Label).text = (caption_fn as Callable).call()
 	if _make_signature() != _signature and not _active:
 		_rebuild.call_deferred()

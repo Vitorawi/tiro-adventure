@@ -6,7 +6,7 @@
 > mesmo estilo do plano Interface 2". Depois, **aprovou os 35 itens como o revisor sugeriu, inclusive as
 > decisões**. Nenhuma decisão fica pendente.
 
-**Estado:** etapas 01–03 concluídas. **Próxima: etapa 04.**
+**Estado:** etapas 01–04 concluídas. **Próxima: etapa 05.**
 
 ## A ideia em uma linha
 
@@ -70,7 +70,7 @@ flowchart TD
 | [x] | [01](etapas/ETAPA_01_BASE_E_TESTES.md) | 17, 33 | capturas e medição "antes" do plano; `world_pin_test`/`world_life_test` 10/10; fixtures `g01`/`t03`; bloco `--aj-NN-only` | médio |
 | [x] | [02](etapas/ETAPA_02_CASCA.md) | 1, 2, 3, 5, 18, 21 | aviso nunca sobre o título; folha acompanha o conteúdo; HUD/Configurações com Texto maior; "Depois de:"; sem título "Mochila" e sem vão; `WorldBar` escondida atrás do seletor | médio |
 | [x] | [03](etapas/ETAPA_03_DESEMPENHO.md) | 4, 23 | tique de 8 Hz enxuto, brilho do álbum em cache, balões sem redesenho parado, aquecimento de glifos; um balão pulando por vez | grande |
-| [ ] | [04](etapas/ETAPA_04_BANDEJAS_HORTA.md) | 7, 8, 9, 26 | fogão visível acima da bandeja; "Tudo" no `stepper`; barra da horta documentada; tile Regar | grande |
+| [x] | [04](etapas/ETAPA_04_BANDEJAS_HORTA.md) | 7, 8, 9, 26 | fogão visível acima da bandeja; "Tudo" no `stepper`; barra da horta documentada; tile Regar | grande |
 | [ ] | [05](etapas/ETAPA_05_TIRO.md) | 15, 19, 30 | humor em pílula translúcida; selo Animado; cardápio sem vermelho e sem cobrir o focinho; cerimônia sem Tiro repetido e régua melhor | médio |
 | [ ] | [06](etapas/ETAPA_06_MISSOES_CADERNINHO.md) | 22, 24, 25, 29 | "Neste capítulo" leve; segmentado de uma opção some; caderninho legível; fontes < 12 resolvidas; história concluída | médio |
 | [ ] | [07](etapas/ETAPA_07_COMEMORACOES_TEXTOS.md) | 16, 31 | cartão de capítulo com grade de novidades; textos do Novo! e do passeio | médio |
@@ -172,3 +172,18 @@ PASS em 104 s. Desvios: a escolha do balão que pula é "o mais antigo pronto" (
 que ligue a missão a um balão); `balloon_test` perdeu só a chamada de `_layout_balloons` e ganhou a conferência de um só
 pulando. Pendências: `GameState.update_finds` (requirement_error e `tiro_animated` a cada segundo) para zerar o último
 quadro lento por segundo. Sem push.
+
+**Etapa 04 (25/10/2026, Claude Sonnet 5.5):** bandejas `pick` sobem o objeto ao terço de cima e não o cobrem
+(`RoomView._raise_for_tray`: topo ≥ 150 px, base ≤ 250 e ≤ `size.y − 92 − ActionTray.PICK_HEIGHT (440) − 20`, com
+overscroll quando a sala é menor que a tela, como a Casa; `_watch_tray` devolve a câmera ao limite ao fechar; a espera é
+`_camera_tween.finished` porque um temporizador de 0,3 s deixava o último quadro da câmera fechar a bandeja recém-aberta;
+`ActionTray._place` abre embaixo do objeto, com o corpo rolando, quando não cabe em cima); grade de 2 linhas
+(`PICK_ROWS_SHOWN` 2.0), "entra → sai" numa linha sem chip ×1; `UiKit.stepper(max_label)` com `QuantityMax` em estações,
+Feira e obras (`Qty_all` e o botão da Feira saíram); barra da horta: câmera/pinça não fecham (comentário no `FarmDock` e
+`02_JORNADA.md` §6.1); tile Regar com "Regar" + selo `Count` e separador `LINE`. Testes (11, 169 s, PASS):
+scripts_check, content, texts, station_tray (caso novo `_test_tray_below_object`: fogão, liquidificador e bancada),
+queue (QuantityMax leva a ×máx), tray (água = "Regar" + selo "×3", mesma garantia), farm_dock (caso novo: câmera e pinça
+não fecham; pinça cancela o gesto), market, bench (acha `QuantityMax`), ui2_kit (stepper com `max_label`), garden.
+Capturas `aj_04_antes|depois[_390|_412]` (o fogão passou de coberto para visível acima da bandeja). Pendências: a bandeja do
+Galinheiro (dois animais + fila) ainda precisa rolar o corpo; o botão Lugares não ficou escondido nas capturas (nenhum ajuste
+na `WorldBar` foi necessário). Sem push.

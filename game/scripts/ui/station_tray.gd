@@ -167,7 +167,7 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 		flow.add_child(ProgressionUi.item_chip(item_id, int(inputs[item_id]), true))
 	if not inputs.is_empty():
 		flow.add_child(UiKit.ctl("arrow", 20, Palette.INK_FAINT))
-	if not recipe.has("output_collection"):
+	if not recipe.has("output_collection") and qty > 1:
 		flow.add_child(UiKit.chip(Database.item_icon(output), "×%d" % qty, null, "prize"))
 	for effect in UiKit.effect_chip_list(Database.items.get(output, {}).get("feed", {})):
 		flow.add_child(effect)
@@ -181,9 +181,8 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 		return box
 	var most := GameState.cook_max(recipe_id)
 	if most > 1:
-		var stepper := UiKit.stepper(count, 1, most, func(value: int) -> void: _set_count(recipe_id, value))
+		var stepper := UiKit.stepper(count, 1, most, func(value: int) -> void: _set_count(recipe_id, value), "Tudo")
 		stepper.name = "Quantity"
-		stepper.custom_minimum_size.x = 132
 		stepper.get_child(1).name = "QuantityValue"
 		var done := UiKit.short_label("Pronto às %s" % GameState.clock_text(GameState.cook_finish_at(recipe_id, count)), &"SmallLabel")
 		done.name = "FinishAt"

@@ -117,6 +117,9 @@ static func water_entry(room: RoomView) -> Dictionary:
 		"id": "water",
 		"icon": UiKit.ui_icon("action_water"),
 		"caption_fn": func() -> String: return "×%d" % room.waterable_plots().size(),
+		# A barra da horta (FarmDock) escreve "Regar" e mostra o ×N num selo.
+		"caption": "Regar",
+		"count_fn": func() -> int: return room.waterable_plots().size(),
 		"tap": func() -> String:
 			var done := 0
 			for target in room.waterable_plots():

@@ -428,7 +428,12 @@ func _test_water() -> void:
 	check(current != null and current.get("selected") == "water", "a barra abre com o regador escolhido")
 	if current == null:
 		return
-	check(tile_caption(current, "water") == "×3", "regador mostra os que faltam (%s)" % tile_caption(current, "water"))
+	# Ajustes, etapa 04: legenda "Regar" e os que faltam (×3) num selo no canto do tile.
+	var water_tile := current.call("tile_node", "water") as Control
+	var seal := water_tile.get_node_or_null("Count") as Control if water_tile else null
+	var seal_label := seal.find_children("*", "Label", true, false)[0] as Label if seal else null
+	check(tile_caption(current, "water") == "Regar", "regador se chama Regar (%s)" % tile_caption(current, "water"))
+	check(seal_label != null and seal.visible and seal_label.text == "×3", "regador mostra os que faltam num selo (%s)" % (seal_label.text if seal_label else "sem selo"))
 	current.call("drag_plots", [1, 2, 1])
 	check(state.call("water_error", 1) != "" and state.call("water_error", 2) != "", "arrasto regou 1 e 2")
 	check(state.call("water_error", 3) == "", "3 ficou sem regar")

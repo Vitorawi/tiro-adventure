@@ -327,10 +327,7 @@ static func sell(world_id: String = "village") -> Control:
 		var row := UiKit.hbox(8)
 		row.add_child(UiKit.stepper(int(model.quantity), 1, GameState.inventory.count(id), func(value: int) -> void:
 			model.quantity = value
-			(box as SheetBuilder.LiveBox).refresh()))
-		row.add_child(UiKit.soft("Tudo", func() -> void:
-			model.quantity = GameState.inventory.count(id)
-			(box as SheetBuilder.LiveBox).refresh(), null, true))
+			(box as SheetBuilder.LiveBox).refresh(), "Tudo"))
 		box.add_child(row)
 		var qty := int(model.quantity)
 		var action := UiKit.primary("Vender ×%d · +%d moedas" % [qty, qty * int(Database.items[id].sell_price)], func() -> void:

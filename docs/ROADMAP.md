@@ -2,6 +2,18 @@
 
 ## Estado atual
 
+**Interface 2 — ajustes, etapa 04 concluída localmente (25/10/2026, Claude Sonnet 5.5).** Bandejas e horta (itens 7, 8, 9, 26).
+Fogão visível: `RoomView._raise_for_tray(anchor, force)` sobe o objeto ao terço de cima antes de abrir a bandeja `pick`
+(topo ≥ 150 px, base ≤ 250 e a bandeja inteira cabendo embaixo, `ActionTray.PICK_HEIGHT`), pode passar do limite do mundo
+(`_tray_lifted`, `_watch_tray` devolve a câmera ao fechar) e espera o último quadro da câmera (`_camera_tween.finished`);
+`ActionTray._place` abre a bandeja `pick` embaixo do objeto quando não cabe em cima (`below_first`, o corpo rola); grade com 2
+linhas (`PICK_ROWS_SHOWN` 2.0); "entra → sai" sem chip ×1. `UiKit.stepper(..., max_label)` com a pílula `QuantityMax`
+("Tudo", apagada no máximo) nas estações, na Feira e nas obras; `Qty_all` e o "Tudo" próprio da Feira saíram. Barra da horta:
+câmera e pinça não a fecham (documentado em `02_JORNADA.md` §6.1 e no `FarmDock`); tile Regar com legenda "Regar" e selo
+`Count` (`count_fn` do `PlotTray.water_entry`), separador `LINE`. Testes `station_tray_test` (caso `_test_tray_below_object`),
+`queue_test`, `ui2_kit_test`, `farm_dock_test` (`_test_camera_and_pinch_keep_dock`), `tray_test`, `bench_test` ajustados;
+11 PASS em 169 s. Capturas `aj_04_antes|depois[_390|_412]`. Próxima: etapa 05. Sem push.
+
 **Interface 2 — ajustes, etapa 03 concluída localmente (25/10/2026, Claude Sonnet 5.5).** Desempenho do mundo: Sítio na Web
 28,3 → 17,6 ms de média (p95 66,6 → 16,8; quadros > 33 ms 119 → 11). `GameState.album_hint_glow_map()` (uma passada, consultada
 por `album_hint_glow`); `RoomView._animate_fast` (8 Hz, só anima + fatia 1/8 do recálculo) e `_refresh_world(full)` (state_changed,
