@@ -21,14 +21,15 @@ extends Control
 @onready var _toast_icon: TextureRect = %ToastIcon
 
 ## Os avisos moram na central: um por vez, erro > momento > foto > info, abaixo da linha 2 do HUD.
-const NOTICE_Y := 136.0
-const NOTICE_BELOW_BANNER_Y := 188.0
+const NOTICE_Y := 176.0
+const NOTICE_BELOW_BANNER_Y := 228.0
 
 var _notice: Notice
 ## Fotos novas esperando a vez do aviso (depois de qualquer cartão, sem entrar na fila de cartões).
 var _photo_queue: Array[String] = []
 var _faces: Dictionary = {}  # id da aba → NavTab
 var _current_screen: StringName = &""
+var _tab_art: TextureRect
 var _tasks_badge: Label
 var _map_badge: Label
 ## Quem pede para esconder a linha 2 do HUD (além dos bloqueios automáticos: folha, bandeja, viagem, cartões).
@@ -57,6 +58,7 @@ func _ready() -> void:
 	_notice.setup(self, _hud, _toast, _toast_text, _toast_icon)
 	_notice.blocked = notice_blocked
 	_notice.top_y = notice_top
+	_build_tab_art()
 	for id: StringName in _tabs:
 		_tabs[id].pressed.connect(_on_tab_pressed.bind(id))
 		# Almofada com o ícone e o nome embaixo; a aba ativa ganha a almofada mel (as quatro cabem em 360 px).
@@ -230,7 +232,7 @@ func notice_top() -> float:
 	# Com folha, seletor ou bandeja abertos a linha 2 recolhe: o aviso nasce nessa faixa livre, acima do topo
 	# da folha (que nunca sobe de `Hud.HEIGHT`), e não cobre o título dela.
 	if _row2_hidden():
-		y = Hud.ROW2_TOP + 4.0
+		y = Hud.SHEET_TOP - 44.0
 	if _current_screen == &"map" and not %WorldsScreen.is_map_open():
 		y = maxf(y, %WorldsScreen.toast_top())
 	return y
@@ -269,21 +271,49 @@ func _check_row2() -> void:
 		_screens[screen_id].call("set_content_top", top)
 
 
-## Com `true`, o rodapé se junta à tela de cima (sem cantos nem sombra, divisória de 1 px): a etapa 04 apoia o
-## botão Cuidar nele. Padrão `false`.
-func set_tab_joined(on: bool) -> void:
+## O rodapé é a tábua ilustrada (`TabBarArt`) com os quatro encaixes; o painel por baixo fica transparente e só
+## reserva as margens para os botões caírem sobre os círculos da arte. `on` não muda mais o visual (nome mantido).
+func set_tab_joined(_on: bool) -> void:
+	_layout_tab_bar()
+
+
+## Arte da barra de abas (360×104 por 1080×311 da imagem); a altura acompanha a largura para os círculos não ovalizarem.
+func _build_tab_art() -> void:
 	var bar := get_node("Layout/TabBar") as PanelContainer
-	if not on:
-		bar.remove_theme_stylebox_override("panel")
+	_tab_art = HomeUi.pic(bar.get_parent() as Control, "tabbar", Rect2(), "TabBarArt")
+	_tab_art.z_index = 5
+	bar.get_parent().move_child(_tab_art, bar.get_index())
+	_tab_art.anchor_left = 0.0
+	_tab_art.anchor_right = 1.0
+	_tab_art.anchor_top = 1.0
+	_tab_art.anchor_bottom = 1.0
+	_tab_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_tab_art.stretch_mode = TextureRect.STRETCH_SCALE
+	_tab_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	resized.connect(_layout_tab_bar)
+	_layout_tab_bar()
+
+
+func _layout_tab_bar() -> void:
+	var bar := get_node_or_null("Layout/TabBar") as PanelContainer
+	if bar == null or _tab_art == null:
 		return
-	var style := UiKit.surface(Palette.BASE_GLASS, 0)
-	style.border_color = Palette.BASE_LINE
-	style.border_width_top = 1
-	style.content_margin_left = 8.0
-	style.content_margin_right = 8.0
-	style.content_margin_top = 8.0
-	style.content_margin_bottom = 14.0
+	var scale_x := maxf(size.x, 1.0) / 360.0
+	var height := roundf(size.x * 311.0 / 1080.0)
+	var style := StyleBoxEmpty.new()
+	style.content_margin_left = 11.0 * scale_x
+	style.content_margin_right = 11.0 * scale_x
 	bar.add_theme_stylebox_override("panel", style)
+	bar.custom_minimum_size.y = height
+	# Cada aba ocupa um encaixe fixo da tábua (84,5 px em 360); sem a Mochila liberada os outros não se mexem.
+	for id: StringName in _tabs:
+		(_tabs[id] as Control).size_flags_horizontal = Control.SIZE_FILL
+		(_tabs[id] as Control).custom_minimum_size.x = 84.5 * scale_x
+	bar.offset_top = -height
+	_tab_art.offset_top = -height
+	_tab_art.offset_bottom = 0.0
+	_tab_art.offset_left = 0.0
+	_tab_art.offset_right = 0.0
 
 
 func show_screen(id: StringName) -> void:
@@ -360,7 +390,7 @@ func _build_tasks_badge() -> void:
 		var tab: Button = _tabs[pair[0]]
 		var face: NavTab = _faces[pair[0]]
 		var badge: Label = pair[1]
-		var place := func() -> void: badge.position = face.icon_center() + Vector2(22.0, -16.0) - badge.size / 2.0
+		var place := func() -> void: badge.position = face.icon_center() + Vector2(30.0, -24.0) - badge.size / 2.0
 		tab.resized.connect(place)
 		badge.resized.connect(place)
 		tab.toggled.connect(func(_pressed: bool) -> void: place.call())

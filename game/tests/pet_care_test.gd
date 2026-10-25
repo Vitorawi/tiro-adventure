@@ -85,13 +85,13 @@ func _run() -> void:
 	check(tray.find_child("FoodButton", true, false) != null, "um botão fixo abre as comidas")
 	var menu: Control = pet.find_child("FoodMenu", true, false)
 	check(menu.visible and pet.find_child("FoodScroll", true, false).horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED, "comidas abrem na vertical")
-	check(menu.position.x >= 0 and menu.get_global_rect().end.y < tray.find_child("CareButton", true, false).global_position.y, "guia fica dentro da tela e acima dos controles")
+	check(menu.position.x >= 0 and not menu.get_global_rect().intersects(tray.find_child("CareButton", true, false).get_global_rect()), "guia fica dentro da tela e não cobre o botão Cuidar")
 	for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 		root.size = viewport
 		await frames()
 		var menu_rect := menu.get_global_rect()
 		check(not menu_rect.intersects(pet.call("head_rect")), "cardápio preserva o alvo da cabeça em " + str(viewport))
-		check(menu_rect.end.y < tray.find_child("CareButton", true, false).global_position.y, "cardápio acima de Cuidar em " + str(viewport))
+		check(not menu_rect.intersects(tray.find_child("CareButton", true, false).get_global_rect()), "cardápio não cobre Cuidar em " + str(viewport))
 		var badge: Label = pet.find_child("NotebookNewBadge", true, false)
 		check(badge.text == "!" and badge.get_theme_color("font_color") == Color.WHITE, "caderninho: exclamação branca sobre bolinha vermelha")
 		check(badge.size.x >= badge.get_combined_minimum_size().x and badge.size.y > 0, "selo do caderninho tem espaço para o texto")

@@ -13,7 +13,7 @@ const TRANSITION_SCENE := preload("res://scenes/ui/world_transition/world_transi
 const POINT_DELAY := 0.8
 ## Barra do mundo: margem lateral e altura (na linha 2 do HUD, que começa em 76).
 const BAR_MARGIN := 10.0
-const BAR_TOP := 76.0
+const BAR_TOP := Hud.ROW2_TOP
 ## Folga entre a pílula do mundo e o próximo passo, e entre o próximo passo e os rostos.
 const ROW2_GAP := 8.0
 

@@ -135,7 +135,7 @@ func _run() -> void:
 	check(body_mark.visible and (body_mark.get_parent() as RingProgress).color == Palette.ALERT, "fome pede: anel vermelho e pontinho")
 	check((main.find_child("NeedPillar_hygiene", true, false) as Control).visible, "higiene pede: pontinho")
 	check((main.find_child("NeedPillar_energy", true, false) as Control).visible, "energia pedindo também tem pontinho")
-	check(pet.get("_pulses").has("hunger") and not pet.get("_pulses").has("happiness"), "só quem pede pulsa")
+	check(pet.get("_pulses").is_empty(), "pedido sem contorno pulsante (desligado)")
 	await shot("pet_rings")
 	all_needs(100.0)
 	state._changed()

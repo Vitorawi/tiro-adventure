@@ -61,12 +61,13 @@ func _reset_fresh() -> void:
 	root.get_node("Events").emit_signal("state_changed")
 	for i in 2:
 		await process_frame
+	main.call("_check_row2")  # o relógio de 0,2 s da casca pode ainda não ter visto os cartões fechados
 
 
-## 9. Rodapé: 84 de altura e o nome embaixo de cada aba.
+## 9. Rodapé: a tábua ilustrada (altura = largura × 311/1080) e o nome de cada aba.
 func _footer() -> void:
 	var bar := main.get_node("Layout/TabBar") as Control
-	check(is_equal_approx(bar.size.y, 84.0), "o rodapé tem 84 px de altura (veio %f)" % bar.size.y)
+	check(is_equal_approx(bar.size.y, roundf(main.size.x * 311.0 / 1080.0)), "o rodapé tem a altura da tábua ilustrada (veio %f)" % bar.size.y)
 	check(is_equal_approx(bar.get_global_rect().end.y, main.size.y), "o rodapé fica preso à borda de baixo")
 	(main.find_child("BagTab", true, false) as Control).visible = true
 	await process_frame

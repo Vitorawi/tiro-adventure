@@ -11,6 +11,16 @@ const SPOTS := {
 	"belly": Rect2(0.18, 0.50, 0.64, 0.26),
 }
 
+## Bandeja de necessidades (arte 198×60) e o centro de cada um dos quatro espaços.
+const TRAY_SIZE := Vector2(198, 60)
+const TRAY_SLOTS: Array[Vector2] = [Vector2(28.8, 28.6), Vector2(74.6, 28.6), Vector2(120.7, 28.6), Vector2(167.0, 28.6)]
+const TILE_SIZE := Vector2(38, 37)
+const NEED_BAR := 27.0
+## Balão do desejo: arte 94×85 e a distância dele até a linha dos pés do Tiro (protótipo: y 194 com pés em 600).
+const BUBBLE_SIZE := Vector2(94, 85)
+const BUBBLE_ABOVE_FEET := 406.0
+const NOTEBOOK_SIZE := Vector2(54, 50)
+const NOTEBOOK_ABOVE_FEET := 196.0
 var _bars: Dictionary = {}
 var _pulses: Dictionary = {}
 var _animator: PetAnimator
@@ -36,7 +46,9 @@ var _last_pet_feedback := -10.0
 var _pet_message := ""
 var _pet_message_until := 0.0
 var _care: PetCareTray
-var _needs_pill: PanelContainer
+var _needs_pill: Control
+var _need_tints: Dictionary = {}
+var _need_fills: Dictionary = {}
 var _mood_bubble: PanelContainer
 var _mood_label: Label
 var _manual: Button
@@ -61,6 +73,8 @@ func _ready() -> void:
 	decor.name = "CornerDecor"
 	decor.backdrop = _corner
 	decor.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Os enfeites desenhados sobre o cenário antigo não combinam com o quarto ilustrado: ficam escondidos.
+	decor.visible = false
 	_corner.add_child(decor)
 	%DogArea.draw.connect(_draw_dog_shadow)
 	%Stars.draw.connect(func() -> void:
@@ -86,12 +100,16 @@ func _ready() -> void:
 	_mood_bubble.add_child(_mood_label)
 	add_child(_mood_bubble)
 	_build_wish_widgets()
-	_manual = UiKit.icon_button(UiKit.ui_icon("ui_notebook"), PetNotebook.open, 52)
+	_manual = UiKit.icon_button(null, PetNotebook.open, 52)
 	_manual.name = "ManualButton"
+	for style: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+		_manual.add_theme_stylebox_override(style, StyleBoxEmpty.new())
+	# O caderninho de madeira encosta na borda direita (a arte passa 10 px da tela, como no protótipo).
+	HomeUi.pic(_manual, "notebook", Rect2(0, 0, 64, 50), "NotebookArt")
 	add_child(_manual)
 	_new_badge = UiKit.alert_badge()
 	_new_badge.name = "NotebookNewBadge"
-	_new_badge.position = Vector2(32, -4)
+	_new_badge.position = Vector2(26, -6)
 	_new_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_manual.add_child(_new_badge)
 	_new_badge.reset_size()
@@ -124,14 +142,53 @@ func play_growth_feedback(before: Dictionary, after: Dictionary) -> void:
 
 
 func _build_need_rings() -> void:
-	_needs_pill = PanelContainer.new()
+	_needs_pill = Control.new()
 	_needs_pill.name = "NeedsPanel"
-	_needs_pill.add_theme_stylebox_override("panel", UiKit.surface(Palette.CARD, 26, true))
-	var row := UiKit.hbox(4)
-	_needs_pill.add_child(row)
+	_needs_pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_needs_pill.custom_minimum_size = TRAY_SIZE
+	_needs_pill.size = TRAY_SIZE
+	HomeUi.pic(_needs_pill, "needs_tray_empty", Rect2(Vector2.ZERO, TRAY_SIZE), "NeedsArt")
+	var slot := 0
 	for id: String in Database.needs:
+		var center: Vector2 = TRAY_SLOTS[mini(slot, TRAY_SLOTS.size() - 1)]
+		slot += 1
+		var tile_rect := Rect2(center - TILE_SIZE / 2.0, TILE_SIZE)
+		HomeUi.pic(_needs_pill, "need_tile", tile_rect, "NeedTile_" + id)
+		HomeUi.pic(_needs_pill, "need_" + id, Rect2(center.x - 11.0, tile_rect.position.y + 4.0, 22.0, 22.0), "NeedIcon_" + id)
+		# Barrinha de completude embaixo do ícone: trilho escuro e preenchimento por faixa de valor.
+		var track := Panel.new()
+		track.name = "NeedTrack_" + id
+		track.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		track.add_theme_stylebox_override("panel", UiKit.surface(Color(Palette.WOOD_INK, 0.6), 3))
+		track.position = Vector2(center.x - NEED_BAR / 2.0, tile_rect.end.y - 9.0)
+		track.size = Vector2(NEED_BAR, 5.0)
+		_needs_pill.add_child(track)
+		var fill := Panel.new()
+		fill.name = "NeedFill_" + id
+		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		fill.position = track.position
+		fill.size = Vector2(NEED_BAR, 5.0)
+		_needs_pill.add_child(fill)
+		_need_fills[id] = fill
+		# Pedindo: contorno vermelho que pulsa em volta do quadradinho (nada cobre o desenho).
+		var tint := Panel.new()
+		tint.name = "NeedTint_" + id
+		tint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var edge := UiKit.surface(Color(0, 0, 0, 0), 10)
+		edge.border_color = Palette.ALERT
+		edge.set_border_width_all(2)
+		tint.add_theme_stylebox_override("panel", edge)
+		tint.size = TILE_SIZE
+		tint.position = tile_rect.position
+		tint.visible = false
+		_needs_pill.add_child(tint)
+		_need_tints[id] = tint
+		# O anel continua como alvo de toque e guarda o valor, mas quem aparece é o desenho do espaço.
 		var ring := UiKit.ring(Database.need_icon(id), 1.0, Palette.GO, 40)
 		ring.name = "Need_" + id
+		ring.self_modulate = Color(1, 1, 1, 0)
+		ring.size = Vector2(40, 40)
+		ring.position = center - ring.size / 2.0
 		ring.mouse_filter = Control.MOUSE_FILTER_STOP
 		ring.gui_input.connect(func(event: InputEvent) -> void:
 			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
@@ -139,14 +196,28 @@ func _build_need_rings() -> void:
 				var value := GameState.dog.get_need(id, GameState.now())
 				var text := "%s %d%%" % [Database.needs[id].name, roundi(value)]
 				Popover.open(self, ring, UiKit.label(text, &"SmallLabel")))
-		row.add_child(ring)
+		_needs_pill.add_child(ring)
 		var mark := UiKit.dot()
 		mark.name = "NeedPillar_" + id
 		mark.hide()
+		mark.modulate.a = 0.0  # pontinho do pedido escondido: a cor da barrinha já avisa
 		mark.position = Vector2(30, 0)
 		ring.add_child(mark)
 		_need_pillars[id] = mark
 		_bars[id] = ring
+	_paint_need_bars()
+
+
+## Preenche as barrinhas da bandeja: verde a partir de 0,6, amarelo a partir de 0,3, vermelho abaixo.
+func _paint_need_bars() -> void:
+	var now := GameState.now()
+	for id: String in _need_fills:
+		var fraction := clampf(GameState.dog.get_need(id, now) / 100.0, 0.0, 1.0)
+		var fill: Panel = _need_fills[id]
+		var color := Palette.GO if fraction >= 0.6 else (Palette.HONEY if fraction >= 0.3 else Palette.ALERT)
+		fill.add_theme_stylebox_override("panel", UiKit.surface(color, 3))
+		fill.size.x = maxf(NEED_BAR * fraction, 5.0 if fraction > 0.0 else 0.0)
+		fill.visible = fraction > 0.0
 
 
 ## A pílula pertence ao HUD somente enquanto esta tela está aberta.
@@ -172,23 +243,28 @@ func _exit_tree() -> void:
 
 
 func _build_wish_widgets() -> void:
-	_wish_bubble = UiKit.icon_button(null, _open_wish_card, 64)
+	_wish_bubble = Button.new()
 	_wish_bubble.name = "WishBubble"
-	for style: String in ["normal", "hover", "pressed", "focus", "disabled"]:
-		_wish_bubble.add_theme_stylebox_override(style, UiKit.surface(Palette.CARD, 20, true))
-	_wish_bubble.draw.connect(func() -> void:
-		_wish_bubble.draw_circle(Vector2(18, 68), 7, Palette.CARD, true, -1, true)
-		_wish_bubble.draw_circle(Vector2(6, 82), 3.5, Palette.CARD, true, -1, true))
-	_wish_icon = UiKit.icon(null, 36)
-	_wish_icon.position = Vector2(14, 14)
+	_wish_bubble.focus_mode = Control.FOCUS_NONE
+	_wish_bubble.custom_minimum_size = BUBBLE_SIZE
+	_wish_bubble.size = BUBBLE_SIZE
+	for style: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+		_wish_bubble.add_theme_stylebox_override(style, StyleBoxEmpty.new())
+	_wish_bubble.pressed.connect(_open_wish_card)
+	Motion.press(_wish_bubble)
+	HomeUi.pic(_wish_bubble, "wish_bubble", Rect2(Vector2.ZERO, BUBBLE_SIZE), "WishArt")
+	HomeUi.pic(_wish_bubble, "bubble_dot_big", Rect2(-2, 74, 13, 13), "WishDotBig")
+	HomeUi.pic(_wish_bubble, "bubble_dot_small", Rect2(-10, 88, 8, 8), "WishDotSmall")
+	_wish_icon = UiKit.icon(null, 48)
+	_wish_icon.position = Vector2(23, 17)
 	_wish_bubble.add_child(_wish_icon)
 	var spark := UiKit.spark()
 	spark.name = "WishSpark"
-	spark.position = Vector2(48, -8)
+	spark.position = Vector2(72, -6)
 	_wish_bubble.add_child(spark)
 	_wish_badge = UiKit.alert_badge()
 	_wish_badge.name = "WishReadyBadge"
-	_wish_badge.position = Vector2(46, 20)
+	_wish_badge.position = Vector2(70, 22)
 	_wish_bubble.add_child(_wish_badge)
 	_wish_badge.reset_size()
 	add_child(_wish_bubble)
@@ -208,8 +284,7 @@ func _open_wish_card() -> void:
 
 func _place_bubble() -> void:
 	if _wish_bubble:
-		_wish_bubble.position = _dog_sprite.global_position - global_position + Vector2(_dog_sprite.size.x * 0.72, _dog_sprite.size.y * 0.18)
-		_wish_bubble.position.x = minf(_wish_bubble.position.x, size.x - _wish_bubble.size.x - 16)
+		_wish_bubble.position = Vector2(size.x - BUBBLE_SIZE.x - 22.0, _corner.pet_feet().y + 20.0 - BUBBLE_ABOVE_FEET)
 	if _away_collect:
 		var area: Control = %DogArea
 		var bottom := area.global_position.y - global_position.y + area.size.y - 12.0
@@ -225,8 +300,8 @@ func _place_bubble() -> void:
 
 func _layout_corner() -> void:
 	if not is_instance_valid(_manual): return
-	_manual.position = Vector2(size.x - 68, size.y * 0.46)
-	_manual.size = Vector2(52, 52)
+	_manual.size = NOTEBOOK_SIZE
+	_manual.position = Vector2(size.x - NOTEBOOK_SIZE.x, _corner.pet_feet().y + 20.0 - NOTEBOOK_ABOVE_FEET)
 	# Cenário e Tiro são irmãos: a ordenação diferida do VBox/CenterContainer
 	# não pode mover o sprite depois deste cálculo absoluto, nem ao trocar de aba.
 	_dog_sprite.custom_minimum_size = Vector2(336, 284) * PetBackdrop.ZOOM
@@ -272,14 +347,10 @@ func _refresh() -> void:
 		ring.color = Palette.ALERT if asking else Palette.GO
 		var mark: Control = _need_pillars[id]
 		mark.visible = asking
-		if asking and not _pulses.has(id):
-			ring.pivot_offset = ring.size / 2.0
-			_pulses[id] = Motion.pulse(ring)
-		elif not asking and _pulses.has(id):
-			var pulse: Tween = _pulses[id]
-			if pulse and pulse.is_valid(): pulse.kill()
-			_pulses.erase(id)
-			ring.scale = Vector2.ONE
+		# Contorno pulsante desligado a pedido do Vitor: o pedido aparece só pela barrinha.
+		var tint: Control = _need_tints[id]
+		tint.visible = false
+	_paint_need_bars()
 	_animator.set_sleeping(dog.sleeping)
 	_animator.set_sad(dog.get_need(dog.lowest_need(now), now) < MOOD_LOW)
 	var text := GameState.away_text() if away else ("Zzz... %s está dormindo" % dog.name if dog.sleeping else str(MOOD_TEXTS.get(dog.lowest_need(now), "")) if dog.get_need(dog.lowest_need(now), now) < MOOD_LOW else "%s está feliz da vida!" % dog.name)
@@ -462,8 +533,9 @@ func _draw_dog_shadow() -> void:
 	if GameState.walking(): return
 	var area: Control = %DogArea
 	var feet := _dog_sprite.global_position - area.global_position + Vector2(_dog_sprite.size.x / 2.0, _dog_sprite.size.y * 0.81)
-	area.draw_set_transform(feet, 0.0, Vector2(1.0, 0.25))
-	area.draw_circle(Vector2.ZERO, _dog_sprite.size.x * 0.26, Palette.SHADOW, true, -1.0, false)
+	# Sombra pequena e suave no chão do quarto, um pouco abaixo do ponto de apoio (as patas ficam em 0,856 do quadro).
+	area.draw_set_transform(feet + Vector2(0.0, _dog_sprite.size.y * 0.046 - 2.0), 0.0, Vector2(1.0, 0.16))
+	area.draw_circle(Vector2.ZERO, _dog_sprite.size.x * 0.12, Palette.WOOD_SHADOW, true, -1.0, false)
 	area.draw_set_transform(Vector2.ZERO)
 	if GameState.tiro_animated():
 		var glow := Palette.HONEY

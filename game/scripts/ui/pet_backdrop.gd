@@ -1,42 +1,34 @@
 class_name PetBackdrop
 extends Control
-## A arte original ocupa a largura inteira, sem esticar os pixels na vertical.
-## O recorte tira só a moldura vazia; parede e piso continuam até as bordas da tela.
+## Fundo da tela do Tiro: o quarto ilustrado (`home_room.png`) cobrindo a tela inteira (corte centralizado, sem
+## esticar). O Tiro continua em pixel por cima; `pet_feet()` é o ponto onde as patinhas pisam no chão do quarto.
+## No protótipo (360×780) o Tiro é desenhado em escala 2 com as patas em y = 600 → o quadro 336×284 vira 512×432
+## (`ZOOM`), e `pet_feet().y` fica 20 px acima das patas reais porque o código assume 0,81 da altura do quadro.
 
-const SOURCE := Rect2(36, 72, 289, 277)
-const ZOOM := 1.75
-const FOCUS_X := 168.0
-const RUG := Vector2(0.39, 0.8)
-var texture: Texture2D = preload("res://assets/sprites/areas/pet/corner.png")
-var _wall := Palette.PAPER
-var _floor := Palette.SUNKEN
+const ZOOM := 1.5238
+const FOCUS_X := 180.0
+const FEET_Y := 0.7436
+var texture: Texture2D = preload("res://assets/sprites/ui/home/home_room.png")
 
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	var pixels := texture.get_image()
-	_wall = pixels.get_pixel(204, 82)
-	_floor = pixels.get_pixel(180, 341)
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	resized.connect(queue_redraw)
 	queue_redraw()
 
 
 func pet_feet() -> Vector2:
-	return Vector2(size.x * FOCUS_X / 360.0, size.y * 0.71)
+	return Vector2(size.x * 0.5, size.y * FEET_Y)
 
 
+## Retângulo do quarto na tela (a imagem cobre `size`; o que passa das bordas é cortado).
 func scene_rect() -> Rect2:
-	var width := size.x * ZOOM
-	var height := width * SOURCE.size.y / SOURCE.size.x
-	return Rect2(Vector2(pet_feet().x - width * RUG.x, pet_feet().y - height * RUG.y), Vector2(width, height))
+	var image := texture.get_size()
+	var factor := maxf(size.x / image.x, size.y / image.y)
+	var shown := image * factor
+	return Rect2((size - shown) / 2.0, shown)
 
 
 func _draw() -> void:
-	var room := scene_rect()
-	draw_rect(Rect2(Vector2.ZERO, size), _wall)
-	draw_rect(Rect2(0, room.end.y, size.x, maxf(0, size.y - room.end.y)), _floor)
-	draw_texture_rect_region(texture, room, SOURCE)
-	# Continua a última tábua; o piso já chega aos cantos e aparece atrás da faixa flutuante.
-	if room.end.y < size.y:
-		draw_texture_rect_region(texture, Rect2(0, room.end.y, size.x, size.y - room.end.y), Rect2(36, 336, 289, 12))
+	draw_texture_rect(texture, scene_rect(), false)

@@ -1,19 +1,24 @@
 class_name NavTab
 extends Control
-## Rosto de uma aba do rodapé (Interface 2): almofada 60×38 com o ícone pixel 32 e o nome embaixo.
-## A aba ativa ganha a almofada `TAB_ON` e o nome em `INK`; as outras ficam sem fundo e com `INK_SOFT`.
-## Nada sobe nem cresce. Fica dentro de um Button de alternância (TabButton): `NavTab.attach(botão)`.
+## Rosto de uma aba do rodapé (madeira ilustrada): encaixe creme redondo com o ícone desenhado e a pílula com o nome
+## embaixo, sobre a tábua lisa `TabBarArt`. A aba ativa sobe `LIFT` px (o encaixe com o ícone, a "almofada") com
+## animação suave, junto com a pílula do nome; as outras ficam na posição normal. Fica dentro de um Button de alternância (TabButton):
+## `NavTab.attach(botão)`.
 
-const CUSHION := Vector2(60.0, 38.0)
-const ICON := 32.0
-const ICON_CENTER_Y := 19.0  # centro da almofada (e do ícone) em relação ao botão
-const TITLE_TOP := 40.0
+const CUSHION := Vector2(72.0, 72.0)
+const CUSHION_TOP := 3.0
+const ICON := 46.0
+const ICON_CENTER_Y := 36.0  # centro do encaixe (e do ícone) em relação ao topo do encaixe
+const LIFT := 12.0
+const LABEL := Rect2(-36.0, 70.0, 72.0, 26.0)
+## Arte do ícone de cada aba, pelo nome que o botão já tinha.
+const ART := {"Tiro": "tab_pet", "Mapa": "tab_map", "Missões": "tab_tasks", "Mochila": "tab_bag"}
 
 var button: Button
-var _cushion: Panel  # almofada + ícone: é o que pulsa/pula
-var _style: StyleBoxFlat
+var _cushion: Panel  # encaixe + ícone: é o que sobe, pulsa e pula
 var _icon: TextureRect
 var _title: Label
+var _pill: TextureRect
 var _active := false
 var _tween: Tween
 var _icon_bounce: Tween
@@ -41,40 +46,71 @@ func _build(texture: Texture2D, title: String) -> void:
 	_cushion = Panel.new()
 	_cushion.name = "Cushion"
 	_cushion.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_style = StyleBoxFlat.new()
-	_style.bg_color = Color(Palette.TAB_ON, 0.0)
-	_style.set_corner_radius_all(int(CUSHION.y / 2.0))
-	_cushion.add_theme_stylebox_override("panel", _style)
+	_cushion.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	_cushion.anchor_left = 0.5
 	_cushion.anchor_right = 0.5
 	_cushion.offset_left = -CUSHION.x / 2.0
 	_cushion.offset_right = CUSHION.x / 2.0
-	_cushion.offset_top = 0.0
-	_cushion.offset_bottom = CUSHION.y
+	_cushion.offset_top = CUSHION_TOP
+	_cushion.offset_bottom = CUSHION_TOP + CUSHION.y
 	_cushion.resized.connect(func() -> void: _cushion.pivot_offset = _cushion.size / 2.0)
 	add_child(_cushion)
+	var socket := TextureRect.new()
+	socket.name = "Socket"
+	socket.texture = _home().call("tex", "tab_socket")
+	socket.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	socket.stretch_mode = TextureRect.STRETCH_SCALE
+	socket.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	socket.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	socket.size = CUSHION
+	_cushion.add_child(socket)
 	_icon = TextureRect.new()
 	_icon.name = "Icon"
-	_icon.texture = texture
+	_icon.texture = _home().call("tex", str(ART.get(title, ""))) if ART.has(title) else texture
 	_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	_icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 	_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_icon.position = _icon_rest()
 	_icon.size = Vector2(ICON, ICON)
 	_icon.pivot_offset = Vector2(ICON, ICON) / 2.0
 	_cushion.add_child(_icon)
+	# Pílula do nome: sobe junto com o encaixe na aba ativa.
+	var pill := TextureRect.new()
+	_pill = pill
+	pill.name = "LabelPill"
+	pill.texture = _home().call("tex", "tab_label")
+	pill.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pill.stretch_mode = TextureRect.STRETCH_SCALE
+	pill.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.anchor_left = 0.5
+	pill.anchor_right = 0.5
+	pill.offset_left = LABEL.position.x
+	pill.offset_right = LABEL.end.x
+	pill.offset_top = LABEL.position.y
+	pill.offset_bottom = LABEL.end.y
+	add_child(pill)
 	_title = Label.new()
 	_title.name = "Title"
 	_title.text = title
+	_title.theme = _home().call("theme", 15, Palette.WOOD_INK)
 	_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title.vertical_alignment = VERTICAL_ALIGNMENT_TOP
-	_title.theme_type_variation = &"SmallLabel"
-	_title.anchor_left = 0.0
-	_title.anchor_right = 1.0
-	_title.offset_top = TITLE_TOP
-	_title.offset_bottom = TITLE_TOP + 18.0
+	_title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	_title.anchor_left = 0.5
+	_title.anchor_right = 0.5
+	_title.offset_left = LABEL.position.x
+	_title.offset_right = LABEL.end.x
+	_title.offset_top = LABEL.position.y
+	_title.offset_bottom = LABEL.end.y
 	add_child(_title)
+
+
+## `HomeUi` depende de autoloads: carregado por nome, para testes `-s` poderem citar `NavTab` por tipo.
+func _home() -> GDScript:
+	return load("res://scripts/ui/home_ui.gd") as GDScript
 
 
 func _icon_rest() -> Vector2:
@@ -102,19 +138,24 @@ func _reset_icon_bounce() -> void:
 	_icon.position = _icon_rest()
 
 
-## A almofada (com o ícone dentro): é o que pulsa (`Motion.pulse`) e pula quando a aba chama atenção.
+## O encaixe (com o ícone dentro): é o que sobe na aba ativa, pulsa (`Motion.pulse`) e pula quando a aba chama atenção.
 func lift_node() -> Control:
 	return _cushion
 
 
-## Cor atual do fundo da almofada (`TAB_ON` na aba ativa, transparente nas outras).
+## Compatibilidade: opaca (alfa 1) na aba ativa, transparente nas outras.
 func cushion_color() -> Color:
-	return _style.bg_color
+	return Color(1, 1, 1, 1.0 if _active else 0.0)
 
 
-## Centro da almofada em relação ao botão (o selo fica em centro + (22, −16)).
+## Centro do encaixe em relação ao botão (o selo fica em centro + (30, −24)).
 func icon_center() -> Vector2:
-	return Vector2(button.size.x / 2.0, ICON_CENTER_Y)
+	return Vector2(button.size.x / 2.0, CUSHION_TOP + ICON_CENTER_Y)
+
+
+## Altura (topo do encaixe) da aba na posição de repouso.
+func rest_top() -> float:
+	return CUSHION_TOP
 
 
 func set_active(active: bool, animate: bool) -> void:
@@ -122,23 +163,20 @@ func set_active(active: bool, animate: bool) -> void:
 	_active = active
 	if _tween:
 		_tween.kill()
-	var fill := Color(Palette.TAB_ON, 1.0 if active else 0.0)
-	var ink := Palette.INK if active else Palette.INK_SOFT
+	var lift := LIFT if active else 0.0
+	var target := CUSHION_TOP - lift
+	var label_y := LABEL.position.y - lift
 	if not animate or Motion.reduced:
-		_style.bg_color = fill
-		_title.add_theme_color_override("font_color", ink)
-		_cushion.queue_redraw()
+		_cushion.position.y = target
+		_pill.position.y = label_y
+		_title.position.y = label_y
 		return
 	_tween = create_tween().set_parallel()
-	_tween.tween_method(func(color: Color) -> void:
-		_style.bg_color = color
-		_cushion.queue_redraw(), _style.bg_color, fill, Motion.TAB)
-	_tween.tween_method(func(color: Color) -> void: _title.add_theme_color_override("font_color", color), _title.get_theme_color("font_color"), ink, Motion.TAB)
+	_tween.tween_property(_cushion, "position:y", target, Motion.TAB).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_tween.tween_property(_pill, "position:y", label_y, Motion.TAB).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_tween.tween_property(_title, "position:y", label_y, Motion.TAB).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 
-## Chegada de item à Mochila: pulinho e almofada mel, voltando à seleção atual.
+
+## Chegada de item à Mochila: pulinho do ícone.
 func reward_arrived() -> void:
 	bounce_icon()
-	if Motion.reduced: return
-	_style.bg_color = Palette.TAB_ON
-	_cushion.queue_redraw()
-	get_tree().create_timer(0.6).timeout.connect(func() -> void: set_active(_active, false))

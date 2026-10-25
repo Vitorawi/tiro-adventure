@@ -118,7 +118,7 @@ func _caso_fechado() -> void:
 	var bar := main.get_node("Layout/TabBar") as Control
 	var center := button.get_global_rect().get_center()
 	check(center.y <= bar.global_position.y - 8.0, "o centro do botão fica acima do rodapé, com folga (%s × %s)" % [center.y, bar.global_position.y])
-	check(is_equal_approx(center.x, pet.get_global_rect().get_center().x), "o botão fica no meio da tela")
+	check(center.x > pet.get_global_rect().get_center().x and button.get_global_rect().end.x <= pet.get_global_rect().end.x, "o botão fica na borda direita, dentro da tela")
 
 
 func _caso_abrir_e_ordem() -> void:
@@ -176,7 +176,7 @@ func _caso_comida() -> void:
 	check(not wheel_open(), "Comida fecha a roleta")
 	var menu := node("FoodMenu")
 	check(menu.visible, "Comida abre o FoodMenu")
-	check(menu.get_global_rect().end.y < node("CareButton").global_position.y, "o FoodMenu fica acima do botão Cuidar")
+	check(not menu.get_global_rect().intersects(node("CareButton").get_global_rect()), "o FoodMenu não cobre o botão Cuidar")
 	tray.call("close_food_menu")
 
 

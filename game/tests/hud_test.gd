@@ -63,9 +63,9 @@ func _structure() -> void:
 	var gear := main.find_child("SettingsButton", true, false) as Control
 	check(gear.size.x >= 44.0 and gear.size.y >= 44.0, "engrenagem com alvo de toque de 44 px")
 	check(is_equal_approx((gear.find_child("Disc", true, false) as Control).size.x, 40.0), "disco da engrenagem de 40 px")
-	check(is_equal_approx((top as Control).size.y, 128.0), "o HUD tem 128 px de altura (duas linhas)")
+	check(is_equal_approx((top as Control).size.y, 168.0), "o HUD tem 168 px de altura (duas linhas de madeira)")
 	var row2 := main.find_child("HudRow2", true, false) as Control
-	check(row2 != null and is_equal_approx(row2.size.y, 52.0) and is_equal_approx(row2.position.y, 76.0), "linha 2: 52 px de altura a 76 do topo")
+	check(row2 != null and is_equal_approx(row2.size.y, 65.0) and is_equal_approx(row2.position.y, 100.0), "linha 2: 65 px de altura a 100 do topo")
 	check(main.find_child("HudProfile", true, false) != null and main.find_child("NextStep", true, false) != null, "perfil e próximo passo existem")
 
 
@@ -123,10 +123,10 @@ func _tabs() -> void:
 	var map_face: NavTab = main.find_child("MapTab", true, false).find_child("Face", false, false)
 	var pet_face: NavTab = main.find_child("PetTab", true, false).find_child("Face", false, false)
 	check(map_face.is_active() and not pet_face.is_active(), "só a aba do Mapa fica ativa")
-	check(map_face.cushion_color().is_equal_approx(Palette.TAB_ON), "almofada da aba ativa é TAB_ON")
+	check(map_face.cushion_color().a == 1.0, "aba ativa marcada")
 	check(pet_face.cushion_color().a == 0.0, "almofada de aba comum fica sem fundo")
-	check(pet_face.lift_node().position.y == map_face.lift_node().position.y, "nenhuma aba sobe: ativa e comum na mesma altura")
-	check(map_face.lift_node().size.is_equal_approx(NavTab.CUSHION), "almofada de 60×38")
+	check(is_equal_approx(pet_face.lift_node().position.y - map_face.lift_node().position.y, NavTab.LIFT), "a aba ativa sobe %d px, as outras ficam no lugar" % NavTab.LIFT)
+	check(map_face.lift_node().size.is_equal_approx(NavTab.CUSHION), "encaixe de 72×72")
 	check(map_face.find_child("Cushion", true, false) == map_face.lift_node(), "lift_node é a almofada")
 	main.call("show_screen", &"pet")
 	await process_frame
@@ -148,7 +148,7 @@ func _tab_bounces() -> void:
 	for tab_name: String in ["PetTab", "MapTab", "TasksTab", "BagTab"]:
 		var face: NavTab = main.find_child(tab_name, true, false).find_child("Face", false, false)
 		check(is_equal_approx(face.icon_node().position.y, NavTab.ICON_CENTER_Y - NavTab.ICON / 2.0), tab_name + ": pulinhos repetidos não acumulam altura")
-		check(is_equal_approx(face.lift_node().position.y, 0.0), tab_name + ": a almofada nunca sobe")
+		check(is_equal_approx(face.lift_node().position.y, face.rest_top() - (NavTab.LIFT if face.is_active() else 0.0)), tab_name + ": o encaixe só sobe na aba ativa, sem acumular")
 	Motion.reduced = true
 
 

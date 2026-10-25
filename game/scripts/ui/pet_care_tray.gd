@@ -35,6 +35,9 @@ var _pointer: Polygon2D
 var _pointed_item := ""
 static var use_shampoo := false
 
+const HEART_SIZE := Vector2(64, 62)
+const WHEEL_RADIUS := 190.0
+
 
 func _ready() -> void:
 	name = "CareTray"
@@ -54,6 +57,9 @@ func _ready() -> void:
 	_care_button.size = Vector2(72, 72)
 	_care_button.z_index = 2
 	add_child(_care_button)
+	_care_button.custom_minimum_size = HEART_SIZE
+	_care_button.size = HEART_SIZE
+	_build_care_art()
 	var picture := _care_button.find_child("CareIcon", true, false) as TextureRect
 	picture.custom_minimum_size = Vector2(42, 42)
 	_ask = UiKit.icon_button(null, _asked_care, 44)
@@ -69,13 +75,15 @@ func _ready() -> void:
 	ask_style.border_color = Palette.CARD
 	ask_style.set_border_width_all(2)
 	ask_disc.add_theme_stylebox_override("panel", ask_style)
+	ask_disc.visible = false  # o selinho de madeira do coração faz o papel do disco
 	_ask.add_child(ask_disc)
-	_ask_icon = UiKit.icon(null, 24)
+	_ask_icon = UiKit.icon(null, 16)
 	_ask_icon.name = "CareAskIcon"
-	_ask_icon.position = Vector2(10, 10)
+	_ask_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_ask_icon.position = Vector2(14, 14)
 	_ask.add_child(_ask_icon)
 	_care_button.add_child(_ask)
-	_ask.position = Vector2(48, -16)
+	_ask.position = Vector2(36, -16)  # centro no centro do selinho (58, 6)
 	_play_hint = UiKit.label("", &"SmallLabel")
 	_play_hint.name = "PlayGrowthTimer"
 	_play_hint.hide()
@@ -237,7 +245,7 @@ func refresh() -> void:
 			child.queue_free()
 		_food_ids = ids
 		for id in ids: _foods.add_child(_food_item(id))
-		_scroll.custom_minimum_size = Vector2(300, 112 if ids.is_empty() else mini(5, ids.size()) * 56 - 4)
+		_scroll.custom_minimum_size = Vector2(240, 112 if ids.is_empty() else mini(5, ids.size()) * 56 - 4)
 		_place_menu.call_deferred()
 		if ids.is_empty():
 			_foods.add_child(SheetBuilder.food_help())
@@ -302,7 +310,7 @@ func _item(id: String, texture: Texture2D, caption: String) -> Control:
 ## Linhas verticais: o ícone é a pega de arrasto; o nome permite rolar a lista.
 func _food_item(id: String) -> Control:
 	var item := _item(id, Database.item_icon(id), "")
-	item.custom_minimum_size = Vector2(300, 52)
+	item.custom_minimum_size = Vector2(240, 52)
 	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var background := Panel.new()
 	background.name = "FoodDisc"
@@ -381,16 +389,26 @@ func close_food_menu() -> void:
 	if _shampoo: _shampoo.visible = GameState.inventory.count("herb_shampoo") > 0 and not GameState.dog.sleeping and visible and _row.visible
 
 
+## Base da guia de comidas: logo acima da tábua das abas (o botão Cuidar fica ao lado dela, não embaixo).
+func _menu_bottom() -> float:
+	var bar := get_tree().root.find_child("TabBar", true, false) as Control if is_inside_tree() else null
+	if bar != null and bar.size.y > 0.0:
+		return bar.global_position.y - pet_screen.global_position.y - 8.0
+	return pet_screen.size.y - 112.0
+
+
 func _place_menu() -> void:
 	# A cabeça é o alvo de soltar a comida: a lista só usa a faixa abaixo dela,
 	# terminando acima de Cuidar. O restante continua acessível por rolagem.
 	var top := (pet_screen.call("head_rect") as Rect2).end.y - pet_screen.global_position.y + 8.0
-	var bottom := _care_button.global_position.y - pet_screen.global_position.y - 12.0
+	var bottom := _menu_bottom()
 	var chrome := _menu.get_combined_minimum_size().y - _scroll.custom_minimum_size.y
 	var wanted := 112.0 if _food_ids.is_empty() else float(mini(5, _food_ids.size()) * 56 - 4)
 	_scroll.custom_minimum_size.y = minf(wanted, maxf(0.0, bottom - top - chrome))
 	_menu.size = _menu.get_combined_minimum_size()
-	_menu.position = Vector2((pet_screen.size.x - _menu.size.x) * 0.5, bottom - _menu.size.y)
+	# Centralizada, mas sem passar por cima do botão Cuidar (que mora na borda direita).
+	var heart_left := _care_button.global_position.x - pet_screen.global_position.x - 8.0
+	_menu.position = Vector2(maxf(minf((pet_screen.size.x - _menu.size.x) * 0.5, heart_left - _menu.size.x), 8.0), bottom - _menu.size.y)
 	if _shampoo and _items.has("sponge"):
 		_shampoo.size = _shampoo.get_combined_minimum_size()
 		_shampoo.position = Vector2(clampf((_items.sponge as Control).get_global_rect().get_center().x - pet_screen.global_position.x - _shampoo.size.x / 2.0, 8, pet_screen.size.x - _shampoo.size.x - 8), (_items.sponge as Control).global_position.y - pet_screen.global_position.y - _shampoo.size.y - 4)
@@ -639,27 +657,51 @@ func _asked_care() -> void:
 	close_wheel()
 
 
+## Desenha o coração de madeira do botão Cuidar (arte do protótipo): selinho com a tigela e a etiqueta "Cuidar".
+func _build_care_art() -> void:
+	HomeUi.pic(_care_button, "care_heart", Rect2(Vector2.ZERO, HEART_SIZE), "CareHeartArt")
+	HomeUi.pic(_care_button, "badge", Rect2(46, -6, 24, 24), "CareBadge")
+	HomeUi.pic(_care_button, "care_label", Rect2(-4, 64, 72, 24), "CareLabelArt")
+
+
+## Onde o botão fica: borda direita, acima da tábua das abas (protótipo: coração a 218 px do fim em 780 de altura).
+func _care_spot() -> Vector2:
+	var bar := get_tree().root.find_child("TabBar", true, false) as Control if is_inside_tree() else null
+	var extra := (bar.size.y - 104.0) if bar != null and bar.size.y > 0.0 else 0.0
+	return Vector2(size.x - 14.0 - HEART_SIZE.x, size.y - 218.0 - extra)
+
+
 func _refresh_wheel() -> void:
-	_care_button.position = Vector2(size.x / 2.0 - 36, size.y - 126 - 36)
+	_care_button.position = _care_spot()
 	var sleeping := GameState.dog.sleeping
 	(_care_button.find_child("CareIcon", true, false) as TextureRect).texture = UiKit.ui_icon("action_wake" if sleeping else "heart")
 	(_care_button.find_child("Caption", true, false) as Label).text = "Acordar" if sleeping else "Cuidar"
-	(_care_button.find_child("CaptionPill", true, false) as Control).visible = not _row.visible
+	# Acordado: coração de madeira e "Cuidar" desenhado; dormindo: o disco antigo com o ícone de acordar.
+	(_care_button.find_child("CaptionPill", true, false) as Control).visible = sleeping and not _row.visible
+	for art_name: String in ["CareHeartArt", "CareLabelArt"]:
+		(_care_button.find_child(art_name, true, false) as Control).visible = not sleeping
+	(_care_button.find_child("CareIcon", true, false) as Control).visible = sleeping
 	var style := UiKit.surface(Color(Palette.CARD, 0.9), 36, true)
 	style.border_color = Palette.HONEY
 	style.set_border_width_all(4)
 	style.shadow_color = Color(Palette.HONEY, 0.22) if _row.visible else Palette.SHADOW
 	style.shadow_size = 12 if _row.visible else 8
+	if not sleeping:
+		style = StyleBoxFlat.new()
+		style.bg_color = Color(0, 0, 0, 0)
 	(_care_button.find_child("Circle", true, false) as PanelContainer).add_theme_stylebox_override("panel", style)
 	var need := GameState.asking_need()
 	_ask.visible = need != "" and not sleeping
+	# O selinho só existe quando o Tiro pede algo (e mostra o ícone do pedido, o mesmo do CareAsk).
+	(_care_button.find_child("CareBadge", true, false) as Control).visible = _ask.visible
 	_ask_icon.texture = Database.item_icon("dog_food") if need == "hunger" else UiKit.ui_icon({"hygiene": "action_sponge", "happiness": "action_play", "energy": "action_sleep"}.get(need, "heart"))
-	var angles: Array = [160, 125, 90, 55, 20] if _items.has("brush") else [155, 112, 68, 25]
+	# O botão Cuidar mora na borda direita: os cuidados abrem em leque para cima e para a esquerda (190° a 90°).
+	var angles: Array = [190, 165, 140, 115, 90] if _items.has("brush") else [190, 160, 130, 100]
 	var center := _care_button.position + _care_button.size / 2.0
 	var discs := _row.get_children()
 	for i in discs.size():
 		var disc := discs[i] as Control
-		disc.position = center + Vector2(cos(deg_to_rad(angles[i])), -sin(deg_to_rad(angles[i]))) * 150 - disc.size / 2.0
+		disc.position = center + Vector2(cos(deg_to_rad(angles[i])), -sin(deg_to_rad(angles[i]))) * WHEEL_RADIUS - disc.size / 2.0
 		var asking: bool = {"FoodButton": "hunger", "Care_sponge": "hygiene", "Care_ball": "happiness", "SleepButton": "energy"}.get(str(disc.name), "") == need and need != ""
 		var circle := disc.find_child("Circle", true, false) as PanelContainer
 		var surface := UiKit.surface(Color(Palette.ALERT_SOFT, 0.92) if asking else Color(Palette.CARD, 0.82), 32, true)
@@ -691,7 +733,7 @@ func _draw_wheel() -> void:
 	if not Motion.reduced:
 		for i in 20:
 			_row.draw_circle(center, 320.0 - i * 16.0, Color(Palette.INK, 0.008), true, -1, true)
-	_row.draw_arc(center, 150, deg_to_rad(-160), deg_to_rad(-20), 64, Color(Palette.CARD, 0.30), 82, true)
+	_row.draw_arc(center, WHEEL_RADIUS, deg_to_rad(-185), deg_to_rad(-85), 64, Color(Palette.CARD, 0.30), 82, true)
 
 
 ## O fundo PASS não deve impedir o carinho ou o balão, que são irmãos.

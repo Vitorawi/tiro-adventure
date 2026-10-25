@@ -57,3 +57,11 @@ const TRACK_DARK := SUNKEN            # barra do treino de truques: trilho afund
 const TRACK_ZONE := GO                # zona certa (GO_SOFT some sobre o trilho; verde = acertar)
 const TRACK_MARKER := INK             # marcador
 const WARN_TINT := Color(1.0, 0.6, 0.55)  # botão armado ("Certeza?")
+
+# Visual "madeira ilustrada" da tela inicial (HUD, cartão da missão, bandeja, abas). Ver `HomeUi`.
+const WOOD_INK := Color("5a3418")       # texto escuro sobre creme/madeira
+const WOOD_CREAM := Color("fff3dc")     # texto claro com contorno escuro
+const WOOD_PATCH := Color("c17b40")     # remendo de madeira atrás do "n/m" da placa (reamostrado no gerador)
+const WOOD_ASK := Color(0.9, 0.12, 0.1, 0.5)  # espaço de necessidade que está pedindo
+const WOOD_GLOW := Color(1.0, 0.82, 0.35, 0.9)  # brilho dourado da aba ativa
+const WOOD_SHADOW := Color(0.35, 0.2, 0.08, 0.22)  # sombra do Tiro no chão do quarto

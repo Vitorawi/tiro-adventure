@@ -187,9 +187,9 @@ func _stop_tweens() -> void:
 
 # --- Altura ---------------------------------------------------------------------------
 
-## Altura máxima: o topo da folha nunca sobe acima do HUD (`Hud.HEIGHT`), para o aviso e a linha 2 ficarem livres.
+## Altura máxima: o topo da folha nunca sobe acima de `Hud.SHEET_TOP`, para o aviso e a linha 2 ficarem livres.
 func _tall_height() -> float:
-	return size.y - float((load("res://scripts/ui/hud.gd") as GDScript).get_script_constant_map()["HEIGHT"])
+	return size.y - float((load("res://scripts/ui/hud.gd") as GDScript).get_script_constant_map()["SHEET_TOP"])
 
 
 ## Altura útil do painel (px) para o conteúdo atual: meia, alta ou a do conteúdo.

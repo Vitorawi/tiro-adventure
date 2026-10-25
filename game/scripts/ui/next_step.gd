@@ -1,75 +1,90 @@
 class_name NextStep
 extends Button
-## Pílula do próximo passo da HISTÓRIA (segunda linha do HUD, nas quatro abas): rosto de quem pede, ícone do
-## objetivo, `valor/alvo` e `›`. Pronto = pílula verde "Pegar" (um toque entrega). O resto abre o mini-cartão.
-## Só lê (`QuestGuide.current()`); quem muda o jogo é o `GameState.claim_quest` do toque.
+## Cartão de madeira do próximo passo da HISTÓRIA (segunda linha do HUD, nas quatro abas): retrato de quem pede,
+## ícone do objetivo em pixel e `valor/alvo`; a seta já vem na arte. Pronto = selo verde "Pegar" (um toque entrega).
+## O resto abre o mini-cartão. Só lê (`QuestGuide.current()`); quem muda o jogo é o `GameState.claim_quest` do toque.
+## Cartão fixo de 140×65 (posições do protótipo); os modos `compact`/`mini` do Mapa existem por compatibilidade.
 
-const HEIGHT := 48.0
+const HEIGHT := 65.0
+const WIDTH := 140.0
 const PAD := 12.0
 const COMPACT_MAX_WIDTH := 140.0
+const FACE := Rect2(11.0, 10.0, 42.0, 42.0)
+const ICON := Rect2(67.0, 10.0, 28.0, 28.0)
+const COUNT := Rect2(55.0, 37.0, 52.0, 18.0)
 
-## Modo do Mapa: retrato 32, ícone 28, sem `›`, largura até 140.
+## Modo do Mapa: mesmo cartão (já cabe nos 140 px).
 var compact: bool = false:
 	set(value):
 		compact = value
 		_rebuild()
-## Sem espaço (nome de mundo longo): só retrato e número.
+## Sem espaço (nome de mundo longo): mesmo cartão; guardado só para o Mapa.
 var mini: bool = false:
 	set(value):
 		mini = value
 		_rebuild()
 
-var _row: HBoxContainer
+var _row: Control
 var _face: Control
 var _icon: TextureRect
 var _count: Label
 var _chevron: TextureRect
-var _claim: HBoxContainer
+var _claim: PanelContainer
 var _claim_text: Label
 var _portrait: Texture2D
 var _guide: Dictionary = {"state": "hidden", "id": ""}
 var _shown_id: String = ""
 var _shown_value: int = -1
 var _tween: Tween
+var _skin: StyleBoxTexture
 
 
 func _init() -> void:
 	name = "NextStep"
-	custom_minimum_size = Vector2(0, HEIGHT)
+	custom_minimum_size = Vector2(WIDTH, HEIGHT)
 	focus_mode = Control.FOCUS_NONE
 	size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	visible = false
-	_row = UiKit.hbox(6)
+	_skin = StyleBoxTexture.new()
+	_skin.texture = HomeUi.tex("quest_card")
+	_row = Control.new()
 	_row.name = "StepRow"
 	_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	add_child(_row)
 	_face = Control.new()
 	_face.name = "StepFace"
 	_face.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_face.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_face.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_face.position = FACE.position
+	_face.size = FACE.size
 	_face.draw.connect(_draw_face)
 	_row.add_child(_face)
-	_icon = UiKit.icon(null, 32)
+	_icon = UiKit.icon(null, 28)
 	_icon.name = "StepIcon"
-	_icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	_icon.position = ICON.position
+	_icon.size = ICON.size
 	_row.add_child(_icon)
-	_count = UiKit.short_label("", &"NumberLabel")
-	_count.name = "StepCount"
-	_count.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	_row.add_child(_count)
+	_count = HomeUi.text(_row, "", COUNT, 14, Palette.WOOD_INK, Palette.WOOD_INK, 0, "StepCount")
+	# A seta do cartão já está na arte; o nó continua existindo (escondido) para quem o procura.
 	_chevron = UiKit.ctl("chev", 16, Palette.INK_FAINT)
 	_chevron.name = "StepChevron"
-	_chevron.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_chevron.visible = false
 	_row.add_child(_chevron)
-	_claim = UiKit.hbox(4)
+	_claim = PanelContainer.new()
 	_claim.name = "StepClaim"
 	_claim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_claim.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_claim.add_theme_stylebox_override("panel", UiKit.surface(Palette.GO, 14, true))
+	_claim.position = Vector2(58.0, 14.0)
+	_claim.size = Vector2(66.0, 32.0)
+	var claim_row := UiKit.hbox(4)
+	claim_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	claim_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	_claim_text = UiKit.label("Pegar", &"StrongLabel", Palette.CARD)
 	_claim_text.autowrap_mode = TextServer.AUTOWRAP_OFF
-	_claim.add_child(_claim_text)
-	_claim.add_child(UiKit.ctl("check", 18, Palette.CARD))
+	claim_row.add_child(_claim_text)
+	claim_row.add_child(UiKit.ctl("check", 16, Palette.CARD))
+	_claim.add_child(claim_row)
 	_row.add_child(_claim)
 	Motion.press(self)
 	pressed.connect(_on_pressed)
@@ -94,10 +109,6 @@ func _row_busy() -> bool:
 
 func _is_ready() -> bool:
 	return str(_guide.state) in ["ready", "shared_ready"]
-
-
-func _face_px() -> float:
-	return 32.0 if compact else 40.0
 
 
 ## Lê o passo atual e redesenha. Só lê: nunca entrega nada daqui.
@@ -132,59 +143,37 @@ func refresh() -> void:
 	_rebuild()
 
 
-## Cores e peças de cada estado; recalcula o tamanho (o botão não cresce sozinho com os filhos).
+## Estado do cartão: pronto troca o ícone/número pelo selo "Pegar"; espaço cheio avermelha o papel.
 func _rebuild() -> void:
 	if _row == null:
 		return
 	var state := str(_guide.state)
 	var ready := _is_ready()
-	var fill := Palette.CARD
-	var ink := Palette.INK
-	if ready:
-		fill = Palette.GO
-		ink = Palette.CARD
-	elif state == "blocked_storage":
-		fill = Palette.ALERT_SOFT
-		ink = Palette.ALERT_INK
+	_skin.modulate_color = Color(1.0, 0.86, 0.82) if state == "blocked_storage" else Color.WHITE
 	for phase: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
-		add_theme_stylebox_override(phase, UiKit.surface(fill if phase != "pressed" else fill.darkened(0.04), int(HEIGHT / 2.0), true))
-	_count.add_theme_color_override("font_color", ink)
-	_face.custom_minimum_size = Vector2(_face_px(), _face_px())
-	_face.size = _face.custom_minimum_size
-	_icon.custom_minimum_size = Vector2(28, 28) if compact else Vector2(32, 32)
-	# `talk`: o rosto já é o personagem; o ícone do objetivo repetiria o retrato.
-	_icon.visible = not mini and not ready and state != "talk"
-	_chevron.visible = not compact and not mini and not ready
+		add_theme_stylebox_override(phase, _skin)
+	# `talk`: o retrato já é o personagem; o ícone do objetivo repetiria.
+	_icon.visible = not ready and state != "talk"
+	_count.visible = not ready
 	_claim.visible = ready
-	_claim_text.visible = not compact  # compacto: só o ✓ (cabe nos 140 px do Mapa)
-	var width := _row.get_combined_minimum_size().x + PAD * 2.0
-	if compact:
-		width = minf(width, COMPACT_MAX_WIDTH)
-	custom_minimum_size = Vector2(width, HEIGHT)
+	custom_minimum_size = Vector2(WIDTH, HEIGHT)
 	size = custom_minimum_size
-	_row.position = Vector2(PAD, 0.0)
-	_row.size = Vector2(width - PAD * 2.0, HEIGHT)
+	_row.position = Vector2.ZERO
+	_row.size = size
 	pivot_offset = size / 2.0
 
 
-## Largura que a pílula pede no modo atual (o Mapa decide se cabe).
+## Largura que o cartão pede (fixa: o Mapa decide se cabe).
 func wanted_width() -> float:
 	return custom_minimum_size.x
 
 
 func _draw_face() -> void:
-	var px := _face_px()
-	var center := Vector2(px, px) / 2.0
-	_face.draw_circle(center, px / 2.0, Palette.SUNKEN)
+	var rect := Rect2(Vector2.ZERO, FACE.size)
 	if _portrait == null:
+		_face.draw_rect(rect, Palette.SUNKEN)
 		return
-	var points := PackedVector2Array()
-	var uvs := PackedVector2Array()
-	for i in 40:
-		var unit := Vector2.from_angle(TAU * i / 40.0)
-		points.append(center + unit * (px / 2.0 - 2.0))
-		uvs.append(Vector2(0.5, 0.5) + unit * 0.5)
-	_face.draw_colored_polygon(points, Color.WHITE, uvs, _portrait)
+	_face.draw_texture_rect(_portrait, rect, false)
 
 
 func _on_pressed() -> void:
