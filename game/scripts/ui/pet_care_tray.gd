@@ -149,7 +149,7 @@ func point_at(id: String) -> void:
 	_pointer.name = "CarePointer"
 	_pointer.z_index = Motion.WORLD_FX_Z
 	_pointer.z_as_relative = false
-	_pointer.color = Palette.GOLD
+	_pointer.color = Palette.HONEY
 	_pointer.polygon = PackedVector2Array([Vector2(-8, -16), Vector2(8, -16), Vector2(0, -4)])
 	var pin := Panel.new()
 	pin.position = Vector2(-20, -52)

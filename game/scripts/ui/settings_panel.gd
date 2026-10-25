@@ -17,6 +17,7 @@ static func panel() -> Control:
 		prefs.get_parent().name = "Preferences"
 		_toggle_row(prefs, "Vibrar", "Vibrate", SaveManager.vibrate_enabled, SaveManager.set_vibrate)
 		_toggle_row(prefs, "Menos animação", "ReducedMotion", SaveManager.reduced_motion, SaveManager.set_reduced_motion)
+		_toggle_row(prefs, "Texto maior", "LargeText", SaveManager.large_text, SaveManager.set_large_text)
 		box.add_child(UiKit.section("Saves"))
 		var saves := UiKit.list_card(box)
 		saves.get_parent().name = "SaveList"

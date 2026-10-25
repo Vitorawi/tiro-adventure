@@ -84,7 +84,7 @@ func _refresh_badge() -> void:
 	_snack.visible = false
 	var state := Places.npc_badge(npc_id)
 	_badge.text = "✓" if state == "ready" else ("!" if state == "new" else "")
-	_badge.add_theme_color_override("font_color", Palette.PRIMARY if state == "ready" else Palette.GOLD)
+	_badge.add_theme_color_override("font_color", Palette.GO if state == "ready" else Palette.HONEY)
 
 
 # --- Comportamento -----------------------------------------------------------

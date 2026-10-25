@@ -43,7 +43,7 @@ máximo de 04 §C por tela; com "Texto maior", confere que nenhum `Label` de uma
 **Comando:** `tools\test.ps1 -Level etapa -Exact -Tests text_budget_test,texts_test,content_test,ui_style_test` (~40 s).
 
 ## 6. Pronto quando
-- [ ] Orçamento respeitado; "Texto maior" funciona nas 3 resoluções; limpeza feita sem quebrar testes.
+- [x] Orçamento respeitado; "Texto maior" funciona nas 3 resoluções; limpeza feita sem quebrar testes.
 
 ## 7. Registro
 ```

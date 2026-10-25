@@ -12,11 +12,11 @@ extends Control
 	set(value):
 		thickness = value
 		queue_redraw()
-@export var color := Palette.INFO:
+@export var color := Palette.SKY:
 	set(value):
 		color = value
 		queue_redraw()
-@export var done_color := Palette.PRIMARY:
+@export var done_color := Palette.GO:
 	set(value):
 		done_color = value
 		queue_redraw()

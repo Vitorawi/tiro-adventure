@@ -1755,7 +1755,7 @@ func _water_fx(index: int) -> void:
 		tween.chain().tween_callback(drop.queue_free)
 		for i in 4:
 			var dot := ColorRect.new()
-			dot.color = Palette.INFO
+			dot.color = Palette.SKY
 			dot.size = Vector2(3, 3)
 			dot.position = Vector2(-12 + i * 8, -50)
 			dot.z_index = 5

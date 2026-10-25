@@ -7,8 +7,8 @@ extends RefCounted
 const ICON_DIR := "res://assets/sprites/ui/icons/"
 const CTL_DIR := "res://assets/sprites/ui/ctl/"
 static var _ctl_cache: Dictionary[String, Texture2D] = {}
-const GOOD := Palette.GOOD
-const BAD := Palette.BAD
+const GOOD := Palette.GO_INK
+const BAD := Palette.ALERT_INK
 
 
 static func ui_icon(icon_name: String) -> Texture2D:
@@ -53,7 +53,7 @@ static func ready_dot(px: int = 14) -> Control:
 	dot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.PRIMARY
+	style.bg_color = Palette.GO
 	style.border_color = Palette.PAPER
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(px)
@@ -507,7 +507,7 @@ static func grid_tile(texture: Texture2D, title: String, action: Callable, px: i
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var style := StyleBoxFlat.new()
 	style.bg_color = Palette.CARD
-	style.border_color = Palette.CARD_LINE
+	style.border_color = Palette.LINE
 	style.set_border_width_all(2)
 	style.set_corner_radius_all(12)
 	for state: String in ["normal", "hover", "pressed"]:
@@ -538,7 +538,7 @@ static func grid_tile(texture: Texture2D, title: String, action: Callable, px: i
 ## Progresso fino dos álbuns.
 static func collection_progress(count: int, total: int) -> HBoxContainer:
 	var row := hbox(8)
-	var progress := bar(100.0 * count / maxi(1, total), Palette.PRIMARY, 8)
+	var progress := bar(100.0 * count / maxi(1, total), Palette.GO, 8)
 	progress.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(progress)
 	row.add_child(short_label("%d/%d" % [count, total], &"SmallLabel"))
@@ -570,8 +570,6 @@ static func disc(texture: Texture2D, px: int = 44, icon_px: int = 32) -> PanelCo
 static func soft(text: String, on_pressed: Callable, texture: Texture2D = null, small: bool = false) -> Button:
 	var result := button(text, on_pressed, &"SecondaryButton", texture)
 	result.custom_minimum_size = Vector2(44, 44)
-	if not small:
-		result.add_theme_font_size_override("font_size", 18)
 	result.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	return result
 

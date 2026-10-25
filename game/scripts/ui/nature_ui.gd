@@ -150,9 +150,9 @@ static func _progress(box: VBoxContainer, site: String) -> void:
 	box.add_child(UiKit.bar(100.0 if info.max else 100.0 * info.xp / maxi(1, int(info.needed)), Palette.SKY, 10))
 	if not info.max:
 		box.add_child(UiKit.label("Próximo: " + str(data.levels[info.level].label), &"SmallLabel"))
-		box.add_child(UiKit.label("Faltam %d XP · cada busca dá o XP da rota" % int(info.remaining), &"SmallLabel"))
+		box.add_child(UiKit.label("Faltam %d XP" % int(info.remaining), &"SmallLabel"))
 	else:
-		box.add_child(UiKit.label("Todos os materiais e espaços liberados", &"SmallLabel"))
+		box.add_child(UiKit.label("Tudo liberado", &"SmallLabel"))
 
 
 static func levels_panel(site: String) -> Control:

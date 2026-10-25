@@ -170,8 +170,8 @@ func _build() -> void:
 		style.bg_color = Palette.PAPER
 		style.set_corner_radius_all(16)
 		style.set_border_width_all(2)
-		style.border_color = Palette.CARD_LINE
-		style.shadow_color = Palette.SHADE
+		style.border_color = Palette.LINE
+		style.shadow_color = Palette.SHADOW
 		style.shadow_size = 6
 		style.shadow_offset = Vector2(0, 2)
 		style.content_margin_left = 10.0
@@ -219,7 +219,7 @@ func _build() -> void:
 		_body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		_body_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 		var track := StyleBoxFlat.new()
-		track.bg_color = Palette.CARD_LINE
+		track.bg_color = Palette.LINE
 		track.content_margin_left = 4
 		track.content_margin_right = 4
 		track.set_corner_radius_all(4)
@@ -283,7 +283,7 @@ func _build() -> void:
 	_arrow = TrayArrow.new()
 	_arrow.name = "Arrow"
 	_arrow.fill = Palette.CARD if pick else Palette.PAPER
-	_arrow.edge = Color(Palette.CARD, 0.0) if pick else Palette.CARD_LINE
+	_arrow.edge = Color(Palette.CARD, 0.0) if pick else Palette.LINE
 	_box.add_child(_arrow)
 	_panel.reset_size()
 	_place()
@@ -467,7 +467,7 @@ func _make_item(index: int) -> Control:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Palette.SUNKEN
 	style.set_corner_radius_all(int(CIRCLE / 2.0))
-	style.border_color = Palette.PRIMARY
+	style.border_color = Palette.GO
 	if bool(entry.get("highlight", false)) or (pick and str(entry.get("id", "")) == selected):
 		style.set_border_width_all(3)
 	circle.add_theme_stylebox_override("panel", style)
@@ -1087,7 +1087,7 @@ func _stop_hint() -> void:
 class TrayArrow extends Control:
 	var points_up := false
 	var fill := Palette.PAPER
-	var edge := Palette.CARD_LINE
+	var edge := Palette.LINE
 
 	func _init() -> void:
 		mouse_filter = Control.MOUSE_FILTER_IGNORE

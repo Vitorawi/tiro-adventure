@@ -47,7 +47,7 @@ func _spawn(texture: Texture2D, amount: int, start: Vector2, index: int, total: 
 	var label := Label.new()
 	label.text = "+%d" % amount
 	label.theme_type_variation = &"NumberLabel"
-	label.add_theme_color_override("font_color", Palette.INK_ON_DARK)
+	label.add_theme_color_override("font_color", Palette.INK)
 	label.add_theme_color_override("font_outline_color", Palette.INK)
 	label.add_theme_constant_override("outline_size", 8)
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE

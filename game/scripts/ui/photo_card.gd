@@ -103,7 +103,7 @@ static func _finish(root: Control, entry: Dictionary, info: Dictionary, width: f
 	if ribbon != "" and not locked and not bool(options.get("thumb", false)):
 		var band := ColorRect.new()
 		band.name = "RibbonBand"
-		band.color = Palette.PRIMARY
+		band.color = Palette.GO
 		band.position = Vector2(WINDOW.position.x, WINDOW.position.y + 6) * scale_factor
 		band.size = Vector2(WINDOW.size.x, 18) * scale_factor
 		band.mouse_filter = Control.MOUSE_FILTER_IGNORE

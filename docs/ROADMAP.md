@@ -2,6 +2,8 @@
 
 ## Estado atual
 
+**Interface 2 — etapa 11 concluída (25/10/2026, Claude Sonnet 5.5; local).** Texto mínimo e "Texto maior" (Configurações → `LargeText`, ×1,15 nas fontes do tema, `large_text` em `settings.json`), orçamento de texto guardado por `text_budget_test` e `list_texts.ps1 -ByScreen`, limpeza (apelidos da `Palette`, overrides de fonte, 6 PNGs de controle, Jersey10). Sem regra/save/fala alterada. Pendência herdada: `sheet_test` já falha no HEAD da etapa 10 (fora da lista da 11). Próxima: 12 (fechamento: suíte inteira, toque real, desempenho, docs), sem push/publicação.
+
 **Interface 2 — etapa 10 concluída (25/10/2026, Claude Sonnet 5.5; local).** Comemorações nos quatro tamanhos: `ModalCard` novo (grande), `RewardSheet` (folha média) usada por `QuestReward`, boas-vindas, passeio comum e Novo!; cerimônia só com a pele. Fila e regras de jogo intactas. Próxima: etapa 11 (texto). Sem push/publicação. Ver registro no README do plano.
 
 **Interface 2 — etapa 09 concluída (25/10/2026, Claude Sonnet 5.5; local).** Painéis grandes no visual novo: Crescimento,

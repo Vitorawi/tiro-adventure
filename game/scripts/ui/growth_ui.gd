@@ -224,7 +224,7 @@ static func _build(box: VBoxContainer) -> void:
 	box.add_child(_hero(info))
 	if not info.next.is_empty():
 		var text := "Tudo pronto para crescer!" if info.ready else "%d de %d passos · falta %d" % [complete, visible_steps.size(), visible_steps.size() - complete]
-		var summary := UiKit.label(text, &"SmallLabel", Palette.GOOD if info.ready else Palette.INK_SOFT)
+		var summary := UiKit.label(text, &"SmallLabel", Palette.GO_INK if info.ready else Palette.INK_SOFT)
 		summary.name = "GrowthSummary"
 		summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		box.add_child(summary)
@@ -277,7 +277,7 @@ static func _hero(info: Dictionary) -> Control:
 		var arrow := _center("→", &"TitleLabel")
 		arrow.name = "GrowthArrow"
 		arrow.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		arrow.add_theme_color_override("font_color", Palette.GOOD if info.ready else Palette.INK_SOFT)
+		arrow.add_theme_color_override("font_color", Palette.GO_INK if info.ready else Palette.INK_SOFT)
 		trio.add_child(arrow)
 		var then := UiKit.vbox(2)
 		then.add_child(silhouette(info.next, info.requirements.size() - missing(info), info.ready, "NextSilhouette", 64))
@@ -422,7 +422,7 @@ static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> 
 	if step.done:
 		hint_text = "Corpo completo" if req.type == "feed" and req.has("body_level") else "Feito!"
 		good = true
-	var hint := UiKit.label(hint_text, &"SmallLabel", Palette.GOOD if good else Palette.INK_SOFT)
+	var hint := UiKit.label(hint_text, &"SmallLabel", Palette.GO_INK if good else Palette.INK_SOFT)
 	hint.name = "GrowthSource_" + str(step.item) if step.type == "deliver" and step.give == "" else "GrowthHint_" + str(step.id)
 	hint.visible = hint_text != ""
 	detail.add_child(hint)
@@ -577,7 +577,7 @@ static func silhouette(phase: Dictionary, completed: int, ready: bool, node_name
 	var material := ShaderMaterial.new()
 	material.shader = load("res://assets/shaders/silhouette.gdshader")
 	material.set_shader_parameter("tint", Palette.INK)
-	material.set_shader_parameter("outline", Palette.INK_ON_DARK)
+	material.set_shader_parameter("outline", Palette.INK)
 	material.set_shader_parameter("stage", completed)
 	material.set_shader_parameter("ready", ready)
 	material.set_shader_parameter("reduced", Motion.reduced)
@@ -595,6 +595,6 @@ static func silhouette(phase: Dictionary, completed: int, ready: bool, node_name
 	question.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	question.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	question.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	question.add_theme_color_override("font_color", Palette.INK if completed == 0 else (Palette.GOLD if phase.id == "adult" else Palette.INK_ON_DARK))
+	question.add_theme_color_override("font_color", Palette.INK if completed == 0 else (Palette.HONEY if phase.id == "adult" else Palette.INK))
 	holder.add_child(question)
 	return holder

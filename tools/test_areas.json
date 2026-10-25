@@ -66,6 +66,7 @@
     "ready_badges_test",
     "tasks_groups_test",
     "texts_test",
+    "text_budget_test",
     "festa_test",
     "economy_sim_test",
     "economy_transactions_test",
@@ -582,11 +583,14 @@
       "paths": [
         "game/autoload/database.gd",
         "game/tests/content_test.gd",
-        "game/tests/texts_test.gd"
+        "game/tests/texts_test.gd",
+        "game/tests/text_budget_test.gd",
+        "game/scripts/ui/large_text.gd"
       ],
       "tests": [
         "content_test",
-        "texts_test"
+        "texts_test",
+        "text_budget_test"
       ]
     }
   }

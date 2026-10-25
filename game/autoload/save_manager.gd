@@ -36,6 +36,7 @@ var _last_session_active: float = 0.0
 ## Preferências do aparelho (valem para todos os saves; ficam em settings.json, não no save).
 var vibrate_enabled := true
 var reduced_motion := false
+var large_text := false
 
 
 func _ready() -> void:
@@ -225,9 +226,20 @@ func set_reduced_motion(enabled: bool) -> void:
 	_save_settings()
 
 
+func set_large_text(enabled: bool) -> void:
+	large_text = enabled
+	_apply_preferences()
+	_save_settings()
+
+
+func large_text_enabled() -> bool:
+	return large_text
+
+
 func _apply_preferences() -> void:
 	Haptics.enabled = vibrate_enabled
 	Motion.reduced = reduced_motion
+	LargeText.apply(large_text)
 
 
 func _free_slot() -> int:
@@ -279,6 +291,7 @@ func _load_settings() -> void:
 		_last_session_active = float(parsed.get("last_session_active", 0.0))
 		vibrate_enabled = bool(parsed.get("vibrate", true))
 		reduced_motion = bool(parsed.get("reduced_motion", false))
+		large_text = bool(parsed.get("large_text", false))
 		_apply_preferences()
 
 
@@ -287,7 +300,7 @@ func _save_settings() -> void:
 	if file == null:
 		push_error("SaveManager: falha ao gravar as configurações (%s)" % FileAccess.get_open_error())
 		return
-	file.store_string(JSON.stringify({"default_slot": default_slot, "last_session_active": _last_session_active, "vibrate": vibrate_enabled, "reduced_motion": reduced_motion}))
+	file.store_string(JSON.stringify({"default_slot": default_slot, "last_session_active": _last_session_active, "vibrate": vibrate_enabled, "reduced_motion": reduced_motion, "large_text": large_text}))
 	file.close()
 
 

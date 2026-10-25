@@ -111,7 +111,7 @@ func _draw_chart() -> void:
 	for mark: Dictionary in HouseDecor.chart_marks():
 		var y := -6.0 - span * float(mark.frac) * 0.92
 		y = maxf(y, top)
-		draw_line(Vector2(-body.x / 2.0 + 2.0, y), Vector2(body.x / 2.0 - 2.0, y), Palette.BAD, 2.0)
+		draw_line(Vector2(-body.x / 2.0 + 2.0, y), Vector2(body.x / 2.0 - 2.0, y), Palette.ALERT_INK, 2.0)
 		draw_string(font, Vector2(body.x / 2.0 + 2.0, y + 3.0), str(mark.name) + " " + date_text(float(mark.at)), HORIZONTAL_ALIGNMENT_LEFT, -1, FONT_SIZE, Palette.INK)
 
 
@@ -154,5 +154,5 @@ func _draw_wall() -> void:
 		var rect := Rect2(Vector2(-body.x / 2.0 + 4.0 + width * index + 2.0, -body.y + 6.0), Vector2(width - 4.0, body.y - 14.0))
 		draw_rect(rect, Palette.PAPER if id != "" else Palette.SUNKEN)
 		if id != "":
-			draw_rect(rect.grow(-2.0), Palette.PRIMARY.lerp(Palette.PAPER, 0.55))
+			draw_rect(rect.grow(-2.0), Palette.GO.lerp(Palette.PAPER, 0.55))
 			draw_rect(Rect2(rect.position + Vector2(3, rect.size.y - 5.0), Vector2(rect.size.x - 6.0, 2.0)), Palette.INK_SOFT)

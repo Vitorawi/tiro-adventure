@@ -318,7 +318,12 @@ func _run() -> void:
 		return
 	if "--i2-02-only" in OS.get_cmdline_user_args():
 		i2_prefix = "i2_02_"
-	if "--i2-01-only" in OS.get_cmdline_user_args() or "--i2-02-only" in OS.get_cmdline_user_args():
+	if "--i2-11-only" in OS.get_cmdline_user_args():
+		# Etapa 11: as mesmas nove telas da etapa 01, com "Texto maior" ligado (fontes do tema ×1,15).
+		i2_prefix = "i2_11_"
+		saver.set("large_text", true)  # o interruptor das Configurações aparece ligado (nada é gravado: ver topo)
+		load("res://scripts/ui/large_text.gd").call("apply", true)
+	if "--i2-01-only" in OS.get_cmdline_user_args() or "--i2-02-only" in OS.get_cmdline_user_args() or "--i2-11-only" in OS.get_cmdline_user_args():
 		state.call("reset")
 		state.get("progress").seen["intro"] = true
 		state.call("dev_unlock_everything")

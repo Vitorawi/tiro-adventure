@@ -100,7 +100,7 @@ func _run() -> void:
 		state.pet()
 		await frames()
 		check(badge.is_visible_in_tree(), "ação pronta ganha badge")
-		check(badge.text == "!" and badge.get_theme_stylebox("normal").bg_color == Palette.DANGER, "badge compartilhada")
+		check(badge.text == "!" and badge.get_theme_stylebox("normal").bg_color == Palette.ALERT, "badge compartilhada")
 		await shot("badge")
 		PLACES.go(PLACES.quest_target("lais_first_wish"))
 		check(state.fulfill_wish() == "", "atende desejo")

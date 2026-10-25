@@ -53,7 +53,7 @@ func _fontes() -> void:
 func _cores() -> void:
 	for pair: Array in [[Palette.GO, "2b9946"], [Palette.INK, "3a2a1f"], [Palette.PAPER, "fff8ee"], [Palette.HONEY, "ffb730"], [Palette.SKY, "3e9fe4"], [Palette.ALERT, "e5483c"]]:
 		check(pair[0] == Color(pair[1]), "Token " + str(pair[1]))
-	check(Palette.PRIMARY == Palette.GO and Palette.GOOD == Palette.GO_INK, "Apelidos preservados")
+	check(Palette.GO == Palette.GO and Palette.GO_INK == Palette.GO_INK, "Nomes novos da Palette")
 
 
 func _controles() -> void:

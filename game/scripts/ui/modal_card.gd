@@ -52,7 +52,7 @@ static func open(host: Node, options: Dictionary) -> ModalCard:
 func _build(options: Dictionary) -> void:
 	dim = ColorRect.new()
 	dim.name = "Dim"
-	dim.color = Palette.DIM
+	dim.color = Palette.SCRIM
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(dim)
 	var center := CenterContainer.new()
@@ -75,7 +75,7 @@ func _build(options: Dictionary) -> void:
 	scroll.add_child(box)
 	var title := str(options.get("title", ""))
 	if title != "":
-		box.add_child(_ribbon(title, options.get("ribbon", Palette.GOLD) as Color, str(options.get("ribbon_icon", ""))))
+		box.add_child(_ribbon(title, options.get("ribbon", Palette.HONEY) as Color, str(options.get("ribbon_icon", ""))))
 	if options.get("hero") is Control:
 		box.add_child(_centered(options.hero as Control))
 	elif options.get("icon") is Texture2D:
@@ -98,9 +98,9 @@ static func _panel_style() -> StyleBoxFlat:
 	style.bg_color = Palette.PAPER
 	style.set_corner_radius_all(28)
 	style.set_border_width_all(3)
-	style.border_color = Palette.CARD_LINE
+	style.border_color = Palette.LINE
 	style.set_content_margin_all(14)
-	style.shadow_color = Palette.SHADE
+	style.shadow_color = Palette.SHADOW
 	style.shadow_size = 8
 	style.shadow_offset = Vector2(0, 3)
 	return style
@@ -205,7 +205,7 @@ func fire_confetti() -> void:
 	var colors := Gradient.new()
 	colors.interpolation_mode = Gradient.GRADIENT_INTERPOLATE_CONSTANT
 	colors.offsets = PackedFloat32Array([0.0, 0.2, 0.4, 0.6, 0.8])
-	colors.colors = PackedColorArray([Palette.PRIMARY, Palette.GOLD, Palette.ACCENT, Palette.INFO, Palette.DANGER])
+	colors.colors = PackedColorArray([Palette.GO, Palette.HONEY, Palette.HONEY, Palette.SKY, Palette.ALERT])
 	confetti.color_initial_ramp = colors
 	var area := get_viewport_rect().size
 	confetti.position = Vector2(area.x / 2.0, area.y * 0.55)

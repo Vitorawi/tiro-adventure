@@ -85,7 +85,7 @@ func _build(focus: String) -> void:
 	style.corner_radius_top_right = 28
 	style.border_color = Palette.BASE_LINE
 	style.border_width_top = 1
-	style.shadow_color = Color(Palette.SHADE, 0.35)
+	style.shadow_color = Color(Palette.SHADOW, 0.35)
 	style.shadow_size = 10
 	style.shadow_offset = Vector2(0, -3)
 	style.content_margin_left = 12.0

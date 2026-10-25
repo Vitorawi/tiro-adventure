@@ -70,8 +70,8 @@ static func make_token(texture: Texture2D) -> Control:
 	style.bg_color = Palette.PAPER
 	style.set_corner_radius_all(int(PX / 2.0))
 	style.set_border_width_all(2)
-	style.border_color = Palette.CARD_LINE
-	style.shadow_color = Palette.SHADE
+	style.border_color = Palette.LINE
+	style.shadow_color = Palette.SHADOW
 	style.shadow_size = 4
 	style.shadow_offset = Vector2(0, 2)
 	result.add_theme_stylebox_override("panel", style)

@@ -177,7 +177,7 @@ func _center(control: Control) -> Control:
 ## Festa do raro: moldura dourada, estrela girando atrás do apetrecho, "RARO!" e onde ficou guardado.
 func _rare_banner(card: ModalCard, rare: String) -> void:
 	var border := card.panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
-	border.border_color = Palette.GOLD
+	border.border_color = Palette.HONEY
 	border.set_border_width_all(5)
 	card.panel.add_theme_stylebox_override("panel", border)
 	var data: Dictionary = Database.collections.get(rare, {})
@@ -200,7 +200,7 @@ func _rare_banner(card: ModalCard, rare: String) -> void:
 	card.add(stage)
 	if not Motion.reduced:
 		create_tween().bind_node(star).set_loops().tween_property(star, "rotation", TAU, 6.0).from(0.0)
-	var title := UiKit.label("LENDÁRIO!" if data.get("rarity", "") == "legendary" else ("RARO!" if data.get("rarity", "") == "rare" else "ROUPA NOVA!"), &"TitleLabel", Palette.ACCENT_EDGE)
+	var title := UiKit.label("LENDÁRIO!" if data.get("rarity", "") == "legendary" else ("RARO!" if data.get("rarity", "") == "rare" else "ROUPA NOVA!"), &"TitleLabel", Palette.HONEY_EDGE)
 	title.name = "RareTitle"
 	card.add(_center(title))
 	card.add_text(str(data.get("name", rare)), &"SectionLabel")

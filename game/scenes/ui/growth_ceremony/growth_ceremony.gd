@@ -62,7 +62,7 @@ func _play() -> void:
 	_scene.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_scene)
 	var dim := ColorRect.new()
-	dim.color = Palette.DIM
+	dim.color = Palette.SCRIM
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_scene.add_child(dim)
 	var center := CenterContainer.new()
@@ -145,11 +145,11 @@ func show_card() -> void:
 	var index := GameState.growth.phase_index(phase)
 	_mark_progress = 1.0 if Motion.reduced else 0.0
 	ruler.draw.connect(func() -> void:
-		ruler.draw_line(Vector2(12, 25), Vector2(268, 25), Palette.CARD_LINE, 2)
+		ruler.draw_line(Vector2(12, 25), Vector2(268, 25), Palette.LINE, 2)
 		for i in 6:
 			var x := 18.0 + i * 48.0
 			var tip := lerpf(25.0, 19.0 - i * 3.0, _mark_progress) if i == index else 19.0 - i * 3.0
-			ruler.draw_line(Vector2(x, 25), Vector2(x, tip), Palette.PRIMARY if i == index else Palette.CARD_LINE, 3 if i == index else 1))
+			ruler.draw_line(Vector2(x, 25), Vector2(x, tip), Palette.GO if i == index else Palette.LINE, 3 if i == index else 1))
 	if not Motion.reduced:
 		create_tween().tween_method(func(value: float) -> void:
 			_mark_progress = value

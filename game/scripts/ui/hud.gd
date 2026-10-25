@@ -438,7 +438,7 @@ func show_level_popover() -> Popover:
 	titles.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	titles.add_child(UiKit.label("Guardião do Vale" if info.next.is_empty() else "Rumo a " + str(info.next.name), &"SectionLabel"))
 	if info.ready:
-		titles.add_child(UiKit.label("Tudo pronto para crescer!", &"SmallLabel", Palette.GOOD))
+		titles.add_child(UiKit.label("Tudo pronto para crescer!", &"SmallLabel", Palette.GO_INK))
 	elif not info.next.is_empty():
 		titles.add_child(UiKit.label("%s · falta %d" % [str(info.current.name), visible_steps.size() - complete], &"SmallLabel", Palette.INK_SOFT))
 	else:
@@ -458,7 +458,6 @@ func show_level_popover() -> Popover:
 		card.add_child(grid)
 		var tip := UiKit.label("Toque num passo para fazer", &"SmallLabel", Palette.INK_SOFT)
 		tip.name = "QuickTip"
-		tip.add_theme_font_size_override("font_size", 14)
 		tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		card.add_child(tip)
 	if GameState.tiro_animated():
@@ -467,10 +466,9 @@ func show_level_popover() -> Popover:
 		mood.add_child(UiKit.icon(UiKit.ui_icon("need_happiness"), 24))
 		var words := UiKit.vbox(0)
 		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		words.add_child(UiKit.label("Ele está animado!", &"SmallLabel", Palette.GOOD))
+		words.add_child(UiKit.label("Ele está animado!", &"SmallLabel", Palette.GO_INK))
 		var help := UiKit.label(GameState.animated_help(), &"SmallLabel", Palette.INK_SOFT)
 		help.name = "AnimatedHelp"
-		help.add_theme_font_size_override("font_size", 14)
 		words.add_child(help)
 		mood.add_child(words)
 		card.add_child(mood)
@@ -505,7 +503,7 @@ func _quick_tile(step: Dictionary) -> Button:
 	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	words.add_child(UiKit.short_label(str(step.title), &"SmallLabel"))
-	words.add_child(UiKit.short_label("%d/%d" % [step.have, step.need], &"SmallLabel", Palette.GOOD if step.hint_good else Palette.INK_SOFT))
+	words.add_child(UiKit.short_label("%d/%d" % [step.have, step.need], &"SmallLabel", Palette.GO_INK if step.hint_good else Palette.INK_SOFT))
 	row.add_child(words)
 	return tile
 

@@ -927,7 +927,6 @@ static func routine_card(box: VBoxContainer, kind: String, id: String, primary: 
 		else: Places.go(Places.goal_target({"type": "stat", "key": goal.key}))
 	var button := UiKit.primary("Pegar", action) if ready and primary else UiKit.secondary("Pegar" if ready else "Ir", action, null, true)
 	button.custom_minimum_size = Vector2(60, 44)
-	button.add_theme_font_size_override("font_size", 18)
 	var action_column := UiKit.vbox(0)
 	action_column.add_child(button)
 	var panel := UiKit.list_row(null, "", [], action_column)
@@ -960,14 +959,14 @@ static func routine_card(box: VBoxContainer, kind: String, id: String, primary: 
 	info.add_child(UiKit.label(str(data.get("description", data.name)), &"SmallLabel"))
 	var prize := UiKit.hbox(2)
 	prize.add_child(UiKit.icon(UiKit.ui_icon("coin"), 16))
-	prize.add_child(UiKit.short_label("+%d" % int(data.get("rewards", {}).get("coins", 0)), &"SmallLabel", Palette.GOOD))
+	prize.add_child(UiKit.short_label("+%d" % int(data.get("rewards", {}).get("coins", 0)), &"SmallLabel", Palette.GO_INK))
 	action_column.add_child(prize)
 	row.add_child(info)
 	row.move_child(info, 1)
 	if ready:
 		panel.ready.connect(func() -> void:
 			var style := panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
-			style.border_color = Palette.PRIMARY
+			style.border_color = Palette.GO
 			panel.add_theme_stylebox_override("panel", style))
 	box.add_child(panel)
 

@@ -44,7 +44,7 @@ func _style(fill: Color) -> StyleBoxFlat:
 	box.content_margin_right = MARGIN_RIGHT
 	box.content_margin_top = 2
 	box.content_margin_bottom = 2
-	box.shadow_color = Palette.SHADE
+	box.shadow_color = Palette.SHADOW
 	box.shadow_size = 3
 	box.shadow_offset = Vector2(0, 2)
 	return box

@@ -91,4 +91,4 @@ func _draw_ruler(base: Vector2) -> void:
 	draw_rect(Rect2(base + Vector2(0, -height), Vector2(8, height)), Palette.INK_SOFT, false, 1.0)
 	for mark: Dictionary in HouseDecor.chart_marks():
 		var y := base.y - 4.0 - (height - 8.0) * float(mark.frac)
-		draw_line(Vector2(base.x - 3.0, y), Vector2(base.x + 11.0, y), Palette.BAD, 2.0)
+		draw_line(Vector2(base.x - 3.0, y), Vector2(base.x + 11.0, y), Palette.ALERT_INK, 2.0)

@@ -66,7 +66,7 @@ func _theme() -> void:
 	var pressed := theme.get_stylebox("pressed", "Button") as StyleBoxFlat
 	check(pressed.border_width_bottom == 0, "Botão calmo pressionado sem borda")
 	var primary := theme.get_stylebox("normal", "PrimaryButton") as StyleBoxFlat
-	check(_near(primary.bg_color, Palette.PRIMARY) and _near(primary.border_color, Palette.PRIMARY_EDGE), "PrimaryButton é verde")
+	check(_near(primary.bg_color, Palette.GO) and _near(primary.border_color, Palette.GO_EDGE), "PrimaryButton é verde")
 	var types := theme.get_type_list()
 	for type_name: String in ["SecondaryButton", "GhostButton", "IconButton", "PillPanel", "NumberLabel", "BadgeLabel"]:
 		check(types.has(type_name), "Tema tem a variação " + type_name)
@@ -99,7 +99,7 @@ func _kit() -> void:
 	check(hint.get_child_count() == 3, "lock_hint com ajuda: cadeado + texto + '?'")
 	var plain: HBoxContainer = ui_kit.call("lock_hint", "x")
 	check(plain.get_child_count() == 2, "lock_hint sem ajuda: cadeado + texto")
-	check(ui_kit.call("ui_icon", "ui_close") != null and ui_kit.call("ui_icon", "ui_check") != null, "ícones ui_close e ui_check existem")
+	check(ui_kit.call("ctl_icon", "x") != null and ui_kit.call("ctl_icon", "check") != null, "ícones vetoriais x e check existem")
 	for node: Node in owned:
 		node.free()
 	help.free()

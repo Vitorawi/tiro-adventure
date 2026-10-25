@@ -17,6 +17,7 @@ const GO_EDGE := Color("1f7a37")
 const GO_INK := Color("23783a")
 const GO_SOFT := Color("e7f6ea")
 const HONEY := Color("ffb730")
+const HONEY_EDGE := Color("e2961a")
 const HONEY_SOFT := Color("fff1d3")
 const HONEY_INK := Color("8c5800")
 const TAB_ON := Color("ffe2a6")
@@ -29,23 +30,6 @@ const ALERT_INK := Color("b0322a")
 const SHADOW := Color(0.43, 0.27, 0.12, 0.13)
 const SCRIM := Color(0.23, 0.16, 0.12, 0.38)
 const BASE_GLASS := Color(0.984, 0.945, 0.886, 0.92)
-
-# Apelidos temporários
-const PRIMARY := GO # apelido da Interface 2; sai na etapa 11
-const PRIMARY_EDGE := GO_EDGE # apelido da Interface 2; sai na etapa 11
-const ACCENT := HONEY # apelido da Interface 2; sai na etapa 11
-const ACCENT_EDGE := Color("e2961a") # apelido da Interface 2; sai na etapa 11
-const DANGER := ALERT # apelido da Interface 2; sai na etapa 11
-const GOOD := GO_INK # apelido da Interface 2; sai na etapa 11
-const BAD := ALERT_INK # apelido da Interface 2; sai na etapa 11
-const INFO := SKY # apelido da Interface 2; sai na etapa 11
-const GOLD := HONEY # apelido da Interface 2; sai na etapa 11
-const CARD_LINE := LINE # apelido da Interface 2; sai na etapa 11
-const SHADE := SHADOW # apelido da Interface 2; sai na etapa 11
-const DIM := SCRIM # apelido da Interface 2; sai na etapa 11
-const HUD := CARD # apelido da Interface 2; sai na etapa 11
-const INK_ON_DARK := INK # apelido da Interface 2; sai na etapa 11
-const PET_SURFACE := BASE # apelido da Interface 2; sai na etapa 11
 
 # Selos de clientes (cores próprias preservadas).
 const SEAL_BRONZE := Color("c98a4b")  # selo de cliente: patamar 1

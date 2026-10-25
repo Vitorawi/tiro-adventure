@@ -55,10 +55,15 @@ Curta, calorosa, falando com o jogador, no presente. Sem "·" juntando frases, s
 | Comprar construção | **Construir** (moedas) / **Comprar** (animais, roupas) | |
 | Ampliar espaço | **Ampliar** (áreas do sítio: **Abrir área**) | Expandir |
 | Ir até o lugar | **Ir** | Ver, Ir até lá |
+| Ir até o lugar nomeado (próximo passo, folha de prêmio) | **Ir para <lugar>** (nome do lugar, nunca "Ir até lá") | Ir até lá |
+| Adiar a folha de prêmio/novidade | **Depois** | Mais tarde, Fechar |
+| Abrir a roleta de cuidados do Tiro | **Cuidar** (a roleta mostra Comida, Banho, Brincar, Dormir) | Cuidados, Menu |
 | Explicação | botão **?** | Ajuda |
 | Fechado | cadeado + "Depois de: <passo>" / "Abre em: <capítulo>" | "Fechado · Conclua:" |
 | Fila | "Na fila" | |
 | Pronto | "Pronto!" ("1 pronto!", "3 prontos!") | "Concluído" |
+
+Orçamento de texto por tela (Interface 2, etapa 11): `docs/plans/interface2/04_REGRAS_E_TESTES.md` §C, guardado por `tests/text_budget_test.gd`; `tools/list_texts.ps1 -ByScreen` mostra as palavras por tela. "Texto maior" (Configurações) multiplica as fontes do tema por 1,15 (`LargeText`, `large_text` em `settings.json`).
 
 Números: `3/6` é meta, `×3` é quantidade de um item, `+20` é ganho; tempo pelo `TimeText`. Nunca `×0`. Erros curtos e com o que fazer: "Falta Cenoura ×2" (`GameState._missing_text`). Mensagem de sucesso que repete a animação (plantou, preparou, vendeu, comida dada) não aparece. As falas da história (`dialogue`, `introduction`, `greeting`) não foram reescritas. A guarda é `tests/texts_test.gd`; a lista de todos os textos sai de `tools/list_texts.ps1` (`build/texts.csv`).
 

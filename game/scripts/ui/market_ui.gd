@@ -142,7 +142,7 @@ static func _customers_summary(box: VBoxContainer) -> void:
 		card.add_child(button)
 	var help := UiKit.ctl_button("help", func() -> void:
 		var content := UiKit.vbox(8)
-		content.add_child(UiKit.label("Pedidos dos vizinhos, sem prazo para entregar. Pedidos com ! ajudam uma missão e aparecem primeiro."))
+		content.add_child(UiKit.label("Sem prazo. Pedidos com ! ajudam uma missão."))
 		for customer in seen: content.add_child(customer_row(customer))
 		_next_order(content, "neighbors")
 		content.add_child(UiKit.secondary("Voltar às encomendas", func() -> void: Events.sheet_requested.emit("Encomendas", orders())))
@@ -154,7 +154,6 @@ static func _customers_summary(box: VBoxContainer) -> void:
 static func _customer_info(customer: String) -> Control:
 	var box := UiKit.vbox(8)
 	box.add_child(customer_row(customer))
-	box.add_child(UiKit.label("Entregue encomendas deste cliente para ganhar confiança e novos selos."))
 	box.add_child(UiKit.secondary("Voltar às encomendas", func() -> void: Events.sheet_requested.emit("Encomendas", orders())))
 	return box
 
@@ -292,7 +291,6 @@ static func _stall_header(box: VBoxContainer) -> void:
 			Events.sheet_requested.emit(str(Database.progression.upgrades[upgrade].name), ProgressionUi.purchase(upgrade)), UiKit.ui_icon("station_stall"), true)
 		button.name = "UpgradeStall"
 		box.add_child(button)
-	box.add_child(UiKit.label("Contratos maiores, com moedas e materiais. Sem prazo para entregar.", &"SmallLabel"))
 
 static func sell(world_id: String = "village") -> Control:
 	var model := {"page": 0, "selected": "", "quantity": 1}

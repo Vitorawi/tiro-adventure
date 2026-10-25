@@ -208,6 +208,18 @@ func _settings_checks() -> void:
 	saver.call("set_vibrate", true)
 	saver.call("set_reduced_motion", false)
 	check(Haptics.enabled == true and Motion.reduced == false, "religar volta ao normal")
+	# Texto maior (etapa 11): padrão desligado, grava large_text em settings.json e volta ao abrir.
+	var large := panel.find_child("LargeTextToggle", true, false)
+	check(large != null and has_text(panel, "Texto maior"), "configurações têm Texto maior")
+	check(saver.call("large_text_enabled") == false, "Texto maior começa desligado")
+	saver.call("set_large_text", true)
+	var parsed_large: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
+	check(typeof(parsed_large) == TYPE_DICTIONARY and parsed_large.get("large_text") == true, "settings.json guarda large_text")
+	saver.set("large_text", false)
+	saver.call("_load_settings")
+	check(saver.call("large_text_enabled") == true, "Texto maior volta ao abrir o jogo")
+	saver.call("set_large_text", false)
+	check(not state.call("to_dict").has("large_text"), "o save não leva o Texto maior")
 	panel.queue_free()
 	if existed:
 		var file := FileAccess.open(path, FileAccess.WRITE)

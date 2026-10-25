@@ -42,7 +42,7 @@ var _close_button: Button
 
 func _ready() -> void:
 	hide()
-	_dim.color = Palette.DIM
+	_dim.color = Palette.SCRIM
 	_dim.gui_input.connect(_on_dim_input)
 	# Botão redondo com o ícone "✕" próprio (a fonte pixel art não tem o glifo).
 	_close_button = UiKit.ctl_button("x", close, 32, "sunken")

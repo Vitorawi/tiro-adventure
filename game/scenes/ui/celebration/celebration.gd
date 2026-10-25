@@ -48,7 +48,7 @@ func show_project(id: String) -> void:
 ## Pelagem de seda: cartão curto; confete só a partir do nível II. O presente já entrou.
 func show_silk(level: int) -> void:
 	var def: Dictionary = Database.growth.silk.levels[level - 1]
-	var card := _open({"title": "Mais brilho!", "ribbon": Palette.GOLD, "icon": load(str(Database.growth.bodies.adult.portrait)),
+	var card := _open({"title": "Mais brilho!", "ribbon": Palette.HONEY, "icon": load(str(Database.growth.bodies.adult.portrait)),
 		"scroll_name": "CelebrationScroll", "confetti": level > 1, "haptic": "success"})
 	card.add_text(str(def.name), &"SectionLabel")
 	card.add_chips(ProgressionUi.reward_chips(def.get("rewards", {})))
@@ -61,7 +61,7 @@ func show_find(result: Dictionary) -> void:
 	var ids: Array = result.get("new", [])
 	var item := str(ids[0]) if not ids.is_empty() else ""
 	var texture: Texture2D = Database.item_icon(item) if item != "" else UiKit.ui_icon(str(result.get("icon", "find_paw")))
-	var card := _open({"title": "Novo achado!", "ribbon": Palette.INFO, "ribbon_icon": "spark", "icon": texture,
+	var card := _open({"title": "Novo achado!", "ribbon": Palette.SKY, "ribbon_icon": "spark", "icon": texture,
 		"scroll_name": "CelebrationScroll", "haptic": "success"})
 	card.add_text(Database.item_name(item) if item != "" else str(result.get("announcement", result.label)), &"SectionLabel")
 	var progress_text := "%d/16" % GameState.find_album_count()
@@ -80,7 +80,7 @@ func show_find(result: Dictionary) -> void:
 ## Baú da Clareira: a festa grande. Os prêmios já entraram; o cartão só mostra o que veio.
 func show_treasure(rewards: Dictionary) -> void:
 	var def: Dictionary = Database.progression.treasure
-	var card := _open({"title": "Tesouro encontrado!", "ribbon": Palette.GOLD,
+	var card := _open({"title": "Tesouro encontrado!", "ribbon": Palette.HONEY,
 		"icon": UiKit.ui_icon(str(def.get("icon", "item_map_piece"))), "icon_px": 96,
 		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "big"})
 	card.add_text(str(def.get("name", "")), &"SectionLabel")
@@ -102,7 +102,7 @@ func show_treasure(rewards: Dictionary) -> void:
 
 func show_trick(id: String) -> void:
 	var def: Dictionary = Database.progression.tricks[id]
-	var card := _open({"title": "Novo truque!", "ribbon": Palette.INFO, "ribbon_icon": "spark", "icon": UiKit.ui_icon(str(def.icon)),
+	var card := _open({"title": "Novo truque!", "ribbon": Palette.SKY, "ribbon_icon": "spark", "icon": UiKit.ui_icon(str(def.icon)),
 		"scroll_name": "CelebrationScroll", "haptic": "success"})
 	card.add_text(str(def.name), &"SectionLabel")
 	card.add_primary("Oba!", hide)
@@ -126,7 +126,7 @@ func _next_unlock() -> void:
 		return
 	var view: Dictionary = _pending_unlocks.pop_front()
 	var target: Dictionary = view.target
-	var sheet := RewardSheet.open(self, {"title": "Novo!", "ribbon": Palette.INFO, "ribbon_icon": "spark",
+	var sheet := RewardSheet.open(self, {"title": "Novo!", "ribbon": Palette.SKY, "ribbon_icon": "spark",
 		"scroll_name": "CelebrationScroll", "haptic": "success", "on_close": _next_unlock})
 	var icon := UiKit.icon(view.icon, 64)
 	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER

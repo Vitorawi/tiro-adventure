@@ -63,7 +63,7 @@ func _ready() -> void:
 	%DogArea.draw.connect(_draw_dog_shadow)
 	%Stars.draw.connect(func() -> void:
 		for point: Vector2 in [Vector2(8, 6), Vector2(42, 18), Vector2(24, 42)]:
-			%Stars.draw_circle(point, 2.0, Palette.GOLD))
+			%Stars.draw_circle(point, 2.0, Palette.HONEY))
 	_dog_sprite.gui_input.connect(_on_dog_input)
 	_animator = PetAnimator.new()
 	add_child(_animator)
@@ -299,7 +299,7 @@ func _process(delta: float) -> void:
 		if _wish_bubble.visible: Motion.bounce(_wish_bubble)
 	if GameState.dog.sleeping and _sleep_age > 2.0:
 		_sleep_age = 0.0
-		Motion.float_text(self, head_rect().get_center() - global_position, "Zz", Palette.INK_ON_DARK)
+		Motion.float_text(self, head_rect().get_center() - global_position, "Zz", Palette.INK)
 
 
 func _update_light() -> void:
@@ -370,7 +370,7 @@ func brush_cleanup() -> void:
 func _on_taste(_item: String, reaction: String) -> void:
 	if not is_visible_in_tree(): return
 	var texts := {"loved": "Amou!", "liked": "Gostou!", "odd": "Hmm...", "grimace": "Eca!"}
-	Motion.float_text(self, head_rect().get_center() - global_position - Vector2(24, 40), str(texts.get(reaction, "")), Palette.ACCENT)
+	Motion.float_text(self, head_rect().get_center() - global_position - Vector2(24, 40), str(texts.get(reaction, "")), Palette.HONEY)
 	if reaction == "loved":
 		for i in 3:
 			var heart := UiKit.icon(UiKit.ui_icon("heart"), 16)
@@ -406,7 +406,7 @@ func care_bubbles(at: Vector2) -> void:
 		bubble.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var style := StyleBoxFlat.new()
 		style.bg_color = Palette.PAPER
-		style.border_color = Palette.INFO
+		style.border_color = Palette.SKY
 		style.set_border_width_all(1)
 		style.set_corner_radius_all(12)
 		bubble.add_theme_stylebox_override("panel", style)
@@ -438,16 +438,16 @@ func _draw_dog_shadow() -> void:
 	var area: Control = %DogArea
 	var feet := _dog_sprite.global_position - area.global_position + Vector2(_dog_sprite.size.x / 2.0, _dog_sprite.size.y * 0.81)
 	area.draw_set_transform(feet, 0.0, Vector2(1.0, 0.25))
-	area.draw_circle(Vector2.ZERO, _dog_sprite.size.x * 0.26, Palette.SHADE, true, -1.0, false)
+	area.draw_circle(Vector2.ZERO, _dog_sprite.size.x * 0.26, Palette.SHADOW, true, -1.0, false)
 	area.draw_set_transform(Vector2.ZERO)
 	if GameState.tiro_animated():
-		var glow := Palette.GOLD
+		var glow := Palette.HONEY
 		glow.a = 0.12 if Motion.reduced else 0.12 + 0.035 * sin(_mood_age * 2.0)
 		for offset in [Vector2(-0.15, -0.65), Vector2(0.85, -0.8), Vector2(1.1, -0.35)]:
 			var point: Vector2 = feet + Vector2(offset.x - 0.5, offset.y) * _dog_sprite.size
 			area.draw_circle(point, 7.0, glow, true, -1.0, true)
-			area.draw_line(point - Vector2(0, 4), point + Vector2(0, 4), Palette.GOLD, 1.0, true)
-			area.draw_line(point - Vector2(4, 0), point + Vector2(4, 0), Palette.GOLD, 1.0, true)
+			area.draw_line(point - Vector2(0, 4), point + Vector2(0, 4), Palette.HONEY, 1.0, true)
+			area.draw_line(point - Vector2(4, 0), point + Vector2(4, 0), Palette.HONEY, 1.0, true)
 
 
 ## Durante o passeio: no lugar do Tiro grande, o postal com o Tiro do mapa andando (2x), nome e tempo.
@@ -650,4 +650,4 @@ func _on_spot_loved(_zone: String, _first: bool) -> void:
 
 
 func _float_text(text: String, at: Vector2) -> void:
-	Motion.float_text(self, at - global_position - Vector2(30, 30), text, Palette.ACCENT)
+	Motion.float_text(self, at - global_position - Vector2(30, 30), text, Palette.HONEY)

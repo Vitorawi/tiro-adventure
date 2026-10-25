@@ -67,12 +67,12 @@ func _motion() -> void:
 
 
 func _palette() -> void:
-	check(Palette.PRIMARY != Palette.ACCENT and Palette.INK != Palette.PAPER, "Paleta: cores distintas")
+	check(Palette.GO != Palette.HONEY and Palette.INK != Palette.PAPER, "Paleta: cores distintas")
 	for id: String in ["house", "farm", "park", "village", "nature"]:
 		check(Palette.WORLD.has(id), "Paleta: cor do mundo " + id)
 	var ui_kit: Script = load("res://scripts/ui/ui_kit.gd")
-	check(ui_kit.get_script_constant_map().get("GOOD") == Palette.GOOD, "UiKit.GOOD aponta para Palette.GOOD")
-	check(ui_kit.get_script_constant_map().get("BAD") == Palette.BAD, "UiKit.BAD aponta para Palette.BAD")
+	check(ui_kit.get_script_constant_map().get("GOOD") == Palette.GO_INK, "UiKit.GOOD aponta para Palette.GO_INK")
+	check(ui_kit.get_script_constant_map().get("BAD") == Palette.ALERT_INK, "UiKit.BAD aponta para Palette.ALERT_INK")
 
 
 func _icon_exists(icon: String) -> bool:
@@ -98,7 +98,7 @@ func _icons() -> void:
 		var icon: String = str(upgrades[id].icon)
 		check(icon.begins_with("station_"), "Estação %s usa ícone próprio (tem '%s')" % [id, icon])
 		check(not icon.begins_with("tab_") and icon != "item_carrot_snack", "Estação %s não usa ícone emprestado" % id)
-	check(_icon_exists("ui_lock"), "ui_lock existe")
+	check(load("res://scripts/ui/ui_kit.gd").call("ctl_icon", "lock") != null, "ícone vetorial lock existe")
 
 
 func _json(path: String) -> Dictionary:

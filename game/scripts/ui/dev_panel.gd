@@ -36,7 +36,6 @@ static func _tabs(box: VBoxContainer) -> void:
 			_page = id
 			(box as SheetBuilder.LiveBox).refresh())
 		tab.custom_minimum_size = Vector2(0, 40)
-		tab.add_theme_font_size_override("font_size", 16)
 		tab.disabled = id == _page
 		row.add_child(tab)
 
@@ -59,7 +58,6 @@ static func _tool(grid: Container, text: String, action: Callable, done: String 
 	button.custom_minimum_size = Vector2(0, 44)
 	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART  # textos longos não alargam o painel
-	button.add_theme_font_size_override("font_size", 16)
 	grid.add_child(button)
 
 

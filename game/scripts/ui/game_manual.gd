@@ -69,7 +69,6 @@ static func _tile(id: String) -> Button:
 	tile.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	tile.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	tile.add_theme_constant_override("icon_max_width", 32)
-	tile.add_theme_font_size_override("font_size", 14)
 	return tile
 
 

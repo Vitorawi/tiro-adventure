@@ -68,10 +68,10 @@ func _build() -> void:
 	title.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	title.offset_top = 72
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var game_name := UiKit.label("Tiro Adventure", &"TitleLabel", Palette.GOLD)
+	var game_name := UiKit.label("Tiro Adventure", &"TitleLabel", Palette.HONEY)
 	game_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_child(game_name)
-	var chapter := UiKit.label(str(Database.progression.chapters[0].name), &"SectionLabel", Palette.INK_ON_DARK)
+	var chapter := UiKit.label(str(Database.progression.chapters[0].name), &"SectionLabel", Palette.INK)
 	chapter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_child(chapter)
 	root.add_child(title)

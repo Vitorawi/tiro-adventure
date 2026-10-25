@@ -15,7 +15,7 @@ Fredoka e Nunito variáveis foram copiadas de `docs/plans/interface2/prototipo/f
 `game/assets/fonts/`, com suas licenças `OFL_Fredoka.txt` e `OFL_Nunito.txt`.
 FontVariation: Fredoka 600 (`font_display`), Nunito 700 (`font_body`/`main_font`) e Nunito 800
 (`font_caption`), eixo `wght` = 2003265652, números tabulares, fallback `story_symbols.fnt` preservado.
-Importação: antialiasing cinza, hinting leve, sem mipmaps nem MSDF. Jersey10 permanece no disco.
+Importação: antialiasing cinza, hinting leve, sem mipmaps nem MSDF. Jersey10 foi removida na Interface 2 (etapa 11).
 
 ## Fluxo
 1. Definir o asset (tamanho em px, direções, animações, paleta) — registrar decisões aqui.
@@ -312,7 +312,7 @@ anterior. Composição em `build/prepare_animal_art.ps1`; originais em `build/ar
 - Ícones do PWA atuais são placeholders.
 
 ## Interface (UI)
-- **Fonte:** Jersey 10 (Google Fonts, licença OFL em `assets/fonts/Jersey10_OFL.txt`), importada sem
+- **Fonte (histórico; trocada por Fredoka + Nunito na Interface 2, Jersey10 removida):** Jersey 10 (Google Fonts, licença OFL), importada sem
   antialiasing. Números claros e acentos. Tamanho base 22 (é estreita). Descartadas: Pixelify Sans
   (o "5" parece "S") e Fredoka.
 - **Tema:** `assets/theme/main_theme.tres` — creme `#fff4dc`, contorno marrom `#4a2e21` grosso,
