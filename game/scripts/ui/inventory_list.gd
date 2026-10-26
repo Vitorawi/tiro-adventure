@@ -15,6 +15,7 @@ const FILTERS := [
 var storage: String = ""
 ## Visual "madeira ilustrada" (aba Mochila, `BagUi`); os depósitos abertos de outros lugares seguem o liso.
 var wood := false
+const SIDE := 18
 var category: String = "all"
 var fresh: Dictionary = {}
 var _opened := false
@@ -188,13 +189,13 @@ func _gift_chips(items: Dictionary, prefix: String = "Gift_") -> Control:
 
 func _build(box: VBoxContainer) -> void:
 	if GameState.walk_ready():
-		box.add_child(_baggage_card())
+		_add(box, _baggage_card())
 	if GameState.pending_reward_count() > 0:
-		box.add_child(_gifts_card())
+		_add(box, _gifts_card())
 	# Depósitos: mini-cartões 2×2. Acima do limite (estoque que já existia) o número fica vermelho, nada some.
 	var depots_title: Label = BagUi.title("Depósitos") if wood else null
 	if wood:
-		box.add_child(depots_title)
+		_add(box, depots_title)
 	var depots := GridContainer.new()
 	depots.name = "Depots"
 	depots.columns = 2
@@ -211,11 +212,11 @@ func _build(box: VBoxContainer) -> void:
 		card.name = "Storage_" + id
 		depots.add_child(card)
 	if depots.get_child_count() > 0:
-		box.add_child(depots)
+		_add(box, depots)
 	else:
 		depots.free()
 		if depots_title != null:
-			depots_title.free()
+			depots_title.get_parent().free()  # a margem (`_add`) leva o título junto
 	var categories: Array[String] = []
 	for id: String in GameState.inventory.counts:
 		if GameState.inventory.count(id) > 0 and (storage == "" or GameState.storage_of(id) == storage):
@@ -235,10 +236,18 @@ func _build(box: VBoxContainer) -> void:
 		var parts := BagUi.filter_plank(options, category, choose_category)
 		scroll = parts.scroll
 		box.add_child(parts.plank)
-		box.add_child(BagUi.title("Mochila"))
+		# O título diz o que está na grade: a categoria escolhida, senão o depósito escolhido, senão "Mochila".
+		var heading := "Mochila"
+		if category != "all":
+			heading = str(FILTERS.filter(func(f: Dictionary) -> bool: return f.id == category)[0].text)
+		elif storage != "":
+			heading = GameState.storage_name(storage)
+		var grid_title := BagUi.title(heading)
+		grid_title.name = "GridTitle"
+		_add(box, grid_title)
 	else:
 		scroll = _plain_filters(options)
-		box.add_child(scroll)
+		_add(box, scroll)
 	scroll.get_h_scroll_bar().value_changed.connect(func(value: float) -> void: _filter_scroll = int(value))
 	scroll.set_deferred("scroll_horizontal", _filter_scroll)
 	var grid := GridContainer.new()
@@ -258,9 +267,24 @@ func _build(box: VBoxContainer) -> void:
 		tile.name = "Item_" + id
 		tile.tooltip_text = Database.item_name(id)
 		grid.add_child(tile)
-	box.add_child(grid)
+	_add(box, grid)
 	if grid.get_child_count() == 0:
-		box.add_child(UiKit.label("Nada por aqui ainda.", &"SmallLabel"))
+		_add(box, UiKit.label("Nada por aqui ainda.", &"SmallLabel"))
+
+
+## Na aba Mochila (madeira) a área que rola não tem margem lateral, para a tábua dos filtros encostar na moldura;
+## o resto ganha a margem aqui.
+func _add(box: VBoxContainer, child: Control) -> void:
+	if not wood:
+		box.add_child(child)
+		return
+	var pad := MarginContainer.new()
+	pad.name = "Pad_" + child.name
+	pad.mouse_filter = Control.MOUSE_FILTER_PASS
+	pad.add_theme_constant_override("margin_left", SIDE)
+	pad.add_theme_constant_override("margin_right", SIDE)
+	pad.add_child(child)
+	box.add_child(pad)
 
 
 func _plain_filters(options: Array[Dictionary]) -> ScrollContainer:

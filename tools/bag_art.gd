@@ -59,24 +59,53 @@ func _round_mask(image: Image, radius: float) -> void:
 				image.set_pixel(x, y, c)
 
 
+## Contorno escuro só fica se encostar numa folha/pétala (senão é a borda do quadro).
+func _near_color(image: Image, x: int, y: int) -> bool:
+	for dy in range(-4, 5):
+		for dx in range(-4, 5):
+			var px := clampi(x + dx, 0, image.get_width() - 1)
+			var py := clampi(y + dy, 0, image.get_height() - 1)
+			var c := image.get_pixel(px, py)
+			if (c.g > c.r + 0.05 and c.g > c.b and c.g > 0.35) or (x > image.get_width() / 2 and c.r > 0.75 and c.r > c.g + 0.15):
+				return true
+	return false
+
+
 func _crop(image: Image, area: Rect2i) -> Image:
 	return image.get_region(area)
 
 
 func _init() -> void:
+	# Moldura da tela: o fundo inteiro sem a tábua do meio (os filtros trazem a deles) e sem a tábua de baixo
+	# (o rodapé do jogo fica por cima). Emenda o pedaço de cima (0..1170) com o de baixo (1490..2470).
 	var full := _src(51)
+	var top := _crop(full, Rect2i(0, 0, full.get_width(), 1170))
+	var low := _crop(full, Rect2i(0, 1490, full.get_width(), 980))
+	var frame := Image.create(full.get_width(), top.get_height() + low.get_height(), false, Image.FORMAT_RGBA8)
+	frame.blit_rect(top, Rect2i(Vector2i.ZERO, top.get_size()), Vector2i.ZERO)
+	frame.blit_rect(low, Rect2i(Vector2i.ZERO, low.get_size()), Vector2i(0, top.get_height()))
 	print("BAG_CREAM = ", full.get_pixel(760, 700).to_html(false))
+	_save(frame, "bag_frame.png", 1080)
 	# Cartão do depósito (o da geladeira), sem o ícone, o fundo do ícone e a barra: o jogo desenha os seus.
 	var sheet := _src(1)
 	var card := _crop(sheet, Rect2i(36, 6, 830, 260))
 	_wipe_cols(card, Rect2i(40, 30, 750, 200), 275)
 	print("BAG_INSET = ", sheet.get_pixel(110, 60).to_html(false))
 	_save(card, "bag_depot.png", 498)
-	# Tábua dos filtros: só a madeira da frente (sem as pontas com folhas, flor e parafusos); o miolo vira liso.
-	var plank := _crop(sheet, Rect2i(96, 583, 1698, 166))
-	_wipe_cols(plank, Rect2i(20, 6, 1658, 150), 404)
-	_round_mask(plank, 26.0)
-	_save(plank, "bag_plank.png", int(round(1698.0 * 3 * 56 / 166)), 3 * 56)
+	# Tábua dos filtros com folhas, flor e parafusos; o miolo vira madeira lisa (sem o "Tudo" e os ícones).
+	var plank := _crop(sheet, Rect2i(0, 508, sheet.get_width(), 244))
+	_wipe_cols(plank, Rect2i(116, 84, 1656, 150), 500)
+	# Acima da tábua só ficam as folhas e a flor: o resto (pé dos cartões, creme e a borda do quadro) some.
+	plank.fill_rect(Rect2i(112, 0, 1628, 76), Color(0, 0, 0, 0))
+	for y in range(0, 74):
+		for x in range(plank.get_width()):
+			var c := plank.get_pixel(x, y)
+			var leaf := c.g > c.r and c.g > c.b
+			var petal := x > plank.get_width() / 2 and c.r > 0.75 and c.r > c.g + 0.15
+			var outline := c.get_luminance() < 0.22 and _near_color(plank, x, y)
+			if not (leaf or petal or outline):
+				plank.set_pixel(x, y, Color(0, 0, 0, 0))
+	_save(plank, "bag_plank.png", int(round(1885.0 * 3 * 66 / 244)), 3 * 66)
 	# Pílula creme da categoria escolhida e quadrado do item (cartão das verduras sem o desenho).
 	_save(_src(4), "bag_chip.png", 240)
 	var tile := _src(5)

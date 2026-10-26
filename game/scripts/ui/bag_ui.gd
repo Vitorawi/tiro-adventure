@@ -211,29 +211,29 @@ static func item_tile(caption: String, texture: Texture2D, quantity: int, fresh:
 	return result
 
 
-## Tábua dos filtros (só a madeira): as categorias se espalham pela tábua
-## (rolam de lado só se não couberem). `options` = [{id, text, icon}] (como `UiKit.segmented`); a escolhida
-## vira pílula creme ("Tudo" só com o nome, as outras com ícone + nome). Ícones e pílula com sombra na madeira.
+## Tábua dos filtros: folhas, flor e parafusos nas pontas; as categorias rolam de lado no miolo.
+## `options` = [{id, text, icon}] (como `UiKit.segmented`); a escolhida vira pílula creme com ícone e nome.
 static func filter_plank(options: Array[Dictionary], selected: String, on_pick: Callable) -> Dictionary:
 	var result := Control.new()
 	result.name = "BagPlank"
 	result.custom_minimum_size = Vector2(0, PLANK_HEIGHT)
 	result.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	result.mouse_filter = Control.MOUSE_FILTER_PASS
-	frame(result, "plank", Vector4(14, 14, 14, 14), "Wood")
+	frame(result, "plank", Vector4(32, 0, 40, 0), "Wood")  # de ponta a ponta da tela, encostando na moldura
 	var scroll := ScrollContainer.new()
 	scroll.name = "BagFilters"
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	result.add_child(scroll)
 	scroll.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	scroll.offset_left = 8.0
-	scroll.offset_right = -8.0
-	scroll.offset_top = 4.0
-	scroll.offset_bottom = -6.0
+	scroll.offset_left = 34.0
+	scroll.offset_right = -42.0
+	scroll.offset_top = 22.0
+	scroll.offset_bottom = -4.0
 	var row := HBoxContainer.new()
 	row.name = "Options"
-	row.add_theme_constant_override("separation", 0)
+	row.add_theme_constant_override("separation", 2)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.add_child(row)
@@ -241,115 +241,33 @@ static func filter_plank(options: Array[Dictionary], selected: String, on_pick: 
 		var id := str(entry.id)
 		var button := plain_button(on_pick.bind(id))
 		button.name = "NotebookTab_" + id  # mesmo nome do `UiKit.segmented` (testes e atalhos)
-		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		button.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		var art := icon(id) if icon(id) != null else entry.get("icon") as Texture2D
-		var pixel := icon(id) == null
+		var art := icon(id)
+		var picture := TextureRect.new()
+		picture.texture = art if art != null else entry.get("icon")
+		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if art == null else CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		if id == selected:
 			var words := str(entry.get("text", ""))
-			# "Tudo" é só o nome; as outras viram pílula só com o ícone (as oito cabem na tábua de 360).
-			var with_icon := id != "all"
-			if with_icon:
-				words = ""
-			var text_width := HomeUi.theme(16).default_font.get_string_size(words, HORIZONTAL_ALIGNMENT_LEFT, -1, 16).x
-			var width := 42.0 if with_icon else text_width + 30.0
-			button.custom_minimum_size = Vector2(width + 4.0, 44)
-			var chip := Control.new()
-			chip.name = "Chip"
-			chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			button.add_child(chip)
-			chip.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-			chip.offset_left = -width / 2.0
-			chip.offset_right = width / 2.0
-			chip.offset_top = -20.0
-			chip.offset_bottom = 20.0
-			var shadow := Panel.new()
-			shadow.name = "ChipShadow"
-			shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			shadow.add_theme_stylebox_override("panel", _soft_shadow(12))
-			chip.add_child(shadow)
-			shadow.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			shadow.offset_left = 2.0
-			shadow.offset_right = -2.0
-			shadow.offset_top = 4.0
-			shadow.offset_bottom = -2.0
-			frame(chip, "chip", Vector4(10, 10, 10, 10))
-			var left := 14.0
-			if with_icon:
-				_shadowed_icon(chip, art, Rect2(8, 6, 26, 26), pixel)
-				left = 38.0
-			var label := _label(words, 16, HORIZONTAL_ALIGNMENT_LEFT)
-			label.position = Vector2(left, 0)
-			label.size = Vector2(text_width + 4.0, 39)
-			chip.add_child(label)
+			var width := 34.0 + HomeUi.theme(14).default_font.get_string_size(words, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 12.0
+			button.custom_minimum_size = Vector2(width, 36)
+			frame(button, "chip", Vector4(9, 9, 9, 9), "Chip", Vector4(0, 2, 0, 2))
+			picture.position = Vector2(7, 7)
+			picture.size = Vector2(22, 22)
+			button.add_child(picture)
+			var label := _label(words, 14, HORIZONTAL_ALIGNMENT_LEFT)
+			label.position = Vector2(31, 0)
+			label.size = Vector2(width - 34.0, 36)
+			button.add_child(label)
 		else:
-			button.custom_minimum_size = Vector2(32, 44)
-			var holder := Control.new()
-			holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			button.add_child(holder)
-			holder.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-			holder.offset_left = -14.0
-			holder.offset_right = 14.0
-			holder.offset_top = -16.0
-			holder.offset_bottom = 12.0
-			_shadowed_icon(holder, art, Rect2(0, 0, 28, 28), pixel)
+			button.custom_minimum_size = Vector2(38, 36)
+			picture.position = Vector2(4, 3)
+			picture.size = Vector2(30, 30)
+			button.add_child(picture)
 		row.add_child(button)
 	return {"plank": result, "scroll": scroll}
 
 
-const PLANK_HEIGHT := 56.0
-static var _shadow_shader: Shader
-
-
-## Ícone com sombra macia embaixo (silhueta escura, borrada, deslocada para baixo), como no protótipo.
-static func _shadowed_icon(host: Control, texture: Texture2D, rect: Rect2, pixel: bool) -> TextureRect:
-	if _shadow_shader == null:
-		_shadow_shader = Shader.new()
-		_shadow_shader.code = """shader_type canvas_item;
-uniform vec4 tint : source_color = vec4(0.22, 0.1, 0.03, 0.55);
-uniform float spread = 2.0;
-void fragment() {
-	vec2 step_uv = TEXTURE_PIXEL_SIZE * spread * 8.0;
-	float a = 0.0;
-	for (int x = -2; x <= 2; x++) {
-		for (int y = -2; y <= 2; y++) {
-			a += texture(TEXTURE, UV + vec2(float(x), float(y)) * step_uv * 0.5).a;
-		}
-	}
-	COLOR = vec4(tint.rgb, tint.a * a / 25.0);
-}"""
-	var shadow := TextureRect.new()
-	shadow.name = "IconShadow"
-	shadow.texture = texture
-	shadow.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	shadow.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var material := ShaderMaterial.new()
-	material.shader = _shadow_shader
-	material.set_shader_parameter("spread", 0.25 if pixel else 1.0)
-	shadow.material = material
-	shadow.position = rect.position + Vector2(1.5, 3.5)
-	shadow.size = rect.size
-	host.add_child(shadow)
-	var picture := TextureRect.new()
-	picture.name = "Picture"
-	picture.texture = texture
-	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if pixel else CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	shadow.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	picture.position = rect.position
-	picture.size = rect.size
-	host.add_child(picture)
-	return picture
-
-
-## Sombra macia de uma peça (só a sombra; o centro fica transparente).
-static func _soft_shadow(radius: int) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.22, 0.1, 0.03, 0.35)
-	style.set_corner_radius_all(radius)
-	style.shadow_color = Color(0.22, 0.1, 0.03, 0.3)
-	style.shadow_size = 5
-	return style
+const PLANK_HEIGHT := 66.0
