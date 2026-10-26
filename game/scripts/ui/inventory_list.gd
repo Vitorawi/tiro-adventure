@@ -13,6 +13,8 @@ const FILTERS := [
 	{"id": "keepsake", "text": "Para o Tiro", "icon": "tab_pet"},
 ]
 var storage: String = ""
+## Visual "madeira ilustrada" (aba Mochila, `BagUi`); os depósitos abertos de outros lugares seguem o liso.
+var wood := false
 var category: String = "all"
 var fresh: Dictionary = {}
 var _opened := false
@@ -190,6 +192,9 @@ func _build(box: VBoxContainer) -> void:
 	if GameState.pending_reward_count() > 0:
 		box.add_child(_gifts_card())
 	# Depósitos: mini-cartões 2×2. Acima do limite (estoque que já existia) o número fica vermelho, nada some.
+	var depots_title: Label = BagUi.title("Depósitos") if wood else null
+	if wood:
+		box.add_child(depots_title)
 	var depots := GridContainer.new()
 	depots.name = "Depots"
 	depots.columns = 2
@@ -199,12 +204,18 @@ func _build(box: VBoxContainer) -> void:
 		if not GameState.storage_active(id) or (not GameState.has_upgrade(str(Database.progression.storage[id].building)) and GameState.storage_used(id) == 0): continue
 		var data: Dictionary = Database.progression.storage[id]
 		var building: Dictionary = Database.progression.upgrades.get(str(data.building), {})
-		var card := UiKit.depot_card(UiKit.ui_icon(str(building.get("icon", "station_" + id))), GameState.storage_name(id),
+		var depot_icon := UiKit.ui_icon(str(building.get("icon", "station_" + id)))
+		var card := BagUi.depot_card(id, depot_icon, GameState.storage_name(id), GameState.storage_used(id), GameState.storage_capacity(id),
+			storage == id, choose_storage.bind(id)) if wood else UiKit.depot_card(depot_icon, GameState.storage_name(id),
 			GameState.storage_used(id), GameState.storage_capacity(id), storage == id, choose_storage.bind(id))
 		card.name = "Storage_" + id
 		depots.add_child(card)
 	if depots.get_child_count() > 0:
 		box.add_child(depots)
+	else:
+		depots.free()
+		if depots_title != null:
+			depots_title.free()
 	var categories: Array[String] = []
 	for id: String in GameState.inventory.counts:
 		if GameState.inventory.count(id) > 0 and (storage == "" or GameState.storage_of(id) == storage):
@@ -217,29 +228,45 @@ func _build(box: VBoxContainer) -> void:
 		if entry.id == "all" or entry.id in categories:
 			# O texto só na selecionada: com ícone nas outras cabem em 360 px.
 			options.append({"id": entry.id, "text": entry.text if entry.id == category else "", "icon": UiKit.ui_icon(entry.icon)})
-	var scroll := ScrollContainer.new()
-	scroll.name = "BagFilters"
-	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
-	scroll.add_child(UiKit.segmented(options, category, choose_category))
+	var scroll: ScrollContainer
+	if wood:
+		for entry: Dictionary in options:
+			entry.text = str(FILTERS.filter(func(f: Dictionary) -> bool: return f.id == entry.id)[0].text)
+		var parts := BagUi.filter_plank(options, category, choose_category)
+		scroll = parts.scroll
+		box.add_child(parts.plank)
+		box.add_child(BagUi.title("Mochila"))
+	else:
+		scroll = _plain_filters(options)
+		box.add_child(scroll)
 	scroll.get_h_scroll_bar().value_changed.connect(func(value: float) -> void: _filter_scroll = int(value))
 	scroll.set_deferred("scroll_horizontal", _filter_scroll)
-	box.add_child(scroll)
 	var grid := GridContainer.new()
 	grid.name = "BagGrid"
 	grid.columns = 4
-	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 8)
+	grid.add_theme_constant_override("h_separation", 6 if wood else 8)
+	grid.add_theme_constant_override("v_separation", 6 if wood else 8)
 	for id: String in GameState.inventory.counts:
 		if GameState.inventory.count(id) <= 0: continue
 		if storage != "" and GameState.storage_of(id) != storage: continue
 		if category != "all" and Database.items.get(id, {}).get("category", "product") != category:
 			if category != "keepsake" or not bool(Database.items.get(id, {}).get("toy", false)): continue
-		var tile := UiKit.bag_tile(Database.item_icon(id), GameState.inventory.count(id), fresh.has(id), func() -> void:
-			Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.item_detail(id)))
+		var open_item := func() -> void:
+			Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.item_detail(id))
+		var tile := BagUi.item_tile(Database.item_name(id), Database.item_icon(id), GameState.inventory.count(id), fresh.has(id), open_item) \
+			if wood else UiKit.bag_tile(Database.item_icon(id), GameState.inventory.count(id), fresh.has(id), open_item)
 		tile.name = "Item_" + id
 		tile.tooltip_text = Database.item_name(id)
 		grid.add_child(tile)
 	box.add_child(grid)
 	if grid.get_child_count() == 0:
 		box.add_child(UiKit.label("Nada por aqui ainda.", &"SmallLabel"))
+
+
+func _plain_filters(options: Array[Dictionary]) -> ScrollContainer:
+	var scroll := ScrollContainer.new()
+	scroll.name = "BagFilters"
+	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	scroll.add_child(UiKit.segmented(options, category, choose_category))
+	return scroll

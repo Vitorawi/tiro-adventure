@@ -65,3 +65,5 @@ const WOOD_PATCH := Color("c17b40")     # remendo de madeira atrás do "n/m" da 
 const WOOD_ASK := Color(0.9, 0.12, 0.1, 0.5)  # espaço de necessidade que está pedindo
 const WOOD_GLOW := Color(1.0, 0.82, 0.35, 0.9)  # brilho dourado da aba ativa
 const WOOD_SHADOW := Color(0.35, 0.2, 0.08, 0.22)  # sombra do Tiro no chão do quarto
+const WOOD_INSET := Color("ebc9a6")     # fundo do ícone no cartão do depósito (Mochila; reamostrado no gerador)
+const WOOD_PICK := Color("e8a33a")      # contorno do depósito escolhido na Mochila

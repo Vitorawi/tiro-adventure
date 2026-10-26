@@ -60,7 +60,7 @@ func _build(texture: Texture2D, title: String) -> void:
 	socket.texture = _home().call("tex", "tab_socket")
 	socket.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	socket.stretch_mode = TextureRect.STRETCH_SCALE
-	socket.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	socket.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	socket.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	socket.size = CUSHION
 	_cushion.add_child(socket)
@@ -69,7 +69,7 @@ func _build(texture: Texture2D, title: String) -> void:
 	_icon.texture = _home().call("tex", str(ART.get(title, ""))) if ART.has(title) else texture
 	_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_icon.position = _icon_rest()
 	_icon.size = Vector2(ICON, ICON)
@@ -82,7 +82,7 @@ func _build(texture: Texture2D, title: String) -> void:
 	pill.texture = _home().call("tex", "tab_label")
 	pill.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	pill.stretch_mode = TextureRect.STRETCH_SCALE
-	pill.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	pill.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	pill.anchor_left = 0.5
 	pill.anchor_right = 0.5

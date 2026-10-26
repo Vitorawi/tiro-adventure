@@ -28,8 +28,8 @@ static func pic(host: Control, file: String, rect: Rect2, node_name: String = ""
 	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	if node_name != "":
 		result.name = node_name
-	if pixel:
-		result.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	# Peça ilustrada = suave (o projeto é "nearest" por causa da pixel art do mundo).
+	result.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if pixel else CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	result.position = rect.position
 	result.size = rect.size
 	host.add_child(result)
@@ -88,6 +88,7 @@ static func bar(host: Control, file: String, rect: Rect2, margin: int, node_name
 	result.patch_margin_left = margin * 3
 	result.patch_margin_right = margin * 3
 	result.scale = Vector2.ONE / 3.0
+	result.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	result.position = rect.position
 	result.size = rect.size * 3.0
 	result.mouse_filter = Control.MOUSE_FILTER_IGNORE

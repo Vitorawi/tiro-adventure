@@ -289,7 +289,7 @@ func _build_tab_art() -> void:
 	_tab_art.anchor_bottom = 1.0
 	_tab_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_tab_art.stretch_mode = TextureRect.STRETCH_SCALE
-	_tab_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+	_tab_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	resized.connect(_layout_tab_bar)
 	_layout_tab_bar()
 

@@ -45,6 +45,7 @@ func _init() -> void:
 	focus_mode = Control.FOCUS_NONE
 	size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	visible = false
+	texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS  # cartão ilustrado suave; rosto e ícone pedem nearest neles
 	_skin = StyleBoxTexture.new()
 	_skin.texture = HomeUi.tex("quest_card")
 	_row = Control.new()
