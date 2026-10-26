@@ -23,8 +23,11 @@ def normalize():
         for i,(op,np) in enumerate(zip(old,new)):
             reference=Image.open(op).convert('RGBA');im=Image.open(np).convert('RGBA')
             rb=reference.getbbox();nb=im.getbbox()
-            # Shared scale = 1 for every clip; only translation. Match each original support line/centre.
-            dx=round((rb[0]+rb[2]-nb[0]-nb[2])/2);dy=rb[3]-nb[3]
+            # Uma translação por CLIPE, definida no quadro 00. Seguir a silhueta
+            # antiga em cada quadro injetava seu balanço na animação nova.
+            # Preservar apoios, saltos e rolagens nativos, sem recentrar cada pose.
+            if i==0:
+                dx=round((rb[0]+rb[2]-nb[0]-nb[2])/2);dy=rb[3]-nb[3]
             if clip=='eat' and i==0:
                 # Bowl extracted exactly from frame 01, including kibble, masked along its outline.
                 bowl=Image.open(ANIM/source/'frame_01.png').convert('RGBA')
