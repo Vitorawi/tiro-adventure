@@ -1,6 +1,6 @@
 class_name NextStep
 extends Button
-## Cartão de madeira do próximo passo da HISTÓRIA (segunda linha do HUD, nas quatro abas): retrato de quem pede,
+## Cartão de madeira do próximo passo da HISTÓRIA (segunda linha do HUD, só na aba Tiro): retrato de quem pede,
 ## ícone do objetivo em pixel e `valor/alvo`; a seta já vem na arte. Pronto = selo verde "Pegar" (um toque entrega).
 ## O resto abre o mini-cartão. Só lê (`QuestGuide.current()`); quem muda o jogo é o `GameState.claim_quest` do toque.
 ## Cartão fixo de 140×65 (posições do protótipo); os modos `compact`/`mini` do Mapa existem por compatibilidade.
@@ -37,6 +37,10 @@ var _shown_id: String = ""
 var _shown_value: int = -1
 var _tween: Tween
 var _skin: StyleBoxTexture
+var shown_on_screen: bool = true:
+	set(value):
+		shown_on_screen = value
+		refresh()
 
 
 func _init() -> void:
@@ -116,7 +120,7 @@ func _is_ready() -> bool:
 func refresh() -> void:
 	_guide = QuestGuide.current()
 	var state := str(_guide.state)
-	visible = state != "hidden"
+	visible = shown_on_screen and state != "hidden"
 	if not visible:
 		_shown_id = ""
 		_shown_value = -1

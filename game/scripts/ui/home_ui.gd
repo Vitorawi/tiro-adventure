@@ -49,6 +49,8 @@ static func theme(px: int, color: Color = Palette.WOOD_INK, outline: Color = Col
 	if outline_size > 0:
 		result.set_color("font_outline_color", "Label", outline)
 		result.set_constant("outline_size", "Label", outline_size)
+		result.set_color("font_outline_color", "Button", outline)
+		result.set_constant("outline_size", "Button", outline_size)
 	_themes[key] = result
 	return result
 

@@ -1,6 +1,6 @@
 extends SceneTree
 ## Interface 2, etapa 03: a pílula do próximo passo (NextStep + QuestGuide) e o rodapé preso. Comportamento e contrato,
-## não pixel: estados, toque, entrega uma vez só, linha 2 do HUD que some com folha, modo compacto no Mapa e nomes das abas.
+## não pixel: estados, toque, entrega uma vez só, linha 2 do HUD que some com folha, cartão só na Home e nomes das abas.
 
 var failures: int = 0
 var state: Node
@@ -35,7 +35,7 @@ func _run() -> void:
 	await _progress_step()
 	await _shared_step()
 	await _row2_hides()
-	await _map_compact()
+	await _home_only()
 	await _story_done()
 	Motion.reduced = false
 	print("NEXT STEP TEST: ", "PASS" if failures == 0 else "FAIL")
@@ -189,25 +189,19 @@ func _row2_hides() -> void:
 	check(row2.modulate.a == 1.0, "e solta ao remover a chave")
 
 
-## 8. No Mapa a pílula fica compacta e não cruza a pílula do mundo nem os rostos.
-func _map_compact() -> void:
+## 8. O cartão só aparece na Home, inclusive após atualizações de estado nas outras abas.
+func _home_only() -> void:
 	await _reset_fresh()
-	main.call("show_screen", &"map")
-	for i in 4:
-		await process_frame
 	var step: Control = _step()
-	check(step.visible and bool(step.get("compact")), "no Mapa a pílula usa o modo compacto")
-	var rect := step.get_global_rect()
-	var world_pill := main.find_child("MapButton", true, false) as Control
-	check(not rect.intersects(world_pill.get_global_rect()), "não cruza a pílula do mundo")
-	var faces := main.find_child("NpcRow", true, false) as Control
-	if faces.visible:
-		check(not rect.intersects(faces.get_global_rect()), "não cruza os rostos dos personagens")
-	check(rect.end.x <= main.size.x - 12.0 - 48.0 - 8.0 + 0.5, "termina antes da coluna dos rostos (x = %f)" % rect.end.x)
-	main.call("show_screen", &"pet")
-	await process_frame
-	await process_frame
-	check(not bool(step.get("compact")), "fora do Mapa a pílula volta ao tamanho normal")
+	for screen_id: StringName in [&"map", &"tasks", &"bag"]:
+		main.call("show_screen", screen_id)
+		root.get_node("Events").emit_signal("state_changed")
+		for i in 4:
+			await process_frame
+		check(not step.visible, "o cartão continua oculto em %s após atualizar o estado" % screen_id)
+		main.call("show_screen", &"pet")
+		await process_frame
+		check(step.is_visible_in_tree(), "o cartão reaparece ao voltar de %s para a Home" % screen_id)
 
 
 ## 6. História concluída: a pílula some.

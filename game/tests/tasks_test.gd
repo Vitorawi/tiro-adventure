@@ -166,10 +166,14 @@ func _ui_check() -> void:
 	var card: Control = main.find_child("StoryCard", true, false)
 	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
 	check(not main.find_child("GroupTabs", true, false).visible, "só História no início não desenha seletor")
-	var chapter_step := main.find_child("ChapterStep_welcome", true, false) as Control
-	check(chapter_step != null and chapter_step.custom_minimum_size.y == 56, "passo do capítulo tem linha de 56")
+	check(card.find_child("StoryHero", true, false) != null and card.find_child("StoryRewards", true, false) != null and card.find_child("StoryGoal_0", true, false) != null, "história: cartão do topo, recompensas e passos")
+	check(card.find_child("ChapterSteps", true, false) == null, "lista antiga de passos do capítulo saiu")
+	var chapter_bar := card.find_child("BarText", true, false) as Label
+	check(chapter_bar != null and chapter_bar.text == "0/7", "barra do capítulo mostra as missões feitas")
+	check(main.find_child("MissionFrame", true, false).visible, "moldura de madeira na História")
+	check(card.find_child("QuestGo_welcome", true, false) != null and card.find_child("ClaimQuest_welcome", true, false) == null, "missão em andamento: Ir, sem Pegar")
 	var step: Control = main.find_child("NextStep", true, false)
-	check(step != null and step.visible and (load("res://scripts/ui/quest_guide.gd") as GDScript).call("current").id == "welcome", "O próximo passo (linha 2 do HUD) chama o olhar no começo, no lugar da aba pulsando")
+	check(step != null and not step.visible and (load("res://scripts/ui/quest_guide.gd") as GDScript).call("current").id == "welcome", "O próximo passo só aparece na tela do Tiro: oculto em Missões, mas o passo atual segue welcome")
 	check(main.find_child("MoodLabel", true, false).text == "Tiro está feliz da vida!", "Humor do Tiro substitui a instrução fixa (Etapa 09)")
 	check(not main.find_child("BagTab", true, false).visible, "Aba Mochila escondida no começo")
 	# "Ir": seta sobre o objeto do destino, depois o painel.
@@ -211,6 +215,7 @@ func _ui_check() -> void:
 	await process_frame
 	check(tasks.find_child("LineDetail_bloblo", true, false) != null, "abrir Bloblo mostra o detalhe da missão")
 	check(tasks.find_child("StoryCard", true, false) == null, "personagens não repetem a principal")
+	check(not tasks.find_child("MissionFrame", true, false).visible, "Pessoas não tem a moldura da História")
 	state.call("dev_jump_to_chapter", 3)
 	await create_timer(2.2).timeout
 	main.get_node("Celebration").hide()

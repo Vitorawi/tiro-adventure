@@ -231,8 +231,8 @@ func _run() -> void:
 		var previous_center := Vector2.ZERO
 		for action: String in ["FoodButton", "Care_sponge", "BrushTile", "Care_ball", "SleepButton"]:
 			var item: Control = tray.find_child(action, true, false)
-			var circle: Control = item.find_child("Circle", true, false)
-			check(circle.size.is_equal_approx(Vector2(64, 64)), "círculos iguais: " + action)
+			var circle: Control = item.find_child("WheelCard", true, false)
+			check(circle.size.x >= 60.0 and circle.size.is_equal_approx(tray.find_child("FoodButton", true, false).size), "cartões iguais: " + action)
 			check(tray.get_global_rect().encloses(item.get_global_rect()), "dentro da faixa: %s %s" % [action, str(viewport)])
 			if previous_center != Vector2.ZERO: check(previous_center.distance_to(circle.get_global_rect().get_center()) >= 80, "espaçamento no arco: " + action)
 			previous_center = circle.get_global_rect().get_center()

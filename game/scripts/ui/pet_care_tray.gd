@@ -37,6 +37,15 @@ static var use_shampoo := false
 
 const HEART_SIZE := Vector2(64, 62)
 const WHEEL_RADIUS := 190.0
+## Lado do cartão ilustrado de cada cuidado na roleta.
+const WHEEL_CARD := 66.0
+## Cartão de cada cuidado (IUREF/roleta; o Escovar usa o cartão vazio com o ícone por cima).
+const WHEEL_CARDS := {"FoodButton": "food", "Care_sponge": "bath", "BrushTile": "blank", "Care_ball": "play", "SleepButton": "sleep"}
+## Faixa de madeira atrás dos cartões: contorno, madeira e o filete claro do meio.
+const BAND_WIDTH := 84.0
+const WOOD_EDGE := Color("6b3a1c")
+const WOOD_BAND := Color("c98b4e")
+const WOOD_LIGHT := Color("e3ac6c")
 
 
 func _ready() -> void:
@@ -91,6 +100,7 @@ func _ready() -> void:
 	_food_button = UiKit.care_disc(Database.item_icon("dog_food"), "Comida", open_food_menu)
 	_food_button.name = "FoodButton"
 	_row.add_child(_food_button)
+	_wheel_card(_food_button)
 	_menu = PanelContainer.new()
 	_menu.name = "FoodMenu"
 	_menu.theme_type_variation = &"CardPanel"
@@ -119,11 +129,13 @@ func _ready() -> void:
 		item.gui_input.connect(_on_item_input.bind(str(entry[0])))
 		_items[entry[0]] = item
 		_row.add_child(item)
+		_wheel_card(item)
 	_sleep = UiKit.care_disc(UiKit.ui_icon("action_sleep"), "Dormir", func() -> void:
 		if not GameState.walking(): GameState.set_sleeping(not GameState.dog.sleeping)
 		close_wheel())
 	_sleep.name = "SleepButton"
 	_row.add_child(_sleep)
+	_wheel_card(_sleep)
 	_shampoo = UiKit.button("Com xampu", func() -> void: use_shampoo = _shampoo.button_pressed)
 	_shampoo.name = "ShampooToggle"
 	_shampoo.toggle_mode = true
@@ -216,6 +228,7 @@ func _sync_brush() -> void:
 		_items["brush"] = tile
 		_row.add_child(tile)
 		_row.move_child(tile, (_items.sponge as Control).get_index() + 1)
+		_wheel_card(tile, UiKit.ui_icon("action_brush"))
 	elif not owned and _items.has("brush"):
 		var old := _items.brush as Control
 		_row.remove_child(old)
@@ -664,6 +677,34 @@ func _build_care_art() -> void:
 	HomeUi.pic(_care_button, "care_label", Rect2(-4, 64, 72, 24), "CareLabelArt")
 
 
+## Troca o disco do cuidado pelo cartão ilustrado (sem legenda: o desenho já diz o que é).
+func _wheel_card(disc: Button, icon: Texture2D = null) -> void:
+	(disc.find_child("Circle", true, false) as Control).hide()
+	(disc.find_child("CaptionPill", true, false) as Control).hide()
+	disc.custom_minimum_size = Vector2(WHEEL_CARD, WHEEL_CARD)
+	disc.size = Vector2(WHEEL_CARD, WHEEL_CARD)
+	var card := _wheel_picture(load(HomeUi.DIR + "wheel_%s.png" % WHEEL_CARDS[str(disc.name)]) as Texture2D, "WheelCard")
+	card.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	disc.add_child(card)
+	disc.move_child(card, 0)
+	if icon != null:
+		var picture := _wheel_picture(icon, "WheelIcon")
+		picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		picture.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT, Control.PRESET_MODE_MINSIZE, 16)
+		card.add_child(picture)
+
+
+func _wheel_picture(texture: Texture2D, node_name: String) -> TextureRect:
+	var result := TextureRect.new()
+	result.name = node_name
+	result.texture = texture
+	result.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	result.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	result.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return result
+
+
 ## Onde o botão fica: borda direita, acima da tábua das abas (protótipo: coração a 218 px do fim em 780 de altura).
 func _care_spot() -> Vector2:
 	var bar := get_tree().root.find_child("TabBar", true, false) as Control if is_inside_tree() else null
@@ -712,14 +753,14 @@ func _refresh_wheel() -> void:
 		if dot == null:
 			dot = UiKit.dot()
 			dot.name = "AskDot"
-			dot.position = Vector2(52, 0)
+			dot.position = Vector2(WHEEL_CARD - 12.0, -2.0)
 			disc.add_child(dot)
 		dot.visible = asking
 		var spark := disc.get_node_or_null("MomentSpark") as Control
 		if spark == null:
 			spark = UiKit.spark()
 			spark.name = "MomentSpark"
-			spark.position = Vector2(46, -8)
+			spark.position = Vector2(WHEEL_CARD - 18.0, -10.0)
 			disc.add_child(spark)
 		var pillar: String = {"Care_sponge": "coat", "Care_ball": "smart", "FoodButton": "body"}.get(str(disc.name), "")
 		spark.visible = (asking and GameState.need_pillar(need) == pillar and pillar != "")
@@ -733,7 +774,18 @@ func _draw_wheel() -> void:
 	if not Motion.reduced:
 		for i in 20:
 			_row.draw_circle(center, 320.0 - i * 16.0, Color(Palette.INK, 0.008), true, -1, true)
-	_row.draw_arc(center, WHEEL_RADIUS, deg_to_rad(-185), deg_to_rad(-85), 64, Color(Palette.CARD, 0.30), 82, true)
+	# Faixa de madeira lisa em volta do coração, com pontas arredondadas e tachinhas douradas entre os cartões.
+	var from := deg_to_rad(-190.0)
+	var to := deg_to_rad(-80.0 if _items.has("brush") else -84.0)
+	for layer: Array in [[WOOD_EDGE, BAND_WIDTH + 6.0], [WOOD_BAND, BAND_WIDTH - 2.0], [WOOD_LIGHT, BAND_WIDTH - 22.0], [WOOD_BAND, BAND_WIDTH - 30.0]]:
+		_row.draw_arc(center, WHEEL_RADIUS, from, to, 96, layer[0], layer[1], true)
+		for end: float in [from, to]:
+			_row.draw_circle(center + Vector2(cos(end), sin(end)) * WHEEL_RADIUS, layer[1] / 2.0, layer[0], true, -1, true)
+	var angles: Array = [177.5, 152.5, 127.5, 102.5] if _items.has("brush") else [175.0, 145.0, 115.0]
+	for angle: float in angles:
+		for edge: float in [-1.0, 1.0]:
+			var at := center + Vector2(cos(deg_to_rad(angle)), -sin(deg_to_rad(angle))) * (WHEEL_RADIUS + edge * (BAND_WIDTH / 2.0 - 7.0))
+			_row.draw_circle(at, 3.5, Palette.WOOD_GLOW, true, -1, true)
 
 
 ## O fundo PASS não deve impedir o carinho ou o balão, que são irmãos.

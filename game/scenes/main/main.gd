@@ -319,6 +319,7 @@ func _layout_tab_bar() -> void:
 func show_screen(id: StringName) -> void:
 	_hud.set_row2_right(null)
 	_current_screen = id
+	_hud.next_step.shown_on_screen = id == &"pet"
 	set_tab_joined(id == &"pet")
 	GameState.note_screen_opened(String(id))
 	for screen_id: StringName in _screens:
@@ -326,6 +327,7 @@ func show_screen(id: StringName) -> void:
 		_tabs[screen_id].button_pressed = screen_id == id
 	%TasksScreen.sync_hud()
 	%PetScreen.sync_hud()
+	_check_row2()
 
 
 ## A aba Mapa retoma o mundo; tocar de novo abre o carrossel.

@@ -78,8 +78,10 @@ func _story_button(text: String) -> Button:
 	var card: Node = main.find_child("StoryCard", true, false)
 	if card == null:
 		return null
+	# Os botões de madeira desenham o rótulo num filho: "Ir" = QuestGo_*, "Pegar prêmio" = ClaimQuest_*.
+	var prefix := "QuestGo_" if text == "Ir" else "ClaimQuest_"
 	for button: Node in card.find_children("*", "Button", true, false):
-		if (button as Button).text == text:
+		if String(button.name).begins_with(prefix):
 			return button as Button
 	return null
 

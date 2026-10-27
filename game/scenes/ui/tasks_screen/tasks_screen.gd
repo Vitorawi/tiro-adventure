@@ -9,11 +9,133 @@ var _ready_characters: Array[String] = []
 var _seen_quests: Array[String] = []
 var _claim_all: Button
 var _animate_detail := ""
+## Moldura de madeira atrás do grupo História (some nos outros grupos) e o vão que a separa das abas.
+var _frame_holder: Control
+var _frame: NinePatchRect
+var _title_holder: Control
+var _plaque: Control
+var _gap: Control
+var _gap_fixed := false
+var _fit_queued := false
+
+const FRAME_SIDE := 8.0   # margem da moldura até a borda da tela, igual dos dois lados
+const BORDER := 30.0      # madeira da moldura
+const PAD := 12.0         # folga entre a madeira e a lista
+const STORY_EDGE := 50.0  # FRAME_SIDE + BORDER + PAD: da borda da tela até o conteúdo
 
 func _ready() -> void:
+	_build_story_frame()
 	_content = SheetBuilder.LiveBox.new(_build)
 	%Holder.add_child(_content)
 	visibility_changed.connect(_visibility_changed)
+
+
+## Moldura de madeira atrás da lista (como a Mochila, mas só no retângulo da lista), placa do título por cima da borda
+## de cima e um vão acima dela para as abas não encostarem.
+func _build_story_frame() -> void:
+	_frame_holder = Control.new()
+	_frame_holder.name = "MissionFrame"
+	_frame_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_frame_holder)
+	move_child(_frame_holder, 0)
+	_frame = MissionUi.frame(_frame_holder, "frame", Vector4(BORDER, BORDER, BORDER, BORDER), "Frame", Vector4.ZERO, false)
+	_title_holder = Control.new()
+	_title_holder.name = "MissionTitle"
+	_title_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_title_holder)
+	_gap = Control.new()
+	_gap.name = "MissionGap"
+	_gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	%Scroll.get_parent().add_child(_gap)
+	%Scroll.get_parent().move_child(_gap, %Scroll.get_index())
+	%Scroll.item_rect_changed.connect(_queue_fit)
+	resized.connect(_queue_fit)
+	_set_story_look(true)
+
+
+## Topo da barra de abas (a arte ou o painel, o que estiver mais alto): a moldura termina logo acima.
+func _bar_top() -> float:
+	var host := get_tree().root.find_child("Main", true, false)
+	var top := INF
+	if host:
+		for node_name: String in ["TabBarArt", "TabBar"]:
+			var bar := host.find_child(node_name, true, false) as Control
+			if bar and bar.is_visible_in_tree():
+				top = minf(top, bar.get_global_rect().position.y)
+	return top if top != INF else global_position.y + size.y - 96.0
+
+
+## Os sinais de layout só marcam o ajuste: ele roda uma vez no fim do quadro (nada de recursão dentro do layout).
+func _queue_fit() -> void:
+	if _fit_queued:
+		return
+	_fit_queued = true
+	_fit_frame.call_deferred()
+
+
+func _frame_width() -> float:
+	return maxf(size.x, 360.0) - 2.0 * FRAME_SIDE
+
+
+## Placa do capítulo: 78% da largura da moldura, metade fora da borda de cima. O vão acima da lista acompanha a altura dela.
+func _set_plaque(value: String) -> void:
+	for child: Node in _title_holder.get_children():
+		_title_holder.remove_child(child)
+		child.queue_free()
+	_plaque = MissionUi.plaque(value, roundf(_frame_width() * 0.78))
+	_title_holder.add_child(_plaque)
+	var tabs_gap := 12.0 if (%GroupTabs as Control).visible else 0.0
+	_gap.custom_minimum_size = Vector2(0, 8.0 + _plaque.size.y / 2.0 + BORDER + PAD - 12.0 - tabs_gap)
+	_gap_fixed = false
+	_queue_fit()
+
+
+## A moldura fica FRAME_SIDE px da borda dos dois lados (medido na tela, não no nó), logo abaixo do vão das abas e
+## termina acima da barra de abas; a lista fica recortada no interior marrom (borda + PAD de folga).
+func _fit_frame() -> void:
+	_fit_queued = false
+	if not _frame_holder.visible or not is_inside_tree():
+		return
+	var panel := get_theme_stylebox("panel")
+	var rect := get_global_rect()
+	var bottom := _bar_top() - 2.0
+	var scroll_end := bottom - BORDER - PAD
+	var want := rect.end.y - panel.get_margin(SIDE_BOTTOM) - scroll_end
+	if absf(float($Margin.get_theme_constant("margin_bottom")) - want) > 0.5:
+		$Margin.add_theme_constant_override("margin_bottom", roundi(want))
+		_queue_fit()
+		return
+	var top := (%Scroll as Control).get_global_rect().position.y - BORDER - PAD
+	# A placa começa 8 px abaixo das abas (ou do topo da lista, sem abas): o vão se ajusta até bater.
+	var tabs := %GroupTabs as Control
+	var tabs_bottom := tabs.get_global_rect().end.y if tabs.visible else ($Margin/Layout as Control).get_global_rect().position.y
+	var delta := top - (_plaque.size.y / 2.0 if _plaque else 0.0) - (tabs_bottom + 8.0)
+	if absf(delta) > 0.5 and not _gap_fixed:
+		_gap_fixed = true  # uma correção só por montagem: sem laço entre o vão e o layout
+		_gap.custom_minimum_size = Vector2(0, maxf(0.0, _gap.custom_minimum_size.y - delta))
+		_queue_fit()
+		return
+	_frame.global_position = Vector2(rect.position.x + FRAME_SIDE, top)
+	_frame.size = Vector2(rect.size.x - 2.0 * FRAME_SIDE, bottom - top) * 3.0
+	if _plaque:
+		_plaque.global_position = Vector2(rect.position.x + rect.size.x / 2.0 - _plaque.size.x / 2.0, top - _plaque.size.y / 2.0)
+
+
+func _set_story_look(on: bool) -> void:
+	_frame_holder.visible = on
+	_title_holder.visible = on
+	_gap.visible = on
+	(%Scroll as ScrollContainer).vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER if on else ScrollContainer.SCROLL_MODE_AUTO
+	# O painel do tema já recua o conteúdo (margem do estilo); a lista fica a STORY_EDGE px da borda da tela.
+	var inset := get_theme_stylebox("panel").get_margin(SIDE_LEFT)
+	var side := roundi(STORY_EDGE - inset) if on else 16
+	$Margin.add_theme_constant_override("margin_left", side)
+	$Margin.add_theme_constant_override("margin_right", side)
+	if not on:
+		$Margin.add_theme_constant_override("margin_bottom", 96)
+	else:
+		_queue_fit()
+
 
 func _visibility_changed() -> void:
 	if not is_visible_in_tree(): _mark_people_seen()
@@ -37,6 +159,7 @@ func _build(box: VBoxContainer) -> void:
 		for id: String in ids:
 			if GameState.quest_error(id) == "": _ready_characters.append(id)
 	_update_groups(characters)
+	_set_story_look(_group == "story")
 	match _group:
 		"story": _story_card(box)
 		"characters": _characters(box, characters)
@@ -178,7 +301,7 @@ func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 			var detail := UiKit.vbox(8)
 			detail.name = "LineDetail_" + line
 			(row.get_child(0) as VBoxContainer).add_child(detail)
-			_quest_detail(detail, id, false)
+			_quest_detail(detail, id)
 			if _animate_detail == line:
 				Motion.pop_in(detail)
 				_animate_detail = ""
@@ -191,88 +314,209 @@ func _story_card(box: VBoxContainer) -> void:
 	var index := GameState.progress.chapter_index()
 	var current := GameState.progress.current_main_quest()
 	var displayed := GameState.progress.displayed_main_quest()
-	var card := UiKit.card(box)
+	var card := UiKit.vbox(8)
 	card.name = "StoryCard"
-	if index > Database.progression.chapters.size():
-		var heading := UiKit.hbox(8)
-		heading.add_child(UiKit.fill_label("Nosso lugar no mundo", &"StrongLabel"))
-		heading.add_child(UiKit.ctl("check", 20, Palette.GO))
-		card.add_child(heading)
-		var full := UiKit.ghost("História completa ›", func() -> void: Events.sheet_requested.emit("História", ProgressionUi.story_panel()))
-		full.name = "StoryFull"
-		card.add_child(full)
-		var album := UiKit.soft("Álbum", func() -> void: PetNotebook.open("album"), UiKit.ui_icon("album_story"), true)
-		album.name = "StoryAlbum"
-		card.add_child(album)
+	box.add_child(card)
+	var finished: bool = index > Database.progression.chapters.size()
+	_set_plaque("História" if finished else str(GameState.current_chapter().get("name", "História")))
+	if finished:
+		_story_done(card)
 		return
-	if displayed != "" and GameState.quest_error(displayed) == "": card.add_child(UiKit.ready_dot())
-	card.add_child(UiKit.section("Capítulo"))
-	card.add_child(UiKit.label(str(GameState.current_chapter().get("name", "História")), &"StrongLabel"))
 	var ids := GameState.progress.main_quests(index)
-	card.add_child(UiKit.steps(ids.size(), ids.find(current)))
 	if displayed != "":
-		var quest: Dictionary = Database.quests[displayed]
-		card.add_child(ProgressionUi.quest_speech(displayed, true))
-		var shared := str(Database.quests[current].get("shared_with", ""))
-		if shared != "":
-			var guidance := UiKit.label("A história segue com " + str(Database.npcs.get(str(quest.npc), {}).get("name", "")), &"SmallLabel")
+		var shared := str(Database.quests[current].get("shared_with", "")) != ""
+		card.add_child(_story_hero(displayed, ids))
+		if shared:
+			var guidance := MissionUi.text("A história segue com " + str(Database.npcs.get(str(Database.quests[displayed].npc), {}).get("name", "")), 13, Palette.WOOD_CREAM, 3)
 			guidance.name = "SharedQuestGuidance"
+			guidance.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			card.add_child(guidance)
-			for goal: Dictionary in quest.goals: card.add_child(ProgressionUi.quest_goal_strip(goal))
-			card.add_child(ProgressionUi.reward_chips(quest.rewards))
-			card.add_child(UiKit.soft("Ver em Pessoas", func() -> void:
-				_line = str(quest.line)
-				choose_group("characters"), null, true))
-		else: _quest_detail(card, displayed, true)
-	var done := 0
-	for id: String in ids:
-		if GameState.progress.claimed_quests.has(id): done += 1
-	var steps := UiKit.vbox(8)
-	steps.name = "ChapterSteps"
-	box.add_child(steps)
-	steps.add_child(UiKit.section("Neste capítulo", UiKit.short_label("%d de %d" % [done, ids.size()], &"SmallLabel")))
-	var list := UiKit.list_card(steps)
-	for id: String in ids:
-		var claimed := GameState.progress.claimed_quests.has(id)
-		var row := UiKit.list_row(null, str(Database.quests[id].name), [])
-		row.custom_minimum_size.y = 56
-		var top := row.get_child(0).get_child(0) as HBoxContainer
-		(row.get_child(0) as VBoxContainer).alignment = BoxContainer.ALIGNMENT_CENTER
-		top.get_child(0).free()
-		# O atual é indicado pelo fundo mel; feitos e futuros usam somente o vetor de 20 px.
-		if id != current:
-			var mark := UiKit.ctl("check" if claimed else "lock", 20, Palette.GO if claimed else Palette.INK_SOFT)
-			mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			top.add_child(mark)
-			top.move_child(mark, 0)
-		_compact_name(top)
-		row.name = "ChapterStep_" + id
-		if id == current:
-			var style := UiKit.surface(Palette.HONEY_SOFT, 16)
-			style.content_margin_left = 8
-			style.content_margin_right = 8
-			style.content_margin_top = 5
-			style.content_margin_bottom = 5
-			row.add_theme_stylebox_override("panel", style)
-		elif not claimed: row.modulate.a = 0.5
-		list.add_child(row)
-	var full := UiKit.ghost("História completa ›", func() -> void: Events.sheet_requested.emit("História", ProgressionUi.story_panel()))
+		_story_rewards(card, displayed, shared)
+		_story_steps(card, displayed, shared)
+	var full := MissionUi.link("História completa ›", func() -> void: Events.sheet_requested.emit("História", ProgressionUi.story_panel()))
 	full.name = "StoryFull"
-	box.add_child(full)
+	card.add_child(full)
 
-func _quest_detail(box: VBoxContainer, id: String, main_action: bool) -> void:
-	if not main_action:
-		ProgressionUi.character_quest_detail(box, id)
-		return
-	for goal: Dictionary in Database.quests[id].goals: box.add_child(ProgressionUi.quest_goal_strip(goal))
-	var bottom := UiKit.hbox(4)
-	var prizes := ProgressionUi.reward_chips(Database.quests[id].rewards)
+
+## História toda concluída: o cartão diz onde estamos; só o Álbum é botão, a história completa é um link.
+func _story_done(card: VBoxContainer) -> void:
+	var done := MissionUi.card("card", Vector4i(12, 12, 12, 12), "StoryDone")
+	var heading := UiKit.hbox(8)
+	var title := MissionUi.text("Nosso lugar no mundo", 17, Palette.WOOD_INK, 0, HORIZONTAL_ALIGNMENT_LEFT)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	heading.add_child(title)
+	heading.add_child(UiKit.ctl("check", 22, Palette.GO))
+	MissionUi.body(done).add_child(heading)
+	card.add_child(done)
+	var album := MissionUi.button("go", "Álbum", func() -> void: PetNotebook.open("album"))
+	album.name = "StoryAlbum"
+	card.add_child(album)
+	var full := MissionUi.link("História completa ›", func() -> void: Events.sheet_requested.emit("História", ProgressionUi.story_panel()))
+	full.name = "StoryFull"
+	card.add_child(full)
+
+
+## Cartão do topo: retrato 84×84, e à direita (mesma borda) título, fala (até 2 linhas) e a barra do capítulo.
+func _story_hero(id: String, ids: Array[String]) -> Control:
+	var quest: Dictionary = Database.quests[id]
+	var hero := MissionUi.card("hero", Vector4i(8, 8, 8, 8), "StoryHero", 12)
+	var row := UiKit.hbox(8)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	MissionUi.body(hero).add_child(row)
+	row.add_child(MissionUi.portrait(ProgressionUi.npc_portrait(str(quest.get("npc", ""))), 84.0))
+	var info := UiKit.vbox(4)
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(info)
+	var title_row := UiKit.hbox(0)
+	title_row.add_child(MissionUi.title_tag(str(quest.name)))
+	var room := Control.new()
+	room.custom_minimum_size = Vector2(32, 0)
+	title_row.add_child(room)
+	info.add_child(title_row)
+	var speech := UiKit.label(str(quest.get("dialogue", "")), &"SmallLabel", Palette.WOOD_INK)
+	speech.name = "StorySpeech"
+	speech.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	speech.max_lines_visible = 2
+	speech.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	speech.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_child(speech)
+	var done := 0
+	for step: String in ids:
+		if GameState.progress.claimed_quests.has(step): done += 1
+	info.add_child(MissionUi.bar(float(done) / maxi(1, ids.size()), "%d/%d" % [done, ids.size()]))
+	var overlay := Control.new()
+	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hero.add_child(overlay)
+	var help := MissionUi.help_button(TaskHelp.open.bind("quest", id))
+	overlay.add_child(help)
+	help.anchor_left = 1.0
+	help.anchor_right = 1.0
+	help.offset_left = -40.0
+	help.offset_right = -4.0
+	help.offset_top = 2.0
+	help.offset_bottom = 38.0
+	if GameState.quest_error(id) == "":
+		var dot := UiKit.ready_dot()
+		overlay.add_child(dot)
+		dot.position = Vector2(3, 3)
+	return hero
+
+
+## "Recompensas" (pílula centralizada) e o cartão de 88 px: prêmios à esquerda, coluna de 104 px à direita
+## (pílula x/y e o botão), na mesma borda direita dos botões Ir.
+func _story_rewards(card: VBoxContainer, id: String, shared: bool) -> void:
+	var quest: Dictionary = Database.quests[id]
+	card.add_child(MissionUi.tag("Recompensas", "StoryRewardsTag"))
+	var rewards := MissionUi.card("card", Vector4i(12, 0, 12, 0), "StoryRewards", 10, 88.0)
+	card.add_child(rewards)
+	var row := UiKit.hbox(8)
+	MissionUi.body(rewards).add_child(row)
+	var prizes := UiKit.hbox(8)
 	prizes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bottom.add_child(prizes)
-	var actions := UiKit.vbox(0)
-	bottom.add_child(actions)
-	ProgressionUi.quest_action(actions, id, main_action)
-	box.add_child(bottom)
+	prizes.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(prizes)
+	var gains: Dictionary = quest.rewards
+	var entries: Array[Dictionary] = []
+	if int(gains.get("coins", 0)) > 0:
+		entries.append({"icon": UiKit.ui_icon("coin"), "amount": "+%d" % int(gains.coins), "name": "Prize_coins"})
+	for item: String in gains.get("items", {}):
+		entries.append({"icon": Database.item_icon(item), "amount": "+%d" % int(gains.items[item]), "name": "Prize_" + item})
+	for collection: String in gains.get("collections", []):
+		if not GameState.progress.collection.has(collection):
+			entries.append({"icon": UiKit.ui_icon("item_accessory_set"), "amount": "+1", "name": "Prize_" + collection})
+	# 56×56; com três prêmios eles encolhem para caber ao lado da coluna de 104 px.
+	var room := (maxf(size.x, 360.0) - 2.0 * STORY_EDGE) - 24.0 - MissionUi.BUTTON.x - 8.0
+	var edge := minf(56.0, floorf((room - 8.0 * (entries.size() - 1)) / maxf(1.0, entries.size())))
+	for entry: Dictionary in entries:
+		prizes.add_child(MissionUi.tile(entry.icon, entry.amount, entry.name, Vector2(edge, edge)))
+	var met := 0
+	for goal: Dictionary in quest.goals:
+		if GameState.goal_value(goal) >= int(goal.get("target", 1)): met += 1
+	var column := UiKit.vbox(4)
+	column.custom_minimum_size = Vector2(MissionUi.BUTTON.x, 0)
+	column.size_flags_horizontal = Control.SIZE_SHRINK_END
+	column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	column.add_child(MissionUi.pill("green" if met == quest.goals.size() else "brown", "%d/%d" % [met, quest.goals.size()], "StoryGoalsPill"))
+	row.add_child(column)
+	if shared:
+		column.add_child(MissionUi.button("go", "Ver em Pessoas", func() -> void:
+			_line = str(quest.line)
+			choose_group("characters"), MissionUi.BUTTON.x, 12))
+	else:
+		# Falta lugar no depósito (só com os objetivos cumpridos): leva ao depósito em vez do Pegar.
+		var shortage := GameState.quest_reward_shortage(id)
+		if not shortage.is_empty():
+			var depot := str(shortage.depot)
+			var space := MissionUi.button("go", "Liberar espaço", func() -> void: Places.go({"storage": depot}), MissionUi.BUTTON.x, 12)
+			space.name = "QuestSpace_" + id
+			column.add_child(space)
+		elif GameState.quest_error(id) == "":
+			var claim := MissionUi.button("claim", "Pegar", func() -> void: ProgressionUi.claim_quest_fx(id, rewards.get_global_rect().get_center()))
+			claim.name = "ClaimQuest_" + id
+			column.add_child(claim)
+
+
+## "Passos": título centralizado e um cartão por objetivo. Linha 1: instrução + pílula n/m; linha 2: ícone 48×48
+## e o botão Ir 104×44 (ou o ✓ no lugar dele).
+func _story_steps(card: VBoxContainer, id: String, shared: bool) -> void:
+	var quest: Dictionary = Database.quests[id]
+	card.add_child(MissionUi.heading("Passos", "StoryStepsTitle"))
+	var first_open := -1
+	for i in quest.goals.size():
+		var goal: Dictionary = quest.goals[i]
+		var target := int(goal.get("target", 1))
+		var value := mini(GameState.goal_value(goal), target)
+		var complete := value >= target
+		if not complete and first_open < 0: first_open = i
+		var step := MissionUi.card("card", Vector4i(12, 12, 12, 12), "StoryGoal_%d" % i)
+		var lines := UiKit.vbox(8)
+		MissionUi.body(step).add_child(lines)
+		var top := UiKit.hbox(8)
+		lines.add_child(top)
+		var words := MissionUi.text(str(goal.get("label", "")), 13, Palette.WOOD_INK, 0, HORIZONTAL_ALIGNMENT_LEFT)
+		words.name = "StepText"
+		words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		words.max_lines_visible = 2
+		words.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		words.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+		top.add_child(words)
+		var count := MissionUi.pill("green" if complete else "brown", "%d/%d" % [value, target], "StepPill_%d" % i)
+		count.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+		top.add_child(count)
+		var bottom := UiKit.hbox(8)
+		lines.add_child(bottom)
+		if str(goal.get("type", "")) == "growth":
+			var holder := MissionUi.tile(null)
+			(holder.get_child(1) as CenterContainer).add_child(ProgressionUi._growth_silhouette(goal, value, 32))
+			bottom.add_child(holder)
+		else:
+			bottom.add_child(MissionUi.tile(ProgressionUi.goal_icon(goal)))
+		var spacer := Control.new()
+		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		bottom.add_child(spacer)
+		if complete:
+			var done_box := Control.new()
+			done_box.name = "StepDone_%d" % i
+			done_box.custom_minimum_size = MissionUi.BUTTON
+			var center := CenterContainer.new()
+			center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			done_box.add_child(center)
+			center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			center.add_child(UiKit.ctl("check", 28, Palette.GO))
+			bottom.add_child(done_box)
+		elif not shared:
+			var target_place: Dictionary = ProgressionUi.quest_go_target(id) if i == first_open else Places.goal_target(goal)
+			var go := MissionUi.button("go", "Ir", func() -> void: Places.go(target_place))
+			go.name = ("QuestGo_" + id) if i == first_open else "GoalGo_%d" % i
+			bottom.add_child(go)
+		card.add_child(step)
+
+
+func _quest_detail(box: VBoxContainer, id: String) -> void:
+	ProgressionUi.character_quest_detail(box, id)
+
 
 func _routines(box: VBoxContainer, kind: String) -> void:
 	if not GameState.routines_unlocked(kind): return

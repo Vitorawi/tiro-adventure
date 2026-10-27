@@ -212,7 +212,7 @@ static func item_tile(caption: String, texture: Texture2D, quantity: int, fresh:
 
 
 ## Tábua dos filtros: folhas, flor e parafusos nas pontas; as categorias rolam de lado no miolo.
-## `options` = [{id, text, icon}] (como `UiKit.segmented`); a escolhida vira pílula creme com ícone e nome.
+## `options` = [{id, text, icon}] (como `UiKit.segmented`); a escolhida vira pílula creme só com o ícone.
 static func filter_plank(options: Array[Dictionary], selected: String, on_pick: Callable) -> Dictionary:
 	var result := Control.new()
 	result.name = "BagPlank"
@@ -250,17 +250,12 @@ static func filter_plank(options: Array[Dictionary], selected: String, on_pick: 
 		picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if art == null else CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		if id == selected:
-			var words := str(entry.get("text", ""))
-			var width := 34.0 + HomeUi.theme(14).default_font.get_string_size(words, HORIZONTAL_ALIGNMENT_LEFT, -1, 14).x + 12.0
-			button.custom_minimum_size = Vector2(width, 36)
+			# Só o ícone na pílula: o nome da categoria vai no título da grade (`GridTitle`), e os outros ícones cabem.
+			button.custom_minimum_size = Vector2(44, 36)
 			frame(button, "chip", Vector4(9, 9, 9, 9), "Chip", Vector4(0, 2, 0, 2))
-			picture.position = Vector2(7, 7)
-			picture.size = Vector2(22, 22)
+			picture.position = Vector2(8, 5)
+			picture.size = Vector2(28, 26)
 			button.add_child(picture)
-			var label := _label(words, 14, HORIZONTAL_ALIGNMENT_LEFT)
-			label.position = Vector2(31, 0)
-			label.size = Vector2(width - 34.0, 36)
-			button.add_child(label)
 		else:
 			button.custom_minimum_size = Vector2(38, 36)
 			picture.position = Vector2(4, 3)

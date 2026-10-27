@@ -117,10 +117,10 @@ func _run() -> void:
 		var previous_center := Vector2.ZERO
 		for action: String in ["FoodButton", "Care_sponge", "Care_ball", "SleepButton"]:
 			var tile: Control = tray.find_child(action, true, false)
-			var circle: Control = tile.find_child("Circle", true, false)
-			var icon: Control = tile.find_child("CareIcon", true, false)
-			check(circle.size.is_equal_approx(Vector2(64, 64)), "quatro círculos iguais: %s (%s)" % [action, circle.size])
-			check(tray.get_global_rect().encloses(icon.get_global_rect()), "ícone dentro da faixa: " + action)
+			# Roleta de madeira: cada cuidado é um cartão ilustrado do mesmo tamanho, no miolo de um painel.
+			var circle: Control = tile.find_child("WheelCard", true, false)
+			check(circle.size.x >= 64.0 and circle.size.is_equal_approx(tray.find_child("FoodButton", true, false).size), "quatro cartões iguais: %s (%s)" % [action, circle.size])
+			check(tray.get_global_rect().encloses(circle.get_global_rect()), "cartão dentro da faixa: " + action)
 			if previous_center != Vector2.ZERO: check(previous_center.distance_to(circle.get_global_rect().get_center()) >= 80, "cuidados espaçados no arco")
 			previous_center = circle.get_global_rect().get_center()
 	root.size = Vector2i(360, 780)
@@ -156,9 +156,11 @@ func _run() -> void:
 	check(progress.stat("bathe") == 1, "banho uma vez por gesto longo")
 	tap("sponge")
 	check(progress.stat("bathe") == 2, "banho por toque")
+	# O cartão do Banho fica sobre o corpo: a esfregada curta precisa sair do lugar para não virar toque.
 	send("sponge", "press", tray.call("item_center", "sponge"))
 	send("sponge", "move", a)
-	send("sponge", "release", a)
+	send("sponge", "move", b)
+	send("sponge", "release", b)
 	check(progress.stat("bathe") == 2, "esfregada curta não dá banho")
 	state.get("dog").needs.energy = 100.0
 	tap("ball")
