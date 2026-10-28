@@ -27,13 +27,11 @@ var _acted := false
 var _scrolling := false
 var _foods_ready := false
 var _food_phase := ""
-var _shampoo: Button
 var _care_button: Button
 var _ask: Button
 var _ask_icon: TextureRect
 var _pointer: Polygon2D
 var _pointed_item := ""
-static var use_shampoo := false
 
 const HEART_SIZE := Vector2(64, 62)
 const WHEEL_RADIUS := 190.0
@@ -136,13 +134,6 @@ func _ready() -> void:
 	_sleep.name = "SleepButton"
 	_row.add_child(_sleep)
 	_wheel_card(_sleep)
-	_shampoo = UiKit.button("Com xampu", func() -> void: use_shampoo = _shampoo.button_pressed)
-	_shampoo.name = "ShampooToggle"
-	_shampoo.toggle_mode = true
-	_shampoo.button_pressed = use_shampoo
-	_shampoo.custom_minimum_size = Vector2(112, 44)
-	_shampoo.z_index = 5
-	pet_screen.add_child(_shampoo)
 	resized.connect(func() -> void:
 		_refresh_wheel()
 		_place_menu.call_deferred())
@@ -279,7 +270,6 @@ func refresh() -> void:
 	(_sleep.find_child("Caption", true, false) as Label).text = "Acordar" if GameState.dog.sleeping else "Dormir"
 	(_sleep.find_child("CareIcon", true, false) as TextureRect).texture = UiKit.ui_icon("action_wake" if GameState.dog.sleeping else "action_sleep")
 	_sleep.disabled = GameState.walking()
-	_shampoo.visible = GameState.inventory.count("herb_shampoo") > 0 and not GameState.dog.sleeping and not _menu.visible and visible and _row.visible
 	_place_menu.call_deferred()
 
 
@@ -391,7 +381,6 @@ func open_food_menu() -> void:
 	close_wheel()
 	refresh()
 	_menu.show()
-	_shampoo.hide()
 	_scroll.scroll_vertical = 0
 	_place_menu()
 	Motion.pop_in(_menu)
@@ -399,7 +388,6 @@ func open_food_menu() -> void:
 
 func close_food_menu() -> void:
 	_menu.hide()
-	if _shampoo: _shampoo.visible = GameState.inventory.count("herb_shampoo") > 0 and not GameState.dog.sleeping and visible and _row.visible
 
 
 ## Base da guia de comidas: logo acima da tábua das abas (o botão Cuidar fica ao lado dela, não embaixo).
@@ -422,9 +410,6 @@ func _place_menu() -> void:
 	# Centralizada, mas sem passar por cima do botão Cuidar (que mora na borda direita).
 	var heart_left := _care_button.global_position.x - pet_screen.global_position.x - 8.0
 	_menu.position = Vector2(maxf(minf((pet_screen.size.x - _menu.size.x) * 0.5, heart_left - _menu.size.x), 8.0), bottom - _menu.size.y)
-	if _shampoo and _items.has("sponge"):
-		_shampoo.size = _shampoo.get_combined_minimum_size()
-		_shampoo.position = Vector2(clampf((_items.sponge as Control).get_global_rect().get_center().x - pet_screen.global_position.x - _shampoo.size.x / 2.0, 8, pet_screen.size.x - _shampoo.size.x - 8), (_items.sponge as Control).global_position.y - pet_screen.global_position.y - _shampoo.size.y - 4)
 
 
 func _input(event: InputEvent) -> void:
@@ -523,8 +508,7 @@ func release_item(point: Vector2) -> void:
 	if not acted and not scrolling:
 		if not dragged:
 			if id == "brush": Events.toast_requested.emit("Passe a escova nas costas dele")
-			elif id == "ball" and GameState.hide_unlocked(): open_play_choice()
-			else: _act(id)
+			else: choose_care(id)
 		elif id == "ball":
 			if gesture.release_velocity().y < THROW_SPEED and point.y < gesture.start.y - DragGhost.SLOP:
 				_act(id)
@@ -548,13 +532,13 @@ func cancel() -> void:
 	close_food_menu()
 
 
-func _act(id: String) -> void:
+func _act(id: String, with_shampoo: bool = false) -> void:
 	var error := ""
 	if GameState.walking(): error = GameState.away_text()
 	elif GameState.dog.sleeping: error = "Shh... ele está dormindo."
 	elif id == "sponge":
 		close_food_menu()
-		GameState.bathe(use_shampoo and GameState.inventory.count("herb_shampoo") > 0)
+		GameState.bathe(with_shampoo)
 		pet_screen.call("care_bubbles", (pet_screen.call("dog_rect") as Rect2).get_center())
 	elif id == "brush":
 		close_food_menu()
@@ -578,29 +562,60 @@ func _act(id: String) -> void:
 		if _items.has(id): Motion.shake(_items[id])
 
 
-## Brincar com um toque, desde o Aventureiro: bola (arremessar continua pelo arrasto) ou copinhos.
-func open_play_choice() -> void:
+## Catálogo único: todo cuidado com mais de uma opção usa o mesmo Popover.
+## O arrasto mantém o gesto direto (banho comum / bola); o toque permite escolher.
+func care_options(id: String) -> Array[Dictionary]:
+	match id:
+		"sponge":
+			return [
+				{"name": "BathPlain", "label": "Sem xampu", "icon": UiKit.ui_icon("action_sponge"), "action": _act.bind("sponge", false)},
+				{"name": "BathShampoo", "label": "Com xampu", "icon": Database.item_icon("herb_shampoo"), "action": _act.bind("sponge", true), "locked": "Falta xampu" if GameState.inventory.count("herb_shampoo") < 1 else ""},
+			]
+		"ball":
+			var options: Array[Dictionary] = [{"name": "PlayBall", "label": "Bola", "icon": UiKit.ui_icon("action_play"), "action": _act.bind("ball")}]
+			if GameState.hide_unlocked():
+				var treats := GameState.hide_treats()
+				options.append({"name": "PlayCups", "label": "Copinhos", "icon": Database.item_icon(treats[0]) if not treats.is_empty() else null, "action": start_hide_and_seek.bind(treats[0] if not treats.is_empty() else ""), "locked": "Copinhos: falta um petisco" if treats.is_empty() else ""})
+			return options
+	return []
+
+
+func choose_care(id: String) -> void:
+	if GameState.dog.sleeping or GameState.walking():
+		_act(id)
+		return
+	var options := care_options(id)
+	if options.size() > 1:
+		_open_care_choice(id, options)
+	else:
+		_act(id)
+
+
+func _open_care_choice(id: String, options: Array[Dictionary]) -> void:
 	close_food_menu()
+	close_wheel()
 	var box := UiKit.vbox(6)
-	box.name = "PlayChoice"
+	box.name = "BathChoice" if id == "sponge" else "PlayChoice" if id == "ball" else "CareChoice_" + id
 	var holder: Array[Popover] = []
 	var choose := func(action: Callable) -> void:
 		if not holder.is_empty() and is_instance_valid(holder[0]): holder[0].close()
 		action.call()
-	var ball := UiKit.soft("Bola", choose.bind(func() -> void: _act("ball")), UiKit.ui_icon("action_play"))
-	ball.name = "PlayBall"
-	box.add_child(ball)
-	var treats := GameState.hide_treats()
-	if treats.is_empty():
-		var hint := UiKit.lock_hint("Copinhos: falta um petisco")
-		hint.name = "PlayCupsLocked"
-		box.add_child(hint)
-	else:
-		var treat: String = treats[0]
-		var cups := UiKit.soft("Copinhos", choose.bind(func() -> void: start_hide_and_seek(treat)), Database.item_icon(treat))
-		cups.name = "PlayCups"
-		box.add_child(cups)
-	holder.append(Popover.open(pet_screen, _items["ball"], box, 0.0))
+	for option: Dictionary in options:
+		var button: Control
+		if str(option.get("locked", "")) != "":
+			button = UiKit.lock_hint(str(option.locked))
+			button.name = str(option.name) + "Locked"
+		else:
+			button = UiKit.soft(str(option.label), choose.bind(option.action), option.icon)
+			button.name = str(option.name)
+		box.add_child(button)
+	# O popup fica acima de Cuidar e das abas, inclusive no cartão baixo do banho.
+	var bottom := _care_button.global_position.y - pet_screen.global_position.y - Popover.GAP
+	holder.append(Popover.open(pet_screen, _items[id], box, 0.0, bottom))
+
+
+func open_play_choice() -> void:
+	choose_care("ball")
 
 
 func start_hide_and_seek(treat: String) -> void:
@@ -645,7 +660,6 @@ func open_wheel() -> void:
 func close_wheel() -> void:
 	_row.hide()
 	_row.modulate.a = 1.0
-	_shampoo.hide()
 	_refresh_wheel()
 	pet_screen.call("wheel_changed", false)
 
@@ -662,10 +676,8 @@ func _on_veil_input(event: InputEvent) -> void:
 func _asked_care() -> void:
 	match GameState.asking_need():
 		"hunger": open_food_menu()
-		"hygiene": _act("sponge")
-		"happiness":
-			if GameState.hide_unlocked(): open_play_choice()
-			else: _act("ball")
+		"hygiene": choose_care("sponge")
+		"happiness": choose_care("ball")
 		"energy": GameState.set_sleeping(true)
 	close_wheel()
 
@@ -751,20 +763,29 @@ func _refresh_wheel() -> void:
 		circle.add_theme_stylebox_override("panel", surface)
 		var dot := disc.get_node_or_null("AskDot") as Control
 		if dot == null:
-			dot = UiKit.dot()
+			# Tamanho fixo: o Label de UiKit.dot cresce com a fonte do tema.
+			dot = Panel.new()
 			dot.name = "AskDot"
-			dot.position = Vector2(WHEEL_CARD - 12.0, -2.0)
+			dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			dot.size = Vector2(16, 16)
+			dot.position = Vector2(WHEEL_CARD - 20.0, 4.0)
+			dot.z_index = 2
+			var dot_style := UiKit.surface(Palette.ALERT, 8)
+			dot_style.border_color = Palette.CARD
+			dot_style.set_border_width_all(2)
+			dot.add_theme_stylebox_override("panel", dot_style)
 			disc.add_child(dot)
 		dot.visible = asking
+		# Comida usa só o pedido vermelho, sem o brilho que o cobria.
+		if disc == _food_button: continue
 		var spark := disc.get_node_or_null("MomentSpark") as Control
 		if spark == null:
 			spark = UiKit.spark()
 			spark.name = "MomentSpark"
-			spark.position = Vector2(WHEEL_CARD - 18.0, -10.0)
+			spark.position = Vector2(4, 4)
 			disc.add_child(spark)
-		var pillar: String = {"Care_sponge": "coat", "Care_ball": "smart", "FoodButton": "body"}.get(str(disc.name), "")
+		var pillar: String = {"Care_sponge": "coat", "Care_ball": "smart"}.get(str(disc.name), "")
 		spark.visible = (asking and GameState.need_pillar(need) == pillar and pillar != "")
-	_shampoo.visible = _row.visible and GameState.inventory.count("herb_shampoo") > 0 and not sleeping
 	_row.queue_redraw()
 
 

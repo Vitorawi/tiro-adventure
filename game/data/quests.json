@@ -2318,7 +2318,7 @@
   "young_8_shampoo": {
     "npc": "lais",
     "name": "Banho de ervas",
-    "dialogue": "O pelo dele está mudando! Um banho de ervas deixa ele cheiroso: marque Com xampu na aba Tiro.",
+    "dialogue": "O pelo dele está mudando! Um banho de ervas deixa ele cheiroso: escolha Com xampu no Banho da aba Tiro.",
     "goals": [
       {
         "type": "stat",

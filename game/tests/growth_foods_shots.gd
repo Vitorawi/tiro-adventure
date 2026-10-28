@@ -75,11 +75,7 @@ func run() -> void:
  tray.close_food_menu()
  await create_timer(3.5).timeout
  await frames()
- var toggle: Button=main.find_child('ShampooToggle',true,false)
- check(toggle.visible and toggle.size.y>=44,'chip disponível com alvo 44')
- await click(toggle)
- check(toggle.button_pressed and tray.use_shampoo,'toque seleciona xampu')
- await shot('banho_xampu')
+ tray.open_wheel()
  var sponge: Control=tray.item_node('sponge')
  point=tray.item_center('sponge')
  for pressed: bool in [true,false]:
@@ -89,6 +85,10 @@ func run() -> void:
   event.global_position=point
   sponge.gui_input.emit(event)
  await frames()
+ var option: Button=main.find_child('BathShampoo',true,false)
+ check(option != null and option.is_visible_in_tree(),'popup oferece xampu')
+ await shot('banho_xampu')
+ await click(option)
  check(state.inventory.count('herb_shampoo')==2 and state.progress.stat('shampoo_bath')==1,'toque no banho usa uma unidade')
  state.growth.phase='young'
  root.get_node('Events').state_changed.emit()

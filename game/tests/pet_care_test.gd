@@ -52,6 +52,10 @@ func tap(id: String) -> void:
 	var center: Vector2 = tray.call("item_center", id)
 	send(id, "press", center)
 	send(id, "release", center)
+	# Este helper exercita a ação padrão depois da escolha; roleta_test cobre o popup pelo viewport.
+	var option := main.find_child("BathPlain" if id == "sponge" else "PlayBall", true, false) as Button
+	if id in ["sponge", "ball"] and option and option.is_visible_in_tree():
+		option.pressed.emit()
 
 
 func drag_food(target: Vector2, id: String = "dog_food") -> void:

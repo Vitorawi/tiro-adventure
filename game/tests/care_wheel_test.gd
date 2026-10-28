@@ -189,6 +189,9 @@ func _caso_banho() -> void:
 	var before: float = state.get("dog").call("get_need", "hygiene", state.call("now"))
 	tap_disc(node("Care_sponge"))
 	await frames()
+	check(node("BathChoice") != null, "Banho abre as opções antes de agir")
+	(node("BathPlain") as Button).pressed.emit()
+	await frames()
 	var after: float = state.get("dog").call("get_need", "hygiene", state.call("now"))
 	check(after > before, "tocar e soltar o Banho dá banho (%s → %s)" % [before, after])
 	check(not wheel_open(), "escolher um cuidado fecha a roleta")
@@ -233,7 +236,12 @@ func _caso_pedido() -> void:
 		await frames()
 		match need:
 			"hunger": check(node("FoodMenu").visible, "atalho da fome abre o FoodMenu")
-			"hygiene", "happiness":
+			"hygiene":
+				check(node("BathChoice") != null, "atalho da higiene também oferece opções")
+				(node("BathPlain") as Button).pressed.emit()
+				await frames()
+				check(state.get("dog").call("get_need", need, state.call("now")) > before, "opção do atalho dá banho")
+			"happiness":
 				var after: float = state.get("dog").call("get_need", need, state.call("now"))
 				check(after > before, "atalho age na hora: " + need)
 			"energy": check(state.get("dog").sleeping, "atalho do sono dorme")

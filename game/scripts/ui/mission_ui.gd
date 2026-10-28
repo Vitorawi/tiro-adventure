@@ -121,6 +121,26 @@ static func button(kind: String, caption: String, on_pressed: Callable, width: f
 	return result
 
 
+## Estado plano no espaço do Ir: texto/ícone à direita, sem fundo ou entrada.
+static func done_status() -> Control:
+	var result := Control.new()
+	result.custom_minimum_size = BUTTON
+	result.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	result.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var row := UiKit.hbox(4)
+	row.name = "StatusRow"
+	row.alignment = BoxContainer.ALIGNMENT_END
+	result.add_child(row)
+	_fill(row)
+	row.add_child(UiKit.ctl("check", 14, Palette.GO))
+	var caption := text("Concluído", 14, Palette.GO, 0)
+	caption.name = "DoneText"
+	caption.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(caption)
+	return result
+
+
 ## Link de texto creme sublinhado (sem fundo), centralizado.
 static func link(caption: String, on_pressed: Callable) -> LinkButton:
 	var result := LinkButton.new()

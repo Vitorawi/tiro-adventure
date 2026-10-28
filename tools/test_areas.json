@@ -18,6 +18,7 @@
     "test_circuit_selftest"
   ],
   "suite": [
+    "missions_actions_test",
     "quest_reward_test",
     "farm_test",
     "progression_test",
@@ -59,6 +60,7 @@
     "tray_test",
     "station_tray_test",
     "care_wheel_test",
+    "roleta_test",
     "pet_care_test",
     "pet_anchor_test",
     "pet_feet_test",
@@ -196,10 +198,12 @@
         "game/tests/care_ui_test.gd",
         "game/tests/gestures_test.gd",
         "game/scripts/ui/hide_seek_ui.gd",
-        "game/tests/care_wheel_test.gd"
+        "game/tests/care_wheel_test.gd",
+        "game/tests/roleta_test.gd"
       ],
       "tests": [
         "care_wheel_test",
+        "roleta_test",
         "pet_care_test",
         "pet_anchor_test",
         "pet_feet_test",
@@ -234,6 +238,7 @@
         "game/tests/growth_story_test.gd",
         "game/tests/journey_test.gd",
         "game/tests/tasks_test.gd",
+        "game/tests/missions_actions_test.gd",
         "game/tests/tasks_groups_test.gd",
         "game/tests/npc_lines_test.gd",
         "game/tests/onboarding_test.gd",
@@ -243,6 +248,7 @@
       ],
       "tests": [
         "growth_story_test",
+        "missions_actions_test",
         "journey_test",
         "tasks_test",
         "tasks_groups_test",

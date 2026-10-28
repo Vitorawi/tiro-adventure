@@ -171,7 +171,8 @@ func _ui_check() -> void:
 	var chapter_bar := card.find_child("BarText", true, false) as Label
 	check(chapter_bar != null and chapter_bar.text == "0/7", "barra do capítulo mostra as missões feitas")
 	check(main.find_child("MissionFrame", true, false).visible, "moldura de madeira na História")
-	check(card.find_child("QuestGo_welcome", true, false) != null and card.find_child("ClaimQuest_welcome", true, false) == null, "missão em andamento: Ir, sem Pegar")
+	check(card.find_child("QuestGo_welcome", true, false) != null and (card.find_child("ClaimQuest_welcome", true, false) as Button).disabled, "missão em andamento: Ir e Pegar travado")
+	check((card.find_child("ClaimQuest_welcome", true, false) as Button).icon == null, "Pegar travado sem cadeado ou outro ícone")
 	var step: Control = main.find_child("NextStep", true, false)
 	check(step != null and not step.visible and (load("res://scripts/ui/quest_guide.gd") as GDScript).call("current").id == "welcome", "O próximo passo só aparece na tela do Tiro: oculto em Missões, mas o passo atual segue welcome")
 	check(main.find_child("MoodLabel", true, false).text == "Tiro está feliz da vida!", "Humor do Tiro substitui a instrução fixa (Etapa 09)")
@@ -189,6 +190,12 @@ func _ui_check() -> void:
 	state.get("progress").stats["talk:lais"] = 1
 	root.get_node("Events").emit_signal("state_changed")
 	check(main.get("_tasks_badge").text == "1", "Badge conta a principal pronta uma vez")
+	await process_frame
+	await process_frame
+	var done := main.find_child("StepDone_0", true, false) as Control
+	check(done != null and not done is Button and done.size == Vector2(104, 44) and done.mouse_filter == Control.MOUSE_FILTER_IGNORE and done.focus_mode == Control.FOCUS_NONE, "passo feito: status no espaço 104×44 sem toque ou foco")
+	check(done != null and done.find_child("DoneText", true, false).text == "Concluído" and not done.has_node("Frame") and done.find_children("*", "Button", true, false).is_empty(), "passo feito: Concluído plano sem botão")
+	check(main.find_child("StoryGoal_0", true, false).get_node("Art/Frame").self_modulate == Color(0.90, 1.0, 0.90), "cartão feito com tom verde")
 	state.get("progress").stats["talk:lais"] = 0
 	root.get_node("Events").emit_signal("state_changed")
 	await create_timer(0.2).timeout

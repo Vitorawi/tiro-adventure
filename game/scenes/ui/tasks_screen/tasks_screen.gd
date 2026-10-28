@@ -331,8 +331,8 @@ func _story_card(box: VBoxContainer) -> void:
 			guidance.name = "SharedQuestGuidance"
 			guidance.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			card.add_child(guidance)
-		_story_rewards(card, displayed, shared)
-		_story_steps(card, displayed, shared)
+		_story_rewards(card, displayed)
+		_story_steps(card, displayed)
 	var full := MissionUi.link("História completa ›", func() -> void: Events.sheet_requested.emit("História", ProgressionUi.story_panel()))
 	full.name = "StoryFull"
 	card.add_child(full)
@@ -405,7 +405,7 @@ func _story_hero(id: String, ids: Array[String]) -> Control:
 
 ## "Recompensas" (pílula centralizada) e o cartão de 88 px: prêmios à esquerda, coluna de 104 px à direita
 ## (pílula x/y e o botão), na mesma borda direita dos botões Ir.
-func _story_rewards(card: VBoxContainer, id: String, shared: bool) -> void:
+func _story_rewards(card: VBoxContainer, id: String) -> void:
 	var quest: Dictionary = Database.quests[id]
 	card.add_child(MissionUi.tag("Recompensas", "StoryRewardsTag"))
 	var rewards := MissionUi.card("card", Vector4i(12, 0, 12, 0), "StoryRewards", 10, 88.0)
@@ -439,27 +439,27 @@ func _story_rewards(card: VBoxContainer, id: String, shared: bool) -> void:
 	column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	column.add_child(MissionUi.pill("green" if met == quest.goals.size() else "brown", "%d/%d" % [met, quest.goals.size()], "StoryGoalsPill"))
 	row.add_child(column)
-	if shared:
-		column.add_child(MissionUi.button("go", "Ver em Pessoas", func() -> void:
-			_line = str(quest.line)
-			choose_group("characters"), MissionUi.BUTTON.x, 12))
-	else:
-		# Falta lugar no depósito (só com os objetivos cumpridos): leva ao depósito em vez do Pegar.
-		var shortage := GameState.quest_reward_shortage(id)
-		if not shortage.is_empty():
-			var depot := str(shortage.depot)
-			var space := MissionUi.button("go", "Liberar espaço", func() -> void: Places.go({"storage": depot}), MissionUi.BUTTON.x, 12)
-			space.name = "QuestSpace_" + id
-			column.add_child(space)
-		elif GameState.quest_error(id) == "":
-			var claim := MissionUi.button("claim", "Pegar", func() -> void: ProgressionUi.claim_quest_fx(id, rewards.get_global_rect().get_center()))
-			claim.name = "ClaimQuest_" + id
-			column.add_child(claim)
+	var claimed := GameState.progress.claimed_quests.has(id)
+	var ready := GameState.quest_error(id) == ""
+	var claim := MissionUi.button("go", "Resgatado" if claimed else "Pegar", func() -> void: ProgressionUi.claim_quest_fx(id, rewards.get_global_rect().get_center()))
+	claim.name = "ClaimQuest_" + id
+	claim.disabled = claimed or not ready
+	if claim.disabled:
+		claim.get_node("Frame").modulate = Color(0.48, 0.48, 0.48, 0.65)
+		claim.add_theme_color_override("font_disabled_color", Palette.WOOD_CREAM.darkened(0.28))
+	column.add_child(claim)
+	# Objetivos cumpridos com depósito cheio: mantém o caminho para liberar espaço.
+	var shortage := GameState.quest_reward_shortage(id)
+	if not claimed and not shortage.is_empty():
+		var depot := str(shortage.depot)
+		var space := MissionUi.button("go", "Liberar espaço", func() -> void: Places.go({"storage": depot}), MissionUi.BUTTON.x, 12)
+		space.name = "QuestSpace_" + id
+		column.add_child(space)
 
 
 ## "Passos": título centralizado e um cartão por objetivo. Linha 1: instrução + pílula n/m; linha 2: ícone 48×48
 ## e o botão Ir 104×44 (ou o ✓ no lugar dele).
-func _story_steps(card: VBoxContainer, id: String, shared: bool) -> void:
+func _story_steps(card: VBoxContainer, id: String) -> void:
 	var quest: Dictionary = Database.quests[id]
 	card.add_child(MissionUi.heading("Passos", "StoryStepsTitle"))
 	var first_open := -1
@@ -470,6 +470,8 @@ func _story_steps(card: VBoxContainer, id: String, shared: bool) -> void:
 		var complete := value >= target
 		if not complete and first_open < 0: first_open = i
 		var step := MissionUi.card("card", Vector4i(12, 12, 12, 12), "StoryGoal_%d" % i)
+		if complete:
+			step.get_node("Art/Frame").self_modulate = Color(0.90, 1.0, 0.90)
 		var lines := UiKit.vbox(8)
 		MissionUi.body(step).add_child(lines)
 		var top := UiKit.hbox(8)
@@ -497,18 +499,15 @@ func _story_steps(card: VBoxContainer, id: String, shared: bool) -> void:
 		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		bottom.add_child(spacer)
 		if complete:
-			var done_box := Control.new()
+			var done_box := MissionUi.done_status()
 			done_box.name = "StepDone_%d" % i
-			done_box.custom_minimum_size = MissionUi.BUTTON
-			var center := CenterContainer.new()
-			center.mouse_filter = Control.MOUSE_FILTER_IGNORE
-			done_box.add_child(center)
-			center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-			center.add_child(UiKit.ctl("check", 28, Palette.GO))
 			bottom.add_child(done_box)
-		elif not shared:
-			var target_place: Dictionary = ProgressionUi.quest_go_target(id) if i == first_open else Places.goal_target(goal)
-			var go := MissionUi.button("go", "Ir", func() -> void: Places.go(target_place))
+		else:
+			# Cada passo usa seu próprio destino, inclusive nas missões de Pessoas.
+			var target_place := Places.goal_target(goal)
+			var go := MissionUi.button("go", "Ir" if not target_place.is_empty() else "Como fazer", func() -> void:
+				if target_place.is_empty(): TaskHelp.open("quest", id)
+				else: Places.go(target_place), MissionUi.BUTTON.x, 16 if not target_place.is_empty() else 12)
 			go.name = ("QuestGo_" + id) if i == first_open else "GoalGo_%d" % i
 			bottom.add_child(go)
 		card.add_child(step)

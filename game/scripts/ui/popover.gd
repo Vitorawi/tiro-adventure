@@ -9,10 +9,11 @@ const EDGE := 8.0
 
 var _catcher: Control
 var _tween: Tween
+var _bottom_limit := -1.0
 
 
 ## Abre `content` logo abaixo de `anchor`, dentro de `host` (cobre a tela para pegar o toque de fora).
-static func open(host: Control, anchor: Control, content: Control, seconds: float = LIFETIME) -> Popover:
+static func open(host: Control, anchor: Control, content: Control, seconds: float = LIFETIME, bottom_limit: float = -1.0) -> Popover:
 	var old := host.get_node_or_null("PopoverCatcher")
 	if old:
 		old.free()
@@ -25,6 +26,7 @@ static func open(host: Control, anchor: Control, content: Control, seconds: floa
 	var popover := Popover.new()
 	popover.name = "Popover"
 	popover._catcher = catcher
+	popover._bottom_limit = bottom_limit
 	popover.theme_type_variation = &"CardPanel"
 	var style := UiKit.surface(Palette.CARD, 16, true)
 	style.set_content_margin_all(12)
@@ -50,10 +52,11 @@ func _place(host: Control, anchor: Control) -> void:
 	var origin := anchor.global_position - host.global_position
 	var x := clampf(origin.x, EDGE, maxf(EDGE, host.size.x - size.x - EDGE))
 	var y := origin.y + anchor.size.y + GAP
+	var bottom := minf(host.size.y - EDGE, _bottom_limit) if _bottom_limit >= 0.0 else host.size.y - EDGE
 	# Cuidados ficam no rodapé: sem espaço abaixo, abre acima do botão.
-	if y + size.y > host.size.y - EDGE:
+	if y + size.y > bottom:
 		y = origin.y - size.y - GAP
-	y = clampf(y, EDGE, maxf(EDGE, host.size.y - size.y - EDGE))
+	y = clampf(y, EDGE, maxf(EDGE, bottom - size.y))
 	position = Vector2(x, y)
 	var tip := Vector2(clampf(origin.x + anchor.size.x / 2 - x, 16, maxf(16, size.x - 16)), 0 if y > origin.y else size.y)
 	set_meta("tail_tip", tip)

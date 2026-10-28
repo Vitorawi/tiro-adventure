@@ -202,7 +202,7 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 			if key == "wish" or key.begins_with("wish:"):
 				return _base("Desejo do Tiro", "Toque no balão do Tiro, faça o que ele pede e toque em Pegar ou Dar. Atender rende um momento para crescer.", {"screen": "pet"}, "Ir")
 			if key == "shampoo_bath":
-				var result := _base("Banho com xampu", "Aba Tiro → marque Com xampu e dê Banho.", {"screen": "pet"}, "Ir")
+				var result := _base("Banho com xampu", "Aba Tiro → Banho → Com xampu.", {"screen": "pet"}, "Ir")
 				if GameState.inventory.count("herb_shampoo") < 1:
 					result.needs.append(_need("item", "herb_shampoo", 1))
 				return result
