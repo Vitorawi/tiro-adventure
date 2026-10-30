@@ -165,7 +165,7 @@ func _ui_check() -> void:
 	await create_timer(0.2).timeout
 	var card: Control = main.find_child("StoryCard", true, false)
 	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
-	check(not main.find_child("GroupTabs", true, false).visible, "só História no início não desenha seletor")
+	check(main.find_child("GroupTabs", true, false).is_visible_in_tree() and main.find_child("NotebookTab_story", true, false) != null and main.find_child("NotebookTab_characters", true, false).has_meta("locked") and main.find_child("NotebookTab_timed", true, false).has_meta("locked"), "início: as três abas aparecem, Pessoas e Diárias com cadeado")
 	check(card.find_child("StoryHero", true, false) != null and card.find_child("StoryRewards", true, false) != null and card.find_child("StoryGoal_0", true, false) != null, "história: cartão do topo, recompensas e passos")
 	check(card.find_child("ChapterSteps", true, false) == null, "lista antiga de passos do capítulo saiu")
 	var chapter_bar := card.find_child("BarText", true, false) as Label
@@ -222,7 +222,7 @@ func _ui_check() -> void:
 	await process_frame
 	check(tasks.find_child("LineDetail_bloblo", true, false) != null, "abrir Bloblo mostra o detalhe da missão")
 	check(tasks.find_child("StoryCard", true, false) == null, "personagens não repetem a principal")
-	check(not tasks.find_child("MissionFrame", true, false).visible, "Pessoas não tem a moldura da História")
+	check(tasks.find_child("MissionFrame", true, false).visible, "Pessoas também tem a moldura de madeira")
 	state.call("dev_jump_to_chapter", 3)
 	await create_timer(2.2).timeout
 	main.get_node("Celebration").hide()

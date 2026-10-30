@@ -44,37 +44,83 @@ func _check(ok: bool, message: String) -> void:
 		print("  FALHOU: ", message)
 
 
-## Imprime os retângulos da História e confere simetria, alinhamento dos cartões, botões 104×44 e a barra de abas.
+func _g(path: String) -> Rect2:
+	var tasks := main.find_child("TasksScreen", true, false) as Control
+	var node := tasks.find_child(path, true, false)
+	return _r(node) if node else Rect2()
+
+
+## Retângulos globais da moldura, da bandeja e da lista: devem ficar idênticos entre reconstruções e trocas de aba.
+func _snapshot() -> Array[Rect2]:
+	var tasks := main.find_child("TasksScreen", true, false) as Control
+	return [_r(tasks.get_node("MissionFrame/Frame")), _g("GroupTabs"), _g("Scroll")]
+
+
+func _same(before: Array[Rect2], label: String) -> void:
+	var now := _snapshot()
+	for i in before.size():
+		var names: Array[String] = ["moldura", "bandeja", "lista"]
+		var moved := maxf(maxf(absf(now[i].position.x - before[i].position.x), absf(now[i].position.y - before[i].position.y)), maxf(absf(now[i].size.x - before[i].size.x), absf(now[i].size.y - before[i].size.y)))
+		_check(moved <= 0.5, "%s: %s mexeu %.2f px" % [label, names[i], moved])
+		if moved > 0.0:
+			print("  (%s: %s mexeu %.3f)" % [label, names[i], moved])
+	print("  estável ", label, " ", _fmt(now[0]), " | ", _fmt(now[1]), " | ", _fmt(now[2]))
+
+
+## Força o LiveBox a reconstruir 3 vezes e confere que nada mudou de lugar; depois troca Principal → Pessoas → Diárias → Principal.
+func _stability(tag: String, groups: Array[String]) -> void:
+	var tasks := main.find_child("TasksScreen", true, false)
+	var before := _snapshot()
+	var live: Object = tasks.get("_content")
+	for i in 3:
+		live.call("refresh")
+		await create_timer(0.15).timeout
+		await RenderingServer.frame_post_draw
+		_same(before, "%s rebuild %d" % [tag, i + 1])
+	var first_group := str(tasks.get("_group"))
+	for id: String in groups:
+		tasks.call("choose_group", id)
+		await create_timer(0.25).timeout
+		await RenderingServer.frame_post_draw
+		_same(before, "%s grupo %s" % [tag, id])
+	tasks.call("choose_group", first_group)
+	await create_timer(0.25).timeout
+	_same(before, "%s volta %s" % [tag, first_group])
+
+
+## Imprime os retângulos e confere simetria, bandeja centralizada na borda de cima, alinhamento dos cartões, botões 104×44 e a barra de abas.
 func _report(tag: String, width: int) -> void:
 	var tasks := main.find_child("TasksScreen", true, false) as Control
 	var holder := tasks.get_node("MissionFrame") as Control
-	if not holder.visible:
-		print("[%dx? %s] sem moldura (outro grupo)" % [width, tag])
-		return
+	_check(holder.visible, "moldura deve aparecer em todos os grupos")
 	print("[%d %s]" % [width, tag])
 	var frame := _r(holder.get_node("Frame"))
-	var scroll := _r(tasks.find_child("Scroll", true, false))
-	var plaque := _r(tasks.find_child("ChapterPlaque", true, false))
+	var scroll := _g("Scroll")
+	var tray := _g("GroupTabs")
 	var bar_top := INF
 	for node_name: String in ["TabBarArt", "TabBar"]:
 		var bar := main.find_child(node_name, true, false) as Control
 		if bar:
 			bar_top = minf(bar_top, bar.get_global_rect().position.y)
 			print("  ", node_name, " ", _fmt(bar.get_global_rect()))
-	print("  tela    ", _fmt(tasks.get_global_rect()), " holder ", _fmt(holder.get_global_rect()), " min ", tasks.get_combined_minimum_size())
 	print("  moldura ", _fmt(frame))
-	print("  placa   ", _fmt(plaque))
+	print("  bandeja ", _fmt(tray))
 	print("  scroll  ", _fmt(scroll))
 	var screen := float(width)
 	_check(absf(frame.position.x - (screen - frame.end.x)) <= 1.0, "moldura assimétrica: esquerda %.1f direita %.1f" % [frame.position.x, screen - frame.end.x])
 	_check(absf(frame.position.x - 8.0) <= 1.0, "margem da moldura != 8")
 	_check(frame.end.y <= bar_top + 0.5 and scroll.end.y <= bar_top + 0.5, "moldura/scroll passam do topo da barra de abas")
-	_check(absf(plaque.get_center().x - frame.get_center().x) <= 1.0 and absf(plaque.get_center().y - frame.position.y) <= 1.0, "placa fora do centro da borda de cima")
-	_check(absf(plaque.size.x - frame.size.x * 0.78) <= 2.0, "placa != 78% da moldura")
-	var tabs := main.find_child("GroupTabs", true, false) as Control
-	if tabs.visible:
-		_check(plaque.position.y - tabs.get_global_rect().end.y <= 8.5, "folga entre abas e placa > 8")
+	_check(absf(tray.get_center().x - frame.get_center().x) <= 1.0 and absf(tray.get_center().y - frame.position.y) <= 1.0, "bandeja fora do centro da borda de cima")
+	# Bandeja cheia = 86% da moldura; com menos grupos ela encolhe e cada aba mantém um terço da cheia.
+	var tab_count := tasks.find_children("NotebookTab_*", "Button", true, false).size()
+	var full := roundf(frame.size.x * 0.86)
+	var want := 12.0 + tab_count * (full - 20.0) / 3.0 + (tab_count - 1) * 4.0
+	_check(absf(tray.size.x - want) <= 2.0, "bandeja com %d abas: %.1f != %.1f" % [tab_count, tray.size.x, want])
 	_check(scroll.position.x >= frame.position.x + 30.0 and screen - scroll.end.x >= 8.0 + 30.0, "lista fora do interior da moldura")
+	for tab: Node in tasks.find_children("NotebookTab_*", "Button", true, false):
+		var rect := _r(tab)
+		print("  aba ", tab.name, " ", _fmt(rect), " selo ", tab.find_child("NewBadge", true, false) != null)
+		_check(rect.size.y >= 44.0 and rect.position.x >= tray.position.x and rect.end.x <= tray.end.x, "aba %s fora da bandeja ou menor que 44 px" % tab.name)
 	var cards: Array[Rect2] = []
 	for node: Node in tasks.find_children("StoryHero", "Control", true, false) + tasks.find_children("StoryRewards", "Control", true, false) + tasks.find_children("StoryGoal_*", "Control", true, false):
 		cards.append(_r(node))
@@ -83,7 +129,8 @@ func _report(tag: String, width: int) -> void:
 		_check(absf(rect.position.x - cards[0].position.x) <= 0.5 and absf(rect.size.x - cards[0].size.x) <= 0.5, "cartões com x/largura diferentes")
 		_check(rect.position.x >= scroll.position.x - 0.5 and rect.end.x <= scroll.end.x + 0.5, "cartão fora do scroll")
 	var ends: Array[float] = []
-	for node: Node in tasks.find_children("*", "Button", true, false):
+	var story := tasks.find_child("StoryCard", true, false)
+	for node: Node in (story.find_children("*", "Button", true, false) if story else []):
 		var button_name := String(node.name)
 		if button_name.begins_with("QuestGo_") or button_name.begins_with("GoalGo_") or button_name.begins_with("ClaimQuest_") or button_name.begins_with("QuestSpace_"):
 			var rect := _r(node)
@@ -92,6 +139,44 @@ func _report(tag: String, width: int) -> void:
 			ends.append(rect.end.x)
 	for end_x: float in ends:
 		_check(absf(end_x - ends[0]) <= 0.5, "botões com borda direita diferente")
+
+
+## Abre a "História completa" pelo link, num capítulo do meio (passados, atual e futuros), e confere o livro.
+func _book_shot() -> void:
+	var tasks := main.find_child("TasksScreen", true, false)
+	var full := tasks.find_child("StoryFull", true, false) as LinkButton
+	_check(full != null, "StoryFull não existe")
+	if full == null:
+		return
+	full.pressed.emit()
+	await create_timer(0.5).timeout
+	var book := main.get_node_or_null("StoryBook") as Control
+	_check(book != null, "StoryFull não abriu o StoryBook")
+	if book == null:
+		return
+	var width := float(int(root.get_visible_rect().size.x))
+	var frame_node := book.find_child("Frame", true, false) as Control
+	var frame := _r(frame_node)
+	var close := book.find_child("StoryClose", true, false) as Control
+	var bar_top := INF
+	for node_name: String in ["TabBarArt", "TabBar"]:
+		var bar := main.find_child(node_name, true, false) as Control
+		if bar:
+			bar_top = minf(bar_top, bar.get_global_rect().position.y)
+	print("[%d livro] moldura %s | X %s" % [int(width), _fmt(frame), _fmt(_r(close))])
+	_check(absf(frame.position.x - (width - frame.end.x)) <= 1.0 and absf(frame.position.x - 8.0) <= 1.0, "livro: moldura assimétrica")
+	_check(frame.end.y <= bar_top + 0.5, "livro: moldura passa do topo da barra de abas")
+	_check(close.size.x >= 44.0 and close.size.y >= 44.0, "StoryClose menor que 44 px")
+	_check(book.find_children("BookChapter_*", "Control", true, false).size() >= 3, "livro sem capítulos")
+	var plaque := _r(book.find_child("ChapterPlaque", true, false))
+	print("  placa ", _fmt(plaque))
+	_check(absf(plaque.get_center().x - frame.get_center().x) <= 1.0 and absf(plaque.get_center().y - frame.position.y) <= 1.0, "livro: placa fora do centro da borda")
+	var scroll := _r(book.find_child("BookScroll", true, false))
+	_check(scroll.position.x >= frame.position.x + 30.0 and scroll.end.x <= frame.end.x - 30.0, "livro: lista fora do interior da moldura")
+	await shot("i_historia_completa", 0.3)
+	close.emit_signal("pressed")
+	await create_timer(0.2).timeout
+	_check(main.get_node_or_null("StoryBook") == null, "StoryClose não fechou o livro")
 
 
 func _hide_modals() -> void:
@@ -161,6 +246,7 @@ func _run() -> void:
 	state.get("progress").stats["talk:lais"] = 1
 	state.call("_changed")
 	await shot("b_pronta", 0.6)
+	await _stability("principal", [] as Array[String])
 	# (c) vários objetivos, um deles feito.
 	await _scene("c_varios", "main_5_cooking", "adult", func(p: Object) -> void:
 		p.stats["produce:carrot_snack"] = 2)
@@ -168,11 +254,34 @@ func _run() -> void:
 	var scroll := tasks.find_child("Scroll", true, false) as ScrollContainer
 	scroll.scroll_vertical = 100000
 	await shot("c_varios_fim", 0.5)
+	await _book_shot()
 	# (d) história que segue com outra pessoa.
 	await _scene("d_compartilhada", "teeth_3_ring", "puppy")
-	# Grupo Pessoas (continua liso).
+	# Três abas: Pessoas e Diárias com "!".
+	state.call("dev_unlock_everything")
+	await create_timer(2.2).timeout
+	_hide_modals()
+	var progress: Object = state.get("progress")
+	for id: String in ["main_9_coop", "nina_walk", "lais_album"]:
+		progress.claimed_quests.erase(id)
+	state.get("inventory").call("from_dict", {})
+	for kind: String in ["daily", "weekly"]:
+		for id: String in state.call("routine_ids", kind):
+			var goal: Dictionary = state.call("routine_data", kind, id).goal
+			progress.stats[goal.key] = progress.stat(goal.key) + int(state.call("routine_target", kind, id))
+	state.call("_changed")
+	main.call("show_screen", &"pet")
+	await create_timer(0.3).timeout
+	_hide_modals()
+	main.call("show_screen", &"tasks")
+	tasks.call("choose_group", "story")
+	await shot("g_tres_abas", 0.6)
+	await _stability("tres_abas", ["characters", "timed", "story"] as Array[String])
 	tasks.call("choose_group", "characters")
 	await shot("f_pessoas", 0.5)
+	tasks.call("choose_group", "timed")
+	await shot("h_diarias", 0.5)
+	tasks.call("choose_group", "story")
 	# (e) história concluída.
 	state.call("dev_unlock_everything")
 	await create_timer(2.2).timeout

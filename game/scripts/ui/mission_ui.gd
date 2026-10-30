@@ -243,6 +243,7 @@ static func title_tag(value: String) -> Control:
 	label.name = "TitleText"
 	label.clip_text = true
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	tap_full_text(label)
 	result.add_child(label)
 	_fill(label)
 	label.offset_left = 7.0
@@ -311,6 +312,180 @@ static func plaque(value: String, width: float) -> Control:
 	return result
 
 
+## Altura da bandeja de abas e da aba (pixels finais). A aba tem o alvo de toque mínimo de 44 px.
+const TRAY_HEIGHT := 56.0
+const TAB_HEIGHT := 44.0
+
+
+## Bandeja de madeira com uma aba por grupo (`entries`: id, text, alert). A escolhida é amarela, as outras de madeira;
+## `alert` põe o selo vermelho "!" (nó `NewBadge`) no canto de cima. Cada aba é um Button `NotebookTab_<id>`.
+## Quem chama dá posição e tamanho (largura qualquer, altura `TRAY_HEIGHT`); as abas se dividem por igual.
+static func tabs(entries: Array[Dictionary], selected: String, on_choose: Callable) -> Control:
+	var result := Control.new()
+	result.name = "GroupTabs"
+	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result.custom_minimum_size = Vector2(0, TRAY_HEIGHT)
+	frame(result, "tabs_tray", Vector4(28, 0, 28, 0), "Tray")
+	var row := HBoxContainer.new()
+	row.name = "TabRow"
+	row.add_theme_constant_override("separation", 4)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result.add_child(row)
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.offset_left = 6.0
+	row.offset_right = -6.0
+	row.offset_top = (TRAY_HEIGHT - TAB_HEIGHT) / 2.0
+	row.offset_bottom = -(TRAY_HEIGHT - TAB_HEIGHT) / 2.0
+	for entry: Dictionary in entries:
+		var id := str(entry.id)
+		var on := id == selected
+		var locked := str(entry.get("locked", ""))
+		var tab := BagUi.plain_button(on_choose.bind(id) if locked == "" else func() -> void:
+			Events.notice_requested.emit("info", locked, ""))
+		tab.name = "NotebookTab_" + id
+		tab.custom_minimum_size = Vector2(0, TAB_HEIGHT)
+		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tab.size_flags_stretch_ratio = 1.0
+		var art := frame(tab, "tab_on" if on else "tab_off", Vector4(22, 0, 22, 0), "Frame")
+		art.show_behind_parent = true
+		tab.text = str(entry.text)
+		tab.clip_text = true
+		tab.theme = HomeUi.theme(17, Palette.WOOD_INK, Palette.WOOD_INK, 0)
+		row.add_child(tab)
+		if locked != "":
+			# Grupo ainda fechado: aba apagada com cadeado; o toque só explica quando libera.
+			tab.set_meta("locked", locked)
+			tab.text = ""
+			var inside := HBoxContainer.new()
+			inside.alignment = BoxContainer.ALIGNMENT_CENTER
+			inside.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			inside.add_theme_constant_override("separation", 4)
+			tab.add_child(inside)
+			inside.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+			# Disquinho creme com o cadeado escuro: aparece bem sobre a madeira escura.
+			var lock := PanelContainer.new()
+			lock.name = "TabLock"
+			lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			lock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			var disc := StyleBoxFlat.new()
+			disc.bg_color = Palette.WOOD_CREAM
+			disc.set_corner_radius_all(12)
+			disc.set_content_margin_all(4)
+			lock.add_theme_stylebox_override("panel", disc)
+			lock.add_child(UiKit.ctl("lock", 16, Palette.WOOD_INK))
+			inside.add_child(lock)
+			inside.add_child(text(str(entry.text), 16, Palette.WOOD_CREAM, 3))
+		if entry.get("alert", false):
+			var mark := TextureRect.new()
+			mark.name = "NewBadge"
+			mark.texture = tex("tab_badge")
+			mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			mark.stretch_mode = TextureRect.STRETCH_SCALE
+			mark.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+			mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			tab.add_child(mark)
+			mark.anchor_left = 1.0
+			mark.anchor_right = 1.0
+			mark.offset_left = -22.0
+			mark.offset_right = 4.0
+			mark.offset_top = -13.0
+			mark.offset_bottom = 14.0
+	return result
+
+
+## Pílula creme com o nome do capítulo (nó `ChapterPlaque`): uma linha, a fonte encolhe até 13.
+static func chapter_pill(value: String, width: float) -> Control:
+	var font := load(HomeUi.FONT) as Font
+	var px := 18
+	while px > 13 and font.get_string_size(value, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x > width - 28.0:
+		px -= 1
+	var result := Control.new()
+	result.name = "ChapterPlaque"
+	result.custom_minimum_size = Vector2(width, 30)
+	result.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame(result, "chapter_pill", Vector4(15, 0, 15, 0), "Frame")
+	var label := text(value, px, Palette.WOOD_INK, 0)
+	label.name = "ChapterTitle"
+	label.clip_text = true
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	tap_full_text(label)
+	result.add_child(label)
+	_fill(label)
+	label.offset_left = 10.0
+	label.offset_right = -10.0
+	return result
+
+
+## Texto cortado com "…": tocar nele abre um balão pequeno com o texto inteiro (nó `FullText`). Sem corte, o toque
+## segue normal para quem está embaixo (ex.: a linha que abre o detalhe).
+static func tap_full_text(label: Label) -> void:
+	label.mouse_filter = Control.MOUSE_FILTER_PASS
+	label.gui_input.connect(func(event: InputEvent) -> void:
+		var click := event as InputEventMouseButton
+		if click == null or click.pressed or click.button_index != MOUSE_BUTTON_LEFT or not is_cut(label):
+			return
+		var host := label.get_tree().root.find_child("Main", true, false) as Control
+		if host == null:
+			return
+		label.accept_event()
+		var full := UiKit.label(label.text, &"SmallLabel", Palette.INK)
+		full.name = "FullText"
+		full.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		Popover.open(host, label, full, 0.0))
+
+
+## O rótulo esconde parte do texto (linhas além do limite ou uma linha mais larga que ele)?
+static func is_cut(label: Label) -> bool:
+	if label.autowrap_mode != TextServer.AUTOWRAP_OFF:
+		return label.max_lines_visible > 0 and label.get_line_count() > label.max_lines_visible
+	var font := label.get_theme_font("font")
+	var px := label.get_theme_font_size("font_size")
+	return font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, px).x > label.size.x + 1.0
+
+
+## Cabeçalho de seção ("Hoje", "Esta semana"): duas pílulas creme separadas, cada uma do tamanho do próprio texto
+## (na altura original da arte, 30 px, sem esticar): título à esquerda, relógio + tempo à direita.
+static func section_pill(value: String, time_text: String, node_name: String = "") -> Control:
+	var result := HBoxContainer.new()
+	if node_name != "":
+		result.name = node_name
+	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var title := text(value, 17, Palette.WOOD_INK, 0)
+	title.name = "SectionTitle"
+	result.add_child(_small_pill([title], "SectionTitlePill"))
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result.add_child(spacer)
+	var clock := UiKit.ctl("clock", 16, Palette.WOOD_INK)
+	clock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var time := text(time_text, 15, Palette.WOOD_INK, 0)
+	time.name = "SectionTime"
+	result.add_child(_small_pill([clock, time], "SectionTimePill"))
+	return result
+
+
+## Pílula creme de 30 px de altura que cresce só na largura (pontas da arte preservadas). É um Control simples, não
+## um container: um container redimensionaria a NinePatch (que é desenhada em escala 1/3) e quebraria a arte.
+static func _small_pill(children: Array[Control], node_name: String) -> Control:
+	var pill := Control.new()
+	pill.name = node_name
+	pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame(pill, "chapter_pill", Vector4(15, 0, 15, 0), "Frame")
+	var row := HBoxContainer.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 4)
+	pill.add_child(row)
+	for child: Control in children:
+		row.add_child(child)
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	pill.custom_minimum_size = Vector2(maxf(row.get_combined_minimum_size().x + 36.0, 64.0), 30)
+	return pill
+
+
 ## Plaquinha marrom de seção ("Recompensas"), centralizada.
 static func tag(value: String, node_name: String = "") -> Control:
 	return pill("brown", value, node_name, Vector2(120, 24))
@@ -346,3 +521,8 @@ static func help_button(on_pressed: Callable) -> Button:
 	disc.add_child(mark)
 	_fill(mark)
 	return result
+
+
+## Abre a janela "História completa" (nó `StoryBook`) por cima da tela.
+static func story_book() -> Control:
+	return StoryBook.open()

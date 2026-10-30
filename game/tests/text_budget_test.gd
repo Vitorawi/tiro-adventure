@@ -9,7 +9,7 @@ const BUDGET := {
 	"tiro": 6,
 	"missoes_historia": 8,
 	"missoes_pessoas": 6,
-	"missoes_diarias": 6,
+	"missoes_diarias": 9,  # + bandeja Principal e cabeçalhos "Hoje"/"Esta semana" em pílulas
 	"mochila": 6,
 	"fogao": 4,
 	"horta": 4,

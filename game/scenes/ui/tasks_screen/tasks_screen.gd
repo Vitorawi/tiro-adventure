@@ -9,52 +9,55 @@ var _ready_characters: Array[String] = []
 var _seen_quests: Array[String] = []
 var _claim_all: Button
 var _animate_detail := ""
-## Moldura de madeira atrás do grupo História (some nos outros grupos) e o vão que a separa das abas.
+## Moldura de madeira atrás da lista (nos três grupos) e a bandeja de abas por cima da borda de cima.
+## A geometria é só função do tamanho da tela e do topo da barra de abas: nada é medido depois do layout.
 var _frame_holder: Control
 var _frame: NinePatchRect
-var _title_holder: Control
-var _plaque: Control
-var _gap: Control
-var _gap_fixed := false
-var _fit_queued := false
+var _tabs_holder: Control
+var _tabs: Control
+var _tabs_sig := ""
+## A bandeja começa logo abaixo da linha 1 do HUD: a linha 2 fica vazia nesta tela (o "Pegar tudo" mora na lista).
+var _content_top := Hud.ROW2_TOP
 
 const FRAME_SIDE := 8.0   # margem da moldura até a borda da tela, igual dos dois lados
 const BORDER := 30.0      # madeira da moldura
 const PAD := 12.0         # folga entre a madeira e a lista
 const STORY_EDGE := 50.0  # FRAME_SIDE + BORDER + PAD: da borda da tela até o conteúdo
+const TABS_WIDTH := 0.86  # largura da bandeja em relação à moldura
 
 func _ready() -> void:
-	_build_story_frame()
+	_build_frame()
 	_content = SheetBuilder.LiveBox.new(_build)
 	%Holder.add_child(_content)
 	visibility_changed.connect(_visibility_changed)
+	_layout.call_deferred()
 
 
-## Moldura de madeira atrás da lista (como a Mochila, mas só no retângulo da lista), placa do título por cima da borda
-## de cima e um vão acima dela para as abas não encostarem.
-func _build_story_frame() -> void:
+func _build_frame() -> void:
+	# Fundo da tela inteira igual ao da Mochila (madeira com o papel creme até o topo); o quadro fica na frente.
+	add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	var backdrop := Control.new()
+	backdrop.name = "MissionBackdrop"
+	backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(backdrop)
+	move_child(backdrop, 0)
+	BagUi.frame(backdrop, "frame", Vector4(14, 150, 14, 77), "Frame")
 	_frame_holder = Control.new()
 	_frame_holder.name = "MissionFrame"
 	_frame_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_frame_holder)
-	move_child(_frame_holder, 0)
+	move_child(_frame_holder, 1)
 	_frame = MissionUi.frame(_frame_holder, "frame", Vector4(BORDER, BORDER, BORDER, BORDER), "Frame", Vector4.ZERO, false)
-	_title_holder = Control.new()
-	_title_holder.name = "MissionTitle"
-	_title_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_title_holder)
-	_gap = Control.new()
-	_gap.name = "MissionGap"
-	_gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	%Scroll.get_parent().add_child(_gap)
-	%Scroll.get_parent().move_child(_gap, %Scroll.get_index())
-	%Scroll.item_rect_changed.connect(_queue_fit)
-	resized.connect(_queue_fit)
-	_set_story_look(true)
+	_tabs_holder = Control.new()
+	_tabs_holder.name = "MissionTabs"
+	_tabs_holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_tabs_holder)
+	(%Scroll as ScrollContainer).vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
+	resized.connect(_layout)
 
 
-## Topo da barra de abas (a arte ou o painel, o que estiver mais alto): a moldura termina logo acima.
-func _bar_top() -> float:
+## Barra de abas da casca (arte ou painel, o que estiver mais alto), em coordenadas locais deste painel.
+func _bar_top_local() -> float:
 	var host := get_tree().root.find_child("Main", true, false)
 	var top := INF
 	if host:
@@ -62,83 +65,65 @@ func _bar_top() -> float:
 			var bar := host.find_child(node_name, true, false) as Control
 			if bar and bar.is_visible_in_tree():
 				top = minf(top, bar.get_global_rect().position.y)
-	return top if top != INF else global_position.y + size.y - 96.0
+				if not bar.resized.is_connected(_layout):
+					bar.resized.connect(_layout)
+	return (top - global_position.y) if top != INF else size.y - 96.0
 
 
-## Os sinais de layout só marcam o ajuste: ele roda uma vez no fim do quadro (nada de recursão dentro do layout).
-func _queue_fit() -> void:
-	if _fit_queued:
-		return
-	_fit_queued = true
-	_fit_frame.call_deferred()
+## Largura da tela: nunca a do conteúdo (um texto largo não pode alargar a moldura nem a bandeja).
+func _screen_width() -> float:
+	return minf(size.x, get_viewport_rect().size.x)
 
 
-func _frame_width() -> float:
-	return maxf(size.x, 360.0) - 2.0 * FRAME_SIDE
+func _frame_top() -> float:
+	return _content_top + MissionUi.TRAY_HEIGHT / 2.0
 
 
-## Placa do capítulo: 78% da largura da moldura, metade fora da borda de cima. O vão acima da lista acompanha a altura dela.
-func _set_plaque(value: String) -> void:
-	for child: Node in _title_holder.get_children():
-		_title_holder.remove_child(child)
-		child.queue_free()
-	_plaque = MissionUi.plaque(value, roundf(_frame_width() * 0.78))
-	_title_holder.add_child(_plaque)
-	var tabs_gap := 12.0 if (%GroupTabs as Control).visible else 0.0
-	_gap.custom_minimum_size = Vector2(0, 8.0 + _plaque.size.y / 2.0 + BORDER + PAD - 12.0 - tabs_gap)
-	_gap_fixed = false
-	_queue_fit()
-
-
-## A moldura fica FRAME_SIDE px da borda dos dois lados (medido na tela, não no nó), logo abaixo do vão das abas e
-## termina acima da barra de abas; a lista fica recortada no interior marrom (borda + PAD de folga).
-func _fit_frame() -> void:
-	_fit_queued = false
-	if not _frame_holder.visible or not is_inside_tree():
+## Posiciona moldura, bandeja e lista a partir de: tamanho da tela, `_content_top` e topo da barra de abas.
+## Roda só em resized/visibilidade/mudança da barra (nunca na reconstrução de 1 s do conteúdo).
+func _layout() -> void:
+	if not is_inside_tree() or size.x <= 0.0:
 		return
 	var panel := get_theme_stylebox("panel")
-	var rect := get_global_rect()
-	var bottom := _bar_top() - 2.0
+	var inset := panel.get_margin(SIDE_LEFT)
+	var side := roundi(STORY_EDGE - inset)
+	var top := _frame_top()
+	var bottom := _bar_top_local() - 2.0
+	var scroll_top := top + BORDER + PAD
 	var scroll_end := bottom - BORDER - PAD
-	var want := rect.end.y - panel.get_margin(SIDE_BOTTOM) - scroll_end
-	if absf(float($Margin.get_theme_constant("margin_bottom")) - want) > 0.5:
-		$Margin.add_theme_constant_override("margin_bottom", roundi(want))
-		_queue_fit()
-		return
-	var top := (%Scroll as Control).get_global_rect().position.y - BORDER - PAD
-	# A placa começa 8 px abaixo das abas (ou do topo da lista, sem abas): o vão se ajusta até bater.
-	var tabs := %GroupTabs as Control
-	var tabs_bottom := tabs.get_global_rect().end.y if tabs.visible else ($Margin/Layout as Control).get_global_rect().position.y
-	var delta := top - (_plaque.size.y / 2.0 if _plaque else 0.0) - (tabs_bottom + 8.0)
-	if absf(delta) > 0.5 and not _gap_fixed:
-		_gap_fixed = true  # uma correção só por montagem: sem laço entre o vão e o layout
-		_gap.custom_minimum_size = Vector2(0, maxf(0.0, _gap.custom_minimum_size.y - delta))
-		_queue_fit()
-		return
-	_frame.global_position = Vector2(rect.position.x + FRAME_SIDE, top)
-	_frame.size = Vector2(rect.size.x - 2.0 * FRAME_SIDE, bottom - top) * 3.0
-	if _plaque:
-		_plaque.global_position = Vector2(rect.position.x + rect.size.x / 2.0 - _plaque.size.x / 2.0, top - _plaque.size.y / 2.0)
+	var margins := {
+		"margin_left": side,
+		"margin_right": side,
+		"margin_top": roundi(scroll_top - panel.get_margin(SIDE_TOP)),
+		"margin_bottom": roundi(size.y - panel.get_margin(SIDE_BOTTOM) - scroll_end),
+	}
+	for key: String in margins:
+		if $Margin.get_theme_constant(key) != int(margins[key]):
+			$Margin.add_theme_constant_override(key, int(margins[key]))
+	# Os dois suportes são filhos diretos do PanelContainer: a origem deles é a margem do estilo.
+	var origin := Vector2(inset, panel.get_margin(SIDE_TOP))
+	var frame_width := _screen_width() - 2.0 * FRAME_SIDE
+	_frame.position = Vector2(FRAME_SIDE, top) - origin
+	_frame.size = Vector2(frame_width, bottom - top) * 3.0
+	_place_tabs()
 
 
-func _set_story_look(on: bool) -> void:
-	_frame_holder.visible = on
-	_title_holder.visible = on
-	_gap.visible = on
-	(%Scroll as ScrollContainer).vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER if on else ScrollContainer.SCROLL_MODE_AUTO
-	# O painel do tema já recua o conteúdo (margem do estilo); a lista fica a STORY_EDGE px da borda da tela.
-	var inset := get_theme_stylebox("panel").get_margin(SIDE_LEFT)
-	var side := roundi(STORY_EDGE - inset) if on else 16
-	$Margin.add_theme_constant_override("margin_left", side)
-	$Margin.add_theme_constant_override("margin_right", side)
-	if not on:
-		$Margin.add_theme_constant_override("margin_bottom", 96)
-	else:
-		_queue_fit()
+func _place_tabs() -> void:
+	if _tabs == null or not is_instance_valid(_tabs):
+		return
+	var panel := get_theme_stylebox("panel")
+	# Cada aba tem sempre a largura de um terço da bandeja cheia: com menos grupos a bandeja encolhe (não estica a aba).
+	var full := roundf((_screen_width() - 2.0 * FRAME_SIDE) * TABS_WIDTH)
+	var count := maxi(1, _tabs.get_node("TabRow").get_child_count())
+	var tab_width := (full - 12.0 - 8.0) / 3.0
+	var tabs_width := roundf(12.0 + count * tab_width + (count - 1) * 4.0)
+	_tabs.position = Vector2(roundf(_screen_width() / 2.0 - tabs_width / 2.0) - panel.get_margin(SIDE_LEFT), _content_top - panel.get_margin(SIDE_TOP))
+	_tabs.size = Vector2(tabs_width, MissionUi.TRAY_HEIGHT)
 
 
 func _visibility_changed() -> void:
 	if not is_visible_in_tree(): _mark_people_seen()
+	else: _layout()
 	sync_hud()
 
 func _mark_people_seen() -> void:
@@ -148,7 +133,7 @@ func _mark_people_seen() -> void:
 	GameState.mark_seen(keys)
 
 func _build(box: VBoxContainer) -> void:
-	box.add_theme_constant_override("separation", 12)
+	box.add_theme_constant_override("separation", 20 if _group == "timed" else 12)
 	_ready_routines.clear()
 	_ready_characters.clear()
 	for kind: String in ["daily", "weekly"]:
@@ -159,7 +144,7 @@ func _build(box: VBoxContainer) -> void:
 		for id: String in ids:
 			if GameState.quest_error(id) == "": _ready_characters.append(id)
 	_update_groups(characters)
-	_set_story_look(_group == "story")
+	_add_claim_all(box)
 	match _group:
 		"story": _story_card(box)
 		"characters": _characters(box, characters)
@@ -169,43 +154,45 @@ func _build(box: VBoxContainer) -> void:
 	sync_hud()
 
 func _update_groups(characters: Dictionary) -> void:
-	for child: Node in %GroupTabs.get_children():
-		%GroupTabs.remove_child(child)
-		child.queue_free()
 	if _group == "characters" and characters.is_empty(): _group = "story"
 	if _group == "timed" and not GameState.routines_unlocked("daily"): _group = "story"
 	var current := GameState.progress.current_main_quest()
-	var entries: Array[Dictionary] = [{"id": "story", "text": "História", "icon": UiKit.ui_icon("tab_tasks")}]
-	if current != "" and GameState.quest_error(current) == "": entries[0].count = 1
-	if not characters.is_empty():
-		var npc := str(Database.quests[_ready_characters[0]].get("npc", "bloblo")) if not _ready_characters.is_empty() else "bloblo"
-		entries.append({"id": "characters", "text": "Pessoas", "icon": ProgressionUi.npc_portrait(npc)})
-		if not _ready_characters.is_empty(): entries.back().count = _ready_characters.size()
-	if GameState.routines_unlocked("daily"):
-		entries.append({"id": "timed", "text": "Diárias", "icon": UiKit.ctl_icon("clock")})
-		if not _ready_routines.is_empty(): entries.back().count = _ready_routines.size()
-	for entry: Dictionary in entries: entry.inline_icon = true
-	%GroupTabs.visible = entries.size() > 1
-	%GroupTabs.add_child(UiKit.segmented(entries, _group, choose_group))
+	var entries: Array[Dictionary] = [{"id": "story", "text": "Principal", "alert": current != "" and GameState.quest_error(current) == ""}]
+	# As três abas aparecem sempre (o topo é igual em todos os grupos); as fechadas ganham cadeado e explicam no toque.
+	entries.append({"id": "characters", "text": "Pessoas", "alert": not _ready_characters.is_empty(),
+		"locked": "" if not characters.is_empty() else "Pessoas libera quando alguém da vila te pedir ajuda"})
+	entries.append({"id": "timed", "text": "Diárias", "alert": not _ready_routines.is_empty(),
+		"locked": "" if GameState.routines_unlocked("daily") else "Diárias liberam mais adiante na história"})
+	# As abas só são recriadas quando algo visível muda; a bandeja não mexe de lugar nem a cada segundo.
+	var sig := _group
+	for entry: Dictionary in entries: sig += "|%s:%s:%s" % [entry.id, entry.alert, entry.get("locked", "")]
+	if sig == _tabs_sig and _tabs != null and is_instance_valid(_tabs): return
+	_tabs_sig = sig
+	if _tabs != null and is_instance_valid(_tabs):
+		_tabs_holder.remove_child(_tabs)
+		_tabs.queue_free()
+	_tabs = MissionUi.tabs(entries, _group, choose_group)
+	_tabs_holder.add_child(_tabs)
+	_place_tabs()
 
 ## A casca chama depois de trocar a tela, liberando o espaço dos anéis do Tiro.
 func sync_hud() -> void:
 	var host := get_tree().root.find_child("Main", true, false)
 	if not host: return
 	var hud := host.find_child("TopBar", true, false) as Hud
-	if _claim_all:
-		if _claim_all.get_parent(): _claim_all.get_parent().remove_child(_claim_all)
-		_claim_all.queue_free()
-		_claim_all = null
-	if not is_visible_in_tree(): return
-	hud.set_row2_right(null)
+	if is_visible_in_tree(): hud.set_row2_right(null)
+
+
+## "Pegar tudo" no topo da lista, à direita (fora do HUD: a bandeja não anda quando ele aparece).
+func _add_claim_all(box: VBoxContainer) -> void:
 	var count := _ready_routines.size() if _group == "timed" else (_ready_characters.size() if _group == "characters" else 0)
 	if count < 2: return
 	_claim_all = UiKit.small_go("Pegar tudo (%d)" % count, func() -> void:
 		if _group == "timed": ProgressionUi.claim_routine_rows(_content, _ready_routines.duplicate())
 		else: _claim_characters(_ready_characters.duplicate()))
 	_claim_all.name = "ClaimAllRoutines" if _group == "timed" else "ClaimAllCharacters"
-	hud.set_row2_right(_claim_all)
+	_claim_all.size_flags_horizontal = Control.SIZE_SHRINK_END
+	box.add_child(_claim_all)
 
 func choose_group(id: String) -> void:
 	if _group == "characters" and id != _group: _mark_people_seen()
@@ -273,16 +260,22 @@ func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 		meta.add_child(UiKit.short_label("%d/%d" % [mini(GameState.goal_value(goal), target), target], &"SmallLabel", Palette.GO_INK if ready else Palette.INK_SOFT))
 		var action := UiKit.small_go("Pegar", func() -> void: _claim_characters([id])) if ready else UiKit.row_chevron(choose_line.bind(line))
 		action.name = "ClaimQuest_" + id if ready else "OpenLine_" + line
-		var row := UiKit.list_row(ProgressionUi.npc_portrait(str(quest.npc)), str(quest.name), [meta], action, choose_line.bind(line), ready)
+		# Linha sempre branca (o verde fica no Pegar e no n/n); o Pegar fica à direita, como nas Diárias.
+		var row := UiKit.list_row(ProgressionUi.npc_portrait(str(quest.npc)), str(quest.name), [meta], action, choose_line.bind(line), false)
 		row.name = "LineCard_" + line
 		row.set_meta("quest", id)
 		var top := row.get_child(0).get_child(0) as HBoxContainer
 		_compact_name(top)
+		# Nomes de missão de pessoa são longos: quebram em até duas linhas em vez de cortar.
+		for node: Node in top.find_children("*", "Label", true, false):
+			var title := node as Label
+			if title.theme_type_variation == &"":
+				title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				title.max_lines_visible = 2
+				title.clip_text = false
+				title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		var face := top.get_child(0) as PanelContainer
 		(face.get_child(0) as TextureRect).custom_minimum_size = Vector2(44, 44)
-		if ready:
-			top.remove_child(action)
-			meta.add_child(action)
 		if not ready and int(quest.rewards.get("coins", 0)) > 0:
 			meta.add_child(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(quest.rewards.get("coins", 0)), null, "prize"))
 		var seen_key := "ui:quest_new:" + id
@@ -318,7 +311,8 @@ func _story_card(box: VBoxContainer) -> void:
 	card.name = "StoryCard"
 	box.add_child(card)
 	var finished: bool = index > Database.progression.chapters.size()
-	_set_plaque("História" if finished else str(GameState.current_chapter().get("name", "História")))
+	var pill := MissionUi.chapter_pill("História" if finished else str(GameState.current_chapter().get("name", "História")), roundf((_screen_width() - 2.0 * STORY_EDGE) * 0.86))
+	card.add_child(pill)
 	if finished:
 		_story_done(card)
 		return
@@ -333,7 +327,7 @@ func _story_card(box: VBoxContainer) -> void:
 			card.add_child(guidance)
 		_story_rewards(card, displayed)
 		_story_steps(card, displayed)
-	var full := MissionUi.link("História completa ›", func() -> void: Events.sheet_requested.emit("História", ProgressionUi.story_panel()))
+	var full := MissionUi.link("História completa ›", func() -> void: MissionUi.story_book())
 	full.name = "StoryFull"
 	card.add_child(full)
 
@@ -351,7 +345,7 @@ func _story_done(card: VBoxContainer) -> void:
 	var album := MissionUi.button("go", "Álbum", func() -> void: PetNotebook.open("album"))
 	album.name = "StoryAlbum"
 	card.add_child(album)
-	var full := MissionUi.link("História completa ›", func() -> void: Events.sheet_requested.emit("História", ProgressionUi.story_panel()))
+	var full := MissionUi.link("História completa ›", func() -> void: MissionUi.story_book())
 	full.name = "StoryFull"
 	card.add_child(full)
 
@@ -380,6 +374,7 @@ func _story_hero(id: String, ids: Array[String]) -> Control:
 	speech.max_lines_visible = 2
 	speech.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	speech.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	MissionUi.tap_full_text(speech)
 	info.add_child(speech)
 	var done := 0
 	for step: String in ids:
@@ -426,7 +421,7 @@ func _story_rewards(card: VBoxContainer, id: String) -> void:
 		if not GameState.progress.collection.has(collection):
 			entries.append({"icon": UiKit.ui_icon("item_accessory_set"), "amount": "+1", "name": "Prize_" + collection})
 	# 56×56; com três prêmios eles encolhem para caber ao lado da coluna de 104 px.
-	var room := (maxf(size.x, 360.0) - 2.0 * STORY_EDGE) - 24.0 - MissionUi.BUTTON.x - 8.0
+	var room := (_screen_width() - 2.0 * STORY_EDGE) - 24.0 - MissionUi.BUTTON.x - 8.0
 	var edge := minf(56.0, floorf((room - 8.0 * (entries.size() - 1)) / maxf(1.0, entries.size())))
 	for entry: Dictionary in entries:
 		prizes.add_child(MissionUi.tile(entry.icon, entry.amount, entry.name, Vector2(edge, edge)))
@@ -522,7 +517,7 @@ func _routines(box: VBoxContainer, kind: String) -> void:
 	var section := UiKit.vbox(8)
 	section.name = "Routines_" + kind
 	box.add_child(section)
-	section.add_child(UiKit.section("Hoje" if kind == "daily" else "Semana", UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(GameState.routine_seconds_left(kind)), null, "time")))
+	section.add_child(MissionUi.section_pill("Hoje" if kind == "daily" else "Esta semana", TimeText.short(GameState.routine_seconds_left(kind)), "RoutineHeader_" + kind))
 	var list := UiKit.list_card(section)
 	var shown := 0
 	for id: String in GameState.routine_ids(kind):
@@ -534,7 +529,7 @@ func _routines(box: VBoxContainer, kind: String) -> void:
 		var ready := GameState.routine_error(kind, id) == ""
 		var key := kind + "_" + id
 		var action := UiKit.small_go("Pegar", func() -> void: ProgressionUi.claim_routine_rows(_content, [{"kind": kind, "id": id}])) if ready else UiKit.row_chevron(choose_routine_detail.bind(kind, id))
-		var row := UiKit.list_row(null, str(data.name), [UiKit.short_label("%d/%d" % [value, target], &"SmallLabel", Palette.GO_INK if ready else Palette.INK_SOFT)], action, choose_routine_detail.bind(kind, id), ready)
+		var row := UiKit.list_row(null, str(data.name), [UiKit.short_label("%d/%d" % [value, target], &"SmallLabel", Palette.GO_INK if ready else Palette.INK_SOFT)], action, choose_routine_detail.bind(kind, id), false)
 		row.name = "Routine_" + key
 		var top := row.get_child(0).get_child(0) as HBoxContainer
 		_compact_name(top)
@@ -566,8 +561,10 @@ func _compact_name(top: HBoxContainer) -> void:
 			title.autowrap_mode = TextServer.AUTOWRAP_OFF
 			title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 			title.clip_text = true
+			MissionUi.tap_full_text(title)
 
 
-## A casca sobe o conteúdo quando a linha 2 do HUD está vazia (história concluída): `top` = margem de cima.
-func set_content_top(top: float) -> void:
-	$Margin.add_theme_constant_override("margin_top", roundi(top))
+## A casca avisa quando a linha 2 do HUD esvazia ou enche; esta tela ignora: o topo é sempre logo abaixo do HUD
+## completo, para a moldura e a bandeja não andarem ao trocar de aba ou ao aparecer o "Pegar tudo".
+func set_content_top(_top: float) -> void:
+	pass

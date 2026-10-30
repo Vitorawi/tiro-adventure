@@ -49,13 +49,14 @@ func _run() -> void:
 	state.get("progress").stats["talk:lais"] = 1
 	state.call("_changed")
 	await frames()
-	check(not tasks.find_child("GroupTabs", true, false).visible and main.get("_tasks_badge").text == "1", "grupo único some; principal pronta continua avisando na aba Missões")
+	check(tasks.find_child("GroupTabs", true, false).is_visible_in_tree() and main.get("_tasks_badge").text == "1", "aba Principal fica visível; principal pronta continua avisando na aba Missões")
 	for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 		root.size = viewport
 		await frames()
 		var tabs: Control = tasks.find_child("GroupTabs", true, false)
 		check(tabs.size.x <= viewport.x, "grupos cabem em %d" % viewport.x)
-		check(not tabs.visible and tasks.find_child("NotebookTab_story", true, false) == null, "grupo único não deixa pílula cortada em %d" % viewport.x)
+		var only := tasks.find_child("NotebookTab_story", true, false) as Control
+		check(only != null and only.find_child("NewBadge", true, false) != null and tabs.get_global_rect().encloses(only.get_global_rect()) and only.size.y >= 44.0, "aba Principal única, com selo e sem corte em %d" % viewport.x)
 		await capture("principal")
 	state.call("dev_unlock_everything")
 	state.call("_mark_all_seen")

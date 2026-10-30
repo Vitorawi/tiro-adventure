@@ -160,7 +160,7 @@ func _other_claim_paths() -> void:
 	main.find_child("TasksScreen", true, false).call("choose_group", "characters")
 	await frames()
 	var all := main.find_child("ClaimAllCharacters", true, false) as Button
-	check(all != null and all.get_parent().name == "Row2Right", "Pegar tudo de Pessoas fica na linha 2")
+	check(all != null and main.find_child("TasksScreen", true, false).is_ancestor_of(all), "Pegar tudo de Pessoas fica no topo da lista (fora do HUD)")
 	var before := gains.size()
 	if all: all.pressed.emit()
 	await flush()
@@ -168,7 +168,8 @@ func _other_claim_paths() -> void:
 	check(not main.get("_quest_reward").visible, "Pegar tudo de Pessoas não abre folha")
 	main.call("show_screen", &"pet")
 	await frames()
-	check(main.find_child("ClaimAllCharacters", true, false) == null, "atalho de Pessoas sai do HUD")
+	var leftover := main.find_child("ClaimAllCharacters", true, false) as Control
+	check(leftover == null or not leftover.is_visible_in_tree(), "atalho de Pessoas some fora da aba Missões")
 	clear_modals()
 
 func _full_storage() -> void:
