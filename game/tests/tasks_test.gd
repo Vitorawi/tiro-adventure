@@ -169,7 +169,7 @@ func _ui_check() -> void:
 	check(card.find_child("StoryHero", true, false) != null and card.find_child("StoryRewards", true, false) != null and card.find_child("StoryGoal_0", true, false) != null, "história: cartão do topo, recompensas e passos")
 	check(card.find_child("ChapterSteps", true, false) == null, "lista antiga de passos do capítulo saiu")
 	var chapter_bar := card.find_child("BarText", true, false) as Label
-	check(chapter_bar != null and chapter_bar.text == "0/7", "barra do capítulo mostra as missões feitas")
+	check(chapter_bar != null and chapter_bar.text == "0/1", "barra do cartão mostra o progresso da missão atual")
 	check(main.find_child("MissionFrame", true, false).visible, "moldura de madeira na História")
 	check(card.find_child("QuestGo_welcome", true, false) != null and (card.find_child("ClaimQuest_welcome", true, false) as Button).disabled, "missão em andamento: Ir e Pegar travado")
 	check((card.find_child("ClaimQuest_welcome", true, false) as Button).icon == null, "Pegar travado sem cadeado ou outro ícone")

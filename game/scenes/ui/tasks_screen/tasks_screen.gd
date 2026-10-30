@@ -258,8 +258,10 @@ func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 		var meta := UiKit.hbox(4)
 		meta.add_child(UiKit.icon(ProgressionUi.goal_icon(goal), 20))
 		meta.add_child(UiKit.short_label("%d/%d" % [mini(GameState.goal_value(goal), target), target], &"SmallLabel", Palette.GO_INK if ready else Palette.INK_SOFT))
-		var action := UiKit.small_go("Pegar", func() -> void: _claim_characters([id])) if ready else UiKit.row_chevron(choose_line.bind(line))
-		action.name = "ClaimQuest_" + id if ready else "OpenLine_" + line
+		# Aberta, o Pegar fica só dentro do detalhe (laranja); a linha mostra a setinha para recolher.
+		var quick := ready and _line != line
+		var action := UiKit.small_go("Pegar", func() -> void: _claim_characters([id])) if quick else UiKit.row_chevron(choose_line.bind(line))
+		action.name = "ClaimQuest_" + id if quick else "OpenLine_" + line
 		# Linha sempre branca (o verde fica no Pegar e no n/n); o Pegar fica à direita, como nas Diárias.
 		var row := UiKit.list_row(ProgressionUi.npc_portrait(str(quest.npc)), str(quest.name), [meta], action, choose_line.bind(line), false)
 		row.name = "LineCard_" + line
@@ -299,7 +301,7 @@ func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 				Motion.pop_in(detail)
 				_animate_detail = ""
 			var disc := action.find_child("RowChevron", true, false) as Control
-			if not ready and disc:
+			if disc:
 				disc.pivot_offset = Vector2(10, 10)
 				disc.rotation = PI / 2
 
@@ -316,10 +318,9 @@ func _story_card(box: VBoxContainer) -> void:
 	if finished:
 		_story_done(card)
 		return
-	var ids := GameState.progress.main_quests(index)
 	if displayed != "":
 		var shared := str(Database.quests[current].get("shared_with", "")) != ""
-		card.add_child(_story_hero(displayed, ids))
+		card.add_child(_story_hero(displayed))
 		if shared:
 			var guidance := MissionUi.text("A história segue com " + str(Database.npcs.get(str(Database.quests[displayed].npc), {}).get("name", "")), 13, Palette.WOOD_CREAM, 3)
 			guidance.name = "SharedQuestGuidance"
@@ -351,7 +352,7 @@ func _story_done(card: VBoxContainer) -> void:
 
 
 ## Cartão do topo: retrato 84×84, e à direita (mesma borda) título, fala (até 2 linhas) e a barra do capítulo.
-func _story_hero(id: String, ids: Array[String]) -> Control:
+func _story_hero(id: String) -> Control:
 	var quest: Dictionary = Database.quests[id]
 	var hero := MissionUi.card("hero", Vector4i(8, 8, 8, 8), "StoryHero", 12)
 	var row := UiKit.hbox(8)
@@ -376,10 +377,23 @@ func _story_hero(id: String, ids: Array[String]) -> Control:
 	speech.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	MissionUi.tap_full_text(speech)
 	info.add_child(speech)
-	var done := 0
-	for step: String in ids:
-		if GameState.progress.claimed_quests.has(step): done += 1
-	info.add_child(MissionUi.bar(float(done) / maxi(1, ids.size()), "%d/%d" % [done, ids.size()]))
+	# Barra = progresso desta missão: cada passo pesa igual e conta a parte já feita (ex.: 3 de 5 cenouras).
+	var goals: Array = quest.get("goals", [])
+	var share := 0.0
+	var met := 0
+	var value := 0
+	var target := 1
+	for goal: Dictionary in goals:
+		target = maxi(1, int(goal.get("target", 1)))
+		value = mini(GameState.goal_value(goal), target)
+		share += float(value) / target
+		if value >= target: met += 1
+	var claimed := GameState.progress.claimed_quests.has(id)
+	var fraction := 1.0 if claimed or goals.is_empty() else share / goals.size()
+	var caption := "%d/%d" % [value, target] if goals.size() == 1 else "%d/%d" % [met, goals.size()]
+	var bar := MissionUi.bar(fraction, caption)
+	bar.name = "StoryBar"
+	info.add_child(bar)
 	var overlay := Control.new()
 	overlay.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hero.add_child(overlay)
@@ -458,7 +472,15 @@ func _story_steps(card: VBoxContainer, id: String) -> void:
 	var quest: Dictionary = Database.quests[id]
 	card.add_child(MissionUi.heading("Passos", "StoryStepsTitle"))
 	var first_open := -1
+	# Passos por fazer primeiro, concluídos embaixo (o nome do nó mantém o índice original do objetivo).
+	var order: Array[int] = []
+	var finished: Array[int] = []
 	for i in quest.goals.size():
+		var check_goal: Dictionary = quest.goals[i]
+		if GameState.goal_value(check_goal) >= int(check_goal.get("target", 1)): finished.append(i)
+		else: order.append(i)
+	order.append_array(finished)
+	for i: int in order:
 		var goal: Dictionary = quest.goals[i]
 		var target := int(goal.get("target", 1))
 		var value := mini(GameState.goal_value(goal), target)
@@ -508,8 +530,78 @@ func _story_steps(card: VBoxContainer, id: String) -> void:
 		card.add_child(step)
 
 
+## Detalhe aberto dentro da linha da pessoa, com as peças da Principal em tamanho compacto: um passo por linha
+## (quadradinho do ícone, instrução, pílula n/m e Ir laranja ou "Concluído"; por fazer primeiro) e, embaixo,
+## os prêmios em quadradinhos com o Pegar laranja (apagado enquanto falta algo).
 func _quest_detail(box: VBoxContainer, id: String) -> void:
-	ProgressionUi.character_quest_detail(box, id)
+	var quest: Dictionary = Database.quests[id]
+	var order: Array[int] = []
+	var finished: Array[int] = []
+	for i in quest.goals.size():
+		var check_goal: Dictionary = quest.goals[i]
+		if GameState.goal_value(check_goal) >= int(check_goal.get("target", 1)): finished.append(i)
+		else: order.append(i)
+	order.append_array(finished)
+	var first_open := true
+	for i: int in order:
+		var goal: Dictionary = quest.goals[i]
+		var target := int(goal.get("target", 1))
+		var value := mini(GameState.goal_value(goal), target)
+		var complete := value >= target
+		var row := UiKit.hbox(8)
+		row.name = "PersonGoal_%d" % i
+		row.add_child(MissionUi.tile(ProgressionUi.goal_icon(goal), "", "", Vector2(44, 44)))
+		var info := UiKit.vbox(4)
+		info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(info)
+		var words := MissionUi.text(str(goal.get("label", "")), 13, Palette.WOOD_INK, 0, HORIZONTAL_ALIGNMENT_LEFT)
+		words.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		words.max_lines_visible = 2
+		words.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		MissionUi.tap_full_text(words)
+		info.add_child(words)
+		# Coluna da direita (88 px): pílula n/m em cima e, embaixo, o Ir ou o "Concluído".
+		var column := UiKit.vbox(4)
+		column.custom_minimum_size = Vector2(88, 0)
+		column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(column)
+		var count := MissionUi.pill("green" if complete else "brown", "%d/%d" % [value, target], "", Vector2(88, 22))
+		column.add_child(count)
+		if complete:
+			var done_box := MissionUi.done_status()
+			done_box.custom_minimum_size = Vector2(88, 28)
+			column.add_child(done_box)
+		else:
+			var place := Places.goal_target(goal)
+			var go := MissionUi.button("go", "Ir" if not place.is_empty() else "Como fazer", func() -> void:
+				if place.is_empty(): TaskHelp.open("quest", id)
+				else: Places.go(place), 88.0, 16 if not place.is_empty() else 11)
+			go.name = ("QuestGo_" + id) if first_open else "GoalGo_%d" % i
+			first_open = false
+			column.add_child(go)
+		box.add_child(row)
+	# Prêmios e o Pegar, na mesma coluna de 88 px dos Ir.
+	var bottom := UiKit.hbox(8)
+	bottom.name = "PersonRewards"
+	var prizes := UiKit.hbox(6)
+	prizes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	prizes.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	bottom.add_child(prizes)
+	var gains: Dictionary = quest.rewards
+	if int(gains.get("coins", 0)) > 0:
+		prizes.add_child(MissionUi.tile(UiKit.ui_icon("coin"), "+%d" % int(gains.coins), "Prize_coins", Vector2(44, 44)))
+	for item: String in gains.get("items", {}):
+		prizes.add_child(MissionUi.tile(Database.item_icon(item), "+%d" % int(gains.items[item]), "Prize_" + item, Vector2(44, 44)))
+	var ready := GameState.quest_error(id) == ""
+	var claim := MissionUi.button("go", "Pegar", func() -> void: _claim_characters([id]), 88.0)
+	claim.name = "DetailClaim_" + id
+	claim.disabled = not ready
+	if claim.disabled:
+		claim.get_node("Frame").modulate = Color(0.48, 0.48, 0.48, 0.65)
+		claim.add_theme_color_override("font_disabled_color", Palette.WOOD_CREAM.darkened(0.28))
+	bottom.add_child(claim)
+	box.add_child(bottom)
 
 
 func _routines(box: VBoxContainer, kind: String) -> void:

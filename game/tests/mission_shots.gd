@@ -279,6 +279,14 @@ func _run() -> void:
 	await _stability("tres_abas", ["characters", "timed", "story"] as Array[String])
 	tasks.call("choose_group", "characters")
 	await shot("f_pessoas", 0.5)
+	# Pessoa escolhida: mesmo layout da Principal (cartão, Recompensas, Passos).
+	var first_line := tasks.find_child("LineCard_*", true, false)
+	if first_line:
+		tasks.call("choose_line", str(first_line.name).trim_prefix("LineCard_"))
+		await shot("j_pessoa_detalhe", 0.6)
+		_check(tasks.find_child("LineDetail_*", true, false) != null and tasks.find_child("PersonRewards", true, false) != null, "detalhe da pessoa abre dentro da linha, com prêmios e Pegar")
+		tasks.call("choose_line", str(tasks.get("_line")))
+		await create_timer(0.3).timeout
 	tasks.call("choose_group", "timed")
 	await shot("h_diarias", 0.5)
 	tasks.call("choose_group", "story")
