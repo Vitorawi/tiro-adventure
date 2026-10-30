@@ -194,53 +194,10 @@ func _on_pressed() -> void:
 	Popover.open(host, self, NextStep.card(id), 0.0)
 
 
-## Mini-cartão (02 §2.2): fala curta, objetivos, prêmios e `?` + `Ir` (ou "Liberar espaço"). Estático: dá para
-## montar sem a casca. Os botões fecham o `PopoverCatcher` mais próximo.
+## Mini-cartão da madeira ilustrada (`StepCardUi`): retrato + fala, uma linha por objetivo com barra, prêmios, `?` e
+## `Ir` (ou "Liberar espaço"). Estático: dá para montar sem a casca. Os botões fecham o `PopoverCatcher` mais próximo.
 static func card(id: String) -> Control:
-	var quest: Dictionary = Database.quests[id]
-	var box := UiKit.vbox(8)
-	box.name = "StepCard"
-	box.custom_minimum_size.x = 264
-	var head := UiKit.hbox(8)
-	var face := UiKit.disc(ProgressionUi.npc_portrait(str(quest.get("npc", ""))), 40, 40)
-	face.clip_children = CanvasItem.CLIP_CHILDREN_AND_DRAW
-	head.add_child(face)
-	var speech := UiKit.short_label(str(quest.get("dialogue", quest.get("name", ""))), &"")
-	speech.name = "StepSpeech"
-	speech.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	speech.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	speech.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	speech.custom_minimum_size.x = 200
-	head.add_child(speech)
-	box.add_child(head)
-	for goal: Dictionary in quest.goals:
-		box.add_child(ProgressionUi.goal_row(goal, GameState.goal_value(goal)))
-	var prizes := ProgressionUi.reward_chips(quest.get("rewards", {}))
-	if prizes.get_child_count() > 0:
-		box.add_child(prizes)
-	var shortage := GameState.quest_reward_shortage(id)
-	var actions := UiKit.hbox(8)
-	var help := UiKit.ctl_button("help", func() -> void:
-		_close_popover()
-		TaskHelp.open("quest", id), 40, "sunken")
-	help.name = "StepCardHelp"
-	actions.add_child(help)
-	if shortage.is_empty():
-		var go := UiKit.primary("Ir", func() -> void:
-			_close_popover()
-			Places.go(Places.quest_target(id)))
-		go.name = "StepCardGo"
-		go.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		actions.add_child(go)
-	else:
-		var space := UiKit.primary("Liberar espaço", func() -> void:
-			_close_popover()
-			Places.go({"storage": str(shortage.depot)}))
-		space.name = "StepCardSpace"
-		space.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		actions.add_child(space)
-	box.add_child(actions)
-	return box
+	return StepCardUi.build(id)
 
 
 static func _close_popover() -> void:

@@ -10,6 +10,7 @@ const EDGE := 8.0
 var _catcher: Control
 var _tween: Tween
 var _bottom_limit := -1.0
+var _bare := false
 
 
 ## Abre `content` logo abaixo de `anchor`, dentro de `host` (cobre a tela para pegar o toque de fora).
@@ -28,9 +29,14 @@ static func open(host: Control, anchor: Control, content: Control, seconds: floa
 	popover._catcher = catcher
 	popover._bottom_limit = bottom_limit
 	popover.theme_type_variation = &"CardPanel"
-	var style := UiKit.surface(Palette.CARD, 16, true)
-	style.set_content_margin_all(12)
-	popover.add_theme_stylebox_override("panel", style)
+	# `popover_bare`: o conteúdo traz a própria moldura (ex.: o mini-cartão de madeira); sem cartão branco nem rabinho.
+	popover._bare = content.has_meta("popover_bare")
+	if popover._bare:
+		popover.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	else:
+		var style := UiKit.surface(Palette.CARD, 16, true)
+		style.set_content_margin_all(12)
+		popover.add_theme_stylebox_override("panel", style)
 	popover.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Texto com quebra automática não fornece largura mínima ao PanelContainer.
 	popover.custom_minimum_size.x = minf(200.0, maxf(0.0, host.size.x - EDGE * 2.0))
@@ -51,6 +57,8 @@ func _place(host: Control, anchor: Control) -> void:
 	reset_size()
 	var origin := anchor.global_position - host.global_position
 	var x := clampf(origin.x, EDGE, maxf(EDGE, host.size.x - size.x - EDGE))
+	if _bare:
+		x = maxf(EDGE, (host.size.x - size.x) / 2.0)  # cartão com moldura própria e sem rabinho: centralizado na tela
 	var y := origin.y + anchor.size.y + GAP
 	var bottom := minf(host.size.y - EDGE, _bottom_limit) if _bottom_limit >= 0.0 else host.size.y - EDGE
 	# Cuidados ficam no rodapé: sem espaço abaixo, abre acima do botão.
@@ -65,7 +73,7 @@ func _place(host: Control, anchor: Control) -> void:
 
 
 func _draw() -> void:
-	if not has_meta("tail_tip"): return
+	if _bare or not has_meta("tail_tip"): return
 	var tip: Vector2 = get_meta("tail_tip")
 	var direction := 1.0 if bool(get_meta("tail_above")) else -1.0
 	draw_colored_polygon(PackedVector2Array([tip + Vector2(-8, 0), tip + Vector2(0, direction * 8), tip + Vector2(8, 0)]), Palette.CARD)

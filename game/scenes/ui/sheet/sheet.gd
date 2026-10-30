@@ -40,6 +40,8 @@ var _last_y := 0.0
 var _last_msec := 0
 var _velocity := 0.0
 var _close_button: Button
+var _wood := false  # folha em madeira ilustrada (opt-in do conteúdo: meta `sheet_wood`)
+var _wood_art: Node2D
 
 
 func _ready() -> void:
@@ -47,9 +49,7 @@ func _ready() -> void:
 	_dim.color = Palette.SCRIM
 	_dim.gui_input.connect(_on_dim_input)
 	# Botão redondo com o ícone "✕" próprio (a fonte pixel art não tem o glifo).
-	_close_button = UiKit.ctl_button("x", close, 32, "sunken")
-	_close_button.name = "CloseButton"
-	%Header.add_child(_close_button)
+	_make_close_button()
 	_handle.draw.connect(_draw_handle)
 	_handle.gui_input.connect(_drag_input)
 	_title.gui_input.connect(_drag_input)
@@ -79,6 +79,7 @@ func open(title: String, content: Control) -> void:
 		_content_holder.remove_child(child)
 		child.queue_free()
 	_clear_actions()
+	_set_wood(bool(content.get_meta("sheet_wood", false)))
 	_title.text = title
 	_fit_content = bool(content.get_meta("sheet_fit_content", false))
 	if content.has_meta("sheet_actions"):
@@ -257,7 +258,7 @@ func _animate_top(top: float, back: bool = false) -> void:
 # --- Arrastar para fechar -------------------------------------------------------------
 
 func _draw_handle() -> void:
-	_handle.draw_style_box(UiKit.surface(Palette.LINE, 3), Rect2((_handle.size.x - 40.0) / 2.0, 0.0, 40.0, 5.0))
+	_handle.draw_style_box(UiKit.surface(Color(Palette.WOOD_INK, 0.3) if _wood else Palette.LINE, 3), Rect2((_handle.size.x - 40.0) / 2.0, 0.0, 40.0, 5.0))
 
 
 ## O próprio painel só arrasta pela faixa do topo; o resto pertence à rolagem do conteúdo.
@@ -339,3 +340,96 @@ func _on_dim_input(event: InputEvent) -> void:
 	var button := event as InputEventMouseButton
 	if button and button.pressed:
 		close()
+
+
+# --- Madeira ilustrada (opt-in) -------------------------------------------------------
+
+const WOOD_SIDE := 6.0  # a moldura passa da borda da tela dos lados e embaixo (some fora), sobra só a madeira de cima
+const WOOD_BOTTOM := 64.0
+const WOOD_MARGIN := Vector4(24.0, 18.0, 24.0, 14.0)  # espaço do conteúdo: esq, cima, dir, baixo
+const WOOD_BORDER := 14.0  # canto do NinePatch, em pixels finais
+
+
+## Botão de fechar: o redondo liso de sempre ou o X de madeira (`mission_close.png`, alvo 44). Mantém o nome `CloseButton`.
+func _make_close_button() -> void:
+	var old := _close_button
+	var index := -1
+	if old != null:
+		index = old.get_index()
+		%Header.remove_child(old)
+		old.free()
+	if _wood:
+		_close_button = BagUi.plain_button(close)
+		_close_button.custom_minimum_size = Vector2(44, 44)
+		var art := TextureRect.new()
+		art.texture = MissionUi.tex("close")
+		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art.stretch_mode = TextureRect.STRETCH_SCALE
+		art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_close_button.add_child(art)
+		art.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+		art.offset_left = -20.0
+		art.offset_right = 20.0
+		art.offset_top = -20.0
+		art.offset_bottom = 20.0
+		_close_button.pressed.connect(func() -> void: Motion.bounce(art))
+	else:
+		_close_button = UiKit.ctl_button("x", close, 32, "sunken")
+	_close_button.name = "CloseButton"
+	%Header.add_child(_close_button)
+	if index >= 0:
+		%Header.move_child(_close_button, index)
+
+
+## Liga/desliga a madeira: moldura de madeira com papel creme (NinePatch 1/3 desenhado por um Node2D que o
+## PanelContainer não organiza), título marrom na fonte da madeira e X de madeira. Folhas comuns ficam como estavam.
+func _set_wood(on: bool) -> void:
+	if on == _wood:
+		return
+	_wood = on
+	if on:
+		var margins := StyleBoxEmpty.new()
+		margins.content_margin_left = WOOD_MARGIN.x
+		margins.content_margin_top = WOOD_MARGIN.y
+		margins.content_margin_right = WOOD_MARGIN.z
+		margins.content_margin_bottom = WOOD_MARGIN.w
+		_panel.add_theme_stylebox_override("panel", margins)
+		_wood_art = Node2D.new()
+		_wood_art.name = "WoodArt"
+		_wood_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		var frame := NinePatchRect.new()
+		frame.name = "Frame"
+		frame.texture = StepCardUi.tex("frame")
+		frame.patch_margin_left = roundi(WOOD_BORDER * 3.0)
+		frame.patch_margin_right = roundi(WOOD_BORDER * 3.0)
+		frame.patch_margin_top = roundi(WOOD_BORDER * 3.0)
+		frame.patch_margin_bottom = roundi(WOOD_BORDER * 3.0)
+		frame.scale = Vector2.ONE / 3.0
+		_wood_art.add_child(frame)
+		_panel.add_child(_wood_art)
+		_panel.move_child(_wood_art, 0)
+		_panel.resized.connect(_fit_wood)
+		_fit_wood()
+		_title.theme_type_variation = &""
+		_title.theme = HomeUi.theme(26, Palette.WOOD_INK)
+	else:
+		_panel.remove_theme_stylebox_override("panel")
+		if _panel.resized.is_connected(_fit_wood):
+			_panel.resized.disconnect(_fit_wood)
+		if is_instance_valid(_wood_art):
+			_panel.remove_child(_wood_art)
+			_wood_art.free()
+		_wood_art = null
+		_title.theme = null
+		_title.theme_type_variation = &"TitleLabel"
+	_make_close_button()
+	_handle.queue_redraw()
+
+
+func _fit_wood() -> void:
+	if not is_instance_valid(_wood_art):
+		return
+	var frame := _wood_art.get_child(0) as NinePatchRect
+	_wood_art.position = Vector2(-WOOD_SIDE, 0.0)
+	frame.size = Vector2(_panel.size.x + WOOD_SIDE * 2.0, _panel.size.y + WOOD_BOTTOM) * 3.0

@@ -36,6 +36,7 @@ func _run() -> void:
 	await _shared_step()
 	await _row2_hides()
 	await _home_only()
+	await _card_rows()
 	await _story_done()
 	Motion.reduced = false
 	print("NEXT STEP TEST: ", "PASS" if failures == 0 else "FAIL")
@@ -203,6 +204,36 @@ func _home_only() -> void:
 		await process_frame
 		check(step.is_visible_in_tree(), "o cartão reaparece ao voltar de %s para a Home" % screen_id)
 
+
+## 10. Mini-cartão: uma linha por objetivo, medalhão no feito, destaque no primeiro pendente.
+func _card_rows() -> void:
+	await _reset_fresh()
+	var id := "main_5_cooking"
+	var quest: Dictionary = root.get_node("Database").quests[id]
+	state.get("progress").stats["produce:carrot_snack"] = 2
+	var card: Control = load("res://scripts/ui/next_step.gd").call("card", id)
+	root.add_child(card)
+	await process_frame
+	for i in quest.goals.size():
+		check(card.find_child("StepGoal_%d" % i, true, false) != null, "o cartão tem a linha StepGoal_%d" % i)
+	check(card.find_child("StepGoal_%d" % quest.goals.size(), true, false) == null, "e nenhuma linha a mais")
+	check(card.find_child("StepGoalDone_0", true, false) != null, "o objetivo feito mostra o medalhão StepGoalDone_0")
+	check(card.find_child("StepGoalDone_1", true, false) == null and card.find_child("StepGoalDone_2", true, false) == null, "os pendentes não mostram medalhão")
+	var marked: Array[String] = []
+	for row: Node in card.find_children("StepGoal_*", "PanelContainer", true, false):
+		if row.has_meta("go_goal") and bool(row.get_meta("go_goal")):
+			marked.append(str(row.name))
+	check(marked == ["StepGoal_1"], "só o primeiro pendente leva go_goal (veio %s)" % str(marked))
+	check(card.find_child("StepRewards", true, false) != null, "o cartão mostra os prêmios (StepRewards)")
+	check(card.find_child("StepSpeech", true, false) != null and card.has_meta("popover_bare"), "StepSpeech existe e o cartão pede o Popover sem fundo")
+	var tap := card.find_child("StepGoalGo_1", true, false) as Button
+	check(tap != null and card.find_child("StepGoalGo_0", true, false) == null, "só objetivo pendente é tocável")
+	check(tap != null and tap.size.y >= 43.5, "a linha pendente tem alvo de 44 px")
+	for name in ["StepCardHelp", "StepCardGo"]:
+		var button := card.find_child(name, true, false) as Control
+		check(button != null and button.size.x >= 43.5 and button.size.y >= 43.5, "%s tem alvo de 44 px" % name)
+	card.queue_free()
+	await process_frame
 
 ## 6. História concluída: a pílula some.
 func _story_done() -> void:

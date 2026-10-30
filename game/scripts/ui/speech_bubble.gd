@@ -10,10 +10,14 @@ const TAIL_SIZE := 9.0  # meia altura da base do rabinho
 var label: Label
 var _tail: Control
 var _inside := false
+var _wood := false
+var _paper: Control
 
 
-func _init(text: String = "", speaker: String = "", inside_card: bool = false) -> void:
+## `wood`: balão de papel creme com borda de madeira (visual "madeira ilustrada"; texto marrom na fonte da madeira).
+func _init(text: String = "", speaker: String = "", inside_card: bool = false, wood: bool = false) -> void:
 	_inside = inside_card
+	_wood = wood
 	name = "SpeechBubble"
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_theme_constant_override("separation", -2)  # o rabinho cobre a borda do cartão
@@ -39,6 +43,18 @@ func _init(text: String = "", speaker: String = "", inside_card: bool = false) -
 		tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tag_row.add_child(tag)
 		stack.add_child(tag_row)
+	if wood:
+		var paper := MissionUi.card("card", Vector4i(14, 10, 14, 10), "WoodBubble", 10)
+		paper.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		label = UiKit.label(text)
+		label.theme = HomeUi.theme(15, Palette.WOOD_INK)
+		label.theme_type_variation = &""
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		MissionUi.body(paper).add_child(label)
+		_paper = paper
+		paper.resized.connect(_tail.queue_redraw)
+		stack.add_child(paper)
+		return
 	var card := PanelContainer.new()
 	card.theme_type_variation = &"CardPanel"
 	var style := UiKit.surface(Palette.PAPER if inside_card else Palette.CARD, 16, not inside_card)
@@ -52,7 +68,13 @@ func _init(text: String = "", speaker: String = "", inside_card: bool = false) -
 
 
 func _draw_tail() -> void:
-	var center_y := clampf(_tail.size.y - 32.0, TAIL_SIZE + 6.0, maxf(TAIL_SIZE + 6.0, _tail.size.y - TAIL_SIZE - 6.0))
+	# Na madeira o rabinho acompanha o balão de papel (com o botão embaixo a altura do conjunto é maior).
+	var span := _paper.size.y if _wood and is_instance_valid(_paper) else _tail.size.y
+	var center_y := clampf(span - 32.0, TAIL_SIZE + 6.0, maxf(TAIL_SIZE + 6.0, _tail.size.y - TAIL_SIZE - 6.0))
 	var points := PackedVector2Array([
 		Vector2(0.0, center_y), Vector2(TAIL_WIDTH + 2.0, center_y - TAIL_SIZE), Vector2(TAIL_WIDTH + 2.0, center_y + TAIL_SIZE)])
+	if _wood:
+		_tail.draw_colored_polygon(points, Color("ffedc9"))
+		_tail.draw_polyline(PackedVector2Array([points[1], points[0], points[2]]), Color("c9783b"), 2.0, true)
+		return
 	_tail.draw_colored_polygon(points, Palette.PAPER if _inside else Palette.CARD)

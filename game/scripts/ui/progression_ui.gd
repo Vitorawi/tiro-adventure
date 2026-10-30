@@ -13,30 +13,38 @@ static func npc_introduction(npc_id: String, index: int = 0) -> Control:
 	var lines: Array = npc.get("introduction", [])
 	var box := UiKit.vbox(12)
 	box.name = "NpcIntroduction"
+	box.set_meta("sheet_wood", true)  # a folha abre em madeira (opt-in da Sheet)
+	box.set_meta("sheet_fit_content", true)  # a folha tem a altura do conteúdo (sem papel vazio embaixo)
 	var advance := func() -> void:
 		if index + 1 < lines.size():
 			Events.sheet_requested.emit(npc.name, npc_introduction(npc_id, index + 1))
 		else:
 			GameState.mark_seen(["npc_intro:" + npc_id])
 			Events.sheet_requested.emit(npc.name, npc_view(npc_id))
-	var speech := npc_header(box, npc_id, str(lines[index]), true)
+	var speech := npc_header(box, npc_id, str(lines[index]), true, true)
 	if index == lines.size() - 1:
-		box.add_child(UiKit.primary("Vamos!", advance))
+		var start := StepCardUi.go_button("Vamos!", advance)
+		start.name = "IntroductionGo"
+		box.add_child(start)
 	else:
-		var bubble := speech.get_parent().get_parent().get_parent() as Control
+		var bubble := speech.find_parent("SpeechBubble") as Control
 		bubble.mouse_filter = Control.MOUSE_FILTER_STOP
 		bubble.gui_input.connect(func(event: InputEvent) -> void:
 			if event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT: advance.call())
-		var next := UiKit.ctl_button("chev", advance, 32, "sunken")
+		var next := StepCardUi.go_button("Continuar", advance)
 		next.name = "IntroductionNext"
-		(speech.get_parent().get_parent() as VBoxContainer).add_child(next)
+		next.size_flags_horizontal = Control.SIZE_SHRINK_END
+		next.custom_minimum_size.x = 150.0
+		(bubble.get_child(1) as VBoxContainer).add_child(next)
 	return box
 
 ## Personagem: saudação, missões ativas e atalhos para os lugares dele ("services").
 static func npc_view(npc_id: String) -> Control:
 	var album_line := GameState.album_talk(npc_id)
 	var panel := UiKit.vbox(10)
-	var speech := npc_header(panel, npc_id, "", true)
+	panel.set_meta("sheet_wood", true)  # a folha abre em madeira (opt-in da Sheet)
+	panel.set_meta("sheet_fit_content", true)  # a folha tem a altura do conteúdo (sem papel vazio embaixo)
+	var speech := npc_header(panel, npc_id, "", true, true)
 	var speech_id := speech.get_instance_id()
 	panel.add_child(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		# O cabeçalho é irmão da lista e pode sair antes de uma atualização diferida.
@@ -47,11 +55,12 @@ static func npc_view(npc_id: String) -> Control:
 		var active := Places.npc_active_quests(npc_id)
 		current_speech.text = album_line if album_line != "" else (str(Database.quests[active[0]].get("dialogue", "")) if not active.is_empty() else str(npc.get("greeting", "")))
 		for id in active:
-			npc_quest_card(box, id, false)
-		# Atalhos para os lugares que o personagem cuida.
+			wood_quest_card(box, id)
+		# Atalhos para os lugares que o personagem cuida: linhas de papel com o ícone no quadradinho bege.
 		var world_id := Database.npc_world(npc_id)
-		var services := UiKit.list_card(box)
+		var services := UiKit.vbox(6)
 		services.name = "NpcServices"
+		box.add_child(services)
 		for place_id: String in npc.get("services", []):
 			var place: Dictionary = Database.worlds[world_id].places.get(place_id, {})
 			if place.is_empty() or Places.place_error(place) != "":
@@ -59,16 +68,10 @@ static func npc_view(npc_id: String) -> Control:
 			var upgrade: String = place.get("upgrade", "")
 			if upgrade != "" and not GameState.has_upgrade(upgrade):
 				continue
-			var go := Places.open.bind(world_id, place_id)
-			var row := UiKit.list_row(UiKit.ui_icon(str(place.get("icon", ""))), str(place.get("name", place_id)), [], UiKit.row_chevron(go), go)
-			var column := row.get_child(0).get_child(0).get_child(1) as VBoxContainer
-			column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			(column.get_child(0) as Label).theme_type_variation = &"StrongLabel"
-			row.custom_minimum_size.y = 56
-			services.add_child(row)
-		# Sem serviços (Laís na casa com a história concluída) o cartão vazio vira só uma faixa fina: sai.
+			services.add_child(_service_row(world_id, place_id, place))
+		# Sem serviços (Laís na casa com a história concluída) a lista vazia sai.
 		if services.get_child_count() == 0:
-			services.get_parent().queue_free()
+			services.queue_free()
 	))
 	return panel
 
@@ -112,7 +115,8 @@ static func npc_portrait(npc_id: String) -> Texture2D:
 
 
 ## Rosto grande + fala do passo atual (ou o cumprimento); o nome já está no título do painel.
-static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", animated: bool = false) -> Label:
+## `wood`: retrato na moldura de madeira e fala em balão de papel (conversa em madeira ilustrada).
+static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", animated: bool = false, wood: bool = false) -> Label:
 	var npc: Dictionary = Database.npcs.get(npc_id, {})
 	var row := UiKit.hbox(4)
 	var picture: Control
@@ -128,13 +132,65 @@ static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", 
 	else:
 		picture = UiKit.icon(npc_portrait(npc_id), 96)
 		picture.name = "NpcPortrait"
+	if wood:
+		picture = StepCardUi.portrait_frame(picture as TextureRect, 104.0, "NpcPortrait")
 	picture.size_flags_vertical = Control.SIZE_SHRINK_END  # o retrato fica embaixo e o balão aponta para ele
 	row.add_child(picture)
-	var balloon := SpeechBubble.new(speech if speech != "" else str(npc.get("greeting", "")))
+	var balloon := SpeechBubble.new(speech if speech != "" else str(npc.get("greeting", "")), "", false, wood)
 	balloon.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(balloon)
 	box.add_child(row)
 	return balloon.label
+
+
+## Missão ativa na conversa, em madeira: cartão de papel com o nome, os objetivos (iguais ao mini-cartão do próximo
+## passo), os prêmios e `?` + Ir/Pegar/Liberar espaço. Nomes mantidos: `LineCard_<linha>`, `LineDetail_<linha>`.
+static func wood_quest_card(box: VBoxContainer, id: String) -> void:
+	var quest: Dictionary = Database.quests[id]
+	var line := str(quest.get("line", id))
+	var inner := StepCardUi.inner_card(box, "LineCard_" + line)
+	var heading := UiKit.hbox(6)
+	heading.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var title := StepCardUi.wood(str(quest.name), 17)
+	title.name = "QuestTitle_" + id
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.custom_minimum_size.x = 120.0
+	heading.add_child(title)
+	if GameState.quest_error(id) == "":
+		var ready := StepCardUi.done_medal(26.0, "QuestReady_" + id)
+		ready.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		heading.add_child(ready)
+	inner.add_child(heading)
+	var detail := UiKit.vbox(8)
+	detail.name = "LineDetail_" + line
+	detail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_child(detail)
+	detail.add_child(StepCardUi.goal_list(id))
+	var prizes := StepCardUi.reward_row(quest.get("rewards", {}))
+	if prizes != null:
+		detail.add_child(prizes)
+	detail.add_child(StepCardUi.action_row(id, "npc"))
+
+
+## Linha de serviço da conversa (papel creme): ícone do lugar no quadradinho bege, nome na fonte da madeira e seta.
+static func _service_row(world_id: String, place_id: String, place: Dictionary) -> Control:
+	var card := MissionUi.card("card", Vector4i(10, 6, 12, 6), "Service_" + place_id, 10, 56.0)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var row := UiKit.hbox(10)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	MissionUi.body(card).add_child(row)
+	var tile := MissionUi.tile(UiKit.ui_icon(str(place.get("icon", ""))), "", "ServiceIcon", Vector2(44, 44))
+	tile.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(tile)
+	var label := StepCardUi.wood(str(place.get("name", place_id)), 18)
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
+	row.add_child(UiKit.ctl("chev", 22, Palette.WOOD_INK))
+	var tap := BagUi.plain_button(Places.open.bind(world_id, place_id))
+	tap.name = "ServiceGo_" + place_id
+	card.add_child(tap)
+	return card
 
 
 static func quest_card(box: VBoxContainer, id: String) -> void:
@@ -153,13 +209,20 @@ static func purchase(id: String) -> Control:
 	var unlock: Dictionary = Database.progression.upgrades[id].get("nature_unlock", {})
 	if not unlock.is_empty():
 		return NatureUi.panel(str(unlock.site))
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void: upgrade_card(box, id))
+	var panel := SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void: upgrade_card(box, id, true))
+	panel.set_meta("sheet_wood", true)  # a folha abre em madeira (opt-in da Sheet)
+	panel.set_meta("sheet_fit_content", true)  # a folha tem a altura do conteúdo (sem papel vazio embaixo)
+	return panel
 
 
-static func upgrade_card(box: VBoxContainer, id: String) -> void:
+## `wood`: cartão de papel no visual "madeira ilustrada" (só a folha de compra; os cartões embutidos em outros painéis ficam lisos).
+static func upgrade_card(box: VBoxContainer, id: String, wood: bool = false) -> void:
 	var data: Dictionary = Database.progression.upgrades[id]
 	if data.has("nature_unlock"):
 		box.add_child(NatureUi.levels_panel(str(data.nature_unlock.site)))
+		return
+	if wood:
+		_wood_upgrade_card(box, id, data)
 		return
 	var card := UiKit.card(box)
 	var hero := UiKit.disc(UiKit.ui_icon(str(data.get("icon", ""))), 96, 64)
@@ -205,6 +268,104 @@ static func upgrade_card(box: VBoxContainer, id: String) -> void:
 		else: Events.toast_requested.emit(error), UiKit.ui_icon("coin") if int(data.cost) > 0 else null)
 	buy.name = "BuildUpgrade"
 	card.add_child(buy)
+
+
+## Compra em madeira: herói grande no quadradinho bege com brilhos, nome, descrição, ganho de espaço e materiais em
+## pílulas de madeira, bloqueio com cadeado e o botão verde "Construir" (ou o medalhão de "Adquirido!").
+## Nomes mantidos: `UpgradeHero`, `SpaceChip`, `LockHint`, `BuildUpgrade`.
+static func _wood_upgrade_card(box: VBoxContainer, id: String, data: Dictionary) -> void:
+	var inner := StepCardUi.inner_card(box, "UpgradeCard", Vector4i(16, 14, 16, 16))
+	inner.add_theme_constant_override("separation", 10)
+	var stage := Control.new()
+	stage.name = "UpgradeStage"
+	stage.custom_minimum_size = Vector2(0, 112)
+	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_child(stage)
+	var hero := MissionUi.tile(UiKit.ui_icon(str(data.get("icon", ""))), "", "UpgradeHero", Vector2(104, 104))
+	stage.add_child(hero)
+	hero.set_anchors_preset(Control.PRESET_CENTER)
+	hero.offset_left = -52.0
+	hero.offset_right = 52.0
+	hero.offset_top = -52.0
+	hero.offset_bottom = 52.0
+	var big := StepCardUi.pic("sparkle", Vector2(26, 31), "UpgradeSparkle")
+	stage.add_child(big)
+	big.set_anchors_preset(Control.PRESET_CENTER)
+	big.offset_left = 42.0
+	big.offset_right = 68.0
+	big.offset_top = -62.0
+	big.offset_bottom = -31.0
+	var small := StepCardUi.pic("sparkle_small", Vector2(15, 16), "UpgradeSparkleSmall")
+	stage.add_child(small)
+	small.set_anchors_preset(Control.PRESET_CENTER)
+	small.offset_left = -68.0
+	small.offset_right = -53.0
+	small.offset_top = 22.0
+	small.offset_bottom = 38.0
+	var title := StepCardUi.wood(str(data.name), 22)
+	title.name = "UpgradeName"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.custom_minimum_size.x = 100.0
+	inner.add_child(title)
+	var description := StepCardUi.wood(str(data.description), 15, Color(Palette.WOOD_INK, 0.85))
+	description.name = "UpgradeText"
+	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	description.custom_minimum_size.x = 100.0
+	inner.add_child(description)
+	if GameState.has_upgrade(id):
+		var done := UiKit.hbox(8)
+		done.alignment = BoxContainer.ALIGNMENT_CENTER
+		done.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		done.add_child(StepCardUi.done_medal(32.0, "UpgradeDone"))
+		var owned := StepCardUi.wood("Adquirido!", 20, Palette.GO_INK)
+		owned.name = "UpgradeOwned"
+		done.add_child(owned)
+		inner.add_child(done)
+		var place := Database.place_with_panel("station:" + id)
+		if place[0] != "":
+			inner.add_child(StepCardUi.go_button("Abrir " + str(Database.stations[id].name), Places.open.bind(place[0], place[1])))
+		return
+	var lock := GameState.requirement_error(data.get("requirements", {}))
+	var space := GameState.storage_upgrade_preview(id)
+	var chips := HFlowContainer.new()
+	chips.alignment = FlowContainer.ALIGNMENT_CENTER
+	chips.add_theme_constant_override("h_separation", 8)
+	chips.add_theme_constant_override("v_separation", 6)
+	chips.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if not space.is_empty():
+		chips.add_child(StepCardUi.wood_chip(UiKit.ui_icon(str(data.get("icon", ""))), "%d → %d" % [int(space.from), int(space.to)], "", Callable(), "SpaceChip"))
+	for item: String in data.get("materials", {}):
+		var need := int(data.materials[item])
+		var have := GameState.inventory.count(item)
+		chips.add_child(StepCardUi.wood_chip(Database.item_icon(item), "%d/%d" % [have, need], "have" if have >= need else "missing", TaskHelp.open.bind("item", item, need)))
+	if chips.get_child_count() > 0:
+		inner.add_child(chips)
+	else:
+		chips.free()
+	if lock != "":
+		inner.add_child(StepCardUi.lock_note(lock, TaskHelp.open.bind("upgrade", id)))
+		return
+	var reason := GameState.upgrade_error(id)
+	if reason != "":
+		var missing: Texture2D = UiKit.ui_icon("coin")
+		var message := "Faltam %d" % maxi(0, int(data.cost) - GameState.coins)
+		if GameState.coins >= int(data.cost):
+			message = reason
+			for item: String in data.get("materials", {}):
+				if GameState.inventory.count(item) < int(data.materials[item]):
+					missing = Database.item_icon(item)
+					break
+		inner.add_child(StepCardUi.lock_note(message, TaskHelp.open.bind("upgrade", id), missing))
+		return
+	var cost := int(data.cost)
+	var buy := StepCardUi.go_button("Construir · %d" % cost if cost > 0 else "Construir", func() -> void:
+		var error := GameState.buy_upgrade(id)
+		if error == "": Events.sheet_close_requested.emit()
+		else: Events.toast_requested.emit(error), StepCardUi.tex("coin") if cost > 0 else null)
+	buy.name = "BuildUpgrade"
+	inner.add_child(buy)
 
 
 # --- Vila: vender e encomendas --------------------------------------------------------
