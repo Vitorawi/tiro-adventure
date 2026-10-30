@@ -2,6 +2,10 @@ class_name PetCareTray
 extends Control
 ## Faixa permanente de cuidados. Gestos nunca alteram estado antes de validar o alvo.
 
+const FOOD_COLUMNS := 3
+const FOOD_TILE := 56.0
+const FOOD_GAP := 6.0
+const FOOD_ROWS := 4  # linhas visíveis; o resto rola
 const SCRUB_STEP := 260.0
 const SCRUB_TOTAL := 800.0
 const THROW_SPEED := -180.0
@@ -12,7 +16,7 @@ var gesture := DragGhost.new()
 var _row: Control
 var _play_hint: Label
 var _scroll: ScrollContainer
-var _foods: VBoxContainer
+var _foods: GridContainer
 var _food_button: Button
 var _menu: PanelContainer
 static var recent_foods: Array[String] = []
@@ -101,24 +105,45 @@ func _ready() -> void:
 	_wheel_card(_food_button)
 	_menu = PanelContainer.new()
 	_menu.name = "FoodMenu"
-	_menu.theme_type_variation = &"CardPanel"
+	# Moldura de madeira com miolo creme (a mesma do mini-cartão do próximo passo); o conteúdo é uma grade de quadradinhos.
+	_menu.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	_menu.z_index = 4
 	_menu.hide()
 	pet_screen.add_child(_menu)
 	_menu.minimum_size_changed.connect(func() -> void: _place_menu.call_deferred())
+	var art := Control.new()
+	art.name = "Art"
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_menu.add_child(art)
+	var frame := StepCardUi.patch("frame", 42, 42)
+	frame.name = "Frame"
+	frame.scale = Vector2.ONE / 3.0
+	art.add_child(frame)
+	art.resized.connect(func() -> void:
+		frame.position = Vector2.ZERO
+		frame.size = art.size.max(Vector2.ONE) * 3.0)
+	var body := MarginContainer.new()
+	body.name = "Body"
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for side: String in ["left", "right"]:
+		body.add_theme_constant_override("margin_" + side, 20)
+	body.add_theme_constant_override("margin_top", 14)
+	body.add_theme_constant_override("margin_bottom", 14)
+	_menu.add_child(body)
 	var column := UiKit.vbox(4)
-	_menu.add_child(column)
-	var header := UiKit.hbox(4)
-	header.add_child(UiKit.section("Comidinhas"))
-	header.add_child(UiKit.icon_button(UiKit.ctl_icon("x"), close_food_menu, 44))
-	column.add_child(header)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.add_child(column)
+	# Sem título, X nem setas: fecha tocando fora ou no botão Comida.
 	_scroll = ScrollContainer.new()
 	_scroll.name = "FoodScroll"
 	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER  # sem barra: ela deslocaria a grade
 	column.add_child(_scroll)
-	_foods = UiKit.vbox(4)
-	_foods.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_foods = GridContainer.new()
+	_foods.columns = FOOD_COLUMNS
+	_foods.add_theme_constant_override("h_separation", 8)
+	_foods.add_theme_constant_override("v_separation", 8)
+	_foods.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_scroll.add_child(_foods)
 	for entry: Array in [["sponge", "action_sponge", "Banho"], ["ball", "action_play", "Brincar"]]:
 		var item := UiKit.care_disc(UiKit.ui_icon(entry[1]), entry[2], func() -> void: pass)
@@ -249,7 +274,7 @@ func refresh() -> void:
 			child.queue_free()
 		_food_ids = ids
 		for id in ids: _foods.add_child(_food_item(id))
-		_scroll.custom_minimum_size = Vector2(240, 112 if ids.is_empty() else mini(5, ids.size()) * 56 - 4)
+		_scroll.custom_minimum_size = Vector2(FOOD_COLUMNS * (FOOD_TILE + FOOD_GAP) - FOOD_GAP, _food_height())
 		_place_menu.call_deferred()
 		if ids.is_empty():
 			_foods.add_child(SheetBuilder.food_help())
@@ -259,7 +284,7 @@ func refresh() -> void:
 		var caption := item.find_child("Caption", true, false) as Label
 		if Database.items.has(id):
 			caption.text = Database.item_name(id)
-			(item.find_child("Quantity", true, false) as Label).text = ("Nova! ×%d" if item.has_meta("new_taste") else "×%d") % GameState.inventory.count(id)
+			(item.find_child("Quantity", true, false) as Label).text = "×%d" % GameState.inventory.count(id)
 		else: caption.text = {"sponge": "Banho", "brush": "Escovar"}.get(id, "Brincar")
 		if GameState.dog.sleeping: caption.text = "Zzz"
 		var badge := item.get_node_or_null("Badge") as Control
@@ -310,62 +335,68 @@ func _item(id: String, texture: Texture2D, caption: String) -> Control:
 	return item
 
 
-## Linhas verticais: o ícone é a pega de arrasto; o nome permite rolar a lista.
+## Altura da área das comidas: até `FOOD_ROWS` linhas de quadradinhos (o resto rola); vazia, o espaço do aviso.
+func _food_height() -> float:
+	if _food_ids.is_empty(): return 112.0
+	var rows := mini(FOOD_ROWS, ceili(float(_food_ids.size()) / FOOD_COLUMNS))
+	return rows * FOOD_TILE + (rows - 1) * FOOD_GAP
+
+
+## Quadradinho de madeira só com o ícone: o ícone é a pega de arrasto até a cabeça. Quantidade embaixo à direita,
+## estrela "Nova" (ou coração da favorita) em cima à esquerda, selo da fase embaixo à esquerda, pedido em cima à direita.
 func _food_item(id: String) -> Control:
 	var item := _item(id, Database.item_icon(id), "")
-	item.custom_minimum_size = Vector2(240, 52)
-	item.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var background := Panel.new()
-	background.name = "FoodDisc"
-	background.position = Vector2(0, 2)
-	background.size = Vector2(48, 48)
-	background.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	background.add_theme_stylebox_override("panel", UiKit.surface(Palette.SUNKEN, 24))
+	item.custom_minimum_size = Vector2(FOOD_TILE, FOOD_TILE)
+	item.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var background := MissionUi.tile(null, "", "FoodDisc", Vector2(FOOD_TILE, FOOD_TILE))
 	item.add_child(background)
 	item.move_child(background, 0)
-	var fresh := not GameState.growth.tastes.has(id)
-	var quantity := UiKit.chip(null, "", null, "prize" if fresh else "neutral")
-	quantity.name = "NewTaste" if fresh else "FoodQuantity"
-	quantity.position = Vector2(60, 24)
-	var quantity_row := quantity.get_child(0) as HBoxContainer
-	(quantity_row.get_child(0) as Label).name = "Quantity"
-	if fresh:
-		item.set_meta("new_taste", true)
-		var spark := UiKit.ctl("spark", 16, Palette.HONEY_INK)
-		quantity_row.add_child(spark)
-		quantity_row.move_child(spark, 0)
-	item.add_child(quantity)
-	var label := item.get_node("Caption") as Label
-	label.theme_type_variation = &"Label"
-	label.anchor_right = 0.0
-	label.position = Vector2(60, 0)
-	label.size = Vector2(204, 24)
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	StepCardUi.stretch(background)
+	var caption := item.get_node("Caption") as Label
+	caption.visible = false  # sem nome: o ícone fala por si
 	var icon := item.get_node("CareIcon") as Control
 	icon.anchor_left = 0.0
 	icon.anchor_right = 0.0
-	icon.position = Vector2(4, 6)
+	icon.offset_left = 0.0
+	icon.offset_right = 0.0
+	icon.position = Vector2(8, 6)
 	icon.custom_minimum_size = Vector2(40, 40)
 	icon.size = Vector2(40, 40)
+	var quantity := MissionUi.text("", 14, Palette.WOOD_CREAM, 4, HORIZONTAL_ALIGNMENT_RIGHT)
+	quantity.name = "Quantity"
+	item.add_child(quantity)
+	StepCardUi.stretch(quantity)
+	quantity.offset_right = -4.0
+	quantity.offset_bottom = -2.0
+	quantity.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+	var fresh := not GameState.growth.tastes.has(id)
+	if fresh:
+		item.set_meta("new_taste", true)
+		var star := PanelContainer.new()
+		star.name = "NewTaste"
+		star.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		star.add_theme_stylebox_override("panel", UiKit.surface(Palette.HONEY_SOFT, 10))
+		star.position = Vector2(2, 2)
+		star.add_child(UiKit.ctl("spark", 14, Palette.HONEY_INK))
+		item.add_child(star)
 	var badge := item.get_node("Badge") as Control
 	badge.anchor_left = 0.0
 	badge.anchor_right = 0.0
-	badge.position = Vector2(36, 2)
+	badge.offset_left = 0.0
+	badge.position = Vector2(FOOD_TILE - 20.0, 2)
 	var growth: Dictionary = Database.items[id].get("growth", {})
 	if GameState.growth.phase in growth.get("phases", []):
-		var seal := UiKit.icon(UiKit.ui_icon("pillar_body"), 20)
+		var seal := UiKit.icon(UiKit.ui_icon("pillar_body"), 18)
 		seal.name = "GrowthSeal"
-		seal.position = Vector2(28, 28)
+		seal.position = Vector2(3, FOOD_TILE - 21.0)
 		seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		item.add_child(seal)
 	elif not growth.is_empty():
 		item.tooltip_text = "Ele prefere outra coisa agora"
 	if GameState.favorite_found() and id == GameState.favorite_food():
-		var heart := UiKit.icon(UiKit.ui_icon("heart"), 20)
+		var heart := UiKit.icon(UiKit.ui_icon("heart"), 18)
 		heart.name = "FavoriteHeart"
-		heart.position = Vector2(268, 4)
+		heart.position = Vector2(3, 3)
 		heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		item.add_child(heart)
 	return item
@@ -403,9 +434,17 @@ func _place_menu() -> void:
 	# terminando acima de Cuidar. O restante continua acessível por rolagem.
 	var top := (pet_screen.call("head_rect") as Rect2).end.y - pet_screen.global_position.y + 8.0
 	var bottom := _menu_bottom()
-	var chrome := _menu.get_combined_minimum_size().y - _scroll.custom_minimum_size.y
-	var wanted := 112.0 if _food_ids.is_empty() else float(mini(5, _food_ids.size()) * 56 - 4)
-	_scroll.custom_minimum_size.y = minf(wanted, maxf(0.0, bottom - top - chrome))
+	_scroll.custom_minimum_size.y = 0.0
+	var chrome := _menu.get_combined_minimum_size().y
+	if _food_ids.is_empty():
+		_scroll.custom_minimum_size.y = minf(112.0, maxf(0.0, bottom - top - chrome))
+	else:
+		# Sempre linhas inteiras (nada cortado); passando da janela, rola pelos espaços entre os quadradinhos ou pela roda.
+		var total := ceili(float(_food_ids.size()) / FOOD_COLUMNS)
+		var row := FOOD_TILE + FOOD_GAP
+		var fit := maxi(1, floori((bottom - top - chrome + FOOD_GAP) / row))
+		var rows := mini(mini(FOOD_ROWS, total), fit)
+		_scroll.custom_minimum_size.y = rows * FOOD_TILE + (rows - 1) * FOOD_GAP
 	_menu.size = _menu.get_combined_minimum_size()
 	# Centralizada, mas sem passar por cima do botão Cuidar (que mora na borda direita).
 	var heart_left := _care_button.global_position.x - pet_screen.global_position.x - 8.0

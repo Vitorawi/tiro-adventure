@@ -260,7 +260,13 @@ func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 		meta.add_child(UiKit.short_label("%d/%d" % [mini(GameState.goal_value(goal), target), target], &"SmallLabel", Palette.GO_INK if ready else Palette.INK_SOFT))
 		# Aberta, o Pegar fica só dentro do detalhe (laranja); a linha mostra a setinha para recolher.
 		var quick := ready and _line != line
-		var action := UiKit.small_go("Pegar", func() -> void: _claim_characters([id])) if quick else UiKit.row_chevron(choose_line.bind(line))
+		var action: Control
+		if quick:
+			# Pegar laranja (mesmo padrão do detalhe); STOP impede o toque de abrir o cartão da linha.
+			action = MissionUi.button("go", "Pegar", func() -> void: _claim_characters([id]), 88.0)
+			action.mouse_filter = Control.MOUSE_FILTER_STOP
+		else:
+			action = UiKit.row_chevron(choose_line.bind(line))
 		action.name = "ClaimQuest_" + id if quick else "OpenLine_" + line
 		# Linha sempre branca (o verde fica no Pegar e no n/n); o Pegar fica à direita, como nas Diárias.
 		var row := UiKit.list_row(ProgressionUi.npc_portrait(str(quest.npc)), str(quest.name), [meta], action, choose_line.bind(line), false)
@@ -578,6 +584,7 @@ func _quest_detail(box: VBoxContainer, id: String) -> void:
 				if place.is_empty(): TaskHelp.open("quest", id)
 				else: Places.go(place), 88.0, 16 if not place.is_empty() else 11)
 			go.name = ("QuestGo_" + id) if first_open else "GoalGo_%d" % i
+			go.mouse_filter = Control.MOUSE_FILTER_STOP  # o toque não sobe para a linha (senão ela fecha antes do Ir)
 			first_open = false
 			column.add_child(go)
 		box.add_child(row)
@@ -596,6 +603,7 @@ func _quest_detail(box: VBoxContainer, id: String) -> void:
 	var ready := GameState.quest_error(id) == ""
 	var claim := MissionUi.button("go", "Pegar", func() -> void: _claim_characters([id]), 88.0)
 	claim.name = "DetailClaim_" + id
+	claim.mouse_filter = Control.MOUSE_FILTER_STOP
 	claim.disabled = not ready
 	if claim.disabled:
 		claim.get_node("Frame").modulate = Color(0.48, 0.48, 0.48, 0.65)

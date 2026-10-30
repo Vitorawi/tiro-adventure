@@ -102,6 +102,7 @@ var _recenter: Button
 ## A câmera subiu um objeto para ele não ficar atrás do painel aberto.
 var _lifted := false
 var _tray_lifted := false  # a câmera subiu um objeto para a bandeja e pode estar além do limite do mundo
+var _dock_opening := false  # o menu da horta está subindo a câmera: `dock_closed` não devolve a câmera ainda
 var _sheet_open := false
 ## Fundo (céu, paisagem, nuvens) vindo de "backdrop" no JSON; parallax = fração do movimento da câmera.
 var _has_backdrop := false
@@ -1473,7 +1474,10 @@ func open_plot_tray(index: int, focus: String = "", center_camera: bool = false,
 	if _plot_sprite(index) == null or GameState.plot_status(index) == "locked":
 		return
 	clear_pointer()
-	if not await _bring_into_view(plot_center(index), center_camera, FarmDock.BAR_LIFT if GameState.plot_status(index) != "growing" else 0.0):
+	if GameState.plot_status(index) == "growing":
+		if not await _bring_into_view(plot_center(index), center_camera, 0.0):
+			return
+	elif not await _lift_for_dock(index):
 		return
 	match GameState.plot_status(index):
 		"empty":
@@ -1497,7 +1501,7 @@ func open_plot_tray(index: int, focus: String = "", center_camera: bool = false,
 func open_farm_dock(mode: String, index: int, focus: String = "") -> void:
 	close_tray()
 	var look := index if index >= 0 else (plot_indices()[0] if not plot_indices().is_empty() else -1)
-	if look >= 0 and not await _bring_into_view(plot_center(look), false, FarmDock.BAR_LIFT):
+	if look >= 0 and not await _lift_for_dock(look):
 		return
 	FarmDock.open(self, mode, -1, focus)
 
@@ -1511,9 +1515,48 @@ func dock_plot_tap(index: int, dock: FarmDock) -> void:
 			Events.toast_requested.emit(reason)
 		else:
 			PlotTray.last_crop = dock.selected
+			dock.retarget(index)  # o menu desliza para o canteiro novo
+			_lift_for_dock(index)
 		return
 	_on_plot_tapped(index)
 
+
+## O menu da horta fechou: se a câmera tinha subido o canteiro para ele caber em cima, volta ao limite do mundo.
+func dock_closed() -> void:
+	if not _tray_lifted or not is_inside_tree():
+		return
+	await get_tree().process_frame
+	if not is_inside_tree() or _dock_opening or FarmDock.is_open_for(self) or ActionTray.is_open(self) or _sheet_open or tray_dragging or _lifted:
+		return
+	_tray_lifted = false
+	_settle_content()
+
+
+## Leva o canteiro para onde o menu de madeira cabe em cima dele (topo da planta abaixo do HUD) e o canteiro fica
+## acima do rodapé; mexe só o necessário e deixa passar da borda do mundo (a câmera volta ao fechar).
+func _lift_for_dock(index: int) -> bool:
+	if size.x <= 0.0 or size.y <= 0.0:
+		return true
+	_dock_opening = true
+	var anchor := plot_anchor(index)
+	var top := _content.position + (anchor.above as Vector2) * _zoom
+	var center := _content.position + plot_center(index) * _zoom
+	var need := FarmDock.plot_top_need()
+	var shift := Vector2.ZERO
+	if center.x < 48.0 or center.x > size.x - 48.0:
+		shift.x = size.x / 2.0 - center.x
+	if top.y < need:
+		shift.y = need - top.y
+	elif center.y > size.y - 200.0:
+		shift.y = (size.y - 200.0) - center.y
+	if shift.length() >= 1.0:
+		var camera_center := (size / 2.0 - _content.position) / _zoom
+		_tray_lifted = true
+		_tween_camera(camera_center - shift / _zoom, _zoom, Motion.CAMERA, clampf(absf(shift.y) + 8.0, OVERSCROLL, 170.0))
+		if _camera_tween != null and _camera_tween.is_valid() and is_inside_tree():
+			await _camera_tween.finished
+	_dock_opening = false
+	return is_inside_tree() and is_visible_in_tree() and not tray_dragging
 
 ## Losango do chão do canteiro (pontos da sala), para marcar os alvos do gesto.
 func plot_diamond(index: int) -> PackedVector2Array:

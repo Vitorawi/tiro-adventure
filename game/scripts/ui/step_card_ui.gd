@@ -117,7 +117,7 @@ static func build(id: String) -> Control:
 	for side: String in ["left", "right"]:
 		inner.add_theme_constant_override("margin_" + side, 20)
 	inner.add_theme_constant_override("margin_top", 17)
-	inner.add_theme_constant_override("margin_bottom", 19)
+	inner.add_theme_constant_override("margin_bottom", 36)  # a borda de baixo da moldura é mais grossa: botões inteiros no papel
 	root.add_child(inner)
 	var box := UiKit.vbox(9)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE

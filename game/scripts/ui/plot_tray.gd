@@ -30,7 +30,7 @@ static func seed_entries(room: RoomView, index: int, focus: String = "") -> Arra
 		var crop: Dictionary = Database.crops[crop_id]
 		entries.append({
 			"id": crop_id,
-			"icon": Database.item_icon(crop_id),
+			"icon": seed_icon(crop_id),
 			"caption": TimeText.short(int(round(GameState.crop_seconds(index, crop_id)))),
 			"error": GameState.content_error("crop", crop_id, crop),
 			"help": TaskHelp.open.bind("crop", crop_id),
@@ -73,6 +73,49 @@ static func seeds(room: RoomView, index: int, focus: String = "") -> ActionTray:
 		if points.size() >= 2:
 			options["hint"] = {"key": HINT_DRAG, "icon": entries[first].icon, "from": first, "points": points, "caption": "Arraste até a terra"}
 	return ActionTray.open(room, anchor.above, entries, options)
+
+
+## Ícone da semente nos menus: a cenoura ilustrada nova (grande, suave); as demais seguem o ícone do item.
+static func seed_icon(crop_id: String) -> Texture2D:
+	if crop_id == "carrot":
+		return load("res://assets/sprites/ui/home/farm_carrot.png") as Texture2D
+	return Database.item_icon(crop_id)
+
+
+## Entradas do menu de madeira da horta: as sementes liberadas (na ordem de `seed_entries`) e UMA só bloqueada no fim,
+## a próxima a liberar (a primeira bloqueada na ordem do `crops.json`); as outras bloqueadas nem aparecem.
+static func dock_seed_entries(room: RoomView, index: int, focus: String = "") -> Array[Dictionary]:
+	var all := seed_entries(room, index, focus)
+	var result: Array[Dictionary] = []
+	var locked: Dictionary = {}
+	for entry: Dictionary in all:
+		if str(entry.get("error", "")) == "":
+			result.append(entry)
+		else:
+			locked[str(entry.id)] = entry
+	for crop_id: String in Database.crops:
+		if locked.has(crop_id):
+			var next: Dictionary = locked[crop_id]
+			next["lock_caption"] = lock_caption(Database.crops[crop_id])
+			result.append(next)
+			break
+	return result
+
+
+## Motivo curtinho para o espaço bloqueado (cabe numa linha de 12 px).
+static func lock_caption(crop: Dictionary) -> String:
+	var req: Dictionary = crop.get("requirements", {})
+	if req.has("chapter"):
+		return "Cap. %d" % int(req.chapter)
+	if req.has("level"):
+		return "Nível %d" % int(req.level)
+	if req.has("quests"):
+		return "Missão"
+	if req.has("owned"):
+		return "Compre"
+	if req.has("stats"):
+		return "Descubra"
+	return "Em breve"
 
 
 static func _seed_rank(crop_id: String, focus: String) -> int:

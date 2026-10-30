@@ -78,6 +78,7 @@ static func make_token(texture: Texture2D) -> Control:
 	var icon := UiKit.icon(texture, 48)
 	icon.position = Vector2(4, 4)
 	icon.size = Vector2(48, 48)
-	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	# Ilustração grande (cenoura nova) reduzida: suave; ícone pixel: nítido.
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS if texture != null and texture.get_width() > 64 else CanvasItem.TEXTURE_FILTER_NEAREST
 	result.add_child(icon)
 	return result
