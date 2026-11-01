@@ -153,7 +153,8 @@ static func heading(options: Dictionary, on_see_all: Callable, on_close: Callabl
 	spark.position = Vector2(31, -4)
 	box.add_child(spark)
 	row.add_child(box)
-	var title := text(str(options.get("title", "")), 24)
+	var title_text := str(options.get("title", ""))
+	var title := text(title_text, 24 if title_text.length() <= 11 else (20 if title_text.length() <= 14 else 17))
 	title.name = "TrayTitle"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.clip_text = true
@@ -205,10 +206,11 @@ static func even_rows(cells: Array[Control], node_name: String = "Slots") -> Con
 	var row: HBoxContainer = null
 	for i in cells.size():
 		if i % per_row == 0:
-			row = UiKit.hbox(0)
+			row = UiKit.hbox(10)
+			row.alignment = BoxContainer.ALIGNMENT_CENTER
 			row.mouse_filter = Control.MOUSE_FILTER_PASS
 			column.add_child(row)
-		cells[i].size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		cells[i].size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		row.add_child(cells[i])
 	return column
 
@@ -235,6 +237,7 @@ class Slot extends VBoxContainer:
 		state = new_state
 		mouse_filter = Control.MOUSE_FILTER_PASS
 		add_theme_constant_override("separation", 1)
+		custom_minimum_size.x = SLOT + 8.0
 		_dot = Control.new()
 		_dot.name = "Dot"
 		_dot.custom_minimum_size = Vector2(SLOT, SLOT)
@@ -282,7 +285,6 @@ class Slot extends VBoxContainer:
 				check.position = Vector2(SLOT - 22.0, 6.0)
 				check.size = Vector2(14, 12)
 				_dot.add_child(check)
-				_pulse = not Motion.reduced
 			"buy":
 				var lock := TextureRect.new()
 				lock.name = "Lock"
@@ -485,12 +487,12 @@ static func inset_box(node_name: String, pad: Vector4 = Vector4(8, 4, 8, 4)) -> 
 
 ## Cartãozinho creme de ingrediente: ícone, "tem/precisa" e ✓ verde quando tem; vermelho e tocável quando falta
 ## (abre o "Como fazer"). Sempre um Button, para o toque funcionar igual.
-static func ingredient_card(item_id: String, need: int) -> Button:
+static func ingredient_card(item_id: String, need: int, small: bool = false) -> Button:
 	var have := GameState.inventory.count(item_id)
 	var ok := have >= need
 	var result := BagUi.plain_button(TaskHelp.open.bind("item", item_id, need))
 	result.name = "Ingredient_" + item_id
-	result.custom_minimum_size = Vector2(60, 56)
+	result.custom_minimum_size = Vector2(50, 50) if small else Vector2(60, 56)
 	var face := Panel.new()
 	face.name = "Art"
 	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -509,10 +511,10 @@ static func ingredient_card(item_id: String, need: int) -> Button:
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	result.add_child(column)
 	StepCardUi.stretch(column)
-	var picture := item_pic(item_id, Database.item_icon(item_id), 30.0, "Picture")
+	var picture := item_pic(item_id, Database.item_icon(item_id), 24.0 if small else 30.0, "Picture")
 	picture.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	column.add_child(picture)
-	var count := text("%d/%d" % [have, need], 14, Palette.GO_INK if ok else Palette.ALERT_INK)
+	var count := text("%d/%d" % [have, need], 12 if small else 14, Palette.GO_INK if ok else Palette.ALERT_INK)
 	count.name = "Count"
 	count.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	column.add_child(count)
@@ -680,9 +682,9 @@ static func recipe_tile(entry: Dictionary, state: String, missing: Texture2D) ->
 	body.alignment = BoxContainer.ALIGNMENT_CENTER
 	result.add_child(body)
 	StepCardUi.stretch(body)
-	body.offset_top = 3.0
-	body.offset_bottom = -4.0
-	var picture := item_pic(str(entry.get("item", "")), entry.get("icon") as Texture2D, TILE_PICTURE, "Picture")
+	body.offset_top = 2.0 if selected else 3.0
+	body.offset_bottom = -11.0 if selected else -4.0  # o cartão amarelo tem a borda de baixo grossa e curva: o texto sobe
+	var picture := item_pic(str(entry.get("item", "")), entry.get("icon") as Texture2D, TILE_PICTURE - (4.0 if selected else 0.0), "Picture")
 	picture.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	picture.modulate.a = 0.45 if state == "missing" else (0.35 if state == "locked" else 1.0)
 	if missing != null and state != "missing":
@@ -699,6 +701,10 @@ static func recipe_tile(entry: Dictionary, state: String, missing: Texture2D) ->
 	var label := text(str(entry.get("caption", "")), 13)
 	label.name = "CaptionLabel"
 	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	# Folga na largura medida: em telas maiores que 360 a fonte é rasterizada em outro tamanho e o fim do texto cortava.
+	var font := label.get_theme_font("font")
+	label.custom_minimum_size.x = ceilf(font.get_string_size(label.text, HORIZONTAL_ALIGNMENT_LEFT, -1, 13).x) + 5.0
 	caption.add_child(label)
 	body.add_child(caption)
 	if selected:

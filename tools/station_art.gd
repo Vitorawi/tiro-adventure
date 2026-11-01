@@ -17,7 +17,7 @@ const FOODS := [
 	["growth_kibble", 0, 3], ["egg_scramble", 1, 3], ["cheese_bites", 2, 3], ["milk_porridge", 3, 3], ["birthday_cake", 4, 3],
 ]
 const COL_X := [364, 683, 1004, 1323, 1643]
-const ROW_Y := [[262, 540], [590, 862], [900, 1182], [1228, 1500]]
+const ROW_Y := [[262, 540], [608, 862], [918, 1182], [1245, 1500]]
 
 
 func _src(n: int) -> Image:
@@ -126,9 +126,12 @@ func _init() -> void:
 	var w := card.get_width()
 	var h := card.get_height()
 	# A comida ocupa o miolo: repete a linha limpa de cima (y 86) por todo o meio, mantendo topo e base originais.
-	for y in range(86, h - 66):
+	for y in range(26, 56):  # tira o ruído fraco que sobrou do desenho original no alto do cartão
+		for x in range(30, w - 30):
+			card.set_pixel(x, y, card.get_pixel(x, 56))
+	for y in range(56, h - 66):
 		for x in w:
-			card.set_pixel(x, y, card.get_pixel(x, 86))
+			card.set_pixel(x, y, card.get_pixel(x, 56))
 	# Miolo liso também na horizontal (sem as faixas escuras das laterais ao esticar o NinePatch).
 	for y in range(60, h - 56):
 		for x in range(40, w - 40):

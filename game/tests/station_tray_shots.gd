@@ -48,6 +48,12 @@ func shot(shot_name: String, wait: float = 0.7) -> void:
 	var screen := root.get_visible_rect().size
 	var nav := main.find_child("TabBar", true, false) as Control
 	print("[%s] bandeja %s tela %s abas y=%.0f" % [shot_name, rect, screen, nav.global_position.y])
+	var first_id: String = str((current.call("entry_ids") as Array)[0]) if not (current.call("entry_ids") as Array).is_empty() else ""
+	var tile := current.call("item_node", first_id) as Control if first_id != "" else null
+	if tile:
+		var cap := tile.find_child("Caption", true, false) as Control
+		var lab := tile.find_child("CaptionLabel", true, false) as Label
+		print("  tile %s caption %s rótulo %s texto '%s'" % [tile.get_global_rect(), cap.get_global_rect() if cap else "?", lab.get_global_rect() if lab else "?", lab.text if lab else ""])
 	_check(rect.position.x >= 7.5 and rect.end.x <= screen.x - 7.5, "bandeja fora da folga de 8 px")
 	_check(rect.position.y >= 119.0, "bandeja sob o HUD (y %.1f)" % rect.position.y)
 	_check(rect.end.y <= nav.global_position.y + 1.0, "bandeja sobre as abas (fim %.1f)" % rect.end.y)
@@ -109,6 +115,38 @@ func _tap(room: Control, action: String, object_id: String) -> void:
 
 func _add(item: String, amount: int) -> void:
 	state.get("inventory").call("add", item, amount)
+
+
+## A faixa dos espaços não pode piscar nem mudar de lugar/tamanho: amostra 90 quadros (a faixa se refaz a cada 1 s)
+## e compara os pixels de duas capturas com 1,5 s de intervalo.
+func _stability(label: String) -> void:
+	var current := tray()
+	if current == null:
+		_check(false, "[%s] sem bandeja" % label)
+		return
+	var strip := current.call("find_in_panel", "SlotTray") as Control
+	var box := current.get("_box") as Control
+	var low := Vector4(INF, INF, INF, INF)
+	var high := Vector4(-INF, -INF, -INF, -INF)
+	for frame in 90:
+		await process_frame
+		var slot := current.call("find_in_panel", "Slot_0") as Control
+		var rect := slot.get_global_rect() if slot else Rect2()
+		var values := Vector4(rect.position.x, rect.position.y, rect.size.x, box.get_global_rect().size.y)
+		low = Vector4(minf(low.x, values.x), minf(low.y, values.y), minf(low.z, values.z), minf(low.w, values.w))
+		high = Vector4(maxf(high.x, values.x), maxf(high.y, values.y), maxf(high.z, values.z), maxf(high.w, values.w))
+	print("[%s] variação em 90 quadros (x, y, largura do espaço, altura da bandeja): %s" % [label, high - low])
+	_check((high - low).length() < 0.6, "[%s] espaços ou bandeja mexem entre quadros: %s" % [label, high - low])
+	await RenderingServer.frame_post_draw
+	var first := root.get_texture().get_image().get_region(Rect2i(strip.get_global_rect()))
+	await create_timer(1.5).timeout
+	await RenderingServer.frame_post_draw
+	var second := root.get_texture().get_image().get_region(Rect2i(strip.get_global_rect()))
+	var same := first.get_data() == second.get_data()
+	print("[%s] faixa dos espaços idêntica após 1,5 s: %s" % [label, same])
+	_check(same, "[%s] a faixa dos espaços mudou em 1,5 s" % label)
+	var path := ProjectSettings.globalize_path(folder)
+	first.save_png(path + "strip_%dx%d_%s.png" % [root.size.x, root.size.y, label])
 
 
 func _run() -> void:
@@ -183,6 +221,27 @@ func _run() -> void:
 	house.call("_animate_objects")
 	await _tap(house, "place:blender", "blender")
 	await shot("f_liquidificador")
+
+	# (f2) liquidificador com receita de 2 ingredientes e (f3) fogão com 3; (f4) estabilidade da faixa dos espaços.
+	_fresh()
+	_add("herbs", 4)
+	_add("milk", 3)
+	house.call("_animate_objects")
+	await _tap(house, "place:blender", "blender")
+	current = tray()
+	if current:
+		current.call("tap_item", "herb_shampoo")
+	await shot("f2_liquidificador_2_ingredientes", 0.6)
+	await _stability("liquidificador")
+	_fresh()
+	_add("corn", 3)
+	_add("carrot", 3)
+	_add("egg", 3)
+	await _tap(house, "place:stove", "stove")
+	current = tray()
+	if current:
+		current.call("tap_item", "growth_kibble")
+	await shot("f3_fogao_3_ingredientes", 0.6)
 
 	# (g) bancada no Sítio e galinheiro com animais.
 	_fresh()

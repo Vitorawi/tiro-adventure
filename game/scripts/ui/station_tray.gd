@@ -157,7 +157,8 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 	var count := chosen_count(recipe_id)
 	var qty := GameState.recipe_quantity(recipe_id) * count
 	var heading := UiKit.hbox(8)
-	var title := StationWood.text(Database.item_name(output) + (" ×%d" % qty if qty > 1 else ""), 21)
+	var title_text := Database.item_name(output) + (" ×%d" % qty if qty > 1 else "")
+	var title := StationWood.text(title_text, 21 if title_text.length() <= 16 else (18 if title_text.length() <= 19 else 16))
 	title.name = "RecipeName"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.clip_text = true
@@ -177,8 +178,11 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 		ingredients_box.custom_minimum_size.x = 130.0
 		var ingredients := StationWood.flow(6)
 		ingredients.name = "Ingredients"
+		var small := inputs.size() >= 2
+		if small:
+			ingredients.custom_minimum_size.x = 106.0  # dois cartões por linha: 2 lado a lado, 3 = 2 + 1 centrado, 4 = 2x2
 		for item_id: String in inputs:
-			ingredients.add_child(StationWood.ingredient_card(item_id, int(inputs[item_id])))
+			ingredients.add_child(StationWood.ingredient_card(item_id, int(inputs[item_id]), small))
 		ingredients_box.add_child(ingredients)
 		flow.add_child(ingredients_box)
 		var arrow := StationWood.pic("arrow", Vector2(24, 33), "Arrow")
