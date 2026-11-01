@@ -42,6 +42,7 @@ var _velocity := 0.0
 var _close_button: Button
 var _wood := false  # folha em madeira ilustrada (opt-in do conteúdo: meta `sheet_wood`)
 var _wood_art: Node2D
+var _bare := false  # o conteúdo desenha a própria moldura, título e X (meta `sheet_bare`): sem alça, cabeçalho nem fundo
 
 
 func _ready() -> void:
@@ -80,6 +81,7 @@ func open(title: String, content: Control) -> void:
 		child.queue_free()
 	_clear_actions()
 	_set_wood(bool(content.get_meta("sheet_wood", false)))
+	_set_bare(bool(content.get_meta("sheet_bare", false)))
 	_title.text = title
 	_fit_content = bool(content.get_meta("sheet_fit_content", false))
 	if content.has_meta("sheet_actions"):
@@ -90,11 +92,12 @@ func open(title: String, content: Control) -> void:
 			_header_actions.append(action)
 	_size_meta = str(content.get_meta("sheet_size", "auto"))
 	_content_holder.add_child(content)
-	var gap := Control.new()
-	gap.name = "SheetBottom"
-	gap.custom_minimum_size.y = BOTTOM_GAP
-	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_content_holder.add_child(gap)
+	if not _bare:
+		var gap := Control.new()
+		gap.name = "SheetBottom"
+		gap.custom_minimum_size.y = BOTTOM_GAP
+		gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_content_holder.add_child(gap)
 	var scroll := _content_holder.get_parent() as ScrollContainer
 	if scroll:
 		scroll.set_deferred("scroll_vertical", 0)
@@ -433,3 +436,16 @@ func _fit_wood() -> void:
 	var frame := _wood_art.get_child(0) as NinePatchRect
 	_wood_art.position = Vector2(-WOOD_SIDE, 0.0)
 	frame.size = Vector2(_panel.size.x + WOOD_SIDE * 2.0, _panel.size.y + WOOD_BOTTOM) * 3.0
+
+
+## Folha "nua" (meta `sheet_bare`): o conteúdo traz a moldura, o título e o X. A folha só prende embaixo, esconde
+## alça/cabeçalho e tira o fundo; tocar fora e puxar a faixa de cima para baixo continuam fechando.
+func _set_bare(on: bool) -> void:
+	_bare = on
+	%Handle.visible = not on
+	%Header.visible = not on
+	if on:
+		var none := StyleBoxEmpty.new()
+		_panel.add_theme_stylebox_override("panel", none)
+	elif not _wood:
+		_panel.remove_theme_stylebox_override("panel")

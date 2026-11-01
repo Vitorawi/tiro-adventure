@@ -134,9 +134,8 @@ func _run() -> void:
 		check_text(recipe)
 		recipe.free()
 	for id: String in db.get("progression").orders:
-		var detail := VBoxContainer.new()
+		var detail: Control = load("res://scripts/ui/orders_ui.gd").call("_board", id, 356.0, Callable())
 		root.add_child(detail)
-		load("res://scripts/ui/market_ui.gd").call("_order_detail", detail, id)
 		check_text(detail)
 		detail.free()
 	for id: String in db.get("projects").projects:

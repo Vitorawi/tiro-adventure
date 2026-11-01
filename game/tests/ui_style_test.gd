@@ -326,11 +326,12 @@ func _text_hierarchy() -> void:
 		if title == "Feira":
 			var grid := sheet.find_child("SellGrid", true, false)
 			var first := grid.get_child(0) as Button
-			var style := first.get_theme_stylebox("normal") as StyleBoxFlat
-			check(bool(first.get_meta("selected", false)) and style.border_width_left == 2 and _near(style.border_color, Palette.INK), "Feira: primeiro produto selecionado tem contorno de tinta")
-			check((first.find_child("Caption", true, false) as Label).theme_type_variation == &"StrongLabel", "Feira: nome do produto em 18")
-			var picture := first.find_child("Picture", true, false) as PanelContainer
-			check(picture != null and (picture.get_child(0) as TextureRect).custom_minimum_size == Vector2(40, 40), "Feira: ícone 40 dentro do disco")
+			check(bool(first.get_meta("selected", false)) and first.find_child("Selected", true, false) != null, "Feira: primeiro produto selecionado tem contorno dourado")
+			check(first.find_child("Caption", true, false) is Label and first.find_child("Price", true, false) is Label and first.find_child("Have", true, false) is Label, "Feira: cartão com nome, Preço e Tem")
+			var picture := first.find_child("Picture", true, false) as Control
+			check(picture != null and picture.custom_minimum_size == Vector2(42, 42), "Feira: ícone no quadradinho afundado")
+			var max_pill := sheet.find_child("QuantityMax", true, false) as Button
+			check(max_pill != null and max_pill.text == "Máx", "Feira: pílula Máx")
 			var second := grid.get_child(1) as Button
 			second.pressed.emit()
 			await process_frame

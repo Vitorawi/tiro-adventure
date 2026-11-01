@@ -76,7 +76,7 @@ func _run() -> void:
 	var board: Control = market.call("orders")
 	root.add_child(board)
 	await process_frame
-	check(board.find_child("OrderGrid", true, false).get_child_count() <= 4, "quatro encomendas por página")
+	check(board.find_child("OrderGrid", true, false).get_child_count() >= (market.call("order_ids", "neighbors") as Array).size(), "todas as encomendas na lista que rola")
 	check(board.find_child("DeliverOrder", true, false) != null or board.find_child("Locked_DeliverOrder", true, false) != null, "detalhe e entrega ou seu motivo na mesma tela")
 	board.queue_free()
 	await _first_sale_context()
