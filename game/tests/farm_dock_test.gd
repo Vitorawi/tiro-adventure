@@ -114,7 +114,7 @@ func _run() -> void:
 	quit(0 if failures == 0 else 1)
 
 
-# 1 — tocar num canteiro vazio planta nele e abre a barra com a semente usada selecionada.
+# 1 — tocar num canteiro vazio só abre a barra (nunca planta) com a semente usada selecionada.
 func _test_tap_plants() -> void:
 	empty_plots()
 	await open_plant(3)
@@ -122,11 +122,10 @@ func _test_tap_plants() -> void:
 	check(current != null, "tocar num canteiro vazio abre o FarmDock")
 	if current == null:
 		return
-	check(status(3) == "growing", "o toque já é o primeiro plantio")
+	check(status(3) == "empty", "o toque que abre não planta")
 	check(str(current.get("mode")) == "plant", "barra em modo plantar")
 	var selected: String = current.get("selected")
 	check(selected != "" and selected != "water", "uma semente vem selecionada")
-	check(state.get("plots")[3]["crop"] == selected, "planta a semente selecionada")
 	check(current.call("tile_node", "water") != null, "tile Regar na barra")
 	# Escolher outra semente e tocar de novo: planta a nova e ela vira a selecionada ao reabrir.
 	var ids: Array = current.call("entry_ids")
@@ -145,11 +144,11 @@ func _test_tap_plants() -> void:
 		await process_frame
 		check(current.get("selected") == other, "tocar no tile escolhe a semente")
 		current.call("drag_plots", [5])  # plantar com ela a torna a última usada
-		check(state.get("plots")[5]["crop"] == other, "tocar num canteiro com a semente escolhida planta ela")
+		check(state.get("plots")[5]["crop"] == other, "arrastar a semente escolhida planta ela")
 		farm.call("close_tray")
 		await open_plant(4)
 		check(dock() != null and dock().get("selected") == other, "a última usada volta selecionada")
-		check(state.get("plots")[4]["crop"] == other, "e é a que planta")
+		check(status(4) == "empty", "e reabrir com um toque não planta")
 	farm.call("close_tray")
 
 
@@ -346,7 +345,8 @@ func _test_layout() -> void:
 	farm.call("close_tray")
 
 
-# Eventos de mouse reais pela sala: começa no canteiro e planta por onde passa.
+# Eventos de mouse reais pela sala: deslizar a partir de um canteiro, com semente, nunca planta
+# (plantar é puxar a semente do menu).
 func _test_real_events() -> void:
 	empty_plots()
 	farm.call("recenter")
@@ -360,7 +360,7 @@ func _test_real_events() -> void:
 		await process_frame
 	farm.call("_gui_input", mouse_event("release", center(3)))
 	await process_frame
-	check(status(1) == "growing" and status(2) == "growing" and status(3) == "growing", "eventos reais plantam 1, 2 e 3")
+	check(status(1) == "empty" and status(2) == "empty" and status(3) == "empty", "deslizar a partir do canteiro não planta")
 	check(farm.get("tray_dragging") == false, "e o mundo não fica preso")
 	farm.call("close_tray")
 
@@ -528,7 +528,7 @@ func _test_next_locked() -> void:
 
 
 ## Primeira vez de verdade: save novo, o "Ir" da horta abre o menu com a cenoura em destaque e a dica "Arraste
-## até a terra"; plantar por toque e por arrasto funciona e a dica some.
+## até a terra"; tocar no canteiro não planta, puxar a semente do menu planta e a dica some.
 func _test_first_flow() -> void:
 	farm.call("close_tray")
 	state.call("reset")
@@ -569,24 +569,28 @@ func _test_first_flow() -> void:
 	var hint := main.find_child("DragHint", true, false) as Control
 	check(hint != null, "a dica do primeiro uso aparece")
 	check(int(progress.seen.get("ui:tray_drag_hint", 0)) == 1, "e conta uma abertura")
-	# Toque num canteiro: planta a cenoura e a dica some; o menu desliza para o canteiro novo.
+	# Toque num canteiro: não planta; o menu só desliza para o canteiro tocado e a dica continua.
 	var spot := center(1)
 	farm.call("_gui_input", mouse_event("press", spot))
 	farm.call("_gui_input", mouse_event("release", spot))
 	await process_frame
 	await process_frame
-	check(status(1) == "growing" and state.get("plots")[1]["crop"] == "carrot", "tocar num canteiro planta a cenoura")
-	await process_frame
-	check(main.find_child("DragHint", true, false) == null, "plantou: a dica some")
+	check(status(1) == "empty", "tocar num canteiro não planta")
 	check(dock() == current and current.get("plot_index") == 1, "o menu continua e segue o canteiro tocado")
-	# Arrastar por vários canteiros.
-	farm.call("_gui_input", mouse_event("press", center(2)))
-	for point: Vector2 in [center(2) + Vector2(4, 0), center(3), center(4)]:
-		farm.call("_gui_input", mouse_event("motion", point))
+	# Puxar a cenoura do menu por vários canteiros: planta e a dica some.
+	var from := tile_center("carrot")
+	dock_event("press", from)
+	dock_event("motion", from + Vector2(0, 14))
+	dock_event("motion", from + Vector2(0, 40))
+	for index in [2, 3, 4]:
+		dock_event("motion", center(index))
 		await process_frame
-	farm.call("_gui_input", mouse_event("release", center(4)))
+	dock_event("release", center(4))
 	await process_frame
-	check(status(2) == "growing" and status(3) == "growing" and status(4) == "growing", "arrastar planta os canteiros do caminho")
+	await process_frame
+	check(status(2) == "growing" and status(3) == "growing" and status(4) == "growing", "arrastar a cenoura planta os canteiros do caminho")
+	check(state.get("plots")[2]["crop"] == "carrot", "com a cenoura")
+	check(main.find_child("DragHint", true, false) == null, "plantou: a dica some")
 	farm.call("close_tray")
 	await process_frame
 	# Segunda abertura: a dica volta (são três ao todo).

@@ -4,8 +4,8 @@ extends Control
 
 const FOOD_COLUMNS := 3
 const FOOD_TILE := 56.0
-const FOOD_GAP := 6.0
-const FOOD_ROWS := 4  # linhas visíveis; o resto rola
+const FOOD_GAP := 8.0  # igual à separação da grade
+const FOOD_ROWS := 2  # linhas visíveis; o resto rola
 const SCRUB_STEP := 260.0
 const SCRUB_TOTAL := 800.0
 const THROW_SPEED := -180.0
@@ -141,8 +141,8 @@ func _ready() -> void:
 	column.add_child(_scroll)
 	_foods = GridContainer.new()
 	_foods.columns = FOOD_COLUMNS
-	_foods.add_theme_constant_override("h_separation", 8)
-	_foods.add_theme_constant_override("v_separation", 8)
+	_foods.add_theme_constant_override("h_separation", int(FOOD_GAP))
+	_foods.add_theme_constant_override("v_separation", int(FOOD_GAP))
 	_foods.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_scroll.add_child(_foods)
 	for entry: Array in [["sponge", "action_sponge", "Banho"], ["ball", "action_play", "Brincar"]]:

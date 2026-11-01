@@ -1466,10 +1466,10 @@ func _on_plot_tapped(index: int) -> void:
 
 ## Abre o que combina com o canteiro: a barra da horta (vazio = sementes e Regar; pronto = foice e "Colher tudo")
 ## ou o cuidado num balão (crescendo). `focus` = planta pedida pelo "Ir" ("water" = regador escolhido);
-## `center_camera` leva a câmera até ele antes. `plant_now` (toque num canteiro vazio) já planta nele com a
-## semente escolhida, se ela não for o regador. O Ir geral usa `harvest_on_open = false`: mostra a barra sem
-## colher só por navegar.
-func open_plot_tray(index: int, focus: String = "", center_camera: bool = false, harvest_on_open: bool = true, plant_now: bool = false) -> void:
+## `center_camera` leva a câmera até ele antes. Tocar num canteiro vazio nunca planta (`_plant_now` ficou só por
+## compatibilidade): plantar é arrastar a semente do menu. O Ir geral usa `harvest_on_open = false`: mostra a
+## barra sem colher só por navegar.
+func open_plot_tray(index: int, focus: String = "", center_camera: bool = false, harvest_on_open: bool = true, _plant_now: bool = false) -> void:
 	close_tray()
 	if _plot_sprite(index) == null or GameState.plot_status(index) == "locked":
 		return
@@ -1481,13 +1481,7 @@ func open_plot_tray(index: int, focus: String = "", center_camera: bool = false,
 		return
 	match GameState.plot_status(index):
 		"empty":
-			var dock := FarmDock.open(self, "plant", index, focus)
-			if plant_now and dock.selected != "" and dock.selected != "water":
-				var reason := plant_plot(index, dock.selected)
-				if reason != "":
-					Events.toast_requested.emit(reason)
-				else:
-					PlotTray.last_crop = dock.selected
+			FarmDock.open(self, "plant", index, focus)  # tocar só abre o menu: plantar é sempre arrastando a semente
 		"growing":
 			PlotTray.care(self, index)
 		"ready":
@@ -1506,17 +1500,12 @@ func open_farm_dock(mode: String, index: int, focus: String = "") -> void:
 	FarmDock.open(self, mode, -1, focus)
 
 
-## Toque simples num canteiro com a barra aberta e nada feito pelo gesto: tenta a ferramenta uma vez (com o motivo
-## do erro) ou cai no toque normal do canteiro (cuidado, compra).
+## Toque simples num canteiro com a barra aberta e nada feito pelo gesto. Canteiro vazio: o menu só desliza
+## para ele (tocar nunca planta; plantar é arrastar a semente). Outros: o toque normal do canteiro (cuidado, compra).
 func dock_plot_tap(index: int, dock: FarmDock) -> void:
-	if GameState.plot_status(index) == "empty" and dock.selected != "" and dock.selected != "water" and dock.mode == "plant":
-		var reason := plant_plot(index, dock.selected)
-		if reason != "":
-			Events.toast_requested.emit(reason)
-		else:
-			PlotTray.last_crop = dock.selected
-			dock.retarget(index)  # o menu desliza para o canteiro novo
-			_lift_for_dock(index)
+	if GameState.plot_status(index) == "empty" and dock.mode == "plant":
+		dock.retarget(index)
+		_lift_for_dock(index)
 		return
 	_on_plot_tapped(index)
 
@@ -1685,9 +1674,8 @@ func open_station_tray(station_id: String, focus: String = "", center_camera: bo
 	close_tray()
 	clear_pointer()
 	var anchor := object_anchor(home)
-	if not await _raise_for_tray(anchor, center_camera):
-		return
-	_watch_tray(StationTray.station(self, station_id, anchor, focus))
+	# A bandeja "madeira ilustrada" fica presa embaixo, acima das abas: a câmera não precisa subir o objeto.
+	StationTray.station(self, station_id, anchor, focus)
 
 
 ## Local da Natureza aberto: bandeja com as coletas e os materiais. `focus` = material pedido.
@@ -1702,9 +1690,7 @@ func open_nature_tray(site: String, focus: String = "") -> void:
 	close_tray()
 	clear_pointer()
 	var anchor := {"above": marker.position - Vector2(0, 26), "below": marker.position + Vector2(0, 12), "top": marker.position - Vector2(0, 52)}
-	if not await _raise_for_tray(anchor):
-		return
-	_watch_tray(StationTray.nature(self, site, anchor, focus))
+	StationTray.nature(self, site, anchor, focus)
 
 
 ## Marcador de coleta da Natureza deste local (é onde a bandeja aponta).

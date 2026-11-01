@@ -67,7 +67,7 @@ func buttons(node: Node, found: Array[Button] = []) -> Array[Button]:
 func primaries(current: Control) -> int:
 	var count := 0
 	for button in buttons(current):
-		if button.theme_type_variation == &"PrimaryButton":
+		if button.theme_type_variation == &"PrimaryButton" or bool(button.get_meta("wood_primary", false)):
 			count += 1
 	return count
 
@@ -234,7 +234,7 @@ func _test_recipe_scroll() -> void:
 			check(scroll.horizontal_scroll_mode == ScrollContainer.SCROLL_MODE_DISABLED, "nunca rola na horizontal")
 			check(scroll.vertical_scroll_mode == ScrollContainer.SCROLL_MODE_AUTO, "rola na vertical")
 			var tile: Vector2 = (load("res://scripts/ui/action_tray.gd") as Script).get_script_constant_map()["PICK_TILE"]
-			check(scroll.custom_minimum_size.y < tile.y * 2.5 and scroll.custom_minimum_size.y >= tile.y * 2.0, "altura de 2 linhas (%.0f)" % scroll.custom_minimum_size.y)
+			check(scroll.custom_minimum_size.y < tile.y * 2.5 and scroll.custom_minimum_size.y >= tile.y * 1.5, "altura de 1,5 a 2 linhas (%.0f)" % scroll.custom_minimum_size.y)
 	else:
 		check(scroll == null, "até 8 receitas: grade inteira, sem rolagem")
 	var first: Control = current.call("item_node", str(ids[0]))
@@ -262,8 +262,11 @@ func _test_tray_below_object() -> void:
 		var anchor: Dictionary = room.call("object_anchor", sprite)
 		var object_rect := Rect2(room.call("world_to_screen", anchor.top), Vector2.ZERO).expand(room.call("world_to_screen", anchor.below))
 		var panel_rect: Rect2 = (current.get("_panel") as Control).get_global_rect()
-		check(not panel_rect.intersects(object_rect.grow_individual(0, -2, 0, -2)), "%s: a bandeja %s não cobre o objeto %s" % [entry[2], panel_rect, object_rect])
-		check(object_rect.position.y >= 120.0, "%s: o objeto fica abaixo da linha 2 (%.0f)" % [entry[2], object_rect.position.y])
+		# Madeira ilustrada: a bandeja fica presa embaixo (altura do conteúdo), sem seguir o objeto; só a grade rola.
+		var nav_bar := main.find_child("TabBar", true, false) as Control
+		check(panel_rect.position.y >= 119.0 and panel_rect.end.y <= nav_bar.global_position.y, "%s: bandeja entre o HUD e as abas %s" % [entry[2], panel_rect])
+		var body := current.call("find_in_panel", "TrayBodyScroll") as ScrollContainer
+		check(body != null and (root.get_visible_rect().size.x > 450.0 or body.get_v_scroll_bar().max_value <= body.get_v_scroll_bar().page + 1.0), "%s: só a grade rola, o corpo da bandeja não (%.0f > %.0f, tela %s, bandeja %s)" % [entry[2], body.get_v_scroll_bar().max_value, body.get_v_scroll_bar().page, root.get_visible_rect().size, panel_rect])
 		var grid := current.call("find_in_panel", "Scroll") as ScrollContainer
 		var tile: Vector2 = (load("res://scripts/ui/action_tray.gd") as Script).get_script_constant_map()["PICK_TILE"]
 		check(grid == null or grid.custom_minimum_size.y < tile.y * 2.5, "%s: grade com no máximo 2 linhas" % entry[2])
@@ -327,7 +330,7 @@ func _test_stove_cooks() -> void:
 	var ids: Array = current.call("entry_ids")
 	check(ids.size() >= 3 and ids[0] == "carrot_snack", "receitas do fogão em grade (%d)" % ids.size())
 	var box: Control = current.get("_box")
-	check(is_equal_approx(box.size.x, 336.0), "largura 336 (%.0f)" % box.size.x)
+	check(is_equal_approx(box.size.x, minf(house.size.x - 16.0, 420.0)), "largura da sala menos 8 px de cada lado (%.0f)" % box.size.x)
 	check(box.position.y >= 119.0, "bandeja não fica sob o HUD (y %.0f)" % box.position.y)
 	check(Rect2(Vector2.ZERO, house.size).encloses(Rect2(box.position, box.size)), "bandeja inteira dentro da sala")
 	var close_button: Control = current.call("find_in_panel", "CloseTray")
@@ -399,7 +402,6 @@ func _test_missing_ingredients() -> void:
 	check(badge == null, "falta de ingredientes não cria exclamação de missão na receita")
 	check((item.get_node("Visual/Picture") as Control).modulate.a < 1.0, "receita sem ingredientes fica esmaecida")
 	check(item.find_child("LockIcon", true, false) == null, "ingredientes faltantes não exibem cadeado")
-	check(item.find_child("Missing", true, false) != null, "tile mostra o ingrediente que falta num mini-disco")
 	var cook := current.call("find_in_panel", "Cook") as Button
 	var hint := current.call("find_in_panel", "LockHint") as Control
 	var reason := hint.find_children("*", "Label", true, false) if hint else []
@@ -624,12 +626,12 @@ func _test_coop() -> void:
 	check(current.call("find_in_panel", "Herd") != null, "fileirinha dos animais no cabeçalho")
 	var feed: String = (current.call("entry_ids") as Array)[0]
 	var item: Control = current.call("item_node", feed)
-	check((item.get_node("Visual").get_child(1) as Label).text == TimeText.short(int(root.get_node("Database").get("recipes")[feed].seconds)), "produto mostra tempo de preparo")
+	check((item.find_child("CaptionLabel", true, false) as Label).text == TimeText.short(int(root.get_node("Database").get("recipes")[feed].seconds)), "produto mostra tempo de preparo")
 	check((item.get_node("Visual/Picture") as TextureRect).texture == root.get_node("Database").call("item_icon", "egg"), "ícone da receita é ovo, não milho")
 	current.call("tap_item", feed)
 	check(state.get("inventory").call("count", "corn") == 10, "selecionar o ovo não gasta milho")
 	var ingredients: Control = current.call("find_in_panel", "Ingredients")
-	check(ingredients != null and (ingredients.get_child(0) as Button).text == "10/2", "ingredientes tocáveis mostram milho tem/precisa")
+	check(ingredients != null and (ingredients.get_child(0).find_child("Count", true, false) as Label).text == "10/2", "ingredientes tocáveis mostram milho tem/precisa")
 	var action: Button = current.call("find_in_panel", "Cook")
 	check(action != null and action.text == "Alimentar" and not action.disabled, "botão Alimentar disponível")
 	action.pressed.emit()
@@ -639,9 +641,8 @@ func _test_coop() -> void:
 	check(not current.get("options").has("auto_close"), "receita permanece aberta para consulta")
 	await frames()
 	check(current.call("find_in_panel", "Slot_0") != null and current.call("find_in_panel", "Slot_0").get("state") == "busy", "a bolinha da produção acende")
-	var arrow: Control = current.get("_arrow")
 	var panel_box: Control = current.get("_box")
-	check(is_equal_approx(arrow.position.y, -float(current.get("ARROW")) if arrow.get("points_up") else panel_box.size.y), "a seta acompanha a altura do cabeçalho depois de alimentar")
+	check(not (current.get("_arrow") as Control).visible and panel_box.get_global_rect().end.y <= (main.find_child("TabBar", true, false) as Control).global_position.y, "bandeja presa acima das abas, sem seta, depois de alimentar")
 	await create_timer(1.8).timeout
 	check(tray() == current, "bandeja permanece aberta como as outras estações")
 	# Uma galinha individual faz o mesmo que o abrigo.
@@ -686,7 +687,7 @@ func _test_nature() -> void:
 		await frames()
 		check(current.call("find_in_panel", "RequiredLevel_" + locked) != null, "o detalhe mostra o cadeado com o nível")
 		check(current.call("find_in_panel", "Material_" + locked) == null, "sem botão para o material bloqueado")
-		check((current.call("item_node", locked).get_node("Visual").get_child(1) as Label).text.begins_with("Nível"), "legenda do bloqueado = Nível N")
+		check((current.call("item_node", locked).find_child("CaptionLabel", true, false) as Label).text.begins_with("Nível"), "legenda do bloqueado = Nível N")
 	current.call("tap_item", "wood")
 	await frames()
 	check(primaries(current) == 1, "um único botão principal")

@@ -1148,7 +1148,7 @@ func release(global_point: Vector2) -> void:
 	if tapped and not acted:
 		room.dock_plot_tap(plot, self)
 	elif tapped and mode == "plant":
-		retarget(plot)  # um toque que plantou: o menu desliza para o canteiro novo
+		retarget(plot)  # um toque que regou: o menu desliza para o canteiro novo
 		room._lift_for_dock(plot)
 
 
@@ -1244,6 +1244,8 @@ func _act(global_point: Vector2) -> void:
 	var index := room.plot_at(world)
 	if index < 0 or _done.has(index):
 		return
+	if mode == "plant" and selected != "water" and _press_plot >= 0:
+		return  # semente só planta arrastada do menu: tocar ou deslizar a partir do canteiro nunca planta
 	var drag: Variant = selected_entry().get("drag")
 	if not (drag is Callable) or not (drag as Callable).is_valid():
 		return
@@ -1302,7 +1304,10 @@ func drag_plots(indices: Array, release_at_end: bool = true) -> void:
 func drag_points(points: Array[Vector2], release_at_end: bool = true) -> void:
 	if points.is_empty():
 		return
-	press(points[0])
+	if mode == "plant" and selected != "" and selected != "water":
+		_begin_tile_drag(selected, points[0])  # semente só planta puxada do menu (o gesto real)
+	else:
+		press(points[0])
 	for i in range(1, points.size()):
 		move(points[i])
 	if release_at_end:

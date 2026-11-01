@@ -301,7 +301,7 @@ func _run() -> void:
 	tray.call("open_food_menu")
 	await frames()
 	var list: ScrollContainer = pet.find_child("FoodScroll", true, false)
-	check(list.custom_minimum_size.y >= 56 and list.custom_minimum_size.y <= 276, "lista mostra ao menos uma linha de quadradinhos e encolhe antes de cobrir a cabeça")
+	check(list.custom_minimum_size.y >= 56 and list.custom_minimum_size.y <= 120, "lista mostra ao menos uma linha de quadradinhos e encolhe antes de cobrir a cabeça")
 	check(not pet.find_child("FoodMenu", true, false).get_global_rect().intersects(pet.call("head_rect")), "lista longa também preserva a cabeça")
 	var grid := list.get_child(0) as GridContainer
 	check(grid != null and grid.columns == 3 and grid.get_child_count() == foods.size(), "comidas em grade de quadradinhos, todas presentes")

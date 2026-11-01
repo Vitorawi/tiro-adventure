@@ -44,16 +44,18 @@ const PER_ROW := 5
 const SCROLL_FROM := 10
 ## A bandeja fica translúcida enquanto o item é arrastado (os canteiros atrás dela aparecem).
 const DRAG_ALPHA := 0.3
-## Modo "pick": largura da bandeja (cabe em 360 com 16 de margem) e itens por linha.
-const PICK_WIDTH := 336.0
+## Modo "pick" (madeira ilustrada): a bandeja ocupa a largura da sala menos 8 px de cada lado (até `PICK_MAX_WIDTH`);
+## 4 itens por linha.
+const PICK_SIDE := 8.0
+const PICK_MAX_WIDTH := 420.0
 const PICK_PER_ROW := 4
 ## Modo "pick": tile da grade e altura da grade quando há mais de 8 (2,5 linhas, rola na vertical).
-const PICK_TILE := Vector2(70, 76)
+const PICK_TILE := Vector2(70, 70)
 const PICK_GAP := 6
 const PICK_ROWS_SHOWN := 2.0
 ## Altura prevista de uma bandeja `pick` (cabeçalho + fila + 2 linhas de grade + detalhe + rodapé): a sala usa
 ## para subir o objeto ao terço de cima e deixar a bandeja inteira embaixo dele.
-const PICK_HEIGHT := 440.0
+const PICK_HEIGHT := 480.0
 ## Tempo do ícone da receita voando da grade até a bolinha da fila.
 const FLY_TIME := 0.3
 
@@ -105,6 +107,7 @@ var _last_min := Vector2.ZERO
 var _body_scroll: ScrollContainer
 var _body_column: VBoxContainer
 var _actions: VBoxContainer
+var _board: PanelContainer
 var _nav_bar: Control
 var _reveal_frames := 0
 
@@ -159,16 +162,8 @@ func _build() -> void:
 	var style := StyleBoxFlat.new()
 	pick = str(options.get("mode", "")) == "pick"
 	if pick:
-		# Cartão claro de 24 com sombra funda (Interface 2): a bandeja das estações fica presa ao objeto.
-		style.bg_color = Palette.CARD
-		style.set_corner_radius_all(24)
-		style.shadow_color = Color(Palette.SHADOW, 0.25)
-		style.shadow_size = 16
-		style.shadow_offset = Vector2(0, 10)
-		style.content_margin_left = 14.0
-		style.content_margin_right = 14.0
-		style.content_margin_top = 12.0
-		style.content_margin_bottom = 14.0
+		# Madeira ilustrada: a moldura é uma imagem NinePatch (`Frame`) atrás do conteúdo; o painel em si não pinta nada.
+		style = null
 	else:
 		style.bg_color = Palette.PAPER
 		style.set_corner_radius_all(16)
@@ -181,59 +176,50 @@ func _build() -> void:
 		style.content_margin_right = 10.0
 		style.content_margin_top = 8.0
 		style.content_margin_bottom = 8.0
-	_panel.add_theme_stylebox_override("panel", style)
+	_panel.add_theme_stylebox_override("panel", style if style != null else StyleBoxEmpty.new())
 	_box.add_child(_panel)
 	var column := VBoxContainer.new()
 	column.name = "Column"
 	column.add_theme_constant_override("separation", 4)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_panel.add_child(column)
 	_body_column = column
+	if not pick:
+		_panel.add_child(column)
 	if pick:
-		_panel.custom_minimum_size.x = PICK_WIDTH
+		_panel.custom_minimum_size.x = pick_width()
+		_panel.add_child(StationWood.backing("frame", 60, 60, "Frame"))
+		var pad := MarginContainer.new()
+		pad.name = "Pad"
+		pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		pad.add_theme_constant_override("margin_left", 26)
+		pad.add_theme_constant_override("margin_right", 26)
+		pad.add_theme_constant_override("margin_top", 20)
+		pad.add_theme_constant_override("margin_bottom", 20)
+		_panel.add_child(pad)
+		pad.add_child(column)
 		selected = str(options.get("selected", ""))
-		# Cabeçalho: ícone da estação, nome, selo de maestria, ≡ Ver tudo e ✕.
-		var heading := UiKit.hbox(8)
-		heading.name = "TrayHeading"
-		if options.get("icon") is Texture2D:
-			var station_icon := UiKit.icon(options.icon as Texture2D, 32)
-			station_icon.name = "StationIcon"
-			heading.add_child(station_icon)
-		var title := UiKit.fill_label(str(options.get("title", "")), &"StrongLabel")
-		title.name = "TrayTitle"
-		heading.add_child(title)
-		if options.get("badge") is Control:
-			heading.add_child(options.badge as Control)
+		# Cabeçalho: caixa de madeira com o ícone da estação, nome, selo de maestria, engrenagem (Ver tudo) e X.
+		var see_all: Callable = Callable()
 		if options.get("see_all") is Callable:
-			var see_all := UiKit.ctl_button("list", func() -> void:
+			see_all = func() -> void:
 				_touched()
-				(options.see_all as Callable).call(), 32, "sunken")
-			see_all.name = "SeeAll"
-			see_all.mouse_filter = Control.MOUSE_FILTER_STOP
-			heading.add_child(see_all)
-		var close_button := UiKit.ctl_button("x", close, 32, "sunken")
-		close_button.name = "CloseTray"
-		close_button.mouse_filter = Control.MOUSE_FILTER_STOP
-		heading.add_child(close_button)
-		column.add_child(heading)
-		column.add_theme_constant_override("separation", 8)
+				(options.see_all as Callable).call()
+		column.add_child(StationWood.heading(options, see_all, func() -> void: close()))
+		column.add_theme_constant_override("separation", 4)
 		_body_scroll = ScrollContainer.new()
 		_body_scroll.name = "TrayBodyScroll"
 		_body_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		_body_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
-		var track := StyleBoxFlat.new()
-		track.bg_color = Palette.LINE
-		track.content_margin_left = 4
-		track.content_margin_right = 4
-		track.set_corner_radius_all(4)
-		_body_scroll.get_v_scroll_bar().add_theme_stylebox_override("scroll", track)
+		StationWood.style_scrollbar(_body_scroll)
 		column.add_child(_body_scroll)
-		_body_column = UiKit.vbox(12)
+		_body_column = UiKit.vbox(6)
 		_body_column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_body_scroll.add_child(_body_column)
 		_actions = UiKit.vbox(8)
 		_actions.name = "TrayActions"
-		column.add_child(_actions)
+		_board = StationWood.board(_actions)
+		_board.visible = false
+		column.add_child(_board)
 		_nav_bar = get_tree().root.find_child("TabBar", true, false) as Control
 	elif str(options.get("title", "")) != "":
 		var title := UiKit.label(str(options.title), &"SmallLabel")
@@ -258,7 +244,8 @@ func _build() -> void:
 			var moved: Control = actions if actions else cook
 			if moved:
 				moved.get_parent().remove_child(moved)
-				_actions.add_child(moved))
+				_actions.add_child(moved)
+			_board.visible = _actions.get_child_count() > 0)
 		_detail.name = "Detail"
 		_body_column.add_child(_detail)
 	var hint: Dictionary = options.get("hint", {})
@@ -275,9 +262,11 @@ func _build() -> void:
 			(footer.action as Callable).call()
 		var ghost: Button
 		if footer.get("primary", false):
-			ghost = UiKit.primary(str(footer.text), action)
+			ghost = StepCardUi.go_button(str(footer.text), action)
+			ghost.set_meta("wood_primary", true)
 		elif pick:
-			ghost = _footer_row(str(footer.text), action)
+			ghost = StationWood.wood_button(str(footer.text), action, 17)
+			ghost.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		else:
 			ghost = UiKit.ghost(str(footer.text), action)
 		ghost.name = str(footer.get("name", "FooterGhost"))
@@ -285,8 +274,8 @@ func _build() -> void:
 		column.add_child(ghost)
 	_arrow = TrayArrow.new()
 	_arrow.name = "Arrow"
-	_arrow.fill = Palette.CARD if pick else Palette.PAPER
-	_arrow.edge = Color(Palette.CARD, 0.0) if pick else Palette.LINE
+	_arrow.fill = Color("c97a3c") if pick else Palette.PAPER
+	_arrow.edge = Color("6e3a14") if pick else Palette.LINE
 	_box.add_child(_arrow)
 	_panel.reset_size()
 	_place()
@@ -298,31 +287,17 @@ func _build() -> void:
 		_start_hint.call_deferred()
 
 
-## Linha do rodapé ("Comprar animais"): botão claro com ícone, texto e seta, no estilo das listas.
-func _footer_row(text: String, action: Callable) -> Button:
-	var row := UiKit.button("", action, &"GhostButton")
-	row.custom_minimum_size = Vector2(0, 52)
-	for phase: String in ["normal", "hover", "pressed", "hover_pressed"]:
-		row.add_theme_stylebox_override(phase, UiKit.surface(Palette.SUNKEN, 16))
-	var content := UiKit.hbox(8)
-	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.add_child(content)
-	content.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	content.offset_left = 12
-	content.offset_right = -10
-	content.add_child(UiKit.ctl("plus", 20, Palette.INK_SOFT))
-	var label := UiKit.fill_label(text, &"StrongLabel")
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	content.add_child(label)
-	content.add_child(UiKit.ctl("chev", 20, Palette.INK_FAINT))
-	return row
+## Largura da bandeja `pick`: a da sala menos a folga de cada lado (até o máximo), como no desenho de referência.
+func pick_width() -> float:
+	return minf(room.size.x - PICK_SIDE * 2.0, PICK_MAX_WIDTH) if room.size.x > 0.0 else 344.0
 
 
 func _build_items() -> Control:
 	var count := entries.size()
-	var holder: Control
-	var per_row := PICK_PER_ROW if pick else PER_ROW
-	if count > SCROLL_FROM and not pick:
+	if pick:
+		return _build_grid()
+	var per_row := PER_ROW
+	if count > SCROLL_FROM:
 		var scroll := ScrollContainer.new()
 		scroll.name = "Scroll"
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
@@ -335,29 +310,51 @@ func _build_items() -> Control:
 		return scroll
 	var rows := VBoxContainer.new()
 	rows.name = "Rows"
-	rows.add_theme_constant_override("separation", PICK_GAP if pick else 4)
+	rows.add_theme_constant_override("separation", 4)
 	rows.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	holder = rows
 	var current_row: HBoxContainer = null
 	for i in count:
 		if i % per_row == 0:
 			current_row = _row()
-			if pick:
-				current_row.add_theme_constant_override("separation", PICK_GAP)
-				current_row.alignment = BoxContainer.ALIGNMENT_BEGIN
 			rows.add_child(current_row)
 		current_row.add_child(_make_item(i))
-	# Mais de duas linhas (fogão com 10): a grade mostra 2 linhas e rola na vertical, nunca na horizontal.
-	if pick and count > per_row * 2:
+	return rows
+
+
+## Grade de receitas/materiais (modo pick): 4 por linha, cartões que dividem a largura; com mais de 2 linhas ela mostra
+## 2 e rola na vertical (nunca na horizontal), com barra de madeira.
+func _build_grid() -> Control:
+	var grid := GridContainer.new()
+	grid.name = "Rows"
+	grid.columns = PICK_PER_ROW
+	grid.add_theme_constant_override("h_separation", PICK_GAP)
+	grid.add_theme_constant_override("v_separation", PICK_GAP)
+	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for i in entries.size():
+		grid.add_child(_make_item(i))
+	if entries.size() > PICK_PER_ROW * 2:
 		var scroll := ScrollContainer.new()
 		scroll.name = "Scroll"
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
 		scroll.custom_minimum_size = Vector2(0.0, PICK_TILE.y * PICK_ROWS_SHOWN + PICK_GAP * 2.0)
-		scroll.add_child(rows)
-		rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		return scroll
-	return holder
+		scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		StationWood.style_scrollbar(scroll)
+		var inner := MarginContainer.new()
+		inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		inner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		inner.add_theme_constant_override("margin_right", 6)
+		inner.add_child(grid)
+		scroll.add_child(inner)
+		# A barra de madeira fica à direita, dentro do miolo; uma folga igual à esquerda mantém os 4 cartões centrados.
+		var holder := MarginContainer.new()
+		holder.name = "GridHolder"
+		holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		holder.add_theme_constant_override("margin_left", 12)
+		holder.add_child(scroll)
+		return holder
+	return grid
 
 
 func _row() -> HBoxContainer:
@@ -385,10 +382,10 @@ func _missing_icon(entry: Dictionary) -> Texture2D:
 	return null
 
 
-## Tile da grade das estações: `UiKit.tile` + marca vermelha com o ingrediente que falta.
+## Tile da grade das estações: cartão creme (amarelo se escolhido) com a comida, o tempo e a marca do que falta.
 func _make_tile(index: int) -> Control:
 	var tile := _build_tile(index)
-	_captions.append(tile.get_node("Visual").get_child(1) as Label)
+	_captions.append(tile.find_child("CaptionLabel", true, false) as Label)
 	_badges.append(null)
 	_item_states.append(_tile_signature(index))
 	_items.append(tile)
@@ -404,23 +401,11 @@ func _build_tile(index: int) -> Control:
 	var entry := entries[index]
 	var state := _tile_state(index)
 	var missing := _missing_icon(entry)
-	var tile := UiKit.tile(entry.get("icon") as Texture2D, str(entry.get("caption", "")), state, missing)
-	if missing != null and state != "missing":
-		(tile.get_node("Visual/Picture") as Control).modulate.a = 0.45  # selecionada e faltando: ainda apagada
-		var mark := UiKit.disc(missing, 22, 16)
-		mark.name = "Missing"
-		mark.add_theme_stylebox_override("panel", UiKit.surface(Palette.ALERT_SOFT, 11))
-		tile.add_child(mark)
-		mark.set_anchors_preset(Control.PRESET_TOP_RIGHT)
-		mark.offset_left = -24.0
-		mark.offset_right = -2.0
-		mark.offset_top = 2.0
-		mark.offset_bottom = 24.0
+	var tile := StationWood.recipe_tile(entry, state, missing)
 	tile.name = "Item_" + str(entry.get("id", index))
-	tile.custom_minimum_size = PICK_TILE
+	tile.custom_minimum_size = Vector2(60.0, PICK_TILE.y)
+	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	tile.mouse_filter = Control.MOUSE_FILTER_STOP
-	if bool(entry.get("highlight", false)) and state != "selected":
-		tile.add_theme_stylebox_override("normal", UiKit.surface(Palette.GO_SOFT, 16))
 	tile.gui_input.connect(_on_item_input.bind(index))
 	return tile
 
@@ -446,7 +431,7 @@ func _refresh_tiles() -> void:
 		parent.add_child(fresh)
 		parent.move_child(fresh, position_in_parent)
 		_items[i] = fresh
-		_captions[i] = fresh.get_node("Visual").get_child(1) as Label
+		_captions[i] = fresh.find_child("CaptionLabel", true, false) as Label
 		_item_states[i] = signature
 
 
@@ -523,6 +508,9 @@ func _place() -> void:
 	var bottom := room.size.y - BOTTOM_LIMIT
 	if is_instance_valid(_nav_bar) and _nav_bar.is_visible_in_tree():
 		bottom = minf(bottom, _nav_bar.global_position.y - room.global_position.y - 8.0)
+	if pick:
+		_place_bottom(bottom)
+		return
 	var origin := room.global_position
 	var above := room.world_to_screen(_anchor_world) - origin
 	var below := room.world_to_screen(_below_world) - origin
@@ -556,6 +544,31 @@ func _place() -> void:
 	_arrow.position = Vector2(arrow_x - ARROW, -ARROW if points_up else panel_size.y)
 	_arrow.queue_redraw()
 	_box.pivot_offset = Vector2(arrow_x, -ARROW if points_up else panel_size.y + ARROW)
+
+
+## Madeira ilustrada: o painel tem a altura do conteúdo, fica centrado e preso logo acima da barra de abas (sem setinha).
+## Só a grade de receitas rola; se a tela for baixa demais, ela encolhe (até 1,5 linha) antes de qualquer outra coisa.
+func _place_bottom(bottom: float) -> void:
+	var top_limit := maxf(TOP_LIMIT, Hud.HEIGHT + 6.0)
+	var base_grid := PICK_TILE.y * PICK_ROWS_SHOWN + PICK_GAP * 2.0
+	var grid := _body_column.find_child("Scroll", true, false) as ScrollContainer
+	var fixed := _panel.get_combined_minimum_size().y - _body_scroll.get_combined_minimum_size().y
+	var natural := _body_column.get_combined_minimum_size().y
+	if grid != null:
+		natural -= grid.custom_minimum_size.y - base_grid
+		var overflow := natural + fixed - (bottom - top_limit)
+		var grid_height := maxf(PICK_TILE.y * 1.5, base_grid - maxf(0.0, overflow))
+		grid.custom_minimum_size.y = grid_height
+		natural -= base_grid - grid_height
+	_body_scroll.custom_minimum_size.y = minf(natural, maxf(48.0, bottom - top_limit - fixed))
+	var panel_size := _panel.get_combined_minimum_size()
+	_panel.size = panel_size
+	var top := maxf(top_limit, bottom - panel_size.y)
+	_box.position = Vector2(roundf((room.size.x - panel_size.x) / 2.0), top)
+	_box.size = panel_size
+	_tip = _box.position + Vector2(panel_size.x / 2.0, panel_size.y)
+	_arrow.visible = false
+	_box.pivot_offset = Vector2(panel_size.x / 2.0, panel_size.y)
 
 
 func _animate_in() -> void:

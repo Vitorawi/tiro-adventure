@@ -254,7 +254,7 @@ func _test_tap_plants() -> void:
 	check("carrot" in ids, "barra oferece cenoura")
 	check(not ("herbs" in ids), "sítio não oferece plantas da estufa")
 	check(ids[0] != "blueberry", "bloqueadas vão para o fim")
-	check(status(0) == "growing", "o toque que abriu a barra já plantou")
+	check(status(0) == "empty", "o toque que abriu a barra não planta")
 	var nav := main.find_child("TabBar", true, false) as Control
 	check(current.global_position.y + current.size.y <= nav.global_position.y + 1.0, "barra apoiada acima do rodapé")
 	check(toasts.is_empty(), "plantar não gera aviso de erro")
@@ -582,9 +582,9 @@ func _test_real_input() -> void:
 		await process_frame
 	farm.call("_gui_input", mouse_event("release", center_of(3)))
 	await process_frame
-	check(status(1) == "growing" and status(2) == "growing" and status(3) == "growing", "arrasto por eventos reais planta 1, 2 e 3")
+	check(status(1) == "empty" and status(2) == "empty" and status(3) == "empty", "deslizar a partir do canteiro não planta (só puxando a semente do menu)")
 	check(farm.get("tray_dragging") == false, "e o mundo não fica preso")
-	# Toque simples com tremida pequena (< 12 px) continua sendo toque: planta um só.
+	# Toque simples com tremida pequena (< 12 px) continua sendo toque: não planta nada.
 	empty_plots()
 	await open_dock(4)
 	var spot := center_of(4)
@@ -595,7 +595,7 @@ func _test_real_input() -> void:
 	var planted := 0
 	for i in 9:
 		if status(i) == "growing": planted += 1
-	check(status(4) == "growing" and planted == 1, "toque com tremida pequena planta só o canteiro tocado (%d)" % planted)
+	check(planted == 0, "toque com tremida pequena não planta (%d)" % planted)
 	farm.call("close_tray")
 	empty_plots()
 

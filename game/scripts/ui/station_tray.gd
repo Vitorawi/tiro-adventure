@@ -25,6 +25,8 @@ static func station(room: RoomView, station_id: String, anchor: Dictionary, focu
 		entries.append({
 			"id": id,
 			"icon": Database.item_icon(Database.recipe_output(recipe)),
+			"item": Database.recipe_output(recipe),
+			"clock": true,
 			"caption": TimeText.short(int(recipe.get("seconds", 60))),
 			"error": GameState.content_error("recipe", id, recipe),
 			"error_fn": func() -> String: return GameState.content_error("recipe", id, recipe),
@@ -38,6 +40,7 @@ static func station(room: RoomView, station_id: String, anchor: Dictionary, focu
 		"mode": "pick",
 		"title": str(Database.stations[station_id].name),
 		"icon": station_icon(station_id),
+		"art": "stove" if station_id == "stove" else "",
 		"badge": mastery_badge(station_id),
 		"selected": selected,
 		"on_select": func(id: String) -> void: last_recipe[station_id] = id,
@@ -116,11 +119,12 @@ static func _first_open(entries: Array[Dictionary]) -> String:
 	return str(entries[0].id) if not entries.is_empty() else ""
 
 
-## Cabeçalho: bolinhas da fila + ampliações ("+") e "Pegar tudo (N)" quando algo fica pronto.
+## Cabeçalho: faixa bege dos espaços da fila (um por vaga + um bloqueado por ampliação que dá para comprar) e
+## "Pegar tudo (N)" quando algo fica pronto.
 static func _header(station_id: String) -> Control:
 	var box := SheetBuilder.LiveBox.new(func(parent: VBoxContainer) -> void:
 		var ready := GameState.station(station_id).ready_count(GameState.now())
-		parent.add_child(SheetBuilder.slot_strip(SheetBuilder.station_slot_row(station_id)))
+		parent.add_child(StationWood.station_strip(station_id))
 		if ready > 0:
 			parent.add_child(_collect_button(station_id, ready)))
 	box.name = "Header"
@@ -128,9 +132,10 @@ static func _header(station_id: String) -> Control:
 
 
 static func _collect_button(station_id: String, ready: int) -> Button:
-	var collect := UiKit.soft("Pegar tudo (%d)" % ready, func() -> void:
-		Events.items_gained.emit(GameState.collect(station_id), 0, Vector2(-1.0, -1.0)), null, true)
+	var collect := StationWood.wood_button("Pegar tudo (%d)" % ready, func() -> void:
+		Events.items_gained.emit(GameState.collect(station_id), 0, Vector2(-1.0, -1.0)), 17, 160.0)
 	collect.name = "CollectAll_" + station_id
+	collect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	return collect
 
 
@@ -139,10 +144,11 @@ static func chosen_count(recipe_id: String) -> int:
 	return clampi(int(quantity.get(recipe_id, 1)), 1, maxi(1, GameState.cook_max(recipe_id)))
 
 
-## Detalhe da receita escolhida: nome + tempo, "entra → sai" e, embaixo (rodapé fixo `Actions`), a quantidade e
-## o botão principal. Receita bloqueada ou fila cheia trocam o verde por um `lock_hint`.
+## Detalhe da receita escolhida: nome + tempo, ingredientes → resultado em caixas bege e, embaixo (`Actions`, que a
+## bandeja leva para a tábua do rodapé), o seletor de quantidade e o botão verde. Receita bloqueada ou fila cheia
+## trocam o verde por um aviso (`LockHint`).
 static func recipe_detail(station_id: String, recipe_id: String) -> Control:
-	var box := UiKit.vbox(10)
+	var box := UiKit.vbox(6)
 	box.name = "RecipeDetail"
 	if not Database.recipes.has(recipe_id):
 		return box
@@ -151,54 +157,65 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 	var count := chosen_count(recipe_id)
 	var qty := GameState.recipe_quantity(recipe_id) * count
 	var heading := UiKit.hbox(8)
-	var title := UiKit.fill_label(Database.item_name(output) + (" ×%d" % qty if qty > 1 else ""), &"StrongLabel")
+	var title := StationWood.text(Database.item_name(output) + (" ×%d" % qty if qty > 1 else ""), 21)
 	title.name = "RecipeName"
-	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	heading.add_child(title)
-	var time_chip := UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(recipe.get("seconds", 60)) * count), null, "time")
-	time_chip.name = "RecipeTime"
-	heading.add_child(time_chip)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.clip_text = true
+	var title_box := UiKit.vbox(0)
+	title_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_box.add_child(title)
+	heading.add_child(title_box)
+	heading.add_child(StationWood.time_pill(TimeText.short(int(recipe.get("seconds", 60)) * count)))
 	box.add_child(heading)
 	# entra → sai
-	var flow := UiKit.flow(4)
-	flow.name = "Ingredients"
+	var flow := UiKit.hbox(8)
+	flow.name = "RecipeFlow"
+	flow.alignment = BoxContainer.ALIGNMENT_CENTER
 	var inputs: Dictionary = GameState.cook_inputs(recipe_id, count)
-	for item_id: String in inputs:
-		flow.add_child(ProgressionUi.item_chip(item_id, int(inputs[item_id]), true))
 	if not inputs.is_empty():
-		flow.add_child(UiKit.ctl("arrow", 20, Palette.INK_FAINT))
-	if not recipe.has("output_collection") and qty > 1:
-		flow.add_child(UiKit.chip(Database.item_icon(output), "×%d" % qty, null, "prize"))
-	for effect in UiKit.effect_chip_list(Database.items.get(output, {}).get("feed", {})):
-		flow.add_child(effect)
+		var ingredients_box := StationWood.inset_box("IngredientsBox")
+		ingredients_box.custom_minimum_size.x = 130.0
+		var ingredients := StationWood.flow(6)
+		ingredients.name = "Ingredients"
+		for item_id: String in inputs:
+			ingredients.add_child(StationWood.ingredient_card(item_id, int(inputs[item_id])))
+		ingredients_box.add_child(ingredients)
+		flow.add_child(ingredients_box)
+		var arrow := StationWood.pic("arrow", Vector2(24, 33), "Arrow")
+		arrow.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		flow.add_child(arrow)
+	var result := StationWood.result_box(output, qty, recipe.has("output_collection"))
+	if inputs.is_empty():
+		result.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.add_child(result)
 	box.add_child(flow)
 	var actions := UiKit.hbox(8)
 	actions.name = "Actions"
+	actions.alignment = BoxContainer.ALIGNMENT_CENTER
 	box.add_child(actions)
 	var locked := GameState.content_error("recipe", recipe_id, recipe)
 	if locked != "":
-		actions.add_child(UiKit.lock_hint(locked, TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))))
+		actions.add_child(StationWood.board_note(locked, TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))))
 		return box
 	var most := GameState.cook_max(recipe_id)
 	if most > 1:
-		var stepper := UiKit.stepper(count, 1, most, func(value: int) -> void: _set_count(recipe_id, value), "Tudo")
-		stepper.name = "Quantity"
-		stepper.get_child(1).name = "QuantityValue"
-		var done := UiKit.short_label("Pronto às %s" % GameState.clock_text(GameState.cook_finish_at(recipe_id, count)), &"SmallLabel")
+		actions.add_child(StationWood.stepper(count, most, func(value: int) -> void: _set_count(recipe_id, value)))
+		var done := StationWood.text("Pronto às %s" % GameState.clock_text(GameState.cook_finish_at(recipe_id, count)), 12)
 		done.name = "FinishAt"
-		box.add_child(done)
-		box.move_child(done, actions.get_index())
-		actions.add_child(stepper)
+		title_box.add_child(done)
 	var error := GameState.cook_many_error(recipe_id, count)
 	if error != "":
-		var hint := UiKit.lock_hint(error)
-		hint.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		actions.add_child(hint)
+		actions.add_child(StationWood.board_note(error))
 		return box
 	var verb := str(Database.stations.get(station_id, {}).get("action_label", "Fazer"))
-	var action := UiKit.primary(verb if count == 1 else "%s ×%d" % [verb, count], func() -> void: _cook(station_id, recipe_id))
+	var action := StepCardUi.go_button(verb if count == 1 else "%s ×%d" % [verb, count], func() -> void: _cook(station_id, recipe_id))
 	action.name = "Cook"
-	action.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	action.set_meta("wood_primary", true)
+	if most <= 1:
+		action.size_flags_horizontal = Control.SIZE_SHRINK_CENTER  # sem seletor: botão encaixado no meio da tábua
+		action.custom_minimum_size.x = 200.0
+	if count > 1:
+		action.theme = HomeUi.theme(16, Palette.WOOD_CREAM, Palette.WOOD_INK, 4)
 	actions.add_child(action)
 	return box
 
@@ -254,24 +271,26 @@ static func animal(room: RoomView, station_id: String, anchor: Dictionary) -> Ac
 	if GameState.animal_count(station_id) == 0:
 		var empty := UiKit.vbox(6)
 		empty.name = "EmptyShelter"
-		var note := UiKit.label("Abrigo vazio", &"")
+		var note := StationWood.text("Abrigo vazio", 20)
 		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty.add_child(note)
 		shop_footer["primary"] = true
-		return ActionTray.open(room, anchor.above, [], {"mode": "pick", "title": str(data.name), "icon": station_icon(station_id), "header": empty, "below": anchor.below, "footer_ghost": shop_footer})
+		return ActionTray.open(room, anchor.above, [], {"mode": "pick", "title": str(data.name), "icon": station_icon(station_id), "art": "", "header": empty, "below": anchor.below, "footer_ghost": shop_footer})
 	var entries: Array[Dictionary] = []
 	for id in recipe_ids(station_id):
 		var recipe: Dictionary = Database.recipes[id]
 		entries.append({
 			"id": id,
 			"icon": Database.item_icon(Database.recipe_output(recipe)),
+			"item": Database.recipe_output(recipe),
+			"clock": true,
 			"caption": TimeText.short(int(recipe.seconds)),
 			"error": GameState.content_error("recipe", id, recipe),
 			"error_fn": func() -> String: return GameState.content_error("recipe", id, recipe),
 			"missing_fn": func() -> Texture2D: return missing_icon(id),
 		})
 	return ActionTray.open(room, anchor.above, entries, {
-		"mode": "pick", "title": str(data.name), "icon": station_icon(station_id), "selected": _first_open(entries),
+		"mode": "pick", "title": str(data.name), "icon": station_icon(station_id), "art": "", "selected": _first_open(entries),
 		"header": _header(station_id),
 		"detail": func(id: String) -> Control: return recipe_detail(station_id, id),
 		"below": anchor.below, "footer_ghost": shop_footer,
@@ -328,16 +347,17 @@ static func _nature_header(site: String) -> Control:
 	var data: Dictionary = Database.progression.nature_sites[site]
 	var box := SheetBuilder.LiveBox.new(func(parent: VBoxContainer) -> void:
 		var ready := GameState.gathering_ready_count(site)
-		var slots := SheetBuilder.slot_flow()
+		var slots: Array[Control] = []
 		for index in 3:
-			NatureUi.slot(slots, site, index)
-		parent.add_child(SheetBuilder.slot_strip(slots))
+			slots.append(StationWood.nature_slot(site, index))
+		parent.add_child(StationWood.tray_strip(StationWood.even_rows(slots)))
 		if ready > 0:
-			var collect := UiKit.soft("Pegar tudo (%d)" % ready, func() -> void:
+			var collect := StationWood.wood_button("Pegar tudo (%d)" % ready, func() -> void:
 				var error := GameState.collect_gathering_all(site)
 				if error == "":
-					Events.items_gained.emit(GameState.last_gain, GameState.last_coins, Vector2(-1.0, -1.0)), null, true)
+					Events.items_gained.emit(GameState.last_gain, GameState.last_coins, Vector2(-1.0, -1.0)), 17, 160.0)
 			collect.name = "CollectAll_" + site
+			collect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 			parent.add_child(collect)
 		var info := GameState.progress.nature_info(site)
 		var level_row := UiKit.hbox(8)
@@ -348,11 +368,11 @@ static func _nature_header(site: String) -> Control:
 		ring.progress = 1.0 if info.max else float(info.xp) / maxf(1.0, float(info.needed))
 		ring.texture = Database.item_icon(str(data.resources[0]))
 		level_row.add_child(ring)
-		var level_label := UiKit.short_label("Nível %d" % info.level, &"SmallLabel")
+		var level_label := StationWood.text("Nível %d" % info.level, 17)
 		level_label.name = "NatureLevel"
 		level_row.add_child(level_label)
-		var help := UiKit.ctl_button("help", func() -> void:
-			Events.sheet_requested.emit("Evolução · " + str(data.name), NatureUi.levels_panel(site)), 32, "sunken")
+		var help := StepCardUi.help_button(func() -> void:
+			Events.sheet_requested.emit("Evolução · " + str(data.name), NatureUi.levels_panel(site)))
 		help.name = "LevelsHelp"
 		level_row.add_child(help)
 		parent.add_child(level_row))
@@ -381,27 +401,37 @@ static func _fill_material_detail(box: VBoxContainer, site: String, item: String
 	var choice := NatureUi.route_choice(item, func() -> void: _fill_material_detail(box, site, item))
 	if choice != null:
 		box.add_child(choice)
-	var title := UiKit.fill_label("%s ×%d" % [Database.item_name(primary), int(route.rewards.items[primary])], &"StrongLabel")
-	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	box.add_child(title)
-	var chips := UiKit.flow(2)
-	chips.add_child(UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(route.seconds))))
+	var heading := UiKit.hbox(8)
+	var title := StationWood.text("%s ×%d" % [Database.item_name(primary), int(route.rewards.items[primary])], 22)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.clip_text = true
+	heading.add_child(title)
+	heading.add_child(StationWood.time_pill(TimeText.short(int(route.seconds))))
+	box.add_child(heading)
+	var chips := StationWood.flow(6)
+	chips.alignment = FlowContainer.ALIGNMENT_BEGIN
 	for bonus: String in route.rewards.get("items", {}):
 		if bonus != primary:
-			chips.add_child(UiKit.chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), Palette.GO_INK))
-	chips.add_child(UiKit.chip(UiKit.ui_icon("xp"), "+%d XP" % NatureUi.route_xp(route_id)))
+			chips.add_child(StepCardUi.wood_chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), "have"))
+	chips.add_child(StepCardUi.wood_chip(UiKit.ui_icon("xp"), "+%d XP" % NatureUi.route_xp(route_id)))
 	box.add_child(chips)
 	var level := NatureUi.route_level(route_id)
 	if GameState.progress.nature_level(site) < level:
-		var hint := UiKit.lock_hint(GameState.next_gathering_error(site, route_id, item), TaskHelp.open.bind("route", route_id), Database.item_icon(item))
+		var hint := StepCardUi.lock_note(GameState.next_gathering_error(site, route_id, item), TaskHelp.open.bind("route", route_id), Database.item_icon(item))
 		hint.name = "RequiredLevel_" + item
 		box.add_child(hint)
 		return
 	var error := GameState.next_gathering_error(site, route_id, item)
-	var action := UiKit.primary(error if error != "" else "Buscar", func() -> void:
+	if error != "":
+		var blocked := StepCardUi.lock_note(error, TaskHelp.open.bind("route", route_id), Database.item_icon(item))
+		blocked.name = "Locked_Material_" + item
+		blocked.set_meta("reason", error)
+		box.add_child(blocked)
+		return
+	var action := StepCardUi.go_button("Buscar", func() -> void:
 		var reason := GameState.start_next_gathering(site, route_id, item)
 		if reason != "":
 			Events.toast_requested.emit(reason))
 	action.name = "Material_" + item
-	box.add_child(UiKit.action_or_hint(action, error, TaskHelp.open.bind("route", route_id), Database.item_icon(item)))
-	return
+	action.set_meta("wood_primary", true)
+	box.add_child(action)
