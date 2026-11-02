@@ -29,6 +29,10 @@ func _run() -> void:
 	root.add_child(main)
 	for i in 4:
 		await process_frame
+	await _hud_claim_resolutions()
+	if "--before" in OS.get_cmdline_user_args():
+		quit(1 if failures else 0)
+		return
 	await _footer()
 	await _talk_step()
 	await _claim_step()
@@ -49,6 +53,10 @@ func _step() -> Control:
 
 func _reset_fresh() -> void:
 	# Cartões de comemoração de testes anteriores não podem sobrar na tela.
+	var catcher := main.get_node_or_null("PopoverCatcher")
+	if catcher:
+		catcher.queue_free()
+		await process_frame
 	for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony", "_quest_reward"]:
 		var card: Variant = main.get(member)
 		if card is CanvasLayer:
@@ -105,7 +113,7 @@ func _talk_step() -> void:
 	check(main.get_node_or_null("PopoverCatcher") == null, "Ir fecha o cartão")
 
 
-## 3. Pronto: verde, "Pegar" visível, um toque entrega uma vez.
+## 3. Pronto: "Pegar" visível, um toque entrega uma vez.
 func _claim_step() -> void:
 	await _reset_fresh()
 	state.call("talk_to", "lais")
@@ -251,3 +259,59 @@ func _story_done() -> void:
 
 func _guide() -> Dictionary:
 	return (load("res://scripts/ui/quest_guide.gd") as GDScript).call("current")
+
+
+## Regressão Home: componente padrão, limites e resgate via toque nas três telas.
+func _hud_claim_resolutions() -> void:
+	Input.emulate_mouse_from_touch = true
+	var before := "--before" in OS.get_cmdline_user_args()
+	for resolution: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
+		root.size = resolution
+		await _reset_fresh()
+		state.call("talk_to", "lais")
+		for i in 8: await process_frame
+		var step := _step()
+		var claim := step.find_child("StepClaim", true, false) as Control
+		var face := step.find_child("StepFace", true, false) as Control
+		check(claim.is_visible_in_tree() and step.modulate.a > 0.99, "Pegar visível em %s" % resolution)
+		check(step.get_global_rect().encloses(claim.get_global_rect()), "Pegar dentro do cartão em %s" % resolution)
+		check(not face.get_global_rect().intersects(claim.get_global_rect()), "Pegar sem sobrepor retrato em %s" % resolution)
+		if "--shots" in OS.get_cmdline_user_args():
+			await RenderingServer.frame_post_draw
+			var folder := ProjectSettings.globalize_path("res://../build/screenshots/hud_pegar/")
+			DirAccess.make_dir_recursive_absolute(folder)
+			var file := ("antes" if before else "depois") + "_%dx%d.png" % [resolution.x, resolution.y]
+			check(root.get_texture().get_image().save_png(folder + file) == OK, "captura " + file)
+		if before: continue
+		var button := claim as Button
+		check(button != null, "StepClaim é botão padrão")
+		if button == null: continue
+		var reference: Button = load("res://scripts/ui/mission_ui.gd").call("button", "go", "Pegar", func() -> void: pass)
+		check(button.text == reference.text and not button.disabled, "Pegar ativo sem check")
+		check(button.get_node("Frame").texture == reference.get_node("Frame").texture, "mesma arte amarela das missões")
+		var art := button.get_node("Frame") as Control
+		check(is_equal_approx(art.size.x * art.scale.x, button.size.x) and is_equal_approx(art.size.y * art.scale.y, 39.0), "moldura preenche o botão")
+		check(button.theme.get_font("font", "Button") == reference.theme.get_font("font", "Button"), "mesma fonte das missões")
+		check(button.size.x >= 44 and button.size.y >= 44, "alvo de toque mínimo 44 px")
+		reference.free()
+		var coins: int = state.get("coins")
+		var food: int = state.get("inventory").count("dog_food")
+		var point := root.get_final_transform() * claim.get_global_rect().get_center()
+		await _screen_tap(point)
+		check(state.get("progress").claimed_quests.has("welcome"), "toque resgata welcome em %s" % resolution)
+		check(int(state.get("coins")) == coins + 5 and state.get("inventory").count("dog_food") == food + 2, "prêmio exato em %s" % resolution)
+		await _screen_tap(point)
+		check(int(state.get("coins")) == coins + 5 and state.get("inventory").count("dog_food") == food + 2, "segundo toque não duplica em %s" % resolution)
+		print("HUD PEGAR %s: toque e estilo verificados" % resolution)
+	await _reset_fresh()
+
+
+func _screen_tap(point: Vector2) -> void:
+	for down: bool in [true, false]:
+		var event := InputEventScreenTouch.new()
+		event.index = 0
+		event.position = point
+		event.pressed = down
+		Input.parse_input_event(event)
+		for i in 2: await process_frame
+	for i in 4: await process_frame

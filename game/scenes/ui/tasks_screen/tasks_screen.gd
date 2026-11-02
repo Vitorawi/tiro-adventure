@@ -628,7 +628,14 @@ func _routines(box: VBoxContainer, kind: String) -> void:
 		var value := mini(GameState.routine_value(kind, id), target)
 		var ready := GameState.routine_error(kind, id) == ""
 		var key := kind + "_" + id
-		var action := UiKit.small_go("Pegar", func() -> void: ProgressionUi.claim_routine_rows(_content, [{"kind": kind, "id": id}])) if ready else UiKit.row_chevron(choose_routine_detail.bind(kind, id))
+		var action := MissionUi.button("go", "Pegar", func() -> void: ProgressionUi.claim_routine_rows(_content, [{"kind": kind, "id": id}]), 88.0)
+		action.name = "ClaimRoutine_" + key
+		# A linha abre a sanfona no down. Não deixe esse gesto reconstruir o botão antes do up.
+		action.mouse_filter = Control.MOUSE_FILTER_STOP
+		action.disabled = not ready
+		if action.disabled:
+			action.get_node("Frame").modulate = Color(0.48, 0.48, 0.48, 0.65)
+			action.add_theme_color_override("font_disabled_color", Palette.WOOD_CREAM.darkened(0.28))
 		var row := UiKit.list_row(null, str(data.name), [UiKit.short_label("%d/%d" % [value, target], &"SmallLabel", Palette.GO_INK if ready else Palette.INK_SOFT)], action, choose_routine_detail.bind(kind, id), false)
 		row.name = "Routine_" + key
 		var top := row.get_child(0).get_child(0) as HBoxContainer

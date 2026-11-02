@@ -1,7 +1,7 @@
 class_name NextStep
 extends Button
 ## Cartão de madeira do próximo passo da HISTÓRIA (segunda linha do HUD, só na aba Tiro): retrato de quem pede,
-## ícone do objetivo em pixel e `valor/alvo`; a seta já vem na arte. Pronto = selo verde "Pegar" (um toque entrega).
+## ícone do objetivo em pixel e `valor/alvo`; a seta já vem na arte. Pronto = botão padrão de missão "Pegar".
 ## O resto abre o mini-cartão. Só lê (`QuestGuide.current()`); quem muda o jogo é o `GameState.claim_quest` do toque.
 ## Cartão fixo de 140×65 (posições do protótipo); os modos `compact`/`mini` do Mapa existem por compatibilidade.
 
@@ -29,8 +29,7 @@ var _face: Control
 var _icon: TextureRect
 var _count: Label
 var _chevron: TextureRect
-var _claim: PanelContainer
-var _claim_text: Label
+var _claim: Button
 var _portrait: Texture2D
 var _guide: Dictionary = {"state": "hidden", "id": ""}
 var _shown_id: String = ""
@@ -76,20 +75,10 @@ func _init() -> void:
 	_chevron.name = "StepChevron"
 	_chevron.visible = false
 	_row.add_child(_chevron)
-	_claim = PanelContainer.new()
+	# Mesmo Pegar amarelo das Missões; largura menor para preservar o retrato e o papel.
+	_claim = MissionUi.button("go", "Pegar", _on_pressed, 76.0)
 	_claim.name = "StepClaim"
-	_claim.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_claim.add_theme_stylebox_override("panel", UiKit.surface(Palette.GO, 14, true))
-	_claim.position = Vector2(58.0, 14.0)
-	_claim.size = Vector2(66.0, 32.0)
-	var claim_row := UiKit.hbox(4)
-	claim_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	claim_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	_claim_text = UiKit.label("Pegar", &"StrongLabel", Palette.CARD)
-	_claim_text.autowrap_mode = TextServer.AUTOWRAP_OFF
-	claim_row.add_child(_claim_text)
-	claim_row.add_child(UiKit.ctl("check", 16, Palette.CARD))
-	_claim.add_child(claim_row)
+	_claim.position = Vector2(56.0, 10.0)
 	_row.add_child(_claim)
 	Motion.press(self)
 	pressed.connect(_on_pressed)
@@ -105,6 +94,9 @@ func _init() -> void:
 
 
 func _ready() -> void:
+	# Fora de containers: atualiza o Frame mesmo se o tamanho mínimo já foi aplicado antes da árvore.
+	_claim.size = _claim.custom_minimum_size
+	_claim.resized.emit()
 	refresh()
 
 
@@ -148,7 +140,7 @@ func refresh() -> void:
 	_rebuild()
 
 
-## Estado do cartão: pronto troca o ícone/número pelo selo "Pegar"; espaço cheio avermelha o papel.
+## Estado do cartão: pronto troca o ícone/número pelo botão "Pegar"; espaço cheio avermelha o papel.
 func _rebuild() -> void:
 	if _row == null:
 		return
