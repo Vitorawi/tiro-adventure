@@ -2,6 +2,8 @@
 
 ## Estado atual
 
+**PUBLICADO - versão `eb2d120` (02/11/2026, 17:42 BRT, a pedido do Vitor: "Pode commitar e publicar").** Como fazer (`HelpUi`), avisos embaixo em madeira sem repetir (`Notice`), boas-vindas em madeira (`WelcomeSheet`), borda do painel do Detalhe do item corrigida e espaço pronto da bandeja de estação sem pulsar. Deploy Web OK em 2m08s: https://github.com/Vitorawi/tiro-adventure/actions/runs/41521361550. Ficaram de fora (locais, de outra sessão): arrasto vertical das receitas no fogão (`action_tray.gd`, `slot_dot.gd`, `station_grid_touch_test`) e ordem fixa do prato (`pet_care_tray.gd`, `pet_care_test`, `food_order_touch_test`, `test_areas.json`). `SAVE_VERSION` segue 17.
+
 **Boas-vindas em madeira (02/11/2026; local).** O cartão "Bem-vindo de volta!" usa `WelcomeSheet` (madeira ilustrada, placa curta, Tiro pequeno + Presente do dia compacto com `Pegar`, linhas com `Ir` de madeira, `Depois` amarelo; rola por dentro se passar). `RewardSheet` e a fila modal intactos. `tests/welcome_shots.gd` em `build/screenshots/welcome/`; `festa_test`/`welcome_test` PASS.
 
 **Avisos em madeira, embaixo (02/11/2026; local).** `Notice` virou pílula de madeira pequena embaixo (acima das abas/folha/bandeja), com fila sem duplicatas; ver CLAUDE.md. `notice_test`/`hud_test` ajustados, `tests/notice_shots.gd` em `build/screenshots/notice/`.
