@@ -213,7 +213,7 @@ static func _grid_area(ids: Array[String], model: Dictionary, refresh: Callable,
 
 ## Rolagem com a barra fina da madeira numa coluna fixa à direita (`GUTTER`): a largura não muda com o conteúdo. `model.scroll`
 ## guarda a posição entre as reconstruções. Compartilhada pela venda e pelas encomendas.
-static func scrolled(holder: Control, inner_w: float, height: float, needs_bar: bool, model: Dictionary, scroll_name: String, bar_name: String) -> Control:
+static func scrolled(holder: Control, inner_w: float, height: float, needs_bar: bool, model: Dictionary, scroll_name: String, bar_name: String, gutter_w: float = GUTTER) -> Control:
 	var row := UiKit.hbox(0)
 	row.mouse_filter = Control.MOUSE_FILTER_PASS
 	var scroll := ScrollContainer.new()
@@ -221,7 +221,7 @@ static func scrolled(holder: Control, inner_w: float, height: float, needs_bar: 
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var bar_w := GUTTER if needs_bar else 0.0
+	var bar_w := gutter_w if needs_bar else 0.0
 	scroll.custom_minimum_size = Vector2(inner_w - bar_w, height)
 	row.add_child(scroll)
 	scroll.add_child(holder)
@@ -237,7 +237,7 @@ static func scrolled(holder: Control, inner_w: float, height: float, needs_bar: 
 	style_bar(bar)
 	gutter.add_child(bar)
 	bar.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	bar.offset_left = 4.0
+	bar.offset_left = maxf(0.0, gutter_w - 8.0)
 	bar.offset_right = -2.0
 	bar.offset_top = 6.0
 	bar.offset_bottom = -6.0

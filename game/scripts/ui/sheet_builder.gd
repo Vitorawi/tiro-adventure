@@ -96,82 +96,10 @@ static func tall(content: Control) -> Control:
 	return content
 
 
-## Detalhe do item (folha meia, altura automática): ícone 64 em disco, quantidade, uma linha de uso, chips
-## (vende por / onde guarda), "De onde vem" em linhas e UMA ação verde contextual (a primeira possível de
-## Dar > Dar ao Tiro > Dar ao cesto > Ir > Vender; as outras ficam suaves ao lado).
+## Detalhe do item (folha "madeira ilustrada", montada pelo `ItemUi`): placa com o nome, cartão compacto (ícone, quantidade,
+## uma linha de uso, chips e ações) e os painéis "Origem" / "Usado em". As fontes e os usos vêm de `_sources`/`_uses` abaixo.
 static func item_detail(id: String) -> Control:
-	return LiveBox.new(func(box: VBoxContainer) -> void:
-		var item: Dictionary = Database.items.get(id, {})
-		var amount := GameState.inventory.count(id)
-		var price := int(item.get("sell_price", 0))
-		var top := UiKit.hbox(12)
-		var hero := UiKit.disc(Database.item_icon(id), 88, 64)
-		hero.name = "ItemHero"
-		top.add_child(hero)
-		var words := UiKit.vbox(4)
-		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		words.add_child(UiKit.label("Você tem %d" % amount if amount > 0 else "Você não tem", &"StrongLabel" if amount > 0 else &"", Palette.INK if amount > 0 else Palette.INK_SOFT))
-		var use_line := str(item.get("note", ""))
-		if use_line != "":
-			words.add_child(UiKit.label(use_line, &"", Palette.INK_SOFT))
-		top.add_child(words)
-		box.add_child(top)
-		var chips := UiKit.flow(8)
-		if price > 0:
-			chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), "Vende por %d" % price, null, "prize"))
-		if item.has("feed"):
-			for effect: Control in UiKit.effect_chip_list(item.feed):
-				chips.add_child(effect)
-		var depot_row := _depot_row(id)
-		if depot_row != null:
-			chips.add_child(depot_row)
-		if chips.get_child_count() > 0:
-			box.add_child(chips)
-		# Ações possíveis, na ordem de prioridade: a primeira vira o botão verde.
-		var actions: Array[Dictionary] = []
-		var growth_delivery := false
-		for req: Dictionary in GameState.growth_info().requirements:
-			if req.type == "deliver" and str(req.item) == id and not req.done:
-				growth_delivery = true
-		if growth_delivery and amount > 0:
-			actions.append({"name": "GiveGrowth_" + id, "text": "Dar", "fn": GrowthUi._deliver.bind(id)})
-		elif item.has("feed") and amount > 0:
-			actions.append({"name": "GiveFood_" + id, "text": "Dar ao Tiro", "fn": func() -> void:
-				var error := give_food(id)
-				if error != "":
-					Events.toast_requested.emit(error)})
-		if bool(item.get("toy", false)) and amount > 0:
-			if GameState.give_toy_error(id) == "":
-				actions.append({"name": "GiveToy_" + id, "text": "Dar ao Tiro", "fn": func() -> void:
-					var reason := GameState.give_toy(id)
-					if reason == "":
-						Events.sheet_close_requested.emit()
-					Events.toast_requested.emit(reason if reason != "" else "Foi para o cesto de brinquedos")})
-			elif not GameState.house_has("toy_basket"):
-				box.add_child(UiKit.lock_hint("Chega com o cesto de brinquedos"))
-		if str(item.get("category", "")) == "keepsake":
-			actions.append({"name": "KeepsakeGo", "text": "Ir", "fn": GrowthUi.open})
-		if price > 0 and amount > 0:
-			var place := Database.place_with_panel("sell")
-			if place[0] != "" and Places.world_error(place[0]) == "":
-				actions.append({"name": "SellItem", "text": "Vender", "icon": UiKit.ui_icon("coin"), "fn": Places.go.bind({"world": place[0], "place": "market:sell"})})
-		if not actions.is_empty():
-			var row := UiKit.hbox(8)
-			row.name = "ItemActions"
-			for i in actions.size():
-				var entry: Dictionary = actions[i]
-				var button: Button
-				if i == 0:
-					button = UiKit.primary(str(entry.text), entry.fn, entry.get("icon"))
-					button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-				else:
-					button = UiKit.soft(str(entry.text), entry.fn, entry.get("icon"), true)
-				button.name = str(entry.name)
-				row.add_child(button)
-			box.add_child(row)
-		_link_section(box, "De onde vem", _sources(id))
-		_link_section(box, "Usado em", _uses(id)))
+	return ItemUi.build(id)
 
 
 ## Onde o item fica guardado, em chip: "Geladeira 4/24" (só com o limite ligado). O nó se chama `DepotRow`;
@@ -520,49 +448,9 @@ static func open_animal_shop(station_id: String) -> void:
 	Events.sheet_requested.emit("Comprar animais", animal_shop(station_id))
 
 
+## Loja de animais em madeira ilustrada (ver `AnimalShopUi`).
 static func animal_shop(station_id: String) -> Control:
-	return LiveBox.new(func(box: VBoxContainer) -> void:
-		var data: Dictionary = Database.stations[station_id]
-		box.add_child(UiKit.label("%s · %d/%d animais" % [data.name, GameState.animal_count(station_id), int(data.animal_capacity)], &"StrongLabel"))
-		box.add_child(UiKit.label("Escolha o visual. Cada animal produz 2 unidades por alimentação.", &"SmallLabel"))
-		# Cartões de 2 colunas (referência de loja): figura em disco, nome e preço em pílula verde pequena.
-		var grid := GridContainer.new()
-		grid.name = "AnimalGrid"
-		grid.columns = 2
-		grid.add_theme_constant_override("h_separation", 12)
-		grid.add_theme_constant_override("v_separation", 12)
-		box.add_child(grid)
-		for id: String in Database.animals:
-			var animal: Dictionary = Database.animals[id]
-			if animal.station != station_id:
-				continue
-			var cell := VBoxContainer.new()
-			cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			var body := UiKit.card(cell)
-			body.get_parent().name = "AnimalCard_" + id
-			body.add_theme_constant_override("separation", 6)
-			var error := GameState.buy_animal_error(id)
-			var figure := UiKit.disc(load(animal.sprite), 80, 64)
-			figure.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-			figure.modulate.a = 0.55 if error != "" else 1.0
-			body.add_child(figure)
-			var title := UiKit.short_label(str(animal.name), &"StrongLabel")
-			title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			title.modulate.a = 0.55 if error != "" else 1.0
-			body.add_child(title)
-			var owned := UiKit.short_label("Você tem %d" % int(GameState.animals.get(id, 0)), &"SmallLabel", Palette.INK_SOFT)
-			owned.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			body.add_child(owned)
-			var buy := UiKit.button("%d" % int(animal.price), func() -> void:
-				var reason := GameState.buy_animal(id)
-				if reason != "":
-					Events.toast_requested.emit(reason), &"SmallGoButton", UiKit.ui_icon("coin"))
-			buy.name = "Buy_" + id
-			buy.custom_minimum_size = Vector2(44, 44)
-			body.add_child(UiKit.action_or_hint(buy, error, TaskHelp.open.bind("item", "egg" if station_id == "chicken_coop" else "milk"), UiKit.ui_icon("coin") if GameState.coins < int(animal.price) else null))
-			grid.add_child(cell)
-		box.add_child(UiKit.soft("Ver meus animais", func() -> void:
-			Events.sheet_requested.emit(data.name, station_view(station_id)))))
+	return AnimalShopUi.build(station_id)
 
 
 ## O que falta para comprar o animal, em ícone + número (pode faltar mais de uma coisa):
