@@ -2,10 +2,8 @@ class_name PetCareTray
 extends Control
 ## Faixa permanente de cuidados. Gestos nunca alteram estado antes de validar o alvo.
 
-const FOOD_COLUMNS := 3
-const FOOD_TILE := 56.0
-const FOOD_GAP := 8.0  # igual à separação da grade
-const FOOD_ROWS := 2  # linhas visíveis; o resto rola
+const ChoiceWindow = preload("res://scripts/ui/care_choice_window.gd")
+const FOOD_TILE := ChoiceWindow.TILE
 const SCRUB_STEP := 260.0
 const SCRUB_TOTAL := 800.0
 const THROW_SPEED := -180.0
@@ -18,7 +16,9 @@ var _play_hint: Label
 var _scroll: ScrollContainer
 var _foods: GridContainer
 var _food_button: Button
-var _menu: PanelContainer
+var _menu: ChoiceWindow
+var _choice: ChoiceWindow
+var _choice_id := ""
 static var recent_foods: Array[String] = []
 var _sleep: Button
 var _items: Dictionary = {}
@@ -103,48 +103,16 @@ func _ready() -> void:
 	_food_button.name = "FoodButton"
 	_row.add_child(_food_button)
 	_wheel_card(_food_button)
-	_menu = PanelContainer.new()
+	_menu = ChoiceWindow.new()
 	_menu.name = "FoodMenu"
-	# Moldura de madeira com miolo creme (a mesma do mini-cartão do próximo passo); o conteúdo é uma grade de quadradinhos.
-	_menu.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	_menu.z_index = 4
-	_menu.hide()
 	pet_screen.add_child(_menu)
-	_menu.minimum_size_changed.connect(func() -> void: _place_menu.call_deferred())
-	var art := Control.new()
-	art.name = "Art"
-	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_menu.add_child(art)
-	var frame := StepCardUi.patch("frame", 42, 42)
-	frame.name = "Frame"
-	frame.scale = Vector2.ONE / 3.0
-	art.add_child(frame)
-	art.resized.connect(func() -> void:
-		frame.position = Vector2.ZERO
-		frame.size = art.size.max(Vector2.ONE) * 3.0)
-	var body := MarginContainer.new()
-	body.name = "Body"
-	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for side: String in ["left", "right"]:
-		body.add_theme_constant_override("margin_" + side, 20)
-	body.add_theme_constant_override("margin_top", 14)
-	body.add_theme_constant_override("margin_bottom", 14)
-	_menu.add_child(body)
-	var column := UiKit.vbox(4)
-	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	body.add_child(column)
-	# Sem título, X nem setas: fecha tocando fora ou no botão Comida.
-	_scroll = ScrollContainer.new()
-	_scroll.name = "FoodScroll"
-	_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER  # sem barra: ela deslocaria a grade
-	column.add_child(_scroll)
-	_foods = GridContainer.new()
-	_foods.columns = FOOD_COLUMNS
-	_foods.add_theme_constant_override("h_separation", int(FOOD_GAP))
-	_foods.add_theme_constant_override("v_separation", int(FOOD_GAP))
-	_foods.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	_scroll.add_child(_foods)
+	_menu.layout_requested.connect(func() -> void: _place_menu.call_deferred())
+	_scroll = _menu.scroll
+	_foods = _menu.grid
+	_choice = ChoiceWindow.new()
+	_choice.name = "CareChoice"
+	pet_screen.add_child(_choice)
+	_choice.layout_requested.connect(func() -> void: _place_menu.call_deferred())
 	for entry: Array in [["sponge", "action_sponge", "Banho"], ["ball", "action_play", "Brincar"]]:
 		var item := UiKit.care_disc(UiKit.ui_icon(entry[1]), entry[2], func() -> void: pass)
 		item.name = "Care_" + str(entry[0])
@@ -258,6 +226,7 @@ func _phase_key() -> String:
 
 
 func refresh() -> void:
+	_refresh_care_choice()
 	visible = not GameState.walking()
 	_play_hint.text = str(GameState.play_growth_info().status)
 	_play_hint.hide()
@@ -273,8 +242,8 @@ func refresh() -> void:
 			_foods.remove_child(child)
 			child.queue_free()
 		_food_ids = ids
+		_menu.placeholder_height = 112.0 if ids.is_empty() else 0.0
 		for id in ids: _foods.add_child(_food_item(id))
-		_scroll.custom_minimum_size = Vector2(FOOD_COLUMNS * (FOOD_TILE + FOOD_GAP) - FOOD_GAP, _food_height())
 		_place_menu.call_deferred()
 		if ids.is_empty():
 			_foods.add_child(SheetBuilder.food_help())
@@ -298,77 +267,22 @@ func refresh() -> void:
 	_place_menu.call_deferred()
 
 
-func _item(id: String, texture: Texture2D, caption: String) -> Control:
-	var item := Control.new()
+## Quadradinho de madeira só com o ícone: o ícone é a pega de arrasto até a cabeça. Quantidade embaixo à direita,
+## estrela "Nova" (ou coração da favorita) em cima à esquerda, selo da fase embaixo à esquerda, pedido em cima à direita.
+func _food_item(id: String) -> Control:
+	var item := ChoiceWindow.tile(Database.item_icon(id))
 	item.name = "Care_" + id
-	item.custom_minimum_size = Vector2(56, 76)
-	item.mouse_filter = Control.MOUSE_FILTER_STOP
-	var icon := UiKit.icon(texture, 48)
-	icon.position = Vector2(4, 0)
-	icon.name = "CareIcon"
-	icon.anchor_left = 0.5
-	icon.anchor_right = 0.5
-	icon.offset_left = -24
-	icon.offset_right = 24
-	item.add_child(icon)
-	var label := UiKit.short_label(caption, &"SmallLabel")
-	label.name = "Caption"
-	label.position = Vector2(0, 48)
-	label.size = Vector2(56, 24)
-	label.anchor_right = 1.0
-	label.offset_right = 0
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	item.add_child(label)
+	var caption := UiKit.short_label("", &"SmallLabel")
+	caption.name = "Caption"
+	caption.hide()
+	item.add_child(caption)
 	var badge := UiKit.icon(UiKit.ui_icon("heart"), 16)
 	badge.name = "Badge"
-	badge.position = Vector2(40, 0)
-	badge.size = Vector2(16, 16)
 	badge.hide()
-	badge.anchor_left = 0.5
-	badge.anchor_right = 0.5
-	badge.offset_left = 16
 	badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	item.add_child(badge)
 	item.gui_input.connect(_on_item_input.bind(id))
 	_items[id] = item
-	return item
-
-
-## Altura da área das comidas: até `FOOD_ROWS` linhas de quadradinhos (o resto rola); vazia, o espaço do aviso.
-func _food_height() -> float:
-	if _food_ids.is_empty(): return 112.0
-	var rows := mini(FOOD_ROWS, ceili(float(_food_ids.size()) / FOOD_COLUMNS))
-	return rows * FOOD_TILE + (rows - 1) * FOOD_GAP
-
-
-## Quadradinho de madeira só com o ícone: o ícone é a pega de arrasto até a cabeça. Quantidade embaixo à direita,
-## estrela "Nova" (ou coração da favorita) em cima à esquerda, selo da fase embaixo à esquerda, pedido em cima à direita.
-func _food_item(id: String) -> Control:
-	var item := _item(id, Database.item_icon(id), "")
-	item.custom_minimum_size = Vector2(FOOD_TILE, FOOD_TILE)
-	item.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var background := MissionUi.tile(null, "", "FoodDisc", Vector2(FOOD_TILE, FOOD_TILE))
-	item.add_child(background)
-	item.move_child(background, 0)
-	StepCardUi.stretch(background)
-	var caption := item.get_node("Caption") as Label
-	caption.visible = false  # sem nome: o ícone fala por si
-	var icon := item.get_node("CareIcon") as Control
-	icon.anchor_left = 0.0
-	icon.anchor_right = 0.0
-	icon.offset_left = 0.0
-	icon.offset_right = 0.0
-	icon.position = Vector2(8, 6)
-	icon.custom_minimum_size = Vector2(40, 40)
-	icon.size = Vector2(40, 40)
-	var quantity := MissionUi.text("", 14, Palette.WOOD_CREAM, 4, HORIZONTAL_ALIGNMENT_RIGHT)
-	quantity.name = "Quantity"
-	item.add_child(quantity)
-	StepCardUi.stretch(quantity)
-	quantity.offset_right = -4.0
-	quantity.offset_bottom = -2.0
-	quantity.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	var fresh := not GameState.growth.tastes.has(id)
 	if fresh:
 		item.set_meta("new_taste", true)
@@ -379,7 +293,6 @@ func _food_item(id: String) -> Control:
 		star.position = Vector2(2, 2)
 		star.add_child(UiKit.ctl("spark", 14, Palette.HONEY_INK))
 		item.add_child(star)
-	var badge := item.get_node("Badge") as Control
 	badge.anchor_left = 0.0
 	badge.anchor_right = 0.0
 	badge.offset_left = 0.0
@@ -409,6 +322,7 @@ func open_food_menu() -> void:
 	if _menu.visible:
 		close_food_menu()
 		return
+	close_food_menu()
 	close_wheel()
 	refresh()
 	_menu.show()
@@ -419,6 +333,9 @@ func open_food_menu() -> void:
 
 func close_food_menu() -> void:
 	_menu.hide()
+	_choice.hide()
+	_choice.name = "CareChoice"
+	_choice_id = ""
 
 
 ## Base da guia de comidas: logo acima da tábua das abas (o botão Cuidar fica ao lado dela, não embaixo).
@@ -431,30 +348,18 @@ func _menu_bottom() -> float:
 
 func _place_menu() -> void:
 	# A cabeça é o alvo de soltar a comida: a lista só usa a faixa abaixo dela,
-	# terminando acima de Cuidar. O restante continua acessível por rolagem.
+	# terminando acima das abas, ao lado de Cuidar. O restante é acessível por rolagem.
 	var top := (pet_screen.call("head_rect") as Rect2).end.y - pet_screen.global_position.y + 8.0
 	var bottom := _menu_bottom()
-	_scroll.custom_minimum_size.y = 0.0
-	var chrome := _menu.get_combined_minimum_size().y
-	if _food_ids.is_empty():
-		_scroll.custom_minimum_size.y = minf(112.0, maxf(0.0, bottom - top - chrome))
-	else:
-		# Sempre linhas inteiras (nada cortado); passando da janela, rola pelos espaços entre os quadradinhos ou pela roda.
-		var total := ceili(float(_food_ids.size()) / FOOD_COLUMNS)
-		var row := FOOD_TILE + FOOD_GAP
-		var fit := maxi(1, floori((bottom - top - chrome + FOOD_GAP) / row))
-		var rows := mini(mini(FOOD_ROWS, total), fit)
-		_scroll.custom_minimum_size.y = rows * FOOD_TILE + (rows - 1) * FOOD_GAP
-	_menu.size = _menu.get_combined_minimum_size()
-	# Centralizada, mas sem passar por cima do botão Cuidar (que mora na borda direita).
 	var heart_left := _care_button.global_position.x - pet_screen.global_position.x - 8.0
-	_menu.position = Vector2(maxf(minf((pet_screen.size.x - _menu.size.x) * 0.5, heart_left - _menu.size.x), 8.0), bottom - _menu.size.y)
-
+	_menu.place(pet_screen, top, bottom, heart_left)
+	_choice.place(pet_screen, top, bottom, heart_left)
 
 func _input(event: InputEvent) -> void:
-	if not is_visible_in_tree() or not _menu.visible or _pressed != "": return
+	if not is_visible_in_tree() or (not _menu.visible and not _choice.visible) or _pressed != "": return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if not _menu.get_global_rect().has_point(event.global_position) and not _care_button.get_global_rect().has_point(event.global_position):
+		var window: Control = _menu if _menu.visible else _choice
+		if not window.get_global_rect().has_point(event.global_position) and not _care_button.get_global_rect().has_point(event.global_position):
 			close_food_menu()
 			get_viewport().set_input_as_handled()
 
@@ -546,7 +451,7 @@ func release_item(point: Vector2) -> void:
 	_dragging = false
 	if not acted and not scrolling:
 		if not dragged:
-			if id == "brush": Events.toast_requested.emit("Passe a escova nas costas dele")
+			if id == "brush" and care_options(id).size() <= 1: Events.toast_requested.emit("Passe a escova nas costas dele")
 			else: choose_care(id)
 		elif id == "ball":
 			if gesture.release_velocity().y < THROW_SPEED and point.y < gesture.start.y - DragGhost.SLOP:
@@ -601,20 +506,20 @@ func _act(id: String, with_shampoo: bool = false) -> void:
 		if _items.has(id): Motion.shake(_items[id])
 
 
-## Catálogo único: todo cuidado com mais de uma opção usa o mesmo Popover.
+## Catálogo único: todo cuidado com mais de uma opção usa a mesma janelinha.
 ## O arrasto mantém o gesto direto (banho comum / bola); o toque permite escolher.
 func care_options(id: String) -> Array[Dictionary]:
 	match id:
 		"sponge":
 			return [
 				{"name": "BathPlain", "label": "Sem xampu", "icon": UiKit.ui_icon("action_sponge"), "action": _act.bind("sponge", false)},
-				{"name": "BathShampoo", "label": "Com xampu", "icon": Database.item_icon("herb_shampoo"), "action": _act.bind("sponge", true), "locked": "Falta xampu" if GameState.inventory.count("herb_shampoo") < 1 else ""},
+				{"name": "BathShampoo", "label": "Com xampu", "icon": Database.item_icon("herb_shampoo"), "action": _act.bind("sponge", true), "quantity": "×%d" % GameState.inventory.count("herb_shampoo"), "locked": "Falta xampu" if GameState.inventory.count("herb_shampoo") < 1 else ""},
 			]
 		"ball":
 			var options: Array[Dictionary] = [{"name": "PlayBall", "label": "Bola", "icon": UiKit.ui_icon("action_play"), "action": _act.bind("ball")}]
 			if GameState.hide_unlocked():
 				var treats := GameState.hide_treats()
-				options.append({"name": "PlayCups", "label": "Copinhos", "icon": Database.item_icon(treats[0]) if not treats.is_empty() else null, "action": start_hide_and_seek.bind(treats[0] if not treats.is_empty() else ""), "locked": "Copinhos: falta um petisco" if treats.is_empty() else ""})
+				options.append({"name": "PlayCups", "label": "Copinhos", "icon": Database.item_icon(treats[0]) if not treats.is_empty() else null, "quantity": "×%d" % GameState.inventory.count(treats[0]) if not treats.is_empty() else "×0", "action": start_hide_and_seek.bind(treats[0] if not treats.is_empty() else ""), "locked": "Copinhos: falta um petisco" if treats.is_empty() else ""})
 			return options
 	return []
 
@@ -633,25 +538,58 @@ func choose_care(id: String) -> void:
 func _open_care_choice(id: String, options: Array[Dictionary]) -> void:
 	close_food_menu()
 	close_wheel()
-	var box := UiKit.vbox(6)
-	box.name = "BathChoice" if id == "sponge" else "PlayChoice" if id == "ball" else "CareChoice_" + id
-	var holder: Array[Popover] = []
-	var choose := func(action: Callable) -> void:
-		if not holder.is_empty() and is_instance_valid(holder[0]): holder[0].close()
-		action.call()
+	_choice_id = id
+	_choice.name = "BathChoice" if id == "sponge" else "PlayChoice" if id == "ball" else "CareChoice_" + id
+	for child: Node in _choice.grid.get_children():
+		_choice.grid.remove_child(child)
+		child.queue_free()
 	for option: Dictionary in options:
-		var button: Control
-		if str(option.get("locked", "")) != "":
-			button = UiKit.lock_hint(str(option.locked))
-			button.name = str(option.name) + "Locked"
-		else:
-			button = UiKit.soft(str(option.label), choose.bind(option.action), option.icon)
-			button.name = str(option.name)
-		box.add_child(button)
-	# O popup fica acima de Cuidar e das abas, inclusive no cartão baixo do banho.
-	var bottom := _care_button.global_position.y - pet_screen.global_position.y - Popover.GAP
-	holder.append(Popover.open(pet_screen, _items[id], box, 0.0, bottom))
+		var button := ChoiceWindow.tile(option.icon, "", _choose_option.bind(str(option.name))) as Button
+		_choice.grid.add_child(button)
+		_sync_care_option(button, option)
+	_choice.show()
+	_choice.scroll.scroll_vertical = 0
+	_place_menu()
+	Motion.pop_in(_choice)
 
+
+func _choose_option(option_name: String) -> void:
+	if not _choice.visible: return
+	# Estoque/fase podem ter mudado desde a abertura; a ação usa o catálogo atual.
+	for option: Dictionary in care_options(_choice_id):
+		if str(option.name) != option_name: continue
+		if str(option.get("locked", "")) != "": return
+		var action: Callable = option.action
+		close_food_menu()
+		action.call()
+		return
+
+
+func _sync_care_option(button: Button, option: Dictionary) -> void:
+	var locked := str(option.get("locked", "")) != ""
+	button.name = str(option.name) + ("Locked" if locked else "")
+	button.tooltip_text = str(option.get("locked", "")) if locked else str(option.label)
+	button.disabled = locked
+	button.modulate.a = 0.45 if locked else 1.0
+	(button.get_node("CareIcon") as TextureRect).texture = option.icon
+	(button.get_node("Quantity") as Label).text = str(option.get("quantity", ""))
+	var lock := button.get_node_or_null("OptionLock") as Control
+	if lock == null:
+		lock = UiKit.ctl("lock", 14, Palette.WOOD_INK)
+		lock.name = "OptionLock"
+		lock.position = Vector2(40, 2)
+		button.add_child(lock)
+	lock.visible = locked
+
+
+func _refresh_care_choice() -> void:
+	if not _choice.visible or _choice_id == "": return
+	var options := care_options(_choice_id)
+	if options.size() != _choice.grid.get_child_count():
+		close_food_menu()
+		return
+	for i in options.size():
+		_sync_care_option(_choice.grid.get_child(i) as Button, options[i])
 
 func open_play_choice() -> void:
 	choose_care("ball")
