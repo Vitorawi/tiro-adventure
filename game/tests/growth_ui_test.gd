@@ -28,7 +28,8 @@ func click(node: Control) -> void:
 	await frames()
 
 func primary(node: Node) -> int:
-	var count := int(node is Button and node.theme_type_variation == &"PrimaryButton")
+	# O verde de madeira do "Como fazer" (HelpUi) é marcado com a meta `wood_primary`, como nas bandejas.
+	var count := int(node is Button and (node.theme_type_variation == &"PrimaryButton" or bool(node.get_meta("wood_primary", false))))
 	for child: Node in node.get_children(): count += primary(child)
 	return count
 

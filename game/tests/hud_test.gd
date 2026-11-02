@@ -102,8 +102,10 @@ func _toast() -> void:
 	await process_frame
 	check(toast.visible and text.text == "Segundo aviso", "o segundo aparece depois do primeiro")
 	check(not main.find_child("ToastIcon", true, false).visible, "aviso comum sem ícone")
-	check(toast.position.y >= 136.0 and toast.position.y < 200.0, "aviso fica logo abaixo da linha 2 do HUD (y = %f)" % toast.position.y)
-	check(toast.size.x <= 320.0, "aviso com até 320 px de largura")
+	await create_timer(0.4).timeout  # termina a subida do aviso
+	var tab_top: float = main.size.y + (main.get("_tab_art") as Control).offset_top
+	check(toast.get_global_rect().end.y <= tab_top and toast.get_global_rect().end.y >= tab_top - 24.0, "aviso fica logo acima da barra de abas (fim %f, abas %f)" % [toast.get_global_rect().end.y, tab_top])
+	check(toast.size.x <= 300.5 and toast.size.y >= 44.0, "aviso com até 300 px de largura e 44 de altura")
 	var middle := toast.position.x + toast.size.x / 2.0
 	check(absf(middle - main.size.x / 2.0) < 2.0, "aviso centralizado")
 	notice.finish_current()

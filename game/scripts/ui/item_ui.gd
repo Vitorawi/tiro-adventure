@@ -422,6 +422,7 @@ static func _action_button(caption: String, gold: bool, width: float, on_pressed
 	button.custom_minimum_size = Vector2(width, ACTION_H)
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	if not gold: button.set_meta("wood_primary", true)  # o verde-água é a ação principal da tela
 	var art := SellUi.nine("btn_gold" if gold else "btn_green", Vector4i(66, 66, 66, 66), "Art", null, "item_")
 	art.show_behind_parent = true
 	button.add_child(art)

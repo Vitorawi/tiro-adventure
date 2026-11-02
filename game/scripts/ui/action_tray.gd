@@ -136,6 +136,13 @@ static func is_open(for_room: RoomView) -> bool:
 	return is_instance_valid(current) and not current.closing and current.room == for_room
 
 
+## y de tela do topo da bandeja (o aviso fica logo acima dela); INF se ela não está visível.
+func screen_top() -> float:
+	if not is_instance_valid(_box) or not _box.is_visible_in_tree():
+		return INF
+	return _box.get_global_rect().position.y
+
+
 static func close_current(immediate: bool = false) -> void:
 	if is_instance_valid(current):
 		current.close(immediate)

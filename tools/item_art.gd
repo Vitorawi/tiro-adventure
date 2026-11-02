@@ -187,6 +187,11 @@ func _panel() -> void:
 	for y in range(290, 366):
 		for x in range(0, 70):
 			image.set_pixel(x, y, image.get_pixel(339 - x, y))
+	# A borda esquerda inteira (madeira + beirada do creme) também vem da direita espelhada: senão
+	# o canto copiado não encaixa na borda de cima e aparece um degrau no meio do lado esquerdo.
+	for y in range(0, 290):
+		for x in range(0, 46):
+			image.set_pixel(x, y, image.get_pixel(339 - x, y))
 	_clear_outside(image)
 	_save(image, "item_panel.png", S)
 	print("painel: margens guardados L/R %.0f T %.0f B %.0f; creme em x %.1f..%.1f y %.1f..%.1f de exibição" % [52 * S, 112 * S, 66 * S, (101 - 72) * S / 3.0, (394 - 72) * S / 3.0, (1006 - 912) * S / 3.0, (1245 - 912) * S / 3.0])

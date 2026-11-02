@@ -7,13 +7,17 @@ extends Node
 const KINDS: Array[String] = ["error", "moment", "photo", "info"]
 const HOLD := {"error": 2.0, "moment": 1.0, "photo": 2.4, "info": 1.6}
 const FADE := 0.3
-const FROM_Y := -40.0
-const MAX_WIDTH := 320.0
+const SLIDE_FROM := 26.0  # o aviso sobe de baixo: começa tantos px abaixo da posição final
+const MAX_WIDTH := 300.0
+const MIN_HEIGHT := 44.0
+const PAD := 16.0  # folga lateral do texto dentro da pílula de madeira
+const FONT_PX := 15
 
 ## Chamado pela casca: `true` enquanto um cartão ou a fila de cartões ocupa a tela.
 var blocked: Callable = Callable()
-## Chamado pela casca: y onde o aviso nasce (logo abaixo da linha 2 do HUD ou da pílula do mundo).
-var top_y: Callable = Callable()
+## Chamado pela casca: `bottom_y(altura) -> float` = y onde o aviso TERMINA (logo acima da barra de abas, da folha
+## ou da bandeja presa embaixo, o que estiver mais alto).
+var bottom_y: Callable = Callable()
 
 var _host: Control
 var _hud: Hud
@@ -27,10 +31,20 @@ var _queue: Array[Dictionary] = []
 var _current: Dictionary = {}
 var _tween: Tween
 var _tap: Callable = Callable()
+var _art: NinePatchRect
+var _slide_off: float = 0.0  # deslocamento de entrada (px abaixo da posição final); o tween leva a 0
 
 
 func _init() -> void:
 	name = "Notice"
+	process_priority = 100
+
+
+## Acompanha a posição final todo quadro: a folha ou a bandeja que sobe/desce leva o aviso junto.
+func _process(_delta: float) -> void:
+	if _current.is_empty() or not _on_screen():
+		return
+	_place(_moment if str(_current.kind) == "moment" else _toast)
 
 
 ## A casca entrega o que o aviso precisa: ela mesma, o HUD e os nós do `Toast`.
@@ -41,6 +55,7 @@ func setup(host: Control, hud: Hud, toast: PanelContainer, toast_text: Label, to
 	_toast_text = toast_text
 	_toast_icon = toast_icon
 	_toast.gui_input.connect(_on_toast_input)
+	_build_skin()
 	_build_moment()
 	Events.toast_requested.connect(func(text: String) -> void: notify("info", text))
 	Events.notice_requested.connect(func(kind: String, text: String, item: String) -> void:
@@ -51,6 +66,44 @@ func setup(host: Control, hud: Hud, toast: PanelContainer, toast_text: Label, to
 	timer.autostart = true
 	timer.timeout.connect(_pump)
 	add_child(timer)
+
+
+## Pele de madeira ilustrada: pílula creme (NinePatch em escala 1/3, só o miolo liso estica) atrás da linha do texto.
+## A folga lateral vem de dois espaçadores na linha (o painel não tem margem, para a arte cobrir tudo).
+func _build_skin() -> void:
+	_toast.theme_type_variation = &""
+	_toast.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	_toast.custom_minimum_size.y = MIN_HEIGHT
+	_art = NinePatchRect.new()
+	_art.name = "PillArt"
+	_art.texture = load(HomeUi.DIR + "mission_chapter_pill.png") as Texture2D
+	_art.patch_margin_left = 45
+	_art.patch_margin_right = 45
+	_art.patch_margin_top = 39
+	_art.patch_margin_bottom = 39
+	_art.scale = Vector2.ONE / 3.0
+	_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# O NinePatch mede a soma das margens como mínimo: mora dentro de um Control liso (mínimo 0).
+	var holder := Control.new()
+	holder.name = "PillHolder"
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.add_child(_art)
+	_toast.add_child(holder)
+	_toast.move_child(holder, 0)
+	holder.resized.connect(func() -> void: _art.size = holder.size * 3.0)
+	var row := _toast_text.get_parent() as HBoxContainer
+	for at in 2:
+		var gap := Control.new()
+		gap.name = "PadLeft" if at == 0 else "PadRight"
+		gap.custom_minimum_size.x = PAD - 6.0
+		gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		row.add_child(gap)
+		if at == 0:
+			row.move_child(gap, 0)
+	_toast_text.theme = HomeUi.theme(FONT_PX, Palette.WOOD_INK)
+	_toast_text.theme_type_variation = &""
+	_toast_text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 
 
 func _build_moment() -> void:
@@ -85,6 +138,14 @@ func _pill(color: Color) -> StyleBoxFlat:
 func notify(kind: String, text: String, icon: Texture2D = null, on_tap: Callable = Callable()) -> void:
 	if kind not in KINDS:
 		kind = "info"
+	# Sem repetir: o mesmo aviso (tipo + texto) já na fila é descartado; se já está na tela, só renova a espera e dá
+	# um pulinho (ex.: colher vários canteiros com o silo cheio avisa uma vez, não uma por canteiro).
+	for waiting in _queue:
+		if str(waiting.kind) == kind and str(waiting.text) == text:
+			return
+	if not _current.is_empty() and _on_screen() and str(_current.kind) == kind and str(_current.text) == text:
+		_renew_current()
+		return
 	var entry := {"kind": kind, "text": text, "icon": icon, "tap": on_tap}
 	var rank := KINDS.find(kind)
 	var at := _queue.size()
@@ -97,6 +158,16 @@ func notify(kind: String, text: String, icon: Texture2D = null, on_tap: Callable
 	if kind == "error" and not _current.is_empty() and str(_current.kind) != "error":
 		_replace_current()
 	_pump()
+
+
+func _renew_current() -> void:
+	var node: Control = _moment if str(_current.kind) == "moment" else _toast
+	_start_hold(node, str(_current.kind), false)
+	if str(_current.kind) != "moment" and not Motion.reduced:
+		node.pivot_offset = node.size / 2.0
+		var pulse := node.create_tween()  # posição é do `_process`: o pulinho é de escala
+		pulse.tween_property(node, "scale", Vector2(1.06, 1.06), 0.08)
+		pulse.tween_property(node, "scale", Vector2.ONE, 0.12)
 
 
 ## O que está na tela agora, ou "" (para testes).
@@ -163,11 +234,10 @@ func _show_toast() -> void:
 	var icon: Texture2D = _current.icon
 	var tap: Callable = _current.tap
 	_tap = tap
-	var fill := Palette.ALERT_SOFT if kind == "error" else Palette.CARD
-	var ink := Palette.ALERT_INK if kind == "error" else Palette.INK
-	_toast.add_theme_stylebox_override("panel", _pill(fill))
-	_toast_text.add_theme_color_override("font_color", ink)
-	_toast_text.theme_type_variation = &"StrongLabel"
+	var ink := Palette.ALERT_INK if kind == "error" else Palette.WOOD_INK
+	# Erro: a mesma pílula com um toque avermelhado; o resto é creme neutro.
+	_art.self_modulate = Color(1.0, 0.82, 0.78) if kind == "error" else Color.WHITE
+	_toast_text.theme = HomeUi.theme(FONT_PX, ink)
 	_toast_icon.visible = true
 	if icon != null:
 		_toast_icon.texture = icon
@@ -184,44 +254,64 @@ func _show_toast() -> void:
 	else:
 		_toast_icon.visible = false
 	_toast_text.text = text
-	# Largura do texto (até 320 com o ícone e as margens); só então a pílula assume o tamanho certo.
+	# Largura do texto (até 300 com o ícone e a folga); só então a pílula assume o tamanho certo.
 	var font := _toast_text.get_theme_font("font")
 	var font_size := _toast_text.get_theme_font_size("font_size")
-	var limit := MAX_WIDTH - 28.0 - (38.0 if _toast_icon.visible else 0.0)
+	var limit := MAX_WIDTH - 2.0 * PAD - (38.0 if _toast_icon.visible else 0.0)
 	_toast_text.custom_minimum_size.x = minf(font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x + 2.0, limit)
 	_toast_text.custom_minimum_size.y = 0.0
 	_toast.reset_size()
+	# Duas linhas pedem mais ar em cima e embaixo; uma linha fica na altura mínima de 44.
+	_toast.custom_minimum_size.y = MIN_HEIGHT
+	_toast.reset_size()
+	if _toast_text.get_line_count() > 1:
+		_toast.custom_minimum_size.y = MIN_HEIGHT + 12.0
+		_toast.reset_size()
 	_toast.pivot_offset = _toast.size / 2.0
-	var target_y := _target_y()
-	_toast.position.x = (_host.size.x - _toast.size.x) / 2.0
 	_toast.mouse_filter = Control.MOUSE_FILTER_STOP if _tap.is_valid() else Control.MOUSE_FILTER_IGNORE
 	if _tween:
 		_tween.kill()
 	_toast.show()
-	_toast.modulate.a = 1.0
 	if kind == "error":
 		Haptics.error()
+	_start_hold(_toast, kind, true)
+	_place(_toast)
+
+
+## Entrada (sobe de baixo com fade), espera e saída; `enter` falso só renova a espera (aviso repetido).
+func _start_hold(node: Control, kind: String, enter: bool) -> void:
+	if _tween:
+		_tween.kill()
 	_tween = create_tween()
-	if Motion.reduced:
-		_toast.position.y = target_y
+	if enter and not Motion.reduced:
+		_slide_off = SLIDE_FROM
+		node.modulate.a = 0.0
+		_tween.tween_property(self, "_slide_off", 0.0, Motion.SLIDE).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		_tween.parallel().tween_property(node, "modulate:a", 1.0, Motion.SLIDE)
 	else:
-		_toast.position.y = FROM_Y
-		_tween.tween_property(_toast, "position:y", target_y, Motion.SLIDE).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		_slide_off = 0.0
+		node.modulate.a = 1.0
 	_tween.tween_interval(float(HOLD[kind]))
-	_tween.tween_property(_toast, "modulate:a", 0.0, FADE)
+	_tween.tween_property(node, "modulate:a", 0.0, FADE)
 	_tween.tween_callback(finish_current)
 
 
-## O HUD mudou (folha ou seletor abriu, linha 2 voltou): o aviso que já está na tela acompanha a nova posição.
+## Centraliza o aviso e o põe com a base em `bottom_y` (acima da barra de abas/folha/bandeja).
+func _place(node: Control) -> void:
+	node.position.x = roundf((_host.size.x - node.size.x) / 2.0)
+	node.position.y = roundf(_target_y(node.size.y) + _slide_off)
+
+
+## O HUD, a folha ou a bandeja mudou: o aviso que já está na tela acompanha a nova posição.
 func retarget() -> void:
 	if _current.is_empty() or not _on_screen():
 		return
-	var node: Control = _moment if str(_current.kind) == "moment" else _toast
-	node.position.y = _target_y()
+	_place(_moment if str(_current.kind) == "moment" else _toast)
 
 
-func _target_y() -> float:
-	return float(top_y.call()) if top_y.is_valid() else 136.0
+func _target_y(height: float) -> float:
+	var bottom := float(bottom_y.call(height)) if bottom_y.is_valid() else _host.size.y - 100.0
+	return bottom - height
 
 
 func _show_moment() -> void:
@@ -230,7 +320,8 @@ func _show_moment() -> void:
 	_moment.visible = true
 	_moment.modulate.a = 1.0
 	_moment.reset_size()
-	_moment.position = Vector2((_host.size.x - _moment.size.x) / 2.0, _target_y())
+	_slide_off = 0.0
+	_place(_moment)
 	Motion.pop_in(_moment)
 	Haptics.success()
 	if _tween:
@@ -240,7 +331,6 @@ func _show_moment() -> void:
 	_tween.tween_callback(func() -> void:
 		_fly_moment_icon()
 		finish_current())
-
 
 ## O ícone do momento voa até o avatar, que dá um pulinho.
 func _fly_moment_icon() -> void:

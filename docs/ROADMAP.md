@@ -2,9 +2,15 @@
 
 ## Estado atual
 
+**Boas-vindas em madeira (02/11/2026; local).** O cartão "Bem-vindo de volta!" usa `WelcomeSheet` (madeira ilustrada, placa curta, Tiro pequeno + Presente do dia compacto com `Pegar`, linhas com `Ir` de madeira, `Depois` amarelo; rola por dentro se passar). `RewardSheet` e a fila modal intactos. `tests/welcome_shots.gd` em `build/screenshots/welcome/`; `festa_test`/`welcome_test` PASS.
+
+**Avisos em madeira, embaixo (02/11/2026; local).** `Notice` virou pílula de madeira pequena embaixo (acima das abas/folha/bandeja), com fila sem duplicatas; ver CLAUDE.md. `notice_test`/`hud_test` ajustados, `tests/notice_shots.gd` em `build/screenshots/notice/`.
+
 **PUBLICADO - versão `b9fa0f0` (02/11/2026, 12:45 BRT, a pedido do Vitor: "Pode publicar a Loja de animais e o Detalhe do item também").** Loja de animais (`AnimalShopUi`, galinheiro e curral) e Detalhe do item (`ItemUi`) em madeira ilustrada, com as peças `animalshop_*`/`item_*`, `SellUi.scrolled` com `gutter_w` e `orders_shots.gd.uid`. Deploy Web OK em 1m26s: https://github.com/Vitorawi/tiro-adventure/actions/runs/41474673551. `station_wood.gd` (pulso do Pronto) ficou de fora (local). `SAVE_VERSION` segue 17.
 
 **PUBLICADO - versão `cf87222` (02/11/2026, 12:22 BRT, a pedido do Vitor: "Esses ajustes estão comitados, manda o publicar").** Lote do Bugfix: Pegar padrão no HUD, Pegar das Diárias com correção do toque, liquidificador mais pra cima da bancada, bandeja de comida que não estoura mais o quadro e janelinha de escolha única para Comida, Banho e Brincar. Deploy Web OK em 1m20s: https://github.com/Vitorawi/tiro-adventure/actions/runs/41470965127. Loja de animais e Detalhe do item ficaram de fora (locais). `SAVE_VERSION` segue 17.
+
+**Como fazer — madeira ilustrada (02/11/2026; local, sem commit/push/publicação).** `HelpUi` (`scripts/ui/help_ui.gd`, capturas/medidas `tests/help_shots.gd` → `build/screenshots/help/`) refaz a tela "Como fazer" no molde do Detalhe do item: placa, cartão com o ícone e tem/precisa, painéis de madeira com uma linha por passo (Ir verde só no primeiro pendente, amarelo nos demais, medalhão quando feito) e voltar de madeira com histórico. `TaskHelp.panel` só delega. Sem mudança de regra, save, JSON ou falas.
 
 **Detalhe do item — madeira ilustrada (02/11/2026; local, sem commit/push/publicação).** `ItemUi` (`scripts/ui/item_ui.gd`, arte `tools/item_art.gd`, capturas/medidas `tests/item_shots.gd` → `build/screenshots/item/`) refaz o detalhe de item da Mochila: placa com o nome, cartão compacto (pratinho 76 com o ícone, "Quantidade: N", uso, chips, botões verde-água/amarelo do mesmo tamanho) e painéis "Origem"/"Usado em" que rolam por dentro; a folha nunca passa do espaço entre o HUD e a base. `SheetBuilder.item_detail` só delega. Sem mudança de regra, save, JSON ou falas.
 

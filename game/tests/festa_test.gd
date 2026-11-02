@@ -30,7 +30,7 @@ func frames(count: int = 4) -> void:
 func primary_count(node: Node) -> int:
 	var total := 0
 	for button: Button in node.find_children("*", "Button", true, false):
-		if button.theme_type_variation == &"PrimaryButton":
+		if button.theme_type_variation == &"PrimaryButton" or button.has_meta("wood_primary"):
 			total += 1
 	return total
 
@@ -342,8 +342,8 @@ func _welcome_checks() -> void:
 	var ready_rows := welcome.find_children("Line_ready_farm", "", true, false)
 	check(ready_rows.size() == 1 and has_text(ready_rows[0], "2 prontos no Sítio"), "2 prontos no Sítio")
 	check(welcome.find_child("DailyGift", true, false) != null, "presente do dia em destaque")
-	var gift_pos := (welcome.find_child("DailyGift", true, false) as Control).get_parent().get_index()
-	var dig_pos := (dig_rows[0] as Control).get_index()
+	var gift_pos := (welcome.find_child("DailyGift", true, false) as Control).get_global_rect().position.y
+	var dig_pos := (dig_rows[0] as Control).get_global_rect().position.y
 	check(gift_pos < dig_pos, "presente vem antes das linhas")
 	check(primary_count(welcome) == 1, "um botão principal só (%d)" % primary_count(welcome))
 	# Tocar na linha leva ao primeiro (fecha o cartão).

@@ -3,6 +3,7 @@ extends SceneTree
 ## erro substitui o que está na tela, nada aparece com cartão aberto, e as ligações com `Events`.
 
 var failures: int = 0
+const HUD_HEIGHT := 168.0  # `Hud.HEIGHT` (o tipo depende de autoload: não referenciar em -s)
 var state: Node
 var main: Control
 var notice: Object
@@ -41,6 +42,8 @@ func _run() -> void:
 	await _modal_blocks()
 	await _events()
 	await _photo_tap()
+	await _above_sheet()
+	await _dedupe()
 	Motion.reduced = false
 	print("NOTICE TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
@@ -141,56 +144,53 @@ func _photo_tap() -> void:
 	await _clear()
 
 
-## 6. Etapa 02 dos ajustes: com seletor ou folha abertos o aviso nasce na faixa da linha 2 recolhida e nunca
-## cruza o título da folha (que não sobe de 128 px).
+
+## 7. Embaixo: o aviso termina acima da barra de abas, com 44+ de altura e até 300 de largura; com folha média aberta
+## fica acima do topo dela; com folha alta (sem espaço) volta para junto das abas, nunca sobre o HUD.
 func _above_sheet() -> void:
 	await _clear()
-	var worlds: Node = main.find_child("WorldsScreen", true, false)
-	main.call("show_screen", &"map")
-	worlds.call("show_map")
-	for i in 3:
-		await process_frame
-	var bar := main.find_child("WorldBar", true, false) as Control
-	check(bar != null and not bar.visible, "WorldBar fica invisível com o seletor aberto")
-	check(float(worlds.call("toast_top")) == 0.0, "toast_top devolve 0 com o seletor aberto")
-	notice.notify("moment", "Momento de Coragem!")
+	var tab_top: float = main.size.y + (main.get("_tab_art") as Control).offset_top
+	notice.notify("info", "Aviso de teste")
 	await process_frame
-	await process_frame
-	var panel := main.get_node("Sheet/Panel") as Control
-	var map_view := main.find_child("MapView", true, false) as Control
-	var title_top := 128.0  # o título do seletor mora abaixo do HUD
-	check(toast.visible, "o aviso aparece")
-	check(toast.get_global_rect().end.y <= title_top + 1.0, "aviso de momento termina acima de 128 px com o seletor aberto (%d)" % toast.get_global_rect().end.y)
+	check(toast.get_global_rect().end.y <= tab_top and toast.get_global_rect().position.y >= HUD_HEIGHT, "aviso fica acima da barra de abas e abaixo do HUD")
+	check(toast.size.y >= 44.0 and toast.size.x <= 300.5, "aviso com 44+ de altura e até 300 de largura (%s)" % str(toast.size))
 	await _clear()
-	worlds.call("close_map")
-	await process_frame
-	check(bar != null and bar.visible, "WorldBar volta ao fechar o seletor")
-	# Aviso já na tela quando a folha abre: acompanha a faixa da linha 2.
-	notice.notify("info", "já na tela")
-	await process_frame
-	await process_frame
-	check(toast.visible and toast.position.y >= 130.0, "sem nada aberto o aviso fica abaixo da linha 2")
-	root.get_node("Events").emit_signal("sheet_requested", "Qualquer", Control.new())
-	for i in 4:
+	var panel := main.get_node("Sheet/Panel") as Control
+	var small := Control.new()
+	small.custom_minimum_size.y = 120.0
+	root.get_node("Events").emit_signal("sheet_requested", "Folha", small)
+	for i in 6:
 		await process_frame
-	main.call("_check_row2")
-	check(toast.position.y <= 90.0, "aviso já visível sobe para a faixa da linha 2 quando a folha abre (%d)" % toast.position.y)
+	await create_timer(0.4).timeout
+	notice.notify("error", "Falta algo")
+	await process_frame
+	check(toast.visible and toast.get_global_rect().end.y <= panel.get_global_rect().position.y + 1.0, "com folha aberta o aviso fica acima do topo dela (%d × %d)" % [toast.get_global_rect().end.y, panel.get_global_rect().position.y])
 	await _clear()
 	root.get_node("Events").emit_signal("sheet_close_requested")
-	await process_frame
-	# Folha alta + erro.
+	await create_timer(0.4).timeout
 	var tall := Control.new()
 	tall.custom_minimum_size.y = 900.0
 	tall.set_meta("sheet_size", "tall")
 	root.get_node("Events").emit_signal("sheet_requested", "Folha alta", tall)
-	for i in 6:
-		await process_frame
-	await create_timer(0.4).timeout
-	check(panel.get_global_rect().position.y >= 128.0 - 1.0, "folha alta começa em ≥ 128 (%d)" % panel.get_global_rect().position.y)
+	await create_timer(0.5).timeout
 	notice.notify("error", "Falta algo")
 	await process_frame
-	await process_frame
-	check(toast.get_global_rect().end.y <= panel.get_global_rect().position.y + 1.0, "aviso de erro não cruza o topo da folha (%d × %d)" % [toast.get_global_rect().end.y, panel.get_global_rect().position.y])
+	check(toast.visible and toast.get_global_rect().position.y >= HUD_HEIGHT, "com folha alta o aviso não cobre o HUD (%d)" % toast.get_global_rect().position.y)
 	await _clear()
 	root.get_node("Events").emit_signal("sheet_close_requested")
+	await create_timer(0.4).timeout
+
+
+## 8. Sem repetir: o mesmo aviso na tela ou na fila não entra de novo.
+func _dedupe() -> void:
+	await _clear()
+	for i in 5:
+		notice.notify("info", "Silo sem espaço: abra lugar para Morango ×1")
 	await process_frame
+	check(notice.showing() == "info" and notice.queued() == 0, "cinco avisos iguais viram um só (fila %d)" % notice.queued())
+	notice.notify("info", "Outro")
+	notice.notify("info", "Outro")
+	check(notice.queued() == 1, "igual na fila também é descartado (fila %d)" % notice.queued())
+	notice.notify("error", "Silo sem espaço: abra lugar para Morango ×1")
+	check(notice.queued() == 2 or notice.showing() == "error", "tipo diferente não é duplicata")
+	await _clear()

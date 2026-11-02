@@ -231,7 +231,6 @@ class Slot extends VBoxContainer:
 	var state := "empty"
 	var icon_rect: TextureRect
 	var _dot: Control
-	var _pulse := false
 
 	func _init(new_state: String = "empty", item: String = "", fallback: Texture2D = null, progress: float = 0.0, caption: String = "", caption_color: Color = Palette.WOOD_INK, coin: Texture2D = null) -> void:
 		state = new_state
@@ -319,7 +318,6 @@ class Slot extends VBoxContainer:
 			line.add_child(StationWood.text(caption, 13, caption_color))
 			set_meta("has_caption", true)
 		add_child(line)
-		set_process(_pulse)
 
 	func _add_icon(item: String, fallback: Texture2D, alpha: float) -> void:
 		icon_rect = StationWood.item_pic(item, fallback, 30.0, "Icon")
@@ -327,12 +325,6 @@ class Slot extends VBoxContainer:
 		icon_rect.size = Vector2(30, 30)
 		icon_rect.modulate.a = alpha
 		_dot.add_child(icon_rect)
-
-	func _process(_delta: float) -> void:
-		# Pronto pulsa 1,00 ↔ 1,05 preso ao relógio (não reinicia quando a faixa se reconstrói a cada segundo).
-		var phase := sin(float(Time.get_ticks_msec()) / 1000.0 * TAU / Motion.PULSE) * 0.5 + 0.5
-		_dot.pivot_offset = Vector2(SLOT, SLOT) / 2.0
-		_dot.scale = Vector2.ONE * (1.0 + 0.05 * phase)
 
 
 ## Espaço de uma vaga da fila (vazio, na fila, produzindo ou pronto).

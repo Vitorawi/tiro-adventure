@@ -20,9 +20,7 @@ extends Control
 @onready var _toast_text: Label = %ToastText
 @onready var _toast_icon: TextureRect = %ToastIcon
 
-## Os avisos moram na central: um por vez, erro > momento > foto > info, abaixo da linha 2 do HUD.
-const NOTICE_Y := 176.0
-const NOTICE_BELOW_BANNER_Y := 228.0
+## Os avisos moram na central: um por vez, erro > momento > foto > info, embaixo, acima da barra de abas (ou da folha).
 
 var _notice: Notice
 ## Fotos novas esperando a vez do aviso (depois de qualquer cartão, sem entrar na fila de cartões).
@@ -57,7 +55,7 @@ func _ready() -> void:
 	add_child(_notice)
 	_notice.setup(self, _hud, _toast, _toast_text, _toast_icon)
 	_notice.blocked = notice_blocked
-	_notice.top_y = notice_top
+	_notice.bottom_y = notice_bottom
 	_build_tab_art()
 	for id: StringName in _tabs:
 		_tabs[id].pressed.connect(_on_tab_pressed.bind(id))
@@ -226,16 +224,21 @@ func notice_blocked() -> bool:
 	return _card_open() or not _modal_queue.is_empty() or _announce_pending or _chapter_done > 0
 
 
-## Onde o aviso nasce: logo abaixo da linha 2 do HUD (ou da pílula do mundo e dos rostos, no Mapa).
-func notice_top() -> float:
-	var y := NOTICE_BELOW_BANNER_Y if %UpdateBanner.visible else NOTICE_Y
-	# Com folha, seletor ou bandeja abertos a linha 2 recolhe: o aviso nasce nessa faixa livre, acima do topo
-	# da folha (que nunca sobe de `Hud.HEIGHT`), e não cobre o título dela.
-	if _row2_hidden():
-		y = Hud.SHEET_TOP - 44.0
-	if _current_screen == &"map" and not %WorldsScreen.is_map_open():
-		y = maxf(y, %WorldsScreen.toast_top())
-	return y
+## Onde o aviso TERMINA (y): logo acima da barra de abas de madeira; com folha ou bandeja de estação presa embaixo,
+## logo acima do topo dela (o aviso segue a folha enquanto ela sobe). Se acima da folha não sobra espaço livre abaixo
+## do HUD (folha alta), o aviso fica junto à barra de abas, por cima da folha: nunca cobre o HUD nem some.
+func notice_bottom(height: float) -> float:
+	var bottom := size.y + _tab_art.offset_top - 6.0
+	var limit := bottom
+	var sheet := get_node("Sheet") as Control
+	if bool(sheet.call("is_open")):
+		limit = minf(limit, (sheet.get_node("Panel") as Control).get_global_rect().position.y - 24.0)
+	var tray := ActionTray.current
+	if tray != null and is_instance_valid(tray) and tray.pick:
+		limit = minf(limit, tray.screen_top() - 6.0)
+	if limit - height < Hud.HEIGHT + 4.0:
+		limit = bottom
+	return limit
 
 
 ## Linha 2 do HUD: esconde por uma chave (a roleta, a barra da horta... pedem por aqui) ou pelos bloqueios
