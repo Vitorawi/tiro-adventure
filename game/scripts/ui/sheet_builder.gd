@@ -774,7 +774,6 @@ static func format_time(seconds: int) -> String:
 class LiveBox extends VBoxContainer:
 	var _build: Callable
 	var _pending: bool = false
-	var _touches: Dictionary = {}
 
 	func _init(build: Callable) -> void:
 		_build = build
@@ -795,17 +794,6 @@ class LiveBox extends VBoxContainer:
 	func refresh() -> void:
 		_schedule_rebuild()
 
-	func _input(event: InputEvent) -> void:
-		if event is InputEventScreenTouch:
-			if event.pressed and not event.canceled:
-				_touches[event.index] = true
-			else:
-				_touches.erase(event.index)
-
-	func _notification(what: int) -> void:
-		if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
-			_touches.clear()
-
 	func _on_tick() -> void:
 		# Não reconstrói com o dedo na tela, para não "roubar" um toque em andamento.
 		if bool(get_meta("tick_refresh", true)) and is_visible_in_tree() and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
@@ -818,13 +806,8 @@ class LiveBox extends VBoxContainer:
 		_rebuild.call_deferred()
 
 	func _rebuild() -> void:
-		_pending = true
-		# state_changed e refresh também podem chegar entre down/up (não só o timer).
-		# Preserve os nós e agrupe os pedidos até o fim do gesto, senão pressed se perde.
-		while is_inside_tree() and (not _touches.is_empty() or Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT)):
-			await get_tree().process_frame
 		_pending = false
-		if is_queued_for_deletion() or not is_inside_tree() or bool(get_meta("ui_animating", false)):
+		if is_queued_for_deletion() or not is_inside_tree():
 			return
 		for child in get_children():
 			if not child is Timer:

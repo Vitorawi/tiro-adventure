@@ -189,11 +189,11 @@
       "id": "blender",
       "action": "place:blender",
       "label": "Liquidificador",
-      "label_pos": [360, 190],
+      "label_pos": [318, 210],
       "upgrade": "blender",
       "station": "blender",
       "sprite": "res://assets/sprites/areas/house/blender.png",
-      "pos": [360, 166],
+      "pos": [318, 186],
       "approach": [300, 292],
       "z_index": 1
     }

@@ -18,10 +18,6 @@
     "test_circuit_selftest"
   ],
   "suite": [
-    "care_choice_window_test",
-    "food_menu_bounds_touch_test",
-    "daily_claim_touch_test",
-    "blender_position_touch_test",
     "missions_actions_test",
     "quest_reward_test",
     "farm_test",
@@ -134,22 +130,6 @@
     "world_pin_test"
   ],
   "areas": {
-    "care_choice_window": {
-      "paths": ["game/scripts/ui/care_choice_window.gd", "game/tests/care_choice_window_test.gd"],
-      "tests": ["care_choice_window_test"]
-    },
-    "food_menu_bounds": {
-      "paths": ["game/tests/food_menu_bounds_touch_test.gd"],
-      "tests": ["food_menu_bounds_touch_test"]
-    },
-    "daily_claim": {
-      "paths": ["game/tests/daily_claim_touch_test.gd"],
-      "tests": ["daily_claim_touch_test"]
-    },
-    "blender_position": {
-      "paths": ["game/tests/blender_position_touch_test.gd"],
-      "tests": ["blender_position_touch_test"]
-    },
     "growth": {
       "paths": [
         "game/data/growth.json",

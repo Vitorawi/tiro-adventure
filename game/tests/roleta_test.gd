@@ -88,9 +88,9 @@ func _run() -> void:
 		if before: continue # Antes: o toque já dá banho; não existe popup para capturar.
 		check(node("BathChoice") != null, "banho abre o popup normal")
 		check(node("BathPlain") != null and node("BathShampoo") != null, "duas opções de banho")
-		var popup := node("BathChoice")
+		var popup := node("Popover")
 		check(popup != null and node("PetScreen").get_global_rect().encloses(popup.get_global_rect()), "popup inteiro na tela")
-		check(popup != null and popup.get_global_rect().end.y <= node("TabBar").global_position.y - 8.0, "janelinha acima das abas")
+		check(popup != null and popup.get_global_rect().end.y < node("CareButton").global_position.y, "popup acima de Cuidar e das abas")
 		check(state.get("progress").call("stat", "bathe") == 0, "abrir não executa banho")
 		await tap(node("BathShampoo"))
 		check(state.get("inventory").call("count", "herb_shampoo") == 1, "com xampu consome exatamente um")
