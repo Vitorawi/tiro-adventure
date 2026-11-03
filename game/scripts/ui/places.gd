@@ -450,11 +450,46 @@ static func place_alert(world_id: String, place_id: String) -> String:
 	return ""
 
 
+## Trabalhos EM ANDAMENTO por mundo (canteiros crescendo, filas das estações, coletas da Natureza, rota e passeio):
+## a contraparte de `GameState.world_ready_counts`, só consulta. Mundos fechados não entram.
+static func world_busy_counts() -> Dictionary:
+	var counts: Dictionary = {}
+	var now := GameState.now()
+	var farm_world: String = Database.place_with_panel("farm")[0]
+	for i: int in GameState.usable_plot_indices():
+		if GameState.plot_status(i) == "growing":
+			_add_busy(counts, farm_world, 1)
+	for id: String in Database.stations:
+		if GameState.has_upgrade(id):
+			var waiting := 0
+			for entry: Dictionary in GameState.station(id).queue:
+				if float(entry["ready_at"]) > now:
+					waiting += 1
+			_add_busy(counts, Database.place_with_panel("station:" + id)[0], waiting)
+	for site: String in Database.progression.get("nature_sites", {}):
+		if GameState.gathering_slots(site) > 0:
+			var working := GameState.gathering_jobs(site).size() - GameState.gathering_ready_count(site)
+			_add_busy(counts, Database.place_with_panel("routes:" + str(Database.progression.nature_sites[site].groups[0]))[0], working)
+	if GameState.walking():
+		_add_busy(counts, Database.place_with_panel("walks")[0], 1)
+	if not GameState.progress.activity.is_empty() and GameState.activity_remaining() > 0:
+		var route: Dictionary = Database.progression.activities.get(str(GameState.progress.activity.get("id", "")), {})
+		_add_busy(counts, Database.place_with_panel("routes:" + str(route.get("place", "")))[0], 1)
+	return counts
+
+
+static func _add_busy(counts: Dictionary, world: String, amount: int) -> void:
+	if amount <= 0 or not Database.worlds.has(world): return
+	if GameState.requirement_error(Database.worlds[world].get("requirements", {})) != "": return
+	counts[world] = int(counts.get(world, 0)) + amount
+
+
 ## Avisos de um mundo inteiro (cartões do mapa).
 ## Resumo do carrossel: categorias independentes, sem transformar achado em coleta ou missão.
 static func world_summary(world_id: String) -> Dictionary:
-	var result := {"missions": 0, "rewards": 0, "collections": 0, "finds": 0, "treasure": 0}
+	var result := {"missions": 0, "rewards": 0, "collections": 0, "finds": 0, "treasure": 0, "busy": 0}
 	if world_error(world_id) != "": return result
+	result.busy = int(world_busy_counts().get(world_id, 0))
 	var pending := int(GameState.finds.worlds.get(world_id, {}).get("pending", 0))
 	result.finds = 1 if pending > 0 else 0
 	result.collections = maxi(0, int(GameState.world_ready_counts().get(world_id, 0)) - int(result.finds))
