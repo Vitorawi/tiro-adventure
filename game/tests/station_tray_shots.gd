@@ -199,6 +199,16 @@ func _run() -> void:
 	await _tap(house, "place:stove", "stove")
 	await shot("d_fogao_sem_ingrediente")
 
+	# (d2) fila cheia: o botão bloqueado "Fila cheia" no lugar do verde.
+	_fresh()
+	_add("carrot", 40)
+	var queued := 0
+	while String(state.call("cook_error", "carrot_snack")) == "" and queued < 12:
+		state.call("cook", "carrot_snack")
+		queued += 1
+	await _tap(house, "place:stove", "stove")
+	await shot("d2_fogao_fila_cheia")
+
 	# (e) receita bloqueada (cadeado e motivo).
 	_fresh()
 	progress.owned.erase("stove_queue_3")

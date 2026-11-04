@@ -245,7 +245,7 @@ func _layout() -> void:
 	# A parte creme da plaquinha fica entre 20% e 78% da altura e 9% das pontas; o texto cabe aí.
 	_title.position = plate.position + Vector2(plate.size.x * 0.12, plate.size.y * 0.20)
 	_title.size = Vector2(plate.size.x * 0.76, plate.size.y * 0.58)
-	_title.add_theme_font_size_override("font_size", clampi(int(roundf(plate.size.y * 0.40)), 11, 16))
+	HomeUi.resize(_title, clampi(int(roundf(plate.size.y * 0.40)), 11, 16))
 	_here.size = _here.get_combined_minimum_size()
 	_here.position = Vector2(size.x - _here.size.x - 8, _photo_height - plate.size.y * PLATE_OVERLAP - _here.size.y - 6)
 	var lock_px := clampf(_photo_height * 0.30, 28.0, 44.0)
@@ -258,10 +258,10 @@ func _layout() -> void:
 	_hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	var room := _photo_height - plate.size.y * PLATE_OVERLAP - hint_top - 4.0
 	var px := 12
-	_hint.add_theme_font_size_override("font_size", px)
+	HomeUi.resize(_hint, px)
 	while px > 9 and _hint.get_minimum_size().y > room:
 		px -= 1
-		_hint.add_theme_font_size_override("font_size", px)
+		HomeUi.resize(_hint, px)
 	_hint.size.y = _hint.get_minimum_size().y
 	_opener.position = Vector2(size.x - 32, hint_top)
 	_opener.size = Vector2(20, 20)

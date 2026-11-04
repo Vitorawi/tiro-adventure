@@ -172,7 +172,7 @@ func _ui_checks() -> void:
 	await process_frame
 	await process_frame
 	check(card.find_child("FirstTime", true, false) != null and card.find_child("RareStar", true, false) != null, "primeira vez e festa do raro")
-	var panel: PanelContainer = card.get("_panel")
+	var panel: Control = card.get("_panel")
 	check(panel.size.y <= root.get_visible_rect().size.y - 31.0, "cartão raro cabe e rola")
 	card.call("show_result", {"name": "Clareira dos passarinhos", "postcard": state.call("walk_postcard", "bird_clearing"), "first": true, "rare": "explorer_backpack", "items": {"bird_feather": 2, "wild_mint": 3, "wildflower": 1, "pinecone": 1, "creek_shell": 1}, "new": ["bird_feather", "wild_mint", "wildflower", "pinecone", "creek_shell"], "coins": 30, "needs": {"happiness": 35, "hygiene": -20}})
 	for i in 10: await process_frame

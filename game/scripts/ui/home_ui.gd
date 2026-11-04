@@ -134,3 +134,10 @@ static func head_texture() -> Texture2D:
 	var result := ImageTexture.create_from_image(image.get_region(crop))
 	_heads[body] = result
 	return result
+
+
+## Troca só o tamanho da fonte de um rótulo de madeira (cor e contorno ficam como estão): usa um Theme da cache,
+## nunca um override de tamanho no nó (o `text_budget_test` só aceita isso na casca).
+static func resize(label: Label, px: int) -> void:
+	var outline_size := label.get_theme_constant("outline_size")
+	label.theme = theme(px, label.get_theme_color("font_color"), label.get_theme_color("font_outline_color"), outline_size)

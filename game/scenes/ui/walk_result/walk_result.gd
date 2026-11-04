@@ -7,7 +7,7 @@ extends CanvasLayer
 ## Passeio comum = folha média (`RewardSheet`); raro, lendário e roupa pronta = `ModalCard` grande com
 ## moldura dourada, estrela e confete.
 
-var _panel: PanelContainer
+var _panel: Control
 var _box: VBoxContainer
 var _sheet: RewardSheet
 var _card: ModalCard
@@ -22,6 +22,14 @@ func show_result(result: Dictionary) -> void:
 	var title := "Roupa pronta!" if sewing else "Voltou do passeio!"
 	_sheet = null
 	_card = null
+	if not festive and not sewing:
+		# Passeio comum: folha de madeira (WalkResultSheet); os achados ja foram guardados pelo GameState.
+		var wood := WalkResultSheet.show_for(self, result, hide)
+		show()
+		_panel = wood.frame
+		wood.present()
+		GameState.mark_walk_result_shown()
+		return
 	if festive:
 		_card = ModalCard.open(self, {"title": title, "ribbon": Palette.HONEY,
 			"scroll_name": "WalkResultScroll", "separation": 10, "confetti": true, "haptic": "big"})
@@ -44,7 +52,7 @@ func show_result(result: Dictionary) -> void:
 		picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		_put(_center(picture))
 	if bool(result.get("first", false)):
-		var first_label := UiKit.label("Primeira vez!", &"", Palette.GO_INK)
+		var first_label: Label = StepCardUi.wood("Primeira vez!", 17, Palette.GO_INK) if _card else UiKit.label("Primeira vez!", &"", Palette.GO_INK)
 		first_label.name = "FirstTime"
 		_put(_center(first_label))
 	if rare != "":
@@ -59,14 +67,27 @@ func show_result(result: Dictionary) -> void:
 		var cell := PanelContainer.new()
 		cell.name = "Found_" + id
 		cell.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var cell_style := UiKit.surface(Palette.HONEY_SOFT, 16)
+		var cell_style := UiKit.surface(Palette.WOOD_INSET if _card else Palette.HONEY_SOFT, 16)
+		if _card:
+			cell_style.set_border_width_all(2)
+			cell_style.border_color = Color("c9935f")
 		cell_style.set_content_margin_all(8)
 		cell.add_theme_stylebox_override("panel", cell_style)
 		var column := UiKit.vbox(2)
-		column.add_child(_center(UiKit.icon(Database.item_icon(id), 48)))
-		column.add_child(_center(UiKit.label("×%d" % int(items[id]), &"NumberLabel")))
-		if id in fresh:
-			column.add_child(_center(UiKit.label("Novo!", &"SmallLabel", Palette.GO_INK)))
+		var found_texture := Database.item_icon(id)
+		var pixel := _card != null and found_texture != null and found_texture.get_width() <= 32
+		var item_icon := UiKit.icon(found_texture, 64 if pixel and found_texture.get_width() == 32 else 48)
+		if _card:
+			item_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if pixel else CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		column.add_child(_center(item_icon))
+		if _card:
+			column.add_child(_center(StepCardUi.wood("×%d" % int(items[id]), 19)))
+			if id in fresh:
+				column.add_child(_center(StepCardUi.wood("Novo!", 14, Palette.GO_INK)))
+		else:
+			column.add_child(_center(UiKit.label("×%d" % int(items[id]), &"NumberLabel")))
+			if id in fresh:
+				column.add_child(_center(UiKit.label("Novo!", &"SmallLabel", Palette.GO_INK)))
 		cell.add_child(column)
 		found.add_child(cell)
 	var chips := UiKit.flow()
@@ -89,12 +110,14 @@ func show_result(result: Dictionary) -> void:
 		clothes = clothes.duplicate()
 		clothes.append(rare)
 	for id: String in clothes:
-		var dress := UiKit.soft("Vestir agora · " + Database.item_name(id), func() -> void:
+		var dress_action := func() -> void:
 			var error := GameState.equip(id)
 			if error != "":
 				Events.toast_requested.emit(error)
 			else:
-				hide())
+				hide()
+		var dress_text := "Vestir agora · " + Database.item_name(id)
+		var dress: Button = WelcomeSheet._button(dress_text, false, float(ModalCard.INNER), "Equip_" + id, dress_action) if _card else UiKit.soft(dress_text, dress_action)
 		dress.name = "Equip_" + id
 		_put(UiKit.action_or_hint(dress, GameState.equip_error(id), TaskHelp.open.bind("item", id)))
 	var left: Dictionary = GameState.walk_state.baggage_left() if not sewing else {}
@@ -173,34 +196,29 @@ func _center(control: Control) -> Control:
 	return control
 
 
-## Festa do raro: moldura dourada, estrela girando atrás do apetrecho, "RARO!" e onde ficou guardado.
+## Festa do raro: estrela girando atrás do apetrecho, "RARO!" e onde ficou guardado.
 func _rare_banner(card: ModalCard, rare: String) -> void:
-	var border := card.panel.get_theme_stylebox("panel").duplicate() as StyleBoxFlat
-	border.border_color = Palette.HONEY
-	border.set_border_width_all(5)
-	card.panel.add_theme_stylebox_override("panel", border)
 	var data: Dictionary = Database.collections.get(rare, {})
 	var stage := Control.new()
 	stage.name = "RareStage"
 	stage.custom_minimum_size = Vector2(ModalCard.INNER, 96)
 	var star := UiKit.icon(UiKit.ui_icon(str(Database.walks.get("settings", {}).get("rare_star", "rare_star"))), 96)
 	star.name = "RareStar"
-	star.position = Vector2(98, 0)
+	star.position = Vector2((ModalCard.INNER - 96) / 2.0, 0)
 	star.size = Vector2(96, 96)
 	star.pivot_offset = Vector2(48, 48)
 	star.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	stage.add_child(star)
 	var picture := UiKit.icon(UiKit.ui_icon(str(data.get("icon", ""))), 64)
 	picture.name = "RarePicture"
-	picture.position = Vector2(114, 16)
+	picture.position = Vector2((ModalCard.INNER - 64) / 2.0, 16)
 	picture.size = Vector2(64, 64)
 	picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	stage.add_child(picture)
 	card.add(stage)
 	if not Motion.reduced:
 		create_tween().bind_node(star).set_loops().tween_property(star, "rotation", TAU, 6.0).from(0.0)
-	var title := UiKit.label("LENDÁRIO!" if data.get("rarity", "") == "legendary" else ("RARO!" if data.get("rarity", "") == "rare" else "ROUPA NOVA!"), &"TitleLabel", Palette.HONEY_EDGE)
+	var title := card.add_text("LENDÁRIO!" if data.get("rarity", "") == "legendary" else ("RARO!" if data.get("rarity", "") == "rare" else "ROUPA NOVA!"), &"TitleLabel", Palette.HONEY_INK)
 	title.name = "RareTitle"
-	card.add(_center(title))
 	card.add_text(str(data.get("name", rare)), &"StrongLabel")
 	card.add_text("Guardado na Coleção", &"SmallLabel", Palette.GO_INK)

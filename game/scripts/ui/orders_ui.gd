@@ -739,41 +739,7 @@ static func _deliver(id: String, data: Dictionary) -> Control:
 	if reason == "":
 		return action
 	action.free()
-	var hint := PanelContainer.new()
+	var hint := StepCardUi.locked_button(reason, null, TaskHelp.open.bind("order", id))
+	(hint as LockedButton).compact()  # a coluna da entrega é estreita
 	hint.name = "Locked_DeliverOrder"
-	hint.set_meta("reason", reason)
-	hint.custom_minimum_size = Vector2(0.0, 44.0)
-	var style := StyleBoxFlat.new()
-	style.bg_color = SLOT_BG
-	style.set_corner_radius_all(12)
-	style.content_margin_left = 4.0
-	style.content_margin_right = 4.0
-	style.content_margin_top = 2.0
-	style.content_margin_bottom = 2.0
-	hint.add_theme_stylebox_override("panel", style)
-	var line := UiKit.hbox(3)
-	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var lock := TextureRect.new()
-	lock.name = "LockIcon"
-	lock.texture = load(HomeUi.DIR + "farm_lock.png") as Texture2D
-	lock.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	lock.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	lock.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	lock.custom_minimum_size = Vector2(18.0, 18.0)
-	lock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	line.add_child(lock)
-	var text := MissionUi.text(reason, 13, Palette.WOOD_CREAM, 3, HORIZONTAL_ALIGNMENT_CENTER)
-	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	text.max_lines_visible = 3
-	text.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	text.custom_minimum_size.x = 40.0
-	text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	line.add_child(text)
-	hint.add_child(line)
-	hint.mouse_filter = Control.MOUSE_FILTER_STOP
-	hint.gui_input.connect(func(event: InputEvent) -> void:
-		if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-			TaskHelp.open("order", id))
 	return hint

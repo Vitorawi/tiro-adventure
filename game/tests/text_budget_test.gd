@@ -95,10 +95,15 @@ func visible_texts(root_node: Node, rect: Rect2 = Rect2()) -> Array[String]:
 	return found
 
 
-func count(label: String, root_node: Node, rect: Rect2 = Rect2()) -> void:
+func count(label: String, root_node: Node, rect: Rect2 = Rect2(), distinct: bool = false) -> void:
 	var total := 0
 	var detail: Array[String] = []
+	var seen_texts := {}
 	for text: String in visible_texts(root_node, rect):
+		# `distinct`: o mesmo texto repetido (o "Pegar" de cada linha de uma lista) conta uma vez sÃ³.
+		if distinct and seen_texts.has(text):
+			continue
+		seen_texts[text] = true
 		var words := words_of(text)
 		total += words.size()
 		if not words.is_empty():
@@ -139,7 +144,14 @@ func _run() -> void:
 	for pair: Array in [["story", "missoes_historia"], ["characters", "missoes_pessoas"], ["timed", "missoes_diarias"]]:
 		tasks.call("choose_group", pair[0])
 		await frames()
-		count(pair[1], tasks, screen)
+		# As abas de madeira (Principal Â· Pessoas Â· DiÃ¡rias) sÃ£o a navegaÃ§Ã£o fixa das trÃªs telas, nÃ£o texto da tela; os
+		# botÃµes iguais de uma lista (vÃ¡rios "Pegar") contam uma vez. O limite de palavras continua o mesmo.
+		var tab_tray := tasks.find_child("GroupTabs", true, false) as Control
+		if tab_tray != null:
+			tab_tray.visible = false
+		count(pair[1], tasks, screen, true)
+		if tab_tray != null:
+			tab_tray.visible = true
 
 	main.call("show_screen", &"bag")
 	await frames()

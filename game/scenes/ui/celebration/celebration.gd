@@ -72,7 +72,8 @@ func show_find(result: Dictionary) -> void:
 		progress_text = "%d/4" % pieces
 	elif item == "":
 		progress_text = str(result.get("unlock_label", ""))
-	card.add_text(progress_text, &"SmallLabel")
+	if progress_text != "":
+		card.add_pill(progress_text, "FindCount")
 	card.add_primary("Oba!", hide)
 	show()
 

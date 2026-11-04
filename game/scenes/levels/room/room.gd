@@ -1308,14 +1308,14 @@ func _handle_tap(point: Vector2) -> bool:
 			var marker := region.get_node("PurchaseMarker") as WorldBalloon
 			if marker.visible and marker.hit_rect.has_point(point - marker.position):
 				var data: Dictionary = region.get_meta("data")
-				Events.sheet_requested.emit(str(data.get("label", "Abrir área")).get_slice(" · ", 0), ProgressionUi.purchase(data.upgrade))
+				Events.sheet_requested.emit(_purchase_title(str(data.upgrade), str(data.get("label", "Abrir área")).get_slice(" · ", 0)), ProgressionUi.purchase(data.upgrade))
 				return true
 	for region: Dictionary in _room.get("regions", []):
 		if region_error(region) != "" and Geometry2D.is_point_in_polygon(point, _polygon(region.polygon)):
 			if region.has("action"):
 				Places.run(world_id, region.action)
 			elif region.has("upgrade"):
-				Events.sheet_requested.emit(region.get("label", "Abrir área"), ProgressionUi.purchase(region.upgrade))
+				Events.sheet_requested.emit(_purchase_title(str(region.upgrade), str(region.get("label", "Abrir área"))), ProgressionUi.purchase(region.upgrade))
 			else:
 				Places.run(world_id, region.get("action", ""))
 			return true
@@ -1414,7 +1414,7 @@ func _tap_label(point: Vector2) -> bool:
 			if data.has("action"):
 				Places.run(world_id, data.action)
 			elif upgrade != "":
-				Events.sheet_requested.emit(data.get("label", "Abrir área"), ProgressionUi.purchase(upgrade))
+				Events.sheet_requested.emit(_purchase_title(upgrade, str(data.get("label", "Abrir área"))), ProgressionUi.purchase(upgrade))
 			else:
 				continue
 			return true
@@ -1457,9 +1457,18 @@ func _on_plot_tapped(index: int) -> void:
 		return
 	if GameState.plot_status(index) == "locked":
 		# Qualquer canteiro fechado abre a mesma compra, mantendo a ordem de liberação.
-		Events.sheet_requested.emit("Abrir área", SheetBuilder.plot_purchase(GameState.unlocked_plots) if GameState.has_upgrade("farm") else ProgressionUi.purchase("farm"))
+		if GameState.has_upgrade("farm"):
+			Events.sheet_requested.emit("Terreno %d" % (GameState.unlocked_plots + 1), SheetBuilder.plot_purchase(GameState.unlocked_plots))
+		else:
+			Events.sheet_requested.emit("Abrir área", ProgressionUi.purchase("farm"))
 		return
 	open_plot_tray(index, "", false, true, true)
+
+
+## Título da folha de compra: o nome da coisa (Estufa, Pomar...), nunca o verbo genérico do rótulo.
+func _purchase_title(upgrade: String, fallback: String) -> String:
+	var data: Dictionary = Database.progression.upgrades.get(upgrade, {})
+	return str(data.get("name", fallback))
 
 
 # --- Barra da horta ----------------------------------------------------------------

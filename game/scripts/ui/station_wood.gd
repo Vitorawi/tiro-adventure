@@ -602,38 +602,9 @@ static func stepper(value: int, max_value: int, on_change: Callable) -> HBoxCont
 	return row
 
 
-## Aviso de bloqueio sobre a tábua (motivo curto em creme com contorno, cadeado e "?"). Nó `LockHint`.
+## Aviso de bloqueio sobre a tábua: o mesmo botão bloqueado de madeira das demais telas (`StepCardUi.lock_note`, nó `LockHint`).
 static func board_note(reason: String, on_help: Callable = Callable(), missing: Texture2D = null) -> HBoxContainer:
-	var row := UiKit.hbox(8)
-	row.name = "LockHint"
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var lock := TextureRect.new()
-	lock.name = "LockIcon"
-	lock.texture = load(HomeUi.DIR + "farm_lock.png") as Texture2D
-	lock.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	lock.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	lock.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	lock.custom_minimum_size = Vector2(26, 26)
-	lock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(lock)
-	if missing != null:
-		var picture := UiKit.icon(missing, 26)
-		picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		picture.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		row.add_child(picture)
-	var label := MissionUi.text(reason, 16, Palette.WOOD_CREAM, 3, HORIZONTAL_ALIGNMENT_LEFT)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.custom_minimum_size.x = 80.0
-	row.add_child(label)
-	if on_help.is_valid():
-		row.add_child(StepCardUi.help_button(on_help))
-		row.mouse_filter = Control.MOUSE_FILTER_PASS
-		row.gui_input.connect(func(event: InputEvent) -> void:
-			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-				on_help.call())
-	return row
+	return StepCardUi.lock_note(reason, on_help, missing)
 
 
 ## Barra de rolagem vertical de madeira (trilho bege, pegador marrom) para as rolagens da bandeja.

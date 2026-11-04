@@ -11,6 +11,7 @@ var state: Node
 var db: Node
 var main: Control
 var requested: Array = []
+var sheets: Array[String] = []
 
 
 func _initialize() -> void:
@@ -68,6 +69,7 @@ func _run() -> void:
 	db = root.get_node("Database")
 	state.set_script(load("res://tests/friend_clock.gd"))
 	root.get_node("Events").connect("world_requested", func(world: String, place: String) -> void: requested.append([world, place]))
+	root.get_node("Events").connect("sheet_requested", func(title: String, _content: Control) -> void: sheets.append(title))
 	Motion.reduced = true
 	for size in SIZES:
 		await _scenario(size)
@@ -120,15 +122,18 @@ func _scenario(size: Vector2i) -> void:
 	check(walk_card.visible, "%s: cartão da volta aparece uma vez (celebração=%s boas-vindas=%s fila=%d)" % [tag, main.get("_celebration").visible, main.get("_welcome").visible, (main.get("_modal_queue") as Array).size()])
 	var close: Button = walk_card.find_child("CloseResult", true, false)
 	var store_card: Button = walk_card.find_child("StoreBaggage", true, false)
-	check(close != null and store_card != null and store_card.text == "Ver bagagem", "%s: cartão oferece Ver bagagem (não cabe) e Depois" % tag)
+	check(close != null and close.text == "Oba!" and store_card != null and store_card.text == "Liberar espaço", "%s: cartão diz Oba! e oferece Liberar espaço (não coube)" % tag)
+	check(has_text(walk_card, "Sem espaço: 6 ficaram na sacola"), "%s: linha curta com o que ficou na sacola" % tag)
 	check(has_text(walk_card, "Voltou do passeio!"), "%s: título do cartão" % tag)
 	check(not state.call("walk_result_unseen"), "%s: abrir o cartão marca como visto" % tag)
 	await shot(tag, "cartao_bloqueado")
-	# "Ver bagagem" no cartão: fecha e leva ao portão da Praça, sem mexer no inventário.
+	# "Liberar espaço" no cartão: fecha e leva ao depósito (a sacola, na Casa), sem mexer no inventário.
 	var sticks: int = state.get("inventory").count("stick")
 	await click(store_card)
-	check(not walk_card.visible and requested.size() >= 1 and requested[requested.size() - 1][0] == "park", "%s: Ver bagagem leva à Praça: %s" % [tag, str(requested)])
+	check(not walk_card.visible and not sheets.is_empty() and sheets[sheets.size() - 1] == str(state.call("storage_name", "chest")), "%s: Liberar espaço abre o depósito: %s" % [tag, str(sheets)])
 	check(state.get("inventory").count("stick") == sticks, "%s: nada entrou sem espaço" % tag)
+	root.get_node("Events").emit_signal("sheet_close_requested")  # fecha o depósito aberto pelo Liberar espaço
+	await frames()
 	main.call("show_screen", &"pet")
 	await frames()
 	var collect: Button = pet.find_child("CollectWalk", true, false)
@@ -181,17 +186,14 @@ func _scenario(size: Vector2i) -> void:
 		check(requested.size() == 1 and requested[0][0] == "house", "%s: o botão da sacola leva à Casa" % tag)
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	await frames(12)
-	# Abre espaço: o toque real guarda por parcelas.
+	# Abre espaço: o tick guarda sozinho, por parcelas (regra "sempre guarda").
 	state.get("inventory").remove("stick", 2)
+	state.call("_auto_store_baggage")
 	state.call("_changed")
 	await frames()
 	main.call("show_screen", &"bag")
 	await frames()
-	var store: Button = bag.find_child("StoreBaggage", true, false)
-	check(store != null and store.size.y >= 44, "%s: Guardar achados aparece com 2 vagas" % tag)
 	await shot(tag, "mochila_parcela")
-	if store:
-		await click(store)
 	check(state.get("inventory").count("stick") == 4 and int(state.get("walk_state").baggage_count()) == 4, "%s: guardou 2 gravetos, 4 esperam" % tag)
 	check(state.get("progress").stat("walk_item") == 2, "%s: contador só dos itens que entraram" % tag)
 	main.call("show_screen", &"pet")
@@ -200,11 +202,10 @@ func _scenario(size: Vector2i) -> void:
 	check(collect.visible and collect.text == "Ver bagagem", "%s: o que sobrou segue esperando" % tag)
 	# Esvazia: o botão do Tiro vira Guardar achados e guarda o resto.
 	state.get("inventory").remove("stick", 4)
+	state.call("_auto_store_baggage")
 	state.call("_changed")
 	await frames()
-	check(collect.visible and collect.text == "Guardar achados", "%s: com espaço o botão diz Guardar achados" % tag)
 	await shot(tag, "pet_guardar")
-	await click(collect)
 	check(not state.call("walk_ready") and not pet.find_child("CollectWalk", true, false).visible, "%s: tudo guardado, botão some" % tag)
 	check(state.get("inventory").count("stick") == 3 and state.get("inventory").count("ribbon") == 1, "%s: nada perdido: %d gravetos" % [tag, state.get("inventory").count("stick")])
 	check(state.get("progress").stat("walk_item") == 6 and state.get("progress").stat("walk") == 1, "%s: contadores únicos" % tag)

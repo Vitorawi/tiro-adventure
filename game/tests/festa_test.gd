@@ -82,7 +82,12 @@ func _celebration_checks() -> void:
 	check(card != null and card.visible and celebration.visible, "show_treasure monta um ModalCard")
 	check(card.find_child("RibbonTitle", true, false) is Label and "Tesouro encontrado!" == (card.find_child("RibbonTitle", true, false) as Label).text, "fita traz o tesouro")
 	check(card.find_child("BigIcon", true, false) != null and card.find_child("Rays", true, false) != null, "ícone grande com raios")
-	check(((card.get("panel") as PanelContainer).get_theme_stylebox("panel") as StyleBoxFlat).corner_radius_top_left == 28 and (card.get("panel") as PanelContainer).custom_minimum_size.x == 320.0, "cartão 320 de largura, cantos 28")
+	var wood_panel := card.get("panel") as Control
+	check(wood_panel.find_child("Art", false, false) != null and wood_panel.find_child("Paper", false, false) != null and wood_panel.custom_minimum_size.x == 344.0, "cartão de madeira (moldura + papel) com 344 de largura")
+	check(card.find_child("Plate", true, false) != null and card.find_child("Ribbon", true, false) != null, "pratinho do herói e placa de madeira")
+	var big_icon := card.find_child("BigIcon", true, false) as TextureRect
+	var icon_scale := big_icon.size.x / float(big_icon.texture.get_width())
+	check(big_icon.texture_filter != CanvasItem.TEXTURE_FILTER_NEAREST or is_equal_approx(icon_scale, roundf(icon_scale)), "herói pixel em escala inteira (%s)" % str(icon_scale))
 	check(primary_count(card) == 1, "um botão principal só (%d)" % primary_count(card))
 	check(Haptics.calls == [Haptics.BIG_MS], "nível vibra forte uma vez (%s)" % str(Haptics.calls))
 	var chips := (card.get("box") as Control).find_children("*", "HFlowContainer", true, false)[0] as Container

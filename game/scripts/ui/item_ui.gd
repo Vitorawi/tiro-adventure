@@ -282,7 +282,7 @@ static func _card_plan(id: String, item: Dictionary, cw: float) -> Dictionary:
 	if rows > 0:
 		height += ROW_GAP + chips_h
 	if str(actions.lock) != "":
-		height += ROW_GAP + 26.0
+		height += ROW_GAP + 44.0
 	if not (actions.list as Array).is_empty():
 		height += ROW_GAP + ACTION_H
 	return {"height": height, "words_h": maxf(PLATE, words_h), "note_lines": note_lines, "line_h": line_h, "chips": chips, "actions": actions, "amount": amount, "price": price, "text_w": text_w, "inner_w": inner_w}
@@ -338,8 +338,6 @@ static func _card(id: String, item: Dictionary, plan: Dictionary, cw: float) -> 
 	var lock := str(plan.actions.lock)
 	if lock != "":
 		var hint := StepCardUi.lock_note(lock)
-		hint.alignment = BoxContainer.ALIGNMENT_CENTER
-		hint.custom_minimum_size.y = 26.0
 		body.add_child(hint)
 	var actions: Array[Dictionary] = []
 	actions.assign(plan.actions.list)

@@ -270,50 +270,59 @@ static func upgrade_card(box: VBoxContainer, id: String, wood: bool = false) -> 
 	card.add_child(buy)
 
 
-## Compra em madeira: herói grande no quadradinho bege com brilhos, nome, descrição, ganho de espaço e materiais em
-## pílulas de madeira, bloqueio com cadeado e o botão verde "Construir" (ou o medalhão de "Adquirido!").
-## Nomes mantidos: `UpgradeHero`, `SpaceChip`, `LockHint`, `BuildUpgrade`.
-static func _wood_upgrade_card(box: VBoxContainer, id: String, data: Dictionary) -> void:
+## Cabeça comum das compras em madeira (construção e terreno): herói no quadradinho bege com brilhos, nome e descrição.
+## Devolve o cartão interno para o chamador acrescentar chips, bloqueio e o botão. Nomes: `UpgradeHero`, `UpgradeName`, `UpgradeText`.
+static func _wood_hero(box: VBoxContainer, icon: Texture2D, name_text: String, text: String) -> VBoxContainer:
 	var inner := StepCardUi.inner_card(box, "UpgradeCard", Vector4i(16, 14, 16, 16))
 	inner.add_theme_constant_override("separation", 10)
 	var stage := Control.new()
 	stage.name = "UpgradeStage"
-	stage.custom_minimum_size = Vector2(0, 112)
+	stage.custom_minimum_size = Vector2(0, 116)
 	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	inner.add_child(stage)
-	var hero := MissionUi.tile(UiKit.ui_icon(str(data.get("icon", ""))), "", "UpgradeHero", Vector2(104, 104))
+	# Tudo desenhado na razão da imagem de origem (o quadradinho é 112x119; os brilhos 66x78 e 42x46).
+	var tile_h := 104.0 * 119.0 / 112.0
+	var hero := MissionUi.tile(icon, "", "UpgradeHero", Vector2(104, tile_h))
 	stage.add_child(hero)
 	hero.set_anchors_preset(Control.PRESET_CENTER)
 	hero.offset_left = -52.0
 	hero.offset_right = 52.0
-	hero.offset_top = -52.0
-	hero.offset_bottom = 52.0
-	var big := StepCardUi.pic("sparkle", Vector2(26, 31), "UpgradeSparkle")
+	hero.offset_top = -tile_h / 2.0
+	hero.offset_bottom = tile_h / 2.0
+	var big := StepCardUi.pic("sparkle", Vector2(26, 26.0 * 78.0 / 66.0), "UpgradeSparkle")
 	stage.add_child(big)
 	big.set_anchors_preset(Control.PRESET_CENTER)
 	big.offset_left = 42.0
 	big.offset_right = 68.0
 	big.offset_top = -62.0
-	big.offset_bottom = -31.0
-	var small := StepCardUi.pic("sparkle_small", Vector2(15, 16), "UpgradeSparkleSmall")
+	big.offset_bottom = -62.0 + big.custom_minimum_size.y
+	var small := StepCardUi.pic("sparkle_small", Vector2(15, 15.0 * 46.0 / 42.0), "UpgradeSparkleSmall")
 	stage.add_child(small)
 	small.set_anchors_preset(Control.PRESET_CENTER)
 	small.offset_left = -68.0
 	small.offset_right = -53.0
 	small.offset_top = 22.0
-	small.offset_bottom = 38.0
-	var title := StepCardUi.wood(str(data.name), 22)
+	small.offset_bottom = 22.0 + small.custom_minimum_size.y
+	var title := StepCardUi.wood(name_text, 22)
 	title.name = "UpgradeName"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.custom_minimum_size.x = 100.0
 	inner.add_child(title)
-	var description := StepCardUi.wood(str(data.description), 15, Color(Palette.WOOD_INK, 0.85))
+	var description := StepCardUi.wood(text, 15, Color(Palette.WOOD_INK, 0.85))
 	description.name = "UpgradeText"
 	description.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	description.custom_minimum_size.x = 100.0
 	inner.add_child(description)
+	return inner
+
+
+## Compra em madeira: herói grande no quadradinho bege com brilhos, nome, descrição, ganho de espaço e materiais em
+## pílulas de madeira, bloqueio com cadeado e o botão verde "Construir" (ou o medalhão de "Adquirido!").
+## Nomes mantidos: `UpgradeHero`, `SpaceChip`, `LockHint`, `BuildUpgrade`.
+static func _wood_upgrade_card(box: VBoxContainer, id: String, data: Dictionary) -> void:
+	var inner := _wood_hero(box, UiKit.ui_icon(str(data.get("icon", ""))), str(data.name), str(data.description))
 	if GameState.has_upgrade(id):
 		var done := UiKit.hbox(8)
 		done.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -366,6 +375,52 @@ static func _wood_upgrade_card(box: VBoxContainer, id: String, data: Dictionary)
 		else: Events.toast_requested.emit(error), StepCardUi.tex("coin") if cost > 0 else null)
 	buy.name = "BuildUpgrade"
 	inner.add_child(buy)
+
+
+## Compra de terreno (canteiro) na mesma folha de madeira da construção: herói, "Terreno N", linha curta, chip de moedas
+## tem/precisa e o botão verde "Comprar" (ou o motivo com cadeado). Nomes: `BuyPlot`, `PlotCost`, `LockHint`.
+static func plot_purchase(index: int) -> Control:
+	var panel := SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		var cost := GameState.plot_cost(index)
+		var inner := _wood_hero(box, UiKit.ui_icon("tab_farm"), "Terreno %d" % (index + 1), "Mais um canteiro para plantar")
+		if index < GameState.unlocked_plots:
+			var done := UiKit.hbox(8)
+			done.alignment = BoxContainer.ALIGNMENT_CENTER
+			done.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			done.add_child(StepCardUi.done_medal(32.0, "UpgradeDone"))
+			var owned := StepCardUi.wood("Este terreno já é seu!", 18, Palette.GO_INK)
+			owned.name = "UpgradeOwned"
+			done.add_child(owned)
+			inner.add_child(done)
+			return
+		var chips := HFlowContainer.new()
+		chips.alignment = FlowContainer.ALIGNMENT_CENTER
+		chips.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var have := GameState.coins >= cost
+		chips.add_child(StepCardUi.wood_chip(UiKit.ui_icon("coin"), "%d/%d" % [mini(GameState.coins, cost), cost], "have" if have else "missing", Callable(), "PlotCost"))
+		inner.add_child(chips)
+		# Consulta das mesmas condições/textos de buy_plot; nunca chama a ação para obter o erro.
+		var reason := ""
+		if not GameState.has_upgrade("farm"):
+			reason = "Compre a escritura do sítio primeiro"
+		elif index != GameState.unlocked_plots:
+			reason = "Compre o terreno %d primeiro" % (GameState.unlocked_plots + 1)
+		elif cost < 0:
+			reason = "Terreno indisponível"
+		elif not have:
+			reason = "Faltam %d moedas" % (cost - GameState.coins)
+		if reason != "":
+			inner.add_child(StepCardUi.lock_note(reason, TaskHelp.open.bind("upgrade", "farm"), UiKit.ui_icon("coin") if cost >= 0 and not have else null))
+			return
+		var buy := StepCardUi.go_button("Comprar · %d" % cost, func() -> void:
+			var error := GameState.buy_plot(index)
+			if error != "": Events.toast_requested.emit(error)
+			else: Events.sheet_close_requested.emit(), StepCardUi.tex("coin"))
+		buy.name = "BuyPlot"
+		inner.add_child(buy))
+	panel.set_meta("sheet_wood", true)
+	panel.set_meta("sheet_fit_content", true)
+	return panel
 
 
 # --- Vila: vender e encomendas --------------------------------------------------------
@@ -441,6 +496,11 @@ static var _cancel_armed_until := 0.0
 ## Painel do portão da Praça, no molde das estações: um espaço em cima (o Tiro é um só) e os passeios embaixo.
 ## Liberados primeiro (do mais curto ao mais longo), depois só os 2 próximos bloqueados.
 static func walks_panel() -> Control:
+	# Madeira ilustrada (02/11/2026): a folha vive em `WalksUi`; o código liso abaixo ficou só como referência.
+	var wood := WalksUi.build()
+	wood.name = "WalksPanel"
+	if true:
+		return wood
 	var panel := SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		if GameState.friend_walk_bonus() > 0:
 			box.add_child(UiKit.label("Pipoca vai junto · +1 achado", &"SmallLabel"))

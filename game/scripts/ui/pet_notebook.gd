@@ -1,13 +1,13 @@
 class_name PetNotebook
 extends RefCounted
-## Consultas do Tiro reunidas; cada abertura começa no Manual.
-
-const TAB_ICONS := {"manual": "ui_notebook", "growth": "item_growth_kibble", "album": "album_story", "collection": "outfit_star_glasses", "tricks": "trick_paw"}
+## Consultas do Tiro reunidas no Caderninho (`CodexUi`): abas laterais Recursos, Estações, Crescer, Álbum, Coleção e Truques,
+## cada uma com filtros no topo. `open("<seção>")`, `open("<seção>:<filtro>")` e `open("album:<seção do álbum>")` abrem direto;
+## "manual" continua aceito (= Recursos).
 
 
 static func tabs() -> Array[Dictionary]:
-	var result: Array[Dictionary] = [{"id": "manual", "text": "Manual"}]
-	if GameState.progress.feature_unlocked("growth_tab"): result.append({"id": "growth", "text": "Crescimento"})
+	var result: Array[Dictionary] = [{"id": "resources", "text": "Recursos"}, {"id": "stations", "text": "Estações"}]
+	if GameState.progress.feature_unlocked("growth_tab"): result.append({"id": "growth", "text": "Crescer"})
 	if GameState.photo_count() > 0: result.append({"id": "album", "text": "Álbum"})
 	if not GameState.progress.collection.is_empty() or GameState.progress.feature_unlocked("finds"):
 		result.append({"id": "collection", "text": "Coleção"})
@@ -18,55 +18,32 @@ static func tabs() -> Array[Dictionary]:
 	return result
 
 
-static func open(section: String = "manual") -> void:
-	var keys := section_unlocks(section)
-	if not keys.is_empty(): GameState.mark_seen(keys)
+## "manual" → "resources"; "<seção>:<filtro>" → (seção, filtro).
+static func _parse(section: String) -> Array[String]:
+	var filter := ""
+	if ":" in section:
+		filter = section.get_slice(":", 1)
+		section = section.get_slice(":", 0)
+	if section == "manual" or section == "":
+		section = "resources"
+	return [section, filter]
+
+
+static func open(section: String = "resources") -> void:
+	var parsed := _parse(section)
+	visit(parsed[0])
 	Events.sheet_requested.emit("Caderninho", panel(section))
 
 
-static func panel(section: String = "manual") -> Control:
-	var entries := tabs()
-	var album_section := ""
-	if section.begins_with("album:"):
-		album_section = section.trim_prefix("album:")
-		section = "album"
-	if not entries.any(func(entry: Dictionary) -> bool: return entry.id == section): section = "manual"
-	var box := UiKit.vbox(8)
-	box.name = "PetNotebook"
-	box.set_meta("sheet_size", "tall")
-	var tab_margin := MarginContainer.new()
-	tab_margin.add_theme_constant_override("margin_top", 8)
-	# Opção A: nomes inteiros e ícones 20; o trilho rola quando as cinco abas não cabem.
-	var shown: Array[Dictionary] = []
-	for entry: Dictionary in entries:
-		var copy := entry.duplicate()
-		copy["icon"] = UiKit.ui_icon(str(TAB_ICONS.get(str(entry.id), "ui_notebook")))
-		copy["icon_px"] = 20
-		shown.append(copy)
-	var tabs_row := UiKit.segmented(shown, section, open)
-	tabs_row.name = "NotebookTabs"
-	var strip := ScrollContainer.new()
-	strip.name = "NotebookTabScroll"
-	strip.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
-	strip.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	strip.custom_minimum_size.y = 56 if entries.size() > 1 else 0
-	strip.add_child(tabs_row)
-	tab_margin.add_child(strip)
-	var active := tabs_row.find_child("NotebookTab_" + section, false, false) as Control
-	if active: AlbumView._reveal_tab.call_deferred(strip, active)
-	box.add_child(tab_margin)
-	match section:
-		"growth":
-			box.add_child(PillarUi.panel())
-			box.add_child(UiKit.primary("Ver crescimento", GrowthUi.open))
-		"collection":
-			if GameState.dog_look().body == "puppy":
-				box.add_child(UiKit.fill_label("Vai aparecer quando ele crescer", &"SmallLabel"))
-			box.add_child(ProgressionUi.collection_panel())
-		"album": box.add_child(AlbumView.panel(album_section))
-		"tricks": box.add_child(TrickUi.panel())
-		_: box.add_child(GameManual.panel())
-	return box
+## Abrir uma seção confirma só as novidades dela.
+static func visit(section: String) -> void:
+	var keys := section_unlocks(section)
+	if not keys.is_empty(): GameState.mark_seen(keys)
+
+
+static func panel(section: String = "resources") -> Control:
+	var parsed := _parse(section)
+	return CodexUi.build(parsed[0], parsed[1])
 
 
 static func has_new() -> bool:

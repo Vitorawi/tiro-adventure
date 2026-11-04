@@ -26,20 +26,41 @@ func _run() -> void:
 	var before: Dictionary = state.call("to_dict").duplicate(true)
 	for id: String in db.get("items"):
 		check(not (manual.call("sources", id) as Array).is_empty(), id + ": precisa explicar uma fonte")
-		var detail: Control = manual.call("item_panel", id)
-		check(detail.get_child_count() > 3, id + ": detalhe deve mostrar fontes")
-		detail.free()
-	var catalog: Control = manual.call("panel")
+	# Catálogo do Caderninho: todos os itens aparecem (mesmo sem estar na mochila), um filtro por categoria.
+	var notebook: Script = load("res://scripts/ui/pet_notebook.gd")
+	var sections: Script = load("res://scripts/ui/codex_sections.gd")
+	var categories := {}
 	for id: String in db.get("items"):
-		check(catalog.find_child("Resource_" + id, true, false) != null, id + ": deve aparecer sem estar na mochila")
-	catalog.free()
-	var stations: Control = manual.call("panel", "stations")
-	check(_has_text(stations, "Liquidificador"), "Liquidificador aparece no catálogo")
-	var locks := stations.find_children("Locked_ManualGo_*", "HBoxContainer", true, false)
-	check(not locks.is_empty(), "Mundos/lugares fechados precisam de cadeado com motivo")
-	check(locks.all(func(n: Node) -> bool: return str(n.get_meta("reason", "")) != "" and n.find_child("LockIcon", true, false) != null) and _button_with_text(stations, "Bloqueado") == null, "Consultar o catálogo explica o bloqueio sem oferecer navegação proibida")
-	check(_has_prefix(stations, "Compre: ") and _button_with_text(stations, "Ir") != null, "Estações ainda não compradas precisam de atalho de compra (Ir + Compre: ...)")
+		categories[str(db.get("items")[id].get("category", "product"))] = true
+	for category: String in categories:
+		var catalog: Control = notebook.call("panel", "resources:" + category)
+		root.add_child(catalog)
+		check(catalog.find_child("NotebookTab_" + category, true, false) != null or category == "care", category + ": filtro da categoria")
+		for id: String in db.get("items"):
+			if str(db.get("items")[id].get("category", "product")) == category:
+				check(catalog.find_child("Resource_" + id, true, false) != null, id + ": deve aparecer sem estar na mochila")
+		catalog.free()
+	var stations: Control = notebook.call("panel", "stations")
+	root.add_child(stations)
+	check(stations.find_child("Station_blender", true, false) != null and _has_text(stations, "Liquidificador"), "Liquidificador aparece no catálogo")
+	check(stations.find_child("Crop_carrot", true, false) == null, "plantas só no filtro delas")
 	stations.free()
+	# Detalhe enxuto da estação: bloqueio com motivo (sem navegação proibida) ou Ir; estação comprável leva à compra.
+	var locked_seen := false
+	var buy_seen := false
+	for id: String in db.get("stations"):
+		var detail: Control = sections.call("station_detail", id)
+		root.add_child(detail)
+		for lock: Node in detail.find_children("Locked_ManualGo_*", "HBoxContainer", true, false):
+			locked_seen = true
+			check(str(lock.get_meta("reason", "")) != "" and lock.find_child("LockIcon", true, false) != null, id + ": bloqueio sem motivo")
+		check(_button_with_text(detail, "Bloqueado") == null, id + ": não oferece navegação proibida")
+		if _has_prefix(detail, "Compre: "):
+			buy_seen = true
+			check(detail.find_children("ManualGo_*", "Button", true, false).size() == 1, id + ": compra tem Ir")
+		detail.free()
+	check(locked_seen, "Mundos/lugares fechados precisam de cadeado com motivo")
+	check(buy_seen, "Estações ainda não compradas precisam de atalho de compra (Ir + Compre: ...)")
 	check(state.call("to_dict") == before, "Consultar o manual não altera progresso/inventário")
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
@@ -54,12 +75,10 @@ func _run() -> void:
 	manual.call("open_item", "carrot_snack")
 	await create_timer(0.2).timeout
 	_shot("manual_recipe")
-	var resource: Control = main.find_child("ManualResource*", true, false)
-	var ingredient: Button = _button_with_text(resource, "2x Cenoura")
-	check(ingredient != null, "Ingrediente deve mostrar nome e quantidade")
-	ingredient.pressed.emit()
+	check(main.find_child("ItemBoard", true, false) != null and main.find_child("ItemSources", true, false) != null, "Tocar num recurso abre o detalhe com a origem")
+	manual.call("open_item", "carrot")
 	await create_timer(0.2).timeout
-	check(_has_text(main.find_child("ManualResource*", true, false), "Plantar → esperar → colher"), "Tocar no ingrediente abre sua origem")
+	check(main.find_child("ItemSources", true, false) != null and main.find_child("Source_0", true, false) != null, "Ingrediente mostra de onde vem (canteiros)")
 	_shot("manual_crop")
 	manual.call("open", "stations")
 	await create_timer(0.2).timeout
@@ -75,8 +94,7 @@ func _run() -> void:
 	manual.call("open_item", "plank")
 	await create_timer(0.2).timeout
 	_shot("manual_plank")
-	resource = main.find_child("ManualResource*", true, false)
-	var go: Button = _button_with_text(resource, "Ir")
+	var go: Button = main.find_child("Source_0", true, false)
 	check(go != null and not go.disabled, "Ir liberado quando a bancada existe")
 	go.pressed.emit()
 	await create_timer(0.2).timeout

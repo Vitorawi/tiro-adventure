@@ -199,12 +199,10 @@ func _run() -> void:
 	state.get("walk_state").current.ready_at = 1.0
 	var walks_before: int = progress.stat("walk")
 	state.call("return_due_walk")
-	check(progress.stat("walk") == walks_before + 1 and not state.call("walking"), "a volta conta o passeio uma vez, com a bagagem esperando")
+	check(progress.stat("walk") == walks_before + 1 and not state.call("walking"), "a volta conta o passeio uma vez")
 	check(not pet.find_child("AwayView", true, false).visible and tray.visible, "Tiro volta à home e os cuidados reaparecem")
-	check(collect_walk.visible and collect_walk.text == "Guardar achados", "home oferece guardar os achados")
-	collect_walk.pressed.emit()
-	check(not state.call("walk_ready") and not collect_walk.visible, "home guarda a bagagem")
-	collect_walk.pressed.emit()
+	# Os achados vão sozinhos para a Mochila: sem bagagem esperando, sem botão de guardar.
+	check(not state.call("walk_ready") and not collect_walk.visible, "a volta guarda os achados sozinha")
 	check(progress.stat("walk") == walks_before + 1 and not pet.find_child("AwayView", true, false).visible, "não duplica prêmio")
 	(main.get("_walk_result") as CanvasLayer).hide()
 	state.call("dev_set_phase", "puppy")
@@ -263,7 +261,7 @@ func _run() -> void:
 	await create_timer(2.2).timeout
 	for member: String in ["_celebration", "_welcome", "_walk_result"]: (main.get(member) as CanvasLayer).hide()
 	main.set("_modal_queue", [] as Array[Callable])
-	check((notebook.call("tabs") as Array).size() == 5, "cinco consultas após liberar (Manual, Crescimento, Álbum, Coleção, Truques)")
+	check((notebook.call("tabs") as Array).size() == 6, "seis consultas após liberar (Recursos, Estações, Crescer, Álbum, Coleção, Truques)")
 	# Consultar uma aba confirma só seus desbloqueios, sem apagar novidades das outras.
 	for key: String in ["feature:growth_tab", "feature:dress", "feature:tricks"]:
 		progress.seen.erase(key)

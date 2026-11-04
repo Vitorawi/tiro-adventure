@@ -1,13 +1,19 @@
 class_name WorldPill
 extends Button
-## Pílula do mundo atual sobre o mapa (canto de cima à esquerda): ícone do mundo + nome + seta.
-## Disco branco com sombra e controle vetorial. Tocar abre a folha de cartões-postais.
+## Pílula do mundo atual sobre o mapa (canto de cima à esquerda): ícone do mundo + nome + setinha.
+## Madeira ilustrada: aro de madeira com miolo creme (`world_pill.png`, gerado por `tools/world_pill_art.gd`; NinePatch 3x em escala 1/3, só o
+## miolo liso estica) atrás do conteúdo; nome marrom na fonte da madeira; setinha desenhada em código.
+## Tocar abre a folha de cartões-postais. O ícone do mundo é pixel (NEAREST, 32 px = escala 1).
 
 const HEIGHT := 44
-const MARGIN_LEFT := 8
-const MARGIN_RIGHT := 32  # espaço da seta desenhada à direita
+const MARGIN_LEFT := 10
+const MARGIN_RIGHT := 34  # espaço da setinha desenhada à direita
+const FONT_PX := 18
+const ICON_PX := 32
+const ART := "world_pill.png"
 
 var world_id := ""
+var _art: NinePatchRect
 
 
 func _init() -> void:
@@ -15,41 +21,60 @@ func _init() -> void:
 	size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	alignment = HORIZONTAL_ALIGNMENT_LEFT
 	icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
-	add_theme_constant_override("icon_max_width", 32)
-	add_theme_constant_override("h_separation", 6)
-	theme_type_variation = &"StrongLabel"
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST  # o ícone do mundo é pixel; a pele liga o suave só nela
+	add_theme_constant_override("icon_max_width", ICON_PX)
+	add_theme_constant_override("h_separation", 8)
+	theme = HomeUi.theme(FONT_PX)
 	for color_name: String in ["font_color", "font_hover_color", "font_pressed_color", "font_hover_pressed_color", "font_focus_color", "font_disabled_color"]:
-		add_theme_color_override(color_name, Palette.INK)
+		add_theme_color_override(color_name, Palette.WOOD_INK)
+	# Todos os estados iguais e vazios: a madeira é a pele; só as margens mandam no tamanho mínimo.
+	for state: String in ["normal", "hover", "disabled", "focus", "pressed", "hover_pressed"]:
+		var empty := StyleBoxEmpty.new()
+		empty.content_margin_left = MARGIN_LEFT
+		empty.content_margin_right = MARGIN_RIGHT
+		empty.content_margin_top = 2
+		empty.content_margin_bottom = 2
+		add_theme_stylebox_override(state, empty)
+	_build_skin()
 	Motion.press(self)
-	# O Button toma o MAIOR styleboxe de todos os estados como tamanho mínimo: todos iguais.
 	set_world("house")
 
 
-## Mostra o mundo (nome curto do mapa, ícone e cor da borda).
+func _build_skin() -> void:
+	_art = NinePatchRect.new()
+	_art.name = "PillArt"
+	_art.texture = load(HomeUi.DIR + ART) as Texture2D
+	_art.patch_margin_left = 45
+	_art.patch_margin_right = 45
+	_art.patch_margin_top = 39
+	_art.patch_margin_bottom = 39
+	_art.scale = Vector2.ONE / 3.0
+	_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# O NinePatch mede a soma das margens como mínimo: mora dentro de um Control liso (mínimo 0) que desenha ATRÁS do botão.
+	var holder := Control.new()
+	holder.name = "PillHolder"
+	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	holder.show_behind_parent = true
+	holder.add_child(_art)
+	add_child(holder)
+	holder.resized.connect(func() -> void: _art.size = holder.size * 3.0)
+
+
+## Mostra o mundo (nome curto do mapa e ícone).
 func set_world(new_world_id: String) -> void:
 	world_id = new_world_id
 	var world: Dictionary = Database.worlds.get(world_id, {})
 	text = str(world.get("map_name", world.get("name", "")))
 	icon = UiKit.ui_icon(str(world.get("icon", "tab_map")))
-	for state: String in ["normal", "hover", "disabled", "focus"]:
-		add_theme_stylebox_override(state, _style(Palette.CARD))
-	for state: String in ["pressed", "hover_pressed"]:
-		add_theme_stylebox_override(state, _style(Palette.SUNKEN))
 	queue_redraw()
 
 
-func _style(fill: Color) -> StyleBoxFlat:
-	var box := UiKit.surface(fill, HEIGHT / 2, true)
-	box.content_margin_left = MARGIN_LEFT
-	box.content_margin_right = MARGIN_RIGHT
-	box.content_margin_top = 2
-	box.content_margin_bottom = 2
-	box.shadow_color = Palette.SHADOW
-	box.shadow_size = 3
-	box.shadow_offset = Vector2(0, 2)
-	return box
-
-
-## Setinha para baixo ("há outros mundos"), desenhada para não depender de um glifo da fonte.
+## Setinha para baixo ("há outros mundos"): chevron arredondado em código, sem depender de glifo da fonte.
 func _draw() -> void:
-	draw_texture_rect(UiKit.ctl_icon("down"), Rect2(Vector2(size.x - 27, (size.y - 18) / 2), Vector2(18, 18)), false, Palette.INK_SOFT)
+	var center := Vector2(size.x - 19.0, size.y / 2.0 + 1.0)
+	var points := PackedVector2Array([center + Vector2(-5.0, -2.5), center + Vector2(0.0, 2.5), center + Vector2(5.0, -2.5)])
+	draw_polyline(points, Palette.WOOD_INK, 3.0, true)
+	draw_circle(points[0], 1.5, Palette.WOOD_INK)
+	draw_circle(points[2], 1.5, Palette.WOOD_INK)

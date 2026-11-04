@@ -367,10 +367,10 @@ func _interface() -> void:
 	check("album" in ids, "aba Álbum aparece depois da primeira foto")
 	var notebook_panel: Control = notebook.panel("manual")
 	root.add_child(notebook_panel)
-	check(notebook_panel.find_child("NotebookTab_album", true, false).find_child("NewBadge", true, false) != null, "Manual aponta novidade na aba Álbum")
-	check(notebook_panel.find_child("NotebookTab_manual", true, false).find_child("NewBadge", true, false) == null, "Manual não recebe aviso de outra aba")
+	check(notebook_panel.find_child("NotebookTab_album", true, false).find_child("NewBadge", true, false) != null, "Recursos aponta novidade na aba Álbum")
+	check(notebook_panel.find_child("NotebookTab_resources", true, false).find_child("NewBadge", true, false) == null, "Recursos não recebe aviso de outra aba")
 	notebook_panel.free()
-	check(not state.photos_unseen().is_empty(), "abrir Manual não marca fotos como vistas")
+	check(not state.photos_unseen().is_empty(), "abrir Recursos não marca fotos como vistas")
 	var panel: Control = album_view.panel("firsts")
 	root.add_child(panel)
 	var grid := panel.find_child("AlbumGrid", true, false) as GridContainer

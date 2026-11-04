@@ -109,11 +109,11 @@ func _run() -> void:
 	var hygiene_before: float = state.get("dog").get_need("hygiene", state.call("now"))
 	check(not state.call("walking"), "tempo vencido: o Tiro já não está fora")
 	check(state.call("return_due_walk"), "o tick liquida a viagem")
-	check(state.call("walk_ready") and not state.call("return_due_walk"), "terminou sozinho, uma vez só")
+	check(state.call("walk_result_unseen") and not state.call("return_due_walk"), "terminou sozinho, uma vez só")
 
 	# --- Recolher -------------------------------------------------------------
-	var result: Dictionary = state.call("collect_walk")
-	check(not result.is_empty() and result.id == "park_loop", "guarda a bagagem do passeio")
+	var result: Dictionary = state.call("walk_result_view")  # os achados já foram guardados sozinhos
+	check(not result.is_empty() and result.id == "park_loop" and not state.call("walk_ready"), "bagagem guardada sozinha na volta")
 	check(not state.call("walking"), "Tiro de volta")
 	check(state.get("coins") >= had_coins + 6, "moedas do passeio")
 	check(state.get("dog").get_need("happiness", state.call("now")) > happy_before - 0.01, "volta mais feliz")
@@ -181,7 +181,7 @@ func _run() -> void:
 	db.get("walks").walks.park_loop.loot = {"rolls": 1, "table": [{"weight": 1, "items": {"stick": 1}}]}
 	check(state.call("start_walk", "park_loop") == "", "inicia o passeio do teste de temporizador DEV")
 	state.call("dev_finish_timers")
-	check(state.call("return_due_walk") and state.call("walk_ready"), "dev termina o passeio")
+	check(state.call("return_due_walk") and str(state.call("walk_result_view").get("id", "")) == "park_loop", "dev termina o passeio")
 	state.call("collect_walk")
 	db.get("walks").walks.park_loop.loot = timer_loot
 
@@ -236,14 +236,16 @@ func _room_checks() -> void:
 	state.get("walk_state").current["ready_at"] = 0.0
 	state.call("return_due_walk")
 	await process_frame
-	check(park.get("_dog") != null and house.get("_dog") != null, "pronto: o Tiro já voltou às salas, com a bagagem esperando")
-	# Painel do portão, no molde das estações.
+	check(park.get("_dog") != null and house.get("_dog") != null, "pronto: o Tiro já voltou às salas")
+	# Regra "sempre guarda": os achados já foram para a Mochila (nada de passo manual); a bagagem some do painel.
+	check(not state.call("walk_ready"), "achados guardados sozinhos na volta")
+	# Painel do portão (madeira ilustrada): sem bagagem, só o cartão de cada caminho.
 	var panel: Control = load("res://scripts/ui/progression_ui.gd").call("walks_panel")
 	root.add_child(panel)
 	await process_frame
-	check(panel.find_child("WalkSlot", true, false) != null, "espaço do passeio")
-	check(panel.find_child("CollectWalk", true, false) != null, "botão Recolher")
+	check(panel.find_child("WalkSlot", true, false) == null and panel.find_child("CollectWalk", true, false) == null, "sem bagagem: nem espaço nem botão Guardar")
 	check(panel.find_child("WalkCard_park_loop", true, false) != null, "cartão do passeio")
+	check(panel.find_child("WalksInfo", true, false) != null, "(i) do painel")
 	var walk_error: String = state.call("walk_error", "park_loop")
 	var start := panel.find_child("StartWalk_park_loop", true, false)
 	if walk_error == "":
@@ -256,9 +258,8 @@ func _room_checks() -> void:
 	var results: Array = []
 	var events: Node = root.get_node("Events")
 	events.connect("walk_collected", func(r: Dictionary) -> void: results.append(r))
-	park.call("_collect_walk")
 	await process_frame
-	check(results.is_empty() and not state.call("walk_ready"), "guardar pelo mapa recebe a bagagem sem repetir o cartão")
+	check(results.is_empty() and not state.call("walk_ready"), "tocar no portão não repete o cartão nem a bagagem")
 	check(park.get("_dog") != null and house.get("_dog") != null, "Tiro segue em casa")
 	# Painel andando e cancelamento com dois toques.
 	_rest()

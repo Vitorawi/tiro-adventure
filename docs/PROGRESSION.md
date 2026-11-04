@@ -1200,3 +1200,14 @@ reserva inicial de três entregas por modelo. A medida de ritmo é exclusivament
 Evidências, dias por fase, comparação com a 00 e pendências de aprovação em
 `docs/plans/cuidado/RESULTADOS.md`. Saves atuais descartáveis; formato não alterado nesta etapa,
 `SAVE_VERSION` 17; sem migração. Nada publicado.
+
+## Passeios: "sempre guarda" (02/11/2026)
+
+Regra pedida pelo Vitor ("tira essa opção de não guardar automaticamente. Sempre guarda as coisas que eu tiro"):
+quando a viagem termina, `GameState.return_due_walk` sorteia/congela o resultado como antes e, logo em seguida,
+`GameState._auto_store_baggage()` chama `claim_walk_baggage()`. O mesmo gancho roda ao carregar o save e no tick de 1 s,
+então a bagagem que sobrou entra sozinha assim que houver espaço (vender, usar ou ampliar o depósito). O que não couber
+continua seguro em `walk_state.pending_return.left` (nunca se perde) e `walk_item`/`find_item` contam só o que entrou, uma
+vez. Interface: o cartão "Voltou do passeio!" mostra os achados como já guardados, com um botão verde "Oba!"; se algo sobrou,
+uma linha "Sem espaço: N ficaram na sacola" e o botão amarelo "Liberar espaço" (abre o depósito). `CollectWalk` ("Ver
+bagagem") só aparece na tela do Tiro nesse caso. `SAVE_VERSION` não muda (o formato é o mesmo).

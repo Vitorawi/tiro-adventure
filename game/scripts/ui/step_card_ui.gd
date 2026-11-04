@@ -364,13 +364,14 @@ static func help_button(on_pressed: Callable) -> Button:
 	help.custom_minimum_size = Vector2(HELP_SIZE, HELP_SIZE)
 	help.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	help.pressed.connect(func() -> void: Motion.bounce(help))
-	var disc := pic("help", Vector2(40, 40), "Disc")
+	var disc_h := 40.0 * 118.0 / 120.0  # na razão da imagem (120x118)
+	var disc := pic("help", Vector2(40, disc_h), "Disc")
 	help.add_child(disc)
 	disc.set_anchors_preset(Control.PRESET_CENTER)
 	disc.offset_left = -20.0
 	disc.offset_right = 20.0
-	disc.offset_top = -20.0
-	disc.offset_bottom = 20.0
+	disc.offset_top = -disc_h / 2.0
+	disc.offset_bottom = disc_h / 2.0
 	return help
 
 
@@ -444,28 +445,93 @@ static func portrait_frame(face: TextureRect, px: float, face_name: String = "")
 	return frame
 
 
-## Aviso de bloqueio na madeira: cadeado, motivo na fonte da madeira e "?" (nó `LockHint`, como o `UiKit.lock_hint`).
+## BOTÃO BLOQUEADO de madeira (peça única de bloqueio): mesma forma/altura do `go_button`, arte apagada
+## (`step_go_locked.png`, gerada por `tools/locked_button_art.gd`), cadeado dourado à esquerda + ícone opcional do requisito
+## (ex.: moeda) + motivo curto na fonte da madeira em marrom suave. Não parece clicável para comprar: tocar mostra o motivo
+## (aviso) ou, com `on_tap`, abre o que ele explicar (ex.: o "Como fazer"). Meta `reason`; nós `LockIcon`, `LockText`.
+static func locked_button(reason: String, icon: Texture2D = null, on_tap: Callable = Callable()) -> Button:
+	var result := LockedButton.new()
+	result.name = "LockedButton"
+	result.flat = true
+	result.focus_mode = Control.FOCUS_NONE
+	for phase: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+		result.add_theme_stylebox_override(phase, StyleBoxEmpty.new())
+	result.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	result.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	result.custom_minimum_size = Vector2(0, GO_HEIGHT)
+	result.set_meta("reason", reason)
+	var art := Control.new()
+	art.name = "Art"
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	art.show_behind_parent = true
+	result.add_child(art)
+	stretch(art)
+	var frame := NinePatchRect.new()
+	frame.name = "Frame"
+	frame.texture = tex("go_locked")
+	frame.patch_margin_left = 60
+	frame.patch_margin_right = 60
+	frame.patch_margin_top = 45
+	frame.patch_margin_bottom = 45
+	frame.scale = Vector2.ONE / 3.0
+	frame.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	art.add_child(frame)
+	var fit := func() -> void:
+		var drawn := maxf(40.0, art.size.y - 2.0)  # só cresce quando o motivo ocupa mais de uma linha
+		frame.position = Vector2(0.0, (art.size.y - drawn) / 2.0)
+		frame.size = Vector2(art.size.x, drawn) * 3.0
+	art.resized.connect(fit)
+	fit.call()
+	var line := UiKit.hbox(6)
+	line.name = "LockContent"
+	line.alignment = BoxContainer.ALIGNMENT_CENTER
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result.add_child(line)
+	stretch(line)
+	line.offset_left = 14.0
+	line.offset_right = -14.0
+	result.row = line
+	var lock := TextureRect.new()
+	lock.name = "LockIcon"
+	lock.texture = load(HomeUi.DIR + "farm_lock.png") as Texture2D
+	lock.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	lock.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	lock.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lock.custom_minimum_size = Vector2(24, 24)
+	lock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	line.add_child(lock)
+	if icon != null:
+		var picture := UiKit.icon(icon, 22)
+		picture.name = "LockRequirement"
+		picture.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		picture.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS if icon.get_width() > 48 else CanvasItem.TEXTURE_FILTER_NEAREST
+		line.add_child(picture)
+	var label := wood(reason, 15, Color(Palette.WOOD_INK, 0.78))
+	label.name = "LockText"
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	label.custom_minimum_size.x = 60.0
+	line.add_child(label)
+	result.pressed.connect(func() -> void:
+		Motion.shake(result)  # tremidinha + Haptics.error leve
+		if on_tap.is_valid():
+			on_tap.call()
+		else:
+			Events.toast_requested.emit(reason))
+	return result
+
+
+## Aviso de bloqueio no lugar da ação (nó `LockHint`): o botão bloqueado de madeira, com o "?" do "Como fazer" ao lado
+## só quando há `on_help`.
 static func lock_note(text: String, on_help: Callable = Callable(), missing: Texture2D = null) -> HBoxContainer:
 	var row := UiKit.hbox(8)
 	row.name = "LockHint"
-	var lock := UiKit.ctl("lock", 20, Palette.WOOD_INK)
-	lock.name = "LockIcon"
-	row.add_child(lock)
-	if missing:
-		var picture := UiKit.icon(missing, 26)
-		picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		row.add_child(picture)
-	var label := wood(text, 15)
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.custom_minimum_size.x = 80.0
-	row.add_child(label)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(locked_button(text, missing))
 	if on_help.is_valid():
 		row.add_child(help_button(on_help))
-		row.mouse_filter = Control.MOUSE_FILTER_PASS
-		row.gui_input.connect(func(event: InputEvent) -> void:
-			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-				on_help.call())
 	return row
 
 

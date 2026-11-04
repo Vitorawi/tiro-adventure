@@ -452,14 +452,7 @@ func _build_harvest() -> void:
 	holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_row.add_child(holder)
 	if blocked != "":
-		var paper := PanelContainer.new()
-		var style := UiKit.surface(Color("ffedc9"), 14)
-		style.set_content_margin_all(8)
-		style.border_color = Color("c9783b")
-		style.set_border_width_all(2)
-		paper.add_theme_stylebox_override("panel", style)
-		paper.mouse_filter = Control.MOUSE_FILTER_PASS
-		paper.add_child(StepCardUi.lock_note(blocked.get_slice(":", 0), Callable(), all.icon as Texture2D))  # só o motivo curto: "Silo sem espaço"
+		var paper := StepCardUi.lock_note(blocked.get_slice(":", 0), Callable(), all.icon as Texture2D)  # só o motivo curto: "Silo sem espaço"
 		holder.add_child(paper)
 		_inset_in_groove(paper)
 	else:

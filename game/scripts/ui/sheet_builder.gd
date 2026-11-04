@@ -537,7 +537,7 @@ static func farm_view(focus: String = "", greenhouse_only: bool = false) -> Cont
 		if GameState.has_upgrade("farm") and GameState.unlocked_plots < total:
 			var cost := GameState.plot_cost(GameState.unlocked_plots)
 			box.add_child(UiKit.button("+1 terreno · %d" % cost, func() -> void:
-				Events.sheet_requested.emit("Abrir área", plot_purchase(GameState.unlocked_plots)), &"PrimaryButton" if GameState.coins >= cost else &"", UiKit.ui_icon("coin")))
+				Events.sheet_requested.emit("Terreno %d" % (GameState.unlocked_plots + 1), plot_purchase(GameState.unlocked_plots)), &"PrimaryButton" if GameState.coins >= cost else &"", UiKit.ui_icon("coin")))
 		var grid := GridContainer.new()
 		grid.columns = 3
 		grid.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -572,37 +572,9 @@ static func _plot_tile(index: int, focus: String) -> Button:
 	return tile
 
 
-## Comprar terreno: preço (tem/precisa) e botão.
+## Comprar terreno: a folha em madeira mora em `ProgressionUi.plot_purchase` (a mesma peça da compra de construção).
 static func plot_purchase(index: int) -> Control:
-	return LiveBox.new(func(box: VBoxContainer) -> void:
-		var cost := GameState.plot_cost(index)
-		var available := index == GameState.unlocked_plots
-		if index < GameState.unlocked_plots:
-			box.add_child(UiKit.label("Este terreno já é seu!", &"", Palette.GO_INK))
-			return
-		var row := UiKit.hbox(8)
-		row.add_child(UiKit.icon(UiKit.ui_icon("tab_farm"), 48))
-		row.add_child(UiKit.fill_label("Terreno %d" % (index + 1), &"StrongLabel"))
-		row.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [mini(GameState.coins, cost), cost], Palette.GO_INK if GameState.coins >= cost else Palette.ALERT_INK))
-		box.add_child(row)
-		# Consulta das mesmas condições/textos de buy_plot; nunca chama a ação para obter o erro.
-		var reason := ""
-		if not GameState.has_upgrade("farm"):
-			reason = "Compre a escritura do sítio primeiro"
-		elif not available:
-			reason = "Compre o terreno %d primeiro" % (GameState.unlocked_plots + 1)
-		elif cost < 0:
-			reason = "Terreno indisponível"
-		elif GameState.coins < cost:
-			reason = "Faltam %d moedas" % (cost - GameState.coins)
-		var buy := UiKit.button("Comprar", func() -> void:
-			var error := GameState.buy_plot(index)
-			if error != "":
-				Events.toast_requested.emit(error)
-			if error == "":
-				Events.sheet_close_requested.emit(), &"PrimaryButton")
-		buy.name = "BuyPlot"
-		box.add_child(UiKit.action_or_hint(buy, reason, TaskHelp.open.bind("upgrade", "farm"), UiKit.ui_icon("coin") if GameState.coins < cost else null)))
+	return ProgressionUi.plot_purchase(index)
 
 
 ## Planta crescendo: ícone, barra com tempo e o que vai render.

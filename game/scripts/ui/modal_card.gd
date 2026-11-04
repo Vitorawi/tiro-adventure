@@ -1,19 +1,28 @@
 class_name ModalCard
 extends Control
 ## Cartão modal único da interface (nível, capítulo, Novo!, vínculo, truque, tesouro, achado,
-## volta do passeio, boas-vindas, roupa nova). Tela cheia com fundo `DIM` e, no meio, o cartão:
-## fita colorida com o título, ícone grande com raios girando, o corpo que cada tela monta
-## (`box`), chips que entram um por um e os botões (um `primary` + `ghost` opcional).
-## Quem usa é um CanvasLayer (Celebration, WalkResult, WelcomeBack): `ModalCard.open(self, {...})`
+## volta do passeio raro, roupa nova). Tela cheia com fundo `DIM` e, no meio, o cartão em "madeira ilustrada"
+## (a mesma moldura `item_frame` do detalhe de item): placa de madeira com o título, papel creme com o ícone
+## grande num pratinho bege com raios girando atrás, o corpo que cada tela monta (`box`), chips de madeira que
+## entram um por um e os botões (um verde `primary` + `ghost` amarelo opcional).
+## Quem usa é um CanvasLayer (Celebration, WalkResult, GrowthCeremony): `ModalCard.open(self, {...})`
 ## troca o cartão anterior e devolve este. Os botões fecham o CanvasLayer pelos callbacks de quem usa.
 ##
-## Opções de `open`: title, ribbon (Color), icon (Texture2D), icon_px (64), rays (true com ícone),
+## Opções de `open`: title, ribbon (Color, hoje só guardada), icon (Texture2D), icon_px (64), rays (true com ícone),
 ## hero (Control no lugar do ícone), scroll_name, separation (12), confetti (false),
 ## haptic ("" | "big" | "success"), animate (true; false = cartão reaberto sem repetir a entrada),
 ## fixed_body (false; true mantém o corpo fixo e reserva a rolagem para add_scroll_area).
+##
+## Nós: `CardPanel` (moldura), `Ribbon`/`RibbonTitle` (placa), `Stage`/`Plate`/`BigIcon`/`Rays`, `Body`, o rolável
+## (`scroll_name`), botões `Primary`/`Ghost` (a tela que usa pode renomear).
 
-const WIDTH := 320
-const INNER := 292  # largura útil do corpo (cartão 320 − margens 14)
+const WIDTH := 344
+const INNER := 275  # largura útil do corpo: moldura 344 − bordas da madeira (46,5) − folga do papel (2 × 11)
+const PAD_X := 11.0  # folga do papel até o corpo
+const PAD_Y := 12.0
+const SCREEN_GAP := 8.0  # folga mínima até as bordas laterais da tela
+const VERTICAL_GAP := 16.0  # folga até o topo e a base (como antes)
+const PLATE_EXTRA := 20  # pratinho = ícone + 20
 const RAYS_PATH := "res://assets/sprites/ui/fx/rays.png"
 const RAYS_PX := 128
 const RAYS_DEGREES_PER_SECOND := 20.0
@@ -21,11 +30,12 @@ const CONFETTI_COUNT := 40
 
 static var _confetti_texture: ImageTexture
 
-var panel: PanelContainer
+var panel: Control
+var body: Control
 var scroll: ScrollContainer
 var box: VBoxContainer
 var dim: ColorRect
-var ribbon: PanelContainer
+var ribbon: Control
 var stage: Control
 var icon_node: TextureRect
 var rays: TextureRect
@@ -36,7 +46,7 @@ var _fixed_body := false
 var _scroll_content: Control
 
 
-## Troca o cartão que estiver em `host` por um novo, já com fita, ícone e raios.
+## Troca o cartão que estiver em `host` por um novo, já com placa, ícone e raios.
 static func open(host: Node, options: Dictionary) -> ModalCard:
 	for child: Node in host.get_children():
 		host.remove_child(child)
@@ -50,6 +60,10 @@ static func open(host: Node, options: Dictionary) -> ModalCard:
 	return card
 
 
+static func _width() -> float:
+	return minf(float(WIDTH), ItemUi._screen().x - SCREEN_GAP)
+
+
 func _build(options: Dictionary) -> void:
 	dim = ColorRect.new()
 	dim.name = "Dim"
@@ -59,29 +73,42 @@ func _build(options: Dictionary) -> void:
 	var center := CenterContainer.new()
 	center.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
-	panel = PanelContainer.new()
+	panel = Control.new()
 	panel.name = "CardPanel"
 	panel.theme = load("res://assets/theme/main_theme.tres")
-	panel.add_theme_stylebox_override("panel", _panel_style())
-	panel.custom_minimum_size.x = WIDTH
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	panel.custom_minimum_size.x = _width()
 	center.add_child(panel)
+	var art := SellUi.nine("frame", ItemUi.FRAME_MARGINS, "Art", null, "item_")
+	panel.add_child(art)
+	StepCardUi.stretch(art)
+	var paper := SellUi.nine("card", Vector4i(75, 75, 75, 75), "Paper", null, "item_")
+	panel.add_child(paper)
+	SellUi.place(paper, 0.0, ItemUi.IN_L, 1.0, -ItemUi.IN_R, 0.0, ItemUi.TOP, 1.0, -ItemUi.BOTTOM)
+	body = Control.new()
+	body.name = "Body"
+	body.mouse_filter = Control.MOUSE_FILTER_PASS
+	panel.add_child(body)
+	SellUi.place(body, 0.0, ItemUi.IN_L + PAD_X, 1.0, -(ItemUi.IN_R + PAD_X), 0.0, ItemUi.TOP + PAD_Y, 1.0, -(ItemUi.BOTTOM + PAD_Y))
 	scroll = ScrollContainer.new()
 	scroll.name = str(options.get("scroll_name", "ModalScroll"))
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.follow_focus = true
 	_fixed_body = bool(options.get("fixed_body", false))
 	if not _fixed_body:
-		panel.add_child(scroll)
+		body.add_child(scroll)
+		StepCardUi.stretch(scroll)
 	box = UiKit.vbox(int(options.get("separation", 12)))
 	box.custom_minimum_size.x = INNER
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	if _fixed_body:
-		panel.add_child(box)
+		body.add_child(box)
+		StepCardUi.stretch(box)
 	else:
 		scroll.add_child(box)
 	var title := str(options.get("title", ""))
 	if title != "":
-		box.add_child(_ribbon(title, options.get("ribbon", Palette.HONEY) as Color, str(options.get("ribbon_icon", ""))))
+		panel.add_child(_ribbon(title))
 	if options.get("hero") is Control:
 		box.add_child(_centered(options.hero as Control))
 	elif options.get("icon") is Texture2D:
@@ -102,66 +129,73 @@ func _build(options: Dictionary) -> void:
 	_start()
 
 
-static func _panel_style() -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.PAPER
-	style.set_corner_radius_all(28)
-	style.set_border_width_all(3)
-	style.border_color = Palette.LINE
-	style.set_content_margin_all(14)
-	style.shadow_color = Palette.SHADOW
-	style.shadow_size = 8
-	style.shadow_offset = Vector2(0, 3)
-	return style
-
-
-## Pílula colorida no topo (verde = concluído, mel = crescimento/prêmio, azul = descoberta)
-## com o título em StrongLabel branco e um ícone opcional (`ribbon_icon`, nome ctl).
-func _ribbon(title: String, color: Color, icon_name: String = "") -> Control:
-	ribbon = PanelContainer.new()
+## Placa de madeira no alto da moldura com o título (fonte da madeira; encolhe para caber). Nó `Ribbon`, texto `RibbonTitle`.
+func _ribbon(title: String) -> Control:
+	ribbon = Control.new()
 	ribbon.name = "Ribbon"
-	var style := UiKit.surface(color, 20)
-	style.content_margin_left = 16
-	style.content_margin_right = 16
-	style.content_margin_top = 8
-	style.content_margin_bottom = 8
-	ribbon.add_theme_stylebox_override("panel", style)
-	ribbon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var row := UiKit.hbox(6)
-	if icon_name != "":
-		row.add_child(UiKit.ctl(icon_name, 20, Palette.CARD))
-	var label := UiKit.short_label(title, &"StrongLabel", Palette.CARD)
+	ribbon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	StepCardUi.stretch(ribbon)
+	var avail := _width() - ItemUi.PLAQUE_X * 2.0
+	var px := 22
+	for candidate in [22, 20, 19, 18, 17, 16, 15, 14, 13]:
+		px = candidate
+		if ItemUi._text_w(title, candidate) <= avail:
+			break
+	var label := MissionUi.text(title, px, Palette.WOOD_CREAM, 3)
 	label.name = "RibbonTitle"
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	row.add_child(label)
-	ribbon.add_child(row)
+	label.clip_text = true
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	ribbon.add_child(label)
+	SellUi.place(label, 0.0, ItemUi.PLAQUE_X, 1.0, -ItemUi.PLAQUE_X, 0.0, ItemUi.PLAQUE_Y, 0.0, ItemUi.PLAQUE_BASE)
 	return ribbon
 
 
-## Ícone grande (64–96) com os raios girando devagar atrás.
+## Ícone grande num pratinho bege, com os raios girando devagar atrás. Pixel (até 32 px) sempre em escala INTEIRA e
+## nítido; ilustração maior é reduzida e suave.
 func _stage(texture: Texture2D, icon_px: int, with_rays: bool) -> Control:
 	stage = Control.new()
 	stage.name = "Stage"
 	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var height := RAYS_PX if with_rays else icon_px + 8
+	stage.clip_contents = true
+	var pixel := texture.get_width() <= 32
+	var drawn := icon_px
+	if pixel:
+		drawn = texture.get_width() * maxi(1, roundi(icon_px / float(texture.get_width())))
+	var plate_px := drawn + PLATE_EXTRA
+	var height := plate_px + 28 if with_rays else plate_px + 4
 	stage.custom_minimum_size = Vector2(INNER, height)
 	if with_rays and ResourceLoader.exists(RAYS_PATH):
 		rays = TextureRect.new()
 		rays.name = "Rays"
 		rays.texture = load(RAYS_PATH)
-		rays.size = Vector2(RAYS_PX, RAYS_PX)
-		rays.position = Vector2((INNER - RAYS_PX) / 2.0, 0)
+		rays.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		rays.stretch_mode = TextureRect.STRETCH_SCALE
+		rays.size = Vector2(height, height)
+		rays.position = Vector2((INNER - height) / 2.0, 0)
 		rays.pivot_offset = rays.size / 2.0
 		rays.modulate.a = 0.35
-		rays.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		rays.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		rays.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		stage.add_child(rays)
-	icon_node = UiKit.icon(texture, icon_px)
+	var plate := SellUi.soft(TextureRect.new())
+	plate.name = "Plate"
+	plate.texture = ItemUi.tex("plate")
+	plate.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	plate.stretch_mode = TextureRect.STRETCH_SCALE
+	plate.size = Vector2(plate_px, plate_px)
+	plate.position = Vector2((INNER - plate_px) / 2.0, (height - plate_px) / 2.0)
+	stage.add_child(plate)
+	icon_node = TextureRect.new()
 	icon_node.name = "BigIcon"
-	icon_node.size = Vector2(icon_px, icon_px)
-	icon_node.position = Vector2((INNER - icon_px) / 2.0, (height - icon_px) / 2.0)
+	icon_node.texture = texture
+	icon_node.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon_node.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	icon_node.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	icon_node.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if pixel else CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	icon_node.size = Vector2(drawn, drawn)
+	icon_node.position = Vector2((INNER - drawn) / 2.0, (height - drawn) / 2.0)
 	icon_node.pivot_offset = icon_node.size / 2.0
-	icon_node.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	stage.add_child(icon_node)
 	return stage
 
@@ -235,16 +269,17 @@ static func _confetti_tex() -> ImageTexture:
 func _resize_panel() -> void:
 	if not is_instance_valid(panel) or not is_instance_valid(box) or not is_inside_tree():
 		return
-	var frame_height := panel.get_theme_stylebox("panel").get_minimum_size().y
+	var frame_height := ItemUi.TOP + ItemUi.BOTTOM + PAD_Y * 2.0
+	var limit := maxf(0.0, get_viewport().get_visible_rect().size.y - VERTICAL_GAP * 2.0)
 	if _fixed_body and is_instance_valid(_scroll_content):
-		# Só a grade cede altura: fita, herói e ações nunca entram na rolagem.
+		# Só a grade cede altura: placa, herói e ações nunca entram na rolagem.
 		var fixed_height := box.get_combined_minimum_size().y - scroll.custom_minimum_size.y
-		var available := get_viewport().get_visible_rect().size.y - 32.0 - frame_height - fixed_height
+		var available := limit - frame_height - fixed_height
 		var height := minf(_scroll_content.get_combined_minimum_size().y, maxf(0.0, available))
 		if not is_equal_approx(scroll.custom_minimum_size.y, height):
 			scroll.custom_minimum_size.y = height
 	var content_height := box.get_combined_minimum_size().y + frame_height
-	panel.custom_minimum_size.y = minf(content_height, maxf(0.0, get_viewport().get_visible_rect().size.y - 32.0))
+	panel.custom_minimum_size = Vector2(_width(), minf(content_height, limit))
 
 
 ## Adiciona ao corpo e devolve o próprio controle.
@@ -264,15 +299,36 @@ func add_scroll_area(content: Control) -> void:
 	_resize_panel.call_deferred()
 
 
-## Texto centralizado no corpo.
+## Texto centralizado no corpo, na fonte da madeira (forte/título maiores; `color` null = marrom da madeira).
 func add_text(text: String, variation: StringName = &"", color: Variant = null) -> Label:
-	var label := UiKit.label(text, variation, color)
+	var px := 16
+	var ink := Palette.WOOD_INK
+	match variation:
+		&"TitleLabel":
+			px = 22
+		&"StrongLabel", &"NumberLabel":
+			px = 20
+		&"SmallLabel":
+			px = 15
+			ink = Palette.WOOD_INK.lightened(0.18)
+	var label := StepCardUi.wood(text, px, color as Color if color is Color else ink)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	box.add_child(label)
 	return label
 
 
-## Chips de prêmio centralizados; entram um por um e os números contam.
+## Pílula creme pequena (a mesma do "Quantidade" do detalhe de item) com um texto curto, ex.: "2/16".
+func add_pill(text: String, node_name: String = "CountPill") -> Control:
+	var pill := ItemUi._pill(text)
+	pill.name = node_name
+	pill.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	box.add_child(pill)
+	return pill
+
+
+## Chips de prêmio em madeira, centralizados; entram um por um e os números contam.
 func add_chips(chips: Container) -> Container:
 	if chips.get_child_count() == 0:
 		chips.queue_free()
@@ -280,22 +336,58 @@ func add_chips(chips: Container) -> Container:
 	if chips is FlowContainer:
 		(chips as FlowContainer).alignment = FlowContainer.ALIGNMENT_CENTER
 	for chip: Node in chips.get_children():
-		RewardSheet.grow_chip(chip as Control)
+		wood_skin_chip(chip as Control)
 	box.add_child(chips)
 	reveal(chips)
 	return chips
 
 
-## O botão principal do cartão (um só).
+## Veste um chip liso do `UiKit.chip` com a pele de madeira (a mesma da `StepCardUi.wood_chip`): ícone pixel 32 em escala 1:1
+## e número na fonte da madeira.
+static func wood_skin_chip(chip: Control) -> void:
+	if chip == null or not chip is PanelContainer or chip.get_child_count() == 0:
+		return
+	var style := StyleBoxFlat.new()
+	style.bg_color = Palette.WOOD_INSET
+	style.border_color = Color("c9935f")
+	style.set_border_width_all(2)
+	style.set_corner_radius_all(18)
+	style.content_margin_left = 8.0
+	style.content_margin_right = 12.0
+	style.content_margin_top = 3.0
+	style.content_margin_bottom = 3.0
+	chip.theme_type_variation = &""
+	chip.add_theme_stylebox_override("panel", style)
+	chip.custom_minimum_size.y = 40.0
+	for child: Node in chip.get_child(0).get_children():
+		if child is TextureRect:
+			var picture := child as TextureRect
+			if picture.texture != null and picture.texture.get_width() <= 32:
+				picture.custom_minimum_size = Vector2(32, 32)
+				picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		elif child is Label:
+			var label := child as Label
+			var ink := label.get_theme_color("font_color") if label.has_theme_color_override("font_color") else Palette.WOOD_INK
+			label.theme_type_variation = &""
+			label.theme = HomeUi.theme(19, ink)
+			label.autowrap_mode = TextServer.AUTOWRAP_OFF
+
+
+## Largura do botão de madeira: segue o texto, entre 168 e a largura do corpo.
+static func button_width(text: String) -> float:
+	return clampf(ItemUi._text_w(text, 18) + 56.0, 168.0, float(INNER))
+
+
+## O botão principal do cartão (um só): verde de madeira.
 func add_primary(text: String, on_pressed: Callable) -> Button:
-	var button := UiKit.primary(text, on_pressed)
+	var button := WelcomeSheet._button(text, true, button_width(text), "Primary", on_pressed)
 	box.add_child(button)
 	return button
 
 
-## Ação fraca embaixo ("Continuar").
+## Ação fraca embaixo ("Continuar"): amarelo de madeira.
 func add_ghost(text: String, on_pressed: Callable) -> Button:
-	var button := UiKit.ghost(text, on_pressed)
+	var button := WelcomeSheet._button(text, false, button_width(text), "Ghost", on_pressed)
 	box.add_child(button)
 	return button
 

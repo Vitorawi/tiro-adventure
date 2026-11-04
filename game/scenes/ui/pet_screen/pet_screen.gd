@@ -327,6 +327,10 @@ func _refresh() -> void:
 		var walk_id := str(GameState.walk_state.current.id)
 		_away_postcard.texture = WalkResult.postcard_texture(GameState.walk_postcard(walk_id))
 		_away_name.text = str(GameState.walk_def(walk_id).get("name", ""))
+		# Placa com a largura do nome (+ margens, minimo 180), centrada sob o postal.
+		var plaque := _away_view.get_node_or_null("AwayPlaque") as Control
+		if plaque != null:
+			plaque.custom_minimum_size.x = clampf(ItemUi._text_w(_away_name.text, 18) + 56.0, 180.0, 256.0)
 		_away_time.text = TimeText.short(GameState.walk_remaining())
 	# O Tiro volta mesmo com a bagagem cheia: guardar os achados é um botão à parte, nunca uma ausência.
 	_away_collect.visible = not away and GameState.walk_ready() and not (_care.find_child("CareWheelOpen", true, false) as Control).visible
@@ -547,6 +551,10 @@ func _draw_dog_shadow() -> void:
 			area.draw_line(point - Vector2(4, 0), point + Vector2(4, 0), Palette.HONEY, 1.0, true)
 
 
+const AWAY_FRAME_SCALE := 0.22        # escala do NinePatch `map_frame` em volta do postal
+const AWAY_PAD := Vector4i(28, 32, 28, 22)  # madeira + folga até o postal (esq, topo, dir, base)
+
+
 ## Durante o passeio: no lugar do Tiro grande, o postal com o Tiro do mapa andando (2x), nome e tempo.
 func _build_away_view() -> void:
 	_away_view = UiKit.vbox(6)
@@ -554,11 +562,14 @@ func _build_away_view() -> void:
 	_away_view.visible = false
 	_away_view.alignment = BoxContainer.ALIGNMENT_CENTER
 	var stage := Control.new()
+	stage.name = "AwayStage"
+	# O postal tem 128x80: no dobro exato (256x160) o pixel fica nítido e sem distorção.
 	stage.custom_minimum_size = Vector2(256, 160)
 	stage.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	stage.clip_contents = true
 	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_away_postcard = TextureRect.new()
+	_away_postcard.name = "AwayPostcard"
 	_away_postcard.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_away_postcard.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_away_postcard.stretch_mode = TextureRect.STRETCH_SCALE
@@ -575,19 +586,66 @@ func _build_away_view() -> void:
 	_refresh_away_look()
 	var stroll := walker.create_tween().set_loops()
 	stroll.tween_property(walker, "position:x", 296.0, 5.0).from(-40.0)
-	_away_view.add_child(stage)
-	var caption := PanelContainer.new()
-	caption.theme_type_variation = &"ChipPanel"
-	caption.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var caption_box := UiKit.vbox(2)
-	caption.add_child(caption_box)
-	_away_name = UiKit.short_label("", &"StrongLabel")
+	# Moldura de madeira ilustrada (a do seletor de mundos) em volta do postal, como um quadro/cartão-postal.
+	var frame := Control.new()
+	frame.name = "AwayFrame"
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	frame.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var art := NinePatchRect.new()
+	art.name = "Frame"
+	art.texture = load(HomeUi.DIR + "map_frame.png") as Texture2D
+	art.patch_margin_left = 190
+	art.patch_margin_top = 210
+	art.patch_margin_right = 190
+	art.patch_margin_bottom = 200
+	art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	art.scale = Vector2.ONE * AWAY_FRAME_SCALE
+	frame.add_child(art)
+	var inner := MarginContainer.new()
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_theme_constant_override("margin_left", AWAY_PAD.x)
+	inner.add_theme_constant_override("margin_top", AWAY_PAD.y)
+	inner.add_theme_constant_override("margin_right", AWAY_PAD.x)
+	inner.add_theme_constant_override("margin_bottom", AWAY_PAD.w)
+	inner.add_child(stage)
+	frame.add_child(inner)
+	frame.custom_minimum_size = Vector2(256 + AWAY_PAD.x * 2, 160 + AWAY_PAD.y + AWAY_PAD.w)
+	art.size = frame.custom_minimum_size / AWAY_FRAME_SCALE
+	_away_view.add_child(frame)
+	# Placa de madeira com o nome do caminho e, por cima dela, a pílula creme com o relógio e o tempo.
+	var plaque := Control.new()
+	plaque.name = "AwayPlaque"
+	plaque.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plaque.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	var plaque_art := StationWood.backing("board", 70, 60)
+	plaque.add_child(plaque_art)
+	StepCardUi.stretch(plaque_art)
+	var plaque_box := UiKit.vbox(2)
+	plaque_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	plaque_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	plaque.add_child(plaque_box)
+	StepCardUi.stretch(plaque_box)
+	plaque_box.offset_top = 4.0
+	plaque_box.offset_bottom = -6.0
+	_away_name = StationWood.text("", 18, Palette.WOOD_CREAM, 3)
+	_away_name.name = "AwayName"
 	_away_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	caption_box.add_child(_away_name)
-	_away_time = UiKit.short_label("", &"SmallLabel")
-	_away_time.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	caption_box.add_child(_away_time)
-	_away_view.add_child(caption)
+	_away_name.clip_text = true
+	plaque_box.add_child(_away_name)
+	plaque.custom_minimum_size = Vector2(256, 46)
+	var pill := StationWood.time_pill("", "AwayTimePill")
+	pill.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	_away_time = (pill.get_child(0) as Control).get_child(1) as Label
+	_away_time.name = "AwayTime"
+	_away_view.add_child(plaque)
+	_away_view.add_child(pill)
+	# Folga embaixo: sobe o conjunto para o quadro nao ficar sob o caderninho da direita.
+	var lift := Control.new()
+	lift.name = "AwayLift"
+	lift.custom_minimum_size.y = 150.0
+	lift.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_away_view.add_child(lift)
 	%DogArea.add_child(_away_view)
 
 

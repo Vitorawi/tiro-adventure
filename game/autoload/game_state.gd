@@ -59,6 +59,7 @@ func _ready() -> void:
 		var changed_wishes := update_wishes()
 		# A volta do passeio não depende de nenhuma tela aberta: o tick liquida a viagem vencida.
 		return_due_walk()
+		_auto_store_baggage()
 		changed_wishes = _recover_projects() or changed_wishes
 		if sync_friend_window() or update_finds() or changed_wishes:
 			_changed())
@@ -484,6 +485,8 @@ func return_due_walk(announce: bool = true) -> bool:
 		"result": result, "left": loot.items.duplicate(), "rewards_applied": true, "result_shown": false,
 	}
 	walk_state.current = {}
+	# Regra do Vitor: o que o Tiro traz vai direto para a Mochila/depósitos; só o que não cabe espera na sacola.
+	_auto_store_baggage()
 	if announce:
 		_changed()
 		if int(rewards.coins) > 0:
@@ -652,6 +655,13 @@ func walk_baggage_error() -> String:
 	if not plan.moved.is_empty():
 		return ""
 	return pending_blocked_text(plan)
+
+
+## Guarda sozinho o que cabe da bagagem (ao voltar, ao carregar o save e a cada tick, assim que houver espaço). O que não
+## couber continua seguro em `pending_return.left`. Idempotente: sem bagagem ou sem espaço não faz nada.
+func _auto_store_baggage() -> void:
+	if walk_ready() and walk_baggage_error() == "":
+		claim_walk_baggage()
 
 
 ## Guarda na Mochila o que cabe da bagagem; o resto continua esperando, sem perder nem repetir nada.
@@ -4841,6 +4851,7 @@ func from_dict(data: Dictionary) -> void:
 		_mark_all_seen()
 	# Viagem vencida com o jogo fechado volta agora (sem segundo sorteio); o cartão sai da marca persistida.
 	return_due_walk(false)
+	_auto_store_baggage()
 	_changed()
 
 

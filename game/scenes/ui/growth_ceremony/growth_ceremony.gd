@@ -128,7 +128,7 @@ func show_card() -> void:
 	var rays := UiKit.icon(load(ModalCard.RAYS_PATH), 256)
 	rays.name = "Rays"
 	rays.position = Vector2(0, -44)
-	rays.modulate.a = 0.35
+	rays.modulate.a = 0.25
 	hero.add_child(rays)
 	var pair := UiKit.hbox(8)
 	pair.name = "BeforeAfter"
@@ -148,7 +148,7 @@ func show_card() -> void:
 	card.add_text(str(_after.facts[0]), &"SmallLabel")
 	var ruler := Control.new()
 	ruler.name = "HeightMark"
-	ruler.custom_minimum_size = Vector2(280, 48)
+	ruler.custom_minimum_size = Vector2(264, 48)
 	var phase_label := UiKit.short_label(str(_after.name), &"SmallLabel", Palette.INK)
 	phase_label.name = "HeightPhase"
 	phase_label.position = Vector2(12, 0)
@@ -157,11 +157,11 @@ func show_card() -> void:
 	var index := GameState.growth.phase_index(phase)
 	_mark_progress = 1.0 if Motion.reduced else 0.0
 	ruler.draw.connect(func() -> void:
-		ruler.draw_line(Vector2(12, 44), Vector2(272, 44), Palette.INK_SOFT, 2)
-		for i in 27:
+		ruler.draw_line(Vector2(12, 44), Vector2(252, 44), Palette.INK_SOFT, 2)
+		for i in 25:
 			var x := 12.0 + i * 10.0
 			ruler.draw_line(Vector2(x, 44), Vector2(x, 32 if i % 5 == 0 else 38), Palette.INK_SOFT, 1)
-		var mark := 12.0 + float(index) / float(Database.growth.phases.size() - 1) * 260.0
+		var mark := 12.0 + float(index) / float(Database.growth.phases.size() - 1) * 240.0
 		ruler.draw_line(Vector2(mark, 44), Vector2(mark, lerpf(44, 24, _mark_progress)), Palette.HONEY_INK, 3))
 	if not Motion.reduced:
 		create_tween().tween_method(func(value: float) -> void:

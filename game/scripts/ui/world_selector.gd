@@ -159,7 +159,7 @@ func _layout() -> void:
 	var title_font := _title.get_theme_font("font")
 	while title_px > 11 and title_font.get_string_size(_title.text, HORIZONTAL_ALIGNMENT_LEFT, -1, title_px).x > _title.size.x - 2.0:
 		title_px -= 1
-	_title.add_theme_font_size_override("font_size", title_px)
+	HomeUi.resize(_title, title_px)
 	_close.position = Vector2(frame_w - 46.0, 0)
 	_close.size = Vector2(44, 44)
 	# Cartões: colunas iguais, centradas no creme.

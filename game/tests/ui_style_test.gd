@@ -225,7 +225,7 @@ func _blocked_actions() -> void:
 		"Passeios": progression_ui.call("walks_panel"),
 		"Amigo": load("res://scripts/ui/friend_ui.gd").call("panel", "pipoca"),
 		"Achados": load("res://scripts/ui/find_ui.gd").call("album"),
-		"Manual": load("res://scripts/ui/game_manual.gd").call("panel", "stations"),
+		"Manual": load("res://scripts/ui/codex_ui.gd").call("build", "stations"),
 		"Animais": sheet_builder.call("animal_shop", "chicken_coop"),
 		"Pet shop": progression_ui.call("petshop_panel"),
 		"Natureza": nature_ui.call("panel", "trees"),
@@ -311,10 +311,10 @@ func _text_hierarchy() -> void:
 	var sheet: Control = load("res://scenes/ui/sheet/sheet.tscn").instantiate()
 	sheet.theme = load("res://assets/theme/main_theme.tres")
 	root.add_child(sheet)
-	var manual: Script = load("res://scripts/ui/game_manual.gd")
+	var manual: Script = load("res://scripts/ui/codex_ui.gd")
 	var panels := {
 		"Feira": load("res://scripts/ui/market_ui.gd").call("sell", "village"),
-		"Manual": manual.call("panel", "stations"),
+		"Manual": manual.call("build", "stations"),
 		"Passeios": progression_ui.call("walks_panel"),
 		"Como fazer": load("res://scripts/ui/task_help.gd").call("panel", "item", "carrot_snack"),
 	}
@@ -340,13 +340,14 @@ func _text_hierarchy() -> void:
 			check(not bool(grid.get_child(0).get_meta("selected", false)) and bool(grid.get_child(1).get_meta("selected", false)), "Feira: toque transfere seleção e contorno")
 		if title == "Passeios":
 			var info := sheet.find_child("WalksInfo", true, false)
-			check(info != null and info.get_parent().name == "Header", "Passeios: info no cabeçalho real da folha")
+			check(info != null and (info as Control).get_global_rect().size.x >= 44.0 and sheet.find_child("WalksFrame", true, false).is_ancestor_of(info), "Passeios: (i) de madeira na moldura, com alvo de 44")
 			for label: Node in panels[title].find_children("*", "Label", true, false):
 				if (label as Label).theme_type_variation == &"OverLabel":
 					check((label as Label).size.x >= (label as Label).get_theme_font("font").get_string_size((label as Label).text.to_upper(), HORIZONTAL_ALIGNMENT_LEFT, -1, (label as Label).get_theme_font_size("font_size")).x, "Passeios: rótulo de seção cabe em uma linha")
 			for go: Node in sheet.find_children("StartWalk_*", "Button", true, false):
-				var finds := go.get_parent().find_child("WalkExclusives", false, false) as Control
-				check(finds != null and absf(finds.global_position.y - (go as Control).global_position.y) < 16, "Passeios: achados e Passear na mesma linha")
+				var card := go.get_parent().get_parent().get_parent()
+				var finds := card.find_child("WalkExclusives", true, false) as Control
+				check(finds != null and finds.global_position.y < (go as Control).global_position.y, "Passeios: faixa de achados no mesmo cartão, acima do Passear")
 	# Controle negativo: a regra precisa acusar o antigo erro, não apenas passar nas telas novas.
 	var bad := ui_kit.call("vbox") as VBoxContainer
 	var body: VBoxContainer = ui_kit.call("card", bad)
