@@ -41,7 +41,9 @@ try {
             $Ext = [System.IO.Path]::GetExtension($File).ToLower()
             $Response.ContentType = if ($Mime.ContainsKey($Ext)) { $Mime[$Ext] } else { "application/octet-stream" }
             $Response.ContentLength64 = $Bytes.Length
-            $Response.OutputStream.Write($Bytes, 0, $Bytes.Length)
+            if ($Context.Request.HttpMethod -ne "HEAD") {
+                $Response.OutputStream.Write($Bytes, 0, $Bytes.Length)
+            }
         } else {
             $Response.StatusCode = 404
         }

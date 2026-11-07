@@ -1,0 +1,120 @@
+{
+  "id": "h_growth_adult",
+  "title": "Azul e dourado",
+  "section": "story",
+  "section_name": "História",
+  "phase": "adult",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/h_growth_adult",
+  "trigger": {
+    "on": "grew",
+    "when": {
+      "grew_to": "adult"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_growth_adult.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "idle_breathe",
+      "frame": 0
+    },
+    "props": [],
+    "compare": "h_arrival"
+  },
+  "scene_description": "The definitive adult growth milestone: adult Tiro, silky GOLDEN TAN head chest legs with STEEL BLUE saddle, elegant small adult Yorkie proportions and upright ears, sitting peacefully and confidently in his warm familiar home corner on the red rug. Entire adult body and silky blue-and-gold coat visible, no clothes or bowtie. Tender proud mature portrait, subtly taller and less round-headed than the puppy.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_growth_adult.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_growth_adult.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_growth_adult/photo.json",
+  "batch_id": "batch_003",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_adult/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_adult/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.836610+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1ad4ebcc-93bd-49dc-aa1a-df75272bec24.png",
+          "completed_at": "2026-11-06T21:56:23.892579+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_adult/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1ad4ebcc-93bd-49dc-aa1a-df75272bec24.png",
+      "completed_at": "2026-11-06T21:56:23.892579+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "a00ca7ddf5f4ae75743cca70382947a00ce13b6559c49f7ed3bcd42a5a23e621",
+      "reviewed_at": "2026-11-06T22:06:54.208050+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_adult/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_adult/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.836610+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-72794b34-44d9-4759-90bd-db52b8d2d1d9.png",
+          "completed_at": "2026-11-06T21:57:01.870457+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_adult/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-72794b34-44d9-4759-90bd-db52b8d2d1d9.png",
+      "completed_at": "2026-11-06T21:57:01.870457+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8054506f93d9664937881b424e509ed62dce8d593a47d8b3d72790c320dad48d",
+      "reviewed_at": "2026-11-06T22:06:54.560950+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_adult/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_adult/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.837609+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3bb7c822-5269-4180-a796-52e20d3dc9a2.png",
+          "completed_at": "2026-11-06T21:57:38.477337+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_adult/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3bb7c822-5269-4180-a796-52e20d3dc9a2.png",
+      "completed_at": "2026-11-06T21:57:38.477337+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "edc9278615b1fe1fb6c66f75a6b13350d8e06bc89b5993387477ea07ad780876",
+      "reviewed_at": "2026-11-06T22:06:54.907346+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_adult/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_adult/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.837609+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3b708aed-2cba-4156-b902-5a9efa1ec695.png",
+          "completed_at": "2026-11-06T21:58:14.453263+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_adult/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3b708aed-2cba-4156-b902-5a9efa1ec695.png",
+      "completed_at": "2026-11-06T21:58:14.453263+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "73981639a46bea3af489d52f0bd901d92acd9e269628d9e6cf8aeda668b4a2e7",
+      "reviewed_at": "2026-11-06T22:06:55.255235+00:00"
+    }
+  }
+}

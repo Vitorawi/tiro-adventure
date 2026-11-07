@@ -283,7 +283,7 @@ func _run() -> void:
 			DirAccess.make_dir_recursive_absolute(folder)
 			await RenderingServer.frame_post_draw
 			check(root.get_texture().get_image().save_png(folder.path_join("manual_%d.png" % viewport.x)) == OK, "captura das abas com aviso")
-	# As cinco mais usadas vêm primeiro; as demais continuam na mesma lista vertical.
+	# Uso frequente não muda a posição: todas as comidas seguem a ordem do catálogo.
 	var added := 0
 	for id: String in root.get_node("Database").get("items"):
 		if root.get_node("Database").get("items")[id].has("feed") and added < 8:
@@ -293,7 +293,11 @@ func _run() -> void:
 	progress.count("feed:carrot", 10)
 	state.call("_changed")
 	var foods: Array = tray.call("food_ids")
-	check(foods[0] == "carrot_snack" and foods[1] == "carrot", "mais usadas ordenadas pelos contadores existentes")
+	var catalog_foods: Array[String] = []
+	for id: String in root.get_node("Database").get("items"):
+		if root.get_node("Database").get("items")[id].has("feed") and bag.call("count", id) > 0:
+			catalog_foods.append(id)
+	check(foods == catalog_foods and foods[0] == "dog_food", "catálogo define a ordem, independente dos contadores")
 	check(foods.size() > 5, "lista conserva todas as comidas disponíveis")
 	tray.call("close_food_menu")
 	tray.call("open_food_menu")

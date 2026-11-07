@@ -1,0 +1,121 @@
+{
+  "id": "h_banca",
+  "title": "Mascote da banca",
+  "section": "story",
+  "section_name": "História",
+  "phase": "explorer",
+  "game_scene": "village",
+  "source_definition": "game/data/album.json#photos/h_banca",
+  "trigger": {
+    "on": "quest_claimed",
+    "when": {
+      "quest_is": "own_business"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_banca.png",
+    "scene": "village",
+    "pose": {
+      "clip": "wag_excited",
+      "frame": 2
+    },
+    "props": [
+      "stall_sign"
+    ]
+  },
+  "scene_description": "SMALL adolescent black-and-tan Yorkie with upright ears happily wagging beside the family's newly opened rustic market stall in the village square, baskets of produce and jars, small BLANK wooden hanging stall sign. He is its proud little mascot. Focus on little dog near stall, welcoming village buildings. Do not write any letters.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_banca.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_banca.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_banca/photo.json",
+  "batch_id": "batch_002",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_banca/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_banca/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.286506+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f2e2f069-11d8-46b0-ad72-1b1b86da3e01.png",
+          "completed_at": "2026-11-06T21:50:56.240882+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_banca/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f2e2f069-11d8-46b0-ad72-1b1b86da3e01.png",
+      "completed_at": "2026-11-06T21:50:56.240882+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "1c8c78d297fda8f33e93e0d9f3251405ecebde1aa988465cff2ce57d38ce0a65",
+      "reviewed_at": "2026-11-06T21:52:09.680317+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_banca/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_banca/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.286506+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-45af5ad7-8641-4c13-ad1a-0478560c2d4e.png",
+          "completed_at": "2026-11-06T21:50:58.856929+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_banca/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-45af5ad7-8641-4c13-ad1a-0478560c2d4e.png",
+      "completed_at": "2026-11-06T21:50:58.855929+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "489d364850896b22efa2ffc0f46e06702095046cb74d5e641e808af466ba16ce",
+      "reviewed_at": "2026-11-06T21:52:09.977742+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_banca/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_banca/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.286506+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-fa284c55-0861-4d6a-9e09-b1b24dbcd53c.png",
+          "completed_at": "2026-11-06T21:51:01.559928+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_banca/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-fa284c55-0861-4d6a-9e09-b1b24dbcd53c.png",
+      "completed_at": "2026-11-06T21:51:01.559928+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "4bd011ff4e59032904691bbbbd62daedeef4a025e59256796ebe3744ccaebd55",
+      "reviewed_at": "2026-11-06T21:52:10.462093+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_banca/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_banca/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.287505+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ae082cf4-cc45-4103-8ce5-88b8b65c5b64.png",
+          "completed_at": "2026-11-06T21:51:04.398042+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_banca/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ae082cf4-cc45-4103-8ce5-88b8b65c5b64.png",
+      "completed_at": "2026-11-06T21:51:04.398042+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "fc6e05d18e6400edf19091b55f490115bf62e482ee1217c151cb8cf78b228e81",
+      "reviewed_at": "2026-11-06T21:52:10.809488+00:00"
+    }
+  }
+}

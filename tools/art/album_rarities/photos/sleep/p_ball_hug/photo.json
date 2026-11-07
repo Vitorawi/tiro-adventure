@@ -1,0 +1,104 @@
+{
+  "id": "p_ball_hug",
+  "title": "Abraçado na bolinha",
+  "section": "sleep",
+  "section_name": "Soninhos",
+  "phase": "adult",
+  "game_scene": "house",
+  "source_definition": "game/data/album.json#photos/p_ball_hug",
+  "trigger": {
+    "on": [
+      "slept",
+      "app_opened"
+    ],
+    "when": {
+      "hour": [
+        20,
+        6
+      ],
+      "house_item": "toy:lost_ball"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/p_ball_hug.png",
+    "scene": "house",
+    "pose": {
+      "clip": "sleep",
+      "frame": 0
+    },
+    "props": [
+      "ball"
+    ]
+  },
+  "scene_description": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/p_ball_hug.png",
+  "original_capture": "docs/art/album_ilustrado/originais/p_ball_hug.png",
+  "manifest_path": "tools/art/album_rarities/photos/sleep/p_ball_hug/photo.json",
+  "batch_id": null,
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_ball_hug/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_ball_hug/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_ball_hug/common.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "b8c877e23f38556332b91652b8e3f40b1a92e28eb2e3d454520b9ebc8f587304",
+      "imported_from": "tools/art/album_rarity_tests/p_ball_hug/render_v1/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-b64bd488-2fcc-4f43-be7c-fd43d696260b.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_ball_hug/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_ball_hug/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_ball_hug/shiny.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "12e38f92b19940434fd2fa202d3e7ec084a4a15509761c9f1ab6723b9beabe46",
+      "imported_from": "tools/art/album_rarity_tests/p_ball_hug/render_v1/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-565a9bcf-3e6c-45a7-8df9-e7ddb5e59d08.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_ball_hug/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_ball_hug/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_ball_hug/rare.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "a252d294a46c14c01cf555c0c2044c779fe707b2d58b995e272261380f3c142e",
+      "imported_from": "tools/art/album_rarity_tests/p_ball_hug/render_v1/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-f2797a7e-3090-4dcf-b771-753233095df3.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_ball_hug/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_ball_hug/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_ball_hug/holographic.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "885b82fedbfd287af06129c28fc2cc24a4306d94abdefd2dc38e3f14536a93f7",
+      "imported_from": "tools/art/album_rarity_tests/p_ball_hug/render_v1/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-64cab0a4-d8bf-4a77-a027-99105b58540d.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    }
+  }
+}

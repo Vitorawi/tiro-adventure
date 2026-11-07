@@ -1,0 +1,130 @@
+{
+  "id": "s_sock_hunter",
+  "title": "Caçador de meias",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "teething",
+  "game_scene": "house",
+  "source_definition": "game/data/album.json#photos/s_sock_hunter",
+  "trigger": {
+    "on": "tapped_object",
+    "when": {
+      "phase_in": [
+        "teething",
+        "explorer"
+      ],
+      "object": "laundry_basket",
+      "count_in_window": {
+        "event": "tapped_object:laundry_basket",
+        "n": 2,
+        "seconds": 60
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_sock_hunter.png",
+    "scene": "house",
+    "pose": {
+      "clip": "bark",
+      "frame": 1
+    },
+    "props": [
+      "sock"
+    ]
+  },
+  "scene_description": "Cheeky sock hunter: SMALL juvenile black-and-tan Yorkie with upright ears caught next to an open woven laundry basket in the house, gripping ONE soft striped sock in his mouth like a trophy and looking mischievously toward viewer. A few harmless laundry items spill out, wooden floor, cozy cream room and orange sofa. Full little dog, toy-like safe scene, no adult golden head.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_sock_hunter.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_sock_hunter.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_sock_hunter/photo.json",
+  "batch_id": "batch_005",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_sock_hunter/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_sock_hunter/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.686301+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-8e616c11-bd12-4e8a-aad6-d00f5f6b2a5b.png",
+          "completed_at": "2026-11-06T22:32:06.461614+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_sock_hunter/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-8e616c11-bd12-4e8a-aad6-d00f5f6b2a5b.png",
+      "completed_at": "2026-11-06T22:32:06.461614+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f7c694df4da76ea307d8606c7231225761c648691973ca828ba7c46c6ad3bf2e",
+      "reviewed_at": "2026-11-06T22:38:06.937077+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_sock_hunter/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_sock_hunter/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.686301+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-57d9b4b6-9e07-404d-a8b1-ed62f7ccf44e.png",
+          "completed_at": "2026-11-06T22:32:40.218409+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_sock_hunter/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-57d9b4b6-9e07-404d-a8b1-ed62f7ccf44e.png",
+      "completed_at": "2026-11-06T22:32:40.218409+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "871f0dd552f07b39e0a3ef16a727875ccd56663f08040cb5ce9b55ecbc257d5e",
+      "reviewed_at": "2026-11-06T22:38:07.288974+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_sock_hunter/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_sock_hunter/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.686301+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-fd91cb9a-f9bc-41a8-9d33-56ec9867eb05.png",
+          "completed_at": "2026-11-06T22:33:15.729061+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_sock_hunter/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-fd91cb9a-f9bc-41a8-9d33-56ec9867eb05.png",
+      "completed_at": "2026-11-06T22:33:15.729061+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "2790d51fe07fe13f38890b639a73c8f622ab51db175c1e7b82447d1382805540",
+      "reviewed_at": "2026-11-06T22:38:07.598395+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_sock_hunter/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_sock_hunter/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.686301+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-cb7a123c-b75c-4e7f-8062-5e05110053c5.png",
+          "completed_at": "2026-11-06T22:33:48.743698+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_sock_hunter/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-cb7a123c-b75c-4e7f-8062-5e05110053c5.png",
+      "completed_at": "2026-11-06T22:33:48.743698+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c9cc2106de88e3f18f3a6d503faf7ed1234b43085af2a04750b9e4f4666e460f",
+      "reviewed_at": "2026-11-06T22:38:07.970783+00:00"
+    }
+  }
+}

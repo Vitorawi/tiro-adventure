@@ -1,16 +1,20 @@
 class_name PhotoCard
 extends RefCounted
 ## Polaroide do álbum (06 G): moldura + recorte do cenário + quadro do Tiro no corpo e pelo gravados na foto
-## + adereços + legenda. Montada na hora, sem arte exclusiva por foto. O Tiro usa os mesmos quadros e o mesmo
+## + adereços + legenda. `photo.illustration` pode substituir a cena por arte pronta; nas demais, o Tiro usa os mesmos quadros e o mesmo
 ## `tiro_coat` do jogo; a foto guarda a fase e o pelo do dia, então continua mostrando aquele corpo depois de crescer.
 
 const BASE := Vector2(176, 176)
 const WINDOW := Rect2(12, 12, 152, 128)
 const FRAME := preload("res://assets/sprites/ui/album/polaroid.png")
+const FRAMES_DIR := "res://assets/sprites/ui/album/frames/"
+const FOIL := preload("res://assets/shaders/photo_foil.gdshader")
+const LEVEL_NAMES := {1: "Comum", 2: "Brilhante", 3: "Rara", 4: "Holográfica"}
 const MONTHS := ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]
 
 
-## `options`: `locked` (silhueta cinza), `secret` ("?" no lugar da silhueta), `caption` (título e data na moldura), `thumb` (miniatura da grade: sem a faixa de fase).
+## `options`: `locked` (silhueta cinza), `secret` ("?" no lugar da silhueta), `caption` (título e data na moldura), `thumb` (miniatura da grade: sem a faixa de fase),
+## `level` (versão a mostrar; padrão = a escolhida pelo jogador), `effects` (padrão true: brilho/foil dos níveis 3–4), `still` (efeito parado), `tilt` (Vector2 −1..1).
 static func make(id: String, width: float = 104.0, options: Dictionary = {}) -> Control:
 	var entry := Database.photo(id)
 	var info := GameState.photo_info(id)
@@ -44,6 +48,23 @@ static func make(id: String, width: float = 104.0, options: Dictionary = {}) -> 
 	window.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	canvas.add_child(window)
 	var photo_def: Dictionary = entry.get("photo", {})
+	# Ilustrações completas substituem a montagem de cenário/cachorro/adereços.
+	# Fotos ainda bloqueadas continuam com a silhueta ou o segredo habitual.
+	# Versão a exibir: `options.level` ou a escolhida pelo jogador; carta fechada (0) fica com a ilustração base.
+	var level := int(options.get("level", GameState.photo_shown_rarity(id)))
+	var art := art_for(id, level)
+	if not locked and art != null:
+		var picture := TextureRect.new()
+		picture.name = "Illustration"
+		picture.set_meta("level", level)
+		picture.texture = art
+		picture.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		picture.size = WINDOW.size
+		picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		window.add_child(picture)
+		return _finish(root, entry, info, width, options)
 	var scene := _scene_texture(str(photo_def.get("scene", "")))
 	if scene != null and not locked:
 		var picture := TextureRect.new()
@@ -86,6 +107,30 @@ static func make(id: String, width: float = 104.0, options: Dictionary = {}) -> 
 				person.position = Vector2(4 + index * 44, 4)
 				window.add_child(person)
 	return _finish(root, entry, info, width, options)
+
+
+## Arte instalada por raridade (etapa 02 das Fotos): nível → chave do catálogo. Mapeamento explícito.
+const ART_KEYS := {1: "common", 2: "shiny", 3: "rare", 4: "holographic"}
+const ART_ROOT := "res://assets/sprites/ui/album/rarities/"
+
+
+## Caminho da arte instalada do nível, ou "" se a foto não tem essa versão revisada.
+static func art_path(id: String, level: int) -> String:
+	if not ART_KEYS.has(level):
+		return ""
+	var path := "%s%s/%s.png" % [ART_ROOT, id, ART_KEYS[level]]
+	return path if ResourceLoader.exists(path) else ""
+
+
+## Imagem da versão `level` da foto `id`; sem arte revisada (ou nível 0/fechada), a ilustração atual da PRÓPRIA foto.
+## Nunca devolve a imagem de outra foto. Devolve null se a foto nem ilustração tem (cena montada).
+static func art_for(id: String, level: int) -> Texture2D:
+	var path := art_path(id, level)
+	if path == "":
+		path = str(Database.photo(id).get("photo", {}).get("illustration", ""))
+	if path == "" or not ResourceLoader.exists(path):
+		return null
+	return load(path) as Texture2D
 
 
 static func _finish(root: Control, entry: Dictionary, info: Dictionary, width: float, options: Dictionary) -> Control:
@@ -136,7 +181,87 @@ static func _finish(root: Control, entry: Dictionary, info: Dictionary, width: f
 			date.scale = Vector2.ONE * scale_factor
 			date.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			root.add_child(date)
+	_decorate(root, info, options)
 	return root
+
+
+## Moldura, selo e efeito do nível mostrado (etapa 03). Nível 0 (carta fechada), foto bloqueada ou segredo: nada muda
+## (continua a polaroide simples). Níveis 1–2 só moldura/selo; 3–4 ganham também o `CardFoil` por cima da carta inteira.
+static func _decorate(root: Control, info: Dictionary, options: Dictionary) -> void:
+	var id := str(root.get_meta("photo", ""))
+	if info.is_empty() or bool(options.get("locked", false)):
+		return
+	var level := int(options.get("level", GameState.photo_shown_rarity(id)))
+	if not ART_KEYS.has(level):
+		return
+	var canvas := root.get_node("Canvas") as Control
+	var legacy := canvas.get_node_or_null("Frame") as CanvasItem
+	if legacy != null:
+		legacy.visible = false
+	var frame := TextureRect.new()
+	frame.name = "CardFrame"
+	frame.set_meta("level", level)
+	frame.texture = load("%sframe_%d.png" % [FRAMES_DIR, level]) as Texture2D
+	frame.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	frame.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	frame.stretch_mode = TextureRect.STRETCH_SCALE  # textura e carta são quadradas: escala uniforme
+	frame.size = BASE
+	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	canvas.add_child(frame)
+	if level == 2 or level == 3:  # a Holográfica fica sem selo sobre a foto
+		var seal := TextureRect.new()
+		seal.name = "CardSeal"
+		seal.texture = load("%sseal_%d.png" % [FRAMES_DIR, level]) as Texture2D
+		seal.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		seal.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		seal.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		seal.size = Vector2(20, 20)
+		seal.position = WINDOW.end - seal.size - Vector2(5, 5)
+		seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		canvas.add_child(seal)
+	if level >= 3 and bool(options.get("effects", true)):
+		var foil := ColorRect.new()
+		foil.name = "CardFoil"
+		foil.color = Color.WHITE
+		foil.size = BASE
+		foil.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var material := ShaderMaterial.new()
+		material.shader = FOIL
+		material.set_shader_parameter("level", level)
+		material.set_shader_parameter("still", bool(options.get("still", false)) or Motion.reduced)
+		material.set_shader_parameter("tilt", options.get("tilt", Vector2.ZERO))
+		foil.material = material
+		canvas.add_child(foil)
+
+
+## Selo pequeno com o nome do nível (Comum/Brilhante/Rara/Holográfica) para as telas da carta. `px` = altura.
+static func rarity_badge(level: int, px: int = 24) -> Control:
+	var box := HBoxContainer.new()
+	box.name = "RarityBadge"
+	box.set_meta("level", level)
+	box.add_theme_constant_override("separation", 4)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if not LEVEL_NAMES.has(level):
+		return box
+	if level >= 2:
+		var icon := TextureRect.new()
+		icon.name = "BadgeSeal"
+		icon.texture = load("%sseal_%d.png" % [FRAMES_DIR, level]) as Texture2D
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.custom_minimum_size = Vector2(px, px)
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		box.add_child(icon)
+	var colors := {1: Palette.INK_SOFT, 2: Palette.HONEY_EDGE, 3: Palette.GO_INK, 4: Color("8a4fd0")}
+	var text := UiKit.label(str(LEVEL_NAMES[level]), &"StrongLabel", colors[level])
+	text.name = "BadgeName"
+	text.autowrap_mode = TextServer.AUTOWRAP_OFF
+	text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	text.custom_minimum_size.y = px
+	text.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(text)
+	return box
 
 
 ## "12 de março, 19h" no relógio do aparelho.

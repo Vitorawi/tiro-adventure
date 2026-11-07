@@ -52,7 +52,7 @@ func _line_row(line: Dictionary) -> Dictionary:
 			title = "Ele cresceu enquanto dormia!" if bool(line.get("sleeping", false)) else "Ele pode crescer!"
 		"photo":
 			texture = UiKit.ui_icon("album_story")
-			title = "%d foto%s nova%s no álbum" % [count, "s" if count > 1 else "", "s" if count > 1 else ""]
+			title = "%d foto%s para abrir" % [count, "s" if count > 1 else ""]
 		"dig":
 			texture = UiKit.ui_icon("find_paw")
 			title = "%d achado%s" % [count, "s" if count > 1 else ""]
@@ -73,7 +73,8 @@ func _line_row(line: Dictionary) -> Dictionary:
 	var go := func() -> void:
 		hide()
 		if kind == "photo":
-			PetNotebook.open("album")
+			var sealed := GameState.sealed_photos()
+			if not sealed.is_empty(): AlbumView.open_photo(sealed[0])
 		elif kind == "growth":
 			if bool(line.get("sleeping", false)): GameState.reveal_sleeping_growth()
 			else: GrowthUi.open()

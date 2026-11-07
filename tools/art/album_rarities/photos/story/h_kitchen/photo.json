@@ -1,0 +1,121 @@
+{
+  "id": "h_kitchen",
+  "title": "Cheirinho de papinha",
+  "section": "story",
+  "section_name": "História",
+  "phase": "puppy",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/h_kitchen",
+  "trigger": {
+    "on": "fed",
+    "when": {
+      "item": "puppy_mash"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_kitchen.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "eat",
+      "frame": 1
+    },
+    "props": [
+      "bowl"
+    ]
+  },
+  "scene_description": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_kitchen.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_kitchen.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_kitchen/photo.json",
+  "batch_id": "batch_001",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_kitchen/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_kitchen/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.484696+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-ee6eef51-d53e-4b7d-814b-9cea0155b27b.png",
+          "completed_at": "2026-11-06T19:15:41.309018+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_kitchen/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-ee6eef51-d53e-4b7d-814b-9cea0155b27b.png",
+      "completed_at": "2026-11-06T19:15:41.309018+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "42ffa6488f04e75681735ee02216344e1c00289e3563f0c37d5f54dd9853f5fb",
+      "reviewed_at": "2026-11-06T19:17:50.862916+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_kitchen/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_kitchen/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.485690+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-36e57095-8f26-45d3-9a1d-47982f8f3b35.png",
+          "completed_at": "2026-11-06T19:15:44.085073+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_kitchen/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-36e57095-8f26-45d3-9a1d-47982f8f3b35.png",
+      "completed_at": "2026-11-06T19:15:44.085073+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8db36ddd278d18f68c682ffff09089905b889aeba236b746b3cdf5e9d3d1ea81",
+      "reviewed_at": "2026-11-06T19:17:51.220306+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_kitchen/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_kitchen/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.485690+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-c9da0a03-7d1e-4195-a155-814716334394.png",
+          "completed_at": "2026-11-06T19:15:46.793997+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_kitchen/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-c9da0a03-7d1e-4195-a155-814716334394.png",
+      "completed_at": "2026-11-06T19:15:46.793997+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8d07c44272741ac11e552f864d26169c178b502e698b4bf54e543aabf5b0a324",
+      "reviewed_at": "2026-11-06T19:17:51.601691+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_kitchen/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_kitchen/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.485690+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-0c55a8d6-bdcb-496b-9c3b-a251a5552452.png",
+          "completed_at": "2026-11-06T19:15:49.588739+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_kitchen/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-0c55a8d6-bdcb-496b-9c3b-a251a5552452.png",
+      "completed_at": "2026-11-06T19:15:49.588739+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "aac355ee4fb9a975b33f3ec9cf1070e9dabdbe6e8be85119bf6fce7308300590",
+      "reviewed_at": "2026-11-06T19:17:51.981077+00:00"
+    }
+  }
+}

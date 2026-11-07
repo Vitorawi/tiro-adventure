@@ -1,0 +1,121 @@
+{
+  "id": "s_soap_explorer",
+  "title": "Aventureiro de espuma",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "young",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/s_soap_explorer",
+  "trigger": {
+    "on": "bathed",
+    "when": {
+      "equipped": "explorer_hat"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_soap_explorer.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "shake_off",
+      "frame": 1
+    },
+    "props": [
+      "foam"
+    ]
+  },
+  "scene_description": "Explorer of foam: young adult Yorkshire Tiro with dark charcoal crown saddle and tan face paws, upright ears, still wearing his recognizable small TAN BROWN EXPLORER HAT (see reference) while taking a bubbly bath in a low cream basin at home. White bubbles around hat brim and shoulders, joyful shake-off splash, silly explorer expression. Hat clearly remains on head, not a party hat. Soft towel, warm window light. Only hat as clothing.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_soap_explorer.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_soap_explorer.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_soap_explorer/photo.json",
+  "batch_id": "batch_006",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_soap_explorer/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_soap_explorer/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.485676+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-56d7c6ff-bab4-42ce-868a-7500ef2d4146.png",
+          "completed_at": "2026-11-06T22:40:50.031577+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_soap_explorer/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-56d7c6ff-bab4-42ce-868a-7500ef2d4146.png",
+      "completed_at": "2026-11-06T22:40:50.031577+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "86c9ab72e5353af9dde9414c6cdccf533200bd40432367814e297a5a287e4d84",
+      "reviewed_at": "2026-11-06T22:56:08.563392+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_soap_explorer/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_soap_explorer/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.485676+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-6209bc75-41b9-48ac-a7c2-5dc8e57bb8a8.png",
+          "completed_at": "2026-11-06T22:41:24.323776+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_soap_explorer/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-6209bc75-41b9-48ac-a7c2-5dc8e57bb8a8.png",
+      "completed_at": "2026-11-06T22:41:24.323776+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "98545d006ea4814ce6a83446aa7db0ef0ff9086a9a616f43bc84a362ad951847",
+      "reviewed_at": "2026-11-06T22:56:08.927936+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_soap_explorer/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_soap_explorer/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.486663+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-7c10a2b4-5edd-43f1-a0a7-ca159c0961c5.png",
+          "completed_at": "2026-11-06T22:42:09.667996+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_soap_explorer/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-7c10a2b4-5edd-43f1-a0a7-ca159c0961c5.png",
+      "completed_at": "2026-11-06T22:42:09.667996+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "88ffdc7030c10d0b8754dc0efdbae66e3d4a2f5c26054c90bd27dba0aad752d0",
+      "reviewed_at": "2026-11-06T22:56:09.276838+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_soap_explorer/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_soap_explorer/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.486663+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d8172f50-fe18-4cf7-9fc0-688a718bc876.png",
+          "completed_at": "2026-11-06T22:42:39.976885+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_soap_explorer/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d8172f50-fe18-4cf7-9fc0-688a718bc876.png",
+      "completed_at": "2026-11-06T22:42:39.976885+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "de6b284fa504c77fd9c9b6467bb0c709258a1acbf2bb66278a4a9786469907ee",
+      "reviewed_at": "2026-11-06T22:56:09.629232+00:00"
+    }
+  }
+}

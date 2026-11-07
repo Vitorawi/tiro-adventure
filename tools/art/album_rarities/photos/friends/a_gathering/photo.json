@@ -1,0 +1,121 @@
+{
+  "id": "a_gathering",
+  "title": "Piquenique da turma",
+  "section": "friends",
+  "section_name": "Amigos",
+  "phase": "adult",
+  "game_scene": "park",
+  "source_definition": "game/data/album.json#photos/a_gathering",
+  "trigger": {
+    "on": "project_gathered",
+    "when": {
+      "stat_min": {
+        "project_gather:village_festival": 3
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/a_gathering.png",
+    "scene": "park",
+    "pose": {
+      "clip": "happy_jump",
+      "frame": 3
+    },
+    "props": []
+  },
+  "scene_description": "The group's recurring PICNIC in the village PARK: adult tiny golden-headed steel-blue-backed Yorkshire Tiro joyfully doing a small happy hop beside a checked picnic blanket with a wicker picnic basket and simple dog-friendly picnic snacks. Three friends Laís (long brown wavy hair mustard sleeveless top), Nina (brown skin green cap orange shirt) and Grandma Bloblo (silver hair straw hat green apron) sit comfortably around blanket and smile at him. Faithful supplied portraits, dog small relative humans. Warm park tree shade and community bench nearby. Only THREE humans and ONE dog, no random crowd.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/a_gathering.png",
+  "original_capture": "docs/art/album_ilustrado/originais/a_gathering.png",
+  "manifest_path": "tools/art/album_rarities/photos/friends/a_gathering/photo.json",
+  "batch_id": "batch_009",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_gathering/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_gathering/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.733214+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-908fc1cc-5bd3-45b6-96a6-2c29c1902ff2.png",
+          "completed_at": "2026-11-06T23:39:40.075109+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_gathering/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-908fc1cc-5bd3-45b6-96a6-2c29c1902ff2.png",
+      "completed_at": "2026-11-06T23:39:40.075109+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f90b8bfd3e06c0df961ad0b174e52d22f397961c046f81045d7454caef9bc18e",
+      "reviewed_at": "2026-11-06T23:49:15.779521+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_gathering/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_gathering/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.733214+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-cbfe1c2a-d329-409b-9130-2cea1abae8c7.png",
+          "completed_at": "2026-11-06T23:40:15.660555+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_gathering/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-cbfe1c2a-d329-409b-9130-2cea1abae8c7.png",
+      "completed_at": "2026-11-06T23:40:15.660555+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "5cdb5901e385a5269f7eae9c5d46c4c96e33297fe7d707f1636a53df7f860fdc",
+      "reviewed_at": "2026-11-06T23:49:16.131917+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_gathering/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_gathering/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.733214+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-4f7fb0ce-1377-4bda-b944-9028296771e0.png",
+          "completed_at": "2026-11-06T23:40:52.883530+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_gathering/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-4f7fb0ce-1377-4bda-b944-9028296771e0.png",
+      "completed_at": "2026-11-06T23:40:52.883530+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "cef3c0b86fdab5e56414545b4a0ac0699cc5a175ba42998606d58219337b24b8",
+      "reviewed_at": "2026-11-06T23:49:16.496742+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_gathering/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_gathering/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.734196+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c8151cb0-826c-4b8a-b9d3-480b2ee23041.png",
+          "completed_at": "2026-11-06T23:41:35.664161+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_gathering/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c8151cb0-826c-4b8a-b9d3-480b2ee23041.png",
+      "completed_at": "2026-11-06T23:41:35.664161+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "e943376bb8fbbeb3310227b6a864f46d8ebeb2d2d2d327eebb601947733fbd01",
+      "reviewed_at": "2026-11-06T23:49:16.825142+00:00"
+    }
+  }
+}

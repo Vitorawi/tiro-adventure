@@ -1,0 +1,124 @@
+{
+  "id": "h_guardian",
+  "title": "Guardião do Vale",
+  "section": "story",
+  "section_name": "História",
+  "phase": "adult",
+  "game_scene": "village",
+  "source_definition": "game/data/album.json#photos/h_guardian",
+  "trigger": {
+    "on": "chapter_done",
+    "when": {
+      "chapter_last": true
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_guardian.png",
+    "scene": "village",
+    "pose": {
+      "clip": "idle_breathe",
+      "frame": 0
+    },
+    "props": [],
+    "friends": [
+      "lais",
+      "nina",
+      "bloblo"
+    ]
+  },
+  "scene_description": "Final story group portrait 'Guardian of the Valley': adult tiny Yorkshire Tiro with golden head and steel-blue back in foreground center of the decorated village square, surrounded affectionately by the THREE recurring HUMAN friends Laís, Nina and Grandma Bloblo. Use their supplied portrait references faithfully: Laís young woman long wavy brown hair tan skin mustard sleeveless top, Nina brown skin green cap orange shirt, Grandma elderly silver hair straw hat pale blouse green apron. The humans kneel or sit so small dog remains central, everyone warmly smiling. ONLY these three humans and one dog. Cohesive naturally posed group, charming cottages flowers and bunting.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_guardian.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_guardian.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_guardian/photo.json",
+  "batch_id": "batch_003",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_guardian/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_guardian/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.837609+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c41a27c2-6dd9-4c69-97cf-9359b18d5202.png",
+          "completed_at": "2026-11-06T21:58:54.885524+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_guardian/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c41a27c2-6dd9-4c69-97cf-9359b18d5202.png",
+      "completed_at": "2026-11-06T21:58:54.885524+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "ee75c5b41681fd29bbf4d7f2dcdc02bf982d4338a6e712a6d367ce4f3ced69fa",
+      "reviewed_at": "2026-11-06T22:06:55.568761+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_guardian/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_guardian/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.837609+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e0671c2d-1adb-40ff-af2e-8f960311f13b.png",
+          "completed_at": "2026-11-06T21:59:35.847723+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_guardian/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e0671c2d-1adb-40ff-af2e-8f960311f13b.png",
+      "completed_at": "2026-11-06T21:59:35.847723+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f229eb593e50dcacbfacfb1a5e1f0145c8527a269488beb6f3f06cd8c90d1ad7",
+      "reviewed_at": "2026-11-06T22:06:55.873155+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_guardian/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_guardian/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.837609+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-acd80f03-0339-4325-9784-6d67b51e3bbb.png",
+          "completed_at": "2026-11-06T22:00:17.843397+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_guardian/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-acd80f03-0339-4325-9784-6d67b51e3bbb.png",
+      "completed_at": "2026-11-06T22:00:17.843397+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d5ed2b03cead4ab35892bb82b43ad4d93a175e77d5356cf06602beedb37cd859",
+      "reviewed_at": "2026-11-06T22:06:56.246553+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_guardian/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_guardian/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.838610+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-213d42d0-3c0c-49ee-b840-855bfe6369cc.png",
+          "completed_at": "2026-11-06T22:01:29.669757+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_guardian/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-213d42d0-3c0c-49ee-b840-855bfe6369cc.png",
+      "completed_at": "2026-11-06T22:01:29.669757+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "17364e0b010ca3f50c1e67861bddbb93d4c80cc3feb49738e0d5c2e5b36beff9",
+      "reviewed_at": "2026-11-06T22:06:56.608956+00:00"
+    }
+  }
+}

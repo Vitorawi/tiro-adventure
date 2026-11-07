@@ -1,0 +1,96 @@
+{
+  "id": "a_lais_lap",
+  "title": "No colo da Laís",
+  "section": "friends",
+  "section_name": "Amigos",
+  "phase": "adult",
+  "game_scene": "house",
+  "source_definition": "game/data/album.json#photos/a_lais_lap",
+  "trigger": {
+    "on": "petted",
+    "when": {
+      "phase_min": "adult"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/a_lais_lap.png",
+    "scene": "house",
+    "pose": {
+      "clip": "idle_breathe",
+      "frame": 0
+    },
+    "props": [],
+    "friend": "lais"
+  },
+  "scene_description": "On Laís's lap: adult tiny golden-headed steel-blue-backed Yorkshire Tiro sitting peacefully ON the lap of Laís in an orange armchair at home. Laís faithful to reference: young adult woman, warm tan complexion, long wavy chestnut-brown hair, brown eyes, mustard sleeveless top, gently petting his back and looking at him lovingly. Dog realistically tiny across her lap, upright ears and serene adult expression. Intimate three-quarter cozy portrait, wooden-floor cream room and warm windowlight, correct hands.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/a_lais_lap.png",
+  "original_capture": "docs/art/album_ilustrado/originais/a_lais_lap.png",
+  "manifest_path": "tools/art/album_rarities/photos/friends/a_lais_lap/photo.json",
+  "batch_id": null,
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_lais_lap/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_lais_lap/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_lais_lap/common.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "89036ef7d4b7717c55dc3e1d76de90e0d8e2f95121621f3f48aef1dcc2d25dda",
+      "imported_from": "tools/art/album_rarity_tests/a_lais_lap/render_v1/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-e482c7eb-21e0-424b-a5e2-5a002a31adfd.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_lais_lap/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_lais_lap/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_lais_lap/shiny.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "4ea2e149f29385b7e1747c0fb9966e9ebdb932e31c633341cb4d68ee36f9a3b4",
+      "imported_from": "tools/art/album_rarity_tests/a_lais_lap/render_v1/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-a22a6a5c-646c-462d-9c59-dc3cd970b7f1.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_lais_lap/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_lais_lap/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_lais_lap/rare.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "bb02ef895da6b986fde33c0946f7b3e3760325ccd4e51bc260024df6e582fb34",
+      "imported_from": "tools/art/album_rarity_tests/a_lais_lap/render_v1/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-f4ef7ec7-697a-4950-9b13-a9f7b1110e6a.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_lais_lap/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_lais_lap/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_lais_lap/holographic.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6a73a3f2fc5af28d18a5b88439e654688abd29c796c7d047c1b9a171d918e2c8",
+      "imported_from": "tools/art/album_rarity_tests/a_lais_lap/render_v1/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-e8f45b46-078d-4f54-8be7-21f48c71ac7f.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    }
+  }
+}

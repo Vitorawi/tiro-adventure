@@ -1,0 +1,98 @@
+{
+  "id": "a_pipoca",
+  "title": "Melhores amigas",
+  "section": "friends",
+  "section_name": "Amigos",
+  "phase": "adult",
+  "game_scene": "park",
+  "source_definition": "game/data/album.json#photos/a_pipoca",
+  "trigger": {
+    "on": "friend_heart",
+    "when": {
+      "friend_hearts": {
+        "pipoca": 3
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/a_pipoca.png",
+    "scene": "park",
+    "pose": {
+      "clip": "wag_excited",
+      "frame": 1
+    },
+    "props": [],
+    "friend": "pipoca"
+  },
+  "scene_description": "Best friends: adult tiny Yorkshire Tiro with golden head and steel-blue back happily playing nose-to-nose with Pipoca, the caramel mixed-breed friend from the portrait reference, cream muzzle chest and tall ears. Pipoca slightly larger than Tiro. A joyful relaxed play-bow and wagging tails in the village park, clear affectionate established friendship, only TWO dogs, sunny flowers grass and park path. CRITICAL Pipoca is SHORT-COATED and smooth, slender caramel mixed-breed with cream muzzle/chest, absolutely NO Yorkshire beard or long shaggy fur. Only Tiro is long-haired.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/a_pipoca.png",
+  "original_capture": "docs/art/album_ilustrado/originais/a_pipoca.png",
+  "manifest_path": "tools/art/album_rarities/photos/friends/a_pipoca/photo.json",
+  "batch_id": null,
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_pipoca/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_pipoca/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_pipoca/common.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "67f453d5bef4f13d446047bcf55289cce5d8f36d37c0e2d42cef566b914eba11",
+      "imported_from": "tools/art/album_rarity_tests/a_pipoca/render_v1/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-e514f1c9-6317-4703-b2e5-eb2bec6146c8.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_pipoca/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_pipoca/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_pipoca/shiny.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "3a1a5b6396c1d5654d92c6155cb7b9b73f77ea5486883f0b1f46c387fa58eb8c",
+      "imported_from": "tools/art/album_rarity_tests/a_pipoca/render_v1/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-5775af95-a650-4756-93ae-dc3cf27e6394.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_pipoca/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_pipoca/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_pipoca/rare.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "fd295dbfc9329be08fea39bd0ef0cdc99c407e498aae617950821cbbab64e4eb",
+      "imported_from": "tools/art/album_rarity_tests/a_pipoca/render_v1/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-064c0695-9a62-467c-9547-18eaff5443eb.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_pipoca/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_pipoca/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_pipoca/holographic.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6569bdc3d839c069128e77891f404911fef04a035ece14e50142b8d8b4e6b8df",
+      "imported_from": "tools/art/album_rarity_tests/a_pipoca/render_v1/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-2dbcb04a-d9e4-4bf8-b090-64542d424c7f.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    }
+  }
+}

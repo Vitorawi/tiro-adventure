@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "date": "2026-11-06",
+  "kind": "visual_rarity_experiment",
+  "photo_id": "s_moon_friend",
+  "title": "Amigo da lua",
+  "base_image": "tools/art/album_illustrated_candidates/s_moon_friend.png",
+  "phase": "adult",
+  "purpose": "Quatro acabamentos da mesma cena; composição, fase e identidade preservadas.",
+  "proposed_odds": {
+    "general": {
+      "common": 45,
+      "shiny": 30,
+      "rare": 18,
+      "holographic": 7
+    },
+    "story": {
+      "common": 20,
+      "shiny": 35,
+      "rare": 30,
+      "holographic": 15
+    }
+  },
+  "variants": [
+    {
+      "id": "common",
+      "label": "Comum",
+      "detail": "LEVEL 1 OF 4 — COMMON. A deliberately quieter simpler rendering of this exact scene. Keep professional beautiful character drawing but simplify foreground foliage to a few broad leaf and grass shapes, reduce distant village to soft painted silhouettes and one or two warm windows, softer flatter cel-shading, muted natural navy and warm tan palette. Just ONE small firefly at his nose. Moon with soft restrained glow. Remove extra fireflies, glitter, tiny stars, dense flower decorations and strong bloom. A clean sweet ordinary moonlit moment; no magical effects or metallic finish. Clearly less detailed environment than the supplied reference, without making Tiro look unfinished or changing his pose.",
+      "prompt": "Edit the supplied Tiro Adventure memory illustration into ONE rarity variant. The reference is the EXACT base photo, not just inspiration. LOCK COMPOSITION AND IDENTITY: same adult small Yorkshire Tiro, same golden-tan head and steel-blue saddle, same upright ears, same size, same seated pose and facial expression, same wooden park bench and three-quarter camera, same big tree on left, moon top right, same little firefly in front of his nose. Preserve the memory 'Amigo da lua': admiring a firefly while sitting on the park bench at night. Same polished 2D animated storybook art, fine dark outlines, detailed silky fur tufts and cel shading. Keep dog sharp and recognizable at album thumbnail size. Do not change age or breed, no outfit, no additional dogs or people, no new major objects. Square, full bleed, no labels, no words, no UI or borders. The rarity is conveyed by detail level, lighting and finish INSIDE the picture. LEVEL 1 OF 4 — COMMON. A deliberately quieter simpler rendering of this exact scene. Keep professional beautiful character drawing but simplify foreground foliage to a few broad leaf and grass shapes, reduce distant village to soft painted silhouettes and one or two warm windows, softer flatter cel-shading, muted natural navy and warm tan palette. Just ONE small firefly at his nose. Moon with soft restrained glow. Remove extra fireflies, glitter, tiny stars, dense flower decorations and strong bloom. A clean sweet ordinary moonlit moment; no magical effects or metallic finish. Clearly less detailed environment than the supplied reference, without making Tiro look unfinished or changing his pose.",
+      "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-aeead55e-c36b-49c9-b75f-fd20a2bd6aa9.png",
+      "path": "tools/art/album_rarity_tests/s_moon_friend/common.png"
+    },
+    {
+      "id": "shiny",
+      "label": "Brilhante",
+      "detail": "LEVEL 2 OF 4 — SHINY. Keep the exact base scene with a moderately detailed park and a few flowers. Add a clearly visible beautiful warm GOLDEN glow from the firefly illuminating the dog's nose and cheek, fine golden rim highlights along fur and bench edges, a small handful of golden fireflies hovering around the bench, a few delicate glints in their light. Richer color and light than a plain common scene but restrained and natural enough to feel like the same night. Glossy subtle sheen; NO rainbow or holographic finish, no big magic trails, no elaborate extra environment. Detail level medium.",
+      "prompt": "Edit the supplied Tiro Adventure memory illustration into ONE rarity variant. The reference is the EXACT base photo, not just inspiration. LOCK COMPOSITION AND IDENTITY: same adult small Yorkshire Tiro, same golden-tan head and steel-blue saddle, same upright ears, same size, same seated pose and facial expression, same wooden park bench and three-quarter camera, same big tree on left, moon top right, same little firefly in front of his nose. Preserve the memory 'Amigo da lua': admiring a firefly while sitting on the park bench at night. Same polished 2D animated storybook art, fine dark outlines, detailed silky fur tufts and cel shading. Keep dog sharp and recognizable at album thumbnail size. Do not change age or breed, no outfit, no additional dogs or people, no new major objects. Square, full bleed, no labels, no words, no UI or borders. The rarity is conveyed by detail level, lighting and finish INSIDE the picture. LEVEL 2 OF 4 — SHINY. Keep the exact base scene with a moderately detailed park and a few flowers. Add a clearly visible beautiful warm GOLDEN glow from the firefly illuminating the dog's nose and cheek, fine golden rim highlights along fur and bench edges, a small handful of golden fireflies hovering around the bench, a few delicate glints in their light. Richer color and light than a plain common scene but restrained and natural enough to feel like the same night. Glossy subtle sheen; NO rainbow or holographic finish, no big magic trails, no elaborate extra environment. Detail level medium.",
+      "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-12995f2e-1cc6-430a-a7e5-1e274d064ef5.png",
+      "path": "tools/art/album_rarity_tests/s_moon_friend/shiny.png"
+    },
+    {
+      "id": "rare",
+      "label": "Rara",
+      "detail": "LEVEL 3 OF 4 — RARE. This is the richer enchanted version of the SAME photo. Keep the character and camera identical but enrich the environment with beautifully articulated blue and lavender hydrangea petals in the existing foreground beds, delicate leaves, more nuanced wood grain on same bench, subtle moon rays through canopy and a little low blue mist on the distant path. A graceful loose arc of numerous tiny golden fireflies framing the dog without covering him; a few clean star points in sky. Deeper luminous midnight blues and jewel-like warm gold lighting, sophisticated crisp details and subtle bloom. Visibly richer and more special than shiny, but still storybook illustration with natural gold/blue palette. NO rainbow foil or holographic bands.",
+      "prompt": "Edit the supplied Tiro Adventure memory illustration into ONE rarity variant. The reference is the EXACT base photo, not just inspiration. LOCK COMPOSITION AND IDENTITY: same adult small Yorkshire Tiro, same golden-tan head and steel-blue saddle, same upright ears, same size, same seated pose and facial expression, same wooden park bench and three-quarter camera, same big tree on left, moon top right, same little firefly in front of his nose. Preserve the memory 'Amigo da lua': admiring a firefly while sitting on the park bench at night. Same polished 2D animated storybook art, fine dark outlines, detailed silky fur tufts and cel shading. Keep dog sharp and recognizable at album thumbnail size. Do not change age or breed, no outfit, no additional dogs or people, no new major objects. Square, full bleed, no labels, no words, no UI or borders. The rarity is conveyed by detail level, lighting and finish INSIDE the picture. LEVEL 3 OF 4 — RARE. This is the richer enchanted version of the SAME photo. Keep the character and camera identical but enrich the environment with beautifully articulated blue and lavender hydrangea petals in the existing foreground beds, delicate leaves, more nuanced wood grain on same bench, subtle moon rays through canopy and a little low blue mist on the distant path. A graceful loose arc of numerous tiny golden fireflies framing the dog without covering him; a few clean star points in sky. Deeper luminous midnight blues and jewel-like warm gold lighting, sophisticated crisp details and subtle bloom. Visibly richer and more special than shiny, but still storybook illustration with natural gold/blue palette. NO rainbow foil or holographic bands.",
+      "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-76fb3c14-f0f4-4d01-aef1-2b892ccb6923.png",
+      "path": "tools/art/album_rarity_tests/s_moon_friend/rare.png"
+    },
+    {
+      "id": "holographic",
+      "label": "Holográfica",
+      "detail": "LEVEL 4 OF 4 — HOLOGRAPHIC, the top rarity. Preserve exact dog, bench, night scene, pose and framing while giving the illustration a striking premium holographic trading-card PRINT FINISH ACROSS THE PICTURE ITSELF: graceful diagonal iridescent light sweeps, pearlescent prismatic cyan-violet-pink-gold reflections especially in dark sky, bench shadow and foreground flowers, fine reflective foil speckles and sharp tiny four-point holographic glints, luminous moon halo, delicate iridescent shimmer along leaf and fur edges. Keep dog's golden head and steel-blue back recognizable and his face unobscured. Enriched flowerbeds, atmospheric depth and golden fireflies remain. Make the rainbow/prismatic foil quality unmistakable in a still image, elegant and magical, not just brighter gold, and not a white glare washing out everything. No card border; this is full bleed holographic artwork.",
+      "prompt": "Edit the supplied Tiro Adventure memory illustration into ONE rarity variant. The reference is the EXACT base photo, not just inspiration. LOCK COMPOSITION AND IDENTITY: same adult small Yorkshire Tiro, same golden-tan head and steel-blue saddle, same upright ears, same size, same seated pose and facial expression, same wooden park bench and three-quarter camera, same big tree on left, moon top right, same little firefly in front of his nose. Preserve the memory 'Amigo da lua': admiring a firefly while sitting on the park bench at night. Same polished 2D animated storybook art, fine dark outlines, detailed silky fur tufts and cel shading. Keep dog sharp and recognizable at album thumbnail size. Do not change age or breed, no outfit, no additional dogs or people, no new major objects. Square, full bleed, no labels, no words, no UI or borders. The rarity is conveyed by detail level, lighting and finish INSIDE the picture. LEVEL 4 OF 4 — HOLOGRAPHIC, the top rarity. Preserve exact dog, bench, night scene, pose and framing while giving the illustration a striking premium holographic trading-card PRINT FINISH ACROSS THE PICTURE ITSELF: graceful diagonal iridescent light sweeps, pearlescent prismatic cyan-violet-pink-gold reflections especially in dark sky, bench shadow and foreground flowers, fine reflective foil speckles and sharp tiny four-point holographic glints, luminous moon halo, delicate iridescent shimmer along leaf and fur edges. Keep dog's golden head and steel-blue back recognizable and his face unobscured. Enriched flowerbeds, atmospheric depth and golden fireflies remain. Make the rainbow/prismatic foil quality unmistakable in a still image, elegant and magical, not just brighter gold, and not a white glare washing out everything. No card border; this is full bleed holographic artwork.",
+      "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-f7eac6b7-8dd9-4816-ad74-3a0805ac6ff0.png",
+      "path": "tools/art/album_rarity_tests/s_moon_friend/holographic.png"
+    }
+  ]
+}

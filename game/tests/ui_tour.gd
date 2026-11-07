@@ -448,6 +448,15 @@ func _run() -> void:
 		await _pet_shots()
 		quit(0)
 		return
+	if "--fotos-only" in OS.get_cmdline_user_args():
+		state.call("reset")
+		state.get("progress").seen["intro"] = true
+		state.call("_mark_all_seen")
+		state.set("coins", 800)
+		await _start_main(1.5)
+		await _fotos_shots()
+		quit(0)
+		return
 	if "--festa-only" in OS.get_cmdline_user_args():
 		state.call("reset")
 		state.get("progress").seen["intro"] = true
@@ -1931,3 +1940,111 @@ func _aj_11_shots() -> void:
 	places.call("open", "house", "fridge")
 	await shot("a05_fridge_sheet")
 	await _close()
+
+
+## Plano "Fotos do Tiro", etapa 11: álbum, carta 1/3/4 parada e inclinada, revelação, varal, tutorial e cartão de marco.
+func _fotos_viewer() -> Control:
+	return load("res://scripts/ui/card_viewer.gd").get("current") as Control
+
+
+func _fotos_tut() -> Control:
+	return load("res://scripts/ui/album_tutorial.gd").get("current") as Control
+
+
+func _fotos_tap(pos: Vector2) -> void:
+	for pressed in [true, false]:
+		var event := InputEventMouseButton.new()
+		event.button_index = MOUSE_BUTTON_LEFT
+		event.pressed = pressed
+		event.position = pos
+		event.global_position = pos
+		root.push_input(event, true)
+		await process_frame
+
+
+func _fotos_phase(phase: String) -> bool:
+	for i in 80:
+		var node := _fotos_tut()
+		if node != null and str(node.get("phase")) == phase:
+			return true
+		await create_timer(0.1).timeout
+	print("FAIL fase do tutorial %s não chegou" % phase)
+	return false
+
+
+func _fotos_shots() -> void:
+	var viewer_script: Script = load("res://scripts/ui/card_viewer.gd")
+	var reveal_script: Script = load("res://scripts/ui/card_reveal.gd")
+	var notebook: Script = load("res://scripts/ui/pet_notebook.gd")
+	var story: Array[String] = []
+	for entry: Dictionary in root.get_node("Database").album.photos:
+		if str(entry.section) == "story":
+			story.append(str(entry.id))
+	main.call("show_screen", &"pet")
+	await create_timer(0.4).timeout
+	_hide_modals()
+	# Álbum com cartas dos quatro níveis e uma fechada.
+	for index in 4:
+		state.call("dev_take_photo", story[index], index + 1)
+	state.call("dev_seal_photo", story[4])
+	notebook.call("open", "album:story")
+	await create_timer(1.2).timeout
+	_hide_modals()
+	await shot("f01_album", 0.3)
+	_hide_modals()
+	main.call("show_screen", &"pet")
+	# Carta 1, 3 e 4: parada e inclinada.
+	for level in [1, 3, 4]:
+		state.call("dev_take_photo", "h_arrival", level)
+		var viewer: Control = viewer_script.call("open", "h_arrival", {"host": root})
+		await shot("f02_carta_%d_parada" % level, 0.6)
+		var rect: Rect2 = viewer.call("card_rect")
+		viewer.call("touch_down", rect.get_center())
+		viewer.call("touch_move", rect.get_center() + Vector2(110, -40))
+		await shot("f03_carta_%d_inclinada" % level, 0.4)
+		viewer.call("touch_up", rect.get_center())
+		viewer.call("close")
+		await process_frame
+	# Revelação: verso, virando e resultado.
+	state.call("dev_seal_photo", "f_bath")
+	var reveal: Control = reveal_script.call("open", "f_bath", {"host": root})
+	await shot("f04_revelacao_verso", 0.5)
+	reveal.get_node("CardReveal").call("_open_card")
+	await shot("f05_revelacao_virando", 0.15)
+	await shot("f06_revelacao_final", 1.8)
+	reveal.call("close")
+	await process_frame
+	# Varal na home com três polaroides.
+	for id in ["h_arrival", "f_bath", "f_taste"]:
+		state.call("dev_take_photo", id, 4 if id == "f_bath" else 3)
+		state.call("feature_photo", id)
+	state.call("dev_fill_needs")
+	await _close()
+	main.call("show_screen", &"pet")
+	await create_timer(1.2).timeout
+	_hide_modals()
+	await shot("f07_varal", 0.3)
+	# Cartão de marco.
+	main.get("_celebration").call("show_album_milestone", "holo", "first")
+	await shot("f08_marco", 1.2)
+	_hide_modals()
+	main.get("_celebration").hide()
+	# Tutorial da carta da chegada, do começo ao fim.
+	state.call("reset")
+	state.get("progress").seen["intro"] = true
+	var intro: Array[String] = ["intro"]
+	state.call("mark_seen", intro)
+	state.get("progress").claimed_quests["lais_play"] = true
+	state.set("coins", 800)
+	main.call("show_screen", &"pet")
+	await create_timer(0.4).timeout
+	_hide_modals()
+	notebook.call("open", "album")
+	if await _fotos_phase("open"):
+		await shot("f09_tutorial_abrir")
+		await _fotos_tap((_fotos_tut().call("target_rect") as Rect2).get_center())
+		if await _fotos_phase("reroll"):
+			await shot("f10_tutorial_sorte")
+			await _fotos_tap((_fotos_tut().call("target_rect") as Rect2).get_center())
+			if await _fotos_phase("upgrade"):
+				await shot("f11_tutorial_melhorar")

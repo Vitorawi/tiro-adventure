@@ -1,0 +1,125 @@
+{
+  "id": "p_crown",
+  "title": "Cochilo real",
+  "section": "sleep",
+  "section_name": "Soninhos",
+  "phase": "young",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/p_crown",
+  "trigger": {
+    "on": [
+      "slept",
+      "app_opened"
+    ],
+    "when": {
+      "equipped": "flower_crown",
+      "need_min": {
+        "happiness": 100
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/p_crown.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "sleep",
+      "frame": 0
+    },
+    "props": []
+  },
+  "scene_description": "Royal nap: young adult Yorkshire with upright ears, dark charcoal crown/back and golden tan muzzle paws sleeping curled up in his cozy home corner while wearing the delicate FLOWER CROWN from the supporting original asset. Little white and pink flowers and green leaves sit naturally between ears. Happy peaceful face, cream bed and rug, warm soft sunlight. It is a floral wreath, not a metal royal crown.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/p_crown.png",
+  "original_capture": "docs/art/album_ilustrado/originais/p_crown.png",
+  "manifest_path": "tools/art/album_rarities/photos/sleep/p_crown/photo.json",
+  "batch_id": "batch_008",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_crown/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_crown/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.106456+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-68ae7eb7-190a-4714-be99-0a0d400b2911.png",
+          "completed_at": "2026-11-06T23:20:20.314251+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_crown/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-68ae7eb7-190a-4714-be99-0a0d400b2911.png",
+      "completed_at": "2026-11-06T23:20:20.314251+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c770d2765b683ab1ef064d53c44392de677177c8a50b6566e71e0cf54bb7faf7",
+      "reviewed_at": "2026-11-06T23:31:53.748349+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_crown/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_crown/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.106456+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-aec138e7-7d06-46ba-85fa-2b2345ac7abc.png",
+          "completed_at": "2026-11-06T23:20:54.788225+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_crown/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-aec138e7-7d06-46ba-85fa-2b2345ac7abc.png",
+      "completed_at": "2026-11-06T23:20:54.788225+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6e51eeee88675ae2bbe1a2ecde14a1bb545fc6b9cfe20d3dbee137b83492bc89",
+      "reviewed_at": "2026-11-06T23:31:54.202867+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_crown/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_crown/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.106456+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-68a2d252-bdd0-4fe5-90fa-7ad9eba18710.png",
+          "completed_at": "2026-11-06T23:21:29.234297+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_crown/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-68a2d252-bdd0-4fe5-90fa-7ad9eba18710.png",
+      "completed_at": "2026-11-06T23:21:29.234297+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d38b158fa877f50bed6b6e7b7c5459f820da0742245198866dd0795e5a6b63a5",
+      "reviewed_at": "2026-11-06T23:31:54.856658+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_crown/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_crown/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.107455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2908bfef-384e-44b0-bde5-020bd7038e0d.png",
+          "completed_at": "2026-11-06T23:22:06.705525+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_crown/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2908bfef-384e-44b0-bde5-020bd7038e0d.png",
+      "completed_at": "2026-11-06T23:22:06.705525+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "a5584fbece0cdff401f5402e6d248d2baa75fd6f5a25cb80a0aea0bd8813f9ba",
+      "reviewed_at": "2026-11-06T23:31:55.185566+00:00"
+    }
+  }
+}

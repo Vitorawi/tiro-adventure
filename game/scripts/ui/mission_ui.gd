@@ -423,7 +423,7 @@ static func tap_full_text(label: Label) -> void:
 	label.mouse_filter = Control.MOUSE_FILTER_PASS
 	label.gui_input.connect(func(event: InputEvent) -> void:
 		var click := event as InputEventMouseButton
-		if click == null or click.pressed or click.button_index != MOUSE_BUTTON_LEFT or not is_cut(label):
+		if click == null or click.pressed or click.button_index != MOUSE_BUTTON_LEFT or not is_cut(label) or not Rect2(Vector2.ZERO, label.size).has_point(click.position):
 			return
 		var host := label.get_tree().root.find_child("Main", true, false) as Control
 		if host == null:

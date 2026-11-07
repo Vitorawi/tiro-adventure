@@ -1,0 +1,120 @@
+{
+  "id": "h_growth_puppy",
+  "title": "Filhotinho!",
+  "section": "story",
+  "section_name": "História",
+  "phase": "puppy",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/h_growth_puppy",
+  "trigger": {
+    "on": "grew",
+    "when": {
+      "grew_to": "puppy"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_growth_puppy.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "idle_breathe",
+      "frame": 0
+    },
+    "props": [],
+    "ribbon": "Filhotinho"
+  },
+  "scene_description": "A treasured milestone portrait at home: tiny three-month-old floppy-eared black-and-tan Yorkshire puppy sitting alert on the red oval rug, bright curious eyes, whole small body visible. Cream windowlit cozy home corner. No ribbon or lettering; the milestone label is supplied by game UI.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_growth_puppy.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_growth_puppy.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_growth_puppy/photo.json",
+  "batch_id": "batch_001",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_puppy/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_puppy/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.483705+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-f6c85eb6-90e2-48dc-992f-1cbf368d9c35.png",
+          "completed_at": "2026-11-06T19:15:30.495715+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_puppy/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-f6c85eb6-90e2-48dc-992f-1cbf368d9c35.png",
+      "completed_at": "2026-11-06T19:15:30.495715+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "4d3d1f8c6cd95c031e15f883fde4f9ba2d371ee290a32fd036acd8618d4f78d2",
+      "reviewed_at": "2026-11-06T19:17:49.452237+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_puppy/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_puppy/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.483705+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-0f265aaf-afae-4d42-b46e-8b8f28096729.png",
+          "completed_at": "2026-11-06T19:15:33.209868+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_puppy/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-0f265aaf-afae-4d42-b46e-8b8f28096729.png",
+      "completed_at": "2026-11-06T19:15:33.209868+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "a155afdb7f314817ee55148abcba955379d7ad15b828bd42b74d01bac0c2a901",
+      "reviewed_at": "2026-11-06T19:17:49.844113+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_puppy/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_puppy/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.484696+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-649669f6-4242-42f3-aa77-df519ca4cd88.png",
+          "completed_at": "2026-11-06T19:15:35.885197+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_puppy/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-649669f6-4242-42f3-aa77-df519ca4cd88.png",
+      "completed_at": "2026-11-06T19:15:35.885197+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "fc5c5b6c479e2caae4146bdffca4c0e3d8b6eb6989596c0e50e2b7daacf077ab",
+      "reviewed_at": "2026-11-06T19:17:50.200756+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_puppy/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_puppy/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.484696+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-9301f60f-20e0-4f3a-be17-524e7613492f.png",
+          "completed_at": "2026-11-06T19:15:38.590816+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_puppy/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-9301f60f-20e0-4f3a-be17-524e7613492f.png",
+      "completed_at": "2026-11-06T19:15:38.590816+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "bc78cf73c36caaf19c51e3194d0160faf578208a94835e160a039faa730ae87c",
+      "reviewed_at": "2026-11-06T19:17:50.517349+00:00"
+    }
+  }
+}

@@ -1,0 +1,123 @@
+{
+  "id": "s_sofa_throne",
+  "title": "Trono do sofá",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "explorer",
+  "game_scene": "house",
+  "source_definition": "game/data/album.json#photos/s_sofa_throne",
+  "trigger": {
+    "on": "slept",
+    "when": {
+      "phase_min": "explorer",
+      "owned": "sofa",
+      "sleep_spot": "sofa"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_sofa_throne.png",
+    "scene": "house",
+    "pose": {
+      "clip": "sleep",
+      "frame": 0
+    },
+    "props": [
+      "sofa"
+    ]
+  },
+  "scene_description": "Sofa throne: SMALL adolescent black-and-tan Yorkie with upright ears asleep sprawled proudly across the very center of a large orange upholstered sofa, occupying the best cushion like a tiny king. Dog sleeping on side across cushion with relaxed paws, sofa comfortably huge relative to dog, warm cream living room, afternoon light and knitted throw. NO crown or royal costume; the sofa itself is the throne. Distinct from belly-down sofa nap.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_sofa_throne.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_sofa_throne.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_sofa_throne/photo.json",
+  "batch_id": "batch_006",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_sofa_throne/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_sofa_throne/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.487675+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-65891687-099d-4cf4-b65d-312b1d892745.png",
+          "completed_at": "2026-11-06T22:45:51.820855+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_sofa_throne/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-65891687-099d-4cf4-b65d-312b1d892745.png",
+      "completed_at": "2026-11-06T22:45:51.820855+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "95d7c449995ee63b7a82f0f36e845c7b7700a6f2bfb86349246b919b3f3bcef3",
+      "reviewed_at": "2026-11-06T22:56:11.673627+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_sofa_throne/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_sofa_throne/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.487675+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1c7a54ff-8085-43e0-9855-815228ac3680.png",
+          "completed_at": "2026-11-06T22:46:29.974328+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_sofa_throne/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1c7a54ff-8085-43e0-9855-815228ac3680.png",
+      "completed_at": "2026-11-06T22:46:29.974328+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "92a02ad88b2d4dc138bd8788f8eca4c35cc3f2eace4231dc7f22532d72f598e2",
+      "reviewed_at": "2026-11-06T22:56:12.086507+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_sofa_throne/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_sofa_throne/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.487675+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5b9b215c-ddcf-4a9b-b507-c9b5f4485b20.png",
+          "completed_at": "2026-11-06T22:46:58.629788+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_sofa_throne/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5b9b215c-ddcf-4a9b-b507-c9b5f4485b20.png",
+      "completed_at": "2026-11-06T22:46:58.629788+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "69e14b26a3e07dc32290fce73f8a16857eefed2e923c87a9300a0cbe5b88af5b",
+      "reviewed_at": "2026-11-06T22:56:12.516370+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_sofa_throne/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_sofa_throne/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.488663+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-7b7917a3-4eb2-4d02-b0c3-9969d33426cd.png",
+          "completed_at": "2026-11-06T22:47:38.275042+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_sofa_throne/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-7b7917a3-4eb2-4d02-b0c3-9969d33426cd.png",
+      "completed_at": "2026-11-06T22:47:38.275042+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "436d912af75aa54ada496b5918f83f7aa333055e2f14da75479ac40223ed33a4",
+      "reviewed_at": "2026-11-06T22:56:12.949737+00:00"
+    }
+  }
+}

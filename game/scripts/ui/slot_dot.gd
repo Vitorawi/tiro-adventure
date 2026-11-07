@@ -76,6 +76,12 @@ func _init(new_state: String = EMPTY, texture: Texture2D = null, progress: float
 	set_process(_pulse)
 
 
+func _ready() -> void:
+	# O Godot registra _process ao entrar na árvore, depois do set_process do _init.
+	# Só o estado pronto pode animar: vazio/+ e compra/cadeado ficam estáticos.
+	set_process(_pulse and state == READY)
+
+
 func _add_icon(texture: Texture2D, alpha: float) -> void:
 	icon_rect = UiKit.icon(texture, 32)
 	icon_rect.name = "Icon"
@@ -124,6 +130,9 @@ func _draw_dot() -> void:
 
 
 func _process(_delta: float) -> void:
+	if state != READY or not _pulse or Motion.reduced:
+		_dot.scale = Vector2.ONE
+		return
 	# Pulsar 1,00 ↔ 1,04 preso ao relógio (não reinicia quando o painel se reconstrói a cada segundo).
 	var phase := sin(float(Time.get_ticks_msec()) / 1000.0 * TAU / Motion.PULSE) * 0.5 + 0.5
 	_dot.pivot_offset = Vector2(DOT, DOT) / 2.0

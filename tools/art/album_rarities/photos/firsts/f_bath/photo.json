@@ -1,0 +1,117 @@
+{
+  "id": "f_bath",
+  "title": "Primeiro banho",
+  "section": "firsts",
+  "section_name": "Primeiras vezes",
+  "phase": "puppy",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/f_bath",
+  "trigger": {
+    "on": "bathed",
+    "when": {}
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/f_bath.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "shake_off",
+      "frame": 1
+    },
+    "props": []
+  },
+  "scene_description": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/f_bath.png",
+  "original_capture": "docs/art/album_ilustrado/originais/f_bath.png",
+  "manifest_path": "tools/art/album_rarities/photos/firsts/f_bath/photo.json",
+  "batch_id": "batch_003",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_bath/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_bath/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.838610+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-36ef8cc9-1209-4e14-89c1-3fcbf5679e6e.png",
+          "completed_at": "2026-11-06T22:02:04.517561+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_bath/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-36ef8cc9-1209-4e14-89c1-3fcbf5679e6e.png",
+      "completed_at": "2026-11-06T22:02:04.517561+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "fcd174912e6d4bac1c4970464b7ef380ed8f3397c950bd78addb3562248bb77b",
+      "reviewed_at": "2026-11-06T22:06:56.953845+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_bath/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_bath/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.838610+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-12a34092-931d-4e0d-8d8e-d98b1109c23c.png",
+          "completed_at": "2026-11-06T22:02:30.637388+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_bath/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-12a34092-931d-4e0d-8d8e-d98b1109c23c.png",
+      "completed_at": "2026-11-06T22:02:30.637388+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "cd084b38b4c4b871ca1f4c6ec942f6a6c21f87c886c7bb74af4e4392ab9f691c",
+      "reviewed_at": "2026-11-06T22:06:57.260761+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_bath/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_bath/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.838610+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-54e01f64-093d-465b-9d0b-bb0934be3d25.png",
+          "completed_at": "2026-11-06T22:02:55.803696+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_bath/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-54e01f64-093d-465b-9d0b-bb0934be3d25.png",
+      "completed_at": "2026-11-06T22:02:55.803696+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "ca54bf1e061ad37d63e1aa300eba37ff39f0ecfa1a254e6521afdfc1b055026c",
+      "reviewed_at": "2026-11-06T22:06:57.621645+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_bath/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_bath/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.839600+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-79bc3bc8-6c8d-4731-829b-af0618768117.png",
+          "completed_at": "2026-11-06T22:03:27.686430+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_bath/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-79bc3bc8-6c8d-4731-829b-af0618768117.png",
+      "completed_at": "2026-11-06T22:03:27.686430+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "ef075656f5a74345f1f62de5d04164ff6c9fff1fd8113d076cb83cb0762c6190",
+      "reviewed_at": "2026-11-06T22:06:57.936055+00:00"
+    }
+  }
+}

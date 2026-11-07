@@ -18,6 +18,11 @@
     "test_circuit_selftest"
   ],
   "suite": [
+    "photo_hints_test",
+    "album_book_test",
+    "station_grid_touch_test",
+    "drag_scroll_test",
+    "food_order_touch_test",
     "care_choice_window_test",
     "food_menu_bounds_touch_test",
     "daily_claim_touch_test",
@@ -116,6 +121,10 @@
     "album_test",
     "house_test",
     "album_secrets_test",
+    "photo_rarity_test",
+    "photo_art_test",
+    "photo_frames_test",
+    "card_viewer_test",
     "brush_taste_test",
     "personality_test",
     "silk_test",
@@ -131,24 +140,70 @@
     "care_bot_test",
     "ui2_tokens_test",
     "ui2_kit_test",
-    "world_pin_test"
+    "world_pin_test",
+    "card_reveal_test",
+    "photo_line_test",
+    "album_tutorial_test",
+    "album_rewards_test"
   ],
   "areas": {
+    "drag_scroll": {
+      "paths": [
+        "game/tests/drag_scroll_test.gd",
+        "game/scripts/ui/drag_scroll.gd"
+      ],
+      "tests": [
+        "drag_scroll_test"
+      ]
+    },
+    "station_grid": {
+      "paths": [
+        "game/tests/station_grid_touch_test.gd"
+      ],
+      "tests": [
+        "station_grid_touch_test"
+      ]
+    },
+    "food_order": {
+      "paths": [
+        "game/tests/food_order_touch_test.gd"
+      ],
+      "tests": [
+        "food_order_touch_test"
+      ]
+    },
     "care_choice_window": {
-      "paths": ["game/scripts/ui/care_choice_window.gd", "game/tests/care_choice_window_test.gd"],
-      "tests": ["care_choice_window_test"]
+      "paths": [
+        "game/scripts/ui/care_choice_window.gd",
+        "game/tests/care_choice_window_test.gd"
+      ],
+      "tests": [
+        "care_choice_window_test"
+      ]
     },
     "food_menu_bounds": {
-      "paths": ["game/tests/food_menu_bounds_touch_test.gd"],
-      "tests": ["food_menu_bounds_touch_test"]
+      "paths": [
+        "game/tests/food_menu_bounds_touch_test.gd"
+      ],
+      "tests": [
+        "food_menu_bounds_touch_test"
+      ]
     },
     "daily_claim": {
-      "paths": ["game/tests/daily_claim_touch_test.gd"],
-      "tests": ["daily_claim_touch_test"]
+      "paths": [
+        "game/tests/daily_claim_touch_test.gd"
+      ],
+      "tests": [
+        "daily_claim_touch_test"
+      ]
     },
     "blender_position": {
-      "paths": ["game/tests/blender_position_touch_test.gd"],
-      "tests": ["blender_position_touch_test"]
+      "paths": [
+        "game/tests/blender_position_touch_test.gd"
+      ],
+      "tests": [
+        "blender_position_touch_test"
+      ]
     },
     "growth": {
       "paths": [
@@ -219,9 +274,12 @@
         "game/tests/gestures_test.gd",
         "game/scripts/ui/hide_seek_ui.gd",
         "game/tests/care_wheel_test.gd",
-        "game/tests/roleta_test.gd"
+        "game/tests/roleta_test.gd",
+        "game/scripts/ui/photo_line.gd",
+        "game/tests/photo_line_test.gd"
       ],
       "tests": [
+        "photo_line_test",
         "care_wheel_test",
         "roleta_test",
         "pet_care_test",
@@ -366,16 +424,49 @@
     },
     "album": {
       "paths": [
+        "game/tests/photo_hints_test.gd",
+        "game/tests/fotos_07_shots.gd",
+          "game/tests/album_book_test.gd",
         "game/data/album.json",
         "game/scripts/state/album_*.gd",
         "game/scripts/ui/album_view.gd",
         "game/scripts/ui/photo_card.gd",
         "game/tests/album_test.gd",
-        "game/tests/album_secrets_test.gd"
+        "game/tests/album_secrets_test.gd",
+        "tools/album_rarity_install.gd",
+        "game/assets/sprites/ui/album/rarities/*",
+        "game/tests/photo_art_test.gd",
+        "game/tests/photo_frames_test.gd",
+        "game/assets/shaders/photo_foil.gdshader",
+        "game/assets/sprites/ui/album/frames/*",
+        "tools/photo_frames_art.gd",
+        "game/tests/photo_rarity_test.gd",
+        "game/scripts/ui/card_viewer.gd",
+        "game/assets/shaders/card_tilt.gdshader",
+        "game/tests/card_viewer_test.gd",
+        "game/scripts/ui/card_reveal.gd",
+        "game/tests/card_reveal_test.gd",
+        "game/scripts/ui/photo_line.gd",
+        "game/tests/photo_line_test.gd",
+        "game/scripts/ui/album_tutorial.gd",
+        "game/tests/album_tutorial_test.gd",
+        "game/assets/sprites/ui/album/card_back.png",
+        "game/tests/album_rewards_test.gd",
+        "game/tests/fotos_10_shots.gd"
       ],
       "tests": [
+        "photo_hints_test",
+          "album_book_test",
         "album_test",
-        "album_secrets_test"
+        "album_secrets_test",
+        "photo_rarity_test",
+        "photo_art_test",
+        "photo_frames_test",
+        "card_viewer_test",
+        "card_reveal_test",
+        "photo_line_test",
+        "album_tutorial_test",
+        "album_rewards_test"
       ]
     },
     "shell": {

@@ -23,6 +23,8 @@ const PROFILE_SIZE := Vector2(168.0, 74.0)
 const BAR_POS := Vector2(11.0, 44.0)
 const BAR_WIDTH := 120.0
 const COINS_SIZE := Vector2(86.0, 40.0)
+const ALERT_POS := Vector2(12.0, 36.0)  # "Pode Crescer!" sobre a barra da placa
+const ALERT_SIZE := Vector2(146.0, 38.0)
 
 var level_label: Label
 var xp_bar: ProgressBar
@@ -64,17 +66,15 @@ func _ready() -> void:
 	_build_profile()
 	_build_right()
 	_build_row2()
-	_growth_alert = UiKit.button("! Pode\nCrescer!", func() -> void: GrowthUi.open(), &"ChipButton")
+	# Pode crescer: a placa do nome continua; uma pílula verde de madeira ocupa o lugar da barra (que está cheia).
+	_growth_alert = StepCardUi.go_button("Pode Crescer!", func() -> void: GrowthUi.open())
 	_growth_alert.name = "GrowthReadyAlert"
-	_growth_alert.position = PROFILE_POS + Vector2(4.0, 4.0)
-	_growth_alert.custom_minimum_size = Vector2(PROFILE_SIZE.x - 8.0, PROFILE_SIZE.y - 8.0)
-	_growth_alert.size = _growth_alert.custom_minimum_size
-	for kind: String in ["normal", "hover", "pressed"]:
-		var style := UiKit.surface(Palette.ALERT, 16)
-		style.content_margin_left = 8
-		style.content_margin_right = 8
-		_growth_alert.add_theme_stylebox_override(kind, style)
-		_growth_alert.add_theme_color_override("font_" + (kind + "_" if kind != "normal" else "") + "color", Palette.CARD)
+	_growth_alert.set_meta("wood_primary", true)
+	_growth_alert.custom_minimum_size = Vector2(ALERT_SIZE.x, ALERT_SIZE.y)
+	_growth_alert.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	_growth_alert.position = PROFILE_POS + ALERT_POS
+	_growth_alert.size = ALERT_SIZE
+	_growth_alert.theme = HomeUi.theme(16, Palette.WOOD_CREAM, Palette.WOOD_INK, 3)
 	_growth_alert.hide()
 	add_child(_growth_alert)
 
@@ -328,7 +328,7 @@ func refresh(animate: bool = true) -> void:
 	_set_fill(fraction)
 	_profile_count.text = "%d/%d" % [total - GrowthUi.missing(info), total] if total > 0 else ""
 	_growth_alert.visible = bool(info.ready)
-	_profile.visible = not _growth_alert.visible
+	_profile.visible = true
 	_refresh_head()
 	_refresh_ask()
 	_set_coins(GameState.coins, animate)
@@ -415,31 +415,65 @@ func coins_target() -> Vector2:
 
 
 ## Consulta da fase; nome antigo mantido para ferramentas e testes existentes.
-## Resumo visual: rumo a qual fase, barra em segmentos e um quadradinho tocável por passo que falta.
+## Resumo visual (madeira ilustrada): rumo a qual fase, barra de madeira e um quadradinho tocável por passo que falta.
 func show_level_popover() -> Popover:
 	var info := GameState.growth_info()
+	var root := PanelContainer.new()
+	root.name = "GrowthQuickSummary"
+	root.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	root.mouse_filter = Control.MOUSE_FILTER_STOP  # o toque no cartão não fecha o balão
+	root.custom_minimum_size.x = minf(312.0, maxf(240.0, size.x - 24.0))
+	root.set_meta("popover_bare", true)
+	var art := Control.new()
+	art.name = "Art"
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(art)
+	var frame := StepCardUi.patch("frame", 42, 42)
+	frame.name = "Frame"
+	frame.scale = Vector2.ONE / 3.0
+	art.add_child(frame)
+	var fit := func() -> void:
+		frame.position = Vector2.ZERO
+		frame.size = art.size.max(Vector2.ONE) * 3.0
+	art.resized.connect(fit)
+	fit.call()
+	var inner := MarginContainer.new()
+	inner.name = "Body"
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for side: String in ["left", "right"]:
+		inner.add_theme_constant_override("margin_" + side, 20)
+	inner.add_theme_constant_override("margin_top", 17)
+	inner.add_theme_constant_override("margin_bottom", 36)  # a borda de baixo da moldura é mais grossa
+	root.add_child(inner)
 	var card := UiKit.vbox(8)
-	card.name = "GrowthQuickSummary"
-	card.custom_minimum_size.x = 264
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	inner.add_child(card)
 	var visible_steps: Array = info.requirements.filter(func(req: Dictionary) -> bool: return req.type != "given")
 	var complete: int = visible_steps.filter(func(req: Dictionary) -> bool: return req.done).size()
-	var head := UiKit.hbox(8)
+	var head := UiKit.hbox(10)
 	if not info.next.is_empty():
-		head.add_child(GrowthUi.silhouette(info.next, info.requirements.size() - GrowthUi.missing(info), info.ready, "QuickSilhouette", 40))
+		var shadow := GrowthUi.silhouette(info.next, info.requirements.size() - GrowthUi.missing(info), info.ready, "QuickSilhouette", 40)
+		shadow.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		head.add_child(shadow)
 	var titles := UiKit.vbox(0)
 	titles.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	titles.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	titles.add_child(UiKit.label("Guardião do Vale" if info.next.is_empty() else "Rumo a " + str(info.next.name), &"StrongLabel"))
+	var title := StepCardUi.wood("Guardião do Vale" if info.next.is_empty() else "Rumo a " + str(info.next.name), 20)
+	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	titles.add_child(title)
+	var subtitle: Label
 	if info.ready:
-		titles.add_child(UiKit.label("Tudo pronto para crescer!", &"SmallLabel", Palette.GO_INK))
+		subtitle = StepCardUi.wood("Tudo pronto para crescer!", 15, Palette.GO_INK)
 	elif not info.next.is_empty():
-		titles.add_child(UiKit.label("%s · falta %d" % [str(info.current.name), visible_steps.size() - complete], &"SmallLabel", Palette.INK_SOFT))
+		subtitle = StepCardUi.wood("%s · falta %d" % [str(info.current.name), visible_steps.size() - complete], 15, Color(Palette.WOOD_INK, 0.75))
 	else:
-		titles.add_child(UiKit.label("Ele cresceu com você!", &"SmallLabel"))
+		subtitle = StepCardUi.wood("Ele cresceu com você!", 15, Color(Palette.WOOD_INK, 0.75))
+	subtitle.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	titles.add_child(subtitle)
 	head.add_child(titles)
 	card.add_child(head)
 	if not info.next.is_empty():
-		card.add_child(GrowthUi.progress_strip(complete, visible_steps.size(), 8))
+		card.add_child(StepCardUi.bar(float(complete) / maxf(1.0, float(visible_steps.size())), 16.0, "QuickBar"))
 	if not info.next.is_empty() and not info.ready:
 		var grid := GridContainer.new()
 		grid.name = "GrowthQuickGrid"
@@ -449,7 +483,7 @@ func show_level_popover() -> Popover:
 		for step: Dictionary in GrowthUi.compact_steps(info):
 			grid.add_child(_quick_tile(step))
 		card.add_child(grid)
-		var tip := UiKit.label("Toque num passo para fazer", &"SmallLabel", Palette.INK_SOFT)
+		var tip := StepCardUi.wood("Toque num passo para fazer", 14, Color(Palette.WOOD_INK, 0.7))
 		tip.name = "QuickTip"
 		tip.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		card.add_child(tip)
@@ -459,44 +493,47 @@ func show_level_popover() -> Popover:
 		mood.add_child(UiKit.icon(UiKit.ui_icon("need_happiness"), 24))
 		var words := UiKit.vbox(0)
 		words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		words.add_child(UiKit.label("Ele está animado!", &"SmallLabel", Palette.GO_INK))
-		var help := UiKit.label(GameState.animated_help(), &"SmallLabel", Palette.INK_SOFT)
+		words.add_child(StepCardUi.wood("Ele está animado!", 15, Palette.GO_INK))
+		var help := StepCardUi.wood(GameState.animated_help(), 14, Color(Palette.WOOD_INK, 0.75))
 		help.name = "AnimatedHelp"
+		help.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		words.add_child(help)
 		mood.add_child(words)
 		card.add_child(mood)
-	var view := UiKit.soft("Ver detalhes", func() -> void:
+	card.add_child(WelcomeSheet._button("Ver detalhes", false, 170.0, "ViewGrowth", func() -> void:
 		_close_popover()
-		GrowthUi.open(), null, true)
-	view.name = "ViewGrowth"
-	card.add_child(view)
-	return Popover.open(get_parent() as Control, avatar_button, card, 0.0)
+		GrowthUi.open()))
+	return Popover.open(get_parent() as Control, avatar_button, root, 0.0)
 
 
-## Quadradinho de um passo: anel com ícone, nome e quantidade. Tocar fecha o resumo e leva a fazer.
+## Quadradinho de um passo: papel creme, anel com ícone, nome e quantidade. Tocar fecha o resumo e leva a fazer.
 func _quick_tile(step: Dictionary) -> Button:
-	var tile := UiKit.button("", func() -> void:
+	var tile := BagUi.plain_button(func() -> void:
 		_close_popover()
-		(step.callback as Callable).call(), &"GhostButton")
+		(step.callback as Callable).call())
 	tile.name = "GrowthQuick_" + str(step.id)
-	tile.custom_minimum_size = Vector2(0, 56)
+	tile.custom_minimum_size = Vector2(0, 60)
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var style := StyleBoxFlat.new()
-	style.bg_color = Palette.SUNKEN
-	style.set_corner_radius_all(12)
-	for state: String in ["normal", "hover", "pressed", "focus"]:
-		tile.add_theme_stylebox_override(state, style)
+	var art := SellUi.nine("tile", CodexUi.TILE_MARGINS, "Art", null, "codex_")
+	tile.add_child(art)
+	StepCardUi.stretch(art)
 	var row := UiKit.hbox(4)
-	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	row.offset_left = 4
-	row.offset_right = -4
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tile.add_child(row)
+	StepCardUi.stretch(row)
+	row.offset_left = 6
+	row.offset_right = -4
+	row.offset_top = 3
+	row.offset_bottom = -7
 	row.add_child(GrowthUi.step_ring(step, 40))
 	var words := UiKit.vbox(0)
 	words.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	words.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	words.add_child(UiKit.short_label(str(step.title), &"SmallLabel"))
-	words.add_child(UiKit.short_label("%d/%d" % [step.have, step.need], &"SmallLabel", Palette.GO_INK if step.hint_good else Palette.INK_SOFT))
+	var name_label := StepCardUi.wood(str(step.title), 14)
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.clip_text = true
+	words.add_child(name_label)
+	words.add_child(StepCardUi.wood("%d/%d" % [step.have, step.need], 14, Palette.GO_INK if step.hint_good else Color(Palette.WOOD_INK, 0.75)))
 	row.add_child(words)
 	return tile
 

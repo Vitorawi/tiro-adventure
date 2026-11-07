@@ -1,0 +1,125 @@
+{
+  "id": "p_luxe",
+  "title": "Sono de rei",
+  "section": "sleep",
+  "section_name": "Soninhos",
+  "phase": "adult",
+  "game_scene": "house",
+  "source_definition": "game/data/album.json#photos/p_luxe",
+  "trigger": {
+    "on": [
+      "slept",
+      "app_opened"
+    ],
+    "when": {
+      "house_item": "bed_luxe",
+      "sleep_spot": "bed"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/p_luxe.png",
+    "scene": "house",
+    "pose": {
+      "clip": "sleep",
+      "frame": 0
+    },
+    "props": [
+      "bed_luxe"
+    ]
+  },
+  "scene_description": "Sleep fit for a king: adult Tiro, tiny silky golden-headed steel-blue-backed Yorkshire with upright ears relaxed, sleeping peacefully curled on the luxurious dog bed shown in reference: preserve its exact broad shape colors cushions and elevated trim. Bed is generously padded but scaled for small dog, familiar warm cream home and wooden floor, soft golden light. No crown or clothing. Luxury and total relaxation rather than comedy.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/p_luxe.png",
+  "original_capture": "docs/art/album_ilustrado/originais/p_luxe.png",
+  "manifest_path": "tools/art/album_rarities/photos/sleep/p_luxe/photo.json",
+  "batch_id": "batch_008",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_luxe/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_luxe/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.108455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-587d3bc4-a9e2-4c9c-8c84-7729e2ad6592.png",
+          "completed_at": "2026-11-06T23:25:20.295600+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_luxe/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-587d3bc4-a9e2-4c9c-8c84-7729e2ad6592.png",
+      "completed_at": "2026-11-06T23:25:20.295600+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "832461ad93e180b2bbc63fef9fb1119d9bd77a2ddb521261d65cb1749964ceac",
+      "reviewed_at": "2026-11-06T23:31:57.197962+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_luxe/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_luxe/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.108455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5469a26b-0b0e-4fda-a19e-ff4e5eeff173.png",
+          "completed_at": "2026-11-06T23:25:54.772172+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_luxe/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5469a26b-0b0e-4fda-a19e-ff4e5eeff173.png",
+      "completed_at": "2026-11-06T23:25:54.772172+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "610eb480d1b8459dd37f7030546d35be86d93e1da44f47150bd73a0f71164a1c",
+      "reviewed_at": "2026-11-06T23:31:57.545855+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_luxe/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_luxe/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.108455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-894a5e62-aebb-4561-9ece-60c9b3936986.png",
+          "completed_at": "2026-11-06T23:26:33.444153+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_luxe/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-894a5e62-aebb-4561-9ece-60c9b3936986.png",
+      "completed_at": "2026-11-06T23:26:33.444153+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "9941c46fb2eb8ae89841de177eba39af4657ed7a37efeb7bdda1e49b7f79b93e",
+      "reviewed_at": "2026-11-06T23:31:57.911246+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_luxe/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_luxe/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.109455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-360cf7e6-7254-4f54-83ee-86fde30cdbc4.png",
+          "completed_at": "2026-11-06T23:27:07.501684+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_luxe/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-360cf7e6-7254-4f54-83ee-86fde30cdbc4.png",
+      "completed_at": "2026-11-06T23:27:07.501684+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "4c0f60938f902893f34445f67c6c4c565fbc61d9b4544664f55e5e97c419f413",
+      "reviewed_at": "2026-11-06T23:31:58.464576+00:00"
+    }
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "id": "p_curled",
+  "title": "Emboladinho",
+  "section": "sleep",
+  "section_name": "Soninhos",
+  "phase": "puppy",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/p_curled",
+  "trigger": {
+    "on": "slept",
+    "when": {}
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/p_curled.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "sleep",
+      "frame": 0
+    },
+    "props": []
+  },
+  "scene_description": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/p_curled.png",
+  "original_capture": "docs/art/album_ilustrado/originais/p_curled.png",
+  "manifest_path": "tools/art/album_rarities/photos/sleep/p_curled/photo.json",
+  "batch_id": "batch_007",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_curled/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_curled/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.472445+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2fbbe2d1-9a70-4bde-9188-51c5e9a2e4d7.png",
+          "completed_at": "2026-11-06T23:04:10.181658+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_curled/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2fbbe2d1-9a70-4bde-9188-51c5e9a2e4d7.png",
+      "completed_at": "2026-11-06T23:04:10.181658+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "461b1d98ccee75061f765d07e9a4e9c37933055bcb7a2bb0880f06053f4ab142",
+      "reviewed_at": "2026-11-06T23:14:34.201203+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_curled/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_curled/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.473452+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-840c7986-dbc4-4320-8806-39d486763274.png",
+          "completed_at": "2026-11-06T23:04:44.935718+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_curled/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-840c7986-dbc4-4320-8806-39d486763274.png",
+      "completed_at": "2026-11-06T23:04:44.935718+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8055a605265a25863c7de8456853bb0192889a4e7cd01617c850e616abf4868a",
+      "reviewed_at": "2026-11-06T23:14:34.605579+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_curled/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_curled/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.473452+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-9e26d22f-009b-41d0-b2ef-0bea3fb36b1e.png",
+          "completed_at": "2026-11-06T23:05:28.401345+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_curled/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-9e26d22f-009b-41d0-b2ef-0bea3fb36b1e.png",
+      "completed_at": "2026-11-06T23:05:28.401345+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "44362d6e5583f88807703a54bfab1f54ad175082f5be185702cd5105d684c260",
+      "reviewed_at": "2026-11-06T23:14:35.036442+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_curled/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_curled/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.473452+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e9acbb01-bf5f-4e00-94ab-7aa6e55ef439.png",
+          "completed_at": "2026-11-06T23:06:06.679478+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_curled/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e9acbb01-bf5f-4e00-94ab-7aa6e55ef439.png",
+      "completed_at": "2026-11-06T23:06:06.679478+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "9bf24bd7a81d29bec056df9eaff8c2cd64d1aa03a136865cf416d7fffac6c4c7",
+      "reviewed_at": "2026-11-06T23:14:35.407828+00:00"
+    }
+  }
+}

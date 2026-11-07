@@ -666,7 +666,8 @@ func _test_other_paths() -> void:
 	await create_timer(0.3).timeout
 	var tile: Button = null
 	for button: Button in sheet.find_children("*", "Button", true, false):
-		if button.text == "Livre":
+		var caption := button.find_child("CaptionLabel", true, false) as Label
+		if str(button.name).begins_with("Plot_") and caption != null and caption.text == "Livre":
 			tile = button
 			break
 	check(tile != null, "resumo de canteiros tem canteiros livres (sem botão Plantar)")

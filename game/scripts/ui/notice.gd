@@ -111,13 +111,13 @@ func _build_moment() -> void:
 	_moment.name = "MomentNotice"
 	_moment.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_moment.visible = false
-	_moment.add_theme_stylebox_override("panel", _pill(Palette.HONEY_SOFT))
+	_moment.add_theme_stylebox_override("panel", _pill(Palette.WOOD_INSET))
 	var row := UiKit.hbox(6)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_moment_icon = UiKit.icon(null, 28)
 	_moment_icon.name = "MomentIcon"
 	row.add_child(_moment_icon)
-	_moment_text = UiKit.short_label("", &"StrongLabel", Palette.HONEY_INK)
+	_moment_text = StepCardUi.wood("", 17)
 	_moment_text.name = "MomentText"
 	row.add_child(_moment_text)
 	_moment.add_child(row)
@@ -126,7 +126,9 @@ func _build_moment() -> void:
 
 
 func _pill(color: Color) -> StyleBoxFlat:
-	var style := UiKit.surface(color, 22, true)
+	var style := UiKit.surface(color, 22)
+	style.border_color = Color("c9935f")
+	style.set_border_width_all(2)
 	style.content_margin_left = 14.0
 	style.content_margin_right = 14.0
 	style.content_margin_top = 6.0

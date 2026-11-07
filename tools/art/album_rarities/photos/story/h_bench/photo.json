@@ -1,0 +1,119 @@
+{
+  "id": "h_bench",
+  "title": "Um banco para a turma",
+  "section": "story",
+  "section_name": "História",
+  "phase": "young",
+  "game_scene": "park",
+  "source_definition": "game/data/album.json#photos/h_bench",
+  "trigger": {
+    "on": "quest_claimed",
+    "when": {
+      "quest_is": "community_10_use"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_bench.png",
+    "scene": "park",
+    "pose": {
+      "clip": "idle_breathe",
+      "frame": 0
+    },
+    "props": []
+  },
+  "scene_description": "Young adult Yorkie with upright ears, darker crown and charcoal saddle with tan face and limbs, sitting calmly on the newly completed COMMUNITY WOODEN PARK BENCH in the village square, proud shared place, flowerbeds, cobbled path and trees in warm afternoon. Focus on dog and welcoming bench. No night sky or fireflies, this is the first daytime use of the bench.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_bench.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_bench.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_bench/photo.json",
+  "batch_id": "batch_002",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_bench/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_bench/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.288505+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-09f7f6d0-2745-4013-86e2-f1118232af55.png",
+          "completed_at": "2026-11-06T21:51:18.693543+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_bench/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-09f7f6d0-2745-4013-86e2-f1118232af55.png",
+      "completed_at": "2026-11-06T21:51:18.693543+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "fa938358ec50240f8543e9955115ce7f0b390359530a8ad5c8fa6d459494c741",
+      "reviewed_at": "2026-11-06T21:52:12.502245+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_bench/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_bench/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.288505+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-755aebe4-f412-4214-9f69-e85e15bbec70.png",
+          "completed_at": "2026-11-06T21:51:21.438571+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_bench/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-755aebe4-f412-4214-9f69-e85e15bbec70.png",
+      "completed_at": "2026-11-06T21:51:21.438571+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c8a8651a1f7b2091c29cabdf789293bf234e711086f6edd9cf65ba5ed2846eb4",
+      "reviewed_at": "2026-11-06T21:52:12.827647+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_bench/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_bench/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.288505+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d36732df-e6db-4cf6-bea3-6089948c918a.png",
+          "completed_at": "2026-11-06T21:51:24.158062+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_bench/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d36732df-e6db-4cf6-bea3-6089948c918a.png",
+      "completed_at": "2026-11-06T21:51:24.158062+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "924c7d89a1f014b556971881f833dcc0a7edec02824237dae2b099c528807125",
+      "reviewed_at": "2026-11-06T21:52:13.154531+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_bench/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_bench/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.288505+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c906d262-4a7f-4e7c-b288-3ef32784b2fd.png",
+          "completed_at": "2026-11-06T21:51:26.794396+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_bench/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c906d262-4a7f-4e7c-b288-3ef32784b2fd.png",
+      "completed_at": "2026-11-06T21:51:26.794396+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "7561767ca8ed0b1f6523f309e6749e91e1d28ecc9b11753971354456f277a15a",
+      "reviewed_at": "2026-11-06T21:52:13.503804+00:00"
+    }
+  }
+}

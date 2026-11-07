@@ -2014,6 +2014,8 @@ func _receipt_label(auto_id: String) -> String:
 			return str(Database.npcs.get(auto_id.get_slice(":", 1), {}).get("name", auto_id.get_slice(":", 1)))
 		"project":
 			return "Projeto da vila"
+		"album":
+			return "Álbum de fotos"
 	return auto_id.get_slice(":", 1) if ":" in auto_id else auto_id
 
 
@@ -3141,9 +3143,9 @@ func welcome_ready_lines(limit: int = 5) -> Array[Dictionary]:
 	var info := growth_info()
 	if growth.pending_reveal != "" or (info.ready and growth.ready_seen != str(info.next.id)):
 		lines.append({"kind": "growth", "count": 1, "world": "", "target": "", "sleeping": growth.pending_reveal != ""})
-	var new_photos := photos_unseen()
+	var new_photos := sealed_photos()
 	if photo_alerts_enabled() and not new_photos.is_empty():
-		lines.append({"kind": "photo", "count": new_photos.size(), "world": "", "target": ""})
+		lines.append({"kind": "photo", "count": _sealed_photo_count(new_photos), "world": "", "target": ""})
 	for id: String in Database.friends.friends:
 		if bool(friend_state.entry(id).visit_pending):
 			lines.append({"kind": "friend_visit", "count": 1, "icon": "", "friend": id, "world": "house", "target": "friend_visit:" + id})
@@ -4176,20 +4178,440 @@ func _album_event(event: String, ctx: Dictionary = {}) -> Array[String]:
 	var active: Array = Database.album.get("active_sections", [])
 	for entry: Dictionary in Database.album.photos:
 		var id := str(entry.id)
-		if str(entry.section) not in active or album.has_photo(id):
+		if str(entry.section) not in active:
 			continue
+		var owned := album.has_photo(id)
+		if owned and not photo_can_retake(id): continue
 		if event == "app_opened" and str(entry.section) == "sleep" and not dog.sleeping: continue
 		if AlbumRules.matches(entry, event, ctx, at):
-			_take_photo(id)
-			taken.append(id)
+			if owned:
+				_seal_photo(id)
+			else:
+				_take_photo(id)
+				taken.append(id)
 	return taken
 
 
+## Tira a foto pela primeira vez: a carta chega FECHADA (sem nível) e só ganha nível ao abrir.
 func _take_photo(id: String) -> void:
-	album.photos[id] = {"at": now(), "phase": growth.phase, "coat": dog_look().coat, "seen": false, "equipped": progress.equipped.duplicate()}
+	var at := now()
+	album.photos[id] = {"at": at, "phase": growth.phase, "coat": dog_look().coat, "seen": false, "equipped": progress.equipped.duplicate(),
+		"rarity": 0, "variants": [], "shown": 0, "rolls": 0, "rerolls": 0, "best_at": 0.0, "rolled_at": 0.0,
+		"sealed": 1, "sealed_at": at, "upgrades": 0, "opened_at": 0.0}
 	_diary("photo", str(Database.photo(id).get("title", id)), "photo:" + id)
 	_count("photos")
 	Events.photo_taken.emit(id)
+
+
+## Retomada natural de uma foto repetível: mais uma carta fechada esperando para abrir.
+func _seal_photo(id: String) -> void:
+	var entry: Dictionary = album.photos[id]
+	entry["sealed"] = int(entry.get("sealed", 0)) + 1
+	entry["sealed_at"] = now()
+	Events.photo_sealed.emit(id)
+
+
+# --- Cartas das fotos (Fotos do Tiro, etapa 01) ------------------------------------------
+
+## Regras das cartas em `album.json → cards`.
+func _cards() -> Dictionary:
+	return Database.album.get("cards", {})
+
+
+func album_rarity_def(level: int) -> Dictionary:
+	for def: Dictionary in _cards().get("levels", []):
+		if int(def.get("level", 0)) == level:
+			return def.duplicate()
+	return {}
+
+
+## Melhor nível da foto (1..4); 0 se a carta nunca foi aberta.
+func photo_rarity(id: String) -> int:
+	return int(album.photos.get(id, {}).get("rarity", 0))
+
+
+## Cartas fechadas esperando para abrir.
+func photo_sealed(id: String) -> int:
+	return int(album.photos.get(id, {}).get("sealed", 0))
+
+
+func _sealed_photo_count(ids: Array[String]) -> int:
+	var count := 0
+	for id in ids: count += photo_sealed(id)
+	return count
+
+
+func sealed_photos() -> Array[String]:
+	var result: Array[String] = []
+	for id: String in album.photos:
+		if photo_sealed(id) > 0: result.append(id)
+	return result
+
+
+## Quantas fotos têm cada raridade (melhor versão): {1: n, 2: n, 3: n, 4: n}.
+func rarity_counts() -> Dictionary:
+	var counts := {1: 0, 2: 0, 3: 0, 4: 0}
+	for id: String in album.photos:
+		var level := photo_rarity(id)
+		if counts.has(level): counts[level] += 1
+	return counts
+
+
+## Versões (níveis) já obtidas da foto, em ordem.
+func photo_variants(id: String) -> Array:
+	return (album.photos.get(id, {}).get("variants", []) as Array).duplicate()
+
+
+func photo_styles_complete(id: String) -> bool:
+	return album.has_photo(id) and photo_variants(id).size() >= (_cards().get("levels", []) as Array).size()
+
+
+func styles_complete_count() -> int:
+	var total := 0
+	for id: String in album.photos:
+		if photo_styles_complete(id): total += 1
+	return total
+
+
+## Versão mostrada (a escolhida, ou a melhor).
+func photo_shown_rarity(id: String) -> int:
+	var entry: Dictionary = album.photos.get(id, {})
+	var shown := int(entry.get("shown", 0))
+	return shown if shown > 0 and shown in entry.get("variants", []) else int(entry.get("rarity", 0))
+
+
+func set_photo_variant_error(id: String, level: int) -> String:
+	if not album.has_photo(id): return "Você ainda não tem essa foto"
+	if level not in album.photos[id].get("variants", []): return "Você ainda não tem essa versão"
+	return ""
+
+
+func set_photo_variant(id: String, level: int) -> String:
+	var error := set_photo_variant_error(id, level)
+	if error != "": return error
+	album.photos[id]["shown"] = 0 if level == photo_rarity(id) else level
+	_changed()
+	return ""
+
+
+## Foto de momento repetível, já aberta, fora do tempo de espera e ainda com versões por conseguir.
+func photo_can_retake(id: String) -> bool:
+	if not album.has_photo(id) or not bool(Database.photo(id).get("repeatable", false)):
+		return false
+	var entry: Dictionary = album.photos[id]
+	if float(entry.get("opened_at", 0.0)) <= 0.0 or photo_styles_complete(id): return false
+	var hours := float(Database.photo(id).get("repeat_cooldown_hours", _cards().get("repeat_cooldown_hours", 20)))
+	var last := maxf(float(entry.get("rolled_at", 0.0)), float(entry.get("sealed_at", 0.0)))
+	return now() - last >= hours * 3600.0
+
+
+## Sorteia o nível com semente salva, tabela da seção (ou da foto) e garantias.
+func _roll_rarity(id: String) -> int:
+	var data := _cards()
+	var photo := Database.photo(id)
+	var table: Dictionary = photo.get("rarity_weights", data.get("section_weights", {}).get(str(photo.get("section", "")), {}))
+	var entries: Array = []
+	for def: Dictionary in data.get("levels", []):
+		var weight := float(table.get(str(int(def.level)), def.get("weight", 1)))
+		entries.append({"level": int(def.level), "weight": weight})
+	if entries.is_empty(): return 1
+	if album.rarity_seed == 0: album.rarity_seed = (randi() & 0x7fffffff) | 1
+	album.rarity_seed = (album.rarity_seed * 1103515245 + 12345) & 0x7fffffff
+	var level := int(Loot.pick_weighted(entries, album.rarity_seed ^ hash(id)).get("level", 1))
+	var pity: Dictionary = data.get("pity", {})
+	if album.pity_holo >= int(pity.get("holo", 30)):
+		level = 4
+	elif album.pity_rare >= int(pity.get("rare_plus", 10)):
+		level = maxi(level, 3)
+	album.pity_rare = 0 if level >= 3 else album.pity_rare + 1
+	album.pity_holo = 0 if level >= 4 else album.pity_holo + 1
+	return level
+
+
+## Aplica um nível a uma foto que existe: soma a versão e só sobe o melhor. `draw` = veio de um sorteio
+## (abrir/tentar a sorte); Melhorar não é sorteio. `kind`: open, reroll, upgrade ou tutorial.
+func _apply_photo_roll(id: String, level: int, kind: String, draw: bool = true, action: String = "") -> Dictionary:
+	var entry: Dictionary = album.photos[id]
+	var previous := int(entry.get("rarity", 0))
+	var first := float(entry.get("opened_at", 0.0)) <= 0.0
+	var variants: Array = entry.get("variants", [])
+	var is_new := level not in variants
+	if is_new:
+		variants.append(level)
+		variants.sort()
+		if level == 4: _count("photo_holo")
+	entry["variants"] = variants
+	if draw:
+		entry["rolls"] = int(entry.get("rolls", 0)) + 1
+		entry["rolled_at"] = now()
+	if first: entry["opened_at"] = now()
+	var improved := level > previous
+	if improved:
+		entry["rarity"] = level
+		entry["best_at"] = now()
+	var result := {"rarity": maxi(level, previous), "previous": previous, "new_photo": first, "improved": improved,
+		"new_variant": is_new, "rolled": level, "kind": kind, "action": action if action != "" else kind}
+	Events.photo_rolled.emit(id, result)
+	_check_album_rewards()
+	_changed()
+	return result
+
+
+## Nível forçado pelo tutorial da carta (0 = nenhum). Só vale com o tutorial ativo, na foto da chegada
+## e no passo da ação; nunca mexe nas garantias nem cobra. É o único caminho que força um nível.
+func _tutorial_level(id: String, action: String) -> int:
+	var config: Dictionary = _cards().get("tutorial", {})
+	var forced: Array = config.get("forced", [])
+	if album.tutorial.get("done", false) or id != str(config.get("photo", "")) or forced.size() < 3:
+		return 0
+	var step := int(album.tutorial.get("step", 0))
+	match action:
+		"open": return int(forced[0]) if step == 1 or step == 2 else 0
+		"reroll": return int(forced[1]) if step == 3 else 0
+		"upgrade": return int(forced[2]) if step == 4 else 0
+	return 0
+
+
+func open_photo_card_error(id: String) -> String:
+	if not album.has_photo(id): return "Você ainda não tem essa foto"
+	if photo_sealed(id) <= 0: return "Essa carta já está aberta"
+	return ""
+
+
+## Abrir: gasta uma carta fechada e sorteia o nível (ou o nível do tutorial).
+func open_photo_card(id: String) -> String:
+	var error := open_photo_card_error(id)
+	if error != "": return error
+	# Abrir a carta da chegada antes de o tutorial começar também conta como o passo 1.
+	if id == str(_cards().get("tutorial", {}).get("photo", "")) and not album_tutorial_done() and album_tutorial_step() == 0:
+		advance_album_tutorial(1)
+	var forced := _tutorial_level(id, "open")
+	var level := forced if forced > 0 else _roll_rarity(id)
+	album.photos[id]["sealed"] = photo_sealed(id) - 1
+	_count("photo_opens")
+	_apply_photo_roll(id, level, "tutorial" if forced > 0 else "open", true, "open")
+	return ""
+
+
+## Custo de "Tentar a sorte": só moedas, sobe a cada tentativa daquela foto até o teto (`cards.reroll`).
+func reroll_cost(id: String) -> Dictionary:
+	var data: Dictionary = _cards().get("reroll", {})
+	var step := int(album.photos.get(id, {}).get("rerolls", 0))
+	var coins := int(data.get("coins", 0)) + int(data.get("coins_step", 0)) * step
+	return {"coins": mini(coins, int(data.get("coins_max", coins))), "items": {}}
+
+
+func reroll_photo_error(id: String) -> String:
+	if not album.has_photo(id): return "Você ainda não tem essa foto"
+	if photo_rarity(id) <= 0: return "Abra a carta primeiro"
+	if photo_styles_complete(id): return "Essa foto já tem todas as versões"
+	if _tutorial_level(id, "reroll") > 0: return ""
+	var cost := reroll_cost(id)
+	return transaction_error(cost.items, {}, int(cost.coins))
+
+
+## Tentar a sorte: paga moedas e sorteia outra versão (mesmas chances e garantias).
+func reroll_photo(id: String) -> String:
+	var error := reroll_photo_error(id)
+	if error != "": return error
+	var forced := _tutorial_level(id, "reroll")
+	if forced <= 0:
+		coins -= int(reroll_cost(id).coins)
+		album.photos[id]["rerolls"] = int(album.photos[id].get("rerolls", 0)) + 1
+	_count("photo_rerolls")
+	_apply_photo_roll(id, forced if forced > 0 else _roll_rarity(id), "tutorial" if forced > 0 else "reroll", true, "reroll")
+	return ""
+
+
+## Custo de Melhorar: o do nível de destino (melhor + 1) em `cards.upgrade`; {} se não há destino.
+func upgrade_cost(id: String) -> Dictionary:
+	var target := photo_rarity(id) + 1
+	var row: Dictionary = _cards().get("upgrade", {}).get(str(target), {})
+	if photo_rarity(id) <= 0 or row.is_empty(): return {}
+	return {"level": target, "coins": int(row.get("coins", 0)), "items": (row.get("items", {}) as Dictionary).duplicate()}
+
+
+func upgrade_photo_error(id: String) -> String:
+	if not album.has_photo(id): return "Você ainda não tem essa foto"
+	if photo_rarity(id) <= 0: return "Abra a carta primeiro"
+	var cost := upgrade_cost(id)
+	if cost.is_empty(): return "Essa foto já é a melhor versão"
+	if _tutorial_level(id, "upgrade") > 0: return ""
+	return transaction_error(cost.items, {}, int(cost.coins))
+
+
+## Melhorar: paga e sobe exatamente um nível acima do melhor (sem sorteio, sem mexer nas garantias).
+func upgrade_photo(id: String) -> String:
+	var error := upgrade_photo_error(id)
+	if error != "": return error
+	var cost := upgrade_cost(id)
+	var free := _tutorial_level(id, "upgrade") > 0
+	if not free:
+		inventory.remove_all(cost.items)
+		coins -= int(cost.coins)
+	album.photos[id]["upgrades"] = int(album.photos[id].get("upgrades", 0)) + 1
+	_count("photo_upgrades")
+	_apply_photo_roll(id, int(cost.level), "tutorial" if free else "upgrade", false, "upgrade")
+	return ""
+
+
+# --- Recompensas de coleção (Fotos do Tiro, etapa 10) -------------------------------------
+
+func _album_reward_table() -> Dictionary:
+	return _cards().get("rewards", {})
+
+
+## Seção ativa com todas as fotos já abertas (carta fechada não conta).
+func album_section_complete(section: String) -> bool:
+	var found := false
+	for entry: Dictionary in Database.album.photos:
+		if str(entry.section) != section: continue
+		found = true
+		if photo_rarity(str(entry.id)) <= 0: return false
+	return found
+
+
+## Fotos cuja melhor versão é Rara ou melhor.
+func rare_plus_count() -> int:
+	var total := 0
+	for id: String in album.photos:
+		if photo_rarity(id) >= 3: total += 1
+	return total
+
+
+func holo_owned() -> bool:
+	for id: String in album.photos:
+		if 4 in photo_variants(id): return true
+	return false
+
+
+## Prêmio de um marco (`kind`: section | styles | rare | holo; `key` = seção, foto ou quantidade).
+func album_milestone_rewards(kind: String, key: String = "") -> Dictionary:
+	var table := _album_reward_table()
+	match kind:
+		"section": return (table.get("section", {}) as Dictionary).duplicate(true)
+		"styles": return (table.get("styles", {}) as Dictionary).duplicate(true)
+		"rare": return (table.get("rare", {}).get(key, {}) as Dictionary).duplicate(true)
+		"holo": return (table.get("holo_first", {}) as Dictionary).duplicate(true)
+	return {}
+
+
+## Quantidades de Raras+ que têm prêmio, em ordem.
+func rare_milestones() -> Array[int]:
+	var result: Array[int] = []
+	for key: String in _album_reward_table().get("rare", {}):
+		result.append(int(key))
+	result.sort()
+	return result
+
+
+## Id estável do recibo/pagamento de um marco.
+func album_milestone_id(kind: String, key: String) -> String:
+	match kind:
+		"section": return "album:section:" + key
+		"styles": return "album:styles:" + key
+		"rare": return "album:rare:" + key
+	return "album:holo:first"
+
+
+func album_milestone_paid(kind: String, key: String) -> bool:
+	return economy.granted.has(album_milestone_id(kind, key))
+
+
+func _pay_album_milestone(kind: String, key: String) -> void:
+	var rewards := album_milestone_rewards(kind, key)
+	if rewards.is_empty() or album_milestone_paid(kind, key): return
+	if _grant_automatic(album_milestone_id(kind, key), rewards).paid:
+		Events.album_milestone.emit(kind, key)
+
+
+## Paga cada marco uma vez (abrir, tentar a sorte, melhorar e tutorial passam por aqui).
+func _check_album_rewards() -> void:
+	for section: String in Database.album.get("active_sections", []):
+		if album_section_complete(section): _pay_album_milestone("section", section)
+	for id: String in album.photos:
+		if photo_styles_complete(id): _pay_album_milestone("styles", id)
+	var rare := rare_plus_count()
+	for need in rare_milestones():
+		if rare >= need: _pay_album_milestone("rare", str(need))
+	if holo_owned(): _pay_album_milestone("holo", "first")
+
+
+## Próximos marcos para o álbum: {rare: {have, next, left, rewards}|{}, holo: {done}, section: {...}|{}}.
+## `section` = quantas fotos faltam abrir naquela seção para o prêmio dela.
+func album_milestones(section: String = "") -> Dictionary:
+	var result := {"rare": {}, "holo": {"done": holo_owned(), "rewards": album_milestone_rewards("holo")}, "section": {}}
+	var have := rare_plus_count()
+	for need in rare_milestones():
+		if have < need:
+			result["rare"] = {"have": have, "next": need, "left": need - have, "rewards": album_milestone_rewards("rare", str(need))}
+			break
+	if section != "":
+		var total := 0
+		var opened := 0
+		for entry: Dictionary in Database.album.photos:
+			if str(entry.section) != section: continue
+			total += 1
+			opened += 1 if photo_rarity(str(entry.id)) > 0 else 0
+		result["section"] = {"opened": opened, "total": total, "complete": total > 0 and opened >= total,
+			"paid": album_milestone_paid("section", section), "rewards": album_milestone_rewards("section")}
+	return result
+
+
+# --- Varal da home (até `cards.featured_slots` fotos) -------------------------------------
+
+func feature_photo_error(id: String) -> String:
+	if not album.has_photo(id): return "Você ainda não tem essa foto"
+	if photo_rarity(id) <= 0: return "Abra a carta primeiro"
+	if id in album.featured: return "Ela já está no varal"
+	if album.featured.size() >= int(_cards().get("featured_slots", 3)): return "Escolha qual sai"
+	return ""
+
+
+func feature_photo(id: String) -> String:
+	var error := feature_photo_error(id)
+	if error != "": return error
+	album.featured.append(id)
+	_changed()
+	return ""
+
+
+func unfeature_photo(id: String) -> String:
+	if id not in album.featured: return "Ela não está no varal"
+	album.featured.erase(id)
+	_changed()
+	return ""
+
+
+func featured_photos() -> Array[String]:
+	var result: Array[String] = []
+	for id: String in album.featured:
+		if photo_rarity(id) > 0: result.append(id)
+	return result
+
+
+# --- Tutorial das cartas (roteiro na etapa 09; aqui só o passo salvo) ---------------------
+
+## Passo atual (0 = ainda não começou); a tela avança com `advance_album_tutorial`.
+func album_tutorial_step() -> int:
+	return int(album.tutorial.get("step", 0))
+
+
+func album_tutorial_done() -> bool:
+	return bool(album.tutorial.get("done", false))
+
+
+## Só avança (nunca volta) e só enquanto o tutorial não terminou.
+func advance_album_tutorial(step: int) -> void:
+	if album_tutorial_done() or step <= album_tutorial_step(): return
+	album.tutorial["step"] = clampi(step, 0, 6)
+	_changed()
+
+
+func finish_album_tutorial() -> void:
+	if album_tutorial_done(): return
+	album.tutorial["done"] = true
+	_changed()
 
 
 ## Local escolhido para a soneca. No mapa, DogWorld confirma o lugar ao chegar.
@@ -4266,6 +4688,49 @@ func note_album_section(section: String) -> void:
 	if changed: _changed()
 
 
+## Consulta pura: segredos só entregam destino/progresso depois da lupa (ou da própria foto).
+func photo_hint(id: String) -> Dictionary:
+	var entry := Database.photo(id)
+	if entry.is_empty(): return {}
+	var secret := bool(entry.get("secret", false)) or str(entry.section) in ["tricks", "sleep"]
+	var revealed := not secret or album.has_photo(id) or int(album.hints.get(id, 0)) > 0
+	if not revealed:
+		return {"text": str(entry.get("hint", "Uma lembrança espera por vocês.")), "icon": "", "have": 0, "need": 0, "go": {}, "revealed": false}
+	var goal: Dictionary = entry.get("goal_hint", {})
+	var counter: Dictionary = goal.get("progress", {})
+	var stat := str(counter.get("stat", ""))
+	var have := 0
+	var need := maxi(0, int(counter.get("target", 0)))
+	if stat != "" and need > 0:
+		have = int(progress.customer_orders(stat.trim_prefix("customer_orders:")).count) if stat.begins_with("customer_orders:") else progress.stat(stat)
+	return {"text": str(goal.get("text", "")), "icon": str(goal.get("icon", "")), "have": clampi(have, 0, need), "need": need, "go": goal.get("go", {}).duplicate(true), "revealed": true}
+
+
+## Faltantes das seções ativas, mais perto primeiro; empate mantém a ordem do catálogo.
+func near_photos(limit: int = 3) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for entry: Dictionary in Database.album.photos:
+		var id := str(entry.id)
+		if album.has_photo(id) or str(entry.section) not in Database.album.active_sections: continue
+		var hint := photo_hint(id)
+		if not bool(hint.get("revealed", false)): continue
+		hint["id"] = id
+		result.append(hint)
+	# Inserção estável: catálogos pequenos (54) e nenhum estado/sorteio é alterado.
+	for i in range(1, result.size()):
+		var j := i
+		while j > 0:
+			var current: Dictionary = result[j]
+			var previous: Dictionary = result[j - 1]
+			var ratio: float = float(current.have) / int(current.need) if int(current.need) > 0 else 0.0
+			var prior: float = float(previous.have) / int(previous.need) if int(previous.need) > 0 else 0.0
+			if ratio <= prior: break
+			result[j] = previous
+			result[j - 1] = current
+			j -= 1
+	return result.slice(0, maxi(0, limit))
+
+
 func album_lupas_left() -> int:
 	var day := Time.get_date_string_from_unix_time(int(_local_time()))
 	var used := album.lupas_used if day <= album.lupa_day else 0
@@ -4274,7 +4739,7 @@ func album_lupas_left() -> int:
 
 func reveal_photo_hint(id: String) -> String:
 	var entry := Database.photo(id)
-	if entry.is_empty() or str(entry.section) not in ["tricks", "sleep"] or album.has_photo(id): return "Essa foto não precisa de lupa"
+	if entry.is_empty() or (str(entry.section) not in ["tricks", "sleep"] and not bool(entry.get("secret", false))) or album.has_photo(id): return "Essa foto não precisa de lupa"
 	if int(album.hints.get(id, 0)) > 0: return ""
 	if album_lupas_left() <= 0: return "A lupa volta amanhã"
 	var day := Time.get_date_string_from_unix_time(int(_local_time()))
@@ -4336,7 +4801,14 @@ func album_hint_glow_map() -> Dictionary:
 
 ## Foto tirada ({} se ainda não): data, fase e pelo gravados no dia.
 func photo_info(id: String) -> Dictionary:
-	return album.photos.get(id, {}).duplicate()
+	var info: Dictionary = album.photos.get(id, {}).duplicate(true)
+	if not info.is_empty():
+		info["rarity"] = photo_rarity(id)
+		info["shown_rarity"] = photo_shown_rarity(id)
+		info["sealed"] = photo_sealed(id)
+		info["opened"] = float(info.get("opened_at", 0.0)) > 0.0
+		info["variants"] = photo_variants(id)
+	return info
 
 
 func photo_count() -> int:
@@ -4526,10 +4998,33 @@ func mark_photo_seen(id: String) -> void:
 		_changed()
 
 
-func dev_take_photo(id: String) -> void:
+func dev_take_photo(id: String, rarity: int = 0) -> void:
 	if not BuildInfo.is_dev(): return
-	if Database.photo(id).is_empty() or album.has_photo(id): return
-	_take_photo(id)
+	if Database.photo(id).is_empty(): return
+	var level := clampi(rarity, 0, 4)
+	if not album.has_photo(id): _take_photo(id)
+	if level == 0:
+		if photo_rarity(id) > 0: return
+		level = _roll_rarity(id)
+	elif level in photo_variants(id):
+		return
+	if photo_rarity(id) <= 0 and photo_sealed(id) > 0:
+		album.photos[id]["sealed"] = photo_sealed(id) - 1
+	_apply_photo_roll(id, level, "open", true)
+
+
+## Cria uma carta fechada (ou soma mais uma) sem esperar o momento da foto.
+func dev_seal_photo(id: String) -> void:
+	if not BuildInfo.is_dev(): return
+	if Database.photo(id).is_empty(): return
+	if album.has_photo(id): _seal_photo(id)
+	else: _take_photo(id)
+	_changed()
+
+
+func dev_reset_album_tutorial() -> void:
+	if not BuildInfo.is_dev(): return
+	album.tutorial = {"step": 0, "done": false}
 	_changed()
 
 

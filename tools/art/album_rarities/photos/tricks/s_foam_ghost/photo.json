@@ -1,0 +1,124 @@
+{
+  "id": "s_foam_ghost",
+  "title": "Fantasminha de espuma",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "puppy",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/s_foam_ghost",
+  "trigger": {
+    "on": "petted",
+    "when": {
+      "within": {
+        "event": "bathed",
+        "seconds": 10
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_foam_ghost.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "shake_off",
+      "frame": 2
+    },
+    "props": [
+      "foam"
+    ]
+  },
+  "scene_description": "Playful foam ghost: tiny black-and-tan floppy-eared Yorkie puppy immediately after bath with harmless fluffy white soap bubbles loosely piled over crown and shoulders like a funny little ghost costume, eyes and nose clearly unobstructed. One gentle hand pets his head affectionately. Low washbasin and towel nearby in cozy home corner, innocent funny expression, not scary.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_foam_ghost.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_foam_ghost.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_foam_ghost/photo.json",
+  "batch_id": "batch_005",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_foam_ghost/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_foam_ghost/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.683319+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f8f18b0e-8b5c-4794-aa07-dd01c4142f1f.png",
+          "completed_at": "2026-11-06T22:24:47.382151+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_foam_ghost/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f8f18b0e-8b5c-4794-aa07-dd01c4142f1f.png",
+      "completed_at": "2026-11-06T22:24:47.382151+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "99423cebd33ede23ff118e7ec779a68d76e95c1e315d7b9c20eaa1e3d36d772d",
+      "reviewed_at": "2026-11-06T22:38:02.727721+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_foam_ghost/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_foam_ghost/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.683319+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-bab0cc30-bf14-4067-a3e3-4483dea22b0c.png",
+          "completed_at": "2026-11-06T22:25:15.858798+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_foam_ghost/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-bab0cc30-bf14-4067-a3e3-4483dea22b0c.png",
+      "completed_at": "2026-11-06T22:25:15.858798+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "49e4f8440f2ba07dbb4208eff938d56af44e4915ec8b5ce0f43ee90e8bf17190",
+      "reviewed_at": "2026-11-06T22:38:03.019682+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_foam_ghost/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_foam_ghost/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.683319+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2b19b109-5f05-4c05-8bfa-aee7503b3cab.png",
+          "completed_at": "2026-11-06T22:25:55.833776+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_foam_ghost/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2b19b109-5f05-4c05-8bfa-aee7503b3cab.png",
+      "completed_at": "2026-11-06T22:25:55.833776+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "1df337cfda55edcad83bab86d84b8a30c9effaa35aa77b0c096c2943431640e5",
+      "reviewed_at": "2026-11-06T22:38:03.316314+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_foam_ghost/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_foam_ghost/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.684301+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2504d27e-ecc1-450a-9010-932f7660c699.png",
+          "completed_at": "2026-11-06T22:26:34.558792+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_foam_ghost/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2504d27e-ecc1-450a-9010-932f7660c699.png",
+      "completed_at": "2026-11-06T22:26:34.558792+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "a519dec9a9d1db151a82bbacf4e7186ce179ffa0f9bd95ae1e1250aeeced4bdc",
+      "reviewed_at": "2026-11-06T22:38:03.610537+00:00"
+    }
+  }
+}

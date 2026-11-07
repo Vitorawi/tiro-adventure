@@ -1,0 +1,127 @@
+{
+  "id": "h_first_night",
+  "title": "Primeira noite",
+  "section": "story",
+  "section_name": "História",
+  "phase": "newborn",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/h_first_night",
+  "trigger": {
+    "on": [
+      "slept",
+      "quest_claimed"
+    ],
+    "when": {
+      "quests": [
+        "lais_bed"
+      ],
+      "stat_min": {
+        "sleep_started": 1
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_first_night.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "sleep",
+      "frame": 0
+    },
+    "props": []
+  },
+  "scene_description": "His FIRST NIGHT at home: very tiny floppy-eared black-and-tan puppy sleeping peacefully in his simple small cream dog bed, under a little soft blanket, moonlit window and dim warm bedside light, reassuring safe home corner. Unlike a daytime nap, clearly nighttime.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_first_night.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_first_night.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_first_night/photo.json",
+  "batch_id": "batch_001",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_first_night/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_first_night/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.482704+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-ca64067c-e84f-47ab-8e92-f126d4ec209b.png",
+          "completed_at": "2026-11-06T19:15:19.862537+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_first_night/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-ca64067c-e84f-47ab-8e92-f126d4ec209b.png",
+      "completed_at": "2026-11-06T19:15:19.862537+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "56b0a974ab995aa4982e190987aec1df2b127d044221bced57a6ae1c184a579e",
+      "reviewed_at": "2026-11-06T19:17:48.169736+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_first_night/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_first_night/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.482704+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-17122350-88f9-4c71-b02a-0c2dd1df6b04.png",
+          "completed_at": "2026-11-06T19:15:22.487343+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_first_night/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-17122350-88f9-4c71-b02a-0c2dd1df6b04.png",
+      "completed_at": "2026-11-06T19:15:22.487343+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "2e9055b52c7679778251fcac2cb6a1f6cde7e98a96ad965cbfe691ecfda58616",
+      "reviewed_at": "2026-11-06T19:17:48.478772+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_first_night/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_first_night/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.483705+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-54dbb581-be41-4b7c-880c-9ee36f56176d.png",
+          "completed_at": "2026-11-06T19:15:25.103644+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_first_night/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-54dbb581-be41-4b7c-880c-9ee36f56176d.png",
+      "completed_at": "2026-11-06T19:15:25.103644+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "28d703ed874ff379678e554d52290534ae244599ce41e041f5e9461cc689ba14",
+      "reviewed_at": "2026-11-06T19:17:48.785410+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_first_night/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_first_night/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.483705+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-cae6e791-31f1-45d1-be70-11eada5ef995.png",
+          "completed_at": "2026-11-06T19:15:27.797780+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_first_night/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-cae6e791-31f1-45d1-be70-11eada5ef995.png",
+      "completed_at": "2026-11-06T19:15:27.797780+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "48aef4fe510139a1fd2888489ba25670103c5781e88ad3b8356abc7ea0d3893f",
+      "reviewed_at": "2026-11-06T19:17:49.102279+00:00"
+    }
+  }
+}

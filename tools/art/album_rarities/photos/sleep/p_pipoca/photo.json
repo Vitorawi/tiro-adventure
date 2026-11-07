@@ -1,0 +1,122 @@
+{
+  "id": "p_pipoca",
+  "title": "Encostadinhos",
+  "section": "sleep",
+  "section_name": "Soninhos",
+  "phase": "adult",
+  "game_scene": "house",
+  "source_definition": "game/data/album.json#photos/p_pipoca",
+  "trigger": {
+    "on": "friend_visit",
+    "when": {
+      "sleeping": true,
+      "item": "pipoca",
+      "dog_in_world": "house"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/p_pipoca.png",
+    "scene": "house",
+    "pose": {
+      "clip": "sleep",
+      "frame": 0
+    },
+    "props": [],
+    "friend": "pipoca"
+  },
+  "scene_description": "Sleeping side by side at home: adult little Yorkshire Tiro with golden tan head and steel-blue back asleep snuggled against Pipoca, the slightly larger caramel mixed-breed dog with cream muzzle and chest and tall ears from supporting portrait. Both sleeping peacefully with heads gently touching on a shared cream rug by the orange sofa. Exactly TWO dogs, distinguish breeds and size, warm evening light and quiet domestic comfort. CRITICAL Pipoca has SHORT SMOOTH fur, a slim caramel mixed-breed face and cream muzzle, NOT a Yorkshire beard, not long shaggy hair. Only Tiro has silky long fur.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/p_pipoca.png",
+  "original_capture": "docs/art/album_ilustrado/originais/p_pipoca.png",
+  "manifest_path": "tools/art/album_rarities/photos/sleep/p_pipoca/photo.json",
+  "batch_id": "batch_008",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_pipoca/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_pipoca/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.105456+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ae6c55c5-b66e-439c-a768-099fae8f47b8.png",
+          "completed_at": "2026-11-06T23:18:06.248614+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_pipoca/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ae6c55c5-b66e-439c-a768-099fae8f47b8.png",
+      "completed_at": "2026-11-06T23:18:06.248614+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "b0d9c5882bf850f07aaaf3296c1fe1292fc60dbcc460aba1013f564840767537",
+      "reviewed_at": "2026-11-06T23:31:52.460932+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_pipoca/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_pipoca/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.105456+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-6f4a3b26-3ce1-4a8b-a4cf-c50c2412a34d.png",
+          "completed_at": "2026-11-06T23:18:37.446936+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_pipoca/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-6f4a3b26-3ce1-4a8b-a4cf-c50c2412a34d.png",
+      "completed_at": "2026-11-06T23:18:37.446936+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "98fb003eba8bf80502aa2404ee579f81edc7a17cfc33f14ccc85c87fad84035b",
+      "reviewed_at": "2026-11-06T23:31:52.783433+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_pipoca/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_pipoca/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.106456+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5de71cb3-9e77-4097-8b54-68e04cf5a873.png",
+          "completed_at": "2026-11-06T23:19:14.965271+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_pipoca/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5de71cb3-9e77-4097-8b54-68e04cf5a873.png",
+      "completed_at": "2026-11-06T23:19:14.965271+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c401c93acb9685a2747f89c9156f94ae9e7d953d207d5c835cf7b7bec152d710",
+      "reviewed_at": "2026-11-06T23:31:53.100862+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_pipoca/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_pipoca/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.106456+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1f2f8f56-99e2-466d-848d-4889abed72c8.png",
+          "completed_at": "2026-11-06T23:19:49.057231+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_pipoca/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1f2f8f56-99e2-466d-848d-4889abed72c8.png",
+      "completed_at": "2026-11-06T23:19:49.057231+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "7ddd3cb45063fc2aa161af080dae392b2a4880dae3c8aa4891a49f7b8541c37f",
+      "reviewed_at": "2026-11-06T23:31:53.408936+00:00"
+    }
+  }
+}

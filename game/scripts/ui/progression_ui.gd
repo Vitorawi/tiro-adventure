@@ -29,8 +29,7 @@ static func npc_introduction(npc_id: String, index: int = 0) -> Control:
 	else:
 		var bubble := speech.find_parent("SpeechBubble") as Control
 		bubble.mouse_filter = Control.MOUSE_FILTER_STOP
-		bubble.gui_input.connect(func(event: InputEvent) -> void:
-			if event is InputEventMouseButton and not event.pressed and event.button_index == MOUSE_BUTTON_LEFT: advance.call())
+		UiKit.on_tap(bubble, advance)
 		var next := StepCardUi.go_button("Continuar", advance)
 		next.name = "IntroductionNext"
 		next.size_flags_horizontal = Control.SIZE_SHRINK_END
@@ -438,53 +437,63 @@ static func orders_panel(focus: String = "") -> Control:
 
 # --- Rotas (passeios, mina, pomar) ------------------------------------------------------
 
-## Rotas de um ou mais grupos ("orchard"...). Só uma por vez em todo o jogo. Mesmo molde das
-## estações: o espaço com a rota em andamento em cima, as rotas para escolher embaixo.
+## Rotas de um ou mais grupos ("orchard"...). Só uma por vez em todo o jogo. Madeira ilustrada: o espaço com a rota
+## em andamento em cima (faixa de madeira), as rotas para escolher embaixo.
 static func routes_panel(place: String, focus: String = "") -> Control:
 	var groups := place.split("+")
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+	return ProjectUi.wood_sheet(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		box.add_theme_constant_override("separation", 10)
 		var activity: Dictionary = GameState.progress.activity
 		var remaining := GameState.activity_remaining() if not activity.is_empty() else 0
-		var slot_row := SheetBuilder.slot_flow()
 		var running_data: Dictionary = {}
+		var slot: Control
 		if activity.is_empty():
-			slot_row.add_child(SheetBuilder.slot_frame(null, "", 0.0, false, true))
+			slot = StationWood.Slot.new("empty")
 		else:
 			var running: Dictionary = Database.progression.activities.get(activity.id, {})
 			running_data = running
-			var icon_name: String = running.get("icon", "")
 			var duration := maxf(1.0, float(activity.ready_at) - float(activity.started_at))
-			slot_row.add_child(SheetBuilder.slot_frame(UiKit.ui_icon(icon_name), "Pronto!" if remaining == 0 else TimeText.short(remaining), 1.0 - remaining / duration, remaining == 0, false))
-		var collect_text := "Pegar" if not activity.is_empty() and remaining == 0 else ""
-		box.add_child(SheetBuilder.slot_strip(slot_row, collect_text, func() -> void:
-			var error := GameState.collect_activity()
-			if error != "":
-				Events.toast_requested.emit(error)
-			else:
-				Events.items_gained.emit(running_data.get("rewards", {}).get("items", {}), int(running_data.get("rewards", {}).get("coins", 0)), Vector2(-1.0, -1.0))))
-		box.add_child(UiKit.section("Rotas"))
+			var running_item := str(running.get("rewards", {}).get("items", {}).keys()[0]) if not running.get("rewards", {}).get("items", {}).is_empty() else ""
+			var icon := Database.item_icon(running_item) if running_item != "" else UiKit.ui_icon(str(running.get("icon", "")))
+			slot = StationWood.Slot.new("ready" if remaining == 0 else "busy", running_item, icon, 1.0 - remaining / duration, "" if remaining == 0 else TimeText.short(remaining))
+		var strip := UiKit.hbox(10)
+		strip.alignment = BoxContainer.ALIGNMENT_CENTER
+		strip.add_child(slot)
+		if not activity.is_empty() and remaining == 0:
+			var collect := StepCardUi.go_button("Pegar", func() -> void:
+				var error := GameState.collect_activity()
+				if error != "":
+					Events.toast_requested.emit(error)
+				else:
+					Events.items_gained.emit(running_data.get("rewards", {}).get("items", {}), int(running_data.get("rewards", {}).get("coins", 0)), Vector2(-1.0, -1.0)))
+			collect.name = "CollectRoute"
+			collect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			collect.custom_minimum_size.x = 120.0
+			strip.add_child(collect)
+		box.add_child(StationWood.tray_strip(strip, "RouteSlot"))
+		var heading := StepCardUi.wood("Rotas", 18)
+		heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		box.add_child(heading)
 		for id: String in Database.progression.activities:
 			var data: Dictionary = Database.progression.activities[id]
 			if not str(data.get("place", "walk")) in groups or (focus != "" and id != focus):
 				continue
-			var chips: Array[Control] = [UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(data.seconds)))]
+			var chips: Array[Control] = [StepCardUi.wood_chip(UiKit.ctl_icon("clock"), TimeText.short(int(data.seconds)))]
 			for item: String in data.rewards.get("items", {}):
-				chips.append(UiKit.chip(Database.item_icon(item), "+%d" % int(data.rewards.items[item]), Palette.GO_INK))
+				chips.append(StepCardUi.wood_chip(Database.item_icon(item), "+%d" % int(data.rewards.items[item]), "have"))
 			if int(data.rewards.get("coins", 0)) > 0:
-				chips.append(UiKit.chip(UiKit.ui_icon("coin"), "+%d" % int(data.rewards.coins), Palette.GO_INK))
+				chips.append(StepCardUi.wood_chip(UiKit.ui_icon("coin"), "+%d" % int(data.rewards.coins), "have"))
 			var reason := GameState.activity_error(id)
-			var go := UiKit.soft("Começar", func() -> void:
+			var go := WelcomeSheet._button("Começar", false, 96.0, "StartRoute_" + id, func() -> void:
 				var error := GameState.start_activity(id)
 				if error != "":
-					Events.toast_requested.emit(error), null, true)
-			go.custom_minimum_size.x = 88
-			var row := UiKit.list_row(UiKit.ui_icon(data.get("icon", "")), str(data.name), chips, go if reason == "" else null)
-			box.add_child(row)
+					Events.toast_requested.emit(error))
+			var line := ProjectUi.row("Route_" + id, UiKit.ui_icon(data.get("icon", "")), str(data.name), chips, go if reason == "" else null, Callable(), reason != "")
+			box.add_child(line)
 			if reason != "":
 				go.free()
-				var hint := UiKit.lock_hint(reason, TaskHelp.open.bind("route", id))
-				(row.get_child(0) as VBoxContainer).add_child(hint)
-	)
+				box.add_child(StepCardUi.lock_note(reason, TaskHelp.open.bind("route", id)))
+	))
 
 
 # --- Passeios -------------------------------------------------------------------------
@@ -692,73 +701,66 @@ static func walk_materials(id: String) -> Array[String]:
 	return result
 
 
-## Fileira de materiais + apetrecho raro do passeio: colorido = já achou, silhueta = ainda não.
-static func walk_exclusives(id: String, px: int) -> Control:
-	var row := UiKit.flow(4)
-	row.name = "WalkExclusives"
-	for item: String in walk_materials(id):
-		var picture := UiKit.icon(Database.item_icon(item), px)
-		picture.name = "Material_" + item
-		if GameState.progress.stat("walk_item:" + item) == 0:
-			_silhouette(picture)
-		row.add_child(picture)
-	var rare := str(GameState.walk_def(id).get("loot", {}).get("rare", {}).get("collection", ""))
-	if rare != "":
-		var own := GameState.progress.collection.has(rare)
-		var cell := UiKit.hbox(2)
-		var picture := UiKit.icon(UiKit.ui_icon(str(Database.collections.get(rare, {}).get("icon", ""))), px)
-		picture.name = "Rare_" + rare
-		if not own:
-			_silhouette(picture)
-		cell.add_child(picture)
-		if own:
-			cell.add_child(UiKit.label("✓", &"SmallLabel", Palette.GO_INK))
-		row.add_child(cell)
-	return row
+## Faixa "Pode achar:" do passeio (a mesma da folha de Passeios): pratinhos coloridos, sem silhueta preta.
+static func walk_exclusives(id: String, _px: int = 32) -> Control:
+	return WalksUi._strip(WalksUi._finds(id))
 
 
 static func _silhouette(picture: Control) -> void:
-	picture.modulate = Palette.INK
+	picture.modulate = Color(0.4, 0.33, 0.28)
 
 
-## Diário de passeios: um bloco por passeio (silhueta e requisitos enquanto bloqueado).
+## Diário de passeios (madeira ilustrada): um bloco por passeio (silhueta e requisitos enquanto bloqueado).
 static func walk_diary() -> Control:
-	return SheetBuilder.tall(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+	return ProjectUi.wood_sheet(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		box.add_theme_constant_override("separation", 10)
 		var legendary: Dictionary = Database.walks.get("legendary", {})
 		if not legendary.is_empty() and GameState.progress.feature_unlocked("legendary_walks"):
-			var card := UiKit.card(box)
-			card.add_child(UiKit.label("Conjunto de esponjinha · LENDÁRIO", &"StrongLabel"))
+			var card := StepCardUi.inner_card(box, "LegendaryCard")
+			var title := StepCardUi.wood("Conjunto de esponjinha · LENDÁRIO", 17)
+			title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			card.add_child(title)
+			var pieces := HFlowContainer.new()
+			pieces.add_theme_constant_override("h_separation", 6)
+			pieces.add_theme_constant_override("v_separation", 4)
 			for id: String in legendary.get("collections", []):
-				var row := UiKit.hbox(8)
-				row.add_child(UiKit.icon(Database.item_icon(id), 48))
-				row.add_child(UiKit.fill_label(Database.item_name(id) if GameState.progress.collection.has(id) else "?", &"SmallLabel"))
-				card.add_child(row)
+				var owned := GameState.progress.collection.has(id)
+				pieces.add_child(StepCardUi.wood_chip(Database.item_icon(id), Database.item_name(id) if owned else "?", "have" if owned else ""))
+			card.add_child(pieces)
 			var error := GameState.requirement_error(legendary.get("requirements", {}))
 			var complete: bool = legendary.get("collections", []).all(func(id: String) -> bool: return GameState.progress.collection.has(id))
-			card.add_child(UiKit.label("Conjunto completo!" if complete else (error if error != "" else "Lendário em até %d voltas" % maxi(1, int(legendary.pity) - int(GameState.walk_state.pity.get("legendary", 0)))), &"SmallLabel"))
+			var note := StepCardUi.wood("Conjunto completo!" if complete else (error if error != "" else "Lendário em até %d voltas" % maxi(1, int(legendary.pity) - int(GameState.walk_state.pity.get("legendary", 0)))), 14, Color(Palette.WOOD_INK, 0.85))
+			note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			card.add_child(note)
 		for id: String in Database.walks.get("walks", {}):
 			var data: Dictionary = Database.walks.walks[id]
 			var locked := GameState.walk_lock_error(id) != ""
 			var rare := str(data.get("loot", {}).get("rare", {}).get("collection", ""))
 			var found := rare != "" and GameState.progress.collection.has(rare)
-			var body := UiKit.card(box, &"ReadyCardPanel" if found else &"CardPanel")
-			body.get_parent().name = "Diary_" + id
+			var body := StepCardUi.inner_card(box, "Diary_" + id)
 			var top := UiKit.hbox(10)
+			top.mouse_filter = Control.MOUSE_FILTER_IGNORE
 			var picture := _postcard(GameState.walk_postcard(id), Vector2(128, 80))
 			if locked:
 				_silhouette(picture)
 			top.add_child(picture)
 			var info := UiKit.vbox(4)
 			info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			info.add_child(UiKit.label("???" if locked else str(data.name), &"StrongLabel"))
+			info.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			info.add_child(StepCardUi.wood("???" if locked else str(data.name), 18))
 			if locked:
-				var chips := UiKit.flow()
-				chips.add_child(UiKit.lock_icon())
+				var chips := HFlowContainer.new()
+				chips.add_theme_constant_override("h_separation", 6)
+				chips.add_theme_constant_override("v_separation", 4)
+				var lock := UiKit.ctl("lock", 20, Palette.WOOD_INK)
+				chips.add_child(lock)
 				for chip: Control in _walk_requirement_chips(data.get("requirements", {})):
 					chips.add_child(chip)
 				info.add_child(chips)
 			else:
-				info.add_child(UiKit.chip(UiKit.ui_icon("action_walk"), "×%d" % GameState.progress.stat("walk:" + id)))
+				var visits := StepCardUi.wood_chip(UiKit.ui_icon("action_walk"), "×%d" % GameState.progress.stat("walk:" + id))
+				visits.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+				info.add_child(visits)
 			top.add_child(info)
 			body.add_child(top)
 			if locked:
@@ -766,8 +768,9 @@ static func walk_diary() -> Control:
 			body.add_child(walk_exclusives(id, 32))
 			if rare != "":
 				var left := GameState.walk_pity_left(id)
-				var note := UiKit.label("Raro encontrado ✓" if found else "Raro garantido em até %d passeios" % left, &"SmallLabel", Palette.GO_INK if found else null)
+				var note := StepCardUi.wood("Raro encontrado ✓" if found else "Raro garantido em até %d passeios" % left, 14, Palette.GO_INK if found else Color(Palette.WOOD_INK, 0.85))
 				note.name = "Pity"
+				note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 				body.add_child(note)))
 
 
@@ -829,16 +832,16 @@ static func _next_milestone(skill_id: String, current: int) -> Dictionary:
 static var _collection_tab := "clothes"
 
 
-## Compras do quiosque; a costura tem acesso próprio e usa StationTray.
+## Compras do quiosque (madeira ilustrada); a costura tem acesso próprio e usa StationTray.
 static func petshop_panel() -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
-		box.add_child(UiKit.section("Comprar"))
-		# Cartões de 2 colunas: figura em disco, nome e preço em pílula verde pequena.
+	return ProjectUi.wood_sheet(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		box.add_theme_constant_override("separation", 10)
+		# Cartões de 2 colunas: figura no pratinho, nome, preço em pílula e uma ação calma de madeira.
 		var grid := GridContainer.new()
 		grid.name = "ShopGrid"
 		grid.columns = 2
-		grid.add_theme_constant_override("h_separation", 12)
-		grid.add_theme_constant_override("v_separation", 12)
+		grid.add_theme_constant_override("h_separation", 8)
+		grid.add_theme_constant_override("v_separation", 8)
 		box.add_child(grid)
 		for id: String in Database.collections:
 			var data: Dictionary = Database.collections[id]
@@ -847,18 +850,18 @@ static func petshop_panel() -> Control:
 			var own := GameState.progress.collection.has(id)
 			var blocked := (GameState.equip_error(id) if own else GameState.buy_cosmetic_error(id)) != ""
 			var card := _shop_card(grid, "ShopCard_" + id, Database.item_icon(id), str(data.name), blocked and not own)
-			var button: Button
 			var act := func() -> void:
 				var error := GameState.equip(id) if own else GameState.buy_cosmetic(id)
 				if error != "":
 					Events.toast_requested.emit(error)
+			var button: Button
 			if own:
-				button = UiKit.soft("Vestir", act, null, true)
+				button = WelcomeSheet._button("Vestir", false, 112.0, "Wear_" + id, act)
 			else:
-				button = UiKit.button("%d" % int(data.price), act, &"SmallGoButton", UiKit.ui_icon("coin"))
-				button.custom_minimum_size = Vector2(44, 44)
+				card.add_child(_price_tag(int(data.price)))
+				button = WelcomeSheet._button("Comprar", false, 112.0, "Buy_" + id, act)
 			var reason := GameState.equip_error(id) if own else GameState.buy_cosmetic_error(id)
-			card.add_child(UiKit.action_or_hint(button, reason, TaskHelp.open.bind("item", id), UiKit.ui_icon("coin") if not own and GameState.coins < int(data.price) else null))
+			card.add_child(ProjectUi.action_or_note(button, reason, TaskHelp.open.bind("item", id), UiKit.ui_icon("coin") if not own and GameState.coins < int(data.price) else null))
 		for id: String in Database.progression.get("shop_items", {}):
 			var data: Dictionary = Database.progression.shop_items[id]
 			if data.get("shop", "") != "petshop":
@@ -866,48 +869,62 @@ static func petshop_panel() -> Control:
 			var blocked := GameState.buy_shop_item_error(id) != ""
 			var first_item := str(data.items.keys()[0])
 			var card := _shop_card(grid, "ShopCard_" + id, Database.item_icon(first_item), str(data.name), blocked)
-			var chips := reward_chips({"items": data.items})
+			var chips := ProjectUi.reward_chips({"items": data.items})
 			chips.alignment = FlowContainer.ALIGNMENT_CENTER
 			card.add_child(chips)
-			var button := UiKit.button("%d" % int(data.price), func() -> void:
+			card.add_child(_price_tag(int(data.price)))
+			var button := WelcomeSheet._button("Comprar", false, 112.0, "Buy_" + id, func() -> void:
 				var error := GameState.buy_shop_item(id)
 				if error != "":
-					Events.toast_requested.emit(error), &"SmallGoButton", UiKit.ui_icon("coin"))
-			button.custom_minimum_size = Vector2(44, 44)
-			card.add_child(UiKit.action_or_hint(button, GameState.buy_shop_item_error(id), TaskHelp.open.bind("item", first_item), UiKit.ui_icon("coin") if GameState.coins < int(data.price) else null))
+					Events.toast_requested.emit(error))
+			card.add_child(ProjectUi.action_or_note(button, GameState.buy_shop_item_error(id), TaskHelp.open.bind("item", first_item), UiKit.ui_icon("coin") if GameState.coins < int(data.price) else null))
 		if not GameState.has_upgrade("walk_bag"):
 			box.add_child(purchase("walk_bag"))
-	)
+	))
 
-## Cartão de loja de uma coluna da grade: figura em disco + nome; o chamador acrescenta chips e o botão.
-## `dim` apaga figura e nome (indisponível); o motivo vem em chips/dica, nunca num botão cinza mudo.
+
+## Preço em pílula de madeira (moeda + valor), vermelha se faltam moedas.
+static func _price_tag(price: int) -> Control:
+	var chip := StepCardUi.wood_chip(UiKit.ui_icon("coin"), str(price), "missing" if GameState.coins < price else "")
+	chip.name = "Price"
+	chip.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	return chip
+
+
+## Cartão de loja de uma coluna da grade: pratinho com a figura + nome; o chamador acrescenta chips e a ação.
+## `dim` apaga figura e nome (indisponível); o motivo vem num botão bloqueado de madeira, nunca num botão cinza mudo.
 static func _shop_card(grid: GridContainer, card_name: String, texture: Texture2D, title: String, dim: bool) -> VBoxContainer:
-	var cell := VBoxContainer.new()
-	cell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var body := UiKit.card(cell)
-	body.get_parent().name = card_name
-	body.add_theme_constant_override("separation", 6)
-	var figure := UiKit.disc(texture, 80, 48)
-	figure.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	figure.modulate.a = 0.55 if dim else 1.0
-	body.add_child(figure)
-	var name_label := UiKit.short_label(title, &"StrongLabel")
+	var card := MissionUi.card("card", Vector4i(8, 10, 8, 10), card_name, 10)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	card.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	var body := UiKit.vbox(6)
+	body.alignment = BoxContainer.ALIGNMENT_CENTER
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	MissionUi.body(card).add_child(body)
+	var plate := HelpUi._plate(texture, "", 76.0, 64.0, "ShopPicture")
+	plate.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	plate.modulate.a = 0.55 if dim else 1.0
+	body.add_child(plate)
+	var name_label := StepCardUi.wood(title, 16)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	name_label.modulate.a = 0.55 if dim else 1.0
 	body.add_child(name_label)
-	grid.add_child(cell)
+	grid.add_child(card)
 	return body
 
 
 static func collection_panel() -> Control:
-	return SheetBuilder.tall(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+	return ProjectUi.wood_sheet(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		box.add_theme_constant_override("separation", 10)
 		var entries: Array[Dictionary] = [{"id": "clothes", "text": "Roupas"}]
 		for entry: Dictionary in [{"id": "finds", "text": "Achados"}, {"id": "friends", "text": "Amigos"}]:
 			if GameState.progress.feature_unlocked(entry.id): entries.append(entry)
 		if not entries.any(func(entry: Dictionary) -> bool: return entry.id == _collection_tab): _collection_tab = "clothes"
-		box.add_child(UiKit.section_links(entries, _collection_tab, func(id: String) -> void:
+		var tabs := MissionUi.tabs(entries, _collection_tab, func(id: String) -> void:
 			_collection_tab = id
-			(box as SheetBuilder.LiveBox).refresh()))
+			(box as SheetBuilder.LiveBox).refresh())
+		box.add_child(tabs)
 		match _collection_tab:
 			"friends": box.add_child(FriendUi.album())
 			"finds": box.add_child(FindUi.album())
@@ -917,6 +934,7 @@ static func collection_panel() -> Control:
 
 static func _clothes_panel() -> Control:
 	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		box.add_theme_constant_override("separation", 10)
 		var count := 0
 		var total := 0
 		var grid := GridContainer.new()
@@ -924,6 +942,7 @@ static func _clothes_panel() -> Control:
 		grid.columns = 3
 		grid.add_theme_constant_override("h_separation", 8)
 		grid.add_theme_constant_override("v_separation", 8)
+		grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		for id: String in Database.collections:
 			var data: Dictionary = Database.collections[id]
 			var earned := GameState.progress.collection.has(id)
@@ -933,68 +952,71 @@ static func _clothes_panel() -> Control:
 			total += 1
 			count += 1 if earned else 0
 			var wearing := earned and str(GameState.progress.equipped.get(str(data.slot), "")) == id
-			var tile := UiKit.tile(UiKit.ui_icon(data.icon), str(data.name) if earned else "?", "worn" if wearing else "sunken")
-			tile.pressed.connect(func() -> void:
-				if not earned:
-					Events.sheet_requested.emit(str(data.name), _clothing_source(id))
-					return
-				var on_now := str(GameState.progress.equipped.get(str(data.slot), "")) == id
-				var error := GameState.unequip(str(data.slot)) if on_now else GameState.equip(id)
-				if error != "": Events.toast_requested.emit(error))
-			tile.custom_minimum_size = Vector2(0, 112)
-			tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			tile.name = "Equip_" + id
-			var caption := tile.get_node("Visual").get_child(1) as Label
-			caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-			caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-			caption.custom_minimum_size.x = 80
-			var mark: Control = null
-			if wearing:
-				# Disquinho verde com ✓ no canto: vestida.
-				mark = UiKit.disc(UiKit.ctl_icon("check"), 24, 16)
-				mark.add_theme_stylebox_override("panel", UiKit.surface(Palette.GO, 12))
-				var tick := mark.get_child(0) as TextureRect
-				tick.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
-				tick.self_modulate = Palette.CARD
-				mark.name = "EquippedCheck"
-			elif not earned:
-				mark = UiKit.ctl("lock", 18)
-				mark.name = "ClothingLock"
-				_silhouette(tile.get_node("Visual/Picture"))
-				if str(data.get("source", "")).begins_with("walk:") or str(data.get("source", "")).begins_with("legendary:"):
-					mark.name = "RareHint_" + id
-					mark.tooltip_text = "Raro de passeio"
-			if mark != null:
-				tile.add_child(mark)
-				mark.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-				mark.offset_left = -30.0
-				mark.offset_right = -6.0
-				mark.offset_top = 6.0
-				mark.offset_bottom = 30.0
+			var tile := CodexUi.tile({
+				"name": "Equip_" + id, "icon": UiKit.ui_icon(data.icon), "caption": str(data.name) if earned else "?",
+				"dim": not earned, "mark": "check" if wearing else ("lock" if not earned else ""),
+				"tooltip": "Raro de passeio" if not earned and (str(data.get("source", "")).begins_with("walk:") or str(data.get("source", "")).begins_with("legendary:")) else "",
+				"on_tap": func() -> void:
+					if not earned:
+						Events.sheet_requested.emit(str(data.name), _clothing_source(id))
+						return
+					var on_now := str(GameState.progress.equipped.get(str(data.slot), "")) == id
+					var error := GameState.unequip(str(data.slot)) if on_now else GameState.equip(id)
+					if error != "": Events.toast_requested.emit(error),
+			}, 92.0, 112.0)
+			if not earned:
+				var picture := tile.get_node_or_null("Picture") as CanvasItem
+				if picture != null:
+					picture.modulate = Color(0, 0, 0, 0.45)
+				var lock := tile.get_node_or_null("ClothingLock") as Control
+				if lock != null and (str(data.get("source", "")).begins_with("walk:") or str(data.get("source", "")).begins_with("legendary:")):
+					lock.name = "RareHint_" + id
 			grid.add_child(tile)
-		box.add_child(UiKit.collection_progress(count, total))
+		var progress := StepCardUi.wood_chip(null, "%d/%d" % [count, total])
+		progress.name = "CollectionProgress"
+		progress.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		box.add_child(progress)
 		box.add_child(grid)
 	)
 
 
-## Origem fica no detalhe para manter os quadrados compactos.
+## Origem fica no detalhe para manter os quadrados compactos (folha de madeira com o ícone e a ação calma).
 static func _clothing_source(id: String) -> Control:
-	var box := UiKit.vbox(8)
+	var box := UiKit.vbox(10)
+	ProjectUi.wood_sheet(box)
 	var data: Dictionary = Database.collections[id]
-	box.add_child(UiKit.icon(UiKit.ui_icon(data.icon), 64))
-	box.add_child(UiKit.lock_hint("Você ainda não tem"))
+	var inner := StepCardUi.inner_card(box, "ClothingSource")
+	inner.add_theme_constant_override("separation", 10)
+	var plate := HelpUi._plate(UiKit.ui_icon(data.icon), "", 76.0, 64.0, "ClothingPicture")
+	plate.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	inner.add_child(plate)
+	inner.add_child(StepCardUi.lock_note("Você ainda não tem"))
 	var source := str(data.get("source", ""))
+	var note := ""
+	var go_name := ""
+	var go_target: Dictionary = {}
 	if source.begins_with("walk:") or source.begins_with("legendary:"):
-		box.add_child(UiKit.label("Lendário de passeio" if source.begins_with("legendary:") else "Raro de passeio: " + str(GameState.walk_def(source.trim_prefix("walk:")).get("name", "")), &"SmallLabel"))
-		box.add_child(UiKit.soft("Ir", Places.go.bind({"world": "park", "place": "walk"}), null, true))
+		note = "Lendário de passeio" if source.begins_with("legendary:") else "Raro de passeio: " + str(GameState.walk_def(source.trim_prefix("walk:")).get("name", ""))
+		go_name = "Ir"
+		go_target = {"world": "park", "place": "walk"}
 	elif source.begins_with("friend:"):
 		var friend_id := source.trim_prefix("friend:")
-		box.add_child(UiKit.label(str(GameState.friend_def(friend_id).name) + " ♥3", &"SmallLabel"))
-		box.add_child(UiKit.soft("Ir", Places.go.bind({"world": "park", "place": "friend:" + friend_id}), null, true))
+		note = str(GameState.friend_def(friend_id).name) + " ♥3"
+		go_name = "Ir"
+		go_target = {"world": "park", "place": "friend:" + friend_id}
 	elif data.has("recipe"):
-		box.add_child(UiKit.soft("Costura", Places.go.bind({"world": "park", "place": "sewing"}), null, true))
+		go_name = "Costura"
+		go_target = {"world": "park", "place": "sewing"}
 	elif data.get("shop", "") == "petshop":
-		box.add_child(UiKit.soft("Pet shop", Places.go.bind({"world": "park", "place": "petshop"}), null, true))
+		go_name = "Pet shop"
+		go_target = {"world": "park", "place": "petshop"}
+	if note != "":
+		var label := StepCardUi.wood(note, 15, Color(Palette.WOOD_INK, 0.85))
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		inner.add_child(label)
+	if go_name != "":
+		inner.add_child(WelcomeSheet._button(go_name, false, 160.0, "SourceGo", Places.go.bind(go_target)))
 	return box
 
 

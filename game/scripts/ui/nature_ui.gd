@@ -58,12 +58,16 @@ static func route_choice(resource: String, changed: Callable) -> Control:
 	var routes := eligible_routes(resource)
 	if routes.size() < 2:
 		return null
-	var entries: Array[Dictionary] = []
+	var selected := best_route(resource)
+	var row := UiKit.hbox(CodexUi.FILTER_GAP)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	for id: String in routes:
-		entries.append({"id": id, "text": TimeText.short(int(Database.progression.activities[id].seconds))})
-	var row := UiKit.segmented(entries, best_route(resource), func(id: String) -> void:
-		if choose_route(resource, id):
-			changed.call())
+		var text := TimeText.short(int(Database.progression.activities[id].seconds))
+		var width := CodexUi.filter_width(text, 13, 28.0)
+		var tab := CodexUi._filter_tile({"id": id, "text": text}, id == selected, Vector2(maxf(width, 64.0), CodexUi.FILTER_H), 13, func() -> void:
+			if choose_route(resource, id):
+				changed.call())
+		row.add_child(tab)
 	row.name = "RouteChoice_" + resource
 	return row
 
@@ -102,88 +106,101 @@ static func _open_route_view(site: String, resource: String, route_id: String) -
 	open(site, resource, route_id)
 
 
+## Painel do local em madeira ilustrada: espaços, nível, materiais (um cartão de papel cada) e "Refinar".
 static func panel(site: String = "trees", resource: String = "", focus_route: String = "") -> Control:
 	var data: Dictionary = Database.progression.nature_sites[site]
 	var selected: String = resource if resource in data.resources else str(data.resources[0])
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+	var view := SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var level := GameState.progress.nature_level(site)
 		if level == 0:
-			box.add_child(UiKit.lock_hint("Ainda não aberto"))
-			ProgressionUi.upgrade_card(box, str(data.level_upgrades[0]))
+			ProgressionUi.upgrade_card(box, str(data.level_upgrades[0]), true)
 			return
 		var ready := GameState.gathering_ready_count(site)
-		var slots := SheetBuilder.slot_flow()
+		var slots: Array[Control] = []
 		for index in 3:
-			slot(slots, site, index)
-		box.add_child(SheetBuilder.slot_strip(slots, "Pegar tudo (%d)" % ready if ready > 0 else "", func() -> void:
-			var before := int(GameState.progress.nature_xp.get(site, 0))
-			var previous_level := GameState.progress.nature_level(site)
-			var error := GameState.collect_gathering_all(site)
-			var level_now := GameState.progress.nature_level(site)
-			if error == "":
-				Events.items_gained.emit(GameState.last_gain, GameState.last_coins, Vector2(-1.0, -1.0))
-			_result(error, "%s nível %d!" % [data.name, level_now] if level_now > previous_level else "+%d XP em %s" % [int(GameState.progress.nature_xp.get(site, 0)) - before, data.name]), "CollectAll_" + site))
+			slots.append(StationWood.nature_slot(site, index))
+		box.add_child(StationWood.tray_strip(StationWood.even_rows(slots)))
+		if ready > 0:
+			var collect := StepCardUi.go_button("Pegar tudo (%d)" % ready, func() -> void:
+				var before := int(GameState.progress.nature_xp.get(site, 0))
+				var previous_level := GameState.progress.nature_level(site)
+				var error := GameState.collect_gathering_all(site)
+				var level_now := GameState.progress.nature_level(site)
+				if error == "":
+					Events.items_gained.emit(GameState.last_gain, GameState.last_coins, Vector2(-1.0, -1.0))
+				_result(error, "%s nível %d!" % [data.name, level_now] if level_now > previous_level else "+%d XP em %s" % [int(GameState.progress.nature_xp.get(site, 0)) - before, data.name]))
+			collect.name = "CollectAll_" + site
+			box.add_child(collect)
 		_progress(box, site)
-		box.add_child(UiKit.section("Materiais"))
+		var section := StationWood.text("Materiais", 16)
+		section.name = "MaterialsSection"
+		box.add_child(section)
 		for item: String in data.resources:
 			var route_id := best_route(item)
-			_material(box, site, item, route_id)
 			var choice := route_choice(item, func() -> void: (box as SheetBuilder.LiveBox).refresh())
-			if choice != null:
-				box.add_child(choice)
-		var refine := UiKit.soft("Refinar materiais", func() -> void:
+			_material(box, site, item, route_id, choice)
+		var refine := WelcomeSheet._button("Refinar materiais", false, 220.0, "Refine_" + site, func() -> void:
 			Events.sheet_requested.emit("Refinar · " + str(data.name), refining_panel(site)))
-		refine.name = "Refine_" + site
+		refine.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		box.add_child(refine))
+	view.set_meta("sheet_wood", true)
+	view.set_meta("sheet_fit_content", true)
+	return view
 
 
+## Nível do local: título (XP até o próximo), "?" da evolução e barra de madeira.
 static func _progress(box: VBoxContainer, site: String) -> void:
 	var data: Dictionary = Database.progression.nature_sites[site]
 	var info := GameState.progress.nature_info(site)
 	var heading := UiKit.hbox(6)
-	var title := UiKit.fill_label(("Nível %d ★" % info.level) if info.max else "Nível %d · %d/%d XP" % [info.level, info.xp, info.needed], &"StrongLabel")
+	var title := StationWood.text(("Nível %d ★" % info.level) if info.max else "Nível %d · %d/%d XP" % [info.level, info.xp, info.needed], 18)
 	title.name = "NatureProgress_" + site
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	heading.add_child(title)
-	heading.add_child(UiKit.ctl_button("help", func() -> void:
-		Events.sheet_requested.emit("Evolução · " + str(data.name), levels_panel(site)), 40))
+	heading.add_child(StepCardUi.help_button(func() -> void:
+		Events.sheet_requested.emit("Evolução · " + str(data.name), levels_panel(site))))
 	box.add_child(heading)
-	box.add_child(UiKit.bar(100.0 if info.max else 100.0 * info.xp / maxi(1, int(info.needed)), Palette.SKY, 10))
-	if not info.max:
-		box.add_child(UiKit.label("Próximo: " + str(data.levels[info.level].label), &"SmallLabel"))
-		box.add_child(UiKit.label("Faltam %d XP" % int(info.remaining), &"SmallLabel"))
-	else:
-		box.add_child(UiKit.label("Tudo liberado", &"SmallLabel"))
+	box.add_child(StepCardUi.bar(1.0 if info.max else float(info.xp) / maxf(1.0, float(info.needed)), 22.0, "NatureBar"))
+	var next := "Tudo liberado" if info.max else "Próximo: %s · faltam %d XP" % [str(data.levels[info.level].label), int(info.remaining)]
+	var note := StationWood.text(next, 14)
+	note.name = "NatureNext"
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	note.custom_minimum_size.x = 40.0
+	box.add_child(note)
 
 
 static func levels_panel(site: String) -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+	var view := SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var data: Dictionary = Database.progression.nature_sites[site]
 		var info := GameState.progress.nature_info(site)
-		box.add_child(UiKit.steps(data.levels.size(), int(info.level)))
-		var cards := UiKit.list_card(box)
 		for i in data.levels.size():
 			var milestone: Dictionary = data.levels[i]
 			var done: bool = info.level > i
 			var chips: Array[Control] = []
 			if done:
-				chips.append(UiKit.chip(null, "Liberado", null, "have"))
+				chips.append(StepCardUi.wood_chip(null, "Liberado", "have"))
 			elif i == 0:
-				chips.append(UiKit.chip(UiKit.ui_icon("coin"), "%d" % int(Database.progression.upgrades[data.level_upgrades[0]].cost), null, "prize"))
+				chips.append(StepCardUi.wood_chip(UiKit.ui_icon("coin"), "%d" % int(Database.progression.upgrades[data.level_upgrades[0]].cost)))
 			else:
-				chips.append(UiKit.chip(UiKit.ui_icon("xp"), "faltam %d" % maxi(0, int(milestone.xp) - int(info.total)), null, "time"))
-			var row := UiKit.list_row(Database.item_icon(str(milestone.materials[0])), "Nível %d · %s" % [i + 1, milestone.label], chips, null, Callable(), done)
-			(row.find_children("*", "Label", true, false)[0] as Label).theme_type_variation = &"StrongLabel"
-			row.name = "NatureLevel_%s_%d" % [site, i + 1]
-			cards.add_child(row)
-		var go := UiKit.primary("Ir ao local", func() -> void:
+				chips.append(StepCardUi.wood_chip(UiKit.ui_icon("xp"), "faltam %d" % maxi(0, int(milestone.xp) - int(info.total))))
+			var item := str(milestone.materials[0])
+			var card := SheetBuilder._wood_row(box, "NatureLevel_%s_%d" % [site, i + 1], SheetBuilder._plate(item, Database.item_icon(item), 48.0), "Nível %d · %s" % [i + 1, milestone.label], chips)
+			if not done:
+				card.modulate.a = 0.8
+		var go := StepCardUi.go_button("Ir ao local", func() -> void:
 			Events.sheet_close_requested.emit()
 			Events.world_requested.emit("nature", "place:" + site))
 		box.add_child(go))
+	view.set_meta("sheet_wood", true)
+	view.set_meta("sheet_fit_content", true)
+	return view
 
 
 ## Receitas existentes que usam os materiais deste local, com destino direto à estação.
 static func refining_panel(site: String) -> Control:
-	var box := UiKit.vbox(6)
+	var box := UiKit.vbox(8)
+	box.set_meta("sheet_wood", true)
+	box.set_meta("sheet_fit_content", true)
 	for id: String in Database.recipes:
 		var recipe: Dictionary = Database.recipes[id]
 		var uses := false
@@ -193,43 +210,43 @@ static func refining_panel(site: String) -> Control:
 		if not uses:
 			continue
 		var place := Database.place_with_panel("station:" + str(recipe.station))
-		var ingredients := UiKit.flow(4)
+		var chips: Array[Control] = []
 		for item: String in recipe.inputs:
-			ingredients.add_child(UiKit.chip(Database.item_icon(item), str(int(recipe.inputs[item]))))
-		box.add_child(ingredients)
-		var button := UiKit.soft("%s ×%d · %s" % [Database.item_name(Database.recipe_output(recipe)), int(recipe.get("qty", 1)), Database.stations[recipe.station].name], func() -> void:
+			chips.append(StepCardUi.wood_chip(Database.item_icon(item), str(int(recipe.inputs[item]))))
+		var output: String = Database.recipe_output(recipe)
+		var go := WelcomeSheet._button("Ir", false, 76.0, "RefineRecipe_" + id, func() -> void:
 			Events.sheet_close_requested.emit()
-			Events.world_requested.emit(place[0], "place:" + place[1]), Database.item_icon(Database.recipe_output(recipe)), true)
-		button.name = "RefineRecipe_" + id
-		button.add_theme_constant_override("icon_max_width", 32)
-		box.add_child(button)
+			Events.world_requested.emit(place[0], "place:" + place[1]))
+		SheetBuilder._wood_row(box, "Refine_" + id, SheetBuilder._plate(output, Database.item_icon(output)), "%s ×%d · %s" % [Database.item_name(output), int(recipe.get("qty", 1)), Database.stations[recipe.station].name], chips, go)
 	return box
 
 
-## Material para buscar, em linha de lista: ícone, tempo, bônus e botão (nível fechado = cadeado).
-static func _material(parent: VBoxContainer, site: String, item: String, route_id: String) -> void:
+## Material para buscar, em cartão de papel: prato, tempo, bônus, escolha de rota e botão (nível fechado = cadeado).
+static func _material(parent: VBoxContainer, site: String, item: String, route_id: String, choice: Control = null) -> void:
 	var route: Dictionary = Database.progression.activities[route_id]
 	var primary := item if route.rewards.get("items", {}).has(item) else str(route.rewards.items.keys()[0])
-	var chips: Array[Control] = [UiKit.chip(UiKit.ctl_icon("clock"), TimeText.short(int(route.seconds)))]
+	var chips: Array[Control] = [StepCardUi.wood_chip(UiKit.ctl_icon("clock"), TimeText.short(int(route.seconds)))]
 	for bonus: String in route.rewards.get("items", {}):
 		if bonus != primary:
-			chips.append(UiKit.chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), Palette.GO_INK))
-	chips.append(UiKit.chip(UiKit.ui_icon("xp"), "+%d XP" % route_xp(route_id)))
+			chips.append(StepCardUi.wood_chip(Database.item_icon(bonus), "+%d" % int(route.rewards.items[bonus]), "have"))
+	chips.append(StepCardUi.wood_chip(UiKit.ui_icon("xp"), "+%d XP" % route_xp(route_id)))
 	var level := route_level(route_id)
 	var locked := GameState.progress.nature_level(site) < level
-	var button := UiKit.small_go("Buscar", func() -> void:
-		_result(GameState.start_next_gathering(site, route_id, item), ""))
-	button.name = "Material_" + item
 	var error := GameState.next_gathering_error(site, route_id, item)
-	button.custom_minimum_size.x = 88
-	var row := UiKit.list_row(Database.item_icon(primary), "%s ×%d" % [Database.item_name(primary), int(route.rewards.items[primary])], chips, button if error == "" else null)
-	(row.find_children("*", "Label", true, false)[0] as Label).theme_type_variation = &"StrongLabel"
-	parent.add_child(row)
-	var footer := row.get_child(0) as VBoxContainer
-	if error != "":
-		if locked: row.modulate.a = 0.55
-		var hint := UiKit.action_or_hint(button, error, TaskHelp.open.bind("route", route_id), Database.item_icon(item))
-		footer.add_child(hint)
+	var action: Button = null
+	var note: Control = null
+	if error == "":
+		action = WelcomeSheet._button("Buscar", false, 92.0, "Material_" + item, func() -> void:
+			_result(GameState.start_next_gathering(site, route_id, item), ""))
+	else:
+		note = StepCardUi.lock_note(error, TaskHelp.open.bind("route", route_id), Database.item_icon(item))
+		note.name = "Locked_Material_" + item
+		note.set_meta("reason", error)
+	var card := SheetBuilder._wood_row(parent, "Material_%s_Card" % item, SheetBuilder._plate(primary, Database.item_icon(primary)), "%s ×%d" % [Database.item_name(primary), int(route.rewards.items[primary])], chips, action, note)
+	if choice != null:
+		card.find_child("RowChips", true, false).get_parent().add_child(choice)
+	if error != "" and locked:
+		card.modulate.a = 0.55
 
 
 ## Espaço de coleta, igual ao das estações: bolinha com ícone e tempo; fechado mostra o nível.

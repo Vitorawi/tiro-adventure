@@ -1,0 +1,122 @@
+{
+  "id": "d_month",
+  "title": "Um mês juntos",
+  "section": "dates",
+  "section_name": "Datas",
+  "phase": "adult",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/d_month",
+  "trigger": {
+    "on": "app_opened",
+    "when": {
+      "start_days": [
+        30,
+        37
+      ]
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/d_month.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "wag_excited",
+      "frame": 1
+    },
+    "props": []
+  },
+  "scene_description": "One month together: adult tiny Yorkshire Tiro with golden head and steel-blue back excitedly wagging on the familiar home rug beside the original small worn cardboard arrival box, now clearly too small for him, plus a modest neat arrangement of his little ball and food bowl nearby. This is a tender one-month companionship memory, not a birthday: NO cake or party hat, no numbers or calendar writing. Confident happy dog and welcoming home communicate belonging. Warm window light, full body, cream walls.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/d_month.png",
+  "original_capture": "docs/art/album_ilustrado/originais/d_month.png",
+  "manifest_path": "tools/art/album_rarities/photos/dates/d_month/photo.json",
+  "batch_id": "batch_009",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_month/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_month/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.735211+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3352efe8-a471-4380-a539-8ebfa0c2fea9.png",
+          "completed_at": "2026-11-06T23:44:30.841423+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_month/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3352efe8-a471-4380-a539-8ebfa0c2fea9.png",
+      "completed_at": "2026-11-06T23:44:30.841423+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "cc115182a9e2eb6faa40604c6d190cf55c60c2ec3de48f08b959ca4c40d94843",
+      "reviewed_at": "2026-11-06T23:49:19.766763+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_month/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_month/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.735211+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3609c051-610e-41e4-ab27-b76ff03ea1f2.png",
+          "completed_at": "2026-11-06T23:44:59.749613+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_month/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3609c051-610e-41e4-ab27-b76ff03ea1f2.png",
+      "completed_at": "2026-11-06T23:44:59.749613+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "444106d15f120fb938db76e1bbba4d5c3babc42c34943a501d8c840ac5dd54c5",
+      "reviewed_at": "2026-11-06T23:49:20.122466+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_month/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_month/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.735211+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2ca5e202-2eda-40c5-a30a-44a45cc34ba6.png",
+          "completed_at": "2026-11-06T23:45:35.891490+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_month/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2ca5e202-2eda-40c5-a30a-44a45cc34ba6.png",
+      "completed_at": "2026-11-06T23:45:35.891490+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "236e61529ccadbd901e9cc023366e2fee68d3f6ff2b736734d051f082b2a730f",
+      "reviewed_at": "2026-11-06T23:49:20.477365+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_month/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_month/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.735211+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-4f20e59d-3bd3-494e-b99b-d6bda3c2b72b.png",
+          "completed_at": "2026-11-06T23:46:08.368885+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_month/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-4f20e59d-3bd3-494e-b99b-d6bda3c2b72b.png",
+      "completed_at": "2026-11-06T23:46:08.368885+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6f110f9d157ac3d255e38fafde802e30aaecfd509d536fb83bf09194b63a72d8",
+      "reviewed_at": "2026-11-06T23:49:20.822254+00:00"
+    }
+  }
+}

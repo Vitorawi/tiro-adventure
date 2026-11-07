@@ -1,0 +1,120 @@
+{
+  "id": "d_first_cold",
+  "title": "Primeiro frio",
+  "section": "dates",
+  "section_name": "Datas",
+  "phase": "young",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/d_first_cold",
+  "trigger": {
+    "on": "app_opened",
+    "when": {
+      "months": "cold",
+      "equipped": "knit_sweater"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/d_first_cold.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "idle_breathe",
+      "frame": 0
+    },
+    "props": []
+  },
+  "scene_description": "First cold spell: young adult small Yorkshire Tiro with upright ears, dark crown/back tan face paws sitting awake in his warm home corner wearing the PINK knit buttoned sweater from original reference. He looks snug and curious toward a window with cool gray rainy weather and light condensation; warm amber indoor lamp, wooden floor and cream rug. Full dog and sweater visible. Unlike winter nap, clearly AWAKE, no party props or snowstorm.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/d_first_cold.png",
+  "original_capture": "docs/art/album_ilustrado/originais/d_first_cold.png",
+  "manifest_path": "tools/art/album_rarities/photos/dates/d_first_cold/photo.json",
+  "batch_id": "batch_010",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_first_cold/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_first_cold/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:50:18.565369+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1d18ab09-7447-4fb3-9de5-7af00732351e.png",
+          "completed_at": "2026-11-06T23:53:25.901483+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_first_cold/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1d18ab09-7447-4fb3-9de5-7af00732351e.png",
+      "completed_at": "2026-11-06T23:53:25.901483+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f517c3eedd0f25ae3daac2cb19ae81683a103aa81de7574cb6447de1e2432a98",
+      "reviewed_at": "2026-11-06T23:58:13.358285+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_first_cold/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_first_cold/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:50:18.565369+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-bc847ae1-dd31-4621-8e2a-77bc930c459c.png",
+          "completed_at": "2026-11-06T23:53:56.281888+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_first_cold/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-bc847ae1-dd31-4621-8e2a-77bc930c459c.png",
+      "completed_at": "2026-11-06T23:53:56.281888+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d9e78f0f26d3eefa67e908bcfa47eb29f010be0d1fd06deb2b888f1eed9fb918",
+      "reviewed_at": "2026-11-06T23:58:13.743497+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_first_cold/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_first_cold/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:50:18.565369+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-54195aaf-8f9a-43c7-b1b1-4a6436b970f7.png",
+          "completed_at": "2026-11-06T23:54:31.419906+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_first_cold/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-54195aaf-8f9a-43c7-b1b1-4a6436b970f7.png",
+      "completed_at": "2026-11-06T23:54:31.419906+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "513c8b97bbed4cdc35c10dae23d766fc914ea0849be28b86f4580f04cbe25fba",
+      "reviewed_at": "2026-11-06T23:58:14.113607+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_first_cold/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_first_cold/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:50:18.565369+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-20c18d20-aa72-48ef-9d35-2c8a8ba2033a.png",
+          "completed_at": "2026-11-06T23:55:01.542324+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_first_cold/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-20c18d20-aa72-48ef-9d35-2c8a8ba2033a.png",
+      "completed_at": "2026-11-06T23:55:01.542324+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "2d0b97f10782cf944c2341f8610c5b7c6193e99e9b8935d88294a6ad04a0b061",
+      "reviewed_at": "2026-11-06T23:58:14.446511+00:00"
+    }
+  }
+}

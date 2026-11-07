@@ -1,0 +1,124 @@
+{
+  "id": "s_muddy",
+  "title": "Pé de lama",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "adult",
+  "game_scene": "nature",
+  "source_definition": "game/data/album.json#photos/s_muddy",
+  "trigger": {
+    "on": "walk_returned",
+    "when": {
+      "route": "creek_walk",
+      "need_below": {
+        "hygiene": 30
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_muddy.png",
+    "scene": "nature",
+    "pose": {
+      "clip": "shake_off",
+      "frame": 1
+    },
+    "props": [
+      "mud"
+    ]
+  },
+  "scene_description": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_muddy.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_muddy.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_muddy/photo.json",
+  "batch_id": "batch_007",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_muddy/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_muddy/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.471929+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f667e65a-9e38-416e-b4e1-73a2f12b9fad.png",
+          "completed_at": "2026-11-06T23:01:54.625157+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_muddy/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f667e65a-9e38-416e-b4e1-73a2f12b9fad.png",
+      "completed_at": "2026-11-06T23:01:54.625157+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "9a6c03b4c90097de356818a3a039a6f3f5232e8c589083c1fdd15d0104c24e27",
+      "reviewed_at": "2026-11-06T23:14:32.499227+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_muddy/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_muddy/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.472445+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-4adb2dbe-abcb-4947-99e7-8551eff7427a.png",
+          "completed_at": "2026-11-06T23:02:28.862706+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_muddy/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-4adb2dbe-abcb-4947-99e7-8551eff7427a.png",
+      "completed_at": "2026-11-06T23:02:28.862706+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "eae6c6978872d1d0c6969f3341d546867e34bb5f165ca5bc879da5b69600978b",
+      "reviewed_at": "2026-11-06T23:14:32.907602+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_muddy/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_muddy/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.472445+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c6deefca-b0a5-4774-b5d6-fa505ae2eb67.png",
+          "completed_at": "2026-11-06T23:03:05.468580+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_muddy/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c6deefca-b0a5-4774-b5d6-fa505ae2eb67.png",
+      "completed_at": "2026-11-06T23:03:05.468580+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "4c6b75d04d8011b1af457e4670234ec44ff0f4e20aa58ad9ebaf6fa26efd0959",
+      "reviewed_at": "2026-11-06T23:14:33.442430+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_muddy/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_muddy/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.472445+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-30ed94b7-ad36-4a12-b632-05816b51aa4c.png",
+          "completed_at": "2026-11-06T23:03:35.073580+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_muddy/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-30ed94b7-ad36-4a12-b632-05816b51aa4c.png",
+      "completed_at": "2026-11-06T23:03:35.073580+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "21daad0b311781dfe60244a876c3fe410f3186595d2c9c02551986a980cace91",
+      "reviewed_at": "2026-11-06T23:14:33.845808+00:00"
+    }
+  }
+}

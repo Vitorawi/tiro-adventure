@@ -80,17 +80,27 @@ static func customer_text(customer: String) -> String:
 	return "%s · %s · %d/%d" % [who, title, int(seen.count), int(next.count)]
 
 static func customer_row(customer: String) -> HBoxContainer:
-	var row := UiKit.hbox(6)
+	var row := UiKit.hbox(8)
 	row.name = "Customer_" + customer
 	row.add_child(customer_seals(customer))
-	row.add_child(UiKit.fill_label(customer_text(customer), &"SmallLabel"))
+	var text := StepCardUi.wood(customer_text(customer), 16)
+	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	text.custom_minimum_size.x = 120.0
+	row.add_child(text)
 	return row
 
+## Nível do cliente em madeira: folha `sheet_wood` com o cartão de papel (selos + texto) e um botão amarelo para voltar.
 static func customer_info(customer: String) -> Control:
-	var box := UiKit.vbox(8)
-	box.add_child(customer_row(customer))
-	box.add_child(UiKit.soft("Voltar às encomendas", func() -> void: Events.sheet_requested.emit("Encomendas", orders())))
-	return box
+	var panel := SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		var inner := StepCardUi.inner_card(box, "CustomerCard", Vector4i(14, 14, 14, 14))
+		inner.add_child(customer_row(customer))
+		var back := WelcomeSheet._button("Voltar às encomendas", false, 240.0, "BackToOrders", func() -> void: Events.sheet_requested.emit("Encomendas", orders()))
+		box.add_child(back))
+	panel.set_meta("sheet_wood", true)
+	panel.set_meta("sheet_fit_content", true)
+	return panel
 
 static func next_order(box: VBoxContainer, channel: String) -> void:
 	for id: String in Database.progression.orders:

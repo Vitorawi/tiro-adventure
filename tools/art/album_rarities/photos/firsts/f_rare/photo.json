@@ -1,0 +1,119 @@
+{
+  "id": "f_rare",
+  "title": "Achado raro",
+  "section": "firsts",
+  "section_name": "Primeiras vezes",
+  "phase": "explorer",
+  "game_scene": "park",
+  "source_definition": "game/data/album.json#photos/f_rare",
+  "trigger": {
+    "on": "walk_returned",
+    "when": {
+      "rare": true
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/f_rare.png",
+    "scene": "park",
+    "pose": {
+      "clip": "happy_jump",
+      "frame": 3
+    },
+    "props": []
+  },
+  "scene_description": "A rare reward returned from a walk: SMALL adolescent BLACK-and-tan Yorkie with upright ears joyfully doing a little hop beside a single beautiful red tartan/plaid BOW accessory resting on a flat park stone. This bow is the actual first rare walk collectible (plaid_bow). A treasured wearable discovery, no feather, no money or treasure chest. Village park path, leafy trees, warm dappled sunlight, whole small dog visible.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/f_rare.png",
+  "original_capture": "docs/art/album_ilustrado/originais/f_rare.png",
+  "manifest_path": "tools/art/album_rarities/photos/firsts/f_rare/photo.json",
+  "batch_id": "batch_004",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_rare/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_rare/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.892652+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-53b68978-633a-4893-a4e9-56b48bf8008d.png",
+          "completed_at": "2026-11-06T22:16:02.105753+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_rare/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-53b68978-633a-4893-a4e9-56b48bf8008d.png",
+      "completed_at": "2026-11-06T22:16:02.105753+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "04e68f428b8dc75de1b3657f28d7cb25bd3d08405432ba5a425047dc45759b62",
+      "reviewed_at": "2026-11-06T22:22:37.207301+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_rare/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_rare/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.892652+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d5b9170f-65a7-418f-ab3d-9422bf688e51.png",
+          "completed_at": "2026-11-06T22:16:37.169720+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_rare/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d5b9170f-65a7-418f-ab3d-9422bf688e51.png",
+      "completed_at": "2026-11-06T22:16:37.169720+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "23945662e2ec33f8dbbc24d2ae06fff30dc74cc8a1eea7be080e5a6310955252",
+      "reviewed_at": "2026-11-06T22:22:37.559335+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_rare/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_rare/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.892652+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-8dee1bad-1f4c-437c-a0ad-f855f066271f.png",
+          "completed_at": "2026-11-06T22:17:15.483429+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_rare/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-8dee1bad-1f4c-437c-a0ad-f855f066271f.png",
+      "completed_at": "2026-11-06T22:17:15.482429+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "dde8d5cdb77f472fb455fa9ab17df686fd60e6d87d75041590cfc4ad59eb9509",
+      "reviewed_at": "2026-11-06T22:22:37.877984+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_rare/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_rare/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.892652+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-57ec8259-0cf2-49fd-bf1c-264cc9b1ae2d.png",
+          "completed_at": "2026-11-06T22:17:47.866936+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_rare/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-57ec8259-0cf2-49fd-bf1c-264cc9b1ae2d.png",
+      "completed_at": "2026-11-06T22:17:47.866936+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6ebde455837052322ddc5b21e7c7c67371f9d7495e60c163e31fa44a4e976fde",
+      "reviewed_at": "2026-11-06T22:22:38.212397+00:00"
+    }
+  }
+}

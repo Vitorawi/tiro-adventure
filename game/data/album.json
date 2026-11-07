@@ -43,119 +43,203 @@
   "scenes": {
     "pet": {
       "image": "res://assets/sprites/areas/pet/corner.png",
-      "region": [36, 120, 289, 243]
+      "region": [
+        36,
+        120,
+        289,
+        243
+      ]
     },
     "house": {
       "image": "res://assets/sprites/areas/house/room.png",
-      "region": [96, 20, 440, 370]
+      "region": [
+        96,
+        20,
+        440,
+        370
+      ]
     },
     "park": {
       "image": "res://assets/sprites/areas/park/park.png",
-      "region": [96, 20, 440, 370]
+      "region": [
+        96,
+        20,
+        440,
+        370
+      ]
     },
     "village": {
       "image": "res://assets/sprites/areas/village/banner.png",
-      "region": [96, 20, 440, 370]
+      "region": [
+        96,
+        20,
+        440,
+        370
+      ]
     },
     "nature": {
       "image": "res://assets/sprites/areas/nature/nature.png",
-      "region": [32, 10, 440, 370]
+      "region": [
+        32,
+        10,
+        440,
+        370
+      ]
     },
     "farm": {
       "image": "res://assets/sprites/areas/farm/farm_animals.png",
-      "region": [330, 10, 520, 438]
+      "region": [
+        330,
+        10,
+        520,
+        438
+      ]
     }
   },
   "props": {
     "box": {
       "image": "res://assets/sprites/ui/album/prop_box.png",
-      "pos": [0.5, 0.8],
+      "pos": [
+        0.5,
+        0.8
+      ],
       "size": 72
     },
     "bowl": {
       "image": "res://assets/sprites/ui/album/prop_bowl.png",
-      "pos": [0.2, 0.84],
+      "pos": [
+        0.2,
+        0.84
+      ],
       "size": 44
     },
     "stall_sign": {
       "image": "res://assets/sprites/ui/album/prop_stall_sign.png",
-      "pos": [0.8, 0.52],
+      "pos": [
+        0.8,
+        0.52
+      ],
       "size": 60
     },
     "medal": {
       "image": "res://assets/sprites/ui/album/prop_medal.png",
-      "pos": [0.5, 0.36],
+      "pos": [
+        0.5,
+        0.36
+      ],
       "size": 36
     },
     "foam": {
       "image": "res://assets/sprites/ui/album/prop_foam.png",
-      "pos": [0.24, 0.65],
+      "pos": [
+        0.24,
+        0.65
+      ],
       "size": 48
     },
     "carrot_mouth": {
       "image": "res://assets/sprites/ui/album/prop_carrot_mouth.png",
-      "pos": [0.51, 0.57],
+      "pos": [
+        0.51,
+        0.57
+      ],
       "size": 32
     },
     "sock": {
       "image": "res://assets/sprites/ui/album/prop_sock.png",
-      "pos": [0.57, 0.66],
+      "pos": [
+        0.57,
+        0.66
+      ],
       "size": 38
     },
     "drops": {
       "image": "res://assets/sprites/ui/album/prop_drops.png",
-      "pos": [0.5, 0.4],
+      "pos": [
+        0.5,
+        0.4
+      ],
       "size": 108
     },
     "ball": {
       "image": "res://assets/sprites/ui/album/prop_ball.png",
-      "pos": [0.55, 0.82],
+      "pos": [
+        0.55,
+        0.82
+      ],
       "size": 30
     },
     "moon": {
       "image": "res://assets/sprites/ui/album/prop_moon.png",
-      "pos": [0.8, 0.18],
+      "pos": [
+        0.8,
+        0.18
+      ],
       "size": 34
     },
     "fireflies": {
       "image": "res://assets/sprites/ui/album/prop_fireflies.png",
-      "pos": [0.5, 0.42],
+      "pos": [
+        0.5,
+        0.42
+      ],
       "size": 116
     },
     "mud": {
       "image": "res://assets/sprites/ui/album/prop_mud.png",
-      "pos": [0.5, 0.8],
+      "pos": [
+        0.5,
+        0.8
+      ],
       "size": 80
     },
     "party_hat": {
       "image": "res://assets/sprites/ui/album/prop_party_hat.png",
-      "pos": [0.5, 0.19],
+      "pos": [
+        0.5,
+        0.19
+      ],
       "size": 34
     },
     "cake": {
       "image": "res://assets/sprites/ui/album/prop_cake.png",
-      "pos": [0.2, 0.82],
+      "pos": [
+        0.2,
+        0.82
+      ],
       "size": 48
     },
     "long_shadow": {
       "image": "res://assets/sprites/ui/album/prop_long_shadow.png",
-      "pos": [0.4, 0.85],
+      "pos": [
+        0.4,
+        0.85
+      ],
       "size": 120
     },
     "speed_lines": {
       "image": "res://assets/sprites/ui/album/prop_speed_lines.png",
-      "pos": [0.22, 0.55],
+      "pos": [
+        0.22,
+        0.55
+      ],
       "size": 100
     },
     "sofa": {
       "image": "res://assets/sprites/areas/house/sofa.png",
-      "pos": [0.5, 0.76],
+      "pos": [
+        0.5,
+        0.76
+      ],
       "size": 124,
       "behind": true
     },
     "bed_luxe": {
       "image": "res://assets/sprites/areas/house/bed_luxe.png",
-      "pos": [0.5, 0.8],
+      "pos": [
+        0.5,
+        0.8
+      ],
       "size": 88,
       "behind": true
     }
@@ -168,6 +252,7 @@
       "on": "intro_done",
       "when": {},
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_arrival.png",
         "scene": "pet",
         "pose": {
           "clip": "look_around",
@@ -176,6 +261,13 @@
         "props": [
           "box"
         ]
+      },
+      "goal_hint": {
+        "text": "Siga a história com a Laís: a chegada.",
+        "icon": "album_story",
+        "go": {
+          "screen": "tasks"
+        }
       }
     },
     {
@@ -195,12 +287,20 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_first_night.png",
         "scene": "pet",
         "pose": {
           "clip": "sleep",
           "frame": 0
         },
         "props": []
+      },
+      "goal_hint": {
+        "text": "Siga a história: ganhe a caminha e ponha o Tiro para dormir.",
+        "icon": "need_energy",
+        "go": {
+          "screen": "tasks"
+        }
       }
     },
     {
@@ -212,6 +312,7 @@
         "grew_to": "puppy"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_growth_puppy.png",
         "scene": "pet",
         "pose": {
           "clip": "idle_breathe",
@@ -219,6 +320,13 @@
         },
         "props": [],
         "ribbon": "Filhotinho"
+      },
+      "goal_hint": {
+        "text": "Siga a história: cresça para Filhotinho.",
+        "icon": "album_story",
+        "go": {
+          "screen": "tasks"
+        }
       }
     },
     {
@@ -230,6 +338,7 @@
         "item": "puppy_mash"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_kitchen.png",
         "scene": "pet",
         "pose": {
           "clip": "eat",
@@ -238,6 +347,13 @@
         "props": [
           "bowl"
         ]
+      },
+      "goal_hint": {
+        "text": "Siga a história: dê Papinha da vovó ao Tiro.",
+        "icon": "need_hunger",
+        "go": {
+          "screen": "tasks"
+        }
       }
     },
     {
@@ -249,12 +365,20 @@
         "grew_to": "teething"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_growth_teething.png",
         "scene": "pet",
         "pose": {
           "clip": "head_tilt",
           "frame": 2
         },
         "props": []
+      },
+      "goal_hint": {
+        "text": "Siga a história: cresça para Dentinhos.",
+        "icon": "album_story",
+        "go": {
+          "screen": "tasks"
+        }
       }
     },
     {
@@ -264,12 +388,21 @@
       "on": "walk_returned",
       "when": {},
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_first_walk.png",
         "scene": "park",
         "pose": {
           "clip": "look_around",
           "frame": 0
         },
         "props": []
+      },
+      "goal_hint": {
+        "text": "Siga a história com a Nina: volte de um passeio.",
+        "icon": "action_walk",
+        "go": {
+          "world": "park",
+          "place": "walk"
+        }
       }
     },
     {
@@ -281,6 +414,7 @@
         "trick": "paw"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_first_trick.png",
         "scene": "park",
         "pose": {
           "clip": "give_paw",
@@ -289,7 +423,15 @@
         "props": [],
         "friend": "nina"
       },
-      "photo_talk": "Guardei com carinho a foto “Pata!” com o Tiro!"
+      "photo_talk": "Guardei com carinho a foto “Pata!” com o Tiro!",
+      "goal_hint": {
+        "text": "Siga a história com a Nina: aprenda Pata.",
+        "icon": "trick_paw",
+        "go": {
+          "world": "park",
+          "place": "training"
+        }
+      }
     },
     {
       "id": "h_growth_explorer",
@@ -300,12 +442,20 @@
         "grew_to": "explorer"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_growth_explorer.png",
         "scene": "nature",
         "pose": {
           "clip": "sniff",
           "frame": 1
         },
         "props": []
+      },
+      "goal_hint": {
+        "text": "Siga a história: cresça para Aventureiro.",
+        "icon": "album_story",
+        "go": {
+          "screen": "tasks"
+        }
       }
     },
     {
@@ -317,6 +467,7 @@
         "quest_is": "own_business"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_banca.png",
         "scene": "village",
         "pose": {
           "clip": "wag_excited",
@@ -325,6 +476,13 @@
         "props": [
           "stall_sign"
         ]
+      },
+      "goal_hint": {
+        "text": "Siga o capítulo 7: pegue Nossa banca com a Laís.",
+        "icon": "station_stall",
+        "go": {
+          "screen": "tasks"
+        }
       }
     },
     {
@@ -336,12 +494,20 @@
         "grew_to": "young"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_growth_young.png",
         "scene": "pet",
         "pose": {
           "clip": "idle_breathe",
           "frame": 0
         },
         "props": []
+      },
+      "goal_hint": {
+        "text": "Siga a história: cresça para Mocinho.",
+        "icon": "album_story",
+        "go": {
+          "screen": "tasks"
+        }
       }
     },
     {
@@ -353,12 +519,20 @@
         "quest_is": "community_10_use"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_bench.png",
         "scene": "park",
         "pose": {
           "clip": "idle_breathe",
           "frame": 0
         },
         "props": []
+      },
+      "goal_hint": {
+        "text": "Siga o capítulo 10: use o Banco e pegue a missão.",
+        "icon": "project_bench",
+        "go": {
+          "screen": "tasks"
+        }
       }
     },
     {
@@ -370,6 +544,7 @@
         "quest_is": "community_12_memory"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_courage.png",
         "scene": "village",
         "pose": {
           "clip": "happy_jump",
@@ -378,6 +553,13 @@
         "props": [
           "medal"
         ]
+      },
+      "goal_hint": {
+        "text": "Siga o capítulo 12: pegue a missão da medalhinha.",
+        "icon": "album_story",
+        "go": {
+          "screen": "tasks"
+        }
       }
     },
     {
@@ -389,6 +571,7 @@
         "grew_to": "adult"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_growth_adult.png",
         "scene": "pet",
         "pose": {
           "clip": "idle_breathe",
@@ -396,6 +579,13 @@
         },
         "props": [],
         "compare": "h_arrival"
+      },
+      "goal_hint": {
+        "text": "Siga a história: cresça para Azul e Dourado.",
+        "icon": "album_story",
+        "go": {
+          "screen": "tasks"
+        }
       }
     },
     {
@@ -407,6 +597,7 @@
         "chapter_last": true
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_guardian.png",
         "scene": "village",
         "pose": {
           "clip": "idle_breathe",
@@ -419,7 +610,14 @@
           "bloblo"
         ]
       },
-      "photo_talk": "Que foto bonita da nossa turma com o Tiro!"
+      "photo_talk": "Que foto bonita da nossa turma com o Tiro!",
+      "goal_hint": {
+        "text": "Conclua o último capítulo da história.",
+        "icon": "album_story",
+        "go": {
+          "screen": "tasks"
+        }
+      }
     },
     {
       "id": "f_bath",
@@ -428,12 +626,22 @@
       "on": "bathed",
       "when": {},
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/f_bath.png",
         "scene": "pet",
         "pose": {
           "clip": "shake_off",
           "frame": 1
         },
         "props": []
+      },
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Dê banho no Tiro.",
+        "icon": "action_bathe",
+        "go": {
+          "screen": "pet",
+          "care": "sponge"
+        }
       }
     },
     {
@@ -445,6 +653,7 @@
         "growth_food": true
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/f_taste.png",
         "scene": "pet",
         "pose": {
           "clip": "eat",
@@ -453,6 +662,15 @@
         "props": [
           "bowl"
         ]
+      },
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Dê ao Tiro uma refeição para crescer.",
+        "icon": "need_hunger",
+        "go": {
+          "screen": "pet",
+          "care": "food"
+        }
       }
     },
     {
@@ -462,12 +680,22 @@
       "on": "dug",
       "when": {},
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/f_dig.png",
         "scene": "farm",
         "pose": {
           "clip": "sniff",
           "frame": 1
         },
         "props": []
+      },
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Cave um montinho que o Tiro farejou.",
+        "icon": "album_firsts",
+        "go": {
+          "world": "farm",
+          "place": "find"
+        }
       }
     },
     {
@@ -479,12 +707,21 @@
         "item": "milk_tooth"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/f_tooth.png",
         "scene": "farm",
         "pose": {
           "clip": "look_around",
           "frame": 0
         },
         "props": []
+      },
+      "goal_hint": {
+        "text": "A partir de Dentinhos, cave até achar o dentinho.",
+        "icon": "album_firsts",
+        "go": {
+          "world": "farm",
+          "place": "find"
+        }
       }
     },
     {
@@ -498,12 +735,21 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/f_friend.png",
         "scene": "park",
         "pose": {
           "clip": "wag_excited",
           "frame": 1
         },
         "props": []
+      },
+      "goal_hint": {
+        "text": "Ganhe o primeiro coração da Pipoca.",
+        "icon": "album_friends",
+        "go": {
+          "world": "park",
+          "place": "friends"
+        }
       }
     },
     {
@@ -513,12 +759,22 @@
       "on": "equipped",
       "when": {},
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/f_outfit.png",
         "scene": "pet",
         "pose": {
           "clip": "idle_breathe",
           "frame": 0
         },
         "props": []
+      },
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Vista uma roupa no Tiro.",
+        "icon": "album_firsts",
+        "go": {
+          "screen": "pet",
+          "collection": true
+        }
       }
     },
     {
@@ -530,12 +786,22 @@
         "rare": true
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/f_rare.png",
         "scene": "park",
         "pose": {
           "clip": "happy_jump",
           "frame": 3
         },
         "props": []
+      },
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Volte de um passeio com um achado raro.",
+        "icon": "action_walk",
+        "go": {
+          "world": "park",
+          "place": "walk"
+        }
       }
     },
     {
@@ -545,12 +811,22 @@
       "on": "brushed",
       "when": {},
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/f_brush.png",
         "scene": "pet",
         "pose": {
           "clip": "stretch",
           "frame": 1
         },
         "props": []
+      },
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Passe a escova nas costas do Tiro.",
+        "icon": "action_brush",
+        "go": {
+          "screen": "pet",
+          "care": "brush"
+        }
       }
     },
     {
@@ -565,6 +841,7 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_foam_ghost.png",
         "scene": "pet",
         "pose": {
           "clip": "shake_off",
@@ -580,7 +857,16 @@
         "action_pet"
       ],
       "hint_npc": "lais",
-      "hint_talk": "Dê carinho na cabeça logo depois do banho: pode virar uma foto!"
+      "hint_talk": "Dê carinho na cabeça logo depois do banho: pode virar uma foto!",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Faça carinho até 10 s depois do banho.",
+        "icon": "action_pet",
+        "go": {
+          "screen": "pet",
+          "care": "sponge"
+        }
+      }
     },
     {
       "id": "s_carrot_thief",
@@ -595,6 +881,7 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_carrot_thief.png",
         "scene": "farm",
         "pose": {
           "clip": "happy_jump",
@@ -612,7 +899,16 @@
       ],
       "hint_npc": "bloblo",
       "hint_object": "plot",
-      "hint_talk": "Para a foto “Ladrão da horta”: Barriga vazia não resiste a cenoura saindo da terra."
+      "hint_talk": "Para a foto “Ladrão da horta”: Barriga vazia não resiste a cenoura saindo da terra.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Colha cenoura com o Tiro no Sítio e fome abaixo de 30.",
+        "icon": "item_carrot",
+        "go": {
+          "world": "farm",
+          "place": "plots"
+        }
+      }
     },
     {
       "id": "s_hero_shadow",
@@ -627,6 +923,7 @@
         ]
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_hero_shadow.png",
         "scene": "park",
         "pose": {
           "clip": "idle_breathe",
@@ -642,7 +939,16 @@
         "need_energy"
       ],
       "hint_npc": "nina",
-      "hint_talk": "Para a foto “Sombra de herói”: O sol baixo faz qualquer cachorrinho parecer um lobo."
+      "hint_talk": "Para a foto “Sombra de herói”: O sol baixo faz qualquer cachorrinho parecer um lobo.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Toque no Tiro na Praça entre 17h e 20h.",
+        "icon": "tab_map",
+        "go": {
+          "world": "park",
+          "place": ""
+        }
+      }
     },
     {
       "id": "s_sock_hunter",
@@ -662,6 +968,7 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_sock_hunter.png",
         "scene": "house",
         "pose": {
           "clip": "bark",
@@ -678,7 +985,16 @@
       ],
       "hint_npc": "lais",
       "hint_object": "laundry_basket",
-      "hint_talk": "Para a foto “Caçador de meias”: Um cesto desprotegido é presa fácil."
+      "hint_talk": "Para a foto “Caçador de meias”: Um cesto desprotegido é presa fácil.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Em Dentinhos ou Aventureiro, toque no cesto de roupa 2 vezes em 1 min.",
+        "icon": "tab_house",
+        "go": {
+          "world": "house",
+          "place": ""
+        }
+      }
     },
     {
       "id": "s_blueberry_face",
@@ -689,6 +1005,7 @@
         "item": "blueberry"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_blueberry_face.png",
         "scene": "pet",
         "pose": {
           "clip": "shake_off",
@@ -701,7 +1018,16 @@
         "item_blueberry"
       ],
       "hint_npc": "nina",
-      "hint_talk": "Para a foto “A careta do mirtilo”: Nem toda fruta da mata é docinha."
+      "hint_talk": "Para a foto “A careta do mirtilo”: Nem toda fruta da mata é docinha.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Dê um mirtilo ao Tiro.",
+        "icon": "item_blueberry",
+        "go": {
+          "screen": "pet",
+          "care": "food"
+        }
+      }
     },
     {
       "id": "s_soap_explorer",
@@ -712,6 +1038,7 @@
         "equipped": "explorer_hat"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_soap_explorer.png",
         "scene": "pet",
         "pose": {
           "clip": "shake_off",
@@ -727,7 +1054,16 @@
         "action_sponge"
       ],
       "hint_npc": "lais",
-      "hint_talk": "Para a foto “Aventureiro de espuma”: Aventureiro também toma banho... ou não?"
+      "hint_talk": "Para a foto “Aventureiro de espuma”: Aventureiro também toma banho... ou não?",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Dê banho com o chapéu do explorador vestido.",
+        "icon": "action_sponge",
+        "go": {
+          "screen": "pet",
+          "care": "sponge"
+        }
+      }
     },
     {
       "id": "s_sprinkler",
@@ -743,6 +1079,7 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_sprinkler.png",
         "scene": "farm",
         "pose": {
           "clip": "chase_tail",
@@ -759,7 +1096,16 @@
       ],
       "hint_npc": "bloblo",
       "hint_object": "plot",
-      "hint_talk": "Para a foto “Chuva suspeita”: Chuva que anda é muito suspeita."
+      "hint_talk": "Para a foto “Chuva suspeita”: Chuva que anda é muito suspeita.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Com o Tiro no Sítio, arraste o regador 5 vezes em 1 h.",
+        "icon": "action_water",
+        "go": {
+          "world": "farm",
+          "place": "plots"
+        }
+      }
     },
     {
       "id": "s_sofa_throne",
@@ -772,6 +1118,7 @@
         "sleep_spot": "sofa"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_sofa_throne.png",
         "scene": "house",
         "pose": {
           "clip": "sleep",
@@ -788,7 +1135,16 @@
       ],
       "hint_npc": "lais",
       "hint_object": "sofa",
-      "hint_talk": "Para a foto “Trono do sofá”: Na ausência dos olhos, todo móvel é dele."
+      "hint_talk": "Para a foto “Trono do sofá”: Na ausência dos olhos, todo móvel é dele.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "A partir de Aventureiro, ponha o Tiro para dormir no sofá.",
+        "icon": "need_energy",
+        "go": {
+          "world": "house",
+          "place": "sofa"
+        }
+      }
     },
     {
       "id": "s_photobomb",
@@ -805,6 +1161,7 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_photobomb.png",
         "scene": "park",
         "pose": {
           "clip": "wag_excited",
@@ -818,7 +1175,15 @@
         "album_friends"
       ],
       "hint_npc": "nina",
-      "hint_talk": "Para a foto “Penetra”: Tem alguém sempre aparecendo onde não foi chamada."
+      "hint_talk": "Para a foto “Penetra”: Tem alguém sempre aparecendo onde não foi chamada.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Com Pipoca no primeiro coração, abra fotos até ela aparecer.",
+        "icon": "album_friends",
+        "go": {
+          "notebook": "album"
+        }
+      }
     },
     {
       "id": "s_moon_friend",
@@ -834,6 +1199,7 @@
         "object": "park_bench"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_moon_friend.png",
         "scene": "park",
         "pose": {
           "clip": "idle_breathe",
@@ -851,7 +1217,16 @@
       ],
       "hint_npc": "nina",
       "hint_object": "community_bench",
-      "hint_talk": "Para a foto “Amigo da lua”: Quem senta sob o luar recebe as luzes que piscam."
+      "hint_talk": "Para a foto “Amigo da lua”: Quem senta sob o luar recebe as luzes que piscam.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Use o Banco da Praça pronto entre 21h e meia-noite.",
+        "icon": "project_bench",
+        "go": {
+          "world": "park",
+          "place": "bench"
+        }
+      }
     },
     {
       "id": "s_zoomies",
@@ -869,6 +1244,7 @@
         ]
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_zoomies.png",
         "scene": "pet",
         "pose": {
           "clip": "chase_tail",
@@ -883,7 +1259,16 @@
         "need_happiness"
       ],
       "hint_npc": "nina",
-      "hint_talk": "Para a foto “Corrida maluca”: Às vezes a energia não cabe dentro dele."
+      "hint_talk": "Para a foto “Corrida maluca”: Às vezes a energia não cabe dentro dele.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Em Aventureiro, brinque 3 vezes em 1 min.",
+        "icon": "need_happiness",
+        "go": {
+          "screen": "pet",
+          "care": "ball"
+        }
+      }
     },
     {
       "id": "s_begging",
@@ -898,6 +1283,7 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_begging.png",
         "scene": "house",
         "pose": {
           "clip": "head_tilt",
@@ -912,7 +1298,16 @@
       ],
       "hint_npc": "lais",
       "hint_object": "fridge",
-      "hint_talk": "Para a foto “Pidão”: Tem um par de olhos seguindo cada porta que abre."
+      "hint_talk": "Para a foto “Pidão”: Tem um par de olhos seguindo cada porta que abre.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Abra a geladeira com o Tiro na Casa e fome abaixo de 40.",
+        "icon": "need_hunger",
+        "go": {
+          "world": "house",
+          "place": "fridge"
+        }
+      }
     },
     {
       "id": "s_muddy",
@@ -926,6 +1321,7 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_muddy.png",
         "scene": "nature",
         "pose": {
           "clip": "shake_off",
@@ -941,7 +1337,16 @@
         "need_hygiene"
       ],
       "hint_npc": "nina",
-      "hint_talk": "Para a foto “Pé de lama”: Quem visita o riacho volta com um pedacinho dele."
+      "hint_talk": "Para a foto “Pé de lama”: Quem visita o riacho volta com um pedacinho dele.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Volte do passeio do riacho com higiene abaixo de 30.",
+        "icon": "action_walk",
+        "go": {
+          "world": "park",
+          "place": "walk"
+        }
+      }
     },
     {
       "id": "p_curled",
@@ -950,6 +1355,7 @@
       "on": "slept",
       "when": {},
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/p_curled.png",
         "scene": "pet",
         "pose": {
           "clip": "sleep",
@@ -962,7 +1368,16 @@
         "need_energy"
       ],
       "hint_npc": "lais",
-      "hint_talk": "Para a foto “Emboladinho”: Todo filhote precisa da primeira soneca."
+      "hint_talk": "Para a foto “Emboladinho”: Todo filhote precisa da primeira soneca.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Ponha o Tiro para dormir.",
+        "icon": "need_energy",
+        "go": {
+          "screen": "pet",
+          "care": "sleep"
+        }
+      }
     },
     {
       "id": "p_belly_up",
@@ -979,6 +1394,7 @@
         "phase_min": "explorer"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/p_belly_up.png",
         "scene": "pet",
         "pose": {
           "clip": "sleep_belly",
@@ -991,7 +1407,16 @@
         "need_happiness"
       ],
       "hint_npc": "lais",
-      "hint_talk": "Para a foto “Barriga pra cima”: Quem está bem feliz dorme de barriga para cima."
+      "hint_talk": "Para a foto “Barriga pra cima”: Quem está bem feliz dorme de barriga para cima.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "A partir de Aventureiro, durma com felicidade em 90 ou mais.",
+        "icon": "need_happiness",
+        "go": {
+          "screen": "pet",
+          "care": "sleep"
+        }
+      }
     },
     {
       "id": "p_ball_hug",
@@ -1009,6 +1434,7 @@
         "house_item": "toy:lost_ball"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/p_ball_hug.png",
         "scene": "house",
         "pose": {
           "clip": "sleep",
@@ -1024,7 +1450,16 @@
         "item_lost_ball"
       ],
       "hint_npc": "lais",
-      "hint_talk": "Para a foto “Abraçado na bolinha”: Uma bolinha perdida faz companhia no escuro."
+      "hint_talk": "Para a foto “Abraçado na bolinha”: Uma bolinha perdida faz companhia no escuro.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Durma entre 20h e 6h com a bolinha perdida no cesto de brinquedos.",
+        "icon": "item_lost_ball",
+        "go": {
+          "screen": "pet",
+          "care": "sleep"
+        }
+      }
     },
     {
       "id": "p_sofa",
@@ -1036,6 +1471,7 @@
         "sleep_spot": "sofa"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/p_sofa.png",
         "scene": "house",
         "pose": {
           "clip": "sleep",
@@ -1051,7 +1487,16 @@
       ],
       "hint_object": "sofa",
       "hint_npc": "lais",
-      "hint_talk": "Para a foto “De bruços no sofá”: Nem todo sono é na caminha."
+      "hint_talk": "Para a foto “De bruços no sofá”: Nem todo sono é na caminha.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Ponha o Tiro para dormir no sofá.",
+        "icon": "tab_house",
+        "go": {
+          "world": "house",
+          "place": "sofa"
+        }
+      }
     },
     {
       "id": "p_pipoca",
@@ -1064,6 +1509,7 @@
         "dog_in_world": "house"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/p_pipoca.png",
         "scene": "house",
         "pose": {
           "clip": "sleep",
@@ -1078,7 +1524,16 @@
         "need_energy"
       ],
       "hint_npc": "lais",
-      "hint_talk": "Para a foto “Encostadinhos”: Uma visita quietinha pode dormir junto."
+      "hint_talk": "Para a foto “Encostadinhos”: Uma visita quietinha pode dormir junto.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Receba a visita da Pipoca com o Tiro dormindo na Casa.",
+        "icon": "album_friends",
+        "go": {
+          "world": "house",
+          "place": ""
+        }
+      }
     },
     {
       "id": "p_crown",
@@ -1095,6 +1550,7 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/p_crown.png",
         "scene": "pet",
         "pose": {
           "clip": "sleep",
@@ -1108,7 +1564,16 @@
         "need_happiness"
       ],
       "hint_npc": "lais",
-      "hint_talk": "Para a foto “Cochilo real”: Coroa de flores e coração cheio."
+      "hint_talk": "Para a foto “Cochilo real”: Coroa de flores e coração cheio.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Durma com coroa de flores e felicidade em 100.",
+        "icon": "outfit_flower_crown",
+        "go": {
+          "screen": "pet",
+          "care": "sleep"
+        }
+      }
     },
     {
       "id": "p_sweater",
@@ -1123,6 +1588,7 @@
         "months": "cold"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/p_sweater.png",
         "scene": "pet",
         "pose": {
           "clip": "sleep",
@@ -1136,7 +1602,16 @@
         "need_energy"
       ],
       "hint_npc": "lais",
-      "hint_talk": "Para a foto “Quentinho”: Nos meses frios, um suéter ajuda."
+      "hint_talk": "Para a foto “Quentinho”: Nos meses frios, um suéter ajuda.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Durma de suéter entre junho e agosto.",
+        "icon": "outfit_knit_sweater",
+        "go": {
+          "screen": "pet",
+          "care": "sleep"
+        }
+      }
     },
     {
       "id": "p_luxe",
@@ -1151,6 +1626,7 @@
         "sleep_spot": "bed"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/p_luxe.png",
         "scene": "house",
         "pose": {
           "clip": "sleep",
@@ -1166,7 +1642,16 @@
         "need_energy"
       ],
       "hint_npc": "lais",
-      "hint_talk": "Para a foto “Sono de rei”: Uma caminha de luxo faz diferença."
+      "hint_talk": "Para a foto “Sono de rei”: Uma caminha de luxo faz diferença.",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Durma na caminha de luxo.",
+        "icon": "need_energy",
+        "go": {
+          "world": "house",
+          "place": "bed"
+        }
+      }
     },
     {
       "id": "a_pipoca",
@@ -1179,6 +1664,7 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/a_pipoca.png",
         "scene": "park",
         "pose": {
           "clip": "wag_excited",
@@ -1186,6 +1672,14 @@
         },
         "props": [],
         "friend": "pipoca"
+      },
+      "goal_hint": {
+        "text": "Ganhe o terceiro coração da Pipoca.",
+        "icon": "album_friends",
+        "go": {
+          "world": "park",
+          "place": "friends"
+        }
       }
     },
     {
@@ -1197,6 +1691,7 @@
         "tricks_min": 5
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/a_nina_class.png",
         "scene": "park",
         "pose": {
           "clip": "give_paw",
@@ -1205,7 +1700,16 @@
         "props": [],
         "friend": "nina"
       },
-      "photo_talk": "Guardei com carinho a foto “Aula particular” com o Tiro!"
+      "photo_talk": "Guardei com carinho a foto “Aula particular” com o Tiro!",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Aprenda os 5 truques com a Nina.",
+        "icon": "trick_paw",
+        "go": {
+          "world": "park",
+          "place": "training"
+        }
+      }
     },
     {
       "id": "a_bloblo_helper",
@@ -1218,6 +1722,7 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/a_bloblo_helper.png",
         "scene": "village",
         "pose": {
           "clip": "wag_excited",
@@ -1226,7 +1731,20 @@
         "props": [],
         "friend": "bloblo"
       },
-      "photo_talk": "Guardei com carinho a foto “Ajudante da vovó” com o Tiro!"
+      "photo_talk": "Guardei com carinho a foto “Ajudante da vovó” com o Tiro!",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Entregue 20 encomendas para o Bloblo.",
+        "icon": "item_treat_box",
+        "go": {
+          "world": "village",
+          "place": "orders"
+        },
+        "progress": {
+          "stat": "customer_orders:bloblo",
+          "target": 20
+        }
+      }
     },
     {
       "id": "a_gathering",
@@ -1239,12 +1757,26 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/a_gathering.png",
         "scene": "park",
         "pose": {
           "clip": "happy_jump",
           "frame": 3
         },
         "props": []
+      },
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Conclua 3 encontros da turma na Festa da Vila.",
+        "icon": "project_festival",
+        "go": {
+          "world": "village",
+          "place": "festival"
+        },
+        "progress": {
+          "stat": "project_gather:village_festival",
+          "target": 3
+        }
       }
     },
     {
@@ -1256,6 +1788,7 @@
         "phase_min": "adult"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/a_lais_lap.png",
         "scene": "house",
         "pose": {
           "clip": "idle_breathe",
@@ -1264,7 +1797,15 @@
         "props": [],
         "friend": "lais"
       },
-      "photo_talk": "Guardei com carinho a foto “No colo da Laís” com o Tiro!"
+      "photo_talk": "Guardei com carinho a foto “No colo da Laís” com o Tiro!",
+      "repeatable": true,
+      "goal_hint": {
+        "text": "No Azul e Dourado, faça carinho no Tiro.",
+        "icon": "action_pet",
+        "go": {
+          "screen": "pet"
+        }
+      }
     },
     {
       "id": "a_four_friends",
@@ -1280,12 +1821,21 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/a_four_friends.png",
         "scene": "park",
         "pose": {
           "clip": "wag_excited",
           "frame": 1
         },
         "props": []
+      },
+      "goal_hint": {
+        "text": "Ganhe um coração de Pipoca, Mel, Bolota e Fred.",
+        "icon": "album_friends",
+        "go": {
+          "world": "park",
+          "place": "friends"
+        }
       }
     },
     {
@@ -1300,12 +1850,20 @@
         ]
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/d_month.png",
         "scene": "pet",
         "pose": {
           "clip": "wag_excited",
           "frame": 1
         },
         "props": []
+      },
+      "goal_hint": {
+        "text": "Volte ao jogo entre o 30º e o 36º dia juntos.",
+        "icon": "album_dates",
+        "go": {
+          "screen": "pet"
+        }
       }
     },
     {
@@ -1317,6 +1875,7 @@
         "anniversary": 7
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/d_gotcha.png",
         "scene": "pet",
         "pose": {
           "clip": "happy_jump",
@@ -1327,7 +1886,14 @@
           "party_hat"
         ]
       },
-      "yearly": true
+      "yearly": true,
+      "goal_hint": {
+        "text": "Volte na semana do aniversário da chegada do Tiro.",
+        "icon": "album_dates",
+        "go": {
+          "screen": "pet"
+        }
+      }
     },
     {
       "id": "d_full_moon",
@@ -1352,6 +1918,7 @@
         ]
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/d_full_moon.png",
         "scene": "park",
         "pose": {
           "clip": "bark",
@@ -1361,7 +1928,16 @@
           "moon"
         ]
       },
-      "yearly": true
+      "yearly": true,
+      "repeatable": true,
+      "goal_hint": {
+        "text": "A partir de Aventureiro, vá à Praça ou Natureza na lua cheia, das 20h à meia-noite.",
+        "icon": "album_dates",
+        "go": {
+          "world": "park",
+          "place": ""
+        }
+      }
     },
     {
       "id": "d_first_cold",
@@ -1373,6 +1949,7 @@
         "equipped": "knit_sweater"
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/d_first_cold.png",
         "scene": "pet",
         "pose": {
           "clip": "idle_breathe",
@@ -1380,7 +1957,16 @@
         },
         "props": []
       },
-      "yearly": true
+      "yearly": true,
+      "repeatable": true,
+      "goal_hint": {
+        "text": "Entre junho e agosto, vista o suéter e volte ao jogo.",
+        "icon": "outfit_knit_sweater",
+        "go": {
+          "screen": "pet",
+          "collection": true
+        }
+      }
     },
     {
       "id": "d_after_party",
@@ -1396,13 +1982,124 @@
         }
       },
       "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/d_after_party.png",
         "scene": "village",
         "pose": {
           "clip": "idle_breathe",
           "frame": 0
         },
         "props": []
+      },
+      "goal_hint": {
+        "text": "Volte à Vila no dia seguinte à Festa pronta, ou depois.",
+        "icon": "project_festival",
+        "go": {
+          "world": "village",
+          "place": ""
+        }
       }
     }
-  ]
+  ],
+  "cards": {
+    "levels": [
+      {
+        "level": 1,
+        "name": "Comum",
+        "weight": 45,
+        "art": "common"
+      },
+      {
+        "level": 2,
+        "name": "Brilhante",
+        "weight": 30,
+        "art": "shiny"
+      },
+      {
+        "level": 3,
+        "name": "Rara",
+        "weight": 18,
+        "art": "rare"
+      },
+      {
+        "level": 4,
+        "name": "Holográfica",
+        "weight": 7,
+        "art": "holographic"
+      }
+    ],
+    "pity": {
+      "rare_plus": 10,
+      "holo": 30
+    },
+    "section_weights": {
+      "story": {
+        "1": 20,
+        "2": 35,
+        "3": 30,
+        "4": 15
+      }
+    },
+    "repeat_cooldown_hours": 20,
+    "reroll": {
+      "coins": 40,
+      "coins_step": 20,
+      "coins_max": 160
+    },
+    "upgrade": {
+      "2": {
+        "coins": 30,
+        "items": {
+          "wood": 4,
+          "stone": 3
+        }
+      },
+      "3": {
+        "coins": 80,
+        "items": {
+          "plank": 3,
+          "copper": 2,
+          "fiber": 4
+        }
+      },
+      "4": {
+        "coins": 180,
+        "items": {
+          "crystal": 3,
+          "hardwood": 3,
+          "fabric": 2
+        }
+      }
+    },
+    "featured_slots": 3,
+    "rewards": {
+      "section": {
+        "coins": 60
+      },
+      "styles": {
+        "coins": 25
+      },
+      "rare": {
+        "5": {
+          "coins": 40
+        },
+        "15": {
+          "coins": 80
+        },
+        "30": {
+          "coins": 150
+        }
+      },
+      "holo_first": {
+        "coins": 100
+      }
+    },
+    "tutorial": {
+      "photo": "h_arrival",
+      "forced": [
+        1,
+        2,
+        3
+      ]
+    }
+  }
 }

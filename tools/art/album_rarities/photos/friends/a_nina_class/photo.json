@@ -1,0 +1,120 @@
+{
+  "id": "a_nina_class",
+  "title": "Aula particular",
+  "section": "friends",
+  "section_name": "Amigos",
+  "phase": "adult",
+  "game_scene": "park",
+  "source_definition": "game/data/album.json#photos/a_nina_class",
+  "trigger": {
+    "on": "trick_learned",
+    "when": {
+      "tricks_min": 5
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/a_nina_class.png",
+    "scene": "park",
+    "pose": {
+      "clip": "give_paw",
+      "frame": 2
+    },
+    "props": [],
+    "friend": "nina"
+  },
+  "scene_description": "A private training class: adult tiny golden-headed steel-blue-backed Yorkshire Tiro giving one confident PAW into Nina's gently extended hand in the village park. Nina faithful to reference: young brown-skinned woman, dark hair pulled back under olive-green cap, orange T-shirt, kneeling at dog's height, other hand holding one small training treat. Mastered trick, warm smiles and attentive eye contact. Whole dog visible, correct paws and hands, bench trees and grass behind.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/a_nina_class.png",
+  "original_capture": "docs/art/album_ilustrado/originais/a_nina_class.png",
+  "manifest_path": "tools/art/album_rarities/photos/friends/a_nina_class/photo.json",
+  "batch_id": "batch_008",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_nina_class/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_nina_class/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.109455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-17654032-b767-4346-a2ab-654919be6bab.png",
+          "completed_at": "2026-11-06T23:27:44.151359+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_nina_class/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-17654032-b767-4346-a2ab-654919be6bab.png",
+      "completed_at": "2026-11-06T23:27:44.150359+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8df5111323423eddca55eeaa81ef19ba6f714332a78a79148217a7d3ab789b71",
+      "reviewed_at": "2026-11-06T23:31:58.906941+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_nina_class/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_nina_class/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.109455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3a51c1f8-06b4-49a9-9085-b4aa4b58f07e.png",
+          "completed_at": "2026-11-06T23:28:18.416811+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_nina_class/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3a51c1f8-06b4-49a9-9085-b4aa4b58f07e.png",
+      "completed_at": "2026-11-06T23:28:18.416811+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "723876511f4fcc67996e9c212b115efc6d1ae83d8ad3cec69e1914b15eb705ba",
+      "reviewed_at": "2026-11-06T23:31:59.452779+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_nina_class/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_nina_class/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.109455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c1f26eb5-aeca-4028-9d0b-d24d48ad9226.png",
+          "completed_at": "2026-11-06T23:28:56.502403+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_nina_class/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c1f26eb5-aeca-4028-9d0b-d24d48ad9226.png",
+      "completed_at": "2026-11-06T23:28:56.502403+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "7a8751c2f124fdc242f6b873da0b55b29906f0100a730452f8ea49cf78846805",
+      "reviewed_at": "2026-11-06T23:31:59.806679+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_nina_class/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_nina_class/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.109455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-b2cfe7ba-ab7d-421b-a82e-f66bbc8949e1.png",
+          "completed_at": "2026-11-06T23:29:37.628928+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_nina_class/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-b2cfe7ba-ab7d-421b-a82e-f66bbc8949e1.png",
+      "completed_at": "2026-11-06T23:29:37.628928+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "654293f62a536cacf48e7368dcc5ed7d9bddc6cf9015e0087cbb762c7eadbc75",
+      "reviewed_at": "2026-11-06T23:32:00.211549+00:00"
+    }
+  }
+}

@@ -1,0 +1,117 @@
+{
+  "id": "h_first_walk",
+  "title": "O mundo é grande",
+  "section": "story",
+  "section_name": "História",
+  "phase": "teething",
+  "game_scene": "park",
+  "source_definition": "game/data/album.json#photos/h_first_walk",
+  "trigger": {
+    "on": "walk_returned",
+    "when": {}
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_first_walk.png",
+    "scene": "park",
+    "pose": {
+      "clip": "look_around",
+      "frame": 0
+    },
+    "props": []
+  },
+  "scene_description": "His first walk: SMALL juvenile black-and-tan Yorkie with upright ears standing wide-eyed and looking around a welcoming village park, ground-level camera to make the path, flowers, wooden bench and trees feel wonderfully big. First encounter with the wide world. No clothes, no adult golden head.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_first_walk.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_first_walk.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_first_walk/photo.json",
+  "batch_id": "batch_001",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_first_walk/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_first_walk/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.486689+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-993d3eca-1567-4fc9-a9d7-a392b0894356.png",
+          "completed_at": "2026-11-06T19:16:03.240224+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_first_walk/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-993d3eca-1567-4fc9-a9d7-a392b0894356.png",
+      "completed_at": "2026-11-06T19:16:03.240224+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c9aa9c7a8a7ed90edf42067686b74f57196a7e6603494bfcad7da491ad4b2b7c",
+      "reviewed_at": "2026-11-06T19:17:53.757053+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_first_walk/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_first_walk/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.487688+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-93b67960-2194-4a92-b1b3-6d09470a00a0.png",
+          "completed_at": "2026-11-06T19:16:06.024321+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_first_walk/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-93b67960-2194-4a92-b1b3-6d09470a00a0.png",
+      "completed_at": "2026-11-06T19:16:06.023320+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "1dcb963efc550a743f9a8b08464afade4f92ffe5c1dfc3fee8123af7c59bfb78",
+      "reviewed_at": "2026-11-06T19:17:54.105697+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_first_walk/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_first_walk/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.487688+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-4aac41e0-58ca-4643-a641-7a224deb680c.png",
+          "completed_at": "2026-11-06T19:16:08.963628+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_first_walk/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-4aac41e0-58ca-4643-a641-7a224deb680c.png",
+      "completed_at": "2026-11-06T19:16:08.963628+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "bf425810ff702d5d0c55d489bf56ed6af4818ec75f13e8b4d4746d70757a6ae5",
+      "reviewed_at": "2026-11-06T19:17:54.448456+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_first_walk/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_first_walk/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.487688+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-cf3ed5de-92ce-426f-85cf-b7dd002f2f40.png",
+          "completed_at": "2026-11-06T19:16:11.931658+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_first_walk/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-cf3ed5de-92ce-426f-85cf-b7dd002f2f40.png",
+      "completed_at": "2026-11-06T19:16:11.931658+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "aa7575beeb55bd76e16e73e1a0cbb342aa7c968ae67f88e6c4ca9063c0b73ecf",
+      "reviewed_at": "2026-11-06T19:17:54.784877+00:00"
+    }
+  }
+}

@@ -1,0 +1,119 @@
+{
+  "id": "s_blueberry_face",
+  "title": "A careta do mirtilo",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "explorer",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/s_blueberry_face",
+  "trigger": {
+    "on": "fed",
+    "when": {
+      "item": "blueberry"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_blueberry_face.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "shake_off",
+      "frame": 2
+    },
+    "props": []
+  },
+  "scene_description": "The blueberry grimace: small adolescent black-and-tan Yorkie with upright ears at home has just tasted ONE blueberry, making a comically surprised sour face with one eye squeezed and tongue slightly out, tiny purple stain on his muzzle. A small bowl with a few blueberries on floor beside him, no injury or distress. Clear expressive portrait yet full small body visible, warm cream home corner.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_blueberry_face.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_blueberry_face.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_blueberry_face/photo.json",
+  "batch_id": "batch_005",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_blueberry_face/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_blueberry_face/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.687300+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-148fdc6b-5f41-4b74-a662-5657e464a525.png",
+          "completed_at": "2026-11-06T22:34:17.811257+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_blueberry_face/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-148fdc6b-5f41-4b74-a662-5657e464a525.png",
+      "completed_at": "2026-11-06T22:34:17.811257+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c0c1a0c05c2647a25f05fc8b0fec0201dbb52eff756632816bc3679107b837c7",
+      "reviewed_at": "2026-11-06T22:38:08.320670+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_blueberry_face/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_blueberry_face/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.687300+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-b3407f4a-0203-4582-bd51-021046f7284e.png",
+          "completed_at": "2026-11-06T22:34:57.776451+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_blueberry_face/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-b3407f4a-0203-4582-bd51-021046f7284e.png",
+      "completed_at": "2026-11-06T22:34:57.776451+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f2b713bf845cf68f2b0572df630ce6b9ae06df5c39f1b3c2c1caf9f6c97c4ba3",
+      "reviewed_at": "2026-11-06T22:38:08.669572+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_blueberry_face/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_blueberry_face/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.687300+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d22c691a-9727-492b-bd9d-a89620cd2929.png",
+          "completed_at": "2026-11-06T22:35:33.719769+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_blueberry_face/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d22c691a-9727-492b-bd9d-a89620cd2929.png",
+      "completed_at": "2026-11-06T22:35:33.719769+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "1446a51c0200ee91abb2f7f63298711b584855cfb3772669fd5c586333c33fd4",
+      "reviewed_at": "2026-11-06T22:38:08.973515+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_blueberry_face/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_blueberry_face/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.687300+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3468b40c-8a08-46ba-8e9a-40aad986e622.png",
+          "completed_at": "2026-11-06T22:36:09.471245+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_blueberry_face/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3468b40c-8a08-46ba-8e9a-40aad986e622.png",
+      "completed_at": "2026-11-06T22:36:09.471245+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "76afd8e020a1319226d9d7c3e02419f9c81a9d0723c65e0d9747e644bf0564c1",
+      "reviewed_at": "2026-11-06T22:38:09.322927+00:00"
+    }
+  }
+}

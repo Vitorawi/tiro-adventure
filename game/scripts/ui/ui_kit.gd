@@ -213,10 +213,23 @@ static func lock_hint(text: String, on_help: Callable = Callable(), missing: Tex
 	if on_help.is_valid():
 		row.add_child(ctl_button("help", on_help, 32, "sunken"))
 		row.mouse_filter = Control.MOUSE_FILTER_PASS
-		row.gui_input.connect(func(event: InputEvent) -> void:
-			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-				on_help.call())
+		UiKit.on_tap(row, on_help)
 	return row
+
+
+## Toque num controle que não é botão: age ao SOLTAR dentro dele. Assim o arrasto de rolagem
+## (DragScroll joga o soltar para fora) não dispara a ação; um toque curto continua valendo.
+static func on_tap(control: Control, action: Callable) -> void:
+	control.gui_input.connect(func(event: InputEvent) -> void:
+		var click := event as InputEventMouseButton
+		if click == null or click.button_index != MOUSE_BUTTON_LEFT:
+			return
+		if click.pressed:
+			control.set_meta("tap_down", true)
+		elif control.has_meta("tap_down"):
+			control.remove_meta("tap_down")
+			if Rect2(Vector2.ZERO, control.size).has_point(click.position):
+				action.call())
 
 
 ## Mantém a ação disponível ou a substitui por bloqueio consultável, sem conectar a ação proibida.
@@ -273,10 +286,7 @@ static func list_row(texture: Texture2D, title: String, chips: Array[Control], a
 			chip_row.add_child(chip_control)
 		text_column.add_child(chip_row)
 	if on_tap.is_valid():
-		panel.gui_input.connect(func(event: InputEvent) -> void:
-			var click := event as InputEventMouseButton
-			if click and click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
-				on_tap.call())
+		UiKit.on_tap(panel, on_tap)
 	return panel
 
 ## Rótulo curto numa linha (ex.: "3/6"): sem quebra, senão o HBox o espreme letra por letra.

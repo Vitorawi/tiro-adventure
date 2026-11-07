@@ -1,0 +1,124 @@
+{
+  "id": "a_four_friends",
+  "title": "Turma dos quatro",
+  "section": "friends",
+  "section_name": "Amigos",
+  "phase": "adult",
+  "game_scene": "park",
+  "source_definition": "game/data/album.json#photos/a_four_friends",
+  "trigger": {
+    "on": "friend_heart",
+    "when": {
+      "friend_hearts": {
+        "pipoca": 1,
+        "mel": 1,
+        "bolota": 1,
+        "fred": 1
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/a_four_friends.png",
+    "scene": "park",
+    "pose": {
+      "clip": "wag_excited",
+      "frame": 1
+    },
+    "props": []
+  },
+  "scene_description": "Friendship group portrait at the village park: adult tiny golden-headed steel-blue-backed Yorkshire Tiro with FOUR different canine friends shown in supporting portraits, total exactly FIVE dogs. PIPOCA caramel mixed breed with tall ears cream muzzle chest, MEL white curly poodle with tiny pink bow, BOLOTA fawn pug with black wrinkled muzzle and curled tail, FRED tricolor beagle white chest brown head black saddle floppy ears. Preserve each breed identity; all small-to-medium dogs, Tiro among smallest. Natural relaxed group together on grass beside path, happy expressions, warm sunny flowerbeds behind, all five whole bodies visible, no duplicate dog, no human. CRITICAL keep Pipoca SHORT SMOOTH-coated and slender with no terrier beard; Mel has white tight CURLS; Bolota a SHORT FLAT wrinkled muzzle; Fred large FLOPPY ears and short tricolor fur. Only Tiro has long silky terrier hair.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/a_four_friends.png",
+  "original_capture": "docs/art/album_ilustrado/originais/a_four_friends.png",
+  "manifest_path": "tools/art/album_rarities/photos/friends/a_four_friends/photo.json",
+  "batch_id": "batch_009",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_four_friends/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_four_friends/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.734500+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1935b0d7-7690-4c58-b46c-e1eb7e6812b3.png",
+          "completed_at": "2026-11-06T23:42:09.288273+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_four_friends/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1935b0d7-7690-4c58-b46c-e1eb7e6812b3.png",
+      "completed_at": "2026-11-06T23:42:09.288273+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "210c0145a852bcab59f63d385c2a2bdcb4eab280a23b395445e436349d69e709",
+      "reviewed_at": "2026-11-06T23:49:17.202049+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_four_friends/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_four_friends/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.734500+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-a3ae395a-8525-410b-bf52-7defaeb68736.png",
+          "completed_at": "2026-11-06T23:42:45.669972+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_four_friends/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-a3ae395a-8525-410b-bf52-7defaeb68736.png",
+      "completed_at": "2026-11-06T23:42:45.669972+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8502593c59d26bb08028ad5b505c01e90a0f82ef48e94423924e059b7a9cb618",
+      "reviewed_at": "2026-11-06T23:49:17.562440+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_four_friends/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_four_friends/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.734500+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-88925fba-617d-4640-bc17-46b10f4f63ef.png",
+          "completed_at": "2026-11-06T23:43:19.555292+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_four_friends/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-88925fba-617d-4640-bc17-46b10f4f63ef.png",
+      "completed_at": "2026-11-06T23:43:19.555292+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "bec9f9d7ae9cb3839d555b4e69c369c7640571282ffe89d650cbfa4e61d47a01",
+      "reviewed_at": "2026-11-06T23:49:18.497141+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_four_friends/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_four_friends/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.734500+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-40d57c0d-fd1a-4376-80fd-beb966852da2.png",
+          "completed_at": "2026-11-06T23:43:59.102555+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_four_friends/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-40d57c0d-fd1a-4376-80fd-beb966852da2.png",
+      "completed_at": "2026-11-06T23:43:59.102555+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "3785849884d4a55ff65c93032c201e54a1689056ddee595805e5b063d795d592",
+      "reviewed_at": "2026-11-06T23:49:19.370369+00:00"
+    }
+  }
+}

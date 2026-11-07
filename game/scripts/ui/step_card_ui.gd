@@ -570,10 +570,7 @@ static func wood_chip(icon: Texture2D, value: String, tone: String = "", tap: Ca
 	row.add_child(label)
 	panel.add_child(row)
 	if tap.is_valid():
-		panel.gui_input.connect(func(event: InputEvent) -> void:
-			var click := event as InputEventMouseButton
-			if click and not click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
-				tap.call())
+		UiKit.on_tap(panel, tap)
 	return panel
 
 

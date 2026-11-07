@@ -1,0 +1,125 @@
+{
+  "id": "p_belly_up",
+  "title": "Barriga pra cima",
+  "section": "sleep",
+  "section_name": "Soninhos",
+  "phase": "explorer",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/p_belly_up",
+  "trigger": {
+    "on": [
+      "slept",
+      "app_opened"
+    ],
+    "when": {
+      "need_min": {
+        "happiness": 90
+      },
+      "phase_min": "explorer"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/p_belly_up.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "sleep_belly",
+      "frame": 0
+    },
+    "props": []
+  },
+  "scene_description": "A deeply content SMALL adolescent black-and-tan Yorkshire with upright ears sleeping on his BACK with belly up on the cream rug in his home corner, four relaxed paws softly curled toward chest, head turned a little to side, eyes closed, very safe comfortable sleep. Show natural dog anatomy, little belly and tiny paws clearly, overhead three-quarter composition, warm afternoon sun across the floor.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/p_belly_up.png",
+  "original_capture": "docs/art/album_ilustrado/originais/p_belly_up.png",
+  "manifest_path": "tools/art/album_rarities/photos/sleep/p_belly_up/photo.json",
+  "batch_id": "batch_007",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_belly_up/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_belly_up/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.473452+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-6d889ccd-1343-46c7-95a4-559171deba11.png",
+          "completed_at": "2026-11-06T23:06:37.570678+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_belly_up/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-6d889ccd-1343-46c7-95a4-559171deba11.png",
+      "completed_at": "2026-11-06T23:06:37.570678+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c3af45fc4ca630333b50d80fc740e0d56c97bd0128b651b92268e00a34d6b594",
+      "reviewed_at": "2026-11-06T23:14:35.746226+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_belly_up/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_belly_up/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.473452+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-b8a952c7-4fa5-46cb-83d1-cbf04eca7b4f.png",
+          "completed_at": "2026-11-06T23:07:08.781749+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_belly_up/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-b8a952c7-4fa5-46cb-83d1-cbf04eca7b4f.png",
+      "completed_at": "2026-11-06T23:07:08.781749+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "735d965beb59d042d31278ca2d87e6af6012439cb872e3364456feac0da51772",
+      "reviewed_at": "2026-11-06T23:14:36.083995+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_belly_up/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_belly_up/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.474442+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ed19762f-7041-401b-a8d9-67f927f503ff.png",
+          "completed_at": "2026-11-06T23:07:44.344199+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_belly_up/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ed19762f-7041-401b-a8d9-67f927f503ff.png",
+      "completed_at": "2026-11-06T23:07:44.344199+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "569df6827fdadc0e29f57928a5c33883753b458fb94bb4db7e09b8de1f71b64c",
+      "reviewed_at": "2026-11-06T23:14:36.396227+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_belly_up/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_belly_up/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.474442+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c47b4e89-7df9-44e0-8b73-718d5e68c7e4.png",
+          "completed_at": "2026-11-06T23:08:22.826556+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_belly_up/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c47b4e89-7df9-44e0-8b73-718d5e68c7e4.png",
+      "completed_at": "2026-11-06T23:08:22.826556+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6b57a4de57186defe4b2be10f6580457ed672156adce26445cc4769fd948fe27",
+      "reviewed_at": "2026-11-06T23:14:36.722853+00:00"
+    }
+  }
+}

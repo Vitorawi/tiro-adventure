@@ -377,9 +377,7 @@ func _row(line: Dictionary, plan: Dictionary, width: float, tap_row: bool) -> Co
 	holder.mouse_filter = Control.MOUSE_FILTER_PASS
 	var go: Callable = line.go
 	if tap_row:
-		holder.gui_input.connect(func(event: InputEvent) -> void:
-			if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed:
-				go.call())
+		UiKit.on_tap(holder, go)
 	var box := UiKit.hbox(int(ROW_GAP))
 	box.mouse_filter = Control.MOUSE_FILTER_PASS
 	holder.add_child(box)

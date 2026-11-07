@@ -1,0 +1,122 @@
+{
+  "id": "d_gotcha",
+  "title": "Dia do Tiro",
+  "section": "dates",
+  "section_name": "Datas",
+  "phase": "adult",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/d_gotcha",
+  "trigger": {
+    "on": "app_opened",
+    "when": {
+      "anniversary": 7
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/d_gotcha.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "happy_jump",
+      "frame": 3
+    },
+    "props": [
+      "cake",
+      "party_hat"
+    ]
+  },
+  "scene_description": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/d_gotcha.png",
+  "original_capture": "docs/art/album_ilustrado/originais/d_gotcha.png",
+  "manifest_path": "tools/art/album_rarities/photos/dates/d_gotcha/photo.json",
+  "batch_id": "batch_009",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_gotcha/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_gotcha/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.736196+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1c4ad4a2-9908-4477-8ac9-087ebb7eff89.png",
+          "completed_at": "2026-11-06T23:46:43.317212+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_gotcha/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1c4ad4a2-9908-4477-8ac9-087ebb7eff89.png",
+      "completed_at": "2026-11-06T23:46:43.317212+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "2c3ae9facc4ae78e8b3c412adcc4f431efa375ef4330c5d585db19d7f7ab7460",
+      "reviewed_at": "2026-11-06T23:49:21.198641+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_gotcha/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_gotcha/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.736196+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1eaa6684-3af3-4a29-a3aa-dfeaca0c891b.png",
+          "completed_at": "2026-11-06T23:47:16.484084+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_gotcha/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1eaa6684-3af3-4a29-a3aa-dfeaca0c891b.png",
+      "completed_at": "2026-11-06T23:47:16.484084+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "60007026a4547b3857cd3edab26cfa32b530ea0070c19d48584b36a52a5f9bda",
+      "reviewed_at": "2026-11-06T23:49:21.550040+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_gotcha/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_gotcha/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.736196+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-37ed9227-d126-49fe-a81b-269289ab6402.png",
+          "completed_at": "2026-11-06T23:47:52.993925+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_gotcha/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-37ed9227-d126-49fe-a81b-269289ab6402.png",
+      "completed_at": "2026-11-06T23:47:52.993925+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8583f7d4061abf3e4bfa4c77d192f0703ea6642f0b434b4ac0a719e7d13e50dd",
+      "reviewed_at": "2026-11-06T23:49:21.953053+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_gotcha/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_gotcha/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.736196+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-33362b17-c569-4615-912d-f0f13d45e96a.png",
+          "completed_at": "2026-11-06T23:48:28.726041+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_gotcha/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-33362b17-c569-4615-912d-f0f13d45e96a.png",
+      "completed_at": "2026-11-06T23:48:28.726041+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "b7008e63ff4f170e2ab4186eae0927fbaf53027726d4e346c5e8d4a6dab717b8",
+      "reviewed_at": "2026-11-06T23:49:22.318443+00:00"
+    }
+  }
+}

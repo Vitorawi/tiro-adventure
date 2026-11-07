@@ -205,6 +205,9 @@ func _run() -> void:
 	# Truque aprendido.
 	celebration.call("show_trick", "paw")
 	await _shot(celebration, "f_truque")
+	# Item principal entregue por um personagem.
+	celebration.call("show_gift", "chew_ring", "bloblo")
+	await _shot(celebration, "h_presente")
 	# Crescimento (herói próprio: antes/depois + régua).
 	var phases: Array = db.get("growth").phases
 	ceremony.set("phase", str(phases[1].id))

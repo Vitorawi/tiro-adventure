@@ -1,0 +1,119 @@
+{
+  "id": "h_growth_young",
+  "title": "Pelo de mocinho",
+  "section": "story",
+  "section_name": "História",
+  "phase": "young",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/h_growth_young",
+  "trigger": {
+    "on": "grew",
+    "when": {
+      "grew_to": "young"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_growth_young.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "idle_breathe",
+      "frame": 0
+    },
+    "props": []
+  },
+  "scene_description": "Milestone 'Pelo de mocinho': Tiro now a young adult Yorkshire terrier, adult body shape but a still DARK charcoal-black crown and back with golden tan muzzle eyebrows chest paws and early subtly silver strands on shoulders (only beginning coat transition, NOT fully adult golden head). Upright ears, sitting proudly in cozy home corner, elegant slightly longer legs and silky coat. Entire dog visible.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_growth_young.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_growth_young.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_growth_young/photo.json",
+  "batch_id": "batch_002",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_young/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_young/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.287505+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-0ef50e66-b35b-4fed-b15c-6df6511eae0a.png",
+          "completed_at": "2026-11-06T21:51:07.539381+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_young/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-0ef50e66-b35b-4fed-b15c-6df6511eae0a.png",
+      "completed_at": "2026-11-06T21:51:07.539381+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "5827426e613661cebf3abfcd0a3faaef80afe7cf95f466e81f22bb99f3d03e1d",
+      "reviewed_at": "2026-11-06T21:52:11.140486+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_young/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_young/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.287505+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-42c0b1e3-b6da-40a3-b92b-a01bf80d9d13.png",
+          "completed_at": "2026-11-06T21:51:10.626115+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_young/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-42c0b1e3-b6da-40a3-b92b-a01bf80d9d13.png",
+      "completed_at": "2026-11-06T21:51:10.626115+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6d0afbd4b6d31f7c32585841ab3d71fba3f4ffffd5700e046aeee4439579e5ce",
+      "reviewed_at": "2026-11-06T21:52:11.472027+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_young/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_young/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.287505+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5af667d2-6d2c-4dc6-8ab4-b7bbef738514.png",
+          "completed_at": "2026-11-06T21:51:13.374076+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_young/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5af667d2-6d2c-4dc6-8ab4-b7bbef738514.png",
+      "completed_at": "2026-11-06T21:51:13.373076+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f380b491e85a1b108626df9df8110a10e895b77c5796865272a42dd7a346276e",
+      "reviewed_at": "2026-11-06T21:52:11.779944+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_young/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_young/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.288505+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-386f90cf-80be-4cbd-846e-34652563574d.png",
+          "completed_at": "2026-11-06T21:51:16.003983+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_young/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-386f90cf-80be-4cbd-846e-34652563574d.png",
+      "completed_at": "2026-11-06T21:51:16.003983+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "7b1754d6fb5ed6f9e3c16606febb9f5dd23372465b66a4d24bd7cc69b78a32ac",
+      "reviewed_at": "2026-11-06T21:52:12.100856+00:00"
+    }
+  }
+}

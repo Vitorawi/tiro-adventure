@@ -16,8 +16,17 @@ var _button: Button
 var _animator: PetAnimator
 
 
+## Folha em madeira ilustrada (a `Sheet` lê a meta ao abrir o conteúdo).
+func _init() -> void:
+	set_meta("sheet_wood", true)
+
+
 func _ready() -> void:
-	add_child(UiKit.label("Toque quando a marca entrar no verde", &"SmallLabel"))
+	var hint := StepCardUi.wood("Toque quando a marca entrar no verde", 16)
+	hint.name = "TrickHint"
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	add_child(hint)
 	var dog := UiKit.icon(null, 216)
 	dog.custom_minimum_size.x = 0
 	add_child(dog)
@@ -33,15 +42,18 @@ func _ready() -> void:
 	_bar.custom_minimum_size = Vector2(0, 56)
 	_bar.draw.connect(_draw_bar)
 	add_child(_bar)
-	_feedback = UiKit.label("Sem pressa!", &"")
+	_feedback = StepCardUi.wood("Sem pressa!", 18)
+	_feedback.name = "TrickFeedback"
 	_feedback.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_feedback.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_feedback)
-	_button = UiKit.button("Agora!", attempt, &"PrimaryButton")
+	_button = StepCardUi.go_button("Agora!", attempt)
 	_button.name = "TrickAttempt"
-	_button.custom_minimum_size.y = 64
+	_button.custom_minimum_size.y = 56
 	add_child(_button)
-	add_child(UiKit.soft("Voltar ao treino", func() -> void:
-		Events.sheet_requested.emit("Treino", TrickUi.panel(true))))
+	var back := WelcomeSheet._button("Voltar ao treino", false, 220.0, "TrickBack", func() -> void:
+		Events.sheet_requested.emit("Treino", TrickUi.panel(true)))
+	add_child(back)
 	Events.state_changed.connect(_validate)
 	_attempt_ready()
 
@@ -70,6 +82,7 @@ func _validate() -> void:
 		return
 	var error := GameState.learn_trick_error(trick_id)
 	_button.disabled = _busy or error != ""
+	_button.modulate = Color(1, 1, 1, 0.55) if _button.disabled else Color.WHITE
 	if error != "":
 		_feedback.text = error
 	_animator.set_sleeping(GameState.dog.sleeping)
@@ -81,10 +94,20 @@ func _process(_delta: float) -> void:
 
 func _draw_bar() -> void:
 	var width := _bar.size.x - 12.0
-	_bar.draw_style_box(UiKit.surface(Palette.TRACK_DARK, 20), Rect2(6, 8, width, 40))
+	# Trilho de madeira: calha marrom com borda escura, zona verde e marcador creme com contorno.
+	var track := UiKit.surface(Color("8a5a30"), 20)
+	track.border_color = Color("5a3418")
+	track.set_border_width_all(3)
+	_bar.draw_style_box(track, Rect2(6, 8, width, 40))
 	var zone := float(Database.progression.tricks[trick_id].zone)
-	_bar.draw_style_box(UiKit.surface(Palette.TRACK_ZONE, 20), Rect2(6 + (zone_center - zone * 0.5) * width, 8, zone * width, 40))
-	_bar.draw_style_box(UiKit.surface(Palette.TRACK_MARKER, 2), Rect2(4 + marker * width, 0, 4, 56))
+	var green := UiKit.surface(Color("5fae4a"), 16)
+	green.border_color = Color("2f7a2e")
+	green.set_border_width_all(2)
+	_bar.draw_style_box(green, Rect2(6 + (zone_center - zone * 0.5) * width, 11, zone * width, 34))
+	var mark := UiKit.surface(Palette.WOOD_CREAM, 3)
+	mark.border_color = Palette.WOOD_INK
+	mark.set_border_width_all(2)
+	_bar.draw_style_box(mark, Rect2(3 + marker * width, 0, 6, 56))
 
 
 func attempt() -> void:
@@ -99,6 +122,7 @@ func attempt() -> void:
 		return
 	_busy = true
 	_button.disabled = true
+	_button.modulate = Color(1, 1, 1, 0.55)
 	_motion.kill()
 	var success := check_hit(marker)
 	_feedback.text = "Isso!" if success else "Quase! Tente de novo"
@@ -112,6 +136,7 @@ func attempt() -> void:
 		_feedback.text = "Aprendeu!" if error == "" else error
 		_button.text = "Voltar ao treino"
 		_button.disabled = false
+		_button.modulate = Color.WHITE
 		return
 	await get_tree().create_timer(1.2).timeout
 	if is_inside_tree():

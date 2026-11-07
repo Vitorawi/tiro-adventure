@@ -13,8 +13,7 @@ func open(id: String, next: String = "") -> void:
 	var npc := str(quest.get("npc", "lais"))
 	var text := str(next_quest.get("dialogue", ""))
 	if text == "": text = str(Database.npcs.get(npc, {}).get("greeting", ""))
-	var sheet := RewardSheet.open(self, {"title": "Passo concluído!", "ribbon": Palette.GO, "ribbon_icon": "check",
-		"speech": {"npc": npc, "text": text}, "haptic": ""})
+	var sheet := RewardSheet.open(self, {"title": "Passo concluído!", "speech": {"npc": npc, "text": text}, "haptic": ""})
 	var chips := UiKit.flow(8)
 	chips.name = "RewardChips"
 	var rewards: Dictionary = quest.get("rewards", {})
@@ -25,8 +24,8 @@ func open(id: String, next: String = "") -> void:
 	chips.alignment = FlowContainer.ALIGNMENT_CENTER
 	if not Motion.reduced: RewardSheet.reveal_in(chips)
 	if next != "":
-		sheet.add(UiKit.section("Próximo passo"))
-		sheet.add(ProgressionUi.next_step_card(next))
+		sheet.add_heading("Próximo passo")
+		sheet.add(RewardSheet.next_card(next))
 	var target := Places.quest_target(next) if next != "" else {}
 	var actions := sheet.add_actions("Depois" if next != "" else "", close,
 		"Ir para " + ProgressionUi.quest_place_name(target) if next != "" else "Que bom!", func() -> void:

@@ -358,6 +358,8 @@ func _welcome_checks() -> void:
 	click.button_index = MOUSE_BUTTON_LEFT
 	click.pressed = true
 	(dig_rows[0] as Control).gui_input.emit(click)
+	click.pressed = false
+	(dig_rows[0] as Control).gui_input.emit(click)
 	await frames()
 	check(not welcome.visible, "tocar na linha fecha o cartão")
 	check(visited == [[str(worlds[0]), "find"]], "tocar na linha vai ao primeiro mundo do achado (%s)" % str(visited))

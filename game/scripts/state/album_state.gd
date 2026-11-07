@@ -4,7 +4,7 @@ extends RefCounted
 ## Só dados + consultas puras + to_dict/from_dict; as regras ficam em `AlbumRules` e no `GameState`.
 
 var schema: int = 1
-## id -> {at, phase, coat, seen}: a foto guarda a fase e o pelo daquele dia.
+## id -> {at, phase, coat, seen, equipped, rarity (melhor), variants (estilos obtidos), shown (0 = o melhor), rolls, rerolls, best_at, rolled_at}.
 var photos: Dictionary = {}
 ## id -> nível de dica já revelado (etapa 15).
 var hints: Dictionary = {}
@@ -22,6 +22,13 @@ var years: Dictionary = {}
 var party_from: float = 0.0
 var party_until: float = 0.0
 var sleep_spot: String = ""
+## Raridade das fotos: garantias (sorteios seguidos sem Rara+ / sem Holográfica) e semente salva.
+var pity_rare: int = 0
+var pity_holo: int = 0
+var rarity_seed: int = 0
+## Varal da home (até `cards.featured_slots` ids) e o passo do tutorial das cartas.
+var featured: Array[String] = []
+var tutorial: Dictionary = {"step": 0, "done": false}
 
 
 func reset() -> void:
@@ -40,6 +47,11 @@ func reset() -> void:
 	party_from = 0.0
 	party_until = 0.0
 	sleep_spot = ""
+	pity_rare = 0
+	pity_holo = 0
+	rarity_seed = 0
+	featured = []
+	tutorial = {"step": 0, "done": false}
 
 
 func has_photo(id: String) -> bool:
@@ -96,6 +108,8 @@ func to_dict() -> Dictionary:
 		"lupas_used": lupas_used, "photobomb_pity": photobomb_pity, "wall": wall.duplicate(), "main_photo": main_photo,
 		"recent": recent.duplicate(true), "opened_at": opened_at.duplicate(), "spoken": spoken.duplicate(),
 		"years": years.duplicate(), "party_from": party_from, "party_until": party_until, "sleep_spot": sleep_spot,
+		"pity_rare": pity_rare, "pity_holo": pity_holo, "rarity_seed": rarity_seed,
+		"featured": featured.duplicate(), "tutorial": tutorial.duplicate(),
 	}
 
 
@@ -106,7 +120,18 @@ func from_dict(data: Dictionary) -> void:
 			if data.photos[id] is Dictionary:
 				var entry: Dictionary = data.photos[id]
 				photos[id] = {"at": float(entry.get("at", 0.0)), "phase": str(entry.get("phase", "newborn")),
-					"coat": float(entry.get("coat", 0.0)), "seen": bool(entry.get("seen", false)), "equipped": (entry.get("equipped", {}) as Dictionary).duplicate()}
+				"coat": float(entry.get("coat", 0.0)), "seen": bool(entry.get("seen", false)), "equipped": (entry.get("equipped", {}) as Dictionary).duplicate()}
+				# Rarity 0 = carta ainda fechada (nunca aberta): sem nível nem versões.
+				var rarity := clampi(int(entry.get("rarity", 0)), 0, 4)
+				var kept: Array = []
+				for v: Variant in entry.get("variants", []):
+					if clampi(int(v), 1, 4) not in kept: kept.append(clampi(int(v), 1, 4))
+				kept.sort()
+				photos[id].merge({"rarity": rarity, "variants": kept, "shown": clampi(int(entry.get("shown", 0)), 0, 4),
+						"rolls": int(entry.get("rolls", 0)), "rerolls": int(entry.get("rerolls", 0)),
+						"best_at": float(entry.get("best_at", 0.0)), "rolled_at": float(entry.get("rolled_at", 0.0)),
+						"sealed": maxi(0, int(entry.get("sealed", 0))), "sealed_at": float(entry.get("sealed_at", 0.0)),
+						"upgrades": maxi(0, int(entry.get("upgrades", 0))), "opened_at": float(entry.get("opened_at", 0.0))})
 	if data.get("hints") is Dictionary: hints = data.hints.duplicate()
 	lupa_day = str(data.get("lupa_day", ""))
 	lupas_used = int(data.get("lupas_used", 0))
@@ -121,3 +146,11 @@ func from_dict(data: Dictionary) -> void:
 	party_from = float(data.get("party_from", 0.0))
 	party_until = float(data.get("party_until", 0.0))
 	sleep_spot = str(data.get("sleep_spot", ""))
+	pity_rare = int(data.get("pity_rare", 0))
+	pity_holo = int(data.get("pity_holo", 0))
+	rarity_seed = int(data.get("rarity_seed", 0))
+	if data.get("featured") is Array:
+		for v: Variant in data.featured:
+			if photos.has(str(v)) and str(v) not in featured: featured.append(str(v))
+	if data.get("tutorial") is Dictionary:
+		tutorial = {"step": clampi(int(data.tutorial.get("step", 0)), 0, 6), "done": bool(data.tutorial.get("done", false))}

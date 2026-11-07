@@ -20,7 +20,7 @@ extends Control
 ## (borda verde) em vez de agir; embaixo fica o detalhe do escolhido (`options.detail: Callable(id) -> Control`,
 ## refeito sozinho a cada mudança), com o único botão principal. Largura 328, ✕ no canto, não fecha ao agir.
 ## `options.selected` = id inicial; `options.on_select: Callable(id)` avisa quem lembra a última escolha.
-## `recipe_selector` usa faixa horizontal. Corpo rolável respeita HUD/abas; Cook e rodapé ficam fixos.
+## A grade de receitas rola na vertical por arrasto. Corpo respeita HUD/abas; Cook e rodapé ficam fixos.
 
 signal closed
 signal selected_changed(id: String)
@@ -345,6 +345,9 @@ func _build_grid() -> Control:
 		scroll.name = "Scroll"
 		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 		scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		# O mesmo capturador atende ícone e vãos da grade, antes do mouse emulado.
+		_recipe_scroll = scroll
+		scroll.set_meta("own_drag_scroll", true)
 		scroll.custom_minimum_size = Vector2(0.0, PICK_TILE.y * PICK_ROWS_SHOWN + PICK_GAP * 2.0)
 		scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		StationWood.style_scrollbar(scroll)
@@ -412,7 +415,7 @@ func _build_tile(index: int) -> Control:
 	tile.name = "Item_" + str(entry.get("id", index))
 	tile.custom_minimum_size = Vector2(60.0, PICK_TILE.y)
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tile.mouse_filter = Control.MOUSE_FILTER_STOP
+	tile.mouse_filter = Control.MOUSE_FILTER_PASS
 	tile.gui_input.connect(_on_item_input.bind(index))
 	return tile
 
@@ -701,13 +704,13 @@ func _input(event: InputEvent) -> void:
 		if _recipe_active or not _recipe_scroll.get_global_rect().has_point(point): return
 		_recipe_velocity = 0.0
 		# A barra conserva o gesto nativo, inclusive mouse emulado.
-		if _recipe_scroll.get_h_scroll_bar().get_global_rect().has_point(point): return
+		if _recipe_scroll.get_v_scroll_bar().get_global_rect().has_point(point): return
 		_recipe_active = true
 		_recipe_touch = touch.index if touch else -1
 		_recipe_swiping = false
 		_press_global = point
 		_recipe_last = point
-		_recipe_position = _recipe_scroll.scroll_horizontal
+		_recipe_position = _recipe_scroll.scroll_vertical
 		_recipe_sample_usec = Time.get_ticks_usec()
 		_recipe_motion_usec = _recipe_sample_usec
 		_reveal_frames = 0
@@ -739,22 +742,26 @@ func _input(event: InputEvent) -> void:
 
 
 func _recipe_move(point: Vector2) -> void:
-	if point.distance_to(_press_global) > TAP_SLOP: _recipe_swiping = true
-	var dx := _recipe_last.x - point.x
+	if not _recipe_swiping:
+		if point.distance_to(_press_global) <= TAP_SLOP:
+			_recipe_last = point
+			return
+		_recipe_swiping = true
+	var dy := _recipe_last.y - point.y
 	var now := Time.get_ticks_usec()
-	if not is_zero_approx(dx):
+	if not is_zero_approx(dy):
 		var seconds := maxf(float(now - _recipe_sample_usec) / 1000000.0, 0.001)
-		_recipe_velocity = clampf(dx / seconds, -2400.0, 2400.0)
+		_recipe_velocity = clampf(dy / seconds, -2400.0, 2400.0)
 		_recipe_motion_usec = now
-		_recipe_set_position(_recipe_position + dx)
+		_recipe_set_position(_recipe_position + dy)
 	_recipe_last = point
 	_recipe_sample_usec = now
 
 
 func _recipe_set_position(value: float) -> void:
-	var bar := _recipe_scroll.get_h_scroll_bar()
+	var bar := _recipe_scroll.get_v_scroll_bar()
 	_recipe_position = clampf(value, 0.0, maxf(0.0, bar.max_value - bar.page))
-	_recipe_scroll.scroll_horizontal = roundi(_recipe_position)
+	_recipe_scroll.scroll_vertical = roundi(_recipe_position)
 
 
 func _on_item_input(event: InputEvent, index: int) -> void:

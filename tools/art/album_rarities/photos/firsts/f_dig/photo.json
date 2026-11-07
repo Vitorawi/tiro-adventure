@@ -1,0 +1,93 @@
+{
+  "id": "f_dig",
+  "title": "Primeiro achado",
+  "section": "firsts",
+  "section_name": "Primeiras vezes",
+  "phase": "puppy",
+  "game_scene": "farm",
+  "source_definition": "game/data/album.json#photos/f_dig",
+  "trigger": {
+    "on": "dug",
+    "when": {}
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/f_dig.png",
+    "scene": "farm",
+    "pose": {
+      "clip": "sniff",
+      "frame": 1
+    },
+    "props": []
+  },
+  "scene_description": "His FIRST find: tiny floppy-eared black-and-tan Yorkshire puppy sniffing and gently pawing a small newly dug mound at the edge of the family farm, one ordinary little stick visible in the loose soil. Bright curious first discovery, no huge treasure chest, no teeth or jewelry. Little cream farm cottage with terracotta roof and wooden fence in softly painted background.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/f_dig.png",
+  "original_capture": "docs/art/album_ilustrado/originais/f_dig.png",
+  "manifest_path": "tools/art/album_rarities/photos/firsts/f_dig/photo.json",
+  "batch_id": null,
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_dig/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_dig/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_dig/common.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "64895631e49956d1e2742efb1087368f371cfd28db2c15404441c9dd58af6839",
+      "imported_from": "tools/art/album_rarity_tests/f_dig/render_v1/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-beb244ba-da09-4bcd-b804-835274020974.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_dig/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_dig/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_dig/shiny.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "b7626d88529f5155d39b5ae89ba6dd74a3b9003cb9a1bd3ddeacdf3c3cbbae76",
+      "imported_from": "tools/art/album_rarity_tests/f_dig/render_v1/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-a77f1fd4-977d-4b11-825d-09855eedb843.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_dig/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_dig/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_dig/rare.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c1d42d47b112a079c6868deb3e549891b8a846f31c554350bce8bd063de428bb",
+      "imported_from": "tools/art/album_rarity_tests/f_dig/render_v1/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-338de93c-3853-4513-9488-c1dde84f9255.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_dig/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_dig/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_dig/holographic.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "b566052e33106c7457cf571faebfebf763e5589932cf188b753ad4c811b6965a",
+      "imported_from": "tools/art/album_rarity_tests/f_dig/render_v1/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-f24ded0a-17a5-4bbe-ab71-dd668e83e690.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    }
+  }
+}

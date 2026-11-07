@@ -18,10 +18,20 @@ func settle() -> void:
 	for i: int in 12: await process_frame
 
 func chips(node: Node) -> Array[Button]:
+	# Ingredientes agora são linhas HelpRow_<i> do painel "Ingredientes"; o toque é o botão Ir da linha.
 	var result: Array[Button] = []
-	if node is Button and node.theme_type_variation == &"ChipButton": result.append(node)
-	for child: Node in node.get_children(): result.append_array(chips(child))
+	var section := node.find_child("HelpSection_Needs", true, false)
+	if section == null: return result
+	for row: Node in section.find_children("HelpRow_*", "Control", true, false):
+		var go := row.find_children("*", "Button", true, false)
+		if not go.is_empty(): result.append(go[0])
 	return result
+
+func row_icon(button: Button) -> Texture2D:
+	var row: Node = button
+	while row != null and not str(row.name).begins_with("HelpRow_"): row = row.get_parent()
+	var icon := row.find_child("Icon", true, false) as TextureRect if row else null
+	return icon.texture if icon else null
 
 func shot(id: String) -> void:
 	if not shots: return
@@ -76,14 +86,14 @@ func _run() -> void:
 		var holder: Node = main.find_child("ContentHolder", true, false)
 		var ingredients := chips(holder)
 		check(ingredients.size() == 2, "painel renderizado só tem dois chips")
-		check(ingredients[0].icon == db.item_icon("herbs") and ingredients[1].icon == db.item_icon("milk"), "ícones dos ingredientes renderizados")
+		check(row_icon(ingredients[0]) != null and row_icon(ingredients[1]) != null, "ícones dos ingredientes renderizados")
 		await shot("shampoo_%d" % viewport.x)
 		ingredients[0].pressed.emit()
 		await settle()
 		var required := chips(holder)
-		check(required.size() == 1 and required[0].icon.resource_path == GREENHOUSE, "tocar nas Ervas abre a Estufa com ícone correto")
+		check(required.size() == 1 and row_icon(required[0]) != null and row_icon(required[0]).resource_path == GREENHOUSE, "tocar nas Ervas abre a Estufa com ícone correto")
 		await shot("herbs_%d" % viewport.x)
-		var back: Button = holder.find_children("*", "Button", true, false)[0]
+		var back: Button = main.find_child("HelpBack", true, false)
 		back.pressed.emit()
 		await settle()
 		check(chips(holder).size() == 2, "voltar restaura os dois ingredientes")

@@ -308,7 +308,7 @@ func _panel_check() -> void:
 	await create_timer(1.3).timeout
 	var primary_count := 0
 	for node: Node in panel.find_children("*", "Button", true, false):
-		if (node as Button).theme_type_variation == &"PrimaryButton":
+		if (node as Button).theme_type_variation == &"PrimaryButton" or node.has_meta("wood_primary"):
 			primary_count += 1
 	check(primary_count == 1, "um único botão primário (%d)" % primary_count)
 	check((panel.find_child("DeliverProject", true, false) as Button).text.begins_with("Entregar ×1"), "quantidade 1 por padrão (%s)" % (panel.find_child("DeliverProject", true, false) as Button).text)

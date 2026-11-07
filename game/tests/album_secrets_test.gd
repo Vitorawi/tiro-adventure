@@ -262,6 +262,8 @@ func _hints() -> void:
 	check(state.album_talk("bloblo").contains("turma"), "cada personagem comenta a foto da turma")
 	var panel: Control = view.secret_detail("p_belly_up")
 	check(panel.find_child("HintButton", true, false) != null, "lupa acessível no painel")
+	check(panel.get_meta("sheet_bare", false), "pista usa folha de madeira")
+	check(panel.find_child("CardBack", true, false) != null, "segredo sem lupa não revela a ilustração")
 	panel.free()
 	var npc: Node2D = load("res://scenes/entities/npc_world/npc_world.gd").new()
 	npc.set("friend_id", "pipoca")

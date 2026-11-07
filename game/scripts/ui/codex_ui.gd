@@ -26,6 +26,7 @@ const CREAM := Vector4(14.3, 14.3, 14.0, 16.7)  # madeira visível até o creme 
 const FRAME_MARGINS := Vector4i(190, 190, 190, 190)
 const PLATE := Vector2(176.0, 60.4)
 const FILTER_H := 44.0         # abinha de filtro (nome escrito)
+const TASTE_FACE := 26.0  # carinha do Paladar no canto do quadradinho
 const FILTER_GAP := 4.0
 const FILTER_TOP := 78.0
 const SIDE_PAD := 4.0
@@ -41,6 +42,8 @@ const TAB_COLORS := {"resources": "red", "stations": "orange", "growth": "purple
 
 ## Filtro escolhido de cada seção (vale enquanto o jogo está aberto).
 static var filters: Dictionary = {}
+## Só o Álbum guarda a rolagem por seção; as outras abas mantêm o comportamento atual.
+static var album_scroll: Dictionary = {}
 
 
 static func tex(file: String) -> Texture2D:
@@ -70,7 +73,7 @@ static func content_width() -> float:
 	return frame_width() - CREAM.x - CREAM.z - (SIDE_PAD + GUTTER) * 2.0
 
 
-## Quatro por linha; a seção pode pedir outra conta com `cols` (fotos do álbum: 3).
+## Quatro por linha; o Álbum usa duas cartas sem o quadradinho externo.
 static func columns(view: Dictionary = {}) -> int:
 	return int(view.get("cols", 4))
 
@@ -406,9 +409,11 @@ static func _grid_area(view: Dictionary, model: Dictionary, size: Vector2) -> Co
 	holder.name = str(view.get("name", "CodexGrid"))
 	holder.add_theme_constant_override("separation", 10)
 	holder.mouse_filter = Control.MOUSE_FILTER_PASS
+	if view.has("album_section"):
+		holder.add_child(AlbumView.book(str(view.album_section), grid_w))
 	for block: Dictionary in view.blocks:
 		holder.add_child(_block(block, cols, tile_w, grid_w))
-	if view.blocks.is_empty():
+	if view.blocks.is_empty() and not view.has("album_section"):
 		var empty := MissionUi.text(str(view.get("empty", "")), 16, Palette.WOOD_INK, 0)
 		empty.name = "CodexEmpty"
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -426,7 +431,13 @@ static func _grid_area(view: Dictionary, model: Dictionary, size: Vector2) -> Co
 	pad.custom_minimum_size.y = 4.0
 	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	wrap.add_child(pad)
-	var area := SellUi.scrolled(wrap, size.x, size.y, true, model, "CodexScroll", "CodexBar", GUTTER)
+	var scroll_model := model
+	if view.has("album_section"):
+		var key := str(view.album_section)
+		if not album_scroll.has(key):
+			album_scroll[key] = {"scroll": 0}
+		scroll_model = album_scroll[key]
+	var area := SellUi.scrolled(wrap, size.x, size.y, true, scroll_model, "CodexScroll", "CodexBar", GUTTER)
 	area.custom_minimum_size = size
 	area.size = size
 	return area
@@ -621,13 +632,46 @@ static func tile(opts: Dictionary, w: float, h: float) -> Button:
 		lock.size = Vector2(22, 22)
 		result.add_child(lock)
 		lock.position = Vector2(w - 28.0, 5.0)
-	elif mark == "heart":
-		var heart := UiKit.icon(UiKit.ui_icon("heart"), 18)
-		heart.name = "FavoriteHeart"
-		heart.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-		heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		result.add_child(heart)
-		heart.position = Vector2(w - 24.0, 4.0)
+	elif mark == "heart" or mark.begins_with("face_"):
+		var face := _taste_face(mark.trim_prefix("face_"))
+		result.add_child(face)
+		face.position = Vector2(w - face.size.x - 1.0, 1.0)
 	if bool(opts.get("badge", false)):
 		result.add_child(_new_dot(Vector2(w - 12.0, -4.0)))
 	return result
+
+
+## Carinha da reação do Tiro a uma comida, desenhada em vetor: verde feliz (liked), amarela média (odd),
+## vermelha triste (grimace) e coração na favorita ("heart", nó `FavoriteHeart`).
+static func _taste_face(reaction: String) -> Control:
+	var face := Control.new()
+	face.name = "FavoriteHeart" if reaction == "heart" else "TasteFace_" + reaction
+	face.size = Vector2(TASTE_FACE, TASTE_FACE)
+	face.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	face.draw.connect(_draw_taste_face.bind(face, reaction))
+	return face
+
+
+static func _draw_taste_face(face: Control, reaction: String) -> void:
+	var center := face.size / 2.0
+	var radius := center.x - 1.0
+	var fill: Color = {"liked": Palette.GO, "odd": Palette.HONEY, "grimace": Palette.ALERT}.get(reaction, Palette.WOOD_CREAM)
+	face.draw_circle(center, radius, fill, true, -1.0, true)
+	face.draw_arc(center, radius, 0.0, TAU, 40, Palette.WOOD_INK, 1.5, true)
+	if reaction == "heart":
+		var points := PackedVector2Array()
+		for i in 32:  # curva clássica do coração
+			var t := TAU * i / 32.0
+			var unit := Vector2(16.0 * pow(sin(t), 3), -(13.0 * cos(t) - 5.0 * cos(2.0 * t) - 2.0 * cos(3.0 * t) - cos(4.0 * t)))
+			points.append(center + unit * radius * 0.042)
+		face.draw_colored_polygon(points, Palette.ALERT)
+		return
+	for side: float in [-1.0, 1.0]:
+		face.draw_circle(center + Vector2(side * radius * 0.36, -radius * 0.2), radius * 0.13, Palette.WOOD_INK, true, -1.0, true)
+	match reaction:
+		"liked":
+			face.draw_arc(center + Vector2(0.0, radius * 0.02), radius * 0.48, PI * 0.15, PI * 0.85, 12, Palette.WOOD_INK, 1.8, true)
+		"grimace":
+			face.draw_arc(center + Vector2(0.0, radius * 0.82), radius * 0.48, PI * 1.2, PI * 1.8, 12, Palette.WOOD_INK, 1.8, true)
+		_:
+			face.draw_line(center + Vector2(-radius * 0.36, radius * 0.36), center + Vector2(radius * 0.36, radius * 0.36), Palette.WOOD_INK, 1.8, true)

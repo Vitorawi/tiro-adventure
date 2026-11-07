@@ -1,0 +1,121 @@
+{
+  "id": "f_taste",
+  "title": "Primeira papinha",
+  "section": "firsts",
+  "section_name": "Primeiras vezes",
+  "phase": "puppy",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/f_taste",
+  "trigger": {
+    "on": "fed",
+    "when": {
+      "growth_food": true
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/f_taste.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "eat",
+      "frame": 1
+    },
+    "props": [
+      "bowl"
+    ]
+  },
+  "scene_description": "First ever tasty soft meal: tiny floppy-eared black-and-tan Yorkie puppy eating puppy mash directly from his little BLUE food bowl, muzzle lowered in bowl, focused delight, a small bit of mash on his nose when he looks up slightly. Side three-quarter candid angle, full puppy body visible, cozy wooden-floor home corner, cream walls and red rug. Clearly EATING rather than formal sitting portrait, distinct from 'Cheirinho de papinha'.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/f_taste.png",
+  "original_capture": "docs/art/album_ilustrado/originais/f_taste.png",
+  "manifest_path": "tools/art/album_rarities/photos/firsts/f_taste/photo.json",
+  "batch_id": "batch_003",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_taste/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_taste/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.839600+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-01263845-c82c-4334-8777-b6dc0e3e6baf.png",
+          "completed_at": "2026-11-06T22:04:01.082803+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_taste/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-01263845-c82c-4334-8777-b6dc0e3e6baf.png",
+      "completed_at": "2026-11-06T22:04:01.082803+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "e9c5bca2d2598a55a07f01084ebeb2d6bb2862d00b023b33bc5af7022529cd91",
+      "reviewed_at": "2026-11-06T22:06:58.261760+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_taste/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_taste/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.839600+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f150a452-fd73-454e-ae1c-5942dcf9e4b5.png",
+          "completed_at": "2026-11-06T22:04:34.938288+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_taste/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f150a452-fd73-454e-ae1c-5942dcf9e4b5.png",
+      "completed_at": "2026-11-06T22:04:34.938288+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "09828e7d1f390d1f1f24f1b2dfe7bcf60d64d92313fcb45b9af32e62db939c69",
+      "reviewed_at": "2026-11-06T22:06:58.676133+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_taste/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_taste/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.839600+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d24fd82b-4871-4dd7-921f-32c05c7fd12e.png",
+          "completed_at": "2026-11-06T22:05:08.304961+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_taste/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d24fd82b-4871-4dd7-921f-32c05c7fd12e.png",
+      "completed_at": "2026-11-06T22:05:08.304961+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "768aa25fe2fdd2377435e59cd9a48dc585947019c7d425f91fb2001d0608c360",
+      "reviewed_at": "2026-11-06T22:06:59.042026+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_taste/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_taste/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.839600+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-8208887c-7c0c-4d13-9cec-aef7508b8798.png",
+          "completed_at": "2026-11-06T22:05:46.651338+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_taste/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-8208887c-7c0c-4d13-9cec-aef7508b8798.png",
+      "completed_at": "2026-11-06T22:05:46.651338+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8ecd893e4ae94124d7df361ac04e6cd86d58e88fe6e43396661313715d1eb7a7",
+      "reviewed_at": "2026-11-06T22:06:59.363817+00:00"
+    }
+  }
+}

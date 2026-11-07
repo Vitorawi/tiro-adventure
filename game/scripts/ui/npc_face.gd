@@ -1,12 +1,13 @@
 class_name NpcFace
 extends Button
-## Rosto redondo de um personagem do mundo (coluna do canto direito do mapa): círculo de 44 com o
-## retrato 40 e fundo `CARD`. Selo no canto: "!" (missão nova) ou o check verde (missão pronta).
+## Rosto redondo de um personagem do mundo (coluna do canto direito do mapa): bolinha de madeira (`map_disc`) de 48
+## com o retrato 40 dentro. Selo no canto: "!" (missão nova) ou o check verde (missão pronta).
 ## Sem nome escrito: o nome aparece no balão da fala. Tocar abre a conversa (`Places.open_npc`).
 
-const SIZE := 44.0
+const SIZE := 48.0
 const PORTRAIT_RADIUS := 20.0
 const CIRCLE_POINTS := 40
+const DISC := HomeUi.DIR + "map_disc.png"
 
 var npc_id := ""
 var badge := ""  # "", "new" ou "ready" (igual a `Places.npc_badge`)
@@ -49,6 +50,29 @@ func setup(new_npc_id: String, new_badge: String) -> void:
 	queue_redraw()
 
 
+## Botão de ícone na mesma bolinha de madeira dos rostos (ex.: Lugares).
+static func wood_button(icon_name: String, on_pressed: Callable) -> Button:
+	var result := BagUi.plain_button(on_pressed)
+	result.custom_minimum_size = Vector2(SIZE, SIZE)
+	Motion.press(result)
+	var disc := TextureRect.new()
+	disc.name = "Disc"
+	disc.texture = load(DISC) as Texture2D
+	disc.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	disc.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	disc.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result.add_child(disc)
+	disc.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var icon := UiKit.ctl(icon_name, 24, Palette.WOOD_INK)
+	result.add_child(icon)
+	icon.set_anchors_preset(Control.PRESET_CENTER)
+	icon.offset_left = -12.0
+	icon.offset_right = 12.0
+	icon.offset_top = -12.0
+	icon.offset_bottom = 12.0
+	return result
+
+
 func _start_pulse() -> void:
 	if is_inside_tree() and _pulse == null:
 		_pulse = Motion.pulse(self)
@@ -56,8 +80,7 @@ func _start_pulse() -> void:
 
 func _draw() -> void:
 	var center := Vector2(SIZE, SIZE) / 2.0
-	draw_circle(center + Vector2(0, 2), SIZE / 2.0, Palette.SHADOW)
-	draw_circle(center, SIZE / 2.0, Palette.CARD)
+	draw_texture_rect(load(DISC) as Texture2D, Rect2(Vector2.ZERO, Vector2(SIZE, SIZE)), false)
 	if _portrait == null:
 		return
 	var points := PackedVector2Array()

@@ -1,0 +1,119 @@
+{
+  "id": "h_growth_teething",
+  "title": "As orelhas subiram",
+  "section": "story",
+  "section_name": "História",
+  "phase": "teething",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/h_growth_teething",
+  "trigger": {
+    "on": "grew",
+    "when": {
+      "grew_to": "teething"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_growth_teething.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "head_tilt",
+      "frame": 2
+    },
+    "props": []
+  },
+  "scene_description": "Milestone THE EARS HAVE RISEN: five-month-old juvenile Yorkie, youthful small proportions, BOTH pointed ears now standing upright prominently, BLACK crown and back with tan eyebrows muzzle chest and paws. Head tilted curiously at home, full body visible. Do not give him adult golden head or floppy puppy ears.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_growth_teething.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_growth_teething.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_growth_teething/photo.json",
+  "batch_id": "batch_001",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_teething/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_teething/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.485690+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-0cf48a01-9859-4b81-ace1-c1c4e97bafe8.png",
+          "completed_at": "2026-11-06T19:15:52.336571+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_teething/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-0cf48a01-9859-4b81-ace1-c1c4e97bafe8.png",
+      "completed_at": "2026-11-06T19:15:52.336571+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "a50c85a1e1aea3797e1976279e5017e25ba878d3c42622201c13e761b501128b",
+      "reviewed_at": "2026-11-06T19:17:52.318475+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_teething/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_teething/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.486689+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-092028d7-fa00-441e-9f4a-ede9e465b8a3.png",
+          "completed_at": "2026-11-06T19:15:55.099931+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_teething/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-092028d7-fa00-441e-9f4a-ede9e465b8a3.png",
+      "completed_at": "2026-11-06T19:15:55.099931+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c8f1b8dc0240d2e91e6ebcc7e08effead1ad06f10c0281abe9cff4197a5682bb",
+      "reviewed_at": "2026-11-06T19:17:52.681878+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_teething/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_teething/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.486689+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-bc08a6ef-7fa2-4a9b-ae32-473ee957cd66.png",
+          "completed_at": "2026-11-06T19:15:57.788000+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_teething/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-bc08a6ef-7fa2-4a9b-ae32-473ee957cd66.png",
+      "completed_at": "2026-11-06T19:15:57.787018+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c93b679a41b7f5368f7a6447a33ba254f025358733739c3160b6ab42134efaf6",
+      "reviewed_at": "2026-11-06T19:17:53.007787+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_teething/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_teething/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T19:04:19.486689+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-505bf3ca-6b54-4539-b758-4179a5b60d50.png",
+          "completed_at": "2026-11-06T19:16:00.524435+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_teething/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-505bf3ca-6b54-4539-b758-4179a5b60d50.png",
+      "completed_at": "2026-11-06T19:16:00.524435+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "880ddbd5ec0387cea06dba0c22e6fb65b0742508378b116d1436600274febb38",
+      "reviewed_at": "2026-11-06T19:17:53.382667+00:00"
+    }
+  }
+}

@@ -1,0 +1,126 @@
+{
+  "id": "s_photobomb",
+  "title": "Penetra",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "young",
+  "game_scene": "park",
+  "source_definition": "game/data/album.json#photos/s_photobomb",
+  "trigger": {
+    "on": "album_opened",
+    "when": {
+      "friend_hearts": {
+        "pipoca": 1
+      },
+      "chance": {
+        "one_in": 8,
+        "pity": 8
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_photobomb.png",
+    "scene": "park",
+    "pose": {
+      "clip": "wag_excited",
+      "frame": 1
+    },
+    "props": [],
+    "friend": "pipoca"
+  },
+  "scene_description": "A funny photobomb in the village park: young adult little Yorkshire Tiro (dark charcoal crown/back, tan face paws, upright ears) is posing sweetly farther back, but Pipoca the caramel mixed-breed friend pops into the VERY close foreground from the lower right, with large cheerful caramel face and cream muzzle partially blocking the intended photo. Pipoca matches supporting portrait, taller ears and slightly bigger than Yorkie in normal scale. Depth and partial occlusion tell the joke. Exactly TWO dogs, no human.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_photobomb.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_photobomb.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_photobomb/photo.json",
+  "batch_id": "batch_006",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_photobomb/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_photobomb/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.488663+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-0ced0bb7-a2a5-43da-9c18-a4998397f0eb.png",
+          "completed_at": "2026-11-06T22:48:14.724353+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_photobomb/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-0ced0bb7-a2a5-43da-9c18-a4998397f0eb.png",
+      "completed_at": "2026-11-06T22:48:14.724353+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d6d096886a964df608e1c9632d0efa99fce141ba1bb8809f1e3a1b32f318a15c",
+      "reviewed_at": "2026-11-06T22:56:13.389102+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_photobomb/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_photobomb/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.488663+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-86c8498d-2890-4cc7-8f36-a51731beeff4.png",
+          "completed_at": "2026-11-06T22:48:51.415654+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_photobomb/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-86c8498d-2890-4cc7-8f36-a51731beeff4.png",
+      "completed_at": "2026-11-06T22:48:51.415654+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "78acb94e80df13899fb74acaa8d7f71504ecb9a0452313039682ce145dbaef7d",
+      "reviewed_at": "2026-11-06T22:56:13.759996+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_photobomb/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_photobomb/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.488663+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-05646536-5deb-47f0-a361-4f88dc6ec9b0.png",
+          "completed_at": "2026-11-06T22:49:28.113237+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_photobomb/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-05646536-5deb-47f0-a361-4f88dc6ec9b0.png",
+      "completed_at": "2026-11-06T22:49:28.113237+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d35b684f0034464fb2e21a88c61c520e83174b587a5e53d8da89e02d051b1ae1",
+      "reviewed_at": "2026-11-06T22:56:14.123894+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_photobomb/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_photobomb/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.488663+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-76eff1b9-5183-440d-9ecc-910b046596cf.png",
+          "completed_at": "2026-11-06T22:50:12.131201+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_photobomb/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-76eff1b9-5183-440d-9ecc-910b046596cf.png",
+      "completed_at": "2026-11-06T22:50:12.131201+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "aff404c76638892d6100e3ae8a3a96ca36657d7386f167b533a4a269cea63c15",
+      "reviewed_at": "2026-11-06T22:56:14.474288+00:00"
+    }
+  }
+}

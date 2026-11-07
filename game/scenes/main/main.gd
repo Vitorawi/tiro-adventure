@@ -23,7 +23,7 @@ extends Control
 ## Os avisos moram na central: um por vez, erro > momento > foto > info, embaixo, acima da barra de abas (ou da folha).
 
 var _notice: Notice
-## Fotos novas esperando a vez do aviso (depois de qualquer cartão, sem entrar na fila de cartões).
+## IDs já agendados na fila modal; evita lembretes/revelações duplicados.
 var _photo_queue: Array[String] = []
 var _faces: Dictionary = {}  # id da aba → NavTab
 var _current_screen: StringName = &""
@@ -51,6 +51,8 @@ var _left_at: float = 0.0
 
 
 func _ready() -> void:
+	# Rolagem por arrasto em qualquer lista (dedo sobre botões/cartões também rola).
+	load("res://scripts/ui/drag_scroll.gd").call("install", self)
 	_notice = Notice.new()
 	add_child(_notice)
 	_notice.setup(self, _hud, _toast, _toast_text, _toast_icon)
@@ -102,9 +104,12 @@ func _ready() -> void:
 	Events.cosmetic_received.connect(func(id: String) -> void:
 		_queue_modal(func() -> void:
 			_walk_result.show_result({"kind": "sewing", "name": "Roupa nova", "rare": id, "collections": [id]})))
-	# Foto nova do álbum: aviso tocável que abre a foto, depois de qualquer cartão (fila própria).
-	Events.photo_taken.connect(func(id: String) -> void:
-		if GameState.photo_alerts_enabled(): _photo_queue.append(id))
+	# Fotos conhecidas entram na fila modal; fechadas antigas esperam no álbum.
+	# Marco de coleção: a festa espera a revelação fechar (`_flush_modals` não abre com a carta na tela).
+	Events.album_milestone.connect(func(kind: String, key: String) -> void:
+		_queue_modal(func() -> void: _celebration.show_album_milestone(kind, key)))
+	Events.photo_taken.connect(_queue_photo)
+	Events.photo_sealed.connect(_queue_photo)
 	Events.find_discovered.connect(func(result: Dictionary) -> void:
 		_queue_modal(func() -> void: _celebration.show_find(result)))
 	var modal_timer := Timer.new()
@@ -198,20 +203,20 @@ func _growth_unlocks() -> void:
 
 
 func _queue_modal(callback: Callable) -> void:
-	_modal_queue.append(callback)
+	# Capítulo/Novo!/prêmios vêm antes das fotos, inclusive quando anunciados no fim do frame.
+	_modal_queue.insert(maxi(0, _modal_queue.size() - _photo_queue.size()), callback)
 
 
 ## Abre o próximo cartão quando nada está na tela (introdução, comemoração ou outro cartão).
 func _flush_modals() -> void:
-	if (_modal_queue.is_empty() and _photo_queue.is_empty()) or _announce_pending or _chapter_done > 0:
+	if _modal_queue.is_empty() or _announce_pending or _chapter_done > 0:
 		return
 	if Time.get_ticks_msec() < _reward_not_before: return
-	if _card_open():
+	if CardViewer.is_open() or _card_open():
 		return
 	if not _modal_queue.is_empty():
 		_modal_queue.pop_front().call()
-	else:
-		_show_photo_toast(_photo_queue.pop_front())
+
 
 
 ## Algum cartão grande (introdução, comemoração, boas-vindas, volta do passeio, cerimônia) está na tela.
@@ -221,7 +226,7 @@ func _card_open() -> bool:
 
 ## Avisos esperam enquanto houver cartão aberto ou cartão na fila (mesma regra do `_flush_modals`).
 func notice_blocked() -> bool:
-	return _card_open() or not _modal_queue.is_empty() or _announce_pending or _chapter_done > 0
+	return _card_open() or _modal_queue.size() > _photo_queue.size() or _announce_pending or _chapter_done > 0
 
 
 ## Onde o aviso TERMINA (y): logo acima da barra de abas de madeira; com folha ou bandeja de estação presa embaixo,
@@ -428,8 +433,44 @@ func _show_toast(text: String) -> void:
 	_notice.notify("info", text)
 
 
+func _queue_photo(id: String) -> void:
+	if not GameState.photo_alerts_enabled() or id in _photo_queue: return
+	if id == AlbumTutorial.PHOTO and not GameState.album_tutorial_done(): return  # quem abre é o tutorial do Álbum
+	_photo_queue.append(id)
+	if _photo_activity_busy(): _show_photo_toast(id)
+	_modal_queue.append(_open_queued_photo.bind(id))
+
+
+func _open_queued_photo(id: String) -> void:
+	if _photo_activity_busy():
+		_modal_queue.append(_open_queued_photo.bind(id))
+		return
+	_photo_queue.erase(id)
+	if GameState.photo_sealed(id) > 0: CardReveal.open(id, {"host": self})
+
+
+## Não interrompe gestos, folhas, viagens ou minijogos; o aviso é só um lembrete.
+func _photo_activity_busy() -> bool:
+	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT): return true
+	var sheet := get_node_or_null("Sheet")
+	if sheet != null and sheet.call("is_open"): return true
+	if ActionTray.current != null and is_instance_valid(ActionTray.current): return true
+	for node in find_children("*", "Control", true, false):
+		if node is HideSeekUi and (node as Control).is_visible_in_tree(): return true
+	for node in find_children("TrickTraining", "Control", true, false):
+		if (node as Control).is_visible_in_tree(): return true
+	for screen: Node in _screens.values():
+		if screen != null and screen.has_method("is_traveling") and screen.call("is_traveling"): return true
+	return false
+
+
 func _show_photo_toast(id: String) -> void:
-	_notice.notify("photo", "Nova foto!", null, AlbumView.open_photo.bind(id))
+	_notice.notify("photo", "Nova foto para abrir!", null, func() -> void:
+		# O clique libera a fila; a carta sempre entra pelo mesmo caminho modal.
+		ActionTray.close_current(true)
+		var sheet := get_node_or_null("Sheet")
+		if sheet != null and sheet.call("is_open"): sheet.call("close")
+		if GameState.photo_sealed(id) > 0 and id not in _photo_queue: _queue_photo(id))
 
 
 func _refresh_guide() -> void:
@@ -447,7 +488,7 @@ func _on_quest_completed(id: String) -> void:
 	else:
 		for item: String in quest.get("rewards", {}).get("items", {}):
 			if Database.items.get(item, {}).get("category", "") == "keepsake":
-				_notice.notify("info", "%s te deu: %s" % [str(Database.npcs.get(str(quest.get("npc", "")), {}).get("name", "")), Database.item_name(item)])
+				_queue_modal(_celebration.show_gift.bind(item, str(quest.get("npc", ""))))
 	_schedule_announce()
 
 func _on_chapter_completed(index: int) -> void:

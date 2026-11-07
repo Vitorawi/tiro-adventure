@@ -1,39 +1,56 @@
 class_name PillarUi
 extends RefCounted
-## Consulta dos atributos do Tiro; painel de crescer entra na etapa 06.
+## Consulta dos atributos do Tiro ("Cuidados do Tiro"), em madeira ilustrada.
 
 static func panel() -> Control:
-	var box := UiKit.vbox(12)
+	var box := UiKit.vbox(10)
 	box.name = "PillarPanel"
+	box.set_meta("sheet_wood", true)
 	var phase: Dictionary = Database.growth.phases[GameState.growth.phase_index()]
 	box.add_child(personality_title())
-	box.add_child(UiKit.label(str(phase.name) + " · " + str(phase.age)))
+	var age := StepCardUi.wood(str(phase.name) + " · " + str(phase.age), 18)
+	age.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(age)
 	var grid := GridContainer.new()
 	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 16)
-	grid.add_theme_constant_override("v_separation", 12)
+	grid.add_theme_constant_override("h_separation", 8)
+	grid.add_theme_constant_override("v_separation", 8)
 	box.add_child(grid)
 	for id: String in Database.growth.pillars:
-		var column := UiKit.vbox(3)
-		column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		var holder := Control.new()
+		holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var card := SellUi.nine("tile", CodexUi.TILE_MARGINS, "Art", null, "codex_")
+		holder.add_child(card)
+		StepCardUi.stretch(card)
+		var column := UiKit.vbox(2)
+		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.alignment = BoxContainer.ALIGNMENT_CENTER
+		holder.add_child(column)
+		StepCardUi.stretch(column)
+		column.offset_top = 6
+		column.offset_bottom = -10
+		holder.custom_minimum_size.y = 128
 		var ring := RingProgress.new()
 		ring.name = "PillarRing_" + id
 		ring.custom_minimum_size = Vector2(64, 64)
 		ring.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		ring.color = Palette.HONEY
 		ring.texture = UiKit.ui_icon(str(Database.growth.pillars[id].icon))
 		column.add_child(ring)
-		var title := UiKit.label(str(Database.growth.pillars[id].name), &"SmallLabel")
+		var title := StepCardUi.wood(str(Database.growth.pillars[id].name), 15)
 		title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(title)
 		var dots := UiKit.hbox(4)
 		dots.name = "PillarDots_" + id
 		dots.alignment = BoxContainer.ALIGNMENT_CENTER
+		dots.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		column.add_child(dots)
-		var value := UiKit.label("", &"SmallLabel")
+		var value := StepCardUi.wood("", 14, Color(Palette.WOOD_INK, 0.8))
 		value.name = "PillarValue_" + id
 		value.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(value)
-		grid.add_child(column)
+		grid.add_child(holder)
 		var refresh := func() -> void:
 			var have := int(GameState.growth.phase_moments.get(id, 0))
 			var need := GameState.growth.phase_need(id)
@@ -65,6 +82,13 @@ static func panel() -> Control:
 	return box
 
 
+## Título de uma seção, na fonte da madeira.
+static func _heading(text: String) -> Label:
+	var result := StepCardUi.wood(text, 20)
+	result.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	return result
+
+
 ## Bolinhas de momentos (●●●○): uma por momento pedido, cheias até o que já tem.
 static func fill_dots(row: HBoxContainer, have: int, need: int) -> void:
 	for child in row.get_children():
@@ -75,8 +99,8 @@ static func fill_dots(row: HBoxContainer, have: int, need: int) -> void:
 		dot.name = "Dot_%d" % i
 		dot.custom_minimum_size = Vector2(10, 10)
 		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		var style := UiKit.surface(Palette.HONEY if i < have else Palette.SUNKEN, 5)
-		style.border_color = Palette.INK
+		var style := UiKit.surface(Palette.HONEY if i < have else Palette.WOOD_INSET, 5)
+		style.border_color = Palette.WOOD_INK
 		style.set_border_width_all(2)
 		dot.add_theme_stylebox_override("panel", style)
 		dot.set_meta("filled", i < have)
@@ -92,37 +116,39 @@ static func dots(have: int, need: int) -> HBoxContainer:
 
 ## "De onde vêm": as fontes dos momentos de cada pilar (Coragem, Esperteza, Pelagem), com Ir quando há lugar.
 static func origins() -> Control:
-	var box := UiKit.vbox(6)
+	var box := UiKit.vbox(8)
 	box.name = "MomentOrigins"
-	box.add_child(UiKit.section("De onde vêm os momentos"))
+	box.add_child(_heading("De onde vêm os momentos"))
 	for pillar: String in ["brave", "smart", "coat"]:
-		var group := UiKit.vbox(4)
-		group.name = "Origins_" + pillar
-		var head := UiKit.hbox(6)
-		head.add_child(UiKit.icon(UiKit.ui_icon(str(Database.growth.pillars[pillar].icon)), 24))
-		head.add_child(UiKit.fill_label(str(Database.growth.pillars[pillar].name), &"StrongLabel"))
+		var group := StepCardUi.inner_card(box, "Origins_" + pillar, Vector4i(12, 8, 12, 10))
+		group.add_theme_constant_override("separation", 4)
+		var head := UiKit.hbox(8)
+		var pillar_icon := UiKit.icon(UiKit.ui_icon(str(Database.growth.pillars[pillar].icon)), 32)
+		pillar_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		head.add_child(pillar_icon)
+		var pillar_name := StepCardUi.wood(str(Database.growth.pillars[pillar].name), 19)
+		pillar_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		head.add_child(pillar_name)
 		group.add_child(head)
 		for source: String in Database.growth.moments.sources:
 			var rule: Dictionary = Database.growth.moments.sources[source]
 			if str(rule.pillar) != pillar or not rule.has("label"): continue
-			var go: Control = null
+			var row := UiKit.hbox(8)
+			row.name = "Origin_" + source
+			var label := StepCardUi.wood(str(rule.label), 15)
+			label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			row.add_child(label)
 			if rule.has("go"):
 				var target := WishUi.go_target({"go": rule.go})
-				go = UiKit.soft("Ir", Places.go.bind(target), null, true)
-				go.name = "OriginGo_" + source
-			var row := UiKit.list_row(UiKit.ui_icon(str(Database.growth.pillars[pillar].icon)), str(rule.label), [], go)
-			row.name = "Origin_" + source
+				row.add_child(WelcomeSheet._button("Ir", false, 64.0, "OriginGo_" + source, Places.go.bind(target)))
 			group.add_child(row)
-		box.add_child(group)
 	return box
-
-
-const TASTE_FACES := {"liked": ":)", "odd": ":/", "grimace": ">:("}
 
 
 ## Guia de sabores: provadas com a carinha da reação, não provadas em silhueta, ♥ na favorita descoberta.
 static func taste_guide() -> Control:
-	var box := UiKit.vbox(6)
+	var box := UiKit.vbox(8)
 	box.name = "TasteGuide"
 	var found := 0
 	var foods: Array[String] = []
@@ -130,41 +156,42 @@ static func taste_guide() -> Control:
 		if Database.items[id].has("feed"): foods.append(id)
 	for id: String in foods:
 		if GameState.growth.tastes.has(id): found += 1
-	box.add_child(UiKit.section("Guia de sabores %d/%d" % [found, foods.size()]))
+	box.add_child(_heading("Guia de sabores %d/%d" % [found, foods.size()]))
 	var grid := GridContainer.new()
 	grid.columns = 5
-	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 8)
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
 	box.add_child(grid)
 	for id: String in foods:
 		var tile := Control.new()
 		tile.name = "Taste_" + id
-		tile.custom_minimum_size = Vector2(52, 52)
+		tile.custom_minimum_size = Vector2(54, 54)
+		tile.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		var art := SellUi.nine("tile", CodexUi.TILE_MARGINS, "Art", null, "codex_")
+		tile.add_child(art)
+		StepCardUi.stretch(art)
 		var tried := GameState.growth.tastes.has(id)
-		var icon := UiKit.icon(Database.item_icon(id), 40)
-		icon.position = Vector2(6, 6)
+		var icon := UiKit.icon(Database.item_icon(id), 32)
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		icon.position = Vector2(11, 9)
 		if not tried: icon.modulate = Color(0, 0, 0, 0.35)
 		tile.add_child(icon)
 		if tried:
 			var reaction := str(GameState.growth.tastes[id])
 			tile.tooltip_text = Database.item_name(id)
-			if reaction == "loved" or (GameState.favorite_found() and id == GameState.favorite_food()):
-				var heart := UiKit.icon(UiKit.ui_icon("heart"), 18)
-				heart.name = "FavoriteHeart"
-				heart.position = Vector2(34, 0)
-				tile.add_child(heart)
-			else:
-				var face := UiKit.short_label(str(TASTE_FACES.get(reaction, "")), &"BadgeLabel")
-				face.name = "Face"
-				face.position = Vector2(26, 30)
-				tile.add_child(face)
+			var loved := reaction == "loved" or (GameState.favorite_found() and id == GameState.favorite_food())
+			var face := CodexUi._taste_face("heart" if loved else reaction)
+			face.position = Vector2(30, 26)
+			tile.add_child(face)
 		grid.add_child(tile)
 	return box
 
 
 static func personality_title() -> Control:
-	var title := UiKit.fill_label(PersonalityRules.title(GameState.growth), &"StrongLabel")
+	var title := StepCardUi.wood(PersonalityRules.title(GameState.growth), 18)
 	title.name = "PersonalityTitle"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	title.visible = title.text != ""
 	return title
 
@@ -172,10 +199,19 @@ static func personality_title() -> Control:
 static func diary() -> Control:
 	var box := UiKit.vbox(6)
 	box.name = "GrowthDiary"
-	box.add_child(UiKit.section("Hoje o Tiro..."))
+	box.add_child(_heading("Hoje o Tiro..."))
 	var entries := GameState.growth.diary.duplicate()
 	entries.reverse()
-	if entries.is_empty(): box.add_child(UiKit.fill_label("As lembranças dele vão aparecer aqui.", &"SmallLabel"))
+	var card := StepCardUi.inner_card(box, "", Vector4i(12, 8, 12, 10))
+	card.add_theme_constant_override("separation", 4)
+	if entries.is_empty(): card.add_child(_line("As lembranças dele vão aparecer aqui."))
 	for entry: Dictionary in entries:
-		box.add_child(UiKit.fill_label(str(entry.day) + " · " + str(entry.text), &"SmallLabel"))
+		card.add_child(_line(str(entry.day) + " · " + str(entry.text)))
 	return box
+
+
+static func _line(text: String) -> Label:
+	var result := StepCardUi.wood(text, 14, Color(Palette.WOOD_INK, 0.85))
+	result.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	result.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return result

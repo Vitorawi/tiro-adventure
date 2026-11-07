@@ -1,0 +1,125 @@
+{
+  "id": "s_hero_shadow",
+  "title": "Sombra de herói",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "explorer",
+  "game_scene": "park",
+  "source_definition": "game/data/album.json#photos/s_hero_shadow",
+  "trigger": {
+    "on": "tapped_dog",
+    "when": {
+      "world": "park",
+      "hour": [
+        17,
+        20
+      ]
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_hero_shadow.png",
+    "scene": "park",
+    "pose": {
+      "clip": "idle_breathe",
+      "frame": 0
+    },
+    "props": [
+      "long_shadow"
+    ]
+  },
+  "scene_description": "Small adolescent BLACK-and-tan Yorkshire with upright ears standing calmly on a park cobblestone path at sunset. Main visual joke: low golden setting sun casts his ONE very long realistic dog shadow diagonally across the foreground, making the little terrier look grand like a heroic wolf. Correct shadow attached to his paws, sun behind dog, full little dog clearly visible, warm park trees and grass. No actual wolf.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_hero_shadow.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_hero_shadow.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_hero_shadow/photo.json",
+  "batch_id": "batch_005",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_hero_shadow/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_hero_shadow/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.685311+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-faa2342b-6707-4834-aaa0-7cddad8b6037.png",
+          "completed_at": "2026-11-06T22:29:32.675037+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_hero_shadow/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-faa2342b-6707-4834-aaa0-7cddad8b6037.png",
+      "completed_at": "2026-11-06T22:29:32.675037+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "e2eadc5408b1a7789b3a187d1e237d13f16b0ec3a04d4e29665213114ae17d2c",
+      "reviewed_at": "2026-11-06T22:38:05.312991+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_hero_shadow/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_hero_shadow/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.685311+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-243f416b-a93e-415b-bb25-bab12a234275.png",
+          "completed_at": "2026-11-06T22:30:10.079705+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_hero_shadow/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-243f416b-a93e-415b-bb25-bab12a234275.png",
+      "completed_at": "2026-11-06T22:30:10.079705+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "db0d406870760c5f12bb12613e3484187e41c2064bcdf9d16bc414f15124279a",
+      "reviewed_at": "2026-11-06T22:38:05.618469+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_hero_shadow/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_hero_shadow/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.685311+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f94af2f2-8339-4b12-81d9-67347a10f82a.png",
+          "completed_at": "2026-11-06T22:30:51.880673+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_hero_shadow/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f94af2f2-8339-4b12-81d9-67347a10f82a.png",
+      "completed_at": "2026-11-06T22:30:51.880673+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "1adf5de1184fb17f19872cbce86407026def8e7f6ecb2de7321adbcd718a2fd1",
+      "reviewed_at": "2026-11-06T22:38:06.237780+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_hero_shadow/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_hero_shadow/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.685311+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-73e0f6ec-01c0-485c-b735-29c6a25c6472.png",
+          "completed_at": "2026-11-06T22:31:31.967545+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_hero_shadow/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-73e0f6ec-01c0-485c-b735-29c6a25c6472.png",
+      "completed_at": "2026-11-06T22:31:31.967545+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "839e227994b39db0e4b42a1310f0ae6d28abcef568d9b8ec71b055fd518e42b4",
+      "reviewed_at": "2026-11-06T22:38:06.614166+00:00"
+    }
+  }
+}

@@ -1211,3 +1211,10 @@ continua seguro em `walk_state.pending_return.left` (nunca se perde) e `walk_ite
 vez. Interface: o cartão "Voltou do passeio!" mostra os achados como já guardados, com um botão verde "Oba!"; se algo sobrou,
 uma linha "Sem espaço: N ficaram na sacola" e o botão amarelo "Liberar espaço" (abre o depósito). `CollectWalk` ("Ver
 bagagem") só aparece na tela do Tiro nesse caso. `SAVE_VERSION` não muda (o formato é o mesmo).
+
+## Fotos do Tiro — cartas colecionáveis (plano concluído, 07/11/2026, local)
+Resumo do álbum como coleção de cartas (detalhes por etapa em `docs/plans/fotos/README.md` e `RESULTADOS.md`):
+- **Quatro versões por foto** (1 Comum, 2 Brilhante, 3 Rara, 4 Holográfica; 216 imagens em `assets/sprites/ui/album/rarities/`, instalador `tools/album_rarity_install.gd` idempotente). Foto nova chega **fechada** (`sealed`); Abrir sorteia (45/30/18/7 %, garantias 10/30), **Tentar a sorte** só com moedas (40 +20, teto 160) e **Melhorar** com materiais sobe sempre um nível; a foto nunca piora. Config em `album.json → cards`.
+- **Carta 3D** (`CardViewer`, `CardReveal`): arrastar inclina, foil nos níveis 3–4, Menos animação para tudo.
+- **Álbum** com cartas, pistas claras (`goal_hint`, "Quase lá"), **varal de 3** na home (`PhotoLine`), **tutorial** com a `h_arrival` (`AlbumTutorial`, passos salvos) e **recompensas de coleção** (`_check_album_rewards`, só moedas, recibos se houver item).
+- Fechamento: tour `ui_tour.gd -- --fotos-only`, roteiro de toque `game/tests/touch/fotos.json`, desempenho Web (~52 fps na carta Holográfica em Chrome emulado). Celular físico pendente.

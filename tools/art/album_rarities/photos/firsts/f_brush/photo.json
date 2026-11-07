@@ -1,0 +1,117 @@
+{
+  "id": "f_brush",
+  "title": "Primeira escovada",
+  "section": "firsts",
+  "section_name": "Primeiras vezes",
+  "phase": "teething",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/f_brush",
+  "trigger": {
+    "on": "brushed",
+    "when": {}
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/f_brush.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "stretch",
+      "frame": 1
+    },
+    "props": []
+  },
+  "scene_description": "FIRST gentle brushing: small juvenile black-and-tan Yorkshire Tiro with recently upright ears stretching his back contentedly on the rug in his home corner while a person's single anatomically natural hand gently brushes his back with a simple soft wooden dog brush. Focus on brush touching BACK and relaxed joyful puppy stretch, no adult body or golden adult crown. Warm sunlight through window, cream room.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/f_brush.png",
+  "original_capture": "docs/art/album_ilustrado/originais/f_brush.png",
+  "manifest_path": "tools/art/album_rarities/photos/firsts/f_brush/photo.json",
+  "batch_id": "batch_004",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_brush/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_brush/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.892652+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3f50d004-f42f-4e54-9ee7-cb7f7bf2102a.png",
+          "completed_at": "2026-11-06T22:18:15.347689+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_brush/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3f50d004-f42f-4e54-9ee7-cb7f7bf2102a.png",
+      "completed_at": "2026-11-06T22:18:15.347689+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "360a0634ff4e083010e8316e4176fea2b5495cbdb8b45ec11b4fbda129bf3daa",
+      "reviewed_at": "2026-11-06T22:22:38.589288+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_brush/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_brush/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.893637+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1ccae322-21a1-4236-a003-e9c36f0bcf60.png",
+          "completed_at": "2026-11-06T22:18:52.840095+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_brush/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1ccae322-21a1-4236-a003-e9c36f0bcf60.png",
+      "completed_at": "2026-11-06T22:18:52.840095+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "ae717de4bc273590531cd7b5374400a6ab4fd6a7213ab7e029e9e47ff38c98b1",
+      "reviewed_at": "2026-11-06T22:22:38.949659+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_brush/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_brush/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.893637+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c114a8d9-797e-4eca-9b09-03c51bed2bdb.png",
+          "completed_at": "2026-11-06T22:19:39.729898+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_brush/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c114a8d9-797e-4eca-9b09-03c51bed2bdb.png",
+      "completed_at": "2026-11-06T22:19:39.729898+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "a6eb3f12bc72913db14e1352284ea5a157a8b149b40578e6ffc81c298fdc9cd2",
+      "reviewed_at": "2026-11-06T22:22:39.289057+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_brush/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_brush/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.893637+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-aba53bdf-dc01-4358-8642-95ca04d0d2b2.png",
+          "completed_at": "2026-11-06T22:20:18.469635+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_brush/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-aba53bdf-dc01-4358-8642-95ca04d0d2b2.png",
+      "completed_at": "2026-11-06T22:20:18.469635+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "3c63119c8ea2032f5b4c557c89e883d2eef2dd8151eb47b6267374b3979c607d",
+      "reviewed_at": "2026-11-06T22:22:39.628467+00:00"
+    }
+  }
+}

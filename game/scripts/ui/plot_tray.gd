@@ -143,7 +143,7 @@ static func care(room: RoomView, index: int) -> Popover:
 	anchor.size = Vector2(2, 2)
 	room.add_child(anchor)
 	anchor.position = room.world_to_screen(room.plot_anchor(index).below) - room.global_position
-	var popover := Popover.open(room, anchor, CareHeader.new(index), 3.0)
+	var popover := Popover.open(room, anchor, _care_card(index), 3.0)
 	popover.tree_exited.connect(anchor.queue_free)
 	return popover
 
@@ -264,20 +264,22 @@ class CareHeader extends HBoxContainer:
 		add_theme_constant_override("separation", 8)
 		alignment = BoxContainer.ALIGNMENT_CENTER
 		_ring = RingProgress.new()
+		_ring.color = Color("f59a23")
+		_ring.track = Color(0.3, 0.15, 0.05, 0.22)
 		_ring.name = "Ring"
 		add_child(_ring)
 		var column := VBoxContainer.new()
 		column.add_theme_constant_override("separation", 0)
 		column.alignment = BoxContainer.ALIGNMENT_CENTER
 		column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		_time = UiKit.label("", &"")
+		_time = StepCardUi.wood("", 17)
 		_time.name = "Time"
 		_time.autowrap_mode = TextServer.AUTOWRAP_OFF
 		column.add_child(_time)
 		_watered = UiKit.hbox(4)
 		_watered.name = "Watered"
-		_watered.add_child(UiKit.icon(UiKit.ctl_icon("check"), 16))
-		var done_label := UiKit.label("Regado", &"SmallLabel", Palette.GO_INK)
+		_watered.add_child(StationWood.pic("check", Vector2(16, 14), "Check"))
+		var done_label := StepCardUi.wood("Regado", 14, Palette.GO_INK)
 		done_label.autowrap_mode = TextServer.AUTOWRAP_OFF
 		_watered.add_child(done_label)
 		column.add_child(_watered)
@@ -303,3 +305,23 @@ class CareHeader extends HBoxContainer:
 		else:
 			_time.text = TimeText.short(maxi(0, ceili(float(target.get("ready_at", 0.0)) - GameState.now())))
 		_watered.visible = bool(target.get("watered", false))
+
+
+## Cartãozinho de madeira/papel do balão de cuidado: o `CareHeader` sobre o creme, sem cartão branco nem rabinho.
+static func _care_card(index: int) -> Control:
+	var root := PanelContainer.new()
+	root.name = "CareCard"
+	root.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.set_meta("popover_bare", true)
+	root.set_meta("popover_follow", true)
+	root.add_child(StationWood.backing("card", 50, 50))
+	var margin := MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	margin.add_theme_constant_override("margin_left", 18)
+	margin.add_theme_constant_override("margin_right", 18)
+	margin.add_theme_constant_override("margin_top", 10)
+	margin.add_theme_constant_override("margin_bottom", 12)
+	margin.add_child(CareHeader.new(index))
+	root.add_child(margin)
+	return root

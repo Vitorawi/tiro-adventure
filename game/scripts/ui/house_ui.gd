@@ -1,6 +1,6 @@
 class_name HouseUi
 extends RefCounted
-## Painéis da Casa que cresce (etapa 14): prateleira de lembranças, parede de fotos, moldura dourada
+## Painéis da Casa que cresce (etapa 14), em madeira ilustrada: prateleira de lembranças, parede de fotos, moldura dourada
 ## e cesto de brinquedos. Toque num objeto da sala chega aqui por `open("<objeto>")`.
 
 
@@ -28,38 +28,56 @@ static func open(id: String) -> void:
 
 
 static func bed() -> Control:
-	var box := UiKit.vbox(8)
+	var box := UiKit.vbox(10)
 	box.name = "BedPanel"
-	box.add_child(UiKit.primary("Acordar" if GameState.dog.sleeping else "Dormir", func() -> void:
+	ProjectUi.wood_sheet(box)
+	var inner := StepCardUi.inner_card(box, "BedCard")
+	inner.add_theme_constant_override("separation", 10)
+	var sleeping := GameState.dog.sleeping
+	var status := StepCardUi.wood("O Tiro está dormindo." if sleeping else "A caminha do Tiro.", 17)
+	status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	inner.add_child(status)
+	var toggle := ProjectUi.green("Acordar" if sleeping else "Dormir", func() -> void:
 		GameState.set_sleeping(not GameState.dog.sleeping)
-		Events.sheet_requested.emit("Caminha", bed())))
+		Events.sheet_requested.emit("Caminha", bed()))
+	toggle.name = "SleepToggle"
+	inner.add_child(toggle)
 	var next := "bed_luxe" if GameState.has_upgrade("bed_soft") else "bed_soft"
 	if not GameState.has_upgrade(next):
 		# A compra fica em outro painel para manter uma ação principal por vez.
-		box.add_child(UiKit.soft(str(Database.progression.upgrades[next].name), func() -> void:
-			Events.sheet_requested.emit(str(Database.progression.upgrades[next].name), ProgressionUi.purchase(next))))
+		var buy := WelcomeSheet._button(str(Database.progression.upgrades[next].name), false, 240.0, "BedUpgrade", func() -> void:
+			Events.sheet_requested.emit(str(Database.progression.upgrades[next].name), ProgressionUi.purchase(next)))
+		inner.add_child(buy)
 	return box
+
+
+## Texto de apoio (marrom suave, centralizado) no topo das listas da Casa.
+static func _intro(box: VBoxContainer, text: String) -> void:
+	var label := StepCardUi.wood(text, 15, Color(Palette.WOOD_INK, 0.85))
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.custom_minimum_size.x = 100.0
+	box.add_child(label)
 
 
 ## Caixinha, argolinha, mordedor, escova e medalhinha: só o que já foi entregue; tocar abre a foto ligada.
 static func shelf() -> Control:
 	var box := UiKit.vbox(8)
 	box.name = "ShelfPanel"
-	box.add_child(UiKit.fill_label("Tudo o que ele ganhou ao crescer.", &"SmallLabel"))
+	ProjectUi.wood_sheet(box)
+	_intro(box, "Tudo o que ele ganhou ao crescer.")
 	for entry: Dictionary in HouseDecor.shelf_items():
 		var id := str(entry.id)
 		var icon: Texture2D = load(str(entry.icon)) if entry.has("icon") else Database.item_icon(id)
 		var photo := str(entry.get("photo", ""))
-		var action: Control = null
+		var tail: Control = null
 		var tap := Callable()
 		if photo != "" and GameState.album.has_photo(photo):
-			action = UiKit.soft("Ver foto", AlbumView.open_photo.bind(photo), null, true)
-			action.name = "ShelfPhoto_" + id
+			tail = ProjectUi.chevron()
+			tail.name = "ShelfPhoto_" + id
 			tap = AlbumView.open_photo.bind(photo)
 		var no_chips: Array[Control] = []
-		var row := UiKit.list_row(icon, str(entry.name), no_chips, action, tap)
-		row.name = "ShelfItem_" + id
-		box.add_child(row)
+		box.add_child(ProjectUi.row("ShelfItem_" + id, icon, str(entry.name), no_chips, tail, tap))
 	return box
 
 
@@ -84,13 +102,29 @@ static func _photo_ids() -> Array[String]:
 	return ids
 
 
+## Contorno de madeira (mel) em volta da foto escolhida; sem `on` só reserva o mesmo espaço.
+static func _picked(content: Control, on: bool) -> Control:
+	var holder := PanelContainer.new()
+	holder.mouse_filter = Control.MOUSE_FILTER_PASS
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(Palette.WOOD_PICK, 0.25) if on else Color(0, 0, 0, 0)
+	style.border_color = Palette.WOOD_PICK if on else Color(0, 0, 0, 0)
+	style.set_border_width_all(3)
+	style.set_corner_radius_all(8)
+	style.set_content_margin_all(3)
+	holder.add_theme_stylebox_override("panel", style)
+	holder.add_child(content)
+	return holder
+
+
 ## Até 3 fotos penduradas; a lista de baixo pendura a foto tocada.
 static func wall() -> Control:
-	var box := UiKit.vbox(8)
+	var box := UiKit.vbox(10)
 	box.name = "WallPanel"
-	box.set_meta("sheet_size", "tall")
+	ProjectUi.wood_sheet(box)
 	var slots := int(Database.house.get("wall_slots", 3))
-	box.add_child(UiKit.fill_label("Escolha até %d fotos para a parede." % slots, &"SmallLabel"))
+	var top := StepCardUi.inner_card(box, "WallCard")
+	_intro(top, "Escolha até %d fotos para a parede." % slots)
 	var hung := UiKit.hbox(8)
 	hung.name = "WallSlots"
 	hung.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -98,24 +132,34 @@ static func wall() -> Control:
 		var id := str(GameState.album.wall[slot]) if slot < GameState.album.wall.size() else ""
 		var cell := UiKit.vbox(4)
 		if id != "":
-			cell.add_child(photo_button(id, 92.0, func() -> void: _unhang(id)))
-			var remove := UiKit.ghost("Tirar", _unhang.bind(id))
-			remove.name = "Unhang_" + id
-			cell.add_child(remove)
+			cell.add_child(photo_button(id, 76.0, func() -> void: _unhang(id)))
+			cell.add_child(WelcomeSheet._button("Tirar", false, 76.0, "Unhang_" + id, _unhang.bind(id)))
 		else:
 			var empty := Panel.new()
-			empty.custom_minimum_size = Vector2(92, 92)
+			empty.custom_minimum_size = Vector2(76, 92)
 			empty.name = "EmptySlot_%d" % slot
+			var style := StyleBoxFlat.new()
+			style.bg_color = Palette.WOOD_INSET
+			style.border_color = Color("c9935f")
+			style.set_border_width_all(2)
+			style.set_corner_radius_all(8)
+			empty.add_theme_stylebox_override("panel", style)
 			cell.add_child(empty)
 		hung.add_child(cell)
-	box.add_child(hung)
-	box.add_child(UiKit.section("Suas fotos"))
-	var grid := UiKit.flow(6)
+	top.add_child(hung)
+	var below := StepCardUi.inner_card(box, "WallPhotosCard")
+	var heading := StepCardUi.wood("Suas fotos", 18)
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	below.add_child(heading)
+	var grid := HFlowContainer.new()
 	grid.name = "WallPhotos"
+	grid.alignment = FlowContainer.ALIGNMENT_CENTER
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
 	for id: String in _photo_ids():
 		if not GameState.album.wall.has(id):
 			grid.add_child(photo_button(id, 76.0, _hang.bind(id)))
-	box.add_child(grid)
+	below.add_child(grid)
 	return box
 
 
@@ -134,20 +178,22 @@ static func _unhang(id: String) -> void:
 
 ## Moldura dourada: a foto principal aparece no cantinho do Tiro.
 static func frame() -> Control:
-	var box := UiKit.vbox(8)
+	var box := UiKit.vbox(10)
 	box.name = "FramePanel"
-	box.set_meta("sheet_size", "tall")
-	box.add_child(UiKit.fill_label("Qual foto fica no cantinho do Tiro?", &"SmallLabel"))
-	var grid := UiKit.flow(6)
+	ProjectUi.wood_sheet(box)
+	var inner := StepCardUi.inner_card(box, "FrameCard")
+	_intro(inner, "Qual foto fica no cantinho do Tiro?")
+	var grid := HFlowContainer.new()
 	grid.name = "FramePhotos"
+	grid.alignment = FlowContainer.ALIGNMENT_CENTER
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
 	for id: String in _photo_ids():
 		var button := photo_button(id, 76.0, _set_main.bind(id))
-		if id == GameState.album.main_photo:
-			button.modulate = Color(1.0, 0.93, 0.6)
-		grid.add_child(button)
-	box.add_child(grid)
+		grid.add_child(_picked(button, id == GameState.album.main_photo))
+	inner.add_child(grid)
 	if GameState.album.main_photo != "":
-		box.add_child(UiKit.soft("Tirar a foto", _set_main.bind("")))
+		inner.add_child(WelcomeSheet._button("Tirar a foto", false, 160.0, "ClearFrame", _set_main.bind("")))
 	return box
 
 
@@ -163,19 +209,17 @@ static func _set_main(id: String) -> void:
 static func toys() -> Control:
 	var box := UiKit.vbox(8)
 	box.name = "ToysPanel"
-	box.add_child(UiKit.fill_label("Guarde aqui os brinquedos favoritos do Tiro.", &"SmallLabel"))
+	ProjectUi.wood_sheet(box)
+	_intro(box, "Guarde aqui os brinquedos favoritos do Tiro.")
 	for item: String in Database.house.get("toys", []):
 		var inside: bool = GameState.progress.house.toys.has(item)
 		var action: Control = null
 		if not inside and GameState.inventory.count(item) > 0:
-			action = UiKit.soft("Dar", _give.bind(item), null, true)
-			action.name = "GiveToy_" + item
+			action = WelcomeSheet._button("Dar", false, 84.0, "GiveToy_" + item, _give.bind(item))
 		var chips: Array[Control] = []
 		if inside:
-			chips.append(UiKit.chip(null, "No cesto"))
-		var row := UiKit.list_row(Database.item_icon(item), Database.item_name(item), chips, action)
-		row.name = "Toy_" + item
-		box.add_child(row)
+			chips.append(StepCardUi.wood_chip(null, "No cesto", "have"))
+		box.add_child(ProjectUi.row("Toy_" + item, Database.item_icon(item), Database.item_name(item), chips, action, Callable(), not inside and action == null))
 	return box
 
 

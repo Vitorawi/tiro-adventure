@@ -288,7 +288,7 @@ static func _growth(wanted: String) -> Dictionary:
 				found += 1 if tried else 0
 				var reaction := str(GameState.growth.tastes.get(id, ""))
 				var loved := tried and (reaction == "loved" or (GameState.favorite_found() and id == GameState.favorite_food()))
-				tiles.append({"name": "Taste_" + id, "icon": item_icon(id), "caption": Database.item_name(id) if tried else "?", "dim": not tried, "mark": "heart" if loved else "",
+				tiles.append({"name": "Taste_" + id, "icon": item_icon(id), "caption": Database.item_name(id) if tried else "?", "dim": not tried, "mark": "heart" if loved else ("face_" + reaction if tried else ""),
 					"tooltip": Database.item_name(id) if tried else "?", "on_tap": open_item.bind(id)})
 			blocks.append({"title": "Sabores", "count": "%d/%d" % [found, foods.size()], "tiles": tiles, "ratio": 1.0, "name": "TasteGuide"})
 		"diary":
@@ -369,20 +369,10 @@ static func _album(wanted: String, model: Dictionary) -> Dictionary:
 	if str(model.get("noted", "")) != filter:
 		model["noted"] = filter
 		GameState.note_album_section(filter)
-	var counts := AlbumView._section_counts(filter)
-	var current: Dictionary = sections.filter(func(entry: Dictionary) -> bool: return str(entry.id) == filter)[0]
-	var tiles: Array[Dictionary] = []
-	for entry: Dictionary in Database.album.photos:
-		if str(entry.section) == filter:
-			var id := str(entry.id)
-			var secret: bool = str(entry.section) == "tricks"
-			tiles.append({"name": "Photo_" + id, "dim": false, "tooltip": str(entry.title),
-				"caption": str(entry.title) if GameState.album.has_photo(id) else "?",
-				"card": func(width: float) -> Control: return PhotoCard.make(id, width - 4.0, {"secret": secret, "thumb": true}),
-				"badge": GameState.album.has_photo(id) and not bool(GameState.album.photos[id].get("seen", false)),
-				"on_tap": AlbumView._tap.bind(id)})
-	return {"filters": options, "filter": filter, "name": "AlbumView",
-		"blocks": [{"title": str(current.name), "count": "%d/%d" % [counts.x, counts.y], "tiles": tiles, "ratio": 1.0, "name": "AlbumGrid"}]}
+	AlbumTutorial.maybe_start.call_deferred()
+	return {"filters": options, "filter": filter, "name": "AlbumView", "cols": 2,
+		"album_section": filter, "blocks": []}
+
 
 
 # --- Coleção -------------------------------------------------------------------------------

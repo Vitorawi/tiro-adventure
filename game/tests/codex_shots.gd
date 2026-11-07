@@ -56,6 +56,11 @@ func _unlock() -> void:
 	for photo: String in ["h_arrival", "f_bath", "f_dig"]:
 		state.call("dev_take_photo", photo)
 	state.get("progress").stats["find_item:stick"] = 1
+	var tastes: Dictionary = state.get("growth").tastes  # as reações do Paladar: feliz, médio, triste e a favorita
+	tastes["dog_food"] = "liked"
+	tastes["carrot_snack"] = "odd"
+	tastes["carrot"] = "grimace"
+	tastes[str(state.call("favorite_food"))] = "loved"
 	await create_timer(1.0).timeout
 	_hide_modals()
 

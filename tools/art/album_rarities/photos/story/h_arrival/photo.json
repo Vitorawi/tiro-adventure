@@ -1,0 +1,95 @@
+{
+  "id": "h_arrival",
+  "title": "Chegada",
+  "section": "story",
+  "section_name": "História",
+  "phase": "newborn",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/h_arrival",
+  "trigger": {
+    "on": "intro_done",
+    "when": {}
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_arrival.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "look_around",
+      "frame": 0
+    },
+    "props": [
+      "box"
+    ]
+  },
+  "scene_description": "The very tiny newly arrived floppy-eared black-and-tan puppy peeking curiously over the edge of a small open cardboard travel box on the wooden floor in his new home corner. Front paws over box edge, curious cautious look, welcoming cream room, red rug and small plant. No adult dog.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_arrival.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_arrival.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_arrival/photo.json",
+  "batch_id": null,
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_arrival/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_arrival/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_arrival/common.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "fd7bb39a1982557cd5f1a020fc8103134ea0c8ada341ebf810d68b1f905d5da1",
+      "imported_from": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-e266596a-c978-4e02-abcf-974cef2d08f8.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_arrival/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_arrival/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_arrival/shiny.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "927c52e7e850b07ac92dd62539b7ec092ae714644be1b7f33b9696dd872a31f2",
+      "imported_from": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-5a62df00-550f-49a6-93a4-8d83e305137a.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_arrival/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_arrival/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_arrival/rare.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "43fbced17cebb0477cb2ee40d4e6f800918715fd9455edad3cfa55eaf3d17f03",
+      "imported_from": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-eecad685-65ee-420c-a3c7-f7e38e5e97bf.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_arrival/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_arrival/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_arrival/holographic.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6f107106b4ea265779d84d84ad31b388baa3545a626c57f16e6c2d608e449c8d",
+      "imported_from": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-609e6b00-2d19-4b7a-becb-9465fbfe35f5.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    }
+  }
+}

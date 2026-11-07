@@ -1,0 +1,117 @@
+{
+  "id": "f_outfit",
+  "title": "Primeira roupa",
+  "section": "firsts",
+  "section_name": "Primeiras vezes",
+  "phase": "young",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/f_outfit",
+  "trigger": {
+    "on": "equipped",
+    "when": {}
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/f_outfit.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "idle_breathe",
+      "frame": 0
+    },
+    "props": []
+  },
+  "scene_description": "His first outfit: young adult Yorkshire Tiro (upright ears, dark charcoal crown and back, golden tan face and paws) proudly wearing a simple RED NECK SCARF tied loosely at the side, looking pleased in the cozy home corner. Full dog visible in three-quarter pose with scarf clearly readable; no other clothes, no human, no mirror duplicates.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/f_outfit.png",
+  "original_capture": "docs/art/album_ilustrado/originais/f_outfit.png",
+  "manifest_path": "tools/art/album_rarities/photos/firsts/f_outfit/photo.json",
+  "batch_id": "batch_004",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_outfit/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_outfit/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.891651+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-0d4defdf-7141-4321-8c58-3db251ef5c0c.png",
+          "completed_at": "2026-11-06T22:13:52.011874+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_outfit/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-0d4defdf-7141-4321-8c58-3db251ef5c0c.png",
+      "completed_at": "2026-11-06T22:13:52.011874+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "e8ce34661d3a6eadf8bceea3ce418d7bd76e51b0456856a184baa52d0c99978b",
+      "reviewed_at": "2026-11-06T22:22:35.715252+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_outfit/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_outfit/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.891651+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-dce8bbc6-8687-4953-a4e7-1193cb1c1031.png",
+          "completed_at": "2026-11-06T22:14:22.350456+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_outfit/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-dce8bbc6-8687-4953-a4e7-1193cb1c1031.png",
+      "completed_at": "2026-11-06T22:14:22.350456+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "14d1850caae070d8c4384c4b1949780e11a937a3fe761b0dcdb114845789b2ee",
+      "reviewed_at": "2026-11-06T22:22:36.036144+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_outfit/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_outfit/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.891651+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d8965d36-8c40-4787-a5e6-b455d863e257.png",
+          "completed_at": "2026-11-06T22:14:50.436045+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_outfit/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d8965d36-8c40-4787-a5e6-b455d863e257.png",
+      "completed_at": "2026-11-06T22:14:50.436045+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d843710a069781d21a225697ec8dbd6eb2434f21e9e18932a992c9a5061cf82c",
+      "reviewed_at": "2026-11-06T22:22:36.491505+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_outfit/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_outfit/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.891651+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-47468428-c7e1-4365-950b-2498b026d788.png",
+          "completed_at": "2026-11-06T22:15:24.159868+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_outfit/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-47468428-c7e1-4365-950b-2498b026d788.png",
+      "completed_at": "2026-11-06T22:15:24.159868+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8b0efd163749253dc477b70129add52430f50b937aac6a920a4c2334ce073cf7",
+      "reviewed_at": "2026-11-06T22:22:36.860399+00:00"
+    }
+  }
+}

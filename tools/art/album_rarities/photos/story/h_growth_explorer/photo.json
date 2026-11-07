@@ -1,0 +1,119 @@
+{
+  "id": "h_growth_explorer",
+  "title": "Pequeno aventureiro",
+  "section": "story",
+  "section_name": "História",
+  "phase": "explorer",
+  "game_scene": "nature",
+  "source_definition": "game/data/album.json#photos/h_growth_explorer",
+  "trigger": {
+    "on": "grew",
+    "when": {
+      "grew_to": "explorer"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_growth_explorer.png",
+    "scene": "nature",
+    "pose": {
+      "clip": "sniff",
+      "frame": 1
+    },
+    "props": []
+  },
+  "scene_description": "Eight-month-old adolescent BLACK-and-tan Yorkshire terrier, slim little body and upright ears, sniffing an interesting fallen twig beside a woodland trail among ferns, mossy stones and soft sunbeams. Alert adventurous nose close to ground, full small dog visible, natural safe forest. No hat because this growth milestone does not award the explorer hat yet.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_growth_explorer.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_growth_explorer.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_growth_explorer/photo.json",
+  "batch_id": "batch_002",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_explorer/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_explorer/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.285506+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2b2f27df-81f4-4ed9-93bf-8f61f91175b4.png",
+          "completed_at": "2026-11-06T21:50:45.405093+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_explorer/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2b2f27df-81f4-4ed9-93bf-8f61f91175b4.png",
+      "completed_at": "2026-11-06T21:50:45.405093+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d9616717b3db0dff6f4ad991a4b9272ef6107bdf1b9d69194d0d132f7664d3ca",
+      "reviewed_at": "2026-11-06T21:52:08.270379+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_explorer/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_explorer/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.285506+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-96c31bfd-3ce7-4fb2-983d-312468f2e51a.png",
+          "completed_at": "2026-11-06T21:50:48.121237+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_explorer/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-96c31bfd-3ce7-4fb2-983d-312468f2e51a.png",
+      "completed_at": "2026-11-06T21:50:48.121237+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "32000300327bc3380facb50cc6927f7fa7e0e1c5a5fd3976f922d441bf8ff573",
+      "reviewed_at": "2026-11-06T21:52:08.648270+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_explorer/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_explorer/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.285506+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c9bde216-be4f-45a0-aa47-82b8f0953b24.png",
+          "completed_at": "2026-11-06T21:50:50.847843+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_explorer/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-c9bde216-be4f-45a0-aa47-82b8f0953b24.png",
+      "completed_at": "2026-11-06T21:50:50.847843+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "78ae8c32ce04f15a2d8f5c9e2a61920e0a62a16bb1461aba7e3bcc74cbf5cec3",
+      "reviewed_at": "2026-11-06T21:52:09.029172+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_growth_explorer/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_growth_explorer/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.286506+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-12d0436f-bda1-4ed1-8e37-f3f19b36613c.png",
+          "completed_at": "2026-11-06T21:50:53.502931+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_growth_explorer/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-12d0436f-bda1-4ed1-8e37-f3f19b36613c.png",
+      "completed_at": "2026-11-06T21:50:53.502931+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "e16cdbeb2f1566e41617f11729d704da9b40d944006f7faecb78f6de0b2ddb6e",
+      "reviewed_at": "2026-11-06T21:52:09.336073+00:00"
+    }
+  }
+}

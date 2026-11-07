@@ -18,7 +18,7 @@ func show_chapter(index: int, unlocks: Array[String]) -> void:
 	_unlock_rows(card, unlocks)
 	var next := GameState.progress.displayed_main_quest()
 	if next != "":
-		card.add(ProgressionUi.next_step_card(next))
+		card.add(RewardSheet.next_card(next))
 		card.add_primary("Ir para " + ProgressionUi.quest_place_name(Places.quest_target(next)), func() -> void:
 			hide()
 			Events.sheet_close_requested.emit()
@@ -101,6 +101,71 @@ func show_treasure(rewards: Dictionary) -> void:
 	show()
 
 
+## Item principal que um personagem entregou: o item já entrou; o cartão só o mostra.
+func show_gift(item: String, npc: String) -> void:
+	var card := _open({"title": "Você ganhou!", "icon": Database.item_icon(item), "icon_px": 96,
+		"scroll_name": "CelebrationScroll", "haptic": "success"})
+	card.add_text(Database.item_name(item), &"StrongLabel")
+	var giver := str(Database.npcs.get(npc, {}).get("name", ""))
+	if giver != "":
+		card.add_text("%s te deu" % giver, &"SmallLabel")
+	card.add_primary("Oba!", hide)
+	show()
+
+
+## Marco de coleção do álbum (seção completa, 4 versões, Raras ou primeira Holográfica): o prêmio já entrou.
+func show_album_milestone(kind: String, key: String) -> void:
+	var title := "Marco do álbum!"
+	var subtitle := ""
+	var level := 3
+	match kind:
+		"section":
+			var name_text := key
+			for section: Dictionary in Database.album_sections():
+				if str(section.id) == key: name_text = str(section.name)
+			title = "Seção completa!"
+			subtitle = name_text
+		"styles":
+			title = "Quatro versões!"
+			subtitle = str(Database.photo(key).get("title", key))
+		"rare":
+			title = "Fotos Raras!"
+			subtitle = "%s Raras ou melhores" % key
+		"holo":
+			title = "Primeira Holográfica!"
+			subtitle = "O brilho mais raro"
+			level = 4
+	var options := {"title": title, "ribbon": Palette.HONEY, "ribbon_icon": "spark",
+		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "big"}
+	var photo := _milestone_photo(kind, key)
+	if photo != "":
+		options["hero"] = PhotoCard.make(photo, 150.0, {"effects": false})
+	else:
+		options["icon"] = load(PhotoCard.FRAMES_DIR + "frame_%d.png" % level)
+		options["icon_px"] = 96
+	var card := _open(options)
+	if subtitle != "":
+		card.add_text(subtitle, &"StrongLabel")
+	card.add_chips(ProgressionUi.reward_chips(GameState.album_milestone_rewards(kind, key)))
+	card.add_primary("Oba!", hide)
+	show()
+
+
+## A foto que ilustra o marco: a própria (4 versões) ou a de melhor versão entre as que o motivaram.
+func _milestone_photo(kind: String, key: String) -> String:
+	if kind == "styles":
+		return key if GameState.album.has_photo(key) else ""
+	var best := ""
+	for entry: Dictionary in Database.album.photos:
+		var id := str(entry.id)
+		if not GameState.album.has_photo(id): continue
+		if kind == "section" and str(entry.section) != key: continue
+		if kind == "rare" and GameState.photo_rarity(id) < 3: continue
+		if kind == "holo" and 4 not in GameState.photo_variants(id): continue
+		if best == "" or GameState.photo_rarity(id) > GameState.photo_rarity(best): best = id
+	return best
+
+
 func show_trick(id: String) -> void:
 	var def: Dictionary = Database.progression.tricks[id]
 	var card := _open({"title": "Novo truque!", "ribbon": Palette.SKY, "ribbon_icon": "spark", "icon": UiKit.ui_icon(str(def.icon)),
@@ -127,20 +192,26 @@ func _next_unlock() -> void:
 		return
 	var view: Dictionary = _pending_unlocks.pop_front()
 	var target: Dictionary = view.target
-	var sheet := RewardSheet.open(self, {"title": "Novo!", "ribbon": Palette.SKY, "ribbon_icon": "spark",
-		"scroll_name": "CelebrationScroll", "haptic": "success", "on_close": _next_unlock})
-	var icon := UiKit.icon(view.icon, 64)
-	icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	sheet.add(icon)
+	var sheet := RewardSheet.open(self, {"title": "Novo!", "scroll_name": "CelebrationScroll", "haptic": "success", "on_close": _next_unlock})
+	# Ícone num pratinho bege: pixel em escala inteira (nítido), ilustração reduzida e suave.
+	var icon_texture: Texture2D = view.icon
+	var drawn := 64.0
+	if icon_texture.get_width() <= 32:
+		drawn = float(icon_texture.get_width() * maxi(1, roundi(64.0 / icon_texture.get_width())))
+	var plate := WelcomeSheet._plate(drawn + 24.0, icon_texture, "UnlockIcon", drawn)
+	plate.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	sheet.add(plate)
 	sheet.add_text(str(view.name), &"TitleLabel")
 	sheet.add_text(_unlock_line(str(view.key)), &"SmallLabel")
 	var actions := sheet.add_actions("Depois", sheet.close, _unlock_go_text(target), func() -> void:
 		_pending_unlocks.clear()
 		hide()
 		Places.go(target))
-	(actions.primary as Button).name = "UnlockGo"
-	_fit_unlock_go.call_deferred(actions.primary as Button, actions.soft as Button)
+	var go := actions.primary as Button
+	go.name = "UnlockGo"
+	# Destino que não cabe no botão vira só "Ir".
+	if go.has_meta("too_long"):
+		go.text = "Ir"
 	show()
 	sheet.present()
 
@@ -160,14 +231,6 @@ func _unlock_go_text(target: Dictionary) -> String:
 	if in_name.begins_with("na "): return "Ir para a " + in_name.trim_prefix("na ")
 	if in_name.begins_with("no "): return "Ir para o " + in_name.trim_prefix("no ")
 	return "Ir"
-
-
-func _fit_unlock_go(button: Button, later: Button) -> void:
-	if not is_instance_valid(button) or not is_instance_valid(later): return
-	var width := get_viewport().get_visible_rect().size.x - 48.0 - 8.0 - later.get_combined_minimum_size().x
-	var text_width := button.get_theme_font("font").get_string_size(button.text, HORIZONTAL_ALIGNMENT_LEFT, -1, button.get_theme_font_size("font_size")).x
-	if text_width + button.get_theme_stylebox("normal").get_minimum_size().x > width:
-		button.text = "Ir"
 
 
 ## Grade de novidades, com prioridade do mundo ao juntar destinos repetidos.

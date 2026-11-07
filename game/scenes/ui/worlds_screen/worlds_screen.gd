@@ -223,14 +223,14 @@ func _build_world_bar() -> void:
 	left.add_child(pill)
 	pill.owner = self
 	pill.unique_name_in_owner = true
-	var places := UiKit.ctl_button("list", _open_places, 40)
+	var places := NpcFace.wood_button("list", _open_places)
 	places.name = "PlacesButton"
 	places.anchor_left = 1.0
 	places.anchor_right = 1.0
-	places.offset_left = -(BAR_MARGIN + 44.0)
+	places.offset_left = -(BAR_MARGIN + NpcFace.SIZE)
 	places.offset_right = -BAR_MARGIN
 	places.offset_top = BAR_TOP
-	places.offset_bottom = BAR_TOP + 44.0
+	places.offset_bottom = BAR_TOP + NpcFace.SIZE
 	bar.add_child(places)  # fica embaixo dos rostos, na coluna da direita
 	places.owner = self
 	places.unique_name_in_owner = true
@@ -280,7 +280,7 @@ func _refresh_header() -> void:
 	var faces_count := Places.visible_npcs(current_world).size()
 	var places_top := BAR_TOP + faces_count * (NpcFace.SIZE + 8.0)
 	%PlacesButton.offset_top = places_top
-	%PlacesButton.offset_bottom = places_top + 44.0
+	%PlacesButton.offset_bottom = places_top + NpcFace.SIZE
 	sync_row2.call_deferred()
 
 

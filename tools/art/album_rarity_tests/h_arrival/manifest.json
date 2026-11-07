@@ -1,0 +1,58 @@
+{
+  "schema": 1,
+  "date": "2026-11-06",
+  "kind": "visual_rarity_experiment",
+  "photo_id": "h_arrival",
+  "title": "Chegada",
+  "phase": "newborn",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_arrival.png",
+  "purpose": "Quatro raridades da primeira foto recebida no jogo. Bebê preto/castanho de orelhas caídas na caixa de papelão, mesma pose e conceito.",
+  "proposed_odds": {
+    "general": {
+      "common": 45,
+      "shiny": 30,
+      "rare": 18,
+      "holographic": 7
+    },
+    "story": {
+      "common": 20,
+      "shiny": 35,
+      "rare": 30,
+      "holographic": 15
+    }
+  },
+  "variants": [
+    {
+      "id": "common",
+      "label": "Comum",
+      "detail": "COMMON / 1 OF 4: make the environment simple, calm and uncluttered with broad smooth wall colors, simpler wooden floor grain, broad plant leaf shapes, simple red/cream rug rings and plain wooden picture frame. Soft natural warm daylight, restrained fur highlights, matte finish. Keep the cardboard box plain with its natural folds, and the blanket soft with simple texture. Baby remains beautifully drawn and adorable. No sparkles, golden halos, magic dust, ornate patterns, metallic or iridescent finish.",
+      "prompt": "Edit the supplied Tiro Adventure illustration into ONE rarity version of the SAME album memory, 'Chegada', his first arrival home. LOCK EXACT COMPOSITION AND IDENTITY: same tiny TWO-MONTH-OLD baby Yorkshire puppy peeking from same open brown CARDBOARD BOX, same TWO little front paws resting on the FRONT box edge, same innocent expression and head angle, same black crown/back and golden-tan eyebrows muzzle and paws, same FLOPPY ears. Keep baby size, do not age the dog, do not stand ears upright, do not make the box a fancy crate. Same soft cream blanket with red stripe draped over LEFT box flap, same bone-shaped biscuit and red/cream rope ball at LOWER RIGHT outside box, same red/cream round rug, wooden floor, window LEFT, terracotta plant RIGHT, little framed dog picture behind. Preserve object placement and the welcoming first-arrival story. Same refined warm 2D animated storybook art, clean dark outlines, silky fur tufts, cel shading with softly painted setting. Square full bleed. No text, labels, UI or card borders. No humans or extra animals. Rarity changes BACKGROUND DETAIL, LIGHT and SURFACE FINISH, never the core memory or puppy's age. COMMON / 1 OF 4: make the environment simple, calm and uncluttered with broad smooth wall colors, simpler wooden floor grain, broad plant leaf shapes, simple red/cream rug rings and plain wooden picture frame. Soft natural warm daylight, restrained fur highlights, matte finish. Keep the cardboard box plain with its natural folds, and the blanket soft with simple texture. Baby remains beautifully drawn and adorable. No sparkles, golden halos, magic dust, ornate patterns, metallic or iridescent finish.",
+      "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-5cb73735-72e3-44f0-988b-99be07fc9a57.png",
+      "path": "tools/art/album_rarity_tests/h_arrival/common.png"
+    },
+    {
+      "id": "shiny",
+      "label": "Brilhante",
+      "detail": "SHINY / 2 OF 4: keep a relatively simple cozy environment and plain cardboard box, but add a luminous golden edge light on baby's fur and box flap edges from the sunlit window, subtle warm sheen on wood, brighter expressive eye catchlights, a few tiny golden dust motes in the sunlight and a couple delicate glints near rope toy. Warm glossy collectible feeling. Medium environmental detail. No intricate rug pattern, embroidered drapes, ornate plant pot or dense star decorations; leave those extra details for RARE. No rainbow foil.",
+      "prompt": "Edit the supplied Tiro Adventure illustration into ONE rarity version of the SAME album memory, 'Chegada', his first arrival home. LOCK EXACT COMPOSITION AND IDENTITY: same tiny TWO-MONTH-OLD baby Yorkshire puppy peeking from same open brown CARDBOARD BOX, same TWO little front paws resting on the FRONT box edge, same innocent expression and head angle, same black crown/back and golden-tan eyebrows muzzle and paws, same FLOPPY ears. Keep baby size, do not age the dog, do not stand ears upright, do not make the box a fancy crate. Same soft cream blanket with red stripe draped over LEFT box flap, same bone-shaped biscuit and red/cream rope ball at LOWER RIGHT outside box, same red/cream round rug, wooden floor, window LEFT, terracotta plant RIGHT, little framed dog picture behind. Preserve object placement and the welcoming first-arrival story. Same refined warm 2D animated storybook art, clean dark outlines, silky fur tufts, cel shading with softly painted setting. Square full bleed. No text, labels, UI or card borders. No humans or extra animals. Rarity changes BACKGROUND DETAIL, LIGHT and SURFACE FINISH, never the core memory or puppy's age. SHINY / 2 OF 4: keep a relatively simple cozy environment and plain cardboard box, but add a luminous golden edge light on baby's fur and box flap edges from the sunlit window, subtle warm sheen on wood, brighter expressive eye catchlights, a few tiny golden dust motes in the sunlight and a couple delicate glints near rope toy. Warm glossy collectible feeling. Medium environmental detail. No intricate rug pattern, embroidered drapes, ornate plant pot or dense star decorations; leave those extra details for RARE. No rainbow foil.",
+      "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-332018d7-1622-448e-a78a-16ce5e4f6cec.png",
+      "path": "tools/art/album_rarity_tests/h_arrival/shiny.png"
+    },
+    {
+      "id": "rare",
+      "label": "Rara",
+      "detail": "RARE / 3 OF 4: visibly enrich the environmental detailing while preserving the EXACT same pose and objects. The existing red/cream rug now has intricate woven floral pattern and fine braided edges; the existing cream/red blanket has beautifully rendered woven stitches; detailed leaf veins and subtle floral relief on terracotta pot; delicate lace-like curtain pattern and refined decorative corners on existing picture frame. The cardboard box must STILL be plain brown cardboard, with only richer natural corrugation detail. Layered cinematic sunbeams and elegant tiny golden glints near rug and toy create a treasured-memory atmosphere. Rich warm cream/red/gold palette and fine fur highlights. More ornate and detailed than SHINY, but NO rainbow, holographic bands or foil finish.",
+      "prompt": "Edit the supplied Tiro Adventure illustration into ONE rarity version of the SAME album memory, 'Chegada', his first arrival home. LOCK EXACT COMPOSITION AND IDENTITY: same tiny TWO-MONTH-OLD baby Yorkshire puppy peeking from same open brown CARDBOARD BOX, same TWO little front paws resting on the FRONT box edge, same innocent expression and head angle, same black crown/back and golden-tan eyebrows muzzle and paws, same FLOPPY ears. Keep baby size, do not age the dog, do not stand ears upright, do not make the box a fancy crate. Same soft cream blanket with red stripe draped over LEFT box flap, same bone-shaped biscuit and red/cream rope ball at LOWER RIGHT outside box, same red/cream round rug, wooden floor, window LEFT, terracotta plant RIGHT, little framed dog picture behind. Preserve object placement and the welcoming first-arrival story. Same refined warm 2D animated storybook art, clean dark outlines, silky fur tufts, cel shading with softly painted setting. Square full bleed. No text, labels, UI or card borders. No humans or extra animals. Rarity changes BACKGROUND DETAIL, LIGHT and SURFACE FINISH, never the core memory or puppy's age. RARE / 3 OF 4: visibly enrich the environmental detailing while preserving the EXACT same pose and objects. The existing red/cream rug now has intricate woven floral pattern and fine braided edges; the existing cream/red blanket has beautifully rendered woven stitches; detailed leaf veins and subtle floral relief on terracotta pot; delicate lace-like curtain pattern and refined decorative corners on existing picture frame. The cardboard box must STILL be plain brown cardboard, with only richer natural corrugation detail. Layered cinematic sunbeams and elegant tiny golden glints near rug and toy create a treasured-memory atmosphere. Rich warm cream/red/gold palette and fine fur highlights. More ornate and detailed than SHINY, but NO rainbow, holographic bands or foil finish.",
+      "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-c6234b54-9688-4198-b446-77e401ae196f.png",
+      "path": "tools/art/album_rarity_tests/h_arrival/rare.png"
+    },
+    {
+      "id": "holographic",
+      "label": "Holográfica",
+      "detail": "HOLOGRAPHIC / 4 OF 4: keep exact same baby dog in cardboard box, pose and room, but add the unmistakable premium HOLOGRAPHIC FOIL PRINT finish over the artwork itself. Elegant diagonal prismatic cyan/violet/pink/gold sweeps across wall, floor, rug, box faces and blanket, pearlescent sheen, reflective microfoil flecks and scattered precise four-point iridescent glints. Subtle colored rim reflections on fur, but keep baby's face clear and naturally BLACK AND TAN, not rainbow fur. Enriched detail and atmospheric warm daylight underneath the foil. The box remains normal brown cardboard with an iridescent PRINT overlay, not a metallic gift box. Clearly different from gold-only shiny/rare. No frame or lettering.",
+      "prompt": "Edit the supplied Tiro Adventure illustration into ONE rarity version of the SAME album memory, 'Chegada', his first arrival home. LOCK EXACT COMPOSITION AND IDENTITY: same tiny TWO-MONTH-OLD baby Yorkshire puppy peeking from same open brown CARDBOARD BOX, same TWO little front paws resting on the FRONT box edge, same innocent expression and head angle, same black crown/back and golden-tan eyebrows muzzle and paws, same FLOPPY ears. Keep baby size, do not age the dog, do not stand ears upright, do not make the box a fancy crate. Same soft cream blanket with red stripe draped over LEFT box flap, same bone-shaped biscuit and red/cream rope ball at LOWER RIGHT outside box, same red/cream round rug, wooden floor, window LEFT, terracotta plant RIGHT, little framed dog picture behind. Preserve object placement and the welcoming first-arrival story. Same refined warm 2D animated storybook art, clean dark outlines, silky fur tufts, cel shading with softly painted setting. Square full bleed. No text, labels, UI or card borders. No humans or extra animals. Rarity changes BACKGROUND DETAIL, LIGHT and SURFACE FINISH, never the core memory or puppy's age. HOLOGRAPHIC / 4 OF 4: keep exact same baby dog in cardboard box, pose and room, but add the unmistakable premium HOLOGRAPHIC FOIL PRINT finish over the artwork itself. Elegant diagonal prismatic cyan/violet/pink/gold sweeps across wall, floor, rug, box faces and blanket, pearlescent sheen, reflective microfoil flecks and scattered precise four-point iridescent glints. Subtle colored rim reflections on fur, but keep baby's face clear and naturally BLACK AND TAN, not rainbow fur. Enriched detail and atmospheric warm daylight underneath the foil. The box remains normal brown cardboard with an iridescent PRINT overlay, not a metallic gift box. Clearly different from gold-only shiny/rare. No frame or lettering.",
+      "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-75d56cd0-6966-4fac-a528-f249c08d1389.png",
+      "path": "tools/art/album_rarity_tests/h_arrival/holographic.png"
+    }
+  ]
+}

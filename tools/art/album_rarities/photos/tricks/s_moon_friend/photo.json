@@ -1,0 +1,103 @@
+{
+  "id": "s_moon_friend",
+  "title": "Amigo da lua",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "adult",
+  "game_scene": "park",
+  "source_definition": "game/data/album.json#photos/s_moon_friend",
+  "trigger": {
+    "on": "project_used",
+    "when": {
+      "hour": [
+        21,
+        24
+      ],
+      "project_done": "park_bench",
+      "object": "park_bench"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_moon_friend.png",
+    "scene": "park",
+    "pose": {
+      "clip": "idle_breathe",
+      "frame": 0
+    },
+    "props": [
+      "moon",
+      "fireflies"
+    ]
+  },
+  "scene_description": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_moon_friend.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_moon_friend.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_moon_friend/photo.json",
+  "batch_id": null,
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_moon_friend/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_moon_friend/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_moon_friend/common.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "33f55ae87d8e2b248f41a8019ddc9b7e1e9edc9078ef59a8b1f02859a1961c85",
+      "imported_from": "tools/art/album_rarity_tests/s_moon_friend/render_v2/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-a0c6ccc6-3e77-40d2-a773-783e87fbf526.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_moon_friend/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_moon_friend/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_moon_friend/shiny.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "af73da421b0f95c27e742c5471e0a6a112163439eb3b0b153ef8471233d3a81b",
+      "imported_from": "tools/art/album_rarity_tests/s_moon_friend/render_v2/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-8f26977a-392a-49fa-a9b3-ec8a0080350b.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_moon_friend/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_moon_friend/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_moon_friend/rare.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "771a33c54b4b8bc7e96a2bdd0b9c18631d38a86134123a0c66a4e42e71f88af4",
+      "imported_from": "tools/art/album_rarity_tests/s_moon_friend/render_v2/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-d0eb5abd-fd1c-4b52-a4a7-0e31f5f3ee4a.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_moon_friend/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_moon_friend/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_moon_friend/holographic.png",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "4270908db84b0a4116704102b23921bb05eaada93848174ccc59d2f20b417979",
+      "imported_from": "tools/art/album_rarity_tests/s_moon_friend/render_v2/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-5d5cb670-8b91-4c05-8232-8eaff1568b61.png",
+      "review_note": "Conferida visualmente e mostrada na conversa; usuário autorizou continuar nesse padrão."
+    }
+  }
+}

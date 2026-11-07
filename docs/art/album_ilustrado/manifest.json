@@ -1,0 +1,2598 @@
+{
+  "schema": 1,
+  "date": "2026-11-06",
+  "style": "Yorkshire ilustrado — referência fornecida pelo Vitor e oito amostras desta conversa",
+  "policy": "54 ilustrações instaladas localmente a pedido do Vitor; conquistas e saves preservados. Publicação não solicitada.",
+  "original_renderer": "game/scripts/ui/photo_card.gd (montagem dinâmica, sem PNG individual anterior)",
+  "phase_note": "Fase artística escolhida para cada cena. O motor original congela a fase real do momento da conquista; ilustrações fixas não representam todas as possíveis fases de saves existentes.",
+  "photos": [
+    {
+      "id": "h_arrival",
+      "title": "Chegada",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_arrival",
+      "original_capture": "docs/art/album_ilustrado/originais/h_arrival.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "look_around",
+          "frame": 0
+        },
+        "props": [
+          "box"
+        ]
+      },
+      "trigger": {
+        "on": "intro_done",
+        "when": {}
+      },
+      "phase": "newborn",
+      "scene_prompt": "The very tiny newly arrived floppy-eared black-and-tan puppy peeking curiously over the edge of a small open cardboard travel box on the wooden floor in his new home corner. Front paws over box edge, curious cautious look, welcoming cream room, red rug and small plant. No adult dog.",
+      "new_path": "tools/art/album_illustrated_candidates/h_arrival.png",
+      "status": "generated",
+      "installed": true,
+      "review": "conferida nesta conversa",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_arrival.txt",
+      "original_capture_exists": true,
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2235097,
+      "sha256": "f40fbbaeed0a80c688d4f0e4e86db632595d8e93bfedd85e4e0a27148c5b8ca1",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-90e73b0e-a126-4268-926a-a659e2e6b9ea.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/h_kitchen.png"
+      ],
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/h_kitchen.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_arrival.png"
+    },
+    {
+      "id": "h_first_night",
+      "title": "Primeira noite",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_first_night",
+      "original_capture": "docs/art/album_ilustrado/originais/h_first_night.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": [
+          "slept",
+          "quest_claimed"
+        ],
+        "when": {
+          "quests": [
+            "lais_bed"
+          ],
+          "stat_min": {
+            "sleep_started": 1
+          }
+        }
+      },
+      "phase": "newborn",
+      "scene_prompt": "His FIRST NIGHT at home: very tiny floppy-eared black-and-tan puppy sleeping peacefully in his simple small cream dog bed, under a little soft blanket, moonlit window and dim warm bedside light, reassuring safe home corner. Unlike a daytime nap, clearly nighttime.",
+      "new_path": "tools/art/album_illustrated_candidates/h_first_night.png",
+      "status": "generated",
+      "installed": true,
+      "review": "conferida nesta conversa",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_first_night.txt",
+      "original_capture_exists": true,
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2303471,
+      "sha256": "f055e9782f6d7dc97634d0140c92c8730115a7678d6856287425df191e16d6ab",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-bc59e8a8-ab5a-4457-830d-9c266ca75bad.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/h_kitchen.png"
+      ],
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/h_kitchen.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_first_night.png"
+    },
+    {
+      "id": "h_growth_puppy",
+      "title": "Filhotinho!",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_growth_puppy",
+      "original_capture": "docs/art/album_ilustrado/originais/h_growth_puppy.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": [],
+        "ribbon": "Filhotinho"
+      },
+      "trigger": {
+        "on": "grew",
+        "when": {
+          "grew_to": "puppy"
+        }
+      },
+      "phase": "puppy",
+      "scene_prompt": "A treasured milestone portrait at home: tiny three-month-old floppy-eared black-and-tan Yorkshire puppy sitting alert on the red oval rug, bright curious eyes, whole small body visible. Cream windowlit cozy home corner. No ribbon or lettering; the milestone label is supplied by game UI.",
+      "new_path": "tools/art/album_illustrated_candidates/h_growth_puppy.png",
+      "status": "generated",
+      "installed": true,
+      "review": "conferida nesta conversa",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_growth_puppy.txt",
+      "original_capture_exists": true,
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2144940,
+      "sha256": "e56e641cffca8cd4daae30e4085582f14107d7840facb82c4602c8af5f5aa16c",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-dbd78243-1ad4-4f6a-ac72-83f5058af103.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/h_kitchen.png"
+      ],
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/h_kitchen.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_growth_puppy.png"
+    },
+    {
+      "id": "h_kitchen",
+      "title": "Cheirinho de papinha",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_kitchen",
+      "original_capture": "docs/art/album_ilustrado/originais/h_kitchen.png",
+      "original_photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_kitchen.png",
+        "scene": "pet",
+        "pose": {
+          "clip": "eat",
+          "frame": 1
+        },
+        "props": [
+          "bowl"
+        ]
+      },
+      "trigger": {
+        "on": "fed",
+        "when": {
+          "item": "puppy_mash"
+        }
+      },
+      "phase": "puppy",
+      "scene_prompt": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+      "new_path": "game/assets/sprites/ui/album/illustrated/h_kitchen.png",
+      "status": "generated",
+      "installed": true,
+      "review": "conferida nesta conversa",
+      "prompt_path": null,
+      "original_capture_exists": true,
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2068223,
+      "sha256": "b21f5565a8425c9335b34126c26b69aa18aee20656c03a978c65779da82acb5e",
+      "generated_source": "C:/Users/Vitor/.codex/generated_images/01a1b0c2-36d4-7aa0-a341-02be7e22e806/exec-08487b8b-f281-4fda-b546-7226be7182b2.png",
+      "generation_note": "Arte criada nas mensagens anteriores desta conversa; preservada sem nova geração.",
+      "style_reference": "docs/art/album_ilustrado/references/style_original.jpg",
+      "portable_reference_paths": [],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_kitchen.png"
+    },
+    {
+      "id": "h_growth_teething",
+      "title": "As orelhas subiram",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_growth_teething",
+      "original_capture": "docs/art/album_ilustrado/originais/h_growth_teething.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "head_tilt",
+          "frame": 2
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "grew",
+        "when": {
+          "grew_to": "teething"
+        }
+      },
+      "phase": "teething",
+      "scene_prompt": "Milestone THE EARS HAVE RISEN: five-month-old juvenile Yorkie, youthful small proportions, BOTH pointed ears now standing upright prominently, BLACK crown and back with tan eyebrows muzzle chest and paws. Head tilted curiously at home, full body visible. Do not give him adult golden head or floppy puppy ears.",
+      "new_path": "tools/art/album_illustrated_candidates/h_growth_teething.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_growth_teething.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-cfa3c747-cb9a-4e49-be62-69f2cd9ed85d.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2038524,
+      "sha256": "34fd825b1ab401a961d26d940ec8219f1e6d1092083fdc05ef3935635d06d100",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_growth_teething.png"
+    },
+    {
+      "id": "h_first_walk",
+      "title": "O mundo é grande",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_first_walk",
+      "original_capture": "docs/art/album_ilustrado/originais/h_first_walk.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "look_around",
+          "frame": 0
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "walk_returned",
+        "when": {}
+      },
+      "phase": "teething",
+      "scene_prompt": "His first walk: SMALL juvenile black-and-tan Yorkie with upright ears standing wide-eyed and looking around a welcoming village park, ground-level camera to make the path, flowers, wooden bench and trees feel wonderfully big. First encounter with the wide world. No clothes, no adult golden head.",
+      "new_path": "tools/art/album_illustrated_candidates/h_first_walk.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_first_walk.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-027835e8-08c3-4d60-b427-5534c33623ac.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2473604,
+      "sha256": "10cc2e2a918be10216305e52736cfef12a0bb574b5ac0b25058622c1a01bea97",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_first_walk.png"
+    },
+    {
+      "id": "h_first_trick",
+      "title": "Pata!",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_first_trick",
+      "original_capture": "docs/art/album_ilustrado/originais/h_first_trick.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "give_paw",
+          "frame": 2
+        },
+        "props": [],
+        "friend": "nina"
+      },
+      "trigger": {
+        "on": "trick_learned",
+        "when": {
+          "trick": "paw"
+        }
+      },
+      "phase": "teething",
+      "scene_prompt": "First learned trick PAW: SMALL juvenile black-and-tan Yorkie with upright ears sitting on grass in the village park, gently placing ONE front paw into Nina's offered hand, happy attentive eye contact. Nina is the young woman in the character reference, brown skin, dark hair tied back, olive-green cap and orange T-shirt, kneeling comfortably. A clear intimate training success, correct human fingers and natural canine anatomy.",
+      "new_path": "tools/art/album_illustrated_candidates/h_first_trick.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_first_trick.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-99a73620-8cd6-4700-94d6-e93edc773ad6.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/npc_nina/portrait.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2302544,
+      "sha256": "a59bb4e2d0038ab1775fe9a2f08bab4be664649e195b1ae58d6f04a2a55d6f28",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "game/assets/sprites/characters/npc_nina/portrait.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_first_trick.png"
+    },
+    {
+      "id": "h_growth_explorer",
+      "title": "Pequeno aventureiro",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_growth_explorer",
+      "original_capture": "docs/art/album_ilustrado/originais/h_growth_explorer.png",
+      "original_photo": {
+        "scene": "nature",
+        "pose": {
+          "clip": "sniff",
+          "frame": 1
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "grew",
+        "when": {
+          "grew_to": "explorer"
+        }
+      },
+      "phase": "explorer",
+      "scene_prompt": "Eight-month-old adolescent BLACK-and-tan Yorkshire terrier, slim little body and upright ears, sniffing an interesting fallen twig beside a woodland trail among ferns, mossy stones and soft sunbeams. Alert adventurous nose close to ground, full small dog visible, natural safe forest. No hat because this growth milestone does not award the explorer hat yet.",
+      "new_path": "tools/art/album_illustrated_candidates/h_growth_explorer.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_growth_explorer.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-60212ee0-bbdf-450f-9f22-5faa813c77f4.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2446972,
+      "sha256": "3ed21c93d01886ee13499e2172ae54580cb0dd4536ad50aad8ba972c6d763134",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_growth_explorer.png"
+    },
+    {
+      "id": "h_banca",
+      "title": "Mascote da banca",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_banca",
+      "original_capture": "docs/art/album_ilustrado/originais/h_banca.png",
+      "original_photo": {
+        "scene": "village",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 2
+        },
+        "props": [
+          "stall_sign"
+        ]
+      },
+      "trigger": {
+        "on": "quest_claimed",
+        "when": {
+          "quest_is": "own_business"
+        }
+      },
+      "phase": "explorer",
+      "scene_prompt": "SMALL adolescent black-and-tan Yorkie with upright ears happily wagging beside the family's newly opened rustic market stall in the village square, baskets of produce and jars, small BLANK wooden hanging stall sign. He is its proud little mascot. Focus on little dog near stall, welcoming village buildings. Do not write any letters.",
+      "new_path": "tools/art/album_illustrated_candidates/h_banca.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_banca.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-9a958d48-c548-44cd-98e0-8321dfa0bf07.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/h_banca.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2580762,
+      "sha256": "0c0a80a005e8d8fa01eee804af110defdb15559af1373bdd8e47cef3e6456157",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/h_banca.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_banca.png"
+    },
+    {
+      "id": "h_growth_young",
+      "title": "Pelo de mocinho",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_growth_young",
+      "original_capture": "docs/art/album_ilustrado/originais/h_growth_young.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "grew",
+        "when": {
+          "grew_to": "young"
+        }
+      },
+      "phase": "young",
+      "scene_prompt": "Milestone 'Pelo de mocinho': Tiro now a young adult Yorkshire terrier, adult body shape but a still DARK charcoal-black crown and back with golden tan muzzle eyebrows chest paws and early subtly silver strands on shoulders (only beginning coat transition, NOT fully adult golden head). Upright ears, sitting proudly in cozy home corner, elegant slightly longer legs and silky coat. Entire dog visible.",
+      "new_path": "tools/art/album_illustrated_candidates/h_growth_young.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_growth_young.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-59f89daf-e3af-4ced-82f0-ecf7a8eeb204.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/h_growth_young.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2167092,
+      "sha256": "f449172db188bddf0657430f5cd5e0dfccd5d6b84535b6854ffc6e350cf0a140",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "docs/art/album_ilustrado/originais/h_growth_young.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_growth_young.png"
+    },
+    {
+      "id": "h_bench",
+      "title": "Um banco para a turma",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_bench",
+      "original_capture": "docs/art/album_ilustrado/originais/h_bench.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "quest_claimed",
+        "when": {
+          "quest_is": "community_10_use"
+        }
+      },
+      "phase": "young",
+      "scene_prompt": "Young adult Yorkie with upright ears, darker crown and charcoal saddle with tan face and limbs, sitting calmly on the newly completed COMMUNITY WOODEN PARK BENCH in the village square, proud shared place, flowerbeds, cobbled path and trees in warm afternoon. Focus on dog and welcoming bench. No night sky or fireflies, this is the first daytime use of the bench.",
+      "new_path": "tools/art/album_illustrated_candidates/h_bench.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_bench.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-098763d8-2939-4ef4-9394-aa7f2fa76e22.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/h_bench.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2698154,
+      "sha256": "f4bd802f657c6c29647085602729c0cac83d6e4b5d5770886c8b4266d00260f0",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "docs/art/album_ilustrado/originais/h_bench.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_bench.png"
+    },
+    {
+      "id": "h_courage",
+      "title": "Coragem de verdade",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_courage",
+      "original_capture": "docs/art/album_ilustrado/originais/h_courage.png",
+      "original_photo": {
+        "scene": "village",
+        "pose": {
+          "clip": "happy_jump",
+          "frame": 3
+        },
+        "props": [
+          "medal"
+        ]
+      },
+      "trigger": {
+        "on": "quest_claimed",
+        "when": {
+          "quest_is": "community_12_memory"
+        }
+      },
+      "phase": "young",
+      "scene_prompt": "Young adult Tiro with upright ears, dark charcoal saddle and still somewhat dark crown over tan face, happily doing a small celebratory hop in the decorated village square while wearing a small BRASS COURAGE MEDAL hanging from a simple ribbon around his neck. Medal is the main keepsake, clearly visible on his chest, no text on it. Warm supportive festive setting, full body visible.",
+      "new_path": "tools/art/album_illustrated_candidates/h_courage.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_courage.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-49dfeb3c-c102-4b2f-906c-38169ce0c39e.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/h_courage.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2715435,
+      "sha256": "d15c0878b8947076e660c742e53a06b1c149ffccbf11943b706eee7f3b5fa60f",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "docs/art/album_ilustrado/originais/h_courage.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_courage.png"
+    },
+    {
+      "id": "h_growth_adult",
+      "title": "Azul e dourado",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_growth_adult",
+      "original_capture": "docs/art/album_ilustrado/originais/h_growth_adult.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": [],
+        "compare": "h_arrival"
+      },
+      "trigger": {
+        "on": "grew",
+        "when": {
+          "grew_to": "adult"
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "The definitive adult growth milestone: adult Tiro, silky GOLDEN TAN head chest legs with STEEL BLUE saddle, elegant small adult Yorkie proportions and upright ears, sitting peacefully and confidently in his warm familiar home corner on the red rug. Entire adult body and silky blue-and-gold coat visible, no clothes or bowtie. Tender proud mature portrait, subtly taller and less round-headed than the puppy.",
+      "new_path": "tools/art/album_illustrated_candidates/h_growth_adult.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_growth_adult.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-beb4ebbd-95bc-4d02-996f-19155613c9f7.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/h_growth_adult.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2215466,
+      "sha256": "03db78798ecb03cc92e4b679d1bfff5456bfd17c425ff93f7c6b4e61b7aad24d",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "docs/art/album_ilustrado/originais/h_growth_adult.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_growth_adult.png"
+    },
+    {
+      "id": "h_guardian",
+      "title": "Guardião do Vale",
+      "section": "story",
+      "source_definition": "game/data/album.json#photos/h_guardian",
+      "original_capture": "docs/art/album_ilustrado/originais/h_guardian.png",
+      "original_photo": {
+        "scene": "village",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": [],
+        "friends": [
+          "lais",
+          "nina",
+          "bloblo"
+        ]
+      },
+      "trigger": {
+        "on": "chapter_done",
+        "when": {
+          "chapter_last": true
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "Final story group portrait 'Guardian of the Valley': adult tiny Yorkshire Tiro with golden head and steel-blue back in foreground center of the decorated village square, surrounded affectionately by the THREE recurring HUMAN friends Laís, Nina and Grandma Bloblo. Use their supplied portrait references faithfully: Laís young woman long wavy brown hair tan skin mustard sleeveless top, Nina brown skin green cap orange shirt, Grandma elderly silver hair straw hat pale blouse green apron. The humans kneel or sit so small dog remains central, everyone warmly smiling. ONLY these three humans and one dog. Cohesive naturally posed group, charming cottages flowers and bunting.",
+      "new_path": "tools/art/album_illustrated_candidates/h_guardian.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/h_guardian.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-0e3434f9-420e-4610-8af3-3fcba6de5b14.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/npc_lais/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/npc_nina/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/npc_bloblo/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/h_guardian.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2713253,
+      "sha256": "ffb00212ea8d7f90d7283878a3fa2aaba22ea388d3e023d11bccf88bc5e9e882",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/npc_lais/portrait.png",
+        "game/assets/sprites/characters/npc_nina/portrait.png",
+        "game/assets/sprites/characters/npc_bloblo/portrait.png",
+        "docs/art/album_ilustrado/originais/h_guardian.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/h_guardian.png"
+    },
+    {
+      "id": "f_bath",
+      "title": "Primeiro banho",
+      "section": "firsts",
+      "source_definition": "game/data/album.json#photos/f_bath",
+      "original_capture": "docs/art/album_ilustrado/originais/f_bath.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "shake_off",
+          "frame": 1
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "bathed",
+        "when": {}
+      },
+      "phase": "puppy",
+      "scene_prompt": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+      "new_path": "tools/art/album_illustrated_candidates/f_bath.png",
+      "status": "generated",
+      "installed": true,
+      "review": "conferida nesta conversa",
+      "prompt_path": null,
+      "original_capture_exists": true,
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2359598,
+      "sha256": "059412f544a0ac555dd1d66df5cffb899ff1b5754c9ee33c465354a0ab44e7ed",
+      "generated_source": "C:/Users/Vitor/.codex/generated_images/01a1b0c2-36d4-7aa0-a341-02be7e22e806/exec-a9b6e450-6144-4727-84a3-b7ef3e08164f.png",
+      "generation_note": "Arte criada nas mensagens anteriores desta conversa; preservada sem nova geração.",
+      "style_reference": "docs/art/album_ilustrado/references/style_original.jpg",
+      "portable_reference_paths": [],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/f_bath.png"
+    },
+    {
+      "id": "f_taste",
+      "title": "Primeira papinha",
+      "section": "firsts",
+      "source_definition": "game/data/album.json#photos/f_taste",
+      "original_capture": "docs/art/album_ilustrado/originais/f_taste.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "eat",
+          "frame": 1
+        },
+        "props": [
+          "bowl"
+        ]
+      },
+      "trigger": {
+        "on": "fed",
+        "when": {
+          "growth_food": true
+        }
+      },
+      "phase": "puppy",
+      "scene_prompt": "First ever tasty soft meal: tiny floppy-eared black-and-tan Yorkie puppy eating puppy mash directly from his little BLUE food bowl, muzzle lowered in bowl, focused delight, a small bit of mash on his nose when he looks up slightly. Side three-quarter candid angle, full puppy body visible, cozy wooden-floor home corner, cream walls and red rug. Clearly EATING rather than formal sitting portrait, distinct from 'Cheirinho de papinha'.",
+      "new_path": "tools/art/album_illustrated_candidates/f_taste.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/f_taste.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-1657cfe1-0e9f-446d-99a0-59f85f29fc80.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/h_kitchen.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/f_taste.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 1982266,
+      "sha256": "dec28d96a3079243dacaae45f5f4482cb9c73ddc2b4cd5077f531659f7f35c2c",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/h_kitchen.png",
+        "docs/art/album_ilustrado/originais/f_taste.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/f_taste.png"
+    },
+    {
+      "id": "f_dig",
+      "title": "Primeiro achado",
+      "section": "firsts",
+      "source_definition": "game/data/album.json#photos/f_dig",
+      "original_capture": "docs/art/album_ilustrado/originais/f_dig.png",
+      "original_photo": {
+        "scene": "farm",
+        "pose": {
+          "clip": "sniff",
+          "frame": 1
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "dug",
+        "when": {}
+      },
+      "phase": "puppy",
+      "scene_prompt": "His FIRST find: tiny floppy-eared black-and-tan Yorkshire puppy sniffing and gently pawing a small newly dug mound at the edge of the family farm, one ordinary little stick visible in the loose soil. Bright curious first discovery, no huge treasure chest, no teeth or jewelry. Little cream farm cottage with terracotta roof and wooden fence in softly painted background.",
+      "new_path": "tools/art/album_illustrated_candidates/f_dig.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/f_dig.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-9fd9f51a-2750-4487-a94a-1b37d57e0761.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/h_kitchen.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/f_dig.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2445430,
+      "sha256": "27769d717ad5738dcf170e883aa0f8f8169e466c132e1e7e81bea6c69108ff26",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/h_kitchen.png",
+        "docs/art/album_ilustrado/originais/f_dig.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/f_dig.png"
+    },
+    {
+      "id": "f_tooth",
+      "title": "Dentinho de leite",
+      "section": "firsts",
+      "source_definition": "game/data/album.json#photos/f_tooth",
+      "original_capture": "docs/art/album_ilustrado/originais/f_tooth.png",
+      "original_photo": {
+        "scene": "farm",
+        "pose": {
+          "clip": "look_around",
+          "frame": 0
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "dug",
+        "when": {
+          "item": "milk_tooth"
+        }
+      },
+      "phase": "teething",
+      "scene_prompt": "Milk tooth keepsake: SMALL five-month-old black-and-tan juvenile Yorkshire with upright ears looking curiously at one very tiny white fallen MILK TOOTH found beside a small mound of loose soil in the family farm. Tooth visible on a brown leaf near front paw; no bleeding, no pain. Tender surprising discovery at puppy eye level, farm garden cottage fence behind. Dog has a BLACK crown, not adult golden crown.",
+      "new_path": "tools/art/album_illustrated_candidates/f_tooth.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/f_tooth.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-5485dbc0-872d-46c8-b743-531cb9b0a98a.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/f_tooth.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2332754,
+      "sha256": "1c9402c8ad8dcbeea22a2e30acd71e2a554c1ff35dd8468271e40754c9a7a787",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/f_tooth.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/f_tooth.png"
+    },
+    {
+      "id": "f_friend",
+      "title": "Primeiro amigo",
+      "section": "firsts",
+      "source_definition": "game/data/album.json#photos/f_friend",
+      "original_capture": "docs/art/album_ilustrado/originais/f_friend.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 1
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "friend_heart",
+        "when": {
+          "friend_hearts": {
+            "pipoca": 1
+          }
+        }
+      },
+      "phase": "explorer",
+      "scene_prompt": "First friendship with PIPOCA: small adolescent black-and-tan Yorkie Tiro with upright ears greeting Pipoca, the caramel mixed-breed dog shown in the supporting reference, gently touching noses beside a park path, happy relaxed tails. Pipoca is slightly larger than the tiny Yorkie, caramel fur, cream chest muzzle, tall ears, slender build. Warm first meeting, only TWO dogs, welcoming park green grass flowers and bench.",
+      "new_path": "tools/art/album_illustrated_candidates/f_friend.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/f_friend.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-4fe34997-1958-4316-8a69-aadab34b61a7.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/dog_pipoca/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/f_friend.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2404430,
+      "sha256": "88a91bd185175840cf9ec5a4e3b4f84aa0d5cfcda011e6fbe63b82823464b40a",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "game/assets/sprites/characters/dog_pipoca/portrait.png",
+        "docs/art/album_ilustrado/originais/f_friend.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/f_friend.png"
+    },
+    {
+      "id": "f_outfit",
+      "title": "Primeira roupa",
+      "section": "firsts",
+      "source_definition": "game/data/album.json#photos/f_outfit",
+      "original_capture": "docs/art/album_ilustrado/originais/f_outfit.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "equipped",
+        "when": {}
+      },
+      "phase": "young",
+      "scene_prompt": "His first outfit: young adult Yorkshire Tiro (upright ears, dark charcoal crown and back, golden tan face and paws) proudly wearing a simple RED NECK SCARF tied loosely at the side, looking pleased in the cozy home corner. Full dog visible in three-quarter pose with scarf clearly readable; no other clothes, no human, no mirror duplicates.",
+      "new_path": "tools/art/album_illustrated_candidates/f_outfit.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/f_outfit.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-4c766162-e6e6-4d6f-988c-1a94395e8fe0.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/f_outfit.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2268871,
+      "sha256": "59edc59195c51c6436192a28208930339262a6acc24466ef48d97958c342dd3a",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "docs/art/album_ilustrado/originais/f_outfit.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/f_outfit.png"
+    },
+    {
+      "id": "f_rare",
+      "title": "Achado raro",
+      "section": "firsts",
+      "source_definition": "game/data/album.json#photos/f_rare",
+      "original_capture": "docs/art/album_ilustrado/originais/f_rare.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "happy_jump",
+          "frame": 3
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "walk_returned",
+        "when": {
+          "rare": true
+        }
+      },
+      "phase": "explorer",
+      "scene_prompt": "A rare reward returned from a walk: SMALL adolescent BLACK-and-tan Yorkie with upright ears joyfully doing a little hop beside a single beautiful red tartan/plaid BOW accessory resting on a flat park stone. This bow is the actual first rare walk collectible (plaid_bow). A treasured wearable discovery, no feather, no money or treasure chest. Village park path, leafy trees, warm dappled sunlight, whole small dog visible.",
+      "new_path": "tools/art/album_illustrated_candidates/f_rare.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/f_rare.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-b8b151a2-e705-4f3a-9408-f07cd577ce3e.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/f_rare.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2363164,
+      "sha256": "89182579f07dae48361d5f66778b7b330b3f65dfae78063b1f9e87a79be344f8",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/f_rare.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/f_rare.png"
+    },
+    {
+      "id": "f_brush",
+      "title": "Primeira escovada",
+      "section": "firsts",
+      "source_definition": "game/data/album.json#photos/f_brush",
+      "original_capture": "docs/art/album_ilustrado/originais/f_brush.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "stretch",
+          "frame": 1
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "brushed",
+        "when": {}
+      },
+      "phase": "teething",
+      "scene_prompt": "FIRST gentle brushing: small juvenile black-and-tan Yorkshire Tiro with recently upright ears stretching his back contentedly on the rug in his home corner while a person's single anatomically natural hand gently brushes his back with a simple soft wooden dog brush. Focus on brush touching BACK and relaxed joyful puppy stretch, no adult body or golden adult crown. Warm sunlight through window, cream room.",
+      "new_path": "tools/art/album_illustrated_candidates/f_brush.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/f_brush.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-6a0b8f28-9b30-427b-9730-64c9d21de34f.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/f_brush.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2084492,
+      "sha256": "906cb27f786e74387e5c299cb328da724bbe53fb869973f40708030c9f80598a",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/f_brush.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/f_brush.png"
+    },
+    {
+      "id": "s_foam_ghost",
+      "title": "Fantasminha de espuma",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_foam_ghost",
+      "original_capture": "docs/art/album_ilustrado/originais/s_foam_ghost.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "shake_off",
+          "frame": 2
+        },
+        "props": [
+          "foam"
+        ]
+      },
+      "trigger": {
+        "on": "petted",
+        "when": {
+          "within": {
+            "event": "bathed",
+            "seconds": 10
+          }
+        }
+      },
+      "phase": "puppy",
+      "scene_prompt": "Playful foam ghost: tiny black-and-tan floppy-eared Yorkie puppy immediately after bath with harmless fluffy white soap bubbles loosely piled over crown and shoulders like a funny little ghost costume, eyes and nose clearly unobstructed. One gentle hand pets his head affectionately. Low washbasin and towel nearby in cozy home corner, innocent funny expression, not scary.",
+      "new_path": "tools/art/album_illustrated_candidates/s_foam_ghost.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/s_foam_ghost.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-e62b9c3b-af32-47e3-8bfe-fa4be9b777e2.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/h_kitchen.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/s_foam_ghost.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2190907,
+      "sha256": "f54b9505643a757e233bd151e47cbfe18462ab93e32eb23e1606963d1ddacb0e",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/h_kitchen.png",
+        "docs/art/album_ilustrado/originais/s_foam_ghost.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_foam_ghost.png"
+    },
+    {
+      "id": "s_carrot_thief",
+      "title": "Ladrão da horta",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_carrot_thief",
+      "original_capture": "docs/art/album_ilustrado/originais/s_carrot_thief.png",
+      "original_photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "scene": "farm",
+        "pose": {
+          "clip": "happy_jump",
+          "frame": 3
+        },
+        "props": [
+          "carrot_mouth"
+        ]
+      },
+      "trigger": {
+        "on": "harvested",
+        "when": {
+          "crop": "carrot",
+          "dog_in_world": "farm",
+          "need_below": {
+            "hunger": 30
+          }
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+      "new_path": "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+      "status": "generated",
+      "installed": true,
+      "review": "conferida nesta conversa",
+      "prompt_path": null,
+      "original_capture_exists": true,
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2922517,
+      "sha256": "ed45036398561d3e19d2bc823db2431c20b96670f9d8f2e6ed8bf2cadca0a591",
+      "generated_source": "C:/Users/Vitor/.codex/generated_images/01a1b0c2-36d4-7aa0-a341-02be7e22e806/exec-fc7f9509-2fc4-4104-a331-a4e09489b9cc.png",
+      "generation_note": "Arte criada nas mensagens anteriores desta conversa; preservada sem nova geração.",
+      "style_reference": "docs/art/album_ilustrado/references/style_original.jpg",
+      "portable_reference_paths": [],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png"
+    },
+    {
+      "id": "s_hero_shadow",
+      "title": "Sombra de herói",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_hero_shadow",
+      "original_capture": "docs/art/album_ilustrado/originais/s_hero_shadow.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": [
+          "long_shadow"
+        ]
+      },
+      "trigger": {
+        "on": "tapped_dog",
+        "when": {
+          "world": "park",
+          "hour": [
+            17,
+            20
+          ]
+        }
+      },
+      "phase": "explorer",
+      "scene_prompt": "Small adolescent BLACK-and-tan Yorkshire with upright ears standing calmly on a park cobblestone path at sunset. Main visual joke: low golden setting sun casts his ONE very long realistic dog shadow diagonally across the foreground, making the little terrier look grand like a heroic wolf. Correct shadow attached to his paws, sun behind dog, full little dog clearly visible, warm park trees and grass. No actual wolf.",
+      "new_path": "tools/art/album_illustrated_candidates/s_hero_shadow.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/s_hero_shadow.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-c3bd1259-4ddb-48ff-9e4d-71f7a5c375da.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/s_hero_shadow.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2591530,
+      "sha256": "13c7ca9215e892f2d6fcf319a37e03b2aa3831ba05a5c6e06ebd2a3c117b69db",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/s_hero_shadow.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_hero_shadow.png"
+    },
+    {
+      "id": "s_sock_hunter",
+      "title": "Caçador de meias",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_sock_hunter",
+      "original_capture": "docs/art/album_ilustrado/originais/s_sock_hunter.png",
+      "original_photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "bark",
+          "frame": 1
+        },
+        "props": [
+          "sock"
+        ]
+      },
+      "trigger": {
+        "on": "tapped_object",
+        "when": {
+          "phase_in": [
+            "teething",
+            "explorer"
+          ],
+          "object": "laundry_basket",
+          "count_in_window": {
+            "event": "tapped_object:laundry_basket",
+            "n": 2,
+            "seconds": 60
+          }
+        }
+      },
+      "phase": "teething",
+      "scene_prompt": "Cheeky sock hunter: SMALL juvenile black-and-tan Yorkie with upright ears caught next to an open woven laundry basket in the house, gripping ONE soft striped sock in his mouth like a trophy and looking mischievously toward viewer. A few harmless laundry items spill out, wooden floor, cozy cream room and orange sofa. Full little dog, toy-like safe scene, no adult golden head.",
+      "new_path": "tools/art/album_illustrated_candidates/s_sock_hunter.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/s_sock_hunter.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-199e6fd6-284c-47fa-9b1b-d098f4f0a80c.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/s_sock_hunter.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2281150,
+      "sha256": "fe8a8a3b83e6c6d4b70642c98a2de9bec6cb32f2faaa43fe8023f82d03b01b98",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/s_sock_hunter.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_sock_hunter.png"
+    },
+    {
+      "id": "s_blueberry_face",
+      "title": "A careta do mirtilo",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_blueberry_face",
+      "original_capture": "docs/art/album_ilustrado/originais/s_blueberry_face.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "shake_off",
+          "frame": 2
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "fed",
+        "when": {
+          "item": "blueberry"
+        }
+      },
+      "phase": "explorer",
+      "scene_prompt": "The blueberry grimace: small adolescent black-and-tan Yorkie with upright ears at home has just tasted ONE blueberry, making a comically surprised sour face with one eye squeezed and tongue slightly out, tiny purple stain on his muzzle. A small bowl with a few blueberries on floor beside him, no injury or distress. Clear expressive portrait yet full small body visible, warm cream home corner.",
+      "new_path": "tools/art/album_illustrated_candidates/s_blueberry_face.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/s_blueberry_face.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-2a7809f8-30a9-4fd4-abc4-cf89a4896d71.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/s_blueberry_face.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2032999,
+      "sha256": "4f78957632a050fe25d686db698eedc5919c03fe2cfbe24c2b783830730dd1b8",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/s_blueberry_face.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_blueberry_face.png"
+    },
+    {
+      "id": "s_soap_explorer",
+      "title": "Aventureiro de espuma",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_soap_explorer",
+      "original_capture": "docs/art/album_ilustrado/originais/s_soap_explorer.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "shake_off",
+          "frame": 1
+        },
+        "props": [
+          "foam"
+        ]
+      },
+      "trigger": {
+        "on": "bathed",
+        "when": {
+          "equipped": "explorer_hat"
+        }
+      },
+      "phase": "young",
+      "scene_prompt": "Explorer of foam: young adult Yorkshire Tiro with dark charcoal crown saddle and tan face paws, upright ears, still wearing his recognizable small TAN BROWN EXPLORER HAT (see reference) while taking a bubbly bath in a low cream basin at home. White bubbles around hat brim and shoulders, joyful shake-off splash, silly explorer expression. Hat clearly remains on head, not a party hat. Soft towel, warm window light. Only hat as clothing.",
+      "new_path": "tools/art/album_illustrated_candidates/s_soap_explorer.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/s_soap_explorer.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-66949137-be7d-4797-8603-eafff6cfec01.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/explorer_hat_overlay.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/s_soap_explorer.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2374082,
+      "sha256": "a6b33fff54df2055de1573b68e3a4f3ef7d04b1387d013874ecf3294fbed666c",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "game/assets/sprites/ui/album/explorer_hat_overlay.png",
+        "docs/art/album_ilustrado/originais/s_soap_explorer.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_soap_explorer.png"
+    },
+    {
+      "id": "s_sprinkler",
+      "title": "Chuva suspeita",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_sprinkler",
+      "original_capture": "docs/art/album_ilustrado/originais/s_sprinkler.png",
+      "original_photo": {
+        "scene": "farm",
+        "pose": {
+          "clip": "chase_tail",
+          "frame": 1
+        },
+        "props": [
+          "drops"
+        ]
+      },
+      "trigger": {
+        "on": "watered",
+        "when": {
+          "dog_in_world": "farm",
+          "count_in_window": {
+            "event": "water_drag",
+            "n": 5,
+            "seconds": 3600
+          }
+        }
+      },
+      "phase": "explorer",
+      "scene_prompt": "Suspicious moving rain: SMALL adolescent black-and-tan Yorkshire with upright ears playfully chasing a curving spray of water being poured from a watering-can spout over garden beds at the family farm. His body in a little turning/chase-tail pose, looking surprised at droplets, whole dog visible. Include watering-can spout at edge and bright arcing droplets so it reads as watering, not natural storm. Farm cottage terracotta roof, green crops wooden fence, sunshine.",
+      "new_path": "tools/art/album_illustrated_candidates/s_sprinkler.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/s_sprinkler.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-714073fc-077c-4b44-bbd3-d1d090d2123a.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/s_sprinkler.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2571976,
+      "sha256": "144d9c49fcade14d09c908e97328a8a24d03e61262e4cbe711a2f27ca126451f",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/s_sprinkler.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_sprinkler.png"
+    },
+    {
+      "id": "s_sofa_throne",
+      "title": "Trono do sofá",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_sofa_throne",
+      "original_capture": "docs/art/album_ilustrado/originais/s_sofa_throne.png",
+      "original_photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": [
+          "sofa"
+        ]
+      },
+      "trigger": {
+        "on": "slept",
+        "when": {
+          "phase_min": "explorer",
+          "owned": "sofa",
+          "sleep_spot": "sofa"
+        }
+      },
+      "phase": "explorer",
+      "scene_prompt": "Sofa throne: SMALL adolescent black-and-tan Yorkie with upright ears asleep sprawled proudly across the very center of a large orange upholstered sofa, occupying the best cushion like a tiny king. Dog sleeping on side across cushion with relaxed paws, sofa comfortably huge relative to dog, warm cream living room, afternoon light and knitted throw. NO crown or royal costume; the sofa itself is the throne. Distinct from belly-down sofa nap.",
+      "new_path": "tools/art/album_illustrated_candidates/s_sofa_throne.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/s_sofa_throne.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-29d70e40-1410-4cac-8759-69a8a7f46dc6.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/s_sofa_throne.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2282041,
+      "sha256": "08f252c4d1a7705ed11523628588dadeb4f2339c420f9f90f8aa01a43facf0cd",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/s_sofa_throne.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_sofa_throne.png"
+    },
+    {
+      "id": "s_photobomb",
+      "title": "Penetra",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_photobomb",
+      "original_capture": "docs/art/album_ilustrado/originais/s_photobomb.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 1
+        },
+        "props": [],
+        "friend": "pipoca"
+      },
+      "trigger": {
+        "on": "album_opened",
+        "when": {
+          "friend_hearts": {
+            "pipoca": 1
+          },
+          "chance": {
+            "one_in": 8,
+            "pity": 8
+          }
+        }
+      },
+      "phase": "young",
+      "scene_prompt": "A funny photobomb in the village park: young adult little Yorkshire Tiro (dark charcoal crown/back, tan face paws, upright ears) is posing sweetly farther back, but Pipoca the caramel mixed-breed friend pops into the VERY close foreground from the lower right, with large cheerful caramel face and cream muzzle partially blocking the intended photo. Pipoca matches supporting portrait, taller ears and slightly bigger than Yorkie in normal scale. Depth and partial occlusion tell the joke. Exactly TWO dogs, no human.",
+      "new_path": "tools/art/album_illustrated_candidates/s_photobomb.png",
+      "status": "generated",
+      "installed": true,
+      "review": "conferida: Pipoca de pelo curto caramelo; Tiro e cena preservados",
+      "prompt_path": "docs/art/album_ilustrado/prompts/s_photobomb-v2.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-4eeb16b6-4689-4ef9-83e0-f164bf859b2c.png",
+      "reference_paths": [
+        "C:/Users/Vitor/Documents/ClaudeGame/tools/art/album_illustrated_candidates/alternatives/s_photobomb-v1.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/dog_pipoca/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/tools/art/album_illustrated_candidates/a_pipoca.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2544847,
+      "sha256": "5e7c4d7bb4da7f4d7b807a3b37ab92a918604381db436e4d8b36158356b30a1e",
+      "generation_history": [
+        {
+          "version": 1,
+          "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-1d301fba-c179-4f9e-b3bf-5dc62d895286.png",
+          "archive_path": "tools/art/album_illustrated_candidates/alternatives/s_photobomb-v1.png",
+          "prompt_path": "docs/art/album_ilustrado/prompts/s_photobomb.txt",
+          "reason_replaced": "Pipoca com pelo comprido demais, semelhante ao Yorkshire."
+        },
+        {
+          "version": 2,
+          "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-4eeb16b6-4689-4ef9-83e0-f164bf859b2c.png",
+          "prompt_path": "docs/art/album_ilustrado/prompts/s_photobomb-v2.txt",
+          "reason": "Correção da identidade da Pipoca; variante selecionada."
+        }
+      ],
+      "portable_reference_paths": [
+        "tools/art/album_illustrated_candidates/alternatives/s_photobomb-v1.png",
+        "game/assets/sprites/characters/dog_pipoca/portrait.png",
+        "tools/art/album_illustrated_candidates/a_pipoca.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_photobomb.png"
+    },
+    {
+      "id": "s_moon_friend",
+      "title": "Amigo da lua",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_moon_friend",
+      "original_capture": "docs/art/album_ilustrado/originais/s_moon_friend.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": [
+          "moon",
+          "fireflies"
+        ]
+      },
+      "trigger": {
+        "on": "project_used",
+        "when": {
+          "hour": [
+            21,
+            24
+          ],
+          "project_done": "park_bench",
+          "object": "park_bench"
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+      "new_path": "tools/art/album_illustrated_candidates/s_moon_friend.png",
+      "status": "generated",
+      "installed": true,
+      "review": "conferida nesta conversa",
+      "prompt_path": null,
+      "original_capture_exists": true,
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2644654,
+      "sha256": "ce50d60e3d211e776937505141e76619b01cb75e8ae54b1dafdae32daba858a2",
+      "generated_source": "C:/Users/Vitor/.codex/generated_images/01a1b0c2-36d4-7aa0-a341-02be7e22e806/exec-637a9553-c563-46cf-ac6b-fc8aad6139b1.png",
+      "generation_note": "Arte criada nas mensagens anteriores desta conversa; preservada sem nova geração.",
+      "style_reference": "docs/art/album_ilustrado/references/style_original.jpg",
+      "portable_reference_paths": [],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_moon_friend.png"
+    },
+    {
+      "id": "s_zoomies",
+      "title": "Corrida maluca",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_zoomies",
+      "original_capture": "docs/art/album_ilustrado/originais/s_zoomies.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "chase_tail",
+          "frame": 2
+        },
+        "props": [
+          "speed_lines"
+        ]
+      },
+      "trigger": {
+        "on": "played",
+        "when": {
+          "count_in_window": {
+            "event": "played",
+            "n": 3,
+            "seconds": 60
+          },
+          "phase_in": [
+            "explorer"
+          ]
+        }
+      },
+      "phase": "explorer",
+      "scene_prompt": "ZOOMIES: only the eight-month-old SMALL adolescent black-and-tan Yorkshire Tiro with upright ears racing in a tight joyful circle around his own tail in the cozy home corner. One dog body, dynamic curved pose and light sweeping motion swooshes suggest speed, natural correct four legs and one tail. Red rug, wooden floor and cream walls; avoid multiple ghost dog copies or extra legs. Exuberant playful burst of energy.",
+      "new_path": "tools/art/album_illustrated_candidates/s_zoomies.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/s_zoomies.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-65245fab-13ae-46b0-8201-27c39a06046a.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/s_zoomies.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2114460,
+      "sha256": "f1d9ff64c1c5ac5d80ae52a2b26571c50c7d8cdfc1c5ae5e771834127fab81eb",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/s_zoomies.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_zoomies.png"
+    },
+    {
+      "id": "s_begging",
+      "title": "Pidão",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_begging",
+      "original_capture": "docs/art/album_ilustrado/originais/s_begging.png",
+      "original_photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "head_tilt",
+          "frame": 1
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "tapped_object",
+        "when": {
+          "object": "fridge",
+          "dog_in_world": "house",
+          "need_below": {
+            "hunger": 40
+          }
+        }
+      },
+      "phase": "explorer",
+      "scene_prompt": "Begging at the fridge: SMALL adolescent black-and-tan Yorkshire with upright ears sitting by a just-opened cream refrigerator in the house kitchen, head tilted, huge pleading brown eyes looking up toward the open door/person above the frame. Fridge cool interior light falls on his muzzle; a few ordinary food jars visible on low shelves, cozy kitchen wood and cream surroundings. No eating yet, no human face necessary, full tiny dog beside large fridge.",
+      "new_path": "tools/art/album_illustrated_candidates/s_begging.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/s_begging.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-8934cead-aa52-4562-8d1b-2bf4f8051949.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/s_begging.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2001557,
+      "sha256": "5229753048fe01d7aef4d3ca1a8481504501411b478c77501072f9d8a14d29ef",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/s_begging.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_begging.png"
+    },
+    {
+      "id": "s_muddy",
+      "title": "Pé de lama",
+      "section": "tricks",
+      "source_definition": "game/data/album.json#photos/s_muddy",
+      "original_capture": "docs/art/album_ilustrado/originais/s_muddy.png",
+      "original_photo": {
+        "scene": "nature",
+        "pose": {
+          "clip": "shake_off",
+          "frame": 1
+        },
+        "props": [
+          "mud"
+        ]
+      },
+      "trigger": {
+        "on": "walk_returned",
+        "when": {
+          "route": "creek_walk",
+          "need_below": {
+            "hygiene": 30
+          }
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+      "new_path": "tools/art/album_illustrated_candidates/s_muddy.png",
+      "status": "generated",
+      "installed": true,
+      "review": "conferida nesta conversa",
+      "prompt_path": null,
+      "original_capture_exists": true,
+      "width": 1254,
+      "height": 1254,
+      "bytes": 3201598,
+      "sha256": "f3183f594492d4f61b0a4dbde75f434b23f3d1b7a4c76f61e6f7c451c6d5e65a",
+      "generated_source": "C:/Users/Vitor/.codex/generated_images/01a1b0c2-36d4-7aa0-a341-02be7e22e806/exec-76971833-7205-46a6-9323-eb53cd47a8ed.png",
+      "generation_note": "Arte criada nas mensagens anteriores desta conversa; preservada sem nova geração.",
+      "style_reference": "docs/art/album_ilustrado/references/style_original.jpg",
+      "portable_reference_paths": [],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/s_muddy.png"
+    },
+    {
+      "id": "p_curled",
+      "title": "Emboladinho",
+      "section": "sleep",
+      "source_definition": "game/data/album.json#photos/p_curled",
+      "original_capture": "docs/art/album_ilustrado/originais/p_curled.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "slept",
+        "when": {}
+      },
+      "phase": "puppy",
+      "scene_prompt": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+      "new_path": "tools/art/album_illustrated_candidates/p_curled.png",
+      "status": "generated",
+      "installed": true,
+      "review": "conferida nesta conversa",
+      "prompt_path": null,
+      "original_capture_exists": true,
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2328884,
+      "sha256": "c57977eeb5c726f6cd1265ae9de653794407b318b32a59b5d03cf1f65fb7240c",
+      "generated_source": "C:/Users/Vitor/.codex/generated_images/01a1b0c2-36d4-7aa0-a341-02be7e22e806/exec-29e1edaf-6eef-4d22-bef7-bce3d0f83dfd.png",
+      "generation_note": "Arte criada nas mensagens anteriores desta conversa; preservada sem nova geração.",
+      "style_reference": "docs/art/album_ilustrado/references/style_original.jpg",
+      "portable_reference_paths": [],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/p_curled.png"
+    },
+    {
+      "id": "p_belly_up",
+      "title": "Barriga pra cima",
+      "section": "sleep",
+      "source_definition": "game/data/album.json#photos/p_belly_up",
+      "original_capture": "docs/art/album_ilustrado/originais/p_belly_up.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "sleep_belly",
+          "frame": 0
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": [
+          "slept",
+          "app_opened"
+        ],
+        "when": {
+          "need_min": {
+            "happiness": 90
+          },
+          "phase_min": "explorer"
+        }
+      },
+      "phase": "explorer",
+      "scene_prompt": "A deeply content SMALL adolescent black-and-tan Yorkshire with upright ears sleeping on his BACK with belly up on the cream rug in his home corner, four relaxed paws softly curled toward chest, head turned a little to side, eyes closed, very safe comfortable sleep. Show natural dog anatomy, little belly and tiny paws clearly, overhead three-quarter composition, warm afternoon sun across the floor.",
+      "new_path": "tools/art/album_illustrated_candidates/p_belly_up.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/p_belly_up.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-84820897-5870-4fd5-b5fb-cfb42f70820b.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/p_belly_up.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2133401,
+      "sha256": "888c3d0c479048a5eecbd6318d5da09097b6f15ecd866682817cb087854d601b",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/p_belly_up.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/p_belly_up.png"
+    },
+    {
+      "id": "p_ball_hug",
+      "title": "Abraçado na bolinha",
+      "section": "sleep",
+      "source_definition": "game/data/album.json#photos/p_ball_hug",
+      "original_capture": "docs/art/album_ilustrado/originais/p_ball_hug.png",
+      "original_photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": [
+          "ball"
+        ]
+      },
+      "trigger": {
+        "on": [
+          "slept",
+          "app_opened"
+        ],
+        "when": {
+          "hour": [
+            20,
+            6
+          ],
+          "house_item": "toy:lost_ball"
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+      "new_path": "tools/art/album_illustrated_candidates/p_ball_hug.png",
+      "status": "generated",
+      "installed": true,
+      "review": "conferida nesta conversa",
+      "prompt_path": null,
+      "original_capture_exists": true,
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2399113,
+      "sha256": "0eeb46b7e5e7a75fa99e9ff07b14c047935a93c3fa8dfb67a7ff707b5d6427c0",
+      "generated_source": "C:/Users/Vitor/.codex/generated_images/01a1b0c2-36d4-7aa0-a341-02be7e22e806/exec-e3d201eb-3a79-47ec-b5f4-457535fc2c9f.png",
+      "generation_note": "Arte criada nas mensagens anteriores desta conversa; preservada sem nova geração.",
+      "style_reference": "docs/art/album_ilustrado/references/style_original.jpg",
+      "portable_reference_paths": [],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/p_ball_hug.png"
+    },
+    {
+      "id": "p_sofa",
+      "title": "De bruços no sofá",
+      "section": "sleep",
+      "source_definition": "game/data/album.json#photos/p_sofa",
+      "original_capture": "docs/art/album_ilustrado/originais/p_sofa.png",
+      "original_photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": [
+          "sofa"
+        ]
+      },
+      "trigger": {
+        "on": "slept",
+        "when": {
+          "owned": "sofa",
+          "sleep_spot": "sofa"
+        }
+      },
+      "phase": "young",
+      "scene_prompt": "Belly-DOWN sofa nap: young adult small Yorkie (upright ears relaxed, dark charcoal crown and back, tan muzzle legs) sleeping stretched out on his tummy along an orange sofa cushion, chin resting on crossed front paws and back legs relaxed behind. Sofa large relative to little dog, calm cozy home, folded blanket and warm evening lamp. No belly-up pose and no crown. Intimate side view emphasizes the resting chin.",
+      "new_path": "tools/art/album_illustrated_candidates/p_sofa.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/p_sofa.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-d92069c5-b59a-48df-9efd-2ded2ca60291.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/p_sofa.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2492232,
+      "sha256": "719da64add5dad11a524e6ab3cdbf51881e86011f3ad411d70bc96b881d3b15f",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "docs/art/album_ilustrado/originais/p_sofa.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/p_sofa.png"
+    },
+    {
+      "id": "p_pipoca",
+      "title": "Encostadinhos",
+      "section": "sleep",
+      "source_definition": "game/data/album.json#photos/p_pipoca",
+      "original_capture": "docs/art/album_ilustrado/originais/p_pipoca.png",
+      "original_photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": [],
+        "friend": "pipoca"
+      },
+      "trigger": {
+        "on": "friend_visit",
+        "when": {
+          "sleeping": true,
+          "item": "pipoca",
+          "dog_in_world": "house"
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "Sleeping side by side at home: adult little Yorkshire Tiro with golden tan head and steel-blue back asleep snuggled against Pipoca, the slightly larger caramel mixed-breed dog with cream muzzle and chest and tall ears from supporting portrait. Both sleeping peacefully with heads gently touching on a shared cream rug by the orange sofa. Exactly TWO dogs, distinguish breeds and size, warm evening light and quiet domestic comfort. CRITICAL Pipoca has SHORT SMOOTH fur, a slim caramel mixed-breed face and cream muzzle, NOT a Yorkshire beard, not long shaggy hair. Only Tiro has silky long fur.",
+      "new_path": "tools/art/album_illustrated_candidates/p_pipoca.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/p_pipoca.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-fdfd232c-8a82-47a8-b56d-72e8c905d7fe.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/dog_pipoca/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/p_pipoca.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2280617,
+      "sha256": "3641f3bdcf26105266f1e4dcadec92b00724db1d8a1378b4b7aa64405928f544",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "game/assets/sprites/characters/dog_pipoca/portrait.png",
+        "docs/art/album_ilustrado/originais/p_pipoca.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/p_pipoca.png"
+    },
+    {
+      "id": "p_crown",
+      "title": "Cochilo real",
+      "section": "sleep",
+      "source_definition": "game/data/album.json#photos/p_crown",
+      "original_capture": "docs/art/album_ilustrado/originais/p_crown.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": [
+          "slept",
+          "app_opened"
+        ],
+        "when": {
+          "equipped": "flower_crown",
+          "need_min": {
+            "happiness": 100
+          }
+        }
+      },
+      "phase": "young",
+      "scene_prompt": "Royal nap: young adult Yorkshire with upright ears, dark charcoal crown/back and golden tan muzzle paws sleeping curled up in his cozy home corner while wearing the delicate FLOWER CROWN from the supporting original asset. Little white and pink flowers and green leaves sit naturally between ears. Happy peaceful face, cream bed and rug, warm soft sunlight. It is a floral wreath, not a metal royal crown.",
+      "new_path": "tools/art/album_illustrated_candidates/p_crown.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/p_crown.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-9ba090aa-91c1-47fb-949b-7b210ba50b71.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet/overlays/flower_crown.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/p_crown.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2088792,
+      "sha256": "14c91bd877742914e78e3f56792e7714023f694e974756dc4cbad7aa522579ea",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "game/assets/sprites/characters/tiro_pet/overlays/flower_crown.png",
+        "docs/art/album_ilustrado/originais/p_crown.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/p_crown.png"
+    },
+    {
+      "id": "p_sweater",
+      "title": "Quentinho",
+      "section": "sleep",
+      "source_definition": "game/data/album.json#photos/p_sweater",
+      "original_capture": "docs/art/album_ilustrado/originais/p_sweater.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": [
+          "slept",
+          "app_opened"
+        ],
+        "when": {
+          "equipped": "knit_sweater",
+          "months": "cold"
+        }
+      },
+      "phase": "young",
+      "scene_prompt": "Warm and cozy winter nap: young adult Yorkshire Tiro with upright ears relaxed, darker crown and charcoal back, tan face and paws sleeping curled into a ball on his small cream bed at home, wearing the PINK cable-knit sweater from supporting original asset, little buttons. The sweater wraps torso naturally, paws and face visible, a folded blanket nearby. Cool rainy winter window and warm amber lamp indoors, no snow required.",
+      "new_path": "tools/art/album_illustrated_candidates/p_sweater.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/p_sweater.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-643739ee-18c6-4ce6-afed-1762103e9bcb.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet/overlays/knit_sweater.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/p_sweater.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2346648,
+      "sha256": "b80c014b22a28753fa0f4a0aec2bb9ee2192b1df21776e25290b77a739d7ea6f",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "game/assets/sprites/characters/tiro_pet/overlays/knit_sweater.png",
+        "docs/art/album_ilustrado/originais/p_sweater.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/p_sweater.png"
+    },
+    {
+      "id": "p_luxe",
+      "title": "Sono de rei",
+      "section": "sleep",
+      "source_definition": "game/data/album.json#photos/p_luxe",
+      "original_capture": "docs/art/album_ilustrado/originais/p_luxe.png",
+      "original_photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "sleep",
+          "frame": 0
+        },
+        "props": [
+          "bed_luxe"
+        ]
+      },
+      "trigger": {
+        "on": [
+          "slept",
+          "app_opened"
+        ],
+        "when": {
+          "house_item": "bed_luxe",
+          "sleep_spot": "bed"
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "Sleep fit for a king: adult Tiro, tiny silky golden-headed steel-blue-backed Yorkshire with upright ears relaxed, sleeping peacefully curled on the luxurious dog bed shown in reference: preserve its exact broad shape colors cushions and elevated trim. Bed is generously padded but scaled for small dog, familiar warm cream home and wooden floor, soft golden light. No crown or clothing. Luxury and total relaxation rather than comedy.",
+      "new_path": "tools/art/album_illustrated_candidates/p_luxe.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/p_luxe.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-6af266ee-b0d3-49ad-930c-da15abf44d14.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/areas/house/bed_luxe.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/p_luxe.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2179457,
+      "sha256": "09868918cdc9895d3112e0632c1d05fd07dbcf0b6459f9ca45acd675ebd05a0d",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "game/assets/sprites/areas/house/bed_luxe.png",
+        "docs/art/album_ilustrado/originais/p_luxe.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/p_luxe.png"
+    },
+    {
+      "id": "a_pipoca",
+      "title": "Melhores amigas",
+      "section": "friends",
+      "source_definition": "game/data/album.json#photos/a_pipoca",
+      "original_capture": "docs/art/album_ilustrado/originais/a_pipoca.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 1
+        },
+        "props": [],
+        "friend": "pipoca"
+      },
+      "trigger": {
+        "on": "friend_heart",
+        "when": {
+          "friend_hearts": {
+            "pipoca": 3
+          }
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "Best friends: adult tiny Yorkshire Tiro with golden head and steel-blue back happily playing nose-to-nose with Pipoca, the caramel mixed-breed friend from the portrait reference, cream muzzle chest and tall ears. Pipoca slightly larger than Tiro. A joyful relaxed play-bow and wagging tails in the village park, clear affectionate established friendship, only TWO dogs, sunny flowers grass and park path. CRITICAL Pipoca is SHORT-COATED and smooth, slender caramel mixed-breed with cream muzzle/chest, absolutely NO Yorkshire beard or long shaggy fur. Only Tiro is long-haired.",
+      "new_path": "tools/art/album_illustrated_candidates/a_pipoca.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/a_pipoca.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-b93108f7-da46-4b1e-a775-c552f4b8fbd5.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/dog_pipoca/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/a_pipoca.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2854097,
+      "sha256": "da6738f4842f30b57fc30b2bbddc4ec2f7278c2db00b1d3ef7b9d00edf9aca8a",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "game/assets/sprites/characters/dog_pipoca/portrait.png",
+        "docs/art/album_ilustrado/originais/a_pipoca.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/a_pipoca.png"
+    },
+    {
+      "id": "a_nina_class",
+      "title": "Aula particular",
+      "section": "friends",
+      "source_definition": "game/data/album.json#photos/a_nina_class",
+      "original_capture": "docs/art/album_ilustrado/originais/a_nina_class.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "give_paw",
+          "frame": 2
+        },
+        "props": [],
+        "friend": "nina"
+      },
+      "trigger": {
+        "on": "trick_learned",
+        "when": {
+          "tricks_min": 5
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "A private training class: adult tiny golden-headed steel-blue-backed Yorkshire Tiro giving one confident PAW into Nina's gently extended hand in the village park. Nina faithful to reference: young brown-skinned woman, dark hair pulled back under olive-green cap, orange T-shirt, kneeling at dog's height, other hand holding one small training treat. Mastered trick, warm smiles and attentive eye contact. Whole dog visible, correct paws and hands, bench trees and grass behind.",
+      "new_path": "tools/art/album_illustrated_candidates/a_nina_class.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/a_nina_class.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-f71b960b-b6f9-4bfc-8675-3fc5e24febe9.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/npc_nina/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/a_nina_class.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2597098,
+      "sha256": "12c7eb9acae9527a30a4a16e141732312b5722832fd35ecd30519a3ca2cda3ea",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "game/assets/sprites/characters/npc_nina/portrait.png",
+        "docs/art/album_ilustrado/originais/a_nina_class.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/a_nina_class.png"
+    },
+    {
+      "id": "a_bloblo_helper",
+      "title": "Ajudante da vovó",
+      "section": "friends",
+      "source_definition": "game/data/album.json#photos/a_bloblo_helper",
+      "original_capture": "docs/art/album_ilustrado/originais/a_bloblo_helper.png",
+      "original_photo": {
+        "scene": "village",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 2
+        },
+        "props": [],
+        "friend": "bloblo"
+      },
+      "trigger": {
+        "on": "customer_delivery",
+        "when": {
+          "stat_min": {
+            "customer_orders:bloblo": 20
+          }
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "Grandma's little helper: adult tiny golden-headed steel-blue-backed Yorkshire happily wagging beside Grandma Bloblo at a produce delivery table in the VILLAGE square. Grandma faithful to reference: elderly warm fair-skinned woman, silver-gray hair tucked under straw hat, green apron over light blouse. She crouches beside dog with a basket of vegetables and wrapped homemade goods as a friendly completed customer delivery. Focus on their affectionate rapport, no writing on packages, village cottages flowers market background.",
+      "new_path": "tools/art/album_illustrated_candidates/a_bloblo_helper.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/a_bloblo_helper.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-cf74d607-a53e-421f-813c-00a2e7ef38b1.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/npc_bloblo/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/a_bloblo_helper.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2973626,
+      "sha256": "994155fc0b165962497de49d55758a4966c79b6c74351b3f2523da64907caa9e",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "game/assets/sprites/characters/npc_bloblo/portrait.png",
+        "docs/art/album_ilustrado/originais/a_bloblo_helper.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/a_bloblo_helper.png"
+    },
+    {
+      "id": "a_gathering",
+      "title": "Piquenique da turma",
+      "section": "friends",
+      "source_definition": "game/data/album.json#photos/a_gathering",
+      "original_capture": "docs/art/album_ilustrado/originais/a_gathering.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "happy_jump",
+          "frame": 3
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "project_gathered",
+        "when": {
+          "stat_min": {
+            "project_gather:village_festival": 3
+          }
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "The group's recurring PICNIC in the village PARK: adult tiny golden-headed steel-blue-backed Yorkshire Tiro joyfully doing a small happy hop beside a checked picnic blanket with a wicker picnic basket and simple dog-friendly picnic snacks. Three friends Laís (long brown wavy hair mustard sleeveless top), Nina (brown skin green cap orange shirt) and Grandma Bloblo (silver hair straw hat green apron) sit comfortably around blanket and smile at him. Faithful supplied portraits, dog small relative humans. Warm park tree shade and community bench nearby. Only THREE humans and ONE dog, no random crowd.",
+      "new_path": "tools/art/album_illustrated_candidates/a_gathering.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/a_gathering.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-83a93b2a-204c-4317-84c1-eb07e07909d8.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/npc_lais/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/npc_nina/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/npc_bloblo/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/a_gathering.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2736809,
+      "sha256": "3f4b74e6e7448844c4781b5f206213eec20612800f25d48aaa8ce5947fa907eb",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/npc_lais/portrait.png",
+        "game/assets/sprites/characters/npc_nina/portrait.png",
+        "game/assets/sprites/characters/npc_bloblo/portrait.png",
+        "docs/art/album_ilustrado/originais/a_gathering.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/a_gathering.png"
+    },
+    {
+      "id": "a_lais_lap",
+      "title": "No colo da Laís",
+      "section": "friends",
+      "source_definition": "game/data/album.json#photos/a_lais_lap",
+      "original_capture": "docs/art/album_ilustrado/originais/a_lais_lap.png",
+      "original_photo": {
+        "scene": "house",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": [],
+        "friend": "lais"
+      },
+      "trigger": {
+        "on": "petted",
+        "when": {
+          "phase_min": "adult"
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "On Laís's lap: adult tiny golden-headed steel-blue-backed Yorkshire Tiro sitting peacefully ON the lap of Laís in an orange armchair at home. Laís faithful to reference: young adult woman, warm tan complexion, long wavy chestnut-brown hair, brown eyes, mustard sleeveless top, gently petting his back and looking at him lovingly. Dog realistically tiny across her lap, upright ears and serene adult expression. Intimate three-quarter cozy portrait, wooden-floor cream room and warm windowlight, correct hands.",
+      "new_path": "tools/art/album_illustrated_candidates/a_lais_lap.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/a_lais_lap.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-11cec38b-d870-40f7-aa74-0bba2c5ed6fc.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/npc_lais/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/a_lais_lap.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2572450,
+      "sha256": "7c1fe03e9810a084906f3a83a807e8f0a5c35155256bcf9ad4776f023737bd70",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "game/assets/sprites/characters/npc_lais/portrait.png",
+        "docs/art/album_ilustrado/originais/a_lais_lap.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/a_lais_lap.png"
+    },
+    {
+      "id": "a_four_friends",
+      "title": "Turma dos quatro",
+      "section": "friends",
+      "source_definition": "game/data/album.json#photos/a_four_friends",
+      "original_capture": "docs/art/album_ilustrado/originais/a_four_friends.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 1
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "friend_heart",
+        "when": {
+          "friend_hearts": {
+            "pipoca": 1,
+            "mel": 1,
+            "bolota": 1,
+            "fred": 1
+          }
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "Friendship group portrait at the village park: adult tiny golden-headed steel-blue-backed Yorkshire Tiro with FOUR different canine friends shown in supporting portraits, total exactly FIVE dogs. PIPOCA caramel mixed breed with tall ears cream muzzle chest, MEL white curly poodle with tiny pink bow, BOLOTA fawn pug with black wrinkled muzzle and curled tail, FRED tricolor beagle white chest brown head black saddle floppy ears. Preserve each breed identity; all small-to-medium dogs, Tiro among smallest. Natural relaxed group together on grass beside path, happy expressions, warm sunny flowerbeds behind, all five whole bodies visible, no duplicate dog, no human. CRITICAL keep Pipoca SHORT SMOOTH-coated and slender with no terrier beard; Mel has white tight CURLS; Bolota a SHORT FLAT wrinkled muzzle; Fred large FLOPPY ears and short tricolor fur. Only Tiro has long silky terrier hair.",
+      "new_path": "tools/art/album_illustrated_candidates/a_four_friends.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/a_four_friends.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-a748240e-a128-4f4b-bd03-1c2a90b254cb.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/dog_pipoca/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/dog_mel/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/dog_bolota/portrait.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/dog_fred/portrait.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2908918,
+      "sha256": "39e2260bc8160573f19b1f655c673798ee834d33c13a2c95d218e9ff63bae123",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/dog_pipoca/portrait.png",
+        "game/assets/sprites/characters/dog_mel/portrait.png",
+        "game/assets/sprites/characters/dog_bolota/portrait.png",
+        "game/assets/sprites/characters/dog_fred/portrait.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/a_four_friends.png"
+    },
+    {
+      "id": "d_month",
+      "title": "Um mês juntos",
+      "section": "dates",
+      "source_definition": "game/data/album.json#photos/d_month",
+      "original_capture": "docs/art/album_ilustrado/originais/d_month.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "wag_excited",
+          "frame": 1
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "app_opened",
+        "when": {
+          "start_days": [
+            30,
+            37
+          ]
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "One month together: adult tiny Yorkshire Tiro with golden head and steel-blue back excitedly wagging on the familiar home rug beside the original small worn cardboard arrival box, now clearly too small for him, plus a modest neat arrangement of his little ball and food bowl nearby. This is a tender one-month companionship memory, not a birthday: NO cake or party hat, no numbers or calendar writing. Confident happy dog and welcoming home communicate belonging. Warm window light, full body, cream walls.",
+      "new_path": "tools/art/album_illustrated_candidates/d_month.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/d_month.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-c8c8d8ae-0391-419f-824a-fcb1faa8ad9b.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/d_month.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2372031,
+      "sha256": "6955012047ba0b5be389b4acb951438f3aeb972af16738229646cb74db536f34",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "docs/art/album_ilustrado/originais/d_month.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/d_month.png"
+    },
+    {
+      "id": "d_gotcha",
+      "title": "Dia do Tiro",
+      "section": "dates",
+      "source_definition": "game/data/album.json#photos/d_gotcha",
+      "original_capture": "docs/art/album_ilustrado/originais/d_gotcha.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "happy_jump",
+          "frame": 3
+        },
+        "props": [
+          "cake",
+          "party_hat"
+        ]
+      },
+      "trigger": {
+        "on": "app_opened",
+        "when": {
+          "anniversary": 7
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+      "new_path": "tools/art/album_illustrated_candidates/d_gotcha.png",
+      "status": "generated",
+      "installed": true,
+      "review": "conferida nesta conversa",
+      "prompt_path": null,
+      "original_capture_exists": true,
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2338115,
+      "sha256": "73c0a4b6f57192b4fe1b7a778c0309d3c4f55cc1abcbdb890e37dcbf537ca16c",
+      "generated_source": "C:/Users/Vitor/.codex/generated_images/01a1b0c2-36d4-7aa0-a341-02be7e22e806/exec-c7066113-7c74-4e49-85e5-7f3cc5fd62a2.png",
+      "generation_note": "Arte criada nas mensagens anteriores desta conversa; preservada sem nova geração.",
+      "style_reference": "docs/art/album_ilustrado/references/style_original.jpg",
+      "portable_reference_paths": [],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/d_gotcha.png"
+    },
+    {
+      "id": "d_full_moon",
+      "title": "Uivo para a lua",
+      "section": "dates",
+      "source_definition": "game/data/album.json#photos/d_full_moon",
+      "original_capture": "docs/art/album_ilustrado/originais/d_full_moon.png",
+      "original_photo": {
+        "scene": "park",
+        "pose": {
+          "clip": "bark",
+          "frame": 2
+        },
+        "props": [
+          "moon"
+        ]
+      },
+      "trigger": {
+        "on": [
+          "world_entered",
+          "app_opened"
+        ],
+        "when": {
+          "full_moon": true,
+          "world_in": {
+            "ids": [
+              "park",
+              "nature"
+            ],
+            "phase_min": "explorer"
+          },
+          "hour": [
+            20,
+            24
+          ]
+        }
+      },
+      "phase": "explorer",
+      "scene_prompt": "A howl at the FULL MOON: SMALL adolescent BLACK-and-tan Yorkshire with upright ears on grass beside a village park path at night, head tipped up, mouth open in a gentle tiny howl toward the clearly visible round luminous full moon. Entire dog silhouette readable, blue silver moonlight on black coat and tan face, dark leafy trees and distant warm lamplight. Magical affectionate rather than scary, no actual wolf, no firefly on nose (distinct from Amigo da lua).",
+      "new_path": "tools/art/album_illustrated_candidates/d_full_moon.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/d_full_moon.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-229c9a94-02e6-4d0e-a14f-e02aebf89de6.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/d_full_moon.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2266326,
+      "sha256": "a6156018858a020d6f65918614e7caf6de9646a219055fc74e88e2d404c36bd3",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/characters/tiro_pet_young/tiro_pet_young_idle_front.png",
+        "docs/art/album_ilustrado/originais/d_full_moon.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/d_full_moon.png"
+    },
+    {
+      "id": "d_first_cold",
+      "title": "Primeiro frio",
+      "section": "dates",
+      "source_definition": "game/data/album.json#photos/d_first_cold",
+      "original_capture": "docs/art/album_ilustrado/originais/d_first_cold.png",
+      "original_photo": {
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "app_opened",
+        "when": {
+          "months": "cold",
+          "equipped": "knit_sweater"
+        }
+      },
+      "phase": "young",
+      "scene_prompt": "First cold spell: young adult small Yorkshire Tiro with upright ears, dark crown/back tan face paws sitting awake in his warm home corner wearing the PINK knit buttoned sweater from original reference. He looks snug and curious toward a window with cool gray rainy weather and light condensation; warm amber indoor lamp, wooden floor and cream rug. Full dog and sweater visible. Unlike winter nap, clearly AWAKE, no party props or snowstorm.",
+      "new_path": "tools/art/album_illustrated_candidates/d_first_cold.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/d_first_cold.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-06ecc183-6b7d-48ef-a749-e0b91d106ebb.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/tiro_pet/overlays/knit_sweater.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/d_first_cold.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2325867,
+      "sha256": "d7fac9d3054f32e6d9e948deeb81306fe988ce3b2dbbd4518d652f44235c3ef1",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "game/assets/sprites/characters/tiro_pet/overlays/knit_sweater.png",
+        "docs/art/album_ilustrado/originais/d_first_cold.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/d_first_cold.png"
+    },
+    {
+      "id": "d_after_party",
+      "title": "Depois da festa",
+      "section": "dates",
+      "source_definition": "game/data/album.json#photos/d_after_party",
+      "original_capture": "docs/art/album_ilustrado/originais/d_after_party.png",
+      "original_photo": {
+        "scene": "village",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": []
+      },
+      "trigger": {
+        "on": "world_entered",
+        "when": {
+          "world": "village",
+          "project_done": "village_festival",
+          "after_days": {
+            "project": "village_festival",
+            "days": 1
+          }
+        }
+      },
+      "phase": "adult",
+      "scene_prompt": "The day AFTER the village festival: adult tiny golden-headed steel-blue-backed Yorkshire Tiro sitting calmly in the village square in warm early morning sunlight, looking contentedly around at the happy traces of yesterday's community celebration: colorful bunting still strung between cottages, folded picnic tables, a few confetti pieces and flowers, neat gift baskets being put away. Peaceful reflective morning, not an active party or crowd, full dog visible, familiar terracotta-roof cream village houses. No cake, no party hat, no writing.",
+      "new_path": "tools/art/album_illustrated_candidates/d_after_party.png",
+      "status": "generated",
+      "installed": true,
+      "review": "gerada; revisão visual pendente",
+      "prompt_path": "docs/art/album_ilustrado/prompts/d_after_party.txt",
+      "original_capture_exists": true,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-1df5f9b7-374c-43b6-94a4-899bf8486e4a.png",
+      "reference_paths": [
+        "C:/Users/Vitor/.codex/codex-remote-attachments/01a1b0c2-36d4-7aa0-a341-02be7e22e806/A1A4381A-6BD8-460A-B668-99C6B3B5F75A/1-Imagem-colada-1.jpg",
+        "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "C:/Users/Vitor/Documents/ClaudeGame/docs/art/album_ilustrado/originais/d_after_party.png"
+      ],
+      "width": 1254,
+      "height": 1254,
+      "bytes": 2644468,
+      "sha256": "b378b09027bc4e216c893d45c29c2fc5e07de2d0aed1fd0ac0099248fb3353f5",
+      "portable_reference_paths": [
+        "docs/art/album_ilustrado/references/style_original.jpg",
+        "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+        "docs/art/album_ilustrado/originais/d_after_party.png"
+      ],
+      "installed_path": "game/assets/sprites/ui/album/illustrated/d_after_party.png"
+    }
+  ],
+  "summary": {
+    "total": 54,
+    "generated": 54,
+    "pending": 0,
+    "installed": 54,
+    "original_captures": 54
+  }
+}

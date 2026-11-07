@@ -11,6 +11,7 @@ var _catcher: Control
 var _tween: Tween
 var _bottom_limit := -1.0
 var _bare := false
+var _follow := false  # meta `popover_follow`: bare, mas alinhado ao âncora (não centraliza)
 
 
 ## Abre `content` logo abaixo de `anchor`, dentro de `host` (cobre a tela para pegar o toque de fora).
@@ -31,6 +32,7 @@ static func open(host: Control, anchor: Control, content: Control, seconds: floa
 	popover.theme_type_variation = &"CardPanel"
 	# `popover_bare`: o conteúdo traz a própria moldura (ex.: o mini-cartão de madeira); sem cartão branco nem rabinho.
 	popover._bare = content.has_meta("popover_bare")
+	popover._follow = content.has_meta("popover_follow")
 	if popover._bare:
 		popover.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
 	else:
@@ -57,7 +59,7 @@ func _place(host: Control, anchor: Control) -> void:
 	reset_size()
 	var origin := anchor.global_position - host.global_position
 	var x := clampf(origin.x, EDGE, maxf(EDGE, host.size.x - size.x - EDGE))
-	if _bare:
+	if _bare and not _follow:
 		x = maxf(EDGE, (host.size.x - size.x) / 2.0)  # cartão com moldura própria e sem rabinho: centralizado na tela
 	var y := origin.y + anchor.size.y + GAP
 	var bottom := minf(host.size.y - EDGE, _bottom_limit) if _bottom_limit >= 0.0 else host.size.y - EDGE

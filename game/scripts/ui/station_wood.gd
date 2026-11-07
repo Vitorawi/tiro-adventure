@@ -355,10 +355,8 @@ static func locked_slot(upgrade_id: String) -> Control:
 	dot.name = "LockedSlot_" + upgrade_id
 	if blocked:
 		dot.modulate.a = 0.8
-	dot.gui_input.connect(func(event: InputEvent) -> void:
-		var click := event as InputEventMouseButton
-		if click and click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
-			Events.sheet_requested.emit(str(data.name), ProgressionUi.purchase(upgrade_id)))
+	UiKit.on_tap(dot, func() -> void:
+		Events.sheet_requested.emit(str(data.name), ProgressionUi.purchase(upgrade_id)))
 	return dot
 
 
@@ -424,10 +422,7 @@ static func station_strip(station_id: String) -> Control:
 		var buy := Slot.new("buy")
 		buy.name = "AnimalSpaceLocked"
 		buy.size_flags_vertical = Control.SIZE_SHRINK_END
-		buy.gui_input.connect(func(event: InputEvent) -> void:
-			var click := event as InputEventMouseButton
-			if click and click.pressed and click.button_index == MOUSE_BUTTON_LEFT:
-				SheetBuilder.open_animal_shop(station_id))
+		UiKit.on_tap(buy, func() -> void: SheetBuilder.open_animal_shop(station_id))
 		holder.add_child(buy)
 		content = holder
 	return tray_strip(content)

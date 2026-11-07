@@ -68,12 +68,9 @@ func _build() -> void:
 	title.set_anchors_preset(Control.PRESET_TOP_WIDE)
 	title.offset_top = 72
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var game_name := UiKit.label("Tiro Adventure", &"TitleLabel", Palette.HONEY)
-	game_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_child(game_name)
-	var chapter := UiKit.label(str(Database.progression.chapters[0].name), &"StrongLabel", Palette.INK)
-	chapter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_child(chapter)
+	# Título em letras de creme com contorno escuro (fonte da madeira), sobre o quarto escurecido.
+	title.add_child(MissionUi.text("Tiro Adventure", 36, Palette.WOOD_CREAM, 5))
+	title.add_child(MissionUi.text(str(Database.progression.chapters[0].name), 20, Palette.WOOD_CREAM, 4))
 	root.add_child(title)
 	var column := VBoxContainer.new()
 	column.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -88,22 +85,32 @@ func _build() -> void:
 	DogLook.bind(_tiro, "idle_front")
 	_tiro.modulate.a = 0.0
 	column.add_child(_tiro)
-	var card := UiKit.card(column, &"CardPanel")
+	# Cartão de papel de madeira: retrato da Laís na moldura, nome, fala e o botão verde (o único da tela).
+	var card := MissionUi.card("card", Vector4i(14, 14, 14, 14), "IntroCard", 10)
+	column.add_child(card)
+	var inner := UiKit.vbox(10)
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	MissionUi.body(card).add_child(inner)
 	var row := UiKit.hbox(10)
-	_avatar = UiKit.icon(_wave[0] if not _wave.is_empty() else ProgressionUi.npc_portrait(NPC), 112)
-	row.add_child(_avatar)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_avatar = TextureRect.new()
+	_avatar.texture = _wave[0] if not _wave.is_empty() else ProgressionUi.npc_portrait(NPC)
+	var framed := StepCardUi.portrait_frame(_avatar, 104.0, "IntroAvatar")
+	framed.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	row.add_child(framed)
 	var speech := UiKit.vbox(6)
 	speech.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	speech.add_child(UiKit.label(str(Database.npcs.get(NPC, {}).get("name", "")), &"StrongLabel"))
-	_text = UiKit.fill_label("", &"")
+	speech.add_child(StepCardUi.wood(str(Database.npcs.get(NPC, {}).get("name", "")), 20))
+	_text = StepCardUi.wood("", 17)
 	_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	_text.custom_minimum_size = Vector2(0, 72)
+	_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_text.custom_minimum_size = Vector2(120, 72)
 	speech.add_child(_text)
 	row.add_child(speech)
-	card.add_child(row)
-	_next = UiKit.button("Continuar", _advance, &"PrimaryButton")
+	inner.add_child(row)
+	_next = StepCardUi.go_button("Continuar", _advance)
 	_next.custom_minimum_size = Vector2(0, 56)
-	card.add_child(_next)
+	inner.add_child(_next)
 
 
 func _show_line() -> void:

@@ -1,0 +1,123 @@
+{
+  "id": "s_begging",
+  "title": "Pidão",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "explorer",
+  "game_scene": "house",
+  "source_definition": "game/data/album.json#photos/s_begging",
+  "trigger": {
+    "on": "tapped_object",
+    "when": {
+      "object": "fridge",
+      "dog_in_world": "house",
+      "need_below": {
+        "hunger": 40
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_begging.png",
+    "scene": "house",
+    "pose": {
+      "clip": "head_tilt",
+      "frame": 1
+    },
+    "props": []
+  },
+  "scene_description": "Begging at the fridge: SMALL adolescent black-and-tan Yorkshire with upright ears sitting by a just-opened cream refrigerator in the house kitchen, head tilted, huge pleading brown eyes looking up toward the open door/person above the frame. Fridge cool interior light falls on his muzzle; a few ordinary food jars visible on low shelves, cozy kitchen wood and cream surroundings. No eating yet, no human face necessary, full tiny dog beside large fridge.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_begging.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_begging.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_begging/photo.json",
+  "batch_id": "batch_007",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_begging/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_begging/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.470930+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f615d9a3-72d2-48e3-b276-5c17ba726b6a.png",
+          "completed_at": "2026-11-06T22:59:30.729484+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_begging/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f615d9a3-72d2-48e3-b276-5c17ba726b6a.png",
+      "completed_at": "2026-11-06T22:59:30.729484+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "b04fb733050e379042d9f0bcf44eaf35ac31b86d4ee8ae46134922945e29bfef",
+      "reviewed_at": "2026-11-06T23:14:31.171877+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_begging/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_begging/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.470930+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-196c7760-328a-4961-b477-71ebb08c1e27.png",
+          "completed_at": "2026-11-06T23:00:09.855462+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_begging/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-196c7760-328a-4961-b477-71ebb08c1e27.png",
+      "completed_at": "2026-11-06T23:00:09.855462+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "868022da230af8ca99811969568157e285e9164de4ca3a4526e57939728cd0fb",
+      "reviewed_at": "2026-11-06T23:14:31.484457+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_begging/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_begging/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.471929+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-37b9f201-a5ad-486b-8c82-7b3785970029.png",
+          "completed_at": "2026-11-06T23:00:47.737655+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_begging/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-37b9f201-a5ad-486b-8c82-7b3785970029.png",
+      "completed_at": "2026-11-06T23:00:47.737655+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "ce5d5b7415be33b58527a4f265cfe5ee1c6ec9f4b67ca8b06ff9d212a23701d4",
+      "reviewed_at": "2026-11-06T23:14:31.786949+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_begging/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_begging/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.471929+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-efcdd7b0-6a91-4438-92a5-9727a1a08c17.png",
+          "completed_at": "2026-11-06T23:01:24.694670+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_begging/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-efcdd7b0-6a91-4438-92a5-9727a1a08c17.png",
+      "completed_at": "2026-11-06T23:01:24.694670+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "2033a6706109de485ad42eeac2d9df5b1db6176f7e05f59c674653ef576880a7",
+      "reviewed_at": "2026-11-06T23:14:32.120843+00:00"
+    }
+  }
+}

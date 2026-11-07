@@ -156,7 +156,8 @@ static func _is_slot_upgrade(upgrade_id: String) -> bool:
 
 ## Painel do lugar + cartões de compra das construções que se compram ali (somem ao comprar).
 static func _with_upgrades(panel: Control, upgrades: Array) -> Control:
-	if upgrades.is_empty():
+	# Painel em madeira (depósitos): a ampliação fica no botão "Expandir" do próprio painel, não em cartões embaixo.
+	if upgrades.is_empty() or bool(panel.get_meta("sheet_wood", false)):
 		return panel
 	var box := UiKit.vbox(10)
 	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -255,25 +256,14 @@ static func run(world_id: String, action: String) -> void:
 
 ## "O que tem aqui?": linhas tocáveis; pronto ganha fundo verde, nunca botão primário.
 static func world_list(world_id: String) -> Control:
-	return SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+	var live := SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		var world: Dictionary = Database.worlds.get(world_id, {})
-		var list := UiKit.list_card(box)
+		var list := UiKit.vbox(8)
 		list.name = "PlacesList"
+		box.add_child(list)
 		for npc_id: String in visible_npcs(world_id):
 			var badge := npc_badge(npc_id)
-			var chips: Array[Control] = []
-			if badge != "":
-				var mark := UiKit.badge(1)
-				mark.text = ""
-				if badge == "ready":
-					mark.add_theme_stylebox_override("normal", UiKit.surface(Palette.GO, 12))
-					mark.add_child(UiKit.ctl("check", 16, Palette.CARD))
-				else: mark.text = "!"
-				chips.append(mark)
-			var go := open_npc.bind(npc_id)
-			var row := _place_row(ProgressionUi.npc_portrait(npc_id), str(Database.npcs.get(npc_id, {}).get("name", npc_id)), chips, go, badge == "ready")
-			row.name = "PlaceNpc_" + npc_id
-			list.add_child(row)
+			list.add_child(_place_row("PlaceNpc_" + npc_id, ProgressionUi.npc_portrait(npc_id), str(Database.npcs.get(npc_id, {}).get("name", npc_id)), open_npc.bind(npc_id), badge, false))
 		var places: Dictionary = world.get("places", {})
 		for place_id: String in places:
 			var place: Dictionary = places[place_id]
@@ -281,21 +271,50 @@ static func world_list(world_id: String) -> Control:
 				continue
 			var upgrade: String = place.get("upgrade", "")
 			var dim := place_error(place) != "" or (upgrade != "" and not GameState.has_upgrade(upgrade))
-			var ready := place_alert(world_id, place_id) != ""
-			var row := _place_row(UiKit.ui_icon(place.get("icon", "")), str(place.name), [], open.bind(world_id, place_id), ready)
-			row.name = "Place_" + place_id
-			if dim:
-				row.modulate.a = 0.55
-			list.add_child(row)
+			var mark := "ready" if place_alert(world_id, place_id) != "" else ""
+			list.add_child(_place_row("Place_" + place_id, UiKit.ui_icon(place.get("icon", "")), str(place.name), open.bind(world_id, place_id), mark, dim))
 	)
+	live.set_meta("sheet_wood", true)  # a folha abre em madeira (opt-in da Sheet)
+	live.set_meta("sheet_fit_content", true)  # a folha tem a altura do conteúdo (sem papel vazio embaixo)
+	return live
 
 
-static func _place_row(texture: Texture2D, title: String, chips: Array[Control], go: Callable, ready: bool) -> PanelContainer:
-	var row := UiKit.list_row(texture, title, chips, UiKit.row_chevron(go), go, ready)
-	var column := row.get_child(0).get_child(0).get_child(1) as VBoxContainer
-	column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	(column.get_child(0) as Label).theme_type_variation = &"StrongLabel"
-	return row
+## Linha de papel: pratinho com o ícone, nome e, à direita, selo ("new" = !, "ready" = medalhão) + cadeado ou seta. A linha inteira é tocável.
+static func _place_row(node_name: String, texture: Texture2D, title: String, go: Callable, mark: String, dim: bool) -> Control:
+	var card := MissionUi.card("card", Vector4i(10, 6, 12, 6), node_name, 10, 56.0)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var row := UiKit.hbox(10)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	MissionUi.body(card).add_child(row)
+	var tile := HelpUi._plate(texture, "", 52.0, 64.0, "PlaceIcon")
+	tile.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(tile)
+	var label := StepCardUi.wood(title, 18)
+	label.name = "PlaceName"
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(label)
+	if mark == "ready":
+		row.add_child(StepCardUi.done_medal(24.0, "PlaceReady"))
+	elif mark == "new":
+		var alert := UiKit.badge(1)
+		alert.name = "PlaceNew"
+		alert.text = "!"
+		alert.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(alert)
+	if dim:
+		tile.modulate.a = 0.55
+		label.modulate.a = 0.6
+		var lock := UiKit.icon(load(HomeUi.DIR + "farm_lock.png") as Texture2D, 22)
+		lock.name = "PlaceLock"
+		lock.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		lock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(lock)
+	else:
+		row.add_child(UiKit.ctl("chev", 22, Palette.WOOD_INK))
+	var tap := BagUi.plain_button(go)
+	tap.name = "PlaceGo"
+	card.add_child(tap)
+	return card
 
 
 ## Ação do lugar onde a construção é feita (usada quando a sala não tem o "+" dela).

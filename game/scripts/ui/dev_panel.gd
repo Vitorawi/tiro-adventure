@@ -151,6 +151,11 @@ static func _growth(box: VBoxContainer) -> void:
 			if str(entry.section) in Database.album.active_sections and not GameState.album.has_photo(str(entry.id)):
 				GameState.dev_take_photo(str(entry.id))
 				return)
+	_tool(box, "Carta fechada", func() -> void:
+		for entry: Dictionary in Database.album.photos:
+			if str(entry.section) in Database.album.active_sections:
+				GameState.dev_seal_photo(str(entry.id))
+				return)
 	_tool(box, "Zerar álbum", GameState.dev_reset_album)
 
 

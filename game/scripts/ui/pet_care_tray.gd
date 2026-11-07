@@ -19,7 +19,6 @@ var _food_button: Button
 var _menu: ChoiceWindow
 var _choice: ChoiceWindow
 var _choice_id := ""
-static var recent_foods: Array[String] = []
 var _sleep: Button
 var _items: Dictionary = {}
 var _food_ids: Array[String] = []
@@ -188,16 +187,11 @@ func clear_pointer() -> void:
 
 func food_ids() -> Array[String]:
 	var result: Array[String] = []
+	# Database preserva a ordem de declaração de items.json: o catálogo define a posição.
+	# Só o estoque filtra a lista; usar/remover/repor não altera a ordem relativa.
 	for id: String in Database.items:
 		if Database.items[id].has("feed") and GameState.inventory.count(id) > 0:
 			result.append(id)
-	result.sort_custom(func(a: String, b: String) -> bool:
-		var count_a := GameState.progress.stat("feed:" + a)
-		var count_b := GameState.progress.stat("feed:" + b)
-		if count_a != count_b: return count_a > count_b
-		var recent_a := recent_foods.find(a)
-		var recent_b := recent_foods.find(b)
-		return recent_a >= 0 and (recent_b < 0 or recent_a < recent_b))
 	return result
 
 
@@ -498,8 +492,6 @@ func _act(id: String, with_shampoo: bool = false) -> void:
 	else:
 		error = SheetBuilder.give_food(id)
 		if error == "":
-			recent_foods.erase(id)
-			recent_foods.push_front(id)
 			pet_screen.call("food_effects", id)
 	if error != "":
 		Events.toast_requested.emit(error)

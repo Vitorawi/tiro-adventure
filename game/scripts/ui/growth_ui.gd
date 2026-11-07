@@ -1,6 +1,11 @@
 class_name GrowthUi
 extends RefCounted
 ## Consulta do crescimento. Toda ação continua no GameState; o painel atualiza sem fechar.
+## Visual: folha de madeira ilustrada (Sheet em modo `sheet_wood`), peças de `StepCardUi`/`CodexUi`/`WelcomeSheet`.
+
+const PLATE := 72.0  # pratinho do retrato (agora → depois)
+const TILE_H := 72.0  # quadradinho de um passo
+
 
 static func open() -> void:
 	Events.sheet_requested.emit("Crescimento", panel())
@@ -10,7 +15,8 @@ static func panel() -> Control:
 	var box := SheetBuilder.LiveBox.new(_build)
 	box.name = "GrowthPanel"
 	box.set_meta("tick_refresh", false)
-	box.add_theme_constant_override("separation", 4)
+	box.add_theme_constant_override("separation", 6)
+	box.set_meta("sheet_wood", true)
 	box.set_meta("sheet_fit_content", true)
 	box.set_meta("sheet_actions", _header_actions)
 	return box
@@ -237,97 +243,121 @@ static func _build(box: VBoxContainer) -> void:
 		var summary := UiKit.hbox(8)
 		summary.name = "GrowthSummary"
 		summary.alignment = BoxContainer.ALIGNMENT_CENTER
-		var progress := UiKit.steps(visible_steps.size(), complete)
-		progress.name = "GrowthProgress"
+		var progress := StepCardUi.bar(float(complete) / maxf(1.0, float(visible_steps.size())), 18.0, "GrowthProgress")
+		progress.custom_minimum_size.x = 170.0
+		progress.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		summary.add_child(progress)
-		summary.add_child(UiKit.short_label("%d/%d" % [complete, visible_steps.size()], &"NumberLabel"))
+		summary.add_child(StepCardUi.wood("%d/%d" % [complete, visible_steps.size()], 20))
 		box.add_child(summary)
 		_steps(box, info, visible_steps)
 		if info.ready:
-			var grow := UiKit.primary("Crescer!", func() -> void:
+			var grow := StepCardUi.go_button("Crescer!", func() -> void:
 				var error := GameState.grow()
 				if error != "": Events.toast_requested.emit(error))
 			grow.name = "GrowButton"
+			grow.set_meta("wood_primary", true)
 			box.add_child(grow)
 		box.add_child(_unlocks(info))
 	elif silk.adult and not silk.next.is_empty():
 		_silk_requirements(box, silk)
 		if silk.ready:
-			var shine := UiKit.primary("Mais brilho!", func() -> void:
+			var shine := StepCardUi.go_button("Mais brilho!", func() -> void:
 				var error := GameState.brighten()
 				if error != "": Events.toast_requested.emit(error))
 			shine.name = "SilkButton"
+			shine.set_meta("wood_primary", true)
 			box.add_child(shine)
 		else:
 			var lacking: Dictionary = silk.requirements.filter(func(row: Dictionary) -> bool: return not row.done)[0]
-			var wait := UiKit.lock_hint("Falta: " + str(lacking.label), Callable(), _silk_step(lacking).icon)
+			var wait := StepCardUi.lock_note("Falta: " + str(lacking.label), Callable(), _silk_step(lacking).icon)
 			wait.name = "SilkLock"
 			box.add_child(wait)
 	else:
-		box.add_child(UiKit.label("Ele cresceu com você. Continue cuidando do Tiro!"))
+		var done := StepCardUi.wood("Ele cresceu com você. Continue cuidando do Tiro!", 18)
+		done.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		done.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		box.add_child(done)
 
 
-## A folha recebe os controles de consulta no título; o herói fica só com as fases.
+## A folha recebe os controles de consulta no título (botões redondos de madeira); o herói fica só com as fases.
 static func _header_actions() -> Array[Control]:
-	var details := UiKit.ctl_button("info", func() -> void: Events.sheet_requested.emit("Cuidados do Tiro", PillarUi.panel()), 32, "sunken")
+	var details := NpcFace.wood_button("info", func() -> void:
+		var care := PillarUi.panel()
+		Events.sheet_requested.emit("Cuidados do Tiro", care))
 	details.name = "GrowthDetails"
-	var book := UiKit.ctl_button("list", history, 32, "sunken")
+	var book := NpcFace.wood_button("list", history)
 	book.name = "GrowthHistoryButton"
+	for button: Button in [details, book]:
+		button.custom_minimum_size = Vector2(44, 44)
+		button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	return [details, book]
 
 
-## Agora → depois: retratos do mesmo tamanho em discos, com nomes abaixo.
+## Coloca `inner` (centralizado, no tamanho mínimo dele) dentro de um pratinho de madeira.
+static func _plated(inner: Control, plate_name: String) -> Control:
+	var plate: Control = WelcomeSheet._plate(PLATE, null, plate_name)
+	plate.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	plate.add_child(inner)
+	inner.set_anchors_preset(Control.PRESET_CENTER)
+	var half := inner.custom_minimum_size / 2.0
+	inner.offset_left = -half.x
+	inner.offset_right = half.x
+	inner.offset_top = -half.y
+	inner.offset_bottom = half.y
+	return plate
+
+
+## Agora → depois: retratos do mesmo tamanho em pratinhos de madeira, com nomes abaixo.
 static func _hero(info: Dictionary) -> Control:
+	var inner_px := PLATE - 16.0
 	var hero := UiKit.hbox(8)
 	hero.name = "GrowthHero"
 	hero.alignment = BoxContainer.ALIGNMENT_CENTER
-	var now := UiKit.vbox(4)
+	var now := UiKit.vbox(2)
 	now.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var dog := PetAnimator.portrait(96)
-	dog.custom_minimum_size = Vector2(96, 96)
+	var dog := PetAnimator.portrait(int(inner_px))
+	dog.custom_minimum_size = Vector2(inner_px, inner_px)
 	dog.name = "CurrentDog"
-	var disc := UiKit.disc(null, 96, 96)
-	disc.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	disc.add_child(dog)
-	now.add_child(disc)
+	now.add_child(_plated(dog, "CurrentPlate"))
 	now.add_child(_phase_name(str(info.current.name)))
 	hero.add_child(now)
 	var silk := GameState.silk_info()
 	if not info.next.is_empty() or (silk.adult and not silk.next.is_empty()):
-		var arrow := UiKit.ctl("arrow", 20)
+		var arrow := UiKit.ctl("arrow", 22, Palette.WOOD_INK)
 		arrow.name = "GrowthArrow"
 		arrow.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		hero.add_child(arrow)
-		var then := UiKit.vbox(4)
+		var then := UiKit.vbox(2)
 		then.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		var next_disc := UiKit.disc(null, 96, 96)
-		next_disc.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		if not info.next.is_empty():
-			next_disc.add_child(silhouette(info.next, maxi(1, info.requirements.size() - missing(info)), info.ready, "NextSilhouette", 96, true))
-			then.add_child(next_disc)
+			var shadow := silhouette(info.next, maxi(1, info.requirements.size() - missing(info)), info.ready, "NextSilhouette", int(inner_px), true)
+			then.add_child(_plated(shadow, "NextPlate"))
 			var name_label := _phase_name(str(info.next.name))
-			name_label.add_theme_color_override("font_color", Palette.INK_SOFT)
+			name_label.add_theme_color_override("font_color", Color(Palette.WOOD_INK, 0.6))
 			then.add_child(name_label)
 		else:
 			var preview_holder := Control.new()
 			preview_holder.name = "SilkSilhouette"
-			preview_holder.custom_minimum_size = Vector2(96, 96)
+			preview_holder.custom_minimum_size = Vector2(inner_px, inner_px)
 			preview_holder.clip_contents = true
 			var preview := UiKit.icon(load(str(info.current.art.dir.pet) + "idle_breathe/frame_00.png"), 0)
 			preview.material = DogLook.material()
 			(preview.material as ShaderMaterial).set_shader_parameter("sheen", float(silk.next.sheen))
 			preview_holder.add_child(preview)
-			_fit_static(preview, 96)
-			next_disc.add_child(preview_holder)
-			then.add_child(next_disc)
+			_fit_static(preview, int(inner_px))
+			then.add_child(_plated(preview_holder, "NextPlate"))
 			then.add_child(_phase_name(str(silk.next.name)))
 		hero.add_child(then)
 	return hero
 
-## Nome da fase sob o retrato: uma linha só, um pouco menor para caber lado a lado.
+## Nome da fase sob o retrato: uma linha só, na fonte da madeira.
 static func _phase_name(text: String) -> Label:
-	var result := UiKit.short_label(text, &"StrongLabel")
+	var result := StepCardUi.wood(text, 17)
 	result.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	result.clip_text = true
+	result.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	result.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	result.custom_minimum_size.x = 60.0
 	return result
 
 
@@ -348,8 +378,8 @@ static func _steps(box: VBoxContainer, info: Dictionary, visible_steps: Array) -
 	var grid := GridContainer.new()
 	grid.name = "GrowthSteps"
 	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 8)
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
 	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(grid)
 	var select := func(id: String) -> void:
@@ -367,8 +397,7 @@ static func _steps(box: VBoxContainer, info: Dictionary, visible_steps: Array) -
 		grid.add_child(tile)
 	if first_id == "" or info.ready:
 		return
-	var strip := UiKit.card(box)
-	strip.get_parent().name = "GrowthDetail"
+	var strip := StepCardUi.inner_card(box, "GrowthDetail", Vector4i(12, 4, 12, 8))
 	for req: Dictionary in visible_steps:
 		var id := str(req.id)
 		var detail := _step_detail(views[id], id == first_id, req)
@@ -377,28 +406,34 @@ static func _steps(box: VBoxContainer, info: Dictionary, visible_steps: Array) -
 		strip.add_child(detail)
 
 
-## Quadradinho de um passo: anel com o ícone (✓ quando feito), nome curto e quantidade.
+## Quadradinho de um passo (papel creme do caderninho): anel com o ícone, nome curto e quantidade; ✓ verde quando feito.
 static func _step_tile(step: Dictionary) -> Button:
-	var tile := UiKit.button("", func() -> void: pass, &"GhostButton")
+	var tile := BagUi.plain_button(func() -> void: pass)
 	tile.name = "GrowthReq_" + str(step.id)
-	tile.custom_minimum_size = Vector2(0, 88)
+	tile.custom_minimum_size = Vector2(0, TILE_H)
 	tile.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	tile.clip_contents = true
-	var column := UiKit.vbox(2)
-	column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	var art := SellUi.nine("tile", CodexUi.TILE_MARGINS, "Art", null, "codex_")
+	tile.add_child(art)
+	StepCardUi.stretch(art)
+	var column := UiKit.vbox(1)
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tile.add_child(column)
+	StepCardUi.stretch(column)
 	column.offset_left = 4
 	column.offset_right = -4
+	column.offset_top = 6
+	column.offset_bottom = -8
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	tile.add_child(column)
-	var ring := step_ring(step, 48)
+	var ring := step_ring(step, 40)
 	ring.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var amount := UiKit.hbox(4)
+	amount.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	amount.alignment = BoxContainer.ALIGNMENT_CENTER
 	amount.add_child(ring)
-	var count := UiKit.short_label("%d/%d" % [step.have, step.need], &"NumberLabel", Palette.GO_INK if step.done else Palette.INK)
+	var count := StepCardUi.wood("%d/%d" % [step.have, step.need], 18, Palette.GO_INK if step.done else Palette.WOOD_INK)
 	amount.add_child(count)
 	column.add_child(amount)
-	var name_label := UiKit.short_label(str(step.short), &"SmallLabel")
+	var name_label := StepCardUi.wood(str(step.short), 14)
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -407,55 +442,48 @@ static func _step_tile(step: Dictionary) -> Button:
 		var dots := PillarUi.dots(int(step.have), int(step.need))
 		dots.name = "GrowthDots_" + str(step.pillar)
 		dots.alignment = BoxContainer.ALIGNMENT_CENTER
+		dots.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		column.add_child(dots)
 	if step.done:
-		var check := UiKit.disc(UiKit.ctl_icon("check"), 20, 14)
-		check.name = "StepCheck"
-		check.add_theme_stylebox_override("panel", UiKit.surface(Palette.GO, 10))
-		(check.get_child(0) as Control).modulate = Palette.CARD
-		check.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
-		check.offset_left = 4
-		check.offset_right = 24
+		var check := StepCardUi.done_medal(24.0, "StepCheck")
+		check.set_anchors_preset(Control.PRESET_TOP_LEFT)
+		check.offset_left = 6
 		check.offset_top = 6
-		check.offset_bottom = 26
+		check.offset_right = 30
+		check.offset_bottom = 30
 		tile.add_child(check)
 	return tile
 
 
-## Fundo do quadradinho: feito = tom verde; escolhido = borda verde mais grossa.
-static func _style_tile(tile: Button, done: bool, selected: bool) -> void:
-	# Feito = verde claro; escolhido = fundo branco com contorno de tinta (nunca verde).
-	var style := UiKit.surface(Palette.CARD if selected else (Palette.GO_SOFT if done else Palette.SUNKEN), 16, selected)
-	if selected:
-		style.set_border_width_all(2)
-		style.border_color = Palette.INK
-		style.border_blend = true
-	for state: String in ["normal", "hover", "pressed", "focus"]:
-		tile.add_theme_stylebox_override(state, style)
+## Fundo do quadradinho: o escolhido leva a moldura laranja do caderninho; os demais, o papel creme.
+static func _style_tile(tile: Button, _done: bool, selected: bool) -> void:
+	var frame := tile.find_child("Frame", true, false) as NinePatchRect
+	if frame != null:
+		frame.texture = load(HomeUi.DIR + "codex_" + ("tab_orange" if selected else "tile") + ".png") as Texture2D
 
 
-## Detalhe de um passo (um só fica visível): nome, dica de uma linha, uma ação e o "?".
+## Detalhe de um passo (um só fica visível): nome, caminho, dica de uma linha, uma ação e o "?".
+## A ação do passo escolhido é a verde (meta `wood_primary`); só uma por painel.
 static func _select_detail(detail: Control, selected: bool) -> void:
 	detail.visible = selected
 	for action: Button in detail.find_children("*", "Button", true, false):
 		if action.has_meta("growth_action"):
-			action.theme_type_variation = &"PrimaryButton" if selected else &"SecondaryButton"
+			if selected: action.set_meta("wood_primary", true)
+			elif action.has_meta("wood_primary"): action.remove_meta("wood_primary")
 
 
 static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> Control:
 	var detail := UiKit.vbox(4)
 	detail.name = "GrowthNextStep" if highlight else "GrowthDetail_" + str(step.id)
 	var head := UiKit.hbox(8)
-	head.add_child(UiKit.fill_label(str(step.title), &"StrongLabel"))
+	var title := StepCardUi.wood(str(step.title), 20)
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	head.add_child(title)
 	if not step.done:
-		var help := UiKit.ctl_button("help", TaskHelp.open.bind("growth_req", str(step.id)), 32, "sunken")
+		var help := StepCardUi.help_button(TaskHelp.open.bind("growth_req", str(step.id)))
 		help.name = "GrowthHelp"
-		# O alvo segue com 44; só o espaço da linha é 22, com a folga sobre o caminho não tocável.
-		var help_slot := Control.new()
-		help_slot.custom_minimum_size = Vector2(44, 22)
-		help_slot.add_child(help)
-		help.position.y = -8
-		head.add_child(help_slot)
+		head.add_child(help)
 	detail.add_child(head)
 	if not step.done:
 		var target: Dictionary = TaskHelp.describe("growth_req", str(step.id)).target
@@ -466,23 +494,16 @@ static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> 
 	if step.done:
 		hint_text = "Corpo completo" if req.type == "feed" and req.has("body_level") else "Feito!"
 		good = true
-	var hint := UiKit.label(hint_text, &"SmallLabel", Palette.GO_INK if good else Palette.INK_SOFT)
+	var hint := StepCardUi.wood(hint_text, 15, Palette.GO_INK if good else Color(Palette.WOOD_INK, 0.75))
 	hint.name = "GrowthSource_" + str(step.item) if step.type == "deliver" and step.give == "" else "GrowthHint_" + str(step.id)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	hint.visible = hint_text != ""
 	detail.add_child(hint)
 	if step.done:
 		return detail
-	var button: Button
-	if highlight:
-		button = UiKit.primary(str(step.action), step.callback)
-		button.name = "GrowthNextAction"
-	else:
-		button = UiKit.primary(str(step.action), step.callback)
-		button.name = "GrowthAct_" + str(step.id)
-	button.custom_minimum_size = Vector2(160, 44)
+	var button := StepCardUi.go_button(str(step.action), step.callback)
+	button.name = "GrowthNextAction" if highlight else "GrowthAct_" + str(step.id)
 	button.set_meta("growth_action", true)
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	if step.give != "":
 		button.name = "GiveGrowth_" + str(step.give)  # mesmo nome do Dar da Mochila
 	detail.add_child(button)
@@ -491,10 +512,8 @@ static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> 
 
 ## O que muda quando ele crescer: dá vontade de completar.
 static func _unlocks(info: Dictionary) -> Control:
-	var row := HFlowContainer.new()
+	var row := UiKit.hbox(6)
 	row.name = "GrowthUnlocks"
-	row.add_theme_constant_override("h_separation", 4)
-	row.add_theme_constant_override("v_separation", 4)
 	row.tooltip_text = "Ao crescer"
 	var prizes := HFlowContainer.new()
 	prizes.name = "NextUnlocks"
@@ -503,7 +522,7 @@ static func _unlocks(info: Dictionary) -> Control:
 	prizes.add_theme_constant_override("v_separation", 4)
 	for text: String in info.next.get("unlocks_text", []):
 		for prize: String in text.split(" · "):
-			prizes.add_child(UiKit.chip(UiKit.ui_icon("rare_star"), prize, null, "prize"))
+			prizes.add_child(StepCardUi.wood_chip(UiKit.ui_icon("rare_star"), prize))
 	row.add_child(prizes)
 	return row
 
@@ -516,36 +535,45 @@ static func _step_path(target: Dictionary, step: Dictionary) -> Control:
 	var place := str(target.get("spot", target.get("place", ""))).trim_prefix("place:")
 	var data: Dictionary = world.get("places", {}).get(place, {})
 	if target.get("screen", "") == "pet":
-		row.add_child(UiKit.disc(UiKit.ui_icon("tab_pet"), 24, 24))
-		row.add_child(UiKit.short_label("Tiro", &"SmallLabel"))
+		row.add_child(StepCardUi.wood_chip(UiKit.ui_icon("tab_pet"), "Tiro"))
 	elif not world.is_empty():
-		row.add_child(UiKit.disc(UiKit.ui_icon(str(world.get("icon", ""))), 24, 24))
-		row.add_child(UiKit.short_label(str(world.name), &"SmallLabel"))
+		row.add_child(StepCardUi.wood_chip(UiKit.ui_icon(str(world.get("icon", ""))), str(world.name)))
 	else:
 		row.free()
 		return null
 	if not data.is_empty():
-		row.add_child(UiKit.ctl("chev", 16))
-		row.add_child(UiKit.disc(UiKit.ui_icon(str(data.get("icon", ""))), 24, 24))
-		row.add_child(UiKit.fill_label(str(data.name), &"SmallLabel"))
+		row.add_child(StepCardUi.wood("›", 20))
+		row.add_child(StepCardUi.wood_chip(UiKit.ui_icon(str(data.get("icon", ""))), str(data.name)))
 	return row
 
 static func history() -> void:
 	var book := SheetBuilder.LiveBox.new(_build_history)
 	book.name = "GrowthHistory"
+	book.set_meta("sheet_wood", true)
 	book.set_meta("sheet_size", "tall")
 	Events.sheet_requested.emit("Caderneta", book)
+
+
+## Linha de texto pequena e calma da caderneta.
+static func _note(text: String) -> Label:
+	var result := StepCardUi.wood(text, 14, Color(Palette.WOOD_INK, 0.8))
+	result.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return result
 
 
 static func _build_history(box: VBoxContainer) -> void:
 	var info := GameState.growth_info()
 	var silk := GameState.silk_info()
-	box.add_child(UiKit.soft("Voltar ao crescimento", open, null, true))
-	box.add_child(PillarUi.personality_title())
-	box.add_child(UiKit.section("Caderneta"))
+	box.add_theme_constant_override("separation", 8)
+	box.add_child(WelcomeSheet._button("Voltar ao crescimento", false, 250.0, "BackToGrowth", open))
+	var personality := PillarUi.personality_title()
+	box.add_child(personality)
+	var heading := StepCardUi.wood("Caderneta", 22)
+	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(heading)
 	for phase: Dictionary in info.phases:
-		var card := UiKit.card(box)
-		card.get_parent().name = "GrowthCard_" + str(phase.id)
+		var card := StepCardUi.inner_card(box, "GrowthCard_" + str(phase.id), Vector4i(14, 10, 14, 12))
+		card.add_theme_constant_override("separation", 4)
 		var row := UiKit.hbox(8)
 		var ceremony_photo := "h_growth_" + str(phase.id)
 		if phase.visited and GameState.album.has_photo(ceremony_photo):
@@ -560,25 +588,27 @@ static func _build_history(box: VBoxContainer) -> void:
 			row.add_child(photo)
 		else:
 			row.add_child(silhouette(phase, 0, false, "Future_" + str(phase.id), 64))
-		row.add_child(UiKit.fill_label(str(phase.name), &"StrongLabel"))
+		var phase_name := StepCardUi.wood(str(phase.name), 20)
+		phase_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(phase_name)
 		card.add_child(row)
 		if phase.visited:
-			card.add_child(UiKit.label(str(phase.age) + " · " + str(phase.weight), &"SmallLabel"))
-			card.add_child(UiKit.label(_date(float(phase.at)), &"SmallLabel"))
+			card.add_child(_note(str(phase.age) + " · " + str(phase.weight)))
+			card.add_child(_note(_date(float(phase.at))))
 			if phase.id == info.phase:
 				var values: PackedStringArray = []
 				for id: String in info.pillars: values.append("%s %d" % [info.pillars[id].title, info.pillars[id].total])
-				card.add_child(UiKit.label(" · ".join(values), &"SmallLabel"))
-			card.add_child(UiKit.label(str(phase.facts[0]), &"SmallLabel"))
+				card.add_child(_note(" · ".join(values)))
+			card.add_child(_note(str(phase.facts[0])))
 		else:
-			card.add_child(UiKit.label(str(phase.teaser), &"SmallLabel"))
-			card.add_child(UiKit.lock_hint("Cap. %d" % int(phase.get("chapter", 0))))
+			card.add_child(_note(str(phase.teaser)))
+			card.add_child(StepCardUi.lock_note("Cap. %d" % int(phase.get("chapter", 0))))
 	for n in silk.level:
 		var def: Dictionary = Database.growth.silk.levels[n]
-		var card := UiKit.card(box)
-		card.get_parent().name = "SilkCard_%d" % (n + 1)
-		card.add_child(UiKit.label(str(def.name), &"StrongLabel"))
-		card.add_child(UiKit.label("Brilho %d de %d" % [n + 1, silk.max], &"SmallLabel"))
+		var card := StepCardUi.inner_card(box, "SilkCard_%d" % (n + 1), Vector4i(14, 10, 14, 12))
+		card.add_theme_constant_override("separation", 4)
+		card.add_child(StepCardUi.wood(str(def.name), 20))
+		card.add_child(_note("Brilho %d de %d" % [n + 1, silk.max]))
 
 
 static func _silk_step(req: Dictionary) -> Dictionary:
@@ -592,8 +622,8 @@ static func _silk_requirements(box: VBoxContainer, silk: Dictionary) -> void:
 	var grid := GridContainer.new()
 	grid.columns = 3
 	grid.name = "SilkRequirements"
-	grid.add_theme_constant_override("h_separation", 8)
-	grid.add_theme_constant_override("v_separation", 8)
+	grid.add_theme_constant_override("h_separation", 6)
+	grid.add_theme_constant_override("v_separation", 6)
 	box.add_child(grid)
 	for req: Dictionary in silk.requirements:
 		var step := _silk_step(req)

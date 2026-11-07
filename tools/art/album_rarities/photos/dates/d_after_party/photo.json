@@ -1,0 +1,124 @@
+{
+  "id": "d_after_party",
+  "title": "Depois da festa",
+  "section": "dates",
+  "section_name": "Datas",
+  "phase": "adult",
+  "game_scene": "village",
+  "source_definition": "game/data/album.json#photos/d_after_party",
+  "trigger": {
+    "on": "world_entered",
+    "when": {
+      "world": "village",
+      "project_done": "village_festival",
+      "after_days": {
+        "project": "village_festival",
+        "days": 1
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/d_after_party.png",
+    "scene": "village",
+    "pose": {
+      "clip": "idle_breathe",
+      "frame": 0
+    },
+    "props": []
+  },
+  "scene_description": "The day AFTER the village festival: adult tiny golden-headed steel-blue-backed Yorkshire Tiro sitting calmly in the village square in warm early morning sunlight, looking contentedly around at the happy traces of yesterday's community celebration: colorful bunting still strung between cottages, folded picnic tables, a few confetti pieces and flowers, neat gift baskets being put away. Peaceful reflective morning, not an active party or crowd, full dog visible, familiar terracotta-roof cream village houses. No cake, no party hat, no writing.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/d_after_party.png",
+  "original_capture": "docs/art/album_ilustrado/originais/d_after_party.png",
+  "manifest_path": "tools/art/album_rarities/photos/dates/d_after_party/photo.json",
+  "batch_id": "batch_010",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_after_party/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_after_party/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:50:18.566369+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d01e4e9a-5519-4811-8da9-ef717d7959b1.png",
+          "completed_at": "2026-11-06T23:55:39.072710+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_after_party/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d01e4e9a-5519-4811-8da9-ef717d7959b1.png",
+      "completed_at": "2026-11-06T23:55:39.072710+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "7783f8130af1d6870f2f0024cff1c87dd391906509bcccc2ebcfd042727d497f",
+      "reviewed_at": "2026-11-06T23:58:14.791124+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_after_party/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_after_party/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:50:18.566369+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ba6975f4-54ed-492f-8dbf-d3290ba128ea.png",
+          "completed_at": "2026-11-06T23:56:11.187814+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_after_party/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ba6975f4-54ed-492f-8dbf-d3290ba128ea.png",
+      "completed_at": "2026-11-06T23:56:11.187814+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "518bb11fb89afcac7037973edc432d36e21368207e88aa7733345d340797f708",
+      "reviewed_at": "2026-11-06T23:58:15.099544+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_after_party/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_after_party/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:50:18.566369+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d94f78aa-801b-47e1-9188-55d9bbd9963c.png",
+          "completed_at": "2026-11-06T23:56:46.377424+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_after_party/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d94f78aa-801b-47e1-9188-55d9bbd9963c.png",
+      "completed_at": "2026-11-06T23:56:46.377424+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "8ec005d2171b2d0fc32a5a933eac49e078dd7e11c087dfd705a30d0ffcea78d1",
+      "reviewed_at": "2026-11-06T23:58:15.592399+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/dates/d_after_party/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/dates/d_after_party/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:50:18.566369+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-51fcd4a2-b868-4780-b85a-0d871bc02bdc.png",
+          "completed_at": "2026-11-06T23:57:22.926903+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/d_after_party/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-51fcd4a2-b868-4780-b85a-0d871bc02bdc.png",
+      "completed_at": "2026-11-06T23:57:22.926903+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "55bd291c6aa246538d02ce19cc7db97957e9a054de35c060233d7335a1a1df17",
+      "reviewed_at": "2026-11-06T23:58:15.950285+00:00"
+    }
+  }
+}

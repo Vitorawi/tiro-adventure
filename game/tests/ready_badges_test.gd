@@ -11,6 +11,10 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 		push_error("READY BADGES: " + message)
 
+func stuck_baggage() -> void:
+	state.get("inventory").from_dict({"stick": state.call("storage_capacity", "chest")})
+	state.get("walk_state").pending_return = {"id": "park_loop", "started_at": 0.0, "ready_at": 0.0, "returned_at": 0.0, "seed": 1, "result": {}, "left": {"stick": 1}, "rewards_applied": true, "result_shown": true}
+
 func frames() -> void:
 	for i in 4: await process_frame
 
@@ -70,6 +74,8 @@ func _run() -> void:
 	state.call("dev_finish_timers")
 	state.get("walk_state").current.ready_at = state.call("now") - 1
 	state.call("return_due_walk")
+	# A bagagem agora é guardada sozinha: só sobra (e avisa) quando o baú está cheio.
+	stuck_baggage()
 	var counts: Dictionary = state.call("world_ready_counts")
 	check(counts.get("farm", 0) == 3, "Sítio: dois canteiros e pomar")
 	check(counts.get("house", 0) == 1, "Casa: fogão, sem contar lugares duplicados")
@@ -89,6 +95,7 @@ func _run() -> void:
 	await frames()
 	await shot("world_collections")
 	state.get("inventory").from_dict({})
+	stuck_baggage()
 	check(not (state.call("harvest", 0) as Dictionary).is_empty(), "colheita real")
 	main.call("_refresh_tasks_badge")
 	check(main.get("_map_badge").text == "6", "contagem diminui depois de colher")

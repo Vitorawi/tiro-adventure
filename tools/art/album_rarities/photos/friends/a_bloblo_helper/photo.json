@@ -1,0 +1,122 @@
+{
+  "id": "a_bloblo_helper",
+  "title": "Ajudante da vovó",
+  "section": "friends",
+  "section_name": "Amigos",
+  "phase": "adult",
+  "game_scene": "village",
+  "source_definition": "game/data/album.json#photos/a_bloblo_helper",
+  "trigger": {
+    "on": "customer_delivery",
+    "when": {
+      "stat_min": {
+        "customer_orders:bloblo": 20
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/a_bloblo_helper.png",
+    "scene": "village",
+    "pose": {
+      "clip": "wag_excited",
+      "frame": 2
+    },
+    "props": [],
+    "friend": "bloblo"
+  },
+  "scene_description": "Grandma's little helper: adult tiny golden-headed steel-blue-backed Yorkshire happily wagging beside Grandma Bloblo at a produce delivery table in the VILLAGE square. Grandma faithful to reference: elderly warm fair-skinned woman, silver-gray hair tucked under straw hat, green apron over light blouse. She crouches beside dog with a basket of vegetables and wrapped homemade goods as a friendly completed customer delivery. Focus on their affectionate rapport, no writing on packages, village cottages flowers market background.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/a_bloblo_helper.png",
+  "original_capture": "docs/art/album_ilustrado/originais/a_bloblo_helper.png",
+  "manifest_path": "tools/art/album_rarities/photos/friends/a_bloblo_helper/photo.json",
+  "batch_id": "batch_009",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_bloblo_helper/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_bloblo_helper/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.732215+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e00f90bd-4d51-446d-b424-c7a760c7d6e3.png",
+          "completed_at": "2026-11-06T23:37:05.520553+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_bloblo_helper/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e00f90bd-4d51-446d-b424-c7a760c7d6e3.png",
+      "completed_at": "2026-11-06T23:37:05.520553+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "7703dfd97423a86046f3fbbc0c0a2f1a078bae805b749b541d5aa757d13aa6ad",
+      "reviewed_at": "2026-11-06T23:49:14.507234+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_bloblo_helper/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_bloblo_helper/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.732215+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-99e4c91f-8ca9-4437-ba8f-50670af315bc.png",
+          "completed_at": "2026-11-06T23:37:44.519650+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_bloblo_helper/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-99e4c91f-8ca9-4437-ba8f-50670af315bc.png",
+      "completed_at": "2026-11-06T23:37:44.519650+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f97031478b1d6cbb15cf09e9aaa886ecc9bcd8468f8492187aace6b8f8aa9d83",
+      "reviewed_at": "2026-11-06T23:49:14.829146+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_bloblo_helper/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_bloblo_helper/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.732215+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ee705304-fc71-4a9f-b6a4-d306ac8acfe7.png",
+          "completed_at": "2026-11-06T23:38:24.913101+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_bloblo_helper/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ee705304-fc71-4a9f-b6a4-d306ac8acfe7.png",
+      "completed_at": "2026-11-06T23:38:24.913101+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "bda89b05323abe7c119d89dc1885e4f3810c51fef0606623f150ae6566b43658",
+      "reviewed_at": "2026-11-06T23:49:15.139233+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/friends/a_bloblo_helper/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/friends/a_bloblo_helper/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:36:18.733214+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-a6dce20d-27ad-4319-86b6-3e4d9662bf9a.png",
+          "completed_at": "2026-11-06T23:39:01.789486+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/a_bloblo_helper/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-a6dce20d-27ad-4319-86b6-3e4d9662bf9a.png",
+      "completed_at": "2026-11-06T23:39:01.789486+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "5c9addbd9958c66c4fa75c6499040bd8cc1fa213f1abfda468c93ec6fb5697a6",
+      "reviewed_at": "2026-11-06T23:49:15.447747+00:00"
+    }
+  }
+}

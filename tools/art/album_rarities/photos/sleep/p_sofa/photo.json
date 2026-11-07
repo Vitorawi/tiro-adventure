@@ -1,0 +1,122 @@
+{
+  "id": "p_sofa",
+  "title": "De bruços no sofá",
+  "section": "sleep",
+  "section_name": "Soninhos",
+  "phase": "young",
+  "game_scene": "house",
+  "source_definition": "game/data/album.json#photos/p_sofa",
+  "trigger": {
+    "on": "slept",
+    "when": {
+      "owned": "sofa",
+      "sleep_spot": "sofa"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/p_sofa.png",
+    "scene": "house",
+    "pose": {
+      "clip": "sleep",
+      "frame": 0
+    },
+    "props": [
+      "sofa"
+    ]
+  },
+  "scene_description": "Belly-DOWN sofa nap: young adult small Yorkie (upright ears relaxed, dark charcoal crown and back, tan muzzle legs) sleeping stretched out on his tummy along an orange sofa cushion, chin resting on crossed front paws and back legs relaxed behind. Sofa large relative to little dog, calm cozy home, folded blanket and warm evening lamp. No belly-up pose and no crown. Intimate side view emphasizes the resting chin.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/p_sofa.png",
+  "original_capture": "docs/art/album_ilustrado/originais/p_sofa.png",
+  "manifest_path": "tools/art/album_rarities/photos/sleep/p_sofa/photo.json",
+  "batch_id": "batch_007",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_sofa/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_sofa/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.474442+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f7d9e0c9-a817-4939-990c-21dfddafef89.png",
+          "completed_at": "2026-11-06T23:08:57.853798+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_sofa/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f7d9e0c9-a817-4939-990c-21dfddafef89.png",
+      "completed_at": "2026-11-06T23:08:57.853798+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "24f391c75a9302b9860013586ea24afadf1fa0f0815f08e8515b77447f98b58c",
+      "reviewed_at": "2026-11-06T23:14:37.076146+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_sofa/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_sofa/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.474442+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5fd7fb7e-98f2-4ad2-9f0d-8e8a60e2015f.png",
+          "completed_at": "2026-11-06T23:09:32.884998+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_sofa/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5fd7fb7e-98f2-4ad2-9f0d-8e8a60e2015f.png",
+      "completed_at": "2026-11-06T23:09:32.884998+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "58d0924c90994cbf341224c35d5322fad5bf3b6f446961477d720e4464a1d9f0",
+      "reviewed_at": "2026-11-06T23:14:37.424542+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_sofa/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_sofa/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.474442+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-a4b2b50b-ce6d-49b5-9f51-1b59d22bc5d7.png",
+          "completed_at": "2026-11-06T23:10:07.850344+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_sofa/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-a4b2b50b-ce6d-49b5-9f51-1b59d22bc5d7.png",
+      "completed_at": "2026-11-06T23:10:07.850344+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "137b10a97ebf0707826fd39416f51e8702744ee71fdcf609ef5c75dba96c59ac",
+      "reviewed_at": "2026-11-06T23:14:37.768445+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_sofa/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_sofa/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:58:07.475442+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e4d0e2f6-583e-4b64-a7a2-7063dbc412d5.png",
+          "completed_at": "2026-11-06T23:10:44.230214+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_sofa/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e4d0e2f6-583e-4b64-a7a2-7063dbc412d5.png",
+      "completed_at": "2026-11-06T23:10:44.230214+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "0b01aeb70b03a54dcd1c25919bbdbd07a5e12466e527e066a811d5f99d3b21ef",
+      "reviewed_at": "2026-11-06T23:14:38.083865+00:00"
+    }
+  }
+}

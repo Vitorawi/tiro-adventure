@@ -1,0 +1,123 @@
+{
+  "id": "p_sweater",
+  "title": "Quentinho",
+  "section": "sleep",
+  "section_name": "Soninhos",
+  "phase": "young",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/p_sweater",
+  "trigger": {
+    "on": [
+      "slept",
+      "app_opened"
+    ],
+    "when": {
+      "equipped": "knit_sweater",
+      "months": "cold"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/p_sweater.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "sleep",
+      "frame": 0
+    },
+    "props": []
+  },
+  "scene_description": "Warm and cozy winter nap: young adult Yorkshire Tiro with upright ears relaxed, darker crown and charcoal back, tan face and paws sleeping curled into a ball on his small cream bed at home, wearing the PINK cable-knit sweater from supporting original asset, little buttons. The sweater wraps torso naturally, paws and face visible, a folded blanket nearby. Cool rainy winter window and warm amber lamp indoors, no snow required.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/p_sweater.png",
+  "original_capture": "docs/art/album_ilustrado/originais/p_sweater.png",
+  "manifest_path": "tools/art/album_rarities/photos/sleep/p_sweater/photo.json",
+  "batch_id": "batch_008",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_sweater/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_sweater/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.107455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-6a9801b1-f23f-41c4-a273-a8ff17c5c9ac.png",
+          "completed_at": "2026-11-06T23:22:47.149439+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_sweater/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-6a9801b1-f23f-41c4-a273-a8ff17c5c9ac.png",
+      "completed_at": "2026-11-06T23:22:47.149439+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6e60ae85b1fed600d2eb5517ae758751ebb35caea1f789f02c8491b9cef002bb",
+      "reviewed_at": "2026-11-06T23:31:55.541465+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_sweater/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_sweater/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.107455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e9a8d186-d9c8-45de-acb6-fc8eeb4102ca.png",
+          "completed_at": "2026-11-06T23:23:21.573908+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_sweater/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e9a8d186-d9c8-45de-acb6-fc8eeb4102ca.png",
+      "completed_at": "2026-11-06T23:23:21.573908+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d12c0f3bb7c859d80535b767cb9c649b0e918a4bcc6bac5ef982476816294ea5",
+      "reviewed_at": "2026-11-06T23:31:55.919851+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_sweater/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_sweater/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.107455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e4a36e51-9c03-4db8-b6e2-06b84fe77858.png",
+          "completed_at": "2026-11-06T23:24:01.508208+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_sweater/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e4a36e51-9c03-4db8-b6e2-06b84fe77858.png",
+      "completed_at": "2026-11-06T23:24:01.508208+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "b91b8631b8c1a55ea27b039a7864408b836297d8b0d1fbe68dbd2253dde5c490",
+      "reviewed_at": "2026-11-06T23:31:56.396205+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/sleep/p_sweater/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/sleep/p_sweater/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T23:16:32.108455+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2c387df3-de4d-4c24-9b48-1f61efa8e828.png",
+          "completed_at": "2026-11-06T23:24:42.845598+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/p_sweater/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-2c387df3-de4d-4c24-9b48-1f61efa8e828.png",
+      "completed_at": "2026-11-06T23:24:42.845598+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "de7b9a27737bc69babd62af9ff8b596a858237463b8a4d5d6c70025dad8b6600",
+      "reviewed_at": "2026-11-06T23:31:56.754597+00:00"
+    }
+  }
+}

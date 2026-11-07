@@ -1,6 +1,6 @@
 extends SceneTree
-## Capturas da etapa 13 do plano Tiro: grade do álbum (t09_album_grid), detalhe (t10_photo_detail) e uma
-## folha de contato com todas as fotos de História e Primeiras vezes. NÃO é teste.
+## Capturas do álbum: seis seções, detalhes e folhas de contato com as 54 fotos.
+## As fases de referência vêm do controle do álbum ilustrado. NÃO é teste.
 ## Rodar SEM --headless, uma resolução por vez:
 ##   & $env:GODOT_BIN --path game --resolution 360x780 -s res://tests/album_shots.gd -- --out=tiro13_360x780
 ## PNGs em build/screenshots/<out>/. Não grava o save pessoal.
@@ -38,11 +38,10 @@ func _run() -> void:
 	state.get("progress").seen["intro"] = true
 	Motion.reduced = true
 	# Fotos tiradas em fases diferentes: o corpo de cada foto é o do dia em que foi tirada.
-	var phase_of := {"h_arrival": "newborn", "h_first_night": "newborn", "h_growth_puppy": "puppy", "h_kitchen": "puppy",
-		"h_growth_teething": "teething", "h_first_walk": "teething", "h_first_trick": "teething", "h_growth_explorer": "explorer",
-		"h_banca": "explorer", "h_growth_young": "young", "h_bench": "young", "h_courage": "young", "h_growth_adult": "adult",
-		"h_guardian": "adult", "f_bath": "newborn", "f_taste": "puppy", "f_dig": "puppy", "f_tooth": "teething", "f_friend": "explorer",
-		"f_outfit": "young"}
+	var phase_of := {}
+	var catalog: Dictionary = JSON.parse_string(FileAccess.get_file_as_string("res://../docs/art/album_ilustrado/manifest.json"))
+	for entry: Dictionary in catalog.photos:
+		phase_of[str(entry.id)] = str(entry.phase)
 	for id: String in phase_of:
 		state.get("growth").phase = phase_of[id]
 		state.get("growth").phase_since = state.call("now")
@@ -66,10 +65,20 @@ func _run() -> void:
 	await shot("t09_album_grid")
 	notebook.open("album:firsts")
 	await shot("t09_album_firsts")
+	for section: String in ["sleep", "friends", "dates"]:
+		notebook.open("album:" + section)
+		await shot("t09_album_" + section)
 	album_view.open_photo("h_growth_adult")
 	await shot("t10_photo_detail")
 	album_view.open_photo("h_kitchen")
 	await shot("t10_photo_detail_kitchen")
+	album_view.open_photo("s_carrot_thief")
+	await shot("t10_photo_detail_carrot")
+	for id: String in ["f_bath", "s_moon_friend", "h_guardian", "a_four_friends"]:
+		album_view.open_photo(id)
+		await shot("t10_photo_" + id)
+	notebook.open("album:tricks")
+	await shot("t09_album_tricks")
 	# Todas as abas do caderninho abertas (cabem na largura?).
 	state.call("dev_unlock_everything")
 	state.get("growth").phase = "adult"
@@ -85,7 +94,7 @@ func _run() -> void:
 	Events_close(main)
 	var photo_card: Variant = load("res://scripts/ui/photo_card.gd")
 	var ids: Array = phase_of.keys()
-	for page in 2:
+	for page in ceili(ids.size() / 12.0):
 		var sheet := ColorRect.new()
 		sheet.color = Color("fff6e3")
 		sheet.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)

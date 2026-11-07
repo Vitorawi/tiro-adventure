@@ -1,0 +1,128 @@
+{
+  "id": "s_zoomies",
+  "title": "Corrida maluca",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "explorer",
+  "game_scene": "pet",
+  "source_definition": "game/data/album.json#photos/s_zoomies",
+  "trigger": {
+    "on": "played",
+    "when": {
+      "count_in_window": {
+        "event": "played",
+        "n": 3,
+        "seconds": 60
+      },
+      "phase_in": [
+        "explorer"
+      ]
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_zoomies.png",
+    "scene": "pet",
+    "pose": {
+      "clip": "chase_tail",
+      "frame": 2
+    },
+    "props": [
+      "speed_lines"
+    ]
+  },
+  "scene_description": "ZOOMIES: only the eight-month-old SMALL adolescent black-and-tan Yorkshire Tiro with upright ears racing in a tight joyful circle around his own tail in the cozy home corner. One dog body, dynamic curved pose and light sweeping motion swooshes suggest speed, natural correct four legs and one tail. Red rug, wooden floor and cream walls; avoid multiple ghost dog copies or extra legs. Exuberant playful burst of energy.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_zoomies.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_zoomies.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_zoomies/photo.json",
+  "batch_id": "batch_006",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_zoomies/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_zoomies/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.489662+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3cc59b0f-f95b-42c8-9f67-2e512d85131f.png",
+          "completed_at": "2026-11-06T22:50:48.069977+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_zoomies/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3cc59b0f-f95b-42c8-9f67-2e512d85131f.png",
+      "completed_at": "2026-11-06T22:50:48.069977+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "fc13bfe0a13a339e8f7e45c73ec1e8bdc204a9f37de70cfbadd792637df95397",
+      "reviewed_at": "2026-11-06T22:56:14.944642+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_zoomies/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_zoomies/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.489662+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-db6f8f1e-7adf-45db-826d-f0f2f9341b51.png",
+          "completed_at": "2026-11-06T22:51:19.267691+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_zoomies/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-db6f8f1e-7adf-45db-826d-f0f2f9341b51.png",
+      "completed_at": "2026-11-06T22:51:19.267691+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "3811859e35fdeea7f9b8c6c9c84624b42520e3ce71b86242bffa9d9058f101a0",
+      "reviewed_at": "2026-11-06T22:56:15.376505+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_zoomies/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_zoomies/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.489662+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5a36a34b-835e-4955-907c-b2a62489d301.png",
+          "completed_at": "2026-11-06T22:52:10.011721+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_zoomies/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5a36a34b-835e-4955-907c-b2a62489d301.png",
+      "completed_at": "2026-11-06T22:52:10.011721+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d378df1c656f0ea9686caa9a38f46f09a8819c0564083484a05f56ce65b77932",
+      "reviewed_at": "2026-11-06T22:56:15.743893+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_zoomies/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_zoomies/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.489662+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d4dc245b-5103-4ec8-a50f-b62353ab9a3b.png",
+          "completed_at": "2026-11-06T22:52:51.475276+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_zoomies/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d4dc245b-5103-4ec8-a50f-b62353ab9a3b.png",
+      "completed_at": "2026-11-06T22:52:51.475276+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "2a2fafa0f470bb5b60b2ecdee0c85e83916a24645464dbef4777a322f1f24207",
+      "reviewed_at": "2026-11-06T22:56:16.086826+00:00"
+    }
+  }
+}

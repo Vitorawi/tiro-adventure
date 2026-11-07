@@ -61,6 +61,7 @@ var _wish_age := 0.0
 var _sleep_age := 0.0
 var _minute := -1
 var _knots: Array[Control] = []
+var _photo_line: PhotoLine
 ## Apenas apresentação: testes/capturas podem forçar a hora, sem tocar no relógio do jogo.
 var preview_hour := -1
 
@@ -118,6 +119,9 @@ func _ready() -> void:
 	add_child(_care)
 	_build_away_view()
 	_build_baggage_button()
+	_photo_line = PhotoLine.new()
+	_photo_line.pet = self
+	add_child(_photo_line)
 	Events.state_changed.connect(_refresh)
 	Events.taste_reacted.connect(_on_taste)
 	Events.favorite_spot_loved.connect(_on_spot_loved)
@@ -311,6 +315,12 @@ func _layout_corner() -> void:
 	%Stars.size = Vector2(64, 64)
 	%DogArea.queue_redraw()
 	_place_bubble()
+	if _photo_line: _photo_line.sync()
+
+
+## Borda direita livre para o varal: à esquerda do balão do desejo.
+func photo_line_right() -> float:
+	return size.x - BUBBLE_SIZE.x - 22.0 - 6.0
 
 
 func _refresh() -> void:
@@ -364,6 +374,7 @@ func _refresh() -> void:
 		_mood_label.text = text
 		_show_mood()
 	_update_light()
+	if _photo_line: _photo_line.sync()
 
 
 func _show_mood() -> void:

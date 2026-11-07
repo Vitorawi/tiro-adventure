@@ -1,0 +1,121 @@
+{
+  "id": "h_courage",
+  "title": "Coragem de verdade",
+  "section": "story",
+  "section_name": "História",
+  "phase": "young",
+  "game_scene": "village",
+  "source_definition": "game/data/album.json#photos/h_courage",
+  "trigger": {
+    "on": "quest_claimed",
+    "when": {
+      "quest_is": "community_12_memory"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_courage.png",
+    "scene": "village",
+    "pose": {
+      "clip": "happy_jump",
+      "frame": 3
+    },
+    "props": [
+      "medal"
+    ]
+  },
+  "scene_description": "Young adult Tiro with upright ears, dark charcoal saddle and still somewhat dark crown over tan face, happily doing a small celebratory hop in the decorated village square while wearing a small BRASS COURAGE MEDAL hanging from a simple ribbon around his neck. Medal is the main keepsake, clearly visible on his chest, no text on it. Warm supportive festive setting, full body visible.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_courage.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_courage.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_courage/photo.json",
+  "batch_id": "batch_003",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_courage/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_courage/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.835609+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-13651ae0-c442-4609-9dee-8fc5cbc87b84.png",
+          "completed_at": "2026-11-06T21:54:05.187732+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_courage/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-13651ae0-c442-4609-9dee-8fc5cbc87b84.png",
+      "completed_at": "2026-11-06T21:54:05.187732+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c7f6926cf54e4d7dce8ecfad7da00cc6690bfb41b271586697d85290f936415d",
+      "reviewed_at": "2026-11-06T22:06:53.034886+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_courage/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_courage/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.835609+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-06b59fe4-ba66-4293-895a-0f9f5096a158.png",
+          "completed_at": "2026-11-06T21:54:36.440209+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_courage/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-06b59fe4-ba66-4293-895a-0f9f5096a158.png",
+      "completed_at": "2026-11-06T21:54:36.440209+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "b41d0bc9b36fe7f71ca3debb597c3c55c403696d4ec8c53859307eae3ce5d814",
+      "reviewed_at": "2026-11-06T22:06:53.327818+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_courage/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_courage/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.836610+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1b5b1cc4-f56d-4cf1-bd05-d91cb09b1410.png",
+          "completed_at": "2026-11-06T21:55:16.161939+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_courage/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1b5b1cc4-f56d-4cf1-bd05-d91cb09b1410.png",
+      "completed_at": "2026-11-06T21:55:16.161939+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "ec3330df5c45301a2e601f738933c4a4e79554878394514a0740a584dbda093e",
+      "reviewed_at": "2026-11-06T22:06:53.620100+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_courage/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_courage/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:53:15.836610+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d6db208d-d987-4e73-9033-0b28dd8a8fdf.png",
+          "completed_at": "2026-11-06T21:55:53.928510+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_courage/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-d6db208d-d987-4e73-9033-0b28dd8a8fdf.png",
+      "completed_at": "2026-11-06T21:55:53.928510+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "3c7b6eb1a2ea4df5d45827a566e10ac6f7c035d3cd5856c2276f7c27661c26fe",
+      "reviewed_at": "2026-11-06T22:06:53.910596+00:00"
+    }
+  }
+}

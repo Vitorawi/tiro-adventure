@@ -228,7 +228,7 @@ func _run() -> void:
 	tray.call("open_play_choice")
 	await frames()
 	check(pet.find_child("PlayBall", true, false) != null and pet.find_child("PlayCups", true, false) != null, "Brincar oferece bola e copinhos")
-	var choice: Control = pet.get_node("PopoverCatcher/Popover")
+	var choice: Control = pet.find_child("PlayChoice", true, false)
 	check(pet.get_global_rect().encloses(choice.get_global_rect()), "Bola e Copinhos ficam inteiros na área do Tiro, acima das abas")
 	var cups_button: Control = pet.find_child("PlayCups", true, false)
 	await click(cups_button.get_global_rect().get_center())
@@ -236,13 +236,11 @@ func _run() -> void:
 	check(main.find_child("HideSeek", true, false) != null and state.inventory.count("carrot_snack") == 1, "toque real em Copinhos abre a rodada e gasta um petisco")
 	root.get_node("Events").sheet_close_requested.emit()
 	await frames()
-	var catcher := pet.get_node_or_null("PopoverCatcher")
-	if catcher: catcher.free()
 	state.inventory.from_dict({})
 	tray.call("open_play_choice")
 	await frames()
 	check(pet.find_child("PlayCups", true, false) == null and pet.find_child("PlayCupsLocked", true, false) != null, "sem petisco, copinhos mostram o motivo")
-	pet.get_node("PopoverCatcher").free()
+	tray.call("close_food_menu")
 	state.growth.phase = "puppy"
 	check(not state.hide_unlocked(), "escolha só aparece desde o Aventureiro")
 

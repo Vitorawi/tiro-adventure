@@ -1,0 +1,119 @@
+{
+  "id": "f_tooth",
+  "title": "Dentinho de leite",
+  "section": "firsts",
+  "section_name": "Primeiras vezes",
+  "phase": "teething",
+  "game_scene": "farm",
+  "source_definition": "game/data/album.json#photos/f_tooth",
+  "trigger": {
+    "on": "dug",
+    "when": {
+      "item": "milk_tooth"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/f_tooth.png",
+    "scene": "farm",
+    "pose": {
+      "clip": "look_around",
+      "frame": 0
+    },
+    "props": []
+  },
+  "scene_description": "Milk tooth keepsake: SMALL five-month-old black-and-tan juvenile Yorkshire with upright ears looking curiously at one very tiny white fallen MILK TOOTH found beside a small mound of loose soil in the family farm. Tooth visible on a brown leaf near front paw; no bleeding, no pain. Tender surprising discovery at puppy eye level, farm garden cottage fence behind. Dog has a BLACK crown, not adult golden crown.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/f_tooth.png",
+  "original_capture": "docs/art/album_ilustrado/originais/f_tooth.png",
+  "manifest_path": "tools/art/album_rarities/photos/firsts/f_tooth/photo.json",
+  "batch_id": "batch_004",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_tooth/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_tooth/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.889652+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-aa47273d-1ba6-48d0-ac20-2470d0451665.png",
+          "completed_at": "2026-11-06T22:08:54.551879+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_tooth/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-aa47273d-1ba6-48d0-ac20-2470d0451665.png",
+      "completed_at": "2026-11-06T22:08:54.551879+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d7d6e32e2ceacd1c350551bb75c978aa10ccc097b732bd5b2a604e7f98f3f1f4",
+      "reviewed_at": "2026-11-06T22:22:33.063767+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_tooth/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_tooth/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.889652+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3289b4f8-2427-41ac-af30-4afd2a0060d0.png",
+          "completed_at": "2026-11-06T22:09:25.364107+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_tooth/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-3289b4f8-2427-41ac-af30-4afd2a0060d0.png",
+      "completed_at": "2026-11-06T22:09:25.364107+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "d15085abdcdca7c0f876dc15a3a2c03c791ca80590c902c209e9edcc2fea2f04",
+      "reviewed_at": "2026-11-06T22:22:33.363827+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_tooth/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_tooth/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.889652+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ff9bf808-a0d2-456a-a9d8-44a48af52970.png",
+          "completed_at": "2026-11-06T22:10:11.486929+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_tooth/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ff9bf808-a0d2-456a-a9d8-44a48af52970.png",
+      "completed_at": "2026-11-06T22:10:11.486929+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "cb04c4dff80bb69d8513f6081673535637bd8f053d590a92cf6008b593de8c80",
+      "reviewed_at": "2026-11-06T22:22:33.666919+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_tooth/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_tooth/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.890640+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ea6d2452-5991-4e4f-9459-96f62240cd2f.png",
+          "completed_at": "2026-11-06T22:10:50.730382+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_tooth/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-ea6d2452-5991-4e4f-9459-96f62240cd2f.png",
+      "completed_at": "2026-11-06T22:10:50.730382+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "6a2eeab76f90320f9bea464347d44c0f94ee4968145fc0e44f52c925d65a7be3",
+      "reviewed_at": "2026-11-06T22:22:33.977862+00:00"
+    }
+  }
+}

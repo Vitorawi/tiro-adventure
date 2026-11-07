@@ -24,6 +24,11 @@ var _animator: PetAnimator
 var _tween: Tween
 
 
+## Folha em madeira ilustrada (a `Sheet` lê a meta ao abrir o conteúdo).
+func _init() -> void:
+	set_meta("sheet_wood", true)
+
+
 func start(treat: String) -> String:
 	_build()
 	item = treat
@@ -86,11 +91,12 @@ func _build() -> void:
 	_treat.name = "Treat"
 	_treat.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_stage.add_child(_treat)
-	_status = UiKit.label("", &"")
+	_status = StepCardUi.wood("", 18)
+	_status.name = "HideStatus"
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	add_child(_status)
-	_again = UiKit.button("Jogar de novo", _play_again, &"PrimaryButton")
+	_again = StepCardUi.go_button("Jogar de novo", _play_again)
 	_again.name = "HideAgain"
 	_again.custom_minimum_size.y = 56
 	_again.hide()

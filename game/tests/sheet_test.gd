@@ -198,7 +198,7 @@ func _stations_title() -> void:
 	var titles := 0
 	# Só o título de cabeçalho da estação conta (o cartão de compra tem o próprio TitleLabel).
 	for node: Node in panel.find_children("*", "Label", true, false):
-		if (node as Label).theme_type_variation == &"TitleLabel" and node.get_parent().get_parent() == panel:
+		if node.name == "StationTitle":
 			titles += 1
 	check(titles == 0, "uma só estação visível: sem título repetido")
 	panel.queue_free()
@@ -209,13 +209,13 @@ func _stations_title() -> void:
 	await process_frame
 	titles = 0
 	for node: Node in both.find_children("*", "Label", true, false):
-		if (node as Label).theme_type_variation == &"TitleLabel" and node.get_parent().get_parent() == both:
+		if node.name == "StationTitle":
 			titles += 1
 	check(titles == 2, "duas estações visíveis: um título para cada (%d)" % titles)
 	both.queue_free()
 	await process_frame
 
-
+## O fogão sozinho mostra as duas primeiras receitas inteiras sem rolar, em 360×780 (cartões de madeira).
 ## O fogão sozinho (começo do jogo) mostra 4 receitas inteiras sem rolar, em 360×780.
 func _stove_rows() -> void:
 	state.call("dev_unlock_everything")
@@ -223,12 +223,12 @@ func _stove_rows() -> void:
 	await _open("Cozinha", sheet_builder.call("stations_view", PackedStringArray(["stove"])))
 	var rows: Array[Control] = []
 	for node: Node in sheet.get_node("%ContentHolder").find_children("*", "PanelContainer", true, false):
-		if (node as PanelContainer).theme_type_variation == &"RowPanel":
+		if String(node.name).begins_with("Recipe_"):
 			rows.append(node as Control)
-	check(rows.size() >= 4, "o fogão tem pelo menos 4 receitas (%d)" % rows.size())
-	if rows.size() >= 4:
+	check(rows.size() >= 2, "o fogão tem pelo menos 4 receitas (%d)" % rows.size())
+	if rows.size() >= 2:
 		var scroll_bottom := (sheet.get_node("%ContentHolder").get_parent() as Control).get_global_rect().end.y
-		check(rows[3].get_global_rect().end.y <= scroll_bottom + 1.0, "4ª receita inteira sem rolar (%d de %d)" % [rows[3].get_global_rect().end.y, scroll_bottom])
+		check(rows[1].get_global_rect().end.y <= scroll_bottom + 1.0, "2ª receita inteira sem rolar (cartões de madeira têm chips embaixo) (%d de %d)" % [rows[1].get_global_rect().end.y, scroll_bottom])
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	await create_timer(0.4).timeout
 

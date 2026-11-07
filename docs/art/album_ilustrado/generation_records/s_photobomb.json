@@ -1,0 +1,26 @@
+{
+  "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-4eeb16b6-4689-4ef9-83e0-f164bf859b2c.png",
+  "reference_paths": [
+    "C:/Users/Vitor/Documents/ClaudeGame/tools/art/album_illustrated_candidates/alternatives/s_photobomb-v1.png",
+    "C:/Users/Vitor/Documents/ClaudeGame/game/assets/sprites/characters/dog_pipoca/portrait.png",
+    "C:/Users/Vitor/Documents/ClaudeGame/tools/art/album_illustrated_candidates/a_pipoca.png"
+  ],
+  "prompt_path": "docs/art/album_ilustrado/prompts/s_photobomb-v2.txt",
+  "scene_prompt": "A funny photobomb in the village park: young adult little Yorkshire Tiro (dark charcoal crown/back, tan face paws, upright ears) is posing sweetly farther back, but Pipoca the caramel mixed-breed friend pops into the VERY close foreground from the lower right, with large cheerful caramel face and cream muzzle partially blocking the intended photo. Pipoca matches supporting portrait, taller ears and slightly bigger than Yorkie in normal scale. Depth and partial occlusion tell the joke. Exactly TWO dogs, no human.",
+  "review": "conferida: Pipoca de pelo curto caramelo; Tiro e cena preservados",
+  "generation_history": [
+    {
+      "version": 1,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-1d301fba-c179-4f9e-b3bf-5dc62d895286.png",
+      "archive_path": "tools/art/album_illustrated_candidates/alternatives/s_photobomb-v1.png",
+      "prompt_path": "docs/art/album_ilustrado/prompts/s_photobomb.txt",
+      "reason_replaced": "Pipoca com pelo comprido demais, semelhante ao Yorkshire."
+    },
+    {
+      "version": 2,
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b0c2-36d4-7aa0-a341-02be7e22e806\\exec-4eeb16b6-4689-4ef9-83e0-f164bf859b2c.png",
+      "prompt_path": "docs/art/album_ilustrado/prompts/s_photobomb-v2.txt",
+      "reason": "Correção da identidade da Pipoca; variante selecionada."
+    }
+  ]
+}

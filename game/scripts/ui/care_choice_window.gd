@@ -33,6 +33,7 @@ func _init() -> void:
 	add_child(body)
 	scroll = ScrollContainer.new()
 	scroll.name = "FoodScroll"
+	scroll.set_meta("own_drag_scroll", true)  # o ícone é a pega de arrastar a comida; o gesto é do PetCareTray
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	body.add_child(scroll)

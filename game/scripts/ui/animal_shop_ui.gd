@@ -263,9 +263,7 @@ static func _card(station_id: String, id: String, card_w: float, figure_factor: 
 		help.name = "Locked_Buy_" + id
 		help.set_meta("reason", error)
 		help.mouse_filter = Control.MOUSE_FILTER_STOP
-		help.gui_input.connect(func(event: InputEvent) -> void:
-			if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-				_explain(station_id, animal, error))
+		UiKit.on_tap(help, func() -> void: _explain(station_id, animal, error))
 		card.add_child(help)
 		StepCardUi.stretch(help)
 	return card

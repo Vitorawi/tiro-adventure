@@ -1,0 +1,121 @@
+{
+  "id": "f_friend",
+  "title": "Primeiro amigo",
+  "section": "firsts",
+  "section_name": "Primeiras vezes",
+  "phase": "explorer",
+  "game_scene": "park",
+  "source_definition": "game/data/album.json#photos/f_friend",
+  "trigger": {
+    "on": "friend_heart",
+    "when": {
+      "friend_hearts": {
+        "pipoca": 1
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/f_friend.png",
+    "scene": "park",
+    "pose": {
+      "clip": "wag_excited",
+      "frame": 1
+    },
+    "props": []
+  },
+  "scene_description": "First friendship with PIPOCA: small adolescent black-and-tan Yorkie Tiro with upright ears greeting Pipoca, the caramel mixed-breed dog shown in the supporting reference, gently touching noses beside a park path, happy relaxed tails. Pipoca is slightly larger than the tiny Yorkie, caramel fur, cream chest muzzle, tall ears, slender build. Warm first meeting, only TWO dogs, welcoming park green grass flowers and bench.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/f_friend.png",
+  "original_capture": "docs/art/album_ilustrado/originais/f_friend.png",
+  "manifest_path": "tools/art/album_rarities/photos/firsts/f_friend/photo.json",
+  "batch_id": "batch_004",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_friend/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_friend/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.890640+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-a78fa8ef-ca6f-44eb-901b-411566e27389.png",
+          "completed_at": "2026-11-06T22:11:25.036362+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_friend/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-a78fa8ef-ca6f-44eb-901b-411566e27389.png",
+      "completed_at": "2026-11-06T22:11:25.036362+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "60bbfd5b7812145cffef52b25dd6f1459e287f096aee84e5b1c54bd29f75fa52",
+      "reviewed_at": "2026-11-06T22:22:34.303273+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_friend/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_friend/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.890640+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-b8897f42-a6d3-4043-8a2c-189236d52b06.png",
+          "completed_at": "2026-11-06T22:12:02.206482+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_friend/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-b8897f42-a6d3-4043-8a2c-189236d52b06.png",
+      "completed_at": "2026-11-06T22:12:02.206482+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "073b808382d2f9d18056578fbdeb9854d59c676975f257405be787e929bda801",
+      "reviewed_at": "2026-11-06T22:22:34.684177+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_friend/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_friend/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.890640+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e6ad51e1-e4eb-4331-8ab5-e507615a8a52.png",
+          "completed_at": "2026-11-06T22:12:43.993799+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_friend/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e6ad51e1-e4eb-4331-8ab5-e507615a8a52.png",
+      "completed_at": "2026-11-06T22:12:43.993799+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "9604b1289117f77c87e36755de7a98818fccd443c4c62fa885a79f2b5e34656e",
+      "reviewed_at": "2026-11-06T22:22:35.058563+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/firsts/f_friend/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/firsts/f_friend/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:07:58.890640+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-295c2edd-d153-4ee6-92f3-57eccf9b1baa.png",
+          "completed_at": "2026-11-06T22:13:18.010664+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/f_friend/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-295c2edd-d153-4ee6-92f3-57eccf9b1baa.png",
+      "completed_at": "2026-11-06T22:13:18.010664+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "2b43051bb7ce2de6c0654068ecd345f6c1600e9488f035cc2d09567e81729668",
+      "reviewed_at": "2026-11-06T22:22:35.365478+00:00"
+    }
+  }
+}

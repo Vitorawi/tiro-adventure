@@ -26,7 +26,11 @@ var home := Vector2.ZERO
 
 var _facing := "south"
 var _sprite: AnimatedSprite2D
-var _badge: Label
+const BADGE_PX := 38.0
+## Selo sobre a cabeça: Node2D com a arte de madeira (! vermelho = passo novo, medalha verde = pronto).
+var _badge: Node2D
+var _badge_art: Sprite2D
+var _badge_state := ""
 var _feet := 26.0
 var _move_tween: Tween
 var _hopping := false
@@ -38,15 +42,11 @@ func _ready() -> void:
 	_sprite.sprite_frames = _build_frames()
 	add_child(_sprite)
 	_sprite.position = Vector2(0.0, -_feet)
-	_badge = Label.new()
-	_badge.theme = load("res://assets/theme/main_theme.tres")
-	_badge.theme_type_variation = &"WorldBadgeLabel"
-	_badge.add_theme_color_override("font_outline_color", Palette.OUTLINE)
-	_badge.add_theme_constant_override("outline_size", 8)
-	_badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_badge.size = Vector2(40, 40)
-	_badge.position = Vector2(-20, -_feet * 2.0 - 44.0)
-	_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_badge = Node2D.new()
+	_badge.position = Vector2(0.0, -_feet * 2.0 - 24.0)
+	_badge_art = Sprite2D.new()
+	_badge_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	_badge.add_child(_badge_art)
 	add_child(_badge)
 	_snack = Sprite2D.new()
 	_snack.position = Vector2(0, -_feet * 2.0 - 22.0)
@@ -78,14 +78,23 @@ func head_point() -> Vector2:
 
 func _refresh_badge() -> void:
 	if friend_id != "" and GameState.friend_unlocked(friend_id):
-		_badge.text = "✓" if friend_visit else ""
+		_set_badge("ready" if friend_visit else "")
 		_snack.texture = Database.item_icon(str(GameState.friend_def(friend_id).likes))
 		_snack.visible = not friend_visit and str(GameState.friend_state.entry(friend_id).last_window) != GameState.friend_window()
 		return
 	_snack.visible = false
-	var state := Places.npc_badge(npc_id)
-	_badge.text = "✓" if state == "ready" else ("!" if state == "new" else "")
-	_badge.add_theme_color_override("font_color", Palette.GO if state == "ready" else Palette.HONEY)
+	_set_badge(Places.npc_badge(npc_id))
+
+
+## Troca a arte do selo: medalha verde (pronto) ou "!" vermelho de madeira (passo novo); vazio esconde.
+func _set_badge(state: String) -> void:
+	_badge_state = state
+	_badge.visible = state == "ready" or state == "new"
+	if not _badge.visible:
+		return
+	var texture := (load("res://assets/sprites/ui/home/step_done.png") if state == "ready" else load("res://assets/sprites/ui/home/mission_tab_badge.png")) as Texture2D
+	_badge_art.texture = texture
+	_badge_art.scale = Vector2.ONE * (BADGE_PX / float(texture.get_width()))
 
 
 # --- Comportamento -----------------------------------------------------------

@@ -84,6 +84,9 @@ func _run() -> void:
 func _data() -> void:
 	check(db.album_problems().is_empty(), "album.json válido: " + str(db.album_problems()))
 	check(db.album.photos.size() == 54, "54 fotos no catálogo")
+	for entry: Dictionary in db.album.photos:
+		var art := str(entry.photo.get("illustration", ""))
+		check(art != "" and ResourceLoader.exists(art), "ilustração instalada: " + str(entry.id))
 	var per := {}
 	for entry: Dictionary in db.album.photos:
 		per[entry.section] = int(per.get(entry.section, 0)) + 1
@@ -278,8 +281,12 @@ func _phase_snapshot() -> void:
 	check(state.photo_info("f_bath").phase == "newborn", "foto continua da fase antiga")
 	var card: Control = photo_card.make("f_bath", 120.0)
 	root.add_child(card)
-	var dog := card.find_child("Tiro", true, false) as TextureRect
-	check(dog != null and dog.texture.resource_path.contains("puppy"), "foto mostra o corpo de filhote depois de crescer: " + str(dog.texture.resource_path if dog else ""))
+	var illustration := card.find_child("Illustration", true, false) as TextureRect
+	check(illustration != null and illustration.texture.resource_path.ends_with("/f_bath.png"), "foto mantém a ilustração do primeiro banho depois de crescer")
+	check(card.find_child("Tiro", true, false) == null, "ilustração não recebe um segundo cachorro sobreposto")
+	var locked: Control = photo_card.make("f_bath", 120.0, {"locked": true})
+	check(locked.find_child("Illustration", true, false) == null, "foto bloqueada não revela a ilustração")
+	locked.free()
 	var adult: Texture2D = photo_card.dog_frame("adult", "idle_breathe", 0)
 	check(adult != null and not adult.resource_path.contains("puppy") and not adult.resource_path.contains("young"), "corpo adulto continua o original")
 	card.free()
@@ -326,8 +333,8 @@ func _inactive() -> void:
 	check(state.album.photos.keys().all(func(id: String) -> bool: return db.photo(id).section in ["story", "firsts"]), "só fotos das seções ativas")
 	var panel: Control = album_view.panel()
 	root.add_child(panel)
-	check(panel.find_child("Photo_s_foam_ghost", true, false) == null, "seção inativa não aparece no álbum")
-	check(panel.find_child("NotebookTab_tricks", true, false) == null, "aba de seção inativa não aparece")
+	check(panel.find_child("AlbumCard_s_foam_ghost", true, false) == null, "seção inativa não aparece no álbum")
+	check(panel.find_child("CodexFilters", true, false).find_child("NotebookTab_tricks", true, false) == null, "aba de seção inativa não aparece")
 	panel.free()
 
 
@@ -374,15 +381,15 @@ func _interface() -> void:
 	var panel: Control = album_view.panel("firsts")
 	root.add_child(panel)
 	var grid := panel.find_child("AlbumGrid", true, false) as GridContainer
-	check(grid != null and grid.columns == 3 and grid.get_child_count() == 8, "grade de 3 colunas com as 8 primeiras vezes")
-	check(panel.find_child("Photo_f_bath", true, false).find_child("NewBadge", true, false) != null, "foto nova tem selo Novo!")
-	check(panel.find_child("Photo_f_bath", true, false).find_child("NewBadge", true, false).text == "!", "foto nova usa exclamação")
+	check(grid != null and grid.columns == 2 and grid.get_child_count() == 8, "grade de 2 colunas com as 8 primeiras vezes")
+	check(panel.find_child("AlbumCard_f_bath", true, false).find_child("NewBadge", true, false) != null, "foto nova tem selo Novo!")
+	check(panel.find_child("AlbumCard_f_bath", true, false).find_child("NewBadge", true, false).text == "Novo", "foto nova usa selo Novo")
 	check(panel.find_child("NotebookTab_firsts", true, false).find_child("NewBadge", true, false) != null, "seção Primeiras vezes aponta as fotos novas")
-	var section_badge := panel.find_child("NotebookTab_firsts", true, false).find_child("NewBadge", true, false) as Label
-	check(section_badge.get_theme_color("font_color").a == 0 and (section_badge.get_theme_stylebox("normal") as StyleBoxFlat).bg_color == Palette.HONEY, "novidade de seção é ponto mel sem número vermelho")
+	var section_badge := panel.find_child("NotebookTab_firsts", true, false).find_child("NewBadge", true, false) as TextureRect
+	check(section_badge != null and section_badge.texture != null, "novidade de seção mantém o selo ilustrado do caderninho")
 	check(panel.find_child("NotebookTab_story", true, false).find_child("NewBadge", true, false) == null, "seção sem foto nova fica sem aviso")
-	check(panel.find_child("Photo_f_dig", true, false).find_child("NewBadge", true, false) == null, "foto que falta não tem selo")
-	check(panel.find_child("PhotoCard", true, false) != null, "polaroides montadas")
+	check(panel.find_child("AlbumCard_f_dig", true, false).find_child("NewBadge", true, false) == null, "foto que falta não tem selo")
+	check(panel.find_child("CardBack", true, false) != null, "fechadas mostram o verso sem antecipar a arte")
 	var counter := "%d/%d" % [album_view.taken_count(), album_view.total_count()]
 	check(album_view.total_count() == 54, "contador usa as seis seções ativas (54)")
 	check(counter != "", "contador " + counter)
@@ -405,7 +412,11 @@ func _interface() -> void:
 	notebook_panel.free()
 	check(not notebook.has_new() or not state.new_unlocks().is_empty(), "selo some depois de ver as fotos")
 	lines = state.welcome_ready_lines().filter(func(l: Dictionary) -> bool: return l.kind == "photo")
-	check(lines.is_empty(), "linha de foto some depois de vista")
+	check(not lines.is_empty(), "ver não consome cartas fechadas nas boas-vindas")
+	for id: String in state.sealed_photos():
+		while state.photo_sealed(id) > 0: state.open_photo_card(id)
+	lines = state.welcome_ready_lines().filter(func(l: Dictionary) -> bool: return l.kind == "photo")
+	check(lines.is_empty(), "linha de foto some depois de abrir as cartas")
 	# Antes e depois da cerimônia do adulto.
 	state.dev_take_photo("h_arrival")
 	state.dev_take_photo("h_growth_adult")
@@ -417,7 +428,7 @@ func _interface() -> void:
 	db.album.active_sections = ["story"]
 	var single: Control = album_view.panel("story")
 	root.add_child(single)
-	check(single.find_child("AlbumSections", true, false) != null and not single.find_child("AlbumSections", true, false).visible, "seção única mantém contêiner invisível")
-	check(not single.find_child("AlbumSectionScroll", true, false).visible, "seção única não deixa faixa vazia")
+	check(single.find_child("CodexFilters", true, false) == null, "seção única não deixa faixa vazia")
+	check(single.find_child("AlbumGrid", true, false) != null, "seção única continua mostrando cartas")
 	single.free()
 	db.album.active_sections = all_sections

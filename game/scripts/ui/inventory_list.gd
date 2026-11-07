@@ -79,18 +79,14 @@ func store_gifts() -> void:
 
 
 ## "Presentes para guardar (N)": só aparece quando há algo esperando; os detalhes ficam recolhidos.
+## Cartão de papel de madeira: pratinho com o ícone, título, chips de madeira e botões de madeira (Ver/Ocultar amarelo,
+## Guardar verde).
 func _gifts_card() -> Control:
-	var card := PanelContainer.new()
-	card.name = "PendingGifts"
-	card.add_theme_stylebox_override("panel", _warm_card())
-	var inner := UiKit.vbox(6)
-	card.add_child(inner)
-	var head := UiKit.hbox(8)
-	head.add_child(UiKit.disc(UiKit.ui_icon("item_treat_box"), 40, 32))
-	var title := UiKit.fill_label("Presentes para guardar (%d)" % GameState.pending_reward_total())
-	title.name = "GiftsTitle"
-	head.add_child(title)
-	inner.add_child(head)
+	var card := MissionUi.card("card", Vector4i(14, 12, 14, 12), "PendingGifts", 10)
+	var inner := UiKit.vbox(8)
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	MissionUi.body(card).add_child(inner)
+	inner.add_child(_card_head(UiKit.ui_icon("item_treat_box"), "Presentes para guardar (%d)" % GameState.pending_reward_total(), "GiftsTitle"))
 	var summary := {}
 	for receipt: Dictionary in GameState.economy.pending.values():
 		for item_id: String in receipt.items:
@@ -98,39 +94,43 @@ func _gifts_card() -> Control:
 	if _gifts_open:
 		for id: String in GameState.economy.pending:
 			var receipt: Dictionary = GameState.economy.pending[id]
-			inner.add_child(UiKit.label(str(receipt.label), &"SmallLabel", Palette.INK_SOFT))
+			inner.add_child(_note(str(receipt.label)))
 			inner.add_child(_gift_chips(receipt.items))
 	else:
 		inner.add_child(_gift_chips(summary))
 	var hint := GameState.pending_reward_hint()
 	var actions := UiKit.hbox(8)
-	var toggle := UiKit.ghost("Ocultar" if _gifts_open else "Ver", toggle_gifts)
-	toggle.name = "GiftsToggle"
-	actions.add_child(toggle)
+	actions.add_child(WelcomeSheet._button("Ocultar" if _gifts_open else "Ver", false, 88.0, "GiftsToggle", toggle_gifts))
 	if GameState.pending_reward_error() == "":
 		var spacer := Control.new()
 		spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		actions.add_child(spacer)
-		var save := UiKit.small_go("Guardar", store_gifts)
-		save.name = "StoreGifts"
-		actions.add_child(save)
+		actions.add_child(WelcomeSheet._button("Guardar", true, 120.0, "StoreGifts", store_gifts))
 		inner.add_child(actions)
 		if hint != "":
-			inner.add_child(UiKit.label(hint, &"SmallLabel", Palette.INK_SOFT))
+			inner.add_child(_note(hint))
 	else:
 		inner.add_child(actions)
-		var lock := UiKit.lock_hint(hint)
+		var lock := StepCardUi.lock_note(hint)
 		lock.name = "GiftsBlocked"
 		inner.add_child(lock)
 	return card
 
 
-## Cartão quente do topo da Mochila (presentes e bagagem esperando): mel suave, canto 20.
-func _warm_card() -> StyleBoxFlat:
-	var style := UiKit.surface(Palette.HONEY_SOFT, 20)
-	style.set_content_margin_all(12)
-	return style
+## Cabeçalho do cartão quente: pratinho com o ícone pixel (escala inteira) e o título em madeira.
+func _card_head(icon: Texture2D, text: String, title_name: String) -> Control:
+	var head := UiKit.hbox(10)
+	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	head.add_child(WelcomeSheet._plate(48.0, icon, "WarmPlate", 32.0))
+	var title := StepCardUi.wood(text, 17)
+	title.name = title_name
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	title.custom_minimum_size.x = 100.0
+	head.add_child(title)
+	return head
 
 
 ## Guarda o que cabe da bagagem do último passeio. O resto continua esperando, sem perder nada.
@@ -144,29 +144,23 @@ func store_baggage() -> void:
 
 ## "Achados do passeio (N)": o Tiro já voltou; a bagagem espera aqui e na Praça, sem prender nada.
 func _baggage_card() -> Control:
-	var card := PanelContainer.new()
-	card.name = "WalkBaggage"
-	card.add_theme_stylebox_override("panel", _warm_card())
-	var inner := UiKit.vbox(6)
-	card.add_child(inner)
-	var head := UiKit.hbox(8)
-	head.add_child(UiKit.disc(UiKit.ui_icon("action_walk"), 40, 32))
-	var title := UiKit.fill_label("Achados do passeio (%d)" % GameState.walk_state.baggage_count())
-	title.name = "BaggageTitle"
-	head.add_child(title)
-	inner.add_child(head)
+	var card := MissionUi.card("card", Vector4i(14, 12, 14, 12), "WalkBaggage", 10)
+	var inner := UiKit.vbox(8)
+	inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	MissionUi.body(card).add_child(inner)
+	inner.add_child(_card_head(UiKit.ui_icon("action_walk"), "Achados do passeio (%d)" % GameState.walk_state.baggage_count(), "BaggageTitle"))
 	inner.add_child(_gift_chips(GameState.walk_state.baggage_left(), "Baggage_"))
 	var error := GameState.walk_baggage_error()
 	if error == "":
-		# Um botão verde por tela: com presentes também esperando, este vira secundário.
-		var save := UiKit.soft("Guardar achados", store_baggage) if GameState.pending_reward_count() > 0 else UiKit.primary("Guardar achados", store_baggage)
-		save.name = "StoreBaggage"
+		# Um botão verde por tela: com presentes também esperando, este vira o amarelo calmo.
+		var green := GameState.pending_reward_count() == 0 or GameState.pending_reward_error() != ""
+		var save := WelcomeSheet._button("Guardar achados", green, 200.0, "StoreBaggage", store_baggage)
 		inner.add_child(save)
 		var hint := GameState.walk_baggage_hint()
 		if hint != "":
-			inner.add_child(UiKit.label(hint, &"SmallLabel", Palette.INK_SOFT))
+			inner.add_child(_note(hint))
 	else:
-		var lock := UiKit.lock_hint(error)
+		var lock := StepCardUi.lock_note(error)
 		lock.name = "BaggageBlocked"
 		inner.add_child(lock)
 	return card
@@ -174,15 +168,14 @@ func _baggage_card() -> Control:
 
 ## Itens esperando, tocáveis: levam ao depósito onde vão morar (se ele já tem limite).
 func _gift_chips(items: Dictionary, prefix: String = "Gift_") -> Control:
-	var row := UiKit.flow(4)
+	var row := UiKit.flow(6)
 	for item_id: String in items:
 		var depot := GameState.storage_of(item_id)
-		var chip := UiKit.tap_chip(Database.item_icon(item_id), "×%d" % int(items[item_id]), func() -> void:
+		var chip := StepCardUi.wood_chip(Database.item_icon(item_id), "×%d" % int(items[item_id]), "", func() -> void:
 			if depot != "" and GameState.storage_active(depot):
 				choose_storage(depot)
 			else:
-				Events.sheet_requested.emit(Database.item_name(item_id), SheetBuilder.item_detail(item_id)))
-		chip.name = prefix + item_id
+				Events.sheet_requested.emit(Database.item_name(item_id), SheetBuilder.item_detail(item_id)), prefix + item_id)
 		row.add_child(chip)
 	return row
 
@@ -213,6 +206,10 @@ func _build(box: VBoxContainer) -> void:
 		depots.add_child(card)
 	if depots.get_child_count() > 0:
 		_add(box, depots)
+		if wood:
+			var expand := _expand_button()
+			if expand != null:
+				_add(box, expand)
 	else:
 		depots.free()
 		if depots_title != null:
@@ -272,6 +269,27 @@ func _build(box: VBoxContainer) -> void:
 		_add(box, UiKit.label("Nada por aqui ainda.", &"SmallLabel"))
 
 
+## "Expandir <depósito>" logo abaixo dos cartões, só com um depósito escolhido e já construído: abre a folha de compra
+## da PRÓXIMA ampliação (o que precisa, tem/falta e Construir ou o motivo). Verde quando dá para comprar agora,
+## amarelo quando ainda falta algo. Some no último nível. Nó `ExpandStorage` (meta `upgrade`).
+func _expand_button() -> Control:
+	if storage == "" or not GameState.has_upgrade(str(Database.progression.storage.get(storage, {}).get("building", ""))):
+		return null
+	var upgrade := GameState.storage_next_upgrade(storage)
+	if upgrade == "":
+		return null
+	var data: Dictionary = Database.progression.upgrades[upgrade]
+	var ready := GameState.requirement_error(data.get("requirements", {})) == "" and GameState.upgrade_error(upgrade) == ""
+	var button := WelcomeSheet._button("Expandir " + GameState.storage_name(storage), ready, 230.0, "ExpandStorage",
+		func() -> void: Events.sheet_requested.emit(str(data.name), ProgressionUi.purchase(upgrade)))
+	button.set_meta("upgrade", upgrade)
+	var row := CenterContainer.new()
+	row.name = "ExpandRow"
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.add_child(button)
+	return row
+
+
 ## Na aba Mochila (madeira) a área que rola não tem margem lateral, para a tábua dos filtros encostar na moldura;
 ## o resto ganha a margem aqui.
 func _add(box: VBoxContainer, child: Control) -> void:
@@ -294,3 +312,12 @@ func _plain_filters(options: Array[Dictionary]) -> ScrollContainer:
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_SHOW_NEVER
 	scroll.add_child(UiKit.segmented(options, category, choose_category))
 	return scroll
+
+
+## Linha de nota em madeira que quebra de linha (nunca alarga o cartão).
+func _note(text: String) -> Label:
+	var label := StepCardUi.wood(text, 14, Color(Palette.WOOD_INK, 0.8))
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.custom_minimum_size.x = 80.0
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return label

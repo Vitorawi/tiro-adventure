@@ -46,6 +46,7 @@ func _run() -> void:
 	await _welcome()
 	await _chapter()
 	await _character()
+	await _gift()
 	await _other_claim_paths()
 	await _full_storage()
 	main.queue_free()
@@ -126,6 +127,23 @@ func _character() -> void:
 	check(not main.get("_quest_reward").visible and gains.size() == count + 1, "personagem tem voo sem folha")
 	check(tasks.find_child("LineCard_bloblo", true, false) == null, "linha recebida some")
 	clear_modals()
+
+## Item principal entregue por um personagem: mini janela com o ícone, não mais um aviso.
+func _gift() -> void:
+	clear_modals()
+	await frames()
+	events.quest_completed.emit("bloblo_chew_ring")
+	for i in 3: await flush()
+	var celebration: CanvasLayer = main.get("_celebration")
+	var db := root.get_node("Database")
+	var icon := celebration.find_child("BigIcon", true, false) as TextureRect
+	check(celebration.visible and icon != null and icon.texture == db.call("item_icon", "chew_ring"), "janela abre com o ícone do item")
+	check(has_text(celebration, "Argolinha de morder") and has_text(celebration, "Vovó Bloblo te deu"), "janela diz o item e quem deu")
+	var toast := main.find_child("ToastText", true, false) as Label
+	check(toast == null or not "te deu" in toast.text, "sem aviso de texto junto")
+	clear_modals()
+	await frames()
+
 
 func _other_claim_paths() -> void:
 	# A mesma entrega, agora pela pílula e pelo cartão usado nas conversas.

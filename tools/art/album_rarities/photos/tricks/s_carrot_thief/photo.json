@@ -1,0 +1,125 @@
+{
+  "id": "s_carrot_thief",
+  "title": "Ladrão da horta",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "adult",
+  "game_scene": "farm",
+  "source_definition": "game/data/album.json#photos/s_carrot_thief",
+  "trigger": {
+    "on": "harvested",
+    "when": {
+      "crop": "carrot",
+      "dog_in_world": "farm",
+      "need_below": {
+        "hunger": 30
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+    "scene": "farm",
+    "pose": {
+      "clip": "happy_jump",
+      "frame": 3
+    },
+    "props": [
+      "carrot_mouth"
+    ]
+  },
+  "scene_description": "Geração anterior desta conversa; cena e fase conferidas com o catálogo.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_carrot_thief.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_carrot_thief.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_carrot_thief/photo.json",
+  "batch_id": "batch_005",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_carrot_thief/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_carrot_thief/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.684301+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f5d24a8f-98e9-4b3e-9ac3-391281c42135.png",
+          "completed_at": "2026-11-06T22:27:05.872593+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_carrot_thief/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-f5d24a8f-98e9-4b3e-9ac3-391281c42135.png",
+      "completed_at": "2026-11-06T22:27:05.872593+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "1cd46c5279d6f1c8a1bcfdf888c9a75536c1b8c682fab6cef37501326ae6a7bc",
+      "reviewed_at": "2026-11-06T22:38:03.919543+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_carrot_thief/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_carrot_thief/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.684301+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-9e8128f3-0c08-4844-89ef-82884bc56d33.png",
+          "completed_at": "2026-11-06T22:27:38.960042+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_carrot_thief/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-9e8128f3-0c08-4844-89ef-82884bc56d33.png",
+      "completed_at": "2026-11-06T22:27:38.960042+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "734e3d4db2c46f90c94a8809782528029e63054d1a6e4f0bd2159b710c891ca7",
+      "reviewed_at": "2026-11-06T22:38:04.298782+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_carrot_thief/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_carrot_thief/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.684301+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-bc16450b-5de3-4ec5-b501-95ac5947d746.png",
+          "completed_at": "2026-11-06T22:28:22.485964+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_carrot_thief/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-bc16450b-5de3-4ec5-b501-95ac5947d746.png",
+      "completed_at": "2026-11-06T22:28:22.485964+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "04e61a109906498e582090874e64bec430cb3159aa71f79a65a3a51a5f17ab85",
+      "reviewed_at": "2026-11-06T22:38:04.656186+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_carrot_thief/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_carrot_thief/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:23:47.685311+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5d2c5a78-0c1e-455a-b330-4594fb716a60.png",
+          "completed_at": "2026-11-06T22:28:54.382066+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_carrot_thief/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-5d2c5a78-0c1e-455a-b330-4594fb716a60.png",
+      "completed_at": "2026-11-06T22:28:54.382066+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "676f2f888106388437d928c0dcdd13d3b45f593b88a7e3ac3b26e0cf58e28895",
+      "reviewed_at": "2026-11-06T22:38:04.977099+00:00"
+    }
+  }
+}

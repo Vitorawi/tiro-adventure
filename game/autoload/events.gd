@@ -83,4 +83,10 @@ signal taste_reacted(item: String, reaction: String)
 signal moment_gained(pillar: String, source: String)
 signal favorite_spot_loved(zone: String, first: bool)
 signal photo_taken(id: String)
+## Uma carta fechada nova (retomada natural de foto repetível) está esperando para abrir.
+signal photo_sealed(id: String)
+## Nível ganho: {rarity, previous, new_photo, improved, new_variant, rolled, kind: open|reroll|upgrade|tutorial}.
+signal photo_rolled(id: String, result: Dictionary)
+## Marco de coleção pago: kind = section | styles | rare | holo; key = seção, foto, quantidade ou "first".
+signal album_milestone(kind: String, key: String)
 signal house_item_arrived(id: String)

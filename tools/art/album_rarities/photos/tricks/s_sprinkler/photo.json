@@ -1,0 +1,126 @@
+{
+  "id": "s_sprinkler",
+  "title": "Chuva suspeita",
+  "section": "tricks",
+  "section_name": "Travessuras",
+  "phase": "explorer",
+  "game_scene": "farm",
+  "source_definition": "game/data/album.json#photos/s_sprinkler",
+  "trigger": {
+    "on": "watered",
+    "when": {
+      "dog_in_world": "farm",
+      "count_in_window": {
+        "event": "water_drag",
+        "n": 5,
+        "seconds": 3600
+      }
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/s_sprinkler.png",
+    "scene": "farm",
+    "pose": {
+      "clip": "chase_tail",
+      "frame": 1
+    },
+    "props": [
+      "drops"
+    ]
+  },
+  "scene_description": "Suspicious moving rain: SMALL adolescent black-and-tan Yorkshire with upright ears playfully chasing a curving spray of water being poured from a watering-can spout over garden beds at the family farm. His body in a little turning/chase-tail pose, looking surprised at droplets, whole dog visible. Include watering-can spout at edge and bright arcing droplets so it reads as watering, not natural storm. Farm cottage terracotta roof, green crops wooden fence, sunshine.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/s_sprinkler.png",
+  "original_capture": "docs/art/album_ilustrado/originais/s_sprinkler.png",
+  "manifest_path": "tools/art/album_rarities/photos/tricks/s_sprinkler/photo.json",
+  "batch_id": "batch_006",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_sprinkler/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_sprinkler/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.486663+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-b49a2251-68cf-4bd3-815e-c1d40766d29a.png",
+          "completed_at": "2026-11-06T22:43:13.043670+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_sprinkler/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-b49a2251-68cf-4bd3-815e-c1d40766d29a.png",
+      "completed_at": "2026-11-06T22:43:13.043670+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "f8447f7a4f1baff2f3c791ed1bba3fc53e69c6ea353bd0b80cc01178b7ad390d",
+      "reviewed_at": "2026-11-06T22:56:10.089122+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_sprinkler/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_sprinkler/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.486663+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e96b4caa-e466-4d0c-acb9-d38b52b2d084.png",
+          "completed_at": "2026-11-06T22:43:49.799680+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_sprinkler/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-e96b4caa-e466-4d0c-acb9-d38b52b2d084.png",
+      "completed_at": "2026-11-06T22:43:49.799680+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "c76b36da9631d4cb4fdb4dec995f72ebeb0bbd4500d07236707f3b00bd647ae2",
+      "reviewed_at": "2026-11-06T22:56:10.487500+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_sprinkler/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_sprinkler/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.487675+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-15f53fe6-ad92-41bb-9288-7dfbf0dd729b.png",
+          "completed_at": "2026-11-06T22:44:39.334698+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_sprinkler/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-15f53fe6-ad92-41bb-9288-7dfbf0dd729b.png",
+      "completed_at": "2026-11-06T22:44:39.334698+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "71e4704d9fae87eee6670aa99248e7b46e196c1fdad1aefa3afa12601d3d67fb",
+      "reviewed_at": "2026-11-06T22:56:10.962348+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/tricks/s_sprinkler/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/tricks/s_sprinkler/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T22:39:32.487675+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-30d96f0b-3af3-41a5-8825-b1fd661d4835.png",
+          "completed_at": "2026-11-06T22:45:18.699096+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/s_sprinkler/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-30d96f0b-3af3-41a5-8825-b1fd661d4835.png",
+      "completed_at": "2026-11-06T22:45:18.699096+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "e98ca44b56c68ee5cff0785ab778cc0cf8d42d6ade307f9fa1cea3208e2fb3f3",
+      "reviewed_at": "2026-11-06T22:56:11.301746+00:00"
+    }
+  }
+}

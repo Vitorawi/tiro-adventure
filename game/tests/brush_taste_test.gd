@@ -275,5 +275,17 @@ func _run() -> void:
 	var heart: Node = guide.find_child("Taste_pumpkin_mash", true, false).find_child("FavoriteHeart", true, false)
 	check(heart != null, "♥ na favorita descoberta")
 	guide.queue_free()
+	# Caderninho: cada comida provada mostra a carinha da reação; a não provada, nenhuma.
+	state.growth.tastes["carrot"] = "liked"
+	state.growth.tastes["carrot_snack"] = "odd"
+	state.growth.tastes["dog_food"] = "grimace"
+	var codex: Control = load("res://scripts/ui/pet_notebook.gd").panel("growth:tastes")
+	root.add_child(codex)
+	await frames()
+	for pair: Array in [["carrot", "liked"], ["carrot_snack", "odd"], ["dog_food", "grimace"]]:
+		check(codex.find_child("Taste_" + str(pair[0]), true, false).find_child("TasteFace_" + str(pair[1]), true, false) != null, "carinha %s em %s" % [pair[1], pair[0]])
+	check(codex.find_child("Taste_pumpkin_mash", true, false).find_child("FavoriteHeart", true, false) != null, "♥ na favorita no caderninho")
+	check(codex.find_child("Taste_apple", true, false).find_children("TasteFace_*", "", true, false).is_empty(), "comida não provada sem carinha")
+	codex.queue_free()
 	print("BRUSH TASTE: ", "FAIL" if failures > 0 else "PASS")
 	quit(1 if failures > 0 else 0)

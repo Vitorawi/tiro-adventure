@@ -1,0 +1,120 @@
+{
+  "id": "h_first_trick",
+  "title": "Pata!",
+  "section": "story",
+  "section_name": "História",
+  "phase": "teething",
+  "game_scene": "park",
+  "source_definition": "game/data/album.json#photos/h_first_trick",
+  "trigger": {
+    "on": "trick_learned",
+    "when": {
+      "trick": "paw"
+    }
+  },
+  "original_photo_definition": {
+    "illustration": "res://assets/sprites/ui/album/illustrated/h_first_trick.png",
+    "scene": "park",
+    "pose": {
+      "clip": "give_paw",
+      "frame": 2
+    },
+    "props": [],
+    "friend": "nina"
+  },
+  "scene_description": "First learned trick PAW: SMALL juvenile black-and-tan Yorkie with upright ears sitting on grass in the village park, gently placing ONE front paw into Nina's offered hand, happy attentive eye contact. Nina is the young woman in the character reference, brown skin, dark hair tied back, olive-green cap and orange T-shirt, kneeling comfortably. A clear intimate training success, correct human fingers and natural canine anatomy.",
+  "base_image": "game/assets/sprites/ui/album/illustrated/h_first_trick.png",
+  "original_capture": "docs/art/album_ilustrado/originais/h_first_trick.png",
+  "manifest_path": "tools/art/album_rarities/photos/story/h_first_trick/photo.json",
+  "batch_id": "batch_002",
+  "variants": {
+    "common": {
+      "rarity": "common",
+      "label": "Comum",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_first_trick/common.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_first_trick/prompts/common.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/common.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.284506+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-204e5f11-173d-4466-aa5f-80e4ec1b27a5.png",
+          "completed_at": "2026-11-06T21:39:52.302599+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_first_trick/common.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-204e5f11-173d-4466-aa5f-80e4ec1b27a5.png",
+      "completed_at": "2026-11-06T21:39:52.302599+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "64ad2a8daa14587109dc751e01895492a45ea183677206078dbed6a9da45752c",
+      "reviewed_at": "2026-11-06T21:52:07.090648+00:00"
+    },
+    "shiny": {
+      "rarity": "shiny",
+      "label": "Brilhante",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_first_trick/shiny.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_first_trick/prompts/shiny.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/shiny.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.284506+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-87a58102-4535-498d-a45d-16ec3afd7915.png",
+          "completed_at": "2026-11-06T21:50:37.435736+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_first_trick/shiny.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-87a58102-4535-498d-a45d-16ec3afd7915.png",
+      "completed_at": "2026-11-06T21:50:37.435736+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "2dcd134884901ce4020ad8f3f4bf33792035d833efae717841f3b06746fc1cf2",
+      "reviewed_at": "2026-11-06T21:52:07.386289+00:00"
+    },
+    "rare": {
+      "rarity": "rare",
+      "label": "Rara",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_first_trick/rare.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_first_trick/prompts/rare.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/rare.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.284506+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1985f57f-51c2-400a-be8b-a43693f93617.png",
+          "completed_at": "2026-11-06T21:50:40.061183+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_first_trick/rare.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-1985f57f-51c2-400a-be8b-a43693f93617.png",
+      "completed_at": "2026-11-06T21:50:40.061183+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "a2e34209d064e32eccc12c01b4475d73aa22c301966863d9a541a51dcf37a2e1",
+      "reviewed_at": "2026-11-06T21:52:07.681698+00:00"
+    },
+    "holographic": {
+      "rarity": "holographic",
+      "label": "Holográfica",
+      "status": "reviewed",
+      "path": "tools/art/album_rarities/photos/story/h_first_trick/holographic.png",
+      "prompt_path": "tools/art/album_rarities/photos/story/h_first_trick/prompts/holographic.txt",
+      "style_reference": "tools/art/album_rarity_tests/h_arrival/render_v4/holographic.png",
+      "attempts": [
+        {
+          "started_at": "2026-11-06T21:38:51.285506+00:00",
+          "source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-65210318-c90f-438f-804b-bd7866acc286.png",
+          "completed_at": "2026-11-06T21:50:42.813664+00:00"
+        }
+      ],
+      "integration_target": "res://assets/sprites/ui/album/rarities/h_first_trick/holographic.png",
+      "generated_source": "C:\\Users\\Vitor\\.codex\\generated_images\\01a1b2ca-7b6e-7023-94e4-11ce2c45f235\\exec-65210318-c90f-438f-804b-bd7866acc286.png",
+      "completed_at": "2026-11-06T21:50:42.813664+00:00",
+      "width": 1254,
+      "height": 1254,
+      "sha256": "5215366d06b7a1a735d8eda571be709361155ec14552598ab24e3936085751ce",
+      "reviewed_at": "2026-11-06T21:52:07.974463+00:00"
+    }
+  }
+}
