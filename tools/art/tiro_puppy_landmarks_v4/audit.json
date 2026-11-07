@@ -1,0 +1,633 @@
+{
+  "original_27_hashes_unchanged": true,
+  "canvas": [
+    768,
+    648
+  ],
+  "clips": [
+    {
+      "clip": "head_tilt",
+      "fps": 7,
+      "frames": [
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/head_tilt/frames_3x/frame_00.png",
+          "sha256": "2dac33ad7571cac9a049faf764c12c1b7550f0d6940ce137cf1d93e199ce9313"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/head_tilt/frames_3x/frame_01.png",
+          "sha256": "dab57a55e5e2dbb50479074d8138ba218f7b461e6c630e31c2b68b5d50b4969b"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/head_tilt/frames_3x/frame_02.png",
+          "sha256": "3b5dbfd6281f64afe6a6bfda2711938aceb4c5585101ece6b8a18c8157cb23f8"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/head_tilt/frames_3x/frame_03.png",
+          "sha256": "e9c1742c3e24893079f2b09dd632fa36c5a61b5efa6b9869551b6c7181d711ef"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/head_tilt/frames_3x/frame_04.png",
+          "sha256": "24c169c072b675ae14a72cb5ec308440b858c20387d87fb8f09bce620a6a5370"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/head_tilt/frames_3x/frame_05.png",
+          "sha256": "334be5495eef6b5feea64676fdc890fb313c17c6349f640010630c7d49ef7e0f"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/head_tilt/frames_3x/frame_06.png",
+          "sha256": "90b8e71b376ba56d173bb19b3d44049262993c3c0be0abeb0550c769ae2db26a"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/head_tilt/frames_3x/frame_07.png",
+          "sha256": "074d365473730aa1d64c5940134f0f3d6f04f5c3609e95c31fb958cacc714b00"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/head_tilt/frames_3x/frame_08.png",
+          "sha256": "5aa771db1cc84e61c92f29e8066b987a0ac9705d9fed3d2fd61f54d8f3c531b3"
+        }
+      ],
+      "planted_paw_patches": [
+        {
+          "frame": 0,
+          "paw": 0,
+          "match": 1.0,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 1,
+          "paw": 0,
+          "match": 0.9867662191390991,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 2,
+          "paw": 0,
+          "match": 0.9780765771865845,
+          "residual_px_3x": [
+            -1.0,
+            1.0
+          ]
+        },
+        {
+          "frame": 3,
+          "paw": 0,
+          "match": 0.9716640710830688,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 4,
+          "paw": 0,
+          "match": 0.976670503616333,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 5,
+          "paw": 0,
+          "match": 0.9670165181159973,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 6,
+          "paw": 0,
+          "match": 0.9631980657577515,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 7,
+          "paw": 0,
+          "match": 0.9744015336036682,
+          "residual_px_3x": [
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "frame": 8,
+          "paw": 0,
+          "match": 0.9707854390144348,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 0,
+          "paw": 1,
+          "match": 1.0,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 1,
+          "paw": 1,
+          "match": 0.9695854783058167,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 2,
+          "paw": 1,
+          "match": 0.9771835803985596,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 3,
+          "paw": 1,
+          "match": 0.9783601760864258,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 4,
+          "paw": 1,
+          "match": 0.9868546724319458,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 5,
+          "paw": 1,
+          "match": 0.9777719974517822,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 6,
+          "paw": 1,
+          "match": 0.9757620692253113,
+          "residual_px_3x": [
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "frame": 7,
+          "paw": 1,
+          "match": 0.9854880571365356,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 8,
+          "paw": 1,
+          "match": 0.9802001714706421,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        }
+      ],
+      "max_residual_px_3x": 1.4142135623730951
+    },
+    {
+      "clip": "scratch",
+      "fps": 8,
+      "frames": [
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/scratch/frames_3x/frame_00.png",
+          "sha256": "3506b1d29a71e68b92e508e4fb71796af7572f509c72fb6c50770715bd45840c"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/scratch/frames_3x/frame_01.png",
+          "sha256": "d297f4ee22188e05a5353bde06a87f84d273ac7b141ed1877f3df023d7765289"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/scratch/frames_3x/frame_02.png",
+          "sha256": "b5f0b2f36d0beb6f506a3cc94c3841f2d84bc363a92751e644ca2cd1737880c4"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/scratch/frames_3x/frame_03.png",
+          "sha256": "4d79fd071452a9842c7f2d94d1c925adef1ce23739078da42fb21490f189df49"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/scratch/frames_3x/frame_04.png",
+          "sha256": "712cfde2bd20adfe04eb32d1570da02d19478ac42d69e848ec559b6c75b1deb9"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/scratch/frames_3x/frame_05.png",
+          "sha256": "867713f3ba90a1f34b6b9f00320d8adb118f62af12bcbf365b03254a356c7644"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/scratch/frames_3x/frame_06.png",
+          "sha256": "87e7b31f7900f493997b0f4f9091dc9403f42b41bb2fef6696268f9040606333"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/scratch/frames_3x/frame_07.png",
+          "sha256": "5a19d983df3a52e0e92b769a914aa6e919ab84947e1f8e5cdf9ee5a3497a6194"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/scratch/frames_3x/frame_08.png",
+          "sha256": "612ea4e7da456407c092e19d01361fd6beca7fb706409409d48b3d236c64873b"
+        }
+      ],
+      "planted_paw_patches": [
+        {
+          "frame": 0,
+          "paw": 0,
+          "match": 1.0,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 1,
+          "paw": 0,
+          "match": 0.9789008498191833,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 2,
+          "paw": 0,
+          "match": 0.9773392677307129,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 3,
+          "paw": 0,
+          "match": 0.9678411483764648,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 4,
+          "paw": 0,
+          "match": 0.965779185295105,
+          "residual_px_3x": [
+            0.0,
+            1.0
+          ]
+        },
+        {
+          "frame": 5,
+          "paw": 0,
+          "match": 0.9758208394050598,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 6,
+          "paw": 0,
+          "match": 0.9819332361221313,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 7,
+          "paw": 0,
+          "match": 0.9746158123016357,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 8,
+          "paw": 0,
+          "match": 0.964958131313324,
+          "residual_px_3x": [
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "frame": 0,
+          "paw": 1,
+          "match": 0.9999969005584717,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 1,
+          "paw": 1,
+          "match": 0.9442107081413269,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 2,
+          "paw": 1,
+          "match": 0.9244980812072754,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 3,
+          "paw": 1,
+          "match": 0.9489874839782715,
+          "residual_px_3x": [
+            -1.0,
+            -1.0
+          ]
+        },
+        {
+          "frame": 4,
+          "paw": 1,
+          "match": 0.941373348236084,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 5,
+          "paw": 1,
+          "match": 0.9571990370750427,
+          "residual_px_3x": [
+            -1.0,
+            -1.0
+          ]
+        },
+        {
+          "frame": 6,
+          "paw": 1,
+          "match": 0.9526457190513611,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 7,
+          "paw": 1,
+          "match": 0.9445927739143372,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 8,
+          "paw": 1,
+          "match": 0.9377963542938232,
+          "residual_px_3x": [
+            -1.0,
+            -1.0
+          ]
+        }
+      ],
+      "max_residual_px_3x": 1.4142135623730951
+    },
+    {
+      "clip": "yawn",
+      "fps": 6,
+      "frames": [
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/yawn/frames_3x/frame_00.png",
+          "sha256": "e648dbae48e0a012a256fc35fb8f2cf62f699bc1353a6761f99a7d1dfd9dacbb"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/yawn/frames_3x/frame_01.png",
+          "sha256": "92bbd0a10085af8a4b7f2e24ef90e038bfd944a622c160d2098e917f65696b6f"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/yawn/frames_3x/frame_02.png",
+          "sha256": "e7887ee3803de06da05a0e1f3a62d32d5d8c36bba47c0879b89599cc136723fe"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/yawn/frames_3x/frame_03.png",
+          "sha256": "2cef7f0545ce34d3d7c10502fe26dbcd47691b8bbca45d87d012d9a60e9f071f"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/yawn/frames_3x/frame_04.png",
+          "sha256": "7dea49983d71bcb115669bf76dc28d4a1e749ba1bf5e03ed898b3589a86d7f48"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/yawn/frames_3x/frame_05.png",
+          "sha256": "307c9f1dcf980a35d0239d5e9310e409ec9c65c85cd429d8014c653f09eb29ad"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/yawn/frames_3x/frame_06.png",
+          "sha256": "f0dbd4e420fcff9c544fa612c560c5b80bc3bee4765deb30a741136c7152d743"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/yawn/frames_3x/frame_07.png",
+          "sha256": "a83d62c1931aab2517e15d13c76f37886269b3e91e84f29642a3486a12b099b6"
+        },
+        {
+          "file": "tools/art/tiro_puppy_landmarks_v4/yawn/frames_3x/frame_08.png",
+          "sha256": "e5c340554272122bcfa22420269bd95e74cff0f3b3a002d01806ab97e6ee9b79"
+        }
+      ],
+      "planted_paw_patches": [
+        {
+          "frame": 0,
+          "paw": 0,
+          "match": 0.9999990463256836,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 1,
+          "paw": 0,
+          "match": 0.9761652946472168,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 2,
+          "paw": 0,
+          "match": 0.9680797457695007,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 3,
+          "paw": 0,
+          "match": 0.9750714898109436,
+          "residual_px_3x": [
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "frame": 4,
+          "paw": 0,
+          "match": 0.9693450331687927,
+          "residual_px_3x": [
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "frame": 5,
+          "paw": 0,
+          "match": 0.9588082432746887,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 6,
+          "paw": 0,
+          "match": 0.9685295820236206,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 7,
+          "paw": 0,
+          "match": 0.9703116416931152,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 8,
+          "paw": 0,
+          "match": 0.9719835519790649,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 0,
+          "paw": 1,
+          "match": 0.9999978542327881,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 1,
+          "paw": 1,
+          "match": 0.9718000292778015,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 2,
+          "paw": 1,
+          "match": 0.982819676399231,
+          "residual_px_3x": [
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "frame": 3,
+          "paw": 1,
+          "match": 0.9667887687683105,
+          "residual_px_3x": [
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "frame": 4,
+          "paw": 1,
+          "match": 0.9718212485313416,
+          "residual_px_3x": [
+            0.0,
+            -1.0
+          ]
+        },
+        {
+          "frame": 5,
+          "paw": 1,
+          "match": 0.9714367389678955,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 6,
+          "paw": 1,
+          "match": 0.9829409122467041,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 7,
+          "paw": 1,
+          "match": 0.9644206166267395,
+          "residual_px_3x": [
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "frame": 8,
+          "paw": 1,
+          "match": 0.9688017964363098,
+          "residual_px_3x": [
+            0.0,
+            -1.0
+          ]
+        }
+      ],
+      "max_residual_px_3x": 1.0
+    }
+  ],
+  "installed_27_frames_match": true,
+  "scope": "Template check of planted paws only; not a guarantee of all-fur temporal coherence.",
+  "art_source": "Existing image_gen drawings from tiro_puppy_shiny_batch01; no new generation in this revision."
+}

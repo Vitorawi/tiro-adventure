@@ -10,6 +10,7 @@ const IDLE := &"idle_breathe"
 const SLEEP := &"sleep"
 const ROLL := &"roll_over"
 const CLOTHES_CACHE_LIMIT := 48
+const ILLUSTRATED_PUPPY_CLIPS := [IDLE, &"head_tilt", &"scratch", &"yawn"]
 static var _portrait_bounds: Dictionary = {}
 var _portrait_holder: Control
 ## Quadros por segundo de cada animação.
@@ -44,7 +45,7 @@ var _anchors: Dictionary = {}
 var _clothes_cache: Dictionary = {}
 ## Só a instância da aba Tiro participa do teste; retratos ficam originais.
 var allow_illustrated_puppy := false
-var _illustrated_idle: Array[Texture2D] = []
+var _illustrated_frames: Dictionary = {}
 var _frames: Dictionary = {}  # nome -> Array[Texture2D]
 var _clip: StringName = IDLE
 var _frame := 0
@@ -313,17 +314,20 @@ func _show() -> void:
 	_party_hat.size = _target.size * Vector2(0.24, 0.28)
 	_party_hat.position = _target.size * Vector2(0.38, 0.10)
 	var list: Array = _frames[_clip]
-	var illustrated := _uses_illustrated_idle()
+	var illustrated := _uses_illustrated_puppy()
 	if illustrated:
-		if _illustrated_idle.is_empty():
-			for i: int in 9:
-				var path := "res://assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/frame_%02d.png" % i
+		if not _illustrated_frames.has(_clip):
+			var alternate: Array[Texture2D] = []
+			for i: int in list.size():
+				var path := "res://assets/sprites/characters/tiro_pet_puppy_illustrated/%s/frame_%02d.png" % [_clip, i]
 				if not ResourceLoader.exists(path):
-					_illustrated_idle.clear()
+					alternate.clear()
 					break
-				_illustrated_idle.append(load(path))
-		illustrated = _illustrated_idle.size() == list.size()
-		if illustrated: list = _illustrated_idle
+				alternate.append(load(path))
+			_illustrated_frames[_clip] = alternate
+		var alternate: Array = _illustrated_frames[_clip]
+		illustrated = alternate.size() == list.size() and not alternate.is_empty()
+		if illustrated: list = alternate
 	if list.is_empty():
 		return
 	if illustrated:
@@ -359,8 +363,8 @@ func _show() -> void:
 		layer.position = Vector2(float(offset[0]), float(offset[1])) * _target.size / Vector2(256, 216)
 
 
-func _uses_illustrated_idle() -> bool:
-	if not allow_illustrated_puppy or _look.get("body", "") != "puppy" or _clip != IDLE:
+func _uses_illustrated_puppy() -> bool:
+	if not allow_illustrated_puppy or _look.get("body", "") != "puppy" or _clip not in ILLUSTRATED_PUPPY_CLIPS:
 		return false
 	var saver := get_node_or_null("/root/SaveManager")
 	return saver != null and bool(saver.get("puppy_illustrated"))

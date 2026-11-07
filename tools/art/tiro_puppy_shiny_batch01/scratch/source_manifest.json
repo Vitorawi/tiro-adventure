@@ -1,0 +1,106 @@
+{
+  "clip": "scratch",
+  "body": "puppy",
+  "fps": 8,
+  "frame_count": 9,
+  "frame_size": [
+    256,
+    216
+  ],
+  "reference_cell": [
+    512,
+    432
+  ],
+  "frames": [
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_00.png",
+      "sha256": "da7d4fd9bf5396acd27fff49ecc76a3d2b0d5bf92b9ff9b18ccd71d5048ac5e1",
+      "bbox": [
+        64,
+        58,
+        187,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_01.png",
+      "sha256": "f7a1bdfc5d46452a2a93b21de2c660aee7dfae3f241bf6f70c7a184153080322",
+      "bbox": [
+        64,
+        59,
+        185,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_02.png",
+      "sha256": "a2f1a59f72b0c6a7a7f83f41cbebd4b0dcc9b5569b949c7e86d31617d1c3013e",
+      "bbox": [
+        66,
+        56,
+        182,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_03.png",
+      "sha256": "4e3b366c8a1c3883658ec631950b92ec742857d00a0fb6ec49a57d81bba96d2b",
+      "bbox": [
+        66,
+        54,
+        184,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_04.png",
+      "sha256": "1a81b3746a2fc6511898bc026659b06cc95eec4d72de178e45f57bb1a7aa5623",
+      "bbox": [
+        64,
+        57,
+        187,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_05.png",
+      "sha256": "81d53677ad9243f827da6838d67c4e1e2a3cd2cc835f34d75230c97f21fa24fb",
+      "bbox": [
+        64,
+        60,
+        187,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_06.png",
+      "sha256": "f69ef5bcd8782571e9956a87310edacf9550c4a8d6441e5f4049657b7dc29b38",
+      "bbox": [
+        64,
+        58,
+        183,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_07.png",
+      "sha256": "c37fbe0031abf9134c6ee46802464842ad3cae6a666ad258cab6dccb66905d07",
+      "bbox": [
+        67,
+        56,
+        183,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_08.png",
+      "sha256": "8efa00fa28480724fd5fab881ac997e01c7284e36e9cbf4a0b88d2b99e9e2f5b",
+      "bbox": [
+        67,
+        53,
+        187,
+        185
+      ]
+    }
+  ]
+}

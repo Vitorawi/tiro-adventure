@@ -2,7 +2,7 @@
 
 Instalação/publicação solicitada pelo Vitor em 07/11/2026 para avaliar no celular.
 
-Só `idle_breathe` do bebê na aba Tiro usa os nove PNGs de
+Registro da instalação inicial: `idle_breathe` do bebê na aba Tiro usa os nove PNGs de
 `game/assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/`.
 Canvas 768×648 = 3× o original; nove quadros e 6 fps, sem mudar o relógio.
 Derivados da tentativa `tiro_idle_landmarks_v3` (nove desenhos com registro interno).
@@ -12,7 +12,12 @@ Derivados da tentativa `tiro_idle_landmarks_v3` (nove desenhos com registro inte
 sem apagar progresso nem reiniciar; a escolha fica em `settings.json`/`settings_dev.json`.
 É preferência do aparelho, padrão ligado; não altera versão/formato dos saves.
 
-Os PNGs pixel originais não foram sobrescritos. Outras animações do bebê,
+Ampliação posterior do mesmo dia: `head_tilt`, `scratch` e `yawn` também usam
+desenhos registrados, conforme `../tiro_puppy_landmarks_v4/README.md` e `audit.json`.
+O mesmo interruptor reverte os quatro clipes. O `manifest.json` desta pasta
+continua documentando apenas a respiração inicial, que não foi alterada.
+
+Os PNGs pixel originais não foram sobrescritos. As demais animações do bebê,
 retratos, Tiro do mapa e fases seguintes continuam originais. A pintura usa
 linear+mipmaps e não passa pelo shader de cores da pixel art; ao voltar ao
 pixel, filtro e material originais são restaurados.

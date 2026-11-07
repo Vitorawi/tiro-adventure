@@ -1,0 +1,106 @@
+{
+  "clip": "head_tilt",
+  "body": "puppy",
+  "fps": 7,
+  "frame_count": 9,
+  "frame_size": [
+    256,
+    216
+  ],
+  "reference_cell": [
+    512,
+    432
+  ],
+  "frames": [
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_00.png",
+      "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1",
+      "bbox": [
+        76,
+        48,
+        174,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_01.png",
+      "sha256": "8b57502c96860e607e7b26c48bba36102c4e649688d2c22776b0c11230c3a0ba",
+      "bbox": [
+        76,
+        44,
+        174,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_02.png",
+      "sha256": "aaecc5102ed24f7fcf1b4c7ba3fbf41df2d95c0b30bf8b9cb59696d2f6e39315",
+      "bbox": [
+        76,
+        38,
+        173,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_03.png",
+      "sha256": "56721e78ba1e1513288b3b7fc45b375bf978e1d3b7017d8b3919e44d02120f20",
+      "bbox": [
+        74,
+        35,
+        170,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_04.png",
+      "sha256": "c52ab35ad6d3d319bf9069bf2c30eef51790864c32e7ff60ba91291aa558fa5a",
+      "bbox": [
+        72,
+        35,
+        163,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_05.png",
+      "sha256": "2b47c9a49bc7c313bc12d2c5586626a68a3d9ab04a71aa69410e843cb26bda17",
+      "bbox": [
+        71,
+        35,
+        163,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_06.png",
+      "sha256": "aee52df24bdb585321022e6afb36abd319dbd6dbce7f375f4f8fa1e265890314",
+      "bbox": [
+        71,
+        35,
+        165,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_07.png",
+      "sha256": "189c6ab210d4f9cee4da24af294d400e570baf5214957d6c37fd5a929cb63e0c",
+      "bbox": [
+        75,
+        38,
+        171,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_08.png",
+      "sha256": "90b501adeaba7663519fb92da16a5a06ec57a55a056d0a1a43565ee409809e5b",
+      "bbox": [
+        76,
+        42,
+        174,
+        185
+      ]
+    }
+  ]
+}

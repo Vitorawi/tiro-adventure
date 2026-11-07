@@ -1,5 +1,5 @@
 extends SceneTree
-## Só a respiração na home muda; preferência persistida devolve o pixel sem reset.
+## Quatro clipes na home; preferência persistida devolve o pixel sem reset.
 var failures := 0
 var state: Node
 var manager: Node
@@ -39,11 +39,39 @@ func _run() -> void:
 	check(first.contains("tiro_pet_puppy_illustrated/idle_breathe/frame_00"), "home usa o quadro novo")
 	check(target.texture.get_size() == Vector2(768, 648), "canvas 3× preserva enquadramento")
 	check(target.material == null and target.texture_filter == CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS, "pintura sem shader de paleta pixel")
-	check(animator.get("_illustrated_idle").size() == 9, "nove quadros")
+	check(animator.get("_illustrated_frames")[&"idle_breathe"].size() == 9, "nove quadros")
 	check(animator.get("FPS")[&"idle_breathe"] == 6.0, "mesmo ritmo de 6 fps")
 	await shot("illustrated")
+	for clip: StringName in [&"head_tilt", &"scratch", &"yawn"]:
+		animator.call("_play", clip, 1)
+		check(animator.get("_illustrated_frames")[clip].size() == 9, "%s: nove desenhos" % clip)
+		for i: int in 9:
+			animator.set("_frame", i)
+			animator.call("_show")
+			check(target.texture.resource_path.contains("puppy_illustrated/%s/frame_%02d" % [clip, i]), "%s: quadro %d" % [clip, i])
+			check(target.texture.get_size() == Vector2(768, 648) and target.material == null, "%s: canvas/material" % clip)
+			if i in [0, 4, 8]: await shot("%s_%02d" % [clip, i])
+		animator.call("_play", clip, 1, true)
+		check(target.texture.resource_path.contains("frame_08"), "%s: reprodução reversa" % clip)
+		manager.call("set_puppy_illustrated", false)
+		animator.call("_show")
+		check(target.texture.resource_path.contains("tiro_pet_puppy/%s/" % clip), "%s: volta ao original" % clip)
+		check(target.texture_filter == CanvasItem.TEXTURE_FILTER_NEAREST and target.material is ShaderMaterial, "%s: material pixel restaurado" % clip)
+		manager.call("set_puppy_illustrated", true)
+		animator.call("_play", clip, 1)
+		var fps: float = animator.get("FPS")[clip]
+		animator.call("_process", 8.99 / fps)
+		check(animator.get("_clip") == clip and animator.get("_frame") == 8, "%s: duração original" % clip)
+		animator.call("_process", 0.02 / fps)
+		check(animator.get("_clip") == &"idle_breathe", "%s: volta ao descanso no tempo original" % clip)
+	var alternates: Dictionary = animator.get("_illustrated_frames")
+	var saved: Array = alternates[&"head_tilt"]
+	alternates[&"head_tilt"] = []
 	animator.call("_play", &"head_tilt", 1)
-	check(target.texture.resource_path.contains("tiro_pet_puppy/head_tilt/"), "outra animação mantém original")
+	check(target.texture.resource_path.contains("tiro_pet_puppy/head_tilt/"), "recursos incompletos usam pixel")
+	alternates[&"head_tilt"] = saved
+	animator.call("_play", &"sniff", 1)
+	check(target.texture.resource_path.contains("tiro_pet_puppy/sniff/"), "clipe fora do lote mantém original")
 	check(target.material is ShaderMaterial, "shader pixel volta na outra animação")
 	animator.call("_play", &"idle_breathe", 1)
 	check(target.texture.resource_path == first, "retorno à respiração usa teste")

@@ -1,0 +1,106 @@
+{
+  "clip": "yawn",
+  "body": "puppy",
+  "fps": 6,
+  "frame_count": 9,
+  "frame_size": [
+    256,
+    216
+  ],
+  "reference_cell": [
+    512,
+    432
+  ],
+  "frames": [
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_00.png",
+      "sha256": "4251210cfdbb8ff0497afd7ea5533466d15b0341add7502563a6786d2f9a14f3",
+      "bbox": [
+        78,
+        48,
+        176,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_01.png",
+      "sha256": "53c8dba2b967f847e6083d476eace8b016122aa3c8c7b743524a51ad77a5eacb",
+      "bbox": [
+        78,
+        46,
+        176,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_02.png",
+      "sha256": "43beed9c05f3bec0e841247b3b441f99669def55a869c434e23ba19c64c5a21d",
+      "bbox": [
+        78,
+        42,
+        176,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_03.png",
+      "sha256": "5a206f67bacc4dc4657645c35114b3be7bf1a97e9ba2f2971226384f636d7359",
+      "bbox": [
+        78,
+        38,
+        176,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_04.png",
+      "sha256": "8e0016b9d064ca7e6b404c359e7a9853c530ec139003ea650ba9eaf0b3c829fb",
+      "bbox": [
+        78,
+        36,
+        176,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_05.png",
+      "sha256": "64f52fc39ecc3624b53bfe4a136b6ffd6ad34ffd530078468afba8dff3903297",
+      "bbox": [
+        78,
+        36,
+        176,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_06.png",
+      "sha256": "04ad65256298358ebac6d37ae43557e9a8e3760ed703683e6119b49e9dc31957",
+      "bbox": [
+        78,
+        39,
+        176,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_07.png",
+      "sha256": "e636b33363548ae10b2029d88ba187292debf37e30933cf99d7a29850c3dfb10",
+      "bbox": [
+        78,
+        44,
+        176,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_08.png",
+      "sha256": "3375f315cae1c0db2569e53200c343dac7df0f0b176a8379eed2ceae230429eb",
+      "bbox": [
+        78,
+        48,
+        176,
+        185
+      ]
+    }
+  ]
+}
