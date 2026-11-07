@@ -11,6 +11,9 @@ const SLEEP := &"sleep"
 const ROLL := &"roll_over"
 const CLOTHES_CACHE_LIMIT := 48
 const ILLUSTRATED_PUPPY_CLIPS := [IDLE, &"head_tilt", &"scratch", &"yawn"]
+const ANIMAREF := preload("res://scripts/ui/animaref_clips.gd")
+var _animaref_frames: Dictionary = {}
+var allow_animaref := true
 static var _portrait_bounds: Dictionary = {}
 var _portrait_holder: Control
 ## Quadros por segundo de cada animação.
@@ -45,6 +48,8 @@ var _anchors: Dictionary = {}
 var _clothes_cache: Dictionary = {}
 ## Só a instância da aba Tiro participa do teste; retratos ficam originais.
 var allow_illustrated_puppy := false
+## Prévia local de sprites externos; nulo mantém o animador normal.
+var preview_texture: Texture2D
 var _illustrated_frames: Dictionary = {}
 var _frames: Dictionary = {}  # nome -> Array[Texture2D]
 var _clip: StringName = IDLE
@@ -230,6 +235,9 @@ func _play(clip: StringName, loops: int, reverse := false) -> void:
 
 
 func _process(delta: float) -> void:
+	if preview_texture != null:
+		_show()
+		return
 	if _target == null:
 		return
 	_stroke_age += delta
@@ -241,11 +249,11 @@ func _process(delta: float) -> void:
 			_belly_up = false
 			_play(ROLL, 1, true)  # levanta (rola de volta)
 			return
-	var list: Array = _frames[_clip]
+	var list: Array = _clip_frames()
 	var resting := _clip == IDLE
 	if resting and not _sleeping:
 		_fidget_in -= delta
-		if _fidget_in <= 0.0:
+		if _fidget_in <= 0.0 and (not _uses_animaref() or _frame == 0):
 			_fidget_in = _fidget_delay()
 			_play(_pick_fidget(), 1)
 			return
@@ -255,7 +263,7 @@ func _process(delta: float) -> void:
 			if _fidget_in <= 0: _finish_clip()
 		return  # dormindo: segura o último quadro
 	_clock += delta
-	var step: float = 1.0 / float(FPS[_clip])
+	var step: float = _frame_seconds()
 	while _clock >= step:
 		_clock -= step
 		_frame += 1
@@ -273,6 +281,7 @@ func _process(delta: float) -> void:
 			if _loops_left <= 0:
 				_finish_clip()
 				return
+		step = _frame_seconds()
 	_show()
 
 
@@ -293,6 +302,8 @@ func _finish_clip() -> void:
 
 
 func _pick_fidget() -> StringName:
+	if _uses_animaref():
+		return &"head_tilt" if randf() < 0.5 else &"close_eyes"
 	if _sad and randf() < 0.6:
 		return &"sad"
 	var weights: Dictionary = PersonalityRules.behavior(GameState.growth).fidgets
@@ -310,11 +321,19 @@ func _pick_fidget() -> StringName:
 func _show() -> void:
 	if _target == null:
 		return
+	if preview_texture != null:
+		_target.texture = preview_texture
+		_target.material = null
+		_target.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		_party_hat.hide()
+		for layer: TextureRect in _clothes.values(): layer.hide()
+		return
 	_party_hat.visible = GameState.tiro_party() and _clip in [IDLE, &"head_tilt", &"wag_excited"]
 	_party_hat.size = _target.size * Vector2(0.24, 0.28)
 	_party_hat.position = _target.size * Vector2(0.38, 0.10)
-	var list: Array = _frames[_clip]
-	var illustrated := _uses_illustrated_puppy()
+	var list: Array = _clip_frames()
+	var external: bool = _uses_animaref() and not _animaref_frames.get(_clip, []).is_empty()
+	var illustrated := not external and _uses_illustrated_puppy()
 	if illustrated:
 		if not _illustrated_frames.has(_clip):
 			var alternate: Array[Texture2D] = []
@@ -330,9 +349,9 @@ func _show() -> void:
 		if illustrated: list = alternate
 	if list.is_empty():
 		return
-	if illustrated:
+	if illustrated or external:
 		_target.material = null
-		_target.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		_target.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR if external else CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	else:
 		if _target.material == null: DogLook.tint(_target)
 		_target.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
@@ -392,5 +411,24 @@ func _fit_portrait(frames: Array) -> void:
 
 
 func _fidget_delay() -> float:
+	if _uses_animaref(): return randf_range(9.0, 16.0)
 	var seconds: Array = PersonalityRules.behavior(GameState.growth).idle_seconds
 	return randf_range(float(seconds[0]), float(seconds[1]))
+
+
+func _uses_animaref() -> bool:
+	return allow_animaref and allow_illustrated_puppy and _look.get("body", "") == "puppy" and SaveManager.puppy_illustrated and ANIMAREF.CLIPS.has(_clip)
+
+
+func _clip_frames() -> Array:
+	if _uses_animaref():
+		if not _animaref_frames.has(_clip):
+			_animaref_frames[_clip] = ANIMAREF.frames(_clip)
+		if not _animaref_frames[_clip].is_empty(): return _animaref_frames[_clip]
+	return _frames.get(_clip, _frames.get(IDLE, []))
+
+
+func _frame_seconds() -> float:
+	if _uses_animaref() and not _animaref_frames.get(_clip, []).is_empty():
+		return float(ANIMAREF.CLIPS[_clip][mini(_frame, ANIMAREF.CLIPS[_clip].size() - 1)])
+	return 1.0 / float(FPS.get(_clip, 6.0))

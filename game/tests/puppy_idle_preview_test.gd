@@ -31,6 +31,8 @@ func _run() -> void:
 	await frames()
 	var pet: Control = main.find_child("PetScreen", true, false)
 	var animator: Node = pet.get("_animator")
+	# Legacy illustrated fallback; Animaref is covered by animaref_home_review.
+	animator.set("allow_animaref", false)
 	var target: TextureRect = pet.get("_dog_sprite")
 	animator.set_process(false)
 	animator.set("_frame", 0)
