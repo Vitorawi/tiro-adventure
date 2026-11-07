@@ -929,7 +929,8 @@ func _care_moment_info(pillar: String, action: String, need: String) -> Dictiona
 	var asking := _need_is_low(need)
 	var left := maxi(0, int(Database.growth.moments.period_cap) - int(growth.period_moments.get(moment_period() + ":" + pillar, 0)))
 	var hint := action + (" pode render um momento." if asking else ": ele está satisfeito.")
-	if left == 0: hint = "Momentos deste período completos. Conheça novidades ou volte no próximo período."
+	if _moments_uncapped(): left = 99
+	if left == 0: hint ="Momentos deste período completos. Conheça novidades ou volte no próximo período."
 	return {"have": int(growth.phase_moments.get(pillar, 0)), "need": growth.phase_need(pillar), "asking": asking, "left": left, "hint": hint, "status": hint}
 
 
@@ -5076,14 +5077,20 @@ func _prune_moment_periods() -> void:
 
 
 ## Única entrada de momentos; xampu passa por ela duas vezes, limitado pelo mesmo teto.
+## Nas fases de `moments.uncapped_phases` (a primeira) o teto de momentos por período não vale:
+## o primeiro carinho tem que render logo, sem esperar o período seguinte.
+func _moments_uncapped() -> bool:
+	return growth.phase in Database.growth.moments.get("uncapped_phases", [])
+
+
 func _gain_moment(pillar: String, source: String, capped: bool) -> int:
 	if pillar not in ["brave", "smart", "coat"]: return 0
 	_prune_moment_periods()
 	var key := moment_period() + ":" + pillar
 	if capped:
 		var used := int(growth.period_moments.get(key, 0))
-		if used >= int(Database.growth.moments.period_cap): return 0
-		growth.period_moments[key] = used + 1
+		if used >= int(Database.growth.moments.period_cap) and not _moments_uncapped(): return 0
+		growth.period_moments[key] = used + 1  # também conta na fase livre, para a fase seguinte não burlar o teto
 	growth.moments[pillar] = int(growth.moments.get(pillar, 0)) + 1
 	growth.phase_moments[pillar] = int(growth.phase_moments.get(pillar, 0)) + 1
 	_count("moment:" + pillar)

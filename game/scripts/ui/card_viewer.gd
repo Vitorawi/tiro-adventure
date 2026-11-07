@@ -29,6 +29,8 @@ const HEADER_H := 44.0
 const MARGIN := 16.0
 ## Nada do visualizador fica sobre o HUD: a coluna começa abaixo dele.
 const HUD_GAP := 4.0
+const HUD_UP := 28.0  ## a carta sobe e cobre a placa do Álbum: só o cabeçalho do HUD continua à vista
+const BOTTOM := 40.0  ## folga de baixo: a carta não fica colada na borda
 
 static var current: CardViewer
 
@@ -36,6 +38,7 @@ var photo_id := ""
 var level := 0  ## versão exibida agora (a escolhida; depois de um sorteio, a nova)
 var tilt := Vector2.ZERO
 var _card_px := 280.0
+var _stage_px := 0.0  ## tamanho com que o SubViewport da carta foi montado pela última vez
 var _stage: SubViewport
 var _surface: TextureRect
 var _slot: Control
@@ -98,10 +101,11 @@ static func _screen() -> Vector2:
 ## Topo da coluna: abaixo do HUD (a pílula do nome e o X nunca cobrem a placa "Tiro").
 static func top_offset() -> float:
 	var hud: float = float((load("res://scripts/ui/hud.gd") as GDScript).get_script_constant_map()["HEIGHT"])
-	return maxf(MARGIN - 2.0, hud + HUD_GAP)
+	return maxf(MARGIN - 2.0, hud - HUD_UP)
 
 
 var _hidden_close: Control
+var _shrink := 0.0  ## o quanto a carta já encolheu por falta de altura medida no painel de ações
 
 
 ## O X da folha que está atrás (Álbum, Caderninho) some enquanto a carta está aberta: só um X na tela.
@@ -166,10 +170,10 @@ func _build() -> void:
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(dim)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	# Abaixo do HUD o fundo é quase opaco: a folha atrás (Álbum, Caderninho) não aparece por entre a carta.
+	# Abaixo do HUD o fundo é quase opaco, num bege madeirado do jogo: a folha atrás (Álbum, Caderninho) não aparece por entre a carta.
 	var deep := ColorRect.new()
 	deep.name = "DeepDim"
-	deep.color = Color(0.1, 0.07, 0.05, 0.84)
+	deep.color = Color(0.9, 0.76, 0.56, 0.72)
 	deep.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(deep)
 	deep.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -185,7 +189,7 @@ func _build() -> void:
 	_column.offset_right = -MARGIN
 	_column.offset_top = top_offset()
 	_hide_sheet_close()
-	_column.offset_bottom = -8.0
+	_column.offset_bottom = -BOTTOM
 	_column.add_child(_make_header())
 	_info = PanelContainer.new()
 	_info.name = "CardInfo"
@@ -245,6 +249,7 @@ func _build() -> void:
 	_refresh(true)
 	_layout()
 	_layout.call_deferred()  # os tamanhos mínimos só assentam no quadro seguinte
+	_layout_later.call_deferred()
 	Events.state_changed.connect(_on_state)
 	Events.photo_rolled.connect(_on_rolled)
 	Events.sheet_closed.connect(_on_sheet_closed)
@@ -290,6 +295,35 @@ func close_pressed() -> void:
 	close()
 
 
+## Os chips de custo quebram de linha só depois de ter largura: mede de novo dois quadros depois,
+## com a altura que o painel realmente ocupa, para o botão de baixo nunca sair da tela.
+func _layout_later() -> void:
+	for _i in 2:
+		await get_tree().process_frame
+		if not is_inside_tree():
+			return
+		_layout()
+
+
+## Altura a mais quando os chips de custo não cabem numa linha (o FlowContainer só informa a altura de uma).
+func _wrapped_cost_extra(screen_width: float) -> float:
+	var chips := _board.find_child("UpgradeCost", true, false) as Control
+	if chips == null:
+		return 0.0
+	var room := screen_width - 2.0 * MARGIN - 28.0 - 24.0  # margens do painel e da moldura
+	var rows := 1
+	var used := 0.0
+	for child in chips.get_children():
+		var width := (child as Control).get_combined_minimum_size().x
+		if used > 0.0 and used + 6.0 + width > room:
+			rows += 1
+			used = width
+		else:
+			used += (6.0 if used > 0.0 else 0.0) + width
+	var already := maxf(0.0, chips.get_combined_minimum_size().y - 44.0)
+	return maxf(0.0, (rows - 1) * 48.0 - already)
+
+
 ## Tamanho da carta: 78% da largura, menor se faltar altura. Chamado depois de montar tudo e quando a tela muda.
 func _layout() -> void:
 	var screen := _screen()
@@ -298,9 +332,16 @@ func _layout() -> void:
 	if plate != null:
 		plate.position = Vector2.ZERO
 		plate.size = _header_title.size * 3.0  # a moldura 3x é desenhada em escala 1/3 (o `resized` dela não dispara aqui)
+	_board.reset_size()  # o painel de ações volta ao tamanho mínimo real (chips já quebrados na largura atual)
 	var other := _column.get_combined_minimum_size().y - _slot.custom_minimum_size.y
-	var room := screen.y - top_offset() - 8.0 - other - 4.0
-	_card_px = clampf(minf(screen.x * 0.78, room), 150.0, 460.0)
+	other += _wrapped_cost_extra(screen.x)
+	var room := screen.y - top_offset() - BOTTOM - other - 4.0
+	# Rede de segurança: se o painel de ações realmente passou da borda (chips quebrados, texto de 2 linhas), a carta encolhe o que faltou.
+	if _board.is_inside_tree() and _board.size.y > 0.0:
+		var overflow := _board.get_global_rect().end.y - (screen.y - BOTTOM)
+		if overflow > 1.0:
+			_shrink += overflow
+	_card_px = clampf(minf(screen.x * 0.78, room) - _shrink, 150.0, 460.0)
 	_slot.custom_minimum_size = Vector2(_card_px, _card_px)
 	var surface := _card_px * SURFACE_MARGIN
 	_surface.size = Vector2(surface, surface)
@@ -311,7 +352,9 @@ func _layout() -> void:
 	_material.set_shader_parameter("card_px", _card_px)
 	_material.set_shader_parameter("surface_px", Vector2(surface, surface))
 	_apply_motion_limits()
-	_build_stage()
+	if _stage == null or not is_equal_approx(_stage_px, _card_px):  # só redesenha se o tamanho mudou
+		_stage_px = _card_px
+		_build_stage()
 
 
 func _apply_motion_limits() -> void:
@@ -493,6 +536,9 @@ func _refresh(force: bool) -> void:
 	_build_info()
 	_build_versions()
 	_build_actions()
+	if not force:
+		_shrink = 0.0  # o conteúdo mudou (versão, passo do tutorial): mede de novo
+		_layout_later.call_deferred()
 
 
 func _build_info() -> void:

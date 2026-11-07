@@ -20,7 +20,7 @@
       "icon": "res://assets/sprites/ui/icons/need_happiness.png",
       "color": "#ef6f8f",
       "ask_below": 50,
-      "initial": 40
+      "initial": 15
     },
     "energy": {
       "name": "Energia",

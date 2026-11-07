@@ -19,11 +19,14 @@ func need(id: String, value: float) -> void:
 	state.dog.commit(state.now())
 	state.dog.needs[id] = value
 
+var capped_phase := true
+
 func fresh() -> void:
 	state.set_clock(1792746000.0)
 	state.reset()
 	state.set_process(false)
 	signals.clear()
+	if capped_phase: state.growth.phase = "puppy"  # o teto por período vale depois da primeira fase
 
 func _run() -> void:
 	var saver := root.get_node("SaveManager")
@@ -33,7 +36,16 @@ func _run() -> void:
 	state.set_script(load("res://tests/helpers/economy_clock.gd"))
 	root.get_node("Events").moment_gained.connect(func(pillar: String, source: String) -> void: signals.append([pillar, source]))
 	fresh()
-	check(state.dog.needs.hunger == 40 and state.dog.needs.happiness == 40 and state.dog.needs.hygiene == 70 and state.dog.needs.energy == 80, "necessidades iniciais")
+	check(state.dog.needs.hunger == 40 and state.dog.needs.happiness == 15 and state.dog.needs.hygiene == 70 and state.dog.needs.energy == 80, "necessidades iniciais")
+	# Primeira fase (Recém-chegado): o teto de 2 momentos por período não vale, o primeiro carinho rende logo.
+	capped_phase = false
+	fresh()
+	for n in 3:
+		need("happiness", 15)
+		state.pet()
+	check(count("brave") == 3 and state.growth.phase == "newborn", "recém-chegado: carinho sem teto do período")
+	capped_phase = true
+	fresh()
 	need("happiness", 100)
 	check(state.pet() == 0 and count("brave") == 0, "carinho satisfeito só reage")
 	need("happiness", 50)
@@ -99,6 +111,7 @@ func _run() -> void:
 	state.bathe(true)
 	check(count("coat") == 2, "xampu com só uma vaga rende só um")
 	# Filhotinho em uma sessão: ações reais, sem avançar relógio e sem completar requisitos por DEV.
+	capped_phase = false
 	fresh()
 	state.note_world_visit("house")  # momento automático da primeira chegada, antes dos cuidados
 	state.progress.owned.dog_bed = true

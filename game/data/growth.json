@@ -821,6 +821,7 @@
       }
     ],
     "period_cap": 2,
+    "uncapped_phases": ["newborn"],
     "sources": {
       "pet": {
         "label": "Carinho quando ele pede",
