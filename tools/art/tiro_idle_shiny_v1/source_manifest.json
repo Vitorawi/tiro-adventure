@@ -1,0 +1,106 @@
+{
+  "clip": "idle_breathe",
+  "body": "puppy",
+  "fps": 6,
+  "frame_count": 9,
+  "frame_size": [
+    256,
+    216
+  ],
+  "reference_cell": [
+    512,
+    432
+  ],
+  "frames": [
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_00.png",
+      "sha256": "9816421af4f0f12493ce0cb13e60dfec125a51af8ccdc6e712f5fbd3754cfec3",
+      "bbox": [
+        74,
+        48,
+        172,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_01.png",
+      "sha256": "91188708fbde3096abeca704c82e17b0bd056603fafe0cedab4de43f75116276",
+      "bbox": [
+        74,
+        47,
+        172,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_02.png",
+      "sha256": "20f77ebc5ff36b520d7d44bf6c5363ac5f35ba82eab1a7a1269e41d202e7e40b",
+      "bbox": [
+        74,
+        44,
+        172,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_03.png",
+      "sha256": "512ffdd49676f454af3c3d2ddbcda26a16285dec88acd04a4eee0468c1c1527a",
+      "bbox": [
+        74,
+        42,
+        172,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_04.png",
+      "sha256": "e5ea50a8b54c1a49fe93b1bf307627765981cce7c5a1a52a99303e8e84fd0333",
+      "bbox": [
+        74,
+        40,
+        172,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_05.png",
+      "sha256": "16a3d529f954dcd910b4c435e0e385d4eebb958c870b2f2d88913ac6ef115b9e",
+      "bbox": [
+        73,
+        40,
+        172,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_06.png",
+      "sha256": "a67203ce2ae078d150549c21d37c1fe309766bfc36dfb322c375d67f4803438f",
+      "bbox": [
+        74,
+        43,
+        172,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_07.png",
+      "sha256": "76e4302e140708e5036595a8ae20d5c398369528d2ec2925bb4df748117c2c5b",
+      "bbox": [
+        74,
+        45,
+        172,
+        185
+      ]
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_08.png",
+      "sha256": "7d08fcaeab347c6b1a4b2e7669ac9a25f15ca77c86b5ca9b99127fb7fd83f807",
+      "bbox": [
+        74,
+        47,
+        172,
+        185
+      ]
+    }
+  ]
+}

@@ -42,6 +42,9 @@ var _look: Dictionary = {}
 var _clothes: Dictionary = {}
 var _anchors: Dictionary = {}
 var _clothes_cache: Dictionary = {}
+## Só a instância da aba Tiro participa do teste; retratos ficam originais.
+var allow_illustrated_puppy := false
+var _illustrated_idle: Array[Texture2D] = []
 var _frames: Dictionary = {}  # nome -> Array[Texture2D]
 var _clip: StringName = IDLE
 var _frame := 0
@@ -310,8 +313,25 @@ func _show() -> void:
 	_party_hat.size = _target.size * Vector2(0.24, 0.28)
 	_party_hat.position = _target.size * Vector2(0.38, 0.10)
 	var list: Array = _frames[_clip]
+	var illustrated := _uses_illustrated_idle()
+	if illustrated:
+		if _illustrated_idle.is_empty():
+			for i: int in 9:
+				var path := "res://assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/frame_%02d.png" % i
+				if not ResourceLoader.exists(path):
+					_illustrated_idle.clear()
+					break
+				_illustrated_idle.append(load(path))
+		illustrated = _illustrated_idle.size() == list.size()
+		if illustrated: list = _illustrated_idle
 	if list.is_empty():
 		return
+	if illustrated:
+		_target.material = null
+		_target.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	else:
+		if _target.material == null: DogLook.tint(_target)
+		_target.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	var index := mini(_frame, list.size() - 1)
 	_target.texture = list[list.size() - 1 - index if _reverse else index]
 	_fit_portrait(list)
@@ -337,6 +357,13 @@ func _show() -> void:
 		var offset: Array = anchor.get("offset", [0, 0])
 		# Âncoras expressas no canvas 256×216, independentes do tamanho da tela.
 		layer.position = Vector2(float(offset[0]), float(offset[1])) * _target.size / Vector2(256, 216)
+
+
+func _uses_illustrated_idle() -> bool:
+	if not allow_illustrated_puppy or _look.get("body", "") != "puppy" or _clip != IDLE:
+		return false
+	var saver := get_node_or_null("/root/SaveManager")
+	return saver != null and bool(saver.get("puppy_illustrated"))
 
 
 ## Usa a união dos quadros do clipe: cabe inteiro sem oscilar a cada quadro.

@@ -37,6 +37,8 @@ var _last_session_active: float = 0.0
 var vibrate_enabled := true
 var reduced_motion := false
 var large_text := false
+## Teste visual reversível: só a respiração do bebê na aba Tiro.
+var puppy_illustrated := true
 
 
 func _ready() -> void:
@@ -233,6 +235,11 @@ func set_large_text(enabled: bool) -> void:
 	_save_settings()
 
 
+func set_puppy_illustrated(enabled: bool) -> void:
+	puppy_illustrated = enabled
+	_save_settings()
+
+
 func large_text_enabled() -> bool:
 	return large_text
 
@@ -293,6 +300,7 @@ func _load_settings() -> void:
 		vibrate_enabled = bool(parsed.get("vibrate", true))
 		reduced_motion = bool(parsed.get("reduced_motion", false))
 		large_text = bool(parsed.get("large_text", false))
+		puppy_illustrated = bool(parsed.get("puppy_illustrated", true))
 		_apply_preferences()
 
 
@@ -301,7 +309,7 @@ func _save_settings() -> void:
 	if file == null:
 		push_error("SaveManager: falha ao gravar as configurações (%s)" % FileAccess.get_open_error())
 		return
-	file.store_string(JSON.stringify({"default_slot": default_slot, "last_session_active": _last_session_active, "vibrate": vibrate_enabled, "reduced_motion": reduced_motion, "large_text": large_text}))
+	file.store_string(JSON.stringify({"default_slot": default_slot, "last_session_active": _last_session_active, "vibrate": vibrate_enabled, "reduced_motion": reduced_motion, "large_text": large_text, "puppy_illustrated": puppy_illustrated}))
 	file.close()
 	_sync_loading_preview()
 

@@ -18,6 +18,7 @@
     "test_circuit_selftest"
   ],
   "suite": [
+    "puppy_idle_preview_test",
     "album_screen_test",
     "photo_hints_test",
     "album_book_test",
@@ -261,6 +262,7 @@
     },
     "pet": {
       "paths": [
+        "game/tests/puppy_idle_preview_test.gd",
         "game/scenes/ui/pet_screen/*",
         "game/scripts/ui/pet_care_tray.gd",
         "game/scripts/ui/pet_animator.gd",
@@ -280,6 +282,7 @@
         "game/tests/photo_line_test.gd"
       ],
       "tests": [
+        "puppy_idle_preview_test",
         "photo_line_test",
         "care_wheel_test",
         "roleta_test",

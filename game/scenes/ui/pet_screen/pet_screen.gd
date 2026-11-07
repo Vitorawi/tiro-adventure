@@ -87,6 +87,7 @@ func _ready() -> void:
 			%Stars.draw_circle(point, 2.0, Palette.HONEY))
 	_dog_sprite.gui_input.connect(_on_dog_input)
 	_animator = PetAnimator.new()
+	_animator.allow_illustrated_puppy = true
 	add_child(_animator)
 	_animator.setup(_dog_sprite)
 	_build_need_rings()

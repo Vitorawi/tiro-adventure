@@ -1,0 +1,49 @@
+{
+  "source": "tools/art/tiro_idle_landmarks_v3",
+  "clip": "idle_breathe",
+  "fps": 6,
+  "canvas": [
+    768,
+    648
+  ],
+  "default": true,
+  "revert": "Configurações > Bebê ilustrado > desligar",
+  "files": [
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/frame_00.png",
+      "sha256": "ccc0f8f0564ecc19cb80f1ca31da1636248eb9dabf81748cf4026a44a8bf3bb6"
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/frame_01.png",
+      "sha256": "2145ec63e650322cd71d733e3bb8332ceb7c5dd8a12b536402a7206849edf4c0"
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/frame_02.png",
+      "sha256": "fb126ffcdd64bd000a55b37e0996b96f4a2fc44d1048976cd2e2830b762b95e4"
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/frame_03.png",
+      "sha256": "08392e70373515ef4766198f8deb4fc25713a4d1ec947a36909b52f1bb5c2eff"
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/frame_04.png",
+      "sha256": "2099097dd3a6a8ae9bd5fc20755cd5d8ab255e3a27bddde204a46986a970fe32"
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/frame_05.png",
+      "sha256": "f9116c36e386c17645a6c0ac0bdb7310dd6815509fd1541590c0f086e2482c31"
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/frame_06.png",
+      "sha256": "5f945ee361b690bd9b8df3397bf7b826becea400ae2eb03667445d96181aaacc"
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/frame_07.png",
+      "sha256": "28ff16519ae16efb17c6fb32479412278bf15503eff05828747da18089bb6da2"
+    },
+    {
+      "file": "game/assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/frame_08.png",
+      "sha256": "b73a6243f2fc09fc4c03a8c02d852c9af4bbc90c3f8c708fc1fd81b9edc9570c"
+    }
+  ]
+}

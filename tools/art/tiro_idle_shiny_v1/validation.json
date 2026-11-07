@@ -1,0 +1,145 @@
+{
+  "frame_count": 9,
+  "fps": 6,
+  "cycle_seconds": 1.5,
+  "source_unchanged": true,
+  "registration": "limites e linha de apoio do original, em 3x",
+  "limitation": "Redesenho generativo: detalhes internos de rosto/pelo não são pixel a pixel iguais. Avaliar continuidade na prévia.",
+  "measurements": [
+    {
+      "frame": 0,
+      "source_bbox": [
+        74,
+        48,
+        172,
+        185
+      ],
+      "registered_bbox_3x": [
+        222,
+        144,
+        516,
+        555
+      ]
+    },
+    {
+      "frame": 1,
+      "source_bbox": [
+        74,
+        47,
+        172,
+        185
+      ],
+      "registered_bbox_3x": [
+        222,
+        141,
+        516,
+        555
+      ]
+    },
+    {
+      "frame": 2,
+      "source_bbox": [
+        74,
+        44,
+        172,
+        185
+      ],
+      "registered_bbox_3x": [
+        222,
+        132,
+        516,
+        554
+      ]
+    },
+    {
+      "frame": 3,
+      "source_bbox": [
+        74,
+        42,
+        172,
+        185
+      ],
+      "registered_bbox_3x": [
+        222,
+        126,
+        515,
+        555
+      ]
+    },
+    {
+      "frame": 4,
+      "source_bbox": [
+        74,
+        40,
+        172,
+        185
+      ],
+      "registered_bbox_3x": [
+        222,
+        120,
+        516,
+        555
+      ]
+    },
+    {
+      "frame": 5,
+      "source_bbox": [
+        73,
+        40,
+        172,
+        185
+      ],
+      "registered_bbox_3x": [
+        219,
+        120,
+        516,
+        555
+      ]
+    },
+    {
+      "frame": 6,
+      "source_bbox": [
+        74,
+        43,
+        172,
+        185
+      ],
+      "registered_bbox_3x": [
+        223,
+        129,
+        516,
+        555
+      ]
+    },
+    {
+      "frame": 7,
+      "source_bbox": [
+        74,
+        45,
+        172,
+        185
+      ],
+      "registered_bbox_3x": [
+        222,
+        135,
+        516,
+        555
+      ]
+    },
+    {
+      "frame": 8,
+      "source_bbox": [
+        74,
+        47,
+        172,
+        185
+      ],
+      "registered_bbox_3x": [
+        222,
+        142,
+        515,
+        555
+      ]
+    }
+  ]
+}

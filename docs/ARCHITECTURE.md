@@ -10,6 +10,15 @@ Cenas (scenes/*)  ──métodos──▶  GameState  ◀──to_dict/from_dict
 
 ## Camadas visuais
 
+Teste reversível do bebê ilustrado: `PetScreen` habilita
+`PetAnimator.allow_illustrated_puppy`; só `idle_breathe` com corpo `puppy` e
+preferência `SaveManager.puppy_illustrated` usa o conjunto alternativo 3×.
+Não altera a contagem/relógio dos clipes. Retratos não habilitam a opção.
+`SettingsPanel` oferece "Bebê ilustrado", persistido nas preferências do aparelho,
+com padrão ligado. Desligar restaura os recursos pixel existentes; nada é
+sobrescrito. O `_show` troca também o filtro/material ao entrar e sair da arte
+ilustrada, para o shader da paleta pixel não alterar a pintura.
+
 Na Web, `web/shell.html` + `web/loading.js` ficam acima do canvas enquanto o
 motor carrega. `SaveManager` publica só a fase do slot padrão como dica em
 `localStorage`, separada por pasta da build; o HTML não lê nem altera o save.
