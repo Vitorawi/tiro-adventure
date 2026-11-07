@@ -29,6 +29,7 @@ const HEADER_H := 44.0
 const MARGIN := 16.0
 ## Nada do visualizador fica sobre o HUD: a coluna começa abaixo dele.
 const HUD_GAP := 4.0
+const HUD_UP_VEIL := 8.0  ## o véu sobe um pouco acima do topo da carta, até o fim da engrenagem
 const HUD_UP := 28.0  ## a carta sobe e cobre a placa do Álbum: só o cabeçalho do HUD continua à vista
 const BOTTOM := 40.0  ## folga de baixo: a carta não fica colada na borda
 
@@ -170,14 +171,17 @@ func _build() -> void:
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(dim)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	# Abaixo do HUD o fundo é quase opaco, num bege madeirado do jogo: a folha atrás (Álbum, Caderninho) não aparece por entre a carta.
+	# O véu começa na altura do fim do quadradinho da engrenagem: o cabeçalho do HUD fica limpo, sem escurecer.
+	var veil_top := top_offset() - HUD_UP_VEIL
+	dim.offset_top = veil_top
+	# Abaixo do cabeçalho o fundo é um bege madeirado translúcido: a folha atrás (Álbum, Caderninho) aparece só como um véu.
 	var deep := ColorRect.new()
 	deep.name = "DeepDim"
 	deep.color = Color(0.9, 0.76, 0.56, 0.72)
 	deep.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(deep)
 	deep.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	deep.offset_top = top_offset() - HUD_GAP
+	deep.offset_top = veil_top
 	_column = VBoxContainer.new()
 	_column.name = "Column"
 	_column.alignment = BoxContainer.ALIGNMENT_CENTER
