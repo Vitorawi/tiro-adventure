@@ -332,7 +332,6 @@ func _layout() -> void:
 	if plate != null:
 		plate.position = Vector2.ZERO
 		plate.size = _header_title.size * 3.0  # a moldura 3x é desenhada em escala 1/3 (o `resized` dela não dispara aqui)
-	_board.reset_size()  # o painel de ações volta ao tamanho mínimo real (chips já quebrados na largura atual)
 	var other := _column.get_combined_minimum_size().y - _slot.custom_minimum_size.y
 	other += _wrapped_cost_extra(screen.x)
 	var room := screen.y - top_offset() - BOTTOM - other - 4.0
@@ -557,7 +556,9 @@ func _build_info() -> void:
 	for phase: Dictionary in Database.growth.phases:
 		if str(phase.id) == str(info.get("phase", "")):
 			phase_name = str(phase.name)
-	var line := StationWood.text("%s · %s" % [PhotoCard.date_text(float(info.get("at", 0.0))), phase_name], 12, Palette.INK_SOFT)
+	# Só o dia (sem a hora): com "Holográfica" a linha inteira passava da largura da tela e empurrava o painel de baixo.
+	var day := PhotoCard.date_text(float(info.get("at", 0.0))).get_slice(",", 0)
+	var line := StationWood.text("%s · %s" % [day, phase_name], 12, Palette.INK_SOFT)
 	line.name = "CardWhen"
 	line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	line.size_flags_vertical = Control.SIZE_SHRINK_CENTER
