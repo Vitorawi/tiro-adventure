@@ -23,10 +23,12 @@ const REDUCED_YAW := 8.0
 const REDUCED_PITCH := 4.0
 const FLIP_ANGLE := 84.0
 const FLIP_TIME := 0.125
-const TILE := 64.0
-const SEPARATION := 8
-const HEADER_H := 48.0
+const TILE := 52.0
+const SEPARATION := 4
+const HEADER_H := 44.0
 const MARGIN := 16.0
+## Nada do visualizador fica sobre o HUD: a coluna começa abaixo dele.
+const HUD_GAP := 4.0
 
 static var current: CardViewer
 
@@ -93,7 +95,44 @@ static func _screen() -> Vector2:
 	return (Engine.get_main_loop() as SceneTree).root.get_visible_rect().size
 
 
+## Topo da coluna: abaixo do HUD (a pílula do nome e o X nunca cobrem a placa "Tiro").
+static func top_offset() -> float:
+	var hud: float = float((load("res://scripts/ui/hud.gd") as GDScript).get_script_constant_map()["HEIGHT"])
+	return maxf(MARGIN - 2.0, hud + HUD_GAP)
+
+
+var _hidden_close: Control
+
+
+## O X da folha que está atrás (Álbum, Caderninho) some enquanto a carta está aberta: só um X na tela.
+## O X do Álbum/Caderninho aberto atrás da carta (o quadro é refeito a cada mudança: quem o monta também consulta isto).
+static func sheet_close() -> Control:
+	var main := _main()
+	if main == null:
+		return null
+	for panel_name: String in ["AlbumScreen", "PetNotebook"]:
+		var panel := main.find_child(panel_name, true, false)
+		if panel != null:
+			return panel.find_child("CloseButton", true, false) as Control
+	return null
+
+
+func _hide_sheet_close() -> void:
+	var close := sheet_close()
+	if close != null and close.visible:
+		_hidden_close = close
+		close.modulate.a = 0.0
+
+
+func _restore_sheet_close() -> void:
+	var close := sheet_close()
+	if close != null:
+		close.modulate.a = 1.0
+	_hidden_close = null
+
+
 func close() -> void:
+	_restore_sheet_close()
 	if _spring != null:
 		_spring.kill()
 	if _flip != null:
@@ -127,6 +166,14 @@ func _build() -> void:
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(dim)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	# Abaixo do HUD o fundo é quase opaco: a folha atrás (Álbum, Caderninho) não aparece por entre a carta.
+	var deep := ColorRect.new()
+	deep.name = "DeepDim"
+	deep.color = Color(0.1, 0.07, 0.05, 0.84)
+	deep.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(deep)
+	deep.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	deep.offset_top = top_offset() - HUD_GAP
 	_column = VBoxContainer.new()
 	_column.name = "Column"
 	_column.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -136,8 +183,9 @@ func _build() -> void:
 	_column.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_column.offset_left = MARGIN
 	_column.offset_right = -MARGIN
-	_column.offset_top = MARGIN - 2.0
-	_column.offset_bottom = -MARGIN + 2.0
+	_column.offset_top = top_offset()
+	_hide_sheet_close()
+	_column.offset_bottom = -8.0
 	_column.add_child(_make_header())
 	_info = PanelContainer.new()
 	_info.name = "CardInfo"
@@ -185,17 +233,18 @@ func _build() -> void:
 	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_theme_constant_override("margin_left", 14)
 	margin.add_theme_constant_override("margin_right", 14)
-	margin.add_theme_constant_override("margin_top", 12)
-	margin.add_theme_constant_override("margin_bottom", 12)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
 	_board.add_child(margin)
 	_actions = VBoxContainer.new()
 	_actions.name = "CardActions"
 	_actions.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_actions.add_theme_constant_override("separation", 6)
+	_actions.add_theme_constant_override("separation", 4)
 	margin.add_child(_actions)
 	_column.add_child(_board)
 	_refresh(true)
 	_layout()
+	_layout.call_deferred()  # os tamanhos mínimos só assentam no quadro seguinte
 	Events.state_changed.connect(_on_state)
 	Events.photo_rolled.connect(_on_rolled)
 	Events.sheet_closed.connect(_on_sheet_closed)
@@ -250,7 +299,7 @@ func _layout() -> void:
 		plate.position = Vector2.ZERO
 		plate.size = _header_title.size * 3.0  # a moldura 3x é desenhada em escala 1/3 (o `resized` dela não dispara aqui)
 	var other := _column.get_combined_minimum_size().y - _slot.custom_minimum_size.y
-	var room := screen.y - 2.0 * MARGIN - other - 8.0
+	var room := screen.y - top_offset() - 8.0 - other - 4.0
 	_card_px = clampf(minf(screen.x * 0.78, room), 150.0, 460.0)
 	_slot.custom_minimum_size = Vector2(_card_px, _card_px)
 	var surface := _card_px * SURFACE_MARGIN
@@ -450,20 +499,22 @@ func _build_info() -> void:
 	for child in _info.get_children():
 		_info.remove_child(child)
 		child.queue_free()
-	var box := VBoxContainer.new()
+	var box := HBoxContainer.new()  # uma linha só: nível + data (a carta ganha a altura)
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	box.add_theme_constant_override("separation", 0)
-	var badge := PhotoCard.rarity_badge(level, 24)
+	box.add_theme_constant_override("separation", 8)
+	var badge := PhotoCard.rarity_badge(level, 22)
 	badge.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	badge.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	box.add_child(badge)
 	var info := GameState.photo_info(photo_id)
 	var phase_name := ""
 	for phase: Dictionary in Database.growth.phases:
 		if str(phase.id) == str(info.get("phase", "")):
 			phase_name = str(phase.name)
-	var line := StationWood.text("%s · %s" % [PhotoCard.date_text(float(info.get("at", 0.0))), phase_name], 13, Palette.INK_SOFT)
+	var line := StationWood.text("%s · %s" % [PhotoCard.date_text(float(info.get("at", 0.0))), phase_name], 12, Palette.INK_SOFT)
 	line.name = "CardWhen"
 	line.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	line.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	box.add_child(line)
 	_info.add_child(box)
 

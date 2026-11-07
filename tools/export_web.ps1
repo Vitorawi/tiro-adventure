@@ -37,6 +37,8 @@ function Export-Channel([string]$Name, [string]$Dir) {
     New-Item -ItemType Directory -Force $Dir | Out-Null
     & $Godot --headless --path $GameDir --export-release "Web" (Join-Path $Dir "index.html")
     if ($LASTEXITCODE -ne 0) { throw "Falha no export (codigo $LASTEXITCODE)." }
+    & py (Join-Path $Root 'tools/package_web_loading.py') $Dir
+    if ($LASTEXITCODE -ne 0) { throw "Falha ao preparar o loading." }
     # Mesmo ajuste do deploy: o service worker instala a versao nova ignorando o cache HTTP.
     Edit-Text (Join-Path $Dir "index.service.worker.js") "cache.addAll(CACHED_FILES)" "cache.addAll(CACHED_FILES.map((f) => new Request(f, { cache: 'reload' })))"
     if ($Name -eq "dev") {

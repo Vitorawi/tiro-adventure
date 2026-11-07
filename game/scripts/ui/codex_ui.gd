@@ -1,7 +1,7 @@
-class_name CodexUi
+﻿class_name CodexUi
 extends RefCounted
 ## Caderninho do Tiro (livrinho) no visual "madeira ilustrada": placa "Caderninho" curva sobre a moldura, X de madeira,
-## uma coluna de abas coloridas na borda DIREITA (uma por seção: Recursos, Estações, Crescer, Álbum, Coleção, Truques),
+## uma coluna de abas coloridas na borda DIREITA (uma por seção: Recursos, Estações, Crescer, Coleção, Truques; o Álbum usa o mesmo quadro sem abas, em `AlbumScreen`),
 ## uma fileira de filtros no topo do miolo creme e, embaixo, uma grade de quadradinhos (ícone grande + "×N").
 ## A aba escolhida avança mais que as outras e fica na frente da moldura; as outras entram por baixo dela.
 ## As imagens `codex_*.png` vêm de `tools/codex_art.gd` (~3x: os NinePatch usam escala 1/3, então moram em Control comum).
@@ -29,6 +29,7 @@ const FILTER_H := 44.0         # abinha de filtro (nome escrito)
 const TASTE_FACE := 26.0  # carinha do Paladar no canto do quadradinho
 const FILTER_GAP := 4.0
 const FILTER_TOP := 78.0
+const FILTER_TOP_WIDE := 58.0  # Álbum: uma fileira só, sobe para ganhar espaço
 const SIDE_PAD := 4.0
 const FILTER_INSET := 12.0  # o papel tem um filete branco ~9 px para dentro: as abinhas ficam dentro dele
 const GUTTER := 6.0
@@ -38,7 +39,7 @@ const FOOT_H := 44.0
 const BOTTOM_PAD := 8.0
 const TILE_MARGINS := Vector4i(62, 62, 62, 75)
 const CAPTION_H := 30.0
-const TAB_COLORS := {"resources": "red", "stations": "orange", "growth": "purple", "album": "green", "collection": "yellow", "tricks": "blue"}
+const TAB_COLORS := {"resources": "red", "stations": "orange", "growth": "purple", "collection": "yellow", "tricks": "blue"}
 
 ## Filtro escolhido de cada seção (vale enquanto o jogo está aberto).
 static var filters: Dictionary = {}
@@ -59,7 +60,9 @@ static func board_width() -> float:
 
 
 ## Largura da madeira (a coluna de abas fica à direita dela).
-static func frame_width() -> float:
+static func frame_width(wide: bool = false) -> float:
+	if wide:  # Álbum: sem coluna de abas, a madeira usa a largura toda
+		return floorf(board_width() - LEFT - ART.z - SIDE)
 	return board_width() - LEFT - (TAB_W - TAB_OUT) - TAB_EDGE + SIDE  # a aba escolhida termina a TAB_EDGE da borda da tela
 
 
@@ -69,8 +72,9 @@ static func board_height() -> float:
 
 
 ## Largura útil das grades (dentro do creme, sem as folgas e sem a coluna da barra).
-static func content_width() -> float:
-	return frame_width() - CREAM.x - CREAM.z - (SIDE_PAD + GUTTER) * 2.0
+static func content_width(wide: bool = false) -> float:
+	# Álbum: folga extra para a grade nunca tocar a linha creme lateral da moldura (>= 6 px de cada lado).
+	return frame_width(wide) - CREAM.x - CREAM.z - (SIDE_PAD + GUTTER) * 2.0 - (10.0 if wide else 0.0)
 
 
 ## Quatro por linha; o Álbum usa duas cartas sem o quadradinho externo.
@@ -80,7 +84,7 @@ static func columns(view: Dictionary = {}) -> int:
 
 static func tile_width(view: Dictionary = {}) -> float:
 	var cols := columns(view)
-	return floorf((content_width() - GAP * (cols - 1)) / cols)
+	return floorf((content_width(bool(view.get("wide", false))) - GAP * (cols - 1)) / cols)
 
 
 static func _font(px: int) -> Font:
@@ -102,10 +106,10 @@ static func fit_px(text: String, width: float, top: int, bottom: int) -> int:
 # --- Entrada -------------------------------------------------------------------------------
 
 ## `section` já normalizada pelo `PetNotebook`; `filter` opcional (senão vale o último da seção).
-static func build(section: String, filter: String = "") -> Control:
+static func build(section: String, filter: String = "", album: bool = false) -> Control:
 	if filter != "":
 		filters[section] = filter
-	var model := {"section": section, "scroll": 0, "noted": ""}
+	var model := {"section": section, "scroll": 0, "noted": "", "album": album}
 	var live := SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		box.add_theme_constant_override("separation", 0)
 		box.add_child(_board(model, box as SheetBuilder.LiveBox))
@@ -113,7 +117,7 @@ static func build(section: String, filter: String = "") -> Control:
 		tail.custom_minimum_size.y = TAIL + TAB_BAR
 		tail.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		box.add_child(tail))
-	live.name = "PetNotebook"
+	live.name = "AlbumScreen" if bool(model.get("album", false)) else "PetNotebook"
 	live.set_meta("sheet_bare", true)
 	live.set_meta("sheet_fit_content", true)
 	live.set_meta("tick_refresh", false)  # a grade rola: nada de refazer a cada segundo
@@ -121,15 +125,18 @@ static func build(section: String, filter: String = "") -> Control:
 
 
 static func _board(model: Dictionary, live: SheetBuilder.LiveBox) -> Control:
-	var entries := PetNotebook.tabs()
+	var album := bool(model.get("album", false))
+	var entries: Array[Dictionary] = []
+	if not album:
+		entries = PetNotebook.tabs()
 	var section := str(model.section)
-	if not entries.any(func(entry: Dictionary) -> bool: return str(entry.id) == section):
+	if not album and not entries.any(func(entry: Dictionary) -> bool: return str(entry.id) == section):
 		section = "resources"
 		model.section = section
 	var view := CodexSections.view(section, str(filters.get(section, "")), model)
 	filters[section] = str(view.filter)
 	var width := board_width()
-	var wood_w := frame_width()
+	var wood_w := frame_width(bool(view.get("wide", false)))
 	var height := board_height()
 	var wood_h := height - FT - ART.w
 	var board := Control.new()
@@ -154,15 +161,19 @@ static func _board(model: Dictionary, live: SheetBuilder.LiveBox) -> Control:
 	art.position = Vector2(LEFT - ART.x, FT - ART.y)
 	art.size = Vector2(wood_w + ART.x + ART.z, wood_h + ART.y + ART.w)
 	(art.get_child(0) as Control).size = art.size * 3.0  # o quadro ainda não está na árvore: `resized` não dispara
-	_add_title(board, wood_w)
+	_add_title(board, wood_w, "Álbum" if album else "Caderninho")
 	var cream := Rect2(LEFT + CREAM.x, FT + CREAM.y, wood_w - CREAM.x - CREAM.z, wood_h - CREAM.y - CREAM.w)
 	var top := FILTER_TOP
 	var shown_filters: Array = view.filters
 	if shown_filters.size() > 1:
-		var strip := _filter_row(shown_filters, str(view.filter), section, model, live, cream.size.x - FILTER_INSET * 2.0)
+		var strip: Control
+		if album:
+			strip = _album_tabs(shown_filters, str(view.filter), section, model, live, cream.size.x - FILTER_INSET * 2.0)
+		else:
+			strip = _filter_row(shown_filters, str(view.filter), section, model, live, cream.size.x - FILTER_INSET * 2.0)
 		board.add_child(strip)
-		strip.position = Vector2(cream.position.x + FILTER_INSET, FILTER_TOP)
-		top = FILTER_TOP + strip.size.y + 8.0
+		strip.position = Vector2(cream.position.x + FILTER_INSET, FILTER_TOP_WIDE if album else FILTER_TOP)
+		top = (FILTER_TOP_WIDE if album else FILTER_TOP) + strip.size.y + 3.0
 		# O nome do filtro escolhido também vira o título da grade.
 		var blocks: Array = view.get("blocks", [])
 		if not blocks.is_empty() and str((blocks[0] as Dictionary).get("title", "")) == "":
@@ -173,6 +184,8 @@ static func _board(model: Dictionary, live: SheetBuilder.LiveBox) -> Control:
 		top = FILTER_TOP - 6.0
 	var foot: Control = view.get("foot")
 	var area_bottom := cream.end.y - BOTTOM_PAD
+	if album:
+		area_bottom -= 12.0  # Álbum: a grade para acima do enfeite do canto de baixo do miolo
 	if foot != null:
 		area_bottom -= FOOT_H + 6.0
 	var area := _grid_area(view, model, Vector2(cream.size.x - SIDE_PAD * 2.0, area_bottom - top))
@@ -191,7 +204,7 @@ static func _board(model: Dictionary, live: SheetBuilder.LiveBox) -> Control:
 
 # --- Placa, X ------------------------------------------------------------------------------
 
-static func _add_title(board: Control, wood_w: float) -> void:
+static func _add_title(board: Control, wood_w: float, text: String = "Caderninho") -> void:
 	var plate := TextureRect.new()
 	plate.name = "CodexPlate"
 	plate.texture = tex("plate")
@@ -202,7 +215,7 @@ static func _add_title(board: Control, wood_w: float) -> void:
 	plate.position = Vector2(LEFT + (wood_w - PLATE.x) / 2.0, 0.0)
 	plate.size = PLATE
 	board.add_child(plate)
-	var title := MissionUi.text("Caderninho", 20, Palette.WOOD_CREAM, 3)
+	var title := MissionUi.text(text, 20, Palette.WOOD_CREAM, 3)
 	title.name = "CodexTitle"
 	title.size = Vector2(PLATE.x - 48.0, 30.0)
 	title.position = Vector2(plate.position.x + 24.0, 9.0)
@@ -226,6 +239,8 @@ static func _add_title(board: Control, wood_w: float) -> void:
 	close.pressed.connect(func() -> void: Motion.bounce(picture))
 	board.add_child(close)
 	close.position = Vector2(LEFT + wood_w - 42.0, 4.0)
+	if CardViewer.is_open():
+		close.modulate.a = 0.0  # refeito com a carta aberta por cima: o X fica só no visualizador
 
 
 # --- Abas laterais ---------------------------------------------------------------------------
@@ -281,7 +296,7 @@ static func _longest_word(text: String, px: int) -> float:
 ## Mesma fonte em todas as abas: a maior em que o nome mais largo cabe na parte visível da aba parada.
 static func tab_px() -> int:
 	var px := 12
-	for name_text: String in ["Recursos", "Estações", "Crescer", "Álbum", "Coleção", "Truques"]:
+	for name_text: String in ["Recursos", "Estações", "Crescer", "Coleção", "Truques"]:
 		px = mini(px, fit_px(name_text, TAB_W - TAB_HIDE - 14.0, 12, 8))
 	return px
 
@@ -325,6 +340,111 @@ static func filter_layout(options: Array, width: float) -> Dictionary:
 
 static func filter_width(text: String, px: int, pad: float = 20.0) -> float:
 	return maxf(ceilf(_text_w(text, px)) + pad, 48.0)
+
+
+## Álbum: abas com o NOME escrito, todas visíveis, sem rolagem: grade de 4 colunas (a última fileira centralizada), mesma
+## altura (44) e mesma fonte em todas (a maior em que o nome mais longo cabe em até duas linhas, sem cortar). Cada aba tem a
+## barrinha de progresso embaixo, ✓ dourado quando a seção está completa e o pontinho vermelho de novidade.
+const ALBUM_TAB_COLUMNS := 4
+const ALBUM_TAB_GAP := 3.0
+
+static func album_tab_px(options: Array, width: float) -> int:
+	var tab_w := floorf((width - ALBUM_TAB_GAP * (ALBUM_TAB_COLUMNS - 1)) / ALBUM_TAB_COLUMNS)
+	var px := 13
+	for entry: Dictionary in options:
+		var text := str(entry.text)
+		while px > 8 and (_longest_word(text, px) > tab_w - 7.0 or _line_count(text, px, tab_w - 7.0) > 2):
+			px -= 1
+	return px
+
+
+static func _album_tabs(options: Array, picked: String, section: String, model: Dictionary, live: SheetBuilder.LiveBox, width: float) -> Control:
+	var tab_w := floorf((width - ALBUM_TAB_GAP * (ALBUM_TAB_COLUMNS - 1)) / ALBUM_TAB_COLUMNS)
+	var px := album_tab_px(options, width)
+	var rows := int(ceil(float(options.size()) / ALBUM_TAB_COLUMNS))
+	var height := rows * FILTER_H + (rows - 1) * ALBUM_TAB_GAP
+	var holder := Control.new()
+	holder.name = "CodexFilters"
+	holder.mouse_filter = Control.MOUSE_FILTER_PASS
+	holder.custom_minimum_size = Vector2(width, height)
+	holder.size = holder.custom_minimum_size
+	holder.set_meta("font_px", px)
+	for i in options.size():
+		var entry: Dictionary = options[i]
+		var id := str(entry.id)
+		var row := i / ALBUM_TAB_COLUMNS
+		var in_row := mini(ALBUM_TAB_COLUMNS, options.size() - row * ALBUM_TAB_COLUMNS)
+		var row_w := in_row * tab_w + (in_row - 1) * ALBUM_TAB_GAP
+		var x := floorf((width - row_w) / 2.0) + (i % ALBUM_TAB_COLUMNS) * (tab_w + ALBUM_TAB_GAP)
+		var button := _album_tab(entry, id == picked, Vector2(tab_w, FILTER_H), px, func() -> void:
+			if id == picked:
+				return
+			filters[section] = id
+			model.scroll = 0
+			model.noted = ""
+			live.refresh())
+		button.position = Vector2(x, row * (FILTER_H + ALBUM_TAB_GAP))
+		holder.add_child(button)
+	return holder
+
+
+static func _album_tab(entry: Dictionary, picked: bool, size: Vector2, px: int, on_pressed: Callable) -> Button:
+	var id := str(entry.id)
+	var button := BagUi.plain_button(on_pressed)
+	button.name = "NotebookTab_" + id
+	button.tooltip_text = str(entry.text)
+	button.custom_minimum_size = size
+	button.size = size
+	button.set_meta("picked", picked)
+	var art := Control.new()
+	art.name = "Art"
+	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var patch := NinePatchRect.new()
+	patch.name = "Frame"
+	patch.texture = tex("tab_orange" if picked else "tile")
+	patch.patch_margin_left = TILE_MARGINS.x
+	patch.patch_margin_top = TILE_MARGINS.y
+	patch.patch_margin_right = TILE_MARGINS.z
+	patch.patch_margin_bottom = TILE_MARGINS.w
+	patch.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	patch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	patch.scale = Vector2.ONE / 4.0
+	patch.size = size * 4.0
+	art.add_child(patch)
+	art.size = size
+	button.add_child(art)
+	var label := MissionUi.text(str(entry.text), px, Palette.WOOD_CREAM if picked else Palette.WOOD_INK, 3 if picked else 0)
+	label.name = "Caption"
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.max_lines_visible = 2
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	label.add_theme_constant_override("line_spacing", -3)
+	label.size = Vector2(size.x - 4.0, size.y - 11.0)
+	label.position = Vector2(2.0, 2.0)
+	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	button.add_child(label)
+	# Barrinha de progresso (obtidas/total) no pé da aba.
+	var total := int(entry.get("total", 0))
+	if total > 0:
+		var track := ColorRect.new()
+		track.name = "TabProgressTrack"
+		track.color = Color(Palette.WOOD_INK, 0.28)
+		track.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		track.position = Vector2(10.0, size.y - 11.0)
+		track.size = Vector2(size.x - 20.0, 3.0)
+		button.add_child(track)
+		var fill := ColorRect.new()
+		fill.name = "TabProgress"
+		fill.color = Palette.GO if bool(entry.get("complete", false)) else Palette.HONEY
+		fill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		fill.position = track.position
+		fill.size = Vector2(track.size.x * clampf(float(entry.get("have", 0)) / float(total), 0.0, 1.0), 3.0)
+		button.add_child(fill)
+	button.set_meta("complete", bool(entry.get("complete", false)))  # completa = barrinha verde; incompleta = amarela
+	if bool(entry.get("alert", false)):
+		button.add_child(_new_dot(Vector2(size.x - 16.0, 1.0)))  # dentro do canto da própria aba
+	return button
 
 
 static func _filter_row(options: Array, picked: String, section: String, model: Dictionary, live: SheetBuilder.LiveBox, width: float) -> Control:

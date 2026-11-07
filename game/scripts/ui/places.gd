@@ -567,7 +567,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			var panels := {"agriculture": "farm", "cooking": "station:stove", "commerce": "sell", "adventure": "routes:walk"}
 			return _panel_target(panels.get(key, ""))
 		"stat":
-			if key == "open:album": return {"notebook": "album", "hint": "Tiro → caderninho → Álbum"}
+			if key == "open:album": return {"notebook": "album", "hint": "Tiro → botão Álbum"}
 			if key == "trick_learned":
 				return _panel_target("tricks")
 			if key.begins_with("project_use:"):
@@ -722,7 +722,7 @@ static func go(target: Dictionary) -> void:
 		Events.sheet_requested.emit(GameState.storage_name(str(target.storage)), SheetBuilder.inventory_view(str(target.storage)))
 	elif target.has("notebook"):
 		Events.screen_requested.emit(&"pet")
-		PetNotebook.open(str(target.notebook))
+		PetNotebook.open(str(target.notebook))  # "album" abre a `AlbumScreen`
 	elif target.has("growth"):
 		GrowthUi.open()
 	elif target.has("screen"):

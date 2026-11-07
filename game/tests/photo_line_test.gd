@@ -148,9 +148,9 @@ func _run() -> void:
 	await frames()
 	check(slots().size() == 1, "2: tirar do varal abre um espaço")
 	await click(slots()[0].get_global_rect().get_center())
-	check(main.find_child("NotebookTab_album", true, false) != null, "2: espaço vazio abre o Álbum")
+	check(main.find_child("AlbumScreen", true, false) != null, "2: espaço vazio abre o Álbum")
 	await frames()
-	main.find_child("PetNotebook", true, false).queue_free()
+	main.find_child("AlbumScreen", true, false).queue_free()
 
 	# Passeio: o varal some.
 	state.call("dev_take_photo", "f_dig", 1)

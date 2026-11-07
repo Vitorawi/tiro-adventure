@@ -6,7 +6,7 @@ func _ready() -> void:
 	layer = 24
 	hide()
 
-func open(id: String, next: String = "") -> void:
+func open(id: String, next: String = "", unlocks: Array[String] = []) -> void:
 	if next == "": next = GameState.progress.current_main_quest()
 	var quest: Dictionary = Database.quests[id]
 	var next_quest: Dictionary = Database.quests.get(next, {})
@@ -23,6 +23,8 @@ func open(id: String, next: String = "") -> void:
 	sheet.body.add_child(chips)
 	chips.alignment = FlowContainer.ALIGNMENT_CENTER
 	if not Motion.reduced: RewardSheet.reveal_in(chips)
+	# Novidades desta entrega ficam na mesma folha, sem outro botão de destino.
+	sheet.add_unlocks(unlocks)
 	if next != "":
 		sheet.add_heading("Próximo passo")
 		sheet.add(RewardSheet.next_card(next))

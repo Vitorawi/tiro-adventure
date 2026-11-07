@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#efd0a0">
+  <title>$GODOT_PROJECT_NAME</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { margin: 0; width: 100%; height: 100%; background: #efd0a0; overflow: hidden; }
+    body { touch-action: none; }
+    #canvas { display: block; width: 100%; height: 100%; outline: none; }
+    #loading { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: #d9ae77; opacity: 1; transition: opacity .2s ease; }
+    #loading.finished { opacity: 0; pointer-events: none; }
+    #loading-stage { position: relative; width: 100%; height: 100%; max-width: 70vh; overflow: hidden; background: #efd0a0; }
+    #loading-scene { position: absolute; width: 100%; height: 100%; object-fit: cover; object-position: center; }
+    #loading-logo { position: absolute; width: 91%; height: auto; left: 4.5%; top: max(2.5%, env(safe-area-inset-top)); max-height: 23%; object-fit: contain; }
+    #loading-bottom { position: absolute; width: 80%; left: 10%; bottom: max(3.5%, env(safe-area-inset-bottom)); text-align: center; color: #532d15; font: bold clamp(12px, 3.4vw, 17px)/1.3 'Trebuchet MS', sans-serif; }
+    #loading-meter { position: relative; width: 100%; aspect-ratio: 10 / 1; margin: 0 auto 8px; }
+    #loading-track { position: absolute; inset: 0; width: 100%; height: 100%; }
+    #loading-fill { position: absolute; left: 3.3%; top: 27%; width: 93.4%; height: 46%; clip-path: inset(0 100% 0 0); }
+    #loading-label { margin: 0; text-shadow: 0 1px 3px #fff5d9; }
+    #loading-retry { border: 2px solid #75401e; border-radius: 16px; background: #ffe9ad; color: #532d15; font: inherit; padding: 12px 24px; margin-top: 10px; min-height: 44px; }
+    @media (prefers-reduced-motion: reduce) { #loading { transition: none; } }
+  </style>
+  $GODOT_HEAD_INCLUDE
+</head>
+<body>
+  <canvas id="canvas">Seu navegador não suporta este jogo.</canvas>
+  <div id="loading" aria-label="As Aventuras de Tiro Tiro">
+    <div id="loading-stage">
+      <img id="loading-scene" alt="" fetchpriority="high">
+      <img id="loading-logo" src="loading/logo.webp" alt="As Aventuras de Tiro Tiro">
+      <div id="loading-bottom">
+        <div id="loading-meter" role="progressbar" aria-label="Carregamento" aria-valuemin="0" aria-valuemax="100">
+          <img id="loading-track" src="loading/track.webp" alt="">
+          <img id="loading-fill" src="loading/fill.webp" alt="">
+        </div>
+        <p id="loading-label" role="status">Preparando o cantinho do Tiro…</p>
+        <button id="loading-retry" hidden>Tentar novamente</button>
+      </div>
+    </div>
+  </div>
+  <noscript>Ative o JavaScript para jogar.</noscript>
+  <script src="loading.js"></script>
+  <script src="$GODOT_URL" onerror="TiroLoading.fail('Falha ao baixar o motor')"></script>
+  <script>
+    const GODOT_CONFIG = $GODOT_CONFIG;
+    const GODOT_THREADS_ENABLED = $GODOT_THREADS_ENABLED;
+    if (typeof Engine !== 'undefined') {
+      const engine = new Engine(GODOT_CONFIG);
+      const missing = Engine.getMissingFeatures({threads: GODOT_THREADS_ENABLED});
+      if (missing.length) {
+        TiroLoading.fail('Recursos indisponíveis: ' + missing.join(', '));
+      } else {
+        engine.startGame({onProgress: TiroLoading.progress}).catch(TiroLoading.fail);
+        // Main avisa depois de desenhar a primeira tela; não revela o splash intermediário do motor.
+      }
+    }
+  </script>
+</body>
+</html>

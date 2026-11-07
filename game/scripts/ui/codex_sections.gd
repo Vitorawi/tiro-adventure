@@ -358,9 +358,22 @@ static func _album(wanted: String, model: Dictionary) -> Dictionary:
 	if sections.is_empty():
 		return {"filters": [], "filter": "", "blocks": [], "empty": "Ainda não há fotos."}
 	var unseen_sections: Array = GameState.photos_unseen().map(func(id: String) -> String: return str(Database.photo(id).section))
+	# "Todas" primeiro (padrão): todas as fotos que o jogador tem. Depois as seções ativas, com progresso e ✓.
 	var options: Array[Dictionary] = []
+	var all_taken := 0
+	var all_total := 0
+	var all_complete := true
 	for entry: Dictionary in sections:
-		options.append({"id": str(entry.id), "text": str(entry.name), "icon": _icon(str(entry.icon)), "alert": str(entry.id) in unseen_sections})
+		var counts := AlbumView.section_counts(str(entry.id))
+		all_taken += counts.x
+		all_total += counts.y
+		var complete: bool = bool(GameState.album_milestones(str(entry.id)).section.get("complete", false))
+		all_complete = all_complete and complete
+		options.append({"id": str(entry.id), "text": str(entry.name), "icon": _icon(str(entry.icon)), "alert": str(entry.id) in unseen_sections,
+			"have": counts.x, "total": counts.y, "complete": complete})
+	if sections.size() > 1:
+		options.push_front({"id": "all", "text": "Todas", "icon": CodexUi.tex("icon_album"), "alert": not unseen_sections.is_empty(),
+		"have": all_taken, "total": all_total, "complete": all_complete})
 	var filter := wanted
 	if filter == "":
 		filter = AlbumView.last_section
@@ -370,7 +383,7 @@ static func _album(wanted: String, model: Dictionary) -> Dictionary:
 		model["noted"] = filter
 		GameState.note_album_section(filter)
 	AlbumTutorial.maybe_start.call_deferred()
-	return {"filters": options, "filter": filter, "name": "AlbumView", "cols": 2,
+	return {"filters": options, "filter": filter, "name": "AlbumView", "cols": 3, "wide": true,
 		"album_section": filter, "blocks": []}
 
 

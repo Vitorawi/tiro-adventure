@@ -159,6 +159,13 @@ func _ready() -> void:
 	_maybe_welcome(GameState.now() - saved_at if saved_at > 0.0 else 0.0)
 	GameState.note_app_opened()
 	_check_growth_ceremonies()
+	_finish_web_loading.call_deferred()
+
+
+func _finish_web_loading() -> void:
+	if not OS.has_feature("web"): return
+	await RenderingServer.frame_post_draw
+	JavaScriptBridge.eval("if (window.TiroLoading) window.TiroLoading.ready();", true)
 
 
 ## Ao ir para o segundo plano guarda a hora; ao voltar, mostra o cartão se passou tempo suficiente.
@@ -214,6 +221,8 @@ func _flush_modals() -> void:
 	if Time.get_ticks_msec() < _reward_not_before: return
 	if CardViewer.is_open() or _card_open():
 		return
+	# O conteúdo da folha já fechou, mas sua moldura ainda pode estar saindo.
+	if bool(get_node("Sheet").get("_closing")): return
 	if not _modal_queue.is_empty():
 		_modal_queue.pop_front().call()
 
@@ -508,18 +517,29 @@ func _announce() -> void:
 	var unlocks := GameState.new_unlocks()
 	var chapter := _chapter_done
 	_chapter_done = 0
+	if chapter > 0 or not _quest_rewards.is_empty():
+		# O cartão de origem não deve reaparecer atrás do prêmio nem depois de "Ir".
+		for catcher: Node in find_children("PopoverCatcher", "Control", true, false):
+			(catcher as Control).hide()
+			catcher.queue_free()
+		ActionTray.close_current(true)
+		Events.sheet_close_requested.emit()
 	if chapter > 0:
 		_quest_rewards.clear()
 		_queue_modal(func() -> void:
 			Events.sheet_close_requested.emit()
 			_celebration.show_chapter(chapter, unlocks))
 	else:
-		for entry: Dictionary in _quest_rewards:
+		var has_story_reward := not _quest_rewards.is_empty()
+		for i: int in _quest_rewards.size():
+			var entry: Dictionary = _quest_rewards[i]
+			var reward_unlocks: Array[String] = []
+			if i == _quest_rewards.size() - 1: reward_unlocks.assign(unlocks)
 			_queue_modal(func() -> void:
 				Events.sheet_close_requested.emit()
-				_quest_reward.call("open", str(entry.id), str(entry.next)))
+				_quest_reward.call("open", str(entry.id), str(entry.next), reward_unlocks))
 		_quest_rewards.clear()
-		if not unlocks.is_empty():
+		if not has_story_reward and not unlocks.is_empty():
 			_queue_modal(func() -> void:
 				Events.sheet_close_requested.emit()
 				_celebration.show_unlocks(unlocks))

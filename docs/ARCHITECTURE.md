@@ -10,11 +10,29 @@ Cenas (scenes/*)  ──métodos──▶  GameState  ◀──to_dict/from_dict
 
 ## Camadas visuais
 
+Na Web, `web/shell.html` + `web/loading.js` ficam acima do canvas enquanto o
+motor carrega. `SaveManager` publica só a fase do slot padrão como dica em
+`localStorage`, separada por pasta da build; o HTML não lê nem altera o save.
+`Main._finish_web_loading` sinaliza após `RenderingServer.frame_post_draw`,
+retirando a tela ilustrada sem mostrar um quadro intermediário do motor.
+Artes do shell são arquivos Web externos ao PCK e entram no cache do PWA pelo
+`tools/package_web_loading.py`. Ver `docs/DEPLOY.md`.
+
 Camadas de desenho: efeitos do cenário usam `Motion.WORLD_FX_Z = 5` com
 `z_as_relative = false`. Isso inclui Zz, textos flutuantes, ícones de atributos,
 corações e `CollectFx`. Abas (6), HUD (8), Sheet (10), avisos/popovers e os
 CanvasLayers dos modais ficam acima deles. Um efeito do Tiro não deve usar z alto
 para atravessar a interface; janelas cobrem o cenário e suas animações.
+
+## Conclusão de missões
+
+Conclusão de passo da história: `Main._announce` reúne as novidades na própria
+`QuestReward.open(id, next, unlocks)` (`RewardSheet.add_unlocks`, resumo sem botões).
+Só o próximo passo oferece um destino; não enfileira outro "Novo!" para a mesma
+entrega. A casca remove popovers e fecha a bandeja/folha de origem antes do prêmio;
+`_flush_modals` aguarda a animação de saída do Sheet. Capítulos continuam com uma
+comemoração única contendo novidades e próximo passo. Novidades sem prêmio de
+história conservam sua apresentação própria.
 
 ## Autoloads (ordem de carregamento importa)
 

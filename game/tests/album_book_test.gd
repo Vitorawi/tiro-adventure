@@ -47,7 +47,7 @@ func _run() -> void:
 	await frames()
 	# 1. Duas colunas; nível escolhido, não o melhor; seção inteira, sem SubViewports.
 	var grid := panel.find_child("AlbumGrid", true, false) as GridContainer
-	check(grid != null and grid.columns == 2 and grid.get_child_count() == 14, "duas colunas com 14 fotos da História")
+	check(grid != null and grid.columns == 3 and grid.get_child_count() == 14, "três colunas com 14 fotos da História")
 	var arrival := panel.find_child("AlbumCard_h_arrival", true, false) as Button
 	check(arrival.get_meta("level") == 1 and arrival.find_child("CardFrame", true, false).get_meta("level") == 1, "moldura da versão mostrada")
 	check(panel.find_child("CardStage", true, false) == null, "grade não cria SubViewport")
@@ -70,11 +70,17 @@ func _run() -> void:
 	# 4. Prévia cinza de baixa resolução + pista; segredo sem pista só verso.
 	var missing := panel.find_child("AlbumCard_h_kitchen", true, false)
 	var picture := missing.find_child("MissingIllustration", true, false) as TextureRect
-	check(picture != null and missing.find_child("MissingLock", true, false) != null, "faltante com base apagada e cadeado")
+	check(picture != null and missing.find_child("MissingLock", true, false) == null and missing.find_child("HintMark", true, false) != null and missing.find_child("AlbumHint", true, false) == null, "faltante com base apagada, sem cadeado nem texto de pista, com o ? de madeira")
 	if picture != null:
 		var image := picture.texture.get_image()
 		var pixel := image.get_pixel(12, 12)
 		check(image.get_width() == 24 and absf(pixel.r - pixel.g) < 0.005 and absf(pixel.b - pixel.g) < 0.005 and pixel.r <= 0.49, "prévia desfocada, cinza e escura")
+	(missing as Button).pressed.emit()
+	await frames()
+	var pop := root.find_child("PhotoHintPop", true, false)
+	check(pop != null and pop.find_child("PhotoHintText", true, false) != null, "tocar na faltante abre o balãozinho da dica")
+	var catcher := root.find_child("PopoverCatcher", true, false)
+	if catcher != null: catcher.free()
 	var secret: Control = view.call("book_card", "s_foam_ghost", 120)
 	check(secret.find_child("CardBack", true, false) != null and secret.find_child("MissingIllustration", true, false) == null, "segredo sem pista não carrega ilustração")
 	check((secret.find_child("AlbumCaption", true, false) as Label).text.begins_with("???"), "segredo mantém título oculto e pista poética")

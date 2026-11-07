@@ -222,7 +222,7 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 				return describe("crop", key.trim_prefix("harvest:"), 1, trail)
 	var target := Places.goal_target(goal)
 	if key == "open:album":
-		return _base("Conheça o Álbum", "Na aba Tiro, toque no caderninho e depois em Álbum. As primeiras lembranças já estão guardadas lá; avisos de fotos novas começam depois dessa visita.", target, "Abrir Álbum")
+		return _base("Conheça o Álbum", "Na aba Tiro, toque no botão do Álbum, logo abaixo do caderninho. As primeiras lembranças já estão guardadas lá; avisos de fotos novas começam depois dessa visita.", target, "Abrir Álbum")
 	var hints := {"talk:lais": "Toque na Laís, na Casa.", "talk:bloblo": "Toque na vovó Bloblo, no Sítio.", "open:bag": "Toque na aba Mochila.", "feed": "Dê comida na Tigela.", "pet": "Aba Tiro → faça carinho com o dedo.", "harvest": "Plante e colha.", "water": "Toque na plantinha com a gota.", "bathe": "Aba Tiro → Banho.", "play": "Aba Tiro → Brincar.", "trade": "Venda na Vila.", "sold": "Venda na Vila.", "explore": "Faça um passeio.", "walk": "Praça → Passeio: leve o Tiro para passear.", "talk:nina": "Toque na Nina, na Praça.", "produce": "Cozinhe no Fogão."}
 	return _base(str(goal.get("label", "Seu objetivo")), hints.get(key, ""), target, "Ir")
 

@@ -16,6 +16,35 @@ O export usa o preset **"Web"** de `game/export_presets.cfg` e gera `build/web/`
 - `progressive_web_app/display=1` (standalone), `orientation=2` (retrato).
 - Ícones: `res://assets/icons/icon_{144,180,512}.png`.
 
+## Carregamento ilustrado
+
+`game/web/shell.html` substitui o HTML padrão; `loading.js` escolhe a arte antes
+de iniciar o motor. Recém-chegado/Filhotinho usam `loading/puppy.webp`; de
+Dentinhos em diante, `loading/farm.webp`. Logo e barra são imagens separadas.
+A porcentagem vem do download real; depois dele aparece "Preparando…" até
+`Main._finish_web_loading` sinalizar o primeiro quadro desenhado. Sem splash
+intermediário do Godot. Erro de rede/motor oferece Tentar novamente.
+
+`SaveManager` atualiza uma dica de fase em `localStorage`, sempre do **slot
+padrão de entrada**, também ao trocar o padrão ou excluir slots. A chave
+`tiro:loading:v1:<pasta da página>/` separa `/` de `/dev/` e normaliza `index.html`.
+Sem dica, fase desconhecida ou armazenamento indisponível, usa a caixinha;
+o save continua exclusivamente no IndexedDB. Não há mudança no formato do save.
+
+Fontes PNG/prompts em `tools/art/loading/`; derivados leves em `game/web/loading/`
+(os cinco WebPs somam cerca de 670 KiB). `tools/prepare_loading_art.py` requer
+Pillow e só precisa rodar se a arte mudar; preserva as fontes, recorta margens
+transparentes das peças e gera WebP. Os derivados já ficam versionados.
+
+Após exportar, **tanto o script local quanto o CI** executam
+`tools/package_web_loading.py <pasta de saída>` (Python padrão): copia JS/artes
+ao lado do HTML e os inclui no cache offline do PWA. Exportar só pelo editor
+exige executar esse passo depois. `web/*` fica fora do PCK.
+
+Verificação no navegador: `python tools/loading_test.py` (requer Playwright e
+Chrome instalado). Testa fases, armazenamento indisponível, canais separados,
+progresso, erro/repetição, telas 360×780/390×844/412×915 e partida Web real.
+
 ## Deploy automático (GitHub Pages)
 `.github/workflows/deploy.yml` roda a cada push na `main` (ou manualmente em Actions):
 1. Baixa Godot 4.7.2 Linux + export templates (com cache).

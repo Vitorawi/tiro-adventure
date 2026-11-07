@@ -2005,38 +2005,38 @@
       {
         "level": 1,
         "name": "Comum",
-        "weight": 45,
+        "weight": 55,
         "art": "common"
       },
       {
         "level": 2,
         "name": "Brilhante",
-        "weight": 30,
+        "weight": 27,
         "art": "shiny"
       },
       {
         "level": 3,
         "name": "Rara",
-        "weight": 18,
+        "weight": 14,
         "art": "rare"
       },
       {
         "level": 4,
         "name": "Holográfica",
-        "weight": 7,
+        "weight": 4,
         "art": "holographic"
       }
     ],
     "pity": {
-      "rare_plus": 10,
-      "holo": 30
+      "rare_plus": 12,
+      "holo": 40
     },
     "section_weights": {
       "story": {
-        "1": 20,
+        "1": 30,
         "2": 35,
-        "3": 30,
-        "4": 15
+        "3": 25,
+        "4": 10
       }
     },
     "repeat_cooldown_hours": 20,

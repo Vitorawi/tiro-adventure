@@ -18,6 +18,7 @@
     "test_circuit_selftest"
   ],
   "suite": [
+    "album_screen_test",
     "photo_hints_test",
     "album_book_test",
     "station_grid_touch_test",
@@ -427,6 +428,8 @@
         "game/tests/photo_hints_test.gd",
         "game/tests/fotos_07_shots.gd",
           "game/tests/album_book_test.gd",
+        "game/tests/album_screen_test.gd",
+        "game/scripts/ui/album_screen.gd",
         "game/data/album.json",
         "game/scripts/state/album_*.gd",
         "game/scripts/ui/album_view.gd",
@@ -456,6 +459,7 @@
       ],
       "tests": [
         "photo_hints_test",
+        "album_screen_test",
           "album_book_test",
         "album_test",
         "album_secrets_test",

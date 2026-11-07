@@ -2,7 +2,7 @@ class_name AlbumView
 extends RefCounted
 ## Livro de cartas no caderninho: duas colunas, versões, Para abrir e pistas em madeira.
 
-const COLUMNS := 2
+const COLUMNS := 3
 
 
 ## Seção aberta por último na sessão (a aba volta nela).
@@ -10,10 +10,14 @@ static var last_section: String = ""
 
 
 static func panel(section: String = "") -> Control:
-	return CodexUi.build("album", section)
+	return AlbumScreen.panel(section)
 
 
 ## (tiradas, total) de uma seção.
+static func section_counts(section: String) -> Vector2i:
+	return _section_counts(section)
+
+
 static func _section_counts(section: String) -> Vector2i:
 	var taken := 0
 	var total := 0
@@ -43,8 +47,15 @@ static func total_count() -> int:
 static func _tap(id: String) -> void:
 	if GameState.album.has_photo(id):
 		open_photo(id)
-	else:
-		Events.sheet_requested.emit(str(Database.photo(id).title), secret_detail(id))
+		return
+	var tree := Engine.get_main_loop() as SceneTree
+	var tapped: Control = null
+	for node in tree.root.find_children("AlbumCard_" + id, "Button", true, false):
+		tapped = node as Control
+		break
+	if tapped != null and hint_popover(id, tapped) != null:
+		return
+	Events.sheet_requested.emit(str(Database.photo(id).title), secret_detail(id))
 
 
 ## Detalhe de uma foto tirada, no painel do caderninho. Abrir marca a foto como vista.
@@ -112,7 +123,7 @@ static func detail(id: String) -> Control:
 			open_photo(id))
 		pick.name = "MainButton"
 		box.add_child(pick)
-	box.add_child(UiKit.soft("Voltar ao álbum", func() -> void: PetNotebook.open("album:" + str(entry.section))))
+	box.add_child(UiKit.soft("Voltar ao álbum", func() -> void: AlbumScreen.open(str(entry.section))))
 	return box
 
 
@@ -157,7 +168,7 @@ static func photo_hint(id: String) -> Control:
 			button = StepCardUi.locked_button("A lupa volta amanhã", UiKit.ctl_icon("lock"))
 			button.name = "HintButton"
 		inner.add_child(button)
-	elif not hint.go.is_empty():
+	elif hint_has_go(id, hint):
 		var reason := _go_error(hint.go)
 		var go: Button
 		if reason == "":
@@ -180,8 +191,17 @@ static func photo_hint(id: String) -> Control:
 		var target := {"world": Database.npc_world(npc), "place": "npc:" + npc}
 		row.add_child(WelcomeSheet._button("Conversar", false, width - 52, "PhotoHintTalk", Places.go.bind(target)))
 		inner.add_child(row)
-	inner.add_child(WelcomeSheet._button("Voltar ao álbum", false, width, "BackToAlbum", func() -> void: PetNotebook.open("album:" + str(entry.section))))
+	inner.add_child(WelcomeSheet._button("Voltar ao álbum", false, width, "BackToAlbum", func() -> void: AlbumScreen.open(str(entry.section))))
 	return box
+
+
+## Dica com destino real? Dicas de tempo/data (seção Datas, ícone de calendário) não têm para onde ir: sem botão Ir.
+static func hint_has_go(id: String, hint: Dictionary) -> bool:
+	if hint.go.is_empty():
+		return false
+	if str(Database.photo(id).section) == "dates" or str(hint.get("icon", "")) == "album_dates":
+		return false
+	return true
 
 
 static func _go_error(target: Dictionary) -> String:
@@ -275,82 +295,115 @@ static func preview(id: String, width: float) -> Control:
 
 ## Contagens da seção: fotos obtidas (inclui fechadas), versões possuídas, quatro níveis.
 static func summary(section: String) -> Dictionary:
-	var counts := _section_counts(section)
+	var sections: Array[String] = []
+	if section == "all":
+		for entry: Dictionary in Database.album_sections():
+			sections.append(str(entry.id))
+	else:
+		sections.append(section)
+	var taken := 0
+	var total := 0
 	var levels := {1: 0, 2: 0, 3: 0, 4: 0}
 	var versions := 0
+	for id: String in sections:
+		var counts := _section_counts(id)
+		taken += counts.x
+		total += counts.y
 	for entry: Dictionary in Database.album.photos:
-		if str(entry.section) != section:
+		if not (str(entry.section) in sections):
 			continue
 		for level: int in GameState.photo_variants(str(entry.id)):
 			if levels.has(level):
 				levels[level] += 1
 				versions += 1
-	return {"taken": counts.x, "total": counts.y, "versions": versions, "possible": counts.y * 4, "levels": levels}
+	return {"taken": taken, "total": total, "versions": versions, "possible": total * 4, "levels": levels}
+
+
+## Seção completa (todas as cartas abertas); "all" = todas as seções ativas completas.
+static func section_done(section: String) -> bool:
+	if section != "all":
+		return bool(GameState.album_milestones(section).section.get("complete", false))
+	for entry: Dictionary in Database.album_sections():
+		if not bool(GameState.album_milestones(str(entry.id)).section.get("complete", false)):
+			return false
+	return true
 
 
 static func book(section: String, width: float) -> Control:
 	var box := VBoxContainer.new()
 	box.name = "AlbumBook"
 	box.custom_minimum_size.x = width
-	box.add_theme_constant_override("separation", 10)
+	box.add_theme_constant_override("separation", 4)
 	var stats := summary(section)
-	var name_text := section
+	var name_text := "Todas" if section == "all" else section
 	for entry: Dictionary in Database.album_sections():
 		if str(entry.id) == section: name_text = str(entry.name)
+	# Uma linha só, alinhada ao centro: nome da aba + pílula "x/y" (+ ✓) à esquerda e os 4 selos de nível à direita.
 	var head := VBoxContainer.new()
 	head.name = "AlbumSummary"
 	head.set_meta("counts", stats)
-	var milestones := GameState.album_milestones(section)
-	var done: bool = bool(milestones.section.get("complete", false))
-	head.add_child(_text("%s %d/%d%s" % [name_text, stats.taken, stats.total, "  ✓" if done else ""], 17, width))
-	if done:
-		head.get_child(head.get_child_count() - 1).name = "SectionComplete"
+	head.add_theme_constant_override("separation", 0)
+	var milestones := GameState.album_milestones("" if section == "all" else section)
+	var done := section_done(section)
+	var top := HBoxContainer.new()
+	top.name = "AlbumTitleRow"
+	top.alignment = BoxContainer.ALIGNMENT_BEGIN
+	top.add_theme_constant_override("separation", 6)
+	# Largura que sobra ao nome: total - pílula (58) - quatro selos com números (~126) - folgas; a fonte encolhe até caber.
+	var title := _text(name_text, CodexUi.fit_px(name_text, width - 48.0 - 134.0 - 22.0, 18, 11), 40.0)
+	title.name = "AlbumTitle"
+	title.autowrap_mode = TextServer.AUTOWRAP_OFF
+	title.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title.custom_minimum_size.y = 22.0
+	top.add_child(title)
+	top.add_child(_count_pill("%d/%d" % [stats.taken, stats.total], done))
+	var spacer := Control.new()
+	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	top.add_child(spacer)
 	var levels := HBoxContainer.new()
 	levels.name = "AlbumLevels"
-	levels.add_theme_constant_override("separation", 4)
+	levels.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	levels.add_theme_constant_override("separation", 3)
+	levels.tooltip_text = "Versões %d/%d" % [stats.versions, stats.possible]
 	for level in range(1, 5):
 		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 2)
+		row.add_theme_constant_override("separation", 1)
+		row.tooltip_text = str(PhotoCard.LEVEL_NAMES.get(level, ""))
 		var icon := TextureRect.new()
 		icon.name = "LevelSeal_%d" % level
-		icon.texture = load(PhotoCard.FRAMES_DIR + "frame_%d.png" % level)
+		icon.texture = load(PhotoCard.FRAMES_DIR + "seal_%d.png" % level)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-		icon.custom_minimum_size = Vector2(20, 20)
+		icon.custom_minimum_size = Vector2(16, 16)
+		icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		row.add_child(icon)
-		var count := _text(str(stats.levels[level]), 13, 24)
+		var count := _text(str(stats.levels[level]), 12, 14)
 		count.name = "AlbumLevelCount_%d" % level
 		count.autowrap_mode = TextServer.AUTOWRAP_OFF
+		count.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		row.add_child(count)
 		levels.add_child(row)
-	head.add_child(levels)
-	head.add_child(_text("Versões %d/%d" % [stats.versions, stats.possible], 13, width))
-	var rare: Dictionary = milestones.rare
-	if not rare.is_empty():
-		var next := _text("Mais %d Rara%s" % [rare.left, "s" if int(rare.left) > 1 else ""], 13, width)
-		next.name = "NextMilestone"
-		head.add_child(next)
+	top.add_child(levels)
+	head.add_child(top)
 	box.add_child(head)
-	# A faixa cobre todas as seções ativas; o botão abre a primeira sem consumir antecipadamente.
+	var rare: Dictionary = milestones.rare
+	# Cartas fechadas: UM cartão de madeira baixo (versos empilhados + texto + Abrir). O botão abre a primeira sem consumir antes.
 	var sealed: Array[String] = []
 	var amount := 0
 	for id: String in GameState.sealed_photos():
-		if str(Database.photo(id).section) in Database.album.active_sections:
+		# Só na aba Todas ou na seção que tem a carta fechada.
+		if str(Database.photo(id).section) in Database.album.active_sections and (section == "all" or str(Database.photo(id).section) == section):
 			sealed.append(id)
 			amount += GameState.photo_sealed(id)
 	if not sealed.is_empty():
-		var strip := HBoxContainer.new()
-		strip.name = "AlbumSealed"
-		strip.add_theme_constant_override("separation", 6)
-		strip.add_child(back(44))
-		var column := VBoxContainer.new()
-		column.add_child(_text("Para abrir", 14, width - 50))
-		column.add_child(WelcomeSheet._button("Abrir (%d)" % amount, true, width - 50, "AlbumOpenSealed", open_photo.bind(sealed[0])))
-		strip.add_child(column)
-		box.add_child(strip)
-	var near := near_entries(section)
+		box.add_child(_sealed_card(sealed, amount, width))
+	var near: Array[Dictionary] = []
+	if section != "all":
+		near = near_entries(section)
 	if not near.is_empty():
 		var strip := VBoxContainer.new()
 		strip.name = "AlbumNear"
@@ -359,17 +412,137 @@ static func book(section: String, width: float) -> Control:
 			strip.add_child(_hint_line(entry, width, 13))
 			strip.add_child(WelcomeSheet._button("Ir", false, 80, "AlbumNearGo_" + str(entry.id), Places.go.bind(entry.go)))
 		box.add_child(strip)
+	var card_w := floorf((width - 6.0 * (COLUMNS - 1)) / COLUMNS)
+	if section == "all":
+		# Só as fotos que o jogador tem, por seção (cabecinho fino) e na ordem do catálogo; as faltantes ficam nas abas.
+		var shown := 0
+		for entry: Dictionary in Database.album_sections():
+			var ids: Array[String] = []
+			for photo: Dictionary in Database.album.photos:
+				if str(photo.section) == str(entry.id) and GameState.album.has_photo(str(photo.id)):
+					ids.append(str(photo.id))
+			if ids.is_empty():
+				continue
+			shown += ids.size()
+			var group := VBoxContainer.new()
+			group.name = "AlbumGroup_" + str(entry.id)
+			group.add_theme_constant_override("separation", 2)
+			var header := HBoxContainer.new()
+			header.name = "AlbumGroupHeader"
+			header.add_theme_constant_override("separation", 5)
+			var mark := UiKit.icon(UiKit.ui_icon(str(entry.icon)), 16)
+			mark.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+			mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			header.add_child(mark)
+			var header_text := _text(str(entry.name), 13, width - 30.0)
+			header_text.autowrap_mode = TextServer.AUTOWRAP_OFF
+			header.add_child(header_text)
+			group.add_child(header)
+			group.add_child(_grid(ids, card_w))
+			box.add_child(group)
+		if shown == 0:
+			var empty := _text("Ainda não há fotos. Elas chegam enquanto o Tiro vive!", 14, width)
+			empty.name = "AlbumEmpty"
+			box.add_child(empty)
+	else:
+		var ids: Array[String] = []
+		for entry: Dictionary in Database.album.photos:
+			if str(entry.section) == section:
+				ids.append(str(entry.id))
+		box.add_child(_grid(ids, card_w))
+	if not rare.is_empty():
+		var next := _text("Mais %d Rara%s para o próximo prêmio" % [rare.left, "s" if int(rare.left) > 1 else ""], 12, width)
+		next.name = "NextMilestone"
+		next.autowrap_mode = TextServer.AUTOWRAP_OFF
+		next.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		box.add_child(next)
+	return box
+
+
+## Pílula "x/y" da seção: marrom enquanto incompleta, verde quando completa. Nó `SectionCount` (meta `complete`).
+static func _count_pill(value: String, done: bool) -> Control:
+	if not done:
+		var brown := MissionUi.pill("brown", value, "SectionCount", Vector2(48, 24))
+		brown.set_meta("complete", false)
+		return brown
+	var pill := PanelContainer.new()
+	pill.name = "SectionCount"
+	pill.set_meta("complete", true)
+	pill.custom_minimum_size = Vector2(48, 24)
+	pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	pill.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := UiKit.surface(Palette.GO, 12)
+	style.border_color = Palette.GO_EDGE
+	style.set_border_width_all(2)
+	style.content_margin_left = 8
+	style.content_margin_right = 8
+	style.content_margin_top = 0
+	style.content_margin_bottom = 0
+	pill.add_theme_stylebox_override("panel", style)
+	var text := MissionUi.text(value, 13, Color.WHITE, 0)
+	text.name = "PillText"
+	text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	pill.add_child(text)
+	return pill
+
+
+static func _grid(ids: Array[String], card_w: float) -> GridContainer:
 	var grid := GridContainer.new()
 	grid.name = "AlbumGrid"
 	grid.columns = COLUMNS
 	grid.add_theme_constant_override("h_separation", 6)
-	grid.add_theme_constant_override("v_separation", 12)
-	var card_w := floorf((width - 6.0) / 2.0)
-	for entry: Dictionary in Database.album.photos:
-		if str(entry.section) == section:
-			grid.add_child(book_card(str(entry.id), card_w))
-	box.add_child(grid)
-	return box
+	grid.add_theme_constant_override("v_separation", 4)
+	for id in ids:
+		grid.add_child(book_card(id, card_w))
+	return grid
+
+
+## Cartão baixo de madeira das cartas fechadas: 1–3 versos levemente deslocados, "N fotos para abrir" e o botão Abrir.
+static func _sealed_card(sealed: Array[String], amount: int, width: float) -> Control:
+	var card := MissionUi.card("card", Vector4i(10, 2, 10, 2), "AlbumSealed", 10)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var stack := Control.new()
+	stack.name = "SealedStack"
+	var layers := mini(amount, 3)
+	stack.custom_minimum_size = Vector2(34.0 + 6.0 * (layers - 1), 38.0)
+	stack.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for i in layers:
+		var back_card := back(34)
+		back_card.position = Vector2(6.0 * (layers - 1 - i), 6.0 - 2.0 * (layers - 1 - i) * 0.5)
+		back_card.rotation_degrees = (layers - 1 - i) * -4.0 if layers > 1 else 0.0
+		stack.add_child(back_card)
+	row.add_child(stack)
+	var text := _text("%d %s para abrir" % [amount, "foto" if amount == 1 else "fotos"], 14, 100.0)
+	text.name = "SealedText"
+	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(text)
+	var open_button := WelcomeSheet._button("Abrir", true, 84.0, "AlbumOpenSealed", open_photo.bind(sealed[0]))
+	open_button.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(open_button)
+	MissionUi.body(card).add_child(row)
+	return card
+
+
+## Altura reservada à legenda (duas linhas): a mesma em todas as cartas, para as linhas da grade alinharem.
+const CAPTION_LINES := 2
+const CAPTION_LINE_H := 12.5
+
+static func caption_height() -> float:
+	return CAPTION_LINES * CAPTION_LINE_H + 2.0
+
+
+## Maior fonte (12 a 9) em que o nome cabe em até duas linhas da largura da carta.
+static func caption_px(text: String, width: float) -> int:
+	var px := 12
+	while px > 9 and (CodexUi._line_count(text, px, width - 4.0) > CAPTION_LINES or CodexUi._longest_word(text, px) > width - 4.0):
+		px -= 1
+	return px
 
 
 static func book_card(id: String, width: float) -> Button:
@@ -380,42 +553,90 @@ static func book_card(id: String, width: float) -> Button:
 	button.set_meta("photo", id)
 	button.set_meta("level", GameState.photo_shown_rarity(id))
 	var hidden := secret_hidden(id)
-	var hint := GameState.photo_hint(id)
 	var caption := "???" if hidden else str(entry.title)
-	var content := caption
-	var hint_text := str(hint.text) + (" · %d/%d" % [hint.have, hint.need] if int(hint.need) > 0 else "")
-	var hint_width := width - 36.0 if str(hint.icon) != "" else width
-	var caption_h := CodexUi._line_count(content, 12, width) * 17.0 + 6.0
-	var hint_h := maxf(32.0, CodexUi._line_count(hint_text, 12, hint_width) * 17.0) if not taken else 0.0
-	var text_h := caption_h + hint_h
-	button.custom_minimum_size = Vector2(width, width + maxf(38.0, text_h))
+	button.custom_minimum_size = Vector2(width, width + 2.0 + caption_height())
 	button.add_child(preview(id, width))
-	var label := _text(content, 12, width)
+	# Legenda: centralizada sob a carta, fonte da madeira em marrom, mesma altura reservada em todas.
+	var px := caption_px(caption, width)
+	var label := MissionUi.text(caption, px, Palette.WOOD_INK, 0, HORIZONTAL_ALIGNMENT_CENTER)
 	label.name = "AlbumCaption"
-	label.position.y = width + 3
-	label.size = Vector2(width, caption_h)
-	if not taken:
-		var line := _hint_line(hint, width)
-		line.position.y = width + 3 + caption_h
-		line.size = Vector2(width, hint_h)
-		button.add_child(line)
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.max_lines_visible = CAPTION_LINES
+	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	label.add_theme_constant_override("line_spacing", -3)
+	label.vertical_alignment = VERTICAL_ALIGNMENT_TOP
+	label.position = Vector2(2.0, width + 2.0)
+	label.size = Vector2(width - 4.0, caption_height())
 	button.add_child(label)
 	if not taken:
-		var lock := UiKit.icon(UiKit.ctl_icon("lock"), 24)
-		lock.name = "MissingLock"
-		lock.position = Vector2(width - 28, width - 28)
-		button.add_child(lock)
-	elif not bool(GameState.album.photos[id].get("seen", false)):
-		var badge := _text("Novo", 11, 34)
-		badge.name = "NewBadge"
-		badge.position = Vector2(6, width - 23)
-		button.add_child(badge)
-	if taken and GameState.photo_styles_complete(id):
-		var mark := _text("4/4", 11, 30)
-		mark.name = "StylesComplete"
-		mark.position = Vector2(width - 34, width - 23)
+		# Faltante: só a bolinha de madeira com "?" no canto; a dica abre num balãozinho ao tocar.
+		var mark := TextureRect.new()  # bolinha de madeira (map_disc) com o "?" branco
+		mark.name = "HintMark"
+		mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		mark.texture = load(HomeUi.DIR + "map_disc.png") as Texture2D
+		mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		mark.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		mark.size = Vector2(28.0, 28.0)
+		mark.position = Vector2(width - 31.0, width - 31.0)
+		var question := MissionUi.text("?", 18, Color.WHITE, 0)
+		question.name = "Question"
+		question.size = mark.size
+		question.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		mark.add_child(question)
 		button.add_child(mark)
+	elif not bool(GameState.album.photos[id].get("seen", false)):
+		var dot := CodexUi._new_dot(Vector2(3, 3))  # só a bolinha vermelha, sem texto
+		dot.name = "NewBadge"
+		button.add_child(dot)
+	if taken and GameState.photo_styles_complete(id):
+		var done_mark := MissionUi.text("4/4", 11, Palette.WOOD_INK, 0, HORIZONTAL_ALIGNMENT_RIGHT)
+		done_mark.name = "StylesComplete"
+		done_mark.size = Vector2(30.0, 16.0)
+		done_mark.position = Vector2(width - 34.0, width - 23.0)
+		button.add_child(done_mark)
 	return button
+
+
+## Balãozinho de madeira com a dica da foto que falta: texto, contador, Ir (quando há destino) e, nos segredos sem lupa,
+## o caminho para a pista completa. Fecha ao tocar fora (`Popover`, meta `popover_bare`).
+static func hint_popover(id: String, anchor: Control) -> Popover:
+	var tree := Engine.get_main_loop() as SceneTree
+	var host := tree.root.get_node_or_null("Main") as Control
+	if host == null:
+		host = tree.current_scene as Control
+	if host == null:
+		return null
+	var hint := GameState.photo_hint(id)
+	var width := 220.0
+	var card := MissionUi.card("card", Vector4i(12, 10, 12, 10), "PhotoHintPop", 10)
+	card.set_meta("popover_bare", true)
+	card.custom_minimum_size.x = width
+	var box := VBoxContainer.new()
+	box.add_theme_constant_override("separation", 6)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	MissionUi.body(card).add_child(box)
+	var text := _text(str(hint.text), 14, width - 24.0)
+	text.name = "PhotoHintText"
+	box.add_child(text)
+	if int(hint.need) > 0:
+		var count := _text("%d/%d" % [hint.have, hint.need], 13, width - 24.0)
+		count.name = "PhotoHintCount"
+		box.add_child(count)
+	var secret_hidden_now := secret_hidden(id)
+	if secret_hidden_now:
+		box.add_child(WelcomeSheet._button("Ver pista", false, width - 24.0, "PhotoHintMore", func() -> void:
+			Events.sheet_requested.emit(str(Database.photo(id).title), photo_hint(id))))
+	elif hint_has_go(id, hint):
+		var reason := _go_error(hint.go)
+		if reason == "":
+			box.add_child(WelcomeSheet._button("Ir", true, width - 24.0, "PhotoHintGo", Places.go.bind(hint.go)))
+		else:
+			var lock := StepCardUi.locked_button(reason, UiKit.ctl_icon("lock"))
+			lock.name = "PhotoHintGo"
+			lock.set_meta("reason", reason)
+			box.add_child(lock)
+	return Popover.open(host, anchor, card, 0.0)
 
 
 ## A faixa só destaca progresso real da seção; a ordenação vem do GameState.

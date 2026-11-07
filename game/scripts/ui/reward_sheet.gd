@@ -47,6 +47,24 @@ static func inner_width() -> float:
 	return sheet_width() - ItemUi.IN_L - ItemUi.IN_R - ModalCard.PAD_X * 2.0
 
 
+## Resumo das novidades junto ao prêmio; só o próximo passo oferece navegação.
+func add_unlocks(keys: Array[String]) -> void:
+	var row := UiKit.flow(6)
+	row.name = "RewardUnlocks"
+	row.alignment = FlowContainer.ALIGNMENT_CENTER
+	var targets: Array[Dictionary] = []
+	for key: String in keys:
+		var view := Places.unlock_view(key)
+		if view.is_empty() or view.target in targets: continue
+		targets.append(view.target)
+		row.add_child(UiKit.chip(view.icon, str(view.name)))
+	if row.get_child_count() == 0:
+		row.free()
+		return
+	add_heading("Novidades")
+	add(row)
+
+
 func _build(host_node: Node, options: Dictionary) -> void:
 	host = host_node
 	_on_close = options.get("on_close", Callable()) as Callable

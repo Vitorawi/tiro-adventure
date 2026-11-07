@@ -41,7 +41,7 @@ var _pulse: Tween
 var _finishing := false
 
 
-## Chamado quando o Álbum é montado no caderninho. Começa (ou retoma) se a foto da chegada ainda ensina.
+## Chamado quando a tela do Álbum é montada (`AlbumScreen`). Começa (ou retoma) se a foto da chegada ainda ensina.
 static func maybe_start() -> void:
 	if is_active() or GameState.album_tutorial_done() or not GameState.album.has_photo(PHOTO):
 		return
@@ -182,7 +182,7 @@ func _process(_delta: float) -> void:
 	_layout()
 
 
-## Espera a fila modal esvaziar e o caderninho estar de pé; sem o Álbum aberto, desiste.
+## Espera a fila modal esvaziar e a tela do Álbum estar de pé; sem o Álbum aberto, desiste.
 func _try_start() -> void:
 	var main := _main()
 	var sheet := main.get_node_or_null("Sheet") if main != null else null
@@ -328,7 +328,11 @@ func _layout() -> void:
 	# O balão fica na metade da tela que o alvo não ocupa.
 	var on_top := hole.get_center().y > screen.y * 0.5
 	_balloon.size = Vector2(screen.x - 24.0, 0.0)
-	_balloon.position = Vector2(12.0, Hud.HEIGHT + 6.0 if on_top else screen.y - _balloon.size.y - 110.0)
+	var top_y := Hud.HEIGHT + 6.0
+	var info := viewer.find_child("CardInfo", true, false) as Control if is_instance_valid(viewer) else null
+	if info != null and info.is_inside_tree():
+		top_y = maxf(top_y, info.get_global_rect().end.y + 6.0)  # abaixo do cabeçalho da carta: não tampa a placa do Álbum nem o X
+	_balloon.position = Vector2(12.0, top_y if on_top else screen.y - _balloon.size.y - 110.0)
 	if not on_top:
 		_balloon.position.y = screen.y - _balloon.get_combined_minimum_size().y - 110.0
 	_arrow.visible = _arrow.visible and not none

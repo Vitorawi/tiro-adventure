@@ -44,6 +44,12 @@ func _run() -> void:
 	events.items_gained.connect(func(items: Dictionary, coins: int, origin: Vector2) -> void: gains.append({"items": items.duplicate(), "coins": coins, "origin": origin}))
 	events.world_requested.connect(func(world: String, spot: String) -> void: destinations.append(world + ":" + spot))
 	await _welcome()
+	await _early_unlocks()
+	if "--early-shot" in OS.get_cmdline_user_args():
+		main.queue_free()
+		await frames()
+		quit(1 if failures else 0)
+		return
 	await _chapter()
 	await _character()
 	await _gift()
@@ -89,6 +95,53 @@ func _welcome() -> void:
 	check(not reward.visible and gains.size() == 1 and state.get("coins") == coins + 5, "sem duplicar voo, folha ou moedas")
 	events.sheet_close_requested.emit()
 	clear_modals()
+
+## A Mochila abre após brincar: prêmio e novidade devem oferecer um único destino.
+func _early_unlocks() -> void:
+	state.call("reset")
+	state.get("progress").seen.intro = true
+	state.call("talk_to", "lais")
+	state.call("claim_quest", "welcome")
+	state.call("feed", "dog_food")
+	state.call("claim_quest", "lais_feed")
+	state.call("bathe")
+	state.call("claim_quest", "lais_bath")
+	state.call("play")
+	await frames()
+	clear_modals()
+	main.call("show_screen", &"pet")
+	var popover := load("res://scripts/ui/popover.gd")
+	popover.call("open", main, main.find_child("NextStep", true, false), load("res://scripts/ui/next_step.gd").call("card", "lais_play"), 0.0)
+	events.sheet_requested.emit("Laís", VBoxContainer.new())
+	await frames()
+	Motion.reduced = false
+	check(ui.call("claim_quest_fx", "lais_play", Vector2.ZERO) == "", "entrega brincar no começo real")
+	await frames()
+	main.call("_flush_modals")
+	check(not main.get("_quest_reward").visible, "prêmio espera o voo e a saída da folha anterior")
+	check(main.find_child("PopoverCatcher", true, false) == null, "cartão de origem é removido")
+	await create_timer(0.8).timeout
+	await flush()
+	var reward: CanvasLayer = main.get("_quest_reward")
+	check(reward.visible and not main.get("_celebration").visible, "uma única folha para passo e Mochila nova")
+	check(not (main.get_node("Sheet") as Control).visible, "folha de origem terminou de sair")
+	check(reward.find_child("RewardUnlocks", true, false) != null, "novidade está no prêmio")
+	check(reward.find_child("NextStepCard", true, false).get_meta("quest") == "lais_bag", "único próximo passo é abrir a Mochila")
+	check(main.get("_modal_queue").is_empty(), "nenhum Novo! ficou esperando para interromper o destino")
+	if "--early-shot" in OS.get_cmdline_user_args():
+		await create_timer(0.5).timeout
+		await RenderingServer.frame_post_draw
+		var folder := ProjectSettings.globalize_path("res://../build/screenshots/quest_flow/")
+		DirAccess.make_dir_recursive_absolute(folder)
+		root.get_texture().get_image().save_png(folder + "reward_%d.png" % int(root.size.x))
+	reward.find_child("RewardGo", true, false).pressed.emit()
+	await create_timer(0.3).timeout
+	await flush()
+	check(not reward.visible and not main.get("_celebration").visible, "Ir não dispara segunda janela")
+	check(main.get("_current_screen") == &"bag", "Ir chega à Mochila")
+	Motion.reduced = true
+	clear_modals()
+
 
 func _chapter() -> void:
 	state.call("reset")

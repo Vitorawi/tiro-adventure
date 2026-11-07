@@ -1157,7 +1157,7 @@ static func next_step_card(id: String) -> Control:
 static func quest_place_name(target: Dictionary) -> String:
 	if target.has("growth") or target.get("screen", "") == "pet" or target.has("care"): return "Tiro"
 	if target.get("screen", "") == "bag" or target.has("storage"): return "Mochila"
-	if target.has("notebook"): return "Caderninho"
+	if target.has("notebook"): return "Álbum" if str(target.notebook) == "album" else "Caderninho"
 	var world: Dictionary = Database.worlds.get(str(target.get("world", "house")), {})
 	var spot := str(target.get("spot", target.get("place", ""))).trim_prefix("place:")
 	if spot.begins_with("npc:"): return str(Database.npcs.get(spot.trim_prefix("npc:"), {}).get("name", ""))

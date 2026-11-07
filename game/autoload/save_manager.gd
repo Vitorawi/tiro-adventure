@@ -45,6 +45,7 @@ func _ready() -> void:
 	active_slot = default_slot
 	_save_path = slot_path(active_slot)
 	load_game()
+	_sync_loading_preview()
 	# Qualquer mudança de estado agenda um save (agrupado no fim do frame).
 	Events.state_changed.connect(_schedule_save)
 	# Heartbeat limita a ausência após encerramento inesperado; não cria visitas online.
@@ -302,6 +303,24 @@ func _save_settings() -> void:
 		return
 	file.store_string(JSON.stringify({"default_slot": default_slot, "last_session_active": _last_session_active, "vibrate": vibrate_enabled, "reduced_motion": reduced_motion, "large_text": large_text}))
 	file.close()
+	_sync_loading_preview()
+
+
+## Dica visual para o HTML, sempre do slot padrão. O progresso continua só no save.
+func loading_preview_phase() -> String:
+	var phase := "newborn"
+	if default_slot == active_slot:
+		phase = GameState.growth.phase
+	elif FileAccess.file_exists(slot_path(default_slot)):
+		var data: Variant = JSON.parse_string(FileAccess.get_file_as_string(slot_path(default_slot)))
+		if data is Dictionary and int(data.get("save_version", 0)) == SAVE_VERSION:
+			phase = str(data.get("state", {}).get("growth", {}).get("phase", "newborn"))
+	return phase if phase in ["newborn", "puppy", "teething", "explorer", "young", "adult"] else "newborn"
+
+
+func _sync_loading_preview() -> void:
+	if not OS.has_feature("web"): return
+	JavaScriptBridge.eval("if (window.TiroLoading) window.TiroLoading.remember(%s);" % JSON.stringify(loading_preview_phase()), true)
 
 
 ## Só na versão dev: carrega uma CÓPIA do save da versão publicada (mesmo aparelho/navegador)

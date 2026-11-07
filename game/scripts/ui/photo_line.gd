@@ -149,7 +149,7 @@ func _open_photo(id: String) -> void:
 
 
 func _open_album() -> void:
-	PetNotebook.open("album")
+	AlbumScreen.open()
 
 
 func _draw() -> void:

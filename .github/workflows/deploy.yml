@@ -67,6 +67,7 @@ jobs:
             mkdir -p "$out"
             ~/godot/godot --headless --path game --export-release "Web" "$GITHUB_WORKSPACE/$out/index.html"
             test -f "$out/index.html"
+            python3 tools/package_web_loading.py "$out"
             # O SW do Godot instala a versão nova com cache.addAll(), que pode pegar arquivos
             # antigos do cache HTTP (o Pages manda guardar por 10 min). Força baixar do servidor.
             local sw="$out/index.service.worker.js"

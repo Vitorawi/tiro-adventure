@@ -21,6 +21,8 @@ const BUBBLE_SIZE := Vector2(94, 85)
 const BUBBLE_ABOVE_FEET := 406.0
 const NOTEBOOK_SIZE := Vector2(54, 50)
 const NOTEBOOK_ABOVE_FEET := 196.0
+## Botão do Álbum: mesmo tamanho do caderninho, logo embaixo dele.
+const ALBUM_GAP := 6.0
 var _bars: Dictionary = {}
 var _pulses: Dictionary = {}
 var _animator: PetAnimator
@@ -52,6 +54,8 @@ var _need_fills: Dictionary = {}
 var _mood_bubble: PanelContainer
 var _mood_label: Label
 var _manual: Button
+var _album: Button
+var _album_badge: Label
 var _new_badge: Label
 var _corner: PetBackdrop
 var _mood_age := 20.0
@@ -114,6 +118,18 @@ func _ready() -> void:
 	_new_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_manual.add_child(_new_badge)
 	_new_badge.reset_size()
+	_album = UiKit.icon_button(null, AlbumScreen.open, 52)
+	_album.name = "AlbumButton"
+	for style: String in ["normal", "hover", "pressed", "hover_pressed", "focus", "disabled"]:
+		_album.add_theme_stylebox_override(style, StyleBoxEmpty.new())
+	HomeUi.pic(_album, "album", Rect2(0, 0, 64, 50), "AlbumArt")
+	add_child(_album)
+	_album_badge = UiKit.alert_badge()
+	_album_badge.name = "AlbumNewBadge"
+	_album_badge.position = Vector2(26, -6)
+	_album_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_album.add_child(_album_badge)
+	_album_badge.reset_size()
 	_care = PetCareTray.new()
 	_care.pet_screen = self
 	add_child(_care)
@@ -236,8 +252,14 @@ func sync_hud() -> void:
 		elif _needs_pill.get_parent() != null: hud.call("set_row2_right", null)
 
 
+## O caderninho some com a roleta aberta; o álbum acompanha.
+func _manual_hidden() -> bool:
+	return not _manual.visible
+
+
 func wheel_changed(open: bool) -> void:
 	_manual.visible = not open
+	_album.visible = not open and AlbumScreen.available()
 	_away_collect.visible = not open and not GameState.walking() and GameState.walk_ready()
 	if open: _mood_bubble.hide()
 
@@ -306,6 +328,8 @@ func _layout_corner() -> void:
 	if not is_instance_valid(_manual): return
 	_manual.size = NOTEBOOK_SIZE
 	_manual.position = Vector2(size.x - NOTEBOOK_SIZE.x, _corner.pet_feet().y + 20.0 - NOTEBOOK_ABOVE_FEET)
+	_album.size = NOTEBOOK_SIZE
+	_album.position = _manual.position + Vector2(0.0, NOTEBOOK_SIZE.y + ALBUM_GAP)
 	# Cenário e Tiro são irmãos: a ordenação diferida do VBox/CenterContainer
 	# não pode mover o sprite depois deste cálculo absoluto, nem ao trocar de aba.
 	_dog_sprite.custom_minimum_size = Vector2(336, 284) * PetBackdrop.ZOOM
@@ -353,6 +377,8 @@ func _refresh() -> void:
 	_wish_icon.texture = WishUi.icon(wish_id) if wish_id != "" else null
 	(_wish_bubble.get_node("WishSpark") as Control).visible = wish_id != "" and GameState.wish_pillar() != ""
 	_new_badge.visible = PetNotebook.has_new()
+	_album.visible = AlbumScreen.available() and not _manual_hidden()
+	_album_badge.visible = AlbumScreen.has_new()
 	for id: String in _bars:
 		var ring: RingProgress = _bars[id]
 		var value := dog.get_need(id, now)

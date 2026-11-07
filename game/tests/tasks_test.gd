@@ -295,7 +295,7 @@ func _ui_check() -> void:
 	main.find_child("StoryAlbum", true, false).emit_signal("pressed")
 	await process_frame
 	await process_frame
-	check(main.find_child("NotebookTab_album", true, false) != null, "atalho final abre o Álbum do caderninho")
+	check(main.find_child("AlbumScreen", true, false) != null, "atalho final abre o Álbum")
 	main.queue_free()
 	await process_frame
 

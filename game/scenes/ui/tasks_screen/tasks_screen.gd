@@ -349,7 +349,7 @@ func _story_done(card: VBoxContainer) -> void:
 	heading.add_child(UiKit.ctl("check", 22, Palette.GO))
 	MissionUi.body(done).add_child(heading)
 	card.add_child(done)
-	var album := MissionUi.button("go", "Álbum", func() -> void: PetNotebook.open("album"))
+	var album := MissionUi.button("go", "Álbum", func() -> void: AlbumScreen.open())
 	album.name = "StoryAlbum"
 	card.add_child(album)
 	var full := MissionUi.link("História completa ›", func() -> void: MissionUi.story_book())

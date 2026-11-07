@@ -1,6 +1,6 @@
 class_name PetNotebook
 extends RefCounted
-## Consultas do Tiro reunidas no Caderninho (`CodexUi`): abas laterais Recursos, Estações, Crescer, Álbum, Coleção e Truques,
+## Consultas do Tiro reunidas no Caderninho (`CodexUi`): abas laterais Recursos, Estações, Crescer, Coleção e Truques (o Álbum tem tela própria, `AlbumScreen`),
 ## cada uma com filtros no topo. `open("<seção>")`, `open("<seção>:<filtro>")` e `open("album:<seção do álbum>")` abrem direto;
 ## "manual" continua aceito (= Recursos).
 
@@ -8,7 +8,6 @@ extends RefCounted
 static func tabs() -> Array[Dictionary]:
 	var result: Array[Dictionary] = [{"id": "resources", "text": "Recursos"}, {"id": "stations", "text": "Estações"}]
 	if GameState.progress.feature_unlocked("growth_tab"): result.append({"id": "growth", "text": "Crescer"})
-	if GameState.photo_count() > 0: result.append({"id": "album", "text": "Álbum"})
 	if not GameState.progress.collection.is_empty() or GameState.progress.feature_unlocked("finds"):
 		result.append({"id": "collection", "text": "Coleção"})
 	if GameState.progress.feature_unlocked("tricks"):
@@ -30,6 +29,10 @@ static func _parse(section: String) -> Array[String]:
 
 
 static func open(section: String = "resources") -> void:
+	# O Álbum saiu do caderninho: tem tela e botão próprios (compatibilidade com "album" e "album:<seção>").
+	if section == "album" or section.begins_with("album:"):
+		AlbumScreen.open(section.get_slice(":", 1) if ":" in section else "")
+		return
 	var parsed := _parse(section)
 	visit(parsed[0])
 	Events.sheet_requested.emit("Caderninho", panel(section))
@@ -51,7 +54,6 @@ static func has_new() -> bool:
 
 
 static func section_has_new(section: String) -> bool:
-	if section == "album": return GameState.photo_alerts_enabled() and not GameState.photos_unseen().is_empty()
 	return not section_unlocks(section).is_empty()
 
 

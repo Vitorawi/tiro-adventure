@@ -22,7 +22,7 @@ static func open(id: String) -> void:
 			else:
 				Events.toast_requested.emit(str(Database.house.items.arrival_box.desc))
 		"big_portrait", "old_camera":
-			PetNotebook.open("album")
+			AlbumScreen.open()
 		_:
 			Events.toast_requested.emit(str(Database.house.get("items", {}).get(id, {}).get("desc", "")))
 

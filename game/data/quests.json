@@ -84,13 +84,13 @@
   "lais_album": {
     "npc": "lais",
     "name": "Nossas primeiras lembranças",
-    "dialogue": "As primeiras fotos do Tiro já estão guardadas! Na aba Tiro, abra o caderninho e toque em Álbum. Depois dessa visita, eu aviso quando tiver foto nova.",
+    "dialogue": "As primeiras fotos do Tiro já estão guardadas! Na aba Tiro, toque no botão do Álbum, logo abaixo do caderninho. Depois dessa visita, eu aviso quando tiver foto nova.",
     "goals": [
       {
         "type": "stat",
         "key": "open:album",
         "target": 1,
-        "label": "Abrir o Álbum no caderninho do Tiro"
+        "label": "Abrir o Álbum do Tiro"
       }
     ],
     "rewards": {},
@@ -104,7 +104,7 @@
     },
     "go": {
       "notebook": "album",
-      "hint": "Tiro → caderninho → Álbum"
+      "hint": "Tiro → botão Álbum"
     }
   },
   "lais_bag": {

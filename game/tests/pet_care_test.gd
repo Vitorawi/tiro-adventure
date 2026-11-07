@@ -231,7 +231,7 @@ func _run() -> void:
 	state.call("dev_take_photo", "h_arrival")
 	check(state.call("photo_count") == 1 and not state.call("photo_alerts_enabled"), "foto da chegada existe antes de conhecer o Álbum")
 	check(main.get("_photo_queue").is_empty(), "primeira foto não anuncia Álbum ainda desconhecido")
-	check(not notebook.call("section_has_new", "album"), "sem exclamação de foto antes da primeira visita")
+	check(not load("res://scripts/ui/album_screen.gd").call("has_new"), "sem exclamação de foto antes da primeira visita")
 	if "--album-intro-shots" in OS.get_cmdline_user_args():
 		for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 			root.size = viewport
@@ -250,7 +250,7 @@ func _run() -> void:
 			check(root.get_texture().get_image().save_png(folder.path_join("mission_%d.png" % viewport.x)) == OK, "captura da apresentação do Álbum")
 	load("res://scripts/ui/places.gd").call("go", {"notebook": "album"})
 	await frames()
-	check(main.find_child("AlbumView", true, false) != null and state.call("photo_alerts_enabled"), "Ir abre o Álbum e ativa avisos")
+	check(main.find_child("AlbumScreen", true, false) != null and main.find_child("AlbumView", true, false) != null and state.call("photo_alerts_enabled"), "Ir abre a tela do Álbum e ativa avisos")
 	check(main.get("_photo_queue").is_empty() and state.call("photo_count") == 1, "abrir preserva o passado sem disparar avisos retroativos")
 	state.call("dev_take_photo", "h_growth_adult")
 	check(main.get("_photo_queue").has("h_growth_adult"), "depois da visita fotos novas entram na fila")
@@ -261,19 +261,19 @@ func _run() -> void:
 	await create_timer(2.2).timeout
 	for member: String in ["_celebration", "_welcome", "_walk_result"]: (main.get(member) as CanvasLayer).hide()
 	main.set("_modal_queue", [] as Array[Callable])
-	check((notebook.call("tabs") as Array).size() == 6, "seis consultas após liberar (Recursos, Estações, Crescer, Álbum, Coleção, Truques)")
+	check((notebook.call("tabs") as Array).size() == 5, "cinco consultas após liberar (Recursos, Estações, Crescer, Coleção, Truques)")
 	# Consultar uma aba confirma só seus desbloqueios, sem apagar novidades das outras.
 	for key: String in ["feature:growth_tab", "feature:dress", "feature:tricks"]:
 		progress.seen.erase(key)
 	notebook.call("open", "manual")
 	await frames()
-	for section: String in ["growth", "collection", "tricks", "album"]:
+	for section: String in ["growth", "collection", "tricks"]:
 		var tab: Button = main.find_child("NotebookTab_" + section, true, false)
 		check(tab.find_child("NewBadge", true, false) != null, "aba com novidades marcada: " + section)
 	notebook.call("open", "growth")
 	await frames()
 	check(not notebook.call("section_has_new", "growth"), "abrir Crescimento confirma só essa aba")
-	check(notebook.call("section_has_new", "collection") and notebook.call("section_has_new", "tricks") and notebook.call("section_has_new", "album"), "outras abas continuam com aviso")
+	check(notebook.call("section_has_new", "collection") and notebook.call("section_has_new", "tricks"), "outras abas continuam com aviso")
 	if "--notebook-shots" in OS.get_cmdline_user_args():
 		for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 			root.size = viewport

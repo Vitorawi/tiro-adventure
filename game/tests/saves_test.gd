@@ -39,6 +39,10 @@ func _run() -> void:
 	state.set("coins", 123)
 	state.set("level", 3)
 	manager.call("save_game")
+	manager.call("set_default_slot", 4)
+	state.get("growth").phase = "puppy"
+	manager.call("save_game")
+	check(manager.call("loading_preview_phase") == "puppy", "Loading usa fase do slot padrão ativo")
 	var first := _slot_info(manager, 4)
 	check(not first.is_empty() and first.active and int(first.level) == 3 and int(first.coins) == 123, "Resumo do save em uso")
 	check(int(first.chapter) == 1 and not first.finished, "Começa no capítulo 1")
@@ -46,6 +50,7 @@ func _run() -> void:
 	var created: int = manager.call("new_slot")
 	check(created != 0 and created != 4, "Novo save usa um número livre")
 	check(manager.get("active_slot") == created and state.get("level") == 1 and state.get("coins") != 123, "Novo save começa do zero")
+	check(manager.call("loading_preview_phase") == "puppy", "Jogar outro slot não troca o loading do padrão")
 	var old := _slot_info(manager, 4)
 	check(not old.is_empty() and not old.active and int(old.level) == 3 and int(old.coins) == 123, "Save anterior guarda nível e moedas e aparece como inativo")
 
@@ -54,12 +59,16 @@ func _run() -> void:
 
 	manager.call("set_default_slot", created)
 	check(manager.get("default_slot") == created, "Escolher o padrão")
+	check(manager.call("loading_preview_phase") == "newborn", "Novo padrão usa a caixinha mesmo com outro save aberto")
 	var settings_path: String = manager.call("_settings_path")
 	check(JSON.parse_string(FileAccess.get_file_as_string(settings_path)).default_slot == created, "Padrão fica gravado em configurações")
 
 	manager.call("delete_slot", created)
 	check(not FileAccess.file_exists(manager.call("slot_path", created)), "Excluir apaga o arquivo")
 	check(manager.get("default_slot") == manager.get("active_slot"), "Padrão nunca aponta para um save apagado")
+	check(manager.call("loading_preview_phase") == "puppy", "Excluir padrão atualiza a fase de abertura")
+	state.get("growth").phase = "teething"
+	check(manager.call("loading_preview_phase") == "teething", "Dentinhos atualiza a dica visual")
 	check(_slot_info(manager, created).is_empty(), "Save excluído some da lista")
 
 	# Interface: engrenagem no topo e painel com os saves.

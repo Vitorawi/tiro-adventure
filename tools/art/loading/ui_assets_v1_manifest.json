@@ -1,0 +1,53 @@
+{
+  "logo_as_aventuras_de_tiro_tiro_v1.png": {
+    "size": [
+      1900,
+      828
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "visible_bounds": [
+      0,
+      12,
+      1899,
+      817
+    ]
+  },
+  "loading_track_v1.png": {
+    "size": [
+      2172,
+      724
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "visible_bounds": [
+      22,
+      64,
+      2153,
+      678
+    ]
+  },
+  "loading_fill_v1.png": {
+    "size": [
+      1683,
+      935
+    ],
+    "mode": "RGBA",
+    "alpha_range": [
+      0,
+      255
+    ],
+    "visible_bounds": [
+      18,
+      134,
+      1664,
+      899
+    ]
+  }
+}

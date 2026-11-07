@@ -46,6 +46,15 @@ func _histogram(id: String, count: int) -> Dictionary:
 	return hist
 
 
+## Pesos → frações que somam 1.
+func _shares(weights: Array[float]) -> Array:
+	var sum := 0.0
+	for w in weights: sum += w
+	var result: Array = []
+	for w in weights: result.append(w / sum)
+	return result
+
+
 func _near(hist: Dictionary, total: int, expected: Array, tolerance: float, label: String) -> void:
 	for i in 4:
 		var share := float(hist[i + 1]) / float(total)
@@ -117,11 +126,16 @@ func _run() -> void:
 	check(state.rarity_counts()[int(opened.rarity)] == 1, "contagem por raridade")
 
 	# 3. Pesos e determinismo
+	# As chances vêm do album.json (podem ser ajustadas sem mexer no teste).
+	var weights: Array[float] = []
+	for level: Dictionary in cards.levels: weights.append(float(level.weight))
+	var story: Dictionary = cards.section_weights.story
+	var story_weights: Array[float] = [float(story["1"]), float(story["2"]), float(story["3"]), float(story["4"])]
 	_fresh()
 	var total := 6000
-	_near(_histogram("f_bath", total), total, [0.45, 0.30, 0.18, 0.07], 0.06, "normal")
+	_near(_histogram("f_bath", total), total, _shares(weights), 0.06, "normal")
 	_fresh()
-	_near(_histogram("h_arrival", total), total, [0.20, 0.35, 0.30, 0.15], 0.06, "história")
+	_near(_histogram("h_arrival", total), total, _shares(story_weights), 0.06, "história")
 	_fresh()
 	state.album.rarity_seed = 4242
 	var first := _histogram("f_bath", 50)
@@ -130,11 +144,13 @@ func _run() -> void:
 	check(_histogram("f_bath", 50) == first, "mesma semente, mesmo resultado")
 
 	# 4. Garantias (abrir e tentar a sorte contam; melhorar não)
+	var pity_rare := int(cards.pity.rare_plus)
+	var pity_holo := int(cards.pity.holo)
 	_fresh()
-	state.album.pity_rare = 10
-	check(state._roll_rarity("f_bath") >= 3 and state.album.pity_rare == 0, "garantia de Rara+ após 10 sem")
-	state.album.pity_holo = 30
-	check(state._roll_rarity("f_bath") == 4, "garantia de Holográfica após 30 sem")
+	state.album.pity_rare = pity_rare
+	check(state._roll_rarity("f_bath") >= 3 and state.album.pity_rare == 0, "garantia de Rara+ após %d sem" % pity_rare)
+	state.album.pity_holo = pity_holo
+	check(state._roll_rarity("f_bath") == 4, "garantia de Holográfica após %d sem" % pity_holo)
 	check(state.album.pity_holo == 0 and state.album.pity_rare == 0, "contadores zeram na Holográfica")
 	_fresh()
 	state.album.rarity_seed = 7
@@ -145,7 +161,7 @@ func _run() -> void:
 		else:
 			run += 1
 			longest = maxi(longest, run)
-	check(longest <= 10, "nunca mais de 10 sem Rara+ (%d)" % longest)
+	check(longest <= pity_rare, "nunca mais de %d sem Rara+ (%d)" % [pity_rare, longest])
 	_fresh()
 	state._take_photo("f_bath")
 	state.album.pity_rare = 3
