@@ -113,6 +113,7 @@ func _run() -> void:
 				var quantity: int = state.get("inventory").count("dog_food")
 				await tap(food.get_global_rect().get_center())
 				check(state.get("inventory").count("dog_food") == quantity - 1, "toque alimenta uma vez")
+				check(not menu.visible, "escolher a comida fecha o menu e deixa a animação visível")
 		print("COMIDA %s: verificado" % resolution)
 	print("FOOD MENU BOUNDS TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)

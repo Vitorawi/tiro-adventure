@@ -147,7 +147,9 @@ func _ready() -> void:
 	_corner.resized.connect(_layout_corner)
 	%DogArea.resized.connect(_layout_corner)
 	visibility_changed.connect(func() -> void:
-		if not is_visible_in_tree(): _care.cancel()
+		if not is_visible_in_tree():
+			hold_end()
+			_care.cancel()
 		sync_hud())
 	sync_hud.call_deferred()
 	_layout_corner.call_deferred()
@@ -786,10 +788,14 @@ func hold_move(local: Vector2, length: float) -> void:
 
 
 func hold_tick(delta: float) -> void:
-	if not _holding or _hold_done: return
+	if not _holding: return
 	if GameState.dog.sleeping or GameState.walking():
 		hold_end()
 		return
+	var y := _hold_local.y / maxf(_dog_sprite.size.y, 1.0)
+	if y >= 0.5 and y < 0.76:
+		_animator.stroke(&"belly", 0.0)
+	if _hold_done: return
 	_hold_time += delta
 	var seconds := float(Database.growth.gestures.hold_seconds)
 	_hold_ring.progress = minf(_hold_time / seconds, 1.0)
@@ -798,6 +804,7 @@ func hold_tick(delta: float) -> void:
 
 
 func hold_end() -> void:
+	if _holding: _animator.end_stroke()
 	_holding = false
 	_hold_done = false
 	if _hold_ring != null: _hold_ring.hide()

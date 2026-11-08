@@ -1,5 +1,5 @@
 extends SceneTree
-## Interface 2, etapa 04: o botão Cuidar abre a roleta; cuidados por toque e arrasto, atalho do pedido,
+## Interface 2, etapa 04: o botão Cuidar abre a roleta; cuidados por toque e arrasto, selo do pedido,
 ## sono, alfinete e Menos animação.
 
 var KIT: Script
@@ -52,6 +52,15 @@ func tap_disc(disc: Control) -> void:
 	disc.gui_input.emit(mouse("release", center))
 
 
+func tap_viewport(point: Vector2) -> void:
+	for down: bool in [true, false]:
+		var event := InputEventScreenTouch.new()
+		event.position = root.get_final_transform() * point
+		event.pressed = down
+		Input.parse_input_event(event)
+		await frames(2)
+
+
 func wheel_open() -> bool:
 	return node("CareWheelOpen").visible
 
@@ -87,6 +96,7 @@ func _run() -> void:
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
 	Motion.reduced = true
+	Input.emulate_mouse_from_touch = true
 	main = (load("res://scenes/main/main.tscn") as PackedScene).instantiate()
 	root.add_child(main)
 	await frames()
@@ -232,19 +242,35 @@ func _caso_pedido() -> void:
 		var expected: Texture2D = root.get_node("Database").call("item_icon", "dog_food") if need == "hunger" else KIT.call("ui_icon", asks[need])
 		check(icon != null and icon.texture == expected, "ícone do pedido certo: " + need)
 		var before: float = state.get("dog").call("get_need", need, state.call("now"))
-		(ask as Button).pressed.emit()
+		# O selinho se sobrepõe ao coração: toque real nessa região só abre a roleta.
+		var actions: Array[StringName] = []
+		var on_action := func(action: StringName) -> void: actions.append(action)
+		root.get_node("Events").dog_action.connect(on_action)
+		var center := ask.get_global_rect().get_center()
+		await tap_viewport(center)
 		await frames()
+		check(wheel_open(), "tocar no selinho do coração só abre a roleta: " + need)
+		check(actions.is_empty(), "coração não dispara animação de cuidado: " + need)
+		check(not node("FoodMenu").visible and not state.get("dog").sleeping, "coração espera escolher um cuidado: " + need)
+		check(float(state.get("dog").call("get_need", need, state.call("now"))) <= before + 0.01, "coração não aplica o cuidado: " + need)
+		root.get_node("Events").dog_action.disconnect(on_action)
 		match need:
-			"hunger": check(node("FoodMenu").visible, "atalho da fome abre o FoodMenu")
+			"hunger":
+				(node("FoodButton") as Button).pressed.emit()
+				check(node("FoodMenu").visible, "ícone de comida abre o FoodMenu")
 			"hygiene":
-				check(node("BathChoice") != null, "atalho da higiene também oferece opções")
+				tap_disc(node("Care_sponge"))
+				check(node("BathChoice") != null, "ícone de banho oferece opções")
 				(node("BathPlain") as Button).pressed.emit()
 				await frames()
 				check(state.get("dog").call("get_need", need, state.call("now")) > before, "opção do atalho dá banho")
 			"happiness":
+				tap_disc(node("Care_ball"))
 				var after: float = state.get("dog").call("get_need", need, state.call("now"))
-				check(after > before, "atalho age na hora: " + need)
-			"energy": check(state.get("dog").sleeping, "atalho do sono dorme")
+				check(after > before, "bolinha só age ao tocar no ícone de brincar")
+			"energy":
+				(node("SleepButton") as Button).pressed.emit()
+				check(state.get("dog").sleeping, "ícone de sono dorme")
 		tray.call("close_food_menu")
 	await fresh()
 

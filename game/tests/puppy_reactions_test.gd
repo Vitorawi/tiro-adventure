@@ -66,15 +66,12 @@ func _run() -> void:
 			animator.call("_process", seconds + 0.0000001)
 		assert(is_equal_approx(total, float(expected[clip])))
 		assert(animator.get("_clip") == &"idle_breathe" and target.texture == idle)
-	# A favorite-place gesture keeps its belly response, but does not cut the
-	# new head animation in half while it is playing.
+	# Belly care takes priority immediately over the head reaction.
 	animator.call("_play", &"pet_head", 1)
 	animator.set("_frame", 12)
 	animator.call("love")
-	assert(animator.get("_clip") == &"pet_head" and animator.get("_frame") == 12)
-	assert(animator.get("_chain") == [&"belly_enter"])
-	animator.call("_process", 24.0 * 0.082 + 0.000001)
 	assert(animator.get("_clip") == &"belly_enter")
+	assert(animator.get("_frame") == 0 and animator.get("_chain").is_empty())
 	animator.set("_next", &"")
 	animator.call("_play", &"idle_breathe", 1)
 	# Real low need sets sadness; healthy dog never randomly plays it.

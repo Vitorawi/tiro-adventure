@@ -74,6 +74,7 @@ var _fidget_in := 5.0
 var _sleeping := false
 var _sad := false
 var _belly_up := false
+var _belly_released := false
 var _belly_timer := 0.0
 var _stroke_time := 0.0  # carinho acumulado (sentado) para decidir rolar
 var _stroke_age := 0.0   # tempo desde o último carinho
@@ -261,11 +262,9 @@ func love() -> void:
 	_stroke_time = 0.0
 	if _belly_available():
 		_next = &""
-		if _clip == &"pet_head" and _reaction_available(&"pet_head"):
-			_chain.assign([&"belly_enter"])
-		else:
-			_chain.clear()
-			_play(&"belly_enter", 1)
+		_belly_released = false
+		_chain.clear()
+		_play(&"belly_enter", 1)
 		return
 	if _animaref_enabled():
 		_chain.clear()
@@ -283,7 +282,11 @@ func love() -> void:
 ## Carinho com o dedo. `zone`: &"head", &"belly" ou &"paw"; `seconds` = tempo desde o último aviso.
 func stroke(zone: StringName, seconds: float) -> void:
 	if _sleeping: return
+	if _clip == &"belly_enter":
+		_belly_released = false
+		return
 	if _clip == &"belly_loop":
+		_belly_released = false
 		_stroke_age = 0.0
 		_belly_up = true
 		_belly_timer = BELLY_IDLE
@@ -296,6 +299,9 @@ func stroke(zone: StringName, seconds: float) -> void:
 		return
 	if _clip == ROLL or _clip == &"eat" or _clip == &"shake_off":
 		return
+	if zone == &"belly" and _belly_available():
+		love()
+		return
 	_stroke_time += seconds
 	var wants_roll := zone == &"belly" and _stroke_time > ROLL_AFTER * 0.5
 	wants_roll = wants_roll or (zone == &"head" and _stroke_time > ROLL_AFTER * 3.0 and randf() < 0.5)
@@ -307,6 +313,15 @@ func stroke(zone: StringName, seconds: float) -> void:
 		_loops_left = maxi(_loops_left, 1)  # continua enquanto houver carinho
 	else:
 		_play(clip, 1)
+
+
+## Soltar encerra o carinho; a saída espera a borda do movimento atual.
+func end_stroke() -> void:
+	_stroke_time = 0.0
+	if _clip in BELLY_SEQUENCE:
+		_belly_released = true
+		_belly_up = false
+		_belly_timer = 0.0
 
 
 ## Toca `clip` `loops` vezes e depois volta ao descanso (ou segue para `_next`).
@@ -390,7 +405,7 @@ func _process(delta: float) -> void:
 func _finish_clip() -> void:
 	if _clip in BELLY_SEQUENCE:
 		if _clip == &"belly_enter":
-			if _sleeping:
+			if _sleeping or _belly_released:
 				_play(&"belly_exit", 1)
 			else:
 				_belly_up = true

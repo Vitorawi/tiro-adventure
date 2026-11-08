@@ -74,6 +74,7 @@ func _ready() -> void:
 	picture.custom_minimum_size = Vector2(42, 42)
 	_ask = UiKit.icon_button(null, _asked_care, 44)
 	_ask.name = "CareAsk"
+	_ask.mouse_filter = Control.MOUSE_FILTER_STOP
 	_ask.size = Vector2(44, 44)
 	for phase: String in ["normal", "hover", "pressed", "focus"]:
 		_ask.add_theme_stylebox_override(phase, StyleBoxEmpty.new())
@@ -492,6 +493,7 @@ func _act(id: String, with_shampoo: bool = false) -> void:
 	else:
 		error = SheetBuilder.give_food(id)
 		if error == "":
+			close_food_menu()
 			pet_screen.call("food_effects", id)
 	if error != "":
 		Events.toast_requested.emit(error)
@@ -643,12 +645,9 @@ func _on_veil_input(event: InputEvent) -> void:
 
 
 func _asked_care() -> void:
-	match GameState.asking_need():
-		"hunger": open_food_menu()
-		"hygiene": choose_care("sponge")
-		"happiness": choose_care("ball")
-		"energy": GameState.set_sleeping(true)
-	close_wheel()
+	# O selinho faz parte do coração: só abre/fecha os cuidados.
+	# A ação exige escolher o ícone correspondente na roleta.
+	_toggle_wheel()
 
 
 ## Desenha o coração de madeira do botão Cuidar (arte do protótipo): selinho com a tigela e a etiqueta "Cuidar".

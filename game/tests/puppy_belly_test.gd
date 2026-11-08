@@ -35,16 +35,14 @@ func _run() -> void:
 	assert(provider.CLIPS[&"idle_breathe"].size() == 36)
 	for seconds: float in provider.CLIPS[&"idle_breathe"]: assert(is_equal_approx(seconds, 0.105))
 	await _shot("00_idle")
-	# A real favorite-place care action queues the belly after head petting.
+	# A real favorite-place care action immediately interrupts head petting.
 	animator.call("_play", &"pet_head", 1)
 	animator.set("_frame", 12)
 	var before: int = state.get("progress").call("stat", "pet")
 	state.call("pet", state.call("favorite_spot"))
 	assert(int(state.get("progress").call("stat", "pet")) == before + 1)
-	assert(animator.get("_clip") == &"pet_head" and animator.get("_frame") == 12)
-	assert(animator.get("_chain") == [&"belly_enter"])
-	await _advance(&"pet_head", 12)
 	assert(animator.get("_clip") == &"belly_enter")
+	assert(animator.get("_frame") == 0 and animator.get("_chain").is_empty())
 	for clip: StringName in [&"belly_enter", &"belly_loop", &"belly_exit"]: animator.call("_animaref_load", clip)
 	var cache: Dictionary = animator.get("_animaref_frames")
 	var enter: Array = cache[&"belly_enter"]
@@ -78,6 +76,34 @@ func _run() -> void:
 	assert(is_equal_approx(await _advance(&"belly_exit", 0, true), 2.34))
 	assert(animator.get("_clip") == &"idle_breathe" and target.texture == idle)
 	await _shot("99_idle")
+	# Real Home gesture: no head reaction or accumulated-stroke delay.
+	animator.call("_play", &"pet_head", 1)
+	animator.set("_frame", 12)
+	pet.set_process(false)
+	var belly_point := target.size * Vector2(0.5, 0.6)
+	pet.call("hold_begin", belly_point)
+	assert(animator.get("_clip") == &"belly_enter" and animator.get("_frame") == 0)
+	pet.call("hold_tick", 1.2)
+	assert(bool(pet.get("_hold_done")))
+	var held_count: int = state.get("progress").call("stat", "pet")
+	await _advance(&"belly_enter")
+	# A stationary finger keeps the loop alive even after the care reward.
+	for cycle: int in 3:
+		for frame: int in 36:
+			pet.call("hold_tick", 0.101)
+			animator.call("_process", 0.1010001)
+		assert(animator.get("_clip") == &"belly_loop" and bool(animator.get("_belly_up")))
+	assert(int(state.get("progress").call("stat", "pet")) == held_count)
+	pet.call("hold_end")
+	await _advance(&"belly_loop")
+	assert(animator.get("_clip") == &"belly_exit")
+	await _advance(&"belly_exit")
+	# Releasing during the entrance goes straight to the exit, without an extra loop.
+	pet.call("hold_begin", belly_point)
+	pet.call("hold_end")
+	await _advance(&"belly_enter")
+	assert(animator.get("_clip") == &"belly_exit")
+	await _advance(&"belly_exit")
 	# Sleep requested while belly-up stands first, then uses the seated entry.
 	animator.call("love")
 	await _advance(&"belly_enter")
@@ -113,6 +139,7 @@ func _run() -> void:
 	print("PUPPY BELLY: PASS; immutable idle, 108 frames/five seams, favorite care, held loop/release, sleep and fallback")
 	if "--preview" in OS.get_cmdline_user_args():
 		cache.erase(&"belly_exit")
+		pet.set_process(true)
 		animator.set_process(true)
 		_preview.call_deferred()
 	else: quit()
