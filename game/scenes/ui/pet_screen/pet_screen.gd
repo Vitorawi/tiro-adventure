@@ -695,10 +695,16 @@ func _refresh_away_look() -> void:
 		var frames := SpriteFrames.new()
 		frames.add_animation("walk")
 		frames.set_animation_speed("walk", 8.0)
-		var index := 0
-		while ResourceLoader.exists("%swalk/east/frame_%02d.png" % [look.dir_world, index]):
-			frames.add_frame("walk", load("%swalk/east/frame_%02d.png" % [look.dir_world, index]))
-			index += 1
+		if look.body == "puppy":
+			var picture: Texture2D = load(str(look.idle_front))
+			frames.add_frame("walk", picture)
+			_away_walker.scale = Vector2.ONE * (108.0 / picture.get_height())
+		else:
+			_away_walker.scale = Vector2(2, 2)
+			var index := 0
+			while ResourceLoader.exists("%swalk/east/frame_%02d.png" % [look.dir_world, index]):
+				frames.add_frame("walk", load("%swalk/east/frame_%02d.png" % [look.dir_world, index]))
+				index += 1
 		_away_walker.sprite_frames = frames
 		_away_walker.play("walk")
 	DogLook.tint(_away_walker)

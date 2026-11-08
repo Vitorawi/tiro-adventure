@@ -275,6 +275,7 @@ static func dog_frame(phase_id: String, clip: String, frame: int) -> Texture2D:
 		if str(phase.id) == phase_id:
 			body = str(phase.body)
 	var art: Dictionary = Database.growth.bodies[body]
+	if body == "puppy": return DogLook.pose_texture(body)
 	var folder := str(art.dir.pet)
 	var resolved := str(art.get("clip_fallback", {}).get(clip, clip))
 	if clip == "sleep":
@@ -311,9 +312,10 @@ static func _dog(photo_def: Dictionary, info: Dictionary, locked: bool) -> Contr
 		var flat := ShaderMaterial.new()
 		flat.shader = load("res://assets/shaders/flat_silhouette.gdshader")
 		dog.material = flat
-	else:
+	elif body != "puppy":
 		dog.material = DogLook.material()
 		(dog.material as ShaderMaterial).set_shader_parameter("coat", float(info.get("coat", 0.0)))
+	if body == "puppy": dog.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	if not locked and body != "puppy":
 		var anchors: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(PetAnimator.DIR + "overlay_anchors.json"))
 		var clip := str(pose.get("clip", "idle_breathe"))

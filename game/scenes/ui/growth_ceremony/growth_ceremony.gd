@@ -47,12 +47,18 @@ static func pose(def: Dictionary, px: int) -> Control:
 	holder.custom_minimum_size = Vector2(px, px + 20)
 	holder.clip_contents = true
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var target := UiKit.icon(load(str(Database.growth.bodies[def.body].dir.pet) + "idle_breathe/frame_00.png"), px * 2)
+	var target := UiKit.icon(DogLook.pose_texture(str(def.body)), px * 2)
 	target.custom_minimum_size = Vector2.ZERO
 	target.size = Vector2(px * 2, px * 2.0 * 216.0 / 256.0)
 	target.position = Vector2(-px * 0.5, -px * 9.0 / 64.0)
-	target.material = DogLook.material()
-	(target.material as ShaderMaterial).set_shader_parameter("coat", float(def.coat))
+	if str(def.body) == "puppy":
+		var bounds := Rect2(target.texture.get_image().get_used_rect())
+		var factor := minf((px-8.0)/bounds.size.x, (px+12.0)/bounds.size.y)
+		target.size = target.texture.get_size() * factor
+		target.position = (Vector2(px, px+20)-bounds.size*factor)*0.5-bounds.position*factor
+	else:
+		target.material = DogLook.material()
+		(target.material as ShaderMaterial).set_shader_parameter("coat", float(def.coat))
 	holder.add_child(target)
 	return holder
 

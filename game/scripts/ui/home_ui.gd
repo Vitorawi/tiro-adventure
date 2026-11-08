@@ -110,6 +110,7 @@ static func resize_bar(node: NinePatchRect, size_px: Vector2) -> void:
 static func head_texture() -> Texture2D:
 	var look := GameState.dog_look()
 	var body := str(look.body)
+	if body == "puppy": return load(str(look.portrait))
 	if _heads.has(body):
 		return _heads[body]
 	var path := str(look.dir_pet) + "idle_breathe/frame_00.png"

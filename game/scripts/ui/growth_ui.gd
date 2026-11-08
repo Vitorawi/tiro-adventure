@@ -583,8 +583,9 @@ static func _build_history(box: VBoxContainer) -> void:
 			row.add_child(polaroid)
 		elif phase.visited:
 			var photo := UiKit.icon(load(str(phase.art.portrait)), 48)
-			photo.material = DogLook.material()
-			(photo.material as ShaderMaterial).set_shader_parameter("coat", float(phase.coat))
+			if str(phase.body) != "puppy":
+				photo.material = DogLook.material()
+				(photo.material as ShaderMaterial).set_shader_parameter("coat", float(phase.coat))
 			row.add_child(photo)
 		else:
 			row.add_child(silhouette(phase, 0, false, "Future_" + str(phase.id), 64))
@@ -693,7 +694,7 @@ static func silhouette(phase: Dictionary, completed: int, ready: bool, node_name
 	holder.clip_contents = filled_hero
 	holder.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var image := UiKit.icon(load(str(phase.art.dir.pet) + "idle_breathe/frame_00.png"), px)
+	var image := UiKit.icon(DogLook.pose_texture(str(phase.body)), px)
 	image.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	var material := ShaderMaterial.new()
 	material.shader = load("res://assets/shaders/silhouette.gdshader")
@@ -705,7 +706,8 @@ static func silhouette(phase: Dictionary, completed: int, ready: bool, node_name
 	var regions: Array[Vector4] = []
 	for part: String in ["ears", "tail", "legs"]:
 		for rect: Array in phase.art.parts.get(part, []):
-			regions.append(Vector4(rect[0], rect[1], rect[2], rect[3]))
+			var scale := Vector2(3, 3) if str(phase.body) == "puppy" else Vector2.ONE
+			regions.append(Vector4(rect[0]*scale.x, rect[1]*scale.y, rect[2]*scale.x, rect[3]*scale.y))
 	material.set_shader_parameter("ear_count", phase.art.parts.get("ears", []).size())
 	material.set_shader_parameter("part_count", regions.size())
 	regions.resize(8)

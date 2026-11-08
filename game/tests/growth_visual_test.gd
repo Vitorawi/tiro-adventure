@@ -46,7 +46,8 @@ func _run() -> void:
 			small._play(clip, 1)
 			var target: TextureRect = small._target
 			var factor: Vector2 = target.size / target.texture.get_size()
-			for texture: Texture2D in small._frames[clip]:
+			var portrait_frames: Array = [target.texture] if look.body == "puppy" else small._frames[clip]
+			for texture: Texture2D in portrait_frames:
 				var used := Rect2(texture.get_image().get_used_rect())
 				var drawn := Rect2(target.position + used.position * factor, used.size * factor)
 				check(Rect2(Vector2.ZERO, portrait.custom_minimum_size).encloses(drawn), "retrato inteiro " + str(phase.id) + "/" + str(clip))
@@ -69,14 +70,17 @@ func _run() -> void:
 		for clip: StringName in animator_script.get("FPS"):
 			check(not animator._frames[clip].is_empty(), "clipe " + str(clip))
 			for texture: Texture2D in animator._frames[clip]:
-				check(texture.resource_path.begins_with(look.dir_pet), "quadro do corpo certo")
+				check(texture.resource_path.ends_with("reference.png") if look.body == "puppy" else texture.resource_path.begins_with(look.dir_pet), "quadro do corpo certo")
 		var walker: AnimatedSprite2D = pet.get("_away_walker")
-		check(walker.sprite_frames.get_frame_texture("walk", 0).resource_path.begins_with(look.dir_world), "passeio atualizado")
+		check(walker.sprite_frames.get_frame_texture("walk", 0).resource_path == look.idle_front if look.body == "puppy" else walker.sprite_frames.get_frame_texture("walk", 0).resource_path.begins_with(look.dir_world), "passeio atualizado")
 		for item: CanvasItem in [animator._target, world._sprite, hud.avatar_button, walker, intro.get("_tiro"), small._target]:
-			check(is_equal_approx(float((item.material as ShaderMaterial).get_shader_parameter("coat")), look.coat), "shader na fase " + str(phase.id))
+			if look.body == "puppy" and item != world._sprite:
+				check(item.material == null, "bebê ilustrado sem shader pixel")
+			else:
+				check(item.material is ShaderMaterial and is_equal_approx(float((item.material as ShaderMaterial).get_shader_parameter("coat")), look.coat), "shader na fase " + str(phase.id))
 		if i != 4: check(is_equal_approx(look.coat, 1.0 if i == 5 else 0.0), "coat fixo")
 		if i == 0:
-			check(animator._frames[&"give_paw"][0].resource_path.contains("wag_excited"), "fallback do filhote")
+			check(look.clip_fallback.give_paw == "wag_excited", "fallback dos dados originais preservado")
 		for id: String in root.get_node("Database").get("collections"):
 			var data: Dictionary = root.get_node("Database").get("collections")[id]
 			if str(data.get("overlay", "")) == "": continue

@@ -382,8 +382,8 @@
         "pet": "res://assets/sprites/characters/tiro_pet_puppy/",
         "world": "res://assets/sprites/characters/tiro_world_puppy/"
       },
-      "portrait": "res://assets/sprites/ui/icons/hud_tiro_puppy.png",
-      "idle_front": "res://assets/sprites/characters/tiro_pet_puppy/tiro_pet_puppy_idle_front.png",
+      "portrait": "res://assets/sprites/characters/tiro_pet_puppy_animaref/reference_head.png",
+      "idle_front": "res://assets/sprites/characters/tiro_pet_puppy_animaref/reference_front.png",
       "clip_fallback": {
         "give_paw": "wag_excited"
       },

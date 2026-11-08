@@ -17,6 +17,7 @@ static func ui_icon(icon_name: String) -> Texture2D:
 static func icon(texture: Texture2D, px: int = 32) -> TextureRect:
 	var rect := TextureRect.new()
 	rect.texture = texture
+	if DogLook.is_illustrated(texture): rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 	if texture and texture.resource_path.begins_with(CTL_DIR):
 		rect.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 		rect.self_modulate = Palette.INK_SOFT

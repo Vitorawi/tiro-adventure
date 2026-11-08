@@ -1355,8 +1355,9 @@ static func _growth_silhouette(goal: Dictionary, value: int, px: int) -> Control
 	if value >= int(goal.get("target", 1)):
 		var photo := UiKit.icon(load(str(phase.art.portrait)), px)
 		photo.name = "GrowthGoalPhoto"
-		photo.material = DogLook.material()
-		(photo.material as ShaderMaterial).set_shader_parameter("coat", float(phase.coat))
+		if str(phase.body) != "puppy":
+			photo.material = DogLook.material()
+			(photo.material as ShaderMaterial).set_shader_parameter("coat", float(phase.coat))
 		return photo
 	var done: int = info.requirements.size() - GrowthUi.missing(info)
 	var holder := GrowthUi.silhouette(phase, done, info.ready, "GrowthGoalSilhouette", px)

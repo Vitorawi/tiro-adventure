@@ -337,6 +337,9 @@ func refresh(animate: bool = true) -> void:
 ## Cabeça do Tiro na moldura: recorte do corpo atual, com a pelagem do estado.
 func _refresh_head() -> void:
 	_head.texture = HomeUi.head_texture()
+	var puppy: bool = GameState.dog_look().body == "puppy"
+	_head.position = Vector2.ZERO if puppy else Vector2(8, 6)
+	_head.size = Vector2(64, 55) if puppy else Vector2(49, 49)
 	DogLook.tint(_head)
 
 
