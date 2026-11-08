@@ -425,6 +425,8 @@ func _spawn_objects() -> void:
 			indicator.name = "ProductionIndicator"
 			indicator.station_id = data.station
 			indicator.z_index = 2
+			if _room.has("background_bleed"):  # apartamento: o balão fica em cima do móvel, não no meio dele
+				indicator.anchor = Vector2(0, minf(-48.0, -float(sprite.texture.get_height()) - 16.0))
 			sprite.add_child(indicator)
 		if data.has("upgrade"):
 			sprite.set_meta("upgrade", data.upgrade)
