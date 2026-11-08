@@ -6,6 +6,7 @@ import functools
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import threading
+from web_memory import PACK_READER
 from playwright.sync_api import sync_playwright
 
 root = Path(__file__).resolve().parents[1]
@@ -25,8 +26,29 @@ stub = '''window.Engine = class {
 try:
     with sync_playwright() as p:
         browser = p.chromium.launch(executable_path='C:/Program Files/Google/Chrome/Application/chrome.exe', headless=True)
+        unit = browser.new_page()
+        unit.add_script_tag(content=PACK_READER)
+        result = unit.evaluate('''async () => {
+            async function read(chunks, size) {
+                const status = {loaded: 0, done: false};
+                const response = new Response(new ReadableStream({start(c) {
+                    for (const chunk of chunks) c.enqueue(new Uint8Array(chunk));
+                    c.close();
+                }}));
+                const buffer = await tiroReadPack(response, status, size);
+                return {bytes: [...new Uint8Array(buffer)], ...status};
+            }
+            const valid = await read([[1,2], [3], [4,5]], 5);
+            let short = false, long = false;
+            try {await read([[1]], 2);} catch(e) {short = /Incomplete/.test(e.message);}
+            try {await read([[1,2]], 1);} catch(e) {long = /size mismatch/.test(e.message);}
+            return {valid, short, long};
+        }''')
+        assert result == {'valid': {'bytes': [1,2,3,4,5], 'loaded': 5, 'done': True}, 'short': True, 'long': True}, result
+        unit.close()
+        print('PACK STREAM: chunks, progresso e tamanhos inválidos PASS', flush=True)
         context = browser.new_context(viewport={'width': 360, 'height': 780}, service_workers='block')
-        context.route('**/index.js', lambda route: route.fulfill(body=stub, content_type='application/javascript'))
+        context.route('**/index.js*', lambda route: route.fulfill(body=stub, content_type='application/javascript'))
         page = context.new_page()
         errors = []
         page.on('pageerror', lambda e: errors.append(str(e)))
@@ -77,6 +99,9 @@ try:
         assert game.locator('canvas').is_visible()
         assert game.evaluate('localStorage.getItem("tiro:loading:v1:/dev/")') == 'newborn'
         game.screenshot(path=str(shots / 'game_ready.png'))
+        memory = game.evaluate('performance.memory.usedJSHeapSize')
+        print('LOADING MEMORY: %.1f MB JS heap at first frame' % (memory / 1_000_000), flush=True)
+        assert memory < 600_000_000, 'Pack duplicado na memória: %d bytes' % memory
         assert not real_errors, real_errors
         print('LOADING WEB: motor real, primeiro frame e dica de fase PASS', flush=True)
         game.evaluate('navigator.serviceWorker.ready')
@@ -84,6 +109,11 @@ try:
         game.reload(wait_until='domcontentloaded')
         game.wait_for_selector('#loading', state='detached', timeout=120000)
         game.wait_for_function('navigator.serviceWorker.controller !== null', timeout=60000)
+        assert game.evaluate('''async () => {
+            const src = document.querySelector('script[src*="index.js"]').src;
+            return src.includes('?loader=') && !!(await caches.match(src));
+        }'''), 'Motor com hash ausente do cache offline'
+        real.new_cdp_session(game).send('Network.setCacheDisabled', {'cacheDisabled': True})
         real.set_offline(True)
         game.reload(wait_until='domcontentloaded')
         game.wait_for_selector('#loading', state='detached', timeout=120000)

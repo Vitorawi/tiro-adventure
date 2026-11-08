@@ -57,6 +57,20 @@ Configuração única no GitHub: **Settings → Pages → Source: GitHub Actions
 URL: `https://<usuario>.github.io/<repositorio>/`
 
 ## Atualizar a versão do Godot
+O empacotador `tools/package_web_loading.py` aplica `tools/web_memory.py` ao
+carregador gerado: o PCK é baixado diretamente para uma alocação de tamanho conhecido,
+e o MEMFS recebe posse desse buffer imutável em vez de copiá-lo. Outros arquivos,
+incluindo saves, conservam a cópia normal. Mudanças no template que invalidem os
+ganchos interrompem a exportação e exigem revisão. O URL do JS recebe um hash do
+conteúdo e é incluído assim no cache offline, permitindo recuperar clientes com um
+motor antigo em cache ao abrir um link HTML com query nova.
+
+Validação: `py tools/loading_test.py` cobre downloads completos/truncados/excedentes,
+progresso, partida real, memória JS na primeira tela e recarga offline. Em 08/11/2026,
+o mesmo pacote de 375.664.924 bytes passou de ~761 MB para ~389 MB de heap JS na
+abertura em Chrome. Essa medição não inclui memória gráfica/nativa e não substitui
+o teste físico no iPhone.
+
 1. Instalar a nova versão localmente + export templates.
 2. Mudar `GODOT_VERSION` no workflow e o caminho padrão em `tools/export_web.ps1`.
 3. Abrir o projeto no editor, testar, commitar.
