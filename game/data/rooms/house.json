@@ -1,224 +1,102 @@
 {
-  "background": "res://assets/sprites/areas/house/room.png",
+  "background": "res://assets/sprites/areas/house/apartment/room.webp",
   "backdrop": {
-    "sky": ["#f6e3cb", "#ecd0ab"],
-    "ground": "#ecd0ab",
-    "clouds": false,
-    "parallax": 0.25,
-    "horizon": 0.42
+    "sky": ["#bddff4", "#fbebd3"],
+    "ground": "#8e796b",
+    "clouds": false
   },
-  "framing": "width",
-  "view_center": [316, 240],
-  "floor": [[45, 284], [336, 138], [390, 164], [402, 238], [452, 215], [592, 285], [415, 382], [310, 334], [205, 382]],
+  "framing": "content_width",
+  "view_center": [300, 328],
+  "floor": [[45, 379], [192, 302], [234, 324], [296, 293], [363, 326], [386, 317], [388, 346], [491, 399], [534, 375], [554, 386], [554, 452], [300, 607], [45, 454]],
   "objects": [
-    {
-      "id": "island",
-      "sprite": "res://assets/sprites/areas/house/island.png",
-      "pos": [335, 286],
-      "slice": true,
-      "footprint": [[266, 258], [364, 208], [404, 230], [306, 284]]
-    },
     {
       "id": "fridge",
       "action": "place:fridge",
       "label": "Geladeira",
-      "label_pos": [232, 54],
+      "label_pos": [111, 213],
       "upgrade": "fridge",
-      "sprite": "res://assets/sprites/areas/house/fridge.png",
-      "pos": [250, 195],
-      "footprint": [[222, 182], [256, 164], [278, 178], [243, 197]]
+      "sprite": "res://assets/sprites/areas/house/apartment/fridge.png",
+      "pos": [111, 386],
+      "footprint": [[77, 371], [111, 356], [145, 371], [111, 386]],
+      "approach": [134, 399]
     },
     {
       "id": "stove",
       "action": "place:stove",
       "station": "stove",
       "label": "Fogão",
-      "label_pos": [308, 72],
+      "label_pos": [187, 229],
       "upgrade": "stove",
-      "sprite": "res://assets/sprites/areas/house/stove.png",
-      "busy_frames": "res://assets/sprites/areas/house/stove_cooking/",
-      "pos": [300, 169],
-      "footprint": [[276, 155], [303, 141], [323, 156], [296, 170]]
+      "sprite": "res://assets/sprites/areas/house/apartment/stove.png",
+      "busy_frames": "res://assets/sprites/areas/house/apartment/cooking/",
+      "pos": [187, 350],
+      "footprint": [[151, 334], [187, 318], [223, 334], [187, 350]],
+      "approach": [208, 363]
     },
     {
       "id": "chest",
       "action": "place:chest",
       "upgrade": "chest",
-      "sprite": "res://assets/sprites/areas/house/chest.png",
-      "scale": 2.0,
-      "pos": [118, 264],
-      "approach": [140, 276],
-      "footprint": [[98, 262], [118, 252], [138, 262], [118, 274]],
+      "sprite": "res://assets/sprites/areas/house/apartment/chest.png",
+      "pos": [478, 463],
+      "approach": [440, 472],
+      "footprint": [[443, 448], [478, 433], [513, 448], [478, 463]],
       "label": "Baú",
-      "label_pos": [118, 214]
+      "label_pos": [478, 371]
     },
     {
       "id": "bowl",
-      "hidden_by": ["named_bowl"],
+      "touch_minimum": 44,
       "action": "place:bowl",
-      "sprite": "res://assets/sprites/areas/house/bowl.png",
-      "pos": [215, 238]
+      "sprite": "res://assets/sprites/areas/house/apartment/bowl.png",
+      "pos": [289, 541]
     },
     {
       "id": "sofa",
       "action": "place:sofa",
       "upgrade": "sofa",
-      "sprite": "res://assets/sprites/areas/house/sofa.png",
-      "pos": [470, 330],
-      "footprint": [[410, 274], [440, 240], [568, 300], [506, 322]]
+      "sprite": "res://assets/sprites/areas/house/apartment/sofa.png",
+      "pos": [139, 505],
+      "footprint": [[74, 477], [139, 449], [204, 477], [139, 505]],
+      "approach": [195, 489]
     },
     {
       "id": "dog_bed",
       "action": "place:bed",
       "upgrade": "dog_bed",
-      "hidden_by": ["bed_soft", "bed_luxe"],
-      "sprite": "res://assets/sprites/areas/house/dog_bed.png",
-      "scale": 1.5,
-      "pos": [372, 336],
-      "approach": [352, 346],
-      "footprint": [[350, 330], [372, 318], [394, 330], [372, 342]]
-    },
-    {
-      "id": "bed_soft",
-      "action": "place:bed",
-      "upgrade": "bed_soft",
-      "hidden_by": ["bed_luxe"],
-      "sprite": "res://assets/sprites/areas/house/bed_soft.png",
-      "scale": 1.5,
-      "pos": [372, 336],
-      "approach": [352, 346],
-      "footprint": [[350, 330], [372, 318], [394, 330], [372, 342]]
-    },
-    {
-      "id": "bed_luxe",
-      "action": "place:bed",
-      "upgrade": "bed_luxe",
-      "sprite": "res://assets/sprites/areas/house/bed_luxe.png",
-      "scale": 1.5,
-      "pos": [372, 336],
-      "approach": [352, 346],
-      "footprint": [[350, 330], [372, 318], [394, 330], [372, 342]]
-    },
-    {
-      "id": "named_bowl",
-      "decoration": true,
-      "action": "place:bowl",
-      "upgrade": "named_bowl",
-      "sprite": "res://assets/sprites/areas/house/named_bowl.png",
-      "pos": [215, 238]
-    },
-    {
-      "id": "arrival_box",
-      "action": "house:arrival_box",
-      "requirements": {"house": ["arrival_box"]},
-      "sprite": "res://assets/sprites/areas/house/arrival_box.png",
-      "pos": [262, 324],
-      "footprint": [[252, 324], [262, 319], [272, 324], [262, 329]]
-    },
-    {
-      "id": "laundry_basket",
-      "action": "house:laundry_basket",
-      "requirements": {"house": ["laundry_basket"]},
-      "sprite": "res://assets/sprites/areas/house/laundry_basket.png",
-      "pos": [150, 306],
-      "footprint": [[140, 306], [150, 301], [160, 306], [150, 311]]
-    },
-    {
-      "id": "toy_basket",
-      "action": "house:toy_basket",
-      "requirements": {"house": ["toy_basket"]},
-      "sprite": "res://assets/sprites/areas/house/toy_basket.png",
-      "pos": [238, 336],
-      "footprint": [[228, 336], [238, 331], [248, 336], [238, 341]]
-    },
-    {
-      "id": "paw_rug",
-      "action": "house:paw_rug",
-      "requirements": {"house": ["paw_rug"]},
-      "sprite": "res://assets/sprites/areas/house/paw_rug.png",
-      "pos": [316, 336],
-      "sort_shift": 16
-    },
-    {
-      "id": "height_chart",
-      "action": "house:height_chart",
-      "decor": "chart",
-      "requirements": {"house": ["height_chart"]},
-      "sprite": "res://assets/sprites/areas/house/height_chart.png",
-      "pos": [76, 252]
-    },
-    {
-      "id": "memory_shelf",
-      "action": "house:memory_shelf",
-      "decor": "shelf",
-      "requirements": {"house": ["memory_shelf"]},
-      "sprite": "res://assets/sprites/areas/house/memory_shelf.png",
-      "pos": [128, 198]
-    },
-    {
-      "id": "photo_wall",
-      "action": "house:photo_wall",
-      "decor": "wall",
-      "requirements": {"house": ["photo_wall"]},
-      "sprite": "res://assets/sprites/areas/house/photo_wall.png",
-      "pos": [88, 140]
-    },
-    {
-      "id": "gold_frame",
-      "action": "house:gold_frame",
-      "decor": "frame",
-      "requirements": {"house": ["gold_frame"]},
-      "sprite": "res://assets/sprites/areas/house/gold_frame.png",
-      "pos": [146, 150]
-    },
-    {
-      "id": "big_portrait",
-      "action": "house:big_portrait",
-      "requirements": {"house": ["big_portrait"]},
-      "sprite": "res://assets/sprites/areas/house/big_portrait.png",
-      "pos": [38, 208]
-    },
-    {
-      "id": "star_garland",
-      "action": "house:star_garland",
-      "requirements": {"house": ["star_garland"]},
-      "sprite": "res://assets/sprites/areas/house/star_garland.png",
-      "pos": [118, 98]
+      "sprite": "res://assets/sprites/areas/house/apartment/dog_bed.png",
+      "pos": [410, 512],
+      "approach": [384, 507],
+      "footprint": [[368, 494], [410, 476], [452, 494], [410, 512]]
     },
     {
       "id": "blender",
+      "touch_minimum": 44,
       "action": "place:blender",
       "label": "Liquidificador",
-      "label_pos": [360, 190],
+      "label_pos": [480, 239],
       "upgrade": "blender",
       "station": "blender",
-      "sprite": "res://assets/sprites/areas/house/blender.png",
-      "pos": [360, 166],
-      "approach": [300, 292],
+      "sprite": "res://assets/sprites/areas/house/apartment/blender.png",
+      "pos": [480, 304],
+      "approach": [407, 367],
       "z_index": 1
     }
   ],
-  "zones": [
-    {
-      "id": "door",
-      "action": "place:door",
-      "label": "Sítio",
-      "label_pos": [192, 28],
-      "requirements": {"quests": ["growth_1_puppy"]},
-      "polygon": [[166, 218], [218, 192], [218, 40], [166, 64]]
-    }
-  ],
   "points": {
-    "dog_start": [330, 310],
-    "box_sleep": [262, 318],
-    "box_approach": [282, 332],
-    "npc_lais": [255, 262],
-    "door_in": [212, 236],
-    "bowl": [190, 238],
-    "sleep": [466, 288],
-    "sleep_approach": [440, 316],
-    "bed_sleep": [376, 330],
-    "bed_approach": [352, 346],
-    "friend_visit": [400, 310]
-  }
+    "dog_start": [291, 419],
+    "npc_lais": [306, 359],
+    "door_in": [72, 380],
+    "bowl": [264, 534],
+    "sleep": [140, 471],
+    "sleep_approach": [195, 489],
+    "bed_sleep": [410, 492],
+    "bed_approach": [384, 507],
+    "friend_visit": [328, 459]
+  },
+  "background_size": [600, 656],
+  "background_bleed": [11, 325, 13, 327],
+  "dog_scale": 1.35,
+  "framing_width": 556,
+  "navigation_margin": 6
 }

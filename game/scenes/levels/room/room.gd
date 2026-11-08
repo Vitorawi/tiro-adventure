@@ -141,8 +141,12 @@ func _ready() -> void:
 	add_to_group("room_views")  # o "Ir" de uma receita acha a sala do mundo (open_station_tray)
 	_room = Database.room(room_id)
 	_background.texture = load(_room["background"])
-	_background.size = _background.texture.get_size()
-	_content.size = _background.size
+	_content.size = _vec(_room.background_size) if _room.has("background_size") else _background.texture.get_size()
+	_background.size = _content.size
+	if _room.has("background_bleed"):
+		var bleed: Array = _room.background_bleed
+		_background.position = -Vector2(bleed[0], bleed[1])
+		_background.size += Vector2(bleed[0] + bleed[2], bleed[1] + bleed[3])
 	_setup_backdrop()
 	_spawn_edge_cover()
 	_spawn_objects()
@@ -289,7 +293,7 @@ func nearest_floor_point(point: Vector2) -> Vector2:
 func _build_navigation() -> void:
 	if not _room.has("floor"):
 		return  # sala sem chão andável: só toques
-	var cells := Vector2i((_background.size / NAV_CELL).ceil())
+	var cells := Vector2i((_content.size / NAV_CELL).ceil())
 	_nav.region = Rect2i(Vector2i.ZERO, cells)
 	_nav.cell_size = Vector2.ONE * NAV_CELL
 	_nav.offset = Vector2.ONE * NAV_CELL / 2.0
@@ -383,6 +387,8 @@ func _spawn_objects() -> void:
 		sprite.z_index = int(data.get("z_index", 0))
 		sprite.scale = Vector2.ONE * float(data.get("scale", 1.0))
 		sprite.set_meta("action", data.get("action", ""))
+		if data.has("touch_minimum"):
+			sprite.set_meta("touch_minimum", float(data.touch_minimum))
 		sprite.set_meta("decoration", data.get("decoration", false))
 		if data.has("animal_station"):
 			sprite.set_meta("animal_station", data.animal_station)
@@ -674,10 +680,6 @@ func refresh_sleep_points() -> void:
 		_dog.sleep_spot = "bed"
 		_dog.sleep_point = _point("bed_sleep")
 		_dog.sleep_approach = _point("bed_approach")
-	elif world_id == "house" and not GameState.has_upgrade("dog_bed"):
-		_dog.sleep_spot = "box"
-		_dog.sleep_point = _point("box_sleep")
-		_dog.sleep_approach = _point("box_approach")
 	elif points.has("sleep") and points.has("sleep_approach"):
 		_dog.sleep_spot = "sofa" if GameState.has_upgrade("sofa") else "floor"
 		_dog.sleep_approach = _point("sleep_approach")
@@ -884,6 +886,9 @@ func _target_at(point: Vector2) -> Dictionary:
 	for zone: Dictionary in _room.get("zones", []):
 		if Geometry2D.is_point_in_polygon(point, _polygon(zone.polygon)):
 			return _named_target(str(zone.get("action", "")), null, zone)
+	var nearby := _small_touch_target(point)
+	if nearby:
+		return _named_target(str(nearby.get_meta("action")), nearby)
 	return {}
 
 
@@ -1354,6 +1359,11 @@ func _handle_tap(point: Vector2) -> bool:
 		if Geometry2D.is_point_in_polygon(point, _polygon(zone["polygon"])):
 			_on_object_tapped(zone["action"])
 			return true
+	var nearby := _small_touch_target(point)
+	if nearby:
+		_flash(nearby)
+		_on_object_tapped(nearby.get_meta("action"), nearby)
+		return true
 	return false
 
 
@@ -2090,6 +2100,23 @@ func _hits(sprite: Sprite2D, local: Vector2) -> bool:
 	return sprite.visible and sprite.texture != null and sprite.get_rect().has_point(unscaled) and sprite.is_pixel_opaque(unscaled)
 
 
+## Amplia alvos pequenos só no espaço livre, depois dos toques diretos.
+func _small_touch_target(point: Vector2) -> Sprite2D:
+	var best: Sprite2D
+	var distance := INF
+	for sprite: Sprite2D in _objects:
+		if not sprite.has_meta("touch_minimum") or not sprite.visible or sprite.self_modulate.a == 0.0:
+			continue
+		var rect := sprite.transform * sprite.get_rect()
+		var minimum := Vector2.ONE * float(sprite.get_meta("touch_minimum")) / _zoom
+		var extent := rect.size.max(minimum)
+		var center := rect.get_center()
+		if Rect2(center - extent / 2.0, extent).has_point(point) and center.distance_squared_to(point) < distance:
+			best = sprite
+			distance = center.distance_squared_to(point)
+	return best
+
+
 ## Guarda direto no mapa os achados que o Tiro trouxe; senão abre o painel de passeios.
 func _collect_walk() -> void:
 	GameState.return_due_walk()
@@ -2178,6 +2205,8 @@ func _initial_zoom() -> float:
 	if _room.has("initial_zoom"):
 		return float(_room.initial_zoom)
 	match str(_room.get("framing", "width")):
+		"content_width":
+			return size.x / float(_room.framing_width)
 		"height":
 			return size.y / _content.size.y
 		"fit":

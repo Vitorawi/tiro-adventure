@@ -164,22 +164,26 @@ func _room_and_ui() -> void:
 	var room: Node = load("res://scenes/levels/room/room.tscn").instantiate()
 	root.add_child(room)
 	await process_frame
-	check(room.find_child("arrival_box", true, false).visible, "caixinha visível no começo")
-	check(not room.find_child("memory_shelf", true, false).visible, "prateleira escondida")
-	check(room.get("_dog").sleep_point == Vector2(262, 318), "dorme na caixinha")
+	check(room.get("_dog").sleep_spot == "floor", "descansa no chão antes da caminha")
 	state.dev_unlock_everything()
 	state.growth.phase = "adult"
 	state.growth.delivered = {"teething": {"chew_ring": 1}}
 	photos(45)
 	state._changed()
 	await create_timer(0.2).timeout
-	check(room.find_child("bed_luxe", true, false).self_modulate.a == 1.0 and not room.find_child("dog_bed", true, false).visible, "caminha substituída")
-	check(room.find_child("memory_shelf", true, false).visible, "entrega revela prateleira")
-	check(not (room.find_path(Vector2(330, 310), Vector2(282, 332)) as PackedVector2Array).is_empty(), "chão navegável com enfeites")
+	var objects: Array = room.get("_objects")
+	check(objects.size() == 7, "sete móveis na Casa completa")
+	for id: String in ["fridge", "stove", "sofa", "dog_bed", "bowl", "chest", "blender"]:
+		var sprite := room.find_child(id, true, false) as Sprite2D
+		check(sprite != null and sprite.is_visible_in_tree() and sprite.self_modulate.a == 1.0, "móvel disponível: " + id)
+	check(room.get("_dog").sleep_spot == "bed", "descansa na caminha comprada")
+	for id: String in ["fridge", "stove", "dog_bed"]:
+		var approach: Vector2 = room.find_child(id, true, false).get_meta("approach")
+		var path: PackedVector2Array = room.call("find_path", room.call("_point", "dog_start"), approach)
+		check(not path.is_empty() and path[-1].distance_to(approach) <= 12.0, "Tiro alcança " + id)
 	state.hang_photo("h_arrival")
 	state.set_main_photo("h_arrival")
 	await process_frame
-	check(room.find_child("photo_wall", true, false).find_child("PhotoCard", true, false) != null, "parede mostra foto escolhida")
 	var ui: Variant = load("res://scripts/ui/house_ui.gd")
 	var shelf: Control = ui.shelf()
 	check(shelf.find_child("ShelfItem_chew_ring", true, false) != null and shelf.find_child("ShelfItem_stick_chew", true, false) == null, "painel da prateleira só com entregues")

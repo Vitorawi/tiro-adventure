@@ -139,6 +139,8 @@ há céu, paisagem ao longe e chão. Campos opcionais em `rooms/<id>.json` (sem 
   externos cobrem a lateral de terra com a mesma textura do chão, alinhada pelas coordenadas UV do mundo. O contorno de cima
   segue a grama; o de baixo passa de toda a imagem para não sobrar terra solta. Sem textura, usa `ground` ou `edge_cover_color`.
   `tools/edge_cover.ps1 <png>` sugere o contorno superior (confira na imagem antes de usar).
+- A Casa usa `background_size` para definir o espaço lógico do mapa (600 × 656). A textura pode ter maior resolução. Piso, posições, obstáculos e pontos de interação usam esse espaço lógico. As margens de `background_bleed` (esquerda, topo, direita, base) estendem a arte do bairro além desse espaço.
+- Na Casa, `framing: "content_width"` usa `framing_width` como largura útil da ilustração na abertura e ao recentralizar. O pote e o liquidificador usam `touch_minimum` para aceitar também toques próximos em espaço livre.
 - `framing`: `"width"` (padrão: a maquete ocupa a largura toda, centrada em `view_center` ou no meio), `"height"` ou `"fit"`
   (sala inteira). `initial_zoom` e `view_center` têm prioridade. O zoom mínimo (`min_zoom`; padrão = o menor entre a sala inteira
   e a abertura) deixa afastar até ver tudo; o máximo é 2,0. `RoomView._initial_zoom()`/`_min_zoom()`.

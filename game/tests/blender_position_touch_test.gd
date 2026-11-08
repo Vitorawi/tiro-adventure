@@ -35,6 +35,7 @@ func _run() -> void:
 	state.get("progress").owned["blender"] = true
 	state.get("progress").owned["fridge"] = true
 	state.get("progress").claimed_quests["lais_blender"] = true
+	state.call("_mark_all_seen")
 	Input.emulate_mouse_from_touch = true
 	Motion.reduced = true
 	main = load("res://scenes/main/main.tscn").instantiate()
@@ -68,19 +69,19 @@ func _run() -> void:
 		state.get("stations")["blender"].queue.clear()
 		room.call("_animate_objects")
 		# Tampo em coordenadas da sala (polígono da superfície, não o pé no chão).
-		var surface := PackedVector2Array([Vector2(267, 185), Vector2(366, 136), Vector2(402, 157), Vector2(307, 210)])
+		var surface := PackedVector2Array([Vector2(384, 277), Vector2(421, 256), Vector2(534, 304), Vector2(495, 326)])
 		for base: Vector2 in [blender.position + Vector2(-5, -3), blender.position + Vector2(5, -3), blender.position]:
 			check(Geometry2D.is_point_in_polygon(base, surface), "base apoiada no tampo")
 		var bounds := Rect2(blender.position + blender.offset, blender.texture.get_size())
 		var stove_bounds := Rect2(stove.position + stove.offset, stove.texture.get_size())
 		check(not bounds.intersects(stove_bounds), "sprite não sobrepõe fogão")
-		check(blender.z_index == 1, "continua acima das fatias da ilha")
+		check(blender.z_index == 1, "continua acima da bancada")
 		var local_point := blender.position + Vector2(0, -8)
 		check(room.call("_target_at", local_point).get("sprite") == blender, "corpo tem alvo correto")
 		await tap(blender.get_global_transform_with_canvas() * Vector2(0, -8))
 		var tray: Variant = load("res://scripts/ui/action_tray.gd").get("current")
 		check(is_instance_valid(tray) and not bool(tray.get("closing")), "toque abre bandeja %s" % resolution)
-		check(tray.get("options").get("title") == "Liquidificador", "bandeja pertence ao liquidificador")
+		check(is_instance_valid(tray) and tray.get("options").get("title") == "Liquidificador", "bandeja pertence ao liquidificador")
 		room.call("close_tray")
 		await frames()
 		# Trabalho real: cenoura, progresso e coleta pelo balão deslocam junto com o objeto.
