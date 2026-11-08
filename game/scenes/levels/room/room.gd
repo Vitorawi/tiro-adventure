@@ -2330,13 +2330,22 @@ func _on_resized() -> void:
 ## Posição do conteúdo presa aos limites (maquete menor que a tela fica centrada). `margin` = folga
 ## para passar da borda (arrasto elástico).
 func _clamped_position(pos: Vector2, margin: float) -> Vector2:
-	var scaled := _content.size * _content.scale
+	# Salas com `background_bleed`: a câmera fica presa à fotografia inteira (sem folga elástica).
+	var origin := Vector2.ZERO
+	var extent := _content.size
+	if _room.has("background_bleed"):
+		var bleed: Array = _room.background_bleed
+		origin = -Vector2(bleed[0], bleed[1])
+		extent = _content.size + Vector2(bleed[0] + bleed[2], bleed[1] + bleed[3])
+		margin = 0.0
+	var scaled := extent * _content.scale
+	var offset := origin * _content.scale
 	for axis in 2:
 		if scaled[axis] <= size[axis]:
-			var centered := (size[axis] - scaled[axis]) / 2.0
+			var centered := (size[axis] - scaled[axis]) / 2.0 - offset[axis]
 			pos[axis] = clampf(pos[axis], centered - margin, centered + margin)
 		else:
-			pos[axis] = clampf(pos[axis], size[axis] - scaled[axis] - margin, margin)
+			pos[axis] = clampf(pos[axis], size[axis] - scaled[axis] - offset[axis] - margin, -offset[axis] + margin)
 	return pos
 
 
