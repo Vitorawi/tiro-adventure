@@ -530,7 +530,9 @@ func _refresh_markers() -> void:
 		_walk_marker.refresh()
 	for indicator: RouteIndicator in _route_markers:
 		indicator.refresh()
-	_glow_map = GameState.album_hint_glow_map()
+	# Brilho de pista do álbum desligado por enquanto (pedido do Vitor: a pista não é clara para o jogador).
+	# Para religar: _glow_map = GameState.album_hint_glow_map()
+	_glow_map = {}
 
 
 ## Um objeto: brilho de pista, indicadores, canteiro e quadros de estação ocupada.
