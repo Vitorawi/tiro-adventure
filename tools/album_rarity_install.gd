@@ -79,9 +79,12 @@ func _initialize() -> void:
 			var import_path := ProjectSettings.globalize_path(target + ".import")
 			if FileAccess.file_exists(import_path):
 				var text := FileAccess.get_file_as_string(import_path)
-				if text.contains("mipmaps/generate=false"):
+				# Também WebP com perda 0,9: sem perda o álbum pesava ~140 MB no pacote da Web (tools/web_lossy_imports.py).
+				if text.contains("mipmaps/generate=false") or text.contains("compress/mode=0"):
 					var file := FileAccess.open(import_path, FileAccess.WRITE)
-					file.store_string(text.replace("mipmaps/generate=false", "mipmaps/generate=true"))
+					text = text.replace("mipmaps/generate=false", "mipmaps/generate=true").replace("compress/mode=0", "compress/mode=1")
+					var quality := RegEx.create_from_string("compress/lossy_quality=[0-9.]+")
+					file.store_string(quality.sub(text, "compress/lossy_quality=0.9"))
 					file.close()
 					patched += 1
 			else:

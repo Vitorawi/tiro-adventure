@@ -71,6 +71,8 @@ o mesmo pacote de 375.664.924 bytes passou de ~761 MB para ~389 MB de heap JS na
 abertura em Chrome. Essa medição não inclui memória gráfica/nativa e não substitui
 o teste físico no iPhone.
 
+Imagens ilustradas grandes (álbum e clipes Animaref do bebê) entram no pacote como WebP com perda 0,9 (`tools/web_lossy_imports.py`; a respiração aprovada e as referências seguem sem perda). Em 08/11/2026 isso levou o `.pck` de 375 para 89 MB e o heap JS da abertura para ~107 MB. Arte nova grande deve seguir o mesmo padrão; rode a ferramenta com `--check`.
+
 1. Instalar a nova versão localmente + export templates.
 2. Mudar `GODOT_VERSION` no workflow e o caminho padrão em `tools/export_web.ps1`.
 3. Abrir o projeto no editor, testar, commitar.
