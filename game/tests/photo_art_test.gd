@@ -146,9 +146,10 @@ func _run() -> void:
 		total += 1
 		var target := "%s%s.png" % [ROOT, tag]
 		var tex := load(target) as Texture2D
-		check(tex != null and tex.get_width() == SIZE and tex.get_height() == SIZE, "%s 768×768" % tag)
+		check(tex != null and tex.get_width() == LOADED and tex.get_height() == LOADED, "%s %d×%d na memória (limite de importação)" % [tag, LOADED, LOADED])
 		var import_text := FileAccess.get_file_as_string(target + ".import")
 		check(import_text.contains("mipmaps/generate=true"), "%s com mipmaps" % tag)
+		check(import_text.contains("process/size_limit=%d" % LOADED), "%s limite de importação %d" % [tag, LOADED])
 		check(int(items[tag].size) == SIZE and str(items[tag].sha256).length() == 64, "%s manifesto" % tag)
 	check(total >= 4 * complete.size(), "manifesto cobre as fotos completas (%d)" % total)
 
@@ -157,3 +158,5 @@ func _run() -> void:
 
 
 const SIZE := 768
+## Tamanho carregado: o importador limita a 512 para poupar memória no celular.
+const LOADED := 512

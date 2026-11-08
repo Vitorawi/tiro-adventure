@@ -57,7 +57,7 @@ func _run() -> void:
 		for i: int in 36:
 			assert(animator.get("_clip") == clip and animator.get("_frame") == i)
 			var frame: AtlasTexture = list[i]
-			assert(frame.region.size == Vector2(383, 450))
+			assert(frame.region.size.x <= 383 and frame.region.size.y <= 450, "folha cortada/reduzida cabe na célula original")
 			assert(frame.atlas.get_width() <= 4096 and frame.atlas.get_height() <= 4096)
 			assert(absf(frame.get_size().aspect() - idle.get_size().aspect()) < 0.003)
 			if i in [0, 12, 24, 35]: await _shot("%s_%02d" % [clip, i])

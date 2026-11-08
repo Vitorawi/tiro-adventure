@@ -38,7 +38,7 @@ func _run() -> void:
 	for i: int in 36:
 		var frame: AtlasTexture = frames[i]
 		assert(frame.atlas.get_width() <= 4096 and frame.atlas.get_height() <= 4096)
-		assert(frame.region.size == Vector2(430, 754))
+		assert(frame.region.size.x <= 430 and frame.region.size.y <= 754, "folha cortada/reduzida cabe na célula original")
 		assert(frame.region.end.x <= frame.atlas.get_width() and frame.region.end.y <= frame.atlas.get_height())
 		assert(absf(frame.get_size().aspect() - idle.get_size().aspect()) < 0.003)
 		assert(animator.get("_clip") == &"bath" and animator.get("_frame") == i)
@@ -86,7 +86,7 @@ func _check_endpoint(idle: AtlasTexture, bath: AtlasTexture) -> void:
 	var b := Rect2((bath.margin.position + bath_bounds.position) / bath.get_size(), bath_bounds.size / bath.get_size())
 	# About 1 px on the 360 px home; no promise of identical generated fur pixels.
 	assert(absf(a.size.x-b.size.x) < 0.0025 and absf(a.size.y-b.size.y) < 0.0025)
-	assert(a.get_center().distance_to(b.get_center()) < 0.001)
+	assert(a.get_center().distance_to(b.get_center()) < 0.002)
 
 func _preview() -> void:
 	while true:

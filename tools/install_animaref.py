@@ -86,7 +86,7 @@ sleep_base = match(sleep_bounds['sleep_enter'][0], (18, 14, 397, 544))
 sleep_loop = compose(sleep_base, match(sleep_bounds['sleep_loop'][0], sleep_bounds['sleep_enter'][1]))
 wake_start = compose(sleep_loop, match(sleep_bounds['sleep_exit'][0], sleep_bounds['sleep_loop'][1]))
 wake_end = match(sleep_bounds['sleep_exit'][1], (18, 14, 397, 544))
-lines = ['extends RefCounted', '## Imported from Animaref; original pixels, frame rectangles and durations.', 'const CLIPS := {']
+lines = ['extends RefCounted', '## Imported from Animaref; original pixels, frame rectangles and durations.', '## Crop/scale of the phone-sized sheets (tools/optimize_animaref.py); idle is not in it.', 'const PACK := preload("res://scripts/ui/animaref_pack.gd").PACK', 'const CLIPS := {']
 for clip, (source, name) in clips.items():
     data = json.loads((source / (name + '.json')).read_text())
     if clip == 'idle_breathe':
@@ -207,7 +207,13 @@ lines.extend(['}', 'const LAYOUTS := {', *layouts, '}',
               '## Idle-to-idle registration; preserve the original head/paw movement.',
               'const REACTION_MARGINS := {', *reaction_margins, '}',
               '## Belly registration is applied only to new clips. Idle is immutable.',
-              'const BELLY_MARGINS := {', *belly_margins, '}', '', 'static func frames(clip: StringName) -> Array[Texture2D]:',
+              'const BELLY_MARGINS := {', *belly_margins, '}', '', 'static func exists(clip: StringName) -> bool:',
+              '	if not CLIPS.has(clip): return false',
+              '	var base := "res://assets/sprites/characters/tiro_pet_puppy_animaref/%s" % clip',
+              '	if clip in [&"bath", &"play_ball"]:',
+              '		return ResourceLoader.exists(base + "_0.png") and ResourceLoader.exists(base + "_1.png")',
+              '	return ResourceLoader.exists(base + ".png")', '',
+              'static func frames(clip: StringName) -> Array[Texture2D]:',
               '\tvar result: Array[Texture2D] = []',
               '\tif not CLIPS.has(clip): return result',
               '\tvar path := "res://assets/sprites/characters/tiro_pet_puppy_animaref/%s.png" % clip',
@@ -226,7 +232,7 @@ lines.extend(['}', 'const LAYOUTS := {', *layouts, '}',
               '\t\tframe.atlas = second if paged and i >= 18 else sheet',
               '\t\tvar local_index: int = i % 18 if paged else i',
               '\t\tvar columns: int = 3 if clip == &"play_ball" else 6',
-              '\t\tframe.region = Rect2(Vector2(local_index % columns, local_index / columns) * size, size)',
+              '\t\tframe.region = Rect2(Vector2(local_index % columns, local_index / columns) * cell, cell)',
               '\t\t# Shared canvas preserves the existing home scale and foot baseline.',
               '\t\tframe.margin = EXIT_MARGINS[i] if clip == &"eat_exit" else LAYOUTS[clip][1]',
               '\t\tif clip == &"bath": frame.margin = BATH_MARGINS[i]',

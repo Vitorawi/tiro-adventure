@@ -262,28 +262,43 @@ static func back(width: float) -> Control:
 	return picture
 
 
+## Miniatura cinza 24×24 da foto que falta, guardada: a arte inteira não precisa ser decodificada a cada abertura.
+static var _missing_cache: Dictionary = {}
+
+
+static func _missing_texture(id: String) -> Texture2D:
+	if _missing_cache.has(id):
+		return _missing_cache[id]
+	var art := PhotoCard.art_for(id, 0)
+	if art == null:
+		return null
+	var image := art.get_image()
+	image.resize(24, 24, Image.INTERPOLATE_LANCZOS)
+	for y in image.get_height():
+		for x in image.get_width():
+			var pixel := image.get_pixel(x, y)
+			var gray := pixel.r * 0.299 + pixel.g * 0.587 + pixel.b * 0.114
+			image.set_pixel(x, y, Color(gray * 0.48, gray * 0.48, gray * 0.48, pixel.a))
+	var texture := ImageTexture.create_from_image(image)
+	_missing_cache[id] = texture
+	return texture
+
+
 ## Faltante: ilustração base em baixa resolução, cinza e escura. Segredo sem pista nunca carrega a arte.
 static func preview(id: String, width: float) -> Control:
 	if secret_hidden(id) or (GameState.album.has_photo(id) and GameState.photo_rarity(id) == 0):
 		return back(width)
-	var card := PhotoCard.make(id, width, {"thumb": true, "locked": not GameState.album.has_photo(id)})
+	var card := PhotoCard.make(id, width, {"thumb": true, "lazy": true, "locked": not GameState.album.has_photo(id)})
 	if not GameState.album.has_photo(id):
-		var art := PhotoCard.art_for(id, 0)
-		if art != null:
-			var image := art.get_image()
-			image.resize(24, 24, Image.INTERPOLATE_LANCZOS)
-			for y in image.get_height():
-				for x in image.get_width():
-					var pixel := image.get_pixel(x, y)
-					var gray := pixel.r * 0.299 + pixel.g * 0.587 + pixel.b * 0.114
-					image.set_pixel(x, y, Color(gray * 0.48, gray * 0.48, gray * 0.48, pixel.a))
+		var missing := _missing_texture(id)
+		if missing != null:
 			var window := card.get_node("Canvas/Window") as Control
 			for child in window.get_children():
 				window.remove_child(child)
 				child.free()
 			var picture := TextureRect.new()
 			picture.name = "MissingIllustration"
-			picture.texture = ImageTexture.create_from_image(image)
+			picture.texture = missing
 			picture.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 			picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 			picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED

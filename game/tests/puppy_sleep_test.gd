@@ -36,6 +36,7 @@ func _run() -> void:
 	await _shot("00_idle")
 	await _sleep(true)
 	assert(animator.get("_clip") == &"sleep_enter")
+	for clip: StringName in [&"sleep_enter", &"sleep_loop", &"sleep_exit"]: animator.call("_animaref_load", clip)
 	var cache: Dictionary = animator.get("_animaref_frames")
 	var enter: Array = cache[&"sleep_enter"]
 	var sleeping: Array = cache[&"sleep_loop"]
@@ -51,7 +52,7 @@ func _run() -> void:
 	for group: Array in [enter, sleeping, waking]:
 		for frame: AtlasTexture in group:
 			assert(frame.atlas.get_width() <= 4096 and frame.atlas.get_height() <= 4096)
-			assert(frame.region.size == Vector2(438, 444))
+			assert(frame.region.size.x <= 438 and frame.region.size.y <= 444, "folha cortada/reduzida cabe na célula original")
 			assert(absf(frame.get_size().aspect() - idle.get_size().aspect()) < 0.003)
 	assert(waking[0].get_size().x > waking[35].get_size().x, "Wake compensates the smaller final drawing")
 	assert(is_equal_approx(await _advance(&"sleep_enter", 0, true), 2.808))

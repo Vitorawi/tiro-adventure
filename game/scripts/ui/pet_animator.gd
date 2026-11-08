@@ -22,6 +22,8 @@ const PUPPY_ALIASES := {&"sniff": &"head_tilt", &"stretch": &"head_tilt", &"bark
 	&"pet_paw": &"pet_head", &"roll_over": &"belly_enter", &"belly_rub": &"belly_loop",
 	&"belly_kick": &"belly_loop", &"sleep": IDLE, &"eat": IDLE}
 var _animaref_frames: Dictionary = {}
+var _animaref_used: Array[StringName] = []
+const ANIMAREF_KEEP := 3
 var allow_animaref := true
 static var _portrait_bounds: Dictionary = {}
 var _portrait_holder: Control
@@ -544,59 +546,72 @@ func _animaref_enabled() -> bool:
 
 func _clip_frames() -> Array:
 	if _animaref_enabled():
-		if not _animaref_frames.has(_clip):
-			_animaref_frames[_clip] = ANIMAREF.frames(_clip)
-		if not _animaref_frames[_clip].is_empty(): return _animaref_frames[_clip]
-		if not _animaref_frames.has(IDLE): _animaref_frames[IDLE] = ANIMAREF.frames(IDLE)
-		if not _animaref_frames[IDLE].is_empty(): return _animaref_frames[IDLE]
+		var frames := _animaref_load(_clip)
+		if not frames.is_empty(): return frames
+		frames = _animaref_load(IDLE)
+		if not frames.is_empty(): return frames
 		return [DogLook.pose_texture("puppy")]
 	return _frames.get(_clip, _frames.get(IDLE, []))
 
 
+## Carrega a folha do clipe só quando ele toca. Cada folha ocupa 18–32 MB na
+## memória; no celular guardar todas derruba a aba. Ficam a idle, o clipe atual
+## e os ANIMAREF_KEEP usados mais recentemente (cobre a refeição de 3 partes).
+func _animaref_load(clip: StringName) -> Array:
+	if not _animaref_frames.has(clip):
+		_animaref_frames[clip] = ANIMAREF.frames(clip)
+	_animaref_used.erase(clip)
+	_animaref_used.append(clip)
+	var keep: Array[StringName] = [IDLE, _clip, clip]
+	for index: int in range(_animaref_used.size() - 1, -1, -1):
+		if keep.size() >= ANIMAREF_KEEP + 3: break
+		if _animaref_used[index] not in keep: keep.append(_animaref_used[index])
+	for cached: StringName in _animaref_frames.keys():
+		if cached not in keep and not _animaref_frames[cached].is_empty():
+			_animaref_frames.erase(cached)
+			_animaref_used.erase(cached)
+	return _animaref_frames[clip]
+
+
+## Existe e é válido, sem carregar a folha (checagens de disponibilidade).
+func _animaref_has(clip: StringName) -> bool:
+	if _animaref_frames.has(clip): return not _animaref_frames[clip].is_empty()
+	return ANIMAREF.exists(clip)
+
+
 func _frame_seconds() -> float:
 	if _animaref_enabled():
-		var clip: StringName = _clip if ANIMAREF.CLIPS.has(_clip) and not _animaref_frames.get(_clip, []).is_empty() else IDLE
+		var clip: StringName = _clip if ANIMAREF.CLIPS.has(_clip) and _animaref_has(_clip) else IDLE
 		return float(ANIMAREF.CLIPS[clip][mini(_frame, ANIMAREF.CLIPS[clip].size() - 1)])
 	return 1.0 / float(FPS.get(_clip, 6.0))
 
 
-func _feeding_available() -> bool:
+func _animaref_group(clips: Array) -> bool:
 	if not _animaref_enabled(): return false
-	for clip: StringName in FEEDING:
-		if not _animaref_frames.has(clip): _animaref_frames[clip] = ANIMAREF.frames(clip)
-		if _animaref_frames[clip].is_empty(): return false
+	for clip: StringName in clips:
+		if not _animaref_has(clip): return false
 	return true
+
+
+func _feeding_available() -> bool:
+	return _animaref_group(FEEDING)
 
 
 func _bath_available() -> bool:
-	if not _animaref_enabled(): return false
-	if not _animaref_frames.has(&"bath"): _animaref_frames[&"bath"] = ANIMAREF.frames(&"bath")
-	return not _animaref_frames[&"bath"].is_empty()
+	return _animaref_group([&"bath"])
 
 
 func _ball_available() -> bool:
-	if not _animaref_enabled(): return false
-	if not _animaref_frames.has(&"play_ball"): _animaref_frames[&"play_ball"] = ANIMAREF.frames(&"play_ball")
-	return not _animaref_frames[&"play_ball"].is_empty()
+	return _animaref_group([&"play_ball"])
 
 
 func _sleep_available() -> bool:
-	if not _animaref_enabled(): return false
-	for clip: StringName in SLEEP_SEQUENCE:
-		if not _animaref_frames.has(clip): _animaref_frames[clip] = ANIMAREF.frames(clip)
-		if _animaref_frames[clip].is_empty(): return false
-	return true
+	return _animaref_group(SLEEP_SEQUENCE)
 
 
 func _reaction_available(clip: StringName) -> bool:
-	if not _animaref_enabled(): return false
-	if not _animaref_frames.has(clip): _animaref_frames[clip] = ANIMAREF.frames(clip)
-	return not _animaref_frames[clip].is_empty()
+	return _animaref_group([clip])
 
 
 func _belly_available() -> bool:
-	if not _animaref_enabled(): return false
-	for clip: StringName in BELLY_SEQUENCE:
-		if not _animaref_frames.has(clip): _animaref_frames[clip] = ANIMAREF.frames(clip)
-		if _animaref_frames[clip].is_empty(): return false
-	return true
+	return _animaref_group(BELLY_SEQUENCE)

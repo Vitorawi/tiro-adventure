@@ -1,5 +1,7 @@
 extends RefCounted
 ## Imported from Animaref; original pixels, frame rectangles and durations.
+## Crop/scale of the phone-sized sheets (tools/optimize_animaref.py); idle is not in it.
+const PACK := preload("res://scripts/ui/animaref_pack.gd").PACK
 const CLIPS := {
 	&"idle_breathe": [0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105, 0.105],
 	&"head_tilt": [0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094, 0.094],
@@ -507,6 +509,15 @@ const BELLY_MARGINS := {
 	],
 }
 
+## Confere se os PNGs do clipe existem, sem carregá-los na memória.
+static func exists(clip: StringName) -> bool:
+	if not CLIPS.has(clip): return false
+	var base := "res://assets/sprites/characters/tiro_pet_puppy_animaref/%s" % clip
+	if clip in [&"bath", &"play_ball"]:
+		return ResourceLoader.exists(base + "_0.png") and ResourceLoader.exists(base + "_1.png")
+	return ResourceLoader.exists(base + ".png")
+
+
 static func frames(clip: StringName) -> Array[Texture2D]:
 	var result: Array[Texture2D] = []
 	if not CLIPS.has(clip): return result
@@ -521,12 +532,14 @@ static func frames(clip: StringName) -> Array[Texture2D]:
 		if not ResourceLoader.exists(other): return result
 		second = load(other)
 	var size: Vector2 = LAYOUTS[clip][0]
+	var pack: Dictionary = PACK.get(clip, {})
+	var cell: Vector2 = pack.get("cell", size)
 	for i: int in CLIPS[clip].size():
 		var frame := AtlasTexture.new()
 		frame.atlas = second if paged and i >= 18 else sheet
 		var local_index: int = i % 18 if paged else i
 		var columns: int = 3 if clip == &"play_ball" else 6
-		frame.region = Rect2(Vector2(local_index % columns, local_index / columns) * size, size)
+		frame.region = Rect2(Vector2(local_index % columns, local_index / columns) * cell, cell)
 		# Shared canvas preserves the existing home scale and foot baseline.
 		frame.margin = EXIT_MARGINS[i] if clip == &"eat_exit" else LAYOUTS[clip][1]
 		if clip == &"bath": frame.margin = BATH_MARGINS[i]
@@ -534,6 +547,11 @@ static func frames(clip: StringName) -> Array[Texture2D]:
 		if SLEEP_MARGINS.has(clip): frame.margin = SLEEP_MARGINS[clip][i]
 		if REACTION_MARGINS.has(clip): frame.margin = REACTION_MARGINS[clip][i]
 		if BELLY_MARGINS.has(clip): frame.margin = BELLY_MARGINS[clip][i]
+		if not pack.is_empty():
+			# Sheet was cropped and scaled: same virtual canvas, smaller pixels.
+			var factor: Vector2 = pack.scale
+			var canvas := (size + frame.margin.size) * factor
+			frame.margin = Rect2((frame.margin.position + pack.crop.position) * factor, canvas - cell)
 		frame.filter_clip = true
 		result.append(frame)
 	return result

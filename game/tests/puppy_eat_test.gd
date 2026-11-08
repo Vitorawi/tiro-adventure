@@ -37,7 +37,7 @@ func _run() -> void:
 		assert(list.size() == 36 and list[0] is AtlasTexture)
 		assert(target.material == null)
 		if clip != &"eat_exit":
-			assert(target.texture.get_size().distance_to(idle_size / (530.0 / 352.0)) < 1.5, "Shared group scale (integer texture dimensions)")
+			assert(target.texture.get_size().distance_to(idle_size / (530.0 / 352.0) * Vector2(load("res://scripts/ui/animaref_pack.gd").PACK[clip].scale)) < 1.5, "Shared group scale (integer texture dimensions)")
 		else:
 			# Compare actual on-screen normalized bounds at both exit seams.
 			var chew: AtlasTexture = animator.get("_animaref_frames")[&"eat_loop"][35]
@@ -103,7 +103,17 @@ func _shot(id: String) -> void:
 	DirAccess.make_dir_recursive_absolute(folder)
 	root.get_texture().get_image().save_png(folder + id + ".png")
 
+## As folhas foram cortadas/reduzidas (animaref_pack.gd): leva os limites da arte original para o novo quadro.
+func _pack_bounds(texture: AtlasTexture, bounds: Rect2) -> Rect2:
+	var clip := StringName(texture.atlas.resource_path.get_file().get_basename().trim_suffix("_0").trim_suffix("_1"))
+	var pack: Dictionary = load("res://scripts/ui/animaref_pack.gd").PACK.get(clip, {})
+	if pack.is_empty(): return bounds
+	var factor: Vector2 = pack.scale
+	return Rect2((bounds.position - pack.crop.position) * factor, bounds.size * factor)
+
 func _check_seam(a: AtlasTexture, bounds_a: Rect2, b: AtlasTexture, bounds_b: Rect2) -> void:
+	bounds_a = _pack_bounds(a, bounds_a)
+	bounds_b = _pack_bounds(b, bounds_b)
 	var normalized_a := Rect2((a.margin.position + bounds_a.position) / a.get_size(), bounds_a.size / a.get_size())
 	var normalized_b := Rect2((b.margin.position + bounds_b.position) / b.get_size(), bounds_b.size / b.get_size())
 	# At the 360 px home viewport these limits keep the two endpoint bounds

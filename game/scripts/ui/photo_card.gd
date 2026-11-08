@@ -52,12 +52,23 @@ static func make(id: String, width: float = 104.0, options: Dictionary = {}) -> 
 	# Fotos ainda bloqueadas continuam com a silhueta ou o segredo habitual.
 	# Versão a exibir: `options.level` ou a escolhida pelo jogador; carta fechada (0) fica com a ilustração base.
 	var level := int(options.get("level", GameState.photo_shown_rarity(id)))
-	var art := art_for(id, level)
-	if not locked and art != null:
+	# `lazy` (grades longas): a imagem só entra na memória enquanto a carta está na tela.
+	var lazy := bool(options.get("lazy", false))
+	var art_file := art_resource_path(id, level)
+	var art: Texture2D = null if lazy or art_file == "" else load(art_file) as Texture2D
+	if not locked and (art != null or (lazy and art_file != "")):
 		var picture := TextureRect.new()
 		picture.name = "Illustration"
 		picture.set_meta("level", level)
 		picture.texture = art
+		if lazy:
+			picture.set_meta("art_path", art_file)
+			var watcher := VisibleOnScreenNotifier2D.new()
+			watcher.name = "ArtWatcher"
+			watcher.rect = Rect2(Vector2.ZERO, root.custom_minimum_size)
+			watcher.screen_entered.connect(func() -> void: picture.texture = load(art_file) as Texture2D)
+			watcher.screen_exited.connect(func() -> void: picture.texture = null)
+			root.add_child(watcher)
 		picture.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
 		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
@@ -125,12 +136,18 @@ static func art_path(id: String, level: int) -> String:
 ## Imagem da versão `level` da foto `id`; sem arte revisada (ou nível 0/fechada), a ilustração atual da PRÓPRIA foto.
 ## Nunca devolve a imagem de outra foto. Devolve null se a foto nem ilustração tem (cena montada).
 static func art_for(id: String, level: int) -> Texture2D:
+	var path := art_resource_path(id, level)
+	return null if path == "" else load(path) as Texture2D
+
+
+## Caminho da imagem que `art_for` carregaria (sem carregar), ou "" se não houver.
+static func art_resource_path(id: String, level: int) -> String:
 	var path := art_path(id, level)
 	if path == "":
 		path = str(Database.photo(id).get("photo", {}).get("illustration", ""))
 	if path == "" or not ResourceLoader.exists(path):
-		return null
-	return load(path) as Texture2D
+		return ""
+	return path
 
 
 static func _finish(root: Control, entry: Dictionary, info: Dictionary, width: float, options: Dictionary) -> Control:

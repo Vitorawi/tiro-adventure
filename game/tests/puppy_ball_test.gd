@@ -36,7 +36,7 @@ func _run() -> void:
 	for i: int in 36:
 		var frame: AtlasTexture = frames[i]
 		assert(frame.atlas.get_width() <= 4096 and frame.atlas.get_height() <= 4096)
-		assert(frame.region.size == Vector2(896, 504))
+		assert(frame.region.size.x <= 896 and frame.region.size.y <= 504, "folha cortada/reduzida cabe na célula original")
 		assert(frame.region.end.x <= frame.atlas.get_width() and frame.region.end.y <= frame.atlas.get_height())
 		assert(absf(frame.get_size().aspect() - idle.get_size().aspect()) < 0.003)
 		assert(animator.get("_clip") == &"play_ball" and animator.get("_frame") == i)
