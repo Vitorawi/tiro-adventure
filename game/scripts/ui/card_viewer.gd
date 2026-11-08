@@ -28,10 +28,9 @@ const SEPARATION := 4
 const HEADER_H := 44.0
 const MARGIN := 16.0
 ## Nada do visualizador fica sobre o HUD: a coluna começa abaixo dele.
-const HUD_GAP := 4.0
-const HUD_UP_VEIL := 8.0  ## o véu sobe um pouco acima do topo da carta, até o fim da engrenagem
-const HUD_UP := 28.0  ## a carta sobe e cobre a placa do Álbum: só o cabeçalho do HUD continua à vista
-const BOTTOM := 40.0  ## folga de baixo: a carta não fica colada na borda
+const VEIL_TOP := 94.0  ## o véu começa logo abaixo do quadradinho da engrenagem: só o cabeçalho do HUD (avatar, nome, moedas) fica à vista
+const CONTENT_TOP := 100.0  ## a coluna da carta começa aqui, bem no alto
+const BOTTOM := 64.0  ## folga de baixo: a carta não fica colada na borda
 
 static var current: CardViewer
 
@@ -101,8 +100,7 @@ static func _screen() -> Vector2:
 
 ## Topo da coluna: abaixo do HUD (a pílula do nome e o X nunca cobrem a placa "Tiro").
 static func top_offset() -> float:
-	var hud: float = float((load("res://scripts/ui/hud.gd") as GDScript).get_script_constant_map()["HEIGHT"])
-	return maxf(MARGIN - 2.0, hud - HUD_UP)
+	return CONTENT_TOP
 
 
 var _hidden_close: Control
@@ -172,7 +170,7 @@ func _build() -> void:
 	add_child(dim)
 	dim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	# O véu começa na altura do fim do quadradinho da engrenagem: o cabeçalho do HUD fica limpo, sem escurecer.
-	var veil_top := top_offset() - HUD_UP_VEIL
+	var veil_top := VEIL_TOP
 	dim.offset_top = veil_top
 	# Abaixo do cabeçalho o fundo é um bege madeirado translúcido: a folha atrás (Álbum, Caderninho) aparece só como um véu.
 	var deep := ColorRect.new()

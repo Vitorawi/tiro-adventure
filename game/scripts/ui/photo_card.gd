@@ -144,24 +144,7 @@ static func _finish(root: Control, entry: Dictionary, info: Dictionary, width: f
 		mark.position = WINDOW.position * scale_factor + Vector2(0, WINDOW.size.y * scale_factor * 0.18)
 		mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		root.add_child(mark)
-	var ribbon := str(entry.get("photo", {}).get("ribbon", ""))
-	if ribbon != "" and not locked and not bool(options.get("thumb", false)):
-		var band := ColorRect.new()
-		band.name = "RibbonBand"
-		band.color = Palette.GO
-		band.position = Vector2(WINDOW.position.x, WINDOW.position.y + 6) * scale_factor
-		band.size = Vector2(WINDOW.size.x, 18) * scale_factor
-		band.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		root.add_child(band)
-		var text := UiKit.label(ribbon, &"PhotoRibbonLabel")
-		text.name = "RibbonText"
-		text.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		text.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		# Texto do mundo: a polaroide escala a geometria, e a fonte do tema acompanha Texto maior.
-		text.size = band.size / scale_factor
-		text.scale = Vector2.ONE * scale_factor
-		text.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		band.add_child(text)
+	# Nenhum texto sobre a foto: a faixa de fase ("Filhotinho") saiu; o nome da fase aparece fora da carta.
 	if bool(options.get("caption", false)):
 		var title := UiKit.label(str(entry.get("title", "")) if not locked or not bool(options.get("secret", false)) else "???", &"PhotoCaptionLabel")
 		title.name = "PhotoTitle"
@@ -395,8 +378,5 @@ static func _friend(id: String, sleeping: bool = false) -> Control:
 		node.position = Vector2(108, 79)
 		node.pivot_offset = node.size * 0.5
 		node.rotation = 0.0
-		var zzz := UiKit.label("z z z", &"SmallLabel")
-		zzz.position = Vector2(0, -14)
-		node.add_child(zzz)
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	return node
