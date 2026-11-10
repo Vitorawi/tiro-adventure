@@ -130,6 +130,7 @@ var _swallow_touch := false
 @onready var _content: Control = %Content
 @onready var _background: TextureRect = %Background
 @onready var _world: Node2D = %World
+var _behind_layer: Node2D
 
 
 func _ready() -> void:
@@ -468,7 +469,16 @@ func _spawn_objects() -> void:
 			indicator.plot_index = int(data["plot"])
 			indicator.z_index = 2
 			sprite.add_child(indicator)
-		_world.add_child(sprite)
+		if data.get("always_behind", false):
+			# Canteiros: camada própria logo abaixo do mundo, então Tiro e personagens sempre passam na frente.
+			if _behind_layer == null:
+				_behind_layer = Node2D.new()
+				_behind_layer.name = "BehindLayer"
+				_world.get_parent().add_child(_behind_layer)
+				_world.get_parent().move_child(_behind_layer, _world.get_index())
+			_behind_layer.add_child(sprite)
+		else:
+			_world.add_child(sprite)
 		_objects.append(sprite)
 
 

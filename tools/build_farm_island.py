@@ -177,7 +177,7 @@ def main() -> None:
         p = S(x + 111, y + 146)  # meio da base do canteiro (peça 222x146)
         fp = diamond(p[0], p[1] - 4, 0.50 * cw)
         bed_fp.append(fp)
-        objects.append({"id": f"plot_{idx}", "action": "plot", "plot": idx, "sprite": RES + "ilha_canteiro.png", "locked_sprite": RES + "ilha_canteiro_bloqueado.png", "crop_offset": crop_off, "sort_shift": -30, "pos": p, "footprint": fp, "approach": [p[0], p[1] + 22]})
+        objects.append({"id": f"plot_{idx}", "action": "plot", "plot": idx, "sprite": RES + "ilha_canteiro.png", "locked_sprite": RES + "ilha_canteiro_bloqueado.png", "crop_offset": crop_off, "always_behind": True, "pos": p, "footprint": fp, "approach": [p[0], p[1] + 22]})
 
     # --- estufa: 4 canteiros pequenos dentro do vidro ---
     gh = info["estufa"]
