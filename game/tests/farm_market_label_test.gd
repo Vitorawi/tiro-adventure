@@ -59,7 +59,7 @@ func _run() -> void:
 		if not before:
 			# Faixa da fachada no próprio fundo da sala, abaixo do telhado e acima dos canteiros.
 			var anchor: Vector2 = market.get_meta("anchor")
-			check(Rect2(470, 115, 100, 45).has_point(anchor), "âncora no meio da fachada")
+			check(Rect2(840, 1320, 120, 90).has_point(anchor), "âncora no meio da fachada")
 			var zone: Dictionary = market.get_meta("tap_data")
 			var polygon := PackedVector2Array()
 			for point: Array in zone.polygon: polygon.append(Vector2(point[0], point[1]))

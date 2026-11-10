@@ -74,7 +74,9 @@ func _on_screen(room: Control, point: Vector2) -> Vector2:
 
 
 func _backdrops() -> void:
+	# Casa e Sítio são cena única (a imagem já traz céu, paisagem e chão): sem cobertura de borda, faixa distante nem gramado em tile.
 	for id: String in ["house", "farm", "park", "village", "nature"]:
+		var own_scene := id in ["house", "farm"]
 		var room := await _enter(id)
 		var backdrop: Control = room.get_node("Backdrop")
 		check(backdrop.size.is_equal_approx(room.size) and room.size.x > 0.0, id + ": o fundo cobre a tela toda")
@@ -85,14 +87,14 @@ func _backdrops() -> void:
 		check(ground.visible and is_equal_approx(ground.position.y, sky.size.y), id + ": chão começa onde o céu termina")
 		check(ground.position.y + ground.size.y >= room.size.y - 0.5, id + ": o chão vai até embaixo")
 		check(is_equal_approx(sky.size.x, room.size.x) and is_equal_approx(ground.size.x, room.size.x), id + ": céu e chão têm a largura da tela")
-		check((room.find_child("EdgeCover", true, false) != null) == (id != "house"), id + ": a terra da lateral fica coberta (menos na Casa)")
+		check((room.find_child("EdgeCover", true, false) != null) == (not own_scene), id + ": a terra da lateral fica coberta (menos na cena única)")
 		var far: Control = room.get_node("%Far")
-		check(far.visible == (id != "house"), id + ": paisagem ao longe só nos mundos abertos")
+		check(far.visible == (not own_scene), id + ": paisagem ao longe só nos mundos abertos")
 		if far.visible:
 			check(far.position.x <= 0.5 and far.position.x + far.size.x >= room.size.x - 0.5, id + ": a paisagem cobre a largura")
 		check((room.get("_clouds") as Array).is_empty(), id + ": sem nuvens (fundo simples)")
 		var detail: Control = ground.get_node_or_null("GroundDetail")
-		check((detail != null) == (id != "house"), id + ": gramado texturado só nos mundos externos")
+		check((detail != null) == (not own_scene), id + ": gramado texturado só nos mundos externos")
 		if detail:
 			var texture: Texture2D = detail.get("texture")
 			check(texture != null and ground.clip_contents, id + ": textura existe e fica abaixo do horizonte")
@@ -114,7 +116,7 @@ func _backdrops() -> void:
 
 func _framing() -> void:
 	var farm := await _enter("farm")
-	check(is_equal_approx(float(farm.get("_zoom")), 1.0), "Sítio abre com zoom 1,0")
+	check(is_equal_approx(float(farm.get("_zoom")), float(root.get_node("Database").call("room", "farm").initial_zoom)), "Sítio abre com o zoom do JSON (a cena preenche a altura)")
 	var inside := true
 	for index in 9:
 		var plot: Sprite2D = farm.find_child("plot_%d" % index, true, false)
@@ -144,7 +146,14 @@ func _framing() -> void:
 
 
 func _camera() -> void:
+	# O Sítio é cena única e, na tela quadrada do teste, cabe na largura: usa o tamanho de celular para haver folga de arrasto.
+	var old_size := root.size
+	root.size = Vector2i(360, 780)
+	for i in 3:
+		await process_frame
 	var farm := await _enter("farm")
+	farm.call("_show_whole_room")  # a sala foi enquadrada na tela quadrada: reenquadra no tamanho de celular
+	await process_frame
 	check(not (farm.get_node("ZoomControls") as Control).visible, "os botões +/− saíram")
 	var recenter: Control = farm.get_node("RecenterButton")
 	check(not recenter.visible, "centralizar fica escondido no começo")
@@ -195,6 +204,9 @@ func _camera() -> void:
 	farm.call("zoom_to", farm.size / 2.0, 1.5)
 	check(is_equal_approx(float(farm.get("_zoom")), 1.5), "zoom_to chega ao zoom pedido")
 	farm.call("recenter")
+	root.size = old_size
+	for i in 3:
+		await process_frame
 
 
 func _tap(room: Control, at: Vector2) -> void:

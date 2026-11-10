@@ -446,6 +446,10 @@ func _spawn_objects() -> void:
 		if data.has("plot"):
 			# Canteiro: a planta (broto ou pronta) é um sprite por cima do solo.
 			sprite.set_meta("plot", int(data["plot"]))
+			if data.has("locked_sprite"):
+				# Desenho próprio do canteiro ainda bloqueado (mesmo tamanho de tela e mesma base do livre).
+				sprite.set_meta("free_texture", sprite.texture)
+				sprite.set_meta("locked_texture", load(data["locked_sprite"]))
 			var crop := Sprite2D.new()
 			crop.name = "Crop"
 			crop.position = Vector2(0, -sprite.texture.get_height() / 2.0 + float(data.get("crop_offset", 0)))
@@ -584,7 +588,13 @@ func _update_plot(sprite: Sprite2D) -> void:
 	var texture: Texture2D = null
 	var status := GameState.plot_status(index)
 	var progress := GameState.plot_progress(index)
-	sprite.self_modulate = Palette.INK_SOFT if status == "locked" else Color.WHITE
+	if sprite.has_meta("locked_texture"):
+		var wanted: Texture2D = sprite.get_meta("locked_texture") if status == "locked" else sprite.get_meta("free_texture")
+		if sprite.texture != wanted:
+			sprite.texture = wanted
+		sprite.self_modulate = Color.WHITE
+	else:
+		sprite.self_modulate = Palette.INK_SOFT if status == "locked" else Color.WHITE
 	match status:
 		"growing":
 			texture = Database.farm_texture("sprout") if progress < 0.33 else Database.crop_texture(GameState.plot(index)["crop"])
@@ -646,7 +656,7 @@ func _refresh_ownership() -> void:
 				sprite.texture = load(animal.sprite)
 				sprite.offset = -Vector2(sprite.texture.get_width() / 2.0, sprite.texture.get_height())
 				sprite.set_meta("idle_offset", sprite.offset)
-				sprite.scale = Vector2.ONE * float(animal.map_scale)
+				sprite.scale = Vector2.ONE * float(animal.map_scale) * float(_room.get("animal_scale", 1.0))
 	for region: Node2D in _regions:
 		region.visible = region_error(region.get_meta("data")) != ""
 	for tag: Label in _labels:

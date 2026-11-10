@@ -104,9 +104,9 @@ func _run() -> void:
 	check((farm.call("plot_indices") as Array).size() == 13, "Sítio com 9 canteiros + 4 da estufa visíveis")
 	var garden: Sprite2D = farm.find_child("plot_0", true, false)
 	var glass: Sprite2D = farm.find_child("plot_9", true, false)
-	check(glass.texture.resource_path.ends_with("plot_greenhouse.png") and garden.texture.resource_path.ends_with("plot.png"), "estufa tem canteiro próprio (pedra e vidro)")
+	check(glass.texture.resource_path.ends_with("ilha_canteiro.png") and garden.texture.resource_path.ends_with("ilha_canteiro.png") and glass.scale.x < garden.scale.x, "estufa tem canteiros menores, dentro do vidro")
 	var boundary: Sprite2D = farm.find_child("greenhouse", true, false)
-	check(boundary.texture.resource_path.ends_with("greenhouse_boundary.svg") and boundary.get_meta("action") == "place:greenhouse", "estufa é área demarcada com acesso próprio")
+	check(boundary.texture.resource_path.ends_with("ilha_estufa.png") and boundary.get_meta("action") == "place:greenhouse", "estufa é uma construção com acesso próprio")
 	var greenhouse_panel: Control = load("res://scripts/ui/sheet_builder.gd").call("farm_view", "", true)
 	root.add_child(greenhouse_panel)
 	await process_frame
@@ -519,6 +519,8 @@ func _test_closing() -> void:
 func _test_edge_scroll() -> void:
 	empty_plots()
 	farm.call("recenter")
+	await process_frame
+	farm.call("_zoom_at", farm.size / 2.0, 0.8)  # a cena do Sítio cabe na largura do teste no zoom inicial: aproxima para haver folga
 	await process_frame
 	var current := await open_dock(1)
 	var before: Vector2 = farm.get("_content").position

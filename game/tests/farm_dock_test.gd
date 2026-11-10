@@ -189,6 +189,7 @@ func _test_drag_outside_moves_camera() -> void:
 	await process_frame
 	await open_plant(0)
 	empty_plots()
+	farm.call("_zoom_at", farm.size / 2.0, 1.0)  # a cena do Sítio cabe na largura do teste no zoom inicial: dá folga para arrastar
 	var before: Vector2 = (farm.get("_content") as Control).position
 	var start := farm.global_position + Vector2(20, 200)  # céu, sempre sem canteiro
 	farm.call("_gui_input", mouse_event("press", start))
