@@ -11,11 +11,14 @@
   "floor": [[798, 885], [1321, 1196], [800, 1500], [277, 1189]],
   "dig_spots": [[668, 980], [948, 1028], [788, 1332], [948, 1252], [580, 1132], [684, 1236]],
   "navigation_margin": 8,
-  "dog_scale": 1.1,
+  "dog_scale": 0.7,
+  "region_shade": false,
+  "region_fence": false,
   "animal_scale": 1.6,
-  "initial_zoom": 0.42,
-  "min_zoom": 0.42,
-  "view_center": [800, 936],
+  "initial_zoom": 0.79,
+  "min_zoom": 0.46,
+  "background_bleed": [0, 0, 0, 0],
+  "view_center": [785, 1107],
   "obstacles": [
     {
       "id": "bloblo_house",
@@ -50,9 +53,10 @@
       "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
       "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
       "crop_offset": 0,
-      "pos": [785, 1202],
-      "footprint": [[785, 1125], [840, 1161], [785, 1198], [730, 1161]],
-      "approach": [804, 1276]
+      "sort_shift": -30,
+      "pos": [792, 1122],
+      "footprint": [[792, 1045], [847, 1081], [792, 1118], [737, 1081]],
+      "approach": [852, 1076]
     },
     {
       "id": "plot_1",
@@ -61,9 +65,10 @@
       "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
       "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
       "crop_offset": 0,
-      "pos": [854, 1244],
-      "footprint": [[854, 1167], [909, 1203], [854, 1240], [799, 1203]],
-      "approach": [852, 1260]
+      "sort_shift": -30,
+      "pos": [860, 1164],
+      "footprint": [[860, 1087], [915, 1123], [860, 1160], [805, 1123]],
+      "approach": [892, 1228]
     },
     {
       "id": "plot_2",
@@ -72,9 +77,10 @@
       "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
       "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
       "crop_offset": 0,
-      "pos": [710, 1242],
-      "footprint": [[710, 1165], [765, 1201], [710, 1238], [655, 1201]],
-      "approach": [708, 1268]
+      "sort_shift": -30,
+      "pos": [716, 1161],
+      "footprint": [[716, 1084], [771, 1120], [716, 1157], [661, 1120]],
+      "approach": [708, 1244]
     },
     {
       "id": "plot_3",
@@ -83,9 +89,10 @@
       "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
       "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
       "crop_offset": 0,
-      "pos": [778, 1283],
-      "footprint": [[778, 1206], [833, 1242], [778, 1279], [723, 1242]],
-      "approach": [780, 1308]
+      "sort_shift": -30,
+      "pos": [785, 1202],
+      "footprint": [[785, 1125], [840, 1161], [785, 1198], [730, 1161]],
+      "approach": [804, 1276]
     },
     {
       "id": "plot_4",
@@ -94,9 +101,10 @@
       "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
       "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
       "crop_offset": 0,
-      "pos": [716, 1161],
-      "footprint": [[716, 1084], [771, 1120], [716, 1157], [661, 1120]],
-      "approach": [708, 1244]
+      "sort_shift": -30,
+      "pos": [928, 1205],
+      "footprint": [[928, 1128], [983, 1164], [928, 1201], [873, 1164]],
+      "approach": [924, 1228]
     },
     {
       "id": "plot_5",
@@ -105,9 +113,10 @@
       "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
       "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
       "crop_offset": 0,
-      "pos": [860, 1164],
-      "footprint": [[860, 1087], [915, 1123], [860, 1160], [805, 1123]],
-      "approach": [892, 1228]
+      "sort_shift": -30,
+      "pos": [642, 1200],
+      "footprint": [[642, 1123], [697, 1159], [642, 1196], [587, 1159]],
+      "approach": [644, 1220]
     },
     {
       "id": "plot_6",
@@ -116,9 +125,10 @@
       "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
       "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
       "crop_offset": 0,
-      "pos": [642, 1200],
-      "footprint": [[642, 1123], [697, 1159], [642, 1196], [587, 1159]],
-      "approach": [644, 1220]
+      "sort_shift": -30,
+      "pos": [854, 1244],
+      "footprint": [[854, 1167], [909, 1203], [854, 1240], [799, 1203]],
+      "approach": [852, 1260]
     },
     {
       "id": "plot_7",
@@ -127,9 +137,10 @@
       "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
       "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
       "crop_offset": 0,
-      "pos": [928, 1205],
-      "footprint": [[928, 1128], [983, 1164], [928, 1201], [873, 1164]],
-      "approach": [924, 1228]
+      "sort_shift": -30,
+      "pos": [710, 1242],
+      "footprint": [[710, 1165], [765, 1201], [710, 1238], [655, 1201]],
+      "approach": [708, 1268]
     },
     {
       "id": "plot_8",
@@ -138,9 +149,10 @@
       "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
       "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
       "crop_offset": 0,
-      "pos": [792, 1122],
-      "footprint": [[792, 1045], [847, 1081], [792, 1118], [737, 1081]],
-      "approach": [852, 1076]
+      "sort_shift": -30,
+      "pos": [778, 1283],
+      "footprint": [[778, 1206], [833, 1242], [778, 1279], [723, 1242]],
+      "approach": [780, 1308]
     },
     {
       "id": "plot_9",

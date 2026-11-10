@@ -756,7 +756,8 @@ func _spawn_regions() -> void:
 			shade.color = Color(0.16, 0.12, 0.08, 0.45)
 			region.add_child(shade)
 		var gate := _polygon(data.gate)
-		for height: float in [-12.0, -22.0]:
+		var fenced: bool = _room.get("region_fence", true)  # o Sítio em ilha não desenha cerca por código
+		for height: float in ([-12.0, -22.0] if fenced else []):
 			var rail := Line2D.new()
 			for point: Vector2 in gate:
 				rail.add_point(point + Vector2(0, height))
@@ -764,7 +765,7 @@ func _spawn_regions() -> void:
 			rail.default_color = Palette.FENCE_RAIL
 			region.add_child(rail)
 		var posts := maxi(2, ceili(gate[0].distance_to(gate[1]) / 24.0))
-		for i in range(posts + 1):
+		for i in range(posts + 1 if fenced else 0):
 			var foot := gate[0].lerp(gate[1], float(i) / posts)
 			var post := Line2D.new()
 			post.points = PackedVector2Array([foot, foot - Vector2(0, 30)])

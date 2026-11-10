@@ -169,7 +169,7 @@ def main() -> None:
 
     # --- canteiros comuns: grade 3x3 achada na arte ---
     O, U, V = (1072, 598), (137, 83), (-150, 78)
-    order = [(1, 1), (2, 1), (1, 2), (2, 2), (0, 1), (1, 0), (0, 2), (2, 0), (0, 0)]  # 0-3 iniciais; 4-8 comprados
+    order = [(0, 0), (1, 0), (0, 1), (1, 1), (2, 0), (0, 2), (2, 1), (1, 2), (2, 2)]  # 0-3 iniciais (bloco superior); 4-8 comprados
     objects: list[dict] = []
     bed_fp = []
     for idx, (i, j) in enumerate(order):
@@ -177,7 +177,7 @@ def main() -> None:
         p = S(x + 111, y + 146)  # meio da base do canteiro (peça 222x146)
         fp = diamond(p[0], p[1] - 4, 0.50 * cw)
         bed_fp.append(fp)
-        objects.append({"id": f"plot_{idx}", "action": "plot", "plot": idx, "sprite": RES + "ilha_canteiro.png", "locked_sprite": RES + "ilha_canteiro_bloqueado.png", "crop_offset": crop_off, "pos": p, "footprint": fp, "approach": [p[0], p[1] + 22]})
+        objects.append({"id": f"plot_{idx}", "action": "plot", "plot": idx, "sprite": RES + "ilha_canteiro.png", "locked_sprite": RES + "ilha_canteiro_bloqueado.png", "crop_offset": crop_off, "sort_shift": -30, "pos": p, "footprint": fp, "approach": [p[0], p[1] + 22]})
 
     # --- estufa: 4 canteiros pequenos dentro do vidro ---
     gh = info["estufa"]
@@ -312,11 +312,11 @@ def main() -> None:
         "floor": floor,
         "dig_spots": dig,
         "navigation_margin": 8,
-        "dog_scale": 1.1,
+        "dog_scale": 0.7, "region_shade": False, "region_fence": False,
         "animal_scale": 1.6,
-        "initial_zoom": 0.42,
-        "min_zoom": 0.42,
-        "view_center": [800, 936],
+        "initial_zoom": 0.79,
+        "min_zoom": 0.46, "background_bleed": [0, 0, 0, 0],
+        "view_center": [785, 1107],
         "obstacles": obstacles,
         "objects": objects,
         "zones": zones,

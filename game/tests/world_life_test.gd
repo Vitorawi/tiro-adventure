@@ -42,9 +42,9 @@ func _run() -> void:
 	var nav: AStarGrid2D = farm.get("_nav")
 	check(nav.is_point_solid(Vector2i(660, 1316) / 8), "Tiro não entra na área fechada")
 	# Colheita real e caminho da reação: deve continuar contornando canteiros.
-	check(state.call("plant", 0, "carrot") == "", "Plantar cenoura")
-	state.get("plots")[0].ready_at = 0.0
-	check(not (state.call("harvest", 0) as Dictionary).is_empty(), "Colher cenoura")
+	check(state.call("plant", 1, "carrot") == "", "Plantar cenoura")
+	state.get("plots")[1].ready_at = 0.0
+	check(not (state.call("harvest", 1) as Dictionary).is_empty(), "Colher cenoura")
 	check(dog.get_meta("last_reaction", "") == &"harvest", "Tiro reage à colheita")
 	var before_walk := dog.position
 	# Espera por condição (com limite), não por tempo fixo: o portão roda três processos ao mesmo tempo.

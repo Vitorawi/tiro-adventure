@@ -175,7 +175,8 @@ func _camera() -> void:
 	farm.set("_zoom", 1.0)
 	var hard: Vector2 = farm.call("_clamped_position", Vector2(500, 0), 0.0)
 	var soft: Vector2 = farm.call("_clamped_position", Vector2(500, 0), 48.0)
-	check(absf(soft.x - hard.x) == 48.0, "arrasto passa 48 px da borda")
+	# O Sítio em ilha é uma fotografia única presa aos limites (como a Casa): sem folga elástica.
+	check(absf(soft.x - hard.x) == 0.0, "Sítio: câmera presa ao limite, sem passar da borda")
 	content.position = soft
 	farm.call("_settle_content")
 	await process_frame
