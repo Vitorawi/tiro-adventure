@@ -2681,11 +2681,18 @@ func _visible_unlock_keys() -> Array[String]:
 	return keys
 
 
+## Já estavam à vista na tela do Tiro antes da fase: não há o que anunciar, só marcam como vistos.
+const SILENT_UNLOCKS: Array[String] = ["feature:wishes", "feature:growth_tab"]
+
+
 func new_unlocks() -> Array[String]:
 	var result: Array[String] = []
 	for key in _visible_unlock_keys():
-		if not progress.seen.has(key):
-			result.append(key)
+		if progress.seen.has(key): continue
+		if key in SILENT_UNLOCKS:
+			progress.seen[key] = true
+			continue
+		result.append(key)
 	return result
 
 
@@ -4341,6 +4348,10 @@ func _apply_photo_roll(id: String, level: int, kind: String, draw: bool = true, 
 		variants.append(level)
 		variants.sort()
 		if level == 4: _count("photo_holo")
+	# Tirar uma raridade destrava também todas as versões abaixo dela.
+	for lower in range(1, level):
+		if lower not in variants: variants.append(lower)
+	variants.sort()
 	entry["variants"] = variants
 	if draw:
 		entry["rolls"] = int(entry.get("rolls", 0)) + 1

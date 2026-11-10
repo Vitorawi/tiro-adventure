@@ -1690,6 +1690,27 @@ func object_anchor(sprite: Sprite2D) -> Dictionary:
 	return {"above": sprite.position - Vector2(0, height * 0.9), "below": sprite.position + Vector2(0, 6), "top": sprite.position - Vector2(0, height)}
 
 
+## Estufa: a bandeja de 4 espaços substitui os canteiros no mapa. Só existe com a estufa comprada e visível na sala.
+func _greenhouse_sprite() -> Sprite2D:
+	for sprite: Sprite2D in _objects:
+		if sprite.visible and str(sprite.get_meta("upgrade", "")) == "greenhouse":
+			return sprite
+	return null
+
+
+func can_open_greenhouse_tray() -> bool:
+	return _greenhouse_sprite() != null and GameState.has_upgrade("greenhouse")
+
+
+func open_greenhouse_tray(focus: String = "") -> void:
+	var home := _greenhouse_sprite()
+	if home == null or not GameState.has_upgrade("greenhouse"):
+		return
+	close_tray()
+	clear_pointer()
+	StationTray.greenhouse(self, object_anchor(home), focus)
+
+
 ## Esta sala tem a estação (já comprada) para mostrar a bandeja?
 func can_open_station_tray(station_id: String) -> bool:
 	return station_sprite(station_id) != null and GameState.has_upgrade(station_id)
@@ -1748,6 +1769,10 @@ func _nature_marker(site: String) -> RouteIndicator:
 ## "Ir"/painel de canteiros: `plot_index` −1 = o primeiro canteiro vazio que aceite a planta.
 func _on_plot_tray_requested(crop_id: String, plot_index: int) -> void:
 	if not is_visible_in_tree() or plot_indices().is_empty():
+		return
+	# Plantas delicadas só crescem na estufa: o "Ir" abre a bandeja dela já com a planta escolhida.
+	if crop_id != "" and str(Database.crops.get(crop_id, {}).get("greenhouse", "")) == "only" and can_open_greenhouse_tray():
+		open_greenhouse_tray(crop_id)
 		return
 	var index := plot_index
 	if index < 0:
@@ -2186,6 +2211,9 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 		return
 	if target is Sprite2D and _collect_station(_station_of(target), target.position):
 		return  # Coleta no mapa termina aqui, inclusive quando o depósito está cheio.
+	if target is Sprite2D and str(target.get_meta("upgrade", "")) == "greenhouse" and GameState.has_upgrade("greenhouse"):
+		open_greenhouse_tray()
+		return
 	# Estação, criação e local da Natureza abrem a bandeja perto do objeto (o painel fica em "Ver tudo").
 	if target is Sprite2D and _station_of(target) != "" and GameState.has_upgrade(_station_of(target)):
 		open_station_tray(_station_of(target), "", false, target)

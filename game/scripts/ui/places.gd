@@ -125,11 +125,15 @@ static func open_tray(world_id: String, place_id: String) -> bool:
 	for room: Node in (Engine.get_main_loop() as SceneTree).get_nodes_in_group("room_views"):
 		if not room is RoomView or room.world_id != world_id or not room.is_visible_in_tree():
 			continue
-		if panel in ["farm", "greenhouse"]:
+		if panel == "greenhouse" and room.can_open_greenhouse_tray():
+			Events.sheet_close_requested.emit()
+			room.open_greenhouse_tray()
+			return true
+		if panel == "farm":
 			# O Ir geral abre as sementes direto; sem espaço, mostra a ferramenta da plantação.
 			for status: String in ["empty", "ready", "growing"]:
 				for index: int in room.plot_indices():
-					if GameState.is_greenhouse_plot(index) == (panel == "greenhouse") and GameState.plot_status(index) == status:
+					if not GameState.is_greenhouse_plot(index) and GameState.plot_status(index) == status:
 						Events.sheet_close_requested.emit()
 						room.open_plot_tray(index, "", true, false)
 						return true

@@ -264,6 +264,189 @@ static func _light_new_slot(tray: ActionTray, station_id: String, icon: Texture2
 	tray.fly_icon(icon, from, dot.global_position + dot.size / 2.0)
 
 
+# --- Estufa (4 espaços de plantio, como uma linha de produção) -------------------------------
+
+## Culturas que crescem na estufa: as delicadas ("only") e as que aceitam os dois lugares ("any"), na ordem do `crops.json`.
+static func greenhouse_crops() -> Array[String]:
+	var result: Array[String] = []
+	for crop_id: String in Database.crops:
+		if str(Database.crops[crop_id].get("greenhouse", "")) in ["only", "any"]:
+			result.append(crop_id)
+	return result
+
+
+## Espaços (canteiros da estufa) na ordem do jogo.
+static func greenhouse_plots() -> Array[int]:
+	var result: Array[int] = []
+	var first := int(Database.farm.get("plots", 0))
+	for i in int(Database.farm.get("greenhouse_plots", 0)):
+		result.append(first + i)
+	return result
+
+
+## Primeiro espaço livre ou -1 (estufa cheia).
+static func greenhouse_free_slot() -> int:
+	for index in greenhouse_plots():
+		if GameState.plot_status(index) == "empty":
+			return index
+	return -1
+
+
+static func greenhouse_error(crop_id: String) -> String:
+	var index := greenhouse_free_slot()
+	if index < 0:
+		return "Estufa cheia"
+	return GameState.plant_error(index, crop_id)
+
+
+## Bandeja da estufa: faixa com os 4 espaços (vazio, crescendo com anel e tempo, pronto), culturas em grade e o detalhe
+## com "Plantar". Só chama o que já existe (`GameState.plant/harvest`).
+static func greenhouse(room: RoomView, anchor: Dictionary, focus: String = "") -> ActionTray:
+	var ids := greenhouse_crops()
+	var entries: Array[Dictionary] = []
+	for id in ids:
+		entries.append({
+			"id": id,
+			"icon": PlotTray.seed_icon(id),
+			"clock": true,
+			"caption": TimeText.short(int(GameState.crop_seconds(greenhouse_plots()[0], id))),
+			"error": GameState.content_error("crop", id, Database.crops[id]),
+			"error_fn": func() -> String: return greenhouse_error(id),
+			"highlight": id == focus,
+		})
+	var selected := focus if focus in ids else str(last_material.get("greenhouse", ""))
+	if not selected in ids:
+		selected = _first_open(entries)
+	return ActionTray.open(room, anchor.above, entries, {
+		"mode": "pick",
+		"title": "Estufa",
+		"icon": station_icon("greenhouse"),
+		"art": "",
+		"selected": selected,
+		"on_select": func(id: String) -> void: last_material["greenhouse"] = id,
+		"header": _greenhouse_header(),
+		"detail": func(id: String) -> Control: return crop_detail(id),
+		"below": anchor.below,
+		"see_all": func() -> void:
+			Events.sheet_requested.emit("Estufa", SheetBuilder.farm_view("", true)),
+	})
+
+
+static func _greenhouse_header() -> Control:
+	var box := SheetBuilder.LiveBox.new(func(parent: VBoxContainer) -> void:
+		var cells: Array[Control] = []
+		var ready := 0
+		var now := GameState.now()
+		for n in greenhouse_plots().size():
+			var index: int = greenhouse_plots()[n]
+			var status := GameState.plot_status(index)
+			var dot: StationWood.Slot
+			if status == "empty":
+				dot = StationWood.Slot.new("empty")
+				UiKit.on_tap(dot, func() -> void: _plant_selected(index))
+			else:
+				var crop: String = GameState.plot(index)["crop"]
+				var item := str(Database.crops[crop].get("item", crop))
+				var icon := PlotTray.seed_icon(crop)
+				if status == "ready":
+					ready += 1
+					dot = StationWood.Slot.new("ready", item, icon, 1.0)
+					UiKit.on_tap(dot, func() -> void: _harvest_slots([index] as Array[int]))
+				else:
+					var left := int(ceil(float(GameState.plot(index)["ready_at"]) - now))
+					dot = StationWood.Slot.new("busy", item, icon, GameState.plot_progress(index), TimeText.short(left))
+					UiKit.on_tap(dot, func() -> void: Events.toast_requested.emit("%s: faltam %s" % [Database.item_name(crop), TimeText.short(left)]))
+			dot.name = "Slot_%d" % n
+			cells.append(dot)
+		parent.add_child(StationWood.tray_strip(StationWood.even_rows(cells)))
+		if ready > 0:
+			var collect := StationWood.wood_button("Colher tudo (%d)" % ready, func() -> void:
+				var list: Array[int] = []
+				for index in greenhouse_plots():
+					if GameState.plot_status(index) == "ready":
+						list.append(index)
+				_harvest_slots(list), 17, 160.0)
+			collect.name = "CollectAll_greenhouse"
+			collect.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			parent.add_child(collect))
+	box.name = "Header"
+	return box
+
+
+## Colhe os espaços indicados (os que não couberem no depósito avisam e ficam).
+static func _harvest_slots(indices: Array[int]) -> void:
+	var total: Dictionary = {}
+	for index in indices:
+		var error := GameState.harvest_error(index)
+		if error != "":
+			Events.toast_requested.emit(error)
+			continue
+		var got := GameState.harvest(index)
+		for item: String in got:
+			total[item] = int(total.get(item, 0)) + int(got[item])
+	if not total.is_empty():
+		Events.items_gained.emit(total, 0, Vector2(-1.0, -1.0))
+
+
+## Planta a cultura escolhida no espaço (o toque num espaço vazio faz o mesmo que "Plantar").
+static func _plant_selected(index: int) -> void:
+	var crop_id := str(last_material.get("greenhouse", ""))
+	if crop_id == "":
+		Events.toast_requested.emit("Escolha uma planta primeiro")
+		return
+	var reason := GameState.plant(index, crop_id)
+	if reason != "":
+		Events.toast_requested.emit(reason)
+		return
+	var tray := ActionTray.current
+	if is_instance_valid(tray):
+		tray.refresh_detail()
+
+
+## Detalhe da cultura: nome + tempo na estufa, o que dá e o botão "Plantar" (ou o motivo de não dar).
+static func crop_detail(crop_id: String) -> Control:
+	var box := UiKit.vbox(6)
+	box.name = "CropDetail"
+	if not Database.crops.has(crop_id):
+		return box
+	var crop: Dictionary = Database.crops[crop_id]
+	var heading := UiKit.hbox(8)
+	var title := StationWood.text(Database.item_name(crop_id), 21)
+	title.name = "RecipeName"
+	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title.clip_text = true
+	heading.add_child(title)
+	heading.add_child(StationWood.time_pill(TimeText.short(int(GameState.crop_seconds(greenhouse_plots()[0], crop_id)))))
+	box.add_child(heading)
+	var flow := UiKit.hbox(8)
+	flow.name = "RecipeFlow"
+	flow.alignment = BoxContainer.ALIGNMENT_CENTER
+	var yield_items: Dictionary = crop.get("yield", {})
+	var output := str(yield_items.keys()[0]) if not yield_items.is_empty() else crop_id
+	var result := StationWood.result_box(output, int(yield_items.get(output, 1)), false)
+	result.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.add_child(result)
+	box.add_child(flow)
+	var actions := UiKit.hbox(8)
+	actions.name = "Actions"
+	actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_child(actions)
+	var error := greenhouse_error(crop_id)
+	if error != "":
+		var help: Callable = TaskHelp.open.bind("crop", crop_id) if GameState.content_error("crop", crop_id, crop) != "" else Callable()
+		actions.add_child(StationWood.board_note(error, help))
+		return box
+	var action := StepCardUi.go_button("Plantar", func() -> void:
+		last_material["greenhouse"] = crop_id
+		_plant_selected(greenhouse_free_slot()))
+	action.name = "Plant"
+	action.set_meta("wood_primary", true)
+	action.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	action.custom_minimum_size.x = 200.0
+	actions.add_child(action)
+	return box
+
+
 # --- Criações (galinheiro, curral) ------------------------------------------------------
 
 ## Cada animal tem o próprio espaço; produto, tempo, ingredientes e Alimentar seguem o padrão das estações.

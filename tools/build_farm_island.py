@@ -179,13 +179,8 @@ def main() -> None:
         bed_fp.append(fp)
         objects.append({"id": f"plot_{idx}", "action": "plot", "plot": idx, "sprite": RES + "ilha_canteiro.png", "locked_sprite": RES + "ilha_canteiro_bloqueado.png", "crop_offset": crop_off, "always_behind": True, "pos": p, "footprint": fp, "approach": [p[0], p[1] + 22]})
 
-    # --- estufa: 4 canteiros pequenos dentro do vidro ---
+    # --- estufa: os 4 espaços de plantio (canteiros 9-12) não aparecem no mapa; tocar na estufa abre a bandeja ---
     gh = info["estufa"]
-    gx, gy = gh["pos"][0], gh["tl"][1] + round(gh["h"] * 0.70)
-    for k, (dx, dy) in enumerate([(0, -17), (28, -2), (-28, -2), (0, 13)]):
-        p = [gx + dx, gy + dy]
-        fp = diamond(p[0], p[1] - 2, 0.46 * cw * 0.42)
-        objects.append({"id": f"plot_{9 + k}", "action": "plot", "plot": 9 + k, "sprite": RES + "ilha_canteiro.png", "locked_sprite": RES + "ilha_canteiro_bloqueado.png", "crop_offset": crop_off, "scale": 0.42, "z_index": 1, "requirements": {"owned": ["greenhouse"]}, "pos": p, "footprint": fp, "approach": [p[0], p[1] + 14]})
 
     # --- construções compráveis (somem até a compra; o jogo põe o "+") ---
     fpw = {"silo": 0.32, "armazem": 0.44, "bancada": 0.40, "moinho": 0.30, "queijaria": 0.42, "galinheiro": 0.46, "curral": 0.46, "estufa": 0.42, "pomar": 0.46}
