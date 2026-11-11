@@ -6,7 +6,7 @@ extends CanvasLayer
 ## e a seta aponta para a Laís (primeira missão).
 
 const NPC := "lais"
-const BACKGROUND := "res://assets/sprites/areas/house/room.png"
+const BACKGROUND := "res://assets/sprites/areas/house/apartment/room.webp"
 const WAVE_FPS := 8.0
 
 var _lines: Array = []
@@ -60,8 +60,8 @@ func _build() -> void:
 	room.texture = load(BACKGROUND)
 	room.set_anchors_preset(Control.PRESET_FULL_RECT)
 	room.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	room.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	room.modulate = Color(0.6, 0.6, 0.6)
+	room.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	room.modulate = Color(0.85, 0.85, 0.85)
 	room.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(room)
 	var title := UiKit.vbox(2)
@@ -69,7 +69,7 @@ func _build() -> void:
 	title.offset_top = 72
 	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	# Título em letras de creme com contorno escuro (fonte da madeira), sobre o quarto escurecido.
-	title.add_child(MissionUi.text("Tiro Adventure", 36, Palette.WOOD_CREAM, 5))
+	title.add_child(MissionUi.text("Aventura do Tiro", 36, Palette.WOOD_CREAM, 5))
 	title.add_child(MissionUi.text(str(Database.progression.chapters[0].name), 20, Palette.WOOD_CREAM, 4))
 	root.add_child(title)
 	var column := VBoxContainer.new()

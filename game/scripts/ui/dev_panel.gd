@@ -3,7 +3,7 @@ extends RefCounted
 ## Painel "Ferramentas DEV" (só na versão dev; aberto pelo selo DEV da barra superior).
 ## Cada botão chama um GameState.dev_*() ou o SaveManager. Ver docs/DEPLOY.md ("Versão dev").
 
-const PAGES := {"resources": "Recursos", "progress": "Progresso", "growth": "Crescimento", "time": "Tempo", "pace": "Ritmo", "save": "Save"}
+const PAGES := {"resources": "Recursos", "progress": "Progresso", "growth": "Crescimento", "time": "Tempo", "pace": "Ritmo", "fishing": "Pesca", "save": "Save"}
 
 static var _page: String = "resources"
 ## Toque duplo para recomeçar do zero: guarda até quando o segundo toque vale.
@@ -22,11 +22,26 @@ static func panel() -> Control:
 				_time(box)
 			"pace":
 				_pace(box)
+			"fishing":
+				_fishing(box)
 			"save":
 				_save(box)
 			_:
 				_resources(box)
 	)
+
+
+static func _fishing(box: VBoxContainer) -> void:
+	var info := GameState.fishing_info()
+	_section(box, "Pesca", "Vara: %s · nível %d · XP %d · espaço de partida: %s" % [str(info.rod) if info.rod != "" else "nenhuma", info.level, info.xp, str(info.cast_state) if info.cast_state != "" else "livre"])
+	var rods := _grid(box)
+	for rod_id: String in Database.fishing.get("rods", {}):
+		_tool(rods, "Dar " + str(Database.fishing.rods[rod_id].name), GameState.dev_give_rod.bind(rod_id))
+	var tools := _grid(box)
+	_tool(tools, "+10 de cada isca", GameState.dev_give_baits)
+	_tool(tools, "Bolha agora", GameState.dev_bubble_now)
+	_tool(tools, "+50 XP de pesca", GameState.dev_fish_xp.bind(50))
+	_tool(tools, "Zerar pesca", GameState.dev_reset_fishing)
 
 
 static func _tabs(box: VBoxContainer) -> void:

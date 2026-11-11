@@ -97,11 +97,11 @@ func _run() -> void:
 	state.dev_take_photo(a, 4)
 	state.dev_take_photo(b, 4)
 	state.dev_take_photo(b, 1)
-	check(_kinds("holo") == ["first"] and _kinds("styles") == [a], "outra Holográfica não paga a primeira de novo")
+	check(_kinds("holo") == ["first"] and _kinds("styles") == [a, b], "outra Holográfica não paga a primeira de novo; a Holográfica completa as versões de baixo")
 	var before: int = state.coins
 	_reload()
 	state._check_album_rewards()
-	check(_kinds("styles") == [a] and state.coins == before, "recarregar não repaga")
+	check(_kinds("styles") == [a, b] and state.coins == before, "recarregar não repaga")
 
 	# 3. Marcos de 5/15/30 fotos Raras+
 	db.album.photos = all_photos
@@ -141,7 +141,7 @@ func _run() -> void:
 	var saved_reward: Dictionary = (db.album.cards.rewards.holo_first as Dictionary).duplicate(true)
 	db.album.cards.rewards.holo_first = {"coins": 10, "items": {"carrot_snack": 2}}
 	state.dev_take_photo(a, 4)
-	check(_kinds("holo") == ["first"] and state.coins == 10, "moedas entram mesmo sem espaço")
+	check(_kinds("holo") == ["first"] and state.coins == 10 + 25, "moedas entram mesmo sem espaço (prêmio + as 4 versões)")
 	check(state.economy.pending.has("album:holo:first") and int(state.pending_reward_total()) == 2, "itens esperam em 'Presentes para guardar'")
 	check(str(state.economy.pending["album:holo:first"].label) == "Álbum de fotos", "recibo diz de onde veio")
 	db.album.cards.rewards.holo_first = saved_reward

@@ -266,16 +266,16 @@ func _run() -> void:
 	main.set("_modal_queue", [] as Array[Callable])
 	check((notebook.call("tabs") as Array).size() == 5, "cinco consultas após liberar (Recursos, Estações, Crescer, Coleção, Truques)")
 	# Consultar uma aba confirma só seus desbloqueios, sem apagar novidades das outras.
-	for key: String in ["feature:growth_tab", "feature:dress", "feature:tricks"]:
+	for key: String in ["feature:dress", "feature:tricks"]:
 		progress.seen.erase(key)
 	notebook.call("open", "manual")
 	await frames()
-	for section: String in ["growth", "collection", "tricks"]:
+	for section: String in ["collection", "tricks"]:
 		var tab: Button = main.find_child("NotebookTab_" + section, true, false)
 		check(tab.find_child("NewBadge", true, false) != null, "aba com novidades marcada: " + section)
 	notebook.call("open", "growth")
 	await frames()
-	check(not notebook.call("section_has_new", "growth"), "abrir Crescimento confirma só essa aba")
+	check(not notebook.call("section_has_new", "growth"), "Crescimento já estava à vista: sem novidade")
 	check(notebook.call("section_has_new", "collection") and notebook.call("section_has_new", "tricks"), "outras abas continuam com aviso")
 	if "--notebook-shots" in OS.get_cmdline_user_args():
 		for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:

@@ -121,7 +121,7 @@ func _run() -> void:
 	var opened: Dictionary = state.photo_info("f_bath")
 	check(opened.sealed == 0 and opened.opened and int(opened.rarity) in [1, 2, 3, 4], "abriu e ganhou nível")
 	check(rolled.size() == 1 and rolled[0][1].kind == "open" and rolled[0][1].new_photo and rolled[0][1].new_variant, "sinal da abertura")
-	check(opened.variants == [opened.rarity] and opened.rolls == 1 and state.progress.stat("photo_opens") == 1, "versão, sorteio e contador")
+	check(opened.variants == range(1, int(opened.rarity) + 1) and opened.rolls == 1 and state.progress.stat("photo_opens") == 1, "versão, sorteio e contador")
 	check(state.open_photo_card("f_bath") != "" and state.photo_sealed("f_bath") == 0, "não abre duas vezes")
 	check(state.rarity_counts()[int(opened.rarity)] == 1, "contagem por raridade")
 
@@ -242,7 +242,7 @@ func _run() -> void:
 	state.dev_take_photo("f_bath", 3)
 	_give({"crystal": 3, "hardwood": 3, "fabric": 2})
 	state.coins = 500
-	check(state.upgrade_photo("f_bath") == "" and state.photo_rarity("f_bath") == 4 and state.photo_variants("f_bath") == [3, 4], "do 3 vai ao 4")
+	check(state.upgrade_photo("f_bath") == "" and state.photo_rarity("f_bath") == 4 and state.photo_variants("f_bath") == [1, 2, 3, 4], "do 3 vai ao 4 e destrava as de baixo")
 
 	# 7. Retomada natural
 	_fresh()
@@ -361,7 +361,7 @@ func _run() -> void:
 	state.album.photos["h_arrival"]["upgrades"] = 2
 	_reload()
 	var back: Dictionary = state.photo_info("h_arrival")
-	check(back.rarity == 3 and back.variants == [1, 3] and back.shown == 1 and state.photo_shown_rarity("h_arrival") == 1, "versões e mostrada sobrevivem")
+	check(back.rarity == 3 and back.variants == [1, 2, 3] and back.shown == 1 and state.photo_shown_rarity("h_arrival") == 1, "versões e mostrada sobrevivem")
 	check(back.upgrades == 2 and back.opened and back.sealed == 0, "campos novos sobrevivem")
 	check(state.photo_sealed("f_bath") == 1 and state.photo_rarity("f_bath") == 0 and not state.photo_info("f_bath").opened, "carta fechada sobrevive")
 	check(state.featured_photos() == ["h_arrival", "f_taste"], "varal sobrevive")

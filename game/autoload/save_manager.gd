@@ -16,7 +16,7 @@ extends Node
 ## site, por isso a dev usa nomes próprios e não apaga o progresso real.
 ## O slot em que o jogo ENTRA fica em user://settings.json (settings_dev.json na dev).
 
-const SAVE_VERSION := 19
+const SAVE_VERSION := 20
 const MAX_SLOTS := 5
 
 ## Slot em uso agora e slot em que o jogo entra ao abrir.

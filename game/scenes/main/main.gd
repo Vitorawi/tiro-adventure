@@ -250,6 +250,9 @@ func notice_bottom(height: float) -> float:
 	var tray := ActionTray.current
 	if tray != null and is_instance_valid(tray) and tray.pick:
 		limit = minf(limit, tray.screen_top() - 6.0)
+	var fishing := FishingPanel.current
+	if fishing != null and is_instance_valid(fishing):
+		limit = minf(limit, fishing.screen_top() - 6.0)
 	if limit - height < Hud.HEIGHT + 4.0:
 		limit = bottom
 	return limit

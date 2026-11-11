@@ -188,14 +188,14 @@
       "price": 220,
       "sprite": "res://assets/sprites/areas/farm/cow.png",
       "legacy": true,
-      "map_scale": 1.0
+      "map_scale": 0.75
     },
     "cow_brown": {
       "name": "Vaca caramelo",
       "station": "cow_barn",
       "price": 280,
       "sprite": "res://assets/sprites/areas/farm/cow_brown.png",
-      "map_scale": 1.3,
+      "map_scale": 0.95,
       "requirements": {
         "produced": {
           "milk": 8
@@ -207,7 +207,7 @@
       "station": "cow_barn",
       "price": 340,
       "sprite": "res://assets/sprites/areas/farm/cow_spotted.png",
-      "map_scale": 1.3,
+      "map_scale": 0.95,
       "requirements": {
         "produced": {
           "milk": 24

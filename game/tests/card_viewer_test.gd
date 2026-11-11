@@ -151,13 +151,13 @@ func _run() -> void:
 		var tile := viewer.find_child("Version_%d" % version, true, false) as Button
 		check(tile != null, "existe Version_%d" % version)
 		if tile == null: continue
-		var owned: bool = version in [1, 3]
+		var owned: bool = version in [1, 2, 3]
 		check(bool(tile.get_meta("owned")) == owned, "Version_%d owned=%s" % [version, owned])
 		var card := tile.find_child("PhotoCard", true, false) as Control
 		check(owned == (card.modulate.r > 0.9), "Version_%d %s" % [version, "colorida" if owned else "escura"])
 		check((tile.find_child("VersionLock", true, false) != null) == (not owned), "cadeado só nas faltantes (%d)" % version)
 	toasts.clear()
-	(viewer.find_child("Version_2", true, false) as Button).pressed.emit()
+	(viewer.find_child("Version_4", true, false) as Button).pressed.emit()
 	check(toasts.size() == 1 and "sorte" in toasts[0], "faltante: aviso para tentar a sorte ou melhorar")
 	check(int(viewer.get("level")) == 3, "faltante não troca a carta")
 	(viewer.find_child("Version_1", true, false) as Button).pressed.emit()
@@ -222,7 +222,7 @@ func _run() -> void:
 	state.dev_take_photo("h_arrival", 4)
 	viewer = await _open("h_arrival")
 	check(viewer.find_child("UpgradeButton", true, false) == null and viewer.find_child("Locked_UpgradeButton", true, false) == null, "nível 4: Melhorar some")
-	check(viewer.find_child("RerollButton", true, false) != null or viewer.find_child("Locked_RerollButton", true, false) != null, "nível 4 ainda tenta a sorte (faltam versões)")
+	check(viewer.find_child("CollectionComplete", true, false) != null, "nível 4 destrava as versões abaixo: coleção completa")
 	await _close_all()
 	_fresh()
 	for level in [1, 2, 3, 4]:

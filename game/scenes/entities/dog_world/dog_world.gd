@@ -30,6 +30,12 @@ var _album_sleep_spot: String = ""
 var sleep_approach := Vector2.INF
 
 var _zooming := false
+## Pesca na lagoa: enquanto `fishing_session` for verdadeiro, a reação `fishing` fica sentada olhando a água.
+var fishing_session := false
+var fishing_face := "west"
+## Ponta da ponte (fora da grade de caminhos): ele chega à margem pela grade e anda reto até aqui.
+var fishing_stand := Vector2.INF
+var _fishing_bark := false
 
 var _facing := "south"
 var _on_sofa := false
@@ -200,6 +206,11 @@ func react_at(kind: StringName, target: Vector2, on_start: Callable = Callable()
 	set_meta("last_reaction", kind)
 
 
+## A boia afundou: o Tiro late (volta a sentar sozinho).
+func fishing_bite() -> void:
+	_fishing_bark = true
+
+
 func _on_care(action: StringName) -> void:
 	if action in [&"pet", &"play", &"feed", &"bathe", &"wish"]:
 		react_at(&"happy", position)
@@ -212,6 +223,27 @@ func _show_reaction(kind: StringName) -> void:
 		if not _reaction.is_empty() or GameState.dog.sleeping: return
 		_play("sit", _facing)
 		await _wait(20.0)
+		return
+	if kind == &"fishing":
+		# Senta na beirinha olhando a água e fica ali enquanto a pesca durar (a sala encerra `fishing_session`).
+		var shore := position
+		if fishing_stand != Vector2.INF:
+			_play("walk", "west" if fishing_stand.x < position.x else "east")
+			await _step_to(fishing_stand)
+		_play("sit", fishing_face)
+		var waited := 0.0
+		while fishing_session and _reaction.is_empty() and not GameState.dog.sleeping and room.is_visible_in_tree() and waited < 900.0:
+			await get_tree().create_timer(0.5).timeout
+			waited += 0.5
+			if _fishing_bark and fishing_session:
+				_fishing_bark = false
+				_play("bark", fishing_face)
+				await get_tree().create_timer(1.0).timeout
+				_play("sit", fishing_face)
+		_fishing_bark = false
+		if fishing_stand != Vector2.INF and position.distance_to(fishing_stand) < 8.0:
+			_play("walk", "east")
+			await _step_to(shore)  # desce da ponte: a grade de caminhos não alcança a ponta
 		return
 	if kind == &"bench":
 		# Senta ao lado do banco um instante e comemora (animações já existentes).

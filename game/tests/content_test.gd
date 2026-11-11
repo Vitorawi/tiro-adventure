@@ -15,6 +15,8 @@ func _run() -> void:
 	db = root.get_node("Database")
 	for id: String in db.get("items"):
 		check(ResourceLoader.exists(db.get("items")[id].icon), id + ": ícone existente")
+		# Ícone provisório só nos itens da pesca, até a etapa de arte (03) trocar e remover a marca.
+		check(not db.get("items")[id].get("icon_todo", false) or id.begins_with("fish_") or id.begins_with("bait_"), id + ": icon_todo fora da pesca")
 	for id: String in db.get("crops"):
 		check(ResourceLoader.exists(db.get("crops")[id].sprite), id + ": planta existente")
 	for id: String in db.get("recipes"):
@@ -174,7 +176,7 @@ func _run() -> void:
 						check(data.activities.values().any(func(a: Dictionary) -> bool: return a.place == group), place + ": grupo de rotas inexistente " + group)
 				"market": check(arg in ["sell", "orders"], place + ": aba da feira")
 				"storage": check(data.storage.has(arg), place + ": depósito inexistente")
-				"inventory", "fridge", "feed", "sleep", "farm", "greenhouse", "sell", "orders", "contracts", "walks", "petshop", "friends", "tricks", "community": pass
+				"inventory", "fridge", "feed", "sleep", "farm", "greenhouse", "sell", "orders", "contracts", "walks", "petshop", "friends", "tricks", "community", "fishing": pass
 				"project": check(db.call("project", arg).size() > 0 and str(db.call("project", arg).get("world", "")) == world, place + ": obra inexistente ou de outro mundo")
 				"house": check(world == "house" and arg == "bed", place + ": painel da Casa inválido")
 				_: check(false, place + ": painel desconhecido")
@@ -277,6 +279,8 @@ func _run() -> void:
 	for problem: String in db.call("growth_problems"):
 		check(false, problem)
 	for problem: String in db.call("album_problems"):
+		check(false, problem)
+	for problem: String in db.call("fishing_problems"):
 		check(false, problem)
 	_validate_targets()
 	print("CONTENT TEST: ", "PASS" if failures == 0 else "FAIL")

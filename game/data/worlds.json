@@ -133,6 +133,14 @@
         "panel": "greenhouse",
         "hidden": true
       },
+      "fishing": {
+        "name": "Lagoa",
+        "icon": "coin",
+        "description": "Pesque com a vara da vovó.",
+        "panel": "fishing",
+        "hidden": true,
+        "requirements": {"rod": "bamboo_rod"}
+      },
       "workbench": {
         "name": "Produção",
         "icon": "station_workbench",

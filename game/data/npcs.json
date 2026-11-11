@@ -29,7 +29,8 @@
     "portrait": "res://assets/sprites/characters/npc_bloblo/portrait.png",
     "sprite_dir": "res://assets/sprites/characters/npc_bloblo/",
     "icon": "tab_farm",
-    "greeting": "Vamos cuidar da horta juntos?"
+    "greeting": "Vamos cuidar da horta juntos?",
+    "lines": {"lake_locked": "Um dia eu te ensino a pescar aqui!"}
   },
   "guide": {
     "name": "Guia da trilha",

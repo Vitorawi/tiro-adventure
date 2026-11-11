@@ -1,0 +1,20 @@
+{
+  "source": "tools/art/tiro_puppy_2d_paw/hidden_body_generated.png",
+  "source_sha256": "f3017a06bf544fc355c864d34a2a61e386e1cb6c7f9ac5b449dea726e3c21b7f",
+  "tool": "built-in image_gen",
+  "prompt": "hidden_body_prompt.txt",
+  "registration": {
+    "canvas": [
+      768,
+      648
+    ],
+    "translation": [
+      0,
+      1
+    ]
+  },
+  "usage": "Hidden body only inside image-right foreleg mask. Never sample the generated face.",
+  "output": "game/assets/sprites/characters/tiro_pet_puppy_illustrated/rig/hidden_body.png",
+  "output_sha256": "cdb4f6633717482609283a57b3cbfada285b4c066bb5cfdddf9f50dc9304df65",
+  "scope": "New hidden surface, not a new dog design or replacement of approved PNGs"
+}

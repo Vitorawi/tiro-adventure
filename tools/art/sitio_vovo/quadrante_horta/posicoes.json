@@ -1,0 +1,56 @@
+{
+  "fundo": "fundo.png",
+  "tamanho": [
+    720,
+    1280
+  ],
+  "origem": "canto superior esquerdo, em pixels",
+  "canteiros": {
+    "posicoes": [
+      [
+        63,
+        501
+      ],
+      [
+        249,
+        501
+      ],
+      [
+        63,
+        651
+      ],
+      [
+        249,
+        651
+      ],
+      [
+        63,
+        802
+      ],
+      [
+        249,
+        802
+      ]
+    ],
+    "livre": "canteiro_livre.png",
+    "bloqueado": "canteiro_bloqueado.png"
+  },
+  "ponte": {
+    "posicao": [
+      -3,
+      176
+    ],
+    "inicial": "destruida",
+    "destruida": "ponte_destruida.png",
+    "inteira": "ponte_inteira.png"
+  },
+  "portao": {
+    "posicao": [
+      402,
+      1075
+    ],
+    "inicial": "fechado",
+    "fechado": "portao_fechado.png",
+    "aberto": "portao_aberto.png"
+  }
+}

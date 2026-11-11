@@ -14,7 +14,8 @@
   "dog_scale": 0.7,
   "region_shade": false,
   "region_fence": false,
-  "animal_scale": 1.6,
+  "animal_scale": 0.85,
+  "depth_sort": true,
   "initial_zoom": 0.79,
   "min_zoom": 0.46,
   "background_bleed": [0, 0, 0, 0],
@@ -194,6 +195,7 @@
       "action": "place:greenhouse",
       "upgrade": "greenhouse",
       "region": "greenhouse_area",
+      "greenhouse_indicator": true,
       "sprite": "res://assets/sprites/areas/farm/ilha_estufa.png",
       "pos": [658, 1434],
       "approach": [780, 1388],
@@ -206,6 +208,7 @@
       "action": "place:orchard",
       "upgrade": "orchard",
       "region": "orchard_area",
+      "route_group": "orchard",
       "sprite": "res://assets/sprites/areas/farm/ilha_pomar.png",
       "pos": [548, 1137],
       "approach": [620, 1124],
@@ -276,11 +279,11 @@
       "action": "place:chicken_coop",
       "upgrade": "chicken_coop",
       "sprite": "res://assets/sprites/areas/farm/chicken.png",
-      "pos": [1064, 1158],
+      "pos": [1078, 1145],
       "decoration": true,
       "animal_idle": true,
-      "footprint": [[1064, 1145], [1074, 1151], [1064, 1158], [1054, 1151]],
-      "approach": [1082, 1168]
+      "footprint": [[1078, 1132], [1088, 1138], [1078, 1145], [1068, 1138]],
+      "approach": [1096, 1155]
     },
     {
       "id": "hen_2",
@@ -289,24 +292,11 @@
       "action": "place:chicken_coop",
       "upgrade": "chicken_coop",
       "sprite": "res://assets/sprites/areas/farm/chicken.png",
-      "pos": [1095, 1149],
+      "pos": [1104, 1138],
       "decoration": true,
       "animal_idle": true,
-      "footprint": [[1095, 1136], [1105, 1142], [1095, 1149], [1085, 1142]],
-      "approach": [1113, 1159]
-    },
-    {
-      "id": "hen_3",
-      "animal_station": "chicken_coop",
-      "animal_slot": 2,
-      "action": "place:chicken_coop",
-      "upgrade": "chicken_coop",
-      "sprite": "res://assets/sprites/areas/farm/chicken.png",
-      "pos": [1084, 1169],
-      "decoration": true,
-      "animal_idle": true,
-      "footprint": [[1084, 1156], [1094, 1162], [1084, 1169], [1074, 1162]],
-      "approach": [1102, 1179]
+      "footprint": [[1104, 1125], [1114, 1131], [1104, 1138], [1094, 1131]],
+      "approach": [1122, 1148]
     },
     {
       "id": "cow_1",
@@ -315,11 +305,11 @@
       "action": "place:cow_barn",
       "upgrade": "cow_barn",
       "sprite": "res://assets/sprites/areas/farm/cow.png",
-      "pos": [1020, 1325],
+      "pos": [1017, 1294],
       "decoration": true,
       "animal_idle": true,
-      "footprint": [[1020, 1312], [1030, 1318], [1020, 1325], [1010, 1318]],
-      "approach": [1038, 1335]
+      "footprint": [[1017, 1281], [1027, 1287], [1017, 1294], [1007, 1287]],
+      "approach": [1035, 1304]
     },
     {
       "id": "cow_2",
@@ -328,24 +318,11 @@
       "action": "place:cow_barn",
       "upgrade": "cow_barn",
       "sprite": "res://assets/sprites/areas/farm/cow.png",
-      "pos": [1065, 1351],
+      "pos": [1082, 1331],
       "decoration": true,
       "animal_idle": true,
-      "footprint": [[1065, 1338], [1075, 1344], [1065, 1351], [1055, 1344]],
-      "approach": [1083, 1361]
-    },
-    {
-      "id": "cow_3",
-      "animal_station": "cow_barn",
-      "animal_slot": 2,
-      "action": "place:cow_barn",
-      "upgrade": "cow_barn",
-      "sprite": "res://assets/sprites/areas/farm/cow.png",
-      "pos": [991, 1294],
-      "decoration": true,
-      "animal_idle": true,
-      "footprint": [[991, 1281], [1001, 1287], [991, 1294], [981, 1287]],
-      "approach": [1009, 1304]
+      "footprint": [[1082, 1318], [1092, 1324], [1082, 1331], [1072, 1324]],
+      "approach": [1100, 1341]
     }
   ],
   "zones": [
@@ -376,11 +353,25 @@
       "overview_label": true,
       "label_pos": [1154, 1187],
       "polygon": [[946, 1287], [1015, 1132], [1084, 1086], [1260, 1059], [1296, 1083], [1334, 1182], [1218, 1287], [1082, 1378]]
+    },
+    {
+      "id": "lake",
+      "action": "place:fishing",
+      "polygon": [[269, 1098], [271, 1096], [274, 1094], [284, 1091], [290, 1091], [297, 1092], [606, 1229], [606, 1301], [482, 1327], [478, 1327], [465, 1325], [430, 1302], [390, 1273], [299, 1204], [290, 1177]],
+      "label": "Lagoa",
+      "label_pos": [382, 1202]
     }
   ],
   "points": {
     "dog_start": [780, 1388],
-    "npc_bloblo": [772, 1028]
+    "npc_bloblo": [772, 1028],
+    "fishing_spot": [628, 1300],
+    "fishing_pier": [512, 1262],
+    "fishing_face": "west",
+    "fishing_bubble_1": [383, 1204],
+    "fishing_bubble_2": [323, 1132],
+    "fishing_bubble_3": [443, 1276],
+    "fishing_bubble_4": [473, 1198]
   },
   "regions": [
     {

@@ -90,3 +90,12 @@ signal photo_rolled(id: String, result: Dictionary)
 ## Marco de coleção pago: kind = section | styles | rare | holo; key = seção, foto, quantidade ou "first".
 signal album_milestone(kind: String, key: String)
 signal house_item_arrived(id: String)
+
+# --- Pesca ---
+## Qualquer mudança da partida, das varas ou das bolhas (a UI da lagoa se redesenha).
+signal fishing_changed
+## A boia afundou (uma vez por partida): hora de fisgar.
+signal fish_bite
+signal fish_caught(fish_id: String, cm: float, size_class: String, previous_cm: float)
+signal fish_escaped(fish_id: String)
+signal fishing_level_up(level: int)

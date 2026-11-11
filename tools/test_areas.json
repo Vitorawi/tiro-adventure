@@ -19,6 +19,8 @@
   ],
   "suite": [
     "fishing_physics_test",
+    "fishing_test",
+    "fishing_lake_test",
     "puppy_identity_test",
     "puppy_belly_test",
     "puppy_reactions_test",
@@ -456,11 +458,19 @@
         "game/scenes/ui/fishing/",
         "game/data/fishing.json",
         "game/tests/fishing_physics_test.gd",
+        "game/tests/fishing_test.gd",
+        "game/tests/fishing_lake_test.gd",
+        "game/scripts/state/fishing_state.gd",
+        "game/scripts/ui/fishing_*",
+        "game/scripts/ui/fish_result.gd",
         "game/tests/fishing_proto.gd",
-        "game/tests/fishing_proto_shots.gd"
+        "game/tests/fishing_proto_shots.gd",
+        "game/tests/fishing_shots.gd"
       ],
       "tests": [
-        "fishing_physics_test"
+        "fishing_physics_test",
+        "fishing_test",
+        "fishing_lake_test"
       ]
     },
     "album": {
@@ -679,7 +689,9 @@
         "game/tests/world_selector_test.gd",
         "game/tests/balloon_test.gd",
         "game/tests/intro_test.gd",
-        "game/tests/world_pin_test.gd"
+        "game/tests/world_pin_test.gd",
+        "game/tests/fishing_lake_test.gd",
+        "tools/build_farm_island.py"
       ],
       "tests": [
         "worlds_test",
@@ -688,7 +700,8 @@
         "world_selector_test",
         "balloon_test",
         "intro_test",
-        "world_pin_test"
+        "world_pin_test",
+        "fishing_lake_test"
       ]
     },
     "market": {

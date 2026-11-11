@@ -1,0 +1,19 @@
+{
+  "scope": "Head tilt only. Isolated shared-skin rig proof; not installed in PetAnimator.",
+  "native_rendered_frames": 103,
+  "rate": 24,
+  "duration_seconds": 4.291666666666667,
+  "shared_source": "Nine approved idle drawings; body/face breathing clock continues through action.",
+  "approved_idle_9_hashes_unchanged": true,
+  "entry_same_phase_neutral_max_channel_error": 0,
+  "exit_same_phase_neutral_max_channel_error": 0,
+  "lower_body_vs_same_phase_neutral_max_channel_error": 0,
+  "entry_frame": 36,
+  "exit_frame": 67,
+  "motion": "Original tilt angle keyframes, interpolated; original 9/7 s duration; eyelid patch for blink.",
+  "limitations": [
+    "Rigid head rotation plus neck skinning approximates source movement; source head translations are not copied.",
+    "Yawn/scratch and remaining pixel actions are not converted by this proof.",
+    "GPU comparisons validate shared artwork and continuity at boundaries, not final artistic approval."
+  ]
+}

@@ -196,11 +196,15 @@ def main() -> None:
         fp = diamond(t["pos"][0], t["pos"][1] - 4, hw)
         bases[nm] = fp
         o["sprite"] = RES + f"ilha_{nm}.png"
+        if nm == "pomar":
+            o["route_group"] = "orchard"
+        if nm == "estufa":
+            o["greenhouse_indicator"] = True
         o["pos"] = t["pos"]
         o["approach"] = [t["pos"][0] + round(0.5 * hw), t["pos"][1] + 18]
         o["footprint"] = fp
         o["label_pos"] = [t["pos"][0], t["tl"][1] + round(t["h"] * 0.25)]
-        o = {k: o[k] for k in ["id", "action", "upgrade", "region", "station", "sprite", "pos", "approach", "footprint", "label", "label_pos", "detail_label"] if k in o}
+        o = {k: o[k] for k in ["id", "action", "upgrade", "region", "station", "route_group", "greenhouse_indicator", "sprite", "pos", "approach", "footprint", "label", "label_pos", "detail_label"] if k in o}
         objects.append(o)
 
     # --- animais: lugares dentro dos pátios (os desenhos atuais são provisórios) ---
@@ -209,8 +213,8 @@ def main() -> None:
         return S(v["x"] + fx * v["w"], v["y"] + fy * v["h"])
 
     animals = [
-        ("hen_1", "chicken_coop", 0, spot("galinheiro", 0.36, 0.80)), ("hen_2", "chicken_coop", 1, spot("galinheiro", 0.58, 0.72)), ("hen_3", "chicken_coop", 2, spot("galinheiro", 0.50, 0.90)),
-        ("cow_1", "cow_barn", 0, spot("curral", 0.28, 0.76)), ("cow_2", "cow_barn", 1, spot("curral", 0.44, 0.88)), ("cow_3", "cow_barn", 2, spot("curral", 0.18, 0.62)),
+        ("hen_1", "chicken_coop", 0, spot("galinheiro", 0.46, 0.68)), ("hen_2", "chicken_coop", 1, spot("galinheiro", 0.64, 0.62)),
+        ("cow_1", "cow_barn", 0, spot("curral", 0.27, 0.62)), ("cow_2", "cow_barn", 1, spot("curral", 0.50, 0.79)),
     ]
     for aid, st, slot, p in animals:
         o = dict(old_obj[aid])
@@ -294,6 +298,31 @@ def main() -> None:
             o["approach"] = list(near(want))
 
     points = {"dog_start": list(near(S(1100, 1330))), "npc_bloblo": list(near(S(1140, 560)))}
+
+    # --- lagoa: zona tocável só na ÁGUA (recolhida ~6 px do obstáculo, que continua bloqueando o Tiro), ponto da pesca na
+    # margem de baixo (chão andável mais perto) e os pontos onde as bolhas quentes aparecem (dentro da água, longe da margem).
+    lake_poly = next(o["polygon"] for o in obstacles if o["id"] == "lake")
+    lcx = sum(p[0] for p in lake_poly) / len(lake_poly)
+    lcy = sum(p[1] for p in lake_poly) / len(lake_poly)
+    lr = sum(math.dist(p, (lcx, lcy)) for p in lake_poly) / len(lake_poly)
+    lake_zone = grow(lake_poly, max(0.5, 1 - 6 / lr))
+    zones.append({"id": "lake", "action": "place:fishing", "polygon": lake_zone, "label": "Lagoa", "label_pos": [round(lcx), round(lcy)]})
+    bottom = max(lake_poly, key=lambda p: p[1])
+    spot_xy = near([bottom[0], bottom[1] + 10])
+    dx, dy = lcx - spot_xy[0], lcy - spot_xy[1]
+    face = ("east" if dx > 0 else "west") if abs(dx) > abs(dy) else ("south" if dy > 0 else "north")
+    points["fishing_spot"] = list(spot_xy)  # chão andável na margem: por onde o Tiro chega à ponte
+    points["fishing_pier"] = [512, 1262]  # ponta da ponte (lado da água): onde o Tiro senta para pescar (a ponte é obstáculo, ele anda reto até lá)
+    points["fishing_face"] = face
+    core = grow(lake_poly, 0.6)
+    xs, ys = [p[0] for p in core], [p[1] for p in core]
+    inner = [(x, y) for x in range(min(xs), max(xs) + 1, 6) for y in range(min(ys), max(ys) + 1, 6) if inside(core, (x, y)) and math.dist((x, y), (512, 1262)) > 70]  # longe da ponte
+    bubbles = [min(inner, key=lambda c: math.dist(c, (lcx, lcy)))]
+    while len(bubbles) < 4 and inner:
+        bubbles.append(max(inner, key=lambda c: min(math.dist(c, b) for b in bubbles)))
+    for i, b in enumerate(bubbles):
+        points[f"fishing_bubble_{i + 1}"] = [b[0], b[1]]
+    print("lagoa: ponto", spot_xy, face, "bolhas", bubbles)
     spots: list = []
     for tgt in [S(900, 520), S(1500, 560), S(1180, 1160), S(1520, 1000), S(700, 700), S(1000, 900), S(1330, 880)]:
         c = near(tgt)
@@ -308,7 +337,8 @@ def main() -> None:
         "dig_spots": dig,
         "navigation_margin": 8,
         "dog_scale": 0.7, "region_shade": False, "region_fence": False,
-        "animal_scale": 1.6,
+        "animal_scale": 0.85,
+        "depth_sort": True,
         "initial_zoom": 0.79,
         "min_zoom": 0.46, "background_bleed": [0, 0, 0, 0],
         "view_center": [785, 1107],

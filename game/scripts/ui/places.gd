@@ -129,6 +129,10 @@ static func open_tray(world_id: String, place_id: String) -> bool:
 			Events.sheet_close_requested.emit()
 			room.open_greenhouse_tray()
 			return true
+		if panel == "fishing" and room.has_method("open_fishing"):
+			Events.sheet_close_requested.emit()
+			room.open_fishing()
+			return true
 		if panel == "farm":
 			# O Ir geral abre as sementes direto; sem espaço, mostra a ferramenta da plantação.
 			for status: String in ["empty", "ready", "growing"]:
@@ -271,8 +275,8 @@ static func world_list(world_id: String) -> Control:
 		var places: Dictionary = world.get("places", {})
 		for place_id: String in places:
 			var place: Dictionary = places[place_id]
-			if place.get("hidden", false):
-				continue
+			if place.get("hidden", false) and not (place_id == "fishing" and GameState.current_rod() != ""):
+				continue  # a lagoa só entra na lista depois da primeira vara
 			var upgrade: String = place.get("upgrade", "")
 			var dim := place_error(place) != "" or (upgrade != "" and not GameState.has_upgrade(upgrade))
 			var mark := "ready" if place_alert(world_id, place_id) != "" else ""
@@ -495,6 +499,8 @@ static func world_busy_counts() -> Dictionary:
 			_add_busy(counts, Database.place_with_panel("routes:" + str(Database.progression.nature_sites[site].groups[0]))[0], working)
 	if GameState.walking():
 		_add_busy(counts, Database.place_with_panel("walks")[0], 1)
+	if not GameState.fishing.bubble.is_empty() and GameState.current_rod() != "":  # bolha quente na lagoa (disco provisório até a 03)
+		_add_busy(counts, Database.place_with_panel("fishing")[0], 1)
 	if not GameState.progress.activity.is_empty() and GameState.activity_remaining() > 0:
 		var route: Dictionary = Database.progression.activities.get(str(GameState.progress.activity.get("id", "")), {})
 		_add_busy(counts, Database.place_with_panel("routes:" + str(route.get("place", "")))[0], 1)
@@ -510,9 +516,10 @@ static func _add_busy(counts: Dictionary, world: String, amount: int) -> void:
 ## Avisos de um mundo inteiro (cartões do mapa).
 ## Resumo do carrossel: categorias independentes, sem transformar achado em coleta ou missão.
 static func world_summary(world_id: String) -> Dictionary:
-	var result := {"missions": 0, "rewards": 0, "collections": 0, "finds": 0, "treasure": 0, "busy": 0}
+	var result := {"missions": 0, "rewards": 0, "collections": 0, "finds": 0, "treasure": 0, "busy": 0, "fishing": 0}
 	if world_error(world_id) != "": return result
 	result.busy = int(world_busy_counts().get(world_id, 0))
+	result.fishing = 1 if world_id == str(Database.place_with_panel("fishing")[0]) and not GameState.fishing.bubble.is_empty() and GameState.current_rod() != "" else 0
 	var pending := int(GameState.finds.worlds.get(world_id, {}).get("pending", 0))
 	result.finds = 1 if pending > 0 else 0
 	result.collections = maxi(0, int(GameState.world_ready_counts().get(world_id, 0)) - int(result.finds))
@@ -596,6 +603,8 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				if Database.worlds.has(screen):
 					return {"world": screen, "place": "", "hint": "Mapa → " + str(Database.worlds[screen].name)}
 				return {"screen": screen}
+			if key == "fish" or key.begins_with("fish:") or key.begins_with("fish_") or key.begins_with("rod:"):
+				return _panel_target("fishing")
 			if key == "walk" or key.begins_with("walk:") or key.begins_with("walk_"):
 				return _panel_target("walks")
 			if key == "feed":

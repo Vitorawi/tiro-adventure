@@ -1,0 +1,1011 @@
+{
+  "scope": "PetScreen puppy body; original resources only",
+  "animated_sequences": 21,
+  "static_poses": 1,
+  "total_frames": 206,
+  "fallback": {
+    "give_paw": "wag_excited"
+  },
+  "clips": [
+    {
+      "clip": "bark",
+      "frames": 9,
+      "fps": 8.0,
+      "duration_seconds": 1.125,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/bark/frame_00.png",
+          "sha256": "9816421af4f0f12493ce0cb13e60dfec125a51af8ccdc6e712f5fbd3754cfec3"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/bark/frame_01.png",
+          "sha256": "bcf0babb40594cf8332cfd7470ebfe2d10ea2092ccc9b0f78460893101253d94"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/bark/frame_02.png",
+          "sha256": "204998f61d350e25d3525fbd135f89618497e3d87c081046af5bacab39d397b5"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/bark/frame_03.png",
+          "sha256": "d41c0422d6a21c0526e07d53832c8ab7d954c14132b0f1ee3a70c98bbeb13c19"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/bark/frame_04.png",
+          "sha256": "23d097fd1a95b34a3e18513a296945e8ba42cfe0990565c8c33967d04e9c5a56"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/bark/frame_05.png",
+          "sha256": "d10567a1b40a62f38c0dd6be67bdf153b0b6cfe7fa7ddcf77dcbfb0a96fb3c59"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/bark/frame_06.png",
+          "sha256": "ac7f3f37899561702af76ff833cf0bae88b5c09d972bd7af8fc4b6bf9f51662c"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/bark/frame_07.png",
+          "sha256": "fde8f76e030ae75a90a871fc3c8e7c39bc84a527f9db5799cf351ae79b5e6e00"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/bark/frame_08.png",
+          "sha256": "314d39b7882648da1492fd878a9e8e8f2dfe643ed7540fa09b7bc8c0609e7567"
+        }
+      ]
+    },
+    {
+      "clip": "belly_kick",
+      "frames": 9,
+      "fps": 10.0,
+      "duration_seconds": 0.9,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_kick/frame_00.png",
+          "sha256": "23f250dbbd42ebc8cab41fd0aba6b374db702c6bbb8cef79a4bf31cc1da9867a"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_kick/frame_01.png",
+          "sha256": "949d5a7eb7acd168f52f67deb5da2b9ad01bbc4a98af8f46fab9e72346138574"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_kick/frame_02.png",
+          "sha256": "baba1bf253d984fe73a7d4b47488214a72b3fae111b9cd4185e9829690a5ccce"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_kick/frame_03.png",
+          "sha256": "c3aa343a3eee558ee8f07b0361b00d474f1c7908d26c74f685558169a19a201a"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_kick/frame_04.png",
+          "sha256": "5a2d5b465c1ff35563795057ed0e9ea051a95551bebd0ae3f0a560277a2745fe"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_kick/frame_05.png",
+          "sha256": "fc1e9ed4170193927eeb044223496f483036af09bad6d4c48869d48ec21ecbab"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_kick/frame_06.png",
+          "sha256": "ef2117dfa1e4ee4334382a18e1e3c1673a28594f6f68fecfccc207ad50ef0fd1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_kick/frame_07.png",
+          "sha256": "7329e1e2bc921dc70c732a131bfbf649a9ea137d7ee31c5972308c4110283bf0"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_kick/frame_08.png",
+          "sha256": "965f84a97036c8ff5f7c05f9148f9377c71b000929d2ccd1fcac33f829cbe5cc"
+        }
+      ]
+    },
+    {
+      "clip": "belly_rub",
+      "frames": 9,
+      "fps": 9.0,
+      "duration_seconds": 1.0,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_rub/frame_00.png",
+          "sha256": "ec3cb709998919b1f107ac21043217e969144234bc1d6c1077e030e9dc5ce3c7"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_rub/frame_01.png",
+          "sha256": "c8ee314b1ccb5dc29da590ec9cbbbf9454eba6b277889a4e33c60679cfdc3de2"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_rub/frame_02.png",
+          "sha256": "d8f98f57bff73a9e4d437e0e967732c0d711a20e3b53adbe708d2e9c1045e6c6"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_rub/frame_03.png",
+          "sha256": "2aea5976d8b5e4c04de047d6e1ab6f1ecaed1f8b43855c2acd043ca3ded7d638"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_rub/frame_04.png",
+          "sha256": "65e5609e60a0b16c711efaa5821c4dee0befe79e26bcd9cef934eeb063053ba7"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_rub/frame_05.png",
+          "sha256": "6f0eb29ef2340e80fa763411e147e6c4726b924e53820644db101400b41969c1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_rub/frame_06.png",
+          "sha256": "c8d94ffc306ab1134c6d57dab110a0314c53640abda16eaedaeb2e5197c4f61e"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_rub/frame_07.png",
+          "sha256": "18c1aba8561594dddbd0cb7442bd3b7152b571e594a12a58b24a3b06227a3b87"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/belly_rub/frame_08.png",
+          "sha256": "14928fbcee7637108b2bbde658ec0715a5ed64f0b04b305d05443aa7ef979370"
+        }
+      ]
+    },
+    {
+      "clip": "chase_tail",
+      "frames": 9,
+      "fps": 9.0,
+      "duration_seconds": 1.0,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/chase_tail/frame_00.png",
+          "sha256": "5ccdbba3bef5160d229bbb1d6cf005d75d92c360c6243488605b87ab58c6bae2"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/chase_tail/frame_01.png",
+          "sha256": "02471f463d9429a4c3888fd7abdb50983ef622c3d6bf5501b160b90024d9e1e2"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/chase_tail/frame_02.png",
+          "sha256": "9357c4e2f308fc5d079d75430e12cfa047acc60684c5fc8288b19f447ce229e9"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/chase_tail/frame_03.png",
+          "sha256": "1c4ac79245fcd87a6ecd2b2a2c2b5efcdabc1ff9417622ea4e96863e7d670a2d"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/chase_tail/frame_04.png",
+          "sha256": "d983bb8219b35003681e8f1bd0828e521cff313b2237cd6b990ec429b33782e1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/chase_tail/frame_05.png",
+          "sha256": "952cdc40b894e13dd8ae65c7bce26909561484abb1c3e76188b104f1413d5c2c"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/chase_tail/frame_06.png",
+          "sha256": "1b7233834d5291fef3b9ed9a7b9335804d91ca8410117200a493f23b686b7783"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/chase_tail/frame_07.png",
+          "sha256": "5305df2ba4537eda2fb2010a16bbf028a06454bfd98e52596622a87da46ee936"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/chase_tail/frame_08.png",
+          "sha256": "a6d9b3656a618f9f18838ea563d7d365841498a651545ed2c1b666ba447ac5e0"
+        }
+      ]
+    },
+    {
+      "clip": "eat",
+      "frames": 9,
+      "fps": 8.0,
+      "duration_seconds": 1.125,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/eat/frame_00.png",
+          "sha256": "264643b088ccc079605d31f540d33bac98834859795d9d7346331ac8cfcf7f5f"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/eat/frame_01.png",
+          "sha256": "332e0be58a2263177cfc817008f63751daa550e796f50d047845cb1bb8f196ed"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/eat/frame_02.png",
+          "sha256": "bbb8cc25ea9871389063d393f417354d8262150bf6fe58adc7a3633e5bf1cd3a"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/eat/frame_03.png",
+          "sha256": "a21cdf47d227f7c411eeb1bd6d31d888498583e642c3799e77220678fe39fb40"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/eat/frame_04.png",
+          "sha256": "a2e748bd4a6e6fe2ec87e6375d6aa55c9a8dcde30876022e492896e08f8f50b7"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/eat/frame_05.png",
+          "sha256": "9491551f02140049e611caabff6d8b6238ad20b4f0a58eecac1f57f79b2b9205"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/eat/frame_06.png",
+          "sha256": "c4fd4dedd0c7f3af6b90dff6ce566e1aca17151da2d60f1d7c2515660bac0c53"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/eat/frame_07.png",
+          "sha256": "f25d6b5bce9b7754275146a9e7e769122886bb3210e1f98a745dbc189ecbe5d4"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/eat/frame_08.png",
+          "sha256": "79c4f832481744a55f845377cef3d92ecf75be45cb754e49b92f9a5c0860051d"
+        }
+      ]
+    },
+    {
+      "clip": "happy_jump",
+      "frames": 9,
+      "fps": 9.0,
+      "duration_seconds": 1.0,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/happy_jump/frame_00.png",
+          "sha256": "c08bc96c1972e7cf9d0b20841719dc3f122417fef23e51010aab6fece9147ae3"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/happy_jump/frame_01.png",
+          "sha256": "7f5ceabcb174d8085eedaee2aa0157201bee428d2a195e6575342f59931f40a1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/happy_jump/frame_02.png",
+          "sha256": "7d0c54dcffc0311c645aeb58ba95aac64d4a43cd8bdb2105c82ef0a30be7cf24"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/happy_jump/frame_03.png",
+          "sha256": "a49e40951c278b51cffe1170295814b73a877221c60bd6d4a01b20b801776c65"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/happy_jump/frame_04.png",
+          "sha256": "3b0002f00dbf457fa9d4d8affcda13ca61ae2421edac78bb852acbc4a4f47ad3"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/happy_jump/frame_05.png",
+          "sha256": "4889c1c383a9c1875916440beceef611420e030f0d32d406e09c64ddff366a47"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/happy_jump/frame_06.png",
+          "sha256": "3a851df6dfb0500a5b10e7bd73bae1c81a99eaf45857de4320e4a893e1eb9b1d"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/happy_jump/frame_07.png",
+          "sha256": "b4222ffb72ed6475f81d2af69c7bcee98e497023473809ceb3ce1122d9c07b16"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/happy_jump/frame_08.png",
+          "sha256": "ebfaef6f33460be19d254ae82c20736bf28bd051b97e6e8fbc277a9b80a0178e"
+        }
+      ]
+    },
+    {
+      "clip": "head_tilt",
+      "frames": 9,
+      "fps": 7.0,
+      "duration_seconds": 1.2857142857142858,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_00.png",
+          "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_01.png",
+          "sha256": "8b57502c96860e607e7b26c48bba36102c4e649688d2c22776b0c11230c3a0ba"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_02.png",
+          "sha256": "aaecc5102ed24f7fcf1b4c7ba3fbf41df2d95c0b30bf8b9cb59696d2f6e39315"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_03.png",
+          "sha256": "56721e78ba1e1513288b3b7fc45b375bf978e1d3b7017d8b3919e44d02120f20"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_04.png",
+          "sha256": "c52ab35ad6d3d319bf9069bf2c30eef51790864c32e7ff60ba91291aa558fa5a"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_05.png",
+          "sha256": "2b47c9a49bc7c313bc12d2c5586626a68a3d9ab04a71aa69410e843cb26bda17"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_06.png",
+          "sha256": "aee52df24bdb585321022e6afb36abd319dbd6dbce7f375f4f8fa1e265890314"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_07.png",
+          "sha256": "189c6ab210d4f9cee4da24af294d400e570baf5214957d6c37fd5a929cb63e0c"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/head_tilt/frame_08.png",
+          "sha256": "90b501adeaba7663519fb92da16a5a06ec57a55a056d0a1a43565ee409809e5b"
+        }
+      ]
+    },
+    {
+      "clip": "idle_breathe",
+      "frames": 9,
+      "fps": 6.0,
+      "duration_seconds": 1.5,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_00.png",
+          "sha256": "9816421af4f0f12493ce0cb13e60dfec125a51af8ccdc6e712f5fbd3754cfec3"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_01.png",
+          "sha256": "91188708fbde3096abeca704c82e17b0bd056603fafe0cedab4de43f75116276"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_02.png",
+          "sha256": "20f77ebc5ff36b520d7d44bf6c5363ac5f35ba82eab1a7a1269e41d202e7e40b"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_03.png",
+          "sha256": "512ffdd49676f454af3c3d2ddbcda26a16285dec88acd04a4eee0468c1c1527a"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_04.png",
+          "sha256": "e5ea50a8b54c1a49fe93b1bf307627765981cce7c5a1a52a99303e8e84fd0333"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_05.png",
+          "sha256": "16a3d529f954dcd910b4c435e0e385d4eebb958c870b2f2d88913ac6ef115b9e"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_06.png",
+          "sha256": "a67203ce2ae078d150549c21d37c1fe309766bfc36dfb322c375d67f4803438f"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_07.png",
+          "sha256": "76e4302e140708e5036595a8ae20d5c398369528d2ec2925bb4df748117c2c5b"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/idle_breathe/frame_08.png",
+          "sha256": "7d08fcaeab347c6b1a4b2e7669ac9a25f15ca77c86b5ca9b99127fb7fd83f807"
+        }
+      ]
+    },
+    {
+      "clip": "lick_paw",
+      "frames": 9,
+      "fps": 7.0,
+      "duration_seconds": 1.2857142857142858,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/lick_paw/frame_00.png",
+          "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/lick_paw/frame_01.png",
+          "sha256": "ae4ea04063eba7e5657904c72fa44bd3036aa8b3599c2c7cdccf3c2041548ef6"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/lick_paw/frame_02.png",
+          "sha256": "be1c9f8af15732579c6f6590c455dba89cad56eaab0268db93aad770029481f4"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/lick_paw/frame_03.png",
+          "sha256": "ed86e02c0f0109b978c19b77bf1b633fd4217cb842bcc9879f463f892dac254d"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/lick_paw/frame_04.png",
+          "sha256": "762090a0d54b3f43e388e5b8d8d6da19b9d28e8cc736d27b6923384355f6cc83"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/lick_paw/frame_05.png",
+          "sha256": "90ffd53613686e23343f0f7886aee56d4b415361f691a93f444a3bd7617264a2"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/lick_paw/frame_06.png",
+          "sha256": "10ac53e9b1a09b2da2dd2a686f0355eb92abd83b6419d1593b9344352434cb59"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/lick_paw/frame_07.png",
+          "sha256": "bdea18b74c22e6b021b70b33877bee77583fcfa97559676a982fcde595c0568e"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/lick_paw/frame_08.png",
+          "sha256": "08f8e66c76cde1f2b0c77c60190cdcab1f2570e201b9edd96326e9e5fa83e9e7"
+        }
+      ]
+    },
+    {
+      "clip": "look_around",
+      "frames": 9,
+      "fps": 7.0,
+      "duration_seconds": 1.2857142857142858,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/look_around/frame_00.png",
+          "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/look_around/frame_01.png",
+          "sha256": "fe56b7e492448e4e673307af43ee03847f54b1084671f7039c9d708bbb37f7f1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/look_around/frame_02.png",
+          "sha256": "099dc0e6e57ad12d3d5976a7aeee5c40e7ae85aae48a65c12c84dbf3e80653b7"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/look_around/frame_03.png",
+          "sha256": "ace3d5563e73e26debe07f02fe35b9cc56de33b50748cf36fd163f97d84fc244"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/look_around/frame_04.png",
+          "sha256": "471889a7b0659c9d17074cf033392ecb3968437e03971b8bb01ac5bf509a7b6a"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/look_around/frame_05.png",
+          "sha256": "eb7a5ccf28be2ce36135cdefea814f49544d443cbf67fdacd6614f240a834ed3"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/look_around/frame_06.png",
+          "sha256": "a980d372db23ab30b796ec9615c4b86591a0858e54a2ccac3f2a5fa9b1788a87"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/look_around/frame_07.png",
+          "sha256": "190911c0220775ec43c3713069cff6cedb3228eca53993bd283a0b576974a76c"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/look_around/frame_08.png",
+          "sha256": "3814fd28f164f1831c19cc0589ac77ac3c8c653659cb8044bc94800e010ab364"
+        }
+      ]
+    },
+    {
+      "clip": "pet_head",
+      "frames": 9,
+      "fps": 8.0,
+      "duration_seconds": 1.125,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_head/frame_00.png",
+          "sha256": "9816421af4f0f12493ce0cb13e60dfec125a51af8ccdc6e712f5fbd3754cfec3"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_head/frame_01.png",
+          "sha256": "61d4206454749e2ad93ddd9276ce6ae593317107e8d03386195cbc0286c6e53c"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_head/frame_02.png",
+          "sha256": "d67a1dab5db2f6fb84e0b75dbb8e1fb84e92aa7a4de5b84973546c4e6c8e43d3"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_head/frame_03.png",
+          "sha256": "e689a65df830aa32320a23613e36c7f02cd197f3e9ebdb02f707835aee6f4a5d"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_head/frame_04.png",
+          "sha256": "d09df60f5f833e1a9466e19c625b702d6888cc3fdbc14f6ec9bc9112d284b377"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_head/frame_05.png",
+          "sha256": "2e0786da85bc1657cdb8cc076f2620eba816f60533dc01957bd6aab46ddf1f98"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_head/frame_06.png",
+          "sha256": "c7325bf2ac1b431cf20aae55d4b29ad93205ebfcbd1c77150d49744a6a4a26a3"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_head/frame_07.png",
+          "sha256": "0186909350fe4b688cf0ed7b7c94e81ba5572a8676251a0ef2e9d527c766b1ff"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_head/frame_08.png",
+          "sha256": "a2866d1e91c04759f2d6b3f8aaebf2a25151da410080e6828e0c9dc54cb9ed0e"
+        }
+      ]
+    },
+    {
+      "clip": "pet_paw",
+      "frames": 9,
+      "fps": 9.0,
+      "duration_seconds": 1.0,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_paw/frame_00.png",
+          "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_paw/frame_01.png",
+          "sha256": "eae95db73fa7494313f4b1281ab3c5c792ed5133cb8d1b0cd8d8434fc4c805a1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_paw/frame_02.png",
+          "sha256": "21f211ca0018cec76df999d267f6a95eef348a308ff6f7e4ca60df0e3fc78d96"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_paw/frame_03.png",
+          "sha256": "ce209c991ff25bf257967abe3e208ee79284b9269a0d872c24ec92aef11478c0"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_paw/frame_04.png",
+          "sha256": "255e6bfb1b0376549c004c64d93cf037866daeb9536a5659cbdfefaeab609f69"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_paw/frame_05.png",
+          "sha256": "6cb9a9347a98f19bb01aa09338770da7efb38ec816ec5d02e4b5414bff632a99"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_paw/frame_06.png",
+          "sha256": "cacfe0a5f979c7994ede1f527bc7f09a0201297ccf83395c17864f8ead2785e2"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_paw/frame_07.png",
+          "sha256": "8c23bd8bf0056929c5735ef88684aaf8ff2c364f38af1d889e485505d9246a0c"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/pet_paw/frame_08.png",
+          "sha256": "b809bc5cf4e4c8f38525ac854fd2ddf57adc639441fdb298563b254fb8fefaf2"
+        }
+      ]
+    },
+    {
+      "clip": "roll_over",
+      "frames": 17,
+      "fps": 11.0,
+      "duration_seconds": 1.5454545454545454,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_00.png",
+          "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_01.png",
+          "sha256": "94df2c7442360d975e093bc32a0e24915897de4f3aee67a54864d6056f4cb3ce"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_02.png",
+          "sha256": "1a66c3b2dc780dd3d33a6cd752ef3442ef24fc82a6d2c26ddfaa1f39a8b3316a"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_03.png",
+          "sha256": "afdf7891a46f6222b6c6a0bd566ca0f22d48a4cd282f24349932b99241ec2594"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_04.png",
+          "sha256": "c931fa598146a97b9045043ca8dc632f56f62f4348dc89832facc2a7cdd8841c"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_05.png",
+          "sha256": "3459c0fa0c243c9e476458605b8a428c7ca5f08e222f87b4462ebcfa3ee6b359"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_06.png",
+          "sha256": "93bf896ed0ef38bf1c2864009712b92bfee080a7d006ba2dbc58601ea1f38b38"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_07.png",
+          "sha256": "f3f18a7eeb261bf4ccd70218b623f5cb3a9c67c499ac8f833cbd24a4642e8193"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_08.png",
+          "sha256": "c56710560d022d796f3cb134f22f3f0e419a5c0f74a9643293d4b3c65e78abfb"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_09.png",
+          "sha256": "d7cf4c882ab6d47a3a83346ce9213527bc4b80ae739dc77efcbb242dafb304ba"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_10.png",
+          "sha256": "8af8a441f78bf1e4f7e5fcba4e44c2b617a9b6dcebae7befd168934504f8137a"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_11.png",
+          "sha256": "50df482897b11b1a1516965d089c610ef15547432f0a6c10c8dae5945eb93956"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_12.png",
+          "sha256": "3cf2f58bb741c4f1f41dbe1deaba908f6788b4567df7adaca06c19021d528bea"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_13.png",
+          "sha256": "cec7f618601db311c7a869fe4e32fc4391393713a7e8b41bff34e88fea60e011"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_14.png",
+          "sha256": "9ddfd3d87ae3ef9511fb2ff657580ca83cc9586af01722642d75b25c371d987d"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_15.png",
+          "sha256": "9ddfd3d87ae3ef9511fb2ff657580ca83cc9586af01722642d75b25c371d987d"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/roll_over/frame_16.png",
+          "sha256": "9ddfd3d87ae3ef9511fb2ff657580ca83cc9586af01722642d75b25c371d987d"
+        }
+      ]
+    },
+    {
+      "clip": "sad",
+      "frames": 9,
+      "fps": 6.0,
+      "duration_seconds": 1.5,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sad/frame_00.png",
+          "sha256": "5a2f11af07bab392252b78529194fc34c20a5e1da06d04078eeb35c9d0bcf9a0"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sad/frame_01.png",
+          "sha256": "4965e32ae19261564e40ab2c2f9b1ad3fd59c22e8004ee5914cb3bf46b3ee8e1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sad/frame_02.png",
+          "sha256": "7faf782b95261e5037e3254466e4b6c5216abe6db6d25c50d8a7c50ad4efb0ba"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sad/frame_03.png",
+          "sha256": "8307d65cf0b3edfbac047ba550b0526c33ab0904bf816f2abb0744397dfcda6b"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sad/frame_04.png",
+          "sha256": "5eaf4b030ef894c8734021482906b518054eb8bbcc7d673b5368029baa5dd810"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sad/frame_05.png",
+          "sha256": "0f333e2ad58a8a3d27b0bb86088c830a09596475c083a1b4cd76009ae4b4aaee"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sad/frame_06.png",
+          "sha256": "f0daccdc3079687484b18ee62d952875934d9a6c9ea15c6a6af126eba228bfc9"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sad/frame_07.png",
+          "sha256": "9578339b38092be648f9d8f0414aa6b34ab564c3d34d001578a0de0faf0f1b09"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sad/frame_08.png",
+          "sha256": "13f07cb585a543c54bd4a1610ce8770d314794dce6507719f54f11cb864cefdc"
+        }
+      ]
+    },
+    {
+      "clip": "scratch",
+      "frames": 9,
+      "fps": 8.0,
+      "duration_seconds": 1.125,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_00.png",
+          "sha256": "da7d4fd9bf5396acd27fff49ecc76a3d2b0d5bf92b9ff9b18ccd71d5048ac5e1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_01.png",
+          "sha256": "f7a1bdfc5d46452a2a93b21de2c660aee7dfae3f241bf6f70c7a184153080322"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_02.png",
+          "sha256": "a2f1a59f72b0c6a7a7f83f41cbebd4b0dcc9b5569b949c7e86d31617d1c3013e"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_03.png",
+          "sha256": "4e3b366c8a1c3883658ec631950b92ec742857d00a0fb6ec49a57d81bba96d2b"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_04.png",
+          "sha256": "1a81b3746a2fc6511898bc026659b06cc95eec4d72de178e45f57bb1a7aa5623"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_05.png",
+          "sha256": "81d53677ad9243f827da6838d67c4e1e2a3cd2cc835f34d75230c97f21fa24fb"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_06.png",
+          "sha256": "f69ef5bcd8782571e9956a87310edacf9550c4a8d6441e5f4049657b7dc29b38"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_07.png",
+          "sha256": "c37fbe0031abf9134c6ee46802464842ad3cae6a666ad258cab6dccb66905d07"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/scratch/frame_08.png",
+          "sha256": "8efa00fa28480724fd5fab881ac997e01c7284e36e9cbf4a0b88d2b99e9e2f5b"
+        }
+      ]
+    },
+    {
+      "clip": "shake_off",
+      "frames": 9,
+      "fps": 10.0,
+      "duration_seconds": 0.9,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/shake_off/frame_00.png",
+          "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/shake_off/frame_01.png",
+          "sha256": "f52853976077ac7f24f51f3e1d1db6f6191abd5509daf58590d2e342e1953c33"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/shake_off/frame_02.png",
+          "sha256": "f86049760fc6634855651c51dbb325ff2c4a6fa8dc095f0cec7bcb675268adab"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/shake_off/frame_03.png",
+          "sha256": "1ecd8d6b38431f141ee487cc34ba4e5c1f49ffcb549159a3d51178256e179865"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/shake_off/frame_04.png",
+          "sha256": "2fac03f0e4e48973912bd4a7680292096428b845a0399727be932309392b12d7"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/shake_off/frame_05.png",
+          "sha256": "ddc20215a6321966116d57acf6103d15ec5b88ecaea0e8293e36ade6133f9a2c"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/shake_off/frame_06.png",
+          "sha256": "ca8e71a7e71cb087d1424d77329df5a8f3f2e7f32b424ee867505611319b645f"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/shake_off/frame_07.png",
+          "sha256": "1f65e1814af150450608fb3e6a31b4e4a40fa51f3828d1f16b5c2b5cecff65bf"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/shake_off/frame_08.png",
+          "sha256": "a3d565c18e99cf58d86cb3e74fd95fcae23041d533f4437807c34d341f59691f"
+        }
+      ]
+    },
+    {
+      "clip": "sleep",
+      "frames": 17,
+      "fps": 5.0,
+      "duration_seconds": 3.4,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_00.png",
+          "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_01.png",
+          "sha256": "cacd7955483c699263ddcf65ed1d3952f5e9c866a2210ec74078f90f5ed903b6"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_02.png",
+          "sha256": "a85439f726fc916c66680a25d1b9aa90efaf86a6c19b371b7525d55e4cd04855"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_03.png",
+          "sha256": "dee0a25aec1049224383493c2f54db9dfd23b11ee4cca29923dbce5c4f1ed3cd"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_04.png",
+          "sha256": "102643f2cd0511ba13aacdbddbabe8f6c76b6286d8061c2578b95eb89d8154dc"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_05.png",
+          "sha256": "fbc59c0130c79251556194edb55ad5a042326eb75b903d46d22cbf27d9f5308b"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_06.png",
+          "sha256": "9c241692181a8d5b820fd114fae891390f2d27635fa46834504f1a290129d7aa"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_07.png",
+          "sha256": "fe31890a2b9a15b5a3feee66317a3e582d22e9ae7fcf203c945f11d2c8b11e13"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_08.png",
+          "sha256": "5b28b426e33f2986ce980a4da3798e258c9ee36452665ed791a9a9845061dbef"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_09.png",
+          "sha256": "4a7a99bc71c2cc5871a879562108a8a7a999662da9155d4dc838c0146c6a0517"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_10.png",
+          "sha256": "d23ceb424f19fad26fbea6ffa6e32e5fb08add5e7bf76d152953ea6791b3a34b"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_11.png",
+          "sha256": "65751535bcc5506537f0f1667b6e3efd9039e2d2cc1548c854ab95cae3f83c0b"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_12.png",
+          "sha256": "b305007f5aace5d2652b1bbc5a21158521798ec419ca2571a38bf680c36fe599"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_13.png",
+          "sha256": "1e3f2b247c4d2824c24e88200d7930b84c7863dbc550917a9f0281c74ceb92ce"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_14.png",
+          "sha256": "860b64f9eb3eb34be286fe0e95484b89894ba08fa0a7b7987b0c77ad66fde1c1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_15.png",
+          "sha256": "47b6df7668afdf247092cb4ff4dce1d97cb1a854170b1943467e9158157ccf18"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep/frame_16.png",
+          "sha256": "52b590f6e4eb554c3faf7cac2c56a72b1d2e0cabc10afd8e8f76b65c3fa59d6b"
+        }
+      ]
+    },
+    {
+      "clip": "sleep_belly",
+      "frames": 1,
+      "fps": null,
+      "duration_seconds": null,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sleep_belly/frame_00.png",
+          "sha256": "d9004c95c4d5675c77ddb89bb00c4da76f1b1024db4d413d0ad2576aea6a1f0f"
+        }
+      ]
+    },
+    {
+      "clip": "sniff",
+      "frames": 9,
+      "fps": 7.0,
+      "duration_seconds": 1.2857142857142858,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sniff/frame_00.png",
+          "sha256": "39ee9dc6695436392fe2352d703b7beea5ecc46af181d76ff918d209694af3c1"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sniff/frame_01.png",
+          "sha256": "e1f2ee7212c37c392793b3f6467f1c205c4b66e831837ea18a35fa7233bb8ff4"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sniff/frame_02.png",
+          "sha256": "fa83668663286ff82a690858b4b0ae869c786fdb89fa728c7178e559f3ddfecb"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sniff/frame_03.png",
+          "sha256": "ca78f5ef3f101c1614f3bcefbbc1feededacf3f6fb7742a29f86a97379247f78"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sniff/frame_04.png",
+          "sha256": "06aaafd16665e6cfc6b1da208a26142fd77d94f1eab1774fa48d5813c8c06f63"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sniff/frame_05.png",
+          "sha256": "afb623ec4b96cd9c120a3930006a3c4c75a029ab87e9737f44a723fdee66ea57"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sniff/frame_06.png",
+          "sha256": "33424e7b49b5fa19a6d627ed8d326950d0e58ba25b3d51f78a5dab693fa99ca3"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sniff/frame_07.png",
+          "sha256": "d13a9c3dc80c840e3a2c28fcc885128ad318eab9ea268a260d77df540bcbc727"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/sniff/frame_08.png",
+          "sha256": "f7d8b6314bcb4a1b39a7f5f50ee278785142299545d6021e782b78c2175a1131"
+        }
+      ]
+    },
+    {
+      "clip": "stretch",
+      "frames": 9,
+      "fps": 7.0,
+      "duration_seconds": 1.2857142857142858,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/stretch/frame_00.png",
+          "sha256": "9816421af4f0f12493ce0cb13e60dfec125a51af8ccdc6e712f5fbd3754cfec3"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/stretch/frame_01.png",
+          "sha256": "d19049122118ca3ee575d28e0a32b2722e85b7885373656378252ff00a6c5484"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/stretch/frame_02.png",
+          "sha256": "1ee4c802a0742a37bb15eaebc154c6dfbc922f6af8b32acaf18fa5079a178a26"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/stretch/frame_03.png",
+          "sha256": "d0224c0a4ca99c1b26e4d8dd6db6c2c7380deab969099363c88045c4f09fb26d"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/stretch/frame_04.png",
+          "sha256": "74240564df8e507613dcc7a8c7646d8627c7471905af81c5a707dd447de765f0"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/stretch/frame_05.png",
+          "sha256": "50bc6a709f477824caefa592dd1d284b3fcfec10444213cd3fcd6c275bfca333"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/stretch/frame_06.png",
+          "sha256": "aafb7d2dfa32988d0cd84ac59cba7343754350379b53b78a2e8b5059930c2bef"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/stretch/frame_07.png",
+          "sha256": "b54f087f2ff5bd03c24663cfffc6abbdb478cd6693dd3f8d8525f33005f02669"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/stretch/frame_08.png",
+          "sha256": "052e117a33c9208b6aefc3a3ff711dfd803fc2a2e31f29c25b46386430404c88"
+        }
+      ]
+    },
+    {
+      "clip": "wag_excited",
+      "frames": 9,
+      "fps": 9.0,
+      "duration_seconds": 1.0,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/wag_excited/frame_00.png",
+          "sha256": "5a2f11af07bab392252b78529194fc34c20a5e1da06d04078eeb35c9d0bcf9a0"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/wag_excited/frame_01.png",
+          "sha256": "297168595c8ce8a337115ddb493cf17ea5f5190833ca81d81b1b81418b4a051b"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/wag_excited/frame_02.png",
+          "sha256": "a63ed1d976c8cb0904784ffdef151b1b4315556825915d5bfbd2dc9646b0df4c"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/wag_excited/frame_03.png",
+          "sha256": "55e1eed980c5cae2a041383aa96b27d7b711a04d0162c4142689d506a2a2786b"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/wag_excited/frame_04.png",
+          "sha256": "beca33e062e5a505649a60c8608d4d9c793d0ca44b451143aec650f5c699b820"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/wag_excited/frame_05.png",
+          "sha256": "26013f3978fd5549c5682fc316a75fb02355b91cab3ebaa885fb9a34bddfb0c3"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/wag_excited/frame_06.png",
+          "sha256": "2165c86ac9e07053f86463f0ee62c0f7d233ec41ad35de7acdf2ef2545024717"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/wag_excited/frame_07.png",
+          "sha256": "895e0fc70ca2765e16ca9b29e00e3695759a8e19bf8e4e2810ba72481de4750d"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/wag_excited/frame_08.png",
+          "sha256": "4b563b870e8deede5d639b42550371ab3649fe26fed52bf33df824105a876059"
+        }
+      ]
+    },
+    {
+      "clip": "yawn",
+      "frames": 9,
+      "fps": 6.0,
+      "duration_seconds": 1.5,
+      "files": [
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_00.png",
+          "sha256": "4251210cfdbb8ff0497afd7ea5533466d15b0341add7502563a6786d2f9a14f3"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_01.png",
+          "sha256": "53c8dba2b967f847e6083d476eace8b016122aa3c8c7b743524a51ad77a5eacb"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_02.png",
+          "sha256": "43beed9c05f3bec0e841247b3b441f99669def55a869c434e23ba19c64c5a21d"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_03.png",
+          "sha256": "5a206f67bacc4dc4657645c35114b3be7bf1a97e9ba2f2971226384f636d7359"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_04.png",
+          "sha256": "8e0016b9d064ca7e6b404c359e7a9853c530ec139003ea650ba9eaf0b3c829fb"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_05.png",
+          "sha256": "64f52fc39ecc3624b53bfe4a136b6ffd6ad34ffd530078468afba8dff3903297"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_06.png",
+          "sha256": "04ad65256298358ebac6d37ae43557e9a8e3760ed703683e6119b49e9dc31957"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_07.png",
+          "sha256": "e636b33363548ae10b2029d88ba187292debf37e30933cf99d7a29850c3dfb10"
+        },
+        {
+          "file": "game/assets/sprites/characters/tiro_pet_puppy/yawn/frame_08.png",
+          "sha256": "3375f315cae1c0db2569e53200c343dac7df0f0b176a8379eed2ceae230429eb"
+        }
+      ]
+    }
+  ]
+}

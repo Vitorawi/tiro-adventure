@@ -823,6 +823,14 @@
     "period_cap": 2,
     "uncapped_phases": ["newborn"],
     "sources": {
+      "fish_first": {
+        "label": "Pescar um peixe novo",
+        "go": "place:farm:fishing",
+        "pillar": "brave",
+        "qty": 1,
+        "capped": false,
+        "first": true
+      },
       "pet": {
         "label": "Carinho quando ele pede",
         "go": "screen:pet",

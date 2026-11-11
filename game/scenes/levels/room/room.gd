@@ -56,6 +56,8 @@ var _zoom := 1.0
 var _touches: Dictionary = {}  # índice do dedo -> { "pos": Vector2, "time": ms } (para a pinça)
 var _pinch_distance := 0.0
 var _objects: Array[Sprite2D] = []
+## Construções ordenadas pelo chão que ocupam (sala com "depth_sort"): quem anda ao lado e à frente aparece na frente.
+var _depth_sprites: Array[Sprite2D] = []
 var _dog: DogWorld
 var _dig_spot: Node2D
 var _walk_marker: WalkIndicator
@@ -126,6 +128,9 @@ var _label_tick := 0.0
 var tray_dragging := false
 ## Toque que fechou a bandeja: some junto com o resto do gesto (não planta nem arrasta sem querer).
 var _swallow_touch := false
+## Pesca na lagoa (só no Sítio): o fluxo (painel, boia, minigame, resultado) e as bolhas quentes.
+var _fishing_flow: FishingFlow
+var _fishing_bubbles: FishingBubbles
 
 @onready var _content: Control = %Content
 @onready var _background: TextureRect = %Background
@@ -178,6 +183,7 @@ func _ready() -> void:
 		_walk_marker.position = _point("walk_marker")
 		_walk_marker.z_index = 5
 		_world.add_child(_walk_marker)
+	_setup_fishing()
 	Events.state_changed.connect(_refresh_ownership)
 	Events.state_changed.connect(_refresh_gated)
 	Events.state_changed.connect(_refresh_projects)
@@ -392,6 +398,8 @@ func _spawn_objects() -> void:
 			sprite.set_meta("touch_minimum", float(data.touch_minimum))
 		sprite.set_meta("decoration", data.get("decoration", false))
 		if data.has("animal_station"):
+			if _room.get("depth_sort", false):
+				sprite.z_index = 1  # o pátio desenhado na construção fica atrás dos bichos
 			sprite.set_meta("animal_station", data.animal_station)
 			sprite.set_meta("animal_slot", int(data.animal_slot))
 		if data.has("route_group"):
@@ -399,6 +407,8 @@ func _spawn_objects() -> void:
 			indicator.name = "RouteIndicator"
 			indicator.group = data.route_group
 			indicator.z_index = 2
+			if _room.has("background_bleed"):
+				indicator.anchor = Vector2(0, minf(-48.0, -float(sprite.texture.get_height()) - 16.0))
 			sprite.add_child(indicator)
 		if data.get("animal_idle", false):
 			sprite.set_meta("idle_offset", sprite.offset)
@@ -420,6 +430,12 @@ func _spawn_objects() -> void:
 			project_marker.name = "ProjectMarker"
 			project_marker.show_caption = true
 			sprite.add_child(project_marker)
+		if data.get("greenhouse_indicator", false):
+			var greenhouse_balloon := GreenhouseIndicator.new()
+			greenhouse_balloon.name = "GreenhouseIndicator"
+			greenhouse_balloon.z_index = 2
+			greenhouse_balloon.anchor = Vector2(0, minf(-48.0, -float(sprite.texture.get_height()) - 16.0))
+			sprite.add_child(greenhouse_balloon)
 		if data.has("station"):
 			sprite.set_meta("station", data.station)
 			var indicator := StationIndicator.new()
@@ -479,6 +495,9 @@ func _spawn_objects() -> void:
 			_behind_layer.add_child(sprite)
 		else:
 			_world.add_child(sprite)
+			if _room.get("depth_sort", false) and data.has("footprint") and not data.has("animal_station") and not data.has("plot"):
+				sprite.set_meta("depth_footprint", _polygon(data.footprint))
+				_depth_sprites.append(sprite)
 		_objects.append(sprite)
 
 
@@ -562,6 +581,8 @@ func _refresh_object(sprite: Sprite2D) -> void:
 		sprite.self_modulate = Color(1, 1, 1, sprite.self_modulate.a)
 	if sprite.has_node("RouteIndicator"):
 		(sprite.get_node("RouteIndicator") as RouteIndicator).refresh()
+	if sprite.has_node("GreenhouseIndicator"):
+		(sprite.get_node("GreenhouseIndicator") as GreenhouseIndicator).refresh()
 	if sprite.has_meta("station") and (not sprite.has_meta("upgrade") or GameState.has_upgrade(sprite.get_meta("upgrade"))):
 		(sprite.get_node("ProductionIndicator") as StationIndicator).refresh()
 		var station_id: String = sprite.get_meta("station")
@@ -892,7 +913,7 @@ func _target_at(point: Vector2) -> Dictionary:
 	for indicator: RouteIndicator in _route_markers:
 		if indicator.active() and indicator.hit_rect.has_point(point - indicator.position): return _named_target("place:" + indicator.site)
 	for sprite: Sprite2D in _objects:
-		for marker_name: String in ["ProjectMarker", "RouteIndicator", "ProductionIndicator", "Indicator"]:
+		for marker_name: String in ["ProjectMarker", "RouteIndicator", "GreenhouseIndicator", "ProductionIndicator", "Indicator"]:
 			if not sprite.has_node(marker_name): continue
 			var balloon := sprite.get_node(marker_name) as WorldBalloon
 			if balloon.is_visible_in_tree() and balloon.hit_rect.has_point((point - sprite.position) / sprite.scale): return _named_target(str(sprite.get_meta("action", "")), sprite)
@@ -1130,7 +1151,7 @@ func _gui_input(event: InputEvent) -> void:
 	if _is_pinching() or tray_dragging:
 		return  # durante a pinça (ou o arrasto da bandeja), não arrasta nem toca
 	if button and button.button_index == MOUSE_BUTTON_LEFT:
-		if button.pressed and ActionTray.is_open(self):
+		if button.pressed and (ActionTray.is_open(self) or FishingPanel.is_open(self)):
 			# Tocar fora da bandeja só a fecha: o toque não age no mundo (evita plantar sem querer).
 			close_tray()
 			_swallow_touch = true
@@ -1165,6 +1186,10 @@ func _gui_input(event: InputEvent) -> void:
 
 ## Toque solto sem arrastar: age na hora; dois toques seguidos em área vazia dão zoom.
 func _on_tap_released(local: Vector2) -> void:
+	# Pesca: com a boia na água (ou o minigame aberto) o toque só serve à pesca e não age no mapa.
+	if _fishing_flow != null and _fishing_flow.handle_tap():
+		_last_tap_empty = false
+		return
 	if FarmDock.is_open_for(self):
 		# Tocar fora dos canteiros e da barra só fecha a barra: o toque não age no mundo.
 		FarmDock.current().close()
@@ -1231,9 +1256,62 @@ func _process(delta: float) -> void:
 			_velocity = Vector2.ZERO
 		_camera_changed()
 	_drift_clouds(delta)
+	_sort_walkers()
 	if is_instance_valid(_held_label) and Time.get_ticks_msec() / 1000.0 >= _held_until:
 		_held_label.reveal(false)
 		_held_label = null
+
+
+## Quem anda (Tiro e personagens) é desenhado na frente de uma construção quando está além da borda da frente do chão
+## dela, mesmo ao lado e acima da base (a ordenação por Y sozinha o colocaria atrás). Só vale se não estiver, ao mesmo
+## tempo, atrás de outra construção que o cobre. Só o z_index do personagem muda.
+func _sort_walkers() -> void:
+	if _depth_sprites.is_empty():
+		return
+	var walkers: Array[Node2D] = []
+	if is_instance_valid(_dog) and _dog.visible:
+		walkers.append(_dog)
+	for npc: NpcWorld in _npcs:
+		if is_instance_valid(npc) and npc.visible:
+			walkers.append(npc)
+	for walker in walkers:
+		if walker == _dog and _dog.get("_on_sofa"):
+			continue  # dormindo no sofá/caminha o Tiro já é desenhado na frente (z_index próprio)
+		var p := walker.position
+		var in_front := false
+		var behind := false
+		for sprite in _depth_sprites:
+			if not sprite.visible or sprite.self_modulate.a < 0.5:
+				continue
+			var rect := Rect2(sprite.position + sprite.offset, sprite.texture.get_size())
+			if p.x < rect.position.x - 16.0 or p.x > rect.end.x + 16.0 or p.y < rect.position.y or p.y - 44.0 > rect.end.y:
+				continue
+			if p.y > _front_y(sprite.get_meta("depth_footprint"), p.x):
+				in_front = true
+			else:
+				behind = true
+		walker.z_index = 1 if in_front and not behind else 0
+
+
+## Y da borda da frente de um polígono (o ponto mais baixo) na coluna x; fora do polígono vale o da ponta mais próxima.
+func _front_y(poly: PackedVector2Array, x: float) -> float:
+	var left := INF
+	var right := -INF
+	for point in poly:
+		left = minf(left, point.x)
+		right = maxf(right, point.x)
+	x = clampf(x, left, right)
+	var best := -INF
+	for i in poly.size():
+		var a := poly[i]
+		var b := poly[(i + 1) % poly.size()]
+		if (a.x - x) * (b.x - x) > 0.0:
+			continue
+		if is_equal_approx(a.x, b.x):
+			best = maxf(best, maxf(a.y, b.y))
+		else:
+			best = maxf(best, a.y + (b.y - a.y) * (x - a.x) / (b.x - a.x))
+	return best
 
 
 ## Seta pulsando sobre o objeto/zona com a ação ("place:stove", "npc:bloblo", "market:orders"
@@ -1416,6 +1494,11 @@ func _tap_balloon(point: Vector2) -> bool:
 		if sprite.has_node("RouteIndicator"):
 			var indicator := sprite.get_node("RouteIndicator") as RouteIndicator
 			if indicator.active() and indicator.hit_rect.has_point((point - sprite.position) / sprite.scale):
+				_on_object_tapped(sprite.get_meta("action"), sprite)
+				return true
+		if sprite.has_node("GreenhouseIndicator"):
+			var greenhouse_balloon := sprite.get_node("GreenhouseIndicator") as GreenhouseIndicator
+			if greenhouse_balloon.visible and greenhouse_balloon.hit_rect.has_point((point - sprite.position) / sprite.scale):
 				_on_object_tapped(sprite.get_meta("action"), sprite)
 				return true
 		if sprite.has_node("ProductionIndicator"):
@@ -1657,6 +1740,10 @@ func _watch_tray(tray: ActionTray) -> void:
 
 
 func close_tray() -> void:
+	if FishingPanel.is_open(self):
+		FishingPanel.close_current(self)
+		if _fishing_flow != null and _fishing_flow.state == "panel":
+			_fishing_flow.end()
 	if ActionTray.is_open(self):
 		ActionTray.close_current()
 	if FarmDock.is_open_for(self):
@@ -1696,6 +1783,28 @@ func _greenhouse_sprite() -> Sprite2D:
 		if sprite.visible and str(sprite.get_meta("upgrade", "")) == "greenhouse":
 			return sprite
 	return null
+
+
+## Colhe tudo o que está pronto na estufa (os que não couberem no depósito avisam e ficam). Devolve se havia algo pronto.
+func _collect_greenhouse(sprite: Sprite2D) -> bool:
+	var balloon := sprite.get_node_or_null("GreenhouseIndicator") as GreenhouseIndicator
+	if balloon == null:
+		return false
+	var ready := balloon.ready_indices()
+	if ready.is_empty():
+		return false
+	var total: Dictionary = {}
+	for index in ready:
+		var error := GameState.harvest_error(index)
+		if error != "":
+			Events.toast_requested.emit(error)
+			continue
+		var got := GameState.harvest(index)
+		for item: String in got:
+			total[item] = int(total.get(item, 0)) + int(got[item])
+	if not total.is_empty():
+		Events.items_gained.emit(total, 0, world_to_screen(sprite.position))
+	return true
 
 
 func can_open_greenhouse_tray() -> bool:
@@ -2212,6 +2321,8 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 	if target is Sprite2D and _collect_station(_station_of(target), target.position):
 		return  # Coleta no mapa termina aqui, inclusive quando o depósito está cheio.
 	if target is Sprite2D and str(target.get_meta("upgrade", "")) == "greenhouse" and GameState.has_upgrade("greenhouse"):
+		if _collect_greenhouse(target):
+			return  # colheu o que estava pronto; o balão passa para a próxima cultura
 		open_greenhouse_tray()
 		return
 	# Estação, criação e local da Natureza abrem a bandeja perto do objeto (o painel fica em "Ver tudo").
@@ -2224,6 +2335,9 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 			_collect_site(site, _nature_marker(site).position)
 			return
 		open_nature_tray(site)
+		return
+	if action == "place:fishing":
+		open_fishing()
 		return
 	match action:
 		"plot":
@@ -2245,6 +2359,101 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 func _flash(sprite: Sprite2D) -> void:
 	sprite.modulate = Color(1.35, 1.35, 1.35)
 	create_tween().tween_property(sprite, "modulate", Color.WHITE, 0.25)
+
+
+# --- Pesca na lagoa (etapa 02) -------------------------------------------------------------------
+
+## Zona `lake` + pontos `fishing_spot/fishing_face/fishing_bubble_N` da sala (só o Sítio tem).
+func _setup_fishing() -> void:
+	var points: Dictionary = _room.get("points", {})
+	if not points.has("fishing_spot"):
+		return
+	_fishing_bubbles = FishingBubbles.new()
+	var index := 1
+	while points.has("fishing_bubble_%d" % index):
+		_fishing_bubbles.spots.append(_point("fishing_bubble_%d" % index))
+		index += 1
+	_world.add_child(_fishing_bubbles)
+
+
+func fishing_world() -> Node2D:
+	return _world
+
+
+func dog_node() -> DogWorld:
+	return _dog
+
+
+## A casca (`Main`): o minigame e o bloqueio da linha 2 do HUD ficam nela. Em teste sem casca devolve null.
+func main_host() -> Control:
+	var node := get_parent()
+	while node != null:
+		if node.has_method("set_row2_blocker") and node is Control:
+			return node as Control
+		node = node.get_parent()
+	return null
+
+
+func fishing_flow() -> FishingFlow:
+	return _fishing_flow
+
+
+func fishing_bubbles() -> FishingBubbles:
+	return _fishing_bubbles
+
+
+## Centro da água (label_pos da zona `lake`).
+func lake_center() -> Vector2:
+	for zone: Dictionary in _room.get("zones", []):
+		if str(zone.get("action", "")) == "place:fishing":
+			return _vec(zone.get("label_pos", [0, 0]))
+	return Vector2.ZERO
+
+
+## Toque na lagoa: sem vara, só um aviso curto da vovó; com vara, a câmera vai até a água, o Tiro senta na beirinha
+## e abre o painel de arremesso.
+func open_fishing() -> void:
+	if _fishing_bubbles == null:
+		return
+	if GameState.current_rod() == "":
+		_lake_locked_notice()
+		return
+	var error := GameState.fishing_error()
+	if error != "":
+		Events.toast_requested.emit(error)
+		return
+	close_tray()
+	clear_pointer()
+	Events.sheet_close_requested.emit()
+	var points: Dictionary = _room.points
+	if _fishing_flow == null:
+		var flow := FishingFlow.new()
+		flow.room = self
+		flow.spot = _point("fishing_pier") if points.has("fishing_pier") else nearest_floor_point(_point("fishing_spot"))
+		flow.face = str(points.get("fishing_face", "west"))
+		flow.water_center = lake_center()
+		for zone: Dictionary in _room.get("zones", []):
+			if str(zone.get("action", "")) == "place:fishing":
+				flow.water_polygon = _polygon(zone.polygon)
+		flow.bubble_points = _fishing_bubbles.spots.duplicate()
+		add_child(flow)
+		_fishing_flow = flow
+	var look_zoom := maxf(_zoom, 0.6)
+	_tween_camera(_fishing_flow.water_center + Vector2(30, 100) / look_zoom, look_zoom)  # a lagoa fica acima do painel
+	if _dog != null:
+		_dog.fishing_face = _fishing_flow.face
+		_dog.fishing_session = true
+		_dog.fishing_stand = _point("fishing_pier") if points.has("fishing_pier") else Vector2.INF
+		_dog.react_at(&"fishing", _point("fishing_spot"))
+	_fishing_flow.begin()
+
+
+func _lake_locked_notice() -> void:
+	var text := str(Database.npcs.get("bloblo", {}).get("lines", {}).get("lake_locked", "Um dia eu te ensino a pescar aqui!"))
+	for node: Node in get_tree().root.find_children("*", "Notice", true, false):
+		node.call("notify", "info", text, ProgressionUi.npc_portrait("bloblo"))
+		return
+	Events.toast_requested.emit(text)
 
 
 ## Menor zoom em que a sala inteira cabe na tela.

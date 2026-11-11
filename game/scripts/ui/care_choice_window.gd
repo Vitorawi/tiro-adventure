@@ -7,6 +7,8 @@ const ROWS := 2
 var scroll: ScrollContainer
 var grid: GridContainer
 var placeholder_height := 0.0
+var _more: Button
+var _more_icon: TextureRect
 signal layout_requested
 
 func _init() -> void:
@@ -45,6 +47,30 @@ func _init() -> void:
 	scroll.add_child(grid)
 	scroll.custom_minimum_size.x = COLUMNS * (TILE + GAP) - GAP
 	minimum_size_changed.connect(func() -> void: layout_requested.emit())
+	# Há mais comidas do que cabem: o toque no ícone é arrasto de comida, então a rolagem tem botão próprio.
+	_more = UiKit.ctl_button("down", _scroll_page, 40)
+	_more.name = "MoreFoods"
+	_more.hide()
+	_more.size = Vector2(40, 40)
+	art.add_child(_more)
+	_more_icon = _more.find_child("Disc", true, false).get_child(0).get_child(0) as TextureRect
+	scroll.get_v_scroll_bar().value_changed.connect(func(_v: float) -> void: _sync_more())
+
+## Desce uma linha; no fim volta ao começo.
+func _scroll_page() -> void:
+	var bar := scroll.get_v_scroll_bar()
+	if scroll.scroll_vertical + scroll.size.y >= bar.max_value - 1.0: scroll.scroll_vertical = 0
+	else: scroll.scroll_vertical += int(TILE + GAP)
+
+func _sync_more() -> void:
+	if _more == null: return
+	var bar := scroll.get_v_scroll_bar()
+	var overflow := bar.max_value > scroll.size.y + 1.0 and placeholder_height <= 0.0
+	_more.visible = overflow
+	if overflow:
+		_more_icon.pivot_offset = _more_icon.size / 2.0
+		_more_icon.rotation = PI if scroll.scroll_vertical + scroll.size.y >= bar.max_value - 1.0 else 0.0
+		_more.position = Vector2(size.x - 52.0, size.y - 30.0)
 
 func place(host: Control, top: float, bottom: float, heart_left: float) -> void:
 	scroll.custom_minimum_size.y = 0.0
@@ -57,6 +83,7 @@ func place(host: Control, top: float, bottom: float, heart_left: float) -> void:
 		scroll.custom_minimum_size.y = minf(placeholder_height, maxf(0.0, bottom - top - chrome))
 	size = get_combined_minimum_size()
 	position = Vector2(maxf(minf((host.size.x - size.x) * 0.5, heart_left - size.x), 8.0), bottom - size.y)
+	_sync_more.call_deferred()
 
 ## Mesmo tile para comida arrastável e opção tocável. O chamador só acrescenta seus selos/regras.
 static func tile(texture: Texture2D, quantity: String = "", on_pressed: Callable = Callable()) -> Control:

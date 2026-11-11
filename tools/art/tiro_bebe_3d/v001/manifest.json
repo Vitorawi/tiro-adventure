@@ -1,0 +1,87 @@
+{
+  "stage": "initial_model_not_rigged_not_approved",
+  "reference": "game/assets/sprites/characters/tiro_pet_puppy_illustrated/idle_breathe/frame_00.png",
+  "reference_sha256": "ccc0f8f0564ecc19cb80f1ca31da1636248eb9dabf81748cf4026a44a8bf3bb6",
+  "scene": "Tiro_Bebe_v001",
+  "palette_srgb": {
+    "coal": [
+      0.1098,
+      0.1059,
+      0.1176
+    ],
+    "coal_mid": [
+      0.2196,
+      0.1961,
+      0.2118
+    ],
+    "coal_light": [
+      0.2902,
+      0.2706,
+      0.2824
+    ],
+    "gold": [
+      0.7255,
+      0.4824,
+      0.2078
+    ],
+    "gold_dark": [
+      0.5882,
+      0.3255,
+      0.1373
+    ],
+    "gold_mid": [
+      0.8275,
+      0.5882,
+      0.2941
+    ],
+    "cream": [
+      0.8902,
+      0.7137,
+      0.451
+    ],
+    "nose": [
+      0.098,
+      0.0902,
+      0.098
+    ],
+    "mouth": [
+      0.1569,
+      0.098,
+      0.1137
+    ],
+    "tongue": [
+      0.8549,
+      0.498,
+      0.5373
+    ],
+    "iris": [
+      0.3451,
+      0.1961,
+      0.0784
+    ],
+    "pupil": [
+      0.0627,
+      0.051,
+      0.051
+    ],
+    "highlight": [
+      1.0,
+      0.9608,
+      0.8627
+    ],
+    "ground": [
+      0.851,
+      0.7922,
+      0.7059
+    ]
+  },
+  "objects": 84,
+  "hair_strands": 15371,
+  "anatomy": "seated quadruped, two forelegs and two hindlegs; separate jaws/ears/tail",
+  "inferred": "hidden back/side coat distribution and most of tail; must be reviewed",
+  "limitations": [
+    "Initial volumes and fur study; not identity-approved.",
+    "No rig, animation or game integration.",
+    "Not production skin topology."
+  ]
+}

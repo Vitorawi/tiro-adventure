@@ -138,6 +138,50 @@ func house_problems() -> Array[String]:
 	return problems
 
 
+## Pesca: peixes com item, isca existente e três pesos; iscas e varas coerentes; classes e níveis crescentes.
+func fishing_problems() -> Array[String]:
+	var problems: Array[String] = []
+	if int(fishing.get("schema", 0)) != 1:
+		problems.append("fishing: schema inválido")
+	var baits: Dictionary = fishing.get("baits", {})
+	for bait_id: String in baits:
+		if not items.has(bait_id):
+			problems.append("fishing: isca sem item " + bait_id)
+	var fish: Dictionary = fishing.get("fish", {})
+	for fish_id: String in fish:
+		var def: Dictionary = fish[fish_id]
+		if not items.has(fish_id):
+			problems.append("fishing: peixe sem item " + fish_id)
+		if not baits.has(str(def.get("bait", ""))):
+			problems.append("fishing: isca inexistente em " + fish_id)
+		if (def.get("weights", []) as Array).size() != 3:
+			problems.append("fishing: " + fish_id + " precisa de 3 pesos")
+		var cm: Array = def.get("cm", [])
+		if cm.size() != 2 or float(cm[0]) >= float(cm[1]):
+			problems.append("fishing: faixa de cm inválida em " + fish_id)
+		if str(def.get("motion", "")) not in ["mixed", "smooth", "sinker", "floater", "darter"]:
+			problems.append("fishing: movimento inválido em " + fish_id)
+	var rods: Dictionary = fishing.get("rods", {})
+	for rod_id: String in rods:
+		for bait_id: Variant in rods[rod_id].get("baits", []):
+			if not baits.has(str(bait_id)):
+				problems.append("fishing: isca inexistente na vara " + rod_id)
+	var last := -1.0
+	for cls: Dictionary in fishing.get("classes", []):
+		if float(cls.get("min", 0.0)) <= last:
+			problems.append("fishing: classes fora de ordem")
+		last = float(cls.get("min", 0.0))
+	var last_xp := -1
+	for xp_needed: Variant in fishing.get("levels", []):
+		if int(xp_needed) <= last_xp:
+			problems.append("fishing: níveis fora de ordem")
+		last_xp = int(xp_needed)
+	var source: String = str(fishing.get("moment_first", {}).get("source", ""))
+	if source != "" and not growth.get("moments", {}).get("sources", {}).has(source):
+		problems.append("fishing: fonte de momento inexistente " + source)
+	return problems
+
+
 func growth_problems() -> Array[String]:
 	var problems: Array[String] = []
 	if int(growth.get("schema", 0)) != 1:

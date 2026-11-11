@@ -63,6 +63,14 @@ func _close_up(pivot: Vector2, zoom: float, shot_name: String) -> void:
 	await create_timer(1.0).timeout
 
 
+func _focus(point: Vector2, shot_name: String) -> void:
+	var view := _room()
+	var there: Vector2 = view.call("world_to_screen", point)
+	view.call("scroll_by", there - Vector2(180, 400))
+	await create_timer(0.6).timeout
+	await _close_up(Vector2(180, 400), 1.3, shot_name)
+
+
 func _run() -> void:
 	var saver: Node = root.get_node("SaveManager")
 	root.get_node("Events").state_changed.disconnect(Callable(saver, "_schedule_save"))
@@ -95,9 +103,33 @@ func _run() -> void:
 	state.set("unlocked_plots", 9)
 	for station: String in ["chicken_coop", "cow_barn"]:
 		for i in 3:
-			state.call("buy_animal", "hen" if station == "chicken_coop" else "cow")
+			state.call("buy_animal", "chicken_brown" if station == "chicken_coop" else "cow_brown")
 	await create_timer(0.8).timeout
 	await _save("b_tudo_construido")
 	await _close_up(Vector2(300, 470), 1.0, "d_construido_perto_direita")
 	await _close_up(Vector2(60, 440), 1.0, "e_construido_perto_esquerda")
+	for n: String in ["hen_1", "hen_2", "cow_1", "cow_2"]:
+		var sp: Sprite2D = _room().find_child(n, true, false)
+		print("DBG ", n, " vis=", sp.visible, " pos=", sp.position, " a=", sp.self_modulate.a, " scale=", sp.scale, " z=", sp.z_index, " tex=", sp.texture.resource_path, " off=", sp.offset)
+	await _focus(Vector2(1080, 1150), "f_galinheiro")
+	await _focus(Vector2(1040, 1320), "g_curral")
+	var gh_crop := ""
+	for id: String in root.get_node("Database").get("crops"):
+		if str(root.get_node("Database").get("crops")[id].get("greenhouse", "")) == "only":
+			gh_crop = id
+			break
+	state.call("dev_unlock_everything")
+	print("DBG plant ", state.call("plant", 9, gh_crop), state.call("plant", 10, gh_crop), state.call("plant", 11, gh_crop), " crop=", gh_crop)
+	state.call("plot", 9)["ready_at"] = 0.0
+	state.call("plot", 10)["ready_at"] = 0.0
+	await create_timer(1.0).timeout
+	await _focus(Vector2(700, 1380), "h_estufa")
+	var gh: Sprite2D = _room().find_child("greenhouse", true, false)
+	print("DBG tap ", _room().call("_on_object_tapped", "place:greenhouse", gh))
+	await create_timer(1.0).timeout
+	await _focus(Vector2(700, 1380), "i_estufa_depois")
+	var orchard: Sprite2D = _room().find_child("orchard", true, false)
+	print("DBG activity ", state.call("start_activity", "orchard_harvest") if state.has_method("start_activity") else "sem start_activity")
+	await create_timer(1.0).timeout
+	await _focus(orchard.position, "j_pomar")
 	quit(0)

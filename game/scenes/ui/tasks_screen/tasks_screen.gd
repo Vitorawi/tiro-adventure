@@ -422,15 +422,6 @@ func _story_hero(id: String) -> Control:
 ## (pílula x/y e o botão), na mesma borda direita dos botões Ir.
 func _story_rewards(card: VBoxContainer, id: String) -> void:
 	var quest: Dictionary = Database.quests[id]
-	card.add_child(MissionUi.tag("Recompensas", "StoryRewardsTag"))
-	var rewards := MissionUi.card("card", Vector4i(12, 0, 12, 0), "StoryRewards", 10, 88.0)
-	card.add_child(rewards)
-	var row := UiKit.hbox(8)
-	MissionUi.body(rewards).add_child(row)
-	var prizes := UiKit.hbox(8)
-	prizes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	prizes.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(prizes)
 	var gains: Dictionary = quest.rewards
 	var entries: Array[Dictionary] = []
 	if int(gains.get("coins", 0)) > 0:
@@ -440,6 +431,23 @@ func _story_rewards(card: VBoxContainer, id: String) -> void:
 	for collection: String in gains.get("collections", []):
 		if not GameState.progress.collection.has(collection):
 			entries.append({"icon": UiKit.ui_icon("item_accessory_set"), "amount": "+1", "name": "Prize_" + collection})
+	# Sem prêmio não há seção: o Pegar fica logo abaixo da barra de progresso do cartão do topo.
+	if entries.is_empty():
+		var bare := UiKit.vbox(4)
+		bare.name = "StoryClaimBare"
+		bare.alignment = BoxContainer.ALIGNMENT_CENTER
+		card.add_child(bare)
+		_story_claim(bare, id, func() -> Vector2: return bare.get_global_rect().get_center(), true)
+		return
+	card.add_child(MissionUi.tag("Recompensas", "StoryRewardsTag"))
+	var rewards := MissionUi.card("card", Vector4i(12, 0, 12, 0), "StoryRewards", 10, 88.0)
+	card.add_child(rewards)
+	var row := UiKit.hbox(8)
+	MissionUi.body(rewards).add_child(row)
+	var prizes := UiKit.hbox(8)
+	prizes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	prizes.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(prizes)
 	# 56×56; com três prêmios eles encolhem para caber ao lado da coluna de 104 px.
 	var room := (_screen_width() - 2.0 * STORY_EDGE) - 24.0 - MissionUi.BUTTON.x - 8.0
 	var edge := minf(56.0, floorf((room - 8.0 * (entries.size() - 1)) / maxf(1.0, entries.size())))
@@ -454,22 +462,29 @@ func _story_rewards(card: VBoxContainer, id: String) -> void:
 	column.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	column.add_child(MissionUi.pill("green" if met == quest.goals.size() else "brown", "%d/%d" % [met, quest.goals.size()], "StoryGoalsPill"))
 	row.add_child(column)
+	_story_claim(column, id, func() -> Vector2: return rewards.get_global_rect().get_center(), false)
+
+
+## Botão Pegar (e "Liberar espaço" se o depósito estiver cheio) dentro de `into`.
+func _story_claim(into: Container, id: String, origin: Callable, centered: bool) -> void:
 	var claimed := GameState.progress.claimed_quests.has(id)
 	var ready := GameState.quest_error(id) == ""
-	var claim := MissionUi.button("go", "Resgatado" if claimed else "Pegar", func() -> void: ProgressionUi.claim_quest_fx(id, rewards.get_global_rect().get_center()))
+	var claim := MissionUi.button("go", "Resgatado" if claimed else "Pegar", func() -> void: ProgressionUi.claim_quest_fx(id, origin.call()))
 	claim.name = "ClaimQuest_" + id
 	claim.disabled = claimed or not ready
 	if claim.disabled:
 		claim.get_node("Frame").modulate = Color(0.48, 0.48, 0.48, 0.65)
 		claim.add_theme_color_override("font_disabled_color", Palette.WOOD_CREAM.darkened(0.28))
-	column.add_child(claim)
+	if centered: claim.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	into.add_child(claim)
 	# Objetivos cumpridos com depósito cheio: mantém o caminho para liberar espaço.
 	var shortage := GameState.quest_reward_shortage(id)
 	if not claimed and not shortage.is_empty():
 		var depot := str(shortage.depot)
 		var space := MissionUi.button("go", "Liberar espaço", func() -> void: Places.go({"storage": depot}), MissionUi.BUTTON.x, 12)
 		space.name = "QuestSpace_" + id
-		column.add_child(space)
+		if centered: space.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		into.add_child(space)
 
 
 ## "Passos": título centralizado e um cartão por objetivo. Linha 1: instrução + pílula n/m; linha 2: ícone 48×48

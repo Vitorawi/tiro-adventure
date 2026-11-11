@@ -1,0 +1,54 @@
+{
+  "scope": "Independent 2D foreleg proof; not installed in PetAnimator or published",
+  "original_9_hashes_unchanged": true,
+  "rendered_samples": 144,
+  "capture_fps": 24,
+  "preview_seconds": 6.0,
+  "preview_loop": "Four complete 1.5s breathing cycles; wraps through approved phase 8 -> 0",
+  "rest_entry_exit_max_rgb_error": 0,
+  "protected_regions": {
+    "protected_face": {
+      "max_rgb_error": 0,
+      "preview_pixel_rect": [
+        125,
+        80,
+        202,
+        158
+      ]
+    },
+    "planted_front_left": {
+      "max_rgb_error": 0,
+      "preview_pixel_rect": [
+        143,
+        254,
+        179,
+        281
+      ]
+    },
+    "planted_rear_left": {
+      "max_rgb_error": 0,
+      "preview_pixel_rect": [
+        124,
+        250,
+        146,
+        265
+      ]
+    }
+  },
+  "protected_region_coordinates": "Relative to each 384x324 dog canvas, excluding the header/footer",
+  "motion": "Original shared foreleg texture; two-bone IK, fixed bone lengths, continuous breathing",
+  "timing_seconds": {
+    "entry": 0.38,
+    "rubbing": 1.125,
+    "exit": 0.42,
+    "total": 1.9249999999999998
+  },
+  "hidden_art": "Built-in image_gen body plate, sampled only through the original image-right foreleg hole",
+  "original_face_from_generated_plate_used": false,
+  "occlusion_note": "The planted rear-right paw is briefly covered by the moving foreleg on entry/exit. Do not claim it is visible and RGB-identical in all frames.",
+  "limitations": [
+    "First front-paw-to-face prototype, not a full set of animations.",
+    "Large elbow bends approximate volume with a 2D skin mesh; contour/artistic review remains required.",
+    "No turned-over paw-pad view was invented; the existing furry paw texture rotates with the limb."
+  ]
+}

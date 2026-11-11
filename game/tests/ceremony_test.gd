@@ -83,7 +83,7 @@ func _run() -> void:
 		check(state.get("growth").ceremonies[str(phases[index].id)].seen, "visto depois de fechar")
 		if index == 1:
 			main.call("_flush_modals")
-			check(main.get("_celebration").visible and state.get("progress").seen.has("feature:wishes"), "Novo de Desejos depois de Que lindo!")
+			check(not main.get("_celebration").visible and state.get("progress").seen.has("feature:wishes"), "Desejos já estavam à vista: sem Novo!")
 			main.get("_celebration").hide()
 		main.set("_modal_queue", [] as Array[Callable])
 		main.get("_celebration").hide()

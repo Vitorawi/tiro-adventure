@@ -55,8 +55,8 @@ func _run() -> void:
 	check(arrival.size.x > 100 and arrival.size.y > arrival.size.x, "carta ocupa meia largura útil, sem quadradinho externo")
 	# 2. Fotos/versões/níveis contados pelo estado, incluindo fechadas sem nível.
 	var stats: Dictionary = panel.find_child("AlbumSummary", true, false).get_meta("counts")
-	check(stats.taken == 2 and stats.total == 14 and stats.versions == 2 and stats.possible == 56, "resumo fotos e versões")
-	check(stats.levels[1] == 1 and stats.levels[3] == 1 and stats.levels[2] == 0 and stats.levels[4] == 0, "contagens das quatro versões")
+	check(stats.taken == 2 and stats.total == 14 and stats.versions == 3 and stats.possible == 56, "resumo fotos e versões")
+	check(stats.levels[1] == 1 and stats.levels[3] == 1 and stats.levels[2] == 1 and stats.levels[4] == 0, "contagens das quatro versões")
 	# 3. Construir a faixa não consome; tocar abre o verso no visualizador.
 	check(panel.find_child("AlbumSealed", true, false) != null, "faixa Para abrir")
 	check(state.photo_sealed("h_first_night") == 1, "montar o livro não abre cartas")

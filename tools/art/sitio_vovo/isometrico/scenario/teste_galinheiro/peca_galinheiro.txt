@@ -1,0 +1,1 @@
+quadro 1280x864 = recorte (1460,540,1960,880) da arte base ampliado 2,56x; bbox util no quadro (149, 115, 1135, 805) -> na arte base (px): x 1518..1903, y 585..854

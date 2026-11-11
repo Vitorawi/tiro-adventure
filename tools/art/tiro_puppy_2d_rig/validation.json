@@ -1,0 +1,24 @@
+{
+  "source": "Nine approved idle PNGs; existing artwork; no generation or re-painting",
+  "original_9_sha256_unchanged": true,
+  "native_captures": 103,
+  "capture_fps": 24,
+  "neutral_native_max_rgb_error": 0,
+  "planted_paws_native_max_rgb_error": 0,
+  "head_motion_confirmed": true,
+  "pose": "idle -> head tilt -> idle",
+  "scene": "game/scenes/art/puppy_2d_rig/puppy_2d_rig.tscn",
+  "checks": [
+    "3 connected skin meshes with normalized BodyAnchor/Head weights",
+    "Shared original 9-frame breathing clock at 6 fps",
+    "Tilt duration 9/7 s",
+    "Soft cancellation without a pose jump or restarting breathing"
+  ],
+  "scope": "Initial front-pose rig only; not wired into PetAnimator and not published",
+  "remaining": [
+    "Independent ear/eye/jaw/limb layers",
+    "Hidden surface artwork and other views",
+    "Yawn/scratch/roll/stand and actual game transitions",
+    "User visual approval"
+  ]
+}

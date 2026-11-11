@@ -136,7 +136,7 @@ func _run() -> void:
 	check(state.call("collect", "dairy").get("cheese", 0) == 1, "Queijaria dá queijo")
 	check(farm.find_child("cow_1", true, false).self_modulate.a == 1, "Vacas aparecem no mapa")
 	check(farm.find_child("hen_1", true, false).self_modulate.a == 1, "Galinhas aparecem no mapa")
-	check(farm.find_child("hen_3", true, false).visible, "Três galinhas visíveis")
+	check(farm.find_child("hen_3", true, false) == null, "No máximo duas galinhas no mapa")
 	check(farm.find_child("hen_2", true, false).texture.resource_path.ends_with("chicken_brown.png"), "Variedade correta no mapa")
 	_produce("cow_barn", "milk", 1800, "milk", 8)
 	check(state.call("buy_animal", "cow_brown") == "", "Comprar vaca caramelo")

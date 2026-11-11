@@ -37,6 +37,8 @@ var friend_state := FriendState.new()
 ## Obras comunitárias (contribuições persistentes; catálogo em Database.projects).
 var projects := ProjectState.new()
 var growth := GrowthState.new()
+## Pesca na lagoa: varas, iscas, recordes e a partida em andamento (plano docs/plans/pesca).
+var fishing := FishingState.new()
 ## Álbum de recordações: fotos tiradas e janelas de eventos (etapa 13 do plano Tiro).
 var album := AlbumState.new()
 var album_world: String = "house"
@@ -61,6 +63,7 @@ func _ready() -> void:
 		return_due_walk()
 		_auto_store_baggage()
 		changed_wishes = _recover_projects() or changed_wishes
+		changed_wishes = update_fishing() or changed_wishes
 		if sync_friend_window() or update_finds() or changed_wishes:
 			_changed())
 	add_child(timer)
@@ -108,6 +111,7 @@ func reset() -> void:
 	projects = ProjectState.new()
 	growth = GrowthState.new()
 	growth.reset()
+	fishing = FishingState.new()
 	growth.firsts["care_actions_v1"] = true
 	album = AlbumState.new()
 	album.reset()
@@ -1700,6 +1704,8 @@ func _apply_rewards(rewards: Dictionary) -> void:
 		_award_skill(id, int(rewards["skill_xp"][id]))
 	for id: String in rewards.get("collections", []):
 		progress.collection[id] = true
+	for id: String in rewards.get("rods", []):
+		give_rod(id)
 	for id: String in rewards.get("unlocks", []):
 		progress.unlocks[id] = true
 	if rewards.has("needs"):
@@ -2107,6 +2113,10 @@ func claim_pending_rewards(receipt_id: String = "") -> Dictionary:
 func requirement_error(requirements: Dictionary) -> String:
 	if requirements.has("album_photo") and not album.has_photo(str(requirements.album_photo)):
 		return "No Dia do Tiro"
+	if requirements.has("rod") and not fishing.has_rod(str(requirements.rod)):
+		return "Ganhe a " + str(Database.fishing.get("rods", {}).get(str(requirements.rod), {}).get("name", requirements.rod)).to_lower()
+	if requirements.has("fishing_level") and fishing_level() < int(requirements.fishing_level):
+		return "Pesca nível %d" % int(requirements.fishing_level)
 	if requirements.has("growth"):
 		var target := growth.phase_index(str(requirements.growth))
 		if target < 0:
@@ -5258,6 +5268,558 @@ func dev_complete_growth_reqs() -> void:
 	_changed()
 
 
+# --- Pesca ------------------------------------------------------------------
+# Regras da pesca na lagoa (plano docs/plans/pesca). O minigame roda ao vivo na UI; aqui ficam as
+# validações, o sorteio do peixe, o tamanho, os recordes e o que o app fechado não pode perder.
+# Ciclo: cast (espera) → hook (gasta a isca e sorteia o peixe) → finish_fishing (entrega) / cancel_fishing.
+
+func fishing_level() -> int:
+	return fishing.level(Database.fishing.get("levels", [0]))
+
+
+func has_rod(id: String) -> bool:
+	return fishing.has_rod(id)
+
+
+## Vara em uso: a escolhida ou, sem escolha, a de maior nível ("" = nenhuma).
+func current_rod() -> String:
+	if fishing.rod != "" and fishing.has_rod(fishing.rod):
+		return fishing.rod
+	var best := ""
+	var best_tier := -1
+	for id: String in fishing.rods:
+		var tier := int(Database.fishing.get("rods", {}).get(id, {}).get("tier", 0))
+		if tier > best_tier:
+			best_tier = tier
+			best = id
+	return best
+
+
+## Sorteio independente e estável por partida: a mesma semente e o mesmo `salt` dão sempre o mesmo número.
+func _fishing_rng(salt: String) -> RandomNumberGenerator:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("%d:%s" % [int(fishing.cast.get("seed", 0)), salt])
+	return rng
+
+
+func _lower_name(id: String) -> String:
+	return Database.item_name(id).to_lower()
+
+
+## Altura da barra do minigame (fração da pista): nível, vara e Tiro animado, limitada a `bar_max`.
+func fishing_bar_height() -> float:
+	var physics: Dictionary = Database.fishing.physics
+	var rod_id := str(fishing.cast.get("rod", "")) if not fishing.cast.is_empty() else current_rod()
+	var bonus := float(Database.fishing.get("rods", {}).get(rod_id, {}).get("bar_bonus", 0.0))
+	var height := float(physics.bar_base) + float(physics.bar_per_level) * (fishing_level() - 1) + bonus
+	if tiro_animated():
+		height += float(physics.animated_bonus)
+	return minf(height, float(physics.bar_max))
+
+
+## Consulta pura para a UI.
+func fishing_info() -> Dictionary:
+	var levels: Array = Database.fishing.get("levels", [0])
+	var level := fishing_level()
+	var baits := {}
+	for id: String in Database.fishing.get("baits", {}):
+		baits[id] = inventory.count(id)
+	return {
+		"rod": current_rod(), "rods": fishing.rods.duplicate(), "bait": fishing.bait, "baits": baits,
+		"level": level, "xp": fishing.xp, "next_xp": int(levels[level]) if level < levels.size() else -1,
+		"bar": fishing_bar_height(), "cast_state": str(fishing.cast.get("state", "")),
+		"bubble": fishing.bubble.duplicate(),
+	}
+
+
+func fishing_error() -> String:
+	if current_rod() == "":
+		return "Você ainda não tem uma vara"
+	if dog.sleeping:
+		return "Ele está dormindo"
+	if walking():
+		return away_text()
+	return ""
+
+
+func choose_rod_error(id: String) -> String:
+	if not fishing.has_rod(id):
+		return "Você ainda não tem essa vara"
+	return "Termine a pesca primeiro" if _fishing_busy() else ""
+
+
+func choose_rod(id: String) -> String:
+	var error := choose_rod_error(id)
+	if error != "":
+		return error
+	fishing.rod = id
+	var accepted: Array = Database.fishing.rods[id].baits
+	if fishing.bait != "" and fishing.bait not in accepted:
+		fishing.bait = ""
+	Events.fishing_changed.emit()
+	_changed()
+	return ""
+
+
+func choose_bait_error(id: String) -> String:
+	if not Database.fishing.get("baits", {}).has(id):
+		return "Isca desconhecida"
+	var rod := current_rod()
+	if rod == "":
+		return "Você ainda não tem uma vara"
+	if id not in Database.fishing.rods[rod].baits:
+		return "Essa vara não usa " + _lower_name(id)
+	return "Termine a pesca primeiro" if _fishing_busy() else ""
+
+
+func choose_bait(id: String) -> String:
+	var error := choose_bait_error(id)
+	if error != "":
+		return error
+	fishing.bait = id
+	Events.fishing_changed.emit()
+	_changed()
+	return ""
+
+
+## Há partida de verdade em andamento (uma interrompida pelo fechamento do app não conta).
+func _fishing_busy() -> bool:
+	return not fishing.cast.is_empty() and str(fishing.cast.get("state", "")) != "interrupted"
+
+
+func cast_error(bait: String, zone: int, on_bubble: bool = false) -> String:
+	var error := fishing_error()
+	if error != "":
+		return error
+	if _fishing_busy():
+		return "Já tem uma pesca em andamento"
+	if not Database.fishing.get("baits", {}).has(bait):
+		return "Isca desconhecida"
+	if bait not in Database.fishing.rods[current_rod()].baits:
+		return "Essa vara não usa " + _lower_name(bait)
+	if inventory.count(bait) <= 0:
+		return "Sem " + _lower_name(bait)
+	if zone < 1 or zone > int(Database.fishing.cast.zones):
+		return "Zona inválida"
+	return ""
+
+
+## Arremessa: cria a partida em espera. NÃO gasta a isca (só a fisgada gasta).
+func cast(bait: String, zone: int, on_bubble: bool = false) -> String:
+	var error := cast_error(bait, zone, on_bubble)
+	if error != "":
+		return error
+	var config: Dictionary = Database.fishing
+	var on_hot_spot := on_bubble and not fishing.bubble.is_empty()
+	var effective_zone := zone
+	if on_hot_spot:
+		effective_zone = mini(zone + int(config.bubbles.zone_bonus), int(config.cast.zones))
+	var seed_value := hash("fish:%s:%s:%s" % [growth.taste_seed, fishing.seq, int(now() * 1000.0)])
+	fishing.cast = {
+		"seed": seed_value, "n": fishing.seq, "bait": bait, "rod": current_rod(), "zone": effective_zone,
+		"bubble": on_hot_spot, "at": now(), "state": "waiting", "fish": "", "spent": false,
+	}
+	fishing.seq += 1
+	var span: Array = config.cast.wait
+	var wait := _fishing_rng("wait").randf_range(float(span[0]), float(span[1]))
+	if not fishing.tutorial.done:
+		wait = float(config.cast.get("tutorial_wait", wait))
+	if on_hot_spot:
+		wait *= float(config.bubbles.wait_mult)
+	fishing.cast["wait"] = wait
+	fishing.bait = bait
+	Events.fishing_changed.emit()
+	_changed()
+	return ""
+
+
+## A boia já deve ter afundado?
+func bite_due() -> bool:
+	var c: Dictionary = fishing.cast
+	return str(c.get("state", "")) == "waiting" and now() >= float(c.at) + float(c.wait)
+
+
+## No tutorial a janela da fisgada não acaba.
+func _bite_window_open() -> bool:
+	if not fishing.tutorial.done:
+		return true
+	var c: Dictionary = fishing.cast
+	return now() <= float(c.at) + float(c.wait) + float(Database.fishing.cast.bite_window)
+
+
+func hook_error() -> String:
+	var c: Dictionary = fishing.cast
+	if str(c.get("state", "")) != "waiting":
+		return "Nada para fisgar"
+	if not bite_due():
+		return "Ainda não mordeu"
+	if not _bite_window_open():
+		return "O peixe foi embora"
+	if inventory.count(str(c.bait)) <= 0:
+		return "Sem " + _lower_name(str(c.bait))
+	return ""
+
+
+## Fisga: gasta 1 isca (a artificial só em parte das vezes), sorteia o peixe e abre a luta.
+func hook() -> String:
+	var error := hook_error()
+	if error != "":
+		return error
+	var c: Dictionary = fishing.cast
+	var bait := str(c.bait)
+	var keep := float(Database.fishing.baits.get(bait, {}).get("keep_chance", 0.0))
+	if keep <= 0.0 or _fishing_rng("keep").randf() >= keep:
+		inventory.remove(bait, 1)
+		c["spent"] = true
+	c["fish"] = _pick_fish(c)
+	c["state"] = "fighting"
+	fishing.bait_casts[bait] = int(fishing.bait_casts.get(bait, 0)) + 1
+	_count("fish_hook")
+	Events.fishing_changed.emit()
+	_changed()
+	return ""
+
+
+## Mordida perdida ou toque antes da hora: recolhe a linha sem gastar nada.
+func miss_bite() -> String:
+	if str(fishing.cast.get("state", "")) != "waiting":
+		return ""
+	fishing.cast = {}
+	_count("fish_miss")
+	Events.fishing_changed.emit()
+	_changed()
+	return ""
+
+
+## Missões ativas que pedem peixe (`stat` com chave `fish:<id>` ainda não cumprida).
+func _quest_fish_wanted() -> Array[String]:
+	var wanted: Array[String] = []
+	for quest_id: String in progress.active_steps().values():
+		for goal: Dictionary in Database.quests.get(quest_id, {}).get("goals", []):
+			var key := str(goal.get("key", ""))
+			if str(goal.get("type", "")) == "stat" and key.begins_with("fish:") and progress.stat(key) < int(goal.get("target", 1)):
+				wanted.append(key.trim_prefix("fish:"))
+	return wanted
+
+
+func _pick_fish(c: Dictionary) -> String:
+	var config: Dictionary = Database.fishing
+	var bait := str(c.bait)
+	var zone := clampi(int(c.zone), 1, int(config.cast.zones))
+	var entries: Array = []
+	var total := 0.0
+	for id: String in config.fish:
+		var def: Dictionary = config.fish[id]
+		if str(def.bait) != bait:
+			continue
+		var weights: Array = def.weights
+		var weight := float(weights[mini(zone, weights.size()) - 1])
+		entries.append({"id": id, "weight": weight})
+		total += weight
+	if entries.is_empty():
+		return ""
+	# Tutorial: o primeiro peixe é sempre o lambari.
+	if not fishing.tutorial.done and bait == "bait_worm" and config.fish.has("fish_lambari"):
+		return "fish_lambari"
+	# Garantia da história: nunca pegou a espécie e já gastou as pescas combinadas com essa isca.
+	var guarantees: Dictionary = config.get("story_guarantee", {})
+	for id: String in guarantees:
+		if str(config.fish.get(id, {}).get("bait", "")) == bait and fishing.record(id).is_empty() \
+				and int(fishing.bait_casts.get(bait, 0)) >= int(guarantees[id]) - 1:
+			return id
+	# Missão ativa: a espécie pedida vale pelo menos `story_share` do grupo.
+	var share := clampf(float(config.get("story_share", 0.5)), 0.0, 0.95)
+	for wanted_id in _quest_fish_wanted():
+		for entry: Dictionary in entries:
+			if entry.id == wanted_id:
+				var others := total - float(entry.weight)
+				entry.weight = maxf(float(entry.weight), others * share / (1.0 - share))
+				break
+	var picked := Loot.pick_weighted(entries, hash("%d:fish" % int(c.seed)))
+	return str(picked.get("id", entries[0].id))
+
+
+## Tamanho: pontuação + sorte + zona; perfeita sobe uma classe; garantia de Grande+ depois de 8 seguidas.
+func _fishing_size(c: Dictionary, result: Dictionary) -> Dictionary:
+	var config: Dictionary = Database.fishing
+	var def: Dictionary = config.fish[str(c.fish)]
+	var formula: Dictionary = config.size_formula
+	var classes: Array = config.classes
+	var f := float(formula.quality) * float(result.score) + float(formula.luck) * _fishing_rng("luck").randf() \
+			+ float(formula.zone) * (int(c.zone) - 1)
+	f = clampf(f, 0.0, 1.0)
+	if fishing.since_large >= int(config.pity_large):
+		f = maxf(f, float(formula.pity_min))
+	var index := 0
+	for i in classes.size():
+		if f >= float(classes[i].min):
+			index = i
+	if bool(result.get("perfect", false)) and index < classes.size() - 1:
+		index += 1
+		f = maxf(f, float(classes[index].min))
+	var low := float(def.cm[0])
+	var high := float(def.cm[1])
+	var cm := clampf(snappedf(low + f * (high - low), 0.5), low, high)
+	var cls: Dictionary = classes[index]
+	return {"cm": cm, "class": str(cls.id), "index": index, "qty": int(cls.get("qty", 1)), "f": f}
+
+
+## Validação do que a UI mandou (o minigame roda ao vivo: nunca se confia cegamente).
+func _fishing_result_error(result: Dictionary) -> String:
+	if str(fishing.cast.get("state", "")) != "fighting":
+		return "Nenhuma pesca em andamento"
+	var score: Variant = result.get("score", null)
+	if typeof(result.get("caught", null)) != TYPE_BOOL or (typeof(score) != TYPE_FLOAT and typeof(score) != TYPE_INT) \
+			or float(score) < 0.0 or float(score) > 1.0:
+		return "Resultado inválido"
+	for key: String in ["perfect", "chest"]:
+		if result.has(key) and typeof(result[key]) != TYPE_BOOL:
+			return "Resultado inválido"
+		if bool(result.get(key, false)) and not bool(result.caught):
+			return "Resultado inválido"
+	return ""
+
+
+func _normalize_result(result: Dictionary) -> Dictionary:
+	return {"caught": bool(result.caught), "score": float(result.score), "perfect": bool(result.get("perfect", false)), "chest": bool(result.get("chest", false))}
+
+
+## Resultado já guardado (geladeira cheia) vale no lugar do novo: não dá para tentar de novo uma nota melhor.
+func _effective_result(result: Dictionary) -> Dictionary:
+	return fishing.cast.pending_result if fishing.cast.has("pending_result") else result
+
+
+func finish_fishing_error(result: Dictionary) -> String:
+	var error := _fishing_result_error(result)
+	if error != "":
+		return error
+	var use := _normalize_result(_effective_result(result))
+	if not use.caught:
+		return ""
+	var size := _fishing_size(fishing.cast, use)
+	return storage_error({str(fishing.cast.fish): int(size.qty)})
+
+
+## `result` = {caught, score 0..1, perfect, chest}. Com a geladeira cheia nada muda e a partida continua.
+func finish_fishing(result: Dictionary) -> String:
+	var error := _fishing_result_error(result)
+	if error != "":
+		return error
+	var c: Dictionary = fishing.cast
+	var use := _normalize_result(_effective_result(result))
+	var fish_id := str(c.fish)
+	if not use.caught:
+		_count("fish_escape")
+		_count("fish_escape:" + fish_id)
+		fishing.cast = {}
+		Events.fish_escaped.emit(fish_id)
+		Events.fishing_changed.emit()
+		_changed()
+		return ""
+	var config: Dictionary = Database.fishing
+	var def: Dictionary = config.fish[fish_id]
+	var size := _fishing_size(c, use)
+	var full := storage_error({fish_id: int(size.qty)})
+	if full != "":
+		c["pending_result"] = use
+		Events.fishing_changed.emit()
+		_changed()
+		return full
+	var level_before := fishing_level()
+	inventory.add(fish_id, int(size.qty))
+	var record: Dictionary = fishing.records.get(fish_id, {})
+	var first := record.is_empty()
+	var previous_cm := float(record.get("best_cm", 0.0))
+	if first:
+		record = {"best_cm": 0.0, "best_class": "", "count": 0, "gigantes": 0, "perfects": 0, "first_at": now()}
+	record.count = int(record.count) + 1
+	if size.class == "giant":
+		record.gigantes = int(record.gigantes) + 1
+	if bool(use.perfect):
+		record.perfects = int(record.perfects) + 1
+	if float(size.cm) > float(record.best_cm):
+		record.best_cm = float(size.cm)
+		record.best_class = str(size.class)
+	fishing.records[fish_id] = record
+	var cls: Dictionary = config.classes[int(size.index)]
+	var gain := roundi(float(def.xp) * float(cls.get("xp", 1.0)) * (float(config.meter.perfect_xp_mult) if bool(use.perfect) else 1.0))
+	fishing.xp += gain
+	if int(size.index) >= 2:
+		fishing.since_large = 0
+	else:
+		fishing.since_large += 1
+	_count("fish")
+	_count("fish:" + fish_id)
+	_count("fish_size:" + str(size.class))
+	_count("fish_size:%s:%s" % [size.class, fish_id])
+	if size.class == "giant":
+		_count("fish_size:large")
+		_count("fish_gigante")
+	if bool(use.perfect):
+		_count("fish_perfect")
+	if first:
+		_moment_source(str(config.moment_first.source), fish_id)
+	if bool(use.chest) and int(config.rods.get(str(c.rod), {}).get("tier", 0)) >= int(config.rods.get(str(config.chest.from_rod), {}).get("tier", 99)):
+		_grant_automatic("fish_chest:%d" % int(c.n), Loot.roll(config.chest.loot, 1, hash("%d:chest" % int(c.seed))))
+	fishing.cast = {}
+	var level_after := fishing_level()
+	Events.fish_caught.emit(fish_id, float(size.cm), str(size.class), previous_cm)
+	if level_after > level_before:
+		Events.fishing_level_up.emit(level_after)
+	Events.fishing_changed.emit()
+	_changed()
+	return ""
+
+
+func release_fish_error() -> String:
+	var c: Dictionary = fishing.cast
+	return "" if str(c.get("state", "")) == "fighting" and c.has("pending_result") else "Não há peixe para soltar"
+
+
+## Desiste do peixe que não cabia: sem prêmio, a isca já foi.
+func release_fish() -> String:
+	var error := release_fish_error()
+	if error != "":
+		return error
+	_count("fish_release")
+	fishing.cast = {}
+	Events.fishing_changed.emit()
+	_changed()
+	return ""
+
+
+## Fecha a partida em qualquer estado (app fechado, troca de aba): devolve a isca se já tinha sido gasta.
+func cancel_fishing() -> String:
+	var c: Dictionary = fishing.cast
+	if c.is_empty():
+		return ""
+	if bool(c.get("spent", false)):
+		inventory.add(str(c.bait), 1)
+	fishing.cast = {}
+	Events.fishing_changed.emit()
+	_changed()
+	return ""
+
+
+## Ao carregar: linha lançada e sem fisgada não gastou nada (some); luta sem resultado guardado devolve a
+## isca e fica "interrupted" (o peixe sorteado continua no save, mas já dá para lançar de novo).
+func _settle_fishing_on_load() -> void:
+	var c: Dictionary = fishing.cast
+	if not c.is_empty():
+		match str(c.get("state", "")):
+			"waiting":
+				fishing.cast = {}
+			"fighting":
+				if not c.has("pending_result"):
+					if bool(c.get("spent", false)):
+						inventory.add(str(c.bait), 1)
+						c["spent"] = false
+					c["state"] = "interrupted"
+			"interrupted":
+				pass
+			_:
+				fishing.cast = {}
+	update_fishing()
+
+
+## Dá a vara (recompensa de missão/loja/receita). Conta `rod:<id>`; devolve se era nova.
+func give_rod(id: String) -> bool:
+	if not Database.fishing.get("rods", {}).has(id) or fishing.has_rod(id):
+		return false
+	fishing.rods.append(id)
+	_count("rod:" + id)
+	if fishing.next_bubble_at <= 0.0:
+		_schedule_bubble(now())
+	return true
+
+
+func _bubble_rng(salt: int) -> RandomNumberGenerator:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("bubble:%s:%d:%d" % [growth.taste_seed, fishing.seq, salt])
+	return rng
+
+
+## Marca a próxima bolha para daqui a `every_min` (sorteado) a partir de `from`.
+func _schedule_bubble(from: float) -> void:
+	var span: Array = Database.fishing.bubbles.every_min
+	fishing.next_bubble_at = from + _bubble_rng(int(from)).randf_range(float(span[0]), float(span[1])) * 60.0
+
+
+## Tick de 1 s (e ao carregar): bolhas quentes pelo relógio e mordida da partida. Devolve se mudou algo.
+func update_fishing() -> bool:
+	var changed := false
+	if current_rod() != "":
+		var current := now()
+		if not fishing.bubble.is_empty() and current >= float(fishing.bubble.until):
+			fishing.bubble = {}
+			changed = true
+		if fishing.next_bubble_at <= 0.0:
+			_schedule_bubble(current)
+			changed = true
+		elif fishing.bubble.is_empty() and current >= fishing.next_bubble_at:
+			var config: Dictionary = Database.fishing.bubbles
+			var started := fishing.next_bubble_at
+			var until := started + float(config.lasts_min) * 60.0
+			if current < until:
+				fishing.bubble = {"at": started, "until": until, "spot": _bubble_rng(int(started) + 1).randi() % maxi(1, int(config.spots))}
+				_schedule_bubble(started)
+			else:
+				_schedule_bubble(current)
+			changed = true
+	var c: Dictionary = fishing.cast
+	if str(c.get("state", "")) == "waiting" and bite_due():
+		if not bool(c.get("bitten", false)):
+			c["bitten"] = true
+			Events.fish_bite.emit()
+			changed = true
+		elif not _bite_window_open():
+			fishing.cast = {}
+			_count("fish_miss")
+			changed = true
+	if changed:
+		Events.fishing_changed.emit()
+	return changed
+
+
+func dev_give_rod(id: String) -> void:
+	if not BuildInfo.is_dev():
+		return
+	give_rod(id)
+	fishing.tutorial["done"] = true
+	_changed()
+
+
+func dev_give_baits() -> void:
+	if not BuildInfo.is_dev():
+		return
+	for id: String in Database.fishing.get("baits", {}):
+		inventory.add(id, 10)
+	_changed()
+
+
+func dev_bubble_now() -> void:
+	if not BuildInfo.is_dev():
+		return
+	var config: Dictionary = Database.fishing.bubbles
+	var current := now()
+	fishing.bubble = {"at": current, "until": current + float(config.lasts_min) * 60.0, "spot": _bubble_rng(int(current)).randi() % maxi(1, int(config.spots))}
+	_changed()
+
+
+func dev_fish_xp(amount: int) -> void:
+	if not BuildInfo.is_dev():
+		return
+	fishing.xp = maxi(0, fishing.xp + amount)
+	_changed()
+
+
+func dev_reset_fishing() -> void:
+	if not BuildInfo.is_dev():
+		return
+	fishing = FishingState.new()
+	_changed()
+
+
 # --- Save ------------------------------------------------------------------
 
 func to_dict() -> Dictionary:
@@ -5281,6 +5843,7 @@ func to_dict() -> Dictionary:
 		"friends": friend_state.to_dict(),
 		"projects": projects.to_dict(),
 		"growth": growth.to_dict(),
+		"fishing": fishing.to_dict(),
 		"album": album.to_dict(),
 		"economy": economy.to_dict(),
 	}
@@ -5334,6 +5897,8 @@ func from_dict(data: Dictionary) -> void:
 	growth = GrowthState.new()
 	growth.from_dict(data.get("growth", {}))
 	_prune_moment_periods()
+	fishing = FishingState.new()
+	fishing.from_dict(data.get("fishing", {}))
 	album = AlbumState.new()
 	album.from_dict(data.get("album", {}))
 	dog.sleep_bonus = house_sleep_bonus()  # sem commit: o tempo salvo já vale com a caminha atual
@@ -5365,6 +5930,7 @@ func from_dict(data: Dictionary) -> void:
 	# Viagem vencida com o jogo fechado volta agora (sem segundo sorteio); o cartão sai da marca persistida.
 	return_due_walk(false)
 	_auto_store_baggage()
+	_settle_fishing_on_load()
 	_changed()
 
 

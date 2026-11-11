@@ -592,7 +592,7 @@ static func go_button(caption: String, on_pressed: Callable, icon: Texture2D = n
 	frame.scale = Vector2.ONE / 3.0
 	art.add_child(frame)
 	var fit := func() -> void:
-		var drawn := 40.0
+		var drawn := minf(float(result.get_meta("art_height", 40.0)), art.size.y)  # meta opcional: botão grande (ex.: "Segurar" da pesca)
 		frame.position = Vector2(0.0, (art.size.y - drawn) / 2.0)
 		frame.size = Vector2(art.size.x, drawn) * 3.0
 	art.resized.connect(fit)
