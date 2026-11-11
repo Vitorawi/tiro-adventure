@@ -92,6 +92,21 @@ static func _resources(box: VBoxContainer) -> void:
 	_tool(dog, "Desejo novo já", GameState.dev_refresh_wishes)
 	_tool(dog, "Abrir mochila", func() -> void:
 		Events.sheet_requested.emit("Mochila", SheetBuilder.inventory_view()), "")
+	_section(box, "Pesca", "Só o protótipo do minigame: não mexe no save.")
+	_tool(_grid(box, 1), "Pesca (protótipo)", _open_fishing_proto, "")
+
+
+## Abre o minigame de teste por cima de tudo (etapa 00 da pesca); "Sair" fecha.
+static func _open_fishing_proto() -> void:
+	Events.sheet_close_requested.emit()
+	var scene := Engine.get_main_loop() as SceneTree
+	var layer := CanvasLayer.new()
+	layer.name = "FishingProtoLayer"
+	layer.layer = 20
+	var game: Control = load("res://scenes/ui/fishing/fishing_game.tscn").instantiate()
+	game.connect("closed", layer.queue_free)
+	layer.add_child(game)
+	scene.current_scene.add_child(layer)
 
 
 static func _progress(box: VBoxContainer) -> void:

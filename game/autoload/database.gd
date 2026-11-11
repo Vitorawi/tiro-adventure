@@ -35,6 +35,8 @@ var finds: Dictionary = {}
 ## Passeios do Tiro (data/walks.json): configurações e caminhos.
 var walks: Dictionary = {}
 var friends: Dictionary = {}
+## Pesca (data/fishing.json): física da barra, rede e movimento dos peixes (etapa 00 = protótipo).
+var fishing: Dictionary = {}
 ## Obras comunitárias (data/projects.json): fases, taxa, prêmio. Vazio até as etapas 20–22.
 var projects: Dictionary = {}
 var growth: Dictionary = {}
@@ -254,6 +256,7 @@ func _init() -> void:
 	finds = _load("res://data/finds.json")
 	walks = _load("res://data/walks.json")
 	friends = _load("res://data/friends.json")
+	fishing = _load("res://data/fishing.json")
 	projects = _load("res://data/projects.json")
 	growth = _load("res://data/growth.json")
 	album = _load("res://data/album.json")

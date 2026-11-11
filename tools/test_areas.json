@@ -18,6 +18,7 @@
     "test_circuit_selftest"
   ],
   "suite": [
+    "fishing_physics_test",
     "puppy_identity_test",
     "puppy_belly_test",
     "puppy_reactions_test",
@@ -447,6 +448,19 @@
         "tray_test",
         "flavors_test",
         "farm_market_label_test"
+      ]
+    },
+    "fishing": {
+      "paths": [
+        "game/scripts/fishing/",
+        "game/scenes/ui/fishing/",
+        "game/data/fishing.json",
+        "game/tests/fishing_physics_test.gd",
+        "game/tests/fishing_proto.gd",
+        "game/tests/fishing_proto_shots.gd"
+      ],
+      "tests": [
+        "fishing_physics_test"
       ]
     },
     "album": {

@@ -1,0 +1,18 @@
+{
+  "schema": 1,
+  "physics": {"bar_base": 0.169, "bar_per_level": 0.014, "bar_max": 0.34, "thrust": 2.11,
+              "gravity": 1.73, "drag": 1.8, "bounce": 0.45, "tick": 0.0166667,
+              "animated_bonus": 0.017, "gravity_on_hold": false},
+  "meter": {"start": 0.30, "fill": 0.18, "drain": 0.12, "grace": 1.0, "perfect_xp_mult": 2.4},
+  "motion": {"speed": [0.25, 1.2], "pause": [1.2, 0.3], "darter_bursts": 0.8, "biased": 0.75,
+             "sinker_fall": 1.5, "floater_rise": 1.5, "burst_speed": 4.0, "burst_distance": [0.25, 0.45],
+             "smooth_min_distance": 0.35, "noise_amp": 0.01, "noise_hz": 2.0,
+             "lane": [0.02, 0.98], "target_range": [0.05, 0.95]},
+  "proto_fish": {
+    "mixed":   {"name": "Tilápia (teste)", "motion": "mixed",   "difficulty": 30},
+    "smooth":  {"name": "Cará (teste)",    "motion": "smooth",  "difficulty": 22},
+    "sinker":  {"name": "Carpa (teste)",   "motion": "sinker",  "difficulty": 40},
+    "floater": {"name": "Lambari (teste)", "motion": "floater", "difficulty": 15},
+    "darter":  {"name": "Tucunaré (teste)","motion": "darter",  "difficulty": 75}
+  }
+}
