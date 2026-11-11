@@ -68,7 +68,18 @@ func _start() -> void:
 
 
 func _holding() -> bool:
+	# o mouse é conferido no estado real: se o soltar se perdeu (saiu da janela, foco, botão por cima), solta
+	if _mouse_down and not Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT):
+		_mouse_down = false
 	return not _touches.is_empty() or _mouse_down
+
+
+## Jogo de um dedo só: qualquer soltar/cancelar limpa TODOS os dedos (o navegador às vezes avisa o mesmo
+## dedo duas vezes, com índices diferentes, e um deles nunca soltava: a barra ficava presa em cima).
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT or what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		_touches.clear()
+		_mouse_down = false
 
 
 func _process(delta: float) -> void:
@@ -114,10 +125,10 @@ func _handle(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		var touch := event as InputEventScreenTouch
 		_touch_seen_at = Time.get_ticks_msec()
-		if touch.pressed:
+		if touch.pressed and not touch.canceled:
 			_touches[touch.index] = true
 		else:
-			_touches.erase(touch.index)
+			_touches.clear()
 		accept_event()
 	elif event is InputEventScreenDrag:
 		_touch_seen_at = Time.get_ticks_msec()
