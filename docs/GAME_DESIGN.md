@@ -467,3 +467,7 @@ A rotina dá ao Tiro um jeito: Explorador, Comilão, Brincalhão, Dengoso ou Tra
 Filhotes bocejam/cochilam e às vezes pausam com um pulinho no caminho; Dentinhos mordisca as patinhas; Aventureiro corre em destinos próximos e olha/fareja mais; Mocinho e adulto descansam mais, procuram a turma e estações em uso. O adulto senta com ar importante. São animações existentes, sem alterar as necessidades, os prêmios ou o sono real.
 
 “Hoje o Tiro...” no caderninho guarda as últimas 20 lembranças: fotos, primeiras provas, crescimentos, passeios e achados raros. Fotos/provas/fases não repetem depois de recarregar; datas locais acompanham as linhas.
+
+## Pesca na lagoa da vovó (plano concluído em 12/11/2026)
+
+A pesca começa no meio do Filhotinho (a vovó ensina no capítulo 2) e existe para o **peixe virar prato que o Tiro precisa comer** para crescer: papinha de peixe (Dentinhos), ensopado (Aventureiro), peixe com ervas (Mocinho). Minigame de segurar/soltar (a barra sobe, soltar cai) com a rede enchendo; três varas (bambu, molinete, pescador) × três peixes reais cada, iscas que se compram ou se fazem, tamanho em cm pela pontuação com recorde por espécie, baú da lagoa, bolhas, caderno de peixes na Coleção e três rotinas. A banca da vovó tem a aba Comprar (ração, minhocas e a **oferta do dia**: um material em pouca quantidade). Números e nomes em `docs/PROGRESSION.md` (etapas 01–10 da pesca) e no plano `docs/plans/pesca/`.

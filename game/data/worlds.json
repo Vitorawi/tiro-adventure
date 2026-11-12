@@ -135,7 +135,7 @@
       },
       "fishing": {
         "name": "Lagoa",
-        "icon": "coin",
+        "icon": "station_fishing",
         "description": "Pesque com a vara da vovó.",
         "panel": "fishing",
         "hidden": true,
@@ -260,7 +260,7 @@
         ]
       },
       "early_market": {
-        "name": "Vender",
+        "name": "Banca da vovó",
         "icon": "coin",
         "description": "Venda o que sobrou e receba moedas na hora.",
         "panel": "sell",

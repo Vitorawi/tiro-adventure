@@ -19,6 +19,26 @@
         },
         "player_xp": 5
       },
+      "fish": {
+        "name": "Pesque na lagoa",
+        "description": "Pesque peixes na lagoa do sítio.",
+        "goal": {
+          "key": "fish",
+          "target": 2,
+          "targets": {
+            "start": 2,
+            "middle": 3,
+            "community": 4
+          }
+        },
+        "rewards": {
+          "coins": 6
+        },
+        "player_xp": 5,
+        "requirements": {
+          "rod": "bamboo_rod"
+        }
+      },
       "cook": {
         "name": "Prepare lotes",
         "description": "Faça e pegue lotes nas estações.",
@@ -90,6 +110,49 @@
           ]
         },
         "player_xp": 20
+      },
+      "big_fish": {
+        "name": "Um peixe grande",
+        "description": "Pesque um peixe grande na lagoa.",
+        "goal": {
+          "key": "fish_size:large",
+          "target": 1,
+          "targets": {
+            "start": 1,
+            "middle": 1,
+            "community": 2
+          }
+        },
+        "rewards": {
+          "coins": 20
+        },
+        "player_xp": 15,
+        "requirements": {
+          "rod": "bamboo_rod"
+        }
+      },
+      "many_fish": {
+        "name": "Pescaria",
+        "description": "Pesque vários peixes na lagoa.",
+        "goal": {
+          "key": "fish",
+          "target": 15,
+          "targets": {
+            "start": 15,
+            "middle": 20,
+            "community": 24
+          }
+        },
+        "rewards": {
+          "coins": 25,
+          "items": {
+            "bait_worm": 5
+          }
+        },
+        "player_xp": 20,
+        "requirements": {
+          "rod": "bamboo_rod"
+        }
       },
       "chef_week": {
         "name": "Chef da semana",

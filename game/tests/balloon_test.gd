@@ -104,10 +104,10 @@ func _run() -> void:
 	var overview: Label
 	for tag: Label in farm.get("_labels"):
 		if tag.get_meta("overview_label", false): overview = tag
-	check(overview != null and not overview.visible, "nome do conjunto também fica oculto")
+	check(overview == null or not overview.visible, "nome do conjunto (se houver) também fica oculto")
 	farm.call("_zoom_at", farm.size / 2, 1.2)
 	farm.call("_place_labels")
-	check(not overview.visible, "aproximar não escreve nomes")
+	check(overview == null or not overview.visible, "aproximar não escreve nomes")
 	var spark: Node2D = load("res://scripts/ui/world_balloon.gd").new()
 	spark.set("state", "spark")
 	farm.add_child(spark)

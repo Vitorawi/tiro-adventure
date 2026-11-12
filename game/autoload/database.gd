@@ -389,6 +389,8 @@ func room(id: String) -> Dictionary:
 
 
 func item_name(id: String) -> String:
+	if not items.has(id) and not collections.has(id) and fishing.get("rods", {}).has(id):
+		return str(fishing.rods[id].get("name", id))
 	return items.get(id, collections.get(id, {})).get("name", id)
 
 
@@ -396,12 +398,19 @@ func item_name(id: String) -> String:
 func item_icon(id: String) -> Texture2D:
 	if collections.has(id):
 		return _texture("res://assets/sprites/ui/icons/%s.png" % str(collections[id].get("icon", "")))
+	if not items.has(id) and fishing.get("rods", {}).has(id):
+		return _texture(str(fishing.rods[id].get("icon", "")))
 	return _texture(items.get(id, {}).get("icon", ""))
 
 
-## Saída comum para receitas de inventário e de roupas (estas nunca viram itens).
+## Saída comum para receitas de inventário, de roupas e de varas (estas nunca viram itens).
 func recipe_output(recipe: Dictionary) -> String:
-	return str(recipe.get("output_collection", recipe.get("output", "")))
+	return str(recipe.get("output_collection", recipe.get("output_rod", recipe.get("output", ""))))
+
+
+## Receita que entrega algo único (roupa da coleção ou vara de pesca): sem item, uma por vez.
+func recipe_unique(recipe: Dictionary) -> bool:
+	return recipe.has("output_collection") or recipe.has("output_rod")
 
 
 func station_upgrade(id: String) -> String:
@@ -456,9 +465,13 @@ func sources_of(item_id: String) -> PackedStringArray:
 	for id: String in progression.get("activities", {}):
 		if progression.activities[id].get("rewards", {}).get("items", {}).has(item_id):
 			lines.append("Rota: " + str(progression.activities[id].name))
+	for entry: Dictionary in shops_selling(item_id):
+		lines.append("%s · %d moedas" % [str(shop(str(entry.shop)).get("name", "")), int(entry.price)])
 	for id: String in quests:
 		if quests[id].get("rewards", {}).get("items", {}).has(item_id):
 			lines.append("Missão: " + str(quests[id].name))
+	if fishing.get("fish", {}).has(item_id):
+		lines.append("Pesca: lagoa do Sítio")
 	if item_id == "dog_food":
 		lines.append("A Bloblo ajuda quando a comida acaba (Tigela)")
 	return lines
@@ -568,9 +581,68 @@ func project_problems() -> Array[String]:
 	return problems
 
 
+func shop(id: String) -> Dictionary:
+	return progression.get("shops", {}).get(id, {})
+
+
+## Loja que fica no lugar (mundo + lugar) ou "" se não houver.
+func shop_of_place(world_id: String, place_id: String) -> String:
+	var shops: Dictionary = progression.get("shops", {})
+	for id: String in shops:
+		if str(shops[id].get("world", "")) == world_id and str(shops[id].get("place", "")) == place_id:
+			return id
+	return ""
+
+
+## Lojas que vendem o item: [{shop, id (pacote), price, qty}].
+func shops_selling(item_id: String) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var items: Dictionary = progression.get("shop_items", {})
+	for id: String in items:
+		if items[id].get("items", {}).has(item_id) and str(items[id].get("shop", "")) != "petshop":
+			result.append({"shop": str(items[id].shop), "id": id, "price": int(items[id].price), "qty": int(items[id].items[item_id])})
+	return result
+
+
+func shop_problems() -> PackedStringArray:
+	var problems: PackedStringArray = []
+	var shops: Dictionary = progression.get("shops", {})
+	var items: Dictionary = progression.get("shop_items", {})
+	for id: String in items:
+		var data: Dictionary = items[id]
+		if not shops.has(str(data.get("shop", ""))):
+			problems.append("shop_items.%s: loja inexistente" % id)
+		for item: String in data.get("items", {}):
+			if not self.items.has(item):
+				problems.append("shop_items.%s: item %s inexistente" % [id, item])
+		for item: String in data.get("materials", {}):
+			if not self.items.has(item):
+				problems.append("shop_items.%s: material %s inexistente" % [id, item])
+		for rod: String in data.get("rods", []):
+			if not fishing.get("rods", {}).has(rod):
+				problems.append("shop_items.%s: vara %s inexistente" % [id, rod])
+		for entry: Dictionary in data.get("rotation", []):
+			if entry.get("items", {}).is_empty() or int(entry.get("price", 0)) <= 0:
+				problems.append("shop_items.%s: entrada da rotação sem itens ou preço" % id)
+			for item: String in entry.get("items", {}):
+				if not self.items.has(item):
+					problems.append("shop_items.%s: item %s da rotação inexistente" % [id, item])
+		if data.get("items", {}).is_empty() and data.get("rods", []).is_empty() and data.get("rotation", []).is_empty():
+			problems.append("shop_items.%s: sem itens nem varas" % id)
+		if int(data.get("price", 0)) <= 0 and data.get("rotation", []).is_empty():
+			problems.append("shop_items.%s: preço inválido" % id)
+		if data.has("max") and int(data.max) < 1:
+			problems.append("shop_items.%s: max < 1" % id)
+		if data.has("daily") and int(data.daily) < 1:
+			problems.append("shop_items.%s: daily < 1" % id)
+	return problems
+
+
 ## Fontes como objetivos, compartilhadas pela navegação das missões.
 func item_sources(item_id: String) -> Array[Dictionary]:
 	var sources: Array[Dictionary] = []
+	for entry: Dictionary in shops_selling(item_id):
+		sources.append({"type": "stat", "key": "shop:" + str(entry.id)})
 	for id: String in crops:
 		if crops[id].get("yield", {}).has(item_id):
 			sources.append({"type": "stat", "key": "harvest:" + id})
@@ -580,6 +652,8 @@ func item_sources(item_id: String) -> Array[Dictionary]:
 	for id: String in progression.activities:
 		if progression.activities[id].get("rewards", {}).get("items", {}).has(item_id):
 			sources.append({"type": "stat", "key": "activity:" + id})
+	if fishing.get("fish", {}).has(item_id):
+		sources.append({"type": "stat", "key": "fish:" + item_id})  # pescado na lagoa do Sítio
 	if item_id == "dog_food":
 		sources.append({"type": "stat", "key": "feed"})
 	# Achados (pedaços do mapa...): onde o Tiro cava no mundo que os garante ou sorteia.

@@ -37,10 +37,12 @@ func _run() -> void:
 	var greenhouse: Sprite2D = farm.find_child("greenhouse", true, false)
 	var orchard: Sprite2D = farm.find_child("orchard", true, false)
 	check(greenhouse.self_modulate.a == 0.0 and orchard.self_modulate.a == 0.0, "Construções ainda não compradas invisíveis")
-	check(farm.find_child("Region_greenhouse_area", true, false).visible, "Área da estufa fechada")
+	var gh_sign: Sprite2D = farm.find_child("sign_greenhouse", true, false)
+	check(gh_sign != null and farm.find_child("sign_plot_4", true, false) != null, "Placas de compra existem (estufa e canteiro)")
 	_shot("farm_expansion_start")
 	var nav: AStarGrid2D = farm.get("_nav")
-	check(nav.is_point_solid(Vector2i(660, 1316) / 8), "Tiro não entra na área fechada")
+	var gh_solid := Vector2i((greenhouse.position - Vector2(0, 30)) / 8.0)
+	check(nav.is_point_solid(gh_solid), "Tiro não entra no chão da estufa (nem fechada)")
 	# Colheita real e caminho da reação: deve continuar contornando canteiros.
 	check(state.call("plant", 1, "carrot") == "", "Plantar cenoura")
 	state.get("plots")[1].ready_at = 0.0
@@ -81,9 +83,10 @@ func _run() -> void:
 	await process_frame
 	await process_frame
 	check(greenhouse.self_modulate.a == 1.0 and orchard.self_modulate.a == 1.0, "Construções compradas aparecem")
-	check(not farm.find_child("Region_greenhouse_area", true, false).visible, "Cerca sai depois da compra")
-	check(not nav.is_point_solid(Vector2i(660, 1316) / 8), "Área aberta entra na navegação")
-	check(not (farm.call("find_path", dog.position, Vector2(300, 260)) as PackedVector2Array).is_empty(), "Área expandida é alcançável")
+	check(not gh_sign.visible, "Placa de compra some depois da compra")
+	check(nav.is_point_solid(gh_solid), "Estufa comprada continua ocupando o chão")
+	var bloblo_point := Vector2((farm.get("_room") as Dictionary).points.npc_bloblo[0], (farm.get("_room") as Dictionary).points.npc_bloblo[1])
+	check(not (farm.call("find_path", dog.position, bloblo_point) as PackedVector2Array).is_empty(), "Casa é alcançável")
 	farm.call("_zoom_at", farm.size / 2.0, 0.3)
 	await create_timer(0.3).timeout
 	_shot("farm_expansion_built")

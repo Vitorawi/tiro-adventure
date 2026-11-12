@@ -63,8 +63,12 @@ func _fresh(with_rod: bool = true, baits: int = 6) -> void:
 	if with_rod:
 		state.call("dev_give_rod", "bamboo_rod")
 		state.get("inventory").add("bait_worm", baits)
-		state.get("fishing").tutorial["done"] = false  # a janela da fisgada não fecha: dá tempo de capturar a mordida
+		# Sem tutorial (ele começaria sozinho e cobriria a tela); a janela da fisgada fica longa para dar tempo de capturar a mordida.
+		state.get("fishing").tutorial["done"] = true
+		root.get_node("Database").fishing.cast["bite_window"] = 600.0
 	state.call("_changed")
+	for stale: Node in main.find_children("AnglerTutorial", "", true, false):
+		stale.queue_free()  # o tutorial começou ao ganhar a vara; as capturas não são dele
 	await create_timer(0.6).timeout
 	_hide_modals()
 

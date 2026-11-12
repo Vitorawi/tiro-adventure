@@ -87,7 +87,7 @@ func _run() -> void:
 			room.call("_handle_tap", market.get_meta("anchor"))
 			await settle()
 			check(main.get_node("Sheet").call("is_open"), "toque abre venda")
-			check(main.get_node("Sheet").get_node("%Title").text == "Vender", "toque abre o painel correto")
+			check(main.get_node("Sheet").get_node("%Title").text == "Banca da vovó", "toque abre o painel correto")
 			root.get_node("Events").sheet_close_requested.emit()
 			await settle()
 		room.set("_held_label", null)

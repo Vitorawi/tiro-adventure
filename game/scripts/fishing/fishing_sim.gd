@@ -10,6 +10,9 @@ const MAX_STEPS := 10  # segurança: se o app engasgar, não roda mais que isso 
 var config: Dictionary
 var fish: Dictionary
 var rod: Dictionary
+## Regras do tutorial da pesca (opcionais): `drain_until` (sem dreno até a rede passar disso), `meter_floor`
+## (depois disso a rede nunca cai abaixo) e `cap` (teto temporário da rede). Vazio = partida normal.
+var tutorial: Dictionary = {}
 
 # Estado público.
 var bar_y := 0.0
@@ -25,7 +28,17 @@ var finished := false
 var caught := false
 var perfect := false
 
+## Baú da lagoa (opcional, decidido na fisgada): aparece depois de `chest.appear_after` s e enche a `chest.fill` por s
+## enquanto a barra cobre a altura dele; nunca esvazia. `chest_open` = rede do baú cheia.
+var chest_enabled := false
+var chest_shown := false
+var chest_y := 0.0
+var chest_meter := 0.0
+var chest_open := false
+
+var _chest_rng := RandomNumberGenerator.new()
 var _rng := RandomNumberGenerator.new()
+var _unlocked := false
 var _acc := 0.0
 var _tick := 1.0 / 60.0
 var _base := 0.5          ## posição do peixe sem o ruído
@@ -46,6 +59,7 @@ func _init(p_config: Dictionary, p_fish: Dictionary, p_seed: int, p_bar_height: 
 	_tick = float(config.physics.tick)
 	meter = float(config.meter.start)
 	_rng.seed = p_seed
+	_chest_rng.seed = hash("chest:%d" % p_seed)  # sorteio próprio: o baú não muda o movimento do peixe
 	_base = 0.5
 	fish_y = 0.5
 	_target = _base
@@ -101,14 +115,26 @@ func _one_tick(holding: bool) -> void:
 	# d) rede
 	var meter_cfg: Dictionary = config.meter
 	var after_grace := elapsed > float(meter_cfg.grace)
+	if meter >= float(tutorial.get("drain_until", 2.0)):
+		_unlocked = true
 	if fish_y >= bar_y and fish_y <= bar_y + bar_h:
 		meter += float(meter_cfg.fill) * float(fish.get("fill_mult", 1.0)) * _tick
 		if after_grace:
 			inside_time += _tick
 	else:
-		meter -= float(meter_cfg.drain) * float(fish.get("drain_mult", 1.0)) * (1.0 - float(rod.get("hold", 0.0))) * _tick
+		# Tutorial: sem dreno até a rede passar de `drain_until`; depois ela nunca cai abaixo de `meter_floor`.
+		var drain := float(meter_cfg.drain) * float(fish.get("drain_mult", 1.0)) * (1.0 - float(rod.get("hold", 0.0))) * _tick
+		if tutorial.has("drain_until") and not _unlocked:
+			drain = 0.0
+		meter -= drain
+		if tutorial.has("meter_floor") and _unlocked:
+			meter = maxf(meter, float(tutorial.meter_floor))
 		if after_grace:
 			outside_time += _tick
+	if tutorial.has("cap"):
+		meter = minf(meter, float(tutorial.cap))  # demonstração pausada: a rede não termina sozinha
+	if chest_enabled:
+		_tick_chest()
 	# e) fim
 	if meter >= 1.0:
 		meter = 1.0
@@ -119,6 +145,34 @@ func _one_tick(holding: bool) -> void:
 		meter = 0.0
 		finished = true
 		caught = false
+
+
+# ---------- baú ----------
+
+func _tick_chest() -> void:
+	var chest: Dictionary = config.get("chest", {})
+	if not chest_shown:
+		if elapsed < float(chest.get("appear_after", 2.0)):
+			return
+		_place_chest()
+	if not chest_open and chest_y >= bar_y and chest_y <= bar_y + bar_h:
+		chest_meter = minf(chest_meter + float(chest.get("fill", 0.5)) * _tick, 1.0)
+		chest_open = chest_meter >= 1.0
+
+
+## Altura sorteada a pelo menos 0,3 do peixe (dentro da pista; se não houver lado com espaço, o mais longe possível).
+func _place_chest() -> void:
+	var lane := _lane()
+	var gap := 0.3
+	var below := maxf(0.0, (fish_y - gap) - lane.x)
+	var above := maxf(0.0, lane.y - (fish_y + gap))
+	if below + above <= 0.0:
+		chest_y = lane.x if fish_y - lane.x > lane.y - fish_y else lane.y
+	elif _chest_rng.randf() * (below + above) < below:
+		chest_y = _chest_rng.randf_range(lane.x, fish_y - gap)
+	else:
+		chest_y = _chest_rng.randf_range(fish_y + gap, lane.y)
+	chest_shown = true
 
 
 # ---------- peixe ----------

@@ -60,6 +60,7 @@ var _button_held := false
 var _info_card: Control
 var _frame: Control
 var _fish_texture: Texture2D
+var _fish_sprite: Texture2D  ## peixe grande do minigame (ui/fishing/fish_<id>.png); sem ele usa o ícone
 var _ending := false
 var _tap_haptic_at := -10000
 var _time := 0.0
@@ -130,7 +131,7 @@ func _process(delta: float) -> void:
 	if sim == null:
 		return
 	_time += delta
-	if _running and not _paused:
+	if _running and not _paused and not frozen:
 		var inside_before := sim.fish_y >= sim.bar_y and sim.fish_y <= sim.bar_y + sim.bar_h
 		sim.step(_holding(), minf(delta, 0.1))
 		var inside_now := sim.fish_y >= sim.bar_y and sim.fish_y <= sim.bar_y + sim.bar_h
@@ -148,7 +149,7 @@ func _process(delta: float) -> void:
 func _finish() -> void:
 	_running = false
 	if live:
-		_live_result = {"caught": sim.caught, "score": clampf(sim.score(), 0.0, 1.0), "perfect": sim.caught and sim.perfect, "chest": false}
+		_live_result = {"caught": sim.caught, "score": clampf(sim.score(), 0.0, 1.0), "perfect": sim.caught and sim.perfect, "chest": sim.caught and sim.chest_open}
 		_ending = true
 		_result_ready_at = _time + (0.0 if Motion.reduced else 0.55)
 		if sim.caught:
@@ -380,7 +381,15 @@ func _ready_live() -> void:
 	var fish: Dictionary = config.fish.get(fish_id, {}).duplicate()
 	var rod: Dictionary = config.get("rods", {}).get(str(cast.get("rod", "")), {})
 	_fish_texture = Database.item_icon(fish_id)
+	var sprite_path := "res://assets/sprites/ui/fishing/" + fish_id.trim_prefix("item_") + ".png"
+	_fish_sprite = load(sprite_path) as Texture2D if ResourceLoader.exists(sprite_path) else null
+	if not GameState.fishing_tutorial_done():
+		fish["difficulty"] = float(config.get("tutorial", {}).get("difficulty", 8))  # o lambari do tutorial é bem mansinho
 	sim = FishingSim.new(config, fish, int(cast.get("seed", 1)), GameState.fishing_bar_height(), rod)
+	sim.chest_enabled = bool(cast.get("chest", false)) and GameState.fishing_tutorial_done()
+	if not GameState.fishing_tutorial_done():
+		var rules: Dictionary = config.get("tutorial", {})
+		sim.tutorial = {"drain_until": float(rules.get("drain_until", 0.5)), "meter_floor": float(rules.get("meter_floor", 0.2))}  # a primeira pesca não pode falhar
 	_running = true
 	_build_live()
 	get_parent().resized.connect(_layout_live)
@@ -490,6 +499,24 @@ func is_paused() -> bool:
 	return _paused
 
 
+## Tutorial (etapa 05): a vovó para o tempo para explicar. O `FishingSim` não anda enquanto estiver congelado.
+var frozen := false
+
+
+## O dedo está no botão "Segurar para pescar" (o tutorial confere o passo "segure").
+func is_holding() -> bool:
+	return _button_held
+
+
+func hold_button_rect() -> Rect2:
+	return _hold_button.get_global_rect() if _hold_button != null and _hold_button.is_inside_tree() else Rect2()
+
+
+func track_global_rect() -> Rect2:
+	var rect := track_rect()
+	return Rect2(global_position + rect.position, rect.size)
+
+
 func pause() -> void:
 	if not live or _paused or not _running:
 		return
@@ -540,7 +567,7 @@ func _draw_live() -> void:
 			var y := track.position.y + track.size.y * (float(i) / 9.0) + fposmod(_time * 6.0, track.size.y / 9.0)
 			if y < track.end.y - 2.0:
 				draw_line(Vector2(track.position.x + 6, y), Vector2(track.end.x - 6, y), Color(1, 1, 1, 0.12), 2.0)
-	draw_rect(track, Palette.WOOD_INK, false, 2.0)
+	draw_style_box(_wood_box("fishing_track", 12), track.grow(6.0))
 	# rede (medidor): enche de baixo para cima, verde → amarelo → vermelho conforme cai
 	draw_rect(meter, Palette.SUNKEN)
 	var fraction := clampf(sim.meter, 0.0, 1.0)
@@ -551,19 +578,40 @@ func _draw_live() -> void:
 		shake = sin(_time * 40.0) * 1.0
 	var fill_h := meter.size.y * fraction
 	draw_rect(Rect2(meter.position.x + shake, meter.end.y - fill_h, meter.size.x, fill_h), tone)
-	draw_rect(meter, Palette.WOOD_INK, false, 2.0)
+	draw_style_box(_wood_box("fishing_meter", 12), meter.grow(6.0))
 	# barra do jogador
 	var bar_top := track.end.y - (sim.bar_y + sim.bar_h) * track.size.y
 	var bar := Rect2(track.position.x + 2.0, bar_top, track.size.x - 4.0, sim.bar_h * track.size.y)
-	draw_rect(bar, Color(Palette.GO, 0.45))
-	draw_rect(bar, Color(1, 1, 1, 0.85), false, 2.5)
+	draw_style_box(_wood_box("fishing_bar", 8), bar)
+	# baú (só nas partidas com baú): balança de leve, anelzinho próprio enche enquanto a barra cobre
+	if sim.chest_shown:
+		_draw_chest(track)
 	# peixe (leve rabeada)
 	var wiggle := 0.0 if Motion.reduced else sin(_time * 9.0) * 2.0
 	var center := Vector2(track.get_center().x + wiggle, track.end.y - sim.fish_y * track.size.y)
-	if _fish_texture != null:
+	if _fish_sprite != null:
+		var fish_size := Vector2(_fish_sprite.get_size())
+		draw_texture_rect(_fish_sprite, Rect2(center - fish_size / 2.0, fish_size), false)
+	elif _fish_texture != null:
 		draw_texture_rect(_fish_texture, Rect2(center - Vector2(FISH_ICON, FISH_ICON) / 2.0, Vector2(FISH_ICON, FISH_ICON)), false)
 	else:
 		draw_circle(center, 14.0, Palette.INK)
+
+
+func _draw_chest(track: Rect2) -> void:
+	var tilt := 0.0 if Motion.reduced else sin(_time * 2.2) * 0.07
+	var center := Vector2(track.get_center().x, track.end.y - sim.chest_y * track.size.y)
+	var texture := load("res://assets/sprites/ui/fishing/chest.png") as Texture2D
+	draw_set_transform(center, tilt, Vector2.ONE)
+	if texture != null:
+		var half := Vector2(texture.get_size()) / 2.0
+		draw_texture_rect(texture, Rect2(-half, Vector2(texture.get_size())), false, Color.WHITE if sim.chest_open else Color(1, 1, 1, 0.9))
+	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+	var radius := 30.0
+	draw_arc(center, radius, 0.0, TAU, 32, Color(0, 0, 0, 0.35), 4.0)
+	var tone := Palette.GO if sim.chest_open else Palette.HONEY
+	if sim.chest_meter > 0.0:
+		draw_arc(center, radius, -PI / 2.0, -PI / 2.0 + TAU * clampf(sim.chest_meter, 0.0, 1.0), 32, tone, 4.0)
 
 
 ## Cartão da esquerda: vara em uso, isca e o peixe da luta (nome, tamanho possível, recorde).
@@ -616,3 +664,15 @@ func _info_line(node_name: String, texture: Texture2D, text: String) -> Control:
 	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(label)
 	return row
+
+
+static var _boxes: Dictionary = {}
+
+## Moldura/barra de madeira (NinePatch de ui/home, montadas por tools/fishing_art.py).
+static func _wood_box(file: String, margin: int) -> StyleBoxTexture:
+	if not _boxes.has(file):
+		var box := StyleBoxTexture.new()
+		box.texture = load("res://assets/sprites/ui/home/%s.png" % file) as Texture2D
+		box.set_texture_margin_all(margin)
+		_boxes[file] = box
+	return _boxes[file]

@@ -82,6 +82,18 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			return result
 		"recipe":
 			result = _recipe(id, amount)
+		"shop":
+			var pack: Dictionary = Database.progression.shop_items.get(id, {})
+			var shop: Dictionary = Database.shop(str(pack.get("shop", "")))
+			var closed := GameState.shop_error(str(pack.get("shop", "")))
+			var locked := GameState.shop_item_locked(id)
+			result = _base(str(pack.get("name", id)), "Compre na %s · %d moedas" % [str(shop.get("name", "banca")).to_lower(), int(pack.get("price", 0))],
+				{"world": str(shop.get("world", "farm")), "place": "shop:" + id, "spot": str(shop.get("place", ""))}, "Comprar")
+			if closed != "":
+				result.detail = closed
+			elif locked != "":
+				result.detail = locked
+			result.needs = [_need("coins", "", int(pack.get("price", 0)))]
 		"walk":
 			var walk := GameState.walk_def(id)
 			result = _base(str(walk.get("name", id)), "Passeie na Praça e guarde os achados.", {"world": "park", "place": "walk"}, "Ir")
@@ -186,6 +198,12 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 		if GameState.inventory.count(str(def.likes)) == 0:
 			return describe("item", str(def.likes), 1, trail)
 		return result
+	if type == "stat" and key.begins_with("fish_size:"):
+		return _base(str(goal.get("label", "Peixe grande")), "Jogue bem: o peixe fica maior quanto mais tempo dentro da barra.", Places.goal_target(goal), "Ir")
+	if type == "stat" and (key == "fish" or key.begins_with("fish:") or key.begins_with("fish_")):
+		return _base(str(goal.get("label", "Pescar")), "Pescar na lagoa do Sítio: toque na água, segure Arremessar e fisgue quando a boia afundar.", Places.goal_target(goal), "Ir")
+	if type == "stat" and key.begins_with("bought:"):
+		return _base(str(goal.get("label", "Comprar")), "Comprar na banca da vovó: aba Comprar, escolha o pacote e toque em Comprar.", Places.goal_target(goal), "Ir")
 	match type:
 		"owned": return describe("upgrade", key, 1, trail)
 		"skill": return describe("skill", key, amount, trail)
@@ -389,6 +407,12 @@ static func best_source(item: String) -> Dictionary:
 			var walk_id := str(source.key).trim_prefix("walk:")
 			candidate = {"kind": "walk", "id": walk_id}
 			requirements = GameState.walk_def(walk_id).get("requirements", {})
+		elif str(source.key).begins_with("fish:"):
+			candidate = {"kind": "stat", "id": str(source.key)}  # pescar na lagoa (a vara vem da vovó)
+		elif str(source.key).begins_with("shop:"):
+			var pack_id := str(source.key).trim_prefix("shop:")
+			candidate = {"kind": "shop", "id": pack_id}
+			requirements = Database.progression.shop_items.get(pack_id, {}).get("requirements", {})
 		if candidate.is_empty():
 			continue
 		var target := Places.goal_target(source)
@@ -541,6 +565,11 @@ static func icon_for(kind: String, id: String) -> Texture2D:
 			return UiKit.ui_icon(Database.progression.activities[id].get("icon", "action_play"))
 		"walk":
 			return UiKit.ui_icon("action_walk")
+		"shop":
+			var pack: Dictionary = Database.progression.shop_items.get(id, {})
+			if pack.get("items", {}).is_empty():
+				return load(str(Database.fishing.get("rods", {}).get(str(pack.get("rods", [""])[0]), {}).get("icon", ""))) as Texture2D
+			return Database.item_icon(str(pack.items.keys()[0]))
 		"order":
 			return UiKit.ui_icon("item_treat_box")
 		"care":

@@ -4,9 +4,9 @@ extends Button
 ## creme com o nome embaixo, discos de madeira nos cantos com os avisos do mundo (no máximo três) e os bloqueios reais.
 ## As imagens `map_*.png` vêm de `tools/world_map_art.gd`. Mundo atual = contorno dourado + selinho "Aqui".
 ## Nós preservados: `WorldPhoto`, `WorldName`, `WorldLock`, `CurrentWorld`, `WorldHint`, `WorldOpener`,
-## `WorldStatusRows` e `WorldStatus_<tipo>` (rewards, missions, collections, finds, treasure, busy).
+## `WorldStatusRows` e `WorldStatus_<tipo>` (rewards, missions, collections, finds, treasure, fishing, busy).
 
-const KINDS := ["rewards", "missions", "collections", "finds", "treasure", "busy"]
+const KINDS := ["rewards", "missions", "collections", "finds", "treasure", "fishing", "busy"]
 const MAX_STATUS := 3
 const PLATE_RATIO := 213.0 / 600.0      # altura / largura da plaquinha
 const PLATE_OVERLAP := 0.30             # parte da plaquinha que sobe sobre a foto (a "corcunda" de madeira)

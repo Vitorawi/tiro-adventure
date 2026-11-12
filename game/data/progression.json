@@ -202,6 +202,17 @@
         ]
       }
     },
+    "fish_book": {
+      "name": "Caderno de peixes",
+      "icon": "item_fish_tilapia",
+      "go": {
+        "screen": "pet",
+        "collection": true
+      },
+      "requirements": {
+        "rod": "bamboo_rod"
+      }
+    },
     "dress": {
       "name": "Vestir o Tiro",
       "icon": "outfit_red_scarf",
@@ -2401,6 +2412,73 @@
       },
       "cooldown": 7200
     },
+    "bloblo_lambaris": {
+      "customer": "bloblo",
+      "name": "Lambaris da lagoa",
+      "inputs": {
+        "fish_lambari": 4
+      },
+      "requirements": {
+        "rod": "bamboo_rod",
+        "quests": [
+          "first_harvest"
+        ]
+      },
+      "rewards": {
+        "coins": 30,
+        "skill_xp": {
+          "commerce": 8
+        }
+      },
+      "cooldown": 3600
+    },
+    "nina_lambari_treats": {
+      "customer": "nina",
+      "name": "Petiscos de lambari",
+      "inputs": {
+        "lambari_crunch": 2
+      },
+      "requirements": {
+        "rod": "bamboo_rod",
+        "quests": [
+          "first_harvest"
+        ],
+        "owned": [
+          "stove"
+        ]
+      },
+      "rewards": {
+        "coins": 45,
+        "skill_xp": {
+          "commerce": 10
+        }
+      },
+      "cooldown": 3600
+    },
+    "lais_fish_lunch": {
+      "customer": "lais",
+      "name": "Peixe para o almoço",
+      "inputs": {
+        "fish_pacu": 2,
+        "fish_stew": 1
+      },
+      "requirements": {
+        "rod": "reel_rod",
+        "quests": [
+          "first_harvest"
+        ],
+        "owned": [
+          "stove"
+        ]
+      },
+      "rewards": {
+        "coins": 90,
+        "skill_xp": {
+          "commerce": 14
+        }
+      },
+      "cooldown": 3600
+    },
     "puree_order": {
       "customer": "bloblo",
       "name": "Almoço do vizinho",
@@ -2653,7 +2731,118 @@
     "pickaxe_crystal": "cave_level_3",
     "sickle": "meadow_level_2"
   },
+  "shops": {
+    "farm_stall": {
+      "name": "Banca da vovó",
+      "world": "farm",
+      "place": "early_market",
+      "npc": "bloblo",
+      "requirements": {
+        "quests": ["bloblo_meet"]
+      }
+    },
+    "market": {
+      "name": "Feirante",
+      "world": "village",
+      "place": "market",
+      "requirements": {
+        "chapter": 4
+      }
+    },
+    "petshop": {
+      "name": "Pet shop",
+      "world": "park",
+      "place": "petshop",
+      "requirements": {
+        "owned": ["petshop"]
+      }
+    }
+  },
   "shop_items": {
+    "food_stall": {
+      "shop": "farm_stall",
+      "name": "Ração da vovó",
+      "items": {
+        "dog_food": 3
+      },
+      "price": 10,
+      "icon": "item_dog_food",
+      "requirements": {
+        "quests": ["bloblo_meet"]
+      },
+      "daily": 2
+    },
+    "worm_pack": {
+      "shop": "farm_stall",
+      "name": "Minhocas",
+      "items": {
+        "bait_worm": 5
+      },
+      "price": 10,
+      "icon": "item_bait_worm",
+      "requirements": {
+        "rod": "bamboo_rod"
+      },
+      "max": 5
+    },
+    "daily_offer": {
+      "shop": "farm_stall",
+      "name": "Oferta do dia",
+      "rotation": [
+        {"name": "Madeira (hoje)", "items": {"wood": 2}, "price": 12, "icon": "item_wood", "requirements": {"quests": ["lais_forest"]}},
+        {"name": "Pedra (hoje)", "items": {"stone": 2}, "price": 12, "icon": "item_stone", "requirements": {"quests": ["lais_forest"]}},
+        {"name": "Fibra (hoje)", "items": {"fiber": 2}, "price": 16, "icon": "item_fiber", "requirements": {"quests": ["guide_open_cave"]}}
+      ],
+      "price": 12,
+      "icon": "item_wood",
+      "requirements": {
+        "quests": ["lais_forest"]
+      },
+      "daily": 1
+    },
+    "dough_pack": {
+      "shop": "market",
+      "name": "Massa de milho",
+      "items": {
+        "bait_dough": 4
+      },
+      "price": 20,
+      "icon": "item_bait_dough",
+      "requirements": {
+        "rod": "reel_rod"
+      },
+      "max": 5
+    },
+    "reel_rod_pack": {
+      "shop": "market",
+      "name": "Vara de molinete",
+      "rods": [
+        "reel_rod"
+      ],
+      "materials": {
+        "fiber": 4
+      },
+      "price": 180,
+      "icon": "rod_reel",
+      "requirements": {
+        "chapter": 5,
+        "fishing_level": 3
+      },
+      "max": 1
+    },
+    "lure": {
+      "shop": "market",
+      "name": "Isca artificial",
+      "items": {
+        "bait_lure": 1
+      },
+      "price": 25,
+      "icon": "item_bait_lure",
+      "requirements": {
+        "rod": "angler_rod"
+      },
+      "max": 3
+    },
     "dog_food_pack": {
       "name": "Pacote de ração",
       "items": {

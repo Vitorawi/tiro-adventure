@@ -32,7 +32,7 @@ func _run() -> void:
 		fresh(str(db.growth.phases[index - 1].id))
 		var meals: Dictionary
 		for req: Dictionary in phase.requirements:
-			if req.type == "feed": meals = req
+			if req.type == "feed" and req.has("body_level"): meals = req
 			if req.type == "moments":
 				check(req.pillar != "body", "cuidados independentes sem Corpo " + str(phase.id))
 		var goal := int(meals.body_level)

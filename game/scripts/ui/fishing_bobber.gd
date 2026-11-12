@@ -18,6 +18,9 @@ var _splash := 0.0  ## 0..1: respingo (1 = acabou de acontecer)
 var _alert := 0.0  ## 0..1: "!" visível
 var _flight: Tween
 
+const BOBBER_SCALE := 0.5  ## a arte é 32 px; ~16 px no mapa (a 03 definitiva pode trazer 16 px)
+static var _bobber_tex: Texture2D
+
 
 func _ready() -> void:
 	name = "FishingBobber"
@@ -95,16 +98,19 @@ func _draw() -> void:
 	var from := rod_tip - position
 	var mid := (from + float_center) / 2.0 + Vector2(0, 10)
 	draw_polyline(PackedVector2Array([from, from.lerp(mid, 0.5), mid, mid.lerp(float_center, 0.5), float_center]), Color(0.1, 0.1, 0.1, 0.7), 1.5)
-	# respingo
+	# respingo: cinco quadros do anel de água (arte PixelLab), do mais novo ao mais velho
 	if _splash > 0.0:
-		var radius := 9.0 + (1.0 - _splash) * 16.0
-		draw_arc(Vector2(0, 2), radius, 0, TAU, 28, Color(1, 1, 1, _splash * 0.8), 2.0)
-		draw_arc(Vector2(0, 2), radius * 0.6, 0, TAU, 20, Color(1, 1, 1, _splash * 0.6), 1.5)
+		var frame := clampi(int((1.0 - _splash) * 5.0), 0, 4)
+		var ring := _frames("res://assets/sprites/fx/fishing_splash/%d.png", 5)[frame] as Texture2D
+		var ring_half := Vector2(ring.get_size()) * BOBBER_SCALE * 0.5
+		draw_texture_rect(ring, Rect2(Vector2(0, 2) - ring_half, ring_half * 2.0), false)
 	# boia: bolinha vermelha com topo branco
 	var down := clampf(_sink, 0.0, 1.0)
-	draw_circle(float_center + Vector2(0, 2), 6.5, Color(0.1, 0.1, 0.1, 0.35))
-	draw_circle(float_center, 6.0, Color("d9402e"))
-	draw_circle(float_center + Vector2(0, -2.5), 3.4 * (1.0 - down * 0.4), Color.WHITE)
+	var tex := _bobber_texture()
+	if state == "bite":  # quadros da boia afundando: o mais fundo quando _sink chega a 1
+		tex = _frames("res://assets/sprites/fx/fishing_bobber_sink/%d.png", 5)[clampi(int(down * 4.0 + 0.5), 0, 4)]
+	var half := Vector2(tex.get_size()) * BOBBER_SCALE / 2.0
+	draw_texture_rect(tex, Rect2(float_center - half + Vector2(0, down * 3.0), half * 2.0), false)
 	# anel da espera longa
 	if show_ring and state == "waiting":
 		draw_arc(float_center, 13.0, -PI / 2.0, -PI / 2.0 + TAU * clampf(wait_fraction, 0.0, 1.0), 32, Palette.HONEY, 2.5)
@@ -114,3 +120,20 @@ func _draw() -> void:
 		draw_circle(float_center + Vector2(0, -30), 13.0, Palette.ALERT)
 		draw_circle(float_center + Vector2(0, -30), 13.0, Color.WHITE, false, 2.0)
 		draw_string(font, float_center + Vector2(-5, -23), "!", HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color.WHITE)
+
+
+static func _bobber_texture() -> Texture2D:
+	if _bobber_tex == null:
+		_bobber_tex = load("res://assets/sprites/fx/fishing_bobber.png") as Texture2D
+	return _bobber_tex
+
+
+static var _frame_cache: Dictionary = {}
+
+static func _frames(pattern: String, count: int) -> Array:
+	if not _frame_cache.has(pattern):
+		var list: Array = []
+		for i in count:
+			list.append(load(pattern % i))
+		_frame_cache[pattern] = list
+	return _frame_cache[pattern]

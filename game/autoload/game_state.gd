@@ -809,7 +809,8 @@ func feed(item_id: String) -> bool:
 		return false
 	var meal_before: Dictionary = {}
 	for row: Dictionary in growth_info().requirements:
-		if row.type == "feed" and not row.done:
+		# Só a refeição que esta comida alimenta (a papinha de peixe não é a cenoura gelada).
+		if row.type == "feed" and not row.done and str(row.get("item", "")) in [item_id, "any", "favorite"]:
 			meal_before = row
 	var body_before := growth.body_level
 	inventory.remove(item_id)
@@ -821,6 +822,8 @@ func feed(item_id: String) -> bool:
 	_album_event("fed", {"item": item_id, "growth_food": Database.items.get(item_id, {}).has("growth")})
 	_care_useful("feed", useful)
 	_care_reward("feed", useful)
+	if item_id == "herb_fish":
+		_moment_source("herb_fish")  # o ômega-3 deixa o pelo brilhante: 1 momento de Pelagem (com teto)
 	_changed()
 	Events.dog_action.emit(&"feed")
 	if not meal_before.is_empty():
@@ -1137,7 +1140,7 @@ func cook_max(recipe_id: String) -> int:
 	if not Database.recipes.has(recipe_id) or cook_many_error(recipe_id, 1) != "":
 		return 0
 	var recipe: Dictionary = Database.recipes[recipe_id]
-	if recipe.has("output_collection") or Database.stations[recipe.station].get("kind", "") == "animal":
+	if Database.recipe_unique(recipe) or Database.stations[recipe.station].get("kind", "") == "animal":
 		return 1
 	var result := station_free_slots(str(recipe.station))
 	var inputs := recipe_inputs(recipe_id)
@@ -1177,8 +1180,16 @@ func cook_many_error(recipe_id: String, count: int) -> String:
 	var target := station(station_id)
 	var cosmetic := str(recipe.get("output_collection", ""))
 	var animal: bool = Database.stations[station_id].get("kind", "") == "animal"
+	var rod := str(recipe.get("output_rod", ""))
 	if count < 1:
 		return "Escolha quantos"
+	if rod != "":
+		if fishing.has_rod(rod):
+			return "Você já tem"
+		for queue_state: StationState in stations.values():
+			for entry: Dictionary in queue_state.queue:
+				if str(Database.recipes.get(str(entry.recipe), {}).get("output_rod", "")) == rod:
+					return "Já está sendo feita"
 	if cosmetic != "":
 		if progress.collection.has(cosmetic):
 			return "Você já tem"
@@ -1190,7 +1201,7 @@ func cook_many_error(recipe_id: String, count: int) -> String:
 		return "Compre um animal para começar"
 	if target.queue.size() >= station_slots(station_id):
 		return "Fila cheia"
-	if count > 1 and (animal or cosmetic != ""):
+	if count > 1 and (animal or cosmetic != "" or rod != ""):
 		return "Um por vez"
 	if count > station_free_slots(station_id):
 		return "Só cabem %d na fila" % station_free_slots(station_id)
@@ -1214,6 +1225,17 @@ func collect(station_id: String) -> Dictionary:
 		if job.is_empty():
 			continue  # receita removida do JSON e sem snapshot: descarta sem travar a fila
 		var output := str(job.output)
+		if bool(job.get("rod", false)):
+			# Vara: sem item no inventário; entrega pela mesma regra da loja e das missões.
+			if give_rod(output):
+				_count("produce:" + output)
+				_count("produce")
+				_count("production_jobs")
+				_discover("recipe:" + recipe_id, str(job.skill), int(job.skill_xp))
+				_add_player_xp(int(job.player_xp))
+				received[output] = 1
+				Events.toast_requested.emit("Vara nova: %s!" % Database.item_name(output))
+			continue
 		if bool(job.collection):
 			if not progress.collection.has(output):
 				progress.collection[output] = true
@@ -1280,7 +1302,7 @@ func mastery_catalog_size(station_id: String) -> int:
 	var total := 0
 	for recipe_id: String in Database.recipes_for(station_id):
 		var recipe: Dictionary = Database.recipes[recipe_id]
-		if recipe.has("output_collection"):
+		if Database.recipe_unique(recipe):
 			continue
 		if progress.stat("station_recipe_jobs:%s:%s" % [station_id, recipe_id]) > 0 or content_error("recipe", recipe_id, recipe) == "":
 			total += 1
@@ -1346,7 +1368,7 @@ func _seed_mastery() -> void:
 		var by_output := {}
 		for recipe_id: String in Database.recipes_for(station_id):
 			var recipe: Dictionary = Database.recipes[recipe_id]
-			if recipe.has("output_collection"):
+			if Database.recipe_unique(recipe):
 				continue
 			var output := Database.recipe_output(recipe)
 			if not by_output.has(output):
@@ -1601,6 +1623,13 @@ func harvest(index: int) -> Dictionary:
 		if storage_error(extra) == "":
 			received = extra
 			Events.toast_requested.emit("O Tiro ajudou!")
+	# Minhoca na terra: só com a vara de bambu; mesma semente do plantio (recarregar não refaz o sorteio).
+	if fishing.has_rod("bamboo_rod") and rng.randf() < float(Database.fishing.get("harvest_worm_chance", 0.0)):
+		var with_worm := received.duplicate()
+		with_worm["bait_worm"] = int(with_worm.get("bait_worm", 0)) + 1
+		if storage_error(with_worm) == "":
+			received = with_worm
+			Events.toast_requested.emit("Achou uma minhoca!")
 	_count("harvest")
 	_count("harvest:" + crop_id)
 	_album_event("harvested", {"crop": crop_id})
@@ -1784,26 +1813,161 @@ func buy_cosmetic(id: String) -> String:
 	return ""
 
 
-func buy_shop_item_error(id: String) -> String:
+# --- Lojas (banca da vovó, Feirante, pet shop): `progression.json → shops` e `shop_items` ---
+
+## Motivo de a loja estar fechada ("" = aberta). Pet shop também exige a construção.
+func shop_error(shop_id: String) -> String:
+	var shop: Dictionary = Database.shop(shop_id)
+	if shop.is_empty():
+		return "Loja desconhecida"
+	if shop_id == "petshop" and not has_upgrade("petshop"):
+		return "Monte o pet shop"
+	return requirement_error(shop.get("requirements", {}))
+
+
+## Pacotes da loja: os revelados (requisitos ok) na ordem do JSON, mais UM bloqueado como dica.
+func shop_items(shop_id: String) -> Array[String]:
+	var result: Array[String] = []
+	if shop_error(shop_id) != "":
+		return result
+	var hinted := false
+	var items: Dictionary = Database.progression.get("shop_items", {})
+	for id: String in items:
+		if str(items[id].get("shop", "")) != shop_id:
+			continue
+		if requirement_error(items[id].get("requirements", {})) == "":
+			result.append(id)
+		elif not hinted:
+			hinted = true
+			result.append(id)
+	return result
+
+
+## Pacote ainda não liberado (só dica na banca).
+func shop_item_locked(id: String) -> String:
+	return requirement_error(Database.progression.get("shop_items", {}).get(id, {}).get("requirements", {}))
+
+
+func _shop_today() -> int:
+	return maxi(int(floor(_local_time() / 86400.0)), progress.shop_day_max)
+
+
+## Pacote como vale AGORA. Pacote com `rotation` (oferta do dia) devolve a entrada do dia — escolhida pelo dia local e
+## pela semente do Tiro, pulando as entradas cujos requisitos ainda não valem — por cima dos campos do pacote.
+func shop_pack(id: String) -> Dictionary:
 	var data: Dictionary = Database.progression.get("shop_items", {}).get(id, {})
+	var rotation: Array = data.get("rotation", [])
+	if rotation.is_empty():
+		return data
+	var start := (_shop_today() + absi(hash(str(growth.taste_seed)))) % rotation.size()
+	for step in rotation.size():
+		var entry: Dictionary = rotation[(start + step) % rotation.size()]
+		if requirement_error(entry.get("requirements", {})) == "":
+			var merged: Dictionary = data.duplicate()
+			merged.erase("rotation")
+			merged.erase("requirements")
+			merged["requirements"] = data.get("requirements", {})
+			for key: String in entry:
+				if key != "requirements":
+					merged[key] = entry[key]
+			return merged
+	return data
+
+
+## Quantos ainda hoje (-1 = sem limite).
+func shop_daily_left(id: String) -> int:
+	var data: Dictionary = Database.progression.get("shop_items", {}).get(id, {})
+	if not data.has("daily"):
+		return -1
+	var entry: Dictionary = progress.shop_daily.get(id, {})
+	var used := int(entry.get("n", 0)) if int(entry.get("day", -1)) == _shop_today() else 0
+	return maxi(0, int(data.daily) - used)
+
+
+## Maior quantidade que dá para comprar agora (0 = nenhuma).
+func shop_max_qty(id: String) -> int:
+	var data: Dictionary = shop_pack(id)
+	if data.is_empty():
+		return 0
+	var best := int(data.get("max", 10))
+	var left := shop_daily_left(id)
+	if left >= 0:
+		best = mini(best, left)
+	best = mini(best, coins / maxi(1, int(data.price)))
+	while best > 0 and (storage_error(_pack_items(data, best)) != "" or not inventory.has_all(_pack_materials(data, best))):
+		best -= 1
+	if best > 0 and buy_shop_item_error(id, best) == "Você já tem":
+		return 0
+	return best
+
+
+func _pack_items(data: Dictionary, qty: int) -> Dictionary:
+	var result := {}
+	for item: String in data.get("items", {}):
+		result[item] = int(data.items[item]) * qty
+	return result
+
+
+## Materiais cobrados junto com o preço (vara de molinete: fibras).
+func _pack_materials(data: Dictionary, qty: int) -> Dictionary:
+	var result := {}
+	for item: String in data.get("materials", {}):
+		result[item] = int(data.materials[item]) * qty
+	return result
+
+
+func buy_shop_item_error(id: String, qty: int = 1) -> String:
+	var data: Dictionary = shop_pack(id)
 	if data.is_empty():
 		return "Produto desconhecido"
-	if not has_upgrade(str(data.get("shop", ""))):
-		return "Monte o pet shop"
-	if coins < int(data.price):
-		return "Faltam moedas"
-	return storage_error(data.get("items", {}))
+	var closed := shop_error(str(data.get("shop", "")))
+	if closed != "":
+		return closed
+	var locked := requirement_error(data.get("requirements", {}))
+	if locked != "":
+		return locked
+	if qty < 1 or qty > int(data.get("max", 10)):
+		return "Quantidade inválida"
+	var left := shop_daily_left(id)
+	if left == 0:
+		return "Volta amanhã"
+	if left >= 0 and qty > left:
+		return "Só mais %d hoje" % left
+	var rods: Array = data.get("rods", [])
+	if not rods.is_empty() and rods.all(func(rod: Variant) -> bool: return fishing.has_rod(str(rod))):
+		return "Você já tem"
+	var cost := int(data.price) * qty
+	if coins < cost:
+		return "Faltam %d moedas" % (cost - coins)
+	var materials := _pack_materials(data, qty)
+	if not inventory.has_all(materials):
+		return _missing_text(materials, "Faltam materiais")
+	return storage_error(_pack_items(data, qty))
 
 
-func buy_shop_item(id: String) -> String:
-	var error := buy_shop_item_error(id)
+func buy_shop_item(id: String, qty: int = 1) -> String:
+	var error := buy_shop_item_error(id, qty)
 	if error != "":
 		return error
-	var data: Dictionary = Database.progression.shop_items[id]
-	coins -= int(data.price)
-	for item: String in data.items:
-		inventory.add(item, int(data.items[item]))
+	var data: Dictionary = shop_pack(id)
+	coins -= int(data.price) * qty
+	inventory.remove_all(_pack_materials(data, qty))
+	var gained := _pack_items(data, qty)
+	for item: String in gained:
+		inventory.add(item, int(gained[item]))
+		_count("bought:" + item, int(gained[item]))
+	for rod: String in data.get("rods", []):
+		give_rod(rod)
+	_count("bought_shop:" + str(data.shop), qty)
+	_count("buy:" + id, qty)
+	if data.has("daily"):
+		var today := _shop_today()
+		progress.shop_day_max = today
+		var entry: Dictionary = progress.shop_daily.get(id, {})
+		var used := int(entry.get("n", 0)) if int(entry.get("day", -1)) == today else 0
+		progress.shop_daily[id] = {"day": today, "n": used + qty}
 	_changed()
+	Events.items_gained.emit(gained, 0, Vector2(-1, -1))
 	return ""
 
 
@@ -2023,6 +2187,8 @@ func _receipt_label(auto_id: String) -> String:
 			return "Projeto da vila"
 		"album":
 			return "Álbum de fotos"
+		"fish_chest":
+			return "Baú da lagoa"
 	return auto_id.get_slice(":", 1) if ":" in auto_id else auto_id
 
 
@@ -5468,16 +5634,35 @@ func hook() -> String:
 	var c: Dictionary = fishing.cast
 	var bait := str(c.bait)
 	var keep := float(Database.fishing.baits.get(bait, {}).get("keep_chance", 0.0))
-	if keep <= 0.0 or _fishing_rng("keep").randf() >= keep:
+	# No tutorial a minhoca não se gasta: a partida pode recomeçar do passo da mordida sem custo.
+	if fishing.tutorial.done and (keep <= 0.0 or _fishing_rng("keep").randf() >= keep):
 		inventory.remove(bait, 1)
 		c["spent"] = true
 	c["fish"] = _pick_fish(c)
+	c["chest"] = _chest_due(c)
 	c["state"] = "fighting"
 	fishing.bait_casts[bait] = int(fishing.bait_casts.get(bait, 0)) + 1
 	_count("fish_hook")
 	Events.fishing_changed.emit()
 	_changed()
 	return ""
+
+
+## Prêmio do baú da última pesca entregue ({coins, items}; vazio = sem baú). Só para a tela do resultado.
+var last_fish_chest: Dictionary = {}
+
+
+## Baú da lagoa: só com vara de tier ≥ `chest.from_rod`, nunca no tutorial nem na primeira vez da espécie;
+## a chance sai da semente da partida (decidido na fisgada, para valer também ao recarregar o save).
+func _chest_due(c: Dictionary) -> bool:
+	var config: Dictionary = Database.fishing
+	var chest: Dictionary = config.get("chest", {})
+	if not fishing.tutorial.done or chest.is_empty() or fishing.record(str(c.fish)).is_empty():
+		return false
+	var rods: Dictionary = config.get("rods", {})
+	if int(rods.get(str(c.rod), {}).get("tier", 0)) < int(rods.get(str(chest.get("from_rod", "")), {}).get("tier", 99)):
+		return false
+	return _fishing_rng("chest").randf() < float(chest.get("chance", 0.0))
 
 
 ## Mordida perdida ou toque antes da hora: recolhe a linha sem gastar nada.
@@ -5654,13 +5839,19 @@ func finish_fishing(result: Dictionary) -> String:
 	_count("fish_size:%s:%s" % [size.class, fish_id])
 	if size.class == "giant":
 		_count("fish_size:large")
+		_count("fish_size:large:" + fish_id)
 		_count("fish_gigante")
 	if bool(use.perfect):
 		_count("fish_perfect")
 	if first:
 		_moment_source(str(config.moment_first.source), fish_id)
-	if bool(use.chest) and int(config.rods.get(str(c.rod), {}).get("tier", 0)) >= int(config.rods.get(str(config.chest.from_rod), {}).get("tier", 99)):
-		_grant_automatic("fish_chest:%d" % int(c.n), Loot.roll(config.chest.loot, 1, hash("%d:chest" % int(c.seed))))
+	last_fish_chest = {}
+	if bool(use.chest) and bool(c.get("chest", false)) \
+			and int(config.rods.get(str(c.rod), {}).get("tier", 0)) >= int(config.rods.get(str(config.chest.from_rod), {}).get("tier", 99)):
+		var loot := Loot.roll(config.chest.loot, 1, hash("%d:chest" % int(c.seed)))
+		if bool(_grant_automatic("fish_chest:%d" % int(c.n), loot).paid):
+			last_fish_chest = loot
+			_count("fish_chest")
 	fishing.cast = {}
 	var level_after := fishing_level()
 	Events.fish_caught.emit(fish_id, float(size.cm), str(size.class), previous_cm)
@@ -5731,6 +5922,52 @@ func give_rod(id: String) -> bool:
 	if fishing.next_bubble_at <= 0.0:
 		_schedule_bubble(now())
 	return true
+
+
+# --- Tutorial da pesca (etapa 05; a tela é o `AnglerTutorial`) ---------------------------------
+
+func fishing_tutorial_step() -> int:
+	return int(fishing.tutorial.get("step", 0))
+
+
+func fishing_tutorial_done() -> bool:
+	return bool(fishing.tutorial.get("done", false))
+
+
+## Só avança (nunca volta) e só enquanto o tutorial não terminou. Passos 1–13 do desenho.
+func advance_fishing_tutorial(step: int) -> void:
+	if fishing_tutorial_done() or step <= fishing_tutorial_step():
+		return
+	fishing.tutorial["step"] = clampi(step, 0, 13)
+	_changed()
+
+
+func finish_fishing_tutorial() -> void:
+	if fishing_tutorial_done():
+		return
+	fishing.tutorial["step"] = 13
+	fishing.tutorial["done"] = true
+	_changed()
+
+
+## Tutorial: a mordida chega já (retomar do passo 6 depois de fechar o app).
+func fishing_tutorial_bite_now() -> void:
+	if fishing_tutorial_done() or str(fishing.cast.get("state", "")) != "waiting":
+		return
+	fishing.cast["wait"] = 0.0
+	update_fishing()
+
+
+## Dica de primeira vez da vovó (`npcs.json → bloblo.lines.tips`): devolve o texto UMA vez e marca como vista.
+func fishing_tip(id: String) -> String:
+	var key := "fishing_tip:" + id
+	if bool(progress.seen.get(key, false)) or not fishing_tutorial_done() or current_rod() == "":
+		return ""
+	var text := str(Database.npcs.get("bloblo", {}).get("lines", {}).get("tips", {}).get(id, ""))
+	if text == "":
+		return ""
+	mark_seen([key] as Array[String])
+	return text
 
 
 func _bubble_rng(salt: int) -> RandomNumberGenerator:

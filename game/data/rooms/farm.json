@@ -1,5 +1,5 @@
 {
-  "background": "res://assets/sprites/areas/farm/ilha_cena.webp",
+  "background": "res://assets/sprites/areas/farm/figma_cena.webp",
   "backdrop": {
     "sky": [
       "#bddff4",
@@ -8,8 +8,8 @@
     "ground": "#7f9150",
     "clouds": false
   },
-  "floor": [[798, 885], [1321, 1196], [800, 1500], [277, 1189]],
-  "dig_spots": [[668, 980], [948, 1028], [788, 1332], [948, 1252], [580, 1132], [684, 1236]],
+  "floor": [[780, 844], [1306, 1180], [810, 1499], [284, 1163]],
+  "dig_spots": [[580, 1044], [1140, 1108], [1092, 1236], [628, 1308], [892, 1428]],
   "navigation_margin": 8,
   "dog_scale": 0.7,
   "region_shade": false,
@@ -19,31 +19,40 @@
   "initial_zoom": 0.79,
   "min_zoom": 0.46,
   "background_bleed": [0, 0, 0, 0],
-  "view_center": [785, 1107],
+  "view_center": [797, 1142],
+  "plot_signs": true,
   "obstacles": [
     {
       "id": "bloblo_house",
-      "polygon": [[700, 855], [855, 788], [930, 875], [930, 965], [820, 995], [740, 985], [695, 920]]
+      "polygon": [[684, 885], [777, 834], [981, 891], [948, 930], [861, 951], [813, 954], [750, 936], [687, 903]]
     },
     {
       "id": "lake",
-      "polygon": [[264, 1094], [266, 1092], [270, 1090], [280, 1086], [286, 1086], [294, 1088], [615, 1230], [615, 1305], [486, 1332], [482, 1332], [468, 1330], [432, 1306], [390, 1276], [296, 1204], [286, 1176]]
+      "polygon": [[274, 1078], [289, 1069], [293, 1069], [639, 1179], [639, 1296], [478, 1325], [476, 1325], [471, 1323], [437, 1301], [409, 1282], [339, 1234], [322, 1222], [296, 1150]]
     },
     {
       "id": "lake_rocks",
-      "polygon": [[220, 1115], [260, 1080], [365, 1042], [405, 1110], [365, 1152], [275, 1185], [235, 1170]]
+      "polygon": [[261, 1083], [405, 1059], [549, 1155], [582, 1197], [495, 1164], [387, 1140], [279, 1122]]
     },
     {
       "id": "lake_fence",
-      "polygon": [[268, 1198], [288, 1192], [506, 1352], [506, 1380], [488, 1382], [268, 1218]]
+      "polygon": [[231, 1173], [249, 1164], [507, 1341], [507, 1362], [489, 1356], [231, 1191]]
     },
     {
       "id": "stall",
-      "polygon": [[805, 1325], [850, 1270], [950, 1315], [1010, 1365], [1010, 1430], [950, 1452], [885, 1452], [835, 1410]]
+      "polygon": [[792, 1329], [876, 1290], [945, 1317], [945, 1365], [885, 1413], [801, 1362]]
     },
     {
       "id": "gate",
-      "polygon": [[700, 1420], [762, 1405], [840, 1395], [850, 1502], [780, 1515], [700, 1490]]
+      "polygon": [[699, 1443], [762, 1404], [820, 1416], [820, 1500], [765, 1509], [702, 1476]]
+    },
+    {
+      "id": "rock_lake",
+      "polygon": [[504, 1338], [540, 1335], [543, 1368], [507, 1371]]
+    },
+    {
+      "id": "rock_gate",
+      "polygon": [[825, 1479], [861, 1476], [861, 1509], [828, 1509]]
     }
   ],
   "objects": [
@@ -51,226 +60,320 @@
       "id": "plot_0",
       "action": "plot",
       "plot": 0,
-      "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
-      "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
-      "crop_offset": 0,
+      "sprite": "res://assets/sprites/areas/farm/figma_canteiro_vazio.png",
       "always_behind": true,
-      "pos": [792, 1122],
-      "footprint": [[792, 1045], [847, 1081], [792, 1118], [737, 1081]],
-      "approach": [852, 1076]
+      "pos": [789, 1089],
+      "footprint": [[789, 1016], [850, 1053], [789, 1090], [728, 1053]],
+      "approach": [852, 1052]
     },
     {
       "id": "plot_1",
       "action": "plot",
       "plot": 1,
-      "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
-      "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
-      "crop_offset": 0,
+      "sprite": "res://assets/sprites/areas/farm/figma_canteiro_vazio.png",
       "always_behind": true,
-      "pos": [860, 1164],
-      "footprint": [[860, 1087], [915, 1123], [860, 1160], [805, 1123]],
-      "approach": [892, 1228]
+      "pos": [717, 1132],
+      "footprint": [[717, 1058], [778, 1096], [717, 1133], [656, 1096]],
+      "approach": [676, 1212]
     },
     {
       "id": "plot_2",
       "action": "plot",
       "plot": 2,
-      "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
-      "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
-      "crop_offset": 0,
+      "sprite": "res://assets/sprites/areas/farm/figma_canteiro_vazio.png",
       "always_behind": true,
-      "pos": [716, 1161],
-      "footprint": [[716, 1084], [771, 1120], [716, 1157], [661, 1120]],
-      "approach": [708, 1244]
+      "pos": [864, 1133],
+      "footprint": [[864, 1060], [925, 1097], [864, 1135], [803, 1097]],
+      "approach": [892, 1220]
     },
     {
       "id": "plot_3",
       "action": "plot",
       "plot": 3,
-      "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
-      "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
-      "crop_offset": 0,
+      "sprite": "res://assets/sprites/areas/farm/figma_canteiro_vazio.png",
       "always_behind": true,
-      "pos": [785, 1202],
-      "footprint": [[785, 1125], [840, 1161], [785, 1198], [730, 1161]],
-      "approach": [804, 1276]
+      "pos": [791, 1177],
+      "footprint": [[791, 1104], [852, 1141], [791, 1178], [730, 1141]],
+      "approach": [828, 1260]
     },
     {
       "id": "plot_4",
       "action": "plot",
       "plot": 4,
-      "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
-      "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
-      "crop_offset": 0,
+      "sprite": "res://assets/sprites/areas/farm/figma_canteiro_vazio.png",
       "always_behind": true,
-      "pos": [928, 1205],
-      "footprint": [[928, 1128], [983, 1164], [928, 1201], [873, 1164]],
-      "approach": [924, 1228]
+      "pos": [717, 1222],
+      "footprint": [[717, 1148], [778, 1186], [717, 1223], [656, 1186]],
+      "approach": [716, 1244]
     },
     {
       "id": "plot_5",
       "action": "plot",
       "plot": 5,
-      "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
-      "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
-      "crop_offset": 0,
+      "sprite": "res://assets/sprites/areas/farm/figma_canteiro_vazio.png",
       "always_behind": true,
-      "pos": [642, 1200],
-      "footprint": [[642, 1123], [697, 1159], [642, 1196], [587, 1159]],
-      "approach": [644, 1220]
+      "pos": [865, 1222],
+      "footprint": [[865, 1148], [926, 1186], [865, 1223], [803, 1186]],
+      "approach": [868, 1244]
     },
     {
       "id": "plot_6",
       "action": "plot",
       "plot": 6,
-      "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
-      "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
-      "crop_offset": 0,
+      "sprite": "res://assets/sprites/areas/farm/figma_canteiro_vazio.png",
       "always_behind": true,
-      "pos": [854, 1244],
-      "footprint": [[854, 1167], [909, 1203], [854, 1240], [799, 1203]],
-      "approach": [852, 1260]
+      "pos": [645, 1177],
+      "footprint": [[645, 1103], [706, 1141], [645, 1178], [584, 1141]],
+      "approach": [652, 1204]
     },
     {
       "id": "plot_7",
       "action": "plot",
       "plot": 7,
-      "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
-      "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
-      "crop_offset": 0,
+      "sprite": "res://assets/sprites/areas/farm/figma_canteiro_vazio.png",
       "always_behind": true,
-      "pos": [710, 1242],
-      "footprint": [[710, 1165], [765, 1201], [710, 1238], [655, 1201]],
-      "approach": [708, 1268]
+      "pos": [940, 1178],
+      "footprint": [[940, 1105], [1001, 1142], [940, 1180], [879, 1142]],
+      "approach": [940, 1204]
     },
     {
       "id": "plot_8",
       "action": "plot",
       "plot": 8,
-      "sprite": "res://assets/sprites/areas/farm/ilha_canteiro.png",
-      "locked_sprite": "res://assets/sprites/areas/farm/ilha_canteiro_bloqueado.png",
-      "crop_offset": 0,
+      "sprite": "res://assets/sprites/areas/farm/figma_canteiro_vazio.png",
       "always_behind": true,
-      "pos": [778, 1283],
-      "footprint": [[778, 1206], [833, 1242], [778, 1279], [723, 1242]],
-      "approach": [780, 1308]
+      "pos": [791, 1268],
+      "footprint": [[791, 1195], [852, 1232], [791, 1269], [730, 1232]],
+      "approach": [788, 1292]
+    },
+    {
+      "id": "sign_plot_6",
+      "action": "buy_sign",
+      "sign_plot": 6,
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [644, 1166],
+      "footprint": [[644, 1156], [654, 1162], [644, 1168], [634, 1162]]
+    },
+    {
+      "id": "sign_plot_7",
+      "action": "buy_sign",
+      "sign_plot": 7,
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [940, 1166],
+      "footprint": [[940, 1156], [950, 1162], [940, 1168], [930, 1162]]
+    },
+    {
+      "id": "sign_plot_5",
+      "action": "buy_sign",
+      "sign_plot": 5,
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [866, 1207],
+      "footprint": [[866, 1197], [876, 1203], [866, 1209], [856, 1203]]
+    },
+    {
+      "id": "sign_plot_8",
+      "action": "buy_sign",
+      "sign_plot": 8,
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [791, 1253],
+      "footprint": [[791, 1243], [801, 1249], [791, 1255], [781, 1249]]
+    },
+    {
+      "id": "sign_plot_4",
+      "action": "buy_sign",
+      "sign_plot": 4,
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [718, 1214],
+      "footprint": [[718, 1204], [728, 1210], [718, 1216], [708, 1210]]
     },
     {
       "id": "workbench",
       "action": "place:workbench",
       "upgrade": "workbench",
       "station": "workbench",
-      "sprite": "res://assets/sprites/areas/farm/ilha_bancada.png",
-      "pos": [919, 970],
-      "approach": [940, 988],
-      "footprint": [[919, 916], [956, 941], [919, 966], [882, 941]],
+      "buy_sign": true,
+      "sprite": "res://assets/sprites/areas/farm/figma_bancada.png",
+      "pos": [834, 963],
+      "approach": [812, 964],
+      "footprint": [[684, 885], [777, 834], [981, 891], [948, 930], [861, 951], [813, 954], [750, 936], [687, 903]],
       "label": "Bancada",
-      "label_pos": [919, 896],
+      "label_pos": [834, 792],
       "detail_label": true
+    },
+    {
+      "id": "sign_workbench",
+      "action": "buy_sign",
+      "sign_upgrade": "workbench",
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [648, 910],
+      "footprint": [[648, 900], [658, 906], [648, 912], [638, 906]]
     },
     {
       "id": "silo",
       "action": "place:silo",
       "upgrade": "silo",
-      "sprite": "res://assets/sprites/areas/farm/ilha_silo.png",
-      "pos": [994, 1060],
-      "approach": [1012, 1076],
-      "footprint": [[994, 1007], [1030, 1032], [994, 1056], [958, 1032]],
+      "buy_sign": true,
+      "sprite": "res://assets/sprites/areas/farm/figma_silo.png",
+      "pos": [974, 1051],
+      "approach": [972, 1044],
+      "footprint": [[896, 983], [902, 971], [1040, 971], [1049, 980], [1052, 1010], [1031, 1028], [1010, 1034], [950, 1031], [905, 1010], [896, 1001]],
       "label": "Silo",
-      "label_pos": [994, 920]
+      "label_pos": [974, 852]
+    },
+    {
+      "id": "sign_silo",
+      "action": "buy_sign",
+      "sign_upgrade": "silo",
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [973, 1016],
+      "footprint": [[973, 1006], [983, 1012], [973, 1018], [963, 1012]]
     },
     {
       "id": "warehouse",
       "action": "place:warehouse",
       "upgrade": "warehouse",
-      "sprite": "res://assets/sprites/areas/farm/ilha_armazem.png",
-      "pos": [1133, 1106],
-      "approach": [1068, 1076],
-      "footprint": [[1133, 1002], [1208, 1052], [1133, 1102], [1058, 1052]],
+      "buy_sign": true,
+      "sprite": "res://assets/sprites/areas/farm/figma_celeiro.png",
+      "pos": [1084, 1122],
+      "approach": [1100, 1124],
+      "footprint": [[985, 1026], [1171, 1026], [1186, 1041], [1189, 1062], [1177, 1077], [1111, 1107], [1087, 1104], [982, 1053], [979, 1047]],
       "label": "Armazém",
-      "label_pos": [1133, 970]
+      "label_pos": [1084, 951]
+    },
+    {
+      "id": "sign_warehouse",
+      "action": "buy_sign",
+      "sign_upgrade": "warehouse",
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [1096, 1080],
+      "footprint": [[1096, 1070], [1106, 1076], [1096, 1082], [1086, 1076]]
     },
     {
       "id": "greenhouse",
       "action": "place:greenhouse",
       "upgrade": "greenhouse",
-      "region": "greenhouse_area",
       "greenhouse_indicator": true,
-      "sprite": "res://assets/sprites/areas/farm/ilha_estufa.png",
-      "pos": [658, 1434],
-      "approach": [780, 1388],
-      "footprint": [[658, 1321], [739, 1376], [658, 1430], [577, 1376]],
+      "buy_sign": true,
+      "sprite": "res://assets/sprites/areas/farm/figma_estufa.png",
+      "pos": [614, 1422],
+      "approach": [684, 1404],
+      "footprint": [[517, 1340], [709, 1340], [712, 1367], [709, 1373], [640, 1406], [610, 1412], [583, 1406], [526, 1376], [517, 1352]],
       "label": "Estufa",
-      "label_pos": [658, 1297]
+      "label_pos": [614, 1276]
     },
     {
-      "id": "orchard",
-      "action": "place:orchard",
-      "upgrade": "orchard",
-      "region": "orchard_area",
-      "route_group": "orchard",
-      "sprite": "res://assets/sprites/areas/farm/ilha_pomar.png",
-      "pos": [548, 1137],
-      "approach": [620, 1124],
-      "footprint": [[548, 919], [709, 1026], [548, 1133], [387, 1026]],
-      "label": "Pomar",
-      "label_pos": [548, 938]
+      "id": "sign_greenhouse",
+      "action": "buy_sign",
+      "sign_upgrade": "greenhouse",
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [614, 1390],
+      "footprint": [[614, 1380], [624, 1386], [614, 1392], [604, 1386]]
     },
     {
       "id": "chicken_coop",
       "action": "place:chicken_coop",
       "upgrade": "chicken_coop",
-      "region": "animals_area",
       "station": "chicken_coop",
-      "sprite": "res://assets/sprites/areas/farm/ilha_galinheiro.png",
-      "pos": [1084, 1180],
-      "approach": [1052, 1092],
-      "footprint": [[1084, 1088], [1150, 1132], [1084, 1176], [1018, 1132]],
+      "buy_sign": true,
+      "sprite": "res://assets/sprites/areas/farm/figma_galinheiro.png",
+      "pos": [1039, 1354],
+      "approach": [1036, 1236],
+      "footprint": [[919, 1278], [931, 1251], [1147, 1251], [1159, 1281], [1126, 1311], [1048, 1347], [931, 1293]],
       "label": "Galinheiro",
-      "label_pos": [1084, 1098],
+      "label_pos": [1039, 1206],
       "detail_label": true
+    },
+    {
+      "id": "sign_chicken_coop",
+      "action": "buy_sign",
+      "sign_upgrade": "chicken_coop",
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [1037, 1313],
+      "footprint": [[1037, 1303], [1047, 1309], [1037, 1315], [1027, 1309]]
     },
     {
       "id": "cow_barn",
       "action": "place:cow_barn",
       "upgrade": "cow_barn",
-      "region": "animals_area",
       "station": "cow_barn",
-      "sprite": "res://assets/sprites/areas/farm/ilha_curral.png",
-      "pos": [1082, 1378],
-      "approach": [1147, 1396],
-      "footprint": [[1082, 1200], [1212, 1287], [1082, 1374], [952, 1287]],
+      "buy_sign": true,
+      "sprite": "res://assets/sprites/areas/farm/figma_cural.png",
+      "pos": [1204, 1289],
+      "approach": [1092, 1236],
+      "footprint": [[1043, 1163], [1064, 1142], [1358, 1142], [1370, 1154], [1376, 1175], [1346, 1199], [1247, 1259], [1214, 1274], [1175, 1265], [1040, 1193], [1034, 1184]],
       "label": "Curral",
-      "label_pos": [1082, 1211],
+      "label_pos": [1204, 1078],
       "detail_label": true
+    },
+    {
+      "id": "sign_cow_barn",
+      "action": "buy_sign",
+      "sign_upgrade": "cow_barn",
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [1206, 1222],
+      "footprint": [[1206, 1212], [1216, 1218], [1206, 1224], [1196, 1218]]
     },
     {
       "id": "mill",
       "action": "place:mill",
       "upgrade": "mill",
-      "region": "animals_area",
       "station": "mill",
-      "sprite": "res://assets/sprites/areas/farm/ilha_moinho.png",
-      "pos": [1260, 1110],
-      "approach": [1068, 1076],
-      "footprint": [[1260, 1060], [1294, 1083], [1260, 1106], [1226, 1083]],
+      "buy_sign": true,
+      "sprite": "res://assets/sprites/areas/farm/figma_moinho.png",
+      "pos": [489, 1102],
+      "approach": [492, 1100],
+      "footprint": [[410, 1030], [566, 1030], [572, 1048], [563, 1060], [512, 1084], [458, 1087], [431, 1078], [404, 1054]],
       "label": "Moinho",
-      "label_pos": [1260, 970],
+      "label_pos": [489, 896],
       "detail_label": true
+    },
+    {
+      "id": "sign_mill",
+      "action": "buy_sign",
+      "sign_upgrade": "mill",
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [490, 1072],
+      "footprint": [[490, 1062], [500, 1068], [490, 1074], [480, 1068]]
     },
     {
       "id": "dairy",
       "action": "place:dairy",
       "upgrade": "dairy",
-      "region": "animals_area",
       "station": "dairy",
-      "sprite": "res://assets/sprites/areas/farm/ilha_queijaria.png",
-      "pos": [1260, 1232],
-      "approach": [1068, 1076],
-      "footprint": [[1260, 1135], [1330, 1182], [1260, 1228], [1190, 1182]],
+      "buy_sign": true,
+      "sprite": "res://assets/sprites/areas/farm/figma_lacticios.png",
+      "pos": [620, 1055],
+      "approach": [628, 1052],
+      "footprint": [[523, 974], [712, 974], [724, 992], [724, 1001], [709, 1016], [655, 1040], [595, 1037], [523, 1007], [517, 1001]],
       "label": "Queijaria",
-      "label_pos": [1260, 1122],
+      "label_pos": [620, 912],
       "detail_label": true
+    },
+    {
+      "id": "sign_dairy",
+      "action": "buy_sign",
+      "sign_upgrade": "dairy",
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [631, 1021],
+      "footprint": [[631, 1011], [641, 1017], [631, 1023], [621, 1017]]
+    },
+    {
+      "id": "orchard",
+      "action": "place:orchard",
+      "upgrade": "orchard",
+      "route_group": "orchard",
+      "buy_sign": true,
+      "sprite": "res://assets/sprites/areas/farm/figma_pomar_vazio.png",
+      "pos": [614, 1422],
+      "approach": [684, 1404]
+    },
+    {
+      "id": "sign_orchard",
+      "action": "buy_sign",
+      "sign_upgrade": "orchard",
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [668, 1406],
+      "footprint": [[668, 1396], [678, 1402], [668, 1408], [658, 1402]]
     },
     {
       "id": "hen_1",
@@ -279,11 +382,11 @@
       "action": "place:chicken_coop",
       "upgrade": "chicken_coop",
       "sprite": "res://assets/sprites/areas/farm/chicken.png",
-      "pos": [1078, 1145],
+      "pos": [1014, 1299],
       "decoration": true,
       "animal_idle": true,
-      "footprint": [[1078, 1132], [1088, 1138], [1078, 1145], [1068, 1138]],
-      "approach": [1096, 1155]
+      "footprint": [[1014, 1293], [1024, 1299], [1014, 1305], [1004, 1299]],
+      "approach": [1012, 1236]
     },
     {
       "id": "hen_2",
@@ -292,11 +395,11 @@
       "action": "place:chicken_coop",
       "upgrade": "chicken_coop",
       "sprite": "res://assets/sprites/areas/farm/chicken.png",
-      "pos": [1104, 1138],
+      "pos": [1060, 1311],
       "decoration": true,
       "animal_idle": true,
-      "footprint": [[1104, 1125], [1114, 1131], [1104, 1138], [1094, 1131]],
-      "approach": [1122, 1148]
+      "footprint": [[1060, 1305], [1070, 1311], [1060, 1317], [1050, 1311]],
+      "approach": [1060, 1236]
     },
     {
       "id": "cow_1",
@@ -305,11 +408,11 @@
       "action": "place:cow_barn",
       "upgrade": "cow_barn",
       "sprite": "res://assets/sprites/areas/farm/cow.png",
-      "pos": [1017, 1294],
+      "pos": [1153, 1205],
       "decoration": true,
       "animal_idle": true,
-      "footprint": [[1017, 1281], [1027, 1287], [1017, 1294], [1007, 1287]],
-      "approach": [1035, 1304]
+      "footprint": [[1153, 1199], [1163, 1205], [1153, 1211], [1143, 1205]],
+      "approach": [1092, 1236]
     },
     {
       "id": "cow_2",
@@ -318,88 +421,51 @@
       "action": "place:cow_barn",
       "upgrade": "cow_barn",
       "sprite": "res://assets/sprites/areas/farm/cow.png",
-      "pos": [1082, 1331],
+      "pos": [1212, 1238],
       "decoration": true,
       "animal_idle": true,
-      "footprint": [[1082, 1318], [1092, 1324], [1082, 1331], [1072, 1324]],
-      "approach": [1100, 1341]
+      "footprint": [[1212, 1232], [1222, 1238], [1212, 1244], [1202, 1238]],
+      "approach": [1204, 1132]
     }
   ],
   "zones": [
     {
       "id": "early_market",
       "action": "place:early_market",
+      "polygon": [[792, 1269], [876, 1263], [942, 1293], [945, 1365], [885, 1413], [801, 1362]],
       "label": "Vender Colheita",
-      "label_pos": [898, 1365],
+      "label_pos": [870, 1323],
       "requirements": {
         "quests": [
           "bloblo_meet"
         ]
-      },
-      "polygon": [[808, 1340], [895, 1275], [992, 1325], [992, 1395], [900, 1445], [815, 1400]]
+      }
     },
     {
       "id": "bloblo_house",
       "action": "npc:bloblo",
+      "polygon": [[687, 879], [735, 765], [867, 735], [981, 885], [915, 951], [783, 963]],
       "label": "Bloblo",
-      "label_pos": [812, 805],
-      "polygon": [[720, 930], [805, 825], [908, 915], [820, 975]]
-    },
-    {
-      "id": "animal_yard",
-      "action": "place:animals",
-      "upgrade": "chicken_coop",
-      "label": "Animais",
-      "overview_label": true,
-      "label_pos": [1154, 1187],
-      "polygon": [[946, 1287], [1015, 1132], [1084, 1086], [1260, 1059], [1296, 1083], [1334, 1182], [1218, 1287], [1082, 1378]]
+      "label_pos": [831, 735]
     },
     {
       "id": "lake",
       "action": "place:fishing",
-      "polygon": [[269, 1098], [271, 1096], [274, 1094], [284, 1091], [290, 1091], [297, 1092], [606, 1229], [606, 1301], [482, 1327], [478, 1327], [465, 1325], [430, 1302], [390, 1273], [299, 1204], [290, 1177]],
+      "polygon": [[280, 1084], [295, 1075], [298, 1075], [313, 1079], [510, 1176], [531, 1190], [563, 1213], [574, 1225], [533, 1294], [515, 1307], [497, 1317], [476, 1320], [474, 1320], [469, 1319], [430, 1294], [343, 1233], [333, 1227], [326, 1222], [301, 1153]],
       "label": "Lagoa",
-      "label_pos": [382, 1202]
+      "label_pos": [412, 1219]
     }
   ],
   "points": {
-    "dog_start": [780, 1388],
-    "npc_bloblo": [772, 1028],
-    "fishing_spot": [628, 1300],
-    "fishing_pier": [512, 1262],
+    "dog_start": [796, 1372],
+    "npc_bloblo": [748, 1012],
+    "fishing_spot": [652, 1300],
+    "fishing_pier": [567, 1242],
     "fishing_face": "west",
-    "fishing_bubble_1": [383, 1204],
-    "fishing_bubble_2": [323, 1132],
-    "fishing_bubble_3": [443, 1276],
-    "fishing_bubble_4": [473, 1198]
+    "fishing_bubble_1": [412, 1206],
+    "fishing_bubble_2": [334, 1134],
+    "fishing_bubble_3": [490, 1266],
+    "fishing_bubble_4": [478, 1194]
   },
-  "regions": [
-    {
-      "id": "greenhouse_area",
-      "upgrade": "greenhouse",
-      "label": "Abrir estufa",
-      "locked_label": true,
-      "label_pos": [658, 1376],
-      "polygon": [[541, 1376], [658, 1296], [775, 1376], [658, 1454]],
-      "gate": [[775, 1376], [658, 1454]]
-    },
-    {
-      "id": "orchard_area",
-      "upgrade": "orchard",
-      "label": "Abrir pomar",
-      "locked_label": true,
-      "label_pos": [548, 1026],
-      "polygon": [[379, 1026], [548, 914], [717, 1026], [548, 1138]],
-      "gate": [[717, 1026], [548, 1138]]
-    },
-    {
-      "id": "animals_area",
-      "upgrade": "chicken_coop",
-      "label": "Abrir criação",
-      "locked_label": true,
-      "label_pos": [1154, 1187],
-      "polygon": [[946, 1287], [1015, 1132], [1084, 1086], [1260, 1059], [1296, 1083], [1334, 1182], [1218, 1287], [1082, 1378]],
-      "gate": [[1218, 1287], [1082, 1378]]
-    }
-  ]
+  "regions": []
 }

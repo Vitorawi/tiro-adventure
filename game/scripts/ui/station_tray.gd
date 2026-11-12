@@ -188,7 +188,7 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 		var arrow := StationWood.pic("arrow", Vector2(24, 33), "Arrow")
 		arrow.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		flow.add_child(arrow)
-	var result := StationWood.result_box(output, qty, recipe.has("output_collection"))
+	var result := StationWood.result_box(output, qty, Database.recipe_unique(recipe))
 	if inputs.is_empty():
 		result.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	flow.add_child(result)

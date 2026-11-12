@@ -89,6 +89,18 @@ func _fill(target: Object, info: Dictionary, record: bool, first: bool) -> void:
 	if int(info.get("xp", 0)) > 0:
 		chips.add_child(StepCardUi.wood_chip(UiKit.ui_icon("xp"), "+%d" % int(info.xp), "", Callable(), "FishChip_xp"))
 	target.call("add", chips)
+	var chest: Dictionary = info.get("chest", {})
+	if not chest.is_empty():
+		target.call("add", _tag("Baú!", "FishChest"))
+		var loot := UiKit.flow(8)
+		loot.name = "FishChestChips"
+		loot.alignment = FlowContainer.ALIGNMENT_CENTER
+		if int(chest.get("coins", 0)) > 0:
+			loot.add_child(StepCardUi.wood_chip(UiKit.ui_icon("coin"), "+%d" % int(chest.coins), "", Callable(), "FishChestChip_coins"))
+		for item_id: String in chest.get("items", {}):
+			if int(chest.items[item_id]) > 0:
+				loot.add_child(StepCardUi.wood_chip(Database.item_icon(item_id), "×%d" % int(chest.items[item_id]), "", Callable(), "FishChestChip_" + item_id))
+		target.call("add", loot)
 
 
 func _tag(text: String, node_name: String) -> Control:

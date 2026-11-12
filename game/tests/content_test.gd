@@ -16,7 +16,7 @@ func _run() -> void:
 	for id: String in db.get("items"):
 		check(ResourceLoader.exists(db.get("items")[id].icon), id + ": ícone existente")
 		# Ícone provisório só nos itens da pesca, até a etapa de arte (03) trocar e remover a marca.
-		check(not db.get("items")[id].get("icon_todo", false) or id.begins_with("fish_") or id.begins_with("bait_"), id + ": icon_todo fora da pesca")
+		check(not db.get("items")[id].get("icon_todo", false), id + ": icon_todo pendente")
 	for id: String in db.get("crops"):
 		check(ResourceLoader.exists(db.get("crops")[id].sprite), id + ": planta existente")
 	for id: String in db.get("recipes"):
@@ -80,7 +80,7 @@ func _run() -> void:
 				"owned": check(data.upgrades.has(key), id + ": construção " + key)
 				"skill": check(data.skills.has(key), id + ": atributo " + key)
 				"stat":
-					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "sold:village", "sold:farm", "orders", "contracts", "storage_upgrades", "explore", "build", "quests", "open:bag", "open:album", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned", "shampoo_bath", "wish"] or (key.begins_with("friend_gift:") and db.get("friends").friends.has(key.trim_prefix("friend_gift:"))) or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:") or key.begins_with("feed:") or (key.begins_with("project_use:") and not db.call("project", key.trim_prefix("project_use:")).is_empty()), id + ": contador desconhecido " + key)
+					check(key in ["feed", "play", "bathe", "pet", "harvest", "water", "produce", "trade", "sold", "sold:village", "sold:farm", "orders", "contracts", "storage_upgrades", "explore", "build", "quests", "open:bag", "open:album", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned", "shampoo_bath", "wish"] or (key.begins_with("friend_gift:") and db.get("friends").friends.has(key.trim_prefix("friend_gift:"))) or key.begins_with("walk:") or (key.begins_with("talk:") and db.get("npcs").has(key.trim_prefix("talk:"))) or (key.begins_with("open:") and db.get("worlds").has(key.trim_prefix("open:"))) or key.begins_with("produce:") or key.begins_with("activity:") or key.begins_with("order:") or key.begins_with("harvest:") or key.begins_with("find:") or key.begins_with("feed:")or key == "fish" or (key.begins_with("rod:") and db.get("fishing").rods.has(key.trim_prefix("rod:"))) or (key.begins_with("fish_size:") and db.get("fishing").fish.has(key.get_slice(":", 2))) or (key.begins_with("fish:") and db.get("fishing").fish.has(key.trim_prefix("fish:"))) or (key.begins_with("bought:") and db.get("items").has(key.trim_prefix("bought:"))) or (key.begins_with("project_use:") and not db.call("project", key.trim_prefix("project_use:")).is_empty()), id + ": contador desconhecido " + key)
 					if key.begins_with("harvest:"):
 						check(db.get("crops").has(key.trim_prefix("harvest:")), id + ": cultura " + key)
 					if key.begins_with("produce:"):
@@ -139,7 +139,7 @@ func _run() -> void:
 		for id: String in group.missions:
 			var m: Dictionary = group.missions[id]
 			var key: String = m.goal.key
-			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "contracts", "explore", "wish", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned", "care_useful", "production_jobs"] or key.begins_with("activity:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
+			check(key in ["feed", "play", "bathe", "harvest", "water", "produce", "sold", "orders", "contracts", "explore", "wish", "find", "walk", "walk_item", "walk_rare", "equip", "sew", "friend_gift", "friend_level", "trick", "trick_learned", "care_useful", "production_jobs"] or key.begins_with("activity:") or key == "fish" or key.begins_with("fish_size:") or key.begins_with("produce:") or key.begins_with("harvest:"), kind + "/" + id + ": contador " + key)
 			if key.begins_with("harvest:"):
 				check(db.get("crops").has(key.trim_prefix("harvest:")), kind + "/" + id + ": cultura inexistente")
 			if key.begins_with("produce:"):
@@ -282,6 +282,8 @@ func _run() -> void:
 		check(false, problem)
 	for problem: String in db.call("fishing_problems"):
 		check(false, problem)
+	for problem: String in db.call("shop_problems"):
+		check(false, problem)
 	_validate_targets()
 	print("CONTENT TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(0 if failures == 0 else 1)
@@ -403,11 +405,14 @@ func _validate_target(target: Dictionary, id: String, state: Node) -> void:
 		var route: Dictionary = db.get("progression").activities.get(route_id, {})
 		check(not route.is_empty(), id + ": rota inexistente")
 		check(db.call("place_with_panel", "routes:" + str(route.get("place", "")))[0] == world, id + ": rota fora do mundo")
+	elif place.begins_with("shop:"):
+		check(db.get("progression").shop_items.has(place.trim_prefix("shop:")), id + ": pacote da banca inexistente")
 	elif place == "find":
 		pass
 	elif place == "":
 		check(state.call("requirement_error", w.get("requirements", {})) == "", id + ": mundo ainda fechado")
 	else:
 		check(w.places.has(place), id + ": lugar inexistente")
-		check(state.call("requirement_error", w.places.get(place, {}).get("requirements", {})) == "", id + ": destino em lugar ainda fechado")
+		# A lagoa abre com a vara, que a missão da vovó (anterior ao destino) entrega.
+		check(place == "fishing" or state.call("requirement_error", w.places.get(place, {}).get("requirements", {})) == "", id + ": destino em lugar ainda fechado")
 	check(state.call("requirement_error", w.get("requirements", {})) == "", id + ": destino em mundo ainda fechado")

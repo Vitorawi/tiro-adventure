@@ -329,11 +329,13 @@ func _run() -> void:
 	_fresh()
 	check(_start() == "", "extra: fisgou na vara 1")
 	var n1: int = int(_fishing().cast.n)
+	_fishing().cast["chest"] = true
 	state.call("finish_fishing", {"caught": true, "score": 0.5, "perfect": false, "chest": true})
 	check(not state.get("economy").granted.has("fish_chest:%d" % n1), "extra: vara 1 não ganha baú")
 	_drain_fish()
 	state.call("dev_give_rod", "reel_rod")
 	check(_start() == "", "extra: fisgou na vara 2")
+	_fishing().cast["chest"] = true
 	var n2: int = int(_fishing().cast.n)
 	state.call("finish_fishing", {"caught": true, "score": 0.5, "perfect": false, "chest": true})
 	check(state.get("economy").granted.has("fish_chest:%d" % n2), "extra: vara 2 recebe o baú uma vez")

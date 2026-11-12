@@ -88,7 +88,8 @@
       "body": "young",
       "coat": 0,
       "facts": [
-        "Os dentes de leite caem entre 4 e 7 meses; morder alivia a coceira."
+        "Os dentes de leite caem entre 4 e 7 meses; morder alivia a coceira.",
+        "Peixe cozido, sem espinha e sem sal, é uma proteína leve para filhotes."
       ],
       "teaser": "As orelhas vão acompanhar a curiosidade.",
       "requirements": [
@@ -105,6 +106,13 @@
           "item": "frozen_carrot",
           "qty": 3,
           "body_level": 2
+        },
+        {
+          "id": "fish_meal",
+          "type": "feed",
+          "item": "fish_mash",
+          "qty": 2,
+          "label": "Papinha de peixe"
         },
         {
           "id": "key",
@@ -158,6 +166,13 @@
           "body_level": 4
         },
         {
+          "id": "fish_meal",
+          "type": "feed",
+          "item": "fish_stew",
+          "qty": 2,
+          "label": "Ensopado de peixe"
+        },
+        {
           "id": "key",
           "type": "deliver",
           "item": "stick_chew",
@@ -186,7 +201,8 @@
       "body": "adult",
       "coat": 0.3,
       "facts": [
-        "O pelo do Yorkie é parecido com cabelo e cresce sem parar."
+        "O pelo do Yorkie é parecido com cabelo e cresce sem parar.",
+        "Peixe tem ômega-3, que deixa o pelo mais brilhante."
       ],
       "teaser": "Uma mudança começa na raiz do pelo.",
       "requirements": [
@@ -217,6 +233,13 @@
           "item": "milk_porridge",
           "qty": 3,
           "body_level": 6
+        },
+        {
+          "id": "fish_meal",
+          "type": "feed",
+          "item": "herb_fish",
+          "qty": 2,
+          "label": "Peixe com ervas"
         },
         {
           "id": "key",
@@ -830,6 +853,14 @@
         "qty": 1,
         "capped": false,
         "first": true
+      },
+      "herb_fish": {
+        "label": "Peixe com ervas",
+        "go": "place:house:stove",
+        "pillar": "coat",
+        "qty": 1,
+        "capped": true,
+        "first": false
       },
       "pet": {
         "label": "Carinho quando ele pede",

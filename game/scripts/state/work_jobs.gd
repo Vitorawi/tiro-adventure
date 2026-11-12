@@ -30,6 +30,7 @@ static func batch(recipe_id: String, recipes: Dictionary, xp: Dictionary, statio
 	if recipe.is_empty():
 		return {}
 	var collection := recipe.has("output_collection")
+	var rod := recipe.has("output_rod")
 	var animal := str(stations.get(str(recipe.get("station", "")), {}).get("kind", "")) == "animal"
 	var key := "animal" if animal else "cook"
 	# `player_xp` na receita substitui o XP global da ação (nunca soma os dois).
@@ -37,13 +38,14 @@ static func batch(recipe_id: String, recipes: Dictionary, xp: Dictionary, statio
 	if recipe.has("player_xp"):
 		key = "recipe"
 	return {
-		"output": str(recipe.get("output_collection", recipe.get("output", ""))),
+		"output": str(recipe.get("output_collection", recipe.get("output_rod", recipe.get("output", "")))),
 		"collection": collection,
+		"rod": rod,
 		"qty": qty,
 		"inputs": inputs.duplicate(),
 		"seconds": float(recipe.get("seconds", 0)),
-		"skill": str(recipe.get("skill", "adventure" if collection else "cooking")),
-		"skill_xp": int(recipe.get("skill_xp", 20 if collection else 10)),
+		"skill": str(recipe.get("skill", "adventure" if collection or rod else "cooking")),
+		"skill_xp": int(recipe.get("skill_xp", 20 if collection or rod else 10)),
 		"player_xp_key": key,
 		"player_xp": player_xp,
 	}

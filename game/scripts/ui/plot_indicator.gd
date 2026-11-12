@@ -3,6 +3,8 @@ extends WorldBalloon
 ## Crescimento e colheita usam o mesmo balão das estações.
 
 var plot_index: int = 0
+## Salas com a placa "compra" desenhada no canteiro fechado não precisam do balão "+".
+var sign_buy := false
 var _caption_until := 0.0
 
 
@@ -16,7 +18,7 @@ func refresh() -> void:
 	var status := GameState.plot_status(plot_index)
 	visible = status in ["growing", "ready"]
 	# Uma única compra na ponta da frente da horta, sem cobrir o canteiro de trás.
-	if status == "locked" and plot_index == int(Database.farm.plots) - 1:
+	if status == "locked" and plot_index == int(Database.farm.plots) - 1 and not sign_buy:
 		visible = true
 		anchor = Vector2(0, -16)
 		state = "buy"

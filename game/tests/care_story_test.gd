@@ -54,13 +54,13 @@ func _run() -> void:
 	for kind: String in ["daily", "weekly"]:
 		check(not db.routines[kind].has("legacy"), kind + ": sem catálogo morto de cuidados")
 		for mission: Dictionary in db.routines[kind].missions.values():
-			check(mission.goal.key in ["harvest", "production_jobs", "orders"], kind + ": só fazenda")
+			check(mission.goal.key in ["harvest", "production_jobs", "orders", "fish", "fish_size:large"], kind + ": só fazenda")
 		for period in 12:
 			state.advance_clock(7 * 86400)
 			var ids: Array = state.routine_ids(kind)
 			check(ids.size() == int(db.routines[kind].count), kind + ": quantidade disponível")
 			for id: String in ids:
-				check(state.routine_data(kind, id).goal.key in ["harvest", "production_jobs", "orders"], kind + ": sorteio sem cuidado")
+				check(state.routine_data(kind, id).goal.key in ["harvest", "production_jobs", "orders", "fish", "fish_size:large"], kind + ": sorteio sem cuidado")
 	var clothes: Array = db.routines.weekly.missions.big_harvest.rewards.collections + db.routines.weekly.missions.orders_week.rewards.collections
 	for id: String in ["clean_bow", "heart_collar", "walker_bandana"]:
 		check(id in clothes, id + ": continua disponível nas semanais")

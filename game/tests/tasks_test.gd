@@ -45,12 +45,12 @@ func _run() -> void:
 	state.get("progress").count("harvest", 1)
 	check(state.call("claim_quest", "bloblo_more_crops") == "" and state.call("accessible_plots") == 4, "Mais colheitas: vovó empresta quatro canteiros")
 	check(not database.get("quests").has("bloblo_carrots"), "entrega repetida de cenouras saiu do catálogo")
-	check(state.get("progress").current_line_quest("bloblo") == "bloblo_potato", "depois de colher três vezes segue direto para batatas")
+	check(state.get("progress").current_line_quest("bloblo") == "bloblo_rod", "depois de colher três vezes vem a vara da vovó")
 	check(state.call("plant_error", 0, "potato") == "", "batata já pode ser plantada sem entregar cenouras")
 	var before_carrots: int = state.get("inventory").count("carrot")
 	var previous: Dictionary = state.call("to_dict").duplicate(true)
 	state.call("from_dict", previous)
-	check(state.get("progress").current_line_quest("bloblo") == "bloblo_potato" and state.get("inventory").count("carrot") == before_carrots, "save na etapa retirada segue para batatas sem consumir cenouras")
+	check(state.get("progress").current_line_quest("bloblo") == "bloblo_rod" and state.get("inventory").count("carrot") == before_carrots, "save na etapa retirada segue para a vara sem consumir cenouras")
 	_shared_quests_check()
 	state.call("reset")
 	var events: Node = root.get_node("Events")
@@ -124,7 +124,7 @@ func _routines_check() -> void:
 	# Capítulo 3: diárias abrem com 3 missões; semanais só no 4.
 	state.call("dev_jump_to_chapter", 2)
 	check(state.get("progress").chapter_index() == 3, "Está no capítulo 3")
-	check(state.call("routines_unlocked", "daily") and (state.call("routine_ids", "daily") as Array).size() == 1, "Diárias abrem no capítulo 3 só com a colheita acessível (sem tarefa impossível)")
+	check(state.call("routines_unlocked", "daily") and (state.call("routine_ids", "daily") as Array).size() == 2 and not ("cook" in state.call("routine_ids", "daily")) and not ("order" in state.call("routine_ids", "daily")), "Diárias abrem no capítulo 3 só com colheita e pesca (a vara já veio; sem tarefa impossível)")
 	check(not state.call("routines_unlocked", "weekly"), "Semanais ainda fechadas no capítulo 3")
 	state.get("progress").stats["harvest"] = 7
 	state.call("dev_jump_to_chapter", 4)
@@ -309,7 +309,7 @@ func _shot(file_name: String) -> void:
 
 ## Cruzamentos da história: uma entrega, um prêmio e compatibilidade com saves anteriores.
 func _shared_quests_check() -> void:
-	for alias: String in ["lais_meet_bloblo", "lais_first_crops", "lais_stew"]:
+	for alias: String in ["lais_meet_bloblo", "lais_first_crops", "lais_fishing", "lais_stew"]:
 		state.call("reset")
 		var progress: RefCounted = state.get("progress")
 		var quests: Dictionary = database.get("quests")
@@ -332,7 +332,7 @@ func _shared_quests_check() -> void:
 		var count_before: int = progress.stat("quests")
 		check(state.call("claim_quest", shared) == "", "entrega única: " + shared)
 		var chapter_reward := 0
-		if alias == "lais_first_crops":  # lais_stew deixou de fechar o capítulo 3 (depois vêm os dentinhos)
+		if alias == "lais_fishing":  # a pesca fecha o capítulo 2; lais_stew deixou de fechar o capítulo 3
 			chapter_reward = int(database.get("progression").chapters[int(quests[alias].chapter) - 1].get("rewards", {}).get("coins", 0))
 		check(progress.claimed_quests.has(alias), "história avança junto: " + alias)
 		check(state.get("coins") == before + int(quests[shared].rewards.get("coins", 0)) + chapter_reward, "só prêmio canônico e eventual capítulo")

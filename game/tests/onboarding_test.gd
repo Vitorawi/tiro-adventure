@@ -128,6 +128,13 @@ func _turn() -> int:
 	for row: Dictionary in state.call("growth_info").requirements:
 		if not row.done and str(row.type) in ["feed", "deliver"] and str(row.item) != "any":
 			wanted.append(str(state.call("favorite_food")) if str(row.item) == "favorite" else str(row.item))
+	# Papinha de peixe (pesca, etapa 06): tilápia na lagoa + batata, depois cozinha e dá ao Tiro.
+	if "produce:fish_mash" in wanted or "feed:fish_mash" in wanted or "fish_mash" in wanted:
+		wanted.append("fish_mash")
+		if state.get("inventory").count("potato") == 0:
+			wanted.append("harvest:potato")
+		if state.get("inventory").count("fish_tilapia") == 0 and state.get("inventory").count("fish_mash") == 0:
+			wanted.append("fish")
 	# 1. Recebe o que está pronto (missões e diárias).
 	for step: String in progress.active_steps().values():
 		if state.call("claim_quest", step) == "":
@@ -139,9 +146,23 @@ func _turn() -> int:
 	acts += _grow_turn()
 	# 2. Conversas e telas pedidas pela história.
 	for npc_id: String in database.get("npcs"):
-		if progress.npc_visible(npc_id) and ("talk:" + npc_id) in wanted and progress.stat("talk:" + npc_id) == 0:
+		if progress.npc_visible(npc_id) and ("talk:" + npc_id) in wanted and _goal_pending("talk:" + npc_id):
 			state.call("talk_to", npc_id)
 			acts += 1
+	# 2b. Pesca (etapa 05): pesca sem tela e compra minhocas na banca quando a história pede.
+	if wanted.any(func(key: String) -> bool: return key == "fish" or key.begins_with("fish:")) and str(state.call("current_rod")) != "":
+		if state.get("inventory").count("bait_worm") == 0 and state.call("buy_shop_item", "worm_pack", 1) == "":
+			acts += 1
+		if state.call("cast", "bait_worm", 2) == "":
+			state.call("advance_clock", float(state.get("fishing").cast.wait) + 0.5)
+			state.call("update_fishing")
+			if state.call("hook") == "" and state.call("finish_fishing", {"caught": true, "score": 0.6, "perfect": false}) == "":
+				state.call("finish_fishing_tutorial")
+				acts += 1
+			else:
+				state.call("cancel_fishing")
+	if _goal_pending("bought:bait_worm") and state.call("buy_shop_item", "worm_pack", 1) == "":
+		acts += 1
 	for key: String in wanted:
 		if key.begins_with("open:") and progress.stat(key) == 0:
 			state.call("note_screen_opened", key.trim_prefix("open:"))
@@ -152,6 +173,8 @@ func _turn() -> int:
 			state.call("emergency_food")
 		if state.call("feed", "dog_food"):
 			acts += 1
+	if "feed:fish_mash" in wanted and state.get("inventory").count("fish_mash") > 0 and state.call("feed", "fish_mash"):
+		acts += 1
 	if "bathe" in wanted and progress.stat("bathe") == 0:
 		state.call("bathe")
 		acts += 1
@@ -274,3 +297,12 @@ func _grow_turn() -> int:
 	if state.call("grow_error") == "" and state.call("grow") == "":
 		acts += 1
 	return acts
+
+
+## Algum objetivo ativo com essa chave ainda não foi cumprido (os fresh contam só ações novas).
+func _goal_pending(key: String) -> bool:
+	for step: String in state.get("progress").active_steps().values():
+		for goal: Dictionary in database.get("quests")[step].goals:
+			if str(goal.get("key", "")) == key and int(state.call("goal_value", goal)) < int(goal.get("target", 1)):
+				return true
+	return false

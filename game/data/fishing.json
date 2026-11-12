@@ -8,6 +8,7 @@
              "sinker_fall": 1.5, "floater_rise": 1.5, "burst_speed": 4.0, "burst_distance": [0.25, 0.45],
              "smooth_min_distance": 0.35, "noise_amp": 0.01, "noise_hz": 2.0,
              "lane": [0.02, 0.98], "target_range": [0.05, 0.95]},
+  "tutorial": {"difficulty": 8, "drain_until": 0.5, "meter_floor": 0.2, "cap": 0.4},
   "cast": {"power_period": 1.2, "zones": 3, "wait": [4, 10], "bite_window": 1.0, "tutorial_wait": 3.0},
   "bubbles": {"every_min": [20, 40], "lasts_min": 10, "wait_mult": 0.25, "zone_bonus": 1, "spots": 4},
   "chest": {"chance": 0.15, "appear_after": 2.0, "fill": 0.5, "from_rod": "reel_rod",
@@ -26,15 +27,16 @@
   "size_formula": {"quality": 0.55, "luck": 0.45, "zone": 0.05, "pity_min": 0.70},
   "pity_large": 8,
   "levels": [0, 30, 90, 200, 400],
+  "harvest_worm_chance": 0.15,
   "story_guarantee": {"fish_tilapia": 3},
   "story_share": 0.5,
   "moment_first": {"pillar": "brave", "source": "fish_first"},
   "rods": {
-    "bamboo_rod": {"name": "Vara de bambu", "icon": "res://assets/sprites/ui/icons/item_bolt.png", "icon_todo": true,
+    "bamboo_rod": {"name": "Vara de bambu", "icon": "res://assets/sprites/ui/icons/rod_bamboo.png",
                    "tier": 1, "bar_bonus": 0, "hold": 0, "bounce": 0.45, "baits": ["bait_worm"]},
-    "reel_rod": {"name": "Vara de molinete", "icon": "res://assets/sprites/ui/icons/item_bolt.png", "icon_todo": true,
+    "reel_rod": {"name": "Vara de molinete", "icon": "res://assets/sprites/ui/icons/rod_reel.png",
                  "tier": 2, "bar_bonus": 0.025, "hold": 0.15, "bounce": 0.30, "baits": ["bait_worm", "bait_dough"]},
-    "angler_rod": {"name": "Vara do pescador", "icon": "res://assets/sprites/ui/icons/item_bolt.png", "icon_todo": true,
+    "angler_rod": {"name": "Vara do pescador", "icon": "res://assets/sprites/ui/icons/rod_angler.png",
                    "tier": 3, "bar_bonus": 0.05, "hold": 0.30, "bounce": 0, "baits": ["bait_worm", "bait_dough", "bait_lure"]}
   },
   "baits": {

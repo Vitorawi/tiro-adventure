@@ -245,6 +245,16 @@ static func run(world_id: String, action: String) -> void:
 				Events.plot_tray_requested.emit(id, -1)
 			else:
 				Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.farm_view(id, Database.crops.get(id, {}).get("greenhouse", "") == "only"))
+	elif action.begins_with("shop:"):
+		var pack := action.trim_prefix("shop:")
+		var shop_id := str(Database.progression.shop_items.get(pack, {}).get("shop", ""))
+		if shop_id != "" and GameState.shop_error(shop_id) == "":
+			SellUi.open_tab = "buy"
+			SellUi.open_pack = pack
+			var shop: Dictionary = Database.shop(shop_id)
+			Events.sheet_requested.emit(str(shop.get("name", "Banca")), ProgressionUi.market_panel("sell", str(shop.get("world", world_id))))
+		elif shop_id != "":
+			Events.toast_requested.emit(GameState.shop_error(shop_id))
 	elif action.begins_with("market:"):
 		var orders := action.trim_prefix("market:") == "orders"
 		Events.sheet_requested.emit("Encomendas" if orders else "Vender", ProgressionUi.market_panel("orders" if orders else "sell", world_id))
@@ -351,6 +361,9 @@ static func highlight_action(place: String) -> String:
 			return "place:stall" if MarketUi.is_contract(id) else "place:orders"
 		"crop":
 			return "plot"
+		"shop":
+			var shop_place := str(Database.shop(str(Database.progression.shop_items.get(id, {}).get("shop", ""))).get("place", ""))
+			return "place:" + shop_place if shop_place != "" else ""
 		"buy":
 			return "buy:" + id  # seta no "+" do objeto; RoomView.point_at cai no lugar se não houver "+"
 	if spot == "plots":
@@ -499,8 +512,6 @@ static func world_busy_counts() -> Dictionary:
 			_add_busy(counts, Database.place_with_panel("routes:" + str(Database.progression.nature_sites[site].groups[0]))[0], working)
 	if GameState.walking():
 		_add_busy(counts, Database.place_with_panel("walks")[0], 1)
-	if not GameState.fishing.bubble.is_empty() and GameState.current_rod() != "":  # bolha quente na lagoa (disco provisório até a 03)
-		_add_busy(counts, Database.place_with_panel("fishing")[0], 1)
 	if not GameState.progress.activity.is_empty() and GameState.activity_remaining() > 0:
 		var route: Dictionary = Database.progression.activities.get(str(GameState.progress.activity.get("id", "")), {})
 		_add_busy(counts, Database.place_with_panel("routes:" + str(route.get("place", "")))[0], 1)
@@ -605,9 +616,13 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				return {"screen": screen}
 			if key == "fish" or key.begins_with("fish:") or key.begins_with("fish_") or key.begins_with("rod:"):
 				return _panel_target("fishing")
+			if key.begins_with("bought:"):
+				# Comprou na banca: leva à loja que vende o item.
+				for sold: Dictionary in Database.shops_selling(key.trim_prefix("bought:")):
+					return goal_target({"type": "stat", "key": "shop:" + str(sold.id)})
 			if key == "walk" or key.begins_with("walk:") or key.begins_with("walk_"):
 				return _panel_target("walks")
-			if key == "feed":
+			if key == "feed" or key.begins_with("feed:"):
 				return _panel_target("feed")
 			if key in ["harvest", "water"] or key.begins_with("harvest:"):
 				return _panel_target("farm")
@@ -619,6 +634,9 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 							world = id
 							break
 				return {"world": world, "place": "find", "hint": "Cavar onde o Tiro farejou"}
+			if key.begins_with("shop:"):
+				var shop: Dictionary = Database.shop(str(Database.progression.shop_items.get(key.trim_prefix("shop:"), {}).get("shop", "")))
+				return {"world": str(shop.get("world", "farm")), "place": key, "spot": str(shop.get("place", ""))}
 			if key == "sold:village": return {"world": "village", "place": "market"}
 			if key in ["trade", "sold"]:
 				return {"world": "village", "place": "market"} if GameState.requirement_error(Database.worlds.village.get("requirements", {})) == "" else {"world": "farm", "place": "early_market"}

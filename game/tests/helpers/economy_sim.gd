@@ -24,19 +24,22 @@ const ALLOWED: Array[String] = [
 	"start_gathering", "collect_gathering", "start_walk", "collect_walk", "dig", "give_friend",
 	"collect_friend_visit", "fulfill_wish", "perform_trick", "learn_trick", "equip", "sell", "fulfill_order",
 	"buy_upgrade", "buy_plot", "buy_animal", "start_activity", "collect_activity", "open_treasure",
-	"start_project", "contribute_project", "use_project", "grow", "deliver_growth",
+	"start_project", "contribute_project", "use_project", "grow", "deliver_growth", "fish", "buy_shop",
 ]
 
 const PROFILES := {
 	"reference": {
+		"fishing_skill": 0.65,
 		"agenda": "reference", "lines": ["main", "bloblo", "nina", "merchant", "guide"], "reserve_story": true, "water": true,
 		"phases": ["ph_claim", "ph_care_urgent", "ph_wishes", "ph_wish_goals", "ph_collect", "ph_water", "ph_focus", "ph_others", "ph_upgrade_goals", "ph_orders", "ph_produce", "ph_spend", "ph_sell", "ph_closing", "ph_care_optional"],
 	},
 	"light": {
+		"fishing_skill": 0.5,
 		"agenda": "light", "lines": ["main", "bloblo", "nina", "merchant", "guide"], "reserve_story": true, "water": true,
 		"phases": ["ph_claim", "ph_care_urgent", "ph_wishes", "ph_wish_goals", "ph_collect", "ph_water", "ph_focus", "ph_upgrade_goals", "ph_produce", "ph_spend", "ph_sell", "ph_closing"],
 	},
 	"active": {
+		"fishing_skill": 0.8,
 		"agenda": "active", "lines": ["main", "bloblo", "nina", "merchant", "guide"], "reserve_story": true, "water": true,
 		"phases": ["ph_claim", "ph_care_urgent", "ph_wishes", "ph_wish_goals", "ph_collect", "ph_water", "ph_focus", "ph_others", "ph_upgrade_goals", "ph_orders", "ph_produce", "ph_spend", "ph_sell", "ph_closing", "ph_care_optional"],
 	},
@@ -475,6 +478,12 @@ func action_cost(action: Dictionary) -> float:
 	if args.has("plots"):
 		targets = maxi(1, (args.plots as Array).size())
 	cost += float(targets - 1) * DRAG_SECONDS
+	if str(action.kind) == "fish":
+		# Estimativa para o orçamento da sessão: arremesso 2 s + espera média + minigame + resultado 2 s.
+		var wait_span: Array = Database.fishing.get("cast", {}).get("wait", [4, 10])
+		var fill: float = float(Database.fishing.get("meter", {}).get("fill", 0.22))
+		var skill: float = float(profile.get("fishing_skill", 0.65))
+		cost += 2.0 + (float(wait_span[0]) + float(wait_span[1])) * 0.5 + maxf(4.0, 0.7 / maxf(fill, 0.01) / maxf(skill, 0.2)) + 2.0
 	if str(action.ctx) != ctx:
 		cost += NAV_SECONDS
 	return cost
@@ -672,9 +681,12 @@ func execute(action: Dictionary) -> Dictionary:
 			out.err = gs.cook(rid)
 		"collect_station":
 			var mastery_before := _mastery_ids()
+			var rods_before: int = gs.fishing.rods.size()
 			var received: Dictionary = gs.collect(str(args.station))
+			for rod_id: String in Database.fishing.get("rods", {}):
+				received.erase(rod_id)  # a vara entra em fishing.rods, não na mochila
 			out.extra = {"gained": received, "coins": _new_mastery_coins(mastery_before)}
-			if received.is_empty() and not _station_had_cosmetic(args):
+			if received.is_empty() and gs.fishing.rods.size() == rods_before and not _station_had_cosmetic(args):
 				out.err = "Nada recolhido"
 		"start_gathering":
 			out.err = gs.start_gathering(str(args.site), int(args.index), str(args.route))
@@ -742,6 +754,19 @@ func execute(action: Dictionary) -> Dictionary:
 			out.err = gs.contribute_project(str(args.id), str(args.item), int(args.qty))
 		"use_project":
 			out.err = gs.use_project(str(args.id))
+		"fish":
+			var bait_before: int = gs.inventory.count(str(args.bait))
+			out.err = _fish(str(args.bait))
+			out.extra = {"consumed": {str(args.bait): maxi(0, bait_before - gs.inventory.count(str(args.bait)))}}  # a minhoca só some depois do tutorial
+		"buy_shop":
+			var pack: Dictionary = Database.progression.shop_items[str(args.id)]
+			out.extra = {"spend": int(pack.price), "gained": pack.get("items", {}).duplicate(), "consumed": pack.get("materials", {}).duplicate()}
+			out.err = gs.buy_shop_item(str(args.id), 1)
+			if out.err == "":
+				fishing_log.baits_coins += int(pack.price) if pack.get("items", {}).keys().any(func(k: Variant) -> bool: return str(k).begins_with("bait_")) else 0
+				for bait_id: Variant in pack.get("items", {}):
+					if str(bait_id).begins_with("bait_"):
+						fishing_log.baits_bought[str(bait_id)] = int(fishing_log.baits_bought.get(str(bait_id), 0)) + int(pack.items[bait_id])
 		"buy_upgrade":
 			var data2: Dictionary = Database.progression.upgrades[str(args.id)]
 			out.extra = {"spend": int(data2.get("cost", 0)), "consumed": data2.get("materials", {}).duplicate()}
@@ -753,6 +778,58 @@ func execute(action: Dictionary) -> Dictionary:
 			out.extra = {"spend": int(Database.animals[str(args.id)].price)}
 			out.err = gs.buy_animal(str(args.id))
 	return out
+
+
+## Uma pescaria sem tela, mas pelo GameState e com o tempo de verdade (etapa 10): arremesso 2 s + espera + minigame
+## (0,7 / enche ÷ nota, mínimo 4 s) + resultado 2 s. A nota sai da habilidade do perfil com a `rng` do robô; abaixo de
+## `FISH_MIN_SCORE` o peixe escapa (a isca já foi gasta). O primeiro peixe encerra o tutorial, como a tela faz.
+const FISH_MIN_SCORE := 0.35
+const FISH_PERFECT := 0.93
+
+var fishing_log := {"casts": 0, "caught": 0, "escaped": 0, "seconds": 0.0, "giants": 0, "perfect": 0,
+		"by_species": {}, "by_phase": {}, "baits_bought": {}, "baits_coins": 0}
+
+
+func _fish(bait: String) -> String:
+	var skill: float = float(profile.get("fishing_skill", 0.65))
+	var score: float = clampf(skill + (bot.rng.randf() + bot.rng.randf() - 1.0) * 0.5, 0.0, 1.0)
+	var fill: float = float(Database.fishing.get("meter", {}).get("fill", 0.22))
+	var play: float = maxf(4.0, 0.7 / maxf(fill, 0.01) / maxf(score, 0.2))
+	var species_before := {}
+	for id: String in Database.fishing.get("fish", {}):
+		species_before[id] = gs.progress.stat("fish:" + id)
+	var giants_before: int = gs.progress.stat("fish_gigante")
+	var err: String = gs.cast(bait, 2)
+	if err != "":
+		return err
+	gs.advance_clock(float(gs.fishing.cast.wait) + 0.5)
+	gs.update_fishing()
+	err = gs.hook()
+	if err != "":
+		gs.miss_bite()
+		return err
+	var caught: bool = score >= FISH_MIN_SCORE
+	var spent: float = 2.0 + float(gs.fishing.cast.wait) + play + 2.0
+	err = gs.finish_fishing({"caught": caught, "score": score, "perfect": caught and score >= FISH_PERFECT})
+	if err != "":
+		gs.cancel_fishing()
+		return err
+	gs.finish_fishing_tutorial()
+	fishing_log.casts += 1
+	fishing_log.seconds += spent
+	var phase: String = str(gs.growth.phase)
+	fishing_log.by_phase[phase] = float(fishing_log.by_phase.get(phase, 0.0)) + spent
+	if caught:
+		fishing_log.caught += 1
+		for id: String in species_before:
+			if gs.progress.stat("fish:" + id) > int(species_before[id]):
+				fishing_log.by_species[id] = int(fishing_log.by_species.get(id, 0)) + 1
+	else:
+		fishing_log.escaped += 1
+	fishing_log.giants += gs.progress.stat("fish_gigante") - giants_before
+	if caught and score >= FISH_PERFECT:
+		fishing_log.perfect += 1
+	return ""
 
 
 func _station_had_cosmetic(_args: Dictionary) -> bool:
@@ -873,14 +950,16 @@ func _expected(action: Dictionary, outcome: Dictionary) -> Dictionary:
 				items[id] = int(items.get(id, 0)) - int(extra.consumed[id])
 			for id: String in extra.get("deliveries", {}):
 				items[id] = int(items.get(id, 0)) - int(extra.deliveries[id])
-		"buy_upgrade", "buy_plot", "buy_animal", "start_project":
+		"buy_upgrade", "buy_plot", "buy_animal", "start_project", "buy_shop":
 			coins = -int(extra.get("spend", 0))
 			for id: String in extra.get("consumed", {}):
 				items[id] = -int(extra.consumed[id])
+			for id: String in extra.get("gained", {}):
+				items[id] = int(items.get(id, 0)) + int(extra.gained[id])
 		"contribute_project":
 			for id: String in extra.get("delivered", {}):
 				items[id] = -int(extra.delivered[id])
-		"dig", "collect_walk", "collect_friend_visit", "give_friend", "grow":
+		"dig", "collect_walk", "collect_friend_visit", "give_friend", "grow", "fish":
 			exact = false  # "grow": o presente da fase pode virar recibo se a mochila estiver cheia
 	return {"coins": coins, "items": items, "exact": exact}
 
@@ -1318,6 +1397,7 @@ func summary() -> Dictionary:
 			"unused_no_action_min": snappedf(unused_no_action / 60.0, 0.1), "left_with_actions_min": snappedf(budget_left_with_actions / 60.0, 0.1),
 			"longest_gap_active_min": _longest_gap(),
 		},
+		"fishing": fishing_log,
 		"guards": {"violations": violations.size(), "details": violations.slice(0, 20), "unlimited_storage": bool(gs.unlimited_storage)},
 		"milestones": milestones,
 		"coin_flow": coin_flow, "item_flow": item_flow, "waits_by_reason": waits_by_reason,

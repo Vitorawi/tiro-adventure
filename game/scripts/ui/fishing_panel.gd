@@ -387,6 +387,8 @@ func release_cast() -> void:
 	if _power != null:
 		_power.value = value
 	var zone := zone_of(value)
+	if not GameState.fishing_tutorial_done():
+		zone = maxi(zone, 2)  # tutorial: a linha nunca cai perto demais
 	last_zone = zone
 	cast_requested.emit(_bait, zone, value)
 

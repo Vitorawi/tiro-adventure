@@ -57,5 +57,14 @@ func _draw() -> void:
 	for i in 5:
 		var phase := fposmod(_time * 0.7 + i * 0.2, 1.0)
 		var offset := Vector2(sin((_time + i) * 2.0) * 5.0 + (i - 2) * 4.0, -phase * 26.0)
-		var radius := 2.0 + (i % 3) * 1.2
-		draw_arc(center + offset, radius, 0, TAU, 12, Color(tone, 1.0 - phase), 1.6)
+		var side := 8.0 + (i % 3) * 3.0
+		var tex := _bubble_texture()
+		draw_texture_rect(tex, Rect2(center + offset - Vector2(side, side) / 2.0, Vector2(side, side)), false, Color(1, 1, 1, 1.0 - phase))
+
+
+static var _bubble_tex: Texture2D
+
+static func _bubble_texture() -> Texture2D:
+	if _bubble_tex == null:
+		_bubble_tex = load("res://assets/sprites/fx/fishing_bubble.png") as Texture2D
+	return _bubble_tex

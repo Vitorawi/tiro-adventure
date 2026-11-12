@@ -1168,6 +1168,10 @@ func pursue_reqs(requirements: Dictionary, shield: bool, depth: int, who: String
 	for id: String in requirements.get("projects", []):
 		if not gs.project_completed(id):
 			results.append(pursue_project(id, shield, depth + 1, who))
+	if requirements.has("rod") and not gs.fishing.has_rod(str(requirements.rod)):
+		results.append(_pursue_rod(str(requirements.rod), shield, depth + 1))
+	if requirements.has("fishing_level") and gs.fishing_level() < int(requirements.fishing_level):
+		results.append(_pursue_catch_species("", shield, depth + 1))
 	if requirements.has("growth") and gs.growth.phase_index() < gs.growth.phase_index(str(requirements.growth)):
 		results.append(pursue_growth(str(requirements.growth), shield, depth + 1, who))
 	for id: String in requirements.get("skills", {}):
@@ -1363,6 +1367,9 @@ func _pursue_item_inner(item: String, qty: int, shield: bool, depth: int) -> Dic
 		for qid: String in Database.quests:
 			if Database.quests[qid].get("rewards", {}).get("items", {}).has(item) and not gs.progress.claimed_quests.has(qid):
 				results.append(pursue_quest(qid, shield, depth + 1))
+	# 7. pesca (etapa 10): o peixe vem da lagoa, com a isca e a vara da espécie
+	if Database.fishing.get("fish", {}).has(item):
+		results.append(_pursue_catch_species(item, shield, depth + 1))
 	if results.is_empty():
 		return _block("no_source:" + item)
 	var merged: Dictionary = _combine(results)
@@ -1423,7 +1430,7 @@ func _pursue_recipe_inner(rid: String, missing_units: int, shield: bool, depth: 
 	if not complete:
 		return _combine(results)
 	var error: String = gs.cook_error(rid)
-	if error == "Fila cheia":
+	if error == "Fila cheia" or error == "Já está sendo feita":
 		return _wait("queue:" + station_id)
 	if error != "":
 		return _block("cook:" + error)
@@ -1683,7 +1690,113 @@ func pursue_stat(key: String, remaining: int, shield: bool, depth: int, qid: Str
 			return pursue_quest("guide_treasure", shield, depth + 1)
 		"wish_item":
 			return _pursue_wish_item(arg, shield, depth)
+		"fish":
+			return _pursue_catch_species(arg if Database.fishing.get("fish", {}).has(arg) else "", shield, depth)
+		"fish_size":
+			var species := key.get_slice(":", 2) if key.count(":") >= 2 else ""
+			return _pursue_catch_species(species if Database.fishing.get("fish", {}).has(species) else "", shield, depth)
+		"bought":
+			return _pursue_bait(arg, shield, depth)
 	return _block("stat:" + key, qid)
+
+
+## Pescar sem tela: cast → mordida → finish_fishing direto no GameState (etapa 10: nota e tempo vêm do perfil).
+## `species` vazio = qualquer peixe (XP de pesca, missão genérica); com espécie, usa a isca e a vara dela.
+func _pursue_catch_species(species: String, shield: bool, depth: int) -> Dictionary:
+	if gs.current_rod() == "":
+		return _block("fish:sem_vara")
+	var bait := ""
+	if species != "":
+		bait = str(Database.fishing.fish[species].bait)
+		var rod := _rod_for_bait(bait)
+		if rod == "":
+			return _block("fish:sem_vara_" + bait)
+		if not gs.fishing.has_rod(rod):
+			return _pursue_rod(rod, shield, depth + 1)
+	else:
+		bait = _best_bait_owned()
+	if gs.fishing_error() != "":
+		return _wait("fishing")
+	if not fits({"fish_tilapia": 1}):
+		return _space_or_block({"fish_tilapia": 1})
+	if gs.inventory.count(bait) <= 0:
+		return _pursue_bait(bait, shield, depth + 1)
+	return _act(_action("fish", {"bait": bait}, "place:farm/fishing", "goal"))
+
+
+## Menor vara (por nível) que aceita a isca; "" se nenhuma.
+func _rod_for_bait(bait: String) -> String:
+	var best := ""
+	var best_tier := 99
+	var rods: Dictionary = Database.fishing.get("rods", {})
+	for id: String in rods:
+		if bait in rods[id].baits and int(rods[id].tier) < best_tier:
+			best = id
+			best_tier = int(rods[id].tier)
+	return best
+
+
+## Isca de maior nível que a vara atual aceita e que já está na mochila; senão a minhoca.
+func _best_bait_owned() -> String:
+	var baits: Dictionary = Database.fishing.get("baits", {})
+	var rod: String = gs.current_rod()
+	var best := "bait_worm"
+	var best_tier := 0
+	for id: String in baits:
+		if rod != "" and id in Database.fishing.rods[rod].baits and gs.inventory.count(id) > 0 and int(baits[id].tier) > best_tier:
+			best = id
+			best_tier = int(baits[id].tier)
+	return best
+
+
+## Vara por receita (vara do pescador) ou por pacote da loja (molinete); o resto é o requisito de cada um.
+func _pursue_rod(rod: String, shield: bool, depth: int) -> Dictionary:
+	if gs.fishing.has_rod(rod):
+		return _done()
+	if depth > MAX_DEPTH:
+		return _block("depth", rod)
+	for rid: String in Database.recipes:
+		if str(Database.recipes[rid].get("output_rod", "")) == rod:
+			return _pursue_recipe(rid, 1, shield, depth + 1)
+	var items: Dictionary = Database.progression.get("shop_items", {})
+	for pack_id: String in items:
+		if rod in items[pack_id].get("rods", []):
+			return _pursue_pack(pack_id, shield, depth + 1)
+	return _block("rod:" + rod)
+
+
+## Compra o pacote da banca que vende `item` (minhocas, massa, isca); sem loja, tenta a receita (massa, isca artificial).
+func _pursue_bait(item: String, shield: bool, depth: int) -> Dictionary:
+	var items: Dictionary = Database.progression.get("shop_items", {})
+	for pack_id: String in items:
+		if items[pack_id].get("items", {}).has(item) and gs.shop_item_locked(pack_id) == "":
+			return _pursue_pack(pack_id, shield, depth + 1)
+	for rid: String in Database.recipes:
+		if Database.recipe_output(Database.recipes[rid]) == item:
+			return _pursue_recipe(rid, 1, shield, depth + 1)
+	return _block("loja:" + item)
+
+
+func _pursue_pack(pack_id: String, shield: bool, depth: int) -> Dictionary:
+	var pack: Dictionary = Database.progression.shop_items[pack_id]
+	if gs.shop_item_locked(pack_id) != "":
+		return pursue_reqs(pack.get("requirements", {}), shield, depth + 1, pack_id)
+	var mats: Dictionary = pack.get("materials", {})
+	_protect_all(mats, shield)
+	var results: Array = []
+	for material: String in mats:
+		if avail(material, shield) < int(mats[material]):
+			results.append(pursue_item(material, int(mats[material]), shield, depth + 1))
+	if not results.is_empty():
+		return _combine(results)
+	if gs.coins < int(pack.price):
+		return earn_coins(int(pack.price) - gs.coins, shield, depth + 1)
+	var err: String = gs.buy_shop_item_error(pack_id, 1)
+	if err == "Volta amanhã" or err.begins_with("Só mais"):
+		return _wait("shop_daily")
+	if err != "":
+		return _block("shop:" + err)
+	return _act(_action("buy_shop", {"id": pack_id, "item": ""}, "shop:" + str(pack.shop), "goal"))
 
 
 ## Desejo de um item (missão `wish_item:<item>`): faz o item, entrega no espaço que o pede e, sem pedido, espera a vaga.

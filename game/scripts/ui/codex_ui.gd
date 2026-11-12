@@ -752,6 +752,17 @@ static func tile(opts: Dictionary, w: float, h: float) -> Button:
 		lock.size = Vector2(22, 22)
 		result.add_child(lock)
 		lock.position = Vector2(w - 28.0, 5.0)
+	elif mark == "star":
+		var star := TextureRect.new()
+		star.name = "GiantStar"
+		star.texture = UiKit.ui_icon("rare_star")
+		star.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		star.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		star.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		star.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		star.size = Vector2(22, 22)
+		result.add_child(star)
+		star.position = Vector2(4.0, 5.0)
 	elif mark == "heart" or mark.begins_with("face_"):
 		var face := _taste_face(mark.trim_prefix("face_"))
 		result.add_child(face)

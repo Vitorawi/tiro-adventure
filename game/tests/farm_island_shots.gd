@@ -7,7 +7,7 @@ extends SceneTree
 var state: Node
 var main: Node
 var folder := "res://../build/screenshots/farm_island/"
-const BUILDINGS := ["silo", "warehouse", "workbench", "greenhouse", "orchard", "chicken_coop", "cow_barn", "mill", "dairy"]
+const BUILDINGS := ["silo", "warehouse", "workbench", "greenhouse", "chicken_coop", "cow_barn", "mill", "dairy"]
 
 
 func _initialize() -> void:
@@ -89,6 +89,7 @@ func _run() -> void:
 
 	# 1) Começo: nada construído, só os "+" das compras já liberadas.
 	state.call("dev_unlock_everything")
+	state.call("finish_fishing_tutorial")  # sem o tutorial da pesca puxando a câmera para a lagoa
 	for id: String in BUILDINGS:
 		state.get("progress").owned.erase(id)
 	state.set("unlocked_plots", 4)
@@ -128,8 +129,16 @@ func _run() -> void:
 	print("DBG tap ", _room().call("_on_object_tapped", "place:greenhouse", gh))
 	await create_timer(1.0).timeout
 	await _focus(Vector2(700, 1380), "i_estufa_depois")
-	var orchard: Sprite2D = _room().find_child("orchard", true, false)
+	# O pomar agora é dentro da estufa: a rota de maçãs aparece no balão da estufa.
+	state.get("progress").owned["orchard"] = true
 	print("DBG activity ", state.call("start_activity", "orchard_harvest") if state.has_method("start_activity") else "sem start_activity")
 	await create_timer(1.0).timeout
-	await _focus(orchard.position, "j_pomar")
+	await _focus(gh.position, "j_pomar_na_estufa")
+	# Canteiros com plantas (os quatro primeiros ficam abertos no começo).
+	state.set("unlocked_plots", 4)
+	for i in 4:
+		state.call("plant", i, "carrot")
+	state.call("plot", 0)["ready_at"] = 0.0
+	await create_timer(1.0).timeout
+	await _close_up(Vector2(170, 470), 1.1, "k_canteiros_plantados")
 	quit(0)

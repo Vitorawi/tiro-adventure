@@ -703,6 +703,63 @@
       ]
     }
   },
+  "fish_mash": {
+    "name": "Papinha de peixe",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_fish_mash.png",
+    "sell_price": 18,
+    "trade_xp": 6,
+    "feed": {
+      "hunger": 40,
+      "happiness": 10
+    },
+    "growth": {
+      "phases": [
+        "puppy",
+        "teething"
+      ]
+    }
+  },
+  "fish_stew": {
+    "name": "Ensopado de peixe",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_fish_stew.png",
+    "sell_price": 35,
+    "trade_xp": 8,
+    "feed": {
+      "hunger": 45,
+      "energy": 15
+    },
+    "growth": {
+      "phases": [
+        "explorer",
+        "young"
+      ]
+    }
+  },
+  "lambari_crunch": {
+    "name": "Petisco de lambari",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_lambari_crunch.png",
+    "treat": true,
+    "sell_price": 14,
+    "trade_xp": 4,
+    "feed": {
+      "hunger": 15,
+      "happiness": 15
+    },
+    "growth": {
+      "phases": [
+        "teething",
+        "explorer",
+        "young",
+        "adult"
+      ]
+    }
+  },
   "corn_crunch": {
     "name": "Crocante de milho",
     "category": "food",
@@ -859,8 +916,7 @@
     "name": "Lambari",
     "category": "product",
     "storage": "fridge",
-    "icon": "res://assets/sprites/ui/icons/item_egg.png",
-    "icon_todo": true,
+    "icon": "res://assets/sprites/ui/icons/item_fish_lambari.png",
     "sell_price": 4,
     "note": "Peixe da lagoa. Vira papinha no fogão."
   },
@@ -868,8 +924,7 @@
     "name": "Cará",
     "category": "product",
     "storage": "fridge",
-    "icon": "res://assets/sprites/ui/icons/item_egg.png",
-    "icon_todo": true,
+    "icon": "res://assets/sprites/ui/icons/item_fish_cara.png",
     "sell_price": 6,
     "note": "Peixe da lagoa. Vira papinha no fogão."
   },
@@ -877,8 +932,7 @@
     "name": "Tilápia",
     "category": "product",
     "storage": "fridge",
-    "icon": "res://assets/sprites/ui/icons/item_egg.png",
-    "icon_todo": true,
+    "icon": "res://assets/sprites/ui/icons/item_fish_tilapia.png",
     "sell_price": 9,
     "note": "Peixe da lagoa. Vira papinha no fogão."
   },
@@ -886,8 +940,7 @@
     "name": "Carpa",
     "category": "product",
     "storage": "fridge",
-    "icon": "res://assets/sprites/ui/icons/item_egg.png",
-    "icon_todo": true,
+    "icon": "res://assets/sprites/ui/icons/item_fish_carp.png",
     "sell_price": 14,
     "note": "Peixe da lagoa. Vira papinha no fogão."
   },
@@ -895,8 +948,7 @@
     "name": "Pacu",
     "category": "product",
     "storage": "fridge",
-    "icon": "res://assets/sprites/ui/icons/item_egg.png",
-    "icon_todo": true,
+    "icon": "res://assets/sprites/ui/icons/item_fish_pacu.png",
     "sell_price": 16,
     "note": "Peixe da lagoa. Vira papinha no fogão."
   },
@@ -904,8 +956,7 @@
     "name": "Tambaqui",
     "category": "product",
     "storage": "fridge",
-    "icon": "res://assets/sprites/ui/icons/item_egg.png",
-    "icon_todo": true,
+    "icon": "res://assets/sprites/ui/icons/item_fish_tambaqui.png",
     "sell_price": 20,
     "note": "Peixe da lagoa. Vira papinha no fogão."
   },
@@ -913,8 +964,7 @@
     "name": "Traíra",
     "category": "product",
     "storage": "fridge",
-    "icon": "res://assets/sprites/ui/icons/item_egg.png",
-    "icon_todo": true,
+    "icon": "res://assets/sprites/ui/icons/item_fish_traira.png",
     "sell_price": 18,
     "note": "Peixe da lagoa. Vira papinha no fogão."
   },
@@ -922,8 +972,7 @@
     "name": "Tucunaré",
     "category": "product",
     "storage": "fridge",
-    "icon": "res://assets/sprites/ui/icons/item_egg.png",
-    "icon_todo": true,
+    "icon": "res://assets/sprites/ui/icons/item_fish_tucunare.png",
     "sell_price": 26,
     "note": "Peixe da lagoa. Vira papinha no fogão."
   },
@@ -931,8 +980,7 @@
     "name": "Pintado",
     "category": "product",
     "storage": "fridge",
-    "icon": "res://assets/sprites/ui/icons/item_egg.png",
-    "icon_todo": true,
+    "icon": "res://assets/sprites/ui/icons/item_fish_pintado.png",
     "sell_price": 34,
     "note": "Peixe da lagoa. Vira papinha no fogão."
   },
@@ -940,8 +988,7 @@
     "name": "Minhoca",
     "category": "material",
     "storage": "none",
-    "icon": "res://assets/sprites/ui/icons/item_bolt.png",
-    "icon_todo": true,
+    "icon": "res://assets/sprites/ui/icons/item_bait_worm.png",
     "sell_price": 0,
     "note": "Isca para os peixes da vara de bambu."
   },
@@ -949,8 +996,7 @@
     "name": "Massa de milho",
     "category": "material",
     "storage": "none",
-    "icon": "res://assets/sprites/ui/icons/item_bolt.png",
-    "icon_todo": true,
+    "icon": "res://assets/sprites/ui/icons/item_bait_dough.png",
     "sell_price": 0,
     "note": "Isca para carpa, pacu e tambaqui."
   },
@@ -958,9 +1004,26 @@
     "name": "Isca artificial",
     "category": "material",
     "storage": "none",
-    "icon": "res://assets/sprites/ui/icons/item_bolt.png",
-    "icon_todo": true,
+    "icon": "res://assets/sprites/ui/icons/item_bait_lure.png",
     "sell_price": 0,
     "note": "Isca para traíra, tucunaré e pintado. Às vezes dura mais de uma pesca."
+  },
+  "herb_fish": {
+    "name": "Peixe com ervas",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_herb_fish.png",
+    "sell_price": 60,
+    "trade_xp": 10,
+    "feed": {
+      "hunger": 35,
+      "hygiene": 10
+    },
+    "growth": {
+      "phases": [
+        "young",
+        "adult"
+      ]
+    }
   }
 }

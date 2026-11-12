@@ -225,6 +225,10 @@ static func _sources(id: String) -> Array[Dictionary]:
 		if key.begins_with("activity:"):
 			var route: Dictionary = Database.progression.activities.get(key.trim_prefix("activity:"), {})
 			links.append({"icon": UiKit.ui_icon(route.get("icon", "")), "name": route.get("name", ""), "target": target})
+		elif key.begins_with("shop:"):
+			var pack: Dictionary = Database.progression.shop_items.get(key.trim_prefix("shop:"), {})
+			var shop := Database.shop(str(pack.get("shop", "")))
+			links.append({"icon": UiKit.ui_icon("coin"), "name": str(shop.get("name", "Banca")), "target": target})
 		elif key.begins_with("walk:"):
 			var walk := GameState.walk_def(key.trim_prefix("walk:"))
 			links.append({"icon": UiKit.ui_icon("action_walk"), "name": walk.get("name", ""), "target": target})
@@ -557,7 +561,7 @@ static func _recipe_card(parent: VBoxContainer, recipe_id: String, _station_full
 	var error := GameState.cook_error(recipe_id)
 	if locked == "":
 		var label: String = Database.stations.get(recipe.station, {}).get("action_label", "Fazer")
-		if recipe.has("output_collection") and error in ["Você já tem", "Já está sendo costurado"]:
+		if Database.recipe_unique(recipe) and error in ["Você já tem", "Já está sendo costurado", "Já está sendo feita"]:
 			label = error
 		if error == "":
 			action = WelcomeSheet._button(label, false, 92.0, "Cook_" + recipe_id, func() -> void:

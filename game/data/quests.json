@@ -200,6 +200,28 @@
       "hint": "Sítio → vovó Bloblo"
     }
   },
+  "lais_fishing": {
+    "shared_with": "bloblo_first_fish",
+    "npc": "lais",
+    "name": "Um peixinho para o Tiro",
+    "dialogue": "Filhote cresce comendo de tudo um pouquinho. Peixe faz bem para os dentinhos que estão nascendo! A vovó tem uma lagoa cheia deles.",
+    "goals": [
+      {
+        "type": "quest",
+        "key": "bloblo_first_fish",
+        "label": "Pescar com a vovó"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 2,
+    "order": 30,
+    "go": {
+      "world": "farm",
+      "place": "npc:bloblo",
+      "hint": "Sítio → vovó Bloblo"
+    }
+  },
   "main_2_fridge": {
     "npc": "lais",
     "name": "Onde guardar?",
@@ -473,6 +495,122 @@
     "kind": "line",
     "line": "bloblo",
     "order": 30
+  },
+  "bloblo_rod": {
+    "npc": "bloblo",
+    "name": "A vara da vovó",
+    "dialogue": "Essa vara de bambu era do meu velho… Agora é sua! Vem, a lagoa é logo ali.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "talk:bloblo",
+        "target": 1,
+        "fresh": true,
+        "label": "Falar com a vovó"
+      }
+    ],
+    "rewards": {
+      "rods": ["bamboo_rod"],
+      "items": {
+        "bait_worm": 5
+      }
+    },
+    "requirements": {
+      "quests": ["lais_first_crops"]
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 32
+  },
+  "bloblo_first_fish": {
+    "npc": "bloblo",
+    "name": "Primeira fisgada",
+    "dialogue": "Agora é com você! Toque na água, segure o botão para arremessar e fisgue quando a boia afundar.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "fish",
+        "target": 1,
+        "fresh": true,
+        "label": "Pescar um peixe"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 34,
+    "go": {
+      "world": "farm",
+      "place": "fishing",
+      "hint": "Sítio → lagoa"
+    }
+  },
+  "bloblo_three_fish": {
+    "npc": "bloblo",
+    "name": "Peixes da lagoa",
+    "dialogue": "Cada peixe tem o seu jeito. Pega o lambari, o cará e a tilápia e eu anoto tudo no caderninho!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "fish:fish_lambari",
+        "target": 1,
+        "label": "Pegar um lambari"
+      },
+      {
+        "type": "stat",
+        "key": "fish:fish_cara",
+        "target": 1,
+        "label": "Pegar um cará"
+      },
+      {
+        "type": "stat",
+        "key": "fish:fish_tilapia",
+        "target": 1,
+        "label": "Pegar uma tilápia"
+      }
+    ],
+    "rewards": {
+      "coins": 15,
+      "items": {
+        "bait_worm": 5
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 36,
+    "go": {
+      "world": "farm",
+      "place": "fishing",
+      "hint": "Sítio → lagoa"
+    }
+  },
+  "bloblo_worms": {
+    "npc": "bloblo",
+    "name": "Minhocas acabam",
+    "dialogue": "Minhoca é o que mais acaba! Tem na minha banca, e às vezes aparece uma ao colher.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "bought:bait_worm",
+        "target": 1,
+        "fresh": true,
+        "label": "Comprar minhocas na banca"
+      }
+    ],
+    "rewards": {
+      "coins": 5
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 38,
+    "go": {
+      "world": "farm",
+      "place": "shop:worm_pack",
+      "spot": "early_market",
+      "hint": "Sítio → banca da vovó"
+    }
   },
   "bloblo_potato": {
     "npc": "bloblo",
@@ -1510,6 +1648,273 @@
         "farm_deed"
       ]
     }
+  },
+  "lais_fish_mash": {
+    "npc": "lais",
+    "name": "Papinha de peixe",
+    "dialogue": "Peixe cozido faz bem para os dentinhos dele. Faz uma papinha com a tilápia e uma batata!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "produce:fish_mash",
+        "target": 1,
+        "fresh": true,
+        "label": "Fazer a papinha de peixe"
+      },
+      {
+        "type": "stat",
+        "key": "feed:fish_mash",
+        "target": 1,
+        "fresh": true,
+        "label": "Dar ao Tiro"
+      }
+    ],
+    "rewards": {
+      "coins": 15
+    },
+    "go": {
+      "world": "house",
+      "place": "stove"
+    },
+    "kind": "main",
+    "chapter": 3,
+    "order": 22
+  },
+  "bloblo_big_tilapia": {
+    "npc": "bloblo",
+    "name": "Tilápia das grandes",
+    "dialogue": "Quero ver uma tilápia das grandes! Capricha na pescaria.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "fish_size:large:fish_tilapia",
+        "target": 1,
+        "label": "Pegar uma tilápia Grande"
+      }
+    ],
+    "rewards": {
+      "coins": 20,
+      "items": {
+        "bolt": 1
+      }
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 72,
+    "requirements": {
+      "quests": [
+        "lais_fish_mash"
+      ]
+    }
+  },
+  "merchant_fishing": {
+    "npc": "merchant",
+    "name": "Vara nova",
+    "dialogue": "Vara de bambu é boa pra lambari. Peixe grande pede molinete! Junte fibras e moedas e compre a sua comigo.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "rod:reel_rod",
+        "target": 1,
+        "label": "Comprar a vara de molinete"
+      }
+    ],
+    "rewards": {
+      "coins": 20,
+      "items": {
+        "bait_dough": 4
+      }
+    },
+    "kind": "line",
+    "line": "angling",
+    "order": 10,
+    "requirements": {
+      "chapter": 5,
+      "rod": "bamboo_rod"
+    },
+    "go": {
+      "world": "village",
+      "place": "market",
+      "action": "shop:reel_rod_pack"
+    }
+  },
+  "bloblo_carp": {
+    "npc": "bloblo",
+    "name": "O peixe do fundo",
+    "dialogue": "Lá no fundo mora uma carpa velha e esperta. Com a massa de milho no anzol, quem sabe você a convence!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "fish:fish_carp",
+        "target": 1,
+        "label": "Pegar uma carpa"
+      }
+    ],
+    "rewards": {
+      "coins": 25
+    },
+    "kind": "line",
+    "line": "angling",
+    "order": 20,
+    "requirements": {
+      "quests": [
+        "merchant_fishing"
+      ]
+    },
+    "go": {
+      "world": "farm",
+      "place": "fishing",
+      "hint": "Sítio → lagoa"
+    }
+  },
+  "lais_fish_stew": {
+    "npc": "lais",
+    "name": "Ensopado de peixe",
+    "dialogue": "Agora que ele cresceu, merece um prato de gente grande: ensopado de peixe com cenoura e batata. Peixe maior, ensopado maior!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "produce:fish_stew",
+        "target": 1,
+        "fresh": true,
+        "label": "Fazer o ensopado de peixe"
+      },
+      {
+        "type": "stat",
+        "key": "feed:fish_stew",
+        "target": 1,
+        "fresh": true,
+        "label": "Dar ao Tiro"
+      }
+    ],
+    "rewards": {
+      "coins": 30
+    },
+    "go": {
+      "world": "house",
+      "place": "stove"
+    },
+    "kind": "main",
+    "chapter": 6,
+    "order": 42
+  },
+  "guide_angler": {
+    "npc": "guide",
+    "name": "Pescaria do guia",
+    "dialogue": "Antes de guiar trilhas eu pescava naquela lagoa do sítio. Com madeira de lei, fibra e cobre dá para montar uma vara de pescador. Quer que eu ensine?",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "talk:guide",
+        "target": 1,
+        "fresh": true,
+        "label": "Falar com o Guia da trilha"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "line",
+    "line": "guide",
+    "order": 60,
+    "requirements": {
+      "quests": [
+        "guide_treasure"
+      ],
+      "rod": "reel_rod"
+    }
+  },
+  "guide_angler_rod": {
+    "npc": "guide",
+    "name": "Vara do pescador",
+    "dialogue": "Na bancada: 3 madeiras de lei, 4 fibras e 2 cobres. Vara boa não cai rápido: a barra fica firme e não quica!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "rod:angler_rod",
+        "target": 1,
+        "label": "Fazer a vara do pescador"
+      }
+    ],
+    "rewards": {
+      "coins": 20,
+      "items": {
+        "bait_lure": 4
+      }
+    },
+    "kind": "line",
+    "line": "guide",
+    "order": 62,
+    "requirements": {
+      "quests": [
+        "guide_angler"
+      ]
+    },
+    "go": {
+      "world": "farm",
+      "place": "workbench",
+      "hint": "Sítio → bancada"
+    }
+  },
+  "guide_pintado": {
+    "npc": "guide",
+    "name": "O gigante do fundo",
+    "dialogue": "Dizem que um pintado enorme vive no fundo da lagoa. Com a isca artificial, quem sabe você o fisga!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "fish:fish_pintado",
+        "target": 1,
+        "label": "Pegar um pintado"
+      }
+    ],
+    "rewards": {
+      "coins": 40
+    },
+    "kind": "line",
+    "line": "guide",
+    "order": 64,
+    "requirements": {
+      "quests": [
+        "guide_angler_rod"
+      ]
+    },
+    "go": {
+      "world": "farm",
+      "place": "fishing",
+      "hint": "Sítio → lagoa"
+    }
+  },
+  "lais_shiny_coat": {
+    "npc": "lais",
+    "name": "Pelo brilhante",
+    "dialogue": "Peixe com ervas deixa o pelo dele brilhando! Prepara no fogão com o pintado ou o tucunaré e as ervas da estufa.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "produce:herb_fish",
+        "target": 1,
+        "fresh": true,
+        "label": "Fazer o peixe com ervas"
+      },
+      {
+        "type": "stat",
+        "key": "feed:herb_fish",
+        "target": 1,
+        "fresh": true,
+        "label": "Dar ao Tiro"
+      }
+    ],
+    "rewards": {
+      "coins": 30
+    },
+    "go": {
+      "world": "house",
+      "place": "stove"
+    },
+    "kind": "main",
+    "chapter": 9,
+    "order": 36
   },
   "lais_blender": {
     "npc": "lais",

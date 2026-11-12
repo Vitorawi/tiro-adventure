@@ -1,0 +1,40 @@
+{
+  "etapa": "03",
+  "data": "2026-11-11",
+  "ferramenta": "mcp__pixellab__create_image_pixflux (outline single color black, basic/medium shading, no_background)",
+  "status": "AGUARDANDO ESCOLHA DO VITOR - nada instalado em game/assets",
+  "pranchas": "build/art/pesca/",
+  "opcoes": {
+    "icons_peixe": {"tamanho": "32x32", "opcoes_por_peca": 2, "pecas": {
+      "lambari": {"a": ["91e68450-1843-4117-afdd-ab45d39bfc66", 11], "b": ["e2469c85-fcc4-433c-9472-ba73db1ebc2d", 12]},
+      "cara": {"a": ["21ab6659-9d85-483d-b54b-198833c0837b", 21], "b": ["ddec6b84-c1f2-4a23-9041-980a7ac0ceed", 22]},
+      "tilapia": {"a": ["97ce302a-554d-41e7-9ce6-6047ef01a66d", 31], "b": ["fbfaef14-70fa-47b4-94f8-7d6c9705ceb6", 32]},
+      "carpa": {"a": ["3b1f897b-bcda-45c1-b2a7-515865edf5d1", 41], "b": ["14b8f5e0-ddd9-4577-9d80-e86179b22dfe", 42]},
+      "pacu": {"a": ["d76d8ebe-5095-4c03-9929-cfbd4784248b", 51], "b": ["dd8ea722-f09b-4b4a-a8bd-20643f980ab7", 52]},
+      "tambaqui": {"a": ["474ce15b-b7ec-45b9-90da-e655241573e8", 61], "b": ["a03d7f35-6e46-4662-985b-4897d44308d7", 62]},
+      "traira": {"a": ["be13a752-9988-4309-8911-ff155e4c7cd9", 71], "b": ["5aefa488-d398-485e-884e-817e9d30431b", 72]},
+      "tucunare": {"a": ["3bd27092-f6eb-450d-a2a0-0bf239456524", 81], "b": ["f7645fca-7267-4964-9457-d1354548d36d", 82]},
+      "pintado": {"a": ["9c1f2c68-fba7-4b26-ac63-a7c67b342c01", 91], "b": ["b53c9f34-631c-42bf-902b-747283a9fe3a", 92]}
+    }},
+    "peixe_jogo": {"tamanho": "48x48 (tambaqui e pintado 64x48)", "opcoes_por_peca": 1, "pecas": {
+      "lambari": ["21ccb03c-51cd-4ffe-8f79-2c8075ff1010", 111], "cara": ["d995d034-3dc6-42f6-9629-5a3e06731329", 121],
+      "tilapia": ["ae21a9e1-980a-4a5f-bbfe-48747d2c10a5", 131], "carpa": ["50a45ed1-7b80-44d6-b4f7-29ae8e328752", 141],
+      "pacu": ["b5418907-4183-49a0-ac79-9caf96cee913", 151], "tambaqui": ["ad04f5a2-b618-409a-b461-fd1c16932d78", 161],
+      "traira": ["bca76aac-2360-4ff7-abf7-aecccc68a3ab", 171], "tucunare": ["24813cd6-730a-41ad-8c87-bc168200fe10", 181],
+      "pintado": ["24b1622c-92d5-4108-82aa-22fc036c0d7c", 191]}},
+    "iscas_varas_pratos": {"tamanho": "32x32", "opcoes_por_peca": 1, "pecas": {
+      "worm": ["018983be-9751-4e3c-a6ba-bc768d3658e3", 301], "dough": ["00598014-55c0-4686-92ab-c28a002adb95", 311], "lure": ["935f3f88-3995-432f-a8b1-374e440269d0", 321],
+      "bamboo": ["2bc01638-2920-4df3-9715-c2343d5d52d8", 331], "reel": ["954cb95c-eb71-4dc7-9b1e-6bab771c32c7", 341], "angler": ["f83c3678-80dc-4ea0-a873-5f026b83a591", 351],
+      "mash": ["3a02870c-322b-4364-abc4-97dae432bcf3", 361], "stew": ["b9eee916-49dd-4b65-ace8-7296b040046e", 371], "herbfish": ["63ead2ea-c138-4d76-a74d-1d92aeab8a8a", 381], "crunch": ["9db541be-1e8b-48f3-8d85-60efacd50568", 391]}},
+    "fx_bau_lugar": {"opcoes_por_peca": 1, "pecas": {
+      "bobber_32": ["e2f18f9b-846e-42cb-9c4c-2b8b6cd4b11f", 401], "station_fishing": ["e72de14b-8e46-4a9a-aba3-c6bbc77010dd", 411],
+      "bubble_32": ["9292d88e-4479-4bbf-811e-5ec07c719f36", 421], "splash_32": ["13595db7-165f-4507-a1e3-62bcec584094", 431],
+      "bau_48": ["2144a42f-bde1-492f-88cf-2c19538a9961", 201]}}
+  },
+  "pendencias": [
+    "Painel das varas 64x64, quadros da boia afundando (4) e do respingo (5), boia 16x16 e bolha 12x12: pixflux so faz area >= 32x32; reduzir/animar depois da escolha (animate_image) ou redesenhar no pixelart_workbench",
+    "Pista/barra/rede: tools/fishing_art.gd (nao e arte nova) so na instalacao",
+    "Orcamento de geracoes: ~51 usadas nesta etapa; sobravam ~75 + 20 diarias"
+  ],
+  "escolhida": {}
+}

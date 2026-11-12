@@ -99,12 +99,12 @@ func _walks_before_nature() -> void:
 
 
 func _data() -> void:
-	check(db.quests.size() == 111, "111 missões com tutorial do primeiro desejo: %d" % db.quests.size())
+	check(db.quests.size() == 125, "125 missões com pesca, ensopado e pelo brilhante: %d" % db.quests.size())
 	var mains := 0
 	for id: String in db.quests:
 		if db.quests[id].get("kind", "") == "main":
 			mains += 1
-	check(mains == 51, "51 missões principais: %d" % mains)
+	check(mains == 55, "55 missões principais: %d" % mains)
 	for id: String in GROWTH_QUESTS:
 		var quest: Dictionary = db.quests[id]
 		var rule: Array = GROWTH_QUESTS[id]
@@ -241,7 +241,9 @@ func _pairs() -> void:
 	# Ovos e farinha da vovó.
 	_fresh("teething")
 	state.dev_complete_quest("main_5_bricks")
-	check(state.progress.current_main_quest() == "explorer_6_eggs", "depois dos tijolos vem a ração com ovo")
+	check(state.progress.current_main_quest() == "lais_fish_stew", "depois dos tijolos vem o ensopado")
+	state.dev_complete_quest("lais_fish_stew")
+	check(state.progress.current_main_quest() == "explorer_6_eggs", "depois do ensopado vem a ração com ovo")
 	state.dev_complete_quest("main_9_coop")
 	state.progress.count("produce:egg", 2)
 	coins = state.coins
@@ -258,7 +260,9 @@ func _pairs() -> void:
 	coins = state.coins
 	check(state.claim_quest("main_9_flour") == "", "vovó recebe a farinha")
 	check(state.progress.claimed_quests.has("young_9_milk") and state.coins - coins == 45, "farinha: 45 moedas, uma vez")
-	check(state.progress.current_main_quest() == "growth_9_young", "mingau feito: agora é crescer")
+	check(state.progress.current_main_quest() == "lais_shiny_coat", "mingau feito: vem o pelo brilhante")
+	state.dev_complete_quest("lais_shiny_coat")
+	check(state.progress.current_main_quest() == "growth_9_young", "pelo brilhante feito: agora é crescer")
 	# Banho de ervas (capítulo 8): objetivo comum, conta o xampu.
 	_fresh("explorer")
 	state.dev_complete_quest("main_7_greenhouse")

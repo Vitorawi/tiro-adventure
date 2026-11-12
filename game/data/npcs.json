@@ -30,7 +30,29 @@
     "sprite_dir": "res://assets/sprites/characters/npc_bloblo/",
     "icon": "tab_farm",
     "greeting": "Vamos cuidar da horta juntos?",
-    "lines": {"lake_locked": "Um dia eu te ensino a pescar aqui!"}
+    "lines": {
+      "lake_locked": "Um dia eu te ensino a pescar aqui!",
+      "tips": {
+        "bubble": "Bolhinhas! Ali os peixes mordem rapidinho.",
+        "escape": "Ele escapou e levou a minhoca. Na próxima, solte o dedo um pouco antes.",
+        "no_bait": "Acabaram as minhocas. Tem na minha banca, e às vezes aparece uma ao colher.",
+        "chest": "Olha, um baú na água! Segure a barra em cima dele até encher... e pegue o peixe também!"
+      },
+      "tutorial": {
+        "lake": "O Tiro já foi sentar na beirinha. Toque na água!",
+        "bait": "Minhoca é a isca dos peixinhos pequenos. Já está no anzol.",
+        "force": "Segure o botão… e solte quando o ponteiro estiver no verde, bem longe!",
+        "wait": "Agora é paciência. Olha a boia…",
+        "bite": "Afundou! Toque já!",
+        "see": "Esse peixinho é o lambari. A barrinha verde é a sua rede.",
+        "hold": "Segure o dedo no botão: a barra sobe.",
+        "release": "Solte: ela desce sozinha.",
+        "play": "Deixe o peixe dentro da barra para encher a rede!",
+        "almost": "Se ele fugir da barra, a rede esvazia. Quase lá!",
+        "result": "Olha o tamanho! Cada peixe tem o seu, e eu anoto o maior no caderninho.",
+        "outro": "Peixe bom para o Tiro é a tilápia, para a papinha. Pega mais uns!"
+      }
+    }
   },
   "guide": {
     "name": "Guia da trilha",

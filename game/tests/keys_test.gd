@@ -105,6 +105,7 @@ func run() -> void:
  # Crescer exige o item-chave.
  fresh('puppy')
  state.progress.stats['feed:frozen_carrot'] = 3
+ state.progress.stats['feed:fish_mash'] = 2
  state.growth.phase_moments['brave'] = 3
  check(state.grow_error().contains('Argolinha'),'não cresce sem argolinha')
  state.inventory.add('chew_ring',1)

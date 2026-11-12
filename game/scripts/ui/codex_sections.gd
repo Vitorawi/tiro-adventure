@@ -396,8 +396,11 @@ static func _collection(wanted: String) -> Dictionary:
 		options.append({"id": "finds", "text": "Achados", "icon": CodexUi.tex("icon_lens")})
 	if GameState.progress.feature_unlocked("friends"):
 		options.append({"id": "friends", "text": "Amigos", "icon": _icon("tab_pet")})
+	if GameState.progress.feature_unlocked("fish_book"):
+		options.append({"id": "fish", "text": "Peixes", "icon": _icon("item_fish_tilapia")})
 	var filter := _pick(options, wanted)
 	match filter:
+		"fish": return {"filters": options, "filter": filter, "blocks": _fish_blocks(), "name": "FishBook"}
 		"finds": return {"filters": options, "filter": filter, "blocks": _finds_blocks()}
 		"friends": return {"filters": options, "filter": filter, "blocks": _friend_blocks()}
 	return {"filters": options, "filter": filter, "blocks": _clothes_blocks(), "name": "ClothesGrid"}
@@ -474,6 +477,126 @@ static func _finds_blocks() -> Array[Dictionary]:
 				block["action"] = claim
 		blocks.append(block)
 	return blocks
+
+
+## Vara que pega o peixe: a primeira (em ordem de tier) que aceita a isca dele.
+static func fish_rod(fish_id: String) -> String:
+	var bait := str(Database.fishing.fish[fish_id].bait)
+	for rod: String in Database.fishing.rods:
+		if bait in Database.fishing.rods[rod].get("baits", []):
+			return rod
+	return ""
+
+
+static func fish_cm(value: float) -> String:
+	return ("%.1f cm" % value).replace(".", ",")
+
+
+static func _fish_blocks() -> Array[Dictionary]:
+	var blocks: Array[Dictionary] = []
+	for rod: String in Database.fishing.rods:
+		var owned := GameState.fishing.has_rod(rod)
+		var tiles: Array[Dictionary] = []
+		var caught := 0
+		for id: String in Database.fishing.fish:
+			if fish_rod(id) != rod:
+				continue
+			var record: Dictionary = GameState.fishing.record(id)
+			var got := not record.is_empty()
+			caught += 1 if got else 0
+			var tile := {"name": "Fish_" + id, "icon": item_icon(id), "caption": Database.item_name(id) if got else "?", "dim": not got,
+				"on_tap": fish_open.bind(id)}
+			if got:
+				tile["caption"] = Database.item_name(id) + "
+" + fish_cm(float(record.best_cm))
+				tile["record"] = fish_cm(float(record.best_cm))
+				if int(record.gigantes) > 0:
+					tile["mark"] = "star"
+			elif not owned:
+				tile["mark"] = "lock"
+			tiles.append(tile)
+		var block := {"title": str(Database.fishing.rods[rod].name), "count": "%d/%d" % [caught, tiles.size()], "tiles": tiles, "ratio": CAPTION_RATIO,
+			"name": "FishRod_" + rod}
+		if not owned:
+			block["lines"] = ["Ganhe a " + str(Database.fishing.rods[rod].name).to_lower()]
+			block["dim"] = true
+		blocks.append(block)
+	return blocks
+
+
+static func fish_open(id: String) -> void:
+	var record: Dictionary = GameState.fishing.record(id)
+	Events.sheet_requested.emit(Database.item_name(id) if not record.is_empty() else "Peixe da lagoa", fish_detail(id))
+
+
+static func _fish_motion_line(motion: String) -> String:
+	return {"floater": "Fica perto da superfície", "smooth": "Nada macio e devagar", "mixed": "Muda de ritmo toda hora",
+		"sinker": "Nada para o fundo", "darter": "Dá arrancadas rápidas"}.get(motion, "")
+
+
+## Régua de madeira com a faixa real (min–max cm) e a marca do recorde.
+static func _fish_ruler(low: float, high: float, best: float) -> Control:
+	var ruler := Control.new()
+	ruler.name = "FishRuler"
+	ruler.custom_minimum_size = Vector2(0, 46)
+	ruler.draw.connect(func() -> void:
+		var w := ruler.size.x
+		var y := 24.0
+		ruler.draw_rect(Rect2(8, y, w - 16, 10), Palette.WOOD_INSET, true)
+		ruler.draw_rect(Rect2(8, y, w - 16, 10), Palette.WOOD_INK, false, 1.5)
+		for i in 11:
+			var x := 8.0 + (w - 16.0) * float(i) / 10.0
+			ruler.draw_line(Vector2(x, y), Vector2(x, y + (10.0 if i % 5 == 0 else 5.0)), Palette.WOOD_INK, 1.0)
+		var font := ThemeDB.fallback_font
+		ruler.draw_string(font, Vector2(8, 16), fish_cm(low).replace(",0", ""), HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Palette.WOOD_INK)
+		ruler.draw_string(font, Vector2(0, 16), fish_cm(high).replace(",0", ""), HORIZONTAL_ALIGNMENT_RIGHT, w - 8.0, 13, Palette.WOOD_INK)
+		if best > 0.0:
+			var fraction := clampf((best - low) / maxf(0.1, high - low), 0.0, 1.0)
+			var x := 8.0 + (w - 16.0) * fraction
+			ruler.draw_colored_polygon(PackedVector2Array([Vector2(x - 6, y + 22), Vector2(x + 6, y + 22), Vector2(x, y + 10)]), Palette.HONEY)
+			ruler.draw_polyline(PackedVector2Array([Vector2(x - 6, y + 22), Vector2(x + 6, y + 22), Vector2(x, y + 10), Vector2(x - 6, y + 22)]), Palette.WOOD_INK, 1.5)
+	)
+	return ruler
+
+
+static func fish_detail(id: String) -> Control:
+	var def: Dictionary = Database.fishing.fish[id]
+	var record: Dictionary = GameState.fishing.record(id)
+	var got := not record.is_empty()
+	var made := _detail(item_icon(id), Database.item_name(id) if got else "Peixe da lagoa", _fish_motion_line(str(def.motion)) if got else "")
+	var inner: VBoxContainer = made.inner
+	var low := float(def.cm[0])
+	var high := float(def.cm[1])
+	inner.add_child(_fish_ruler(low, high, float(record.get("best_cm", 0.0))))
+	var chips: Array[Control] = []
+	if got:
+		chips.append(StepCardUi.wood_chip(UiKit.ui_icon("rare_star"), "Recorde " + fish_cm(float(record.best_cm)), "", Callable(), "FishRecord"))
+		chips.append(StepCardUi.wood_chip(item_icon(id), "Pegou %d" % int(record.count), "", Callable(), "FishCount"))
+		chips.append(StepCardUi.wood_chip(UiKit.ui_icon("rare_star"), "Gigantes %d" % int(record.gigantes), "", Callable(), "FishGiants"))
+		chips.append(StepCardUi.wood_chip(UiKit.ui_icon("item_fish_tilapia"), "Perfeitas %d" % int(record.perfects), "", Callable(), "FishPerfects"))
+	else:
+		chips.append(StepCardUi.wood_chip(UiKit.ui_icon("clock"), "Ainda não pegou", "", Callable(), "FishNever"))
+	_chips(inner, chips, "FishChips")
+	var rod_id := fish_rod(id)
+	var bait := str(def.bait)
+	var needs: Array[Control] = [
+		StepCardUi.wood_chip(Database.item_icon(bait), Database.item_name(bait), "", open_item.bind(bait), "FishBait"),
+		StepCardUi.wood_chip(load(str(Database.fishing.rods[rod_id].icon)) as Texture2D, str(Database.fishing.rods[rod_id].name), "", Callable(), "FishRod")]
+	_chips(inner, needs, "FishNeeds")
+	var target := {"world": "farm", "place": "fishing"}
+	var error := Places.world_error("farm")
+	if error == "" and GameState.current_rod() == "":
+		error = "Você ainda não tem uma vara"
+	if error != "":
+		var note := StepCardUi.lock_note(error)
+		note.name = "Locked_FishGo"
+		note.set_meta("reason", error)
+		inner.add_child(note)
+	else:
+		var button := StepCardUi.go_button("Ir pescar", Places.go.bind(target))
+		button.name = "FishGo"
+		inner.add_child(button)
+	return made.box
 
 
 static func _friend_blocks() -> Array[Dictionary]:

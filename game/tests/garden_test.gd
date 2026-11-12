@@ -153,7 +153,7 @@ func _exclusive_crops() -> void:
 		var got: Dictionary = state.call("harvest", index)
 		var total := 0
 		for item: String in got:
-			total += int(got[item])
+			if item != "bait_worm": total += int(got[item])  # minhoca de bônus não conta
 		check(total == int(TABLE[id][1]), "%s colhe %d" % [id, int(TABLE[id][1])])
 
 

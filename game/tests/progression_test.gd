@@ -158,6 +158,7 @@ func _campaign() -> Dictionary:
 			state.call("water", i)
 			state.get("plots")[i]["ready_at"] = 1.0
 			state.call("harvest", i)
+		_fishing_step()
 		# Guarda reserva para cadeias e entrega o excedente na feira.
 		if state.get("progress").current_line_quest("bloblo") == "bloblo_sell_surplus" and state.get("inventory").count("carrot") > 0:
 			state.call("sell", "carrot", 1)
@@ -308,6 +309,29 @@ func _make(item: String, recipes: Dictionary) -> void:
 ## Obras da vila que a história pede (banco, jardim, piquenique, festa): taxa, material e uso pelo Tiro.
 ## O material vem da mochila quando a campanha já o produz; o que falta é posto na mochila (a cadeia de
 ## produção de cada obra é validada em projects_test, festival_test e pelo robô do simulador).
+## Pesca (etapa 10): compra as iscas e as varas da loja e pesca com cada isca, sempre pelo GameState (cast → hook →
+## finish_fishing). Nota 1 e perfeita: o tamanho Grande/Gigante das missões sai da regra, não de atalho. A vara 3 e as
+## iscas de receita vêm do laço das receitas acima.
+func _fishing_step() -> void:
+	if state.call("current_rod") == "":
+		return
+	for pack: String in ["worm_pack", "dough_pack", "lure", "reel_rod_pack"]:
+		var item: String = "" if pack == "reel_rod_pack" else str(database.get("progression").shop_items[pack].items.keys()[0])
+		if (item == "" or state.get("inventory").count(item) < 12) and state.call("buy_shop_item_error", pack) == "":
+			state.call("buy_shop_item", pack)
+	for bait: String in ["bait_worm", "bait_dough", "bait_lure"]:
+		for _n in 4:
+			if state.call("cast", bait, 2) != "":
+				break
+			state.call("advance_clock", float(state.get("fishing").cast.wait) + 0.5)
+			state.call("update_fishing")
+			if state.call("hook") != "":
+				state.call("miss_bite")
+				break
+			state.call("finish_fishing", {"caught": true, "score": 1.0, "perfect": true})
+			state.call("finish_fishing_tutorial")
+
+
 func _projects_step() -> void:
 	for step: String in state.get("progress").active_steps().values():
 		for goal: Dictionary in database.get("quests")[step].goals:

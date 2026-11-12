@@ -428,6 +428,94 @@
       ]
     }
   },
+  "fish_mash": {
+    "station": "stove",
+    "inputs": {
+      "fish_tilapia": 1,
+      "potato": 1
+    },
+    "output": "fish_mash",
+    "qty": 1,
+    "seconds": 180,
+    "player_xp": 0,
+    "requirements": {
+      "quests": [
+        "first_kitchen"
+      ],
+      "rod": "bamboo_rod"
+    }
+  },
+  "bait_dough": {
+    "station": "stove",
+    "inputs": {
+      "corn": 2
+    },
+    "output": "bait_dough",
+    "qty": 4,
+    "seconds": 300,
+    "player_xp": 0,
+    "requirements": {
+      "rod": "reel_rod"
+    }
+  },
+  "lambari_crunch": {
+    "station": "stove",
+    "inputs": {
+      "fish_lambari": 3
+    },
+    "output": "lambari_crunch",
+    "qty": 2,
+    "seconds": 240,
+    "player_xp": 0,
+    "requirements": {
+      "rod": "bamboo_rod"
+    }
+  },
+  "fish_stew_carp": {
+    "station": "stove",
+    "inputs": {
+      "fish_carp": 1,
+      "carrot": 1,
+      "potato": 1
+    },
+    "output": "fish_stew",
+    "qty": 2,
+    "seconds": 480,
+    "player_xp": 0,
+    "requirements": {
+      "rod": "reel_rod"
+    }
+  },
+  "fish_stew_pacu": {
+    "station": "stove",
+    "inputs": {
+      "fish_pacu": 1,
+      "carrot": 1,
+      "potato": 1
+    },
+    "output": "fish_stew",
+    "qty": 2,
+    "seconds": 480,
+    "player_xp": 0,
+    "requirements": {
+      "rod": "reel_rod"
+    }
+  },
+  "fish_stew_tambaqui": {
+    "station": "stove",
+    "inputs": {
+      "fish_tambaqui": 1,
+      "carrot": 1,
+      "potato": 1
+    },
+    "output": "fish_stew",
+    "qty": 2,
+    "seconds": 480,
+    "player_xp": 0,
+    "requirements": {
+      "rod": "reel_rod"
+    }
+  },
   "corn_crunch": {
     "station": "stove",
     "inputs": {
@@ -582,6 +670,66 @@
     "player_xp": 0,
     "requirements": {
       "album_photo": "d_gotcha"
+    }
+  },
+  "angler_rod": {
+    "station": "workbench",
+    "inputs": {
+      "hardwood": 3,
+      "fiber": 4,
+      "copper": 2
+    },
+    "output_rod": "angler_rod",
+    "seconds": 900,
+    "skill": "adventure",
+    "skill_xp": 20,
+    "player_xp": 0,
+    "requirements": {
+      "quests": [
+        "guide_angler"
+      ]
+    }
+  },
+  "bait_lure": {
+    "station": "workbench",
+    "inputs": {
+      "copper": 1,
+      "stick": 1
+    },
+    "output": "bait_lure",
+    "qty": 1,
+    "seconds": 120,
+    "player_xp": 0,
+    "requirements": {
+      "rod": "angler_rod"
+    }
+  },
+  "herb_fish_pintado": {
+    "station": "stove",
+    "inputs": {
+      "fish_pintado": 1,
+      "herbs": 2
+    },
+    "output": "herb_fish",
+    "qty": 2,
+    "seconds": 720,
+    "player_xp": 0,
+    "requirements": {
+      "rod": "angler_rod"
+    }
+  },
+  "herb_fish_tucunare": {
+    "station": "stove",
+    "inputs": {
+      "fish_tucunare": 1,
+      "herbs": 2
+    },
+    "output": "herb_fish",
+    "qty": 2,
+    "seconds": 720,
+    "player_xp": 0,
+    "requirements": {
+      "rod": "angler_rod"
     }
   }
 }

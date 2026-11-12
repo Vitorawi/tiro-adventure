@@ -46,6 +46,10 @@ static func sources(id: String) -> Array[Dictionary]:
 			result.append({"kind": "care", "id": id})
 		elif str(source.key).begins_with("walk:"):
 			result.append({"kind": "walk", "id": str(source.key).trim_prefix("walk:")})
+		elif str(source.key).begins_with("fish:"):
+			result.append({"kind": "fishing", "id": str(source.key).trim_prefix("fish:")})  # lagoa do Sítio
+		elif str(source.key).begins_with("shop:"):
+			result.append({"kind": "shop", "id": str(source.key).trim_prefix("shop:")})
 	return result
 
 

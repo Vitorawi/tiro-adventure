@@ -40,6 +40,9 @@ var routines: Dictionary = {}
 ## Passo atual de cada linha ("main" = história da Laís, "bloblo"...) e o valor dos contadores
 ## quando ele começou (objetivos "fresh"): { linha: { quest: id, base: { contador: valor } } }.
 var steps: Dictionary = {}
+## Limite diário das lojas: {"<id>": {"day": dia local, "n": comprados}}; `shop_day_max` só avança (relógio atrasado não reabre).
+var shop_daily: Dictionary = {}
+var shop_day_max: int = 0
 ## Novidades já mostradas ao jogador ("feature:bag", "world:village", "place:village/gate", "npc:guide").
 ## O que está liberado e ainda não está aqui aparece na tela "Novo!".
 var seen: Dictionary = {}
@@ -190,7 +193,7 @@ func feature_unlocked(id: String) -> bool:
 	if not Database.progression.get("features", {}).has(id):
 		return false
 	var requirements: Dictionary = Database.progression.get("features", {}).get(id, {}).get("requirements", {})
-	if requirements.has("growth"):
+	if requirements.has("growth") or requirements.has("rod"):
 		return GameState.requirement_error(requirements) == ""
 	return requirement_error(requirements) == ""
 
@@ -412,7 +415,7 @@ func to_dict() -> Dictionary:
 		"skills": skills, "owned": owned, "stats": stats, "nature_levels_version": 2, "nature_xp": nature_xp,
 		"claimed_quests": claimed_quests, "discoveries": discoveries,
 		"collection": collection, "equipped": equipped, "unlocks": unlocks,
-		"tricks": tricks, "cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "steps": steps, "seen": seen, "house": house.duplicate(true),
+		"tricks": tricks, "cooldowns": cooldowns, "activity": activity, "gathering": gathering, "routines": routines, "steps": steps, "shop_daily": shop_daily, "shop_day_max": shop_day_max, "seen": seen, "house": house.duplicate(true),
 			"started_at": started_at, "firsts": firsts, "daily_gift": daily_gift,
 	}
 
@@ -489,6 +492,8 @@ func from_dict(data: Dictionary) -> void:
 		gathering[site] = jobs
 	routines = data.get("routines", {}).duplicate(true)
 	steps = data.get("steps", {}).duplicate(true)
+	shop_daily = data.get("shop_daily", {}).duplicate(true) if data.get("shop_daily") is Dictionary else {}
+	shop_day_max = int(data.get("shop_day_max", 0))
 	seen = data.get("seen", {}).duplicate(true)
 	var saved_house: Dictionary = data.get("house", {}) if data.get("house") is Dictionary else {}
 	house = {"toys": saved_house.get("toys", []).duplicate() if saved_house.get("toys") is Array else [],

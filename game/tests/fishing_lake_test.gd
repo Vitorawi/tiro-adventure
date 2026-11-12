@@ -54,6 +54,9 @@ func _reset(with_rod: bool = true, baits: int = 5) -> void:
 	state.call("dev_unlock_everything")
 	state.call("_mark_all_seen")
 	_inv().call("from_dict", {})
+	if not with_rod:
+		_fishing().rods.clear()  # a missão da vara (dev_unlock_everything) já entregou a de bambu
+		_fishing().rod = ""
 	if with_rod:
 		state.call("dev_give_rod", "bamboo_rod")
 		_inv().add("bait_worm", baits)

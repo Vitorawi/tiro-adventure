@@ -190,6 +190,9 @@ func _ready() -> void:
 	Events.project_gathered.connect(_on_project_gathered)
 	Events.state_changed.connect(_refresh_find)
 	Events.state_changed.connect(_refresh_world)
+	if _fishing_bubbles != null:
+		Events.state_changed.connect(_check_angler_tutorial)
+		visibility_changed.connect(_check_angler_tutorial)
 	Events.world_activity.connect(_on_world_activity)
 	_refresh_ownership()
 	_refresh_gated()
@@ -445,6 +448,13 @@ func _spawn_objects() -> void:
 			if _room.has("background_bleed"):  # apartamento: o balão fica em cima do móvel, não no meio dele
 				indicator.anchor = Vector2(0, minf(-48.0, -float(sprite.texture.get_height()) - 16.0))
 			sprite.add_child(indicator)
+		# Placa "compra" (desenho do Figma): aparece no lugar da construção ou no canteiro enquanto fechados.
+		if data.has("sign_upgrade"):
+			sprite.set_meta("sign_upgrade", str(data.sign_upgrade))
+		if data.has("sign_plot"):
+			sprite.set_meta("sign_plot", int(data.sign_plot))
+		if data.get("buy_sign", false):
+			sprite.set_meta("buy_sign", true)  # a placa substitui o balão "+"
 		if data.has("upgrade"):
 			sprite.set_meta("upgrade", data.upgrade)
 			var marker := WorldBalloon.new()
@@ -483,6 +493,7 @@ func _spawn_objects() -> void:
 			var indicator := PlotIndicator.new()
 			indicator.name = "Indicator"
 			indicator.plot_index = int(data["plot"])
+			indicator.sign_buy = bool(_room.get("plot_signs", false))  # a placa "compra" já mostra o fechado
 			indicator.z_index = 2
 			sprite.add_child(indicator)
 		if data.get("always_behind", false):
@@ -592,6 +603,12 @@ func _refresh_object(sprite: Sprite2D) -> void:
 		_ready_counts[station_id] = ready
 	if sprite.has_meta("plot"):
 		_update_plot(sprite)
+	if sprite.has_meta("sign_plot"):
+		sprite.visible = GameState.plot_status(int(sprite.get_meta("sign_plot"))) == "locked"
+	elif sprite.has_meta("sign_upgrade"):
+		var sign_upgrade := str(sprite.get_meta("sign_upgrade"))
+		# Mesma regra do antigo "+": só aparece quando a história já libera a compra.
+		sprite.visible = not GameState.has_upgrade(sign_upgrade) and GameState.requirement_error(Database.progression.upgrades.get(sign_upgrade, {}).get("requirements", {})) == ""
 	if sprite.has_meta("busy_frames"):
 		var busy := GameState.station(sprite.get_meta("station")).is_busy(GameState.now())
 		sprite.set_meta("busy", busy)
@@ -677,7 +694,7 @@ func _refresh_ownership() -> void:
 					region_locked = region_error(data) != ""
 			# "+" só aparece quando a história já libera a compra (revelar aos poucos).
 			var available := GameState.requirement_error(Database.progression.upgrades.get(sprite.get_meta("upgrade"), {}).get("requirements", {})) == ""
-			sprite.get_node("PurchaseMarker").visible = not purchased and not region_locked and available and not sprite.get_meta("decoration", false)
+			sprite.get_node("PurchaseMarker").visible = not purchased and not region_locked and available and not sprite.get_meta("decoration", false) and not sprite.get_meta("buy_sign", false)
 		if sprite.has_meta("animal_station"):
 			var roster := GameState.animal_roster(sprite.get_meta("animal_station"))
 			var slot: int = sprite.get_meta("animal_slot")
@@ -1333,6 +1350,9 @@ func point_at(action: String, seconds: float = 5.0) -> bool:
 		for sprite in _objects:
 			if sprite.get_meta("upgrade", "") == upgrade_id and not GameState.has_upgrade(upgrade_id) and not sprite.get_meta("decoration", false):
 				anchor = sprite.position + Vector2(0, -44)
+				for sign_sprite: Sprite2D in _objects:  # com placa "compra", a seta aponta para ela
+					if sign_sprite.get_meta("sign_upgrade", "") == upgrade_id:
+						anchor = sign_sprite.position - Vector2(0, sign_sprite.texture.get_height())
 				break
 		if anchor == Vector2.INF:
 			action = Places.upgrade_place_action(upgrade_id)
@@ -1456,6 +1476,12 @@ func _handle_tap(point: Vector2) -> bool:
 		if _hits(sprite, point - sprite.position) or (sprite.has_node("Crop") and _hits(sprite.get_node("Crop"), point - sprite.position - sprite.get_node("Crop").position)):
 			_flash(sprite)
 			_on_object_tapped(sprite.get_meta("action"), sprite)
+			return true
+	# Canteiros desenhados no fundo (sem desenho próprio): o toque vale pelo losango do chão.
+	if bool(_room.get("plot_signs", false)):
+		var tapped_plot := plot_at(point)
+		if tapped_plot >= 0:
+			_on_plot_tapped(tapped_plot)
 			return true
 	# Zonas: partes tocáveis do próprio fundo (ex.: porta).
 	for zone: Dictionary in _room.get("zones", []):
@@ -2342,6 +2368,12 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 	match action:
 		"plot":
 			_on_plot_tapped(int(target.get_meta("plot")) if target else 0)
+		"buy_sign":
+			if target is Sprite2D and target.has_meta("sign_plot"):
+				_on_plot_tapped(int(target.get_meta("sign_plot")))
+			elif target is Sprite2D and target.has_meta("sign_upgrade"):
+				var sign_upgrade := str(target.get_meta("sign_upgrade"))
+				Events.sheet_requested.emit(_purchase_title(sign_upgrade, "Construir"), ProgressionUi.purchase(sign_upgrade))
 		"treasure":
 			if target is Sprite2D:
 				_open_treasure(target)
@@ -2446,6 +2478,35 @@ func open_fishing() -> void:
 		_dog.fishing_stand = _point("fishing_pier") if points.has("fishing_pier") else Vector2.INF
 		_dog.react_at(&"fishing", _point("fishing_spot"))
 	_fishing_flow.begin()
+
+
+## Leva a câmera até a água (tutorial da pesca: o toque na lagoa precisa estar à vista).
+func look_at_lake() -> void:
+	if _fishing_bubbles == null:
+		return
+	var look_zoom := maxf(_zoom, 0.6)
+	_tween_camera(lake_center(), look_zoom)
+
+
+## Caixa da água em coordenadas da tela (alvo do tutorial). Vazia se a sala não tem lagoa.
+func lake_screen_rect() -> Rect2:
+	for zone: Dictionary in _room.get("zones", []):
+		if str(zone.get("action", "")) != "place:fishing":
+			continue
+		var box := Rect2()
+		var first := true
+		for point: Vector2 in _polygon(zone.polygon):
+			var screen := world_to_screen(point)
+			box = Rect2(screen, Vector2.ZERO) if first else box.expand(screen)
+			first = false
+		return box
+	return Rect2()
+
+
+## Tutorial da pesca (etapa 05): o Sítio chama ao ficar visível e a cada mudança de estado.
+func _check_angler_tutorial() -> void:
+	if _fishing_bubbles != null and is_visible_in_tree():
+		AnglerTutorial.maybe_start(self)
 
 
 func _lake_locked_notice() -> void:

@@ -21,6 +21,12 @@
     "fishing_physics_test",
     "fishing_test",
     "fishing_lake_test",
+    "fishing_tutorial_test",
+    "fishing_story_test",
+    "fishing_rod2_test",
+    "fishing_rod3_test",
+    "fishing_book_test",
+    "shop_test",
     "puppy_identity_test",
     "puppy_belly_test",
     "puppy_reactions_test",
@@ -244,6 +250,8 @@
         "courage_start_test",
         "moments_test",
         "growth_meals_test",
+        "fishing_rod2_test",
+        "fishing_rod3_test",
         "growth_ui_test",
         "hud_growth_test",
         "ceremony_test",
@@ -363,7 +371,11 @@
         "npc_lines_test",
         "onboarding_test",
         "care_story_test",
-        "quest_reward_test"
+        "quest_reward_test",
+        "fishing_tutorial_test",
+        "fishing_story_test",
+        "fishing_rod2_test",
+        "fishing_rod3_test"
       ]
     },
     "walks": {
@@ -460,6 +472,11 @@
         "game/tests/fishing_physics_test.gd",
         "game/tests/fishing_test.gd",
         "game/tests/fishing_lake_test.gd",
+        "game/tests/fishing_tutorial_test.gd",
+        "game/tests/fishing_story_test.gd",
+        "game/tests/fishing_rod2_test.gd",
+        "game/tests/fishing_rod3_test.gd",
+        "game/tests/fishing_tutorial_shots.gd",
         "game/scripts/state/fishing_state.gd",
         "game/scripts/ui/fishing_*",
         "game/scripts/ui/fish_result.gd",
@@ -470,7 +487,12 @@
       "tests": [
         "fishing_physics_test",
         "fishing_test",
-        "fishing_lake_test"
+        "fishing_lake_test",
+        "fishing_tutorial_test",
+        "fishing_story_test",
+        "fishing_rod2_test",
+        "fishing_rod3_test",
+        "fishing_book_test"
       ]
     },
     "album": {
@@ -576,6 +598,7 @@
         "ui_style_test",
         "sheet_test",
         "lists_test",
+        "fishing_book_test",
         "ui_base_test",
         "farm_dock_test",
         "tray_test",
@@ -691,6 +714,8 @@
         "game/tests/intro_test.gd",
         "game/tests/world_pin_test.gd",
         "game/tests/fishing_lake_test.gd",
+        "game/tests/fishing_tutorial_test.gd",
+        "game/tests/fishing_tutorial_shots.gd",
         "tools/build_farm_island.py"
       ],
       "tests": [
@@ -701,7 +726,8 @@
         "balloon_test",
         "intro_test",
         "world_pin_test",
-        "fishing_lake_test"
+        "fishing_lake_test",
+        "fishing_tutorial_test"
       ]
     },
     "market": {
@@ -710,12 +736,29 @@
         "game/scripts/ui/depot*",
         "game/tests/market_test.gd",
         "game/tests/customers_test.gd",
-        "game/tests/coins_test.gd"
+        "game/tests/coins_test.gd",
+        "game/tests/shop_test.gd",
+        "game/tests/fishing_rod2_test.gd"
       ],
       "tests": [
         "market_test",
         "customers_test",
-        "coins_test"
+        "coins_test",
+        "shop_test",
+        "fishing_rod2_test"
+      ]
+    },
+    "shops": {
+      "paths": [
+        "game/scripts/ui/sell_ui.gd",
+        "game/tests/shop_test.gd",
+        "game/tests/shop_shots.gd",
+        "game/tests/petshop_test.gd"
+      ],
+      "tests": [
+        "shop_test",
+        "petshop_test",
+        "market_test"
       ]
     },
     "projects": {

@@ -90,6 +90,17 @@ func begin() -> void:
 		_show_panel()
 
 
+## Dica de primeira vez da vovó (uma vez cada): aviso de madeira com o rosto dela.
+func tip(id: String) -> void:
+	var text := GameState.fishing_tip(id)
+	if text == "":
+		return
+	for node: Node in room.get_tree().root.find_children("*", "Notice", true, false):
+		node.call("notify", "info", text, ProgressionUi.npc_portrait("bloblo"))
+		return
+	Events.toast_requested.emit(text)
+
+
 func _set_state(next: String) -> void:
 	if state == next:
 		return
@@ -105,6 +116,10 @@ func _show_panel() -> void:
 	panel = FishingPanel.open(room)
 	panel.cast_requested.connect(_on_cast_requested)
 	panel.closed.connect(_on_panel_closed.bind(panel))
+	if not GameState.fishing.bubble.is_empty():
+		tip("bubble")
+	if GameState.inventory.count(panel.selected_bait()) <= 0:
+		tip("no_bait")
 
 
 func _on_panel_closed(closed_panel: FishingPanel) -> void:
@@ -226,6 +241,16 @@ func _start_game() -> void:
 	game = FishingGame.open_live(main if main != null else room)
 	game.ended.connect(_finish)
 	game.released.connect(func() -> void: _finish({"caught": false, "score": 0.0, "perfect": false, "chest": false}))
+	# Primeira vez que o baú aparece: a vovó explica e o jogo espera um instante para dar tempo de ler.
+	if bool(GameState.fishing.cast.get("chest", false)):
+		var chest_tip := GameState.fishing_tip("chest")
+		if chest_tip != "":
+			Events.notice_requested.emit("info", chest_tip, "")
+			game.frozen = true
+			var opened := game
+			get_tree().create_timer(2.5).timeout.connect(func() -> void:
+				if is_instance_valid(opened):
+					opened.frozen = false)
 
 
 func _close_game() -> void:
@@ -263,10 +288,12 @@ func _finish(outcome: Dictionary) -> void:
 		_caught["xp"] = xp
 		_caught["qty"] = int(cls_def.get("qty", 1))
 		_caught["perfect"] = bool(outcome.get("perfect", false))
+		_caught["chest"] = GameState.last_fish_chest.duplicate(true)
 		result.show_caught(_caught)
 	else:
 		var text := "Escapou! A %s foi junto." % Database.item_name(bait).to_lower() if spent else "Escapou!"
 		Events.notice_requested.emit("info", text, bait)
+		tip("escape")
 		_show_panel()
 
 

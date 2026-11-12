@@ -584,6 +584,7 @@ func _test_growth_bot() -> void:
 	gs.inventory.add("carrot", 6)
 	gs.inventory.add("strawberry", 3)
 	gs.inventory.add("frozen_carrot", 3)
+	gs.inventory.add("fish_mash", 3)
 	_top_up_moments()
 	var kinds := _bot_until(func() -> bool: return gs.growth.phase == "teething")
 	check(gs.growth.phase == "teething", "o robô fez o Tiro crescer para Dentinhos (ações: %s)" % str(kinds))
@@ -594,10 +595,11 @@ func _test_growth_bot() -> void:
 	_bot_until(func() -> bool: return gs.progress.claimed_quests.has("growth_3_teething"), 20)
 	check(gs.progress.claimed_quests.has("growth_3_teething"), "pegou a missão 'As orelhinhas subiram!'")
 	# Mocinho: refeição da fase, escova entregue e dois banhos com xampu (espera o Tiro sujar entre um e outro).
-	_growth_fixture("explorer", "young_9_milk")
+	_growth_fixture("explorer", "lais_shiny_coat")
 	check(gs.progress.current_main_quest() == "growth_9_young", "fixture: a história espera o Mocinho")
 	_top_up_moments()
 	gs.inventory.add("milk_porridge", 3)
+	gs.inventory.add("herb_fish", 3)
 	gs.inventory.add("soft_brush", 1)
 	gs.inventory.add("herb_shampoo", 2)
 	gs.dog.needs["hygiene"] = 30.0

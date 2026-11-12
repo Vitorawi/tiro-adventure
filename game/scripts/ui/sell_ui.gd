@@ -83,9 +83,21 @@ static func soft(rect: TextureRect) -> TextureRect:
 
 # --- Tela ----------------------------------------------------------------------------------
 
+## Aba e pacote para a próxima abertura (o "Ir" de `Places.run("shop:<id>")`); `last_tab` guarda a última só na sessão.
+static var open_tab := ""
+static var open_pack := ""
+static var last_tab := "sell"
+
+
 static func build(world_id: String) -> Control:
-	var model := {"selected": "", "quantity": 1, "scroll": 0}
+	var model := {"selected": "", "quantity": 1, "scroll": 0, "tab": last_tab, "buy_selected": "", "buy_qty": 1}
+	if open_tab != "":
+		model.tab = open_tab
+		model.buy_selected = open_pack
+		open_tab = ""
+		open_pack = ""
 	var who := seller(world_id)
+	var shop_id := Database.shop_of_place(world_id, str(who.place))
 	var live := SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
 		box.name = "SellBoard"
 		box.add_theme_constant_override("separation", 6)
@@ -96,10 +108,26 @@ static func build(world_id: String) -> Control:
 		if not str(model.selected) in ids:
 			model.selected = ids[0] if not ids.is_empty() else ""
 			model.quantity = 1
+		var buy_ids: Array[String] = []
+		if shop_id != "":
+			buy_ids = GameState.shop_items(shop_id)
+			# Só a dica bloqueada não abre a aba: precisa haver pelo menos um pacote à venda.
+			if buy_ids.all(func(pack: String) -> bool: return GameState.shop_item_locked(pack) != ""):
+				buy_ids = []
+		if buy_ids.is_empty():
+			model.tab = "sell"
+		last_tab = str(model.tab)
 		var width := panel_width()
 		var refresh := func() -> void: (box as SheetBuilder.LiveBox).refresh()
-		box.add_child(_frame(ids, model, refresh, width, str(who.title)))
-		if str(model.selected) != "":
+		var buying: bool = str(model.tab) == "buy"
+		if buying:
+			_pick_buy(model, buy_ids)
+		box.add_child(_frame(ids, model, refresh, width, str(who.title), buy_ids))
+		if buying:
+			if str(model.buy_selected) != "":
+				box.add_child(_buy_board(who, model, refresh, width))
+			_mark_packs_seen(buy_ids)
+		elif str(model.selected) != "":
 			box.add_child(_board(who, model, refresh, width, world_id))
 		var tail := Control.new()
 		tail.custom_minimum_size.y = 6.0
@@ -112,14 +140,14 @@ static func build(world_id: String) -> Control:
 
 
 ## Quantas linhas de cartões cabem sem passar do HUD: o resto rola.
-static func _visible_rows(rows: int) -> int:
+static func _visible_rows(rows: int, extra: float = 0.0) -> int:
 	var screen_h := (Engine.get_main_loop() as SceneTree).root.get_visible_rect().size.y
-	var chrome := 128.0 + IN_T + IN_B + PAD * 2.0 + 150.0  # HUD + moldura + tábua com folga
+	var chrome := 128.0 + IN_T + IN_B + PAD * 2.0 + 150.0 + extra  # HUD + moldura + tábua com folga (+ abas)
 	var fit := int(floor((screen_h - chrome + GAP) / (CARD_H + GAP)))
 	return clampi(mini(rows, MAX_ROWS), MIN_ROWS, maxi(MIN_ROWS, fit))
 
 
-static func _frame(ids: Array[String], model: Dictionary, refresh: Callable, width: float, title: String) -> Control:
+static func _frame(ids: Array[String], model: Dictionary, refresh: Callable, width: float, title: String, buy_ids: Array[String] = []) -> Control:
 	var frame := PanelContainer.new()
 	frame.name = "SellFrame"
 	frame.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -135,16 +163,30 @@ static func _frame(ids: Array[String], model: Dictionary, refresh: Callable, wid
 	margin.add_theme_constant_override("margin_bottom", int(IN_B + PAD))
 	frame.add_child(margin)
 	var inner_w := width - (IN_L + PAD) - (IN_R + PAD)
-	if ids.is_empty():
+	var has_tabs := not buy_ids.is_empty()
+	var holder: Control = margin
+	var extra := 0.0
+	if has_tabs:
+		# Abas de madeira no alto do creme: Vender · Comprar (só quando a loja tem o que vender ao jogador).
+		var column := UiKit.vbox(2)
+		column.name = "ShopColumn"
+		column.mouse_filter = Control.MOUSE_FILTER_PASS
+		margin.add_child(column)
+		column.add_child(_tabs(model, refresh, buy_ids))
+		holder = column
+		extra = MissionUi.TRAY_HEIGHT + 2.0
+	if str(model.tab) == "buy" and has_tabs:
+		holder.add_child(_buy_area(buy_ids, model, refresh, inner_w, extra))
+	elif ids.is_empty():
 		var empty := StationWood.text("Colha para ter produtos para vender.", 17)
 		empty.name = "SellEmpty"
 		empty.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		empty.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		empty.custom_minimum_size = Vector2(inner_w, MIN_ROWS * CARD_H + (MIN_ROWS - 1) * GAP)
-		margin.add_child(empty)
+		holder.add_child(empty)
 	else:
-		margin.add_child(_grid_area(ids, model, refresh, inner_w))
+		holder.add_child(_grid_area(ids, model, refresh, inner_w, extra))
 	frame.add_child(overlay(width, title))
 	return frame
 
@@ -183,9 +225,9 @@ static func overlay(width: float, title: String, plaque_box: Vector4 = Vector4(8
 
 
 ## Grade que rola + barra fina de madeira na coluna da direita (a barra do ScrollContainer fica escondida e esta a segue).
-static func _grid_area(ids: Array[String], model: Dictionary, refresh: Callable, inner_w: float) -> Control:
+static func _grid_area(ids: Array[String], model: Dictionary, refresh: Callable, inner_w: float, extra: float = 0.0) -> Control:
 	var rows := ceili(ids.size() / 2.0)
-	var shown := _visible_rows(rows)
+	var shown := _visible_rows(rows, extra)
 	var needs_bar := rows > shown
 	var bar_w := GUTTER if needs_bar else 0.0
 	var area_w := inner_w - bar_w
@@ -388,7 +430,20 @@ static func _fit_name(label: Label, width: float) -> void:
 ## Ícone do produto: pixel de 32 px no tamanho original (nítido); ilustração maior (comida, colheita) reduzida e suave.
 static func item_icon(id: String) -> TextureRect:
 	var food := StationWood.food_texture(id)
-	var source: Texture2D = food if food != null else Database.item_icon(id)
+	return _icon_from(food if food != null else Database.item_icon(id))
+
+
+## Ícone do pacote: do primeiro item ou, sem itens, da primeira vara.
+static func pack_icon(data: Dictionary) -> TextureRect:
+	var items: Dictionary = data.get("items", {})
+	if not items.is_empty():
+		return item_icon(str(items.keys()[0]))
+	var rods: Array = data.get("rods", [])
+	var path := str(Database.fishing.get("rods", {}).get(str(rods[0]) if not rods.is_empty() else "", {}).get("icon", ""))
+	return _icon_from(load(path) as Texture2D if path != "" else null)
+
+
+static func _icon_from(source: Texture2D) -> TextureRect:
 	var icon := TextureRect.new()
 	icon.name = "Icon"
 	icon.texture = source
@@ -414,43 +469,9 @@ static func _board(who: Dictionary, model: Dictionary, refresh: Callable, width:
 	model.quantity = clampi(int(model.quantity), 1, owned)
 	var qty := int(model.quantity)
 	var unit := int(Database.items[id].sell_price)
-	var panel := PanelContainer.new()
-	panel.name = "SellPanel"
-	panel.mouse_filter = Control.MOUSE_FILTER_PASS
-	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	panel.custom_minimum_size.x = width - BOARD_INSET * 2.0
-	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	panel.add_child(StationWood.backing("board", 70, 60))
-	var margin := MarginContainer.new()
-	margin.mouse_filter = Control.MOUSE_FILTER_PASS
-	margin.add_theme_constant_override("margin_left", int(BOARD_PAD.x))
-	margin.add_theme_constant_override("margin_right", int(BOARD_PAD.x))
-	margin.add_theme_constant_override("margin_top", int(BOARD_PAD.y + 6.0))
-	margin.add_theme_constant_override("margin_bottom", int(BOARD_PAD.y + 3.0))
-	panel.add_child(margin)
-	# Título da tábua: creme com contorno, centralizado na tábua inteira.
-	var stack := UiKit.vbox(6)
-	margin.add_child(stack)
-	var summary := MissionUi.text("%d × %s" % [qty, Database.item_name(id)], 15, Palette.WOOD_CREAM, 3)
-	summary.name = "SellSummary"
-	summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	summary.clip_text = true
-	summary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	summary.custom_minimum_size.y = 20.0
-	stack.add_child(summary)
-	# Retrato centralizado na altura das duas linhas de controles.
-	var row := UiKit.hbox(10)
-	stack.add_child(row)
-	if str(who.portrait) != "" and ResourceLoader.exists(str(who.portrait)):
-		var face := MissionUi.portrait(load(str(who.portrait)) as Texture2D, 64.0)
-		face.name = "SellerPortrait"
-		face.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-		row.add_child(face)
-	var column := UiKit.vbox(6)
-	column.name = "SellControls"
-	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(column)
+	var shell := _board_shell(who, width, "%d × %s" % [qty, Database.item_name(id)])
+	var panel: Control = shell.panel
+	var column: VBoxContainer = shell.column
 	column.add_child(_quantity_row(qty, owned, func(value: int) -> void:
 		model.quantity = value
 		refresh.call()))
@@ -470,6 +491,279 @@ static func _board(who: Dictionary, model: Dictionary, refresh: Callable, width:
 	action.size_flags_horizontal = Control.SIZE_SHRINK_END
 	last.add_child(action)
 	column.add_child(last)
+	return panel
+
+
+## Casca da tábua (madeira, título, retrato do vendedor e a coluna de controles), compartilhada por Vender e Comprar.
+static func _board_shell(who: Dictionary, width: float, summary_text: String) -> Dictionary:
+	var panel := PanelContainer.new()
+	panel.name = "SellPanel"
+	panel.mouse_filter = Control.MOUSE_FILTER_PASS
+	panel.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
+	panel.custom_minimum_size.x = width - BOARD_INSET * 2.0
+	panel.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	panel.add_child(StationWood.backing("board", 70, 60))
+	var margin := MarginContainer.new()
+	margin.mouse_filter = Control.MOUSE_FILTER_PASS
+	margin.add_theme_constant_override("margin_left", int(BOARD_PAD.x))
+	margin.add_theme_constant_override("margin_right", int(BOARD_PAD.x))
+	margin.add_theme_constant_override("margin_top", int(BOARD_PAD.y + 6.0))
+	margin.add_theme_constant_override("margin_bottom", int(BOARD_PAD.y + 3.0))
+	panel.add_child(margin)
+	# Título da tábua: creme com contorno, centralizado na tábua inteira.
+	var stack := UiKit.vbox(6)
+	margin.add_child(stack)
+	var summary := MissionUi.text(summary_text, 15, Palette.WOOD_CREAM, 3)
+	summary.name = "SellSummary"
+	summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	summary.clip_text = true
+	summary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	summary.custom_minimum_size.y = 20.0
+	stack.add_child(summary)
+	# Retrato centralizado na altura das duas linhas de controles.
+	var row := UiKit.hbox(10)
+	stack.add_child(row)
+	if str(who.portrait) != "" and ResourceLoader.exists(str(who.portrait)):
+		var face := MissionUi.portrait(load(str(who.portrait)) as Texture2D, 64.0)
+		face.name = "SellerPortrait"
+		face.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(face)
+	var column := UiKit.vbox(6)
+	column.name = "SellControls"
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(column)
+	return {"panel": panel, "column": column, "summary": summary}
+
+
+# --- Comprar -------------------------------------------------------------------------------
+
+## Abas de madeira Vender · Comprar; "!" na Comprar enquanto há pacote liberado ainda não visto.
+static func _tabs(model: Dictionary, refresh: Callable, buy_ids: Array[String]) -> Control:
+	var fresh := false
+	for id in buy_ids:
+		if GameState.shop_item_locked(id) == "" and not GameState.progress.seen.has("shop_item:" + id):
+			fresh = true
+	var entries: Array[Dictionary] = [
+		{"id": "sell", "text": "Vender", "alert": false},
+		{"id": "buy", "text": "Comprar", "alert": fresh and str(model.tab) != "buy"},
+	]
+	return MissionUi.tabs(entries, str(model.tab), func(id: String) -> void:
+		model.tab = id
+		model.scroll = 0
+		refresh.call())
+
+
+## Escolhe o pacote da tábua: o pedido pelo "Ir", o já escolhido, ou o primeiro liberado.
+static func _pick_buy(model: Dictionary, buy_ids: Array[String]) -> void:
+	var current := str(model.buy_selected)
+	if current in buy_ids and GameState.shop_item_locked(current) == "":
+		return
+	model.buy_selected = ""
+	model.buy_qty = 1
+	for id in buy_ids:
+		if GameState.shop_item_locked(id) == "":
+			model.buy_selected = id
+			return
+
+
+## Pacotes liberados ficam "vistos" ao abrir a aba (o "!" some na próxima reconstrução).
+static func _mark_packs_seen(buy_ids: Array[String]) -> void:
+	var keys: Array[String] = []
+	for id in buy_ids:
+		if GameState.shop_item_locked(id) == "" and not GameState.progress.seen.has("shop_item:" + id):
+			keys.append("shop_item:" + id)
+	if not keys.is_empty():
+		GameState.mark_seen.call_deferred(keys)
+
+
+static func _buy_area(ids: Array[String], model: Dictionary, refresh: Callable, inner_w: float, extra: float) -> Control:
+	var rows := ceili(ids.size() / 2.0)
+	var shown := _visible_rows(rows, extra)
+	var needs_bar := rows > shown
+	var area_w := inner_w - (GUTTER if needs_bar else 0.0)
+	var card_w := floorf((area_w - GAP) / 2.0)
+	var grid := GridContainer.new()
+	grid.name = "BuyGrid"
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", int(GAP))
+	grid.add_theme_constant_override("v_separation", int(GAP))
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	grid.custom_minimum_size.x = card_w * 2.0 + GAP
+	for id in ids:
+		var locked := GameState.shop_item_locked(id)
+		var card := _buy_card(id, id == str(model.buy_selected), card_w, locked, func() -> void:
+			if locked != "":
+				Events.toast_requested.emit(locked)
+				return
+			model.buy_selected = id
+			model.buy_qty = 1
+			refresh.call())
+		card.name = "Buy_" + id
+		grid.add_child(card)
+	var holder := VBoxContainer.new()
+	holder.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	holder.mouse_filter = Control.MOUSE_FILTER_PASS
+	holder.add_child(grid)
+	return scrolled(holder, inner_w, shown * CARD_H + (shown - 1) * GAP, needs_bar, model, "BuyScroll", "BuyBar")
+
+
+## Cartão do pacote: ícone do item, nome, "×N" + preço e "N hoje"; o bloqueado fica apagado com cadeado e o motivo curto.
+static func _buy_card(id: String, selected: bool, card_w: float, locked: String, choose: Callable) -> Button:
+	var data: Dictionary = GameState.shop_pack(id)
+	var first_item := "" if data.get("items", {}).is_empty() else str(data.items.keys()[0])
+	var result := BagUi.plain_button(choose)
+	result.custom_minimum_size = Vector2(card_w, CARD_H)
+	result.set_meta("selected", selected)
+	result.set_meta("locked", locked != "")
+	var art := nine("card", Vector4i(40, 40, 40, 40), "Art")
+	art.show_behind_parent = true
+	result.add_child(art)
+	StepCardUi.stretch(art)
+	if selected:
+		(art.get_child(0) as CanvasItem).self_modulate = Color(1.0, 0.86, 0.56)
+		var ring := Panel.new()
+		ring.name = "Selected"
+		ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var style := StyleBoxFlat.new()
+		style.bg_color = Color(0, 0, 0, 0)
+		style.border_color = GOLD
+		style.set_border_width_all(3)
+		style.set_corner_radius_all(14)
+		ring.add_theme_stylebox_override("panel", style)
+		result.add_child(ring)
+		StepCardUi.stretch(ring)
+	var body := UiKit.hbox(5)
+	body.name = "Visual"
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result.add_child(body)
+	StepCardUi.stretch(body)
+	body.offset_left = 7.0
+	body.offset_right = -6.0
+	body.offset_top = 2.0
+	body.offset_bottom = -3.0
+	var slot := Control.new()
+	slot.name = "Picture"
+	slot.custom_minimum_size = Vector2(SLOT_PX, SLOT_PX)
+	slot.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var icon := pack_icon(data)
+	slot.add_child(icon)
+	icon.position = (Vector2(SLOT_PX, SLOT_PX) - icon.size) / 2.0
+	body.add_child(slot)
+	var text_w := card_w - 7.0 - 6.0 - SLOT_PX - 5.0
+	var column := UiKit.vbox(0)
+	column.name = "Info"
+	column.alignment = BoxContainer.ALIGNMENT_CENTER
+	column.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	column.custom_minimum_size.x = text_w
+	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.add_child(column)
+	var name_label := StationWood.text(str(data.name), 13)
+	name_label.name = "Caption"
+	name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	name_label.max_lines_visible = 2
+	name_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	name_label.custom_minimum_size = Vector2(text_w, 0.0)
+	name_label.size_flags_horizontal = Control.SIZE_FILL
+	_fit_name(name_label, text_w)
+	column.add_child(name_label)
+	if Database.progression.shop_items[id].has("rotation") and locked == "":
+		var seal := StationWood.text("Hoje", 11)
+		seal.name = "TodaySeal"
+		seal.add_theme_color_override("font_color", Color(0.62, 0.36, 0.05))
+		seal.autowrap_mode = TextServer.AUTOWRAP_OFF
+		seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_child(seal)
+	if locked != "":
+		var lock_row := UiKit.hbox(3)
+		lock_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		var lock := soft(TextureRect.new())
+		lock.name = "LockIcon"
+		lock.texture = load(HomeUi.DIR + "farm_lock.png") as Texture2D
+		lock.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		lock.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		lock.custom_minimum_size = Vector2(14, 14)
+		lock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		lock_row.add_child(lock)
+		var short := locked.trim_prefix("Ganhe a ").trim_prefix("Depois de: ")  # "Ganhe a vara de bambu" → "Vara de bambu" (cabe em 2 linhas)
+		var reason := StationWood.text(short.substr(0, 1).to_upper() + short.substr(1), 11)
+		reason.name = "LockText"
+		reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		reason.max_lines_visible = 2
+		reason.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+		reason.custom_minimum_size.x = text_w - 17.0
+		lock_row.add_child(reason)
+		column.add_child(lock_row)
+		slot.modulate.a = 0.55
+		name_label.modulate.a = 0.6
+		art.modulate.a = 0.65
+		return result
+	var price_row := UiKit.hbox(3)
+	price_row.name = "PriceRow"
+	price_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if first_item != "":
+		var pack := StationWood.text("×%d" % int(data.items[first_item]), 12)
+		pack.name = "Pack"
+		pack.autowrap_mode = TextServer.AUTOWRAP_OFF
+		price_row.add_child(pack)
+	var price := StationWood.text(("· %d" if first_item != "" else "%d") % int(data.price), 12)
+	price.name = "Price"
+	price.autowrap_mode = TextServer.AUTOWRAP_OFF
+	price_row.add_child(price)
+	price_row.add_child(soft(coin(13.0)))
+	column.add_child(price_row)
+	var left := GameState.shop_daily_left(id)
+	if left >= 0:
+		var daily := StationWood.text("%d hoje" % left, 12)
+		daily.name = "DailyLeft"
+		daily.autowrap_mode = TextServer.AUTOWRAP_OFF
+		column.add_child(daily)
+	return result
+
+
+static func _buy_board(who: Dictionary, model: Dictionary, refresh: Callable, width: float) -> Control:
+	var id := str(model.buy_selected)
+	var data: Dictionary = GameState.shop_pack(id)
+	var most := maxi(1, GameState.shop_max_qty(id))
+	model.buy_qty = clampi(int(model.buy_qty), 1, most)
+	var qty := int(model.buy_qty)
+	var first_item := "" if data.get("items", {}).is_empty() else str(data.items.keys()[0])
+	var shell := _board_shell(who, width, str(data.name) if first_item == "" else "%d × %s" % [qty * int(data.items[first_item]), Database.item_name(first_item)])
+	var panel: Control = shell.panel
+	var column: VBoxContainer = shell.column
+	column.add_child(_quantity_row(qty, most, func(value: int) -> void:
+		model.buy_qty = value
+		refresh.call()))
+	var last := UiKit.hbox(6)
+	last.name = "BuyAction"
+	var cost := int(data.price) * qty
+	var total := _total_pill(cost)
+	total.name = "BuyTotal"
+	(total.get_node("SellTotalValue") as Label).name = "BuyTotalValue"
+	var error := GameState.buy_shop_item_error(id, qty)
+	var action: Button
+	if error == "":
+		last.add_child(total)
+		last.add_child(spacer())
+		action = StepCardUi.go_button("Comprar", func() -> void:
+			var failure := GameState.buy_shop_item(id, qty)
+			if failure != "":
+				Events.toast_requested.emit(failure)
+			else:
+				model.buy_qty = 1)
+		action.name = "BuyItem"
+		action.size_flags_horizontal = Control.SIZE_SHRINK_END
+	else:
+		action = StepCardUi.locked_button(error, UiKit.ui_icon("coin") if error.begins_with("Faltam") else null)
+		action.name = "Locked_BuyItem"
+		action.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	action.custom_minimum_size.x = 104.0
+	last.add_child(action)
+	column.add_child(last)
+	if error != "":
+		total.free()  # com o botão bloqueado, o motivo ocupa a linha toda (o total não faz falta)
 	return panel
 
 

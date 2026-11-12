@@ -175,7 +175,7 @@ class Data:
         return ""
 
     def recipe_output(self, recipe: dict) -> str:
-        return str(recipe.get("output", recipe.get("output_collection", "")))
+        return str(recipe.get("output", recipe.get("output_collection", recipe.get("output_rod", ""))))
 
     def station_upgrade(self, station_id: str) -> str:
         """Melhoria que libera a estação (Database.station_upgrade: campo `station` da melhoria, senão o próprio ID)."""
@@ -805,6 +805,9 @@ def check_references(d: Data) -> dict:
                         errors.append(f"quests:{q_id}/go: '{place}' aponta para ID inexistente")
                 elif prefix == "market":
                     pass  # aba do comércio (MarketUi); não há tabela de dados para validar
+                elif prefix == "shop":
+                    if rest not in d.prog.get("shop_items", {}):
+                        errors.append(f"quests:{q_id}/go: '{place}' aponta para ID inexistente")
                 elif place not in place_ids[world]:
                     errors.append(f"quests:{q_id}/go: lugar '{place}' inexistente em '{world}'")
 
@@ -816,6 +819,9 @@ def check_references(d: Data) -> dict:
         if "output_collection" in r:
             if out not in collection_ids:
                 errors.append(f"recipes:{r_id}: coleção de saída inexistente '{out}'")
+        elif "output_rod" in r:
+            if out not in json.loads((d.dir / "fishing.json").read_text(encoding="utf-8")).get("rods", {}):
+                errors.append(f"recipes:{r_id}: vara de saída inexistente '{out}'")
         elif out not in item_ids:
             errors.append(f"recipes:{r_id}: saída inexistente '{out}'")
     for s_id in d.stations:
