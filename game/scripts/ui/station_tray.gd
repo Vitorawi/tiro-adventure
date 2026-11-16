@@ -92,14 +92,7 @@ static func recipe_ids(station_id: String, focus: String = "") -> Array[String]:
 	var open: Array[String] = []
 	var closed: Array[String] = []
 	var priority: Array[String] = []
-	var foods: Array[String] = []
-	for row: Dictionary in GameState.growth_info().requirements:
-		if row.type != "feed" or bool(row.done): continue
-		var food := str(row.item)
-		if food == "favorite":
-			if not GameState.favorite_found(): continue
-			food = GameState.favorite_food()
-		if food != "any": foods.append(food)
+	var foods := growth_foods()
 	for id in Database.recipes_for(station_id):
 		if id == focus:
 			priority.push_front(id)
@@ -110,6 +103,19 @@ static func recipe_ids(station_id: String, focus: String = "") -> Array[String]:
 		else:
 			closed.append(id)
 	return priority + open + closed
+
+
+## Comidas que o próximo crescimento do Tiro ainda pede (as receitas delas vão na frente da lista).
+static func growth_foods() -> Array[String]:
+	var foods: Array[String] = []
+	for row: Dictionary in GameState.growth_info().requirements:
+		if row.type != "feed" or bool(row.done): continue
+		var food := str(row.item)
+		if food == "favorite":
+			if not GameState.favorite_found(): continue
+			food = GameState.favorite_food()
+		if food != "any": foods.append(food)
+	return foods
 
 
 static func _first_open(entries: Array[Dictionary]) -> String:

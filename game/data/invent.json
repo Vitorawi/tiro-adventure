@@ -1,0 +1,72 @@
+{
+  "schema": 1,
+  "slot_kinds": {
+    "legume": {"name": "Legume", "art": "ck_inv_slot_legume"},
+    "protein": {"name": "Proteína", "art": "ck_inv_slot_protein"},
+    "fruit": {"name": "Fruta", "art": "ck_inv_slot_fruit"},
+    "dairy": {"name": "Lácteo", "art": "ck_inv_slot_dairy"},
+    "grain": {"name": "Grão", "art": "ck_inv_slot_grain"},
+    "free": {"name": "Livre", "art": "ck_inv_slot_free"}
+  },
+  "items": {
+    "carrot": ["legume"],
+    "potato": ["legume"],
+    "pumpkin": ["legume"],
+    "sweet_potato": ["legume"],
+    "egg": ["protein"],
+    "fish_lambari": ["protein"],
+    "fish_tilapia": ["protein"],
+    "fish_cara": ["protein"],
+    "apple": ["fruit"],
+    "strawberry": ["fruit"],
+    "blueberry": ["fruit"],
+    "milk": ["dairy"],
+    "cheese": ["dairy"],
+    "corn": ["grain"],
+    "flour": ["grain"],
+    "wheat": ["grain"],
+    "herbs": ["free"],
+    "wild_mint": ["free"]
+  },
+  "recommended": {
+    "legume": ["carrot", "potato", "pumpkin", "sweet_potato"],
+    "protein": ["egg", "fish_lambari", "fish_tilapia", "fish_cara"],
+    "fruit": ["apple", "strawberry", "blueberry"],
+    "dairy": ["milk", "cheese"],
+    "grain": ["corn", "flour", "wheat"],
+    "free": ["carrot", "egg", "apple", "milk"]
+  },
+  "dish_types": [
+    {
+      "id": "papinha", "name": "Papinha", "dish": "puppy_mash", "title": "Sua Papinha",
+      "slots": ["legume", "legume", "grain"],
+      "hint": "Macia e fácil de comer.",
+      "hint_long": "Legumes cozidos e amassados, com um pouco de grão. Experimente combinar!"
+    },
+    {
+      "id": "petisco", "name": "Petisco", "dish": "carrot_snack", "title": "Seu Petisco",
+      "slots": ["legume", "legume"],
+      "hint": "Crocante para mordiscar.",
+      "hint_long": "Um petisco simples feito com legumes. Dois legumes juntos já dão certo."
+    },
+    {
+      "id": "sopa", "name": "Sopa", "dish": "vegetable_soup", "title": "Sua Sopa",
+      "slots": ["legume", "legume", "legume"],
+      "hint": "Quentinha e cheia de sabor.",
+      "hint_long": "Vários legumes na mesma panela viram uma sopa gostosa."
+    },
+    {
+      "id": "doce", "name": "Doce", "dish": "apple_biscuit", "title": "Seu Doce",
+      "slots": ["fruit", "fruit", "grain"],
+      "hint": "Docinho para um dia especial.",
+      "hint_long": "Frutas doces com um toque de grão fazem um docinho bem fofo."
+    },
+    {
+      "id": "lanche", "name": "Lanche", "dish": "growth_kibble", "title": "Seu Lanche",
+      "slots": ["grain", "legume", "protein"],
+      "hint": "Forte para crescer.",
+      "hint_long": "Um grão, um legume e uma proteína: lanche completo para o Tiro."
+    }
+  ],
+  "invented": {"item": "invented_dish", "seconds": 60}
+}

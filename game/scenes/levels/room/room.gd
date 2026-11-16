@@ -1774,6 +1774,8 @@ func close_tray() -> void:
 		ActionTray.close_current()
 	if FarmDock.is_open_for(self):
 		FarmDock.current().close()
+	if CookPanel.is_open_for(self):
+		CookPanel.close_current()
 
 
 # --- Bandeja de ação das estações, criações e Natureza (Etapa 08) -------------------
@@ -1873,6 +1875,9 @@ func open_station_tray(station_id: String, focus: String = "", center_camera: bo
 		return
 	close_tray()
 	clear_pointer()
+	if station_id == "stove":
+		CookPanel.open(self, station_id, focus)  # o fogão tem a cozinha nova (painel do Figma), não a bandeja comum
+		return
 	var anchor := object_anchor(home)
 	# A bandeja "madeira ilustrada" fica presa embaixo, acima das abas: a câmera não precisa subir o objeto.
 	StationTray.station(self, station_id, anchor, focus)

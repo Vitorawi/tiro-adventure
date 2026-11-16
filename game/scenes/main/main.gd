@@ -480,6 +480,7 @@ func _show_photo_toast(id: String) -> void:
 	_notice.notify("photo", "Nova foto para abrir!", null, func() -> void:
 		# O clique libera a fila; a carta sempre entra pelo mesmo caminho modal.
 		ActionTray.close_current(true)
+		CookPanel.close_current(true)
 		var sheet := get_node_or_null("Sheet")
 		if sheet != null and sheet.call("is_open"): sheet.call("close")
 		if GameState.photo_sealed(id) > 0 and id not in _photo_queue: _queue_photo(id))
@@ -526,6 +527,7 @@ func _announce() -> void:
 			(catcher as Control).hide()
 			catcher.queue_free()
 		ActionTray.close_current(true)
+		CookPanel.close_current(true)
 		Events.sheet_close_requested.emit()
 	if chapter > 0:
 		_quest_rewards.clear()

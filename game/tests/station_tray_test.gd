@@ -52,8 +52,23 @@ func enter(world: String) -> Control:
 func tap(room: Control, action: String, object_id: String) -> Control:
 	room.call("close_tray")
 	room.call("_on_object_tapped", action, room.find_child(object_id, true, false))
+	if cook_open(room):
+		# O fogão abre a cozinha nova (CookPanel, cook_panel_test); estes casos testam a bandeja comum: troca por ela.
+		await open_generic_stove(room, "")
 	await frames()
 	return tray()
+
+
+func cook_open(room: Control) -> bool:
+	return load("res://scripts/ui/cook_panel.gd").call("is_open_for", room)
+
+
+## Fecha a cozinha nova (se aberta) e abre a bandeja comum no fogão, com a receita pedida já escolhida.
+func open_generic_stove(room: Control, focus: String) -> void:
+	load("res://scripts/ui/cook_panel.gd").call("close_current", true)
+	var home := room.find_child("stove", true, false)
+	load("res://scripts/ui/station_tray.gd").call("station", room, "stove", room.call("object_anchor", home), focus)
+	await frames()
 
 
 func buttons(node: Node, found: Array[Button] = []) -> Array[Button]:
@@ -459,6 +474,8 @@ func _test_roomy_station() -> void:
 	var house := await enter("house")
 	places.call("run", "house", "recipe:puppy_mash")
 	await frames(12)
+	check(cook_open(house), "o Ir do fogão abre a cozinha nova")
+	await open_generic_stove(house, "puppy_mash")
 	var current := tray()
 	check(current != null, "fogão abre no caso da foto")
 	if current == null: return
@@ -526,6 +543,8 @@ func _test_growth_food_focus() -> void:
 	# Percorre o mesmo destino do botão da ajuda até a bandeja real.
 	places.call("run", "house", str(data.target.place))
 	await frames(8)
+	check(cook_open(house) and load("res://scripts/ui/cook_panel.gd").call("current").selected == "growth_kibble", "o Ir abre a cozinha nova já com a receita")
+	await open_generic_stove(house, "growth_kibble")
 	var current := tray()
 	check(current != null, "ajuda abre bandeja do fogão")
 	if current == null: return
@@ -571,6 +590,8 @@ func _test_blender_and_focus() -> void:
 	sheet_titles.clear()
 	places.call("run", "house", "recipe:vegetable_soup")
 	await frames()
+	check(cook_open(house), "Ir com receita do fogão abre a cozinha nova")
+	await open_generic_stove(house, "vegetable_soup")
 	var focused := tray()
 	check(focused != null, "\"Ir\" com receita abre a bandeja")
 	check(focused != null and focused.get("selected") == "vegetable_soup", "com a receita já selecionada")

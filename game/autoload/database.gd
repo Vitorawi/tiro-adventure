@@ -39,6 +39,8 @@ var friends: Dictionary = {}
 var fishing: Dictionary = {}
 ## Obras comunitárias (data/projects.json): fases, taxa, prêmio. Vazio até as etapas 20–22.
 var projects: Dictionary = {}
+## Aba Inventar do fogão (data/invent.json): tipos de espaço, ingredientes, tipos de prato e o prato inventado.
+var invent: Dictionary = {}
 var growth: Dictionary = {}
 ## Álbum de recordações (data/album.json): as 54 fotos, cenários e adereços.
 var album: Dictionary = {}
@@ -302,6 +304,8 @@ func _init() -> void:
 	friends = _load("res://data/friends.json")
 	fishing = _load("res://data/fishing.json")
 	projects = _load("res://data/projects.json")
+	invent = _load("res://data/invent.json")
+	_register_invented_recipe()
 	growth = _load("res://data/growth.json")
 	album = _load("res://data/album.json")
 	house = _load("res://data/house.json")
@@ -447,7 +451,7 @@ func _texture(path: String) -> Texture2D:
 func recipes_for(station_id: String) -> Array[String]:
 	var result: Array[String] = []
 	for id: String in recipes:
-		if recipes[id].get("station") == station_id:
+		if recipes[id].get("station") == station_id and not bool(recipes[id].get("hidden", false)):
 			result.append(id)
 	return result
 
@@ -578,6 +582,52 @@ func project_problems() -> Array[String]:
 		var reason := project_issue(id)
 		if reason != "":
 			problems.append(reason)
+	return problems
+
+
+## Receita "escondida" do prato inventado (aba Inventar): só existe para a fila do fogão ter o que mostrar; nunca entra
+## nas listas de pratos (`recipes_for` pula `hidden`). Os ingredientes de cada lote ficam no snapshot (`job.inputs`).
+func _register_invented_recipe() -> void:
+	var data: Dictionary = invent.get("invented", {})
+	if data.is_empty():
+		return
+	recipes[invented_recipe_id()] = {
+		"station": "stove", "inputs": {}, "output": str(data.get("item", "invented_dish")), "qty": 1,
+		"seconds": int(data.get("seconds", 60)), "hidden": true,
+	}
+
+
+func invented_recipe_id() -> String:
+	return "invented_dish"
+
+
+## Problemas do invent.json (lista vazia = coerente): ids de itens, tipos de espaço e pratos existem.
+func invent_problems() -> Array[String]:
+	var problems: Array[String] = []
+	var kinds: Dictionary = invent.get("slot_kinds", {})
+	for id: String in invent.get("items", {}):
+		if not items.has(id):
+			problems.append("invent: item inexistente " + id)
+		for kind: String in invent.items[id]:
+			if not kinds.has(kind):
+				problems.append("invent: tipo de espaço inexistente %s em %s" % [kind, id])
+	for kind: String in invent.get("recommended", {}):
+		if not kinds.has(kind):
+			problems.append("invent: recomendados de tipo inexistente " + kind)
+		for id: String in invent.recommended[kind]:
+			if not items.has(id):
+				problems.append("invent: recomendado inexistente " + id)
+	for def: Dictionary in invent.get("dish_types", []):
+		if not items.has(str(def.get("dish", ""))):
+			problems.append("invent: prato inexistente em " + str(def.get("id", "")))
+		var count: int = (def.get("slots", []) as Array).size()
+		if count < 1 or count > 4:
+			problems.append("invent: %s tem %d espaços (1 a 4)" % [def.get("id", ""), count])
+		for kind: String in def.get("slots", []):
+			if not kinds.has(kind):
+				problems.append("invent: espaço inexistente %s em %s" % [kind, def.get("id", "")])
+	if not items.has(str(invent.get("invented", {}).get("item", ""))):
+		problems.append("invent: item do prato inventado inexistente")
 	return problems
 
 

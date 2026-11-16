@@ -1115,6 +1115,64 @@ func cook_many(recipe_id: String, count: int) -> String:
 	return ""
 
 
+## Aba Inventar do fogão: receita do fogão (já liberada) cujos ingredientes são EXATAMENTE os escolhidos
+## (multiconjunto {item: quantidade}); "" se nenhuma bate. Consulta pura.
+func invent_match(chosen: Dictionary) -> String:
+	if chosen.is_empty():
+		return ""
+	for id in Database.recipes_for("stove"):
+		var recipe: Dictionary = Database.recipes[id]
+		if Database.recipe_unique(recipe) or content_error("recipe", id, recipe) != "":
+			continue
+		var inputs := recipe_inputs(id)
+		if inputs.size() != chosen.size():
+			continue
+		var same := true
+		for item_id: String in inputs:
+			if int(chosen.get(item_id, 0)) != int(inputs[item_id]):
+				same = false
+				break
+		if same:
+			return id
+	return ""
+
+
+## Consulta pura de `cook_invented`: "" ou o motivo (sem fogão, nada escolhido, fila cheia, falta ingrediente).
+func cook_invented_error(chosen: Dictionary) -> String:
+	if not has_upgrade("stove"):
+		return "Compre %s no seu lugar do mapa" % Database.stations.get("stove", {}).get("name", "o fogão")
+	if chosen.is_empty():
+		return "Escolha ingredientes"
+	for item_id: String in chosen:
+		if int(chosen[item_id]) < 1 or not Database.invent.get("items", {}).has(item_id):
+			return "Ingrediente inválido"
+	if station("stove").queue.size() >= station_slots("stove"):
+		return "Fila cheia"
+	if not inventory.has_all(chosen):
+		return _missing_text(chosen, "Faltam ingredientes")
+	return ""
+
+
+## Prato surpresa PROVISÓRIO: gasta os ingredientes escolhidos e põe na fila do fogão um "Prato inventado" ×1, pelo mesmo
+## caminho do `cook_many` (lote com snapshot; `collect` entrega igual). Conta como um lote do fogão (maestria `station_jobs`),
+## mas não é receita nova. Devolve "" ou o motivo.
+func cook_invented(chosen: Dictionary) -> String:
+	var error := cook_invented_error(chosen)
+	if error != "":
+		return error
+	var recipe_id := Database.invented_recipe_id()
+	if not Database.recipes.has(recipe_id):
+		return "Receita desconhecida"
+	var recipe: Dictionary = Database.recipes[recipe_id]
+	var target := station("stove")
+	inventory.remove_all(chosen)
+	target.enqueue(recipe_id, float(recipe.seconds), now())
+	target.queue.back()["qty"] = 1
+	target.queue.back()["job"] = WorkJobs.batch(recipe_id, Database.recipes, Database.xp, Database.stations, 1, chosen)
+	_changed()
+	return ""
+
+
 ## Primeiro item que falta, como "Falta Cenoura ×2"; sem faltar nada devolve o texto geral.
 func _missing_text(amounts: Dictionary, fallback: String) -> String:
 	for id: String in amounts:

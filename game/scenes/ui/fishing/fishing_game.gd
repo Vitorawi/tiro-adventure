@@ -30,10 +30,45 @@ const PARAMS: Array = [
 ## Modo ao vivo (etapa 02): filho de `Main`, entre o HUD e as abas, com o peixe/vara/semente da partida em
 ## `GameState.fishing.cast`. Sem ferramentas de ajuste; as medidas vêm do tamanho real da tela.
 var live := false
-const LIVE_PAD := 6.0      # folga da moldura de madeira até a borda da área do jogo
-const FRAME_PAD := 18.0    # largura da moldura de madeira em volta de pista + rede
-const LIVE_SIDE := 8.0
+const FRAME_PAD := 18.0    # (o tutorial usa) folga entre a nota e a moldura
 const FISH_ICON := 32.0
+
+## Layout ao vivo = a página "Pesca" do Figma (guia 710×1536). Todas as medidas abaixo são em unidades do Figma, relativas
+## ao canto do guia; `_layout_live` multiplica por `_s` e ancora o guia no canto de baixo da tela.
+const DESIGN := Vector2(710, 1536)
+const UI := "res://assets/sprites/ui/fishing_ui/"
+const SX := 0.0  ## deslocamento horizontal do grupo (as posições já vêm centralizadas do Figma)
+const R_BG := Rect2(-35, 332, 775, 1033)           ## fundominigame (atrás de tudo)
+const R_PANEL := Rect2(23 + SX, 371, 420, 524)
+const R_WATER := Rect2(406, 477, 330, 660)
+const R_FRAME := Rect2(426, 435, 266, 726)
+const R_TRACK := Rect2(525.2, 519.9, 106.0, 558.9)  ## janela da água na moldura (onde peixe e barra andam)
+const R_METER := Rect2(476.4, 518.7, 16.3, 560.6)   ## a rede enche a canaleta estreita da moldura (passa um pouco do buraco: a moldura cobre a sobra)
+const R_GROOVE := Rect2(474.5, 516.0, 20.2, 566.0)  ## fundo escuro por baixo da moldura: nada do fundo aparece pela canaleta
+const R_PAUSE := Rect2(25, 849, 123, 123)
+const R_HOLD_ART := Rect2(80, 1129, 550, 183)
+const R_HOLD := Rect2(80, 1160.6, 516.3, 139.3)     ## parte visível do botão (o toque)
+const R_TIPS: Array[Rect2] = [Rect2(172, 863, 300, 100), Rect2(195, 955, 255, 85), Rect2(180, 1042, 290, 94)]
+const FISH_BOX := Vector2(64, 50)
+## [nome, ícone, texto] das cinco linhas do painel (o ícone da vara, da isca e do peixe vem da partida)
+const ROWS: Array = [
+	["InfoRod", Rect2(93 + SX, 506, 50, 50), Rect2(175 + SX, 516, 240, 29)],
+	["InfoBait", Rect2(94 + SX, 570, 50, 50), Rect2(175 + SX, 580, 240, 29)],
+	["InfoFish", Rect2(87 + SX, 633, 64, 50), Rect2(175 + SX, 640, 240, 29)],
+	["InfoRange", Rect2(94 + SX, 695, 50, 50), Rect2(175 + SX, 705, 240, 29)],
+	["InfoRecord", Rect2(94 + SX, 748, 50, 50), Rect2(175 + SX, 758, 240, 29)],
+]
+var _s := 1.0              ## escala Figma → tela
+var _o := Vector2.ZERO     ## canto do guia, em coordenadas do pai
+var _slots: Array = []     ## [nó, retângulo em unidades do Figma, origem do pai em unidades do Figma ou null]
+var _back: Control         ## água + rede (atrás da moldura)
+var _play: Control         ## barra e peixe (acima da moldura)
+var _hold_art: TextureRect
+var _tips: Array[Control] = []
+var _bar_texture: Texture2D
+var _water_texture: Texture2D
+var _hold_texture: Texture2D
+var _hold_down_texture: Texture2D
 
 var profile := "mixed"
 var seed_value := 1
@@ -58,7 +93,6 @@ var _hint: Label
 var _hold_button: Button
 var _button_held := false
 var _info_card: Control
-var _frame: Control
 var _fish_texture: Texture2D
 var _fish_sprite: Texture2D  ## peixe grande do minigame (ui/fishing/fish_<id>.png); sem ele usa o ícone
 var _ending := false
@@ -123,6 +157,8 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_WINDOW_FOCUS_OUT or what == NOTIFICATION_APPLICATION_FOCUS_OUT or what == NOTIFICATION_APPLICATION_PAUSED:
 		_touches.clear()
 		_mouse_down = false
+		if live:
+			_set_hold(false)
 		if live and _running:
 			pause()  # o app foi para o segundo plano: a partida espera
 
@@ -144,6 +180,9 @@ func _process(delta: float) -> void:
 		_ending = false
 		ended.emit(_live_result)
 	queue_redraw()
+	if _back != null:
+		_back.queue_redraw()
+		_play.queue_redraw()
 
 
 func _finish() -> void:
@@ -213,12 +252,18 @@ func _handle(event: InputEvent) -> void:
 
 func track_rect() -> Rect2:
 	if live:
-		var x := size.x - LIVE_SIDE - FRAME_PAD - TRACK_WIDTH
-		return Rect2(x, LIVE_PAD + FRAME_PAD, TRACK_WIDTH, maxf(size.y - (LIVE_PAD + FRAME_PAD) * 2.0, 40.0))
+		return _lr(R_TRACK)
 	return Rect2(size.x - SIDE - TRACK_WIDTH, TOP_MARGIN, TRACK_WIDTH, maxf(size.y - TOP_MARGIN - BOTTOM_MARGIN, 40.0))
 
 
+## Retângulo em unidades do Figma → coordenadas deste nó.
+func _lr(rect: Rect2) -> Rect2:
+	return Rect2(rect.position * _s + _o - position, rect.size * _s)
+
+
 func meter_rect() -> Rect2:
+	if live:
+		return _lr(R_METER)
 	var track := track_rect()
 	return Rect2(track.position.x - 8.0 - METER_WIDTH, track.position.y, METER_WIDTH, track.size.y)
 
@@ -398,7 +443,7 @@ func _ready_live() -> void:
 	set_process(true)
 
 
-## Área entre o HUD e as abas: o jogo nunca cobre nenhum dos dois (medido do tamanho real, sem constantes de tela).
+## Área entre o HUD e as abas recebe os toques (o mundo atrás não); o desenho segue a página do Figma, ancorada embaixo.
 func _layout_live() -> void:
 	var host := get_parent() as Control
 	if host == null:
@@ -410,58 +455,116 @@ func _layout_live() -> void:
 		bottom = tabs.global_position.y - host.global_position.y
 	position = Vector2(0, top)
 	size = Vector2(host.size.x, maxf(bottom - top, 120.0))
-	if _frame != null:
-		var track := track_rect()
-		var frame_rect := Rect2(track.position.x - 8.0 - METER_WIDTH - FRAME_PAD, LIVE_PAD, TRACK_WIDTH + 8.0 + METER_WIDTH + FRAME_PAD * 2.0, size.y - LIVE_PAD * 2.0)
-		_frame.position = frame_rect.position
-		_frame.size = frame_rect.size
-	var left_room := maxf(track_rect().position.x - METER_WIDTH - 8.0 - FRAME_PAD - 24.0, 120.0)
-	if _hold_button != null:
-		_hold_button.size = Vector2(left_room, 88.0)
-		_hold_button.position = Vector2(12.0, size.y - 88.0 - 12.0)
-	if _pause_button != null:
-		_pause_button.position = Vector2(LIVE_SIDE + 4.0, size.y - 88.0 - 12.0 - 44.0 - 10.0)
-	if _info_card != null:
-		var room_width := maxf(track_rect().position.x - METER_WIDTH - 8.0 - FRAME_PAD - 24.0, 120.0)
-		_info_card.custom_minimum_size.x = room_width
-		_info_card.size = Vector2(room_width, _info_card.get_combined_minimum_size().y)
-		_info_card.position = Vector2(12.0, LIVE_PAD + 6.0)
-	if _hint != null:
-		_hint.position = Vector2(16.0, size.y / 2.0 - 20.0)
-		_hint.size = Vector2(maxf(size.x - 170.0, 120.0), 40.0)
+	_update_scale(host)
+	for slot: Array in _slots:
+		_place(slot[0] as Control, slot[1] as Rect2, slot[2])
 	if _pause_card != null:
-		_pause_card.position = (size - _pause_card.size) / 2.0 + Vector2(-30.0, 0.0)
+		_pause_card.position = (size - _pause_card.size) / 2.0
 	queue_redraw()
 
 
+func _update_scale(host: Control) -> void:
+	_s = minf(host.size.x / DESIGN.x, host.size.y / DESIGN.y)
+	_o = Vector2((host.size.x - DESIGN.x * _s) / 2.0, host.size.y - DESIGN.y * _s)
+
+
+## Põe um nó no retângulo do Figma (`parent_fig` = canto do pai em unidades do Figma, ou null para o nó raiz).
+func _place(node: Control, rect: Rect2, parent_fig: Variant = null) -> void:
+	var local := rect.position * _s
+	if parent_fig == null:
+		local += _o - position
+	else:
+		local -= (parent_fig as Vector2) * _s
+	node.position = local
+	node.size = rect.size * _s
+	if node is Label:
+		_fit_label(node as Label)
+
+
+func _fit_label(label: Label) -> void:
+	var px := maxi(int(round(24.0 * _s)), 9)
+	label.add_theme_font_size_override("font_size", px)
+	while px > 9 and label.get_minimum_size().x > label.size.x:
+		px -= 1
+		label.add_theme_font_size_override("font_size", px)
+
+
+func _slot(node: Control, rect: Rect2, parent: Control = null, parent_fig: Variant = null) -> Control:
+	(parent if parent != null else self).add_child(node)
+	_slots.append([node, rect, parent_fig])
+	return node
+
+
+func _picture(file: String, rect: Rect2, node_name: String, parent: Control = null, parent_fig: Variant = null) -> TextureRect:
+	var picture := TextureRect.new()
+	picture.name = node_name
+	picture.texture = load(UI + file) as Texture2D
+	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	picture.stretch_mode = TextureRect.STRETCH_SCALE
+	picture.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_slot(picture, rect, parent, parent_fig)
+	return picture
+
+
 func _build_live() -> void:
-	_frame = StationWood.backing("frame", 60, 60, "TrackFrame", 0.0, true)
-	_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_frame)
-	# botão de pausa: disco de madeira 44 com as duas barrinhas
-	_pause_button = StationWood.icon_button("box", Vector2(44, 44), pause, "PauseButton", 44.0)
-	_pause_button.size = Vector2(44, 44)
-	for i in 2:
-		var bar := ColorRect.new()
-		bar.color = Palette.WOOD_INK
-		bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		bar.position = Vector2(14 + i * 10, 13)
-		bar.size = Vector2(6, 18)
-		_pause_button.add_child(bar)
-	add_child(_pause_button)
+	_update_scale(get_parent() as Control)
+	_water_texture = load(UI + "fp_water.png") as Texture2D
+	_bar_texture = load(UI + "fp_bar.png") as Texture2D
+	_hold_texture = load(UI + "fp_hold.png") as Texture2D
+	_hold_down_texture = load(UI + "fp_hold_down.png") as Texture2D
+	# ordem do Figma, de baixo para cima: fundo, painel, dicas, pausa, botão, água, moldura, barra e peixe
+	_picture("fp_bg.webp", R_BG, "MinigameBg")
 	_build_info()
-	_hold_button = StepCardUi.go_button("Segurar para pescar", func() -> void: pass)
+	var tips := ["Tip1", "Tip2", "Tip3"]
+	for i in 3:
+		var tip := _picture("fp_tip%d.png" % (i + 1), R_TIPS[i], tips[i])
+		tip.visible = GameState.fishing_tutorial_done()  # no tutorial a vovó explica os mesmos passos
+		_tips.append(tip)
+	# pausa: o desenho é a imagem do Figma; o botão é transparente por cima
+	_pause_button = BagUi.plain_button(pause)
+	_pause_button.name = "PauseButton"
+	var pause_art := TextureRect.new()
+	pause_art.texture = load(UI + "fp_pause.png") as Texture2D
+	pause_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	pause_art.stretch_mode = TextureRect.STRETCH_SCALE
+	pause_art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	pause_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pause_art.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_pause_button.add_child(pause_art)
+	_slot(_pause_button, R_PAUSE)
+	# "Segurar para pescar": a imagem do clicado entra na MESMA posição enquanto o dedo estiver no botão
+	_hold_art = _picture("fp_hold.png", R_HOLD_ART, "HoldArt")
+	_hold_button = BagUi.plain_button(func() -> void: pass)
 	_hold_button.name = "HoldButton"
 	_hold_button.set_meta("wood_primary", true)
-	_hold_button.set_meta("art_height", 84.0)
-	_hold_button.custom_minimum_size = Vector2(0, 88)
-	_hold_button.clip_text = false
 	_hold_button.button_down.connect(func() -> void:
-		_button_held = true
+		_set_hold(true)
 		Haptics.tap())
-	_hold_button.button_up.connect(func() -> void: _button_held = false)
-	add_child(_hold_button)
+	_hold_button.button_up.connect(func() -> void: _set_hold(false))
+	_slot(_hold_button, R_HOLD)
+	_back = Control.new()
+	_back.name = "WaterLayer"
+	_back.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_back.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	_back.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_back.draw.connect(_draw_back)
+	add_child(_back)
+	_picture("fp_frame.png", R_FRAME, "TrackFrame")
+	_play = Control.new()
+	_play.name = "PlayLayer"
+	_play.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_play.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	_play.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_play.draw.connect(_draw_play)
+	add_child(_play)
 	_build_pause_card()
+
+
+func _set_hold(held: bool) -> void:
+	_button_held = held
+	if _hold_art != null:
+		_hold_art.texture = _hold_down_texture if held else _hold_texture
 
 
 func _build_pause_card() -> void:
@@ -523,7 +626,7 @@ func pause() -> void:
 	_paused = true
 	_touches.clear()
 	_mouse_down = false
-	_button_held = false
+	_set_hold(false)
 	if _pause_card != null:
 		_pause_card.reset_size()
 		_pause_card.show()
@@ -557,113 +660,119 @@ func abandon() -> void:
 
 
 func _draw_live() -> void:
-	draw_rect(Rect2(Vector2.ZERO, size), Palette.SCRIM)  # a lagoa escurecida: o mundo continua desenhado atrás
-	var track := track_rect()
+	pass  # sem véu: o mundo fica como está; água e moldura são desenhadas pelas camadas `_back` e `_play`
+
+
+## Camada de trás: a faixa de água e a rede (medidor) na canaleta estreita da moldura.
+func _draw_back() -> void:
+	if sim == null:
+		return
+	_back.draw_texture_rect(_water_texture, _lr(R_WATER), false)
 	var meter := meter_rect()
-	# água
-	draw_rect(track, Color("3f8fb8"))
-	if not Motion.reduced:
-		for i in 9:
-			var y := track.position.y + track.size.y * (float(i) / 9.0) + fposmod(_time * 6.0, track.size.y / 9.0)
-			if y < track.end.y - 2.0:
-				draw_line(Vector2(track.position.x + 6, y), Vector2(track.end.x - 6, y), Color(1, 1, 1, 0.12), 2.0)
-	draw_style_box(_wood_box("fishing_track", 12), track.grow(6.0))
-	# rede (medidor): enche de baixo para cima, verde → amarelo → vermelho conforme cai
-	draw_rect(meter, Palette.SUNKEN)
+	_back.draw_rect(_lr(R_GROOVE), Color(0.17, 0.09, 0.05))
+	# rede: enche de baixo para cima, verde → amarelo → vermelho conforme cai
 	var fraction := clampf(sim.meter, 0.0, 1.0)
 	var tone := Palette.GO if fraction > 0.5 else (Palette.HONEY if fraction > 0.25 else Palette.ALERT)
 	var shake := 0.0
 	var outside := sim.fish_y < sim.bar_y or sim.fish_y > sim.bar_y + sim.bar_h
 	if outside and not Motion.reduced:
-		shake = sin(_time * 40.0) * 1.0
+		shake = sin(_time * 40.0) * 0.6
 	var fill_h := meter.size.y * fraction
-	draw_rect(Rect2(meter.position.x + shake, meter.end.y - fill_h, meter.size.x, fill_h), tone)
-	draw_style_box(_wood_box("fishing_meter", 12), meter.grow(6.0))
-	# barra do jogador
+	_back.draw_rect(Rect2(meter.position.x + shake, meter.end.y - fill_h, meter.size.x, fill_h), tone)
+
+
+## Camada da frente (acima da moldura): o retângulo que pesca (50% de opacidade, dá para ver o peixe atrás) e o peixe.
+func _draw_play() -> void:
+	if sim == null:
+		return
+	var track := track_rect()
 	var bar_top := track.end.y - (sim.bar_y + sim.bar_h) * track.size.y
-	var bar := Rect2(track.position.x + 2.0, bar_top, track.size.x - 4.0, sim.bar_h * track.size.y)
-	draw_style_box(_wood_box("fishing_bar", 8), bar)
-	# baú (só nas partidas com baú): balança de leve, anelzinho próprio enche enquanto a barra cobre
+	_draw_bar(Rect2(track.position.x, bar_top, track.size.x, sim.bar_h * track.size.y))
 	if sim.chest_shown:
 		_draw_chest(track)
-	# peixe (leve rabeada)
-	var wiggle := 0.0 if Motion.reduced else sin(_time * 9.0) * 2.0
+	var wiggle := 0.0 if Motion.reduced else sin(_time * 9.0) * 1.0
 	var center := Vector2(track.get_center().x + wiggle, track.end.y - sim.fish_y * track.size.y)
-	if _fish_sprite != null:
-		var fish_size := Vector2(_fish_sprite.get_size())
-		draw_texture_rect(_fish_sprite, Rect2(center - fish_size / 2.0, fish_size), false)
-	elif _fish_texture != null:
-		draw_texture_rect(_fish_texture, Rect2(center - Vector2(FISH_ICON, FISH_ICON) / 2.0, Vector2(FISH_ICON, FISH_ICON)), false)
+	if _fish_texture != null:
+		var box := FISH_BOX * _s
+		var picture := Vector2(_fish_texture.get_size())
+		var fit := minf(box.x / picture.x, box.y / picture.y)
+		_play.draw_texture_rect(_fish_texture, Rect2(center - picture * fit / 2.0, picture * fit), false)
 	else:
-		draw_circle(center, 14.0, Palette.INK)
+		_play.draw_circle(center, 14.0 * _s, Palette.INK)
+
+
+## A imagem do retângulo em 3 fatias na vertical (os cantos arredondados mantêm a proporção; só o meio estica).
+func _draw_bar(rect: Rect2) -> void:
+	var texture := _bar_texture
+	var scale_x := rect.size.x / texture.get_width()
+	var corner := texture.get_width() * 0.2216  # px da imagem (cantos redondos)
+	if rect.size.y < corner * scale_x * 2.0:
+		corner = rect.size.y / scale_x / 2.0
+	var edge := corner * scale_x
+	var tint := Color(1, 1, 1, 0.5)
+	var width := float(texture.get_width())
+	var height := float(texture.get_height())
+	_play.draw_texture_rect_region(texture, Rect2(rect.position, Vector2(rect.size.x, edge)), Rect2(0, 0, width, corner), tint)
+	_play.draw_texture_rect_region(texture, Rect2(rect.position.x, rect.position.y + edge, rect.size.x, rect.size.y - edge * 2.0), Rect2(0, corner, width, height - corner * 2.0), tint)
+	_play.draw_texture_rect_region(texture, Rect2(rect.position.x, rect.end.y - edge, rect.size.x, edge), Rect2(0, height - corner, width, corner), tint)
 
 
 func _draw_chest(track: Rect2) -> void:
 	var tilt := 0.0 if Motion.reduced else sin(_time * 2.2) * 0.07
 	var center := Vector2(track.get_center().x, track.end.y - sim.chest_y * track.size.y)
 	var texture := load("res://assets/sprites/ui/fishing/chest.png") as Texture2D
-	draw_set_transform(center, tilt, Vector2.ONE)
+	_play.draw_set_transform(center, tilt, Vector2.ONE)
 	if texture != null:
 		var half := Vector2(texture.get_size()) / 2.0
-		draw_texture_rect(texture, Rect2(-half, Vector2(texture.get_size())), false, Color.WHITE if sim.chest_open else Color(1, 1, 1, 0.9))
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+		_play.draw_texture_rect(texture, Rect2(-half, Vector2(texture.get_size())), false, Color.WHITE if sim.chest_open else Color(1, 1, 1, 0.9))
+	_play.draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
 	var radius := 30.0
-	draw_arc(center, radius, 0.0, TAU, 32, Color(0, 0, 0, 0.35), 4.0)
+	_play.draw_arc(center, radius, 0.0, TAU, 32, Color(0, 0, 0, 0.35), 4.0)
 	var tone := Palette.GO if sim.chest_open else Palette.HONEY
 	if sim.chest_meter > 0.0:
-		draw_arc(center, radius, -PI / 2.0, -PI / 2.0 + TAU * clampf(sim.chest_meter, 0.0, 1.0), 32, tone, 4.0)
+		_play.draw_arc(center, radius, -PI / 2.0, -PI / 2.0 + TAU * clampf(sim.chest_meter, 0.0, 1.0), 32, tone, 4.0)
 
 
-## Cartão da esquerda: vara em uso, isca e o peixe da luta (nome, tamanho possível, recorde).
+## Painel "Pesca" (Figma): vara, isca, peixe, faixa de tamanho e recorde. Ícones e textos da partida em curso.
 func _build_info() -> void:
 	var cast: Dictionary = GameState.fishing.cast
 	var rod_def: Dictionary = config.get("rods", {}).get(str(cast.get("rod", "")), {})
 	var fish_id := str(cast.get("fish", ""))
 	var fish_def: Dictionary = config.fish.get(fish_id, {})
-	var card := PanelContainer.new()
-	card.name = "InfoCard"
-	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	card.add_theme_stylebox_override("panel", StyleBoxEmpty.new())
-	card.add_child(StationWood.backing("tray", 36, 36))
-	var margin := MarginContainer.new()
-	margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	for side: String in ["left", "right"]:
-		margin.add_theme_constant_override("margin_" + side, 12)
-	for side: String in ["top", "bottom"]:
-		margin.add_theme_constant_override("margin_" + side, 10)
-	var column := UiKit.vbox(6)
-	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	column.add_child(_info_line("InfoRod", load(str(rod_def.get("icon", ""))) as Texture2D if str(rod_def.get("icon", "")) != "" else null, str(rod_def.get("name", "Vara"))))
-	column.add_child(_info_line("InfoBait", Database.item_icon(str(cast.get("bait", ""))), Database.item_name(str(cast.get("bait", "")))))
-	column.add_child(_info_line("InfoFish", _fish_texture, Database.item_name(fish_id)))
+	var panel := _picture("fp_panel.png", R_PANEL, "InfoCard")
+	_info_card = panel
 	var range_cm: Array = fish_def.get("cm", [0, 0])
-	var detail := StationWood.text("%d–%d cm" % [int(range_cm[0]), int(range_cm[1])], 14)
-	detail.name = "InfoRange"
-	column.add_child(detail)
 	var record := GameState.fishing.record(fish_id)
-	var best := StationWood.text("Recorde: " + ("%s cm" % str(snappedf(float(record.best_cm), 0.5)).replace(".", ",") if not record.is_empty() else "ainda não"), 14)
-	best.name = "InfoRecord"
-	column.add_child(best)
-	margin.add_child(column)
-	card.add_child(margin)
-	_info_card = card
-	add_child(card)
-
-
-func _info_line(node_name: String, texture: Texture2D, text: String) -> Control:
-	var row := UiKit.hbox(6)
-	row.name = node_name
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var icon := UiKit.icon(texture, 28)
-	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-	row.add_child(icon)
-	var label := StationWood.text(text, 16)
-	label.autowrap_mode = TextServer.AUTOWRAP_OFF
-	label.clip_text = true
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(label)
-	return row
+	var rod_icon := str(rod_def.get("icon", ""))
+	var icons: Array = [
+		load(rod_icon) as Texture2D if rod_icon != "" else null,
+		Database.item_icon(str(cast.get("bait", ""))),
+		_fish_texture,
+		load(UI + "fp_ico_ruler.png") as Texture2D,
+		load(UI + "fp_ico_record.png") as Texture2D,
+	]
+	var texts: Array = [
+		str(rod_def.get("name", "Vara")),
+		Database.item_name(str(cast.get("bait", ""))),
+		Database.item_name(fish_id),
+		"%d–%d cm" % [int(range_cm[0]), int(range_cm[1])],
+		("%s cm" % str(snappedf(float(record.best_cm), 0.5)).replace(".", ",")) if not record.is_empty() else "Sem recorde",
+	]
+	for i in ROWS.size():
+		var row: Array = ROWS[i]
+		var icon := TextureRect.new()
+		icon.name = str(row[0]) + "Icon"
+		icon.texture = icons[i] as Texture2D
+		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_slot(icon, row[1] as Rect2, panel, R_PANEL.position)
+		var label := StationWood.text(str(texts[i]), 12)
+		label.name = str(row[0])
+		label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		_slot(label, row[2] as Rect2, panel, R_PANEL.position)
 
 
 static var _boxes: Dictionary = {}
