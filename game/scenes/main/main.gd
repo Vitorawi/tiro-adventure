@@ -46,6 +46,7 @@ var _welcome: CanvasLayer
 var _walk_result: CanvasLayer
 var _growth_ceremony: GrowthCeremony
 var _growth_queued: Dictionary = {}
+var _week_cards_queued: Dictionary = {}
 var _intro: Node
 var _left_at: float = 0.0
 
@@ -90,7 +91,8 @@ func _ready() -> void:
 		_queue_modal(func() -> void: _walk_result.show_result(unseen))
 		_queue_modal(func() -> void: _announce())
 	Events.trick_learned.connect(func(id: String) -> void:
-		_queue_modal(func() -> void: _celebration.show_trick(id)))
+		if not GameState.trick_is_lesson(id):
+			_queue_modal(func() -> void: _celebration.show_trick(id)))
 	Events.silk_up.connect(func(level: int) -> void:
 		_queue_modal(func() -> void: _celebration.show_silk(level)))
 	Events.treasure_opened.connect(func(rewards: Dictionary) -> void:
@@ -112,10 +114,15 @@ func _ready() -> void:
 	Events.photo_sealed.connect(_queue_photo)
 	Events.find_discovered.connect(func(result: Dictionary) -> void:
 		_queue_modal(func() -> void: _celebration.show_find(result)))
+	Events.recipe_piece_found.connect(func(id: String, count: int) -> void:
+		_queue_modal(func() -> void: _celebration.show_recipe_piece(id, count)))
 	var modal_timer := Timer.new()
 	modal_timer.wait_time = 0.3
 	modal_timer.autostart = true
-	modal_timer.timeout.connect(_flush_modals)
+	modal_timer.timeout.connect(func() -> void:
+		_check_week_cards()
+		_flush_modals()
+		_check_week_reminder())
 	add_child(modal_timer)
 	Events.quest_completed.connect(_on_quest_completed)
 	Events.chapter_completed.connect(_on_chapter_completed)
@@ -139,6 +146,7 @@ func _ready() -> void:
 	_hud.dev_button.visible = BuildInfo.is_dev()
 	_hud.dev_button.pressed.connect(func() -> void:
 		Events.sheet_requested.emit("Ferramentas DEV", DevPanel.panel()))
+	MealUi.connect_notices()
 	UiKit.tint_bar(_hud.xp_bar, Palette.HONEY)
 	_hud.refresh(false)
 	show_screen(&"pet")
@@ -157,6 +165,13 @@ func _ready() -> void:
 				_show_toast.call_deferred(reset_notice)
 	var saved_at: float = float(saver.last_saved_at) if saver else 0.0
 	_maybe_welcome(GameState.now() - saved_at if saved_at > 0.0 else 0.0)
+	var tutorial_layer := CanvasLayer.new()
+	tutorial_layer.layer = 28
+	add_child(tutorial_layer)
+	var tutorials := WeekTutorial.new()
+	tutorials.name = "WeekTutorial"
+	tutorials.main = self
+	tutorial_layer.add_child(tutorials)
 	GameState.note_app_opened()
 	_check_growth_ceremonies()
 	_finish_web_loading.call_deferred()
@@ -209,6 +224,40 @@ func _growth_unlocks() -> void:
 			GameState.mark_seen(keys))
 
 
+func _week_card_waits_for_growth() -> bool:
+	for phase: String in _growth_queued:
+		var ceremony: Dictionary = GameState.growth.ceremonies.get(phase, {})
+		if not ceremony.get("seen", true):
+			return true
+	return false
+
+
+func _check_week_cards() -> void:
+	if _week_card_waits_for_growth():
+		return
+	for candidate: Dictionary in GameState.week_card_candidates():
+		var key := "%s:%d:%d" % [candidate.kind, candidate.civil, GameState.growth.taste_seed]
+		if _week_cards_queued.has(key):
+			continue
+		_week_cards_queued[key] = true
+		_queue_modal(func() -> void:
+			_week_cards_queued.erase(key)
+			if _week_card_waits_for_growth():
+				return
+			var report := GameState.take_week_card(candidate)
+			if not report.is_empty():
+				Events.sheet_close_requested.emit()
+				_celebration.show_week_card(report))
+
+
+func _check_week_reminder() -> void:
+	if notice_blocked():
+		return
+	var period := GameState.take_week_meal_reminder()
+	if period != "":
+		Events.toast_requested.emit(str(Database.week_routine.text.reminder) % MealUi.period_name(period))
+
+
 func _queue_modal(callback: Callable) -> void:
 	# Capítulo/Novo!/prêmios vêm antes das fotos, inclusive quando anunciados no fim do frame.
 	_modal_queue.insert(maxi(0, _modal_queue.size() - _photo_queue.size()), callback)
@@ -220,6 +269,8 @@ func _flush_modals() -> void:
 		return
 	if Time.get_ticks_msec() < _reward_not_before: return
 	if CardViewer.is_open() or _card_open():
+		return
+	if CookTogether.current() != null or TrickLesson.current() != null or is_instance_valid(YardPlay.current):
 		return
 	# O conteúdo da folha já fechou, mas sua moldura ainda pode estar saindo.
 	if bool(get_node("Sheet").get("_closing")): return
@@ -235,7 +286,7 @@ func _card_open() -> bool:
 
 ## Avisos esperam enquanto houver cartão aberto ou cartão na fila (mesma regra do `_flush_modals`).
 func notice_blocked() -> bool:
-	return _card_open() or _modal_queue.size() > _photo_queue.size() or _announce_pending or _chapter_done > 0
+	return CookTogether.current() != null or TrickLesson.current() != null or is_instance_valid(YardPlay.current) or _card_open() or _modal_queue.size() > _photo_queue.size() or _announce_pending or _chapter_done > 0
 
 
 ## Onde o aviso TERMINA (y): logo acima da barra de abas de madeira; com folha ou bandeja de estação presa embaixo,

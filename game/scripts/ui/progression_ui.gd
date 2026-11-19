@@ -115,7 +115,7 @@ static func npc_portrait(npc_id: String) -> Texture2D:
 
 ## Rosto grande + fala do passo atual (ou o cumprimento); o nome já está no título do painel.
 ## `wood`: retrato na moldura de madeira e fala em balão de papel (conversa em madeira ilustrada).
-static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", animated: bool = false, wood: bool = false) -> Label:
+static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", animated: bool = false, wood: bool = false, portrait_size: float = 96.0) -> Label:
 	var npc: Dictionary = Database.npcs.get(npc_id, {})
 	var row := UiKit.hbox(4)
 	var picture: Control
@@ -123,16 +123,16 @@ static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", 
 		var portrait := NpcPortrait.new()
 		portrait.name = "NpcPortrait"
 		portrait.npc_id = npc_id
-		portrait.custom_minimum_size = Vector2(96, 96)
+		portrait.custom_minimum_size = Vector2.ONE * portrait_size
 		portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		portrait.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		picture = portrait
 	else:
-		picture = UiKit.icon(npc_portrait(npc_id), 96)
+		picture = UiKit.icon(npc_portrait(npc_id), portrait_size)
 		picture.name = "NpcPortrait"
 	if wood:
-		picture = StepCardUi.portrait_frame(picture as TextureRect, 104.0, "NpcPortrait")
+		picture = StepCardUi.portrait_frame(picture as TextureRect, portrait_size + 8.0, "NpcPortrait")
 	picture.size_flags_vertical = Control.SIZE_SHRINK_END  # o retrato fica embaixo e o balão aponta para ele
 	row.add_child(picture)
 	var balloon := SpeechBubble.new(speech if speech != "" else str(npc.get("greeting", "")), "", false, wood)
@@ -1155,6 +1155,8 @@ static func next_step_card(id: String) -> Control:
 
 
 static func quest_place_name(target: Dictionary) -> String:
+	if target.has("farewell"): return "Almoço de despedida"
+	if target.has("wait") or target.has("intro"): return "História"
 	if target.has("growth") or target.get("screen", "") == "pet" or target.has("care"): return "Tiro"
 	if target.get("screen", "") == "bag" or target.has("storage"): return "Mochila"
 	if target.has("notebook"): return "Álbum" if str(target.notebook) == "album" else "Caderninho"

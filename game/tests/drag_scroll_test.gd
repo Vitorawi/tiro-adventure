@@ -302,6 +302,22 @@ func scenario_sheet_view(label: String, factory: Callable, title := "Teste") -> 
 	await frames(4)
 
 
+## O livro tem capítulos para leitura e um único botão, fora da rolagem.
+func scenario_story() -> void:
+	await fresh()
+	var book: Control = load("res://scripts/ui/mission_ui.gd").call("story_book")
+	await frames(10)
+	var scroll := book.find_child("BookScroll", true, false) as ScrollContainer
+	var close := book.find_child("StoryClose", true, false) as Button
+	var start := scroll.scroll_vertical
+	var direction := 1.0 if start > overflow(scroll).y / 2.0 else -1.0
+	await swipe(scroll.get_global_rect().get_center(), Vector2(0, 150 * direction))
+	check(absi(scroll.scroll_vertical - start) > 20 and book.is_visible_in_tree(), "História [%s]: arrastar percorre os capítulos" % mode)
+	await settle()
+	await tap_at(close.get_global_rect().get_center())
+	check(not is_instance_valid(book) or not book.is_inside_tree(), "História [%s]: toque fecha o livro" % mode)
+
+
 func scenario_screen(label: String, screen: StringName) -> void:
 	await fresh()
 	main.call("show_screen", screen)
@@ -338,6 +354,6 @@ func _run() -> void:
 		if only in ["", "sell"]: await scenario_sheet_view("Feira", func() -> Control: return load("res://scripts/ui/market_ui.gd").call("sell", "farm"), "Feira")
 		if only in ["", "item"]: await scenario_sheet_view("Item", func() -> Control: return load("res://scripts/ui/sheet_builder.gd").call("item_detail", "carrot"), "Cenoura")
 		if only in ["", "station"]: await scenario_sheet_view("Estações", func() -> Control: return load("res://scripts/ui/sheet_builder.gd").call("station_view", "stove"), "Fogão")
-		if only in ["", "story"]: await scenario_sheet_view("História", func() -> Control: return load("res://scripts/ui/mission_ui.gd").call("story_book"), "História")
+		if only in ["", "story"]: await scenario_story()
 	print("DRAG SCROLL TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)

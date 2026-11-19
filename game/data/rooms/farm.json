@@ -13,7 +13,7 @@
   "navigation_margin": 8,
   "dog_scale": 0.7,
   "region_shade": false,
-  "region_fence": false,
+  "region_fence": true,
   "animal_scale": 0.85,
   "depth_sort": true,
   "initial_zoom": 0.79,
@@ -147,6 +147,20 @@
       "approach": [788, 1292]
     },
     {
+      "id": "sign_plot_2",
+      "action": "buy_sign",
+      "sign_plot": 2,
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [864, 1120]
+    },
+    {
+      "id": "sign_plot_3",
+      "action": "buy_sign",
+      "sign_plot": 3,
+      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
+      "pos": [791, 1164]
+    },
+    {
       "id": "sign_plot_6",
       "action": "buy_sign",
       "sign_plot": 6,
@@ -218,7 +232,8 @@
       "approach": [972, 1044],
       "footprint": [[896, 983], [902, 971], [1040, 971], [1049, 980], [1052, 1010], [1031, 1028], [1010, 1034], [950, 1031], [905, 1010], [896, 1001]],
       "label": "Silo",
-      "label_pos": [974, 852]
+      "label_pos": [974, 852],
+      "silhouette": true
     },
     {
       "id": "sign_silo",
@@ -238,7 +253,8 @@
       "approach": [1100, 1124],
       "footprint": [[985, 1026], [1171, 1026], [1186, 1041], [1189, 1062], [1177, 1077], [1111, 1107], [1087, 1104], [982, 1053], [979, 1047]],
       "label": "Armazém",
-      "label_pos": [1084, 951]
+      "label_pos": [1084, 951],
+      "silhouette": true
     },
     {
       "id": "sign_warehouse",
@@ -303,7 +319,8 @@
       "footprint": [[1043, 1163], [1064, 1142], [1358, 1142], [1370, 1154], [1376, 1175], [1346, 1199], [1247, 1259], [1214, 1274], [1175, 1265], [1040, 1193], [1034, 1184]],
       "label": "Curral",
       "label_pos": [1204, 1078],
-      "detail_label": true
+      "detail_label": true,
+      "silhouette": true
     },
     {
       "id": "sign_cow_barn",
@@ -325,7 +342,8 @@
       "footprint": [[410, 1030], [566, 1030], [572, 1048], [563, 1060], [512, 1084], [458, 1087], [431, 1078], [404, 1054]],
       "label": "Moinho",
       "label_pos": [489, 896],
-      "detail_label": true
+      "detail_label": true,
+      "silhouette": true
     },
     {
       "id": "sign_mill",
@@ -361,19 +379,82 @@
       "id": "orchard",
       "action": "place:orchard",
       "upgrade": "orchard",
-      "route_group": "orchard",
       "buy_sign": true,
-      "sprite": "res://assets/sprites/areas/farm/figma_pomar_vazio.png",
-      "pos": [614, 1422],
+      "sprite": "res://assets/sprites/areas/farm/orchard.png",
+      "scale": 2.4,
+      "pos": [614, 1414],
       "approach": [684, 1404]
     },
     {
-      "id": "sign_orchard",
-      "action": "buy_sign",
-      "sign_upgrade": "orchard",
-      "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
-      "pos": [668, 1406],
-      "footprint": [[668, 1396], [678, 1402], [668, 1408], [658, 1402]]
+      "id": "week_cart",
+      "action": "place:week_cart",
+      "sprite": "res://assets/sprites/areas/village/stall.png",
+      "pos": [918, 1484],
+      "scale": 0.9,
+      "approach": [892, 1428],
+      "requirements": {
+        "week_day": 5
+      }
+    },
+    {
+      "id": "week_cart_merchant",
+      "action": "place:week_cart",
+      "sprite": "res://assets/sprites/characters/npc_merchant/portrait.png",
+      "pos": [956, 1477],
+      "scale": 0.62,
+      "requirements": {
+        "week_day": 5
+      }
+    },
+    {
+      "id": "week_yard",
+      "action": "place:week_yard",
+      "sprite": "res://assets/sprites/areas/house/toy_basket.png",
+      "pos": [722, 1037],
+      "approach": [732, 1036],
+      "scale": 1.15,
+      "label": "Quintal do Tiro",
+      "label_pos": [722, 998]
+    },
+    {
+      "id": "week_training",
+      "action": "place:week_training",
+      "hidden_by": [
+        "dairy"
+      ],
+      "requirements": {
+        "week_day": 2
+      },
+      "sprite": "res://assets/sprites/areas/house/paw_rug.png",
+      "pos": [620, 1066],
+      "scale": 1.35,
+      "sort_shift": 40
+    },
+    {
+      "id": "week_audience_bloblo",
+      "action": "place:week_show",
+      "hidden_by": [
+        "dairy"
+      ],
+      "requirements": {
+        "week_day": 6
+      },
+      "scale": 1.25,
+      "sprite": "res://assets/sprites/characters/npc_bloblo/walk/south/frame_00.png",
+      "pos": [585, 1037]
+    },
+    {
+      "id": "week_audience_lais",
+      "action": "place:week_show",
+      "hidden_by": [
+        "dairy"
+      ],
+      "requirements": {
+        "week_day": 6
+      },
+      "scale": 1.25,
+      "sprite": "res://assets/sprites/characters/npc_lais/walk/south/frame_00.png",
+      "pos": [655, 1037]
     },
     {
       "id": "hen_1",
@@ -434,12 +515,7 @@
       "action": "place:early_market",
       "polygon": [[792, 1269], [876, 1263], [942, 1293], [945, 1365], [885, 1413], [801, 1362]],
       "label": "Vender Colheita",
-      "label_pos": [870, 1323],
-      "requirements": {
-        "quests": [
-          "bloblo_meet"
-        ]
-      }
+      "label_pos": [870, 1323]
     },
     {
       "id": "bloblo_house",
@@ -467,5 +543,83 @@
     "fishing_bubble_3": [490, 1266],
     "fishing_bubble_4": [478, 1194]
   },
-  "regions": []
+  "regions": [
+    {
+      "id": "silo",
+      "polygon": [[896, 983], [902, 971], [1040, 971], [1049, 980], [1052, 1010], [1031, 1028], [1010, 1034], [950, 1031], [905, 1010], [896, 1001]],
+      "gate": [[950, 1031], [1010, 1034]],
+      "requirements": {
+        "growth": "teething"
+      },
+      "action": "week:later",
+      "plaque": [973, 1004],
+      "text": "Quando ele crescer"
+    },
+    {
+      "id": "warehouse",
+      "polygon": [[985, 1026], [1171, 1026], [1186, 1041], [1189, 1062], [1177, 1077], [1111, 1107], [1087, 1104], [982, 1053], [979, 1047]],
+      "gate": [[1087, 1104], [1111, 1107]],
+      "requirements": {
+        "growth": "teething"
+      },
+      "action": "week:later",
+      "plaque": [1096, 1077],
+      "text": "Quando ele crescer"
+    },
+    {
+      "id": "cow_barn",
+      "polygon": [[1043, 1163], [1064, 1142], [1358, 1142], [1370, 1154], [1376, 1175], [1346, 1199], [1247, 1259], [1214, 1274], [1175, 1265], [1040, 1193], [1034, 1184]],
+      "gate": [[1175, 1265], [1214, 1274]],
+      "requirements": {
+        "growth": "teething"
+      },
+      "action": "week:later",
+      "plaque": [1206, 1244],
+      "text": "Quando ele crescer"
+    },
+    {
+      "id": "mill",
+      "polygon": [[410, 1030], [566, 1030], [572, 1048], [563, 1060], [512, 1084], [458, 1087], [431, 1078], [404, 1054]],
+      "gate": [[512, 1084], [458, 1087]],
+      "requirements": {
+        "growth": "teething"
+      },
+      "action": "week:later",
+      "plaque": [490, 1057],
+      "text": "Quando ele crescer"
+    },
+    {
+      "id": "orchard",
+      "polygon": [[517, 1340], [709, 1340], [712, 1367], [709, 1373], [640, 1406], [610, 1412], [583, 1406], [526, 1376], [517, 1352]],
+      "gate": [[583, 1406], [610, 1412]],
+      "requirements": {
+        "week_day": 4
+      },
+      "action": "week:orchard",
+      "plaque": [614, 1384],
+      "text": "Pomar · dia 4"
+    },
+    {
+      "id": "chicken_coop",
+      "polygon": [[919, 1278], [931, 1251], [1147, 1251], [1159, 1281], [1126, 1311], [1048, 1347], [931, 1293]],
+      "gate": [[1126, 1311], [1048, 1347]],
+      "requirements": {
+        "week_day": 2
+      },
+      "action": "week:coop",
+      "plaque": [1039, 1317],
+      "text": "Galinheiro · dia 2"
+    },
+    {
+      "id": "lake",
+      "polygon": [[280, 1084], [295, 1075], [298, 1075], [313, 1079], [510, 1176], [531, 1190], [563, 1213], [574, 1225], [533, 1294], [515, 1307], [497, 1317], [476, 1320], [474, 1320], [469, 1319], [430, 1294], [343, 1233], [333, 1227], [326, 1222], [301, 1153]],
+      "gate": [[492, 1287], [645, 1287]],
+      "requirements": {
+        "week_day": 3
+      },
+      "action": "place:fishing",
+      "plaque": [567, 1212],
+      "text": "Lagoa · dia 3"
+    }
+  ]
 }

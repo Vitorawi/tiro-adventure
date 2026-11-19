@@ -340,6 +340,7 @@ func _labels() -> void:
 	# Etiquetas ficam fixas no mapa: arrastar a câmera não as move, e as áreas bloqueadas
 	# têm a etiqueta no centro do polígono.
 	var farm := await _enter("farm")
+	state.call("dev_week_goto", 2)
 	var tags: Array = farm.get("_labels")
 	var content: Control = farm.get("_content")
 	var coop: Sprite2D = farm.find_child("chicken_coop", true, false)

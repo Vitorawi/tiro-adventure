@@ -169,6 +169,7 @@ func _run() -> void:
 	send("sponge", "move", b)
 	send("sponge", "release", b)
 	check(progress.stat("bathe") == 2, "esfregada curta não dá banho")
+	state.call("dev_set_phase", "teething")  # A bola de um toque continua depois da primeira semana.
 	state.get("dog").needs.energy = 100.0
 	tap("ball")
 	check(progress.stat("play") == 1, "brincar por toque")
@@ -264,7 +265,7 @@ func _run() -> void:
 	await create_timer(2.2).timeout
 	for member: String in ["_celebration", "_welcome", "_walk_result"]: (main.get(member) as CanvasLayer).hide()
 	main.set("_modal_queue", [] as Array[Callable])
-	check((notebook.call("tabs") as Array).size() == 5, "cinco consultas após liberar (Recursos, Estações, Crescer, Coleção, Truques)")
+	check((notebook.call("tabs") as Array).size() == 6, "seis consultas após liberar, incluindo o Livro de receitas")
 	# Consultar uma aba confirma só seus desbloqueios, sem apagar novidades das outras.
 	for key: String in ["feature:dress", "feature:tricks"]:
 		progress.seen.erase(key)
@@ -373,6 +374,7 @@ func _run() -> void:
 
 func _test_play_feedback() -> void:
 	root.get_node("Events").sheet_close_requested.emit()
+	state.call("dev_set_phase", "teething")
 	state.get("dog").sleeping = false
 	for need: String in ["hunger", "happiness", "energy", "hygiene"]: state.get("dog").needs[need] = 40.0
 	state.get("dog").updated_at = state.call("now")

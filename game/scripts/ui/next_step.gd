@@ -135,6 +135,9 @@ func refresh() -> void:
 		Motion.bounce(self)
 	else:
 		_count.text = fmt % value
+	if state == "waiting":
+		_icon.texture = UiKit.ui_icon("action_sleep")
+		_count.text = "Espera"
 	_shown_id = str(_guide.id)
 	_shown_value = value
 	_rebuild()
@@ -174,6 +177,9 @@ func _draw_face() -> void:
 
 
 func _on_pressed() -> void:
+	if str(_guide.state) == "waiting":
+		Events.screen_requested.emit(&"tasks")
+		return
 	var id := str(_guide.id)
 	if id == "":
 		return

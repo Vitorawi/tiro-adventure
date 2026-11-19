@@ -83,7 +83,7 @@ func _run() -> void:
 	for id in ["stove", "workbench", "fridge", "atelier", "chest", "silo", "warehouse", "petshop", "sewing_table"]:
 		state.call("dev_grant_upgrade", id)
 	state.call("dev_complete_quest", "atelier_open")
-	state.call("dev_jump_to_chapter", 6)
+	state.call("dev_jump_to_chapter", 10)
 	state.call("_mark_all_seen")
 	state.set("coins", 1200)
 	state.call("start_project", "park_bench")

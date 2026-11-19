@@ -1,0 +1,318 @@
+{
+  "mastery": [
+    {
+      "name": "Nova",
+      "points": 0,
+      "stars": 1,
+      "time": 1.0
+    },
+    {
+      "name": "Praticada",
+      "points": 6,
+      "stars": 2,
+      "time": 1.0
+    },
+    {
+      "name": "Dominada",
+      "points": 15,
+      "stars": 2,
+      "time": 0.75,
+      "gift_every": 4,
+      "gesture_scale": 1.15
+    },
+    {
+      "name": "Especialidade",
+      "points": 30,
+      "stars": 3,
+      "time": 0.5,
+      "gift_every": 2,
+      "gesture_scale": 1.15
+    }
+  ],
+  "chef": [
+    {
+      "name": "Ajudante",
+      "points": 0
+    },
+    {
+      "name": "Aprendiz",
+      "points": 25,
+      "slots": 3
+    },
+    {
+      "name": "Cozinheiro",
+      "points": 60,
+      "slots": 3,
+      "exact_preview": true
+    },
+    {
+      "name": "Mestre-cuca",
+      "points": 110,
+      "slots": 3,
+      "exact_preview": true,
+      "save_ingredient": true
+    },
+    {
+      "name": "Chef do Tiro",
+      "points": 180,
+      "slots": 4,
+      "exact_preview": true,
+      "save_ingredient": true
+    }
+  ],
+  "daily": {
+    "from_day": 3,
+    "cycle": [
+      "abobora",
+      "ovo",
+      "cenoura",
+      "milho",
+      "maca",
+      "banana",
+      "batata",
+      "aveia"
+    ],
+    "base_coins": 10
+  },
+  "novelty": {
+    "from_day": 4,
+    "chance": 0.25
+  },
+  "sources": {
+    "dig": {
+      "label": "Cave montinhos no Sítio",
+      "go": {
+        "world": "farm"
+      }
+    },
+    "fish": {
+      "label": "Pesque na lagoa",
+      "go": {
+        "world": "farm",
+        "place": "fishing"
+      }
+    },
+    "eggs": {
+      "label": "Recolha ovos no galinheiro",
+      "go": {
+        "world": "farm",
+        "place": "chicken_coop"
+      }
+    },
+    "orchard": {
+      "label": "Colha frutas no pomar",
+      "go": {
+        "world": "farm",
+        "place": "orchard"
+      }
+    },
+    "cart": {
+      "label": "Entregue encomendas na carroça",
+      "go": {
+        "world": "farm",
+        "place": "week_cart"
+      }
+    }
+  },
+  "ingredients": {
+    "cenoura": {
+      "label": "Horta do Sítio",
+      "go": {
+        "world": "farm",
+        "place": "plots"
+      }
+    },
+    "batata": {
+      "label": "Horta do Sítio",
+      "go": {
+        "world": "farm",
+        "place": "plots"
+      }
+    },
+    "abobora": {
+      "label": "Horta do Sítio",
+      "go": {
+        "world": "farm",
+        "place": "plots"
+      }
+    },
+    "milho": {
+      "label": "Horta do Sítio",
+      "go": {
+        "world": "farm",
+        "place": "plots"
+      }
+    },
+    "ovo": {
+      "label": "Galinheiro do Sítio",
+      "go": {
+        "world": "farm",
+        "place": "chicken_coop"
+      }
+    },
+    "peixe": {
+      "label": "Lagoa do Sítio",
+      "go": {
+        "world": "farm",
+        "place": "fishing"
+      }
+    },
+    "maca": {
+      "label": "Pomar do Sítio",
+      "go": {
+        "world": "farm",
+        "place": "orchard"
+      }
+    },
+    "banana": {
+      "label": "Pomar do Sítio",
+      "go": {
+        "world": "farm",
+        "place": "orchard"
+      }
+    },
+    "aveia": {
+      "label": "Banca da vovó",
+      "go": {
+        "world": "farm",
+        "place": "early_market"
+      }
+    },
+    "arroz": {
+      "label": "Banca da vovó",
+      "go": {
+        "world": "farm",
+        "place": "early_market"
+      }
+    },
+    "abobrinha": {
+      "label": "Horta do Sítio · semente na banca da vovó",
+      "go": {
+        "world": "farm",
+        "place": "plots"
+      }
+    },
+    "melancia": {
+      "label": "Horta do Sítio · semente na carroça",
+      "go": {
+        "world": "farm",
+        "place": "plots"
+      }
+    },
+    "batata_doce": {
+      "label": "Horta do Sítio · muda no pomar",
+      "go": {
+        "world": "farm",
+        "place": "orchard"
+      }
+    }
+  },
+  "caprichada": {
+    "papinha:batata+ovo": "papinha_roca"
+  },
+  "secrets": {
+    "sopinha_do_pescador": {
+      "hint": {
+        "source": "fish_book",
+        "label": "Abra o Caderno de peixes",
+        "text": "Quem pesca toma sopa.",
+        "ingredient": "peixe",
+        "go": {
+          "notebook": "collection:fish"
+        }
+      },
+      "pieces": [
+        [
+          "fish",
+          1
+        ],
+        [
+          "dig",
+          4
+        ],
+        [
+          "fish",
+          3
+        ]
+      ]
+    },
+    "risotinho_do_lago": {
+      "hint": {
+        "source": "cart",
+        "label": "Visite a Carroça do Feirante",
+        "text": "O Feirante gosta de arroz soltinho.",
+        "ingredient": "arroz",
+        "go": {
+          "world": "farm",
+          "place": "week_cart"
+        }
+      },
+      "pieces": [
+        [
+          "fish",
+          2
+        ],
+        [
+          "dig",
+          8
+        ],
+        [
+          "cart",
+          3
+        ]
+      ]
+    },
+    "curau_do_tiro": {
+      "hint": {
+        "source": "bloblo",
+        "label": "Converse com a vovó no Sítio",
+        "text": "O milho das galinhas também vira doce.",
+        "ingredient": "milho",
+        "go": {
+          "world": "farm",
+          "place": "npc:bloblo"
+        }
+      },
+      "pieces": [
+        [
+          "eggs",
+          1
+        ],
+        [
+          "dig",
+          12
+        ],
+        [
+          "orchard",
+          1
+        ]
+      ]
+    },
+    "doce_de_roca_do_tiro": {
+      "hint": {
+        "source": "lais",
+        "label": "Converse com a Laís depois do primeiro mingau",
+        "text": "A banana adoça o mingau da roça.",
+        "ingredient": "banana",
+        "go": {
+          "world": "house",
+          "place": "npc:lais"
+        }
+      },
+      "pieces": [
+        [
+          "orchard",
+          2
+        ],
+        [
+          "eggs",
+          2
+        ],
+        [
+          "dig",
+          16
+        ]
+      ]
+    }
+  }
+}

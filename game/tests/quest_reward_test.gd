@@ -37,7 +37,7 @@ func _run() -> void:
 	ui = load("res://scripts/ui/progression_ui.gd")
 	Motion.reduced = true
 	state.call("reset")
-	state.get("progress").seen.intro = true
+	state.call("finish_week_arrival")
 	main = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	await frames()
@@ -63,7 +63,7 @@ func _run() -> void:
 
 func _welcome() -> void:
 	main.call("show_screen", &"tasks")
-	state.call("talk_to", "lais")
+	state.call("finish_week_arrival")
 	await frames()
 	var card: Control = main.find_child("StoryCard", true, false)
 	var rect := card.get_global_rect()
@@ -77,19 +77,18 @@ func _welcome() -> void:
 	check(reward.visible, "folha aparece")
 	check(main.find_children("QuestReward", "CanvasLayer", true, false).size() == 1, "uma única folha")
 	check(has_text(reward.find_child("RewardChip_coins", true, false), "+5"), "chip +5 moedas")
-	check(has_text(reward.find_child("RewardChip_dog_food", true, false), "+2"), "chip +2 rações")
-	check(state.get("coins") == coins + 5 and state.get("inventory").count("dog_food") == food + 2, "ganhos exatos uma vez")
-	check(gains.size() == 1 and gains[0].coins == 5 and gains[0].items.size() == 1 and int(gains[0].items.get("dog_food", 0)) == 2 and rect.has_point(gains[0].origin), "um voo com prêmios e origem no cartão")
-	check(reward.find_child("NextStepCard", true, false).get_meta("quest") == "lais_feed", "próximo passo é alimentação")
+	check(state.get("coins") == coins + 5 and state.get("inventory").count("dog_food") == food, "ganhos exatos uma vez")
+	check(gains.size() == 1 and gains[0].coins == 5 and gains[0].items.is_empty() and rect.has_point(gains[0].origin), "um voo com prêmios e origem no cartão")
+	check(reward.find_child("NextStepCard", true, false).get_meta("quest") == "lais_first_crops", "próximo passo é a primeira horta")
 	reward.find_child("RewardGo", true, false).pressed.emit()
 	await frames()
-	check("house:bowl" in destinations or "house:place:bowl" in destinations, "Ir usa destino da alimentação")
+	check("farm:plots" in destinations, "Ir leva à horta")
 	check(not reward.visible, "Ir fecha a folha")
 	# Reabre apenas a apresentação para testar Depois sem entregar de novo.
 	reward.call("open", "welcome")
-	check(reward.find_child("NextStepCard", true, false).get_meta("quest") == "lais_feed", "open(id) resolve o próximo passo atual")
+	check(reward.find_child("NextStepCard", true, false).get_meta("quest") == "lais_first_crops", "open(id) resolve o próximo passo atual")
 	reward.find_child("RewardLater", true, false).pressed.emit()
-	check(not reward.visible and state.get("coins") == coins + 5 and state.get("progress").current_main_quest() == "lais_feed", "Depois mantém o prêmio e o próximo passo")
+	check(not reward.visible and state.get("coins") == coins + 5 and state.get("progress").current_main_quest() == "lais_first_crops", "Depois mantém o prêmio e o próximo passo")
 	check(ui.call("claim_quest_fx", "welcome", Vector2.ZERO) != "", "segunda entrega recusada")
 	await flush()
 	check(not reward.visible and gains.size() == 1 and state.get("coins") == coins + 5, "sem duplicar voo, folha ou moedas")
@@ -99,23 +98,16 @@ func _welcome() -> void:
 ## A Mochila abre após brincar: prêmio e novidade devem oferecer um único destino.
 func _early_unlocks() -> void:
 	state.call("reset")
-	state.get("progress").seen.intro = true
-	state.call("talk_to", "lais")
-	state.call("claim_quest", "welcome")
-	state.call("feed", "dog_food")
-	state.call("claim_quest", "lais_feed")
-	state.call("bathe")
-	state.call("claim_quest", "lais_bath")
-	state.call("play")
+	state.call("finish_week_arrival")
 	await frames()
 	clear_modals()
 	main.call("show_screen", &"pet")
 	var popover := load("res://scripts/ui/popover.gd")
-	popover.call("open", main, main.find_child("NextStep", true, false), load("res://scripts/ui/next_step.gd").call("card", "lais_play"), 0.0)
+	popover.call("open", main, main.find_child("NextStep", true, false), load("res://scripts/ui/next_step.gd").call("card", "welcome"), 0.0)
 	events.sheet_requested.emit("Laís", VBoxContainer.new())
 	await frames()
 	Motion.reduced = false
-	check(ui.call("claim_quest_fx", "lais_play", Vector2.ZERO) == "", "entrega brincar no começo real")
+	check(ui.call("claim_quest_fx", "welcome", Vector2.ZERO) == "", "entrega chegada no começo real")
 	await frames()
 	main.call("_flush_modals")
 	check(not main.get("_quest_reward").visible, "prêmio espera o voo e a saída da folha anterior")
@@ -126,7 +118,7 @@ func _early_unlocks() -> void:
 	check(reward.visible and not main.get("_celebration").visible, "uma única folha para passo e Mochila nova")
 	check(not (main.get_node("Sheet") as Control).visible, "folha de origem terminou de sair")
 	check(reward.find_child("RewardUnlocks", true, false) != null, "novidade está no prêmio")
-	check(reward.find_child("NextStepCard", true, false).get_meta("quest") == "lais_bag", "único próximo passo é abrir a Mochila")
+	check(reward.find_child("NextStepCard", true, false).get_meta("quest") == "lais_first_crops", "único próximo passo é a horta")
 	check(main.get("_modal_queue").is_empty(), "nenhum Novo! ficou esperando para interromper o destino")
 	if "--early-shot" in OS.get_cmdline_user_args():
 		await create_timer(0.5).timeout
@@ -138,7 +130,7 @@ func _early_unlocks() -> void:
 	await create_timer(0.3).timeout
 	await flush()
 	check(not reward.visible and not main.get("_celebration").visible, "Ir não dispara segunda janela")
-	check(main.get("_current_screen") == &"bag", "Ir chega à Mochila")
+	check(main.get("_current_screen") == &"map", "Ir chega ao mapa do Sítio")
 	Motion.reduced = true
 	clear_modals()
 
@@ -146,20 +138,19 @@ func _early_unlocks() -> void:
 func _chapter() -> void:
 	state.call("reset")
 	state.get("progress").seen.intro = true
-	for id: String in state.get("progress").main_quests(1):
-		if id == "growth_1_puppy": break
-		state.call("dev_complete_quest", id)
+	state.call("dev_week_hour", 19)
+	state.call("dev_complete_quest", "lais_play")
+	state.call("_count", "week_invention")
+	state.call("_changed")
 	await frames()
 	clear_modals()
-	state.call("dev_set_phase", "puppy")
-	await frames()
-	clear_modals()
-	check(state.get("progress").current_main_quest() == "growth_1_puppy", "último passo real do capítulo")
-	check(ui.call("claim_quest_fx", "growth_1_puppy", Vector2(100, 200)) == "", "entrega último passo")
+	check(state.get("progress").current_main_quest() == "week_invent", "Inventar encerra o primeiro capítulo")
+	check(ui.call("claim_quest_fx", "week_invent", Vector2(100, 200)) == "", "entrega último passo")
 	await flush()
 	check(main.get("_celebration").visible and not main.get("_quest_reward").visible, "só festa de capítulo")
-	check(main.get("_celebration").find_child("NextStepCard", true, false) != null, "capítulo inclui próximo passo")
+	check(has_text(main.get("_celebration"), "A vovó volta amanhã"), "a festa mostra a espera pelo próximo dia")
 	clear_modals()
+
 
 func _character() -> void:
 	state.call("dev_unlock_everything")
@@ -202,8 +193,7 @@ func _other_claim_paths() -> void:
 	# A mesma entrega, agora pela pílula e pelo cartão usado nas conversas.
 	for path: String in ["pill", "conversation", "help"]:
 		state.call("reset")
-		state.get("progress").seen.intro = true
-		state.call("talk_to", "lais")
+		state.call("finish_week_arrival")
 		main.call("show_screen", &"pet")
 		await frames()
 		clear_modals()
@@ -245,13 +235,12 @@ func _other_claim_paths() -> void:
 
 func _full_storage() -> void:
 	state.call("reset")
-	state.get("progress").seen.intro = true
 	var db := root.get_node("Database")
 	# Fixture só em memória: mantém objetivo real e força prêmio de depósito finito.
 	var rewards: Dictionary = db.get("quests").welcome.rewards.duplicate(true)
 	db.get("quests").welcome.rewards = {"coins": 5, "items": {"egg": 1}}
 	state.get("inventory").add("egg", int(state.call("storage_capacity", "fridge")))
-	state.call("talk_to", "lais")
+	state.call("finish_week_arrival")
 	main.call("show_screen", &"tasks")
 	main.find_child("TasksScreen", true, false).call("choose_group", "story")
 	await frames()

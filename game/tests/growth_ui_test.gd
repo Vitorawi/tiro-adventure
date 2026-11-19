@@ -134,14 +134,15 @@ func _run() -> void:
 			await frames()
 			await RenderingServer.frame_post_draw
 			check(root.get_texture().get_image().save_png(folder.path_join("source_%d.png" % root.size.x)) == OK, "captura de onde conseguir")
-	state.call("dev_set_phase", "newborn")
+	# Os cuidados de momentos agora pedem a fase Aventureiro (a lista da semana usa pratos e brincadeiras).
+	state.call("dev_set_phase", "teething")
 	state.get("growth").phase_moments = {"body": 2, "brave": 0}
 	state.get("growth").done = {}  # o laço acima pode ter deixado o carinho marcado como feito
 	var helper: Script = load("res://scripts/ui/task_help.gd")
 	helper.call("open", "growth_req", "pillars")
 	await frames()
 	var care_sheet := main.find_child("Sheet", true, false)
-	check(text(care_sheet, "0/3 momentos"), "carinho mostra momentos de Coragem")
+	check(text(care_sheet, "0/4 momentos"), "carinho mostra momentos de Coragem")
 	check(text(care_sheet, "Faça carinho"), "explica a ação que ainda falta")
 	check(care_sheet.find_child("GrowthCare_body", true, false) == null and care_sheet.find_child("GrowthCare_brave", true, false) != null, "Corpo pertence às refeições e não é cobrado nos cuidados")
 	check(primary(care_sheet) == 1, "uma ação principal nos cuidados")
@@ -150,33 +151,35 @@ func _run() -> void:
 		DirAccess.make_dir_recursive_absolute(shots)
 		await RenderingServer.frame_post_draw
 		check(root.get_texture().get_image().save_png(shots.path_join("care_%d.png" % root.size.x)) == OK, "salva captura dos cuidados")
-	state.get("growth").done = {"puppy": {"home": true, "bed": true, "pillars": true}}
-	state.get("growth").phase_stats["feed"] = 0
-	state.get("progress").stats["feed"] = 2
+	# Recém-chegado → Filhotinho com 7 de 8 passos feitos e 2 pratos de 4: a ação recomendada é cozinhar.
+	state.call("dev_set_phase", "newborn")
+	state.get("growth").phase_moments = {}
+	state.get("growth").done = {"puppy": {"bed": true, "days": true, "star_dish": true, "invented": true, "play": true, "name": true, "sit": true}}
+	state.get("growth").phase_dishes = {"papinha:cenoura": {"type": "papinha", "ingredients": ["cenoura"], "meal": true}, "petisco:cenoura": {"type": "petisco", "ingredients": ["cenoura"], "meal": false}}
 	state.call("_changed")
 	ui.call("open")
 	await frames()
 	var panel := main.find_child("GrowthPanel", true, false)
 	for name: String in ["GrowthHero", "CurrentDog", "NextSilhouette", "NextUnlocks", "GrowthNextAction", "GrowthSummary", "GrowthProgress"]:
 		check(panel.find_child(name, true, false) != null, "nó " + name)
-	check(text(panel, "2/3") and text(panel.find_child("GrowthSummary", true, false), "2/3") and not text(panel, "de 3 passos"), "quantidade e único resumo dos passos visíveis")
-	check(panel.find_child("GrowthNextAction", true, false).text == "Dar comida", "próxima ação nomeada")
+	check(text(panel, "2/4") and text(panel.find_child("GrowthSummary", true, false), "7/8") and not text(panel, "de 8 passos"), "quantidade e único resumo dos passos visíveis")
+	check(panel.find_child("GrowthNextAction", true, false).text == "Cozinhar", "próxima ação nomeada")
 	check(panel.find_child("PillarRing_body", true, false) == null, "não repete pontos e anéis no painel principal")
-	check(main.find_child("ProfileCount", true, false).text == "3/4" and main.find_child("ProfileCount", true, false).is_visible_in_tree(), "HUD mostra que falta um dos quatro requisitos (%s)" % main.find_child("ProfileCount", true, false).text)
+	check(main.find_child("ProfileCount", true, false).text == "7/8" and main.find_child("ProfileCount", true, false).is_visible_in_tree(), "HUD mostra que falta um dos oito requisitos (%s)" % main.find_child("ProfileCount", true, false).text)
 	var shadow: ShaderMaterial = panel.find_child("NextSilhouette", true, false).get_child(0).material
-	check(shadow.shader.resource_path.ends_with("silhouette.gdshader") and int(shadow.get_shader_parameter("stage")) == 3, "estágio por requisitos")
+	check(shadow.shader.resource_path.ends_with("silhouette.gdshader") and int(shadow.get_shader_parameter("stage")) == 7, "estágio por requisitos")
 	for future: Control in panel.find_children("Future_*", "", true, false):
 		check(future.get_child(0).material.shader.resource_path.ends_with("silhouette.gdshader"), "cartão futuro sempre mascarado")
 	var list_scroll := main.find_child("Sheet", true, false).find_child("Scroll", true, false) as ScrollContainer
-	list_scroll.ensure_control_visible(panel.find_child("GrowthReq_meals", true, false))
+	list_scroll.ensure_control_visible(panel.find_child("GrowthReq_dishes", true, false))
 	await frames()
 	# Tocar no quadradinho só escolhe o passo; o "?" do detalhe visível abre o Como fazer.
-	await click(panel.find_child("GrowthReq_meals", true, false))
+	await click(panel.find_child("GrowthReq_dishes", true, false))
 	check(main.find_child("Sheet", true, false).get_node("%Title").text != "Como fazer", "toque no quadradinho só escolhe")
 	check(panel.find_child("GrowthNextStep", true, false).visible, "passo recomendado é o escolhido")
 	await click(visible_help(panel))
 	check(main.find_child("Sheet", true, false).get_node("%Title").text == "Como fazer", "toque abre ajuda")
-	check(text(main.find_child("Sheet", true, false), "Qualquer comida") and text(main.find_child("Sheet", true, false), "ração"), "ajuda explica que a ração inicial conta")
+	check(text(main.find_child("Sheet", true, false), "pratos diferentes"), "ajuda explica os pratos diferentes")
 	# Dar usa o mesmo item no painel e na Mochila; parcial, atualização e repetição.
 	var original: Array = db.get("growth").phases[1].requirements.duplicate(true)
 	db.get("growth").phases[1].requirements = [{"id": "fixture_key", "type": "deliver", "item": "stick", "qty": 2, "label": "Chave de teste"}]
@@ -232,7 +235,9 @@ func meal_shots() -> void:
 		state.get("growth").phase = phase
 		state.get("growth").phase_moments = {}
 		var info: Dictionary = state.call("growth_info")
-		var meals: Dictionary = info.requirements.filter(func(row: Dictionary) -> bool: return row.type == "feed")[0]
+		var feeds: Array = info.requirements.filter(func(row: Dictionary) -> bool: return row.type == "feed")
+		if feeds.is_empty(): continue  # a lista da primeira semana não pede refeições
+		var meals: Dictionary = feeds[0]
 		var item := "dog_food" if meals.item == "any" else str(meals.item)
 		state.get("inventory").add(item, int(meals.need))
 		for n in int(meals.need):

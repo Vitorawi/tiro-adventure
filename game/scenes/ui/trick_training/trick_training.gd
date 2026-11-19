@@ -2,7 +2,7 @@ class_name TrickTraining
 extends VBoxContainer
 ## Minijogo sem custo: tentativas locais, o estado persistente só muda ao aprender.
 
-var trick_id: String = "paw"
+var trick_id: String = "talk"
 var marker: float = 0.0
 var zone_center: float = 0.5
 var hits: int = 0

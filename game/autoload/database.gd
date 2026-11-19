@@ -9,6 +9,8 @@ var recipes: Dictionary = {}
 var needs: Dictionary = {}
 ## Proteção da ausência (config.json "offline"): fração da taxa e teto de horas de queda por ausência contínua.
 var offline: Dictionary = {}
+## Relógio de refeições do filhote (config.json "meals"): janelas de almoço/jantar, opções de horário e metas do dia.
+var meals: Dictionary = {}
 var actions: Dictionary = {}
 var stations: Dictionary = {}
 var animals: Dictionary = {}
@@ -22,6 +24,9 @@ var start: Dictionary = {}
 var version: Dictionary = {}
 var progression: Dictionary = {}
 var quests: Dictionary = {}
+var week_tutorials: Array = []
+var week_story: Dictionary = {}
+var week_routine: Dictionary = {}
 var npcs: Dictionary = {}
 var collections: Dictionary = {}
 ## Mundos (casa, sítio, vila...): lugares, personagens e requisitos (data/worlds.json).
@@ -41,8 +46,13 @@ var fishing: Dictionary = {}
 var projects: Dictionary = {}
 ## Aba Inventar do fogão (data/invent.json): tipos de espaço, ingredientes, tipos de prato e o prato inventado.
 var invent: Dictionary = {}
+## Minigame Cozinhar junto (data/cooking.json): números dos gestos, estrelas, corte de tempo e cores.
+var cooking: Dictionary = {}
+## Motor de pratos (data/dishes.json): ingredientes, tipos, duplas, pratos com nome. Regras em `DishRules`.
+var dishes: Dictionary = {}
+var recipe_book: Dictionary = {}
 var growth: Dictionary = {}
-## Álbum de recordações (data/album.json): as 54 fotos, cenários e adereços.
+## Álbum de recordações (data/album.json): fotos, cenários e adereços.
 var album: Dictionary = {}
 var mood: Dictionary = {}
 var album_config: Dictionary = {}
@@ -114,8 +124,8 @@ func album_problems() -> Array[String]:
 				problems.append(id + ": foto de comparação inexistente " + str(ref))
 		if str(entry.get("section", "")) in ["tricks", "sleep"] and str(entry.get("hint", "")) == "":
 			problems.append(id + ": dica ausente")
-	if album.get("photos", []).size() != 54:
-		problems.append("album: esperadas 54 fotos")
+	if album.get("photos", []).size() != 64:
+		problems.append("album: esperadas 64 fotos")
 	return problems
 
 
@@ -225,6 +235,8 @@ func growth_problems() -> Array[String]:
 			if req_id == "" or req_ids.has(req_id):
 				problems.append(id + ": requisito duplicado ou vazio")
 			req_ids[req_id] = true
+			if req.has("hook") and not growth.get("hooks", {}).has(str(req.hook)):
+				problems.append(id + ": gancho desconhecido " + str(req.hook))
 			var ref := ""
 			var catalog := {}
 			match str(req.get("type", "")):
@@ -235,6 +247,17 @@ func growth_problems() -> Array[String]:
 				"moments":
 					if str(req.get("pillar", "")) not in ["brave", "smart", "coat"] or int(req.get("qty", 0)) <= 0:
 						problems.append(id + ": momento inválido")
+				"dishes", "dish_stars", "invented_dish":
+					if int(req.get("qty", 0)) <= 0:
+						problems.append(id + ": quantidade de pratos inválida")
+					if str(req.type) == "dishes" and req.has("types") and (not req.has("type_pool") or int(req.types) > (req.type_pool as Array).size()):
+						problems.append(id + ": tipos de prato inválidos")
+				"dish_key":
+					if not growth.get("key_groups", {}).has(str(req.get("group", ""))):
+						problems.append(id + ": grupo de prato-chave desconhecido")
+				"trick_level":
+					if str(req.get("trick", "")) == "" or int(req.get("level", 0)) <= 0:
+						problems.append(id + ": truque ou nível inválido")
 				"deliver", "feed":
 					ref = str(req.get("item", ""))
 					catalog = items
@@ -285,6 +308,7 @@ func _init() -> void:
 	album_config = config.get("album", {})
 	needs = config.get("needs", {})
 	offline = config.get("offline", {})
+	meals = config.get("meals", {})
 	actions = config.get("actions", {})
 	stations = config.get("stations", {})
 	animals = config.get("animals", {})
@@ -294,6 +318,9 @@ func _init() -> void:
 	version = _load("res://data/version.json")
 	progression = _load("res://data/progression.json")
 	quests = _load("res://data/quests.json")
+	week_tutorials = _load("res://data/week_tutorials.json").get("tutorials", [])
+	week_story = _load("res://data/week_story.json")
+	week_routine = _load("res://data/week_routine.json")
 	npcs = _load("res://data/npcs.json")
 	collections = _load("res://data/collections.json")
 	worlds = _load("res://data/worlds.json")
@@ -305,6 +332,9 @@ func _init() -> void:
 	fishing = _load("res://data/fishing.json")
 	projects = _load("res://data/projects.json")
 	invent = _load("res://data/invent.json")
+	dishes = _load("res://data/dishes.json")
+	recipe_book = _load("res://data/recipe_book.json")
+	cooking = _load("res://data/cooking.json")
 	_register_invented_recipe()
 	growth = _load("res://data/growth.json")
 	album = _load("res://data/album.json")
@@ -459,6 +489,8 @@ func recipes_for(station_id: String) -> Array[String]:
 ## De onde vem um item (para o detalhe da Mochila): culturas, receitas, rotas, recompensas.
 func sources_of(item_id: String) -> PackedStringArray:
 	var lines: PackedStringArray = []
+	if farm.get("orchard_fruit", {}).has(item_id):
+		lines.append("Colher no pomar do Sítio")
 	for id: String in crops:
 		if crops[id].get("yield", {}).has(item_id):
 			lines.append("Plantar e colher no Sítio")
@@ -585,20 +617,110 @@ func project_problems() -> Array[String]:
 	return problems
 
 
-## Receita "escondida" do prato inventado (aba Inventar): só existe para a fila do fogão ter o que mostrar; nunca entra
-## nas listas de pratos (`recipes_for` pula `hidden`). Os ingredientes de cada lote ficam no snapshot (`job.inputs`).
+## Receita "escondida" que só serve de suporte para a fila do fogão guardar os pratos do motor (`DishRules`): quem manda no que
+## sai (item, tempo e estrelas) é o `job` do lote; nunca entra nas listas de pratos (`recipes_for` pula `hidden`).
 func _register_invented_recipe() -> void:
-	var data: Dictionary = invent.get("invented", {})
+	var data: Dictionary = invent.get("carrier", {})
 	if data.is_empty():
 		return
-	recipes[invented_recipe_id()] = {
-		"station": "stove", "inputs": {}, "output": str(data.get("item", "invented_dish")), "qty": 1,
+	recipes[dish_recipe_id()] = {
+		"station": "stove", "inputs": {}, "output": str(dishes.get("gororoba", {}).get("item", "gororoba")), "qty": 1,
 		"seconds": int(data.get("seconds", 60)), "hidden": true,
 	}
 
 
-func invented_recipe_id() -> String:
-	return "invented_dish"
+func dish_recipe_id() -> String:
+	return str(invent.get("carrier", {}).get("recipe", "dish_batch"))
+
+
+## Item que um lote da fila entrega: o do `job` (pratos do motor) ou o da receita.
+func entry_output(entry: Dictionary) -> String:
+	var output := str(entry.get("job", {}).get("output", ""))
+	return output if output != "" else recipe_output(recipes.get(str(entry.get("recipe", "")), {}))
+
+
+## Duração do lote da fila: a do `job` (pratos do motor) ou a da receita.
+func entry_seconds(entry: Dictionary) -> float:
+	var seconds := float(entry.get("job", {}).get("seconds", 0.0))
+	return seconds if seconds > 0.0 else float(recipes.get(str(entry.get("recipe", "")), {}).get("seconds", 1))
+
+
+## Registra em `items` o item de um prato dinâmico (`dish_<tipo>_<ingredientes>_<estrelas>`). Devolve true se o id
+## existe como item (já era conhecido ou acabou de ser registrado). Idempotente; ids que não são pratos devolvem false.
+func ensure_dish(id: String) -> bool:
+	if items.has(id):
+		return true
+	if not id.begins_with(DishRules.PREFIX):
+		return false
+	var def := DishRules.item_def(id)
+	if def.is_empty():
+		return false
+	items[id] = def
+	return true
+
+
+## Problemas do dishes.json (lista vazia = coerente): itens, ordem, regras, duplas e pratos com nome.
+## Problemas do cooking.json (lista vazia = coerente).
+func cooking_problems() -> Array[String]:
+	var problems: Array[String] = []
+	if int(cooking.get("schema", 0)) != 1:
+		problems.append("cooking: schema inválido")
+	for step: Variant in cooking.get("steps", []):
+		if not cooking.get("step_names", {}).has(str(step)):
+			problems.append("cooking: passo %s sem nome" % step)
+	for stars: String in ["1", "2", "3"]:
+		if not cooking.get("time_cut", {}).has(stars):
+			problems.append("cooking: sem corte de tempo para %s estrela(s)" % stars)
+	var colors: Dictionary = cooking.get("colors", {})
+	for id: String in dishes.get("ingredients", {}):
+		if not colors.has(id):
+			problems.append("cooking: ingrediente %s sem cor" % id)
+	return problems
+
+
+func dish_problems() -> Array[String]:
+	var problems: Array[String] = []
+	if int(dishes.get("schema", 0)) != 1:
+		problems.append("dishes: schema inválido")
+	var ingredients: Dictionary = dishes.get("ingredients", {})
+	for id: String in ingredients:
+		var def: Dictionary = ingredients[id]
+		if (def.get("items", []) as Array).is_empty():
+			problems.append("dishes: %s sem item" % id)
+		for item: Variant in def.get("items", []):
+			if not items.has(str(item)):
+				problems.append("dishes: %s usa item inexistente %s" % [id, item])
+		if not dishes.get("categories", {}).has(str(def.get("category", ""))):
+			problems.append("dishes: %s com categoria inválida" % id)
+		if not dishes.get("tastes", {}).has(str(def.get("taste", ""))):
+			problems.append("dishes: %s com sabor inválido" % id)
+		for key: String in dishes.get("nutrients", {}):
+			if not (def.get("n", {}) as Dictionary).has(key):
+				problems.append("dishes: %s sem o nutriente %s" % [id, key])
+	for type: String in dishes.get("types", {}):
+		var type_def: Dictionary = dishes.types[type]
+		if not items.has(str(type_def.get("icon_item", ""))):
+			problems.append("dishes: tipo %s sem ícone" % type)
+		if int(type_def.get("min", 1)) > int(type_def.get("max", 1)):
+			problems.append("dishes: tipo %s com min > max" % type)
+		if "_" in type or "+" in type:
+			problems.append("dishes: id de tipo inválido " + type)
+	for duple: Dictionary in dishes.get("duples", []):
+		if not ingredients.has(str(duple.get("a", ""))) or not ingredients.has(str(duple.get("b", ""))):
+			problems.append("dishes: dupla %s com ingrediente inexistente" % duple.get("id", ""))
+	var seen := {}
+	for entry: Dictionary in dishes.get("named", []):
+		var key := "%s|%s" % [entry.get("type", ""), ",".join(DishRules.canon(entry.get("ingredients", [])))]
+		if seen.has(key):
+			problems.append("dishes: prato com nome repetido " + str(entry.get("id", "")))
+		seen[key] = true
+		if str(DishRules.evaluate(str(entry.get("type", "")), entry.get("ingredients", [])).get("state", "")) != "dish":
+			problems.append("dishes: %s não forma o prato do tipo" % entry.get("id", ""))
+		if entry.has("icon_item") and not items.has(str(entry.icon_item)):
+			problems.append("dishes: %s com ícone inexistente" % entry.get("id", ""))
+	if not items.has(str(dishes.get("gororoba", {}).get("item", ""))):
+		problems.append("dishes: item da Gororoba inexistente")
+	return problems
 
 
 ## Problemas do invent.json (lista vazia = coerente): ids de itens, tipos de espaço e pratos existem.
@@ -621,13 +743,17 @@ func invent_problems() -> Array[String]:
 		if not items.has(str(def.get("dish", ""))):
 			problems.append("invent: prato inexistente em " + str(def.get("id", "")))
 		var count: int = (def.get("slots", []) as Array).size()
+		if not dishes.get("types", {}).has(str(def.get("id", ""))):
+			problems.append("invent: %s não é um tipo de dishes.json" % def.get("id", ""))
+		elif count < int(dishes.types[str(def.id)].get("min", 1)) or count > int(dishes.types[str(def.id)].get("max", 4)):
+			problems.append("invent: %s com número de espaços fora de dishes.json" % def.get("id", ""))
 		if count < 1 or count > 4:
 			problems.append("invent: %s tem %d espaços (1 a 4)" % [def.get("id", ""), count])
 		for kind: String in def.get("slots", []):
 			if not kinds.has(kind):
 				problems.append("invent: espaço inexistente %s em %s" % [kind, def.get("id", "")])
-	if not items.has(str(invent.get("invented", {}).get("item", ""))):
-		problems.append("invent: item do prato inventado inexistente")
+	if not recipes.has(dish_recipe_id()):
+		problems.append("invent: receita de suporte dos pratos do motor inexistente")
 	return problems
 
 
@@ -677,8 +803,16 @@ func shop_problems() -> PackedStringArray:
 			for item: String in entry.get("items", {}):
 				if not self.items.has(item):
 					problems.append("shop_items.%s: item %s da rotação inexistente" % [id, item])
-		if data.get("items", {}).is_empty() and data.get("rods", []).is_empty() and data.get("rotation", []).is_empty():
-			problems.append("shop_items.%s: sem itens nem varas" % id)
+		var upgrade := str(data.get("upgrade", ""))
+		if upgrade != "" and not progression.upgrades.has(upgrade):
+			problems.append("shop_items.%s: construção inexistente" % id)
+		var collection := str(data.get("collection", ""))
+		if collection != "" and not collections.has(collection):
+			problems.append("shop_items.%s: apetrecho inexistente" % id)
+		if data.has("crop") and not crops.has(str(data.crop)):
+			problems.append("shop_items.%s: planta inexistente" % id)
+		if collection == "" and not data.has("crop") and data.get("items", {}).is_empty() and data.get("rods", []).is_empty() and data.get("rotation", []).is_empty() and upgrade == "" and not data.get("plot", false):
+			problems.append("shop_items.%s: sem produto" % id)
 		if int(data.get("price", 0)) <= 0 and data.get("rotation", []).is_empty():
 			problems.append("shop_items.%s: preço inválido" % id)
 		if data.has("max") and int(data.max) < 1:
@@ -691,6 +825,8 @@ func shop_problems() -> PackedStringArray:
 ## Fontes como objetivos, compartilhadas pela navegação das missões.
 func item_sources(item_id: String) -> Array[Dictionary]:
 	var sources: Array[Dictionary] = []
+	if farm.get("orchard_fruit", {}).has(item_id):
+		sources.append({"type": "stat", "key": "orchard:" + item_id})
 	for entry: Dictionary in shops_selling(item_id):
 		sources.append({"type": "stat", "key": "shop:" + str(entry.id)})
 	for id: String in crops:
@@ -718,4 +854,19 @@ func item_sources(item_id: String) -> Array[Dictionary]:
 			found = found or entry.get("items", {}).has(item_id)
 		if found:
 			sources.append({"type": "stat", "key": "walk:" + id})
+	return sources
+
+
+func week_reward_sources(item_id: String) -> Array[Dictionary]:
+	var sources: Array[Dictionary] = []
+	for daily: Dictionary in week_routine.daily.values():
+		if daily.rewards.get("items", {}).has(item_id):
+			sources.append({"kind": "week_daily", "id": item_id, "name": week_routine.text.daily_source,
+				"target": {"screen": "tasks"}})
+			break
+	for line: Dictionary in week_routine.lines.values():
+		for step: Dictionary in line.steps:
+			if step.get("rewards", {}).get("items", {}).has(item_id):
+				sources.append({"kind": "week_line", "id": step.id, "name": "%s · %s" % [line.title, step.name],
+					"target": {"notebook": "missions"}})
 	return sources

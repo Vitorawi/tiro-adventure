@@ -19,7 +19,9 @@ static func current() -> Dictionary:
 	result.target = target
 	result.value = mini(GameState.goal_value(goal), target)
 	result.shared = id != progress.current_main_quest()
-	if not GameState.quest_reward_shortage(id).is_empty():
+	if GameState.week_quest_wait(id) != "":
+		result.state = "waiting"
+	elif not GameState.quest_reward_shortage(id).is_empty():
 		result.state = "blocked_storage"
 	elif GameState.quest_error(id) == "":
 		result.state = "shared_ready" if result.shared else "ready"

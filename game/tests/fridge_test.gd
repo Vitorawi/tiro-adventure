@@ -99,7 +99,7 @@ func _capacities() -> void:
 	check(int(fridge.cost) == 40 and not fridge.has("materials") and fridge.requirements.quests == ["lais_first_crops"], "geladeira: 40 moedas, sem material, lais_first_crops")
 	check(upgrades.stove.requirements.owned == ["fridge"], "o fogão continua pedindo a geladeira")
 	var main: Dictionary = database.get("quests")
-	check(main.main_2_fridge.goals[0].key == "fridge" and main.first_kitchen.goals[0].key == "stove", "main_2_fridge → first_kitchen intactas")
+	check(main.lais_first_crops.rewards.upgrades == ["stove"] and main.first_kitchen.goals[0].key == "together:puppy_mash", "A primeira horta entrega o fogão para a papinha")
 	var preview: Dictionary = state.call("storage_upgrade_preview", "fridge_2")
 	check(int(preview.depot == "fridge") == 1, "prévia aponta a geladeira")
 	# Armazém (etapa 07) e baú (etapa 08) já limitam, cada um com a própria capacidade.
@@ -156,7 +156,7 @@ func _kitchen_from_scratch() -> void:
 	check(_inv("carrot_snack") == 12 and int(state.call("storage_capacity", "fridge")) == 24 and int(state.call("storage_space", "fridge")) == 12, "comprar cheio: 12 → 24 sem perder itens")
 	state.get("inventory").remove("carrot_snack", 12)
 	# Fogão e o primeiro petisco: tudo pelas ações reais.
-	check(state.call("buy_upgrade", "stove") == "", "fogão depois da geladeira")
+	check(state.call("has_upgrade", "stove"), "o fogão veio com a primeira horta")
 	state.get("inventory").add("carrot", 4)
 	check(state.call("cook", "carrot_snack") == "", "primeiro lote de petisco")
 	_ready_all("stove")

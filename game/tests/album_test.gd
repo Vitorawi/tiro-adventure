@@ -83,14 +83,17 @@ func _run() -> void:
 
 func _data() -> void:
 	check(db.album_problems().is_empty(), "album.json válido: " + str(db.album_problems()))
-	check(db.album.photos.size() == 54, "54 fotos no catálogo")
+	check(db.album.photos.size() == 64, "64 fotos no catálogo")
 	for entry: Dictionary in db.album.photos:
 		var art := str(entry.photo.get("illustration", ""))
-		check(art != "" and ResourceLoader.exists(art), "ilustração instalada: " + str(entry.id))
+		if entry.id in ["h_trick_show", "h_week_group"]:
+			check(entry.photo.scene == "farm" and entry.photo.friends == ["bloblo", "lais"], "foto provisória do show composta no Sítio")
+		else:
+			check(art != "" and ResourceLoader.exists(art), "ilustração instalada: " + str(entry.id))
 	var per := {}
 	for entry: Dictionary in db.album.photos:
 		per[entry.section] = int(per.get(entry.section, 0)) + 1
-	check(per == {"story": 14, "firsts": 8, "tricks": 13, "sleep": 8, "friends": 6, "dates": 5}, "seções 14/8/13/8/6/5: " + str(per))
+	check(per == {"story": 24, "firsts": 8, "tricks": 13, "sleep": 8, "friends": 6, "dates": 5}, "seções 24/8/13/8/6/5: " + str(per))
 	for entry: Dictionary in db.album.photos:
 		check(entry.when.size() <= 3, "no máximo 3 condições: " + str(entry.id))
 	# Dado quebrado é rejeitado.
@@ -138,7 +141,7 @@ func _story() -> void:
 	state.dog.needs["energy"] = 40.0
 	_expect("soneca sem caminha", func() -> void: state.set_sleeping(true), [])
 	state.set_sleeping(false)
-	_expect("caminha da Laís", func() -> void: state._finish_quest("lais_bed"), ["h_first_night"])
+	_expect("caminha da Laís", func() -> void: state._finish_quest("lais_bed"), ["h_first_night", "h_week_bed"])
 	_fresh()
 	state.progress.claimed_quests["lais_bed"] = true
 	_expect("soneca com caminha", func() -> void: state.set_sleeping(true), ["h_first_night"])
@@ -167,7 +170,7 @@ func _story() -> void:
 	_fresh()
 	_unlock()
 	state.growth.phase = "teething"
-	_expect("truque pata", func() -> void: state.learn_trick("paw"), ["h_first_trick"])
+	_expect("truque pata", _teach_paw, ["h_first_trick"])
 	_fresh()
 	_unlock()
 	_expect("banca", func() -> void: state._finish_quest("own_business"), ["h_banca"])
@@ -232,7 +235,7 @@ func _campaign() -> void:
 	state.dev_spawn_finds()
 	_dig_any()
 	state.growth.phase = "teething"
-	state.learn_trick("paw")
+	_teach_paw()
 	state.dev_complete_growth_reqs()
 	state.grow()
 	check(state.growth.phase in ["explorer", "teething"], "campanha chegou perto do Aventureiro")
@@ -241,6 +244,21 @@ func _campaign() -> void:
 		check(state.album.has_photo(id), "campanha tirou " + id)
 	for id: String in state.album.photos:
 		check(db.photo(id).section in ["story", "firsts"], "só seções ativas: " + id)
+
+
+func _teach_paw() -> void:
+	state.dev_week_goto(4)
+	state.dev_week_hour(12)
+	state.week.weak = false
+	if state.trick_lesson_next("paw") != "":
+		check(state.start_trick_lesson("paw") != "", "aula repetida não tira outra foto")
+		return
+	state.inventory.add("apple_biscuit")
+	check(state.start_trick_lesson("paw") == "", "começa Aula de Dá a pata")
+	for i in 5:
+		state.trick_lesson_step("paw", "show", 1.0)
+		state.trick_lesson_step("paw", "mark", 1.0)
+		state.trick_lesson_step("paw", "reward", 0.0)
 
 
 func _dig_any() -> void:
@@ -391,7 +409,7 @@ func _interface() -> void:
 	check(panel.find_child("AlbumCard_f_dig", true, false).find_child("NewBadge", true, false) == null, "foto que falta não tem selo")
 	check(panel.find_child("CardBack", true, false) != null, "fechadas mostram o verso sem antecipar a arte")
 	var counter := "%d/%d" % [album_view.taken_count(), album_view.total_count()]
-	check(album_view.total_count() == 54, "contador usa as seis seções ativas (54)")
+	check(album_view.total_count() == 64, "contador usa as seis seções ativas (64)")
 	check(counter != "", "contador " + counter)
 	var secret: Control = photo_card.make("s_foam_ghost", 98.0, {"secret": true})
 	root.add_child(secret)

@@ -6,7 +6,7 @@ extends RefCounted
 
 ## Atalhos do Manual: o conteúdo mora no Caderninho (`CodexUi`, seções Recursos e Estações).
 static func open(section: String = "resources") -> void:
-	PetNotebook.open("stations" if section == "stations" else "resources")
+	PetNotebook.open(section if section in ["stations", "tutorials"] else "resources")
 
 
 static func open_item(id: String) -> void:
@@ -41,6 +41,12 @@ static func sources(id: String) -> Array[Dictionary]:
 	for phase: Dictionary in Database.growth.get("phases", []):
 		if phase.get("rewards", {}).get("items", {}).has(id) and Database.items.get(id, {}).get("category", "") == "keepsake":
 			result.append({"kind": "growth", "id": str(phase.id)})
+	# Ingredientes dos pratos (E02): de onde vêm está em `dishes.json` (a horta, a banca, o pomar... chegam na E06).
+	for ingredient_id: String in Database.dishes.get("ingredients", {}):
+		if id in Database.dishes.ingredients[ingredient_id].get("items", []):
+			result.append({"kind": "ingredient", "id": ingredient_id})
+	if id == str(Database.dishes.get("gororoba", {}).get("item", "")):
+		result.append({"kind": "gororoba", "id": id})  # sai de uma combinação que não formou prato
 	for source: Dictionary in Database.item_sources(id):
 		if source.key == "feed":
 			result.append({"kind": "care", "id": id})
@@ -50,6 +56,7 @@ static func sources(id: String) -> Array[Dictionary]:
 			result.append({"kind": "fishing", "id": str(source.key).trim_prefix("fish:")})  # lagoa do Sítio
 		elif str(source.key).begins_with("shop:"):
 			result.append({"kind": "shop", "id": str(source.key).trim_prefix("shop:")})
+	result.append_array(Database.week_reward_sources(id))
 	return result
 
 

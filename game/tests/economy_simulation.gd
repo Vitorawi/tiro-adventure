@@ -19,6 +19,9 @@ func _run() -> void:
 	# load em tempo de execução: o preload compilaria antes dos autoloads existirem.
 	var SimScript: GDScript = load("res://tests/helpers/economy_sim.gd")
 	var options := _parse(OS.get_cmdline_user_args())
+	if options.until == "week":
+		_run_week(options)
+		return
 	if not SimScript.PROFILES.has(str(options.profile)):
 		push_error("Perfil desconhecido: %s" % options.profile)
 		quit(2)
@@ -47,3 +50,29 @@ func _parse(args: PackedStringArray) -> Dictionary:
 		var value := arg.get_slice("=", 1)
 		options[key] = value if key in ["profile", "until", "rare", "ledger", "reload", "out"] else int(value)
 	return options
+
+
+func _run_week(options: Dictionary) -> void:
+	if options.profile not in ["tranquilo", "regular", "dedicado"]:
+		push_error("Escolha tranquilo, regular ou dedicado")
+		quit(2)
+		return
+	root.get_node("SaveManager").free()
+	var state := root.get_node("GameState")
+	state.set_script(load("res://tests/helpers/week_story_clock.gd"))
+	state.set_clock(1792411200.0)
+	seed(options.seed)
+	state.reset()
+	var bot = load("res://tests/helpers/week_economy_route.gd").new(state, root.get_node("Database"), Callable())
+	var result: Dictionary = bot.measure(options.profile)
+	var output := ProjectSettings.globalize_path("res://../").path_join(options.out)
+	DirAccess.make_dir_recursive_absolute(output)
+	var file := FileAccess.open(output.path_join("week.json"), FileAccess.WRITE)
+	if not file:
+		push_error("Falha ao criar relatório " + output)
+		quit(1)
+		return
+	file.store_string(JSON.stringify(result, "\t"))
+	file.close()
+	print("ECONOMY SIM: ", options.profile, " Dentinhos D", result.growth_day, " erros ", result.errors.size())
+	quit(0 if result.errors.is_empty() else 1)

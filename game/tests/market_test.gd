@@ -31,7 +31,7 @@ func _run() -> void:
 	check(market.call("order_ids", "contracts").is_empty(), "sem contratos antes de montar")
 	check(state.call("upgrade_error", "stall_2") != "", "sem pular estágio")
 	state.set("coins", 20000)
-	for token: String in ["farm", "stove", "blender", "dairy", "atelier", "workbench"]:
+	for token: String in ["farm", "fridge", "stove", "blender", "dairy", "atelier", "workbench"]:
 		state.get("progress").owned[token] = true
 	_supply()
 	check(state.call("buy_upgrade", "stall") == "", "monta banca pela compra real")
@@ -211,7 +211,7 @@ func _mission_priority() -> void:
 
 func _first_sale_context() -> void:
 	state.call("reset")
-	state.call("dev_jump_to_chapter", 3)
+	state.call("dev_jump_to_chapter", 7)
 	state.get("inventory").from_dict({"carrot": 12})
 	check(state.call("sell", "carrot", 1, "farm") == "", "venda anterior no Sítio")
 	check(state.call("sell", "carrot", 1, "village") == "", "venda anterior na Vila")
@@ -249,10 +249,10 @@ func _supply() -> void:
 
 func _merchant_missions() -> void:
 	state.call("reset")
-	state.call("dev_jump_to_chapter", 3)
+	state.call("dev_jump_to_chapter", 7)
 	state.set("coins", 20000)
 	state.set("level", 20)
-	for token: String in ["farm", "stove", "blender", "dairy", "atelier", "workbench"]:
+	for token: String in ["farm", "fridge", "stove", "blender", "dairy", "atelier", "workbench"]:
 		state.get("progress").owned[token] = true
 	state.call("_changed")
 	var expected: Array[String] = ["merchant_meet", "merchant_first_sale", "merchant_surplus", "merchant_orders", "merchant_regular", "merchant_variety", "merchant_stall", "merchant_contracts", "merchant_expand", "merchant_clients", "merchant_village_stall", "merchant_festival"]

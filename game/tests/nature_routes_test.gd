@@ -58,7 +58,7 @@ func _fresh(unlimited: bool = true) -> void:
 	state.set("unlimited_storage", unlimited)
 	state.call("reset")
 	state.get("inventory").counts.clear()
-	state.call("dev_jump_to_chapter", 4)
+	state.call("dev_jump_to_chapter", 8)
 	state.call("dev_add_coins", 4000)
 	for id in ["forest_open", "cave_open", "meadow_open"]:
 		check(state.call("buy_upgrade", id) == "", "abre " + id)

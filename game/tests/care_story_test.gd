@@ -19,12 +19,17 @@ func _run() -> void:
 	state.set_script(load("res://tests/helpers/economy_clock.gd"))
 	state.set_clock(1792746000.0)
 	state.reset()
+	state.dev_week_hour(9)
+	state.finish_week_arrival()
 	state.set_process(false)
 	check(not state.quest_unlocked("lais_first_wish"), "desejo não antecipa a caminha")
 	state.dev_complete_quest("lais_bed")
+	state.dev_week_goto(2)
 	check(not state.quest_unlocked("lais_first_wish"), "primeiro crescimento precede o desejo, sem ciclo")
 	state.growth.phase = "puppy"
 	check(state.claim_quest("growth_1_puppy") == "", "fecha o primeiro crescimento")
+	state.dev_week_goto(3)
+	state.dev_complete_quest("week_fish_dish")
 	check(state.quest_unlocked("lais_first_wish"), "Laís apresenta o desejo após a caminha e crescimento")
 	check(state.quest_error("lais_first_wish") != "", "não termina sem atender")
 	state.update_wishes()
@@ -33,7 +38,7 @@ func _run() -> void:
 	check(state.quest_error("lais_first_wish") != "", "fazer carinho ainda pede Pegar no desejo")
 	check(state.fulfill_wish() == "", "atende o desejo real")
 	check(state.claim_quest("lais_first_wish") == "", "recebe o tutorial do desejo")
-	check(state.progress.current_main_quest() == "lais_meet_bloblo", "história segue para a vovó")
+	check(state.progress.current_main_quest() == "week_orchard", "história segue para o pomar")
 	var help: Script = load("res://scripts/ui/task_help.gd")
 	var wish_help: Dictionary = help.describe("stat", "wish")
 	check(wish_help.target == {"screen": "pet"} and wish_help.action == "Ir" and "balão" in wish_help.detail, "ajuda do objetivo wish explica o balão e leva ao Tiro")
@@ -48,7 +53,7 @@ func _run() -> void:
 		var data: Dictionary = help.describe("growth_req", str(row.id))
 		check("De onde vêm" in str(data.steps[0].hint), "requisito real mostra as fontes no Como fazer")
 	# Rotinas reais em vários períodos, com todo o catálogo liberado.
-	state.dev_jump_to_chapter(12)
+	state.dev_jump_to_chapter(16)
 	state.progress.owned["stove"] = true
 	var db := root.get_node("Database")
 	for kind: String in ["daily", "weekly"]:
@@ -60,16 +65,19 @@ func _run() -> void:
 			var ids: Array = state.routine_ids(kind)
 			check(ids.size() == int(db.routines[kind].count), kind + ": quantidade disponível")
 			for id: String in ids:
-				check(state.routine_data(kind, id).goal.key in ["harvest", "production_jobs", "orders", "fish", "fish_size:large"], kind + ": sorteio sem cuidado")
+				if id == "recipe_ingredient": continue
+				check(state.routine_data(kind, id).goal.key in ["harvest", "production_jobs", "orders", "fish", "fish_size:large", "recipe_ingredient"], kind + ": sorteio sem cuidado")
 	var clothes: Array = db.routines.weekly.missions.big_harvest.rewards.collections + db.routines.weekly.missions.orders_week.rewards.collections
 	for id: String in ["clean_bow", "heart_collar", "walker_bandana"]:
 		check(id in clothes, id + ": continua disponível nas semanais")
-	check("Tiro animado" in db.quests.lais_first_crops.dialogue, "Sítio apresenta o Tiro animado")
+	check("primeira papinha" in db.quests.lais_first_crops.dialogue, "a horta prepara a primeira papinha")
 	# Progresso histórico atual: atender antes de abrir o passo também vale.
 	state.reset()
 	state.set_process(false)
 	state.progress.stats["wish"] = 1
-	state.dev_complete_quest("growth_1_puppy")
+	state.dev_week_goto(3)
+	state.dev_complete_quest("week_fish_dish")
+	state.dev_week_goto(4)
 	check(state.quest_error("lais_first_wish") == "", "primeiro desejo já atendido não exige outro período")
 	print("CARE STORY TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)

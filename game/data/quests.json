@@ -1,25 +1,25 @@
 {
   "welcome": {
     "npc": "lais",
-    "name": "Oi, eu sou a Laís!",
-    "dialogue": "Oi! Eu sou a Laís, e este é o Tiro. Ele tremia na caixinha, mas agora é seu!",
+    "name": "Abrir a caixinha",
+    "dialogue": "Fale baixinho e faça carinho. Ele já quer conhecer você.",
     "goals": [
       {
         "type": "stat",
-        "key": "talk:lais",
+        "key": "arrival_box",
         "target": 1,
-        "label": "Falar com a Laís"
+        "label": "Acolher o Tiro"
       }
     ],
     "rewards": {
-      "coins": 5,
-      "items": {
-        "dog_food": 2
-      }
+      "coins": 5
     },
     "kind": "main",
     "chapter": 1,
-    "order": 10
+    "order": 10,
+    "go": {
+      "intro": true
+    }
   },
   "lais_feed": {
     "npc": "lais",
@@ -37,8 +37,7 @@
     "rewards": {
       "coins": 10
     },
-    "kind": "main",
-    "chapter": 1,
+    "kind": "retired",
     "order": 20
   },
   "lais_bath": {
@@ -57,29 +56,40 @@
     "rewards": {
       "coins": 10
     },
-    "kind": "main",
-    "chapter": 1,
+    "kind": "retired",
     "order": 30
   },
   "lais_play": {
     "npc": "lais",
-    "name": "Vamos brincar!",
-    "dialogue": "Agora ele quer brincar! Brincar faz o medo passar.",
+    "name": "Ele tem nome",
+    "dialogue": "Joguem a bolinha. Depois chame o Tiro três vezes.",
     "goals": [
       {
         "type": "stat",
-        "key": "play",
+        "key": "yard:ball",
         "target": 1,
-        "fresh": true,
-        "label": "Brincar com o Tiro"
+        "label": "Brincar com a bolinha"
+      },
+      {
+        "type": "stat",
+        "key": "name_call",
+        "target": 3,
+        "label": "Chamar o Tiro três vezes"
       }
     ],
     "rewards": {
-      "coins": 10
+      "coins": 5,
+      "items": {
+        "lost_ball": 1
+      }
     },
     "kind": "main",
     "chapter": 1,
-    "order": 40
+    "order": 60,
+    "go": {
+      "world": "farm",
+      "place": "week_yard"
+    }
   },
   "lais_album": {
     "npc": "lais",
@@ -125,8 +135,7 @@
         "bed_gift": 1
       }
     },
-    "kind": "main",
-    "chapter": 1,
+    "kind": "retired",
     "order": 50,
     "go": {
       "screen": "bag",
@@ -135,29 +144,26 @@
   },
   "lais_bed": {
     "npc": "lais",
-    "name": "Um cantinho para ele",
-    "dialogue": "É uma caminha! Escolhe um cantinho da casa para ele dormir sossegado.",
+    "name": "A primeira caminha",
+    "dialogue": "Compre o kit na banca. A caminha vai direto para a Casa.",
     "goals": [
       {
         "type": "owned",
         "key": "dog_bed",
-        "label": "Pôr a caminha na casa"
+        "target": 1,
+        "label": "Montar a caminha"
       }
     ],
-    "rewards": {
-      "coins": 10
-    },
+    "rewards": {},
     "kind": "main",
-    "chapter": 1,
+    "chapter": 2,
     "order": 60,
     "go": {
-      "world": "house",
-      "place": "buy:dog_bed",
-      "hint": "Casa → toque no +"
+      "world": "farm",
+      "place": "shop:week_bed"
     }
   },
   "lais_meet_bloblo": {
-    "shared_with": "bloblo_meet",
     "npc": "lais",
     "name": "A vovó do sítio",
     "dialogue": "Filhote precisa de comida de verdade. A vovó Bloblo tem um sítio aqui do lado: vai conhecer!",
@@ -169,8 +175,7 @@
       }
     ],
     "rewards": {},
-    "kind": "main",
-    "chapter": 2,
+    "kind": "retired",
     "order": 10,
     "go": {
       "world": "farm",
@@ -179,29 +184,38 @@
     }
   },
   "lais_first_crops": {
-    "shared_with": "bloblo_more_crops",
-    "npc": "lais",
-    "name": "Mãos na terra",
-    "dialogue": "Olha o Tiro animado! Ele adora te ajudar quando está bem cuidado. Na colheita, no passeio e no faro, ele pode trazer um extra! A vovó também adora ajuda na horta.",
+    "npc": "bloblo",
+    "name": "A primeira horta",
+    "dialogue": "Venha ao sítio. Vamos plantar cenoura e batata para a primeira papinha.",
     "goals": [
       {
-        "type": "quest",
-        "key": "bloblo_more_crops",
-        "label": "Ajudar a vovó na horta"
+        "type": "stat",
+        "key": "harvest:carrot",
+        "target": 1,
+        "label": "Colher cenoura"
+      },
+      {
+        "type": "stat",
+        "key": "harvest:potato",
+        "target": 1,
+        "label": "Colher batata"
       }
     ],
-    "rewards": {},
+    "rewards": {
+      "coins": 5,
+      "upgrades": [
+        "stove"
+      ]
+    },
     "kind": "main",
-    "chapter": 2,
+    "chapter": 1,
     "order": 20,
     "go": {
       "world": "farm",
-      "place": "npc:bloblo",
-      "hint": "Sítio → vovó Bloblo"
+      "place": "plots"
     }
   },
   "lais_fishing": {
-    "shared_with": "bloblo_first_fish",
     "npc": "lais",
     "name": "Um peixinho para o Tiro",
     "dialogue": "Filhote cresce comendo de tudo um pouquinho. Peixe faz bem para os dentinhos que estão nascendo! A vovó tem uma lagoa cheia deles.",
@@ -213,8 +227,7 @@
       }
     ],
     "rewards": {},
-    "kind": "main",
-    "chapter": 2,
+    "kind": "retired",
     "order": 30,
     "go": {
       "world": "farm",
@@ -236,33 +249,44 @@
     "rewards": {
       "coins": 10
     },
-    "kind": "main",
-    "chapter": 3,
+    "kind": "retired",
     "order": 10
   },
   "first_kitchen": {
-    "npc": "lais",
-    "name": "Cheirinho de comida",
-    "dialogue": "Com um fogão dá para fazer uma papinha caseira para ele!",
+    "npc": "bloblo",
+    "name": "A primeira papinha",
+    "dialogue": "Pique a cenoura e a batata, mexa e sirva ao Tiro. Hoje vale em qualquer horário.",
     "goals": [
       {
-        "type": "owned",
-        "key": "stove",
-        "label": "Comprar o fogão"
+        "type": "stat",
+        "key": "together:puppy_mash",
+        "target": 1,
+        "label": "Fazer a papinha no Cozinhar junto"
+      },
+      {
+        "type": "stat",
+        "key": "feed:puppy_mash",
+        "target": 1,
+        "label": "Dar a papinha ao Tiro"
       }
     ],
-    "rewards": {
-      "coins": 10,
-      "skill_xp": {
-        "cooking": 15
-      }
-    },
+    "rewards": {},
     "kind": "main",
-    "chapter": 3,
-    "order": 20
+    "chapter": 1,
+    "order": 30,
+    "go": {
+      "world": "house",
+      "place": "cookbook:recipe:puppy_mash",
+      "spot": "stove"
+    },
+    "goal_go": {
+      "feed:puppy_mash": {
+        "feed": true,
+        "screen": "pet"
+      }
+    }
   },
   "lais_stew": {
-    "shared_with": "bloblo_stew",
     "npc": "lais",
     "name": "Ensopado para a vovó",
     "dialogue": "Vamos fazer um ensopado para a vovó Bloblo? Ela cuida tanto dele.",
@@ -274,8 +298,7 @@
       }
     ],
     "rewards": {},
-    "kind": "main",
-    "chapter": 3,
+    "kind": "retired",
     "order": 30,
     "go": {
       "world": "farm",
@@ -299,7 +322,7 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 4,
+    "chapter": 8,
     "order": 10,
     "go": {
       "world": "village",
@@ -320,7 +343,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 4,
+    "chapter": 8,
     "order": 20,
     "shared_with": "merchant_first_sale"
   },
@@ -337,7 +360,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 4,
+    "chapter": 8,
     "order": 30,
     "shared_with": "merchant_orders"
   },
@@ -354,7 +377,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 4,
+    "chapter": 8,
     "order": 40,
     "shared_with": "bloblo_chest"
   },
@@ -376,7 +399,7 @@
       }
     },
     "kind": "main",
-    "chapter": 5,
+    "chapter": 9,
     "order": 10
   },
   "main_4_materials": {
@@ -400,7 +423,7 @@
       "coins": 30
     },
     "kind": "main",
-    "chapter": 5,
+    "chapter": 9,
     "order": 20
   },
   "main_4_bench": {
@@ -421,7 +444,7 @@
       }
     },
     "kind": "main",
-    "chapter": 5,
+    "chapter": 9,
     "order": 30
   },
   "bloblo_meet": {
@@ -510,13 +533,17 @@
       }
     ],
     "rewards": {
-      "rods": ["bamboo_rod"],
+      "rods": [
+        "bamboo_rod"
+      ],
       "items": {
         "bait_worm": 5
       }
     },
     "requirements": {
-      "quests": ["lais_first_crops"]
+      "quests": [
+        "lais_first_crops"
+      ]
     },
     "kind": "line",
     "line": "bloblo",
@@ -728,7 +755,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 6,
+    "chapter": 10,
     "order": 20,
     "shared_with": "guide_stone"
   },
@@ -745,7 +772,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 7,
+    "chapter": 11,
     "order": 10,
     "shared_with": "merchant_regular"
   },
@@ -771,7 +798,7 @@
       }
     },
     "kind": "main",
-    "chapter": 8,
+    "chapter": 12,
     "order": 20
   },
   "own_business": {
@@ -787,7 +814,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 7,
+    "chapter": 11,
     "order": 30,
     "shared_with": "merchant_stall"
   },
@@ -824,7 +851,7 @@
       }
     },
     "kind": "main",
-    "chapter": 9,
+    "chapter": 13,
     "order": 30
   },
   "main_7_greenhouse": {
@@ -849,7 +876,7 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 8,
+    "chapter": 12,
     "order": 30
   },
   "main_5_pickaxe": {
@@ -866,7 +893,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 6,
+    "chapter": 10,
     "order": 10
   },
   "main_5_cooking": {
@@ -897,7 +924,7 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 6,
+    "chapter": 10,
     "order": 30
   },
   "main_5_bricks": {
@@ -916,7 +943,7 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 6,
+    "chapter": 10,
     "order": 40
   },
   "main_6_commerce": {
@@ -933,7 +960,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 7,
+    "chapter": 11,
     "order": 20
   },
   "main_7_orchard": {
@@ -952,7 +979,7 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 8,
+    "chapter": 12,
     "order": 10
   },
   "main_8_fiber": {
@@ -971,7 +998,7 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 9,
+    "chapter": 13,
     "order": 10,
     "hint": "Vila → Portão da trilha → Prado das fibras."
   },
@@ -991,7 +1018,7 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 9,
+    "chapter": 13,
     "order": 20
   },
   "main_9_coop": {
@@ -1313,7 +1340,7 @@
     "line": "merchant",
     "order": 10,
     "requirements": {
-      "chapter": 4
+      "chapter": 8
     }
   },
   "merchant_surplus": {
@@ -1436,7 +1463,7 @@
     "line": "guide",
     "order": 10,
     "requirements": {
-      "chapter": 5
+      "chapter": 9
     }
   },
   "guide_wood": {
@@ -1676,8 +1703,7 @@
       "world": "house",
       "place": "stove"
     },
-    "kind": "main",
-    "chapter": 3,
+    "kind": "retired",
     "order": 22
   },
   "bloblo_big_tilapia": {
@@ -1703,7 +1729,7 @@
     "order": 72,
     "requirements": {
       "quests": [
-        "lais_fish_mash"
+        "week_fish_dish"
       ]
     }
   },
@@ -1729,7 +1755,7 @@
     "line": "angling",
     "order": 10,
     "requirements": {
-      "chapter": 5,
+      "chapter": 9,
       "rod": "bamboo_rod"
     },
     "go": {
@@ -1795,7 +1821,7 @@
       "place": "stove"
     },
     "kind": "main",
-    "chapter": 6,
+    "chapter": 10,
     "order": 42
   },
   "guide_angler": {
@@ -1913,7 +1939,7 @@
       "place": "stove"
     },
     "kind": "main",
-    "chapter": 9,
+    "chapter": 13,
     "order": 36
   },
   "lais_blender": {
@@ -1933,9 +1959,12 @@
         "strawberry": 2
       }
     },
-    "kind": "main",
-    "chapter": 3,
-    "order": 25
+    "kind": "line",
+    "order": 10,
+    "line": "lais_kitchen",
+    "requirements": {
+      "chapter": 8
+    }
   },
   "bloblo_dig": {
     "npc": "bloblo",
@@ -2156,14 +2185,14 @@
   },
   "nina_trick": {
     "npc": "nina",
-    "name": "Dá a pata!",
-    "dialogue": "Vou te ensinar o dá a pata. Toque na hora certa!",
+    "name": "Fala, Tiro!",
+    "dialogue": "Vou te ensinar o Fala. Toque na hora certa!",
     "goals": [
       {
         "type": "stat",
-        "key": "trick_learned",
+        "key": "trick_learned:talk",
         "target": 1,
-        "label": "Ensinar Dá a pata"
+        "label": "Ensinar Fala"
       }
     ],
     "rewards": {
@@ -2180,9 +2209,9 @@
     "goals": [
       {
         "type": "stat",
-        "key": "trick_learned",
-        "target": 3,
-        "label": "Aprender 3 truques"
+        "key": "trick_learned:roll",
+        "target": 1,
+        "label": "Ensinar Rola"
       }
     ],
     "rewards": {
@@ -2490,7 +2519,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 10,
+    "chapter": 14,
     "order": 10
   },
   "community_10_bench": {
@@ -2507,7 +2536,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 10,
+    "chapter": 14,
     "order": 20
   },
   "community_10_use": {
@@ -2526,7 +2555,7 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 10,
+    "chapter": 14,
     "order": 30
   },
   "community_11_garden": {
@@ -2543,7 +2572,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 11,
+    "chapter": 15,
     "order": 10
   },
   "community_11_picnic": {
@@ -2560,7 +2589,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 11,
+    "chapter": 15,
     "order": 20
   },
   "community_11_tiro": {
@@ -2579,7 +2608,7 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 11,
+    "chapter": 15,
     "order": 30
   },
   "community_12_prepare": {
@@ -2597,7 +2626,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 12,
+    "chapter": 16,
     "order": 10
   },
   "community_12_festival": {
@@ -2614,7 +2643,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 12,
+    "chapter": 16,
     "order": 20
   },
   "community_12_memory": {
@@ -2635,57 +2664,85 @@
       }
     },
     "kind": "main",
-    "chapter": 12,
+    "chapter": 16,
     "order": 30
   },
   "growth_1_puppy": {
     "npc": "lais",
-    "name": "Ele está crescendo!",
-    "dialogue": "A ração que você ganhou ajuda o Corpo a crescer. Dê comida na Tigela e faça carinho para ganhar Coragem. Depois, toque em Crescer!",
+    "name": "Filhotinho",
+    "dialogue": "Sirva o jantar e veja o que falta em Para crescer.",
     "goals": [
       {
         "type": "growth",
         "key": "puppy",
-        "label": "Cuidar do Tiro até ele crescer"
+        "target": 1,
+        "label": "Virar Filhotinho"
       }
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 1,
-    "order": 70
+    "chapter": 2,
+    "order": 70,
+    "go": {
+      "growth": true
+    }
   },
   "teeth_3_ring": {
-    "shared_with": "bloblo_chew_ring",
-    "npc": "lais",
-    "name": "Dentinhos coçando",
-    "dialogue": "Os dentinhos dele estão coçando! A vovó sabe fazer uma argolinha para ele morder.",
+    "npc": "bloblo",
+    "name": "O mordedor",
+    "dialogue": "O Tiro está mordendo até meu chinelo. Compre o kit na banca e entregue em Para crescer.",
     "goals": [
       {
-        "type": "quest",
-        "key": "bloblo_chew_ring",
-        "label": "Fazer a argolinha com a vovó"
+        "type": "week_delivered",
+        "key": "chew_ring",
+        "target": 1,
+        "label": "Entregar o mordedor"
       }
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 3,
-    "order": 35
+    "chapter": 7,
+    "order": 10,
+    "go": {
+      "world": "farm",
+      "place": "shop:week_teether"
+    },
+    "goal_go": {
+      "chew_ring": {
+        "growth": true
+      }
+    }
   },
   "growth_3_teething": {
-    "npc": "lais",
-    "name": "As orelhinhas subiram!",
-    "dialogue": "As orelhinhas dele subiram! Cresceu mais um pouquinho.",
+    "npc": "bloblo",
+    "name": "Almoço de despedida e Dentinhos",
+    "dialogue": "Cozinhe três pratos e sirva à vovó, à Laís e ao Tiro. Vamos tirar uma foto juntos antes de ele crescer.",
     "goals": [
+      {
+        "type": "stat",
+        "key": "week_farewell",
+        "target": 1,
+        "label": "Servir o almoço de despedida"
+      },
       {
         "type": "growth",
         "key": "teething",
-        "label": "Cuidar do Tiro até ele crescer"
+        "target": 1,
+        "label": "Virar Dentinhos"
       }
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 3,
-    "order": 40
+    "chapter": 7,
+    "order": 20,
+    "go": {
+      "farewell": true
+    },
+    "goal_go": {
+      "teething": {
+        "growth": true
+      }
+    }
   },
   "explorer_6_eggs": {
     "shared_with": "main_9_eggs",
@@ -2701,7 +2758,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 6,
+    "chapter": 10,
     "order": 45
   },
   "growth_6_explorer": {
@@ -2717,7 +2774,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 6,
+    "chapter": 10,
     "order": 50
   },
   "young_8_shampoo": {
@@ -2736,7 +2793,7 @@
       "coins": 10
     },
     "kind": "main",
-    "chapter": 8,
+    "chapter": 12,
     "order": 40
   },
   "young_9_milk": {
@@ -2753,7 +2810,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 9,
+    "chapter": 13,
     "order": 35
   },
   "growth_9_young": {
@@ -2769,7 +2826,7 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 9,
+    "chapter": 13,
     "order": 40
   },
   "growth_12_adult": {
@@ -2785,28 +2842,540 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 12,
+    "chapter": 16,
     "order": 40
   },
   "lais_first_wish": {
     "npc": "lais",
-    "name": "Atender o primeiro desejo",
-    "dialogue": "Quando ele pede, é hora de cuidar. Cada cuidado assim vira um momento que faz ele crescer! Toque no balão do Tiro e atenda o desejo.",
+    "name": "O primeiro desejo",
+    "dialogue": "Toque no balão do Tiro e atenda o que ele está pedindo.",
     "goals": [
       {
         "type": "stat",
         "key": "wish",
         "target": 1,
-        "label": "Atender o primeiro desejo"
+        "label": "Atender a um desejo"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 3,
+    "order": 40,
+    "go": {
+      "screen": "pet"
+    }
+  },
+  "week_market": {
+    "npc": "bloblo",
+    "name": "A banca da vovó",
+    "dialogue": "Venda quatro cenouras e leve semente de abóbora e aveia.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "sold:farm:carrot",
+        "target": 4,
+        "label": "Vender quatro cenouras na banca"
+      },
+      {
+        "type": "stat",
+        "key": "buy:week_pumpkin_seed",
+        "target": 1,
+        "label": "Comprar semente de abóbora"
+      },
+      {
+        "type": "stat",
+        "key": "buy:week_oat",
+        "target": 1,
+        "label": "Comprar aveia"
+      }
+    ],
+    "rewards": {
+      "coins": 40
+    },
+    "kind": "main",
+    "chapter": 1,
+    "order": 40,
+    "go": {
+      "world": "farm",
+      "place": "early_market"
+    }
+  },
+  "week_plots": {
+    "npc": "bloblo",
+    "name": "A horta cresce",
+    "dialogue": "Abra mais dois canteiros e plante a abóbora.",
+    "goals": [
+      {
+        "type": "week_plots",
+        "key": "plots",
+        "target": 4,
+        "label": "Abrir quatro canteiros"
+      },
+      {
+        "type": "stat",
+        "key": "plant:pumpkin",
+        "target": 1,
+        "label": "Plantar abóbora"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 1,
+    "order": 50,
+    "go": {
+      "world": "farm",
+      "place": "plots"
+    }
+  },
+  "week_invent": {
+    "npc": "bloblo",
+    "name": "Inventar no jantar",
+    "dialogue": "Reserve uma parte da colheita. No jantar, invente um prato na panela.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "week_invention",
+        "target": 1,
+        "label": "Inventar um prato novo"
+      }
+    ],
+    "rewards": {
+      "items": {
+        "oat": 2
+      }
+    },
+    "kind": "main",
+    "chapter": 1,
+    "order": 70,
+    "go": {
+      "world": "house",
+      "place": "cookbook:invent",
+      "spot": "stove"
+    },
+    "meal_open": "dinner"
+  },
+  "week_coop": {
+    "npc": "bloblo",
+    "name": "As galinhas da vovó",
+    "dialogue": "O kit já traz o galinheiro e duas galinhas. A banca devolve 20 moedas na compra.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "buy:week_coop",
+        "target": 1,
+        "label": "Comprar e montar o galinheiro"
       }
     ],
     "rewards": {},
     "kind": "main",
     "chapter": 2,
-    "order": 5,
+    "order": 10,
     "go": {
-      "screen": "pet",
-      "hint": "Tiro → balão do desejo"
+      "world": "farm",
+      "place": "shop:week_coop"
+    }
+  },
+  "week_eggs": {
+    "npc": "bloblo",
+    "name": "O primeiro ovo",
+    "dialogue": "Plante milho, alimente as galinhas e recolha dois ovos. Experimente uma papinha de batata e ovo.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "produce:egg",
+        "target": 2,
+        "label": "Pegar dois ovos"
+      }
+    ],
+    "rewards": {
+      "items": {
+        "oat": 1
+      }
+    },
+    "kind": "main",
+    "chapter": 2,
+    "order": 20,
+    "go": {
+      "world": "farm",
+      "place": "chicken_coop"
+    }
+  },
+  "week_biscuits": {
+    "npc": "bloblo",
+    "name": "Biscoito de treino",
+    "dialogue": "As aulas pedem um biscoito cada. Prepare três de aveia.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "week_oat_biscuit",
+        "target": 3,
+        "label": "Fazer três biscoitos de aveia"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 2,
+    "order": 30,
+    "go": {
+      "world": "house",
+      "place": "recipe:week_oat_biscuit",
+      "spot": "stove"
+    }
+  },
+  "week_sit": {
+    "npc": "bloblo",
+    "name": "Senta!",
+    "dialogue": "Mostre o Senta, marque o acerto e premie. Um biscoito vale por aula.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "trick:sit",
+        "target": 3,
+        "label": "Acertar o Senta três vezes"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 2,
+    "order": 40,
+    "go": {
+      "world": "farm",
+      "place": "week_training"
+    }
+  },
+  "week_fetch": {
+    "npc": "lais",
+    "name": "Vai buscar!",
+    "dialogue": "Agora ele pode buscar a bolinha. Jogue mais duas vezes.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "yard:ball",
+        "target": 2,
+        "label": "Brincar de buscar duas vezes",
+        "fresh": true
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 2,
+    "order": 50,
+    "go": {
+      "world": "farm",
+      "place": "week_yard"
+    }
+  },
+  "week_bridge": {
+    "npc": "bloblo",
+    "name": "A ponte",
+    "dialogue": "A lagoa fica depois da ponte. Pode usar a minha vara de bambu.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "week_pier",
+        "target": 1,
+        "label": "Ir à lagoa"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 3,
+    "order": 10,
+    "go": {
+      "world": "farm",
+      "place": "fishing"
+    }
+  },
+  "week_fish": {
+    "npc": "bloblo",
+    "name": "O primeiro peixe",
+    "dialogue": "Pesque dois peixes. Um deles já pode ir para a panela.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "fish",
+        "target": 2,
+        "label": "Pescar dois peixes"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 3,
+    "order": 20,
+    "go": {
+      "world": "farm",
+      "place": "fishing"
+    }
+  },
+  "week_fish_dish": {
+    "npc": "bloblo",
+    "name": "Um prato com peixe",
+    "dialogue": "Sirva uma refeição com peixe. Ela vale aqui e em Para crescer.",
+    "goals": [
+      {
+        "type": "week_dish",
+        "key": "fish",
+        "target": 1,
+        "label": "Dar uma refeição com peixe"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 3,
+    "order": 30,
+    "go": {
+      "world": "house",
+      "place": "stove"
+    },
+    "goal_go": {
+      "fish": {
+        "feed": true,
+        "screen": "pet"
+      }
+    }
+  },
+  "week_orchard": {
+    "npc": "bloblo",
+    "name": "O portão do pomar",
+    "dialogue": "Colha duas maçãs e duas bananas. As árvores carregam de novo depois.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "harvest:apple",
+        "target": 2,
+        "label": "Colher duas maçãs"
+      },
+      {
+        "type": "stat",
+        "key": "harvest:banana",
+        "target": 2,
+        "label": "Colher duas bananas"
+      }
+    ],
+    "rewards": {
+      "coins": 5
+    },
+    "kind": "main",
+    "chapter": 4,
+    "order": 10,
+    "go": {
+      "world": "farm",
+      "place": "orchard"
+    }
+  },
+  "week_fruit_dish": {
+    "npc": "bloblo",
+    "name": "Um prato com fruta",
+    "dialogue": "Ponha banana ou maçã na panela. Fruta com aveia dá mingau.",
+    "goals": [
+      {
+        "type": "week_dish",
+        "key": "fruit",
+        "target": 1,
+        "label": "Dar uma refeição com fruta"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 4,
+    "order": 20,
+    "go": {
+      "world": "house",
+      "place": "stove"
+    },
+    "goal_go": {
+      "fruit": {
+        "feed": true,
+        "screen": "pet"
+      }
+    }
+  },
+  "week_paw": {
+    "npc": "bloblo",
+    "name": "Dá a pata",
+    "dialogue": "Traga um biscoito para a próxima aula.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "trick:paw",
+        "target": 3,
+        "label": "Aprender Dá a pata"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 4,
+    "order": 30,
+    "go": {
+      "world": "farm",
+      "place": "week_training"
+    }
+  },
+  "week_rope": {
+    "npc": "lais",
+    "name": "Cabo de guerra",
+    "dialogue": "Agora é a vez da cordinha! Brinquem duas vezes.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "play_rope",
+        "target": 2,
+        "label": "Brincar duas vezes com a cordinha"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 4,
+    "order": 40,
+    "go": {
+      "world": "farm",
+      "place": "week_yard"
+    }
+  },
+  "week_cart_order": {
+    "npc": "merchant",
+    "name": "A carroça",
+    "dialogue": "Faço duas encomendas por dia. Veja o que pode trazer hoje.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "cart_delivery",
+        "target": 1,
+        "label": "Entregar uma encomenda da carroça"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 5,
+    "order": 10,
+    "go": {
+      "world": "farm",
+      "place": "week_cart"
+    },
+    "npc_world": "farm"
+  },
+  "week_bath": {
+    "npc": "lais",
+    "name": "Banho de filhote",
+    "dialogue": "O Feirante trouxe xampu de filhote. Vamos caprichar na espuma?",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "shampoo_bath",
+        "target": 1,
+        "label": "Dar banho com xampu"
+      }
+    ],
+    "rewards": {
+      "coins": 10
+    },
+    "kind": "main",
+    "chapter": 5,
+    "order": 20,
+    "go": {
+      "world": "farm",
+      "place": "shop:cart_shampoo",
+      "spot": "week_cart"
+    },
+    "goal_go": {
+      "shampoo_bath": {
+        "screen": "pet",
+        "care": "bath"
+      }
+    },
+    "goal_stock_go": {
+      "item": "puppy_shampoo",
+      "key": "shampoo_bath"
+    }
+  },
+  "week_down": {
+    "npc": "bloblo",
+    "name": "Deita",
+    "dialogue": "Mais um truque para mostrar na varanda.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "trick:lie_down",
+        "target": 3,
+        "label": "Aprender Deita"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 5,
+    "order": 30,
+    "go": {
+      "world": "farm",
+      "place": "week_training"
+    }
+  },
+  "week_egg_dish": {
+    "npc": "bloblo",
+    "name": "Um prato com ovo",
+    "dialogue": "Se ele já comeu uma refeição com ovo depois de virar Filhotinho, este passo já está pronto.",
+    "goals": [
+      {
+        "type": "week_dish",
+        "key": "egg",
+        "target": 1,
+        "label": "Dar uma refeição com ovo na fase Filhotinho"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 6,
+    "order": 10,
+    "go": {
+      "world": "house",
+      "place": "stove"
+    },
+    "goal_go": {
+      "egg": {
+        "feed": true,
+        "screen": "pet"
+      }
+    }
+  },
+  "week_show": {
+    "npc": "bloblo",
+    "name": "O show do Tiro",
+    "dialogue": "A Laís e eu estamos na varanda. Mostre três truques que o Tiro já conhece.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "trick_show",
+        "target": 1,
+        "label": "Completar um show"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 6,
+    "order": 20,
+    "go": {
+      "world": "farm",
+      "place": "week_show"
+    }
+  },
+  "week_hide": {
+    "npc": "lais",
+    "name": "Esconde-esconde",
+    "dialogue": "O Tiro se escondeu no quintal. Ache-o três vezes!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "hide_found",
+        "target": 3,
+        "label": "Achar o Tiro três vezes"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 6,
+    "order": 30,
+    "go": {
+      "world": "farm",
+      "place": "week_yard"
     }
   }
 }

@@ -45,31 +45,62 @@
       "teaser": "Um sorriso cheio de descobertas.",
       "requirements": [
         {
-          "id": "home",
-          "type": "given",
-          "label": "Chegou em casa"
-        },
-        {
           "id": "bed",
           "type": "owned",
           "upgrade": "dog_bed"
         },
         {
-          "id": "meals",
-          "type": "feed",
-          "item": "any",
-          "qty": 3,
-          "body_level": 1
+          "id": "days",
+          "type": "stat",
+          "counter": "well_fed_day",
+          "qty": 2,
+          "label": "Dias bem alimentados"
         },
         {
-          "id": "pillars",
-          "type": "moments",
-          "pillar": "brave",
-          "qty": 3,
-          "label": "Carinho e novidades"
+          "id": "dishes",
+          "type": "dishes",
+          "qty": 4,
+          "label": "Pratos diferentes"
+        },
+        {
+          "id": "star_dish",
+          "type": "dish_stars",
+          "stars": 2,
+          "qty": 1,
+          "label": "Prato de 2 estrelas"
+        },
+        {
+          "id": "invented",
+          "type": "invented_dish",
+          "qty": 1,
+          "label": "Prato inventado"
+        },
+        {
+          "id": "play",
+          "type": "stat",
+          "counter": "play",
+          "qty": 4,
+          "label": "Brincar com o Tiro"
+        },
+        {
+          "id": "name",
+          "type": "stat",
+          "counter": "name_call",
+          "qty": 1,
+          "label": "Atender pelo nome",
+          "hook": "name_call"
+        },
+        {
+          "id": "sit",
+          "type": "trick_level",
+          "trick": "sit",
+          "level": 1,
+          "qty": 1,
+          "label": "Aprender o Senta",
+          "hook": "trick_sit"
         }
       ],
-      "chapter": 1,
+      "chapter": 2,
       "rewards": {
         "coins": 30,
         "items": {
@@ -94,34 +125,86 @@
       "teaser": "As orelhas vão acompanhar a curiosidade.",
       "requirements": [
         {
-          "id": "pillars",
-          "type": "moments",
-          "pillar": "brave",
-          "qty": 3,
-          "label": "Carinho e novidades"
-        },
-        {
-          "id": "meals",
-          "type": "feed",
-          "item": "frozen_carrot",
-          "qty": 3,
-          "body_level": 2
-        },
-        {
-          "id": "fish_meal",
-          "type": "feed",
-          "item": "fish_mash",
-          "qty": 2,
-          "label": "Papinha de peixe"
-        },
-        {
           "id": "key",
           "type": "deliver",
           "item": "chew_ring",
           "qty": 1
+        },
+        {
+          "id": "days",
+          "type": "stat",
+          "counter": "well_fed_day",
+          "qty": 5,
+          "label": "Dias bem alimentados"
+        },
+        {
+          "id": "dishes",
+          "type": "dishes",
+          "qty": 8,
+          "types": 3,
+          "type_pool": [
+            "papinha",
+            "sopinha",
+            "mingau"
+          ],
+          "label": "Pratos diferentes"
+        },
+        {
+          "id": "key_egg",
+          "type": "dish_key",
+          "group": "egg",
+          "qty": 1,
+          "label": "Prato com ovo"
+        },
+        {
+          "id": "key_fruit",
+          "type": "dish_key",
+          "group": "fruit",
+          "qty": 1,
+          "label": "Prato com fruta"
+        },
+        {
+          "id": "key_fish",
+          "type": "dish_key",
+          "group": "fish",
+          "qty": 1,
+          "label": "Prato com peixe"
+        },
+        {
+          "id": "play",
+          "type": "stat",
+          "counter": "play",
+          "qty": 8,
+          "label": "Brincar"
+        },
+        {
+          "id": "rope",
+          "type": "stat",
+          "counter": "play_rope",
+          "qty": 1,
+          "label": "Brincar com a cordinha",
+          "hook": "play_rope"
+        },
+        {
+          "id": "tricks",
+          "type": "stat",
+          "counter": "trick_learned",
+          "qty": 3,
+          "label": "Truques aprendidos",
+          "hook": "tricks_three",
+          "total": true
+        },
+        {
+          "id": "sit_good",
+          "type": "trick_level",
+          "trick": "sit",
+          "level": 2,
+          "qty": 2,
+          "label": "Senta: Sabe bem",
+          "hook": "trick_sit"
         }
       ],
-      "chapter": 3,
+      "chapter": 7,
       "rewards": {
         "coins": 60,
         "items": {
@@ -129,7 +212,7 @@
         }
       },
       "unlocks_text": [
-        "Truques: Dá a pata · Fala"
+        "Vila e treino com a Nina"
       ]
     },
     {
@@ -185,7 +268,7 @@
           "qty": 3
         }
       ],
-      "chapter": 6,
+      "chapter": 10,
       "rewards": {
         "coins": 100
       },
@@ -248,7 +331,7 @@
           "qty": 1
         }
       ],
-      "chapter": 9,
+      "chapter": 13,
       "rewards": {
         "coins": 150
       },
@@ -308,13 +391,206 @@
           "collection": "topknot_bow"
         }
       ],
-      "chapter": 12,
+      "chapter": 16,
       "rewards": {
         "coins": 250
       },
       "unlocks_text": [
         "Guardião do Vale · Pelagem de seda"
       ]
+    }
+  ],
+  "week_play": {
+    "days": {
+      "ball": 1,
+      "name": 1,
+      "fetch": 2,
+      "rope": 4,
+      "squeak": 5,
+      "lake": 6,
+      "hide": 6
+    },
+    "limit": 3,
+    "throws": 5,
+    "pulls": 3,
+    "happiness": {
+      "ball": 10,
+      "squeak": 14,
+      "rope": 6,
+      "hide": 6
+    },
+    "record_coins": 5,
+    "jump": {
+      "opens": 0.7,
+      "closes": 1.45,
+      "multiplier": 2
+    },
+    "rope": {
+      "opens": 1.0,
+      "closes": 1.65,
+      "max_hold": 2.2
+    },
+    "launch": {
+      "origin": [
+        0.5,
+        0.82
+      ],
+      "drag": 0.32,
+      "range": 0.71,
+      "squeak_range": 0.86,
+      "tap": [
+        0.0,
+        -0.15
+      ]
+    },
+    "bands": [
+      0.68,
+      0.5,
+      0.32
+    ],
+    "targets": [
+      {
+        "id": "arch",
+        "label": "Arco de flores",
+        "at": [
+          0.27,
+          0.34
+        ],
+        "radius": 0.092,
+        "points": 3
+      },
+      {
+        "id": "bucket",
+        "label": "Balde",
+        "at": [
+          0.73,
+          0.48
+        ],
+        "radius": 0.086,
+        "points": 2
+      },
+      {
+        "id": "mud",
+        "label": "Tiro voltou todo enlameado!",
+        "at": [
+          0.17,
+          0.66
+        ],
+        "radius": 0.09
+      },
+      {
+        "id": "hen",
+        "label": "Tiro parou para latir para a galinha!",
+        "at": [
+          0.81,
+          0.28
+        ],
+        "radius": 0.08
+      },
+      {
+        "id": "pot",
+        "label": "Tiro escondeu a bolinha atrás do vaso!",
+        "at": [
+          0.85,
+          0.68
+        ],
+        "radius": 0.09
+      }
+    ],
+    "bridge": [
+      0.4,
+      0.29,
+      0.2,
+      0.12
+    ],
+    "hideouts": [
+      "Vaso",
+      "Casinha",
+      "Arbusto"
+    ]
+  },
+  "hooks": {
+    "_nota": "Requisitos com `hook` só aparecem quando `live` é true. A etapa dona do sistema liga o gancho (E07 truques, E09 brincadeiras).",
+    "name_call": {
+      "live": true,
+      "etapa": "E09",
+      "counter": "name_call"
+    },
+    "play_rope": {
+      "live": true,
+      "etapa": "E09",
+      "counter": "play_rope"
+    },
+    "trick_sit": {
+      "live": true,
+      "etapa": "E07",
+      "counter": "trick:sit"
+    },
+    "tricks_three": {
+      "live": true,
+      "etapa": "E07",
+      "counter": "trick_learned"
+    }
+  },
+  "key_groups": {
+    "egg": {
+      "name": "ovo",
+      "ingredient": "ovo",
+      "go": {
+        "world": "farm",
+        "place": "chicken_coop"
+      }
+    },
+    "fruit": {
+      "name": "fruta",
+      "category": "fruta",
+      "go": {
+        "world": "farm",
+        "place": "orchard"
+      }
+    },
+    "fish": {
+      "name": "peixe",
+      "ingredient": "peixe",
+      "quest_item": "fish_mash",
+      "go": {
+        "world": "farm",
+        "place": "fishing"
+      }
+    }
+  },
+  "trick_levels": {
+    "thresholds": [
+      3,
+      8,
+      15
+    ],
+    "names": [
+      "Aprendeu",
+      "Sabe bem",
+      "Craque"
+    ],
+    "counter": "trick:<id>"
+  },
+  "week_summary": [
+    {
+      "id": "days",
+      "counter": "well_fed_day",
+      "text": "%d dias bem alimentados"
+    },
+    {
+      "id": "dishes",
+      "text": "%d pratos diferentes"
+    },
+    {
+      "id": "plays",
+      "counter": "play",
+      "text": "%d brincadeiras"
+    },
+    {
+      "id": "tricks",
+      "counter": "trick_learned",
+      "text": "%d truques"
     }
   ],
   "bodies": {
@@ -844,7 +1120,9 @@
       }
     ],
     "period_cap": 2,
-    "uncapped_phases": ["newborn"],
+    "uncapped_phases": [
+      "newborn"
+    ],
     "sources": {
       "fish_first": {
         "label": "Pescar um peixe novo",
@@ -945,12 +1223,28 @@
         "capped": true,
         "first": false
       },
+      "trick_meal": {
+        "label": "Acertar um truque antes de comer",
+        "go": "screen:pet",
+        "pillar": "smart",
+        "qty": 1,
+        "capped": false,
+        "first": false
+      },
       "bath": {
         "label": "Banho quando ele pede",
         "go": "screen:pet",
         "pillar": "coat",
         "qty": 1,
         "capped": true,
+        "first": false
+      },
+      "puppy_shampoo_bath": {
+        "label": "Banho caprichado",
+        "go": "screen:pet",
+        "pillar": "coat",
+        "qty": 2,
+        "capped": false,
         "first": false
       },
       "shampoo_bath": {

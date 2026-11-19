@@ -107,13 +107,13 @@ func _run() -> void:
 	all_needs(100.0)
 	need("hunger", 20)
 	check(wish_now() == "meal" and str(state.wish_now().type) == "action", "fome sem comida da fase → qualquer comida")
-	# Sem necessidade, o pilar com mais falta.
+	# Sem necessidade e sem momentos pedidos (a lista de Filhotinho da semana 1 não os pede): qualquer desejo da fase.
 	fresh("puppy")
 	state.wishes.done_count = 1
 	state.wishes.first_done = true
 	state.wishes.period = ""
 	all_needs(100.0)
-	check(wish_now() != "" and state.wish_pillar() == "brave", "sem necessidade: pilar com mais falta (Coragem rumo a Dentinhos)")
+	check(wish_now() != "" and state.wish_pillar() != "", "sem necessidade e sem pilar faltando: qualquer desejo da fase")
 	fresh("teething")
 	state.wishes.done_count = 1
 	state.wishes.first_done = true
@@ -147,8 +147,10 @@ func _run() -> void:
 	state.wishes.first_done = true
 	state.inventory.add("frozen_carrot", 2)
 	need("hunger", 20)
-	check(wish_now() == "meal" and str(state.wish_now().item) == "frozen_carrot", "fome: a comida da refeição da fase")
+	# A lista da primeira semana (E05) não pede uma comida específica em Filhotinho: a fome vira "Tô com fome" (qualquer comida).
+	check(wish_now() == "meal" and str(state.wish_now().type) == "action" and str(state.wish_now().name) == "Tô com fome", "fome: qualquer comida resolve")
 	var meals_before: int = state.progress.stat("feed:frozen_carrot")
+	check(state.feed("frozen_carrot"), "dá a comida")
 	check(state.wish_error() == "" and state.fulfill_wish() == "", "atende com a comida")
 	check(state.progress.stat("feed:frozen_carrot") == meals_before + 1 and state.inventory.count("frozen_carrot") == 1, "conta como refeição e consome uma")
 	# Truque e passeio longo abrem pela fase.
@@ -163,7 +165,11 @@ func _run() -> void:
 	check("explorer" in long_phases and "young" in long_phases and "adult" in long_phases, "passeios longos abrem por Aventureiro/Mocinho/Azul e Dourado")
 	var tricks: Dictionary = root.get_node("Database").progression.tricks
 	for id: String in tricks:
-		check(str(tricks[id].requirements.get("growth", "")) != "" and not tricks[id].requirements.has("bond"), "truque %s abre pela fase" % id)
+		var requirements: Dictionary = tricks[id].requirements
+		if state.call("trick_is_lesson", id):
+			check(int(requirements.get("week_day", 0)) > 0 and not requirements.has("bond"), "aula de %s abre pelo dia" % id)
+		else:
+			check(str(requirements.get("growth", "")) != "" and not requirements.has("bond"), "truque da Nina %s abre pela fase" % id)
 	# Vínculo saiu.
 	check(not state.dog.to_dict().has("affection") and not root.get_node("Database").progression.has("bond_levels"), "afeto e níveis de vínculo removidos")
 	check(not JSON.stringify(walks).contains("affection") and not JSON.stringify(walks).contains("\"bond\""), "passeios sem afeto nem vínculo")

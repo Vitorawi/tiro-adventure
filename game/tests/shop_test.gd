@@ -55,17 +55,14 @@ func _run() -> void:
 func _data_and_gates() -> void:
 	check((db.call("shop_problems") as Array).is_empty(), "shop_problems vazio: " + str(db.call("shop_problems")))
 	_fresh()
-	check(state.call("shop_error", "farm_stall") != "", "1: banca fechada antes de bloblo_meet")
-	check((state.call("shop_items", "farm_stall") as Array).is_empty(), "1: sem pacotes com a loja fechada")
-	_p().claimed_quests["bloblo_meet"] = true
-	check(state.call("shop_error", "farm_stall") == "", "1: banca abre depois de bloblo_meet")
+	check(state.call("shop_error", "farm_stall") == "", "1: banca abre no dia 1")
 	var shown: Array = state.call("shop_items", "farm_stall")
-	check(shown == ["food_stall", "worm_pack"], "2: ração + UMA dica bloqueada (minhoca): " + str(shown))
+	check(shown == ["week_plot", "week_coop", "week_oat", "week_pumpkin_seed"], "2: dia 1 mostra o canteiro, aveia e a dica do galinheiro: " + str(shown))
 	check(state.call("shop_item_locked", "worm_pack") != "", "2: minhoca bloqueada sem vara")
 	check(state.call("buy_shop_item_error", "worm_pack") != "", "2: não compra o bloqueado")
-	state.call("give_rod", "bamboo_rod")
-	check(state.call("shop_item_locked", "worm_pack") == "", "2: vara libera a minhoca")
-	check(state.call("shop_items", "farm_stall") == ["food_stall", "worm_pack", "daily_offer"], "2: os dois revelados + a dica da oferta do dia")
+	state.call("dev_week_goto", 3)
+	check(state.call("shop_item_locked", "worm_pack") == "", "2: minhoca liberada no dia 3")
+	check("worm_pack" in state.call("shop_items", "farm_stall"), "2: minhoca aparece na banca")
 	check(state.call("shop_items", "market") == [] or state.call("shop_error", "market") != "", "2: Feirante fechado no capítulo 1")
 
 
@@ -73,16 +70,16 @@ func _data_and_gates() -> void:
 func _buying() -> void:
 	_fresh()
 	_p().claimed_quests["bloblo_meet"] = true
-	state.call("give_rod", "bamboo_rod")
+	state.call("dev_week_goto", 3)
 	var worms: int = state.get("inventory").count("bait_worm")
 	var coins: int = state.get("coins")
 	check(state.call("buy_shop_item", "worm_pack", 3) == "", "3: compra 3 pacotes")
-	check(state.get("coins") == coins - 30, "3: cobra 3 × preço")
-	check(state.get("inventory").count("bait_worm") == worms + 15, "3: entrega 3 × itens")
-	check(_p().stat("bought:bait_worm") == 15 and _p().stat("buy:worm_pack") == 3 and _p().stat("bought_shop:farm_stall") == 3, "3: contadores por unidade/pacote/loja")
+	check(state.get("coins") == coins - 18, "3: cobra 3 × preço")
+	check(state.get("inventory").count("bait_worm") == worms + 9, "3: entrega 3 × itens")
+	check(_p().stat("bought:bait_worm") == 9 and _p().stat("buy:worm_pack") == 3 and _p().stat("bought_shop:farm_stall") == 3, "3: contadores por unidade/pacote/loja")
 	state.set("coins", 4)
 	var error: String = state.call("buy_shop_item_error", "worm_pack", 1)
-	check(error == "Faltam 6 moedas", "4: sem moedas diz quanto falta: " + error)
+	check(error == "Faltam 2 moedas", "4: sem moedas diz quanto falta: " + error)
 	var before: int = state.get("inventory").count("bait_worm")
 	check(state.call("buy_shop_item", "worm_pack", 1) != "" and state.get("coins") == 4 and state.get("inventory").count("bait_worm") == before, "4: nada muda sem moedas")
 	# Depósito cheio: pacote de teste que entra no silo (limite com `prebuild_capacity`).
@@ -181,11 +178,11 @@ func _find(node: Node, name: String) -> Node:
 func _screen() -> void:
 	var sell_ui: Script = load("res://scripts/ui/sell_ui.gd")
 	_fresh()
-	# Sem a loja aberta (bloblo_meet não feito): a banca é igual à de antes.
+	# A banca já tem Vender e Comprar no dia 1.
 	var closed: Control = sell_ui.call("build", "farm")
 	root.add_child(closed)
 	await _frames()
-	check(_find(closed, "NotebookTab_buy") == null and _find(closed, "NotebookTab_sell") == null, "8: sem pacotes, sem abas")
+	check(_find(closed, "NotebookTab_buy") != null and _find(closed, "NotebookTab_sell") != null, "8: dia 1 tem as duas abas")
 	check(_find(closed, "SellFrame") != null, "8: a venda continua igual")
 	closed.queue_free()
 	await _frames()
@@ -199,7 +196,9 @@ func _screen() -> void:
 	(_find(live, "NotebookTab_buy") as Button).pressed.emit()
 	await _frames(4)
 	check(_find(live, "Buy_food_stall") != null, "8: Comprar mostra Buy_food_stall")
-	check(_find(live, "Buy_worm_pack") != null and bool((_find(live, "Buy_worm_pack") as Button).get_meta("locked")), "8: a minhoca aparece como dica bloqueada")
+	check((_find(live, "Buy_week_coop") as Button).get_meta("locked"), "8: galinheiro aparece como dica bloqueada")
+	(_find(live, "Buy_food_stall") as Button).pressed.emit()
+	await _frames(4)
 	check(_find(live, "DailyLeft") != null and (_find(live, "DailyLeft") as Label).text == "2 hoje", "8: '2 hoje'")
 	(_find(live, "Plus") as Button).pressed.emit()
 	await _frames(4)
@@ -224,7 +223,7 @@ func _screen() -> void:
 func _go() -> void:
 	_fresh()
 	_p().claimed_quests["bloblo_meet"] = true
-	state.call("give_rod", "bamboo_rod")
+	state.call("dev_week_goto", 3)
 	var sell_ui: Script = load("res://scripts/ui/sell_ui.gd")
 	sell_ui.set("last_tab", "sell")
 	var captured: Array[Control] = []

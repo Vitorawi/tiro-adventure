@@ -6,15 +6,11 @@
     "sprite_dir": "res://assets/sprites/characters/npc_lais/",
     "icon": "tab_house",
     "greeting": "Oi! Vamos cuidar do Tiro juntos?",
-    "portrait_animations": {"request": "res://assets/sprites/characters/npc_lais/quest_request/", "complete": "res://assets/sprites/characters/npc_lais/intro_wave/"},
-    "intro_wave": "res://assets/sprites/characters/npc_lais/intro_wave/",
-    "intro": [
-      {"text": "Oi! Eu sou a Laís. Chegamos!"},
-      {"text": "Essa é a sua casa nova. Ainda está vazia, mas a gente vai deixar ela linda."},
-      {"text": "E esse aqui é o Tiro! A partir de hoje, ele é seu.", "show": "tiro"},
-      {"text": "Ele precisa de comida, banho e muito carinho.", "show": "tiro"},
-      {"text": "Eu fico aqui pra te ajudar. Vamos soltar ele na casa?", "show": "tiro", "button": "Soltar o Tiro!"}
-    ]
+    "portrait_animations": {
+      "request": "res://assets/sprites/characters/npc_lais/quest_request/",
+      "complete": "res://assets/sprites/characters/npc_lais/intro_wave/"
+    },
+    "intro_wave": "res://assets/sprites/characters/npc_lais/intro_wave/"
   },
   "bloblo": {
     "name": "Vovó Bloblo",
@@ -23,8 +19,12 @@
       "Este é o meu sítio. Vou te emprestar dois canteiros para começar.",
       "Vamos plantar juntos? Depois quero conhecer o Tiro!"
     ],
-    "requirements": {"quests": ["growth_1_puppy"]},
-    "services": ["plots", "early_market", "orchard"],
+    "requirements": {},
+    "services": [
+      "plots",
+      "early_market",
+      "orchard"
+    ],
     "role": "A vovó do sítio",
     "portrait": "res://assets/sprites/characters/npc_bloblo/portrait.png",
     "sprite_dir": "res://assets/sprites/characters/npc_bloblo/",
@@ -56,8 +56,14 @@
   },
   "guide": {
     "name": "Guia da trilha",
-    "requirements": {"chapter": 5},
-    "services": ["trees", "rocks", "fibers"],
+    "requirements": {
+      "chapter": 9
+    },
+    "services": [
+      "trees",
+      "rocks",
+      "fibers"
+    ],
     "role": "Passeios e descobertas",
     "portrait": "res://assets/sprites/characters/npc_guide/portrait.png",
     "icon": "action_play",
@@ -65,8 +71,14 @@
   },
   "merchant": {
     "name": "Feirante",
-    "requirements": {"chapter": 4},
-    "services": ["market", "orders", "stall"],
+    "requirements": {
+      "chapter": 8
+    },
+    "services": [
+      "market",
+      "orders",
+      "stall"
+    ],
     "role": "Comércio e encomendas",
     "portrait": "res://assets/sprites/characters/npc_merchant/portrait.png",
     "icon": "coin",
@@ -74,8 +86,12 @@
   },
   "artisan": {
     "name": "Artesã",
-    "requirements": {"chapter": 6},
-    "services": ["atelier"],
+    "requirements": {
+      "chapter": 10
+    },
+    "services": [
+      "atelier"
+    ],
     "role": "Construção e acessórios",
     "portrait": "",
     "icon": "item_plank",
@@ -88,13 +104,20 @@
     "sprite_dir": "res://assets/sprites/characters/npc_nina/",
     "icon": "action_walk",
     "greeting": "Bora passear?",
-    "requirements": {"quests": ["main_2_order"]},
+    "requirements": {
+      "quests": [
+        "main_2_order"
+      ]
+    },
     "introduction": [
       "Oi! Eu sou a Nina, e essa bagunceira é a Pipoca.",
       "Que yorkshire mais lindo! Passeio todo dia deixa qualquer cachorro feliz.",
       "Aparece sempre que quiser. A Pipoca vai adorar um amigo!"
     ],
-    "services": ["walk", "training"]
+    "services": [
+      "walk",
+      "training"
+    ]
   },
   "dog_pipoca": {
     "name": "Pipoca",
@@ -104,6 +127,10 @@
     "icon": "action_walk",
     "decor": true,
     "follow": "nina",
-    "requirements": {"quests": ["main_2_order"]}
+    "requirements": {
+      "quests": [
+        "main_2_order"
+      ]
+    }
   }
 }

@@ -113,7 +113,7 @@ func _lists() -> Dictionary:
 	var rec: Array = CookInvent.recommended(slot_index)
 	var others: Array = []
 	for item: String in Database.invent.get("items", {}):
-		if item in rec or not CookInvent.fits(item, kind):
+		if item in rec or not CookInvent.fits(item, kind) or not CookInvent.ingredient_open(item):
 			continue
 		if CookInvent.remaining(item, slot_index) > 0 or item == str(CookInvent.slot_items()[slot_index]):
 			others.append(item)

@@ -7,7 +7,7 @@ extends RefCounted
 ## Ícone do desejo: o campo "icon" (ação) ou o do item pedido.
 static func icon(wish_id: String) -> Texture2D:
 	var def := GameState.wish_now() if wish_id == GameState.wish_id() else GameState.wish_def(wish_id)
-	if def.get("type", "") == "action":
+	if def.get("type", "") == "action" or def.has("taste"):
 		return UiKit.ui_icon(str(def.get("icon", "tab_wishes")))
 	return Database.item_icon(str(def.get("item", "")))
 
@@ -46,6 +46,9 @@ static func balloon_card() -> Control:
 	if ready:
 		var give: bool = def.type != "action"
 		var take := UiKit.primary("Dar" if give else "Pegar", func() -> void:
+			if give:
+				SheetBuilder.request_food(str(def.item))
+				return
 			var error := GameState.fulfill_wish()
 			if error != "": Events.toast_requested.emit(error))
 		take.name = "WishTake"
@@ -64,7 +67,7 @@ static func go_target(def: Dictionary) -> Dictionary:
 		return {"screen": go.trim_prefix("screen:")}
 	if go.begins_with("place:"):
 		var parts := go.split(":", true, 2)
-		return {"world": parts[1], "place": parts[2], "hint": "Passeio"}
+		return {"world": parts[1], "place": parts[2], "hint": str(def.get("go_hint", "Passeio"))}
 	if def.get("type", "") != "action":
 		return Places.goal_target({"type": "have", "key": str(def.item)})
 	return {"screen": "pet"}

@@ -39,7 +39,7 @@ def main() -> int:
         data = tmp_path / "data"
         shutil.copytree(REPO / "game" / "data", data)
         quests = load(data / "quests.json")
-        quests["first_harvest"]["requirements"] = {"quests": ["missao_inexistente"]}
+        quests["lais_first_crops"]["requirements"] = {"quests": ["missao_inexistente"]}
         quests["welcome"]["goals"][0] = {"type": "have", "key": "item_fantasma", "target": 1}
         save(data / "quests.json", quests)
         recipes = load(data / "recipes.json")

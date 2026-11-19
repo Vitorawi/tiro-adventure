@@ -63,7 +63,7 @@ func _run() -> void:
 	state.call("reset")
 	var progress: Object = state.get("progress")
 	progress.seen["intro"] = true
-	state.call("dev_jump_to_chapter", 3)
+	state.call("dev_jump_to_chapter", 7)
 	for id: String in ["main_2_order", "nina_meet", "nina_walk"]:
 		state.call("dev_complete_quest", id)
 	progress.owned["farm"] = true

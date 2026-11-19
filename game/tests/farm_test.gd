@@ -22,11 +22,12 @@ func _run() -> void:
 	root.remove_child(saver)
 	saver.free()
 	state.call("reset")
-	_check(state.call("accessible_plots") == 0, "Sem canteiros antes de conhecer a vovó Bloblo")
+	_check(state.call("accessible_plots") == 2, "Dois canteiros disponíveis no dia 1")
 	state.call("reset")
 	state.get("progress").owned["farm"] = true
+	state.set("unlocked_plots", 4)
 	state.set("coins", 100)
-	_check(state.get("unlocked_plots") == 4, "Jogo novo começa com quatro terrenos")
+	_check(state.get("unlocked_plots") == 4, "Quatro terrenos após as duas compras da banca")
 	_check(state.call("plant", 4, "carrot") != "", "Não pode plantar em terreno bloqueado")
 	_check(state.call("buy_plot", 5) != "", "Não pode pular a ordem de compra")
 	_check(state.call("buy_plot", -1) != "", "Índice inválido deve ser recusado")
@@ -70,9 +71,9 @@ func _run() -> void:
 	state.call("plant", 0, "carrot")
 	_check(state.call("water_error", 0) == "", "Novo plantio pode ser regado de novo")
 	state.set("coins", 10000)
-	for i in range(5, 9):
+	for i in range(5, 8):
 		_check(state.call("buy_plot", i) == "", "Todas as expansões devem ser acessíveis")
-	_check(state.call("buy_plot", 9) != "", "Não deve ultrapassar o total de terrenos")
+	_check(state.call("buy_plot", 8) != "", "Canteiro de milho vem do kit, fora das ampliações")
 	# Sabores: bloqueio por missão, crescimento, rendimento e coleta única.
 	for crop_id: String in ["strawberry", "sweet_potato"]:
 		_check(state.call("plant", 1, crop_id) != "", crop_id + " espera a missão")

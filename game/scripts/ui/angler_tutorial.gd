@@ -1,7 +1,7 @@
 class_name AnglerTutorial
-extends Control
+extends TutorialGuide
 ## Tutorial "A vovó ensina a pescar" (Pesca, etapa 05). Mesmo molde do `AlbumTutorial`: véu de quatro retângulos com um
-## buraco só no alvo do passo, balão de madeira com o retrato animado da vovó, nada de pular passo.
+## buraco só no alvo do passo e balão com a vovó. Na primeira semana, o jogador pode pular o guia.
 ## As regras que garantem a primeira pesca (lambari, espera fixa, zona ≥ Meio, rede sem dreno/com piso, isca que não
 ## se gasta) são do motor (`GameState`, `FishingSim.tutorial`, `FishingPanel`); aqui só véu, balão e passos salvos.
 ##
@@ -21,19 +21,14 @@ static var current: AnglerTutorial
 
 var room: RoomView
 var phase := ""            ## "" = esperando começar
-var _veil: Control
-var _rects: Array[ColorRect] = []
-var _highlight: Panel
 var _layer: CanvasLayer
-var _balloon: VBoxContainer
 var _note: PanelContainer
 var _note_label: Label
 var _next_a: Button
 var _next_b: Button
-var _balloon_label: Label
+var _skip: Button
 var _arrow: Control
 var _arrow_fish: Control
-var _pulse: Tween
 var _hold_time := 0.0
 var _idle_time := 0.0
 var _game: FishingGame
@@ -60,12 +55,6 @@ static func maybe_start(for_room: RoomView) -> void:
 
 static func is_active() -> bool:
 	return current != null and is_instance_valid(current) and not current.is_queued_for_deletion()
-
-
-static func _main() -> Node:
-	var tree := Engine.get_main_loop() as SceneTree
-	var node := tree.root.get_node_or_null("Main")
-	return node if node != null else tree.current_scene
 
 
 func _exit_tree() -> void:
@@ -113,6 +102,11 @@ func _process(delta: float) -> void:
 		return
 	_tick(delta)
 	_layout()
+	var target := target_rect()
+	if phase in ["force", "bite", "hold", "release"] and target.has_area():
+		_guide_hand(delta, target.get_center(), target.get_center())
+	else:
+		_hand.hide()
 
 
 ## Espera a fila modal esvaziar e nenhuma folha aberta (o prêmio da vara fecha antes).
@@ -141,6 +135,10 @@ func _go(next: String) -> void:
 	_hold_time = 0.0
 	_idle_time = 0.0
 	GameState.advance_fishing_tutorial(int(STEPS.get(next, 0)))
+	_reset_hand()
+	if WeekTutorial.enrolled() and not GameState.fishing_tutorial_done() and GameState.week.tutorial.get("resume") != "fish":
+		GameState.week.tutorial.resume = "fish"
+		Events.week_tutorial_changed.emit()
 	var text := _line(next)
 	_balloon_label.text = text
 	_note_label.text = text
@@ -262,6 +260,8 @@ func _resume_bite() -> void:
 
 func _finish() -> void:
 	GameState.finish_fishing_tutorial()
+	if WeekTutorial.enrolled():
+		WeekTutorial.finish("fish")
 	Events.toast_requested.emit("Volte à vovó para pegar o prêmio")
 	stop()
 
@@ -269,32 +269,8 @@ func _finish() -> void:
 # --- Camada visual -------------------------------------------------------------------------
 
 func _build_layer() -> void:
-	_veil = Control.new()
-	_veil.name = "TutorialVeil"
-	_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_veil)
-	_veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for side in ["T", "B", "L", "R"]:
-		var rect := ColorRect.new()
-		rect.name = "Veil_" + side
-		rect.color = Color(0.0, 0.0, 0.0, 0.5)
-		rect.mouse_filter = Control.MOUSE_FILTER_STOP
-		_veil.add_child(rect)
-		_rects.append(rect)
-	_highlight = Panel.new()
-	_highlight.name = "TutorialHighlight"
-	_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0)
-	style.border_color = Palette.HONEY
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(14)
-	_highlight.add_theme_stylebox_override("panel", style)
-	_veil.add_child(_highlight)
-	if not Motion.reduced:
-		_pulse = create_tween().set_loops()
-		_pulse.tween_property(_highlight, "modulate:a", 0.45, 0.6)
-		_pulse.tween_property(_highlight, "modulate:a", 1.0, 0.6)
+	_build_focus()
+	_build_hand()
 	_arrow = _make_arrow("TutorialArrow")
 	_arrow_fish = _make_arrow("TutorialArrowFish")
 	# Balão e nota ficam acima de tudo (o cartão do resultado é uma camada própria, 24).
@@ -302,12 +278,8 @@ func _build_layer() -> void:
 	_layer.layer = 25
 	_layer.name = "TutorialLayer"
 	add_child(_layer)
-	_balloon = VBoxContainer.new()
-	_balloon.name = "TutorialBalloon"
-	_balloon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_build_balloon(_layer, "bloblo")
 	_balloon.add_theme_constant_override("separation", 6)
-	_layer.add_child(_balloon)
-	_balloon_label = ProgressionUi.npc_header(_balloon, "bloblo", "", true, true)
 	_next_a = _next_button()
 	_balloon.add_child(_next_a)
 	_note = PanelContainer.new()
@@ -327,6 +299,14 @@ func _build_layer() -> void:
 	_note_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_note_label.custom_minimum_size.x = 120.0
 	column.add_child(_note_label)
+	_skip = StepCardUi.go_button("Pular", func() -> void:
+		WeekTutorial.finish("fish", true)
+		GameState.finish_fishing_tutorial()
+		stop())
+	_skip.name = "TutorialSkip"
+	_skip.custom_minimum_size.x = 78
+	_skip.visible = WeekTutorial.enrolled()
+	_layer.add_child(_skip)
 	_next_b = _next_button()
 	column.add_child(_next_b)
 	margin.add_child(column)
@@ -382,27 +362,13 @@ var _relaid := false
 
 
 func _layout() -> void:
-	var parent := get_parent()
-	if parent != null and get_index() != parent.get_child_count() - 1:
-		parent.move_child(self, -1)  # por cima de tudo que abriu depois, inclusive no toque
+	_place_above_siblings()
 	var screen := get_viewport_rect().size
-	var hole := target_rect()
-	var none := hole.size == Vector2.ZERO
-	if none:
-		hole = Rect2(screen * 0.5, Vector2.ZERO)
-	else:
-		hole = hole.grow(6.0)
-	_rects[0].position = Vector2.ZERO
-	_rects[0].size = Vector2(screen.x, maxf(hole.position.y, 0.0))
-	_rects[1].position = Vector2(0, hole.end.y)
-	_rects[1].size = Vector2(screen.x, maxf(screen.y - hole.end.y, 0.0))
-	_rects[2].position = Vector2(0, hole.position.y)
-	_rects[2].size = Vector2(maxf(hole.position.x, 0.0), hole.size.y)
-	_rects[3].position = Vector2(hole.end.x, hole.position.y)
-	_rects[3].size = Vector2(maxf(screen.x - hole.end.x, 0.0), hole.size.y)
-	_highlight.visible = not none
-	_highlight.position = hole.position
-	_highlight.size = hole.size
+	var target := target_rect()
+	var none := not target.has_area()
+	var hole := _layout_focus(target, screen)
+	_skip.size = _skip.get_combined_minimum_size()
+	_skip.position = Vector2(screen.x - _skip.size.x - 12.0, 12.0)
 	if phase in GAME_PHASES:
 		_layout_note()
 	else:

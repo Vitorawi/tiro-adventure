@@ -264,6 +264,7 @@ func _mixed_and_collection() -> void:
 
 func _animals() -> void:
 	_fresh()
+	state.call("dev_set_phase", "teething")
 	state.set("animals", {"chicken_white": 1})
 	state.get("inventory").add("corn", 20)
 	check(int(state.call("cook_max", "eggs")) == 1, "criação: um lote por vez")

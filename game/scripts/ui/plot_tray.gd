@@ -22,8 +22,8 @@ static func seed_entries(room: RoomView, index: int, focus: String = "") -> Arra
 		var rank_b := _seed_rank(b, focus)
 		if rank_a != rank_b:
 			return rank_a < rank_b
-		var time_a := int(Database.crops[a].seconds)
-		var time_b := int(Database.crops[b].seconds)
+		var time_a := GameState.crop_seconds(index, a)
+		var time_b := GameState.crop_seconds(index, b)
 		return time_a < time_b if time_a != time_b else a > b)
 	var entries: Array[Dictionary] = []
 	for crop_id in ids:

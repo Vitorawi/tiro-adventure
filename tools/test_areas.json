@@ -47,6 +47,7 @@
     "blender_position_touch_test",
     "missions_actions_test",
     "quest_reward_test",
+    "farm_week_test",
     "farm_test",
     "progression_test",
     "dev_tools_test",
@@ -72,6 +73,11 @@
     "petshop_test",
     "friends_test",
     "tricks_test",
+    "trick_lesson_test",
+    "trick_use_test",
+    "play_week_test",
+    "cart_test",
+    "recipe_book_test",
     "treasure_test",
     "ui_base_test",
     "ui_style_test",
@@ -164,7 +170,18 @@
     "card_reveal_test",
     "photo_line_test",
     "album_tutorial_test",
-    "album_rewards_test"
+    "album_rewards_test",
+    "week_clock_test",
+    "week_clock_test_prod",
+    "day_clock_test",
+    "meal_ui_test",
+    "dish_engine_test",
+    "cook_dishes_test",
+    "cook_together_test",
+    "growth_week_test",
+    "week_story_test",
+    "week_routine_test",
+    "week_tutorial_test"
   ],
   "areas": {
     "drag_scroll": {
@@ -232,6 +249,9 @@
         "game/scripts/ui/growth_ui.gd",
         "game/scripts/ui/pillar_ui.gd",
         "game/tests/growth_test.gd",
+        "game/tests/growth_week_test.gd",
+        "game/scenes/ui/growth_ceremony/*",
+        "game/scripts/ui/task_help.gd",
         "game/tests/courage_start_test.gd",
         "game/tests/moments_test.gd",
         "game/tests/growth_meals_test.gd",
@@ -249,6 +269,8 @@
       ],
       "tests": [
         "growth_test",
+        "growth_week_test",
+        "play_week_test",
         "courage_start_test",
         "moments_test",
         "growth_meals_test",
@@ -275,6 +297,8 @@
         "game/tests/care_ui_test.gd"
       ],
       "tests": [
+        "recipe_book_test",
+        "trick_use_test",
         "wish_guide_test",
         "wish_moments_test",
         "care_ui_test"
@@ -305,13 +329,18 @@
         "game/tests/care_ui_test.gd",
         "game/tests/gestures_test.gd",
         "game/scripts/ui/hide_seek_ui.gd",
+        "game/scripts/ui/yard_play.gd",
+        "game/tests/play_week_test.gd",
         "game/tests/care_wheel_test.gd",
         "game/tests/roleta_test.gd",
         "game/scripts/ui/photo_line.gd",
         "game/tests/photo_line_test.gd"
       ],
       "tests": [
+        "recipe_book_test",
+        "cart_test",
         "puppy_identity_test",
+        "play_week_test",
         "puppy_belly_test",
         "puppy_reactions_test",
         "puppy_sleep_test",
@@ -362,7 +391,11 @@
         "game/tests/onboarding_test.gd",
         "game/tests/care_story_test.gd",
         "game/tests/quest_reward_test.gd",
-        "game/scenes/ui/quest_reward/*"
+        "game/scenes/ui/quest_reward/*",
+        "game/data/week_story.json",
+        "game/tests/week_story_test.gd",
+        "game/tests/helpers/week_story_*.gd",
+        "game/scripts/ui/week_story_ui.gd"
       ],
       "tests": [
         "growth_story_test",
@@ -377,7 +410,10 @@
         "fishing_tutorial_test",
         "fishing_story_test",
         "fishing_rod2_test",
-        "fishing_rod3_test"
+        "fishing_rod3_test",
+        "week_story_test",
+        "week_routine_test",
+        "week_tutorial_test"
       ]
     },
     "walks": {
@@ -417,6 +453,7 @@
         "game/tests/lists_test.gd"
       ],
       "tests": [
+        "recipe_book_test",
         "petshop_test",
         "lists_test"
       ]
@@ -424,11 +461,16 @@
     "tricks": {
       "paths": [
         "game/scripts/ui/trick_ui.gd",
+        "game/scripts/ui/trick_lesson.gd",
         "game/scenes/ui/trick_training/*",
-        "game/tests/tricks_test.gd"
+        "game/tests/tricks_test.gd",
+        "game/tests/trick_lesson_test.gd",
+        "game/tests/trick_use_test.gd"
       ],
       "tests": [
-        "tricks_test"
+        "tricks_test",
+        "trick_lesson_test",
+        "trick_use_test"
       ]
     },
     "finds": {
@@ -440,12 +482,15 @@
         "game/tests/treasure_test.gd"
       ],
       "tests": [
+        "recipe_book_test",
         "finds_test",
         "treasure_test"
       ]
     },
     "farm": {
       "paths": [
+        "game/tests/farm_week_test.gd",
+        "tools/build_farm_figma.py",
         "game/data/crops.json",
         "game/data/rooms/farm.json",
         "game/scripts/ui/plot_tray.gd",
@@ -458,6 +503,10 @@
         "game/tests/farm_market_label_test.gd"
       ],
       "tests": [
+        "recipe_book_test",
+        "cart_test",
+        "farm_week_test",
+        "play_week_test",
         "farm_test",
         "garden_test",
         "farm_dock_test",
@@ -487,6 +536,7 @@
         "game/tests/fishing_shots.gd"
       ],
       "tests": [
+        "recipe_book_test",
         "fishing_physics_test",
         "fishing_test",
         "fishing_lake_test",
@@ -501,7 +551,7 @@
       "paths": [
         "game/tests/photo_hints_test.gd",
         "game/tests/fotos_07_shots.gd",
-          "game/tests/album_book_test.gd",
+        "game/tests/album_book_test.gd",
         "game/tests/album_screen_test.gd",
         "game/scripts/ui/album_screen.gd",
         "game/data/album.json",
@@ -534,7 +584,7 @@
       "tests": [
         "photo_hints_test",
         "album_screen_test",
-          "album_book_test",
+        "album_book_test",
         "album_test",
         "album_secrets_test",
         "photo_rarity_test",
@@ -628,12 +678,13 @@
     "dev": {
       "paths": [
         "game/scripts/ui/dev_panel.gd",
-        "game/tests/dev_tools_test.gd",
         "game/tests/dev_tools_test.gd"
       ],
       "tests": [
         "dev_tools_test",
-        "dev_tools_test_prod"
+        "dev_tools_test_prod",
+        "week_clock_test",
+        "week_clock_test_prod"
       ]
     },
     "saves": {
@@ -652,6 +703,7 @@
         "game/tests/pending_gifts_test.gd"
       ],
       "tests": [
+        "recipe_book_test",
         "saves_test",
         "economy_transactions_test",
         "storage_test",
@@ -674,6 +726,7 @@
         "game/tests/station_tray_test.gd",
         "game/scripts/ui/cook_invent.gd",
         "game/scripts/ui/cook_invent_picker.gd",
+        "game/scripts/ui/cook_together.gd",
         "game/data/invent.json",
         "game/tests/cook_panel_test.gd",
         "game/tests/cook_invent_test.gd",
@@ -684,6 +737,7 @@
         "game/tests/expansion_test.gd"
       ],
       "tests": [
+        "recipe_book_test",
         "station_tray_test",
         "cook_panel_test",
         "cook_invent_test",
@@ -743,6 +797,8 @@
     },
     "market": {
       "paths": [
+        "game/scripts/ui/orders_ui.gd",
+        "game/tests/cart_test.gd",
         "game/scripts/ui/market_ui.gd",
         "game/scripts/ui/depot*",
         "game/tests/market_test.gd",
@@ -752,6 +808,8 @@
         "game/tests/fishing_rod2_test.gd"
       ],
       "tests": [
+        "recipe_book_test",
+        "cart_test",
         "market_test",
         "customers_test",
         "coins_test",
@@ -767,6 +825,7 @@
         "game/tests/petshop_test.gd"
       ],
       "tests": [
+        "cart_test",
         "shop_test",
         "petshop_test",
         "market_test"
@@ -822,6 +881,66 @@
         "content_test",
         "texts_test",
         "text_budget_test"
+      ]
+    },
+    "week": {
+      "paths": [
+        "game/scripts/state/week_state.gd",
+        "game/tests/week_clock_test.gd",
+        "game/tests/day_clock_test.gd",
+        "game/scripts/ui/meal_ui.gd",
+        "game/tests/meal_ui_test.gd",
+        "game/data/week_story.json",
+        "game/tests/week_story_test.gd",
+        "game/tests/helpers/week_story_*.gd",
+        "game/scripts/ui/week_story_ui.gd",
+        "game/data/week_routine.json",
+        "game/tests/week_routine_test.gd",
+        "game/tests/week_tutorial_test.gd",
+        "game/data/week_tutorials.json",
+        "game/scripts/ui/week_tutorial.gd",
+        "game/scripts/ui/tutorial_guide.gd"
+      ],
+      "tests": [
+        "recipe_book_test",
+        "cart_test",
+        "trick_use_test",
+        "play_week_test",
+        "week_clock_test",
+        "week_clock_test_prod",
+        "day_clock_test",
+        "meal_ui_test",
+        "week_story_test",
+        "week_routine_test",
+        "week_tutorial_test"
+      ]
+    },
+    "dishes": {
+      "paths": [
+        "game/data/recipe_book.json",
+        "game/scripts/ui/recipe_book_ui.gd",
+        "game/tests/recipe_book_test.gd",
+        "game/data/dishes.json",
+        "game/data/invent.json",
+        "game/scripts/state/dish_rules.gd",
+        "game/scripts/state/inventory.gd",
+        "game/tests/dish_engine_test.gd",
+        "game/tests/cook_dishes_test.gd",
+        "game/tests/cook_together_test.gd",
+        "game/data/cooking.json",
+        "game/scripts/state/cook_rules.gd",
+        "game/scripts/ui/cook_together.gd",
+        "game/scripts/ui/cook_invent.gd",
+        "game/scripts/ui/cook_invent_picker.gd"
+      ],
+      "tests": [
+        "recipe_book_test",
+        "dish_engine_test",
+        "cook_dishes_test",
+        "cook_together_test",
+        "cook_invent_test",
+        "day_clock_test",
+        "growth_week_test"
       ]
     }
   }

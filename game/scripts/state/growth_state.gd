@@ -17,6 +17,8 @@ var body_level: int = 0
 var done: Dictionary = {}
 var delivered: Dictionary = {}
 var phase_stats: Dictionary = {}
+## Pratos diferentes que ele comeu nesta fase: chave -> {type, ingredients, meal} (E05).
+var phase_dishes: Dictionary = {}
 var ceremonies: Dictionary = {}
 var firsts: Dictionary = {}
 var pending_reveal: String = ""
@@ -44,7 +46,7 @@ func reset() -> void:
 	phase_since = 0.0
 	pending_reveal = ""
 	ready_seen = ""
-	for field: String in ["moments", "phase_moments", "period_moments", "done", "delivered", "phase_stats", "ceremonies", "firsts"]:
+	for field: String in ["moments", "phase_moments", "period_moments", "done", "delivered", "phase_stats", "phase_dishes", "ceremonies", "firsts"]:
 		set(field, {})
 	for pillar: String in ["brave", "smart", "coat"]:
 		moments[pillar] = 0
@@ -68,7 +70,7 @@ func phase_need(pillar: String) -> int:
 
 func to_dict() -> Dictionary:
 	var data := {"personality": personality.duplicate(true), "diary": diary.duplicate(true), "diary_receipts": diary_receipts.duplicate(), "schema": schema, "phase": phase, "phase_since": phase_since, "pending_reveal": pending_reveal, "ready_seen": ready_seen, "tastes": tastes.duplicate(), "taste_seed": taste_seed, "brush_days": brush_days.duplicate(), "silk": silk, "body_level": body_level}
-	for field: String in ["moments", "phase_moments", "period_moments", "done", "delivered", "phase_stats", "ceremonies", "firsts"]:
+	for field: String in ["moments", "phase_moments", "period_moments", "done", "delivered", "phase_stats", "phase_dishes", "ceremonies", "firsts"]:
 		data[field] = (get(field) as Dictionary).duplicate(true)
 	return data
 
@@ -92,6 +94,6 @@ func from_dict(data: Dictionary) -> void:
 	silk = clampi(int(data.get("silk", 0)), 0, Database.growth.get("silk", {}).get("levels", []).size())
 	if data.get("tastes") is Dictionary: tastes = data.tastes.duplicate()
 	if data.get("brush_days") is Dictionary: brush_days = data.brush_days.duplicate()
-	for field: String in ["moments", "phase_moments", "period_moments", "done", "delivered", "phase_stats", "ceremonies", "firsts"]:
+	for field: String in ["moments", "phase_moments", "period_moments", "done", "delivered", "phase_stats", "phase_dishes", "ceremonies", "firsts"]:
 		if data.get(field) is Dictionary:
 			set(field, data[field].duplicate(true))

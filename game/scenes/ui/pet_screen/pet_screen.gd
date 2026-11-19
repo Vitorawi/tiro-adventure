@@ -27,6 +27,7 @@ var _bars: Dictionary = {}
 var _pulses: Dictionary = {}
 var _animator: PetAnimator
 var _wish_bubble: Button
+var _meal_bubble: Button
 var _wish_icon: TextureRect
 var _wish_badge: Label
 var _need_pillars: Dictionary = {}
@@ -297,6 +298,13 @@ func _build_wish_widgets() -> void:
 	_wish_bubble.add_child(_wish_badge)
 	_wish_badge.reset_size()
 	add_child(_wish_bubble)
+	_meal_bubble = UiKit.button("", func() -> void: _care.call("open_food_menu"), &"ChipButton")
+	_meal_bubble.name = "MealBubble"
+	_meal_bubble.focus_mode = Control.FOCUS_NONE
+	_meal_bubble.icon = UiKit.ctl_icon("clock")
+	_meal_bubble.add_theme_constant_override("icon_max_width", 20)
+	_meal_bubble.visible = false
+	add_child(_meal_bubble)
 	_dog_sprite.item_rect_changed.connect(_place_bubble)
 
 
@@ -321,8 +329,13 @@ func _place_bubble() -> void:
 		if care_button:
 			bottom = minf(bottom, care_button.position.y - 16.0)
 		_away_collect.position = Vector2((size.x - _away_collect.size.x) * 0.5, bottom - _away_collect.size.y)
+	if _meal_bubble:
+		_meal_bubble.size = _meal_bubble.get_combined_minimum_size()
+		var top := dog_rect()
+		top.position -= global_position
+		_meal_bubble.position = Vector2(top.get_center().x - _meal_bubble.size.x / 2.0, top.position.y)
 	if _mood_bubble:
-		_mood_bubble.size = _mood_bubble.get_combined_minimum_size()
+		_mood_bubble.size =_mood_bubble.get_combined_minimum_size()
 		var feet := _corner.position + _corner.pet_feet()
 		_mood_bubble.position = Vector2(feet.x - _mood_bubble.size.x / 2.0, feet.y + 8)
 
@@ -375,6 +388,9 @@ func _refresh() -> void:
 		_away_collect.text = "Guardar achados" if GameState.walk_baggage_error() == "" else "Ver bagagem"
 	var wish_id := GameState.balloon_wish()
 	_wish_bubble.visible = wish_id != "" and not dog.sleeping and not away
+	var meal_asking := MealUi.asking_period()
+	_meal_bubble.visible = meal_asking != "" and not _care.get("_row").visible
+	if meal_asking != "": _meal_bubble.text = "Hora do %s!" % MealUi.period_name(meal_asking).to_lower()
 	_wish_badge.visible = _wish_bubble.visible and GameState.fulfillable_wish_count() > 0
 	if not _wish_bubble.visible and _care.get("_pointed_item") == "wish": _care.clear_pointer()
 	_wish_icon.texture = WishUi.icon(wish_id) if wish_id != "" else null

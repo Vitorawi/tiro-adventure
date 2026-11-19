@@ -38,13 +38,7 @@ func fresh() -> void:
 	state.call("reset")
 	var progress: Object = state.get("progress")
 	progress.seen.intro = true
-	var quests: Dictionary = root.get_node("Database").get("quests")
-	for chapter in [1, 2]:
-		for id: String in progress.main_quests(chapter):
-			if id == "lais_first_crops": break
-			progress.claimed_quests[id] = true
-			if quests[id].has("shared_with"): progress.claimed_quests[quests[id].shared_with] = true
-	state.get("growth").phase = "puppy"
+	progress.claimed_quests["welcome"] = true
 	state.call("_mark_all_seen")
 	state.call("_changed")
 	main = load("res://scenes/main/main.tscn").instantiate()
@@ -55,7 +49,7 @@ func fresh() -> void:
 	node("TasksScreen").call("choose_group", "story")
 	await frames(12)
 	clear_modals()
-	check(progress.displayed_main_quest() == "first_harvest", "fixture: primeira colheita da vovó")
+	check(progress.displayed_main_quest() == "lais_first_crops", "fixture: primeira colheita da vovó")
 
 func tap(control: Control) -> void:
 	check(control != null and control.is_visible_in_tree(), "alvo visível")
@@ -79,7 +73,7 @@ func shot(kind: String) -> void:
 	if not shots: return
 	# O exemplo tem dois passos: enquadra a recompensa e ambos os destinos.
 	var scroll := node("TasksScreen").find_child("Scroll", true, false) as ScrollContainer
-	scroll.scroll_vertical += int(node("StoryRewards").global_position.y - scroll.global_position.y)
+	scroll.scroll_vertical += int((node("StoryRewards") if node("StoryRewards") else node("StoryGoal_0")).global_position.y - scroll.global_position.y)
 	await frames()
 	await RenderingServer.frame_post_draw
 	var folder := ProjectSettings.globalize_path("res://../build/screenshots/missoes/")
@@ -106,49 +100,46 @@ func _run() -> void:
 		await fresh()
 		await shot("incompleta")
 		if before: continue
-		var locked := node("ClaimQuest_first_harvest") as Button
-		check(locked != null and locked.disabled and locked.text == "Pegar" and locked.icon == null and locked.find_children("*", "TextureRect", true, false).is_empty(), "Pegar incompleto desabilitado sem ícone")
-		check(locked.get_node("Frame").modulate == Color(0.48, 0.48, 0.48, 0.65), "Pegar incompleto apagado/acinzentado")
+		var locked := node("ClaimQuest_lais_first_crops") as Button
+		check(locked == null, "Só a ação disponível aparece na missão em andamento")
 		var coins: int = state.get("coins")
-		await tap(locked)
-		check(state.get("coins") == coins and not state.get("progress").claimed_quests.has("first_harvest"), "toque travado não resgata")
 		var go_rects: Array[Rect2] = []
 		for i in 2:
 			main.call("show_screen", &"tasks")
 			await frames()
 			var step := node("StoryGoal_%d" % i)
-			var go := step.find_child("QuestGo_first_harvest" if i == 0 else "GoalGo_1", true, false) as Button
+			var go := step.find_child("QuestGo_lais_first_crops" if i == 0 else "GoalGo_1", true, false) as Button
 			var count := destinations.size()
 			go_rects.append(Rect2(go.global_position - step.global_position, go.size))
 			await tap(go)
 			check(destinations.size() == count + 1 and destinations.back() == "farm:plots", "passo %d direciona aos canteiros" % i)
 			await create_timer(1.4).timeout
 			root.get_node("Events").sheet_close_requested.emit()
-		state.get("progress").stats.water = 1
+		state.get("progress").stats["harvest:carrot"] = 1
 		state.call("_changed")
 		main.call("show_screen", &"tasks")
 		await frames()
-		check(node("StepDone_0") != null and node("StoryGoal_0").find_children("*", "Button", true, false).is_empty() and node("QuestGo_first_harvest") != null, "feito mostra check e só pendente mantém Ir")
+		check(node("StepDone_0") != null and node("StoryGoal_0").find_children("*", "Button", true, false).is_empty() and node("QuestGo_lais_first_crops") != null, "feito mostra check e só pendente mantém Ir")
 		await shot("misto")
 		await check_done(0, go_rects[0])
-		state.get("progress").stats.harvest = 1
+		state.get("progress").stats["harvest:potato"] = 1
 		state.call("_changed")
 		await frames()
 		await shot("completa")
-		var claim := node("ClaimQuest_first_harvest") as Button
+		var claim := node("ClaimQuest_lais_first_crops") as Button
 		check(claim != null and not claim.disabled and claim.icon == null and claim.get_node("Frame").modulate == Color.WHITE and claim.get_node("Frame").texture.resource_path.ends_with("mission_go.png"), "Pegar pronto amarelo sem ícone")
 		check(node("StepDone_0") != null and node("StepDone_1") != null and node("GoalGo_1") == null, "todos feitos sem Ir")
 		await check_done(0, go_rects[0])
 		await check_done(1, go_rects[1])
 		var paid := gains
 		await tap(claim)
-		check(state.get("coins") == coins + 10 and gains == paid + 1 and state.get("progress").claimed_quests.has("first_harvest"), "Pegar paga uma vez")
-		check(state.call("claim_quest", "first_harvest") != "" and state.get("coins") == coins + 10 and gains == paid + 1, "segunda entrega recusada")
+		check(state.get("coins") == coins + 5 and gains == paid + 1 and state.get("progress").claimed_quests.has("lais_first_crops"), "Pegar paga uma vez")
+		check(state.call("claim_quest", "lais_first_crops") != "" and state.get("coins") == coins + 5 and gains == paid + 1, "segunda entrega recusada")
 		# Renderização de uma missão já recebida, ainda que o cartão vivo avance automaticamente.
 		clear_modals()
 		var box := VBoxContainer.new()
-		node("TasksScreen").call("_story_rewards", box, "first_harvest")
-		var received := box.find_child("ClaimQuest_first_harvest", true, false) as Button
+		node("TasksScreen").call("_story_rewards", box, "lais_first_crops")
+		var received := box.find_child("ClaimQuest_lais_first_crops", true, false) as Button
 		check(received != null and received.disabled and received.text == "Resgatado", "estado resgatado")
 		box.queue_free()
 		await frames()

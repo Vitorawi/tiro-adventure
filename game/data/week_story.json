@@ -1,0 +1,136 @@
+{
+  "arrival": {
+    "box": "res://assets/sprites/areas/house/arrival_box.png",
+    "lines": [
+      {
+        "npc": "lais",
+        "text": "Oi, eu sou a Laís. Trouxe alguém para conhecer você.",
+        "button": "Abrir a caixinha",
+        "reveal": 0
+      },
+      {
+        "npc": "lais",
+        "text": "É o Tiro. Ele está tremendo um pouquinho. Faça carinho de leve.",
+        "button": "Fazer carinho",
+        "reveal": 0.28
+      },
+      {
+        "npc": "lais",
+        "text": "Olha o focinho! Mais um carinho e ele vem.",
+        "button": "Fazer mais carinho",
+        "reveal": 0.54
+      },
+      {
+        "npc": "bloblo",
+        "text": "Pronto, ele saiu! Venham ao sítio. Vamos fazer a primeira papinha.",
+        "button": "Vamos, Tiro!",
+        "reveal": 1
+      }
+    ]
+  },
+  "morning": {
+    "day": 2,
+    "text": "Bom dia! A vovó trouxe 30 moedas para a primeira patinha.",
+    "rewards": {
+      "coins": 30
+    }
+  },
+  "farewell": {
+    "roles": {
+      "bloblo": "Vovó",
+      "lais": "Laís",
+      "tiro": "Tiro"
+    },
+    "photo": "h_week_group",
+    "step": "growth_3_teething"
+  },
+  "growth_steps": {
+    "puppy": "growth_1_puppy",
+    "teething": "growth_3_teething"
+  },
+  "days": [
+    {
+      "trigger": "lais_play",
+      "surprise": "O Tiro se enroscou e dormiu dentro da caixinha.",
+      "label": "Fazer um prato com três estrelas",
+      "counter": "week_three_stars",
+      "target": 1,
+      "rewards": {
+        "items": {
+          "pumpkin": 2
+        }
+      }
+    },
+    {
+      "trigger": "week_eggs",
+      "surprise": "Ele latiu para as galinhas e pulou com o cacarejo!",
+      "label": "Pegar quatro ovos no dia",
+      "counter": "produce:egg",
+      "target": 4,
+      "rewards": {
+        "items": {
+          "corn": 1
+        }
+      }
+    },
+    {
+      "trigger": "week_fish",
+      "surprise": "O Tiro escorregou na beira da lagoa e se sacudiu.",
+      "label": "Pescar um peixe de tamanho médio",
+      "counter": "fish_size:medium",
+      "target": 1,
+      "rewards": {
+        "items": {
+          "bait_worm": 3
+        }
+      }
+    },
+    {
+      "trigger": "week_orchard",
+      "surprise": "O Tiro tentou tirar uma banana do cesto.",
+      "label": "Inventar dois pratos novos",
+      "counter": "week_invention",
+      "target": 2,
+      "rewards": {
+        "coins": 10,
+        "items": {
+          "oat": 1
+        }
+      }
+    },
+    {
+      "trigger": "week_bath",
+      "surprise": "Ele correu do banho e voltou coberto de espuma!",
+      "label": "Entregar duas encomendas da carroça",
+      "counter": "cart_delivery",
+      "target": 2,
+      "rewards": {
+        "coins": 15
+      }
+    },
+    {
+      "trigger": "week_show",
+      "surprise": "No meio do show, ele trocou o truque e espiou a plateia.",
+      "label": "Fazer um show de cinco truques sem errar",
+      "counter": "trick_show_perfect",
+      "target": 1,
+      "rewards": {
+        "coins": 15,
+        "items": {
+          "apple_biscuit": 3
+        }
+      },
+      "shared_receipt": "trick_show_perfect"
+    },
+    {
+      "trigger": "teeth_3_ring",
+      "surprise": "O Tiro tentou roer o chinelo da vovó!",
+      "label": "Completar os oito pratos diferentes antes do jantar",
+      "counter": "week_dishes_ready",
+      "target": 1,
+      "rewards": {
+        "coins": 20
+      }
+    }
+  ]
+}

@@ -299,7 +299,7 @@ func _test_drag_plant() -> void:
 	var planted := 0
 	for i in 9:
 		if status(i) == "growing": planted += 1
-	check(planted == 9, "horta inteira (9) com um arrasto (%d)" % planted)
+	check(planted == 8, "o arrasto de cenoura deixa o canteiro de milho vazio (%d)" % planted)
 	empty_plots()
 
 

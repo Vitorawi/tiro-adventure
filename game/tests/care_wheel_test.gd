@@ -267,7 +267,8 @@ func _caso_pedido() -> void:
 			"happiness":
 				tap_disc(node("Care_ball"))
 				var after: float = state.get("dog").call("get_need", need, state.call("now"))
-				check(after > before, "bolinha só age ao tocar no ícone de brincar")
+				check(after <= before + 0.01 and main.find_child("YardBall", true, false) != null, "Brincar abre o Quintal e espera a partida")
+				root.get_node("Events").sheet_close_requested.emit()
 			"energy":
 				(node("SleepButton") as Button).pressed.emit()
 				check(state.get("dog").sleeping, "ícone de sono dorme")

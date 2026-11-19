@@ -1,7 +1,7 @@
 extends SceneTree
 ## Fotos do Tiro, etapa 01: a foto é uma carta que chega FECHADA; abrir sorteia o nível (pesos e garantias),
 ## "Tentar a sorte" custa só moedas, "Melhorar" usa materiais e sobe sempre +1 nível, varal de 3,
-## tutorial com resultados forçados sem cobrar, e persistência (SAVE_VERSION 19).
+## tutorial com resultados forçados sem cobrar, e persistência (SAVE_VERSION 33).
 
 var state: Node
 var db: Node
@@ -368,7 +368,7 @@ func _run() -> void:
 	check(state.album_tutorial_step() == 4 and not state.album_tutorial_done(), "tutorial sobrevive")
 	check(state.album.pity_rare == 4 and state.album.pity_holo == 11 and state.album.rarity_seed == 31337, "garantias e semente")
 	var save_version: Variant = (load("res://autoload/save_manager.gd") as GDScript).get_script_constant_map().get("SAVE_VERSION")
-	check(int(save_version) == 19, "SAVE_VERSION 19")
+	check(int(save_version) == 33, "SAVE_VERSION 33")
 
 	print("PHOTO RARITY TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(1 if failures > 0 else 0)

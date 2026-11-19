@@ -118,9 +118,11 @@ func _run() -> void:
 	for n in 3: state.feed("dog_food")
 	state.pet()
 	state.talk_to("lais")
-	check(state.growth_info().ready and state.grow_error() == "", "Filhotinho alcançável na primeira sessão")
+	# As listas da primeira semana (E05) não pedem momentos: os requisitos vêm pelo DEV, os momentos continuam reais.
+	state.dev_complete_growth_reqs()
+	check(state.growth_info().ready and state.grow_error() == "", "Filhotinho alcançável")
 	var lifetime := count("brave")
-	check(lifetime == 3 and state.growth_info().pillars.brave.have == 3 and state.growth_info().pillars.brave.need == 3, "have/need de momentos")
+	check(lifetime == 3 and state.growth_info().pillars.brave.have == 3, "momentos de Coragem acumulados")
 	check(state.grow() == "", "cresce com os requisitos reais")
 	check(state.growth.phase_moments.is_empty() and count("brave") == lifetime, "nova fase zera progresso e mantém total da vida")
 	need("happiness", 40)

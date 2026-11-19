@@ -35,6 +35,7 @@ if ($Test -eq 'economy_quick') {
   $file = $Test
   $extra = @()
   if ($Test -eq 'dev_tools_test_prod') { $file = 'dev_tools_test'; $extra = @('--', '--prod') }
+  if ($Test -eq 'week_clock_test_prod') { $file = 'week_clock_test'; $extra = @('--', '--prod') }
   & $godot --headless --path game -s "res://tests/$file.gd" @extra
 }
 exit $LASTEXITCODE

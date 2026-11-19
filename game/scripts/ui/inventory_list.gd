@@ -181,6 +181,10 @@ func _gift_chips(items: Dictionary, prefix: String = "Gift_") -> Control:
 
 
 func _build(box: VBoxContainer) -> void:
+	if wood and GameState.has_upgrade("stove"):
+		var book := UiKit.soft("Livro de receitas", PetNotebook.open.bind("recipes"), UiKit.ui_icon("station_stove"), true)
+		book.name = "BagRecipeBook"
+		_add(box, book)
 	if GameState.walk_ready():
 		_add(box, _baggage_card())
 	if GameState.pending_reward_count() > 0:

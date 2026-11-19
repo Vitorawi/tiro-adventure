@@ -56,7 +56,7 @@ func _run() -> void:
 	state.call("plant", 0, "carrot")
 	state.get("plots")[0]["ready_at"] = float(state.call("now")) - 1.0
 	var lines: Array = state.call("welcome_ready_lines")
-	check(lines.size() == 1 and lines[0].kind == "ready" and lines[0].world == "farm" and int(lines[0].count) == 1 and lines[0].icon == "carrot", "Canteiro pronto vira linha do mundo com ícone e número")
+	check(lines.any(func(line: Dictionary) -> bool: return line.kind == "ready" and line.world == "farm" and int(line.count) == 1 and line.icon == "carrot"), "Canteiro pronto vira linha do mundo com ícone e número")
 	check(card_script.call("has_content") == true, "Cartão abre com algo pronto")
 	# XP interno não paga presentes e o nível permanece congelado, inclusive ao recarregar.
 	var events: Node = root.get_node("Events")

@@ -28,7 +28,7 @@ func _run() -> void:
 	await process_frame
 	var intro: Node
 	main.call("_refresh_tasks_badge")
-	check(not (main.get("_map_badge") as Label).visible, "Missão nova não gera aviso de coleta no Mapa")
+	check(state.call("quest_error", "welcome") != "", "A chegada precisa ser jogada antes de receber o passo")
 	for child: Node in main.get_children():
 		if child.get_script() == intro_script:
 			intro = child
@@ -41,16 +41,15 @@ func _run() -> void:
 	intro.call("_advance")
 	intro.call("_advance")
 	await create_timer(0.4).timeout
-	check((intro.get("_tiro") as Control).modulate.a == 1.0, "Tiro aparece quando é apresentado")
+	check((intro.get("_tiro") as Control).position.y < 100.0, "Focinho aparece após os carinhos")
 	await _shot("intro_3")
 	intro.call("_advance")
-	intro.call("_advance")
-	check((intro.get("_next") as Button).text == "Soltar o Tiro!", "Última fala permite soltar o Tiro")
+	check((intro.get("_next") as Button).text == "Vamos, Tiro!", "Vovó convida para o sítio")
 	await _shot("intro_5")
 	intro.call("_advance")
 	intro.call("_advance")  # Toques repetidos no mesmo frame não duplicam a chegada.
 	await create_timer(0.7).timeout
-	check(not intro_script.should_show(), "Introdução não se repete após terminar")
+	check(not intro_script.should_show() and state.get("progress").stat("arrival_box") == 1, "O toque acolhe o Tiro uma vez")
 	var saved: Dictionary = state.call("to_dict").duplicate(true)
 	state.call("reset")
 	state.call("from_dict", saved)
@@ -65,15 +64,15 @@ func _run() -> void:
 	check(not state.get("progress").claimed_quests.has("welcome"), "Apresentação não recebe missão automaticamente")
 	await _shot("intro_lais")
 	var places: Script = load("res://scripts/ui/places.gd")
+	check(state.call("claim_quest", "welcome") == "", "Recebe o passo da chegada")
 	state.call("dev_complete_quest", "growth_1_puppy")
 	main.call("_on_world_requested", "farm", "")
 	await create_timer(0.3).timeout
 	main.get_node("Celebration").hide()
-	var farm: Node = main.find_child("World_farm", true, false)
-	farm.call("_on_plot_tapped", 2)
+	places.call("open_npc", "bloblo")
 	await process_frame
 	var sheet: Control = main.find_child("Sheet", true, false)
-	check(sheet.get_node("%Title").text == "Vovó Bloblo", "Canteiro emprestado leva à vovó, sem pedir escritura cedo")
+	check(sheet.get_node("%Title").text == "Vovó Bloblo", "O toque na vovó abre a conversa")
 	check(sheet.find_child("NpcIntroduction", true, false) != null, "Vovó se apresenta na primeira conversa")
 	await _shot("intro_bloblo")
 	root.get_node("Events").emit_signal("sheet_close_requested")
@@ -83,6 +82,8 @@ func _run() -> void:
 	check(sheet.find_child("NpcIntroduction", true, false) != null, "Fechar no meio não perde a apresentação")
 	for i in 3:
 		var panel: Node = sheet.find_child("NpcIntroduction", true, false)
+		if panel == null:
+			break
 		var button: Button = panel.find_children("*", "Button", true, false)[0]
 		button.pressed.emit()
 		await process_frame

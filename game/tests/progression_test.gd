@@ -23,9 +23,9 @@ func _run() -> void:
 	root.remove_child(saver)
 	saver.free()
 	state.call("reset")
-	_check(not state.call("has_upgrade", "stove") and not state.call("has_upgrade", "fridge") and state.call("accessible_plots") == 0, "Começo: casa sem cozinha e sítio ainda não apresentado")
+	_check(not state.call("has_upgrade", "stove") and not state.call("has_upgrade", "fridge") and state.call("accessible_plots") == 2, "Começo: casa sem cozinha e sítio com dois canteiros")
 	_check(state.call("cook", "carrot_snack") != "", "Não deve cozinhar sem estação")
-	_check(state.call("plant", 0, "carrot") != "" and state.call("buy_plot", 3) != "", "Sem canteiros antes de conhecer a vovó")
+	_check(state.call("plant", 0, "carrot") == "" and state.call("buy_plot", 3) != "", "A vovó empresta dois canteiros desde o começo")
 	_check(state.call("buy_upgrade", "fridge") != "" and state.call("buy_upgrade", "stove") != "", "Cozinha só depois da história apresentar")
 	_check(state.call("start_activity", "quarry") != "", "Mineração precisa de ferramenta")
 	_check(state.call("claim_quest", "first_sale") != "", "Não deve receber missão fora da sequência")
@@ -41,8 +41,8 @@ func _run() -> void:
 	_check(state.call("available_actions") is Array, "available_actions devolve lista")
 	_check(progress_now.call("pace_lines").size() > 0 and "feed" in " ".join(progress_now.call("pace_lines")), "Ritmo lista as primeiras vezes")
 	_foundation()
-	state.call("talk_to", "lais")
-	_check(state.call("claim_quest", "welcome") == "", "Falar com a Laís conclui a missão inicial")
+	state.call("finish_week_arrival")
+	_check(state.call("claim_quest", "welcome") == "", "Abrir a caixa conclui a missão inicial")
 	coins_before = state.get("coins")
 	_check(state.call("claim_quest", "welcome") != "" and state.get("coins") == coins_before, "Missão não pode pagar duas vezes")
 	var xp_before: int = state.get("xp")
@@ -50,7 +50,7 @@ func _run() -> void:
 	state.call("feed", "dog_food")
 	_check(state.get("xp") == xp_before and state.get("level") == level_before, "Cuidado repetido não pode farmar XP")
 	_check(state.call("start_activity", "lane") != "", "Trilha fechada antes do capítulo 5")
-	state.call("dev_jump_to_chapter", 4)
+	state.call("dev_jump_to_chapter", 8)
 	_check(state.call("start_activity", "lane") != "", "Capítulo 5 apresenta o local ainda fechado")
 	state.call("dev_add_coins", 40)
 	_check(state.call("buy_upgrade", "forest_open") == "", "Bosque pode ser desbloqueado no capítulo 5")
@@ -64,9 +64,11 @@ func _run() -> void:
 	coins_before = state.get("coins")
 	_check(state.call("collect_activity") != "" and state.get("coins") == coins_before, "Não deve duplicar coleta de atividade")
 	state.call("reset")
-	state.set_script(load("res://tests/helpers/economy_clock.gd"))
+	state.set_script(load("res://tests/helpers/week_story_clock.gd"))
 	state.call("set_clock", 1792411200.0)
 	state.call("reset")
+	var opening: RefCounted = load("res://tests/helpers/week_story_route.gd").new(state, database, _check)
+	opening.run()
 	var final_save := _campaign()
 	state.call("from_dict", JSON.parse_string(JSON.stringify(final_save)))
 	_check(not final_save.progression.collection.is_empty() and state.get("progress").collection.size() == final_save.progression.collection.size(), "Coleção deve sobreviver ao save")
@@ -96,6 +98,7 @@ func _campaign() -> Dictionary:
 	var progression: Dictionary = database.get("progression")
 	var recipes: Dictionary = database.get("recipes")
 	var crops: Dictionary = database.get("crops")
+	var live_quests: Array = database.get("quests").keys().filter(func(id: String) -> bool: return database.get("quests")[id].get("kind") != "retired")
 	var iterations: int = 0
 	# A simulação estoca 12 de cada item: o limite de armazenamento é testado em storage_test.
 	state.set("unlimited_storage", true)
@@ -231,16 +234,16 @@ func _campaign() -> Dictionary:
 				state.call("buy_upgrade", id)
 		if state.call("has_upgrade", "farm") and state.get("coins") > 300:
 			state.call("buy_plot", int(state.get("unlocked_plots")))
-		var rotation: Array[String] = ["lane", "trail", "quarry", "copper_vein", "crystal_cave", "meadow", "orchard_harvest", "timber", "deep_quarry", "crystal_deep", "reeds"]
+		var rotation: Array[String] = ["woodcutting", "lane", "trail", "quarry", "copper_vein", "crystal_cave", "meadow", "orchard_harvest", "timber", "deep_quarry", "crystal_deep", "reeds"]
 		var candidates: Array[String] = [rotation[turn % rotation.size()], "trail", "lane"]
 		for id in candidates:
 			if state.call("start_activity", id) == "":
 				state.get("progress").activity["ready_at"] = 1.0
 				state.call("collect_activity")
 				break
-		if state.get("progress").claimed_quests.size() == database.get("quests").size() and progression.upgrades.keys().all(func(id: String) -> bool: return state.call("has_upgrade", id)):
+		if live_quests.all(func(id: String) -> bool: return state.get("progress").claimed_quests.has(id)) and progression.upgrades.keys().all(func(id: String) -> bool: return state.call("has_upgrade", id)):
 			break
-	for id: String in database.get("quests"):
+	for id: String in live_quests:
 		if not state.get("progress").claimed_quests.has(id):
 			print("Missão pendente: ", id, " passos ", state.get("progress").active_steps())
 	_check(state.get("progress").chapter_index() == progression.chapters.size() + 1, "Campanha deve concluir todos os capítulos")
@@ -248,7 +251,7 @@ func _campaign() -> Dictionary:
 		if not state.call("has_upgrade", id):
 			print("Pendente ", id, ": ", state.call("upgrade_error", id), "; mochila ", state.get("inventory").counts)
 		_check(state.call("has_upgrade", id), "Campanha deve alcançar compra: " + id)
-	for id: String in database.get("quests"):
+	for id: String in live_quests:
 		_check(state.get("progress").claimed_quests.has(id), "Campanha deve alcançar missão: " + id)
 	print("Campanha simulada: ", iterations, " ciclos; ", state.get("progress").owned.size(), " aquisições; ", state.get("progress").claimed_quests.size(), " missões.")
 	return state.call("to_dict").duplicate(true)
@@ -261,6 +264,10 @@ func _grow_story(recipes: Dictionary) -> void:
 	# "Banho de ervas" (capítulo 8): a missão pede um banho com xampu antes de o Mocinho exigir dois.
 	for step: String in state.get("progress").active_steps().values():
 		for goal: Dictionary in database.get("quests")[step].goals:
+			if str(goal.get("key", "")).begins_with("feed:") and state.call("goal_value", goal) < int(goal.get("target", 1)):
+				var food := str(goal.key).trim_prefix("feed:")
+				_make(food, recipes)
+				state.call("feed", food)
 			if str(goal.get("key", "")) == "shampoo_bath" and state.call("goal_value", goal) < int(goal.get("target", 1)):
 				_make("herb_shampoo", recipes)
 				state.call("bathe", true)

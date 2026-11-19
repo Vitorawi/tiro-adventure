@@ -6,6 +6,10 @@ extends VBoxContainer
 
 const CUP_SIZE := 72.0
 const GAP := 12.0
+const COOP := preload("res://assets/sprites/areas/farm/figma_galinheiro.png")
+const ORCHARD := preload("res://assets/sprites/areas/farm/orchard.png")
+const FLOWER := preload("res://assets/sprites/ui/icons/item_wildflower.png")
+const GRASS := preload("res://assets/sprites/areas/common/grass_ground.png")
 
 var item := ""
 var cups: Array[Control] = []
@@ -22,6 +26,9 @@ var _treat: TextureRect
 var _again: Button
 var _animator: PetAnimator
 var _tween: Tween
+var _yard_round: Dictionary = {}
+var _tail: Control
+var _dog: TextureRect
 
 
 ## Folha em madeira ilustrada (a `Sheet` lê a meta ao abrir o conteúdo).
@@ -62,20 +69,79 @@ func _ready() -> void:
 	_build()
 
 
+func start_yard() -> String:
+	var round := GameState.start_yard_round("hide")
+	if round.has("error"): return str(round.error)
+	_yard_round = round
+	set_meta("sheet_fit_content", true)
+	_build()
+	_start_yard_preview()
+	return ""
+
+
+func _start_yard_preview() -> void:
+	ready_to_pick = false
+	finished = false
+	found = false
+	_status.text = "Tiro está se escondendo…"
+	_dog.modulate.a = 1.0
+	_tail.hide()
+	_again.modulate.a = 0.0
+	_again.disabled = true
+	for cup: Control in cups:
+		(cup as BaseButton).disabled = true
+	set_process(true)
+
+
+func _process(_delta: float) -> void:
+	if _yard_round.is_empty() or ready_to_pick or finished:
+		set_process(false)
+		return
+	if Time.get_ticks_msec() / 1000.0 - float(_yard_round.since) < 1.1: return
+	ready_to_pick = true
+	_dog.modulate.a = 0.0
+	_tail.show()
+	for cup: Control in cups:
+		(cup as BaseButton).disabled = false
+	_place_cups()
+	_status.text = "Procure o rabo e toque no esconderijo."
+	set_process(false)
+
+
+func _exit_tree() -> void:
+	if not _yard_round.is_empty():
+		GameState.cancel_yard_round(int(_yard_round.id))
+
+
 func _build() -> void:
 	if not cups.is_empty(): return
 	add_theme_constant_override("separation", 10)
-	var dog := UiKit.icon(null, 160)
-	dog.custom_minimum_size.x = 0
-	add_child(dog)
+	var in_yard := not _yard_round.is_empty()
+	_dog = UiKit.icon(null, 128 if in_yard else 160)
+	_dog.custom_minimum_size.x = 0
+	if not in_yard: add_child(_dog)
 	_animator = PetAnimator.new()
 	add_child(_animator)
-	_animator.setup(dog)
 	_stage = Control.new()
 	_stage.name = "CupStage"
-	_stage.custom_minimum_size = Vector2(0, CUP_SIZE + 40.0)
+	_stage.custom_minimum_size = Vector2(0, 174.0 if in_yard else CUP_SIZE + 40.0)
 	add_child(_stage)
+	if in_yard:
+		_stage.clip_contents = true
+		_stage.add_child(_dog)
+		_dog.size = Vector2(128, 128)
+		_stage.draw.connect(_draw_yard_ground)
+		_stage.resized.connect(_stage.queue_redraw)
+		_tail = Control.new()
+		_tail.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_tail.z_index = 2
+		_tail.draw.connect(_draw_tail)
+		_stage.add_child(_tail)
+	_animator.setup(_dog)
 	for i in 3:
+		if not _yard_round.is_empty():
+			_add_hideout(i)
+			continue
 		var cup := TextureButton.new()
 		cup.name = "Cup_%d" % i
 		cup.texture_normal = UiKit.ui_icon("hide_cup")
@@ -91,6 +157,7 @@ func _build() -> void:
 	_treat.name = "Treat"
 	_treat.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_stage.add_child(_treat)
+	_treat.hide()
 	_status = StepCardUi.wood("", 18)
 	_status.name = "HideStatus"
 	_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -99,10 +166,51 @@ func _build() -> void:
 	_again = StepCardUi.go_button("Jogar de novo", _play_again)
 	_again.name = "HideAgain"
 	_again.custom_minimum_size.y = 56
-	_again.hide()
+	_again.visible = in_yard
 	add_child(_again)
 	_stage.resized.connect(_place_cups)
 	_place_cups.call_deferred()
+
+
+func _add_hideout(index: int) -> void:
+	var label := str(GameState.yard_rules().hideouts[index])
+	var spot := BagUi.plain_button(choose.bind(index))
+	spot.name = "Hideout_%d" % index
+	spot.custom_minimum_size = Vector2(CUP_SIZE, 30)
+	spot.size = Vector2(CUP_SIZE, 84)
+	spot.tooltip_text = label
+	var tile := SellUi.nine("tile", CodexUi.TILE_MARGINS, "HideoutTile", null, "codex_")
+	tile.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	spot.add_child(tile)
+	StepCardUi.stretch(tile)
+	_stage.add_child(spot)
+	cups.append(spot)
+	var icon := UiKit.icon([FLOWER, COOP, ORCHARD][index], 56)
+	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	icon.position = Vector2(8, 0)
+	spot.add_child(icon)
+	if index == 0:
+		icon.position.y = 6
+		icon.custom_minimum_size.y = 44
+		icon.size.y = 44
+		icon.draw.connect(func() -> void:
+			icon.draw_colored_polygon(PackedVector2Array([Vector2(12, 30), Vector2(44, 30), Vector2(38, 43), Vector2(18, 43)]), Color("b65c40")))
+	var caption := StepCardUi.wood(label, 14)
+	caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	caption.position = Vector2(0, 55)
+	caption.size = Vector2(CUP_SIZE, 26)
+	caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	spot.add_child(caption)
+
+
+func _draw_yard_ground() -> void:
+	_stage.draw_texture_rect(GRASS, Rect2(Vector2.ZERO, _stage.size), true, Color("dce1a5"))
+
+
+func _draw_tail() -> void:
+	var points := PackedVector2Array([Vector2(0, 12), Vector2(6, 10), Vector2(13, 4), Vector2(13, 0)])
+	_tail.draw_polyline(points, Color("59391e"), 9, true)
+	_tail.draw_polyline(points, Color("b9844c"), 5, true)
 
 
 func _slot_x(slot: int) -> float:
@@ -112,6 +220,12 @@ func _slot_x(slot: int) -> float:
 
 func _place_cups() -> void:
 	if cups.is_empty(): return
+	if not _yard_round.is_empty():
+		for i in 3:
+			cups[i].position = Vector2(_slot_x(i), 81)
+		_dog.position = Vector2((_stage.size.x - _dog.size.x) * 0.5, -15)
+		_tail.position = cups[int(_yard_round.hideout)].position + Vector2(58, 21)
+		return
 	for i in 3:
 		cups[i].position = Vector2(_slot_x(slots[i]), 36)
 	_place_treat()
@@ -167,6 +281,22 @@ func _open_picking() -> void:
 
 func choose(cup: int) -> void:
 	if not ready_to_pick or finished: return
+	if not _yard_round.is_empty():
+		var outcome := GameState.yard_find(int(_yard_round.id), cup)
+		if outcome.is_empty(): return
+		found = bool(outcome.found)
+		if not found:
+			_status.text = "Ainda não! Procure o rabinho."
+			return
+		finished = true
+		ready_to_pick = false
+		_tail.hide()
+		_dog.modulate.a = 1.0
+		_animator.react(&"play")
+		_again.modulate.a = 1.0
+		_again.disabled = false
+		_status.text = "Achou! Contou para crescer." if outcome.rewarded else "Achou! Só por diversão neste período."
+		return
 	finished = true
 	ready_to_pick = false
 	found = cup == treat_cup
@@ -183,5 +313,9 @@ func choose(cup: int) -> void:
 
 
 func _play_again() -> void:
+	if not _yard_round.is_empty():
+		var error := start_yard()
+		if error != "": Events.toast_requested.emit(error)
+		return
 	var error := start(item)
 	if error != "": Events.toast_requested.emit(error)

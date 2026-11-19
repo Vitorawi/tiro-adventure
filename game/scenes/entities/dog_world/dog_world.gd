@@ -179,7 +179,9 @@ func _brain() -> void:
 		if not _reaction.is_empty():
 			var reaction := _reaction.duplicate()
 			_reaction.clear()
+			_zooming = reaction.kind == &"specialty"
 			await _go_to(reaction.target)
+			_zooming = false
 			if not _reaction.is_empty() or GameState.dog.sleeping:
 				continue
 			# Só conta quando ele chegou: ponto inalcançável não gasta a "primeira vez".

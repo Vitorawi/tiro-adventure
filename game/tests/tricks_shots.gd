@@ -16,6 +16,7 @@ func _run() -> void:
 	db = root.get_node("Database")
 	events = root.get_node("Events")
 	state.call("reset")
+	state.call("dev_set_phase", "adult")
 	var p: RefCounted = state.get("progress")
 	for id: String in db.get("quests"):
 		if id not in ["nina_pipoca", "nina_trick", "nina_friends", "nina_roll"]:
@@ -45,7 +46,7 @@ func _run() -> void:
 	for id: String in ["yellow_bow", "red_scarf", "rain_coat"]:
 		p.collection[id] = true
 		state.call("equip", id)
-	ui.call("start", "paw")
+	ui.call("start", "talk")
 	await process_frame
 	var training: Node = main.find_child("TrickTraining", true, false)
 	training.get("_motion").pause()
@@ -70,7 +71,7 @@ func _run() -> void:
 			quit(1)
 			return
 		if i == 0:
-			await shot("07_acerto_pata_roupas")
+			await shot("07_acerto_fala_roupas")
 		if i < 2:
 			await create_timer(1.3).timeout
 	await shot("08_novo_truque")
@@ -87,6 +88,8 @@ func _run() -> void:
 	main.call("show_screen", &"pet")
 	await shot("09_botao_truques")
 	for id: String in db.get("progression").tricks:
+		if state.call("trick_is_lesson", id):
+			continue
 		state.call("learn_trick", id)
 	main.get("_modal_queue").clear()
 	main.get("_celebration").hide()
@@ -97,6 +100,8 @@ func _run() -> void:
 	events.emit_signal("sheet_close_requested")
 	var animator: Node = main.find_child("PetScreen").get("_animator")
 	for id: String in db.get("progression").tricks:
+		if state.call("trick_is_lesson", id):
+			continue
 		state.call("perform_trick", id)
 		animator.set_process(false)
 		animator.set("_frame", 2)

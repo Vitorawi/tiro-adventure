@@ -64,6 +64,7 @@ func _run() -> void:
 		await create_timer(1.1).timeout
 		_shot("tiro_harvest_reaction")
 	state.call("dev_grant_upgrade", "farm")
+	state.call("dev_set_phase", "teething")
 	state.call("dev_add_coins", 2000)
 	state.set("unlimited_storage", true)
 	state.call("dev_add_items", 20)
@@ -73,6 +74,7 @@ func _run() -> void:
 	check(orchard.self_modulate.a == 0.0, "Comprar estufa não libera o pomar")
 	# Um save com compras antigas também revela as novas construções/áreas.
 	state.call("dev_unlock_everything")
+	state.get("animals")["chicken_white"] = 1
 	state.call("dev_add_coins", 3000)
 	for id: String in root.get_node("Database").get("animals"):
 		if int(state.get("animals").get(id, 0)) > 0:

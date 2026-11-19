@@ -1,0 +1,430 @@
+extends SceneTree
+## Exercita o roteiro de jogador novo. O relógio é acelerado para dispensar as esperas reais.
+
+var failures := 0
+var state: Node
+var db: Node
+var main: Node
+var guide: Control
+var route: RefCounted
+var output := ""
+
+
+func _initialize() -> void:
+	run.call_deferred()
+
+
+func check(ok: bool, message: String) -> void:
+	if not ok:
+		failures += 1
+		push_error("E14 · " + message)
+
+
+func run() -> void:
+	root.get_node("SaveManager").free()
+	state = root.get_node("GameState")
+	db = root.get_node("Database")
+	state.set_script(load("res://tests/helpers/week_story_clock.gd"))
+	state.set_clock(1792411200.0)
+	state.reset()
+	route = load("res://tests/helpers/week_story_route.gd").new(state, db, check)
+	route.at(1, 9)
+	load("res://scripts/ui/motion.gd").reduced = true
+	if "--screenshots" in OS.get_cmdline_user_args() or "--e15-shots" in OS.get_cmdline_user_args():
+		var folder := "e15_tutoriais" if "--e15-shots" in OS.get_cmdline_user_args() else "e14_tutoriais"
+		output = ProjectSettings.globalize_path("res://../build/screenshots/%s/%dx%d" % [folder, root.size.x, root.size.y])
+		DirAccess.make_dir_recursive_absolute(output)
+	check(db.week_tutorials.size() == 34, "33 lições da semana e o aviso condicional")
+	check(db.week_tutorials.map(func(row: Dictionary) -> String: return row.id).count("arrival") == 1, "Abertura única")
+	await open_main()
+	check(shown("arrival") and not guide.get("_skip").visible, "A caixa tem guia obrigatório")
+	await snap("01_caixa")
+	await tap(find("ArrivalOpen"))
+	check(main.get("_intro").get("_index") == 1, "O toque abre a caixinha")
+	await reopen()
+	check(shown("arrival") and guide.get("step") == 1, "A reabertura retoma no carinho")
+	await tap(find("ArrivalPet"), 0.70)
+	check(main.get("_intro").get("_index") == 2, "O carinho de segurar revela o focinho")
+	await tap(find("ArrivalPet"), 0.70)
+	await tap(find("ArrivalGo"))
+	check(state.progress.stat("arrival_box") == 1, "O tutorial de chegada termina uma vez")
+	route.claim("welcome")
+	await wait_ui()
+	await dismiss()
+	var places := load("res://scripts/ui/places.gd")
+	var destination: Dictionary = places.quest_target("lais_first_crops")
+	places.go(destination)
+	await wait_ui(1.0)
+	await dismiss()
+	check(shown("garden"), "O Ir da História encontra o guia da horta")
+	if shown("garden"):
+		await snap("02_horta")
+		var rect: Rect2 = guide.call("_target", "@plot")
+		if guide.get("step") == 0:
+			await tap_at(rect.get_center())
+			await wait_ui(0.85)
+		check(shown("garden") and guide.get("step") == 1, "Tocar na terra leva ao passo da semente (%s / %d, %s)" % [guide.get("active"), guide.get("step"), str(rect)])
+		check(guide.get("_skip").visible, "Pular disponível a partir da horta")
+		guide.set_process(false)
+		var gesture_at := Vector2(4, 200)
+		pointer(gesture_at, true)
+		pointer(gesture_at, false)
+		var rect_seed: Rect2 = guide.call("_target", "Tile_carrot")
+		guide.call("_layout_week", rect_seed, 19.99)
+		check(not guide.get("_hand").visible, "Mão espera os 20 s")
+		guide.call("_layout_week", rect_seed, 0.01)
+		check(guide.get("_hand").visible, "Mão voltou após 20 s")
+		guide.set_process(true)
+		await reopen()
+		await wait_ui(1.0)
+		check(shown("garden") and guide.get("step") == 1, "Reabrir restaura a bandeja da primeira semente")
+		var seed := find("Tile_carrot")
+		if seed:
+			var dock := find("FarmDock")
+			var farm := find("World_farm")
+			var plot := maxi(0, int(dock.get("plot_index")))
+			var center: Vector2 = farm.call("world_to_screen", farm.call("plot_center", plot))
+			drag(seed.get_global_rect().get_center(), center)
+			await wait_ui()
+			check(state.progress.stat("plant:carrot") > 0, "Arrastar a semente planta de verdade")
+			state.advance_clock(float(state.crop_seconds(plot, "carrot")) + 1.0)
+			await wait_ui()
+			check(shown("garden") and guide.get("step") == 2, "A guia espera a colheita")
+			await tap(find("TutorialSkip", guide))
+			check(state.week.tutorial.get("garden", {}).get("skipped", false), "Pular grava apenas o tutorial")
+			await tap_at(center)
+			check(state.progress.stat("harvest:carrot") == 1, "Colher continua disponível depois de Pular")
+	route.crop("carrot", 2)
+	route.crop("potato", 3)
+	route.claim("lais_first_crops")
+	await settle_cards()
+	places.go(places.quest_target("first_kitchen"))
+	await until_visible("TogetherButton")
+	var action := find("TogetherButton")
+	if action:
+		await tap(action)
+	var kitchen := find("CookTogether")
+	check(is_instance_valid(kitchen), "A História leva à primeira papinha no minigame")
+	if kitchen:
+		await cook_first_meal(kitchen)
+	else:
+		route.serve(route.recipe("puppy_mash", 3, true))
+	check(state.well_fed_days() == 1, "A primeira papinha vale a patinha da chegada")
+	route.claim("first_kitchen")
+	await dismiss()
+	main.call("show_screen", &"pet")
+	await settle_cards()
+	check(shown("clock") and guide.get("_balloon").visible, "A vovó explica o relógio após a primeira refeição (%s, %s)" % [guide.get("active"), str(guide.call("_target", "MealClock"))])
+	if shown("clock"):
+		await snap("03_balao")
+		await tap(find("TutorialAccept", guide))
+	route.crop("carrot", 4)
+	route.ok(state.sell("carrot", 4, "farm"), "Vender cenouras")
+	route.buy("week_pumpkin_seed")
+	route.buy("week_oat")
+	route.claim("week_market")
+	route.ok(state.buy_plot(2), "Terceiro canteiro")
+	route.buy("week_plot")
+	route.ok(state.plant(0, "pumpkin"), "Plantar abóbora")
+	state.advance_clock(float(state.crop_seconds(0, "pumpkin")) + 1.0)
+	state.harvest(0)
+	route.claim("week_plots")
+	route.ball()
+	route.name_calls()
+	route.claim("lais_play")
+	check(not state.week_invent_open(), "Inventar aguarda o jantar")
+	route.at(1, 19)
+	route.serve(route.dish("papinha", {"pumpkin": 1, "potato": 1}))
+	route.claim("week_invent")
+	check(state.progress.current_main_quest() == "week_coop", "Dia 1 foi concluído")
+	await dismiss()
+	var coins: int = state.coins
+	await wait_ui(0.7)
+	await close_main()
+	route.at(2, 11)
+	await open_main()
+	await until_visible("WeekMorning")
+	check(state.coins == coins + 30, "O Bom dia do dia 2 concede 30 moedas")
+	var morning := find("WeekMorning")
+	check(is_instance_valid(morning), "O cartão Bom dia aparece antes do Novo! do galinheiro")
+	if morning:
+		await snap("04_bom_dia")
+	if morning:
+		await tap(first_button(morning))
+	await until_visible("WeekTutorialNew")
+	check(is_instance_valid(find("WeekTutorialNew")), "O cartão Novo! apresenta o kit")
+	if is_instance_valid(find("WeekTutorialNew")):
+		await snap("05_novo")
+		route.funds(60)
+		await tap(find("Primary", find("WeekTutorialNew")))
+		await until_visible("BuyItem")
+		check(shown("coop"), "Ir abre a banca com o foco no kit")
+		await tap(find("BuyItem"))
+		check(state.has_upgrade("chicken_coop"), "Comprar monta o galinheiro pelo fluxo normal")
+		if not state.has_upgrade("chicken_coop"):
+			await snap("compra_interrompida")
+			quit(1)
+			return
+		var assembly := find("KitAssemblyGo")
+		if assembly:
+			await tap(assembly)
+	else:
+		route.funds(60)
+		route.buy("week_coop")
+	route.claim("week_coop")
+	route.eggs(2)
+	route.claim("week_eggs")
+	route.serve(route.dish("papinha", {"potato": 1, "egg": 1}))
+	route.recipe("week_oat_biscuit")
+	route.claim("week_biscuits")
+	await dismiss()
+	main.call("show_screen", &"pet")
+	var pet := main.find_child("PetScreen", true, false)
+	pet.get("_care").call("open_food_menu")
+	await wait_ui()
+	check(shown("snack") and guide.get("_hint").visible, "A dica acompanha o biscoito ao servir (%s, %s)" % [guide.get("active"), str(guide.call("_target", "@snack"))])
+	if shown("snack"):
+		await snap("06_dica")
+		await tap(find("TutorialSkip", guide))
+	route.lesson("sit")
+	route.claim("week_sit")
+	route.ball()
+	route.ball()
+	route.claim("week_fetch")
+	route.funds(40)
+	route.buy("week_bed")
+	route.claim("lais_bed")
+	route.serve("oat_biscuit")
+	route.at(2, 19)
+	route.ball()
+	route.meal(2, 19)
+	await dismiss()
+	load("res://scripts/ui/growth_ui.gd").open()
+	await wait_ui()
+	await tap(find("GrowButton"))
+	var ceremony := main.get("_growth_ceremony") as CanvasLayer
+	for i in 30:
+		if find("CloseCeremony", ceremony):
+			break
+		await wait_ui(0.15)
+	check(ceremony.visible, "Crescer! abre a cerimônia do dia 2")
+	await snap("dia2_cerimonia")
+	await tap(find("CloseCeremony", ceremony))
+	check(not ceremony.visible and state.growth.ceremonies.get("puppy", {}).get("seen", false), "Que lindo! encerra a cerimônia e grava o recibo")
+	route.claim("growth_1_puppy")
+	check(state.growth.phase == "puppy" and state.well_fed_days() == 2, "Dia 2 termina em Filhotinho com duas patinhas")
+	await dismiss()
+	main.call("show_screen", &"tasks")
+	await wait_ui()
+	var today := find("WeekToday")
+	check(today != null and today.find_child("WeekDailySeal", true, false) != null and today.find_children("WeekDaily_*", "", true, false).is_empty(), "Hoje recolhe as três atividades concluídas ao selo")
+	await snap("07_lista_do_dia")
+	await dismiss()
+	var manual := load("res://scripts/ui/game_manual.gd")
+	manual.open("tutorials")
+	await wait_ui()
+	var notebook := find("WeekTutorialManual")
+	check(notebook != null and notebook.find_children("TutorialReview_*", "", true, false).size() == 34, "Manual reúne todas as lições, inclusive puladas")
+	var review := find("TutorialReview_garden")
+	if review:
+		await tap(review)
+		check(find("TutorialReview_garden") != null and find("TutorialReview_arrival") == null, "A revisão abre a lição no Manual")
+		await snap("08_manual")
+	var snapshot: Dictionary = JSON.parse_string(JSON.stringify(state.to_dict()))
+	state.from_dict(snapshot)
+	check(state.week.tutorial.get("garden", {}).get("skipped", false), "O save conserva lições puladas")
+	print("WEEK TUTORIAL TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
+	quit(int(failures != 0))
+
+
+func open_main() -> void:
+	main = load("res://scenes/main/main.tscn").instantiate()
+	root.add_child(main)
+	current_scene = main
+	guide = main.find_child("WeekTutorial", true, false)
+	await wait_ui()
+
+
+func reopen() -> void:
+	var snapshot: Dictionary = JSON.parse_string(JSON.stringify(state.to_dict()))
+	await wait_ui(0.65)
+	await close_main()
+	state.from_dict(snapshot)
+	await open_main()
+
+
+func close_main() -> void:
+	# Deixa os sinais e as animações pendentes da tela saírem junto da cena.
+	main.queue_free()
+	await process_frame
+	await process_frame
+
+
+func shown(id: String) -> bool:
+	return guide.visible and guide.get("active") == id
+
+
+func find(id: String, scope: Node = null) -> Control:
+	if scope == null:
+		scope = main
+	for node: Control in scope.find_children(id, "Control", true, false):
+		if node.is_visible_in_tree() and not node.is_queued_for_deletion():
+			return node
+	return null
+
+
+func tap(node: Control, seconds: float = 0.0) -> void:
+	if node == null:
+		check(false, "Controle esperado visível para toque")
+		return
+	var ancestor := node.get_parent()
+	while ancestor is Control:
+		if ancestor is ScrollContainer:
+			ancestor.ensure_control_visible(node)
+		ancestor = ancestor.get_parent()
+	await process_frame
+	if is_instance_valid(node):
+		await tap_at((node.get_global_transform_with_canvas() * Rect2(Vector2.ZERO, node.size)).get_center(), seconds)
+
+
+func tap_at(at: Vector2, seconds: float = 0.0) -> void:
+	pointer(at, true)
+	if seconds > 0.0:
+		await create_timer(seconds).timeout
+	pointer(at, false)
+	await wait_ui()
+
+
+func pointer(at: Vector2, down: bool) -> void:
+	var event := InputEventMouseButton.new()
+	event.button_index = MOUSE_BUTTON_LEFT
+	event.pressed = down
+	event.button_mask = MOUSE_BUTTON_MASK_LEFT if down else 0
+	event.position = at
+	event.global_position = at
+	root.push_input(event, true)
+
+
+func wait_ui(seconds: float = 0.30) -> void:
+	await create_timer(seconds).timeout
+	await process_frame
+
+
+func dismiss() -> void:
+	# Fecha os cartões já apresentados para focalizar o ponto em revisão.
+	await process_frame
+	main.get("_modal_queue").clear()
+	main.get("_week_cards_queued").clear()
+	main.get("_quest_rewards").clear()
+	for id: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony", "_quest_reward"]:
+		main.get(id).hide()
+	root.get_node("Events").sheet_close_requested.emit()
+	await wait_ui(0.36)
+
+
+func snap(id: String) -> void:
+	if output.is_empty():
+		return
+	await RenderingServer.frame_post_draw
+	check(root.get_texture().get_image().save_png(output.path_join(id + ".png")) == OK, "Captura " + id)
+
+
+func until_visible(id: String) -> void:
+	for i in 10:
+		if is_instance_valid(find(id)):
+			return
+		var card := find("ModalCard")
+		if card and not card.name == id:
+			var next := find("Ghost", card)
+			if next == null:
+				next = find("Primary", card)
+			if next:
+				await tap(next)
+		await wait_ui()
+
+
+func first_button(scope: Node) -> Control:
+	for control: Control in scope.find_children("*", "Button", true, false):
+		if control.is_visible_in_tree() and not (control as Button).disabled:
+			return control
+	return null
+
+
+func settle_cards() -> void:
+	for i in 7:
+		if not main.call("notice_blocked"):
+			return
+		await dismiss()
+
+
+func drag(from: Vector2, to: Vector2) -> void:
+	pointer(from, true)
+	move_pointer(from, from.lerp(to, 0.5))
+	move_pointer(from.lerp(to, 0.5), to)
+	pointer(to, false)
+
+
+func move_pointer(from: Vector2, to: Vector2) -> void:
+	var event := InputEventMouseMotion.new()
+	event.position = to
+	event.global_position = to
+	event.relative = to - from
+	event.button_mask = MOUSE_BUTTON_MASK_LEFT
+	root.push_input(event, true)
+
+
+func kitchen_at(kitchen: Control, point: Vector2) -> Vector2:
+	return kitchen.global_position + (kitchen.call("to_screen", point) as Vector2)
+
+
+func cook_first_meal(kitchen: Control) -> void:
+	check(shown("cook") and guide.get("step") == 0, "Cozinhar junto mostra Picar")
+	for i in 20:
+		if kitchen.get("phase") != "picar":
+			break
+		var x: float = kitchen.call("guide_x")
+		drag(kitchen_at(kitchen, Vector2(x, 280)), kitchen_at(kitchen, Vector2(x, 360)))
+	kitchen.call("tick", 0.6)
+	await wait_ui()
+	check(shown("cook") and guide.get("step") == 1, "Picar leva a Mexer")
+	await snap("09_mexer")
+	await reopen()
+	await until_visible("CookTogether")
+	kitchen = find("CookTogether")
+	check(kitchen != null and kitchen.get("phase") == "mexer", "Reabrir restaura o passo e os brilhos da cozinha")
+	if not kitchen:
+		route.serve(route.recipe("puppy_mash", 3, true))
+		return
+	var center := Vector2(180, 424)
+	var angle := -PI / 2.0
+	var position := kitchen_at(kitchen, center + Vector2.from_angle(angle) * 150.0)
+	pointer(position, true)
+	for i in 150:
+		if kitchen.get("phase") != "mexer":
+			break
+		angle += 0.3
+		var next := kitchen_at(kitchen, center + Vector2.from_angle(angle) * 150.0)
+		move_pointer(position, next)
+		position = next
+		kitchen.call("tick", 0.1)
+	pointer(position, false)
+	kitchen.call("tick", 0.6)
+	await wait_ui()
+	check(shown("cook") and guide.get("step") == 2, "Mexer leva a Servir")
+	var bowl := kitchen_at(kitchen, Vector2(272, 566))
+	for i in 2:
+		drag(kitchen_at(kitchen, Vector2(99, 404)), bowl)
+	drag(kitchen_at(kitchen, Vector2(180, 690)), bowl)
+	kitchen.call("tick", 0.6)
+	await wait_ui()
+	check(shown("feed"), "Após os três gestos, o guia segue ao prato pronto")
+	await tap(find("GiveToTiro"))
+	await until_visible("TutorialMealBowl")
+	check(shown("feed") and guide.get("step") == 1, "O prato pronto abre o gesto da tigela")
+	var plate := find("Care_puppy_mash")
+	var bowl_target := find("TutorialMealBowl")
+	if plate and bowl_target:
+		var lift: float = load("res://scripts/ui/drag_ghost.gd").LIFT
+		drag(plate.get_global_rect().get_center(), bowl_target.get_global_rect().get_center() + Vector2(0, lift))
+		await wait_ui()
+	check(state.progress.stat("feed:puppy_mash") == 1, "Dar ao Tiro serve a primeira papinha")

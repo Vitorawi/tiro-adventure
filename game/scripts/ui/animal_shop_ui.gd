@@ -139,7 +139,7 @@ static func _overlay(station_id: String, width: float) -> Control:
 				break
 	var data: Dictionary = Database.stations[station_id]
 	var count := GameState.animal_count(station_id)
-	var capacity := maxi(1, int(data.animal_capacity))
+	var capacity := maxi(1, GameState.animal_capacity(station_id))
 	var lane_l := LANE_X.x
 	var lane_r := map_x(LANE_X.y, width)
 	var fill := Panel.new()

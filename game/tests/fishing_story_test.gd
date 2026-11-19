@@ -64,31 +64,24 @@ func _run() -> void:
 	check(state.progress.stat("feed:fish_mash") == 1, "conta feed:fish_mash")
 	check(state.growth.body_level == body_before, "papinha não muda o Corpo")
 
-	# 3/4. Dentinhos: requisito novo independente do Corpo; só libera com 2 papinhas.
+	# 3/4. Dentinhos: o prato-chave usa o peixe da lagoa.
 	_fresh()
-	var fish_row := _row("fish_meal")
-	check(not fish_row.is_empty() and int(fish_row.need) == 2, "Dentinhos pedem 2 papinhas de peixe")
-	var meals := _row("meals")
-	check(not meals.is_empty() and int(meals.need) == 3, "cenoura gelada continua pedindo 3")
-	state.dev_complete_growth_reqs()
-	state.growth.done["teething"]["fish_meal"] = false
-	check(state.grow_error().contains("Papinha de peixe"), "falta a papinha: " + state.grow_error())
-	for n in 2:
-		state.inventory.add("fish_mash", 1)
-		state.dog.needs["hunger"] = 10.0
-		check(state.feed("fish_mash"), "alimentar com papinha %d" % n)
-	check(bool(_row("fish_meal").done), "2 papinhas cumprem o passo")
+	var fish_row := _row("key_fish")
+	check(not fish_row.is_empty() and int(fish_row.need) == 1, "Dentinhos pedem um prato com peixe")
+	state.inventory.add("fish_mash", 1)
+	check(state.feed("fish_mash"), "alimentar com papinha de peixe")
+	check(bool(_row("key_fish").done), "a papinha cumpre o prato-chave")
 
 	# 5. Missão do capítulo 3.
-	var q: Dictionary = db.quests.lais_fish_mash
-	check(str(q.kind) == "main" and int(q.chapter) == 3, "lais_fish_mash é do capítulo 3")
-	check(int(q.order) > int(db.quests.first_kitchen.order) and int(q.order) < int(db.quests.lais_blender.order), "ordem entre cozinha e liquidificador")
-	check(str(q.goals[0].key) == "produce:fish_mash" and str(q.goals[1].key) == "feed:fish_mash", "objetivos usam os contadores reais")
+	var q: Dictionary = db.quests.week_fish_dish
+	check(str(q.kind) == "main" and int(q.chapter) == 3, "O prato-chave é do capítulo 3")
+	check(int(q.order) > int(db.quests.week_fish.order), "O prato-chave vem após pescar")
+	check(q.goals[0].type == "week_dish" and q.goals[0].key == "fish", "objetivo usa o requisito do Para crescer")
 	check(str(q.go.place) == "stove", "Ir leva ao fogão")
 
 	# 6. Tilápia Grande (e Gigante) completa a vovó.
 	var big: Dictionary = db.quests.bloblo_big_tilapia
-	check(big.requirements.quests.has("lais_fish_mash"), "bloblo_big_tilapia depende da papinha")
+	check(big.requirements.quests.has("week_fish_dish"), "bloblo_big_tilapia depende da papinha")
 	var key := str(big.goals[0].key)
 	check(key == "fish_size:large:fish_tilapia", "chave do objetivo: " + key)
 	_fresh()
@@ -105,9 +98,9 @@ func _run() -> void:
 
 	# 8. GrowthUi: passo do Dentinhos.
 	_fresh()
-	var view: Dictionary = load("res://scripts/ui/growth_ui.gd").call("step_view", _row("fish_meal"))
-	check(int(view.need) == 2 and int(view.have) == 0, "GrowthUi 0/2")
-	check(str(view.item) == "fish_mash", "GrowthUi mostra a papinha")
+	var view: Dictionary = load("res://scripts/ui/growth_ui.gd").call("step_view", _row("key_fish"))
+	check(int(view.need) == 1 and int(view.have) == 0, "GrowthUi 0/1")
+	check(str(view.hint).contains("peixe"), "GrowthUi mostra a refeição com peixe")
 
 	print("FISHING STORY TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(1 if failures > 0 else 0)
@@ -116,6 +109,7 @@ func _run() -> void:
 func _harvest_worms(with_rod: bool) -> int:
 	_fresh()
 	state.dev_grant_upgrade("farm")
+	state.unlocked_plots = 4
 	state.fishing.rods.clear()
 	if with_rod:
 		state.give_rod("bamboo_rod")

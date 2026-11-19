@@ -703,17 +703,6 @@
       ]
     }
   },
-  "invented_dish": {
-    "name": "Prato inventado",
-    "category": "food",
-    "storage": "fridge",
-    "icon": "res://assets/sprites/ui/icons/item_puppy_mash.png",
-    "sell_price": 8,
-    "feed": {
-      "hunger": 20,
-      "happiness": 5
-    }
-  },
   "fish_mash": {
     "name": "Papinha de peixe",
     "category": "food",
@@ -859,6 +848,20 @@
         "adult"
       ]
     }
+  },
+  "puppy_shampoo": {
+    "name": "Xampu de filhote",
+    "category": "care",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_herb_shampoo.png",
+    "note": "Use em Cuidar → Banho para ganhar dois momentos de Pelagem."
+  },
+  "squeaky_ball": {
+    "name": "Bolinha que apita",
+    "category": "care",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/action_play.png",
+    "note": "Tiro usa no Quintal. Vai mais longe e rende mais Felicidade."
   },
   "herb_shampoo": {
     "name": "Xampu de ervas",
@@ -1034,6 +1037,100 @@
       "phases": [
         "young",
         "adult"
+      ]
+    }
+  },
+  "zucchini": {
+    "name": "Abobrinha",
+    "category": "crop",
+    "icon": "res://assets/sprites/ui/icons/item_zucchini.png",
+    "sell_price": 6,
+    "trade_xp": 3
+  },
+  "oat": {
+    "name": "Aveia",
+    "category": "crop",
+    "icon": "res://assets/sprites/ui/icons/item_oat.png",
+    "sell_price": 3,
+    "trade_xp": 2
+  },
+  "rice": {
+    "name": "Arroz",
+    "category": "crop",
+    "icon": "res://assets/sprites/ui/icons/item_rice.png",
+    "sell_price": 4,
+    "trade_xp": 2
+  },
+  "banana": {
+    "name": "Banana",
+    "category": "crop",
+    "icon": "res://assets/sprites/ui/icons/item_banana.png",
+    "sell_price": 6,
+    "trade_xp": 2
+  },
+  "watermelon": {
+    "name": "Melancia",
+    "category": "crop",
+    "icon": "res://assets/sprites/ui/icons/item_watermelon.png",
+    "sell_price": 8,
+    "trade_xp": 3
+  },
+  "gororoba": {
+    "name": "Gororoba",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_gororoba.png",
+    "treat": true,
+    "feed": {
+      "hunger": 15,
+      "happiness": 0
+    },
+    "sell_price": 2,
+    "note": "Combinação que não formou um prato: enche a barriga, mas não conta como prato diferente."
+  },
+  "oat_biscuit": {
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_apple_biscuit.png",
+    "feed": {
+      "hunger": 30,
+      "happiness": 20
+    },
+    "name": "Biscoito de aveia",
+    "sell_price": 4,
+    "category": "food"
+  },
+  "carrot_seed": {
+    "name": "Semente de cenoura",
+    "category": "material",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_carrot.png"
+  },
+  "pumpkin_seed": {
+    "name": "Semente de abóbora",
+    "category": "material",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_pumpkin.png"
+  },
+  "week_bed_cloth": {
+    "name": "Paninho da caminha",
+    "category": "keepsake",
+    "storage": "none",
+    "icon": "res://assets/sprites/ui/icons/item_bed_gift.png"
+  },
+  "week_lunchbox": {
+    "name": "Marmita da vovó",
+    "category": "food",
+    "storage": "fridge",
+    "icon": "res://assets/sprites/ui/icons/item_puppy_mash.png",
+    "feed": {
+      "hunger": 35,
+      "happiness": 10
+    },
+    "growth": {
+      "phases": [
+        "newborn",
+        "puppy",
+        "teething"
       ]
     }
   }

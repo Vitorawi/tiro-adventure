@@ -15,7 +15,7 @@ static func panel() -> Control:
 	var box := SheetBuilder.LiveBox.new(_build)
 	box.name = "GrowthPanel"
 	box.set_meta("tick_refresh", false)
-	box.add_theme_constant_override("separation", 6)
+	box.add_theme_constant_override("separation", 4)
 	box.set_meta("sheet_wood", true)
 	box.set_meta("sheet_fit_content", true)
 	box.set_meta("sheet_actions", _header_actions)
@@ -85,6 +85,10 @@ static func step_view(req: Dictionary) -> Dictionary:
 				view.title = "Passear"
 				view.unit = "passeios"
 				view.icon = UiKit.ui_icon("action_walk")
+			else:
+				_week_view(view, req)
+		"dishes", "dish_stars", "invented_dish", "dish_key", "trick_level":
+			_week_view(view, req)
 		"owned":
 			view.short = str(Database.progression.upgrades[str(req.upgrade)].name).get_slice(" ", 0)
 		"collection":
@@ -156,6 +160,11 @@ static func step_view(req: Dictionary) -> Dictionary:
 			if str(req.get("counter", "")) == "walk":
 				view.hint = "Pelo portão da Praça"
 				view.action = "Passear"
+			else:
+				_week_hint(view, req)
+			view.callback = go
+		"dishes", "dish_stars", "invented_dish", "dish_key", "trick_level":
+			_week_hint(view, req)
 			view.callback = go
 		"owned":
 			view.hint = "Compre para ele"
@@ -169,8 +178,98 @@ static func step_view(req: Dictionary) -> Dictionary:
 	return view
 
 
+## Ícone do requisito da semana do filhote (patinha, prato, brincadeira...). Patinha e pratos são provisórios (E16).
+static func week_icon(req: Dictionary) -> Texture2D:
+	match str(req.type):
+		"dishes": return Database.item_icon("puppy_mash")
+		"dish_stars": return Database.item_icon("apple_biscuit")
+		"invented_dish": return Database.item_icon("carrot_snack")
+		"dish_key":
+			var group: Dictionary = Database.growth.get("key_groups", {}).get(str(req.get("group", "")), {})
+			var item := DishRules.main_item(str(group.get("ingredient", "")))
+			if item == "": item = "apple" if str(group.get("category", "")) == "fruta" else ""
+			return Database.item_icon(item) if item != "" else UiKit.ui_icon("need_hunger")
+		"trick_level": return UiKit.ui_icon(str(Database.progression.tricks.get(str(req.trick), {}).get("icon", "trick_paw")))
+		"stat":
+			match str(req.get("counter", "")):
+				"play", "play_rope": return UiKit.ui_icon("action_play")
+				"name_call": return UiKit.ui_icon("action_pet")
+				"trick_learned": return UiKit.ui_icon("trick_paw")
+	return UiKit.ui_icon("tab_pet")
+
+
+## Nome curto, unidade e ícone dos requisitos novos da primeira semana.
+static func _week_view(view: Dictionary, req: Dictionary) -> void:
+	view.icon = week_icon(req)
+	match str(req.type):
+		"dishes":
+			view.short = "Pratos"
+			view.unit = "pratos"
+		"dish_stars":
+			view.short = "2 estrelas"
+		"invented_dish":
+			view.short = "Inventar"
+		"dish_key":
+			view.short = str(Database.growth.get("key_groups", {}).get(str(req.group), {}).get("name", "Prato")).capitalize()
+		"trick_level":
+			view.short = "Senta"
+		"stat":
+			match str(req.get("counter", "")):
+				"well_fed_day":
+					view.short = "Dias"
+					view.unit = "dias"
+					view.title = "Dias bem alimentados"
+				"play":
+					view.short = "Brincar"
+					view.unit = "brincadeiras"
+				"play_rope": view.short = "Cordinha"
+				"name_call": view.short = "Nome"
+				"trick_learned": view.short = "Truques"
+
+
+## Dica de uma linha e ação do botão Ir dos requisitos novos.
+static func _week_hint(view: Dictionary, req: Dictionary) -> void:
+	match str(req.type):
+		"dishes":
+			view.action = "Cozinhar"
+			view.hint = "Pratos de tipos diferentes" if req.has("types_need") and int(req.types_have) < int(req.types_need) and int(req.get("dishes_have", 0)) >= int(req.need) else "Cada prato novo conta"
+			if req.has("types_need"): view.hint = "Tipos %d/%d · " % [int(req.types_have), int(req.types_need)] + str(view.hint)
+		"dish_stars":
+			view.action = "Cozinhar junto"
+			view["action_short"] = "Cozinhar"
+			view.hint = "Cozinhe junto no fogão"
+		"invented_dish":
+			view.action = "Inventar"
+			view.hint = "Aba Inventar do fogão"
+		"dish_key":
+			view.action = "Ir"
+			view.hint = "Refeição com " + str(Database.growth.get("key_groups", {}).get(str(req.group), {}).get("name", "o ingrediente"))
+		"trick_level":
+			view.action = "Treinar"
+			view.hint = "Aula do Tiro"
+		"stat":
+			match str(req.get("counter", "")):
+				"well_fed_day":
+					view.action = "Ver Hoje"
+					view.hint = "Almoço e jantar na hora"
+				"play":
+					view.action = "Brincar"
+					view.hint = "Quintal do Tiro"
+				"play_rope":
+					view.action = "Brincar"
+					view.hint = "Cordinha · dia 4"
+				"trick_learned":
+					view.action = "Treinar"
+					view.hint = "Aula do Tiro"
+				"name_call":
+					view.action = "Ir"
+					view.hint = "Botão Tiro! no quintal"
+
+
 ## Onde nasce a lembrança, numa linha: quem dá, qual estação faz ou onde se acha.
 static func _source_hint(item: String) -> String:
+	if item == "chew_ring" and GameState.farm_week_active():
+		return "Na banca · dia 7" if GameState.shop_item_locked("week_teether") != "" else "Compre na banca"
 	var giver := TaskHelp.reward_source_text(item)
 	if giver != "": return giver.split(" · ")[0]
 	var source := TaskHelp.best_source(item)
@@ -250,13 +349,16 @@ static func _build(box: VBoxContainer) -> void:
 		summary.add_child(StepCardUi.wood("%d/%d" % [complete, visible_steps.size()], 20))
 		box.add_child(summary)
 		_steps(box, info, visible_steps)
-		if info.ready:
+		var story_wait := GameState.week_growth_error(str(info.next.id))
+		if info.ready and story_wait == "":
 			var grow := StepCardUi.go_button("Crescer!", func() -> void:
 				var error := GameState.grow()
 				if error != "": Events.toast_requested.emit(error))
 			grow.name = "GrowButton"
 			grow.set_meta("wood_primary", true)
 			box.add_child(grow)
+		elif info.ready and story_wait != "":
+			box.add_child(StepCardUi.lock_note(story_wait))
 		box.add_child(_unlocks(info))
 	elif silk.adult and not silk.next.is_empty():
 		_silk_requirements(box, silk)
@@ -377,7 +479,8 @@ static func _steps(box: VBoxContainer, info: Dictionary, visible_steps: Array) -
 		chosen = first_id
 	var grid := GridContainer.new()
 	grid.name = "GrowthSteps"
-	grid.columns = 3
+	var compact := visible_steps.size() > 9 or (str(info.phase) == "newborn" and visible_steps.size() > 6)
+	grid.columns = 4 if compact else 3
 	grid.add_theme_constant_override("h_separation", 6)
 	grid.add_theme_constant_override("v_separation", 6)
 	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -390,7 +493,7 @@ static func _steps(box: VBoxContainer, info: Dictionary, visible_steps: Array) -
 			if details.has(key): _select_detail(details[key], key == id)
 	for req: Dictionary in visible_steps:
 		var id := str(req.id)
-		var tile := _step_tile(views[id])
+		var tile := _step_tile(views[id], grid.columns == 4)
 		if not info.ready: tile.pressed.connect(select.bind(id))
 		_style_tile(tile, bool(views[id].done), id == chosen and not info.ready)
 		tiles[id] = tile
@@ -407,7 +510,7 @@ static func _steps(box: VBoxContainer, info: Dictionary, visible_steps: Array) -
 
 
 ## Quadradinho de um passo (papel creme do caderninho): anel com o ícone, nome curto e quantidade; ✓ verde quando feito.
-static func _step_tile(step: Dictionary) -> Button:
+static func _step_tile(step: Dictionary, compact: bool = false) -> Button:
 	var tile := BagUi.plain_button(func() -> void: pass)
 	tile.name = "GrowthReq_" + str(step.id)
 	tile.custom_minimum_size = Vector2(0, TILE_H)
@@ -424,7 +527,7 @@ static func _step_tile(step: Dictionary) -> Button:
 	column.offset_top = 6
 	column.offset_bottom = -8
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	var ring := step_ring(step, 40)
+	var ring := step_ring(step, 30 if compact else 40)
 	ring.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var amount := UiKit.hbox(4)
 	amount.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -485,7 +588,8 @@ static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> 
 		help.name = "GrowthHelp"
 		head.add_child(help)
 	detail.add_child(head)
-	if not step.done:
+	var teether_shop: bool = step.item == "chew_ring" and step.give == "" and GameState.farm_week_active()
+	if not step.done and not teether_shop:
 		var target: Dictionary = TaskHelp.describe("growth_req", str(step.id)).target
 		var path := _step_path(target, step)
 		if path != null: detail.add_child(path)

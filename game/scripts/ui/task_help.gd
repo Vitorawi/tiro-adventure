@@ -94,6 +94,8 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			elif locked != "":
 				result.detail = locked
 			result.needs = [_need("coins", "", int(pack.get("price", 0)))]
+			if locked != "":
+				return result
 		"walk":
 			var walk := GameState.walk_def(id)
 			result = _base(str(walk.get("name", id)), "Passeie na Praça e guarde os achados.", {"world": "park", "place": "walk"}, "Ir")
@@ -102,6 +104,9 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 				result.detail = error
 		"upgrade":
 			var upgrade: Dictionary = Database.progression.upgrades[id]
+			var kit := str(upgrade.get("kit", "week_bed" if id == "dog_bed" and GameState.farm_week_active() else ""))
+			if kit != "" and not GameState.has_upgrade(id):
+				return describe("shop", kit, 1, visited)
 			if upgrade.has("nature_unlock"):
 				var site: String = upgrade.nature_unlock.site
 				var level := int(upgrade.nature_unlock.level)
@@ -117,8 +122,13 @@ static func describe(kind: String, id: String, amount: int = 1, trail: Array[Str
 			_materials(result.needs, upgrade.get("materials", {}))
 		"crop":
 			var crop: Dictionary = Database.crops[id]
-			result = _base(Database.item_name(id), "Plante e colha · %s" % TimeText.short(int(crop.seconds)), _focused("farm", "crop:" + id), "Ir")
+			result = _base(Database.item_name(id), "Plante e colha · %s" % TimeText.short(int(GameState.crop_seconds(-1, id))), _focused("farm", "crop:" + id), "Ir")
 			result.needs = _requirements(crop.get("requirements", {})) if GameState.content_error("crop", id, crop) != "" else []
+		"orchard":
+			result = _base(Database.item_name(id), "Colha no pomar do Sítio.", {"world": "farm", "place": "orchard"}, "Ir")
+			var reason := GameState.orchard_harvest_error(id)
+			if reason != "":
+				result.detail = reason
 		"route":
 			var route: Dictionary = Database.progression.activities[id]
 			result = _base(route.name, "Passeio de %s" % TimeText.short(int(route.seconds)), _focused("routes:" + str(route.place), "route:" + id), "Ir")
@@ -191,6 +201,8 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 		return _base("Vender ao Feirante", "Vila → Feirante: escolha um produto e toque em Vender. Vendas no Sítio não contam.", {"world": "village", "place": "market"}, "Ir ao Feirante")
 	if type == "stat" and (key == "trick_learned" or key == "trick" or key.begins_with("trick:")):
 		return _base(str(goal.get("label", "Truques")), "Treine 3 acertos na Praça." if key == "trick_learned" else "Peça um truque; recarga por truque.", Places.goal_target(goal), "Ir")
+	if type == "stat" and key.begins_with("trick_learned:"):
+		return _base(str(goal.get("label", "Truques")), "Treine na Praça com a Nina.", Places.goal_target(goal), "Ir")
 	if type == "stat" and (key == "friend_level" or key.begins_with("friend_gift")):
 		var id := key.trim_prefix("friend_gift:") if key.begins_with("friend_gift:") else "pipoca"
 		var def := GameState.friend_def(id)
@@ -264,7 +276,7 @@ static func _recipe(id: String, amount: int) -> Dictionary:
 	var batches := ceili(float(maxi(0, amount - pending)) / maxi(1, GameState.recipe_quantity(id)))
 	result["batches"] = batches
 	result["pending"] = pending
-	result.detail = "Faça %d× · %s cada" % [batches, TimeText.short(int(recipe.seconds))]
+	result.detail = "Faça %d× · %s cada" % [batches, TimeText.short(int(GameState.recipe_seconds(id)))]
 	if pending > 0:
 		result.detail += " · %d na fila" % pending
 	if ready > 0 or (pending >= amount and pending > 0):
@@ -385,6 +397,8 @@ static func best_source(item: String) -> Dictionary:
 		var candidate := {}
 		var requirements := {}
 		var station := ""
+		if str(source.key).begins_with("orchard:"):
+			return {"kind": "orchard", "id": item}
 		if str(source.key).begins_with("harvest:"):
 			var crop: String = str(source.key).trim_prefix("harvest:")
 			candidate = {"kind": "crop", "id": crop}
@@ -435,7 +449,7 @@ static func _reward_step(item: String) -> String:
 		if int(Database.quests[quest_id].get("rewards", {}).get("items", {}).get(item, 0)) > 0:
 			return quest_id
 	for quest_id: String in Database.quests:
-		if not GameState.progress.claimed_quests.has(quest_id) and int(Database.quests[quest_id].get("rewards", {}).get("items", {}).get(item, 0)) > 0:
+		if Database.quests[quest_id].get("kind") != "retired" and not GameState.progress.claimed_quests.has(quest_id) and int(Database.quests[quest_id].get("rewards", {}).get("items", {}).get(item, 0)) > 0:
 			return quest_id
 	return ""
 
@@ -444,6 +458,7 @@ static func reward_source_text(item: String, giver: String = "") -> String:
 	for quest_id: String in Database.quests:
 		if giver != "" and giver != quest_id: continue
 		var quest: Dictionary = Database.quests[quest_id]
+		if quest.get("kind") == "retired": continue
 		if int(quest.get("rewards", {}).get("items", {}).get(item, 0)) <= 0: continue
 		var npc := str(Database.npcs.get(str(quest.get("npc", "")), {}).get("name", ""))
 		var target := Places.quest_target(quest_id)
@@ -496,6 +511,10 @@ static func _gift_source(item: String, amount: int, trail: Array[String]) -> Dic
 		if past != "":
 			result = _base(Database.item_name(item), "Você já recebeu esse prêmio único. Ele não pode ser recebido de novo.", {"screen": "tasks"}, "Ver missões")
 			result["source_text"] = past
+	if result.is_empty():
+		var rewards := Database.week_reward_sources(item)
+		if not rewards.is_empty():
+			result = _base(Database.item_name(item), str(rewards[0].name), rewards[0].target, "Ir")
 	if result.is_empty():
 		result = _base(Database.item_name(item), "Este item não tem uma fonte disponível no catálogo.", {"screen": "tasks"}, "Ver história")
 	result.title = Database.item_name(item)
@@ -552,6 +571,7 @@ static func icon_for(kind: String, id: String) -> Texture2D:
 						return Database.item_icon(food) if Database.items.has(food) else UiKit.ui_icon("need_hunger")
 					"owned": return UiKit.ui_icon(Database.progression.upgrades[str(row.upgrade)].get("icon", "tab_house"))
 					"moments": return UiKit.ui_icon(str(Database.growth.pillars[row.pillar].icon))
+					_: return GrowthUi.week_icon(row)
 			return UiKit.ui_icon("tab_pet")
 		"produced":
 			return Database.item_icon(id)
@@ -665,7 +685,34 @@ static func _growth_requirement(id: String, trail: Array[String]) -> Dictionary:
 					result = describe("item", food_id, 1, trail)
 					if GameState.inventory.count(food_id) > 0:
 						result = _base(str(row.label), "Tiro → Comida: dê " + Database.item_name(food_id), {"screen": "pet"}, "Ir")
-			"stat": result = describe("stat", str(row.counter), int(row.need), trail)
+			"stat":
+				var counter := str(row.counter)
+				if counter == "well_fed_day":
+					result = _base(str(row.label), "Dê as duas refeições na hora, almoço e jantar. Abra Hoje no Tiro para ver as janelas.", {"screen": "pet"}, "Ir")
+				elif counter in ["play", "play_rope", "name_call"]:
+					var guide := {
+						"play": "Jogue no quintal. As primeiras partidas do período contam para crescer.",
+						"play_rope": "No dia 4, segure a cordinha e solte no ritmo do Tiro.",
+						"name_call": "Toque em Tiro! no quintal e espere ele chegar.",
+					}
+					result = _base(str(row.label), str(guide[counter]), {"world": "farm", "place": "week_yard"}, "Ir")
+				elif counter == "trick_learned":
+					result = _base(str(row.label), "Aprenda Senta, Dá a pata e Deita na Aula do Tiro.", TrickUi.lesson_target(), "Ir")
+				else:
+					result = describe("stat", counter, int(row.need), trail)
+			"dishes":
+				result = _base(str(row.label), "Cozinhe e dê ao Tiro pratos diferentes. Estrelas não criam prato novo.", {"world": "house", "place": "stove"}, "Ir")
+				if row.has("types_need"):
+					result.detail = "Dê %d pratos diferentes, de pelo menos %d tipos (papinha, sopinha e mingau). Tipos: %d/%d." % [int(row.need), int(row.types_need), int(row.types_have), int(row.types_need)]
+			"dish_stars":
+				result = _base(str(row.label), "Cozinhe junto no fogão: o prato sai com mais estrelas.", {"world": "house", "place": "stove"}, "Ir")
+			"invented_dish":
+				result = _base(str(row.label), "No fogão, abra a aba Inventar e monte um prato novo.", {"world": "house", "place": "stove"}, "Ir")
+			"dish_key":
+				var group: Dictionary = Database.growth.get("key_groups", {}).get(str(row.group), {})
+				result = _base(str(row.label), "Dê ao Tiro uma refeição que leve %s." % str(group.get("name", "o ingrediente")), group.get("go", {"screen": "pet"}), "Ir")
+			"trick_level":
+				result = _base(str(row.label), "Treine na Aula do Tiro.", TrickUi.lesson_target(), "Ir")
 			"collection": result = _base(str(row.label), "Faça na Costura da Praça.", {"world": "park", "place": "sewing"}, "Ir")
 			"moments":
 				result = _moments(str(row.pillar))

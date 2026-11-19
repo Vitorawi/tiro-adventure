@@ -50,6 +50,7 @@ var _ask_icon: TextureRect
 var _profile: Button
 var _profile_fill: NinePatchRect
 var _profile_count: Label
+var _meal_clock: Button
 var _row2_inset: Control
 var _row2_left: Control
 var _row2_right: Control
@@ -142,6 +143,17 @@ func _build_avatar() -> void:
 	_ask_icon.position = Vector2(AVATAR - 22.0, 0.0)
 	_ask_icon.visible = false
 	_avatar_group.add_child(_ask_icon)
+	# Reloginho das refeições: abre a folha "Hoje" (E01c).
+	_meal_clock = MealUi.clock_button()
+	_meal_clock.position = Vector2(-14.0, AVATAR_SIZE.y - 40.0)
+	var weak_dot := Panel.new()
+	weak_dot.name = "WeakDot"
+	weak_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	weak_dot.size = Vector2(10, 10)
+	weak_dot.position = Vector2(30, 4)
+	weak_dot.add_theme_stylebox_override("panel", UiKit.surface(Palette.ALERT, 5))
+	_meal_clock.add_child(weak_dot)
+	_avatar_group.add_child(_meal_clock)
 	_animated_badge = UiKit.spark(18)
 	_animated_badge.name = "AnimatedBadge"
 	_animated_badge.position = Vector2(AVATAR - 22.0, AVATAR_SIZE.y - 24.0)
@@ -330,6 +342,7 @@ func refresh(animate: bool = true) -> void:
 	_growth_alert.visible = bool(info.ready)
 	_profile.visible = true
 	_refresh_head()
+	MealUi.sync_clock(_meal_clock)
 	_refresh_ask()
 	_set_coins(GameState.coins, animate)
 

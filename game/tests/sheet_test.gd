@@ -256,7 +256,7 @@ func _pieces() -> void:
 func _conversation_growth() -> void:
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
-	state.call("dev_jump_to_chapter", 3)
+	state.call("dev_jump_to_chapter", 7)
 	state.call("_mark_all_seen")
 	var progression_ui: Script = load("res://scripts/ui/progression_ui.gd")
 	for npc: String in ["lais", "bloblo"]:

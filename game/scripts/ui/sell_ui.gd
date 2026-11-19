@@ -90,7 +90,7 @@ static var last_tab := "sell"
 
 
 static func build(world_id: String) -> Control:
-	var model := {"selected": "", "quantity": 1, "scroll": 0, "tab": last_tab, "buy_selected": "", "buy_qty": 1}
+	var model := {"selected": "", "quantity": 1, "scroll": 0, "tab": last_tab, "buy_selected": "", "buy_qty": 1, "world": world_id}
 	if open_tab != "":
 		model.tab = open_tab
 		model.buy_selected = open_pack
@@ -103,7 +103,7 @@ static func build(world_id: String) -> Control:
 		box.add_theme_constant_override("separation", 6)
 		var ids: Array[String] = []
 		for id: String in Database.items:
-			if int(Database.items[id].get("sell_price", 0)) > 0 and GameState.inventory.count(id) > 0:
+			if GameState.sale_price(id, world_id) > 0 and GameState.inventory.count(id) > 0:
 				ids.append(id)
 		if not str(model.selected) in ids:
 			model.selected = ids[0] if not ids.is_empty() else ""
@@ -240,7 +240,7 @@ static func _grid_area(ids: Array[String], model: Dictionary, refresh: Callable,
 	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	grid.custom_minimum_size.x = card_w * 2.0 + GAP
 	for id in ids:
-		var card := _card(id, id == str(model.selected), card_w, func() -> void:
+		var card := _card(id, id == str(model.selected), card_w, GameState.sale_price(id, str(model.world)), func() -> void:
 			model.selected = id
 			model.quantity = 1
 			refresh.call())
@@ -327,7 +327,7 @@ static func style_bar(bar: VScrollBar) -> void:
 # --- Cartão --------------------------------------------------------------------------------
 
 ## Cartão do produto: ícone no quadradinho afundado à esquerda; nome, "Preço: N" (com moeda) e "Tem: N" à direita.
-static func _card(id: String, selected: bool, card_w: float, choose: Callable) -> Button:
+static func _card(id: String, selected: bool, card_w: float, unit: int, choose: Callable) -> Button:
 	var result := BagUi.plain_button(choose)
 	result.custom_minimum_size = Vector2(card_w, CARD_H)
 	result.set_meta("selected", selected)
@@ -388,7 +388,7 @@ static func _card(id: String, selected: bool, card_w: float, choose: Callable) -
 	var price_row := UiKit.hbox(2)
 	price_row.name = "PriceRow"
 	price_row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var price := StationWood.text("Preço: %d" % int(Database.items[id].sell_price), 12)
+	var price := StationWood.text("Preço: %d" % unit, 12)
 	price.name = "Price"
 	price.autowrap_mode = TextServer.AUTOWRAP_OFF
 	price_row.add_child(price)
@@ -438,6 +438,8 @@ static func pack_icon(data: Dictionary) -> TextureRect:
 	var items: Dictionary = data.get("items", {})
 	if not items.is_empty():
 		return item_icon(str(items.keys()[0]))
+	if data.has("icon"):
+		return _icon_from(UiKit.ui_icon(str(data.icon)))
 	var rods: Array = data.get("rods", [])
 	var path := str(Database.fishing.get("rods", {}).get(str(rods[0]) if not rods.is_empty() else "", {}).get("icon", ""))
 	return _icon_from(load(path) as Texture2D if path != "" else null)
@@ -468,7 +470,7 @@ static func _board(who: Dictionary, model: Dictionary, refresh: Callable, width:
 	var owned := GameState.inventory.count(id)
 	model.quantity = clampi(int(model.quantity), 1, owned)
 	var qty := int(model.quantity)
-	var unit := int(Database.items[id].sell_price)
+	var unit := GameState.sale_price(id, world_id)
 	var shell := _board_shell(who, width, "%d × %s" % [qty, Database.item_name(id)])
 	var panel: Control = shell.panel
 	var column: VBoxContainer = shell.column
@@ -688,6 +690,8 @@ static func _buy_card(id: String, selected: bool, card_w: float, locked: String,
 		lock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		lock_row.add_child(lock)
 		var short := locked.trim_prefix("Ganhe a ").trim_prefix("Depois de: ")  # "Ganhe a vara de bambu" → "Vara de bambu" (cabe em 2 linhas)
+		if short.begins_with("Abre no dia "):
+			short = "Dia " + short.trim_prefix("Abre no dia ")
 		var reason := StationWood.text(short.substr(0, 1).to_upper() + short.substr(1), 11)
 		reason.name = "LockText"
 		reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -723,6 +727,43 @@ static func _buy_card(id: String, selected: bool, card_w: float, locked: String,
 	return result
 
 
+static func cart_buy_row(id: String, day: int) -> Control:
+	var data := GameState.shop_pack(id)
+	var error := GameState.buy_shop_item_error(id)
+	var label := "Oferta do dia · " + str(data.name) if id == "cart_offer" else str(data.name)
+	var chips: Array[Control] = []
+	if data.has("description"):
+		var description := StepCardUi.wood(str(data.description), 13)
+		description.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		description.custom_minimum_size.x = 108
+		chips.append(description)
+	var buy := StepCardUi.go_button("%d" % int(data.price), func() -> void:
+		var failure := GameState.buy_shop_item(id, 1, day)
+		if failure != "":
+			Events.toast_requested.emit(failure)
+		else:
+			Haptics.success()
+			Events.toast_requested.emit("Comprou " + str(data.name)), UiKit.ui_icon("coin"))
+	if error != "":
+		buy.free()
+		buy = StepCardUi.locked_button(error)
+		var shortage := GameState.storage_shortage(data.get("items", {}))
+		if not shortage.is_empty() and error == GameState.storage_error(data.get("items", {})):
+			buy.free()
+			var depot := str(shortage.depot)
+			chips.append(StepCardUi.wood("%s · libere %d" % [GameState.storage_name(depot), int(shortage.missing)], 13))
+			buy = StepCardUi.go_button("Ver itens", Places.go.bind({"storage": depot}))
+	buy.name = "Buy_" + id
+	buy.tooltip_text = error if error != "" else "%d moedas" % int(data.price)
+	buy.custom_minimum_size.x = 90.0
+	buy.size_flags_horizontal = Control.SIZE_SHRINK_END
+	buy.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var icon := pack_icon(data)
+	var texture := icon.texture
+	icon.free()
+	return ProjectUi.row("Pack_" + id, texture, label, chips, buy, Callable())
+
+
 static func _buy_board(who: Dictionary, model: Dictionary, refresh: Callable, width: float) -> Control:
 	var id := str(model.buy_selected)
 	var data: Dictionary = GameState.shop_pack(id)
@@ -733,9 +774,14 @@ static func _buy_board(who: Dictionary, model: Dictionary, refresh: Callable, wi
 	var shell := _board_shell(who, width, str(data.name) if first_item == "" else "%d × %s" % [qty * int(data.items[first_item]), Database.item_name(first_item)])
 	var panel: Control = shell.panel
 	var column: VBoxContainer = shell.column
-	column.add_child(_quantity_row(qty, most, func(value: int) -> void:
-		model.buy_qty = value
-		refresh.call()))
+	if data.has("description"):
+		var description := StationWood.text(str(data.description), 15)
+		description.name = "PackDescription"
+		column.add_child(description)
+	if int(data.get("max", 10)) > 1:
+		column.add_child(_quantity_row(qty, most, func(value: int) -> void:
+			model.buy_qty = value
+			refresh.call()))
 	var last := UiKit.hbox(6)
 	last.name = "BuyAction"
 	var cost := int(data.price) * qty
@@ -752,7 +798,9 @@ static func _buy_board(who: Dictionary, model: Dictionary, refresh: Callable, wi
 			if failure != "":
 				Events.toast_requested.emit(failure)
 			else:
-				model.buy_qty = 1)
+				model.buy_qty = 1
+				if data.has("ready"):
+					_show_kit.call_deferred(data))
 		action.name = "BuyItem"
 		action.size_flags_horizontal = Control.SIZE_SHRINK_END
 	else:
@@ -765,6 +813,22 @@ static func _buy_board(who: Dictionary, model: Dictionary, refresh: Callable, wi
 	if error != "":
 		total.free()  # com o botão bloqueado, o motivo ocupa a linha toda (o total não faz falta)
 	return panel
+
+
+static func _show_kit(data: Dictionary) -> void:
+	var panel := UiKit.vbox(12)
+	panel.name = "KitAssembly"
+	var icon := pack_icon(data)
+	var picture := CenterContainer.new()
+	picture.add_child(icon)
+	panel.add_child(picture)
+	var note := StationWood.text(str(data.description), 17)
+	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	panel.add_child(note)
+	var action := StepCardUi.go_button("Ir", Places.go.bind(data.destination))
+	action.name = "KitAssemblyGo"
+	panel.add_child(action)
+	Events.sheet_requested.emit(str(data.ready), SheetBuilder._wood_sheet(panel))
 
 
 ## − [N] + e a pílula Máx: nós `Quantity` (Minus/QuantityValue/Plus) e `QuantityMax`.

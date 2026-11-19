@@ -1,0 +1,544 @@
+{
+  "text": {
+    "morning": "Bom dia!",
+    "night": "Boa noite!",
+    "day": "Dia %d com o Tiro",
+    "weak": "O Tiro acordou fraquinho.",
+    "missed": "Ontem faltou %s.",
+    "recover": "Comer na hora ajuda o Tiro a se recuperar. Você pode deixar um prato pronto.",
+    "today": "Ver refeições",
+    "continue": "Vamos, Tiro!",
+    "close_night": "Boa noite, Tiro",
+    "paw": "+1 patinha",
+    "no_paw": "Dia sem patinha",
+    "new_dish": "Prato novo · %s",
+    "no_dish": "Hoje ele não provou um prato novo.",
+    "seal": "Selo do dia",
+    "no_seal": "Diárias · %d/3",
+    "next": "Amanhã · %s",
+    "list": "Hoje",
+    "daily_source": "Prêmio da atividade diária do filhote",
+    "step": "Próximo passo",
+    "locked": "Abre no dia %d",
+    "stove_locked": "Abra o fogão pela História.",
+    "invent_locked": "Inventar abre no jantar.",
+    "complete": "Concluído",
+    "go": "Ir",
+    "open_lines": "Ver linhas no Caderninho",
+    "offer": "Quer um aviso na hora de comer?",
+    "offer_body": "O reloginho pode avisar quando o almoço ou o jantar abrir enquanto você joga.",
+    "enable": "Ativar aviso",
+    "decline": "Agora não",
+    "reminder": "Hora de comer · %s",
+    "reminder_setting": "Avisar na hora de comer",
+    "lunch": "Almoço",
+    "dinner": "Jantar",
+    "both": "o almoço e o jantar",
+    "lunch_only": "o almoço",
+    "dinner_only": "o jantar",
+    "done": "na hora",
+    "miss": "passou",
+    "duples": "Duplas descobertas",
+    "seed": "Semente de prêmio · +%d na próxima colheita",
+    "closed": "Semanais em Dentinhos.",
+    "weak_recovered": "Ontem faltou comida na hora. O Tiro já está melhor."
+  },
+  "news": [
+    {
+      "open": "A caixinha, a horta e o primeiro prato com a vovó.",
+      "hook": "Um dia de descobertas",
+      "icon": "tab_pet"
+    },
+    {
+      "open": "Galinheiro, caminha e aula do Senta.",
+      "hook": "Galinhas no sítio",
+      "icon": "station_coop"
+    },
+    {
+      "open": "A lagoa e as primeiras pescarias.",
+      "hook": "A lagoa",
+      "icon": "station_fishing"
+    },
+    {
+      "open": "Pomar, mingau e aula do Dá a pata.",
+      "hook": "Frutas no pomar",
+      "icon": "item_apple"
+    },
+    {
+      "open": "Carroça do Feirante, banho com xampu e aula do Deita.",
+      "hook": "Alguém vai parar no portão",
+      "icon": "coin"
+    },
+    {
+      "open": "Show de truques e esconde-esconde.",
+      "hook": "O primeiro show do Tiro",
+      "icon": "trick_paw"
+    },
+    {
+      "open": "Almoço de despedida e o próximo crescimento.",
+      "hook": "Almoço com a vovó e a Laís",
+      "icon": "item_puppy_mash"
+    },
+    {
+      "open": "O portão da Vila espera por Dentinhos.",
+      "hook": "Um passeio pela Vila",
+      "icon": "tab_map"
+    }
+  ],
+  "daily": {
+    "lunch": {
+      "label": "Almoço na hora",
+      "target": 1,
+      "go": {
+        "meal": true
+      },
+      "rewards": {
+        "coins": 3
+      }
+    },
+    "dinner": {
+      "label": "Jantar na hora",
+      "target": 1,
+      "go": {
+        "meal": true
+      },
+      "rewards": {
+        "coins": 3
+      }
+    },
+    "play": {
+      "label": "Brincar duas vezes",
+      "target": 2,
+      "day": 1,
+      "go": {
+        "world": "farm",
+        "place": "week_yard"
+      },
+      "rewards": {
+        "coins": 5,
+        "items": {
+          "carrot_seed": 1
+        }
+      }
+    },
+    "new_dish": {
+      "label": "Dar um prato que ele nunca provou",
+      "target": 1,
+      "day": 1,
+      "upgrade": "stove",
+      "go": {
+        "feed": true
+      },
+      "rewards": {
+        "coins": 5,
+        "items": {
+          "carrot_seed": 1
+        }
+      }
+    },
+    "harvest": {
+      "label": "Colher seis produtos",
+      "target": 6,
+      "day": 1,
+      "go": {
+        "world": "farm",
+        "place": "plots"
+      },
+      "rewards": {
+        "coins": 5,
+        "items": {
+          "carrot_seed": 1
+        }
+      }
+    },
+    "eggs": {
+      "label": "Pegar ovos",
+      "target": 1,
+      "day": 2,
+      "upgrade": "chicken_coop",
+      "go": {
+        "world": "farm",
+        "place": "chicken_coop"
+      },
+      "rewards": {
+        "coins": 5,
+        "items": {
+          "carrot_seed": 1
+        }
+      }
+    },
+    "fish": {
+      "label": "Pescar um peixe",
+      "target": 1,
+      "day": 3,
+      "go": {
+        "world": "farm",
+        "place": "fishing"
+      },
+      "rewards": {
+        "coins": 5,
+        "items": {
+          "carrot_seed": 1
+        }
+      }
+    }
+  },
+  "lines": {
+    "grandma": {
+      "title": "O caderno da vovó",
+      "steps": [
+        {
+          "id": "invention",
+          "name": "Primeira invenção",
+          "label": "Crie um prato na aba Inventar.",
+          "day": 1,
+          "target": 1,
+          "go": {
+            "kitchen": "invent"
+          },
+          "rewards": {
+            "items": {
+              "oat": 2
+            }
+          }
+        },
+        {
+          "id": "flavors",
+          "name": "Três sabores",
+          "label": "Sirva um prato Crocante, um Cremoso e um Docinho.",
+          "day": 1,
+          "target": 3,
+          "go": {
+            "feed": true
+          },
+          "rewards": {
+            "items": {
+              "pumpkin_seed": 1
+            }
+          }
+        },
+        {
+          "id": "pair",
+          "name": "Combinação especial",
+          "label": "Descubra a primeira dupla de ingredientes.",
+          "day": 1,
+          "target": 1,
+          "go": {
+            "kitchen": "invent"
+          },
+          "badge": "Página de duplas"
+        },
+        {
+          "id": "five",
+          "name": "Cinco invenções",
+          "label": "Registre cinco pratos diferentes no Livro de receitas.",
+          "day": 2,
+          "target": 5,
+          "go": {
+            "notebook": "recipes"
+          },
+          "rewards": {
+            "coins": 10
+          }
+        },
+        {
+          "id": "types",
+          "name": "Um de cada",
+          "label": "Dê ao Tiro uma papinha, uma sopinha e um mingau.",
+          "day": 4,
+          "target": 3,
+          "go": {
+            "feed": true
+          },
+          "rewards": {
+            "coins": 10,
+            "items": {
+              "bait_worm": 2
+            }
+          }
+        },
+        {
+          "id": "complete_dish",
+          "name": "Prato completo",
+          "label": "Faça um prato que dê os quatro nutrientes.",
+          "day": 3,
+          "target": 1,
+          "go": {
+            "kitchen": "invent"
+          },
+          "badge": "Prato completo"
+        },
+        {
+          "id": "pairs",
+          "name": "Caçador de duplas",
+          "label": "Descubra cinco duplas diferentes de ingredientes.",
+          "day": 3,
+          "target": 5,
+          "go": {
+            "kitchen": "invent"
+          },
+          "hint": "sopinha_do_pescador",
+          "badge": "Pista de receita secreta"
+        },
+        {
+          "id": "favorite",
+          "name": "O favorito dele",
+          "label": "Descubra a comida favorita do Tiro.",
+          "day": 4,
+          "target": 1,
+          "go": {
+            "feed": true
+          },
+          "photo": "h_routine_favorite"
+        },
+        {
+          "id": "secret",
+          "name": "Segredo da vovó",
+          "label": "Faça uma receita secreta.",
+          "day": 6,
+          "target": 1,
+          "go": {
+            "notebook": "recipes:secrets"
+          },
+          "rewards": {
+            "coins": 15,
+            "items": {
+              "apple_biscuit": 2
+            }
+          }
+        },
+        {
+          "id": "chef",
+          "name": "Mestre-cuca filhote",
+          "label": "Registre quinze pratos diferentes no Livro de receitas.",
+          "day": 3,
+          "target": 15,
+          "go": {
+            "notebook": "recipes"
+          },
+          "rewards": {
+            "collections": [
+              "week_chef_hat"
+            ]
+          }
+        }
+      ]
+    },
+    "friends": {
+      "title": "Melhores amigos",
+      "steps": [
+        {
+          "id": "pet",
+          "name": "Ele confia em você",
+          "label": "Faça carinho em três períodos diferentes.",
+          "day": 1,
+          "target": 3,
+          "go": {
+            "screen": "pet"
+          },
+          "photo": "h_routine_belly"
+        },
+        {
+          "id": "play",
+          "name": "Hora de brincar",
+          "label": "Brinque de manhã, à tarde e à noite no mesmo dia.",
+          "day": 1,
+          "target": 3,
+          "go": {
+            "world": "farm",
+            "place": "week_yard"
+          },
+          "rewards": {
+            "coins": 8
+          }
+        },
+        {
+          "id": "sit_meal",
+          "name": "Com educação",
+          "label": "Peça o Senta antes de três refeições.",
+          "day": 3,
+          "target": 3,
+          "go": {
+            "meal": true
+          },
+          "rewards": {
+            "items": {
+              "apple_biscuit": 3
+            }
+          }
+        },
+        {
+          "id": "train",
+          "name": "Treino em dia",
+          "label": "Treine em três dias diferentes.",
+          "day": 2,
+          "target": 3,
+          "go": {
+            "notebook": "tricks"
+          },
+          "rewards": {
+            "coins": 10
+          }
+        },
+        {
+          "id": "skilled",
+          "name": "Sabe bem",
+          "label": "Leve um truque ao nível Sabe bem.",
+          "day": 2,
+          "target": 1,
+          "go": {
+            "notebook": "tricks"
+          },
+          "badge": "Fita azul"
+        },
+        {
+          "id": "tricks",
+          "name": "Três truques",
+          "label": "Aprenda Senta, Dá a pata e Deita.",
+          "day": 5,
+          "target": 3,
+          "go": {
+            "notebook": "tricks"
+          },
+          "photo": "h_routine_tricks"
+        },
+        {
+          "id": "shows",
+          "name": "Aplausos",
+          "label": "Complete dois shows do Tiro.",
+          "day": 6,
+          "target": 2,
+          "go": {
+            "world": "farm",
+            "place": "week_show"
+          },
+          "rewards": {
+            "items": {
+              "squeaky_ball": 1
+            }
+          }
+        }
+      ]
+    },
+    "clock": {
+      "title": "Relógio do Tiro",
+      "steps": [
+        {
+          "id": "paw",
+          "name": "Primeira patinha",
+          "label": "Tenha o primeiro dia bem alimentado.",
+          "day": 1,
+          "target": 1,
+          "go": {
+            "meal": true
+          },
+          "rewards": {
+            "coins": 5
+          }
+        },
+        {
+          "id": "streak",
+          "name": "Dois seguidos",
+          "label": "Junte patinhas em dois dias seguidos.",
+          "day": 2,
+          "target": 2,
+          "go": {
+            "meal": true
+          },
+          "rewards": {
+            "items": {
+              "week_lunchbox": 1
+            }
+          }
+        },
+        {
+          "id": "lunches",
+          "name": "Pontual",
+          "label": "Dê três almoços na hora.",
+          "day": 2,
+          "target": 3,
+          "go": {
+            "meal": true
+          },
+          "rewards": {
+            "coins": 10
+          }
+        },
+        {
+          "id": "perfect",
+          "name": "Dia perfeito",
+          "label": "No mesmo dia, dê as duas refeições na hora, brinque, treine e faça carinho.",
+          "day": 3,
+          "target": 1,
+          "go": {
+            "meal": true
+          },
+          "photo": "h_routine_perfect"
+        },
+        {
+          "id": "nights",
+          "name": "Boa noite",
+          "label": "Veja o cartão Boa noite em três dias.",
+          "day": 2,
+          "target": 3,
+          "go": {
+            "meal": true
+          },
+          "rewards": {
+            "items": {
+              "week_bed_cloth": 1
+            }
+          }
+        },
+        {
+          "id": "full_week",
+          "name": "Semana cheia",
+          "label": "Junte cinco patinhas.",
+          "day": 3,
+          "target": 5,
+          "go": {
+            "meal": true
+          },
+          "rewards": {
+            "coins": 15
+          },
+          "badge": "Selo da semana"
+        }
+      ]
+    }
+  },
+  "periods": [
+    6,
+    12,
+    18
+  ],
+  "flavors": [
+    "crocante",
+    "cremoso",
+    "docinho"
+  ],
+  "meal_types": [
+    "papinha",
+    "sopinha",
+    "mingau"
+  ],
+  "tricks": [
+    "sit",
+    "paw",
+    "lie_down"
+  ],
+  "learned_level": 1,
+  "skilled_level": 2,
+  "seed_items": {
+    "carrot": "carrot_seed",
+    "pumpkin": "pumpkin_seed"
+  },
+  "seed_bonus": 1,
+  "daily_counters": {
+    "play": "play",
+    "new_dish": "routine_new_dish",
+    "harvest": "routine_harvest",
+    "eggs": "produce:egg",
+    "fish": "fish"
+  }
+}

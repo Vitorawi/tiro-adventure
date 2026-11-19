@@ -123,7 +123,7 @@ func _recovery_from_zero() -> void:
 	state.call("harvest", 0)
 	check(_inv("carrot") == 2, "colhe com carteira vazia")
 	var place: Dictionary = db.get("worlds").farm.places.early_market
-	check(place.requirements.quests == ["bloblo_meet"] and place.panel == "sell", "venda inicial abre com bloblo_meet")
+	check(state.call("requirement_error", place.get("requirements", {})) == "" and place.panel == "sell", "banca da vovó compra a primeira colheita desde o dia 1")
 	check(state.call("sell", "carrot", 2) == "", "vende a colheita")
 	check(int(state.get("coins")) == 2 * _price("carrot") and int(state.get("coins")) > 0, "o saldo vem da venda (%d)" % int(state.get("coins")))
 	# Zero moeda e zero estoque: ainda dá para recomeçar e vender a segunda safra.
@@ -179,7 +179,7 @@ func _contracts() -> void:
 	# Entregar no jogo: sem estoque nada acontece; com estoque, paga 600.
 	_fresh()
 	_p().owned["stall"] = true
-	_p().claimed_quests["first_harvest"] = true
+	_p().claimed_quests["lais_first_crops"] = true
 	state.get("inventory").add("treat_box", 3)
 	var error: String = state.call("fulfill_order", "special_order")
 	check(error == "" and int(state.get("coins")) == 600 and _inv("treat_box") == 0, "entregar 3 caixas paga 600 (%s)" % error)
@@ -196,9 +196,9 @@ func _one_time_prizes() -> void:
 	check(quests.atelier_open.rewards.collections == ["artisan_outfit"] and int(quests.atelier_open.rewards.skill_xp.adventure) == 70, "atelier_open mantém roupa e XP")
 	check(int(quests.merchant_stall.rewards.skill_xp.commerce) == 60, "merchant_stall mantém XP")
 	var chapters: Array = db.get("progression").chapters
-	var expected: Array[int] = [10, 20, 30, 40, 60, 60, 60, 80, 80]
+	var expected: Array[int] = [0, 0, 0, 0, 0, 0, 0, 40, 60, 60, 60, 80, 80]
 	for index in range(expected.size()):
-		check(int(chapters[index].rewards.coins) == expected[index], "capítulo %d paga %d (%s)" % [index + 1, expected[index], str(chapters[index].rewards)])
+		check(int(chapters[index].rewards.get("coins", 0)) == expected[index], "capítulo %d paga %d (%s)" % [index + 1, expected[index], str(chapters[index].rewards)])
 
 
 func _level_gift() -> void:

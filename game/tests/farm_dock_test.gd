@@ -498,6 +498,7 @@ func _test_next_locked() -> void:
 	var kept: Dictionary = progress.claimed_quests.duplicate()
 	progress.claimed_quests.erase("bloblo_dig")
 	progress.claimed_quests.erase("farm_deed")
+	progress.unlocks["crop:pumpkin"] = true
 	state.call("_changed")
 	await open_plant(5)
 	var current := dock()
@@ -536,6 +537,7 @@ func _test_first_flow() -> void:
 	var progress: Object = state.get("progress")
 	progress.seen["intro"] = true
 	progress.claimed_quests["growth_1_puppy"] = true
+	progress.unlocks["crop:pumpkin"] = true
 	state.call("_grant_upgrade", "farm")
 	state.call("_mark_all_seen")
 	state.set("unlocked_plots", 6)

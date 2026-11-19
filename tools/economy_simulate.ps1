@@ -2,6 +2,7 @@
 #
 #   powershell -ExecutionPolicy Bypass -File tools\economy_simulate.ps1 -Profile reference -Seed 1 -Days 30
 #   powershell -ExecutionPolicy Bypass -File tools\economy_simulate.ps1 -Profile reference -Seed 1..10 -Until campaign -Days 120
+#   powershell -ExecutionPolicy Bypass -File tools\economy_simulate.ps1 -Until week -Profile regular -Seed 1..3 -OutRoot build/economy/e15
 #   powershell -ExecutionPolicy Bypass -File tools\economy_simulate.ps1 -Quick            # medida rápida (plano Tiro, etapa 00)
 #
 # -Quick = perfil reference, semente 1, -Until campaign, -Ledger off, -Days 60, -TimeoutMin 20, saída em
@@ -15,7 +16,7 @@ param(
   [string]$Profile = "reference",
   [string]$Seed = "1",
   [int]$Days = 30,
-  [ValidateSet("days", "campaign", "projects")][string]$Until = "days",
+  [ValidateSet("days", "campaign", "projects", "week")][string]$Until = "days",
   [ValidateSet("normal", "worst")][string]$Rare = "normal",
   [ValidateSet("full", "compact", "off")][string]$Ledger = "compact",
   [ValidateSet("none", "session")][string]$Reload = "none",

@@ -25,7 +25,7 @@ static func open(world_id: String, place_id: String, from_object: bool = false) 
 		return
 	var upgrade: String = place.get("upgrade", "")
 	if upgrade != "" and not GameState.has_upgrade(upgrade):
-		Events.sheet_requested.emit(place.name, ProgressionUi.purchase(upgrade))
+		run(world_id, "buy:" + upgrade)
 		return
 	var panel: String = place.get("panel", "")
 	var kind := panel.get_slice(":", 0)
@@ -56,6 +56,15 @@ static func _panel(kind: String, arg: String, world_id: String = "village") -> C
 	match kind:
 		"tricks":
 			return TrickUi.panel(true)
+		"trick_lesson":
+			return TrickUi.lesson_panel()
+		"trick_show":
+			return TrickUi.show_panel()
+		"week_cart":
+			GameState.note_recipe_hint("cart")
+			return OrdersUi.build_cart()
+		"week_yard":
+			return YardPlay.menu()
 		"friends":
 			return FriendUi.panel()
 		"community":
@@ -80,6 +89,10 @@ static func _panel(kind: String, arg: String, world_id: String = "village") -> C
 			return SheetBuilder.farm_view()
 		"greenhouse":
 			return SheetBuilder.farm_view("", true)
+		"orchard":
+			return SheetBuilder._wood_sheet(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+				for item: String in Database.farm.orchard_fruit:
+					box.add_child(StationTray.orchard_detail(item, Vector2(-1, -1)))))
 		"market":
 			return ProgressionUi.market_panel(arg, world_id)
 		"sell":
@@ -125,6 +138,8 @@ static func open_tray(world_id: String, place_id: String) -> bool:
 	for room: Node in (Engine.get_main_loop() as SceneTree).get_nodes_in_group("room_views"):
 		if not room is RoomView or room.world_id != world_id or not room.is_visible_in_tree():
 			continue
+		if panel == "orchard" and room.open_orchard_tray():
+			return true
 		if panel == "greenhouse" and room.can_open_greenhouse_tray():
 			Events.sheet_close_requested.emit()
 			room.open_greenhouse_tray()
@@ -137,7 +152,8 @@ static func open_tray(world_id: String, place_id: String) -> bool:
 			# O Ir geral abre as sementes direto; sem espaço, mostra a ferramenta da plantação.
 			for status: String in ["empty", "ready", "growing"]:
 				for index: int in room.plot_indices():
-					if not GameState.is_greenhouse_plot(index) and GameState.plot_status(index) == status:
+					var reserved := status == "empty" and index == int(Database.farm.corn_plot)
+					if not reserved and not GameState.is_greenhouse_plot(index) and GameState.plot_status(index) == status:
 						Events.sheet_close_requested.emit()
 						room.open_plot_tray(index, "", true, false)
 						return true
@@ -213,6 +229,14 @@ static func run(world_id: String, action: String) -> void:
 			Events.toast_requested.emit(reason)
 	elif action.begins_with("friend:"):
 		FriendUi.open(action.trim_prefix("friend:"))
+	elif action.begins_with("cookbook:"):
+		for room: Node in (Engine.get_main_loop() as SceneTree).get_nodes_in_group("room_views"):
+			if room is RoomView and room.world_id == world_id and room.is_visible_in_tree():
+				if room.can_open_station_tray("stove"):
+					room.open_station_tray("stove", action.trim_prefix("cookbook:"), true)
+				else:
+					open(world_id, "stove")
+				return
 	elif action.begins_with("recipe:"):
 		var id := action.trim_prefix("recipe:")
 		if Database.recipes.has(id):
@@ -235,7 +259,9 @@ static func run(world_id: String, action: String) -> void:
 				Events.sheet_requested.emit(data.name, ProgressionUi.routes_panel(data.place, id))
 	elif action.begins_with("order:"):
 		var id := action.trim_prefix("order:")
-		if Database.progression.orders.has(id):
+		if Database.progression.cart_catalog.has(id):
+			open("farm", "week_cart")
+		elif Database.progression.orders.has(id):
 			Events.sheet_requested.emit(Database.progression.orders[id].name, ProgressionUi.orders_panel(id))
 	elif action.begins_with("crop:"):
 		var id := action.trim_prefix("crop:")
@@ -245,10 +271,18 @@ static func run(world_id: String, action: String) -> void:
 				Events.plot_tray_requested.emit(id, -1)
 			else:
 				Events.sheet_requested.emit(Database.item_name(id), SheetBuilder.farm_view(id, Database.crops.get(id, {}).get("greenhouse", "") == "only"))
+	elif action == "week:later":
+		Events.toast_requested.emit("Quando ele crescer")
+	elif action == "week:orchard":
+		Events.toast_requested.emit("O pomar abre no dia %d" % int(Database.farm.orchard_day))
+	elif action == "week:coop":
+		Events.toast_requested.emit("O galinheiro abre no dia %d" % int(Database.progression.shop_items.week_coop.requirements.week_day))
 	elif action.begins_with("shop:"):
 		var pack := action.trim_prefix("shop:")
 		var shop_id := str(Database.progression.shop_items.get(pack, {}).get("shop", ""))
-		if shop_id != "" and GameState.shop_error(shop_id) == "":
+		if shop_id == "week_cart":
+			open("farm", "week_cart")
+		elif shop_id != "" and GameState.shop_error(shop_id) == "":
 			SellUi.open_tab = "buy"
 			SellUi.open_pack = pack
 			var shop: Dictionary = Database.shop(shop_id)
@@ -262,7 +296,16 @@ static func run(world_id: String, action: String) -> void:
 		open_npc(action.trim_prefix("npc:"))
 	elif action.begins_with("buy:"):
 		var upgrade := action.trim_prefix("buy:")
-		Events.sheet_requested.emit(Database.progression.upgrades.get(upgrade, {}).get("name", "Construir"), ProgressionUi.purchase(upgrade))
+		var data: Dictionary = Database.progression.upgrades.get(upgrade, {})
+		if data.has("kit") and not GameState.has_upgrade(upgrade):
+			var kit := str(data.kit)
+			var lock := GameState.shop_item_locked(kit)
+			if lock != "":
+				Events.toast_requested.emit(lock)
+			else:
+				run(world_id, "shop:" + kit)
+		else:
+			Events.sheet_requested.emit(str(data.get("name", "Construir")), ProgressionUi.purchase(upgrade))
 	elif action.begins_with("place:"):
 		var id := action.trim_prefix("place:")
 		if not open_tray(world_id, id):
@@ -353,6 +396,8 @@ static func highlight_action(place: String) -> String:
 	var id := place.get_slice(":", 1) if ":" in place else place
 	var spot := id
 	match place.get_slice(":", 0) if ":" in place else "place":
+		"cookbook":
+			spot = "stove"
 		"recipe":
 			spot = Database.place_with_panel("station:" + str(Database.recipes.get(id, {}).get("station", "")))[1]
 		"route":
@@ -592,6 +637,8 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			if key == "open:album": return {"notebook": "album", "hint": "Tiro → botão Álbum"}
 			if key == "trick_learned":
 				return _panel_target("tricks")
+			if key.begins_with("trick_learned:"):
+				return TrickUi.lesson_target() if GameState.trick_is_lesson(key.trim_prefix("trick_learned:")) else _panel_target("tricks")
 			if key.begins_with("project_use:"):
 				var use_go: Dictionary = Database.project(key.trim_prefix("project_use:")).get("go", {})
 				if not use_go.is_empty():
@@ -664,6 +711,8 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				return {"screen": "pet", "hint": "Tiro → cuidar e brincar"}
 			if key == "explore":
 				return _panel_target("routes:walk")
+			if key.begins_with("orchard:"):
+				return {"world": "farm", "place": "orchard"}
 			if key.begins_with("activity:"):
 				var route_id := key.trim_prefix("activity:")
 				var route: Dictionary = Database.progression.activities.get(route_id, {})
@@ -692,14 +741,26 @@ static func _panel_target(panel: String) -> Dictionary:
 
 
 ## Primeiro objetivo pendente, com substituições opcionais do conteúdo.
-static func quest_target(id: String) -> Dictionary:
+static func quest_target(id: String, objective: Dictionary = {}) -> Dictionary:
 	var quest: Dictionary = Database.quests[id]
-	var goal: Dictionary = quest.goals[0]
-	for candidate: Dictionary in quest.goals:
-		if GameState.goal_value(candidate) < int(candidate.get("target", 1)):
-			goal = candidate
-			break
-	var result: Dictionary = quest.get("go", goal_target(goal)).duplicate()
+	if not objective.is_empty() and GameState.week_quest_day(id) == 0:
+		return goal_target(objective)
+	var goal: Dictionary = objective
+	if goal.is_empty():
+		goal = ProgressionUi.current_goal(id)
+	var wait := GameState.week_quest_wait(id)
+	if wait != "":
+		return {"wait": wait, "screen": "tasks"}
+	var key := str(goal.get("key", ""))
+	var targets: Dictionary = quest.get("goal_go", {})
+	var stock: Dictionary = quest.get("goal_stock_go", {})
+	var result: Dictionary = targets.get(key, quest.get("go", goal_target(goal))).duplicate()
+	if key == stock.get("key", "") and GameState.inventory.count(str(stock.item)) == 0:
+		result = quest.go.duplicate()
+	if goal.type == "week_dish" and not GameState.inventory.counts.keys().any(func(item: String) -> bool: return GameState.week_meal_in_group(item, key)):
+		result = quest.go.duplicate()
+	if goal.type == "week_delivered" and GameState.inventory.count(key) == 0:
+		result = quest.go.duplicate()
 	# O conteúdo pode personalizar o texto/destino da Home sem perder a indicação do desejo.
 	if result.get("screen", "") == "pet" and goal_target(goal).get("care", "") == "wish":
 		result["care"] = "wish"
@@ -749,7 +810,18 @@ static func target_view(target: Dictionary) -> HBoxContainer:
 
 static func go(target: Dictionary) -> void:
 	Events.sheet_close_requested.emit()
-	if target.has("storage"):
+	if target.has("farewell"):
+		WeekStoryUi.open_farewell()
+	elif target.has("meal"):
+		MealUi.open_today()
+	elif target.has("kitchen"):
+		RecipeBookUi.open_kitchen(str(target.kitchen))
+	elif target.has("intro"):
+		Events.screen_requested.emit(&"tasks")
+	elif target.get("feed", false):
+		Events.screen_requested.emit(&"pet")
+		Events.sheet_requested.emit("Dar comida", SheetBuilder.food_picker())
+	elif target.has("storage"):
 		Events.sheet_requested.emit(GameState.storage_name(str(target.storage)), SheetBuilder.inventory_view(str(target.storage)))
 	elif target.has("notebook"):
 		Events.screen_requested.emit(&"pet")

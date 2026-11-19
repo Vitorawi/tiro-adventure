@@ -133,7 +133,7 @@ func _full_harvest() -> void:
 	# Comprar o silo CHEIO amplia mesmo com itens.
 	_fresh()
 	state.get("inventory").add("carrot", 16)
-	state.call("dev_complete_quest", "first_harvest")
+	state.get("progress").claimed_quests["first_harvest"] = true
 	check(state.call("upgrade_error", "silo") == "", "silo disponível depois da primeira colheita, sem material")
 	var coins_before := int(state.get("coins"))
 	check(state.call("buy_upgrade", "silo") == "" and int(state.get("coins")) == coins_before, "silo grátis")

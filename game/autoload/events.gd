@@ -76,6 +76,22 @@ signal update_available
 # Crescimento do Tiro (fases e ganhos dos quatro atributos).
 signal grew(phase: String)
 signal growth_ready(phase: String)
+## Refeição do filhote registrada: `period` = "lunch"/"dinner", `on_time` = dentro da janela.
+signal meal_given(period: String, on_time: bool)
+## O dia ficou bem alimentado e rendeu a patinha (dia do jogo).
+signal paw_earned(day: int)
+## A janela fechou sem refeição: o Tiro comeu a ração sozinho.
+signal meal_missed(period: String)
+## Dia fraco fechado (menos refeições na hora que o necessário).
+signal weak_day(day: int)
+## A vovó mandou a marmita depois de dias fracos seguidos.
+signal lunchbox_given(day: int)
+## Refeição guardada (Deixar pronto) e, depois, comida pelo Tiro quando a janela abre.
+signal meal_stored(period: String)
+signal stored_meal_eaten(period: String)
+## Prato do motor feito pela primeira vez (E03): chave `dish:<tipo>:<ingredientes>` e nome.
+signal recipe_piece_found(id: String, count: int)
+signal dish_discovered(key: String, dish_name: String)
 signal silk_up(level: int)
 signal growth_requirement_done(phase: String, req_id: String)
 signal taste_discovered(item: String, reaction: String)
@@ -99,3 +115,6 @@ signal fish_bite
 signal fish_caught(fish_id: String, cm: float, size_class: String, previous_cm: float)
 signal fish_escaped(fish_id: String)
 signal fishing_level_up(level: int)
+
+## Passos do tutorial não remontam a interface.
+signal week_tutorial_changed

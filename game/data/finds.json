@@ -8,9 +8,6 @@
       "quest_find": {"quest": "guide_treasure", "item": "map_piece_1"},
       "interval": 480,
       "max_pending": 1,
-      "requirements": {
-        "quests": ["first_harvest"]
-      },
       "guaranteed": [
         {
           "unlocks": ["crop:strawberry"],
@@ -102,7 +99,7 @@
       "interval": 600,
       "max_pending": 1,
       "requirements": {
-        "chapter": 4
+        "chapter": 8
       },
       "guaranteed": [
         {
@@ -158,7 +155,7 @@
       "interval": 600,
       "max_pending": 1,
       "requirements": {
-        "chapter": 5
+        "chapter": 9
       },
       "guaranteed": [
         {

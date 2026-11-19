@@ -52,6 +52,7 @@ const ROLL_AFTER := 1.6
 const BELLY_IDLE := 4.0
 
 var _party_hat: TextureRect
+var _puppy_bow: TextureRect
 var _target: TextureRect
 var _look: Dictionary = {}
 var _clothes: Dictionary = {}
@@ -110,6 +111,9 @@ func setup(target: TextureRect) -> void:
 	_party_hat.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_party_hat.z_index = 2
 	target.add_child(_party_hat)
+	_puppy_bow = UiKit.icon(UiKit.ui_icon("outfit_yellow_bow"), 24)
+	_puppy_bow.name = "PuppyBow"
+	target.add_child(_puppy_bow)
 	_anchors = JSON.parse_string(FileAccess.get_file_as_string(DIR + "overlay_anchors.json"))
 	for slot: String in ["body", "neck", "head"]:
 		var layer := TextureRect.new()
@@ -199,6 +203,14 @@ func set_sleeping(value: bool) -> void:
 ## Triste (necessidade baixa): as travessuras passam a ser carinhas tristes.
 func set_sad(value: bool) -> void:
 	_sad = value
+
+
+func play_lesson_pose(clip: StringName) -> void:
+	_next = &""
+	_chain.clear()
+	_belly_up = false
+	_belly_released = true
+	_play(clip, 1)
 
 
 func react(action: StringName) -> void:
@@ -468,6 +480,7 @@ func _pick_fidget() -> StringName:
 func _show() -> void:
 	if _target == null:
 		return
+	_puppy_bow.hide()
 	if _portrait_holder != null and _look.get("body", "") == "puppy":
 		_target.texture = DogLook.pose_texture("puppy")
 		_target.material = null
@@ -499,6 +512,12 @@ func _show() -> void:
 	var index := mini(_frame, list.size() - 1)
 	_target.texture = list[list.size() - 1 - index if _reverse else index]
 	_fit_portrait(list)
+	if external and _clip == IDLE and str(GameState.progress.equipped.head) == "yellow_bow":
+		var canvas: Vector2 = _target.texture.get_size()
+		var fit := canvas * minf(_target.size.x / canvas.x, _target.size.y / canvas.y)
+		_puppy_bow.size = Vector2.ONE * 24.0 * fit.y / 284.0
+		_puppy_bow.position = (_target.size - fit) * 0.5 + fit * Vector2(0.41, 0.26) - _puppy_bow.size * 0.5
+		_puppy_bow.show()
 	var drawn := list.size() - 1 - index if _reverse else index
 	for slot: String in _clothes:
 		var layer: TextureRect = _clothes[slot]

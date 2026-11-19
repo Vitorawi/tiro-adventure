@@ -34,6 +34,10 @@ func advance_clock(seconds: float) -> void:
 	sim_time += maxf(0.0, seconds)
 
 
+func _yard_seconds() -> float:
+	return now()
+
+
 func set_clock(value: float) -> void:
 	sim_time = value
 

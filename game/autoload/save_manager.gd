@@ -16,7 +16,7 @@ extends Node
 ## site, por isso a dev usa nomes próprios e não apaga o progresso real.
 ## O slot em que o jogo ENTRA fica em user://settings.json (settings_dev.json na dev).
 
-const SAVE_VERSION := 20
+const SAVE_VERSION := 33
 const MAX_SLOTS := 5
 
 ## Slot em uso agora e slot em que o jogo entra ao abrir.
@@ -50,6 +50,7 @@ func _ready() -> void:
 	_sync_loading_preview()
 	# Qualquer mudança de estado agenda um save (agrupado no fim do frame).
 	Events.state_changed.connect(_schedule_save)
+	Events.week_tutorial_changed.connect(_schedule_save)
 	# Heartbeat limita a ausência após encerramento inesperado; não cria visitas online.
 	var heartbeat := Timer.new()
 	heartbeat.wait_time = 60.0

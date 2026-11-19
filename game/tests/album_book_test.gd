@@ -47,7 +47,7 @@ func _run() -> void:
 	await frames()
 	# 1. Duas colunas; nível escolhido, não o melhor; seção inteira, sem SubViewports.
 	var grid := panel.find_child("AlbumGrid", true, false) as GridContainer
-	check(grid != null and grid.columns == 3 and grid.get_child_count() == 14, "três colunas com 14 fotos da História")
+	check(grid != null and grid.columns == 3 and grid.get_child_count() == 24, "três colunas com 24 fotos da História")
 	var arrival := panel.find_child("AlbumCard_h_arrival", true, false) as Button
 	check(arrival.get_meta("level") == 1 and arrival.find_child("CardFrame", true, false).get_meta("level") == 1, "moldura da versão mostrada")
 	check(panel.find_child("CardStage", true, false) == null, "grade não cria SubViewport")
@@ -55,7 +55,7 @@ func _run() -> void:
 	check(arrival.size.x > 100 and arrival.size.y > arrival.size.x, "carta ocupa meia largura útil, sem quadradinho externo")
 	# 2. Fotos/versões/níveis contados pelo estado, incluindo fechadas sem nível.
 	var stats: Dictionary = panel.find_child("AlbumSummary", true, false).get_meta("counts")
-	check(stats.taken == 2 and stats.total == 14 and stats.versions == 3 and stats.possible == 56, "resumo fotos e versões")
+	check(stats.taken == 2 and stats.total == 24 and stats.versions == 3 and stats.possible == 96, "resumo fotos e versões")
 	check(stats.levels[1] == 1 and stats.levels[3] == 1 and stats.levels[2] == 1 and stats.levels[4] == 0, "contagens das quatro versões")
 	# 3. Construir a faixa não consome; tocar abre o verso no visualizador.
 	check(panel.find_child("AlbumSealed", true, false) != null, "faixa Para abrir")
@@ -101,7 +101,7 @@ func _run() -> void:
 	var scroll := panel.find_child("CodexScroll", true, false) as ScrollContainer
 	scroll.scroll_vertical = 180
 	await frames()
-	var old := scroll.scroll_vertical
+	var old := (panel.find_child("CodexScroll", true, false) as ScrollContainer).scroll_vertical
 	check(old > 0, "seção rola")
 	panel.free()
 	panel = view.call("panel", "firsts")

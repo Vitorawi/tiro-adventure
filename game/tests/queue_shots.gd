@@ -50,7 +50,7 @@ func _run() -> void:
 	state.call("reset")
 	var progress: Object = state.get("progress")
 	progress.seen["intro"] = true
-	state.call("dev_jump_to_chapter", 5)
+	state.call("dev_jump_to_chapter", 9)
 	for id in ["stove", "workbench", "blender"] + ([] if before else ["stove_queue", "stove_queue_2", "blender_queue"]):
 		progress.owned[id] = true
 	state.call("_mark_all_seen")

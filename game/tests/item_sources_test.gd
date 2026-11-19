@@ -34,6 +34,7 @@ func run() -> void:
  var tooth: Dictionary = help.describe("item", "milk_tooth")
  check("montinho" in str(tooth.get("source_text", "")) and tooth.target.has("growth"), "dentinho explica fase e achado")
  for item: String in db.items:
+  if item == "bed_gift": continue  # O registro da caminha antiga só é usado nas fixtures.
   var info: Dictionary = help.describe("item", item)
   check("Veja na Mochila" not in str(info) and "fonte disponível no catálogo" not in str(info), "item tem origem concreta: " + item)
  # O Ir do produto abre a receita, mesmo com insumos só para parte da meta (ou nenhum).

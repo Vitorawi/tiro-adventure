@@ -57,6 +57,7 @@ func _fresh() -> void:
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
 	state.call("dev_unlock_everything")
+	state.call("dev_week_goto", 3)
 	state.call("_mark_all_seen")
 	state.set("coins", 5000)
 	for id: String in state.get("stations"):
@@ -227,11 +228,28 @@ func _run() -> void:
 
 	# (b) um espaço preenchido: prato desconhecido.
 	await _choose(0, "carrot")
-	await shot("b_desconhecido")
+	await shot("b_faltam_ingredientes")
 
-	# (c) prato conhecido (cenoura + batata).
+	# (c) prato novo com receita fixa equivalente (cenoura + batata).
 	await _choose(1, "potato")
-	await shot("c_conhecido")
+	await shot("c_prato_novo")
+
+	# (c2) prévia com ovo: "Conta como prato com ovo"; (c3) Gororoba; (c4) dia 1: tipos trancados e 2 espaços.
+	_add("egg", 2)
+	_add("apple", 1)
+	state.call("dev_week_goto", 3)
+	await _choose(1, "egg")
+	await shot("c2_conta_com_ovo")
+	await _choose(1, "apple")
+	await shot("c3_gororoba")
+	state.call("dev_week_goto", 1)
+	view().call("reset_choices")
+	await _choose(0, "carrot")
+	await shot("c4_dia1_duas_vagas")
+	state.call("dev_week_goto", 3)
+	view().call("reset_choices")
+	await _choose(0, "carrot")
+	await _choose(1, "potato")
 
 	# (d) janelinha: na panela, recomendados que acabaram, outro com estoque.
 	_add("sweet_potato", 2)
@@ -257,7 +275,7 @@ func _run() -> void:
 	view().call("_scroll_types")
 	view().call("_scroll_types")
 	await create_timer(0.4).timeout
-	view().call("choose_type", "lanche")
+	view().call("choose_type", "petisco")
 	await shot("f_tipos_rolados", 0.4)
 
 	panel().call("close", true)

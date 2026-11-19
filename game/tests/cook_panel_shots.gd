@@ -54,6 +54,7 @@ func _fresh() -> void:
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
 	state.call("dev_unlock_everything")
+	state.call("dev_week_goto", 4)
 	state.call("_mark_all_seen")
 	state.set("coins", 5000)
 	for id: String in state.get("stations"):
@@ -241,8 +242,27 @@ func _run() -> void:
 	# (f) categorias roladas.
 	panel().call("_toggle_filter", "tiro")
 	panel().call("_scroll_categories")
-	panel().call("_select_category", "soups")
+	panel().call("_select_category", "sopinha")
 	await shot("f_categorias", 0.6)
+
+	# (g) pratos conhecidos com estrelas e o selo "Para crescer" (papinha de peixe pedida pelo crescimento).
+	_fresh()
+	_add("carrot", 12)
+	_add("corn", 4)
+	_add("egg", 3)
+	state.call("cook_invented", {"carrot": 1, "corn": 1}, "papinha")
+	state.call("cook_invented", {"carrot": 1, "egg": 1}, "papinha")
+	state.call("cook", "carrot_snack")
+	state.call("dev_set_phase", "puppy")
+	_add("fish_tilapia", 2)
+	_add("potato", 2)
+	state.call("station", "stove").queue[0]["ready_at"] = float(state.call("now")) - 5.0
+	await _open("fish_mash")
+	await shot("g_conhecidos_e_para_crescer")
+	panel().call("_select_dish", "k_papinha_cenoura+milho")
+	await shot("g2_prato_conhecido_selecionado", 0.3)
+	panel().call("_select_category", "papinha")
+	await shot("g3_categoria_papinhas", 0.4)
 
 	panel().call("close", true)
 	print("COOK PANEL SHOTS: ", "PASS" if failures == 0 else "FALHOU (%d)" % failures)

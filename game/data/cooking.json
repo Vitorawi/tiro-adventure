@@ -1,0 +1,60 @@
+{
+  "schema": 1,
+  "steps": ["picar", "mexer", "servir"],
+  "step_names": {"picar": "Picar", "mexer": "Mexer", "servir": "Servir"},
+  "stars": {
+    "min_total": [[8, 3], [5, 2], [0, 1]]
+  },
+  "time_cut": {"1": 0.25, "2": 0.5, "3": 0.75},
+  "brilho": {
+    "average": [[2.5, 3], [1.7, 2], [0.0, 1]]
+  },
+  "picar": {
+    "cuts": 6,
+    "min_cuts_each": 2,
+    "max_cuts_each": 6,
+    "perfect": 14,
+    "good": 34,
+    "min_swipe": 60
+  },
+  "mexer": {
+    "seconds_full": 8.0,
+    "min_speed": 1.2,
+    "max_speed": 6.5,
+    "elapsed": [[0.75, 3], [0.5, 2], [0.0, 1]]
+  },
+  "servir": {
+    "scoops": 2,
+    "target_inner": 30,
+    "target_outer": 64
+  },
+  "colors": {
+    "cenoura": "ee7a2a",
+    "batata": "d8b07a",
+    "abobora": "f0a030",
+    "abobrinha": "7db04a",
+    "batata_doce": "c9703c",
+    "aveia": "e8d9a8",
+    "milho": "f2d13c",
+    "arroz": "f4efe0",
+    "ovo": "ffe9a8",
+    "peixe": "f4a9a0",
+    "maca": "d9463b",
+    "banana": "f5e06a",
+    "melancia": "f0687c",
+    "default": "e0b070"
+  },
+  "lines": {
+    "picar": "Deslize para picar",
+    "mexer": "Gire o dedo em volta da panela",
+    "servir": "Leve a concha até a tigela",
+    "heart": "Agora jogue o coração na tigela",
+    "perfect": "Perfeito!",
+    "good": "Boa!",
+    "bad": "Torto",
+    "in_point": "No ponto!",
+    "too_slow": "Gire mais rápido",
+    "too_fast": "Devagar, sem respingar",
+    "retry": "Tente de novo!"
+  }
+}

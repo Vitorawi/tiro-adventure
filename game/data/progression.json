@@ -27,7 +27,7 @@
     },
     "welcome_back_seconds": 300,
     "idle_hint_seconds": 15,
-    "idle_hint_max_chapter": 4,
+    "idle_hint_max_chapter": 8,
     "stat_labels": {
       "sold:village": "produtos vendidos ao Feirante",
       "sold:farm": "produtos vendidos no Sítio",
@@ -153,7 +153,7 @@
       },
       "requirements": {
         "quests": [
-          "lais_play"
+          "welcome"
         ]
       }
     },
@@ -164,7 +164,7 @@
         "screen": "tasks"
       },
       "requirements": {
-        "chapter": 3
+        "growth": "teething"
       }
     },
     "weekly": {
@@ -174,7 +174,8 @@
         "screen": "tasks"
       },
       "requirements": {
-        "chapter": 4
+        "growth": "teething",
+        "chapter": 8
       }
     },
     "walk_diary": {
@@ -362,7 +363,10 @@
         "silo_3",
         "silo_4",
         "silo_5"
-      ]
+      ],
+      "requirements": {
+        "growth": "teething"
+      }
     },
     "warehouse": {
       "name": "Armazém",
@@ -380,7 +384,10 @@
         "warehouse_3",
         "warehouse_4",
         "warehouse_5"
-      ]
+      ],
+      "requirements": {
+        "growth": "teething"
+      }
     }
   },
   "upgrades": {
@@ -793,7 +800,7 @@
     "farm": {
       "name": "Escritura do sítio",
       "world": "farm",
-      "description": "O terreno passa a ser seu: quatro canteiros e espaço para ampliar.",
+      "description": "A escritura libera as ampliações do sítio depois dos canteiros da vovó.",
       "cost": 220,
       "requirements": {
         "quests": [
@@ -815,7 +822,7 @@
       },
       "requirements": {
         "quests": [
-          "lais_bag"
+          "lais_play"
         ]
       },
       "icon": "item_bed_gift"
@@ -889,6 +896,7 @@
         "wood": 6
       },
       "requirements": {
+        "growth": "teething",
         "quests": [
           "main_4_materials"
         ]
@@ -906,7 +914,7 @@
       "cost": 80,
       "materials": {},
       "requirements": {
-        "chapter": 5
+        "chapter": 9
       },
       "skill_xp": {
         "adventure": 15
@@ -1196,15 +1204,11 @@
     "orchard": {
       "name": "Pomar",
       "world": "farm",
-      "description": "Libera a rota de colheita de maçãs e novas receitas.",
-      "cost": 400,
-      "materials": {
-        "plank": 5
-      },
+      "description": "Uma macieira e uma bananeira dão duas frutas cada.",
+      "cost": 0,
+      "materials": {},
       "requirements": {
-        "owned": [
-          "farm"
-        ]
+        "week_day": 4
       },
       "skill_xp": {
         "adventure": 35
@@ -1222,6 +1226,7 @@
         "crystal": 2
       },
       "requirements": {
+        "growth": "teething",
         "owned": [
           "farm"
         ]
@@ -1292,25 +1297,20 @@
     "chicken_coop": {
       "name": "Galinheiro",
       "world": "farm",
-      "description": "Compre suas galinhas e alimente com milho para produzir ovos.",
-      "cost": 260,
-      "materials": {
-        "plank": 4
-      },
+      "description": "Duas galinhas e um canteiro de milho. Alimente as galinhas para pegar ovos.",
+      "cost": 0,
+      "materials": {},
       "requirements": {
-        "owned": [
-          "farm",
-          "workbench"
-        ],
-        "quests": [
-          "farm_deed"
-        ]
+        "week_day": 2
       },
       "skill_xp": {
         "adventure": 25
       },
       "icon": "station_coop",
-      "station": "chicken_coop"
+      "station": "chicken_coop",
+      "kit": "week_coop",
+      "gift_animal": "chicken_white",
+      "gift_animal_count": 2
     },
     "cow_barn": {
       "name": "Curral",
@@ -1321,6 +1321,7 @@
         "plank": 6
       },
       "requirements": {
+        "growth": "teething",
         "owned": [
           "chicken_coop"
         ],
@@ -1345,7 +1346,8 @@
         "stone": 6
       },
       "requirements": {
-        "chapter": 5,
+        "growth": "teething",
+        "chapter": 9,
         "owned": [
           "chicken_coop"
         ]
@@ -1384,7 +1386,8 @@
         "brick": 3
       },
       "requirements": {
-        "chapter": 5,
+        "growth": "teething",
+        "chapter": 9,
         "owned": [
           "cow_barn"
         ]
@@ -1420,7 +1423,7 @@
       "description": "Abre a busca de madeira.",
       "cost": 40,
       "requirements": {
-        "chapter": 5
+        "chapter": 9
       },
       "icon": "item_wood"
     },
@@ -1430,7 +1433,7 @@
       "description": "Abre a busca de fibras.",
       "cost": 50,
       "requirements": {
-        "chapter": 5
+        "chapter": 9
       },
       "icon": "item_fiber"
     },
@@ -1810,7 +1813,7 @@
       "seconds": 120,
       "nature_xp": 2,
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "owned": [
           "cave_open"
         ]
@@ -1832,7 +1835,7 @@
       "seconds": 900,
       "nature_xp": 12,
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "owned": [
           "forest_open"
         ]
@@ -1854,7 +1857,7 @@
       "seconds": 3600,
       "nature_xp": 35,
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "owned": [
           "forest_level_3"
         ]
@@ -1877,7 +1880,7 @@
       "seconds": 3600,
       "nature_xp": 35,
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "owned": [
           "cave_level_2"
         ]
@@ -1900,7 +1903,7 @@
       "seconds": 7200,
       "nature_xp": 60,
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "owned": [
           "cave_level_3"
         ]
@@ -1923,7 +1926,7 @@
       "seconds": 3600,
       "nature_xp": 35,
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "owned": [
           "meadow_level_2"
         ]
@@ -1946,7 +1949,7 @@
       "seconds": 120,
       "nature_xp": 2,
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "owned": [
           "forest_open"
         ]
@@ -1969,7 +1972,7 @@
       "seconds": 600,
       "nature_xp": 8,
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "owned": [
           "cave_open"
         ]
@@ -1993,7 +1996,7 @@
       "seconds": 600,
       "nature_xp": 8,
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "owned": [
           "cave_open"
         ]
@@ -2015,7 +2018,7 @@
       "seconds": 1200,
       "nature_xp": 16,
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "owned": [
           "cave_level_2"
         ]
@@ -2038,7 +2041,7 @@
       "seconds": 2400,
       "nature_xp": 26,
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "owned": [
           "cave_level_3"
         ]
@@ -2057,16 +2060,17 @@
     "orchard_harvest": {
       "name": "Colher no pomar",
       "place": "orchard",
-      "description": "Uma colheita longa do pomar: volte depois de uma hora para 8 maçãs.",
-      "seconds": 3600,
+      "description": "Colheita de maçãs da estufa. Volte depois de duas horas.",
+      "seconds": 7200,
       "requirements": {
         "owned": [
-          "orchard"
+          "orchard",
+          "greenhouse"
         ]
       },
       "rewards": {
         "items": {
-          "apple": 8
+          "apple": 2
         },
         "skill_xp": {
           "agriculture": 28
@@ -2081,7 +2085,7 @@
       "seconds": 600,
       "nature_xp": 8,
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "owned": [
           "meadow_open"
         ]
@@ -2127,6 +2131,83 @@
       }
     }
   ],
+  "cart_orders": [
+    [
+      "cart_eggs",
+      "cart_lake"
+    ],
+    [
+      "cart_fruit",
+      "cart_pumpkins"
+    ],
+    [
+      "cart_fish",
+      "cart_breakfast"
+    ]
+  ],
+  "cart_catalog": {
+    "cart_eggs": {
+      "name": "Ovos para a vizinhança",
+      "inputs": {
+        "egg": 3
+      },
+      "rewards": {
+        "coins": 30
+      },
+      "trick": "sit",
+      "tip": 5
+    },
+    "cart_lake": {
+      "name": "Almoço da lagoa",
+      "inputs": {
+        "pumpkin": 2,
+        "fish_tilapia": 1
+      },
+      "rewards": {
+        "coins": 38
+      }
+    },
+    "cart_fruit": {
+      "name": "Frutas do pomar",
+      "inputs": {
+        "apple": 1,
+        "banana": 2
+      },
+      "rewards": {
+        "coins": 24
+      },
+      "trick": "paw",
+      "tip": 5
+    },
+    "cart_pumpkins": {
+      "name": "Abóboras para a sopa",
+      "inputs": {
+        "pumpkin": 2
+      },
+      "rewards": {
+        "coins": 28
+      }
+    },
+    "cart_fish": {
+      "name": "Peixe fresco",
+      "inputs": {
+        "fish_lambari": 1
+      },
+      "rewards": {
+        "coins": 17
+      }
+    },
+    "cart_breakfast": {
+      "name": "Café da vizinhança",
+      "inputs": {
+        "egg": 2,
+        "corn": 2
+      },
+      "rewards": {
+        "coins": 36
+      }
+    }
+  },
   "orders": {
     "vegetables": {
       "customer": "lais",
@@ -2136,7 +2217,7 @@
       },
       "requirements": {
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ]
       },
       "rewards": {
@@ -2158,7 +2239,7 @@
           "stove"
         ],
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ]
       },
       "rewards": {
@@ -2180,7 +2261,7 @@
           "fridge"
         ],
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ]
       },
       "rewards": {
@@ -2202,7 +2283,7 @@
           "stall"
         ],
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ]
       },
       "rewards": {
@@ -2228,7 +2309,7 @@
           "stall"
         ],
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ]
       },
       "rewards": {
@@ -2255,7 +2336,7 @@
           "stall_2"
         ],
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ]
       },
       "rewards": {
@@ -2287,7 +2368,7 @@
       "cooldown": 600,
       "requirements": {
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ],
         "owned": [
           "dairy"
@@ -2302,7 +2383,7 @@
       },
       "requirements": {
         "quests": [
-          "first_harvest",
+          "lais_first_crops",
           "bloblo_strawberry"
         ]
       },
@@ -2325,7 +2406,7 @@
           "blender"
         ],
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ]
       },
       "rewards": {
@@ -2344,7 +2425,7 @@
       },
       "requirements": {
         "quests": [
-          "first_harvest",
+          "lais_first_crops",
           "atelier_open"
         ],
         "owned": [
@@ -2369,7 +2450,7 @@
       },
       "requirements": {
         "quests": [
-          "first_harvest",
+          "lais_first_crops",
           "atelier_open"
         ],
         "owned": [
@@ -2394,7 +2475,7 @@
       },
       "requirements": {
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ],
         "stats": {
           "treasure": 1
@@ -2421,7 +2502,7 @@
       "requirements": {
         "rod": "bamboo_rod",
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ]
       },
       "rewards": {
@@ -2441,7 +2522,7 @@
       "requirements": {
         "rod": "bamboo_rod",
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ],
         "owned": [
           "stove"
@@ -2465,7 +2546,7 @@
       "requirements": {
         "rod": "reel_rod",
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ],
         "owned": [
           "stove"
@@ -2487,7 +2568,7 @@
       },
       "requirements": {
         "quests": [
-          "first_harvest",
+          "lais_first_crops",
           "bloblo_potato"
         ],
         "owned": [
@@ -2513,7 +2594,7 @@
           "blender"
         ],
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ]
       },
       "rewards": {
@@ -2539,7 +2620,7 @@
           "blender"
         ],
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ]
       },
       "rewards": {
@@ -2568,7 +2649,7 @@
           "blender"
         ],
         "quests": [
-          "first_harvest"
+          "lais_first_crops"
         ]
       },
       "rewards": {
@@ -2586,37 +2667,53 @@
   },
   "chapters": [
     {
-      "name": "Um novo lar",
-      "description": "A Laís trouxe o Tiro! Aprenda a cuidar dele.",
+      "name": "A caixinha",
+      "description": "Dê carinho ao Tiro, cuide da horta e prepare a primeira papinha.",
       "target": "",
-      "rewards": {
-        "coins": 10
-      },
-      "unlocks_text": "Conheça a vovó Bloblo no sítio"
+      "rewards": {},
+      "unlocks_text": "A vovó volta amanhã"
     },
     {
-      "name": "O sítio da vovó",
-      "description": "Conheça a vovó Bloblo e faça as primeiras colheitas.",
+      "name": "As galinhas e o primeiro truque",
+      "description": "Pegue os primeiros ovos, ensine o Senta e prepare a caminha.",
       "target": "",
-      "rewards": {
-        "coins": 20,
-        "skill_xp": {
-          "agriculture": 20
-        }
-      },
-      "unlocks_text": "Monte a cozinha da casa"
+      "rewards": {},
+      "unlocks_text": "A vovó volta amanhã"
     },
     {
-      "name": "A cozinha",
-      "description": "Geladeira, fogão e um ensopado para a vovó.",
-      "target": "stove",
-      "rewards": {
-        "coins": 30,
-        "skill_xp": {
-          "cooking": 20
-        }
-      },
-      "unlocks_text": "Abre a Vila e as missões diárias"
+      "name": "A lagoa",
+      "description": "Atravesse a ponte e prepare um prato com peixe.",
+      "target": "",
+      "rewards": {},
+      "unlocks_text": "A vovó volta amanhã"
+    },
+    {
+      "name": "O pomar",
+      "description": "Colha frutas, aprenda Dá a pata e brinque com a cordinha.",
+      "target": "",
+      "rewards": {},
+      "unlocks_text": "A vovó volta amanhã"
+    },
+    {
+      "name": "A carroça do Feirante",
+      "description": "Conheça a carroça, dê um banho caprichado e ensine o Deita.",
+      "target": "",
+      "rewards": {},
+      "unlocks_text": "A vovó volta amanhã"
+    },
+    {
+      "name": "O show do Tiro",
+      "description": "Prepare um prato com ovo e apresente os truques do Tiro.",
+      "target": "",
+      "rewards": {},
+      "unlocks_text": "A vovó volta amanhã"
+    },
+    {
+      "name": "O primeiro dentinho",
+      "description": "Prepare o almoço de despedida e veja o Tiro crescer.",
+      "target": "",
+      "rewards": {},
+      "unlocks_text": "A Vila está aberta!"
     },
     {
       "name": "Vila e primeiros passeios",
@@ -2732,21 +2829,28 @@
     "sickle": "meadow_level_2"
   },
   "shops": {
+    "week_cart": {
+      "name": "Carroça do Feirante",
+      "world": "farm",
+      "place": "week_cart",
+      "npc": "merchant",
+      "requirements": {
+        "week_day": 5
+      }
+    },
     "farm_stall": {
       "name": "Banca da vovó",
       "world": "farm",
       "place": "early_market",
       "npc": "bloblo",
-      "requirements": {
-        "quests": ["bloblo_meet"]
-      }
+      "requirements": {}
     },
     "market": {
       "name": "Feirante",
       "world": "village",
       "place": "market",
       "requirements": {
-        "chapter": 4
+        "chapter": 8
       }
     },
     "petshop": {
@@ -2754,11 +2858,197 @@
       "world": "park",
       "place": "petshop",
       "requirements": {
-        "owned": ["petshop"]
+        "owned": [
+          "petshop"
+        ]
       }
     }
   },
   "shop_items": {
+    "cart_shampoo": {
+      "shop": "week_cart",
+      "name": "Xampu de filhote",
+      "items": {
+        "puppy_shampoo": 1
+      },
+      "price": 30,
+      "max": 1,
+      "description": "2 momentos de Pelagem"
+    },
+    "cart_bow": {
+      "shop": "week_cart",
+      "name": "Lacinho",
+      "collection": "yellow_bow",
+      "icon": "outfit_yellow_bow",
+      "price": 45,
+      "max": 1,
+      "description": "Vista no Caderninho"
+    },
+    "cart_ball": {
+      "shop": "week_cart",
+      "name": "Bolinha que apita",
+      "items": {
+        "squeaky_ball": 1
+      },
+      "price": 35,
+      "unique": true,
+      "max": 1,
+      "description": "Vai mais longe no Quintal"
+    },
+    "cart_offer": {
+      "shop": "week_cart",
+      "name": "Oferta do dia",
+      "daily": 1,
+      "max": 1,
+      "rotation": [
+        {
+          "name": "Aveia",
+          "items": {
+            "oat": 2
+          },
+          "price": 6
+        },
+        {
+          "name": "Minhocas",
+          "items": {
+            "bait_worm": 3
+          },
+          "price": 4
+        },
+        {
+          "name": "Xampu de filhote",
+          "items": {
+            "puppy_shampoo": 1
+          },
+          "price": 24
+        }
+      ]
+    },
+    "week_plot": {
+      "shop": "farm_stall",
+      "name": "Canteiro extra",
+      "plot": true,
+      "price": 20,
+      "icon": "tab_farm",
+      "max": 1,
+      "description": "Abre mais um dos canteiros junto da casa."
+    },
+    "week_coop": {
+      "shop": "farm_stall",
+      "name": "Kit do galinheiro",
+      "upgrade": "chicken_coop",
+      "price": 60,
+      "icon": "station_coop",
+      "max": 1,
+      "requirements": {
+        "week_day": 2
+      },
+      "description": "Duas galinhas e um canteiro de milho.",
+      "destination": {
+        "world": "farm",
+        "place": "chicken_coop"
+      },
+      "ready": "Galinheiro montado!",
+      "purchase_rewards": {
+        "coins": 20
+      }
+    },
+    "week_bed": {
+      "shop": "farm_stall",
+      "name": "Kit da caminha",
+      "upgrade": "dog_bed",
+      "price": 40,
+      "icon": "item_bed_gift",
+      "max": 1,
+      "requirements": {
+        "week_day": 2
+      },
+      "description": "Uma caminha para as sonecas do Tiro.",
+      "destination": {
+        "world": "house",
+        "place": "bed"
+      },
+      "ready": "Caminha montada!"
+    },
+    "week_teether": {
+      "shop": "farm_stall",
+      "name": "Kit do mordedor",
+      "items": {
+        "chew_ring": 1
+      },
+      "unique": true,
+      "price": 50,
+      "icon": "item_chew_ring",
+      "max": 1,
+      "requirements": {
+        "week_day": 7
+      },
+      "description": "Um mordedor para dar ao Tiro pelo painel Para crescer.",
+      "destination": {
+        "growth": true
+      },
+      "ready": "Mordedor pronto!"
+    },
+    "week_oat": {
+      "shop": "farm_stall",
+      "name": "Aveia",
+      "items": {
+        "oat": 1
+      },
+      "price": 4,
+      "icon": "item_oat"
+    },
+    "week_zucchini_seed": {
+      "shop": "farm_stall",
+      "name": "Semente de abobrinha",
+      "crop": "zucchini",
+      "price": 6,
+      "icon": "item_zucchini",
+      "max": 1,
+      "unique": true,
+      "requirements": {
+        "week_day": 3
+      },
+      "description": "Libera abobrinha nos canteiros."
+    },
+    "week_rice": {
+      "shop": "farm_stall",
+      "name": "Arroz cozido",
+      "items": {
+        "rice": 1
+      },
+      "price": 4,
+      "icon": "item_rice",
+      "requirements": {
+        "week_day": 3
+      }
+    },
+    "week_sweet_potato_seed": {
+      "shop": "farm_stall",
+      "name": "Muda de batata-doce",
+      "crop": "sweet_potato",
+      "price": 7,
+      "icon": "item_sweet_potato",
+      "max": 1,
+      "unique": true,
+      "requirements": {
+        "week_day": 4
+      },
+      "description": "Libera batata-doce nos canteiros."
+    },
+    "week_watermelon_seed": {
+      "shop": "week_cart",
+      "name": "Semente de melancia",
+      "crop": "watermelon",
+      "price": 10,
+      "icon": "item_watermelon",
+      "max": 1,
+      "unique": true,
+      "requirements": {
+        "week_day": 5
+      },
+      "description": "Libera melancia sem sementes nos canteiros."
+    },
     "food_stall": {
       "shop": "farm_stall",
       "name": "Ração da vovó",
@@ -2768,7 +3058,9 @@
       "price": 10,
       "icon": "item_dog_food",
       "requirements": {
-        "quests": ["bloblo_meet"]
+        "quests": [
+          "bloblo_meet"
+        ]
       },
       "daily": 2
     },
@@ -2776,11 +3068,12 @@
       "shop": "farm_stall",
       "name": "Minhocas",
       "items": {
-        "bait_worm": 5
+        "bait_worm": 3
       },
-      "price": 10,
+      "price": 6,
       "icon": "item_bait_worm",
       "requirements": {
+        "week_day": 3,
         "rod": "bamboo_rod"
       },
       "max": 5
@@ -2789,14 +3082,52 @@
       "shop": "farm_stall",
       "name": "Oferta do dia",
       "rotation": [
-        {"name": "Madeira (hoje)", "items": {"wood": 2}, "price": 12, "icon": "item_wood", "requirements": {"quests": ["lais_forest"]}},
-        {"name": "Pedra (hoje)", "items": {"stone": 2}, "price": 12, "icon": "item_stone", "requirements": {"quests": ["lais_forest"]}},
-        {"name": "Fibra (hoje)", "items": {"fiber": 2}, "price": 16, "icon": "item_fiber", "requirements": {"quests": ["guide_open_cave"]}}
+        {
+          "name": "Madeira (hoje)",
+          "items": {
+            "wood": 2
+          },
+          "price": 12,
+          "icon": "item_wood",
+          "requirements": {
+            "quests": [
+              "lais_forest"
+            ]
+          }
+        },
+        {
+          "name": "Pedra (hoje)",
+          "items": {
+            "stone": 2
+          },
+          "price": 12,
+          "icon": "item_stone",
+          "requirements": {
+            "quests": [
+              "lais_forest"
+            ]
+          }
+        },
+        {
+          "name": "Fibra (hoje)",
+          "items": {
+            "fiber": 2
+          },
+          "price": 16,
+          "icon": "item_fiber",
+          "requirements": {
+            "quests": [
+              "guide_open_cave"
+            ]
+          }
+        }
       ],
       "price": 12,
       "icon": "item_wood",
       "requirements": {
-        "quests": ["lais_forest"]
+        "quests": [
+          "lais_forest"
+        ]
       },
       "daily": 1
     },
@@ -2825,7 +3156,7 @@
       "price": 180,
       "icon": "rod_reel",
       "requirements": {
-        "chapter": 5,
+        "chapter": 9,
         "fishing_level": 3
       },
       "max": 1
@@ -2851,21 +3182,113 @@
       "price": 15,
       "shop": "petshop",
       "icon": "item_dog_food"
+    },
+    "week_pumpkin_seed": {
+      "shop": "farm_stall",
+      "name": "Semente de abóbora",
+      "crop": "pumpkin",
+      "price": 6,
+      "icon": "item_pumpkin",
+      "unique": true,
+      "max": 1
     }
   },
   "tricks": {
+    "sit": {
+      "name": "Senta",
+      "icon": "tab_pet",
+      "animation": "idle_breathe",
+      "requirements": {
+        "week_day": 2
+      },
+      "lesson": {
+        "hint": "Leve o biscoito por cima do focinho, para trás.",
+        "path": [
+          [
+            0.36,
+            0.54
+          ],
+          [
+            0.31,
+            0.42
+          ],
+          [
+            0.38,
+            0.29
+          ],
+          [
+            0.51,
+            0.23
+          ],
+          [
+            0.66,
+            0.27
+          ]
+        ]
+      }
+    },
     "paw": {
       "name": "Dá a pata",
       "icon": "trick_paw",
       "animation": "give_paw",
       "requirements": {
-        "growth": "teething",
-        "quests": [
-          "nina_pipoca"
-        ]
+        "week_day": 4
       },
-      "zone": 0.25,
-      "speed": 1.2
+      "lesson": {
+        "hint": "Desça com o biscoito até a pata indicada.",
+        "path": [
+          [
+            0.5,
+            0.44
+          ],
+          [
+            0.43,
+            0.55
+          ],
+          [
+            0.35,
+            0.68
+          ],
+          [
+            0.34,
+            0.79
+          ]
+        ],
+        "alternate_side": true,
+        "puppy_clip": "lick_paw"
+      }
+    },
+    "lie_down": {
+      "name": "Deita",
+      "icon": "need_energy",
+      "animation": "roll_over",
+      "requirements": {
+        "week_day": 5
+      },
+      "lesson": {
+        "hint": "Desça devagar até o chão e segure por 2 segundos.",
+        "path": [
+          [
+            0.5,
+            0.43
+          ],
+          [
+            0.5,
+            0.56
+          ],
+          [
+            0.5,
+            0.7
+          ],
+          [
+            0.5,
+            0.84
+          ]
+        ],
+        "min_drag": 0.8,
+        "hold": 2.0,
+        "puppy_clip": "roll_over"
+      }
     },
     "talk": {
       "name": "Fala",
@@ -2942,6 +3365,46 @@
     }
   },
   "trick_settings": {
+    "lesson": {
+      "repetitions": 5,
+      "cookie_type": "biscoito",
+      "cookie_icon": "apple_biscuit",
+      "star_points": [
+        0,
+        10,
+        17
+      ],
+      "mark_at": 1.0,
+      "mark_perfect": 0.22,
+      "mark_good": 0.48,
+      "reward_seconds": 1.6
+    },
+    "meal": {
+      "day": 3,
+      "offer_seconds": 12.0,
+      "gesture_seconds": 12.0,
+      "bonus": {
+        "happiness": 5
+      },
+      "bonus_good": {
+        "happiness": 8
+      }
+    },
+    "show": {
+      "day": 6,
+      "learned": 3,
+      "min_length": 3,
+      "max_length": 5,
+      "gesture_seconds": 12.0,
+      "rewards": {
+        "coins": 10
+      },
+      "perfect_rewards": {
+        "items": {
+          "apple_biscuit": 3
+        }
+      }
+    },
     "hits": 3,
     "cooldown": 120,
     "perform": {

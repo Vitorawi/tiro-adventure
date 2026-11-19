@@ -37,6 +37,8 @@ func _fresh(with_rod: bool = true) -> void:
 	state.call("reset")
 	log.clear()
 	if with_rod:
+		state.call("dev_week_goto", 3)
+		_inv().remove("bait_worm", _inv().count("bait_worm"))
 		state.call("dev_give_rod", "bamboo_rod")  # também encerra o tutorial
 
 

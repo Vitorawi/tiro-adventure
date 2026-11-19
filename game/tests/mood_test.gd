@@ -123,9 +123,11 @@ func _run() -> void:
 	state.dig("farm")
 	check(state.finds.worlds.farm.pending == 0 and state.finds.bonus_used == 0, "sem animado mantém intervalo normal")
 	fresh()
-	state.progress.claimed_quests.first_harvest = true
+	# O Sítio abre na chegada. Prepare um achado na Praça, com a entrada ainda fechada.
+	state.progress.claimed_quests.nina_meet = true
 	state.update_finds()
-	state.finds.worlds.farm.dug = 1
+	check(state.requirement_error(db.worlds.park.requirements) != "", "a Praça começa fechada")
+	state.finds.worlds.park.dug = 1
 	state.update_finds()
 	check(state.finds.bonus_used == 0, "mundo fechado não recebe extra")
 	await ui_checks()

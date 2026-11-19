@@ -14,10 +14,10 @@ func check(ok: bool, message: String) -> void:
 		failures += 1
 		push_error("COURAGE_START: " + message)
 
+## A lista da primeira semana (E05) não pede momentos: este teste só confere a fonte dos momentos de Coragem (meta 3 histórica).
 func care() -> Dictionary:
-	for row: Dictionary in state.growth_info().requirements:
-		if row.id == "pillars": return row
-	return {}
+	var have := int(state.growth.phase_moments.get("brave", 0))
+	return {"id": "pillars", "label": "Carinho e novidades", "type": "moments", "pillar": "brave", "need": 3, "have": have, "done": have >= 3}
 
 func _run() -> void:
 	var saver := root.get_node("SaveManager")

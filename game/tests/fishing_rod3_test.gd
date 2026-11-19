@@ -37,6 +37,7 @@ func _fresh() -> void:
 	state.set("test_time", T0)
 	state.set("unlimited_storage", false)
 	state.call("reset")
+	state.call("dev_week_goto", 3)
 	state.set("coins", 500)
 
 
@@ -309,7 +310,7 @@ func _story() -> void:
 	var big: Dictionary = q.guide_pintado
 	check(int(big.order) == 64 and str(big.goals[0].key) == "fish:fish_pintado" and int(big.rewards.coins) == 40, "6: guide_pintado 40 moedas")
 	var shiny: Dictionary = q.lais_shiny_coat
-	check(str(shiny.kind) == "main" and int(shiny.chapter) == 9 and int(shiny.rewards.coins) == 30, "6: lais_shiny_coat no capítulo 9, 30 moedas")
+	check(str(shiny.kind) == "main" and int(shiny.chapter) == 13 and int(shiny.rewards.coins) == 30, "6: lais_shiny_coat no capítulo 13, 30 moedas")
 	check(str(shiny.goals[0].key) == "produce:herb_fish" and str(shiny.goals[1].key) == "feed:herb_fish" and bool(shiny.goals[0].fresh) and bool(shiny.goals[1].fresh), "6: contadores reais e fresh")
 	check(int(shiny.order) > int(q.main_8_building.order) and int(shiny.order) < int(q.growth_9_young.order), "6: antes de growth_9_young")
 	# As ordens do Guia não colidem.

@@ -197,7 +197,15 @@ func _build(focus: String) -> void:
 	add_child(_invent)
 	_build_close()
 	_apply_layout()
-	_set_mode(invent_mode)
+	var book_focus := focus.trim_prefix("together:")
+	if book_focus.begins_with("recipe:"):
+		selected = book_focus.trim_prefix("recipe:")
+	elif book_focus.begins_with("dish:"):
+		selected = "k_%s_%s" % [book_focus.get_slice(":", 1), book_focus.get_slice(":", 2)]
+	_set_mode(true if focus == "invent" else invent_mode)
+	if focus.begins_with("together:") and selected != "":
+		_set_mode(false)
+		_together_selected.call_deferred()
 	_host.resized.connect(_apply_layout)
 	Events.state_changed.connect(_on_state_changed)
 	Events.sheet_requested.connect(_on_sheet)
@@ -271,9 +279,22 @@ static func pic(file: String, pos: Vector2, node_name: String = "", new_size: Ve
 	return result
 
 
-## Arte das estrelas do prato. Ainda não há regra de estrelas: sempre 0 (as de 1 a 3 já existem em `ck_stars_N`).
-static func stars_texture(_recipe_id: String, detail: bool) -> Texture2D:
-	return tex("stars_0_detail" if detail else "stars_0")
+## Arte das estrelas do prato (0 = nunca feito; 1 a 3 = melhores estrelas). O detalhe usa as mesmas, no tamanho dele.
+static func stars_texture(count: int, detail: bool) -> Texture2D:
+	if count <= 0:
+		return tex("stars_0_detail" if detail else "stars_0")
+	return tex("stars_%d" % clampi(count, 1, 3))
+
+## Estrelas do prato centradas em `center` (unidades do Figma), na razão da própria arte (0 = nunca feito; as de 1 a 3 têm
+## margens diferentes das vazias, por isso o tamanho vem da textura e não de uma caixa fixa).
+static func stars_pic(count: int, center: Vector2, detail: bool, node_name: String) -> TextureRect:
+	var texture := stars_texture(count, detail)
+	var factor := 1.0 if detail and count > 0 else 1.0 / ART_SCALE
+	var size := texture.get_size() * factor
+	var result := pic("stars_0", center - size / 2.0, node_name, size)
+	result.texture = texture
+	result.set_meta("count", count)
+	return result
 
 
 ## Torna um Control tocável (toque curto, solto dentro dele).
@@ -462,6 +483,10 @@ func _build_toggle() -> void:
 	tappable(invent, _set_mode.bind(true))
 	toggle.add_child(invent)
 	add_child(toggle)
+	var book := label("Ver tudo", Rect2(69, 172, 128, 70), 24, 17, 1, INK)
+	book.name = "CookRecipeBook"
+	tappable(book, PetNotebook.open.bind("recipes"))
+	add_child(book)
 
 
 ## X de madeira padrão (o mesmo da Venda/Encomendas) no canto de cima à direita; o tamanho acompanha a escala do painel.
@@ -492,6 +517,9 @@ func _place_close() -> void:
 
 ## Troca de aba: Pratos (fila, categorias, filtros, lista e detalhe) × Inventar (`CookInvent`). Troca o fundo e o alternador.
 func _set_mode(on: bool) -> void:
+	if on and not GameState.week_invent_open():
+		Events.toast_requested.emit("Inventar abre no jantar")
+		on = false
 	invent_mode = on
 	var pratos: Array[Control] = [_slots, _cats, _arrow, _list, _bar, _detail]
 	for filter_node: Control in _filter_nodes.values():
@@ -512,14 +540,17 @@ func _set_mode(on: bool) -> void:
 
 # --- Categorias -------------------------------------------------------------------------
 
-const CATEGORIES := [
-	{"id": "all", "name": "Todos", "item": ""},
-	{"id": "porridge", "name": "Papinhas", "item": "milk_porridge"},
-	{"id": "snacks", "name": "Petiscos", "item": "carrot_snack"},
-	{"id": "soups", "name": "Sopas", "item": "vegetable_soup"},
-	{"id": "sweets", "name": "Doces", "item": "apple_biscuit"},
-]
+var _category_defs: Array[Dictionary] = []
 
+
+## Categorias reais: Todos, um por tipo de prato já aberto no dia (`invent.json → dish_types`) e Outros (receitas sem tipo).
+func _categories() -> Array[Dictionary]:
+	var result: Array[Dictionary] = [{"id": "all", "name": "Todos", "item": ""}]
+	for def: Dictionary in CookInvent.dish_types():
+		if GameState.dish_type_open(str(def.id)):
+			result.append({"id": str(def.id), "name": str(def.get("plural", def.name)), "item": str(def.dish)})
+	result.append({"id": "other", "name": "Outros", "item": "treat_box"})
+	return result
 
 func _build_categories() -> void:
 	_cats = CookScroll.new()
@@ -528,13 +559,14 @@ func _build_categories() -> void:
 	# Janela 3,5 unidades mais alta em cima e embaixo: o cartão (desenho de 80) toca como 88 (~44 px na tela).
 	_cats.position = CAT_VIEW.position - Vector2(0, 3.5)
 	_cats.size = CAT_VIEW.size + Vector2(0, 7)
-	_cats.content.size = Vector2(CAT_STEP * CATEGORIES.size() + 0.33, CAT_SIZE.y + 7.0)
+	_category_defs = _categories()
+	_cats.content.size = Vector2(CAT_STEP * _category_defs.size() + 0.33, CAT_SIZE.y + 7.0)
 	add_child(_cats)
-	for i in CATEGORIES.size():
-		var card := _category_card(CATEGORIES[i] as Dictionary)
+	for i in _category_defs.size():
+		var card := _category_card(_category_defs[i])
 		card.position = Vector2(i * CAT_STEP, 3.5)
 		_cats.content.add_child(card)
-		_cat_nodes[str((CATEGORIES[i] as Dictionary).id)] = card
+		_cat_nodes[str(_category_defs[i].id)] = card
 	var arrow := pic("cat_arrow", Vector2(610, 405), "CatArrow")
 	widen(arrow, Vector4(4, 18, 6, 19), _scroll_categories)
 	add_child(arrow)
@@ -562,7 +594,7 @@ func _category_card(data: Dictionary) -> Control:
 		icon.texture = Database.item_icon(str(data.item))
 		icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	card.add_child(icon)
-	var name_label := label(str(data.name), Rect2(66, 14, 72, 52), 22, 11, 2, INK, HORIZONTAL_ALIGNMENT_CENTER, fixed_size("cat", CATEGORIES.map(func(c: Dictionary) -> String: return str(c.name)), Vector2(72, 52), 22, 2))
+	var name_label := label(str(data.name), Rect2(66, 14, 72, 52), 22, 11, 2, INK, HORIZONTAL_ALIGNMENT_CENTER, fixed_size("cat", _category_defs.map(func(c: Dictionary) -> String: return str(c.name)), Vector2(72, 52), 22, 2))
 	name_label.name = "Name"
 	card.add_child(name_label)
 	card.set_meta("selected", false)
@@ -574,6 +606,7 @@ func _category_card(data: Dictionary) -> Control:
 func _select_category(id: String) -> void:
 	category = id
 	_update_categories()
+	_refresh_list()
 
 
 func _update_categories() -> void:
@@ -635,36 +668,77 @@ func _build_list() -> void:
 	add_child(_list)
 
 
-## Receitas do fogão na ordem de sempre, já com o filtro aplicado.
-func _filtered_ids() -> Array[String]:
-	var result: Array[String] = []
-	var foods := StationTray.growth_foods() if filter == "tiro" else ([] as Array[String])
+## Uma linha da lista de pratos: receita fixa do fogão (`kind: recipe`, id = a receita) ou prato do motor já descoberto
+## (`kind: dish`, id = "k_<tipo>_<ingredientes>"). Tem item de saída, nome, tempo, estrelas reais (0 = nunca feito), trancado,
+## tipo (categoria), ingredientes que pagam, motivo de não dar (`error`) e se é "Para crescer".
+func _entries() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	var foods := StationTray.growth_foods()
 	for id in StationTray.recipe_ids(station_id, _focus):
-		var recipe: Dictionary = Database.recipes[id]
-		match filter:
-			"can":
-				if GameState.cook_many_error(id, 1) != "":
-					continue
-			"missing":
-				if GameState.content_error("recipe", id, recipe) != "" or StationTray.missing_icon(id) == null:
-					continue
-			"tiro":
-				if not Database.recipe_output(recipe) in foods:
-					continue
-		result.append(id)
+		result.append(_recipe_entry(id, foods))
+	for known: Dictionary in GameState.known_dishes():
+		if GameState.dish_recipe_match(str(known.type), GameState.dish_inputs(known.ingredients)) != "":
+			continue  # a receita fixa equivalente já tem o seu cartão
+		result.append(_dish_entry(known, foods))
 	return result
 
 
-func _locked(id: String) -> bool:
-	return GameState.content_error("recipe", id, Database.recipes[id]) != ""
+func _recipe_entry(id: String, foods: Array[String]) -> Dictionary:
+	var recipe: Dictionary = Database.recipes[id]
+	var output: String = Database.recipe_output(recipe)
+	return {"id": id, "kind": "recipe", "output": output, "name": Database.item_name(output), "seconds": int(float(recipe.get("seconds", 60)) * float(GameState.recipe_mastery("recipe:" + id).time)),
+		"stars": GameState.recipe_stars(id), "locked": GameState.content_error("recipe", id, recipe) != "",
+		"type": str(recipe.get("dish_type", "")), "inputs": GameState.recipe_inputs(id), "error": GameState.cook_many_error(id, 1),
+		"grow": output in foods}
 
 
-## Refaz os cartões só quando a lista mudou (filtro, ordem ou trancas): a rolagem e a escolha ficam.
+func _dish_entry(known: Dictionary, foods: Array[String]) -> Dictionary:
+	var groups := GameState.growth_pending_groups()
+	var ingredients: Array = known.ingredients
+	var type := str(known.type)
+	var output := DishRules.make_id(type, ingredients, 1)
+	Database.ensure_dish(output)
+	var counts := DishRules.counts_as(type, ingredients)
+	return {"id": "k_%s_%s" % [type, "+".join(PackedStringArray(ingredients))], "kind": "dish", "key": str(known.key), "output": output,
+		"name": DishRules.name_of(type, ingredients), "seconds": int(float(DishRules.type_def(type).get("seconds", 60)) * float(GameState.recipe_mastery(str(known.key)).time)), "stars": int(known.stars),
+		"locked": false, "type": type, "inputs": GameState.dish_inputs(ingredients), "error": GameState.cook_known_dish_error(str(known.key)),
+		"grow": output in foods or (counts != "" and counts in foods) or GameState.dish_serves_groups(type, ingredients, groups)}
+
+
+func _entry(id: String) -> Dictionary:
+	for entry: Dictionary in _entries():
+		if str(entry.id) == id:
+			return entry
+	return {}
+
+
+## Categoria (tipo de prato; receita sem tipo = Outros) e filtro aplicados.
+func _filtered_entries() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for entry: Dictionary in _entries():
+		if category != "all" and (str(entry.type) if str(entry.type) != "" else "other") != category:
+			continue
+		match filter:
+			"can":
+				if str(entry.error) != "":
+					continue
+			"missing":
+				# Faltam ingredientes: o que está liberado e não dá para fazer por falta de estoque.
+				if bool(entry.locked) or GameState.inventory.has_all(entry.inputs):
+					continue
+			"tiro":
+				if not bool(entry.grow):
+					continue
+		result.append(entry)
+	return result
+
+
+## Refaz os cartões só quando a lista mudou (filtro, ordem, trancas ou estrelas): a rolagem e a escolha ficam.
 func _refresh_list() -> void:
-	var ids := _filtered_ids()
+	var entries := _filtered_entries()
 	var key := ""
-	for id in ids:
-		key += "%s%s;" % [id, "L" if _locked(id) else ""]
+	for entry: Dictionary in entries:
+		key += "%s%s%d%s;" % [entry.id, "L" if bool(entry.locked) else "", int(entry.stars), "G" if bool(entry.grow) else ""]
 	if key == _list_key:
 		return
 	_list_key = key
@@ -672,37 +746,52 @@ func _refresh_list() -> void:
 		_list.content.remove_child(child)
 		child.queue_free()
 	_dish_nodes.clear()
-	for i in ids.size():
-		var card := _dish_card(ids[i])
+	for i in entries.size():
+		var card := _dish_card(entries[i])
 		card.position = Vector2((i % 2) * DISH_COL_X, (i / 2) * DISH_SIZE.y)
 		_list.content.add_child(card)
-		_dish_nodes[ids[i]] = card
-	_list.content.size = Vector2(LIST_W, ceilf(ids.size() / 2.0) * DISH_SIZE.y)
+		_dish_nodes[str(entries[i].id)] = card
+	_list.content.size = Vector2(LIST_W, ceilf(entries.size() / 2.0) * DISH_SIZE.y)
 	_list.move_to(_list.offset)
 	_sync_bar()
 
 
-## Cartão de prato (igual para todos): prato, nome em até 2 linhas e relógio + tempo centrados embaixo.
-func _dish_card(id: String) -> Control:
-	var recipe: Dictionary = Database.recipes[id]
-	var output: String = Database.recipe_output(recipe)
+## Selo "Para crescer": pílula verde pequena (desenhada por código, provisória) nos pratos que o próximo crescimento pede.
+static func grow_badge(pos: Vector2, width: float, name_text: String = "GrowBadge") -> Control:
+	var panel := Panel.new()
+	panel.name = name_text
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.position = pos
+	panel.size = Vector2(width, 19)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Palette.GO
+	style.set_corner_radius_all(10)
+	style.border_color = Palette.WOOD_CREAM
+	style.set_border_width_all(2)
+	panel.add_theme_stylebox_override("panel", style)
+	panel.add_child(label("Para crescer", Rect2(0, 0, width, 19), 13, 9, 1, Palette.WOOD_CREAM, HORIZONTAL_ALIGNMENT_CENTER))
+	return panel
+
+
+## Cartão de prato (igual para todos): prato, nome em até 2 linhas, estrelas, relógio + tempo e, se vale, o selo "Para crescer".
+func _dish_card(entry: Dictionary) -> Control:
+	var id := str(entry.id)
 	var card := _plain("Dish_" + id, Vector2.ZERO, DISH_SIZE)
 	var body := _plain("Body", Vector2.ZERO, DISH_SIZE)
 	body.add_child(pic("dish_off", Vector2.ZERO, "Art", DISH_SIZE))
-	body.add_child(dish_pic(output, Rect2(36, 20, 89, 60), "Picture"))
-	var title := label(Database.item_name(output), Rect2(12, 78, 136, 46), 22, 15, 2, INK, HORIZONTAL_ALIGNMENT_CENTER, fixed_size("dish", stove_output_names(), Vector2(136, 46), 22, 2))
+	body.add_child(dish_pic(str(entry.output), Rect2(36, 24, 89, 56), "Picture"))
+	var title := label(str(entry.name), Rect2(12, 78, 136, 46), 22, 15, 2, INK, HORIZONTAL_ALIGNMENT_CENTER, fixed_size("dish", stove_output_names(), Vector2(136, 46), 22, 2))
 	title.name = "Name"
 	body.add_child(title)
-	var time := TimeText.short(int(recipe.get("seconds", 60)))
-	var stars := pic("stars_0", Vector2(18, 124), "DishStars", Vector2(50, 18))
-	stars.texture = stars_texture(id, false)
-	body.add_child(stars)
+	body.add_child(stars_pic(int(entry.stars), Vector2(43, 133), false, "DishStars"))
 	body.add_child(pic("clock", Vector2(83, 124), "Clock"))
-	var time_label := label(time, Rect2(104, 120.5, 52, 24), 20, 12, 1, INK, HORIZONTAL_ALIGNMENT_LEFT)
+	var time_label := label(TimeText.short(int(entry.seconds)), Rect2(104, 120.5, 52, 24), 20, 12, 1, INK, HORIZONTAL_ALIGNMENT_LEFT)
 	time_label.name = "Time"
 	body.add_child(time_label)
 	card.add_child(body)
-	if _locked(id):
+	if bool(entry.grow):
+		card.add_child(grow_badge(Vector2(10, 4), 90))
+	if bool(entry.locked):
 		body.modulate.a = 0.55
 		var lock := TextureRect.new()
 		lock.name = "LockIcon"
@@ -812,10 +901,9 @@ func _slot_states() -> Array[Dictionary]:
 			result.append({"state": "free"})
 			continue
 		var entry: Dictionary = target.queue[i]
-		var recipe: Dictionary = Database.recipes[entry["recipe"]]
-		var seconds := float(recipe["seconds"])
+		var seconds := Database.entry_seconds(entry)
 		var remaining := float(entry["ready_at"]) - now
-		var info := {"output": Database.recipe_output(recipe), "seconds": seconds, "ready_at": float(entry["ready_at"])}
+		var info := {"output": Database.entry_output(entry), "seconds": seconds, "ready_at": float(entry["ready_at"])}
 		if remaining <= 0.0:
 			info["state"] = "ready"
 		elif remaining > seconds:
@@ -924,7 +1012,7 @@ func _open_upgrade(upgrade_id: String) -> void:
 # --- Detalhe ----------------------------------------------------------------------------
 
 func _detail_error(id: String) -> String:
-	return GameState.cook_many_error(id, 1)
+	return str(_entry(id).get("error", "Receita desconhecida"))
 
 
 func _refresh_detail() -> void:
@@ -935,21 +1023,20 @@ func _refresh_detail() -> void:
 	for child in _detail.get_children():
 		_detail.remove_child(child)
 		child.queue_free()
-	if selected == "" or not Database.recipes.has(selected):
+	var entry := _entry(selected) if selected != "" else {}
+	if entry.is_empty():
 		var empty := pic("empty_detail", Vector2.ZERO, "DetailEmpty")
 		empty.position = Vector2(DETAIL_POS.x + (DETAIL_SIZE.x - empty.size.x) / 2.0, DETAIL_POS.y + (DETAIL_SIZE.y + _e - empty.size.y) / 2.0)
 		_detail.add_child(empty)
 		return
-	var recipe: Dictionary = Database.recipes[selected]
-	var output: String = Database.recipe_output(recipe)
-	_detail.add_child(dish_pic(output, Rect2(455, 503, 167, 112), "DetailPicture"))
-	var title := label(Database.item_name(output), Rect2(432, 612, 213, 52), 28, 18, 2, INK, HORIZONTAL_ALIGNMENT_CENTER, fixed_size("detail", stove_output_names(), Vector2(213, 52), 28, 2))
+	_detail.add_child(dish_pic(str(entry.output), Rect2(455, 503, 167, 112), "DetailPicture"))
+	if bool(entry.grow):
+		_detail.add_child(grow_badge(Vector2(438, 510), 104, "DetailGrowBadge"))
+	var title := label(str(entry.name), Rect2(432, 612, 213, 52), 28, 18, 2, INK, HORIZONTAL_ALIGNMENT_CENTER, fixed_size("detail", stove_output_names(), Vector2(213, 52), 28, 2))
 	title.name = "DetailName"
 	_detail.add_child(title)
-	var time := TimeText.short(int(recipe.get("seconds", 60)))
-	var stars := pic("stars_0_detail", Vector2(434, 674), "DetailStars", Vector2(75, 27))
-	stars.texture = stars_texture(selected, true)
-	_detail.add_child(stars)
+	var time := TimeText.short(int(entry.seconds))
+	_detail.add_child(stars_pic(int(entry.stars), Vector2(471.5, 687.5), true, "DetailStars"))
 	var divider := ColorRect.new()
 	divider.name = "DetailDivider"
 	divider.color = INK
@@ -961,7 +1048,7 @@ func _refresh_detail() -> void:
 	var time_label := label(time, Rect2(595, 673, 62, 32), 24, 14, 1, INK, HORIZONTAL_ALIGNMENT_LEFT)
 	time_label.name = "DetailTime"
 	_detail.add_child(time_label)
-	var inputs: Dictionary = GameState.recipe_inputs(selected)
+	var inputs: Dictionary = entry.inputs
 	var n := 0
 	for item_id: String in inputs:
 		if n >= ING_X.size():
@@ -969,20 +1056,22 @@ func _refresh_detail() -> void:
 		_detail.add_child(_ingredient_card(item_id, int(inputs[item_id]), ING_X[n]))
 		n += 1
 	var queue := pic("btn_queue", Vector2(419, 886 + _e), "QueueButton")
-	queue.modulate.a = 0.6 if _detail_error(selected) != "" else 1.0
+	queue.modulate.a = 0.6 if str(entry.error) != "" else 1.0
 	tappable(queue, _queue_selected)
 	_detail.add_child(queue)
 	var together := pic("btn_together", Vector2(414, 953 + _e), "TogetherButton")
-	tappable(together, func() -> void: Events.toast_requested.emit("Em breve!"))
+	together.modulate.a = 0.6 if str(entry.error) != "" else 1.0
+	tappable(together, _together_selected)
 	_detail.add_child(together)
 
 
 ## Parte do estado que muda o detalhe sem mudar a escolha: o que tem na mochila dos ingredientes e se dá para fazer.
 func _detail_inputs_key() -> String:
-	if selected == "" or not Database.recipes.has(selected):
+	var entry := _entry(selected) if selected != "" else {}
+	if entry.is_empty():
 		return ""
-	var key := _detail_error(selected)
-	var inputs: Dictionary = GameState.recipe_inputs(selected)
+	var key := str(entry.error) + "|%d|%s" % [int(entry.stars), "G" if bool(entry.grow) else ""]
+	var inputs: Dictionary = entry.inputs
 	for item_id: String in inputs:
 		key += "|%s:%d" % [item_id, GameState.inventory.count(item_id)]
 	return key
@@ -1008,14 +1097,60 @@ func _ingredient_card(item_id: String, need: int, x: float) -> Control:
 	return card
 
 
-func _queue_selected() -> void:
-	var id := selected
-	if id == "" or not Database.recipes.has(id):
+## "Cozinhar junto" do prato escolhido: abre o minigame (os ingredientes só saem no fim). Mesmos motivos do "Colocar na fila".
+func _together_selected() -> void:
+	var entry := _entry(selected) if selected != "" else {}
+	if entry.is_empty():
+		Events.toast_requested.emit("Escolha um prato")
 		return
-	var reason := _detail_error(id)
+	var id := str(entry.id)
+	var reason := str(entry.error)
+	if reason != "":
+		if str(entry.kind) == "recipe" and bool(entry.locked):
+			TaskHelp.open("recipe", id, int(Database.recipes[id].get("qty", 1)))
+			return
+		Events.toast_requested.emit(reason)
+		var node := _detail.get_node_or_null("TogetherButton") as CanvasItem
+		if node != null:
+			Motion.shake(node)
+		return
+	var items: Array[String] = []
+	var inputs: Dictionary = entry.inputs
+	for item_id: String in inputs:
+		for i in int(inputs[item_id]):
+			items.append(item_id)
+	var spec := {"name": str(entry.name), "output": str(entry.output), "items": items}
+	if str(entry.kind) == "recipe":
+		spec["mastery_key"] = "recipe:" + id
+		spec["check"] = func() -> String: return GameState.cook_many_error(id, 1)
+		spec["cook"] = func(stars: int, together: bool) -> String: return GameState.cook_many(id, 1, stars, together)
+	else:
+		var key := str(entry.key)
+		var parsed := DishRules.parse_key(key.trim_prefix("dish:"))
+		var picks: Array = GameState._expand_picks(GameState.dish_inputs(parsed.ingredients))
+		spec["mastery_key"] = key
+		spec["check"] = func() -> String: return GameState.cook_known_dish_error(key)
+		spec["cook"] = func(stars: int, together: bool) -> String: return GameState.cook_dish(str(parsed.type), picks, stars, together)
+	start_together(spec)
+
+
+## Abre o minigame por cima de tudo (filho da casca) e deixa a cozinha atualizar quando o prato entrar na fila.
+func start_together(spec: Dictionary) -> CookTogether:
+	var host: Node = _find_main()
+	if host == null:
+		host = room.get_tree().root
+	return CookTogether.open(host, spec)
+
+
+func _queue_selected() -> void:
+	var entry := _entry(selected) if selected != "" else {}
+	if entry.is_empty():
+		return
+	var id := str(entry.id)
+	var reason := str(entry.error)
 	if reason != "":
 		var node := _detail.get_node_or_null("QueueButton") as CanvasItem
-		if GameState.content_error("recipe", id, Database.recipes[id]) != "":
+		if str(entry.kind) == "recipe" and bool(entry.locked):
 			TaskHelp.open("recipe", id, int(Database.recipes[id].get("qty", 1)))
 			return
 		Events.toast_requested.emit(reason)
@@ -1023,7 +1158,7 @@ func _queue_selected() -> void:
 			Motion.shake(node)
 		return
 	_pop_slot = GameState.station(station_id).queue.size()
-	var failed := GameState.cook_many(id, 1)
+	var failed := GameState.cook_many(id, 1) if str(entry.kind) == "recipe" else GameState.cook_known_dish(str(entry.key))
 	if failed != "":
 		_pop_slot = -1
 		Events.toast_requested.emit(failed)

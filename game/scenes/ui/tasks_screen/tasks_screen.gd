@@ -133,7 +133,16 @@ func _mark_people_seen() -> void:
 	GameState.mark_seen(keys)
 
 func _build(box: VBoxContainer) -> void:
-	box.add_theme_constant_override("separation", 20 if _group == "timed" else 12)
+	box.add_theme_constant_override("separation", 12)
+	if GameState.progress.chapter_index() <= Database.week_story.days.size():
+		_group = "story"
+		_update_groups({})
+		_story_card(box)
+		WeekStoryUi.today(box)
+		WeekStoryUi.next_step(box)
+		_week_extras(box)
+		sync_hud()
+		return
 	_ready_routines.clear()
 	_ready_characters.clear()
 	for kind: String in ["daily", "weekly"]:
@@ -157,13 +166,15 @@ func _update_groups(characters: Dictionary) -> void:
 	if _group == "characters" and characters.is_empty(): _group = "story"
 	if _group == "timed" and not GameState.routines_unlocked("daily"): _group = "story"
 	var current := GameState.progress.current_main_quest()
-	var entries: Array[Dictionary] = [{"id": "story", "text": "Principal", "alert": current != "" and GameState.quest_error(current) == ""}]
+	var entries: Array[Dictionary] = [{"id": "story", "text": "História", "alert": current != "" and GameState.quest_error(current) == ""}]
 	# As três abas aparecem sempre (o topo é igual em todos os grupos); as fechadas ganham cadeado e explicam no toque.
 	entries.append({"id": "characters", "text": "Pessoas", "alert": not _ready_characters.is_empty(),
 		"locked": "" if not characters.is_empty() else "Pessoas libera quando alguém da vila te pedir ajuda"})
 	entries.append({"id": "timed", "text": "Diárias", "alert": not _ready_routines.is_empty(),
 		"locked": "" if GameState.routines_unlocked("daily") else "Diárias liberam mais adiante na história"})
 	# As abas só são recriadas quando algo visível muda; a bandeja não mexe de lugar nem a cada segundo.
+	if GameState.progress.chapter_index() <= Database.week_story.days.size():
+		entries.resize(1)
 	var sig := _group
 	for entry: Dictionary in entries: sig += "|%s:%s:%s" % [entry.id, entry.alert, entry.get("locked", "")]
 	if sig == _tabs_sig and _tabs != null and is_instance_valid(_tabs): return
@@ -201,6 +212,9 @@ func choose_group(id: String) -> void:
 	_content.call("refresh")
 
 func choose_routine(kind: String) -> void:
+	if GameState.progress.chapter_index() <= Database.week_story.days.size():
+		PetNotebook.open("missions")
+		return
 	if _group != "timed": choose_group("timed")
 	_scroll_routine.call_deferred(kind)
 
@@ -311,6 +325,26 @@ func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 				disc.pivot_offset = Vector2(10, 10)
 				disc.rotation = PI / 2
 
+func _week_extras(box: VBoxContainer) -> void:
+	var surprise := GameState.week_story_surprise()
+	if surprise != "":
+		var note := StepCardUi.inner_card(box, "WeekSurprise")
+		note.add_child(_week_label("Surpresa do Tiro", 20))
+		note.add_child(_week_label(surprise))
+	var challenge := GameState.week_challenge()
+	if not challenge.is_empty():
+		var detail := StepCardUi.inner_card(box, "WeekChallenge")
+		detail.add_child(_week_label("Desafio opcional", 20))
+		detail.add_child(_week_label(str(challenge.label)))
+		detail.add_child(_week_label("Prêmio recebido" if challenge.paid else "%d/%d" % [int(challenge.count), int(challenge.target)]))
+
+
+func _week_label(value: String, px: int = 16) -> Label:
+	var note := StepCardUi.wood(value, px)
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	return note
+
+
 func _story_card(box: VBoxContainer) -> void:
 	var index := GameState.progress.chapter_index()
 	var current := GameState.progress.current_main_quest()
@@ -324,7 +358,12 @@ func _story_card(box: VBoxContainer) -> void:
 	if finished:
 		_story_done(card)
 		return
-	if displayed != "":
+	var wait := GameState.week_quest_wait(current)
+	if wait != "":
+		var waiting := StepCardUi.inner_card(card, "WeekWait")
+		waiting.add_child(_week_label(wait, 22))
+		waiting.add_child(_week_label("Dia %d · %s" % [index, str(GameState.current_chapter().name)]))
+	elif displayed != "":
 		var shared := str(Database.quests[current].get("shared_with", "")) != ""
 		card.add_child(_story_hero(displayed))
 		if shared:
@@ -332,8 +371,14 @@ func _story_card(box: VBoxContainer) -> void:
 			guidance.name = "SharedQuestGuidance"
 			guidance.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			card.add_child(guidance)
-		_story_rewards(card, displayed)
-		_story_steps(card, displayed)
+		if index <= Database.week_story.days.size() and GameState.quest_error(displayed) != "" and GameState.quest_reward_shortage(displayed).is_empty():
+			_story_steps(card, displayed)
+			var prize := ProgressionUi.rewards_text(Database.quests[displayed].rewards)
+			if prize != "":
+				card.add_child(_week_label("Prêmio · " + prize))
+		else:
+			_story_rewards(card, displayed)
+			_story_steps(card, displayed)
 	var full := MissionUi.link("História completa ›", func() -> void: MissionUi.story_book())
 	full.name = "StoryFull"
 	card.add_child(full)
@@ -542,7 +587,7 @@ func _story_steps(card: VBoxContainer, id: String) -> void:
 			bottom.add_child(done_box)
 		else:
 			# Cada passo usa seu próprio destino, inclusive nas missões de Pessoas.
-			var target_place := Places.goal_target(goal)
+			var target_place := Places.quest_target(id, goal)
 			var go := MissionUi.button("go", "Ir" if not target_place.is_empty() else "Como fazer", func() -> void:
 				if target_place.is_empty(): TaskHelp.open("quest", id)
 				else: Places.go(target_place), MissionUi.BUTTON.x, 16 if not target_place.is_empty() else 12)

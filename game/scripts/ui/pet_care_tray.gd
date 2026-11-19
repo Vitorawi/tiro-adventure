@@ -16,6 +16,7 @@ var _play_hint: Label
 var _scroll: ScrollContainer
 var _foods: GridContainer
 var _food_button: Button
+var _meal_bowl: TextureRect
 var _menu: ChoiceWindow
 var _choice: ChoiceWindow
 var _choice_id := ""
@@ -109,6 +110,10 @@ func _ready() -> void:
 	_menu.layout_requested.connect(func() -> void: _place_menu.call_deferred())
 	_scroll = _menu.scroll
 	_foods = _menu.grid
+	_meal_bowl = UiKit.icon(preload("res://assets/sprites/ui/album/prop_bowl.png"), 54)
+	_meal_bowl.name = "TutorialMealBowl"
+	_meal_bowl.hide()
+	pet_screen.add_child(_meal_bowl)
 	_choice = ChoiceWindow.new()
 	_choice.name = "CareChoice"
 	pet_screen.add_child(_choice)
@@ -144,6 +149,10 @@ func _ready() -> void:
 ## Seta junto do botão, sem capturar toque; acompanha o controle em qualquer resolução.
 func point_at(id: String) -> void:
 	clear_pointer()
+	if id == "feed":
+		if not _menu.visible:
+			open_food_menu()
+		return
 	if id != "wish": open_wheel()
 	var tile: Control = pet_screen.find_child("WishBubble", true, false) if id == "wish" else _items.get(id)
 	if tile == null or not tile.is_visible_in_tree(): return
@@ -255,6 +264,14 @@ func refresh() -> void:
 		if badge: badge.visible = GameState.wish_wants_item(id)
 	_food_button.modulate.a = 0.45 if GameState.dog.sleeping else 1.0
 	(_food_button.find_child("Caption", true, false) as Label).text = "Zzz" if GameState.dog.sleeping else "Comida"
+	# Tampinha com relógio: há uma refeição guardada esperando a janela (Deixar pronto).
+	var lid := _food_button.get_node_or_null("StoredLid") as Control
+	if lid == null:
+		lid = UiKit.ctl("clock", 20, Palette.WOOD_INK)
+		lid.name = "StoredLid"
+		lid.position = Vector2(6, 4)
+		_food_button.add_child(lid)
+	lid.visible = not GameState.stored_meal().is_empty()
 	if GameState.dog.sleeping or GameState.walking(): close_food_menu()
 	(_sleep.find_child("Caption", true, false) as Label).text = "Acordar" if GameState.dog.sleeping else "Dormir"
 	(_sleep.find_child("CareIcon", true, false) as TextureRect).texture = UiKit.ui_icon("action_wake" if GameState.dog.sleeping else "action_sleep")
@@ -321,6 +338,7 @@ func open_food_menu() -> void:
 	close_wheel()
 	refresh()
 	_menu.show()
+	_meal_bowl.visible = WeekTutorial.enrolled() and GameState.progress.stat("feed") == 0 and food_ids().any(GameState.is_meal_item)
 	_scroll.scroll_vertical = 0
 	_place_menu()
 	Motion.pop_in(_menu)
@@ -328,6 +346,7 @@ func open_food_menu() -> void:
 
 func close_food_menu() -> void:
 	_menu.hide()
+	_meal_bowl.hide()
 	_choice.hide()
 	_choice.name = "CareChoice"
 	_choice_id = ""
@@ -349,6 +368,15 @@ func _place_menu() -> void:
 	var heart_left := _care_button.global_position.x - pet_screen.global_position.x - 8.0
 	_menu.place(pet_screen, top, bottom, heart_left)
 	_choice.place(pet_screen, top, bottom, heart_left)
+	var head: Rect2 = pet_screen.call("head_rect")
+	var x := clampf(head.end.x + 8.0, 12.0, pet_screen.size.x - 65.0)
+	_meal_bowl.position = Vector2(x, head.get_center().y) - pet_screen.global_position
+
+
+func meal_bowl_rect() -> Rect2:
+	if _meal_bowl.visible:
+		return _meal_bowl.get_global_rect()
+	return pet_screen.call("head_rect")
 
 func _input(event: InputEvent) -> void:
 	if not is_visible_in_tree() or (not _menu.visible and not _choice.visible) or _pressed != "": return
@@ -453,7 +481,9 @@ func release_item(point: Vector2) -> void:
 				_act(id)
 		elif id not in ["sponge", "brush"]:
 			var head: Rect2 = pet_screen.call("head_rect")
-			if head.has_point(point - Vector2(0, DragGhost.LIFT)): _act(id)
+			var drop := point - Vector2(0, DragGhost.LIFT)
+			if head.has_point(drop) or (_meal_bowl.visible and meal_bowl_rect().has_point(drop)):
+				_act(id)
 	close_wheel()
 	gesture.finish()
 	if id == "brush": pet_screen.call("brush_cleanup")
@@ -477,24 +507,34 @@ func _act(id: String, with_shampoo: bool = false) -> void:
 	elif GameState.dog.sleeping: error = "Shh... ele está dormindo."
 	elif id == "sponge":
 		close_food_menu()
-		GameState.bathe(with_shampoo)
-		pet_screen.call("care_bubbles", (pet_screen.call("dog_rect") as Rect2).get_center())
+		if GameState.bathe(with_shampoo):
+			pet_screen.call("care_bubbles", (pet_screen.call("dog_rect") as Rect2).get_center())
+		else:
+			error = "Falta xampu"
 	elif id == "brush":
 		close_food_menu()
 		error = GameState.brush()
 		pet_screen.call("brush_cleanup")
 	elif id == "ball":
 		close_food_menu()
+		if GameState.farm_week_active():
+			close_wheel()
+			YardPlay.open()
+			return
 		var before := GameState.play_growth_info()
 		if GameState.play():
 			pet_screen.call("throw_ball")
 			pet_screen.call("play_growth_feedback", before, GameState.play_growth_info())
 		else: error = "Tiro está cansado demais para brincar."
+	elif GameState.is_meal_item(id) and GameState.meal_error(id) != "" and GameState.store_meal_error(id) == "":
+		# Refeição fora da hora: Dar agora ou Deixar pronto para a próxima janela.
+		close_food_menu()
+		MealUi.store_choice(id, func() -> void:
+			SheetBuilder.request_food(id, func() -> void: pet_screen.call("food_effects", id)))
 	else:
-		error = SheetBuilder.give_food(id)
-		if error == "":
+		SheetBuilder.request_food(id, func() -> void:
 			close_food_menu()
-			pet_screen.call("food_effects", id)
+			pet_screen.call("food_effects", id))
 	if error != "":
 		Events.toast_requested.emit(error)
 		if _items.has(id): Motion.shake(_items[id])
@@ -505,9 +545,12 @@ func _act(id: String, with_shampoo: bool = false) -> void:
 func care_options(id: String) -> Array[Dictionary]:
 	match id:
 		"sponge":
+			var shampoo := GameState.bath_shampoo()
+			var count := GameState.inventory.count(shampoo)
+			var label := "Banho caprichado" if shampoo == "puppy_shampoo" or GameState.farm_week_active() else "Com xampu"
 			return [
-				{"name": "BathPlain", "label": "Sem xampu", "icon": UiKit.ui_icon("action_sponge"), "action": _act.bind("sponge", false)},
-				{"name": "BathShampoo", "label": "Com xampu", "icon": Database.item_icon("herb_shampoo"), "action": _act.bind("sponge", true), "quantity": "×%d" % GameState.inventory.count("herb_shampoo"), "locked": "Falta xampu" if GameState.inventory.count("herb_shampoo") < 1 else ""},
+				{"name": "BathPlain", "label": "Sem xampu", "caption": "Banho", "icon": UiKit.ui_icon("action_sponge"), "action": _act.bind("sponge", false)},
+				{"name": "BathShampoo", "label": label, "caption": "Xampu", "icon": Database.item_icon(shampoo), "action": _act.bind("sponge", true), "quantity": "×%d" % count, "locked": "Falta xampu" if count < 1 else ""},
 			]
 		"ball":
 			var options: Array[Dictionary] = [{"name": "PlayBall", "label": "Bola", "icon": UiKit.ui_icon("action_play"), "action": _act.bind("ball")}]
@@ -520,6 +563,9 @@ func care_options(id: String) -> Array[Dictionary]:
 
 func choose_care(id: String) -> void:
 	if GameState.dog.sleeping or GameState.walking():
+		_act(id)
+		return
+	if id == "ball" and GameState.farm_week_active():
 		_act(id)
 		return
 	var options := care_options(id)
@@ -541,6 +587,16 @@ func _open_care_choice(id: String, options: Array[Dictionary]) -> void:
 		var button := ChoiceWindow.tile(option.icon, "", _choose_option.bind(str(option.name))) as Button
 		_choice.grid.add_child(button)
 		_sync_care_option(button, option)
+		if option.has("caption"):
+			var icon := button.get_node("CareIcon") as TextureRect
+			icon.size = Vector2(32, 32)
+			icon.position = Vector2(12, 3)
+			var label := MissionUi.text(str(option.caption), 11, Palette.WOOD_CREAM, 3)
+			label.position = Vector2(0, 37)
+			label.size = Vector2(56, 16)
+			button.add_child(label)
+			var quantity := button.get_node("Quantity") as Label
+			quantity.vertical_alignment = VERTICAL_ALIGNMENT_TOP
 	_choice.show()
 	_choice.scroll.scroll_vertical = 0
 	_place_menu()

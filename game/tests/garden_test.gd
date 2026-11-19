@@ -10,7 +10,8 @@ var state: Node
 var db: Node
 
 const TABLE := {
-	"carrot": [60, 2, 6], "potato": [300, 3, 16], "strawberry": [900, 4, 24], "pumpkin": [3600, 4, 35],
+	"zucchini": [480, 3, 16], "watermelon": [1200, 3, 24],
+	"carrot": [60, 2, 6], "potato": [300, 3, 16], "strawberry": [900, 4, 24], "pumpkin": [600, 4, 35],
 	"sweet_potato": [7200, 6, 45], "wheat": [600, 4, 18], "corn": [1200, 6, 24], "herbs": [7200, 6, 50], "blueberry": [14400, 8, 65],
 }
 
@@ -31,10 +32,12 @@ func _p() -> RefCounted:
 
 func _fresh() -> void:
 	state.call("reset")
+	state.call("dev_week_goto", 3)
 	state.set("unlimited_storage", true)
 	state.get("inventory").counts.clear()
 	state.set("coins", 0)
 	_p().owned["farm"] = true
+	_p().owned["chicken_coop"] = true
 	state.set("unlocked_plots", 4)
 	state.call("_ensure_plots")
 
@@ -73,9 +76,9 @@ func _table() -> void:
 	check(crops.size() == TABLE.size(), "nenhuma cultura fora da tabela")
 	# Requisitos não trocados continuam como estavam.
 	check(crops.carrot.get("requirements", {}).is_empty(), "cenoura sem requisito")
-	check(crops.potato.requirements.quests == ["bloblo_more_crops"], "batata libera depois de colher três vezes")
+	check(crops.potato.requirements.is_empty(), "batata disponível desde o primeiro dia")
 	check(crops.strawberry.requirements.quests == ["bloblo_dig"], "morango: bloblo_dig")
-	check(crops.pumpkin.requirements.quests == ["bloblo_potato"], "abóbora: bloblo_potato")
+	check(crops.pumpkin.requirements.stats.has("buy:week_pumpkin_seed"), "abóbora libera pela semente da banca")
 	check(crops.sweet_potato.requirements.quests == ["farm_deed"], "batata-doce: farm_deed")
 	check(str(crops.herbs.greenhouse) == "only" and str(crops.blueberry.greenhouse) == "only" and str(crops.strawberry.greenhouse) == "any", "estufa: ervas/mirtilo exclusivos, morango nos dois")
 
@@ -85,15 +88,15 @@ func _plot_costs() -> void:
 	var ints: Array[int] = []
 	for cost in costs:
 		ints.append(int(cost))
-	check(ints == [0, 0, 0, 0, 80, 140, 220, 340, 500], "custos dos cinco canteiros 80/140/220/340/500 (%s)" % str(costs))
-	check(int(db.get("farm").initial_plots) == 4 and int(db.get("farm").plots) == 9 and int(db.get("farm").greenhouse_plots) == 4, "índices e quantidades intactos")
+	check(ints == [0, 0, 20, 20, 80, 140, 220, 340], "custos dos canteiros comuns da horta (%s)" % str(costs))
+	check(int(db.get("farm").initial_plots) == 2 and int(db.get("farm").plots) == 9 and int(db.get("farm").greenhouse_plots) == 4, "índices e quantidades intactos")
 	_fresh()
 	state.set("coins", 2000)
-	for expected: int in [80, 140, 220, 340, 500]:
+	for expected: int in [80, 140, 220, 340]:
 		var before: int = int(state.get("coins"))
 		check(state.call("buy_plot", int(state.get("unlocked_plots"))) == "", "compra o próximo terreno")
 		check(before - int(state.get("coins")) == expected, "terreno custou %d" % expected)
-	check(int(state.get("unlocked_plots")) == 9, "nove terrenos comuns")
+	check(int(state.get("unlocked_plots")) == 8, "oito terrenos comuns e um de milho no kit")
 
 
 func _effective_time_and_water() -> void:
@@ -103,15 +106,16 @@ func _effective_time_and_water() -> void:
 	state.set("unlimited_storage", true)
 	var speed := float(db.get("farm").greenhouse_speed)
 	check(is_equal_approx(speed, 0.7), "fator estufa 0,7")
-	check(is_equal_approx(float(state.call("crop_seconds", 0, "pumpkin")), 3600.0), "tempo efetivo no canteiro comum")
+	check(is_equal_approx(float(state.call("crop_seconds", 0, "pumpkin")), 600.0), "tempo efetivo no canteiro comum")
 	check(is_equal_approx(float(state.call("crop_seconds", 9, "strawberry")), 900.0 * 0.7), "tempo efetivo na estufa")
 	var before: float = float(state.call("now"))
+	state.call("buy_shop_item", "week_pumpkin_seed")
 	check(state.call("plant", 0, "pumpkin") == "", "planta abóbora")
 	var plot: Dictionary = (state.get("plots") as Array)[0]
-	check(absf(float(plot.ready_at) - float(plot.planted_at) - 3600.0) < 0.01, "pronto em 1 h")
+	check(absf(float(plot.ready_at) - float(plot.planted_at) - 600.0) < 0.01, "pronto em 10 min")
 	check(state.call("water", 0) == "", "rega")
 	var left: float = float(plot.ready_at) - float(state.call("now"))
-	check(left > 3600.0 * 0.7 - 5.0 and left < 3600.0 * 0.7 + 1.0, "rega tira 30%% do que falta (%.1f)" % left)
+	check(left > 600.0 * 0.7 - 5.0 and left < 3600.0 * 0.7 + 1.0, "rega tira 30%% do que falta (%.1f)" % left)
 	check(state.call("water", 0) != "", "segunda rega recusada")
 	var kept: float = float(plot.ready_at)
 	# Salvar e carregar não compõe o bônus de novo.
@@ -143,8 +147,15 @@ func _exclusive_crops() -> void:
 	check(state.call("plant_error", 9, "pumpkin") != "", "abóbora não vai para a estufa")
 	for id: String in ["herbs", "blueberry", "strawberry"]:
 		check(state.call("plant_error", 9, id) == "", "%s planta na estufa" % id)
+	state.call("buy_shop_item", "week_pumpkin_seed")
 	for id: String in ["carrot", "potato", "strawberry", "pumpkin", "sweet_potato", "wheat", "corn"]:
 		check(state.call("plant_error", 1, id) == "", "%s planta no sítio" % id)
+	# As sementes da E11 vêm da banca e da carroça.
+	state.call("dev_week_goto", 5)
+	state.call("dev_week_hour", 9)
+	state.set("coins", 100)
+	check(state.call("buy_shop_item", "week_zucchini_seed") == "", "compra a semente de abobrinha")
+	check(state.call("buy_shop_item", "week_watermelon_seed") == "", "compra a semente de melancia")
 	# Todas colhem o que a tabela promete.
 	for id: String in TABLE:
 		var index := 9 if str(db.get("crops")[id].get("greenhouse", "")) == "only" else 1
@@ -274,7 +285,7 @@ func _seed_list() -> void:
 	_fresh()
 	_p().owned["greenhouse"] = true
 	var builder: Script = load("res://scripts/ui/sheet_builder.gd")
-	for pair: Array in [[0, "carrot", 60], [0, "pumpkin", 3600], [9, "strawberry", 630]]:
+	for pair: Array in [[0, "carrot", 60], [0, "pumpkin", 600], [9, "strawberry", 630]]:
 		var picker: Control = builder.call("seed_picker", int(pair[0]), str(pair[1]))
 		root.add_child(picker)
 		var texts: Array[String] = []

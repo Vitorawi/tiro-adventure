@@ -114,7 +114,7 @@ func run() -> void:
  fresh()
  state.dev_grant_upgrade('cow_barn')
  check(state.requirement_error(db.recipes.milk_porridge.requirements).contains(str(db.progression.upgrades.mill.name)),'mingau exige também moinho')
- for pair in [['frozen_carrot','lais_blender'],['puppy_mash','first_kitchen']]:
+ for pair in [['frozen_carrot','lais_blender']]:
   fresh()
   check(state.requirement_error(db.recipes[pair[0]].requirements)!='','missão bloqueia '+pair[0])
   state.dev_complete_quest(pair[1])
@@ -123,7 +123,7 @@ func run() -> void:
  check(state.requirement_error(db.recipes.corn_crunch.requirements)!='','crocante exige capítulo 5')
  state.dev_unlock_everything()
  check(state.requirement_error(db.recipes.corn_crunch.requirements)=='','capítulo libera crocante')
- for pair in [['puppy','frozen_carrot'],['teething','growth_kibble'],['explorer','milk_porridge']]:
+ for pair in [['teething','growth_kibble'],['explorer','milk_porridge']]:
   fresh()
   state.progress.stats['feed:'+pair[1]] = 8
   state.growth.phase = pair[0]

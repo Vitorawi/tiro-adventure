@@ -22,6 +22,8 @@ func _run() -> void:
 	state = root.get_node("GameState")
 	state.call("reset")
 	state.call("dev_unlock_everything")
+	state.call("finish_fishing_tutorial")
+	state.call("dev_week_goto", 4)
 	state.call("_mark_all_seen")
 	Motion.reduced = true
 	await _audit()
@@ -53,7 +55,7 @@ func _run() -> void:
 	_mouse(farm, local, false)
 	check(not main.get_node("Sheet").call("is_open") and load("res://scripts/ui/action_tray.gd").get("current") == null, "soltar depois de segurar não age")
 	for i: int in 4: await create_timer(0.4).timeout
-	check(not held.visible, "nome some depois de 1,5 s")
+	check(not is_instance_valid(held) or not held.visible, "nome some depois de 1,5 s")
 	_mouse(farm, local, true)
 	_mouse(farm, local, false)
 	await frames()
@@ -85,12 +87,8 @@ func _run() -> void:
 	# Primeira visita sem chuva de novidades; liberação posterior é uma novidade.
 	var seen: Dictionary = state.get("progress").seen
 	seen.erase("ui:place_tapped:farm:early_market")
-	state.get("progress").claimed_quests.erase("bloblo_meet")
 	farm.call("_place_labels")
-	check(not _spark_visible(farm, "place:early_market"), "venda bloqueada não brilha")
-	state.call("dev_complete_quest", "bloblo_meet")
-	farm.call("_place_labels")
-	check(_spark_visible(farm, "place:early_market"), "venda recém-liberada brilha")
+	check(_spark_visible(farm, "place:early_market"), "banca aberta e ainda não visitada brilha")
 	farm.call("_on_object_tapped", "place:early_market")
 	check(seen.get("ui:place_tapped:farm:early_market", false) and not _spark_visible(farm, "place:early_market"), "primeiro toque marca e apaga brilho")
 	root.get_node("Events").emit_signal("sheet_close_requested")

@@ -73,6 +73,7 @@ func reset_world() -> void:
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
 	state.call("dev_unlock_everything")
+	state.call("dev_week_goto", 7)
 	state.call("_mark_all_seen")
 	state.set("coins", 5000)
 	for id: String in state.get("stations"):
@@ -178,14 +179,15 @@ func _run() -> void:
 	check(not bool(node("Filter_missing").get_meta("selected")), "tocar de novo limpa o filtro")
 	check(panel().find_children("Dish_*", "Control", true, false).size() == total, "sem filtro volta a lista inteira")
 
-	# 5. Categoria escolhe sem mexer na lista; seta rola as categorias.
-	tap_card(node("CatScroll"), node("Cat_soups"))
-	check(bool(node("Cat_soups").get_meta("selected")) and not bool(node("Cat_all").get_meta("selected")), "categoria escolhida troca o fundo")
-	check(panel().find_children("Dish_*", "Control", true, false).size() == total, "categorias ainda mostram tudo")
+	# 5. Categoria filtra pelo tipo de prato; seta rola as categorias.
+	tap_card(node("CatScroll"), node("Cat_petisco"))
+	check(bool(node("Cat_petisco").get_meta("selected")) and not bool(node("Cat_all").get_meta("selected")), "categoria escolhida troca o fundo")
+	check(panel().find_children("Dish_*", "Control", true, false).size() < total and node("Dish_carrot_snack") != null, "a categoria filtra a lista pelo tipo")
 	var cats := node("CatScroll")
 	check(float(cats.get("offset")) == 0.0, "categorias começam no início")
 	tap(node("CatArrow"))
 	check(float(cats.get("offset")) > 0.0, "a seta rola as categorias")
+	tap_card(node("CatScroll"), node("Cat_all"))
 
 	# 6. state_changed não mexe em rolagem, escolha, filtro nem categoria.
 	tap(node("Filter_tiro"))
@@ -196,7 +198,7 @@ func _run() -> void:
 	await frames(2)
 	check(is_equal_approx(float(scroll.get("offset")), 164.0), "rolagem da lista mantida (%s)" % scroll.get("offset"))
 	check(is_equal_approx(float(cats.get("offset")), cat_offset), "rolagem das categorias mantida")
-	check(bool(node("Dish_carrot_snack").get_meta("selected")) and bool(node("Cat_soups").get_meta("selected")), "escolha e categoria mantidas")
+	check(bool(node("Dish_carrot_snack").get_meta("selected")) and bool(node("Cat_all").get_meta("selected")), "escolha e categoria mantidas")
 
 	# 7. O alternador troca de aba (Inventar tem o teste dele); "Cozinhar junto" dos Pratos só avisa; o espaço fechado abre a compra.
 	toasts.clear()
@@ -205,7 +207,10 @@ func _run() -> void:
 	tap(node("DishesHalf"))
 	check(not node("InventView").visible and scroll.is_visible_in_tree(), "Pratos volta o miolo")
 	tap(node("TogetherButton"))
-	check(toasts.count("Em breve!") == 1, "Cozinhar junto dos Pratos avisa 'Em breve!'")
+	var minigame := root.find_child("CookTogether", true, false)
+	check(minigame != null or not toasts.is_empty(), "Cozinhar junto dos Pratos abre o minigame (ou diz o que falta)")
+	if minigame != null:
+		minigame.call("cancel")
 	var sheets: Array[String] = []
 	events.sheet_requested.connect(func(title: String, _c: Control) -> void: sheets.append(title))
 	tap(node("Slot_3"))

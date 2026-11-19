@@ -60,8 +60,8 @@ func run() -> void:
  fresh('puppy')
  var help: Script = load('res://scripts/ui/task_help.gd')
  var origin: Dictionary = help.call('describe','growth_req','key')
- check('Vovó Bloblo' in str(origin.detail) and 'Sítio' in str(origin.detail) and 'Argolinha da vovó' in str(origin.detail),'origem visível antes de liberar a missão')
- check('3' in str(origin.detail) and '1' in str(origin.detail),'origem informa as quantidades da troca')
+ check(origin.target.get('world','') == 'farm' and origin.target.get('place','') == 'shop:week_teether','origem aponta para o kit da banca')
+ check('Abre no dia 7' in str(origin.detail),'origem informa o dia de abertura')
  check(origin.target.get('screen','')!='bag','sem argolinha não manda procurar na mochila')
  var source_panel: Control = load('res://scripts/ui/growth_ui.gd').panel()
  root.add_child(source_panel)
@@ -104,9 +104,10 @@ func run() -> void:
  check(row('key').done and int(state.growth.delivered.teething.chew_ring)==1,'lembrança salva')
  # Crescer exige o item-chave.
  fresh('puppy')
- state.progress.stats['feed:frozen_carrot'] = 3
- state.progress.stats['feed:fish_mash'] = 2
- state.growth.phase_moments['brave'] = 3
+ # Lista da primeira semana (E05): tudo cumprido, menos o item-chave.
+ state.growth.done['teething'] = {}
+ for requirement: Dictionary in state.growth_info().requirements:
+  if requirement.id != 'key': state.growth.done['teething'][str(requirement.id)] = true
  check(state.grow_error().contains('Argolinha'),'não cresce sem argolinha')
  state.inventory.add('chew_ring',1)
  state.deliver_growth('chew_ring')

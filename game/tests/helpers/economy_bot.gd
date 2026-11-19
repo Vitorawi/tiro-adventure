@@ -2071,7 +2071,7 @@ func _pursue_friend(friend: String, shield: bool, depth: int) -> Dictionary:
 
 func _pursue_trick(shield: bool, depth: int) -> Dictionary:
 	for id: String in Database.progression.tricks:
-		if bool(gs.progress.tricks.get(id, false)):
+		if gs.trick_is_lesson(id) or bool(gs.progress.tricks.get(id, false)):
 			continue
 		var error: String = gs.learn_trick_error(id)
 		if error == "":

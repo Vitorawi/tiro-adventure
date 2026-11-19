@@ -67,6 +67,83 @@ static func build(focus: String, channel: String) -> Control:
 	return live
 
 
+static func build_cart() -> Control:
+	return ProjectUi.wood_sheet(SheetBuilder.LiveBox.new(func(box: VBoxContainer) -> void:
+		box.name = "CartBoard"
+		var ids := GameState.cart_order_ids()
+		if ids.is_empty():
+			box.add_child(StepCardUi.wood(GameState.shop_error("week_cart"), 18))
+			return
+		ProgressionUi.npc_header(box, "merchant", "Encomendas de hoje", false, true, 48.0)
+		for id: String in ids:
+			_cart_order(box, id)
+		var shop := StepCardUi.wood("À venda", 20)
+		shop.name = "CartShop"
+		box.add_child(shop)
+		var offer := GameState.shop_pack("cart_offer")
+		var ids_for_sale := GameState.shop_items("week_cart")
+		var discounted := ""
+		if "cart_offer" in ids_for_sale and GameState.shop_daily_left("cart_offer") > 0:
+			for id: String in ids_for_sale:
+				var pack := GameState.shop_pack(id)
+				if pack.get("items", {}) == offer.get("items", {}) and int(pack.price) > int(offer.price):
+					discounted = id
+					break
+		for id: String in ids_for_sale:
+			if id == "cart_offer" and discounted != "":
+				continue
+			box.add_child(SellUi.cart_buy_row("cart_offer" if id == discounted else id, GameState.cart_day()))))
+
+
+static func _cart_order(box: VBoxContainer, id: String) -> void:
+	var data: Dictionary = Database.progression.cart_catalog[id]
+	var card := StepCardUi.inner_card(box, "Order_" + id, Vector4i(10, 7, 10, 8))
+	card.add_child(StepCardUi.wood(str(data.name), 17))
+	var row := UiKit.hbox(6)
+	card.add_child(row)
+	for item: String in data.inputs:
+		row.add_child(_need(item, int(data.inputs[item])))
+	row.add_child(SellUi.spacer())
+	row.add_child(_reward_box(int(data.rewards.coins)))
+	var trick := str(data.get("trick", ""))
+	if trick != "":
+		var label := StepCardUi.wood("%s · gorjeta de %d" % [Database.progression.tricks[trick].name, int(data.tip)], 15)
+		card.add_child(label)
+	var reason := GameState.order_error(id)
+	if reason != "":
+		var status := StepCardUi.wood(reason, 15)
+		status.name = "CartOrderStatus"
+		card.add_child(status)
+		return
+	var day := GameState.cart_day()
+	var deliver := StepCardUi.go_button("Entregar", _offer_cart_trick.bind(id, day))
+	deliver.name = "DeliverOrder"
+	card.add_child(deliver)
+
+
+static func _offer_cart_trick(id: String, day: int) -> void:
+	var offer := GameState.cart_order_offer(id)
+	if day == GameState.cart_day() and not offer.is_empty():
+		MealUi.offer_trick(offer, func(success: Dictionary) -> void:
+			_finish_cart_order(id, day, success)
+			Places.open("farm", "week_cart"))
+	else:
+		_finish_cart_order(id, day, {})
+
+
+static func _finish_cart_order(id: String, day: int, offer: Dictionary) -> void:
+	var tip := int(offer.get("tip", 0)) if offer == GameState.cart_order_offer(id) else 0
+	var error := GameState.fulfill_order(id, offer, day)
+	if error != "":
+		Events.toast_requested.emit(error)
+		return
+	var data: Dictionary = Database.progression.cart_catalog[id]
+	Events.items_gained.emit({}, int(data.rewards.coins) + tip, Vector2(-1, -1))
+	Haptics.success()
+	if tip > 0:
+		Events.toast_requested.emit("Gorjeta do cliente · +%d moedas" % tip)
+
+
 static func _screen() -> Vector2:
 	return (Engine.get_main_loop() as SceneTree).root.get_visible_rect().size
 

@@ -1,0 +1,820 @@
+{
+  "schema": 1,
+  "nutrients": {
+    "forca": {
+      "name": "Força",
+      "pillar": "body"
+    },
+    "brilho": {
+      "name": "Brilho",
+      "pillar": "coat"
+    },
+    "foco": {
+      "name": "Foco",
+      "pillar": "smart"
+    },
+    "animo": {
+      "name": "Ânimo",
+      "pillar": "brave"
+    }
+  },
+  "categories": {
+    "legume": "Legume",
+    "grao": "Grão",
+    "proteina": "Proteína",
+    "fruta": "Fruta"
+  },
+  "tastes": {
+    "crocante": "Crocante",
+    "cremoso": "Cremoso",
+    "docinho": "Docinho",
+    "fresquinho": "Fresquinho",
+    "cheiroso_de_mar": "Cheiroso de mar"
+  },
+  "stars": {
+    "1": 1.0,
+    "2": 1.2,
+    "3": 1.4
+  },
+  "sell_min": 4,
+  "gororoba": {
+    "item": "gororoba",
+    "refund": 1
+  },
+  "ingredients": {
+    "cenoura": {
+      "name": "Cenoura",
+      "items": [
+        "carrot"
+      ],
+      "category": "legume",
+      "taste": "crocante",
+      "n": {
+        "forca": 0,
+        "brilho": 1,
+        "foco": 2,
+        "animo": 0
+      },
+      "opens": 1,
+      "source": "Canteiro",
+      "sell": 3
+    },
+    "batata": {
+      "name": "Batata",
+      "items": [
+        "potato"
+      ],
+      "category": "legume",
+      "taste": "cremoso",
+      "n": {
+        "forca": 2,
+        "brilho": 0,
+        "foco": 0,
+        "animo": 0
+      },
+      "opens": 1,
+      "source": "Canteiro",
+      "sell": 7
+    },
+    "abobora": {
+      "name": "Abóbora",
+      "items": [
+        "pumpkin"
+      ],
+      "category": "legume",
+      "taste": "docinho",
+      "n": {
+        "forca": 1,
+        "brilho": 2,
+        "foco": 0,
+        "animo": 0
+      },
+      "opens": 1,
+      "source": "Canteiro",
+      "sell": 12
+    },
+    "abobrinha": {
+      "name": "Abobrinha",
+      "items": [
+        "zucchini"
+      ],
+      "category": "legume",
+      "taste": "fresquinho",
+      "n": {
+        "forca": 0,
+        "brilho": 1,
+        "foco": 1,
+        "animo": 0
+      },
+      "opens": 3,
+      "source": "Canteiro, semente na banca",
+      "sell": 6
+    },
+    "batata_doce": {
+      "name": "Batata-doce",
+      "items": [
+        "sweet_potato"
+      ],
+      "category": "legume",
+      "taste": "docinho",
+      "n": {
+        "forca": 1,
+        "brilho": 0,
+        "foco": 0,
+        "animo": 1
+      },
+      "opens": 4,
+      "source": "Canteiro, muda no pomar",
+      "sell": 8
+    },
+    "aveia": {
+      "name": "Aveia",
+      "items": [
+        "oat"
+      ],
+      "category": "grao",
+      "taste": "cremoso",
+      "n": {
+        "forca": 1,
+        "brilho": 0,
+        "foco": 1,
+        "animo": 0
+      },
+      "opens": 1,
+      "source": "Banca da vovó",
+      "sell": 3
+    },
+    "milho": {
+      "name": "Milho",
+      "items": [
+        "corn"
+      ],
+      "category": "grao",
+      "taste": "docinho",
+      "n": {
+        "forca": 1,
+        "brilho": 0,
+        "foco": 0,
+        "animo": 1
+      },
+      "opens": 2,
+      "source": "Canteiro",
+      "sell": 4
+    },
+    "arroz": {
+      "name": "Arroz",
+      "items": [
+        "rice"
+      ],
+      "category": "grao",
+      "taste": "cremoso",
+      "n": {
+        "forca": 1,
+        "brilho": 0,
+        "foco": 0,
+        "animo": 0
+      },
+      "opens": 3,
+      "source": "Banca da vovó",
+      "sell": 4
+    },
+    "ovo": {
+      "name": "Ovo",
+      "items": [
+        "egg"
+      ],
+      "category": "proteina",
+      "taste": "cremoso",
+      "n": {
+        "forca": 2,
+        "brilho": 2,
+        "foco": 0,
+        "animo": 0
+      },
+      "opens": 2,
+      "source": "Galinheiro",
+      "sell": 9,
+      "key_note": "Conta como prato com ovo"
+    },
+    "peixe": {
+      "name": "Peixe",
+      "items": [
+        "fish_tilapia",
+        "fish_lambari",
+        "fish_cara"
+      ],
+      "category": "proteina",
+      "taste": "cheiroso_de_mar",
+      "n": {
+        "forca": 1,
+        "brilho": 3,
+        "foco": 0,
+        "animo": 0
+      },
+      "opens": 3,
+      "source": "Lagoa",
+      "sell": 9,
+      "key_note": "Conta como prato com peixe"
+    },
+    "maca": {
+      "name": "Maçã",
+      "items": [
+        "apple"
+      ],
+      "category": "fruta",
+      "taste": "fresquinho",
+      "n": {
+        "forca": 0,
+        "brilho": 0,
+        "foco": 1,
+        "animo": 1
+      },
+      "opens": 4,
+      "source": "Pomar",
+      "sell": 7
+    },
+    "banana": {
+      "name": "Banana",
+      "items": [
+        "banana"
+      ],
+      "category": "fruta",
+      "taste": "docinho",
+      "n": {
+        "forca": 0,
+        "brilho": 0,
+        "foco": 0,
+        "animo": 2
+      },
+      "opens": 4,
+      "source": "Pomar",
+      "sell": 6
+    },
+    "melancia": {
+      "name": "Melancia",
+      "items": [
+        "watermelon"
+      ],
+      "category": "fruta",
+      "taste": "fresquinho",
+      "n": {
+        "forca": 0,
+        "brilho": 1,
+        "foco": 0,
+        "animo": 1
+      },
+      "opens": 5,
+      "source": "Canteiro, semente na carroça",
+      "sell": 8
+    }
+  },
+  "types": {
+    "papinha": {
+      "name": "Papinha",
+      "opens": 1,
+      "meal": true,
+      "seconds": 300,
+      "min": 2,
+      "max": 3,
+      "allow": [
+        {
+          "category": "legume"
+        },
+        {
+          "category": "grao"
+        },
+        {
+          "category": "proteina"
+        }
+      ],
+      "need": [
+        {
+          "category": "legume",
+          "min": 1
+        }
+      ],
+      "flat": {},
+      "mult": {
+        "newborn": 1.2,
+        "puppy": 1.2
+      },
+      "feed": {
+        "hunger": 30,
+        "happiness": 10
+      },
+      "icon_item": "puppy_mash",
+      "sell_mult": 1.5,
+      "max_by_day": [
+        [
+          1,
+          2
+        ],
+        [
+          3,
+          3
+        ]
+      ],
+      "note": "Macia: x1,2 nos nutrientes nas duas primeiras fases"
+    },
+    "petisco": {
+      "name": "Petisco",
+      "opens": 1,
+      "meal": false,
+      "seconds": 120,
+      "min": 1,
+      "max": 2,
+      "allow": [
+        {
+          "any": true
+        }
+      ],
+      "need": [],
+      "flat": {},
+      "mult": {},
+      "feed": {
+        "hunger": 10,
+        "happiness": 15
+      },
+      "icon_item": "carrot_snack",
+      "sell_mult": 1.3,
+      "note": "Só Felicidade e paladar; até 2 por período"
+    },
+    "biscoito": {
+      "name": "Biscoito",
+      "opens": 2,
+      "meal": false,
+      "seconds": 900,
+      "min": 2,
+      "max": 2,
+      "allow": [
+        {
+          "any": true
+        }
+      ],
+      "need": [
+        {
+          "category": "grao",
+          "min": 1
+        }
+      ],
+      "flat": {},
+      "mult": {},
+      "feed": {
+        "hunger": 15,
+        "happiness": 10
+      },
+      "icon_item": "apple_biscuit",
+      "sell_mult": 1.4,
+      "note": "Dura na mochila; moeda do treino de truques"
+    },
+    "sopinha": {
+      "name": "Sopinha",
+      "opens": 3,
+      "meal": true,
+      "seconds": 600,
+      "min": 3,
+      "max": 3,
+      "allow": [
+        {
+          "category": "legume"
+        },
+        {
+          "category": "grao"
+        },
+        {
+          "category": "proteina"
+        }
+      ],
+      "need": [
+        {
+          "category": "legume",
+          "min": 2
+        }
+      ],
+      "flat": {
+        "animo": 1
+      },
+      "mult": {},
+      "feed": {
+        "hunger": 40,
+        "happiness": 10
+      },
+      "icon_item": "vegetable_soup",
+      "sell_mult": 1.6,
+      "note": "Quentinha: +1 Ânimo"
+    },
+    "mingau": {
+      "name": "Mingau",
+      "opens": 4,
+      "meal": true,
+      "seconds": 600,
+      "min": 2,
+      "max": 3,
+      "allow": [
+        {
+          "category": "grao"
+        },
+        {
+          "category": "fruta"
+        },
+        {
+          "ingredient": "abobora"
+        },
+        {
+          "ingredient": "batata_doce"
+        }
+      ],
+      "need": [
+        {
+          "category": "grao",
+          "min": 1
+        },
+        {
+          "category": "fruta",
+          "min": 1
+        }
+      ],
+      "flat": {
+        "animo": 1
+      },
+      "mult": {},
+      "feed": {
+        "hunger": 40,
+        "happiness": 10
+      },
+      "icon_item": "milk_porridge",
+      "sell_mult": 1.6,
+      "night_happiness_mult": 2,
+      "note": "+1 Ânimo; no jantar dobra a Felicidade"
+    }
+  },
+  "duples": [
+    {
+      "id": "dupla_laranja",
+      "name": "Dupla laranja",
+      "a": "cenoura",
+      "b": "abobora",
+      "bonus": {
+        "brilho": 1
+      }
+    },
+    {
+      "id": "pure_dourado",
+      "name": "Purê dourado",
+      "a": "ovo",
+      "b": "batata",
+      "bonus": {
+        "brilho": 1
+      }
+    },
+    {
+      "id": "cafe_da_roca",
+      "name": "Café da roça",
+      "a": "ovo",
+      "b": "milho",
+      "bonus": {
+        "forca": 1
+      }
+    },
+    {
+      "id": "arraia",
+      "name": "Arraiá",
+      "a": "milho",
+      "b": "abobora",
+      "bonus": {
+        "animo": 1
+      }
+    },
+    {
+      "id": "classico_da_lagoa",
+      "name": "Clássico da lagoa",
+      "a": "peixe",
+      "b": "batata",
+      "bonus": {
+        "forca": 1
+      }
+    },
+    {
+      "id": "olho_de_aguia",
+      "name": "Olho de águia",
+      "a": "peixe",
+      "b": "cenoura",
+      "bonus": {
+        "foco": 1
+      }
+    },
+    {
+      "id": "mingau_da_vovo",
+      "name": "Mingau da vovó",
+      "a": "aveia",
+      "b": "banana",
+      "bonus": {
+        "animo": 1
+      }
+    },
+    {
+      "id": "maca_com_aveia",
+      "name": "Maçã com aveia",
+      "a": "aveia",
+      "b": "maca",
+      "bonus": {
+        "foco": 1
+      }
+    },
+    {
+      "id": "curau",
+      "name": "Curau",
+      "a": "milho",
+      "b": "banana",
+      "bonus": {
+        "animo": 1
+      }
+    },
+    {
+      "id": "horta_e_lagoa",
+      "name": "Horta e lagoa",
+      "a": "peixe",
+      "b": "abobrinha",
+      "bonus": {
+        "foco": 1
+      }
+    },
+    {
+      "id": "arroz_com_ovo",
+      "name": "Arroz com ovo",
+      "a": "arroz",
+      "b": "ovo",
+      "bonus": {
+        "forca": 1
+      }
+    },
+    {
+      "id": "doce_de_roca",
+      "name": "Doce de roça",
+      "a": "batata_doce",
+      "b": "banana",
+      "bonus": {
+        "animo": 1
+      }
+    },
+    {
+      "id": "salada_fresca",
+      "name": "Salada fresca",
+      "a": "melancia",
+      "b": "maca",
+      "bonus": {
+        "brilho": 1
+      }
+    }
+  ],
+  "named": [
+    {
+      "id": "papinha_cenoura_batata",
+      "name": "Papinha de cenoura e batata",
+      "type": "papinha",
+      "ingredients": [
+        "cenoura",
+        "batata"
+      ],
+      "taught": 1
+    },
+    {
+      "id": "petisco_cenoura",
+      "name": "Petisco de cenoura",
+      "type": "petisco",
+      "ingredients": [
+        "cenoura",
+        "cenoura"
+      ],
+      "taught": 1
+    },
+    {
+      "id": "papinha_batata_ovo",
+      "name": "Papinha de batata e ovo",
+      "type": "papinha",
+      "ingredients": [
+        "batata",
+        "ovo"
+      ],
+      "taught": 2
+    },
+    {
+      "id": "biscoito_aveia_abobora",
+      "name": "Biscoito de aveia e abóbora",
+      "type": "biscoito",
+      "ingredients": [
+        "aveia",
+        "abobora"
+      ],
+      "taught": 2
+    },
+    {
+      "id": "sopinha_de_legumes",
+      "name": "Sopinha de legumes",
+      "type": "sopinha",
+      "ingredients": [
+        "cenoura",
+        "batata",
+        "abobora"
+      ],
+      "taught": 3
+    },
+    {
+      "id": "papinha_de_peixe",
+      "name": "Papinha de peixe",
+      "type": "papinha",
+      "ingredients": [
+        "batata",
+        "peixe"
+      ],
+      "icon_item": "fish_mash",
+      "counts_as": "fish_mash",
+      "taught": 3
+    },
+    {
+      "id": "mingau_aveia_banana",
+      "name": "Mingau de aveia e banana",
+      "type": "mingau",
+      "ingredients": [
+        "aveia",
+        "banana"
+      ],
+      "taught": 4
+    },
+    {
+      "id": "sopinha_do_pescador",
+      "name": "Sopinha do pescador",
+      "type": "sopinha",
+      "ingredients": [
+        "cenoura",
+        "batata",
+        "peixe"
+      ],
+      "secret": true
+    },
+    {
+      "id": "risotinho_do_lago",
+      "name": "Risotinho do lago",
+      "type": "papinha",
+      "ingredients": [
+        "abobrinha",
+        "arroz",
+        "peixe"
+      ],
+      "icon_item": "fish_mash",
+      "secret": true
+    },
+    {
+      "id": "curau_do_tiro",
+      "name": "Curau do Tiro",
+      "type": "mingau",
+      "ingredients": [
+        "milho",
+        "banana"
+      ],
+      "secret": true
+    },
+    {
+      "id": "doce_de_roca_do_tiro",
+      "name": "Doce de roça do Tiro",
+      "type": "mingau",
+      "ingredients": [
+        "batata_doce",
+        "aveia",
+        "banana"
+      ],
+      "secret": true
+    },
+    {
+      "id": "papinha_batata",
+      "name": "Papinha de batata",
+      "type": "papinha",
+      "ingredients": [
+        "batata",
+        "batata"
+      ]
+    },
+    {
+      "id": "papinha_abobora_batata",
+      "name": "Papinha de abóbora e batata",
+      "type": "papinha",
+      "ingredients": [
+        "batata",
+        "abobora"
+      ]
+    },
+    {
+      "id": "papinha_cenoura_abobora",
+      "name": "Papinha de cenoura e abóbora",
+      "type": "papinha",
+      "ingredients": [
+        "cenoura",
+        "abobora"
+      ]
+    },
+    {
+      "id": "papinha_abobora_aveia",
+      "name": "Papinha de abóbora com aveia",
+      "type": "papinha",
+      "ingredients": [
+        "abobora",
+        "aveia"
+      ]
+    },
+    {
+      "id": "papinha_roca",
+      "name": "Papinha da roça",
+      "type": "papinha",
+      "ingredients": [
+        "abobora",
+        "milho",
+        "ovo"
+      ]
+    },
+    {
+      "id": "papinha_cenoura_ovo",
+      "name": "Papinha de cenoura e ovo",
+      "type": "papinha",
+      "ingredients": [
+        "cenoura",
+        "ovo"
+      ]
+    },
+    {
+      "id": "papinha_cenoura_peixe",
+      "name": "Papinha de cenoura e peixe",
+      "type": "papinha",
+      "ingredients": [
+        "cenoura",
+        "peixe"
+      ],
+      "icon_item": "fish_mash"
+    },
+    {
+      "id": "papinha_cenoura_ovo_peixe",
+      "name": "Papinha de cenoura, ovo e peixe",
+      "type": "papinha",
+      "ingredients": [
+        "cenoura",
+        "ovo",
+        "peixe"
+      ],
+      "icon_item": "fish_mash"
+    },
+    {
+      "id": "sopinha_cenoura_abobora_ovo",
+      "name": "Sopinha de cenoura, abóbora e ovo",
+      "type": "sopinha",
+      "ingredients": [
+        "cenoura",
+        "abobora",
+        "ovo"
+      ]
+    },
+    {
+      "id": "mingau_aveia_maca",
+      "name": "Mingau de aveia e maçã",
+      "type": "mingau",
+      "ingredients": [
+        "aveia",
+        "maca"
+      ]
+    },
+    {
+      "id": "ovinho_cozido",
+      "name": "Ovinho cozido",
+      "type": "petisco",
+      "ingredients": [
+        "ovo"
+      ],
+      "icon_item": "egg_scramble"
+    },
+    {
+      "id": "salada_de_fruta",
+      "name": "Salada de fruta",
+      "type": "petisco",
+      "ingredients": [
+        "maca",
+        "banana"
+      ]
+    },
+    {
+      "id": "biscoito_aveia_maca",
+      "name": "Biscoito de aveia e maçã",
+      "type": "biscoito",
+      "ingredients": [
+        "aveia",
+        "maca"
+      ]
+    },
+    {
+      "id": "biscoito_de_aveia",
+      "name": "Biscoito de aveia",
+      "type": "biscoito",
+      "ingredients": [
+        "aveia",
+        "aveia"
+      ]
+    }
+  ]
+}

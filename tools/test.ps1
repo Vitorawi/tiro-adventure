@@ -20,7 +20,7 @@ foreach ($area in $map.areas.PSObject.Properties) { $mapped += @($area.Value.tes
 $orphans = @($suite | Where-Object { $_ -notin $mapped })
 if ($orphans.Count) { throw "Teste órfão: $($orphans -join ', ')" }
 foreach ($name in $suite) {
-  $file = if ($name -eq 'dev_tools_test_prod') { 'dev_tools_test' } else { $name }
+  $file = if ($name -eq 'dev_tools_test_prod') { 'dev_tools_test' } elseif ($name -eq 'week_clock_test_prod') { 'week_clock_test' } else { $name }
   if ($name -notmatch 'selftest$' -and -not (Test-Path "game/tests/$file.gd")) { throw "Teste ausente: $name" }
 }
 $selectedAreas = @(Names $Areas)
@@ -128,7 +128,7 @@ try {
       if (-not $job.process.HasExited -and -not $timeout) { continue }
       if ($timeout) { & taskkill /PID $job.process.Id /T /F | Out-Null }
       $job.process.WaitForExit()
-      $output = [IO.File]::ReadAllText($job.log) + [IO.File]::ReadAllText("$($job.log).err")
+      $output = if ($timeout) { "Limite de ${limit}s. Logs: $($job.log)" } else { [IO.File]::ReadAllText($job.log) + [IO.File]::ReadAllText("$($job.log).err") }
       $result = if ($timeout) { 'TIMEOUT' } elseif ($job.process.ExitCode -ne 0 -or $output -match 'SCRIPT ERROR:|(?m)^ERROR:|Parse Error|TEST: FAIL') { 'FAIL' } else { 'PASS' }
       $seconds = [Math]::Round($job.watch.Elapsed.TotalSeconds,1)
       $times[$job.name] = $seconds

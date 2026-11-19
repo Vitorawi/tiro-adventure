@@ -60,7 +60,7 @@ func _run() -> void:
 	state.call("reset")
 	var progress: Object = state.get("progress")
 	progress.seen["intro"] = true
-	state.call("dev_jump_to_chapter", 4)
+	state.call("dev_jump_to_chapter", 8)
 	for id: String in ["lais_forest", "guide_meet", "guide_wood", "guide_open_cave"]:
 		if root.get_node("Database").get("quests").has(id):
 			state.call("dev_complete_quest", id)

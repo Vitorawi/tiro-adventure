@@ -1,0 +1,663 @@
+{
+  "tutorials": [
+    {
+      "id": "arrival",
+      "day": 1,
+      "title": "Abrir a caixinha",
+      "format": "hand",
+      "text": "Toque para abrir. Depois segure para fazer carinho até o Tiro sair.",
+      "steps": [
+        {
+          "target": "ArrivalOpen",
+          "say": "Toque para abrir a caixinha."
+        },
+        {
+          "target": "ArrivalPet",
+          "say": "Segure para fazer carinho.",
+          "gesture": "hold"
+        },
+        {
+          "target": "ArrivalGo",
+          "say": "Toque para ir com o Tiro."
+        }
+      ]
+    },
+    {
+      "id": "garden",
+      "day": 1,
+      "title": "Plantar e colher",
+      "format": "hand",
+      "text": "Toque no canteiro, arraste a semente até a terra e toque na colheita pronta.",
+      "steps": [
+        {
+          "target": "@plot",
+          "say": "Toque num canteiro vazio."
+        },
+        {
+          "target": "Tile_carrot",
+          "say": "Arraste a semente até o canteiro.",
+          "gesture": "plot"
+        },
+        {
+          "target": "@harvest",
+          "say": "Toque no canteiro pronto para colher."
+        }
+      ],
+      "done": "harvest",
+      "quest": "lais_first_crops",
+      "resume": {
+        "world": "farm",
+        "place": "look:plots"
+      }
+    },
+    {
+      "id": "cook",
+      "day": 1,
+      "title": "Cozinhar junto",
+      "format": "hand",
+      "text": "Deslize nas marcas para picar. Gire devagar na faixa verde. Arraste a concha e lance o coração. Mais estrelas reduzem o tempo.",
+      "steps": [
+        {
+          "target": "@picar",
+          "say": "Deslize o dedo sobre a marca.",
+          "gesture": "cut"
+        },
+        {
+          "target": "@mexer",
+          "say": "Gire o dedo pela faixa verde.",
+          "gesture": "circle"
+        },
+        {
+          "target": "@servir",
+          "say": "Leve a concha à tigela. Depois, lance o coração.",
+          "gesture": "serve"
+        }
+      ],
+      "resume": {
+        "world": "house",
+        "place": "stove"
+      }
+    },
+    {
+      "id": "feed",
+      "day": 1,
+      "title": "Dar comida",
+      "format": "hand",
+      "text": "Arraste a papinha até a tigela do Tiro. O botão Dar ao Tiro no cartão Prato pronto leva aos cuidados.",
+      "steps": [
+        {
+          "target": "GiveToTiro",
+          "say": "Da cozinha, toque em Dar ao Tiro."
+        },
+        {
+          "target": "Care_puppy_mash",
+          "say": "Arraste a papinha até a tigela.",
+          "gesture": "feed"
+        }
+      ],
+      "done": "feed",
+      "resume": {
+        "screen": "pet",
+        "care": "feed"
+      }
+    },
+    {
+      "id": "clock",
+      "day": 1,
+      "title": "O reloginho",
+      "format": "balloon",
+      "text": "Veja os horários. Almoço e jantar na hora valem uma patinha. No dia da chegada, a primeira papinha já vale.",
+      "anchor": "MealClock",
+      "say": "Almoço e jantar na hora valem uma patinha. Veja o reloginho.",
+      "after": "feed",
+      "npc": "bloblo"
+    },
+    {
+      "id": "market",
+      "day": 1,
+      "title": "Vender e comprar",
+      "format": "hand",
+      "text": "Na banca, toque em Vender, escolha a hortaliça e ajuste a quantidade. Use Comprar para levar sementes e ampliar a horta.",
+      "steps": [
+        {
+          "target": "Sell_carrot",
+          "say": "Escolha cenoura em Vender."
+        },
+        {
+          "target": "QuantityRow",
+          "say": "Ajuste a quantidade e toque em Vender."
+        },
+        {
+          "target": "Buy_week_plot",
+          "say": "Em Comprar, escolha o canteiro."
+        }
+      ],
+      "done": "buy:week_plot",
+      "quest": "week_market",
+      "resume": {
+        "world": "farm",
+        "place": "early_market"
+      }
+    },
+    {
+      "id": "name",
+      "day": 1,
+      "title": "Bolinha e nome",
+      "format": "hand",
+      "text": "No quintal, jogue a bolinha e depois chame o filhote pelo nome no botão Tiro!",
+      "steps": [
+        {
+          "target": "YardBall",
+          "say": "Abra a Bolinha no quintal."
+        },
+        {
+          "target": "@ball",
+          "say": "Arraste a bolinha para lançar.",
+          "gesture": "slide"
+        },
+        {
+          "target": "YardName",
+          "say": "Experimente chamar o filhote pelo nome."
+        }
+      ],
+      "done": "name_call",
+      "resume": {
+        "world": "farm",
+        "place": "week_yard"
+      }
+    },
+    {
+      "id": "invent",
+      "day": 1,
+      "title": "Inventar",
+      "format": "hand",
+      "text": "Abra Inventar no jantar. Escolha o tipo, toque numa vaga, escolha ingredientes e confira a prévia antes de cozinhar.",
+      "steps": [
+        {
+          "target": "InventHalf",
+          "say": "No jantar, toque em Inventar."
+        },
+        {
+          "target": "InvType_papinha",
+          "say": "Escolha o tipo de prato."
+        },
+        {
+          "target": "InvSlot_0",
+          "say": "Toque na vaga. Confira a prévia e a dica."
+        }
+      ],
+      "done": "routine_invent",
+      "quest": "week_invent",
+      "resume": {
+        "world": "house",
+        "place": "stove"
+      }
+    },
+    {
+      "id": "morning",
+      "day": 2,
+      "title": "Bom dia e patinha",
+      "format": "new",
+      "text": "Almoço e jantar na hora contam uma patinha para crescer. A primeira papinha já conta no dia da chegada.",
+      "native": true
+    },
+    {
+      "id": "coop",
+      "day": 2,
+      "title": "Kit do galinheiro",
+      "format": "new",
+      "text": "Na banca, escolha o kit do galinheiro e confirme. Toque em Ir para ver o galinheiro montado no local marcado.",
+      "steps": [
+        {
+          "target": "Buy_week_coop",
+          "say": "Escolha o kit do galinheiro."
+        },
+        {
+          "target": "BuyItem",
+          "say": "Confirme a compra."
+        },
+        {
+          "target": "KitAssemblyGo",
+          "say": "Veja onde o galinheiro foi montado."
+        }
+      ],
+      "quest": "week_coop",
+      "go": {
+        "world": "farm",
+        "place": "shop:week_coop",
+        "spot": "early_market"
+      },
+      "icon": "station_coop",
+      "say": "Compre o kit na banca para montar o galinheiro.",
+      "resume": {
+        "world": "farm",
+        "place": "shop:week_coop",
+        "spot": "early_market"
+      }
+    },
+    {
+      "id": "eggs",
+      "day": 2,
+      "title": "Milho e ovos",
+      "format": "hand",
+      "text": "Plante milho. No galinheiro, toque para alimentar e volte quando o balão de ovos ficar pronto.",
+      "steps": [
+        {
+          "target": "Tile_corn",
+          "say": "Arraste o milho até o canteiro.",
+          "gesture": "plot"
+        },
+        {
+          "target": "@feed_hens",
+          "say": "Use milho para alimentar as galinhas."
+        },
+        {
+          "target": "@coop",
+          "say": "Toque no galinheiro para recolher os ovos."
+        }
+      ],
+      "done": "produce:egg",
+      "quest": "week_eggs",
+      "resume": {
+        "world": "farm",
+        "place": "look:chicken_coop"
+      }
+    },
+    {
+      "id": "snack",
+      "day": 2,
+      "title": "Lanche não é refeição",
+      "format": "tip",
+      "text": "Biscoitos e petiscos servem de prêmio. Para almoço ou jantar, escolha papinha, sopinha ou mingau.",
+      "anchor": "@snack",
+      "say": "Lanche não conta como refeição.",
+      "go": {
+        "meal": true
+      },
+      "done": "well_fed_day",
+      "min_value": 2
+    },
+    {
+      "id": "sit",
+      "day": 2,
+      "title": "Treino do Senta",
+      "format": "hand",
+      "text": "Na Aula do Tiro, mostre o Senta, marque no alvo e premie. Cada aula inteira usa um biscoito.",
+      "steps": [
+        {
+          "target": "@lesson_show_sit",
+          "say": "Mostre o Senta: deslize o biscoito para cima.",
+          "gesture": "up"
+        },
+        {
+          "target": "@lesson_mark_sit",
+          "say": "Marque quando a barra chegar ao alvo."
+        },
+        {
+          "target": "@lesson_reward_sit",
+          "say": "Toque no biscoito para premiar."
+        }
+      ],
+      "done": "trick:sit",
+      "resume": {
+        "world": "farm",
+        "place": "week_training"
+      }
+    },
+    {
+      "id": "tricks",
+      "day": 2,
+      "title": "Caderno de truques",
+      "format": "balloon",
+      "text": "Consulte os níveis no Caderno de truques. O mesmo truque soma acertos de uma aula por período.",
+      "anchor": "TrickNotebook",
+      "say": "O Caderno mostra os níveis. Cada truque pontua uma aula por período.",
+      "npc": "bloblo",
+      "resume": {
+        "world": "farm",
+        "place": "week_training"
+      }
+    },
+    {
+      "id": "fetch",
+      "day": 2,
+      "title": "Buscar",
+      "format": "hand",
+      "text": "Arraste para lançar a bolinha. Toque em Pular quando ela chegar perto do Tiro.",
+      "steps": [
+        {
+          "target": "@ball",
+          "say": "Arraste a bolinha para lançar.",
+          "gesture": "slide"
+        },
+        {
+          "target": "YardJump",
+          "say": "Toque em Pular quando a bola chegar perto."
+        }
+      ],
+      "quest": "week_fetch",
+      "resume": {
+        "world": "farm",
+        "place": "week_yard"
+      }
+    },
+    {
+      "id": "growth",
+      "day": 2,
+      "title": "Para crescer",
+      "format": "balloon",
+      "text": "Veja as metas, entregue o item-chave quando pedido e toque em Crescer! quando todas estiverem prontas.",
+      "anchor": "GrowthHero",
+      "say": "Complete as metas, entregue o item-chave e toque em Crescer!",
+      "npc": "lais",
+      "resume": {
+        "growth": true
+      }
+    },
+    {
+      "id": "fish",
+      "day": 3,
+      "title": "Pesca",
+      "format": "hand",
+      "text": "Escolha a isca e lance. Toque na mordida. Segure e solte para acompanhar o peixe até a rede encher.",
+      "native": true,
+      "resume": {
+        "world": "farm",
+        "place": "fishing"
+      }
+    },
+    {
+      "id": "soup",
+      "day": 3,
+      "title": "Sopinha e a terceira vaga",
+      "format": "new",
+      "text": "A sopinha abre no terceiro dia. Use dois legumes e uma vaga livre. A papinha também ganha a terceira vaga.",
+      "icon": "vegetable_soup",
+      "go": {
+        "world": "house",
+        "place": "stove"
+      },
+      "say": "No fogão, experimente a Sopinha com três vagas."
+    },
+    {
+      "id": "key_dish",
+      "day": 3,
+      "title": "Prato-chave",
+      "format": "balloon",
+      "text": "O selo Para crescer indica um prato-chave. Sirva um prato com peixe, fruta ou ovo quando a fase pedir.",
+      "anchor": "@key_dish",
+      "say": "Sirva os pratos com selo Para crescer para completar as metas.",
+      "npc": "bloblo",
+      "resume": {
+        "world": "house",
+        "place": "stove"
+      }
+    },
+    {
+      "id": "meal_trick",
+      "day": 3,
+      "title": "Pedir truque antes de comer",
+      "format": "hand",
+      "text": "Ao servir na hora, toque em Senta! quando aparecer. Faça o gesto que o Tiro aprendeu na aula.",
+      "steps": [
+        {
+          "target": "MealTrickAsk",
+          "say": "Toque em Senta! antes de servir."
+        },
+        {
+          "target": "@meal_gesture",
+          "say": "Mostre ao Tiro o gesto aprendido.",
+          "gesture": "up"
+        }
+      ],
+      "resume": {
+        "screen": "pet"
+      }
+    },
+    {
+      "id": "wish",
+      "day": 3,
+      "title": "Desejo",
+      "format": "balloon",
+      "text": "Toque no balão do Tiro. Veja o pedido e use Dar quando tiver o item.",
+      "anchor": "WishTitle",
+      "say": "Toque no balão do Tiro e use Dar para atender.",
+      "npc": "lais"
+    },
+    {
+      "id": "orchard",
+      "day": 4,
+      "title": "Pomar",
+      "format": "new",
+      "text": "Toque na macieira ou bananeira para colher. A fruta volta depois de duas horas.",
+      "steps": [
+        {
+          "target": "@orchard",
+          "say": "Escolha uma árvore e toque em Colher."
+        }
+      ],
+      "quest": "week_orchard",
+      "icon": "item_apple",
+      "go": {
+        "world": "farm",
+        "place": "orchard"
+      },
+      "say": "Colha frutas. Volte mais tarde para pegar as próximas.",
+      "done": "orchard:apple",
+      "resume": {
+        "world": "farm",
+        "place": "orchard"
+      }
+    },
+    {
+      "id": "pair",
+      "day": 4,
+      "title": "Combinação especial",
+      "format": "new",
+      "text": "Abra o Livro de receitas para rever a primeira dupla que você descobriu ao combinar ingredientes.",
+      "icon": "station_stove",
+      "go": {
+        "notebook": "recipes"
+      },
+      "say": "O Livro de receitas guarda sua combinação especial."
+    },
+    {
+      "id": "paw",
+      "day": 4,
+      "title": "Dá a pata",
+      "format": "hand",
+      "text": "Mostre o biscoito no lado indicado, marque no alvo e premie. Cada aula usa um biscoito.",
+      "steps": [
+        {
+          "target": "@lesson_show_paw",
+          "say": "Leve o biscoito ao lado marcado.",
+          "gesture": "slide"
+        },
+        {
+          "target": "@lesson_mark_paw",
+          "say": "Marque quando a barra chegar ao alvo."
+        },
+        {
+          "target": "@lesson_reward_paw",
+          "say": "Toque no biscoito para premiar."
+        }
+      ],
+      "done": "trick:paw",
+      "resume": {
+        "world": "farm",
+        "place": "week_training"
+      }
+    },
+    {
+      "id": "rope",
+      "day": 4,
+      "title": "Cabo de guerra",
+      "format": "hand",
+      "text": "Segure a cordinha. Solte quando a marca estiver na faixa para ganhar a puxada.",
+      "steps": [
+        {
+          "target": "@rope",
+          "say": "Segure e solte na faixa marcada.",
+          "gesture": "hold"
+        }
+      ],
+      "done": "yard:rope",
+      "resume": {
+        "world": "farm",
+        "place": "week_yard"
+      }
+    },
+    {
+      "id": "cart",
+      "day": 5,
+      "title": "Carroça e encomendas",
+      "format": "hand",
+      "text": "No portão, veja os dois pedidos do Feirante, toque em Entregar quando tiver os itens e use Comprar para ver o estoque.",
+      "steps": [
+        {
+          "target": "CartBoard",
+          "say": "Veja os ingredientes do pedido da carroça."
+        },
+        {
+          "target": "DeliverOrder",
+          "say": "Toque em Entregar quando tiver tudo."
+        },
+        {
+          "target": "@cart_shop",
+          "say": "Mais abaixo, veja os itens à venda."
+        }
+      ],
+      "resume": {
+        "world": "farm",
+        "place": "week_cart"
+      }
+    },
+    {
+      "id": "bath",
+      "day": 5,
+      "title": "Banho com xampu",
+      "format": "hand",
+      "text": "Toque na esponja nos cuidados e escolha Banho caprichado. O banho usa um xampu da Mochila.",
+      "steps": [
+        {
+          "target": "Care_sponge",
+          "say": "Toque na esponja para abrir as opções."
+        },
+        {
+          "target": "BathShampoo",
+          "say": "Escolha Banho caprichado para usar o xampu."
+        }
+      ],
+      "done": "shampoo_bath",
+      "quest": "week_bath",
+      "resume": {
+        "screen": "pet",
+        "care": "sponge"
+      }
+    },
+    {
+      "id": "down",
+      "day": 5,
+      "title": "Deita",
+      "format": "hand",
+      "text": "Arraste o biscoito devagar para baixo e segure. Marque no alvo e premie com o biscoito da aula.",
+      "steps": [
+        {
+          "target": "@lesson_show_lie_down",
+          "say": "Arraste devagar para baixo e segure.",
+          "gesture": "down"
+        },
+        {
+          "target": "@lesson_mark_lie_down",
+          "say": "Marque quando a barra chegar ao alvo."
+        },
+        {
+          "target": "@lesson_reward_lie_down",
+          "say": "Toque no biscoito para premiar."
+        }
+      ],
+      "done": "trick:lie_down",
+      "resume": {
+        "world": "farm",
+        "place": "week_training"
+      }
+    },
+    {
+      "id": "show",
+      "day": 6,
+      "title": "Show de truques",
+      "format": "hand",
+      "text": "Veja a sequência e mostre os gestos na ordem pedida pelo Tiro.",
+      "steps": [
+        {
+          "target": "@show",
+          "say": "Mostre cada gesto na ordem do show."
+        }
+      ],
+      "done": "trick_show",
+      "resume": {
+        "world": "farm",
+        "place": "week_show"
+      }
+    },
+    {
+      "id": "clue",
+      "day": 6,
+      "title": "Pista de receita",
+      "format": "balloon",
+      "text": "No Livro de receitas, abra Secretas. As pistas indicam com quem falar e onde encontrar cada pedaço.",
+      "anchor": "BookTab_secrets",
+      "say": "Abra Secretas no Livro de receitas para procurar as pistas.",
+      "npc": "bloblo",
+      "resume": {
+        "notebook": "recipes:secrets"
+      }
+    },
+    {
+      "id": "hide",
+      "day": 6,
+      "title": "Esconde-esconde",
+      "format": "hand",
+      "text": "Procure o rabo do Tiro aparecendo. Toque no esconderijo certo para achá-lo.",
+      "steps": [
+        {
+          "target": "YardHideSeek",
+          "say": "Procure o rabo do Tiro e toque no esconderijo."
+        }
+      ],
+      "done": "hide_found",
+      "resume": {
+        "world": "farm",
+        "place": "week_yard"
+      }
+    },
+    {
+      "id": "checklist",
+      "day": 7,
+      "title": "O que falta",
+      "format": "list",
+      "text": "Em Missões, veja as três tarefas de Hoje. No painel Para crescer, cada requisito incompleto leva ao seu destino.",
+      "anchor": "WeekToday",
+      "say": "Veja as 3 tarefas de hoje. Use Ir para abrir Para crescer.",
+      "resume": {
+        "screen": "tasks"
+      }
+    },
+    {
+      "id": "ceremony",
+      "day": 7,
+      "title": "A cerimônia",
+      "format": "new",
+      "text": "Veja o antes e o depois do Tiro e as novidades de Dentinhos. A nova fase abre o caminho para a Vila.",
+      "native": true
+    },
+    {
+      "id": "weak",
+      "day": 0,
+      "title": "Dia fraco",
+      "format": "new",
+      "text": "Quando faltar uma refeição, o Bom dia mostra o motivo. Dê a próxima refeição na hora para recuperar o Tiro.",
+      "native": true
+    }
+  ]
+}

@@ -5,6 +5,8 @@
     "keep_last": 2
   },
   "wishes": {
+    "recipe_novelty": {"type": "feed", "name": "Quero provar algo novo", "icon": "station_stove",
+      "item": "meal", "pillar": "body", "go": "place:house:cookbook:invent", "go_hint": "Inventar"},
     "pet": {"type": "action", "name": "Quero carinho", "icon": "action_pet", "pillar": "brave", "need": "happiness",
       "phases": ["puppy", "teething"],
       "goal": {"key": "pet", "target": 1}, "go": "screen:pet"},
@@ -23,6 +25,10 @@
     "play": {"type": "action", "name": "Quero brincar", "icon": "action_play", "pillar": "smart", "need": "happiness",
       "phases": ["teething", "explorer"],
       "goal": {"key": "play", "target": 1}, "go": "screen:pet"},
+    "train": {"type": "action", "name": "Quero treinar", "icon": "trick_paw", "pillar": "smart",
+      "phases": ["puppy", "teething"],
+      "goal": {"key": "trick_lesson", "target": 1}, "go": "place:farm:week_training", "go_hint": "Aula do Tiro",
+      "needs_lesson": true, "requirements": {"week_day": 2}},
     "dig": {"type": "action", "name": "Quero cavar um montinho", "icon": "action_walk", "pillar": "smart",
       "phases": ["explorer"],
       "goal": {"key": "find", "target": 1}, "go": "screen:pet",

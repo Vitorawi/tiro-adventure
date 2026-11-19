@@ -1,5 +1,5 @@
 {
-  "schema": 1,
+  "schema": 2,
   "slot_kinds": {
     "legume": {"name": "Legume", "art": "ck_inv_slot_legume"},
     "protein": {"name": "Proteína", "art": "ck_inv_slot_protein"},
@@ -12,61 +12,57 @@
     "carrot": ["legume"],
     "potato": ["legume"],
     "pumpkin": ["legume"],
+    "zucchini": ["legume"],
     "sweet_potato": ["legume"],
+    "oat": ["grain"],
+    "corn": ["grain"],
+    "rice": ["grain"],
     "egg": ["protein"],
     "fish_lambari": ["protein"],
     "fish_tilapia": ["protein"],
     "fish_cara": ["protein"],
     "apple": ["fruit"],
-    "strawberry": ["fruit"],
-    "blueberry": ["fruit"],
-    "milk": ["dairy"],
-    "cheese": ["dairy"],
-    "corn": ["grain"],
-    "flour": ["grain"],
-    "wheat": ["grain"],
-    "herbs": ["free"],
-    "wild_mint": ["free"]
+    "banana": ["fruit"],
+    "watermelon": ["fruit"]
   },
   "recommended": {
-    "legume": ["carrot", "potato", "pumpkin", "sweet_potato"],
+    "legume": ["carrot", "potato", "pumpkin", "zucchini", "sweet_potato"],
     "protein": ["egg", "fish_lambari", "fish_tilapia", "fish_cara"],
-    "fruit": ["apple", "strawberry", "blueberry"],
-    "dairy": ["milk", "cheese"],
-    "grain": ["corn", "flour", "wheat"],
-    "free": ["carrot", "egg", "apple", "milk"]
+    "fruit": ["apple", "banana", "watermelon"],
+    "grain": ["oat", "corn", "rice"],
+    "free": ["carrot", "egg", "corn", "apple"]
   },
   "dish_types": [
     {
-      "id": "papinha", "name": "Papinha", "dish": "puppy_mash", "title": "Sua Papinha",
-      "slots": ["legume", "legume", "grain"],
+      "id": "papinha", "name": "Papinha", "plural": "Papinhas", "dish": "puppy_mash", "title": "Sua Papinha",
+      "slots": ["legume", "free", "free"],
       "hint": "Macia e fácil de comer.",
-      "hint_long": "Legumes cozidos e amassados, com um pouco de grão. Experimente combinar!"
+      "hint_long": "Um legume e mais um ou dois ingredientes, sem fruta."
     },
     {
-      "id": "petisco", "name": "Petisco", "dish": "carrot_snack", "title": "Seu Petisco",
-      "slots": ["legume", "legume"],
+      "id": "petisco", "name": "Petisco", "plural": "Petiscos", "dish": "carrot_snack", "title": "Seu Petisco",
+      "slots": ["free", "free"],
       "hint": "Crocante para mordiscar.",
-      "hint_long": "Um petisco simples feito com legumes. Dois legumes juntos já dão certo."
+      "hint_long": "Um ou dois ingredientes quaisquer. Alegra, mas não é refeição."
     },
     {
-      "id": "sopa", "name": "Sopa", "dish": "vegetable_soup", "title": "Sua Sopa",
-      "slots": ["legume", "legume", "legume"],
+      "id": "biscoito", "name": "Biscoito", "plural": "Biscoitos", "dish": "apple_biscuit", "title": "Seu Biscoito",
+      "slots": ["grain", "free"],
+      "hint": "Dura na mochila.",
+      "hint_long": "Um grão e mais um ingrediente. Prêmio do treino."
+    },
+    {
+      "id": "sopinha", "name": "Sopinha", "plural": "Sopinhas", "dish": "vegetable_soup", "title": "Sua Sopinha",
+      "slots": ["legume", "legume", "free"],
       "hint": "Quentinha e cheia de sabor.",
-      "hint_long": "Vários legumes na mesma panela viram uma sopa gostosa."
+      "hint_long": "Dois legumes e mais um ingrediente, sem fruta. +1 Ânimo."
     },
     {
-      "id": "doce", "name": "Doce", "dish": "apple_biscuit", "title": "Seu Doce",
-      "slots": ["fruit", "fruit", "grain"],
-      "hint": "Docinho para um dia especial.",
-      "hint_long": "Frutas doces com um toque de grão fazem um docinho bem fofo."
-    },
-    {
-      "id": "lanche", "name": "Lanche", "dish": "growth_kibble", "title": "Seu Lanche",
-      "slots": ["grain", "legume", "protein"],
-      "hint": "Forte para crescer.",
-      "hint_long": "Um grão, um legume e uma proteína: lanche completo para o Tiro."
+      "id": "mingau", "name": "Mingau", "plural": "Mingaus", "dish": "milk_porridge", "title": "Seu Mingau",
+      "slots": ["grain", "fruit", "free"],
+      "hint": "Docinho para fechar o dia.",
+      "hint_long": "Um grão e uma fruta, mais um doce. +1 Ânimo."
     }
   ],
-  "invented": {"item": "invented_dish", "seconds": 60}
+  "carrier": {"recipe": "dish_batch", "seconds": 60}
 }

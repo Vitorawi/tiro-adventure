@@ -6,9 +6,9 @@ extends SceneTree
 
 const T0 := 1791936000.0
 const COSTS := {
-	"farm": [220, {}], "workbench": [160, {"wood": 6}], "chicken_coop": [260, {"plank": 4}],
+	"farm": [220, {}], "workbench": [160, {"wood": 6}], "chicken_coop": [0, {}],
 	"cow_barn": [420, {"plank": 6}], "mill": [300, {"plank": 3, "stone": 6}],
-	"dairy": [420, {"plank": 4, "brick": 3}], "orchard": [400, {"plank": 5}],
+	"dairy": [420, {"plank": 4, "brick": 3}], "orchard": [0, {}],
 	"stall": [500, {"plank": 5, "brick": 3}], "greenhouse": [850, {"plank": 6, "brick": 6, "crystal": 2}],
 	"atelier": [1000, {"plank": 8, "copper": 6}],
 }
@@ -80,7 +80,7 @@ func _run() -> void:
 func _coop_storage() -> void:
 	state.call("reset")
 	state.set("unlimited_storage", false)
-	state.call("dev_jump_to_chapter", 5)
+	state.call("dev_jump_to_chapter", 9)
 	for id: String in ["bloblo_rod", "bloblo_first_fish", "lais_fishing", "lais_fish_mash", "farm_deed", "bloblo_big_tilapia", "first_harvest", "main_4_bench", "main_4_materials"]:
 		state.call("dev_complete_quest", id)
 	state.call("dev_grant_upgrade", "farm")
@@ -89,7 +89,8 @@ func _coop_storage() -> void:
 	var bag: Object = state.get("inventory")
 	bag.call("from_dict", {"plank": 4})
 	bag.call("add", "carrot", state.call("storage_capacity", "silo"))
-	check(state.call("buy_upgrade", "chicken_coop") == "", "galinheiro construído com silo cheio")
+	state.call("dev_week_goto", 2)
+	check(state.call("buy_shop_item", "week_coop") == "", "kit do galinheiro construído com silo cheio")
 	check(state.call("quest_error", "main_9_coop") == "", "missão do galinheiro recebe mesmo com silo cheio")
 	check(not db.get("quests").main_9_coop.rewards.has("items"), "galinheiro não dá milho pronto")
 	var original_coins := _coins()
@@ -200,7 +201,9 @@ func _chain() -> void:
 	state.set("test_time", T0)
 	state.set("unlimited_storage", true)
 	state.call("reset")
-	state.call("dev_jump_to_chapter", 5)
+	state.call("dev_week_goto", 2)
+	state.call("dev_set_phase", "teething")
+	state.call("dev_jump_to_chapter", 9)
 	for id: String in ["bloblo_rod", "bloblo_first_fish", "lais_fishing", "lais_fish_mash", "farm_deed", "bloblo_big_tilapia", "first_harvest", "main_4_bench", "main_4_materials"]:
 		state.call("dev_complete_quest", id)
 	state.call("dev_grant_upgrade", "farm")
@@ -211,30 +214,31 @@ func _chain() -> void:
 	state.get("inventory").add("brick", 8)
 	state.call("dev_advance_time", 0)
 	check(_stat("produce:egg") == 0 and _stat("produce:milk") == 0, "Começa sem produto animal")
-	# Ração renovável: milho/trigo plantam e rendem sem nenhum produto animal colhido.
+	# O kit abre o milho e vem com duas galinhas, sem exigir produto animal.
+	var coins := _coins()
+	var planks := _inv("plank")
+	check(state.call("buy_shop_item", "week_coop") == "", "Comprar kit do galinheiro")
+	check(_coins() == coins - 40 and _inv("plank") == planks, "Kit cobra 60 moedas e devolve 20")
+	check(state.call("animal_count", "chicken_coop") == 2, "Kit inclui duas galinhas")
+	_claim("main_9_coop")
 	check(state.call("plant", 0, "corn") == "", "Milho planta sem produto animal")
 	check(state.call("plant", 1, "wheat") == "", "Trigo planta sem produto animal")
 	state.call("dev_finish_timers")
 	check(int(state.call("harvest", 0).get("corn", 0)) == 6 and int(state.call("harvest", 1).get("wheat", 0)) == 4, "Colheita renova a ração")
-	# Elo 1: galinheiro (260 + 4 tábuas) vazio; a primeira galinha é comprada separadamente.
-	var coins := _coins()
-	var planks := _inv("plank")
-	check(state.call("buy_upgrade", "chicken_coop") == "", "Comprar galinheiro")
-	check(_coins() == coins - 260 and _inv("plank") == planks - 4, "Galinheiro cobra 260 + 4 tábuas")
-	check(state.call("animal_count", "chicken_coop") == 0, "Galinheiro começa vazio")
-	check(state.call("buy_animal", "chicken_white") == "", "Comprar primeira galinha")
-	check(state.call("animal_count", "chicken_coop") == 1 and _coins() == coins - 260 - 120, "Primeira compra entrega só uma galinha e cobra 120")
-	_claim("main_9_coop")
+	# A capacidade depois de Dentinhos permite uma terceira galinha.
 	# Elo 2: ovos. O lote usa só os animais presentes; comprar durante não entra no lote.
 	check(state.call("cook", "eggs") == "", "Alimentar a galinha")
 	coins = _coins()
 	check(state.call("buy_animal", "chicken_white") == "", "Comprar galinha durante o lote")
 	check(_coins() == coins - 120, "Extra branca custa 120")
 	state.call("dev_advance_time", 900)
-	check(int(state.call("collect", "chicken_coop").get("egg", 0)) == 2, "Lote em andamento rende ovos 2 (sem o recém-comprado)")
-	check(state.call("cook", "eggs") == "", "Novo lote com duas galinhas")
+	check(int(state.call("collect", "chicken_coop").get("egg", 0)) == 4, "Lote em andamento rende quatro ovos das duas galinhas alimentadas")
+	state.call("plant", 0, "corn")
+	state.call("dev_finish_timers")
+	state.call("harvest", 0)
+	check(state.call("cook", "eggs") == "", "Novo lote com três galinhas")
 	state.call("dev_advance_time", 900)
-	check(int(state.call("collect", "chicken_coop").get("egg", 0)) == 4, "Depois da compra, lote rende por animal")
+	check(int(state.call("collect", "chicken_coop").get("egg", 0)) == 6, "Depois da compra, lote rende por animal")
 	_claim("main_9_eggs")
 	# Elo 3: curral e leite.
 	coins = _coins()
@@ -277,4 +281,4 @@ func _chain() -> void:
 	# Sem reset de save: ida e volta preserva a cadeia.
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
 	state.call("from_dict", saved)
-	check(state.call("animal_count", "chicken_coop") == 2 and state.call("animal_count", "cow_barn") == 1, "Rebanho sobrevive ao save")
+	check(state.call("animal_count", "chicken_coop") == 3 and state.call("animal_count", "cow_barn") == 1, "Rebanho sobrevive ao save")

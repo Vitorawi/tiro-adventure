@@ -55,7 +55,7 @@ func _run() -> void:
 	state.set("unlimited_storage", true)
 	var progress: Object = state.get("progress")
 	progress.seen["intro"] = true
-	state.call("dev_jump_to_chapter", 9)
+	state.call("dev_jump_to_chapter", 13)
 	for token: String in ["farm", "stove", "fridge", "blender", "dairy", "stall"]:
 		progress.owned[token] = true
 	progress.claimed_quests["first_harvest"] = true

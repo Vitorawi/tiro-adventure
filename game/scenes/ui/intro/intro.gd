@@ -1,9 +1,6 @@
 class_name IntroScene
 extends CanvasLayer
-## Início da história (uma vez por jogo): a Laís chega com o Tiro na casa nova,
-## se apresenta e solta o Tiro. Falas em npcs.json → lais.intro (texto, "show": "tiro",
-## "button"). No fim marca "intro" como visto, entra na Casa, o Tiro corre porta adentro
-## e a seta aponta para a Laís (primeira missão).
+## Abertura da semana. Cada carinho revela mais da pose aprovada, por trás da caixa.
 
 const NPC := "lais"
 const BACKGROUND := "res://assets/sprites/areas/house/apartment/room.webp"
@@ -17,6 +14,10 @@ var _avatar: TextureRect
 var _text: Label
 var _tiro: TextureRect
 var _next: Button
+var _speaker: Label
+var _reveal: Tween
+var _pet_hold: Timer
+var _held_to_advance := false
 var _finished: bool = false
 
 
@@ -28,7 +29,7 @@ static func should_show() -> bool:
 func _ready() -> void:
 	layer = 20
 	var npc: Dictionary = Database.npcs.get(NPC, {})
-	_lines = npc.get("intro", [])
+	_lines = Database.week_story.arrival.lines
 	var folder: String = npc.get("intro_wave", "")
 	if folder != "":
 		var files := Array(ResourceLoader.list_directory(folder))
@@ -36,6 +37,7 @@ func _ready() -> void:
 		for file: String in files:
 			if file.ends_with(".png"):
 				_wave.append(load(folder + file))
+	_index = clampi(int(GameState.week.tutorial.get("arrival_step", 0)), 0, _lines.size() - 1)
 	_build()
 	_show_line()
 	var timer := Timer.new()
@@ -49,7 +51,6 @@ func _build() -> void:
 	var root := Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_STOP
-	root.gui_input.connect(_on_tap)
 	add_child(root)
 	var shade := ColorRect.new()
 	shade.color = Palette.INTRO_SHADE
@@ -81,10 +82,29 @@ func _build() -> void:
 	column.add_theme_constant_override("separation", 12)
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(column)
-	_tiro = UiKit.icon(null, 150)
+	var stage := Control.new()
+	stage.name = "ArrivalStage"
+	stage.custom_minimum_size = Vector2(228, 252)
+	stage.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	column.add_child(stage)
+	var reveal := Control.new()
+	reveal.name = "ArrivalReveal"
+	reveal.position = Vector2(0, 0)
+	reveal.size = Vector2(228, 187)
+	reveal.clip_contents = true
+	reveal.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	stage.add_child(reveal)
+	_tiro = UiKit.icon(null, 176)
+	_tiro.position = Vector2(26, 187)
+	_tiro.size = Vector2(176, 176)
 	DogLook.bind(_tiro, "idle_front")
-	_tiro.modulate.a = 0.0
-	column.add_child(_tiro)
+	reveal.add_child(_tiro)
+	var box := UiKit.icon(load(str(Database.week_story.arrival.box)), 152)
+	box.name = "ArrivalBox"
+	box.position = Vector2(38, 116)
+	box.size = Vector2(152, 152)
+	stage.add_child(box)
 	# Cartão de papel de madeira: retrato da Laís na moldura, nome, fala e o botão verde (o único da tela).
 	var card := MissionUi.card("card", Vector4i(14, 14, 14, 14), "IntroCard", 10)
 	column.add_child(card)
@@ -100,7 +120,8 @@ func _build() -> void:
 	row.add_child(framed)
 	var speech := UiKit.vbox(6)
 	speech.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	speech.add_child(StepCardUi.wood(str(Database.npcs.get(NPC, {}).get("name", "")), 20))
+	_speaker = StepCardUi.wood("", 20)
+	speech.add_child(_speaker)
 	_text = StepCardUi.wood("", 17)
 	_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -108,42 +129,66 @@ func _build() -> void:
 	speech.add_child(_text)
 	row.add_child(speech)
 	inner.add_child(row)
-	_next = StepCardUi.go_button("Continuar", _advance)
+	_next = StepCardUi.go_button("Continuar", _tap_next)
 	_next.custom_minimum_size = Vector2(0, 56)
 	inner.add_child(_next)
+	_pet_hold = Timer.new()
+	_pet_hold.one_shot = true
+	_pet_hold.wait_time = 0.65
+	_pet_hold.timeout.connect(func() -> void:
+		_held_to_advance = true
+		_advance())
+	add_child(_pet_hold)
+	_next.button_down.connect(func() -> void:
+		_held_to_advance = false
+		if _index in [1, 2]:
+			_pet_hold.start())
+	_next.button_up.connect(func() -> void: _pet_hold.stop())
+
+
+func _notification(what: int) -> void:
+	if is_instance_valid(_pet_hold) and what in [NOTIFICATION_APPLICATION_FOCUS_OUT, NOTIFICATION_APPLICATION_PAUSED]:
+		_pet_hold.stop()
+
+
+func _tap_next() -> void:
+	if _pet_hold.is_stopped() and not _held_to_advance and _index in [0, 3]:
+		_advance()
 
 
 func _show_line() -> void:
 	var line: Dictionary = _lines[_index] if _index < _lines.size() else {}
 	_text.text = str(line.get("text", ""))
-	_next.text = str(line.get("button", "Continuar"))
-	if line.get("show", "") == "tiro" and _tiro.modulate.a < 1.0:
-		_tiro.pivot_offset = _tiro.custom_minimum_size / 2.0
-		_tiro.scale = Vector2.ONE * 0.4
-		var pop := create_tween().set_parallel()
-		pop.tween_property(_tiro, "modulate:a", 1.0, 0.25)
-		pop.tween_property(_tiro, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_next.name = ["ArrivalOpen", "ArrivalPet", "ArrivalPet", "ArrivalGo"][_index]
+	_next.text = "Segure para fazer carinho" if _index in [1, 2] else str(line.get("button", "Continuar"))
+	var npc := str(line.get("npc", NPC))
+	_speaker.text = str(Database.npcs[npc].name)
+	_avatar.texture = ProgressionUi.npc_portrait(npc)
+	var end := lerpf(187.0, 0.0, float(line.get("reveal", 0.0)))
+	if _reveal:
+		_reveal.kill()
+	if Motion.reduced:
+		_tiro.position.y = end
+	else:
+		_reveal = create_tween()
+		_reveal.tween_property(_tiro, "position:y", end, 0.42).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
 ## A Laís acena na primeira e na última fala; nas outras fica parada sorrindo.
 func _animate() -> void:
-	if _wave.is_empty():
+	if _finished or _wave.is_empty() or str(_lines[_index].npc) != NPC:
 		return
-	var waving := _index == 0 or _index == _lines.size() - 1
+	var waving := _index == 0
 	_wave_frame = (_wave_frame + 1) % _wave.size() if waving else 0
 	_avatar.texture = _wave[_wave_frame]
-
-
-func _on_tap(event: InputEvent) -> void:
-	var button := event as InputEventMouseButton
-	if button and button.pressed and button.button_index == MOUSE_BUTTON_LEFT:
-		_advance()
 
 
 func _advance() -> void:
 	if _finished:
 		return
 	_index += 1
+	GameState.week.tutorial.arrival_step = _index
+	Events.week_tutorial_changed.emit()
 	if _index < _lines.size():
 		_show_line()
 		return
@@ -153,7 +198,8 @@ func _advance() -> void:
 func _finish() -> void:
 	_finished = true
 	_next.hide()
-	GameState.mark_seen(["intro"])
+	WeekTutorial.finish("arrival")
+	GameState.finish_week_arrival()
 	queue_free()
 	Events.sheet_close_requested.emit()
 	Events.world_requested.emit("house", "")

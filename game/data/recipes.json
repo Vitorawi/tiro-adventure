@@ -1,6 +1,7 @@
 {
   "carrot_snack": {
     "station": "stove",
+    "dish_type": "petisco",
     "inputs": {
       "carrot": 2
     },
@@ -11,6 +12,7 @@
   },
   "pumpkin_mash": {
     "station": "stove",
+    "dish_type": "papinha",
     "inputs": {
       "pumpkin": 1,
       "potato": 1
@@ -27,6 +29,7 @@
   },
   "vegetable_soup": {
     "station": "stove",
+    "dish_type": "sopinha",
     "inputs": {
       "carrot": 2,
       "potato": 1
@@ -66,6 +69,7 @@
   },
   "apple_biscuit": {
     "station": "stove",
+    "dish_type": "biscoito",
     "requirements": {
       "owned": [
         "workbench",
@@ -133,11 +137,15 @@
     "output": "egg",
     "qty": 2,
     "seconds": 900,
+    "week_inputs": {
+      "corn": 1
+    },
+    "week_qty": 1,
+    "week_seconds": 1800,
     "skill": "agriculture",
     "skill_xp": 12,
-    "requirements": {
-      "chapter": 5
-    }
+    "requirements": {},
+    "first_seconds": 120
   },
   "milk": {
     "station": "cow_barn",
@@ -150,7 +158,7 @@
     "skill": "agriculture",
     "skill_xp": 18,
     "requirements": {
-      "chapter": 5
+      "chapter": 9
     }
   },
   "flour": {
@@ -164,7 +172,7 @@
     "skill": "cooking",
     "skill_xp": 15,
     "requirements": {
-      "chapter": 5
+      "chapter": 9
     }
   },
   "hardwood_planks": {
@@ -178,7 +186,7 @@
     "skill": "adventure",
     "skill_xp": 15,
     "requirements": {
-      "chapter": 5
+      "chapter": 9
     }
   },
   "cheese": {
@@ -192,7 +200,7 @@
     "skill": "cooking",
     "skill_xp": 25,
     "requirements": {
-      "chapter": 5
+      "chapter": 9
     }
   },
   "strawberry_pop": {
@@ -219,6 +227,7 @@
   },
   "mashed_potato": {
     "station": "stove",
+    "dish_type": "papinha",
     "inputs": {
       "potato": 2
     },
@@ -235,6 +244,7 @@
   },
   "sweet_potato_chips": {
     "station": "stove",
+    "dish_type": "petisco",
     "inputs": {
       "sweet_potato": 2
     },
@@ -251,6 +261,7 @@
   },
   "mint_snack": {
     "station": "stove",
+    "dish_type": "petisco",
     "inputs": {
       "wild_mint": 2,
       "carrot": 1
@@ -414,6 +425,7 @@
   },
   "puppy_mash": {
     "station": "stove",
+    "dish_type": "papinha",
     "inputs": {
       "carrot": 1,
       "potato": 1
@@ -421,15 +433,11 @@
     "output": "puppy_mash",
     "qty": 1,
     "seconds": 120,
-    "player_xp": 0,
-    "requirements": {
-      "quests": [
-        "first_kitchen"
-      ]
-    }
+    "player_xp": 0
   },
   "fish_mash": {
     "station": "stove",
+    "dish_type": "papinha",
     "inputs": {
       "fish_tilapia": 1,
       "potato": 1
@@ -460,6 +468,7 @@
   },
   "lambari_crunch": {
     "station": "stove",
+    "dish_type": "petisco",
     "inputs": {
       "fish_lambari": 3
     },
@@ -473,6 +482,7 @@
   },
   "fish_stew_carp": {
     "station": "stove",
+    "dish_type": "sopinha",
     "inputs": {
       "fish_carp": 1,
       "carrot": 1,
@@ -488,6 +498,7 @@
   },
   "fish_stew_pacu": {
     "station": "stove",
+    "dish_type": "sopinha",
     "inputs": {
       "fish_pacu": 1,
       "carrot": 1,
@@ -503,6 +514,7 @@
   },
   "fish_stew_tambaqui": {
     "station": "stove",
+    "dish_type": "sopinha",
     "inputs": {
       "fish_tambaqui": 1,
       "carrot": 1,
@@ -518,6 +530,7 @@
   },
   "corn_crunch": {
     "station": "stove",
+    "dish_type": "petisco",
     "inputs": {
       "corn": 2
     },
@@ -526,7 +539,7 @@
     "seconds": 300,
     "player_xp": 0,
     "requirements": {
-      "chapter": 5
+      "chapter": 9
     }
   },
   "growth_kibble": {
@@ -548,6 +561,7 @@
   },
   "egg_scramble": {
     "station": "stove",
+    "dish_type": "petisco",
     "inputs": {
       "egg": 2
     },
@@ -579,6 +593,7 @@
   },
   "milk_porridge": {
     "station": "stove",
+    "dish_type": "mingau",
     "inputs": {
       "milk": 1,
       "flour": 1
@@ -730,6 +745,20 @@
     "player_xp": 0,
     "requirements": {
       "rod": "angler_rod"
+    }
+  },
+  "week_oat_biscuit": {
+    "station": "stove",
+    "dish_type": "biscoito",
+    "inputs": {
+      "oat": 1,
+      "carrot": 1
+    },
+    "output": "oat_biscuit",
+    "qty": 3,
+    "seconds": 90,
+    "requirements": {
+      "week_day": 2
     }
   }
 }

@@ -39,6 +39,12 @@ var projects := ProjectState.new()
 var growth := GrowthState.new()
 ## Pesca na lagoa: varas, iscas, recordes e a partida em andamento (plano docs/plans/pesca).
 var fishing := FishingState.new()
+var week := WeekState.new()
+var _yard_round: Dictionary = {}
+var _yard_serial := 0
+## Refeição guardada (Deixar pronto) sendo comida: período e dia do jogo (só dentro de `_eat_stored`).
+var _forced_meal: String = ""
+var _forced_day: int = 0
 ## Álbum de recordações: fotos tiradas e janelas de eventos (etapa 13 do plano Tiro).
 var album := AlbumState.new()
 var album_world: String = "house"
@@ -50,6 +56,7 @@ var album_sleep_spot: String:
 var album_water_drag: bool = false
 ## Economia protegida: revisão, piso legado de capacidade, presentes a guardar e recompensas já pagas.
 var economy := EconomyState.new()
+var _week_story_clock := ""
 
 
 func _ready() -> void:
@@ -58,13 +65,15 @@ func _ready() -> void:
 	timer.wait_time = 1.0
 	timer.autostart = true
 	timer.timeout.connect(func() -> void:
+		var week_changed := update_week()
 		var changed_wishes := update_wishes()
 		# A volta do passeio não depende de nenhuma tela aberta: o tick liquida a viagem vencida.
 		return_due_walk()
 		_auto_store_baggage()
 		changed_wishes = _recover_projects() or changed_wishes
 		changed_wishes = update_fishing() or changed_wishes
-		if sync_friend_window() or update_finds() or changed_wishes:
+		var finds_changed := update_finds()
+		if sync_friend_window() or finds_changed or changed_wishes or week_changed:
 			_changed())
 	add_child(timer)
 
@@ -78,9 +87,15 @@ func _count(key: String, amount: int = 1) -> void:
 	if progress.stat(key) == 0 and amount > 0 and not progress.firsts.has(key):
 		progress.firsts[key] = now()
 	progress.count(key, amount)
+	_count_week_challenge(key, amount)
+	_count_week_routine(key, amount)
 	PersonalityRules.record(growth, key, amount, routine_period("daily"))
 
 func reset() -> void:
+	_week_story_clock = ""
+	_yard_round.clear()
+	_trick_lesson.clear()
+	_trick_show.clear()
 	_dev_moment_offset = 0.0
 	hide_pending = false
 	album_world = "house"
@@ -112,6 +127,11 @@ func reset() -> void:
 	growth = GrowthState.new()
 	growth.reset()
 	fishing = FishingState.new()
+	week = WeekState.new()
+	week.started_day = week_day_number()
+	week.high_day = week.started_day
+	week.option = str(Database.meals.get("default_option", "normal"))
+	_week_init_settle()
 	growth.firsts["care_actions_v1"] = true
 	album = AlbumState.new()
 	album.reset()
@@ -205,6 +225,8 @@ func dig_error(world: String) -> String:
 func dig(world: String, origin: Vector2 = Vector2(-1, -1)) -> Dictionary:
 	if dig_error(world) != "":
 		return {}
+	if world == "farm":
+		_recipe_source("dig")
 	var reward := find_reward(world)
 	var fresh: Array[String] = []
 	for id: String in reward.get("items", {}):
@@ -737,6 +759,220 @@ func walk_postcard(id: String) -> String:
 
 # --- Truques --------------------------------------------------------------
 
+var _trick_lesson: Dictionary = {}
+var _trick_show: Dictionary = {}
+
+
+func trick_is_lesson(id: String) -> bool:
+	return Database.progression.tricks.get(id, {}).has("lesson")
+
+
+func trick_lesson_period() -> int:
+	# Madrugada ainda é a noite do dia anterior.
+	return week_day_number() * 3 + floori(float(week_hour() - 6) / 6.0)
+
+
+func trick_lesson_next(id: String) -> String:
+	var last := int(week.trick_periods.get(id, -1))
+	if last < trick_lesson_period():
+		return ""
+	return ["de manhã", "à tarde", "à noite"][posmod(last + 1, 3)]
+
+
+func trick_lesson_cookies() -> Array[String]:
+	var ids: Array[String] = []
+	var type := str(Database.progression.trick_settings.lesson.cookie_type)
+	for id: String in inventory.counts:
+		if str(dish_of_item(id).get("type", "")) == type:
+			ids.append(id)
+	ids.sort()
+	return ids
+
+
+func trick_lesson_error(id: String) -> String:
+	if not trick_is_lesson(id):
+		return "Truque desconhecido"
+	var error := trick_available_error(id)
+	if error != "":
+		return error
+	if tiro_weak():
+		return "Ele quer comer primeiro"
+	var next := trick_lesson_next(id)
+	if next != "":
+		return "Próxima aula " + next
+	return "Falta Biscoito ×1" if trick_lesson_cookies().is_empty() else ""
+
+
+func start_trick_lesson(id: String) -> String:
+	if not _trick_lesson.is_empty() or not _trick_show.is_empty():
+		return "Já tem um treino ou show em andamento"
+	var error := trick_lesson_error(id)
+	if error == "":
+		_trick_lesson = {"id": id, "step": 0, "points": 0}
+		var saved: Dictionary = week.tutorial.get("lesson", {})
+		if saved.get("id") == id and int(saved.get("period", -1)) == trick_lesson_period():
+			_trick_lesson.step = clampi(int(saved.step), 0, int(Database.progression.trick_settings.lesson.repetitions) * 3 - 1)
+			_trick_lesson.points = clampi(int(saved.points), 0, 20)
+	return error
+
+
+func trick_lesson_position() -> int:
+	return int(_trick_lesson.get("step", 0))
+
+
+func cancel_trick_lesson(id: String) -> void:
+	if _trick_lesson.get("id", "") == id:
+		_trick_lesson.clear()
+
+
+## Cada ação avança um passo. Marcar e premiar recebem segundos desde o início do passo.
+func trick_lesson_step(id: String, step: String, value: float) -> Dictionary:
+	var steps := ["show", "mark", "reward"]
+	if _trick_lesson.get("id", "") != id or step != steps[int(_trick_lesson.step) % steps.size()] or not is_finite(value) or value < 0.0:
+		return {"error": "Esse passo ainda não está pronto"}
+	var error := trick_lesson_error(id)
+	if error != "":
+		cancel_trick_lesson(id)
+		return {"error": error}
+	var rules: Dictionary = Database.progression.trick_settings.lesson
+	var points := 0
+	match step:
+		"show": points = 1 if value == 1.0 else 0
+		"mark":
+			var distance := absf(value - float(rules.mark_at))
+			var tolerance := 0.8 if trick_level(id) >= 2 else 1.0
+			if distance <= float(rules.mark_perfect) * tolerance:
+				points = 2
+			elif distance <= float(rules.mark_good) * tolerance:
+				points = 1
+		"reward": points = int(value <= float(rules.reward_seconds))
+	_trick_lesson.points += points
+	_trick_lesson.step += 1
+	if int(_trick_lesson.step) < int(rules.repetitions) * steps.size():
+		var tutorial_id: String = {"sit": "sit", "paw": "paw", "lie_down": "down"}.get(id, "")
+		if tutorial_id != "" and week.tutorial.get("arrival", {}).get("done", false) and not week.tutorial.get(tutorial_id, {}).get("done", false):
+			week.tutorial.lesson = _trick_lesson.merged({"period": trick_lesson_period()})
+			week.tutorial.resume = tutorial_id
+			Events.week_tutorial_changed.emit()
+		return {"points": points}
+	week.tutorial.erase("lesson")
+	var stars := 0
+	for threshold: Variant in rules.star_points:
+		stars += int(int(_trick_lesson.points) >= int(threshold))
+	_trick_lesson.clear()
+	var items := trick_lesson_cookies()
+	if items.is_empty() or not inventory.remove(items[0]):
+		return {"error": "Falta Biscoito ×1"}
+	week.trick_periods[id] = trick_lesson_period()
+	var previous := trick_level(id)
+	_count("trick:" + id, stars)
+	_count("trick_lesson")
+	var level := trick_level(id)
+	var learned := previous == 0 and level > 0
+	if learned:
+		_record_trick_learned(id)
+	if wish_id() == "train" and wish_error() == "":
+		fulfill_wish()
+	else:
+		_changed()
+	if learned:
+		Events.trick_learned.emit(id)
+	return {"points": points, "stars": stars, "level": level, "level_up": previous < level}
+
+
+func learned_lesson_tricks() -> Array[String]:
+	var learned: Array[String] = []
+	for id: String in Database.progression.tricks:
+		if trick_is_lesson(id) and bool(progress.tricks.get(id, false)):
+			learned.append(id)
+	return learned
+
+
+## Oferta para o prato colocado na tigela, válida só para a janela atual.
+func meal_trick_offer(item_id: String) -> Dictionary:
+	var rules: Dictionary = Database.progression.trick_settings.meal
+	var period := meal_period_now()
+	if week_day() < int(rules.day) or period == "" or _forced_meal != "" or walking() or dog.sleeping:
+		return {}
+	if inventory.count(item_id) < 1 or meal_error(item_id) != "":
+		return {}
+	var learned := learned_lesson_tricks()
+	if learned.is_empty():
+		return {}
+	var index := posmod((week_day() - int(rules.day)) * 2 + int(period == "dinner"), learned.size())
+	return {"id": learned[index], "day": week_day(), "period": period, "item": item_id}
+
+
+func trick_show_error(length: int) -> String:
+	var rules: Dictionary = Database.progression.trick_settings.show
+	if week_day() < int(rules.day):
+		return "Abre no dia %d" % int(rules.day)
+	if has_upgrade("dairy"):
+		return "O tapete deu lugar à queijaria"
+	if walking(): return away_text()
+	if dog.sleeping: return "Shh... ele está dormindo."
+	if tiro_weak(): return "Ele quer comer primeiro"
+	if int(week.last_trick_show_day) >= week_day():
+		return "Já teve show hoje. Volte amanhã!"
+	if learned_lesson_tricks().size() < int(rules.learned):
+		return "Aprenda Senta, Dá a pata e Deita"
+	if length < int(rules.min_length) or length > int(rules.max_length):
+		return "Escolha de 3 a 5 truques"
+	return ""
+
+
+func start_trick_show(length: int) -> Dictionary:
+	if not _trick_show.is_empty() or not _trick_lesson.is_empty():
+		return {"error": "Já tem um treino ou show em andamento"}
+	var error := trick_show_error(length)
+	if error != "":
+		return {"error": error}
+	var learned := learned_lesson_tricks()
+	var sequence: Array[String] = []
+	for i in length:
+		sequence.append(learned[i % learned.size()])
+	_trick_show = {"sequence": sequence, "index": 0, "day": week_day(), "perfect": true}
+	return {"sequence": sequence.duplicate()}
+
+
+func cancel_trick_show() -> void:
+	_trick_show.clear()
+
+
+func trick_show_step(id: String, success: bool) -> Dictionary:
+	if _trick_show.is_empty():
+		return {"error": "O show ainda não começou"}
+	var sequence: Array = _trick_show.sequence
+	var index := int(_trick_show.index)
+	var error := trick_show_error(sequence.size())
+	if error != "" or int(_trick_show.day) != week_day():
+		cancel_trick_show()
+		return {"error": error if error != "" else "Comece o show de hoje"}
+	if id != sequence[index] or not success:
+		_trick_show.perfect = false
+		return {"index": index, "retry": true}
+	_trick_show.index += 1
+	if index + 1 < sequence.size():
+		return {"index": index + 1}
+	var rules: Dictionary = Database.progression.trick_settings.show
+	var perfect := bool(_trick_show.perfect) and sequence.size() == int(rules.max_length)
+	cancel_trick_show()
+	week.last_trick_show_day = week_day()
+	for used: String in sequence:
+		_count("trick_show_use:" + used)
+	_count("trick_show")
+	var coins := int(rules.rewards.coins)
+	_grant_automatic("trick_show:%d" % week_day(), rules.rewards)
+	var biscuits := 0
+	if perfect:
+		_count("trick_show_perfect")
+		if _grant_automatic("trick_show_perfect", rules.perfect_rewards).paid:
+			biscuits = int(rules.perfect_rewards.items.apple_biscuit)
+	var photos := _album_event("trick_show", {"world": "farm"})
+	_changed()
+	return {"coins": coins, "biscuits": biscuits, "photo": not photos.is_empty()}
+
+
 func trick_available_error(id: String) -> String:
 	if not Database.progression.tricks.has(id):
 		return "Truque desconhecido"
@@ -748,14 +984,20 @@ func trick_available_error(id: String) -> String:
 
 
 func learn_trick_error(id: String) -> String:
+	if trick_is_lesson(id):
+		return "Aprenda na Aula do Tiro"
 	var error := trick_available_error(id)
 	if error != "":
 		return error
 	if bool(progress.tricks.get(id, false)):
 		return "Truque já aprendido"
+	if tiro_weak():
+		return "Ele quer comer primeiro"
 	for previous: String in Database.progression.tricks:
 		if previous == id:
 			break
+		if trick_is_lesson(previous):
+			continue
 		if not bool(progress.tricks.get(previous, false)):
 			return "Aprenda " + str(Database.progression.tricks[previous].name)
 	return ""
@@ -765,16 +1007,23 @@ func learn_trick(id: String) -> String:
 	var error := learn_trick_error(id)
 	if error != "":
 		return error
-	progress.tricks[id] = true
-	_count("trick_learned")
-	_moment_source("learn_trick", id)
-	_album_event("trick_learned", {"trick": id})
+	_record_trick_learned(id)
 	_changed()
 	Events.trick_learned.emit(id)
 	return ""
 
 
+func _record_trick_learned(id: String) -> void:
+	progress.tricks[id] = true
+	_count("trick_learned")
+	_count("trick_learned:" + id)
+	_moment_source("learn_trick", id)
+	_album_event("trick_learned", {"trick": id})
+
+
 func perform_trick_error(id: String) -> String:
+	if trick_is_lesson(id):
+		return "Pratique na Aula do Tiro"
 	var error := trick_available_error(id)
 	if error != "":
 		return error
@@ -802,11 +1051,12 @@ func perform_trick(id: String) -> String:
 
 # --- Ações do Tiro ---------------------------------------------------------
 
-func feed(item_id: String) -> bool:
+func feed(item_id: String, trick_offer: Dictionary = {}) -> bool:
 	var useful := _need_is_low("hunger")
 	var effects: Dictionary = Database.items.get(item_id, {}).get("feed", {})
-	if walking() or effects.is_empty() or inventory.count(item_id) < 1:
+	if (walking() and _forced_meal == "") or effects.is_empty() or inventory.count(item_id) < 1:
 		return false
+	var trick := str(trick_offer.id) if not trick_offer.is_empty() and trick_offer == meal_trick_offer(item_id) else ""
 	var meal_before: Dictionary = {}
 	for row: Dictionary in growth_info().requirements:
 		# Só a refeição que esta comida alimenta (a papinha de peixe não é a cenoura gelada).
@@ -815,9 +1065,11 @@ func feed(item_id: String) -> bool:
 	var body_before := growth.body_level
 	inventory.remove(item_id)
 	dog.apply(effects, now())
+	_register_meal(item_id, trick)
 	_count("feed")
 	_count("feed:" + item_id)
 	growth.firsts["food:" + item_id] = true
+	_note_fed_dish(item_id)
 	_taste(item_id)
 	_album_event("fed", {"item": item_id, "growth_food": Database.items.get(item_id, {}).has("growth")})
 	_care_useful("feed", useful)
@@ -932,6 +1184,223 @@ func play_growth_info() -> Dictionary:
 	return _care_moment_info("smart", "Brincar", "happiness")
 
 
+func yard_rules() -> Dictionary:
+	return Database.growth.week_play
+
+
+func yard_open(kind: String) -> bool:
+	return week_day() >= int(yard_rules().days.get(kind, 999999))
+
+
+func yard_error(kind: String) -> String:
+	if kind not in ["ball", "rope", "name", "hide"]: return "Brincadeira desconhecida."
+	if not yard_open(kind): return "Abre no dia %d." % int(yard_rules().days[kind])
+	if walking(): return away_text()
+	if dog.sleeping: return "Shh... ele está dormindo."
+	return ""
+
+
+func _yard_period() -> String:
+	return moment_period(week_now())
+
+
+func yard_rewards_left(kind: String) -> int:
+	var used := int(week.play.get("used", {}).get(_yard_period(), {}).get(kind, 0))
+	return maxi(0, int(yard_rules().limit) - used)
+
+
+func yard_record() -> int:
+	return int(week.play.get("best", 0))
+
+
+func start_yard_round(kind: String) -> Dictionary:
+	var error := yard_error(kind)
+	if error != "": return {"error": error}
+	if not _yard_round.is_empty(): return {"error": "Termine a brincadeira aberta."}
+	_yard_serial += 1
+	var variant_day := {"fetch": yard_open("fetch"), "squeak": yard_open("squeak") and inventory.count("squeaky_ball") > 0, "lake": yard_open("lake")}
+	_yard_round = {
+		"id": _yard_serial, "kind": kind, "variant": variant_day, "turn": 0, "score": 0,
+		"landing": {}, "hold_at": -1.0, "hideout": randi_range(0, yard_rules().hideouts.size() - 1),
+		"since": _yard_seconds(),
+	}
+	return _yard_round.duplicate(true)
+
+
+func cancel_yard_round(id: int) -> void:
+	if _yard_round.get("id") == id:
+		_yard_round.clear()
+
+
+func _yard_valid(id: int, kind: String) -> bool:
+	return _yard_round.get("id") == id and _yard_round.get("kind") == kind and yard_error(kind) == ""
+
+
+func _yard_seconds() -> float:
+	return Time.get_ticks_msec() / 1000.0
+
+
+func yard_flight(id: int, drag: Vector2) -> Dictionary:
+	if _yard_round.get("id") != id or not drag.is_finite(): return {}
+	var launch: Dictionary = yard_rules().launch
+	var origin := Vector2(float(launch.origin[0]), float(launch.origin[1]))
+	var variant_day: Dictionary = _yard_round.variant
+	if drag.length() < 0.025:
+		if variant_day.fetch: return {}
+		drag = Vector2(float(launch.tap[0]), float(launch.tap[1]))
+	if drag.y > -0.02: return {}
+	var reach := float(launch.squeak_range if variant_day.squeak else launch.range)
+	var end := (origin + drag.limit_length(float(launch.drag)) * reach / float(launch.drag)).clamp(Vector2(0.06, 0.09), Vector2(0.94, 0.79))
+	var bridge: Array = yard_rules().bridge
+	var bridge_rect := Rect2(bridge[0], bridge[1], bridge[2], bridge[3])
+	var bounce := bool(variant_day.lake) and bridge_rect.has_point(end)
+	var point := end + Vector2(0, -0.15) if bounce else end
+	return {"end": point, "bounce": bounce, "bridge": end}
+
+
+func yard_throw(id: int, drag: Vector2) -> Dictionary:
+	if not _yard_valid(id, "ball") or not _yard_round.landing.is_empty(): return {}
+	var flight := yard_flight(id, drag)
+	if flight.is_empty(): return {}
+	var base := 0
+	var hit := ""
+	var label := "Tiro foi atrás da bolinha!"
+	if _yard_round.variant.fetch:
+		for band: float in yard_rules().bands:
+			if flight.end.y <= band: base += 1
+		for target: Dictionary in yard_rules().targets:
+			var at := Vector2(float(target.at[0]), float(target.at[1]))
+			if at.distance_to(flight.end) > float(target.radius): continue
+			hit = str(target.id)
+			label = str(target.label)
+			base = int(target.get("points", base))
+			break
+		if flight.bounce: label = "A bolinha quicou na ponte!"
+	var landing := flight.merged({"base": base, "hit": hit, "label": label, "since": _yard_seconds()})
+	_yard_round.landing = landing
+	return landing.duplicate()
+
+
+func yard_jump_elapsed(id: int) -> float:
+	if _yard_round.get("id") != id or _yard_round.landing.is_empty(): return -1.0
+	return _yard_seconds() - float(_yard_round.landing.since)
+
+
+func yard_finish_throw(id: int, jump: bool) -> Dictionary:
+	if not _yard_valid(id, "ball") or _yard_round.landing.is_empty(): return {}
+	var elapsed := yard_jump_elapsed(id)
+	var timing: Dictionary = yard_rules().jump
+	var fetching := bool(_yard_round.variant.fetch)
+	if jump and (not fetching or elapsed < float(timing.opens) or elapsed > float(timing.closes)):
+		return {}
+	if not jump and elapsed < (float(timing.closes) if fetching else float(timing.opens)):
+		return {}
+	var landed: Dictionary = _yard_round.landing
+	var points := int(landed.base) * (int(timing.multiplier) if jump else 1)
+	_yard_round.score += points
+	_yard_round.turn += 1
+	_yard_round.landing = {}
+	var result := {"score": _yard_round.score, "turn": _yard_round.turn, "points": points, "jump": jump, "hit": landed.hit, "label": landed.label}
+	if int(_yard_round.turn) == int(yard_rules().throws):
+		result.merge(_finish_yard_round())
+	return result
+
+
+func yard_rope_hold(id: int) -> bool:
+	if not _yard_valid(id, "rope") or float(_yard_round.hold_at) >= 0.0: return false
+	_yard_round.hold_at = _yard_seconds()
+	return true
+
+
+func yard_rope_elapsed(id: int) -> float:
+	if _yard_round.get("id") != id or float(_yard_round.hold_at) < 0.0: return -1.0
+	return _yard_seconds() - float(_yard_round.hold_at)
+
+
+func yard_rope_release(id: int, canceled: bool = false) -> Dictionary:
+	if not _yard_valid(id, "rope"): return {}
+	var elapsed := yard_rope_elapsed(id)
+	if elapsed < 0.0: return {}
+	var timing: Dictionary = yard_rules().rope
+	if canceled or elapsed < 0.2:
+		_yard_round.hold_at = -1.0
+		return {}
+	var hit := elapsed >= float(timing.opens) and elapsed <= float(timing.closes)
+	_yard_round.score += int(hit)
+	_yard_round.turn += 1
+	_yard_round.hold_at = -1.0
+	var result := {"hit": hit, "score": _yard_round.score, "turn": _yard_round.turn}
+	if int(_yard_round.turn) == int(yard_rules().pulls):
+		result.merge(_finish_yard_round())
+	return result
+
+
+func yard_find(id: int, spot: int) -> Dictionary:
+	if not _yard_valid(id, "hide") or spot < 0 or spot >= yard_rules().hideouts.size():
+		return {}
+	if _yard_seconds() - float(_yard_round.since) < 1.1: return {}
+	if spot != int(_yard_round.hideout): return {"found": false}
+	var result := _finish_yard_round()
+	result.found = true
+	return result
+
+
+func yard_answer_name(id: int) -> Dictionary:
+	if not _yard_valid(id, "name") or _yard_seconds() - float(_yard_round.since) < 0.75:
+		return {}
+	return _finish_yard_round()
+
+
+func _finish_yard_round() -> Dictionary:
+	var kind := str(_yard_round.kind)
+	var score := int(_yard_round.score)
+	var squeak := bool(_yard_round.variant.squeak)
+	_yard_round.clear()
+	var left := yard_rewards_left(kind)
+	var result := {"done": true, "rewarded": left > 0, "happiness": 0, "smart": 0, "coins": 0}
+	if left > 0:
+		var periods: Dictionary = week.play.get_or_add("used", {})
+		var period := _yard_period()
+		var oldest := Time.get_date_string_from_unix_time(_local_time(week_now()) - 86400)
+		for key: String in periods.keys():
+			if key < oldest: periods.erase(key)
+		var usage: Dictionary = periods.get_or_add(period, {})
+		usage[kind] = int(yard_rules().limit) - left + 1
+		if kind == "name":
+			_count("name_call")
+		else:
+			var happiness := int(yard_rules().happiness["squeak" if kind == "ball" and squeak else kind])
+			var before := dog.get_need("happiness", now())
+			dog.apply({"happiness": happiness}, now())
+			result.happiness = roundi(dog.get_need("happiness", now()) - before)
+			_care_useful("play", before < float(Database.needs.happiness.get("ask_below", 50)) and int(result.happiness) > 0)
+			result.smart = _gain_moment("smart", "hide" if kind == "hide" else "play", true, true)
+			_count("play")
+			_count("yard:" + kind)
+			if kind == "rope": _count("play_rope")
+			if kind == "hide":
+				_count("hide")
+				_count("hide_found")
+			_album_event("played")
+	if kind == "ball":
+		var day := maxi(week.high_day, week_day_number())
+		var daily: Dictionary = week.play.get("daily", {})
+		if day > int(daily.get("day", -1)):
+			daily = {"day": day, "score": 0, "paid": false}
+			week.play.daily = daily
+		week.play["best"] = maxi(yard_record(), score)
+		if day == int(daily.day) and score > int(daily.score):
+			daily.score = score
+			if left > 0 and not daily.paid:
+				var payout := int(yard_rules().record_coins)
+				daily.paid = true
+				coins += payout
+				result.coins = payout
+		result.record = yard_record()
+	_changed()
+	return result
+
+
 func _care_moment_info(pillar: String, action: String, need: String) -> Dictionary:
 	var asking := _need_is_low(need)
 	var left := maxi(0, int(Database.growth.moments.period_cap) - int(growth.period_moments.get(moment_period() + ":" + pillar, 0)))
@@ -956,20 +1425,29 @@ func play() -> bool:
 	return true
 
 
-func bathe(with_shampoo: bool = false) -> void:
-	if walking() or (with_shampoo and inventory.count("herb_shampoo") < 1):
-		return
+func bath_shampoo() -> String:
+	return "puppy_shampoo" if inventory.count("puppy_shampoo") > 0 else "herb_shampoo"
+
+
+func bathe(with_shampoo: bool = false) -> bool:
+	var shampoo := bath_shampoo() if with_shampoo else ""
+	if walking() or (with_shampoo and inventory.count(shampoo) < 1):
+		return false
 	var useful := _need_is_low("hygiene")
-	if with_shampoo: inventory.remove("herb_shampoo")
+	if with_shampoo: inventory.remove(shampoo)
 	dog.apply(Database.actions.get("bathe", {}), now())
 	_count("bathe")
 	_album_event("bathed")
-	if _care_useful("bathe", useful):
+	var useful_bath := _care_useful("bathe", useful)
+	if shampoo == "puppy_shampoo":
+		_moment_source("puppy_shampoo_bath")
+	elif useful_bath:
 		_moment_source("shampoo_bath" if with_shampoo else "bath")
 	if with_shampoo: _count("shampoo_bath")
 	_care_reward("bathe", useful)
 	_changed()
 	Events.dog_action.emit(&"bathe")
+	return true
 
 
 func set_sleeping(value: bool, spot: String = "") -> void:
@@ -1082,7 +1560,7 @@ func station_slots(id: String) -> int:
 	for upgrade_id: String in data.get("slot_upgrades", {}):
 		if has_upgrade(upgrade_id):
 			result += int(data["slot_upgrades"][upgrade_id])
-	return result
+	return maxi(result, int(chef_info().get("slots", 0))) if id == "stove" else result
 
 
 ## Coloca uma receita na fila. Retorna "" se deu certo ou o motivo da falha.
@@ -1093,7 +1571,7 @@ func cook(recipe_id: String) -> String:
 ## Prepara N lotes iguais de uma vez (Etapa 12): cada um é um trabalho próprio na fila, com os
 ## ingredientes e o snapshot dele, começando quando o anterior termina. Tudo ou nada: se faltar
 ## vaga ou ingrediente para qualquer um dos N, nada é consumido nem enfileirado.
-func cook_many(recipe_id: String, count: int) -> String:
+func cook_many(recipe_id: String, count: int, stars: int = 1, together: bool = false) -> String:
 	var error := cook_many_error(recipe_id, count)
 	if error != "":
 		return error
@@ -1102,11 +1580,31 @@ func cook_many(recipe_id: String, count: int) -> String:
 	var animal: bool = Database.stations[station_id].get("kind", "") == "animal"
 	var target := station(station_id)
 	var paid := recipe_inputs(recipe_id)
+	var tracked := station_id == "stove" and not bool(recipe.get("hidden", false))
 	for i in count:
+		var mastery := _recipe_preparation("recipe:" + recipe_id, stars, together) if tracked else {}
+		var seconds := recipe_seconds(recipe_id) * float(mastery.get("time", 1.0))
+		var qty := recipe_quantity(recipe_id) + int(mastery.get("gift", 0))
 		inventory.remove_all(paid)
-		target.enqueue(recipe_id, float(recipe.seconds), now())
-		target.queue.back()["qty"] = recipe_quantity(recipe_id)
-		target.queue.back()["job"] = WorkJobs.batch(recipe_id, Database.recipes, Database.xp, Database.stations, recipe_quantity(recipe_id), paid)
+		target.enqueue(recipe_id, seconds, now())
+		target.queue.back()["qty"] = qty
+		var job := WorkJobs.batch(recipe_id, Database.recipes, Database.xp, Database.stations, qty, paid)
+		job["seconds"] = seconds
+		if tracked:
+			job["dish"] = {"stars": mastery.stars, "gift": mastery.gift, "specialty": mastery.specialty}
+			_note_recipe(recipe_id, int(mastery.stars))
+			if together:
+				_count("together:" + recipe_id)
+			if int(mastery.stars) >= 3:
+				_count("week_three_stars")
+			_record_recipe_preparation("recipe:" + recipe_id, mastery)
+			var fixed := dish_of_item(str(job.output))
+			var book_key := "dish:" + str(fixed.get("key", ""))
+			if not fixed.is_empty():
+				var fresh := int(dish_record("recipe:" + recipe_id).get("made", 0)) == 1 and not week.dishes.has(book_key)
+				_note_daily_ingredient(fixed.ingredients, fresh)
+				_note_routine_cooked(str(fixed.type), fixed.ingredients, int(mastery.stars))
+		target.queue.back()["job"] = job
 		if animal:
 			target.queue.back()["animals"] = animal_roster(station_id)
 	_changed()
@@ -1137,40 +1635,392 @@ func invent_match(chosen: Dictionary) -> String:
 	return ""
 
 
-## Consulta pura de `cook_invented`: "" ou o motivo (sem fogão, nada escolhido, fila cheia, falta ingrediente).
-func cook_invented_error(chosen: Dictionary) -> String:
-	if not has_upgrade("stove"):
-		return "Compre %s no seu lugar do mapa" % Database.stations.get("stove", {}).get("name", "o fogão")
-	if chosen.is_empty():
-		return "Escolha ingredientes"
-	for item_id: String in chosen:
-		if int(chosen[item_id]) < 1 or not Database.invent.get("items", {}).has(item_id):
-			return "Ingrediente inválido"
-	if station("stove").queue.size() >= station_slots("stove"):
-		return "Fila cheia"
-	if not inventory.has_all(chosen):
-		return _missing_text(chosen, "Faltam ingredientes")
-	return ""
+## Consulta pura de `cook_invented`: "" ou o motivo (sem fogão, tipo fechado, regra do prato, fila cheia, falta ingrediente).
+func cook_invented_error(chosen: Dictionary, type_id: String) -> String:
+	if not week_invent_open():
+		return "Inventar abre no jantar"
+	var recipe_id := dish_recipe_match(type_id, chosen)
+	if recipe_id != "" and dish_plan(type_id, _expand_picks(chosen)).error == "":
+		return cook_many_error(recipe_id, 1)
+	return cook_dish_error(type_id, _expand_picks(chosen))
 
 
-## Prato surpresa PROVISÓRIO: gasta os ingredientes escolhidos e põe na fila do fogão um "Prato inventado" ×1, pelo mesmo
-## caminho do `cook_many` (lote com snapshot; `collect` entrega igual). Conta como um lote do fogão (maestria `station_jobs`),
-## mas não é receita nova. Devolve "" ou o motivo.
-func cook_invented(chosen: Dictionary) -> String:
-	var error := cook_invented_error(chosen)
+## Aba Inventar do fogão: cozinha o prato do tipo escolhido pelo motor de pratos (`DishRules`). Se a combinação é a de uma
+## receita fixa do fogão do mesmo tipo (p. ex. a papinha de cenoura e batata), faz essa receita, para os pedidos e o
+## crescimento que contam o item dela continuarem valendo. Devolve "" ou o motivo.
+func cook_invented(chosen: Dictionary, type_id: String, stars: int = 1, together: bool = false) -> String:
+	var error := cook_invented_error(chosen, type_id)
 	if error != "":
 		return error
-	var recipe_id := Database.invented_recipe_id()
-	if not Database.recipes.has(recipe_id):
+	var picks := _expand_picks(chosen)
+	var plan := dish_plan(type_id, picks)
+	var recipe_id := dish_recipe_match(type_id, chosen)
+	var key := dish_key(type_id, plan.ingredients)
+	var novel: bool = plan.state == "dish" and not week.dishes.has(key) and (recipe_id == "" or not week.dishes.has("recipe:" + recipe_id))
+	if recipe_id != "" and plan.state == "dish":
+		error = cook_many(recipe_id, 1, stars, together)
+	else:
+		error = cook_dish(type_id, picks, stars, together)
+	if error == "" and plan.state == "dish":
+		_count("routine_invent")
+		if novel:
+			_count("week_invention")
+		_changed()
+	return error
+
+
+## Receita fixa do fogão (já liberada) do MESMO tipo de prato cujos ingredientes são exatamente os escolhidos; "" se nenhuma.
+func dish_recipe_match(type_id: String, chosen: Dictionary) -> String:
+	var recipe_id := invent_match(chosen)
+	if recipe_id != "" and str(Database.recipes[recipe_id].get("dish_type", "")) == type_id:
+		return recipe_id
+	return ""
+
+
+# --- Motor de pratos (Primeira semana, E02) ---------------------------------------------------------------------
+# Um prato é TIPO + INGREDIENTES + ESTRELAS e vira o item dinâmico `dish_<tipo>_<ingredientes>_<estrelas>`
+# (ver `DishRules`). `Database.ensure_dish` registra o item quando ele entra no jogo; depois disso inventário,
+# depósito, venda, Mochila e alimentação o tratam como qualquer item. Combinação que não forma o prato do tipo
+# vira Gororoba (item fixo) e devolve 1 ingrediente.
+
+## {item: quantidade} -> lista de itens (um por unidade), na ordem do dicionário.
+func _expand_picks(chosen: Dictionary) -> Array:
+	var picks: Array = []
+	for item_id: String in chosen:
+		for i in int(chosen[item_id]):
+			picks.append(item_id)
+	return picks
+
+
+## Plano de um prato (consulta pura): {error, state, type, ingredients, stars, output, name, seconds, consume, refund}.
+## `picks` = itens escolhidos, um por ingrediente (o mesmo item pode repetir). `error` vazio = dá para cozinhar
+## (falta checar fogão, fila e estoque: `cook_dish_error`).
+func dish_plan(type_id: String, picks: Array, stars: int = 1) -> Dictionary:
+	var plan := {"error": "", "state": "", "type": type_id, "ingredients": [], "stars": clampi(stars, 1, 3), "output": "",
+		"name": "", "seconds": 0.0, "consume": {}, "refund": {}}
+	var def := DishRules.type_def(type_id)
+	if def.is_empty():
+		plan.error = "Prato desconhecido"
+		return plan
+	if picks.is_empty():
+		plan.error = "Escolha ingredientes"
+		return plan
+	var ingredients: Array = []
+	for pick: Variant in picks:
+		var ingredient := DishRules.ingredient_of_item(str(pick))
+		if ingredient == "":
+			plan.error = "Ingrediente inválido"
+			return plan
+		ingredients.append(ingredient)
+	var day := week_day()
+	if DishRules.opens(type_id) > day:
+		plan.error = "%s abre no dia %d" % [def.name, DishRules.opens(type_id)]
+		return plan
+	if picks.size() > DishRules.max_count(type_id, day):
+		plan.error = "Só cabem %d ingredientes" % DishRules.max_count(type_id, day)
+		return plan
+	var verdict := DishRules.evaluate(type_id, ingredients)
+	plan.state = str(verdict.state)
+	plan.ingredients = DishRules.canon(ingredients)
+	if plan.state in ["incomplete", "invalid"]:
+		plan.error = str(verdict.reason)
+		return plan
+	var consume := {}
+	for pick: Variant in picks:
+		consume[str(pick)] = int(consume.get(str(pick), 0)) + 1
+	plan.consume = consume
+	plan.seconds = float(def.get("seconds", 60))
+	if plan.state == "gororoba":
+		plan.output = str(Database.dishes.get("gororoba", {}).get("item", "gororoba"))
+		plan.name = Database.item_name(plan.output)
+		# Sem desperdício: volta o ingrediente que quebrou a regra (o último escolhido dessa família).
+		var refund := {}
+		var culprit := str(verdict.get("culprit", ""))
+		for index in range(picks.size() - 1, -1, -1):
+			if DishRules.ingredient_of_item(str(picks[index])) == culprit:
+				refund[str(picks[index])] = int(Database.dishes.get("gororoba", {}).get("refund", 1))
+				break
+		if refund.is_empty() and bool(chef_info().get("save_ingredient", false)):
+			refund[str(picks.back())] = 1
+		plan.refund = refund
+	else:
+		plan.output = DishRules.make_id(type_id, ingredients, plan.stars)
+		plan.name = DishRules.name_of(type_id, ingredients)
+	return plan
+
+
+## Motivo de não dar para cozinhar o prato agora ("" se dá): fogão, fila, regras do tipo e estoque.
+func cook_dish_error(type_id: String, picks: Array, stars: int = 1) -> String:
+	if not has_upgrade("stove"):
+		return "Compre %s no seu lugar do mapa" % Database.stations.get("stove", {}).get("name", "o fogão")
+	var plan := dish_plan(type_id, picks, stars)
+	if plan.error != "":
+		return str(plan.error)
+	if station("stove").queue.size() >= station_slots("stove"):
+		return "Fila cheia"
+	if not inventory.has_all(plan.consume):
+		return _missing_text(plan.consume, "Faltam ingredientes")
+	return ""
+
+
+## Cozinha o prato: gasta os ingredientes (menos o que volta, na Gororoba) e põe UM lote na fila do fogão pelo mesmo
+## caminho do `cook_many` (snapshot do lote; `collect` entrega igual, com a saída guardada no `job`). Devolve ""
+## ou o motivo. O lote conta como trabalho do fogão (maestria `station_jobs`).
+func cook_dish(type_id: String, picks: Array, stars: int = 1, together: bool = false) -> String:
+	var error := cook_dish_error(type_id, picks, stars)
+	if error != "":
+		return error
+	var plan := dish_plan(type_id, picks, stars)
+	var key := dish_key(type_id, plan.ingredients)
+	var mastery := {}
+	if str(plan.state) == "dish":
+		mastery = _recipe_preparation(key, stars, together)
+		plan.stars = mastery.stars
+		plan.output = DishRules.make_id(type_id, plan.ingredients, int(plan.stars))
+		plan.seconds = float(plan.seconds) * float(mastery.time)
+	var recipe_id := Database.dish_recipe_id()
+	if not Database.recipes.has(recipe_id) or not Database.ensure_dish(str(plan.output)):
 		return "Receita desconhecida"
-	var recipe: Dictionary = Database.recipes[recipe_id]
+	var paid: Dictionary = (plan.consume as Dictionary).duplicate()
+	for item_id: String in plan.refund:
+		paid[item_id] = int(paid[item_id]) - int(plan.refund[item_id])
+		if int(paid[item_id]) <= 0:
+			paid.erase(item_id)
 	var target := station("stove")
-	inventory.remove_all(chosen)
-	target.enqueue(recipe_id, float(recipe.seconds), now())
-	target.queue.back()["qty"] = 1
-	target.queue.back()["job"] = WorkJobs.batch(recipe_id, Database.recipes, Database.xp, Database.stations, 1, chosen)
+	inventory.remove_all(paid)
+	target.enqueue(recipe_id, float(plan.seconds), now())
+	var qty := 1 + int(mastery.get("gift", 0))
+	var job := WorkJobs.batch(recipe_id, Database.recipes, Database.xp, Database.stations, qty, paid)
+	job["output"] = str(plan.output)
+	job["seconds"] = float(plan.seconds)
+	job["dish"] = {"type": type_id, "stars": int(plan.stars), "state": str(plan.state), "gift": int(mastery.get("gift", 0)),
+		"specialty": bool(mastery.get("specialty", false))}
+	target.queue.back()["qty"] = qty
+	target.queue.back()["job"] = job
+	if str(plan.state) == "dish":
+		_note_dish(type_id, plan.ingredients, int(plan.stars))
+		_note_routine_cooked(type_id, plan.ingredients, int(plan.stars))
+		if int(plan.stars) >= 3:
+			_count("week_three_stars")
+		_record_recipe_preparation(key, mastery)
 	_changed()
 	return ""
+
+
+# --- Pratos conhecidos, prévia e estrelas (Primeira semana, E03) ------------------------------------------------
+# O jogo lembra cada prato do motor (tipo + ingredientes, SEM estrelas) e cada receita fixa do fogão que já foi
+# feita, com as melhores estrelas (1 por padrão; o minigame da E04 sobe até 3). O estado fica em `week.dishes`.
+
+func dish_record(key: String) -> Dictionary:
+	return week.dishes.get(key, {})
+
+
+func dish_key(type_id: String, ingredients: Array) -> String:
+	var key := DishRules.key_of(type_id, ingredients)
+	return "dish:" + key if key != "" else ""
+
+
+func dish_known(type_id: String, ingredients: Array) -> bool:
+	return week.dishes.has(dish_key(type_id, ingredients))
+
+
+## Melhores estrelas do prato (0 = nunca feito).
+func dish_stars(type_id: String, ingredients: Array) -> int:
+	return int(dish_record(dish_key(type_id, ingredients)).get("stars", 0))
+
+
+## Estrelas da receita fixa do fogão (0 = nunca feita).
+func recipe_stars(recipe_id: String) -> int:
+	return int(dish_record("recipe:" + recipe_id).get("stars", 0))
+
+
+## Pratos do motor já feitos, na ordem em que foram descobertos: [{key, type, ingredients, stars, made, day}].
+func known_dishes() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for key: String in week.dishes:
+		if not key.begins_with("dish:"):
+			continue
+		var parsed := DishRules.parse_key(key.substr(5))
+		if parsed.is_empty():
+			continue
+		var record: Dictionary = week.dishes[key]
+		result.append({"key": key, "type": parsed.type, "ingredients": parsed.ingredients, "stars": int(record.get("stars", 1)),
+			"made": int(record.get("made", 1)), "day": int(record.get("day", 1))})
+	return result
+
+
+## Quantos pratos diferentes já foram feitos (de um tipo, ou de todos com `type_id` vazio).
+func dishes_known_count(type_id: String = "") -> int:
+	var total := 0
+	for entry: Dictionary in known_dishes():
+		if int(entry.made) > 0 and (type_id == "" or str(entry.type) == type_id):
+			total += 1
+	return total
+
+
+func _note_dish(type_id: String, ingredients: Array, stars: int) -> void:
+	var key := dish_key(type_id, ingredients)
+	if key == "":
+		return
+	var fresh := _discover_book_dish(type_id, ingredients, "invent")
+	var record := dish_record(key)
+	record["stars"] = maxi(int(record.get("stars", 0)), clampi(stars, 1, 3))
+	record["made"] = int(record.get("made", 0)) + 1
+	week.dishes[key] = record
+	_note_daily_ingredient(ingredients, fresh)
+
+
+## Receita fixa do fogão preparada (uma vez por pedido de preparo).
+func _note_recipe(recipe_id: String, stars: int = 1) -> void:
+	var key := "recipe:" + recipe_id
+	var record: Dictionary = week.dishes.get(key, {"stars": 0, "made": 0, "day": week_day()})
+	record["stars"] = maxi(int(record.get("stars", 0)), clampi(stars, 1, 3))
+	record["made"] = int(record.get("made", 0)) + 1
+	week.dishes[key] = record
+
+
+## Tipo está aberto no dia do jogo (`dishes.json → types.<tipo>.opens`).
+func dish_type_open(type_id: String) -> bool:
+	return DishRules.opens(type_id) <= week_day()
+
+
+## Itens de inventário que pagam os ingredientes de um prato conhecido: de cada ingrediente, o item que mais tem
+## (sem estoque, o item principal, para a lista mostrar o que falta).
+func dish_inputs(ingredients: Array) -> Dictionary:
+	var result := {}
+	for ingredient_id: String in DishRules.canon(ingredients):
+		var best := DishRules.main_item(ingredient_id)
+		var best_left := -1
+		for item: Variant in DishRules.ingredient(ingredient_id).get("items", []):
+			var left := inventory.count(str(item)) - int(result.get(str(item), 0))
+			if left > best_left:
+				best_left = left
+				best = str(item)
+		result[best] = int(result.get(best, 0)) + 1
+	return result
+
+
+## "" ou o motivo de não dar para cozinhar de novo um prato já conhecido (chave de `known_dishes`).
+func cook_known_dish_error(key: String) -> String:
+	var parsed := DishRules.parse_key(key.trim_prefix("dish:"))
+	if parsed.is_empty():
+		return "Prato desconhecido"
+	return cook_invented_error(dish_inputs(parsed.ingredients), str(parsed.type))
+
+
+func cook_known_dish(key: String) -> String:
+	var parsed := DishRules.parse_key(key.trim_prefix("dish:"))
+	if parsed.is_empty():
+		return "Prato desconhecido"
+	return cook_invented(dish_inputs(parsed.ingredients), str(parsed.type))
+
+
+## Prévia ao vivo do que está na panela (consulta pura). `state`: empty (nada), incomplete (faltam ingredientes),
+## blocked (tipo fechado/regra), gororoba, new (prato novo!) ou known (já conhecido). Tem nome, item de saída,
+## estrelas, nutrientes, se é refeição, notas de ingrediente-chave, o que volta (gororoba), tempo e o motivo.
+func dish_preview(type_id: String, picks: Array) -> Dictionary:
+	var preview := {"state": "empty", "type": type_id, "name": "", "output": "", "stars": 0, "nutrients": {}, "meal": false,
+		"notes": [], "reason": "", "refund": {}, "counts_as": "", "seconds": 0.0, "recipe": ""}
+	if picks.is_empty():
+		return preview
+	var plan := dish_plan(type_id, picks)
+	preview.meal = DishRules.is_meal(type_id)
+	if str(plan.error) != "":
+		preview.state = "incomplete" if str(plan.state) == "incomplete" else "blocked"
+		preview.reason = str(plan.error)
+		return preview
+	preview.output = str(plan.output)
+	Database.ensure_dish(str(plan.output))  # o ícone e o nome do prato dinâmico dependem do registro
+	preview.name = str(plan.name)
+	preview.seconds = float(plan.seconds)
+	if str(plan.state) == "gororoba":
+		preview.state = "gororoba"
+		preview.refund = plan.refund
+		var ingredients: Array = []
+		for pick: Variant in picks:
+			ingredients.append(DishRules.ingredient_of_item(str(pick)))
+		preview.reason = str(DishRules.evaluate(type_id, ingredients).get("reason", "Não forma o prato"))
+		return preview
+	var ingredients_list: Array = plan.ingredients
+	var chosen := {}
+	for pick: Variant in picks:
+		chosen[str(pick)] = int(chosen.get(str(pick), 0)) + 1
+	var recipe_id := dish_recipe_match(type_id, chosen)
+	var stars := dish_stars(type_id, ingredients_list)
+	if recipe_id != "":
+		stars = maxi(stars, recipe_stars(recipe_id))
+		preview.output = Database.recipe_output(Database.recipes[recipe_id])
+		preview.seconds = float(Database.recipes[recipe_id].get("seconds", preview.seconds))
+		preview.recipe = recipe_id
+	var known := dish_known(type_id, ingredients_list) or stars > 0
+	preview.state = "known" if known else "new"
+	var named := DishRules.named(type_id, ingredients_list)
+	if bool(named.get("secret", false)) and not known:
+		preview.name = "Receita secreta"
+		preview.output = DishRules.type_def(type_id).get("icon_item", "")
+	var book_key := "recipe:" + recipe_id if recipe_id != "" else dish_key(type_id, ingredients_list)
+	preview["mastery_key"] = book_key
+	preview.seconds = float(preview.seconds) * float(recipe_mastery(book_key).time)
+	preview.stars = maxi(stars, 1)
+	preview.nutrients = DishRules.nutrients(type_id, ingredients_list, 1, growth.phase)
+	preview.notes = DishRules.key_notes(type_id, ingredients_list)
+	preview.counts_as = DishRules.counts_as(type_id, ingredients_list)
+	return preview
+
+
+## Prato pronto do Cozinhar junto. Recolhe o lote para oferecer na tigela.
+func cook_plate_now(station_id: String, index: int) -> Dictionary:
+	var queue := station(station_id).queue
+	if index < 0 or index >= queue.size():
+		return {"error": "Esse prato já saiu da fila"}
+	if walking():
+		return {"error": away_text()}
+	if dog.sleeping:
+		return {"error": "Shh... ele está dormindo."}
+	var output := Database.entry_output(queue[index])
+	queue[index]["ready_at"] = now()
+	var got := collect(station_id)
+	if int(got.get(output, 0)) < 1:
+		return {"error": "Não coube na geladeira"}
+	return {"item": output}
+
+
+## Frase da prova do Tiro depois de comer `item` (a reação gravada em `growth.tastes`).
+func taste_line(item: String) -> String:
+	var name := Database.item_name(item)
+	match str(growth.tastes.get(item, "")):
+		"loved": return "Ele ama %s!" % name
+		"liked": return "Ele gostou!"
+		"odd": return "Hmm... tanto faz."
+		"grimace": return "Eca! Mas foi engraçado."
+	return ""
+
+
+## Dados do prato de um item (`dish_...`): {type, ingredients, stars, name, meal, taste, nutrients (na fase atual)}; {} se não é prato.
+func dish_info(item_id: String) -> Dictionary:
+	var info := DishRules.parse(item_id)
+	if info.is_empty():
+		return {}
+	var type := str(info.type)
+	return {"type": type, "ingredients": info.ingredients, "stars": info.stars, "name": DishRules.name_of(type, info.ingredients),
+		"meal": DishRules.is_meal(type), "taste": DishRules.taste(info.ingredients),
+		"nutrients": DishRules.nutrients(type, info.ingredients, int(info.stars), growth.phase)}
+
+
+## Registra os pratos dinâmicos que já estão nos lotes da fila (ao carregar o save; o inventário registra sozinho).
+func _register_dishes() -> void:
+	for id: String in stations:
+		for entry: Dictionary in stations[id].queue:
+			Database.ensure_dish(str(entry.get("job", {}).get("output", "")))
+
+
+## DEV: um punhado de cada um dos 13 ingredientes (o primeiro item de cada). Devolve o aviso; "" fora da versão dev.
+func dev_give_ingredients(each: int = 5) -> String:
+	if not BuildInfo.is_dev(): return ""
+	for ingredient: String in DishRules.order():
+		inventory.add(DishRules.main_item(ingredient), each)
+	_changed()
+	return "13 ingredientes ×%d na Mochila" % each
 
 
 ## Primeiro item que falta, como "Falta Cenoura ×2"; sem faltar nada devolve o texto geral.
@@ -1221,7 +2071,24 @@ func cook_finish_at(recipe_id: String, count: int) -> float:
 	var start := now()
 	if not queue.is_empty():
 		start = maxf(start, float(queue.back()["ready_at"]))
-	return start + float(Database.recipes[recipe_id].seconds) * count
+	var seconds := recipe_seconds(recipe_id)
+	if str(Database.recipes[recipe_id].station) == "stove":
+		var key := "recipe:" + recipe_id
+		var points := int(dish_record(key).get("points", 0))
+		var rows: Array = Database.recipe_book.mastery
+		for i in count:
+			start += seconds * float(_recipe_tier(rows, points + i).time)
+		return start
+	return start + seconds * count
+
+
+func recipe_seconds(recipe_id: String) -> float:
+	var recipe: Dictionary = Database.recipes[recipe_id]
+	if farm_week_active():
+		if recipe.has("first_seconds") and week_day() <= int(Database.farm.early_through) and progress.stat("produce:" + Database.recipe_output(recipe)) == 0:
+			return float(recipe.first_seconds)
+		return float(recipe.get("week_seconds", recipe.seconds))
+	return float(recipe.seconds)
 
 
 ## Consulta pura da ação `cook_many`: devolve "" ou o motivo, sem alterar nada.
@@ -1271,6 +2138,7 @@ func cook_many_error(recipe_id: String, count: int) -> String:
 
 ## Coleta tudo o que está pronto na estação. Retorna os itens recebidos.
 func collect(station_id: String) -> Dictionary:
+	var specialty := false
 	var received := {}
 	var blocked := ""
 	for entry: Dictionary in station(station_id).take_ready_batches(now()):
@@ -1313,8 +2181,15 @@ func collect(station_id: String) -> Dictionary:
 			blocked = full
 			continue
 		inventory.add(output, qty)
+		specialty = specialty or bool(job.get("dish", {}).get("specialty", false))
+		if output == "egg" and station_id == "chicken_coop":
+			_recipe_source("eggs")
 		_count("produce:" + output, qty)
 		_count("produce", qty)
+		var dish := dish_of_item(output)
+		_link_key_quests(dish, output, "produce")
+		if dish.get("type") == "biscoito" and "aveia" in dish.ingredients:
+			_count("week_oat_biscuit", qty)
 		_count("production_jobs")  # um lote = 1, mesmo que saiam 2 ou 3 unidades
 		_count_station_job(station_id, recipe_id)
 		_discover("recipe:" + recipe_id, str(job.skill), int(job.skill_xp))
@@ -1324,6 +2199,8 @@ func collect(station_id: String) -> Dictionary:
 		Events.toast_requested.emit(blocked)
 	if not received.is_empty():
 		_changed()
+		if specialty:
+			Events.world_activity.emit(&"specialty", station_id, -1)
 		Events.world_activity.emit(&"collect", station_id, -1)
 	return received
 
@@ -1455,6 +2332,17 @@ func _seed_mastery() -> void:
 	economy.legacy["mastery"] = {"method": "min_units_v1", "jobs": seeded}
 
 
+func farm_week_active() -> bool:
+	return growth.phase_index() < growth.phase_index("teething")
+
+
+func animal_capacity(station_id: String) -> int:
+	var data: Dictionary = Database.stations[station_id]
+	if farm_week_active():
+		return int(data.get("week_animal_capacity", data.animal_capacity))
+	return int(data.animal_capacity)
+
+
 func animal_count(station_id: String) -> int:
 	return animal_roster(station_id).size()
 
@@ -1477,7 +2365,7 @@ func buy_animal_error(id: String) -> String:
 	var reason := requirement_error(data.get("requirements", {}))
 	if reason != "":
 		return reason
-	if animal_count(data.station) >= int(Database.stations[data.station].animal_capacity):
+	if animal_count(data.station) >= animal_capacity(data.station):
 		return "Abrigo cheio"
 	if coins < int(data.price):
 		return "Faltam moedas"
@@ -1498,13 +2386,17 @@ func buy_animal(id: String) -> String:
 func recipe_quantity(recipe_id: String) -> int:
 	var recipe: Dictionary = Database.recipes[recipe_id]
 	var factor := animal_count(recipe.station) if Database.stations[recipe.station].get("kind", "") == "animal" else 1
-	return int(recipe.get("qty", 1)) * factor
+	var qty := int(recipe.get("qty", 1))
+	return (int(recipe.get("week_qty", qty)) if farm_week_active() else qty) * factor
 
 
 func recipe_inputs(recipe_id: String) -> Dictionary:
 	var recipe: Dictionary = Database.recipes[recipe_id]
 	var factor := animal_count(recipe.station) if Database.stations[recipe.station].get("kind", "") == "animal" else 1
-	var result: Dictionary = recipe.get("inputs", {}).duplicate()
+	var inputs: Dictionary = recipe.get("inputs", {})
+	if farm_week_active():
+		inputs = recipe.get("week_inputs", inputs)
+	var result := inputs.duplicate()
 	for id: String in result:
 		result[id] = int(result[id]) * factor
 	return result
@@ -1517,16 +2409,20 @@ func plot(index: int) -> Dictionary:
 	return plots[index]
 
 
-## Canteiros utilizáveis: os comprados, ou só o emprestado antes da escritura.
-## Antes da escritura, a vovó Bloblo empresta canteiros conforme a linha dela (config farm.lent_plots).
+## Os canteiros da horta são sequenciais. O canteiro de milho vem junto com o galinheiro.
 func accessible_plots() -> int:
-	if has_upgrade("farm"):
-		return unlocked_plots
-	var lent := 0
-	for entry: Dictionary in Database.farm.get("lent_plots", []):
-		if requirement_error(entry.get("requirements", {})) == "":
-			lent = maxi(lent, int(entry.count))
-	return lent
+	return mini(unlocked_plots, int(Database.farm.corn_plot)) + int(has_upgrade("chicken_coop"))
+
+
+func plot_can_buy(index: int) -> bool:
+	return index >= unlocked_plots and index < int(Database.farm.corn_plot) and (
+		index < int(Database.farm.week_extra_until) or has_upgrade("farm"))
+
+
+func plot_open(index: int) -> bool:
+	if index == int(Database.farm.corn_plot):
+		return has_upgrade("chicken_coop")
+	return index >= 0 and index < unlocked_plots
 
 
 ## Canteiros da estufa vêm depois dos do sítio (índices a partir de farm.plots) e só valem com a estufa comprada.
@@ -1537,8 +2433,10 @@ func is_greenhouse_plot(index: int) -> bool:
 ## Canteiros do sítio liberados + os da estufa (quando comprada), na ordem do jogo.
 func usable_plot_indices() -> Array[int]:
 	var result: Array[int] = []
-	for i in accessible_plots():
+	for i in mini(unlocked_plots, int(Database.farm.corn_plot)):
 		result.append(i)
+	if has_upgrade("chicken_coop"):
+		result.append(int(Database.farm.corn_plot))
 	if has_upgrade("greenhouse"):
 		for i in int(Database.farm.get("greenhouse_plots", 0)):
 			result.append(int(Database.farm.get("plots", 0)) + i)
@@ -1550,7 +2448,7 @@ func plot_status(index: int) -> String:
 	if is_greenhouse_plot(index):
 		if not has_upgrade("greenhouse"):
 			return "locked"
-	elif index < 0 or index >= accessible_plots():
+	elif not plot_open(index):
 		return "locked"
 	var target := plot(index)
 	if target["crop"] == "":
@@ -1574,7 +2472,10 @@ func plant_error(index: int, crop_id: String) -> String:
 
 ## Tempo real de crescimento no canteiro (estufa x0,7 aplicado UMA vez, aqui; a rega age depois sobre o que falta).
 func crop_seconds(index: int, crop_id: String) -> float:
-	var seconds := float(Database.crops.get(crop_id, {}).get("seconds", 60))
+	var crop: Dictionary = Database.crops.get(crop_id, {})
+	var seconds := float(crop.get("seconds", 60))
+	if week_day() <= int(Database.farm.early_through):
+		seconds = float(crop.get("early_seconds", seconds))
 	if index >= 0 and is_greenhouse_plot(index):
 		seconds *= float(Database.farm.get("greenhouse_speed", 1.0))
 	return seconds
@@ -1588,12 +2489,19 @@ func plant(index: int, crop_id: String) -> String:
 	var planted_at := now()
 	var seconds := crop_seconds(index, crop_id)
 	plots[index] = { "crop": crop_id, "planted_at": planted_at, "ready_at": planted_at + seconds, "watered": false, "job": WorkJobs.crop(crop_id, Database.crops, Database.xp) }
+	var seed := str(Database.week_routine.seed_items.get(crop_id, ""))
+	if seed != "" and inventory.count(seed) > 0:
+		inventory.remove(seed)
+		plots[index].job["routine_seed_bonus"] = int(Database.week_routine.seed_bonus)
+	_count("plant:" + crop_id)
 	_changed()
 	return ""
 
 
 ## Culturas com "greenhouse": "only" (delicadas) só crescem na estufa; "any" cresce nos dois (mais rápido na estufa).
 func crop_plot_error(index: int, crop_id: String) -> String:
+	if index == int(Database.farm.corn_plot) and crop_id != "corn":
+		return "Este canteiro é para milho"
 	var mode := str(Database.crops.get(crop_id, {}).get("greenhouse", ""))
 	if mode == "only" and not is_greenhouse_plot(index):
 		return "Esta planta só cresce na estufa"
@@ -1688,6 +2596,17 @@ func harvest(index: int) -> Dictionary:
 		if storage_error(with_worm) == "":
 			received = with_worm
 			Events.toast_requested.emit("Achou uma minhoca!")
+	var product_id := str(Database.crops[crop_id].get("item", crop_id))
+	var seed_bonus := int(job.get("routine_seed_bonus", 0))
+	var seed_pending := 0
+	if seed_bonus > 0:
+		var with_seed := received.duplicate()
+		with_seed[product_id] = int(with_seed.get(product_id, 0)) + seed_bonus
+		if storage_error(with_seed) == "":
+			received = with_seed
+		else:
+			seed_pending = seed_bonus
+	_count("routine_harvest", int(received.get(product_id, 0)))
 	_count("harvest")
 	_count("harvest:" + crop_id)
 	_album_event("harvested", {"crop": crop_id})
@@ -1695,6 +2614,8 @@ func harvest(index: int) -> Dictionary:
 	coins += int(job.get("coins", 0))
 	for item_id: String in received:
 		inventory.add(item_id, int(received[item_id]))
+	if seed_pending > 0:
+		_grant_automatic("week_seed:%s:%s" % [index, plot(index).get("planted_at", 0)], {"items": {product_id: seed_pending}})
 	plots[index] = { "crop": "", "ready_at": 0.0 }
 	_add_player_xp(int(job.get("player_xp", 0)))
 	_changed()
@@ -1713,16 +2634,18 @@ func plot_progress(index: int) -> float:
 
 
 func plot_cost(index: int) -> int:
+	if index >= int(Database.farm.initial_plots) and index < int(Database.farm.week_extra_until):
+		return int(shop_pack("week_plot").price)
 	var costs: Array = Database.farm.get("unlock_costs", [])
 	return int(costs[index]) if index >= 0 and index < costs.size() else -1
 
 
 ## Expansão em ordem fixa. Valida novamente no momento da compra.
 func buy_plot(index: int) -> String:
-	if not has_upgrade("farm"):
-		return "Compre a escritura do sítio primeiro"
-	if index < 0 or index >= int(Database.farm.get("plots", 0)):
+	if index < 0 or index >= int(Database.farm.corn_plot):
 		return "Terreno inválido"
+	if index >= int(Database.farm.week_extra_until) and not has_upgrade("farm"):
+		return "Compre a escritura do sítio primeiro"
 	if index < unlocked_plots:
 		return "Este terreno já é seu"
 	if index != unlocked_plots:
@@ -1791,6 +2714,8 @@ func _apply_rewards(rewards: Dictionary) -> void:
 		_award_skill(id, int(rewards["skill_xp"][id]))
 	for id: String in rewards.get("collections", []):
 		progress.collection[id] = true
+	for id: String in rewards.get("upgrades", []):
+		_grant_upgrade(id)
 	for id: String in rewards.get("rods", []):
 		give_rod(id)
 	for id: String in rewards.get("unlocks", []):
@@ -1893,7 +2818,9 @@ func shop_items(shop_id: String) -> Array[String]:
 	for id: String in items:
 		if str(items[id].get("shop", "")) != shop_id:
 			continue
-		if requirement_error(items[id].get("requirements", {})) == "":
+		if _shop_pack_owned(id, items[id]):
+			continue
+		if shop_item_locked(id) == "":
 			result.append(id)
 		elif not hinted:
 			hinted = true
@@ -1906,7 +2833,20 @@ func shop_item_locked(id: String) -> String:
 	return requirement_error(Database.progression.get("shop_items", {}).get(id, {}).get("requirements", {}))
 
 
-func _shop_today() -> int:
+func _shop_pack_owned(id: String, data: Dictionary) -> bool:
+	if data.has("crop") and content_error("crop", str(data.crop), Database.crops[str(data.crop)]) == "":
+		return true
+	if data.get("plot", false):
+		return unlocked_plots >= int(Database.farm.week_extra_until)
+	var upgrade := str(data.get("upgrade", ""))
+	if progress.collection.has(str(data.get("collection", ""))):
+		return true
+	return (upgrade != "" and has_upgrade(upgrade)) or (data.get("unique", false) and progress.stat("buy:" + id) > 0)
+
+
+func _shop_today(shop_id: String = "") -> int:
+	if shop_id == "week_cart":
+		return cart_day()
 	return maxi(int(floor(_local_time() / 86400.0)), progress.shop_day_max)
 
 
@@ -1917,7 +2857,7 @@ func shop_pack(id: String) -> Dictionary:
 	var rotation: Array = data.get("rotation", [])
 	if rotation.is_empty():
 		return data
-	var start := (_shop_today() + absi(hash(str(growth.taste_seed)))) % rotation.size()
+	var start := (_shop_today(str(data.shop)) + absi(hash(str(growth.taste_seed)))) % rotation.size()
 	for step in rotation.size():
 		var entry: Dictionary = rotation[(start + step) % rotation.size()]
 		if requirement_error(entry.get("requirements", {})) == "":
@@ -1938,7 +2878,7 @@ func shop_daily_left(id: String) -> int:
 	if not data.has("daily"):
 		return -1
 	var entry: Dictionary = progress.shop_daily.get(id, {})
-	var used := int(entry.get("n", 0)) if int(entry.get("day", -1)) == _shop_today() else 0
+	var used := int(entry.get("n", 0)) if int(entry.get("day", -1)) == _shop_today(str(data.shop)) else 0
 	return maxi(0, int(data.daily) - used)
 
 
@@ -1994,6 +2934,8 @@ func buy_shop_item_error(id: String, qty: int = 1) -> String:
 	var rods: Array = data.get("rods", [])
 	if not rods.is_empty() and rods.all(func(rod: Variant) -> bool: return fishing.has_rod(str(rod))):
 		return "Você já tem"
+	if _shop_pack_owned(id, data):
+		return "Você já tem"
 	var cost := int(data.price) * qty
 	if coins < cost:
 		return "Faltam %d moedas" % (cost - coins)
@@ -2003,30 +2945,54 @@ func buy_shop_item_error(id: String, qty: int = 1) -> String:
 	return storage_error(_pack_items(data, qty))
 
 
-func buy_shop_item(id: String, qty: int = 1) -> String:
+func buy_shop_item(id: String, qty: int = 1, expected_day: int = -1) -> String:
+	if expected_day >= 0 and expected_day != cart_day():
+		return "A oferta de hoje mudou"
 	var error := buy_shop_item_error(id, qty)
 	if error != "":
 		return error
 	var data: Dictionary = shop_pack(id)
 	coins -= int(data.price) * qty
+	if data.get("plot", false):
+		unlocked_plots += 1
 	inventory.remove_all(_pack_materials(data, qty))
+	if data.has("purchase_rewards"):
+		_grant_automatic("purchase:" + id, data.purchase_rewards)
+	_apply_shop_pack(id, data, qty)
+	return ""
+
+
+func _apply_shop_pack(id: String, data: Dictionary, qty: int) -> void:
+	var upgrade := str(data.get("upgrade", ""))
+	if upgrade != "":
+		_build_upgrade(upgrade)
+	if data.has("crop"):
+		progress.unlocks["crop:" + str(data.crop)] = true
 	var gained := _pack_items(data, qty)
 	for item: String in gained:
 		inventory.add(item, int(gained[item]))
 		_count("bought:" + item, int(gained[item]))
 	for rod: String in data.get("rods", []):
 		give_rod(rod)
+	var collection := str(data.get("collection", ""))
+	if collection != "":
+		progress.collection[collection] = true
 	_count("bought_shop:" + str(data.shop), qty)
 	_count("buy:" + id, qty)
 	if data.has("daily"):
-		var today := _shop_today()
-		progress.shop_day_max = today
+		var today := _shop_today(str(data.shop))
+		if data.shop == "week_cart":
+			_week_touch()
+		else:
+			progress.shop_day_max = today
 		var entry: Dictionary = progress.shop_daily.get(id, {})
 		var used := int(entry.get("n", 0)) if int(entry.get("day", -1)) == today else 0
 		progress.shop_daily[id] = {"day": today, "n": used + qty}
 	_changed()
-	Events.items_gained.emit(gained, 0, Vector2(-1, -1))
-	return ""
+	if not gained.is_empty():
+		Events.items_gained.emit(gained, 0, Vector2(-1, -1))
+	if upgrade != "":
+		Events.world_activity.emit(&"build", upgrade, -1)
 
 
 # --- Armazenamento ----------------------------------------------------------------
@@ -2234,6 +3200,10 @@ func _receipt_label(auto_id: String) -> String:
 	var kind := auto_id.get_slice(":", 0)
 	var number := int(auto_id.get_slice(":", 1)) if auto_id.get_slice(":", 1).is_valid_int() else 0
 	match kind:
+		"week_challenge":
+			return "Desafio do dia %d" % number
+		"purchase":
+			return str(shop_pack(auto_id.trim_prefix("purchase:")).get("name", "Compra na banca"))
 		"level":
 			return "Nível %d" % number
 		"chapter":
@@ -2247,6 +3217,16 @@ func _receipt_label(auto_id: String) -> String:
 			return "Álbum de fotos"
 		"fish_chest":
 			return "Baú da lagoa"
+		"week_bait":
+			return "Iscas da vovó"
+		"week_daily":
+			return str(Database.week_routine.daily.get(auto_id.get_slice(":", 2), {}).get("label", Database.week_routine.text.list))
+		"week_line":
+			return str(_week_line_definition(auto_id.get_slice(":", 1)).get("name", Database.week_routine.text.open_lines))
+		"week_seed":
+			return str(Database.week_routine.text.seed) % int(Database.week_routine.seed_bonus)
+		"trick_show", "trick_show_perfect":
+			return "Show de truques"
 	return auto_id.get_slice(":", 1) if ":" in auto_id else auto_id
 
 
@@ -2335,6 +3315,8 @@ func claim_pending_rewards(receipt_id: String = "") -> Dictionary:
 ## Requisitos que dependem de fora do ProgressionState (afeto do Tiro e hora local) são checados
 ## aqui; os demais vão para o `progress`. Todo conteúdo passa por este embrulho (content_error também).
 func requirement_error(requirements: Dictionary) -> String:
+	if requirements.has("week_day") and week_day() < int(requirements.week_day):
+		return "Abre no dia %d" % int(requirements.week_day)
 	if requirements.has("album_photo") and not album.has_photo(str(requirements.album_photo)):
 		return "No Dia do Tiro"
 	if requirements.has("rod") and not fishing.has_rod(str(requirements.rod)):
@@ -2383,6 +3365,9 @@ func upgrade_error(id: String) -> String:
 		return "Melhoria desconhecida"
 	if has_upgrade(id):
 		return "Já adquirido"
+	if data.has("kit"):
+		var kit_error := requirement_error(data.get("requirements", {}))
+		return kit_error if kit_error != "" else "Compre o kit na banca da vovó"
 	if data.has("nature_unlock"):
 		var unlock: Dictionary = data.nature_unlock
 		return "Busque em %s até o nível %d" % [Database.progression.nature_sites[unlock.site].name, int(unlock.level)]
@@ -2403,13 +3388,18 @@ func buy_upgrade(id: String) -> String:
 	var data: Dictionary = Database.progression.upgrades[id]
 	inventory.remove_all(data.get("materials", {}))
 	coins -= int(data.get("cost", 0))
+	_build_upgrade(id)
+	_changed()
+	Events.world_activity.emit(&"build", id, -1)
+	return ""
+
+
+func _build_upgrade(id: String) -> void:
+	var data: Dictionary = Database.progression.upgrades[id]
 	_grant_upgrade(id)
 	_apply_rewards({"skill_xp": data.get("skill_xp", {})})
 	_count("build")
 	_add_player_xp(int(data.get("player_xp", 10)))
-	_changed()
-	Events.world_activity.emit(&"build", id, -1)
-	return ""
 
 
 func _grant_upgrade(id: String) -> void:
@@ -2420,19 +3410,25 @@ func _grant_upgrade(id: String) -> void:
 	var gift: String = data.get("gift_animal", "")
 	if Database.animals.has(gift):
 		var station_id: String = Database.animals[gift].station
-		if animal_count(station_id) < int(Database.stations[station_id].animal_capacity):
-			animals[gift] = int(animals.get(gift, 0)) + 1
+		var amount := mini(int(data.get("gift_animal_count", 1)), animal_capacity(station_id) - animal_count(station_id))
+		if amount > 0:
+			animals[gift] = int(animals.get(gift, 0)) + amount
 	if data.has("nature_unlock"):
 		var site: String = data.nature_unlock.site
 		var target := int(data.nature_unlock.level) - 1
 		progress.nature_xp[site] = maxi(int(progress.nature_xp.get(site, 0)), int(Database.progression.nature_sites[site].levels[target].xp))
 	for site: String in Database.progression.nature_sites:
 		_sync_nature_unlocks(site)
-	if id == "farm":
-		unlocked_plots = maxi(unlocked_plots, int(Database.farm.initial_plots))
 
 
 # --- Feira (venda direta e encomendas) --------------------------------------------
+
+func sale_price(item_id: String, world_id: String = "") -> int:
+	var price := int(Database.items.get(item_id, {}).get("sell_price", 0))
+	if world_id == "farm" and farm_week_active():
+		return int(Database.farm.week_sell_prices.get(item_id, price))
+	return price
+
 
 func sell(item_id: String, amount: int = 1, world_id: String = "") -> String:
 	if world_id not in ["", "farm", "village"]:
@@ -2440,7 +3436,7 @@ func sell(item_id: String, amount: int = 1, world_id: String = "") -> String:
 	if world_id != "":
 		var reason := requirement_error(Database.worlds[world_id].get("requirements", {}))
 		if reason != "": return reason
-	var price := int(Database.items.get(item_id, {}).get("sell_price", 0))
+	var price := sale_price(item_id, world_id)
 	if amount <= 0 or price <= 0:
 		return "Venda inválida"
 	if not inventory.remove(item_id, amount):
@@ -2448,34 +3444,87 @@ func sell(item_id: String, amount: int = 1, world_id: String = "") -> String:
 	coins += price * amount
 	_count("trade")
 	_count("sold", amount)
-	if world_id != "": _count("sold:" + world_id, amount)
+	if world_id != "":
+		_count("sold:" + world_id, amount)
+		_count("sold:%s:%s" % [world_id, item_id], amount)
 	_award_skill("commerce", int(Database.items[item_id].get("trade_xp", 1)) * amount)
 	_changed()
 	return ""
 
 
+func cart_day() -> int:
+	return maxi(week_day_number(), week.high_day)
+
+
+func cart_order_ids() -> Array[String]:
+	var ids: Array[String] = []
+	if shop_error("week_cart") == "":
+		var rotation: Array = Database.progression.cart_orders
+		var first_day := int(Database.shop("week_cart").requirements.week_day)
+		var index := posmod(cart_day() - week.started_day + 1 - first_day, rotation.size())
+		ids.assign(rotation[index])
+	return ids
+
+
+func cart_order_delivered(id: String) -> bool:
+	return int(week.cart_deliveries.get(id, -1)) == cart_day()
+
+
+func cart_order_offer(id: String) -> Dictionary:
+	var order: Dictionary = Database.progression.cart_catalog.get(id, {})
+	var trick := str(order.get("trick", ""))
+	if trick == "" or trick not in learned_lesson_tricks() or walking() or dog.sleeping:
+		return {}
+	if order_error(id) != "":
+		return {}
+	return {"id": trick, "order": id, "day": cart_day(), "tip": int(order.tip)}
+
+
+func _order_def(id: String) -> Dictionary:
+	return Database.progression.orders.get(id, Database.progression.cart_catalog.get(id, {}))
+
+
 func order_error(id: String) -> String:
-	var order: Dictionary = Database.progression.orders.get(id, {})
+	var order := _order_def(id)
 	if order.is_empty():
 		return "Pedido desconhecido"
 	var reason := requirement_error(order.get("requirements", {}))
 	if reason != "":
 		return reason
-	var wait := progress.cooldown_left("order:" + id, now())
-	if wait > 0:
-		return "Novo pedido em " + TimeText.short(wait)
+	if Database.progression.cart_catalog.has(id):
+		if id not in cart_order_ids(): return "Esse pedido ficou para outro dia"
+		if cart_order_delivered(id): return "Já entregue"
+	else:
+		var wait := progress.cooldown_left("order:" + id, now())
+		if wait > 0:
+			return "Novo pedido em " + TimeText.short(wait)
 	if not inventory.has_all(order.inputs):
 		return _missing_text(order.inputs, "Faltam produtos")
 	return storage_error(order.get("rewards", {}).get("items", {}), order.inputs)
 
 
-func fulfill_order(id: String) -> String:
+func fulfill_order(id: String, offer: Dictionary = {}, expected_day: int = -1) -> String:
+	if expected_day >= 0 and expected_day != cart_day():
+		return "As encomendas de hoje mudaram"
 	var reason := order_error(id)
 	if reason != "":
 		return reason
-	var order: Dictionary = Database.progression.orders[id]
+	var order := _order_def(id)
+	if Database.progression.cart_catalog.has(id):
+		# Confere o gesto antes de gravar o recibo. O pagamento e a baixa saem juntos.
+		var tip := 0
+		if not offer.is_empty() and offer == cart_order_offer(id):
+			tip = int(offer.tip)
+		_week_touch()
+		week.cart_deliveries[id] = cart_day()
+		coins += tip
+		_count("cart_delivery")
+		_recipe_source("cart")
+		if tip > 0:
+			_count("cart_tip")
+	else:
+		progress.cooldowns["order:" + id] = now() + float(order.get("cooldown", 0))
 	inventory.remove_all(order.inputs)
-	progress.cooldowns["order:" + id] = now() + float(order.get("cooldown", 0))
 	_count("trade")
 	_count("orders")
 	_count("order:" + id)
@@ -2763,12 +3812,18 @@ func collect_gathering_all(site: String) -> String:
 # --- Missões ----------------------------------------------------------------------
 
 func quest_unlocked(id: String) -> bool:
-	return progress.quest_unlocked(id)
+	return progress.quest_unlocked(id) and week_quest_wait(id) == ""
 
 
 ## Valor atual de um objetivo de missão (tipos: owned, skill, deliver, stat).
 func goal_value(goal: Dictionary) -> int:
 	match str(goal.type):
+		"week_plots":
+			return unlocked_plots
+		"week_delivered":
+			return int(growth.delivered.get("teething", {}).get(goal.key, 0))
+		"week_dish":
+			return _growth_have({"type": "dish_key", "group": goal.key}, "teething") if growth.phase == "puppy" else 0
 		"owned":
 			return 1 if has_upgrade(goal.key) else 0
 		"skill":
@@ -2810,6 +3865,7 @@ func _step_base(goal: Dictionary) -> Dictionary:
 
 ## Conversa aberta com o personagem (objetivos "Falar com…").
 func talk_to(npc_id: String) -> void:
+	note_recipe_hint(npc_id)
 	_count("talk:" + npc_id)
 	if Database.npcs.has(npc_id) and not Database.npcs[npc_id].get("decor", false):
 		_moment_source("talk", npc_id)
@@ -2832,6 +3888,9 @@ func note_screen_opened(screen: String) -> void:
 
 ## Objetivos e entregas separados do espaço para receber o prêmio.
 func quest_objectives_error(id: String) -> String:
+	var wait := week_quest_wait(id)
+	if wait != "":
+		return wait
 	if not quest_unlocked(id):
 		return "Termine as missões anteriores"
 	if progress.claimed_quests.has(id):
@@ -2899,7 +3958,10 @@ func _finish_quest(id: String, grant_reward: bool = true) -> void:
 		_add_player_xp(int(Database.quests[id].get("player_xp", 15)))
 		Events.quest_completed.emit(id)
 	_album_event("quest_claimed", {"quest": id})
+	_week_story_milestone(id)
 	if Database.quests[id].get("kind", "side") == "main" and progress.chapter_index() > chapter:
+		if week_quest_day(id) > 0:
+			week.last_story_chapter_date = maxi(week.high_day, week_day_number())
 		_album_event("chapter_done", {"chapter": chapter, "chapter_last": chapter >= Database.progression.chapters.size()})
 		var chapter_paid := _grant_automatic("chapter:%d" % chapter, Database.progression.chapters[chapter - 1].get("rewards", {}))
 		if chapter_paid.paid:
@@ -2976,7 +4038,9 @@ func routine_seconds_left(kind: String) -> int:
 
 
 func routines_unlocked(kind: String) -> bool:
-	return progress.feature_unlocked(kind)
+	if kind == "weekly" and farm_week_active():
+		return false
+	return progress.feature_unlocked(kind) or (kind == "daily" and not recipe_ingredient_day().is_empty())
 
 
 ## Missões do período (sorteia ao virar o dia ou a semana).
@@ -2989,13 +4053,20 @@ func routine_ids(kind: String) -> Array[String]:
 
 ## Modelo da rotina do catálogo atual (saves zerados).
 func routine_data(kind: String, id: String) -> Dictionary:
+	if kind == "daily" and id == "recipe_ingredient":
+		var daily := recipe_ingredient_day()
+		if daily.is_empty():
+			return {}
+		return {"name": "Ingrediente do dia", "text": "Faça um prato inédito com %s." % daily.name,
+			"goal": {"type": "stat", "key": "ingredient_of_day", "target": 1},
+			"rewards": {"coins": daily.coins}, "icon": "station_stove"}
 	return Database.routines.get(kind, {}).get("missions", {}).get(id, {})
 
 
 ## Fase da jornada para as faixas de meta: começo (até o capítulo 4), meio (5–9), comunidade (10+).
 func routine_phase() -> String:
 	var chapter := progress.chapter_index()
-	return "start" if chapter <= 4 else ("middle" if chapter <= 9 else "community")
+	return "start" if chapter <= 8 else ("middle" if chapter <= 13 else "community")
 
 
 ## Meta da rotina: a quantidade congelada na geração (fase) ou, em sorteio antigo, a do modelo.
@@ -3007,12 +4078,16 @@ func routine_target(kind: String, id: String) -> int:
 
 
 func routine_value(kind: String, id: String) -> int:
+	if kind == "daily" and id == "recipe_ingredient":
+		return int(int(week.recipe_book.get("daily", {}).get("day", 0)) == int(recipe_ingredient_day().get("day", -1)))
 	var key: String = routine_data(kind, id).get("goal", {}).get("key", "")
 	var base: Dictionary = progress.routines.get(kind, {}).get("base", {})
 	return maxi(0, progress.stat(key) - int(base.get(key, 0)))
 
 
 func routine_claimed(kind: String, id: String) -> bool:
+	if kind == "daily" and id == "recipe_ingredient":
+		return int(week.recipe_book.get("daily", {}).get("claimed_day", 0)) == int(recipe_ingredient_day().get("day", -1))
 	return progress.routines.get(kind, {}).get("claimed", {}).has(id)
 
 
@@ -3031,7 +4106,10 @@ func claim_routine(kind: String, id: String) -> String:
 	if reason != "":
 		return reason
 	var data := routine_data(kind, id)
-	progress.routines[kind].claimed[id] = true
+	if kind == "daily" and id == "recipe_ingredient":
+		_recipe_book_section("daily")["claimed_day"] = int(recipe_ingredient_day().day)
+	else:
+		progress.routines[kind].claimed[id] = true
 	_apply_rewards(data.get("rewards", {}))
 	_count("routines")
 	_add_player_xp(int(data.get("player_xp", 10 if kind == "daily" else 30)))
@@ -3053,7 +4131,7 @@ func wish_def(id: String) -> Dictionary:
 
 ## Os desejos aparecem depois da caminha (Novo! "Desejos").
 func wishes_open() -> bool:
-	return progress.feature_unlocked("wishes")
+	return progress.feature_unlocked("wishes") and (progress.stat("arrival_box") == 0 or week_day() >= 3)
 
 
 ## Período em que um desejo novo chega ("" = madrugada).
@@ -3068,6 +4146,8 @@ func update_wishes() -> bool:
 	if not wishes_open():
 		return false
 	var changed := false
+	if progress.stat("arrival_box") > 0 and wishes.done_count == 0 and str(wishes.current.get("id", "")) == str(wish_settings().get("first", "")):
+		return false
 	if wishes.has_current() and wish_def(str(wishes.current.id)).is_empty():  # desejo removido do JSON
 		wishes.current = {}
 		changed = true
@@ -3107,7 +4187,14 @@ func _wish_available(id: String) -> bool:
 		return false
 	if def.has("have_item") and inventory.count(str(def.have_item)) < 1:
 		return false
-	return str(def.get("item", "")) == "meal" or str(def.get("type", "")) != "feed" or wish_item_reachable(def)
+	if bool(def.get("needs_lesson", false)):
+		if has_upgrade("dairy"):
+			return false
+		for trick: String in Database.progression.tricks:
+			if trick_is_lesson(trick) and trick_lesson_error(trick) == "":
+				return true
+		return false
+	return id != "recipe_novelty" and (str(def.get("item", "")) == "meal" or str(def.get("type", "")) != "feed" or wish_item_reachable(def))
 
 
 ## A fase que o Tiro está buscando (a próxima); no fim, a última.
@@ -3149,6 +4236,14 @@ func _pick_wish(period: String) -> Dictionary:
 				best_missing = missing
 		if best != "":
 			return {"id": best, "item": _meal_item() if best == "meal" else ""}
+	var novelty: Dictionary = Database.recipe_book.novelty
+	if week_day() >= int(novelty.from_day) and "recipe_novelty" not in recent and rng.randf() < float(novelty.chance):
+		var tastes: Array = Database.dishes.tastes.keys()
+		var start := rng.randi_range(0, tastes.size() - 1)
+		for i in tastes.size():
+			var taste := str(tastes[(start + i) % tastes.size()])
+			if _novel_food(taste) != "" or not recipe_novelty([], taste).is_empty():
+				return {"id": "recipe_novelty", "item": taste}
 	# 2) O pilar com mais momentos faltando; 3) qualquer desejo da fase.
 	var pillars: Array = ["brave", "smart", "coat"]
 	pillars.sort_custom(func(a: String, b: String) -> bool: return _pillar_missing(a) > _pillar_missing(b))
@@ -3188,6 +4283,11 @@ func _meal_item() -> String:
 ## O desejo como ele vale agora: a comida da refeição vira "Quero <comida>" ou "Tô com fome".
 func _resolved_wish(id: String, item: String) -> Dictionary:
 	var def := wish_def(id).duplicate(true)
+	if id == "recipe_novelty":
+		var taste := str(Database.dishes.tastes.get(item, "novo"))
+		def["taste"] = item
+		def["name"] = "Quero provar algo %s" % taste.to_lower()
+		def["item"] = _novel_food(item)
 	if id == "meal":
 		if item == "":
 			def["type"] = "action"
@@ -3267,20 +4367,21 @@ func wish_error() -> String:
 		return ""
 	if def.type == "action":
 		return "Faça: " + str(def.name)
-	return "Falta " + Database.item_name(str(def.item))
+	return "Prepare um prato novo desse sabor" if def.has("taste") else "Falta " + Database.item_name(str(def.item))
 
 
 ## Atende o desejo: entrega a comida (se for o caso), dá o momento do pilar e espera o próximo período.
-func fulfill_wish() -> String:
+func fulfill_wish(trick_offer: Dictionary = {}, item: String = "") -> String:
 	var error := wish_error()
 	if error != "":
 		return error
 	var def := wish_now()
 	var id := wish_id()
 	if str(def.type) == "feed":
-		if not feed(str(def.item)):
+		var chosen := str(def.item) if item == "" else item
+		if not wish_wants_item(chosen) or not feed(chosen, trick_offer):
 			return "Ele não quer isso agora"
-		_count("wish_item:" + str(def.item))
+		_count("wish_item:" + chosen)
 	_count("wish")
 	_count("wish:" + id)
 	_gain_moment(str(def.pillar), "wish:" + id, false)
@@ -3308,6 +4409,8 @@ func balloon_wish() -> String:
 ## O desejo de agora pede exatamente esta comida e dá para atender: "Ele quer!" no seletor de comida.
 func wish_wants_item(item_id: String) -> bool:
 	var def := wish_now()
+	if def.has("taste"):
+		return not walking() and inventory.count(item_id) > 0 and _novel_food_matches(item_id, str(def.taste))
 	return def.get("type", "") == "feed" and str(def.item) == item_id and wish_error() == ""
 
 
@@ -3418,7 +4521,7 @@ func welcome_ready_lines(limit: int = 5) -> Array[Dictionary]:
 		var output := ""
 		for entry: Dictionary in station(id).queue:
 			if output == "" and float(entry.ready_at) <= now():
-				output = Database.recipe_output(Database.recipes.get(entry.recipe, {}))
+				output = Database.entry_output(entry)
 		_welcome_group(groups, at[0], at[1], station(id).ready_count(now()), output)
 	for site: String in Database.progression.get("nature_sites", {}):
 		if gathering_slots(site) > 0 and gathering_ready_count(site) > 0:
@@ -3518,10 +4621,15 @@ func ready_routine_count() -> int:
 func _ensure_routines(kind: String) -> void:
 	if not routines_unlocked(kind):
 		return
-	var period := routine_period(kind)
+	var period := routine_period(kind, week_now()) if kind == "daily" else routine_period(kind)
 	if progress.routines.get(kind, {}).get("period", "") == period:
 		return
-	var missions: Dictionary = Database.routines[kind].missions
+	var missions: Dictionary = Database.routines[kind].missions.duplicate()
+	var daily := recipe_ingredient_day() if kind == "daily" else {}
+	if kind == "daily" and not progress.feature_unlocked(kind):
+		missions.clear()
+	if not daily.is_empty():
+		missions["recipe_ingredient"] = routine_data(kind, "recipe_ingredient")
 	var pool: Array[String] = []
 	for id: String in missions:
 		if requirement_error(missions[id].get("requirements", {})) == "":
@@ -3530,6 +4638,9 @@ func _ensure_routines(kind: String) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash(kind + period)
 	var ids: Array[String] = []
+	if not daily.is_empty():
+		pool.erase("recipe_ingredient")
+		ids.append("recipe_ingredient")
 	while ids.size() < int(Database.routines[kind].get("count", 3)) and not pool.is_empty():
 		ids.append(pool.pop_at(rng.randi_range(0, pool.size() - 1)))
 	var base := {}
@@ -3666,7 +4777,8 @@ func dev_unlock_everything() -> void:
 	for id: String in Database.progression.upgrades:
 		_dev_satisfy_upgrade(id)
 	for id: String in Database.quests:
-		_dev_complete_quest(id)
+		if Database.quests[id].get("kind") != "retired":
+			_dev_complete_quest(id)
 	for id: String in Database.animals:
 		_dev_satisfy(Database.animals[id].get("requirements", {}))
 	for id: String in Database.progression.skills:
@@ -3674,7 +4786,7 @@ func dev_unlock_everything() -> void:
 	# Roupas também vêm das semanais (sorteadas): entrega a coleção inteira.
 	for id: String in Database.collections:
 		progress.collection[id] = true
-	unlocked_plots = int(Database.farm.get("plots", 0))
+	unlocked_plots = int(Database.farm.corn_plot)
 	_changed()
 
 
@@ -3701,6 +4813,8 @@ func dev_finish_timers() -> void:
 	if not BuildInfo.is_dev():
 		return
 	var t := now()
+	for item: String in week.orchard_ready:
+		week.orchard_ready[item] = minf(float(week.orchard_ready[item]), t)
 	for entry: Dictionary in plots:
 		if entry["crop"] != "":
 			entry["ready_at"] = minf(float(entry["ready_at"]), t)
@@ -3730,6 +4844,8 @@ func dev_advance_time(seconds: float) -> void:
 	dog.updated_at -= seconds
 	dog.away_since = dog.updated_at
 	dog.end_absence(now())
+	for item: String in week.orchard_ready:
+		week.orchard_ready[item] = float(week.orchard_ready[item]) - seconds
 	for entry: Dictionary in plots:
 		if entry["crop"] != "":
 			entry["ready_at"] = float(entry["ready_at"]) - seconds
@@ -4223,11 +5339,21 @@ func growth_info() -> Dictionary:
 	var rows: Array[Dictionary] = []
 	var ready := not next.is_empty()
 	for req: Dictionary in next.get("requirements", []):
+		if req.has("hook") and not growth_hook_live(str(req.hook)):
+			continue
 		var row := req.duplicate(true)
 		row["label"] = _growth_label(req)
 		row["need"] = int(req.get("qty", 1))
 		row["have"] = _growth_have(req, str(next.id))
 		row["done"] = bool(growth.done.get(str(next.id), {}).get(str(req.id), false)) or int(row.have) >= int(row.need)
+		if str(req.type) == "dishes" and req.has("types"):
+			# "8 pratos diferentes de pelo menos 3 tipos": sem a variedade, o último prato não fecha a conta.
+			row["types_need"] = int(req.types)
+			row["types_have"] = _phase_dish_types(req).size()
+			if int(row.have) >= int(row.need) and int(row.types_have) < int(row.types_need):
+				row["dishes_have"] = int(row.have)
+				row["have"] = int(row.need) - 1
+				row["done"] = bool(growth.done.get(str(next.id), {}).get(str(req.id), false))
 		ready = ready and bool(row.done)
 		rows.append(row)
 	var pillars := {}
@@ -4262,9 +5388,146 @@ func _growth_label(req: Dictionary) -> String:
 	return str(req.id)
 
 
+## Gancho de um sistema que ainda vai chegar (`growth.json → hooks`): sem `live`, o requisito não aparece.
+func growth_hook_live(hook: String) -> bool:
+	return bool(Database.growth.get("hooks", {}).get(hook, {}).get("live", true))
+
+
+## Nível do truque (0 = nenhum) pelos acertos contados em `trick:<id>` (limiares em `growth.json → trick_levels`).
+## A Aula do Tiro (E07) passa a contar os acertos nesse mesmo contador.
+func trick_level(id: String) -> int:
+	var total := progress.stat("trick:" + id)
+	var level := 0
+	var thresholds: Array = Database.growth.get("trick_levels", {}).get("thresholds", [3, 8, 15])
+	for i in thresholds.size():
+		if total >= int(thresholds[i]):
+			level = i + 1
+	return level
+
+
+## Prato que o item representa (`{key, type, ingredients}`); `{}` se não é prato (ração, Gororoba, ingredientes).
+## O prato do motor e a receita fixa de mesmos ingredientes têm a MESMA chave.
+func dish_of_item(item_id: String) -> Dictionary:
+	if item_id.begins_with(DishRules.PREFIX):
+		var info := DishRules.parse(item_id)
+		if info.is_empty():
+			return {}
+		return {"key": DishRules.key_of(str(info.type), info.ingredients), "type": str(info.type), "ingredients": info.ingredients}
+	for recipe_id: String in Database.recipes:
+		var recipe: Dictionary = Database.recipes[recipe_id]
+		if str(recipe.get("dish_type", "")) == "" or Database.recipe_output(recipe) != item_id:
+			continue
+		var ingredients: Array[String] = []
+		for input: Variant in recipe.get("inputs", {}):
+			var ingredient_id := DishRules.ingredient_of_item(str(input))
+			if ingredient_id == "":
+				ingredients.clear()
+				break
+			ingredients.append(ingredient_id)
+		var key := DishRules.key_of(str(recipe.dish_type), ingredients) if not ingredients.is_empty() else "recipe:" + recipe_id
+		return {"key": key, "type": str(recipe.dish_type), "ingredients": DishRules.canon(ingredients)}
+	return {}
+
+
+func _dish_in_group(ingredients: Array, group: Dictionary) -> bool:
+	for ingredient_id: Variant in ingredients:
+		if group.has("ingredient") and str(ingredient_id) == str(group.ingredient):
+			return true
+		if group.has("category") and str(DishRules.ingredient(str(ingredient_id)).get("category", "")) == str(group.category):
+			return true
+	return false
+
+
+## Tipos diferentes (dentro do `type_pool` do requisito) entre os pratos comidos na fase.
+func _phase_dish_types(req: Dictionary) -> Array[String]:
+	var types: Array[String] = []
+	var pool: Array = req.get("type_pool", [])
+	for key: String in growth.phase_dishes:
+		var type := str(growth.phase_dishes[key].get("type", ""))
+		if (pool.is_empty() or type in pool) and type not in types:
+			types.append(type)
+	return types
+
+
+## Prato comido (chamado pelo `feed`): conta uma vez por fase, avisa o progresso e liga o prato-chave à missão.
+func _note_fed_dish(item_id: String) -> void:
+	var dish := dish_of_item(item_id)
+	if dish.is_empty():
+		return
+	var key := str(dish.key)
+	_note_book_taste(dish, item_id)
+	if not growth.phase_dishes.has(key):
+		growth.phase_dishes[key] = {"type": dish.type, "ingredients": dish.ingredients, "meal": DishRules.is_meal(str(dish.type))}
+		for row: Dictionary in growth_info().requirements:
+			if str(row.type) == "dishes" and not row.done:
+				Events.toast_requested.emit("Pratos diferentes: %d/%d" % [mini(int(row.have), int(row.need)), int(row.need)])
+	_link_key_quests(dish, item_id, "feed")
+
+
+## O prato-chave e a missão são a mesma coisa: um prato com peixe vale também como a papinha de peixe da missão.
+## `event` = "feed" (comeu) ou "produce" (recolheu). Só refeições.
+func _link_key_quests(dish: Dictionary, item_id: String, event: String) -> void:
+	if dish.is_empty() or not DishRules.is_meal(str(dish.type)):
+		return
+	for group_id: String in Database.growth.get("key_groups", {}):
+		var group: Dictionary = Database.growth.key_groups[group_id]
+		var quest_item := str(group.get("quest_item", ""))
+		if quest_item != "" and quest_item != item_id and _dish_in_group(dish.ingredients, group):
+			_count(event + ":" + quest_item)
+
+
+## Grupos dos pratos-chave (ovo, fruta, peixe) que o próximo crescimento ainda pede.
+func growth_pending_groups() -> Array[Dictionary]:
+	var groups: Array[Dictionary] = []
+	for row: Dictionary in growth_info().requirements:
+		if str(row.type) == "dish_key" and not bool(row.done):
+			groups.append(Database.growth.get("key_groups", {}).get(str(row.group), {}))
+	return groups
+
+
+## A refeição (tipo + ingredientes) serve a algum dos grupos pendentes (`growth_pending_groups`).
+func dish_serves_groups(type_id: String, ingredients: Array, groups: Array[Dictionary]) -> bool:
+	if groups.is_empty() or not DishRules.is_meal(type_id):
+		return false
+	for group: Dictionary in groups:
+		if _dish_in_group(ingredients, group):
+			return true
+	return false
+
+
+## Resumo congelado na cerimônia: o que a fase teve (dias, pratos, brincadeiras, truques).
+func growth_summary() -> Dictionary:
+	var result := {}
+	for def: Dictionary in Database.growth.get("week_summary", []):
+		var id := str(def.id)
+		if id == "dishes":
+			result[id] = growth.phase_dishes.size()
+		else:
+			var key := str(def.counter)
+			result[id] = maxi(0, progress.stat(key) - int(growth.phase_stats.get(key, 0)))
+	return result
+
+
 func _growth_have(req: Dictionary, target: String) -> int:
 	match str(req.get("type", "")):
 		"given": return 1
+		"dishes": return growth.phase_dishes.size()
+		"dish_stars":
+			var starred := 0
+			for key: String in week.dishes:
+				if int(week.dishes[key].get("stars", 1)) >= int(req.get("stars", 2)):
+					starred += 1
+			return starred
+		"invented_dish": return dishes_known_count()
+		"dish_key":
+			var group: Dictionary = Database.growth.get("key_groups", {}).get(str(req.group), {})
+			var served := 0
+			for key: String in growth.phase_dishes:
+				var entry: Dictionary = growth.phase_dishes[key]
+				if bool(entry.get("meal", false)) and _dish_in_group(entry.get("ingredients", []), group):
+					served += 1
+			return served
+		"trick_level": return trick_level(str(req.trick))
 		"owned": return int(has_upgrade(str(req.upgrade)))
 		"quest": return int(progress.claimed_quests.has(str(req.quest)))
 		"project": return int(projects.is_completed(str(req.project)))
@@ -4275,7 +5538,7 @@ func _growth_have(req: Dictionary, target: String) -> int:
 			var key := str(req.get("counter", ""))
 			if str(req.type) == "feed":
 				key = "feed" if str(req.item) == "any" else "feed:" + (favorite_food() if str(req.item) == "favorite" else str(req.item))
-			return maxi(0, progress.stat(key) - int(growth.phase_stats.get(key, 0)))
+			return maxi(0, progress.stat(key) - (0 if req.get("total", false) else int(growth.phase_stats.get(key, 0))))
 	return 0
 
 
@@ -4321,7 +5584,7 @@ func grow_error() -> String:
 	for row: Dictionary in info.requirements:
 		if not row.done:
 			return "Falta: " + str(row.get("label", row.id))
-	return ""
+	return week_growth_error(str(info.next.id))
 
 
 func grow() -> String:
@@ -4335,13 +5598,14 @@ func grow() -> String:
 	if growth.ceremonies.has(target):
 		return "Já cresceu"
 	growth.ceremonies[target] = {"at": now(), "seen": false, "before": growth.phase, "before_coat": dog_look().coat,
-		"delivered": growth.delivered.get(target, {}).duplicate(true)}
+		"delivered": growth.delivered.get(target, {}).duplicate(true), "summary": growth_summary()}
 	if dog.sleeping and target in ["young", "adult"]:
 		growth.pending_reveal = target
 	growth.phase = target
 	growth.phase_since = now()
 	growth.phase_stats = progress.stats.duplicate(true)
 	growth.phase_moments.clear()
+	growth.phase_dishes.clear()
 	_grant_automatic("growth:" + target, next.get("rewards", {}))
 	growth.ceremonies[target]["after_coat"] = dog_look().coat
 	_diary("grew", str(next.name), "growth:" + target)
@@ -4901,6 +6165,7 @@ func end_album_water_drag() -> void:
 
 
 func note_app_opened() -> void:
+	update_week()
 	var window := float(Database.photo("d_gotcha").get("when", {}).get("anniversary", 7))
 	var year := AlbumRules.anniversary_year(now(), window)
 	if year > int(album.years.get("gotcha", 0)):
@@ -5297,7 +6562,7 @@ var _dev_moment_offset: float = 0.0
 
 
 func moment_period(at: float = -1.0) -> String:
-	var local := _local_time(now() + _dev_moment_offset if at < 0 else at)
+	var local := _local_time(week_now() + _dev_moment_offset if at < 0 else at)
 	var date := Time.get_date_string_from_unix_time(local)
 	var hour := int(Time.get_time_dict_from_unix_time(local).hour)
 	var period := ""
@@ -5307,7 +6572,7 @@ func moment_period(at: float = -1.0) -> String:
 
 
 func _prune_moment_periods() -> void:
-	var at := now() + _dev_moment_offset
+	var at := week_now() + _dev_moment_offset
 	var local := _local_time(at)
 	var hour := int(Time.get_time_dict_from_unix_time(local).hour)
 	var start := 0
@@ -5328,13 +6593,13 @@ func _moments_uncapped() -> bool:
 	return growth.phase in Database.growth.moments.get("uncapped_phases", [])
 
 
-func _gain_moment(pillar: String, source: String, capped: bool) -> int:
+func _gain_moment(pillar: String, source: String, capped: bool, strict: bool = false) -> int:
 	if pillar not in ["brave", "smart", "coat"]: return 0
 	_prune_moment_periods()
 	var key := moment_period() + ":" + pillar
 	if capped:
 		var used := int(growth.period_moments.get(key, 0))
-		if used >= int(Database.growth.moments.period_cap) and not _moments_uncapped(): return 0
+		if used >= int(Database.growth.moments.period_cap) and (strict or not _moments_uncapped()): return 0
 		growth.period_moments[key] = used + 1  # também conta na fase livre, para a fase seguinte não burlar o teto
 	growth.moments[pillar] = int(growth.moments.get(pillar, 0)) + 1
 	growth.phase_moments[pillar] = int(growth.phase_moments.get(pillar, 0)) + 1
@@ -5384,6 +6649,8 @@ func _taste(item: String) -> String:
 	if not Database.growth.has("tastes"): return ""
 	var first := not growth.tastes.has(item)
 	var reaction := taste_reaction_for(item)
+	if reaction == "loved" and progress.stat("arrival_box") > 0:
+		_routine_set("favorite", item)
 	if first:
 		growth.tastes[item] = reaction
 		_diary("taste", Database.item_name(item), "taste:" + item)
@@ -5557,6 +6824,8 @@ func fishing_info() -> Dictionary:
 
 
 func fishing_error() -> String:
+	if not farm_lake_open():
+		return "A lagoa abre no dia %d" % int(Database.farm.fishing_day)
 	if current_rod() == "":
 		return "Você ainda não tem uma vara"
 	if dog.sleeping:
@@ -5893,6 +7162,7 @@ func finish_fishing(result: Dictionary) -> String:
 		fishing.since_large += 1
 	_count("fish")
 	_count("fish:" + fish_id)
+	_recipe_source("fish")
 	_count("fish_size:" + str(size.class))
 	_count("fish_size:%s:%s" % [size.class, fish_id])
 	if size.class == "giant":
@@ -6115,6 +7385,484 @@ func dev_reset_fishing() -> void:
 	_changed()
 
 
+# --- Relógio da semana (primeira semana, E00) -------------------------------------
+
+## Agora, no relógio da semana: o real mais o deslocamento DEV (sempre 0 fora da versão dev).
+func week_now() -> float:
+	return now() + week.clock_offset
+
+
+## Número do dia local (dias desde 1970 no fuso do aparelho) do relógio da semana.
+func week_day_number() -> int:
+	return int(floor(float(_local_time(week_now())) / 86400.0))
+
+
+## Dia da semana do jogo: 1 = dia em que o save começou. Só avança (nunca passa de 99), mesmo
+## se o relógio do aparelho voltar: vale o maior dia já visto (`week.high_day`).
+func week_day() -> int:
+	return clampi(maxi(week_day_number(), week.high_day) - week.started_day + 1, 1, 99)
+
+
+## Grava o maior dia visto. Roda no tick, ao carregar e nas ações de refeição (não emite `state_changed`).
+func _week_touch() -> void:
+	week.high_day = maxi(week.high_day, week_day_number())
+
+
+func farm_lake_open() -> bool:
+	return week_day() >= int(Database.farm.fishing_day)
+
+
+## Entregas diárias e abertura do pomar valem também em uma volta ao jogo depois do dia de estreia.
+func _sync_week_farm() -> bool:
+	var changed := false
+	if farm_lake_open():
+		changed = give_rod("bamboo_rod")
+		var day := maxi(week_day_number(), week.high_day)
+		if day > week.bait_day and farm_week_active():
+			week.bait_day = day
+			_grant_automatic("week_bait:%d" % day, {"items": Database.farm.fishing_daily_bait})
+			changed = true
+	if week_day() >= int(Database.farm.orchard_day) and not has_upgrade("orchard"):
+		_grant_upgrade("orchard")
+		changed = true
+	return changed
+
+
+func orchard_remaining(item: String) -> int:
+	return maxi(0, ceili(float(week.orchard_ready.get(item, 0.0)) - now()))
+
+
+func orchard_harvest_error(item: String) -> String:
+	if not Database.farm.orchard_fruit.has(item):
+		return "Fruta desconhecida"
+	if week_day() < int(Database.farm.orchard_day):
+		return "O pomar abre no dia %d" % int(Database.farm.orchard_day)
+	var remaining := orchard_remaining(item)
+	if remaining > 0:
+		return "Fica pronto em " + TimeText.short(remaining)
+	return storage_error({item: Database.farm.orchard_fruit[item]})
+
+
+func harvest_orchard(item: String, origin: Vector2 = Vector2(-1, -1)) -> String:
+	var error := orchard_harvest_error(item)
+	if error != "":
+		return error
+	var amount := int(Database.farm.orchard_fruit[item])
+	week.orchard_ready[item] = now() + float(Database.farm.orchard_seconds)
+	inventory.add(item, amount)
+	_count("routine_harvest", amount)
+	_count("harvest:" + item, amount)
+	_count("orchard:" + item)
+	_recipe_source("orchard")
+	_changed()
+	Events.items_gained.emit({item: amount}, 0, origin)
+	return ""
+
+
+# --- Relógio de refeições (primeira semana, E01a) -----------------------------------
+
+## Horas (de, até) da janela do período no dia, já deslocadas pela opção Mais cedo/Normal/Mais tarde.
+## Janela: de `from` (inclusive) até `to` (exclusive). Período desconhecido = (0, 0).
+func meal_window(period: String) -> Vector2i:
+	var cfg: Dictionary = Database.meals.get("periods", {}).get(period, {})
+	if cfg.is_empty():
+		return Vector2i.ZERO
+	var shift := int(Database.meals.get("options", {}).get(week.option, {}).get("shift", 0))
+	return Vector2i(int(cfg.from) + shift, int(cfg.to) + shift)
+
+
+## Período ("lunch"/"dinner") cuja janela contém a hora; "" fora das janelas.
+func meal_period_at(hour: int) -> String:
+	for period: String in Database.meals.get("periods", {}):
+		var window := meal_window(period)
+		if hour >= window.x and hour < window.y:
+			return period
+	return ""
+
+
+## Período da janela aberta agora no relógio da semana; "" se nenhuma.
+func meal_period_now() -> String:
+	return meal_period_at(week_hour())
+
+
+## Comida que conta como refeição (não como lanche). Prato do motor: pelo tipo (papinha, sopinha e mingau são refeição;
+## petisco, biscoito e Gororoba são lanche). Os demais itens seguem a regra antiga (tem `growth` e não é `treat`).
+func is_meal_item(item_id: String) -> bool:
+	if item_id.begins_with(DishRules.PREFIX):
+		var info := DishRules.parse(item_id)
+		return not info.is_empty() and DishRules.is_meal(str(info.type))
+	var item: Dictionary = Database.items.get(item_id, {})
+	return item.has("growth") and not bool(item.get("treat", false))
+
+
+## Escolhe a opção de horário (`early`/`normal`/`late`); devolve false se não existir.
+func set_meal_option(option: String) -> bool:
+	if not Database.meals.get("options", {}).has(option):
+		return false
+	week.option = option
+	_changed()
+	return true
+
+
+## Quantas refeições na hora o dia precisa para ficar bem alimentado (a chegada pede só uma).
+func meals_needed(day: int) -> int:
+	if day == int(Database.meals.get("arrival_day", 1)):
+		return int(Database.meals.get("arrival_on_time_needed", 1))
+	return int(Database.meals.get("on_time_needed", 2))
+
+
+func meals_on_time(day: int) -> int:
+	var record := week.day_record(day)
+	var total := 0
+	for period: String in Database.meals.get("periods", {}):
+		if bool(record.get(period, {}).get("on_time", false)):
+			total += 1
+	return total
+
+
+func day_well_fed(day: int) -> bool:
+	return bool(week.day_record(day).get("paw", false))
+
+
+## Dias bem alimentados (patinhas) até agora.
+func well_fed_days() -> int:
+	var total := 0
+	for key: String in week.days:
+		if bool(week.days[key].get("paw", false)):
+			total += 1
+	return total
+
+
+## Situação das refeições de hoje, para o HUD e a tela Hoje (E01c): dia, período aberto,
+## o que já foi dado (`done[period]` = {at, on_time, item}) e a patinha.
+func meal_info() -> Dictionary:
+	var day := _routine_day_number()
+	var record := week.day_record(day)
+	var done := {}
+	for period: String in Database.meals.get("periods", {}):
+		if record.has(period):
+			done[period] = record[period]
+	return {
+		"day": day,
+		"period": meal_period_now(),
+		"done": done,
+		"on_time": meals_on_time(day),
+		"needed": meals_needed(day),
+		"paw": bool(record.get("paw", false)),
+		"arrival": day == int(Database.meals.get("arrival_day", 1)),
+	}
+
+
+## Por que a refeição não conta agora ("" = conta). Consulta pura.
+func meal_error(item_id: String) -> String:
+	if not is_meal_item(item_id):
+		return "Isso é um lanche"
+	if _forced_meal != "":
+		return ""  # o Tiro está comendo a refeição guardada (Deixar pronto)
+	var info := meal_info()
+	if info.arrival:
+		return "" if meals_on_time(int(info.day)) < Database.meals.get("periods", {}).size() else "Já comeu hoje"
+	var period := str(info.period)
+	if period == "":
+		return "Ainda não é hora de comer"
+	return "Já comeu no %s" % str(Database.meals.periods[period].name).to_lower() if bool(info.done.get(period, {}).get("on_time", false)) else ""
+
+
+## Registra a refeição na hora para o dia (chamada pelo `feed`). Devolve o período contado ("" = não contou).
+## Dia da chegada: a primeira refeição vale a qualquer horário. Depois: só dentro da janela, uma por período.
+## Refeição guardada (`_forced_meal`): conta para o período e o dia da janela que abriu.
+func _register_meal(item_id: String, trick: String = "") -> String:
+	if meal_error(item_id) != "":
+		return ""
+	_week_touch()
+	var info := meal_info()
+	var day: int = info.day
+	var period := str(info.period)
+	var forced := _forced_meal != ""
+	if forced:
+		day = _forced_day
+		period = _forced_meal
+	elif info.arrival:
+		var order: Array = Database.meals.periods.keys()
+		period = str(order[0]) if week_hour() < 16 else str(order[order.size() - 1])
+		if bool(info.done.get(period, {}).get("on_time", false)):
+			period = str(order[1] if period == order[0] else order[0])
+	var record: Dictionary = week.day_record(day).duplicate(true)
+	record[period] = {"at": week_now(), "on_time": true, "item": item_id}
+	if forced:
+		record[period]["stored"] = true
+	else:
+		dog.apply(Database.meals.get("on_time_bonus", {}), now())  # quem dá na hora ganha mais Felicidade
+		if trick != "":
+			record[period]["trick"] = trick
+			var rules: Dictionary = Database.progression.trick_settings.meal
+			dog.apply(rules.bonus_good if trick_level(trick) >= 2 else rules.bonus, now())
+			_count("trick_meal")
+			_count("trick_meal:" + trick)
+	week.days[str(day)] = record
+	if trick != "":
+		_moment_source("trick_meal")
+	week.weak = false  # a próxima refeição na hora tira o "fraquinho"
+	_count("meal_on_time")
+	Events.meal_given.emit(period, true)
+	if not bool(record.get("paw", false)) and meals_on_time(day) >= meals_needed(day):
+		record["paw"] = true
+		week.days[str(day)] = record
+		_count("well_fed_day")
+		Events.paw_earned.emit(day)
+	return period
+
+
+# --- Fechamento do dia, marmita e Deixar pronto (primeira semana, E01b) -------------
+
+## Tiro fraquinho (dia fraco): vale até a próxima refeição na hora.
+func tiro_weak() -> bool:
+	return week.weak
+
+
+## Refeição guardada esperando a janela (vazio = nenhuma).
+func stored_meal() -> Dictionary:
+	return week.stored.duplicate(true)
+
+
+func _slot_period(slot: int) -> String:
+	return str(Database.meals.periods.keys()[posmod(slot, 2)])
+
+
+## Segundos (hora local) em que a janela do espaço fecha.
+func _slot_end(slot: int) -> float:
+	return float(floori(float(slot) / 2.0)) * 86400.0 + float(meal_window(_slot_period(slot)).y) * 3600.0
+
+
+## Marca como conferido tudo que já fechou antes de agora (começo do save, sem punir o passado).
+func _week_init_settle() -> void:
+	var local := float(_local_time(week_now()))
+	var today := int(floor(local / 86400.0))
+	var slot := today * 2 + 1
+	while slot > today * 2 - 4 and _slot_end(slot) > local:
+		slot -= 1
+	week.settled = slot
+
+
+## Confere as janelas que fecharam (também com o jogo fechado): ração sozinho, dia fraco, marmita,
+## e a refeição guardada que o Tiro come ao abrir a janela. Devolve true se algo mudou.
+func update_week() -> bool:
+	_week_touch()
+	if week.settled < 0:
+		_week_init_settle()
+	var clock := "%d:%s:%s" % [week_day(), week_invent_open(), meal_period_now()]
+	var changed := _sync_week_farm() or clock != _week_story_clock
+	_week_story_clock = clock
+	var local := float(_local_time(week_now()))
+	var guard := 0
+	while guard < 400 and _slot_end(week.settled + 1) <= local:
+		guard += 1
+		week.settled += 1
+		_settle_slot(week.settled)
+		changed = true
+	if not week.stored.is_empty() and int(week.stored.day) == int(floor(local / 86400.0)) and meal_period_now() == str(week.stored.period):
+		changed = _eat_stored() or changed
+	if changed:
+		_changed()
+	return changed
+
+
+func _settle_slot(slot: int) -> void:
+	var local_day := floori(float(slot) / 2.0)
+	var period := _slot_period(slot)
+	var day := local_day - week.started_day + 1
+	if day < 1:
+		return
+	if not week.stored.is_empty() and int(week.stored.day) == local_day and str(week.stored.period) == period:
+		_eat_stored()
+	var record: Dictionary = week.day_record(day).duplicate(true)
+	if not record.has(period):
+		record[period] = {"at": week_now(), "on_time": false, "item": "ration", "auto": true}
+		dog.apply(Database.meals.get("ration", {}), now())
+		week.days[str(day)] = record
+		Events.meal_missed.emit(period)
+	if posmod(slot, 2) == 1 and day != int(Database.meals.get("arrival_day", 1)):
+		_close_day(day)
+	_sync_week_dailies(day)
+
+
+## Fim do dia: bem alimentado zera a sequência; senão é dia fraco (não conta, Tiro fraquinho).
+func _close_day(day: int) -> void:
+	var record: Dictionary = week.day_record(day).duplicate(true)
+	if bool(record.get("paw", false)):
+		week.weak_streak = 0
+		return
+	record["weak"] = true
+	week.days[str(day)] = record
+	week.weak = true
+	week.weak_streak += 1
+	_count("weak_day")
+	Events.weak_day.emit(day)
+	if week.weak_streak >= int(Database.meals.get("lunchbox_after_weak_days", 2)):
+		# A vovó manda a marmita: o Tiro nunca passa fome nem adoece por um dia ruim.
+		dog.apply(Database.meals.get("lunchbox", {}), now())
+		week.weak = false
+		week.weak_streak = 0
+		week.lunchboxes += 1
+		_count("lunchbox")
+		Events.lunchbox_given.emit(day)
+
+
+## Próxima janela ainda fechada, para guardar a refeição: {"day" (dia local), "period", "week_day"}.
+func meal_next_target() -> Dictionary:
+	var local := float(_local_time(week_now()))
+	var today := int(floor(local / 86400.0))
+	for d in range(today, today + 2):
+		for period: String in Database.meals.periods:
+			if local < float(d) * 86400.0 + float(meal_window(period).x) * 3600.0:
+				return {"day": d, "period": period, "week_day": d - week.started_day + 1}
+	return {}
+
+
+## Por que não dá para guardar a refeição ("" = dá). Consulta pura.
+func store_meal_error(item_id: String) -> String:
+	if not is_meal_item(item_id):
+		return "Só uma refeição pode ficar guardada"
+	if inventory.count(item_id) < 1:
+		return "Você não tem isso"
+	if not week.stored.is_empty():
+		return "Já tem uma refeição guardada"
+	var info := meal_info()
+	if info.arrival and int(info.on_time) < Database.meals.periods.size():
+		return "No primeiro dia, dê agora"
+	var period := str(info.period)
+	if period != "" and not bool(info.done.get(period, {}).get("on_time", false)):
+		return "É hora de comer: dê agora"
+	return "" if not meal_next_target().is_empty() else "Sem janela à vista"
+
+
+## Deixar pronto: guarda a refeição para a próxima janela; o Tiro come sozinho ao abrir, mesmo com o jogo fechado.
+func store_meal(item_id: String) -> String:
+	var error := store_meal_error(item_id)
+	if error != "":
+		return error
+	var target := meal_next_target()
+	inventory.remove(item_id)
+	week.stored = {"item": item_id, "day": int(target.day), "period": str(target.period)}
+	_count("meal_stored")
+	Events.meal_stored.emit(str(target.period))
+	_changed()
+	return ""
+
+
+## Devolve à Mochila a refeição guardada (se ainda não foi comida).
+func cancel_stored_meal() -> String:
+	if week.stored.is_empty():
+		return "Não tem refeição guardada"
+	inventory.add(str(week.stored.item), 1)
+	week.stored = {}
+	_changed()
+	return ""
+
+
+## O Tiro come a refeição guardada (a janela abriu). Conta como refeição na hora do período guardado.
+func _eat_stored() -> bool:
+	if week.stored.is_empty():
+		return false
+	var item := str(week.stored.item)
+	var period := str(week.stored.period)
+	var day := int(week.stored.day) - week.started_day + 1
+	week.stored = {}
+	inventory.add(item, 1)
+	_forced_meal = period
+	_forced_day = day
+	var ok := feed(item)
+	_forced_meal = ""
+	_forced_day = 0
+	if not ok:
+		inventory.remove(item)
+		return false
+	_sync_week_dailies(day)
+	_count("meal_stored_eaten")
+	Events.stored_meal_eaten.emit(period)
+	return true
+
+
+## Hora local (0..23) do relógio da semana.
+func week_hour() -> int:
+	return int(Time.get_time_dict_from_unix_time(_local_time(week_now())).hour)
+
+
+func week_minute() -> int:
+	return int(Time.get_time_dict_from_unix_time(_local_time(week_now())).minute)
+
+
+## DEV: leva o relógio da semana ao dia N (1..9), mantendo a hora.
+func dev_week_goto(day: int) -> void:
+	if not BuildInfo.is_dev(): return
+	week.clock_offset += float(day - week_day()) * 86400.0
+	week.high_day = week_day_number()  # DEV pode voltar no tempo
+	_changed()
+
+
+## DEV: leva o relógio da semana à hora H (0..23) do mesmo dia.
+func dev_week_hour(hour: int) -> void:
+	if not BuildInfo.is_dev(): return
+	var local := _local_time(week_now())
+	var seconds_now := posmod(local, 86400)
+	week.clock_offset += float(hour * 3600 - seconds_now)
+	week.high_day = week_day_number()
+	_changed()
+
+
+## DEV: soma (ou tira) horas ao relógio da semana.
+func dev_week_shift_hours(hours: int) -> void:
+	if not BuildInfo.is_dev(): return
+	week.clock_offset += float(hours) * 3600.0
+	week.high_day = maxi(week.high_day, week_day_number()) if hours > 0 else week_day_number()
+	_changed()
+
+
+## DEV: volta o relógio da semana ao real.
+func dev_week_reset_clock() -> void:
+	if not BuildInfo.is_dev(): return
+	week.clock_offset = 0.0
+	week.high_day = week_day_number()
+	_changed()
+
+
+## DEV: marca a refeição do período ("lunch" ou "dinner") de hoje como dada na hora, sem gastar comida.
+## Devolve o aviso; "" fora da versão dev.
+func dev_week_meal(period: String) -> String:
+	if not BuildInfo.is_dev(): return ""
+	if not Database.meals.get("periods", {}).has(period):
+		return "Período desconhecido: %s" % period
+	_week_touch()
+	var day := week_day()
+	var record: Dictionary = week.day_record(day).duplicate(true)
+	record[period] = {"at": week_now(), "on_time": true, "item": "dev"}
+	week.days[str(day)] = record
+	if not bool(record.get("paw", false)) and meals_on_time(day) >= meals_needed(day):
+		record["paw"] = true
+		week.days[str(day)] = record
+		_count("well_fed_day")
+		Events.paw_earned.emit(day)
+	_changed()
+	return "Refeição (%s) do dia %d marcada" % [str(Database.meals.periods[period].name).to_lower(), day]
+
+
+## DEV: entrega o mesmo kit da banca, sem cobrar nem exigir o dia.
+func dev_week_kit(kit: String) -> String:
+	if not BuildInfo.is_dev():
+		return ""
+	var id: String = {"galinheiro": "week_coop", "caminha": "week_bed", "mordedor": "week_teether"}.get(kit, "")
+	if id == "":
+		return "Kit desconhecido"
+	var data := shop_pack(id)
+	if _shop_pack_owned(id, data):
+		return "Você já tem"
+	var error := storage_error(_pack_items(data, 1))
+	if error != "":
+		return error
+	_apply_shop_pack(id, data, 1)
+	return ""
+
+
 # --- Save ------------------------------------------------------------------
 
 func to_dict() -> Dictionary:
@@ -6139,12 +7887,16 @@ func to_dict() -> Dictionary:
 		"projects": projects.to_dict(),
 		"growth": growth.to_dict(),
 		"fishing": fishing.to_dict(),
+		"week": week.to_dict(),
 		"album": album.to_dict(),
 		"economy": economy.to_dict(),
 	}
 
 
 func from_dict(data: Dictionary) -> void:
+	_yard_round.clear()
+	_trick_lesson.clear()
+	_trick_show.clear()
 	if data.is_empty():
 		reset()
 		return
@@ -6161,6 +7913,7 @@ func from_dict(data: Dictionary) -> void:
 		loaded.from_dict(station_data[id])
 		stations[id] = loaded
 	_ensure_stations()
+	_register_dishes()
 	plots = []
 	for entry: Dictionary in data.get("plots", []):
 		var loaded_plot := { "crop": str(entry.get("crop", "")), "ready_at": float(entry.get("ready_at", 0.0)) }
@@ -6172,7 +7925,7 @@ func from_dict(data: Dictionary) -> void:
 			loaded_plot["job"] = (entry.job as Dictionary).duplicate(true)
 		plots.append(loaded_plot)
 	# Saves anteriores à expansão mantêm todos os canteiros que já possuíam (ver SaveManager._migrate).
-	unlocked_plots = clampi(int(data.get("unlocked_plots", maxi(plots.size(), int(Database.farm.get("initial_plots", 3))))), 0, int(Database.farm.get("plots", 0)))
+	unlocked_plots = clampi(int(data.get("unlocked_plots", maxi(plots.size(), int(Database.farm.get("initial_plots", 3))))), 0, int(Database.farm.corn_plot))
 	_ensure_plots()
 	coins = int(data.get("coins", 0))
 	xp = int(data.get("xp", 0))
@@ -6191,9 +7944,16 @@ func from_dict(data: Dictionary) -> void:
 	projects.from_dict(data.get("projects", {}))
 	growth = GrowthState.new()
 	growth.from_dict(data.get("growth", {}))
-	_prune_moment_periods()
 	fishing = FishingState.new()
 	fishing.from_dict(data.get("fishing", {}))
+	week = WeekState.new()
+	week.from_dict(data.get("week", {}))
+	_prune_moment_periods()
+	if week.started_day < 0:
+		week.started_day = week_day_number()
+	_week_touch()
+	if week.settled < 0:
+		_week_init_settle()
 	album = AlbumState.new()
 	album.from_dict(data.get("album", {}))
 	dog.sleep_bonus = house_sleep_bonus()  # sem commit: o tempo salvo já vale com a caminha atual
@@ -6212,7 +7972,7 @@ func from_dict(data: Dictionary) -> void:
 	if data.has("animals"):
 		for id: String in Database.animals:
 			if has_upgrade(Database.animals[id].station):
-				var remaining := int(Database.stations[Database.animals[id].station].animal_capacity) - animal_count(Database.animals[id].station)
+				var remaining := animal_capacity(Database.animals[id].station) - animal_count(Database.animals[id].station)
 				animals[id] = clampi(int(data.animals.get(id, 0)), 0, remaining)
 	else:
 		# Na versão anterior cada abrigo comprado já mostrava dois animais.
@@ -6236,6 +7996,7 @@ func _ensure_stations() -> void:
 
 
 func _changed() -> void:
+	_sync_week_farm()
 	sync_friend_window()
 	# Contratos antigos já entregues contam na evolução da banca, sem repetir prêmios.
 	var contracts := 0
@@ -6249,6 +8010,8 @@ func _changed() -> void:
 	update_wishes()
 	update_finds()
 	_sync_growth()
+	_sync_week_story()
+	_sync_week_routine()
 	_sync_house()
 	Events.state_changed.emit()
 
@@ -6499,3 +8262,856 @@ func _diary(kind: String, title: String, receipt: String = "") -> void:
 	if receipt != "": growth.diary_receipts[receipt] = true
 	growth.diary.append({"at": now(), "day": routine_period("daily"), "kind": kind, "text": template.format({"name": title})})
 	while growth.diary.size() > int(rule.get("limit", 20)): growth.diary.pop_front()
+
+
+# --- Livro de receitas (Primeira semana, E11) --------------------------------------------------------------
+
+func _recipe_tier(rows: Array, points: int) -> Dictionary:
+	var result: Dictionary = {}
+	for row: Dictionary in rows:
+		if points < int(row.points):
+			break
+		result = row
+	return result
+
+
+func recipe_mastery(key: String) -> Dictionary:
+	var rows: Array = Database.recipe_book.mastery
+	var record := dish_record(key)
+	var points := int(record.get("points", 0))
+	var tier := _recipe_tier(rows, points)
+	var every := int(tier.get("gift_every", 0)) if _recipe_gift_allowed(key) else 0
+	var next := 0
+	for row: Dictionary in rows:
+		if int(row.points) > points:
+			next = int(row.points)
+			break
+	return tier.merged({"score": points, "next": next,
+		"until_gift": every - int(record.get("gift_progress", 0)) if every > 0 else 0})
+
+
+func _recipe_gift_allowed(key: String) -> bool:
+	if key.begins_with("recipe:"):
+		var def: Dictionary = Database.recipes.get(key.trim_prefix("recipe:"), {})
+		return DishRules.is_meal(str(def.get("dish_type", ""))) or str(def.get("dish_type", "")) in ["petisco", "biscoito"]
+	var type_id := key.get_slice(":", 1)
+	return DishRules.is_meal(type_id) or type_id in ["petisco", "biscoito"]
+
+
+func chef_info() -> Dictionary:
+	var points := 0
+	for record: Dictionary in week.dishes.values():
+		points += int(record.get("points", 0))
+	return _recipe_tier(Database.recipe_book.chef, points).merged({"score": points})
+
+
+func _recipe_preparation(key: String, stars: int, together: bool) -> Dictionary:
+	var mastery := recipe_mastery(key)
+	var quality := clampi(stars, 1, 3) if together else int(mastery.stars)
+	var time := CookRules.time_factor(quality) if together else float(mastery.time)
+	return {"stars": quality, "time": time, "points": quality if together else 1,
+		"tier": int(mastery.points), "specialty": int(mastery.points) == 30, "gift": int(int(mastery.until_gift) == 1),
+		"gift_progress": 0 if int(mastery.until_gift) <= 1 else int(dish_record(key).get("gift_progress", 0)) + 1}
+
+
+func _record_recipe_preparation(key: String, preparation: Dictionary) -> void:
+	var record := dish_record(key)
+	var rows: Array = Database.recipe_book.mastery
+	record["points"] = mini(int(rows.back().points), int(record.get("points", 0)) + int(preparation.points))
+	var next_tier := _recipe_tier(rows, int(record.points))
+	record["gift_progress"] = int(preparation.gift_progress) if int(next_tier.points) == int(preparation.tier) else 0
+
+
+func _discover_book_dish(type_id: String, ingredients: Array, source: String) -> bool:
+	var key := dish_key(type_id, ingredients)
+	if key == "" or week.dishes.has(key):
+		return false
+	week.dishes[key] = {"stars": 0, "made": 0, "day": week_day(), "source": source}
+	_count("dishes_known")
+	Events.dish_discovered.emit(key, DishRules.name_of(type_id, ingredients))
+	Events.toast_requested.emit("Prato novo: %s!" % DishRules.name_of(type_id, ingredients))
+	return true
+
+
+func _recipe_book_section(id: String) -> Dictionary:
+	if not week.recipe_book.has(id):
+		week.recipe_book[id] = {}
+	return week.recipe_book[id]
+
+
+func _named_book_recipe(id: String) -> Dictionary:
+	for entry: Dictionary in Database.dishes.named:
+		if str(entry.id) == id:
+			return entry
+	return {}
+
+
+func recipe_secret(id: String) -> Dictionary:
+	var config: Dictionary = Database.recipe_book.secrets.get(id, {})
+	var entry := _named_book_recipe(id)
+	if config.is_empty() or entry.is_empty():
+		return {}
+	var key := dish_key(str(entry.type), entry.ingredients)
+	var owns: Dictionary = week.recipe_book.get("pieces", {})
+	var pieces: Array = owns.get(id, [])
+	var hinted: bool = week.recipe_book.get("hints", {}).has(id)
+	var state := recipe_book_state(key)
+	var hint: Dictionary = config.hint
+	var revealed: Array[String] = []
+	if hinted:
+		revealed.append(str(hint.ingredient))
+	var ingredients := DishRules.canon(entry.ingredients)
+	ingredients.erase(str(hint.ingredient))
+	for i: int in pieces:
+		if i < ingredients.size() and ingredients[i] not in revealed:
+			revealed.append(ingredients[i])
+	var next := {}
+	for i in config.pieces.size():
+		if i in pieces:
+			continue
+		var origin: Array = config.pieces[i]
+		var source: Dictionary = Database.recipe_book.sources[origin[0]]
+		var so_far := int(week.recipe_book.get("sources", {}).get(origin[0], 0))
+		next = source.merged({"left": maxi(0, int(origin[1]) - so_far)})
+		break
+	return {"id": id, "key": key, "state": state, "name": str(entry.name) if state not in ["pista", "desconhecida"] else "Receita secreta",
+		"pieces": pieces.duplicate(), "hinted": hinted, "hint": hint, "revealed": revealed, "next": next}
+
+
+func recipe_book_state(key: String) -> String:
+	var record := dish_record(key)
+	var tasted: bool = week.recipe_book.get("tasted", {}).has(_book_taste_key(key))
+	if not record.is_empty() or tasted:
+		var tiers: Array = Database.recipe_book.mastery
+		if int(record.get("points", 0)) >= int(tiers[2].points):
+			return "dominada"
+		return "provada" if tasted else "descoberta"
+	var parsed := DishRules.parse_key(key.trim_prefix("dish:"))
+	if not parsed.is_empty():
+		var id := str(DishRules.named(str(parsed.type), parsed.ingredients).get("id", ""))
+		if week.recipe_book.get("hints", {}).has(id) or week.recipe_book.get("pieces", {}).has(id):
+			return "pista"
+	return "desconhecida"
+
+
+func note_recipe_hint(source: String) -> void:
+	if source == "lais":
+		var made_mingau := recipe_book_entries().any(func(entry: Dictionary) -> bool: return entry.type == "mingau" and int(dish_record(str(entry.key)).get("made", 0)) > 0)
+		if not made_mingau:
+			return
+	for id: String in Database.recipe_book.secrets:
+		var hint: Dictionary = Database.recipe_book.secrets[id].hint
+		if str(hint.source) != source or week.recipe_book.get("hints", {}).has(id):
+			continue
+		_recipe_book_section("hints")[id] = true
+		Events.toast_requested.emit("Pista de receita: %s" % str(hint.text))
+		_changed()
+
+
+func _recipe_source(source: String) -> void:
+	var counts := _recipe_book_section("sources")
+	counts[source] = int(counts.get(source, 0)) + 1
+	for id: String in Database.recipe_book.secrets:
+		var origins: Array = Database.recipe_book.secrets[id].pieces
+		for i in origins.size():
+			var origin: Array = origins[i]
+			if str(origin[0]) != source or int(counts[source]) < int(origin[1]):
+				continue
+			var found := _recipe_book_section("pieces")
+			var pieces: Array = found.get(id, [])
+			if i in pieces:
+				continue
+			pieces.append(i)
+			found[id] = pieces
+			if pieces.size() == origins.size():
+				var recipe := _named_book_recipe(id)
+				_discover_book_dish(str(recipe.type), recipe.ingredients, "pieces")
+			Events.recipe_piece_found.emit(id, pieces.size())
+
+
+func _book_taste_key(key: String) -> String:
+	if not key.begins_with("recipe:"):
+		return key
+	var recipe: Dictionary = Database.recipes.get(key.trim_prefix("recipe:"), {})
+	var dish := dish_of_item(Database.recipe_output(recipe))
+	return "dish:" + str(dish.key) if not dish.is_empty() else key
+
+
+func _note_book_taste(dish: Dictionary, item: String) -> void:
+	_note_routine_taste(dish, item)
+	var key := "dish:" + str(dish.key)
+	var tasted := _recipe_book_section("tasted")
+	if tasted.has(key):
+		return
+	tasted[key] = item
+
+
+func recipe_ingredient_stock(ingredient: String) -> int:
+	var stock := 0
+	for item: String in DishRules.ingredient(ingredient).get("items", []):
+		stock += inventory.count(item)
+	return stock
+
+
+func recipe_book_entries() -> Array[Dictionary]:
+	var entries: Array[Dictionary] = []
+	var seen := {}
+	for recipe_id: String in Database.recipes_for("stove"):
+		var output := Database.recipe_output(Database.recipes[recipe_id])
+		var dish := dish_of_item(output)
+		if dish.is_empty() or dish.ingredients.is_empty():
+			continue
+		var key := "recipe:" + recipe_id
+		if dish_record(key).is_empty() and recipe_book_state(key) != "provada":
+			continue
+		entries.append({"key": key, "type": dish.type, "ingredients": dish.ingredients, "recipe": recipe_id, "item": output})
+		seen["dish:" + str(dish.key)] = true
+	for entry: Dictionary in known_dishes():
+		if not seen.has(str(entry.key)):
+			entries.append(entry)
+	for key: String in week.recipe_book.get("tasted", {}):
+		if week.dishes.has(key) or seen.has(key):
+			continue
+		var parsed := DishRules.parse_key(key.trim_prefix("dish:"))
+		if not parsed.is_empty():
+			entries.append(parsed.merged({"key": key}))
+	return entries
+
+
+func recipe_book_rows(selected: Array = [], include_secrets: bool = true) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	for entry: Dictionary in recipe_book_entries():
+		if not selected.all(func(id: String) -> bool: return id in entry.ingredients):
+			continue
+		var type_id := str(entry.type)
+		var named := DishRules.named(type_id, entry.ingredients)
+		if not include_secrets and bool(named.get("secret", false)):
+			continue
+		var row := entry.duplicate()
+		var recipe := str(row.get("recipe", ""))
+		row["inputs"] = dish_inputs(row.ingredients) if recipe == "" else recipe_inputs(recipe)
+		row["missing"] = 0
+		for item: String in row.inputs:
+			row.missing += maxi(0, int(row.inputs[item]) - inventory.count(item))
+		row["name"] = DishRules.name_of(type_id, row.ingredients) if recipe == "" else Database.item_name(str(row.item))
+		row["item"] = row.get("item", DishRules.icon_item(type_id, row.ingredients))
+		row["stars"] = int(dish_record(str(row.key)).get("stars", 0))
+		row["state"] = recipe_book_state(str(row.key))
+		rows.append(row)
+	rows.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return str(a.name).naturalnocasecmp_to(str(b.name)) < 0 if a.missing == b.missing else int(a.missing) < int(b.missing))
+	return rows
+
+
+var _book_combinations: Dictionary = {}
+
+
+func _recipe_combinations() -> Array:
+	var day := mini(7, week_day())
+	if not _book_combinations.has(day):
+		_book_combinations[day] = DishRules.combinations(day)
+	return _book_combinations[day]
+
+
+func recipe_undiscovered_count(ingredient: String) -> int:
+	var known := {}
+	for entry: Dictionary in recipe_book_entries():
+		known[dish_key(str(entry.type), entry.ingredients)] = true
+	var total := 0
+	for entry: Dictionary in _recipe_combinations():
+		if ingredient in entry.ingredients and not known.has(dish_key(str(entry.type), entry.ingredients)):
+			total += 1
+	return total
+
+
+func recipe_novelty(selected: Array = [], taste: String = "", limit: int = 1) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if not has_upgrade("stove") or not week_invent_open():
+		return result
+	var tasted: Dictionary = week.recipe_book.get("tasted", {})
+	var stocks := {}
+	for id: String in DishRules.order():
+		stocks[id] = recipe_ingredient_stock(id)
+	for entry: Dictionary in _recipe_combinations():
+		var type_id := str(entry.type)
+		if not selected.all(func(id: String) -> bool: return id in entry.ingredients):
+			continue
+		if not entry.ingredients.all(func(id: String) -> bool: return int(stocks[id]) >= entry.ingredients.count(id)):
+			continue
+		if tasted.has(dish_key(type_id, entry.ingredients)):
+			continue
+		if taste != "" and (not DishRules.is_meal(type_id) or DishRules.taste(entry.ingredients) != taste):
+			continue
+		result.append(entry)
+		if result.size() >= limit:
+			break
+	return result
+
+
+var _recipe_sniff_signature := ""
+var _recipe_sniff_possible := false
+
+
+func recipe_can_sniff() -> bool:
+	var signature := "%d:%d:%d:%s:%s" % [week_day(), int(week_invent_open()), int(has_upgrade("stove")),
+		week.recipe_book.get("tasted", {}).size(), inventory.counts.hash()]
+	if signature != _recipe_sniff_signature:
+		_recipe_sniff_signature = signature
+		_recipe_sniff_possible = not recipe_novelty().is_empty()
+	return _recipe_sniff_possible
+
+
+func recipe_ingredient_day() -> Dictionary:
+	var config: Dictionary = Database.recipe_book.daily
+	var day := week_day()
+	if not has_upgrade("stove") or day < int(config.from_day) or (day - int(config.from_day)) % 2 != 0:
+		return {}
+	var cycle: Array = config.cycle
+	var start := (day - int(config.from_day)) / 2
+	var available := DishRules.available(day)
+	for offset in cycle.size():
+		var id := str(cycle[(start + offset) % cycle.size()])
+		if id in available:
+			return {"id": id, "name": DishRules.ingredient(id).name, "day": day, "coins": int(config.base_coins) * 2}
+	return {}
+
+
+func _note_daily_ingredient(ingredients: Array, fresh: bool) -> void:
+	var daily := recipe_ingredient_day()
+	if not fresh or daily.is_empty() or str(daily.id) not in ingredients:
+		return
+	var completed := _recipe_book_section("daily")
+	if int(completed.get("day", 0)) == int(daily.day):
+		return
+	completed["day"] = int(daily.day)
+	_count("ingredient_of_day")
+	Events.toast_requested.emit("Ingrediente do dia! Pegue o prêmio nas Diárias.")
+
+
+func _novel_food_matches(item: String, taste: String) -> bool:
+	var dish := dish_of_item(item)
+	return not dish.is_empty() and DishRules.is_meal(str(dish.type)) and not dish.ingredients.is_empty() \
+		and not week.recipe_book.get("tasted", {}).has("dish:" + str(dish.key)) and DishRules.taste(dish.ingredients) == taste
+
+
+func _novel_food(taste: String) -> String:
+	for item: String in inventory.counts:
+		if inventory.count(item) > 0 and _novel_food_matches(item, taste):
+			return item
+	return ""
+
+# --- História da primeira semana --------------------------------------------------
+
+func finish_week_arrival() -> void:
+	if progress.seen.has("intro"):
+		return
+	_count("arrival_box")
+	mark_seen(["intro"])
+
+
+func week_quest_day(id: String) -> int:
+	var quest: Dictionary = Database.quests.get(id, {})
+	var day := int(quest.get("chapter", 0))
+	return day if quest.get("kind") == "main" and day >= 1 and day <= Database.week_story.days.size() else 0
+
+
+func week_quest_wait(id: String) -> String:
+	var day := week_quest_day(id)
+	if day == 0:
+		return ""
+	var quest: Dictionary = Database.quests[id]
+	if week_day() < day or (day > 1 and week.last_story_chapter_date == maxi(week.high_day, week_day_number())):
+		return "A vovó volta amanhã"
+	if week_day() == day and str(quest.get("meal_open", "")) == "dinner" and not week_invent_open():
+		return "A vovó volta no jantar"
+	return ""
+
+
+func week_invent_open() -> bool:
+	return week_day() > 1 or week_hour() >= meal_window("dinner").x
+
+
+func note_week_pier() -> void:
+	if farm_lake_open() and progress.stat("week_pier") == 0:
+		_count("week_pier")
+		_changed()
+
+
+func week_growth_error(target: String) -> String:
+	# O save real passa pela caixinha; as outras fases usam só o painel de crescimento.
+	if progress.stat("arrival_box") == 0:
+		return ""
+	var step := str(Database.week_story.growth_steps.get(target, ""))
+	if step == "":
+		return ""
+	if progress.current_main_quest() != step:
+		return "Continue a História"
+	var wait := week_quest_wait(step)
+	if wait != "":
+		return wait
+	if target == "puppy" and week_day() == 2 and week_hour() < meal_window("dinner").x:
+		return "O Tiro cresce a partir do jantar"
+	if target == "teething" and not week_farewell_complete():
+		return "Sirva o almoço de despedida"
+	return ""
+
+
+func week_meal_in_group(item: String, group: String) -> bool:
+	var dish := dish_of_item(item)
+	return not dish.is_empty() and DishRules.is_meal(str(dish.type)) and _dish_in_group(dish.ingredients, Database.growth.key_groups[group])
+
+
+func week_farewell_complete() -> bool:
+	return week.farewell.size() == Database.week_story.farewell.roles.size()
+
+
+func week_farewell_error(role: String, item: String) -> String:
+	if progress.current_main_quest() != str(Database.week_story.farewell.step) or week_day() < Database.week_story.days.size():
+		return "O almoço é no último capítulo da semana"
+	if not Database.week_story.farewell.roles.has(role):
+		return "Lugar desconhecido"
+	if week.farewell.has(role):
+		return "Prato já servido"
+	if not is_meal_item(item) or inventory.count(item) == 0:
+		return "Escolha uma refeição da Mochila"
+	if role == "tiro" and (walking() or dog.sleeping):
+		return "Sirva quando o Tiro estiver por perto e acordado"
+	return ""
+
+
+func serve_week_farewell(role: String, item: String) -> String:
+	var error := week_farewell_error(role, item)
+	if error != "":
+		return error
+	week.farewell[role] = item
+	if role == "tiro":
+		if not feed(item):
+			week.farewell.erase(role)
+			return "O Tiro não pôde comer"
+	else:
+		inventory.remove(item)
+	if week_farewell_complete():
+		_count("week_farewell")
+		_album_event("week_farewell", {"world": "farm"})
+	_changed()
+	return ""
+
+
+# --- Rotina e linhas da primeira semana --------------------------------------------
+
+func _routine_day_number() -> int:
+	return maxi(week.high_day, week_day_number()) - week.started_day + 1
+
+
+func _week_routine_day(day: int, create: bool = false) -> Dictionary:
+	if create and not week.routine.has("days"):
+		week.routine["days"] = {}
+	var days: Dictionary = week.routine.get("days", {})
+	var key := str(week.started_day + day - 1)
+	if create and not days.has(key):
+		days[key] = {}
+	return days.get(key, {})
+
+
+func _week_routine_pick(day: int) -> void:
+	if not farm_week_active() or day != _routine_day_number():
+		return
+	var record := _week_routine_day(day, true)
+	if record.has("activity"):
+		return
+	var available: Array[String] = []
+	for id: String in Database.week_routine.daily_counters:
+		var def: Dictionary = Database.week_routine.daily[id]
+		var upgrade := str(def.get("upgrade", ""))
+		if day < int(def.day) or (upgrade != "" and not has_upgrade(upgrade)):
+			continue
+		if id == "play" and not yard_open("ball"):
+			continue
+		if id == "fish" and not farm_lake_open():
+			continue
+		if id == "harvest" and accessible_plots() == 0:
+			continue
+		available.append(id)
+	if not available.is_empty():
+		record["activity"] = available[posmod(hash([growth.taste_seed, week.started_day + day - 1]), available.size())]
+
+
+func week_daily_rows(day: int = -1) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	if day < 0:
+		day = _routine_day_number()
+	var record := _week_routine_day(day)
+	if not record.has("activity"):
+		return rows
+	var meals := week.day_record(day)
+	var counters: Dictionary = record.get("counts", {})
+	for id: String in ["lunch", "dinner", str(record.activity)]:
+		var def: Dictionary = Database.week_routine.daily[id]
+		var counter := str(Database.week_routine.daily_counters.get(id, ""))
+		var value := int(meals.get(id, {}).get("on_time", false)) if counter == "" else int(counters.get(counter, 0))
+		rows.append(def.merged({"id": id, "value": mini(int(def.target), value), "done": value >= int(def.target)}))
+	return rows
+
+
+func _sync_week_dailies(day: int) -> void:
+	var rows := week_daily_rows(day)
+	for row: Dictionary in rows:
+		if row.done:
+			_grant_automatic("week_daily:%d:%s" % [week.started_day + day - 1, row.id], row.rewards)
+	if not rows.is_empty() and rows.all(func(row: Dictionary) -> bool: return row.done):
+		_grant_automatic("week_daily_seal:%d" % (week.started_day + day - 1), {})
+
+
+func _routine_period_index() -> int:
+	var hour := week_hour()
+	var boundaries: Array = Database.week_routine.periods
+	for index: int in range(boundaries.size() - 1, -1, -1):
+		if hour >= int(boundaries[index]):
+			return index
+	return boundaries.size() - 1
+
+
+func _routine_set(key: String, value: String) -> void:
+	if not week.routine.has("sets"):
+		week.routine["sets"] = {}
+	var sets: Dictionary = week.routine.sets
+	if not sets.has(key):
+		sets[key] = {}
+	sets[key][value] = true
+
+
+func _count_week_routine(counter: String, amount: int) -> void:
+	if progress.stat("arrival_box") == 0:
+		return
+	var is_period_action := counter in ["pet", "play", "trick_lesson"]
+	if not is_period_action and counter not in Database.week_routine.daily_counters.values():
+		return
+	var day := _forced_day if _forced_day > 0 else _routine_day_number()
+	if not is_period_action and not farm_week_active() and not _week_routine_day(day).has("activity"):
+		return
+	var record := _week_routine_day(day, true)
+	if not record.has("counts"):
+		record["counts"] = {}
+	record.counts[counter] = int(record.counts.get(counter, 0)) + amount
+	if counter in ["pet", "play"]:
+		var period := _routine_period_index()
+		var field := counter + "_periods"
+		record[field] = int(record.get(field, 0)) | (1 << period)
+		if counter == "pet":
+			_routine_set("pet", "%d:%d" % [day, period])
+
+
+func _note_routine_cooked(type: String, ingredients: Array, stars: int) -> void:
+	if progress.stat("arrival_box") == 0:
+		return
+	for pair: Dictionary in DishRules.duples_of(ingredients):
+		_routine_set("pairs", "%s:%s" % [pair.a, pair.b])
+	var nutrients := DishRules.nutrients(type, ingredients, stars, growth.phase)
+	if DishRules.nutrient_ids().all(func(id: String) -> bool: return int(nutrients.get(id, 0)) > 0):
+		_routine_set("complete_dish", "yes")
+	var recipe := DishRules.named(type, ingredients)
+	var id := str(recipe.get("id", ""))
+	if Database.recipe_book.secrets.has(id):
+		_routine_set("secret", id)
+
+
+func _note_routine_taste(dish: Dictionary, item: String) -> void:
+	if progress.stat("arrival_box") == 0:
+		return
+	var flavor := DishRules.taste(dish.ingredients)
+	if flavor in Database.week_routine.flavors:
+		_routine_set("flavors", flavor)
+	if dish.type in Database.week_routine.meal_types:
+		_routine_set("types", str(dish.type))
+	if week.recipe_book.get("tasted", {}).has("dish:" + str(dish.key)):
+		return
+	var day := _forced_day if _forced_day > 0 else _routine_day_number()
+	if farm_week_active() or _week_routine_day(day).has("activity"):
+		var record := _week_routine_day(day, true)
+		record["dish"] = item
+		_count("routine_new_dish")
+
+
+func _week_line_definition(id: String) -> Dictionary:
+	for line: Dictionary in Database.week_routine.lines.values():
+		for step: Dictionary in line.steps:
+			if step.id == id:
+				return step
+	return {}
+
+
+func _week_line_value(id: String) -> int:
+	var sets: Dictionary = week.routine.get("sets", {})
+	match id:
+		"invention": return progress.stat("routine_invent")
+		"flavors", "types", "complete_dish", "favorite", "pet", "secret":
+			return sets.get(id, {}).size()
+		"pair", "pairs": return sets.get("pairs", {}).size()
+		"five", "chef": return int(week.routine.get("book_count", 0))
+		"sit_meal": return progress.stat("trick_meal:sit")
+		"shows": return progress.stat("trick_show")
+		"paw", "full_week": return well_fed_days()
+		"skilled", "tricks":
+			var level := int(Database.week_routine.skilled_level if id == "skilled" else Database.week_routine.learned_level)
+			var result := 0
+			for trick: String in Database.week_routine.tricks:
+				result += int(trick_level(trick) >= level)
+			return result
+		"lunches", "streak":
+			var total := 0
+			for key: String in week.days:
+				var meals: Dictionary = week.days[key]
+				if id == "lunches":
+					total += int(meals.get("lunch", {}).get("on_time", false))
+				elif bool(meals.get("paw", false)) and bool(week.day_record(int(key) - 1).get("paw", false)):
+					return 2
+			return total
+		"train", "nights", "play", "perfect":
+			var result := 0
+			var play_mask: int = (1 << Database.week_routine.periods.size()) - 1
+			var days: Dictionary = week.routine.get("days", {})
+			for civil: String in days:
+				var record: Dictionary = days[civil]
+				var counts: Dictionary = record.get("counts", {})
+				match id:
+					"train": result += int(int(counts.get("trick_lesson", 0)) > 0)
+					"nights": result += int(bool(record.get("night", false)))
+					"play":
+						var bits := int(record.get("play_periods", 0))
+						var periods := 0
+						for index: int in Database.week_routine.periods.size():
+							periods += int((bits & (1 << index)) != 0)
+						result = maxi(result, periods)
+						if bits == play_mask:
+							return result
+					"perfect":
+						var day := int(civil) - week.started_day + 1
+						if meals_on_time(day) >= Database.meals.periods.size() and int(counts.get("play", 0)) > 0 \
+								and int(counts.get("pet", 0)) > 0 and int(counts.get("trick_lesson", 0)) > 0:
+							return 1
+			return result
+	return 0
+
+
+func week_line_rows(line: String) -> Array[Dictionary]:
+	var rows: Array[Dictionary] = []
+	var def: Dictionary = Database.week_routine.lines.get(line, {})
+	var copy: Dictionary = Database.week_routine.text
+	for step: Dictionary in def.get("steps", []):
+		var done := economy.granted.has("week_line:" + str(step.id))
+		var value := int(step.target) if done else mini(int(step.target), _week_line_value(str(step.id)))
+		var lock_text := ""
+		if week_day() < int(step.day):
+			lock_text = str(copy.locked) % int(step.day)
+		elif step.go.has("kitchen") and not has_upgrade("stove"):
+			lock_text = str(copy.stove_locked)
+		elif step.go.has("kitchen") and not week_invent_open():
+			lock_text = str(copy.invent_locked)
+		rows.append(step.merged({"value": value, "done": done, "locked": lock_text != "",
+			"lock_text": lock_text, "line": str(def.title)}))
+	return rows
+
+
+func week_routine_next_step() -> Dictionary:
+	var available: Array[Dictionary] = []
+	for line: String in Database.week_routine.lines:
+		for row: Dictionary in week_line_rows(line):
+			if not row.done and not row.locked:
+				available.append(row)
+				break
+	if available.is_empty():
+		return {}
+	return available[posmod(hash([growth.taste_seed, week.started_day, week_day()]), available.size())]
+
+
+func _sync_week_routine() -> void:
+	if progress.stat("arrival_box") == 0:
+		return
+	var day := _routine_day_number()
+	_week_routine_pick(day)
+	_sync_week_dailies(day)
+	if int(week.routine.get("book_size", -1)) != week.dishes.size():
+		# Todas as chaves de prato são canônicas, incluindo as receitas fixas.
+		var keys := {}
+		for key: String in week.dishes:
+			keys[_book_taste_key(key)] = true
+		week.routine["book_size"] = week.dishes.size()
+		week.routine["book_count"] = keys.size()
+	for line: String in Database.week_routine.lines:
+		for row: Dictionary in week_line_rows(line):
+			if row.done or day < int(row.day) or int(row.value) < int(row.target):
+				continue
+			var receipt := "week_line:" + str(row.id)
+			_grant_automatic(receipt, row.get("rewards", {}))
+			if row.has("photo"):
+				_album_event("week_line_done", {"quest": str(row.id)})
+			if row.has("hint"):
+				_recipe_book_section("hints")[str(row.hint)] = true
+
+
+func week_card_candidates() -> Array[Dictionary]:
+	var cards: Array[Dictionary] = []
+	if progress.stat("arrival_box") == 0:
+		return cards
+	var day := _routine_day_number()
+	var civil := week.started_day + day - 1
+	if week_day_number() != civil or week.settled < civil * 2 - 1:
+		return cards  # A volta após faltar precisa fechar as refeições de ontem antes do Bom dia.
+	var record := _week_routine_day(day)
+	if not farm_week_active() and not record.has("activity"):
+		return cards
+	if not record.get("morning", false):
+		cards.append({"kind": "morning", "day": day, "civil": civil})
+	var arrival := day == int(Database.meals.arrival_day)
+	if not record.get("night", false) and week.settled >= civil * 2 + 1 \
+			and (not arrival or week.day_record(day).get("paw", false)):
+		cards.append({"kind": "night", "day": day, "civil": civil})
+	return cards
+
+
+func take_week_card(candidate: Dictionary) -> Dictionary:
+	if candidate not in week_card_candidates():
+		return {}
+	var day := int(candidate.day)
+	var kind := str(candidate.kind)
+	var record := _week_routine_day(day, true)
+	record[kind] = true
+	var news: Array = Database.week_routine.news
+	var chapter := mini(progress.chapter_index(), news.size())
+	var report := candidate.merged({"news": news[mini(day, news.size()) - 1], "next": news[mini(maxi(day + 1, chapter), news.size()) - 1]})
+	if kind == "morning":
+		var yesterday := week.day_record(day - 1)
+		report["weak"] = bool(yesterday.get("weak", false))
+		report["still_weak"] = tiro_weak()
+		report["yesterday"] = yesterday
+		report["offer"] = progress.stat("weak_day") > 0 and not week.routine.get("offer_seen", false)
+		if report.offer:
+			week.routine["offer_seen"] = true
+		var morning: Dictionary = Database.week_story.morning
+		var reward_day := int(morning.day)
+		var receipt := "week_morning:%d" % reward_day
+		report["gift"] = day >= reward_day and economy.granted.has(receipt) and not progress.seen.has(receipt)
+		if report.gift:
+			progress.seen[receipt] = true
+	else:
+		var meals := week.day_record(day)
+		var rows := week_daily_rows(day)
+		report["meals"] = meals
+		report["dish"] = str(record.get("dish", ""))
+		report["done"] = rows.filter(func(row: Dictionary) -> bool: return row.done).size()
+		report["seal"] = economy.granted.has("week_daily_seal:%d" % int(candidate.civil))
+	_changed()
+	return report
+
+
+func week_meal_reminder_enabled() -> bool:
+	return bool(week.routine.get("reminders", false))
+
+
+func week_meal_reminder_offered() -> bool:
+	return bool(week.routine.get("offer_seen", false))
+
+
+func week_routine_badge(id: String) -> String:
+	return str(_week_line_definition(id).get("badge", "")) if economy.granted.has("week_line:" + id) else ""
+
+
+func week_routine_pairs() -> Array[Dictionary]:
+	var pairs: Array[Dictionary] = []
+	var found: Dictionary = week.routine.get("sets", {}).get("pairs", {})
+	for pair: Dictionary in Database.dishes.duples:
+		if found.has("%s:%s" % [pair.a, pair.b]):
+			pairs.append(pair)
+	return pairs
+
+
+func set_week_meal_reminder(enabled: bool) -> void:
+	week.routine["reminders"] = enabled
+	_changed()
+
+
+func take_week_meal_reminder() -> String:
+	if not week_meal_reminder_enabled() or progress.stat("arrival_box") == 0 or week_day_number() < week.high_day:
+		return ""
+	var period := meal_period_now()
+	var day := _routine_day_number()
+	if period == "" or not week.day_record(day).get(period, {}).is_empty():
+		return ""
+	var record := _week_routine_day(day, true)
+	var key := "reminded_" + period
+	if record.has(key):
+		return ""
+	record[key] = true
+	_changed()
+	return period
+
+
+func week_story_surprise() -> String:
+	var day := mini(progress.chapter_index(), Database.week_story.days.size())
+	while day > 0:
+		var entry: Dictionary = Database.week_story.days[day - 1]
+		if progress.seen.has("week_surprise:%d" % day):
+			return str(entry.surprise)
+		day -= 1
+	return ""
+
+
+func _week_story_milestone(id: String) -> void:
+	if progress.stat("arrival_box") == 0:
+		return
+	for i in Database.week_story.days.size():
+		var entry: Dictionary = Database.week_story.days[i]
+		if entry.trigger != id:
+			continue
+		var key := "week_surprise:%d" % (i + 1)
+		if not progress.seen.has(key):
+			progress.seen[key] = true
+			Events.toast_requested.emit(str(entry.surprise))
+
+
+func week_challenge() -> Dictionary:
+	var day := week_day()
+	if day > Database.week_story.days.size() or progress.chapter_index() > Database.week_story.days.size():
+		return {}
+	var entry: Dictionary = Database.week_story.days[day - 1]
+	var count := int(week.story_challenge.get("count", 0)) if day == int(week.story_challenge.get("day", 0)) else 0
+	return entry.merged({"count": count, "paid": economy.granted.has("week_challenge:%d" % day)})
+
+
+func _count_week_challenge(key: String, amount: int) -> void:
+	var day := week_day()
+	if day > Database.week_story.days.size() or progress.stat("arrival_box") == 0:
+		return
+	var entry: Dictionary = Database.week_story.days[day - 1]
+	if key != entry.counter:
+		return
+	if int(week.story_challenge.get("day", 0)) != day:
+		week.story_challenge = {"day": day, "count": 0}
+	week.story_challenge.count += amount
+
+
+func _sync_week_story() -> void:
+	if progress.stat("arrival_box") == 0:
+		return
+	var chapter := progress.chapter_index()
+	if chapter <= Database.week_story.days.size():
+		var trigger := str(Database.week_story.days[chapter - 1].trigger)
+		if progress.current_main_quest() == trigger and quest_objectives_error(trigger) == "":
+			_week_story_milestone(trigger)
+	var morning: Dictionary = Database.week_story.morning
+	if week_day() >= int(morning.day):
+		_grant_automatic("week_morning:%d" % int(morning.day), morning.rewards)
+	var challenge := week_challenge()
+	if challenge.is_empty() or challenge.paid:
+		return
+	if challenge.counter == "week_dishes_ready" and growth.phase == "puppy" and week_hour() < meal_window("dinner").x:
+		for row: Dictionary in growth_info().requirements:
+			if row.id == "dishes" and row.done:
+				_count("week_dishes_ready")
+				challenge = week_challenge()
+				break
+	if int(challenge.count) >= int(challenge.target):
+		var shared := str(challenge.get("shared_receipt", ""))
+		var reward: Dictionary = {} if economy.granted.has(shared) else challenge.rewards
+		if _grant_automatic("week_challenge:%d" % week_day(), reward).paid:
+			Events.toast_requested.emit("Desafio do dia concluído!")

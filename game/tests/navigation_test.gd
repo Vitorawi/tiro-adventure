@@ -88,6 +88,8 @@ func _run() -> void:
 ## Dica parada: 15 s sem toque nos primeiros capítulos põe a seta no alvo do passo, uma vez por passo.
 func _idle_hint_check(state: Node) -> void:
 	state.call("reset")
+	state.get("progress").seen.intro = true
+	state.call("dev_complete_quest", "lais_first_crops")
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	await create_timer(0.3).timeout
@@ -104,11 +106,11 @@ func _idle_hint_check(state: Node) -> void:
 	worlds.call("advance_idle", 16.0)
 	check(room.get("_pointer") == null or not is_instance_valid(room.get("_pointer")), "Dica: segunda vez no mesmo passo não repete")
 	# Passo novo = dica nova.
-	state.call("dev_complete_quest", "welcome")
+	state.call("dev_complete_quest", "first_kitchen")
 	worlds.set("_idle", 0.0)
 	worlds.call("advance_idle", 16.0)
 	var next_step: String = state.get("progress").current_main_quest()
-	check(next_step != "welcome", "Dica: história avançou")
+	check(next_step != "first_kitchen", "Dica: história avançou")
 	main.queue_free()
 	await process_frame
 

@@ -26,6 +26,8 @@ func _init() -> void:
 
 
 func open(id: String) -> void:
+	if id == "teething" and WeekTutorial.enrolled():
+		WeekTutorial.finish("ceremony")
 	if visible: return
 	for child: Node in get_children():
 		remove_child(child)
@@ -141,17 +143,20 @@ func show_card() -> void:
 	pair.alignment = BoxContainer.ALIGNMENT_CENTER
 	pair.size = Vector2(256, 168)
 	hero.add_child(pair)
-	for def: Dictionary in [_before, _after]:
+	var looks := [_after] if phase == "puppy" else [_before, _after]
+	for def: Dictionary in looks:
 		var column := UiKit.vbox(2)
-		column.add_child(pose(def, 124))
+		column.add_child(pose(def, 136 if looks.size() == 1 else 124))
 		var label := UiKit.label(str(def.name), &"SmallLabel")
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(label)
 		pair.add_child(column)
 	var card := ModalCard.open(self, {"title": "O Tiro cresceu!", "ribbon": Palette.HONEY,
 		"hero": hero, "confetti": not Motion.reduced, "haptic": "big"})
+	_add_unlocks(card)
 	card.add_text(str(_after.age) + " · " + str(_after.weight), &"SmallLabel")
 	card.add_text(str(_after.facts[0]), &"SmallLabel")
+	_add_summary(card)
 	var ruler := Control.new()
 	ruler.name = "HeightMark"
 	ruler.custom_minimum_size = Vector2(264, 48)
@@ -174,6 +179,26 @@ func show_card() -> void:
 			_mark_progress = value
 			ruler.queue_redraw(), 0.0, 1.0, Motion.SLIDE)
 	card.add_primary("Que lindo!", _close).name = "CloseCeremony"
+
+
+## Resumo da fase (congelado ao crescer) e o que abriu: só as linhas com número maior que zero.
+func _add_summary(card: Variant) -> void:
+	var summary: Dictionary = _record.get("summary", {})
+	var lines: Array[String] = []
+	for def: Dictionary in Database.growth.get("week_summary", []):
+		var value := int(summary.get(str(def.id), 0))
+		if value > 0:
+			lines.append(str(def.text) % value)
+	if not lines.is_empty():
+		var recap: Control = card.add_text("A fase em resumo: " + " · ".join(lines), &"SmallLabel")
+		recap.name = "CeremonySummary"
+
+
+func _add_unlocks(card: Variant) -> void:
+	var unlocked: Array = _after.get("unlocks_text", [])
+	if not unlocked.is_empty():
+		var opened: Control = card.add_text("Abriu: " + " · ".join(PackedStringArray(unlocked)), &"SmallLabel")
+		opened.name = "CeremonyOpened"
 
 
 func _close() -> void:

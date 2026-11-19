@@ -214,7 +214,7 @@ func unlocked_keys() -> Array[String]:
 			keys.append("feature:" + id)
 	for world_id: String in Database.worlds:
 		var world: Dictionary = Database.worlds[world_id]
-		if not world.get("requirements", {}).is_empty() and requirement_error(world.requirements) == "":
+		if not world.get("requirements", {}).is_empty() and GameState.requirement_error(world.requirements) == "":
 			keys.append("world:" + world_id)
 		for place_id: String in world.get("places", {}):
 			var requirements: Dictionary = world.places[place_id].get("requirements", {})
@@ -246,6 +246,8 @@ func _level_cost(current_level: int) -> int:
 ## Missão disponível = todas as anteriores ("requires") concluídas.
 func quest_unlocked(id: String) -> bool:
 	if not Database.quests.has(id):
+		return false
+	if Database.quests[id].get("kind") == "retired":
 		return false
 	if Database.quests[id].has("shared_with"):
 		return false  # marco da história, recebido junto da missão canônica

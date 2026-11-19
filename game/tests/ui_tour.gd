@@ -221,7 +221,7 @@ func _run() -> void:
 		main.find_child("WorldsScreen", true, false).call("close_map")
 		state.call("reset")
 		state.get("progress").seen.intro = true
-		state.call("dev_jump_to_chapter", 3)
+		state.call("dev_jump_to_chapter", 7)
 		state.call("_mark_all_seen")
 		await create_timer(1.0).timeout
 		_hide_modals()
@@ -1141,7 +1141,7 @@ func _aj_01_shots() -> void:
 	main.find_child("WorldsScreen", true, false).call("close_map")
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
-	state.call("dev_jump_to_chapter", 3)
+	state.call("dev_jump_to_chapter", 7)
 	state.call("_mark_all_seen")
 	await create_timer(1.0).timeout
 	_hide_modals()
@@ -1239,7 +1239,7 @@ func _aj_02_shots() -> void:
 	await _close()
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
-	state.call("dev_jump_to_chapter", 3)
+	state.call("dev_jump_to_chapter", 7)
 	state.call("_mark_all_seen")
 	await create_timer(1.0).timeout
 	_hide_modals()
@@ -1286,7 +1286,7 @@ func _g01_tasks_ready_many() -> void:
 	var before: Dictionary = state.call("to_dict")  # o tour segue depois com o estado em que estava
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
-	state.call("dev_jump_to_chapter", 5)
+	state.call("dev_jump_to_chapter", 9)
 	state.call("_mark_all_seen")
 	state.call("dev_restart_routines")
 	var steps: Dictionary = state.get("progress").call("active_steps")
@@ -1673,7 +1673,7 @@ func _aj_09_shots() -> void:
 	await _close()
 	state.call("reset")
 	state.get("progress").seen.intro = true
-	state.call("dev_jump_to_chapter", 3)
+	state.call("dev_jump_to_chapter", 7)
 	state.call("_mark_all_seen")
 	await _world("farm")
 	await _sheet("Vovó Bloblo", pu.call("npc_view", "bloblo"))
@@ -1850,9 +1850,10 @@ func _aj_11_shots() -> void:
 	await shot("b23_settings")
 	await _close()
 	await _world("park")
-	state.call("dev_set_phase", "puppy")
-	state.get("progress").tricks["paw"] = true
-	state.get("progress").cooldowns["trick:paw"] = int(Time.get_unix_time_from_system()) + 300
+	state.call("dev_set_phase", "teething")
+	state.get("progress").claimed_quests["nina_pipoca"] = true
+	state.get("progress").tricks["talk"] = true
+	state.get("progress").cooldowns["trick:talk"] = int(Time.get_unix_time_from_system()) + 300
 	load("res://scripts/ui/trick_ui.gd").call("open")
 	await shot("i2_09_tricks")
 	await _close()

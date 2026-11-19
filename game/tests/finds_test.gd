@@ -19,7 +19,7 @@ func _run() -> void:
 	state = root.get_node("GameState")
 	db = root.get_node("Database")
 	state.call("reset")
-	check(state.get("finds").worlds.is_empty(), "antes da primeira colheita não há faro")
+	check(state.get("finds").worlds.has("farm"), "faro do Sítio agendado desde a chegada")
 	state.get("progress").claimed_quests["bloblo_meet"] = true
 	state.get("progress").claimed_quests["first_harvest"] = true
 	state.get("progress").claimed_quests["bloblo_sell_surplus"] = true

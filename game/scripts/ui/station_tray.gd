@@ -115,6 +115,14 @@ static func growth_foods() -> Array[String]:
 			if not GameState.favorite_found(): continue
 			food = GameState.favorite_food()
 		if food != "any": foods.append(food)
+	# Pratos-chave (ovo, fruta, peixe): as receitas fixas de refeição que levam o ingrediente pedido.
+	var groups := GameState.growth_pending_groups()
+	if not groups.is_empty():
+		for id: String in Database.recipes:
+			var output := Database.recipe_output(Database.recipes[id])
+			var dish := GameState.dish_of_item(output)
+			if not dish.is_empty() and GameState.dish_serves_groups(str(dish.type), dish.ingredients, groups) and output not in foods:
+				foods.append(output)
 	return foods
 
 
@@ -172,7 +180,7 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 	title_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_box.add_child(title)
 	heading.add_child(title_box)
-	heading.add_child(StationWood.time_pill(TimeText.short(int(recipe.get("seconds", 60)) * count)))
+	heading.add_child(StationWood.time_pill(TimeText.short(int(GameState.recipe_seconds(recipe_id)) * count)))
 	box.add_child(heading)
 	# entra → sai
 	var flow := UiKit.hbox(8)
@@ -477,7 +485,8 @@ static func animal(room: RoomView, station_id: String, anchor: Dictionary) -> Ac
 			"icon": Database.item_icon(Database.recipe_output(recipe)),
 			"item": Database.recipe_output(recipe),
 			"clock": true,
-			"caption": TimeText.short(int(recipe.seconds)),
+			"caption": TimeText.short(int(GameState.recipe_seconds(id))),
+			"caption_fn": func() -> String: return TimeText.short(int(GameState.recipe_seconds(id))),
 			"error": GameState.content_error("recipe", id, recipe),
 			"error_fn": func() -> String: return GameState.content_error("recipe", id, recipe),
 			"missing_fn": func() -> Texture2D: return missing_icon(id),
@@ -486,8 +495,54 @@ static func animal(room: RoomView, station_id: String, anchor: Dictionary) -> Ac
 		"mode": "pick", "title": str(data.name), "icon": station_icon(station_id), "art": "", "selected": _first_open(entries),
 		"header": _header(station_id),
 		"detail": func(id: String) -> Control: return recipe_detail(station_id, id),
-		"below": anchor.below, "footer_ghost": shop_footer,
+		"below": anchor.below,
+		"footer_ghost": shop_footer if GameState.animal_count(station_id) < GameState.animal_capacity(station_id) else {},
 	})
+
+
+static func orchard(room: RoomView, anchor: Dictionary) -> ActionTray:
+	var entries: Array[Dictionary] = []
+	for item: String in Database.farm.orchard_fruit:
+		entries.append({
+			"id": item, "item": item, "icon": Database.item_icon(item),
+			"caption_fn": func() -> String:
+				var remaining := GameState.orchard_remaining(item)
+				return TimeText.short(remaining) if remaining > 0 else Database.item_name(item),
+		})
+	if GameState.shop_item_locked("week_sweet_potato_seed") == "" and GameState.buy_shop_item_error("week_sweet_potato_seed") != "Você já tem":
+		entries.append({"id": "sweet_potato_seed", "item": "sweet_potato",
+			"icon": Database.item_icon("sweet_potato"), "caption": "Muda"})
+	return ActionTray.open(room, anchor.above, entries, {
+		"mode": "pick", "title": "Pomar", "icon": Database.item_icon("apple"), "art": "",
+		"below": anchor.below, "selected": "apple",
+		"detail": func(item: String) -> Control:
+			if item == "sweet_potato_seed":
+				return SellUi.cart_buy_row("week_sweet_potato_seed", GameState.cart_day())
+			return orchard_detail(item, room.world_to_screen(anchor.below)),
+	})
+
+
+static func orchard_detail(item: String, origin: Vector2) -> Control:
+	var panel := UiKit.vbox(8)
+	var amount := int(Database.farm.orchard_fruit.get(item, 0))
+	var name_text := "Macieira" if item == "apple" else "Bananeira"
+	var title := StationWood.text("%s · %d frutas" % [name_text, amount], 20)
+	title.name = "OrchardTree"
+	panel.add_child(title)
+	var actions := UiKit.vbox(6)
+	actions.name = "Actions"
+	panel.add_child(actions)
+	var reason := GameState.orchard_harvest_error(item)
+	if reason != "":
+		actions.add_child(StationWood.board_note(reason))
+	else:
+		var button := StepCardUi.go_button("Colher", func() -> void:
+			var error := GameState.harvest_orchard(item, origin)
+			if error != "":
+				Events.toast_requested.emit(error))
+		button.name = "OrchardHarvest"
+		actions.add_child(button)
+	return panel
 
 
 # --- Natureza (Bosque, Caverna, Prado) --------------------------------------------------

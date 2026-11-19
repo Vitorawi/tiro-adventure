@@ -1,5 +1,5 @@
 class_name AlbumTutorial
-extends Control
+extends TutorialGuide
 ## Tutorial da foto da chegada (Fotos do Tiro, etapa 09). A Laís ensina com a carta `h_arrival`: Abrir (Comum), Tentar a
 ## sorte grátis (Brilhante), Melhorar de presente (Rara), inclinar, escolher a versão e pôr no varal.
 ## Os resultados forçados são do motor (`GameState._tutorial_level`); aqui só véu, balão e passos salvos.
@@ -28,16 +28,9 @@ var phase := ""  ## open, reveal, reroll, upgrade, tilt, version, feature ou "" 
 var viewer: CardViewer
 var _wait := 0
 var _best := 0
-var _veil: Control
-var _rects: Array[ColorRect] = []
-var _highlight: Panel
-var _balloon: Control
-var _balloon_label: Label
 var _arrow: Control
-var _hand: Control
 var _stamp: PanelContainer
 var _strike: ColorRect
-var _pulse: Tween
 var _finishing := false
 
 
@@ -61,12 +54,6 @@ static func maybe_start() -> void:
 
 static func is_active() -> bool:
 	return current != null and is_instance_valid(current) and not current.is_queued_for_deletion()
-
-
-static func _main() -> Node:
-	var tree := Engine.get_main_loop() as SceneTree
-	var node := tree.root.get_node_or_null("Main")
-	return node if node != null else tree.current_scene
 
 
 func _exit_tree() -> void:
@@ -129,7 +116,7 @@ func _go(next: String) -> void:
 		((_stamp.get_child(0)) as Label).text = "Grátis" if next == "reroll" else "Presente"
 	_arrow.visible = next in ["open", "feature"]
 	if next == "tilt":
-		_start_hand()
+		_reset_hand()
 
 
 func _on_rolled(id: String, result: Dictionary) -> void:
@@ -157,7 +144,7 @@ func _on_rolled(id: String, result: Dictionary) -> void:
 var _next_after := ""
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	if _veil == null:
 		_try_start()
 		return
@@ -180,6 +167,9 @@ func _process(_delta: float) -> void:
 			if PHOTO in GameState.album.featured and not _finishing:
 				_finish()
 	_layout()
+	if phase == "tilt":
+		var center := target_rect().get_center()
+		_guide_hand(delta, center - Vector2(40, 0), center + Vector2(40, 0))
 
 
 ## Espera a fila modal esvaziar e a tela do Álbum estar de pé; sem o Álbum aberto, desiste.
@@ -215,53 +205,13 @@ func _finish() -> void:
 # --- Camada visual -------------------------------------------------------------------------
 
 func _build_layer() -> void:
-	_veil = Control.new()
-	_veil.name = "TutorialVeil"
-	_veil.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_veil)
-	_veil.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	for side in ["T", "B", "L", "R"]:
-		var rect := ColorRect.new()
-		rect.name = "Veil_" + side
-		rect.color = Color(0.0, 0.0, 0.0, 0.5)
-		rect.mouse_filter = Control.MOUSE_FILTER_STOP
-		_veil.add_child(rect)
-		_rects.append(rect)
-	_highlight = Panel.new()
-	_highlight.name = "TutorialHighlight"
-	_highlight.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0, 0, 0, 0)
-	style.border_color = Palette.HONEY
-	style.set_border_width_all(3)
-	style.set_corner_radius_all(14)
-	_highlight.add_theme_stylebox_override("panel", style)
-	_veil.add_child(_highlight)
-	if not Motion.reduced:
-		_pulse = create_tween().set_loops()
-		_pulse.tween_property(_highlight, "modulate:a", 0.45, 0.6)
-		_pulse.tween_property(_highlight, "modulate:a", 1.0, 0.6)
-	_balloon = VBoxContainer.new()
-	_balloon.name = "TutorialBalloon"
-	_balloon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_veil.add_child(_balloon)
-	_balloon_label = ProgressionUi.npc_header(_balloon as VBoxContainer, "lais", "", true, true)
+	_build_focus()
+	_build_balloon(_veil, "lais")
 	_arrow = UiKit.ctl("down", 34, Palette.HONEY)
 	_arrow.name = "TutorialArrow"
 	_arrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_veil.add_child(_arrow)
-	_hand = Panel.new()
-	_hand.name = "TutorialHand"
-	_hand.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_hand.custom_minimum_size = Vector2(30, 30)
-	_hand.size = Vector2(30, 30)
-	var dot := StyleBoxFlat.new()
-	dot.bg_color = Color(1, 1, 1, 0.9)
-	dot.border_color = Palette.HONEY
-	dot.set_border_width_all(3)
-	dot.set_corner_radius_all(15)
-	_hand.add_theme_stylebox_override("panel", dot)
-	_veil.add_child(_hand)
+	_build_hand()
 	_stamp = PanelContainer.new()
 	_stamp.name = "TutorialStamp"
 	_stamp.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -304,27 +254,11 @@ func target_rect() -> Rect2:
 
 
 func _layout() -> void:
-	var parent := get_parent()
-	if parent != null and get_index() != parent.get_child_count() - 1:
-		parent.move_child(self, -1)  # por cima de tudo que abriu depois, inclusive no toque
+	_place_above_siblings()
 	var screen := get_viewport_rect().size
-	var hole := target_rect()
-	var none := phase == "reveal" or hole.size == Vector2.ZERO
-	if none:
-		hole = Rect2(screen * 0.5, Vector2.ZERO)  # sem alvo: tudo escurecido e bloqueado
-	else:
-		hole = hole.grow(6.0)
-	_rects[0].position = Vector2.ZERO
-	_rects[0].size = Vector2(screen.x, maxf(hole.position.y, 0.0))
-	_rects[1].position = Vector2(0, hole.end.y)
-	_rects[1].size = Vector2(screen.x, maxf(screen.y - hole.end.y, 0.0))
-	_rects[2].position = Vector2(0, hole.position.y)
-	_rects[2].size = Vector2(maxf(hole.position.x, 0.0), hole.size.y)
-	_rects[3].position = Vector2(hole.end.x, hole.position.y)
-	_rects[3].size = Vector2(maxf(screen.x - hole.end.x, 0.0), hole.size.y)
-	_highlight.visible = not none
-	_highlight.position = hole.position
-	_highlight.size = hole.size
+	var target := Rect2() if phase == "reveal" else target_rect()
+	var none := not target.has_area()
+	var hole := _layout_focus(target, screen)
 	# O balão fica na metade da tela que o alvo não ocupa.
 	var on_top := hole.get_center().y > screen.y * 0.5
 	_balloon.size = Vector2(screen.x - 24.0, 0.0)
@@ -356,15 +290,3 @@ func _place_strike() -> void:
 		var box := chips.get_global_rect()
 		_strike.position = Vector2(box.position.x, box.get_center().y - 1.0)
 		_strike.size = Vector2(box.size.x, 2.0)
-
-
-func _start_hand() -> void:
-	var rect := target_rect()
-	var from := rect.get_center() - Vector2(40.0, 0.0) - _hand.size * 0.5
-	_hand.position = from
-	if Motion.reduced:
-		return
-	var swipe := create_tween().set_loops()
-	swipe.tween_property(_hand, "position:x", from.x + 80.0, 0.8).set_trans(Tween.TRANS_SINE)
-	swipe.tween_property(_hand, "position:x", from.x, 0.8).set_trans(Tween.TRANS_SINE)
-	swipe.bind_node(_hand)

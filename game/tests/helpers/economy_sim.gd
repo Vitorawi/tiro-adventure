@@ -97,6 +97,8 @@ var chapter_coins: Dictionary = {}
 var session_log: Array[Dictionary] = []
 var status: String = "running"
 var stall_reason: String = ""
+var opening_week: Dictionary = {}
+var live_quest_count := 0
 var last_progress_day: int = 0
 var last_progress_active: float = 0.0
 var _digest_after: String = ""
@@ -152,6 +154,7 @@ func setup() -> void:
 	gs.set_clock(t0)
 	seed(seed_value)  # Inclui a semente do cachorro e as fotos do save novo.
 	gs.reset()
+	live_quest_count = Database.quests.values().filter(func(q: Dictionary) -> bool: return q.get("kind") != "retired").size()
 	_apply_scenario()
 	var bot_script: GDScript = load(str(params.get("bot_script", "res://tests/helpers/economy_bot.gd")))
 	bot = bot_script.new(gs, profile, seed_value * 104729 + 7)
@@ -302,7 +305,33 @@ func run() -> Dictionary:
 	var agenda := build_agenda(days)
 	var campaign_target: bool = str(params.get("until", "days")) == "campaign"
 	var projects_target: bool = str(params.get("until", "days")) == "projects"
+	if campaign_target or projects_target:
+		var opening = load("res://tests/helpers/week_economy_route.gd").new(gs, Database, Callable())
+		var policy: String = {"light": "tranquilo", "active": "dedicado"}.get(profile.agenda, "regular")
+		opening_week = opening.measure(policy, days)
+		growth_days = opening_week.phases.duplicate(true)
+		chapter_coins = opening_week.chapters.duplicate(true)
+		for row: Dictionary in opening_week.days:
+			action_index += int(row.touches)
+			active_seconds += float(row.touch_seconds)
+			wait_seconds += float(row.wait_seconds)
+			nav_seconds += float(row.navigation_seconds)
+			session_index += int(row.sessions)
+			if row.day < opening_week.days.size():
+				daily.append(row.snapshot.merged({"day": row.day - 1}))
+		last_session_end = gs.now()
+		for error: String in opening_week.errors:
+			violate("semana", error)
+			status = "guard"
+		_snapshot_timers_initial()
+		_digest_after = digest()
+		_next_day_mark += (gs.week_day() - 1) * DAY
+		last_progress_day = int(rel(gs.now()) / DAY)
 	for session: Dictionary in agenda:
+		if status != "running":
+			break
+		if session.start < gs.now():
+			continue
 		if rel(float(session.start)) > float(days) * DAY:
 			break
 		_session(session)
@@ -310,7 +339,7 @@ func run() -> Dictionary:
 			reload_through_json()
 		if status != "running":
 			break
-		if campaign_target and gs.progress.claimed_quests.size() >= Database.quests.size():
+		if campaign_target and gs.progress.claimed_quests.size() >= live_quest_count and _unclaimed().is_empty():
 			status = "complete"
 			break
 		if projects_target and _projects_all_done():
@@ -606,7 +635,7 @@ func execute(action: Dictionary) -> Dictionary:
 				out.err = "Não aceitou a comida"
 		"bathe":
 			var shampoo := bool(args.get("shampoo", false))
-			out.extra = {"consumed": {"herb_shampoo": 1} if shampoo else {}}
+			out.extra = {"consumed": {gs.bath_shampoo(): 1} if shampoo else {}}
 			gs.bathe(shampoo)
 		"grow":
 			out.err = gs.grow()
@@ -637,6 +666,8 @@ func execute(action: Dictionary) -> Dictionary:
 			out.err = gs.emergency_food()
 		"plant_many":
 			var planted: Array[int] = []
+			var bonus_seed := str(Database.week_routine.seed_items.get(str(args.crop), ""))
+			var available := gs.inventory.count(bonus_seed) as int
 			for i: int in args.plots:
 				var e: String = gs.plant(i, str(args.crop))
 				if e == "":
@@ -644,6 +675,8 @@ func execute(action: Dictionary) -> Dictionary:
 				elif out.err == "":
 					out.err = e
 			out.extra = {"planted": planted, "crop": str(args.crop)}
+			if available > 0:
+				out.extra.consumed = {bonus_seed: mini(available, planted.size())}
 			if not planted.is_empty():
 				out.err = ""
 		"water_many":
@@ -678,6 +711,9 @@ func execute(action: Dictionary) -> Dictionary:
 		"cook":
 			var rid: String = str(args.recipe)
 			out.extra = {"consumed": gs.recipe_inputs(rid).duplicate(), "recipe": rid, "station": str(Database.recipes[rid].station)}
+			out.extra.seconds = gs.recipe_seconds(rid)
+			if out.extra.station == "stove" and not Database.recipes[rid].get("hidden", false):
+				out.extra.seconds *= float(gs.recipe_mastery("recipe:" + rid).time)
 			out.err = gs.cook(rid)
 		"collect_station":
 			var mastery_before := _mastery_ids()
@@ -737,8 +773,8 @@ func execute(action: Dictionary) -> Dictionary:
 			out.err = gs.equip(str(args.id))
 		"sell":
 			var qty: int = mini(int(args.qty), gs.inventory.count(str(args.item)))
-			out.extra = {"sold": {str(args.item): qty}, "coins": qty * int(Database.items[str(args.item)].get("sell_price", 0))}
 			var sale_world := str(args.get("world", "village" if gs.requirement_error(Database.worlds.village.get("requirements", {})) == "" else "farm"))
+			out.extra = {"sold": {str(args.item): qty}, "coins": qty * gs.sale_price(str(args.item), sale_world)}
 			out.err = gs.sell(str(args.item), qty, sale_world)
 		"fulfill_order":
 			var order: Dictionary = Database.progression.orders[str(args.id)]
@@ -929,7 +965,7 @@ func _expected(action: Dictionary, outcome: Dictionary) -> Dictionary:
 		"harvest_many":
 			coins = int(extra.get("coins", 0))
 			items = extra.get("gained", {}).duplicate()
-		"cook", "feed", "bathe", "deliver_growth", "hide":
+		"cook", "feed", "bathe", "deliver_growth", "hide", "plant_many":
 			for id: String in extra.get("consumed", {}):
 				items[id] = -int(extra.consumed[id])
 		"collect_station":
@@ -1068,10 +1104,7 @@ func _update_legit(action: Dictionary, outcome: Dictionary, t_action: float) -> 
 	match str(action.kind):
 		"plant_many":
 			for i: int in extra.get("planted", []):
-				var crop: Dictionary = Database.crops[str(extra.crop)]
-				var seconds: float = float(crop.get("seconds", 60))
-				if gs.is_greenhouse_plot(i):
-					seconds *= float(Database.farm.get("greenhouse_speed", 1.0))
+				var seconds: float = gs.crop_seconds(i, str(extra.crop))
 				var expected_ready := t_action + seconds
 				if absf(float(gs.plots[i].ready_at) - expected_ready) > 0.001:
 					violate("timer_fora_da_regra", "plantio %d: ready_at %.1f != %.1f" % [i, float(gs.plots[i].ready_at), expected_ready])
@@ -1094,7 +1127,7 @@ func _update_legit(action: Dictionary, outcome: Dictionary, t_action: float) -> 
 				var previous := t_action
 				if st.queue.size() > 1:
 					previous = maxf(t_action, float(st.queue[st.queue.size() - 2].ready_at))
-				var seconds2: float = float(Database.recipes[str(extra.recipe)].seconds)
+				var seconds2: float = float(extra.seconds)
 				if absf(float(last.ready_at) - (previous + seconds2)) > 0.001:
 					violate("timer_fora_da_regra", "fila %s: %s" % [extra.station, extra.recipe])
 		"start_walk":
@@ -1274,7 +1307,7 @@ func _milestones() -> void:
 		"stall": gs.has_upgrade("stall"),
 		"chapter_9_done": gs.progress.chapter_index() > 9,
 		"all_depots": gs.has_upgrade("silo") and gs.has_upgrade("warehouse") and gs.has_upgrade("fridge") and gs.has_upgrade("chest"),
-		"campaign_all_quests": gs.progress.claimed_quests.size() >= Database.quests.size(),
+		"campaign_all_quests": gs.progress.claimed_quests.size() >= live_quest_count and _unclaimed().is_empty(),
 		"bench_done": gs.project_completed("park_bench"),
 		"garden_done": gs.project_completed("village_garden"),
 		"picnic_done": gs.project_completed("park_picnic"),
@@ -1384,12 +1417,12 @@ func summary() -> Dictionary:
 		"params": {"days": params.get("days", 30), "until": params.get("until", "days"), "rare": params.get("rare", "normal"), "reload": params.get("reload", "none")},
 		"end": {
 			"days": snappedf(rel(gs.now()) / DAY, 0.01), "coins": gs.coins, "level": gs.level, "chapter": gs.progress.chapter_index(),
-			"quests": gs.progress.claimed_quests.size(), "quests_total": Database.quests.size(),
+			"quests": gs.progress.claimed_quests.size(), "quests_total": live_quest_count,
 			"upgrades": upgrades_owned, "upgrades_total": Database.progression.upgrades.size(), "missing_upgrades": _missing_upgrades(), "plots": gs.unlocked_plots,
 			"walks": gs.progress.stat("walk"), "finds": gs.progress.stat("find"),
 			"phase": gs.growth.phase, "silk": gs.growth.silk, "pillars": _pillar_levels(),
 		},
-		"growth_days": growth_days, "chapter_coins": chapter_coins,
+		"opening_week": opening_week, "growth_days": growth_days, "chapter_coins": chapter_coins,
 		"time": {
 			"active_min": snappedf(active_seconds / 60.0, 0.1), "forced_wait_min": snappedf(wait_seconds / 60.0, 0.1),
 			"nav_min": snappedf(nav_seconds / 60.0, 0.1), "sessions": session_index, "actions": action_index,
@@ -1467,6 +1500,6 @@ func _missing_upgrades() -> Array:
 func _unclaimed() -> Array:
 	var result: Array = []
 	for id: String in Database.quests:
-		if not gs.progress.claimed_quests.has(id):
+		if Database.quests[id].get("kind") != "retired" and not gs.progress.claimed_quests.has(id):
 			result.append(id)
 	return result

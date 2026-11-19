@@ -1,4 +1,4 @@
-﻿class_name CodexUi
+class_name CodexUi
 extends RefCounted
 ## Caderninho do Tiro (livrinho) no visual "madeira ilustrada": placa "Caderninho" curva sobre a moldura, X de madeira,
 ## uma coluna de abas coloridas na borda DIREITA (uma por seção: Recursos, Estações, Crescer, Coleção, Truques; o Álbum usa o mesmo quadro sem abas, em `AlbumScreen`),
@@ -39,7 +39,7 @@ const FOOT_H := 44.0
 const BOTTOM_PAD := 8.0
 const TILE_MARGINS := Vector4i(62, 62, 62, 75)
 const CAPTION_H := 30.0
-const TAB_COLORS := {"resources": "red", "stations": "orange", "growth": "purple", "collection": "yellow", "tricks": "blue"}
+const TAB_COLORS := {"resources": "red", "stations": "orange", "growth": "purple", "collection": "yellow", "tricks": "blue", "recipes": "orange"}
 
 ## Filtro escolhido de cada seção (vale enquanto o jogo está aberto).
 static var filters: Dictionary = {}
@@ -127,13 +127,31 @@ static func build(section: String, filter: String = "", album: bool = false) -> 
 static func _board(model: Dictionary, live: SheetBuilder.LiveBox) -> Control:
 	var album := bool(model.get("album", false))
 	var entries: Array[Dictionary] = []
-	if not album:
+	var manual: bool = model.section == "tutorials"
+	if not album and not manual:
 		entries = PetNotebook.tabs()
 	var section := str(model.section)
-	if not album and not entries.any(func(entry: Dictionary) -> bool: return str(entry.id) == section):
+	if not album and not manual and not entries.any(func(entry: Dictionary) -> bool: return str(entry.id) == section):
 		section = "resources"
 		model.section = section
 	var view := CodexSections.view(section, str(filters.get(section, "")), model)
+	var recipes := section == "recipes"
+	if section == "missions":
+		view = {"filters": [], "filter": "", "blocks": [], "name": "NotebookMissionHolder",
+			"body": WeekStoryUi.lines_body(model, live.refresh)}
+	if manual:
+		view = {"filters": [], "filter": "", "blocks": [], "name": "TutorialManualHolder",
+			"wide": true, "body": WeekTutorial.manual_body(model, live.refresh)}
+	if section == "resources" and not album:
+		view.foot = StepCardUi.go_button("Manual de tutoriais", GameManual.open.bind("tutorials"))
+	if recipes:
+		entries.clear()
+		if not model.has("recipe_tab") and str(filters.get(section, "")) == "secrets":
+			model["recipe_tab"] = "secrets"
+		view = {"filters": [], "filter": "", "blocks": [], "name": "RecipeBookHolder",
+			"wide": true, "body": RecipeBookUi.body(model, live.refresh)}
+	if section == "collection" and str(view.filter) == "fish":
+		GameState.note_recipe_hint("fish_book")
 	filters[section] = str(view.filter)
 	var width := board_width()
 	var wood_w := frame_width(bool(view.get("wide", false)))
@@ -161,7 +179,8 @@ static func _board(model: Dictionary, live: SheetBuilder.LiveBox) -> Control:
 	art.position = Vector2(LEFT - ART.x, FT - ART.y)
 	art.size = Vector2(wood_w + ART.x + ART.z, wood_h + ART.y + ART.w)
 	(art.get_child(0) as Control).size = art.size * 3.0  # o quadro ainda não está na árvore: `resized` não dispara
-	_add_title(board, wood_w, "Álbum" if album else "Caderninho")
+	var title := "Álbum" if album else ("Manual" if manual else ("Livro de receitas" if recipes else "Caderninho"))
+	_add_title(board, wood_w, title)
 	var cream := Rect2(LEFT + CREAM.x, FT + CREAM.y, wood_w - CREAM.x - CREAM.z, wood_h - CREAM.y - CREAM.w)
 	var top := FILTER_TOP
 	var shown_filters: Array = view.filters
@@ -181,7 +200,7 @@ static func _board(model: Dictionary, live: SheetBuilder.LiveBox) -> Control:
 				if str(entry.id) == str(view.filter):
 					(blocks[0] as Dictionary).title = str(entry.text)
 	else:
-		top = FILTER_TOP - 6.0
+		top = FILTER_TOP_WIDE + 7.0 if recipes else FILTER_TOP - 6.0
 	var foot: Control = view.get("foot")
 	var area_bottom := cream.end.y - BOTTOM_PAD
 	if album:
@@ -215,10 +234,12 @@ static func _add_title(board: Control, wood_w: float, text: String = "Caderninho
 	plate.position = Vector2(LEFT + (wood_w - PLATE.x) / 2.0, 0.0)
 	plate.size = PLATE
 	board.add_child(plate)
-	var title := MissionUi.text(text, 20, Palette.WOOD_CREAM, 3)
+	var title_width := PLATE.x - 48.0
+	var title_px := fit_px(text, title_width, 20, 15)
+	var title := MissionUi.text(text, title_px, Palette.WOOD_CREAM, 3)
 	title.name = "CodexTitle"
-	title.size = Vector2(PLATE.x - 48.0, 30.0)
-	title.position = Vector2(plate.position.x + 24.0, 9.0)
+	title.size = Vector2(title_width, 30.0)
+	title.position = Vector2(plate.position.x + 24.0, 9.0 + (20 - title_px) * 0.5)
 	title.clip_text = true
 	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	board.add_child(title)
@@ -267,7 +288,7 @@ static func _tab(entry: Dictionary, picked: bool, model: Dictionary, live: Sheet
 	var center := (hide + TAB_W - 6.0) / 2.0
 	var icon := SellUi.soft(TextureRect.new())
 	icon.name = "Icon"
-	icon.texture = tex("icon_" + id)
+	icon.texture = UiKit.ui_icon("station_stove") if id == "recipes" else (UiKit.ui_icon("tab_tasks") if id == "missions" else tex("icon_" + id))
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.size = Vector2(32, 32)
@@ -529,11 +550,14 @@ static func _grid_area(view: Dictionary, model: Dictionary, size: Vector2) -> Co
 	holder.name = str(view.get("name", "CodexGrid"))
 	holder.add_theme_constant_override("separation", 10)
 	holder.mouse_filter = Control.MOUSE_FILTER_PASS
+	if view.has("body"):
+		holder.custom_minimum_size.x = grid_w
+		holder.add_child(view.body)
 	if view.has("album_section"):
 		holder.add_child(AlbumView.book(str(view.album_section), grid_w))
 	for block: Dictionary in view.blocks:
 		holder.add_child(_block(block, cols, tile_w, grid_w))
-	if view.blocks.is_empty() and not view.has("album_section"):
+	if view.blocks.is_empty() and not view.has("album_section") and not view.has("body"):
 		var empty := MissionUi.text(str(view.get("empty", "")), 16, Palette.WOOD_INK, 0)
 		empty.name = "CodexEmpty"
 		empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

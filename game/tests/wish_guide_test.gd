@@ -50,6 +50,7 @@ func _run() -> void:
 	state.set_clock(1792746000.0)
 	state.reset()
 	state.set_process(false)
+	state.dev_week_goto(3)
 	state.growth.phase = "puppy"
 	state.progress.claimed_quests["lais_bed"] = true
 	state.progress.seen.intro = true

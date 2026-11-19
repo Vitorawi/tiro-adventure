@@ -258,7 +258,7 @@ static func goal_row(id: String, quest: Dictionary, index: int, is_next: bool, c
 		# Toque no objetivo pendente: vai direto ao lugar dele.
 		var tap := BagUi.plain_button(func() -> void:
 			NextStep._close_popover()
-			Places.go(Places.goal_target(goal)))
+			Places.go(Places.quest_target(id, goal)))
 		tap.name = "StepGoalGo_%d" % index
 		tap.mouse_filter = Control.MOUSE_FILTER_PASS
 		row.add_child(tap)
@@ -396,6 +396,8 @@ static func action_row(id: String, mode: String = "step") -> Control:
 			NextStep._close_popover()
 			Places.go({"storage": str(shortage.depot)}), depot_icon if mode == "npc" else null)
 		go.name = "StepCardSpace" if mode == "step" else "QuestSpace_" + id
+	elif GameState.week_quest_wait(id) != "":
+		go = locked_button(GameState.week_quest_wait(id))
 	elif ready:
 		go = go_button("Pegar", func() -> void:
 			ProgressionUi.claim_quest_fx(id, actions.get_global_rect().get_center()))

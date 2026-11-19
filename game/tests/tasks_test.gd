@@ -32,18 +32,19 @@ func _run() -> void:
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_silo", "Depois do faro a vovó manda arrumar o silo (ordem 27)")
 	state.call("dev_complete_quest", "bloblo_silo")
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_more_crops", "Passo da vovó é o atual")
-	state.call("dev_complete_quest", "growth_1_puppy")  # o capítulo 1 só fecha com o Tiro crescendo
+	state.call("dev_complete_quest", "week_fish_dish")
+	state.call("dev_week_goto", 4)
 	state.get("progress").stats["wish"] = 1
 	check(state.call("claim_quest", "lais_first_wish") == "", "tutorial do desejo concluído antes do cruzamento")
-	check(state.get("progress").current_main_quest() == "lais_first_crops", "Conhecer a vovó já avança a história junto")
-	check(state.get("progress").claimed_quests.has("lais_meet_bloblo") and not state.call("quest_unlocked", "lais_meet_bloblo"), "Cruzamento não exige outro prêmio")
+	check(state.get("progress").current_main_quest() == "week_orchard", "Depois do desejo vem o pomar")
+	check(state.call("week_quest_wait", "week_orchard") == "A vovó volta amanhã", "Concluir um capítulo por dia civil")
 	var fresh: Dictionary = database.get("quests").bloblo_more_crops.goals[0]
 	check(state.call("goal_value", fresh) == 0, "Colheitas anteriores não contam")
 	state.get("progress").count("harvest", 2)
 	check(state.call("goal_value", fresh) == 2, "Colheitas novas contam")
 	check(state.call("accessible_plots") == 2, "Vovó empresta dois canteiros ao conhecer")
 	state.get("progress").count("harvest", 1)
-	check(state.call("claim_quest", "bloblo_more_crops") == "" and state.call("accessible_plots") == 4, "Mais colheitas: vovó empresta quatro canteiros")
+	check(state.call("claim_quest", "bloblo_more_crops") == "" and state.call("accessible_plots") == 2, "Os canteiros extras são comprados na semana")
 	check(not database.get("quests").has("bloblo_carrots"), "entrega repetida de cenouras saiu do catálogo")
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_rod", "depois de colher três vezes vem a vara da vovó")
 	check(state.call("plant_error", 0, "potato") == "", "batata já pode ser plantada sem entregar cenouras")
@@ -58,18 +59,21 @@ func _run() -> void:
 	events.connect("chapter_completed", func(index: int) -> void: chapter_signals.append(index))
 	check(state.get("progress").current_main_quest() == "welcome", "História começa em welcome")
 	check(state.get("progress").current_line_quest("bloblo") == "", "Vovó espera a Laís apresentar")
-	check(state.call("accessible_plots") == 0, "Sem canteiros antes de conhecer a vovó")
+	check(state.call("accessible_plots") == 2, "Dois canteiros desde a chegada")
 	check(not state.call("quest_unlocked", "first_harvest"), "Passo futuro não está liberado")
 	check(state.call("requirement_error", {"chapter": 3}) != "", "Requisito de capítulo bloqueia")
 	state.call("dev_add_coins", 1000)
 	state.call("dev_add_items", 20)
+	state.set("unlimited_storage", true)
 	state.call("dev_set_skills", 10)
+	state.call("dev_week_hour", 19)
 	var first: Array = state.get("progress").main_quests(1)
 	for id: String in first:
 		for goal: Dictionary in database.get("quests")[id].goals:
 			match str(goal.type):
 				"stat": state.get("progress").stats[goal.key] = int(goal.get("target", 1))
 				"owned": state.get("progress").owned[goal.key] = true
+				"week_plots": state.set("unlocked_plots", int(goal.target))
 				"growth": state.call("dev_set_phase", str(goal.key))
 		var before_reward: int = state.get("coins")
 		check(state.call("claim_quest", id) == "", "Receber passo " + id)
@@ -77,6 +81,7 @@ func _run() -> void:
 		if id == first.back():
 			expected += int(database.get("progression").chapters[0].get("rewards", {}).get("coins", 0))
 		check(state.get("coins") == before_reward + expected, "Pagamento exato do passo e capítulo")
+	state.set("unlimited_storage", false)
 	check(quest_signals.size() == first.size() and chapter_signals == [1], "Sinais de passos e capítulo uma vez")
 	var coins: int = state.get("coins")
 	check(state.call("claim_quest", first.back()) != "" and state.get("coins") == coins, "Capítulo não paga duas vezes")
@@ -104,10 +109,10 @@ func _unlocks_check() -> void:
 	var progress: RefCounted = state.get("progress")
 	check((state.call("new_unlocks") as Array).is_empty(), "Começo sem novidades pendentes")
 	check(not progress.feature_unlocked("bag") and not progress.skills_visible(), "Mochila e atributos escondidos no começo")
-	check(not progress.npc_visible("guide") and not progress.npc_visible("bloblo") and progress.npc_visible("lais"), "Só a Laís no começo")
+	check(not progress.npc_visible("guide") and progress.npc_visible("bloblo") and progress.npc_visible("lais"), "A Laís e a vovó já estão disponíveis")
 	state.call("dev_jump_to_chapter", 1)
 	var news: Array = state.call("new_unlocks")
-	for key: String in ["feature:bag", "world:farm", "npc:bloblo"]:
+	for key: String in ["feature:bag"]:
 		check(key in news, "Novidade do capítulo 2: " + key)
 	check(not "world:village" in news, "Vila ainda não apresentada")
 	check(not "npc:guide" in news, "Guia ainda não apresentado")
@@ -124,10 +129,10 @@ func _routines_check() -> void:
 	# Capítulo 3: diárias abrem com 3 missões; semanais só no 4.
 	state.call("dev_jump_to_chapter", 2)
 	check(state.get("progress").chapter_index() == 3, "Está no capítulo 3")
-	check(state.call("routines_unlocked", "daily") and (state.call("routine_ids", "daily") as Array).size() == 2 and not ("cook" in state.call("routine_ids", "daily")) and not ("order" in state.call("routine_ids", "daily")), "Diárias abrem no capítulo 3 só com colheita e pesca (a vara já veio; sem tarefa impossível)")
+	check(not state.call("routines_unlocked", "daily"), "A rotina antiga espera Dentinhos")
 	check(not state.call("routines_unlocked", "weekly"), "Semanais ainda fechadas no capítulo 3")
 	state.get("progress").stats["harvest"] = 7
-	state.call("dev_jump_to_chapter", 4)
+	state.call("dev_jump_to_chapter", 8)
 	# Reinicia após preparar os contadores: a diária já pode ter sido sorteada no capítulo 3.
 	state.call("dev_restart_routines")
 	var progress: RefCounted = state.get("progress")
@@ -165,14 +170,13 @@ func _ui_check() -> void:
 	await create_timer(0.2).timeout
 	var card: Control = main.find_child("StoryCard", true, false)
 	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
-	check(main.find_child("GroupTabs", true, false).is_visible_in_tree() and main.find_child("NotebookTab_story", true, false) != null and main.find_child("NotebookTab_characters", true, false).has_meta("locked") and main.find_child("NotebookTab_timed", true, false).has_meta("locked"), "início: as três abas aparecem, Pessoas e Diárias com cadeado")
-	check(card.find_child("StoryHero", true, false) != null and card.find_child("StoryRewards", true, false) != null and card.find_child("StoryGoal_0", true, false) != null, "história: cartão do topo, recompensas e passos")
+	check(main.find_child("GroupTabs", true, false).is_visible_in_tree() and main.find_child("NotebookTab_story", true, false) != null and main.find_child("NotebookTab_characters", true, false) == null and main.find_child("NotebookTab_timed", true, false) == null, "início: só a História na primeira semana")
+	check(card.find_child("StoryHero", true, false) != null and card.find_child("StoryRewards", true, false) == null and card.find_child("StoryGoal_0", true, false) != null, "história: cartão do topo, recompensas e passos")
 	check(card.find_child("ChapterSteps", true, false) == null, "lista antiga de passos do capítulo saiu")
 	var chapter_bar := card.find_child("BarText", true, false) as Label
 	check(chapter_bar != null and chapter_bar.text == "0/1", "barra do cartão mostra o progresso da missão atual")
 	check(main.find_child("MissionFrame", true, false).visible, "moldura de madeira na História")
-	check(card.find_child("QuestGo_welcome", true, false) != null and (card.find_child("ClaimQuest_welcome", true, false) as Button).disabled, "missão em andamento: Ir e Pegar travado")
-	check((card.find_child("ClaimQuest_welcome", true, false) as Button).icon == null, "Pegar travado sem cadeado ou outro ícone")
+	check(card.find_child("QuestGo_welcome", true, false) != null and card.find_child("ClaimQuest_welcome", true, false) == null, "missão em andamento: Ir antes do prêmio")
 	var step: Control = main.find_child("NextStep", true, false)
 	check(step != null and not step.visible and (load("res://scripts/ui/quest_guide.gd") as GDScript).call("current").id == "welcome", "O próximo passo só aparece na tela do Tiro: oculto em Missões, mas o passo atual segue welcome")
 	check(main.find_child("MoodLabel", true, false).text == "Tiro está feliz da vida!", "Humor do Tiro substitui a instrução fixa (Etapa 09)")
@@ -187,7 +191,7 @@ func _ui_check() -> void:
 	check(main.find_child("Sheet", true, false).visible, "Painel abre depois da seta")
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	main.call("show_screen", &"tasks")
-	state.get("progress").stats["talk:lais"] = 1
+	state.get("progress").stats["arrival_box"] = 1
 	root.get_node("Events").emit_signal("state_changed")
 	check(main.get("_tasks_badge").text == "1", "Badge conta a principal pronta uma vez")
 	await process_frame
@@ -196,18 +200,16 @@ func _ui_check() -> void:
 	check(done != null and not done is Button and done.size == Vector2(104, 44) and done.mouse_filter == Control.MOUSE_FILTER_IGNORE and done.focus_mode == Control.FOCUS_NONE, "passo feito: status no espaço 104×44 sem toque ou foco")
 	check(done != null and done.find_child("DoneText", true, false).text == "Concluído" and not done.has_node("Frame") and done.find_children("*", "Button", true, false).is_empty(), "passo feito: Concluído plano sem botão")
 	check(main.find_child("StoryGoal_0", true, false).get_node("Art/Frame").self_modulate == Color(0.90, 1.0, 0.90), "cartão feito com tom verde")
-	state.get("progress").stats["talk:lais"] = 0
+	state.get("progress").stats["arrival_box"] = 0
 	root.get_node("Events").emit_signal("state_changed")
 	await create_timer(0.2).timeout
 	_shot("tasks_start")
-	state.call("dev_jump_to_chapter", 1)
-	state.get("progress").stats["wish"] = 1
-	check(state.call("claim_quest", "lais_first_wish") == "", "prepara a orientação da vovó após o desejo")
+	state.call("dev_complete_quest", "lais_village")
 	state.call("_changed")
 	await process_frame
 	await process_frame
 	var guidance: Label = main.find_child("SharedQuestGuidance", true, false)
-	check(guidance != null and guidance.text.contains(str(database.get("npcs").bloblo.name)), "principal orienta até o marco da linha")
+	check(guidance != null and guidance.text.contains(str(database.get("npcs").merchant.name)), "principal orienta até o marco da linha")
 	var tasks: Control = main.find_child("TasksScreen", true, false)
 	check(tasks.find_child("LineCard_bloblo", true, false) == null, "principal não repete as secundárias")
 	_shot("tasks_shared_guidance")
@@ -223,7 +225,7 @@ func _ui_check() -> void:
 	check(tasks.find_child("LineDetail_bloblo", true, false) != null, "abrir Bloblo mostra o detalhe da missão")
 	check(tasks.find_child("StoryCard", true, false) == null, "personagens não repetem a principal")
 	check(tasks.find_child("MissionFrame", true, false).visible, "Pessoas também tem a moldura de madeira")
-	state.call("dev_jump_to_chapter", 3)
+	state.call("dev_jump_to_chapter", 7)
 	await create_timer(2.2).timeout
 	main.get_node("Celebration").hide()
 	await process_frame
@@ -309,7 +311,7 @@ func _shot(file_name: String) -> void:
 
 ## Cruzamentos da história: uma entrega, um prêmio e compatibilidade com saves anteriores.
 func _shared_quests_check() -> void:
-	for alias: String in ["lais_meet_bloblo", "lais_first_crops", "lais_fishing", "lais_stew"]:
+	for alias: String in ["first_sale", "main_2_order"]:
 		state.call("reset")
 		var progress: RefCounted = state.get("progress")
 		var quests: Dictionary = database.get("quests")
@@ -318,7 +320,7 @@ func _shared_quests_check() -> void:
 			for previous: String in progress.main_quests(chapter):
 				if previous == alias: break
 				progress.claimed_quests[previous] = true
-		for previous: String in progress.line_quests("bloblo"):
+		for previous: String in progress.line_quests(str(quests[shared].line)):
 			if previous == shared: break
 			progress.claimed_quests[previous] = true
 		state.call("_changed")
@@ -332,7 +334,7 @@ func _shared_quests_check() -> void:
 		var count_before: int = progress.stat("quests")
 		check(state.call("claim_quest", shared) == "", "entrega única: " + shared)
 		var chapter_reward := 0
-		if alias == "lais_fishing":  # a pesca fecha o capítulo 2; lais_stew deixou de fechar o capítulo 3
+		if alias == str(progress.main_quests(int(quests[alias].chapter)).back()):
 			chapter_reward = int(database.get("progression").chapters[int(quests[alias].chapter) - 1].get("rewards", {}).get("coins", 0))
 		check(progress.claimed_quests.has(alias), "história avança junto: " + alias)
 		check(state.get("coins") == before + int(quests[shared].rewards.get("coins", 0)) + chapter_reward, "só prêmio canônico e eventual capítulo")

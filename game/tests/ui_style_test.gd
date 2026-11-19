@@ -213,8 +213,8 @@ func _blocked_actions() -> void:
 	state.get("inventory").call("from_dict", {})
 	state.set("coins", 0)
 	state.get("dog").needs.energy = 0.0
-	state.get("progress").tricks["paw"] = true
-	state.get("progress").cooldowns["trick:paw"] = float(state.call("now")) + 300
+	state.get("progress").tricks["talk"] = true
+	state.get("progress").cooldowns["trick:talk"] = float(state.call("now")) + 300
 	var sheet: Control = load("res://scenes/ui/sheet/sheet.tscn").instantiate()
 	sheet.theme = load("res://assets/theme/main_theme.tres")
 	root.add_child(sheet)
@@ -240,8 +240,8 @@ func _blocked_actions() -> void:
 			var hint := sheet.find_child("Locked_DeliverOrder", true, false)
 			check(hint != null and hint.find_child("LockIcon", true, false) != null and str(hint.get_meta("reason", "")) != "", "entrega bloqueada conserva motivo, cadeado e consulta")
 		if title == "Truques":
-			var hint := sheet.find_child("Locked_Trick_paw", true, false)
-			check(hint != null and hint.get_meta("reason") == state.call("perform_trick_error", "paw"), "truque em recarga mantém motivo real sem Mostrar cinza")
+			var hint := sheet.find_child("Locked_Trick_talk", true, false)
+			check(hint != null and hint.get_meta("reason") == state.call("perform_trick_error", "talk"), "truque em recarga mantém motivo real sem Mostrar cinza")
 		if title == "Passeios":
 			var hint := sheet.find_child("Locked_StartWalk_park_loop", true, false)
 			check(hint != null and hint.get_meta("reason") == state.call("walk_error", "park_loop"), "passeio sem energia mantém motivo real sem Passear cinza")

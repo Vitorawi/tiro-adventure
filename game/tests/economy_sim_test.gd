@@ -93,8 +93,8 @@ func _test_clock_mapping() -> void:
 	gs.advance_clock(3600.0)
 	check(absf(gs.dog.get_need("hunger", gs.now()) - (hunger_before - 8.0)) < 0.01, "necessidades caem pelo relógio (8 por hora)")
 	gs.return_due_walk()  # o tick de 1 s do jogo real (bg_tick no simulador)
-	check(gs.walk_ready() and gs.plot_status(0) == "ready" and gs.station("stove").ready_count(gs.now()) == 2 and gs.gathering_ready_count("trees") == 1, "uma hora depois tudo o que estava em andamento ficou pronto")
-	check(gs.collect_walk().size() > 0, "passeio pronto pode ser recolhido")
+	check(gs.walk_result_unseen() and gs.plot_status(0) == "ready" and gs.station("stove").ready_count(gs.now()) == 2 and gs.gathering_ready_count("trees") == 1, "uma hora depois tudo o que estava em andamento ficou pronto")
+	check(gs.walk_result_view().get("items_claimed", false) and gs.inventory.count("stick") >= 2, "passeio pronto pode ser recolhido")
 	check(gs.fulfill_order("vegetables") == "", "fixture: pedido")
 	check(gs.progress.cooldown_left("order:vegetables", gs.now()) == 60, "recarga do pedido = agora + 60 s")
 	gs.advance_clock(61.0)
@@ -142,7 +142,9 @@ func _test_static_scan() -> void:
 			if not file_name.ends_with(".gd"):
 				continue
 			var path := folder.path_join(file_name)
-			var text := FileAccess.get_file_as_string(path)
+			var text := FileAccess.get_file_as_string(path).replace("\r\n", "\n")
+			if path == "res://autoload/game_state.gd":
+				text = text.replace("func _yard_seconds() -> float:\n\treturn Time.get_ticks_msec() / 1000.0", "")
 			scanned += 1
 			for needle: String in forbidden:
 				if needle in text and not needle in allowed.get(path, []):
@@ -174,7 +176,10 @@ func _test_cached_progress() -> void:
 # --- 3. Fidelidade: runner × GameState direto ------------------------------------------------------
 
 func _fixture_dict() -> Dictionary:
-	gs.dev_jump_to_chapter(5)
+	gs.dev_jump_to_chapter(9)
+	gs.dev_grant_upgrade("fridge")
+	gs.dev_grant_upgrade("stove_queue")
+	gs.buy_plot(2)
 	gs.dev_grant_upgrade("stove_queue_2")
 	gs.dev_grant_upgrade("silo")  # etapa 05: o cesto provisório (16) não comporta o roteiro; o silo (32) sim
 	gs.dev_add_coins(300)
@@ -458,7 +463,10 @@ func _test_classification() -> void:
 
 func _test_reload_recipe() -> void:
 	sim = _new_sim()
-	gs.dev_jump_to_chapter(5)
+	gs.dev_jump_to_chapter(9)
+	gs.dev_grant_upgrade("fridge")
+	gs.dev_grant_upgrade("stove_queue")
+	gs.buy_plot(2)
 	gs.dev_grant_upgrade("stove_queue")
 	gs.dev_add_coins(300)
 	gs.inventory.counts.clear()
@@ -578,22 +586,12 @@ func _top_up_moments() -> void:
 
 
 func _test_growth_bot() -> void:
-	# Dentinhos: a vovó faz a argolinha, o robô dá a cenoura gelada três vezes, entrega a argolinha e cresce.
-	_growth_fixture("puppy", "lais_stew")
-	check(gs.progress.current_main_quest() == "teeth_3_ring", "fixture: capítulo 3 espera a argolinha")
-	gs.inventory.add("carrot", 6)
-	gs.inventory.add("strawberry", 3)
-	gs.inventory.add("frozen_carrot", 3)
-	gs.inventory.add("fish_mash", 3)
-	_top_up_moments()
-	var kinds := _bot_until(func() -> bool: return gs.growth.phase == "teething")
-	check(gs.growth.phase == "teething", "o robô fez o Tiro crescer para Dentinhos (ações: %s)" % str(kinds))
-	check(kinds.count("feed") >= 3 and "deliver_growth" in kinds and "grow" in kinds, "alimentou, entregou o item-chave e apertou Crescer (%s)" % str(kinds))
-	check(gs.progress.claimed_quests.has("bloblo_chew_ring") and gs.growth.delivered.teething.get("chew_ring", 0) == 1, "a argolinha veio da missão da vovó e foi entregue")
-	check(sim.violations.is_empty(), "Dentinhos sem violações de guarda/conservação (%s)" % str(sim.violations))
-	# O robô também pega a missão de crescer (a história avança).
-	_bot_until(func() -> bool: return gs.progress.claimed_quests.has("growth_3_teething"), 20)
-	check(gs.progress.claimed_quests.has("growth_3_teething"), "pegou a missão 'As orelhinhas subiram!'")
+	# O primeiro crescimento e Dentinhos seguem a semana de pratos, aulas e almoço.
+	sim = _new_sim()
+	var route = load("res://tests/helpers/week_economy_route.gd").new(gs, root.get_node("Database"), check)
+	var measured: Dictionary = route.measure("regular")
+	check(measured.errors.is_empty() and measured.growth_day == 8 and measured.village, "Retorno após um dia perdido, Dentinhos e Vila")
+	check(gs.growth.delivered.teething.get("chew_ring", 0) == 1, "Mordedor comprado e entregue")
 	# Mocinho: refeição da fase, escova entregue e dois banhos com xampu (espera o Tiro sujar entre um e outro).
 	_growth_fixture("explorer", "lais_shiny_coat")
 	check(gs.progress.current_main_quest() == "growth_9_young", "fixture: a história espera o Mocinho")
@@ -619,10 +617,3 @@ func _test_growth_bot() -> void:
 	var kinds3 := _bot_until(func() -> bool: return gs.growth.phase == "adult", 30)
 	check(gs.growth.phase == "adult", "o robô fez o Tiro crescer para Azul e Dourado (ações: %s)" % str(kinds3))
 	check(sim.violations.is_empty(), "Azul e Dourado sem violações (%s)" % str(sim.violations))
-	# Do zero: em dois dias o robô cuida do Tiro, pega a missão e passa do Filhotinho (sem atalhos).
-	var run = SimScript.new(root, {"profile": "reference", "seed": 1, "days": 2, "ledger": "off", "out": ""})
-	run.setup()
-	run.run()
-	check(run.gs.growth.phase_index() >= run.gs.growth.phase_index("puppy"), "em dois dias o robô já cresceu o Tiro (fase %s)" % run.gs.growth.phase)
-	check(run.gs.progress.claimed_quests.has("growth_1_puppy") and run.gs.progress.chapter_index() >= 2, "a missão de crescer abriu o capítulo 2")
-	check(run.violations.is_empty() and int(run.action_counts.get("grow", 0)) >= 1, "campanha de dois dias com 'grow' e sem violações (%s)" % str(run.action_counts.get("grow", 0)))

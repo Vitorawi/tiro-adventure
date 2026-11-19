@@ -163,11 +163,13 @@ func _chain_check() -> void:
 	check(_inv().count("blueberry_treat") == 1 and _inv().count("blueberry") == 0 and _inv().count("herbs") == 0 and _inv().count("carrot_snack") == snacks - 1, "petisco consome 2 + 1 + 1")
 	# Só o petisco alimenta: hunger +20 e happiness +10; brinquedo/cesta não entram no menu alimentar.
 	var dog: RefCounted = state.get("dog")
+	state.call("dev_week_goto", 2)  # dia 1 vale refeição a qualquer hora (bônus de Felicidade, E01): usa o dia 2, às 9 h, fora das janelas
+	state.call("dev_week_hour", 9)
 	dog.commit(state.call("now"))
 	dog.needs["hunger"] = 50.0
 	dog.needs["happiness"] = 50.0
 	check(state.call("feed", "blueberry_treat") == true, "petisco alimenta")
-	check(absf(dog.get_need("hunger", state.call("now")) - 70.0) < 1.0 and absf(dog.get_need("happiness", state.call("now")) - 60.0) < 1.0, "efeitos 20/10")
+	check(absf(dog.get_need("hunger", state.call("now")) - 70.0) < 1.0 and absf(dog.get_need("happiness", state.call("now")) - 60.0) < 1.0, "efeitos 20/10 (fome %.1f, felicidade %.1f)" % [dog.get_need("hunger", state.call("now")), dog.get_need("happiness", state.call("now"))])
 	check(state.call("feed", "braided_toy") == false and _inv().count("braided_toy") == 1, "brinquedo não é comida")
 	check(state.call("feed", "picnic_pack") == false and _inv().count("picnic_pack") == 1, "cesta não é comida")
 

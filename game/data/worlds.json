@@ -16,7 +16,9 @@
         "icon": "item_dog_food",
         "description": "Dê comida ao Tiro.",
         "panel": "feed",
-        "upgrades": ["named_bowl"]
+        "upgrades": [
+          "named_bowl"
+        ]
       },
       "stove": {
         "name": "Cozinha",
@@ -62,12 +64,7 @@
         "name": "Ir para o sítio",
         "icon": "tab_farm",
         "description": "",
-        "panel": "travel:farm",
-        "requirements": {
-          "quests": [
-            "growth_1_puppy"
-          ]
-        }
+        "panel": "travel:farm"
       },
       "bed": {
         "name": "Caminha",
@@ -75,7 +72,10 @@
         "description": "Soneca do Tiro.",
         "upgrade": "dog_bed",
         "panel": "house:bed",
-        "upgrades": ["bed_soft", "bed_luxe"],
+        "upgrades": [
+          "bed_soft",
+          "bed_luxe"
+        ],
         "hidden": true
       },
       "sofa": {
@@ -105,16 +105,11 @@
     "name": "Sítio da Bloblo",
     "map_name": "Sítio",
     "in_name": "no Sítio",
-    "map_locked_hint": "Depois do Tiro crescer",
     "map_caption": "Plantar, criar e fazer",
     "icon": "tab_farm",
     "description": "Plantar, colher e crescer.",
     "room": "farm",
-    "requirements": {
-      "quests": [
-        "growth_1_puppy"
-      ]
-    },
+    "requirements": {},
     "npcs": [
       "bloblo"
     ],
@@ -124,6 +119,40 @@
         "icon": "tab_farm",
         "description": "Plantar, colher e comprar terrenos.",
         "panel": "farm"
+      },
+      "week_cart": {
+        "name": "Carroça do Feirante",
+        "icon": "coin",
+        "description": "Encomendas do dia e compras no portão.",
+        "panel": "week_cart",
+        "requirements": {
+          "week_day": 5
+        },
+        "hidden": true
+      },
+      "week_yard": {
+        "name": "Quintal do Tiro",
+        "icon": "action_play",
+        "description": "Bolinha, cordinha e outras brincadeiras.",
+        "panel": "week_yard",
+        "hidden": true
+      },
+      "week_training": {
+        "name": "Caderno de truques",
+        "icon": "trick_paw",
+        "description": "Aula do Tiro com a vovó.",
+        "panel": "trick_lesson",
+        "hidden": true
+      },
+      "week_show": {
+        "name": "Show de truques",
+        "icon": "trick_paw",
+        "description": "Mostre os truques do Tiro à vovó e à Laís.",
+        "panel": "trick_show",
+        "hidden": true,
+        "requirements": {
+          "week_day": 6
+        }
       },
       "greenhouse": {
         "name": "Estufa",
@@ -139,7 +168,10 @@
         "description": "Pesque com a vara da vovó.",
         "panel": "fishing",
         "hidden": true,
-        "requirements": {"rod": "bamboo_rod"}
+        "requirements": {
+          "rod": "bamboo_rod",
+          "week_day": 3
+        }
       },
       "workbench": {
         "name": "Produção",
@@ -179,9 +211,12 @@
       "orchard": {
         "name": "Pomar",
         "icon": "item_apple",
-        "description": "Maçãs.",
+        "description": "Macieira e bananeira.",
         "upgrade": "orchard",
-        "panel": "routes:orchard"
+        "panel": "orchard",
+        "requirements": {
+          "week_day": 4
+        }
       },
       "home": {
         "name": "Voltar para casa",
@@ -197,7 +232,7 @@
         "panel": "stations:chicken_coop+cow_barn",
         "upgrade": "chicken_coop",
         "requirements": {
-          "chapter": 5,
+          "chapter": 9,
           "owned": [
             "farm"
           ]
@@ -211,10 +246,7 @@
         "upgrade": "chicken_coop",
         "hidden": true,
         "requirements": {
-          "chapter": 5,
-          "owned": [
-            "farm"
-          ]
+          "week_day": 2
         }
       },
       "cow_barn": {
@@ -225,7 +257,7 @@
         "upgrade": "cow_barn",
         "hidden": true,
         "requirements": {
-          "chapter": 5,
+          "chapter": 9,
           "owned": [
             "farm"
           ]
@@ -239,7 +271,7 @@
         "upgrade": "mill",
         "hidden": true,
         "requirements": {
-          "chapter": 5
+          "chapter": 9
         },
         "upgrades": [
           "mill_queue"
@@ -253,7 +285,7 @@
         "upgrade": "dairy",
         "hidden": true,
         "requirements": {
-          "chapter": 5
+          "chapter": 9
         },
         "upgrades": [
           "dairy_queue"
@@ -262,27 +294,23 @@
       "early_market": {
         "name": "Banca da vovó",
         "icon": "coin",
-        "description": "Venda o que sobrou e receba moedas na hora.",
+        "description": "Compre kits e venda a colheita na banca da vovó.",
         "panel": "sell",
         "hidden": true,
-        "requirements": {
-          "quests": [
-            "bloblo_meet"
-          ]
-        }
+        "requirements": {}
       }
     }
   },
   "village": {
     "name": "Vila",
     "in_name": "na Vila",
-    "map_locked_hint": "Depois do capítulo 3",
+    "map_locked_hint": "Quando o Tiro virar Dentinhos",
     "map_caption": "Vender e fabricar",
     "icon": "tab_village",
     "description": "Feira, ateliê e o portão para Natureza.",
     "room": "village",
     "requirements": {
-      "chapter": 4
+      "growth": "teething"
     },
     "npcs": [
       "merchant",
@@ -311,7 +339,7 @@
         "description": "Ir para Natureza.",
         "panel": "travel:nature",
         "requirements": {
-          "chapter": 5
+          "chapter": 9
         }
       },
       "orders": {
@@ -387,7 +415,8 @@
     "requirements": {
       "quests": [
         "main_2_order"
-      ]
+      ],
+      "growth": "teething"
     },
     "npcs": [
       "nina",
@@ -508,7 +537,8 @@
     "description": "Bosque, riacho, prado e grutas. Explore para buscar materiais.",
     "room": "nature",
     "requirements": {
-      "chapter": 5
+      "chapter": 9,
+      "growth": "teething"
     },
     "npcs": [
       "guide"

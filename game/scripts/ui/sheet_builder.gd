@@ -7,11 +7,25 @@ extends RefCounted
 
 
 ## Caminho único da comida desejada (o cumprimento já alimenta exatamente uma vez).
-static func give_food(id: String) -> String:
+static func give_food(id: String, trick_offer: Dictionary = {}) -> String:
 	if GameState.walking(): return GameState.away_text()
 	if GameState.dog.sleeping: return "Shh... ele está dormindo."
-	if GameState.wish_wants_item(id): return GameState.fulfill_wish()
-	return "" if GameState.feed(id) else "Você não tem essa comida."
+	if GameState.wish_wants_item(id): return GameState.fulfill_wish(trick_offer, id)
+	return "" if GameState.feed(id, trick_offer) else "Você não tem essa comida."
+
+
+static func request_food(id: String, on_served: Callable = Callable()) -> void:
+	var offer := GameState.meal_trick_offer(id)
+	var serve := func(trick: Dictionary) -> void:
+		var error := give_food(id, trick)
+		if error != "":
+			Events.toast_requested.emit(error)
+		elif on_served.is_valid():
+			on_served.call()
+	if offer.is_empty():
+		serve.call({})
+	else:
+		MealUi.offer_trick(offer, serve)
 
 
 ## Comidas do inventário em madeira ilustrada: cartão de papel por comida (prato com o ícone, nome ×N, efeitos) e "Dar".
@@ -35,12 +49,10 @@ static func food_picker() -> Control:
 				chips.append(StepCardUi.wood_chip(UiKit.ui_icon("heart"), "Ele quer!", "have"))
 			chips.append_array(_effect_chips(Database.items[id]["feed"]))
 			var on_give := func() -> void:
-				var error := give_food(id)
-				var message := error if error != "" else ("Era isso que ele queria!" if wished else "")
-				if message != "":
-					Events.toast_requested.emit(message)
-				if error == "":
-					Events.sheet_close_requested.emit()
+				request_food(id, func() -> void:
+					if wished:
+						Events.toast_requested.emit("Era isso que ele queria!")
+					Events.sheet_close_requested.emit())
 			var wanted := wished and not primary_used
 			primary_used = primary_used or wanted
 			var give: Button
@@ -235,6 +247,8 @@ static func _sources(id: String) -> Array[Dictionary]:
 		elif not target.is_empty() and target.has("world"):
 			var place: Dictionary = Database.worlds[target.world].places.get(target.place, {})
 			links.append({"icon": UiKit.ui_icon(place.get("icon", "")), "name": place.get("name", ""), "target": target})
+	for reward: Dictionary in Database.week_reward_sources(id):
+		links.append({"icon": UiKit.ui_icon("tab_tasks"), "name": reward.name, "target": reward.target})
 	return links
 
 
@@ -314,7 +328,7 @@ static func station_view(station_id: String, focus: String = "", group: PackedSt
 			instruction.custom_minimum_size.x = 40.0
 			box.add_child(instruction)
 		if data.get("kind", "") == "animal":
-			var count := StationWood.text("%d de %d animais" % [GameState.animal_count(station_id), int(data.animal_capacity)], 15)
+			var count := StationWood.text("%d de %d animais" % [GameState.animal_count(station_id), GameState.animal_capacity(station_id)], 15)
 			count.name = "AnimalCount"
 			box.add_child(count)
 			var buy := WelcomeSheet._button("Comprar animais", false, 190.0, "BuyAnimals", open_animal_shop.bind(station_id))
@@ -408,10 +422,9 @@ static func _animal_slot_row(station_id: String) -> HFlowContainer:
 static func _slot_card(entry: Dictionary, now: float) -> Control:
 	if entry.is_empty():
 		return slot_frame(null, "", 0.0, false, true)
-	var recipe: Dictionary = Database.recipes[entry["recipe"]]
-	var seconds := float(recipe["seconds"])
+	var seconds := Database.entry_seconds(entry)
 	var remaining := float(entry["ready_at"]) - now
-	var texture := Database.item_icon(Database.recipe_output(recipe))
+	var texture := Database.item_icon(Database.entry_output(entry))
 	if remaining <= 0.0:
 		return slot_frame(texture, "Pronto!", 1.0, true, false)
 	if remaining > seconds:
@@ -616,8 +629,8 @@ static func seed_picker(plot_index: int, focus: String = "") -> Control:
 	var view := LiveBox.new(func(box: VBoxContainer) -> void:
 		var crop_ids: Array = Database.crops.keys()
 		crop_ids.sort_custom(func(a: String, b: String) -> bool:
-			var a_time := int(Database.crops[a].seconds)
-			var b_time := int(Database.crops[b].seconds)
+			var a_time := GameState.crop_seconds(plot_index, a)
+			var b_time := GameState.crop_seconds(plot_index, b)
 			return a_time < b_time if a_time != b_time else a > b)
 		for crop_id: String in crop_ids:
 			if focus != "" and crop_id != focus:
@@ -667,8 +680,7 @@ static func farm_view(focus: String = "", greenhouse_only: bool = false) -> Cont
 			box.add_child(house_grid)
 			return
 		var total := int(Database.farm.get("plots", 0))
-		if not GameState.has_upgrade("farm"):
-			# Antes da escritura: um canteiro emprestado e a compra do sítio.
+		if not GameState.has_upgrade("farm") and GameState.upgrade_error("farm") == "":
 			ProgressionUi.upgrade_card(box, "farm", true)
 		var land := UiKit.hbox(8)
 		land.name = "Land"
@@ -678,10 +690,13 @@ static func farm_view(focus: String = "", greenhouse_only: bool = false) -> Cont
 		count.name = "LandCount"
 		land.add_child(count)
 		box.add_child(land)
-		if GameState.has_upgrade("farm") and GameState.unlocked_plots < total:
+		if GameState.plot_can_buy(GameState.unlocked_plots):
 			var cost := GameState.plot_cost(GameState.unlocked_plots)
 			var on_buy := func() -> void:
-				Events.sheet_requested.emit("Terreno %d" % (GameState.unlocked_plots + 1), plot_purchase(GameState.unlocked_plots))
+				if GameState.unlocked_plots < int(Database.farm.week_extra_until):
+					Places.run("farm", "shop:week_plot")
+				else:
+					Events.sheet_requested.emit("Terreno %d" % (GameState.unlocked_plots + 1), plot_purchase(GameState.unlocked_plots))
 			var buy: Button
 			if GameState.coins >= cost:
 				buy = StepCardUi.go_button("+1 terreno · %d" % cost, on_buy, UiKit.ui_icon("coin"))

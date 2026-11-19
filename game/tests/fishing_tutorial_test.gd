@@ -76,8 +76,9 @@ func _setup_chapter_two() -> void:
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
 	state.call("_dev_complete_quest", "bloblo_more_crops")
-	state.call("_dev_complete_quest", "lais_first_crops")
+	state.call("_dev_complete_quest", "growth_1_puppy")
 	state.call("_mark_all_seen")
+	state.call("dev_week_goto", 3)
 	_inv().call("from_dict", {})
 	state.call("_changed")
 
@@ -123,10 +124,10 @@ func _run() -> void:
 # 0 — as cinco missões e as falas existem nos dados, com as ordens combinadas.
 func _test_content() -> void:
 	var quests: Dictionary = root.get_node("Database").get("quests")
-	for id: String in ["lais_fishing", "bloblo_rod", "bloblo_first_fish", "bloblo_three_fish", "bloblo_worms"]:
+	for id: String in ["week_bridge", "week_fish", "bloblo_rod", "bloblo_first_fish", "bloblo_three_fish", "bloblo_worms"]:
 		check(quests.has(id), "0: missão %s" % id)
 	check(int(quests.bloblo_rod.order) == 32 and int(quests.bloblo_first_fish.order) == 34 and int(quests.bloblo_three_fish.order) == 36 and int(quests.bloblo_worms.order) == 38, "0: ordens 32/34/36/38")
-	check(str(quests.lais_fishing.shared_with) == "bloblo_first_fish" and int(quests.lais_fishing.chapter) == 2 and int(quests.lais_fishing.order) == 30, "0: principal compartilha a primeira fisgada")
+	check(int(quests.week_fish.chapter) == 3 and str(quests.week_fish.goals[0].key) == "fish", "0: a História do dia 3 conta a pescaria")
 	check((quests.bloblo_rod.rewards.rods as Array).has("bamboo_rod") and int(quests.bloblo_rod.rewards.items.bait_worm) == 5, "0: a vara dá bambu e 5 minhocas")
 	var lines: Dictionary = root.get_node("Database").get("npcs").bloblo.lines
 	for key: String in ["lake", "bait", "force", "wait", "bite", "see", "hold", "release", "play", "almost", "result", "outro"]:
@@ -177,8 +178,8 @@ func _test_quests_and_rod() -> void:
 	var progress: RefCounted = state.get("progress")
 	var active: Dictionary = progress.call("active_steps")
 	check(active.values().has("bloblo_rod"), "1: bloblo_rod ativa (%s)" % str(active))
-	check(str(progress.call("current_main_quest")) == "lais_fishing", "1: a principal é lais_fishing (%s)" % str(progress.call("current_main_quest")))
-	check(str(state.call("current_rod")) == "", "1: ainda sem vara")
+	check(str(progress.call("current_main_quest")) == "week_bridge", "1: a principal é week_bridge (%s)" % str(progress.call("current_main_quest")))
+	check(state.call("current_rod") == "bamboo_rod", "1: a vara de bambu já está disponível no dia 3")
 	check(str(state.call("claim_quest", "bloblo_rod")) != "", "1: sem falar com a vovó não pega a vara")
 	state.call("talk_to", "bloblo")
 	check(str(state.call("claim_quest", "bloblo_rod")) == "", "1: falar com a vovó libera a vara")
@@ -399,7 +400,7 @@ func _test_finish_and_next() -> void:
 	check(str(state.call("claim_quest", "bloblo_first_fish")) == "", "7: entrega")
 	check(int(state.get("coins")) >= coins_before + 10, "7: pelo menos 10 moedas (%d → %d)" % [coins_before, int(state.get("coins"))])
 	check(state.get("progress").call("active_steps").values().has("bloblo_three_fish"), "7: peixes da lagoa ativa")
-	check(str(state.get("progress").call("current_main_quest")) != "lais_fishing", "7: a principal avançou junto")
+	check(int(state.get("progress").call("stat", "fish")) >= 1, "7: a pesca também conta na História da lagoa")
 	var places: Script = load("res://scripts/ui/places.gd")
 	var target: Dictionary = places.call("goal_target", {"type": "stat", "key": "fish:fish_cara"})
 	check(str(target.get("place", "")) == "fishing" or str(target.get("spot", "")) == "fishing" or str(target.get("panel", "")) == "fishing" or not target.is_empty(), "7: o Ir dos peixes leva à lagoa (%s)" % str(target))

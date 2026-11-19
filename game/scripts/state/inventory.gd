@@ -10,6 +10,8 @@ func count(id: String) -> int:
 
 
 func add(id: String, amount: int = 1) -> void:
+	if id.begins_with(DishRules.PREFIX):
+		Database.ensure_dish(id)  # prato dinâmico: vira item conhecido (nome, ícone, depósito, preço)
 	counts[id] = count(id) + amount
 
 
@@ -45,4 +47,6 @@ func from_dict(data: Dictionary) -> void:
 	counts.clear()
 	for id: String in data:
 		if int(data[id]) > 0:
+			if id.begins_with(DishRules.PREFIX):
+				Database.ensure_dish(id)
 			counts[id] = int(data[id])

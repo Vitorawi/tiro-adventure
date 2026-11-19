@@ -89,12 +89,13 @@
       "slots": 1,
       "kind": "animal",
       "animal_capacity": 3,
+      "week_animal_capacity": 2,
       "action_label": "Alimentar",
       "queue_label": "Fazendo ovos",
       "recipe_label": "Alimentação",
       "instruction": "Dê milho às galinhas. Espere e pegue os ovos.",
       "requirements": {
-        "chapter": 5
+        "chapter": 9
       }
     },
     "cow_barn": {
@@ -107,7 +108,7 @@
       "recipe_label": "Alimentação",
       "instruction": "Dê trigo às vacas. Espere e pegue o leite.",
       "requirements": {
-        "chapter": 5
+        "chapter": 9
       }
     },
     "mill": {
@@ -115,7 +116,7 @@
       "slots": 2,
       "instruction": "Transforme trigo em farinha.",
       "requirements": {
-        "chapter": 5
+        "chapter": 9
       },
       "slot_upgrades": {
         "mill_queue": 1
@@ -126,7 +127,7 @@
       "slots": 2,
       "instruction": "Transforme leite em queijo.",
       "requirements": {
-        "chapter": 5
+        "chapter": 9
       },
       "slot_upgrades": {
         "dairy_queue": 1
@@ -220,17 +221,16 @@
     "plots": 9,
     "greenhouse_plots": 4,
     "greenhouse_speed": 0.7,
-    "initial_plots": 4,
+    "initial_plots": 2,
     "unlock_costs": [
       0,
       0,
-      0,
-      0,
+      20,
+      20,
       80,
       140,
       220,
-      340,
-      500
+      340
     ],
     "sprout": "res://assets/sprites/areas/farm/crop_sprout.png",
     "water": {
@@ -254,7 +254,24 @@
           ]
         }
       }
-    ]
+    ],
+    "week_extra_until": 4,
+    "corn_plot": 8,
+    "early_through": 2,
+    "fishing_day": 3,
+    "fishing_daily_bait": {
+      "bait_worm": 3
+    },
+    "orchard_day": 4,
+    "orchard_seconds": 7200,
+    "week_sell_prices": {
+      "carrot": 3, "potato": 5, "pumpkin": 9, "corn": 6, "egg": 8,
+      "apple": 6, "banana": 6, "fish_lambari": 12, "fish_cara": 12, "fish_tilapia": 12
+    },
+    "orchard_fruit": {
+      "apple": 2,
+      "banana": 2
+    }
   },
   "xp": {
     "feed": 2,
@@ -286,5 +303,24 @@
       "walk_extra_rolls": 1,
       "dig_extra_per_period": 1
     }
+  },
+  "meals": {
+    "periods": {
+      "lunch": {"name": "Almoço", "from": 11, "to": 15},
+      "dinner": {"name": "Jantar", "from": 18, "to": 22}
+    },
+    "options": {
+      "early": {"name": "Mais cedo", "shift": -1},
+      "normal": {"name": "Normal", "shift": 0},
+      "late": {"name": "Mais tarde", "shift": 1}
+    },
+    "default_option": "normal",
+    "arrival_day": 1,
+    "on_time_needed": 2,
+    "arrival_on_time_needed": 1,
+    "ration": {"hunger": 25},
+    "lunchbox": {"hunger": 40, "happiness": 10},
+    "lunchbox_after_weak_days": 2,
+    "on_time_bonus": {"happiness": 5}
   }
 }

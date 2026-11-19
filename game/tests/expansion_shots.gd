@@ -50,7 +50,7 @@ func _run() -> void:
 	state.call("reset")
 	var progress: Object = state.get("progress")
 	progress.seen["intro"] = true
-	state.call("dev_jump_to_chapter", 5)
+	state.call("dev_jump_to_chapter", 9)
 	var queues := ["stove_queue", "stove_queue_2", "blender_queue"] + ([] if before else ["stove_queue_3", "mill_queue", "dairy_queue", "atelier_queue"])
 	for id in ["stove", "workbench", "blender", "fridge", "farm", "chicken_coop", "mill", "silo", "silo_2", "silo_3", "atelier"] + queues:
 		progress.owned[id] = true

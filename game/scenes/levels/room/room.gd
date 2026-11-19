@@ -387,6 +387,8 @@ func _spawn_objects() -> void:
 			sprite.offset.y += sort_shift
 		if data.has("hidden_by"):
 			sprite.set_meta("hidden_by", data.hidden_by)
+		if data.get("silhouette", false):
+			sprite.set_meta("silhouette", true)
 		if data.has("decor"):
 			var decor := HouseDecor.new()
 			decor.name = "Decor"
@@ -601,10 +603,12 @@ func _refresh_object(sprite: Sprite2D) -> void:
 		if ready > int(_ready_counts.get(station_id, 0)) and _dog:
 			_dog.react_at(&"ready", sprite.get_meta("approach"))
 		_ready_counts[station_id] = ready
+		if station_id == "stove":
+			_refresh_recipe_sniff(sprite)
 	if sprite.has_meta("plot"):
 		_update_plot(sprite)
 	if sprite.has_meta("sign_plot"):
-		sprite.visible = GameState.plot_status(int(sprite.get_meta("sign_plot"))) == "locked"
+		sprite.visible = GameState.plot_can_buy(int(sprite.get_meta("sign_plot")))
 	elif sprite.has_meta("sign_upgrade"):
 		var sign_upgrade := str(sprite.get_meta("sign_upgrade"))
 		# Mesma regra do antigo "+": só aparece quando a história já libera a compra.
@@ -613,6 +617,29 @@ func _refresh_object(sprite: Sprite2D) -> void:
 		var busy := GameState.station(sprite.get_meta("station")).is_busy(GameState.now())
 		sprite.set_meta("busy", busy)
 		if not busy: sprite.texture = sprite.get_meta("base_texture")
+
+
+func _refresh_recipe_sniff(sprite: Sprite2D) -> void:
+	var possible := GameState.recipe_can_sniff()
+	var marker := sprite.get_node_or_null("RecipeSniff") as Label
+	if marker == null and possible:
+		marker = Label.new()
+		marker.name = "RecipeSniff"
+		marker.text = "?"
+		marker.position = Vector2(14, -65)
+		marker.add_theme_font_size_override("font_size", 29)
+		marker.add_theme_color_override("font_color", Palette.HONEY)
+		marker.add_theme_color_override("font_outline_color", Palette.WOOD_INK)
+		marker.add_theme_constant_override("outline_size", 6)
+		marker.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		sprite.add_child(marker)
+	if marker != null:
+		marker.visible = possible
+		if possible and not bool(marker.get_meta("reacted", false)) and _dog != null and not GameState.dog.sleeping:
+			marker.set_meta("reacted", true)
+			_dog.react_at(&"sniff", sprite.get_meta("approach", sprite.position))
+		elif not possible:
+			marker.set_meta("reacted", false)
 
 
 ## Orçamento de atenção: só um balão pronto pula por sala (o mais antigo); os outros ficam verdes e parados.
@@ -687,7 +714,8 @@ func _refresh_ownership() -> void:
 			sprite.visible = not _replaced(sprite.get_meta("hidden_by"))  # a caminha/tigela nova toma o lugar
 		if sprite.has_meta("upgrade"):
 			var purchased := GameState.has_upgrade(sprite.get_meta("upgrade"))
-			sprite.self_modulate.a = 1.0 if purchased else 0.0
+			var silhouette: bool = not purchased and sprite.get_meta("silhouette", false) and GameState.farm_week_active()
+			sprite.self_modulate = Color("#534632ba") if silhouette else Color(1, 1, 1, float(purchased))
 			var region_locked := false
 			for data: Dictionary in _room.get("regions", []):
 				if data.id == sprite.get_meta("region", ""):
@@ -823,6 +851,18 @@ func _spawn_regions() -> void:
 		_world.add_child(region)
 		_world.move_child(region, 0)
 		_regions.append(region)
+		if data.has("plaque"):
+			var plaque := StationWood.text(str(data.text), 17, Palette.WOOD_CREAM, 3)
+			plaque.name = "WeekPlaque"
+			plaque.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			plaque.autowrap_mode = TextServer.AUTOWRAP_OFF
+			plaque.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			var wood := StationWood.board(plaque)
+			wood.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			wood.reset_size()
+			wood.position = _vec(data.plaque) - Vector2(wood.get_combined_minimum_size().x / 2.0, 0)
+			wood.z_index = 3
+			region.add_child(wood)
 		if data.has("upgrade"):
 			var marker := WorldBalloon.new()
 			marker.name = "PurchaseMarker"
@@ -836,6 +876,9 @@ func _spawn_regions() -> void:
 
 func _on_world_activity(kind: StringName, subject: String, plot_index: int) -> void:
 	if not _dog or not is_visible_in_tree():
+		return
+	if kind == &"specialty" and _room.get("points", {}).has("bowl"):
+		_dog.react_at(kind, _point("bowl"))
 		return
 	# Início da história: o Tiro é solto na porta e corre para dentro de casa.
 	if kind == &"arrive" and _room.get("points", {}).has("door_in"):
@@ -1395,10 +1438,9 @@ func point_at(action: String, seconds: float = 5.0) -> bool:
 	pin.set_meta("ground_base", base)
 	pin.ground_offset = (base - anchor) * _zoom
 	if seconds > 0:
-		var shown_pointer := _pointer
-		get_tree().create_timer(seconds).timeout.connect(func() -> void:
-			if is_instance_valid(shown_pointer) and _pointer == shown_pointer:
-				clear_pointer())
+		var expiry := pin.create_tween()
+		expiry.tween_interval(seconds)
+		expiry.tween_callback(_expire_pointer.bind(pin.get_instance_id()))
 	return true
 
 
@@ -1408,6 +1450,11 @@ func _reveal(anchor: Vector2) -> void:
 	if size.x > 72.0 and size.y > 96.0 and not Rect2(Vector2(36, 48), size - Vector2(72, 96)).has_point(on_screen):
 		if _camera_target != anchor:  # a segunda conferência do point_at não reinicia a animação
 			_tween_camera(anchor, _zoom)
+
+
+func _expire_pointer(id: int) -> void:
+	if is_instance_valid(_pointer) and _pointer.get_instance_id() == id:
+		clear_pointer()
 
 
 func clear_pointer() -> void:
@@ -1591,20 +1638,24 @@ func _on_plot_tapped(index: int) -> void:
 		if not ready_plots().is_empty():
 			open_farm_dock("harvest", ready_plots()[0])  # sobraram prontos: a barra abre em "colher"
 		return
-	if GameState.plot_status(index) == "locked" and not GameState.has_upgrade("farm") and GameState.requirement_error(Database.progression.upgrades.farm.get("requirements", {})) != "":
-		Places.open_npc("bloblo")
-		return
 	if GameState.water_error(index) == "":
 		water_plot(index)
 		if not waterable_plots().is_empty():
 			open_farm_dock("plant", -1, "water")
 		return
 	if GameState.plot_status(index) == "locked":
-		# Qualquer canteiro fechado abre a mesma compra, mantendo a ordem de liberação.
-		if GameState.has_upgrade("farm"):
+		if index == int(Database.farm.corn_plot):
+			var reason := GameState.shop_item_locked("week_coop")
+			if reason != "":
+				Events.toast_requested.emit(reason)
+			else:
+				Places.run(world_id, "shop:week_coop")
+		elif index < int(Database.farm.week_extra_until):
+			Places.run(world_id, "shop:week_plot")
+		elif GameState.plot_can_buy(index):
 			Events.sheet_requested.emit("Terreno %d" % (GameState.unlocked_plots + 1), SheetBuilder.plot_purchase(GameState.unlocked_plots))
 		else:
-			Events.sheet_requested.emit("Abrir área", ProgressionUi.purchase("farm"))
+			Events.toast_requested.emit("Quando ele crescer")
 		return
 	open_plot_tray(index, "", false, true, true)
 
@@ -1833,6 +1884,19 @@ func _collect_greenhouse(sprite: Sprite2D) -> bool:
 	if not total.is_empty():
 		Events.items_gained.emit(total, 0, world_to_screen(sprite.position))
 	return true
+
+
+func open_orchard_tray() -> bool:
+	if GameState.requirement_error(Database.worlds.farm.places.orchard.requirements) != "":
+		return false
+	for sprite: Sprite2D in _objects:
+		if sprite.name == &"orchard":
+			close_tray()
+			clear_pointer()
+			Events.sheet_close_requested.emit()
+			StationTray.orchard(self, object_anchor(sprite))
+			return true
+	return false
 
 
 func can_open_greenhouse_tray() -> bool:
@@ -2203,7 +2267,7 @@ func _refresh_gated() -> void:
 		var seen := not seen_data.is_empty() and bool(GameState.progress.seen.get(seen_data.key, false))
 		var gone := bool(GameState.progress.seen.get(sprite.get_meta("hide_seen", ""), false))
 		states.append("%s:%s:%s:%s" % [sprite.name, open, seen, gone])
-		sprite.visible = open and not gone
+		sprite.visible = open and not gone and not _replaced(sprite.get_meta("hidden_by", []))
 		if not seen_data.is_empty():
 			if not sprite.has_meta("base_texture_path"):
 				sprite.set_meta("base_texture_path", sprite.texture.resource_path)
@@ -2370,6 +2434,8 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 	if action == "place:fishing":
 		open_fishing()
 		return
+	if action == "place:orchard" and open_orchard_tray():
+		return
 	match action:
 		"plot":
 			_on_plot_tapped(int(target.get_meta("plot")) if target else 0)
@@ -2378,6 +2444,10 @@ func _on_object_tapped(action: String, target: Node = null) -> void:
 				_on_plot_tapped(int(target.get_meta("sign_plot")))
 			elif target is Sprite2D and target.has_meta("sign_upgrade"):
 				var sign_upgrade := str(target.get_meta("sign_upgrade"))
+				var kit := str(Database.progression.upgrades.get(sign_upgrade, {}).get("kit", ""))
+				if kit != "":
+					Places.run(world_id, "shop:" + kit)
+					return
 				Events.sheet_requested.emit(_purchase_title(sign_upgrade, "Construir"), ProgressionUi.purchase(sign_upgrade))
 		"treasure":
 			if target is Sprite2D:
@@ -2452,6 +2522,9 @@ func lake_center() -> Vector2:
 func open_fishing() -> void:
 	if _fishing_bubbles == null:
 		return
+	if not GameState.farm_lake_open():
+		Events.toast_requested.emit(GameState.fishing_error())
+		return
 	if GameState.current_rod() == "":
 		_lake_locked_notice()
 		return
@@ -2459,6 +2532,8 @@ func open_fishing() -> void:
 	if error != "":
 		Events.toast_requested.emit(error)
 		return
+	if world_id == "farm":
+		GameState.note_week_pier()
 	close_tray()
 	clear_pointer()
 	Events.sheet_close_requested.emit()
@@ -2510,7 +2585,7 @@ func lake_screen_rect() -> Rect2:
 
 ## Tutorial da pesca (etapa 05): o Sítio chama ao ficar visível e a cada mudança de estado.
 func _check_angler_tutorial() -> void:
-	if _fishing_bubbles != null and is_visible_in_tree():
+	if _fishing_bubbles != null and is_visible_in_tree() and GameState.farm_lake_open():
 		AnglerTutorial.maybe_start(self)
 
 
@@ -2910,3 +2985,30 @@ func _polygon(points: Array) -> PackedVector2Array:
 	for value: Array in points:
 		result.append(_vec(value))
 	return result
+
+
+## Alvos do guia em coordenadas de tela, calculados com a câmera atual.
+func week_tutorial_rect(kind: String, include_planted: bool = false) -> Rect2:
+	if kind in ["plot", "harvest"]:
+		for index in plot_indices():
+			if kind == "harvest" and index not in ready_plots():
+				continue
+			if kind == "plot" and not include_planted:
+				if index >= GameState.plots.size() or not GameState.plots[index].is_empty():
+					continue
+			var diamond := plot_diamond(index)
+			var rect := Rect2(world_to_screen(diamond[0]), Vector2.ZERO)
+			for point in diamond:
+				rect = rect.expand(world_to_screen(point))
+			if get_global_rect().grow(-24).has_point(rect.get_center()):
+				return rect
+		return Rect2()
+	for sprite in _objects:
+		var action := str(sprite.get_meta("action", ""))
+		if not sprite.is_visible_in_tree() or (kind == "coop" and action != "place:chicken_coop") or (kind == "orchard" and action not in ["week:orchard", "place:orchard"]):
+			continue
+		var at := world_to_screen(sprite.position)
+		if not get_global_rect().grow(-24).has_point(at):
+			continue
+		return Rect2(at - Vector2(45, 65), Vector2(90, 90))
+	return Rect2()

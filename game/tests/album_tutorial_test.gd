@@ -116,6 +116,7 @@ func _run() -> void:
 	check(rolls.size() == 2 and int(rolls[1].rolled) == 2, "Tentar a sorte grátis dá Brilhante")
 	check(state.coins == coins_before and int(state.album.photos.h_arrival.rerolls) == 0, "grátis: sem cobrar nem encarecer")
 	check(await _wait_phase("upgrade", 5.0), "passo 4: Melhorar")
+	await _frames(3)
 	hole = _tut().call("target_rect")
 	await _tap(hole.get_center())
 	check(rolls.size() == 3 and int(rolls[2].rolled) == 3 and state.photo_rarity("h_arrival") == 3, "Melhorar dá Rara")

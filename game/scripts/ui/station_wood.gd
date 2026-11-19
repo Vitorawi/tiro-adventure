@@ -331,10 +331,9 @@ class Slot extends VBoxContainer:
 static func queue_slot(entry: Dictionary, now: float) -> Slot:
 	if entry.is_empty():
 		return Slot.new("empty")
-	var recipe: Dictionary = Database.recipes[entry["recipe"]]
-	var seconds := float(recipe["seconds"])
+	var seconds := Database.entry_seconds(entry)
 	var remaining := float(entry["ready_at"]) - now
-	var output: String = Database.recipe_output(recipe)
+	var output: String = Database.entry_output(entry)
 	var icon := Database.item_icon(output)
 	if remaining <= 0.0:
 		return Slot.new("ready", output, icon, 1.0)
@@ -386,13 +385,23 @@ static func herd_row(station_id: String) -> Control:
 	var roster := GameState.animal_roster(station_id)
 	var queue := GameState.station(station_id).queue
 	var entry: Dictionary = queue[0] if not queue.is_empty() else {}
+	var now := GameState.now()
 	var fed: Dictionary = {}
 	if not entry.is_empty():
 		var per_animal := maxi(1, int(Database.recipes[entry.recipe].get("qty", 1)))
 		var fallback := roster.slice(0, int(entry.get("qty", per_animal)) / per_animal)
 		for id: String in entry.get("animals", fallback):
 			fed[id] = int(fed.get(id, 0)) + 1
-	var now := GameState.now()
+	if station_id == "chicken_coop" and GameState.farm_week_active():
+		for animal: String in roster:
+			row.add_child(UiKit.icon(load(Database.animals[animal].sprite), 32))
+		var group := UiKit.vbox(4)
+		group.add_child(row)
+		var slot := queue_slot(entry, now)
+		slot.name = "Slot_0"
+		slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		group.add_child(slot)
+		return group
 	for i in roster.size():
 		var id: String = roster[i]
 		var producing := int(fed.get(id, 0)) > 0
@@ -414,7 +423,7 @@ static func herd_row(station_id: String) -> Control:
 static func station_strip(station_id: String) -> Control:
 	var content: Control = slot_row(station_id)
 	var data: Dictionary = Database.stations[station_id]
-	if str(data.get("kind", "")) == "animal" and GameState.animal_count(station_id) < int(data.get("animal_capacity", 0)):
+	if str(data.get("kind", "")) == "animal" and GameState.animal_count(station_id) < GameState.animal_capacity(station_id):
 		var holder := UiKit.hbox(8)
 		holder.alignment = BoxContainer.ALIGNMENT_CENTER
 		holder.mouse_filter = Control.MOUSE_FILTER_PASS

@@ -3,7 +3,7 @@ extends RefCounted
 ## Painel "Ferramentas DEV" (só na versão dev; aberto pelo selo DEV da barra superior).
 ## Cada botão chama um GameState.dev_*() ou o SaveManager. Ver docs/DEPLOY.md ("Versão dev").
 
-const PAGES := {"resources": "Recursos", "progress": "Progresso", "growth": "Crescimento", "time": "Tempo", "pace": "Ritmo", "fishing": "Pesca", "save": "Save"}
+const PAGES := {"resources": "Recursos", "progress": "Progresso", "growth": "Crescimento", "time": "Tempo", "pace": "Ritmo", "week": "Semana", "fishing": "Pesca", "save": "Save"}
 
 static var _page: String = "resources"
 ## Toque duplo para recomeçar do zero: guarda até quando o segundo toque vale.
@@ -22,6 +22,8 @@ static func panel() -> Control:
 				_time(box)
 			"pace":
 				_pace(box)
+			"week":
+				_week(box)
 			"fishing":
 				_fishing(box)
 			"save":
@@ -29,6 +31,38 @@ static func panel() -> Control:
 			_:
 				_resources(box)
 	)
+
+
+## Aba "Semana": testar qualquer dia/hora da primeira semana sem esperar (plano primeira_semana, E00).
+static func _week(box: VBoxContainer) -> void:
+	_section(box, "Relógio da semana", "Dia %d · %02d:%02d (deslocamento %+d h). Só muda o relógio da semana; plantações e filas seguem o tempo real." % [GameState.week_day(), GameState.week_hour(), GameState.week_minute(), int(GameState.week.clock_offset / 3600.0)])
+	_section(box, "Ir para o dia")
+	var days := _grid(box, 4)
+	for day: int in range(1, 8):
+		_tool(days, "Dia %d" % day, GameState.dev_week_goto.bind(day))
+	_tool(days, "Dia 9", GameState.dev_week_goto.bind(9))
+	_section(box, "Mudar a hora", "Almoço 11h–15h, jantar 18h–22h.")
+	var hours := _grid(box, 4)
+	for hour: int in [8, 12, 15, 18, 20, 23]:
+		_tool(hours, "%02dh" % hour, GameState.dev_week_hour.bind(hour))
+	_tool(hours, "−1 h", GameState.dev_week_shift_hours.bind(-1))
+	_tool(hours, "+1 h", GameState.dev_week_shift_hours.bind(1))
+	_tool(_grid(box, 1), "Voltar ao relógio real", GameState.dev_week_reset_clock)
+	_section(box, "Refeições (E01)")
+	var meals := _grid(box)
+	_tool(meals, "Completar almoço", GameState.dev_week_meal.bind("lunch"))
+	_tool(meals, "Completar jantar", GameState.dev_week_meal.bind("dinner"))
+	_tool(meals, "Conferir janelas agora", GameState.update_week)
+	_section(box, "Pratos (E02)", "Cada ingrediente na Mochila, para montar pratos na aba Inventar do fogão. Os tipos abrem por dia: use o botão do dia acima.")
+	var dishes := _grid(box)
+	_tool(dishes, "13 ingredientes ×5", GameState.dev_give_ingredients.bind(5))
+	_tool(dishes, "13 ingredientes ×1", GameState.dev_give_ingredients.bind(1))
+	_section(box, "Kits da banca (E06)")
+	var kits := _grid(box, 3)
+	for kit: String in ["galinheiro", "caminha", "mordedor"]:
+		_tool(kits, kit.capitalize(), GameState.dev_week_kit.bind(kit))
+	_section(box, "História")
+	_tool(box, "Pular o passo atual da história", GameState.dev_complete_main_step)
 
 
 static func _fishing(box: VBoxContainer) -> void:

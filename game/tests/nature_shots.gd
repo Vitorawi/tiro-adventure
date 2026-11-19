@@ -79,7 +79,7 @@ func _run() -> void:
 	state.call("reset")
 	var progress: Object = state.get("progress")
 	progress.seen["intro"] = true
-	state.call("dev_jump_to_chapter", 5)
+	state.call("dev_jump_to_chapter", 9)
 	progress.owned["forest_open"] = true
 	progress.owned["cave_open"] = true
 	progress.owned["meadow_open"] = true

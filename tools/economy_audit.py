@@ -140,7 +140,7 @@ class Data:
         self.storage = prog["storage"]
         self.orders = prog["orders"]
         self.activities = prog["activities"]
-        self.quests = self.files["quests"]
+        self.quests = {k: q for k, q in self.files["quests"].items() if q.get("kind") != "retired"}
         self.npcs = self.files["npcs"]
         self.worlds = self.files["worlds"]
         self.collections = self.files["collections"]
@@ -705,7 +705,7 @@ def resolve_stat(d: Data, key: str):
     if kind == "npc":
         return rest in d.npcs
     if kind == "crop":
-        return rest in d.crops
+        return rest in d.crops or (prefix == "harvest" and rest in d.farm.get("orchard_fruit", {}))
     if kind == "item":
         return rest in d.items
     if kind == "order":
@@ -803,6 +803,9 @@ def check_references(d: Data) -> dict:
                 if prefix in targets and rest:
                     if rest not in targets[prefix]:
                         errors.append(f"quests:{q_id}/go: '{place}' aponta para ID inexistente")
+                elif prefix == "cookbook":
+                    if rest != "invent" and not (rest.startswith("recipe:") and rest[7:] in d.recipes):
+                        errors.append(f"quests:{q_id}/go: destino de cozinha desconhecido '{place}'")
                 elif prefix == "market":
                     pass  # aba do comércio (MarketUi); não há tabela de dados para validar
                 elif prefix == "shop":

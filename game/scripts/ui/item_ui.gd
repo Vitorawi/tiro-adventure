@@ -194,9 +194,7 @@ static func _actions(id: String, item: Dictionary, amount: int, price: int) -> D
 		actions.append({"name": "GiveGrowth_" + id, "text": "Dar", "fn": GrowthUi._deliver.bind(id)})
 	elif item.has("feed") and amount > 0:
 		actions.append({"name": "GiveFood_" + id, "text": "Dar ao Tiro", "fn": func() -> void:
-			var error := SheetBuilder.give_food(id)
-			if error != "":
-				Events.toast_requested.emit(error)})
+			SheetBuilder.request_food(id)})
 	if bool(item.get("toy", false)) and amount > 0:
 		if GameState.give_toy_error(id) == "":
 			actions.append({"name": "GiveToy_" + id, "text": "Dar ao Tiro", "fn": func() -> void:

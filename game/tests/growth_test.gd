@@ -34,27 +34,20 @@ func _run() -> void:
 	events.growth_ready.connect(func(_id: String) -> void: ready_count += 1)
 	events.growth_requirement_done.connect(func(_id: String, _req: String) -> void: done_count += 1)
 	state.call("reset")
-	check(state.get("growth").phase == "newborn" and row("home").done, "novo e progresso concedido")
-	check(state.get("growth").done.puppy.home, "given persistido no reset")
+	check(state.get("growth").phase == "newborn" and row("home").is_empty() and not row("bed").is_empty(), "novo: lista da semana, sem 'chegou em casa'")
 	check(not state.call("grow_error").is_empty(), "crescimento incompleto tem motivo")
 	var snapshot: Dictionary = state.call("to_dict").duplicate(true)
 	state.call("growth_info")
 	state.call("grow_error")
 	check(state.call("to_dict") == snapshot, "consultas puras")
-	# Alimentações reais, sem esperar o jogo; antes da fase não contam.
-	state.get("inventory").add("dog_food", 6)
-	for i in 3:
-		check(state.call("feed", "dog_food") == true, "alimentação real")
-	check(row("meals").have == 3 and row("meals").done, "três comidas nesta fase")
-	state.get("progress").stats["feed"] = 0
-	check(row("meals").done, "done permanece quando contador cai")
-	state.get("progress").stats["feed"] = 3
 	state.call("dev_grant_upgrade", "dog_bed")
 	state.get("progress").claimed_quests["lais_bed"] = true
 	state.call("dev_add_moment", "brave")
 	state.call("dev_add_moment", "brave")
 	state.call("dev_add_moment", "brave")
-	check(state.call("grow_error") == "", "todos os requisitos reais cumpridos")
+	check(row("bed").done and state.call("grow_error") != "", "só a caminha não basta")
+	state.call("dev_complete_growth_reqs")
+	check(state.call("grow_error") == "", "todos os requisitos cumpridos")
 	check(ready_count == 1, "pronto uma vez")
 	state.call("_changed")
 	check(ready_count == 1, "não repete pronto")
@@ -66,11 +59,10 @@ func _run() -> void:
 	check(growth.phase_moments.is_empty() and growth.moments.brave == 3, "fase nova sem sobra e total preservado")
 	check(state.get("coins") == before_coins + 30 and state.get("inventory").count("dog_food") == before_food + 3, "presente exato")
 	check(state.call("grow") != "" and state.get("coins") == before_coins + 30, "clique repetido não paga")
-	check(row("meals").have == 0, "fase nova começa sem refeições antigas")
-	state.get("inventory").add("frozen_carrot", 2)
-	state.call("feed", "frozen_carrot")
+	check(row("play").have == 0 and row("dishes").have == 0, "fase nova começa sem brincadeiras nem pratos antigos")
+	state.get("inventory").add("dog_food", 1)
 	state.call("feed", "dog_food")
-	check(row("meals").have == 1, "refeição específica só conta o item pedido")
+	check(row("dishes").have == 0, "ração não é prato")
 	state.get("growth").period_moments[state.call("moment_period") + ":coat"] = 1
 	state.get("growth").firsts["npc:lais"] = true
 	var growth_saved: Dictionary = state.get("growth").to_dict()
@@ -117,12 +109,12 @@ func _run() -> void:
 		match mutation:
 			"phase": broken.phases[1].id = "newborn"
 			"moments": broken.moments.period_cap = 0
-			"item": broken.phases[2].requirements[1].item = "missing"
+			"item": broken.phases[2].requirements[0].item = "missing"
 			"quest": broken.phases[1].requirements.append({"id": "quest", "type": "quest", "quest": "missing"})
-			"owned": broken.phases[1].requirements[1].upgrade = "missing"
+			"owned": broken.phases[1].requirements[0].upgrade = "missing"
 			"project": broken.phases[5].requirements.append({"id": "extra_project", "type": "project", "project": "missing"})
 			"type": broken.phases[1].requirements[0].type = "missing"
-			"req_id": broken.phases[1].requirements[1].id = "home"
+			"req_id": broken.phases[1].requirements[1].id = "bed"
 		check(not db.call("growth_problems").is_empty(), "detecta JSON quebrado: " + mutation)
 	db.set("growth", content)
 	# As cinco transições pagam cada recompensa uma única vez; adulto não tem próxima fase.

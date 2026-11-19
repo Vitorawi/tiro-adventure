@@ -17,6 +17,12 @@ func show_chapter(index: int, unlocks: Array[String]) -> void:
 	card.add_chips(ProgressionUi.reward_chips(chapter.get("rewards", {})))
 	_unlock_rows(card, unlocks)
 	var next := GameState.progress.displayed_main_quest()
+	var wait := GameState.week_quest_wait(next)
+	if wait != "":
+		card.add_text(wait, &"StrongLabel")
+		card.add_primary("Continuar", hide)
+		show()
+		return
 	if next != "":
 		card.add(RewardSheet.next_card(next))
 		card.add_primary("Ir para " + ProgressionUi.quest_place_name(Places.quest_target(next)), func() -> void:
@@ -26,6 +32,111 @@ func show_chapter(index: int, unlocks: Array[String]) -> void:
 	else: card.add_primary("Que bom!", hide)
 	card.add_ghost("Continuar", hide)
 	show()
+
+
+func show_week_tutorial(lesson: Dictionary, done: Callable) -> void:
+	var icon := UiKit.ui_icon(str(lesson.icon))
+	if icon == null:
+		icon = Database.item_icon(str(lesson.icon))
+	var card := _open({"title": "Novo!", "ribbon": Palette.HONEY, "icon": icon, "icon_px": 62})
+	card.name = "WeekTutorialNew"
+	card.add_text(str(lesson.title), &"StrongLabel")
+	card.add_text(str(lesson.say))
+	card.add_primary("Ir", func() -> void:
+		hide()
+		done.call(false)
+		Places.go(lesson.go))
+	card.add_ghost("Pular", func() -> void:
+		hide()
+		done.call(true)).name = "TutorialSkip"
+	show()
+
+
+func show_week_card(report: Dictionary) -> void:
+	var copy: Dictionary = Database.week_routine.text
+	var morning: bool = report.kind == "morning"
+	var icon := UiKit.ui_icon("tab_pet" if morning else "action_sleep")
+	var compact := morning and bool(report.get("offer", false))
+	var card := _open({"title": copy[report.kind], "ribbon": Palette.HONEY if morning else Palette.SKY,
+		"icon": icon, "icon_px": 48 if compact else 62, "separation": 7 if compact else 12,
+		"scroll_name": "WeekCardBody", "fixed_body": true})
+	card.name = "WeekMorning" if morning else "WeekNight"
+	card.add_pill(str(copy.day) % int(report.day), "WeekCardDay")
+	if morning:
+		_week_morning(card, report, copy)
+	else:
+		_week_night(card, report, copy)
+	show()
+
+
+func _week_morning(card: ModalCard, report: Dictionary, copy: Dictionary) -> void:
+	card.add_text(str(report.news.open), &"StrongLabel")
+	if int(report.day) == 2 and WeekTutorial.enrolled():
+		card.add_text("Almoço e jantar na hora valem uma patinha.")
+		WeekTutorial.finish("morning")
+	if report.weak and WeekTutorial.enrolled():
+		WeekTutorial.finish("weak")
+	if WeekTutorial.enrolled():
+		var lines := PackedStringArray()
+		for row: Dictionary in GameState.week_daily_rows(int(report.day)):
+			lines.append(str(row.get("label", row.id)))
+		if lines.size() == 3:
+			card.add_text("Hoje: " + " · ".join(lines))
+
+	if report.weak:
+		if report.still_weak:
+			card.add_text(str(copy.weak), &"StrongLabel")
+			var lunch: bool = report.yesterday.get("lunch", {}).get("on_time", false)
+			var dinner: bool = report.yesterday.get("dinner", {}).get("on_time", false)
+			var missing := str(copy.dinner_only if lunch else (copy.lunch_only if dinner else copy.both))
+			card.add_text(str(copy.missed) % missing)
+			card.add_text(str(copy.recover))
+		else:
+			card.add_text(str(copy.weak_recovered))
+	if report.gift:
+		var gift: Dictionary = Database.week_story.morning
+		card.add_chips(ProgressionUi.reward_chips(gift.rewards))
+	if report.offer:
+		card.add_text(str(copy.offer), &"StrongLabel")
+		card.add_text(str(copy.offer_body))
+		card.add_primary(str(copy.enable), func() -> void:
+			GameState.set_week_meal_reminder(true)
+			hide()
+			MealUi.open_today())
+		card.add_ghost(str(copy.decline), hide)
+	elif report.weak:
+		card.add_primary(str(copy.today), func() -> void:
+			hide()
+			MealUi.open_today())
+	else:
+		card.add_primary(str(copy.continue), hide)
+		if int(report.day) == 2 and WeekTutorial.enrolled():
+			card.add_ghost("Pular", hide).name = "TutorialSkip"
+
+
+func _week_night(card: ModalCard, report: Dictionary, copy: Dictionary) -> void:
+	var meal_labels := PackedStringArray()
+	for period: String in Database.meals.periods:
+		var on_time: bool = report.meals.get(period, {}).get("on_time", false)
+		meal_labels.append("%s %s" % [copy[period], copy.done if on_time else copy.miss])
+	card.add_text(" · ".join(meal_labels))
+	card.add_pill(str(copy.paw if report.meals.get("paw", false) else copy.no_paw), "WeekNightPaw")
+	var dish := str(report.dish)
+	card.add_text(str(copy.new_dish) % Database.item_name(dish) if dish != "" else str(copy.no_dish))
+	card.add_pill(str(copy.seal) if report.seal else str(copy.no_seal) % int(report.done), "WeekNightSeal")
+	var shadow := UiKit.icon(UiKit.ui_icon(str(report.next.icon)), 58)
+	shadow.name = "WeekTomorrowShadow"
+	shadow.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	shadow.self_modulate = Color("30252b")
+	card.add(shadow)
+	if GameState.has_upgrade("chicken_coop") and GameState.station("chicken_coop").queue.is_empty() and GameState.cook_error("eggs") == "":
+		card.add_text("Deixe milho para as galinhas. Os ovos ficam prontos em %s." % TimeText.short(GameState.recipe_seconds("eggs")), &"StrongLabel")
+		card.add_ghost("Ir ao galinheiro", func() -> void:
+			hide()
+			Places.go({"world": "farm", "place": "chicken_coop"}))
+	else:
+		card.add_text(str(copy.next) % str(report.next.hook), &"StrongLabel")
+	card.add_primary(str(copy.close_night), hide)
 
 
 ## Subiu de nível: o presente já entrou; o botão só fecha.
@@ -57,6 +168,20 @@ func show_silk(level: int) -> void:
 
 
 ## Achado novo do faro.
+func show_recipe_piece(id: String, count: int) -> void:
+	var card := _open({"title": "Achado!", "ribbon": Palette.HONEY,
+		"icon": UiKit.ui_icon("item_map_piece"), "haptic": "success"})
+	card.name = "RecipePieceCard"
+	card.add_text("Você achou um pedaço de receita!", &"StrongLabel")
+	card.add_pill("%d de 3" % count, "RecipePieceCount")
+	if count == 3:
+		card.add_text(str(GameState.recipe_secret(id).name))
+	card.add_primary("Ver no livro", func() -> void:
+		hide()
+		PetNotebook.open("recipes:secrets"))
+	show()
+
+
 func show_find(result: Dictionary) -> void:
 	var ids: Array = result.get("new", [])
 	var item := str(ids[0]) if not ids.is_empty() else ""

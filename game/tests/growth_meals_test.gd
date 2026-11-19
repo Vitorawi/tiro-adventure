@@ -35,6 +35,7 @@ func _run() -> void:
 			if req.type == "feed" and req.has("body_level"): meals = req
 			if req.type == "moments":
 				check(req.pillar != "body", "cuidados independentes sem Corpo " + str(phase.id))
+		if meals.is_empty(): continue  # puppy e teething usam a lista da primeira semana (pratos), sem refeição de Corpo
 		var goal := int(meals.body_level)
 		var item := str(meals.item)
 		if item == "any": item = "carrot"  # Até comida sem XP próprio cumpre refeições comuns.

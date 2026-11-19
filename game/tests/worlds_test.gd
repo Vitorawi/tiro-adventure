@@ -32,7 +32,7 @@ func _run() -> void:
 	var house_card := worlds.find_child("WorldCard_house", true, false) as Control
 	check(maxf(house_card.custom_minimum_size.y, house_card.size.y) >= 64, "Linha inteira é alvo grande")
 	_shot("worlds_locked")
-	state.call("dev_jump_to_chapter", 4)
+	state.call("dev_jump_to_chapter", 8)
 	await create_timer(0.3).timeout
 	main.get_node("Celebration").hide()
 	worlds.call("show_map")

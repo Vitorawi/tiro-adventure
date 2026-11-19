@@ -78,6 +78,9 @@ func _run() -> void:
 		for level in [1, 2, 3, 4]:
 			var path := _path(photo_card.art_for(id, level))
 			if path == "": continue
+			if entry.get("provisional", false):
+				check(path == str(entry.photo.get("illustration", "")), id + ": ilustração provisória declarada")
+				continue
 			check(path.contains("/" + id + "/") or path.ends_with("/" + id + ".png"), "%s nível %d aponta para outra foto: %s" % [id, level, path])
 
 	# 4. Trocar a versão mostrada muda a textura do PhotoCard (e `options.level` manda)

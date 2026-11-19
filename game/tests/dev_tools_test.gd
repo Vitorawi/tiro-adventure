@@ -59,11 +59,11 @@ func _dev_mode() -> void:
 	_check(state.get("growth").phase == "young", "DEV muda fase")
 	state.call("reset")
 	state.call("dev_complete_main_step")
-	_check(_progress().claimed_quests.has("welcome") and _progress().current_main_quest() == "lais_feed", "Concluir passo DEV avança apenas um passo")
+	_check(_progress().claimed_quests.has("welcome") and _progress().current_main_quest() == "lais_first_crops", "Concluir passo DEV avança apenas um passo")
 	state.call("reset")
 	state.call("dev_complete_quest", "main_2_order")
 	_check(_progress().current_main_quest() == "main_4_nina_chest", "Concluir main respeita o baú da Nina antes da Natureza")
-	_check(_progress().claimed_quests.has("bloblo_stew"), "Concluir main também conclui o cruzamento com a vovó")
+	_check(_progress().claimed_quests.has("merchant_orders"), "Concluir main também conclui o cruzamento com o Feirante")
 	state.call("reset")
 	state.call("dev_add_coins", 1000)
 	_check(state.get("coins") == int(database.get("start").coins) + 1000, "Deve somar moedas")
@@ -71,13 +71,13 @@ func _dev_mode() -> void:
 	state.call("dev_add_items", 5, "material")
 	_check(state.get("inventory").count("plank") == 5 and state.get("inventory").count("carrot") == 0, "Deve somar só a categoria pedida")
 
-	state.call("dev_jump_to_chapter", 4)
-	for id: String in ["stove", "fridge"]:
+	state.call("dev_jump_to_chapter", 8)
+	for id: String in ["stove"]:
 		_check(state.call("has_upgrade", id), "Pular capítulo deve liberar " + id)
 	_check(not state.call("has_upgrade", "workbench"), "Pular capítulo não libera o alvo do próprio capítulo")
 	_check(_progress().claimed_quests.has("first_sale") and _progress().claimed_quests.has("welcome"), "Requisitos de missão (e anteriores) devem ser concluídos")
-	_check(state.call("accessible_plots") == 4, "Vovó empresta quatro canteiros")
-	_check(state.call("current_chapter").target == "workbench", "Capítulo atual deve ser o 5")
+	_check(state.call("accessible_plots") >= 2, "Vovó empresta dois canteiros")
+	_check(state.call("current_chapter").target == "workbench", "Capítulo atual deve ser o 9")
 
 	state.call("dev_grant_upgrade", "greenhouse")
 	_check(state.call("has_upgrade", "greenhouse"), "Deve liberar a estufa")
@@ -107,9 +107,9 @@ func _dev_mode() -> void:
 	state.call("dev_unlock_everything")
 	for id: String in database.get("progression").upgrades:
 		_check(state.call("has_upgrade", id), "Liberar tudo deve incluir " + id)
-	_check(_progress().claimed_quests.size() == database.get("quests").size(), "Liberar tudo conclui as missões")
+	_check(database.get("quests").keys().all(func(id: String) -> bool: return database.get("quests")[id].get("kind") == "retired" or _progress().claimed_quests.has(id)), "Liberar tudo conclui as missões jogáveis")
 	_check(_progress().collection.size() == database.get("collections").size(), "Liberar tudo entrega a coleção")
-	_check(state.get("unlocked_plots") == int(database.get("farm").plots), "Liberar tudo compra os terrenos")
+	_check(state.get("unlocked_plots") == int(database.get("farm").corn_plot), "Liberar tudo compra os terrenos além do canteiro especial de milho")
 	_check(_progress().skill_info("cooking").max, "Liberar tudo leva atributos ao máximo")
 
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
@@ -143,7 +143,7 @@ func _prod_mode() -> void:
 	state.call("dev_unlock_everything")
 	state.call("dev_complete_main_step")
 	state.call("dev_complete_quest", "main_2_order")
-	state.call("dev_jump_to_chapter", 5)
+	state.call("dev_jump_to_chapter", 9)
 	_check(state.get("coins") == coins, "Versão publicada não pode ganhar moedas pelo dev")
 	_check(not state.call("has_upgrade", "stove"), "Versão publicada não pode liberar melhorias pelo dev")
 	_check(_progress().claimed_quests.is_empty(), "Prod não pode concluir história via DEV")

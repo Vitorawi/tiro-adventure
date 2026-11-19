@@ -222,6 +222,13 @@ def main() -> None:
         plot_pos[key] = pos
         objects.append({"id": f"plot_{idx}", "action": "plot", "plot": idx, "sprite": RES + "figma_canteiro_vazio.png", "always_behind": True, "pos": pos, "footprint": fp, "approach": [pos[0], pos[1] + 24]})
 
+    # Placas extras da primeira semana. A oitava área comprável continua no mapa;
+    # o último canteiro da grade (índice 8) passa a ser o de milho, incluído no kit.
+    for idx in (2, 3):
+        x, y = objects[idx]["pos"]
+        objects.append({"id": f"sign_plot_{idx}", "action": "buy_sign", "sign_plot": idx,
+                        "sprite": RES + "figma_compra.png", "pos": [x, y - 13]})
+
     # --- placas "compra" dos canteiros: as cinco do Figma, cada uma no canteiro mais próximo ---
     sign_pos = []
     for sx, sy in SIGNS:
@@ -241,6 +248,7 @@ def main() -> None:
     old_obj = {o["id"]: o for o in old["objects"]}
     order = ["bancada", "silo", "celeiro", "estufa", "galinheiro", "cural", "moinho", "lacticios"]
     ids = dict(OBJ, bancada="workbench")
+    future = []
     for nm in order:
         t = info[nm]
         oid = ids[nm]
@@ -262,6 +270,12 @@ def main() -> None:
         o["approach"] = [round(cx), maxy + 14]
         o = {k: o[k] for k in ["id", "action", "upgrade", "station", "route_group", "greenhouse_indicator", "buy_sign", "sprite", "pos", "approach", "footprint", "label", "label_pos", "detail_label"] if k in o}
         objects.append(o)
+        if nm in ("silo", "celeiro", "cural", "moinho"):
+            o["silhouette"] = True
+            front = sorted(fp, key=lambda point: point[1])[-2:]
+            future.append({"id": oid, "polygon": fp, "gate": front,
+                           "requirements": {"growth": "teething"}, "action": "week:later",
+                           "plaque": [round(cx), maxy - 30], "text": "Quando ele crescer"})
         # placa no lugar da construção (centro da base, um pouco à frente)
         miny = min(p[1] for p in fp)
         sp_ = [round(cx), round((miny + maxy) / 2 + 14)]
@@ -269,15 +283,44 @@ def main() -> None:
             sp_ = P(735, 352)  # a casa é a bancada: a placa fica ao lado, nas pedras à esquerda da casa
         objects.append({"id": f"sign_{oid}", "action": "buy_sign", "sign_upgrade": oid, "sprite": RES + "figma_compra.png", "pos": sp_, "footprint": diamond(sp_[0], sp_[1] - 4, 10, 6)})
 
-    # --- pomar: agora fica DENTRO da estufa (a rota de maçãs sai dela). Sem desenho próprio: um objeto transparente do tamanho
-    # da estufa leva o balão da rota, a seta do "Ir" e a compra; a placa "compra" dele fica ao lado da placa da estufa. ---
+    # Pomar provisório no lote da estufa. A estufa retorna ao lote após Dentinhos.
     gh = info["estufa"]
-    Image.new("RGBA", (gh["w"], gh["h"]), (0, 0, 0, 0)).save(os.path.join(ART, "figma_pomar_vazio.png"), optimize=True)
     gfp = bases["estufa"]
-    gx = [p[0] for p in gfp]
-    gy = [p[1] for p in gfp]
-    objects.append({"id": "orchard", "action": "place:orchard", "upgrade": "orchard", "route_group": "orchard", "buy_sign": True, "sprite": RES + "figma_pomar_vazio.png", "pos": gh["pos"], "approach": [round(sum(gx) / len(gx)), max(gy) + 14]})
-    objects.append({"id": "sign_orchard", "action": "buy_sign", "sign_upgrade": "orchard", "sprite": RES + "figma_compra.png", "pos": [round(sum(gx) / len(gx) + 0.28 * (max(gx) - min(gx))), max(gy) - 6], "footprint": diamond(sum(gx) / len(gx) + 0.28 * (max(gx) - min(gx)), max(gy) - 10, 10, 6)})
+    gx, gy = zip(*gfp)
+    orchard_pos = [gh["pos"][0], gh["pos"][1] - 8]
+    objects.append({"id": "orchard", "action": "place:orchard", "upgrade": "orchard",
+                    "buy_sign": True, "sprite": RES + "orchard.png", "scale": 2.4,
+                    "pos": orchard_pos, "approach": [round(sum(gx) / len(gx)), max(gy) + 14]})
+    front = sorted(gfp, key=lambda point: point[1])[-2:]
+    future.append({"id": "orchard", "polygon": gfp, "gate": front,
+                   "requirements": {"week_day": 4}, "action": "week:orchard",
+                   "plaque": [orchard_pos[0], orchard_pos[1] - 30], "text": "Pomar · dia 4"})
+    front = sorted(bases["galinheiro"], key=lambda point: point[1])[-2:]
+    future.append({"id": "chicken_coop", "polygon": bases["galinheiro"], "gate": front,
+                   "requirements": {"week_day": 2}, "action": "week:coop",
+                   "plaque": [info["galinheiro"]["pos"][0], max(p[1] for p in front) - 30], "text": "Galinheiro · dia 2"})
+
+    objects.append({"id": "week_cart", "action": "place:week_cart",
+                    "sprite": "res://assets/sprites/areas/village/stall.png",
+                    "pos": [918, 1484], "scale": 0.9, "approach": [892, 1430],
+                    "requirements": {"week_day": 5}})
+    objects.append({"id": "week_cart_merchant", "action": "place:week_cart",
+                    "sprite": "res://assets/sprites/characters/npc_merchant/portrait.png",
+                    "pos": [956, 1477], "scale": 0.62,
+                    "requirements": {"week_day": 5}})
+    objects.append({"id": "week_yard", "action": "place:week_yard",
+                    "sprite": "res://assets/sprites/areas/house/toy_basket.png",
+                    "pos": [722, 1037], "approach": [743, 1046], "scale": 1.15,
+                    "label": "Quintal do Tiro", "label_pos": [722, 998]})
+    training = info["lacticios"]["pos"]
+    objects.append({"id": "week_training", "action": "place:week_training", "hidden_by": ["dairy"],
+                    "requirements": {"week_day": 2}, "sprite": "res://assets/sprites/areas/house/paw_rug.png",
+                    "pos": [training[0], training[1] + 11], "scale": 1.35, "sort_shift": 40})
+    for npc, dx in (("bloblo", -35), ("lais", 35)):
+        objects.append({"id": f"week_audience_{npc}", "action": "place:week_show", "hidden_by": ["dairy"],
+                        "requirements": {"week_day": 6}, "scale": 1.25,
+                        "sprite": f"res://assets/sprites/characters/npc_{npc}/walk/south/frame_00.png",
+                        "pos": [training[0] + dx, training[1] - 18]})
 
     # --- animais: dentro dos cercados do Figma ---
     def spot(nm: str, fx: float, fy: float) -> list:
@@ -296,7 +339,7 @@ def main() -> None:
 
     # --- zonas de toque ---
     zones = [
-        {"id": "early_market", "action": "place:early_market", "polygon": [P(*q) for q in [[975, 950], [1115, 940], [1225, 990], [1230, 1110], [1130, 1190], [990, 1105]]], "label": "Vender Colheita", "label_pos": P(1105, 1040), "requirements": {"quests": ["bloblo_meet"]}},
+        {"id": "early_market", "action": "place:early_market", "polygon": [P(*q) for q in [[975, 950], [1115, 940], [1225, 990], [1230, 1110], [1130, 1190], [990, 1105]]], "label": "Vender Colheita", "label_pos": P(1105, 1040),},
         {"id": "bloblo_house", "action": "npc:bloblo", "polygon": [P(*q) for q in [[800, 300], [880, 110], [1100, 60], [1290, 310], [1180, 420], [960, 440]]], "label": "Bloblo", "label_pos": P(1040, 60)},
     ]
     for z in old["zones"]:
@@ -358,6 +401,9 @@ def main() -> None:
     lake_zone = grow(water_room, max(0.5, 1 - 6 / lr))
     zones.append({"id": "lake", "action": "place:fishing", "polygon": lake_zone, "label": "Lagoa", "label_pos": [round(lcx), round(lcy)]})
     pier = P(600, 905)  # deck do píer, do lado da água
+    future.append({"id": "lake", "polygon": lake_zone, "gate": [P(475, 980), P(730, 980)],
+                   "requirements": {"week_day": 3}, "action": "place:fishing",
+                   "plaque": [pier[0], pier[1] - 30], "text": "Lagoa · dia 3"})
     spot_xy = near(P(745, 1005))  # margem de onde o Tiro entra no píer
     dx, dy = lcx - spot_xy[0], lcy - spot_xy[1]
     face = ("east" if dx > 0 else "west") if abs(dx) > abs(dy) else ("south" if dy > 0 else "north")
@@ -387,7 +433,7 @@ def main() -> None:
         "floor": floor,
         "dig_spots": [list(s) for s in spots],
         "navigation_margin": 8,
-        "dog_scale": 0.7, "region_shade": False, "region_fence": False,
+        "dog_scale": 0.7, "region_shade": False, "region_fence": True,
         "animal_scale": 0.85,
         "depth_sort": True,
         "initial_zoom": 0.79,
@@ -398,7 +444,7 @@ def main() -> None:
         "objects": objects,
         "zones": zones,
         "points": points,
-        "regions": [],
+        "regions": future,
     }
     with open(ROOM, "w", encoding="utf-8", newline="\n") as f:
         f.write(dumps(room) + "\n")
@@ -407,7 +453,7 @@ def main() -> None:
     # --- verificações de conflito: tudo que o Tiro precisa alcançar tem que estar no chão andável conectado ---
     cs = {(round(c[0]), round(c[1])) for c in cands}
     problems = []
-    named = {k: v for k, v in points.items() if isinstance(v, list) and k != "fishing_pier"}
+    named = {k: v for k, v in points.items() if isinstance(v, list) and not k.startswith("fishing_bubble_") and k != "fishing_pier"}
     for o in objects:
         if "approach" in o:
             named["approach:" + o["id"]] = o["approach"]

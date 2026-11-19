@@ -278,5 +278,22 @@
     "icon": "outfit_community_ribbon",
     "source": "project:village_festival",
     "overlay": "res://assets/sprites/characters/tiro_pet/overlays/community_ribbon.png"
+  },
+  "week_chef_hat": {
+    "name": "Chapéu de cozinheiro",
+    "slot": "head",
+    "icon": "outfit_explorer_hat",
+    "sprite": "",
+    "overlay": "res://assets/sprites/ui/album/explorer_hat_overlay.png",
+    "show_in": [
+      "idle_breathe",
+      "head_tilt",
+      "look_around",
+      "wag_excited",
+      "shake_off",
+      "sniff",
+      "bark",
+      "eat"
+    ]
   }
 }

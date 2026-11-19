@@ -25,7 +25,7 @@ func _run() -> void:
 	state.call("reset")
 	check(state.get("progress").current_line_quest("merchant") == "", "Feirante espera capítulo 4")
 	check(state.get("progress").current_line_quest("guide") == "", "Guia espera capítulo 5")
-	state.call("dev_jump_to_chapter", 3)
+	state.call("dev_jump_to_chapter", 7)
 	check(state.get("progress").current_line_quest("merchant") == "merchant_meet", "Vila abre linha do Feirante")
 	check(state.get("progress").current_line_quest("guide") == "", "Guia ainda não aparece na Vila")
 	state.call("note_screen_opened", "village")
@@ -52,7 +52,7 @@ func _run() -> void:
 	check(state.get("progress").current_line_quest("nina") == "nina_walk", "linha da Nina avança")
 	check(state.get("progress").chapter_index() == chapter_before and state.get("progress").current_line_quest("bloblo") == grandma_step, "Nina preserva capítulo e linha da vovó (marcos compartilhados podem sincronizar)")
 	# O Guia só aparece depois de completar o capítulo 4 (inclui agora o baú da Nina).
-	state.call("dev_jump_to_chapter", 4)
+	state.call("dev_jump_to_chapter", 8)
 	state.call("talk_to", "guide")
 	check(state.call("claim_quest", "guide_meet") == "", "Conhece o Guia")
 	var merchant_step: String = state.get("progress").current_line_quest("merchant")
@@ -73,8 +73,10 @@ func _run() -> void:
 	check(not (help.call("describe", "quest", "guide_stone") as Dictionary).get("next_target", {}).is_empty(), "Guia aponta o próximo requisito da Caverna")
 	# Retrato permanece vivo enquanto o corpo da conversa é reconstruído.
 	state.call("reset")
-	var seen: Array[String] = ["intro"]
-	state.call("mark_seen", seen)
+	state.call("finish_week_arrival")
+	state.update_week()
+	for candidate: Dictionary in state.week_card_candidates():
+		state.take_week_card(candidate)
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	current_scene = main
@@ -99,8 +101,8 @@ func _run() -> void:
 	check(portrait.texture.resource_path.contains("intro_wave"), "Receber dispara aceno")
 	await _shot("npc_lais_complete")
 	await create_timer(1.3).timeout
-	check(portrait.texture.resource_path.contains("quest_request"), "Aceno termina e volta ao pedido")
-	state.call("dev_jump_to_chapter", 4)
+	check(not portrait.texture.resource_path.contains("intro_wave"), "Aceno termina e a próxima missão fica com a vovó")
+	state.call("dev_jump_to_chapter", 8)
 	await create_timer(0.2).timeout
 	main.get_node("Celebration").hide()
 	main.call("_on_world_requested", "village", "npc:merchant")

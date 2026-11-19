@@ -231,7 +231,7 @@ func _run() -> void:
 
 	# b) meio do jogo: capítulo 4 (Natureza ainda fechada) com avisos de vários tipos.
 	await _fresh()
-	state.call("dev_jump_to_chapter", 4)
+	state.call("dev_jump_to_chapter", 8)
 	state.call("_mark_all_seen")
 	await _frames()
 	_hide_modals()

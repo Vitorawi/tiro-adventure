@@ -118,7 +118,8 @@ func _run() -> void:
 		if before or snapshots_only: continue
 		await fresh("puppy")
 		await open_item("Care_ball")
-		check(state.get("progress").stat("play") == 1 and not control("CareChoice").visible, "só Bola: ação direta")
+		check(main.find_child("YardBall", true, false) != null and state.get("progress").stat("play") == 0, "Filhotinho abre o Quintal sem premiar no menu")
+		root.get_node("Events").emit_signal("sheet_close_requested")
 		await open_item("SleepButton")
 		check(state.get("dog").sleeping and not control("CareChoice").visible, "Dormir: ação direta")
 		print("CARE CHOICE %s: verificado" % resolution)

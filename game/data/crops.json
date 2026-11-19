@@ -16,14 +16,11 @@
     },
     "sprite": "res://assets/sprites/areas/farm/crop_potato.png",
     "skill_xp": 16,
-    "requirements": {
-      "quests": [
-        "bloblo_more_crops"
-      ]
-    }
+    "requirements": {},
+    "early_seconds": 120
   },
   "pumpkin": {
-    "seconds": 3600,
+    "seconds": 600,
     "coins": 0,
     "yield": {
       "pumpkin": 4
@@ -31,8 +28,11 @@
     "sprite": "res://assets/sprites/areas/farm/crop_pumpkin.png",
     "skill_xp": 35,
     "requirements": {
-      "quests": ["bloblo_potato"]
-    }
+      "stats": {
+        "buy:week_pumpkin_seed": 1
+      }
+    },
+    "early_seconds": 360
   },
   "herbs": {
     "seconds": 7200,
@@ -58,7 +58,7 @@
     "sprite": "res://assets/sprites/areas/farm/crop_wheat.png",
     "skill_xp": 18,
     "requirements": {
-      "chapter": 5,
+      "chapter": 9,
       "owned": [
         "farm"
       ]
@@ -73,11 +73,11 @@
     "sprite": "res://assets/sprites/areas/farm/crop_corn.png",
     "skill_xp": 24,
     "requirements": {
-      "chapter": 5,
       "owned": [
-        "farm"
+        "chicken_coop"
       ]
-    }
+    },
+    "early_seconds": 180
   },
   "strawberry": {
     "seconds": 900,
@@ -89,7 +89,9 @@
     "greenhouse": "any",
     "skill_xp": 24,
     "requirements": {
-      "quests": ["bloblo_dig"]
+      "quests": [
+        "bloblo_dig"
+      ]
     }
   },
   "blueberry": {
@@ -102,8 +104,40 @@
     "greenhouse": "only",
     "skill_xp": 65,
     "requirements": {
-      "quests": ["guide_treasure"],
-      "stats": {"treasure": 1}
+      "quests": [
+        "guide_treasure"
+      ],
+      "stats": {
+        "treasure": 1
+      }
+    }
+  },
+  "zucchini": {
+    "seconds": 480,
+    "coins": 0,
+    "yield": {
+      "zucchini": 3
+    },
+    "sprite": "res://assets/sprites/areas/farm/crop_carrot.png",
+    "skill_xp": 16,
+    "requirements": {
+      "stats": {
+        "buy:week_zucchini_seed": 1
+      }
+    }
+  },
+  "watermelon": {
+    "seconds": 1200,
+    "coins": 0,
+    "yield": {
+      "watermelon": 3
+    },
+    "sprite": "res://assets/sprites/areas/farm/crop_pumpkin.png",
+    "skill_xp": 24,
+    "requirements": {
+      "stats": {
+        "buy:week_watermelon_seed": 1
+      }
     }
   },
   "sweet_potato": {

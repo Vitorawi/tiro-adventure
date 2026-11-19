@@ -59,13 +59,24 @@ static func type_def(id: String) -> Dictionary:
 	return {}
 
 
-## Tipo escolhido (o primeiro se ainda não escolheu nenhum ou o id sumiu).
+## Tipo escolhido (o primeiro aberto se ainda não escolheu nenhum, o id sumiu ou o tipo ainda não abriu no dia).
 static func current_def() -> Dictionary:
 	var def := type_def(type_id)
-	if def.is_empty() and not dish_types().is_empty():
-		def = dish_types()[0]
-		type_id = str(def.id)
+	if def.is_empty() or not type_open(str(def.id)):
+		def = {}
+		for candidate: Dictionary in dish_types():
+			if type_open(str(candidate.id)):
+				def = candidate
+				break
+		if def.is_empty() and not dish_types().is_empty():
+			def = dish_types()[0]
+		type_id = str(def.get("id", ""))
 	return def
+
+
+## O tipo já abriu no dia do jogo (`dishes.json → types.<tipo>.opens`).
+static func type_open(id: String) -> bool:
+	return GameState.dish_type_open(id)
 
 
 ## Esvazia todas as escolhas (testes/capturas).
@@ -75,11 +86,17 @@ func reset_choices() -> void:
 	refresh()
 
 
+## Quantos espaços a panela mostra no tipo atual: os do tipo, limitados pelo máximo do dia (a 3ª vaga da papinha abre no dia 3).
+static func slot_total() -> int:
+	var def := current_def()
+	return DishRules.slot_count(str(def.get("id", "")), (def.get("slots", []) as Array).size(), GameState.week_day())
+
+
 ## Ingredientes escolhidos no tipo atual, um por espaço ("" = vazio).
 static func slot_items() -> Array:
 	var def := current_def()
 	var id := str(def.get("id", ""))
-	var count := (def.get("slots", []) as Array).size()
+	var count := slot_total()
 	var list: Array = chosen.get(id, [])
 	while list.size() < count:
 		list.append("")
@@ -98,12 +115,23 @@ static func multiset() -> Dictionary:
 	return result
 
 
-## "empty", "unknown" ou "known" (os ingredientes são exatamente os de uma receita do fogão liberada).
+## Prévia ao vivo do que está na panela (`GameState.dish_preview`).
+static func preview() -> Dictionary:
+	var picks: Array = []
+	for item: String in slot_items():
+		if item != "":
+			picks.append(item)
+	return GameState.dish_preview(str(current_def().get("id", "")), picks)
+
+
+## Estado do cartão grande: empty, incomplete, blocked, gororoba, new ou known.
 static func card_state() -> String:
-	var items := multiset()
-	if items.is_empty():
-		return "empty"
-	return "known" if GameState.invent_match(items) != "" else "unknown"
+	return str(preview().state)
+
+
+## Ingrediente já abriu no dia (a lista só mostra o que o jogador já conhece).
+static func ingredient_open(item: String) -> bool:
+	return DishRules.ingredient_of_item(item) in DishRules.available(GameState.week_day())
 
 
 ## Ingredientes que o jogador ainda pode pôr no espaço `slot` (o que tem menos o que já está nos outros espaços).
@@ -126,11 +154,12 @@ static func recommended(index: int) -> Array:
 	var def := current_def()
 	var kind := slot_kind(index)
 	var override: Dictionary = def.get("recommended", {})
+	var list: Array = Database.invent.get("recommended", {}).get(kind, [])
 	if override.has(str(index)):
-		return override[str(index)]
-	if override.has(kind):
-		return override[kind]
-	return Database.invent.get("recommended", {}).get(kind, [])
+		list = override[str(index)]
+	elif override.has(kind):
+		list = override[kind]
+	return list.filter(func(item: Variant) -> bool: return ingredient_open(str(item)))
 
 
 ## Ingredientes que combinam com o espaço (free aceita todos).
@@ -183,9 +212,21 @@ func _type_card(def: Dictionary, index: int) -> Control:
 	title.name = "Name"
 	card.add_child(title)
 	card.set_meta("selected", false)
+	card.add_child(_lock_icon(Vector2(TYPE_SIZE.x - 30.0, 8.0)))
 	card.set_meta("on_tap", choose_type.bind(id))
 	card.set_meta("hit_pad", Vector2(0, 6))
+	_apply_lock(card, id)
 	return card
+
+
+## Tipo fechado no dia: cartão apagado e cadeado; abre sozinho quando o dia chega.
+static func _apply_lock(card: Control, id: String) -> void:
+	var locked := not type_open(id)
+	card.set_meta("locked", locked)
+	for child in card.get_children():
+		if child.name != "LockIcon":
+			(child as CanvasItem).modulate.a = 0.55 if locked else 1.0
+	(card.get_node("LockIcon") as CanvasItem).visible = locked
 
 
 func _style_types() -> void:
@@ -194,6 +235,7 @@ func _style_types() -> void:
 		var card: Control = _type_nodes[id]
 		var on := id == current
 		card.set_meta("selected", on)
+		_apply_lock(card, id)
 		var art := card.get_node("Art") as TextureRect
 		art.texture = CookPanel.tex("inv_type_on" if on else "inv_type_off")
 		art.size = art.texture.get_size() / CookPanel.ART_SCALE
@@ -209,7 +251,13 @@ func _scroll_types() -> void:
 
 
 func choose_type(id: String) -> void:
+	if not type_open(id):
+		Events.toast_requested.emit("%s abre no dia %d" % [str(type_def(id).get("name", "Esse prato")), DishRules.opens(id)])
+		return
 	type_id = id
+	if WeekTutorial.enrolled() and not WeekTutorial.record("invent").get("done", false):
+		GameState.week.tutorial.invent_type_chosen = true
+		Events.week_tutorial_changed.emit()
 	refresh()
 
 
@@ -242,75 +290,147 @@ func _slot_card(index: int, kind: String, item: String, center_x: float) -> Cont
 	return card
 
 
+## Cadeado do tipo que ainda não abriu no dia (o mesmo desenho dos pratos trancados).
+static func _lock_icon(pos: Vector2) -> TextureRect:
+	var lock := TextureRect.new()
+	lock.name = "LockIcon"
+	lock.texture = load(HomeUi.DIR + "farm_lock.png") as Texture2D
+	lock.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	lock.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	lock.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+	lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lock.position = pos
+	lock.size = Vector2(26, 26)
+	return lock
+
+
+## "Força 2 · Brilho 1" (só o que o prato rende; lanche e prato sem nutriente dizem a verdade em vez de zeros).
+static func nutrient_text(values: Dictionary, meal: bool) -> String:
+	var parts: PackedStringArray = []
+	for key: String in DishRules.nutrient_ids():
+		if int(values.get(key, 0)) > 0:
+			parts.append("%s %d" % [str(Database.dishes.nutrients[key].name), int(values[key])])
+	if parts.is_empty():
+		return "Só enche a barriga"
+	return ("" if meal else "Lanche · ") + " · ".join(parts)
+
+
 # --- Cartão grande ----------------------------------------------------------------------
 
-## Cartão grande: um só jeito de montar os três estados (fundo + ícone + título + dica + caixa + botão).
+## Cartão grande: um só jeito de montar os estados (fundo + ícone + título + estrelas + dica + caixa + botão).
+## `GameState.dish_preview` diz qual: empty, incomplete, blocked, gororoba, new ("Prato novo!") ou known.
 func _card() -> void:
 	for child in _card_box.get_children():
 		_card_box.remove_child(child)
 		child.queue_free()
 	var def := current_def()
-	var state := card_state()
+	var view := preview()
+	var state := str(view.state)
 	_card_box.position = CARD_POS + Vector2(0, extra / 2.0)
 	_card_box.set_meta("state", state)
 	_card_box.name = "InvCard"
-	var art := CookPanel.pic("inv_card_" + state, Vector2.ZERO, "Art")
-	_card_box.add_child(art)
-	var recipe_id := GameState.invent_match(multiset()) if state == "known" else ""
+	var art_state := "empty" if state == "empty" else ("unknown" if state in ["incomplete", "blocked"] else "known")
+	_card_box.add_child(CookPanel.pic("inv_card_" + art_state, Vector2.ZERO, "Art"))
 	var title_text := str(def.get("title", ""))
 	var small := str(def.get("hint", ""))
-	var long_text := str(def.get("hint_long", ""))
-	var box_text := long_text
+	var line1 := str(def.get("hint_long", ""))
+	var line2 := ""
 	match state:
 		"empty":
 			_card_box.add_child(CookPanel.pic("inv_ring_empty", Vector2(41, 66), "Ring"))
-			small = "Toque em um espaço para colocar seus ingredientes"
+			small = "Dá para inventar algo novo" if GameState.recipe_can_sniff() else "Toque em um espaço para colocar seus ingredientes"
 			_card_box.add_child(CookPanel.pic("inv_box_info", Vector2(17, 176), "Box"))
-		"unknown":
-			title_text = "Prato desconhecido"
+		"incomplete", "blocked":
+			title_text = "Falta pouco" if state == "incomplete" else "Ainda não dá"
+			small = str(view.reason)
 			_card_box.add_child(CookPanel.pic("inv_bowl_unknown", Vector2(31, 72), "Bowl"))
 			_card_box.add_child(CookPanel.pic("inv_box_hint", Vector2(33, 195), "Box"))
-		"known":
-			var output := Database.recipe_output(Database.recipes[recipe_id])
-			title_text = Database.item_name(output)
+		_:
+			title_text = str(view.name)
 			_card_box.add_child(CookPanel.pic("inv_plate_known", Vector2(44, 67), "Plate"))
-			_card_box.add_child(CookPanel.dish_pic(output, Rect2(59, 100, 90, 60), "Dish"))
+			_card_box.add_child(CookPanel.dish_pic(str(view.output), Rect2(59, 100, 90, 60), "Dish"))
 			_card_box.add_child(CookPanel.pic("inv_box_known", Vector2(44, 185), "Box"))
-			box_text = "Prato já conhecido!"
-	var title := CookPanel.label(title_text, Rect2(174, 82, 287, 48), 40, 20, 1, INK, HORIZONTAL_ALIGNMENT_LEFT)
+			if state == "gororoba":
+				small = str(view.reason)
+				line1 = "Só enche a barriga: não conta como prato novo."
+				for item: String in view.refund:
+					line2 = "Devolve %s" % Database.item_name(item)
+			else:
+				if bool(GameState.chef_info().get("exact_preview", false)):
+					small = nutrient_text(view.nutrients, bool(view.meal))
+				else:
+					var top: Array[String] = []
+					for id: String in DishRules.nutrient_ids():
+						if int(view.nutrients.get(id, 0)) > 0:
+							top.append(str(Database.dishes.nutrients[id].name))
+					small = " · ".join(top) if not top.is_empty() else "Lanche"
+				line1 = "Prato novo!" if state == "new" else "Prato já conhecido!"
+				line2 = str(view.notes[0]) if not (view.notes as Array).is_empty() else ("Refeição" if bool(view.meal) else "Lanche: alegra, mas não é refeição")
+				_card_box.add_child(CookPanel.stars_pic(int(view.stars), Vector2(202, 137), false, "InvStars"))
+	var title := CookPanel.label(title_text, Rect2(174, 82, 287, 46), 40, 18, 1, INK, HORIZONTAL_ALIGNMENT_LEFT)
 	title.name = "InvCardName"
 	_card_box.add_child(title)
 	var hint := CookPanel.label(small, Rect2(177, 148, 407, 19), 16, 10, 1, INK, HORIZONTAL_ALIGNMENT_LEFT)
 	hint.name = "Hint"
 	_card_box.add_child(hint)
-	var box_y := 251.0 if state == "empty" else (233.0 if state == "unknown" else 219.0)
-	var box_x := 133.0 if state == "empty" else (129.0 if state == "unknown" else 140.0)
-	var body := CookPanel.label(box_text, Rect2(box_x, box_y, 420, 57), 20, 11, 2, INK, HORIZONTAL_ALIGNMENT_LEFT)
+	var box_y := 251.0 if state == "empty" else (233.0 if art_state == "unknown" else 219.0)
+	var box_x := 133.0 if state == "empty" else (129.0 if art_state == "unknown" else 140.0)
+	var two := line2 != ""
+	var body := CookPanel.label(line1, Rect2(box_x, box_y, 420, 28 if two else 57), 20, 11, 1 if two else 2, CookPanel.ORANGE.darkened(0.35) if state == "new" else INK, HORIZONTAL_ALIGNMENT_LEFT)
 	body.name = "BoxText"
 	_card_box.add_child(body)
+	if two:
+		var extra_line := CookPanel.label(line2, Rect2(box_x, box_y + 28.0, 420, 26), 17, 10, 1, INK, HORIZONTAL_ALIGNMENT_LEFT)
+		extra_line.name = "BoxNote"
+		_card_box.add_child(extra_line)
 	if state != "empty":
 		var button := CookPanel.pic("inv_btn_together", Vector2(123, 297), "InvCookButton")
+		button.modulate.a = 0.6 if state in ["incomplete", "blocked"] else 1.0
 		CookPanel.tappable(button, cook_together)
 		_card_box.add_child(button)
 
 
-## "Cozinhar junto": prato conhecido = a receita de sempre (1 lote); desconhecido = prato surpresa provisório.
-## Devolve "" ou o motivo (que também vira aviso). Depois de entrar na fila, os espaços do tipo esvaziam.
+## "Cozinhar junto": abre o minigame (Picar, Mexer e Servir) com o prato da panela; os ingredientes só saem no fim dele
+## e os espaços esvaziam quando o prato entra na fila. Gororoba não tem minigame: cozinha direto (devolve o ingrediente).
+## Devolve "" ou o motivo (que também vira aviso).
 func cook_together() -> String:
 	var items := multiset()
 	if items.is_empty():
 		return ""
-	var recipe_id := GameState.invent_match(items)
-	var failed := GameState.cook_many(recipe_id, 1) if recipe_id != "" else GameState.cook_invented(items)
+	var type := str(current_def().get("id", ""))
+	var view := preview()
+	var failed := GameState.cook_invented_error(items, type)
+	if failed == "" and str(view.state) != "gororoba":
+		var picks: Array[String] = []
+		for item: String in slot_items():
+			if item != "":
+				picks.append(item)
+		var chosen_now := items.duplicate()
+		var spec := {"name": str(view.name), "output": str(view.output), "items": picks,
+			"check": func() -> String: return GameState.cook_invented_error(chosen_now, type),
+			"cook": func(stars: int, together: bool) -> String: return GameState.cook_invented(chosen_now, type, stars, together),
+			"on_done": _cooked.bind(type),
+			"mastery_key": str(view.mastery_key)}
+		var panel := CookPanel.current()
+		if panel != null:
+			panel.start_together(spec)  # se não abrir, o motivo já virou aviso
+			return ""
+	if failed == "":
+		failed = GameState.cook_invented(items, type)
 	if failed != "":
 		Events.toast_requested.emit(failed)
 		var button := _card_box.get_node_or_null("InvCookButton") as CanvasItem
 		if button != null:
 			Motion.shake(button)
 		return failed
-	chosen[str(current_def().get("id", ""))] = []
-	refresh()
+	_cooked(type)
 	return ""
+
+
+## Depois de cozinhar: os espaços do tipo esvaziam.
+func _cooked(type: String) -> void:
+	chosen[type] = []
+	refresh()
 
 
 # --- Janelinha de ingredientes ----------------------------------------------------------
@@ -352,8 +472,9 @@ func refresh() -> void:
 	var def := current_def()
 	var kinds: Array = def.get("slots", [])
 	var items := slot_items()
-	var centers := slot_centers(kinds.size())
-	for i in kinds.size():
+	var total := items.size()
+	var centers := slot_centers(total)
+	for i in total:
 		_slots_box.add_child(_slot_card(i, str(kinds[i]), str(items[i]), centers[i]))
 	_card()
 	_signature_key = _signature()
@@ -366,7 +487,7 @@ func _signature() -> String:
 	var key := str(current_def().get("id", "")) + "|" + ",".join(PackedStringArray(slot_items())) + "|"
 	for item: String in Database.invent.get("items", {}):
 		key += "%d," % GameState.inventory.count(item)
-	return key + "%d|%d" % [GameState.station("stove").queue.size(), GameState.station_slots("stove")]
+	return key + "%d|%d|%d|%d" % [GameState.station("stove").queue.size(), GameState.station_slots("stove"), GameState.week_day(), GameState.week.dishes.size()]
 
 
 ## Chamado a cada `state_changed`: só refaz se algo mudou.

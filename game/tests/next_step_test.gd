@@ -92,7 +92,7 @@ func _talk_step() -> void:
 	var step: Control = _step()
 	var guide: Dictionary = _guide()
 	check(step != null and step.visible, "a pílula aparece com a primeira missão")
-	check(guide.id == "welcome" and guide.state == "talk", "save novo: welcome em estado talk (veio %s/%s)" % [guide.id, guide.state])
+	check(guide.id == "welcome" and guide.state == "progress", "save novo: welcome em estado talk (veio %s/%s)" % [guide.id, guide.state])
 	check((step.find_child("StepCount", true, false) as Label).text == "0/1", "StepCount mostra 0/1")
 	var heard: Array = []
 	root.get_node("Events").world_requested.connect(func(world: String, place: String) -> void: heard.append([world, place]))
@@ -109,14 +109,15 @@ func _talk_step() -> void:
 	if target.has("world"):
 		check(not heard.is_empty() and heard[0][0] == target.world and heard[0][1] == target.get("place", ""), "Ir pede o lugar do passo (%s)" % str(heard))
 	else:
-		check(not heard.is_empty() or target.has("screen"), "Ir leva ao destino do passo")
+		check(not heard.is_empty() or target.has("screen") or target.has("intro"), "Ir leva ao destino do passo")
 	check(main.get_node_or_null("PopoverCatcher") == null, "Ir fecha o cartão")
 
 
 ## 3. Pronto: "Pegar" visível, um toque entrega uma vez.
 func _claim_step() -> void:
 	await _reset_fresh()
-	state.call("talk_to", "lais")
+	state.get("progress").stats["arrival_box"] = 1
+	state.call("_changed")
 	await process_frame
 	await process_frame
 	var step: Control = _step()
@@ -129,8 +130,8 @@ func _claim_step() -> void:
 	await process_frame
 	check(state.get("progress").claimed_quests.has("welcome"), "tocar na pílula pronta conclui welcome")
 	check(int(state.get("coins")) == coins + 5, "as moedas sobem exatamente o prêmio (+5; veio %d)" % (int(state.get("coins")) - coins))
-	check(state.get("inventory").count("dog_food") == food + 2, "dog_food +2")
-	check(_guide().id == "lais_feed", "a pílula já mostra lais_feed")
+	check(state.get("inventory").count("dog_food") == food, "estoque de ração preservado")
+	check(_guide().id == "lais_first_crops", "a pílula já mostra lais_first_crops")
 	step.pressed.emit()
 	await process_frame
 	check(int(state.get("coins")) == coins + 5, "tocar de novo não paga de novo")
@@ -141,7 +142,7 @@ func _claim_step() -> void:
 	await process_frame
 
 
-## 4. lais_feed anda: 0/1 → 1/1 e fica pronto.
+## 4. lais_first_crops anda: 0/1 → 1/1 e fica pronto.
 func _progress_step() -> void:
 	await _reset_fresh()
 	state.call("dev_complete_quest", "welcome")
@@ -149,14 +150,15 @@ func _progress_step() -> void:
 	await process_frame
 	await process_frame
 	var guide: Dictionary = _guide()
-	check(guide.id == "lais_feed" and guide.state == "progress" and guide.value == 0, "lais_feed começa em progress 0/1 (veio %s/%s/%s)" % [guide.id, guide.state, guide.value])
-	state.get("dog").needs.hunger = 40
-	state.call("feed", "dog_food")
+	check(guide.id == "lais_first_crops" and guide.state == "progress" and guide.value == 0, "lais_first_crops começa em progress 0/1 (veio %s/%s/%s)" % [guide.id, guide.state, guide.value])
+	state.get("progress").stats["harvest:carrot"] = 1
+	state.get("progress").stats["harvest:potato"] = 1
+	state.call("_changed")
 	await process_frame
 	await process_frame
 	guide = _guide()
 	check((_step().find_child("StepCount", true, false) as Label).text == "1/1", "StepCount vira 1/1 (veio %s)" % (_step().find_child("StepCount", true, false) as Label).text)
-	check(guide.state == "ready", "lais_feed fica pronto")
+	check(guide.state == "ready", "lais_first_crops fica pronto")
 
 
 ## 5. História que aponta para personagem: o passo é o da linha dele.
@@ -166,7 +168,7 @@ func _shared_step() -> void:
 	var done := false
 	for chapter in range(1, (root.get_node("Database").progression.chapters.size()) + 1):
 		for id: String in progress.main_quests(chapter):
-			if id == "lais_meet_bloblo":
+			if id == "first_sale":
 				done = true
 				break
 			state.call("dev_complete_quest", id)
@@ -177,8 +179,8 @@ func _shared_step() -> void:
 	await process_frame
 	var guide: Dictionary = _guide()
 	check(guide.shared, "a história aponta para a linha do personagem (shared)")
-	check(guide.id == progress.current_line_quest("bloblo") or guide.id == "bloblo_meet", "o passo é o da linha da Bloblo (veio %s)" % guide.id)
-	check(guide.npc == "bloblo", "o retrato é o da Bloblo (veio %s)" % guide.npc)
+	check(guide.id == progress.current_line_quest("merchant") or guide.id == "merchant_meet", "o passo é o da linha do Feirante (veio %s)" % guide.id)
+	check(guide.npc == "merchant", "o retrato é o do Feirante (veio %s)" % guide.npc)
 
 
 ## 7. A linha 2 some com a folha aberta e volta ao fechar.
@@ -268,7 +270,12 @@ func _hud_claim_resolutions() -> void:
 	for resolution: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 		root.size = resolution
 		await _reset_fresh()
-		state.call("talk_to", "lais")
+		state.get("progress").stats["arrival_box"] = 1
+		state.call("_changed")
+		state.update_week()
+		for candidate: Dictionary in state.week_card_candidates():
+			state.take_week_card(candidate)
+		main.call("_check_row2")
 		for i in 8: await process_frame
 		var step := _step()
 		var claim := step.find_child("StepClaim", true, false) as Control
@@ -299,9 +306,9 @@ func _hud_claim_resolutions() -> void:
 		var point := root.get_final_transform() * claim.get_global_rect().get_center()
 		await _screen_tap(point)
 		check(state.get("progress").claimed_quests.has("welcome"), "toque resgata welcome em %s" % resolution)
-		check(int(state.get("coins")) == coins + 5 and state.get("inventory").count("dog_food") == food + 2, "prêmio exato em %s" % resolution)
+		check(int(state.get("coins")) == coins + 5 and state.get("inventory").count("dog_food") == food, "prêmio exato em %s" % resolution)
 		await _screen_tap(point)
-		check(int(state.get("coins")) == coins + 5 and state.get("inventory").count("dog_food") == food + 2, "segundo toque não duplica em %s" % resolution)
+		check(int(state.get("coins")) == coins + 5 and state.get("inventory").count("dog_food") == food, "segundo toque não duplica em %s" % resolution)
 		print("HUD PEGAR %s: toque e estilo verificados" % resolution)
 	await _reset_fresh()
 

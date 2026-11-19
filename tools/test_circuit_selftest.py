@@ -37,7 +37,8 @@ class CircuitTests(unittest.TestCase):
 
             selected = run("-Level", "etapa", "-Areas", "wishes")
             self.assertEqual(selected.returncode, 0, selected.stdout + selected.stderr)
-            self.assertIn("scripts_check, content_test, texts_test, wish_moments_test", selected.stdout)
+            self.assertEqual(selected.stdout.splitlines()[1].split(", "),
+                             ["scripts_check", *data["always"], *data["areas"]["wishes"]["tests"]])
             (root / "game/data").mkdir()
             (root / "game/data/wishes.json").write_text("{}")
             automatic = run("-Level", "etapa")

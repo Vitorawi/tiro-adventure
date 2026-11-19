@@ -616,15 +616,14 @@ static func _friend_blocks() -> Array[Dictionary]:
 static func _tricks() -> Dictionary:
 	var tiles: Array[Dictionary] = []
 	for id: String in Database.progression.tricks:
-		if not bool(GameState.progress.tricks.get(id, false)):
+		if GameState.trick_is_lesson(id) or not bool(GameState.progress.tricks.get(id, false)):
 			continue
 		var def: Dictionary = Database.progression.tricks[id]
 		var reason := GameState.perform_trick_error(id)
 		tiles.append({"name": "Trick_" + id, "icon": _icon(str(def.icon)), "caption": str(def.name), "dim": reason != "",
 			"tooltip": reason, "on_tap": _perform_trick.bind(id)})
-	var foot := StepCardUi.go_button("Treinar com a Nina", Places.go.bind({"world": "park", "place": "training"}))
-	foot.name = "TrainWithNina"
-	return {"filters": [], "filter": "", "foot": foot, "empty": "Treine com a Nina para aprender truques",
+	var foot := StepCardUi.go_button("Caderno de truques", TrickUi.open_lessons)
+	return {"filters": [], "filter": "", "foot": foot, "empty": "Treine no tapete do Sítio com a vovó",
 		"blocks": [{"tiles": tiles, "ratio": CAPTION_RATIO}] if not tiles.is_empty() else []}
 
 

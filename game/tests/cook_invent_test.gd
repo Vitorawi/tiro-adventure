@@ -65,12 +65,20 @@ func reset_world() -> void:
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
 	state.call("dev_unlock_everything")
+	state.call("dev_week_goto", 7)
 	state.call("_mark_all_seen")
 	state.set("coins", 5000)
 	for id: String in state.get("stations"):
 		state.get("stations")[id].queue.clear()
 	state.get("inventory").call("from_dict", {})
 	state.set("animals", {})
+
+
+## "Cozinhar junto" abre o minigame (E04): estes testes cobrem a regra da cozinha, então Pulam (cozinha como o botão).
+func skip_together() -> void:
+	var game := root.find_child("CookTogether", true, false)
+	if game != null:
+		game.call("skip")
 
 
 func give(item: String, amount: int) -> void:
@@ -133,8 +141,8 @@ func _run() -> void:
 
 	# 0. Dados coerentes; a receita escondida existe mas não aparece como prato.
 	check((db.call("invent_problems") as Array).is_empty(), "invent.json coerente: %s" % [db.call("invent_problems")])
-	check(not (db.call("recipes_for", "stove") as Array).has("invented_dish"), "o prato inventado não é receita listada")
-	check(db.get("recipes").has("invented_dish"), "a receita escondida existe para a fila")
+	check(not (db.call("recipes_for", "stove") as Array).has("dish_batch"), "a receita de suporte não é receita listada")
+	check(db.get("recipes").has("dish_batch") and not db.get("items").has("invented_dish"), "a receita escondida existe para a fila e não há prato provisório")
 	# Um legume fica fora dos recomendados para testar a seção "Outros ingredientes".
 	var rec_legume: Array = db.get("invent").recommended.legume
 	rec_legume.erase("sweet_potato")
@@ -209,23 +217,23 @@ func _run() -> void:
 	await frames(2)
 	check(node("InvPicker") == null and str(slot(0).get_meta("item")) == "carrot", "Selecionar põe no espaço e fecha")
 	check(slot(0).find_child("Filled", true, false) != null and slot(0).find_child("Figure", true, false) != null, "espaço preenchido tem frente e figura")
-	check(card_state() == "unknown", "só cenoura não é receita conhecida (%s)" % card_state())
+	check(card_state() == "incomplete", "só cenoura: faltam ingredientes (%s)" % card_state())
 	check(node("InvCookButton") != null, "desconhecido tem o botão Cozinhar junto")
 	tap(slot(1))
 	await frames(2)
-	check(bool(node("InvCell_potato").get_meta("recommended")), "batata recomendada no legume")
+	check(node("InvCell_potato") != null, "batata aparece no espaço livre (tem estoque; recomendados do livre são outros)")
 	tap_card(node("InvPickerScroll"), node("InvCell_potato"))
 	tap(node("InvSelect"))
 	await frames(2)
 	check(String(state.call("invent_match", {"carrot": 1, "potato": 1})) == "puppy_mash", "cenoura + batata batem com a papinha da vovó")
-	check(card_state() == "known", "cenoura + batata: prato conhecido (%s)" % card_state())
-	check((node("InvCardName") as Label).text == "Papinha da vovó", "nome do prato conhecido (%s)" % (node("InvCardName") as Label).text)
+	check(card_state() == "new", "cenoura + batata: prato novo (%s)" % card_state())
+	check((node("InvCardName") as Label).text == "Papinha de cenoura e batata", "nome automático do prato (%s)" % (node("InvCardName") as Label).text)
 	tap(slot(1))
 	await frames(2)
 	check(bool(node("InvCell_potato").get_meta("in_pot")), "a batata está 'na panela' neste espaço")
 	tap(node("InvRemove"))
 	await frames(2)
-	check(str(slot(1).get_meta("item")) == "" and card_state() == "unknown", "Remover esvazia o espaço")
+	check(str(slot(1).get_meta("item")) == "" and card_state() == "incomplete", "Remover esvazia o espaço")
 	# O que já está no outro espaço não conta de novo: cenoura x2 -> 1 no espaço 0, sobra 1 para o espaço 1.
 	tap(slot(1))
 	await frames(2)
@@ -251,11 +259,13 @@ func _run() -> void:
 	tap_card(node("InvPickerScroll"), node("InvCell_potato"))
 	tap(node("InvSelect"))
 	await frames(2)
-	check(card_state() == "known", "de novo conhecido")
+	check(card_state() == "new", "ainda prato novo (nunca cozinhado)")
 	toasts.clear()
 	tap(node("InvCookButton"))
+	skip_together()
 	await frames(2)
 	check(queue_size() == 1 and str(state.call("station", "stove").queue[0].recipe) == "puppy_mash", "conhecido: a receita entra na fila")
+	check(int(state.call("recipe_stars", "puppy_mash")) == 1, "cozinhar a receita a deixa com 1 estrela")
 	check(count("carrot") == 1 and count("potato") == 0, "os ingredientes foram gastos")
 	check(str(slot(0).get_meta("item")) == "" and card_state() == "empty", "depois de cozinhar os espaços esvaziam")
 
@@ -273,14 +283,18 @@ func _run() -> void:
 	tap_card(node("InvPickerScroll"), node("InvCell_corn"))
 	tap(node("InvSelect"))
 	await frames(2)
-	check(card_state() == "unknown", "cenoura + milho: prato desconhecido")
+	check(card_state() == "new", "cenoura + milho: prato novo")
 	tap(node("InvCookButton"))
+	skip_together()
 	await frames(2)
-	check(queue_size() == 1 and str(state.call("station", "stove").queue[0].recipe) == "invented_dish", "desconhecido: entra o prato inventado")
+	check(queue_size() == 1 and str(state.call("station", "stove").queue[0].recipe) == "dish_batch", "prato novo: entra o lote do prato (receita de suporte)")
 	check(count("carrot") == 0 and count("corn") == 0, "gastou os ingredientes escolhidos")
 	state.call("station", "stove").queue[0]["ready_at"] = float(state.call("now")) - 1.0
 	var got: Dictionary = state.call("collect", "stove")
-	check(int(got.get("invented_dish", 0)) == 1 and count("invented_dish") == 1, "recolher entrega 1 prato inventado")
+	var dish_id := "dish_papinha_cenoura+milho_1"
+	check(int(got.get(dish_id, 0)) == 1 and count(dish_id) == 1, "recolher entrega 1 prato do motor (%s)" % [got])
+	check(bool(state.call("dish_known", "papinha", ["cenoura", "milho"])), "o prato fica conhecido")
+	check(str(root.get_node("Database").call("item_name", dish_id)) == "Papinha de cenoura e milho", "o prato tem nome automático")
 
 	# 7. Fila cheia: erro, nada gasto, escolha mantida.
 	give("carrot", 8)
@@ -301,6 +315,7 @@ func _run() -> void:
 	var carrots := count("carrot")
 	toasts.clear()
 	tap(node("InvCookButton"))
+	skip_together()
 	await frames(2)
 	check(toasts.has("Fila cheia"), "fila cheia avisa (%s)" % [toasts])
 	check(count("carrot") == carrots and queue_size() == 3 and str(slot(0).get_meta("item")) == "carrot", "erro não gasta nem esvazia")

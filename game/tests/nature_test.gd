@@ -37,7 +37,7 @@ func _run() -> void:
 	state.set("unlimited_storage", true)  # a Natureza enche a pilha de materiais (16); o limite tem teste próprio (warehouse_test)
 	state.call("reset")
 	check(state.call("start_gathering", "trees", 0, "lane") != "", "História bloqueia coleta antecipada")
-	state.call("dev_jump_to_chapter", 4)
+	state.call("dev_jump_to_chapter", 8)
 	state.call("dev_add_coins", 4000)
 	check(state.call("start_next_gathering", "trees", "lane", "wood") != "", "Bosque precisa ser desbloqueado")
 	main = load("res://scenes/main/main.tscn").instantiate()

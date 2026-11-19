@@ -33,7 +33,7 @@ func _run() -> void:
 	events.world_requested.connect(func(world: String, place: String) -> void: destinations.append({"world": world, "place": place}))
 	events.screen_requested.connect(func(screen: StringName) -> void: destinations.append({"screen": str(screen)}))
 	# 1. Catálogo inteiro com texto concreto e ícone existente; consulta não altera estado.
-	check(db.album.photos.size() == 54, "54 fotos")
+	check(db.album.photos.size() == 64, "64 fotos")
 	var before: String = JSON.stringify(state.to_dict())
 	for entry: Dictionary in db.album.photos:
 		var goal: Dictionary = entry.get("goal_hint", {})
@@ -54,7 +54,7 @@ func _run() -> void:
 		elif go.has("screen"):
 			check(str(go.screen) in ["pet", "tasks", "bag", "worlds"], str(entry.id) + " aba existe")
 		else:
-			check(go.get("notebook", "") == "album", str(entry.id) + " caderninho resolve")
+			check(go.get("notebook", "") in ["album", "missions"], str(entry.id) + " caderninho resolve")
 		var count := destinations.size()
 		places.call("go", go)
 		check(destinations.size() > count, str(entry.id) + " Ir emite destino")
