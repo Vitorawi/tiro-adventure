@@ -2,6 +2,8 @@
 
 ## Estado atual
 
+- **PUBLICADO - versão `ab8792d` (19/11/2026, 21:04 BRT, Deploy Web OK, produção e /dev/ com HTTP 200).** Entrou a Primeira semana do filhote inteira, etapas E01 a E15: relógio de refeições e fechamento do dia, motor de pratos, cozinha completa e Cozinhar junto, Para crescer e cerimônia, Sítio do filhote por dia, Aula do Tiro e uso dos truques, Brincadeiras no Quintal, Carroça do Feirante, Livro de receitas, História da semana, Rotina do dia, 33 tutoriais e ajuste de ritmo e economia. `SAVE_VERSION` 33, então os saves anteriores reiniciam. [Run do Deploy Web](https://github.com/Vitorawi/tiro-adventure/actions/runs/44642545892)
+
 - **Primeira semana — E15, ritmo e economia (19/11/2026, local).** Dentinhos no D7/D8/D9 em três sementes por perfil. Quatro investimentos somam 190 moedas, compras da rota somam 230. Portão 140/159, com 17 falhas e dois limites de tempo já vistos na E14. Campanha 6/6. O tempo ativo ficou abaixo da meta no modelo e o M3 físico segue pendente. Save 33. [Resultados e testes](plans/primeira_semana/RESULTADOS.md)
 
 - **Primeira semana — E14, Tutoriais (19/11/2026, local).** Os 33 tutoriais acompanham as ações da semana nos cinco formatos, com Pular, retorno da mão após 20 s e revisão no Caderninho. O save 33 retoma os passos e reinicia os saves anteriores. A conferência dos sete dias no celular fica para o portão M3. [Validação e roteiro](plans/primeira_semana/etapas/ETAPA_14_tutoriais.md).
