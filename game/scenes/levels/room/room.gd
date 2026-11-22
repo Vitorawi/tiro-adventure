@@ -611,7 +611,8 @@ func _refresh_object(sprite: Sprite2D) -> void:
 	if sprite.has_meta("plot"):
 		_update_plot(sprite)
 	if sprite.has_meta("sign_plot"):
-		sprite.visible = GameState.plot_can_buy(int(sprite.get_meta("sign_plot")))
+		# A plaquinha de compra fica no centro de todo canteiro ainda fechado (o toque explica o que falta).
+		sprite.visible = GameState.plot_status(int(sprite.get_meta("sign_plot"))) == "locked"
 	elif sprite.has_meta("sign_upgrade"):
 		var sign_upgrade := str(sprite.get_meta("sign_upgrade"))
 		# Mesma regra do antigo "+": só aparece quando a história já libera a compra.

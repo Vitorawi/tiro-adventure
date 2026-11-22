@@ -224,10 +224,17 @@ def main() -> None:
 
     # Placas extras da primeira semana. A oitava área comprável continua no mapa;
     # o último canteiro da grade (índice 8) passa a ser o de milho, incluído no kit.
+    # A placa "compra" fica no centro do canteiro fechado. O desenho (81x81) tem a parte visível em x 0..68 e
+    # y 2..75: o meio da base do sprite fica 6,5 px à direita e 43 px abaixo do centro do canteiro.
+    def sign_on_plot(idx):
+        fp = objects[idx]["footprint"]
+        cx, cy = sum(q[0] for q in fp) / 4, sum(q[1] for q in fp) / 4
+        bx, by = round(cx + 6.5), round(cy + 43)
+        return {"id": f"sign_plot_{idx}", "action": "buy_sign", "sign_plot": idx, "sprite": RES + "figma_compra.png",
+                "pos": [bx, by], "footprint": [[bx, by - 10], [bx + 10, by - 4], [bx, by + 2], [bx - 10, by - 4]]}
     for idx in (2, 3):
         x, y = objects[idx]["pos"]
-        objects.append({"id": f"sign_plot_{idx}", "action": "buy_sign", "sign_plot": idx,
-                        "sprite": RES + "figma_compra.png", "pos": [x, y - 13]})
+        objects.append(sign_on_plot(idx))
 
     # --- placas "compra" dos canteiros: as cinco do Figma, cada uma no canteiro mais próximo ---
     sign_pos = []
@@ -239,7 +246,7 @@ def main() -> None:
         best = min((k for k in PLOT_ORDER[4:] if k not in taken), key=lambda k: math.dist(plot_pos[k], base))
         taken.add(best)
         idx = PLOT_ORDER.index(best)
-        objects.append({"id": f"sign_plot_{idx}", "action": "buy_sign", "sign_plot": idx, "sprite": RES + "figma_compra.png", "pos": base, "footprint": diamond(base[0], base[1] - 4, 10, 6)})
+        objects.append(sign_on_plot(idx))
         print("placa", base, "-> canteiro", idx, best)
 
     # --- construções: o desenho do Figma no lugar exato; fechadas mostram a placa ---

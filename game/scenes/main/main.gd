@@ -570,6 +570,13 @@ func _on_quest_completed(id: String) -> void:
 	if quest.get("kind", "") == "main":
 		_quest_rewards.append({"id": id, "next": GameState.progress.current_main_quest()})
 	else:
+		# Marco de personagem que também é passo da história (`shared_with`): a folha "Passo concluído"
+		# aparece igual, com o próximo destino, para o jogador não ficar sem direção depois da conversa.
+		for main_id: String in Database.quests:
+			var main_quest: Dictionary = Database.quests[main_id]
+			if main_quest.get("kind", "") == "main" and str(main_quest.get("shared_with", "")) == id and GameState.progress.claimed_quests.has(main_id):
+				_quest_rewards.append({"id": main_id, "next": GameState.progress.current_main_quest()})
+				break
 		for item: String in quest.get("rewards", {}).get("items", {}):
 			if Database.items.get(item, {}).get("category", "") == "keepsake":
 				_queue_modal(_celebration.show_gift.bind(item, str(quest.get("npc", ""))))

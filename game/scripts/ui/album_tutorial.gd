@@ -24,6 +24,8 @@ const DRAG_NEEDED := 0.5  ## ~60 px de arrasto sobre a carta (tilt normalizado)
 ## Segundos para curtir a foto depois de cada revelação (e depois de inclinar/escolher) antes da próxima fala.
 const ENJOY := 2.5
 const AFTER_TILT := 1.8
+## Opacidade dos controles que não são a vez (só o botão do passo fica aceso).
+const DIMMED := 0.22
 
 static var current: AlbumTutorial
 
@@ -72,6 +74,7 @@ func _ready() -> void:
 
 ## Fecha o tutorial sem concluir: o passo fica salvo e a próxima visita ao Álbum retoma.
 func stop() -> void:
+	_restore_controls()
 	if get_parent() != null:
 		get_parent().remove_child(self)
 	queue_free()
@@ -309,6 +312,39 @@ func _layout() -> void:
 	_stamp.position = Vector2(hole.end.x - _stamp.size.x - 4.0, hole.position.y - _stamp.size.y - 2.0)
 	if phase == "upgrade" or phase == "reroll":
 		_place_strike()
+	_focus_controls()
+
+
+## Só o botão da vez fica aceso: as outras linhas de ação (Melhorar, Pôr no varal...) e as versões ficam apagadas,
+## para nunca haver dois botões disputando o olhar. A carta continua sempre nítida.
+func _focus_controls() -> void:
+	if not is_instance_valid(viewer):
+		return
+	var focus: Control = null
+	match phase:
+		"reroll": focus = viewer.find_child("RerollButton", true, false) as Control
+		"upgrade": focus = viewer.find_child("UpgradeButton", true, false) as Control
+		"feature": focus = viewer.find_child("FeatureButton", true, false) as Control
+	if viewer._actions != null:
+		for row: Node in viewer._actions.get_children():
+			if row is CanvasItem:
+				var lit := focus != null and (row == focus or row.is_ancestor_of(focus))
+				if phase == "upgrade" and (row.name == "UpgradeCost" or row.find_child("UpgradeCost", true, false) != null):
+					lit = true  # o custo riscado ("presente") acompanha o Melhorar
+				(row as CanvasItem).modulate.a = 1.0 if lit else DIMMED
+	if viewer._versions != null:
+		viewer._versions.modulate.a = 1.0 if phase == "version" else DIMMED
+
+
+func _restore_controls() -> void:
+	if not is_instance_valid(viewer):
+		return
+	if viewer._actions != null:
+		for row: Node in viewer._actions.get_children():
+			if row is CanvasItem:
+				(row as CanvasItem).modulate.a = 1.0
+	if viewer._versions != null:
+		viewer._versions.modulate.a = 1.0
 
 
 func _place_strike() -> void:

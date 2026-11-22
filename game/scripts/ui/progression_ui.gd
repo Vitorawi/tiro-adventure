@@ -20,6 +20,13 @@ static func npc_introduction(npc_id: String, index: int = 0) -> Control:
 			Events.sheet_requested.emit(npc.name, npc_introduction(npc_id, index + 1))
 		else:
 			GameState.mark_seen(["npc_intro:" + npc_id])
+			# A conversa já cumpre o passo "falar com ela": entrega na hora e a folha de prêmio
+			# leva direto à próxima missão (sem precisar procurar o Pegar na conversa).
+			for id: String in Places.npc_active_quests(npc_id):
+				if GameState.quest_error(id) == "":
+					Events.sheet_close_requested.emit()
+					claim_quest_fx(id, box.get_global_rect().get_center())
+					return
 			Events.sheet_requested.emit(npc.name, npc_view(npc_id))
 	var speech := npc_header(box, npc_id, str(lines[index]), true, true)
 	if index == lines.size() - 1:

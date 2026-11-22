@@ -151,54 +151,56 @@
       "action": "buy_sign",
       "sign_plot": 2,
       "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
-      "pos": [864, 1120]
+      "pos": [870, 1140],
+      "footprint": [[870, 1130], [880, 1136], [870, 1142], [860, 1136]]
     },
     {
       "id": "sign_plot_3",
       "action": "buy_sign",
       "sign_plot": 3,
       "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
-      "pos": [791, 1164]
+      "pos": [798, 1184],
+      "footprint": [[798, 1174], [808, 1180], [798, 1186], [788, 1180]]
     },
     {
       "id": "sign_plot_6",
       "action": "buy_sign",
       "sign_plot": 6,
       "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
-      "pos": [644, 1166],
-      "footprint": [[644, 1156], [654, 1162], [644, 1168], [634, 1162]]
+      "pos": [652, 1184],
+      "footprint": [[652, 1174], [662, 1180], [652, 1186], [642, 1180]]
     },
     {
       "id": "sign_plot_7",
       "action": "buy_sign",
       "sign_plot": 7,
       "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
-      "pos": [940, 1166],
-      "footprint": [[940, 1156], [950, 1162], [940, 1168], [930, 1162]]
+      "pos": [946, 1185],
+      "footprint": [[946, 1175], [956, 1181], [946, 1187], [936, 1181]]
     },
     {
       "id": "sign_plot_5",
       "action": "buy_sign",
       "sign_plot": 5,
       "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
-      "pos": [866, 1207],
-      "footprint": [[866, 1197], [876, 1203], [866, 1209], [856, 1203]]
+      "pos": [871, 1229],
+      "footprint": [[871, 1219], [881, 1225], [871, 1231], [861, 1225]]
     },
     {
       "id": "sign_plot_8",
       "action": "buy_sign",
       "sign_plot": 8,
       "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
-      "pos": [791, 1253],
-      "footprint": [[791, 1243], [801, 1249], [791, 1255], [781, 1249]]
+      "pos": [798, 1275],
+      "footprint": [[798, 1265], [808, 1271], [798, 1277], [788, 1271]]
     },
     {
       "id": "sign_plot_4",
       "action": "buy_sign",
       "sign_plot": 4,
       "sprite": "res://assets/sprites/areas/farm/figma_compra.png",
-      "pos": [718, 1214],
-      "footprint": [[718, 1204], [728, 1210], [718, 1216], [708, 1210]]
+      "pos": [724, 1229],
+      "footprint": [[724, 1219], [734, 1225], [724, 1231], [714, 1225]]
     },
     {
       "id": "workbench",
