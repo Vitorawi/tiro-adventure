@@ -288,6 +288,13 @@ func _card_open() -> bool:
 
 
 ## Avisos esperam enquanto houver cartão aberto ou cartão na fila (mesma regra do `_flush_modals`).
+## Há uma tela da história (prêmio do passo, capítulo, "Novo!") esperando para abrir ou aberta.
+## As lições esperam por ela: primeiro a missão, depois o "Ir", e só então a explicação.
+func story_card_pending() -> bool:
+	return _card_open() or _announce_pending or not _quest_rewards.is_empty() or _chapter_done > 0 \
+		or _modal_queue.size() > _photo_queue.size()
+
+
 func notice_blocked() -> bool:
 	return CookTogether.current() != null or TrickLesson.current() != null or is_instance_valid(YardPlay.current) or _card_open() or _modal_queue.size() > _photo_queue.size() or _announce_pending or _chapter_done > 0
 

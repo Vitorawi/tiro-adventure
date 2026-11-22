@@ -524,7 +524,8 @@ func _act(id: String, with_shampoo: bool = false) -> void:
 		pet_screen.call("brush_cleanup")
 	elif id == "ball":
 		close_food_menu()
-		if GameState.farm_week_active():
+		# O Quintal (minijogos) só abre quando a história já o apresentou; antes disso é a bolinha de sempre.
+		if GameState.farm_week_active() and GameState.yard_open("ball"):
 			close_wheel()
 			YardPlay.open()
 			return
@@ -576,7 +577,10 @@ func choose_care(id: String) -> void:
 		_act(id)
 		return
 	var options := care_options(id)
-	if options.size() > 1:
+	# Só abre a janelinha quando há mais de uma opção LIBERADA; com uma só, faz a ação padrão direto
+	# (banho sem xampu, bolinha) — opção trancada não vira menu.
+	var open := options.filter(func(option: Dictionary) -> bool: return str(option.get("locked", "")) == "")
+	if open.size() > 1:
 		_open_care_choice(id, options)
 	else:
 		_act(id)

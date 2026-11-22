@@ -199,9 +199,9 @@ func _caso_banho() -> void:
 	var before: float = state.get("dog").call("get_need", "hygiene", state.call("now"))
 	tap_disc(node("Care_sponge"))
 	await frames()
-	check(node("BathChoice") != null, "Banho abre as opções antes de agir")
-	(node("BathPlain") as Button).pressed.emit()
+	# Sem xampu só há uma opção liberada: o banho comum acontece direto, sem janelinha.
 	await frames()
+	check(node("BathChoice") == null, "Banho sem xampu age direto, sem abrir opções")
 	var after: float = state.get("dog").call("get_need", "hygiene", state.call("now"))
 	check(after > before, "tocar e soltar o Banho dá banho (%s → %s)" % [before, after])
 	check(not wheel_open(), "escolher um cuidado fecha a roleta")
@@ -260,14 +260,15 @@ func _caso_pedido() -> void:
 				check(node("FoodMenu").visible, "ícone de comida abre o FoodMenu")
 			"hygiene":
 				tap_disc(node("Care_sponge"))
-				check(node("BathChoice") != null, "ícone de banho oferece opções")
-				(node("BathPlain") as Button).pressed.emit()
 				await frames()
+				check(node("BathChoice") == null, "ícone de banho sem xampu dá o banho direto")
 				check(state.get("dog").call("get_need", need, state.call("now")) > before, "opção do atalho dá banho")
 			"happiness":
 				tap_disc(node("Care_ball"))
+				await frames()
 				var after: float = state.get("dog").call("get_need", need, state.call("now"))
-				check(after <= before + 0.01 and main.find_child("YardBall", true, false) != null, "Brincar abre o Quintal e espera a partida")
+				# Antes do Quintal ser apresentado, Brincar é a bolinha padrão: brinca direto.
+				check(after > before and main.find_child("YardBall", true, false) == null, "Brincar sem Quintal joga a bolinha direto")
 				root.get_node("Events").sheet_close_requested.emit()
 			"energy":
 				(node("SleepButton") as Button).pressed.emit()

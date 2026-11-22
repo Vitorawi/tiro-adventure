@@ -79,7 +79,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_elapsed += delta
 	var intro := is_instance_valid(main.get("_intro"))
-	var blocked: bool = (main.call("_card_open") and not intro) or CardViewer.is_open() or AnglerTutorial.is_active() or AlbumTutorial.is_active() or LessonGuide.is_active()
+	var blocked: bool = (main.call("story_card_pending") and not intro) or CardViewer.is_open() or AnglerTutorial.is_active() or AlbumTutorial.is_active() or LessonGuide.is_active()
 	if blocked:
 		hide()
 		return

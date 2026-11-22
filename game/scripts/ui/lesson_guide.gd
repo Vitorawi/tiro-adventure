@@ -81,7 +81,7 @@ func _tick() -> void:
 
 
 func _blocked() -> bool:
-	return is_instance_valid(main.get("_intro")) or bool(main.call("_card_open")) or CardViewer.is_open() \
+	return is_instance_valid(main.get("_intro")) or bool(main.call("story_card_pending")) or CardViewer.is_open() \
 		or AnglerTutorial.is_active() or AlbumTutorial.is_active() or CookTogether.current() != null \
 		or TrickLesson.current() != null or is_instance_valid(YardPlay.current)
 

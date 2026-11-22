@@ -118,7 +118,8 @@ func _run() -> void:
 		if before or snapshots_only: continue
 		await fresh("puppy")
 		await open_item("Care_ball")
-		check(main.find_child("YardBall", true, false) != null and state.get("progress").stat("play") == 0, "Filhotinho abre o Quintal sem premiar no menu")
+		# Antes do Quintal (capítulo do quintal) a bola é a brincadeira padrão, direta.
+		check(main.find_child("YardBall", true, false) == null and state.get("progress").stat("play") == 1, "Filhotinho sem Quintal: bola direta")
 		root.get_node("Events").emit_signal("sheet_close_requested")
 		await open_item("SleepButton")
 		check(state.get("dog").sleeping and not control("CareChoice").visible, "Dormir: ação direta")
