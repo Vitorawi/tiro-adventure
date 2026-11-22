@@ -148,7 +148,7 @@ func _run() -> void:
 	check(state.coins == coins_start, "brincar não paga moeda")
 
 	# Passo 5: a caminha na Casa. Aparece o Mapa (só a Casa), sem pílula do mundo.
-	check(shown("MapTab") and not shown("TasksTab") and not shown("BagTab"), "o Mapa entra no rodapé sozinho")
+	check(shown("MapTab") and shown("TasksTab") and not shown("BagTab"), "o Mapa entra no rodapé (Missões já estão desde o Pegar do welcome)")
 	var upgrade: Dictionary = db.progression.upgrades.dog_bed
 	check(int(upgrade.cost) == 0 and str(upgrade.get("verb", "")) == "Colocar", "a caminha é grátis e a folha diz Colocar")
 	check(state.upgrade_error("dog_bed") == "", "a caminha pode ser colocada: " + str(state.upgrade_error("dog_bed")))
@@ -195,7 +195,7 @@ func _run() -> void:
 	check(quest() == "lais_photo", "o passo 8 é a foto")
 	await frames(3)
 	check(shown("AlbumButton"), "o botão do Álbum aparece no passo 8")
-	check(not shown("TasksTab") and not shown("BagTab"), "Missões e Mochila esperam o fim do Ato 1")
+	check(shown("TasksTab") and not shown("BagTab"), "Missões desde o começo; a Mochila espera o fim do Ato 1")
 	check(state.photo_sealed("h_arrival") > 0 and not state.album_tutorial_done(), "a carta da chegada espera fechada")
 	check(state.quest_error("lais_photo") != "", "o passo 8 pede a carta")
 	state.finish_album_tutorial()
@@ -203,7 +203,7 @@ func _run() -> void:
 	check(state.coins == coins_start, "nenhuma moeda ganha em todo o Ato 1")
 	await claim("lais_photo")
 	await frames(3)
-	check(not shown("TasksTab") and not shown("BagTab"), "Missões e Mochila continuam esperando: entram no Ato 2 (F03)")
+	check(shown("TasksTab") and not shown("BagTab"), "a Mochila continua esperando: entra no Ato 2 (F03)")
 	check(not shown("CoinsPill") and state.coins == coins_start, "a pílula de moedas só volta no capítulo 2")
 	check(state.requirement_error(db.worlds.farm.requirements) == "", "o Sítio abre depois do passo 8")
 	check(quest() == "lais_farm", "o Sítio é o passo 9")

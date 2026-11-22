@@ -135,8 +135,7 @@
     "chapter": 1,
     "order": 50,
     "go": {
-      "world": "house",
-      "place": "buy:dog_bed"
+      "world": "house"
     }
   },
   "lais_growth": {
@@ -207,8 +206,7 @@
     "chapter": 1,
     "order": 120,
     "go": {
-      "world": "house",
-      "place": "buy:stove"
+      "world": "house"
     }
   },
   "lais_fishing": {
@@ -477,6 +475,11 @@
   },
   "first_harvest": {
     "npc": "bloblo",
+    "requirements": {
+      "quests": [
+        "lais_first_crops"
+      ]
+    },
     "name": "A primeira colheita",
     "dialogue": "Esse canteiro é seu. Planta uma cenoura e rega! O que você colher vai para o cesto, que cabe pouquinho.",
     "goals": [

@@ -35,7 +35,7 @@ func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build_focus(true)
 	_build_hand()
-	_build_balloon(self, str(Database.week_story.food_lesson.get("npc", "lais")))
+	_build_balloon(self, str(Database.week_story.food_lesson.get("npc", "lais")), 64.0)  # menor: não esconde o painel
 	var row := UiKit.hbox(8)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_balloon.add_child(row)
@@ -393,10 +393,12 @@ func _layout(delta: float) -> void:
 	if kind == "food" and beat == 3:
 		y = top  # no arrasto o balao fica no alto: nao cobre o Tiro (alvo de soltar) nem a mao
 	y = clampf(y, top, maxf(top, limit))
-	if kind == "food" and beat == 2 and main.get_node("Sheet").call("is_open"):
-		# A folha Hoje fica aberta embaixo: o balão sobe para cima dela, sem cobrir o título.
+	if (kind == "growth" or (kind == "food" and beat in [2, 5])) and main.get_node("Sheet").call("is_open"):
+		# Com uma folha aberta embaixo (Hoje, Crescimento) o balão fica acima dela: não cobre o título nem a explicação.
 		var panel := main.get_node("Sheet").get_node("Panel") as Control
-		y = clampf(panel.get_global_rect().position.y - height - 8.0, top, y)
+		var over := panel.get_global_rect().position.y - height - 8.0
+		if over >= top:
+			y = over
 	_balloon.position = Vector2(clampf(hole.get_center().x - width * 0.5, 12.0, screen.x - width - 12.0), y)
 	_balloon.size = Vector2(width, height)
 	_skip.size = _skip.get_combined_minimum_size()

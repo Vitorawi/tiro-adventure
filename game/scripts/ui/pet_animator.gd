@@ -27,6 +27,10 @@ const ANIMAREF_KEEP := 3
 var allow_animaref := true
 static var _portrait_bounds: Dictionary = {}
 var _portrait_holder: Control
+## O Tiro grande da aba Tiro (as lições esperam o carinho dele terminar).
+static var home: PetAnimator
+## Clipes do carinho: enquanto um deles toca, o Tiro ainda não levantou.
+const PETTING_CLIPS := [&"roll_over", &"belly_rub", &"belly_kick", &"pet_head", &"pet_paw", &"wag_excited", &"belly_enter", &"belly_loop", &"belly_exit"]
 ## Quadros por segundo de cada animação.
 const FPS := {
 	&"idle_breathe": 6.0, &"head_tilt": 7.0, &"scratch": 8.0, &"yawn": 6.0, &"sniff": 7.0,
@@ -203,6 +207,15 @@ func set_sleeping(value: bool) -> void:
 ## Triste (necessidade baixa): as travessuras passam a ser carinhas tristes.
 func set_sad(value: bool) -> void:
 	_sad = value
+
+
+## Ainda no meio do carinho (de barriga para cima, rolando ou abanando)?
+func petting() -> bool:
+	return _belly_up or not _chain.is_empty() or _next != &"" or _clip in PETTING_CLIPS
+
+
+static func home_petting() -> bool:
+	return is_instance_valid(home) and home.is_inside_tree() and home.petting()
 
 
 func play_lesson_pose(clip: StringName) -> void:

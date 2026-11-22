@@ -21,12 +21,15 @@ const SAY := {
 	"feature": "Põe ela no varal da home pra gente ver sempre.",
 }
 const DRAG_NEEDED := 0.5  ## ~60 px de arrasto sobre a carta (tilt normalizado)
+## Segundos para curtir a foto depois de cada revelação (e depois de inclinar/escolher) antes da próxima fala.
+const ENJOY := 2.5
+const AFTER_TILT := 1.8
 
 static var current: AlbumTutorial
 
 var phase := ""  ## open, reveal, reroll, upgrade, tilt, version, feature ou "" (esperando começar)
 var viewer: CardViewer
-var _wait := 0
+var _wait := 0.0
 var _best := 0
 var _arrow: Control
 var _stamp: PanelContainer
@@ -100,7 +103,7 @@ func _start() -> void:
 
 func _go(next: String) -> void:
 	phase = next
-	_wait = 0
+	_wait = 0.0
 	var step := {"open": 1, "reveal": 2, "reroll": 3, "upgrade": 4, "tilt": 5, "version": 5, "feature": 6}.get(next, 0) as int
 	if step > 0:
 		GameState.advance_album_tutorial(step)
@@ -127,14 +130,14 @@ func _on_rolled(id: String, result: Dictionary) -> void:
 	match str(result.get("action", "")):
 		"open":
 			_go("reveal")
-			_wait = 3
+			_wait = ENJOY
 		"reroll":
 			phase = "reveal"
-			_wait = 3
+			_wait = ENJOY
 			_next_after = "upgrade"
 		"upgrade":
 			phase = "reveal"
-			_wait = 3
+			_wait = ENJOY
 			_next_after = "tilt"
 			_best = GameState.photo_rarity(PHOTO)
 	if str(result.get("action", "")) == "open":
@@ -154,15 +157,27 @@ func _process(delta: float) -> void:
 		return
 	match phase:
 		"reveal":
-			_wait -= 1
-			if _wait <= 0 and not viewer.revealing:
-				_go(_next_after)
+			# Só conta o tempo de curtir depois que a revelação termina; até lá a carta fica sozinha na tela.
+			if not viewer.revealing:
+				_wait -= delta
+				if _wait <= 0.0:
+					_go(_next_after)
 		"tilt":
-			if viewer.tilt.length() >= DRAG_NEEDED:
-				_go("version")
+			if _wait > 0.0:
+				_wait -= delta  # já inclinou: deixa brincar mais um pouco antes da próxima fala
+				if _wait <= 0.0:
+					_go("version")
+			elif viewer.tilt.length() >= DRAG_NEEDED:
+				_wait = AFTER_TILT
+				_hand.visible = false
 		"version":
-			if viewer.level != _best and not viewer.revealing:
-				_go("feature")
+			if _wait > 0.0:
+				_wait -= delta
+				if _wait <= 0.0:
+					_go("feature")
+			elif viewer.level != _best and not viewer.revealing:
+				_wait = AFTER_TILT
+				_balloon.visible = false
 		"feature":
 			if PHOTO in GameState.album.featured and not _finishing:
 				_finish()
@@ -206,7 +221,9 @@ func _finish() -> void:
 
 func _build_layer() -> void:
 	_build_focus()
-	_build_balloon(_veil, "lais")
+	for rect: ColorRect in _rects:
+		rect.color.a = 0.0  # a foto nunca fica escurecida: o véu só segura os toques fora do alvo
+	_build_balloon(_veil, "lais", 64.0)
 	_arrow = UiKit.ctl("down", 34, Palette.HONEY)
 	_arrow.name = "TutorialArrow"
 	_arrow.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -262,13 +279,30 @@ func _layout() -> void:
 	# O balão fica na metade da tela que o alvo não ocupa.
 	var on_top := hole.get_center().y > screen.y * 0.5
 	_balloon.size = Vector2(screen.x - 24.0, 0.0)
+	var height := _balloon.get_combined_minimum_size().y
 	var top_y := Hud.HEIGHT + 6.0
 	var info := viewer.find_child("CardInfo", true, false) as Control if is_instance_valid(viewer) else null
 	if info != null and info.is_inside_tree():
 		top_y = maxf(top_y, info.get_global_rect().end.y + 6.0)  # abaixo do cabeçalho da carta: não tampa a placa do Álbum nem o X
-	_balloon.position = Vector2(12.0, top_y if on_top else screen.y - _balloon.size.y - 110.0)
+	# A foto nunca fica atrás do balão: procura um vão que não cubra a carta nem o alvo.
+	var card := Rect2()
+	if is_instance_valid(viewer):
+		var local := viewer.card_rect()
+		card = Rect2(viewer.global_position + local.position, local.size)
+	var bottom := screen.y - height - 90.0
+	var options: Array[float] = [top_y, hole.position.y - height - 8.0, hole.end.y + 8.0, bottom]
 	if not on_top:
-		_balloon.position.y = screen.y - _balloon.get_combined_minimum_size().y - 110.0
+		options = [bottom, hole.end.y + 8.0, hole.position.y - height - 8.0, top_y]
+	var chosen := top_y if on_top else bottom
+	var least := INF
+	for y: float in options:
+		y = clampf(y, top_y, maxf(top_y, bottom))
+		var box := Rect2(12.0, y, screen.x - 24.0, height)
+		var overlap := box.intersection(card).get_area() + (0.0 if none else box.intersection(hole).get_area() * 4.0)
+		if overlap < least - 0.5:
+			least = overlap
+			chosen = y
+	_balloon.position = Vector2(12.0, chosen)
 	_arrow.visible = _arrow.visible and not none
 	if _arrow.visible:
 		_arrow.position = Vector2(hole.get_center().x - 17.0, hole.position.y - 40.0)

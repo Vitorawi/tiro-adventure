@@ -57,7 +57,12 @@ func run() -> void:
 	check((guide.get("_rects")[0] as ColorRect).color.a == 0.0, "Passo de carinho sem véu cinza: o Tiro aparece limpo")
 	await snap("01b_tour_tiro")
 	state.pet()  # um carinho de verdade avança
-	await wait_ui(0.5)
+	await wait_ui(0.3)
+	check(not guide.visible, "Durante o carinho o próximo balão espera o Tiro levantar")
+	for _i in 40:  # o balão volta quando o Tiro termina o carinho
+		if shown("home_tour") and guide.get("step") == 1:
+			break
+		await wait_ui(0.2)
 	check(shown("home_tour") and guide.get("step") == 1, "O carinho leva ao botão Cuidar (%s / %s)" % [guide.get("active"), str(guide.get("step"))])
 	check(find("CareButton") != null, "O Cuidar aparece durante o tour")
 	check((guide.get("_rects")[0] as ColorRect).color.a > 0.0, "Passo informativo com destaque")
@@ -75,6 +80,13 @@ func run() -> void:
 	route.claim("welcome")
 	await wait_ui()
 	await dismiss()
+	main.call("show_screen", &"pet")
+	await settle_cards()
+	check(shown("missions"), "Logo depois do Pegar do welcome o balão aponta a aba Missões")
+	var missions_ok := find("TutorialAccept", guide)
+	if missions_ok:
+		await tap(missions_ok)
+	await wait_ui(0.3)
 	route.ato_one()  # Ato 1 em casa: comida, banho, brincar, caminha, crescimento, Filhotinho e a carta (as mãos `home_*` vêm do jogo)
 	await wait_ui(0.6)
 	state.acknowledge_growth("puppy")  # a cerimônia do Filhotinho já foi vista (senão os cartões do dia esperam)
@@ -84,6 +96,7 @@ func run() -> void:
 	state.note_screen_opened("farm")  # Ato 2: o Sítio e a vovó (as mãos `go_farm`/`meet_bloblo` são do ato2_test)
 	route.claim("lais_farm")
 	state.talk_to("bloblo")
+	state.mark_seen(["npc_intro:bloblo"] as Array[String])  # a apresentação automática já passou
 	route.ok(state.claim_quest("bloblo_meet"), "Conhecer a vovó")
 	await wait_ui(0.5)
 	await dismiss()
@@ -157,11 +170,8 @@ func run() -> void:
 	await dismiss()
 	main.call("show_screen", &"pet")
 	await settle_cards()
-	check(shown("missions"), "Ao fechar o capítulo 1 o balão aponta a aba Missões")
-	if shown("missions"):
-		await snap("09b_missoes")
-	await tap(find("TutorialAccept", guide))
-	check(not shown("missions") and state.week.tutorial.get("missions", {}).get("done", false), "Entendi guarda o balão das Missões")
+	check(not shown("missions"), "O balão das Missões não volta no fim do capítulo 1")
+	check(state.week.tutorial.get("missions", {}).get("done", false), "Entendi guardou o balão das Missões")
 	check(state.food_lesson_done() and not shown("clock"), "A aula da comida (F02B) explicou o relogio: a licao antiga nao repete")
 	route.crop("carrot", 4)
 	route.ok(state.sell("carrot", 4, "farm"), "Vender cenouras")
@@ -201,7 +211,7 @@ func run() -> void:
 		route.funds(60)
 		await tap(find("Primary", find("WeekTutorialNew")))
 		await until_visible("BuyItem")
-		check(shown("coop"), "Ir abre a banca com o foco no kit")
+		check(shown("coop"), "Ir abre a banca com o foco no kit (%s)" % guide.get("active"))
 		await tap(find("BuyItem"))
 		check(state.has_upgrade("chicken_coop"), "Comprar monta o galinheiro pelo fluxo normal")
 		if not state.has_upgrade("chicken_coop"):

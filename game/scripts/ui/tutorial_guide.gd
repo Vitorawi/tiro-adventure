@@ -51,12 +51,12 @@ func _build_focus(blocking: bool = true) -> void:
 		_pulse.tween_property(_highlight, "modulate:a", 1.0, 0.6)
 
 
-func _build_balloon(host: Node, npc: String) -> void:
+func _build_balloon(host: Node, npc: String, portrait_size := 96.0) -> void:
 	_balloon = VBoxContainer.new()
 	_balloon.name = "TutorialBalloon"
 	_balloon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	host.add_child(_balloon)
-	_balloon_label = ProgressionUi.npc_header(_balloon, npc, "", true, true)
+	_balloon_label = ProgressionUi.npc_header(_balloon, npc, "", true, true, portrait_size)
 
 
 func _build_hand() -> void:

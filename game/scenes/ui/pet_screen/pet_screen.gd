@@ -92,6 +92,7 @@ func _ready() -> void:
 	_dog_sprite.gui_input.connect(_on_dog_input)
 	_animator = PetAnimator.new()
 	_animator.allow_illustrated_puppy = true
+	PetAnimator.home = _animator
 	add_child(_animator)
 	_animator.setup(_dog_sprite)
 	_build_need_rings()

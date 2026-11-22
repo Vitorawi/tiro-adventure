@@ -346,7 +346,7 @@
       },
       "requirements": {
         "story_gate": [
-          "first_meal"
+          "welcome"
         ]
       }
     }

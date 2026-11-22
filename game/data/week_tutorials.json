@@ -53,6 +53,17 @@
       "quest": "welcome"
     },
     {
+      "id": "missions",
+      "day": 1,
+      "title": "Suas missões",
+      "format": "balloon",
+      "text": "Em Missões você vê tudo o que a Laís e a vovó pedem.",
+      "anchor": "TasksTab",
+      "say": "Suas missões ficam aqui. Sempre que não souber o que fazer, toque aqui.",
+      "after_quest": "welcome",
+      "npc": "lais",
+      "point": true
+    },    {
       "id": "home_claim",
       "day": 1,
       "title": "Pegar o prêmio",
@@ -157,11 +168,11 @@
         },
         {
           "target": "@buy_bed",
-          "say": "Toque no + da caminha."
+          "say": "Esta é a nossa casa! O + mostra onde a caminha vai. Toque nele."
         },
         {
           "target": "BuildUpgrade",
-          "say": "Toque em Colocar."
+          "say": "Agora toque em Colocar. É presente: não custa nada."
         }
       ],
       "done": "owned:dog_bed",
@@ -339,7 +350,7 @@
         },
         {
           "target": "BuildUpgrade",
-          "say": "Toque em Colocar."
+          "say": "Agora toque em Colocar. É presente: não custa nada."
         }
       ],
       "done": "owned:stove",
@@ -417,18 +428,7 @@
       "npc": "bloblo",
       "native": true
     },
-    {
-      "id": "missions",
-      "day": 1,
-      "title": "Suas missões",
-      "format": "balloon",
-      "text": "Em Missões você vê tudo o que a Laís e a vovó pedem.",
-      "anchor": "TasksTab",
-      "say": "Suas missões ficam aqui.",
-      "after_quest": "first_meal",
-      "npc": "lais",
-      "point": true
-    },
+
     {
       "id": "market",
       "day": 2,

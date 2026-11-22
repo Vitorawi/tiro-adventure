@@ -98,6 +98,7 @@ func _run() -> void:
 	route.ato_one()
 	state.acknowledge_growth("puppy")
 	state.week.tutorial["arrival"] = {"done": true}  # a abertura já foi vista: as mãos do Ato 2 podem aparecer
+	state.week.tutorial["missions"] = {"done": true}  # o balão das Missões vem logo depois do Pegar do welcome
 	coins_start = state.coins
 	check(quest() == "lais_farm", "o passo 9 é ir ao Sítio")
 	check(state.requirement_error(db.worlds.farm.places.early_market.requirements) != "", "a banca do Sítio ainda não existe")
@@ -108,7 +109,7 @@ func _run() -> void:
 	await dismiss()
 	main.call("show_screen", &"pet")
 	await frames(3)
-	check(shown("MapTab") and not shown("TasksTab") and not shown("BagTab"), "só Tiro e Mapa no rodapé")
+	check(shown("MapTab") and shown("TasksTab") and not shown("BagTab"), "Tiro, Mapa e Missões no rodapé")
 	check(not shown("CoinsPill"), "sem pílula de moedas")
 
 	# Passo 9: o Sítio. A mão aponta Mapa, depois a pílula do mundo e o cartão do Sítio.
@@ -126,8 +127,15 @@ func _run() -> void:
 	check(quest() == "lais_meet_bloblo" and str(state.progress.displayed_main_quest()) == "bloblo_meet", "o passo 10 mostra a vovó")
 	var farm := node("World_farm")
 	check(farm != null and farm.call("week_tutorial_rect", "npc:bloblo").has_area(), "a vovó está à vista para a mão")
-	await create_timer(0.5).timeout
-	check(lesson_shown("meet_bloblo"), "a mão aponta a vovó")
+	var sheet := main.get_node("Sheet")
+	for _i in 30:  # na primeira chegada ao Sítio a vovó se apresenta sozinha
+		if sheet.call("is_open"):
+			break
+		await create_timer(0.2).timeout
+	check(sheet.call("is_open"), "a vovó se apresenta sozinha na chegada")
+	state.mark_seen(["npc_intro:bloblo"] as Array[String])
+	root.get_node("Events").sheet_close_requested.emit()
+	await frames(3)
 	state.talk_to("bloblo")
 	check(state.quest_error("bloblo_meet") == "", "conversar libera o prêmio da vovó")
 	check(state.claim_quest("bloblo_meet") == "", "pegar o marco da vovó")
@@ -141,7 +149,7 @@ func _run() -> void:
 	check(not shown("BagTab"), "sem Mochila antes de colher")
 	route.crop("carrot", 1)
 	await frames(3)
-	check(shown("BagTab") and not shown("TasksTab"), "a Mochila entra na primeira colheita, Missões não")
+	check(shown("BagTab"), "a Mochila entra na primeira colheita")
 	await create_timer(0.7).timeout
 	check(lesson_shown("bag"), "balão da Mochila: guardei aqui")
 	route.crop("potato", 1)
@@ -197,7 +205,7 @@ func _run() -> void:
 	check(state.ato2_done(), "o Ato 2 acabou")
 	check(shown("TasksTab") and shown("BagTab") and shown("CoinsPill"), "Missões, Mochila e moedas no capítulo 2")
 	await create_timer(0.6).timeout
-	check(lesson_shown("missions"), "balão da aba Missões")
+	check(not lesson_shown("missions"), "o balão da aba Missões já foi no começo, não repete")
 	check(state.requirement_error(db.worlds.farm.places.early_market.requirements) == "", "a banca do Sítio abre")
 	check(state.plot_can_buy(2), "o terceiro canteiro pode ser comprado")
 	check(quest() == "week_market" and state.progress.chapter_index() == 2, "o capítulo 2 começa pela banca")

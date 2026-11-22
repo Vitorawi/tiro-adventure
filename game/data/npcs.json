@@ -14,6 +14,7 @@
   },
   "bloblo": {
     "name": "Vovó Bloblo",
+    "auto_intro": true,
     "introduction": [
       "Oi! Eu sou a vovó Bloblo. A Laís me contou que vocês chegaram!",
       "Este é o meu sítio. Vou te emprestar dois canteiros para começar.",

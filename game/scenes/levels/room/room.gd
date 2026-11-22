@@ -131,6 +131,7 @@ var _swallow_touch := false
 ## Pesca na lagoa (só no Sítio): o fluxo (painel, boia, minigame, resultado) e as bolhas quentes.
 var _fishing_flow: FishingFlow
 var _fishing_bubbles: FishingBubbles
+var _npc_intro_waiting := false
 
 @onready var _content: Control = %Content
 @onready var _background: TextureRect = %Background
@@ -194,6 +195,8 @@ func _ready() -> void:
 		Events.state_changed.connect(_check_angler_tutorial)
 		visibility_changed.connect(_check_angler_tutorial)
 	Events.world_activity.connect(_on_world_activity)
+	visibility_changed.connect(_check_npc_intro)
+	_check_npc_intro.call_deferred()  # a sala pode nascer já visível (primeira viagem ao mundo)
 	_refresh_ownership()
 	_refresh_gated()
 	_refresh_projects()
@@ -2594,6 +2597,52 @@ func lake_screen_rect() -> Rect2:
 func _check_angler_tutorial() -> void:
 	if _fishing_bubbles != null and is_visible_in_tree() and GameState.farm_lake_open():
 		AnglerTutorial.maybe_start(self)
+
+
+## Primeira chegada ao mundo: o personagem com `"auto_intro": true` se apresenta sozinho
+## (espera a viagem, folhas e cartões acabarem; desiste se o jogador sair da sala).
+func _check_npc_intro() -> void:
+	if not is_visible_in_tree() or _npc_intro_waiting:
+		return
+	var npc_id := _auto_intro_npc()
+	if npc_id == "":
+		return
+	_npc_intro_waiting = true
+	for _i in 40:
+		await get_tree().create_timer(0.5).timeout
+		if not is_visible_in_tree() or _auto_intro_npc() != npc_id:
+			break
+		if _intro_blocked():
+			continue
+		await get_tree().create_timer(0.4).timeout  # um respiro para ver o lugar antes da conversa
+		if is_visible_in_tree() and not _intro_blocked() and _auto_intro_npc() == npc_id:
+			Places.open_npc(npc_id)
+		break
+	_npc_intro_waiting = false
+
+
+func _auto_intro_npc() -> String:
+	for npc_id: String in Database.worlds.get(world_id, {}).get("npcs", []):
+		var npc: Dictionary = Database.npcs.get(npc_id, {})
+		if npc.get("auto_intro", false) and not npc.get("introduction", []).is_empty() \
+				and not GameState.progress.seen.has("npc_intro:" + npc_id) and GameState.progress.npc_visible(npc_id):
+			return npc_id
+	return ""
+
+
+func _intro_blocked() -> bool:
+	var main := get_tree().root.get_node_or_null("Main")
+	if main == null:
+		return true
+	if main.has_method("notice_blocked") and main.call("notice_blocked"):
+		return true
+	var sheet := main.find_child("Sheet", true, false)
+	if sheet != null and sheet.has_method("is_open") and sheet.call("is_open"):
+		return true
+	var worlds := main.find_child("WorldsScreen", true, false)
+	if worlds != null and (worlds.call("is_traveling") or worlds.call("is_map_open")):
+		return true
+	return CardViewer.is_open() or AlbumScreen.is_open()
 
 
 func _lake_locked_notice() -> void:

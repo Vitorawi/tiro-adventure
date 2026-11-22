@@ -7,6 +7,10 @@ var active := ""
 var step := -1
 var _shown: Dictionary = {}
 var _anchor_rect := Rect2()
+## Depois do carinho do tour, segura o próximo balão até o Tiro levantar (mínimo de segundos para a animação começar).
+const TIRO_SETTLE := 0.8
+var _waiting_tiro := false
+var _wait_tiro := 0.0
 var _skip: Button
 var _accept: Button
 var _hint: PanelContainer
@@ -83,6 +87,13 @@ func _process(delta: float) -> void:
 	if blocked:
 		hide()
 		return
+	if _waiting_tiro:
+		# Depois do carinho: o próximo balão só vem quando o Tiro levanta e volta ao descanso.
+		_wait_tiro -= delta
+		if _wait_tiro > 0.0 or PetAnimator.home_petting():
+			hide()
+			return
+		_waiting_tiro = false
 	if _elapsed >= 0.08:
 		_elapsed = 0.0
 		_pick(intro)
@@ -504,6 +515,8 @@ func _watch_sequence() -> bool:
 		return false
 	if GameState.progress.stat("pet") > int(record(active).get("pet_base", 1 << 30)):
 		_next_sequence_step()
+		_waiting_tiro = true
+		_wait_tiro = TIRO_SETTLE
 		return true
 	return false
 
