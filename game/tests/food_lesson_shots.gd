@@ -87,6 +87,7 @@ func _fresh(hour: int, with_meal: bool, phase: String = "puppy") -> void:
 		await process_frame
 	state.call("reset")
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	state.week.arrival_extended = false
 	state.week.tutorial["arrival"] = {"done": true}
 	state.growth.phase = phase

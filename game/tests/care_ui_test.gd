@@ -208,7 +208,9 @@ func _run() -> void:
 	for dot: Node in dots.get_children():
 		if bool(dot.get_meta("filled", false)): filled += 1
 	check(filled == 2, "2 bolinhas cheias (●●○)")
-	check(panel.find_child("GrowthNextStep", true, false) != null, "próximo passo continua")
+	(panel.find_child("GrowthReq_pillars", true, false) as Button).pressed.emit()
+	await frames(2)
+	check(root.find_child("GrowthNextStep", true, false) != null, "próximo passo na janelinha")
 	await shot("growth_dots")
 	events.sheet_close_requested.emit()
 	await frames(10)

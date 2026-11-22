@@ -72,6 +72,7 @@ func fresh(hour: int, with_meal: bool, phase: String = "puppy") -> void:
 		await frames(2)
 	state.call("reset")
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	state.week.arrival_extended = false
 	state.week.tutorial["arrival"] = {"done": true}
 	state.growth.phase = phase
@@ -133,6 +134,7 @@ func _data_and_rules() -> void:
 		check(str(story.today.get(key, "")) != "" and str(story.paw.get(key, "")) != "", "falas 2 e 4 da faixa " + key)
 	state.call("reset")
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	state.week.arrival_extended = false
 	for row: Array in [[12, "window"], [11, "window"], [20, "window"], [9, "day"], [16, "day"], [23, "night"], [2, "night"], [22, "night"], [6, "day"]]:
 		at(1, int(row[0]))
@@ -141,6 +143,7 @@ func _data_and_rules() -> void:
 	for hour: int in [3, 9, 12, 16, 23]:
 		state.call("reset")
 		state.call("finish_week_arrival")
+		state.call("finish_home_tour")
 		at(1, hour)
 		check(state.grant_lesson_paw("puppy_mash"), "patinha da aula às %dh" % hour)
 		check(not state.grant_lesson_paw("puppy_mash"), "a patinha da aula não repete (%dh)" % hour)
@@ -150,6 +153,7 @@ func _data_and_rules() -> void:
 	# Refeição na hora registra a patinha por baixo; a aula só completa.
 	state.call("reset")
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	state.week.arrival_extended = false
 	at(1, 9)
 	state.inventory.add("puppy_mash", 1)
@@ -163,6 +167,7 @@ func _data_and_rules() -> void:
 	# Próximo almoço/jantar.
 	state.call("reset")
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	state.week.arrival_extended = false
 	at(1, 9)
 	var next: Dictionary = state.next_meal_in()
@@ -180,6 +185,7 @@ func _data_and_rules() -> void:
 	# O passo real da aula: só vira a vez dele depois da chegada e com refeição na Mochila.
 	state.call("reset")
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	state.week.arrival_extended = false
 	var real_quest := str(db.week_story.food_lesson.quest)
 	check(not state.food_lesson_startable(), "no começo (caixinha) a aula não começa")
@@ -194,6 +200,7 @@ func _data_and_rules() -> void:
 	# Tiro não dorme sozinho com o passo da comida ativo (consulta da Parte A).
 	state.call("reset")
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	state.week.arrival_extended = false
 	while str(state.progress.current_main_quest()) != real_quest and str(state.progress.current_main_quest()) != "" and guard < 160:
 		state.progress.claimed_quests[str(state.progress.current_main_quest())] = true

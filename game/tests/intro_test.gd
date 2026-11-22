@@ -64,6 +64,8 @@ func _run() -> void:
 	check(not state.get("progress").claimed_quests.has("welcome"), "Apresentação não recebe missão automaticamente")
 	await _shot("intro_lais")
 	var places: Script = load("res://scripts/ui/places.gd")
+	check(state.call("claim_quest", "welcome") != "", "O primeiro passo espera o passeio pela casa")
+	state.call("finish_home_tour")
 	check(state.call("claim_quest", "welcome") == "", "Recebe o passo da chegada")
 	state.call("dev_complete_quest", "lais_photo")
 	main.call("_on_world_requested", "farm", "")

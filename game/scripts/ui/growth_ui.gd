@@ -18,7 +18,22 @@ static func open(select: String = "") -> void:
 	var box := panel()
 	if select != "":
 		box.set_meta("selected", select)
+		box.set_meta("auto_open", select)
 	Events.sheet_requested.emit("Crescimento", box)
+
+
+## Entrega o passo pendente (sem o cartão "Passo concluído", que só repetiria o crescimento) e cresce.
+static func _claim_and_grow(pending: String) -> void:
+	var error := GameState.claim_quest(pending)
+	if error == "":
+		var main := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Main")
+		if main != null and main.has_method("drop_quest_reward"):
+			main.call("drop_quest_reward", pending)
+		error = GameState.grow_error()
+		if error == "":
+			error = GameState.grow()
+	if error != "":
+		Events.toast_requested.emit(error)
 
 
 static func panel() -> Control:
@@ -385,9 +400,8 @@ static func _build(box: VBoxContainer) -> void:
 		elif info.ready and story_wait != "":
 			var pending := GameState.progress.current_main_quest()
 			if pending != "" and GameState.quest_error(pending) == "":
-				# O passo da história anterior está pronto e só falta pegar: o botão entrega e o Crescer! aparece.
-				var claim: Button
-				claim = StepCardUi.go_button("Pegar", func() -> void: ProgressionUi.claim_quest_fx(pending, claim.get_global_rect().get_center()))
+				# O passo da história anterior está pronto e só falta pegar: o mesmo toque entrega o passo e cresce.
+				var claim := StepCardUi.go_button("Crescer!", func() -> void: _claim_and_grow(pending))
 				claim.name = "ClaimStep"
 				claim.set_meta("wood_primary", true)
 				box.add_child(claim)
@@ -497,20 +511,16 @@ static func _phase_name(text: String) -> Label:
 	return result
 
 
-## Grade de passos (feitos e por fazer) + faixa de detalhe do passo escolhido.
-## Tocar num quadradinho só escolhe; a escolha sobrevive às reconstruções do painel.
+## Grade de passos (feitos e por fazer). Tocar num quadradinho abre uma janelinha de madeira ao lado dele
+## explicando o que falta e como fazer (`_open_step`); a explicação vem de `growth.json → explain`.
 static func _steps(box: VBoxContainer, info: Dictionary, visible_steps: Array) -> void:
 	var views: Dictionary = {}
 	var tiles: Dictionary = {}
-	var details: Dictionary = {}
-	var first := recommended(info)
-	var first_id := str(first.get("id", ""))
-	var chosen := str(box.get_meta("selected", ""))
-	var chosen_done := bool(box.get_meta("selected_done", false))
+	var reqs: Dictionary = {}
+	var first_id := str(recommended(info).get("id", ""))
 	for req: Dictionary in visible_steps:
 		views[str(req.id)] = step_view(req)
-	if not views.has(chosen) or (bool(views[chosen].done) and not chosen_done) or info.ready:
-		chosen = first_id
+		reqs[str(req.id)] = req
 	var grid := GridContainer.new()
 	grid.name = "GrowthSteps"
 	var compact := visible_steps.size() > 9 or (str(info.phase) == "newborn" and visible_steps.size() > 6)
@@ -519,28 +529,24 @@ static func _steps(box: VBoxContainer, info: Dictionary, visible_steps: Array) -
 	grid.add_theme_constant_override("v_separation", 6)
 	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(grid)
-	var select := func(id: String) -> void:
+	var open_step := func(id: String) -> void:
 		box.set_meta("selected", id)
-		box.set_meta("selected_done", bool(views[id].done))
-		for key: String in tiles:
-			_style_tile(tiles[key], bool(views[key].done), key == id)
-			if details.has(key): _select_detail(details[key], key == id)
+		_open_step(tiles, views[id], reqs[id], id == first_id, tiles[id])
 	for req: Dictionary in visible_steps:
 		var id := str(req.id)
 		var tile := _step_tile(views[id], grid.columns == 4)
-		if not info.ready: tile.pressed.connect(select.bind(id))
-		_style_tile(tile, bool(views[id].done), id == chosen and not info.ready)
+		tile.pressed.connect(open_step.bind(id))
+		_style_tile(tile, bool(views[id].done), false)
 		tiles[id] = tile
 		grid.add_child(tile)
-	if first_id == "" or info.ready:
-		return
-	var strip := StepCardUi.inner_card(box, "GrowthDetail", Vector4i(12, 4, 12, 8))
-	for req: Dictionary in visible_steps:
-		var id := str(req.id)
-		var detail := _step_detail(views[id], id == first_id, req)
-		_select_detail(detail, id == chosen)
-		details[id] = detail
-		strip.add_child(detail)
+	# A aula da comida abre já a janelinha do passo pedido.
+	var auto := str(box.get_meta("auto_open", ""))
+	if auto != "" and tiles.has(auto):
+		box.remove_meta("auto_open")
+		var timer := (Engine.get_main_loop() as SceneTree).create_timer(Motion.SHEET_IN + 0.1)
+		timer.timeout.connect(func() -> void:
+			if is_instance_valid(tiles[auto]) and (tiles[auto] as Control).is_visible_in_tree():
+				open_step.call(auto))
 
 
 ## Quadradinho de um passo (papel creme do caderninho): anel com o ícone, nome curto e quantidade; ✓ verde quando feito.
@@ -599,31 +605,100 @@ static func _style_tile(tile: Button, _done: bool, selected: bool) -> void:
 		frame.texture = load(HomeUi.DIR + "codex_" + ("tab_orange" if selected else "tile") + ".png") as Texture2D
 
 
-## Detalhe de um passo (um só fica visível): nome, caminho, dica de uma linha, uma ação e o "?".
-## A ação do passo escolhido é a verde (meta `wood_primary`); só uma por painel.
-static func _select_detail(detail: Control, selected: bool) -> void:
-	detail.visible = selected
-	for action: Button in detail.find_children("*", "Button", true, false):
-		if action.has_meta("growth_action"):
-			if selected: action.set_meta("wood_primary", true)
-			elif action.has_meta("wood_primary"): action.remove_meta("wood_primary")
+## Texto que explica o requisito: `explain` do growth.json (com {need} e {types}) ou, na falta, um genérico do tipo.
+static func explain_text(req: Dictionary) -> String:
+	var text := str(req.get("explain", ""))
+	if text == "":
+		match str(req.type):
+			"moments": text = "Cuidar do Tiro rende momentos. Junte {need}."
+			"feed": text = "Dê {need} refeições ao Tiro: Cuidar, Comida."
+			"deliver": text = "Consiga este item e dê ao Tiro."
+			"owned": text = "Compre isto para o Tiro."
+			"collection": text = "Faça esta peça para o Tiro."
+			"stat": text = "Faça isto {need} vez(es) com o Tiro."
+			_: text = "Cumpra este passo com o Tiro."
+	return text.replace("{need}", str(int(req.get("need", req.get("qty", 1))))).replace("{types}", str(int(req.get("types_need", req.get("types", 0)))))
 
 
-static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> Control:
-	var detail := UiKit.vbox(4)
+## Fecha a janelinha do passo (se houver) na hora.
+static func _close_pop() -> void:
+	var catcher := (Engine.get_main_loop() as SceneTree).root.find_child("PopoverCatcher", true, false)
+	if catcher != null and catcher.get_parent() != null:
+		catcher.get_parent().remove_child(catcher)
+		catcher.queue_free()
+
+
+## Abre a janelinha de madeira do passo, ancorada no quadradinho. O escolhido leva a moldura laranja enquanto ela está aberta.
+static func _open_step(tiles: Dictionary, step: Dictionary, req: Dictionary, highlight: bool, anchor: Control) -> void:
+	var tree := Engine.get_main_loop() as SceneTree
+	var host := tree.root.get_node_or_null("Main") as Control
+	if host == null:
+		host = tree.current_scene as Control
+	if host == null:
+		return
+	var card := _step_pop(step, req, highlight)
+	var pop := Popover.open(host, anchor, card, 0.0, host.size.y - 96.0)
+	var restyle := func(selected_id: String) -> void:
+		for key: String in tiles:
+			if is_instance_valid(tiles[key]):
+				_style_tile(tiles[key], false, key == selected_id)
+	restyle.call(str(step.id))
+	var catcher := pop.get_parent()
+	catcher.tree_exited.connect(func() -> void:
+		if tree.root.find_child("PopoverCatcher", true, false) == null: restyle.call(""))
+
+
+## Janelinha do passo: título + "?", o que precisa (explicação), progresso, caminho, estado e a ação.
+static func _step_pop(step: Dictionary, req: Dictionary, highlight: bool) -> Control:
+	var width := minf(320.0, StepCardUi.card_width())
+	var card := MissionUi.card("card", Vector4i(12, 10, 12, 10), "GrowthStepPop", 10)
+	card.set_meta("popover_bare", true)
+	card.custom_minimum_size.x = width
+	MissionUi.body(card).add_child(_step_detail(step, highlight, req, width - 24.0))
+	return card
+
+
+static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary, inner_width: float = 296.0) -> Control:
+	var detail := UiKit.vbox(6)
 	detail.name = "GrowthNextStep" if highlight else "GrowthDetail_" + str(step.id)
+	detail.custom_minimum_size.x = inner_width
 	# Linha das patinhas: o "?" reabre a aula da comida e a cartela mostra os carimbos (F02B).
 	var paws: bool = str(req.get("counter", "")) == "well_fed_day" and GameState.food_clock_on()
 	var head := UiKit.hbox(8)
+	var icon := UiKit.icon(step.icon, 32)
+	icon.name = "StepIcon"
+	icon.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	head.add_child(icon)
 	var title := StepCardUi.wood(str(step.title), 20)
+	title.name = "StepTitle"
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	head.add_child(title)
 	if not step.done or paws:
-		var help := StepCardUi.help_button(MealReview.open if paws else TaskHelp.open.bind("growth_req", str(step.id)))
+		var help := StepCardUi.help_button(func() -> void:
+			_close_pop()
+			if paws: MealReview.open()
+			else: TaskHelp.open("growth_req", str(step.id)))
 		help.name = "GrowthHelp"
 		head.add_child(help)
 	detail.add_child(head)
+	var explain := StepCardUi.wood(explain_text(req), 15)
+	explain.name = "GrowthExplain_" + str(step.id)
+	explain.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	explain.custom_minimum_size.x = inner_width
+	detail.add_child(explain)
+	# Progresso: barra com n/m; completo = medalhão "Feito!".
+	var progress := UiKit.hbox(8)
+	progress.name = "StepProgress"
+	if step.done:
+		progress.add_child(StepCardUi.done_medal(24.0, "StepDone"))
+		var done_label := StepCardUi.wood("Corpo completo" if req.type == "feed" and req.has("body_level") else "Feito!", 17, Palette.GO_INK)
+		done_label.name = "GrowthHint_" + str(step.id)
+		progress.add_child(done_label)
+	else:
+		progress.add_child(StepCardUi.bar(float(step.have) / maxf(1.0, float(step.need)), 18.0, "StepBar"))
+		progress.add_child(StepCardUi.wood("%d/%d" % [step.have, step.need], 17))
+	detail.add_child(progress)
 	if paws:
 		detail.add_child(PawCard.build("PawCard"))
 	var teether_shop: bool = step.item == "chew_ring" and step.give == "" and GameState.farm_week_active()
@@ -631,21 +706,21 @@ static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> 
 		var target: Dictionary = TaskHelp.describe("growth_req", str(step.id)).target
 		var path := _step_path(target, step)
 		if path != null: detail.add_child(path)
-	var hint_text := str(step.hint)
-	var good: bool = step.hint_good
-	if step.done:
-		hint_text = "Corpo completo" if req.type == "feed" and req.has("body_level") else "Feito!"
-		good = true
-	var hint := StepCardUi.wood(hint_text, 15, Palette.GO_INK if good else Color(Palette.WOOD_INK, 0.75))
-	hint.name = "GrowthSource_" + str(step.item) if step.type == "deliver" and step.give == "" else "GrowthHint_" + str(step.id)
-	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	hint.visible = hint_text != ""
-	detail.add_child(hint)
 	if step.done:
 		return detail
-	var button := StepCardUi.go_button(str(step.action), step.callback)
+	var hint := StepCardUi.wood(str(step.hint), 15, Palette.GO_INK if step.hint_good else Color(Palette.WOOD_INK, 0.75))
+	hint.name = "GrowthSource_" + str(step.item) if step.type == "deliver" and step.give == "" else "GrowthHint_" + str(step.id)
+	hint.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	hint.custom_minimum_size.x = inner_width
+	hint.visible = str(step.hint) != ""
+	detail.add_child(hint)
+	var callback: Callable = step.callback
+	var button := StepCardUi.go_button(str(step.action), func() -> void:
+		_close_pop()
+		callback.call())
 	button.name = "GrowthNextAction" if highlight else "GrowthAct_" + str(step.id)
 	button.set_meta("growth_action", true)
+	button.set_meta("wood_primary", true)
 	if step.give != "":
 		button.name = "GiveGrowth_" + str(step.give)  # mesmo nome do Dar da Mochila
 	detail.add_child(button)
@@ -671,7 +746,9 @@ static func _unlocks(info: Dictionary) -> Control:
 
 ## Caminho visual derivado do destino já usado pela ajuda, sem inventar destino ou regra.
 static func _step_path(target: Dictionary, step: Dictionary) -> Control:
-	var row := UiKit.hbox(4)
+	var row := HFlowContainer.new()  # quebra de linha: dois chips longos não cabem lado a lado na janelinha
+	row.add_theme_constant_override("h_separation", 4)
+	row.add_theme_constant_override("v_separation", 4)
 	row.name = "GrowthPath_" + str(step.id)
 	var world: Dictionary = Database.worlds.get(str(target.get("world", "")), {})
 	var place := str(target.get("spot", target.get("place", ""))).trim_prefix("place:")

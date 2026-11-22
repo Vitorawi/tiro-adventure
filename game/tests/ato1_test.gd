@@ -107,6 +107,9 @@ func _run() -> void:
 	check(not shown("MapTab") and not shown("TasksTab") and not shown("BagTab"), "só a aba Tiro no rodapé")
 	check(not shown("AlbumButton"), "sem botão do Álbum")
 	check(not shown("CoinsPill"), "sem pílula de moedas no Ato 1")
+	check(state.quest_error("welcome") != "", "o Pegar da primeira missão espera o passeio pela casa")
+	state.call("finish_home_tour")
+	check(state.quest_error("welcome") == "", "o fim do passeio libera o Pegar")
 	await claim("welcome")
 	check(state.inventory.count("puppy_mash") == 1, "a papinha pronta veio da caixinha")
 	check(state.coins == coins_start, "a caixinha não paga moeda")
@@ -210,7 +213,7 @@ func _run() -> void:
 	var lessons := {}
 	for lesson: Dictionary in db.week_tutorials:
 		lessons[str(lesson.id)] = lesson
-	var wanted := {"home_claim": "welcome", "home_feed": "lais_feed", "home_bath": "lais_bath", "home_play": "lais_play", "home_bed": "lais_bed",
+	var wanted := {"home_tour": "welcome", "home_claim": "welcome", "home_feed": "lais_feed", "home_bath": "lais_bath", "home_play": "lais_play", "home_bed": "lais_bed",
 		"home_growth": "lais_growth", "home_grow": "growth_1_puppy", "home_album": "lais_photo"}
 	for id: String in wanted:
 		check(lessons.has(id) and str(lessons[id].get("quest", "")) == str(wanted[id]), "lição %s presa ao passo %s" % [id, wanted[id]])

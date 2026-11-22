@@ -808,7 +808,7 @@ static func fan_angles(count: int) -> Array[float]:
 
 func _refresh_wheel() -> void:
 	_care_button.position = _care_spot()
-	_care_button.visible = GameState.progress.feature_unlocked("care_food")
+	_care_button.visible = GameState.progress.feature_unlocked("care_food") or GameState.home_tour_shows_care()
 	var sleeping := GameState.dog.sleeping
 	(_care_button.find_child("CareIcon", true, false) as TextureRect).texture = UiKit.ui_icon("action_wake" if sleeping else "heart")
 	(_care_button.find_child("Caption", true, false) as Label).text = "Acordar" if sleeping else "Cuidar"

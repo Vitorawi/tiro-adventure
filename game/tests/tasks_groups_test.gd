@@ -47,6 +47,7 @@ func _run() -> void:
 	tasks = main.find_child("TasksScreen", true, false)
 	main.call("show_screen", &"tasks")
 	state.get("progress").stats["arrival_box"] = 1
+	state.get("progress").stats["home_tour"] = 1
 	state.call("_changed")
 	await frames()
 	check(tasks.find_child("GroupTabs", true, false).is_visible_in_tree() and main.get("_tasks_badge").text == "1", "aba História fica visível; principal pronta continua avisando na aba Missões")

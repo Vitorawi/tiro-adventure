@@ -42,6 +42,7 @@ func _run() -> void:
 	_check(progress_now.call("pace_lines").size() > 0 and "feed" in " ".join(progress_now.call("pace_lines")), "Ritmo lista as primeiras vezes")
 	_foundation()
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	_check(state.call("claim_quest", "welcome") == "", "Abrir a caixa conclui a missão inicial")
 	coins_before = state.get("coins")
 	_check(state.call("claim_quest", "welcome") != "" and state.get("coins") == coins_before, "Missão não pode pagar duas vezes")

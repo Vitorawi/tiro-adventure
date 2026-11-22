@@ -23,6 +23,36 @@
       ]
     },
     {
+      "id": "home_tour",
+      "day": 1,
+      "title": "Conhecer a casa nova",
+      "format": "hand",
+      "npc": "lais",
+      "sequence": true,
+      "finish": "home_tour",
+      "text": "O Tiro aceita carinho. Cuidar abre a roleta dos cuidados e os anéis mostram o que ele precisa hoje.",
+      "steps": [
+        {
+          "target": "@tiro",
+          "say": "Este é o Tiro. Passe o dedinho nele para fazer carinho.",
+          "gesture": "scrub",
+          "advance": "pet"
+        },
+        {
+          "target": "CareButton",
+          "say": "Aqui ficam os cuidados do Tiro. Eles vão abrindo aos poucos.",
+          "advance": "tap"
+        },
+        {
+          "target": "NeedsPanel",
+          "say": "Estes anéis mostram o que ele precisa hoje.",
+          "advance": "tap"
+        }
+      ],
+      "done": "home_tour",
+      "quest": "welcome"
+    },
+    {
       "id": "home_claim",
       "day": 1,
       "title": "Pegar o prêmio",
@@ -31,10 +61,11 @@
       "steps": [
         {
           "target": "StepClaim",
-          "say": "Toque em Pegar para receber."
+          "say": "Pronto! Toque em Pegar para receber e ir para o próximo passo."
         }
       ],
       "done": "quests",
+      "after": "home_tour",
       "quest": "welcome"
     },
     {

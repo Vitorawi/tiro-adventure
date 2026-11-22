@@ -453,6 +453,7 @@ func measure_sessions(name: String) -> Dictionary:
 	verify.call(not state.progress.seen.has("intro") and state.progress.current_main_quest() == "welcome", "Save novo começa na caixa")
 	action("chegada", 4)
 	state.finish_week_arrival()
+	state.finish_home_tour()
 	claim("welcome")
 	ato_one()
 	ato_two(first_dish_stars, false)

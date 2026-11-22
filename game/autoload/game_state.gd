@@ -9054,6 +9054,19 @@ func finish_week_arrival() -> void:
 	mark_seen(["intro"])
 
 
+## Fim do passeio guiado pela casa (primeira missão): conta o objetivo e libera o Pegar.
+func finish_home_tour() -> void:
+	if progress.stat("home_tour") > 0:
+		return
+	_count("home_tour")
+	_changed()
+
+
+## O passeio da casa já chegou ao passo do botão Cuidar: ele aparece (vazio, com a roleta fechada) antes de ser liberado pela história.
+func home_tour_shows_care() -> bool:
+	return progress.stat("arrival_box") > 0 and int(week.tutorial.get("home_tour", {}).get("seq", 0)) >= 1
+
+
 func week_quest_day(id: String) -> int:
 	var quest: Dictionary = Database.quests.get(id, {})
 	var day := int(quest.get("chapter", 0))

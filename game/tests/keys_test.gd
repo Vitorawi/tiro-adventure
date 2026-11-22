@@ -64,10 +64,17 @@ func run() -> void:
  check('Continue a História' in str(origin.detail),'origem informa o dia de abertura')
  check(origin.target.get('screen','')!='bag','sem argolinha não manda procurar na mochila')
  var source_panel: Control = load('res://scripts/ui/growth_ui.gd').panel()
- root.add_child(source_panel)
+ var pop_host := Control.new()  # a janelinha do passo abre num host chamado Main
+ pop_host.name = 'Main'
+ pop_host.size = Vector2(360, 780)
+ root.add_child(pop_host)
+ pop_host.add_child(source_panel)
  await process_frame
- check(source_panel.find_child('GrowthSource_chew_ring',true,false)!=null,'origem aparece diretamente no crescimento')
- source_panel.queue_free()
+ (source_panel.find_child('GrowthReq_key',true,false) as Button).pressed.emit()
+ await process_frame
+ await process_frame
+ check(root.find_child('GrowthSource_chew_ring',true,false)!=null,'origem aparece na janelinha do passo')
+ pop_host.queue_free()
  fresh()
  state.dev_complete_quest('bloblo_stew')
  check(state.quest_unlocked('bloblo_chew_ring'),'missão da vovó aparece depois do ensopado')

@@ -1,14 +1,14 @@
 {
   "welcome": {
     "npc": "lais",
-    "name": "Abrir a caixinha",
-    "dialogue": "Fale baixinho e faça carinho. Ele já quer conhecer você.",
+    "name": "Conhecer a casa nova",
+    "dialogue": "Esta é a casa nova do Tiro. Vem, eu te mostro tudo.",
     "goals": [
       {
         "type": "stat",
-        "key": "arrival_box",
+        "key": "home_tour",
         "target": 1,
-        "label": "Acolher o Tiro"
+        "label": "Conhecer a casa"
       }
     ],
     "rewards": {

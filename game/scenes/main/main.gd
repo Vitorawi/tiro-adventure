@@ -575,6 +575,12 @@ func _on_quest_completed(id: String) -> void:
 				_queue_modal(_celebration.show_gift.bind(item, str(quest.get("npc", ""))))
 	_schedule_announce()
 
+## Tira da fila o cartão "Passo concluído" de um passo (o painel de crescimento entrega e cresce no mesmo toque).
+func drop_quest_reward(id: String) -> void:
+	for index in range(_quest_rewards.size() - 1, -1, -1):
+		if str(_quest_rewards[index].id) == id:
+			_quest_rewards.remove_at(index)
+
 func _on_chapter_completed(index: int) -> void:
 	_chapter_done = index
 	_schedule_announce()

@@ -86,6 +86,7 @@ func _run() -> void:
 	state.call("reset")
 	state.call("_count", "arrival_box")
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	state.get("week").tutorial["arrival"] = {"done": true}
 	Motion.reduced = true
 	state.progress.seen["intro"] = true

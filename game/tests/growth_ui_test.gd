@@ -52,6 +52,12 @@ func _run() -> void:
 	state = root.get_node("GameState")
 	db = root.get_node("Database")
 	ui = load("res://scripts/ui/growth_ui.gd")
+	# Todo requisito de toda fase tem a explicação da janelinha (growth.json → explain).
+	for phase: Dictionary in db.get("growth").phases:
+		for req: Dictionary in phase.requirements:
+			var explain := str(req.get("explain", "")).strip_edges()
+			check(explain != "" and not "{" in explain.replace("{need}", "").replace("{types}", ""), "explain de %s/%s" % [phase.id, req.id])
+			check(str(ui.call("explain_text", req)) != "", "texto da janelinha de %s/%s" % [phase.id, req.id])
 	Motion.reduced = true
 	state.call("reset")
 	state.get("progress").seen.intro = true
@@ -98,8 +104,11 @@ func _run() -> void:
 				await click(panel.find_child("GrowthReq_" + selected_id, true, false))
 				state.call("_changed")
 				await frames()
-				check(panel.get_meta("selected", "") == selected_id and panel.find_child("GrowthDetail_" + selected_id, true, false).is_visible_in_tree(), "seleção persiste na reconstrução: " + str(phase.id))
-				check(primary(panel) == 1, "só a ação escolhida é primária")
+				var step_pop := main.find_child("GrowthStepPop", true, false)
+				check(panel.get_meta("selected", "") == selected_id and step_pop != null and step_pop.find_child("GrowthDetail_" + selected_id, true, false) != null, "janelinha do passo escolhido: " + str(phase.id))
+				check(step_pop != null and primary(step_pop) == 1 and primary(panel) == 0, "só a ação da janelinha é primária")
+				check(step_pop != null and text(step_pop, str(ui.call("explain_text", pending[0]))), "janelinha traz a explicação: " + selected_id)
+				ui.call("_close_pop")
 		if "--layout-shots" in OS.get_cmdline_user_args(): await layout_shot(str(phase.id))
 		if "--portrait-shots" in OS.get_cmdline_user_args():
 			await layout_shot(str(phase.id) + "_awake")
@@ -161,10 +170,16 @@ func _run() -> void:
 	ui.call("open")
 	await frames()
 	var panel := main.find_child("GrowthPanel", true, false)
-	for name: String in ["GrowthHero", "CurrentDog", "NextSilhouette", "NextUnlocks", "GrowthNextAction", "GrowthSummary", "GrowthProgress"]:
+	for name: String in ["GrowthHero", "CurrentDog", "NextSilhouette", "NextUnlocks", "GrowthSummary", "GrowthProgress"]:
 		check(panel.find_child(name, true, false) != null, "nó " + name)
+	check(panel.find_child("GrowthDetail", true, false) == null and main.find_child("GrowthStepPop", true, false) == null, "sem faixa de detalhe e sem janelinha antes de tocar")
+	await click(panel.find_child("GrowthReq_dishes", true, false))
+	var pop := main.find_child("GrowthStepPop", true, false)
+	check(pop != null and pop.find_child("GrowthNextAction", true, false) != null, "tocar abre a janelinha com a ação")
 	check(text(panel, "2/8") and text(panel.find_child("GrowthSummary", true, false), "12/13") and not text(panel, "de 13 passos"), "quantidade e único resumo dos passos visíveis")
-	check(panel.find_child("GrowthNextAction", true, false).text == "Cozinhar", "próxima ação nomeada")
+	check(main.find_child("GrowthNextAction", true, false).text == "Cozinhar", "próxima ação nomeada")
+	check(text(pop, "pratos diferentes") and text(pop, "2/8") and pop.find_child("StepBar", true, false) != null, "janelinha explica e mostra o progresso")
+	check(text(pop, "papinha"), "a explicação cita os tipos")
 	check(panel.find_child("PillarRing_body", true, false) == null, "não repete pontos e anéis no painel principal")
 	check(main.find_child("ProfileCount", true, false).text == "12/13" and main.find_child("ProfileCount", true, false).is_visible_in_tree(), "HUD mostra que falta um dos treze requisitos (%s)" % main.find_child("ProfileCount", true, false).text)
 	var shadow: ShaderMaterial = panel.find_child("NextSilhouette", true, false).get_child(0).material
@@ -174,11 +189,14 @@ func _run() -> void:
 	var list_scroll := main.find_child("Sheet", true, false).find_child("Scroll", true, false) as ScrollContainer
 	list_scroll.ensure_control_visible(panel.find_child("GrowthReq_dishes", true, false))
 	await frames()
-	# Tocar no quadradinho só escolhe o passo; o "?" do detalhe visível abre o Como fazer.
+	# Tocar no quadradinho abre a janelinha; o "?" dela abre o Como fazer (e fecha a janelinha).
+	await click(panel.find_child("GrowthReq_dishes", true, false))  # com a janelinha aberta, o toque de fora só a fecha
+	check(main.find_child("GrowthStepPop", true, false) == null, "tocar fora fecha a janelinha")
 	await click(panel.find_child("GrowthReq_dishes", true, false))
-	check(main.find_child("Sheet", true, false).get_node("%Title").text != "Como fazer", "toque no quadradinho só escolhe")
-	check(panel.find_child("GrowthNextStep", true, false).visible, "passo recomendado é o escolhido")
-	await click(visible_help(panel))
+	check(main.find_child("Sheet", true, false).get_node("%Title").text != "Como fazer", "toque no quadradinho só abre a janelinha")
+	check(main.find_child("GrowthNextStep", true, false) != null, "passo recomendado na janelinha")
+	await click(visible_help(main))
+	check(main.find_child("GrowthStepPop", true, false) == null, "o ? fecha a janelinha")
 	check(main.find_child("Sheet", true, false).get_node("%Title").text == "Como fazer", "toque abre ajuda")
 	check(text(main.find_child("Sheet", true, false), "pratos diferentes"), "ajuda explica os pratos diferentes")
 	# Dar usa o mesmo item no painel e na Mochila; parcial, atualização e repetição.
@@ -191,7 +209,9 @@ func _run() -> void:
 	await frames()
 	panel = main.find_child("GrowthPanel", true, false)
 	var before: int = state.get("inventory").count("stick")
-	await click(panel.find_child("GiveGrowth_stick", true, false))
+	await click(panel.find_child("GrowthReq_fixture_key", true, false))
+	await click(main.find_child("GiveGrowth_stick", true, false))
+	check(main.find_child("GrowthStepPop", true, false) == null, "a ação fecha a janelinha")
 	check(state.get("inventory").count("stick") == before - 1, "Dar consome exatamente uma vez")
 	check(text(panel, "1/2") and panel.is_inside_tree(), "parcial sem fechar")
 	state.get("inventory").add("stick", 1)

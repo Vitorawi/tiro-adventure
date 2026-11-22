@@ -38,6 +38,7 @@ func _run() -> void:
 	Motion.reduced = true
 	state.call("reset")
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	main = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	await frames()
@@ -64,6 +65,7 @@ func _run() -> void:
 func _welcome() -> void:
 	main.call("show_screen", &"pet")
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	await frames()
 	var pill: Control = main.find_child("NextStep", true, false)
 	var rect := pill.get_global_rect()
@@ -102,6 +104,7 @@ func _welcome() -> void:
 func _early_unlocks() -> void:
 	state.call("reset")
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	state.call("dev_complete_quest", "growth_1_puppy")
 	state.call("finish_album_tutorial")
 	await frames()
@@ -201,6 +204,7 @@ func _other_claim_paths() -> void:
 	for path: String in ["pill", "conversation", "help"]:
 		state.call("reset")
 		state.call("finish_week_arrival")
+		state.call("finish_home_tour")
 		main.call("show_screen", &"pet")
 		await frames()
 		clear_modals()
@@ -248,6 +252,7 @@ func _full_storage() -> void:
 	db.get("quests").welcome.rewards = {"coins": 5, "items": {"egg": 1}}
 	state.get("inventory").add("egg", int(state.call("storage_capacity", "fridge")))
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	main.call("show_screen", &"pet")
 	(main.find_child("TasksTab", true, false) as Control).visible = true  # a aba só aparece no fim do Ato 1; aqui o cartão é o alvo
 	main.call("show_screen", &"tasks")

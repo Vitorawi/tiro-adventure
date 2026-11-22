@@ -92,6 +92,8 @@ func _process(delta: float) -> void:
 		finish("fetch")
 		hide()
 		return
+	if _watch_sequence():
+		return
 	var target := _anchor_rect
 	if not target.has_area():
 		hide()
@@ -181,6 +183,13 @@ func _locate(lesson: Dictionary) -> Dictionary:
 		if int(record("coop").get("step", -1)) >= 2:
 			finish("coop")
 		return {}
+	if lesson.get("sequence", false) and not stages.is_empty():
+		# Passos em ordem: só o da vez aparece (avança por evento ou por "Entendi").
+		var seq := int(record(lesson.id).get("seq", 0))
+		if seq >= stages.size():
+			return {}
+		var next_target := str(stages[seq].target)
+		return {"step": seq, "target": next_target} if _target(next_target).has_area() else {}
 	if stages.is_empty():
 		var anchor := str(lesson.get("anchor", ""))
 		return {"step": 0, "target": anchor} if _target(anchor).has_area() else {}
@@ -207,6 +216,7 @@ func _present(lesson: Dictionary, index: int, anchor: String) -> void:
 		active = lesson.id
 		step = index
 		_shown = lesson
+		_enter_sequence_step()
 		_update_copy()
 		if active != "arrival":
 			var data := record(active)
@@ -226,17 +236,20 @@ func _present(lesson: Dictionary, index: int, anchor: String) -> void:
 func _update_copy() -> void:
 	var guided := _shown.has("steps")
 	var pointing: bool = _shown.get("point", false)  # balão que também aponta (anel + mão) para a aba, sem escurecer a tela
+	var speaking := guided and _shown.has("npc")  # passo guiado com a fala de um personagem (o tour da casa)
 	_veil.visible = guided or pointing
-	_balloon.visible = _shown.format == "balloon"
-	_hint.visible = guided or _shown.format in ["tip", "list"]
+	_balloon.visible = _shown.format == "balloon" or speaking
+	_hint.visible = (guided and not speaking) or _shown.format in ["tip", "list"]
 	var tip: bool = _shown.format == "tip"
 	_tip_go.visible = tip or _shown.format == "list"
 	_label.text = str(_shown.steps[step].say) if guided else str(_shown.get("say", _shown.text))
 	var petting := guided and str(_shown.steps[step].target) == "ArrivalPet"
 	if petting:
 		_hint.hide()
+	# Passo com gesto sobre o Tiro (esfregar, jogar, arrastar a comida): sem véu, para ele aparecer limpo.
+	var clear := guided and not petting and _veil_free(_shown.steps[step])
 	for rect: ColorRect in _rects:
-		rect.color.a = 0.0 if pointing else (0.18 if petting else 0.5)
+		rect.color.a = 0.0 if (pointing or clear) else (0.18 if petting else 0.5)
 	_skip.visible = active != "arrival"
 	_skip.custom_minimum_size.x = 110.0 if active == "cook" else 78.0
 	_skip.text = "Pular guia" if active == "cook" else "Pular"
@@ -244,9 +257,10 @@ func _update_copy() -> void:
 		_balloon.queue_free()
 		remove_child(_balloon)
 		_build_balloon(self, str(_shown.npc))
-		_balloon_label.text = str(_shown.say)
+		_balloon_label.text = str(_shown.steps[step].say) if speaking else str(_shown.say)
 		_accept = StepCardUi.go_button("Entendi", _accept_balloon)
 		_accept.name = "TutorialAccept"
+		_accept.visible = not speaking or str(_shown.steps[step].get("advance", "")) == "tap"
 		_balloon.add_child(_accept)
 		move_child(_skip, -1)
 
@@ -256,7 +270,10 @@ func _layout_week(target: Rect2, delta: float) -> void:
 	if _veil.visible:
 		_layout_focus(target, screen)
 		var points := _gesture(target, str(_shown.steps[step].get("gesture", "tap"))) if _shown.has("steps") else [target.get_center() + Vector2(-7, 12), target.get_center()]
-		_guide_hand(delta, points[0], points[1])
+		if _shown.has("steps") and str(_shown.steps[step].get("advance", "")) == "tap":
+			_hand.visible = false  # o toque é no "Entendi" do balão, não no destaque
+		else:
+			_guide_hand(delta, points[0], points[1])
 	var bubble: Control = _balloon if _balloon.visible else _hint
 	var width := minf(320.0, screen.x - 28.0)
 	if bubble == _hint:
@@ -284,7 +301,8 @@ func _layout_week(target: Rect2, delta: float) -> void:
 	var skip_row := Rect2(Vector2(screen.x - _skip.size.x - 12.0, skip_y), _skip.size)
 	# Rostos de personagem (NpcRow) ficam no canto de cima à direita: o Pular não os cobre.
 	var faces := _control_rect("NpcRow")
-	if skip_y < 10.0 or target.intersects(skip_row) or (faces.has_area() and faces.grow(4.0).intersects(skip_row)):
+	var needs := _control_rect("NeedsPanel")  # os anéis das necessidades também ficam livres do Pular
+	if skip_y < 10.0 or target.intersects(skip_row) or (faces.has_area() and faces.grow(4.0).intersects(skip_row)) or (needs.has_area() and needs.grow(4.0).intersects(skip_row)):
 		skip_y = y + height + 4.0
 	_skip.position = Vector2(screen.x - _skip.size.x - 12.0, clampf(skip_y, 10.0, screen.y - _skip.size.y - 12.0))
 
@@ -320,7 +338,8 @@ func _gesture(rect: Rect2, style: String) -> Array:
 			var pet := main.find_child("PetScreen", true, false)
 			var back: Rect2 = pet.call("back_rect")
 			var wobble := Vector2(sin(_demo_time * 7.0) * 26.0, 0.0)
-			return [center, back.get_center() + wobble]
+			var from := center if str(_shown.steps[step].target) != "@tiro" else back.get_center() + Vector2(-26, 0)
+			return [from, back.get_center() + wobble]
 	return [center + Vector2(-7, 12), center]
 
 
@@ -381,6 +400,14 @@ func _special_target(id: String, behind: bool) -> Rect2:
 		var house := main.find_child("World_house", true, false) as RoomView
 		if is_instance_valid(house) and house.is_visible_in_tree():
 			return house.week_tutorial_rect("buy:dog_bed" if id == "buy_bed" else "buy:stove")
+	if id == "tiro":
+		# O Tiro na tela do Tiro (sem folha nem minigame por cima).
+		if _sheet_open() or _minigame():
+			return Rect2()
+		var pet_screen := main.find_child("PetScreen", true, false) as Control
+		if is_instance_valid(pet_screen) and pet_screen.is_visible_in_tree():
+			var head: Rect2 = pet_screen.call("head_rect")
+			return head.merge(pet_screen.call("back_rect"))
 	if id == "npc_bloblo":
 		if not behind and (_sheet_open() or _minigame()):
 			return Rect2()
@@ -438,13 +465,70 @@ func _card_closed(skipped: bool, lesson: Dictionary) -> void:
 
 func _skip_current() -> void:
 	if active != "" and active != "arrival":
+		_finish_extra(_shown)
 		finish(active, true)
 		hide()
 
 
 func _accept_balloon() -> void:
+	if _shown.get("sequence", false) and _shown.has("steps"):
+		_next_sequence_step()
+		return
 	finish(active)
 	hide()
+
+
+## Passos com `gesture` sobre o Tiro rodam sem véu cinza (só a mão e o balão); `"veil": false` faz o mesmo em qualquer passo.
+func _veil_free(step_data: Dictionary) -> bool:
+	return str(step_data.get("gesture", "")) in ["scrub", "up", "feed", "hold"] or step_data.get("veil", true) == false
+
+
+## Ao entrar num passo da sequência que espera um carinho, guarda quantos carinhos já existiam.
+func _enter_sequence_step() -> void:
+	if not (_shown.get("sequence", false) and _shown.has("steps")):
+		return
+	if str(_shown.steps[step].get("advance", "")) != "pet":
+		return
+	var data := record(str(_shown.id))
+	if not data.has("pet_base") or int(data.get("pet_seq", -1)) != step:
+		data.pet_base = GameState.progress.stat("pet")
+		data.pet_seq = step
+		GameState.week.tutorial[str(_shown.id)] = data
+
+
+## Avança o passo que depende de um acontecimento do jogo. Devolve true se avançou.
+func _watch_sequence() -> bool:
+	if active == "" or not visible or not (_shown.get("sequence", false) and _shown.has("steps")):
+		return false
+	if str(_shown.steps[step].get("advance", "")) != "pet":
+		return false
+	if GameState.progress.stat("pet") > int(record(active).get("pet_base", 1 << 30)):
+		_next_sequence_step()
+		return true
+	return false
+
+
+func _next_sequence_step() -> void:
+	var data := record(active)
+	var next := int(data.get("seq", 0)) + 1
+	data.seq = next
+	data.erase("pet_base")
+	GameState.week.tutorial[active] = data
+	if next >= _shown.steps.size():
+		_finish_extra(_shown)
+		finish(active)
+	else:
+		active = ""  # a próxima passada do `_pick` apresenta o passo seguinte
+		_reset_hand()
+	hide()
+	Events.week_tutorial_changed.emit()
+	Events.state_changed.emit()  # o botão Cuidar e a pílula do passo se atualizam com o tour
+
+
+## Lições que dão um objetivo ao terminar (ou ao pular): hoje só o tour da casa nova.
+func _finish_extra(lesson: Dictionary) -> void:
+	if str(lesson.get("finish", "")) == "home_tour":
+		GameState.finish_home_tour()
 
 
 func _go_from_tip() -> void:

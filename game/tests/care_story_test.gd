@@ -21,6 +21,7 @@ func _run() -> void:
 	state.reset()
 	state.dev_week_hour(9)
 	state.finish_week_arrival()
+	state.finish_home_tour()
 	state.set_process(false)
 	check(not state.quest_unlocked("lais_first_wish"), "desejo não antecipa a caminha")
 	state.dev_complete_quest("lais_bed")

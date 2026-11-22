@@ -117,6 +117,7 @@ func _talk_step() -> void:
 func _claim_step() -> void:
 	await _reset_fresh()
 	state.get("progress").stats["arrival_box"] = 1
+	state.get("progress").stats["home_tour"] = 1
 	state.call("_changed")
 	await process_frame
 	await process_frame
@@ -272,6 +273,7 @@ func _hud_claim_resolutions() -> void:
 		root.size = resolution
 		await _reset_fresh()
 		state.get("progress").stats["arrival_box"] = 1
+		state.get("progress").stats["home_tour"] = 1
 		state.call("_changed")
 		state.update_week()
 		for candidate: Dictionary in state.week_card_candidates():

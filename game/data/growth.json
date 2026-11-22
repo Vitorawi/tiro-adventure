@@ -46,6 +46,7 @@
       "requirements": [
         {
           "id": "feed",
+          "explain": "Dê comida ao Tiro uma vez: toque em Cuidar e escolha Comida.",
           "type": "stat",
           "counter": "feed",
           "qty": 1,
@@ -53,6 +54,7 @@
         },
         {
           "id": "bath",
+          "explain": "Dê um banho: toque em Cuidar, escolha Banho e esfregue o Tiro com a esponja.",
           "type": "stat",
           "counter": "bathe",
           "qty": 1,
@@ -60,6 +62,7 @@
         },
         {
           "id": "play",
+          "explain": "Brinque com ele uma vez: toque em Cuidar e escolha Brincar.",
           "type": "stat",
           "counter": "play",
           "qty": 1,
@@ -67,6 +70,7 @@
         },
         {
           "id": "bed",
+          "explain": "Compre a caminha do Tiro, para ele ter onde dormir.",
           "type": "owned",
           "upgrade": "dog_bed",
           "label": "Caminha"
@@ -95,12 +99,14 @@
       "requirements": [
         {
           "id": "key",
+          "explain": "Consiga o mordedor, uma lembrança para o Tiro roer, e dê a ele. Quando você o tiver, toque em Dar.",
           "type": "deliver",
           "item": "chew_ring",
           "qty": 1
         },
         {
           "id": "days",
+          "explain": "Cada dia em que o Tiro come na hora certa (almoço e jantar) vale uma patinha. Junte {need}.",
           "type": "stat",
           "counter": "well_fed_day",
           "qty": 6,
@@ -109,6 +115,7 @@
         },
         {
           "id": "dishes",
+          "explain": "Cozinhe {need} pratos diferentes, de pelo menos {types} tipos (papinha, sopinha, mingau), e dê ao Tiro.",
           "type": "dishes",
           "qty": 8,
           "types": 3,
@@ -121,6 +128,7 @@
         },
         {
           "id": "star_dish",
+          "explain": "Cozinhe junto no fogão e acerte os passos até ganhar 2 estrelas. Depois dê o prato ao Tiro.",
           "type": "dish_stars",
           "stars": 2,
           "qty": 1,
@@ -128,12 +136,14 @@
         },
         {
           "id": "invented",
+          "explain": "Na aba Inventar do fogão, monte um prato seu e dê ao Tiro.",
           "type": "invented_dish",
           "qty": 1,
           "label": "Prato inventado"
         },
         {
           "id": "key_egg",
+          "explain": "Dê ao Tiro uma refeição feita com ovo.",
           "type": "dish_key",
           "group": "egg",
           "qty": 1,
@@ -141,6 +151,7 @@
         },
         {
           "id": "key_fruit",
+          "explain": "Dê ao Tiro uma refeição feita com fruta.",
           "type": "dish_key",
           "group": "fruit",
           "qty": 1,
@@ -148,6 +159,7 @@
         },
         {
           "id": "key_fish",
+          "explain": "Dê ao Tiro uma refeição feita com peixe.",
           "type": "dish_key",
           "group": "fish",
           "qty": 1,
@@ -155,6 +167,7 @@
         },
         {
           "id": "play",
+          "explain": "Brinque {need} vezes com ele: Cuidar, Brincar, ou no quintal.",
           "type": "stat",
           "counter": "play",
           "qty": 8,
@@ -162,6 +175,7 @@
         },
         {
           "id": "name",
+          "explain": "Chame o Tiro pelo nome no quintal, com o botão Tiro!, e ele vem correndo.",
           "type": "stat",
           "counter": "name_call",
           "qty": 1,
@@ -170,6 +184,7 @@
         },
         {
           "id": "rope",
+          "explain": "Brinque de cabo de guerra com a cordinha no quintal.",
           "type": "stat",
           "counter": "play_rope",
           "qty": 1,
@@ -178,6 +193,7 @@
         },
         {
           "id": "tricks",
+          "explain": "Ensine {need} truques na Aula do Tiro.",
           "type": "stat",
           "counter": "trick_learned",
           "qty": 3,
@@ -187,6 +203,7 @@
         },
         {
           "id": "sit_good",
+          "explain": "Treine o Senta na Aula do Tiro até ele saber bem.",
           "type": "trick_level",
           "trick": "sit",
           "level": 2,
@@ -220,6 +237,7 @@
       "requirements": [
         {
           "id": "pillars",
+          "explain": "Carinho quando ele pede e novidades valem momentos de Coragem. Junte {need}.",
           "type": "moments",
           "pillar": "brave",
           "qty": 4,
@@ -227,6 +245,7 @@
         },
         {
           "id": "care_smart",
+          "explain": "Brincar e descobrir coisas novas valem momentos de Esperteza. Junte {need}.",
           "type": "moments",
           "pillar": "smart",
           "qty": 3,
@@ -234,6 +253,7 @@
         },
         {
           "id": "meals",
+          "explain": "Dê {need} refeições de ração de crescimento: Cuidar, Comida.",
           "type": "feed",
           "item": "growth_kibble",
           "qty": 3,
@@ -241,6 +261,7 @@
         },
         {
           "id": "fish_meal",
+          "explain": "Cozinhe ensopado de peixe no fogão e dê {need} ao Tiro.",
           "type": "feed",
           "item": "fish_stew",
           "qty": 2,
@@ -248,12 +269,14 @@
         },
         {
           "id": "key",
+          "explain": "Consiga o graveto de mastigar e dê ao Tiro. Quando o tiver, toque em Dar.",
           "type": "deliver",
           "item": "stick_chew",
           "qty": 1
         },
         {
           "id": "walks",
+          "explain": "Leve o Tiro para passear {need} vezes, pelo portão da Praça.",
           "type": "stat",
           "counter": "walk",
           "qty": 3
@@ -282,6 +305,7 @@
       "requirements": [
         {
           "id": "pillars",
+          "explain": "Carinho quando ele pede e novidades valem momentos de Coragem. Junte {need}.",
           "type": "moments",
           "pillar": "brave",
           "qty": 4,
@@ -289,6 +313,7 @@
         },
         {
           "id": "care_smart",
+          "explain": "Brincar e descobrir coisas novas valem momentos de Esperteza. Junte {need}.",
           "type": "moments",
           "pillar": "smart",
           "qty": 4,
@@ -296,6 +321,7 @@
         },
         {
           "id": "care_coat",
+          "explain": "Banho quando ele pede e escovar valem momentos de Pelagem. Junte {need}.",
           "type": "moments",
           "pillar": "coat",
           "qty": 4,
@@ -303,6 +329,7 @@
         },
         {
           "id": "meals",
+          "explain": "Cozinhe mingau de leite e dê {need} porções ao Tiro.",
           "type": "feed",
           "item": "milk_porridge",
           "qty": 3,
@@ -310,6 +337,7 @@
         },
         {
           "id": "fish_meal",
+          "explain": "Cozinhe peixe com ervas e dê {need} porções ao Tiro.",
           "type": "feed",
           "item": "herb_fish",
           "qty": 2,
@@ -317,6 +345,7 @@
         },
         {
           "id": "key",
+          "explain": "Consiga a escova macia e dê ao Tiro. Quando a tiver, toque em Dar.",
           "type": "deliver",
           "item": "soft_brush",
           "qty": 1
@@ -344,6 +373,7 @@
       "requirements": [
         {
           "id": "pillars",
+          "explain": "Carinho quando ele pede e novidades valem momentos de Coragem. Junte {need}.",
           "type": "moments",
           "pillar": "brave",
           "qty": 5,
@@ -351,6 +381,7 @@
         },
         {
           "id": "care_smart",
+          "explain": "Brincar e descobrir coisas novas valem momentos de Esperteza. Junte {need}.",
           "type": "moments",
           "pillar": "smart",
           "qty": 5,
@@ -358,6 +389,7 @@
         },
         {
           "id": "care_coat",
+          "explain": "Banho quando ele pede e escovar valem momentos de Pelagem. Junte {need}.",
           "type": "moments",
           "pillar": "coat",
           "qty": 5,
@@ -365,12 +397,14 @@
         },
         {
           "id": "key",
+          "explain": "Consiga a medalha da coragem e dê ao Tiro. Quando a tiver, toque em Dar.",
           "type": "deliver",
           "item": "courage_medal",
           "qty": 1
         },
         {
           "id": "meals",
+          "explain": "Dê {need} vezes a comida favorita do Tiro. Prove comidas novas para descobrir qual é.",
           "type": "feed",
           "item": "favorite",
           "qty": 3,
@@ -378,6 +412,7 @@
         },
         {
           "id": "bow",
+          "explain": "Costure o lacinho do Tiro na Costura da Praça.",
           "type": "collection",
           "collection": "topknot_bow"
         }

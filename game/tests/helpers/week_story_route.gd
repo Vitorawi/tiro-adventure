@@ -263,6 +263,7 @@ func day_one(late_arrival: bool = true) -> void:
 	verify.call(not state.progress.seen.has("intro") and state.progress.current_main_quest() == "welcome", "Save novo começa na caixa")
 	action("chegada", 4)
 	state.finish_week_arrival()
+	state.finish_home_tour()
 	claim("welcome")
 	day_one_story = snapshot()
 	ato_one()

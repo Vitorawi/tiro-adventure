@@ -44,7 +44,7 @@ func run() -> void:
 			check(int(db.quests[quest].get("chapter", 0)) == int(lesson.day), "a lição %s fica no capítulo do passo %s" % [id, quest])
 	for gone: String in ["eggs", "snack", "tricks", "growth", "soup", "key_dish", "meal_trick", "pair", "paw", "down", "clue", "checklist", "name", "bath"]:
 		check(not ids.has(gone), "lição que repetia saiu: " + gone)
-	check(db.week_tutorials.size() <= 34, "lições enxutas: %d" % db.week_tutorials.size())
+	check(db.week_tutorials.size() <= 35, "lições enxutas: %d" % db.week_tutorials.size())
 	for balloon: String in ["missions", "bag"]:
 		for lesson: Dictionary in db.week_tutorials:
 			if lesson.id == balloon:

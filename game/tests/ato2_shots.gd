@@ -92,6 +92,7 @@ func _run() -> void:
 	route = load("res://tests/helpers/week_story_route.gd").new(state, root.get_node("Database"), _check)
 	route.at(1, 12)
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	route.claim("welcome")
 	route.ato_one()
 	state.call("acknowledge_growth", "puppy")

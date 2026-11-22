@@ -93,6 +93,7 @@ func _run() -> void:
 
 	# Ato 1 pelo estado (o ato1_test cobre as telas) e a casca nova.
 	state.finish_week_arrival()
+	state.finish_home_tour()
 	route.claim("welcome")
 	route.ato_one()
 	state.acknowledge_growth("puppy")

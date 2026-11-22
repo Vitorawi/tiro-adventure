@@ -112,6 +112,7 @@ func _run() -> void:
 func _unlocks_check() -> void:
 	state.call("reset")
 	state.call("finish_week_arrival")  # com a caixinha aberta valem as portas do Ato 1 (Mochila só no fim)
+	state.call("finish_home_tour")
 	var progress: RefCounted = state.get("progress")
 	check((state.call("new_unlocks") as Array).is_empty(), "Começo sem novidades pendentes")
 	check(not progress.feature_unlocked("bag") and not progress.skills_visible(), "Mochila e atributos escondidos no começo")
@@ -204,6 +205,7 @@ func _ui_check() -> void:
 	root.get_node("Events").emit_signal("sheet_close_requested")
 	main.call("show_screen", &"tasks")
 	state.get("progress").stats["arrival_box"] = 1
+	state.get("progress").stats["home_tour"] = 1
 	root.get_node("Events").emit_signal("state_changed")
 	check(main.get("_tasks_badge").text == "1", "Badge conta a principal pronta uma vez")
 	await process_frame

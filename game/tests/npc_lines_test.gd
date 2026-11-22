@@ -74,6 +74,7 @@ func _run() -> void:
 	# Retrato permanece vivo enquanto o corpo da conversa é reconstruído.
 	state.call("reset")
 	state.call("finish_week_arrival")
+	state.call("finish_home_tour")
 	state.update_week()
 	for candidate: Dictionary in state.week_card_candidates():
 		state.take_week_card(candidate)
