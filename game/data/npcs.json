@@ -57,7 +57,7 @@
   "guide": {
     "name": "Guia da trilha",
     "requirements": {
-      "chapter": 9
+      "chapter": 13
     },
     "services": [
       "trees",
@@ -72,7 +72,7 @@
   "merchant": {
     "name": "Feirante",
     "requirements": {
-      "chapter": 8
+      "chapter": 12
     },
     "services": [
       "market",
@@ -87,7 +87,7 @@
   "artisan": {
     "name": "Artesã",
     "requirements": {
-      "chapter": 10
+      "chapter": 14
     },
     "services": [
       "atelier"

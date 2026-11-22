@@ -47,15 +47,17 @@ func _run() -> void:
 	check(nature.disabled, "Natureza bloqueada no começo")
 	var places: Script = load("res://scripts/ui/places.gd")
 	var hint: Dictionary = places.call("unlock_hint", "nature")
-	check(str(hint.text).begins_with("Abre no capítulo 5\n") and hint.icon != null, "Natureza mostra capítulo 5 e ícone da história")
+	check(str(hint.text).begins_with("Abre no capítulo 13\n") and hint.icon != null, "Natureza mostra capítulo 13 e ícone da história")
 	check(places.call("world_error", "farm") == "", "Sítio disponível no dia 1")
-	for id: String in ["village", "park"]:
-		hint = places.call("unlock_hint", id)
-		check(str(hint.text).begins_with("Abre no capítulo 4\n"), id + ": abertura real no capítulo 4")
-		var locked_card: Button = worlds.find_child("WorldCard_" + id, true, false)
-		check(locked_card.disabled and locked_card.find_child("WorldLock", true, false).visible, id + ": destino bloqueado com cadeado")
-		locked_card.pressed.emit()
-		check(worlds.get("current_world") == "house", id + ": cartão fechado não permite viajar")
+	hint = places.call("unlock_hint", "park")
+	check(str(hint.text).begins_with("Abre no capítulo 12\n"), "park: abertura real no capítulo 12")
+	# Até o Dentinhos só aparecem os mundos abertos e a Vila trancada (F04 Parte B): Praça e Natureza esperam a Vila.
+	check(not (worlds.find_child("WorldCard_park", true, false) as Control).visible and not (worlds.find_child("WorldCard_nature", true, false) as Control).visible, "Praça e Natureza escondidas até a Vila abrir")
+	var locked_card: Button = worlds.find_child("WorldCard_village", true, false)
+	check(locked_card.visible and locked_card.disabled and locked_card.find_child("WorldLock", true, false).visible, "village: único destino bloqueado, com cadeado")
+	check(str(locked_card.find_child("WorldHint", true, false).get("text")) == "Quando o Tiro virar Dentinhos", "village: dica do Dentinhos")
+	locked_card.pressed.emit()
+	check(worlds.get("current_world") == "house", "village: cartão fechado não permite viajar")
 	await _check_list("locked")
 	state.call("dev_unlock_everything")
 	state.call("_mark_all_seen")
@@ -149,16 +151,25 @@ func _check_list(phase: String) -> void:
 		var list: Control = selector.find_child("WorldList", true, false)
 		check(list.get_child_count() == 5, "cinco mundos juntos")
 		check(panel.get_global_rect().position.y >= 64 and panel.get_global_rect().end.y <= main.get_node("Layout/TabBar").global_position.y, "lista entre HUD e abas em %s" % viewport)
+		var expected := 3 if phase == "locked" else 5
+		var visible_rows: Array[Control] = []
 		for row: Control in list.get_children():
+			if row.visible:
+				visible_rows.append(row)
+		check(visible_rows.size() == expected, "%d destinos visíveis na fase %s" % [expected, phase])
+		for row: Control in visible_rows:
 			check(row.is_visible_in_tree() and panel.get_global_rect().encloses(row.get_global_rect()), "destino inteiro visível em %s: %s" % [viewport, row.name])
 			check(row.size.y >= 64, "alvo de toque grande")
 			var hint: Control = row.get_node("WorldHint")
 			if hint.visible: check(row.get_global_rect().encloses(hint.get_global_rect()), "bloqueio cabe na linha: " + row.name)
-		var first: Control = list.get_child(0)
-		var second: Control = list.get_child(1)
-		var last: Control = list.get_child(4)
+		var first: Control = visible_rows[0]
+		var second: Control = visible_rows[1]
+		var last: Control = visible_rows[expected - 1]
 		check(is_equal_approx(first.position.y, second.position.y) and second.position.x > first.position.x, "cartões em duas colunas")
-		check(last.size.x > first.size.x * 1.9, "último cartão ocupa as duas colunas")
+		if expected == 5:
+			check(last.size.x > first.size.x * 1.9, "último cartão (Natureza) ocupa as duas colunas")
+		else:
+			check(last.size.x < first.size.x * 1.1, "a Vila sozinha fica num cartão quadrado")
 		check(selector.find_children("*", "ScrollContainer", true, false).is_empty(), "todos os destinos dispensam rolagem")
 		if "--list-shots" in OS.get_cmdline_user_args():
 			_hide_modals()

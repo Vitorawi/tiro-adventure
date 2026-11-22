@@ -125,16 +125,18 @@ func _claim_step() -> void:
 	check((step.find_child("StepClaim", true, false) as Control).visible, "StepClaim aparece no estado pronto")
 	var coins: int = state.get("coins")
 	var food: int = state.get("inventory").count("dog_food")
+	var mash: int = state.get("inventory").count("puppy_mash")
 	step.pressed.emit()
 	await process_frame
 	await process_frame
 	check(state.get("progress").claimed_quests.has("welcome"), "tocar na pílula pronta conclui welcome")
-	check(int(state.get("coins")) == coins + 5, "as moedas sobem exatamente o prêmio (+5; veio %d)" % (int(state.get("coins")) - coins))
+	check(int(state.get("coins")) == coins, "o Ato 1 não paga moeda (veio %d)" % (int(state.get("coins")) - coins))
+	check(state.get("inventory").count("puppy_mash") == mash + 1, "o prêmio exato é a papinha pronta")
 	check(state.get("inventory").count("dog_food") == food, "estoque de ração preservado")
-	check(_guide().id == "lais_first_crops", "a pílula já mostra lais_first_crops")
+	check(_guide().id == "lais_feed", "a pílula já mostra lais_feed")
 	step.pressed.emit()
 	await process_frame
-	check(int(state.get("coins")) == coins + 5, "tocar de novo não paga de novo")
+	check(state.get("inventory").count("puppy_mash") == mash + 1, "tocar de novo não paga de novo")
 	var catcher := main.get_node_or_null("PopoverCatcher")
 	if catcher:
 		catcher.queue_free()
@@ -142,23 +144,22 @@ func _claim_step() -> void:
 	await process_frame
 
 
-## 4. lais_first_crops anda: 0/1 → 1/1 e fica pronto.
+## 4. lais_farm (primeiro passo do Sítio, depois do Ato 1) anda: 0/1 → 1/1 e fica pronto.
 func _progress_step() -> void:
 	await _reset_fresh()
-	state.call("dev_complete_quest", "welcome")
+	state.call("dev_complete_quest", "lais_photo")
 	state.call("_changed")
 	await process_frame
 	await process_frame
 	var guide: Dictionary = _guide()
-	check(guide.id == "lais_first_crops" and guide.state == "progress" and guide.value == 0, "lais_first_crops começa em progress 0/1 (veio %s/%s/%s)" % [guide.id, guide.state, guide.value])
-	state.get("progress").stats["harvest:carrot"] = 1
-	state.get("progress").stats["harvest:potato"] = 1
+	check(guide.id == "lais_farm" and guide.state == "progress" and guide.value == 0, "lais_farm começa em progress 0/1 (veio %s/%s/%s)" % [guide.id, guide.state, guide.value])
+	state.get("progress").stats["open:farm"] = 1
 	state.call("_changed")
 	await process_frame
 	await process_frame
 	guide = _guide()
 	check((_step().find_child("StepCount", true, false) as Label).text == "1/1", "StepCount vira 1/1 (veio %s)" % (_step().find_child("StepCount", true, false) as Label).text)
-	check(guide.state == "ready", "lais_first_crops fica pronto")
+	check(guide.state == "ready", "lais_farm fica pronto")
 
 
 ## 5. História que aponta para personagem: o passo é o da linha dele.
@@ -303,12 +304,13 @@ func _hud_claim_resolutions() -> void:
 		reference.free()
 		var coins: int = state.get("coins")
 		var food: int = state.get("inventory").count("dog_food")
+		var mash: int = state.get("inventory").count("puppy_mash")
 		var point := root.get_final_transform() * claim.get_global_rect().get_center()
 		await _screen_tap(point)
 		check(state.get("progress").claimed_quests.has("welcome"), "toque resgata welcome em %s" % resolution)
-		check(int(state.get("coins")) == coins + 5 and state.get("inventory").count("dog_food") == food, "prêmio exato em %s" % resolution)
+		check(int(state.get("coins")) == coins and state.get("inventory").count("puppy_mash") == mash + 1 and state.get("inventory").count("dog_food") == food, "prêmio exato em %s" % resolution)
 		await _screen_tap(point)
-		check(int(state.get("coins")) == coins + 5 and state.get("inventory").count("dog_food") == food, "segundo toque não duplica em %s" % resolution)
+		check(int(state.get("coins")) == coins and state.get("inventory").count("puppy_mash") == mash + 1 and state.get("inventory").count("dog_food") == food, "segundo toque não duplica em %s" % resolution)
 		print("HUD PEGAR %s: toque e estilo verificados" % resolution)
 	await _reset_fresh()
 

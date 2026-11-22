@@ -69,6 +69,10 @@ func _run() -> void:
 	_at(3, 9)
 	state.get("inventory").call("add", "puppy_mash", 1)
 	_check(str(state.call("meal_error", "puppy_mash")) != "" and str(state.call("store_meal_error", "puppy_mash")) == "", "Fora da hora dá para guardar")
+	_check(not bool(state.call("meal_ask_allowed", "puppy_mash")), "Primeira refeição do dia: sem pergunta")
+	_at(3, 12)
+	_check(bool(state.call("feed", "puppy_mash")), "Almoço dado na hora")
+	state.get("inventory").call("add", "puppy_mash", 1)
 	var tray := main.find_child("PetCareTray", true, false)
 	if tray == null:
 		for node in main.find_children("*", "Control", true, false):
@@ -88,7 +92,7 @@ func _run() -> void:
 	var today: Control = meal_ui.call("today_panel")
 	root.add_child(today)
 	await create_timer(0.3).timeout
-	_check(str(today.find_child("Period_lunch", true, false).get_meta("state")) == "stored", "Hoje mostra o almoço guardado")
+	_check(str(today.find_child("Period_dinner", true, false).get_meta("state")) == "stored", "Hoje mostra o jantar guardado")
 	_check(today.find_child("CancelStored", true, false) != null, "Dá para pegar de volta")
 	(today.find_child("CancelStored", true, false) as Button).pressed.emit()
 	_check(state.call("stored_meal").is_empty(), "Pegar de volta devolve à Mochila")

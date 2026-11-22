@@ -212,10 +212,13 @@ static func npc_badge(npc_id: String) -> String:
 	for id in active:
 		if GameState.quest_error(id) == "":
 			return "ready"
+	var fresh := false
 	for id in active:
 		if not GameState.progress.seen.has("quest:" + id):
-			return "new"
-	return ""
+			if bool(Database.quests[id].get("secret", false)):
+				return "secret"  # o selo Segredo vale mais que o "!" comum
+			fresh = true
+	return "new" if fresh else ""
 
 
 ## Ações das salas e dos botões "Ir": "place:<id>" | "npc:<id>" | "buy:<construção>" |
@@ -274,9 +277,9 @@ static func run(world_id: String, action: String) -> void:
 	elif action == "week:later":
 		Events.toast_requested.emit("Quando ele crescer")
 	elif action == "week:orchard":
-		Events.toast_requested.emit("O pomar abre no dia %d" % int(Database.farm.orchard_day))
+		Events.toast_requested.emit("Continue a História")
 	elif action == "week:coop":
-		Events.toast_requested.emit("O galinheiro abre no dia %d" % int(Database.progression.shop_items.week_coop.requirements.week_day))
+		Events.toast_requested.emit("Continue a História")
 	elif action.begins_with("shop:"):
 		var pack := action.trim_prefix("shop:")
 		var shop_id := str(Database.progression.shop_items.get(pack, {}).get("shop", ""))
@@ -356,6 +359,11 @@ static func _place_row(node_name: String, texture: Texture2D, title: String, go:
 	row.add_child(label)
 	if mark == "ready":
 		row.add_child(StepCardUi.done_medal(24.0, "PlaceReady"))
+	elif mark == "secret":
+		var tag := UiKit.secret_tag()
+		tag.name = "PlaceSecret"
+		tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(tag)
 	elif mark == "new":
 		var alert := UiKit.badge(1)
 		alert.name = "PlaceNew"
@@ -473,7 +481,7 @@ static func unlock_hint(world_id: String) -> Dictionary:
 		var index := int(requirements.chapter) - 1
 		if index >= 0 and index < chapters.size():
 			return {"icon": UiKit.ui_icon("tab_tasks"), "text": "Abre no capítulo %d\n%s" % [index + 1, str(chapters[index].name)]}
-	for quest_id: String in requirements.get("quests", []):
+	for quest_id: String in requirements.get("quests", []) + requirements.get("story_gate", []):
 		if not GameState.progress.claimed_quests.has(quest_id):
 			var quest: Dictionary = Database.quests.get(quest_id, {})
 			var chapter := int(quest.get("chapter", 0))
@@ -612,7 +620,7 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 		"owned":
 			if Database.progression.upgrades.has(key):
 				# Compra/construção: vai ao "+" do objeto (seta) e abre a compra com o que é preciso ter.
-				return {"world": Database.progression.upgrades[key].world, "place": "buy:" + key, "hint": "Construir: " + str(Database.progression.upgrades[key].name)}
+				return {"world": Database.progression.upgrades[key].world, "place": "buy:" + key, "hint": str(Database.progression.upgrades[key].get("verb", "Construir")) + ": " + str(Database.progression.upgrades[key].name)}
 		"coins":
 			return _panel_target("sell")
 		"chapter":
@@ -635,6 +643,10 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 			return _panel_target(panels.get(key, ""))
 		"stat":
 			if key == "open:album": return {"notebook": "album", "hint": "Tiro → botão Álbum"}
+			if key == "open:growth":
+				return {"growth": true, "hint": "Tiro → Crescimento"}
+			if key == "album_tutorial":
+				return {"notebook": "album", "hint": "Tiro → botão Álbum"}
 			if key == "trick_learned":
 				return _panel_target("tricks")
 			if key.begins_with("trick_learned:"):
@@ -705,6 +717,8 @@ static func goal_target(goal: Dictionary) -> Dictionary:
 				return goal_target({"type": "owned", "key": next if next != "" else "silo"})
 			if key == "wish" or key.begins_with("wish:"):
 				return {"screen": "pet", "care": "wish", "hint": "Tiro → desejo"}
+			if key == "feed":
+				return {"screen": "pet", "care": "feed", "hint": "Tiro → Comida"}
 			if key in ["bathe", "shampoo_bath", "play", "pet", "care_useful"] or key.begins_with("care_useful:"):
 				if key in ["bathe", "shampoo_bath", "play"]:
 					return {"screen": "pet", "care": "ball" if key == "play" else "sponge", "hint": "Tiro → Brincar" if key == "play" else "Tiro → Banho"}
@@ -748,9 +762,6 @@ static func quest_target(id: String, objective: Dictionary = {}) -> Dictionary:
 	var goal: Dictionary = objective
 	if goal.is_empty():
 		goal = ProgressionUi.current_goal(id)
-	var wait := GameState.week_quest_wait(id)
-	if wait != "":
-		return {"wait": wait, "screen": "tasks"}
 	var key := str(goal.get("key", ""))
 	var targets: Dictionary = quest.get("goal_go", {})
 	var stock: Dictionary = quest.get("goal_stock_go", {})

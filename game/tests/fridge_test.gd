@@ -96,10 +96,10 @@ func _capacities() -> void:
 	check(upgrades.fridge_3.requirements.quests == ["own_business"] and upgrades.fridge_3.requirements.owned == ["fridge_2"], "fridge_3: negócio + fridge_2")
 	check(upgrades.has("fridge_4") and not upgrades.fridge_3.materials.has("iron_band"), "o _3 não pede aro; o _4 é da etapa 18")
 	var fridge: Dictionary = upgrades.fridge
-	check(int(fridge.cost) == 40 and not fridge.has("materials") and fridge.requirements.quests == ["lais_first_crops"], "geladeira: 40 moedas, sem material, lais_first_crops")
-	check(upgrades.stove.requirements.owned == ["fridge"], "o fogão continua pedindo a geladeira")
+	check(int(fridge.cost) == 40 and not fridge.has("materials") and fridge.requirements.quests == ["first_meal"], "geladeira: 40 moedas, sem material, capítulo 2 (first_meal)")
+	check(not upgrades.stove.requirements.has("owned") and int(upgrades.stove.cost) == 0 and upgrades.stove.materials.stove_gift == 1, "o fogão é o presente da vovó (F03), sem geladeira")
 	var main: Dictionary = database.get("quests")
-	check(main.lais_first_crops.rewards.upgrades == ["stove"] and main.first_kitchen.goals[0].key == "together:puppy_mash", "A primeira horta entrega o fogão para a papinha")
+	check(int(main.lais_first_crops.rewards.items.stove_gift) == 1 and main.first_kitchen.goals[0].key == "together:puppy_mash", "A primeira horta entrega o fogãozinho para a papinha")
 	var preview: Dictionary = state.call("storage_upgrade_preview", "fridge_2")
 	check(int(preview.depot == "fridge") == 1, "prévia aponta a geladeira")
 	# Armazém (etapa 07) e baú (etapa 08) já limitam, cada um com a própria capacidade.
@@ -145,9 +145,11 @@ func _kitchen_from_scratch() -> void:
 	_fresh()
 	# Sem geladeira e sem fogão: comprar na ordem do jogo, sem ferramentas de dev além de concluir a missão.
 	state.set("coins", 40 + 60 + 40)
-	check(state.call("upgrade_error", "fridge") != "", "geladeira espera lais_first_crops")
-	state.call("dev_complete_quest", "lais_first_crops")
-	check(state.call("upgrade_error", "fridge") == "", "lais_first_crops libera a geladeira")
+	check(state.call("upgrade_error", "fridge") != "", "geladeira espera first_meal")
+	state.call("dev_complete_quest", "first_meal")
+	state.get("progress").owned["stove"] = true  # o fogãozinho da vovó já foi colocado (passo 12)
+	state.get("inventory").counts.erase("puppy_mash")  # a papinha da caixinha (Ato 1) não conta no teste da despensa
+	check(state.call("upgrade_error", "fridge") == "", "first_meal libera a geladeira")
 	# Inventário 12 → 24: com a despensa cheia, comprar amplia sem perder nada.
 	state.get("inventory").add("carrot_snack", 12)
 	check(state.call("storage_error", {"carrot_snack": 1}) != "", "12 cheio na despensa")
@@ -156,7 +158,7 @@ func _kitchen_from_scratch() -> void:
 	check(_inv("carrot_snack") == 12 and int(state.call("storage_capacity", "fridge")) == 24 and int(state.call("storage_space", "fridge")) == 12, "comprar cheio: 12 → 24 sem perder itens")
 	state.get("inventory").remove("carrot_snack", 12)
 	# Fogão e o primeiro petisco: tudo pelas ações reais.
-	check(state.call("has_upgrade", "stove"), "o fogão veio com a primeira horta")
+	check(state.call("has_upgrade", "stove"), "o fogão da vovó está colocado")
 	state.get("inventory").add("carrot", 4)
 	check(state.call("cook", "carrot_snack") == "", "primeiro lote de petisco")
 	_ready_all("stove")

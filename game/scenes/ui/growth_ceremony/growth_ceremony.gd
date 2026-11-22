@@ -146,7 +146,7 @@ func show_card() -> void:
 	var looks := [_after] if phase == "puppy" else [_before, _after]
 	for def: Dictionary in looks:
 		var column := UiKit.vbox(2)
-		column.add_child(pose(def, 136 if looks.size() == 1 else 124))
+		column.add_child(pose(def, 116 if looks.size() == 1 else 124))
 		var label := UiKit.label(str(def.name), &"SmallLabel")
 		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		column.add_child(label)
@@ -188,7 +188,7 @@ func _add_summary(card: Variant) -> void:
 	for def: Dictionary in Database.growth.get("week_summary", []):
 		var value := int(summary.get(str(def.id), 0))
 		if value > 0:
-			lines.append(str(def.text) % value)
+			lines.append(str(def.get("text_one", def.text)) if value == 1 and def.has("text_one") else str(def.text) % value)
 	if not lines.is_empty():
 		var recap: Control = card.add_text("A fase em resumo: " + " · ".join(lines), &"SmallLabel")
 		recap.name = "CeremonySummary"

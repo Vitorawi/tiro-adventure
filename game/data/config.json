@@ -95,7 +95,7 @@
       "recipe_label": "Alimentação",
       "instruction": "Dê milho às galinhas. Espere e pegue os ovos.",
       "requirements": {
-        "chapter": 9
+        "chapter": 13
       }
     },
     "cow_barn": {
@@ -108,7 +108,7 @@
       "recipe_label": "Alimentação",
       "instruction": "Dê trigo às vacas. Espere e pegue o leite.",
       "requirements": {
-        "chapter": 9
+        "chapter": 13
       }
     },
     "mill": {
@@ -116,7 +116,7 @@
       "slots": 2,
       "instruction": "Transforme trigo em farinha.",
       "requirements": {
-        "chapter": 9
+        "chapter": 13
       },
       "slot_upgrades": {
         "mill_queue": 1
@@ -127,7 +127,7 @@
       "slots": 2,
       "instruction": "Transforme leite em queijo.",
       "requirements": {
-        "chapter": 9
+        "chapter": 13
       },
       "slot_upgrades": {
         "dairy_queue": 1
@@ -257,12 +257,12 @@
     ],
     "week_extra_until": 4,
     "corn_plot": 8,
-    "early_through": 2,
-    "fishing_day": 3,
+    "early_through": 0,
+    "fishing_chapter": 6,
     "fishing_daily_bait": {
       "bait_worm": 3
     },
-    "orchard_day": 4,
+    "orchard_chapter": 7,
     "orchard_seconds": 7200,
     "week_sell_prices": {
       "carrot": 3, "potato": 5, "pumpkin": 9, "corn": 6, "egg": 8,
@@ -321,6 +321,21 @@
     "ration": {"hunger": 25},
     "lunchbox": {"hunger": 40, "happiness": 10},
     "lunchbox_after_weak_days": 2,
-    "on_time_bonus": {"happiness": 5}
+    "on_time_bonus": {"happiness": 5},
+    "day_starts_at": 6,
+    "arrival_min_hours": 3,
+    "stored_slots": 2,
+    "secret": {
+      "quest": "bloblo_secret",
+      "bait": "golden_worm",
+      "fish": "fish_golden",
+      "stew": "golden_stew",
+      "worm_chance": 0.25,
+      "worm_pity": 4,
+      "max_extra": 2,
+      "stew_stars": 3,
+      "stew_fallback": "fish_stew",
+      "fallback_text": "Quase! Saiu um ensopado comum."
+    }
   }
 }

@@ -266,6 +266,8 @@ func quest_unlocked(id: String) -> bool:
 ## Um único validador para lojas, culturas, receitas, rotas e pedidos.
 ## requirements = { "owned": [...], "quests": [...], "skills": { id: nível } }
 func requirement_error(requirements: Dictionary) -> String:
+	if requirements.has("secret") and not GameState.secret_open():
+		return "Segredo"
 	for item: String in requirements.get("produced", {}):
 		var needed := int(requirements.produced[item])
 		if stat("produce:" + item) < needed:
@@ -273,6 +275,8 @@ func requirement_error(requirements: Dictionary) -> String:
 	for key: String in requirements.get("stats", {}):
 		var missing := int(requirements.stats[key]) - stat(key)
 		if missing > 0:
+			if key.begins_with("buy:"):
+				return "Compre na banca da vovó"
 			var label: String = Database.progression.settings.get("stat_labels", {}).get(key, key)
 			return "Faça mais %d %s" % [missing, label]
 	for channel: String in requirements.get("distinct_orders", {}):
@@ -290,6 +294,16 @@ func requirement_error(requirements: Dictionary) -> String:
 	for id: String in requirements.get("quests", []):
 		if not claimed_quests.has(id):
 			return "Depois de: " + str(Database.quests.get(id, {}).get("name", id))
+	# Portão do Ato 1: igual a "quests", mas só vale para quem passou pela caixinha (`arrival_box`);
+	# saves de teste/DEV que nunca abriram a caixa não ficam presos ao começo da história.
+	if stat("arrival_box") > 0:
+		for id: String in requirements.get("story_gate", []):
+			if not claimed_quests.has(id):
+				return "Depois de: " + str(Database.quests.get(id, {}).get("name", id))
+		# `gate_stats`: contadores que abrem a porta no meio de um passo (ex.: a Mochila na primeira colheita).
+		for key: String in requirements.get("gate_stats", {}):
+			if stat(key) < int(requirements.gate_stats[key]):
+				return "Faça mais " + str(Database.progression.settings.get("stat_labels", {}).get(key, key))
 	for id: String in requirements.get("skills", {}):
 		var needed := int(requirements["skills"][id])
 		if skill_level(id) < needed:

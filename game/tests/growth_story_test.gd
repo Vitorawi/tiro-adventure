@@ -5,11 +5,11 @@ extends SceneTree
 
 const FORBIDDEN: Array[String] = ["Recolher", "Coletar", "Conclua:", " · Conclua", "Nv ", "Máx.", "capítulo %d", "x0", "Produzir"]
 const GROWTH_QUESTS := {
-	"growth_1_puppy": ["puppy", 2, 70],
-	"growth_3_teething": ["teething", 7, 20],
-	"growth_6_explorer": ["explorer", 10, 50],
-	"growth_9_young": ["young", 13, 40],
-	"growth_12_adult": ["adult", 16, 40],
+	"growth_1_puppy": ["puppy", 1, 70],
+	"growth_3_teething": ["teething", 11, 20],
+	"growth_6_explorer": ["explorer", 14, 50],
+	"growth_9_young": ["young", 17, 40],
+	"growth_12_adult": ["adult", 20, 40],
 }
 
 var state: Node
@@ -66,10 +66,10 @@ func _walks_before_nature() -> void:
 	_fresh("teething")
 	for id: String in db.quests:
 		var quest: Dictionary = db.quests[id]
-		if quest.get("kind", "") == "main" and int(quest.get("chapter", 0)) <= 8 and id != "main_4_nina_chest":
+		if quest.get("kind", "") == "main" and int(quest.get("chapter", 0)) <= 12 and id != "main_4_nina_chest":
 			state.progress.claimed_quests[id] = true
 	state._changed()
-	check(state.progress.chapter_index() == 8 and state.progress.current_main_quest() == "main_4_nina_chest", "primeira encomenda mantém história nos passeios")
+	check(state.progress.chapter_index() == 12 and state.progress.current_main_quest() == "main_4_nina_chest", "primeira encomenda mantém história nos passeios")
 	check(state.progress.displayed_main_quest() == "nina_meet", "principal começa apresentando a Nina")
 	check(state.requirement_error(db.worlds.park.requirements) == "" and state.requirement_error(db.worlds.village.requirements) == "", "Vila e Praça acessíveis sem Natureza")
 	check(state.requirement_error(db.worlds.nature.requirements) != "" and not state.progress.npc_visible("guide"), "Natureza e Guia aguardam o baú")
@@ -86,11 +86,11 @@ func _walks_before_nature() -> void:
 	check(state.progress.displayed_main_quest() == "bloblo_chest", "principal aponta o baú da Nina")
 	check(state.buy_upgrade("chest") == "", "constrói baú com os achados")
 	_reload()
-	check(state.progress.chapter_index() == 8 and state.requirement_error(db.worlds.nature.requirements) != "", "baú construído sem receber missão ainda não abre Natureza, inclusive após reload")
+	check(state.progress.chapter_index() == 12 and state.requirement_error(db.worlds.nature.requirements) != "", "baú construído sem receber missão ainda não abre Natureza, inclusive após reload")
 	var coins_before: int = state.coins
 	check(state.claim_quest("bloblo_chest") == "", "recebe missão do baú")
 	check(state.progress.claimed_quests.has("main_4_nina_chest") and state.progress.current_main_quest() == "lais_forest", "baú recebido leva diretamente a Além do portão")
-	check(state.coins == coins_before + 10 + int(db.progression.chapters[7].rewards.coins), "só missão canônica e capítulo pagam, sem prêmio duplicado")
+	check(state.coins == coins_before + 10 + int(db.progression.chapters[11].rewards.coins), "só missão canônica e capítulo pagam, sem prêmio duplicado")
 	check(state.progress.npc_visible("guide") and state.quest_unlocked("guide_meet") and state.requirement_error(db.worlds.nature.requirements) == "", "Natureza e Guia abrem juntos depois da missão")
 	coins_before = state.coins
 	state.progress.claimed_quests.erase("main_4_nina_chest")
@@ -99,12 +99,12 @@ func _walks_before_nature() -> void:
 
 
 func _data() -> void:
-	check(db.quests.size() == 146, "146 entradas no catálogo: %d" % db.quests.size())
+	check(db.quests.size() == 153, "153 entradas no catálogo: %d" % db.quests.size())
 	var mains := 0
 	for id: String in db.quests:
 		if db.quests[id].get("kind", "") == "main":
 			mains += 1
-	check(mains == 67, "67 missões principais: %d" % mains)
+	check(mains == 77, "77 missões principais: %d" % mains)
 	for id: String in GROWTH_QUESTS:
 		var quest: Dictionary = db.quests[id]
 		var rule: Array = GROWTH_QUESTS[id]
@@ -112,36 +112,38 @@ func _data() -> void:
 		check(int(quest.chapter) == rule[1] and int(quest.order) == rule[2], id + ": capítulo/ordem")
 		check((quest.rewards as Dictionary).is_empty(), id + ": sem prêmio extra (o presente vem da fase)")
 		var last: String = str(state.progress.main_quests(int(quest.chapter)).back())
-		check(last == id, id + ": é o último passo do capítulo (último = %s)" % last)
+		# O Filhotinho é o passo 7 do Ato 1 (capítulo 1, depois vêm a foto e o Ato 2 com a vovó).
+		var expected_last := "first_meal" if id == "growth_1_puppy" else id
+		check(last == expected_last, id + ": é o último passo do capítulo (último = %s)" % last)
 	check(db.quests.teeth_3_ring.goals[0].type == "week_delivered", "Dentinhos pede a entrega do mordedor")
 	check(db.quests.explorer_6_eggs.shared_with == "main_9_eggs" and int(db.quests.explorer_6_eggs.order) == 45, "explorer_6_eggs orienta os ovos")
 	check(db.quests.young_9_milk.shared_with == "main_9_flour" and int(db.quests.young_9_milk.order) == 35, "young_9_milk orienta o moinho")
 	var shampoo: Dictionary = db.quests.young_8_shampoo
-	check(int(shampoo.order) == 40 and int(shampoo.chapter) == 12 and shampoo.goals[0].key == "shampoo_bath" and int(shampoo.goals[0].target) == 1, "young_8_shampoo: 1 banho com xampu")
+	check(int(shampoo.order) == 40 and int(shampoo.chapter) == 16 and shampoo.goals[0].key == "shampoo_bath" and int(shampoo.goals[0].target) == 1, "young_8_shampoo: 1 banho com xampu")
 	check(db.growth.phases.size() == 6, "seis fases")
 	check(str(state.growth_info().phase) == "newborn", "começa recém-chegado")
 
 
-## Save novo: o capítulo 2 só abre depois de `growth_1_puppy`.
+## Save novo: o Ato 1 inteiro (oito passos) vem antes do Sítio, e o capítulo 2 só abre no fim do capítulo 1.
 func _chapter_one() -> void:
 	_fresh()
 	var ids: Array = state.progress.main_quests(1)
-	check(ids.size() == 7 and ids.front() == "welcome" and ids.back() == "week_invent", "caixa e Inventar delimitam o primeiro capítulo")
-	state.dev_complete_quest("lais_bed")
-	state.dev_week_goto(2)
-	check(state.progress.chapter_index() == 2 and state.progress.current_main_quest() == "growth_1_puppy", "a caminha antecede o primeiro crescimento")
+	check(ids.size() == 14 and ids.front() == "welcome" and ids.back() == "first_meal", "a caixa e a primeira papinha delimitam o primeiro capítulo")
+	check(ids.slice(0, 8) == ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed", "lais_growth", "growth_1_puppy", "lais_photo"], "os oito passos do Ato 1 abrem o capítulo")
+	state.dev_complete_quest("lais_growth")
+	check(state.progress.chapter_index() == 1 and state.progress.current_main_quest() == "growth_1_puppy", "a caminha e a lista antecedem o primeiro crescimento")
 	check(state.quest_error("growth_1_puppy") != "", "sem crescer não conclui")
 	state.growth.phase = "puppy"
 	check(state.goal_value(db.quests.growth_1_puppy.goals[0]) == 1, "fase alcançada cumpre o objetivo")
 	var coins: int = state.coins
 	check(state.claim_quest("growth_1_puppy") == "", "recebe o passo Filhotinho")
-	check(state.progress.chapter_index() == 3 and state.progress.current_main_quest() == "week_bridge", "a lagoa é o capítulo 3")
+	check(state.progress.chapter_index() == 1 and state.progress.current_main_quest() == "lais_photo", "depois do Filhotinho vem a foto da chegada")
 	check(state.coins == coins, "a missão de crescimento não repete prêmios")
-	check(not state.quest_unlocked("week_bridge"), "a vovó volta no dia seguinte")
-	state.dev_week_goto(3)
-	check(state.quest_unlocked("week_bridge"), "dia 3 abre o próximo capítulo")
 	var places: Script = load("res://scripts/ui/places.gd")
 	check((places.call("goal_target", db.quests.growth_1_puppy.goals[0]) as Dictionary).has("growth"), "Ir abre o crescimento")
+	state.dev_complete_quest("first_meal")
+	check(state.progress.chapter_index() == 2 and state.progress.current_main_quest() == "week_market", "o capítulo 2 abre no fim do capítulo 1, pela banca")
+	check(state.quest_unlocked("week_market"), "o capítulo seguinte abre na hora, sem esperar o dia")
 
 
 func _first_growth_care() -> void:
@@ -151,6 +153,7 @@ func _first_growth_care() -> void:
 	check(state.progress.npc_visible("bloblo"), "a vovó está no Sítio no dia 1")
 	check(state.accessible_plots() == 2 and state.plant_error(0, "carrot") == "", "dois canteiros emprestados")
 	var help: Script = load("res://scripts/ui/task_help.gd")
+	state.growth.phase = "puppy"  # a lista de pratos é a do Dentinhos
 	var dishes: Dictionary = help.describe("growth_req", "dishes")
 	check("pratos diferentes" in str(dishes.detail) and dishes.target.get("place", "") == "stove", "o painel explica os pratos e leva ao fogão")
 
@@ -166,7 +169,7 @@ func _recognized() -> void:
 		if before == "":
 			before = "lais_bed"
 		state.dev_complete_quest(before)
-		if int(db.quests[id].chapter) <= 7: state.dev_week_goto(int(db.quests[id].chapter) + 1)
+		if int(db.quests[id].chapter) <= 11: state.dev_week_goto(int(db.quests[id].chapter) + 1)
 		if id == "growth_3_teething": state.progress.count("week_farewell", 1)
 		# A fase da missão anterior (dev_complete_quest já a colocou); volta para a anterior à desta.
 		var index: int = state.growth.phase_index(phase)
@@ -178,7 +181,7 @@ func _recognized() -> void:
 		# Crescer antes de a missão estar ativa também vale (uma fase além).
 		_fresh()
 		state.dev_complete_quest(before)
-		if int(db.quests[id].chapter) <= 7: state.dev_week_goto(int(db.quests[id].chapter) + 1)
+		if int(db.quests[id].chapter) <= 11: state.dev_week_goto(int(db.quests[id].chapter) + 1)
 		if id == "growth_3_teething": state.progress.count("week_farewell", 1)
 		if index + 1 < db.growth.phases.size():
 			state.growth.phase = db.growth.phases[index + 1].id
@@ -227,10 +230,10 @@ func _pairs() -> void:
 ## Saves de exemplo nos capítulos 2, 5, 8 e 11 entram na fase certa com a próxima missão certa.
 func _samples() -> void:
 	var cases := [
-		[3, "puppy", "week_bridge"],
-		[9, "teething", "lais_forest"],
-		[12, "explorer", "main_7_orchard"],
-		[15, "young", "community_11_garden"],
+		[6, "puppy", "week_bridge"],
+		[13, "teething", "lais_forest"],
+		[16, "explorer", "main_7_orchard"],
+		[19, "young", "community_11_garden"],
 	]
 	for entry: Array in cases:
 		_fresh()
@@ -243,7 +246,7 @@ func _samples() -> void:
 		check(str(state.growth_info().phase) == entry[1], "painel de crescimento na fase " + str(entry[1]))
 	# Capítulo 12: o último passo é crescer; o final vem depois.
 	_fresh()
-	state.dev_jump_to_chapter(15)
+	state.dev_jump_to_chapter(19)
 	state.dev_complete_quest("community_12_memory")
 	check(state.growth.phase == "young" and state.progress.current_main_quest() == "growth_12_adult", "festa feita: falta o Azul e Dourado")
 	state.growth.phase = "adult"
@@ -292,7 +295,7 @@ func _task_help() -> void:
 	var data: Dictionary = help.call("describe", "growth", "puppy")
 	check(data.title == "Filhotinho" and data.target.has("growth"), "descrição da fase aponta o painel")
 	var ids: Array = (data.needs as Array).map(func(need: Dictionary) -> String: return str(need.id))
-	check("bed" in ids and "days" in ids and "dishes" in ids and "play" in ids and not "home" in ids, "lista só o que falta (%s)" % str(ids))
+	check(ids == ["feed", "bath", "play", "bed"], "lista só o que falta no Ato 1 (%s)" % str(ids))
 	for need: Dictionary in data.needs:
 		check(need.kind == "growth_req", "cada requisito é tocável (growth_req)")
 		var detail: Dictionary = help.call("describe", need.kind, need.id, need.amount)

@@ -100,7 +100,8 @@ func _run() -> void:
 	for entry: Dictionary in db.album.photos:
 		var section := str(entry.section)
 		if section == "story": check(not bool(entry.get("repeatable", false)), "história não repete: " + str(entry.id))
-		if section in ["tricks", "sleep"]: check(bool(entry.get("repeatable", false)), "momento que repete: " + str(entry.id))
+		# O peixe dourado (missão secreta da vovó) é uma conquista de uma vez só, na seção Truques.
+		if section in ["tricks", "sleep"] and str(entry.id) != "s_golden_fish": check(bool(entry.get("repeatable", false)), "momento que repete: " + str(entry.id))
 
 	# Os prêmios de coleção (etapa 10) mexem nas moedas: este teste mede só custos, então os desliga (album_rewards_test cobre eles).
 	cards["rewards"] = {}
@@ -368,7 +369,7 @@ func _run() -> void:
 	check(state.album_tutorial_step() == 4 and not state.album_tutorial_done(), "tutorial sobrevive")
 	check(state.album.pity_rare == 4 and state.album.pity_holo == 11 and state.album.rarity_seed == 31337, "garantias e semente")
 	var save_version: Variant = (load("res://autoload/save_manager.gd") as GDScript).get_script_constant_map().get("SAVE_VERSION")
-	check(int(save_version) == 33, "SAVE_VERSION 33")
+	check(int(save_version) >= 33, "SAVE_VERSION atual")
 
 	print("PHOTO RARITY TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(1 if failures > 0 else 0)

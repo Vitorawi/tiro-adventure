@@ -124,8 +124,8 @@ func album_problems() -> Array[String]:
 				problems.append(id + ": foto de comparação inexistente " + str(ref))
 		if str(entry.get("section", "")) in ["tricks", "sleep"] and str(entry.get("hint", "")) == "":
 			problems.append(id + ": dica ausente")
-	if album.get("photos", []).size() != 64:
-		problems.append("album: esperadas 64 fotos")
+	if album.get("photos", []).size() != 69:
+		problems.append("album: esperadas 69 fotos")
 	return problems
 
 

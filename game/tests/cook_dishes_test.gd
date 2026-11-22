@@ -112,6 +112,7 @@ func _run() -> void:
 	state = root.get_node("GameState")
 	events = root.get_node("Events")
 	db = root.get_node("Database")
+	load("res://tests/helpers/old_day_rules.gd").new().apply(db)
 	cook = load("res://scripts/ui/cook_panel.gd")
 	Motion.reduced = true
 	events.toast_requested.connect(func(text: String) -> void: toasts.append(text))
@@ -128,6 +129,7 @@ func _run() -> void:
 
 func _preview_rules() -> void:
 	state.call("dev_week_goto", 1)
+	state.call("dev_content_day", 1)
 	check(not db.get("items").has("invented_dish") and not db.get("recipes").get("dish_batch", {}).has("inputs_required"), "não existe prato provisório")
 	check(str(preview("papinha", []).state) == "empty", "nada na panela: empty")
 	check(str(preview("papinha", ["carrot"]).state) == "incomplete", "um só ingrediente na papinha: faltam")
@@ -145,6 +147,7 @@ func _preview_rules() -> void:
 	check(str(preview("papinha", ["carrot", "potato", "pumpkin"]).state) == "blocked", "3ª vaga da papinha só no dia 3")
 	check(not bool(state.call("dish_type_open", "sopinha")) and bool(state.call("dish_type_open", "papinha")), "tipos abrem pelo dia")
 	state.call("dev_week_goto", 3)
+	state.call("dev_content_day", 3)
 	check(bool(state.call("dish_type_open", "sopinha")) and str(preview("sopinha", ["carrot", "potato", "pumpkin"]).state) == "new", "dia 3: a Sopinha abre")
 	check(str(preview("papinha", ["carrot", "potato", "pumpkin"]).state) == "new", "dia 3: a papinha ganha a 3ª vaga")
 	check(not bool(state.call("dish_type_open", "mingau")), "Mingau só no dia 4")
@@ -155,6 +158,7 @@ func _preview_rules() -> void:
 func _known_and_cycle() -> void:
 	reset_world()
 	state.call("dev_week_goto", 2)
+	state.call("dev_content_day", 2)
 	give("carrot", 4)
 	give("corn", 1)
 	give("egg", 2)
@@ -212,6 +216,7 @@ func open_stove(room: Control) -> void:
 func _ui() -> void:
 	reset_world()
 	state.call("dev_week_goto", 2)
+	state.call("dev_content_day", 2)
 	give("carrot", 6)
 	give("potato", 4)
 	give("corn", 2)
@@ -324,8 +329,9 @@ func _ui() -> void:
 	toasts.clear()
 	tap_card(node("InvTypes"), closed)
 	await frames(2)
-	check(toasts.has("Sopinha abre no dia 3") and not bool(node("InvType_sopinha").get_meta("selected")), "tocar na Sopinha trancada avisa o dia (%s)" % [toasts])
+	check(toasts.has("Continue a História") and not bool(node("InvType_sopinha").get_meta("selected")), "tocar na Sopinha trancada avisa o dia (%s)" % [toasts])
 	state.call("dev_week_goto", 3)
+	state.call("dev_content_day", 3)
 	await frames(3)
 	check(names("InvSlot_*").size() == 3, "no dia 3 a papinha ganha o 3º espaço (%d)" % names("InvSlot_*").size())
 	check(not bool(node("InvType_sopinha").get_meta("locked")), "e a Sopinha abre")

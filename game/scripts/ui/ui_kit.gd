@@ -723,6 +723,22 @@ static func _chip_colors(kind: String) -> Array[Color]:
 	return [Palette.SUNKEN, Palette.INK]
 
 
+## Selo "Segredo" da missão secreta da vovó (no lugar do "!"): pílula mel com letra marrom.
+static func secret_tag() -> Label:
+	var tag := short_label("Segredo", &"BadgeLabel", Palette.HONEY_INK)
+	tag.name = "SecretTag"
+	tag.custom_minimum_size = Vector2(58, 20)
+	tag.size = tag.custom_minimum_size
+	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tag.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var style := surface(Palette.HONEY, 10)
+	style.border_color = Palette.HONEY_EDGE
+	style.set_border_width_all(2)
+	tag.add_theme_stylebox_override("normal", style)
+	return tag
+
+
 static func badge(count: int, edge: Color = Palette.CARD) -> Label:
 	var mark := short_label(str(count) if count > 0 else "", &"BadgeLabel", Palette.CARD)
 	mark.custom_minimum_size = Vector2(20, 20) if count > 0 else Vector2(12, 12)

@@ -89,8 +89,18 @@ func _refresh_badge() -> void:
 ## Troca a arte do selo: medalha verde (pronto) ou "!" vermelho de madeira (passo novo); vazio esconde.
 func _set_badge(state: String) -> void:
 	_badge_state = state
-	_badge.visible = state == "ready" or state == "new"
+	_badge.visible = state == "ready" or state == "new" or state == "secret"
+	var tag := _badge.get_node_or_null("SecretTag")
+	if tag != null:
+		tag.visible = state == "secret"
 	if not _badge.visible:
+		return
+	if state == "secret":
+		_badge_art.texture = null
+		if tag == null:
+			tag = UiKit.secret_tag()
+			tag.position = Vector2(-29.0, -10.0)
+			_badge.add_child(tag)
 		return
 	var texture := (load("res://assets/sprites/ui/home/step_done.png") if state == "ready" else load("res://assets/sprites/ui/home/mission_tab_badge.png")) as Texture2D
 	_badge_art.texture = texture

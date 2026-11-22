@@ -690,8 +690,6 @@ static func _buy_card(id: String, selected: bool, card_w: float, locked: String,
 		lock.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		lock_row.add_child(lock)
 		var short := locked.trim_prefix("Ganhe a ").trim_prefix("Depois de: ")  # "Ganhe a vara de bambu" → "Vara de bambu" (cabe em 2 linhas)
-		if short.begins_with("Abre no dia "):
-			short = "Dia " + short.trim_prefix("Abre no dia ")
 		var reason := StationWood.text(short.substr(0, 1).to_upper() + short.substr(1), 11)
 		reason.name = "LockText"
 		reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART

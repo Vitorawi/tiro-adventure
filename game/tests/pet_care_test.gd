@@ -240,8 +240,8 @@ func _run() -> void:
 		for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
 			root.size = viewport
 			var intro_box: VBoxContainer = load("res://scripts/ui/ui_kit.gd").call("vbox", 8)
-			load("res://scripts/ui/progression_ui.gd").call("npc_header", intro_box, "lais", str(root.get_node("Database").get("quests").lais_album.dialogue))
-			load("res://scripts/ui/progression_ui.gd").call("quest_card", intro_box, "lais_album")
+			load("res://scripts/ui/progression_ui.gd").call("npc_header", intro_box, "lais", str(root.get_node("Database").get("quests").lais_photo.dialogue))
+			load("res://scripts/ui/progression_ui.gd").call("quest_card", intro_box, "lais_photo")
 			root.get_node("Events").sheet_requested.emit("Laís", intro_box)
 			await frames()
 			for member: String in ["_celebration", "_welcome", "_walk_result", "_growth_ceremony"]:

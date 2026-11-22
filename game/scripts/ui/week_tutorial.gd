@@ -14,6 +14,7 @@ var _label: Label
 var _tip_go: Button
 var _elapsed := 0.0
 var _resume_pending := true
+var _idle_since: Dictionary = {}
 
 
 static func enrolled() -> bool:
@@ -78,7 +79,7 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	_elapsed += delta
 	var intro := is_instance_valid(main.get("_intro"))
-	var blocked: bool = (main.call("_card_open") and not intro) or CardViewer.is_open() or AnglerTutorial.is_active()
+	var blocked: bool = (main.call("_card_open") and not intro) or CardViewer.is_open() or AnglerTutorial.is_active() or AlbumTutorial.is_active() or LessonGuide.is_active()
 	if blocked:
 		hide()
 		return
@@ -114,7 +115,7 @@ func _pick(intro: bool) -> void:
 			_resume()
 		else:
 			return
-	var day := GameState.week_day()
+	var day := GameState.content_day()
 	for lesson: Dictionary in Database.week_tutorials:
 		if lesson.day > day or lesson.get("native", false) or record(lesson.id).get("done", false):
 			continue
@@ -124,9 +125,15 @@ func _pick(intro: bool) -> void:
 		var quest := str(lesson.get("quest", ""))
 		if quest != "" and not GameState.quest_unlocked(quest):
 			continue
+		if lesson.has("after_quest") and not GameState.progress.claimed_quests.has(str(lesson.after_quest)):
+			continue
+		if lesson.has("idle") and not _idle_ready(lesson):
+			continue  # só ajuda quem demora: o gesto já foi ensinado antes
 		if lesson.id == "clock" and (_sheet_open() or _minigame()):
 			continue
-		if lesson.has("after") and GameState.progress.stat(str(lesson.after)) == 0:
+		if lesson.id == "feed" and (GameState.food_lesson_startable() or GameState.food_lesson_running()):
+			continue  # a aula da comida cuida de arrastar a papinha (F02B)
+		if lesson.has("after") and GameState.progress.stat(str(lesson.after)) < int(lesson.get("after_min", 1)):
 			continue
 		var data := record(lesson.id)
 		if lesson.id == "name" and day > 1:
@@ -144,8 +151,21 @@ func _pick(intro: bool) -> void:
 	hide()
 
 
+## A lição com `idle` (segundos) só aparece depois que o passo dela ficou parado esse tempo (quem já sabe o gesto não precisa da mão).
+func _idle_ready(lesson: Dictionary) -> bool:
+	var id := str(lesson.id)
+	if not _idle_since.has(id):
+		_idle_since[id] = Time.get_ticks_msec()
+	return Time.get_ticks_msec() - int(_idle_since[id]) >= int(float(lesson.idle) * 1000.0)
+
+
 func _action_done(lesson: Dictionary) -> bool:
 	var stat := str(lesson.get("done", ""))
+	# "owned:<melhoria>" e "growth:<fase>" não são contadores: o que vale é ter a caminha / já ser aquela fase.
+	if stat.begins_with("owned:"):
+		return GameState.has_upgrade(stat.trim_prefix("owned:"))
+	if stat.begins_with("growth:"):
+		return GameState.growth.phase_index() >= GameState.growth.phase_index(stat.trim_prefix("growth:"))
 	return stat != "" and GameState.progress.stat(stat) >= int(lesson.get("min_value", 1))
 
 
@@ -205,7 +225,8 @@ func _present(lesson: Dictionary, index: int, anchor: String) -> void:
 
 func _update_copy() -> void:
 	var guided := _shown.has("steps")
-	_veil.visible = guided
+	var pointing: bool = _shown.get("point", false)  # balão que também aponta (anel + mão) para a aba, sem escurecer a tela
+	_veil.visible = guided or pointing
 	_balloon.visible = _shown.format == "balloon"
 	_hint.visible = guided or _shown.format in ["tip", "list"]
 	var tip: bool = _shown.format == "tip"
@@ -215,7 +236,7 @@ func _update_copy() -> void:
 	if petting:
 		_hint.hide()
 	for rect: ColorRect in _rects:
-		rect.color.a = 0.18 if petting else 0.5
+		rect.color.a = 0.0 if pointing else (0.18 if petting else 0.5)
 	_skip.visible = active != "arrival"
 	_skip.custom_minimum_size.x = 110.0 if active == "cook" else 78.0
 	_skip.text = "Pular guia" if active == "cook" else "Pular"
@@ -234,7 +255,7 @@ func _layout_week(target: Rect2, delta: float) -> void:
 	var screen := get_viewport_rect().size
 	if _veil.visible:
 		_layout_focus(target, screen)
-		var points := _gesture(target, str(_shown.steps[step].get("gesture", "tap")))
+		var points := _gesture(target, str(_shown.steps[step].get("gesture", "tap"))) if _shown.has("steps") else [target.get_center() + Vector2(-7, 12), target.get_center()]
 		_guide_hand(delta, points[0], points[1])
 	var bubble: Control = _balloon if _balloon.visible else _hint
 	var width := minf(320.0, screen.x - 28.0)
@@ -247,14 +268,23 @@ func _layout_week(target: Rect2, delta: float) -> void:
 		y = target.end.y + 14.0
 	if y + height > screen.y - 74.0:
 		y = clampf(target.position.y - height - 14.0, 64.0, screen.y - height - 74.0)
+	# O botão Ver detalhes fica no pé do balão do avatar: a fala vai embaixo, para não cobrir o texto dele.
+	if _shown.has("steps") and str(_shown.steps[step].get("target", "")) == "ViewGrowth":
+		y = target.end.y + 14.0
 	if active == "arrival":
 		y = minf(y, screen.y - 275.0)
+	if (active.begins_with("home_") or active == "place_stove") and _sheet_open():
+		# Com uma folha aberta o balão (e o Pular) ficam acima dela, sem cobrir o texto do cartão.
+		var panel := main.get_node("Sheet").get_node("Panel") as Control
+		y = clampf(panel.get_global_rect().position.y - height - 8.0, 64.0, y)
 	bubble.position = Vector2(clampf(target.get_center().x - width * 0.5, 12.0, screen.x - width - 12.0), y)
 	bubble.size = Vector2(width, height)
 	_skip.size = _skip.get_combined_minimum_size()
 	var skip_y := y - _skip.size.y - 4.0
 	var skip_row := Rect2(Vector2(screen.x - _skip.size.x - 12.0, skip_y), _skip.size)
-	if skip_y < 10.0 or target.intersects(skip_row):
+	# Rostos de personagem (NpcRow) ficam no canto de cima à direita: o Pular não os cobre.
+	var faces := _control_rect("NpcRow")
+	if skip_y < 10.0 or target.intersects(skip_row) or (faces.has_area() and faces.grow(4.0).intersects(skip_row)):
 		skip_y = y + height + 4.0
 	_skip.position = Vector2(screen.x - _skip.size.x - 12.0, clampf(skip_y, 10.0, screen.y - _skip.size.y - 12.0))
 
@@ -285,6 +315,12 @@ func _gesture(rect: Rect2, style: String) -> Array:
 			var p := center + Vector2.from_angle(angle) * rect.size.x * 0.48
 			return [p, p]
 		"hold": return [center, center]
+		"scrub":
+			# Da esponja até as costas do Tiro, esfregando de um lado para o outro.
+			var pet := main.find_child("PetScreen", true, false)
+			var back: Rect2 = pet.call("back_rect")
+			var wobble := Vector2(sin(_demo_time * 7.0) * 26.0, 0.0)
+			return [center, back.get_center() + wobble]
 	return [center + Vector2(-7, 12), center]
 
 
@@ -338,6 +374,19 @@ func _special_target(id: String, behind: bool) -> Rect2:
 		var room := main.find_child("World_farm", true, false) as RoomView
 		if is_instance_valid(room) and room.is_visible_in_tree():
 			return room.week_tutorial_rect(id, behind)
+	if id in ["buy_bed", "buy_stove"]:
+		# O "+" do presente (caminha ou fogão) na Casa (só com o Mapa aberto na Casa e sem folha por cima).
+		if not behind and (_sheet_open() or _minigame()):
+			return Rect2()
+		var house := main.find_child("World_house", true, false) as RoomView
+		if is_instance_valid(house) and house.is_visible_in_tree():
+			return house.week_tutorial_rect("buy:dog_bed" if id == "buy_bed" else "buy:stove")
+	if id == "npc_bloblo":
+		if not behind and (_sheet_open() or _minigame()):
+			return Rect2()
+		var farm := main.find_child("World_farm", true, false) as RoomView
+		if is_instance_valid(farm) and farm.is_visible_in_tree():
+			return farm.week_tutorial_rect("npc:bloblo")
 	if id in ["picar", "mexer", "servir"]:
 		var kitchen := CookTogether.current()
 		if kitchen != null and kitchen.phase == id:
@@ -472,12 +521,23 @@ static func manual_body(model: Dictionary, refresh: Callable) -> Control:
 			var text := StepCardUi.wood(str(lesson.text), 17)
 			text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			card.add_child(text)
+			if selected == "food":
+				card.add_child(MealReview.body())  # o desenho do dia de 24 h, o mesmo do "?" da folha Hoje
 			break
 		return box
-	for day in range(1, 9):
-		box.add_child(StepCardUi.wood("Dia %d" % day if day < 8 else "Quando acontecer", 18))
+	var last := GameState.week_last_chapter()  # um grupo por capítulo da semana (1 a 11) e o "Quando acontecer" (dia 0)
+	for day in range(1, last + 2):
+		var chapters: Array = Database.progression.get("chapters", [])
+		var title := "Quando acontecer"
+		if day <= last:
+			title = "Capítulo %d" % day
+			if day <= chapters.size():
+				title += " · " + str(chapters[day - 1].get("name", ""))
+		var heading := StepCardUi.wood(title, 18)
+		heading.name = "TutorialChapter_%d" % (day if day <= last else 0)
+		box.add_child(heading)
 		for lesson: Dictionary in Database.week_tutorials:
-			if int(lesson.day) != (day if day < 8 else 0):
+			if int(lesson.day) != (day if day <= last else 0):
 				continue
 			var id := str(lesson.id)
 			var show_lesson := func() -> void:

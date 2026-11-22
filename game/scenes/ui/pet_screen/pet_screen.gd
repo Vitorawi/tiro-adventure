@@ -28,6 +28,9 @@ var _pulses: Dictionary = {}
 var _animator: PetAnimator
 var _wish_bubble: Button
 var _meal_bubble: Button
+var _hunger_bowl: TextureRect
+var _hunger_tween: Tween
+var _hunger_age := 0.0
 var _wish_icon: TextureRect
 var _wish_badge: Label
 var _need_pillars: Dictionary = {}
@@ -305,6 +308,14 @@ func _build_wish_widgets() -> void:
 	_meal_bubble.add_theme_constant_override("icon_max_width", 20)
 	_meal_bubble.visible = false
 	add_child(_meal_bubble)
+	# Com fome (janela aberta e o período sem ✓): a tigela brilha ao lado dele; tocar nela abre a comida.
+	_hunger_bowl = UiKit.icon(preload("res://assets/sprites/ui/album/prop_bowl.png"), 54)
+	_hunger_bowl.name = "HungerBowl"
+	_hunger_bowl.mouse_filter = Control.MOUSE_FILTER_STOP
+	_hunger_bowl.pivot_offset = Vector2(27, 27)
+	_hunger_bowl.visible = false
+	UiKit.on_tap(_hunger_bowl, func() -> void: _care.call("open_food_menu"))
+	add_child(_hunger_bowl)
 	_dog_sprite.item_rect_changed.connect(_place_bubble)
 
 
@@ -334,10 +345,19 @@ func _place_bubble() -> void:
 		var top := dog_rect()
 		top.position -= global_position
 		_meal_bubble.position = Vector2(top.get_center().x - _meal_bubble.size.x / 2.0, top.position.y)
+	if _hunger_bowl:
+		var head := head_rect()
+		_hunger_bowl.position = Vector2(clampf(head.end.x + 4.0, 12.0, size.x - 120.0), head.get_center().y + 36.0) - global_position
 	if _mood_bubble:
 		_mood_bubble.size =_mood_bubble.get_combined_minimum_size()
 		var feet := _corner.position + _corner.pet_feet()
 		_mood_bubble.position = Vector2(feet.x - _mood_bubble.size.x / 2.0, feet.y + 8)
+		# Não cobre o botão Cuidar (nem o nome dele): se a fala cruza com ele, sobe acima.
+		var care_node: Control = _care.find_child("CareButton", true, false) as Control if _care != null else null
+		if care_node != null and care_node.is_visible_in_tree():
+			var care_rect := Rect2(care_node.global_position - global_position, care_node.size)
+			if Rect2(_mood_bubble.position, _mood_bubble.size).intersects(care_rect.grow(6.0)):
+				_mood_bubble.position.y = care_rect.position.y - 6.0 - _mood_bubble.size.y
 
 
 func _layout_corner() -> void:
@@ -391,6 +411,7 @@ func _refresh() -> void:
 	var meal_asking := MealUi.asking_period()
 	_meal_bubble.visible = meal_asking != "" and not _care.get("_row").visible
 	if meal_asking != "": _meal_bubble.text = "Hora do %s!" % MealUi.period_name(meal_asking).to_lower()
+	_sync_hunger(meal_asking != "" and not (_care.get("_row") as Control).visible)
 	_wish_badge.visible = _wish_bubble.visible and GameState.fulfillable_wish_count() > 0
 	if not _wish_bubble.visible and _care.get("_pointed_item") == "wish": _care.clear_pointer()
 	_wish_icon.texture = WishUi.icon(wish_id) if wish_id != "" else null
@@ -422,6 +443,32 @@ func _refresh() -> void:
 	if _photo_line: _photo_line.sync()
 
 
+## A tigela brilha e pulsa enquanto ele pede comida; sem animação, só o brilho.
+func _sync_hunger(hungry: bool) -> void:
+	if _hunger_bowl.visible == hungry:
+		return
+	_hunger_bowl.visible = hungry
+	if _hunger_tween != null and _hunger_tween.is_valid():
+		_hunger_tween.kill()
+	_hunger_bowl.scale = Vector2.ONE
+	_hunger_bowl.modulate = Color(1.25, 1.15, 0.8) if hungry else Color.WHITE
+	if hungry and not Motion.reduced:
+		_hunger_age = 0.0
+		_hunger_tween = create_tween().set_loops()
+		_hunger_tween.tween_property(_hunger_bowl, "scale", Vector2.ONE * 1.14, 0.55).set_trans(Tween.TRANS_SINE)
+		_hunger_tween.tween_property(_hunger_bowl, "scale", Vector2.ONE, 0.55).set_trans(Tween.TRANS_SINE)
+
+
+## Toque nele com a janela de comida aberta e o período já ✓: "Já almocei!" / "Já jantei!".
+func _say_fed() -> void:
+	var text := MealUi.fed_text()
+	if text == "":
+		return
+	_pet_message = text
+	_pet_message_until = Time.get_ticks_msec() / 1000.0 + 3.0
+	_mood_label.text = text
+
+
 func _show_mood() -> void:
 	_mood_age = 0.0
 	if _care != null and (_care.get("_row") as Control).visible: return
@@ -448,6 +495,11 @@ func _process(delta: float) -> void:
 	if GameState.tiro_animated() and not Motion.reduced: %DogArea.queue_redraw()
 	_mood_age += delta
 	_wish_age += delta
+	if _hunger_bowl != null and _hunger_bowl.visible:
+		_hunger_age += delta
+		if _hunger_age >= 4.0:
+			_hunger_age = 0.0
+			_animator.scrub()  # abana o rabo (só se estiver parado)
 	_sleep_age += delta
 	if _mood_age >= 3.0 and _mood_bubble.visible and not _mood_closing: _hide_mood()
 	if _wish_age >= 3.0:
@@ -761,6 +813,7 @@ func _on_dog_input(event: InputEvent) -> void:
 			else:
 				Events.toast_requested.emit("Shh... ele está dormindo.")
 			return
+		_say_fed()
 		_show_mood()
 		hold_begin(button.position)
 	elif motion != null and _holding and (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:

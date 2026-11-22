@@ -34,7 +34,7 @@ Exceções onde o plano da primeira semana corrige o "design completo":
 | D15 | Truques da vovó | Senta, Dá a pata e Deita; a Nina fica com Fala, Rola e os seguintes |
 | D16 | Feirante | Carroça no portão a partir do dia 5, 2 encomendas por dia |
 | D17 | Vila | Só depois de Dentinhos, capítulos renumerados; ponte de saída: a história antiga continua da Vila em diante |
-| D18 | Dia 1 | Em duas sessões, com a aba Inventar liberada no jantar |
+| D18 | Dia 1 | Em duas sessões, com a aba Inventar liberada no jantar *(substituído pela F00 do novo fluxo: sem espera de relógio, Inventar abre com o fogão)* |
 | — | Saves | Sem migração: subir `SAVE_VERSION` quando o formato mudar (hoje 20) |
 
 ## 3. Os 12 ajustes da revisão (Parte A), como ficam
@@ -50,7 +50,7 @@ Exceções onde o plano da primeira semana corrige o "design completo":
 | 7 | Quem só joga à noite | Botão Deixar pronto (D2) |
 | 8 | "8 pratos diferentes" | De pelo menos 3 tipos (D10) |
 | 9 | Começar depois das 22h | No dia 1 a primeira papinha vale como refeição na hora **a qualquer horário** (uma refeição basta no dia da chegada) |
-| 10 | Dia 1 pesado | Duas sessões (30 min + o resto); Inventar passa para o jantar; total perto de 40 min |
+| 10 | Dia 1 pesado | Duas sessões (30 min + o resto); Inventar passa para o jantar; total perto de 40 min *(substituído pela F00 do novo fluxo)* |
 | 11 | Dia 7 vazio | **Almoço de despedida**: cozinhar 3 pratos (vovó, Laís, Tiro) antes da cerimônia; foto de grupo |
 | 12 | Listas demais | A aba Missões mostra só a História e um único **Próximo passo** sorteado entre as linhas; o resto mora no caderninho |
 

@@ -59,7 +59,7 @@ func _dev_mode() -> void:
 	_check(state.get("growth").phase == "young", "DEV muda fase")
 	state.call("reset")
 	state.call("dev_complete_main_step")
-	_check(_progress().claimed_quests.has("welcome") and _progress().current_main_quest() == "lais_first_crops", "Concluir passo DEV avança apenas um passo")
+	_check(_progress().claimed_quests.has("welcome") and _progress().current_main_quest() == "lais_feed", "Concluir passo DEV avança apenas um passo")
 	state.call("reset")
 	state.call("dev_complete_quest", "main_2_order")
 	_check(_progress().current_main_quest() == "main_4_nina_chest", "Concluir main respeita o baú da Nina antes da Natureza")
@@ -71,8 +71,8 @@ func _dev_mode() -> void:
 	state.call("dev_add_items", 5, "material")
 	_check(state.get("inventory").count("plank") == 5 and state.get("inventory").count("carrot") == 0, "Deve somar só a categoria pedida")
 
-	state.call("dev_jump_to_chapter", 8)
-	for id: String in ["stove"]:
+	state.call("dev_jump_to_chapter", 12)
+	for id: String in []:  # nenhum capítulo 1 a 11 tem construção como alvo (o fogão é presente da vovó)
 		_check(state.call("has_upgrade", id), "Pular capítulo deve liberar " + id)
 	_check(not state.call("has_upgrade", "workbench"), "Pular capítulo não libera o alvo do próprio capítulo")
 	_check(_progress().claimed_quests.has("first_sale") and _progress().claimed_quests.has("welcome"), "Requisitos de missão (e anteriores) devem ser concluídos")
@@ -143,7 +143,7 @@ func _prod_mode() -> void:
 	state.call("dev_unlock_everything")
 	state.call("dev_complete_main_step")
 	state.call("dev_complete_quest", "main_2_order")
-	state.call("dev_jump_to_chapter", 9)
+	state.call("dev_jump_to_chapter", 13)
 	_check(state.get("coins") == coins, "Versão publicada não pode ganhar moedas pelo dev")
 	_check(not state.call("has_upgrade", "stove"), "Versão publicada não pode liberar melhorias pelo dev")
 	_check(_progress().claimed_quests.is_empty(), "Prod não pode concluir história via DEV")

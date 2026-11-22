@@ -140,7 +140,7 @@ func _run() -> void:
 	await create_timer(1.3).timeout
 	# 5. Fim.
 	check(state.album_tutorial_done() and "h_arrival" in state.album.featured, "tutorial concluído e foto no varal")
-	check(state.quest_error("lais_album") == "", "missão lais_album cumprida")
+	check(state.progress.stat("album_tutorial") == 1, "o fim do tutorial conta o passo 8 (lais_photo)")
 	check(_tut() == null and not viewer_script.call("is_open"), "camada e visualizador fecham")
 	check(state.coins == coins_before, "moedas intactas no fim")
 	# 6. Depois do fim, nada é forçado.

@@ -10,9 +10,9 @@ static func tabs() -> Array[Dictionary]:
 	if GameState.progress.feature_unlocked("growth_tab"): result.append({"id": "growth", "text": "Crescer"})
 	if not GameState.progress.collection.is_empty() or GameState.progress.feature_unlocked("finds"):
 		result.append({"id": "collection", "text": "Coleção"})
-	if GameState.week_day() >= int(Database.progression.tricks.sit.requirements.week_day) or GameState.progress.feature_unlocked("tricks"):
+	if GameState.content_day() >= int(Database.progression.tricks.sit.requirements.story_day) or GameState.progress.feature_unlocked("tricks"):
 		result.append({"id": "tricks", "text": "Truques"})
-	if GameState.has_upgrade("stove"):
+	if GameState.has_upgrade("stove") and GameState.recipe_book_open():
 		result.append({"id": "recipes", "text": "Receitas"})
 	if GameState.progress.stat("arrival_box") > 0:
 		result.append({"id": "missions", "text": "Missões"})

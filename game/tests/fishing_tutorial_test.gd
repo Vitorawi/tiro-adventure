@@ -79,6 +79,7 @@ func _setup_chapter_two() -> void:
 	state.call("_dev_complete_quest", "growth_1_puppy")
 	state.call("_mark_all_seen")
 	state.call("dev_week_goto", 3)
+	state.call("dev_content_day", 6)
 	_inv().call("from_dict", {})
 	state.call("_changed")
 
@@ -127,7 +128,7 @@ func _test_content() -> void:
 	for id: String in ["week_bridge", "week_fish", "bloblo_rod", "bloblo_first_fish", "bloblo_three_fish", "bloblo_worms"]:
 		check(quests.has(id), "0: missão %s" % id)
 	check(int(quests.bloblo_rod.order) == 32 and int(quests.bloblo_first_fish.order) == 34 and int(quests.bloblo_three_fish.order) == 36 and int(quests.bloblo_worms.order) == 38, "0: ordens 32/34/36/38")
-	check(int(quests.week_fish.chapter) == 3 and str(quests.week_fish.goals[0].key) == "fish", "0: a História do dia 3 conta a pescaria")
+	check(int(quests.week_fish.chapter) == 6 and str(quests.week_fish.goals[0].key) == "fish", "0: a História do capítulo 6 conta a pescaria")
 	check((quests.bloblo_rod.rewards.rods as Array).has("bamboo_rod") and int(quests.bloblo_rod.rewards.items.bait_worm) == 5, "0: a vara dá bambu e 5 minhocas")
 	var lines: Dictionary = root.get_node("Database").get("npcs").bloblo.lines
 	for key: String in ["lake", "bait", "force", "wait", "bite", "see", "hold", "release", "play", "almost", "result", "outro"]:

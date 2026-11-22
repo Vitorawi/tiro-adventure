@@ -251,6 +251,10 @@ static func _goal(goal: Dictionary, trail: Array[String]) -> Dictionary:
 			if key.begins_with("harvest:"):
 				return describe("crop", key.trim_prefix("harvest:"), 1, trail)
 	var target := Places.goal_target(goal)
+	if key == "open:growth":
+		return _base("Como o Tiro cresce", "Toque na carinha do Tiro, no alto da tela, e depois em Ver detalhes.", target, "Ir")
+	if key == "album_tutorial":
+		return _base("Abra a carta da chegada", "Na aba Tiro, toque no botão do Álbum. A Laís mostra como abrir a primeira foto.", target, "Abrir Álbum")
 	if key == "open:album":
 		return _base("Conheça o Álbum", "Na aba Tiro, toque no botão do Álbum, logo abaixo do caderninho. As primeiras lembranças já estão guardadas lá; avisos de fotos novas começam depois dessa visita.", target, "Abrir Álbum")
 	var hints := {"talk:lais": "Toque na Laís, na Casa.", "talk:bloblo": "Toque na vovó Bloblo, no Sítio.", "open:bag": "Toque na aba Mochila.", "feed": "Dê comida na Tigela.", "pet": "Aba Tiro → faça carinho com o dedo.", "harvest": "Plante e colha.", "water": "Toque na plantinha com a gota.", "bathe": "Aba Tiro → Banho.", "play": "Aba Tiro → Brincar.", "trade": "Venda na Vila.", "sold": "Venda na Vila.", "explore": "Faça um passeio.", "walk": "Praça → Passeio: leve o Tiro para passear.", "talk:nina": "Toque na Nina, na Praça.", "produce": "Cozinhe no Fogão."}
@@ -506,6 +510,9 @@ static func _gift_source(item: String, amount: int, trail: Array[String]) -> Dic
 				result.target = {"growth": true}
 				result.action = "Ver crescimento"
 				result.detail = "Primeiro, ajude o Tiro a chegar a Dentinhos."
+		if item == str(Database.meals.get("secret", {}).get("bait", "")) and item != "":
+			result = _base(Database.item_name(item), "Toque no montinho que o Tiro farejou no Sítio.", {"world": "farm", "place": "find"}, "Ir ao Sítio")
+			result["source_text"] = "Com o pedido secreto da vovó aberto, o Tiro pode achar uma minhoca gorda ao cavar. Ela só serve para o peixe dourado."
 	if result.is_empty():
 		var past := reward_source_text(item)
 		if past != "":
@@ -689,10 +696,14 @@ static func _growth_requirement(id: String, trail: Array[String]) -> Dictionary:
 				var counter := str(row.counter)
 				if counter == "well_fed_day":
 					result = _base(str(row.label), "Dê as duas refeições na hora, almoço e jantar. Abra Hoje no Tiro para ver as janelas.", {"screen": "pet"}, "Ir")
-				elif counter in ["play", "play_rope", "name_call"]:
+				elif counter in ["feed", "bathe", "play"]:
+					var care := {"feed": ["Dê comida: toque em Cuidar, escolha Comida e arraste até a boca.", "feed"],
+						"bathe": ["Dê banho: toque em Cuidar, escolha Banho e esfregue o Tiro.", "sponge"],
+						"play": ["Brinque: toque em Cuidar, escolha Brincar e jogue a bolinha para cima.", "ball"]}
+					result = _base(str(row.label), str(care[counter][0]), {"screen": "pet", "care": str(care[counter][1])}, "Ir")
+				elif counter in ["play_rope", "name_call"]:
 					var guide := {
-						"play": "Jogue no quintal. As primeiras partidas do período contam para crescer.",
-						"play_rope": "No dia 4, segure a cordinha e solte no ritmo do Tiro.",
+						"play_rope": "Segure a cordinha e solte no ritmo do Tiro.",
 						"name_call": "Toque em Tiro! no quintal e espere ele chegar.",
 					}
 					result = _base(str(row.label), str(guide[counter]), {"world": "farm", "place": "week_yard"}, "Ir")

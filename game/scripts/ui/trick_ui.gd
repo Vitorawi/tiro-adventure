@@ -37,7 +37,7 @@ static func lesson_panel() -> Control:
 		var ribbon := GameState.week_routine_badge("skilled")
 		if ribbon != "":
 			box.add_child(StepCardUi.wood_chip(UiKit.ctl_icon("check"), ribbon, "have"))
-		if GameState.week_day() >= int(Database.progression.trick_settings.show.day) and not GameState.has_upgrade("dairy"):
+		if GameState.content_day() >= int(Database.progression.trick_settings.show.day) and not GameState.has_upgrade("dairy"):
 			var target := {"world": "farm", "place": "week_show"}
 			box.add_child(WelcomeSheet._button("Show de truques", false, 220.0, "OpenTrickShow", Places.go.bind(target)))
 		var cookies := 0
@@ -57,7 +57,7 @@ static func _lesson_card(box: VBoxContainer, id: String) -> void:
 	var top := UiKit.hbox(8)
 	inner.add_child(top)
 	var icon := UiKit.icon(UiKit.ui_icon(str(def.icon)), 36)
-	var opened := GameState.week_day() >= int(def.requirements.week_day)
+	var opened := GameState.content_day() >= int(def.requirements.story_day)
 	if not opened:
 		icon.modulate = Color("ae9b7e")
 	top.add_child(icon)

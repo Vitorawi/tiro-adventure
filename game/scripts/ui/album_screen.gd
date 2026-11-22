@@ -7,9 +7,14 @@ extends RefCounted
 ## Nó raiz: `AlbumScreen`.
 
 
-## Existe para o jogador quando já há alguma foto (mesma condição de antes).
+## Existe para o jogador quando já há alguma foto. No Ato 1 (novo fluxo) o botão só aparece quando o passo 8 da
+## história ("A foto da chegada") fica ativo; antes disso as fotos são tiradas em silêncio.
 static func available() -> bool:
-	return GameState.photo_count() > 0
+	if GameState.photo_count() == 0:
+		return false
+	if GameState.progress.stat("arrival_box") == 0:
+		return true
+	return GameState.progress.claimed_quests.has("lais_photo") or GameState.progress.quest_unlocked("lais_photo")
 
 
 ## Há foto nova para ver ou carta fechada para abrir (selo do botão). Respeita `photo_alerts_enabled`.

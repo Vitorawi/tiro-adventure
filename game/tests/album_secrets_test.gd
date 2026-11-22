@@ -254,7 +254,7 @@ func _hints() -> void:
 	check(not state.album_hint_glow("plot"), "sem brilho com uma condição")
 	state.dev_take_photo("h_first_trick")
 	text = state.album_talk("nina")
-	check(text.contains("Pata"), "personagem comenta foto")
+	check(text.contains("Primeiro truque"), "personagem comenta foto")
 	state.from_dict(state.to_dict())
 	check(state.album_talk("nina") != text, "comentário único")
 	state.dev_take_photo("h_guardian")

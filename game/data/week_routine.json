@@ -3,7 +3,7 @@
     "morning": "Bom dia!",
     "night": "Boa noite!",
     "day": "Dia %d com o Tiro",
-    "weak": "O Tiro acordou fraquinho.",
+    "weak": "Ontem ele ficou com saudade. Hoje a gente capricha!",
     "missed": "Ontem faltou %s.",
     "recover": "Comer na hora ajuda o Tiro a se recuperar. Você pode deixar um prato pronto.",
     "today": "Ver refeições",
@@ -19,9 +19,8 @@
     "list": "Hoje",
     "daily_source": "Prêmio da atividade diária do filhote",
     "step": "Próximo passo",
-    "locked": "Abre no dia %d",
+    "locked": "Continue a História",
     "stove_locked": "Abra o fogão pela História.",
-    "invent_locked": "Inventar abre no jantar.",
     "complete": "Concluído",
     "go": "Ir",
     "open_lines": "Ver linhas no Caderninho",
@@ -41,7 +40,22 @@
     "duples": "Duplas descobertas",
     "seed": "Semente de prêmio · +%d na próxima colheita",
     "closed": "Semanais em Dentinhos.",
-    "weak_recovered": "Ontem faltou comida na hora. O Tiro já está melhor."
+    "weak_recovered": "Ontem faltou comida na hora. O Tiro já está melhor.",
+    "first_day": "Hoje é o primeiro dia de verdade: almoço e jantar na hora.",
+    "tip_bowl": "Vai sair? Deixe o almoço pronto na tigela e ele come sozinho no horário.",
+    "tip_bowl_go": "Deixar pronto",
+    "served": "Ele comeu o %s às %dh%02d ✓",
+    "arrival_done": "Dia da chegada completo!",
+    "deal_need": "%s começa o combinado: almoço e jantar na hora valem uma patinha.",
+    "deal": "Seu primeiro combinado começa %s, no almoço das %dh.",
+    "deal_hours": "Almoço %dh–%dh · Jantar %dh–%dh",
+    "reminder_ask": "Quer que eu avise na hora de comer?",
+    "reminder_on": "Combinado! Eu aviso.",
+    "reminder_off": "Tudo bem. Dá para ligar na folha Hoje.",
+    "store_ask": "Quer deixar a comida de amanhã pronta?",
+    "store_go": "Deixar pronto",
+    "fed_lunch": "Já almocei!",
+    "fed_dinner": "Já jantei!"
   },
   "news": [
     {
@@ -50,9 +64,24 @@
       "icon": "tab_pet"
     },
     {
-      "open": "Galinheiro, caminha e aula do Senta.",
+      "open": "A banca da vovó e a primeira sopinha.",
+      "hook": "A banca da vovó",
+      "icon": "coin"
+    },
+    {
+      "open": "O primeiro desejo do Tiro.",
+      "hook": "O que ele vai pedir?",
+      "icon": "tab_pet"
+    },
+    {
+      "open": "As galinhas e o primeiro prato com ovo.",
       "hook": "Galinhas no sítio",
       "icon": "station_coop"
+    },
+    {
+      "open": "Biscoitos e a aula do Senta.",
+      "hook": "Senta!",
+      "icon": "trick_paw"
     },
     {
       "open": "A lagoa e as primeiras pescarias.",
@@ -60,17 +89,22 @@
       "icon": "station_fishing"
     },
     {
-      "open": "Pomar, mingau e aula do Dá a pata.",
+      "open": "O pomar e o primeiro mingau.",
       "hook": "Frutas no pomar",
       "icon": "item_apple"
     },
     {
-      "open": "Carroça do Feirante, banho com xampu e aula do Deita.",
+      "open": "Pratos inventados e o Livro de receitas.",
+      "hook": "Cozinheiro inventor",
+      "icon": "item_puppy_mash"
+    },
+    {
+      "open": "A carroça do Feirante e o banho com xampu.",
       "hook": "Alguém vai parar no portão",
       "icon": "coin"
     },
     {
-      "open": "Show de truques e esconde-esconde.",
+      "open": "O quintal, mais truques e o show do Tiro.",
       "hook": "O primeiro show do Tiro",
       "icon": "trick_paw"
     },
@@ -154,7 +188,7 @@
     "eggs": {
       "label": "Pegar ovos",
       "target": 1,
-      "day": 2,
+      "day": 4,
       "upgrade": "chicken_coop",
       "go": {
         "world": "farm",
@@ -170,7 +204,7 @@
     "fish": {
       "label": "Pescar um peixe",
       "target": 1,
-      "day": 3,
+      "day": 6,
       "go": {
         "world": "farm",
         "place": "fishing"
@@ -191,7 +225,7 @@
           "id": "invention",
           "name": "Primeira invenção",
           "label": "Crie um prato na aba Inventar.",
-          "day": 1,
+          "day": 8,
           "target": 1,
           "go": {
             "kitchen": "invent"
@@ -206,7 +240,7 @@
           "id": "flavors",
           "name": "Três sabores",
           "label": "Sirva um prato Crocante, um Cremoso e um Docinho.",
-          "day": 1,
+          "day": 8,
           "target": 3,
           "go": {
             "feed": true
@@ -221,7 +255,7 @@
           "id": "pair",
           "name": "Combinação especial",
           "label": "Descubra a primeira dupla de ingredientes.",
-          "day": 1,
+          "day": 8,
           "target": 1,
           "go": {
             "kitchen": "invent"
@@ -232,7 +266,7 @@
           "id": "five",
           "name": "Cinco invenções",
           "label": "Registre cinco pratos diferentes no Livro de receitas.",
-          "day": 2,
+          "day": 8,
           "target": 5,
           "go": {
             "notebook": "recipes"
@@ -245,7 +279,7 @@
           "id": "types",
           "name": "Um de cada",
           "label": "Dê ao Tiro uma papinha, uma sopinha e um mingau.",
-          "day": 4,
+          "day": 7,
           "target": 3,
           "go": {
             "feed": true
@@ -261,7 +295,7 @@
           "id": "complete_dish",
           "name": "Prato completo",
           "label": "Faça um prato que dê os quatro nutrientes.",
-          "day": 3,
+          "day": 8,
           "target": 1,
           "go": {
             "kitchen": "invent"
@@ -272,7 +306,7 @@
           "id": "pairs",
           "name": "Caçador de duplas",
           "label": "Descubra cinco duplas diferentes de ingredientes.",
-          "day": 3,
+          "day": 8,
           "target": 5,
           "go": {
             "kitchen": "invent"
@@ -284,7 +318,7 @@
           "id": "favorite",
           "name": "O favorito dele",
           "label": "Descubra a comida favorita do Tiro.",
-          "day": 4,
+          "day": 8,
           "target": 1,
           "go": {
             "feed": true
@@ -295,7 +329,7 @@
           "id": "secret",
           "name": "Segredo da vovó",
           "label": "Faça uma receita secreta.",
-          "day": 6,
+          "day": 8,
           "target": 1,
           "go": {
             "notebook": "recipes:secrets"
@@ -311,7 +345,7 @@
           "id": "chef",
           "name": "Mestre-cuca filhote",
           "label": "Registre quinze pratos diferentes no Livro de receitas.",
-          "day": 3,
+          "day": 8,
           "target": 15,
           "go": {
             "notebook": "recipes"
@@ -342,7 +376,7 @@
           "id": "play",
           "name": "Hora de brincar",
           "label": "Brinque de manhã, à tarde e à noite no mesmo dia.",
-          "day": 1,
+          "day": 10,
           "target": 3,
           "go": {
             "world": "farm",
@@ -356,7 +390,7 @@
           "id": "sit_meal",
           "name": "Com educação",
           "label": "Peça o Senta antes de três refeições.",
-          "day": 3,
+          "day": 6,
           "target": 3,
           "go": {
             "meal": true
@@ -371,7 +405,7 @@
           "id": "train",
           "name": "Treino em dia",
           "label": "Treine em três dias diferentes.",
-          "day": 2,
+          "day": 5,
           "target": 3,
           "go": {
             "notebook": "tricks"
@@ -384,7 +418,7 @@
           "id": "skilled",
           "name": "Sabe bem",
           "label": "Leve um truque ao nível Sabe bem.",
-          "day": 2,
+          "day": 5,
           "target": 1,
           "go": {
             "notebook": "tricks"
@@ -395,7 +429,7 @@
           "id": "tricks",
           "name": "Três truques",
           "label": "Aprenda Senta, Dá a pata e Deita.",
-          "day": 5,
+          "day": 10,
           "target": 3,
           "go": {
             "notebook": "tricks"
@@ -406,7 +440,7 @@
           "id": "shows",
           "name": "Aplausos",
           "label": "Complete dois shows do Tiro.",
-          "day": 6,
+          "day": 10,
           "target": 2,
           "go": {
             "world": "farm",
@@ -468,7 +502,7 @@
           "id": "perfect",
           "name": "Dia perfeito",
           "label": "No mesmo dia, dê as duas refeições na hora, brinque, treine e faça carinho.",
-          "day": 3,
+          "day": 5,
           "target": 1,
           "go": {
             "meal": true

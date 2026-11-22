@@ -105,7 +105,7 @@ func _data() -> void:
 	check(int(r.sew_golden_cape.seconds) == 1200 and int(r.sew_flower_crown.seconds) == 300, "costura de coleção fica igual")
 	var u: Dictionary = db.get("progression").upgrades
 	check(int(u.stove_queue.cost) == 80 and not u.stove_queue.has("materials"), "stove_queue: 80 moedas, sem tábuas")
-	check(u.stove_queue.requirements.quests == ["first_kitchen"], "stove_queue exige first_kitchen")
+	check(u.stove_queue.requirements.quests == ["first_meal"], "stove_queue exige first_meal")
 	check(int(u.stove_queue_2.cost) == 220 and _same(u.stove_queue_2.materials, {"plank": 3}), "stove_queue_2: 220 + tábua 3")
 	check("workbench" in u.stove_queue_2.requirements.owned and "stove_queue" in u.stove_queue_2.requirements.owned, "stove_queue_2 exige bancada e a fila anterior")
 	check(int(u.blender_queue.cost) == 100 and _same(u.blender_queue.materials, {"plank": 1}), "blender_queue: 100 + tábua 1")

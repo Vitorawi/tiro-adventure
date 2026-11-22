@@ -53,8 +53,6 @@ static func menu() -> Control:
 		var id := str(mode[0])
 		var caption := str(mode[1])
 		var locked := not GameState.yard_open(id)
-		if locked:
-			caption += " · dia %d" % int(GameState.yard_rules().days[id])
 		var button := StepCardUi.locked_button(caption) if locked else WelcomeSheet._button(caption, false, 240, str(mode[2]), start.bind(id))
 		button.name = str(mode[2])
 		button.disabled = locked

@@ -86,7 +86,8 @@ func _run() -> void:
 		check(sheet.find_children("CloseButton", "Button", true, false).size() == 1, "um único X ao reconstruir/abrir")
 		check(not panel.has_meta("sheet_size") and panel.get_meta("sheet_fit_content", false), "crescimento pede altura pelo conteúdo")
 		# Sem rolagem nas fases com próxima fase: cabe nos 360x780 do celular.
-		if not state.call("growth_info").next.is_empty():
+		# (a lista longa do Dentinhos, 13 passos, rola por desenho: a cartela de patinhas fica abaixo da dobra)
+		if not state.call("growth_info").next.is_empty() and state.call("growth_info").requirements.size() <= 8:
 			var sheet_scroll := main.find_child("Sheet", true, false).find_child("Scroll", true, false) as ScrollContainer
 			var bar := sheet_scroll.get_v_scroll_bar()
 			check(bar.max_value <= bar.page + 1.0, "painel sem rolagem em %s (%d de %d)" % [phase.id, int(bar.max_value), int(bar.page)])
@@ -151,10 +152,10 @@ func _run() -> void:
 		DirAccess.make_dir_recursive_absolute(shots)
 		await RenderingServer.frame_post_draw
 		check(root.get_texture().get_image().save_png(shots.path_join("care_%d.png" % root.size.x)) == OK, "salva captura dos cuidados")
-	# Recém-chegado → Filhotinho com 7 de 8 passos feitos e 2 pratos de 4: a ação recomendada é cozinhar.
-	state.call("dev_set_phase", "newborn")
+	# Filhotinho → Dentinhos com 12 de 13 passos feitos e 2 pratos de 8: a ação recomendada é cozinhar.
+	state.call("dev_set_phase", "puppy")
 	state.get("growth").phase_moments = {}
-	state.get("growth").done = {"puppy": {"bed": true, "days": true, "star_dish": true, "invented": true, "play": true, "name": true, "sit": true}}
+	state.get("growth").done = {"teething": {"key": true, "days": true, "star_dish": true, "invented": true, "key_egg": true, "key_fruit": true, "key_fish": true, "play": true, "name": true, "rope": true, "tricks": true, "sit_good": true}}
 	state.get("growth").phase_dishes = {"papinha:cenoura": {"type": "papinha", "ingredients": ["cenoura"], "meal": true}, "petisco:cenoura": {"type": "petisco", "ingredients": ["cenoura"], "meal": false}}
 	state.call("_changed")
 	ui.call("open")
@@ -162,12 +163,12 @@ func _run() -> void:
 	var panel := main.find_child("GrowthPanel", true, false)
 	for name: String in ["GrowthHero", "CurrentDog", "NextSilhouette", "NextUnlocks", "GrowthNextAction", "GrowthSummary", "GrowthProgress"]:
 		check(panel.find_child(name, true, false) != null, "nó " + name)
-	check(text(panel, "2/4") and text(panel.find_child("GrowthSummary", true, false), "7/8") and not text(panel, "de 8 passos"), "quantidade e único resumo dos passos visíveis")
+	check(text(panel, "2/8") and text(panel.find_child("GrowthSummary", true, false), "12/13") and not text(panel, "de 13 passos"), "quantidade e único resumo dos passos visíveis")
 	check(panel.find_child("GrowthNextAction", true, false).text == "Cozinhar", "próxima ação nomeada")
 	check(panel.find_child("PillarRing_body", true, false) == null, "não repete pontos e anéis no painel principal")
-	check(main.find_child("ProfileCount", true, false).text == "7/8" and main.find_child("ProfileCount", true, false).is_visible_in_tree(), "HUD mostra que falta um dos oito requisitos (%s)" % main.find_child("ProfileCount", true, false).text)
+	check(main.find_child("ProfileCount", true, false).text == "12/13" and main.find_child("ProfileCount", true, false).is_visible_in_tree(), "HUD mostra que falta um dos treze requisitos (%s)" % main.find_child("ProfileCount", true, false).text)
 	var shadow: ShaderMaterial = panel.find_child("NextSilhouette", true, false).get_child(0).material
-	check(shadow.shader.resource_path.ends_with("silhouette.gdshader") and int(shadow.get_shader_parameter("stage")) == 7, "estágio por requisitos")
+	check(shadow.shader.resource_path.ends_with("silhouette.gdshader") and int(shadow.get_shader_parameter("stage")) == 12, "estágio por requisitos")
 	for future: Control in panel.find_children("Future_*", "", true, false):
 		check(future.get_child(0).material.shader.resource_path.ends_with("silhouette.gdshader"), "cartão futuro sempre mascarado")
 	var list_scroll := main.find_child("Sheet", true, false).find_child("Scroll", true, false) as ScrollContainer
@@ -181,6 +182,7 @@ func _run() -> void:
 	check(main.find_child("Sheet", true, false).get_node("%Title").text == "Como fazer", "toque abre ajuda")
 	check(text(main.find_child("Sheet", true, false), "pratos diferentes"), "ajuda explica os pratos diferentes")
 	# Dar usa o mesmo item no painel e na Mochila; parcial, atualização e repetição.
+	state.call("dev_set_phase", "newborn")
 	var original: Array = db.get("growth").phases[1].requirements.duplicate(true)
 	db.get("growth").phases[1].requirements = [{"id": "fixture_key", "type": "deliver", "item": "stick", "qty": 2, "label": "Chave de teste"}]
 	state.get("growth").done = {}

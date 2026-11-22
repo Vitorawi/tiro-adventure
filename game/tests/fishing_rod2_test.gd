@@ -41,6 +41,7 @@ func _fresh(day: int = 1) -> void:
 	state.call("reset")
 	if day > 1:
 		state.call("dev_week_goto", day)
+		state.call("dev_content_day", 6 if day == 3 else day)
 	state.set("coins", 500)
 	db.get("fishing")["chest"] = original_chest.duplicate(true)
 	db.get("fishing").physics["bar_base"] = original_base
@@ -48,7 +49,7 @@ func _fresh(day: int = 1) -> void:
 
 ## Mercado liberado (capítulo 13 e Pesca nível 3), sem dar a vara.
 func _market_open() -> void:
-	state.call("dev_jump_to_chapter", 8)
+	state.call("dev_jump_to_chapter", 12)
 	_f().xp = 100
 
 
@@ -93,9 +94,9 @@ func _shop() -> void:
 	_fresh()
 	var pack: Dictionary = db.get("progression").shop_items.reel_rod_pack
 	check(pack.rods == ["reel_rod"] and int(pack.price) == 180 and int(pack.materials.fiber) == 4 and int(pack.max) == 1, "1: dados do pacote")
-	check(str(pack.shop) == "market" and int(pack.requirements.chapter) == 9 and int(pack.requirements.fishing_level) == 3, "1: Feirante, capítulo 13 e pesca 3")
+	check(str(pack.shop) == "market" and int(pack.requirements.chapter) == 13 and int(pack.requirements.fishing_level) == 3, "1: Feirante, capítulo 13 e pesca 3")
 	check(state.call("shop_item_locked", "reel_rod_pack") != "", "1: bloqueado no começo")
-	state.call("dev_jump_to_chapter", 8)
+	state.call("dev_jump_to_chapter", 12)
 	check(state.call("shop_item_locked", "reel_rod_pack") != "", "1: sem pesca nível 3 ainda bloqueado")
 	check(state.call("shop_item_locked", "reel_rod_pack") == "Pesca nível 3", "1: motivo 'Pesca nível 3': " + str(state.call("shop_item_locked", "reel_rod_pack")))
 	_f().xp = 100
@@ -368,7 +369,7 @@ func _story() -> void:
 	var q: Dictionary = db.get("quests")
 	var vara: Dictionary = q.merchant_fishing
 	check(str(vara.line) == "angling" and str(vara.npc) == "merchant" and str(vara.goals[0].key) == "rod:reel_rod", "8: merchant_fishing compra a vara")
-	check(int(vara.requirements.chapter) == 9 and str(vara.requirements.rod) == "bamboo_rod", "8: merchant_fishing pede capítulo 13 e a vara de bambu")
+	check(int(vara.requirements.chapter) == 13 and str(vara.requirements.rod) == "bamboo_rod", "8: merchant_fishing pede capítulo 13 e a vara de bambu")
 	check(int(vara.rewards.coins) == 20 and int(vara.rewards.items.bait_dough) == 4, "8: prêmio 20 moedas + 4 massas")
 	check(str(vara.go.action) == "shop:reel_rod_pack", "8: Ir abre o pacote")
 	check(str(q.merchant_regular.get("line")) == "merchant", "8: a linha do Feirante continua livre (sem travar o comércio)")
@@ -376,7 +377,7 @@ func _story() -> void:
 	check(str(carp.npc) == "bloblo" and str(carp.goals[0].key) == "fish:fish_carp" and int(carp.rewards.coins) == 25, "8: bloblo_carp")
 	check(carp.requirements.quests.has("merchant_fishing"), "8: a carpa vem depois da vara")
 	var stew: Dictionary = q.lais_fish_stew
-	check(str(stew.kind) == "main" and int(stew.chapter) == 10, "8: lais_fish_stew é do capítulo 6")
+	check(str(stew.kind) == "main" and int(stew.chapter) == 14, "8: lais_fish_stew é do capítulo 14")
 	check(int(stew.order) > int(q.main_5_bricks.order) and int(stew.order) < int(q.explorer_6_eggs.order), "8: ordem antes de explorer_6_eggs")
 	check(str(stew.goals[0].key) == "produce:fish_stew" and str(stew.goals[1].key) == "feed:fish_stew", "8: objetivos com os contadores reais")
 	check(bool(stew.goals[0].fresh) and bool(stew.goals[1].fresh) and int(stew.rewards.coins) == 30, "8: fresh e 30 moedas")

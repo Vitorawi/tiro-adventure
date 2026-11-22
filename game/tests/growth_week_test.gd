@@ -99,10 +99,12 @@ func _run() -> void:
 
 func _lists() -> void:
 	state.call("reset")
-	check(row_ids() == ["bed", "days", "dishes", "star_dish", "invented", "play", "name", "sit"], "Recém-chegado → Filhotinho inclui nome e Senta: %s" % str(row_ids()))
-	check(int(row("days").need) == 2 and int(row("dishes").need) == 4 and int(row("play").need) == 4, "números 2 dias, 4 pratos, 4 brincadeiras")
+	check(row_ids() == ["feed", "bath", "play", "bed"], "Recém-chegado → Filhotinho é a lista curta do Ato 1: %s" % str(row_ids()))
+	check(int(row("feed").need) == 1 and int(row("bath").need) == 1 and int(row("play").need) == 1, "comer, banho e brincar valem uma vez")
 	var puppy: Dictionary = db.growth.phases[1]
-	check(not puppy.requirements.filter(func(r: Dictionary) -> bool: return str(r.get("hook", "")) == "name_call").is_empty(), "o nome e o Senta ficam prontos nos dados")
+	check(int(puppy.chapter) == 1 and not (puppy.rewards as Dictionary).has("coins"), "Filhotinho é do capítulo 1 e não paga moeda")
+	var teething: Dictionary = db.growth.phases[2]
+	check(not teething.requirements.filter(func(r: Dictionary) -> bool: return str(r.get("hook", "")) == "name_call").is_empty(), "o nome ficou pronto nos dados do Dentinhos")
 	var hooks: Dictionary = db.growth.hooks
 	for name: String in ["name_call", "play_rope", "trick_sit", "tricks_three"]:
 		check(hooks.has(name) and bool(hooks[name].live), "gancho %s ativado" % name)
@@ -113,53 +115,42 @@ func _first_phase() -> void:
 	state.call("dev_week_goto", 1)
 	state.call("dev_week_hour", 23)
 	check(not bool(state.call("growth_info").ready), "começa sem estar pronto")
+	# Ato 1: comida, banho, brincar e caminha, sem esperar dia nem jantar.
+	check(feed("puppy_mash"), "papinha da caixinha")
+	check(row("feed").done and not row("bath").done and not bool(state.call("growth_info").ready), "comer feito, o resto pendente")
+	check(bool(state.call("bathe")), "banho")
+	check(row("bath").done, "banho feito")
+	play_times(1)
+	check(row("play").done, "brincar feito")
+	check(not row("bed").done and not bool(state.call("growth_info").ready), "falta a caminha")
 	state.call("dev_grant_upgrade", "dog_bed")
 	check(row("bed").done, "item-chave: caminha")
-	# Dia 1: uma refeição basta (dia da chegada) e já vira patinha.
-	check(feed("puppy_mash"), "papinha no dia 1")
-	check(int(row("days").have) == 1 and not row("days").done, "dia 1 bem alimentado: 1/2")
-	check(int(row("dishes").have) == 1, "primeiro prato diferente")
-	check(feed("puppy_mash") and int(row("dishes").have) == 1, "o mesmo prato de novo não conta duas vezes")
+	check(bool(state.call("growth_info").ready), "Crescer! acende no primeiro dia")
+	var coins: int = state.get("coins")
+	check(str(state.call("grow")) == "", "cresce para Filhotinho")
+	var growth: Variant = state.get("growth")
+	check(growth.phase == "puppy" and growth.phase_dishes.is_empty(), "fase nova começa sem os pratos da anterior")
+	check(state.get("coins") == coins, "o presente do Filhotinho não traz moedas")
+	check(int(state.get("inventory").call("count", "dog_food")) >= 3, "o presente do Filhotinho traz a ração")
+	var summary: Dictionary = growth.ceremonies.puppy.get("summary", {})
+	check(int(summary.get("days", 0)) == 1 and int(summary.get("dishes", 0)) == 1 and int(summary.get("plays", 0)) == 1, "resumo congelado: %s" % str(summary))
+
+
+func _second_phase() -> void:
+	check(row_ids() == ["key", "days", "dishes", "star_dish", "invented", "key_egg", "key_fruit", "key_fish", "play", "name", "rope", "tricks", "sit_good"], "Filhotinho → Dentinhos: %s" % str(row_ids()))
+	check(int(row("days").need) == 6 and int(row("dishes").need) == 8 and int(row("play").need) == 8, "números 6 dias, 8 pratos, 8 brincadeiras")
+	check(int(row("days").have) == 1, "a patinha do dia da chegada já conta (dias com contagem total)")
+	check(int(row("dishes").types_need) == 3, "pede 3 tipos de prato")
+	# Os lanches também são pratos, o Gororoba não, e o progresso avisa.
 	check(feed("carrot_snack") and feed("apple_biscuit"), "lanches também são pratos")
-	check(int(row("dishes").have) == 3, "três pratos diferentes")
-	check(not feed("gororoba") or int(row("dishes").have) == 3, "Gororoba não é prato")
+	check(not feed("gororoba") or int(row("dishes").have) == 2, "Gororoba não é prato")
 	check(toasts.any(func(text: String) -> bool: return text.begins_with("Pratos diferentes: ")), "avisa o progresso dos pratos")
-	# 2 estrelas e prato inventado.
+	# 2 estrelas e prato inventado (vieram do Filhotinho antigo para o Dentinhos).
 	check(not row("star_dish").done and not row("invented").done, "ainda sem estrelas nem inventado")
 	state.call("_note_recipe", "puppy_mash", 2)
 	check(row("star_dish").done, "prato de 2 estrelas")
 	state.call("_note_dish", "papinha", ["cenoura", "batata"], 1)
 	check(row("invented").done, "prato inventado")
-	play_times(4)
-	state.get("progress").stats["name_call"] = 1 # O botão real é coberto em play_week_test.
-	check(row("play").done, "4 brincadeiras")
-	# Dia 2: o Crescer! só acende no jantar.
-	state.call("dev_week_goto", 2)
-	state.call("dev_week_hour", 12)
-	state.get("inventory").call("add", "vegetable_soup", 1)
-	check(feed("vegetable_soup"), "sopinha no almoço do dia 2")
-	state.get("progress").stats["trick:sit"] = 3  # o treino real tem cobertura própria em trick_lesson_test
-	check(int(row("dishes").have) == 4 and row("dishes").done, "quatro pratos diferentes")
-	check(not row("days").done and not bool(state.call("growth_info").ready), "almoço do dia 2: Crescer! ainda apagado")
-	check(str(state.call("grow_error")) != "", "não dá para crescer só com o almoço")
-	state.call("dev_week_hour", 19)
-	check(feed("puppy_mash") or true, "jantar")
-	check(int(state.call("meals_on_time", 2)) == 2, "dia 2: duas refeições na hora")
-	check(row("days").done, "jantar do dia 2: segundo dia bem alimentado")
-	check(bool(state.call("growth_info").ready), "Crescer! acende no jantar do dia 2")
-	var coins: int = state.get("coins")
-	check(str(state.call("grow")) == "", "cresce para Filhotinho")
-	var growth: Variant = state.get("growth")
-	check(growth.phase == "puppy" and growth.phase_dishes.is_empty(), "fase nova começa sem os pratos da anterior")
-	check(state.get("coins") == coins + 30, "presente da fase")
-	var summary: Dictionary = growth.ceremonies.puppy.get("summary", {})
-	check(int(summary.get("days", 0)) == 2 and int(summary.get("dishes", 0)) == 4 and int(summary.get("plays", 0)) == 4, "resumo congelado: %s" % str(summary))
-
-
-func _second_phase() -> void:
-	check(row_ids() == ["key", "days", "dishes", "key_egg", "key_fruit", "key_fish", "play", "rope", "tricks", "sit_good"], "Filhotinho → Dentinhos: %s" % str(row_ids()))
-	check(int(row("days").need) == 5 and int(row("dishes").need) == 8 and int(row("play").need) == 8, "números 5 dias, 8 pratos, 8 brincadeiras")
-	check(int(row("dishes").types_need) == 3, "pede 3 tipos de prato")
 	# Pratos de 2 tipos não bastam, por mais que sejam 8.
 	var seen: Array = []
 	var served := 0
@@ -196,14 +187,15 @@ func _second_phase() -> void:
 	check(feed("fish_mash") and row("key_fish").done, "papinha de peixe fixa marca o peixe")
 	# Dias e brincadeiras.
 	check(not row("days").done and not bool(state.call("growth_info").ready), "faltam dias bem alimentados")
-	for day in range(3, 8):
+	for day in range(2, 7):
 		state.call("dev_week_goto", day)
 		state.call("dev_week_meal", "lunch")
 		state.call("dev_week_meal", "dinner")
-	check(row("days").done and int(row("days").have) == 5, "cinco dias bem alimentados")
+	check(row("days").done and int(row("days").have) == 6, "seis dias bem alimentados, contando o da chegada")
 	play_times(8)
 	state.get("progress").stats["play_rope"] = 1 # O gesto real é coberto em play_week_test.
-	check(row("play").done, "8 brincadeiras")
+	state.get("progress").stats["name_call"] = 1 # O botão real é coberto em play_week_test.
+	check(row("play").done and row("name").done, "8 brincadeiras e o nome")
 	state.get("progress").stats["trick:sit"] = 8
 	state.get("progress").stats["trick_learned"] = 3
 	check(not bool(state.call("growth_info").ready), "falta o mordedor")
@@ -212,32 +204,34 @@ func _second_phase() -> void:
 	check(bool(state.call("growth_info").ready), "tudo pronto para Dentinhos: %s" % str(state.call("grow_error")))
 	check(str(state.call("grow")) == "" and state.get("growth").phase == "teething", "cresce para Dentinhos")
 	var summary: Dictionary = state.get("growth").ceremonies.teething.get("summary", {})
-	check(int(summary.get("days", 0)) == 5 and int(summary.get("dishes", 0)) >= 9 and int(summary.get("plays", 0)) == 8, "resumo de Filhotinho: %s" % str(summary))
+	check(int(summary.get("days", 0)) == 6 and int(summary.get("dishes", 0)) >= 9 and int(summary.get("plays", 0)) == 8, "resumo de Filhotinho: %s" % str(summary))
 
 
 func _hooks() -> void:
-	# Fase seguinte da lista (Aventureiro) não tem ganchos; testa em Filhotinho com um save novo.
+	# O nome e o Senta moram na lista do Dentinhos: testa em Filhotinho com um save novo.
 	state.call("reset")
+	state.get("growth").phase = "puppy"
 	var hooks: Dictionary = db.growth.hooks
 	hooks.name_call.live = true
-	check(row_ids().has("name") and row_ids().has("sit"), "gancho ligado mostra o requisito")
-	check(not row("name").done and not row("sit").done, "nome e Senta pendentes")
+	check(row_ids().has("name") and row_ids().has("sit_good"), "gancho ligado mostra o requisito")
+	check(not row("name").done and not row("sit_good").done, "nome e Senta pendentes")
 	state.get("progress").stats["name_call"] = 1
 	check(row("name").done, "atender pelo nome conta pelo contador")
 	check(int(state.call("trick_level", "sit")) == 0, "Senta sem acertos: nível 0")
 	state.get("progress").stats["trick:sit"] = 3
-	check(int(state.call("trick_level", "sit")) == 1 and row("sit").done, "3 acertos: Aprendeu")
+	check(int(state.call("trick_level", "sit")) == 1 and not row("sit_good").done, "3 acertos: Aprendeu, ainda não Sabe bem")
 	state.get("progress").stats["trick:sit"] = 8
-	check(int(state.call("trick_level", "sit")) == 2, "8 acertos: Sabe bem")
+	check(int(state.call("trick_level", "sit")) == 2 and row("sit_good").done, "8 acertos: Sabe bem")
 	state.get("progress").stats["trick:sit"] = 15
 	check(int(state.call("trick_level", "sit")) == 3, "15 acertos: Craque")
 	hooks.name_call.live = false
-	check(not row_ids().has("name") and row_ids().has("sit"), "só o gancho desligado volta a se esconder")
+	check(not row_ids().has("name") and row_ids().has("sit_good"), "só o gancho desligado volta a se esconder")
 	hooks.name_call.live = true
 
 
 func _persistence() -> void:
 	state.call("reset")
+	state.get("growth").phase = "puppy"  # a contagem de pratos é a do Dentinhos
 	check(feed("puppy_mash"), "prato antes de salvar")
 	var before: Dictionary = state.get("growth").phase_dishes.duplicate(true)
 	state.call("from_dict", state.call("to_dict"))

@@ -28,7 +28,7 @@
     "train": {"type": "action", "name": "Quero treinar", "icon": "trick_paw", "pillar": "smart",
       "phases": ["puppy", "teething"],
       "goal": {"key": "trick_lesson", "target": 1}, "go": "place:farm:week_training", "go_hint": "Aula do Tiro",
-      "needs_lesson": true, "requirements": {"week_day": 2}},
+      "needs_lesson": true, "requirements": {"story_day": 5}},
     "dig": {"type": "action", "name": "Quero cavar um montinho", "icon": "action_walk", "pillar": "smart",
       "phases": ["explorer"],
       "goal": {"key": "find", "target": 1}, "go": "screen:pet",

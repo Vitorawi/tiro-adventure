@@ -44,8 +44,22 @@ func _hide_modals() -> void:
 	main.set("_modal_queue", [] as Array[Callable])
 
 
+## Na história o quintal inteiro abre no capítulo 10 (e a carroça no 9); o teste escalona as variantes pelo dia do teste (era o calendário
+## antigo) trocando `week_play.days` em memória, para exercitar cada uma delas.
+const STAGGER := {"ball": 1, "name": 1, "fetch": 2, "rope": 4, "squeak": 5, "lake": 6, "hide": 6}
+
+
 func day(date: int, hour: int) -> void:
 	state.call("dev_week_goto", date)
+	var chapter := 3 if date < 5 else 10  # o quintal abre no capítulo 10 (a carroça, no 9)
+	state.call("dev_content_day", chapter)
+	var days: Dictionary = state.call("yard_rules").days
+	for kind: String in STAGGER:
+		days[kind] = chapter if int(STAGGER[kind]) <= date else 99
+	# Com o capítulo 10 aberto todas as lições da semana chegariam juntas e cobririam a brincadeira.
+	for lesson: Dictionary in root.get_node("Database").week_tutorials:
+		state.week.tutorial[str(lesson.id)] = {"done": true}
+	state.call("_mark_all_seen")  # sem cartões "Novo!" do capítulo 10 por cima da brincadeira
 	state.call("dev_week_hour", hour)
 	_hide_modals()
 
@@ -143,6 +157,7 @@ func _run() -> void:
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
 	state.call("finish_fishing_tutorial")
+	state.get("growth").phase = "puppy"  # os ganchos dos brinquedos são do Dentinhos (F01): a lista mostrada é a dele
 	main = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	await pause(0.7)
@@ -208,6 +223,11 @@ func _run() -> void:
 			await process_frame
 		for i in 5:
 			var first := part == 0 and i == 0
+			# A janela do Pula! é em tempo real (0,7 s a 1,45 s depois do pouso): no capítulo 10 o mundo inteiro está aberto e o
+			# quadro do teste headless pode ser lento. Só neste lançamento o teste alarga o fim da janela, em memória.
+			var jump_closes: float = state.call("yard_rules").jump.closes
+			if first:
+				state.call("yard_rules").jump.closes = 4.0
 			var aiming := arch if part == 0 else bucket
 			await launch(game, aiming, "04_mira" if first else "")
 			if first:
@@ -220,6 +240,7 @@ func _run() -> void:
 				await shot("05_pula")
 				tap("YardJump")
 				await process_frame
+				state.call("yard_rules").jump.closes = jump_closes
 				check(str((game.find_child("YardScore", true, false) as Label).text).begins_with("6 pts"), "Pula! dobra os três pontos do arco")
 			else:
 				await wait_landing(game)
@@ -236,7 +257,7 @@ func _run() -> void:
 			check(outcome.get("happiness") == 0, "quarta partida sem Felicidade")
 	check(state.get("dog").needs.happiness >= happiness_before + 28.0, "três partidas dão Felicidade")
 	check(state.get("coins") == coins + int(rules.record_coins) and stat("moment:smart") == smart + 2, "moedas e teto do período")
-	check(stat("play") == play_count + 3 and row("play").done, "só três partidas progridem")
+	check(stat("play") == play_count + 3 and int(row("play").have) == stat("play"), "só três partidas progridem")
 	tap("YardExit")
 	await process_frame
 	var save: Dictionary = state.call("to_dict")
@@ -301,6 +322,7 @@ func _run() -> void:
 	await process_frame
 	var treats: Dictionary = state.get("inventory").counts.duplicate()
 	state.call("finish_fishing_tutorial")
+	state.get("growth").phase = "puppy"  # os ganchos dos brinquedos são do Dentinhos (F01): a lista mostrada é a dele
 	await open_mode("YardHide")
 	var hide_game := main.find_child("YardHideSeek", true, false)
 	check(hide_game != null, "Esconde-esconde abre no dia 6")

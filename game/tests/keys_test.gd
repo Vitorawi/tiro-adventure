@@ -61,7 +61,7 @@ func run() -> void:
  var help: Script = load('res://scripts/ui/task_help.gd')
  var origin: Dictionary = help.call('describe','growth_req','key')
  check(origin.target.get('world','') == 'farm' and origin.target.get('place','') == 'shop:week_teether','origem aponta para o kit da banca')
- check('Abre no dia 7' in str(origin.detail),'origem informa o dia de abertura')
+ check('Continue a História' in str(origin.detail),'origem informa o dia de abertura')
  check(origin.target.get('screen','')!='bag','sem argolinha não manda procurar na mochila')
  var source_panel: Control = load('res://scripts/ui/growth_ui.gd').panel()
  root.add_child(source_panel)

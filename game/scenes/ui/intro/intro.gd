@@ -202,10 +202,9 @@ func _finish() -> void:
 	GameState.finish_week_arrival()
 	queue_free()
 	Events.sheet_close_requested.emit()
-	Events.world_requested.emit("house", "")
-	# Solta o Tiro: ele entra correndo pela porta; depois a seta mostra a Laís.
+	# Ato 1: o jogo continua na tela do Tiro (o Mapa só aparece no passo 5). O primeiro passo já está guiado
+	# pela pílula do próximo passo e pela mão da lição.
+	Events.screen_requested.emit(&"pet")
 	var tree := Engine.get_main_loop() as SceneTree
 	tree.create_timer(0.4).timeout.connect(func() -> void:
 		Events.world_activity.emit(&"arrive", "", -1))
-	tree.create_timer(2.6).timeout.connect(func() -> void:
-		Events.world_requested.emit("house", "look:npc:" + NPC))

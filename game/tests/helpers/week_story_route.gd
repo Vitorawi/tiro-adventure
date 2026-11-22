@@ -202,26 +202,73 @@ func funds(amount: int) -> void:
 		ok(state.sell("potato", 3, "farm"), "Vender batatas")
 
 
+## Ato 1 do novo fluxo (F01): os oito passos em casa, só com a papinha da caixinha e sem moeda.
+func ato_one() -> void:
+	var coins: int = state.coins
+	verify.call(state.album.has_photo("h_arrival"), "Foto da chegada")
+	action("cuidar")
+	verify.call(state.feed("puppy_mash"), "Dar a papinha da caixinha")
+	verify.call(state.meals_on_time(1) == 1 and state.well_fed_days() == 1, "Primeira papinha fora da janela dá patinha")
+	claim("lais_feed")
+	verify.call(state.bathe(), "Dar banho")
+	claim("lais_bath")
+	verify.call(state.play(), "Jogar a bolinha")
+	claim("lais_play")
+	ok(state.buy_upgrade("dog_bed"), "Colocar a caminha")
+	claim("lais_bed")
+	action("crescimento")
+	state.note_screen_opened("growth")
+	claim("lais_growth")
+	ok(state.grow(), "Virar Filhotinho no passo 7")
+	claim("growth_1_puppy")
+	action("álbum")
+	state.finish_album_tutorial()
+	verify.call(state.growth.phase == "puppy" and state.coins == coins, "Ato 1 inteiro em Filhotinho, sem moeda")
+	claim("lais_photo")  # a rotina do dia paga as moedas da primeira refeição só a partir daqui
+
+
+## Ato 2 do novo fluxo (F03): Sítio, vovó, primeira horta, fogão colocado, Cozinhar junto e a primeira papinha (aula da comida).
+## Sem moeda e sem banca até o fim do passo 14. Devolve a papinha que o passo 14 deu ao Tiro.
+func ato_two(first_stars: int = 3, late_arrival: bool = true) -> void:
+	var coins: int = state.coins
+	action("mapa")
+	state.note_screen_opened("farm")
+	claim("lais_farm")
+	action("sítio")
+	state.talk_to("bloblo")
+	verify.call(state.progress.current_main_quest() == "lais_meet_bloblo" and state.progress.displayed_main_quest() == "bloblo_meet", "A vovó aparece no lugar do passo da Laís")
+	ok(state.claim_quest("bloblo_meet"), "Conhecer a vovó")
+	verify.call(state.progress.current_main_quest() == "lais_first_crops", "Conhecer a vovó fecha o passo 10")
+	crop("carrot", 1)
+	crop("potato", 1)
+	claim("lais_first_crops")
+	verify.call(state.inventory.count("stove_gift") == 1 and not state.has_upgrade("stove"), "A vovó dá o fogãozinho, ainda sem colocar")
+	action("casa")
+	ok(state.buy_upgrade("stove"), "Colocar o fogão")
+	verify.call(state.has_upgrade("stove") and state.coins == coins, "O fogão é de graça")
+	claim("place_stove")
+	var food := recipe("puppy_mash", first_stars, true)
+	verify.call(state.progress.stat("together:puppy_mash") == 1, "Cozinhar junto conta o passo 13")
+	claim("first_kitchen")
+	if late_arrival:
+		at(1, 23)
+	serve(food)  # a aula da comida é da tela; aqui só o estado: dar a papinha cumpre o passo 14
+	verify.call(state.well_fed_days() == 1, "A segunda papinha do dia da chegada não repete a patinha")
+	verify.call(state.coins == coins, "Ato 2 inteiro sem moeda")
+	claim("first_meal")
+
+
 func day_one(late_arrival: bool = true) -> void:
 	at(1, 9)
 	verify.call(not state.progress.seen.has("intro") and state.progress.current_main_quest() == "welcome", "Save novo começa na caixa")
-	verify.call(not state.week_invent_open(), "O relógio bloqueia Inventar no save novo antes do jantar")
 	action("chegada", 4)
 	state.finish_week_arrival()
 	claim("welcome")
 	day_one_story = snapshot()
-	verify.call(state.album.has_photo("h_arrival"), "Foto da chegada")
-	verify.call(not state.week_invent_open(), "Inventar fechado de manhã")
-	crop("carrot", 2)
-	crop("potato", 3)
-	claim("lais_first_crops")
-	var food := recipe("puppy_mash", first_dish_stars, true)
-	if late_arrival:
-		at(1, 23)
-	serve(food)
-	verify.call(state.meals_on_time(1) == 1 and state.well_fed_days() == 1, "Primeira papinha fora da janela dá patinha")
-	claim("first_kitchen")
+	ato_one()
+	ato_two(first_dish_stars, late_arrival)
 	verify.call(first_dish_stars < 3 or state.economy.granted.has("week_challenge:1"), "Desafio de três estrelas pago")
+	# Capítulo 2: banca, mais canteiros e a primeira sopinha.
 	crop("carrot", 4)
 	action("banca")
 	ok(state.sell("carrot", 4, "farm"), "Venda de quatro cenouras")
@@ -237,69 +284,21 @@ func day_one(late_arrival: bool = true) -> void:
 	action("horta")
 	state.harvest(0)
 	claim("week_plots")
-	ball()
-	name_calls()
-	claim("lais_play")
+	verify.call(state.cook_invented_error({"pumpkin": 1, "potato": 1}, "papinha") == "Continue a História", "Inventar espera o capítulo 8")
 	if not late_arrival:
-		verify.call(state.week_quest_wait("week_invent") == "A vovó volta no jantar", "Intervalo entre as sessões do dia 1")
-		verify.call(state.cook_invented_error({"pumpkin": 1, "potato": 1}, "papinha") == "Inventar abre no jantar", "O motor respeita o intervalo")
 		at(1, 19)
-	verify.call(state.week_invent_open(), "Inventar abre no jantar")
-	serve(dish("papinha", {"pumpkin": 1, "potato": 1}))
-	claim("week_invent")
-	verify.call(state.week_quest_wait("week_coop") == "A vovó volta amanhã", "Espera entre capítulos")
-	verify.call(state.claim_quest("week_coop") != "", "O dia 2 não pode ser concluído em D1")
+	var soup := recipe("vegetable_soup")
+	verify.call(state.progress.stat("week_soup") == 1, "Sopinha recolhida conta o passo")
+	claim("week_soup")
+	verify.call(state.album.has_photo("h_week_soup") and state.photo_sealed("h_week_soup") == 1, "O capítulo 2 fecha com uma carta fechada")
+	serve(soup)
+	verify.call(state.quest_unlocked("lais_first_wish"), "O capítulo 3 abre na hora, sem esperar o relógio")
+	verify.call(state.claim_quest("lais_first_wish") != "", "O passo do capítulo 3 ainda pede o desejo")
 	day_one_wait = snapshot()
 
 
-func day_two() -> void:
-	var before: int = state.coins
-	at(2, 11)
-	verify.call(state.coins - before == 30, "Bom dia paga 30 moedas uma vez")
-	state.update_week()
-	verify.call(state.coins - before == 30, "Atualizar o relógio não repete o Bom dia")
-	funds(60)
-	before = state.coins
-	buy("week_coop")
-	verify.call(state.coins == before - 40, "Kit custa 60 e devolve 20 na compra")
-	verify.call(state.buy_shop_item("week_coop") != "" and state.coins == before - 40, "Recibo único do kit")
-	claim("week_coop")
-	eggs(2)
-	claim("week_eggs")
-	serve(dish("papinha", {"potato": 1, "egg": 1}))
-	recipe("week_oat_biscuit")
-	claim("week_biscuits")
-	lesson("sit")
-	claim("week_sit")
-	ball()
-	ball()
-	claim("week_fetch")
-	funds(40)
-	buy("week_bed")
-	claim("lais_bed")
-	serve("oat_biscuit")
-	verify.call(state.grow_error() != "", "Filhotinho ainda espera o jantar")
-	at(2, 19)
-	ball()
-	meal(2, 19)
-	action("crescimento")
-	ok(state.grow(), "Virar Filhotinho")
-	claim("growth_1_puppy")
-	verify.call(state.progress.stat("well_fed_day") == 2, "Duas patinhas antes de crescer")
-	after_day_two = snapshot()
-
-
-func lake(day: int) -> void:
-	at(day, 11)
-	state.note_week_pier()
-	claim("week_bridge")
-	var fish := catch_fish()
-	catch_fish()
-	verify.call(state.progress.stat("fish") == 2, "Duas pescarias reais")
-	claim("week_fish")
-	serve(dish("papinha", {"potato": 1, fish: 1}))
-	verify.call(key_done("fish"), "Peixe simultâneo na História e em Para crescer")
-	claim("week_fish_dish")
+## Capítulo 3: atender o primeiro desejo do Tiro e pegar o passo.
+func first_wish() -> void:
 	var wish: Dictionary = state.wish_now()
 	if wish.get("type") == "action":
 		while state.wish_value() < state.wish_target():
@@ -307,7 +306,7 @@ func lake(day: int) -> void:
 			match str(wish.goal.key):
 				"pet": state.pet()
 				"bathe": state.bathe()
-				"play": ball()
+				"play": state.play()
 				_:
 					verify.call(false, "Desejo inesperado: " + str(wish))
 					break
@@ -317,9 +316,56 @@ func lake(day: int) -> void:
 	action("desejo")
 	ok(state.fulfill_wish(), "Atender ao primeiro desejo")
 	claim("lais_first_wish")
-	ball()
-	ball()
-	meal(day, 19, dish("sopinha", {"carrot": 1, "potato": 1, "pumpkin": 1}))
+	verify.call(state.album.has_photo("h_week_wish"), "O capítulo 3 fecha com uma carta")
+
+
+func day_two() -> void:
+	var before: int = state.coins
+	at(2, 11)
+	verify.call(state.coins - before == 30, "Bom dia paga 30 moedas uma vez")
+	state.update_week()
+	verify.call(state.coins - before == 30, "Atualizar o relógio não repete o Bom dia")
+	first_wish()
+	# Capítulo 4: galinheiro e prato com ovo.
+	funds(60)
+	before = state.coins
+	buy("week_coop")
+	verify.call(state.coins == before - 40, "Kit custa 60 e devolve 20 na compra")
+	verify.call(state.buy_shop_item("week_coop") != "" and state.coins == before - 40, "Recibo único do kit")
+	claim("week_coop")
+	eggs(2)
+	claim("week_eggs")
+	serve(recipe("egg_mash"))
+	verify.call(key_done("egg"), "Ovo simultâneo na História e em Para crescer")
+	claim("week_egg_dish")
+	# Capítulo 5: biscoitos e Senta.
+	recipe("week_oat_biscuit")
+	claim("week_biscuits")
+	lesson("sit")
+	claim("week_sit")
+	verify.call(state.album.has_photo("h_first_trick"), "O capítulo 5 fecha com uma carta")
+	serve("oat_biscuit")
+	at(2, 19)
+	meal(2, 19)
+	verify.call(state.growth.phase == "puppy" and state.progress.stat("well_fed_day") == 2, "Duas patinhas, a da chegada e a do dia 2")
+	after_day_two = snapshot()
+
+
+## Capítulo 6: lagoa e prato com peixe.
+func lake(day: int) -> void:
+	at(day, 11)
+	state.note_week_pier()
+	claim("week_bridge")
+	catch_fish()
+	catch_fish()
+	verify.call(state.progress.stat("fish") == 2, "Duas pescarias reais")
+	claim("week_fish")
+	# A papinha de peixe do fogão pede tilápia; a pescaria do teste sorteia qualquer peixe.
+	state.inventory.add("fish_tilapia", 1)
+	serve(recipe("fish_mash"))
+	verify.call(key_done("fish"), "Peixe simultâneo na História e em Para crescer")
+	claim("week_fish_dish")
+	meal(day, 19, recipe("vegetable_soup"))
 
 
 func key_done(group: String) -> bool:
@@ -328,6 +374,7 @@ func key_done(group: String) -> bool:
 		func(row: Dictionary) -> bool: return row.id == "key_" + group and row.done)
 
 
+## Capítulos 7 e 8: pomar e mingau; depois Inventar e Livro de receitas.
 func day_four() -> void:
 	at(4, 11)
 	make_space({"apple": 2, "banana": 2})
@@ -336,23 +383,27 @@ func day_four() -> void:
 	action("pomar")
 	ok(state.harvest_orchard("banana"), "Colher bananas")
 	claim("week_orchard")
-	serve(dish("mingau", {"oat": 1, "banana": 1}))
+	serve(recipe("banana_mash"))
 	verify.call(key_done("fruit"), "Fruta simultânea na História e em Para crescer")
 	claim("week_fruit_dish")
-	lesson("paw")
-	lesson("sit")
-	claim("week_paw")
-	rope()
-	rope()
-	claim("week_rope")
-	meal(4, 19, dish("mingau", {"oat": 1, "apple": 1}))
+	verify.call(state.album.has_photo("h_week_mingau"), "O capítulo 7 fecha com uma carta")
+	verify.call(state.progress.chapter_index() == 8 and state.invent_open(), "Inventar abre no capítulo 8")
+	at(4, 19)
+	serve(dish("papinha", {"pumpkin": 1, "potato": 1}))
+	make_space({"oat": 2})
+	claim("week_invent")
+	action("livro")
+	state.note_screen_opened("recipes")
+	claim("week_book")
+	verify.call(state.album.has_photo("h_week_book"), "O capítulo 8 fecha com uma carta")
 
 
+## Capítulo 9: carroça e banho com xampu.
 func day_five() -> void:
 	at(5, 11)
 	eggs(4)
-	serve(dish("papinha", {"potato": 1, "egg": 1}))
-	verify.call(key_done("egg"), "O ovo fica registrado em Filhotinho antes do dia 6")
+	serve(recipe("egg_mash"))
+	verify.call(key_done("egg"), "O ovo fica registrado em Filhotinho antes do quintal")
 	# Preserve três ovos para a carroça e prepare as abóboras do segundo pedido.
 	crop("pumpkin", 2)
 	for id: String in state.cart_order_ids():
@@ -381,25 +432,27 @@ func day_five() -> void:
 	action("cuidado")
 	verify.call(state.bathe(true), "Banho com xampu")
 	claim("week_bath")
-	lesson("lie_down")
-	lesson("sit")
-	claim("week_down")
-	ball()
+	verify.call(state.album.has_photo("h_week_foam"), "O capítulo 9 fecha com uma carta")
 	meal(5, 19, dish("sopinha", {"carrot": 2, "potato": 1}))
 
 
+## Capítulo 10: quintal, mais truques e o show.
 func day_six() -> void:
 	at(6, 11)
-	verify.call(state.quest_error("week_egg_dish") == "" and key_done("egg"), "Dia 6 reconhece ovo já servido")
-	claim("week_egg_dish")
-	serve(recipe("puppy_mash"))
-	action("show")
-	var show: Dictionary = state.start_trick_show(5)
-	verify.call(show.has("sequence"), "Abre o show")
-	for id: String in show.get("sequence", []):
-		action("show")
-		state.trick_show_step(id, true)
-	claim("week_show")
+	verify.call(state.yard_open("ball"), "O quintal abre no capítulo 10")
+	ball()
+	ball()
+	claim("week_fetch")
+	name_calls()
+	rope()
+	rope()
+	claim("week_rope")
+	lesson("paw")
+	lesson("sit")
+	claim("week_paw")
+	lesson("lie_down")
+	lesson("sit")
+	claim("week_down")
 	for i in 3:
 		action("quintal")
 		var round: Dictionary = state.start_yard_round("hide")
@@ -407,9 +460,22 @@ func day_six() -> void:
 		action("quintal")
 		state.yard_find(int(round.get("id", -1)), int(round.get("hideout", -1)))
 	claim("week_hide")
+	serve(recipe("puppy_mash"))
+	ball()
+	ball()
+	action("show")
+	var show: Dictionary = state.start_trick_show(5)
+	verify.call(show.has("sequence"), "Abre o show")
+	for id: String in show.get("sequence", []):
+		action("show")
+		state.trick_show_step(id, true)
+	verify.call(state.album.has_photo("h_trick_show"), "O show tira a foto do capítulo 10")
+	claim("week_show")
+	verify.call(state.album.has_photo("h_trick_show"), "O capítulo 10 fecha com uma carta")
 	meal(6, 19, dish("papinha", {"pumpkin": 1, "carrot": 1}))
 
 
+## Capítulo 11: mordedor, almoço de despedida e Dentinhos.
 func day_seven() -> void:
 	at(7, 11)
 	funds(50)
@@ -437,7 +503,7 @@ func day_seven() -> void:
 	action("crescimento")
 	ok(state.grow(), "Virar Dentinhos")
 	claim("growth_3_teething")
-	verify.call(state.progress.chapter_index() == 8 and state.progress.current_main_quest() == "lais_village", "A antiga Vila agora é o capítulo 8")
+	verify.call(state.progress.chapter_index() == 12 and state.progress.current_main_quest() == "lais_village", "A Vila é o capítulo 12")
 	village_bridge = snapshot()
 	state.note_world_visit("village")
 	state.note_screen_opened("village")

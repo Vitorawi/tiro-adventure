@@ -19,6 +19,7 @@ func _fresh() -> void:
 	state.call("reset")
 	state.set("unlimited_storage", true)
 	state.call("dev_complete_quest", "first_harvest")
+	state.call("dev_complete_quest", "lais_first_crops")  # Ato 1 + horta: as encomendas dos vizinhos esperam a primeira horta
 	state.set("level", 30)
 	state.set("coins", 100000)
 	for token: String in ["farm", "stove", "fridge", "blender", "dairy", "atelier", "workbench"]:

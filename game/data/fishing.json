@@ -42,7 +42,8 @@
   "baits": {
     "bait_worm": {"tier": 1},
     "bait_dough": {"tier": 2},
-    "bait_lure": {"tier": 3, "keep_chance": 0.7}
+    "bait_lure": {"tier": 3, "keep_chance": 0.7},
+    "golden_worm": {"tier": 1, "secret": true}
   },
   "fish": {
     "fish_lambari": {"bait": "bait_worm", "cm": [6, 15], "motion": "floater", "difficulty": 15, "weights": [50, 35, 20], "xp": 3},
@@ -53,7 +54,8 @@
     "fish_tambaqui": {"bait": "bait_dough", "cm": [40, 90], "motion": "smooth", "difficulty": 55, "weights": [20, 30, 45], "xp": 11, "fill_mult": 0.85},
     "fish_traira": {"bait": "bait_lure", "cm": [20, 55], "motion": "darter", "difficulty": 60, "weights": [45, 35, 25], "xp": 12},
     "fish_tucunare": {"bait": "bait_lure", "cm": [30, 70], "motion": "darter", "difficulty": 75, "weights": [35, 35, 35], "xp": 16},
-    "fish_pintado": {"bait": "bait_lure", "cm": [50, 110], "motion": "sinker", "difficulty": 85, "weights": [20, 30, 40], "xp": 20, "fill_mult": 0.8}
+    "fish_pintado": {"bait": "bait_lure", "cm": [50, 110], "motion": "sinker", "difficulty": 85, "weights": [20, 30, 40], "xp": 20, "fill_mult": 0.8},
+    "fish_golden": {"bait": "golden_worm", "cm": [20, 40], "motion": "sinker", "difficulty": 95, "weights": [100, 100, 100], "xp": 30, "fill_mult": 0.8, "qty": 1, "secret": true}
   },
   "proto_fish": {
     "mixed":   {"name": "Tilápia (teste)", "motion": "mixed",   "difficulty": 30},

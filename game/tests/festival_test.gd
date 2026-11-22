@@ -204,10 +204,10 @@ func _story() -> void:
 	for id: String in database.quests:
 		if database.quests[id].get("kind", "side") == "main":
 			main_count += 1
-	check(main_count == 55 and database.progression.chapters.size() == 12, "55 principais (incluindo primeiro desejo) e 12 capítulos: %d / %d" % [main_count, database.progression.chapters.size()])
+	check(main_count == 77 and database.progression.chapters.size() == 20, "77 principais e 20 capítulos: %d / %d" % [main_count, database.progression.chapters.size()])
 	for id: String in NEW_QUESTS:
 		check(database.quests.has(id) and database.quests[id].kind == "main", id + " existe")
-	var order := {"community_10_meet": [10, 10], "community_10_bench": [10, 20], "community_10_use": [10, 30], "community_11_garden": [11, 10], "community_11_picnic": [11, 20], "community_11_tiro": [11, 30], "community_12_prepare": [12, 10], "community_12_festival": [12, 20], "community_12_memory": [12, 30]}
+	var order := {"community_10_meet": [18, 10], "community_10_bench": [18, 20], "community_10_use": [18, 30], "community_11_garden": [19, 10], "community_11_picnic": [19, 20], "community_11_tiro": [19, 30], "community_12_prepare": [20, 10], "community_12_festival": [20, 20], "community_12_memory": [20, 30]}
 	for id: String in order:
 		check(int(database.quests[id].chapter) == order[id][0] and int(database.quests[id].order) == order[id][1], id + ": capítulo/ordem")
 	var paid := {"community_10_use": 10, "community_11_tiro": 10}
@@ -217,19 +217,19 @@ func _story() -> void:
 		var extra := 1 if id == "community_12_memory" else 0
 		check(rewards.size() == (1 if paid.has(id) else 0) + extra and int(rewards.get("coins", 0)) == int(paid.get(id, 0)), id + ": só a recompensa prevista")
 		if extra == 1: check(rewards.items.size() == 1 and int(rewards.items.get("courage_medal", 0)) == 1, id + ": só a medalhinha")
-	check(int(database.progression.chapters[9].rewards.coins) == 30 and int(database.progression.chapters[10].rewards.coins) == 40 and int(database.progression.chapters[11].rewards.coins) == 60, "capítulos 10/11/12 pagam 30/40/60")
+	check(int(database.progression.chapters[17].rewards.coins) == 30 and int(database.progression.chapters[18].rewards.coins) == 40 and int(database.progression.chapters[19].rewards.coins) == 60, "capítulos 10/11/12 pagam 30/40/60")
 	check(database.quests.community_12_festival.goals[0].type == "project" and database.quests.community_12_festival.goals[0].key == FEST, "objetivo da festa é o projeto")
 	check(database.quests.community_10_meet.goals[0].fresh == true and database.quests.community_12_prepare.goals[0].fresh == true, "só as duas conversas pedem toque novo")
 	check(str(database.progression.final_chapter.name) != "", "final_chapter definido")
 	# Jogo novo até o final: história por ações legais (conversa, obras, uso).
 	_fresh()
-	for chapter in range(1, 10):
+	for chapter in range(1, 18):
 		for id: String in _progress().main_quests(chapter):
 			_progress().claimed_quests[id] = true
 	_progress().owned["stall_3"] = true
 	state.call("_sync_step")
 	chapters_done.clear()
-	check(_progress().chapter_index() == 10, "depois do 9 vem o capítulo 10")
+	check(_progress().chapter_index() == 18, "depois do 9 vem o capítulo 10")
 	check(_progress().current_main_quest() == "community_10_meet", "primeiro passo: conversar com a Laís")
 	check(state.call("goal_value", database.quests.community_10_meet.goals[0]) == 0, "conversa fresh começa em zero")
 	state.call("talk_to", "lais")
@@ -242,7 +242,7 @@ func _story() -> void:
 	_claim("community_10_bench")
 	state.call("use_project", BENCH)
 	_claim("community_10_use")
-	check(chapters_done == [10], "capítulo 10 concluído uma vez: %s" % str(chapters_done))
+	check(chapters_done == [18], "capítulo 10 concluído uma vez: %s" % str(chapters_done))
 	for id: String in [PICNIC, GARDEN]:
 		state.set("coins", 250)
 		state.call("start_project", id)
@@ -251,7 +251,7 @@ func _story() -> void:
 	_claim("community_11_picnic")
 	state.call("use_project", PICNIC)
 	_claim("community_11_tiro")
-	check(chapters_done == [10, 11], "capítulo 11 concluído: %s" % str(chapters_done))
+	check(chapters_done == [18, 19], "capítulo 11 concluído: %s" % str(chapters_done))
 	check(_progress().current_main_quest() == "community_12_prepare", "capítulo 12 começa na conversa com a Nina")
 	state.call("talk_to", "nina")
 	_claim("community_12_prepare")
@@ -265,10 +265,10 @@ func _story() -> void:
 	check(_progress().current_main_quest() == "growth_12_adult", "depois da festa só falta crescer (etapa 11)")
 	state.get("growth").phase = "adult"
 	_claim("growth_12_adult")
-	check(chapters_done == [10, 11, 12] and _progress().chapter_index() == 13 and _progress().current_main_quest() == "", "história completa: capítulos 10, 11 e 12")
+	check(chapters_done == [18, 19, 20] and _progress().chapter_index() == 21 and _progress().current_main_quest() == "", "história completa: capítulos 10, 11 e 12")
 	check(str(_progress().current_chapter().name) == str(database.progression.final_chapter.name), "depois do 12 vale o capítulo final")
 	_reload()
-	check(_progress().chapter_index() == 13 and chapters_done == [10, 11, 12], "reload não repete capítulo nem prêmio")
+	check(_progress().chapter_index() == 21 and chapters_done == [18, 19, 20], "reload não repete capítulo nem prêmio")
 
 
 func _claim(id: String) -> void:
@@ -280,7 +280,7 @@ func _claim(id: String) -> void:
 ## Quem já tinha tudo até o capítulo 9 e as obras das etapas 20–21 entra no 10 sem refazer nada.
 func _completed_history() -> void:
 	_fresh()
-	for chapter in range(1, 10):
+	for chapter in range(1, 18):
 		for id: String in _progress().main_quests(chapter):
 			_progress().claimed_quests[id] = true
 	_progress().owned["stall_3"] = true
@@ -291,7 +291,7 @@ func _completed_history() -> void:
 	chapters_done.clear()
 	var coins: int = state.get("coins")
 	var items: int = _item_total()
-	check(_progress().chapter_index() == 10, "histórico completo no 9 entra no 10")
+	check(_progress().chapter_index() == 18, "histórico completo no 9 entra no 10")
 	check(state.call("goal_value", database.quests.community_10_bench.goals[0]) == 1 and state.call("goal_value", database.quests.community_11_garden.goals[0]) == 1 and state.call("goal_value", database.quests.community_11_picnic.goals[0]) == 1, "obras já feitas contam, sem refazer")
 	check(state.call("goal_value", database.quests.community_10_use.goals[0]) == 1 and state.call("goal_value", database.quests.community_11_tiro.goals[0]) == 1, "usos já feitos contam")
 	check(state.call("goal_value", database.quests.community_10_meet.goals[0]) == 0, "só a conversa pede toque novo")
@@ -299,13 +299,13 @@ func _completed_history() -> void:
 	for id: String in ["community_10_meet", "community_10_bench", "community_10_use", "community_11_garden", "community_11_picnic", "community_11_tiro"]:
 		_claim(id)
 	# Os usos pagam 10 moedas cada; XP não paga presentes.
-	check(state.get("economy").granted.has("chapter:10") and state.get("economy").granted.has("chapter:11") and not state.get("economy").granted.has("chapter:12"), "pagou só os capítulos 10 e 11")
+	check(state.get("economy").granted.has("chapter:18") and state.get("economy").granted.has("chapter:19") and not state.get("economy").granted.has("chapter:20"), "pagou só os capítulos 10 e 11")
 	check(state.get("coins") == coins + 30 + 40 + 20, "capítulos 30 + 40 e usos 20, sem presente de nível: %d -> %d" % [coins, state.get("coins")])
 	check(_item_total() == items, "nada de material novo")
 	check(_progress().current_main_quest() == "community_12_prepare", "e segue para a festa")
 	# Uso nunca feito: não conta.
 	_fresh()
-	for chapter in range(1, 10):
+	for chapter in range(1, 18):
 		for id: String in _progress().main_quests(chapter):
 			_progress().claimed_quests[id] = true
 	_before_festival()

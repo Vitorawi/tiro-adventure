@@ -58,7 +58,7 @@
     "sprite": "res://assets/sprites/areas/farm/crop_wheat.png",
     "skill_xp": 18,
     "requirements": {
-      "chapter": 9,
+      "chapter": 13,
       "owned": [
         "farm"
       ]

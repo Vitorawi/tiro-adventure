@@ -168,6 +168,7 @@ func _orders_and_treat() -> void:
 	check(str(state.call("order_error", "bloblo_lambaris")) != "", "5: sem vara a encomenda está fechada")
 	state.call("give_rod", "bamboo_rod")
 	state.call("dev_complete_quest", "first_harvest")
+	state.call("dev_complete_quest", "lais_first_crops")  # as encomendas esperam a primeira horta (fim do Ato 1 + horta)
 	state.call("_count", "noop")
 	state.get("inventory").add("fish_lambari", 4)
 	var before: int = int(state.get("coins"))

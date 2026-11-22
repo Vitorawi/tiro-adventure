@@ -154,7 +154,8 @@ func setup() -> void:
 	gs.set_clock(t0)
 	seed(seed_value)  # Inclui a semente do cachorro e as fotos do save novo.
 	gs.reset()
-	live_quest_count = Database.quests.values().filter(func(q: Dictionary) -> bool: return q.get("kind") != "retired").size()
+	# A missão secreta da vovó (line "secret") é opcional e só existe no Filhotinho (F04b): fica fora da contagem.
+	live_quest_count = Database.quests.values().filter(func(q: Dictionary) -> bool: return q.get("kind") != "retired" and not (q.get("line", "") == "secret")).size()
 	_apply_scenario()
 	var bot_script: GDScript = load(str(params.get("bot_script", "res://tests/helpers/economy_bot.gd")))
 	bot = bot_script.new(gs, profile, seed_value * 104729 + 7)
@@ -1500,6 +1501,6 @@ func _missing_upgrades() -> Array:
 func _unclaimed() -> Array:
 	var result: Array = []
 	for id: String in Database.quests:
-		if Database.quests[id].get("kind") != "retired" and not gs.progress.claimed_quests.has(id):
+		if Database.quests[id].get("kind") != "retired" and Database.quests[id].get("line", "") != "secret" and not gs.progress.claimed_quests.has(id):
 			result.append(id)
 	return result

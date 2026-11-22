@@ -83,7 +83,7 @@ func _run() -> void:
 
 func _data() -> void:
 	check(db.album_problems().is_empty(), "album.json válido: " + str(db.album_problems()))
-	check(db.album.photos.size() == 64, "64 fotos no catálogo")
+	check(db.album.photos.size() == 69, "69 fotos no catálogo")
 	for entry: Dictionary in db.album.photos:
 		var art := str(entry.photo.get("illustration", ""))
 		if entry.id in ["h_trick_show", "h_week_group"]:
@@ -93,7 +93,7 @@ func _data() -> void:
 	var per := {}
 	for entry: Dictionary in db.album.photos:
 		per[entry.section] = int(per.get(entry.section, 0)) + 1
-	check(per == {"story": 24, "firsts": 8, "tricks": 13, "sleep": 8, "friends": 6, "dates": 5}, "seções 24/8/13/8/6/5: " + str(per))
+	check(per == {"story": 28, "firsts": 8, "tricks": 14, "sleep": 8, "friends": 6, "dates": 5}, "seções 28/8/14/8/6/5: " + str(per))
 	for entry: Dictionary in db.album.photos:
 		check(entry.when.size() <= 3, "no máximo 3 condições: " + str(entry.id))
 	# Dado quebrado é rejeitado.
@@ -170,7 +170,8 @@ func _story() -> void:
 	_fresh()
 	_unlock()
 	state.growth.phase = "teething"
-	_expect("truque pata", _teach_paw, ["h_first_trick"])
+	_expect("truque pata", _teach_paw, [])
+	_expect("passo do Senta fecha o capítulo 5", func() -> void: state._finish_quest("week_sit"), ["h_first_trick"])
 	_fresh()
 	_unlock()
 	_expect("banca", func() -> void: state._finish_quest("own_business"), ["h_banca"])
@@ -239,7 +240,7 @@ func _campaign() -> void:
 	state.dev_complete_growth_reqs()
 	state.grow()
 	check(state.growth.phase in ["explorer", "teething"], "campanha chegou perto do Aventureiro")
-	var expected := ["h_arrival", "h_first_night", "f_bath", "h_growth_puppy", "h_kitchen", "f_taste", "h_first_walk", "h_growth_teething", "f_dig", "h_first_trick"]
+	var expected := ["h_arrival", "h_first_night", "f_bath", "h_growth_puppy", "h_kitchen", "f_taste", "h_first_walk", "h_growth_teething", "f_dig"]
 	for id: String in expected:
 		check(state.album.has_photo(id), "campanha tirou " + id)
 	for id: String in state.album.photos:
@@ -247,12 +248,10 @@ func _campaign() -> void:
 
 
 func _teach_paw() -> void:
+	state.dev_content_day(10)  # Dá a pata abre no capítulo 10
 	state.dev_week_goto(4)
 	state.dev_week_hour(12)
 	state.week.weak = false
-	if state.trick_lesson_next("paw") != "":
-		check(state.start_trick_lesson("paw") != "", "aula repetida não tira outra foto")
-		return
 	state.inventory.add("apple_biscuit")
 	check(state.start_trick_lesson("paw") == "", "começa Aula de Dá a pata")
 	for i in 5:
@@ -363,16 +362,18 @@ func _introduction() -> void:
 	check(not state.photo_alerts_enabled(), "chegada não ativa avisos de foto")
 	check(not load("res://scripts/ui/album_screen.gd").call("has_new"), "Álbum desconhecido não recebe sinal de novidade")
 	check(state.welcome_ready_lines().all(func(line: Dictionary) -> bool: return line.kind != "photo"), "boas-vindas não anuncia fotos antes da primeira visita")
-	check(not state.quest_unlocked("lais_album"), "apresentação espera as primeiras brincadeiras")
-	state.progress.claimed_quests.lais_play = true
-	check(state.quest_unlocked("lais_album"), "Laís apresenta o Álbum depois de brincar")
-	check(db.quests.lais_album.kind == "line", "apresentação opcional não reabre a história antiga")
-	var target: Dictionary = load("res://scripts/ui/progression_ui.gd").call("quest_go_target", "lais_album")
+	check(not state.quest_unlocked("lais_photo"), "a apresentação espera o Filhotinho (passo 8 do Ato 1)")
+	state.dev_complete_quest("growth_1_puppy")
+	check(state.quest_unlocked("lais_photo"), "Laís apresenta o Álbum no passo 8, depois de crescer")
+	check(not db.quests.has("lais_album") and db.quests.lais_photo.kind == "main", "o passo 8 da história substitui a linha opcional")
+	var target: Dictionary = load("res://scripts/ui/progression_ui.gd").call("quest_go_target", "lais_photo")
 	check(target.get("notebook", "") == "album", "Ir tem como destino o Álbum")
 	var view: Control = album_view.panel("story")
 	root.add_child(view)
-	check(state.photo_alerts_enabled() and state.progress.stat("open:album") == 1, "primeira visita habilita avisos e cumpre objetivo")
-	check(state.quest_error("lais_album") == "", "visita cumpre a missão de apresentação")
+	check(state.photo_alerts_enabled() and state.progress.stat("open:album") == 1, "primeira visita habilita avisos")
+	check(state.quest_error("lais_photo") != "", "só visitar não cumpre o passo 8: falta abrir a carta (tutorial)")
+	state.finish_album_tutorial()
+	check(state.quest_error("lais_photo") == "", "o fim do tutorial da carta cumpre o passo 8")
 	check(state.photo_info("h_arrival") == arrival, "primeira visita preserva a foto anterior e seu snapshot")
 	view.free()
 	_reload()
@@ -409,7 +410,7 @@ func _interface() -> void:
 	check(panel.find_child("AlbumCard_f_dig", true, false).find_child("NewBadge", true, false) == null, "foto que falta não tem selo")
 	check(panel.find_child("CardBack", true, false) != null, "fechadas mostram o verso sem antecipar a arte")
 	var counter := "%d/%d" % [album_view.taken_count(), album_view.total_count()]
-	check(album_view.total_count() == 64, "contador usa as seis seções ativas (64)")
+	check(album_view.total_count() == 69, "contador usa as seis seções ativas (69)")
 	check(counter != "", "contador " + counter)
 	var secret: Control = photo_card.make("s_foam_ghost", 98.0, {"secret": true})
 	root.add_child(secret)

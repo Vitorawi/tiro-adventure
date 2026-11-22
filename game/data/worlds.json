@@ -92,7 +92,7 @@
         "description": "Picolé e suco.",
         "requirements": {
           "quests": [
-            "first_kitchen"
+            "first_meal"
           ]
         },
         "upgrade": "blender",
@@ -109,7 +109,11 @@
     "icon": "tab_farm",
     "description": "Plantar, colher e crescer.",
     "room": "farm",
-    "requirements": {},
+    "requirements": {
+      "story_gate": [
+        "lais_photo"
+      ]
+    },
     "npcs": [
       "bloblo"
     ],
@@ -126,7 +130,7 @@
         "description": "Encomendas do dia e compras no portão.",
         "panel": "week_cart",
         "requirements": {
-          "week_day": 5
+          "story_day": 9
         },
         "hidden": true
       },
@@ -151,7 +155,7 @@
         "panel": "trick_show",
         "hidden": true,
         "requirements": {
-          "week_day": 6
+          "story_day": 10
         }
       },
       "greenhouse": {
@@ -170,7 +174,7 @@
         "hidden": true,
         "requirements": {
           "rod": "bamboo_rod",
-          "week_day": 3
+          "story_day": 6
         }
       },
       "workbench": {
@@ -215,7 +219,7 @@
         "upgrade": "orchard",
         "panel": "orchard",
         "requirements": {
-          "week_day": 4
+          "story_day": 7
         }
       },
       "home": {
@@ -232,7 +236,7 @@
         "panel": "stations:chicken_coop+cow_barn",
         "upgrade": "chicken_coop",
         "requirements": {
-          "chapter": 9,
+          "chapter": 13,
           "owned": [
             "farm"
           ]
@@ -246,7 +250,7 @@
         "upgrade": "chicken_coop",
         "hidden": true,
         "requirements": {
-          "week_day": 2
+          "story_day": 4
         }
       },
       "cow_barn": {
@@ -257,7 +261,7 @@
         "upgrade": "cow_barn",
         "hidden": true,
         "requirements": {
-          "chapter": 9,
+          "chapter": 13,
           "owned": [
             "farm"
           ]
@@ -271,7 +275,7 @@
         "upgrade": "mill",
         "hidden": true,
         "requirements": {
-          "chapter": 9
+          "chapter": 13
         },
         "upgrades": [
           "mill_queue"
@@ -285,7 +289,7 @@
         "upgrade": "dairy",
         "hidden": true,
         "requirements": {
-          "chapter": 9
+          "chapter": 13
         },
         "upgrades": [
           "dairy_queue"
@@ -297,7 +301,11 @@
         "description": "Compre kits e venda a colheita na banca da vovó.",
         "panel": "sell",
         "hidden": true,
-        "requirements": {}
+        "requirements": {
+          "story_gate": [
+            "first_meal"
+          ]
+        }
       }
     }
   },
@@ -339,7 +347,7 @@
         "description": "Ir para Natureza.",
         "panel": "travel:nature",
         "requirements": {
-          "chapter": 9
+          "chapter": 13
         }
       },
       "orders": {
@@ -537,7 +545,7 @@
     "description": "Bosque, riacho, prado e grutas. Explore para buscar materiais.",
     "room": "nature",
     "requirements": {
-      "chapter": 9,
+      "chapter": 13,
       "growth": "teething"
     },
     "npcs": [

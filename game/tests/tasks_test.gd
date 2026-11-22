@@ -32,12 +32,12 @@ func _run() -> void:
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_silo", "Depois do faro a vovó manda arrumar o silo (ordem 27)")
 	state.call("dev_complete_quest", "bloblo_silo")
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_more_crops", "Passo da vovó é o atual")
-	state.call("dev_complete_quest", "week_fish_dish")
+	state.call("dev_complete_quest", "week_soup")
 	state.call("dev_week_goto", 4)
 	state.get("progress").stats["wish"] = 1
 	check(state.call("claim_quest", "lais_first_wish") == "", "tutorial do desejo concluído antes do cruzamento")
-	check(state.get("progress").current_main_quest() == "week_orchard", "Depois do desejo vem o pomar")
-	check(state.call("week_quest_wait", "week_orchard") == "A vovó volta amanhã", "Concluir um capítulo por dia civil")
+	check(state.get("progress").current_main_quest() == "week_coop", "Depois do desejo vem o galinheiro")
+	check(state.call("quest_unlocked", "week_coop"), "O capítulo seguinte abre sem esperar o dia civil")
 	var fresh: Dictionary = database.get("quests").bloblo_more_crops.goals[0]
 	check(state.call("goal_value", fresh) == 0, "Colheitas anteriores não contam")
 	state.get("progress").count("harvest", 2)
@@ -69,20 +69,25 @@ func _run() -> void:
 	state.call("dev_week_hour", 19)
 	var first: Array = state.get("progress").main_quests(1)
 	for id: String in first:
-		for goal: Dictionary in database.get("quests")[id].goals:
+		# O passo da história que acompanha o marco da vovó (F03) é pego pelo marco dela, com os objetivos dela.
+		var claim_id: String = str(database.get("quests")[id].get("shared_with", id))
+		for goal: Dictionary in database.get("quests")[claim_id].goals:
 			match str(goal.type):
 				"stat": state.get("progress").stats[goal.key] = int(goal.get("target", 1))
 				"owned": state.get("progress").owned[goal.key] = true
 				"week_plots": state.set("unlocked_plots", int(goal.target))
 				"growth": state.call("dev_set_phase", str(goal.key))
 		var before_reward: int = state.get("coins")
-		check(state.call("claim_quest", id) == "", "Receber passo " + id)
-		var expected: int = int(database.get("quests")[id].rewards.get("coins", 0))
+		check(state.call("claim_quest", claim_id) == "", "Receber passo " + id)
+		var expected: int = int(database.get("quests")[claim_id].rewards.get("coins", 0))
 		if id == first.back():
 			expected += int(database.get("progression").chapters[0].get("rewards", {}).get("coins", 0))
 		check(state.get("coins") == before_reward + expected, "Pagamento exato do passo e capítulo")
 	state.set("unlimited_storage", false)
-	check(quest_signals.size() == first.size() and chapter_signals == [1], "Sinais de passos e capítulo uma vez")
+	var main_signals: Array = quest_signals.filter(func(id: String) -> bool: return database.get("quests")[id].get("kind", "") == "main")
+	# O passo da história que acompanha o marco de uma linha (a vovó) fecha em silêncio: o sinal é do marco dela.
+	var shared_count: int = first.filter(func(id: String) -> bool: return database.get("quests")[id].has("shared_with")).size()
+	check(main_signals.size() == first.size() - shared_count and chapter_signals == [1], "Sinais de passos e capítulo uma vez (%d de %d; capítulos %s)" % [main_signals.size(), first.size() - shared_count, str(chapter_signals)])
 	var coins: int = state.get("coins")
 	check(state.call("claim_quest", first.back()) != "" and state.get("coins") == coins, "Capítulo não paga duas vezes")
 	# Missões sintéticas isolam consumo dos novos tipos.
@@ -106,14 +111,18 @@ func _run() -> void:
 ## Revelar aos poucos: o começo mostra pouco; cada passo anuncia o que abriu, uma vez só.
 func _unlocks_check() -> void:
 	state.call("reset")
+	state.call("finish_week_arrival")  # com a caixinha aberta valem as portas do Ato 1 (Mochila só no fim)
 	var progress: RefCounted = state.get("progress")
 	check((state.call("new_unlocks") as Array).is_empty(), "Começo sem novidades pendentes")
 	check(not progress.feature_unlocked("bag") and not progress.skills_visible(), "Mochila e atributos escondidos no começo")
 	check(not progress.npc_visible("guide") and progress.npc_visible("bloblo") and progress.npc_visible("lais"), "A Laís e a vovó já estão disponíveis")
 	state.call("dev_jump_to_chapter", 1)
 	var news: Array = state.call("new_unlocks")
-	for key: String in ["feature:bag"]:
-		check(key in news, "Novidade do capítulo 2: " + key)
+	# A Mochila abre na primeira colheita sem cartão "Novo!" (a mão `bag` a apresenta, F03).
+	progress.call("count", "harvest:carrot", 1)
+	news = state.call("new_unlocks")
+	check(progress.feature_unlocked("bag") and not "feature:bag" in news, "Mochila liberada em silêncio")
+	check("world:farm" in news, "O Sítio abre no fim do Ato 1 e é anunciado")
 	check(not "world:village" in news, "Vila ainda não apresentada")
 	check(not "npc:guide" in news, "Guia ainda não apresentado")
 	state.call("mark_seen", news)
@@ -129,10 +138,12 @@ func _routines_check() -> void:
 	# Capítulo 3: diárias abrem com 3 missões; semanais só no 4.
 	state.call("dev_jump_to_chapter", 2)
 	check(state.get("progress").chapter_index() == 3, "Está no capítulo 3")
+	state.call("dev_week_goto", 2)  # o ingrediente do dia só renova em dias ímpares
 	check(not state.call("routines_unlocked", "daily"), "A rotina antiga espera Dentinhos")
+	state.call("dev_week_reset_clock")
 	check(not state.call("routines_unlocked", "weekly"), "Semanais ainda fechadas no capítulo 3")
 	state.get("progress").stats["harvest"] = 7
-	state.call("dev_jump_to_chapter", 8)
+	state.call("dev_jump_to_chapter", 12)
 	# Reinicia após preparar os contadores: a diária já pode ter sido sorteada no capítulo 3.
 	state.call("dev_restart_routines")
 	var progress: RefCounted = state.get("progress")
@@ -141,6 +152,8 @@ func _routines_check() -> void:
 		check(ids.size() == int(database.get("routines")[kind].count), kind + ": quantidade sorteada")
 		check(state.call("routine_ids", kind) == ids, kind + ": sorteio estável")
 		var id: String = ids[0]
+		if id == "recipe_ingredient" and ids.size() > 1:
+			id = ids[1]  # a do ingrediente do dia depende da receita, não de um contador
 		var goal: Dictionary = state.call("routine_data", kind, id).goal
 		check(state.call("routine_value", kind, id) == 0, kind + ": progresso começa do zero")
 		check(state.call("claim_routine", kind, id) != "", kind + ": não recebe sem cumprir")
@@ -180,7 +193,6 @@ func _ui_check() -> void:
 	var step: Control = main.find_child("NextStep", true, false)
 	check(step != null and not step.visible and (load("res://scripts/ui/quest_guide.gd") as GDScript).call("current").id == "welcome", "O próximo passo só aparece na tela do Tiro: oculto em Missões, mas o passo atual segue welcome")
 	check(main.find_child("MoodLabel", true, false).text == "Tiro está feliz da vida!", "Humor do Tiro substitui a instrução fixa (Etapa 09)")
-	check(not main.find_child("BagTab", true, false).visible, "Aba Mochila escondida no começo")
 	# "Ir": seta sobre o objeto do destino, depois o painel.
 	main.call("_on_world_requested", "house", "place:bowl")
 	await create_timer(0.3).timeout

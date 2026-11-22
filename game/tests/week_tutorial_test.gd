@@ -34,7 +34,7 @@ func run() -> void:
 		var folder := "e15_tutoriais" if "--e15-shots" in OS.get_cmdline_user_args() else "e14_tutoriais"
 		output = ProjectSettings.globalize_path("res://../build/screenshots/%s/%dx%d" % [folder, root.size.x, root.size.y])
 		DirAccess.make_dir_recursive_absolute(output)
-	check(db.week_tutorials.size() == 34, "33 lições da semana e o aviso condicional")
+	check(db.week_tutorials.size() == 34, "34 lições: uma por sistema, presas ao passo da história (F04 Parte B)")
 	check(db.week_tutorials.map(func(row: Dictionary) -> String: return row.id).count("arrival") == 1, "Abertura única")
 	await open_main()
 	check(shown("arrival") and not guide.get("_skip").visible, "A caixa tem guia obrigatório")
@@ -51,7 +51,18 @@ func run() -> void:
 	route.claim("welcome")
 	await wait_ui()
 	await dismiss()
+	route.ato_one()  # Ato 1 em casa: comida, banho, brincar, caminha, crescimento, Filhotinho e a carta (as mãos `home_*` vêm do jogo)
+	await wait_ui(0.6)
+	state.acknowledge_growth("puppy")  # a cerimônia do Filhotinho já foi vista (senão os cartões do dia esperam)
+	await dismiss()
+	check(state.growth.phase == "puppy" and state.well_fed_days() == 1, "O Ato 1 termina em Filhotinho com a patinha da chegada")
 	var places := load("res://scripts/ui/places.gd")
+	state.note_screen_opened("farm")  # Ato 2: o Sítio e a vovó (as mãos `go_farm`/`meet_bloblo` são do ato2_test)
+	route.claim("lais_farm")
+	state.talk_to("bloblo")
+	route.ok(state.claim_quest("bloblo_meet"), "Conhecer a vovó")
+	await wait_ui(0.5)
+	await dismiss()
 	var destination: Dictionary = places.quest_target("lais_first_crops")
 	places.go(destination)
 	await wait_ui(1.0)
@@ -98,6 +109,9 @@ func run() -> void:
 	route.crop("potato", 3)
 	route.claim("lais_first_crops")
 	await settle_cards()
+	route.ok(state.buy_upgrade("stove"), "Colocar o fogão da vovó")
+	route.claim("place_stove")
+	await settle_cards()
 	places.go(places.quest_target("first_kitchen"))
 	await until_visible("TogetherButton")
 	var action := find("TogetherButton")
@@ -108,16 +122,23 @@ func run() -> void:
 	if kitchen:
 		await cook_first_meal(kitchen)
 	else:
-		route.serve(route.recipe("puppy_mash", 3, true))
+		route.recipe("puppy_mash", 3, true)
 	check(state.well_fed_days() == 1, "A primeira papinha vale a patinha da chegada")
-	route.claim("first_kitchen")
+	if state.progress.current_main_quest() == "first_kitchen":  # sem o minigame na tela: pega o passo 13 aqui
+		route.claim("first_kitchen")
+	if not state.food_lesson_done():
+		route.serve("puppy_mash")
+		state.finish_food_lesson()
+	route.claim("first_meal")
 	await dismiss()
 	main.call("show_screen", &"pet")
 	await settle_cards()
-	check(shown("clock") and guide.get("_balloon").visible, "A vovó explica o relógio após a primeira refeição (%s, %s)" % [guide.get("active"), str(guide.call("_target", "MealClock"))])
-	if shown("clock"):
-		await snap("03_balao")
-		await tap(find("TutorialAccept", guide))
+	check(shown("missions"), "Ao fechar o capítulo 1 o balão aponta a aba Missões")
+	if shown("missions"):
+		await snap("09b_missoes")
+	await tap(find("TutorialAccept", guide))
+	check(not shown("missions") and state.week.tutorial.get("missions", {}).get("done", false), "Entendi guarda o balão das Missões")
+	check(state.food_lesson_done() and not shown("clock"), "A aula da comida (F02B) explicou o relogio: a licao antiga nao repete")
 	route.crop("carrot", 4)
 	route.ok(state.sell("carrot", 4, "farm"), "Vender cenouras")
 	route.buy("week_pumpkin_seed")
@@ -129,19 +150,17 @@ func run() -> void:
 	state.advance_clock(float(state.crop_seconds(0, "pumpkin")) + 1.0)
 	state.harvest(0)
 	route.claim("week_plots")
-	route.ball()
-	route.name_calls()
-	route.claim("lais_play")
-	check(not state.week_invent_open(), "Inventar aguarda o jantar")
 	route.at(1, 19)
-	route.serve(route.dish("papinha", {"pumpkin": 1, "potato": 1}))
-	route.claim("week_invent")
-	check(state.progress.current_main_quest() == "week_coop", "Dia 1 foi concluído")
+	var soup: String = route.recipe("vegetable_soup")
+	route.claim("week_soup")
+	route.serve(soup)
+	check(state.progress.current_main_quest() == "lais_first_wish", "Capítulo 2 foi concluído")
 	await dismiss()
 	var coins: int = state.coins
 	await wait_ui(0.7)
 	await close_main()
 	route.at(2, 11)
+	route.first_wish()
 	await open_main()
 	await until_visible("WeekMorning")
 	check(state.coins == coins + 30, "O Bom dia do dia 2 concede 30 moedas")
@@ -174,7 +193,8 @@ func run() -> void:
 	route.claim("week_coop")
 	route.eggs(2)
 	route.claim("week_eggs")
-	route.serve(route.dish("papinha", {"potato": 1, "egg": 1}))
+	route.serve(route.recipe("egg_mash"))
+	route.claim("week_egg_dish")
 	route.recipe("week_oat_biscuit")
 	route.claim("week_biscuits")
 	await dismiss()
@@ -182,36 +202,12 @@ func run() -> void:
 	var pet := main.find_child("PetScreen", true, false)
 	pet.get("_care").call("open_food_menu")
 	await wait_ui()
-	check(shown("snack") and guide.get("_hint").visible, "A dica acompanha o biscoito ao servir (%s, %s)" % [guide.get("active"), str(guide.call("_target", "@snack"))])
-	if shown("snack"):
-		await snap("06_dica")
-		await tap(find("TutorialSkip", guide))
+	check(not shown("snack"), "O lanche não tem mais dica fixa: é um balão na primeira vez que ele ganha um petisco (F02B)")
 	route.lesson("sit")
 	route.claim("week_sit")
-	route.ball()
-	route.ball()
-	route.claim("week_fetch")
-	route.funds(40)
-	route.buy("week_bed")
-	route.claim("lais_bed")
 	route.serve("oat_biscuit")
 	route.at(2, 19)
-	route.ball()
 	route.meal(2, 19)
-	await dismiss()
-	load("res://scripts/ui/growth_ui.gd").open()
-	await wait_ui()
-	await tap(find("GrowButton"))
-	var ceremony := main.get("_growth_ceremony") as CanvasLayer
-	for i in 30:
-		if find("CloseCeremony", ceremony):
-			break
-		await wait_ui(0.15)
-	check(ceremony.visible, "Crescer! abre a cerimônia do dia 2")
-	await snap("dia2_cerimonia")
-	await tap(find("CloseCeremony", ceremony))
-	check(not ceremony.visible and state.growth.ceremonies.get("puppy", {}).get("seen", false), "Que lindo! encerra a cerimônia e grava o recibo")
-	route.claim("growth_1_puppy")
 	check(state.growth.phase == "puppy" and state.well_fed_days() == 2, "Dia 2 termina em Filhotinho com duas patinhas")
 	await dismiss()
 	main.call("show_screen", &"tasks")
@@ -219,6 +215,11 @@ func run() -> void:
 	var today := find("WeekToday")
 	check(today != null and today.find_child("WeekDailySeal", true, false) != null and today.find_children("WeekDaily_*", "", true, false).is_empty(), "Hoje recolhe as três atividades concluídas ao selo")
 	await snap("07_lista_do_dia")
+	await dismiss()
+	# As lições agora abrem pelo capítulo: encerra as que apareceram junto, para não cobrirem a revisão.
+	for lesson: Dictionary in db.week_tutorials:
+		if not state.week.tutorial.has(str(lesson.id)):
+			state.week.tutorial[str(lesson.id)] = {"done": true}
 	await dismiss()
 	var manual := load("res://scripts/ui/game_manual.gd")
 	manual.open("tutorials")
@@ -357,6 +358,18 @@ func settle_cards() -> void:
 		await dismiss()
 
 
+## Toca em Entendi da aula e espera o proximo toque (eat); 0 = a aula terminou.
+func lesson_next(guide_node: Node, expected: int) -> void:
+	await wait_ui(0.6)
+	if expected in [2, 3]:
+		check(find("LessonNext") != null, "Entendi da aula visivel")
+	guide_node.call("_on_next")  # o mesmo que tocar em Entendi (o toque de verdade ja e coberto pelo food_lesson_test)
+	for i in 15:
+		if int(guide_node.get("beat")) == expected:
+			return
+		await wait_ui(0.2)
+
+
 func drag(from: Vector2, to: Vector2) -> void:
 	pointer(from, true)
 	move_pointer(from, from.lerp(to, 0.5))
@@ -419,12 +432,25 @@ func cook_first_meal(kitchen: Control) -> void:
 	await wait_ui()
 	check(shown("feed"), "Após os três gestos, o guia segue ao prato pronto")
 	await tap(find("GiveToTiro"))
+	await wait_ui(0.8)
+	check(state.progress.claimed_quests.has("first_kitchen"), "Dar ao Tiro pega o passo 13 sozinho, para o 14 abrir a aula")
+	await dismiss()
+	await until_visible("LessonNext")
+	var lesson_guide := main.find_child("LessonGuide", true, false)
+	check(lesson_guide != null and lesson_guide.get("kind") == "food" and lesson_guide.get("beat") == 1, "O prato pronto leva à aula da comida (F02B), que assume o gesto da tigela (kind=%s, startable=%s, quest=%s, sheet=%s, cook=%s, notice=%s)" % [str(lesson_guide.get("kind")) if lesson_guide else "-", state.food_lesson_startable(), state.progress.current_main_quest(), main.get_node("Sheet").call("is_open"), load("res://scripts/ui/cook_panel.gd").call("current") != null, main.call("notice_blocked")])
+	await lesson_next(lesson_guide, 2)
+	await lesson_next(lesson_guide, 3)
 	await until_visible("TutorialMealBowl")
-	check(shown("feed") and guide.get("step") == 1, "O prato pronto abre o gesto da tigela")
+	check(lesson_guide.get("beat") == 3, "A aula chega ao toque de arrastar a papinha (toque %s, tipo %s, fala %s)" % [lesson_guide.get("beat"), lesson_guide.get("kind"), lesson_guide.get("_text")])
 	var plate := find("Care_puppy_mash")
 	var bowl_target := find("TutorialMealBowl")
 	if plate and bowl_target:
 		var lift: float = load("res://scripts/ui/drag_ghost.gd").LIFT
 		drag(plate.get_global_rect().get_center(), bowl_target.get_global_rect().get_center() + Vector2(0, lift))
 		await wait_ui()
-	check(state.progress.stat("feed:puppy_mash") == 1, "Dar ao Tiro serve a primeira papinha")
+	check(state.progress.stat("feed:puppy_mash") == 2, "Dar ao Tiro serve a papinha cozida (a da caixinha foi a primeira)")
+	await wait_ui(0.5)
+	check(lesson_guide.get("beat") == 4 and bool(state.meal_info().paw), "Comer na aula dá a patinha garantida")
+	await lesson_next(lesson_guide, 5)
+	await lesson_next(lesson_guide, 0)
+	check(state.food_lesson_done() and shown("clock") == false, "A aula termina e entrega o relógio (a lição antiga do relógio não repete)")

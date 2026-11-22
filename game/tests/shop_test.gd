@@ -61,6 +61,7 @@ func _data_and_gates() -> void:
 	check(state.call("shop_item_locked", "worm_pack") != "", "2: minhoca bloqueada sem vara")
 	check(state.call("buy_shop_item_error", "worm_pack") != "", "2: não compra o bloqueado")
 	state.call("dev_week_goto", 3)
+	state.call("dev_content_day", 6)
 	check(state.call("shop_item_locked", "worm_pack") == "", "2: minhoca liberada no dia 3")
 	check("worm_pack" in state.call("shop_items", "farm_stall"), "2: minhoca aparece na banca")
 	check(state.call("shop_items", "market") == [] or state.call("shop_error", "market") != "", "2: Feirante fechado no capítulo 1")
@@ -71,6 +72,7 @@ func _buying() -> void:
 	_fresh()
 	_p().claimed_quests["bloblo_meet"] = true
 	state.call("dev_week_goto", 3)
+	state.call("dev_content_day", 6)
 	var worms: int = state.get("inventory").count("bait_worm")
 	var coins: int = state.get("coins")
 	check(state.call("buy_shop_item", "worm_pack", 3) == "", "3: compra 3 pacotes")
@@ -224,6 +226,7 @@ func _go() -> void:
 	_fresh()
 	_p().claimed_quests["bloblo_meet"] = true
 	state.call("dev_week_goto", 3)
+	state.call("dev_content_day", 6)
 	var sell_ui: Script = load("res://scripts/ui/sell_ui.gd")
 	sell_ui.set("last_tab", "sell")
 	var captured: Array[Control] = []

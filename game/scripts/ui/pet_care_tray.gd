@@ -36,6 +36,11 @@ var _ask: Button
 var _ask_icon: TextureRect
 var _pointer: Polygon2D
 var _pointed_item := ""
+## Ângulos (graus) dos discos visíveis no leque, na ordem de `_row`; o fundo de madeira e as tachinhas usam o mesmo.
+var _wheel_angles: Array[float] = []
+## Discos já mostrados alguma vez e os que acabaram de entrar (ganham destaque curto quando a roleta abre).
+var _known_discs: Dictionary = {}
+var _new_discs: Array[String] = []
 
 const HEART_SIZE := Vector2(64, 62)
 const WHEEL_RADIUS := 190.0
@@ -43,6 +48,8 @@ const WHEEL_RADIUS := 190.0
 const WHEEL_CARD := 66.0
 ## Cartão de cada cuidado (IUREF/roleta; o Escovar usa o cartão vazio com o ícone por cima).
 const WHEEL_CARDS := {"FoodButton": "food", "Care_sponge": "bath", "BrushTile": "blank", "Care_ball": "play", "SleepButton": "sleep"}
+## Recurso (progression.json → features) que mostra cada disco: o Ato 1 revela um cuidado por passo da história.
+const WHEEL_FEATURES := {"FoodButton": "care_food", "Care_sponge": "care_bath", "Care_ball": "care_play", "SleepButton": "care_sleep"}
 ## Faixa de madeira atrás dos cartões: contorno, madeira e o filete claro do meio.
 const BAND_WIDTH := 84.0
 const WOOD_EDGE := Color("6b3a1c")
@@ -338,7 +345,7 @@ func open_food_menu() -> void:
 	close_wheel()
 	refresh()
 	_menu.show()
-	_meal_bowl.visible = WeekTutorial.enrolled() and GameState.progress.stat("feed") == 0 and food_ids().any(GameState.is_meal_item)
+	_meal_bowl.visible = WeekTutorial.enrolled() and (GameState.progress.stat("feed") == 0 or GameState.food_lesson_running()) and food_ids().any(GameState.is_meal_item)
 	_scroll.scroll_vertical = 0
 	_place_menu()
 	Motion.pop_in(_menu)
@@ -526,7 +533,7 @@ func _act(id: String, with_shampoo: bool = false) -> void:
 			pet_screen.call("throw_ball")
 			pet_screen.call("play_growth_feedback", before, GameState.play_growth_info())
 		else: error = "Tiro está cansado demais para brincar."
-	elif GameState.is_meal_item(id) and GameState.meal_error(id) != "" and GameState.store_meal_error(id) == "":
+	elif GameState.meal_ask_allowed(id):
 		# Refeição fora da hora: Dar agora ou Deixar pronto para a próxima janela.
 		close_food_menu()
 		MealUi.store_choice(id, func() -> void:
@@ -681,10 +688,38 @@ func open_wheel() -> void:
 			var tween := disc.create_tween().set_parallel()
 			tween.tween_property(disc, "position", target, Motion.POP_IN).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 			tween.tween_property(disc, "scale", Vector2.ONE, Motion.POP_IN).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_flash_new_discs()
 	pet_screen.call("wheel_changed", true)
 
 
+## "Novo!" do disco que acabou de entrar: pulinho e uma estrela por alguns segundos, sem cartão modal.
+func _flash_new_discs() -> void:
+	for disc_name: String in _new_discs:
+		var disc := _row.get_node_or_null(disc_name) as Control
+		if disc == null or not disc.visible:
+			continue
+		var star := disc.get_node_or_null("NewDiscStar") as Control
+		if star == null:
+			star = UiKit.spark(22)
+			star.name = "NewDiscStar"
+			star.position = Vector2(-6, -6)
+			star.z_index = 3
+			disc.add_child(star)
+		star.visible = true
+		if Motion.reduced:
+			continue
+		disc.pivot_offset = disc.size / 2.0
+		var tween := disc.create_tween()
+		tween.tween_interval(Motion.POP_IN + 0.1)  # depois da entrada em leque
+		for i in 3:
+			tween.tween_property(disc, "scale", Vector2.ONE * 1.18, 0.28).set_trans(Tween.TRANS_SINE)
+			tween.tween_property(disc, "scale", Vector2.ONE, 0.28).set_trans(Tween.TRANS_SINE)
+	_new_discs.clear()
+
+
 func close_wheel() -> void:
+	for star: Node in _row.find_children("NewDiscStar", "Control", true, false):
+		star.queue_free()
 	_row.hide()
 	_row.modulate.a = 1.0
 	_refresh_wheel()
@@ -748,8 +783,28 @@ func _care_spot() -> Vector2:
 	return Vector2(size.x - 14.0 - HEART_SIZE.x, size.y - 218.0 - extra)
 
 
+## O disco já foi revelado pela história? (a Escova entra sozinha com a escovinha.)
+func _disc_open(disc: Control) -> bool:
+	var feature: String = WHEEL_FEATURES.get(str(disc.name), "")
+	return feature == "" or GameState.progress.feature_unlocked(feature)
+
+
+## Ângulos do leque para `count` discos: o último fica sempre em 100° (logo acima do botão Cuidar) e os outros
+## abrem para a esquerda de 30° em 30°; com cinco discos (Escova) o leque fecha em 90° de 25° em 25°.
+static func fan_angles(count: int) -> Array[float]:
+	var result: Array[float] = []
+	if count >= 5:
+		for i in count:
+			result.append(190.0 - 25.0 * i)
+		return result
+	for i in count:
+		result.append(100.0 + 30.0 * (count - 1 - i))
+	return result
+
+
 func _refresh_wheel() -> void:
 	_care_button.position = _care_spot()
+	_care_button.visible = GameState.progress.feature_unlocked("care_food")
 	var sleeping := GameState.dog.sleeping
 	(_care_button.find_child("CareIcon", true, false) as TextureRect).texture = UiKit.ui_icon("action_wake" if sleeping else "heart")
 	(_care_button.find_child("Caption", true, false) as Label).text = "Acordar" if sleeping else "Cuidar"
@@ -773,11 +828,24 @@ func _refresh_wheel() -> void:
 	(_care_button.find_child("CareBadge", true, false) as Control).visible = _ask.visible
 	_ask_icon.texture = Database.item_icon("dog_food") if need == "hunger" else UiKit.ui_icon({"hygiene": "action_sponge", "happiness": "action_play", "energy": "action_sleep"}.get(need, "heart"))
 	# O botão Cuidar mora na borda direita: os cuidados abrem em leque para cima e para a esquerda (190° a 90°).
-	var angles: Array = [190, 165, 140, 115, 90] if _items.has("brush") else [190, 160, 130, 100]
 	var center := _care_button.position + _care_button.size / 2.0
-	var discs := _row.get_children()
+	var discs: Array[Control] = []
+	for child: Node in _row.get_children():
+		var unlocked := _disc_open(child as Control)
+		(child as Control).visible = unlocked
+		if not unlocked:
+			continue
+		discs.append(child as Control)
+		if not _known_discs.has(child.name) and GameState.progress.stat("arrival_box") > 0:
+			# O primeiro cálculo só registra os que já estavam lá; depois, cada disco novo ganha o "Novo!".
+			# (Antes da caixinha tudo aparece pela regra "save sem caixinha": não conta como já visto.)
+			if not _known_discs.is_empty() and str(child.name) not in _new_discs:
+				_new_discs.append(str(child.name))
+			_known_discs[child.name] = true
+	_wheel_angles = fan_angles(discs.size())
+	var angles := _wheel_angles
 	for i in discs.size():
-		var disc := discs[i] as Control
+		var disc := discs[i]
 		disc.position = center + Vector2(cos(deg_to_rad(angles[i])), -sin(deg_to_rad(angles[i]))) * WHEEL_RADIUS - disc.size / 2.0
 		var asking: bool = {"FoodButton": "hunger", "Care_sponge": "hygiene", "Care_ball": "happiness", "SleepButton": "energy"}.get(str(disc.name), "") == need and need != ""
 		var circle := disc.find_child("Circle", true, false) as PanelContainer
@@ -820,14 +888,19 @@ func _draw_wheel() -> void:
 		for i in 20:
 			_row.draw_circle(center, 320.0 - i * 16.0, Color(Palette.INK, 0.008), true, -1, true)
 	# Faixa de madeira lisa em volta do coração, com pontas arredondadas e tachinhas douradas entre os cartões.
-	var from := deg_to_rad(-190.0)
-	var to := deg_to_rad(-80.0 if _items.has("brush") else -84.0)
+	if _wheel_angles.is_empty():
+		return
+	var count := _wheel_angles.size()
+	var from := deg_to_rad(-_wheel_angles[0])
+	var to := deg_to_rad(-(_wheel_angles[count - 1] - (10.0 if count >= 5 else 16.0)))
 	for layer: Array in [[WOOD_EDGE, BAND_WIDTH + 6.0], [WOOD_BAND, BAND_WIDTH - 2.0], [WOOD_LIGHT, BAND_WIDTH - 22.0], [WOOD_BAND, BAND_WIDTH - 30.0]]:
 		_row.draw_arc(center, WHEEL_RADIUS, from, to, 96, layer[0], layer[1], true)
 		for end: float in [from, to]:
 			_row.draw_circle(center + Vector2(cos(end), sin(end)) * WHEEL_RADIUS, layer[1] / 2.0, layer[0], true, -1, true)
-	var angles: Array = [177.5, 152.5, 127.5, 102.5] if _items.has("brush") else [175.0, 145.0, 115.0]
-	for angle: float in angles:
+	var tacks: Array[float] = []
+	for i in count - 1:
+		tacks.append((_wheel_angles[i] + _wheel_angles[i + 1]) / 2.0)
+	for angle: float in tacks:
 		for edge: float in [-1.0, 1.0]:
 			var at := center + Vector2(cos(deg_to_rad(angle)), -sin(deg_to_rad(angle))) * (WHEEL_RADIUS + edge * (BAND_WIDTH / 2.0 - 7.0))
 			_row.draw_circle(at, 3.5, Palette.WOOD_GLOW, true, -1, true)

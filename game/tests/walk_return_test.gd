@@ -50,6 +50,7 @@ func _fresh() -> void:
 	state.set("test_time", T0)
 	state.set("unlimited_storage", false)
 	state.call("reset")
+	state.get("growth").phase = "teething"  # a Praça abre em Dentinhos (novo fluxo)
 	_p().claimed_quests["main_2_order"] = true
 	_p().claimed_quests["nina_meet"] = true
 	_p().claimed_quests["nina_walk"] = true
@@ -201,7 +202,7 @@ func _full_depots() -> void:
 		check(state.get("dog").sleeping, depot + ": Tiro dorme com a bagagem esperando")
 		state.call("set_sleeping", false)
 		check(not state.get("dog").sleeping, depot + ": Tiro acorda")
-		check(state.call("bathe") == "" or _p().stat("bathe") >= 1, depot + ": banho funciona")
+		check(state.call("bathe") or _p().stat("bathe") >= 1, depot + ": banho funciona")
 		# Abrir espaço aos poucos: recebe parcelas que cabem.
 		# Regra "sempre guarda": ao surgir espaço, o tick guarda a parcela que cabe, sozinho.
 		_inv().remove("stick", 2)

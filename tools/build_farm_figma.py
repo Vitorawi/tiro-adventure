@@ -274,8 +274,7 @@ def main() -> None:
             o["silhouette"] = True
             front = sorted(fp, key=lambda point: point[1])[-2:]
             future.append({"id": oid, "polygon": fp, "gate": front,
-                           "requirements": {"growth": "teething"}, "action": "week:later",
-                           "plaque": [round(cx), maxy - 30], "text": "Quando ele crescer"})
+                           "requirements": {"growth": "teething"}, "action": "week:later"})
         # placa no lugar da construção (centro da base, um pouco à frente)
         miny = min(p[1] for p in fp)
         sp_ = [round(cx), round((miny + maxy) / 2 + 14)]
@@ -293,32 +292,32 @@ def main() -> None:
                     "pos": orchard_pos, "approach": [round(sum(gx) / len(gx)), max(gy) + 14]})
     front = sorted(gfp, key=lambda point: point[1])[-2:]
     future.append({"id": "orchard", "polygon": gfp, "gate": front,
-                   "requirements": {"week_day": 4}, "action": "week:orchard",
-                   "plaque": [orchard_pos[0], orchard_pos[1] - 30], "text": "Pomar · dia 4"})
+                   "requirements": {"story_day": 7}, "action": "week:orchard",
+                   "plaque": [orchard_pos[0], orchard_pos[1] - 30], "plaque_from": 6, "text": "Em breve"})
     front = sorted(bases["galinheiro"], key=lambda point: point[1])[-2:]
     future.append({"id": "chicken_coop", "polygon": bases["galinheiro"], "gate": front,
-                   "requirements": {"week_day": 2}, "action": "week:coop",
-                   "plaque": [info["galinheiro"]["pos"][0], max(p[1] for p in front) - 30], "text": "Galinheiro · dia 2"})
+                   "requirements": {"story_day": 4}, "action": "week:coop",
+                   "plaque": [info["galinheiro"]["pos"][0], max(p[1] for p in front) - 30], "plaque_from": 3, "text": "Em breve"})
 
     objects.append({"id": "week_cart", "action": "place:week_cart",
                     "sprite": "res://assets/sprites/areas/village/stall.png",
                     "pos": [918, 1484], "scale": 0.9, "approach": [892, 1430],
-                    "requirements": {"week_day": 5}})
+                    "requirements": {"story_day": 9}})
     objects.append({"id": "week_cart_merchant", "action": "place:week_cart",
                     "sprite": "res://assets/sprites/characters/npc_merchant/portrait.png",
                     "pos": [956, 1477], "scale": 0.62,
-                    "requirements": {"week_day": 5}})
+                    "requirements": {"story_day": 9}})
     objects.append({"id": "week_yard", "action": "place:week_yard",
                     "sprite": "res://assets/sprites/areas/house/toy_basket.png",
                     "pos": [722, 1037], "approach": [743, 1046], "scale": 1.15,
                     "label": "Quintal do Tiro", "label_pos": [722, 998]})
     training = info["lacticios"]["pos"]
     objects.append({"id": "week_training", "action": "place:week_training", "hidden_by": ["dairy"],
-                    "requirements": {"week_day": 2}, "sprite": "res://assets/sprites/areas/house/paw_rug.png",
+                    "requirements": {"story_day": 5}, "sprite": "res://assets/sprites/areas/house/paw_rug.png",
                     "pos": [training[0], training[1] + 11], "scale": 1.35, "sort_shift": 40})
     for npc, dx in (("bloblo", -35), ("lais", 35)):
         objects.append({"id": f"week_audience_{npc}", "action": "place:week_show", "hidden_by": ["dairy"],
-                        "requirements": {"week_day": 6}, "scale": 1.25,
+                        "requirements": {"story_day": 10}, "scale": 1.25,
                         "sprite": f"res://assets/sprites/characters/npc_{npc}/walk/south/frame_00.png",
                         "pos": [training[0] + dx, training[1] - 18]})
 
@@ -402,8 +401,8 @@ def main() -> None:
     zones.append({"id": "lake", "action": "place:fishing", "polygon": lake_zone, "label": "Lagoa", "label_pos": [round(lcx), round(lcy)]})
     pier = P(600, 905)  # deck do píer, do lado da água
     future.append({"id": "lake", "polygon": lake_zone, "gate": [P(475, 980), P(730, 980)],
-                   "requirements": {"week_day": 3}, "action": "place:fishing",
-                   "plaque": [pier[0], pier[1] - 30], "text": "Lagoa · dia 3"})
+                   "requirements": {"story_day": 6}, "action": "place:fishing",
+                   "plaque": [pier[0], pier[1] - 30], "plaque_from": 5, "text": "Em breve"})
     spot_xy = near(P(745, 1005))  # margem de onde o Tiro entra no píer
     dx, dy = lcx - spot_xy[0], lcy - spot_xy[1]
     face = ("east" if dx > 0 else "west") if abs(dx) > abs(dy) else ("south" if dy > 0 else "north")

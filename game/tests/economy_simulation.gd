@@ -53,8 +53,8 @@ func _parse(args: PackedStringArray) -> Dictionary:
 
 
 func _run_week(options: Dictionary) -> void:
-	if options.profile not in ["tranquilo", "regular", "dedicado"]:
-		push_error("Escolha tranquilo, regular ou dedicado")
+	if options.profile not in ["tranquilo", "regular", "dedicado", "muito", "perde_dia"]:
+		push_error("Escolha muito, regular, perde_dia (ou tranquilo/dedicado, rota antiga)")
 		quit(2)
 		return
 	root.get_node("SaveManager").free()
@@ -63,8 +63,10 @@ func _run_week(options: Dictionary) -> void:
 	state.set_clock(1792411200.0)
 	seed(options.seed)
 	state.reset()
-	var bot = load("res://tests/helpers/week_economy_route.gd").new(state, root.get_node("Database"), Callable())
-	var result: Dictionary = bot.measure(options.profile)
+	var sessions: bool = options.profile in ["muito", "regular", "perde_dia"]
+	var script := "res://tests/helpers/week_session_route.gd" if sessions else "res://tests/helpers/week_economy_route.gd"
+	var bot = load(script).new(state, root.get_node("Database"), Callable())
+	var result: Dictionary = bot.measure_sessions(options.profile) if sessions else bot.measure(options.profile)
 	var output := ProjectSettings.globalize_path("res://../").path_join(options.out)
 	DirAccess.make_dir_recursive_absolute(output)
 	var file := FileAccess.open(output.path_join("week.json"), FileAccess.WRITE)
@@ -74,5 +76,5 @@ func _run_week(options: Dictionary) -> void:
 		return
 	file.store_string(JSON.stringify(result, "\t"))
 	file.close()
-	print("ECONOMY SIM: ", options.profile, " Dentinhos D", result.growth_day, " erros ", result.errors.size())
+	print("ECONOMY SIM: ", options.profile, " Dentinhos D", result.get("growth_day", result.get("phases", {}).get("teething", {}).get("day", 0)), " erros ", result.errors.size())
 	quit(0 if result.errors.is_empty() else 1)

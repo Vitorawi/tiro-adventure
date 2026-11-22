@@ -60,7 +60,7 @@ func _run() -> void:
 		await capture("principal")
 	state.call("dev_unlock_everything")
 	state.call("_mark_all_seen")
-	for id: String in ["main_9_coop", "nina_walk", "lais_album"]:
+	for id: String in ["main_9_coop", "nina_walk"]:
 		state.get("progress").claimed_quests.erase(id)
 	state.get("inventory").call("from_dict", {})
 	state.call("_changed")

@@ -1,4 +1,5 @@
 {
+  "open_chapter": 8,
   "mastery": [
     {
       "name": "Nova",
@@ -61,7 +62,7 @@
     }
   ],
   "daily": {
-    "from_day": 3,
+    "from_chapter": 8,
     "cycle": [
       "abobora",
       "ovo",
@@ -75,7 +76,7 @@
     "base_coins": 10
   },
   "novelty": {
-    "from_day": 4,
+    "from_chapter": 8,
     "chance": 0.25
   },
   "sources": {

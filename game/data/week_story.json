@@ -1,4 +1,30 @@
 {
+  "last_chapter": 11,
+  "food_lesson": {
+    "quest": "first_meal",
+    "npc": "lais",
+    "item": "puppy_mash",
+    "next": "Entendi",
+    "snack": "Petisco é lanche: não conta como refeição.",
+    "growth": [
+      "Cada fase tem uma lista. Quando tudo ficar ✓, ele cresce.",
+      "Tudo o que você faz por ele conta: comida, banho, brincar.",
+      "Aqui em cima você sempre vê quanto falta."
+    ],
+    "clock": "Viu o reloginho? Ele fica verde quando é hora de comer.",
+    "today": {
+      "window": "É hora do %s! Ele come duas vezes por dia: almoço, das %dh às %dh, e jantar, das %dh às %dh.",
+      "day": "Ele come no almoço e no jantar. Hoje é o dia da chegada, então qualquer hora vale.",
+      "night": "Comidinha antes de dormir! Ele come no almoço e no jantar."
+    },
+    "feed": "Arraste a papinha até ele.",
+    "paw": {
+      "window": "Deu na hora? Ganhou um ✓! Almoço e jantar na hora valem uma patinha. Hoje é especial: uma papinha já vale!",
+      "day": "Pronto, valeu! O próximo é o %s, às %dh. Hoje é especial: uma papinha já vale uma patinha!",
+      "night": "Pronto! Hoje é especial: uma papinha já vale uma patinha. Agora é hora de dormir. Amanhã é o almoço."
+    },
+    "grow": "Seis patinhas e ele ganha os Dentinhos. É uma por dia, não dá para adiantar."
+  },
   "arrival": {
     "box": "res://assets/sprites/areas/house/arrival_box.png",
     "lines": [
@@ -21,9 +47,9 @@
         "reveal": 0.54
       },
       {
-        "npc": "bloblo",
-        "text": "Pronto, ele saiu! Venham ao sítio. Vamos fazer a primeira papinha.",
-        "button": "Vamos, Tiro!",
+        "npc": "lais",
+        "text": "Pronto, ele saiu! Esse é o Tiro.",
+        "button": "Oi, Tiro!",
         "reveal": 1
       }
     ]
@@ -50,7 +76,7 @@
   },
   "days": [
     {
-      "trigger": "lais_play",
+      "trigger": "lais_photo",
       "surprise": "O Tiro se enroscou e dormiu dentro da caixinha.",
       "label": "Fazer um prato com três estrelas",
       "counter": "week_three_stars",

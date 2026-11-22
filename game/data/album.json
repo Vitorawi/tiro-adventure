@@ -408,10 +408,10 @@
     {
       "id": "h_first_trick",
       "section": "story",
-      "title": "Pata!",
-      "on": "trick_learned",
+      "title": "Primeiro truque",
+      "on": "quest_claimed",
       "when": {
-        "trick": "paw"
+        "quest_is": "week_sit"
       },
       "photo": {
         "illustration": "res://assets/sprites/ui/album/illustrated/h_first_trick.png",
@@ -423,9 +423,9 @@
         "props": [],
         "friend": "nina"
       },
-      "photo_talk": "Guardei com carinho a foto “Pata!” com o Tiro!",
+      "photo_talk": "Guardei com carinho a foto “Primeiro truque” com o Tiro!",
       "goal_hint": {
-        "text": "Aprenda Dá a pata na Aula do Tiro com a vovó.",
+        "text": "Aprenda o Senta na Aula do Tiro com a vovó.",
         "icon": "trick_paw",
         "go": {
           "world": "farm",
@@ -452,7 +452,7 @@
         ]
       },
       "goal_hint": {
-        "text": "Complete um show de truques para a vovó e a Laís a partir do dia 6.",
+        "text": "Siga a História: complete um show de truques para a vovó e a Laís.",
         "icon": "trick_paw",
         "go": {
           "world": "farm",
@@ -505,7 +505,7 @@
         ]
       },
       "goal_hint": {
-        "text": "Siga o capítulo 7: pegue Nossa banca com a Laís.",
+        "text": "Siga a História: pegue Nossa banca com a Laís.",
         "icon": "station_stall",
         "go": {
           "screen": "tasks"
@@ -555,7 +555,7 @@
         "props": []
       },
       "goal_hint": {
-        "text": "Siga o capítulo 10: use o Banco e pegue a missão.",
+        "text": "Siga a História: use o Banco e pegue a missão.",
         "icon": "project_bench",
         "go": {
           "screen": "tasks"
@@ -582,7 +582,7 @@
         ]
       },
       "goal_hint": {
-        "text": "Siga o capítulo 12: pegue a missão da medalhinha.",
+        "text": "Siga a História: pegue a missão da medalhinha.",
         "icon": "album_story",
         "go": {
           "screen": "tasks"
@@ -2053,12 +2053,116 @@
       "provisional": true
     },
     {
+      "id": "h_week_soup",
+      "section": "story",
+      "title": "A primeira sopinha",
+      "on": "quest_claimed",
+      "when": {
+        "quest_is": "week_soup"
+      },
+      "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_kitchen.png",
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 1
+        },
+        "props": ["bowl"]
+      },
+      "goal_hint": {
+        "text": "Siga a História para registrar a primeira sopinha.",
+        "icon": "album_story",
+        "go": {
+          "screen": "tasks"
+        }
+      },
+      "provisional": true
+    },
+    {
+      "id": "h_week_wish",
+      "section": "story",
+      "title": "O primeiro desejo",
+      "on": "quest_claimed",
+      "when": {
+        "quest_is": "lais_first_wish"
+      },
+      "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_growth_puppy.png",
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": []
+      },
+      "goal_hint": {
+        "text": "Siga a História para registrar o primeiro desejo.",
+        "icon": "album_story",
+        "go": {
+          "screen": "tasks"
+        }
+      },
+      "provisional": true
+    },
+    {
+      "id": "h_week_eggs",
+      "section": "story",
+      "title": "Prato com ovo",
+      "on": "quest_claimed",
+      "when": {
+        "quest_is": "week_egg_dish"
+      },
+      "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/f_taste.png",
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 1
+        },
+        "props": ["bowl"]
+      },
+      "goal_hint": {
+        "text": "Siga a História para registrar o prato com ovo.",
+        "icon": "album_story",
+        "go": {
+          "screen": "tasks"
+        }
+      },
+      "provisional": true
+    },
+    {
+      "id": "h_week_book",
+      "section": "story",
+      "title": "O Livro de receitas",
+      "on": "quest_claimed",
+      "when": {
+        "quest_is": "week_book"
+      },
+      "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/h_kitchen.png",
+        "scene": "pet",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 1
+        },
+        "props": ["bowl"]
+      },
+      "goal_hint": {
+        "text": "Siga a História para registrar o Livro de receitas.",
+        "icon": "album_story",
+        "go": {
+          "screen": "tasks"
+        }
+      },
+      "provisional": true
+    },
+    {
       "id": "h_week_fish",
       "section": "story",
       "title": "O primeiro peixe",
       "on": "quest_claimed",
       "when": {
-        "quest_is": "week_fish"
+        "quest_is": "week_fish_dish"
       },
       "photo": {
         "illustration": "res://assets/sprites/ui/album/illustrated/h_kitchen.png",
@@ -2261,6 +2365,39 @@
         "icon": "album_story",
         "go": {
           "notebook": "missions"
+        }
+      },
+      "provisional": true
+    },
+    {
+      "id": "s_golden_fish",
+      "section": "tricks",
+      "title": "O peixe dourado",
+      "on": "fished",
+      "when": {
+        "item": "fish_golden"
+      },
+      "photo": {
+        "illustration": "res://assets/sprites/ui/album/illustrated/s_golden_fish.png",
+        "scene": "farm",
+        "pose": {
+          "clip": "idle_breathe",
+          "frame": 0
+        },
+        "props": []
+      },
+      "hint": "Dizem que existe um peixe de ouro na lagoa.",
+      "icons": [
+        "item_fish_golden"
+      ],
+      "hint_npc": "bloblo",
+      "hint_talk": "Psiu... um peixe dourado só morde a minhoca gorda, e é preciso uma pescaria perfeita.",
+      "goal_hint": {
+        "text": "Pesque o peixe dourado na lagoa.",
+        "icon": "item_fish_golden",
+        "go": {
+          "world": "farm",
+          "place": "fishing"
         }
       },
       "provisional": true

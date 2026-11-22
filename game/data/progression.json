@@ -27,7 +27,7 @@
     },
     "welcome_back_seconds": 300,
     "idle_hint_seconds": 15,
-    "idle_hint_max_chapter": 8,
+    "idle_hint_max_chapter": 12,
     "stat_labels": {
       "sold:village": "produtos vendidos ao Feirante",
       "sold:farm": "produtos vendidos no Sítio",
@@ -152,9 +152,9 @@
         "screen": "bag"
       },
       "requirements": {
-        "quests": [
-          "welcome"
-        ]
+        "gate_stats": {
+          "harvest:carrot": 1
+        }
       }
     },
     "daily": {
@@ -175,7 +175,7 @@
       },
       "requirements": {
         "growth": "teething",
-        "chapter": 8
+        "chapter": 12
       }
     },
     "walk_diary": {
@@ -276,6 +276,78 @@
       },
       "requirements": {
         "growth": "puppy"
+      }
+    },
+    "care_food": {
+      "name": "Comida",
+      "icon": "tab_pet",
+      "go": {
+        "screen": "pet"
+      },
+      "requirements": {
+        "story_gate": [
+          "welcome"
+        ]
+      }
+    },
+    "care_bath": {
+      "name": "Banho",
+      "icon": "tab_pet",
+      "go": {
+        "screen": "pet"
+      },
+      "requirements": {
+        "story_gate": [
+          "lais_feed"
+        ]
+      }
+    },
+    "care_play": {
+      "name": "Brincar",
+      "icon": "tab_pet",
+      "go": {
+        "screen": "pet"
+      },
+      "requirements": {
+        "story_gate": [
+          "lais_bath"
+        ]
+      }
+    },
+    "care_sleep": {
+      "name": "Dormir",
+      "icon": "tab_pet",
+      "go": {
+        "screen": "pet"
+      },
+      "requirements": {
+        "story_gate": [
+          "lais_bed"
+        ]
+      }
+    },
+    "tab_map": {
+      "name": "Mapa",
+      "icon": "tab_map",
+      "go": {
+        "screen": "map"
+      },
+      "requirements": {
+        "story_gate": [
+          "lais_play"
+        ]
+      }
+    },
+    "tab_tasks": {
+      "name": "Missões",
+      "icon": "tab_tasks",
+      "go": {
+        "screen": "tasks"
+      },
+      "requirements": {
+        "story_gate": [
+          "first_meal"
+        ]
       }
     }
   },
@@ -768,19 +840,23 @@
       "icon": "station_warehouse"
     },
     "stove": {
-      "name": "Fogão simples",
+      "name": "Fogãozinho da vovó",
       "world": "house",
-      "description": "A primeira cozinha: faz petiscos e refeições.",
-      "cost": 60,
+      "description": "Um presente da vovó Bloblo: é só colocar na cozinha.",
+      "cost": 0,
+      "materials": {
+        "stove_gift": 1
+      },
       "requirements": {
-        "owned": [
-          "fridge"
+        "quests": [
+          "lais_first_crops"
         ]
       },
       "skill_xp": {
         "adventure": 10
       },
-      "icon": "station_stove"
+      "icon": "station_stove",
+      "verb": "Colocar"
     },
     "fridge": {
       "name": "Geladeira",
@@ -789,7 +865,7 @@
       "cost": 40,
       "requirements": {
         "quests": [
-          "lais_first_crops"
+          "first_meal"
         ]
       },
       "skill_xp": {
@@ -815,7 +891,7 @@
     "dog_bed": {
       "name": "Caminha do Tiro",
       "world": "house",
-      "description": "Um cantinho só dele para as sonecas.",
+      "description": "Um cantinho só dele para as sonecas. É um presente: é só colocar.",
       "cost": 0,
       "materials": {
         "bed_gift": 1
@@ -825,7 +901,8 @@
           "lais_play"
         ]
       },
-      "icon": "item_bed_gift"
+      "icon": "item_bed_gift",
+      "verb": "Colocar"
     },
     "sofa": {
       "name": "Sofá do Tiro",
@@ -914,7 +991,7 @@
       "cost": 80,
       "materials": {},
       "requirements": {
-        "chapter": 9
+        "chapter": 13
       },
       "skill_xp": {
         "adventure": 15
@@ -1133,7 +1210,7 @@
           "stove"
         ],
         "quests": [
-          "first_kitchen"
+          "first_meal"
         ]
       },
       "skill_xp": {
@@ -1208,7 +1285,7 @@
       "cost": 0,
       "materials": {},
       "requirements": {
-        "week_day": 4
+        "story_day": 7
       },
       "skill_xp": {
         "adventure": 35
@@ -1301,7 +1378,7 @@
       "cost": 0,
       "materials": {},
       "requirements": {
-        "week_day": 2
+        "story_day": 4
       },
       "skill_xp": {
         "adventure": 25
@@ -1347,7 +1424,7 @@
       },
       "requirements": {
         "growth": "teething",
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "chicken_coop"
         ]
@@ -1387,7 +1464,7 @@
       },
       "requirements": {
         "growth": "teething",
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "cow_barn"
         ]
@@ -1423,7 +1500,7 @@
       "description": "Abre a busca de madeira.",
       "cost": 40,
       "requirements": {
-        "chapter": 9
+        "chapter": 13
       },
       "icon": "item_wood"
     },
@@ -1433,7 +1510,7 @@
       "description": "Abre a busca de fibras.",
       "cost": 50,
       "requirements": {
-        "chapter": 9
+        "chapter": 13
       },
       "icon": "item_fiber"
     },
@@ -1461,7 +1538,7 @@
       "cost": 30,
       "requirements": {
         "quests": [
-          "first_kitchen"
+          "first_meal"
         ]
       },
       "skill_xp": {
@@ -1813,7 +1890,7 @@
       "seconds": 120,
       "nature_xp": 2,
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "cave_open"
         ]
@@ -1835,7 +1912,7 @@
       "seconds": 900,
       "nature_xp": 12,
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "forest_open"
         ]
@@ -1857,7 +1934,7 @@
       "seconds": 3600,
       "nature_xp": 35,
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "forest_level_3"
         ]
@@ -1880,7 +1957,7 @@
       "seconds": 3600,
       "nature_xp": 35,
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "cave_level_2"
         ]
@@ -1903,7 +1980,7 @@
       "seconds": 7200,
       "nature_xp": 60,
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "cave_level_3"
         ]
@@ -1926,7 +2003,7 @@
       "seconds": 3600,
       "nature_xp": 35,
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "meadow_level_2"
         ]
@@ -1949,7 +2026,7 @@
       "seconds": 120,
       "nature_xp": 2,
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "forest_open"
         ]
@@ -1972,7 +2049,7 @@
       "seconds": 600,
       "nature_xp": 8,
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "cave_open"
         ]
@@ -1996,7 +2073,7 @@
       "seconds": 600,
       "nature_xp": 8,
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "cave_open"
         ]
@@ -2018,7 +2095,7 @@
       "seconds": 1200,
       "nature_xp": 16,
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "cave_level_2"
         ]
@@ -2041,7 +2118,7 @@
       "seconds": 2400,
       "nature_xp": 26,
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "cave_level_3"
         ]
@@ -2085,7 +2162,7 @@
       "seconds": 600,
       "nature_xp": 8,
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "owned": [
           "meadow_open"
         ]
@@ -2131,6 +2208,7 @@
       }
     }
   ],
+  "cart_rotation_day": 5,
   "cart_orders": [
     [
       "cart_eggs",
@@ -2668,49 +2746,67 @@
   "chapters": [
     {
       "name": "A caixinha",
-      "description": "Dê carinho ao Tiro, cuide da horta e prepare a primeira papinha.",
+      "description": "Cuide do Tiro em casa, veja ele crescer, conheça a vovó e faça a primeira papinha.",
       "target": "",
-      "rewards": {},
-      "unlocks_text": "A vovó volta amanhã"
+      "rewards": {}
     },
     {
-      "name": "As galinhas e o primeiro truque",
-      "description": "Pegue os primeiros ovos, ensine o Senta e prepare a caminha.",
+      "name": "A banca da vovó",
+      "description": "Venda na banca, abra mais canteiros e faça a primeira sopinha.",
       "target": "",
-      "rewards": {},
-      "unlocks_text": "A vovó volta amanhã"
+      "rewards": {}
+    },
+    {
+      "name": "O primeiro desejo",
+      "description": "O Tiro vai pedir uma coisa. Atenda o primeiro desejo.",
+      "target": "",
+      "rewards": {}
+    },
+    {
+      "name": "As galinhas",
+      "description": "Monte o galinheiro, pegue ovos e faça um prato com ovo.",
+      "target": "",
+      "rewards": {}
+    },
+    {
+      "name": "Senta!",
+      "description": "Prepare biscoitos e ensine o Senta.",
+      "target": "",
+      "rewards": {}
     },
     {
       "name": "A lagoa",
-      "description": "Atravesse a ponte e prepare um prato com peixe.",
+      "description": "Atravesse a ponte, pesque e prepare um prato com peixe.",
       "target": "",
-      "rewards": {},
-      "unlocks_text": "A vovó volta amanhã"
+      "rewards": {}
     },
     {
       "name": "O pomar",
-      "description": "Colha frutas, aprenda Dá a pata e brinque com a cordinha.",
+      "description": "Colha frutas e faça um prato com fruta.",
       "target": "",
-      "rewards": {},
-      "unlocks_text": "A vovó volta amanhã"
+      "rewards": {}
     },
     {
-      "name": "A carroça do Feirante",
-      "description": "Conheça a carroça, dê um banho caprichado e ensine o Deita.",
+      "name": "Cozinheiro inventor",
+      "description": "Invente pratos e abra o Livro de receitas.",
       "target": "",
-      "rewards": {},
-      "unlocks_text": "A vovó volta amanhã"
+      "rewards": {}
     },
     {
-      "name": "O show do Tiro",
-      "description": "Prepare um prato com ovo e apresente os truques do Tiro.",
+      "name": "A carroça",
+      "description": "Conheça a carroça do Feirante e dê um banho com xampu.",
       "target": "",
-      "rewards": {},
-      "unlocks_text": "A vovó volta amanhã"
+      "rewards": {}
+    },
+    {
+      "name": "O quintal",
+      "description": "Brinque no quintal, aprenda mais truques e faça um show.",
+      "target": "",
+      "rewards": {}
     },
     {
       "name": "O primeiro dentinho",
-      "description": "Prepare o almoço de despedida e veja o Tiro crescer.",
+      "description": "Dê o mordedor, sirva o almoço de despedida e veja o Tiro crescer.",
       "target": "",
       "rewards": {},
       "unlocks_text": "A Vila está aberta!"
@@ -2835,7 +2931,7 @@
       "place": "week_cart",
       "npc": "merchant",
       "requirements": {
-        "week_day": 5
+        "story_day": 9
       }
     },
     "farm_stall": {
@@ -2850,7 +2946,7 @@
       "world": "village",
       "place": "market",
       "requirements": {
-        "chapter": 8
+        "chapter": 12
       }
     },
     "petshop": {
@@ -2941,7 +3037,7 @@
       "icon": "station_coop",
       "max": 1,
       "requirements": {
-        "week_day": 2
+        "story_day": 4
       },
       "description": "Duas galinhas e um canteiro de milho.",
       "destination": {
@@ -2961,7 +3057,7 @@
       "icon": "item_bed_gift",
       "max": 1,
       "requirements": {
-        "week_day": 2
+        "story_day": 2
       },
       "description": "Uma caminha para as sonecas do Tiro.",
       "destination": {
@@ -2981,7 +3077,7 @@
       "icon": "item_chew_ring",
       "max": 1,
       "requirements": {
-        "week_day": 7
+        "story_day": 11
       },
       "description": "Um mordedor para dar ao Tiro pelo painel Para crescer.",
       "destination": {
@@ -3007,7 +3103,7 @@
       "max": 1,
       "unique": true,
       "requirements": {
-        "week_day": 3
+        "story_day": 6
       },
       "description": "Libera abobrinha nos canteiros."
     },
@@ -3020,7 +3116,7 @@
       "price": 4,
       "icon": "item_rice",
       "requirements": {
-        "week_day": 3
+        "story_day": 6
       }
     },
     "week_sweet_potato_seed": {
@@ -3032,7 +3128,7 @@
       "max": 1,
       "unique": true,
       "requirements": {
-        "week_day": 4
+        "story_day": 7
       },
       "description": "Libera batata-doce nos canteiros."
     },
@@ -3045,7 +3141,7 @@
       "max": 1,
       "unique": true,
       "requirements": {
-        "week_day": 5
+        "story_day": 9
       },
       "description": "Libera melancia sem sementes nos canteiros."
     },
@@ -3073,7 +3169,7 @@
       "price": 6,
       "icon": "item_bait_worm",
       "requirements": {
-        "week_day": 3,
+        "story_day": 6,
         "rod": "bamboo_rod"
       },
       "max": 5
@@ -3156,7 +3252,7 @@
       "price": 180,
       "icon": "rod_reel",
       "requirements": {
-        "chapter": 9,
+        "chapter": 13,
         "fishing_level": 3
       },
       "max": 1
@@ -3199,7 +3295,7 @@
       "icon": "tab_pet",
       "animation": "idle_breathe",
       "requirements": {
-        "week_day": 2
+        "story_day": 5
       },
       "lesson": {
         "hint": "Leve o biscoito por cima do focinho, para trás.",
@@ -3232,7 +3328,7 @@
       "icon": "trick_paw",
       "animation": "give_paw",
       "requirements": {
-        "week_day": 4
+        "story_day": 10
       },
       "lesson": {
         "hint": "Desça com o biscoito até a pata indicada.",
@@ -3263,7 +3359,7 @@
       "icon": "need_energy",
       "animation": "roll_over",
       "requirements": {
-        "week_day": 5
+        "story_day": 10
       },
       "lesson": {
         "hint": "Desça devagar até o chão e segure por 2 segundos.",
@@ -3380,7 +3476,7 @@
       "reward_seconds": 1.6
     },
     "meal": {
-      "day": 3,
+      "day": 6,
       "offer_seconds": 12.0,
       "gesture_seconds": 12.0,
       "bonus": {
@@ -3391,7 +3487,7 @@
       }
     },
     "show": {
-      "day": 6,
+      "day": 10,
       "learned": 3,
       "min_length": 3,
       "max_length": 5,

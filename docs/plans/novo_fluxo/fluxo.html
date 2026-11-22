@@ -1,0 +1,421 @@
+<title>Novo fluxo do Tiro</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700&display=swap">
+<style>
+/* Layout: uma coluna de leitura; jornada em trilhas horizontais de cartões que quebram no celular. */
+:root{
+  --bg:#f3f1e6; --paper:#fffdf5; --ink:#3b2f22; --soft:#7a6a55; --line:#ddd3bd;
+  --honey:#d99a2b; --honey-bg:#fbefd2; --leaf:#4e8b4a; --leaf-bg:#e3f0dc;
+  --alert:#b5523b; --alert-bg:#f8e3dc; --sky:#3f7ea6; --sky-bg:#e0edf5;
+  --display:"Fredoka", "Trebuchet MS", system-ui, sans-serif;
+  --body:"Nunito", "Segoe UI", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#1f1b15; --paper:#2a251d; --ink:#f1e8d6; --soft:#b8a98e; --line:#463d30;
+  --honey:#e8b04a; --honey-bg:#3d3220; --leaf:#86c27f; --leaf-bg:#25331f;
+  --alert:#e88b72; --alert-bg:#3d2620; --sky:#7fb6da; --sky-bg:#1e2e38; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#1f1b15; --paper:#2a251d; --ink:#f1e8d6; --soft:#b8a98e; --line:#463d30;
+  --honey:#e8b04a; --honey-bg:#3d3220; --leaf:#86c27f; --leaf-bg:#25331f;
+  --alert:#e88b72; --alert-bg:#3d2620; --sky:#7fb6da; --sky-bg:#1e2e38; color-scheme:dark }
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.5;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:28px 48px}
+.wrap{max-width:1000px;margin:0 auto;display:flex;flex-direction:column;gap:40px}
+h1,h2,h3{font-family:var(--display);font-weight:600;text-wrap:balance;margin:0}
+h1{font-size:34px;line-height:1.1}
+h2{font-size:24px}
+h3{font-size:17px}
+p{margin:0;max-width:68ch}
+.lead{color:var(--soft);font-size:16px;margin-top:8px}
+.eyebrow{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);font-weight:700}
+section{display:flex;flex-direction:column;gap:16px}
+.hdr{display:flex;flex-direction:column;gap:4px}
+
+/* antes x depois */
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:720px){.compare{grid-template-columns:1fr}}
+.lane{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.lane h3{display:flex;align-items:center;gap:8px}
+.tag{font-family:var(--body);font-size:12px;font-weight:700;padding:2px 10px;border-radius:99px}
+.tag.bad{background:var(--alert-bg);color:var(--alert)}
+.tag.good{background:var(--leaf-bg);color:var(--leaf)}
+.seq{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.seq span{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:3px 9px;font-size:13px;font-weight:600}
+.seq i{color:var(--soft);font-style:normal;font-size:13px}
+.seq span.hot{background:var(--alert-bg);border-color:transparent;color:var(--alert)}
+.seq span.win{background:var(--leaf-bg);border-color:transparent;color:var(--leaf)}
+.note{font-size:13px;color:var(--soft)}
+
+/* princípios */
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:820px){.rules{grid-template-columns:1fr 1fr}}
+@media (max-width:480px){.rules{grid-template-columns:1fr}}
+.rule{border-top:3px solid var(--honey);padding-top:10px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.rule b{font-family:var(--display);font-weight:600;font-size:16px}
+.rule span{font-size:14px;color:var(--soft)}
+
+/* jornada */
+.act{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:14px}
+.act-top{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:baseline}
+.act-top .time{font-size:13px;color:var(--soft);font-weight:700}
+.steps{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px}
+.step{background:var(--bg);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.step .n{font-family:var(--display);font-size:13px;color:var(--honey);font-weight:600}
+.step .t{font-weight:700;font-size:14px;line-height:1.3}
+.step .k{font-size:12.5px;color:var(--soft)}
+.step .opens{font-size:12px;font-weight:700;color:var(--leaf);background:var(--leaf-bg);border-radius:6px;padding:2px 7px;align-self:flex-start}
+.step.big{background:var(--honey-bg)}
+.step.big .opens{background:var(--paper)}
+.hook{border-left:3px solid var(--honey);padding:4px 0 4px 12px;font-size:14px}
+
+/* capítulos */
+.chap{overflow-x:auto;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+table{border-collapse:collapse;width:100%;min-width:620px;font-size:14px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--soft);font-weight:700}
+tr:last-child td{border-bottom:none}
+td.c{font-family:var(--display);font-weight:600;color:var(--honey);width:44px}
+td .wait{display:inline-block;background:var(--sky-bg);color:var(--sky);border-radius:6px;padding:1px 8px;font-size:12.5px;font-weight:700}
+tr.end td{background:var(--honey-bg)}
+
+/* ritmo */
+.pace{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.days{display:grid;grid-template-columns:110px repeat(9,1fr);gap:4px;align-items:center;font-size:12px;font-variant-numeric:tabular-nums}
+.days .lbl{font-weight:700;font-size:13px}
+.days .d{text-align:center;color:var(--soft);font-weight:700}
+.bar{height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700;color:var(--paper);white-space:nowrap;overflow:hidden}
+.b-content{background:var(--leaf)}
+.b-wait{background:repeating-linear-gradient(45deg,var(--line) 0 6px,transparent 6px 12px);color:var(--soft)}
+.b-grow{background:var(--honey)}
+.paw{display:flex;gap:4px;justify-content:center}
+.paw b{width:10px;height:10px;border-radius:50%;background:var(--honey)}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--soft)}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:14px;height:10px;border-radius:3px;display:inline-block}
+@media (max-width:560px){.days{grid-template-columns:72px repeat(9,1fr)}.bar{font-size:0}}
+.cards2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.cards2{grid-template-columns:1fr}}
+.box{background:var(--bg);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.box b{font-family:var(--display);font-weight:600}
+.box ul{margin:0;padding-left:18px;font-size:14px;display:flex;flex-direction:column;gap:3px}
+
+/* decisões */
+.dec{display:flex;flex-direction:column;gap:8px}
+.q{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;grid-template-columns:44px 1fr;gap:4px 10px}
+.q .id{font-family:var(--display);font-weight:600;color:var(--honey);font-size:16px;grid-row:span 2}
+.q .ask{font-weight:700}
+.q .rec{font-size:14px;color:var(--soft)}
+.q .rec b{color:var(--leaf)}
+footer{font-size:13px;color:var(--soft)}
+.food{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:16px}
+.clock-track{position:relative;height:54px;background:var(--bg);border-radius:10px}
+.clock-track .win{position:absolute;top:4px;bottom:4px;background:var(--leaf);color:var(--paper);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--display);font-weight:600;font-size:14px;line-height:1.1;overflow:hidden}
+.clock-track .win small{font-family:var(--body);font-size:11px;font-weight:700;opacity:.9}
+.clock-ticks{display:flex;justify-content:space-between;font-size:11.5px;color:var(--soft);font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.chain{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chain span{border-radius:10px;padding:6px 12px;font-weight:700;font-size:14px}
+.chain .c1{background:var(--leaf-bg);color:var(--leaf)}
+.chain .c2{background:var(--honey-bg);color:var(--honey)}
+.chain .c3{background:var(--honey);color:var(--paper);font-family:var(--display)}
+.chain i{font-style:normal;font-family:var(--display);color:var(--soft);font-size:16px}
+@media (max-width:480px){.clock-track .win small{display:none}.clock-track .win{font-size:12px}}
+.q.done{background:var(--leaf-bg);border-color:transparent}
+.b-secret{background:var(--sky)}
+.secret{display:flex;gap:8px;align-items:stretch}
+.secret .arrow{align-self:center;color:var(--soft);font-family:var(--display);font-size:20px}
+.secret .part{flex:1;min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px}
+.secret .part .n{font-family:var(--display);font-weight:600;color:var(--sky);font-size:13px}
+.secret .part b{font-family:var(--display);font-weight:600;font-size:16px}
+.secret .part span{font-size:14px}
+.secret .part em{font-style:normal;font-size:12.5px;font-weight:700;color:var(--sky);background:var(--sky-bg);border-radius:6px;padding:3px 8px;margin-top:auto}
+@media (max-width:640px){.secret{flex-direction:column}.secret .arrow{transform:rotate(90deg)}}
+code{font-size:12.5px;background:var(--bg);border-radius:4px;padding:0 4px}
+</style>
+
+<div class="wrap">
+  <header class="hdr">
+    <div class="eyebrow">Proposta · 20/11/2026 · ainda não é plano de execução</div>
+    <h1>Novo fluxo do Tiro: da caixinha a Dentinhos</h1>
+    <p class="lead">Mesmas mecânicas da primeira semana, outra ordem. Primeiro o Tiro em casa, depois a vovó. Uma coisa nova por vez, e nada preso ao dia do calendário além das refeições.</p>
+  </header>
+
+  <section>
+    <div class="hdr"><h2>O que muda logo no começo</h2></div>
+    <div class="compare">
+      <div class="lane">
+        <h3>Hoje <span class="tag bad">confuso</span></h3>
+        <div class="seq">
+          <span>Caixinha</span><i>→</i><span class="hot">"Venham ao sítio"</span><i>→</i><span class="hot">Colher cenoura e batata</span><i>→</i><span class="hot">Fogão + minigame</span><i>→</i><span>Banca</span><i>→</i><span>Canteiros</span><i>→</i><span>Quintal</span><i>→</i><span>Inventar</span>
+        </div>
+        <p class="note">6 sistemas e 8 tutoriais no dia 1. Comida, banho e dormir nunca viram passo. O Álbum aparece sozinho. O primeiro crescimento só vem no jantar do dia 2, e ninguém explica como crescer funciona. Depois, "a vovó volta amanhã".</p>
+      </div>
+      <div class="lane">
+        <h3>Proposta <span class="tag good">didático</span></h3>
+        <div class="seq">
+          <span>Caixinha</span><i>→</i><span>Comer</span><i>→</i><span>Banho</span><i>→</i><span>Brincar</span><i>→</i><span>Caminha</span><i>→</i><span class="win">Como crescer</span><i>→</i><span class="win">Filhotinho!</span><i>→</i><span class="win">Primeira foto</span><i>→</i><span>Vovó</span><i>→</i><span>Horta</span><i>→</i><span>Fogão</span><i>→</i><span>Almoço na hora</span>
+        </div>
+        <p class="note">Igual ao começo antigo, que funcionava, com a caixinha e a papinha da semana nova. O jogador vê "cuidei → cresceu" já na primeira sessão.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="hdr"><h2>Seis regras</h2></div>
+    <div class="rules">
+      <div class="rule"><b>Uma coisa nova por vez</b><span>Cada passo apresenta no máximo um sistema. Botão, aba ou lugar só aparece quando o passo o apresenta.</span></div>
+      <div class="rule"><b>Primeiro o Tiro</b><span>Começa na Casa, com os cuidados. O Sítio abre quando ele precisa de comida de verdade.</span></div>
+      <div class="rule"><b>Cuidar → crescer, cedo</b><span>A tela de crescimento é explicada e o primeiro crescimento acontece na sessão 1.</span></div>
+      <div class="rule"><b>Sem trava de dia</b><span>Conteúdo abre pela história. O ritmo vem dos tempos de produção e das moedas.</span></div>
+      <div class="rule"><b>Só a refeição é relógio</b><span>Almoço e jantar na hora dão patinha. Quem joga muito adianta tudo, menos as patinhas.</span></div>
+      <div class="rule"><b>Explicar na hora de usar</b><span>Mão e balão em cima do que vai ser tocado. Nada de lista de regras antes.</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="hdr"><h2>A jornada</h2><p class="lead">Cada cartão é um passo da história. Em verde, o que aparece na tela naquele momento.</p></div>
+
+    <div class="act">
+      <div class="act-top"><h3>Ato 1 · Em casa</h3><span class="time">sessão 1 · 12 a 15 min · só a Casa existe</span></div>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div class="t">Abrir a caixinha e fazer carinho</div><div class="k">Segurar = carinho (já existe)</div><div class="opens">Tiro na tela</div></div>
+        <div class="step"><div class="n">2</div><div class="t">"Ele está com fome." Papinha pronta da Laís</div><div class="k">Arrastar até a boca, anel da Fome</div><div class="opens">Cuidar: Comida</div></div>
+        <div class="step"><div class="n">3</div><div class="t">"A caixinha sujou ele todo!"</div><div class="k">Banho com a esponja</div><div class="opens">Banho</div></div>
+        <div class="step"><div class="n">4</div><div class="t">"Agora ele quer brincar."</div><div class="k">Jogar a bolinha</div><div class="opens">Brincar</div></div>
+        <div class="step"><div class="n">5</div><div class="t">"Trouxe uma caminha. Escolha o cantinho."</div><div class="k">Presente grátis: tocar no "+" e pôr</div><div class="opens">Caminha na Casa</div></div>
+        <div class="step big"><div class="n">6</div><div class="t">"Viu como ele está mudando?"</div><div class="k">Laís explica o painel de crescimento em 3 toques</div><div class="opens">Painel Crescer · anel do HUD</div></div>
+        <div class="step big"><div class="n">7</div><div class="t">Crescer! → Filhotinho</div><div class="k">Cerimônia e a lista da próxima fase</div><div class="opens">Lista do Filhotinho</div></div>
+        <div class="step big"><div class="n">8</div><div class="t">"Tirei uma foto de vocês!"</div><div class="k">Abrir a carta da chegada: versões e varal</div><div class="opens">Álbum · varal na home</div></div>
+      </div>
+      <div class="hook">O Álbum é parte da história. Entra logo depois da cerimônia, e daí em diante <b>toda conquista vira foto</b>.</div>
+      <div class="hook">Gancho da Laís: "Filhotinho come comida de verdade, <b>na hora do almoço e do jantar</b>. Quem planta tudo isso é a vovó Bloblo."</div>
+    </div>
+
+    <div class="act">
+      <div class="act-top"><h3>Ato 2 · A vovó</h3><span class="time">sessão 1 ou 2 · cerca de 20 min</span></div>
+      <div class="steps">
+        <div class="step"><div class="n">9</div><div class="t">Ir ao Sítio</div><div class="k">Mapa e viagem</div><div class="opens">Mapa: Casa e Sítio</div></div>
+        <div class="step"><div class="n">10</div><div class="t">Conhecer a vovó</div><div class="k">Conversa com personagem</div><div class="opens">Vovó</div></div>
+        <div class="step"><div class="n">11</div><div class="t">Plantar e colher a cenoura</div><div class="k">Semente, regar, colher</div><div class="opens">2 canteiros</div></div>
+        <div class="step"><div class="n">12</div><div class="t">"Vou te dar meu fogãozinho. Ponha na sua cozinha."</div><div class="k">Voltar para casa e colocar, igual à caminha</div><div class="opens">Fogão na Casa</div></div>
+        <div class="step"><div class="n">13</div><div class="t">Primeira papinha com a cenoura</div><div class="k">Fogão e Cozinhar junto</div><div class="opens">Cozinha</div></div>
+        <div class="step big"><div class="n">14</div><div class="t">Dar a papinha na hora</div><div class="k">Reloginho e patinha: "isso não dá para adiantar"</div><div class="opens">Reloginho · Hoje</div></div>
+      </div>
+      <div class="hook">Fim do dia 1: Boa noite com o gancho de amanhã. No dia 1, uma refeição basta, a qualquer hora.</div>
+    </div>
+
+    <div class="act">
+      <div class="act-top"><h3>Ato 3 · A semana no Sítio</h3><span class="time">abre pela história · um sistema por capítulo</span></div>
+      <div class="chap">
+        <table>
+          <thead><tr><th></th><th>Sistema novo</th><th>Termina com</th><th>O que segura o ritmo</th></tr></thead>
+          <tbody>
+            <tr><td class="c">2</td><td>Banca: vender, comprar sementes, mais canteiros</td><td>Sopinha (2º tipo de prato)</td><td><span class="wait">abóbora crescendo</span></td></tr>
+            <tr><td class="c">3</td><td>Desejo do Tiro, um por período</td><td>Primeiro desejo atendido</td><td><span class="wait">período do dia</span></td></tr>
+            <tr><td class="c">4</td><td>Galinheiro: milho → ovos</td><td>Prato com ovo</td><td><span class="wait">lote de ovos</span></td></tr>
+            <tr><td class="c">5</td><td>Aula do Tiro: Senta</td><td>Senta aprendido</td><td><span class="wait">biscoitos no fogão</span></td></tr>
+            <tr><td class="c">6</td><td>Lagoa: pescar com a vovó</td><td>Prato com peixe</td><td><span class="wait">iscas do dia</span></td></tr>
+            <tr><td class="c">7</td><td>Pomar: maçã e banana</td><td>Prato com fruta</td><td><span class="wait">frutas amadurecendo</span></td></tr>
+            <tr><td class="c">8</td><td>Inventar e Livro de receitas</td><td>Prato inventado</td><td><span class="wait">ingredientes</span></td></tr>
+            <tr><td class="c">9</td><td>Carroça do Feirante: encomendas e xampu</td><td>Banho com xampu</td><td><span class="wait">pedidos que renovam</span></td></tr>
+            <tr><td class="c">10</td><td>Quintal: cabo de guerra, show, esconde-esconde</td><td>Show de truques</td><td>—</td></tr>
+            <tr class="end"><td class="c">11</td><td>Argolinha e almoço de despedida</td><td><b>Dentinhos</b> → Vila</td><td><span class="wait">patinhas</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="note">Cada capítulo termina com uma carta fechada daquela conquista (primeiro ovo, primeiro peixe, o Senta, o banho de espuma). Abrir a carta fecha o capítulo, e o Álbum enche junto com a semana.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="hdr"><h2>A regra da comida</h2><p class="lead">É a regra que faz o Tiro crescer, então ganha uma aula própria no passo 14. O resto é ensinado na primeira vez que o jogador precisa.</p></div>
+    <div class="food">
+      <div class="clock">
+        <div class="clock-track">
+          <div class="win" style="left:calc(11/24*100%);width:calc(4/24*100%)">Almoço<small>11h–15h</small></div>
+          <div class="win" style="left:calc(18/24*100%);width:calc(4/24*100%)">Jantar<small>18h–22h</small></div>
+        </div>
+        <div class="clock-ticks"><span>0h</span><span>6h</span><span>12h</span><span>18h</span><span>24h</span></div>
+      </div>
+      <div class="chain">
+        <span class="c1">Almoço na hora ✓</span><i>+</i><span class="c1">Jantar na hora ✓</span><i>=</i><span class="c2">1 patinha</span><i>×6</i><span class="c3">Dentinhos</span>
+      </div>
+      <p class="note">Uma patinha por dia, não dá para adiantar. Lanche não conta como refeição. Faltou? O dia não conta e nada de ruim acontece.</p>
+    </div>
+
+    <div class="act">
+      <div class="act-top"><h3>Aula da comida · passo 14, com a Laís</h3><span class="time">5 toques, cada um apontando uma coisa</span></div>
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div class="t">Reloginho no avatar</div><div class="k">"Ele fica verde quando é hora de comer."</div></div>
+        <div class="step"><div class="n">2</div><div class="t">Folha Hoje abre</div><div class="k">"Duas vezes por dia: almoço das 11h às 15h, jantar das 18h às 22h." (muda com a hora, veja abaixo)</div></div>
+        <div class="step"><div class="n">3</div><div class="t">Dar a papinha</div><div class="k">"Valeu!" Hoje qualquer hora conta.</div></div>
+        <div class="step big"><div class="n">4</div><div class="t">A patinha voa ao avatar</div><div class="k">"Almoço e jantar na hora valem uma patinha. Hoje uma papinha já vale!"</div></div>
+        <div class="step big"><div class="n">5</div><div class="t">Painel Crescer: patinhas 1/6</div><div class="k">"Seis patinhas e ele ganha os Dentinhos. É uma por dia."</div></div>
+      </div>
+    </div>
+
+    <div class="chap">
+      <table>
+        <thead><tr><th>Parte da regra</th><th>Quando é ensinada</th></tr></thead>
+        <tbody>
+          <tr><td>Escolher o horário (mais cedo, normal, mais tarde) e ligar o aviso da hora de comer</td><td>Boa noite do dia 1: "Amanhã ele precisa de almoço e jantar na hora."</td></tr>
+          <tr><td>Primeiro dia de verdade</td><td>Bom dia do dia 2: "Hoje é almoço e jantar na hora."</td></tr>
+          <tr><td>Deixar pronto na tigela</td><td>Abrir antes das 11h ou cozinhar fora da hora: "Vai sair? Deixe o almoço pronto e ele come sozinho."</td></tr>
+          <tr><td>Lanche não é refeição</td><td>Primeiro petisco: balão curto</td></tr>
+          <tr><td>Dia fraco e marmita da vovó</td><td>Primeiro dia em que falta uma refeição: cartão no Bom dia, sem bronca</td></tr>
+          <tr><td>Rever tudo</td><td>"?" na folha Hoje e na linha das patinhas, e a página Comida e crescimento no Manual</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="hdr"><h2>A primeira comida nunca trava</h2><p class="lead">Quem começa à meia-noite tem que entender tudo e não perder nada.</p></div>
+    <div class="cards2">
+      <div class="box"><b>Comer sempre funciona</b><ul>
+        <li>Fora da janela ele come do mesmo jeito e a fome passa. Só não conta para a patinha.</li>
+        <li>Antes da aula (passos 1 a 13) o relógio não existe: sem reloginho, sem folha Hoje, sem "Dar agora ou Deixar pronto".</li>
+        <li>Durante a história o Tiro não dorme sozinho à noite, para nada travar no meio.</li>
+      </ul></div>
+      <div class="box"><b>O dia do Tiro vira às 6h</b><ul>
+        <li>A madrugada é "a noite de hoje". O Bom dia aparece de manhã.</li>
+        <li>O dia da chegada é livre: uma refeição a qualquer hora vale a patinha, e ela sai na aula.</li>
+        <li>O combinado de almoço e jantar começa no dia seguinte, e o Boa noite diz quando.</li>
+      </ul></div>
+    </div>
+    <div class="chap">
+      <table>
+        <thead><tr><th>Começou às</th><th>A aula diz</th><th>Primeiro combinado</th></tr></thead>
+        <tbody>
+          <tr><td>12h (no almoço)</td><td>"É hora do almoço! Deu na hora? Ganhou um ✓."</td><td>almoço de amanhã</td></tr>
+          <tr><td>9h (fora da janela)</td><td>"Hoje é o dia da chegada, então qualquer hora vale. O próximo é o jantar, às 18h."</td><td>almoço de amanhã</td></tr>
+          <tr><td>23h</td><td>"Comidinha antes de dormir!" Ele boceja e vai para a caminha. Boa noite.</td><td>almoço de amanhã</td></tr>
+          <tr class="end"><td><b>00h10</b></td><td>"Comidinha antes de dormir!" O dia da chegada é a noite de ontem.</td><td><b>almoço de hoje, 11 h depois.</b> Ele dorme, acorda e já está no primeiro dia, sem perder nada</td></tr>
+          <tr><td>4h</td><td>Igual à noite. Faltam menos de 3 h para a virada, então o dia da chegada se estende</td><td>almoço de amanhã</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="cards2">
+      <div class="box"><b>Jogar ao vivo dá carinho, não velocidade</b><ul>
+        <li>Tigela de dois lugares: antes de sair, deixa almoço e jantar, e o Tiro come cada um na hora. Vale a patinha igual.</li>
+        <li>Às 8h deixa os dois; às 20h dá o jantar e deixa o almoço de amanhã; à meia-noite deixa os dois do dia. Todos crescem no mesmo dia.</li>
+        <li>Ao vivo ganha só extras: Felicidade, pedido de truque e desejo.</li>
+        <li>O Boa noite lembra uma vez: "Quer deixar a comida de amanhã pronta?"</li>
+      </ul></div>
+      <div class="box"><b>Gostoso de fazer todo dia</b><ul>
+        <li>Na janela, ele vai até a tigela, abana o rabo e a tigela brilha. Fora dela: "Já almocei!".</li>
+        <li><b>Cartela de 6 carimbos</b>: cada dia completo carimba uma patinha com o desenho do prato. O primeiro é "Dia da chegada". Cheia, vira o Dentinhos.</li>
+        <li>Ao voltar: "Ele comeu o almoço às 11h12 ✓". Dia fraco: carimbo tracejado e a vovó diz "Hoje a gente capricha!".</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="hdr"><h2>Simples, porém completo</h2><p class="lead">Nenhum sistema aparece sem ser apresentado, e todos têm onde rever: o "?" no próprio lugar e uma página no Manual. As 33 lições de hoje viram cerca de 25, uma por sistema.</p></div>
+    <div class="chap">
+      <table>
+        <thead><tr><th>Sistema</th><th>Aparece</th><th>Como é ensinado</th><th>Onde rever</th></tr></thead>
+        <tbody>
+          <tr><td>Carinho, comida, banho, brincar</td><td>Passos 1–4</td><td>Mão em cima do gesto</td><td>Manual</td></tr>
+          <tr><td>Colocar presente na casa</td><td>Passo 5, repete no 12</td><td>Mão no "+"</td><td>—</td></tr>
+          <tr><td>Crescer</td><td>Passos 6–7</td><td>Aula do painel, 3 toques</td><td>"?" do painel, Manual</td></tr>
+          <tr><td>Álbum e cartas</td><td>Passo 8</td><td>Tutorial da carta</td><td>"?" do Álbum, Manual</td></tr>
+          <tr><td>Próximo passo (pílula no topo)</td><td>Passo 8</td><td>"Toque aqui para saber o que fazer"</td><td>Sempre visível</td></tr>
+          <tr><td>Mapa e personagens</td><td>Passos 9–10</td><td>Mão na pílula do mundo, conversa da vovó</td><td>Manual</td></tr>
+          <tr><td>Horta e Mochila</td><td>Passo 11</td><td>Arrastar a semente; "Guardei aqui"</td><td>"?" do canteiro, Manual</td></tr>
+          <tr><td>Fogão e Cozinhar junto</td><td>Passos 12–13</td><td>Mão nos três passos</td><td>"?" do fogão, Manual</td></tr>
+          <tr><td>Refeições e patinhas</td><td>Passo 14</td><td>Aula da comida, 5 toques</td><td>"?" da folha Hoje e do painel</td></tr>
+          <tr><td>Aba Missões</td><td>Fim do Ato 2</td><td>Balão na aba</td><td>Sempre visível</td></tr>
+          <tr><td>Banca, desejo, galinheiro, truques, pesca, pomar, Inventar, carroça, quintal</td><td>Cap. 2 a 10, um por capítulo</td><td>Uma lição na hora de usar</td><td>"?" no lugar, Manual</td></tr>
+          <tr><td>Desafio do dia e missão secreta</td><td>Quando só faltam patinhas</td><td>Balão da vovó, selo "Segredo"</td><td>Próximo passo, Missões</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="hdr"><h2>Ritmo: quem joga muito × quem joga pouco</h2><p class="lead">A história nunca diz "volte amanhã". O conteúdo anda no ritmo da pessoa. O crescimento anda no ritmo das patinhas, uma por dia.</p></div>
+    <div class="pace">
+      <div class="days">
+        <div></div><div class="d">D1</div><div class="d">D2</div><div class="d">D3</div><div class="d">D4</div><div class="d">D5</div><div class="d">D6</div><div class="d">D7</div><div class="d">D8</div><div class="d">D9</div>
+        <div class="lbl">Patinhas</div>
+        <div class="paw"><b></b></div><div class="paw"><b></b></div><div class="paw"><b></b></div><div class="paw"><b></b></div><div class="paw"><b></b></div><div class="paw"><b></b></div><div></div><div></div><div></div>
+        <div class="lbl">Joga muito</div>
+        <div class="bar b-grow" style="grid-column:span 1">Filhotinho</div>
+        <div class="bar b-content" style="grid-column:span 2">cap. 2–10</div>
+        <div class="bar b-wait" style="grid-column:span 3">profundidade</div>
+        <div class="bar b-grow">Dentes</div>
+        <div></div><div></div>
+        <div class="lbl">Muito + segredo</div>
+        <div class="bar b-grow">Filhotinho</div>
+        <div class="bar b-content" style="grid-column:span 2">cap. 2–10</div>
+        <div class="bar b-secret">segredo</div>
+        <div class="bar b-grow">Dentes</div>
+        <div></div><div></div><div></div><div></div>
+        <div class="lbl">Regular</div>
+        <div class="bar b-grow">Filhotinho</div>
+        <div class="bar b-content" style="grid-column:span 6">cap. 2–10</div>
+        <div class="bar b-grow">Dentes</div>
+        <div></div>
+      </div>
+      <div class="legend">
+        <span><i style="background:var(--honey)"></i>crescer</span>
+        <span><i style="background:var(--leaf)"></i>capítulos da história</span>
+        <span><i style="background:repeating-linear-gradient(45deg,var(--line) 0 4px,transparent 4px 8px)"></i>só faltam patinhas</span>
+        <span><i style="background:var(--sky)"></i>missão secreta</span>
+      </div>
+      <p class="note">Metas, não medidas. Com 6 patinhas para Dentinhos (o dia 1 conta), quem não falta cresce no dia 6 ou 7. Os tempos de produção ficam mais longos que os de hoje; os números finais saem do simulador.</p>
+      <div class="cards2">
+        <div class="box"><b>Quando só faltam as patinhas</b>
+          <ul>
+            <li>O painel mostra só isso: "Falta: 3 patinhas · próximo almoço em 2 h", sem parecer erro.</li>
+            <li>O próximo passo vira o desafio do dia da vovó (os 7 desafios que já existem, agora opcionais).</li>
+            <li>A Vila continua só depois de Dentinhos.</li>
+          </ul>
+        </div>
+        <div class="box"><b>Profundidade que não depende de dia</b>
+          <ul>
+            <li>Estrelas das receitas e descobrir pratos no Livro</li>
+            <li>Nível dos truques e recorde de peixe</li>
+            <li>Encomendas da carroça e fotos do Álbum</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="hdr"><div class="eyebrow">Só para quem chegou antes</div><h2>Missão secreta da vovó: o Ensopado Dourado</h2><p class="lead">Aparece só quando tudo do Dentinhos está ✓ e faltam apenas patinhas. A vovó chama com o selo "Segredo": "Psiu... tem um jeito antigo de deixar ele forte mais rápido. Mas não é fácil."</p></div>
+    <div class="secret">
+      <div class="part"><div class="n">1</div><b>Minhoca gorda</b><span>Achado raro do faro, nos montinhos do Tiro, só com a missão ativa.</span><em>Sorte e vários montinhos</em></div>
+      <div class="arrow">→</div>
+      <div class="part"><div class="n">2</div><b>Peixe dourado</b><span>Pescado na lagoa com a minhoca gorda. Morde no máximo uma vez por dia.</span><em>Puxada mais forte e só vale pescaria Perfeita. Se escapar, só amanhã</em></div>
+      <div class="arrow">→</div>
+      <div class="part"><div class="n">3</div><b>Ensopado Dourado</b><span>Peixe dourado, abóbora e ovo, só pelo Cozinhar junto.</span><em>Precisa de 3 estrelas. Com menos, vira ensopado comum</em></div>
+    </div>
+    <div class="cards2">
+      <div class="box"><b>O que faz</b><ul><li>Dado na hora do almoço ou do jantar, vale uma patinha extra: o dia conta 2.</li><li>Não vale pelo Deixar pronto. Precisa estar lá na hora.</li><li>A primeira vez rende a foto secreta "O peixe dourado".</li></ul></div>
+      <div class="box"><b>Limites</b><ul><li>Um por dia, porque o peixe dourado só morde uma vez.</li><li>No máximo 2 patinhas extras na fase.</li><li>Quem acerta tudo cresce por volta do dia 5 em vez do 7.</li></ul></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="hdr"><h2>Decisões para o Vitor</h2><p class="lead">Respondidas estas, o doc vira plano em etapas curtas (F00 a F06).</p></div>
+    <div class="dec">
+      <div class="q"><div class="id">F1</div><div class="ask">Primeiro crescimento (Filhotinho) na sessão 1, com lista curta: comer, banho, brincar 2×, caminha?</div><div class="rec"><b>Recomendo sim.</b> É o momento que ensina "cuidar → crescer". A lista grande da semana passa toda para Dentinhos.</div></div>
+      <div class="q"><div class="id">F2</div><div class="ask">Quantas patinhas para Dentinhos?</div><div class="rec"><b>6</b>, com o dia 1 contando. A semana continua com uns 7 dias para quem não falta.</div></div>
+      <div class="q done"><div class="id">F3</div><div class="ask">Vila antes de Dentinhos?</div><div class="rec"><b>Decidido: não.</b> Quem chega antes ganha a missão secreta.</div></div>
+      <div class="q"><div class="id">F3a</div><div class="ask">Quanto a missão secreta acelera?</div><div class="rec"><b>Recomendo +1 patinha por dia, no máximo 2 na fase.</b> Cresce por volta do dia 5 em vez do 7.</div></div>
+      <div class="q"><div class="id">F3b</div><div class="ask">A comida secreta é o peixe dourado no Ensopado Dourado?</div><div class="rec"><b>Recomendo sim:</b> junta pesca, faro e Cozinhar junto, que ele já domina. Dá para trocar por outra comida.</div></div>
+      <div class="q done"><div class="id">F4</div><div class="ask">Fogão</div><div class="rec"><b>Decidido:</b> a vovó dá de graça e você vai à Casa colocar, igual à caminha da Laís. As moedas só aparecem com a banca, no capítulo 2.</div></div>
+      <div class="q done"><div class="id">F5</div><div class="ask">Álbum</div><div class="rec"><b>Decidido: na história.</b> Passo 8, logo depois da cerimônia, e uma foto fechando cada capítulo.</div></div>
+      <div class="q"><div class="id">F8</div><div class="ask">Oferecer o aviso da hora de comer já no Boa noite do dia 1?</div><div class="rec"><b>Recomendo sim.</b> É quando o jogador acabou de aprender a regra. Continua desligado até ele aceitar.</div></div>
+      <div class="q done"><div class="id">F9</div><div class="ask">Dia do Tiro vira às 6h</div><div class="rec"><b>Aprovado.</b></div></div>
+      <div class="q done"><div class="id">F10</div><div class="ask">Tigela de dois lugares</div><div class="rec"><b>Aprovado.</b> Jogar ao vivo dá carinho, não velocidade.</div></div>
+      <div class="q"><div class="id">F6</div><div class="ask">Aula do Tiro sem limite de "uma por período", só com o custo de 1 biscoito?</div><div class="rec"><b>Sim.</b> O biscoito já segura, porque leva tempo no fogão.</div></div>
+      <div class="q"><div class="id">F7</div><div class="ask">A ordem dos capítulos 2 a 11 está boa?</div><div class="rec">Mude o que quiser. O resto da proposta não depende da ordem exata.</div></div>
+    </div>
+  </section>
+
+  <footer>Texto completo, com o inventário do que sai e muda no código: <code>docs/plans/novo_fluxo/README.md</code></footer>
+</div>

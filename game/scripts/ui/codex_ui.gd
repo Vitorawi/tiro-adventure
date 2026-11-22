@@ -145,6 +145,7 @@ static func _board(model: Dictionary, live: SheetBuilder.LiveBox) -> Control:
 	if section == "resources" and not album:
 		view.foot = StepCardUi.go_button("Manual de tutoriais", GameManual.open.bind("tutorials"))
 	if recipes:
+		GameState.note_screen_opened("recipes")  # conta `open:recipes` (passo do capítulo 8)
 		entries.clear()
 		if not model.has("recipe_tab") and str(filters.get(section, "")) == "secrets":
 			model["recipe_tab"] = "secrets"

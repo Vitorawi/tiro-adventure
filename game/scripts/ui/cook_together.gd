@@ -727,7 +727,14 @@ func _give() -> void:
 	CookPanel.close_current(true)
 	Events.screen_requested.emit(&"pet")
 	var output := str(plate.item)
-	if output == "puppy_mash" and WeekTutorial.enrolled() and not WeekTutorial.record("feed").get("done", false) and GameState.progress.stat("feed") == 0:
+	# Antes da aula da comida (F02B) a papinha não é comida na hora: vai para a Mochila e a aula manda arrastá-la até ele.
+	if output == GameState.food_lesson_item() and not GameState.food_lesson_done():
+		# Passo 13 (Cozinhar junto) cumprido e ainda não pego: pega agora, para o passo 14 (a aula da comida) abrir já.
+		var step := GameState.progress.current_main_quest()
+		if step != "" and not GameState.progress.active_steps().values().has(str(Database.week_story.food_lesson.get("quest", ""))) \
+				and GameState.quest_objectives_error(step) == "":
+			ProgressionUi.claim_quest_fx(step, Vector2(180.0, 600.0))
+			return
 		Events.care_requested.emit("feed")
 		return
 	SheetBuilder.request_food(output, func() -> void:

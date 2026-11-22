@@ -562,7 +562,7 @@ func _show_result() -> void:
 	card.add(art)
 	card.add_text("+%d %s" % [stars, "acerto" if stars == 1 else "acertos"], &"TitleLabel")
 	card.add_text(TrickUi.level_name(trick_id) + " · " + TrickUi.level_progress(trick_id))
-	card.add_text("Gastou 1 biscoito · próxima aula " + GameState.trick_lesson_next(trick_id), &"SmallLabel")
+	card.add_text("Gastou 1 biscoito", &"SmallLabel")
 	card.add_primary("Voltar ao caderno", _back).name = "LessonDone"
 
 

@@ -245,7 +245,10 @@ func _bait_row() -> Control:
 	var row := StationWood.flow(6)
 	row.alignment = FlowContainer.ALIGNMENT_BEGIN
 	column.add_child(row)
-	var accepted: Array = _rod_def(_rod_id()).get("baits", [])
+	var accepted: Array = _rod_def(_rod_id()).get("baits", []).duplicate()
+	var golden := str(GameState.secret_config().get("bait", ""))
+	if golden != "" and GameState.inventory.count(golden) > 0:
+		accepted.append(golden)  # a minhoca gorda só aparece enquanto houver uma
 	for id: String in accepted:
 		var count := GameState.inventory.count(id)
 		var state := "selected" if id == _bait else "normal"

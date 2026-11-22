@@ -42,8 +42,18 @@ func shot(name: String) -> void:
 	check(frame.save_png(folder.path_join("%dx%d_%s.png" % [frame.get_width(), frame.get_height(), name])) == OK, "captura " + name)
 
 
+## Dia do teste (era o calendário antigo) -> capítulo da história em que o sistema abre: coop 4, Senta 5, lagoa 6,
+## pomar 7, carroça 9 e quintal 10. As variantes do quintal são escalonadas em memória por `week_play.days`.
+const CHAPTER := {1: 1, 2: 5, 3: 6, 4: 7, 5: 9, 6: 10}
+const STAGGER := {"ball": 1, "name": 1, "fetch": 2, "rope": 4, "squeak": 5, "lake": 6, "hide": 6}
+
+
 func day(number: int, hour: int = 9) -> void:
 	state.call("dev_week_goto", number)
+	state.call("dev_content_day", int(CHAPTER.get(number, 10)))
+	var days: Dictionary = state.call("yard_rules").days
+	for kind: String in STAGGER:
+		days[kind] = state.call("content_day") if int(STAGGER[kind]) <= number else 99
 	state.call("dev_week_hour", hour)
 	state.call("update_week")
 
@@ -148,7 +158,7 @@ func run_farm_intro() -> void:
 func run_cart_rules() -> void:
 	day(4)
 	check(state.call("cart_order_ids").is_empty(), "sem pedidos no dia 4")
-	check(state.call("buy_shop_item", "cart_ball") == "Abre no dia 5", "compras fechadas no dia 4")
+	check(state.call("buy_shop_item", "cart_ball") == "Continue a História", "compras fechadas no dia 4")
 	day(5)
 	var ids: Array = state.call("cart_order_ids")
 	check(ids == ["cart_eggs", "cart_lake"], "dois pedidos T4 no dia 5")
@@ -305,7 +315,7 @@ func _run() -> void:
 	check(state.get("progress").equipped.head == "yellow_bow" and stock("squeaky_ball") == 1, "compra e roupa persistem")
 	var yesterday: int = state.call("cart_day")
 	day(5, 23)
-	state.call("dev_week_shift_hours", 1)
+	state.call("dev_week_shift_hours", 7)  # o dia do Tiro vira às 6h (F02): 23h + 7 h
 	check(state.call("cart_order_ids") == ["cart_fruit", "cart_pumpkins"], "renova dois pedidos na virada civil")
 	check(state.call("shop_daily_left", "cart_offer") == 1 and state.call("shop_pack", "cart_offer") != offer, "renova a oferta")
 	check(state.call("buy_shop_item", "cart_offer", 1, yesterday) != "" and state.call("fulfill_order", "cart_fruit", {}, yesterday) != "", "interface antiga não compra nem entrega no novo dia")
@@ -320,8 +330,9 @@ func _run() -> void:
 	before = coins()
 	check(state.call("cart_order_offer", "cart_fruit").is_empty(), "cliente não oferece gesto desconhecido")
 	check(state.call("fulfill_order", "cart_fruit") == "" and coins() == before + 24, "cliente recebe pedido mesmo sem aprender Dá a pata")
+	day(6)  # a lagoa do Quintal vem depois da bolinha que apita, no quintal (capítulo 10)
 	var lake: Dictionary = state.call("start_yard_round", "ball")
-	check(lake.variant.lake and lake.variant.squeak, "lagoa abre no dia 6 e mantém a bolinha comprada")
+	check(lake.variant.lake and lake.variant.squeak, "lagoa abre no capítulo 6 e mantém a bolinha comprada")
 	state.call("cancel_yard_round", int(lake.id))
 	await pause(0.6)
 	# A terceira encomenda da E11 abre Achado! antes de entrar no Quintal.

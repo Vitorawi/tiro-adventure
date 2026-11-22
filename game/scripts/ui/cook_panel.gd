@@ -202,7 +202,7 @@ func _build(focus: String) -> void:
 		selected = book_focus.trim_prefix("recipe:")
 	elif book_focus.begins_with("dish:"):
 		selected = "k_%s_%s" % [book_focus.get_slice(":", 1), book_focus.get_slice(":", 2)]
-	_set_mode(true if focus == "invent" else invent_mode)
+	_set_mode((focus == "invent" or invent_mode) and GameState.invent_open())
 	if focus.begins_with("together:") and selected != "":
 		_set_mode(false)
 		_together_selected.call_deferred()
@@ -480,12 +480,12 @@ func _build_toggle() -> void:
 	tappable(dishes, _set_mode.bind(false))
 	toggle.add_child(dishes)
 	var invent := _plain("InventHalf", Vector2(150, 0), Vector2(150, 100))
-	tappable(invent, _set_mode.bind(true))
+	tappable(invent, _open_invent)
 	toggle.add_child(invent)
 	add_child(toggle)
 	var book := label("Ver tudo", Rect2(69, 172, 128, 70), 24, 17, 1, INK)
 	book.name = "CookRecipeBook"
-	tappable(book, PetNotebook.open.bind("recipes"))
+	tappable(book, _open_recipe_book)
 	add_child(book)
 
 
@@ -515,11 +515,23 @@ func _place_close() -> void:
 	art.size = Vector2(px - inset * 2.0, px - inset * 2.0)
 
 
+## A aba Inventar e o Livro de receitas só abrem no capítulo em que a história os apresenta.
+func _open_invent() -> void:
+	if GameState.invent_open():
+		_set_mode(true)
+	else:
+		Events.toast_requested.emit("Continue a História")
+
+
+func _open_recipe_book() -> void:
+	if GameState.recipe_book_open():
+		PetNotebook.open("recipes")
+	else:
+		Events.toast_requested.emit("Continue a História")
+
+
 ## Troca de aba: Pratos (fila, categorias, filtros, lista e detalhe) × Inventar (`CookInvent`). Troca o fundo e o alternador.
 func _set_mode(on: bool) -> void:
-	if on and not GameState.week_invent_open():
-		Events.toast_requested.emit("Inventar abre no jantar")
-		on = false
 	invent_mode = on
 	var pratos: Array[Control] = [_slots, _cats, _arrow, _list, _bar, _detail]
 	for filter_node: Control in _filter_nodes.values():

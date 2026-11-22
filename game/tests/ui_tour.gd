@@ -252,7 +252,7 @@ func _run() -> void:
 		await shot("i2_05_story_shared")
 		state.call("dev_unlock_everything")
 		state.call("_mark_all_seen")
-		for id: String in ["main_9_coop", "nina_walk", "lais_album", "merchant_surplus"]:
+		for id: String in ["main_9_coop", "nina_walk", "merchant_surplus"]:
 			state.get("progress").claimed_quests.erase(id)
 		state.get("progress").stats["walk:park_loop"] = 0
 		state.get("progress").stats["sold:village"] = 0
@@ -1795,7 +1795,7 @@ func _aj_06_shots() -> void:
 	await shot("i2_05_story")
 	state.call("dev_unlock_everything")
 	state.call("_mark_all_seen")
-	for id: String in ["main_9_coop", "nina_walk", "lais_album", "merchant_surplus"]:
+	for id: String in ["main_9_coop", "nina_walk", "merchant_surplus"]:
 		state.get("progress").claimed_quests.erase(id)
 	state.get("progress").stats["walk:park_loop"] = 0
 	state.get("progress").stats["sold:village"] = 0

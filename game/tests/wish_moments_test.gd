@@ -167,7 +167,7 @@ func _run() -> void:
 	for id: String in tricks:
 		var requirements: Dictionary = tricks[id].requirements
 		if state.call("trick_is_lesson", id):
-			check(int(requirements.get("week_day", 0)) > 0 and not requirements.has("bond"), "aula de %s abre pelo dia" % id)
+			check(int(requirements.get("story_day", 0)) > 0 and not requirements.has("bond"), "aula de %s abre pelo dia" % id)
 		else:
 			check(str(requirements.get("growth", "")) != "" and not requirements.has("bond"), "truque da Nina %s abre pela fase" % id)
 	# Vínculo saiu.

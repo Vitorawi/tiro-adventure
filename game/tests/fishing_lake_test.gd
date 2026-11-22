@@ -56,6 +56,7 @@ func _reset(with_rod: bool = true, baits: int = 5) -> void:
 	if with_rod:
 		state.call("finish_fishing_tutorial")
 		state.call("dev_week_goto", 3)
+		state.call("dev_content_day", 6)
 		_inv().remove("bait_worm", _inv().count("bait_worm"))
 		state.call("dev_give_rod", "bamboo_rod")
 		_inv().add("bait_worm", baits)
@@ -124,7 +125,7 @@ func _test_locked() -> void:
 	var texts: Array[String] = [str((notice.get("_current") as Dictionary).get("text", ""))]
 	for waiting: Dictionary in notice.get("_queue"):
 		texts.append(str(waiting.text))
-	check(texts.any(func(text: String) -> bool: return "A lagoa abre no dia 3" in text), "1: aviso da vovó (%s)" % str(texts))
+	check(texts.any(func(text: String) -> bool: return "Continue a História" in text), "1: aviso da vovó (%s)" % str(texts))
 	check(farm.call("fishing_flow") == null, "1: sem vara o fluxo nem nasce")
 	check(root.get_node("Database").get("npcs").bloblo.lines.lake_locked != "", "1: fala lake_locked nos dados")
 

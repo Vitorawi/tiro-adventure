@@ -55,8 +55,18 @@ func _ready() -> void:
 	enter(current_world)
 
 
+## Quantos mundos o jogador já pode visitar. Com um só (Ato 1: só a Casa) não há o que escolher: sem pílula nem seletor.
+func open_world_count() -> int:
+	var total := 0
+	for world_id: String in Database.worlds:
+		if Places.world_error(world_id) == "":
+			total += 1
+	return total
+
+
 func show_map() -> void:
 	if _transition.busy: return
+	if open_world_count() <= 1: return
 	Events.sheet_close_requested.emit()
 	_suspend_room_input()
 	%MapView.open(current_world)
@@ -259,7 +269,8 @@ func _build_world_bar() -> void:
 ## Só refaz se algo mudou (refazer com o dedo na tela "engoliria" o toque).
 func _refresh_header() -> void:
 	var world: Dictionary = Database.worlds.get(current_world, {})
-	var key := current_world
+	var worlds := open_world_count()
+	var key := "%s|%d" % [current_world, worlds]
 	for npc_id: String in Places.visible_npcs(current_world):
 		key += "|%s:%s" % [npc_id, Places.npc_badge(npc_id)]
 	if key == _header_key:
@@ -267,6 +278,7 @@ func _refresh_header() -> void:
 	_header_key = key
 	%WorldTitle.text = world.get("name", "")
 	(%MapButton as WorldPill).set_world(current_world)
+	(%MapButton as Control).visible = worlds > 1
 	for child in %NpcRow.get_children():
 		child.queue_free()
 	%NpcRow.visible = not Places.visible_npcs(current_world).is_empty()
@@ -296,13 +308,14 @@ func sync_row2() -> void:
 		hud.next_step.compact = false
 		hud.next_step.mini = false
 		return
+	var pill_width: float = (%MapButton as Control).size.x + ROW2_GAP if (%MapButton as Control).visible else 0.0
 	hud.next_step.compact = true
-	hud.set_row2_inset((%MapButton as Control).size.x + ROW2_GAP)
+	hud.set_row2_inset(pill_width)
 	# Limite: antes da coluna dos rostos (360 px: x ≤ 360 − 12 − 48 − 8 = 292).
 	var limit := size.x - Hud.SIDE - NpcFace.SIZE - ROW2_GAP
 	if not %NpcRow.visible:
 		limit = size.x - Hud.SIDE
-	var start := Hud.SIDE + (%MapButton as Control).size.x + ROW2_GAP
+	var start := Hud.SIDE + pill_width
 	hud.next_step.mini = false
 	if start + hud.next_step.wanted_width() > limit:
 		hud.next_step.mini = true

@@ -27,7 +27,7 @@ func _run() -> void:
 	db = root.get_node("Database")
 	state.call("reset")
 	check(state.call("upgrade_error", "blender") != "", "não revela compra antes da primeira cozinha")
-	state.get("progress").claimed_quests["first_kitchen"] = true
+	state.get("progress").claimed_quests["first_meal"] = true
 	check("place:house/blender" in state.call("new_unlocks"), "liquidificador aparece no Novo após primeira cozinha")
 	state.set("coins", 100)
 	check(state.call("buy_upgrade", "blender") == "" and state.get("coins") == 70, "liquidificador custa 30")
@@ -60,7 +60,7 @@ func _run() -> void:
 	var texts: Array[String] = []
 	labels(picker, texts)
 	var previous := -1
-	for name: String in ["Cenoura", "Batata", "Milho", "Abóbora", "Trigo", "Morango", "Batata-doce"]:
+	for name: String in ["Cenoura", "Batata", "Trigo", "Abóbora", "Morango", "Milho", "Batata-doce"]:
 		var index := texts.find(name)
 		check(index > previous, "sementes ordenadas: " + name)
 		previous = index

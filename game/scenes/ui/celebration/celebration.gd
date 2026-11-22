@@ -17,12 +17,6 @@ func show_chapter(index: int, unlocks: Array[String]) -> void:
 	card.add_chips(ProgressionUi.reward_chips(chapter.get("rewards", {})))
 	_unlock_rows(card, unlocks)
 	var next := GameState.progress.displayed_main_quest()
-	var wait := GameState.week_quest_wait(next)
-	if wait != "":
-		card.add_text(wait, &"StrongLabel")
-		card.add_primary("Continuar", hide)
-		show()
-		return
 	if next != "":
 		card.add(RewardSheet.next_card(next))
 		card.add_primary("Ir para " + ProgressionUi.quest_place_name(Places.quest_target(next)), func() -> void:
@@ -46,7 +40,7 @@ func show_week_tutorial(lesson: Dictionary, done: Callable) -> void:
 		hide()
 		done.call(false)
 		Places.go(lesson.go))
-	card.add_ghost("Pular", func() -> void:
+	card.add_ghost("Depois", func() -> void:  # padrão do "Novo!": Ir + Depois (o nó segue chamado TutorialSkip)
 		hide()
 		done.call(true)).name = "TutorialSkip"
 	show()
@@ -71,9 +65,14 @@ func show_week_card(report: Dictionary) -> void:
 
 func _week_morning(card: ModalCard, report: Dictionary, copy: Dictionary) -> void:
 	card.add_text(str(report.news.open), &"StrongLabel")
+	if bool(report.get("first_day", false)):
+		card.add_text(str(copy.first_day))  # o combinado começa hoje (F02B)
 	if int(report.day) == 2 and WeekTutorial.enrolled():
-		card.add_text("Almoço e jantar na hora valem uma patinha.")
 		WeekTutorial.finish("morning")
+	for note: Dictionary in report.get("served", []):
+		var name := MealUi.period_name(str(note.period)).to_lower()
+		var served := card.add_text(str(copy.served) % [name, int(note.hour), int(note.minute)], &"SmallLabel", Palette.GO_INK)
+		served.name = "ServedNote_" + str(note.period)
 	if report.weak and WeekTutorial.enrolled():
 		WeekTutorial.finish("weak")
 	if WeekTutorial.enrolled():
@@ -93,6 +92,9 @@ func _week_morning(card: ModalCard, report: Dictionary, copy: Dictionary) -> voi
 			card.add_text(str(copy.recover))
 		else:
 			card.add_text(str(copy.weak_recovered))
+	if bool(report.get("before_lunch", false)):
+		card.add_text(str(copy.tip_bowl), &"SmallLabel")
+		card.add(_store_button(card, str(copy.tip_bowl_go), "StoreTip"))
 	if report.gift:
 		var gift: Dictionary = Database.week_story.morning
 		card.add_chips(ProgressionUi.reward_chips(gift.rewards))
@@ -114,12 +116,25 @@ func _week_morning(card: ModalCard, report: Dictionary, copy: Dictionary) -> voi
 			card.add_ghost("Pular", hide).name = "TutorialSkip"
 
 
+## Botão amarelo (ação fraca) que leva à folha Hoje, onde se deixa a comida pronta na tigela.
+func _store_button(card: ModalCard, text: String, node_name: String) -> Button:
+	return WelcomeSheet._button(text, false, card.button_width(text), node_name, func() -> void:
+		hide()
+		MealUi.open_today())
+
+
 func _week_night(card: ModalCard, report: Dictionary, copy: Dictionary) -> void:
-	var meal_labels := PackedStringArray()
-	for period: String in Database.meals.periods:
-		var on_time: bool = report.meals.get(period, {}).get("on_time", false)
-		meal_labels.append("%s %s" % [copy[period], copy.done if on_time else copy.miss])
-	card.add_text(" · ".join(meal_labels))
+	if bool(report.get("first_night", false)):
+		_week_first_night(card, report, copy)
+		return
+	if bool(report.get("arrival", false)):
+		card.add_text(str(copy.arrival_done))  # o dia da chegada não cobra almoço nem jantar
+	else:
+		var meal_labels := PackedStringArray()
+		for period: String in Database.meals.periods:
+			var on_time: bool = report.meals.get(period, {}).get("on_time", false)
+			meal_labels.append("%s %s" % [copy[period], copy.done if on_time else copy.miss])
+		card.add_text(" · ".join(meal_labels))
 	card.add_pill(str(copy.paw if report.meals.get("paw", false) else copy.no_paw), "WeekNightPaw")
 	var dish := str(report.dish)
 	card.add_text(str(copy.new_dish) % Database.item_name(dish) if dish != "" else str(copy.no_dish))
@@ -136,7 +151,81 @@ func _week_night(card: ModalCard, report: Dictionary, copy: Dictionary) -> void:
 			Places.go({"world": "farm", "place": "chicken_coop"}))
 	else:
 		card.add_text(str(copy.next) % str(report.next.hook), &"StrongLabel")
+	if bool(report.get("reminder_offer", false)):
+		card.add_text(str(copy.reminder_ask), &"StrongLabel")
+		card.add(_reminder_toggle(copy))
 	card.add_primary(str(copy.close_night), hide)
+
+
+## Boa noite do dia da chegada: o combinado de amanhã (quando começa, os dois horários com Mais cedo · Normal · Mais tarde),
+## o aviso de hora de comer e a tigela. Só o essencial: o miolo rola, a patinha e o botão ficam fixos.
+func _week_first_night(card: ModalCard, report: Dictionary, copy: Dictionary) -> void:
+	card.add_text(str(copy.arrival_done), &"StrongLabel")
+	card.add_pill(str(copy.paw if report.meals.get("paw", false) else copy.no_paw), "WeekNightPaw")
+	var deal: Dictionary = report.deal
+	var body := UiKit.vbox(6)
+	body.name = "WeekDealBody"
+	_deal_line(body, str(copy.deal_need) % str(deal.when).capitalize(), 16, "DealNeed")
+	var hours := _deal_line(body, _deal_hours(copy), 15, "DealHours")
+	var entries: Array[Dictionary] = []
+	for id: String in Database.meals.options:
+		entries.append({"id": id, "text": str(Database.meals.options[id].name)})
+	var options := UiKit.segmented(entries, GameState.week.option, func(id: String) -> void:
+		GameState.set_meal_option(id)
+		hours.text = _deal_hours(copy))
+	options.name = "DealOptions"
+	body.add_child(options)
+	if bool(report.get("reminder_offer", false)):
+		body.add_child(_reminder_ask(copy))  # a pergunta e dois botoes pequenos: Sim / Agora nao
+	if bool(report.get("store_offer", false)):
+		_deal_line(body, str(copy.store_ask), 18, "StoreAsk")
+		var store := _store_button(card, str(copy.store_go), "StoreOffer")
+		store.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		body.add_child(store)
+	card.add_scroll_area(body)
+	card.add_primary(str(copy.close_night), hide)
+
+
+func _deal_line(parent: Control, text: String, px: int, node_name: String) -> Label:
+	var label := StepCardUi.wood(text, px)
+	label.name = node_name
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	parent.add_child(label)
+	return label
+
+
+## Interruptor do aviso de hora de comer: desligado até aceitar (F8).
+func _reminder_toggle(copy: Dictionary, text: String = "") -> CheckButton:
+	var reminder := CheckButton.new()
+	reminder.name = "MealReminderOffer"
+	reminder.text = text if text != "" else str(copy.reminder_setting)
+	reminder.set_pressed_no_signal(GameState.week_meal_reminder_enabled())
+	reminder.toggled.connect(GameState.set_week_meal_reminder)
+	return reminder
+
+
+## A pergunta do aviso de hora de comer com dois botoes de madeira (amarelos: o verde e o "Boa noite"). Sim liga o aviso.
+func _reminder_ask(copy: Dictionary) -> VBoxContainer:
+	var box := UiKit.vbox(6)
+	box.name = "MealReminderOffer"
+	_deal_line(box, str(copy.reminder_ask), 16, "ReminderAsk")
+	var row := UiKit.hbox(10)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_child(row)
+	var answer := func(enabled: bool) -> void:
+		GameState.set_week_meal_reminder(enabled)
+		row.queue_free()
+		_deal_line(box, str(copy.reminder_on) if enabled else str(copy.reminder_off), 15, "ReminderAnswer")
+	row.add_child(WelcomeSheet._button("Sim", false, 110.0, "ReminderYes", answer.bind(true)))
+	row.add_child(WelcomeSheet._button("Agora não", false, 130.0, "ReminderNo", answer.bind(false)))
+	return box
+
+
+func _deal_hours(copy: Dictionary) -> String:
+	var lunch := GameState.meal_window("lunch")
+	var dinner := GameState.meal_window("dinner")
+	return str(copy.deal_hours) % [lunch.x, lunch.y, dinner.x, dinner.y]
 
 
 ## Subiu de nível: o presente já entrou; o botão só fecha.

@@ -7,7 +7,7 @@ const EVENTS: Array[String] = [
 	"fed", "bathed", "petted", "played", "brushed", "slept", "woke", "walk_returned", "dug", "harvested", "watered",
 	"tapped_dog", "tapped_object", "equipped", "grew", "quest_claimed", "project_used", "project_gathered",
 	"friend_heart", "friend_visit", "trick_learned", "world_entered", "album_opened", "app_opened",
-	"intro_done", "chapter_done", "customer_delivery", "trick_show", "week_farewell", "week_line_done",
+	"intro_done", "chapter_done", "customer_delivery", "trick_show", "week_farewell", "week_line_done", "fished",
 ]
 const CONDITIONS: Array[String] = [
 	"phase_min", "phase_in", "hour", "months", "full_moon", "world", "world_in", "dog_in_world", "need_below", "need_min",

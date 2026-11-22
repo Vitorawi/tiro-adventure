@@ -206,7 +206,7 @@ static func _actions(id: String, item: Dictionary, amount: int, price: int) -> D
 			lock = "Chega com o cesto de brinquedos"
 	if str(item.get("category", "")) == "keepsake":
 		actions.append({"name": "KeepsakeGo", "text": "Ir", "fn": GrowthUi.open})
-	if price > 0 and amount > 0:
+	if price > 0 and amount > 0 and GameState.ato2_done():  # sem moeda nem banca antes do capítulo 2
 		var place := Database.place_with_panel("sell")
 		if place[0] != "" and Places.world_error(place[0]) == "":
 			actions.append({"name": "SellItem", "text": "Vender", "gold": true, "fn": Places.go.bind({"world": place[0], "place": "market:sell"})})

@@ -57,8 +57,8 @@ func _run() -> void:
 	var growth: Variant = state.get("growth")
 	check(growth.phase == "puppy" and growth.ceremonies.puppy.seen == false, "fase e cerimônia")
 	check(growth.phase_moments.is_empty() and growth.moments.brave == 3, "fase nova sem sobra e total preservado")
-	check(state.get("coins") == before_coins + 30 and state.get("inventory").count("dog_food") == before_food + 3, "presente exato")
-	check(state.call("grow") != "" and state.get("coins") == before_coins + 30, "clique repetido não paga")
+	check(state.get("coins") == before_coins and state.get("inventory").count("dog_food") == before_food + 3, "presente exato (Ato 1: só ração, sem moeda)")
+	check(state.call("grow") != "" and state.get("coins") == before_coins, "clique repetido não paga")
 	check(row("play").have == 0 and row("dishes").have == 0, "fase nova começa sem brincadeiras nem pratos antigos")
 	state.get("inventory").add("dog_food", 1)
 	state.call("feed", "dog_food")
@@ -69,7 +69,7 @@ func _run() -> void:
 	state.call("from_dict", state.call("to_dict"))
 	check(state.get("growth").to_dict() == growth_saved, "todos os campos de crescimento sobrevivem à recarga")
 	check(state.get("growth").period_moments == growth_saved.period_moments and state.get("economy").granted.has("growth:puppy"), "reload mantém período e recibo")
-	check(state.get("coins") == before_coins + 30, "reload não premia")
+	check(state.get("coins") == before_coins, "reload não premia")
 	check(state.call("requirement_error", {"growth": "teething"}) == "Quando ele for Dentinhos", "texto do requisito")
 	check(state.call("requirement_error", {"growth": "puppy"}) == "", "fase já alcançada")
 	var content: Dictionary = db.get("growth").duplicate(true)
@@ -111,7 +111,7 @@ func _run() -> void:
 			"moments": broken.moments.period_cap = 0
 			"item": broken.phases[2].requirements[0].item = "missing"
 			"quest": broken.phases[1].requirements.append({"id": "quest", "type": "quest", "quest": "missing"})
-			"owned": broken.phases[1].requirements[0].upgrade = "missing"
+			"owned": broken.phases[1].requirements[3].upgrade = "missing"
 			"project": broken.phases[5].requirements.append({"id": "extra_project", "type": "project", "project": "missing"})
 			"type": broken.phases[1].requirements[0].type = "missing"
 			"req_id": broken.phases[1].requirements[1].id = "bed"
@@ -123,7 +123,7 @@ func _run() -> void:
 	for phase: String in ["puppy", "teething", "explorer", "young", "adult"]:
 		state.call("dev_complete_growth_reqs")
 		check(state.call("grow") == "" and state.get("growth").phase == phase, "transição para " + phase)
-	check(state.get("coins") == before_coins + 590, "soma dos cinco presentes")
+	check(state.get("coins") == before_coins + 560, "soma dos cinco presentes (590 antes de o Filhotinho ficar sem moeda)")
 	check(not state.call("growth_info").ready and state.call("grow") != "", "adulto sem sexta transição")
 	check(done_count > 0, "eventos de requisito")
 	print("GROWTH TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)

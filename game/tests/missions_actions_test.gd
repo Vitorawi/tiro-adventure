@@ -38,7 +38,11 @@ func fresh() -> void:
 	state.call("reset")
 	var progress: Object = state.get("progress")
 	progress.seen.intro = true
-	progress.claimed_quests["welcome"] = true
+	for step: String in progress.main_quests(1):  # os passos do Ato 1 e a conversa com a vovó antes da primeira colheita
+		if step == "lais_first_crops":
+			break
+		progress.claimed_quests[step] = true
+	progress.claimed_quests["bloblo_meet"] = true
 	state.call("_mark_all_seen")
 	state.call("_changed")
 	main = load("res://scenes/main/main.tscn").instantiate()
@@ -133,8 +137,8 @@ func _run() -> void:
 		await check_done(1, go_rects[1])
 		var paid := gains
 		await tap(claim)
-		check(state.get("coins") == coins + 5 and gains == paid + 1 and state.get("progress").claimed_quests.has("lais_first_crops"), "Pegar paga uma vez")
-		check(state.call("claim_quest", "lais_first_crops") != "" and state.get("coins") == coins + 5 and gains == paid + 1, "segunda entrega recusada")
+		check(state.get("coins") == coins and gains == paid + 1 and state.get("progress").claimed_quests.has("lais_first_crops") and state.get("inventory").count("stove_gift") == 1, "Pegar paga uma vez (o fogãozinho da vovó, sem moeda)")
+		check(state.call("claim_quest", "lais_first_crops") != "" and state.get("coins") == coins and state.get("inventory").count("stove_gift") == 1, "segunda entrega recusada")
 		# Renderização de uma missão já recebida, ainda que o cartão vivo avance automaticamente.
 		clear_modals()
 		var box := VBoxContainer.new()

@@ -44,6 +44,7 @@ func _run() -> void:
 	check(not (progress.unlocked_keys() as Array).has("world:park"), "Novo! ainda não lista a Praça")
 	var order: Array = db.get("worlds").keys()
 	check(order.find("park") == order.find("village") + 1 and order.find("park") == order.find("nature") - 1, "Praça depois da Vila: " + str(order))
+	state.get("growth").phase = "teething"
 	progress.claimed_quests["main_2_order"] = true
 	state.call("_changed")
 	check(places.call("world_error", "park") == "", "Praça abre depois da primeira encomenda")

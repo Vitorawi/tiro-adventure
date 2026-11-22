@@ -74,7 +74,7 @@ func _run() -> void:
 
 	# 5. Missão do capítulo 3.
 	var q: Dictionary = db.quests.week_fish_dish
-	check(str(q.kind) == "main" and int(q.chapter) == 3, "O prato-chave é do capítulo 3")
+	check(str(q.kind) == "main" and int(q.chapter) == 6, "O prato-chave é do capítulo 6")
 	check(int(q.order) > int(db.quests.week_fish.order), "O prato-chave vem após pescar")
 	check(q.goals[0].type == "week_dish" and q.goals[0].key == "fish", "objetivo usa o requisito do Para crescer")
 	check(str(q.go.place) == "stove", "Ir leva ao fogão")
@@ -109,6 +109,7 @@ func _run() -> void:
 func _harvest_worms(with_rod: bool) -> int:
 	_fresh()
 	state.dev_grant_upgrade("farm")
+	state.progress.claimed_quests.clear()  # a lagoa (e a vara de bambu) abre pelo capítulo 3
 	state.unlocked_plots = 4
 	state.fishing.rods.clear()
 	if with_rod:

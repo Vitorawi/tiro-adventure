@@ -35,6 +35,9 @@ static func sources(id: String) -> Array[Dictionary]:
 			found = found or reward.get("items", {}).has(id)
 		if found:
 			result.append({"kind": "find", "id": world})
+	# Minhoca gorda: o faro a garante com a missão secreta da vovó aberta (GameState._golden_worm_due).
+	if id == str(Database.meals.get("secret", {}).get("bait", "")):
+		result.append({"kind": "find", "id": "farm"})
 	# Dentinho de leite: o primeiro montinho a partir de Dentinhos o garante (GameState._milk_tooth_due).
 	if id == "milk_tooth":
 		result.append({"kind": "find", "id": "farm"})

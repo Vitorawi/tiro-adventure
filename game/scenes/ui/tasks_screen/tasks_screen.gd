@@ -134,7 +134,7 @@ func _mark_people_seen() -> void:
 
 func _build(box: VBoxContainer) -> void:
 	box.add_theme_constant_override("separation", 12)
-	if GameState.progress.chapter_index() <= Database.week_story.days.size():
+	if GameState.progress.chapter_index() <= GameState.week_last_chapter():
 		_group = "story"
 		_update_groups({})
 		_story_card(box)
@@ -173,7 +173,7 @@ func _update_groups(characters: Dictionary) -> void:
 	entries.append({"id": "timed", "text": "Diárias", "alert": not _ready_routines.is_empty(),
 		"locked": "" if GameState.routines_unlocked("daily") else "Diárias liberam mais adiante na história"})
 	# As abas só são recriadas quando algo visível muda; a bandeja não mexe de lugar nem a cada segundo.
-	if GameState.progress.chapter_index() <= Database.week_story.days.size():
+	if GameState.progress.chapter_index() <= GameState.week_last_chapter():
 		entries.resize(1)
 	var sig := _group
 	for entry: Dictionary in entries: sig += "|%s:%s:%s" % [entry.id, entry.alert, entry.get("locked", "")]
@@ -212,7 +212,7 @@ func choose_group(id: String) -> void:
 	_content.call("refresh")
 
 func choose_routine(kind: String) -> void:
-	if GameState.progress.chapter_index() <= Database.week_story.days.size():
+	if GameState.progress.chapter_index() <= GameState.week_last_chapter():
 		PetNotebook.open("missions")
 		return
 	if _group != "timed": choose_group("timed")
@@ -270,6 +270,8 @@ func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 		var goal := ProgressionUi.current_goal(id)
 		var target := int(goal.get("target", 1))
 		var meta := UiKit.hbox(4)
+		if line == "secret":
+			meta.add_child(UiKit.secret_tag())  # selo "Segredo" da missão secreta da vovó (F04b)
 		meta.add_child(UiKit.icon(ProgressionUi.goal_icon(goal), 20))
 		meta.add_child(UiKit.short_label("%d/%d" % [mini(GameState.goal_value(goal), target), target], &"SmallLabel", Palette.GO_INK if ready else Palette.INK_SOFT))
 		# Aberta, o Pegar fica só dentro do detalhe (laranja); a linha mostra a setinha para recolher.
@@ -358,12 +360,7 @@ func _story_card(box: VBoxContainer) -> void:
 	if finished:
 		_story_done(card)
 		return
-	var wait := GameState.week_quest_wait(current)
-	if wait != "":
-		var waiting := StepCardUi.inner_card(card, "WeekWait")
-		waiting.add_child(_week_label(wait, 22))
-		waiting.add_child(_week_label("Dia %d · %s" % [index, str(GameState.current_chapter().name)]))
-	elif displayed != "":
+	if displayed != "":
 		var shared := str(Database.quests[current].get("shared_with", "")) != ""
 		card.add_child(_story_hero(displayed))
 		if shared:
@@ -371,7 +368,7 @@ func _story_card(box: VBoxContainer) -> void:
 			guidance.name = "SharedQuestGuidance"
 			guidance.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			card.add_child(guidance)
-		if index <= Database.week_story.days.size() and GameState.quest_error(displayed) != "" and GameState.quest_reward_shortage(displayed).is_empty():
+		if index <= GameState.week_last_chapter() and GameState.quest_error(displayed) != "" and GameState.quest_reward_shortage(displayed).is_empty():
 			_story_steps(card, displayed)
 			var prize := ProgressionUi.rewards_text(Database.quests[displayed].rewards)
 			if prize != "":

@@ -84,8 +84,14 @@ func _inventory(id: String = "apple_biscuit") -> int:
 	return state.get("inventory").count(id)
 
 
+## Dia do calendário -> capítulo: o Senta é do capítulo 5; Dá a pata e Deita, do 10.
+func _chapter(day: int) -> int:
+	return 1 if day <= 1 else (5 if day < 4 else 10)
+
+
 func _advance_day(day: int, hour: int) -> void:
 	state.call("dev_week_goto", day)
+	state.call("dev_content_day", _chapter(day))
 	state.call("dev_week_hour", hour)
 	state.call("update_week")
 	# O teste das aulas segue alimentando o Tiro na janela; o bloqueio tem cenário próprio.
@@ -116,11 +122,14 @@ func _run() -> void:
 	state.get("progress").seen["intro"] = true
 	state.get("inventory").add("apple_biscuit", 20)
 	state.call("dev_week_goto", 1)
+	state.call("dev_content_day", 1)
 	state.call("dev_week_hour", 12)
 	for id: String in TRICKS:
-		check(state.call("trick_lesson_error", id) == "Abre no dia %d" % TRICKS[id], "dia de abertura de " + id)
+		check(state.call("trick_lesson_error", id) == "Continue a História", "dia de abertura de " + id)
 		check(state.call("learn_trick", id) == "Aprenda na Aula do Tiro", "sem atalho pela Nina: " + id)
-	check(_row("sit").get("done") == false, "Para crescer mostra Senta por aprender")
+	# Os ganchos dos truques sao do Dentinhos (F01): com o Filhotinho pronto, a lista que o painel mostra e a dele.
+	state.get("growth").phase = "puppy"
+	check(_row("tricks").get("done") == false and int(_row("tricks").get("have", 0)) == 0, "Para crescer mostra os truques por aprender")
 
 	Motion.reduced = true
 	main = load("res://scenes/main/main.tscn").instantiate()
@@ -171,10 +180,10 @@ func _run() -> void:
 		load("res://scripts/ui/trick_ui.gd").call("open_lessons")
 		await _play_through(id)
 		check(state.call("trick_level", id) == 1, "Aprendeu com 3 (" + id + ")")
-		check(state.call("trick_lesson_error", id) == "Próxima aula à noite", "uma aula por truque no período")
+		check(state.call("trick_lesson_error", id) == "", "sem limite por período: só o biscoito segura")
 		check(state.call("perform_trick", id) != "", "a Aula é a origem dos acertos do filhote")
 		if id == "sit":
-			check(_row("sit").get("done") == true, "Senta marca Para crescer")
+			check(int(_row("tricks").get("have", 0)) >= 1, "Senta marca Para crescer")
 			if screenshots:
 				load("res://scripts/ui/growth_ui.gd").call("open")
 				await pause(0.45)
@@ -199,10 +208,10 @@ func _run() -> void:
 	check(_complete("paw", 2).get("stars") == 2 and _inventory() == cookies - 1, "2 estrelas e recarga independente")
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
 	state.call("from_dict", saved)
-	check(state.call("trick_lesson_next", "sit") == "de manhã" and state.get("progress").stat("trick:sit") == 4, "recarga e acertos persistem")
+	check(state.get("progress").stat("trick:sit") == 4, "os acertos persistem")
 	state.call("dev_week_goto", 6)
+	state.call("dev_content_day", 10)
 	state.call("dev_week_hour", 4)
-	check(state.call("trick_lesson_next", "sit") == "de manhã", "meia-noite não renova o treino da noite")
 	state.get("growth").phase = "puppy"
 	check(_row("tricks").get("done") == true and _row("sit_good").get("done") == false, "Para crescer lê três aprendidos e aguarda Sabe bem")
 	var help := load("res://scripts/ui/task_help.gd")

@@ -41,6 +41,10 @@ func setup(new_npc_id: String, new_badge: String) -> void:
 		mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		mark.position = Vector2(SIZE - 18.0, -6.0)
 		add_child(mark)
+	elif badge == "secret":
+		var tag := UiKit.secret_tag()
+		tag.position = Vector2(SIZE - 52.0, -12.0)
+		add_child(tag)
 	elif badge == "ready":
 		var check := UiKit.disc(UiKit.ctl_icon("check"), 20, 16)
 		check.add_theme_stylebox_override("panel", UiKit.surface(Palette.GO, 10))

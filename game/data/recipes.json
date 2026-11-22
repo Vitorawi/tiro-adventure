@@ -38,12 +38,7 @@
     "qty": 1,
     "seconds": 180,
     "skill": "cooking",
-    "skill_xp": 30,
-    "requirements": {
-      "owned": [
-        "fridge"
-      ]
-    }
+    "skill_xp": 30
   },
   "plank": {
     "station": "workbench",
@@ -158,7 +153,7 @@
     "skill": "agriculture",
     "skill_xp": 18,
     "requirements": {
-      "chapter": 9
+      "chapter": 13
     }
   },
   "flour": {
@@ -172,7 +167,7 @@
     "skill": "cooking",
     "skill_xp": 15,
     "requirements": {
-      "chapter": 9
+      "chapter": 13
     }
   },
   "hardwood_planks": {
@@ -186,7 +181,7 @@
     "skill": "adventure",
     "skill_xp": 15,
     "requirements": {
-      "chapter": 9
+      "chapter": 13
     }
   },
   "cheese": {
@@ -200,7 +195,7 @@
     "skill": "cooking",
     "skill_xp": 25,
     "requirements": {
-      "chapter": 9
+      "chapter": 13
     }
   },
   "strawberry_pop": {
@@ -435,6 +430,38 @@
     "seconds": 120,
     "player_xp": 0
   },
+  "egg_mash": {
+    "station": "stove",
+    "dish_type": "papinha",
+    "inputs": {
+      "egg": 1,
+      "potato": 1
+    },
+    "output": "egg_mash",
+    "qty": 1,
+    "seconds": 180,
+    "player_xp": 0,
+    "requirements": {
+      "owned": [
+        "chicken_coop"
+      ]
+    }
+  },
+  "banana_mash": {
+    "station": "stove",
+    "dish_type": "mingau",
+    "inputs": {
+      "oat": 1,
+      "banana": 1
+    },
+    "output": "banana_mash",
+    "qty": 1,
+    "seconds": 240,
+    "player_xp": 0,
+    "requirements": {
+      "story_day": 7
+    }
+  },
   "fish_mash": {
     "station": "stove",
     "dish_type": "papinha",
@@ -478,6 +505,23 @@
     "player_xp": 0,
     "requirements": {
       "rod": "bamboo_rod"
+    }
+  },
+  "golden_stew": {
+    "station": "stove",
+    "inputs": {
+      "fish_golden": 1,
+      "pumpkin": 1,
+      "egg": 1
+    },
+    "output": "golden_stew",
+    "qty": 1,
+    "seconds": 600,
+    "player_xp": 0,
+    "requirements": {
+      "stats": {
+        "fish:fish_golden": 1
+      }
     }
   },
   "fish_stew_carp": {
@@ -539,7 +583,7 @@
     "seconds": 300,
     "player_xp": 0,
     "requirements": {
-      "chapter": 9
+      "chapter": 13
     }
   },
   "growth_kibble": {
@@ -758,7 +802,7 @@
     "qty": 3,
     "seconds": 90,
     "requirements": {
-      "week_day": 2
+      "story_day": 5
     }
   }
 }

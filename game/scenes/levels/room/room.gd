@@ -722,7 +722,9 @@ func _refresh_ownership() -> void:
 					region_locked = region_error(data) != ""
 			# "+" só aparece quando a história já libera a compra (revelar aos poucos).
 			var available := GameState.requirement_error(Database.progression.upgrades.get(sprite.get_meta("upgrade"), {}).get("requirements", {})) == ""
-			sprite.get_node("PurchaseMarker").visible = not purchased and not region_locked and available and not sprite.get_meta("decoration", false) and not sprite.get_meta("buy_sign", false)
+			# Nos Atos 1 e 2 só o "+" dos presentes (caminha e fogão da vovó): os outros marcadores esperam o capítulo 2.
+			var ato1_ok: bool = GameState.ato2_done() or sprite.get_meta("upgrade") in ["dog_bed", "stove"]
+			sprite.get_node("PurchaseMarker").visible = ato1_ok and not purchased and not region_locked and available and not sprite.get_meta("decoration", false) and not sprite.get_meta("buy_sign", false)
 		if sprite.has_meta("animal_station"):
 			var roster := GameState.animal_roster(sprite.get_meta("animal_station"))
 			var slot: int = sprite.get_meta("animal_slot")
@@ -735,6 +737,10 @@ func _refresh_ownership() -> void:
 				sprite.scale = Vector2.ONE * float(animal.map_scale) * float(_room.get("animal_scale", 1.0))
 	for region: Node2D in _regions:
 		region.visible = region_error(region.get_meta("data")) != ""
+		# Placa "Em breve" só no capítulo anterior ao da área (`plaque_from`); antes disso ela não aparece.
+		var board := region.get_node_or_null("PlaqueBoard")
+		if board != null:
+			board.visible = GameState.content_day() >= int(region.get_meta("data").get("plaque_from", 9999))
 	for tag: Label in _labels:
 		var label_data: Dictionary = tag.get_meta("tap_data", {})
 		if label_data.has("label_levels"):
@@ -862,6 +868,7 @@ func _spawn_regions() -> void:
 			wood.reset_size()
 			wood.position = _vec(data.plaque) - Vector2(wood.get_combined_minimum_size().x / 2.0, 0)
 			wood.z_index = 3
+			wood.name = "PlaqueBoard"
 			region.add_child(wood)
 		if data.has("upgrade"):
 			var marker := WorldBalloon.new()
@@ -2994,7 +3001,7 @@ func week_tutorial_rect(kind: String, include_planted: bool = false) -> Rect2:
 			if kind == "harvest" and index not in ready_plots():
 				continue
 			if kind == "plot" and not include_planted:
-				if index >= GameState.plots.size() or not GameState.plots[index].is_empty():
+				if index >= GameState.plots.size() or str(GameState.plots[index].get("crop", "")) != "":  # canteiro vazio = sem cultura
 					continue
 			var diamond := plot_diamond(index)
 			var rect := Rect2(world_to_screen(diamond[0]), Vector2.ZERO)
@@ -3002,6 +3009,24 @@ func week_tutorial_rect(kind: String, include_planted: bool = false) -> Rect2:
 				rect = rect.expand(world_to_screen(point))
 			if get_global_rect().grow(-24).has_point(rect.get_center()):
 				return rect
+		return Rect2()
+	if kind.begins_with("npc:"):
+		# Personagem do mundo (balão "!" e mão do tutorial): região em volta da cabeça dele.
+		var npc := npc_node(kind.trim_prefix("npc:"))
+		if npc != null and npc.visible and npc.is_visible_in_tree():
+			var head := world_to_screen(npc.head_point())
+			if get_global_rect().grow(-24).has_point(head):
+				return Rect2(head - Vector2(40, 20), Vector2(80, 90))
+		return Rect2()
+	if kind.begins_with("buy:"):
+		# Marcador "+" (compra) do objeto: sprite com `upgrade` ainda não adquirido.
+		var wanted := kind.trim_prefix("buy:")
+		for sprite in _objects:
+			if sprite.get_meta("upgrade", "") != wanted or GameState.has_upgrade(wanted) or sprite.get_meta("decoration", false):
+				continue
+			var spot := world_to_screen(sprite.position + Vector2(0, -34))
+			if get_global_rect().grow(-24).has_point(spot):
+				return Rect2(spot - Vector2(34, 34), Vector2(68, 68))
 		return Rect2()
 	for sprite in _objects:
 		var action := str(sprite.get_meta("action", ""))

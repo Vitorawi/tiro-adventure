@@ -29,6 +29,7 @@ func check(condition: bool, label: String) -> void:
 
 func day(number: int, hour: int = 19) -> void:
 	state.call("dev_week_goto", number)
+	state.call("dev_content_day", number)
 	state.call("dev_week_hour", hour)
 	state.call("update_week")
 
@@ -138,7 +139,7 @@ func test_stock_and_day() -> void:
 func test_ingredient_sources() -> void:
 	reset()
 	day(2)
-	check(state.call("buy_shop_item_error", "week_rice") == "Abre no dia 3", "arroz respeita o dia")
+	check(state.call("buy_shop_item_error", "week_rice") == "Continue a História", "arroz respeita o dia")
 	day(3)
 	state.set("coins", 100)
 	check(state.call("buy_shop_item", "week_rice") == "" and inventory.count("rice") == 1, "arroz vem da banca")
@@ -362,6 +363,7 @@ func _run() -> void:
 		root.size = Vector2i(360, 780)
 	state = root.get_node("GameState")
 	database = root.get_node("Database")
+	load("res://tests/helpers/old_day_rules.gd").new().apply(database)
 	events = root.get_node("Events")
 	var saver := root.get_node("SaveManager")
 	events.state_changed.disconnect(Callable(saver, "_schedule_save"))

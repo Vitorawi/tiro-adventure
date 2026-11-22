@@ -99,7 +99,7 @@
       "interval": 600,
       "max_pending": 1,
       "requirements": {
-        "chapter": 8
+        "chapter": 12
       },
       "guaranteed": [
         {
@@ -155,7 +155,7 @@
       "interval": 600,
       "max_pending": 1,
       "requirements": {
-        "chapter": 9
+        "chapter": 13
       },
       "guaranteed": [
         {

@@ -58,7 +58,7 @@ func _fresh(unlimited: bool = true) -> void:
 	state.set("unlimited_storage", unlimited)
 	state.call("reset")
 	state.get("inventory").counts.clear()
-	state.call("dev_jump_to_chapter", 8)
+	state.call("dev_jump_to_chapter", 13)
 	state.call("dev_add_coins", 4000)
 	for id in ["forest_open", "cave_open", "meadow_open"]:
 		check(state.call("buy_upgrade", id) == "", "abre " + id)
@@ -97,7 +97,7 @@ func _run() -> void:
 		check(int(route.nature_xp) == int(TABLE[id][2]), id + ": XP local")
 		check(not (route.rewards.get("skill_xp", {}) as Dictionary).is_empty(), id + ": XP de atributo continua (fora desta etapa)")
 	var orchard: Dictionary = db.progression.activities.orchard_harvest
-	check(int(orchard.seconds) == 3600 and int(orchard.rewards.items.apple) == 8 and not orchard.has("nature_xp"), "pomar: 1 h, 8 maçãs, sem XP local")
+	check(int(orchard.seconds) == 7200 and int(orchard.rewards.items.apple) == 2 and not orchard.has("nature_xp"), "pomar: 2 h, 2 maçãs, sem XP local")
 	check(db.progression.activities.woodcutting.requirements.owned == ["forest_open"], "woodcutting abre com o Bosque (sem nível 2)")
 	check(int(db.progression.activities.timber.get("seconds")) > int(db.progression.activities.woodcutting.seconds), "longa fica depois da média")
 
@@ -182,10 +182,11 @@ func _run() -> void:
 	# --- Cancelar: sem erro nem XP (passeio de rota global) ------------------------
 	_fresh()
 	_p().owned["orchard"] = true
+	_p().owned["greenhouse"] = true
 	var xp_before: Dictionary = _p().nature_xp.duplicate(true)
 	check(state.call("start_activity", "orchard_harvest") == "", "pomar começa")
-	state.call("dev_advance_time", 3600)
-	check(state.call("collect_activity") == "" and _inv("apple") == 8, "pomar: 8 maçãs em 1 h")
+	state.call("dev_advance_time", 7200)
+	check(state.call("collect_activity") == "" and _inv("apple") == 2, "pomar: 2 maçãs em 2 h")
 	check(_p().nature_xp == xp_before, "pomar não dá XP de um local inexistente")
 
 	# --- Duas buscas longas × doze curtas ------------------------------------------

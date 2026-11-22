@@ -125,7 +125,7 @@ func _pairs() -> void:
 		var order := int(quests[str(quests[id].shared_with)].order)
 		check(order > int(last.get(line, -1)), id + ": ordem da canônica cresce na linha " + line)
 		last[line] = order
-	check(pairs.size() == 10, "dez pares shared_with após a semana; hoje: %s" % str(pairs))
+	check(pairs.size() == 11, "onze pares shared_with após a semana (com a vovó do Ato 2); hoje: %s" % str(pairs))
 	for required: String in ["explorer_6_eggs→main_9_eggs", "young_9_milk→main_9_flour", "main_5_pickaxe→guide_open_cave", "stone_path→guide_stone", "main_6_commerce→merchant_variety", "market_day→merchant_regular", "own_business→merchant_stall"]:
 		check(pairs.has(required), "par " + required)
 	report.append("Pares shared_with (%d): %s" % [pairs.size(), ", ".join(pairs)])
@@ -197,7 +197,7 @@ func _new_pairs_flow() -> void:
 
 func _midway_saves() -> void:
 	# Capítulos 3, 5, 7 e 9 no meio: salvar/recarregar não muda o passo nem repete prêmio.
-	for chapter in [3, 5, 7, 9]:
+	for chapter in [4, 6, 8, 12]:
 		_fresh()
 		for c in range(1, chapter):
 			for id: String in _p().main_quests(c):
@@ -255,10 +255,10 @@ func _atelier_goal() -> void:
 	_p().claimed_quests["main_8_building"] = true
 	var id := "atelier_open"
 	_p().stats["produce:plank"] = 6
-	for previous in range(1, 13):
+	for previous in range(1, 17):
 		for q: String in _p().main_quests(previous):
 			_p().claimed_quests[q] = true
-	for q: String in _p().main_quests(13):
+	for q: String in _p().main_quests(17):
 		if q != id:
 			_p().claimed_quests[q] = true
 	for alias: String in _quests():
@@ -271,7 +271,7 @@ func _atelier_goal() -> void:
 	check(state.call("quest_error", id) != "", "ateliê: falta o conjunto")
 	_p().stats["produce:accessory_set"] = 1
 	var before: int = state.get("coins")
-	var chapter_coins: int = int(db.get("progression").chapters[12].rewards.coins)
+	var chapter_coins: int = int(db.get("progression").chapters[16].rewards.coins)
 	check(state.call("claim_quest", id) == "" and int(state.get("coins")) == before + 40 + chapter_coins, "ateliê: 40 moedas + prêmio do capítulo")
 	# Etapa 22: depois do ateliê a história segue para o capítulo 14 (banco da Praça).
 	check(_p().current_main_quest() == "community_10_meet", "ateliê: o capítulo 13 termina e abre o 14")

@@ -106,7 +106,7 @@
         "foco": 1,
         "animo": 0
       },
-      "opens": 3,
+      "opens": 6,
       "source": "Canteiro, semente na banca",
       "sell": 6
     },
@@ -123,7 +123,7 @@
         "foco": 0,
         "animo": 1
       },
-      "opens": 4,
+      "opens": 7,
       "source": "Canteiro, muda no pomar",
       "sell": 8
     },
@@ -157,7 +157,7 @@
         "foco": 0,
         "animo": 1
       },
-      "opens": 2,
+      "opens": 4,
       "source": "Canteiro",
       "sell": 4
     },
@@ -174,7 +174,7 @@
         "foco": 0,
         "animo": 0
       },
-      "opens": 3,
+      "opens": 6,
       "source": "Banca da vovó",
       "sell": 4
     },
@@ -191,7 +191,7 @@
         "foco": 0,
         "animo": 0
       },
-      "opens": 2,
+      "opens": 4,
       "source": "Galinheiro",
       "sell": 9,
       "key_note": "Conta como prato com ovo"
@@ -211,7 +211,7 @@
         "foco": 0,
         "animo": 0
       },
-      "opens": 3,
+      "opens": 6,
       "source": "Lagoa",
       "sell": 9,
       "key_note": "Conta como prato com peixe"
@@ -229,7 +229,7 @@
         "foco": 1,
         "animo": 1
       },
-      "opens": 4,
+      "opens": 7,
       "source": "Pomar",
       "sell": 7
     },
@@ -246,7 +246,7 @@
         "foco": 0,
         "animo": 2
       },
-      "opens": 4,
+      "opens": 7,
       "source": "Pomar",
       "sell": 6
     },
@@ -263,7 +263,7 @@
         "foco": 0,
         "animo": 1
       },
-      "opens": 5,
+      "opens": 9,
       "source": "Canteiro, semente na carroça",
       "sell": 8
     }
@@ -310,7 +310,7 @@
           2
         ],
         [
-          3,
+          6,
           3
         ]
       ],
@@ -341,7 +341,7 @@
     },
     "biscoito": {
       "name": "Biscoito",
-      "opens": 2,
+      "opens": 5,
       "meal": false,
       "seconds": 900,
       "min": 2,
@@ -369,7 +369,7 @@
     },
     "sopinha": {
       "name": "Sopinha",
-      "opens": 3,
+      "opens": 2,
       "meal": true,
       "seconds": 600,
       "min": 3,
@@ -405,7 +405,7 @@
     },
     "mingau": {
       "name": "Mingau",
-      "opens": 4,
+      "opens": 7,
       "meal": true,
       "seconds": 600,
       "min": 2,

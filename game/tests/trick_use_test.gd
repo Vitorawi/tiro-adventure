@@ -44,8 +44,14 @@ func _hide_modals() -> void:
 	main.set("_modal_queue", [] as Array[Callable])
 
 
+## Dia do calendário -> capítulo: o Senta é do capítulo 5; Dá a pata, Deita e o show, do 10.
+func _chapter(day: int) -> int:
+	return 1 if day <= 1 else (5 if day < 4 else 10)
+
+
 func _day(day: int, hour: int) -> void:
 	state.call("dev_week_goto", day)
+	state.call("dev_content_day", _chapter(day))
 	state.call("dev_week_hour", hour)
 
 
@@ -158,6 +164,7 @@ func _run() -> void:
 	state.call("update_week")
 	check(state.call("meal_trick_offer", FOOD).is_empty(), "pedido ainda fechado")
 	_lesson("sit")
+	check(state.call("trick_show_error", 3) == "Continue a História", "show fechado antes do capítulo 10")
 	_day(4, 12)
 	state.call("update_week")
 	if state.call("tiro_weak"):
@@ -168,7 +175,6 @@ func _run() -> void:
 	var scores := _caderno()
 	check(scores == [3, 3, 3], "três truques aprendidos")
 	check(state.call("meal_trick_offer", FOOD).is_empty(), "fora de hora não pede truque")
-	check(state.call("trick_show_error", 3) == "Abre no dia 6", "show fechado no dia 5")
 	state.call("finish_fishing_tutorial")
 
 	Motion.reduced = true

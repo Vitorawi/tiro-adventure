@@ -22,6 +22,7 @@ func _check(condition: bool, message: String) -> void:
 func _run() -> void:
 	state = root.get_node("GameState")
 	db = root.get_node("Database")
+	load("res://tests/helpers/old_day_rules.gd").new().apply(db)
 	var saver: Node = root.get_node("SaveManager")
 	root.remove_child(saver)
 	saver.free()
@@ -222,6 +223,7 @@ func _prepare() -> void:
 	for station_id: String in state.get("stations"):
 		state.get("stations")[station_id].queue.clear()
 	state.call("dev_week_goto", 5)
+	state.call("dev_content_day", 5)
 
 
 func _give(item: String, amount: int) -> void:
@@ -299,12 +301,14 @@ func _gororoba_cooking() -> void:
 func _errors() -> void:
 	_prepare()
 	state.call("dev_week_goto", 1)
+	state.call("dev_content_day", 1)
 	_give("carrot", 3)
 	_give("potato", 3)
 	_give("pumpkin", 3)
-	_check(str(state.call("cook_dish", "sopinha", ["carrot", "potato", "pumpkin"])) == "Sopinha abre no dia 3", "tipo ainda fechado no dia 1")
+	_check(str(state.call("cook_dish", "sopinha", ["carrot", "potato", "pumpkin"])) == "Continue a História", "tipo ainda fechado no dia 1")
 	_check(str(state.call("cook_dish", "papinha", ["carrot", "potato", "pumpkin"])) == "Só cabem 2 ingredientes", "a 3ª vaga da papinha abre no dia 3")
 	state.call("dev_week_goto", 3)
+	state.call("dev_content_day", 3)
 	_check(str(state.call("cook_dish", "papinha", ["carrot"])) == "Faltam ingredientes", "papinha com um ingrediente só")
 	_check(str(state.call("cook_dish", "papinha", [])) == "Escolha ingredientes", "nada escolhido")
 	_check(str(state.call("cook_dish", "papinha", ["wheat", "carrot"])) == "Ingrediente inválido", "trigo não é ingrediente")

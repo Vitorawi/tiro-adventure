@@ -49,11 +49,11 @@ func _run() -> void:
 	var level_before: int = state.get("level")
 	state.call("feed", "dog_food")
 	_check(state.get("xp") == xp_before and state.get("level") == level_before, "Cuidado repetido não pode farmar XP")
-	_check(state.call("start_activity", "lane") != "", "Trilha fechada antes do capítulo 5")
-	state.call("dev_jump_to_chapter", 8)
-	_check(state.call("start_activity", "lane") != "", "Capítulo 5 apresenta o local ainda fechado")
+	_check(state.call("start_activity", "lane") != "", "Trilha fechada antes do capítulo 13")
+	state.call("dev_jump_to_chapter", 13)
+	_check(state.call("start_activity", "lane") != "", "Capítulo 13 apresenta o local ainda fechado")
 	state.call("dev_add_coins", 40)
-	_check(state.call("buy_upgrade", "forest_open") == "", "Bosque pode ser desbloqueado no capítulo 5")
+	_check(state.call("buy_upgrade", "forest_open") == "", "Bosque pode ser desbloqueado no capítulo 13")
 	_check(state.call("start_activity", "lane") == "", "Rota abre ao desbloquear o Bosque")
 	_check(state.call("collect_activity") != "" and state.call("start_activity", "lane") != "", "Atividade não pode ser antecipada ou sobreposta")
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
@@ -98,7 +98,7 @@ func _campaign() -> Dictionary:
 	var progression: Dictionary = database.get("progression")
 	var recipes: Dictionary = database.get("recipes")
 	var crops: Dictionary = database.get("crops")
-	var live_quests: Array = database.get("quests").keys().filter(func(id: String) -> bool: return database.get("quests")[id].get("kind") != "retired")
+	var live_quests: Array = database.get("quests").keys().filter(func(id: String) -> bool: return database.get("quests")[id].get("kind") != "retired" and id != "bloblo_secret")  # a missão secreta só existe no Filhotinho (F04b): é opcional
 	var iterations: int = 0
 	# A simulação estoca 12 de cada item: o limite de armazenamento é testado em storage_test.
 	state.set("unlimited_storage", true)
@@ -144,9 +144,7 @@ func _campaign() -> Dictionary:
 			state.call("talk_to", npc_id)
 		for screen: String in ["bag", "village"]:
 			state.call("note_screen_opened", screen)
-		# A apresentação opcional do Álbum também faz parte do catálogo atual de missões.
-		if state.call("quest_unlocked", "lais_album"):
-			state.call("note_album_section", "story")
+		state.call("note_album_section", "story")
 		for item: String in database.get("items"):
 			if database.get("items")[item].has("feed") and state.get("inventory").count(item) > 0:
 				if state.call("need_asking", "hunger"): state.call("feed", item)
@@ -300,7 +298,7 @@ func _grow_story(recipes: Dictionary) -> void:
 						_cook_with_inputs(recipe_id, recipes)
 
 	if state.call("grow_error") == "":
-		_check(state.call("grow") == "", "Crescer na campanha: " + str(info.next.id))
+		_check(state.call("grow") == "", "Crescer na campanha: " + str(info.get("next", {}).get("id", "")))
 
 
 ## Garante uma unidade do item: faz pela receita (com os insumos) se a mochila não tem.

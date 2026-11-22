@@ -148,8 +148,8 @@ func run() -> void:
 	route = load("res://tests/helpers/week_story_route.gd").new(state, db, check)
 	check(not state.week_meal_reminder_enabled() and state.week_card_candidates().is_empty(), "Aviso desligado e chegada vem primeiro")
 	route.day_one(false)
-	check(state.economy.granted.has("week_line:invention") and state.economy.granted.has("week_line:paw"),
-		"Inventar e servir contam nas linhas")
+	check(state.economy.granted.has("week_line:paw") and not state.economy.granted.has("week_line:invention"),
+		"Servir conta nas linhas; Inventar espera o capítulo 8")
 	route.at(1, 9)
 	state.pet()
 	route.at(1, 14)
@@ -199,7 +199,7 @@ func run() -> void:
 	route.at(4, 9)
 	await reopen()
 	check(await wait_for("WeekMorning") != null, "Retorno após faltar abre o Bom dia atual")
-	check(state.tiro_weak() and state.progress.chapter_index() == 3 and state.quest_unlocked("week_bridge"),
+	check(state.tiro_weak() and state.progress.chapter_index() == 6 and state.quest_unlocked("week_bridge"),
 		"Dia fraco preserva o capítulo atrasado")
 	check(state.week_meal_reminder_offered() and not state.week_meal_reminder_enabled(), "Primeiro dia fraco oferece opção desligada")
 	await snap("02_bom_dia_fraco")

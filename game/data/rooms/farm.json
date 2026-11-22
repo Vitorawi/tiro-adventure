@@ -393,7 +393,7 @@
       "scale": 0.9,
       "approach": [892, 1428],
       "requirements": {
-        "week_day": 5
+        "story_day": 9
       }
     },
     {
@@ -403,7 +403,7 @@
       "pos": [956, 1477],
       "scale": 0.62,
       "requirements": {
-        "week_day": 5
+        "story_day": 9
       }
     },
     {
@@ -423,7 +423,7 @@
         "dairy"
       ],
       "requirements": {
-        "week_day": 2
+        "story_day": 5
       },
       "sprite": "res://assets/sprites/areas/house/paw_rug.png",
       "pos": [620, 1066],
@@ -437,7 +437,7 @@
         "dairy"
       ],
       "requirements": {
-        "week_day": 6
+        "story_day": 10
       },
       "scale": 1.25,
       "sprite": "res://assets/sprites/characters/npc_bloblo/walk/south/frame_00.png",
@@ -450,7 +450,7 @@
         "dairy"
       ],
       "requirements": {
-        "week_day": 6
+        "story_day": 10
       },
       "scale": 1.25,
       "sprite": "res://assets/sprites/characters/npc_lais/walk/south/frame_00.png",
@@ -551,9 +551,7 @@
       "requirements": {
         "growth": "teething"
       },
-      "action": "week:later",
-      "plaque": [973, 1004],
-      "text": "Quando ele crescer"
+      "action": "week:later"
     },
     {
       "id": "warehouse",
@@ -562,9 +560,7 @@
       "requirements": {
         "growth": "teething"
       },
-      "action": "week:later",
-      "plaque": [1096, 1077],
-      "text": "Quando ele crescer"
+      "action": "week:later"
     },
     {
       "id": "cow_barn",
@@ -573,9 +569,7 @@
       "requirements": {
         "growth": "teething"
       },
-      "action": "week:later",
-      "plaque": [1206, 1244],
-      "text": "Quando ele crescer"
+      "action": "week:later"
     },
     {
       "id": "mill",
@@ -584,42 +578,43 @@
       "requirements": {
         "growth": "teething"
       },
-      "action": "week:later",
-      "plaque": [490, 1057],
-      "text": "Quando ele crescer"
+      "action": "week:later"
     },
     {
       "id": "orchard",
       "polygon": [[517, 1340], [709, 1340], [712, 1367], [709, 1373], [640, 1406], [610, 1412], [583, 1406], [526, 1376], [517, 1352]],
       "gate": [[583, 1406], [610, 1412]],
       "requirements": {
-        "week_day": 4
+        "story_day": 7
       },
       "action": "week:orchard",
       "plaque": [614, 1384],
-      "text": "Pomar · dia 4"
+      "plaque_from": 6,
+      "text": "Em breve"
     },
     {
       "id": "chicken_coop",
       "polygon": [[919, 1278], [931, 1251], [1147, 1251], [1159, 1281], [1126, 1311], [1048, 1347], [931, 1293]],
       "gate": [[1126, 1311], [1048, 1347]],
       "requirements": {
-        "week_day": 2
+        "story_day": 4
       },
       "action": "week:coop",
       "plaque": [1039, 1317],
-      "text": "Galinheiro · dia 2"
+      "plaque_from": 3,
+      "text": "Em breve"
     },
     {
       "id": "lake",
       "polygon": [[280, 1084], [295, 1075], [298, 1075], [313, 1079], [510, 1176], [531, 1190], [563, 1213], [574, 1225], [533, 1294], [515, 1307], [497, 1317], [476, 1320], [474, 1320], [469, 1319], [430, 1294], [343, 1233], [333, 1227], [326, 1222], [301, 1153]],
       "gate": [[492, 1287], [645, 1287]],
       "requirements": {
-        "week_day": 3
+        "story_day": 6
       },
       "action": "place:fishing",
       "plaque": [567, 1212],
-      "text": "Lagoa · dia 3"
+      "plaque_from": 5,
+      "text": "Em breve"
     }
   ]
 }

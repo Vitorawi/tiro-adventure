@@ -69,11 +69,70 @@ static func card_width() -> float:
 	return minf(WIDTH, tree.root.get_visible_rect().size.x - EDGE * 2.0)
 
 
+## Cartão do desafio do dia da vovó (aparece no lugar do próximo passo quando só faltam as patinhas): fala, um objetivo
+## com barra, o prêmio e nada para pegar. `first` = a primeira vez, com a fala de apresentação.
+static func build_challenge(challenge: Dictionary, first: bool) -> Control:
+	var shell := _shell()
+	var box: VBoxContainer = shell.box
+	var speech := "Agora é só esperar as patinhas. Enquanto isso, um desafio!" if first else "O desafio do dia da vovó."
+	box.add_child(_head({"npc": "bloblo", "dialogue": speech}))
+	var target := maxi(1, int(challenge.target))
+	var value := mini(int(challenge.count), target)
+	var row := UiKit.vbox(4)
+	row.name = "ChallengeRow"
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var caption := wood(str(challenge.label), 14)
+	caption.name = "ChallengeLabel"
+	caption.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	row.add_child(caption)
+	var low := UiKit.hbox(6)
+	low.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	low.add_child(bar(float(value) / target, 24.0))
+	var count := wood("%d/%d" % [value, target], 15)
+	count.name = "ChallengeCount"
+	low.add_child(count)
+	row.add_child(low)
+	box.add_child(row)
+	var prizes := reward_row(challenge.get("rewards", {}))
+	if prizes != null:
+		box.add_child(prizes)
+	return shell.root
+
+
 ## Cartão inteiro de uma missão: devolve o `StepCard` (PanelContainer) já com `popover_bare`.
 static func build(id: String) -> Control:
 	var quest: Dictionary = Database.quests[id]
 	var goals: Array = quest.goals
 	var compact := goals.size() >= 3
+	var shell := _shell()
+	var root: PanelContainer = shell.root
+	var box: VBoxContainer = shell.box
+	box.add_child(_head(quest))
+
+	var rows := goal_list(id)
+	var viewport_h := (Engine.get_main_loop() as SceneTree).root.get_visible_rect().size.y
+	var budget := viewport_h * 0.6 - 190.0
+	var estimate := goals.size() * (50.0 if compact else 64.0)
+	if estimate > budget:
+		var scroll := ScrollContainer.new()
+		scroll.name = "StepGoalsScroll"
+		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+		scroll.custom_minimum_size.y = maxf(budget, 120.0)
+		scroll.add_child(rows)
+		rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		box.add_child(scroll)
+	else:
+		box.add_child(rows)
+
+	var prizes := reward_row(quest.get("rewards", {}))
+	if prizes != null:
+		box.add_child(prizes)
+	box.add_child(action_row(id, "step"))
+	return root
+
+
+## Moldura do mini-cartão (madeira, brilhos, corpo): devolve {root, box}.
+static func _shell() -> Dictionary:
 	var width := card_width()
 	var root := PanelContainer.new()
 	root.name = "StepCard"
@@ -123,28 +182,7 @@ static func build(id: String) -> Control:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	inner.add_child(box)
 
-	box.add_child(_head(quest))
-
-	var rows := goal_list(id)
-	var viewport_h := (Engine.get_main_loop() as SceneTree).root.get_visible_rect().size.y
-	var budget := viewport_h * 0.6 - 190.0
-	var estimate := goals.size() * (50.0 if compact else 64.0)
-	if estimate > budget:
-		var scroll := ScrollContainer.new()
-		scroll.name = "StepGoalsScroll"
-		scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-		scroll.custom_minimum_size.y = maxf(budget, 120.0)
-		scroll.add_child(rows)
-		rows.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		box.add_child(scroll)
-	else:
-		box.add_child(rows)
-
-	var prizes := reward_row(quest.get("rewards", {}))
-	if prizes != null:
-		box.add_child(prizes)
-	box.add_child(action_row(id, "step"))
-	return root
+	return {"root": root, "box": box}
 
 
 ## Cabeçalho: quadradinho bege com o retrato e a fala (até 3 linhas; cortada, toque mostra inteira).
@@ -396,8 +434,6 @@ static func action_row(id: String, mode: String = "step") -> Control:
 			NextStep._close_popover()
 			Places.go({"storage": str(shortage.depot)}), depot_icon if mode == "npc" else null)
 		go.name = "StepCardSpace" if mode == "step" else "QuestSpace_" + id
-	elif GameState.week_quest_wait(id) != "":
-		go = locked_button(GameState.week_quest_wait(id))
 	elif ready:
 		go = go_button("Pegar", func() -> void:
 			ProgressionUi.claim_quest_fx(id, actions.get_global_rect().get_center()))

@@ -172,6 +172,9 @@ func _ready() -> void:
 	tutorials.name = "WeekTutorial"
 	tutorials.main = self
 	tutorial_layer.add_child(tutorials)
+	var lessons := LessonGuide.new()
+	lessons.main = self
+	tutorial_layer.add_child(lessons)
 	GameState.note_app_opened()
 	_check_growth_ceremonies()
 	_finish_web_loading.call_deferred()
@@ -301,6 +304,10 @@ func notice_bottom(height: float) -> float:
 	var tray := ActionTray.current
 	if tray != null and is_instance_valid(tray) and tray.pick:
 		limit = minf(limit, tray.screen_top() - 6.0)
+	# A guia de comida (e a tigela) ficam à vista: o aviso sobe para não cobri-las.
+	var food_menu := find_child("FoodMenu", true, false) as Control
+	if food_menu != null and food_menu.is_visible_in_tree():
+		limit = minf(limit, food_menu.get_global_rect().position.y - 6.0)
 	var fishing := FishingPanel.current
 	if fishing != null and is_instance_valid(fishing):
 		limit = minf(limit, fishing.screen_top() - 6.0)
@@ -376,9 +383,10 @@ func _layout_tab_bar() -> void:
 	style.content_margin_right = 11.0 * scale_x
 	bar.add_theme_stylebox_override("panel", style)
 	bar.custom_minimum_size.y = height
-	# Cada aba ocupa um encaixe fixo da tábua (84,5 px em 360); sem a Mochila liberada os outros não se mexem.
+	# Cada aba ocupa um encaixe da tábua (84,5 px em 360 com as quatro); com menos abas liberadas as que sobram
+	# dividem a largura igualmente e ficam centradas no rodapé.
 	for id: StringName in _tabs:
-		(_tabs[id] as Control).size_flags_horizontal = Control.SIZE_FILL
+		(_tabs[id] as Control).size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		(_tabs[id] as Control).custom_minimum_size.x = 84.5 * scale_x
 	bar.offset_top = -height
 	_tab_art.offset_top = -height
@@ -388,6 +396,9 @@ func _layout_tab_bar() -> void:
 
 
 func show_screen(id: StringName) -> void:
+	# Aba que a história ainda não liberou: fica na tela do Tiro.
+	if id != &"pet" and _tabs.has(id) and not (_tabs[id] as Control).visible:
+		id = &"pet"
 	_hud.set_row2_right(null)
 	_current_screen = id
 	_hud.next_step.shown_on_screen = id == &"pet"
@@ -539,7 +550,9 @@ func _show_photo_toast(id: String) -> void:
 
 func _refresh_guide() -> void:
 	_refresh_tasks_badge()
-	# Mochila só aparece quando a história a apresenta.
+	# Cada aba só aparece quando a história a apresenta (Ato 1: só o Tiro; Mapa no passo 5; Missões e Mochila no fim).
+	%MapTab.visible = GameState.progress.feature_unlocked("tab_map")
+	%TasksTab.visible = GameState.progress.feature_unlocked("tab_tasks")
 	%BagTab.visible = GameState.progress.feature_unlocked("bag")
 	# O próximo passo (linha 2 do HUD) chama o olhar para a história; a aba Missões não pulsa mais.
 

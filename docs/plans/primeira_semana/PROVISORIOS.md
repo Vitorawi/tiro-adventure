@@ -26,6 +26,8 @@ Lista viva (README, seção 8). Cada etapa E01 a E15 que usar um asset improvisa
 | E11 | Livro e cartão Achado! | Moldura do Caderninho, ícone do fogão e ícones de prato da E02. Pedaços, seleção, maestria e nível em controles de UI. Achado! usa ModalCard com o mapa rasgado existente. | Arte final do papel, do avental, dos selos e do Tiro com a página (T5). | Interface / Tiro filhote |
 | E11 | Horta | Sprites da cenoura e da abóbora representam abobrinha e melancia no canteiro. Os ícones dos itens são os reaproveitados da E02. | Sprites das duas culturas e ícones finais. | Sítio / Comida |
 
+| F04b | Minhoca gorda, Peixe dourado, Ensopado Dourado, foto "O peixe dourado" | Ícones 32 px derivados da minhoca, do pintado e do ensopado de peixe com tom dourado (`item_golden_worm`, `item_fish_golden`, `item_golden_stew`); ilustração da foto = `f_dig` tingida de dourado (`s_golden_fish.png`, sem arte de raridade própria); carimbo "Extra" desenhado em código | Ícones e ilustração próprios, com as quatro raridades da foto | Comida / Fotos |
+
 ## Improvisos do Sítio (E06)
 
 - O galinheiro usa `figma_galinheiro` e duas instâncias da galinha branca. O milho ocupa o canteiro inferior existente.
@@ -44,6 +46,16 @@ Lista viva (README, seção 8). Cada etapa E01 a E15 que usar um asset improvisa
 | Etapa | Onde aparece | Provisório usado | O que precisa substituir | Lote da E16 |
 |---|---|---|---|---|
 | E14 | Guias, cartões Novo! e Manual de tutoriais | Cursor circular do Álbum e da Pesca, contorno em código, molduras e retratos existentes. Tigela reutilizada do Álbum. | Arte da mão e dos movimentos de toque, gesto e arrasto, e acabamento da tigela e das dicas. | Interface |
+
+### Provisórios da F04 (fotos de fechamento dos capítulos)
+
+| Etapa | Onde aparece | Provisório usado | O que precisa substituir | Lote da E16 |
+|---|---|---|---|---|
+| F04 | `h_week_soup` (cap. 2), `h_week_book` (cap. 8) | Ilustração da cozinha (`h_kitchen`) | Ilustrações próprias da primeira sopinha e do Livro de receitas | Fotos |
+| F04 | `h_week_wish` (cap. 3) | Ilustração do Filhotinho (`h_growth_puppy`) | Ilustração do Tiro fazendo o primeiro pedido | Fotos |
+| F04 | `h_week_eggs` (cap. 4) | Ilustração da primeira papinha (`f_taste`) | Ilustração do prato com ovo | Fotos |
+| F04 | `h_first_trick` (cap. 5, agora "Primeiro truque") | Arte antiga do Dá a pata com a Nina | Ilustração do Senta com a vovó (a arte atual mostra a pata e a Nina) | Fotos |
+| F04 | `h_week_fish` | Passou a fechar o prato com peixe (cap. 6); arte igual | Ilustração própria do peixe | Fotos |
 
 ## Pendências que não são arte
 

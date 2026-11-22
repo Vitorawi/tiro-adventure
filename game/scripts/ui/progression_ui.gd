@@ -368,7 +368,8 @@ static func _wood_upgrade_card(box: VBoxContainer, id: String, data: Dictionary)
 		inner.add_child(StepCardUi.lock_note(message, TaskHelp.open.bind("upgrade", id), missing))
 		return
 	var cost := int(data.cost)
-	var buy := StepCardUi.go_button("Construir · %d" % cost if cost > 0 else "Construir", func() -> void:
+	var verb := str(data.get("verb", "Construir"))  # presente grátis (caminha, fogão da vovó) diz "Colocar"
+	var buy := StepCardUi.go_button("%s · %d" % [verb, cost] if cost > 0 else verb, func() -> void:
 		var error := GameState.buy_upgrade(id)
 		if error == "": Events.sheet_close_requested.emit()
 		else: Events.toast_requested.emit(error), StepCardUi.tex("coin") if cost > 0 else null)
@@ -1156,7 +1157,7 @@ static func next_step_card(id: String) -> Control:
 
 static func quest_place_name(target: Dictionary) -> String:
 	if target.has("farewell"): return "Almoço de despedida"
-	if target.has("wait") or target.has("intro"): return "História"
+	if target.has("intro"): return "História"
 	if target.has("growth") or target.get("screen", "") == "pet" or target.has("care"): return "Tiro"
 	if target.get("screen", "") == "bag" or target.has("storage"): return "Mochila"
 	if target.has("notebook"): return "Álbum" if str(target.notebook) == "album" else "Caderninho"
@@ -1310,7 +1311,8 @@ static func goal_icon(goal: Dictionary) -> Texture2D:
 
 ## Ícone de um contador ("harvest", "produce:plank", "activity:lane"...).
 static func stat_icon(key: String) -> Texture2D:
-	if key == "open:album": return UiKit.ui_icon("album_story")
+	if key in ["open:album", "album_tutorial"]: return UiKit.ui_icon("album_story")
+	if key == "open:growth": return UiKit.ui_icon("tab_pet")
 	var prefix := key.get_slice(":", 0)
 	var arg := key.get_slice(":", 1) if ":" in key else ""
 	if prefix in ["trick", "trick_learned"]:

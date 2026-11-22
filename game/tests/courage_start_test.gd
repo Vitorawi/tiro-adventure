@@ -41,8 +41,11 @@ func _run() -> void:
 		if child.get_script() == intro_script:
 			for i in 6: child.call("_advance")
 	await create_timer(0.7).timeout
-	check(moments == ["brave:world:house"], "chegada emite exatamente Coragem por world:house")
-	check(care().have == 1 and not care().done, "depois da chegada mostra exatamente 1/3 incompleto")
+	# Ato 1: a chegada fica na tela do Tiro; a Casa só é visitada (e dá a primeira Coragem) quando o Mapa abre.
+	check(moments.is_empty() and care().have == 0, "a chegada fica na tela do Tiro, sem visitar a Casa ainda")
+	state.note_world_visit("house")
+	check(moments == ["brave:world:house"], "primeira visita à Casa emite exatamente Coragem por world:house")
+	check(care().have == 1 and not care().done, "depois da primeira visita mostra exatamente 1/3 incompleto")
 	check(state.progress.stat("pet") == 0 and state.progress.stat("talk:lais") == 0, "nenhum carinho ou conversa na chegada")
 	state.note_world_visit("house")
 	check(care().have == 1 and moments.size() == 1, "reentrar na Casa não duplica a novidade")

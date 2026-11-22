@@ -130,11 +130,11 @@ func _gather(site: String, route: String, times: int) -> void:
 
 func _chapter_five() -> void:
 	_fresh()
-	state.call("dev_jump_to_chapter", 8)
+	state.call("dev_jump_to_chapter", 12)
 	state.get("inventory").counts.clear()
 	state.set("coins", 0)
 	state.call("_changed")
-	check(_progress().current_main_quest() == "lais_forest", "capítulo 9 começa em lais_forest")
+	check(_progress().current_main_quest() == "lais_forest", "capítulo 13 começa em lais_forest")
 	# Moedas só por venda.
 	state.get("inventory").add("carrot", 20)
 	check(state.call("sell", "carrot", 20) == "", "vende a colheita")
@@ -158,7 +158,7 @@ func _chapter_five() -> void:
 	check(state.call("claim_quest", "guide_wood") == "", "guide_wood")
 	check(_progress().current_line_quest("guide") == "guide_open_cave", "guia: caverna entra depois da madeira")
 	var cave: Dictionary = database.get("progression").upgrades.cave_open
-	check(int(cave.cost) == 80 and int(cave.requirements.chapter) == 9 and not cave.requirements.has("owned"), "caverna: 80 moedas, capítulo 9, sem armazém")
+	check(int(cave.cost) == 80 and int(cave.requirements.chapter) == 13 and not cave.requirements.has("owned"), "caverna: 80 moedas, capítulo 13, sem armazém")
 	check(state.call("claim_quest", "guide_open_cave") != "", "caverna ainda fechada: nada a receber")
 	state.set("coins", 140)
 	var coins_before := int(state.get("coins"))
@@ -270,7 +270,7 @@ func _requirement_graph() -> void:
 	for route: String in ["quarry", "lane"]:
 		var req: Dictionary = database.get("progression").activities[route].requirements
 		check(not str(req).contains("warehouse") and not str(req).contains("workbench"), "rota %s não pede armazém nem bancada" % route)
-	check(upgrades.cave_open.requirements.chapter == 9, "a caverna abre no capítulo 9")
+	check(upgrades.cave_open.requirements.chapter == 13, "a caverna abre no capítulo 13")
 	# Guias de origem: tábua aponta para a bancada, que já existe quando a ampliação é liberada.
 	check(upgrades.warehouse_2.requirements.quests == ["main_4_bench"], "ampliação só depois da bancada (origem da tábua existe)")
 	_fresh()
@@ -285,7 +285,7 @@ func _requirement_graph() -> void:
 
 func _setup_upgrades() -> void:
 	_fresh()
-	state.call("dev_jump_to_chapter", 9)
+	state.call("dev_jump_to_chapter", 13)
 	for id: String in ["silo", "fridge", "warehouse", "workbench"]:
 		_progress().owned[id] = true
 	for id: String in ["storage_first_planks", "storage_first_delivery"]:

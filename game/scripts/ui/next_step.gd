@@ -135,12 +135,13 @@ func refresh() -> void:
 		Motion.bounce(self)
 	else:
 		_count.text = fmt % value
-	if state == "waiting":
-		_icon.texture = UiKit.ui_icon("action_sleep")
-		_count.text = "Espera"
 	_shown_id = str(_guide.id)
 	_shown_value = value
 	_rebuild()
+	# Primeira vez que só faltam as patinhas: o balão da vovó abre sozinho com o desafio do dia.
+	if state == "challenge" and is_inside_tree() and is_visible_in_tree() and not GameState.progress.seen.get("ui:paws_challenge", false):
+		GameState.mark_seen(["ui:paws_challenge"])
+		_open_challenge.call_deferred(true)
 
 
 ## Estado do cartão: pronto troca o ícone/número pelo botão "Pegar"; espaço cheio avermelha o papel.
@@ -176,12 +177,21 @@ func _draw_face() -> void:
 	_face.draw_texture_rect(_portrait, rect, false)
 
 
-func _on_pressed() -> void:
-	if str(_guide.state) == "waiting":
-		Events.screen_requested.emit(&"tasks")
+func _open_challenge(first: bool) -> void:
+	if str(_guide.state) != "challenge" or not is_inside_tree():
 		return
+	var host := get_tree().root.find_child("Main", true, false) as Control
+	if host == null:
+		host = get_parent() as Control
+	Popover.open(host, self, StepCardUi.build_challenge(_guide.challenge, first), 0.0)
+
+
+func _on_pressed() -> void:
 	var id := str(_guide.id)
 	if id == "":
+		return
+	if str(_guide.state) == "challenge":
+		_open_challenge(false)
 		return
 	if _is_ready():
 		ProgressionUi.claim_quest_fx(id, get_global_rect().get_center())

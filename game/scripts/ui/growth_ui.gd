@@ -7,8 +7,18 @@ const PLATE := 72.0  # pratinho do retrato (agora → depois)
 const TILE_H := 72.0  # quadradinho de um passo
 
 
-static func open() -> void:
-	Events.sheet_requested.emit("Crescimento", panel())
+## `select` = id do passo que já abre escolhido (a aula da comida abre na linha das patinhas: "days").
+static func open(select: String = "") -> void:
+	GameState.note_screen_opened("growth")  # conta `open:growth` (passo 6 do Ato 1)
+	# O resumo do avatar (popover) não fica aberto por cima da folha.
+	var tree := Engine.get_main_loop() as SceneTree
+	var catcher := tree.root.find_child("PopoverCatcher", true, false)
+	if catcher != null:
+		catcher.queue_free()
+	var box := panel()
+	if select != "":
+		box.set_meta("selected", select)
+	Events.sheet_requested.emit("Crescimento", box)
 
 
 static func panel() -> Control:
@@ -163,6 +173,8 @@ static func step_view(req: Dictionary) -> Dictionary:
 			else:
 				_week_hint(view, req)
 			view.callback = go
+			if str(req.get("counter", "")) == "well_fed_day" and GameState.food_clock_on():
+				view.callback = MealUi.open_today  # "Ver Hoje" abre mesmo a folha Hoje
 		"dishes", "dish_stars", "invented_dish", "dish_key", "trick_level":
 			_week_hint(view, req)
 			view.callback = go
@@ -193,6 +205,8 @@ static func week_icon(req: Dictionary) -> Texture2D:
 		"stat":
 			match str(req.get("counter", "")):
 				"play", "play_rope": return UiKit.ui_icon("action_play")
+				"feed": return UiKit.ui_icon("need_hunger")
+				"bathe": return UiKit.ui_icon("action_sponge")
 				"name_call": return UiKit.ui_icon("action_pet")
 				"trick_learned": return UiKit.ui_icon("trick_paw")
 	return UiKit.ui_icon("tab_pet")
@@ -222,6 +236,10 @@ static func _week_view(view: Dictionary, req: Dictionary) -> void:
 				"play":
 					view.short = "Brincar"
 					view.unit = "brincadeiras"
+				"feed":
+					view.short = "Comer"
+					view.unit = "refeições"
+				"bathe": view.short = "Banho"
 				"play_rope": view.short = "Cordinha"
 				"name_call": view.short = "Nome"
 				"trick_learned": view.short = "Truques"
@@ -254,10 +272,16 @@ static func _week_hint(view: Dictionary, req: Dictionary) -> void:
 					view.hint = "Almoço e jantar na hora"
 				"play":
 					view.action = "Brincar"
-					view.hint = "Quintal do Tiro"
+					view.hint = "Cuidar → Brincar"
+				"feed":
+					view.action = "Dar comida"
+					view.hint = "Cuidar → Comida"
+				"bathe":
+					view.action = "Dar banho"
+					view.hint = "Cuidar → Banho"
 				"play_rope":
 					view.action = "Brincar"
-					view.hint = "Cordinha · dia 4"
+					view.hint = "Cordinha no quintal"
 				"trick_learned":
 					view.action = "Treinar"
 					view.hint = "Aula do Tiro"
@@ -269,7 +293,7 @@ static func _week_hint(view: Dictionary, req: Dictionary) -> void:
 ## Onde nasce a lembrança, numa linha: quem dá, qual estação faz ou onde se acha.
 static func _source_hint(item: String) -> String:
 	if item == "chew_ring" and GameState.farm_week_active():
-		return "Na banca · dia 7" if GameState.shop_item_locked("week_teether") != "" else "Compre na banca"
+		return "Na banca" if GameState.shop_item_locked("week_teether") != "" else "Compre na banca"
 	var giver := TaskHelp.reward_source_text(item)
 	if giver != "": return giver.split(" · ")[0]
 	var source := TaskHelp.best_source(item)
@@ -319,12 +343,13 @@ static func step_ring(step: Dictionary, px: int) -> RingProgress:
 	ring.color = Palette.HONEY
 	ring.thickness = 4.0
 	# Ícone 40 independente do cálculo geométrico do RingProgress genérico.
-	var image := UiKit.icon(step.icon, 40)
+	var half := mini(40, px) / 2
+	var image := UiKit.icon(step.icon, half * 2)
 	image.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	image.offset_left = -20
-	image.offset_top = -20
-	image.offset_right = 20
-	image.offset_bottom = 20
+	image.offset_left = -half
+	image.offset_top = -half
+	image.offset_right = half
+	image.offset_bottom = half
 	ring.add_child(image)
 	ring.progress = float(step.have) / maxf(1.0, float(step.need))
 	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -358,7 +383,16 @@ static func _build(box: VBoxContainer) -> void:
 			grow.set_meta("wood_primary", true)
 			box.add_child(grow)
 		elif info.ready and story_wait != "":
-			box.add_child(StepCardUi.lock_note(story_wait))
+			var pending := GameState.progress.current_main_quest()
+			if pending != "" and GameState.quest_error(pending) == "":
+				# O passo da história anterior está pronto e só falta pegar: o botão entrega e o Crescer! aparece.
+				var claim: Button
+				claim = StepCardUi.go_button("Pegar", func() -> void: ProgressionUi.claim_quest_fx(pending, claim.get_global_rect().get_center()))
+				claim.name = "ClaimStep"
+				claim.set_meta("wood_primary", true)
+				box.add_child(claim)
+			else:
+				box.add_child(StepCardUi.lock_note(story_wait))
 		box.add_child(_unlocks(info))
 	elif silk.adult and not silk.next.is_empty():
 		_silk_requirements(box, silk)
@@ -527,7 +561,7 @@ static func _step_tile(step: Dictionary, compact: bool = false) -> Button:
 	column.offset_top = 6
 	column.offset_bottom = -8
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
-	var ring := step_ring(step, 30 if compact else 40)
+	var ring := step_ring(step, 32 if compact else 40)
 	ring.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	var amount := UiKit.hbox(4)
 	amount.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -578,16 +612,20 @@ static func _select_detail(detail: Control, selected: bool) -> void:
 static func _step_detail(step: Dictionary, highlight: bool, req: Dictionary) -> Control:
 	var detail := UiKit.vbox(4)
 	detail.name = "GrowthNextStep" if highlight else "GrowthDetail_" + str(step.id)
+	# Linha das patinhas: o "?" reabre a aula da comida e a cartela mostra os carimbos (F02B).
+	var paws: bool = str(req.get("counter", "")) == "well_fed_day" and GameState.food_clock_on()
 	var head := UiKit.hbox(8)
 	var title := StepCardUi.wood(str(step.title), 20)
 	title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	head.add_child(title)
-	if not step.done:
-		var help := StepCardUi.help_button(TaskHelp.open.bind("growth_req", str(step.id)))
+	if not step.done or paws:
+		var help := StepCardUi.help_button(MealReview.open if paws else TaskHelp.open.bind("growth_req", str(step.id)))
 		help.name = "GrowthHelp"
 		head.add_child(help)
 	detail.add_child(head)
+	if paws:
+		detail.add_child(PawCard.build("PawCard"))
 	var teether_shop: bool = step.item == "chew_ring" and step.give == "" and GameState.farm_week_active()
 	if not step.done and not teether_shop:
 		var target: Dictionary = TaskHelp.describe("growth_req", str(step.id)).target

@@ -196,7 +196,7 @@ func _one_time_prizes() -> void:
 	check(quests.atelier_open.rewards.collections == ["artisan_outfit"] and int(quests.atelier_open.rewards.skill_xp.adventure) == 70, "atelier_open mantém roupa e XP")
 	check(int(quests.merchant_stall.rewards.skill_xp.commerce) == 60, "merchant_stall mantém XP")
 	var chapters: Array = db.get("progression").chapters
-	var expected: Array[int] = [0, 0, 0, 0, 0, 0, 0, 40, 60, 60, 60, 80, 80]
+	var expected: Array[int] = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 40, 60, 60, 60, 80, 80]  # a semana ocupa os capítulos 1 a 11 (novo fluxo)
 	for index in range(expected.size()):
 		check(int(chapters[index].rewards.get("coins", 0)) == expected[index], "capítulo %d paga %d (%s)" % [index + 1, expected[index], str(chapters[index].rewards)])
 

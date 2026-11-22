@@ -28,7 +28,7 @@ func _run() -> void:
 	check(state.call("cook", "eggs") != "", "Não alimenta sem galinheiro")
 	check(state.call("plant", 0, "corn") != "", "Milho espera o galinheiro")
 	check(state.call("to_dict") == before, "Falhas não consomem itens/progresso")
-	state.call("dev_jump_to_chapter", 9)
+	state.call("dev_jump_to_chapter", 13)
 	state.call("dev_set_phase", "teething")
 	state.call("dev_week_goto", 2)
 	state.call("dev_complete_quest", "farm_deed")

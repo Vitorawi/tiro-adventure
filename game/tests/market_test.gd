@@ -18,6 +18,7 @@ func _run() -> void:
 	market = load("res://scripts/ui/market_ui.gd")
 	state.call("reset")
 	state.call("dev_complete_quest", "first_harvest")
+	state.call("dev_complete_quest", "lais_first_crops")  # as encomendas esperam a primeira horta (fim do Ato 1)
 	state.set("level", 20)
 	state.set("xp", 0)
 	state.set("coins", 0)
@@ -211,7 +212,7 @@ func _mission_priority() -> void:
 
 func _first_sale_context() -> void:
 	state.call("reset")
-	state.call("dev_jump_to_chapter", 7)
+	state.call("dev_jump_to_chapter", 11)
 	state.get("inventory").from_dict({"carrot": 12})
 	check(state.call("sell", "carrot", 1, "farm") == "", "venda anterior no Sítio")
 	check(state.call("sell", "carrot", 1, "village") == "", "venda anterior na Vila")
@@ -249,7 +250,7 @@ func _supply() -> void:
 
 func _merchant_missions() -> void:
 	state.call("reset")
-	state.call("dev_jump_to_chapter", 7)
+	state.call("dev_jump_to_chapter", 11)
 	state.set("coins", 20000)
 	state.set("level", 20)
 	for token: String in ["farm", "fridge", "stove", "blender", "dairy", "atelier", "workbench"]:

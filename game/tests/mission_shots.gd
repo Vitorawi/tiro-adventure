@@ -262,7 +262,7 @@ func _run() -> void:
 	await create_timer(2.2).timeout
 	_hide_modals()
 	var progress: Object = state.get("progress")
-	for id: String in ["main_9_coop", "nina_walk", "lais_album"]:
+	for id: String in ["main_9_coop", "nina_walk"]:
 		progress.claimed_quests.erase(id)
 	state.get("inventory").call("from_dict", {})
 	for kind: String in ["daily", "weekly"]:

@@ -45,71 +45,40 @@
       "teaser": "Um sorriso cheio de descobertas.",
       "requirements": [
         {
-          "id": "bed",
-          "type": "owned",
-          "upgrade": "dog_bed"
-        },
-        {
-          "id": "days",
+          "id": "feed",
           "type": "stat",
-          "counter": "well_fed_day",
-          "qty": 2,
-          "label": "Dias bem alimentados"
-        },
-        {
-          "id": "dishes",
-          "type": "dishes",
-          "qty": 4,
-          "label": "Pratos diferentes"
-        },
-        {
-          "id": "star_dish",
-          "type": "dish_stars",
-          "stars": 2,
+          "counter": "feed",
           "qty": 1,
-          "label": "Prato de 2 estrelas"
+          "label": "Comer"
         },
         {
-          "id": "invented",
-          "type": "invented_dish",
+          "id": "bath",
+          "type": "stat",
+          "counter": "bathe",
           "qty": 1,
-          "label": "Prato inventado"
+          "label": "Banho"
         },
         {
           "id": "play",
           "type": "stat",
           "counter": "play",
-          "qty": 4,
-          "label": "Brincar com o Tiro"
+          "qty": 1,
+          "label": "Brincar"
         },
         {
-          "id": "name",
-          "type": "stat",
-          "counter": "name_call",
-          "qty": 1,
-          "label": "Atender pelo nome",
-          "hook": "name_call"
-        },
-        {
-          "id": "sit",
-          "type": "trick_level",
-          "trick": "sit",
-          "level": 1,
-          "qty": 1,
-          "label": "Aprender o Senta",
-          "hook": "trick_sit"
+          "id": "bed",
+          "type": "owned",
+          "upgrade": "dog_bed",
+          "label": "Caminha"
         }
       ],
-      "chapter": 2,
+      "chapter": 1,
       "rewards": {
-        "coins": 30,
         "items": {
           "dog_food": 3
         }
       },
-      "unlocks_text": [
-        "Desejos"
-      ]
+      "unlocks_text": []
     },
     {
       "id": "teething",
@@ -134,8 +103,9 @@
           "id": "days",
           "type": "stat",
           "counter": "well_fed_day",
-          "qty": 5,
-          "label": "Dias bem alimentados"
+          "qty": 6,
+          "label": "Dias bem alimentados",
+          "total": true
         },
         {
           "id": "dishes",
@@ -148,6 +118,19 @@
             "mingau"
           ],
           "label": "Pratos diferentes"
+        },
+        {
+          "id": "star_dish",
+          "type": "dish_stars",
+          "stars": 2,
+          "qty": 1,
+          "label": "Prato de 2 estrelas"
+        },
+        {
+          "id": "invented",
+          "type": "invented_dish",
+          "qty": 1,
+          "label": "Prato inventado"
         },
         {
           "id": "key_egg",
@@ -178,6 +161,14 @@
           "label": "Brincar"
         },
         {
+          "id": "name",
+          "type": "stat",
+          "counter": "name_call",
+          "qty": 1,
+          "label": "Atender pelo nome",
+          "hook": "name_call"
+        },
+        {
           "id": "rope",
           "type": "stat",
           "counter": "play_rope",
@@ -204,7 +195,7 @@
           "hook": "trick_sit"
         }
       ],
-      "chapter": 7,
+      "chapter": 11,
       "rewards": {
         "coins": 60,
         "items": {
@@ -268,7 +259,7 @@
           "qty": 3
         }
       ],
-      "chapter": 10,
+      "chapter": 14,
       "rewards": {
         "coins": 100
       },
@@ -331,7 +322,7 @@
           "qty": 1
         }
       ],
-      "chapter": 13,
+      "chapter": 17,
       "rewards": {
         "coins": 150
       },
@@ -391,7 +382,7 @@
           "collection": "topknot_bow"
         }
       ],
-      "chapter": 16,
+      "chapter": 20,
       "rewards": {
         "coins": 250
       },
@@ -402,13 +393,13 @@
   ],
   "week_play": {
     "days": {
-      "ball": 1,
-      "name": 1,
-      "fetch": 2,
-      "rope": 4,
-      "squeak": 5,
-      "lake": 6,
-      "hide": 6
+      "ball": 10,
+      "name": 10,
+      "fetch": 10,
+      "rope": 10,
+      "squeak": 10,
+      "lake": 10,
+      "hide": 10
     },
     "limit": 3,
     "throws": 5,
@@ -576,21 +567,25 @@
     {
       "id": "days",
       "counter": "well_fed_day",
-      "text": "%d dias bem alimentados"
+      "text": "%d dias bem alimentados",
+      "text_one": "1 dia bem alimentado"
     },
     {
       "id": "dishes",
-      "text": "%d pratos diferentes"
+      "text": "%d pratos diferentes",
+      "text_one": "1 prato diferente"
     },
     {
       "id": "plays",
       "counter": "play",
-      "text": "%d brincadeiras"
+      "text": "%d brincadeiras",
+      "text_one": "1 brincadeira"
     },
     {
       "id": "tricks",
       "counter": "trick_learned",
-      "text": "%d truques"
+      "text": "%d truques",
+      "text_one": "1 truque"
     }
   ],
   "bodies": {

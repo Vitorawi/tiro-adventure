@@ -89,7 +89,7 @@ func reset_choices() -> void:
 ## Quantos espaços a panela mostra no tipo atual: os do tipo, limitados pelo máximo do dia (a 3ª vaga da papinha abre no dia 3).
 static func slot_total() -> int:
 	var def := current_def()
-	return DishRules.slot_count(str(def.get("id", "")), (def.get("slots", []) as Array).size(), GameState.week_day())
+	return DishRules.slot_count(str(def.get("id", "")), (def.get("slots", []) as Array).size(), GameState.content_day())
 
 
 ## Ingredientes escolhidos no tipo atual, um por espaço ("" = vazio).
@@ -131,7 +131,7 @@ static func card_state() -> String:
 
 ## Ingrediente já abriu no dia (a lista só mostra o que o jogador já conhece).
 static func ingredient_open(item: String) -> bool:
-	return DishRules.ingredient_of_item(item) in DishRules.available(GameState.week_day())
+	return DishRules.ingredient_of_item(item) in DishRules.available(GameState.content_day())
 
 
 ## Ingredientes que o jogador ainda pode pôr no espaço `slot` (o que tem menos o que já está nos outros espaços).
@@ -252,7 +252,7 @@ func _scroll_types() -> void:
 
 func choose_type(id: String) -> void:
 	if not type_open(id):
-		Events.toast_requested.emit("%s abre no dia %d" % [str(type_def(id).get("name", "Esse prato")), DishRules.opens(id)])
+		Events.toast_requested.emit("Continue a História")
 		return
 	type_id = id
 	if WeekTutorial.enrolled() and not WeekTutorial.record("invent").get("done", false):
@@ -487,7 +487,7 @@ func _signature() -> String:
 	var key := str(current_def().get("id", "")) + "|" + ",".join(PackedStringArray(slot_items())) + "|"
 	for item: String in Database.invent.get("items", {}):
 		key += "%d," % GameState.inventory.count(item)
-	return key + "%d|%d|%d|%d" % [GameState.station("stove").queue.size(), GameState.station_slots("stove"), GameState.week_day(), GameState.week.dishes.size()]
+	return key + "%d|%d|%d|%d" % [GameState.station("stove").queue.size(), GameState.station_slots("stove"), GameState.content_day(), GameState.week.dishes.size()]
 
 
 ## Chamado a cada `state_changed`: só refaz se algo mudou.

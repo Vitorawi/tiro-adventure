@@ -44,7 +44,7 @@ func _run() -> void:
 	var initial: Dictionary = places.call("world_summary", "house")
 	check(initial.missions > 0 and initial.collections == 0 and initial.finds == 0, "missão disponível não vira coleta nem achado")
 	check(not main.get("_map_badge").visible, "missão nova não avisa no Mapa")
-	state.get("progress").stats["talk:lais"] = 1
+	state.get("progress").stats["arrival_box"] = 1
 	root.get_node("Events").emit_signal("state_changed")
 	main.call("show_screen", &"tasks")
 	await frames()
@@ -108,7 +108,7 @@ func _run() -> void:
 	# O carrossel separa achados das coletas sem alterar o total legado da aba.
 	state.get("finds").worlds["house"] = {"pending": 1, "next_at": state.call("now") + 99999, "seed": 1, "spot": 0, "dug": 0}
 	state.get("progress").claimed_quests.erase("welcome")
-	state.get("progress").stats["talk:lais"] = 1
+	state.get("progress").stats["arrival_box"] = 1
 	var summary: Dictionary = places.call("world_summary", "house")
 	check(summary.collections == 1 and summary.finds == 1 and summary.rewards == 1, "produção, achado e prêmio de missão têm contagens independentes")
 	check(state.call("world_ready_counts").get("house", 0) == 2, "total existente continua somando produção e achado uma vez")

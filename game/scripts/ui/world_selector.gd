@@ -102,8 +102,10 @@ func _limits() -> Vector2:
 
 ## Altura da folha para cartões quadrados de largura `card` (a plaquinha do título entra em `title_h`).
 func _total_height(card: float, title_h: float) -> Dictionary:
-	var count := _buttons.size()
-	var square := _buttons[0]
+	var shown := _shown()
+	var count := shown.size()
+	var wide_last := _has_wide(shown)
+	var square := shown[0]
 	var plate := card * 0.74
 	var plate_h := plate * WorldCard.PLATE_RATIO
 	var extra := plate_h * (1.0 - WorldCard.PLATE_OVERLAP)
@@ -112,21 +114,41 @@ func _total_height(card: float, title_h: float) -> Dictionary:
 	var photo := square.get_node("WorldPhoto") as TextureRect
 	if photo.texture != null:
 		square_ratio = float(photo.texture.get_height()) / float(photo.texture.get_width())
-	var wide_card := _buttons[count - 1]
+	var wide_card := shown[count - 1]
 	var wide_texture := (wide_card.get_node("WorldPhoto") as TextureRect).texture
 	if wide_texture != null:
 		wide_ratio = float(wide_texture.get_height()) / float(wide_texture.get_width())
 	var rows_h := 0.0
 	var pairs := count / 2
 	var square_h := card * square_ratio + extra
+	if count % 2 == 1 and not wide_last:
+		pairs += 1  # sobra um cartão quadrado sozinho (só a Natureza vira o cartão largo)
 	rows_h += pairs * square_h + (pairs - 1 if pairs > 0 else 0) * GAP
 	var wide_h := 0.0
-	if count % 2 == 1:
+	if wide_last:
 		wide_h = (2.0 * card + GAP) * wide_ratio + extra
 		rows_h += GAP + wide_h
 	var art_y := maxf(0.0, title_h / 2.0 - RAIL_CENTER)
 	var top := maxf(art_y + IN_T + PAD, title_h + 4.0)
 	return {"height": top + rows_h + PAD + IN_B + art_y, "top": top, "art_y": art_y, "square_h": square_h, "wide_h": wide_h, "plate": plate}
+
+
+## Até o Dentinhos só aparecem os mundos abertos e UM trancado (a Vila); Praça e Natureza esperam a Vila abrir.
+func _shown() -> Array[WorldCard]:
+	var shown: Array[WorldCard] = []
+	for row: WorldCard in _buttons:
+		if not _hidden(row.world_id):
+			shown.append(row)
+	return shown
+
+
+func _hidden(world_id: String) -> bool:
+	return world_id != "village" and Places.world_error("village") != "" and Places.world_error(world_id) != ""
+
+
+## O cartão largo (arte da Natureza) só existe com a Natureza por último e número ímpar de cartões.
+func _has_wide(shown: Array[WorldCard]) -> bool:
+	return shown.size() % 2 == 1 and shown.back().world_id == "nature"
 
 
 func _layout() -> void:
@@ -168,14 +190,20 @@ func _layout() -> void:
 	_rows.position = Vector2(x0, top)
 	var inner := 2.0 * card + GAP
 	var y := 0.0
-	for i: int in _buttons.size():
-		var button := _buttons[i]
-		var is_wide := i == _buttons.size() - 1 and _buttons.size() % 2 == 1
+	var shown := _shown()
+	var wide_last := _has_wide(shown)
+	for row: WorldCard in _buttons:
+		row.visible = shown.has(row)
+	for i: int in shown.size():
+		var button := shown[i]
+		var is_wide := wide_last and i == shown.size() - 1
 		button.wide = is_wide
 		button.plate_width = float(info.plate)
 		var height := button.fit(inner if is_wide else card)
-		button.position = Vector2(0.0 if is_wide else (i % 2) * (card + GAP), y)
-		if i % 2 == 1 or is_wide: y += height + GAP
+		var alone := i == shown.size() - 1 and i % 2 == 0 and not is_wide
+		var x := 0.0 if is_wide else (roundf((inner - card) / 2.0) if alone else (i % 2) * (card + GAP))
+		button.position = Vector2(x, y)
+		if i % 2 == 1 or is_wide or alone: y += height + GAP
 	_rows.size = Vector2(inner, maxf(0.0, y - GAP))
 	_rows.custom_minimum_size = _rows.size
 	_geometry = {"card": card, "top": top, "inner": inner, "frame_w": frame_w, "title_h": title_h}
@@ -190,6 +218,7 @@ func open(current: String) -> void:
 func refresh(current: String) -> void:
 	for row: WorldCard in _buttons:
 		row.refresh(current)
+	_layout.call_deferred()
 
 
 func dismiss() -> void:

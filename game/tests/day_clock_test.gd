@@ -21,6 +21,12 @@ func _feed(item: String) -> bool:
 	return bool(state.call("feed", item))
 
 
+## Save novo com o dia da chegada fixo em 1 (sem extensao): quem decide a extensao e o relogio real do aparelho (madrugada).
+func _reset() -> void:
+	state.call("reset")
+	state.get("week").set("arrival_extended", false)
+
+
 func _run() -> void:
 	state = root.get_node("GameState")
 	var saver: Node = root.get_node("SaveManager")
@@ -45,7 +51,7 @@ func _run() -> void:
 
 
 func _windows() -> void:
-	state.call("reset")
+	_reset()
 	for row: Array in [[10, ""], [11, "lunch"], [14, "lunch"], [15, ""], [17, ""], [18, "dinner"], [21, "dinner"], [22, ""]]:
 		_check(str(state.call("meal_period_at", row[0])) == row[1], "Hora %d: período '%s' (veio '%s')" % [row[0], row[1], state.call("meal_period_at", row[0])])
 	_check(state.call("set_meal_option", "early") == true, "Opção Mais cedo existe")
@@ -56,7 +62,7 @@ func _windows() -> void:
 
 
 func _arrival_day() -> void:
-	state.call("reset")
+	_reset()
 	state.call("dev_week_hour", 23)  # depois das 22 h: nenhuma janela aberta
 	_check(int(state.call("week_day")) == 1, "Começa no dia 1")
 	_check(str(state.call("meal_error", "puppy_mash")) == "", "Dia da chegada: refeição vale a qualquer horário")
@@ -72,7 +78,7 @@ func _arrival_day() -> void:
 
 
 func _regular_day() -> void:
-	state.call("reset")
+	_reset()
 	state.call("dev_week_goto", 3)
 	state.call("dev_week_hour", 9)
 	_check(str(state.call("meal_error", "puppy_mash")) != "", "Dia 3, 9 h: ainda não é hora")
@@ -94,7 +100,7 @@ func _regular_day() -> void:
 
 
 func _snack_and_outside() -> void:
-	state.call("reset")
+	_reset()
 	state.call("dev_week_goto", 2)
 	state.call("dev_week_hour", 12)
 	_check(str(state.call("meal_error", "apple_biscuit")) != "", "Petisco é lanche, não refeição")
@@ -107,7 +113,7 @@ func _snack_and_outside() -> void:
 
 
 func _day_only_advances() -> void:
-	state.call("reset")
+	_reset()
 	state.call("dev_week_goto", 4)
 	var week: Object = state.get("week")
 	week.set("clock_offset", float(week.get("clock_offset")) - 2.0 * 86400.0)  # o relógio do aparelho volta 2 dias
@@ -118,13 +124,13 @@ func _day_only_advances() -> void:
 
 
 func _persistence() -> void:
-	state.call("reset")
+	_reset()
 	state.call("dev_week_goto", 2)
 	state.call("set_meal_option", "early")
 	state.call("dev_week_meal", "lunch")
 	state.call("dev_week_meal", "dinner")
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
-	state.call("reset")
+	_reset()
 	state.call("from_dict", saved)
 	_check(bool(state.call("day_well_fed", 2)) and int(state.call("meals_on_time", 2)) == 2, "Refeições do dia sobrevivem ao save")
 	_check(str(state.get("week").get("option")) == "early", "Opção de horário sobrevive ao save")
@@ -145,7 +151,7 @@ func _count_of(item: String) -> int:
 
 
 func _weak_day_and_lunchbox() -> void:
-	state.call("reset")
+	_reset()
 	_at(2, 12)
 	_check(not bool(state.call("tiro_weak")), "Dia 2 ainda aberto: sem dia fraco")
 	state.get("dog").needs["hunger"] = 10.0
@@ -166,7 +172,7 @@ func _weak_day_and_lunchbox() -> void:
 	state.call("feed", "puppy_mash")
 	_check(not bool(state.call("tiro_weak")), "Refeição na hora tira o fraquinho")
 	# Dois dias fracos seguidos: marmita.
-	state.call("reset")
+	_reset()
 	_at(2, 23)
 	_check(int(state.get("week").weak_streak) == 1 and int(state.get("week").lunchboxes) == 0, "Sem marmita no primeiro dia fraco")
 	_at(3, 23)
@@ -174,7 +180,7 @@ func _weak_day_and_lunchbox() -> void:
 	_check(not bool(state.call("tiro_weak")) and int(state.get("week").weak_streak) == 0, "A marmita tira o fraquinho e zera a sequência")
 	_check(int(state.get("progress").call("stat", "weak_day")) == 2 and int(state.get("progress").call("stat", "lunchbox")) == 1, "Contadores weak_day e lunchbox")
 	# Jogo fechado vários dias: tudo é conferido de uma vez, sem punir o dia da chegada.
-	state.call("reset")
+	_reset()
 	_at(5, 9)
 	_check(int(state.call("well_fed_days")) == 0, "Jogo fechado: nenhuma patinha de graça")
 	var week: Object = state.get("week")
@@ -182,7 +188,7 @@ func _weak_day_and_lunchbox() -> void:
 	_check(bool(week.call("day_record", 2).get("weak", false)) and bool(week.call("day_record", 3).get("weak", false)) and bool(week.call("day_record", 4).get("weak", false)), "Dias 2 a 4 ficaram fracos com o jogo fechado")
 	_check(int(week.lunchboxes) == 1 and int(week.weak_streak) == 1, "Marmita no dia 3 e nova contagem no dia 4")
 	# Dia bem alimentado zera a sequência.
-	state.call("reset")
+	_reset()
 	_at(2, 23)
 	_check(int(week.call("day_record", 2).size()) > 0 and int(state.get("week").weak_streak) == 1, "Sequência 1")
 	state.call("dev_week_goto", 3)
@@ -194,10 +200,10 @@ func _weak_day_and_lunchbox() -> void:
 
 
 func _stored_meal() -> void:
-	state.call("reset")
+	_reset()
 	_at(1, 12)
 	_check(str(state.call("store_meal_error", "puppy_mash")) != "", "Dia da chegada: dar agora, sem guardar")
-	state.call("reset")
+	_reset()
 	_at(3, 9)
 	state.get("inventory").call("add", "puppy_mash", 1)
 	var before := _count_of("puppy_mash")
@@ -206,7 +212,12 @@ func _stored_meal() -> void:
 	_check(_count_of("puppy_mash") == before - 1, "A refeição guardada sai da Mochila")
 	var stored: Dictionary = state.call("stored_meal")
 	_check(stored.get("period", "") == "lunch", "Guardada para o almoço")
-	_check(str(state.call("store_meal", "puppy_mash")) != "", "Só uma refeição guardada por vez")
+	state.get("inventory").call("add", "puppy_mash", 2)
+	_check(str(state.call("store_meal", "puppy_mash")) == "", "A tigela tem dois lugares: guarda também o jantar")
+	_check(str(state.call("store_meal", "puppy_mash")) != "", "Só duas refeições guardadas por vez")
+	state.call("cancel_stored_meal", "dinner")
+	state.get("inventory").call("remove", "puppy_mash")
+	state.get("inventory").call("remove", "puppy_mash")
 	_check(str(state.call("cancel_stored_meal")) == "" and _count_of("puppy_mash") == before, "Cancelar devolve a refeição")
 	state.call("store_meal", "puppy_mash")
 	_at(3, 12)
@@ -215,7 +226,7 @@ func _stored_meal() -> void:
 	_check(_count_of("puppy_mash") == before - 1, "Comeu a refeição guardada")
 	_check(str(state.call("store_meal_error", "puppy_mash")).contains("jantar") == false, "Depois do almoço dado, dá para guardar o jantar")
 	# Jogo fechado: abre e fecha a janela sem ninguém ver.
-	state.call("reset")
+	_reset()
 	_at(3, 9)
 	state.get("inventory").call("add", "puppy_mash", 1)
 	state.call("store_meal", "puppy_mash")
@@ -224,7 +235,7 @@ func _stored_meal() -> void:
 	var rec: Dictionary = state.get("week").call("day_record", 3)
 	_check(rec.lunch.item == "puppy_mash", "O almoço foi a refeição guardada, não a ração")
 	# Dentro da janela: dar agora.
-	state.call("reset")
+	_reset()
 	_at(3, 12)
 	state.get("inventory").call("add", "puppy_mash", 1)
 	_check(str(state.call("store_meal_error", "puppy_mash")).contains("agora"), "Com a janela aberta: dar agora")
@@ -233,14 +244,14 @@ func _stored_meal() -> void:
 
 
 func _persistence_stored() -> void:
-	state.call("reset")
+	_reset()
 	_at(3, 9)
 	state.get("inventory").call("add", "puppy_mash", 1)
 	state.call("store_meal", "puppy_mash")
 	state.get("week").weak = true
 	state.get("week").weak_streak = 1
 	var saved: Dictionary = JSON.parse_string(JSON.stringify(state.call("to_dict")))
-	state.call("reset")
+	_reset()
 	state.call("from_dict", saved)
 	_check(str(state.call("stored_meal").get("period", "")) == "lunch", "Refeição guardada sobrevive ao save")
 	_check(bool(state.call("tiro_weak")) and int(state.get("week").weak_streak) == 1, "Fraquinho e sequência sobrevivem ao save")
