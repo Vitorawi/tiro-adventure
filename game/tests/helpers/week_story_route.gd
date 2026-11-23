@@ -39,6 +39,8 @@ func at(day: int, hour: int) -> void:
 
 
 func claim(id: String) -> void:
+	if state.progress.claimed_quests.has(id) and bool(state.get_node("/root/Database").quests.get(id, {}).get("auto_claim", false)):
+		return  # passo de transição: já se entregou sozinho quando ficou pronto
 	verify.call(state.progress.current_main_quest() == id, "Passo da História " + id)
 	action("história")
 	ok(state.claim_quest(id), id)

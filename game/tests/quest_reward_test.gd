@@ -102,6 +102,7 @@ func _welcome() -> void:
 
 ## O Sítio abre no fim do Ato 1 (passo 8): prêmio e novidade devem oferecer um único destino.
 func _early_unlocks() -> void:
+	root.get_node("Database").quests.lais_photo.erase("auto_claim")  # mede a folha da entrega pelo cartão
 	state.call("reset")
 	state.call("finish_week_arrival")
 	state.call("finish_home_tour")

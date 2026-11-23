@@ -3960,6 +3960,27 @@ func note_screen_opened(screen: String) -> void:
 	_changed()
 
 
+## Passos com "auto_claim": true (sem prêmio, como dar banho, ir ao Sítio, conhecer a vovó) se entregam sozinhos
+## assim que ficam prontos: não há Pegar. A folha "Passo concluído" com o próximo destino continua, a não ser
+## com "claim_sheet": false (a conversa da vovó já leva adiante). Chamado no começo de `_changed`.
+func _auto_claim_quests() -> void:
+	for _i in 8:
+		var done := false
+		for id: String in progress.active_steps().values():
+			if Database.quests[id].get("auto_claim", false) and quest_error(id) == "":
+				inventory.remove_all(_quest_deliveries(id))
+				_finish_quest(id)
+				var npc_id: String = Database.quests[id].get("npc", "")
+				for next: String in progress.active_steps().values():
+					if npc_id != "" and Database.quests[next].get("npc", "") == npc_id:
+						progress.seen["quest:" + next] = true
+				_sync_shared_quests()
+				done = true
+				break
+		if not done:
+			return
+
+
 ## Objetivos e entregas separados do espaço para receber o prêmio.
 func quest_objectives_error(id: String) -> String:
 	if not quest_unlocked(id):
@@ -8436,6 +8457,7 @@ func _ensure_stations() -> void:
 
 
 func _changed() -> void:
+	_auto_claim_quests()
 	_sync_week_farm()
 	sync_friend_window()
 	# Contratos antigos já entregues contam na evolução da banca, sem repetir prêmios.

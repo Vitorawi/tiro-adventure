@@ -154,6 +154,7 @@ func _progress_step() -> void:
 	await process_frame
 	var guide: Dictionary = _guide()
 	check(guide.id == "lais_farm" and guide.state == "progress" and guide.value == 0, "lais_farm começa em progress 0/1 (veio %s/%s/%s)" % [guide.id, guide.state, guide.value])
+	root.get_node("Database").quests.lais_farm.erase("auto_claim")  # este caso mede o pronto; o real se entrega sozinho
 	state.get("progress").stats["open:farm"] = 1
 	state.call("_changed")
 	await process_frame

@@ -24,6 +24,7 @@
     }
   },
   "lais_feed": {
+    "auto_claim": true,
     "npc": "lais",
     "name": "Hora de comer",
     "dialogue": "Ele está com fome. Trouxe uma papinha pronta.",
@@ -46,6 +47,7 @@
     }
   },
   "lais_bath": {
+    "auto_claim": true,
     "npc": "lais",
     "name": "Banho de espuma",
     "dialogue": "A caixinha sujou ele todo! Um banho?",
@@ -119,6 +121,7 @@
     }
   },
   "lais_bed": {
+    "auto_claim": true,
     "npc": "lais",
     "name": "A primeira caminha",
     "dialogue": "Trouxe uma caminha. Escolha o cantinho dele.",
@@ -190,6 +193,7 @@
     }
   },
   "place_stove": {
+    "auto_claim": true,
     "npc": "bloblo",
     "name": "O fogãozinho da vovó",
     "dialogue": "Leve meu fogãozinho e ponha na sua cozinha.",
@@ -452,6 +456,8 @@
     "order": 30
   },
   "bloblo_meet": {
+    "auto_claim": true,
+    "claim_sheet": false,
     "npc": "bloblo",
     "name": "A vovó Bloblo",
     "dialogue": "Oi, querido! Amigo da Laís é meu amigo. Vem ver as plantações!",
@@ -2695,6 +2701,7 @@
     }
   },
   "lais_photo": {
+    "auto_claim": true,
     "npc": "lais",
     "name": "A foto da chegada",
     "dialogue": "Tirei uma foto de vocês! Vamos abrir?",
@@ -2715,6 +2722,8 @@
     }
   },
   "lais_farm": {
+    "auto_claim": true,
+    "claim_sheet": false,
     "npc": "lais",
     "name": "Ir ao Sítio",
     "dialogue": "Filhotinho come comida de verdade, na hora do almoço e do jantar. Quem planta tudo isso é a vovó Bloblo.",

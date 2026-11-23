@@ -50,6 +50,10 @@ func quest() -> String:
 
 
 func claim(id: String) -> void:
+	if bool(root.get_node("Database").quests[id].get("auto_claim", false)):
+		check(state.progress.claimed_quests.has(id), "%s se entregou sozinho (sem Pegar)" % id)
+		await frames()
+		return
 	check(quest() == id, "passo %s é o atual (era %s)" % [id, quest()])
 	check(state.quest_error(id) == "", "%s pode ser pego (%s)" % [id, state.quest_error(id)])
 	check(state.claim_quest(id) == "", "pegar %s" % id)

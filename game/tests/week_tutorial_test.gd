@@ -97,7 +97,7 @@ func run() -> void:
 	route.claim("lais_farm")
 	state.talk_to("bloblo")
 	state.mark_seen(["npc_intro:bloblo"] as Array[String])  # a apresentação automática já passou
-	route.ok(state.claim_quest("bloblo_meet"), "Conhecer a vovó")
+	check(state.progress.claimed_quests.has("bloblo_meet"), "Conhecer a vovó se entrega sozinho na conversa")
 	await wait_ui(0.5)
 	await dismiss()
 	var destination: Dictionary = places.quest_target("lais_first_crops")

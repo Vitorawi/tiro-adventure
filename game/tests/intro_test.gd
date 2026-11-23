@@ -96,8 +96,7 @@ func _run() -> void:
 	for button: Button in sheet.find_children("*", "Button", true, false):
 		has_orchard = has_orchard or button.text == "Pomar"
 	check(not has_orchard, "Conversa não anuncia pomar antes da compra")
-	main.call("_refresh_tasks_badge")
-	check((main.get("_tasks_badge") as Label).visible, "Missão pronta avisa na aba Missões")
+	check(state.get("progress").claimed_quests.has("bloblo_meet"), "Conhecer a vovó se entrega sozinho na conversa (sem Pegar)")
 	await _shot("intro_bloblo_quest")
 	saved = state.call("to_dict").duplicate(true)
 	state.call("reset")

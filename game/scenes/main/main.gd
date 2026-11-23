@@ -567,7 +567,9 @@ func _refresh_guide() -> void:
 func _on_quest_completed(id: String) -> void:
 	var quest: Dictionary = Database.quests[id]
 	_reward_not_before = Time.get_ticks_msec() + (0 if Motion.reduced else int(Motion.FLY * 1000))
-	if quest.get("kind", "") == "main":
+	if not quest.get("claim_sheet", true):
+		pass  # passo de transição entregue sozinho e sem folha: a história segue direto (ex.: a vovó já se apresenta)
+	elif quest.get("kind", "") == "main":
 		_quest_rewards.append({"id": id, "next": GameState.progress.current_main_quest()})
 	else:
 		# Marco de personagem que também é passo da história (`shared_with`): a folha "Passo concluído"
