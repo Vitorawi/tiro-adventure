@@ -1,4 +1,4 @@
-﻿extends SceneTree
+extends SceneTree
 ## Etapa 04: cadeias reais, navegação do liquidificador e prévias mobile.
 var failures: int = 0
 var state: Node
@@ -28,7 +28,9 @@ func _run() -> void:
 	state.call("reset")
 	check(state.call("upgrade_error", "blender") != "", "não revela compra antes da primeira cozinha")
 	state.get("progress").claimed_quests["first_meal"] = true
-	check("place:house/blender" in state.call("new_unlocks"), "liquidificador aparece no Novo após primeira cozinha")
+	check(not ("place:house/blender" in state.call("new_unlocks")) and state.call("upgrade_error", "blender") != "", "liquidificador fica escondido na primeira semana")
+	state.call("dev_complete_quest", "growth_3_teething")  # capítulo 12: a missão do picolé chega
+	check("place:house/blender" in state.call("new_unlocks"), "liquidificador aparece no Novo no capítulo 12")
 	state.set("coins", 100)
 	check(state.call("buy_upgrade", "blender") == "" and state.get("coins") == 70, "liquidificador custa 30")
 	check(state.call("buy_upgrade", "blender") != "" and state.get("coins") == 70, "compra repetida não cobra")

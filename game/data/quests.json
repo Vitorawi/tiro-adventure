@@ -484,6 +484,8 @@
     }
   },
   "first_harvest": {
+    "auto_claim": true,
+    "claim_sheet": false,
     "npc": "bloblo",
     "requirements": {
       "quests": [
@@ -491,21 +493,19 @@
       ]
     },
     "name": "A primeira colheita",
-    "dialogue": "Agora a horta é sua. Rega e colhe mais uma vez! O que você colher vai para o cesto, que cabe pouquinho.",
+    "dialogue": "Você já regou e colheu sozinho! O que você colher vai para o cesto, que cabe pouquinho.",
     "goals": [
       {
         "type": "stat",
         "key": "water",
         "target": 1,
-        "label": "Regar a plantinha",
-        "fresh": true
+        "label": "Regar a plantinha"
       },
       {
         "type": "stat",
         "key": "harvest",
         "target": 1,
-        "label": "Colher uma hortaliça",
-        "fresh": true
+        "label": "Colher uma hortaliça"
       }
     ],
     "rewards": {
@@ -520,8 +520,8 @@
   },
   "bloblo_more_crops": {
     "npc": "bloblo",
-    "name": "Mais canteiros",
-    "dialogue": "Mais umas colheitas e te empresto outros dois canteiros.",
+    "name": "Colheita farta",
+    "dialogue": "Mais umas colheitas e o cesto enche! Planta, rega e colhe.",
     "goals": [
       {
         "type": "stat",
@@ -2241,6 +2241,8 @@
     "order": 110
   },
   "bloblo_sell_surplus": {
+    "auto_claim": true,
+    "claim_sheet": false,
     "npc": "bloblo",
     "kind": "line",
     "line": "bloblo",
@@ -2258,7 +2260,7 @@
       "coins": 10
     },
     "order": 22,
-    "requirements": {"quests": ["first_meal"]},
+    "requirements": {"quests": ["week_market"]},
     "go": {
       "world": "farm",
       "place": "early_market"
@@ -2723,8 +2725,8 @@
     ],
     "rewards": {},
     "kind": "main",
-    "chapter": 1,
-    "order": 80,
+    "chapter": 2,
+    "order": 3,
     "go": {
       "notebook": "album"
     }
@@ -3005,7 +3007,7 @@
         "label": "Plantar abóbora"
       }
     ],
-    "rewards": {},
+    "rewards": {"coins": 30},
     "kind": "main",
     "chapter": 2,
     "order": 2,
@@ -3014,7 +3016,28 @@
       "place": "plots"
     }
   },
-  "week_soup": {
+  "week_fridge": {
+    "auto_claim": true,
+    "npc": "bloblo",
+    "name": "A geladeira",
+    "dialogue": "Sopinha precisa de geladeira para guardar os legumes. Compre uma para a cozinha!",
+    "goals": [
+      {
+        "type": "owned",
+        "key": "fridge",
+        "target": 1,
+        "label": "Comprar a geladeira"
+      }
+    ],
+    "rewards": {},
+    "kind": "main",
+    "chapter": 2,
+    "order": 4,
+    "go": {
+      "world": "house",
+      "place": "buy:fridge"
+    }
+  },  "week_soup": {
     "npc": "bloblo",
     "name": "A primeira sopinha",
     "dialogue": "Sopinha é comida de verdade para o Tiro. Faça uma com cenoura e batata.",
@@ -3031,7 +3054,7 @@
     },
     "kind": "main",
     "chapter": 2,
-    "order": 3,
+    "order": 5,
     "go": {
       "world": "house",
       "place": "recipe:vegetable_soup",

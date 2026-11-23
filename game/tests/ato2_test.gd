@@ -77,8 +77,8 @@ func _run() -> void:
 
 	# Dados: os seis passos do Ato 2 depois da carta, na ordem, e o capítulo 2 começando pela banca.
 	var chapter: Array = state.progress.main_quests(1)
-	check(chapter.slice(6) == ["lais_farm", "lais_meet_bloblo", "lais_first_crops", "place_stove", "first_kitchen", "first_meal", "lais_growth", "growth_1_puppy"], "passos do Sítio ao crescimento: " + str(chapter.slice(6)))
-	check(state.progress.main_quests(2) == ["week_market", "week_plots", "week_soup"], "o capítulo 2 é a banca e a sopinha: " + str(state.progress.main_quests(2)))
+	check(chapter.slice(5) == ["lais_farm", "lais_meet_bloblo", "lais_first_crops", "place_stove", "first_kitchen", "first_meal", "lais_growth", "growth_1_puppy"], "passos do Sítio ao crescimento: " + str(chapter.slice(5)))
+	check(state.progress.main_quests(2) == ["week_market", "week_plots", "lais_photo", "week_fridge", "week_soup"], "o capítulo 2 é a banca, a foto e a sopinha: " + str(state.progress.main_quests(2)))
 	check(str(db.quests.lais_meet_bloblo.get("shared_with", "")) == "bloblo_meet", "a conversa com a vovó é o marco da linha dela")
 	var crops_rewards: Dictionary = db.quests.lais_first_crops.rewards
 	check(crops_rewards.keys() == ["items"] and int(crops_rewards.items.get("stove_gift", 0)) == 1 and crops_rewards.items.size() == 1, "a primeira horta dá só o fogãozinho, sem moeda")

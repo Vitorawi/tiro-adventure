@@ -28,6 +28,7 @@
     }
   },
   "vegetable_soup": {
+    "requirements": {"owned": ["fridge"]},
     "station": "stove",
     "dish_type": "sopinha",
     "inputs": {

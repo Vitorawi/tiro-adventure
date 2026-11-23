@@ -26,7 +26,7 @@ func run() -> void:
 	var chapters := 0
 	for i in range(1, 12):
 		chapters += state.progress.main_quests(i).size()
-	check(chapters == 40, "Onze capítulos com quarenta passos (o capítulo 1 junta o Ato 1 e o Ato 2)")
+	check(chapters == 41, "Onze capítulos com quarenta e um passos (o capítulo 1 junta o Ato 1 e o Ato 2)")
 	for world: String in ["village", "park", "nature"]:
 		check(state.requirement_error(db.worlds[world].requirements) != "", world + " fechada")
 	route.run()

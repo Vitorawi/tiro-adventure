@@ -76,7 +76,7 @@
   },
   "days": [
     {
-      "trigger": "lais_photo",
+      "trigger": "lais_bed",
       "surprise": "O Tiro se enroscou e dormiu dentro da caixinha.",
       "label": "Fazer um prato com três estrelas",
       "counter": "week_three_stars",

@@ -324,11 +324,11 @@ func _run() -> void:
 	state.advance_album_tutorial(1)
 	check(state.album_tutorial_step() == 1, "passo não volta")
 	check(state.reroll_photo_error("h_arrival") != "" or state._tutorial_level("h_arrival", "reroll") == 0, "ainda não é a hora de rolar")
-	state.album.tutorial["done"] = true  # parte 1 concluída: Tentar a sorte e Melhorar são da parte 2
-	state.advance_album_more(3)
+	state.advance_album_tutorial(3)  # parte 1: Tentar a sorte de graça
 	check(state.reroll_photo("h_arrival") == "" and state.photo_variants("h_arrival") == [1, 2] and state.coins == 0, "passo 3: Brilhante grátis")
 	check(state.album.pity_rare == 3 and state.album.pity_holo == 5 and state.album.rarity_seed == 777, "rolar forçado não mexe nas garantias")
 	check(state.album.photos["h_arrival"].rerolls == 0 and state.reroll_cost("h_arrival").coins == 40, "tutorial não encarece a próxima")
+	state.album.tutorial["done"] = true  # parte 2 (com os materiais): Melhorar de presente
 	state.advance_album_more(4)
 	check(state.upgrade_photo("h_arrival") == "" and state.photo_rarity("h_arrival") == 3 and state.coins == 0, "passo 4: Rara grátis")
 	check(state.photo_variants("h_arrival") == [1, 2, 3] and state.inventory.count("wood") == 0, "sem presente no inventário")

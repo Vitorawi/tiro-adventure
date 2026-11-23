@@ -1539,7 +1539,8 @@
       "requirements": {
         "quests": [
           "first_meal"
-        ]
+        ],
+        "chapter": 12
       },
       "skill_xp": {
         "cooking": 10
@@ -3024,7 +3025,7 @@
       "shop": "farm_stall",
       "name": "Canteiro extra",
       "plot": true,
-      "price": 20,
+      "price": 25,
       "icon": "tab_farm",
       "max": 1,
       "description": "Abre mais um dos canteiros junto da casa."

@@ -110,7 +110,7 @@ func _run() -> void:
 	# 6. Tentar a sorte e repetida: sinal real do motor; sem perder a carta.
 	state.dev_take_photo("h_arrival", 1)
 	state.coins = 1000
-	state.album.tutorial = {"step": 6, "done": true, "more_step": 3, "more_done": false}  # parte 2 da aula: Tentar a sorte de graça
+	state.album.tutorial = {"step": 3, "done": false}  # parte 1 da aula: Tentar a sorte de graça
 	card = viewer_script.call("open", "h_arrival", {"host": root})
 	card.call("_reroll")
 	check(card.get("revealing"), "Tentar a sorte inicia sequência")

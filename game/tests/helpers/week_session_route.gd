@@ -243,6 +243,12 @@ func chapter_two() -> void:
 	action("horta")
 	state.harvest(0)
 	claim("week_plots")
+	action("álbum")
+	state.finish_album_tutorial()
+	claim("lais_photo")  # a foto da chegada: depois dos canteiros, com algum dinheiro
+	funds(40)
+	ok(state.buy_upgrade("fridge"), "Comprar a geladeira")
+	claim("week_fridge")
 	var soup := recipe("vegetable_soup")
 	claim("week_soup")
 	serve(soup)

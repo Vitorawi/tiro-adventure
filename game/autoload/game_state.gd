@@ -5973,17 +5973,16 @@ func _tutorial_level(id: String, action: String) -> int:
 	if id != str(config.get("photo", "")) or forced.size() < 3:
 		return 0
 	if not album.tutorial.get("done", false):
-		# Parte 1 (capítulo 1): só abrir a carta.
+		# Parte 1: abrir a carta e Tentar a sorte (a primeira tentativa é presente).
 		var step := int(album.tutorial.get("step", 0))
-		return int(forced[0]) if action == "open" and (step == 1 or step == 2) else 0
+		match action:
+			"open": return int(forced[0]) if step == 1 or step == 2 else 0
+			"reroll": return int(forced[1]) if step == 3 else 0
+		return 0
 	if album.tutorial.get("more_done", false):
 		return 0
-	# Parte 2 (mais adiante): Tentar a sorte e Melhorar de presente.
-	var more := int(album.tutorial.get("more_step", 0))
-	match action:
-		"reroll": return int(forced[1]) if more == 3 else 0
-		"upgrade": return int(forced[2]) if more == 4 else 0
-	return 0
+	# Parte 2 (quando surgem os materiais): Melhorar de presente.
+	return int(forced[2]) if action == "upgrade" and int(album.tutorial.get("more_step", 0)) == 4 else 0
 
 
 func open_photo_card_error(id: String) -> String:
@@ -6236,13 +6235,19 @@ func note_growth_lesson() -> void:
 	_changed()
 
 
-## Capítulo a partir do qual a Laís volta à foto da chegada para ensinar Tentar a sorte e Melhorar.
-const ALBUM_MORE_CHAPTER := 3
-
-## Parte 2 da aula do Álbum (Tentar a sorte, Melhorar e escolher a versão) está esperando o jogador abrir o Álbum?
+## Parte 2 da aula do Álbum (Melhorar) está esperando o jogador abrir o Álbum? Só quando ele já junta os materiais
+## que melhorar a foto da chegada pede (a aula dá esse primeiro de presente).
 func album_more_ready() -> bool:
-	return album_tutorial_done() and not bool(album.tutorial.get("more_done", false)) \
-		and content_day() >= ALBUM_MORE_CHAPTER and photo_rarity(str(_cards().get("tutorial", {}).get("photo", ""))) > 0
+	var photo := str(_cards().get("tutorial", {}).get("photo", ""))
+	if not album_tutorial_done() or bool(album.tutorial.get("more_done", false)) or photo_rarity(photo) <= 0:
+		return false
+	var cost := upgrade_cost(photo)
+	if cost.is_empty():
+		return false
+	for item: String in cost.items:
+		if inventory.count(item) < int(cost.items[item]):
+			return false
+	return true
 
 
 func album_more_step() -> int:
@@ -9449,7 +9454,7 @@ func _sync_week_routine() -> void:
 ## O Ato 1 (passos 1 a 8, só em casa) já acabou? Até lá a rotina do dia (moedas, Bom dia, Boa noite, reloginho)
 ## fica quieta: o jogador cuida do Tiro sem moeda e sem relógio. Saves que nunca abriram a caixinha não esperam.
 func ato1_done() -> bool:
-	return progress.stat("arrival_box") == 0 or progress.claimed_quests.has("lais_photo")
+	return progress.stat("arrival_box") == 0 or progress.claimed_quests.has("lais_bed")
 
 
 ## O Ato 2 (passos 9 a 14: Sítio, vovó, fogão e primeira papinha) já acabou? Até lá não há moeda, banca nem compra de canteiro:

@@ -25,10 +25,13 @@ func _run() -> void:
 	state.call("reset")
 	state.get("progress").stats["harvest"] = 40
 	state.call("dev_complete_quest", "first_harvest")
-	state.call("dev_complete_quest", "first_meal")  # a venda da vovó espera o fim do capítulo 1
-	check(state.get("progress").current_line_quest("bloblo") == "bloblo_sell_surplus", "Primeira colheita ensina a vender no sítio")
-	state.call("dev_complete_quest", "bloblo_sell_surplus")
-	check(state.get("progress").current_line_quest("bloblo") == "bloblo_dig", "Depois da colheita a vovó manda cavar")
+	state.call("dev_complete_quest", "first_meal")
+	check(state.get("progress").current_line_quest("bloblo") == "", "A venda da vovó espera a banca (nada paralelo repetindo a História)")
+	state.get("progress").stats["sold"] = 4
+	state.call("dev_complete_quest", "week_market")
+	state.call("_changed")
+	check(state.get("progress").claimed_quests.has("bloblo_sell_surplus"), "A venda da vovó se completa sozinha depois da banca")
+	check(state.get("progress").current_line_quest("bloblo") == "bloblo_dig", "Depois da banca a vovó manda cavar")
 	state.call("dev_complete_quest", "bloblo_dig")
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_silo", "Depois do faro a vovó manda arrumar o silo (ordem 27)")
 	state.call("dev_complete_quest", "bloblo_silo")

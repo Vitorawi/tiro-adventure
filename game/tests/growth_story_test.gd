@@ -99,12 +99,12 @@ func _walks_before_nature() -> void:
 
 
 func _data() -> void:
-	check(db.quests.size() == 153, "153 entradas no catálogo: %d" % db.quests.size())
+	check(db.quests.size() == 154, "154 entradas no catálogo: %d" % db.quests.size())
 	var mains := 0
 	for id: String in db.quests:
 		if db.quests[id].get("kind", "") == "main":
 			mains += 1
-	check(mains == 77, "77 missões principais: %d" % mains)
+	check(mains == 78, "78 missões principais: %d" % mains)
 	for id: String in GROWTH_QUESTS:
 		var quest: Dictionary = db.quests[id]
 		var rule: Array = GROWTH_QUESTS[id]
@@ -128,8 +128,8 @@ func _data() -> void:
 func _chapter_one() -> void:
 	_fresh()
 	var ids: Array = state.progress.main_quests(1)
-	check(ids.size() == 14 and ids.front() == "welcome" and ids.back() == "growth_1_puppy", "a caixa abre e o Filhotinho fecha o primeiro capítulo")
-	check(ids.slice(0, 6) == ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed", "lais_photo"], "os passos em casa abrem o capítulo")
+	check(ids.size() == 13 and ids.front() == "welcome" and ids.back() == "growth_1_puppy", "a caixa abre e o Filhotinho fecha o primeiro capítulo")
+	check(ids.slice(0, 5) == ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed"], "os passos em casa abrem o capítulo")
 	state.dev_complete_quest("lais_growth")
 	check(state.progress.chapter_index() == 1 and state.progress.current_main_quest() == "growth_1_puppy", "a papinha caseira e a lição antecedem o primeiro crescimento")
 	check(state.quest_error("growth_1_puppy") != "", "sem crescer não conclui")

@@ -329,7 +329,7 @@ func _evening_and_morning() -> void:
 	await fresh(15, true)
 	db.week_story.food_lesson["quest"] = "lais_photo"
 	state.week.food_lesson = true
-	state.progress.claimed_quests["lais_photo"] = true
+	state.progress.claimed_quests["lais_bed"] = true  # fim da casa (Ato 1)
 	state.grant_lesson_paw("puppy_mash")
 	state.inventory.add("puppy_mash", 2)
 	check(not state.week_meal_reminder_offered(), "o aviso de hora de comer ainda não foi oferecido")
@@ -399,7 +399,7 @@ func _evening_and_morning() -> void:
 	check(state.served_notes().size() == 1 and state.meals_on_time(2) == 1, "o Tiro comeu sozinho na hora")
 	var served: Dictionary = state.served_notes()[0]
 	check(served.period == "lunch" and int(served.hour) == 11, "recado: comeu às 11h e poucos")
-	state.progress.claimed_quests["lais_photo"] = true
+	state.progress.claimed_quests["lais_bed"] = true  # fim da casa (Ato 1)
 	var lines := PackedStringArray()
 	for note: Dictionary in state.served_notes():
 		lines.append(str(copy.served) % ["almoço", int(note.hour), int(note.minute)])

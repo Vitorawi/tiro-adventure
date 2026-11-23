@@ -102,21 +102,21 @@ func _welcome() -> void:
 
 ## O Sítio abre no fim do Ato 1 (passo 8): prêmio e novidade devem oferecer um único destino.
 func _early_unlocks() -> void:
-	root.get_node("Database").quests.lais_photo.erase("auto_claim")  # mede a folha da entrega pelo cartão
+	root.get_node("Database").quests.lais_bed.erase("auto_claim")  # mede a folha da entrega pelo cartão
 	state.call("reset")
 	state.call("finish_week_arrival")
 	state.call("finish_home_tour")
-	state.call("dev_complete_quest", "lais_bed")  # a foto é o último passo em casa
-	state.call("finish_album_tutorial")
+	state.call("dev_complete_quest", "lais_play")  # a caminha é o último passo em casa: ela abre o Sítio
+	state.get("progress").owned["dog_bed"] = true
 	await frames()
 	clear_modals()
 	main.call("show_screen", &"pet")
 	var popover := load("res://scripts/ui/popover.gd")
-	popover.call("open", main, main.find_child("NextStep", true, false), load("res://scripts/ui/next_step.gd").call("card", "lais_photo"), 0.0)
+	popover.call("open", main, main.find_child("NextStep", true, false), load("res://scripts/ui/next_step.gd").call("card", "lais_bed"), 0.0)
 	events.sheet_requested.emit("Laís", VBoxContainer.new())
 	await frames()
 	Motion.reduced = false
-	check(ui.call("claim_quest_fx", "lais_photo", Vector2.ZERO) == "", "entrega o passo 8 no começo real")
+	check(ui.call("claim_quest_fx", "lais_bed", Vector2.ZERO) == "", "entrega a caminha no começo real")
 	await frames()
 	main.call("_flush_modals")
 	check(not main.get("_quest_reward").visible, "prêmio espera o voo e a saída da folha anterior")

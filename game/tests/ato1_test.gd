@@ -72,8 +72,9 @@ func _run() -> void:
 	coins_start = state.coins
 
 	# Os oito passos do capítulo 1, na ordem, e a lista curta do Filhotinho.
-	var steps: Array = state.progress.main_quests(1).slice(0, 6)  # o resto (Sítio, vovó, papinha e crescer) é do ato2_test
-	check(steps == ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed", "lais_photo"], "ordem dos passos em casa: " + str(steps))
+	var steps: Array = state.progress.main_quests(1).slice(0, 5)  # o resto (Sítio, vovó, papinha e crescer) é do ato2_test
+	check(steps == ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed"], "ordem dos passos em casa: " + str(steps))
+	check(state.progress.main_quests(2).has("lais_photo") and not state.progress.main_quests(1).has("lais_photo"), "a foto da chegada foi para o capítulo 2 (depois dos canteiros)")
 	check(state.progress.main_quests(1).slice(-2) == ["lais_growth", "growth_1_puppy"], "o capítulo 1 fecha com o crescimento")
 	check(not db.quests.has("lais_album"), "a linha lais_album saiu")
 	check(state.progress.main_quests(2).find("lais_bed") == -1 and state.progress.main_quests(2).find("growth_1_puppy") == -1, "capítulo 2 perdeu a caminha e o Filhotinho")
@@ -175,25 +176,17 @@ func _run() -> void:
 	check(discs() == ["FoodButton", "Care_sponge", "Care_ball", "SleepButton"], "o soninho entrou na roleta: " + str(discs()))
 	tray.call("close_wheel")
 
-	# Passo 6: a carta da chegada (o crescimento ficou para o fim do capítulo 1).
+	# Fim da casa: a caminha abre o Sítio. A foto da chegada espera o capítulo 2 (o Álbum ainda não aparece).
 	check(state.growth.phase == "newborn" and state.grow_error() != "", "ainda não cresce: falta a papinha caseira")
-	check(quest() == "lais_photo", "o passo 6 é a foto")
 	await frames(3)
-	check(shown("AlbumButton"), "o botão do Álbum aparece no passo 8")
+	check(not shown("AlbumButton"), "o botão do Álbum espera a foto do capítulo 2")
 	check(shown("TasksTab") and not shown("BagTab"), "Missões desde o começo; a Mochila espera o fim do Ato 1")
 	check(state.photo_sealed("h_arrival") > 0 and not state.album_tutorial_done(), "a carta da chegada espera fechada")
-	check(state.quest_error("lais_photo") != "", "o passo 8 pede a carta")
-	state.finish_album_tutorial()
-	check(state.progress.stat("album_tutorial") == 1, "o fim do tutorial conta o passo")
 	check(state.coins == coins_start, "nenhuma moeda ganha em todo o Ato 1")
-	await claim("lais_photo")
-	await frames(3)
-	check(shown("TasksTab") and not shown("BagTab"), "a Mochila continua esperando: entra no Ato 2 (F03)")
-	check(not shown("CoinsPill") and state.coins == coins_start, "a pílula de moedas só volta no capítulo 2")
-	check(state.requirement_error(db.worlds.farm.requirements) == "", "o Sítio abre depois do passo 8")
-	check(quest() == "lais_farm", "o Sítio é o passo 9")
+	check(not shown("CoinsPill"), "a pílula de moedas só volta no capítulo 2")
+	check(state.requirement_error(db.worlds.farm.requirements) == "", "o Sítio abre depois da caminha")
+	check(quest() == "lais_farm", "o Sítio vem logo depois da caminha")
 	check(str(db.quests.lais_farm.dialogue).contains("almoço e do jantar"), "a fala-gancho do almoço e do jantar")
-
 	# Mãos de ajuda: cada passo tem a sua lição presa ao passo (não ao dia).
 	var lessons := {}
 	for lesson: Dictionary in db.week_tutorials:

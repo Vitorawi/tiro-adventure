@@ -148,7 +148,7 @@ func _claim_step() -> void:
 ## 4. lais_farm (primeiro passo do Sítio, depois do Ato 1) anda: 0/1 → 1/1 e fica pronto.
 func _progress_step() -> void:
 	await _reset_fresh()
-	state.call("dev_complete_quest", "lais_photo")
+	state.call("dev_complete_quest", "lais_bed")
 	state.call("_changed")
 	await process_frame
 	await process_frame

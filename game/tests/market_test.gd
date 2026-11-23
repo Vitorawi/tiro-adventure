@@ -29,7 +29,9 @@ func _run() -> void:
 	var price: int = db.get("items").carrot.sell_price
 	check(state.call("sell", "carrot", 2) == "" and state.get("coins") == price * 2, "venda inicial rende moedas sem Vila ou banca")
 	check(state.get("coins") >= int(db.get("crops").carrot.coins), "venda da colheita financia novo plantio")
-	check(state.call("claim_quest", "bloblo_sell_surplus") == "", "missão ensina primeira venda")
+	state.call("dev_complete_quest", "week_market")
+	state.call("_changed")
+	check(state.get("progress").claimed_quests.has("bloblo_sell_surplus"), "a venda da vovó se completa sozinha depois da banca")
 	check(market.call("order_ids", "contracts").is_empty(), "sem contratos antes de montar")
 	check(state.call("upgrade_error", "stall_2") != "", "sem pular estágio")
 	state.set("coins", 20000)

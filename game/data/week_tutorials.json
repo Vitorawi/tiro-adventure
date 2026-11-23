@@ -226,14 +226,18 @@
     },
     {
       "id": "home_album",
-      "day": 1,
+      "day": 2,
       "title": "Abrir a carta",
       "format": "hand",
       "text": "No botão do Álbum, a primeira foto do Tiro espera fechadinha. A Laís mostra como abrir.",
       "steps": [
         {
+          "target": "PetTab",
+          "say": "A foto da chegada chegou! Toque em Tiro."
+        },
+        {
           "target": "AlbumButton",
-          "say": "Toque no Álbum."
+          "say": "Toque no Álbum: a foto da chegada está fechadinha."
         }
       ],
       "done": "album_tutorial",
@@ -449,15 +453,15 @@
           "say": "Ajuste a quantidade e toque em Vender."
         },
         {
-          "target": "Buy_week_plot",
-          "say": "Em Comprar, escolha o canteiro."
+          "target": "Buy_week_pumpkin_seed",
+          "say": "Em Comprar, escolha a semente de abóbora."
         },
         {
           "target": "BuyItem",
           "say": "Agora toque em Comprar."
         }
       ],
-      "done": "buy:week_plot",
+      "done": "buy:week_pumpkin_seed",
       "quest": "week_market",
       "resume": {
         "world": "farm",
@@ -465,6 +469,55 @@
       }
     },
     {
+      "id": "plots",
+      "day": 2,
+      "title": "Mais um canteiro",
+      "format": "hand",
+      "text": "Com o prêmio da vovó, compre o canteiro extra na banca, em Comprar.",
+      "steps": [
+        {
+          "target": "Buy_week_plot",
+          "say": "Com o prêmio da vovó dá para comprar o canteiro extra. Escolha ele."
+        },
+        {
+          "target": "BuyItem",
+          "say": "Agora toque em Comprar."
+        }
+      ],
+      "done": "buy:week_plot",
+      "quest": "week_plots",
+      "resume": {
+        "world": "farm",
+        "place": "early_market"
+      }
+    },
+    {
+      "id": "fridge",
+      "day": 2,
+      "title": "A geladeira",
+      "format": "hand",
+      "text": "Na Casa, toque no + da geladeira e depois em Comprar. Com ela você faz sopinha.",
+      "steps": [
+        {
+          "target": "MapTab",
+          "say": "Toque em Mapa."
+        },
+        {
+          "target": "@buy_fridge",
+          "say": "Toque no + da geladeira."
+        },
+        {
+          "target": "BuildUpgrade",
+          "say": "Agora toque em Comprar."
+        }
+      ],
+      "done": "owned:fridge",
+      "quest": "week_fridge",
+      "resume": {
+        "world": "house",
+        "place": "buy:fridge"
+      }
+    },    {
       "id": "invent",
       "day": 8,
       "title": "Inventar",

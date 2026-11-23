@@ -93,7 +93,8 @@
         "requirements": {
           "quests": [
             "first_meal"
-          ]
+          ],
+          "chapter": 12
         },
         "upgrade": "blender",
         "panel": "station:blender",
@@ -111,7 +112,7 @@
     "room": "farm",
     "requirements": {
       "story_gate": [
-        "lais_photo"
+        "lais_bed"
       ]
     },
     "npcs": [

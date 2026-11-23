@@ -210,8 +210,8 @@ func _locate(lesson: Dictionary) -> Dictionary:
 			continue
 		if target == "InvSlot_0" and not GameState.week.tutorial.get("invent_type_chosen", false):
 			continue
-		if lesson.id in ["coop", "market"] and target == "BuyItem":
-			var kit := main.find_child("Buy_week_coop" if lesson.id == "coop" else "Buy_week_plot", true, false)
+		if lesson.id in ["coop", "market", "plots"] and target == "BuyItem":
+			var kit := main.find_child({"coop": "Buy_week_coop", "market": "Buy_week_pumpkin_seed", "plots": "Buy_week_plot"}[lesson.id], true, false)
 			if not is_instance_valid(kit) or not kit.get_meta("selected", false):
 				continue
 		if _target(target).has_area():
@@ -404,13 +404,13 @@ func _special_target(id: String, behind: bool) -> Rect2:
 		var room := main.find_child("World_farm", true, false) as RoomView
 		if is_instance_valid(room) and room.is_visible_in_tree():
 			return room.week_tutorial_rect(id, behind)
-	if id in ["buy_bed", "buy_stove"]:
+	if id in ["buy_bed", "buy_stove", "buy_fridge"]:
 		# O "+" do presente (caminha ou fogão) na Casa (só com o Mapa aberto na Casa e sem folha por cima).
 		if not behind and (_sheet_open() or _minigame()):
 			return Rect2()
 		var house := main.find_child("World_house", true, false) as RoomView
 		if is_instance_valid(house) and house.is_visible_in_tree():
-			return house.week_tutorial_rect("buy:dog_bed" if id == "buy_bed" else "buy:stove")
+			return house.week_tutorial_rect({"buy_bed": "buy:dog_bed", "buy_stove": "buy:stove", "buy_fridge": "buy:fridge"}[id])
 	if id == "tiro":
 		# O Tiro na tela do Tiro (sem folha nem minigame por cima).
 		if _sheet_open() or _minigame():

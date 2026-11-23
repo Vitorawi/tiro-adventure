@@ -217,11 +217,8 @@ func ato_one() -> void:
 	verify.call(state.play(), "Jogar a bolinha")
 	claim("lais_play")
 	ok(state.buy_upgrade("dog_bed"), "Colocar a caminha")
-	claim("lais_bed")
-	action("álbum")
-	state.finish_album_tutorial()
+	claim("lais_bed")  # a rotina do dia paga as moedas da primeira refeição só a partir daqui
 	verify.call(state.growth.phase == "newborn" and state.coins == coins, "Ato 1 inteiro sem moeda, ainda recém-chegado")
-	claim("lais_photo")  # a rotina do dia paga as moedas da primeira refeição só a partir daqui
 
 
 ## Ato 2 do novo fluxo (F03): Sítio, vovó, primeira horta, fogão colocado, Cozinhar junto e a primeira papinha (aula da comida).
@@ -289,6 +286,12 @@ func day_one(late_arrival: bool = true) -> void:
 	action("horta")
 	state.harvest(0)
 	claim("week_plots")
+	action("álbum")
+	state.finish_album_tutorial()
+	claim("lais_photo")  # a foto da chegada: depois dos canteiros, com algum dinheiro
+	funds(40)
+	ok(state.buy_upgrade("fridge"), "Comprar a geladeira")
+	claim("week_fridge")
 	verify.call(state.cook_invented_error({"pumpkin": 1, "potato": 1}, "papinha") == "Continue a História", "Inventar espera o capítulo 8")
 	if not late_arrival:
 		at(1, 19)
