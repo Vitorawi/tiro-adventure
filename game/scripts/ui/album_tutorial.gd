@@ -14,9 +14,9 @@ extends TutorialGuide
 const PHOTO := "h_arrival"
 const SAY := {
 	"open": "Olha! A primeira foto do Tiro chegou fechadinha. Toque em Abrir!",
-	"reroll": "Toda foto tem quatro versões. Tente a sorte, essa é por minha conta.",
+	"reroll": "Lembra da foto da chegada? Toda foto tem quatro versões. Tente a sorte, essa é por minha conta.",
 	"upgrade": "Melhorar sempre sobe um nível. Hoje os materiais são presente meu.",
-	"tilt": "Arraste a foto para ver o brilho. Escolha qual versão mostrar!",
+	"tilt": "Arraste a foto para ver o brilho!",
 	"version": "Agora toque numa versão para mostrar. Escolha a que você mais gosta!",
 	"feature": "Põe ela no varal da home pra gente ver sempre.",
 }
@@ -30,6 +30,8 @@ const DIMMED := 0.22
 static var current: AlbumTutorial
 
 var phase := ""  ## open, reveal, reroll, upgrade, tilt, version, feature ou "" (esperando começar)
+## Parte 1 (capítulo 1): abrir, inclinar e pôr no varal. Parte 2 (capítulo 3 em diante): Tentar a sorte, Melhorar e versão.
+var part := 1
 var viewer: CardViewer
 var _wait := 0.0
 var _best := 0
@@ -41,9 +43,12 @@ var _finishing := false
 
 ## Chamado quando a tela do Álbum é montada (`AlbumScreen`). Começa (ou retoma) se a foto da chegada ainda ensina.
 static func maybe_start() -> void:
-	if is_active() or GameState.album_tutorial_done() or not GameState.album.has_photo(PHOTO):
+	if is_active() or not GameState.album.has_photo(PHOTO):
 		return
-	if GameState.photo_sealed(PHOTO) <= 0 and GameState.album_tutorial_step() <= 0:
+	var more := GameState.album_tutorial_done()
+	if more and not GameState.album_more_ready():
+		return
+	if not more and GameState.photo_sealed(PHOTO) <= 0 and GameState.album_tutorial_step() <= 0:
 		return  # a foto já foi aberta fora do tutorial: nada a ensinar
 	var main := _main()
 	if main == null:
@@ -53,6 +58,7 @@ static func maybe_start() -> void:
 	node.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	node.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	node.z_index = 13
+	node.part = 2 if more else 1
 	main.add_child(node)
 	current = node
 
@@ -84,32 +90,41 @@ func stop() -> void:
 
 func _start() -> void:
 	var main := _main()
-	if GameState.photo_sealed(PHOTO) > 0:
-		GameState.advance_album_tutorial(1)
-	elif GameState.album_tutorial_step() < 3:
-		GameState.advance_album_tutorial(3)  # fechou o app durante a revelação: a carta já está aberta
+	if part == 1:
+		if GameState.photo_sealed(PHOTO) > 0:
+			GameState.advance_album_tutorial(1)
+		elif GameState.album_tutorial_step() < 5:
+			GameState.advance_album_tutorial(5)  # fechou o app durante a revelação: a carta já está aberta
 	viewer = CardReveal.open(PHOTO, {"host": main})
 	if viewer == null:
 		stop()
 		return
 	_build_layer()
-	var step := GameState.album_tutorial_step()
 	_best = GameState.photo_rarity(PHOTO)
-	match step:
-		1: _go("open")
-		2, 3: _go("reroll")
-		4: _go("upgrade")
-		5: _go("tilt")
-		_: _go("feature")
+	if part == 1:
+		match GameState.album_tutorial_step():
+			1: _go("open")
+			6: _go("feature")
+			_: _go("tilt")
+	else:
+		match GameState.album_more_step():
+			0, 1, 2, 3: _go("reroll")
+			4: _go("upgrade")
+			_: _go("version")
 	_layout()
 
 
 func _go(next: String) -> void:
 	phase = next
 	_wait = 0.0
-	var step := {"open": 1, "reveal": 2, "reroll": 3, "upgrade": 4, "tilt": 5, "version": 5, "feature": 6}.get(next, 0) as int
-	if step > 0:
-		GameState.advance_album_tutorial(step)
+	if part == 1:
+		var step := {"open": 1, "reveal": 2, "tilt": 5, "feature": 6}.get(next, 0) as int
+		if step > 0:
+			GameState.advance_album_tutorial(step)
+	else:
+		var more := {"reroll": 3, "upgrade": 4, "version": 5}.get(next, 0) as int
+		if more > 0:
+			GameState.advance_album_more(more)
 	_balloon.visible = SAY.has(next)
 	if SAY.has(next):
 		_balloon_label.text = SAY[next]
@@ -144,7 +159,9 @@ func _on_rolled(id: String, result: Dictionary) -> void:
 			_next_after = "tilt"
 			_best = GameState.photo_rarity(PHOTO)
 	if str(result.get("action", "")) == "open":
-		_next_after = "reroll"
+		_next_after = "tilt"
+	elif str(result.get("action", "")) == "upgrade":
+		_next_after = "version"
 
 
 var _next_after := ""
@@ -169,15 +186,15 @@ func _process(delta: float) -> void:
 			if _wait > 0.0:
 				_wait -= delta  # já inclinou: deixa brincar mais um pouco antes da próxima fala
 				if _wait <= 0.0:
-					_go("version")
+					_go("feature")
 			elif viewer.tilt.length() >= DRAG_NEEDED:
 				_wait = AFTER_TILT
 				_hand.visible = false
 		"version":
 			if _wait > 0.0:
 				_wait -= delta
-				if _wait <= 0.0:
-					_go("feature")
+				if _wait <= 0.0 and not _finishing:
+					_finish()
 			elif viewer.level != _best and not viewer.revealing:
 				_wait = AFTER_TILT
 				_balloon.visible = false
@@ -206,7 +223,10 @@ func _try_start() -> void:
 
 func _finish() -> void:
 	_finishing = true
-	GameState.finish_album_tutorial()
+	if part == 1:
+		GameState.finish_album_tutorial()
+	else:
+		GameState.finish_album_more()
 	_balloon.hide()
 	_arrow.hide()
 	var timer := get_tree().create_timer(0.7)

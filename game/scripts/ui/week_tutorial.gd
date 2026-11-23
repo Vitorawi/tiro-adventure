@@ -210,8 +210,8 @@ func _locate(lesson: Dictionary) -> Dictionary:
 			continue
 		if target == "InvSlot_0" and not GameState.week.tutorial.get("invent_type_chosen", false):
 			continue
-		if lesson.id == "coop" and target == "BuyItem":
-			var kit := main.find_child("Buy_week_coop", true, false)
+		if lesson.id in ["coop", "market"] and target == "BuyItem":
+			var kit := main.find_child("Buy_week_coop" if lesson.id == "coop" else "Buy_week_plot", true, false)
 			if not is_instance_valid(kit) or not kit.get_meta("selected", false):
 				continue
 		if _target(target).has_area():

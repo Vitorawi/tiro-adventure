@@ -154,3 +154,5 @@ func from_dict(data: Dictionary) -> void:
 			if photos.has(str(v)) and str(v) not in featured: featured.append(str(v))
 	if data.get("tutorial") is Dictionary:
 		tutorial = {"step": clampi(int(data.tutorial.get("step", 0)), 0, 6), "done": bool(data.tutorial.get("done", false))}
+		tutorial["more_step"] = clampi(int(data.tutorial.get("more_step", 0)), 0, 6)
+		tutorial["more_done"] = bool(data.tutorial.get("more_done", false))

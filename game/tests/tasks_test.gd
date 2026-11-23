@@ -25,6 +25,7 @@ func _run() -> void:
 	state.call("reset")
 	state.get("progress").stats["harvest"] = 40
 	state.call("dev_complete_quest", "first_harvest")
+	state.call("dev_complete_quest", "first_meal")  # a venda da vovó espera o fim do capítulo 1
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_sell_surplus", "Primeira colheita ensina a vender no sítio")
 	state.call("dev_complete_quest", "bloblo_sell_surplus")
 	check(state.get("progress").current_line_quest("bloblo") == "bloblo_dig", "Depois da colheita a vovó manda cavar")
@@ -78,6 +79,8 @@ func _run() -> void:
 				"week_plots": state.set("unlocked_plots", int(goal.target))
 				"growth": state.call("dev_set_phase", str(goal.key))
 		var before_reward: int = state.get("coins")
+		if state.get("progress").claimed_quests.has(claim_id) and database.get("quests")[claim_id].get("auto_claim", false):
+			continue  # passo que se entrega sozinho ao ficar pronto
 		check(state.call("claim_quest", claim_id) == "", "Receber passo " + id)
 		var expected: int = int(database.get("quests")[claim_id].rewards.get("coins", 0))
 		if id == first.back():
@@ -184,7 +187,7 @@ func _ui_check() -> void:
 	await create_timer(0.2).timeout
 	var card: Control = main.find_child("StoryCard", true, false)
 	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
-	check(main.find_child("GroupTabs", true, false).is_visible_in_tree() and main.find_child("NotebookTab_story", true, false) != null and main.find_child("NotebookTab_characters", true, false) == null and main.find_child("NotebookTab_timed", true, false) == null, "início: só a História na primeira semana")
+	check(main.find_child("GroupTabs", true, false).is_visible_in_tree() and main.find_child("NotebookTab_story", true, false) != null and main.find_child("NotebookTab_characters", true, false) != null and main.find_child("NotebookTab_timed", true, false) == null, "início: História e Pessoas na primeira semana")
 	check(card.find_child("StoryHero", true, false) != null and card.find_child("StoryRewards", true, false) == null and card.find_child("StoryGoal_0", true, false) != null, "história: cartão do topo, recompensas e passos")
 	check(card.find_child("ChapterSteps", true, false) == null, "lista antiga de passos do capítulo saiu")
 	var chapter_bar := card.find_child("BarText", true, false) as Label

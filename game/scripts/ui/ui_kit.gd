@@ -489,20 +489,17 @@ static func segmented(entries: Array[Dictionary], selected: String, choose: Call
 	row.resized.connect(row.queue_redraw)
 	for entry: Dictionary in entries:
 		var id := str(entry.id)
-		var tab := ghost(str(entry.text), choose.bind(id))
+		# A escolha acende na hora (quem não reconstrói a tela também vê a troca).
+		var tab := ghost(str(entry.text), func() -> void:
+			for other: Node in row.get_children():
+				if other is Button: _segment_style(other as Button, str(other.name) == "NotebookTab_" + id)
+			choose.call(id))
 		tab.name = "NotebookTab_" + id
 		tab.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		tab.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		tab.theme_type_variation = &"SmallButton"
 		var active := id == selected
-		var style := surface(Palette.CARD if active else Palette.SUNKEN, 22, active)
-		style.set_content_margin_all(4)
-		style.expand_margin_left = -4
-		style.expand_margin_right = -4
-		for phase: String in ["normal", "hover", "pressed", "hover_pressed"]:
-			tab.add_theme_stylebox_override(phase, style)
-		for phase: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
-			tab.add_theme_color_override(phase, Palette.INK if active else Palette.INK_SOFT)
+		_segment_style(tab, active)
 		if entry.get("icon") is Texture2D and not entry.get("inline_icon", false):
 			tab.icon = entry.icon
 			tab.expand_icon = true
@@ -529,6 +526,17 @@ static func segmented(entries: Array[Dictionary], selected: String, choose: Call
 			mark.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
 			mark.position += Vector2(-12, -2)
 	return row
+
+
+static func _segment_style(tab: Button, active: bool) -> void:
+	var style := surface(Palette.CARD if active else Palette.SUNKEN, 22, active)
+	style.set_content_margin_all(4)
+	style.expand_margin_left = -4
+	style.expand_margin_right = -4
+	for phase: String in ["normal", "hover", "pressed", "hover_pressed"]:
+		tab.add_theme_stylebox_override(phase, style)
+	for phase: String in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		tab.add_theme_color_override(phase, Palette.INK if active else Palette.INK_SOFT)
 
 
 static func _fit_notebook_tab(tab_id: int, icon_px: int) -> void:

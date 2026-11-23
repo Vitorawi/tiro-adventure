@@ -99,7 +99,7 @@ func _run() -> void:
 
 func _lists() -> void:
 	state.call("reset")
-	check(row_ids() == ["feed", "bath", "play", "bed"], "Recém-chegado → Filhotinho é a lista curta do Ato 1: %s" % str(row_ids()))
+	check(row_ids() == ["feed", "bath", "play", "bed", "home_mash"], "Recém-chegado → Filhotinho: cuidados, caminha e a papinha caseira: %s" % str(row_ids()))
 	check(int(row("feed").need) == 1 and int(row("bath").need) == 1 and int(row("play").need) == 1, "comer, banho e brincar valem uma vez")
 	var puppy: Dictionary = db.growth.phases[1]
 	check(int(puppy.chapter) == 1 and not (puppy.rewards as Dictionary).has("coins"), "Filhotinho é do capítulo 1 e não paga moeda")
@@ -125,6 +125,9 @@ func _first_phase() -> void:
 	check(not row("bed").done and not bool(state.call("growth_info").ready), "falta a caminha")
 	state.call("dev_grant_upgrade", "dog_bed")
 	check(row("bed").done, "item-chave: caminha")
+	check(not bool(state.call("growth_info").ready), "falta a papinha caseira")
+	state.call("_count", "together:puppy_mash")
+	check(row("home_mash").done, "papinha caseira feita")
 	check(bool(state.call("growth_info").ready), "Crescer! acende no primeiro dia")
 	var coins: int = state.get("coins")
 	check(str(state.call("grow")) == "", "cresce para Filhotinho")

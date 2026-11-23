@@ -5970,13 +5970,19 @@ func _apply_photo_roll(id: String, level: int, kind: String, draw: bool = true, 
 func _tutorial_level(id: String, action: String) -> int:
 	var config: Dictionary = _cards().get("tutorial", {})
 	var forced: Array = config.get("forced", [])
-	if album.tutorial.get("done", false) or id != str(config.get("photo", "")) or forced.size() < 3:
+	if id != str(config.get("photo", "")) or forced.size() < 3:
 		return 0
-	var step := int(album.tutorial.get("step", 0))
+	if not album.tutorial.get("done", false):
+		# Parte 1 (capítulo 1): só abrir a carta.
+		var step := int(album.tutorial.get("step", 0))
+		return int(forced[0]) if action == "open" and (step == 1 or step == 2) else 0
+	if album.tutorial.get("more_done", false):
+		return 0
+	# Parte 2 (mais adiante): Tentar a sorte e Melhorar de presente.
+	var more := int(album.tutorial.get("more_step", 0))
 	match action:
-		"open": return int(forced[0]) if step == 1 or step == 2 else 0
-		"reroll": return int(forced[1]) if step == 3 else 0
-		"upgrade": return int(forced[2]) if step == 4 else 0
+		"reroll": return int(forced[1]) if more == 3 else 0
+		"upgrade": return int(forced[2]) if more == 4 else 0
 	return 0
 
 
@@ -6220,6 +6226,38 @@ func finish_album_tutorial() -> void:
 	if album_tutorial_done(): return
 	album.tutorial["done"] = true
 	_count("album_tutorial")
+	_changed()
+
+
+## A lição do painel de crescimento terminou (ou foi pulada): cumpre o passo "Como ele cresce" (que se entrega sozinho).
+func note_growth_lesson() -> void:
+	if progress.stat("growth_lesson") > 0: return
+	_count("growth_lesson")
+	_changed()
+
+
+## Capítulo a partir do qual a Laís volta à foto da chegada para ensinar Tentar a sorte e Melhorar.
+const ALBUM_MORE_CHAPTER := 3
+
+## Parte 2 da aula do Álbum (Tentar a sorte, Melhorar e escolher a versão) está esperando o jogador abrir o Álbum?
+func album_more_ready() -> bool:
+	return album_tutorial_done() and not bool(album.tutorial.get("more_done", false)) \
+		and content_day() >= ALBUM_MORE_CHAPTER and photo_rarity(str(_cards().get("tutorial", {}).get("photo", ""))) > 0
+
+
+func album_more_step() -> int:
+	return int(album.tutorial.get("more_step", 0))
+
+
+func advance_album_more(step: int) -> void:
+	if bool(album.tutorial.get("more_done", false)) or step <= album_more_step(): return
+	album.tutorial["more_step"] = clampi(step, 0, 6)
+	_changed()
+
+
+func finish_album_more() -> void:
+	if bool(album.tutorial.get("more_done", false)): return
+	album.tutorial["more_done"] = true
 	_changed()
 
 

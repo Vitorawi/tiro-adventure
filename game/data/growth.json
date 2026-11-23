@@ -74,6 +74,14 @@
           "type": "owned",
           "upgrade": "dog_bed",
           "label": "Caminha"
+        },
+        {
+          "id": "home_mash",
+          "explain": "Faça a primeira papinha no fogão com o Cozinhar junto e dê ao Tiro.",
+          "type": "stat",
+          "counter": "together:puppy_mash",
+          "qty": 1,
+          "label": "Papinha caseira"
         }
       ],
       "chapter": 1,

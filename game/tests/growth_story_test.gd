@@ -5,7 +5,7 @@ extends SceneTree
 
 const FORBIDDEN: Array[String] = ["Recolher", "Coletar", "Conclua:", " · Conclua", "Nv ", "Máx.", "capítulo %d", "x0", "Produzir"]
 const GROWTH_QUESTS := {
-	"growth_1_puppy": ["puppy", 1, 70],
+	"growth_1_puppy": ["puppy", 1, 160],
 	"growth_3_teething": ["teething", 11, 20],
 	"growth_6_explorer": ["explorer", 14, 50],
 	"growth_9_young": ["young", 17, 40],
@@ -113,7 +113,7 @@ func _data() -> void:
 		check((quest.rewards as Dictionary).is_empty(), id + ": sem prêmio extra (o presente vem da fase)")
 		var last: String = str(state.progress.main_quests(int(quest.chapter)).back())
 		# O Filhotinho é o passo 7 do Ato 1 (capítulo 1, depois vêm a foto e o Ato 2 com a vovó).
-		var expected_last := "first_meal" if id == "growth_1_puppy" else id
+		var expected_last := id  # o Filhotinho voltou a fechar o capítulo 1
 		check(last == expected_last, id + ": é o último passo do capítulo (último = %s)" % last)
 	check(db.quests.teeth_3_ring.goals[0].type == "week_delivered", "Dentinhos pede a entrega do mordedor")
 	check(db.quests.explorer_6_eggs.shared_with == "main_9_eggs" and int(db.quests.explorer_6_eggs.order) == 45, "explorer_6_eggs orienta os ovos")
@@ -128,20 +128,16 @@ func _data() -> void:
 func _chapter_one() -> void:
 	_fresh()
 	var ids: Array = state.progress.main_quests(1)
-	check(ids.size() == 14 and ids.front() == "welcome" and ids.back() == "first_meal", "a caixa e a primeira papinha delimitam o primeiro capítulo")
-	check(ids.slice(0, 8) == ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed", "lais_growth", "growth_1_puppy", "lais_photo"], "os oito passos do Ato 1 abrem o capítulo")
+	check(ids.size() == 14 and ids.front() == "welcome" and ids.back() == "growth_1_puppy", "a caixa abre e o Filhotinho fecha o primeiro capítulo")
+	check(ids.slice(0, 6) == ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed", "lais_photo"], "os passos em casa abrem o capítulo")
 	state.dev_complete_quest("lais_growth")
-	check(state.progress.chapter_index() == 1 and state.progress.current_main_quest() == "growth_1_puppy", "a caminha e a lista antecedem o primeiro crescimento")
+	check(state.progress.chapter_index() == 1 and state.progress.current_main_quest() == "growth_1_puppy", "a papinha caseira e a lição antecedem o primeiro crescimento")
 	check(state.quest_error("growth_1_puppy") != "", "sem crescer não conclui")
 	state.growth.phase = "puppy"
 	check(state.goal_value(db.quests.growth_1_puppy.goals[0]) == 1, "fase alcançada cumpre o objetivo")
-	var coins: int = state.coins
-	check(state.claim_quest("growth_1_puppy") == "", "recebe o passo Filhotinho")
-	check(state.progress.chapter_index() == 1 and state.progress.current_main_quest() == "lais_photo", "depois do Filhotinho vem a foto da chegada")
-	check(state.coins == coins, "a missão de crescimento não repete prêmios")
 	var places: Script = load("res://scripts/ui/places.gd")
 	check((places.call("goal_target", db.quests.growth_1_puppy.goals[0]) as Dictionary).has("growth"), "Ir abre o crescimento")
-	state.dev_complete_quest("first_meal")
+	check(state.claim_quest("growth_1_puppy") == "", "recebe o passo Filhotinho")
 	check(state.progress.chapter_index() == 2 and state.progress.current_main_quest() == "week_market", "o capítulo 2 abre no fim do capítulo 1, pela banca")
 	check(state.quest_unlocked("week_market"), "o capítulo seguinte abre na hora, sem esperar o dia")
 
@@ -295,7 +291,7 @@ func _task_help() -> void:
 	var data: Dictionary = help.call("describe", "growth", "puppy")
 	check(data.title == "Filhotinho" and data.target.has("growth"), "descrição da fase aponta o painel")
 	var ids: Array = (data.needs as Array).map(func(need: Dictionary) -> String: return str(need.id))
-	check(ids == ["feed", "bath", "play", "bed"], "lista só o que falta no Ato 1 (%s)" % str(ids))
+	check(ids == ["feed", "bath", "play", "bed", "home_mash"], "lista só o que falta no capítulo 1 (%s)" % str(ids))
 	for need: Dictionary in data.needs:
 		check(need.kind == "growth_req", "cada requisito é tocável (growth_req)")
 		var detail: Dictionary = help.call("describe", need.kind, need.id, need.amount)

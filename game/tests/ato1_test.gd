@@ -72,14 +72,15 @@ func _run() -> void:
 	coins_start = state.coins
 
 	# Os oito passos do capítulo 1, na ordem, e a lista curta do Filhotinho.
-	var steps: Array = state.progress.main_quests(1).slice(0, 8)  # os passos 9 a 14 são da F03 (ato2_test)
-	check(steps == ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed", "lais_growth", "growth_1_puppy", "lais_photo"], "ordem dos oito passos: " + str(steps))
+	var steps: Array = state.progress.main_quests(1).slice(0, 6)  # o resto (Sítio, vovó, papinha e crescer) é do ato2_test
+	check(steps == ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed", "lais_photo"], "ordem dos passos em casa: " + str(steps))
+	check(state.progress.main_quests(1).slice(-2) == ["lais_growth", "growth_1_puppy"], "o capítulo 1 fecha com o crescimento")
 	check(not db.quests.has("lais_album"), "a linha lais_album saiu")
 	check(state.progress.main_quests(2).find("lais_bed") == -1 and state.progress.main_quests(2).find("growth_1_puppy") == -1, "capítulo 2 perdeu a caminha e o Filhotinho")
 	check(db.progression.chapters.size() >= 2 and state.progress.main_quests(2).size() > 0, "capítulo 2 continua existindo")
 	var puppy: Dictionary = db.growth.phases[1]
 	var ids: Array = puppy.requirements.map(func(req: Dictionary) -> String: return str(req.id))
-	check(puppy.id == "puppy" and ids == ["feed", "bath", "play", "bed"] and int(puppy.chapter) == 1, "Filhotinho pede comer, banho, brincar e caminha: " + str(ids))
+	check(puppy.id == "puppy" and ids == ["feed", "bath", "play", "bed", "home_mash"] and int(puppy.chapter) == 1, "Filhotinho pede comer, banho, brincar, caminha e a papinha caseira: " + str(ids))
 	check(not puppy.rewards.has("coins") and int(puppy.rewards.items.dog_food) == 3, "Filhotinho sem moedas, com a ração")
 	var teething: Dictionary = db.growth.phases[2]
 	var days := {}
@@ -174,29 +175,9 @@ func _run() -> void:
 	check(discs() == ["FoodButton", "Care_sponge", "Care_ball", "SleepButton"], "o soninho entrou na roleta: " + str(discs()))
 	tray.call("close_wheel")
 
-	# Passo 6: o painel de crescimento.
-	check(state.progress.stat("open:growth") == 0, "o painel ainda não foi aberto")
-	check(not shown("AlbumButton"), "o Álbum ainda não apareceu")
-	load("res://scripts/ui/growth_ui.gd").call("open")
-	await frames(3)
-	check(state.progress.stat("open:growth") == 1, "abrir o crescimento conta o passo")
-	check(node("ClaimStep") != null and node("GrowButton") == null, "painel pronto, com o passo anterior por pegar, oferece Pegar (não um beco)")
-	root.get_node("Events").sheet_close_requested.emit()
-	await frames(3)
-	await claim("lais_growth")
-
-	# Passo 7: crescer.
-	var dog_food_start: int = state.inventory.count("dog_food")
-	check(state.grow_error() == "", "pronto para crescer: " + str(state.grow_error()))
-	check(state.grow() == "", "crescer")
-	check(state.growth.phase == "puppy", "Filhotinho ao fim do passo 7")
-	await frames(3)
-	check(state.coins == coins_start, "crescer não paga moeda")
-	check(state.inventory.count("dog_food") == dog_food_start + 3, "a ração do Filhotinho")
-	await claim("growth_1_puppy")
-
-	# Passo 8: a carta da chegada. O Álbum só aparece agora.
-	check(quest() == "lais_photo", "o passo 8 é a foto")
+	# Passo 6: a carta da chegada (o crescimento ficou para o fim do capítulo 1).
+	check(state.growth.phase == "newborn" and state.grow_error() != "", "ainda não cresce: falta a papinha caseira")
+	check(quest() == "lais_photo", "o passo 6 é a foto")
 	await frames(3)
 	check(shown("AlbumButton"), "o botão do Álbum aparece no passo 8")
 	check(shown("TasksTab") and not shown("BagTab"), "Missões desde o começo; a Mochila espera o fim do Ato 1")

@@ -142,13 +142,15 @@
     }
   },
   "lais_growth": {
+    "auto_claim": true,
+    "claim_sheet": false,
     "npc": "lais",
     "name": "Como ele cresce",
-    "dialogue": "Viu como ele está mudando? Olha aqui.",
+    "dialogue": "Ele comeu a papinha que vocês fizeram! Olha como ele está mudando.",
     "goals": [
       {
         "type": "stat",
-        "key": "open:growth",
+        "key": "growth_lesson",
         "target": 1,
         "label": "Ver como o Tiro cresce"
       }
@@ -156,7 +158,7 @@
     "rewards": {},
     "kind": "main",
     "chapter": 1,
-    "order": 60,
+    "order": 150,
     "go": {
       "growth": true
     }
@@ -251,6 +253,8 @@
     "order": 10
   },
   "first_kitchen": {
+    "auto_claim": true,
+    "claim_sheet": false,
     "npc": "lais",
     "name": "A primeira papinha",
     "dialogue": "Vamos fazer a primeira papinha!",
@@ -274,8 +278,8 @@
   },
   "first_meal": {
     "npc": "lais",
-    "name": "Hora de comer",
-    "dialogue": "Agora é com você: dê a papinha para ele.",
+    "name": "A papinha caseira",
+    "dialogue": "Agora é com você: dê a papinha que vocês fizeram.",
     "goals": [
       {
         "type": "stat",
@@ -483,23 +487,25 @@
     "npc": "bloblo",
     "requirements": {
       "quests": [
-        "lais_first_crops"
+        "first_meal"
       ]
     },
     "name": "A primeira colheita",
-    "dialogue": "Esse canteiro é seu. Planta uma cenoura e rega! O que você colher vai para o cesto, que cabe pouquinho.",
+    "dialogue": "Agora a horta é sua. Rega e colhe mais uma vez! O que você colher vai para o cesto, que cabe pouquinho.",
     "goals": [
       {
         "type": "stat",
         "key": "water",
         "target": 1,
-        "label": "Regar a plantinha"
+        "label": "Regar a plantinha",
+        "fresh": true
       },
       {
         "type": "stat",
         "key": "harvest",
         "target": 1,
-        "label": "Colher a cenoura"
+        "label": "Colher uma hortaliça",
+        "fresh": true
       }
     ],
     "rewards": {
@@ -2252,6 +2258,7 @@
       "coins": 10
     },
     "order": 22,
+    "requirements": {"quests": ["first_meal"]},
     "go": {
       "world": "farm",
       "place": "early_market"
@@ -2681,6 +2688,7 @@
     "order": 30
   },
   "growth_1_puppy": {
+    "auto_claim": true,
     "npc": "lais",
     "name": "Filhotinho",
     "dialogue": "Ele está pronto para crescer!",
@@ -2695,7 +2703,7 @@
     "rewards": {},
     "kind": "main",
     "chapter": 1,
-    "order": 70,
+    "order": 160,
     "go": {
       "growth": true
     }

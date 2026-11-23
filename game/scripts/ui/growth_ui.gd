@@ -224,6 +224,8 @@ static func week_icon(req: Dictionary) -> Texture2D:
 				"bathe": return UiKit.ui_icon("action_sponge")
 				"name_call": return UiKit.ui_icon("action_pet")
 				"trick_learned": return UiKit.ui_icon("trick_paw")
+			if str(req.get("counter", "")).begins_with("together:"):
+				return Database.item_icon(str(req.counter).trim_prefix("together:"))
 	return UiKit.ui_icon("tab_pet")
 
 
@@ -258,6 +260,8 @@ static func _week_view(view: Dictionary, req: Dictionary) -> void:
 				"play_rope": view.short = "Cordinha"
 				"name_call": view.short = "Nome"
 				"trick_learned": view.short = "Truques"
+				_ when str(req.get("counter", "")).begins_with("together:"):
+					view.short = Database.item_name(str(req.counter).trim_prefix("together:")).get_slice(" ", 0)
 
 
 ## Dica de uma linha e ação do botão Ir dos requisitos novos.
@@ -288,6 +292,10 @@ static func _week_hint(view: Dictionary, req: Dictionary) -> void:
 				"play":
 					view.action = "Brincar"
 					view.hint = "Cuidar → Brincar"
+				_ when str(req.get("counter", "")).begins_with("together:"):
+					view.action = "Cozinhar junto"
+					view["action_short"] = "Cozinhar"
+					view.hint = "No fogão, com a vovó"
 				"feed":
 					view.action = "Dar comida"
 					view.hint = "Cuidar → Comida"

@@ -35,6 +35,8 @@ var _row2_blockers: Dictionary = {}
 var _row2_was_hidden := false
 var _quest_reward: CanvasLayer
 var _quest_rewards: Array[Dictionary] = []
+const CARE_MAX_WAIT := 10000
+var _care_since := -1
 var _reward_not_before := 0
 var _celebration: CanvasLayer
 ## Capítulo concluído nesta leva de missões (0 = nenhum); o anúncio sai uma vez, no fim do frame.
@@ -277,9 +279,20 @@ func _flush_modals() -> void:
 		return
 	# O conteúdo da folha já fechou, mas sua moldura ainda pode estar saindo.
 	if bool(get_node("Sheet").get("_closing")): return
+	if _waiting_care(): return
 	if not _modal_queue.is_empty():
 		_modal_queue.pop_front().call()
 
+
+
+## O cartão espera o Tiro terminar de comer/tomar banho/brincar (no máximo 10 s).
+func _waiting_care() -> bool:
+	var now := Time.get_ticks_msec()
+	if PetAnimator.home_caring():
+		if _care_since < 0: _care_since = now
+		return now - _care_since < CARE_MAX_WAIT
+	_care_since = -1
+	return false
 
 
 ## Algum cartão grande (introdução, comemoração, boas-vindas, volta do passeio, cerimônia) está na tela.

@@ -707,6 +707,10 @@ static func _growth_requirement(id: String, trail: Array[String]) -> Dictionary:
 						"name_call": "Toque em Tiro! no quintal e espere ele chegar.",
 					}
 					result = _base(str(row.label), str(guide[counter]), {"world": "farm", "place": "week_yard"}, "Ir")
+				elif counter.begins_with("together:"):
+					var dish := counter.trim_prefix("together:")
+					result = _base(str(row.label), "Faça %s no fogão com o Cozinhar junto." % Database.item_name(dish).to_lower(),
+						{"world": "house", "place": "cookbook:recipe:" + dish, "spot": "stove"}, "Ir")
 				elif counter == "trick_learned":
 					result = _base(str(row.label), "Aprenda Senta, Dá a pata e Deita na Aula do Tiro.", TrickUi.lesson_target(), "Ir")
 				else:

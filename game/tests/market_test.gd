@@ -19,6 +19,7 @@ func _run() -> void:
 	state.call("reset")
 	state.call("dev_complete_quest", "first_harvest")
 	state.call("dev_complete_quest", "lais_first_crops")  # as encomendas esperam a primeira horta (fim do Ato 1)
+	state.call("dev_complete_quest", "first_meal")  # a missão da venda da vovó espera o fim do capítulo 1
 	state.set("level", 20)
 	state.set("xp", 0)
 	state.set("coins", 0)

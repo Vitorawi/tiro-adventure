@@ -135,8 +135,20 @@ func _mark_people_seen() -> void:
 func _build(box: VBoxContainer) -> void:
 	box.add_theme_constant_override("separation", 12)
 	if GameState.progress.chapter_index() <= GameState.week_last_chapter():
-		_group = "story"
-		_update_groups({})
+		# Semana: História (o passo principal) e Pessoas (as missões paralelas, ex.: da vovó). Diárias ficam no "Hoje".
+		_ready_routines.clear()
+		_ready_characters.clear()
+		var week_people := _character_quests()
+		for ids: Array in week_people.values():
+			for id: String in ids:
+				if GameState.quest_error(id) == "": _ready_characters.append(id)
+		if _group == "timed": _group = "story"
+		_update_groups(week_people)
+		if _group == "characters":
+			_add_claim_all(box)
+			_characters(box, week_people)
+			sync_hud()
+			return
 		_story_card(box)
 		WeekStoryUi.today(box)
 		WeekStoryUi.next_step(box)
@@ -174,7 +186,7 @@ func _update_groups(characters: Dictionary) -> void:
 		"locked": "" if GameState.routines_unlocked("daily") else "Diárias liberam mais adiante na história"})
 	# As abas só são recriadas quando algo visível muda; a bandeja não mexe de lugar nem a cada segundo.
 	if GameState.progress.chapter_index() <= GameState.week_last_chapter():
-		entries.resize(1)
+		entries.resize(2)  # sem Diárias na semana (a rotina do dia mora no "Hoje" da História)
 	var sig := _group
 	for entry: Dictionary in entries: sig += "|%s:%s:%s" % [entry.id, entry.alert, entry.get("locked", "")]
 	if sig == _tabs_sig and _tabs != null and is_instance_valid(_tabs): return

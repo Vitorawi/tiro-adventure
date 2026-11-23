@@ -89,9 +89,8 @@ func run() -> void:
 	await wait_ui(0.3)
 	route.ato_one()  # Ato 1 em casa: comida, banho, brincar, caminha, crescimento, Filhotinho e a carta (as mãos `home_*` vêm do jogo)
 	await wait_ui(0.6)
-	state.acknowledge_growth("puppy")  # a cerimônia do Filhotinho já foi vista (senão os cartões do dia esperam)
 	await dismiss()
-	check(state.growth.phase == "puppy" and state.well_fed_days() == 1, "O Ato 1 termina em Filhotinho com a patinha da chegada")
+	check(state.growth.phase == "newborn" and state.well_fed_days() == 1, "O Ato 1 termina com a patinha da chegada (o Filhotinho é o fecho do capítulo)")
 	var places := load("res://scripts/ui/places.gd")
 	state.note_screen_opened("farm")  # Ato 2: o Sítio e a vovó (as mãos `go_farm`/`meet_bloblo` são do ato2_test)
 	route.claim("lais_farm")
@@ -167,6 +166,12 @@ func run() -> void:
 		route.serve("puppy_mash")
 		state.finish_food_lesson()
 	route.claim("first_meal")
+	await dismiss()
+	state.note_screen_opened("growth")
+	state.note_growth_lesson()
+	route.ok(state.grow(), "Virar Filhotinho no fim do capítulo 1")
+	await wait_ui(0.6)
+	state.acknowledge_growth("puppy")  # a cerimônia do Filhotinho já foi vista (senão os cartões do dia esperam)
 	await dismiss()
 	main.call("show_screen", &"pet")
 	await settle_cards()
@@ -426,7 +431,7 @@ func kitchen_at(kitchen: Control, point: Vector2) -> Vector2:
 
 
 func cook_first_meal(kitchen: Control) -> void:
-	check(shown("cook") and guide.get("step") == 0, "Cozinhar junto mostra Picar")
+	check(shown("cook") and guide.get("step") == 1, "Cozinhar junto mostra Picar")
 	for i in 20:
 		if kitchen.get("phase") != "picar":
 			break
@@ -434,7 +439,7 @@ func cook_first_meal(kitchen: Control) -> void:
 		drag(kitchen_at(kitchen, Vector2(x, 280)), kitchen_at(kitchen, Vector2(x, 360)))
 	kitchen.call("tick", 0.6)
 	await wait_ui()
-	check(shown("cook") and guide.get("step") == 1, "Picar leva a Mexer")
+	check(shown("cook") and guide.get("step") == 2, "Picar leva a Mexer")
 	await snap("09_mexer")
 	await reopen()
 	await until_visible("CookTogether")
@@ -458,7 +463,7 @@ func cook_first_meal(kitchen: Control) -> void:
 	pointer(position, false)
 	kitchen.call("tick", 0.6)
 	await wait_ui()
-	check(shown("cook") and guide.get("step") == 2, "Mexer leva a Servir")
+	check(shown("cook") and guide.get("step") == 3, "Mexer leva a Servir")
 	var bowl := kitchen_at(kitchen, Vector2(272, 566))
 	for i in 2:
 		drag(kitchen_at(kitchen, Vector2(99, 404)), bowl)

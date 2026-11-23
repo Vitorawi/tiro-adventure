@@ -218,6 +218,27 @@ static func home_petting() -> bool:
 	return is_instance_valid(home) and home.is_inside_tree() and home.petting()
 
 
+const CARE_WINDOW := 8000  # só espera logo depois de um cuidado de verdade
+const CARE_CLIPS := [&"eat_enter", &"eat_loop", &"eat_exit", &"bath", &"play_ball", &"eat", &"happy_jump", &"shake_off"]
+
+var _care_started := -100000
+
+## Ainda no meio de um cuidado que o jogador acabou de dar (comendo, no banho, brincando ou no carinho)?
+func caring() -> bool:
+	if Time.get_ticks_msec() - _care_started > CARE_WINDOW: return false
+	return petting() or _clip in CARE_CLIPS
+
+
+## O Tiro da tela inicial ainda está curtindo um cuidado (ou a bolinha ainda está voando até ele).
+static func home_caring() -> bool:
+	if not (is_instance_valid(home) and home.is_inside_tree()):
+		return false
+	var screen := home.get_parent() as CanvasItem
+	if screen != null and not screen.is_visible_in_tree():
+		return false
+	return home.caring() or home.get_tree().root.find_child("ThrownBall", true, false) != null
+
+
 func play_lesson_pose(clip: StringName) -> void:
 	_next = &""
 	_chain.clear()
@@ -227,6 +248,8 @@ func play_lesson_pose(clip: StringName) -> void:
 
 
 func react(action: StringName) -> void:
+	if action in [&"feed", &"bathe", &"play", &"pet"]:
+		_care_started = Time.get_ticks_msec()
 	if _clip in CARE_SEQUENCE: return
 	for id: String in Database.progression.tricks:
 		if action == StringName(Database.progression.tricks[id].animation) and not _sleeping:

@@ -1069,6 +1069,8 @@ func _refresh_detail() -> void:
 		n += 1
 	var queue := pic("btn_queue", Vector2(419, 886 + _e), "QueueButton")
 	queue.modulate.a = 0.6 if str(entry.error) != "" else 1.0
+	if together_first():
+		queue.modulate = Color(1, 1, 1, 0.35)  # na primeira papinha só vale Cozinhar junto
 	tappable(queue, _queue_selected)
 	_detail.add_child(queue)
 	var together := pic("btn_together", Vector2(414, 953 + _e), "TogetherButton")
@@ -1107,6 +1109,13 @@ func _ingredient_card(item_id: String, need: int, x: float) -> Control:
 	card.add_child(count)
 	tappable(card, TaskHelp.open.bind("item", item_id, need))
 	return card
+
+
+## Passo "Cozinhar junto" da história ainda aberto: a fila espera, o caminho é o minigame.
+static func together_first() -> bool:
+	var quest := "first_kitchen"
+	return Database.quests.has(quest) and not GameState.progress.claimed_quests.has(quest) \
+		and GameState.progress.current_main_quest() == quest
 
 
 ## "Cozinhar junto" do prato escolhido: abre o minigame (os ingredientes só saem no fim). Mesmos motivos do "Colocar na fila".
@@ -1160,6 +1169,12 @@ func _queue_selected() -> void:
 		return
 	var id := str(entry.id)
 	var reason := str(entry.error)
+	if together_first():
+		Events.toast_requested.emit("Na primeira papinha, cozinhe junto com a vovó!")
+		var together := _detail.get_node_or_null("TogetherButton") as CanvasItem
+		if together != null:
+			Motion.pulse(together)
+		return
 	if reason != "":
 		var node := _detail.get_node_or_null("QueueButton") as CanvasItem
 		if str(entry.kind) == "recipe" and bool(entry.locked):

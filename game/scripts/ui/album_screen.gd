@@ -21,7 +21,7 @@ static func available() -> bool:
 static func has_new() -> bool:
 	if not GameState.photo_alerts_enabled():
 		return false
-	return not GameState.photos_unseen().is_empty() or not GameState.sealed_photos().is_empty()
+	return not GameState.photos_unseen().is_empty() or not GameState.sealed_photos().is_empty() or GameState.album_more_ready()
 
 
 static func panel(section: String = "") -> Control:

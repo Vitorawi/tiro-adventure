@@ -175,6 +175,8 @@ func _new_pairs_flow() -> void:
 			continue
 		_fresh()
 		var target: String = str(quests[alias].shared_with)
+		if quests[target].get("auto_claim", false):
+			continue  # entregue sozinho ao cumprir (ver ato2_test)
 		_claim_before(alias)
 		check(_p().displayed_main_quest() == _p().current_line_quest(str(quests[target].line)), alias + ": história mostra o passo da linha")
 		check(_p().current_main_quest() == alias, alias + ": é o passo atual da história")

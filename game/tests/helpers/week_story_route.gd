@@ -218,14 +218,9 @@ func ato_one() -> void:
 	claim("lais_play")
 	ok(state.buy_upgrade("dog_bed"), "Colocar a caminha")
 	claim("lais_bed")
-	action("crescimento")
-	state.note_screen_opened("growth")
-	claim("lais_growth")
-	ok(state.grow(), "Virar Filhotinho no passo 7")
-	claim("growth_1_puppy")
 	action("álbum")
 	state.finish_album_tutorial()
-	verify.call(state.growth.phase == "puppy" and state.coins == coins, "Ato 1 inteiro em Filhotinho, sem moeda")
+	verify.call(state.growth.phase == "newborn" and state.coins == coins, "Ato 1 inteiro sem moeda, ainda recém-chegado")
 	claim("lais_photo")  # a rotina do dia paga as moedas da primeira refeição só a partir daqui
 
 
@@ -238,8 +233,7 @@ func ato_two(first_stars: int = 3, late_arrival: bool = true) -> void:
 	claim("lais_farm")
 	action("sítio")
 	state.talk_to("bloblo")
-	verify.call(state.progress.current_main_quest() == "lais_meet_bloblo" and state.progress.displayed_main_quest() == "bloblo_meet", "A vovó aparece no lugar do passo da Laís")
-	ok(state.claim_quest("bloblo_meet"), "Conhecer a vovó")
+	verify.call(state.progress.claimed_quests.has("bloblo_meet"), "Conhecer a vovó se completa sozinho ao falar com ela")
 	verify.call(state.progress.current_main_quest() == "lais_first_crops", "Conhecer a vovó fecha o passo 10")
 	crop("carrot", 1)
 	crop("potato", 1)
@@ -258,6 +252,14 @@ func ato_two(first_stars: int = 3, late_arrival: bool = true) -> void:
 	verify.call(state.well_fed_days() == 1, "A segunda papinha do dia da chegada não repete a patinha")
 	verify.call(state.coins == coins, "Ato 2 inteiro sem moeda")
 	claim("first_meal")
+	# O capítulo 1 fecha com o crescimento: a papinha caseira é o último pedido do Filhotinho.
+	action("crescimento")
+	state.note_screen_opened("growth")
+	state.note_growth_lesson()
+	claim("lais_growth")
+	ok(state.grow(), "Virar Filhotinho no fim do capítulo 1")
+	claim("growth_1_puppy")
+	verify.call(state.growth.phase == "puppy", "O capítulo 1 termina em Filhotinho")
 
 
 func day_one(late_arrival: bool = true) -> void:

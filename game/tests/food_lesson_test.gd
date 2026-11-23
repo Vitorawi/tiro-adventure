@@ -269,7 +269,7 @@ func _lesson(hour: int, branch: String, fragment: String) -> void:
 func _growth_lesson() -> void:
 	await fresh(10, false, "newborn")
 	db.week_story.food_lesson["quest"] = "lais_photo"
-	for id: String in ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed"]:
+	for id: String in ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed", "lais_photo", "lais_farm", "lais_meet_bloblo", "lais_first_crops", "place_stove", "first_kitchen", "first_meal"]:
 		state.progress.claimed_quests[id] = true
 	check(str(state.progress.current_main_quest()) == "lais_growth", "o passo da vez é lais_growth (%s)" % state.progress.current_main_quest())
 	check(guide() != null and str(guide().get("kind")) == "", "nada antes de abrir o painel")
@@ -334,6 +334,9 @@ func _evening_and_morning() -> void:
 	(node("NotebookTab_early") as Button).pressed.emit()
 	await frames(2)
 	check(str(state.week.option) == "early" and str(node("DealHours").get("text")).contains("Almoço 10h–14h"), "Mais cedo muda os horários na hora (%s)" % node("DealHours").get("text"))
+	var early_box := (node("NotebookTab_early") as Button).get_theme_stylebox("normal") as StyleBoxFlat
+	var normal_box := (node("NotebookTab_normal") as Button).get_theme_stylebox("normal") as StyleBoxFlat
+	check(early_box.bg_color != normal_box.bg_color and early_box.bg_color.v > normal_box.bg_color.v, "Mais cedo fica aceso no seletor")
 	(node("NotebookTab_normal") as Button).pressed.emit()
 	await frames(2)
 	check(str(state.week.option) == "normal", "Normal volta o horário")

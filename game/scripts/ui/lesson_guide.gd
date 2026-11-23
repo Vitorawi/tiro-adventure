@@ -215,6 +215,7 @@ func _on_next() -> void:
 			_enter(beat + 1)
 		else:
 			WeekTutorial.finish("growth_lesson")
+			GameState.note_growth_lesson()
 			_stop()
 		return
 	if kind != "food":
@@ -228,6 +229,7 @@ func _on_next() -> void:
 func _on_skip() -> void:
 	if kind == "growth":
 		WeekTutorial.finish("growth_lesson", true)
+		GameState.note_growth_lesson()
 		_stop()
 	elif kind == "food":
 		_finish_food()
