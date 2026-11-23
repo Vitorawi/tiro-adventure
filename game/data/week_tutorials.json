@@ -218,7 +218,7 @@
         },
         {
           "target": "GrowButton",
-          "say": "Toque em Crescer!"
+          "say": "Todos os passos com ✓! Toque em Crescer!"
         }
       ],
       "done": "growth:puppy",

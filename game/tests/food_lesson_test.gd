@@ -273,14 +273,22 @@ func _growth_lesson() -> void:
 		state.progress.claimed_quests[id] = true
 	check(str(state.progress.current_main_quest()) == "lais_growth", "o passo da vez é lais_growth (%s)" % state.progress.current_main_quest())
 	check(guide() != null and str(guide().get("kind")) == "", "nada antes de abrir o painel")
+	# Tudo do Filhotinho feito (como no fim do capítulo 1): a lição mostra exemplos e a mão leva ao Crescer.
+	for counter: String in ["feed", "bathe", "play", "together:puppy_mash"]:
+		state.progress.stats[counter] = 1
+	state.progress.owned["dog_bed"] = true
+	for seen: String in ["missions", "home_tour", "home_claim", "food"]:
+		state.week.tutorial[seen] = {"done": true}  # balões do começo já vistos
+	state.mark_seen(state.new_unlocks())  # as novidades do passo anterior já apareceram no prêmio dele
 	load("res://scripts/ui/growth_ui.gd").call("open")
 	await wait(0.7)
 	check(str(guide().get("kind")) == "growth" and int(guide().get("beat")) == 1, "abrir o painel começa a lição")
-	check(guide_text().contains("Cada fase tem uma lista"), "fala 1: " + guide_text())
+	check(guide_text().contains("precisa cumprir os passos"), "fala 1: " + guide_text())
 	check(guide().visible and node("GrowthSteps") != null, "a mão aponta a grade de passos")
 	(node("LessonNext") as Button).pressed.emit()
 	await wait(0.2)
-	check(int(guide().get("beat")) == 2 and guide_text().contains("Tudo o que você faz"), "fala 2: " + guide_text())
+	check(int(guide().get("beat")) == 2 and guide_text().contains("caminha"), "fala 2: " + guide_text())
+	check((guide().get("_target") as Rect2).is_equal_approx(node("GrowthReq_bed").get_global_rect()), "fala 2 aponta a caminha feita")
 	# Fechar o painel faz a lição sumir sozinha; reabrir começa de novo.
 	root.get_node("Events").sheet_close_requested.emit()
 	await wait(0.8)
@@ -293,10 +301,20 @@ func _growth_lesson() -> void:
 	await wait(0.2)
 	(node("LessonNext") as Button).pressed.emit()
 	await wait(0.2)
-	check(int(guide().get("beat")) == 3 and guide_text().contains("Aqui em cima"), "fala 3: " + guide_text())
+	check(int(guide().get("beat")) == 3 and guide_text().contains("papinha"), "fala 3: " + guide_text())
+	check((guide().get("_target") as Rect2).is_equal_approx(node("GrowthReq_home_mash").get_global_rect()), "fala 3 aponta a papinha caseira")
 	(node("LessonNext") as Button).pressed.emit()
 	await wait(0.3)
 	check(str(guide().get("kind")) == "" and state.week.tutorial.get("growth_lesson", {}).get("done", false), "a lição termina e não volta")
+	check(state.progress.claimed_quests.has("lais_growth") and str(state.progress.current_main_quest()) == "growth_1_puppy", "a lição completa o passo e a missão vira Crescer")
+	await wait(1.0)
+	var hand := main.find_child("WeekTutorial", true, false)
+	check(hand != null and hand.visible and str(hand.get("active")) == "home_grow" and shown("GrowButton"), "a mão leva ao Crescer! (%s)" % (str(hand.get("active")) if hand else "-"))
+	# Fechar o painel sem crescer: a missão continua esperando o primeiro crescimento.
+	root.get_node("Events").sheet_close_requested.emit()
+	await wait(0.6)
+	check(str(state.progress.current_main_quest()) == "growth_1_puppy" and state.growth.phase == "newborn", "sem crescer, a história espera")
+	check(state.grow() == "" and state.progress.claimed_quests.has("growth_1_puppy"), "crescer completa a missão sozinho")
 	root.get_node("Events").sheet_close_requested.emit()
 	await wait(0.5)
 	load("res://scripts/ui/growth_ui.gd").call("open")

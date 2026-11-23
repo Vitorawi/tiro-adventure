@@ -220,7 +220,9 @@ func _on_next() -> void:
 		return
 	if kind != "food":
 		return
-	if beat < FOOD_BEATS:
+	# A fala 5 (seis patinhas → Dentinhos) só existe quando o painel já mostra a linha das patinhas: antes do Filhotinho,
+	# a aula termina na patinha e o painel de crescimento é apresentado pela lição dele (passo "Como ele cresce").
+	if beat < FOOD_BEATS and not (beat == 4 and not _has_days_row()):
 		_enter(beat + 1)
 	else:
 		_finish_food()
@@ -328,16 +330,9 @@ func _target_rect() -> Rect2:
 		"growth":
 			match beat:
 				1: return _rect("GrowthSteps")
-				2:
-					var union := Rect2()
-					var found := false
-					for tile: Node in main.find_children("GrowthReq_*", "Button", true, false):
-						var button := tile as Button
-						if button.is_visible_in_tree() and button.find_child("StepCheck", true, false) != null:
-							union = button.get_global_rect() if not found else union.merge(button.get_global_rect())
-							found = true
-					return union if found else _rect("GrowthSteps")
-				3: return _rect("HudProfile")
+				# Dois exemplos do que já está feito: a caminha e a papinha caseira (senão, o passo feito mais à mão).
+				2: return _done_tile("GrowthReq_bed", 0)
+				3: return _done_tile("GrowthReq_home_mash", 1)
 		"food":
 			match beat:
 				1: return _rect("MealClock")
@@ -353,6 +348,28 @@ func _target_rect() -> Rect2:
 					var row := _rect("GrowthReq_days")
 					return row if row.has_area() else _rect("GrowthSteps")
 	return Rect2()
+
+
+static func _has_days_row() -> bool:
+	for req: Dictionary in GameState.growth_info().get("requirements", []):
+		if str(req.get("id", "")) == "days":
+			return true
+	return false
+
+
+## Quadradinho de um passo já feito do painel de crescimento: o pedido, ou o n-ésimo passo com ✓, ou a grade toda.
+func _done_tile(preferred: String, fallback_index: int) -> Rect2:
+	var wanted := main.find_child(preferred, true, false) as Control
+	if wanted != null and wanted.is_visible_in_tree():
+		return wanted.get_global_rect()
+	var done: Array[Control] = []
+	for tile: Node in main.find_children("GrowthReq_*", "Button", true, false):
+		var button := tile as Button
+		if button.is_visible_in_tree() and button.find_child("StepCheck", true, false) != null:
+			done.append(button)
+	if done.size() > fallback_index:
+		return done[fallback_index].get_global_rect()
+	return _rect("GrowthSteps")
 
 
 ## A refeição que está no cardápio e vai ser arrastada (a papinha da aula).

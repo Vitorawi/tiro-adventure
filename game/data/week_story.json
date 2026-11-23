@@ -7,9 +7,9 @@
     "next": "Entendi",
     "snack": "Petisco é lanche: não conta como refeição.",
     "growth": [
-      "Cada fase tem uma lista. Quando tudo ficar ✓, ele cresce.",
-      "Tudo o que você faz por ele conta: comida, banho, brincar.",
-      "Aqui em cima você sempre vê quanto falta."
+      "Para crescer, o Tiro precisa cumprir os passos da fase. Cada quadradinho é um passo.",
+      "Olha a caminha que você colocou: esse passo já está feito! ✓",
+      "E a papinha que vocês fizeram juntos também conta! ✓"
     ],
     "clock": "Viu o reloginho? Ele fica verde quando é hora de comer.",
     "today": {
