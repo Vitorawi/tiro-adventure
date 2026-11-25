@@ -96,6 +96,7 @@ func _run() -> void:
 		await tap(bubble)
 		check(bubble.get_node_or_null("CarePointer") == null, "toque limpa seta")
 		check(main.find_child("WishCard", true, false) != null, "toque abre pedido")
+		await shot("card")
 		var catcher := main.find_child("PopoverCatcher", true, false)
 		if catcher: catcher.free()
 		state.pet()

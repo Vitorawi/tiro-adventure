@@ -80,7 +80,7 @@ func _setup_chapter_two() -> void:
 	state.call("_mark_all_seen")
 	state.call("dev_week_goto", 3)
 	state.call("dev_content_day", 6)
-	_inv().call("from_dict", {})
+	_inv().call("from_dict", {"bait_worm": 5})  # as iscas do dia da lagoa
 	state.call("_changed")
 
 
@@ -127,7 +127,8 @@ func _test_content() -> void:
 	var quests: Dictionary = root.get_node("Database").get("quests")
 	for id: String in ["week_bridge", "week_fish", "bloblo_rod", "bloblo_first_fish", "bloblo_three_fish", "bloblo_worms"]:
 		check(quests.has(id), "0: missão %s" % id)
-	check(int(quests.bloblo_rod.order) == 32 and int(quests.bloblo_first_fish.order) == 34 and int(quests.bloblo_three_fish.order) == 36 and int(quests.bloblo_worms.order) == 38, "0: ordens 32/34/36/38")
+	check(int(quests.bloblo_rod.order) == 73 and int(quests.bloblo_first_fish.order) == 74 and int(quests.bloblo_three_fish.order) == 76 and int(quests.bloblo_worms.order) == 78, "0: ordens 73/74/76/78 (a pesca da vovó vem depois da história)")
+	check(quests.bloblo_rod.requirements.quests == ["week_fish"] and bool(quests.bloblo_rod.get("auto_claim", false)), "0: a vara da vovó espera o primeiro peixe da história e se entrega sozinha")
 	check(int(quests.week_fish.chapter) == 6 and str(quests.week_fish.goals[0].key) == "fish", "0: a História do capítulo 6 conta a pescaria")
 	check((quests.bloblo_rod.rewards.rods as Array).has("bamboo_rod") and int(quests.bloblo_rod.rewards.items.bait_worm) == 5, "0: a vara dá bambu e 5 minhocas")
 	var lines: Dictionary = root.get_node("Database").get("npcs").bloblo.lines
@@ -178,18 +179,11 @@ func _test_quests_and_rod() -> void:
 	_setup_chapter_two()
 	var progress: RefCounted = state.get("progress")
 	var active: Dictionary = progress.call("active_steps")
-	check(active.values().has("bloblo_rod"), "1: bloblo_rod ativa (%s)" % str(active))
+	check(not active.values().has("bloblo_rod"), "1: a vara da vovó não é missão paralela (%s)" % str(active))
 	check(str(progress.call("current_main_quest")) == "week_bridge", "1: a principal é week_bridge (%s)" % str(progress.call("current_main_quest")))
-	check(state.call("current_rod") == "bamboo_rod", "1: a vara de bambu já está disponível no dia 3")
-	check(str(state.call("claim_quest", "bloblo_rod")) != "", "1: sem falar com a vovó não pega a vara")
-	state.call("talk_to", "bloblo")
-	check(str(state.call("claim_quest", "bloblo_rod")) == "", "1: falar com a vovó libera a vara")
-	check(str(state.call("current_rod")) == "bamboo_rod", "1: vara de bambu")
+	check(state.call("current_rod") == "bamboo_rod", "1: a vara de bambu chega com a lagoa")
 	check(_inv().count("bait_worm") == 5, "1: 5 minhocas")
-	check(str(state.call("claim_quest", "bloblo_rod")) != "" and _inv().count("bait_worm") == 5, "1: não paga duas vezes")
 	check(not bool(_fishing().tutorial.done), "1: o tutorial ainda não terminou")
-	check(progress.call("active_steps").values().has("bloblo_first_fish"), "1: primeira fisgada ativa")
-
 
 # 2/3 — o tutorial começa sozinho; cada passo só avança com a ação certa.
 func _test_steps() -> void:
@@ -296,8 +290,7 @@ func _test_unattended_and_result() -> void:
 # 6 — fechar o app no meio da partida e voltar: recomeça da mordida, sem prêmio duplicado.
 func _test_resume() -> void:
 	_setup_chapter_two()
-	state.call("talk_to", "bloblo")
-	check(str(state.call("claim_quest", "bloblo_rod")) == "", "6: vara entregue")
+	check(str(state.call("current_rod")) == "bamboo_rod", "6: vara pronta")
 	_clear_cards()
 	await _frames(6)
 	check(await _wait_phase("lake"), "6: começa de novo (%s)" % _phase())
@@ -346,9 +339,7 @@ func _test_resume() -> void:
 	check(str(_fishing().cast.get("state", "")) == "waiting" and bool(_fishing().cast.get("bitten", false)), "6: a mordida chega já")
 	check(_inv().count("bait_worm") == 5, "6: retomar não gasta minhoca")
 	check(int(state.call("fishing_tutorial_step")) == 9, "6: retomar não volta o passo salvo")
-	var rewarded: int = int(state.get("coins"))
-	check(str(state.call("claim_quest", "bloblo_rod")) != "", "6: o prêmio da vara não se repete")
-	check(int(state.get("coins")) == rewarded, "6: sem moedas extras")
+	check(not state.get("progress").call("active_steps").values().has("bloblo_rod"), "6: nenhuma missão da vara aparece no meio")
 
 
 func game_hold_for_release() -> void:
@@ -396,11 +387,7 @@ func _test_finish_and_next() -> void:
 	await _frames(3)
 	check(bool(_fishing().tutorial.done), "7: tutorial concluído")
 	check(_tutorial() == null, "7: o véu sumiu")
-	check(str(state.call("quest_error", "bloblo_first_fish")) == "", "7: a primeira fisgada está pronta")
-	var coins_before := int(state.get("coins"))
-	check(str(state.call("claim_quest", "bloblo_first_fish")) == "", "7: entrega")
-	check(int(state.get("coins")) >= coins_before + 10, "7: pelo menos 10 moedas (%d → %d)" % [coins_before, int(state.get("coins"))])
-	check(state.get("progress").call("active_steps").values().has("bloblo_three_fish"), "7: peixes da lagoa ativa")
+	check(not state.get("progress").call("active_steps").values().has("bloblo_first_fish"), "7: a fisgada da vovó não duplica a da história")
 	check(int(state.get("progress").call("stat", "fish")) >= 1, "7: a pesca também conta na História da lagoa")
 	var places: Script = load("res://scripts/ui/places.gd")
 	var target: Dictionary = places.call("goal_target", {"type": "stat", "key": "fish:fish_cara"})

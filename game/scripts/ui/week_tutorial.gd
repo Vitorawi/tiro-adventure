@@ -164,6 +164,28 @@ func _pick(intro: bool) -> void:
 	hide()
 
 
+## Primeiro desejo, pelo estado do jogo: 0 toque no balão → 1 cartão aberto (o que ele quer) → 2 carinho no Tiro
+## → 3 balão de novo quando ficou pronto → 4 Pegar no cartão. Desejos que não são carinho pulam o passo 2.
+func _locate_wish() -> Dictionary:
+	if GameState.balloon_wish() == "":
+		return {}
+	var card_open := _target("WishCard").has_area()
+	var data := record("wish")
+	if card_open and not data.get("opened", false):
+		data.opened = true
+		GameState.week.tutorial["wish"] = data
+	var candidate := {}
+	if GameState.wish_error() == "":
+		candidate = {"step": 4, "target": "WishTake"} if card_open else {"step": 3, "target": "WishBubble"}
+	elif card_open:
+		candidate = {"step": 1, "target": "WishCard"}
+	elif data.get("opened", false) and GameState.wish_id() == "pet":
+		candidate = {"step": 2, "target": "@tiro"}
+	else:
+		candidate = {"step": 0, "target": "WishBubble"}
+	return candidate if _target(str(candidate.target)).has_area() else {}
+
+
 ## A lição com `idle` (segundos) só aparece depois que o passo dela ficou parado esse tempo (quem já sabe o gesto não precisa da mão).
 func _idle_ready(lesson: Dictionary) -> bool:
 	var id := str(lesson.id)
@@ -194,6 +216,8 @@ func _locate(lesson: Dictionary) -> Dictionary:
 		if int(record("coop").get("step", -1)) >= 2:
 			finish("coop")
 		return {}
+	if lesson.id == "wish" and stages.size() >= 5:
+		return _locate_wish()
 	if lesson.get("sequence", false) and not stages.is_empty():
 		# Passos em ordem: só o da vez aparece (avança por evento ou por "Entendi").
 		var seq := int(record(lesson.id).get("seq", 0))
@@ -283,6 +307,8 @@ func _layout_week(target: Rect2, delta: float) -> void:
 		var points := _gesture(target, str(_shown.steps[step].get("gesture", "tap"))) if _shown.has("steps") else [target.get_center() + Vector2(-7, 12), target.get_center()]
 		if _shown.has("steps") and str(_shown.steps[step].get("advance", "")) == "tap":
 			_hand.visible = false  # o toque é no "Entendi" do balão, não no destaque
+		elif active == "wish" and step == 1:
+			_hand.visible = false  # cartão aberto: a fala pede para tocar fora dele, não no cartão
 		else:
 			_guide_hand(delta, points[0], points[1])
 	var bubble: Control = _balloon if _balloon.visible else _hint
@@ -291,11 +317,17 @@ func _layout_week(target: Rect2, delta: float) -> void:
 		width = minf(280.0, width)
 	bubble.size.x = width
 	var height := bubble.get_combined_minimum_size().y
-	var y := target.position.y - height - 14.0
-	if y < 58.0 or target.size.y > screen.y * 0.65:
-		y = target.end.y + 14.0
+	# O balão e o Pular desviam do alvo e, no desejo, do cartão inteiro (o pedido nunca fica escondido atrás da fala).
+	var avoid := target
+	if active == "wish":
+		var wish_card := _control_rect("WishCard")
+		if wish_card.has_area():
+			avoid = avoid.merge(wish_card)
+	var y := avoid.position.y - height - 14.0
+	if y < 58.0 or avoid.size.y > screen.y * 0.65:
+		y = avoid.end.y + 14.0
 	if y + height > screen.y - 74.0:
-		y = clampf(target.position.y - height - 14.0, 64.0, screen.y - height - 74.0)
+		y = clampf(avoid.position.y - height - 14.0, 64.0, screen.y - height - 74.0)
 	# O botão Ver detalhes fica no pé do balão do avatar: a fala vai embaixo, para não cobrir o texto dele.
 	if _shown.has("steps") and str(_shown.steps[step].get("target", "")) == "ViewGrowth":
 		y = target.end.y + 14.0
@@ -313,8 +345,10 @@ func _layout_week(target: Rect2, delta: float) -> void:
 	# Rostos de personagem (NpcRow) ficam no canto de cima à direita: o Pular não os cobre.
 	var faces := _control_rect("NpcRow")
 	var needs := _control_rect("NeedsPanel")  # os anéis das necessidades também ficam livres do Pular
-	if skip_y < 10.0 or target.intersects(skip_row) or (faces.has_area() and faces.grow(4.0).intersects(skip_row)) or (needs.has_area() and needs.grow(4.0).intersects(skip_row)):
+	if skip_y < 10.0 or avoid.intersects(skip_row) or (faces.has_area() and faces.grow(4.0).intersects(skip_row)) or (needs.has_area() and needs.grow(4.0).intersects(skip_row)):
 		skip_y = y + height + 4.0
+		if avoid.intersects(Rect2(Vector2(skip_row.position.x, skip_y), _skip.size)):
+			skip_y = avoid.end.y + 4.0  # nem em cima do cartão do desejo
 	_skip.position = Vector2(screen.x - _skip.size.x - 12.0, clampf(skip_y, 10.0, screen.y - _skip.size.y - 12.0))
 
 

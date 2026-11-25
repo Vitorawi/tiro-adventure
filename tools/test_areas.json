@@ -124,6 +124,7 @@
     "animals_chain_test",
     "customers_test",
     "wish_guide_test",
+    "wish_lesson_test",
     "wish_moments_test",
     "products_test",
     "pending_gifts_test",
@@ -303,6 +304,7 @@
         "game/scripts/state/wish_state.gd",
         "game/scripts/ui/wish_ui.gd",
         "game/tests/wish_guide_test.gd",
+        "game/tests/wish_lesson_test.gd",
         "game/tests/wish_moments_test.gd",
         "game/tests/care_ui_test.gd"
       ],
@@ -310,6 +312,7 @@
         "recipe_book_test",
         "trick_use_test",
         "wish_guide_test",
+        "wish_lesson_test",
         "wish_moments_test",
         "care_ui_test"
       ]

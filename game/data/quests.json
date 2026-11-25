@@ -493,14 +493,8 @@
       ]
     },
     "name": "A primeira colheita",
-    "dialogue": "Você já regou e colheu sozinho! O que você colher vai para o cesto, que cabe pouquinho.",
+    "dialogue": "Você já colheu sozinho! O que você colher vai para o cesto, que cabe pouquinho.",
     "goals": [
-      {
-        "type": "stat",
-        "key": "water",
-        "target": 1,
-        "label": "Regar a plantinha"
-      },
       {
         "type": "stat",
         "key": "harvest",
@@ -539,16 +533,17 @@
     "order": 30
   },
   "bloblo_rod": {
+    "auto_claim": true,
+    "claim_sheet": false,
     "npc": "bloblo",
     "name": "A vara da vovó",
     "dialogue": "Essa vara de bambu era do meu velho… Agora é sua! Vem, a lagoa é logo ali.",
     "goals": [
       {
         "type": "stat",
-        "key": "talk:bloblo",
+        "key": "fish",
         "target": 1,
-        "fresh": true,
-        "label": "Falar com a vovó"
+        "label": "Pescar na lagoa"
       }
     ],
     "rewards": {
@@ -561,14 +556,16 @@
     },
     "requirements": {
       "quests": [
-        "lais_first_crops"
+        "week_fish"
       ]
     },
     "kind": "line",
     "line": "bloblo",
-    "order": 32
+    "order": 73
   },
   "bloblo_first_fish": {
+    "auto_claim": true,
+    "claim_sheet": false,
     "npc": "bloblo",
     "name": "Primeira fisgada",
     "dialogue": "Agora é com você! Toque na água, segure o botão para arremessar e fisgue quando a boia afundar.",
@@ -577,7 +574,6 @@
         "type": "stat",
         "key": "fish",
         "target": 1,
-        "fresh": true,
         "label": "Pescar um peixe"
       }
     ],
@@ -586,7 +582,7 @@
     },
     "kind": "line",
     "line": "bloblo",
-    "order": 34,
+    "order": 74,
     "go": {
       "world": "farm",
       "place": "fishing",
@@ -625,7 +621,7 @@
     },
     "kind": "line",
     "line": "bloblo",
-    "order": 36,
+    "order": 76,
     "go": {
       "world": "farm",
       "place": "fishing",
@@ -650,7 +646,7 @@
     },
     "kind": "line",
     "line": "bloblo",
-    "order": 38,
+    "order": 78,
     "go": {
       "world": "farm",
       "place": "shop:worm_pack",

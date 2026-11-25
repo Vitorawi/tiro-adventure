@@ -81,7 +81,7 @@ func _coop_storage() -> void:
 	state.call("reset")
 	state.set("unlimited_storage", false)
 	state.call("dev_jump_to_chapter", 9)
-	for id: String in ["bloblo_rod", "bloblo_first_fish", "lais_fishing", "lais_fish_mash", "farm_deed", "bloblo_big_tilapia", "first_harvest", "main_4_bench", "main_4_materials"]:
+	for id: String in ["bloblo_rod", "bloblo_first_fish", "lais_fishing", "lais_fish_mash", "farm_deed", "bloblo_big_tilapia", "bloblo_worms", "first_harvest", "main_4_bench", "main_4_materials"]:
 		state.call("dev_complete_quest", id)
 	state.call("dev_grant_upgrade", "farm")
 	state.call("dev_grant_upgrade", "workbench")
@@ -204,7 +204,7 @@ func _chain() -> void:
 	state.call("dev_week_goto", 2)
 	state.call("dev_set_phase", "teething")
 	state.call("dev_jump_to_chapter", 9)
-	for id: String in ["bloblo_rod", "bloblo_first_fish", "lais_fishing", "lais_fish_mash", "farm_deed", "bloblo_big_tilapia", "first_harvest", "main_4_bench", "main_4_materials"]:
+	for id: String in ["bloblo_rod", "bloblo_first_fish", "lais_fishing", "lais_fish_mash", "farm_deed", "bloblo_big_tilapia", "bloblo_worms", "first_harvest", "main_4_bench", "main_4_materials"]:
 		state.call("dev_complete_quest", id)
 	state.call("dev_grant_upgrade", "farm")
 	state.call("dev_grant_upgrade", "workbench")

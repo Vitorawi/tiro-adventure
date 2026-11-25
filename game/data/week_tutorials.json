@@ -654,11 +654,34 @@
       "id": "wish",
       "day": 3,
       "title": "Desejo",
-      "format": "balloon",
-      "text": "Toque no balão do Tiro. Veja o pedido e use Dar quando tiver o item.",
-      "anchor": "WishTitle",
-      "say": "Toque no balão do Tiro e use Dar para atender.",
+      "format": "hand",
       "npc": "lais",
+      "text": "Toque no balão do Tiro para ver o que ele quer. Atenda o pedido (carinho: passe o dedinho nele) e depois toque no balão e em Pegar.",
+      "steps": [
+        {
+          "target": "WishBubble",
+          "say": "O Tiro quer uma coisa! Toque no balão dele."
+        },
+        {
+          "target": "WishCard",
+          "say": "Ele quer carinho! Toque fora do cartão e passe o dedinho nele.",
+          "veil": false
+        },
+        {
+          "target": "@tiro",
+          "say": "Passe o dedinho no Tiro para fazer carinho.",
+          "gesture": "scrub"
+        },
+        {
+          "target": "WishBubble",
+          "say": "Pronto, ele adorou! Toque no balão para pegar o prêmio."
+        },
+        {
+          "target": "WishTake",
+          "say": "Toque em Pegar."
+        }
+      ],
+      "done": "wish",
       "quest": "lais_first_wish"
     },
     {
