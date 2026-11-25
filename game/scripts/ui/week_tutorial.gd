@@ -232,7 +232,7 @@ func _locate(lesson: Dictionary) -> Dictionary:
 		var target := str(stages[i].target)
 		if target in ["@cart_shop", "YardName"]:
 			continue
-		if target == "InvSlot_0" and not GameState.week.tutorial.get("invent_type_chosen", false):
+		if target in ["@inv_slot", "@inv_picker", "@inv_cook"] and not GameState.week.tutorial.get("invent_type_chosen", false):
 			continue
 		if lesson.id in ["coop", "market", "plots"] and target == "BuyItem":
 			var kit := main.find_child({"coop": "Buy_week_coop", "market": "Buy_week_pumpkin_seed", "plots": "Buy_week_plot"}[lesson.id], true, false)
@@ -488,7 +488,39 @@ func _special_target(id: String, behind: bool) -> Rect2:
 		return detail if detail.has_area() else _control_rect("GrowthSeal")
 	if id == "cart_shop":
 		return _control_rect("CartShop")
+	if id in ["inv_slot", "inv_picker", "inv_cook"]:
+		return _invent_target(id)
 	return Rect2()
+
+
+## Aula do Inventar: vaga vazia → janelinha (ingredientes, depois Selecionar) → Cozinhar junto.
+func _invent_target(id: String) -> Rect2:
+	if _minigame():
+		return Rect2()
+	var view := main.find_child("InventView", true, false) as CookInvent
+	if not is_instance_valid(view) or not view.is_visible_in_tree():
+		return Rect2()
+	var picker := view.picker
+	var open := is_instance_valid(picker) and not picker.is_queued_for_deletion()
+	if id == "inv_picker":
+		if not open:
+			return Rect2()
+		var select := _control_rect("InvSelect", picker)
+		return select if picker.selected != "" and select.has_area() else _control_rect("InvPickerScroll", picker)
+	if open:
+		return Rect2()
+	# Pronto para cozinhar quando a prévia vira um prato (a 3ª vaga da papinha é opcional).
+	var ready := CookInvent.card_state() not in ["empty", "incomplete", "blocked"]
+	if id == "inv_cook":
+		return _control_rect("InvCookButton", view) if ready else Rect2()
+	if ready:
+		return Rect2()
+	var empty := 0
+	for i in CookInvent.slot_total():
+		if str(CookInvent.slot_items()[i]) == "":
+			empty = i
+			break
+	return _control_rect("InvSlot_%d" % empty, view)
 
 
 func _can_announce(lesson: Dictionary) -> bool:

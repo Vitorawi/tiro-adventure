@@ -103,6 +103,8 @@ func _process(delta: float) -> void:
 	_tick(delta)
 	_layout()
 	var target := target_rect()
+	if phase in ["hold", "release"] and is_instance_valid(_game):
+		target = _game.hold_button_rect()  # a mão ensina o botão, não a pista
 	if phase in ["force", "bite", "hold", "release"] and target.has_area():
 		_guide_hand(delta, target.get_center(), target.get_center())
 	else:
@@ -270,6 +272,10 @@ func _finish() -> void:
 
 func _build_layer() -> void:
 	_build_focus()
+	_hole_block = Control.new()
+	_hole_block.name = "TutorialHoleBlock"
+	_hole_block.mouse_filter = Control.MOUSE_FILTER_STOP
+	_veil.add_child(_hole_block)
 	_build_hand()
 	_arrow = _make_arrow("TutorialArrow")
 	_arrow_fish = _make_arrow("TutorialArrowFish")
@@ -333,7 +339,8 @@ func _make_arrow(node_name: String) -> Control:
 ## Retângulo do alvo do passo, em coordenadas da tela (vazio = nenhum: tudo escurecido e bloqueado).
 func target_rect() -> Rect2:
 	match phase:
-		"lake", "bite":
+		"lake", "wait", "bite":
+			# A lagoa (com a boia) fica sempre clara: esperar a mordida no escuro não dá para ver.
 			return room.lake_screen_rect().grow(24.0) if is_instance_valid(room) else Rect2()
 		"bait", "outro":
 			return _panel_rect("BaitRow" if phase == "bait" else "BaitFish")
@@ -344,7 +351,8 @@ func target_rect() -> Rect2:
 		"see":
 			return _game.track_global_rect() if is_instance_valid(_game) else Rect2()
 		"hold", "release", "play", "almost":
-			return _game.hold_button_rect() if is_instance_valid(_game) else Rect2()
+			# Pista (peixe e rede) + botão: o jogador precisa ver o que está pescando.
+			return _game.track_global_rect().merge(_game.hold_button_rect()).grow(8.0) if is_instance_valid(_game) else Rect2()
 	return Rect2()
 
 
@@ -359,6 +367,7 @@ func _panel_rect(node_name: String) -> Rect2:
 
 
 var _relaid := false
+var _hole_block: Control
 
 
 func _layout() -> void:
@@ -367,6 +376,10 @@ func _layout() -> void:
 	var target := target_rect()
 	var none := not target.has_area()
 	var hole := _layout_focus(target, screen)
+	# Esperando a mordida: a lagoa fica clara, mas um toque cedo não recolhe a linha.
+	_hole_block.visible = phase == "wait" and target.has_area()
+	_hole_block.position = hole.position
+	_hole_block.size = hole.size
 	_skip.size = _skip.get_combined_minimum_size()
 	_skip.position = Vector2(screen.x - _skip.size.x - 12.0, 12.0)
 	if phase in GAME_PHASES:

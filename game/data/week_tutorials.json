@@ -533,8 +533,16 @@
           "say": "Escolha o tipo de prato."
         },
         {
-          "target": "InvSlot_0",
-          "say": "Toque na vaga. Confira a prévia e a dica."
+          "target": "@inv_slot",
+          "say": "Toque na vaga para escolher um ingrediente."
+        },
+        {
+          "target": "@inv_picker",
+          "say": "Escolha um ingrediente e toque em Selecionar."
+        },
+        {
+          "target": "@inv_cook",
+          "say": "Prato montado! Toque em Cozinhar junto."
         }
       ],
       "done": "routine_invent",

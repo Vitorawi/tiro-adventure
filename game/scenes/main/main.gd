@@ -116,7 +116,14 @@ func _ready() -> void:
 	Events.photo_sealed.connect(_queue_photo)
 	Events.find_discovered.connect(func(result: Dictionary) -> void:
 		_queue_modal(func() -> void: _celebration.show_find(result)))
+	# Pedaço de receita: aviso curto; o cartão só aparece quando a receita fica completa.
+	# Antes do Livro de receitas abrir, os pedaços entram em silêncio.
 	Events.recipe_piece_found.connect(func(id: String, count: int) -> void:
+		if not GameState.recipe_book_open():
+			return
+		if count < 3:
+			Events.notice_requested.emit("info", "Pedaço de receita! %d de 3" % count, "map_piece_1")
+			return
 		_queue_modal(func() -> void: _celebration.show_recipe_piece(id, count)))
 	var modal_timer := Timer.new()
 	modal_timer.wait_time = 0.3

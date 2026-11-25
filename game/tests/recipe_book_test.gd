@@ -348,13 +348,15 @@ func test_ui() -> void:
 	events.emit_signal("sheet_close_requested")
 	await pause()
 	clear_modals()
+	# Pedaço solto vira só aviso; o cartão Achado! aparece quando a receita fica completa.
 	state.call("_recipe_source", "eggs")
+	await pause(0.5)
+	check(main.find_child("RecipePieceCard", true, false) == null, "pedaço solto não abre cartão")
+	for i in 12:
+		state.call("_recipe_source", "dig")
 	state.call("_recipe_source", "orchard")
-	# Primeiro cartão fecha para dar vez ao segundo achado real da mesma receita.
 	await pause(0.5)
-	(main.get("_celebration") as CanvasLayer).hide()
-	await pause(0.5)
-	check(main.find_child("RecipePieceCard", true, false) != null, "evento abre cartão Achado!")
+	check(main.find_child("RecipePieceCard", true, false) != null, "receita completa abre cartão Achado!")
 	await shot("05_achado")
 
 
