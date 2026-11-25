@@ -1128,6 +1128,10 @@ func feed(item_id: String, trick_offer: Dictionary = {}) -> bool:
 	inventory.remove(item_id)
 	dog.apply(effects, now())
 	_register_meal(item_id, trick)
+	if week.weak and is_meal_item(item_id) and food_lesson_done():
+		# Qualquer refeição (mesmo fora da hora) tira o fraquinho: o dia fraco nunca trava aulas por horas.
+		week.weak = false
+		Events.toast_requested.emit("O Tiro ficou forte de novo!")
 	if not is_meal_item(item_id) and food_lesson_done() and not progress.seen.has("snack_note"):
 		progress.seen["snack_note"] = true  # primeira vez que ele ganha um lanche: ele não conta como refeição
 		Events.toast_requested.emit(str(Database.week_story.get("food_lesson", {}).get("snack", "")))

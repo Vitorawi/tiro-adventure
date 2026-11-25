@@ -193,6 +193,12 @@ func _run() -> void:
 	# Fraquinho e falta de biscoito têm motivos diferentes, sem gastar itens.
 	state.get("week").weak = true
 	check(state.call("start_trick_lesson", "sit") == "Ele quer comer primeiro", "fraquinho bloqueia")
+	var weak_panel: Control = load("res://scripts/ui/trick_ui.gd").call("lesson_panel")
+	root.add_child(weak_panel)
+	await process_frame
+	await process_frame
+	check(weak_panel.find_child("LessonFeed_sit", true, false) != null and weak_panel.find_child("LessonWeak_sit", true, false) != null, "fraquinho explica o motivo e leva à comida")
+	weak_panel.queue_free()
 	state.call("dev_week_hour", 19)
 	_advance_day(5, 19)
 	check(state.call("trick_lesson_error", "sit") == "", "refeição na hora volta a permitir a aula")

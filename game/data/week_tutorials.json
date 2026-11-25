@@ -816,7 +816,7 @@
       "day": 0,
       "title": "Dia fraco",
       "format": "new",
-      "text": "Quando faltar uma refeição, o Bom dia mostra o motivo. Dê a próxima refeição na hora para recuperar o Tiro.",
+      "text": "Quando faltar uma refeição, o Bom dia mostra o motivo. Qualquer refeição deixa o Tiro forte de novo.",
       "native": true
     }
   ]

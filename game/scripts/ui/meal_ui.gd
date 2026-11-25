@@ -114,7 +114,7 @@ static func today_panel() -> Control:
 		head.add_child(help)
 		box.add_child(head)
 		if GameState.tiro_weak():
-			var weak := StepCardUi.wood("Ele está fraquinho. Uma refeição na hora e ele melhora!", 15, Palette.ALERT_INK)
+			var weak := StepCardUi.wood("Ele está fraquinho. Uma refeição e ele melhora!", 15, Palette.ALERT_INK)
 			weak.name = "WeakNote"
 			weak.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 			weak.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER

@@ -165,12 +165,12 @@ func _weak_day_and_lunchbox() -> void:
 	_check(int(state.get("week").weak_streak) == 1, "Um dia fraco na sequência")
 	state.call("update_week")
 	_check(int(state.get("week").weak_streak) == 1, "Conferir de novo não duplica o dia fraco")
-	# Fraquinho até a próxima refeição na hora.
-	_at(3, 12)
-	_check(bool(state.call("tiro_weak")), "Continua fraquinho até comer na hora")
+	# Fraquinho até a próxima refeição (mesmo fora da hora: não trava as aulas por horas).
+	_at(3, 9)
+	_check(bool(state.call("tiro_weak")), "Continua fraquinho até comer")
 	state.get("inventory").call("add", "puppy_mash", 1)
 	state.call("feed", "puppy_mash")
-	_check(not bool(state.call("tiro_weak")), "Refeição na hora tira o fraquinho")
+	_check(not bool(state.call("tiro_weak")), "Refeição fora da hora também tira o fraquinho")
 	# Dois dias fracos seguidos: marmita.
 	_reset()
 	_at(2, 23)

@@ -71,6 +71,16 @@ static func _lesson_card(box: VBoxContainer, id: String) -> void:
 		text.add_child(StepCardUi.wood(level_name(id) + " · " + level_progress(id), 15))
 		inner.add_child(StepCardUi.bar(float(GameState.progress.stat("trick:" + id)) / need, 10, "LessonProgress_" + id))
 	var reason := GameState.trick_lesson_error(id)
+	if opened and GameState.tiro_weak() and GameState.trick_available_error(id) == "":
+		# Fraquinho: explica o motivo e leva direto à comida (qualquer refeição resolve).
+		var note := StepCardUi.wood("Ele está fraquinho: ficou sem comer na hora. Dê uma refeição e ele volta a treinar!", 15, Palette.ALERT_INK)
+		note.name = "LessonWeak_" + id
+		note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		inner.add_child(note)
+		inner.add_child(WelcomeSheet._button("Dar comida", true, 160.0, "LessonFeed_" + id, func() -> void:
+			Events.sheet_close_requested.emit()
+			Places.go({"screen": "pet", "care": "feed"})))
+		return
 	var action := WelcomeSheet._button("Treinar", false, 90.0, "LessonTrain_" + id, start_lesson.bind(id))
 	inner.add_child(ProjectUi.action_or_note(action, reason))
 
