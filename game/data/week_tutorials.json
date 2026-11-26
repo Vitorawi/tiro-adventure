@@ -522,7 +522,7 @@
       "day": 8,
       "title": "Inventar",
       "format": "hand",
-      "text": "Abra Inventar no jantar. Escolha o tipo, toque numa vaga, escolha ingredientes e confira a prévia antes de cozinhar.",
+      "text": "Abra Inventar no jantar. Escolha o tipo, toque numa vaga, escolha ingredientes e confira a prévia antes de cozinhar. Todo prato cozinhado rende pontos de cozinheiro, e prato novo vale mais.",
       "steps": [
         {
           "target": "InventHalf",
@@ -551,6 +551,38 @@
         "world": "house",
         "place": "stove"
       }
+    },
+    {
+      "id": "recipe_book",
+      "day": 8,
+      "after_quest": "week_invent",
+      "title": "Livro de receitas",
+      "format": "hand",
+      "npc": "bloblo",
+      "sequence": true,
+      "text": "Cada prato que você faz rende pontos de cozinheiro, e prato novo vale mais. Subindo de nível você ganha habilidades: fila maior, fogo mais rápido, Cozinhar junto mais fácil. Toque num ingrediente para ver os pratos que levam ele e num prato para ver o nível e o que falta.",
+      "steps": [
+        {
+          "target": "ChefCard",
+          "say": "Cada prato que você faz te dá pontos de cozinheiro. Prato novo vale mais!",
+          "advance": "tap"
+        },
+        {
+          "target": "ChefCard",
+          "say": "Subindo de nível você ganha habilidades: fila maior, fogo mais rápido, Cozinhar junto mais fácil... Toque aqui para ver o caminho.",
+          "advance": "tap"
+        },
+        {
+          "target": "BookIngredients",
+          "say": "Toque num ingrediente para ver o que dá para fazer com ele.",
+          "advance": "tap"
+        },
+        {
+          "target": "BookGrid",
+          "say": "Toque num prato para ver o nível dele e o que falta.",
+          "advance": "tap"
+        }
+      ]
     },
     {
       "id": "morning",

@@ -33,32 +33,93 @@
   "chef": [
     {
       "name": "Ajudante",
-      "points": 0
+      "points": 0,
+      "skill": {
+        "id": "together",
+        "name": "Cozinhar junto",
+        "icon": "station_stove",
+        "text": "Cozinha com o Tiro no minigame."
+      }
+    },
+    {
+      "name": "Ajudante+",
+      "points": 10,
+      "skill": {
+        "id": "sniff",
+        "name": "Faro de cozinha",
+        "icon": "find_paw",
+        "text": "Pratos com ? mostram o primeiro ingrediente."
+      }
     },
     {
       "name": "Aprendiz",
       "points": 25,
-      "slots": 3
+      "skill": {
+        "id": "queue3",
+        "name": "Fila maior",
+        "icon": "station_workbench",
+        "text": "O fogão aceita 3 pratos na fila."
+      }
+    },
+    {
+      "name": "Aprendiz+",
+      "points": 40,
+      "skill": {
+        "id": "quick_fire",
+        "name": "Fogo esperto",
+        "icon": "item_pocket_watch",
+        "text": "Pratos do fogão ficam prontos 10% mais rápido."
+      }
     },
     {
       "name": "Cozinheiro",
       "points": 60,
-      "slots": 3,
-      "exact_preview": true
+      "skill": {
+        "id": "preview",
+        "name": "Prévia",
+        "icon": "outfit_star_glasses",
+        "text": "Vê nome e estrelas antes de cozinhar."
+      }
+    },
+    {
+      "name": "Cozinheiro+",
+      "points": 85,
+      "skill": {
+        "id": "light_hand",
+        "name": "Mão leve",
+        "icon": "action_pet",
+        "text": "Cozinhar junto fica mais fácil: zonas maiores."
+      }
     },
     {
       "name": "Mestre-cuca",
       "points": 110,
-      "slots": 3,
-      "exact_preview": true,
-      "save_ingredient": true
+      "skill": {
+        "id": "thrifty",
+        "name": "Economia",
+        "icon": "coin",
+        "text": "Às vezes sobra um ingrediente."
+      }
+    },
+    {
+      "name": "Mestre-cuca+",
+      "points": 140,
+      "skill": {
+        "id": "big_pot",
+        "name": "Panelão",
+        "icon": "item_vegetable_soup",
+        "text": "Uma porção extra a cada 5 pratos."
+      }
     },
     {
       "name": "Chef do Tiro",
       "points": 180,
-      "slots": 4,
-      "exact_preview": true,
-      "save_ingredient": true
+      "skill": {
+        "id": "chef_hat",
+        "name": "Chapéu de chef",
+        "icon": "outfit_explorer_hat",
+        "text": "4ª vaga na fila e um chapéu para o Tiro vestir."
+      }
     }
   ],
   "daily": {
@@ -315,5 +376,9 @@
         ]
       ]
     }
+  },
+  "chef_points": {
+    "dish": 1,
+    "new_dish": 2
   }
 }

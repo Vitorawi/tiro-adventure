@@ -315,6 +315,20 @@ func show_treasure(rewards: Dictionary) -> void:
 	show()
 
 
+## Subiu de nível de cozinheiro: mostra o nível e a habilidade que ele traz.
+func show_chef_level(level: int) -> void:
+	var rows: Array = GameState.chef_levels()
+	var row: Dictionary = rows[clampi(level, 0, rows.size() - 1)]
+	var skill: Dictionary = row.skill
+	var card := _open({"title": "Novo nível: %s" % str(row.name), "ribbon": Palette.HONEY, "ribbon_icon": "spark",
+		"icon": UiKit.ui_icon(str(skill.icon)), "icon_px": 96,
+		"scroll_name": "CelebrationScroll", "confetti": true, "haptic": "big"})
+	card.add_text(str(skill.name), &"StrongLabel")
+	card.add_text(str(skill.text), &"SmallLabel")
+	card.add_primary("Oba!", hide)
+	show()
+
+
 ## Item principal que um personagem entregou: o item já entrou; o cartão só o mostra.
 func show_gift(item: String, npc: String) -> void:
 	var card := _open({"title": "Você ganhou!", "icon": Database.item_icon(item), "icon_px": 96,

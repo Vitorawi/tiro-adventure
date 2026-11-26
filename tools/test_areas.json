@@ -78,6 +78,7 @@
     "play_week_test",
     "cart_test",
     "recipe_book_test",
+    "chef_skills_test",
     "treasure_test",
     "ui_base_test",
     "ui_style_test",
@@ -970,16 +971,44 @@
         "game/scripts/state/cook_rules.gd",
         "game/scripts/ui/cook_together.gd",
         "game/scripts/ui/cook_invent.gd",
-        "game/scripts/ui/cook_invent_picker.gd"
+        "game/scripts/ui/cook_invent_picker.gd",
+        "game/tests/chef_skills_test.gd",
+        "game/tests/recipe_book_shots.gd"
       ],
       "tests": [
         "recipe_book_test",
+        "chef_skills_test",
         "dish_engine_test",
         "cook_dishes_test",
         "cook_together_test",
         "cook_invent_test",
         "day_clock_test",
         "growth_week_test"
+      ]
+    },
+    "cooking": {
+      "paths": [
+        "game/data/recipe_book.json",
+        "game/scripts/ui/recipe_book_ui.gd",
+        "game/scripts/ui/codex_ui.gd",
+        "game/scripts/ui/week_tutorial.gd",
+        "game/data/week_tutorials.json",
+        "game/scripts/ui/cook_panel.gd",
+        "game/scripts/ui/cook_invent.gd",
+        "game/scripts/ui/cook_together.gd",
+        "game/scripts/state/cook_rules.gd",
+        "game/data/cooking.json",
+        "game/tests/chef_skills_test.gd",
+        "game/tests/recipe_book_test.gd"
+      ],
+      "tests": [
+        "chef_skills_test",
+        "recipe_book_test",
+        "cook_invent_test",
+        "cook_together_test",
+        "cook_panel_test",
+        "week_tutorial_test",
+        "invent_lesson_test"
       ]
     }
   }

@@ -147,10 +147,10 @@ static func _board(model: Dictionary, live: SheetBuilder.LiveBox) -> Control:
 	if recipes:
 		GameState.note_screen_opened("recipes")  # conta `open:recipes` (passo do capítulo 8)
 		entries.clear()
-		if not model.has("recipe_tab") and str(filters.get(section, "")) == "secrets":
-			model["recipe_tab"] = "secrets"
+		if str(filters.get(section, "")) == "secrets":
+			model["book_panel"] = "secret"  # "recipes:secrets" abre direto a faixa da receita secreta
 		view = {"filters": [], "filter": "", "blocks": [], "name": "RecipeBookHolder",
-			"wide": true, "body": RecipeBookUi.body(model, live.refresh)}
+			"wide": true, "fixed": true, "body_fn": func(area_size: Vector2) -> Control: return RecipeBookUi.body(model, live.refresh, area_size)}
 	if section == "collection" and str(view.filter) == "fish":
 		GameState.note_recipe_hint("fish_book")
 	filters[section] = str(view.filter)
@@ -547,6 +547,16 @@ static func _grid_area(view: Dictionary, model: Dictionary, size: Vector2) -> Co
 	var tile_w := tile_width(view)
 	var grid_w := tile_w * cols + GAP * (cols - 1)
 	var left := roundf((size.x - grid_w) / 2.0)  # a barra mora na folga da direita
+	if bool(view.get("fixed", false)):
+		# Corpo de tamanho fixo (o Livro de receitas): só as listas de dentro rolam.
+		var fixed := Control.new()
+		fixed.name = str(view.get("name", "CodexGrid"))
+		fixed.custom_minimum_size = size
+		fixed.size = size
+		fixed.mouse_filter = Control.MOUSE_FILTER_PASS
+		var content: Control = (view.body_fn as Callable).call(size)
+		fixed.add_child(content)
+		return fixed
 	var holder := VBoxContainer.new()
 	holder.name = str(view.get("name", "CodexGrid"))
 	holder.add_theme_constant_override("separation", 10)

@@ -1,0 +1,123 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Livro de receitas</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:#efe4d0;font-family:system-ui,sans-serif;color:#5a3a1e;display:flex;justify-content:center;padding:12px}
+.ph{width:340px;height:720px;background:#fbf3e3;border:8px solid #8a5a32;border-radius:26px;position:relative;overflow:hidden;display:flex;flex-direction:column}
+.top{padding:10px 12px 6px;display:flex;align-items:center;gap:8px}
+.hat{width:38px;height:38px;border-radius:50%;background:#ffcf6b;display:flex;align-items:center;justify-content:center;font-size:20px}
+.bar{height:8px;background:#e5cda6;border-radius:4px;overflow:hidden;flex:1}.bar i{display:block;height:100%;background:#e8a33a}
+.types{display:flex;gap:6px;padding:4px 12px;overflow-x:auto}
+.type{flex:0 0 auto;text-align:center;padding:5px 8px;border-radius:14px;background:#f1e1c7;font-size:11px;min-width:60px;cursor:pointer}
+.type b{display:block;font-size:20px}.type.on{background:#ffcf6b}
+.pot{margin:6px 12px;min-height:54px;border:2px dashed #c99a5b;border-radius:16px;display:flex;align-items:center;gap:6px;padding:6px 10px;font-size:12px;color:#806345}
+.pot.full{border-style:solid;background:#fff3d6}
+.potitem{width:40px;height:40px;border-radius:50%;background:#ffe1b8;display:flex;align-items:center;justify-content:center;font-size:22px;cursor:pointer;position:relative}
+.potitem:after{content:"×";position:absolute;top:-4px;right:-4px;width:15px;height:15px;border-radius:50%;background:#c0573f;color:#fff;font-size:11px;line-height:15px;text-align:center}
+.grid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:6px 12px 10px;align-content:start}
+.d{background:#fffaf0;border:1px solid #e5cda6;border-radius:14px;padding:8px 4px 6px;text-align:center;cursor:pointer;position:relative;font-size:11px;transition:transform .15s}
+.d:active{transform:scale(.95)}
+.d.can{border:2px solid #4fa35b;background:#f4fbef}
+.ring{width:58px;height:58px;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.ring.unk{font-size:24px;color:#a08868}
+.d .ok{position:absolute;top:5px;right:5px;width:18px;height:18px;border-radius:50%;background:#4fa35b;color:#fff;font-size:11px;line-height:18px}
+.ings{font-size:12px;margin-top:2px}
+.stars{color:#e8a33a;font-size:11px;height:13px}
+.tray{border-top:3px solid #8a5a32;background:#e9d2ac;padding:8px 10px 10px}
+.tray .t{font-size:11px;margin-bottom:5px;display:flex;justify-content:space-between}
+.ingrow{display:flex;gap:6px;overflow-x:auto}
+.ing{flex:0 0 52px;height:58px;border-radius:12px;background:#fffaf0;text-align:center;font-size:24px;padding-top:4px;cursor:pointer;position:relative}
+.ing small{display:block;font-size:11px;color:#806345}
+.ing.zero{opacity:.4}.ing.sel{background:#ffcf6b}
+.chips{display:flex;gap:6px;padding:2px 12px}
+.chip{padding:5px 10px;border-radius:12px;background:#f1e1c7;font-size:11px;cursor:pointer}.chip.on{background:#4fa35b;color:#fff}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:#fffaf0;border-radius:22px 22px 0 0;border-top:3px solid #8a5a32;padding:12px 14px 14px;transform:translateY(105%);transition:transform .25s;box-shadow:0 -6px 20px rgba(0,0,0,.15)}
+.sheet.open{transform:none}
+.dim{position:absolute;inset:0;background:rgba(60,35,10,.35);opacity:0;pointer-events:none;transition:opacity .25s}.dim.open{opacity:1;pointer-events:auto}
+.lv{display:flex;gap:4px;margin:8px 0 2px}.lv div{flex:1;height:10px;border-radius:5px;background:#e5cda6}.lv div.f{background:#e8a33a}
+.lvn{display:flex;justify-content:space-between;font-size:10px;color:#806345}
+.need{display:flex;gap:8px;justify-content:center;margin:10px 0}
+.need .n{width:74px;border-radius:12px;padding:6px;text-align:center;font-size:26px;cursor:pointer}
+.need .n small{display:block;font-size:11px}
+.btns{display:flex;gap:8px}.btn{flex:1;text-align:center;padding:11px;border-radius:14px;font-size:13px;cursor:pointer}
+.sk{display:flex;gap:10px;align-items:center;padding:7px 4px;position:relative}
+.sk .b{width:44px;height:44px;flex:0 0 44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:21px;z-index:1}
+.sk .l{position:absolute;left:25px;top:-8px;bottom:-8px;width:4px;background:#e5cda6}
+.note{position:absolute;bottom:8px;left:12px;right:12px;text-align:center;font-size:11px;color:#806345}
+</style></head><body>
+<div class="ph">
+ <div class="top" onclick="openChef()" style="cursor:pointer"><div class="hat">👨‍🍳</div><div style="flex:1"><div style="display:flex;justify-content:space-between;font-size:12px"><b>Aprendiz</b><span>19/25 ›</span></div><div class="bar" style="margin-top:4px"><i style="width:76%"></i></div></div></div>
+ <div class="types" id="types"></div>
+ <div class="pot" id="pot"></div>
+ <div class="chips" id="chips"></div>
+ <div class="grid" id="grid"></div>
+ <div class="tray"><div class="t"><b>Meus ingredientes</b><span>toque para pôr na panela</span></div><div class="ingrow" id="ings"></div></div>
+ <div class="dim" id="dim"></div>
+ <div class="sheet" id="sheet"></div>
+</div>
+<script>
+const ING={carrot:["🥕","Cenoura",4],potato:["🥔","Batata",2],corn:["🌽","Milho",5],egg:["🥚","Ovo",2],apple:["🍎","Maçã",1],pumpkin:["🎃","Abóbora",0],oat:["🌾","Aveia",0],banana:["🍌","Banana",1]};
+const TYPES={papinha:["🥣","Papinha"],sopinha:["🍲","Sopinha"],mingau:["🥛","Mingau"],petisco:["🦴","Petisco"],biscoito:["🍪","Biscoito"]};
+const D=[
+ ["papinha","Papinha de cenoura e milho",["carrot","corn"],3,"🥕"],
+ ["papinha","Papinha de batata",["potato","potato"],1,"🥔"],
+ ["papinha","Papinha de abóbora",["pumpkin","carrot"],2,"🎃"],
+ ["papinha","?",["carrot","apple"],0],
+ ["papinha","?",["banana","oat"],0],
+ ["papinha","?",["egg","potato"],0],
+ ["sopinha","Sopinha de cenoura",["carrot","potato"],1,"🍲"],
+ ["sopinha","?",["corn","egg"],0],
+ ["mingau","?",["oat","banana"],0],
+ ["petisco","Petisco de maçã",["apple","oat"],2,"🍎"],
+ ["petisco","?",["carrot","egg"],0],
+ ["biscoito","?",["oat","egg"],0]];
+const LV=["Nova","Praticada","Dominada","Especialidade"];
+let type="papinha",pot=[],filter="all";
+const has=(id,n)=>ING[id][2]>=n;
+const can=d=>d[2].every(i=>has(i,d[2].filter(x=>x==i).length));
+const known=d=>d[3]>0;
+function render(){
+ document.getElementById("types").innerHTML=Object.keys(TYPES).map(t=>{const all=D.filter(d=>d[0]==t),k=all.filter(known).length;return `<div class="type ${t==type?'on':''}" onclick="type='${t}';render()"><b>${TYPES[t][0]}</b>${TYPES[t][1]} ${k}/${all.length}</div>`}).join("");
+ const p=document.getElementById("pot");
+ p.className="pot"+(pot.length?" full":"");
+ p.innerHTML=pot.length?pot.map((i,n)=>`<div class="potitem" onclick="pot.splice(${n},1);render()">${ING[i][0]}</div>`).join("")+`<span style="margin-left:4px">pratos com isso ↓</span>`:"🍳 Panela vazia: toque nos ingredientes lá embaixo";
+ let list=D.filter(d=>(pot.length?true:d[0]==type)&&pot.every(i=>d[2].includes(i)));
+ const c={all:list.length,can:list.filter(can).length,unk:list.filter(d=>!known(d)).length};
+ document.getElementById("chips").innerHTML=[["all","Todos"],["can","Dá pra fazer"],["unk","Não fiz"]].map(([k,t])=>`<span class="chip ${filter==k?'on':''}" onclick="filter='${k}';render()">${t} ${c[k]}</span>`).join("");
+ if(filter=="can")list=list.filter(can);if(filter=="unk")list=list.filter(d=>!known(d));
+ list.sort((a,b)=>can(b)-can(a)||known(b)-known(a));
+ document.getElementById("grid").innerHTML=list.map(d=>{const i=D.indexOf(d),ok=can(d);
+  return known(d)?`<div class="d ${ok?'can':''}" onclick="openDish(${i})">${ok?'<div class="ok">✓</div>':''}<div class="ring" style="background:#ffe1b8;box-shadow:0 0 0 3px ${['#e5cda6','#d9b98a','#e8a33a','#c98b1e'][d[3]-1]}">${d[4]}</div><b>${d[1]}</b><div class="stars">${'★'.repeat(d[3])}${'☆'.repeat(4-d[3])}</div></div>`
+  :`<div class="d ${ok?'can':''}" onclick="openDish(${i})">${ok?'<div class="ok">✓</div>':''}<div class="ring unk" style="background:#e5d6bf">?</div><b>${TYPES[d[0]][1]} nova</b><div class="ings">${ING[d[2][0]][0]} + ?</div></div>`}).join("")||`<div style="grid-column:1/-1;text-align:center;padding:30px;font-size:12px">Nada com isso ainda.<br>Que tal inventar?</div>`;
+ document.getElementById("ings").innerHTML=Object.keys(ING).map(i=>`<div class="ing ${ING[i][2]?'':'zero'} ${pot.includes(i)?'sel':''}" onclick="toggle('${i}')">${ING[i][0]}<small>${ING[i][2]}</small></div>`).join("");
+}
+function toggle(i){const n=pot.indexOf(i);n<0?pot.length<3&&pot.push(i):pot.splice(n,1);filter="all";render()}
+function openDish(i){const d=D[i],k=known(d),ok=can(d);
+ const s=document.getElementById("sheet");
+ s.innerHTML=`<div style="width:40px;height:5px;border-radius:3px;background:#d9b98a;margin:-4px auto 8px"></div>
+ <div style="display:flex;gap:10px;align-items:center"><div class="ring ${k?'':'unk'}" style="margin:0;width:66px;height:66px;background:${k?'#ffe1b8':'#e5d6bf'}">${k?d[4]:'?'}</div><div><b style="font-size:15px">${k?d[1]:TYPES[d[0]][1]+' ainda não feita'}</b><div style="font-size:11px;color:#806345">${k?'Crocante · o Tiro adorou':'Descubra no Inventar'}</div></div></div>
+ ${k?`<div class="lv">${LV.map((x,n)=>`<div class="${n<d[3]?'f':''}"></div>`).join("")}</div><div class="lvn">${LV.map((x,n)=>`<span style="${n==d[3]-1?'font-weight:700;color:#5a3a1e':''}">${x}</span>`).join("")}</div>`:''}
+ <div class="need">${d[2].map((x,n)=>{const show=k||n==0,good=has(x,d[2].filter(y=>y==x).length);return `<div class="n" style="background:${show?(good?'#e7f5e1':'#fde7cf'):'#efe6d8'}" onclick="${show?`pot=['${x}'];closeSheet();render()`:''}">${show?ING[x][0]:'?'}<small style="color:${good?'#3b7d3f':'#b06a1c'}">${show?ING[x][2]+' / 1':'descubra'}</small></div>`}).join('<div style="align-self:center;font-size:20px">+</div>')}</div>
+ <div class="btns">${ok?`<div class="btn" style="background:#4fa35b;color:#fff">${k?'Cozinhar junto':'Inventar agora'}</div>`:`<div class="btn" style="background:#ffcf6b">Buscar o que falta</div>`}${k?'<div class="btn" style="background:#f1e1c7">Pôr na fila</div>':''}</div>
+ <div style="text-align:center;font-size:10px;color:#806345;margin-top:8px">toque num ingrediente para ver tudo que dá com ele</div>`;
+ s.classList.add("open");document.getElementById("dim").classList.add("open")}
+function closeSheet(){document.getElementById("sheet").classList.remove("open");document.getElementById("dim").classList.remove("open")}
+const SK=[
+ [0,"Ajudante","🥄","Cozinhar junto","Cozinha com o Tiro no minigame"],
+ [10,"Ajudante+","🧂","Faro de cozinha","Pratos “?” mostram 1 ingrediente"],
+ [25,"Aprendiz","🍳","3ª vaga","Pratos com 3 ingredientes no Inventar"],
+ [40,"Aprendiz+","⏱️","Fogo esperto","Pratos ficam prontos 10% mais rápido"],
+ [60,"Cozinheiro","👀","Prévia","Vê nome e estrelas antes de cozinhar"],
+ [85,"Cozinheiro+","🤲","Mão leve","Cozinhar junto com zonas maiores"],
+ [110,"Mestre-cuca","♻️","Economia","Às vezes sobra um ingrediente"],
+ [140,"Mestre-cuca+","🍲","Panelão","Uma porção extra a cada 5 pratos"],
+ [180,"Chef do Tiro","👨‍🍳","Chapéu de chef","4ª vaga + chapéu para o Tiro vestir"]];
+const PTS=19;
+function openChef(){const s=document.getElementById("sheet");
+ s.innerHTML=`<div style="width:40px;height:5px;border-radius:3px;background:#d9b98a;margin:-4px auto 8px"></div>
+ <div style="text-align:center"><b style="font-size:15px">Aprendiz de cozinha</b><div style="font-size:11px;color:#806345">${PTS} pontos · ganhe cozinhando: +1 por prato, +2 por prato novo, +estrelas no Cozinhar junto</div></div>
+ <div style="max-height:430px;overflow-y:auto;margin-top:8px">${SK.map(([p,lv,ic,name,txt],n)=>{const got=PTS>=p,next=!got&&(n==0||PTS>=SK[n-1][0]);
+  return `<div class="sk" style="opacity:${got||next?1:.5}">${n<SK.length-1?'<div class="l" style="background:'+(PTS>=SK[n+1][0]?'#e8a33a':'#e5cda6')+'"></div>':''}<div class="b" style="background:${got?'#ffcf6b':next?'#fff3d6':'#efe6d8'};border:${next?'2px dashed #e8a33a':'none'}">${got?ic:next?ic:'🔒'}</div><div style="flex:1"><div style="display:flex;justify-content:space-between"><b style="font-size:12px">${name}</b><span style="font-size:10px;color:#806345">${got?'✓ '+lv:p+' pts'}</span></div><div style="font-size:11px;color:#806345">${txt}</div>${next?`<div class="bar" style="margin-top:4px"><i style="width:${Math.round(100*PTS/p)}%"></i></div>`:''}</div></div>`}).join("")}</div>`;
+ s.classList.add("open");document.getElementById("dim").classList.add("open")}
+document.getElementById("dim").onclick=closeSheet;
+render();
+</script></body></html>

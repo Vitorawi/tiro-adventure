@@ -1,5 +1,6 @@
 {
   "schema": 1,
+  "light_hand": 1.15,
   "steps": ["picar", "mexer", "servir"],
   "step_names": {"picar": "Picar", "mexer": "Mexer", "servir": "Servir"},
   "stars": {

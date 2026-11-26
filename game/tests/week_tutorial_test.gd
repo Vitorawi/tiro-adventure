@@ -34,7 +34,7 @@ func run() -> void:
 		var folder := "e15_tutoriais" if "--e15-shots" in OS.get_cmdline_user_args() else "e14_tutoriais"
 		output = ProjectSettings.globalize_path("res://../build/screenshots/%s/%dx%d" % [folder, root.size.x, root.size.y])
 		DirAccess.make_dir_recursive_absolute(output)
-	check(db.week_tutorials.size() == 37, "37 lições: uma por sistema, presas ao passo da história (F04 Parte B)")
+	check(db.week_tutorials.size() == 38, "38 lições: uma por sistema, presas ao passo da história (F04 Parte B)")
 	check(db.week_tutorials.map(func(row: Dictionary) -> String: return row.id).count("arrival") == 1, "Abertura única")
 	await open_main()
 	check(shown("arrival") and not guide.get("_skip").visible, "A caixa tem guia obrigatório")
@@ -270,7 +270,7 @@ func run() -> void:
 	manual.open("tutorials")
 	await wait_ui()
 	var notebook := find("WeekTutorialManual")
-	check(notebook != null and notebook.find_children("TutorialReview_*", "", true, false).size() == 37, "Manual reúne todas as lições, inclusive puladas")
+	check(notebook != null and notebook.find_children("TutorialReview_*", "", true, false).size() == 38, "Manual reúne todas as lições, inclusive puladas")
 	var review := find("TutorialReview_garden")
 	if review:
 		await tap(review)

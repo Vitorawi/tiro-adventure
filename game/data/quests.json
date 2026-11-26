@@ -3086,7 +3086,7 @@
   "week_book": {
     "npc": "bloblo",
     "name": "O Livro de receitas",
-    "dialogue": "Cada prato que você faz fica anotado. Abra o Livro de receitas e veja.",
+    "dialogue": "Cada prato que você faz fica anotado e te dá pontos de cozinheiro. Abra o Livro de receitas e veja suas habilidades.",
     "goals": [
       {
         "type": "stat",

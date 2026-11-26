@@ -112,6 +112,8 @@ func _ready() -> void:
 	# Marco de coleção: a festa espera a revelação fechar (`_flush_modals` não abre com a carta na tela).
 	Events.album_milestone.connect(func(kind: String, key: String) -> void:
 		_queue_modal(func() -> void: _celebration.show_album_milestone(kind, key)))
+	Events.chef_level_up.connect(func(level: int) -> void:
+		_queue_modal(func() -> void: _celebration.show_chef_level(level)))
 	Events.photo_taken.connect(_queue_photo)
 	Events.photo_sealed.connect(_queue_photo)
 	Events.find_discovered.connect(func(result: Dictionary) -> void:

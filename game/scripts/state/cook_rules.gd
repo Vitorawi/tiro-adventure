@@ -50,11 +50,11 @@ static func stir_brilho(elapsed: float) -> int:
 
 
 ## Zona da velocidade do giro (rad/s): "slow", "good" ou "fast".
-static func stir_zone(speed: float) -> String:
+static func stir_zone(speed: float, scale: float = 1.0) -> String:
 	var rules: Dictionary = data().get("mexer", {})
-	if speed < float(rules.get("min_speed", 1.2)):
+	if speed < float(rules.get("min_speed", 1.2)) / scale:
 		return "slow"
-	if speed > float(rules.get("max_speed", 6.5)):
+	if speed > float(rules.get("max_speed", 6.5)) * scale:
 		return "fast"
 	return "good"
 

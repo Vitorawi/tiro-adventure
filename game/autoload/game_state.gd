@@ -1652,7 +1652,7 @@ func cook_many(recipe_id: String, count: int, stars: int = 1, together: bool = f
 	var tracked := station_id == "stove" and not bool(recipe.get("hidden", false))
 	for i in count:
 		var mastery := _recipe_preparation("recipe:" + recipe_id, stars, together) if tracked else {}
-		var seconds := recipe_seconds(recipe_id) * float(mastery.get("time", 1.0))
+		var seconds := recipe_seconds(recipe_id) * float(mastery.get("time", 1.0)) * (_quick_fire() if station_id == "stove" else 1.0)
 		var qty := recipe_quantity(recipe_id) + int(mastery.get("gift", 0))
 		inventory.remove_all(paid)
 		target.enqueue(recipe_id, seconds, now())
@@ -1672,6 +1672,9 @@ func cook_many(recipe_id: String, count: int, stars: int = 1, together: bool = f
 			if int(mastery.stars) >= 3:
 				_count("week_three_stars")
 			_record_recipe_preparation("recipe:" + recipe_id, mastery)
+			_chef_dish_points(int(mastery.stars), together)
+			if int(dish_record("recipe:" + recipe_id).get("made", 0)) == 1 and not week.dishes.has("dish:" + str(dish_of_item(str(job.output)).get("key", ""))):
+				chef_add(int(Database.recipe_book.chef_points.new_dish))
 			var fixed := dish_of_item(str(job.output))
 			var book_key := "dish:" + str(fixed.get("key", ""))
 			if not fixed.is_empty():
@@ -1818,6 +1821,17 @@ func dish_plan(type_id: String, picks: Array, stars: int = 1) -> Dictionary:
 				break
 		if refund.is_empty() and bool(chef_info().get("save_ingredient", false)):
 			refund[str(picks.back())] = 1
+		elif chef_skill("thrifty"):
+			# Economia: na Gororoba sobra mais um ingrediente (sempre deixa pelo menos um gasto).
+			var paid_total := 0
+			for item_id: String in consume:
+				paid_total += int(consume[item_id]) - int(refund.get(item_id, 0))
+			if paid_total > 1:
+				for pick: Variant in picks:
+					var item := str(pick)
+					if int(consume.get(item, 0)) - int(refund.get(item, 0)) >= 1:
+						refund[item] = int(refund.get(item, 0)) + 1
+						break
 		plan.refund = refund
 	else:
 		plan.output = DishRules.make_id(type_id, ingredients, plan.stars)
@@ -1854,6 +1868,7 @@ func cook_dish(type_id: String, picks: Array, stars: int = 1, together: bool = f
 		plan.stars = mastery.stars
 		plan.output = DishRules.make_id(type_id, plan.ingredients, int(plan.stars))
 		plan.seconds = float(plan.seconds) * float(mastery.time)
+	plan.seconds = float(plan.seconds) * _quick_fire()
 	var recipe_id := Database.dish_recipe_id()
 	if not Database.recipes.has(recipe_id) or not Database.ensure_dish(str(plan.output)):
 		return "Receita desconhecida"
@@ -1879,8 +1894,14 @@ func cook_dish(type_id: String, picks: Array, stars: int = 1, together: bool = f
 		if int(plan.stars) >= 3:
 			_count("week_three_stars")
 		_record_recipe_preparation(key, mastery)
+		_chef_dish_points(int(plan.stars), together)
 	_changed()
 	return ""
+
+
+## Fogo esperto: pratos do fogão ficam prontos 10% mais rápido (só valem para lotes novos).
+func _quick_fire() -> float:
+	return 0.9 if chef_skill("quick_fire") else 1.0
 
 
 # --- Pratos conhecidos, prévia e estrelas (Primeira semana, E03) ------------------------------------------------
@@ -2250,12 +2271,19 @@ func collect(station_id: String) -> Dictionary:
 				_changed()
 			continue
 		var qty := int(job.qty)
-		var full := storage_error({output: qty})
+		# Panelão: a cada 5 pratos do fogão recolhidos, uma porção extra (o contador só anda quando o lote entra).
+		var big_pot := station_id == "stove" and job.has("dish") and chef_skill("big_pot") 			and (int(_chef_data().get("pot_count", 0)) + 1) % int(Database.recipe_book.get("pot_every", 5)) == 0
+		var full := storage_error({output: qty + int(big_pot)})
 		if full != "":
 			# Não cabe: o lote continua pronto na fila, nada se perde.
 			station(station_id).queue.append(entry)
 			blocked = full
 			continue
+		if station_id == "stove" and job.has("dish") and chef_skill("big_pot"):
+			_chef_data()["pot_count"] = int(_chef_data().get("pot_count", 0)) + 1
+		if big_pot:
+			qty += 1
+			Events.toast_requested.emit("Panelão! Uma porção extra.")
 		inventory.add(output, qty)
 		specialty = specialty or bool(job.get("dish", {}).get("specialty", false))
 		if output == "egg" and station_id == "chicken_coop":
@@ -8289,6 +8317,16 @@ func week_minute() -> int:
 
 
 ## DEV: leva o relógio da semana ao dia N (1..9), mantendo a hora.
+## DEV/testes: fixa os pontos de cozinheiro sem comemorar (e zera o contador do Panelão).
+func dev_chef_points(points: int) -> void:
+	if not BuildInfo.is_dev():
+		return
+	var data := _chef_data()
+	data["points"] = maxi(0, points)
+	data["pot_count"] = 0
+	_changed()
+
+
 func dev_week_goto(day: int) -> void:
 	if not BuildInfo.is_dev(): return
 	week.clock_offset += float(day - week_day()) * 86400.0
@@ -8807,11 +8845,76 @@ func _recipe_gift_allowed(key: String) -> bool:
 	return DishRules.is_meal(type_id) or type_id in ["petisco", "biscoito"]
 
 
+## Dados do cozinheiro salvos no Livro: pontos, pratos recolhidos pelo Panelão e nível já comemorado.
+func _chef_data() -> Dictionary:
+	return _recipe_book_section("chef")
+
+
+## Os 9 níveis do cozinheiro (nome, pontos, habilidade), para o Caminho do cozinheiro.
+func chef_levels() -> Array:
+	return Database.recipe_book.chef
+
+
+## Índice (0 a 8) do nível para uma quantidade de pontos.
+func _chef_level_at(points: int) -> int:
+	var result := 0
+	var rows: Array = Database.recipe_book.chef
+	for i in rows.size():
+		if points >= int(rows[i].points):
+			result = i
+	return result
+
+
+## Multiplicador do Cozinhar junto (Mão leve): zonas e tolerâncias maiores.
+func chef_gesture_scale() -> float:
+	return float(Database.cooking.get("light_hand", 1.15)) if chef_skill("light_hand") else 1.0
+
+
+func chef_points() -> int:
+	return int(_chef_data().get("points", 0))
+
+
+## Habilidades cumulativas: a de cada nível alcançado.
+func chef_skill(id: String) -> bool:
+	var rows: Array = Database.recipe_book.chef
+	for i in range(_chef_level_at(chef_points()) + 1):
+		if str(rows[i].skill.id) == id:
+			return true
+	return false
+
+
 func chef_info() -> Dictionary:
-	var points := 0
-	for record: Dictionary in week.dishes.values():
-		points += int(record.get("points", 0))
-	return _recipe_tier(Database.recipe_book.chef, points).merged({"score": points})
+	var points := chef_points()
+	var rows: Array = Database.recipe_book.chef
+	var level := _chef_level_at(points)
+	var skills: Array[String] = []
+	for i in range(level + 1):
+		skills.append(str(rows[i].skill.id))
+	var next := int(rows[level + 1].points) if level + 1 < rows.size() else 0
+	var slots := 4 if "chef_hat" in skills else (3 if "queue3" in skills else 0)
+	var result: Dictionary = (rows[level] as Dictionary).duplicate()
+	result.merge({"score": points, "level": level, "next": next, "skills": skills, "slots": slots,
+		"exact_preview": "preview" in skills, "save_ingredient": "thrifty" in skills}, true)
+	return result
+
+
+## Soma pontos de cozinheiro. Cada nível alcançado emite `chef_level_up` e o chapéu de chef entrega a coleção uma vez.
+func chef_add(points: int) -> void:
+	if points <= 0:
+		return
+	var data := _chef_data()
+	var before := _chef_level_at(int(data.get("points", 0)))
+	data["points"] = int(data.get("points", 0)) + points
+	var after := _chef_level_at(int(data.points))
+	for level in range(before + 1, after + 1):
+		if str(Database.recipe_book.chef[level].skill.id) == "chef_hat":
+			_grant_automatic("chef:chef_hat", {"collections": ["week_chef_hat"]})
+		Events.chef_level_up.emit(level)
+
+
+## Ao cozinhar um prato: 1 ponto, mais as estrelas do Cozinhar junto.
+func _chef_dish_points(stars: int, together: bool) -> void:
+	chef_add(int(Database.recipe_book.chef_points.dish) + (clampi(stars, 1, 3) if together else 0))
 
 
 func _recipe_preparation(key: String, stars: int, together: bool) -> Dictionary:
@@ -8837,6 +8940,7 @@ func _discover_book_dish(type_id: String, ingredients: Array, source: String) ->
 		return false
 	week.dishes[key] = {"stars": 0, "made": 0, "day": week_day(), "source": source}
 	_count("dishes_known")
+	chef_add(int(Database.recipe_book.chef_points.new_dish))
 	Events.dish_discovered.emit(key, DishRules.name_of(type_id, ingredients))
 	Events.toast_requested.emit("Prato novo: %s!" % DishRules.name_of(type_id, ingredients))
 	return true

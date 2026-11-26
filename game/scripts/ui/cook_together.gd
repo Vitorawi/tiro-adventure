@@ -264,7 +264,7 @@ func _tick_stir(delta: float) -> void:
 	if not _stir_started:
 		return
 	stir_elapsed += delta
-	stir_zone_now = CookRules.stir_zone(speed) if _stirring else "slow"
+	stir_zone_now = CookRules.stir_zone(speed, GameState.chef_gesture_scale()) if _stirring else "slow"
 	if stir_zone_now == "good":
 		ring = minf(1.0, ring + delta / float(Database.cooking.get("mexer", {}).get("seconds_full", 8.0)))
 		_swirl += delta * 2.0
@@ -422,7 +422,7 @@ func _release(point: Vector2) -> void:
 
 ## x da linha tracejada do próximo corte: divide ao meio o que ainda sobra do ingrediente.
 func _mastery_gesture_scale() -> float:
-	return float(GameState.recipe_mastery(str(spec.get("mastery_key", ""))).get("gesture_scale", 1.0))
+	return float(GameState.recipe_mastery(str(spec.get("mastery_key", ""))).get("gesture_scale", 1.0)) * GameState.chef_gesture_scale()
 
 
 func guide_x() -> float:

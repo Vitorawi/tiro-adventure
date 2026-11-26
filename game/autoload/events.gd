@@ -93,6 +93,8 @@ signal stored_meal_eaten(period: String)
 signal recipe_piece_found(id: String, count: int)
 signal dish_discovered(key: String, dish_name: String)
 signal silk_up(level: int)
+## Subiu de nível de cozinheiro (índice 0 a 8); abre a comemoração com a habilidade nova.
+signal chef_level_up(level: int)
 signal growth_requirement_done(phase: String, req_id: String)
 signal taste_discovered(item: String, reaction: String)
 signal taste_reacted(item: String, reaction: String)
