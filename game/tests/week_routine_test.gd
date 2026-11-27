@@ -90,7 +90,9 @@ func complete_activity() -> void:
 func check_board() -> void:
 	main.call("show_screen", &"tasks")
 	var board := main.find_child("TasksScreen", true, false)
-	check(await wait_for("WeekToday") != null, "Hoje aparece junto da História")
+	check(board.find_child("ChapterStrip", true, false) != null and board.find_child("WeekToday", true, false) == null, "A aba Principal mostra só a história (faixa do capítulo, sem Hoje)")
+	board.call("choose_group", "timed")
+	check(await wait_for("WeekToday") != null, "Hoje aparece nas Diárias da semana")
 	check(board.find_children("WeekLineStep", "", true, false).size() == 1, "Missões tem um único Próximo passo das linhas")
 	check(board.find_child("WeekDailySeal", true, false) != null, "Missões mostra selo das diárias")
 	await snap("04_missoes")

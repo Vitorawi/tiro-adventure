@@ -5,42 +5,34 @@
     "npc": "lais",
     "item": "puppy_mash",
     "next": "Entendi",
-    "snack": "Petisco não é refeição.",
+    "snack": "Petisco é lanche: não conta como refeição.",
     "dessert": "Sobremesa! Não vale patinha.",
     "growth": [
-      "Cada quadradinho é um passo para crescer.",
-      "A caminha já conta! ✓",
-      "A papinha também! ✓"
+      "Para crescer, o Tiro precisa cumprir os passos da fase. Cada quadradinho é um passo.",
+      "Olha a caminha que você colocou: esse passo já está feito! ✓",
+      "E a papinha que vocês fizeram juntos também conta! ✓"
     ],
     "feed": "Arraste a papinha até ele.",
-    "paw": "Dia + noite = 1 patinha. Essa é presente!",
-    "grow": "6 patinhas = Dentinhos."
+    "paw": "Ganhou um ✓! Uma comidinha de dia e uma de noite valem uma patinha. Hoje é especial: essa papinha já vale!",
+    "grow": "Seis patinhas e ele ganha os Dentinhos. É uma por dia, não dá para adiantar."
   },
   "arrival": {
     "box": "res://assets/sprites/areas/house/arrival_box.png",
     "lines": [
       {
         "npc": "lais",
-        "text": "Oi, eu sou a Laís. Trouxe alguém para conhecer você.",
-        "button": "Abrir a caixinha",
+        "text": "Oi, eu sou a Laís. Trouxe alguém para você. Toque na caixinha!",
         "reveal": 0
       },
       {
         "npc": "lais",
-        "text": "É o Tiro. Ele está tremendo um pouquinho. Faça carinho de leve.",
-        "button": "Fazer carinho",
+        "text": "É o Tiro! Ele está com vergonha. Passe o dedo na cabecinha dele.",
+        "text_mid": "Olha o focinho! Mais um pouquinho.",
         "reveal": 0.28
       },
       {
         "npc": "lais",
-        "text": "Olha o focinho! Mais um carinho e ele vem.",
-        "button": "Fazer mais carinho",
-        "reveal": 0.54
-      },
-      {
-        "npc": "lais",
-        "text": "Pronto, ele saiu! Esse é o Tiro.",
-        "button": "Oi, Tiro!",
+        "text": "Pronto, ele saiu! Esse é o Tiro. Toque nele para dizer oi.",
         "reveal": 1
       }
     ]

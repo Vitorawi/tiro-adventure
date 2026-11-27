@@ -40,11 +40,9 @@ func _run() -> void:
 	await _shot("intro_1")
 	intro.call("_advance")
 	intro.call("_advance")
-	await create_timer(0.4).timeout
-	check((intro.get("_tiro") as Control).position.y < 100.0, "Focinho aparece após os carinhos")
-	await _shot("intro_3")
-	intro.call("_advance")
-	check((intro.get("_next") as Button).text == "Oi, Tiro!" and str((intro.get("_lines") as Array)[3].npc) == "lais", "A última fala é da Laís, sem convite para o sítio")
+	await create_timer(0.6).timeout
+	check((intro.get("_tiro") as Control).position.y < 100.0, "Tiro aparece depois do carinho")
+	check(str((intro.get("_lines") as Array)[2].npc) == "lais" and intro.find_children("*", "Button", true, false).is_empty(), "A última fala é da Laís e a abertura não tem botão")
 	await _shot("intro_5")
 	intro.call("_advance")
 	intro.call("_advance")  # Toques repetidos no mesmo frame não duplicam a chegada.

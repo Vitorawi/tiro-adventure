@@ -109,7 +109,7 @@ func _run() -> void:
 	await frames()
 
 	# Passo 1: a caixinha. Antes de pegar o prêmio ainda não há cuidados nem abas.
-	check(not shown("CareButton"), "sem Cuidar antes de pegar a caixinha")
+	check(shown("CareButton"), "o passeio pela casa começa no Cuidar (sem repetir o carinho da abertura)")
 	check(not shown("MapTab") and not shown("TasksTab") and not shown("BagTab"), "só a aba Tiro no rodapé")
 	check(not shown("AlbumButton"), "sem botão do Álbum")
 	check(not shown("CoinsPill"), "sem pílula de moedas no Ato 1")

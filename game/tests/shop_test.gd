@@ -210,6 +210,8 @@ func _screen() -> void:
 	(_find(live, "BuyItem") as Button).pressed.emit()
 	await _frames(4)
 	check(state.get("coins") == coins - 20 and state.get("inventory").count("dog_food") == food + 6, "8: BuyItem cobra 20 e entrega 6")
+	var fx_message := _find(root, "MarketMessage") as Label
+	check(fx_message != null and fx_message.text.begins_with("Comprou"), "8: a compra mostra a mensagenzinha 'Comprou ...'")
 	check(_find(live, "Locked_BuyItem") != null, "8: sem mais nada hoje, o botão vira bloqueado")
 	var again: Button = _find(live, "Locked_BuyItem") as Button
 	check(str(again.get_meta("reason", "")) == "Volta amanhã", "8: motivo 'Volta amanhã'")

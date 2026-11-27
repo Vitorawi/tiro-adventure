@@ -56,8 +56,6 @@ func press(node: Button) -> void:
 		touch.position = at
 		touch.global_position = at
 		root.push_input(touch, true)
-		if pressed and is_instance_valid(node) and node.name == &"ArrivalPet":
-			await create_timer(0.70).timeout
 	await process_frame
 
 
@@ -93,14 +91,12 @@ func run() -> void:
 	current_scene = main
 	await process_frame
 	var intro: Node = main.get("_intro")
-	var button := intro.get("_next") as Button
-	await snap("01_caixinha", button)
-	await press(button)
-	await press(button)
-	await snap("02_focinho", button)
-	await press(button)
-	await snap("03_vovo", button)
-	await press(button)
+	var card := intro.find_child("IntroCard", true, false) as Control
+	await snap("01_caixinha", card)
+	intro.call("_advance")
+	intro.call("_advance")
+	await snap("02_focinho", card)
+	intro.call("_advance")
 	await create_timer(3.0).timeout
 	check(state.progress.stat("arrival_box") == 1, "Abertura tocável")
 	clean()

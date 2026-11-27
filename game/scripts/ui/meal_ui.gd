@@ -4,8 +4,8 @@ extends RefCounted
 ## (`MealDay`: sol e lua), a folha "Hoje", a pergunta "Ele já comeu" e os avisos. Toda a regra mora no GameState
 ## (`meal_*`, `store_meal`); aqui só se lê e se desenha.
 
-const DAY_ART := "world_pill.png"
 const DISC := 30.0
+const HUD_DISC := 24.0  # discos do potinho no canto do retrato do HUD
 
 ## Estados de uma metade do dia: done (✓) · stored (na tigela) · open (aberta e sem ✓) · soon (ainda não começou) · closed (passou).
 const STATE_NOTES := {"soon": "%dh", "closed": "Passou"}
@@ -195,35 +195,21 @@ static func period_disc(period: String, state: String, px: float = DISC, pulse: 
 
 # --- Potinho do HUD ------------------------------------------------------------------------------
 
-## Potinho do dia, junto ao avatar: dois discos (sol e lua) numa pílula de madeira. Tocar abre a folha Hoje.
+## Potinho do dia, junto ao avatar: só os dois discos (sol e lua), pequenos, no canto de baixo à direita do retrato,
+## sem pílula de fundo, para a carinha do Tiro aparecer inteira. Tocar abre a folha Hoje (alvo 56×44).
 static func day_button() -> Button:
 	var button := BagUi.plain_button(open_today)
 	button.name = "MealDay"
-	button.custom_minimum_size = Vector2(78, 44)
-	button.size = Vector2(78, 44)
+	button.custom_minimum_size = Vector2(56, 44)
+	button.size = Vector2(56, 44)
 	button.focus_mode = Control.FOCUS_NONE
-	var holder := Control.new()
-	holder.name = "PillHolder"
-	holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	holder.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	holder.show_behind_parent = true
-	var art := NinePatchRect.new()
-	art.name = "PillArt"
-	art.texture = load(HomeUi.DIR + DAY_ART) as Texture2D
-	art.patch_margin_left = 45
-	art.patch_margin_right = 45
-	art.patch_margin_top = 39
-	art.patch_margin_bottom = 39
-	art.scale = Vector2.ONE / 3.0
-	art.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
-	art.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	holder.add_child(art)
-	holder.resized.connect(func() -> void: art.size = holder.size * 3.0)
-	button.add_child(holder)
-	var row := UiKit.hbox(4)
+	var row := UiKit.hbox(2)
 	row.name = "Discs"
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.alignment = BoxContainer.ALIGNMENT_END
+	row.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	row.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+	row.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	button.add_child(row)
 	# O tempo passa sem mudar o estado do jogo: o potinho se confere sozinho de vez em quando.
 	var timer := Timer.new()
@@ -257,7 +243,7 @@ static func sync_day(button: Button) -> void:
 		child.queue_free()
 	var order := _periods()
 	for i in order.size():
-		row.add_child(period_disc(str(order[i]), states[i], DISC, true))
+		row.add_child(period_disc(str(order[i]), states[i], HUD_DISC, true))
 	button.set_meta("state", "asking" if asking != "" else "calm")
 	button.tooltip_text = ""
 

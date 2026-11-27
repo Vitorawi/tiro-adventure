@@ -44,6 +44,8 @@ var _yard_round: Dictionary = {}
 var _yard_serial := 0
 ## Refeição guardada (Deixar pronto) sendo comida: período e dia do jogo (só dentro de `_eat_stored`).
 var _forced_meal: String = ""
+## Pista de receita contada na conversa aberta agora (por personagem; não vai no save): a conversa mostra no lugar de um aviso.
+var _talk_hints: Dictionary = {}
 var _forced_day: int = 0
 ## Álbum de recordações: fotos tiradas e janelas de eventos (etapa 13 do plano Tiro).
 var album := AlbumState.new()
@@ -3044,7 +3046,7 @@ func buy_shop_item_error(id: String, qty: int = 1) -> String:
 	return storage_error(_pack_items(data, qty))
 
 
-func buy_shop_item(id: String, qty: int = 1, expected_day: int = -1) -> String:
+func buy_shop_item(id: String, qty: int = 1, expected_day: int = -1, announce: bool = true) -> String:
 	if expected_day >= 0 and expected_day != cart_day():
 		return "A oferta de hoje mudou"
 	var error := buy_shop_item_error(id, qty)
@@ -3057,11 +3059,12 @@ func buy_shop_item(id: String, qty: int = 1, expected_day: int = -1) -> String:
 	inventory.remove_all(_pack_materials(data, qty))
 	if data.has("purchase_rewards"):
 		_grant_automatic("purchase:" + id, data.purchase_rewards)
-	_apply_shop_pack(id, data, qty)
+	_apply_shop_pack(id, data, qty, announce)
 	return ""
 
 
-func _apply_shop_pack(id: String, data: Dictionary, qty: int) -> void:
+## `announce` falso = quem chamou (a tela da banca) faz o voo dos itens até a Mochila por conta própria.
+func _apply_shop_pack(id: String, data: Dictionary, qty: int, announce: bool = true) -> void:
 	var upgrade := str(data.get("upgrade", ""))
 	if upgrade != "":
 		_build_upgrade(upgrade)
@@ -3088,7 +3091,7 @@ func _apply_shop_pack(id: String, data: Dictionary, qty: int) -> void:
 		var used := int(entry.get("n", 0)) if int(entry.get("day", -1)) == today else 0
 		progress.shop_daily[id] = {"day": today, "n": used + qty}
 	_changed()
-	if not gained.is_empty():
+	if announce and not gained.is_empty():
 		Events.items_gained.emit(gained, 0, Vector2(-1, -1))
 	if upgrade != "":
 		Events.world_activity.emit(&"build", upgrade, -1)
@@ -3963,6 +3966,7 @@ func _step_base(goal: Dictionary) -> Dictionary:
 
 ## Conversa aberta com o personagem (objetivos "Falar com…").
 func talk_to(npc_id: String) -> void:
+	_talk_hints.erase(npc_id)
 	note_recipe_hint(npc_id)
 	_count("talk:" + npc_id)
 	if Database.npcs.has(npc_id) and not Database.npcs[npc_id].get("decor", false):
@@ -9016,8 +9020,16 @@ func note_recipe_hint(source: String) -> void:
 		if str(hint.source) != source or week.recipe_book.get("hints", {}).has(id):
 			continue
 		_recipe_book_section("hints")[id] = true
-		Events.toast_requested.emit("Pista de receita: %s" % str(hint.text))
+		if Database.npcs.has(source):
+			_talk_hints[source] = str(hint.text)  # a conversa com o personagem mostra a pista (sem aviso por cima)
+		else:
+			Events.toast_requested.emit("Pista de receita: %s" % str(hint.text))
 		_changed()
+
+
+## Pista de receita que o personagem acabou de contar nesta conversa (vazio se nenhuma).
+func talk_hint(npc_id: String) -> String:
+	return str(_talk_hints.get(npc_id, ""))
 
 
 func _recipe_source(source: String) -> void:
@@ -9234,9 +9246,9 @@ func finish_home_tour() -> void:
 	_changed()
 
 
-## O passeio da casa já chegou ao passo do botão Cuidar: ele aparece (vazio, com a roleta fechada) antes de ser liberado pela história.
+## O passeio da casa começa no botão Cuidar (depois da abertura): ele aparece (vazio, com a roleta fechada) antes de ser liberado pela história.
 func home_tour_shows_care() -> bool:
-	return progress.stat("arrival_box") > 0 and int(week.tutorial.get("home_tour", {}).get("seq", 0)) >= 1
+	return progress.stat("arrival_box") > 0
 
 
 func week_quest_day(id: String) -> int:

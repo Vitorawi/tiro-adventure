@@ -142,17 +142,14 @@ func _build(box: VBoxContainer) -> void:
 		for ids: Array in week_people.values():
 			for id: String in ids:
 				if GameState.quest_error(id) == "": _ready_characters.append(id)
-		if _group == "timed": _group = "story"
 		_update_groups(week_people)
 		if _group == "characters":
 			_add_claim_all(box)
 			_characters(box, week_people)
-			sync_hud()
-			return
-		_story_card(box)
-		WeekStoryUi.today(box)
-		WeekStoryUi.next_step(box)
-		_week_extras(box)
+		elif _group == "timed":
+			_week_dailies(box)
+		else:
+			_story_card(box)
 		sync_hud()
 		return
 	_ready_routines.clear()
@@ -176,17 +173,16 @@ func _build(box: VBoxContainer) -> void:
 
 func _update_groups(characters: Dictionary) -> void:
 	if _group == "characters" and characters.is_empty(): _group = "story"
-	if _group == "timed" and not GameState.routines_unlocked("daily"): _group = "story"
+	var in_week := GameState.progress.chapter_index() <= GameState.week_last_chapter()
+	if _group == "timed" and not in_week and not GameState.routines_unlocked("daily"): _group = "story"
 	var current := GameState.progress.current_main_quest()
 	var entries: Array[Dictionary] = [{"id": "story", "text": "História", "alert": current != "" and GameState.quest_error(current) == ""}]
 	# As três abas aparecem sempre (o topo é igual em todos os grupos); as fechadas ganham cadeado e explicam no toque.
 	entries.append({"id": "characters", "text": "Pessoas", "alert": not _ready_characters.is_empty(),
 		"locked": "" if not characters.is_empty() else "Pessoas libera quando alguém da vila te pedir ajuda"})
 	entries.append({"id": "timed", "text": "Diárias", "alert": not _ready_routines.is_empty(),
-		"locked": "" if GameState.routines_unlocked("daily") else "Diárias liberam mais adiante na história"})
+		"locked": "" if in_week or GameState.routines_unlocked("daily") else "Diárias liberam mais adiante na história"})
 	# As abas só são recriadas quando algo visível muda; a bandeja não mexe de lugar nem a cada segundo.
-	if GameState.progress.chapter_index() <= GameState.week_last_chapter():
-		entries.resize(2)  # sem Diárias na semana (a rotina do dia mora no "Hoje" da História)
 	var sig := _group
 	for entry: Dictionary in entries: sig += "|%s:%s:%s" % [entry.id, entry.alert, entry.get("locked", "")]
 	if sig == _tabs_sig and _tabs != null and is_instance_valid(_tabs): return
@@ -273,7 +269,12 @@ func _claim_characters(ids: Array[String]) -> void:
 func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 	var ids: Array[String] = []
 	for quests: Array in groups.values(): ids.append_array(quests)
-	ids.sort_custom(func(a: String, b: String) -> bool: return GameState.quest_error(a) == "" and GameState.quest_error(b) != "")
+	# Prontas primeiro; depois a história principal antes das missões extras.
+	ids.sort_custom(func(a: String, b: String) -> bool:
+		var ready_a := GameState.quest_error(a) == ""
+		var ready_b := GameState.quest_error(b) == ""
+		if ready_a != ready_b: return ready_a
+		return ProgressionUi.story_chapter(a) > 0 and ProgressionUi.story_chapter(b) <= 0)
 	var list := UiKit.list_card(box)
 	for id: String in ids:
 		var quest: Dictionary = Database.quests[id]
@@ -284,6 +285,7 @@ func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 		var meta := UiKit.hbox(4)
 		if line == "secret":
 			meta.add_child(UiKit.secret_tag())  # selo "Segredo" da missão secreta da vovó (F04b)
+		meta.add_child(ProgressionUi.quest_kind_tag(id, true))
 		meta.add_child(UiKit.icon(ProgressionUi.goal_icon(goal), 20))
 		meta.add_child(UiKit.short_label("%d/%d" % [mini(GameState.goal_value(goal), target), target], &"SmallLabel", Palette.GO_INK if ready else Palette.INK_SOFT))
 		# Aberta, o Pegar fica só dentro do detalhe (laranja); a linha mostra a setinha para recolher.
@@ -305,6 +307,7 @@ func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 		# Nomes de missão de pessoa são longos: quebram em até duas linhas em vez de cortar.
 		for node: Node in top.find_children("*", "Label", true, false):
 			var title := node as Label
+			if title.name == &"QuestKindText": continue  # o selo História/Extra não quebra nem corta
 			if title.theme_type_variation == &"":
 				title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 				title.max_lines_visible = 2
@@ -339,18 +342,30 @@ func _characters(box: VBoxContainer, groups: Dictionary) -> void:
 				disc.pivot_offset = Vector2(10, 10)
 				disc.rotation = PI / 2
 
-func _week_extras(box: VBoxContainer) -> void:
-	var surprise := GameState.week_story_surprise()
-	if surprise != "":
-		var note := StepCardUi.inner_card(box, "WeekSurprise")
-		note.add_child(_week_label("Surpresa do Tiro", 20))
-		note.add_child(_week_label(surprise))
+## Diárias da primeira semana: o "Hoje", o desafio da vovó, o próximo passo das linhas e, discreto, o bilhete do Tiro.
+func _week_dailies(box: VBoxContainer) -> void:
+	WeekStoryUi.today(box)
 	var challenge := GameState.week_challenge()
 	if not challenge.is_empty():
-		var detail := StepCardUi.inner_card(box, "WeekChallenge")
-		detail.add_child(_week_label("Desafio opcional", 20))
-		detail.add_child(_week_label(str(challenge.label)))
-		detail.add_child(_week_label("Prêmio recebido" if challenge.paid else "%d/%d" % [int(challenge.count), int(challenge.target)]))
+		var card := StepCardUi.inner_card(box, "WeekChallenge")
+		card.add_child(_week_label("Desafio da vovó", 20))
+		card.add_child(_week_label(str(challenge.label)))
+		var target := maxi(1, int(challenge.target))
+		var value := mini(int(challenge.count), target)
+		var paid := bool(challenge.paid)
+		var bar := MissionUi.bar(1.0 if paid else float(value) / target, "Prêmio recebido" if paid else "%d/%d" % [value, target])
+		bar.name = "WeekChallengeBar"
+		card.add_child(bar)
+		var prize := ProgressionUi.reward_chips(challenge.get("rewards", {}))
+		prize.name = "WeekChallengePrize"
+		card.add_child(prize)
+	WeekStoryUi.next_step(box)
+	var surprise := GameState.week_story_surprise()
+	if surprise != "":
+		var note := _week_label("Hoje o Tiro: " + surprise, 14)
+		note.name = "WeekSurprise"
+		note.modulate = Color(1, 1, 1, 0.7)
+		box.add_child(note)
 
 
 func _week_label(value: String, px: int = 16) -> Label:
@@ -374,6 +389,7 @@ func _story_card(box: VBoxContainer) -> void:
 		return
 	if displayed != "":
 		var shared := str(Database.quests[current].get("shared_with", "")) != ""
+		card.add_child(_chapter_strip(index, current))
 		card.add_child(_story_hero(displayed))
 		if shared:
 			var guidance := MissionUi.text("A história segue com " + str(Database.npcs.get(str(Database.quests[displayed].npc), {}).get("name", "")), 13, Palette.WOOD_CREAM, 3)
@@ -391,6 +407,43 @@ func _story_card(box: VBoxContainer) -> void:
 	var full := MissionUi.link("História completa ›", func() -> void: MissionUi.story_book())
 	full.name = "StoryFull"
 	card.add_child(full)
+
+
+## Faixa do capítulo: uma bolinha por passo (feito = verde com ✓, o da vez = dourado, próximos = apagados) + "Passo Y de Z".
+func _chapter_strip(index: int, current: String) -> Control:
+	var ids := GameState.progress.main_quests(index)
+	var holder := UiKit.vbox(4)
+	holder.name = "ChapterStrip"
+	var row := UiKit.hbox(4)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	holder.add_child(row)
+	var now := 0
+	var room := floorf((_screen_width() - 2.0 * STORY_EDGE - 4.0 * maxi(0, ids.size() - 1)) / maxf(1.0, ids.size()))
+	var edge := clampf(room, 10.0, 22.0)
+	for i in ids.size():
+		var id := ids[i]
+		var done := GameState.progress.claimed_quests.has(id)
+		var is_now := id == current
+		if is_now: now = i + 1
+		var dot := PanelContainer.new()
+		dot.name = "ChapterStep_" + id
+		dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		dot.custom_minimum_size = Vector2(edge, edge)
+		var style := UiKit.surface(Palette.GO if done else (Palette.HONEY if is_now else Palette.WOOD_INSET), int(edge / 2.0))
+		style.border_color = Palette.WOOD_INK
+		style.set_border_width_all(2 if is_now else 1)
+		dot.add_theme_stylebox_override("panel", style)
+		dot.modulate = Color(1, 1, 1, 1.0 if (done or is_now) else 0.55)
+		if done and edge >= 16.0:
+			var mark := UiKit.ctl("check", int(edge - 8.0), Palette.WOOD_CREAM)
+			mark.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			mark.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			dot.add_child(mark)
+		row.add_child(dot)
+	var caption := MissionUi.text("Passo %d de %d" % [maxi(now, 1), ids.size()], 14, Palette.WOOD_CREAM, 3)
+	caption.name = "ChapterStepCaption"
+	holder.add_child(caption)
+	return holder
 
 
 ## História toda concluída: o cartão diz onde estamos; só o Álbum é botão, a história completa é um link.
@@ -733,6 +786,7 @@ func _compact_name(top: HBoxContainer) -> void:
 	top.add_theme_constant_override("separation", 4)
 	for node: Node in top.find_children("*", "Label", true, false):
 		var title := node as Label
+		if title.name == &"QuestKindText": continue
 		if title.theme_type_variation == &"":
 			title.autowrap_mode = TextServer.AUTOWRAP_OFF
 			title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS

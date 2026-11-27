@@ -60,6 +60,19 @@ static func npc_view(npc_id: String) -> Control:
 		var npc: Dictionary = Database.npcs.get(npc_id, {})
 		var active := Places.npc_active_quests(npc_id)
 		current_speech.text = album_line if album_line != "" else (str(Database.quests[active[0]].get("dialogue", "")) if not active.is_empty() else str(npc.get("greeting", "")))
+		var hint := GameState.talk_hint(npc_id)
+		if hint != "":
+			# A pista de receita que ele acabou de contar fica no topo da conversa, no lugar de um aviso por cima.
+			var clue := StepCardUi.inner_card(box, "RecipeHint")
+			var title := UiKit.hbox(8)
+			title.add_child(UiKit.icon(UiKit.ui_icon("ui_notebook"), 28))
+			title.add_child(StepCardUi.wood("Pista de receita", 17))
+			clue.add_child(title)
+			var text := StepCardUi.wood(hint, 15)
+			text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+			clue.add_child(text)
+		# História principal primeiro, depois as missões extras do personagem.
+		active.sort_custom(func(a: String, b: String) -> bool: return story_chapter(a) > 0 and story_chapter(b) <= 0)
 		for id in active:
 			wood_quest_card(box, id)
 		# Atalhos para os lugares que o personagem cuida: linhas de papel com o ícone no quadradinho bege.
@@ -149,12 +162,60 @@ static func npc_header(box: VBoxContainer, npc_id: String, speech: String = "", 
 	return balloon.label
 
 
+## Capítulo da história a que a missão pertence: a própria missão principal ou o marco da linha que a principal
+## aponta (`shared_with`). 0 = missão extra (side quest) do personagem.
+static func story_chapter(id: String) -> int:
+	var quest: Dictionary = Database.quests.get(id, {})
+	if quest.get("kind", "side") == "main":
+		return maxi(1, int(quest.get("chapter", 1)))
+	for other: String in Database.quests:
+		var main: Dictionary = Database.quests[other]
+		if main.get("kind", "side") == "main" and str(main.get("shared_with", "")) == id:
+			return maxi(1, int(main.get("chapter", 1)))
+	return 0
+
+
+## Selo de tipo no topo do cartão da missão: "História" (dourado, estrela, "Cap. N") ou "Extra" (verde, discreto).
+static func quest_kind_tag(id: String, compact: bool = false) -> Control:
+	var chapter := story_chapter(id)
+	var story := chapter > 0
+	var tag := PanelContainer.new()
+	tag.name = "QuestKind_" + id
+	tag.set_meta("kind", "story" if story else "extra")
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tag.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	tag.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var style := UiKit.surface(Palette.HONEY if story else Palette.GO_SOFT, 11)
+	style.border_color = Palette.HONEY_EDGE if story else Palette.GO
+	style.set_border_width_all(2)
+	style.content_margin_left = 8.0
+	style.content_margin_right = 9.0
+	style.content_margin_top = 1.0
+	style.content_margin_bottom = 1.0
+	tag.add_theme_stylebox_override("panel", style)
+	tag.custom_minimum_size.y = 24.0
+	var row := UiKit.hbox(4)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if story:
+		var star := UiKit.ctl("spark", 14, Palette.HONEY_INK)
+		star.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		row.add_child(star)
+	var ink := Palette.HONEY_INK if story else Palette.GO_INK
+	var label := StepCardUi.wood(("História" if compact else "História · Cap. %d" % chapter) if story else "Extra", 13, ink)
+	label.name = "QuestKindText"
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	row.add_child(label)
+	tag.add_child(row)
+	return tag
+
+
 ## Missão ativa na conversa, em madeira: cartão de papel com o nome, os objetivos (iguais ao mini-cartão do próximo
 ## passo), os prêmios e `?` + Ir/Pegar/Liberar espaço. Nomes mantidos: `LineCard_<linha>`, `LineDetail_<linha>`.
 static func wood_quest_card(box: VBoxContainer, id: String) -> void:
 	var quest: Dictionary = Database.quests[id]
 	var line := str(quest.get("line", id))
 	var inner := StepCardUi.inner_card(box, "LineCard_" + line)
+	inner.add_child(quest_kind_tag(id))
 	var heading := UiKit.hbox(6)
 	heading.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var title := StepCardUi.wood(str(quest.name), 17)

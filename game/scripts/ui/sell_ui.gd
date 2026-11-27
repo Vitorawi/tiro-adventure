@@ -482,18 +482,44 @@ static func _board(who: Dictionary, model: Dictionary, refresh: Callable, width:
 	var total := qty * unit
 	last.add_child(_total_pill(total))
 	last.add_child(spacer())
+	var button_ref: Array[Button] = []
 	var action := StepCardUi.go_button("Vender", func() -> void:
+		# Posições ANTES de vender: a lista se refaz logo em seguida e os nós antigos somem.
+		var card := Engine.get_main_loop().root.find_child("Sell_" + id, true, false) as Control
+		var button := button_ref[0] if not button_ref.is_empty() and is_instance_valid(button_ref[0]) else null
+		var button_center := button.get_global_rect().get_center() if button else Vector2(180.0, 600.0)
+		var card_center := card.get_global_rect().get_center() if card else button_center - Vector2(0.0, 120.0)
+		var note_at := _board_rect(button)
 		var error := GameState.sell(id, qty, world_id)
 		if error != "":
 			Events.toast_requested.emit(error)
 		else:
-			Events.items_gained.emit({}, total, Vector2(-1, -1)))
+			MarketFx.sold(id, qty, total, card_center, button_center, note_at)
+			_pulse_card.call_deferred(id))
+	button_ref.append(action)
 	action.name = "SellSelected"
 	action.custom_minimum_size.x = 104.0
 	action.size_flags_horizontal = Control.SIZE_SHRINK_END
 	last.add_child(action)
 	column.add_child(last)
 	return panel
+
+
+## Retângulo global da tábua (SellPanel) que contém o botão; sem ele, uma faixa perto do fim da tela.
+static func _board_rect(button: Control) -> Rect2:
+	var node: Node = button
+	while node != null and node.name != &"SellPanel":
+		node = node.get_parent()
+	if node is Control:
+		return (node as Control).get_global_rect()
+	return Rect2(Vector2(0.0, 560.0), Vector2(360.0, 120.0))
+
+
+## Depois da venda e da reconstrução da lista, o cartão do item dá um pulinho (se ainda sobrou algum).
+static func _pulse_card(id: String) -> void:
+	var card := Engine.get_main_loop().root.find_child("Sell_" + id, true, false) as Control
+	if card:
+		Motion.bounce(card)
 
 
 ## Casca da tábua (madeira, título, retrato do vendedor e a coluna de controles), compartilhada por Vender e Comprar.
@@ -791,14 +817,27 @@ static func _buy_board(who: Dictionary, model: Dictionary, refresh: Callable, wi
 	if error == "":
 		last.add_child(total)
 		last.add_child(spacer())
+		var button_ref: Array[Button] = []
 		action = StepCardUi.go_button("Comprar", func() -> void:
-			var failure := GameState.buy_shop_item(id, qty)
+			# Posições ANTES de comprar: a tela se refaz logo em seguida.
+			var card := Engine.get_main_loop().root.find_child("Buy_" + id, true, false) as Control
+			var button := button_ref[0] if not button_ref.is_empty() and is_instance_valid(button_ref[0]) else null
+			var button_center := button.get_global_rect().get_center() if button else Vector2(180.0, 600.0)
+			var card_center := card.get_global_rect().get_center() if card else button_center - Vector2(0.0, 120.0)
+			var note_at := _board_rect(button)
+			var failure := GameState.buy_shop_item(id, qty, -1, false)
 			if failure != "":
 				Events.toast_requested.emit(failure)
 			else:
+				var picture := pack_icon(data)
+				var texture := picture.texture if not data.get("items", {}).is_empty() else null
+				picture.free()
+				var label := str(data.name) + (" ×%d" % qty if qty > 1 else "")
+				MarketFx.bought(texture, label, int(data.price) * qty, card_center, note_at)
 				model.buy_qty = 1
 				if data.has("ready"):
 					_show_kit.call_deferred(data))
+		button_ref.append(action)
 		action.name = "BuyItem"
 		action.size_flags_horizontal = Control.SIZE_SHRINK_END
 	else:

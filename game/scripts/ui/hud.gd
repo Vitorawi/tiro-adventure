@@ -145,11 +145,12 @@ func _build_avatar() -> void:
 	_avatar_group.add_child(_ask_icon)
 	# Reloginho das refeições: abre a folha "Hoje" (E01c).
 	_meal_clock = MealUi.day_button()
-	_meal_clock.position = Vector2(-2.0, AVATAR_SIZE.y - 36.0)  # o potinho (78×44) fica a >= 4 px da borda da tela
+	# Sol e lua no canto de baixo à direita do retrato (passam um pouco da moldura), sem cobrir a carinha.
+	_meal_clock.position = Vector2(AVATAR_SIZE.x - 38.0, AVATAR_SIZE.y - 40.0)
 	_avatar_group.add_child(_meal_clock)
 	_animated_badge = UiKit.spark(18)
 	_animated_badge.name = "AnimatedBadge"
-	_animated_badge.position = Vector2(AVATAR - 22.0, AVATAR_SIZE.y - 24.0)
+	_animated_badge.position = Vector2(2.0, AVATAR_SIZE.y - 24.0)  # canto de baixo à esquerda: a direita é do sol e da lua
 	_animated_badge.size = Vector2(18, 18)
 	_animated_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_avatar_group.add_child(_animated_badge)

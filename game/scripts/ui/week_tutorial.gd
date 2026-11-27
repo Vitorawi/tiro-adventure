@@ -11,6 +11,9 @@ var _anchor_rect := Rect2()
 const TIRO_SETTLE := 0.8
 var _waiting_tiro := false
 var _wait_tiro := 0.0
+## Folga depois que o cuidado termina, antes da próxima lição (o Tiro volta ao descanso).
+const CARE_QUIET := 0.6
+var _care_quiet := 0.0
 var _skip: Button
 var _accept: Button
 var _hint: PanelContainer
@@ -94,6 +97,19 @@ func _process(delta: float) -> void:
 			hide()
 			return
 		_waiting_tiro = false
+	# Depois de um cuidado (comendo, banho, bola): a próxima lição só aparece quando a animação acaba e o Tiro
+	# descansa um instante. A lição que já está na tela (no meio dos passos) continua.
+	# Com uma folha aberta o jogador já está agindo (ex.: "Ele já comeu?"): a lição dela aparece na hora.
+	var between := (active == "" or bool(record(active).get("done", false)) or not visible) and not _sheet_open()
+	if between and PetAnimator.home_caring():
+		_care_quiet = CARE_QUIET
+		hide()
+		return
+	if _care_quiet > 0.0:
+		_care_quiet -= delta
+		if between:
+			hide()
+			return
 	if _elapsed >= 0.08:
 		_elapsed = 0.0
 		_pick(intro)
@@ -115,8 +131,7 @@ func _process(delta: float) -> void:
 func _pick(intro: bool) -> void:
 	if intro:
 		var arrival: Dictionary = Database.week_tutorials[0]
-		var index := mini(int(GameState.week.tutorial.get("arrival_step", 0)), 3)
-		index = [0, 1, 1, 2][index]
+		var index := mini(int(GameState.week.tutorial.get("arrival_step", 0)), arrival.steps.size() - 1)
 		_present(arrival, index, arrival.steps[index].target)
 		return
 	if not enrolled() or GameState.growth.phase_index() >= GameState.growth.phase_index("teething"):
@@ -216,6 +231,14 @@ func _locate(lesson: Dictionary) -> Dictionary:
 		if int(record("coop").get("step", -1)) >= 2:
 			finish("coop")
 		return {}
+	var market_sold := false
+	if lesson.id == "market":
+		# Vendeu alguma coisa desde que a lição começou (ou já cumpriu as cenouras): a mão vai para a aba Comprar.
+		var data := record("market")
+		if not data.has("sold_base"):
+			data.sold_base = GameState.progress.stat("sold:farm")
+			GameState.week.tutorial["market"] = data
+		market_sold = GameState.progress.stat("sold:farm") > int(data.sold_base) or GameState.progress.stat("sold:farm:carrot") >= 4
 	if lesson.id == "wish" and stages.size() >= 5:
 		return _locate_wish()
 	if lesson.get("sequence", false) and not stages.is_empty():
@@ -231,6 +254,8 @@ func _locate(lesson: Dictionary) -> Dictionary:
 	for i in range(stages.size() - 1, -1, -1):
 		var target := str(stages[i].target)
 		if target in ["@cart_shop", "YardName"]:
+			continue
+		if lesson.id == "market" and ((target == "NotebookTab_buy" and not market_sold) or (target in ["Sell_carrot", "QuantityRow"] and market_sold)):
 			continue
 		if target in ["@inv_slot", "@inv_picker", "@inv_cook"] and not GameState.week.tutorial.get("invent_type_chosen", false):
 			continue
@@ -278,13 +303,14 @@ func _update_copy() -> void:
 	var tip: bool = _shown.format == "tip"
 	_tip_go.visible = tip or _shown.format == "list"
 	_label.text = str(_shown.steps[step].say) if guided else str(_shown.get("say", _shown.text))
-	var petting := guided and str(_shown.steps[step].target) == "ArrivalPet"
-	if petting:
+	# A abertura é só gesto: a fala fica no cartão da Laís, aqui só a mão (sem balão e sem véu).
+	var arrival := guided and active == "arrival"
+	if arrival:
 		_hint.hide()
 	# Passo com gesto sobre o Tiro (esfregar, jogar, arrastar a comida): sem véu, para ele aparecer limpo.
-	var clear := guided and not petting and _veil_free(_shown.steps[step])
+	var clear := guided and (arrival or _veil_free(_shown.steps[step]))
 	for rect: ColorRect in _rects:
-		rect.color.a = 0.0 if (pointing or clear) else (0.18 if petting else 0.5)
+		rect.color.a = 0.0 if (pointing or clear) else 0.5
 	_skip.visible = active != "arrival"
 	_skip.custom_minimum_size.x = 110.0 if active == "cook" else 78.0
 	_skip.text = "Pular guia" if active == "cook" else "Pular"
@@ -378,6 +404,10 @@ func _gesture(rect: Rect2, style: String) -> Array:
 			var p := center + Vector2.from_angle(angle) * rect.size.x * 0.48
 			return [p, p]
 		"hold": return [center, center]
+		"rub":
+			# Esfregando a cabeça da caixinha: vai e volta sobre ela.
+			var p := center + Vector2(sin(_demo_time * 7.0) * minf(rect.size.x * 0.3, 44.0), 0.0)
+			return [p, p]
 		"scrub":
 			# Da esponja até as costas do Tiro, esfregando de um lado para o outro.
 			var pet := main.find_child("PetScreen", true, false)
@@ -557,7 +587,7 @@ func _accept_balloon() -> void:
 
 ## Passos com `gesture` sobre o Tiro rodam sem véu cinza (só a mão e o balão); `"veil": false` faz o mesmo em qualquer passo.
 func _veil_free(step_data: Dictionary) -> bool:
-	return str(step_data.get("gesture", "")) in ["scrub", "up", "feed", "hold"] or step_data.get("veil", true) == false
+	return str(step_data.get("gesture", "")) in ["scrub", "rub", "up", "feed", "hold"] or step_data.get("veil", true) == false
 
 
 ## Ao entrar num passo da sequência que espera um carinho, guarda quantos carinhos já existiam.
@@ -647,7 +677,7 @@ func _resume() -> void:
 				if is_instance_valid(room):
 					room.open_plot_tray.call_deferred(maxi(0, plot), "carrot", true, false)
 			elif id == "market" and int(record(id).get("step", 0)) >= 2:
-				Places.go({"world": "farm", "place": "shop:week_plot"})
+				Places.go({"world": "farm", "place": "shop:week_pumpkin_seed"})
 			elif id == "eggs" and int(record(id).get("step", 0)) == 1:
 				Places.go({"world": "farm", "place": "chicken_coop"})
 			elif id == "invent" and int(record(id).get("step", 0)) >= 1:

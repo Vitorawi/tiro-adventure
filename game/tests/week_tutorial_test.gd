@@ -39,37 +39,49 @@ func run() -> void:
 	await open_main()
 	check(shown("arrival") and not guide.get("_skip").visible, "A caixa tem guia obrigatório")
 	await snap("01_caixa")
-	await tap(find("ArrivalOpen"))
-	check(main.get("_intro").get("_index") == 1, "O toque abre a caixinha")
+	check(find("ArrivalBox") != null and not_any_button(find("IntroCard")), "A abertura não tem nenhum botão")
+	await tap(find("ArrivalBox"))
+	check(main.get("_intro").get("_index") == 1, "O toque na caixinha abre")
 	await reopen()
 	check(shown("arrival") and guide.get("step") == 1, "A reabertura retoma no carinho")
-	await tap(find("ArrivalPet"), 0.70)
-	check(main.get("_intro").get("_index") == 2, "O carinho de segurar revela o focinho")
-	await tap(find("ArrivalPet"), 0.70)
-	await tap(find("ArrivalGo"))
+	var head := find("ArrivalHead")
+	check(head != null and head.size.x >= 88.0 and guide.get("_hand").visible, "A cabeça é o alvo do gesto, com a mão")
+	# Só toque parado não conta; passar o dedo na cabeça faz o Tiro sair.
+	await tap(head, 0.2)
+	check(main.get("_intro").get("_index") == 1 and main.get("_intro").get("_goal") <= 0.3, "Toque parado não revela o Tiro")
+	var at := head.get_global_rect().get_center()
+	pointer(at, true)
+	var x_sign := 1.0
+	for i in 20:
+		var head_now := find("ArrivalHead")
+		if head_now == null:
+			break  # ele já saiu
+		var next := Vector2(at.x + 60.0 * x_sign, head_now.get_global_rect().get_center().y)  # o dedo acompanha a cabeça que sobe
+		move_pointer(at, next)
+		at = next
+		x_sign = -x_sign
+		await process_frame
+		if i == 8:
+			check(float(main.get("_intro").get("_goal")) > 0.28, "Esfregar revela mais do Tiro")
+	pointer(at, false)
+	await wait_ui(0.4)
+	check(main.get("_intro").get("_index") == 2, "O carinho na cabeça faz o Tiro sair")
+	check(shown("arrival") and guide.get("step") == 2 and find("ArrivalTiro") != null, "A mão volta para tocar no Tiro")
+	await tap(find("ArrivalTiro"))
+	await wait_ui(0.8)
 	check(state.progress.stat("arrival_box") == 1, "O tutorial de chegada termina uma vez")
 	# Passeio pela casa nova (primeira missão): Tiro/carinho, botão Cuidar, anéis das necessidades; só depois o Pegar.
 	await wait_ui(0.6)
 	await dismiss()
 	await wait_ui(0.4)
-	check(shown("home_tour") and guide.get("step") == 0, "O tour da casa começa no Tiro (%s / %s)" % [guide.get("active"), str(guide.get("step"))])
+	check(shown("home_tour") and guide.get("step") == 0, "O tour da casa começa no Cuidar, sem repetir o carinho da abertura (%s / %s)" % [guide.get("active"), str(guide.get("step"))])
 	check(not shown("home_claim") and state.quest_error("welcome") != "", "O Pegar só vale depois do tour")
-	check((guide.get("_rects")[0] as ColorRect).color.a == 0.0, "Passo de carinho sem véu cinza: o Tiro aparece limpo")
-	await snap("01b_tour_tiro")
-	state.pet()  # um carinho de verdade avança
-	await wait_ui(0.3)
-	check(not guide.visible, "Durante o carinho o próximo balão espera o Tiro levantar")
-	for _i in 40:  # o balão volta quando o Tiro termina o carinho
-		if shown("home_tour") and guide.get("step") == 1:
-			break
-		await wait_ui(0.2)
-	check(shown("home_tour") and guide.get("step") == 1, "O carinho leva ao botão Cuidar (%s / %s)" % [guide.get("active"), str(guide.get("step"))])
 	check(find("CareButton") != null, "O Cuidar aparece durante o tour")
 	check((guide.get("_rects")[0] as ColorRect).color.a > 0.0, "Passo informativo com destaque")
 	await snap("01c_tour_cuidar")
 	await tap(find("TutorialAccept", guide))
 	await wait_ui(0.5)
-	check(shown("home_tour") and guide.get("step") == 2, "Entendi leva aos anéis das necessidades (%s / %s)" % [guide.get("active"), str(guide.get("step"))])
+	check(shown("home_tour") and guide.get("step") == 1, "Entendi leva aos anéis das necessidades (%s / %s)" % [guide.get("active"), str(guide.get("step"))])
 	await snap("01d_tour_aneis")
 	check(state.progress.stat("home_tour") == 0 and state.quest_error("welcome") != "", "Ainda sem Pegar no último passo")
 	await tap(find("TutorialAccept", guide))
@@ -256,6 +268,8 @@ func run() -> void:
 	await dismiss()
 	main.call("show_screen", &"tasks")
 	await wait_ui()
+	main.find_child("TasksScreen", true, false).call("choose_group", "timed")
+	await wait_ui()
 	var today := find("WeekToday")
 	check(today != null and today.find_child("WeekDailySeal", true, false) != null and today.find_children("WeekDaily_*", "", true, false).is_empty(), "Hoje recolhe as três atividades concluídas ao selo")
 	await snap("07_lista_do_dia")
@@ -281,6 +295,13 @@ func run() -> void:
 	check(state.week.tutorial.get("garden", {}).get("skipped", false), "O save conserva lições puladas")
 	print("WEEK TUTORIAL TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(int(failures != 0))
+
+
+func not_any_button(scope: Node) -> bool:
+	for control: Control in scope.find_children("*", "Button", true, false):
+		if control.is_visible_in_tree():
+			return false
+	return true
 
 
 func open_main() -> void:

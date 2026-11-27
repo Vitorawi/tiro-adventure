@@ -5,20 +5,20 @@
       "day": 1,
       "title": "Abrir a caixinha",
       "format": "hand",
-      "text": "Toque para abrir. Depois segure para fazer carinho até o Tiro sair.",
+      "text": "Toque na caixinha e passe o dedo na cabeça do Tiro até ele sair.",
       "steps": [
         {
-          "target": "ArrivalOpen",
-          "say": "Toque para abrir a caixinha."
+          "target": "ArrivalBox",
+          "say": "Toque na caixinha."
         },
         {
-          "target": "ArrivalPet",
-          "say": "Segure para fazer carinho.",
-          "gesture": "hold"
+          "target": "ArrivalHead",
+          "say": "Passe o dedo na cabeça dele.",
+          "gesture": "rub"
         },
         {
-          "target": "ArrivalGo",
-          "say": "Toque para ir com o Tiro."
+          "target": "ArrivalTiro",
+          "say": "Toque no Tiro."
         }
       ]
     },
@@ -32,12 +32,6 @@
       "finish": "home_tour",
       "text": "O Tiro aceita carinho. Cuidar abre a roleta dos cuidados e os anéis mostram o que ele precisa hoje.",
       "steps": [
-        {
-          "target": "@tiro",
-          "say": "Este é o Tiro. Passe o dedinho nele para fazer carinho.",
-          "gesture": "scrub",
-          "advance": "pet"
-        },
         {
           "target": "CareButton",
           "say": "Aqui ficam os cuidados do Tiro. Eles vão abrindo aos poucos.",
@@ -437,6 +431,10 @@
         {
           "target": "QuantityRow",
           "say": "Ajuste a quantidade e toque em Vender."
+        },
+        {
+          "target": "NotebookTab_buy",
+          "say": "Vendido! Agora toque em Comprar."
         },
         {
           "target": "Buy_week_pumpkin_seed",

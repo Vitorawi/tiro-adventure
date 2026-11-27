@@ -190,7 +190,7 @@ func _ui_check() -> void:
 	await create_timer(0.2).timeout
 	var card: Control = main.find_child("StoryCard", true, false)
 	check(card != null and card.size.y < 570, "Cartão da história deve caber na tela")
-	check(main.find_child("GroupTabs", true, false).is_visible_in_tree() and main.find_child("NotebookTab_story", true, false) != null and main.find_child("NotebookTab_characters", true, false) != null and main.find_child("NotebookTab_timed", true, false) == null, "início: História e Pessoas na primeira semana")
+	check(main.find_child("GroupTabs", true, false).is_visible_in_tree() and main.find_child("NotebookTab_story", true, false) != null and main.find_child("NotebookTab_characters", true, false) != null and main.find_child("NotebookTab_timed", true, false) != null, "início: História, Pessoas e Diárias na primeira semana")
 	check(card.find_child("StoryHero", true, false) != null and card.find_child("StoryRewards", true, false) == null and card.find_child("StoryGoal_0", true, false) != null, "história: cartão do topo, recompensas e passos")
 	check(card.find_child("ChapterSteps", true, false) == null, "lista antiga de passos do capítulo saiu")
 	var chapter_bar := card.find_child("BarText", true, false) as Label
