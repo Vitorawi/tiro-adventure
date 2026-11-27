@@ -2016,7 +2016,7 @@ func _fotos_shots() -> void:
 	reveal.call("close")
 	await process_frame
 	# Varal na home com três polaroides.
-	for id in ["h_arrival", "f_bath", "f_taste"]:
+	for id in ["h_arrival", "f_bath", "h_first_trick"]:
 		state.call("dev_take_photo", id, 4 if id == "f_bath" else 3)
 		state.call("feature_photo", id)
 	state.call("dev_fill_needs")

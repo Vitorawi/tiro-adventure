@@ -39,7 +39,7 @@ static func open(world_id: String, place_id: String, from_object: bool = false) 
 		"sleep":
 			var sleeping := not GameState.dog.sleeping
 			GameState.set_sleeping(sleeping)
-			Events.toast_requested.emit("Hora da soneca!" if sleeping else "Tiro acordou!")
+			Events.tiro_said.emit("Hora da soneca!" if sleeping else "Acordou!")
 		_:
 			var content := _panel(kind, arg, world_id) if kind in ["nature", "petshop", "contracts"] else _with_upgrades(_panel(kind, arg, world_id), place.get("upgrades", []))
 			# Ao tocar na estação do mapa, deixa o objeto à vista; puxar a alça para cima amplia a consulta.

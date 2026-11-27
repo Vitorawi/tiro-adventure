@@ -85,7 +85,6 @@ func _run() -> void:
 	(main.find_child("StoreMeal", true, false) as Button).pressed.emit()
 	await create_timer(0.8).timeout
 	await _save("d_tiro_com_tampinha")
-	state.get("week").weak = true
 	events.sheet_requested.emit("Hoje", meal_ui.call("today_panel"))
 	await create_timer(0.6).timeout
 	_sheet_ok()

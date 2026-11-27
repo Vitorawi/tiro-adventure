@@ -202,7 +202,7 @@ func _run() -> void:
 
 	# varal cheio: escolha de qual sai
 	_fresh()
-	for other in ["f_bath", "h_kitchen", "h_growth_adult"]:
+	for other in ["f_bath", "h_first_night", "h_growth_adult"]:
 		state.call("dev_take_photo", other, 1)
 		state.call("feature_photo", other)
 	state.call("dev_take_photo", "h_arrival", 3)

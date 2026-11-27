@@ -181,7 +181,7 @@ func _run() -> void:
 	check(quest() == "first_kitchen", "o passo 13 é a primeira papinha")
 	var food: String = route.recipe("puppy_mash", 3, true)
 	check(food == "puppy_mash" and state.progress.stat("together:puppy_mash") == 1, "a papinha do Cozinhar junto")
-	check(not state.food_lesson_done() and not shown("MealClock"), "sem relógio antes da aula da comida")
+	check(not state.food_lesson_done() and not shown("MealDay"), "sem relógio antes da aula da comida")
 	await claim("first_kitchen")
 
 	# Passo 14: a aula da comida mora aqui. Ainda sem moeda e sem banca.

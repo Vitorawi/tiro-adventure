@@ -87,13 +87,13 @@ func _run() -> void:
 	await frames()
 	check(polaroids().size() == 1 and slots().size() == 2, "1: uma polaroide e dois espaços")
 
-	for id in ["f_bath", "f_taste"]:
+	for id in ["f_bath", "h_first_trick"]:
 		state.call("dev_take_photo", id, 4 if id == "f_bath" else 2)
 		state.call("feature_photo", id)
 	await frames()
 	var names: Array[String] = []
 	for holder in polaroids(): names.append(str(holder.get_meta("photo")))
-	check(names == ["h_arrival", "f_bath", "f_taste"] and slots().is_empty(), "2: três polaroides na ordem do motor: " + str(names))
+	check(names == ["h_arrival", "f_bath", "h_first_trick"] and slots().is_empty(), "2: três polaroides na ordem do motor: " + str(names))
 
 	# Posições: nada do que a home mostra pode ser coberto (e o toque do varal não vira carinho).
 	for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
@@ -144,7 +144,7 @@ func _run() -> void:
 	check(str(polaroids()[1].get_meta("photo")) == "f_bath", "4: ordem preservada")
 
 	# Espaço vazio leva ao Álbum.
-	state.call("unfeature_photo", "f_taste")
+	state.call("unfeature_photo", "h_first_trick")
 	await frames()
 	check(slots().size() == 1, "2: tirar do varal abre um espaço")
 	await click(slots()[0].get_global_rect().get_center())
@@ -153,7 +153,7 @@ func _run() -> void:
 	main.find_child("AlbumScreen", true, false).queue_free()
 
 	# Passeio: o varal some.
-	state.call("dev_take_photo", "f_dig", 1)
+	state.call("dev_take_photo", "h_first_night", 1)
 	state.get("walk_state").current = {"id": "meadow", "ready_at": state.call("now") + 600.0, "seed": 1}
 	state.call("_changed")
 	await frames()

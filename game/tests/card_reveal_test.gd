@@ -55,12 +55,14 @@ func _run() -> void:
 	state.note_screen_opened("album")
 	state.dev_seal_photo("f_bath")
 	main.call("_queue_photo", "f_bath")
-	check(main.get("_photo_queue").size() == 1 and main.get("_modal_queue").size() == 1, "photo_taken enfileira uma vez")
-	var priority: Array[bool] = []
-	main.call("_queue_modal", func() -> void: priority.append(true))
+	check(main.get("_photo_queue").size() == 1 and main.get("_modal_queue").is_empty(), "photo_taken só avisa, sem entrar na fila de telas")
+	var notice: Object = main.get("_notice")
+	var texts: Array[String] = [str((notice.get("_current") as Dictionary).get("text", ""))]
+	for waiting: Dictionary in notice.get("_queue"): texts.append(str(waiting.get("text", "")))
+	check("Nova foto!" not in texts, "foto nova não gera pílula de texto (selo do Álbum e pontinho da aba)")
 	main.call("_flush_modals")
-	check(priority.size() == 1 and not viewer_script.call("is_open"), "prêmio anunciado depois ainda precede a foto")
-	main.call("_flush_modals")
+	check(not viewer_script.call("is_open"), "a carta não abre sozinha")
+	main.call("_open_photo", "f_bath")  # o toque no aviso
 	var card := _viewer()
 	await process_frame
 	check(card != null and card.find_child("CardBack", true, false) != null, "fila abre o verso")
@@ -84,28 +86,28 @@ func _run() -> void:
 	await _close()
 	# 4. Duas fotos na fila: nenhuma sobreposta, mesmo com a primeira já entregue.
 	_clear_queue()
-	state.dev_seal_photo("f_taste")
-	state.dev_seal_photo("f_dig")
+	state.dev_seal_photo("h_first_trick")
+	state.dev_seal_photo("h_first_night")
 	main.call("_flush_modals")
+	check(not viewer_script.call("is_open") and main.get("_photo_queue").size() == 2, "duas fotos novas são só avisos")
+	main.call("_open_photo", "h_first_trick")
 	card = _viewer()
-	check(main.get("_photo_queue").size() == 1, "primeira de duas saiu da fila")
+	check(card != null and main.get("_photo_queue").size() == 1, "tocar no aviso abre aquela carta")
 	card.get_node("CardReveal").call("_open_card")
-	main.call("_flush_modals")
-	check(_viewer() == card and main.get("_photo_queue").size() == 1, "segunda aguarda fechar o visualizador")
 	await _close()
-	main.call("_flush_modals")
-	check(_viewer() != null and _viewer().get("photo_id") == "f_dig", "segunda revelação vem depois")
+	main.call("_open_photo", "h_first_night")
+	check(_viewer() != null and _viewer().get("photo_id") == "h_first_night", "a outra carta abre pelo próprio aviso")
 	await _close()
 	# 5. Fecha em plena animação, roundtrip do save e reabre sem sorteio.
 	Motion.reduced = false
-	card = reveal_script.call("open", "f_dig", {"host": root})
+	card = reveal_script.call("open", "h_first_night", {"host": root})
 	card.get_node("CardReveal").call("_open_card")
 	var count := results.size()
 	var saved: Dictionary = state.to_dict().duplicate(true)
 	await _close()
 	state.from_dict(saved)
-	card = reveal_script.call("open", "f_dig", {"host": root})
-	check(not card.get("revealing") and state.photo_sealed("f_dig") == 0 and results.size() == count, "reabrir após save não sorteia nem perde resultado")
+	card = reveal_script.call("open", "h_first_night", {"host": root})
+	check(not card.get("revealing") and state.photo_sealed("h_first_night") == 0 and results.size() == count, "reabrir após save não sorteia nem perde resultado")
 	await _close()
 	# 6. Tentar a sorte e repetida: sinal real do motor; sem perder a carta.
 	state.dev_take_photo("h_arrival", 1)
@@ -126,7 +128,7 @@ func _run() -> void:
 	_clear_queue()
 	# photo_sealed usa a mesma fila; boas-vindas conta cartas e abre a primeira.
 	state.dev_seal_photo("f_bath")
-	check(main.get("_photo_queue").size() == 1, "photo_sealed também enfileira")
+	check(main.get("_photo_queue").size() == 1, "photo_sealed também avisa")
 	var lines: Array = state.welcome_ready_lines()
 	var photo_line: Dictionary = {}
 	for line: Dictionary in lines:

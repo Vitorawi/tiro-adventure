@@ -84,7 +84,7 @@
       "day": 1,
       "title": "Dar comida",
       "format": "hand",
-      "text": "Toque em Cuidar, escolha Comida e arraste a papinha até a boca do Tiro.",
+      "text": "Cuidar > Comida > arraste até o Tiro.",
       "steps": [
         {
           "target": "CareButton",
@@ -388,7 +388,7 @@
         },
         {
           "target": "@servir",
-          "say": "Leve a concha à tigela. Depois, lance o coração.",
+          "say": "Leve a concha ao prato. Depois, lance o coração.",
           "gesture": "serve"
         }
       ],
@@ -403,7 +403,7 @@
       "day": 1,
       "title": "Dar comida",
       "format": "hand",
-      "text": "Arraste a papinha até a tigela do Tiro. O botão Dar ao Tiro no cartão Prato pronto leva aos cuidados.",
+      "text": "Dar ao Tiro, e arraste até ele.",
       "steps": [
         {
           "target": "GiveToTiro",
@@ -411,7 +411,7 @@
         },
         {
           "target": "Care_puppy_mash",
-          "say": "Arraste a papinha até a tigela.",
+          "say": "Arraste a papinha até o Tiro.",
           "gesture": "feed"
         }
       ],
@@ -423,20 +423,6 @@
         "care": "feed"
       }
     },
-    {
-      "id": "clock",
-      "day": 1,
-      "title": "O reloginho",
-      "format": "balloon",
-      "text": "Veja os horários. Almoço e jantar na hora valem uma patinha. No dia da chegada, a primeira papinha já vale.",
-      "anchor": "MealClock",
-      "say": "Almoço e jantar na hora valem uma patinha. Veja o reloginho.",
-      "after": "feed:puppy_mash",
-      "after_min": 2,
-      "npc": "bloblo",
-      "native": true
-    },
-
     {
       "id": "market",
       "day": 2,
@@ -522,11 +508,11 @@
       "day": 8,
       "title": "Inventar",
       "format": "hand",
-      "text": "Abra Inventar no jantar. Escolha o tipo, toque numa vaga, escolha ingredientes e confira a prévia antes de cozinhar. Todo prato cozinhado rende pontos de cozinheiro, e prato novo vale mais.",
+      "text": "Abra Inventar no fogão. Escolha o tipo, toque numa vaga, escolha ingredientes e confira a prévia antes de cozinhar. Todo prato cozinhado rende pontos de cozinheiro, e prato novo vale mais.",
       "steps": [
         {
           "target": "InventHalf",
-          "say": "No jantar, toque em Inventar."
+          "say": "No fogão, toque em Inventar."
         },
         {
           "target": "InvType_papinha",
@@ -589,7 +575,7 @@
       "day": 2,
       "title": "Bom dia e patinha",
       "format": "new",
-      "text": "Almoço e jantar na hora contam uma patinha para crescer. A primeira papinha já conta no dia da chegada.",
+      "text": "Dia + noite = 1 patinha.",
       "native": true
     },
     {
@@ -847,17 +833,39 @@
       "day": 1,
       "title": "Comida e crescimento",
       "format": "new",
-      "text": "Ele come no almoço e no jantar. Na hora vale um ✓ por refeição, e os dois ✓ valem uma patinha por dia. Seis patinhas e ele cresce.",
+      "text": "Dia + noite = 1 patinha. 6 patinhas = Dentinhos.",
       "native": true,
       "quest": "first_meal"
     },
     {
-      "id": "weak",
-      "day": 0,
-      "title": "Dia fraco",
-      "format": "new",
-      "text": "Quando faltar uma refeição, o Bom dia mostra o motivo. Qualquer refeição deixa o Tiro forte de novo.",
-      "native": true
+      "id": "bowl",
+      "day": 1,
+      "title": "Guardar na tigela",
+      "format": "hand",
+      "npc": "lais",
+      "text": "Na tigela, ele come sozinho.",
+      "steps": [
+        {
+          "target": "StoreMeal",
+          "say": "Guarde: ele come sozinho."
+        }
+      ],
+      "after_quest": "first_meal",
+      "done": "meal_stored"
+    },
+    {
+      "id": "meal_day",
+      "day": 1,
+      "title": "Sol e lua",
+      "format": "balloon",
+      "text": "Sol e lua: as comidinhas do dia.",
+      "anchor": "MealDay",
+      "say": "Sol e lua: as comidinhas do dia.",
+      "after_quest": "first_meal",
+      "after": "food_lesson_done",
+      "done": "open:meal_today",
+      "npc": "lais",
+      "point": true
     }
   ]
 }

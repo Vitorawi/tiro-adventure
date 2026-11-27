@@ -1,7 +1,7 @@
 class_name PawCard
 extends RefCounted
 ## Cartela de patinhas (F02B): seis espaços como cartão de carimbo. Cada dia bem alimentado carimba o prato que ele comeu;
-## o primeiro é o "Dia da chegada"; dia fraco é um carimbo tracejado vazio. Aparece na folha Hoje e na linha das patinhas
+## o primeiro é o "Dia da chegada"; os espaços que faltam ficam tracejados (dia sem patinha não ocupa espaço). Aparece na folha Hoje e na linha das patinhas
 ## do painel Crescer. Só consulta o `GameState` (`paw_stamps`, `next_meal_in`).
 
 const CELL := Vector2(42, 54)
@@ -16,12 +16,14 @@ static func need() -> int:
 	return NEED
 
 
-## Cartela inteira: título com n/m, grade de carimbos, "Dia completo!" e a linha do próximo almoço/jantar.
-static func build(node_name: String = "PawCard", animate: bool = false) -> Control:
+## Cartela inteira: título com n/m, grade de carimbos, "Dia completo!" e a linha da próxima comidinha.
+## `compact` estreita os espaços (cartão de comemoração, onde a cartela é a única coisa e o título já diz "Dia completo!").
+static func build(node_name: String = "PawCard", animate: bool = false, compact: bool = false, with_next: bool = true) -> Control:
 	var box := UiKit.vbox(4)
 	box.name = node_name
-	var stamps := GameState.paw_stamps()
-	var paws := stamps.filter(func(entry: Dictionary) -> bool: return entry.kind == "paw" or entry.kind == "bonus").size()
+	# Só as patinhas ganhas ocupam espaço (da esquerda para a direita): dia sem patinha não aparece, sem castigo.
+	var stamps := GameState.paw_stamps().filter(func(entry: Dictionary) -> bool: return entry.kind == "paw" or entry.kind == "bonus")
+	var paws := stamps.size()
 	var total := need()
 	var head := UiKit.hbox(8)
 	head.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -33,7 +35,7 @@ static func build(node_name: String = "PawCard", animate: bool = false) -> Contr
 	var grid := HFlowContainer.new()
 	grid.name = "PawGrid"
 	grid.alignment = FlowContainer.ALIGNMENT_CENTER
-	grid.add_theme_constant_override("h_separation", 5)
+	grid.add_theme_constant_override("h_separation", 3 if compact else 5)
 	grid.add_theme_constant_override("v_separation", 3)
 	grid.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	box.add_child(grid)
@@ -41,20 +43,20 @@ static func build(node_name: String = "PawCard", animate: bool = false) -> Contr
 	var newest := -1
 	for i in count:
 		var entry: Dictionary = stamps[i] if i < stamps.size() else {}
-		var cell := _cell(entry, i)
+		var cell := _cell(entry, i, compact)
 		grid.add_child(cell)
 		if not entry.is_empty() and entry.kind == "paw":
 			newest = i
 	var today := GameState.meal_info()
 	var done_today: bool = bool(today.paw) and newest >= 0 and int(stamps[newest].day) == int(today.day)
-	if done_today:
+	if done_today and not compact:
 		var note := StepCardUi.wood("Dia da chegada!" if bool(stamps[newest].arrival) else "Dia completo!", 15, Palette.GO_INK)
 		note.name = "PawDone"
 		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		box.add_child(note)
-		if animate and newest >= 0:
-			Motion.pop_in(grid.get_child(newest))
-	var next := next_text()
+	if done_today and animate and newest >= 0:
+		Motion.pop_in(grid.get_child(newest))  # o carimbo novo salta
+	var next := next_text() if with_next else ""
 	if next != "":
 		var line := StepCardUi.wood(next, 15, Color(Palette.WOOD_INK, 0.8))
 		line.name = "PawNext"
@@ -63,8 +65,8 @@ static func build(node_name: String = "PawCard", animate: bool = false) -> Contr
 	return box
 
 
-## Um espaço: carimbo (prato + ✓), carimbo fraco (tracejado vazio) ou vazio. Legenda só no dia da chegada.
-static func _cell(entry: Dictionary, index: int) -> Control:
+## Um espaço: carimbo (prato + ✓), carimbo dourado (Extra) ou vazio tracejado. Legenda só no dia da chegada.
+static func _cell(entry: Dictionary, index: int, compact: bool = false) -> Control:
 	var state := str(entry.get("kind", "empty"))
 	var column := UiKit.vbox(0)
 	column.name = "PawSlot_%d" % index
@@ -72,7 +74,7 @@ static func _cell(entry: Dictionary, index: int) -> Control:
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var slot := PanelContainer.new()
 	slot.name = "Stamp"
-	slot.custom_minimum_size = Vector2(CELL.x, CELL.y - 14.0)
+	slot.custom_minimum_size = Vector2(CELL.x - (6.0 if compact else 0.0), CELL.y - 14.0)
 	slot.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var style := StyleBoxFlat.new()
 	style.set_corner_radius_all(10)
@@ -84,7 +86,7 @@ static func _cell(entry: Dictionary, index: int) -> Control:
 		"bonus":  # patinha extra do Ensopado Dourado: carimbo dourado
 			style.bg_color = Palette.HONEY
 			style.border_color = Palette.HONEY_INK
-		"weak":
+		"missed":
 			style.bg_color = Color(Palette.WOOD_INSET, 0.35)
 			style.border_color = Color(0, 0, 0, 0)
 		_:
@@ -104,7 +106,7 @@ static func _cell(entry: Dictionary, index: int) -> Control:
 		inner.add_child(check)
 		slot.add_child(inner)
 	else:
-		var color := Color(Palette.WOOD_INK, 0.55 if state == "weak" else 0.3)
+		var color := Color(Palette.WOOD_INK, 0.55 if state == "missed" else 0.3)
 		slot.draw.connect(func() -> void: _dashed(slot, color))
 	column.add_child(slot)
 	var caption := StepCardUi.wood("Chegada" if bool(entry.get("arrival", false)) else ("Extra" if state == "bonus" else " "), 11, Color(Palette.WOOD_INK, 0.8))
@@ -131,12 +133,16 @@ static func _span(seconds: int) -> String:
 	return "%d min" % maxi(1, minutes)
 
 
-## "Próximo almoço em 2 h" ou "Hora do almoço!" (vazio antes da aula da comida: o relógio ainda não existe).
+## "Hora da comidinha do dia!", "A da noite é a partir das 16h" ou "Amanhã cedo tem mais" (vazio antes da aula da comida: o relógio ainda não existe).
 static func next_text() -> String:
 	if not GameState.food_clock_on():
 		return ""
 	var next := GameState.next_meal_in()
 	if next.is_empty():
 		return ""
-	var name := MealUi.period_name(str(next.period)).to_lower()
-	return "Hora do %s!" % name if bool(next.open) else "Próximo %s em %s" % [name, _span(int(next.seconds))]
+	var period := str(next.period)
+	if bool(next.open):
+		return "Hora da %s!" % str(Database.meals.periods[period].meal)
+	if period == str(Database.meals.periods.keys()[1]):
+		return "A da noite: %dh" % GameState.meal_window(period).x
+	return "Amanhã cedo"

@@ -45,6 +45,10 @@ signal toast_requested(text: String)
 ## Aviso da central `Notice`: `kind` = "error" | "moment" | "photo" | "info"; `item` = id do item cujo ícone vai
 ## no aviso ("" = sem ícone). `toast_requested` continua valendo e chega como "info".
 signal notice_requested(kind: String, text: String, item: String)
+## Balão do Tiro (o que ele faz ou sente): aparece no balão de humor da tela do Tiro e sobre ele no mapa. Se ele
+## não está à vista, não mostra nada (o diário guarda). `kind` extra de `notice_requested`: "gold" (conquista rara,
+## pílula dourada) e "info_away" (texto só quando a tela do Tiro não está aberta).
+signal tiro_said(text: String)
 ## Recolheu algo: itens (id → qtd) e moedas; a tela mostra miniaturas saltando de `origin`
 ## (coordenadas da tela; Vector2(-1, -1) = meio da tela). Ver CollectFx.
 signal items_gained(items: Dictionary, coins: int, origin: Vector2)
@@ -76,16 +80,10 @@ signal update_available
 # Crescimento do Tiro (fases e ganhos dos quatro atributos).
 signal grew(phase: String)
 signal growth_ready(phase: String)
-## Refeição do filhote registrada: `period` = "lunch"/"dinner", `on_time` = dentro da janela.
+## Refeição do filhote registrada: `period` = "sun"/"moon" (metade do dia), `on_time` = contou como ✓ da metade.
 signal meal_given(period: String, on_time: bool)
 ## O dia ficou bem alimentado e rendeu a patinha (dia do jogo).
 signal paw_earned(day: int)
-## A janela fechou sem refeição: o Tiro comeu a ração sozinho.
-signal meal_missed(period: String)
-## Dia fraco fechado (menos refeições na hora que o necessário).
-signal weak_day(day: int)
-## A vovó mandou a marmita depois de dias fracos seguidos.
-signal lunchbox_given(day: int)
 ## Refeição guardada (Deixar pronto) e, depois, comida pelo Tiro quando a janela abre.
 signal meal_stored(period: String)
 signal stored_meal_eaten(period: String)

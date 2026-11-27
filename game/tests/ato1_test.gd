@@ -130,7 +130,7 @@ func _run() -> void:
 	check(absf(food.get_global_rect().get_center().x - cuidar.get_global_rect().get_center().x) < 40.0, "um disco só fica logo acima do botão")
 	tray.call("close_wheel")
 	check(state.feed("puppy_mash"), "dar a papinha")
-	check(state.progress.stat("well_fed_day") == 1, "a papinha do dia da chegada já vale a patinha")
+	check(state.progress.stat("well_fed_day") == 0, "antes da aula da comida a papinha não registra ✓ nem patinha (a aula dá a primeira)")
 	await claim("lais_feed")
 
 	# Passo 3: banho.
@@ -186,7 +186,7 @@ func _run() -> void:
 	check(not shown("CoinsPill"), "a pílula de moedas só volta no capítulo 2")
 	check(state.requirement_error(db.worlds.farm.requirements) == "", "o Sítio abre depois da caminha")
 	check(quest() == "lais_farm", "o Sítio vem logo depois da caminha")
-	check(str(db.quests.lais_farm.dialogue).contains("almoço e do jantar"), "a fala-gancho do almoço e do jantar")
+	check(str(db.quests.lais_farm.dialogue).contains("uma vez de dia e uma de noite"), "a fala-gancho: uma vez de dia e uma de noite")
 	# Mãos de ajuda: cada passo tem a sua lição presa ao passo (não ao dia).
 	var lessons := {}
 	for lesson: Dictionary in db.week_tutorials:

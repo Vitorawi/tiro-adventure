@@ -73,6 +73,7 @@ func _run() -> void:
 	view = load("res://scripts/ui/album_view.gd")
 	state.test_time = 1792440000.0
 	state.reset()
+	state.dev_belly_clock(false)  # a Barriga no relógio tem teste próprio: aqui vale a queda por hora
 	state.dev_unlock_everything()
 	fixture = state.to_dict()
 	check(db.album_problems().is_empty(), str(db.album_problems()))
@@ -146,6 +147,7 @@ func _case(id: String, yes: bool) -> void:
 			state.walk_state.current = {"id": "creek_walk", "started_at": state.now() - 5000, "ready_at": state.now() - 1, "seed": 1}
 			_photo(id, func() -> void: state.return_due_walk(), yes)
 		"p_curled":
+			_date("2026-10-19", 10 if yes else 22)  # só soneca de dia (6h às 16h)
 			_photo(id, func() -> void: state.set_sleeping(yes), yes)
 		"p_belly_up":
 			state.dog.needs.happiness = 100.0 if yes else 50.0

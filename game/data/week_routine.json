@@ -2,20 +2,12 @@
   "text": {
     "morning": "Bom dia!",
     "night": "Boa noite!",
-    "day": "Dia %d com o Tiro",
-    "weak": "Ontem ele ficou com saudade. Hoje a gente capricha!",
-    "missed": "Ontem faltou %s.",
-    "recover": "Ontem faltou comida na hora: ele está fraquinho. Dê uma refeição e ele se recupera.",
+    "day": "Dia %d",
     "today": "Ver refeições",
-    "continue": "Vamos, Tiro!",
-    "close_night": "Boa noite, Tiro",
+    "continue": "Vamos!",
+    "close_night": "Boa noite!",
     "paw": "+1 patinha",
-    "no_paw": "Dia sem patinha",
-    "new_dish": "Prato novo · %s",
-    "no_dish": "Hoje ele não provou um prato novo.",
     "seal": "Selo do dia",
-    "no_seal": "Diárias · %d/3",
-    "next": "Amanhã · %s",
     "list": "Hoje",
     "daily_source": "Prêmio da atividade diária do filhote",
     "step": "Próximo passo",
@@ -24,38 +16,16 @@
     "complete": "Concluído",
     "go": "Ir",
     "open_lines": "Ver linhas no Caderninho",
-    "offer": "Quer um aviso na hora de comer?",
-    "offer_body": "O reloginho pode avisar quando o almoço ou o jantar abrir enquanto você joga.",
-    "enable": "Ativar aviso",
-    "decline": "Agora não",
-    "reminder": "Hora de comer · %s",
-    "reminder_setting": "Avisar na hora de comer",
-    "lunch": "Almoço",
-    "dinner": "Jantar",
-    "both": "o almoço e o jantar",
-    "lunch_only": "o almoço",
-    "dinner_only": "o jantar",
-    "done": "na hora",
-    "miss": "passou",
+    "sun": "Comidinha do dia",
+    "moon": "Comidinha da noite",
     "duples": "Duplas descobertas",
     "seed": "Semente de prêmio · +%d na próxima colheita",
     "closed": "Semanais em Dentinhos.",
-    "weak_recovered": "Ontem faltou comida na hora. O Tiro já está melhor.",
-    "first_day": "Hoje é o primeiro dia de verdade: almoço e jantar na hora.",
-    "tip_bowl": "Vai sair? Deixe o almoço pronto na tigela e ele come sozinho no horário.",
-    "tip_bowl_go": "Deixar pronto",
-    "served": "Ele comeu o %s às %dh%02d ✓",
-    "arrival_done": "Dia da chegada completo!",
-    "deal_need": "%s começa o combinado: almoço e jantar na hora valem uma patinha.",
-    "deal": "Seu primeiro combinado começa %s, no almoço das %dh.",
-    "deal_hours": "Almoço %dh–%dh · Jantar %dh–%dh",
-    "reminder_ask": "Quer que eu avise na hora de comer?",
-    "reminder_on": "Combinado! Eu aviso.",
-    "reminder_off": "Tudo bem. Dá para ligar na folha Hoje.",
-    "store_ask": "Quer deixar a comida de amanhã pronta?",
-    "store_go": "Deixar pronto",
-    "fed_lunch": "Já almocei!",
-    "fed_dinner": "Já jantei!"
+    "fed_sun": "Barriga cheia!",
+    "fed_moon": "Barriga cheia!",
+    "today_label": "Hoje",
+    "tomorrow": "Amanhã",
+    "yesterday": "Ontem"
   },
   "news": [
     {
@@ -120,8 +90,8 @@
     }
   ],
   "daily": {
-    "lunch": {
-      "label": "Almoço na hora",
+    "sun": {
+      "label": "Comidinha do dia",
       "target": 1,
       "go": {
         "meal": true
@@ -130,8 +100,8 @@
         "coins": 3
       }
     },
-    "dinner": {
-      "label": "Jantar na hora",
+    "moon": {
+      "label": "Comidinha da noite",
       "target": 1,
       "go": {
         "meal": true
@@ -322,8 +292,7 @@
           "target": 1,
           "go": {
             "feed": true
-          },
-          "photo": "h_routine_favorite"
+          }
         },
         {
           "id": "secret",
@@ -369,8 +338,7 @@
           "target": 3,
           "go": {
             "screen": "pet"
-          },
-          "photo": "h_routine_belly"
+          }
         },
         {
           "id": "play",
@@ -433,8 +401,7 @@
           "target": 3,
           "go": {
             "notebook": "tricks"
-          },
-          "photo": "h_routine_tricks"
+          }
         },
         {
           "id": "shows",
@@ -488,7 +455,7 @@
         {
           "id": "lunches",
           "name": "Pontual",
-          "label": "Dê três almoços na hora.",
+          "label": "Dê a comidinha do dia três vezes.",
           "day": 2,
           "target": 3,
           "go": {
@@ -501,18 +468,17 @@
         {
           "id": "perfect",
           "name": "Dia perfeito",
-          "label": "No mesmo dia, dê as duas refeições na hora, brinque, treine e faça carinho.",
+          "label": "No mesmo dia, dê a comidinha do dia e a da noite, brinque, treine e faça carinho.",
           "day": 5,
           "target": 1,
           "go": {
             "meal": true
-          },
-          "photo": "h_routine_perfect"
+          }
         },
         {
           "id": "nights",
           "name": "Boa noite",
-          "label": "Veja o cartão Boa noite em três dias.",
+          "label": "Dê a comidinha da noite três vezes.",
           "day": 2,
           "target": 3,
           "go": {

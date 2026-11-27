@@ -18,6 +18,12 @@ var sleeping: bool = false
 ## Bônus da caminha (0,1 / 0,2): multiplica só a recuperação de energia dormindo. Não é salvo (vem da Casa).
 var sleep_bonus: float = 0.0
 var outfit: Dictionary = {}  # slot -> item_id (customização, futuro)
+## Barriga no relógio (README da alimentação, 2.5): depois da aula da comida a fome não cai por hora, ela é calculada entre
+## `belly_from` (instante em que a metade do dia ganhou o ✓) e `belly_to` (fim da metade), em Unix real. Sem ✓: `from == to == 0`.
+## Não é salvo: o `GameState` recalcula (`_sync_belly`).
+var belly_clock: bool = false
+var belly_from: float = 0.0
+var belly_to: float = 0.0
 
 
 func setup(now: float) -> void:
@@ -30,6 +36,8 @@ func setup(now: float) -> void:
 ## Antes dela vale a taxa online; depois, a proteção (metade da taxa, teto de horas por ausência,
 ## piso). Tempo negativo (relógio para trás) não gera ganho nem perda.
 func get_need(id: String, now: float) -> float:
+	if id == "hunger" and belly_clock:
+		return _belly(now)
 	var value := float(needs.get(id, DEFAULT_NEED))
 	var end := maxf(now, updated_at)
 	var online_end := end
@@ -39,6 +47,15 @@ func get_need(id: String, now: float) -> float:
 	if online_end < end:
 		value = _offline(id, value, online_end, end)
 	return clampf(value, 0.0, 100.0)
+
+
+## Barriga pelo relógio: sem ✓ na metade fica com fome; com ✓ enche (`full`) e desce em linha reta até `end` no fim da metade.
+func _belly(now: float) -> float:
+	var clock: Dictionary = Database.needs.get("hunger", {}).get("clock", {})
+	if belly_to <= belly_from:
+		return float(clock.get("hungry", 20.0))
+	var t := clampf((now - belly_from) / (belly_to - belly_from), 0.0, 1.0)
+	return lerpf(float(clock.get("full", 100.0)), float(clock.get("end", 55.0)), t)
 
 
 func _online(id: String, value: float, hours: float) -> float:
@@ -101,6 +118,8 @@ func end_absence(now: float) -> bool:
 func apply(effects: Dictionary, now: float) -> void:
 	commit(now)
 	for id: String in effects:
+		if id == "hunger" and belly_clock:
+			continue  # o relógio manda na Barriga
 		if needs.has(id):
 			needs[id] = clampf(needs[id] + float(effects[id]), 0.0, 100.0)
 

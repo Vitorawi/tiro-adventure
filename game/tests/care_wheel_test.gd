@@ -75,6 +75,7 @@ func discs() -> Array[Control]:
 func fresh() -> void:
 	state.call("set_sleeping", false)
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio (docs/plans/alimentacao) tem teste próprio: aqui vale a queda por hora
 	state.get("progress").seen["intro"] = true
 	state.get("inventory").call("from_dict", {"dog_food": 5})
 	var dog: Object = state.get("dog")
@@ -94,6 +95,7 @@ func _run() -> void:
 	KIT = load("res://scripts/ui/ui_kit.gd")
 	state = root.get_node("GameState")
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio (docs/plans/alimentacao) tem teste próprio: aqui vale a queda por hora
 	state.get("progress").seen["intro"] = true
 	Motion.reduced = true
 	Input.emulate_mouse_from_touch = true

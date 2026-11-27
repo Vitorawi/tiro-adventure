@@ -248,7 +248,7 @@ func _run() -> void:
 	check("h_arrival" not in state.album.featured, "tirou do varal")
 	await _close_all()
 	_fresh()
-	var others: Array[String] = ["f_bath", "h_kitchen", "h_growth_adult"]
+	var others: Array[String] = ["f_bath", "h_first_night", "h_growth_adult"]
 	for other in others:
 		state.dev_take_photo(other, 1)
 		state.feature_photo(other)

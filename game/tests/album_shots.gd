@@ -70,7 +70,7 @@ func _run() -> void:
 		await shot("t09_album_" + section)
 	album_view.open_photo("h_growth_adult")
 	await shot("t10_photo_detail")
-	album_view.open_photo("h_kitchen")
+	album_view.open_photo("h_first_night")
 	await shot("t10_photo_detail_kitchen")
 	album_view.open_photo("s_carrot_thief")
 	await shot("t10_photo_detail_carrot")

@@ -216,6 +216,7 @@ func _ids() -> void:
 
 func _prepare() -> void:
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio (docs/plans/alimentacao) tem teste próprio: aqui vale a queda por hora
 	state.get("progress").seen["intro"] = true
 	state.call("dev_unlock_everything")
 	state.set("coins", 100)

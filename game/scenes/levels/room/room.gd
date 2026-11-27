@@ -2253,7 +2253,7 @@ func _collect_site(site: String, point: Vector2) -> void:
 	Events.items_gained.emit(GameState.last_gain, GameState.last_coins, world_to_screen(point))
 	var level := GameState.progress.nature_level(site)
 	if level > previous_level:
-		Events.toast_requested.emit("%s nível %d!" % [data.name, level])
+		Events.notice_requested.emit("gold", "%s nível %d!" % [data.name, level], "")
 
 
 ## Recolhe direto no mapa os lotes prontos de uma estação/criação. Devolve true se recolheu.

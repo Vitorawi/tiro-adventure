@@ -144,15 +144,8 @@ func _build_avatar() -> void:
 	_ask_icon.visible = false
 	_avatar_group.add_child(_ask_icon)
 	# Reloginho das refeições: abre a folha "Hoje" (E01c).
-	_meal_clock = MealUi.clock_button()
-	_meal_clock.position = Vector2(-10.0, AVATAR_SIZE.y - 40.0)  # o disco de 28 px fica a >= 4 px da borda da tela
-	var weak_dot := Panel.new()
-	weak_dot.name = "WeakDot"
-	weak_dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	weak_dot.size = Vector2(10, 10)
-	weak_dot.position = Vector2(30, 4)
-	weak_dot.add_theme_stylebox_override("panel", UiKit.surface(Palette.ALERT, 5))
-	_meal_clock.add_child(weak_dot)
+	_meal_clock = MealUi.day_button()
+	_meal_clock.position = Vector2(-2.0, AVATAR_SIZE.y - 36.0)  # o potinho (78×44) fica a >= 4 px da borda da tela
 	_avatar_group.add_child(_meal_clock)
 	_animated_badge = UiKit.spark(18)
 	_animated_badge.name = "AnimatedBadge"
@@ -342,7 +335,7 @@ func refresh(animate: bool = true) -> void:
 	_growth_alert.visible = bool(info.ready)
 	_profile.visible = true
 	_refresh_head()
-	MealUi.sync_clock(_meal_clock)
+	MealUi.sync_day(_meal_clock)
 	coins_pill.visible = GameState.ato2_done()  # sem moedas nos Atos 1 e 2: a pílula aparece no capítulo 2
 	_meal_clock.visible = GameState.food_clock_on()  # o relógio só existe a partir da aula da comida (F02)
 	_refresh_ask()

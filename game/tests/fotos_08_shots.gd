@@ -94,9 +94,9 @@ func _run() -> void:
 	state.call("feature_photo", "h_arrival")
 	await shot("2_uma")
 	state.call("dev_take_photo", "f_bath", 4)
-	state.call("dev_take_photo", "f_taste", 3)
+	state.call("dev_take_photo", "h_first_trick", 3)
 	state.call("feature_photo", "f_bath")
-	state.call("feature_photo", "f_taste")
+	state.call("feature_photo", "h_first_trick")
 	await shot("3_tres_holografica")
 	# Dormindo.
 	state.get("dog").sleeping = true

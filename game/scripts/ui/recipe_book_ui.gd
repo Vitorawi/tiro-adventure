@@ -887,7 +887,11 @@ static func _open_panel(root: Control, model: Dictionary, again: Callable, size:
 	var place := func() -> void:
 		if not is_instance_valid(sheet):
 			return
-		sheet.size = Vector2(size.x, _sheet_room(size))  # sempre a mesma altura: cobre a Panela, os filtros, a grade e a barra de forma limpa
+		# Cobre Panela, filtros, grade e barra; se o conteúdo não couber, cobre também as abas por inteiro (nunca pela metade).
+		var room := _sheet_room(size)
+		var need := sheet.get_combined_minimum_size().y
+		var height := room if need <= room else maxf(need, size.y - CHEF_H - SEP)
+		sheet.size = Vector2(size.x, height)
 		sheet.position = Vector2(0, size.y - sheet.size.y)
 	place.call()
 	sheet.resized.connect(place)

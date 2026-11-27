@@ -1,11 +1,16 @@
 class_name Notice
 extends Node
-## Central de avisos (02 §5): uma fila, uma posição, um aviso por vez. Textos usam o nó `Toast` da casca;
-## momento usa a pílula `MomentNotice` (e o ícone voa até o avatar). Prioridade: erro > momento > foto > info.
-## Erro substitui o que estiver na tela; os outros esperam. Nada aparece com cartão modal aberto.
+## Central de avisos: uma posição, um aviso por vez. Textos usam o nó `Toast` da casca. Quatro tipos de aviso no jogo:
+## 1) no lugar, sem texto (✓ na pílula do passo, pop do potinho, ícone voando ao avatar, selos das abas);
+## 2) balão do Tiro (`Events.tiro_said`, na tela do Tiro e sobre ele no mapa);
+## 3) texto embaixo (`error`, `info`): erro entra na hora; `info` NÃO faz fila: o novo substitui o que está na tela e a
+##    fila guarda no máximo um (o último);
+## 4) conquista (`gold`): pílula dourada, rara.
+## Prioridade: erro > conquista > momento > foto > info. Nada aparece com cartão modal aberto.
 
-const KINDS: Array[String] = ["error", "moment", "photo", "info"]
-const HOLD := {"error": 2.0, "moment": 1.0, "photo": 2.4, "info": 1.6}
+const KINDS: Array[String] = ["error", "gold", "moment", "photo", "info"]
+const HOLD := {"error": 2.0, "gold": 3.0, "moment": 1.0, "photo": 2.4, "info": 2.0}
+const GOLD_TINT := Color(1.0, 0.84, 0.45)
 const FADE := 0.3
 const SLIDE_FROM := 26.0  # o aviso sobe de baixo: começa tantos px abaixo da posição final
 const MAX_WIDTH := 300.0
@@ -15,6 +20,8 @@ const FONT_PX := 15
 
 ## Chamado pela casca: `true` enquanto um cartão ou a fila de cartões ocupa a tela.
 var blocked: Callable = Callable()
+## Chamado pela casca: `true` quando a tela do Tiro está aberta (o aviso `info_away` fica quieto: o balão dele já pede).
+var on_pet_screen: Callable = Callable()
 ## Chamado pela casca: `bottom_y(altura) -> float` = y onde o aviso TERMINA (logo acima da barra de abas, da folha
 ## ou da bandeja presa embaixo, o que estiver mais alto).
 var bottom_y: Callable = Callable()
@@ -138,6 +145,10 @@ func _pill(color: Color) -> StyleBoxFlat:
 
 ## Põe um aviso na fila. `kind` desconhecido vira "info". `on_tap` só vale para o aviso tocável (foto, erro com item).
 func notify(kind: String, text: String, icon: Texture2D = null, on_tap: Callable = Callable()) -> void:
+	if kind == "info_away":
+		if on_pet_screen.is_valid() and bool(on_pet_screen.call()):
+			return
+		kind = "info"
 	if kind not in KINDS:
 		kind = "info"
 	# Sem repetir: o mesmo aviso (tipo + texto) já na fila é descartado; se já está na tela, só renova a espera e dá
@@ -149,6 +160,11 @@ func notify(kind: String, text: String, icon: Texture2D = null, on_tap: Callable
 		_renew_current()
 		return
 	var entry := {"kind": kind, "text": text, "icon": icon, "tap": on_tap}
+	# Sem fila que escalona: um aviso de info esperando é trocado pelo mais novo.
+	if kind == "info":
+		for i in range(_queue.size() - 1, -1, -1):
+			if str(_queue[i].kind) == "info":
+				_queue.remove_at(i)
 	var rank := KINDS.find(kind)
 	var at := _queue.size()
 	for i in _queue.size():
@@ -158,6 +174,9 @@ func notify(kind: String, text: String, icon: Texture2D = null, on_tap: Callable
 	_queue.insert(at, entry)
 	# Erro entra na hora no lugar do que estiver na tela.
 	if kind == "error" and not _current.is_empty() and str(_current.kind) != "error":
+		_replace_current()
+	# Info novo (ou conquista) troca o info que está na tela, em vez de esperar atrás dele.
+	elif not _current.is_empty() and _on_screen() and str(_current.kind) == "info" and kind in ["info", "gold"]:
 		_replace_current()
 	_pump()
 
@@ -199,7 +218,9 @@ func _on_screen() -> bool:
 		return false
 	if str(_current.kind) == "moment":
 		return _moment.visible
-	return _toast.visible and _toast.modulate.a > 0.0
+	# Visível já conta (inclusive na entrada, ainda transparente): senão outro aviso "esquece" o atual no meio da entrada
+	# e ele para de ser reposicionado. A saída termina em `finish_current`, que esconde o nó.
+	return _toast.visible
 
 
 func _replace_current() -> void:
@@ -209,7 +230,7 @@ func _replace_current() -> void:
 		_tween = null
 	_moment.visible = false
 	_current = {}
-	if str(old.kind) in ["moment", "photo"]:
+	if str(old.kind) in ["moment", "photo", "gold"]:
 		_queue.push_front(old)
 
 
@@ -237,9 +258,9 @@ func _show_toast() -> void:
 	var tap: Callable = _current.tap
 	_tap = tap
 	var ink := Palette.ALERT_INK if kind == "error" else Palette.WOOD_INK
-	# Erro: a mesma pílula com um toque avermelhado; o resto é creme neutro.
-	_art.self_modulate = Color(1.0, 0.82, 0.78) if kind == "error" else Color.WHITE
-	_toast_text.theme = HomeUi.theme(FONT_PX, ink)
+	# Erro: a mesma pílula com um toque avermelhado; conquista: mel dourado, fonte maior; o resto é creme neutro.
+	_art.self_modulate = Color(1.0, 0.82, 0.78) if kind == "error" else (GOLD_TINT if kind == "gold" else Color.WHITE)
+	_toast_text.theme = HomeUi.theme(FONT_PX + 2 if kind == "gold" else FONT_PX, ink)
 	_toast_icon.visible = true
 	if icon != null:
 		_toast_icon.texture = icon
@@ -247,6 +268,10 @@ func _show_toast() -> void:
 		_toast_icon.self_modulate = Color.WHITE
 	elif kind == "photo":
 		_toast_icon.texture = UiKit.ui_icon("album_story")
+		_toast_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		_toast_icon.self_modulate = Color.WHITE
+	elif kind == "gold":
+		_toast_icon.texture = UiKit.ui_icon("rare_star")
 		_toast_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 		_toast_icon.self_modulate = Color.WHITE
 	elif text.begins_with("Missão concluída"):
@@ -264,10 +289,11 @@ func _show_toast() -> void:
 	_toast_text.custom_minimum_size.y = 0.0
 	_toast.reset_size()
 	# Duas linhas pedem mais ar em cima e embaixo; uma linha fica na altura mínima de 44.
-	_toast.custom_minimum_size.y = MIN_HEIGHT
+	var min_height := MIN_HEIGHT + (8.0 if kind == "gold" else 0.0)
+	_toast.custom_minimum_size.y = min_height
 	_toast.reset_size()
 	if _toast_text.get_line_count() > 1:
-		_toast.custom_minimum_size.y = MIN_HEIGHT + 12.0
+		_toast.custom_minimum_size.y = min_height + 12.0
 		_toast.reset_size()
 	_toast.pivot_offset = _toast.size / 2.0
 	_toast.mouse_filter = Control.MOUSE_FILTER_STOP if _tap.is_valid() else Control.MOUSE_FILTER_IGNORE
@@ -276,6 +302,8 @@ func _show_toast() -> void:
 	_toast.show()
 	if kind == "error":
 		Haptics.error()
+	elif kind == "gold":
+		Haptics.success()
 	_start_hold(_toast, kind, true)
 	_place(_toast)
 
@@ -333,6 +361,27 @@ func _show_moment() -> void:
 	_tween.tween_callback(func() -> void:
 		_fly_moment_icon()
 		finish_current())
+
+## Momento sem texto: o ícone do pilar voa de baixo até o avatar do HUD, que dá um pulinho (sem pílula de aviso).
+func fly_to_avatar(texture: Texture2D) -> void:
+	if not is_instance_valid(_hud):
+		return
+	Haptics.success()
+	if Motion.reduced:
+		Motion.bounce(_hud.avatar_button)
+		return
+	var token := UiKit.icon(texture, 28)
+	token.name = "FlyingMoment"
+	token.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	token.z_index = 20
+	_host.add_child(token)
+	var from := Vector2(_host.size.x / 2.0 - 14.0, float(bottom_y.call(44.0)) - 60.0 if bottom_y.is_valid() else _host.size.y - 160.0)
+	var target := _hud.avatar_button.get_global_rect().get_center()
+	Motion.fly_arc(token, from, target - token.size / 2.0, Motion.SLIDE * 2.0).tween_callback(func() -> void:
+		token.queue_free()
+		if is_instance_valid(_hud):
+			Motion.bounce(_hud.avatar_button))
+
 
 ## O ícone do momento voa até o avatar, que dá um pulinho.
 func _fly_moment_icon() -> void:

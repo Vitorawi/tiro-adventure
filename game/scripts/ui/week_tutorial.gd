@@ -142,8 +142,8 @@ func _pick(intro: bool) -> void:
 			continue
 		if lesson.has("idle") and not _idle_ready(lesson):
 			continue  # só ajuda quem demora: o gesto já foi ensinado antes
-		if lesson.id == "clock" and (_sheet_open() or _minigame()):
-			continue
+		if lesson.id == "meal_day" and (_sheet_open() or LessonGuide.is_active() or main.call("notice_blocked")):
+			continue  # o potinho só ganha a mão com a tela livre: nunca em cima da aula nem de uma folha
 		if lesson.id == "feed" and (GameState.food_lesson_startable() or GameState.food_lesson_running()):
 			continue  # a aula da comida cuida de arrastar a papinha (F02B)
 		if lesson.has("after") and GameState.progress.stat(str(lesson.after)) < int(lesson.get("after_min", 1)):
@@ -333,7 +333,7 @@ func _layout_week(target: Rect2, delta: float) -> void:
 		y = target.end.y + 14.0
 	if active == "arrival":
 		y = minf(y, screen.y - 275.0)
-	if (active.begins_with("home_") or active == "place_stove") and _sheet_open():
+	if (active.begins_with("home_") or active in ["place_stove", "bowl"]) and _sheet_open():
 		# Com uma folha aberta o balão (e o Pular) ficam acima dela, sem cobrir o texto do cartão.
 		var panel := main.get_node("Sheet").get_node("Panel") as Control
 		y = clampf(panel.get_global_rect().position.y - height - 8.0, 64.0, y)
@@ -394,7 +394,7 @@ func _target(anchor: String, behind: bool = false) -> Rect2:
 	if anchor.begins_with("@"):
 		return _special_target(anchor.trim_prefix("@"), behind)
 	var rect := _control_rect(anchor)
-	if anchor == "MealClock" and not rect.has_area():
+	if anchor == "MealDay" and not rect.has_area():
 		rect = _control_rect("TopBar")
 		if rect.has_area():
 			rect = Rect2(rect.position + Vector2(8, 45), Vector2(64, 44))

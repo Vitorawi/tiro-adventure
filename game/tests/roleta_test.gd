@@ -50,6 +50,7 @@ func fresh() -> void:
 	if catcher: catcher.free()
 	tray.call("cancel")
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio (docs/plans/alimentacao) tem teste próprio: aqui vale a queda por hora
 	state.get("progress").seen["intro"] = true
 	state.get("growth").phase = "explorer"
 	state.get("inventory").call("from_dict", {"dog_food": 5, "basic_brush": 1, "herb_shampoo": 2, "carrot_snack": 2})
@@ -65,6 +66,7 @@ func _run() -> void:
 	saver.free()
 	state = root.get_node("GameState")
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio (docs/plans/alimentacao) tem teste próprio: aqui vale a queda por hora
 	state.get("progress").seen["intro"] = true
 	Motion.reduced = true
 	Input.emulate_mouse_from_touch = true

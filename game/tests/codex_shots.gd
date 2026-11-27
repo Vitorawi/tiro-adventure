@@ -53,7 +53,7 @@ func _unlock() -> void:
 	var inventory: Object = state.get("inventory")
 	for id: String in ["carrot", "egg", "plank", "wheat", "carrot_snack", "milk", "stone", "apple"]:
 		inventory.call("add", id, 12)
-	for photo: String in ["h_arrival", "f_bath", "f_dig"]:
+	for photo: String in ["h_arrival", "f_bath", "h_first_night"]:
 		state.call("dev_take_photo", photo)
 	state.get("progress").stats["find_item:stick"] = 1
 	var tastes: Dictionary = state.get("growth").tastes  # as reações do Paladar: feliz, médio, triste e a favorita

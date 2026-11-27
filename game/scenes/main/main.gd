@@ -30,6 +30,8 @@ var _current_screen: StringName = &""
 var _tab_art: TextureRect
 var _tasks_badge: Label
 var _map_badge: Label
+var _pet_dot: Label  # foto nova para ver, quando a tela do Tiro não está aberta
+var _bag_dot: Label  # presente esperando espaço na Mochila
 ## Quem pede para esconder a linha 2 do HUD (além dos bloqueios automáticos: folha, bandeja, viagem, cartões).
 var _row2_blockers: Dictionary = {}
 var _row2_was_hidden := false
@@ -61,6 +63,7 @@ func _ready() -> void:
 	_notice.setup(self, _hud, _toast, _toast_text, _toast_icon)
 	_notice.blocked = notice_blocked
 	_notice.bottom_y = notice_bottom
+	_notice.on_pet_screen = func() -> bool: return _current_screen == &"pet"
 	_build_tab_art()
 	for id: StringName in _tabs:
 		_tabs[id].pressed.connect(_on_tab_pressed.bind(id))
@@ -112,8 +115,18 @@ func _ready() -> void:
 	# Marco de coleção: a festa espera a revelação fechar (`_flush_modals` não abre com a carta na tela).
 	Events.album_milestone.connect(func(kind: String, key: String) -> void:
 		_queue_modal(func() -> void: _celebration.show_album_milestone(kind, key)))
-	Events.chef_level_up.connect(func(level: int) -> void:
-		_queue_modal(func() -> void: _celebration.show_chef_level(level)))
+	# Nível de cozinheiro: aviso leve, tocável para abrir o Livro de receitas (menos telas por cima do jogo).
+	Events.chef_level_up.connect(_chef_notice)
+	# Patinha ganha com o jogo aberto: o cartão "Dia completo!" (a aula da comida e as patinhas que se completaram com o
+	# jogo fechado ficam de fora: `MealUi.live_paw` decide; o Bom dia conta as outras).
+	Events.paw_earned.connect(func(day: int) -> void:
+		var live: Dictionary = MealUi.live_paw(day)
+		if not live.is_empty():
+			_day_complete_notice())
+	# O ✓ ao vivo com a outra metade pendente: um aviso curto (depois do registro do dia, que fecha a patinha).
+	Events.meal_given.connect(func(period: String, on_time: bool) -> void:
+		if on_time:
+			_meal_counted.call_deferred(period))
 	Events.photo_taken.connect(_queue_photo)
 	Events.photo_sealed.connect(_queue_photo)
 	Events.find_discovered.connect(func(result: Dictionary) -> void:
@@ -132,8 +145,7 @@ func _ready() -> void:
 	modal_timer.autostart = true
 	modal_timer.timeout.connect(func() -> void:
 		_check_week_cards()
-		_flush_modals()
-		_check_week_reminder())
+		_flush_modals())
 	add_child(modal_timer)
 	Events.quest_completed.connect(_on_quest_completed)
 	Events.chapter_completed.connect(_on_chapter_completed)
@@ -157,7 +169,6 @@ func _ready() -> void:
 	_hud.dev_button.visible = BuildInfo.is_dev()
 	_hud.dev_button.pressed.connect(func() -> void:
 		Events.sheet_requested.emit("Ferramentas DEV", DevPanel.panel()))
-	MealUi.connect_notices()
 	UiKit.tint_bar(_hud.xp_bar, Palette.HONEY)
 	_hud.refresh(false)
 	show_screen(&"pet")
@@ -229,13 +240,23 @@ func _check_growth_ceremonies() -> void:
 			_growth_ceremony.open(phase))
 
 
+## Depois da cerimônia de crescer: as novidades que ela segurou saem numa folha só.
 func _growth_unlocks() -> void:
-	for key: String in GameState.new_unlocks():
-		_queue_modal(func() -> void:
-			if key not in GameState.new_unlocks(): return
-			var keys: Array[String] = [key]
-			_celebration.show_unlocks(keys)
-			GameState.mark_seen(keys))
+	if GameState.new_unlocks().is_empty(): return
+	_queue_modal(func() -> void:
+		var keys: Array[String] = []
+		keys.assign(GameState.new_unlocks())
+		if keys.is_empty(): return
+		_celebration.show_unlocks(keys)
+		GameState.mark_seen(keys))
+
+
+## Há cerimônia de crescer ainda não vista (pronta para abrir ou esperando o Tiro acordar).
+func _growth_pending() -> bool:
+	for phase: String in GameState.growth.ceremonies:
+		if not bool(GameState.growth.ceremonies[phase].get("seen", false)):
+			return true
+	return false
 
 
 func _week_card_waits_for_growth() -> bool:
@@ -253,6 +274,11 @@ func _check_week_cards() -> void:
 		var key := "%s:%d:%d" % [candidate.kind, candidate.civil, GameState.growth.taste_seed]
 		if _week_cards_queued.has(key):
 			continue
+		# Menos telas: o Boa noite só abre cartão no dia da chegada (o que ensina a tigela); nos outros dias a noite
+		# é registrada em silêncio (o desafio "Boa noite" continua contando).
+		if str(candidate.kind) == "night" and not GameState.is_arrival_day(int(candidate.day)):
+			GameState.take_week_card(candidate)
+			continue
 		_week_cards_queued[key] = true
 		_queue_modal(func() -> void:
 			_week_cards_queued.erase(key)
@@ -264,17 +290,23 @@ func _check_week_cards() -> void:
 				_celebration.show_week_card(report))
 
 
-func _check_week_reminder() -> void:
-	if notice_blocked():
-		return
-	var period := GameState.take_week_meal_reminder()
-	if period != "":
-		Events.toast_requested.emit(str(Database.week_routine.text.reminder) % MealUi.period_name(period))
+## Metade do dia ✓ ao vivo: sem texto; o potinho do HUD dá um pop (o disco já ganhou o ✓).
+func _meal_counted(period: String) -> void:
+	if MealUi.counted_notice(period) != "":
+		_pop_pot()
+
+
+func _pop_pot() -> void:
+	var pot := find_child("MealDay", true, false) as Control
+	if pot == null or not pot.is_visible_in_tree() or Motion.reduced: return
+	pot.pivot_offset = pot.size / 2.0
+	var pop := pot.create_tween()
+	pop.tween_property(pot, "scale", Vector2(1.18, 1.18), 0.1)
+	pop.tween_property(pot, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
 
 
 func _queue_modal(callback: Callable) -> void:
-	# Capítulo/Novo!/prêmios vêm antes das fotos, inclusive quando anunciados no fim do frame.
-	_modal_queue.insert(maxi(0, _modal_queue.size() - _photo_queue.size()), callback)
+	_modal_queue.append(callback)
 
 
 ## Abre o próximo cartão quando nada está na tela (introdução, comemoração ou outro cartão).
@@ -313,12 +345,11 @@ func _card_open() -> bool:
 ## Há uma tela da história (prêmio do passo, capítulo, "Novo!") esperando para abrir ou aberta.
 ## As lições esperam por ela: primeiro a missão, depois o "Ir", e só então a explicação.
 func story_card_pending() -> bool:
-	return _card_open() or _announce_pending or not _quest_rewards.is_empty() or _chapter_done > 0 \
-		or _modal_queue.size() > _photo_queue.size()
+	return _card_open() or _announce_pending or _chapter_done > 0 or not _modal_queue.is_empty()
 
 
 func notice_blocked() -> bool:
-	return CookTogether.current() != null or TrickLesson.current() != null or is_instance_valid(YardPlay.current) or _card_open() or _modal_queue.size() > _photo_queue.size() or _announce_pending or _chapter_done > 0
+	return CookTogether.current() != null or TrickLesson.current() != null or is_instance_valid(YardPlay.current) or _card_open() or not _modal_queue.is_empty() or _announce_pending or _chapter_done > 0
 
 
 ## Onde o aviso TERMINA (y): logo acima da barra de abas de madeira; com folha ou bandeja de estação presa embaixo,
@@ -326,6 +357,13 @@ func notice_blocked() -> bool:
 ## do HUD (folha alta), o aviso fica junto à barra de abas, por cima da folha: nunca cobre o HUD nem some.
 func notice_bottom(height: float) -> float:
 	var bottom := size.y + _tab_art.offset_top - 6.0
+	# As almofadas redondas das abas sobem acima da tábua: o aviso fica acima delas.
+	for tab: Control in _tabs.values():
+		if tab != null and tab.is_visible_in_tree():
+			bottom = minf(bottom, tab.get_global_rect().position.y - 6.0)
+			var cushion := tab.find_child("Cushion", true, false) as Control
+			if cushion != null:
+				bottom = minf(bottom, cushion.get_global_rect().position.y - 6.0)
 	var limit := bottom
 	var sheet := get_node("Sheet") as Control
 	if bool(sheet.call("is_open")):
@@ -438,6 +476,7 @@ func show_screen(id: StringName) -> void:
 		_tabs[screen_id].button_pressed = screen_id == id
 	%TasksScreen.sync_hud()
 	%PetScreen.sync_hud()
+	if _pet_dot != null: _refresh_tasks_badge()
 	_check_row2()
 
 
@@ -499,7 +538,13 @@ func _build_tasks_badge() -> void:
 	_map_badge = UiKit.badge(1, Palette.BASE)
 	_map_badge.name = "NpcMapBadge"
 	%MapTab.add_child(_map_badge)
-	for pair: Array in [[&"tasks", _tasks_badge], [&"map", _map_badge]]:
+	_pet_dot = UiKit.dot()
+	_pet_dot.name = "PetNewDot"
+	%PetTab.add_child(_pet_dot)
+	_bag_dot = UiKit.dot()
+	_bag_dot.name = "BagGiftDot"
+	%BagTab.add_child(_bag_dot)
+	for pair: Array in [[&"tasks", _tasks_badge], [&"map", _map_badge], [&"pet", _pet_dot], [&"bag", _bag_dot]]:
 		var tab: Button = _tabs[pair[0]]
 		var face: NavTab = _faces[pair[0]]
 		var badge: Label = pair[1]
@@ -525,6 +570,8 @@ func _refresh_tasks_badge() -> void:
 	var count := GameState.ready_quest_count() + GameState.ready_routine_count()
 	_tasks_badge.text = str(count)
 	_tasks_badge.visible = count > 0
+	_pet_dot.visible = _current_screen != &"pet" and GameState.photo_alerts_enabled() and AlbumScreen.has_new()
+	_bag_dot.visible = not GameState.economy.pending.is_empty()
 
 
 func _refresh_top_bar() -> void:
@@ -536,45 +583,27 @@ func _show_toast(text: String) -> void:
 	_notice.notify("info", text)
 
 
+## Foto nova: só um aviso tocável (a primeira, a da chegada, é aberta pelo tutorial do Álbum). O selo do botão do
+## Álbum continua; tocar no aviso abre a carta daquela foto.
 func _queue_photo(id: String) -> void:
-	if not GameState.photo_alerts_enabled() or id in _photo_queue: return
+	if not GameState.photo_alerts_enabled(): return
 	if id == AlbumTutorial.PHOTO and not GameState.album_tutorial_done(): return  # quem abre é o tutorial do Álbum
-	_photo_queue.append(id)
-	if _photo_activity_busy(): _show_photo_toast(id)
-	_modal_queue.append(_open_queued_photo.bind(id))
+	if id not in _photo_queue: _photo_queue.append(id)
+	# Sem texto: o selo do botão do Álbum pulsa (PetScreen) e a aba Tiro ganha um pontinho até a foto ser vista.
+	_refresh_tasks_badge()
+	if _pet_dot != null and _pet_dot.visible and not Motion.reduced:
+		Motion.bounce(_pet_dot)
 
 
-func _open_queued_photo(id: String) -> void:
-	if _photo_activity_busy():
-		_modal_queue.append(_open_queued_photo.bind(id))
-		return
+## Toque no aviso "Nova foto!": abre a carta daquela foto (fechada = revelação; já aberta = o Álbum).
+func _open_photo(id: String) -> void:
 	_photo_queue.erase(id)
-	if GameState.photo_sealed(id) > 0: CardReveal.open(id, {"host": self})
-
-
-## Não interrompe gestos, folhas, viagens ou minijogos; o aviso é só um lembrete.
-func _photo_activity_busy() -> bool:
-	if Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT): return true
+	ActionTray.close_current(true)
+	CookPanel.close_current(true)
 	var sheet := get_node_or_null("Sheet")
-	if sheet != null and sheet.call("is_open"): return true
-	if ActionTray.current != null and is_instance_valid(ActionTray.current): return true
-	for node in find_children("*", "Control", true, false):
-		if node is HideSeekUi and (node as Control).is_visible_in_tree(): return true
-	for node in find_children("TrickTraining", "Control", true, false):
-		if (node as Control).is_visible_in_tree(): return true
-	for screen: Node in _screens.values():
-		if screen != null and screen.has_method("is_traveling") and screen.call("is_traveling"): return true
-	return false
-
-
-func _show_photo_toast(id: String) -> void:
-	_notice.notify("photo", "Nova foto para abrir!", null, func() -> void:
-		# O clique libera a fila; a carta sempre entra pelo mesmo caminho modal.
-		ActionTray.close_current(true)
-		CookPanel.close_current(true)
-		var sheet := get_node_or_null("Sheet")
-		if sheet != null and sheet.call("is_open"): sheet.call("close")
-		if GameState.photo_sealed(id) > 0 and id not in _photo_queue: _queue_photo(id))
+	if sheet != null and sheet.call("is_open"): sheet.call("close")
+	if GameState.photo_sealed(id) > 0: CardReveal.open(id, {"host": self})
+	else: AlbumScreen.open()
 
 
 func _refresh_guide() -> void:
@@ -590,12 +619,11 @@ func _on_quest_completed(id: String) -> void:
 	var quest: Dictionary = Database.quests[id]
 	_reward_not_before = Time.get_ticks_msec() + (0 if Motion.reduced else int(Motion.FLY * 1000))
 	if not quest.get("claim_sheet", true):
-		pass  # passo de transição entregue sozinho e sem folha: a história segue direto (ex.: a vovó já se apresenta)
+		pass  # passo de transição entregue sozinho e sem aviso: a história segue direto (ex.: a vovó já se apresenta)
 	elif quest.get("kind", "") == "main":
 		_quest_rewards.append({"id": id, "next": GameState.progress.current_main_quest()})
 	else:
-		# Marco de personagem que também é passo da história (`shared_with`): a folha "Passo concluído"
-		# aparece igual, com o próximo destino, para o jogador não ficar sem direção depois da conversa.
+		# Marco de personagem que também é passo da história (`shared_with`): o aviso "Passo concluído" sai igual.
 		for main_id: String in Database.quests:
 			var main_quest: Dictionary = Database.quests[main_id]
 			if main_quest.get("kind", "") == "main" and str(main_quest.get("shared_with", "")) == id and GameState.progress.claimed_quests.has(main_id):
@@ -606,7 +634,7 @@ func _on_quest_completed(id: String) -> void:
 				_queue_modal(_celebration.show_gift.bind(item, str(quest.get("npc", ""))))
 	_schedule_announce()
 
-## Tira da fila o cartão "Passo concluído" de um passo (o painel de crescimento entrega e cresce no mesmo toque).
+## Tira o aviso "Passo concluído" de um passo (o painel de crescimento entrega e cresce no mesmo toque).
 func drop_quest_reward(id: String) -> void:
 	for index in range(_quest_rewards.size() - 1, -1, -1):
 		if str(_quest_rewards[index].id) == id:
@@ -623,42 +651,94 @@ func _schedule_announce() -> void:
 		_announce.call_deferred()
 
 
-## Fim de capítulo e/ou novidades ("Novo!") numa só tela; depois ficam marcadas como vistas.
+## Fim do quadro da história. Tela grande só para marco (crescer e fim de capítulo); o resto é aviso leve:
+## - capítulo: cartão com as novidades, SALVO quando termina junto com um crescimento (só a cerimônia; as novidades
+##   saem depois dela, numa folha só);
+## - novidades sem capítulo: UMA folha "Novo!" com todas;
+## - só passo concluído: aviso "Passo concluído ✓" (um por quadro) e um pulinho na pílula do próximo passo.
 func _announce() -> void:
 	_announce_pending = false
-	var unlocks := GameState.new_unlocks()
+	var unlocks: Array[String] = []
+	unlocks.assign(GameState.new_unlocks())
 	var chapter := _chapter_done
 	_chapter_done = 0
-	if chapter > 0 or not _quest_rewards.is_empty():
-		# O cartão de origem não deve reaparecer atrás do prêmio nem depois de "Ir".
+	var steps := _quest_rewards.duplicate()
+	_quest_rewards.clear()
+	var growth_waits := _growth_pending()
+	var growth_step := false
+	for entry: Dictionary in steps:
+		for goal: Dictionary in Database.quests[str(entry.id)].get("goals", []):
+			if goal.get("type", "") == "growth": growth_step = true
+	if chapter > 0 or not steps.is_empty():
+		# O cartão de origem não deve reaparecer depois de pegar o prêmio nem de "Ir".
 		for catcher: Node in find_children("PopoverCatcher", "Control", true, false):
 			(catcher as Control).hide()
 			catcher.queue_free()
-		ActionTray.close_current(true)
-		CookPanel.close_current(true)
-		Events.sheet_close_requested.emit()
-	if chapter > 0:
-		_quest_rewards.clear()
+	var modal := false
+	if growth_waits:
+		pass  # a cerimônia vem primeiro; as novidades ficam para depois dela (`_growth_unlocks`)
+	elif chapter > 0 and not growth_step:
+		modal = true
+		_close_for_card()
 		_queue_modal(func() -> void:
 			Events.sheet_close_requested.emit()
 			_celebration.show_chapter(chapter, unlocks))
-	else:
-		var has_story_reward := not _quest_rewards.is_empty()
-		for i: int in _quest_rewards.size():
-			var entry: Dictionary = _quest_rewards[i]
-			var reward_unlocks: Array[String] = []
-			if i == _quest_rewards.size() - 1: reward_unlocks.assign(unlocks)
-			_queue_modal(func() -> void:
-				Events.sheet_close_requested.emit()
-				_quest_reward.call("open", str(entry.id), str(entry.next), reward_unlocks))
-		_quest_rewards.clear()
-		if not has_story_reward and not unlocks.is_empty():
-			_queue_modal(func() -> void:
-				Events.sheet_close_requested.emit()
-				_celebration.show_unlocks(unlocks))
-	if not unlocks.is_empty(): GameState.mark_seen(unlocks)
+	elif not unlocks.is_empty():
+		modal = true
+		_close_for_card()
+		_queue_modal(func() -> void:
+			Events.sheet_close_requested.emit()
+			_celebration.show_unlocks(unlocks))
+	if not growth_waits and not unlocks.is_empty(): GameState.mark_seen(unlocks)
+	if not modal and not growth_waits and not steps.is_empty():
+		_hud.next_step.flash_done()
+		_pulse_next_step()
+
+
+func _close_for_card() -> void:
+	ActionTray.close_current(true)
+	CookPanel.close_current(true)
+	Events.sheet_close_requested.emit()
+
+
+## Pulinho na pílula do próximo passo (linha 2 do HUD): chama o olhar para o que vem agora.
+func _pulse_next_step() -> void:
+	var step := _hud.next_step
+	if Motion.reduced or step == null or not step.is_visible_in_tree(): return
+	step.pivot_offset = step.size / 2.0
+	var tween := step.create_tween()
+	tween.tween_property(step, "scale", Vector2(1.08, 1.08), 0.12).set_trans(Tween.TRANS_SINE)
+	tween.tween_property(step, "scale", Vector2.ONE, 0.18).set_trans(Tween.TRANS_BOUNCE).set_ease(Tween.EASE_OUT)
+
+
+## Dia completo: aviso com a patinha (toque abre a folha Hoje) e uma patinha voando até o potinho do HUD.
+func _day_complete_notice() -> void:
+	var paw := UiKit.ui_icon("find_paw")
+	var pot := find_child("MealDay", true, false) as Control
+	if pot == null or not pot.is_visible_in_tree() or Motion.reduced: return
+	var fly := UiKit.icon(paw, 40)
+	fly.name = "DayPawFly"
+	fly.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	fly.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	fly.z_index = 15
+	add_child(fly)
+	var from := Vector2(size.x / 2.0 - 20.0, notice_bottom(44.0) - 40.0)
+	var to := pot.get_global_rect().get_center() - Vector2(20, 20)
+	Motion.fly_arc(fly, from, to, 0.9).tween_callback(func() -> void:
+		fly.queue_free()
+		_pop_pot())
+
+
+## Nível de cozinheiro: aviso com o ícone da habilidade; tocar abre o Livro de receitas.
+func _chef_notice(level: int) -> void:
+	var rows: Array = GameState.chef_levels()
+	var skill: Dictionary = rows[clampi(level, 0, rows.size() - 1)].skill
+	_notice.notify("gold", "Cozinheiro nível %d: %s!" % [level, str(skill.name)], UiKit.ui_icon(str(skill.icon)), func() -> void:
+		ActionTray.close_current(true)
+		CookPanel.close_current(true)
+		PetNotebook.open("recipes"))
 
 func _on_moment_gained(pillar: String, _source: String) -> void:
 	if not Database.growth.pillars.has(pillar): return
 	var data: Dictionary = Database.growth.pillars[pillar]
-	_notice.notify("moment", "Momento de %s!" % data.name, UiKit.ui_icon(str(data.icon)))
+	_notice.fly_to_avatar(UiKit.ui_icon(str(data.icon)))

@@ -52,6 +52,7 @@ func _fresh() -> void:
 	state.set("test_time", T0)
 	state.set("unlimited_storage", false)
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio (docs/plans/alimentacao) tem teste próprio: aqui vale a queda por hora
 	_full()
 
 

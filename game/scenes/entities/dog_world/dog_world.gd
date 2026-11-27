@@ -69,6 +69,7 @@ func _ready() -> void:
 		_set_on_sofa(true)
 	Events.dog_action.connect(_on_care)
 	_build_balloon()
+	Events.tiro_said.connect(_on_tiro_said)
 	Events.state_changed.connect(_refresh_balloon)
 	_refresh_balloon()
 	_brain()
@@ -111,6 +112,47 @@ func hit_test(point: Vector2) -> bool:
 			return true
 	return Rect2(Vector2(-24.0, -54.0), Vector2(48.0, 58.0)).has_point(local)
 
+
+
+## Balãozinho de fala sobre a cabeça (Events.tiro_said): só com a sala à vista e o Tiro acordado; some em ~2,6 s.
+var _say: Label
+var _say_tween: Tween
+
+
+func _on_tiro_said(text: String) -> void:
+	if text == "" or room == null or not room.is_visible_in_tree() or not visible or GameState.dog.sleeping or GameState.walking():
+		return
+	if _say == null:
+		_say = Label.new()
+		_say.name = "SayBubble"
+		_say.z_index = 4
+		_say.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		_say.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_say.add_theme_font_size_override("font_size", 15)
+		_say.add_theme_color_override("font_color", Palette.WOOD_INK)
+		var style := UiKit.surface(Color(Palette.PAPER, 0.96), 14)
+		style.border_color = Color("c9935f")
+		style.set_border_width_all(2)
+		style.content_margin_left = 10.0
+		style.content_margin_right = 10.0
+		style.content_margin_top = 5.0
+		style.content_margin_bottom = 5.0
+		_say.add_theme_stylebox_override("normal", style)
+		add_child(_say)
+	_say.text = text
+	_say.reset_size()
+	# O mundo é pequeno (dog_scale): o balão compensa a escala para ficar legível, como o balão do desejo.
+	var factor := 1.0 / maxf(get_global_transform_with_canvas().get_scale().abs().x, 0.05)
+	_say.scale = Vector2.ONE * factor
+	_say.position = Vector2(-_say.size.x * factor / 2.0, -(70.0 + _say.size.y * factor))
+	_say.modulate.a = 1.0
+	_say.show()
+	if _say_tween != null and _say_tween.is_valid():
+		_say_tween.kill()
+	_say_tween = create_tween()
+	_say_tween.tween_interval(2.6)
+	_say_tween.tween_property(_say, "modulate:a", 0.0, 0.3)
+	_say_tween.tween_callback(_say.hide)
 
 
 ## Balão do desejo: fundo + ícone; ~40 px no mundo, ~25 px no enquadramento inicial do sítio.

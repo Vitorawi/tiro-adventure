@@ -330,33 +330,6 @@
       }
     },
     {
-      "id": "h_kitchen",
-      "section": "story",
-      "title": "Cheirinho de papinha",
-      "on": "fed",
-      "when": {
-        "item": "puppy_mash"
-      },
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/h_kitchen.png",
-        "scene": "pet",
-        "pose": {
-          "clip": "idle_breathe",
-          "frame": 1
-        },
-        "props": [
-          "bowl"
-        ]
-      },
-      "goal_hint": {
-        "text": "Siga a história: dê Papinha da vovó ao Tiro.",
-        "icon": "need_hunger",
-        "go": {
-          "screen": "tasks"
-        }
-      }
-    },
-    {
       "id": "h_growth_teething",
       "section": "story",
       "title": "As orelhas subiram",
@@ -430,33 +403,6 @@
         "go": {
           "world": "farm",
           "place": "week_training"
-        }
-      }
-    },
-    {
-      "id": "h_trick_show",
-      "section": "story",
-      "title": "O show do Tiro",
-      "on": "trick_show",
-      "when": {},
-      "photo": {
-        "scene": "farm",
-        "pose": {
-          "clip": "give_paw",
-          "frame": 2
-        },
-        "props": [],
-        "friends": [
-          "bloblo",
-          "lais"
-        ]
-      },
-      "goal_hint": {
-        "text": "Siga a História: complete um show de truques para a vovó e a Laís.",
-        "icon": "trick_paw",
-        "go": {
-          "world": "farm",
-          "place": "week_show"
         }
       }
     },
@@ -672,60 +618,6 @@
       }
     },
     {
-      "id": "f_taste",
-      "section": "firsts",
-      "title": "Primeira papinha",
-      "on": "fed",
-      "when": {
-        "growth_food": true
-      },
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/f_taste.png",
-        "scene": "pet",
-        "pose": {
-          "clip": "idle_breathe",
-          "frame": 1
-        },
-        "props": [
-          "bowl"
-        ]
-      },
-      "repeatable": true,
-      "goal_hint": {
-        "text": "Dê ao Tiro uma refeição para crescer.",
-        "icon": "need_hunger",
-        "go": {
-          "screen": "pet",
-          "care": "food"
-        }
-      }
-    },
-    {
-      "id": "f_dig",
-      "section": "firsts",
-      "title": "Primeiro achado",
-      "on": "dug",
-      "when": {},
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/f_dig.png",
-        "scene": "farm",
-        "pose": {
-          "clip": "sniff",
-          "frame": 1
-        },
-        "props": []
-      },
-      "repeatable": true,
-      "goal_hint": {
-        "text": "Cave um montinho que o Tiro farejou.",
-        "icon": "album_firsts",
-        "go": {
-          "world": "farm",
-          "place": "find"
-        }
-      }
-    },
-    {
       "id": "f_tooth",
       "section": "firsts",
       "title": "Dentinho de leite",
@@ -780,31 +672,6 @@
       }
     },
     {
-      "id": "f_outfit",
-      "section": "firsts",
-      "title": "Primeira roupa",
-      "on": "equipped",
-      "when": {},
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/f_outfit.png",
-        "scene": "pet",
-        "pose": {
-          "clip": "idle_breathe",
-          "frame": 0
-        },
-        "props": []
-      },
-      "repeatable": true,
-      "goal_hint": {
-        "text": "Vista uma roupa no Tiro.",
-        "icon": "album_firsts",
-        "go": {
-          "screen": "pet",
-          "collection": true
-        }
-      }
-    },
-    {
       "id": "f_rare",
       "section": "firsts",
       "title": "Achado raro",
@@ -828,31 +695,6 @@
         "go": {
           "world": "park",
           "place": "walk"
-        }
-      }
-    },
-    {
-      "id": "f_brush",
-      "section": "firsts",
-      "title": "Primeira escovada",
-      "on": "brushed",
-      "when": {},
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/f_brush.png",
-        "scene": "pet",
-        "pose": {
-          "clip": "stretch",
-          "frame": 1
-        },
-        "props": []
-      },
-      "repeatable": true,
-      "goal_hint": {
-        "text": "Passe a escova nas costas do Tiro.",
-        "icon": "action_brush",
-        "go": {
-          "screen": "pet",
-          "care": "brush"
         }
       }
     },
@@ -1380,7 +1222,12 @@
       "section": "sleep",
       "title": "Emboladinho",
       "on": "slept",
-      "when": {},
+      "when": {
+        "hour": [
+          6,
+          16
+        ]
+      },
       "photo": {
         "illustration": "res://assets/sprites/ui/album/illustrated/p_curled.png",
         "scene": "pet",
@@ -1390,15 +1237,15 @@
         },
         "props": []
       },
-      "hint": "Todo filhote precisa da primeira soneca.",
+      "hint": "Ponha o Tiro para tirar uma soneca de dia.",
       "icons": [
         "need_energy"
       ],
       "hint_npc": "lais",
-      "hint_talk": "Para a foto “Emboladinho”: Todo filhote precisa da primeira soneca.",
+      "hint_talk": "Para a foto “Emboladinho”: Ponha o Tiro para tirar uma soneca de dia.",
       "repeatable": true,
       "goal_hint": {
-        "text": "Ponha o Tiro para dormir.",
+        "text": "Ponha o Tiro para tirar uma soneca de dia.",
         "icon": "need_energy",
         "go": {
           "screen": "pet",
@@ -2027,218 +1874,6 @@
       }
     },
     {
-      "id": "h_week_bed",
-      "section": "story",
-      "title": "A primeira caminha",
-      "on": "quest_claimed",
-      "when": {
-        "quest_is": "lais_bed"
-      },
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/h_first_night.png",
-        "scene": "pet",
-        "pose": {
-          "clip": "sleep",
-          "frame": 0
-        },
-        "props": []
-      },
-      "goal_hint": {
-        "text": "Siga a História para registrar a primeira caminha.",
-        "icon": "album_story",
-        "go": {
-          "screen": "tasks"
-        }
-      },
-      "provisional": true
-    },
-    {
-      "id": "h_week_soup",
-      "section": "story",
-      "title": "A primeira sopinha",
-      "on": "quest_claimed",
-      "when": {
-        "quest_is": "week_soup"
-      },
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/h_kitchen.png",
-        "scene": "pet",
-        "pose": {
-          "clip": "idle_breathe",
-          "frame": 1
-        },
-        "props": ["bowl"]
-      },
-      "goal_hint": {
-        "text": "Siga a História para registrar a primeira sopinha.",
-        "icon": "album_story",
-        "go": {
-          "screen": "tasks"
-        }
-      },
-      "provisional": true
-    },
-    {
-      "id": "h_week_wish",
-      "section": "story",
-      "title": "O primeiro desejo",
-      "on": "quest_claimed",
-      "when": {
-        "quest_is": "lais_first_wish"
-      },
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/h_growth_puppy.png",
-        "scene": "pet",
-        "pose": {
-          "clip": "idle_breathe",
-          "frame": 0
-        },
-        "props": []
-      },
-      "goal_hint": {
-        "text": "Siga a História para registrar o primeiro desejo.",
-        "icon": "album_story",
-        "go": {
-          "screen": "tasks"
-        }
-      },
-      "provisional": true
-    },
-    {
-      "id": "h_week_eggs",
-      "section": "story",
-      "title": "Prato com ovo",
-      "on": "quest_claimed",
-      "when": {
-        "quest_is": "week_egg_dish"
-      },
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/f_taste.png",
-        "scene": "pet",
-        "pose": {
-          "clip": "idle_breathe",
-          "frame": 1
-        },
-        "props": ["bowl"]
-      },
-      "goal_hint": {
-        "text": "Siga a História para registrar o prato com ovo.",
-        "icon": "album_story",
-        "go": {
-          "screen": "tasks"
-        }
-      },
-      "provisional": true
-    },
-    {
-      "id": "h_week_book",
-      "section": "story",
-      "title": "O Livro de receitas",
-      "on": "quest_claimed",
-      "when": {
-        "quest_is": "week_book"
-      },
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/h_kitchen.png",
-        "scene": "pet",
-        "pose": {
-          "clip": "idle_breathe",
-          "frame": 1
-        },
-        "props": ["bowl"]
-      },
-      "goal_hint": {
-        "text": "Siga a História para registrar o Livro de receitas.",
-        "icon": "album_story",
-        "go": {
-          "screen": "tasks"
-        }
-      },
-      "provisional": true
-    },
-    {
-      "id": "h_week_fish",
-      "section": "story",
-      "title": "O primeiro peixe",
-      "on": "quest_claimed",
-      "when": {
-        "quest_is": "week_fish_dish"
-      },
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/h_kitchen.png",
-        "scene": "pet",
-        "pose": {
-          "clip": "idle_breathe",
-          "frame": 1
-        },
-        "props": [
-          "bowl"
-        ]
-      },
-      "goal_hint": {
-        "text": "Siga a História para registrar o primeiro peixe.",
-        "icon": "album_story",
-        "go": {
-          "screen": "tasks"
-        }
-      },
-      "provisional": true
-    },
-    {
-      "id": "h_week_mingau",
-      "section": "story",
-      "title": "Focinho de mingau",
-      "on": "quest_claimed",
-      "when": {
-        "quest_is": "week_fruit_dish"
-      },
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/h_kitchen.png",
-        "scene": "pet",
-        "pose": {
-          "clip": "idle_breathe",
-          "frame": 1
-        },
-        "props": [
-          "bowl"
-        ]
-      },
-      "goal_hint": {
-        "text": "Siga a História para registrar focinho de mingau.",
-        "icon": "album_story",
-        "go": {
-          "screen": "tasks"
-        }
-      },
-      "provisional": true
-    },
-    {
-      "id": "h_week_foam",
-      "section": "story",
-      "title": "Espuma",
-      "on": "quest_claimed",
-      "when": {
-        "quest_is": "week_bath"
-      },
-      "photo": {
-        "illustration": "res://assets/sprites/ui/album/illustrated/f_bath.png",
-        "scene": "pet",
-        "pose": {
-          "clip": "shake_off",
-          "frame": 1
-        },
-        "props": []
-      },
-      "goal_hint": {
-        "text": "Siga a História para registrar espuma.",
-        "icon": "album_story",
-        "go": {
-          "screen": "tasks"
-        }
-      },
-      "provisional": true
-    },
-    {
       "id": "h_week_group",
       "section": "story",
       "title": "Almoço com a vovó e a Laís",
@@ -2261,110 +1896,6 @@
         "icon": "album_story",
         "go": {
           "screen": "tasks"
-        }
-      },
-      "provisional": true
-    },
-    {
-      "id": "h_routine_favorite",
-      "section": "story",
-      "title": "A favorita",
-      "on": "week_line_done",
-      "when": {
-        "quest_is": "favorite"
-      },
-      "photo": {
-        "scene": "house",
-        "pose": {
-          "clip": "idle_breathe",
-          "frame": 0
-        },
-        "props": [],
-        "illustration": "res://assets/sprites/ui/album/illustrated/f_taste.png"
-      },
-      "goal_hint": {
-        "text": "Complete a missão no Caderninho.",
-        "icon": "album_story",
-        "go": {
-          "notebook": "missions"
-        }
-      },
-      "provisional": true
-    },
-    {
-      "id": "h_routine_belly",
-      "section": "story",
-      "title": "Barriga para cima",
-      "on": "week_line_done",
-      "when": {
-        "quest_is": "pet"
-      },
-      "photo": {
-        "scene": "house",
-        "pose": {
-          "clip": "sleep_belly",
-          "frame": 0
-        },
-        "props": [],
-        "illustration": "res://assets/sprites/ui/album/illustrated/p_belly_up.png"
-      },
-      "goal_hint": {
-        "text": "Complete a missão no Caderninho.",
-        "icon": "album_story",
-        "go": {
-          "notebook": "missions"
-        }
-      },
-      "provisional": true
-    },
-    {
-      "id": "h_routine_tricks",
-      "section": "story",
-      "title": "Bom menino",
-      "on": "week_line_done",
-      "when": {
-        "quest_is": "tricks"
-      },
-      "photo": {
-        "scene": "farm",
-        "pose": {
-          "clip": "give_paw",
-          "frame": 0
-        },
-        "props": [],
-        "illustration": "res://assets/sprites/ui/album/illustrated/h_first_trick.png"
-      },
-      "goal_hint": {
-        "text": "Complete a missão no Caderninho.",
-        "icon": "album_story",
-        "go": {
-          "notebook": "missions"
-        }
-      },
-      "provisional": true
-    },
-    {
-      "id": "h_routine_perfect",
-      "section": "story",
-      "title": "Dia perfeito",
-      "on": "week_line_done",
-      "when": {
-        "quest_is": "perfect"
-      },
-      "photo": {
-        "scene": "farm",
-        "pose": {
-          "clip": "idle_breathe",
-          "frame": 0
-        },
-        "props": [],
-        "illustration": "res://assets/sprites/ui/album/illustrated/h_kitchen.png"
-      },
-      "goal_hint": {
-        "text": "Complete a missão no Caderninho.",
-        "icon": "album_story",
-        "go": {
-          "notebook": "missions"
         }
       },
       "provisional": true

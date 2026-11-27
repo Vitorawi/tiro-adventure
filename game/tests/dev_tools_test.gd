@@ -46,6 +46,7 @@ func _progress() -> Variant:
 
 func _dev_mode() -> void:
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio (docs/plans/alimentacao) tem teste próprio: aqui vale a queda por hora
 	state.call("dev_add_moment", "brave")
 	_check(state.get("growth").moments.brave == 1, "DEV soma um momento")
 	state.call("dev_set_need", "hunger", 17.0)
@@ -58,13 +59,16 @@ func _dev_mode() -> void:
 	state.call("dev_set_phase", "young")
 	_check(state.get("growth").phase == "young", "DEV muda fase")
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio (docs/plans/alimentacao) tem teste próprio: aqui vale a queda por hora
 	state.call("dev_complete_main_step")
 	_check(_progress().claimed_quests.has("welcome") and _progress().current_main_quest() == "lais_feed", "Concluir passo DEV avança apenas um passo")
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio (docs/plans/alimentacao) tem teste próprio: aqui vale a queda por hora
 	state.call("dev_complete_quest", "main_2_order")
 	_check(_progress().current_main_quest() == "main_4_nina_chest", "Concluir main respeita o baú da Nina antes da Natureza")
 	_check(_progress().claimed_quests.has("merchant_orders"), "Concluir main também conclui o cruzamento com o Feirante")
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio (docs/plans/alimentacao) tem teste próprio: aqui vale a queda por hora
 	state.call("dev_add_coins", 1000)
 	_check(state.get("coins") == int(database.get("start").coins) + 1000, "Deve somar moedas")
 	state.set("unlimited_storage", true)  # dev_add_items enche a pilha de materiais (16); o limite tem teste próprio
@@ -119,6 +123,7 @@ func _dev_mode() -> void:
 
 func _prod_mode() -> void:
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio (docs/plans/alimentacao) tem teste próprio: aqui vale a queda por hora
 	var growth_before: Dictionary = state.get("growth").to_dict()
 	state.call("dev_set_phase", "adult")
 	state.call("dev_add_moment", "brave")
@@ -153,6 +158,7 @@ func _prod_mode() -> void:
 ## A aba "Save" fica de fora: o teste remove o SaveManager para não tocar no save real.
 func _screenshots() -> void:
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio (docs/plans/alimentacao) tem teste próprio: aqui vale a queda por hora
 	state.call("dev_add_coins", 16000)  # barra superior com selo DEV + 5 dígitos
 	var main: Node = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)

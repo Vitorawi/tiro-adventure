@@ -80,7 +80,7 @@ func _rewards_and_photos() -> void:
 		reload_state()
 		check(arrivals.count(id) == 1, "recarregar não repete prêmio: " + id)
 	check(state.house_has("paw_rug") and state.lupas_per_day() == 2, "tapete e dado da câmera")
-	var ids: Array[String] = ["h_arrival", "h_first_night", "h_growth_puppy", "h_kitchen"]
+	var ids: Array[String] = ["h_arrival", "h_first_night", "h_growth_puppy", "f_bath"]
 	for id in ids.slice(0, 3): check(state.hang_photo(id) == "", "pendurar: " + id)
 	check(state.hang_photo(ids[3]) != "", "quarta foto bloqueada")
 	check(state.hang_photo("inexistente", 0) != "", "foto inexistente recusada")
@@ -129,7 +129,8 @@ func _sleep() -> void:
 		reload_state()
 		check(is_equal_approx(state.dog.get_need("energy", T0 + 3600), expected), "energia ausência/reload: " + bed)
 		check(state.dog.get_need("energy", T0 + 72 * 3600) == 100.0, "energia não passa de 100")
-		for need: String in ["hunger", "hygiene", "happiness"]:
+		# A fome segue o relógio da Barriga (pode ir a 20): só os outros têm piso de ausência.
+		for need: String in ["hygiene", "happiness"]:
 			check(state.dog.get_need(need, T0 + 72 * 3600) >= float(db.needs[need].offline_floor), "pisos preservados")
 
 func _purchases() -> void:

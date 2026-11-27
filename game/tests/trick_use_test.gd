@@ -167,14 +167,12 @@ func _run() -> void:
 	check(state.call("trick_show_error", 3) == "Continue a História", "show fechado antes do capítulo 10")
 	_day(4, 12)
 	state.call("update_week")
-	if state.call("tiro_weak"):
-		check(state.call("feed", FOOD), "almoço recupera o Tiro no dia 4")
 	_lesson("paw")
 	_day(5, 9)
 	_lesson("lie_down")
 	var scores := _caderno()
 	check(scores == [3, 3, 3], "três truques aprendidos")
-	check(state.call("meal_trick_offer", FOOD).is_empty(), "fora de hora não pede truque")
+	check(not state.call("meal_trick_offer", FOOD).is_empty(), "sempre há uma metade aberta: o pedido de truque vale de dia sem ✓")
 	state.call("finish_fishing_tutorial")
 
 	Motion.reduced = true
@@ -190,15 +188,15 @@ func _run() -> void:
 		quit(1)
 		return
 	var offer: Dictionary = overlay.get("_meal")
-	check(offer.period == "lunch" and _stock() == food, "almoço aguarda o gesto")
+	check(offer.period == "sun" and _stock() == food, "a comidinha do dia aguarda o gesto")
 	await shot("01_pedido_almoco")
 	_tap("MealTrickAsk")
 	await pause()
 	await shot("02_gesto_tigela")
 	await _gesture(overlay)
 	await pause(0.8)
-	var lunch: Dictionary = state.call("meal_info").done.lunch
-	check(lunch.get("trick") == offer.id and _stock() == food - 1, "acerto serve o almoço")
+	var lunch: Dictionary = state.call("meal_info").done.sun
+	check(lunch.get("trick") == offer.id and _stock() == food - 1, "acerto serve a comidinha do dia")
 	check(_stat("trick_meal") == 1 and _stat("moment:smart") == smart + 1, "acerto dá um momento de Esperteza")
 	var lunch_happiness: float = state.get("dog").needs.happiness
 	check(state.call("meal_trick_offer", FOOD).is_empty(), "refeição concluída não oferece outra tentativa")
@@ -210,13 +208,13 @@ func _run() -> void:
 	if overlay == null:
 		quit(1)
 		return
-	check(overlay.get("_meal").period == "dinner", "pedido no jantar")
+	check(overlay.get("_meal").period == "moon", "pedido na comidinha da noite")
 	await shot("03_pedido_jantar")
 	_tap("MealTrickAsk")
 	await pause()
 	await _gesture(overlay, false)
 	await pause(0.8)
-	check(not state.call("meal_info").done.dinner.has("trick") and _stat("trick_meal") == 1, "erro serve jantar sem bônus")
+	check(not state.call("meal_info").done.moon.has("trick") and _stat("trick_meal") == 1, "erro serve a da noite sem bônus")
 	check(lunch_happiness > float(state.get("dog").needs.happiness) + 4.0, "felicidade extra no acerto")
 
 	_day(6, 12)
@@ -226,7 +224,7 @@ func _run() -> void:
 		return
 	_tap("MealTrickSkip")
 	await pause(0.45)
-	check(state.call("meal_info").done.lunch.on_time and _stat("trick_meal") == 1, "Só dar alimenta na hora")
+	check(state.call("meal_info").done.sun.on_time and _stat("trick_meal") == 1, "Só dar alimenta na hora")
 	_day(6, 19)
 	overlay = await _pick_meal()
 	if overlay == null:
@@ -236,12 +234,11 @@ func _run() -> void:
 	await pause()
 	await _gesture(overlay)
 	await pause(0.8)
-	check(state.call("meal_info").done.dinner.has("trick") and _stat("trick_meal") == 2 and _stat("moment:smart") == smart + 2, "jantar também premia acerto")
+	check(state.call("meal_info").done.moon.has("trick") and _stat("trick_meal") == 2 and _stat("moment:smart") == smart + 2, "a noite também premia acerto")
 
 	await _show()
 	check(_caderno() == scores and _stat("trick_lesson") == 3, "refeições e shows preservam níveis e acertos")
 	await _wish()
-	await _show_photo()
 	print("TRICK USE TEST: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(0 if failures == 0 else 1)
 
@@ -269,7 +266,7 @@ func _show() -> void:
 	await pause(0.55)
 	await shot("06_aplausos")
 	var result: Dictionary = overlay.get("result")
-	check(result.get("photo") == true and state.get("album").has_photo("h_trick_show"), "primeiro show registra foto")
+	check(result.get("photo") == false and not state.get("album").has_photo("h_trick_show"), "o show não rende foto (fotos só de marcos)")
 	check(_stat("trick_show") == 1 and _stat("trick_show_use:lie_down") == 1, "contadores próprios do show")
 	check(state.get("coins") == coins + int(result.get("coins", 0)) and _stock("apple_biscuit") == cookie, "moedas uma vez e sem custo de aula")
 	check(state.call("start_trick_show", 5).has("error"), "segundo show no mesmo dia bloqueado")
@@ -302,6 +299,7 @@ func _wish() -> void:
 	# O relógio de momentos já acompanha a semana DEV.
 	state.set("_dev_moment_offset", 0.0)
 	state.get("dog").commit(state.call("now"))
+	state.call("dev_week_meal", str(state.call("meal_period_now")))  # a Barriga é o relógio: com ✓ na metade ele não pede comida
 	for need: String in ["hunger", "happiness", "hygiene", "energy"]:
 		state.get("dog").needs[need] = 100
 	wishes.first_done = true
@@ -332,20 +330,3 @@ func _wish() -> void:
 	check(state.call("wish_id") == "train", "cancelar aula não cumpre o pedido")
 	_lesson("sit")
 	check(state.call("wish_id") == "" and _stat("wish:train") == 1 and _stat("moment:smart") == before + 1, "aula válida cumpre o desejo e dá Esperteza")
-
-
-func _show_photo() -> void:
-	_hide_modals()
-	events.sheet_close_requested.emit()
-	check(state.call("open_photo_card", "h_trick_show") == "", "foto do show abre no Álbum")
-	load("res://scripts/ui/album_screen.gd").call("open", "story")
-	await pause(0.5)
-	var viewer: Node = load("res://scripts/ui/card_viewer.gd").call("open", "h_trick_show")
-	check(viewer != null, "visualizador da foto do show")
-	if viewer == null:
-		return
-	await pause(0.55)
-	check(viewer.find_child("Friend_bloblo", true, false) != null and viewer.find_child("Friend_lais", true, false) != null, "foto composta tem vovó e Laís")
-	await shot("08_foto_show")
-	viewer.call("close")
-	await pause(0.5)

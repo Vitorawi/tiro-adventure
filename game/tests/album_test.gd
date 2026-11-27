@@ -83,17 +83,17 @@ func _run() -> void:
 
 func _data() -> void:
 	check(db.album_problems().is_empty(), "album.json válido: " + str(db.album_problems()))
-	check(db.album.photos.size() == 69, "69 fotos no catálogo")
+	check(db.album.photos.size() == 51, "51 fotos no catálogo (só marcos)")
 	for entry: Dictionary in db.album.photos:
 		var art := str(entry.photo.get("illustration", ""))
-		if entry.id in ["h_trick_show", "h_week_group"]:
+		if entry.id == "h_week_group":
 			check(entry.photo.scene == "farm" and entry.photo.friends == ["bloblo", "lais"], "foto provisória do show composta no Sítio")
 		else:
 			check(art != "" and ResourceLoader.exists(art), "ilustração instalada: " + str(entry.id))
 	var per := {}
 	for entry: Dictionary in db.album.photos:
 		per[entry.section] = int(per.get(entry.section, 0)) + 1
-	check(per == {"story": 28, "firsts": 8, "tricks": 14, "sleep": 8, "friends": 6, "dates": 5}, "seções 28/8/14/8/6/5: " + str(per))
+	check(per == {"story": 14, "firsts": 4, "tricks": 14, "sleep": 8, "friends": 6, "dates": 5}, "seções 14/4/14/8/6/5: " + str(per))
 	for entry: Dictionary in db.album.photos:
 		check(entry.when.size() <= 3, "no máximo 3 condições: " + str(entry.id))
 	# Dado quebrado é rejeitado.
@@ -141,7 +141,7 @@ func _story() -> void:
 	state.dog.needs["energy"] = 40.0
 	_expect("soneca sem caminha", func() -> void: state.set_sleeping(true), [])
 	state.set_sleeping(false)
-	_expect("caminha da Laís", func() -> void: state._finish_quest("lais_bed"), ["h_first_night", "h_week_bed"])
+	_expect("caminha da Laís", func() -> void: state._finish_quest("lais_bed"), ["h_first_night"])
 	_fresh()
 	state.progress.claimed_quests["lais_bed"] = true
 	_expect("soneca com caminha", func() -> void: state.set_sleeping(true), ["h_first_night"])
@@ -160,7 +160,7 @@ func _story() -> void:
 	_unlock()
 	state.inventory.add("puppy_mash", 2)
 	state.dog.needs["hunger"] = 20.0
-	_expect("primeira papinha", func() -> void: state.feed("puppy_mash"), ["h_kitchen", "f_taste"])
+	_expect("primeira papinha", func() -> void: state.feed("puppy_mash"), [])
 
 	_fresh()
 	_unlock()
@@ -188,25 +188,13 @@ func _firsts() -> void:
 	_unlock()
 	_expect("primeiro banho", func() -> void: state.bathe(), ["f_bath"])
 	state.dev_spawn_finds()
-	_expect("primeiro achado", func() -> void: _dig_any(), ["f_dig"])
+	_expect("primeiro achado não rende foto", func() -> void: _dig_any(), [])
 	_fresh()
 	_unlock()
 	state.inventory.add("carrot_snack", 4)
 	var friend_error: String = state.give_friend_error("pipoca")
 	check(friend_error == "", "fixture do petisco: " + friend_error)
 	_expect("primeiro coração", func() -> void: state.give_friend("pipoca"), ["f_friend"])
-	_fresh()
-	_unlock()
-	var outfit := ""
-	for id: String in db.collections:
-		if outfit == "" and state.equip_error(id) == "":
-			outfit = id
-	check(outfit != "", "fixture: roupa vestível")
-	_expect("primeira roupa", func() -> void: state.equip(outfit), ["f_outfit"])
-	_fresh()
-	_unlock()
-	state.inventory.add("basic_brush", 1)
-	_expect("primeira escovada", func() -> void: state.brush(), ["f_brush"])
 	_fresh()
 	_expect("raro de passeio", func() -> void: state._album_event("walk_returned", {"route": "park_loop", "rare": true}), ["f_rare", "h_first_walk"])
 	_fresh()
@@ -240,7 +228,7 @@ func _campaign() -> void:
 	state.dev_complete_growth_reqs()
 	state.grow()
 	check(state.growth.phase in ["explorer", "teething"], "campanha chegou perto do Aventureiro")
-	var expected := ["h_arrival", "h_first_night", "f_bath", "h_growth_puppy", "h_kitchen", "f_taste", "h_first_walk", "h_growth_teething", "f_dig"]
+	var expected := ["h_arrival", "h_first_night", "f_bath", "h_growth_puppy", "h_first_walk", "h_growth_teething"]
 	for id: String in expected:
 		check(state.album.has_photo(id), "campanha tirou " + id)
 	for id: String in state.album.photos:
@@ -251,7 +239,6 @@ func _teach_paw() -> void:
 	state.dev_content_day(10)  # Dá a pata abre no capítulo 10
 	state.dev_week_goto(4)
 	state.dev_week_hour(12)
-	state.week.weak = false
 	state.inventory.add("apple_biscuit")
 	check(state.start_trick_lesson("paw") == "", "começa Aula de Dá a pata")
 	for i in 5:
@@ -362,18 +349,22 @@ func _introduction() -> void:
 	check(not state.photo_alerts_enabled(), "chegada não ativa avisos de foto")
 	check(not load("res://scripts/ui/album_screen.gd").call("has_new"), "Álbum desconhecido não recebe sinal de novidade")
 	check(state.welcome_ready_lines().all(func(line: Dictionary) -> bool: return line.kind != "photo"), "boas-vindas não anuncia fotos antes da primeira visita")
-	check(not state.quest_unlocked("lais_photo"), "a apresentação espera o Filhotinho (passo 8 do Ato 1)")
-	state.dev_complete_quest("growth_1_puppy")
-	check(state.quest_unlocked("lais_photo"), "Laís apresenta o Álbum no passo 8, depois de crescer")
-	check(not db.quests.has("lais_album") and db.quests.lais_photo.kind == "main", "o passo 8 da história substitui a linha opcional")
+	check(not state.quest_unlocked("lais_photo"), "a apresentação espera os passos anteriores do capítulo 2")
+	# lais_photo é o 3º passo do capítulo 2: conclui tudo o que vem antes dele na história.
+	for id: String in db.quests:
+		var quest: Dictionary = db.quests[id]
+		if quest.get("kind", "") == "main" and (int(quest.chapter) < 2 or (int(quest.chapter) == 2 and int(quest.order) < int(db.quests.lais_photo.order))):
+			state.dev_complete_quest(id)
+	check(state.quest_unlocked("lais_photo"), "Laís apresenta o Álbum no capítulo 2, depois dos canteiros")
+	check(not db.quests.has("lais_album") and db.quests.lais_photo.kind == "main", "o passo da história substitui a linha opcional")
 	var target: Dictionary = load("res://scripts/ui/progression_ui.gd").call("quest_go_target", "lais_photo")
 	check(target.get("notebook", "") == "album", "Ir tem como destino o Álbum")
 	var view: Control = album_view.panel("story")
 	root.add_child(view)
 	check(state.photo_alerts_enabled() and state.progress.stat("open:album") == 1, "primeira visita habilita avisos")
-	check(state.quest_error("lais_photo") != "", "só visitar não cumpre o passo 8: falta abrir a carta (tutorial)")
+	check(state.quest_error("lais_photo") != "", "só visitar não cumpre o passo: falta abrir a carta (tutorial)")
 	state.finish_album_tutorial()
-	check(state.quest_error("lais_photo") == "", "o fim do tutorial da carta cumpre o passo 8")
+	check(state.progress.claimed_quests.has("lais_photo"), "o fim do tutorial da carta cumpre o passo (entrega sozinha)")
 	check(state.photo_info("h_arrival") == arrival, "primeira visita preserva a foto anterior e seu snapshot")
 	view.free()
 	_reload()
@@ -400,17 +391,17 @@ func _interface() -> void:
 	var panel: Control = album_view.panel("firsts")
 	root.add_child(panel)
 	var grid := panel.find_child("AlbumGrid", true, false) as GridContainer
-	check(grid != null and grid.columns == 3 and grid.get_child_count() == 8, "grade de 3 colunas com as 8 primeiras vezes")
+	check(grid != null and grid.columns == 3 and grid.get_child_count() == 4, "grade de 3 colunas com as 4 primeiras vezes")
 	check(panel.find_child("AlbumCard_f_bath", true, false).find_child("NewBadge", true, false) != null, "foto nova tem selo Novo!")
 	check(panel.find_child("AlbumCard_f_bath", true, false).find_child("NewBadge", true, false) is TextureRect, "foto nova usa só a bolinha vermelha (sem texto)")
 	check(panel.find_child("NotebookTab_firsts", true, false).find_child("NewBadge", true, false) != null, "seção Primeiras vezes aponta as fotos novas")
 	var section_badge := panel.find_child("NotebookTab_firsts", true, false).find_child("NewBadge", true, false) as TextureRect
 	check(section_badge != null and section_badge.texture != null, "novidade de seção mantém o selo ilustrado do caderninho")
 	check(panel.find_child("NotebookTab_story", true, false).find_child("NewBadge", true, false) == null, "seção sem foto nova fica sem aviso")
-	check(panel.find_child("AlbumCard_f_dig", true, false).find_child("NewBadge", true, false) == null, "foto que falta não tem selo")
+	check(panel.find_child("AlbumCard_f_tooth", true, false).find_child("NewBadge", true, false) == null, "foto que falta não tem selo")
 	check(panel.find_child("CardBack", true, false) != null, "fechadas mostram o verso sem antecipar a arte")
 	var counter := "%d/%d" % [album_view.taken_count(), album_view.total_count()]
-	check(album_view.total_count() == 69, "contador usa as seis seções ativas (69)")
+	check(album_view.total_count() == 51, "contador usa as seis seções ativas (51)")
 	check(counter != "", "contador " + counter)
 	var secret: Control = photo_card.make("s_foam_ghost", 98.0, {"secret": true})
 	root.add_child(secret)

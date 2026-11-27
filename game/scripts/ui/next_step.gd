@@ -144,6 +144,30 @@ func refresh() -> void:
 		_open_challenge.call_deferred(true)
 
 
+## Passo concluído, sem texto: um ✓ verde salta sobre a pílula e some em ~1 s.
+func flash_done() -> void:
+	if not is_visible_in_tree():
+		return
+	var mark := UiKit.ctl("check", 30, Palette.GO_INK)
+	mark.name = "DoneMark"
+	mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	mark.z_index = 3
+	add_child(mark)
+	mark.size = Vector2(30, 30)
+	mark.position = Vector2(size.x - 34.0, -8.0)
+	mark.pivot_offset = mark.size / 2.0
+	if Motion.reduced:
+		get_tree().create_timer(0.8).timeout.connect(mark.queue_free)
+		return
+	mark.scale = Vector2.ZERO
+	var tween := mark.create_tween()
+	tween.tween_property(mark, "scale", Vector2(1.25, 1.25), 0.14).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(mark, "scale", Vector2.ONE, 0.1)
+	tween.tween_interval(0.5)
+	tween.tween_property(mark, "modulate:a", 0.0, 0.25)
+	tween.tween_callback(mark.queue_free)
+
+
 ## Estado do cartão: pronto troca o ícone/número pelo botão "Pegar"; espaço cheio avermelha o papel.
 func _rebuild() -> void:
 	if _row == null:

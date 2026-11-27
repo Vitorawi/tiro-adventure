@@ -71,6 +71,7 @@ func _run() -> void:
 	state.progress.seen.intro = true
 	Motion.reduced = true
 	root.get_node("Events").toast_requested.connect(func(text: String) -> void: toasts.append(text))
+	root.get_node("Events").tiro_said.connect(func(text: String) -> void: toasts.append(text))
 	main = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
 	await frames()
@@ -143,10 +144,10 @@ func _run() -> void:
 	var bonus: float = state.dog.get_need("happiness", state.now()) - 40.0
 	check(bonus >= 25.0 and bonus > plain + 20.0, "lugar favorito dá +25 de Felicidade (%.1f x %.1f)" % [bonus, plain])
 	check(state.favorite_spot_found() and state.growth.diary.size() == diary_before + 1, "primeira vez entra no diário")
-	check(toasts.any(func(t: String) -> bool: return "Ele ama carinho" in t), "aviso de que ele ama carinho ali")
+	check(toasts.any(func(t: String) -> bool: return "Ama carinho" in t), "aviso de que ele ama carinho ali")
 	check(loved[0] == 1, "reação do lugar favorito dispara")
 	state.pet(favorite)
-	check(state.growth.diary.size() == diary_before + 1 and toasts.filter(func(t: String) -> bool: return "Ele ama carinho" in t).size() == 1, "revela uma vez só")
+	check(state.growth.diary.size() == diary_before + 1 and toasts.filter(func(t: String) -> bool: return "Ama carinho" in t).size() == 1, "revela uma vez só")
 	check(loved[0] == 2, "a reação continua nas próximas")
 
 	# Pelo gesto da tela: segurar exatamente no favorito.

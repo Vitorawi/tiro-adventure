@@ -11,7 +11,8 @@
       "icon": "res://assets/sprites/ui/icons/need_hunger.png",
       "color": "#f0a04b",
       "ask_below": 50,
-      "initial": 40
+      "initial": 40,
+      "clock": {"hungry": 20, "full": 100, "end": 55}
     },
     "happiness": {
       "name": "Felicidade",
@@ -306,24 +307,17 @@
   },
   "meals": {
     "periods": {
-      "lunch": {"name": "Almoço", "from": 11, "to": 15},
-      "dinner": {"name": "Jantar", "from": 18, "to": 22}
+      "sun": {"name": "De dia", "meal": "comidinha do dia", "when": "de dia"},
+      "moon": {"name": "De noite", "meal": "comidinha da noite", "when": "de noite"}
     },
-    "options": {
-      "early": {"name": "Mais cedo", "shift": -1},
-      "normal": {"name": "Normal", "shift": 0},
-      "late": {"name": "Mais tarde", "shift": 1}
-    },
-    "default_option": "normal",
+    "day_starts_at": 6,
+    "night_starts_at": 16,
+    "night_card_at": 20,
+    "bowl_tip_until": 10,
     "arrival_day": 1,
     "on_time_needed": 2,
     "arrival_on_time_needed": 1,
-    "ration": {"hunger": 25},
-    "lunchbox": {"hunger": 40, "happiness": 10},
-    "lunchbox_after_weak_days": 2,
     "on_time_bonus": {"happiness": 5},
-    "day_starts_at": 6,
-    "arrival_min_hours": 3,
     "stored_slots": 2,
     "secret": {
       "quest": "bloblo_secret",

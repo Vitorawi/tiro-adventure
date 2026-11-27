@@ -143,8 +143,8 @@ func _run() -> void:
 	_check(shown == 3, "seletor mostra Casa, Sítio e a Vila trancada")
 	_node("WorldsScreen").call("close_map")
 
-	# Carta de fechamento de dois capítulos (sopinha e a lagoa).
-	for entry: Array in [[2, "h_week_soup"], [6, "h_week_fish"]]:
+	# Carta de marco do capítulo 5 (primeiro truque).
+	for entry: Array in [[5, "h_first_trick"]]:
 		_to_chapter(entry[0])
 		for id: String in state.progress.main_quests(entry[0]):
 			if not state.progress.claimed_quests.has(id):

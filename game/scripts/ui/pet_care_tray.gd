@@ -119,6 +119,8 @@ func _ready() -> void:
 	_foods = _menu.grid
 	_meal_bowl = UiKit.icon(preload("res://assets/sprites/ui/album/prop_bowl.png"), 54)
 	_meal_bowl.name = "TutorialMealBowl"
+	# Marcador invisível do ponto de soltar: arrastar comida é "até o Tiro" (a tigela é só o lugar da comida guardada).
+	_meal_bowl.modulate.a = 0.0
 	_meal_bowl.hide()
 	pet_screen.add_child(_meal_bowl)
 	_choice = ChoiceWindow.new()
@@ -233,7 +235,9 @@ func _sync_brush() -> void:
 
 ## Muda quando a fase ou os sabores provados mudam (selos e "Nova!" da guia).
 func _phase_key() -> String:
-	return GameState.growth.phase + ":" + str(GameState.growth.tastes.size())
+	# A metade do dia e o ✓ dela também mudam o desenho da guia (selos e contorno verde das refeições).
+	var meal := "" if not GameState.food_clock_on() else GameState.meal_period_now() + str(GameState.meal_current_done())
+	return GameState.growth.phase + ":" + str(GameState.growth.tastes.size()) + ":" + meal
 
 
 func refresh() -> void:
@@ -254,7 +258,7 @@ func refresh() -> void:
 			child.queue_free()
 		_food_ids = ids
 		_menu.placeholder_height = 112.0 if ids.is_empty() else 0.0
-		for id in ids: _foods.add_child(_food_item(id))
+		_fill_foods(ids)
 		_place_menu.call_deferred()
 		if ids.is_empty():
 			_foods.add_child(SheetBuilder.food_help())
@@ -284,6 +288,119 @@ func refresh() -> void:
 	(_sleep.find_child("CareIcon", true, false) as TextureRect).texture = UiKit.ui_icon("action_wake" if GameState.dog.sleeping else "action_sleep")
 	_sleep.disabled = GameState.walking()
 	_place_menu.call_deferred()
+
+
+## Refeições primeiro; depois de uma divisória com coração, os petiscos (carinho, não refeição). Dentro de cada grupo vale a
+## ordem do catálogo. Sem os dois grupos não há divisória. A guia tem 3 colunas: a divisória ocupa uma linha inteira.
+func _fill_foods(ids: Array[String]) -> void:
+	var meals: Array[String] = []
+	var snacks: Array[String] = []
+	for id: String in ids:
+		if GameState.is_meal_item(id):
+			meals.append(id)
+		else:
+			snacks.append(id)
+	for id: String in meals:
+		_foods.add_child(_food_item(id))
+	if not meals.is_empty() and not snacks.is_empty():
+		for i in (ChoiceWindow.COLUMNS - meals.size() % ChoiceWindow.COLUMNS) % ChoiceWindow.COLUMNS:
+			_foods.add_child(_food_gap(i))
+		for i in ChoiceWindow.COLUMNS:
+			_foods.add_child(_food_divider(i))
+	for id: String in snacks:
+		_foods.add_child(_food_item(id))
+
+
+func _food_gap(index: int) -> Control:
+	var gap := Control.new()
+	gap.name = "FoodGap_%d" % index
+	gap.custom_minimum_size = Vector2(FOOD_TILE, 0.0)
+	gap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	return gap
+
+
+## Uma das três células da divisória: linha, coração no meio, linha (a linha de petiscos é carinho).
+func _food_divider(index: int) -> Control:
+	var cell := Control.new()
+	cell.name = "FoodDivider_%d" % index
+	cell.custom_minimum_size = Vector2(FOOD_TILE, 20.0)
+	cell.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if index == 1:
+		var heart := UiKit.icon(UiKit.ui_icon("heart"), 18)
+		heart.name = "SnackHeart"
+		heart.set_anchors_preset(Control.PRESET_CENTER)
+		heart.offset_left = -9.0
+		heart.offset_right = 9.0
+		heart.offset_top = -9.0
+		heart.offset_bottom = 9.0
+		heart.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		cell.add_child(heart)
+		return cell
+	var line := ColorRect.new()
+	line.color = Color(Palette.WOOD_INK, 0.28)
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	line.anchor_top = 0.5
+	line.anchor_bottom = 0.5
+	line.anchor_right = 1.0
+	line.offset_top = -1.0
+	line.offset_bottom = 1.0
+	line.offset_left = -4.0 if index == 2 else 0.0
+	line.offset_right = 0.0 if index == 2 else 4.0
+	cell.add_child(line)
+	return cell
+
+
+## Selo sol/lua da refeição (a metade em que ele está) e, quando ela contaria como ✓ agora, o contorno verde com ✓.
+func _meal_marks(item: Control, id: String) -> void:
+	if not GameState.food_clock_on() or not GameState.is_meal_item(id):
+		return
+	var period := GameState.meal_period_now()
+	var counts := GameState.meal_error(id) == "" and not GameState.meal_current_done()
+	var seal := Panel.new()
+	seal.name = "MealSeal"
+	seal.set_meta("period", period)
+	var style := StyleBoxFlat.new()
+	style.bg_color = Palette.WOOD_CREAM
+	style.border_color = Palette.GO_EDGE if counts else Color("c9935f")
+	style.set_border_width_all(1)
+	style.set_corner_radius_all(9)
+	seal.add_theme_stylebox_override("panel", style)
+	seal.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	seal.size = Vector2(16, 16)
+	seal.position = Vector2(FOOD_TILE - 18.0, 2.0)  # canto de cima à direita: quantidade, favorita e crescimento ficam nos outros
+	var glyph := UiKit.ctl(MealUi.period_icon(period), 11, Palette.WOOD_INK)
+	glyph.position = Vector2(2.5, 2.5)
+	seal.add_child(glyph)
+	item.add_child(seal)
+	if not counts:
+		return
+	item.set_meta("counts", true)
+	var ring := Panel.new()
+	ring.name = "CountsRing"
+	var ring_style := StyleBoxFlat.new()
+	ring_style.bg_color = Color(0, 0, 0, 0)
+	ring_style.border_color = Palette.GO
+	ring_style.set_border_width_all(3)
+	ring_style.set_corner_radius_all(12)
+	ring.add_theme_stylebox_override("panel", ring_style)
+	ring.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ring.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	item.add_child(ring)
+	var check := Panel.new()
+	check.name = "CountsCheck"
+	var check_style := StyleBoxFlat.new()
+	check_style.bg_color = Palette.GO
+	check_style.border_color = Color.WHITE
+	check_style.set_border_width_all(1)
+	check_style.set_corner_radius_all(9)
+	check.add_theme_stylebox_override("panel", check_style)
+	check.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	check.size = Vector2(16, 16)
+	check.position = Vector2((FOOD_TILE - 16.0) / 2.0 - 2.0, 1.0)
+	var mark := UiKit.ctl("check", 11, Color.WHITE)
+	mark.position = Vector2(2.5, 2.5)
+	check.add_child(mark)
+	item.add_child(check)
 
 
 ## Quadradinho de madeira só com o ícone: o ícone é a pega de arrasto até a cabeça. Quantidade embaixo à direita,
@@ -325,6 +442,9 @@ func _food_item(id: String) -> Control:
 		item.add_child(seal)
 	elif not growth.is_empty():
 		item.tooltip_text = "Ele prefere outra coisa agora"
+	_meal_marks(item, id)
+	if item.get_node_or_null("MealSeal") != null:
+		badge.position.y = 20.0  # o pedido (coração) desce: o canto de cima agora tem o selo sol/lua
 	if GameState.favorite_found() and id == GameState.favorite_food():
 		var heart := UiKit.icon(UiKit.ui_icon("heart"), 18)
 		heart.name = "FavoriteHeart"

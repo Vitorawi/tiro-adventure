@@ -73,12 +73,11 @@ func fresh(hour: int, with_meal: bool, phase: String = "puppy") -> void:
 	state.call("reset")
 	state.call("finish_week_arrival")
 	state.call("finish_home_tour")
-	state.week.arrival_extended = false
 	state.week.tutorial["arrival"] = {"done": true}
 	state.growth.phase = phase
 	quest_id = str(state.progress.current_main_quest())
 	db.week_story.food_lesson["quest"] = quest_id
-	at(1, hour)
+	at(1 if hour >= 6 else 2, hour)  # madrugada (3h) é a lua do dia anterior do Tiro
 	if with_meal:
 		state.inventory.add("puppy_mash", 1)
 	main = (load("res://scenes/main/main.tscn") as PackedScene).instantiate()
@@ -107,15 +106,16 @@ func _run() -> void:
 
 	_data_and_rules()
 	await fresh(12, false)
-	check(not shown("MealClock"), "antes da aula o reloginho não aparece")
+	check(not shown("MealDay"), "antes da aula o potinho não aparece")
 	check(guide() != null and str(guide().get("kind")) == "", "sem comida na Mochila a aula não começa")
 	check(not state.food_lesson_startable(), "sem refeição na Mochila a aula não começa")
 	state.inventory.add("puppy_mash", 1)
 	check(state.food_lesson_startable(), "com o passo da aula e uma refeição, ela pode começar")
 
-	for row: Array in [[12, "window", "É hora do"], [9, "day", "dia da chegada"], [23, "night", "antes de dormir"]]:
-		await _lesson(int(row[0]), str(row[1]), str(row[2]))
+	for hour: int in [10, 22, 3]:
+		await _lesson(hour)
 
+	await _new_lessons()
 	await _growth_lesson()
 	await _evening_and_morning()
 	await _hunger_snack_review()
@@ -130,15 +130,14 @@ func _run() -> void:
 func _data_and_rules() -> void:
 	var story: Dictionary = db.week_story.food_lesson
 	check(story.growth.size() == 3, "três falas da lição do painel")
-	for key: String in ["window", "day", "night"]:
-		check(str(story.today.get(key, "")) != "" and str(story.paw.get(key, "")) != "", "falas 2 e 4 da faixa " + key)
+	check(str(story.feed) != "" and str(story.paw) != "" and str(story.grow) != "" and not story.has("clock") and not story.has("today"), "três falas da aula (uma só, para qualquer hora)")
+	check(not story.has("branch") and not state.has_method("food_lesson_branch"), "saíram as três versões por hora")
 	state.call("reset")
 	state.call("finish_week_arrival")
 	state.call("finish_home_tour")
-	state.week.arrival_extended = false
-	for row: Array in [[12, "window"], [11, "window"], [20, "window"], [9, "day"], [16, "day"], [23, "night"], [2, "night"], [22, "night"], [6, "day"]]:
+	for row: Array in [[12, "sun"], [6, "sun"], [15, "sun"], [16, "moon"], [23, "moon"], [2, "moon"], [5, "moon"]]:
 		at(1, int(row[0]))
-		check(str(state.call("food_lesson_branch")) == row[1], "faixa às %dh = %s (deu %s)" % [row[0], row[1], state.call("food_lesson_branch")])
+		check(str(state.call("meal_period_now")) == row[1], "metade às %dh = %s" % [row[0], row[1]])
 	# A primeira patinha é garantida a qualquer hora, uma vez só.
 	for hour: int in [3, 9, 12, 16, 23]:
 		state.call("reset")
@@ -154,39 +153,42 @@ func _data_and_rules() -> void:
 	state.call("reset")
 	state.call("finish_week_arrival")
 	state.call("finish_home_tour")
-	state.week.arrival_extended = false
 	at(1, 9)
 	state.inventory.add("puppy_mash", 1)
-	check(state.feed("puppy_mash") and state.meal_info().paw, "o dia da chegada: uma papinha a qualquer hora já vale a patinha")
+	check(state.feed("puppy_mash") and not state.meal_info().paw, "antes da aula a papinha não registra ✓")
+	state.set_food_lesson_step(3)
+	state.inventory.add("puppy_mash", 1)
+	check(state.feed("puppy_mash") and state.meal_info().paw, "com a aula rodando: uma papinha já vale a patinha do dia da chegada")
 	check(not state.grant_lesson_paw("puppy_mash") and state.well_fed_days() == 1, "a aula não duplica a patinha do dia da chegada")
-	# Cartela: dia fraco vira carimbo tracejado vazio, sem consumir o espaço da patinha.
-	state.week.days["2"] = {"weak": true}
+	# Cartela: dia sem patinha vira carimbo tracejado vazio, sem consumir o espaço da patinha.
+	state.week.days["2"] = {"missed": true}
 	var stamps2: Array = state.paw_stamps()
-	check(stamps2.size() == 2 and stamps2[1].kind == "weak", "dia fraco é um carimbo vazio")
+	check(stamps2.size() == 2 and stamps2[1].kind == "missed", "dia sem patinha é um carimbo vazio")
 	state.week.days.erase("2")
-	# Próximo almoço/jantar.
+	# Próxima refeição: de dia sem ✓ pede a comidinha; com ✓ falta a da noite.
 	state.call("reset")
 	state.call("finish_week_arrival")
 	state.call("finish_home_tour")
-	state.week.arrival_extended = false
 	at(1, 9)
 	var next: Dictionary = state.next_meal_in()
-	check(next.period == "lunch" and not next.open and int(next.seconds) >= 2 * 3600 - 120 and int(next.seconds) <= 2 * 3600 + 60, "9h: o almoço em 2 h (%s)" % [next])
-	at(1, 12)
-	check(state.next_meal_in().open and state.next_meal_in().period == "lunch", "12h: a janela do almoço aberta")
+	check(next.period == "sun" and next.open and int(next.seconds) == 0, "9h sem ✓: a comidinha do dia está aberta (%s)" % [next])
+	state.dev_week_meal("sun")
+	next = state.next_meal_in()
+	check(next.period == "moon" and not next.open and int(next.seconds) >= 7 * 3600 - 120 and int(next.seconds) <= 7 * 3600 + 60, "9h com ✓: a noite em 7 h (%s)" % [next])
 	var paw_card: Script = load("res://scripts/ui/paw_card.gd")
-	check(str(paw_card.call("next_text")) == "", "a linha do próximo almoço só existe depois da aula")
+	check(str(paw_card.call("next_text")) == "", "a linha do próximo só existe depois da aula")
 	state.week.food_lesson = true
-	check(str(paw_card.call("next_text")) == "Hora do almoço!", "12h: Hora do almoço!")
+	check(str(paw_card.call("next_text")) == "A da noite: 16h", "de dia com ✓: A da noite é a partir das 16h (%s)" % paw_card.call("next_text"))
 	at(1, 16)
-	check(str(paw_card.call("next_text")) == "Próximo jantar em 2 h", "16h: Próximo jantar em 2 h (%s)" % paw_card.call("next_text"))
+	check(str(paw_card.call("next_text")) == "Hora da comidinha da noite!", "16h sem ✓: Hora da comidinha da noite!")
+	state.dev_week_meal("moon")
+	check(str(paw_card.call("next_text")) == "Amanhã cedo", "noite com ✓: Amanhã cedo tem mais")
 	var deal: Dictionary = state.first_deal_when()
-	check(deal.when == "amanhã" and int(deal.hour) == 11, "o primeiro combinado começa amanhã às 11h")
+	check(deal.when == "amanhã" and int(deal.hour) == 6, "o primeiro combinado começa amanhã às 6h")
 	# O passo real da aula: só vira a vez dele depois da chegada e com refeição na Mochila.
 	state.call("reset")
 	state.call("finish_week_arrival")
 	state.call("finish_home_tour")
-	state.week.arrival_extended = false
 	var real_quest := str(db.week_story.food_lesson.quest)
 	check(not state.food_lesson_startable(), "no começo (caixinha) a aula não começa")
 	var guard := 0
@@ -201,7 +203,6 @@ func _data_and_rules() -> void:
 	state.call("reset")
 	state.call("finish_week_arrival")
 	state.call("finish_home_tour")
-	state.week.arrival_extended = false
 	while str(state.progress.current_main_quest()) != real_quest and str(state.progress.current_main_quest()) != "" and guard < 160:
 		state.progress.claimed_quests[str(state.progress.current_main_quest())] = true
 		guard += 1
@@ -210,58 +211,107 @@ func _data_and_rules() -> void:
 
 # --- A aula, toque a toque --------------------------------------------------------------------
 
-func _lesson(hour: int, branch: String, fragment: String) -> void:
+func _lesson(hour: int) -> void:
 	await fresh(hour, true)
-	var label := "(%dh, %s) " % [hour, branch]
+	var label := "(%dh) " % hour
 	check(guide() != null and str(guide().get("kind")) == "food" and int(guide().get("beat")) == 1, label + "a aula começa no toque 1")
-	check(state.food_lesson_running() and shown("MealClock"), label + "o reloginho aparece na aula, pulsando no toque 1")
+	check(state.food_lesson_running() and shown("MealDay"), label + "o potinho aparece na aula")
 	check(guide().visible and node("TutorialVeil").visible, label + "véu e mão na tela")
-	check(guide_text().contains("reloginho"), label + "fala 1: " + guide_text())
-	check(state.food_lesson_data().get("branch", "") == branch, label + "a faixa da hora fica salva")
+	check(guide_text() == "Arraste a papinha até ele.", label + "fala 1: " + guide_text())
 	check(not state.food_lesson_done() and state.progress.stat("feed") == 0, label + "nada de patinha antes de dar a papinha")
-	# Toque 2: a folha Hoje abre com os dois espaços.
-	(node("LessonNext") as Button).pressed.emit()
-	await wait(0.6)
-	check(int(guide().get("beat")) == 2 and shown("TodayPanel") and shown("TodayCard"), label + "toque 2: a folha Hoje abre")
-	check(shown("Period_lunch") and shown("Period_dinner"), label + "os dois espaços do dia")
-	check(guide_text().contains(fragment), label + "fala 2 pela hora: " + guide_text())
-	check(shown("PawCardBox") and shown("PawSlot_0"), label + "a cartela de patinhas na folha Hoje")
-	# Toque 3: arrastar a papinha (a aula abre o cardápio).
-	(node("LessonNext") as Button).pressed.emit()
+	check(state.dog.get_need("hunger", state.now()) <= 25.0, label + "o Tiro começa com fome (Barriga %d)" % int(state.dog.get_need("hunger", state.now())))
+	var expected_half: String = "sun" if hour >= 6 and hour < 16 else "moon"
+	check(str(state.meal_period_now()) == expected_half, label + "a metade é " + expected_half)
+	var screen := Rect2(Vector2.ZERO, root.get_visible_rect().size)
+	var hud_bottom: float = 128.0
+	check(guide().get("_target").position.y >= 0.0 and (guide().get("_target") as Rect2).has_area(), label + "a mão tem alvo")
+	# Toque 1: arrastar a papinha (a aula abre o cardápio). Só se arrasta.
 	await wait(0.8)
-	check(int(guide().get("beat")) == 3 and shown("Care_puppy_mash"), label + "toque 3: a papinha no cardápio")
-	check(guide_text().contains("Arraste"), label + "fala 3: " + guide_text())
-	check(not (node("LessonNext") as Button).visible, label + "no toque 3 só se arrasta")
+	check(shown("Care_puppy_mash"), label + "toque 1: a papinha no cardápio")
+	var balloon := guide().get("_balloon") as Control
+	check(balloon != null and screen.encloses(balloon.get_global_rect()) and balloon.get_global_rect().position.y >= hud_bottom - 60.0, label + "o balão está na tela, longe das abas " + str(balloon.get_global_rect()))
+	check(not balloon.get_global_rect().intersects(node("FoodMenu").get_global_rect()), label + "o balão não cobre a janela de comida " + str(balloon.get_global_rect()) + str(node("FoodMenu").get_global_rect()))
+	check(not (node("LessonNext") as Button).visible, label + "no toque 1 só se arrasta")
 	var hand := node("TutorialHand")
 	check(hand != null and hand.visible, label + "a mao do arrasto aparece (visivel=%s pos=%s)" % [hand.visible if hand else false, hand.global_position if hand else Vector2.ZERO])
 	check(not state.meal_info().paw, label + "ainda sem patinha")
 	check(state.feed("puppy_mash"), label + "dar a papinha")
 	await wait(0.4)
-	check(int(guide().get("beat")) == 4, label + "toque 4 depois de comer")
+	# Toque 2: o disco da metade ganha ✓ e a patinha (garantida) voa ao avatar.
+	check(int(guide().get("beat")) == 2, label + "toque 2 depois de comer")
 	check(bool(state.meal_info().paw) and state.progress.stat("well_fed_day") == 1, label + "a primeira patinha é garantida a qualquer hora")
-	check(guide_text().contains("patinha"), label + "fala 4: " + guide_text())
-	if branch == "day":
-		check(guide_text().contains("O próximo é o"), label + "a fala diz qual é a próxima refeição: " + guide_text())
-	if branch == "night":
-		check(guide_text().contains("dormir"), label + "à noite a fala manda dormir: " + guide_text())
-	# Toque 5: painel Crescer na linha das patinhas.
+	check(guide_text() == "Dia + noite = 1 patinha. Essa é presente!", label + "fala 2: " + guide_text())
+	var period := str(state.meal_period_now())
+	check(str(node("MealDay").find_child("Disc_" + period, true, false).get_meta("state")) == "done", label + "o disco da metade (%s) tem o ✓" % period)
+	check((guide().get("_target") as Rect2).intersects(node("MealDay").get_global_rect()), label + "a mão aponta o potinho no toque 2")
+	check(shown("LessonPaw") or Motion.reduced, label + "a patinha voa ao avatar")
+	check(main.find_child("DayComplete", true, false) == null, label + "a aula mostra a própria patinha, sem o cartão Dia completo!")
+	# Toque 3: painel Crescer na linha das patinhas.
 	(node("LessonNext") as Button).pressed.emit()
 	await wait(0.7)
-	check(int(guide().get("beat")) == 5 and shown("GrowthPanel"), label + "toque 5: o painel Crescer abre")
+	check(int(guide().get("beat")) == 3 and shown("GrowthPanel"), label + "toque 3: o painel Crescer abre")
 	check(shown("GrowthReq_days") and str(node("GrowthPanel").get_meta("selected", "")) == "days", label + "na linha das patinhas")
 	check(shown("PawCard") and node("PawSlot_0").get_meta("state") == "paw", label + "a cartela mostra o primeiro carimbo")
-	check(shown("PawDone") and str(node("PawDone").get("text")) == "Dia da chegada!", label + "o primeiro carimbo é o Dia da chegada")
+	check(shown("PawDone") and str(node("PawDone").get("text")) in ["Dia da chegada!", "Dia completo!"], label + "o primeiro carimbo é o Dia da chegada")
 	check(any_shown("GrowthHelp"), label + "o ? da linha das patinhas")
-	check(guide_text().contains("Seis patinhas"), label + "fala 5: " + guide_text())
+	check(guide_text() == "6 patinhas = Dentinhos.", label + "fala 3: " + guide_text())
 	(node("LessonNext") as Button).pressed.emit()
 	await wait(0.4)
 	check(state.food_lesson_done() and state.week.food_lesson and str(guide().get("kind")) == "", label + "a aula termina")
-	check(shown("MealClock"), label + "depois da aula o reloginho fica")
-	if branch == "night":
-		await wait(2.8)
-		check(state.dog.sleeping, label + "à noite ele boceja e vai dormir")
-	else:
-		check(not state.dog.sleeping, label + "de dia ele continua acordado")
+	check(shown("MealDay"), label + "depois da aula o potinho fica")
+	await wait(2.8)
+	check(not state.dog.sleeping, label + "a aula não manda mais dormir, a qualquer hora")
+
+
+# --- Lições novas: potinho, tigela e sobremesa (cada uma dispara uma vez) ------------------------------
+
+func _new_lessons() -> void:
+	await fresh(12, true)
+	for lesson: Dictionary in db.week_tutorials:
+		if str(lesson.id) not in ["meal_day", "bowl"]:
+			state.week.tutorial[str(lesson.id)] = {"done": true}  # só as lições novas estão em jogo
+	state.finish_food_lesson()
+	state.progress.claimed_quests["first_meal"] = true  # as duas lições ficam presas ao passo da aula (`after_quest`)
+	state.inventory.add("puppy_mash", 4)
+	await wait(1.6)
+	var week_tutorial := main.find_child("WeekTutorial", true, false)
+	check(week_tutorial != null and str(week_tutorial.get("active")) == "meal_day" and week_tutorial.visible, "depois da aula o potinho ganha a lição meal_day (%s)" % [str(week_tutorial.get("active")) if week_tutorial else "-"])
+	check(str(week_tutorial.get("_label").text if week_tutorial.get("_label") else "").contains("Sol e lua"), "fala do potinho")
+	(node("MealDay") as Button).pressed.emit()
+	await wait(0.8)
+	check(shown("TodayPanel") and state.week.tutorial.get("meal_day", {}).get("done", false), "tocar no potinho abre Hoje e conclui a lição")
+	root.get_node("Events").sheet_close_requested.emit()
+	await wait(1.6)
+	check(not (week_tutorial.visible and str(week_tutorial.get("active")) == "meal_day"), "a lição do potinho não volta")
+	# Primeira sobremesa: a metade já tem ✓.
+	var toasts: Array[String] = []
+	var catcher := func(text: String) -> void: toasts.append(text)
+	root.get_node("Events").tiro_said.connect(catcher)
+	state.feed("puppy_mash")
+	state.feed("puppy_mash")
+	check(toasts.any(func(x: String) -> bool: return x.begins_with("Sobremesa!")), "a sobremesa avisa que não vale patinha (%s)" % [toasts])
+	root.get_node("Events").tiro_said.disconnect(catcher)
+	# Tigela: a mão vai no botão verde da pergunta, uma vez só.
+	var tray: Node = null
+	for found in main.find_children("*", "Control", true, false):
+		if found.has_method("open_food_menu"):
+			tray = found
+			break
+	dismiss_cards()
+	main.set("_modal_queue", [] as Array[Callable])
+	tray.call("_act", "puppy_mash")
+	await wait(1.4)
+	check(shown("StoreMeal") and str(week_tutorial.get("active")) == "bowl", "a lição da tigela aponta o Guardar (%s)" % str(week_tutorial.get("active")))
+	check((week_tutorial.get("_anchor_rect") as Rect2).intersects(node("StoreMeal").get_global_rect()), "a mão está no botão verde")
+	(node("StoreMeal") as Button).pressed.emit()
+	await wait(0.8)
+	check(state.week.tutorial.get("bowl", {}).get("done", false) and state.progress.stat("meal_stored") == 1, "guardar conclui a lição da tigela")
+	state.cancel_stored_meal("")
+	tray.call("_act", "puppy_mash")
+	await wait(1.4)
+	check(not (week_tutorial.visible and str(week_tutorial.get("active")) == "bowl"), "a lição da tigela não volta")
+	root.get_node("Events").sheet_close_requested.emit()
+	await wait(0.4)
 
 
 # --- Lição do painel de crescimento -------------------------------------------------------------
@@ -283,7 +333,7 @@ func _growth_lesson() -> void:
 	load("res://scripts/ui/growth_ui.gd").call("open")
 	await wait(0.7)
 	check(str(guide().get("kind")) == "growth" and int(guide().get("beat")) == 1, "abrir o painel começa a lição")
-	check(guide_text().contains("precisa cumprir os passos"), "fala 1: " + guide_text())
+	check(guide_text().contains("Cada quadradinho"), "fala 1: " + guide_text())
 	check(guide().visible and node("GrowthSteps") != null, "a mão aponta a grade de passos")
 	(node("LessonNext") as Button).pressed.emit()
 	await wait(0.2)
@@ -332,78 +382,56 @@ func _evening_and_morning() -> void:
 	state.progress.claimed_quests["lais_bed"] = true  # fim da casa (Ato 1)
 	state.grant_lesson_paw("puppy_mash")
 	state.inventory.add("puppy_mash", 2)
-	check(not state.week_meal_reminder_offered(), "o aviso de hora de comer ainda não foi oferecido")
 	at(1, 23)
 	var night: Array = state.week_card_candidates().filter(func(c: Dictionary) -> bool: return c.kind == "night")
-	check(night.size() == 1, "Boa noite do dia 1 disponível depois do jantar")
+	check(night.size() == 1, "Boa noite do dia 1 disponível à noite")
 	var report: Dictionary = state.take_week_card(night[0])
-	check(report.arrival and report.first_night and report.deal.when == "amanhã" and int(report.deal.hour) == 11, "combinado: começa amanhã, no almoço das 11h")
-	check(report.reminder_offer and not report.store_offer, "oferece o aviso; a tigela fica para depois do dia 1")
-	check(state.week_meal_reminder_offered() and not state.week_meal_reminder_enabled(), "oferta feita: aviso desligado até aceitar")
+	check(report.arrival and report.first_night and report.deal.when == "amanhã" and int(report.deal.hour) == 6, "combinado: começa amanhã, de dia (6h)")
+	check(not report.has("reminder_offer"), "sem oferta de aviso")
 	var report_again: Dictionary = state.take_week_card({"kind": "night", "day": 1, "civil": int(night[0].civil)})
 	check(report_again.is_empty(), "o cartão não repete")
 	main.get("_celebration").call("show_week_card", report)
 	await wait(0.4)
-	check(shown("DealNeed") and str(node("DealNeed").get("text")).begins_with("Amanhã começa o combinado: almoço e jantar na hora valem uma patinha"), "Boa noite: o que vale a patinha amanhã")
-	check(not shown("DealStart"), "Boa noite: uma frase só para o combinado")
-	check(str(node("DealHours").get("text")).contains("Almoço 11h–15h"), "Boa noite: os dois horários (%s)" % node("DealHours").get("text"))
-	check(shown("DealOptions") and shown("NotebookTab_early") and shown("NotebookTab_late"), "Boa noite: Mais cedo · Normal · Mais tarde")
-	check(shown("MealReminderOffer") and not shown("StoreOffer") and shown("WeekNightPaw"), "Boa noite do dia 1: aviso e patinha, sem a tigela")
-	(node("NotebookTab_early") as Button).pressed.emit()
-	await frames(2)
-	check(str(state.week.option) == "early" and str(node("DealHours").get("text")).contains("Almoço 10h–14h"), "Mais cedo muda os horários na hora (%s)" % node("DealHours").get("text"))
-	var early_box := (node("NotebookTab_early") as Button).get_theme_stylebox("normal") as StyleBoxFlat
-	var normal_box := (node("NotebookTab_normal") as Button).get_theme_stylebox("normal") as StyleBoxFlat
-	check(early_box.bg_color != normal_box.bg_color and early_box.bg_color.v > normal_box.bg_color.v, "Mais cedo fica aceso no seletor")
-	(node("NotebookTab_normal") as Button).pressed.emit()
-	await frames(2)
-	check(str(state.week.option) == "normal", "Normal volta o horário")
-	check(shown("ReminderYes") and shown("ReminderNo") and (node("ReminderYes") as Control).size.y >= 44.0, "Boa noite: Sim e Agora não (alvo 44)")
-	(node("ReminderYes") as Button).pressed.emit()
-	await frames(2)
-	check(state.week_meal_reminder_enabled() and shown("ReminderAnswer") and not shown("ReminderYes"), "Sim liga o aviso e troca os botões pela resposta")
-	state.set_week_meal_reminder(false)
-	state.set_week_meal_reminder(false)
+	check(shown("TomorrowEquation") and shown("WeekNightMeals") and not shown("DealNeed"), "Boa noite do dia 1: a conta de amanhã desenhada, sem frase")
+	check(not shown("DealOptions") and not shown("NotebookTab_early") and not shown("MealReminderOffer") and not shown("DealHours"), "Boa noite: sem opção de horário nem pergunta do aviso")
+	check(shown("WeekNightPaw") and shown("StoreOffer"), "Boa noite do dia 1: patinha e a dica de deixar a comida na tigela")
 	main.get("_celebration").hide()
 	await frames(2)
-	# Bom dia do dia 2 antes do almoço: combinado de verdade e a dica da tampinha.
+	# Bom dia do dia 2: o combinado de verdade e a dica da tampinha.
 	at(2, 9)
 	var morning: Array = state.week_card_candidates().filter(func(c: Dictionary) -> bool: return c.kind == "morning")
 	check(morning.size() == 1, "Bom dia do dia 2")
-	# Guardar a comida no almoço de hoje; ela é comida ao abrir a janela e deixa um recado.
 	var morning_report: Dictionary = state.take_week_card(morning[0])
-	check(morning_report.first_day and morning_report.before_lunch, "primeiro dia de verdade, antes do almoço")
+	check(morning_report.first_day and morning_report.before_lunch and not morning_report.has("offer") and not morning_report.has("still_weak"), "primeiro dia de verdade, de manhã")
 	main.get("_celebration").call("show_week_card", morning_report)
 	await wait(0.4)
 	var copy: Dictionary = db.week_routine.text
 	check(main.find_child("WeekMorning", true, false) != null, "cartão do Bom dia")
 	var has_first := false
 	for label: Node in main.find_children("*", "Label", true, false):
-		if str((label as Label).text) == str(copy.first_day):
+		if str((label as Label).text).begins_with("Hoje é o primeiro dia"):
 			has_first = true
-	check(has_first, "Bom dia: Hoje é o primeiro dia de verdade")
-	check(shown("StoreTip"), "Bom dia: a dica da tampinha leva a Deixar pronto")
+	check(not has_first and not shown("StoreTip"), "Bom dia direto: sem manchete, sem frase da regra, sem dica da tigela")
 	main.get("_celebration").hide()
 	await frames(2)
+	# De dia sem ✓ a comida vai para ele; com ✓ dá para deixar a da noite na tigela da folha Hoje.
+	check(state.store_meal_error("puppy_mash") == "Ele está com fome: dê agora", "com fome a tigela não aceita")
+	check(state.feed("puppy_mash"), "Dá a comidinha do dia")
 	load("res://scripts/ui/meal_ui.gd").call("open_today")
 	await wait(0.5)
 	check(shown("StoreNow_puppy_mash") and shown("PawCardBox"), "folha Hoje: botão direto para guardar a papinha")
 	var before: int = state.stored_meals().size()
 	(node("StoreNow_puppy_mash") as Button).pressed.emit()
 	await frames(3)
-	check(state.stored_meals().size() == before + 1 and state.stored_meals()[0].period == "lunch", "a papinha foi para o almoço de hoje")
+	check(state.stored_meals().size() == before + 1 and state.stored_meals()[0].period == "moon", "a papinha foi para a noite de hoje")
 	check(shown("StoredCard"), "a tigela mostra o que ficou guardado")
 	root.get_node("Events").sheet_close_requested.emit()
 	await frames(2)
-	at(2, 12)
-	check(state.served_notes().size() == 1 and state.meals_on_time(2) == 1, "o Tiro comeu sozinho na hora")
+	at(2, 16)
+	check(state.served_notes().size() == 1 and state.meals_on_time(2) == 2, "o Tiro comeu sozinho às 16h")
 	var served: Dictionary = state.served_notes()[0]
-	check(served.period == "lunch" and int(served.hour) == 11, "recado: comeu às 11h e poucos")
+	check(served.period == "moon" and int(served.hour) == 16 and int(served.minute) == 0, "recado: comeu às 16h")
 	state.progress.claimed_quests["lais_bed"] = true  # fim da casa (Ato 1)
-	var lines := PackedStringArray()
-	for note: Dictionary in state.served_notes():
-		lines.append(str(copy.served) % ["almoço", int(note.hour), int(note.minute)])
-	check(lines.size() == 1 and lines[0].begins_with("Ele comeu o almoço às 11h"), "texto do recado: " + lines[0])
 	state.mark_served_notes_seen()
 	check(state.served_notes().is_empty(), "o recado é mostrado uma vez")
 	db.week_story.food_lesson["quest"] = quest_id
@@ -418,25 +446,25 @@ func _hunger_snack_review() -> void:
 	at(2, 9)
 	main.call("show_screen", &"pet")
 	await wait(0.5)
-	check(not shown("HungerBowl"), "fora da janela ele fica satisfeito: sem tigela brilhando")
+	check(shown("HungerBowl"), "de dia sem ✓ a tigela brilha")
 	at(2, 12)
 	await wait(0.5)
-	check(shown("HungerBowl"), "com a janela aberta e o período sem ✓, a tigela brilha")
-	check(str(root.get_node("Database").call("item_name", "puppy_mash")) != "" and shown("MealBubble"), "o balão Hora do almoço continua")
+	check(shown("HungerBowl"), "com a metade aberta e sem ✓, a tigela brilha")
+	check(str(root.get_node("Database").call("item_name", "puppy_mash")) != "" and shown("MealBubble"), "o balão Hora da comidinha continua")
 	state.inventory.add("puppy_mash", 1)
-	check(state.feed("puppy_mash"), "almoço na hora")
+	check(state.feed("puppy_mash"), "comidinha do dia")
 	await wait(0.5)
 	check(not shown("HungerBowl"), "período feito: a tigela para de brilhar")
 	var meal_ui: Script = load("res://scripts/ui/meal_ui.gd")
-	check(str(meal_ui.call("fed_text")) == "Já almocei!", "tocar nele diz Já almocei!")
+	check(str(meal_ui.call("fed_text")) == "Barriga cheia!", "tocar nele diz que a barriga está cheia")
 	at(2, 19)
 	state.inventory.add("puppy_mash", 1)
 	state.feed("puppy_mash")
-	check(str(meal_ui.call("fed_text")) == "Já jantei!", "no jantar: Já jantei!")
+	check(str(meal_ui.call("fed_text")) == "Barriga cheia!", "à noite: amanhã cedo tem mais")
 	# Lanche: balão curto na primeira vez, e só nela.
 	var toasts: Array[String] = []
 	var catcher := func(text: String) -> void: toasts.append(text)
-	root.get_node("Events").toast_requested.connect(catcher)
+	root.get_node("Events").tiro_said.connect(catcher)
 	var snack := ""
 	for id: String in ["oat_biscuit", "apple_biscuit", "carrot_snack"]:
 		if db.items.has(id) and db.items[id].has("feed"):
@@ -445,23 +473,23 @@ func _hunger_snack_review() -> void:
 	check(snack != "", "há um lanche no jogo para provar")
 	state.inventory.add(snack, 2)
 	check(state.feed(snack), "dar o primeiro petisco")
-	check(toasts.any(func(t: String) -> bool: return t.begins_with("Petisco é lanche")), "balão: lanche não é refeição (%s)" % [toasts])
+	check(toasts.any(func(t: String) -> bool: return t.begins_with("Petisco não é refeição")), "balão: lanche não é refeição (%s)" % [toasts])
 	toasts.clear()
 	check(state.feed(snack), "dar o segundo petisco")
-	check(not toasts.any(func(t: String) -> bool: return t.begins_with("Petisco é lanche")), "só na primeira vez")
-	root.get_node("Events").toast_requested.disconnect(catcher)
+	check(not toasts.any(func(t: String) -> bool: return t.begins_with("Petisco não é refeição")), "só na primeira vez")
+	root.get_node("Events").tiro_said.disconnect(catcher)
 	# "?" da folha Hoje e da linha das patinhas, e a página do Manual.
 	load("res://scripts/ui/meal_ui.gd").call("open_today")
 	await wait(0.5)
 	check(shown("MealHelp"), "a folha Hoje tem o ?")
 	(node("MealHelp") as Button).pressed.emit()
 	await wait(0.5)
-	check(shown("MealReview") and shown("Window_lunch") and shown("Window_dinner") and shown("MealFlow"), "o ? abre a aula em uma tela: dia de 24 h, ✓ ✓ → patinha → crescer")
+	check(shown("MealReview") and shown("Window_sun") and shown("Window_moon") and shown("Rule_paw") and shown("Rule_grow"), "o ? abre a aula em uma tela: dia de 24 h, ✓ ✓ → patinha → crescer")
 	root.get_node("Events").sheet_close_requested.emit()
 	await frames(2)
 	load("res://scripts/ui/growth_ui.gd").call("open", "days")
 	await wait(0.6)
-	check(shown("PawCard") and shown("PawNext") and any_shown("GrowthHelp"), "linha das patinhas: cartela, próximo almoço e o ?")
+	check(shown("PawCard") and shown("PawNext") and any_shown("GrowthHelp"), "linha das patinhas: cartela, próxima refeição e o ?")
 	check(shown("PawSlot_5"), "seis espaços na cartela")
 	root.get_node("Events").sheet_close_requested.emit()
 	await frames(2)
@@ -471,6 +499,6 @@ func _hunger_snack_review() -> void:
 	manual.queue_free()
 	var lessons: Array = db.week_tutorials
 	var ids: Array = lessons.map(func(row: Dictionary) -> String: return str(row.id))
-	check(ids.count("food") == 1 and bool(lessons[ids.find("clock")].get("native", false)) and bool(lessons[ids.find("snack")].get("native", false)),
-		"lições antigas do relógio e do lanche presas à aula")
+	check(ids.count("food") == 1 and not ids.has("clock") and not ids.has("weak") and bool(lessons[ids.find("food")].get("native", false)),
+		"lições do relógio e do dia fraco saíram; a da comida segue nativa (dada pela aula)")
 	db.week_story.food_lesson["quest"] = quest_id

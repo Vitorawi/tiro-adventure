@@ -146,6 +146,9 @@ func _run() -> void:
 	check(state.get("dog").call("get_need", "hunger", state.call("now")) > hunger, "toque aumenta barriga")
 	var head: Rect2 = pet.call("head_rect")
 	before = bag.call("count", "dog_food")
+	# A metade do dia já tem ✓ da comida de cima: com ✓ a comida pergunta (guardar ou dar assim mesmo). Aqui prova o arrasto, então apaga o ✓.
+	state.get("week").days.erase(str(state.call("_routine_day_number")))
+	state.call("_sync_belly")
 	tray.call("open_food_menu")
 	drag_food(head.get_center() + Vector2(0, 40))
 	check(bag.call("count", "dog_food") == before - 1 and progress.stat("feed") == 2, "soltar na cabeça alimenta uma vez")
@@ -310,7 +313,16 @@ func _run() -> void:
 	check(list.custom_minimum_size.y >= 56 and list.custom_minimum_size.y <= 120, "lista mostra ao menos uma linha de quadradinhos e encolhe antes de cobrir a cabeça")
 	check(not pet.find_child("FoodMenu", true, false).get_global_rect().intersects(pet.call("head_rect")), "lista longa também preserva a cabeça")
 	var grid := list.get_child(0) as GridContainer
-	check(grid != null and grid.columns == 3 and grid.get_child_count() == foods.size(), "comidas em grade de quadradinhos, todas presentes")
+	var tiles: Array = grid.get_children().filter(func(child: Node) -> bool: return str(child.name).begins_with("Care_"))
+	check(grid != null and grid.columns == 3 and tiles.size() == foods.size(), "comidas em grade de quadradinhos, todas presentes")
+	var seen_snack := false
+	var meals_first := true
+	for tile: Node in tiles:
+		var is_meal: bool = state.call("is_meal_item", str(tile.name).trim_prefix("Care_"))
+		if not is_meal: seen_snack = true
+		elif seen_snack: meals_first = false
+	check(meals_first and seen_snack, "refeições primeiro e petiscos depois")
+	check(grid.find_child("SnackHeart", true, false) != null, "divisória com coração entre os grupos")
 	var row: Control = tray.call("item_node", str(foods[0]))
 	check(row.size.is_equal_approx(Vector2(56, 56)) and not (row.find_child("Caption", true, false) as Control).visible, "quadradinho 56 só com ícone e quantidade")
 	for section: String in ["growth", "collection", "tricks"]:

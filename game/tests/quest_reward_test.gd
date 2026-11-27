@@ -1,5 +1,6 @@
 extends SceneTree
-## Entrega única, voo, folha, destinos, capítulo e falha por depósito cheio.
+## Entrega única, voo, aviso "Passo concluído ✓" (sem folha), novidades numa folha só, capítulo e falha por depósito cheio.
+## A classe `QuestReward` segue existindo e é testada abrindo-a direto; o fluxo da casca não a abre mais.
 var failures := 0
 var state: Node
 var main: Control
@@ -23,6 +24,18 @@ func flush() -> void:
 	await frames()
 	main.call("_flush_modals")
 	await frames()
+## O aviso (na tela ou na fila da central) com esse texto.
+func has_notice(text: String) -> bool:
+	var notice: Object = main.get("_notice")
+	var current: Dictionary = notice.get("_current")
+	if str(current.get("text", "")) == text: return true
+	for waiting: Dictionary in notice.get("_queue"):
+		if str(waiting.get("text", "")) == text: return true
+	return false
+func clear_notices() -> void:
+	var notice: Object = main.get("_notice")
+	notice.call("finish_current")
+	while int(notice.call("queued")) > 0: notice.call("finish_current")
 func has_text(node: Node, value: String) -> bool:
 	for label: Label in node.find_children("*", "Label", true, false):
 		if label.text == value: return true
@@ -73,25 +86,26 @@ func _welcome() -> void:
 	var mash: int = state.get("inventory").count("puppy_mash")
 	var button: Button = pill.find_child("StepClaim", true, false)
 	check(button != null and button.is_visible_in_tree(), "pílula pronta tem Pegar")
+	clear_notices()
 	if button: button.pressed.emit()
 	await flush()
 	var reward: CanvasLayer = main.get("_quest_reward")
-	check(reward.visible, "folha aparece")
-	check(main.find_children("QuestReward", "CanvasLayer", true, false).size() == 1, "uma única folha")
-	check(reward.find_child("RewardChip_coins", true, false) == null, "o Ato 1 não paga moeda")
-	check(has_text(reward.find_child("RewardChip_puppy_mash", true, false), "+1"), "chip +1 papinha pronta")
+	check(not reward.visible and not main.get("_celebration").visible, "sem folha: o passo concluído vira só aviso")
+	check(main.find_child("DoneMark", true, false) != null and not has_notice("Passo concluído ✓"), "✓ verde na pílula do passo, sem aviso de texto")
 	check(state.get("coins") == coins and state.get("inventory").count("puppy_mash") == mash + 1, "ganhos exatos uma vez")
 	check(gains.size() == 1 and gains[0].coins == 0 and gains[0].items.get("puppy_mash", 0) == 1 and rect.has_point(gains[0].origin), "um voo com prêmios e origem na pílula")
-	check(reward.find_child("NextStepCard", true, false).get_meta("quest") == "lais_feed", "próximo passo é a comida")
+	check(main.get("_current_screen") == &"pet" and destinations.is_empty(), "continua nos cuidados do Tiro")
+	# A classe da folha continua utilizável (aberta direto): chips, próximo passo, Ir e Depois.
+	reward.call("open", "welcome")
+	check(reward.visible and has_text(reward.find_child("RewardChip_puppy_mash", true, false), "+1"), "folha aberta direto mostra o chip +1")
+	check(reward.find_child("NextStepCard", true, false).get_meta("quest") == "lais_feed", "open(id) resolve o próximo passo atual")
 	var screens: Array[StringName] = []
 	events.screen_requested.connect(func(screen: StringName) -> void: screens.append(screen))
 	reward.find_child("RewardGo", true, false).pressed.emit()
 	await frames()
 	check(&"pet" in screens and destinations.is_empty(), "Ir leva aos cuidados do Tiro, sem sair de casa")
 	check(not reward.visible, "Ir fecha a folha")
-	# Reabre apenas a apresentação para testar Depois sem entregar de novo.
 	reward.call("open", "welcome")
-	check(reward.find_child("NextStepCard", true, false).get_meta("quest") == "lais_feed", "open(id) resolve o próximo passo atual")
 	reward.find_child("RewardLater", true, false).pressed.emit()
 	check(not reward.visible and state.get("coins") == coins and state.get("progress").current_main_quest() == "lais_feed", "Depois mantém o prêmio e o próximo passo")
 	check(ui.call("claim_quest_fx", "welcome", Vector2.ZERO) != "", "segunda entrega recusada")
@@ -119,26 +133,25 @@ func _early_unlocks() -> void:
 	check(ui.call("claim_quest_fx", "lais_bed", Vector2.ZERO) == "", "entrega a caminha no começo real")
 	await frames()
 	main.call("_flush_modals")
-	check(not main.get("_quest_reward").visible, "prêmio espera o voo e a saída da folha anterior")
 	check(main.find_child("PopoverCatcher", true, false) == null, "cartão de origem é removido")
 	await create_timer(0.8).timeout
 	await flush()
 	var reward: CanvasLayer = main.get("_quest_reward")
-	check(reward.visible and not main.get("_celebration").visible, "uma única folha para passo e Sítio novo")
+	var celebration: CanvasLayer = main.get("_celebration")
+	check(not reward.visible, "o passo da caminha não abre a folha de prêmio")
+	check(celebration.visible and celebration.find_child("UnlockGo", true, false) != null, "o Sítio novo sai numa folha Novo! com o botão de ir")
 	check(not (main.get_node("Sheet") as Control).visible, "folha de origem terminou de sair")
-	check(reward.find_child("RewardUnlocks", true, false) != null, "novidade está no prêmio")
-	check(reward.find_child("NextStepCard", true, false).get_meta("quest") == "lais_farm", "único próximo passo é ir ao Sítio")
-	check(main.get("_modal_queue").is_empty(), "nenhum Novo! ficou esperando para interromper o destino")
+	check(main.get("_modal_queue").is_empty(), "nenhum outro Novo! ficou esperando")
 	if "--early-shot" in OS.get_cmdline_user_args():
 		await create_timer(0.5).timeout
 		await RenderingServer.frame_post_draw
 		var folder := ProjectSettings.globalize_path("res://../build/screenshots/quest_flow/")
 		DirAccess.make_dir_recursive_absolute(folder)
 		root.get_texture().get_image().save_png(folder + "reward_%d.png" % int(root.size.x))
-	reward.find_child("RewardGo", true, false).pressed.emit()
+	celebration.find_child("UnlockGo", true, false).pressed.emit()
 	await create_timer(0.3).timeout
 	await flush()
-	check(not reward.visible and not main.get("_celebration").visible, "Ir não dispara segunda janela")
+	check(not celebration.visible and not reward.visible, "Ir não dispara segunda janela")
 	check(main.get("_current_screen") == &"map", "Ir chega ao mapa do Sítio")
 	Motion.reduced = true
 	clear_modals()
@@ -168,6 +181,13 @@ func _chapter() -> void:
 	clear_modals()
 	check(state.get("progress").current_main_quest() == "growth_1_puppy", "o Filhotinho encerra o primeiro capítulo")
 	check(ui.call("claim_quest_fx", "growth_1_puppy", Vector2(100, 200)) == "", "entrega último passo")
+	await flush()
+	# O último passo do capítulo 1 é crescer: sem cerimônia pendente aqui, o cartão de capítulo também não abre
+	# (o fim do capítulo junto do crescer fica só com a cerimônia) e a folha de prêmio nunca abre.
+	check(not main.get("_quest_reward").visible and not has_text(main.get("_celebration"), "Capítulo concluído!"), "capítulo que termina em crescer não abre cartão")
+	clear_modals()
+	# Capítulo comum (sem passo de crescer): o cartão de fim de capítulo abre sozinho, sem folha de passo.
+	main.call("_on_chapter_completed", 2)
 	await flush()
 	check(main.get("_celebration").visible and not main.get("_quest_reward").visible, "só festa de capítulo")
 	check(not has_text(main.get("_celebration"), "A vovó volta"), "a festa não manda esperar o próximo dia")
@@ -230,7 +250,7 @@ func _other_claim_paths() -> void:
 			card.find_child("ClaimQuest_welcome", true, false).pressed.emit()
 			card.queue_free()
 		await flush()
-		check(gains.size() == before + 1 and main.get("_quest_reward").visible, path + " entrega com voo e folha")
+		check(gains.size() == before + 1 and not main.get("_quest_reward").visible and main.find_child("DoneMark", true, false) != null, path + " entrega com voo e ✓ na pílula, sem folha")
 		clear_modals()
 	# Pegar tudo de Pessoas não mistura missões ou diárias e sai do HUD ao trocar de tela.
 	state.call("dev_unlock_everything")

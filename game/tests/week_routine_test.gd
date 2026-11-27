@@ -24,7 +24,7 @@ func wait_for(id: String, required: bool = true) -> Node:
 		var child := main.find_child(id, true, false) as CanvasItem
 		if is_instance_valid(child) and child.is_visible_in_tree():
 			return child
-		if id in ["WeekMorning", "WeekNight"] and card("UnlockGo") != null:
+		if id in ["WeekMorning", "WeekNight"] and (card("UnlockGo") != null or card("UnlockClose") != null):
 			dismiss()
 		await create_timer(0.06).timeout
 	if required:
@@ -146,7 +146,7 @@ func run() -> void:
 		DirAccess.make_dir_recursive_absolute(output)
 	var db := root.get_node("Database")
 	route = load("res://tests/helpers/week_story_route.gd").new(state, db, check)
-	check(not state.week_meal_reminder_enabled() and state.week_card_candidates().is_empty(), "Aviso desligado e chegada vem primeiro")
+	check(state.week_card_candidates().is_empty(), "A chegada vem primeiro")
 	route.day_one(false)
 	check(state.economy.granted.has("week_line:paw") and not state.economy.granted.has("week_line:invention"),
 		"Servir conta nas linhas; Inventar espera o capítulo 8")
@@ -156,7 +156,6 @@ func run() -> void:
 	state.pet()
 	route.at(1, 19)
 	state.pet()
-	check(state.album.has_photo("h_routine_belly"), "Carinho em três períodos rende foto")
 	state.update_week()
 	var day_one: Array = state.week_daily_rows()
 	check(day_one.size() == 3 and day_one[2].id in ["play", "harvest"], "Diária sorteada entre atividades já abertas")
@@ -182,11 +181,11 @@ func run() -> void:
 	check(state.progress.seen.has("week_morning:2"), "Presente aparece no Bom dia do dia 2")
 	await snap("01_bom_dia")
 	dismiss()
-	check(await wait_for("WeekNight") != null, "Boa noite após Bom dia")
-	check(main.find_child("WeekTomorrowShadow", true, false) != null and main.find_child("WeekNightPaw", true, false) != null,
-		"Boa noite mostra patinha e silhueta")
-	await snap("03_boa_noite")
-	dismiss()
+	# Menos telas: fora do dia da chegada o Boa noite não abre cartão; a noite é registrada em silêncio.
+	await create_timer(0.8).timeout
+	check(card("WeekNight") == null, "Boa noite do dia 2 não abre cartão")
+	var civil_day: int = state.week_day_number()
+	check(bool(state.week.routine.get("days", {}).get(str(civil_day), {}).get("night", false)), "a noite foi registrada em silêncio")
 	await check_board()
 	var balance: int = state.coins
 	await reopen()
@@ -199,29 +198,19 @@ func run() -> void:
 	route.at(4, 9)
 	await reopen()
 	check(await wait_for("WeekMorning") != null, "Retorno após faltar abre o Bom dia atual")
-	check(state.tiro_weak() and state.progress.chapter_index() == 6 and state.quest_unlocked("week_bridge"),
-		"Dia fraco preserva o capítulo atrasado")
-	check(state.week_meal_reminder_offered() and not state.week_meal_reminder_enabled(), "Primeiro dia fraco oferece opção desligada")
+	check(state.progress.chapter_index() == 6 and state.quest_unlocked("week_bridge"), "Faltar dias preserva o capítulo atrasado")
+	check(card("WeekMorning").find_child("WeekCardDay", true, false) != null and state.week.day_record(3).get("missed", false), "Ontem sem patinha: só um carinho, sem castigo")
 	await snap("02_bom_dia_fraco")
 	dismiss()
 	var stored := "week_lunchbox"
-	route.ok(state.store_meal(stored), "Deixar a marmita pronta")
-	state.set_week_meal_reminder(true)
+	check(state.feed(stored), "A marmita da vovó vira a comidinha do dia")
+	check(state.meals_on_time(4) == 1, "A marmita conta como ✓ de dia")
 	main.queue_free()
 	await process_frame
-	route.at(4, 11)
-	await reopen()
-	check(state.meals_on_time(4) == 1 and not state.tiro_weak(), "Marmita conta na hora e recupera o Tiro na reabertura")
-	check(state.take_week_meal_reminder() == "", "Refeição guardada já servida dispensa aviso")
-	main.queue_free()
-	await process_frame
-	route.at(4, 19)
-	state.update_week()
-	check(state.take_week_meal_reminder() == "dinner" and state.take_week_meal_reminder() == "", "Aviso no máximo uma vez na janela")
 	route.at(5, 9)
 	state.update_week()
 	var morning: Dictionary = state.take_week_card(state.week_card_candidates()[0])
-	check(morning.weak and not morning.offer and state.week_meal_reminder_enabled(), "Outro dia fraco conserva a opção sem repetir oferta")
+	check(morning.missed and not morning.has("offer") and not morning.has("still_weak"), "Outro dia sem patinha: o Bom dia só comenta com carinho")
 	route.restore(route.after_day_two)
 	route.lake(3)
 	route.day_four()

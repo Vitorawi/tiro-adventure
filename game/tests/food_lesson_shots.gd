@@ -4,7 +4,7 @@ extends SceneTree
 ##   godot --path game --resolution 360x780 -s res://tests/food_lesson_shots.gd
 ## PNGs em build/screenshots/food_lesson/. Imprime FAIL se o balão ou a folha passarem da tela, se o balão cobrir o alvo
 ## ou se um botão ficar abaixo de 44 px.
-const FOLDER := "res://../build/screenshots/food_lesson/"
+const FOLDER := "res://../build/screenshots/meal_dia_noite/"
 var state: Node
 var db: Node
 var main: Control
@@ -13,7 +13,7 @@ var failures := 0
 
 func _initialize() -> void:
 	_run.call_deferred()
-	create_timer(240).timeout.connect(func() -> void:
+	create_timer(560).timeout.connect(func() -> void:
 		print("tempo esgotado")
 		quit(1))
 
@@ -88,11 +88,10 @@ func _fresh(hour: int, with_meal: bool, phase: String = "puppy") -> void:
 	state.call("reset")
 	state.call("finish_week_arrival")
 	state.call("finish_home_tour")
-	state.week.arrival_extended = false
 	state.week.tutorial["arrival"] = {"done": true}
 	state.growth.phase = phase
 	db.week_story.food_lesson["quest"] = str(state.progress.current_main_quest())
-	_at(1, hour)
+	_at(1 if hour >= 6 else 2, hour)
 	if with_meal:
 		state.inventory.add("puppy_mash", 1)
 	main = (load("res://scenes/main/main.tscn") as PackedScene).instantiate()
@@ -120,79 +119,102 @@ func _run() -> void:
 	var events: Node = root.get_node("Events")
 	var original: String = str(db.week_story.food_lesson.quest)
 
-	# --- Aula da comida, ao meio-dia (dentro da janela) ---
-	await _fresh(12, true)
-	_lesson_ok("toque 1")
-	await _save("a_reloginho")
-	(node("LessonNext") as Button).pressed.emit()
-	await create_timer(0.9).timeout
-	_lesson_ok("toque 2")
-	_sheet_ok("toque 2")
-	await _save("b_hoje")
-	(node("LessonNext") as Button).pressed.emit()
-	await create_timer(1.0).timeout
-	_lesson_ok("toque 3")
-	await _save("c_arrastar")
-	state.feed("puppy_mash")
-	await create_timer(0.7).timeout
-	_lesson_ok("toque 4")
-	await _save("d_patinha")
-	(node("LessonNext") as Button).pressed.emit()
-	await create_timer(1.0).timeout
-	_lesson_ok("toque 5")
-	_sheet_ok("toque 5")
-	await _save("e_crescer_patinhas")
-	(node("LessonNext") as Button).pressed.emit()
-	await create_timer(0.6).timeout
-	events.sheet_close_requested.emit()
-	await create_timer(0.5).timeout
-	await _save("f_depois_da_aula")
+	# --- Aula da comida em 3 toques: de dia (10h), de noite (22h) e de madrugada (3h, ainda a lua) ---
+	for row: Array in [[10, "dia"], [22, "noite"], [3, "madrugada"]]:
+		var tag: String = row[1]
+		await _fresh(int(row[0]), true)
+		_lesson_ok(tag + " toque 1")
+		_check(state.dog.get_need("hunger", state.now()) <= 25.0, tag + ": o Tiro começa com fome")
+		await _save("tutorial_aula_%s_1_arrastar" % tag)
+		state.feed("puppy_mash")
+		await create_timer(0.9).timeout
+		_lesson_ok(tag + " toque 2")
+		await _save("tutorial_aula_%s_2_patinha" % tag)
+		(node("LessonNext") as Button).pressed.emit()
+		await create_timer(1.0).timeout
+		_lesson_ok(tag + " toque 3")
+		_sheet_ok(tag + " toque 3")
+		await _save("tutorial_aula_%s_3_crescer_patinhas" % tag)
+		(node("LessonNext") as Button).pressed.emit()
+		await create_timer(0.6).timeout
+		events.sheet_close_requested.emit()
+		await create_timer(0.5).timeout
 
-	# --- Faixas fora da janela: dia e noite (só as falas 2 e 4 mudam) ---
-	await _fresh(9, true)
-	(node("LessonNext") as Button).pressed.emit()
+	# --- Depois da aula: mão no potinho (meal_day), tigela (bowl), sobremesa e o Manual ---
+	await _fresh(12, true)
+	for lesson: Dictionary in db.week_tutorials:
+		if str(lesson.id) not in ["meal_day", "bowl"]:
+			state.week.tutorial[str(lesson.id)] = {"done": true}
+	state.finish_food_lesson()
+	state.progress.claimed_quests["first_meal"] = true  # as duas lições ficam presas ao passo da aula (`after_quest`)
+	state.inventory.add("puppy_mash", 4)
+	await create_timer(1.8).timeout
+	var hand := main.find_child("WeekTutorial", true, false)
+	_check(hand != null and hand.visible and str(hand.get("active")) == "meal_day", "lição do potinho visível")
+	await _save("tutorial_potinho_mao")
+	(node("MealDay") as Button).pressed.emit()
 	await create_timer(0.9).timeout
-	_lesson_ok("dia, toque 2")
-	await _save("g_dia_toque2")
-	(node("LessonNext") as Button).pressed.emit()
-	await create_timer(0.9).timeout
+	_sheet_ok("Hoje (lição)")
+	await _save("tutorial_potinho_hoje")
+	events.sheet_close_requested.emit()
+	await create_timer(0.4).timeout
 	state.feed("puppy_mash")
-	await create_timer(0.7).timeout
-	_lesson_ok("dia, toque 4")
-	await _save("h_dia_toque4")
-	await _fresh(23, true)
-	(node("LessonNext") as Button).pressed.emit()
-	await create_timer(0.9).timeout
-	(node("LessonNext") as Button).pressed.emit()
-	await create_timer(0.9).timeout
 	state.feed("puppy_mash")
-	await create_timer(0.7).timeout
-	_lesson_ok("noite, toque 4")
-	await _save("i_noite_toque4")
+	await create_timer(1.0).timeout
+	await _save("tutorial_sobremesa_aviso")
+	_hide_cards()
+	main.set("_modal_queue", [] as Array[Callable])
+	var tray: Node = null
+	for found in main.find_children("*", "Control", true, false):
+		if found.has_method("open_food_menu"):
+			tray = found
+			break
+	tray.call("_act", "puppy_mash")
+	await create_timer(1.6).timeout
+	_check(hand.visible and str(hand.get("active")) == "bowl", "lição da tigela visível")
+	await _save("tutorial_tigela_mao")
+	events.sheet_close_requested.emit()
+	await create_timer(0.4).timeout
+	load("res://scripts/ui/game_manual.gd").call("open", "tutorials")
+	await create_timer(0.9).timeout
+	await _save("tutorial_manual_lista")
+	var review := node("TutorialReview_food")
+	if review != null:
+		(review as Button).pressed.emit()
+		await create_timer(0.7).timeout
+		await _save("tutorial_manual_comida")
+	events.sheet_close_requested.emit()
 
 	# --- Lição do painel de crescimento ---
 	await _fresh(10, false, "newborn")
-	for id: String in ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed"]:
-		state.progress.claimed_quests[id] = true
 	db.week_story.food_lesson["quest"] = "lais_photo"
+	for id: String in ["welcome", "lais_feed", "lais_bath", "lais_play", "lais_bed", "lais_photo", "lais_farm", "lais_meet_bloblo", "lais_first_crops", "place_stove", "first_kitchen", "first_meal"]:
+		state.progress.claimed_quests[id] = true
+	for counter: String in ["feed", "bathe", "play", "together:puppy_mash"]:
+		state.progress.stats[counter] = 1
+	state.progress.owned["dog_bed"] = true
+	for seen: String in ["missions", "home_tour", "home_claim", "food"]:
+		state.week.tutorial[seen] = {"done": true}
+	state.mark_seen(state.new_unlocks())
 	load("res://scripts/ui/growth_ui.gd").call("open")
 	await create_timer(0.9).timeout
 	_lesson_ok("painel 1")
-	await _save("j_painel_1")
+	await _save("painel_1")
 	(node("LessonNext") as Button).pressed.emit()
 	await create_timer(0.4).timeout
 	_lesson_ok("painel 2")
-	await _save("k_painel_2")
+	await _save("painel_2")
 	(node("LessonNext") as Button).pressed.emit()
 	await create_timer(0.4).timeout
 	_lesson_ok("painel 3")
-	await _save("l_painel_3")
+	await _save("painel_3")
 
 	# --- Boa noite do dia 1 e Bom dia do dia 2 ---
 	await _fresh(15, true)
 	db.week_story.food_lesson["quest"] = "lais_photo"
 	state.week.food_lesson = true
 	state.progress.claimed_quests["lais_photo"] = true
+	state.progress.claimed_quests["lais_bed"] = true
 	state.grant_lesson_paw("puppy_mash")
 	state.inventory.add("puppy_mash", 2)
 	_hide_cards()
@@ -202,28 +224,44 @@ func _run() -> void:
 	main.get("_celebration").call("show_week_card", night)
 	await create_timer(0.7).timeout
 	_card_ok("Boa noite")
-	await _save("m_boa_noite_dia1")
+	await _save("boa_noite_dia1")
 	var scroll := node("WeekCardBody") as ScrollContainer
 	if scroll != null:
 		scroll.scroll_vertical = 9999
 		await create_timer(0.3).timeout
-		await _save("n_boa_noite_dia1_fim")
+		await _save("boa_noite_dia1_fim")
 	main.get("_celebration").hide()
 	_at(2, 9)
 	var morning: Dictionary = state.take_week_card(state.week_card_candidates().filter(func(c: Dictionary) -> bool: return c.kind == "morning")[0])
 	main.get("_celebration").call("show_week_card", morning)
 	await create_timer(0.7).timeout
 	_card_ok("Bom dia")
-	await _save("o_bom_dia_dia2")
+	await _save("bom_dia_dia2")
 	main.get("_celebration").hide()
 	state.week.stored.clear()
-	state.week.served.append({"period": "lunch", "item": "puppy_mash", "day": 1, "hour": 11, "minute": 12, "seen": false})
-	var morning2 := {"kind": "morning", "day": 2, "civil": 0, "news": db.week_routine.news[1], "weak": true, "still_weak": true, "yesterday": {}, "offer": false, "gift": false,
+	state.week.served.append({"period": "moon", "item": "puppy_mash", "day": 1, "hour": 16, "minute": 0, "seen": false})
+	var morning2 := {"kind": "morning", "day": 2, "civil": 0, "news": db.week_routine.news[1], "missed": true, "yesterday": {"sun": {"on_time": true, "item": "puppy_mash"}, "missed": true}, "gift": false,
 		"first_day": true, "before_lunch": false, "served": state.served_notes()}
 	main.get("_celebration").call("show_week_card", morning2)
 	await create_timer(0.7).timeout
 	_card_ok("Bom dia fraco")
-	await _save("p_bom_dia_fraco_recado")
+	await _save("bom_dia_sem_patinha_recado")
+	main.get("_celebration").hide()
+	var morning3 := {"kind": "morning", "day": 3, "civil": 0, "news": db.week_routine.news[2], "missed": false,
+		"yesterday": {"paw": true, "sun": {"on_time": true, "item": "puppy_mash"}, "moon": {"on_time": true, "item": "puppy_mash", "stored": true}}, "gift": false,
+		"first_day": false, "before_lunch": false, "served": state.served_notes()}
+	main.get("_celebration").call("show_week_card", morning3)
+	await create_timer(0.7).timeout
+	_card_ok("Bom dia com patinha")
+	await _save("bom_dia_com_patinha_recado")
+	main.get("_celebration").hide()
+	var night3 := {"kind": "night", "day": 3, "civil": 0, "news": db.week_routine.news[2], "next": db.week_routine.news[3], "arrival": false, "first_night": false,
+		"deal": {}, "store_offer": false, "paw_total": 2, "meals": {"paw": true, "sun": {"on_time": true}, "moon": {"on_time": true}},
+		"dish": "puppy_mash", "done": 3, "seal": true}
+	main.get("_celebration").call("show_week_card", night3)
+	await create_timer(0.7).timeout
+	_card_ok("Boa noite comum")
+	await _save("boa_noite_comum")
 	main.get("_celebration").hide()
 
 	# --- Folha Hoje, "?", cartela, fome ---
@@ -231,20 +269,20 @@ func _run() -> void:
 	load("res://scripts/ui/meal_ui.gd").call("open_today")
 	await create_timer(0.8).timeout
 	_sheet_ok("Hoje")
-	await _save("q_hoje_completo")
+	await _save("hoje_dia2")
 	(node("MealHelp") as Button).pressed.emit()
 	await create_timer(0.8).timeout
 	_sheet_ok("revisão")
-	await _save("r_revisao")
+	await _save("revisao")
 	events.sheet_close_requested.emit()
 	await create_timer(0.4).timeout
-	state.week.days["2"] = {"paw": true, "lunch": {"on_time": true, "item": "puppy_mash"}, "dinner": {"on_time": true, "item": "puppy_mash"}}
-	state.week.days["3"] = {"weak": true}
-	state.week.days["4"] = {"paw": true, "dinner": {"on_time": true, "item": "puppy_mash"}}
+	state.week.days["2"] = {"paw": true, "sun": {"on_time": true, "item": "puppy_mash"}, "moon": {"on_time": true, "item": "puppy_mash"}}
+	state.week.days["3"] = {"missed": true}
+	state.week.days["4"] = {"paw": true, "moon": {"on_time": true, "item": "puppy_mash"}}
 	load("res://scripts/ui/growth_ui.gd").call("open", "days")
 	await create_timer(0.8).timeout
 	_sheet_ok("linha das patinhas")
-	await _save("s_linha_das_patinhas")
+	await _save("linha_das_patinhas")
 	events.sheet_close_requested.emit()
 	await create_timer(0.4).timeout
 	state.week.days.erase("2")
@@ -253,7 +291,7 @@ func _run() -> void:
 	main.call("show_screen", &"pet")
 	_at(2, 12)
 	await create_timer(0.8).timeout
-	await _save("t_fome")
+	await _save("tiro_fome")
 	db.week_story.food_lesson["quest"] = original
 	print("FOOD LESSON SHOTS: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(0 if failures == 0 else 1)

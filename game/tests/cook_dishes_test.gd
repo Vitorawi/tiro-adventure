@@ -116,6 +116,7 @@ func _run() -> void:
 	cook = load("res://scripts/ui/cook_panel.gd")
 	Motion.reduced = true
 	events.toast_requested.connect(func(text: String) -> void: toasts.append(text))
+	events.dish_discovered.connect(func(_key: String, name: String) -> void: toasts.append("Prato novo: %s!" % name))
 	reset_world()
 	_preview_rules()
 	_known_and_cycle()

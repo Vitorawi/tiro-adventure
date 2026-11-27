@@ -16,6 +16,7 @@ func check(ok: bool, message: String) -> void:
 func fresh(animated: bool = true) -> void:
 	state.set_clock(1792746000.0)
 	state.reset()
+	state.dev_belly_clock(false)  # a Barriga no relógio tem teste próprio: aqui vale a queda por hora
 	state.set_process(false)
 	state.growth.taste_seed = 42
 	for id: String in db.needs: state.dog.needs[id] = 100.0
@@ -38,6 +39,7 @@ func _run() -> void:
 	db = root.get_node("Database")
 	state.set_script(load("res://tests/helpers/economy_clock.gd"))
 	root.get_node("Events").toast_requested.connect(func(message: String) -> void: notices.append(message))
+	root.get_node("Events").tiro_said.connect(func(message: String) -> void: notices.append(message))
 	fresh()
 	check(state.tiro_animated(), "satisfeito e acordado")
 	for id: String in db.needs:
@@ -57,7 +59,7 @@ func _run() -> void:
 		if int(reward.carrot) == int(normal.carrot) + 1:
 			winner = seed_time
 			break
-	check(winner >= 0 and notices.has("O Tiro ajudou!"), "chance real de +1 anuncia ajuda")
+	check(winner >= 0 and notices.has("Ajudou na colheita!"), "chance real de +1 anuncia ajuda")
 	fresh()
 	var normal := crop(winner)
 	var saved: Dictionary = state.to_dict().duplicate(true)
@@ -66,7 +68,7 @@ func _run() -> void:
 	fresh()
 	normal = crop(winner)
 	state.inventory.add("carrot", state.storage_capacity("silo") - int(normal.carrot))
-	check(state.harvest(0) == normal and not notices.has("O Tiro ajudou!"), "lote cabe, extra não: só lote normal")
+	check(state.harvest(0) == normal and not notices.has("Ajudou na colheita!"), "lote cabe, extra não: só lote normal")
 	fresh(false)
 	normal = crop(winner)
 	check(state.harvest(0) == normal, "sem animado colheita não muda")

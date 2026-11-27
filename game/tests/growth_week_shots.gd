@@ -150,7 +150,7 @@ func _run() -> void:
 	state.call("dev_grant_upgrade", "dog_bed")
 	state.call("dev_week_goto", 1)
 	_feed_dishes(3)
-	state.call("dev_week_meal", "lunch")
+	state.call("dev_week_meal", "sun")
 	await _sheet_shot("b_recem_chegado_meio", func() -> void: growth_ui.call("open"))
 	# Filhotinho: 8 pratos de só 2 tipos (falta um tipo) e ganchos ligados.
 	state.call("dev_set_phase", "puppy")

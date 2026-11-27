@@ -147,13 +147,14 @@ func meal_item() -> String:
 
 ## Janela aberta e ainda sem a refeição dela: dá ao vivo.
 func serve_live() -> void:
-	if in_service or not state.food_lesson_done():
+	# Antes de abrir a caixinha `food_lesson_done()` vale (save sem a chegada): o robô só come depois dela.
+	if in_service or not state.progress.seen.has("intro") or not state.food_lesson_done():
 		return
 	var info: Dictionary = state.meal_info()
 	var period := str(info.period)
 	if state.inventory.count("golden_stew") > 0 and secret_log.size() < 12:
 		secret_log["dbg" + str(secret_log.size())] = "%s|%s|%s|%s" % [period, str(info.done), state.meal_error("golden_stew"), str(state.week_hour())]
-	if period == "" or bool(info.done.get(period, {}).get("on_time", false)):
+	if bool(info.done.get(period, {}).get("on_time", false)):
 		return
 	if bool(info.arrival) and int(info.on_time) >= int(info.needed):
 		return
@@ -167,7 +168,7 @@ func serve_live() -> void:
 	in_service = false
 
 
-## Tigela de dois lugares: guarda uma refeição para cada janela que abre antes de ele voltar.
+## Tigela de dois lugares: guarda uma refeição para cada metade do dia que começa antes de ele voltar.
 func fill_bowl(back_at: float) -> void:
 	if in_service or not state.food_lesson_done():
 		return
@@ -176,9 +177,8 @@ func fill_bowl(back_at: float) -> void:
 		var target: Dictionary = state.meal_next_target()
 		if target.is_empty() or state.week.stored.size() >= 2:
 			break
-		var window: Vector2i = state.meal_window(str(target.period))
-		var closes: float = state._week_time_of(float(target.day) * 86400.0 + state._window_offset(window.y))
-		if closes > back_at:  # ele volta antes de a janela fechar: dá ao vivo
+		var ends: float = state.half_end_time(int(target.day), str(target.period))
+		if ends > back_at:  # ele volta antes de a metade acabar: dá ao vivo (a tigela é só para a metade que ele perderia)
 			break
 		var item := ""
 		for id: String in state.meal_items_owned():

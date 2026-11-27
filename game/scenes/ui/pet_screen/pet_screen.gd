@@ -146,6 +146,9 @@ func _ready() -> void:
 	add_child(_photo_line)
 	Events.state_changed.connect(_refresh)
 	Events.taste_reacted.connect(_on_taste)
+	Events.tiro_said.connect(_on_tiro_said)
+	Events.photo_taken.connect(_pulse_album_badge)
+	Events.photo_sealed.connect(_pulse_album_badge)
 	Events.favorite_spot_loved.connect(_on_spot_loved)
 	%RefreshTimer.timeout.connect(_refresh)
 	resized.connect(_layout_corner)
@@ -305,7 +308,9 @@ func _build_wish_widgets() -> void:
 	_meal_bubble = UiKit.button("", func() -> void: _care.call("open_food_menu"), &"ChipButton")
 	_meal_bubble.name = "MealBubble"
 	_meal_bubble.focus_mode = Control.FOCUS_NONE
-	_meal_bubble.icon = UiKit.ctl_icon("clock")
+	_meal_bubble.icon = UiKit.ctl_icon("sun")
+	for color_name: String in ["icon_normal_color", "icon_hover_color", "icon_pressed_color", "icon_hover_pressed_color", "icon_focus_color"]:
+		_meal_bubble.add_theme_color_override(color_name, Palette.WOOD_INK)  # o sol/lua vetorial é branco: sobre o creme precisa de tinta
 	_meal_bubble.add_theme_constant_override("icon_max_width", 20)
 	_meal_bubble.visible = false
 	add_child(_meal_bubble)
@@ -345,7 +350,12 @@ func _place_bubble() -> void:
 		_meal_bubble.size = _meal_bubble.get_combined_minimum_size()
 		var top := dog_rect()
 		top.position -= global_position
-		_meal_bubble.position = Vector2(top.get_center().x - _meal_bubble.size.x / 2.0, top.position.y)
+		var bubble_y := top.position.y
+		# Com o varal de fotos à vista, o balão da fome desce para baixo dele (não fica atrás dos "+").
+		if _photo_line and _photo_line.is_visible_in_tree():
+			var line := _photo_line.get_global_rect()
+			bubble_y = maxf(bubble_y, line.end.y - global_position.y + 6.0)
+		_meal_bubble.position = Vector2(top.get_center().x - _meal_bubble.size.x / 2.0, bubble_y)
 	if _hunger_bowl:
 		var head := head_rect()
 		_hunger_bowl.position = Vector2(clampf(head.end.x + 4.0, 12.0, size.x - 120.0), head.get_center().y + 36.0) - global_position
@@ -411,7 +421,9 @@ func _refresh() -> void:
 	_wish_bubble.visible = wish_id != "" and not dog.sleeping and not away
 	var meal_asking := MealUi.asking_period()
 	_meal_bubble.visible = meal_asking != "" and not _care.get("_row").visible
-	if meal_asking != "": _meal_bubble.text = "Hora do %s!" % MealUi.period_name(meal_asking).to_lower()
+	if meal_asking != "":
+		_meal_bubble.text = MealUi.meal_title(meal_asking) + "!"  # curto: a tela do Tiro tem teto de palavras
+		_meal_bubble.icon = UiKit.ctl_icon(MealUi.period_icon(meal_asking))
 	_sync_hunger(meal_asking != "" and not (_care.get("_row") as Control).visible)
 	_wish_badge.visible = _wish_bubble.visible and GameState.fulfillable_wish_count() > 0
 	if not _wish_bubble.visible and _care.get("_pointed_item") == "wish": _care.clear_pointer()
@@ -468,6 +480,27 @@ func _say_fed() -> void:
 	_pet_message = text
 	_pet_message_until = Time.get_ticks_msec() / 1000.0 + 3.0
 	_mood_label.text = text
+
+
+## Balão do Tiro: o que ele fez ou sentiu. Fora da tela (outra aba, dormindo, passeio) não mostra; o diário guarda.
+func _on_tiro_said(text: String) -> void:
+	if text == "" or not is_visible_in_tree() or GameState.dog.sleeping and not text.begins_with("Hora da soneca"): return
+	if GameState.walking(): return
+	_pet_message = text
+	_pet_message_until = Time.get_ticks_msec() / 1000.0 + 3.5
+	_mood_label.text = text
+	_show_mood()
+
+
+## Foto nova: o selo do botão do Álbum dá um pulinho (sem aviso de texto).
+func _pulse_album_badge(_id: String) -> void:
+	_refresh.call_deferred()
+	(func() -> void:
+		if _album_badge != null and _album_badge.is_visible_in_tree() and not Motion.reduced:
+			_album_badge.pivot_offset = _album_badge.size / 2.0
+			var tween := _album_badge.create_tween().set_loops(2)
+			tween.tween_property(_album_badge, "scale", Vector2(1.4, 1.4), 0.12)
+			tween.tween_property(_album_badge, "scale", Vector2.ONE, 0.14)).call_deferred()
 
 
 func _show_mood() -> void:

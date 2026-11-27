@@ -94,11 +94,6 @@ func _advance_day(day: int, hour: int) -> void:
 	state.call("dev_content_day", _chapter(day))
 	state.call("dev_week_hour", hour)
 	state.call("update_week")
-	# O teste das aulas segue alimentando o Tiro na janela; o bloqueio tem cenário próprio.
-	if state.call("tiro_weak"):
-		state.get("inventory").add("puppy_mash")
-		check(state.call("feed", "puppy_mash"), "serviu a refeição")
-		check(not state.call("tiro_weak"), "refeição na hora tirou fraquinho")
 
 
 func _row(id: String) -> Dictionary:
@@ -190,18 +185,9 @@ func _run() -> void:
 				await shot("09_para_crescer_recem_chegado")
 	check(state.get("progress").stat("trick_learned") == 3, "três aprendizados únicos")
 
-	# Fraquinho e falta de biscoito têm motivos diferentes, sem gastar itens.
-	state.get("week").weak = true
-	check(state.call("start_trick_lesson", "sit") == "Ele quer comer primeiro", "fraquinho bloqueia")
-	var weak_panel: Control = load("res://scripts/ui/trick_ui.gd").call("lesson_panel")
-	root.add_child(weak_panel)
-	await process_frame
-	await process_frame
-	check(weak_panel.find_child("LessonFeed_sit", true, false) != null and weak_panel.find_child("LessonWeak_sit", true, false) != null, "fraquinho explica o motivo e leva à comida")
-	weak_panel.queue_free()
 	state.call("dev_week_hour", 19)
 	_advance_day(5, 19)
-	check(state.call("trick_lesson_error", "sit") == "", "refeição na hora volta a permitir a aula")
+	check(state.call("trick_lesson_error", "sit") == "", "a aula segue liberada (comer nunca trava)")
 	var cookies := _inventory()
 	state.get("inventory").remove("apple_biscuit", cookies)
 	state.get("inventory").add("carrot_snack", 1)

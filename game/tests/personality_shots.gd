@@ -41,7 +41,7 @@ func _run() -> void:
 	state.growth.delivered = {"teething": {"chew_ring": 1}, "explorer": {"stick_chew": 1}, "young": {"soft_brush": 1}, "adult": {"courage_medal": 1}}
 	state.dev_take_photo("h_arrival")
 	state.dev_take_photo("h_growth_explorer")
-	state.dev_take_photo("f_taste")
+	state.dev_take_photo("h_first_trick")
 	state.hang_photo("h_arrival")
 	state.hang_photo("h_growth_explorer")
 	state.growth.personality.current = "explorer"

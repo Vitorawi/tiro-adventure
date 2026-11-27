@@ -24,14 +24,17 @@ static func open(select: String = "") -> void:
 
 ## Entrega o passo pendente (sem o cartão "Passo concluído", que só repetiria o crescimento) e cresce.
 static func _claim_and_grow(pending: String) -> void:
-	var error := GameState.claim_quest(pending)
+	var tree := Engine.get_main_loop() as SceneTree
+	# O prêmio voa como nos outros caminhos de pegar (`claim_quest_fx` já avisa se não deu).
+	var error := ProgressionUi.claim_quest_fx(pending, tree.root.get_mouse_position())
+	if error != "":
+		return
+	var main := tree.root.get_node_or_null("Main")
+	if main != null and main.has_method("drop_quest_reward"):
+		main.call("drop_quest_reward", pending)
+	error = GameState.grow_error()
 	if error == "":
-		var main := (Engine.get_main_loop() as SceneTree).root.get_node_or_null("Main")
-		if main != null and main.has_method("drop_quest_reward"):
-			main.call("drop_quest_reward", pending)
-		error = GameState.grow_error()
-		if error == "":
-			error = GameState.grow()
+		error = GameState.grow()
 	if error != "":
 		Events.toast_requested.emit(error)
 
@@ -247,9 +250,9 @@ static func _week_view(view: Dictionary, req: Dictionary) -> void:
 		"stat":
 			match str(req.get("counter", "")):
 				"well_fed_day":
-					view.short = "Dias"
-					view.unit = "dias"
-					view.title = "Dias bem alimentados"
+					view.short = "Patinhas"
+					view.unit = "patinhas"
+					view.title = "Patinhas"
 				"play":
 					view.short = "Brincar"
 					view.unit = "brincadeiras"
@@ -288,7 +291,7 @@ static func _week_hint(view: Dictionary, req: Dictionary) -> void:
 			match str(req.get("counter", "")):
 				"well_fed_day":
 					view.action = "Ver Hoje"
-					view.hint = "Almoço e jantar na hora"
+					view.hint = "De dia e de noite"
 				"play":
 					view.action = "Brincar"
 					view.hint = "Cuidar → Brincar"

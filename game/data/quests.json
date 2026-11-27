@@ -2732,7 +2732,7 @@
     "claim_sheet": false,
     "npc": "lais",
     "name": "Ir ao Sítio",
-    "dialogue": "Filhotinho come comida de verdade, na hora do almoço e do jantar. Quem planta tudo isso é a vovó Bloblo.",
+    "dialogue": "Filhotinho come comida de verdade: uma vez de dia e uma de noite. Quem planta tudo isso é a vovó Bloblo.",
     "goals": [
       {
         "type": "stat",

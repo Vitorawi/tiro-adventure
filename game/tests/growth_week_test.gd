@@ -147,7 +147,7 @@ func _second_phase() -> void:
 	# Os lanches também são pratos, o Gororoba não, e o progresso avisa.
 	check(feed("carrot_snack") and feed("apple_biscuit"), "lanches também são pratos")
 	check(not feed("gororoba") or int(row("dishes").have) == 2, "Gororoba não é prato")
-	check(toasts.any(func(text: String) -> bool: return text.begins_with("Pratos diferentes: ")), "avisa o progresso dos pratos")
+	check(not toasts.any(func(text: String) -> bool: return text.begins_with("Pratos diferentes: ")), "o progresso dos pratos mora no passo do Crescer, sem aviso")
 	# 2 estrelas e prato inventado (vieram do Filhotinho antigo para o Dentinhos).
 	check(not row("star_dish").done and not row("invented").done, "ainda sem estrelas nem inventado")
 	state.call("_note_recipe", "puppy_mash", 2)
@@ -192,8 +192,8 @@ func _second_phase() -> void:
 	check(not row("days").done and not bool(state.call("growth_info").ready), "faltam dias bem alimentados")
 	for day in range(2, 7):
 		state.call("dev_week_goto", day)
-		state.call("dev_week_meal", "lunch")
-		state.call("dev_week_meal", "dinner")
+		state.call("dev_week_meal", "sun")
+		state.call("dev_week_meal", "moon")
 	check(row("days").done and int(row("days").have) == 6, "seis dias bem alimentados, contando o da chegada")
 	play_times(8)
 	state.get("progress").stats["play_rope"] = 1 # O gesto real é coberto em play_week_test.

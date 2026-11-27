@@ -22,7 +22,22 @@ func frames(n: int = 6) -> void:
 
 func need(id: String, value: float) -> void:
 	state.dog.commit(state.now())
+	if id == "hunger":
+		hunger_clock(value < 50.0)  # a Barriga é o relógio: com fome = metade sem ✓, satisfeito = com ✓
+		return
 	state.dog.needs[id] = value
+
+## Põe a metade do dia atual com fome (sem ✓) ou satisfeita (com ✓), como a Barriga do relógio pede.
+func hunger_clock(hungry: bool) -> void:
+	var day: int = state._routine_day_number()
+	var period: String = state.meal_period_now()
+	var record: Dictionary = state.week.day_record(day).duplicate(true)
+	if hungry:
+		record.erase(period)
+	else:
+		record[period] = {"at": state.week_now(), "on_time": true, "item": "dev"}
+	state.week.days[str(day)] = record
+	state._sync_belly()
 
 func all_needs(value: float) -> void:
 	for id: String in ["hunger", "happiness", "hygiene", "energy"]:

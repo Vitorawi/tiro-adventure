@@ -290,20 +290,20 @@ func _run() -> void:
 
 	# 8. Varal
 	_fresh()
-	var ids := ["f_bath", "h_arrival", "f_taste", "f_dig"]
+	var ids := ["f_bath", "h_arrival", "h_first_trick", "h_first_night"]
 	for id: String in ids:
 		check(not db.photo(id).is_empty(), "foto existe: " + id)
 	state.dev_take_photo("f_bath", 1)
 	state.dev_take_photo("h_arrival", 2)
-	state.dev_take_photo("f_taste", 1)
-	state._take_photo("f_dig")
-	check(state.feature_photo_error("f_dig") != "" and state.featured_photos().is_empty(), "fechada não entra")
-	check(state.feature_photo("f_bath") == "" and state.feature_photo("h_arrival") == "" and state.feature_photo("f_taste") == "", "três entram")
+	state.dev_take_photo("h_first_trick", 1)
+	state._take_photo("h_first_night")
+	check(state.feature_photo_error("h_first_night") != "" and state.featured_photos().is_empty(), "fechada não entra")
+	check(state.feature_photo("f_bath") == "" and state.feature_photo("h_arrival") == "" and state.feature_photo("h_first_trick") == "", "três entram")
 	check(state.feature_photo_error("f_bath") != "", "duplicada recusada")
-	state.dev_take_photo("f_dig", 1)
-	check(state.feature_photo("f_dig") == "Escolha qual sai" and state.featured_photos().size() == 3, "o quarto pede troca")
-	check(state.unfeature_photo("h_arrival") == "" and state.feature_photo("f_dig") == "", "tirar e trocar")
-	check(state.featured_photos() == ["f_bath", "f_taste", "f_dig"], "ordem do varal")
+	state.dev_take_photo("h_first_night", 1)
+	check(state.feature_photo("h_first_night") == "Escolha qual sai" and state.featured_photos().size() == 3, "o quarto pede troca")
+	check(state.unfeature_photo("h_arrival") == "" and state.feature_photo("h_first_night") == "", "tirar e trocar")
+	check(state.featured_photos() == ["f_bath", "h_first_trick", "h_first_night"], "ordem do varal")
 	check(state.unfeature_photo("h_arrival") != "", "tirar quem não está")
 
 	# 9. Tutorial
@@ -353,10 +353,10 @@ func _run() -> void:
 	state.dev_take_photo("h_arrival", 1)
 	state.dev_take_photo("h_arrival", 3)
 	state._take_photo("f_bath")
-	state.dev_take_photo("f_taste", 2)
+	state.dev_take_photo("h_first_trick", 2)
 	state.set_photo_variant("h_arrival", 1)
 	state.feature_photo("h_arrival")
-	state.feature_photo("f_taste")
+	state.feature_photo("h_first_trick")
 	state.advance_album_tutorial(4)
 	state.album.pity_rare = 4
 	state.album.pity_holo = 11
@@ -367,7 +367,7 @@ func _run() -> void:
 	check(back.rarity == 3 and back.variants == [1, 2, 3] and back.shown == 1 and state.photo_shown_rarity("h_arrival") == 1, "versões e mostrada sobrevivem")
 	check(back.upgrades == 2 and back.opened and back.sealed == 0, "campos novos sobrevivem")
 	check(state.photo_sealed("f_bath") == 1 and state.photo_rarity("f_bath") == 0 and not state.photo_info("f_bath").opened, "carta fechada sobrevive")
-	check(state.featured_photos() == ["h_arrival", "f_taste"], "varal sobrevive")
+	check(state.featured_photos() == ["h_arrival", "h_first_trick"], "varal sobrevive")
 	check(state.album_tutorial_step() == 4 and not state.album_tutorial_done(), "tutorial sobrevive")
 	check(state.album.pity_rare == 4 and state.album.pity_holo == 11 and state.album.rarity_seed == 31337, "garantias e semente")
 	var save_version: Variant = (load("res://autoload/save_manager.gd") as GDScript).get_script_constant_map().get("SAVE_VERSION")

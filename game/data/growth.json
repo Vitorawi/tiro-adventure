@@ -40,7 +40,7 @@
       "body": "puppy",
       "coat": 0,
       "facts": [
-        "Filhotes pequenos fazem várias refeições pequenas por dia."
+        "Filhotes dormem até 18 horas por dia."
       ],
       "teaser": "Um sorriso cheio de descobertas.",
       "requirements": [
@@ -114,11 +114,11 @@
         },
         {
           "id": "days",
-          "explain": "Cada dia em que o Tiro come na hora certa (almoço e jantar) vale uma patinha. Junte {need}.",
+          "explain": "Dia + noite = 1 patinha. Junte {need}.",
           "type": "stat",
           "counter": "well_fed_day",
           "qty": 6,
-          "label": "Dias bem alimentados",
+          "label": "Patinhas",
           "total": true
         },
         {
@@ -610,8 +610,8 @@
     {
       "id": "days",
       "counter": "well_fed_day",
-      "text": "%d dias bem alimentados",
-      "text_one": "1 dia bem alimentado"
+      "text": "%d patinhas",
+      "text_one": "1 patinha"
     },
     {
       "id": "dishes",

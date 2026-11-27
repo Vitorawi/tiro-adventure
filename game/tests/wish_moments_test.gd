@@ -32,6 +32,7 @@ func to_period(id: String) -> void:
 func fresh(phase: String = "puppy") -> void:
 	state.set_clock(1792746000.0)
 	state.reset()
+	state.dev_belly_clock(false)  # a Barriga no relógio tem teste próprio: aqui vale a queda por hora
 	state.set_process(false)
 	state.growth.phase = phase
 	state.progress.claimed_quests["lais_bed"] = true
@@ -52,6 +53,7 @@ func _run() -> void:
 	# Sem caminha não há desejo.
 	state.set_clock(1792746000.0)
 	state.reset()
+	state.dev_belly_clock(false)  # a Barriga no relógio tem teste próprio: aqui vale a queda por hora
 	state.set_process(false)
 	check(not state.update_wishes() and state.wish_id() == "", "nada antes da caminha")
 	# Primeiro desejo: carinho, logo depois da caminha.

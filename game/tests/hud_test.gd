@@ -97,10 +97,7 @@ func _toast() -> void:
 	root.get_node("Events").emit_signal("toast_requested", "Primeiro aviso")
 	root.get_node("Events").emit_signal("toast_requested", "Segundo aviso")
 	await process_frame
-	check(toast.visible and text.text == "Primeiro aviso", "dois avisos seguidos: um por vez, o primeiro primeiro")
-	notice.finish_current()
-	await process_frame
-	check(toast.visible and text.text == "Segundo aviso", "o segundo aparece depois do primeiro")
+	check(toast.visible and text.text == "Segundo aviso" and notice.queued() == 0, "dois avisos seguidos: o novo troca o da tela, sem fila")
 	check(not main.find_child("ToastIcon", true, false).visible, "aviso comum sem ícone")
 	await create_timer(0.4).timeout  # termina a subida do aviso
 	var tab_top: float = main.size.y + (main.get("_tab_art") as Control).offset_top

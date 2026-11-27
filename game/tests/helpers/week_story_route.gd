@@ -210,7 +210,7 @@ func ato_one() -> void:
 	verify.call(state.album.has_photo("h_arrival"), "Foto da chegada")
 	action("cuidar")
 	verify.call(state.feed("puppy_mash"), "Dar a papinha da caixinha")
-	verify.call(state.meals_on_time(1) == 1 and state.well_fed_days() == 1, "Primeira papinha fora da janela dá patinha")
+	verify.call(state.meals_on_time(1) == 0 and state.well_fed_days() == 0, "Antes da aula da comida a papinha não registra ✓ nem patinha")
 	claim("lais_feed")
 	verify.call(state.bathe(), "Dar banho")
 	claim("lais_bath")
@@ -245,8 +245,10 @@ func ato_two(first_stars: int = 3, late_arrival: bool = true) -> void:
 	claim("first_kitchen")
 	if late_arrival:
 		at(1, 23)
-	serve(food)  # a aula da comida é da tela; aqui só o estado: dar a papinha cumpre o passo 14
-	verify.call(state.well_fed_days() == 1, "A segunda papinha do dia da chegada não repete a patinha")
+	state.set_food_lesson_step(3)  # a aula da comida é da tela; aqui só o estado: com a aula rodando o relógio já existe
+	serve(food)  # dar a papinha cumpre o passo 14
+	state.finish_food_lesson()  # a aula terminou (a tela faria isto no fim do toque 5)
+	verify.call(state.well_fed_days() == 1, "A papinha da aula dá a primeira patinha (dia da chegada: uma refeição basta)")
 	verify.call(state.coins == coins, "Ato 2 inteiro sem moeda")
 	claim("first_meal")
 	# O capítulo 1 fecha com o crescimento: a papinha caseira é o último pedido do Filhotinho.
@@ -298,7 +300,6 @@ func day_one(late_arrival: bool = true) -> void:
 	var soup := recipe("vegetable_soup")
 	verify.call(state.progress.stat("week_soup") == 1, "Sopinha recolhida conta o passo")
 	claim("week_soup")
-	verify.call(state.album.has_photo("h_week_soup") and state.photo_sealed("h_week_soup") == 1, "O capítulo 2 fecha com uma carta fechada")
 	serve(soup)
 	verify.call(state.quest_unlocked("lais_first_wish"), "O capítulo 3 abre na hora, sem esperar o relógio")
 	verify.call(state.claim_quest("lais_first_wish") != "", "O passo do capítulo 3 ainda pede o desejo")
@@ -324,7 +325,6 @@ func first_wish() -> void:
 	action("desejo")
 	ok(state.fulfill_wish(), "Atender ao primeiro desejo")
 	claim("lais_first_wish")
-	verify.call(state.album.has_photo("h_week_wish"), "O capítulo 3 fecha com uma carta")
 
 
 func day_two() -> void:
@@ -394,7 +394,6 @@ func day_four() -> void:
 	serve(recipe("banana_mash"))
 	verify.call(key_done("fruit"), "Fruta simultânea na História e em Para crescer")
 	claim("week_fruit_dish")
-	verify.call(state.album.has_photo("h_week_mingau"), "O capítulo 7 fecha com uma carta")
 	verify.call(state.progress.chapter_index() == 8 and state.invent_open(), "Inventar abre no capítulo 8")
 	at(4, 19)
 	serve(dish("papinha", {"pumpkin": 1, "potato": 1}))
@@ -403,7 +402,6 @@ func day_four() -> void:
 	action("livro")
 	state.note_screen_opened("recipes")
 	claim("week_book")
-	verify.call(state.album.has_photo("h_week_book"), "O capítulo 8 fecha com uma carta")
 
 
 ## Capítulo 9: carroça e banho com xampu.
@@ -440,7 +438,6 @@ func day_five() -> void:
 	action("cuidado")
 	verify.call(state.bathe(true), "Banho com xampu")
 	claim("week_bath")
-	verify.call(state.album.has_photo("h_week_foam"), "O capítulo 9 fecha com uma carta")
 	meal(5, 19, dish("sopinha", {"carrot": 2, "potato": 1}))
 
 
@@ -477,9 +474,7 @@ func day_six() -> void:
 	for id: String in show.get("sequence", []):
 		action("show")
 		state.trick_show_step(id, true)
-	verify.call(state.album.has_photo("h_trick_show"), "O show tira a foto do capítulo 10")
 	claim("week_show")
-	verify.call(state.album.has_photo("h_trick_show"), "O capítulo 10 fecha com uma carta")
 	meal(6, 19, dish("papinha", {"pumpkin": 1, "carrot": 1}))
 
 

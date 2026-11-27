@@ -3,12 +3,13 @@ extends TutorialGuide
 ## Duas lições guiadas curtas do Novo fluxo (F02B), com a Laís e a mão do tutorial:
 ##  - "growth": lição do painel de crescimento (passo `lais_growth`): três falas, uma por toque, apontando a grade de passos,
 ##    os ✓ acesos e a barra do avatar no HUD. Some sozinha se o painel fechar (e volta na próxima abertura até concluir).
-##  - "food": aula da comida (passo `week_story.json → food_lesson.quest`): reloginho → folha Hoje → arrastar a papinha
-##    (a primeira patinha é garantida a qualquer hora) → a patinha voa ao avatar → painel Crescer na linha das patinhas.
+##  - "food": aula da comida (passo `week_story.json → food_lesson.quest`), em 3 toques e uma fala só para qualquer hora:
+##    1 arrastar a papinha ao Tiro → 2 o disco da metade ganha ✓ e a primeira patinha voa ao avatar (garantida a qualquer
+##    hora) → 3 painel Crescer na linha das patinhas.
 ## As falas ficam em `week_story.json → food_lesson`. O passo salvo da aula é do `GameState` (`food_lesson_data`): fechar o
 ## jogo no meio retoma no mesmo toque. Nós: `LessonGuide`, `TutorialVeil`, `TutorialBalloon`, `LessonNext`, `LessonSkip`, `LessonPaw`.
 
-const FOOD_BEATS := 5
+const FOOD_BEATS := 3
 
 static var current: LessonGuide
 
@@ -95,8 +96,6 @@ func _try_start() -> void:
 	if GameState.food_lesson_running() or (GameState.food_lesson_startable() and _calm()):
 		kind = "food"
 		var saved := GameState.food_lesson_data()
-		if not saved.has("branch"):
-			GameState.set_food_lesson_step(1, {"branch": GameState.food_lesson_branch()})
 		_enter(maxi(1, int(saved.get("step", 1))))
 
 
@@ -119,34 +118,25 @@ func _enter(next_beat: int) -> void:
 		_text = str(story.growth[beat - 1])
 	else:
 		GameState.set_food_lesson_step(beat)
-		var branch := str(GameState.food_lesson_data().get("branch", "window"))
 		match beat:
 			1:
-				_text = str(story.clock)
-				Events.sheet_close_requested.emit()
-			2:
-				_text = _today_text(branch)
-				_retry = 0.8
-				if not _sheet_has("TodayPanel"):
-					MealUi.open_today()
-			3:
 				_text = str(story.feed)
 				_retry = 0.8
-				GameState.set_food_lesson_step(3, {"feed0": GameState.progress.stat("feed")} if not GameState.food_lesson_data().has("feed0") else {})
+				GameState.set_food_lesson_step(1, {"feed0": GameState.progress.stat("feed")} if not GameState.food_lesson_data().has("feed0") else {})
 				_open_food_menu()
-			4:
-				_text = _paw_text(branch)
+			2:
+				_text = str(story.paw)
 				GameState.grant_lesson_paw(_fed_item())
 				_fly_paw()
-			5:
+			3:
 				_text = str(story.grow)
-				GameState.set_food_lesson_step(5)
+				GameState.set_food_lesson_step(3)
 				_retry = 0.8
 				GrowthUi.open("days")
 	_balloon_label.text = _text
 	for rect: ColorRect in _rects:
-		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE if (kind == "food" and beat == 3) else Control.MOUSE_FILTER_STOP
-	_accept.visible = not (kind == "food" and beat == 3)
+		rect.mouse_filter = Control.MOUSE_FILTER_IGNORE if (kind == "food" and beat == 1) else Control.MOUSE_FILTER_STOP
+	_accept.visible = not (kind == "food" and beat == 1)
 	_reset_hand()
 	_target = _target_rect()
 	if _target.has_area():
@@ -167,28 +157,20 @@ func _tick_food() -> void:
 	_retry -= 0.05
 	match beat:
 		1:
-			if _sheet_has("TodayPanel"):
-				_enter(2)  # tocou no reloginho: a folha Hoje abriu
+			var saved := GameState.food_lesson_data()
+			if GameState.progress.stat("feed") > int(saved.get("feed0", GameState.progress.stat("feed"))):
+				_enter(2)
 				return
-		2:
-			if not _sheet_has("TodayPanel") and _retry <= 0.0:
-				_retry = 0.6
-				MealUi.open_today()  # fechou a folha sem querer: abre de novo
-		5:
+			if _retry <= 0.0 and not _menu_open():
+				_retry = 0.8
+				_open_food_menu()
+		3:
 			if _retry <= 0.0:
 				_retry = 0.5
 				if _sheet_has("GrowthPanel"):
 					_reveal_paw_card()
 				else:
 					GrowthUi.open("days")  # fechou o painel sem querer: abre de novo na linha das patinhas
-		3:
-			var saved := GameState.food_lesson_data()
-			if GameState.progress.stat("feed") > int(saved.get("feed0", GameState.progress.stat("feed"))):
-				_enter(4)
-				return
-			if _retry <= 0.0 and not _menu_open():
-				_retry = 0.8
-				_open_food_menu()
 	_follow_target()
 
 
@@ -220,9 +202,9 @@ func _on_next() -> void:
 		return
 	if kind != "food":
 		return
-	# A fala 5 (seis patinhas → Dentinhos) só existe quando o painel já mostra a linha das patinhas: antes do Filhotinho,
+	# A fala 3 (seis patinhas → Dentinhos) só existe quando o painel já mostra a linha das patinhas: antes do Filhotinho,
 	# a aula termina na patinha e o painel de crescimento é apresentado pela lição dele (passo "Como ele cresce").
-	if beat < FOOD_BEATS and not (beat == 4 and not _has_days_row()):
+	if beat < FOOD_BEATS and not (beat == 2 and not _has_days_row()):
 		_enter(beat + 1)
 	else:
 		_finish_food()
@@ -245,55 +227,19 @@ func _stop() -> void:
 
 
 func _finish_food() -> void:
-	var branch := str(GameState.food_lesson_data().get("branch", "window"))
 	GameState.finish_food_lesson()
 	WeekTutorial.finish("food")
 	_stop()
-	if branch == "night":
-		_bedtime()
-
-
-## Noite: ele boceja e vai para a caminha; a sessão termina no Boa noite (que aparece sozinho).
-func _bedtime() -> void:
-	Events.sheet_close_requested.emit()
-	main.call("show_screen", &"pet")
-	var pet := main.find_child("PetScreen", true, false)
-	var animator: Object = pet.get("_animator") if pet != null else null
-	if animator != null:
-		animator.call("play_lesson_pose", &"yawn")
-	get_tree().create_timer(2.2).timeout.connect(func() -> void:
-		if GameState.auto_sleep_allowed():
-			GameState.set_sleeping(true))
 
 
 # --- Textos ---------------------------------------------------------------------------------
-
-func _today_text(branch: String) -> String:
-	var today: Dictionary = Database.week_story.food_lesson.today
-	if branch != "window":
-		return str(today[branch])
-	var period := GameState.meal_period_now()
-	var name := MealUi.period_name(period if period != "" else "lunch").to_lower()
-	var lunch := GameState.meal_window("lunch")
-	var dinner := GameState.meal_window("dinner")
-	return str(today.window) % [name, lunch.x, lunch.y, dinner.x, dinner.y]
-
-
-func _paw_text(branch: String) -> String:
-	var paw: Dictionary = Database.week_story.food_lesson.paw
-	if branch != "day":
-		return str(paw[branch])
-	var next := GameState.next_meal_in()
-	var period := str(next.get("period", "dinner"))
-	return str(paw.day) % [MealUi.period_name(period).to_lower(), GameState.meal_window(period).x]
-
 
 ## A refeição que ele comeu na aula (para o carimbo da cartela): a mais recente do registro de hoje.
 func _fed_item() -> String:
 	var record: Dictionary = GameState.week.day_record(int(GameState.meal_info().day))
 	for period: String in Database.meals.periods:
 		var entry: Dictionary = record.get(period, {})
-		if bool(entry.get("on_time", false)) and str(entry.get("item", "")) not in ["", "ration"]:
+		if bool(entry.get("on_time", false)) and str(entry.get("item", "")) != "":
 			return str(entry.item)
 	return "puppy_mash"
 
@@ -321,6 +267,10 @@ func _open_food_menu() -> void:
 	Events.sheet_close_requested.emit()
 	var pet := _pet()
 	var care: Object = pet.get("_care") if pet != null else null
+	if care != null and _menu_open():
+		var marker := pet.find_child("TutorialMealBowl", true, false) as Control
+		if marker == null or not marker.visible:
+			care.call("close_food_menu")  # a janela abriu antes da aula (ex.: pelo Dar ao Tiro): reabre com o ponto de soltar
 	if care != null and not _menu_open():
 		care.call("open_food_menu")
 
@@ -335,13 +285,11 @@ func _target_rect() -> Rect2:
 				3: return _done_tile("GrowthReq_home_mash", 1)
 		"food":
 			match beat:
-				1: return _rect("MealClock")
-				2: return _rect("TodayCard")
-				3:
+				1:
 					var item := _rect("Care_" + _fed_item_in_menu())
 					return item if item.has_area() else _rect("FoodMenu")
-				4: return _rect("HudAvatar")
-				5:
+				2: return _rect("MealDay")  # o disco da metade ganha o ✓ e a patinha voa dali ao avatar
+				3:
 					var card := _rect("PawCard")  # a cartela (Patinhas 1/6) fica na linha das patinhas
 					if card.has_area():
 						return card
@@ -409,10 +357,10 @@ func _layout(delta: float) -> void:
 		y = below
 	if y > limit:
 		y = above
-	if kind == "food" and beat == 3:
+	if kind == "food" and beat == 1:
 		y = top  # no arrasto o balao fica no alto: nao cobre o Tiro (alvo de soltar) nem a mao
 	y = clampf(y, top, maxf(top, limit))
-	if (kind == "growth" or (kind == "food" and beat in [2, 5])) and main.get_node("Sheet").call("is_open"):
+	if (kind == "growth" or (kind == "food" and beat == 3)) and main.get_node("Sheet").call("is_open"):
 		# Com uma folha aberta embaixo (Hoje, Crescimento) o balão fica acima dela: não cobre o título nem a explicação.
 		var panel := main.get_node("Sheet").get_node("Panel") as Control
 		var over := panel.get_global_rect().position.y - height - 8.0
@@ -427,7 +375,7 @@ func _layout(delta: float) -> void:
 		skip_y = y + height + 4.0
 	_skip.position = Vector2(skip_x, clampf(skip_y, 10.0, screen.y - _skip.size.y - 12.0))
 	var center := _target.get_center()
-	if kind == "food" and beat == 3:
+	if kind == "food" and beat == 1:
 		var pet := _pet()
 		var head: Rect2 = pet.call("head_rect") if pet != null else Rect2(center, Vector2.ZERO)
 		_guide_hand(delta, center, head.get_center() + Vector2(0, DragGhost.LIFT))

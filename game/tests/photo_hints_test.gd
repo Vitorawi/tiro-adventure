@@ -33,7 +33,7 @@ func _run() -> void:
 	events.world_requested.connect(func(world: String, place: String) -> void: destinations.append({"world": world, "place": place}))
 	events.screen_requested.connect(func(screen: StringName) -> void: destinations.append({"screen": str(screen)}))
 	# 1. Catálogo inteiro com texto concreto e ícone existente; consulta não altera estado.
-	check(db.album.photos.size() == 69, "69 fotos")
+	check(db.album.photos.size() == 51, "51 fotos")
 	var before: String = JSON.stringify(state.to_dict())
 	for entry: Dictionary in db.album.photos:
 		var goal: Dictionary = entry.get("goal_hint", {})

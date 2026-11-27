@@ -695,7 +695,7 @@ static func _growth_requirement(id: String, trail: Array[String]) -> Dictionary:
 			"stat":
 				var counter := str(row.counter)
 				if counter == "well_fed_day":
-					result = _base(str(row.label), "Dê as duas refeições na hora, almoço e jantar. Abra Hoje no Tiro para ver as janelas.", {"screen": "pet"}, "Ir")
+					result = _base(str(row.label), "Dia + noite = 1 patinha.", {"screen": "pet"}, "Ir")
 				elif counter in ["feed", "bathe", "play"]:
 					var care := {"feed": ["Dê comida: toque em Cuidar, escolha Comida e arraste até a boca.", "feed"],
 						"bathe": ["Dê banho: toque em Cuidar, escolha Banho e esfregue o Tiro.", "sponge"],

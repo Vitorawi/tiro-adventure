@@ -6,11 +6,11 @@ var failures := 0
 var state: Node
 var db: Node
 
-## capítulo -> [último passo, foto de fechamento]
+## capítulo -> [último passo, foto de marco que ele entrega ("" = nenhuma: fotos só de marcos)]
 const CLOSING := {
-	2: ["week_soup", "h_week_soup"], 3: ["lais_first_wish", "h_week_wish"], 4: ["week_egg_dish", "h_week_eggs"],
-	5: ["week_sit", "h_first_trick"], 6: ["week_fish_dish", "h_week_fish"], 7: ["week_fruit_dish", "h_week_mingau"],
-	8: ["week_book", "h_week_book"], 9: ["week_bath", "h_week_foam"], 10: ["week_show", "h_trick_show"],
+	2: ["week_soup", ""], 3: ["lais_first_wish", ""], 4: ["week_egg_dish", ""],
+	5: ["week_sit", "h_first_trick"], 6: ["week_fish_dish", ""], 7: ["week_fruit_dish", ""],
+	8: ["week_book", ""], 9: ["week_bath", ""], 10: ["week_show", ""],
 }
 
 
@@ -97,7 +97,7 @@ func run() -> void:
 		var ids: Array = state.progress.main_quests(chapter)
 		var closing: String = ids.back() if chapter != 10 else "week_show"
 		check(closing == last, "o último passo do capítulo %d é %s" % [chapter, last])
-		check(not db.photo(photo).is_empty(), "foto de fechamento existe: " + photo)
+		check(photo == "" or not db.photo(photo).is_empty(), "foto de fechamento existe: " + photo)
 		state.reset()
 		state.call("_count", "arrival_box")
 		state.dev_content_day(chapter)
@@ -105,12 +105,13 @@ func run() -> void:
 			if id == last:
 				break
 			state.dev_complete_quest(id)
-		check(not state.album.has_photo(photo), "foto %s ainda não chegou antes do último passo" % photo)
+		if photo != "":
+			check(not state.album.has_photo(photo), "foto %s ainda não chegou antes do último passo" % photo)
 		state.dev_complete_quest(last)
-		if chapter == 10:
-			state.call("_album_event", "trick_show", {})  # o show é o objetivo do último passo e tira a foto na hora
-		check(state.album.has_photo(photo), "o passo %s entrega a foto %s" % [last, photo])
-		check(state.photo_sealed(photo) >= 1, "a foto %s chega fechada" % photo)
+		if photo != "":
+			check(state.album.has_photo(photo), "o passo %s entrega a foto %s" % [last, photo])
+		if photo != "":
+			check(state.photo_sealed(photo) >= 1, "a foto %s chega fechada" % photo)
 
 	# A foto do almoço de despedida fecha o capítulo 11, e a Vila só abre com o Dentinhos.
 	check(str(db.week_story.farewell.photo) == "h_week_group" and not db.photo("h_week_group").is_empty(), "foto de grupo do almoço")

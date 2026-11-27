@@ -9,30 +9,21 @@ var started_day: int = -1
 var clock_offset: float = 0.0
 ## Maior número de dia local já visto: o dia do jogo só avança, mesmo se o relógio do aparelho voltar.
 var high_day: int = -1
-## Preferência de horário das refeições: "early", "normal" ou "late" (`config.json → meals.options`).
-var option: String = "normal"
 ## Refeições por dia do jogo (chave = número do dia, texto):
-## {"1": {"lunch": {"at": 0.0, "on_time": true, "item": "puppy_mash"}, "dinner": {...}, "paw": true}}
+## {"1": {"sun": {"at": 0.0, "on_time": true, "item": "puppy_mash"}, "moon": {...}, "paw": true}} (`missed: true` = dia sem patinha)
 var days: Dictionary = {}
-## Último espaço de refeição (dia local × 2 + 0 almoço/1 jantar) já fechado e conferido; -1 = não iniciado.
+## Última metade do dia (dia local × 2 + 0 sol/1 lua) já fechada e conferido; -1 = não iniciado.
 var settled: int = -1
-## Dias fracos seguidos (a marmita da vovó chega ao atingir `meals.lunchbox_after_weak_days`).
-var weak_streak: int = 0
-## Tiro fraquinho: vale até a próxima refeição na hora.
-var weak: bool = false
-## Marmitas da vovó já entregues.
-var lunchboxes: int = 0
 ## Tigela de dois lugares (Deixar pronto): até `meals.stored_slots` refeições, uma por período, em ordem de
 ## janela: [{"item", "day" (dia do Tiro, virada às 6h), "period"}]; vazio = nenhuma.
 var stored: Array = []
 ## Recados de refeição servida sozinha pela tigela, para o Bom dia/boas-vindas mostrarem
-## ("Ele comeu o almoço às 11h12"): [{"period", "at" (instante da semana), "item", "seen"}].
+## ("Comeu sozinho da tigela às 16h"): [{"period", "at" (instante da semana), "item", "seen"}].
 var served: Array = []
 ## A aula da comida (F02) já foi dada: o relógio das refeições passa a existir para o jogador.
 var food_lesson: bool = false
-## Instante (relógio da semana) em que o dia da chegada começou e se foi estendido até a virada seguinte.
+## Instante (relógio da semana) em que o dia da chegada (a caixinha) começou.
 var arrival_at: float = 0.0
-var arrival_extended: bool = false
 ## Pratos e receitas que o jogador já fez (E03): chave -> {stars (melhor, 1 a 3), made (lotes), day (primeiro dia)}.
 ## Chaves: `dish:<tipo>:<ingredientes>` (prato do motor, sem estrelas) e `recipe:<receita>` (receita fixa do fogão).
 var dishes: Dictionary = {}
@@ -77,18 +68,13 @@ func reset() -> void:
 	bait_day = -1
 	orchard_ready = {}
 	settled = -1
-	weak_streak = 0
-	weak = false
-	lunchboxes = 0
 	stored = []
 	served = []
 	food_lesson = false
 	arrival_at = 0.0
-	arrival_extended = false
 	started_day = -1
 	clock_offset = 0.0
 	high_day = -1
-	option = "normal"
 	days = {}
 
 
@@ -101,17 +87,12 @@ func to_dict() -> Dictionary:
 		"started_day": started_day,
 		"clock_offset": clock_offset,
 		"high_day": high_day,
-		"option": option,
 		"days": days.duplicate(true),
 		"settled": settled,
-		"weak_streak": weak_streak,
-		"weak": weak,
-		"lunchboxes": lunchboxes,
 		"stored": stored.duplicate(true),
 		"served": served.duplicate(true),
 		"food_lesson": food_lesson,
 		"arrival_at": arrival_at,
-		"arrival_extended": arrival_extended,
 		"dishes": dishes.duplicate(true),
 		"recipe_book": recipe_book.duplicate(true),
 		"bait_day": bait_day,
@@ -134,7 +115,6 @@ func from_dict(data: Dictionary) -> void:
 	started_day = int(data.get("started_day", -1))
 	clock_offset = float(data.get("clock_offset", 0.0))
 	high_day = int(data.get("high_day", -1))
-	option = str(data.get("option", "normal"))
 	story_challenge = data.get("story_challenge", {}).duplicate()
 	farewell = data.get("farewell", {}).duplicate()
 	routine = data.get("routine", {}).duplicate(true)
@@ -156,9 +136,6 @@ func from_dict(data: Dictionary) -> void:
 	if play_data is Dictionary:
 		play = (play_data as Dictionary).duplicate(true)
 	settled = int(data.get("settled", -1))
-	weak_streak = int(data.get("weak_streak", 0))
-	weak = bool(data.get("weak", false))
-	lunchboxes = int(data.get("lunchboxes", 0))
 	var stored_data: Variant = data.get("stored", [])
 	if stored_data is Array:
 		stored = (stored_data as Array).duplicate(true)
@@ -167,7 +144,6 @@ func from_dict(data: Dictionary) -> void:
 		served = (served_data as Array).duplicate(true)
 	food_lesson = bool(data.get("food_lesson", false))
 	arrival_at = float(data.get("arrival_at", 0.0))
-	arrival_extended = bool(data.get("arrival_extended", false))
 	var book: Variant = data.get("recipe_book", {})
 	if book is Dictionary:
 		recipe_book = book.duplicate(true)

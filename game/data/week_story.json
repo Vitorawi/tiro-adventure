@@ -5,25 +5,16 @@
     "npc": "lais",
     "item": "puppy_mash",
     "next": "Entendi",
-    "snack": "Petisco é lanche: não conta como refeição.",
+    "snack": "Petisco não é refeição.",
+    "dessert": "Sobremesa! Não vale patinha.",
     "growth": [
-      "Para crescer, o Tiro precisa cumprir os passos da fase. Cada quadradinho é um passo.",
-      "Olha a caminha que você colocou: esse passo já está feito! ✓",
-      "E a papinha que vocês fizeram juntos também conta! ✓"
+      "Cada quadradinho é um passo para crescer.",
+      "A caminha já conta! ✓",
+      "A papinha também! ✓"
     ],
-    "clock": "Viu o reloginho? Ele fica verde quando é hora de comer.",
-    "today": {
-      "window": "É hora do %s! Ele come duas vezes por dia: almoço, das %dh às %dh, e jantar, das %dh às %dh.",
-      "day": "Ele come no almoço e no jantar. Hoje é o dia da chegada, então qualquer hora vale.",
-      "night": "Comidinha antes de dormir! Ele come no almoço e no jantar."
-    },
     "feed": "Arraste a papinha até ele.",
-    "paw": {
-      "window": "Deu na hora? Ganhou um ✓! Almoço e jantar na hora valem uma patinha. Hoje é especial: uma papinha já vale!",
-      "day": "Pronto, valeu! O próximo é o %s, às %dh. Hoje é especial: uma papinha já vale uma patinha!",
-      "night": "Pronto! Hoje é especial: uma papinha já vale uma patinha. Agora é hora de dormir. Amanhã é o almoço."
-    },
-    "grow": "Seis patinhas e ele ganha os Dentinhos. É uma por dia, não dá para adiantar."
+    "paw": "Dia + noite = 1 patinha. Essa é presente!",
+    "grow": "6 patinhas = Dentinhos."
   },
   "arrival": {
     "box": "res://assets/sprites/areas/house/arrival_box.png",
@@ -78,6 +69,7 @@
     {
       "trigger": "lais_bed",
       "surprise": "O Tiro se enroscou e dormiu dentro da caixinha.",
+      "say": "Dormiu na caixinha!",
       "label": "Fazer um prato com três estrelas",
       "counter": "week_three_stars",
       "target": 1,
@@ -90,6 +82,7 @@
     {
       "trigger": "week_eggs",
       "surprise": "Ele latiu para as galinhas e pulou com o cacarejo!",
+      "say": "Latiu para as galinhas!",
       "label": "Pegar quatro ovos no dia",
       "counter": "produce:egg",
       "target": 4,
@@ -102,6 +95,7 @@
     {
       "trigger": "week_fish",
       "surprise": "O Tiro escorregou na beira da lagoa e se sacudiu.",
+      "say": "Escorregou na lagoa!",
       "label": "Pescar um peixe de tamanho médio",
       "counter": "fish_size:medium",
       "target": 1,
@@ -114,6 +108,7 @@
     {
       "trigger": "week_orchard",
       "surprise": "O Tiro tentou tirar uma banana do cesto.",
+      "say": "Tentou pegar a banana!",
       "label": "Inventar dois pratos novos",
       "counter": "week_invention",
       "target": 2,
@@ -127,6 +122,7 @@
     {
       "trigger": "week_bath",
       "surprise": "Ele correu do banho e voltou coberto de espuma!",
+      "say": "Fugiu do banho!",
       "label": "Entregar duas encomendas da carroça",
       "counter": "cart_delivery",
       "target": 2,
@@ -137,6 +133,7 @@
     {
       "trigger": "week_show",
       "surprise": "No meio do show, ele trocou o truque e espiou a plateia.",
+      "say": "Trocou o truque!",
       "label": "Fazer um show de cinco truques sem errar",
       "counter": "trick_show_perfect",
       "target": 1,
@@ -151,7 +148,8 @@
     {
       "trigger": "teeth_3_ring",
       "surprise": "O Tiro tentou roer o chinelo da vovó!",
-      "label": "Completar os oito pratos diferentes antes do jantar",
+      "say": "Tentou roer o chinelo!",
+      "label": "Completar os oito pratos diferentes antes da noite",
       "counter": "week_dishes_ready",
       "target": 1,
       "rewards": {

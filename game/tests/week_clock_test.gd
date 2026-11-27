@@ -57,7 +57,7 @@ func _dev_mode() -> void:
 	_check(int(state.call("week_day")) == 4 and int(state.call("week_hour")) == 15, "Relógio da semana sobrevive ao save")
 	state.call("dev_week_reset_clock")
 	_check(int(state.call("week_day")) == 1, "Voltar ao relógio real: dia 1")
-	_check(str(state.call("dev_week_meal", "lunch")).contains("dia 1"), "DEV marca a refeição do dia")
+	_check(str(state.call("dev_week_meal", "sun")).contains("dia 1"), "DEV marca a refeição do dia")
 	_check(state.call("dev_week_kit", "caminha") == "" and state.call("has_upgrade", "dog_bed"), "DEV monta a caminha sem cobrar")
 	state.call("from_dict", {})
 	_check(int(state.call("week_day")) == 1, "Save sem chave week marca o dia 1")

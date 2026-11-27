@@ -44,6 +44,7 @@ func _run() -> void:
 	await _photo_tap()
 	await _above_sheet()
 	await _dedupe()
+	await _gold_and_away()
 	Motion.reduced = false
 	print("NOTICE TEST: ", "PASS" if failures == 0 else "FAIL")
 	quit(1 if failures else 0)
@@ -57,17 +58,24 @@ func _clear() -> void:
 	await process_frame
 
 
-## 1. Dois avisos juntos: um por vez, o segundo depois do primeiro.
+## 1. Sem fila que escalona: o info novo SUBSTITUI o que está na tela; atrás de um erro a fila guarda só o último info.
 func _one_at_a_time() -> void:
 	await _clear()
 	notice.notify("info", "a")
+	await process_frame
 	notice.notify("info", "b")
 	await process_frame
-	check(toast.visible and text.text == "a", "o primeiro aviso aparece (veio %s)" % text.text)
-	check(notice.queued() == 1, "o segundo espera na fila")
+	check(toast.visible and text.text == "b" and notice.queued() == 0, "o info novo troca o da tela (veio %s, fila %d)" % [text.text, notice.queued()])
+	await _clear()
+	notice.notify("error", "erro na tela")
+	await process_frame
+	notice.notify("info", "c")
+	notice.notify("info", "d")
+	notice.notify("info", "e")
+	check(notice.queued() == 1, "a fila guarda no máximo 1 info (fila %d)" % notice.queued())
 	notice.finish_current()
 	await process_frame
-	check(toast.visible and text.text == "b", "o segundo aparece depois do primeiro (veio %s)" % text.text)
+	check(toast.visible and text.text == "e", "depois do erro vem só o último info (veio %s)" % text.text)
 	await _clear()
 
 
@@ -85,7 +93,7 @@ func _error_replaces() -> void:
 ## 3. Momento antes de info quando os dois esperam.
 func _priority() -> void:
 	await _clear()
-	notice.notify("info", "ocupado")
+	notice.notify("error", "ocupado")
 	await process_frame
 	notice.notify("info", "depois")
 	notice.notify("moment", "Momento de Coragem!", (load("res://scripts/ui/ui_kit.gd") as GDScript).call("ui_icon", "coin"))
@@ -190,7 +198,33 @@ func _dedupe() -> void:
 	check(notice.showing() == "info" and notice.queued() == 0, "cinco avisos iguais viram um só (fila %d)" % notice.queued())
 	notice.notify("info", "Outro")
 	notice.notify("info", "Outro")
-	check(notice.queued() == 1, "igual na fila também é descartado (fila %d)" % notice.queued())
+	await process_frame
+	check(notice.queued() == 0 and text.text == "Outro", "igual ao da tela também é descartado (fila %d)" % notice.queued())
 	notice.notify("error", "Silo sem espaço: abra lugar para Morango ×1")
 	check(notice.queued() == 2 or notice.showing() == "error", "tipo diferente não é duplicata")
+	await _clear()
+
+
+## 9. Conquista dourada (maior, mel), info_away só fora da tela do Tiro, momento sem pílula (só o ícone voa).
+func _gold_and_away() -> void:
+	await _clear()
+	notice.notify("gold", "Cozinheiro nível 1: Faro!")
+	await process_frame
+	var art := toast.find_child("PillArt", true, false) as CanvasItem
+	check(notice.showing() == "gold" and art.self_modulate != Color.WHITE, "conquista usa a pílula dourada")
+	check(toast.size.y >= 52.0, "a conquista é um pouco maior (%s)" % str(toast.size))
+	await _clear()
+	main.call("show_screen", &"pet")
+	root.get_node("Events").emit_signal("notice_requested", "info_away", "Hora da comidinha!", "")
+	await process_frame
+	check(notice.showing() == "" , "na tela do Tiro o aviso de fome fica quieto")
+	main.call("show_screen", &"bag")
+	root.get_node("Events").emit_signal("notice_requested", "info_away", "Hora da comidinha!", "")
+	await process_frame
+	check(notice.showing() == "info" and text.text == "Hora da comidinha!", "fora da tela do Tiro o aviso de fome aparece")
+	main.call("show_screen", &"pet")
+	await _clear()
+	root.get_node("Events").emit_signal("moment_gained", "brave", "test")
+	await process_frame
+	check(notice.showing() == "", "o momento não mostra pílula de texto")
 	await _clear()

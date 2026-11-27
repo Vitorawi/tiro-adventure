@@ -15,6 +15,7 @@ func _frames() -> void:
 func _run() -> void:
 	state = root.get_node("GameState")
 	state.call("reset")
+	state.call("dev_belly_clock", false)  # a Barriga no relógio tem teste próprio: aqui vale a queda por hora
 	state.get("progress").seen.intro = true
 	var manager := root.get_node("SaveManager")
 	manager.call("set_puppy_illustrated", true)

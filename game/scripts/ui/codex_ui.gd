@@ -208,9 +208,15 @@ static func _board(model: Dictionary, live: SheetBuilder.LiveBox) -> Control:
 		area_bottom -= 12.0  # Álbum: a grade para acima do enfeite do canto de baixo do miolo
 	if foot != null:
 		area_bottom -= FOOT_H + 6.0
-	var area := _grid_area(view, model, Vector2(cream.size.x - SIDE_PAD * 2.0, area_bottom - top))
+	var side := SIDE_PAD
+	if bool(view.get("fixed", false)):
+		# Corpo fixo (Livro de receitas): fica todo dentro do papel, longe das bordas da moldura.
+		top += 6.0
+		area_bottom -= 16.0
+		pass
+	var area := _grid_area(view, model, Vector2(cream.size.x - side * 2.0, area_bottom - top))
 	board.add_child(area)
-	area.position = Vector2(cream.position.x + SIDE_PAD, top)
+	area.position = Vector2(cream.position.x + side, top)
 	if foot != null:
 		foot.name = "CodexFoot"
 		board.add_child(foot)
