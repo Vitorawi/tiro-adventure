@@ -313,7 +313,7 @@ func _layout() -> void:
 	if is_instance_valid(viewer):
 		var local := viewer.card_rect()
 		card = Rect2(viewer.global_position + local.position, local.size)
-	var bottom := screen.y - height - 90.0
+	var bottom := screen.y - height - 12.0  # pode cobrir as abas: durante a aula elas ficam travadas
 	var options: Array[float] = [top_y, hole.position.y - height - 8.0, hole.end.y + 8.0, bottom]
 	if not on_top:
 		options = [bottom, hole.end.y + 8.0, hole.position.y - height - 8.0, top_y]
@@ -343,6 +343,7 @@ func _focus_controls() -> void:
 		return
 	var focus: Control = null
 	match phase:
+		"open": focus = viewer.find_child("OpenCard", true, false) as Control
 		"reroll": focus = viewer.find_child("RerollButton", true, false) as Control
 		"upgrade": focus = viewer.find_child("UpgradeButton", true, false) as Control
 		"feature": focus = viewer.find_child("FeatureButton", true, false) as Control

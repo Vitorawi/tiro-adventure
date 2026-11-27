@@ -259,10 +259,22 @@ func _locate(lesson: Dictionary) -> Dictionary:
 			continue
 		if target in ["@inv_slot", "@inv_picker", "@inv_cook"] and not GameState.week.tutorial.get("invent_type_chosen", false):
 			continue
-		if lesson.id in ["coop", "market", "plots"] and target == "BuyItem":
-			var kit := main.find_child({"coop": "Buy_week_coop", "market": "Buy_week_pumpkin_seed", "plots": "Buy_week_plot"}[lesson.id], true, false)
-			if not is_instance_valid(kit) or not kit.get_meta("selected", false):
-				continue
+		if lesson.id in ["coop", "market", "plots"] and (target == "BuyItem" or stages[i].has("when")):
+			var kit_id: String = {"coop": "week_coop", "market": "week_pumpkin_seed", "plots": "week_plot"}[lesson.id]
+			var kit := main.find_child("Buy_" + kit_id, true, false)
+			var chosen: bool = is_instance_valid(kit) and bool(kit.get_meta("selected", false))
+			var broke := str(GameState.buy_shop_item_error(kit_id)).begins_with("Faltam")
+			match str(stages[i].get("when", "")):
+				"no_coins":
+					# Escolheu, mas não dá para pagar: a mão leva a Vender (sem prender a tela) em vez do Comprar.
+					if not chosen or not broke or not _target("Locked_BuyItem").has_area():
+						continue
+				"can_buy":
+					if broke:
+						continue
+				_:
+					if not chosen:
+						continue
 		if _target(target).has_area():
 			return {"step": i, "target": target}
 	return {}
@@ -329,7 +341,10 @@ func _update_copy() -> void:
 func _layout_week(target: Rect2, delta: float) -> void:
 	var screen := get_viewport_rect().size
 	if _veil.visible:
-		_layout_focus(target, screen)
+		var extra := Rect2()
+		if _shown.has("steps") and _shown.steps[step].has("also"):
+			extra = _target(str(_shown.steps[step].also))
+		_layout_focus(target, screen, extra)
 		var points := _gesture(target, str(_shown.steps[step].get("gesture", "tap"))) if _shown.has("steps") else [target.get_center() + Vector2(-7, 12), target.get_center()]
 		if _shown.has("steps") and str(_shown.steps[step].get("advance", "")) == "tap":
 			_hand.visible = false  # o toque é no "Entendi" do balão, não no destaque
@@ -470,7 +485,7 @@ func _special_target(id: String, behind: bool) -> Rect2:
 			return room.week_tutorial_rect(id, behind)
 	if id in ["buy_bed", "buy_stove", "buy_fridge"]:
 		# O "+" do presente (caminha ou fogão) na Casa (só com o Mapa aberto na Casa e sem folha por cima).
-		if not behind and (_sheet_open() or _minigame()):
+		if not behind and (_sheet_open() or _minigame() or _selector_open()):
 			return Rect2()
 		var house := main.find_child("World_house", true, false) as RoomView
 		if is_instance_valid(house) and house.is_visible_in_tree():
@@ -646,6 +661,12 @@ func _go_from_tip() -> void:
 		Places.go({"growth": true})
 	else:
 		Places.go(_shown.go)
+
+
+## Lista de lugares (Para onde vamos?) aberta por cima do mundo.
+func _selector_open() -> bool:
+	var selector := main.find_child("MapView", true, false) as Control
+	return is_instance_valid(selector) and selector.is_visible_in_tree()
 
 
 func _sheet_open() -> bool:

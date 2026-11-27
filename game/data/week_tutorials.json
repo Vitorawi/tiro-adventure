@@ -57,7 +57,8 @@
       "after_quest": "welcome",
       "npc": "lais",
       "point": true
-    },    {
+    },
+    {
       "id": "home_claim",
       "day": 1,
       "title": "Pegar o prêmio",
@@ -343,6 +344,14 @@
           "say": "Toque em Mapa."
         },
         {
+          "target": "MapButton",
+          "say": "Toque aqui para escolher o lugar."
+        },
+        {
+          "target": "WorldCard_house",
+          "say": "Toque na Casa: o fogão fica lá."
+        },
+        {
           "target": "@buy_stove",
           "say": "Toque no + do fogão."
         },
@@ -442,7 +451,14 @@
         },
         {
           "target": "BuyItem",
-          "say": "Agora toque em Comprar."
+          "say": "Agora toque em Comprar.",
+          "also": "Buy_week_pumpkin_seed"
+        },
+        {
+          "target": "NotebookTab_sell",
+          "say": "Faltam moedas para comprar. Venda o que você colheu em Vender e volte aqui.",
+          "when": "no_coins",
+          "veil": false
         }
       ],
       "done": "buy:week_pumpkin_seed",
@@ -460,12 +476,24 @@
       "text": "Com o prêmio da vovó, compre o canteiro extra na banca, em Comprar.",
       "steps": [
         {
+          "target": "NotebookTab_buy",
+          "say": "Toque em Comprar.",
+          "when": "can_buy"
+        },
+        {
           "target": "Buy_week_plot",
           "say": "Com o prêmio da vovó dá para comprar o canteiro extra. Escolha ele."
         },
         {
           "target": "BuyItem",
-          "say": "Agora toque em Comprar."
+          "say": "Agora toque em Comprar.",
+          "also": "Buy_week_plot"
+        },
+        {
+          "target": "NotebookTab_sell",
+          "say": "Faltam moedas para comprar. Venda o que você colheu em Vender e volte aqui.",
+          "when": "no_coins",
+          "veil": false
         }
       ],
       "done": "buy:week_plot",
@@ -487,6 +515,14 @@
           "say": "Toque em Mapa."
         },
         {
+          "target": "MapButton",
+          "say": "Toque aqui para escolher o lugar."
+        },
+        {
+          "target": "WorldCard_house",
+          "say": "Toque na Casa: a geladeira fica lá."
+        },
+        {
           "target": "@buy_fridge",
           "say": "Toque no + da geladeira."
         },
@@ -501,7 +537,8 @@
         "world": "house",
         "place": "buy:fridge"
       }
-    },    {
+    },
+    {
       "id": "invent",
       "day": 8,
       "title": "Inventar",
@@ -589,7 +626,14 @@
         },
         {
           "target": "BuyItem",
-          "say": "Confirme a compra."
+          "say": "Confirme a compra.",
+          "also": "Buy_week_coop"
+        },
+        {
+          "target": "NotebookTab_sell",
+          "say": "Faltam moedas para comprar. Venda o que você colheu em Vender e volte aqui.",
+          "when": "no_coins",
+          "veil": false
         },
         {
           "target": "KitAssemblyGo",

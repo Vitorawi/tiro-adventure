@@ -75,9 +75,21 @@ func _build_hand() -> void:
 	_veil.add_child(_hand)
 
 
-func _layout_focus(target: Rect2, screen: Vector2) -> Rect2:
+## `extra` (opcional) abre um segundo buraco no véu: algo que acompanha o alvo (ex.: o item escolhido junto do Comprar).
+func _layout_focus(target: Rect2, screen: Vector2, extra: Rect2 = Rect2()) -> Rect2:
 	var none := not target.has_area()
 	var hole := Rect2(screen * 0.5, Vector2.ZERO) if none else target.grow(6.0)
+	if not none and extra.has_area():
+		_cover([hole, extra.grow(6.0)], screen)
+	else:
+		_cover_one(hole, screen)
+	_highlight.visible = not none
+	_highlight.position = hole.position
+	_highlight.size = hole.size
+	return hole
+
+
+func _cover_one(hole: Rect2, screen: Vector2) -> void:
 	_rects[0].position = Vector2.ZERO
 	_rects[0].size = Vector2(screen.x, maxf(hole.position.y, 0.0))
 	_rects[1].position = Vector2(0, hole.end.y)
@@ -86,10 +98,62 @@ func _layout_focus(target: Rect2, screen: Vector2) -> Rect2:
 	_rects[2].size = Vector2(maxf(hole.position.x, 0.0), hole.size.y)
 	_rects[3].position = Vector2(hole.end.x, hole.position.y)
 	_rects[3].size = Vector2(maxf(screen.x - hole.end.x, 0.0), hole.size.y)
-	_highlight.visible = not none
-	_highlight.position = hole.position
-	_highlight.size = hole.size
-	return hole
+	for i in range(4, _rects.size()):
+		_rects[i].size = Vector2.ZERO
+
+
+## Véu com vários buracos: a tela vira uma grade pelas bordas dos buracos e cada faixa livre recebe um retângulo.
+func _cover(holes: Array[Rect2], screen: Vector2) -> void:
+	var xs: Array[float] = [0.0, screen.x]
+	var ys: Array[float] = [0.0, screen.y]
+	for hole: Rect2 in holes:
+		for x: float in [hole.position.x, hole.end.x]:
+			xs.append(clampf(x, 0.0, screen.x))
+		for y: float in [hole.position.y, hole.end.y]:
+			ys.append(clampf(y, 0.0, screen.y))
+	xs.sort()
+	ys.sort()
+	var used := 0
+	for row in ys.size() - 1:
+		var y0 := ys[row]
+		var y1 := ys[row + 1]
+		if y1 - y0 <= 0.0:
+			continue
+		var run_start := -1.0
+		for col in xs.size():
+			var free := false
+			if col < xs.size() - 1 and xs[col + 1] > xs[col]:
+				var center := Vector2((xs[col] + xs[col + 1]) * 0.5, (y0 + y1) * 0.5)
+				free = true
+				for hole: Rect2 in holes:
+					if hole.has_point(center):
+						free = false
+						break
+			elif col < xs.size() - 1:
+				continue  # coluna de largura zero: não interrompe a faixa
+			if free and run_start < 0.0:
+				run_start = xs[col]
+			elif not free and run_start >= 0.0:
+				_veil_rect(used, Rect2(run_start, y0, xs[col] - run_start, y1 - y0))
+				used += 1
+				run_start = -1.0
+		if run_start >= 0.0:
+			_veil_rect(used, Rect2(run_start, y0, screen.x - run_start, y1 - y0))
+			used += 1
+	for i in range(used, _rects.size()):
+		_rects[i].size = Vector2.ZERO
+
+
+func _veil_rect(index: int, rect: Rect2) -> void:
+	while index >= _rects.size():
+		var more := ColorRect.new()
+		more.name = "Veil_%d" % _rects.size()
+		more.color = _rects[0].color
+		more.mouse_filter = _rects[0].mouse_filter
+		_veil.add_child(more)
+		_rects.append(more)
+	_rects[index].position = rect.position
+	_rects[index].size = rect.size
 
 
 func _place_above_siblings() -> void:
