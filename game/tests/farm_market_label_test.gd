@@ -40,6 +40,9 @@ func _run() -> void:
 	for actor: Node2D in room.get("_npcs"):
 		actor.set_process(false)
 	(room.get("_dog") as Node2D).set_process(false)
+	# O Tiro anda por corrotina (set_process não o para): dorme longe da banca, para não cobrir a etiqueta.
+	state.dog.sleeping = true
+	var dog_node := room.get("_dog") as Node2D
 	var market: Label
 	for tag: Label in room.get("_labels"):
 		if tag.get_meta("tap_data").get("id", "") == "early_market": market = tag
@@ -50,6 +53,8 @@ func _run() -> void:
 		await settle()
 		room.call("recenter")
 		await settle()
+		dog_node.position = room.call("nearest_floor_point", Vector2(800, 700))  # longe da banca
+		room.call("_sort_walkers")
 		check(not market.is_visible_in_tree(), "venda sem nome fixo")
 		var hold_point: Vector2 = (room.get("_content") as Control).position + (market.get_meta("anchor") as Vector2) * float(room.get("_zoom"))
 		room.set("_press_position", hold_point)
@@ -59,10 +64,13 @@ func _run() -> void:
 		if not before:
 			# Faixa da fachada no próprio fundo da sala, abaixo do telhado e acima dos canteiros.
 			var anchor: Vector2 = market.get_meta("anchor")
-			check(Rect2(840, 1320, 120, 90).has_point(anchor), "âncora no meio da fachada")
 			var zone: Dictionary = market.get_meta("tap_data")
 			var polygon := PackedVector2Array()
 			for point: Array in zone.polygon: polygon.append(Vector2(point[0], point[1]))
+			# A etiqueta fica no miolo da banca desenhada no fundo (a zona tocável é o contorno dela).
+			var stall_box := Rect2(polygon[0], Vector2.ZERO)
+			for point: Vector2 in polygon: stall_box = stall_box.expand(point)
+			check(stall_box.grow(-stall_box.size.x * 0.15).has_point(anchor), "âncora no meio da fachada")
 			check(Geometry2D.is_point_in_polygon(anchor, polygon), "área tocável acompanha a etiqueta")
 			check(Rect2(Vector2.ZERO, root.get_visible_rect().size).encloses(bounds), "venda dentro da tela")
 			for other: Label in room.get("_labels"):

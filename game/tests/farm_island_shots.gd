@@ -63,6 +63,11 @@ func _close_up(pivot: Vector2, zoom: float, shot_name: String) -> void:
 	await create_timer(1.0).timeout
 
 
+func _object_pos(id: String) -> Vector2:
+	var sp := _room().find_child(id, true, false) as Node2D
+	return sp.position if sp != null else Vector2(1300, 1100)
+
+
 func _focus(point: Vector2, shot_name: String) -> void:
 	var view := _room()
 	var there: Vector2 = view.call("world_to_screen", point)
@@ -81,6 +86,7 @@ func _run() -> void:
 	state = root.get_node("GameState")
 	state.call("reset")
 	state.get("progress").seen["intro"] = true
+	state.get("progress").seen["npc_intro:bloblo"] = true
 	Motion.reduced = true
 	main = load("res://scenes/main/main.tscn").instantiate()
 	root.add_child(main)
@@ -107,13 +113,19 @@ func _run() -> void:
 			state.call("buy_animal", "chicken_brown" if station == "chicken_coop" else "cow_brown")
 	await create_timer(0.8).timeout
 	await _save("b_tudo_construido")
+	_room().call("zoom_to", Vector2(180, 400), 0.4, 0.01)
+	await create_timer(0.6).timeout
+	await _save("b2_tudo_afastado")
+	_room().call("recenter")
+	await create_timer(1.0).timeout
 	await _close_up(Vector2(300, 470), 1.0, "d_construido_perto_direita")
 	await _close_up(Vector2(60, 440), 1.0, "e_construido_perto_esquerda")
 	for n: String in ["hen_1", "hen_2", "cow_1", "cow_2"]:
 		var sp: Sprite2D = _room().find_child(n, true, false)
 		print("DBG ", n, " vis=", sp.visible, " pos=", sp.position, " a=", sp.self_modulate.a, " scale=", sp.scale, " z=", sp.z_index, " tex=", sp.texture.resource_path, " off=", sp.offset)
-	await _focus(Vector2(1080, 1150), "f_galinheiro")
-	await _focus(Vector2(1040, 1320), "g_curral")
+	await _focus(_object_pos("chicken_coop"), "f_galinheiro")
+	await _focus(_object_pos("cow_barn"), "g_curral")
+	await _focus(_object_pos("mill"), "g2_moinho_laticinios")
 	var gh_crop := ""
 	for id: String in root.get_node("Database").get("crops"):
 		if str(root.get_node("Database").get("crops")[id].get("greenhouse", "")) == "only":
@@ -124,11 +136,11 @@ func _run() -> void:
 	state.call("plot", 9)["ready_at"] = 0.0
 	state.call("plot", 10)["ready_at"] = 0.0
 	await create_timer(1.0).timeout
-	await _focus(Vector2(700, 1380), "h_estufa")
+	await _focus(_object_pos("greenhouse"), "h_estufa")
 	var gh: Sprite2D = _room().find_child("greenhouse", true, false)
 	print("DBG tap ", _room().call("_on_object_tapped", "place:greenhouse", gh))
 	await create_timer(1.0).timeout
-	await _focus(Vector2(700, 1380), "i_estufa_depois")
+	await _focus(_object_pos("greenhouse"), "i_estufa_depois")
 	# O pomar agora é dentro da estufa: a rota de maçãs aparece no balão da estufa.
 	state.get("progress").owned["orchard"] = true
 	print("DBG activity ", state.call("start_activity", "orchard_harvest") if state.has_method("start_activity") else "sem start_activity")

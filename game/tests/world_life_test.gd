@@ -173,7 +173,7 @@ func _check_paths(room: Control) -> void:
 			for step in range(steps + 1):
 				var point := path[i - 1].lerp(path[i], float(step) / steps)
 				for area: PackedVector2Array in obstacles:
-					check(not Geometry2D.is_point_in_polygon(point, area), "Caminho contorna construções compradas em " + str(room.get("room_id")))
+					check(not room.get_script().call("point_in_polygon", point, area), "Caminho contorna construções compradas em " + str(room.get("room_id")))
 		start = target
 
 

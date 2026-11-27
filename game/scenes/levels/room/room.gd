@@ -337,25 +337,115 @@ func _build_navigation() -> void:
 				continue
 			blocked.append(_polygon(data["footprint"]))
 
+	# Caixa de cada polígono: só testa o polígono quando o ponto cai dentro dela (mapas grandes, como o Sítio,
+	# têm muitas células e dezenas de obstáculos).
+	var boxes: Array[Rect2] = []
+	for area in blocked:
+		boxes.append(_poly_box(area))
+	var floor_box := _poly_box(floor_area)
+	var is_open := func(sample: Vector2) -> bool:
+		if not floor_box.has_point(sample) or not point_in_polygon(sample, floor_area):
+			return false
+		for i in blocked.size():
+			if boxes[i].has_point(sample) and point_in_polygon(sample, blocked[i]):
+				return false
+		return true
 	_walkable.clear()
-	for x in cells.x:
-		for y in cells.y:
-			var cell := Vector2i(x, y)
-			var center := _nav.get_point_position(cell)
-			var solid := false
-			# Margem das patas nos mapas externos; inclui os cantos da célula
-			# para os segmentos diagonais não cortarem as bordas dos obstáculos.
-			for offset: Vector2 in [Vector2.ZERO, Vector2(-margin, -margin), Vector2(margin, -margin), Vector2(-margin, margin), Vector2(margin, margin)]:
-				var sample := center + offset
-				solid = not Geometry2D.is_point_in_polygon(sample, floor_area)
-				for area in blocked:
-					solid = solid or Geometry2D.is_point_in_polygon(sample, area)
-				if solid:
-					break
-			_nav.set_point_solid(cell, solid)
-			if not solid:
-				_walkable.append(cell)
+	if is_equal_approx(margin, NAV_CELL):
+		# Margem de uma célula: os pontos de amostra caem sobre os centros das células vizinhas, então cada centro é
+		# testado uma vez só. `navigation_full_cell` exige também os vizinhos dos lados (bloco 3x3), para que nem um
+		# obstáculo pequeno (placa, poste) fique entre dois pontos testados e seja cortado na diagonal.
+		var open := PackedByteArray()
+		open.resize(cells.x * cells.y)
+		for x in cells.x:
+			for y in cells.y:
+				open[x * cells.y + y] = 1 if is_open.call(_nav.get_point_position(Vector2i(x, y))) else 0
+		var pattern: Array[Vector2i] = [Vector2i.ZERO, Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)]
+		if bool(_room.get("navigation_full_cell", false)):
+			pattern.append_array([Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN])
+		for x in cells.x:
+			for y in cells.y:
+				var cell := Vector2i(x, y)
+				var solid := false
+				for step in pattern:
+					var n := cell + step
+					if n.x < 0 or n.y < 0 or n.x >= cells.x or n.y >= cells.y or open[n.x * cells.y + n.y] == 0:
+						solid = true
+						break
+				_nav.set_point_solid(cell, solid)
+				if not solid:
+					_walkable.append(cell)
+	else:
+		var offsets: Array[Vector2] = [Vector2.ZERO, Vector2(-margin, -margin), Vector2(margin, -margin), Vector2(-margin, margin), Vector2(margin, margin)]
+		for x in cells.x:
+			for y in cells.y:
+				var cell := Vector2i(x, y)
+				var center := _nav.get_point_position(cell)
+				var solid := false
+				# Margem das patas nos mapas externos; inclui os cantos da célula
+				# para os segmentos diagonais não cortarem as bordas dos obstáculos.
+				for offset: Vector2 in offsets:
+					if not is_open.call(center + offset):
+						solid = true
+						break
+				_nav.set_point_solid(cell, solid)
+				if not solid:
+					_walkable.append(cell)
+	if bool(_room.get("main_floor_only", false)):
+		_keep_main_floor()
 	navigation_revision += 1
+
+
+static func _poly_box(poly: PackedVector2Array) -> Rect2:
+	var box := Rect2(poly[0], Vector2.ZERO)
+	for point in poly:
+		box = box.expand(point)
+	return box
+
+
+## Ponto dentro do polígono. O Geometry2D erra a conta quando a reta interna do teste passa exatamente por um
+## vértice (polígonos com muitos vértices, como o contorno do rio): um ponto longe pode sair "dentro". Três
+## pontinhos quase iguais votam, e o erro de um só não decide.
+static func point_in_polygon(point: Vector2, poly: PackedVector2Array) -> bool:
+	var a := Geometry2D.is_point_in_polygon(point, poly)
+	var b := Geometry2D.is_point_in_polygon(point + Vector2(0.0137, 0.0071), poly)
+	if a == b:
+		return a
+	return Geometry2D.is_point_in_polygon(point + Vector2(-0.0093, 0.0119), poly)
+
+
+## Só a maior região conectada do chão fica andável: frestas e cantos isolados (que dependem do que já foi
+## construído) viram parede, assim o Tiro e os NPCs nunca sorteiam um destino onde ficariam presos.
+func _keep_main_floor() -> void:
+	var free := {}
+	for cell in _walkable:
+		free[cell] = true
+	var best: Dictionary = {}
+	var seen := {}
+	for cell in _walkable:
+		if seen.has(cell):
+			continue
+		var comp := {cell: true}
+		var stack: Array[Vector2i] = [cell]
+		seen[cell] = true
+		while not stack.is_empty():
+			var c: Vector2i = stack.pop_back()
+			for n: Vector2i in [c + Vector2i.RIGHT, c + Vector2i.LEFT, c + Vector2i.DOWN, c + Vector2i.UP]:
+				if free.has(n) and not seen.has(n):
+					seen[n] = true
+					comp[n] = true
+					stack.append(n)
+		if comp.size() > best.size():
+			best = comp
+	if best.size() == _walkable.size():
+		return
+	var kept: Array[Vector2i] = []
+	for cell in _walkable:
+		if best.has(cell):
+			kept.append(cell)
+		else:
+			_nav.set_point_solid(cell, true)
+	_walkable = kept
 
 
 func _nearest_walkable(point: Vector2) -> Vector2i:
@@ -405,6 +495,9 @@ func _spawn_objects() -> void:
 		if data.has("touch_minimum"):
 			sprite.set_meta("touch_minimum", float(data.touch_minimum))
 		sprite.set_meta("decoration", data.get("decoration", false))
+		# Recorte de algo pintado no fundo (casa, árvore): só serve para o Tiro passar atrás; o toque vai para o que
+		# estiver embaixo (zona da casa, banca...).
+		sprite.set_meta("pass_tap", data.get("pass_tap", false))
 		if data.has("animal_station"):
 			if _room.get("depth_sort", false):
 				sprite.z_index = 1  # o pátio desenhado na construção fica atrás dos bichos
@@ -989,19 +1082,20 @@ func _target_at(point: Vector2) -> Dictionary:
 			var balloon := sprite.get_node(marker_name) as WorldBalloon
 			if balloon.is_visible_in_tree() and balloon.hit_rect.has_point((point - sprite.position) / sprite.scale): return _named_target(str(sprite.get_meta("action", "")), sprite)
 	for region: Dictionary in _room.get("regions", []):
-		if region_error(region) != "" and Geometry2D.is_point_in_polygon(point, _polygon(region.polygon)):
+		if region_error(region) != "" and point_in_polygon(point, _polygon(region.polygon)):
 			return _named_target(str(region.get("action", "")), null, region)
 	for npc: NpcWorld in _npcs:
-		if npc.visible and npc.hit_test(point): return _named_target("npc:" + npc.npc_id)
-	if _dog and _dog.hit_test(point): return {}
+		if npc.visible and _walker_hit(npc, point): return _named_target("npc:" + npc.npc_id)
+	if _dog and _walker_hit(_dog, point): return {}
 	var ordered := _objects.duplicate()
 	ordered.sort_custom(func(a: Sprite2D, b: Sprite2D) -> bool: return a.position.y > b.position.y)
 	for sprite: Sprite2D in ordered:
+		if sprite.get_meta("pass_tap", false): continue
 		if sprite.has_meta("upgrade") and not GameState.has_upgrade(sprite.get_meta("upgrade")): continue
 		if _hits(sprite, point - sprite.position) or (sprite.has_node("Crop") and _hits(sprite.get_node("Crop"), point - sprite.position - sprite.get_node("Crop").position)):
 			return _named_target(str(sprite.get_meta("action", "")), sprite)
 	for zone: Dictionary in _room.get("zones", []):
-		if Geometry2D.is_point_in_polygon(point, _polygon(zone.polygon)):
+		if point_in_polygon(point, _polygon(zone.polygon)):
 			return _named_target(str(zone.get("action", "")), null, zone)
 	var nearby := _small_touch_target(point)
 	if nearby:
@@ -1349,19 +1443,50 @@ func _sort_walkers() -> void:
 		if walker == _dog and _dog.get("_on_sofa"):
 			continue  # dormindo no sofá/caminha o Tiro já é desenhado na frente (z_index próprio)
 		var p := walker.position
+		# Caixa do corpo (acima das patas): só conta o desenho que de fato cobre essa área.
+		var tall := 34.0 * float(_room.get("dog_scale", 1.0)) / 0.7 if walker == _dog else 56.0 * float(_room.get("dog_scale", 1.0)) / 0.7
+		var body := Rect2(p.x - 12.0, p.y - tall, 24.0, tall)
 		var in_front := false
 		var behind := false
 		for sprite in _depth_sprites:
 			if not sprite.visible or sprite.self_modulate.a < 0.5:
 				continue
-			var rect := Rect2(sprite.position + sprite.offset, sprite.texture.get_size())
-			if p.x < rect.position.x - 16.0 or p.x > rect.end.x + 16.0 or p.y < rect.position.y or p.y - 44.0 > rect.end.y:
+			var rect := Rect2(sprite.position + sprite.offset * sprite.scale, sprite.texture.get_size() * sprite.scale)
+			if not rect.intersects(body) or not _covers(sprite, body):
 				continue
 			if p.y > _front_y(sprite.get_meta("depth_footprint"), p.x):
 				in_front = true
 			else:
 				behind = true
 		walker.z_index = 1 if in_front and not behind else 0
+
+
+## Toque em quem anda (Tiro, personagem): não vale onde ele está escondido atrás de um desenho (casa, banca,
+## construção); ali o toque é do desenho que aparece na tela.
+func _walker_hit(walker: Node2D, point: Vector2) -> bool:
+	if not walker.call("hit_test", point):
+		return false
+	if walker.z_index > 0:
+		return true  # desenhado na frente de tudo
+	for sprite in _depth_sprites:
+		if not sprite.visible or sprite.self_modulate.a < 0.5:
+			continue
+		var local := (point - sprite.position) / sprite.scale
+		if not sprite.get_rect().has_point(local) or not sprite.is_pixel_opaque(local):
+			continue
+		if walker.position.y < sprite.position.y and walker.position.y <= _front_y(sprite.get_meta("depth_footprint"), walker.position.x):
+			return false  # o desenho está na frente dele neste ponto
+	return true
+
+
+## O desenho tem pixel opaco em algum ponto de uma grade 3x3 da caixa do corpo?
+func _covers(sprite: Sprite2D, body: Rect2) -> bool:
+	for fx: float in [0.1, 0.5, 0.9]:
+		for fy: float in [0.1, 0.5, 0.9]:
+			var local := (body.position + body.size * Vector2(fx, fy) - sprite.position) / sprite.scale
+			if sprite.get_rect().has_point(local) and sprite.is_pixel_opaque(local):
+				return true
+	return false
 
 
 ## Y da borda da frente de um polígono (o ponto mais baixo) na coluna x; fora do polígono vale o da ponta mais próxima.
@@ -1485,7 +1610,7 @@ func _handle_tap(point: Vector2) -> bool:
 	if _tap_balloon(point): return true
 	# A etiqueta de Amigos pode cruzar o visitante; tocar no cachorro dá o petisco direto.
 	for npc: NpcWorld in _npcs:
-		if npc.visible and not npc.friend_visit and npc.friend_id != "" and GameState.friend_unlocked(npc.friend_id) and npc.hit_test(point):
+		if npc.visible and not npc.friend_visit and npc.friend_id != "" and GameState.friend_unlocked(npc.friend_id) and _walker_hit(npc, point):
 			npc.react()
 			FriendUi.open(npc.friend_id)
 			return true
@@ -1497,7 +1622,7 @@ func _handle_tap(point: Vector2) -> bool:
 				Events.sheet_requested.emit(_purchase_title(str(data.upgrade), str(data.get("label", "Abrir área")).get_slice(" · ", 0)), ProgressionUi.purchase(data.upgrade))
 				return true
 	for region: Dictionary in _room.get("regions", []):
-		if region_error(region) != "" and Geometry2D.is_point_in_polygon(point, _polygon(region.polygon)):
+		if region_error(region) != "" and point_in_polygon(point, _polygon(region.polygon)):
 			if region.has("action"):
 				Places.run(world_id, region.action)
 			elif region.has("upgrade"):
@@ -1506,7 +1631,7 @@ func _handle_tap(point: Vector2) -> bool:
 				Places.run(world_id, region.get("action", ""))
 			return true
 	for npc: NpcWorld in _npcs:
-		if npc.visible and npc.hit_test(point):
+		if npc.visible and _walker_hit(npc, point):
 			if npc.friend_visit:
 				var reason := GameState.collect_friend_visit(npc.friend_id)
 				if reason != "":
@@ -1516,7 +1641,7 @@ func _handle_tap(point: Vector2) -> bool:
 			else:
 				Places.run(world_id, "npc:" + npc.npc_id)
 			return true
-	if _dog and _dog.hit_test(point):
+	if _dog and _walker_hit(_dog, point):
 		GameState.note_dog_tapped(world_id)
 		Events.screen_requested.emit(&"pet")
 		return true
@@ -1524,6 +1649,8 @@ func _handle_tap(point: Vector2) -> bool:
 	var ordered := _objects.duplicate()
 	ordered.sort_custom(func(a: Sprite2D, b: Sprite2D) -> bool: return a.position.y > b.position.y)
 	for sprite: Sprite2D in ordered:
+		if sprite.get_meta("pass_tap", false):
+			continue
 		if sprite.has_meta("upgrade") and not GameState.has_upgrade(sprite.get_meta("upgrade")):
 			if sprite.get_meta("decoration", false) or not sprite.get_node("PurchaseMarker").visible:
 				continue
@@ -1543,7 +1670,7 @@ func _handle_tap(point: Vector2) -> bool:
 			return true
 	# Zonas: partes tocáveis do próprio fundo (ex.: porta).
 	for zone: Dictionary in _room.get("zones", []):
-		if Geometry2D.is_point_in_polygon(point, _polygon(zone["polygon"])):
+		if point_in_polygon(point, _polygon(zone["polygon"])):
 			_on_object_tapped(zone["action"])
 			return true
 	var nearby := _small_touch_target(point)

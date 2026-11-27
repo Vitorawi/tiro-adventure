@@ -374,16 +374,17 @@ func _labels() -> void:
 func _sheet_lift() -> void:
 	var farm := await _enter("farm")
 	farm.call("recenter")
-	var coop: Sprite2D = farm.find_child("chicken_coop", true, false)
+	# Objeto da parte de baixo do Sítio (a estufa, perto da lagoa): no enquadramento inicial ele fica onde o painel cobre.
+	var coop: Sprite2D = farm.find_child("greenhouse", true, false)
 	state.call("dev_add_coins", 99999)
 	var middle := coop.position - Vector2(0, coop.texture.get_height() * coop.scale.y / 2.0)
 	var y_before := _on_screen(farm, middle).y
 	# O deslocamento continua para painéis de consulta; o toque comum agora usa a bandeja.
 	farm.call("_lift_for_sheet", coop)
-	load("res://scripts/ui/places.gd").call("open", "farm", "chicken_coop", true)
+	load("res://scripts/ui/places.gd").call("open", "farm", "greenhouse", true)
 	await process_frame
 	var y_after := _on_screen(farm, middle).y
-	check(y_before > farm.size.y * 0.45, "o galinheiro ficaria atrás do painel (y %d)" % int(y_before))
+	check(y_before > farm.size.y * 0.45, "a estufa ficaria atrás do painel (y %d)" % int(y_before))
 	check(y_after < y_before, "a câmera sobe o objeto quando o painel o cobriria (y %d → %d)" % [int(y_before), int(y_after)])
 	check(y_after <= farm.size.y * 0.45 + 1.0 or y_after <= y_before - 20.0, "objeto acima do painel")
 	root.get_node("Events").emit_signal("sheet_close_requested")

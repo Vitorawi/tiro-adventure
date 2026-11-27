@@ -213,8 +213,11 @@ func dock() -> Control:
 func open_dock(index: int) -> Control:
 	farm.call("close_tray")
 	farm.call("open_plot_tray", index)
-	await process_frame
-	await process_frame
+	# canteiro perto da borda: a câmera desliza antes de o menu abrir
+	for i in 60:
+		await process_frame
+		if dock() != null:
+			break
 	return dock()
 
 

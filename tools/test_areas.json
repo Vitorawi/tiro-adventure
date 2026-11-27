@@ -159,6 +159,7 @@
     "silk_test",
     "recipe_help_test",
     "farm_market_label_test",
+    "farm_walk_test",
     "item_sources_test",
     "festival_test",
     "test_circuit_selftest",
@@ -521,7 +522,8 @@
         "game/tests/garden_test.gd",
         "game/tests/tray_test.gd",
         "game/tests/flavors_test.gd",
-        "game/tests/farm_market_label_test.gd"
+        "game/tests/farm_market_label_test.gd",
+        "game/tests/farm_walk_test.gd"
       ],
       "tests": [
         "recipe_book_test",
@@ -536,7 +538,8 @@
         "farm_dock_test",
         "tray_test",
         "flavors_test",
-        "farm_market_label_test"
+        "farm_market_label_test",
+        "farm_walk_test"
       ]
     },
     "fishing": {
