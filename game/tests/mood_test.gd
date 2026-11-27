@@ -145,10 +145,7 @@ func ui_checks() -> void:
 	for i in 8: await process_frame
 	var hud: Control = main.get_node("TopBar")
 	hud.refresh(false)
-	check(hud.get_node("AvatarGroup/AnimatedBadge").visible, "HUD mostra selo Animado")
-	var badge: Control = hud.get_node("AvatarGroup/AnimatedBadge")
-	check(badge is PanelContainer and badge.size == Vector2(18, 18), "selo Animado é disco compacto de 18 px: tamanho %s, mínimo %s" % [badge.size, badge.get_combined_minimum_size()])
-	check(not badge.find_children("*", "TextureRect", true, false).is_empty(), "selo contém estrela vetorial")
+	check(hud.get_node_or_null("AvatarGroup/AnimatedBadge") == null, "sem estrelinha amarela no avatar (Animado só no toque)")
 	var pop: Control = hud.show_level_popover()
 	for i in 8: await process_frame
 	var help: Label = pop.find_child("AnimatedHelp", true, false)
@@ -164,7 +161,6 @@ func ui_checks() -> void:
 	state.dog.needs.hunger = 40
 	state._changed()
 	hud.refresh(false)
-	check(not hud.get_node("AvatarGroup/AnimatedBadge").visible, "HUD retira selo quando pede")
 	main.queue_free()
 	await process_frame
 

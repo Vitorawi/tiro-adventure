@@ -198,19 +198,9 @@ static func period_disc(period: String, state: String, px: float = DISC, pulse: 
 ## Potinho do dia, junto ao avatar: só os dois discos (sol e lua), pequenos, no canto de baixo à direita do retrato,
 ## sem pílula de fundo, para a carinha do Tiro aparecer inteira. Tocar abre a folha Hoje (alvo 56×44).
 static func day_button() -> Button:
-	var button := BagUi.plain_button(open_today)
-	button.name = "MealDay"
-	button.custom_minimum_size = Vector2(56, 44)
-	button.size = Vector2(56, 44)
-	button.focus_mode = Control.FOCUS_NONE
-	var row := UiKit.hbox(2)
-	row.name = "Discs"
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	row.alignment = BoxContainer.ALIGNMENT_END
-	row.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	row.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	row.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	button.add_child(row)
+	var button := _corner_button("MealDay")
+	# A lua fica no outro canto do retrato: botão filho (o HUD posiciona com `place_day`), mesmo toque.
+	button.add_child(_corner_button("MealDayMoon"))
 	# O tempo passa sem mudar o estado do jogo: o potinho se confere sozinho de vez em quando.
 	var timer := Timer.new()
 	timer.name = "Tick"
@@ -218,13 +208,37 @@ static func day_button() -> Button:
 	timer.autostart = true
 	timer.timeout.connect(func() -> void: sync_day(button))
 	button.add_child(timer)
+	return button
+
+
+## Um cantinho tocável de 44×44 com um disco no meio (o sol no MealDay, a lua no MealDayMoon).
+static func _corner_button(node_name: String) -> Button:
+	var button := BagUi.plain_button(open_today)
+	button.name = node_name
+	button.custom_minimum_size = Vector2(44, 44)
+	button.size = Vector2(44, 44)
+	button.focus_mode = Control.FOCUS_NONE
+	var row := CenterContainer.new()
+	row.name = "Discs"
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	button.add_child(row)
 	Motion.press(button)
 	return button
 
 
+## Põe o sol com o centro em `sun` e a lua com o centro em `moon` (coordenadas do pai do MealDay).
+static func place_day(button: Button, sun: Vector2, moon: Vector2) -> void:
+	button.position = sun - button.size / 2.0
+	var moon_button := button.get_node_or_null("MealDayMoon") as Control
+	if moon_button != null:
+		moon_button.position = moon - sun + button.size / 2.0 - moon_button.size / 2.0
+
+
 ## Atualiza os dois discos (chamado pelo HUD a cada refresh). Só refaz quando o desenho muda.
 static func sync_day(button: Button) -> void:
-	var row := button.get_node_or_null("Discs") as HBoxContainer
+	var row := button.get_node_or_null("Discs") as Control
+	var moon_button := button.get_node_or_null("MealDayMoon") as Control
 	if row == null or not GameState.food_clock_on():
 		return
 	var asking := asking_period()
@@ -238,12 +252,14 @@ static func sync_day(button: Button) -> void:
 	if str(button.get_meta("sig", "")) == signature:
 		return
 	button.set_meta("sig", signature)
-	for child in row.get_children():
-		row.remove_child(child)
-		child.queue_free()
+	var rows: Array[Control] = [row, moon_button.get_node("Discs") as Control if moon_button != null else row]
+	for target: Control in rows:
+		for child in target.get_children():
+			target.remove_child(child)
+			child.queue_free()
 	var order := _periods()
 	for i in order.size():
-		row.add_child(period_disc(str(order[i]), states[i], HUD_DISC, true))
+		rows[mini(i, 1)].add_child(period_disc(str(order[i]), states[i], HUD_DISC, true))
 	button.set_meta("state", "asking" if asking != "" else "calm")
 	button.tooltip_text = ""
 

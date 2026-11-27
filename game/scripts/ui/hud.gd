@@ -45,7 +45,6 @@ var _coins_shown: int = 0
 var _count_tween: Tween
 var _ring_tween: Tween
 var _growth_alert: Button
-var _animated_badge: Control
 var _ask_icon: TextureRect
 var _profile: Button
 var _profile_fill: NinePatchRect
@@ -145,15 +144,9 @@ func _build_avatar() -> void:
 	_avatar_group.add_child(_ask_icon)
 	# Reloginho das refeições: abre a folha "Hoje" (E01c).
 	_meal_clock = MealUi.day_button()
-	# Sol e lua no canto de baixo à direita do retrato (passam um pouco da moldura), sem cobrir a carinha.
-	_meal_clock.position = Vector2(AVATAR_SIZE.x - 38.0, AVATAR_SIZE.y - 40.0)
 	_avatar_group.add_child(_meal_clock)
-	_animated_badge = UiKit.spark(18)
-	_animated_badge.name = "AnimatedBadge"
-	_animated_badge.position = Vector2(2.0, AVATAR_SIZE.y - 24.0)  # canto de baixo à esquerda: a direita é do sol e da lua
-	_animated_badge.size = Vector2(18, 18)
-	_animated_badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_avatar_group.add_child(_animated_badge)
+	# Sol no canto de baixo à esquerda do retrato, lua no canto de baixo à direita: a carinha fica livre.
+	MealUi.place_day(_meal_clock, Vector2(18.0, AVATAR_SIZE.y - 8.0), Vector2(AVATAR_SIZE.x - 18.0, AVATAR_SIZE.y - 8.0))
 	# Mantida só por compatibilidade (testes e ferramentas leem); a placa mostra o progresso.
 	xp_bar = ProgressBar.new()
 	xp_bar.name = "XpBar"
@@ -360,7 +353,6 @@ func _set_fill(fraction: float) -> void:
 
 ## Ícone do que o Tiro pede: o desejo do balão, senão a necessidade que está pedindo.
 func _refresh_ask() -> void:
-	_animated_badge.visible = GameState.tiro_animated()
 	var texture: Texture2D = null
 	if not GameState.dog.sleeping and not GameState.walking():
 		var wish := GameState.balloon_wish()
