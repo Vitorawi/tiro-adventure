@@ -252,7 +252,10 @@
         "hidden": true,
         "requirements": {
           "story_day": 4
-        }
+        },
+        "upgrades": [
+          "chicken_coop_2"
+        ]
       },
       "cow_barn": {
         "name": "Curral",
@@ -266,7 +269,10 @@
           "owned": [
             "farm"
           ]
-        }
+        },
+        "upgrades": [
+          "cow_barn_2"
+        ]
       },
       "mill": {
         "name": "Moinho",

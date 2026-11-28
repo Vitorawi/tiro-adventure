@@ -105,6 +105,11 @@ func reset_world_state() -> void:
 		state.get("stations")[id].queue.clear()
 	state.get("inventory").call("from_dict", {})
 	state.set("animals", {})
+	state.call("finish_fishing_tutorial")  # a aula da pesca começa sozinha no Sítio e fecha bandeja/mexe na câmera
+	if main != null:
+		var guide := main.find_child("AnglerTutorial", true, false)
+		if guide != null:
+			guide.queue_free()
 
 
 func add(item: String, amount: int) -> void:
@@ -299,22 +304,23 @@ func _test_animal_spaces() -> void:
 	state.call("from_dict", saved)
 	var farm := await enter("farm")
 	var current := await tap(farm, "place:chicken_coop", "chicken_coop")
-	var herd: Control = current.call("find_in_panel", "Herd")
-	check(herd != null and herd.get_child_count() == 3, "três animais com três colunas")
+	var herd: Control = current.call("find_in_panel", "AnimalPen")
+	check(herd != null and herd.get_child_count() == 4 and herd.find_child("AnimalSpaceLocked_3", true, false) != null, "três animais e um lugar livre para comprar")
 	for i in 3:
 		var dot: Control = current.call("find_in_panel", "Slot_%d" % i)
-		check(dot != null and dot.get_parent().name == "Animal_%d" % i, "espaço embaixo do animal %d" % i)
-		check(dot.get("state") == ("busy" if i == 2 else "empty"), "só a ruiva alimentada produz; novas ficam vazias após recarga")
-	var buy: Button = current.call("find_in_panel", "BuyAnimals")
-	check(buy != null and buy.get_parent().get_child(-1) == buy, "Comprar animais é o último botão")
+		check(dot != null and dot.get_parent().get_parent().name == "Animal_%d" % i, "estado dentro da ficha do animal %d" % i)
+		check(dot.get("state") == ("busy" if i == 2 else "feed"), "só a ruiva alimentada produz; novas ficam livres (ração apagada) após recarga")
+	var buy: Button = current.call("find_in_panel", "AnimalSpaceLocked_3")
+	check(buy != null, "o lugar livre compra animais")
+	check(current.call("find_in_panel", "BuyAnimals") == null, "sem o rodapé Comprar animais")
 	sheet_titles.clear()
 	buy.pressed.emit()
 	await frames()
-	check(sheet_titles == ["Comprar animais"], "rodapé abre a loja sem Ver tudo")
+	check(sheet_titles == ["Comprar animais"], "a ficha do lugar livre abre a loja sem Ver tudo")
 	events.emit_signal("sheet_close_requested")
 	state.call("dev_finish_timers")
 	check(state.call("collect", "chicken_coop").get("egg", 0) == 2, "animais novos não duplicam a produção antiga")
-	check(state.call("cook", "eggs") == "", "próxima alimentação inclui as três")
+	check(state.call("cook_many", "eggs", 3) == "", "próxima alimentação inclui as três")
 	current = await tap(farm, "place:chicken_coop", "chicken_coop")
 	for i in 3:
 		check(current.call("find_in_panel", "Slot_%d" % i).get("state") == "busy", "três espaços ocupados na nova alimentação")
@@ -626,8 +632,9 @@ func _test_coop() -> void:
 	check(current != null, "tocar no galinheiro abre a bandeja")
 	if current == null:
 		return
-	var buy := current.call("find_in_panel", "BuyAnimals") as Button
-	check(buy != null and buy.text == "Comprar animais", "sem animais: Comprar animais")
+	var buy := current.call("find_in_panel", "AnimalAction") as Button
+	check(buy != null and buy.text.begins_with("Comprar galinha"), "sem animais: Comprar galinha (%s)" % (buy.text if buy else "?"))
+	check(current.call("find_in_panel", "EmptyShelter") != null and current.call("find_in_panel", "AnimalSpaceLocked_0") != null, "convite e lugares livres para comprar")
 	check(current.call("item_count") == 0, "abrigo vazio não tem ração")
 	check(primaries(current) == 1, "um único botão principal")
 	sheet_titles.clear()
@@ -641,20 +648,15 @@ func _test_coop() -> void:
 	check(state.call("buy_animal", "chicken_white") == "", "compra uma galinha")
 	add("corn", 10)
 	current = await tap(farm, "place:chicken_coop", "chicken_coop")
-	check(current != null and current.call("item_count") == 1 and current.get("pick"), "com animais há uma receita no padrão das estações")
+	check(current != null and current.call("item_count") == 0 and current.get("pick"), "uma receita só: sem seletor, só o cercadinho")
 	if current == null:
 		return
-	check(current.call("find_in_panel", "Herd") != null, "fileirinha dos animais no cabeçalho")
-	var feed: String = (current.call("entry_ids") as Array)[0]
-	var item: Control = current.call("item_node", feed)
-	check((item.find_child("CaptionLabel", true, false) as Label).text == TimeText.short(int(root.get_node("Database").get("recipes")[feed].seconds)), "produto mostra tempo de preparo")
-	check((item.get_node("Visual/Picture") as TextureRect).texture == root.get_node("Database").call("item_icon", "egg"), "ícone da receita é ovo, não milho")
-	current.call("tap_item", feed)
-	check(state.get("inventory").call("count", "corn") == 10, "selecionar o ovo não gasta milho")
-	var ingredients: Control = current.call("find_in_panel", "Ingredients")
-	check(ingredients != null and (ingredients.get_child(0).find_child("Count", true, false) as Label).text == "10/2", "ingredientes tocáveis mostram milho tem/precisa")
-	var action: Button = current.call("find_in_panel", "Cook")
+	check(current.call("find_in_panel", "AnimalPen") != null and current.call("find_in_panel", "AnimalCount") != null, "cercadinho e contagem 1/N")
+	check(current.call("find_in_panel", "AnimalInfo") != null and current.call("find_in_panel", "AnimalHave") != null, "linha de informação com a ração do jogador")
+	check(current.call("find_in_panel", "AnimalSpaceLocked_1") != null, "lugar livre da segunda galinha")
+	var action: Button = current.call("find_in_panel", "AnimalAction")
 	check(action != null and action.text == "Alimentar" and not action.disabled, "botão Alimentar disponível")
+	check(state.get("inventory").call("count", "corn") == 10, "só olhar não gasta milho")
 	action.pressed.emit()
 	check(state.get("inventory").call("count", "corn") == 8, "alimentar consome o milho uma vez (%d)" % state.get("inventory").call("count", "corn"))
 	check((state.call("station", "chicken_coop").queue as Array).size() == 1, "uma alimentação na fila")

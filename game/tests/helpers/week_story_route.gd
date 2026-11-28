@@ -186,6 +186,14 @@ func catch_fish() -> String:
 	return id
 
 
+## Capítulo 4: o galinheiro chega vazio; a primeira galinha se compra com a colheita vendida (missão week_hen).
+func hen() -> void:
+	funds(30)
+	action("galinheiro")
+	ok(state.buy_animal("chicken_white"), "Comprar a primeira galinha")
+	claim("week_hen")
+
+
 func eggs(qty: int) -> void:
 	while state.inventory.count("egg") < qty:
 		crop("corn", 2)
@@ -341,6 +349,7 @@ func day_two() -> void:
 	verify.call(state.coins == before - 40, "Kit custa 60 e devolve 20 na compra")
 	verify.call(state.buy_shop_item("week_coop") != "" and state.coins == before - 40, "Recibo único do kit")
 	claim("week_coop")
+	hen()
 	eggs(2)
 	claim("week_eggs")
 	serve(recipe("egg_mash"))

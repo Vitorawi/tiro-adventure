@@ -48,7 +48,7 @@ func run() -> void:
 	check(prog.chapters.size() == 20, "20 capítulos (11 da semana + 9 depois)")
 	check(state.week_last_chapter() == 11, "a semana termina no capítulo 11")
 	var expected := {
-		2: ["week_market", "week_plots", "lais_photo", "week_fridge", "week_soup"], 3: ["lais_first_wish"], 4: ["week_coop", "week_eggs", "week_egg_dish"],
+		2: ["week_market", "week_plots", "lais_photo", "week_fridge", "week_soup"], 3: ["lais_first_wish"], 4: ["week_coop", "week_hen", "week_eggs", "week_egg_dish"],
 		5: ["week_biscuits", "week_sit"], 6: ["week_bridge", "week_fish", "week_fish_dish"], 7: ["week_orchard", "week_fruit_dish"],
 		8: ["week_invent", "week_book"], 9: ["week_cart_order", "week_bath"],
 		10: ["week_fetch", "week_rope", "week_paw", "week_down", "week_hide", "week_show"], 11: ["teeth_3_ring", "growth_3_teething"],

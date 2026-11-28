@@ -271,7 +271,7 @@ func _run() -> void:
 
 	# e: abrigo cheio
 	await _unlock()
-	state.get("animals")["chicken_white"] = 3
+	state.get("animals")["chicken_white"] = 4
 	state.call("_changed")
 	await _open("e_cheio")
 	await _close()
@@ -307,6 +307,14 @@ func _run() -> void:
 	await _open("h_muitos")
 	for key in extra:
 		cfg.erase(key)
+	await _close()
+
+	# i: galinheiro cheio com a ampliação ainda por comprar: linha "Ampliar"
+	await _unlock()
+	state.get("progress").owned.erase("chicken_coop_2")
+	state.get("animals")["chicken_white"] = 2
+	state.call("_changed")
+	await _open("i_ampliar")
 	await _close()
 
 	print("ANIMAL SHOP SHOTS: ", "OK" if failures == 0 else "%d FAIL" % failures)

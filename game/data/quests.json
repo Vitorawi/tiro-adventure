@@ -1039,7 +1039,7 @@
   "main_9_coop": {
     "npc": "bloblo",
     "name": "Novos moradores",
-    "dialogue": "Com tábuas fazemos um galinheiro! Depois, compre sua primeira galinha no galinheiro. Plante milho nos canteiros para alimentar sua nova amiga.",
+    "dialogue": "Com tábuas fazemos um galinheiro! Depois, compre suas galinhas no galinheiro, uma por uma. Plante milho nos canteiros para alimentar as amigas.",
     "goals": [
       {
         "type": "owned",
@@ -1062,7 +1062,7 @@
   "main_9_eggs": {
     "npc": "bloblo",
     "name": "Ovos fresquinhos",
-    "dialogue": "Sua galinha gosta de milho. Plante nos canteiros, colha e leve ao galinheiro para alimentá-la. Recolha os ovos: com 8 você conhece a ruiva!",
+    "dialogue": "Suas galinhas gostam de milho. Plante nos canteiros, colha e leve ao galinheiro para alimentá-las. Recolha os ovos: com 8 você conhece a ruiva!",
     "goals": [
       {
         "type": "stat",
@@ -1081,7 +1081,7 @@
   "main_9_cows": {
     "npc": "bloblo",
     "name": "As vaquinhas chegaram",
-    "dialogue": "Agora um curral! Vou te dar uma vaquinha que adora trigo.",
+    "dialogue": "Agora um curral! Ele chega vazio: compre as vaquinhas uma por uma. Elas adoram trigo.",
     "goals": [
       {
         "type": "owned",
@@ -1146,6 +1146,29 @@
     "kind": "line",
     "order": 130,
     "line": "bloblo"
+  },
+  "bloblo_first_cow": {
+    "npc": "bloblo",
+    "name": "A primeira vaquinha",
+    "dialogue": "O curral está vazio. Junte moedas e compre a sua primeira vaquinha!",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "buy_animal:cow_barn",
+        "target": 1,
+        "label": "Comprar uma vaca"
+      }
+    ],
+    "rewards": {
+      "coins": 20
+    },
+    "kind": "line",
+    "line": "bloblo",
+    "order": 105,
+    "go": {
+      "world": "farm",
+      "place": "cow_barn"
+    }
   },
   "bloblo_milk": {
     "npc": "bloblo",
@@ -3106,7 +3129,7 @@
   "week_coop": {
     "npc": "bloblo",
     "name": "As galinhas da vovó",
-    "dialogue": "O kit já traz o galinheiro e duas galinhas. A banca devolve 20 moedas na compra.",
+    "dialogue": "O kit traz o galinheiro e um canteiro de milho. As galinhas a gente compra depois, com o dinheiro da colheita. A banca devolve 20 moedas na compra.",
     "goals": [
       {
         "type": "stat",
@@ -3124,16 +3147,41 @@
       "place": "shop:week_coop"
     }
   },
+  "week_hen": {
+    "npc": "bloblo",
+    "name": "A primeira galinha",
+    "dialogue": "O galinheiro está vazio! Venda a colheita na banca, junte 30 moedas e compre a sua primeira galinha.",
+    "goals": [
+      {
+        "type": "stat",
+        "key": "buy_animal:chicken_coop",
+        "target": 1,
+        "label": "Comprar uma galinha"
+      }
+    ],
+    "rewards": {
+      "items": {
+        "corn": 2
+      }
+    },
+    "kind": "main",
+    "chapter": 4,
+    "order": 15,
+    "go": {
+      "world": "farm",
+      "place": "chicken_coop"
+    }
+  },
   "week_eggs": {
     "npc": "bloblo",
     "name": "O primeiro ovo",
-    "dialogue": "Plante milho, alimente as galinhas e recolha dois ovos. Experimente uma papinha de batata e ovo.",
+    "dialogue": "Plante milho, alimente a galinha e recolha o primeiro ovo. Experimente uma papinha de batata e ovo.",
     "goals": [
       {
         "type": "stat",
         "key": "produce:egg",
-        "target": 2,
-        "label": "Pegar dois ovos"
+        "target": 1,
+        "label": "Pegar o primeiro ovo"
       }
     ],
     "rewards": {

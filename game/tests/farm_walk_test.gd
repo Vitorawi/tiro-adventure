@@ -96,6 +96,8 @@ func _run() -> void:
 	await _enter()
 	await _audit("a_comeco")
 
+	await _check_cover()
+
 	# 2) Tudo liberado pela história, mas nenhuma construção comprada (lotes abertos).
 	state.dev_unlock_everything()
 	state.call("finish_fishing_tutorial")
@@ -116,6 +118,27 @@ func _run() -> void:
 
 	print("FARM WALK: ", "PASS" if failures == 0 else "FAIL (%d)" % failures)
 	quit(0 if failures == 0 else 1)
+
+
+## Afastando ao máximo e arrastando para qualquer canto, a fotografia do Sítio cobre a tela inteira
+## (nunca aparece o céu/grama de fundo atrás dela), nas três telas de celular.
+func _check_cover() -> void:
+	var room := _room()
+	for viewport: Vector2i in [Vector2i(360, 780), Vector2i(390, 844), Vector2i(412, 915)]:
+		root.size = viewport
+		await settle(6)
+		var content: Control = room.get("_content")
+		room.call("_zoom_at", room.size / 2.0, 0.01)  # pede bem menos que o permitido
+		for push: Vector2 in [Vector2(5000, 5000), Vector2(-5000, -5000), Vector2(5000, -5000), Vector2(-5000, 5000)]:
+			content.position += push
+			room.call("_clamp_content")
+			var photo := Rect2(content.position, content.size * content.scale)
+			var screen := Rect2(Vector2.ZERO, room.size)
+			check(photo.grow(0.5).encloses(screen), "%s: afastado ao máximo a foto cobre a tela (foto %s, tela %s, zoom %.3f)" % [str(viewport), str(photo), str(screen), float(room.get("_zoom"))])
+		room.call("recenter")
+		await settle(6)
+	root.size = Vector2i(360, 780)
+	await settle(6)
 
 
 func _enter() -> void:

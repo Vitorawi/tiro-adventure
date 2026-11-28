@@ -134,7 +134,9 @@ func run_farm_intro() -> void:
 	check(state.call("plant", 8, "corn") == "", "planta milho no galinheiro")
 	state.call("dev_finish_timers")
 	check(not state.call("harvest", 8).is_empty(), "colhe o milho")
-	check(state.call("cook", "eggs") == "", "o milho inicia um lote de ovos")
+	state.call("dev_add_coins", 80)  # as duas galinhas se compram uma a uma: 30 + 50
+	check(state.call("buy_animal", "chicken_white") == "" and state.call("buy_animal", "chicken_white") == "", "compra as duas galinhas")
+	check(state.call("cook_many", "eggs", 2) == "", "o milho inicia um lote de ovos")
 	state.call("dev_finish_timers")
 	check(state.call("collect", "chicken_coop").get("egg") == 2, "recolhe ovos para encomenda")
 	var inventory: Variant = state.get("inventory")

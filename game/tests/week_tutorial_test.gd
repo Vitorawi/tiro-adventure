@@ -247,6 +247,7 @@ func run() -> void:
 		route.funds(60)
 		route.buy("week_coop")
 	route.claim("week_coop")
+	route.hen()
 	route.eggs(2)
 	route.claim("week_eggs")
 	route.serve(route.recipe("egg_mash"))

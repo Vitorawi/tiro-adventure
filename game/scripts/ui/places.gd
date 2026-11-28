@@ -173,7 +173,7 @@ static func open_tray(world_id: String, place_id: String) -> bool:
 
 static func _is_slot_upgrade(upgrade_id: String) -> bool:
 	for station: Dictionary in Database.stations.values():
-		if station.get("slot_upgrades", {}).has(upgrade_id):
+		if station.get("slot_upgrades", {}).has(upgrade_id) or station.get("capacity_upgrades", {}).has(upgrade_id):
 			return true
 	return false
 

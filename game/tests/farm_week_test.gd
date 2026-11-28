@@ -152,8 +152,11 @@ func _run() -> void:
 	await pause(0.35)
 	await shot("02_banca")
 	await tap_control("BuyItem")
-	check(state.call("has_upgrade", "chicken_coop") and state.call("animal_count", "chicken_coop") == 2, "kit instala o galinheiro com duas galinhas")
+	check(state.call("has_upgrade", "chicken_coop") and state.call("animal_count", "chicken_coop") == 0, "kit instala o galinheiro vazio")
 	check(state.get("coins") == 150 and state.call("buy_shop_item", "week_coop") != "", "kit cobra 60 e devolve 20 uma vez")
+	var coins_before_hen: int = state.get("coins")
+	state.call("dev_add_coins", 30)  # a primeira galinha se compra à parte, por 30
+	check(state.call("buy_animal", "chicken_white") == "" and state.get("coins") == coins_before_hen, "primeira galinha por 30")
 	check(state.call("usable_plot_indices") == [0, 1, 2, 3, 8], "kit inclui o canteiro de milho")
 	check(state.call("plant_error", 8, "carrot") != "" and state.call("plant", 8, "corn") == "", "só milho no canteiro dedicado")
 	check(float(state.call("plot", 8).ready_at) - float(state.call("plot", 8).get("planted_at", 0.0)) == 1200.0, "milho leva vinte minutos")
@@ -166,12 +169,12 @@ func _run() -> void:
 	events.state_changed.emit()
 	await pause()
 	await shot("04_galinheiro")
-	await tap_control("Cook")
+	await tap_control("AnimalAction")
 	var queue: Array = state.call("station", "chicken_coop").queue
-	check(queue.size() == 1 and queue[0].job.seconds == 1800.0 and queue[0].job.qty == 2, "fila pelo toque: dois ovos em trinta minutos")
+	check(queue.size() == 1 and queue[0].job.seconds == 1800.0 and queue[0].job.qty == 1, "fila pelo toque: um ovo por galinha em trinta minutos")
 	if not queue.is_empty():
 		queue[0]["ready_at"] = 0.0
-		check(state.call("collect", "chicken_coop") == {"egg": 2}, "recolhe os dois ovos")
+		check(state.call("collect", "chicken_coop") == {"egg": 1}, "recolhe o ovo")
 	check(state.call("recipe_seconds", "eggs") == 1800, "lotes seguintes levam 30 minutos")
 	room.call("close_tray")
 	await pause(0.6)

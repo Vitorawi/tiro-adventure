@@ -1374,7 +1374,7 @@
     "chicken_coop": {
       "name": "Galinheiro",
       "world": "farm",
-      "description": "Duas galinhas e um canteiro de milho. Alimente as galinhas para pegar ovos.",
+      "description": "O galinheiro e um canteiro de milho. Compre galinhas e pegue ovos.",
       "cost": 0,
       "materials": {},
       "requirements": {
@@ -1385,14 +1385,31 @@
       },
       "icon": "station_coop",
       "station": "chicken_coop",
-      "kit": "week_coop",
-      "gift_animal": "chicken_white",
-      "gift_animal_count": 2
+      "kit": "week_coop"
+    },
+    "chicken_coop_2": {
+      "name": "Mais lugares no galinheiro",
+      "world": "farm",
+      "description": "Dois lugares a mais: o galinheiro passa a abrigar 4 galinhas.",
+      "cost": 150,
+      "materials": {
+        "plank": 4
+      },
+      "requirements": {
+        "growth": "teething",
+        "owned": [
+          "chicken_coop"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 15
+      },
+      "icon": "station_coop"
     },
     "cow_barn": {
       "name": "Curral",
       "world": "farm",
-      "description": "Inclui uma vaca pintadinha de presente. Trigo vira leite.",
+      "description": "Chega vazio: compre as vacas uma por uma. Trigo vira leite.",
       "cost": 420,
       "materials": {
         "plank": 6
@@ -1410,8 +1427,25 @@
         "adventure": 25
       },
       "icon": "station_barn",
-      "station": "cow_barn",
-      "gift_animal": "cow_white"
+      "station": "cow_barn"
+    },
+    "cow_barn_2": {
+      "name": "Mais lugares no curral",
+      "world": "farm",
+      "description": "Dois lugares a mais: o curral passa a abrigar 4 vacas.",
+      "cost": 260,
+      "materials": {
+        "plank": 6
+      },
+      "requirements": {
+        "owned": [
+          "cow_barn"
+        ]
+      },
+      "skill_xp": {
+        "adventure": 15
+      },
+      "icon": "station_barn"
     },
     "mill": {
       "name": "Moinho",
@@ -3040,7 +3074,7 @@
       "requirements": {
         "story_day": 4
       },
-      "description": "Duas galinhas e um canteiro de milho.",
+      "description": "O galinheiro e um canteiro de milho.",
       "destination": {
         "world": "farm",
         "place": "chicken_coop"

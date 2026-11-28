@@ -170,7 +170,7 @@ static func heading(options: Dictionary, on_see_all: Callable, on_close: Callabl
 # --- Fila de espaços -----------------------------------------------------------------------
 
 ## Faixa bege que guarda a fileira de espaços (e o que mais o cabeçalho trouxer).
-static func tray_strip(content: Control, node_name: String = "SlotTray") -> PanelContainer:
+static func tray_strip(content: Control, node_name: String = "SlotTray", margin_x: int = 10) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.name = node_name
 	panel.mouse_filter = Control.MOUSE_FILTER_PASS
@@ -178,8 +178,8 @@ static func tray_strip(content: Control, node_name: String = "SlotTray") -> Pane
 	panel.add_child(backing("tray", 36, 36))
 	var margin := MarginContainer.new()
 	margin.mouse_filter = Control.MOUSE_FILTER_PASS
-	margin.add_theme_constant_override("margin_left", 10)
-	margin.add_theme_constant_override("margin_right", 10)
+	margin.add_theme_constant_override("margin_left", margin_x)
+	margin.add_theme_constant_override("margin_right", margin_x)
 	margin.add_theme_constant_override("margin_top", 7)
 	margin.add_theme_constant_override("margin_bottom", 6)
 	margin.add_child(content)
@@ -227,6 +227,8 @@ static func flow(separation: int = int(SLOT_GAP)) -> HFlowContainer:
 
 ## Espaço de produção: quadradinho de madeira afundado com o produto, anel de tempo ou "+", e a legenda embaixo.
 ## Estados (os mesmos do `SlotDot`): "empty", "queued", "busy", "ready" e "buy" (fechado, abre a compra).
+## Criações: "feed" (o animal está livre: a ração aparece apagada, "coloque aqui") e "shop" (lugar livre do abrigo:
+## silhueta do animal com moeda e preço, sem cadeado — dá para comprar).
 class Slot extends VBoxContainer:
 	var state := "empty"
 	var icon_rect: TextureRect
@@ -284,6 +286,14 @@ class Slot extends VBoxContainer:
 				check.position = Vector2(SLOT - 22.0, 6.0)
 				check.size = Vector2(14, 12)
 				_dot.add_child(check)
+			"feed":
+				_add_icon(item, fallback, 0.4)
+			"shop":
+				_add_icon(item, fallback, 1.0)
+				icon_rect.modulate = Color(0.32, 0.22, 0.14, 0.55)  # silhueta do animal que ainda não tem
+				icon_rect.position = Vector2((SLOT - 22.0) / 2.0, 3.0)
+				icon_rect.size = Vector2(22, 22)
+				_add_price(caption, caption_color, coin)
 			"buy":
 				var lock := TextureRect.new()
 				lock.name = "Lock"
@@ -296,28 +306,30 @@ class Slot extends VBoxContainer:
 				lock.size = Vector2(24, 24)
 				_dot.add_child(lock)
 				if caption != "":
-					# O preço (moeda + valor) fica DENTRO do quadradinho, embaixo do cadeado.
-					var price := UiKit.hbox(1)
-					price.name = "Price"
-					price.alignment = BoxContainer.ALIGNMENT_CENTER
-					price.mouse_filter = Control.MOUSE_FILTER_IGNORE
-					price.position = Vector2(0, SLOT - 19.0)
-					price.size = Vector2(SLOT, 16)
-					if coin != null:
-						var coin_icon := UiKit.icon(coin, 13)
-						coin_icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS if coin.get_width() > 48 else CanvasItem.TEXTURE_FILTER_NEAREST
-						price.add_child(coin_icon)
-					price.add_child(StationWood.text(caption, 13, caption_color))
-					_dot.add_child(price)
+					_add_price(caption, caption_color, coin)  # o preço fica DENTRO do quadradinho, embaixo do cadeado
 		var line := UiKit.hbox(2)
 		line.name = "Caption"
 		line.alignment = BoxContainer.ALIGNMENT_CENTER
 		line.custom_minimum_size = Vector2(0, 15)
 		line.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		if state != "buy" and caption != "":
+		if state not in ["buy", "shop"] and caption != "":
 			line.add_child(StationWood.text(caption, 13, caption_color))
 			set_meta("has_caption", true)
 		add_child(line)
+
+	func _add_price(caption: String, caption_color: Color, coin: Texture2D) -> void:
+		var price := UiKit.hbox(1)
+		price.name = "Price"
+		price.alignment = BoxContainer.ALIGNMENT_CENTER
+		price.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		price.position = Vector2(0, SLOT - 19.0)
+		price.size = Vector2(SLOT, 16)
+		if coin != null:
+			var coin_icon := UiKit.icon(coin, 13)
+			coin_icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS if coin.get_width() > 48 else CanvasItem.TEXTURE_FILTER_NEAREST
+			price.add_child(coin_icon)
+		price.add_child(StationWood.text(caption, 13 if caption.length() <= 4 else 10, caption_color))  # "Ampliar" cabe no quadradinho
+		_dot.add_child(price)
 
 	func _add_icon(item: String, fallback: Texture2D, alpha: float) -> void:
 		icon_rect = StationWood.item_pic(item, fallback, 30.0, "Icon")
@@ -376,65 +388,291 @@ static func slot_row(station_id: String) -> Control:
 	return even_rows(cells)
 
 
-## Cada animal fica alinhado ao seu espaço; compras novas não participam do lote antigo.
+## Uma coluna por animal (retrato + o espaço do lote dele: vazio, produzindo ou pronto; tocar num livre alimenta só
+## ele), depois um "+ Comprar" com o preço para cada lugar que ainda cabe e, se houver, o espaço trancado "Ampliar".
 static func herd_row(station_id: String) -> Control:
 	var row := UiKit.hbox(8)
 	row.name = "Herd"
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.mouse_filter = Control.MOUSE_FILTER_PASS
 	var roster := GameState.animal_roster(station_id)
-	var queue := GameState.station(station_id).queue
-	var entry: Dictionary = queue[0] if not queue.is_empty() else {}
 	var now := GameState.now()
-	var fed: Dictionary = {}
-	if not entry.is_empty():
-		var per_animal := maxi(1, int(Database.recipes[entry.recipe].get("qty", 1)))
-		var fallback := roster.slice(0, int(entry.get("qty", per_animal)) / per_animal)
-		for id: String in entry.get("animals", fallback):
-			fed[id] = int(fed.get(id, 0)) + 1
-	if station_id == "chicken_coop" and GameState.farm_week_active():
-		for animal: String in roster:
-			row.add_child(UiKit.icon(load(Database.animals[animal].sprite), 32))
-		var group := UiKit.vbox(4)
-		group.add_child(row)
-		var slot := queue_slot(entry, now)
-		slot.name = "Slot_0"
-		slot.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		group.add_child(slot)
-		return group
 	for i in roster.size():
-		var id: String = roster[i]
-		var producing := int(fed.get(id, 0)) > 0
-		if producing:
-			fed[id] = int(fed[id]) - 1
 		var column := UiKit.vbox(2)
 		column.name = "Animal_%d" % i
-		var portrait := UiKit.icon(load(Database.animals[id].sprite), 30)
+		var portrait := UiKit.icon(load(Database.animals[roster[i]].sprite), 30)
 		portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 		column.add_child(portrait)
-		var dot := queue_slot(entry if producing else {}, now)
+		var entry := GameState.animal_batch(station_id, i)
+		var dot := queue_slot(entry, now) if not entry.is_empty() else Slot.new("feed", animal_feed_item(station_id), Database.item_icon(animal_feed_item(station_id)))
 		dot.name = "Slot_%d" % i
+		if entry.is_empty():
+			var index := i
+			UiKit.on_tap(dot, func() -> void: StationTray.feed_animal(station_id, index))
 		column.add_child(dot)
 		row.add_child(column)
+	var free_places := GameState.animal_capacity(station_id) - roster.size()
+	for j in free_places:
+		var column := UiKit.vbox(2)
+		column.name = "AnimalSpace_%d" % (roster.size() + j)
+		var spacer := Control.new()  # no lugar do retrato, para os espaços ficarem na mesma linha
+		spacer.custom_minimum_size = Vector2(30, 30)
+		spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_child(spacer)
+		var price := GameState.animal_next_price(station_id, j)
+		var silhouette: Texture2D = load(Database.animals[roster[0] if not roster.is_empty() else _first_animal(station_id)].sprite)
+		var buy := Slot.new("shop", "", silhouette, 0.0, str(price), Palette.WOOD_INK if GameState.coins >= price else Palette.ALERT_INK, UiKit.ui_icon("coin"))
+		buy.name = "AnimalSpaceLocked_%d" % (roster.size() + j)
+		UiKit.on_tap(buy, func() -> void: SheetBuilder.open_animal_shop(station_id))
+		column.add_child(buy)
+		row.add_child(column)
+	for upgrade_id: String in GameState.animal_pending_expansions(station_id):
+		var column := UiKit.vbox(2)
+		column.name = "AnimalExpandColumn"
+		var spacer := Control.new()
+		spacer.custom_minimum_size = Vector2(30, 30)
+		spacer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		column.add_child(spacer)
+		var expand := Slot.new("buy", "", null, 0.0, "Ampliar", Palette.WOOD_INK)
+		expand.name = "AnimalExpand"
+		expand.set_meta("upgrade", upgrade_id)
+		var data: Dictionary = Database.progression.upgrades[upgrade_id]
+		if GameState.requirement_error(data.get("requirements", {})) != "":
+			expand.modulate.a = 0.8
+		UiKit.on_tap(expand, func() -> void:
+			Events.sheet_requested.emit(str(data.name), ProgressionUi.purchase(upgrade_id)))
+		column.add_child(expand)
+		row.add_child(column)
+		break  # uma ampliação por vez
 	return row
 
 
-## Faixa dos espaços da estação: fileira de espaços e, nas criações, mais um bloqueado "Comprar" enquanto couber animal.
+# --- Cercadinho das criações (uma ficha por animal / lugar livre / ampliação) -------------------
+
+const PEN_CARD := Vector2(66, 100)
+const PEN_PICTURE := Vector2(60, 56)
+
+
+## Estado visível de um animal dentro da ficha (`Slot_<i>`): "feed" (livre), "busy" (produzindo) ou "ready" (pronto).
+class AnimalState extends VBoxContainer:
+	var state := "feed"
+
+
+## Ficha de madeira do cercadinho: o `Visual` (coluna) recebe o desenho e o estado. Pronta = cartão amarelo.
+static func pen_card(node_name: String, ready: bool, on_tap: Callable) -> Button:
+	var result := BagUi.plain_button(on_tap)
+	result.name = node_name
+	result.custom_minimum_size = PEN_CARD
+	result.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	var art := backing("card_on" if ready else "card", 60 if ready else 50, 60 if ready else 50, "Art", 0.0, true)
+	result.add_child(art)
+	StepCardUi.stretch(art)
+	var body := UiKit.vbox(1)
+	body.name = "Visual"
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.alignment = BoxContainer.ALIGNMENT_CENTER
+	result.add_child(body)
+	StepCardUi.stretch(body)
+	body.offset_top = 3.0
+	body.offset_bottom = -10.0 if ready else -4.0
+	return result
+
+
+## Desenho do bicho na ficha: escala INTEIRA e nítida quando cabe na caixa; senão a menor redução suave.
+static func pen_picture(texture: Texture2D, tint: Color = Color.WHITE) -> Control:
+	var zone := CenterContainer.new()
+	zone.name = "Figure"
+	zone.custom_minimum_size = PEN_PICTURE
+	zone.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var picture := TextureRect.new()
+	picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	picture.stretch_mode = TextureRect.STRETCH_SCALE
+	picture.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	picture.modulate = tint
+	if texture != null:
+		picture.texture = texture
+		var size := Vector2(texture.get_size())
+		var fit := minf(PEN_PICTURE.x / size.x, PEN_PICTURE.y / size.y)
+		var factor := float(floori(fit)) if fit >= 1.0 else fit
+		picture.custom_minimum_size = size * factor
+		picture.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST if fit >= 1.0 else CanvasItem.TEXTURE_FILTER_LINEAR
+	zone.add_child(picture)
+	return zone
+
+
+## Parte de baixo da ficha do animal: livre ("Com fome"), produzindo (anel + tempo) ou pronto (produto ×N + ✓).
+static func animal_state(state: String, item: String, icon: Texture2D, progress: float, caption: String) -> AnimalState:
+	var result := AnimalState.new()
+	result.state = state
+	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	result.alignment = BoxContainer.ALIGNMENT_CENTER
+	result.add_theme_constant_override("separation", 1)
+	result.custom_minimum_size = Vector2(PEN_CARD.x - 6.0, 34)
+	match state:
+		"busy":
+			var holder := Control.new()
+			holder.name = "RingHolder"
+			holder.custom_minimum_size = Vector2(24, 24)
+			holder.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			holder.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			var ring := RingProgress.new()
+			ring.name = "Ring"
+			ring.thickness = 2.0
+			ring.color = Color("f59a23")
+			ring.track = Color(0.3, 0.15, 0.05, 0.22)
+			ring.custom_minimum_size = Vector2(24, 24)
+			ring.size = Vector2(24, 24)
+			ring.progress = progress
+			holder.add_child(ring)
+			var picture := item_pic(item, icon, 16.0, "Icon")
+			picture.position = Vector2(4, 4)
+			picture.size = Vector2(16, 16)
+			holder.add_child(picture)
+			result.add_child(holder)
+		"ready":
+			var picture := item_pic(item, icon, 20.0, "Icon")
+			picture.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			result.add_child(picture)
+		_:
+			var picture := item_pic(item, icon, 20.0, "Icon")
+			picture.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			picture.modulate.a = 0.4
+			result.add_child(picture)
+	var line := UiKit.hbox(3)
+	line.name = "Caption"
+	line.alignment = BoxContainer.ALIGNMENT_CENTER
+	line.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var label := text(caption, 11)
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	line.add_child(label)
+	if state == "ready":
+		line.add_child(pic("check", Vector2(12, 11), "Check"))
+	result.add_child(line)
+	return result
+
+
+## Linha pequena (moeda/ícone + texto) para a base das fichas de lugar livre e de ampliação.
+static func pen_note(caption: String, color: Color = Palette.WOOD_INK, coin: Texture2D = null, px: int = 11) -> Control:
+	var result := UiKit.hbox(2)
+	result.alignment = BoxContainer.ALIGNMENT_CENTER
+	result.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if coin != null:
+		var coin_icon := UiKit.icon(coin, 13)
+		coin_icon.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS if coin.get_width() > 48 else CanvasItem.TEXTURE_FILTER_NEAREST
+		result.add_child(coin_icon)
+	var label := text(caption, px, color)
+	label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	result.add_child(label)
+	return result
+
+
+## Cercadinho: uma ficha por animal (`Animal_<i>`, com o `Slot_<i>` dentro), uma por lugar livre
+## (`AnimalSpaceLocked_<i>`, compra) e a da próxima ampliação (`AnimalExpand`). Até 4 por linha, sem rolagem lateral.
+static func animal_pen(station_id: String, on_tap: Callable, on_buy: Callable) -> Control:
+	var roster := GameState.animal_roster(station_id)
+	var now := GameState.now()
+	var feed_item := animal_feed_item(station_id)
+	var cards: Array[Control] = []
+	for i in roster.size():
+		var entry := GameState.animal_batch(station_id, i)
+		var is_ready := not entry.is_empty() and float(entry["ready_at"]) <= now
+		var index := i
+		var card := pen_card("Animal_%d" % i, is_ready, func() -> void: on_tap.call(index))
+		var body := card.get_node("Visual") as Control
+		body.add_child(pen_picture(load(Database.animals[roster[i]].sprite) as Texture2D))
+		var slot: AnimalState
+		if entry.is_empty():
+			slot = animal_state("feed", feed_item, Database.item_icon(feed_item), 0.0, "Com fome")
+		else:
+			var output: String = Database.entry_output(entry)
+			if is_ready:
+				slot = animal_state("ready", output, Database.item_icon(output), 1.0, "×%d" % int(entry.get("qty", 1)))
+			else:
+				var seconds := Database.entry_seconds(entry)
+				var left := float(entry["ready_at"]) - now
+				slot = animal_state("busy", output, Database.item_icon(output), clampf(1.0 - left / maxf(seconds, 1.0), 0.0, 1.0), TimeText.short(int(ceil(left))))
+		slot.name = "Slot_%d" % i
+		body.add_child(slot)
+		cards.append(card)
+	var free_places := GameState.animal_capacity(station_id) - roster.size()
+	var silhouette: Texture2D = load(Database.animals[roster[0] if not roster.is_empty() else _first_animal(station_id)].sprite) as Texture2D
+	for j in free_places:
+		var price := GameState.animal_next_price(station_id, j)
+		var card := pen_card("AnimalSpaceLocked_%d" % (roster.size() + j), false, on_buy)
+		card.modulate.a = 0.9
+		var body := card.get_node("Visual") as Control
+		body.add_child(pen_picture(silhouette, Color(0.32, 0.22, 0.14, 0.55)))
+		var note := UiKit.vbox(0)
+		note.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		note.alignment = BoxContainer.ALIGNMENT_CENTER
+		note.custom_minimum_size = Vector2(PEN_CARD.x - 6.0, 34)
+		note.add_child(pen_note(str(price), Palette.WOOD_INK if GameState.coins >= price else Palette.ALERT_INK, UiKit.ui_icon("coin"), 13))
+		note.add_child(pen_note("Comprar"))
+		body.add_child(note)
+		cards.append(card)
+	for upgrade_id: String in GameState.animal_pending_expansions(station_id):
+		var data: Dictionary = Database.progression.upgrades[upgrade_id]
+		var card := pen_card("AnimalExpand", false, func() -> void:
+			Events.sheet_requested.emit(str(data.name), ProgressionUi.purchase(upgrade_id)))
+		card.set_meta("upgrade", upgrade_id)
+		if GameState.requirement_error(data.get("requirements", {})) != "":
+			card.modulate.a = 0.8
+		var body := card.get_node("Visual") as Control
+		var lock := TextureRect.new()
+		lock.name = "Lock"
+		lock.texture = load(HomeUi.DIR + "farm_lock.png") as Texture2D
+		lock.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		lock.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		lock.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR_WITH_MIPMAPS
+		lock.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		lock.custom_minimum_size = Vector2(34, 34)
+		var lock_zone := CenterContainer.new()
+		lock_zone.custom_minimum_size = PEN_PICTURE
+		lock_zone.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		lock_zone.add_child(lock)
+		body.add_child(lock_zone)
+		var note := UiKit.vbox(0)
+		note.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		note.alignment = BoxContainer.ALIGNMENT_CENTER
+		note.custom_minimum_size = Vector2(PEN_CARD.x - 6.0, 34)
+		note.add_child(pen_note("Ampliar", Palette.WOOD_INK, null, 12))
+		note.add_child(pen_note("+%d lugares" % int(Database.stations[station_id].get("capacity_upgrades", {}).get(upgrade_id, 0))))
+		body.add_child(note)
+		cards.append(card)
+		break  # uma ampliação por vez
+	var grid := GridContainer.new()
+	grid.name = "AnimalPen"
+	grid.columns = clampi(cards.size(), 1, 4)
+	grid.add_theme_constant_override("h_separation", 4)
+	grid.add_theme_constant_override("v_separation", 4)
+	grid.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	grid.mouse_filter = Control.MOUSE_FILTER_PASS
+	for card in cards:
+		grid.add_child(card)
+	return grid
+
+
+## Ração do abrigo (o primeiro ingrediente da primeira receita dele): aparece apagada no espaço do animal livre.
+static func animal_feed_item(station_id: String) -> String:
+	for id: String in Database.recipes:
+		var recipe: Dictionary = Database.recipes[id]
+		if str(recipe.get("station", "")) == station_id:
+			var inputs: Dictionary = recipe.get("week_inputs", recipe.get("inputs", {})) if GameState.farm_week_active() else recipe.get("inputs", {})
+			for item: String in inputs:
+				return item
+	return ""
+
+
+static func _first_animal(station_id: String) -> String:
+	for id: String in Database.animals:
+		if str(Database.animals[id].station) == station_id:
+			return id
+	return ""
+
+
+## Faixa dos espaços da estação (nas criações, `slot_row` já traz os lugares a comprar e a ampliação).
 static func station_strip(station_id: String) -> Control:
-	var content: Control = slot_row(station_id)
-	var data: Dictionary = Database.stations[station_id]
-	if str(data.get("kind", "")) == "animal" and GameState.animal_count(station_id) < GameState.animal_capacity(station_id):
-		var holder := UiKit.hbox(8)
-		holder.alignment = BoxContainer.ALIGNMENT_CENTER
-		holder.mouse_filter = Control.MOUSE_FILTER_PASS
-		holder.add_child(content)
-		var buy := Slot.new("buy")
-		buy.name = "AnimalSpaceLocked"
-		buy.size_flags_vertical = Control.SIZE_SHRINK_END
-		UiKit.on_tap(buy, func() -> void: SheetBuilder.open_animal_shop(station_id))
-		holder.add_child(buy)
-		content = holder
-	return tray_strip(content)
+	return tray_strip(slot_row(station_id))
 
 
 # --- Detalhe da receita --------------------------------------------------------------------

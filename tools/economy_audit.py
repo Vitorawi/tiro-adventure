@@ -422,7 +422,7 @@ def section_upgrades(d: Data) -> dict:
                      "storage_capacity": up.get("storage_capacity")})
     plots = {"unlock_costs": d.farm["unlock_costs"], "plots": d.farm["plots"], "initial": d.farm["initial_plots"],
              "greenhouse_plots": d.farm["greenhouse_plots"], "lent_plots": d.farm["lent_plots"]}
-    animals = {a: {"station": v["station"], "price": v["price"], "requirements": v.get("requirements", {})} for a, v in sorted(d.animals.items())}
+    animals = {a: {"station": v["station"], "price": v.get("price_extra", v.get("price", 0)), "requirements": v.get("requirements", {})} for a, v in sorted(d.animals.items())}
     return {"upgrades": rows, "plots": plots, "animals": animals, "shop_items": d.prog["shop_items"]}
 
 
@@ -496,7 +496,7 @@ def section_coins(d: Data) -> dict:
         "upgrades_coins": {k: v.get("cost", 0) for k, v in sorted(d.upgrades.items()) if v.get("cost", 0)},
         "upgrades_coins_total": sum(v.get("cost", 0) for v in d.upgrades.values()),
         "plots_unlock_total": sum(d.farm["unlock_costs"]),
-        "animals_total": sum(v["price"] for v in d.animals.values()),
+        "animals_total": sum(v.get("price_extra", v.get("price", 0)) for v in d.animals.values()),
         "shop_items": {k: v.get("price") for k, v in d.prog["shop_items"].items()},
     }
     # Todos os campos que parecem preço/custo (para não perder sumidouros fora dos conhecidos)

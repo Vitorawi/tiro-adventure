@@ -373,9 +373,9 @@ static func station_view(station_id: String, focus: String = "", group: PackedSt
 ## Fileira de bolinhas da estação: um espaço por vaga (vazio, fila, produzindo ou pronto, `Slot_<i>`)
 ## e, no fim, as ampliações que ainda dá para comprar ("+" e preço, `LockedSlot_<melhoria>`).
 ## Usada pelo painel (`station_view`) e pela bandeja de estação.
-static func station_slot_row(station_id: String) -> HFlowContainer:
+static func station_slot_row(station_id: String) -> Control:
 	if Database.stations[station_id].get("kind", "") == "animal":
-		return _animal_slot_row(station_id)
+		return StationWood.herd_row(station_id)
 	var target := GameState.station(station_id)
 	var now := GameState.now()
 	var row := slot_flow()
@@ -385,37 +385,6 @@ static func station_slot_row(station_id: String) -> HFlowContainer:
 		row.add_child(dot)
 	for upgrade_id: String in GameState.pending_slot_upgrades(station_id):
 		row.add_child(_locked_slot(upgrade_id))
-	return row
-
-
-## Cada animal fica alinhado ao seu espaço; compras novas não participam do lote antigo.
-static func _animal_slot_row(station_id: String) -> HFlowContainer:
-	var row := slot_flow()
-	row.name = "Herd"
-	row.alignment = FlowContainer.ALIGNMENT_CENTER
-	var roster := GameState.animal_roster(station_id)
-	row.custom_minimum_size.x = roster.size() * SlotDot.DOT + maxi(0, roster.size() - 1) * 8.0
-	var queue := GameState.station(station_id).queue
-	var entry: Dictionary = queue[0] if not queue.is_empty() else {}
-	var fed: Dictionary = {}
-	if not entry.is_empty():
-		var per_animal := maxi(1, int(Database.recipes[entry.recipe].get("qty", 1)))
-		var fallback := roster.slice(0, int(entry.get("qty", per_animal)) / per_animal)
-		for id: String in entry.get("animals", fallback):
-			fed[id] = int(fed.get(id, 0)) + 1
-	for i in roster.size():
-		var id: String = roster[i]
-		var producing := int(fed.get(id, 0)) > 0
-		if producing: fed[id] = int(fed[id]) - 1
-		var column := UiKit.vbox(4)
-		column.name = "Animal_%d" % i
-		var portrait := UiKit.icon(load(Database.animals[id].sprite), 32)
-		portrait.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-		column.add_child(portrait)
-		var dot := _slot_card(entry if producing else {}, GameState.now())
-		dot.name = "Slot_%d" % i
-		column.add_child(dot)
-		row.add_child(column)
 	return row
 
 
@@ -603,24 +572,6 @@ static func open_animal_shop(station_id: String) -> void:
 ## Loja de animais em madeira ilustrada (ver `AnimalShopUi`).
 static func animal_shop(station_id: String) -> Control:
 	return AnimalShopUi.build(station_id)
-
-
-## O que falta para comprar o animal, em ícone + número (pode faltar mais de uma coisa):
-## produtos a recolher (ex.: ovos 1/2) e moedas (78/80). Outros motivos continuam em texto.
-static func _animal_missing(body: VBoxContainer, animal: Dictionary, error: String) -> void:
-	var chips := UiKit.flow(4)
-	var produced: Dictionary = animal.get("requirements", {}).get("produced", {})
-	for item_id: String in produced:
-		var done := GameState.progress.stat("produce:" + item_id)
-		if done < int(produced[item_id]):
-			chips.add_child(UiKit.chip(Database.item_icon(item_id), "%d/%d" % [done, int(produced[item_id])], Palette.ALERT_INK))
-	if GameState.coins < int(animal.price):
-		chips.add_child(UiKit.chip(UiKit.ui_icon("coin"), "%d/%d" % [GameState.coins, int(animal.price)], Palette.ALERT_INK))
-	if chips.get_child_count() > 0:
-		body.add_child(chips)
-	else:
-		chips.free()
-		body.add_child(UiKit.label(error, &"SmallLabel"))
 
 
 ## Sementes para um canteiro vazio em madeira: [prato] nome · tempo · colheita · [Plantar] (moeda só se o dado ainda pagar).

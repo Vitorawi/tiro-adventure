@@ -517,11 +517,13 @@ func _special_target(id: String, behind: bool) -> Rect2:
 		if lesson != null:
 			return lesson.tutorial_rect(id)
 	if id == "feed_hens":
+		var cook := _control_rect("AnimalAction")
+		if not cook.has_area():
+			cook = _control_rect("Cook")
+		if cook.has_area():
+			return cook
 		var recipe := _control_rect("Tile_eggs")
 		if recipe.has_area():
-			var cook := _control_rect("Cook")
-			if cook.has_area():
-				return cook
 			return recipe
 	if id == "snack":
 		for item: String in ["oat_biscuit", "apple_biscuit", "carrot_snack"]:

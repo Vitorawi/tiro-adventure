@@ -267,6 +267,7 @@ func chapter_four() -> void:
 	funds(60)
 	buy("week_coop")
 	claim("week_coop")
+	hen()
 	eggs(2)
 	claim("week_eggs")
 	serve(recipe("egg_mash"))

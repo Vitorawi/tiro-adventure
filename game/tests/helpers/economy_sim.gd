@@ -812,7 +812,7 @@ func execute(action: Dictionary) -> Dictionary:
 			out.extra = {"spend": gs.plot_cost(int(args.index))}
 			out.err = gs.buy_plot(int(args.index))
 		"buy_animal":
-			out.extra = {"spend": int(Database.animals[str(args.id)].price)}
+			out.extra = {"spend": gs.animal_price(str(args.id))}
 			out.err = gs.buy_animal(str(args.id))
 	return out
 

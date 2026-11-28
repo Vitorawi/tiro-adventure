@@ -21,6 +21,7 @@
   "initial_zoom": 0.79,
   "min_zoom": 0.3,
   "background_bleed": [0, 0, 0, 0],
+  "zoom_cover": true,
   "view_center": [1244, 995],
   "plot_signs": true,
   "obstacles": [
@@ -730,11 +731,11 @@
       "action": "place:chicken_coop",
       "upgrade": "chicken_coop",
       "sprite": "res://assets/sprites/areas/farm/chicken.png",
-      "pos": [1320, 424],
+      "pos": [1320, 416],
       "decoration": true,
       "animal_idle": true,
-      "footprint": [[1320, 415], [1334, 424], [1320, 433], [1306, 424]],
-      "approach": [1292, 460]
+      "footprint": [[1320, 407], [1334, 416], [1320, 425], [1306, 416]],
+      "approach": [1316, 372]
     },
     {
       "id": "hen_2",
@@ -743,11 +744,37 @@
       "action": "place:chicken_coop",
       "upgrade": "chicken_coop",
       "sprite": "res://assets/sprites/areas/farm/chicken.png",
-      "pos": [1365, 431],
+      "pos": [1356, 409],
       "decoration": true,
       "animal_idle": true,
-      "footprint": [[1365, 422], [1379, 431], [1365, 440], [1351, 431]],
-      "approach": [1380, 468]
+      "footprint": [[1356, 400], [1370, 409], [1356, 418], [1342, 409]],
+      "approach": [1356, 372]
+    },
+    {
+      "id": "hen_3",
+      "animal_station": "chicken_coop",
+      "animal_slot": 2,
+      "action": "place:chicken_coop",
+      "upgrade": "chicken_coop",
+      "sprite": "res://assets/sprites/areas/farm/chicken.png",
+      "pos": [1338, 433],
+      "decoration": true,
+      "animal_idle": true,
+      "footprint": [[1338, 424], [1352, 433], [1338, 442], [1324, 433]],
+      "approach": [1332, 476]
+    },
+    {
+      "id": "hen_4",
+      "animal_station": "chicken_coop",
+      "animal_slot": 3,
+      "action": "place:chicken_coop",
+      "upgrade": "chicken_coop",
+      "sprite": "res://assets/sprites/areas/farm/chicken.png",
+      "pos": [1374, 424],
+      "decoration": true,
+      "animal_idle": true,
+      "footprint": [[1374, 415], [1388, 424], [1374, 433], [1360, 424]],
+      "approach": [1396, 460]
     },
     {
       "id": "cow_1",
@@ -756,11 +783,11 @@
       "action": "place:cow_barn",
       "upgrade": "cow_barn",
       "sprite": "res://assets/sprites/areas/farm/cow.png",
-      "pos": [1490, 513],
+      "pos": [1459, 508],
       "decoration": true,
       "animal_idle": true,
-      "footprint": [[1490, 504], [1504, 513], [1490, 522], [1476, 513]],
-      "approach": [1492, 468]
+      "footprint": [[1459, 499], [1473, 508], [1459, 517], [1445, 508]],
+      "approach": [1468, 468]
     },
     {
       "id": "cow_2",
@@ -769,11 +796,37 @@
       "action": "place:cow_barn",
       "upgrade": "cow_barn",
       "sprite": "res://assets/sprites/areas/farm/cow.png",
-      "pos": [1551, 539],
+      "pos": [1510, 493],
       "decoration": true,
       "animal_idle": true,
-      "footprint": [[1551, 530], [1565, 539], [1551, 548], [1537, 539]],
-      "approach": [1580, 596]
+      "footprint": [[1510, 484], [1524, 493], [1510, 502], [1496, 493]],
+      "approach": [1508, 468]
+    },
+    {
+      "id": "cow_3",
+      "animal_station": "cow_barn",
+      "animal_slot": 2,
+      "action": "place:cow_barn",
+      "upgrade": "cow_barn",
+      "sprite": "res://assets/sprites/areas/farm/cow.png",
+      "pos": [1496, 529],
+      "decoration": true,
+      "animal_idle": true,
+      "footprint": [[1496, 520], [1510, 529], [1496, 538], [1482, 529]],
+      "approach": [1468, 580]
+    },
+    {
+      "id": "cow_4",
+      "animal_station": "cow_barn",
+      "animal_slot": 3,
+      "action": "place:cow_barn",
+      "upgrade": "cow_barn",
+      "sprite": "res://assets/sprites/areas/farm/cow.png",
+      "pos": [1551, 524],
+      "decoration": true,
+      "animal_idle": true,
+      "footprint": [[1551, 515], [1565, 524], [1551, 533], [1537, 524]],
+      "approach": [1548, 468]
     }
   ],
   "zones": [

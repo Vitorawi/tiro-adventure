@@ -552,12 +552,15 @@ def main() -> None:
         return [t["tl"][0] + round(fx * t["w"]), t["tl"][1] + round(fy * t["h"])]
 
     animals = [
-        ("hen_1", "chicken_coop", 0, spot("galinheiro", 0.42, 0.70)), ("hen_2", "chicken_coop", 1, spot("galinheiro", 0.62, 0.74)),
-        ("cow_1", "cow_barn", 0, spot("cural", 0.36, 0.62)), ("cow_2", "cow_barn", 1, spot("cural", 0.54, 0.72)),
+        ("hen_1", "chicken_coop", 0, spot("galinheiro", 0.42, 0.66)), ("hen_2", "chicken_coop", 1, spot("galinheiro", 0.58, 0.62)),
+        ("hen_3", "chicken_coop", 2, spot("galinheiro", 0.50, 0.75)), ("hen_4", "chicken_coop", 3, spot("galinheiro", 0.66, 0.70)),
+        ("cow_1", "cow_barn", 0, spot("cural", 0.27, 0.60)), ("cow_2", "cow_barn", 1, spot("cural", 0.42, 0.54)),
+        ("cow_3", "cow_barn", 2, spot("cural", 0.38, 0.68)), ("cow_4", "cow_barn", 3, spot("cural", 0.54, 0.66)),
     ]
     for aid, st, slot, p in animals:
-        o = dict(old_obj[aid])
-        o.update({"pos": p, "footprint": diamond(p[0], p[1], 14, 9), "approach": [p[0] + 18, p[1] + 10]})
+        # hen_3/hen_4 e cow_3/cow_4 copiam o 1 do mesmo abrigo (o JSON antigo só tinha dois de cada)
+        o = dict(old_obj.get(aid, old_obj[aid[:-1] + "1"]))
+        o.update({"id": aid, "animal_slot": slot, "pos": p, "footprint": diamond(p[0], p[1], 14, 9), "approach": [p[0] + 18, p[1] + 10]})
         o.pop("scale", None)
         objects.append(o)
 
@@ -792,6 +795,7 @@ def main() -> None:
         "depth_sort": True,
         "initial_zoom": 0.79,
         "min_zoom": 0.3, "background_bleed": [0, 0, 0, 0],
+        "zoom_cover": True,
         "view_center": P(692, 600),
         "plot_signs": True,
         "obstacles": obstacles,

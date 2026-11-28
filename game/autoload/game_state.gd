@@ -1622,6 +1622,8 @@ func pending_slot_upgrades(id: String) -> Array[String]:
 ## Espaços na fila: base de config.json + melhorias em "slot_upgrades".
 func station_slots(id: String) -> int:
 	var data: Dictionary = Database.stations.get(id, {})
+	if data.get("kind", "") == "animal":
+		return animal_count(id)  # um animal = um espaço próprio
 	var result := int(data.get("slots", 1))
 	for upgrade_id: String in data.get("slot_upgrades", {}):
 		if has_upgrade(upgrade_id):
@@ -1637,8 +1639,8 @@ func cook(recipe_id: String) -> String:
 ## Prepara N lotes iguais de uma vez (Etapa 12): cada um é um trabalho próprio na fila, com os
 ## ingredientes e o snapshot dele, começando quando o anterior termina. Tudo ou nada: se faltar
 ## vaga ou ingrediente para qualquer um dos N, nada é consumido nem enfileirado.
-func cook_many(recipe_id: String, count: int, stars: int = 1, together: bool = false) -> String:
-	var error := cook_many_error(recipe_id, count)
+func cook_many(recipe_id: String, count: int, stars: int = 1, together: bool = false, slot: int = -1) -> String:
+	var error := cook_many_error(recipe_id, count, slot)
 	if error != "":
 		return error
 	var recipe: Dictionary = Database.recipes[recipe_id]
@@ -1647,12 +1649,24 @@ func cook_many(recipe_id: String, count: int, stars: int = 1, together: bool = f
 	var target := station(station_id)
 	var paid := recipe_inputs(recipe_id)
 	var tracked := station_id == "stove" and not bool(recipe.get("hidden", false))
+	var free_animals: Array[int] = []
+	var roster: Array[String] = []
+	if animal:
+		free_animals = animal_free_slots(station_id)
+		roster = animal_roster(station_id)
+	var started := now()  # os lotes de abrigo alimentados juntos terminam juntos
 	for i in count:
 		var mastery := _recipe_preparation("recipe:" + recipe_id, stars, together) if tracked else {}
 		var seconds := recipe_seconds(recipe_id) * float(mastery.get("time", 1.0)) * (_quick_fire() if station_id == "stove" else 1.0)
 		var qty := recipe_quantity(recipe_id) + int(mastery.get("gift", 0))
 		inventory.remove_all(paid)
-		target.enqueue(recipe_id, seconds, now())
+		var animal_slot := -1
+		if animal:
+			# Abrigo: cada animal tem o próprio lote, em paralelo e começando na hora.
+			animal_slot = slot if slot >= 0 else free_animals[i]
+			target.enqueue_parallel(recipe_id, seconds, started, animal_slot)
+		else:
+			target.enqueue(recipe_id, seconds, now())
 		target.queue.back()["qty"] = qty
 		var job := WorkJobs.batch(recipe_id, Database.recipes, Database.xp, Database.stations, qty, paid)
 		job["seconds"] = seconds
@@ -1680,7 +1694,7 @@ func cook_many(recipe_id: String, count: int, stars: int = 1, together: bool = f
 				_note_routine_cooked(str(fixed.type), fixed.ingredients, int(mastery.stars))
 		target.queue.back()["job"] = job
 		if animal:
-			target.queue.back()["animals"] = animal_roster(station_id)
+			target.queue.back()["animals"] = [roster[animal_slot]]
 	_changed()
 	if animal:
 		Events.world_activity.emit(&"feed_animal", station_id, -1)
@@ -2133,6 +2147,8 @@ func cook_error(recipe_id: String) -> String:
 
 ## Vagas livres da estação (as prontas e ainda não pegas continuam ocupando a vaga).
 func station_free_slots(station_id: String) -> int:
+	if Database.stations.get(station_id, {}).get("kind", "") == "animal":
+		return animal_free_slots(station_id).size()
 	return maxi(0, station_slots(station_id) - station(station_id).queue.size())
 
 
@@ -2142,7 +2158,7 @@ func cook_max(recipe_id: String) -> int:
 	if not Database.recipes.has(recipe_id) or cook_many_error(recipe_id, 1) != "":
 		return 0
 	var recipe: Dictionary = Database.recipes[recipe_id]
-	if Database.recipe_unique(recipe) or Database.stations[recipe.station].get("kind", "") == "animal":
+	if Database.recipe_unique(recipe):
 		return 1
 	var result := station_free_slots(str(recipe.station))
 	var inputs := recipe_inputs(recipe_id)
@@ -2161,6 +2177,8 @@ func cook_inputs(recipe_id: String, count: int) -> Dictionary:
 
 ## Quando o último dos N lotes ficaria pronto (Unix), contando o que já está na fila.
 func cook_finish_at(recipe_id: String, count: int) -> float:
+	if Database.stations[Database.recipes[recipe_id].station].get("kind", "") == "animal":
+		return now() + recipe_seconds(recipe_id)  # lotes em paralelo: todos terminam juntos
 	var queue := station(str(Database.recipes[recipe_id].station)).queue
 	var start := now()
 	if not queue.is_empty():
@@ -2186,7 +2204,7 @@ func recipe_seconds(recipe_id: String) -> float:
 
 
 ## Consulta pura da ação `cook_many`: devolve "" ou o motivo, sem alterar nada.
-func cook_many_error(recipe_id: String, count: int) -> String:
+func cook_many_error(recipe_id: String, count: int, slot: int = -1) -> String:
 	if not Database.recipes.has(recipe_id):
 		return "Receita desconhecida"
 	var recipe: Dictionary = Database.recipes[recipe_id]
@@ -2218,11 +2236,24 @@ func cook_many_error(recipe_id: String, count: int) -> String:
 					return "Já está sendo costurado"
 	if animal and animal_count(station_id) == 0:
 		return "Compre um animal para começar"
-	if target.queue.size() >= station_slots(station_id):
+	if animal:
+		var free := animal_free_slots(station_id)
+		if free.is_empty():
+			return "Todos já estão comendo"
+		if slot >= 0:
+			if slot >= animal_count(station_id):
+				return "Esse animal não existe"
+			if slot not in free:
+				return "Já está comendo"
+			if count != 1:
+				return "Um por vez"
+		if count > free.size():
+			return "Só cabem %d" % free.size()
+	elif target.queue.size() >= station_slots(station_id):
 		return "Fila cheia"
-	if count > 1 and (animal or cosmetic != "" or rod != ""):
+	if not animal and count > 1 and (cosmetic != "" or rod != ""):
 		return "Um por vez"
-	if count > station_free_slots(station_id):
+	if not animal and count > station_free_slots(station_id):
 		return "Só cabem %d na fila" % station_free_slots(station_id)
 	var needed := cook_inputs(recipe_id, count)
 	if not inventory.has_all(needed):
@@ -2438,11 +2469,94 @@ func farm_week_active() -> bool:
 	return growth.phase_index() < growth.phase_index("teething")
 
 
+## Lugares do abrigo: base de config.json + ampliações em "capacity_upgrades".
 func animal_capacity(station_id: String) -> int:
 	var data: Dictionary = Database.stations[station_id]
-	if farm_week_active():
-		return int(data.get("week_animal_capacity", data.animal_capacity))
-	return int(data.animal_capacity)
+	var result := int(data.animal_capacity)
+	for upgrade_id: String in data.get("capacity_upgrades", {}):
+		if has_upgrade(upgrade_id):
+			result += int(data.capacity_upgrades[upgrade_id])
+	return result
+
+
+## Ampliações de lugares ainda não compradas do abrigo, na ordem do JSON.
+func animal_pending_expansions(station_id: String) -> Array[String]:
+	var result: Array[String] = []
+	for upgrade_id: String in Database.stations.get(station_id, {}).get("capacity_upgrades", {}):
+		if not has_upgrade(upgrade_id):
+			result.append(upgrade_id)
+	return result
+
+
+## Índices (posição em `animal_roster`) dos animais sem lote, prontos ou não. Consulta pura.
+func animal_free_slots(station_id: String) -> Array[int]:
+	var busy := {}
+	for entry: Dictionary in station(station_id).queue:
+		busy[int(entry.get("slot", -1))] = true
+	var result: Array[int] = []
+	for i in animal_count(station_id):
+		if not busy.has(i):
+			result.append(i)
+	return result
+
+
+## O lote do animal de índice `slot` (ou {} se está livre).
+func animal_batch(station_id: String, slot: int) -> Dictionary:
+	for entry: Dictionary in station(station_id).queue:
+		if int(entry.get("slot", -1)) == slot:
+			return entry
+	return {}
+
+
+## O elenco é ordenado por variedade: um animal comprado antes na ordem desloca os seguintes. Cada lote em andamento
+## acompanha o animal dele (o N-ésimo da variedade) para o espaço não pular de bicho.
+func _remap_animal_slots(station_id: String, old_roster: Array[String]) -> void:
+	var new_roster := animal_roster(station_id)
+	for entry: Dictionary in station(station_id).queue:
+		var slot := int(entry.get("slot", -1))
+		if slot < 0 or slot >= old_roster.size():
+			continue
+		var nth := 0
+		for i in slot:
+			if old_roster[i] == old_roster[slot]:
+				nth += 1
+		var seen := 0
+		for i in new_roster.size():
+			if new_roster[i] == old_roster[slot]:
+				if seen == nth:
+					entry["slot"] = i
+					break
+				seen += 1
+
+
+## Preço do próximo animal da variedade: tabela do abrigo (quantos já tem) + acréscimo da variedade.
+func animal_price(id: String) -> int:
+	var data: Dictionary = Database.animals[id]
+	var prices: Array = Database.stations[data.station].get("animal_prices", [0])
+	var base := int(prices[mini(animal_count(data.station), prices.size() - 1)])
+	return base + int(data.get("price_extra", 0))
+
+
+## Preço do animal mais barato já liberado do abrigo para o lugar `offset` à frente (0 = o próximo a comprar).
+## É o preço mostrado nos "+ Comprar" da bandeja.
+func animal_next_price(station_id: String, offset: int = 0) -> int:
+	var prices: Array = Database.stations[station_id].get("animal_prices", [0])
+	var base := int(prices[mini(animal_count(station_id) + offset, prices.size() - 1)])
+	var extra := -1
+	for id: String in Database.animals:
+		var data: Dictionary = Database.animals[id]
+		if data.station == station_id and requirement_error(data.get("requirements", {})) == "":
+			extra = int(data.get("price_extra", 0)) if extra < 0 else mini(extra, int(data.get("price_extra", 0)))
+	return base + maxi(0, extra)
+
+
+## Alimenta só o animal de índice `slot` (consulta pura / ação).
+func cook_animal_error(recipe_id: String, slot: int) -> String:
+	return cook_many_error(recipe_id, 1, maxi(0, slot))
+
+
+func cook_animal(recipe_id: String, slot: int) -> String:
+	return cook_many(recipe_id, 1, 1, false, maxi(0, slot))
 
 
 func animal_count(station_id: String) -> int:
@@ -2469,7 +2583,7 @@ func buy_animal_error(id: String) -> String:
 		return reason
 	if animal_count(data.station) >= animal_capacity(data.station):
 		return "Abrigo cheio"
-	if coins < int(data.price):
+	if coins < animal_price(id):
 		return "Faltam moedas"
 	return ""
 
@@ -2478,8 +2592,13 @@ func buy_animal(id: String) -> String:
 	var error := buy_animal_error(id)
 	if error != "":
 		return error
-	coins -= int(Database.animals[id].price)
+	var station_id: String = Database.animals[id].station
+	var old_roster := animal_roster(station_id)
+	coins -= animal_price(id)
 	animals[id] = int(animals.get(id, 0)) + 1
+	_remap_animal_slots(station_id, old_roster)
+	_count("buy_animal:" + station_id)
+	_count("buy_animal")
 	_changed()
 	Events.world_activity.emit(&"buy_upgrade", str(Database.animals[id].station), -1)
 	return ""
@@ -2487,21 +2606,16 @@ func buy_animal(id: String) -> String:
 
 func recipe_quantity(recipe_id: String) -> int:
 	var recipe: Dictionary = Database.recipes[recipe_id]
-	var factor := animal_count(recipe.station) if Database.stations[recipe.station].get("kind", "") == "animal" else 1
 	var qty := int(recipe.get("qty", 1))
-	return (int(recipe.get("week_qty", qty)) if farm_week_active() else qty) * factor
+	return int(recipe.get("week_qty", qty)) if farm_week_active() else qty  # por animal
 
 
 func recipe_inputs(recipe_id: String) -> Dictionary:
 	var recipe: Dictionary = Database.recipes[recipe_id]
-	var factor := animal_count(recipe.station) if Database.stations[recipe.station].get("kind", "") == "animal" else 1
 	var inputs: Dictionary = recipe.get("inputs", {})
 	if farm_week_active():
 		inputs = recipe.get("week_inputs", inputs)
-	var result := inputs.duplicate()
-	for id: String in result:
-		result[id] = int(result[id]) * factor
-	return result
+	return inputs.duplicate()  # por animal
 
 
 # --- Horta (sítio) ---------------------------------------------------------
@@ -3508,12 +3622,6 @@ func _grant_upgrade(id: String) -> void:
 		return
 	progress.owned[id] = true
 	var data: Dictionary = Database.progression.upgrades[id]
-	var gift: String = data.get("gift_animal", "")
-	if Database.animals.has(gift):
-		var station_id: String = Database.animals[gift].station
-		var amount := mini(int(data.get("gift_animal_count", 1)), animal_capacity(station_id) - animal_count(station_id))
-		if amount > 0:
-			animals[gift] = int(animals.get(gift, 0)) + amount
 	if data.has("nature_unlock"):
 		var site: String = data.nature_unlock.site
 		var target := int(data.nature_unlock.level) - 1
@@ -9350,6 +9458,8 @@ func _week_routine_pick(day: int) -> void:
 		if id == "play" and not yard_open("ball"):
 			continue
 		if id == "fish" and not farm_lake_open():
+			continue
+		if id == "eggs" and animal_count("chicken_coop") == 0:
 			continue
 		if id == "harvest" and accessible_plots() == 0:
 			continue

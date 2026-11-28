@@ -57,6 +57,7 @@
     "manual_test",
     "world_life_test",
     "animals_test",
+    "animals_slots_test",
     "nature_test",
     "worlds_test",
     "intro_test",
@@ -764,6 +765,7 @@
         "game/tests/queue_test.gd",
         "game/tests/products_test.gd",
         "game/tests/animals_test.gd",
+        "game/tests/animals_slots_test.gd",
         "game/tests/animals_chain_test.gd",
         "game/tests/expansion_test.gd"
       ],
@@ -776,6 +778,7 @@
         "queue_test",
         "products_test",
         "animals_test",
+        "animals_slots_test",
         "animals_chain_test",
         "expansion_test"
       ]

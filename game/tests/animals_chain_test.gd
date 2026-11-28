@@ -12,9 +12,10 @@ const COSTS := {
 	"stall": [500, {"plank": 5, "brick": 3}], "greenhouse": [850, {"plank": 6, "brick": 6, "crystal": 2}],
 	"atelier": [1000, {"plank": 8, "copper": 6}],
 }
+## Acréscimo da variedade sobre o preço da vez (`config.json -> stations.<abrigo>.animal_prices`).
 const PRICES := {
-	"chicken_white": 120, "chicken_brown": 150, "chicken_black": 180,
-	"cow_white": 220, "cow_brown": 280, "cow_spotted": 340,
+	"chicken_white": 0, "chicken_brown": 20, "chicken_black": 40,
+	"cow_white": 0, "cow_brown": 30, "cow_spotted": 60,
 }
 
 var failures := 0
@@ -150,17 +151,17 @@ func _data() -> void:
 			check(int(materials.get(item, 0)) == int(COSTS[id][1][item]), "%s: %s" % [id, item])
 	var animals: Dictionary = db.get("animals")
 	for id: String in PRICES:
-		check(int(animals[id].price) == PRICES[id], "%s custa %s" % [id, PRICES[id]])
+		check(int(animals[id].price_extra) == PRICES[id], "%s soma %s ao preço" % [id, PRICES[id]])
 	# Mesmo rendimento: variedades só diferem no desenho/escala e no requisito de uso.
 	for id: String in animals:
 		for key: String in animals[id]:
-			check(key in ["name", "station", "price", "sprite", "legacy", "map_scale", "requirements"], "%s: campo escondido %s" % [id, key])
+			check(key in ["name", "station", "price_extra", "sprite", "legacy", "map_scale", "requirements"], "%s: campo escondido %s" % [id, key])
 	check(int(animals.chicken_brown.requirements.produced.egg) == 8, "Ruiva pede 8 ovos")
 	check(int(animals.chicken_black.requirements.produced.egg) == 24, "Preta pede 24 ovos")
 	check(int(animals.cow_brown.requirements.produced.milk) == 8, "Caramelo pede 8 leites")
 	check(int(animals.cow_spotted.requirements.produced.milk) == 24, "Malhada pede 24 leites")
 	var quests: Dictionary = db.get("quests")
-	var order := ["farm_deed", "main_9_coop", "main_9_eggs", "main_9_cows", "bloblo_milk", "main_9_flour", "main_9_cheese", "bloblo_breakfast"]
+	var order := ["farm_deed", "main_9_coop", "main_9_eggs", "main_9_cows", "bloblo_first_cow", "bloblo_milk", "main_9_flour", "main_9_cheese", "bloblo_breakfast"]
 	var last := -1
 	for id: String in order:
 		check(quests.has(id), "Existe " + id)
@@ -214,29 +215,32 @@ func _chain() -> void:
 	state.get("inventory").add("brick", 8)
 	state.call("dev_advance_time", 0)
 	check(_stat("produce:egg") == 0 and _stat("produce:milk") == 0, "Começa sem produto animal")
-	# O kit abre o milho e vem com duas galinhas, sem exigir produto animal.
+	# O kit abre o milho e o galinheiro vazio; as galinhas se compram uma a uma, sem exigir produto animal.
 	var coins := _coins()
 	var planks := _inv("plank")
 	check(state.call("buy_shop_item", "week_coop") == "", "Comprar kit do galinheiro")
 	check(_coins() == coins - 40 and _inv("plank") == planks, "Kit cobra 60 moedas e devolve 20")
-	check(state.call("animal_count", "chicken_coop") == 2, "Kit inclui duas galinhas")
+	check(state.call("animal_count", "chicken_coop") == 0, "Kit não inclui galinhas")
 	_claim("main_9_coop")
 	check(state.call("plant", 0, "corn") == "", "Milho planta sem produto animal")
 	check(state.call("plant", 1, "wheat") == "", "Trigo planta sem produto animal")
 	state.call("dev_finish_timers")
 	check(int(state.call("harvest", 0).get("corn", 0)) == 6 and int(state.call("harvest", 1).get("wheat", 0)) == 4, "Colheita renova a ração")
-	# A capacidade depois de Dentinhos permite uma terceira galinha.
-	# Elo 2: ovos. O lote usa só os animais presentes; comprar durante não entra no lote.
-	check(state.call("cook", "eggs") == "", "Alimentar a galinha")
+	# Elo 2: ovos. Cada galinha tem o próprio lote; comprar durante não altera os lotes em andamento.
+	coins = _coins()
+	check(state.call("buy_animal", "chicken_white") == "" and state.call("buy_animal", "chicken_white") == "", "Comprar as duas primeiras galinhas")
+	check(_coins() == coins - 80, "Galinhas custam 30 e 50")
+	check(state.call("cook_many", "eggs", 2) == "", "Alimentar as duas galinhas")
+	state.call("dev_grant_upgrade", "chicken_coop_2")
 	coins = _coins()
 	check(state.call("buy_animal", "chicken_white") == "", "Comprar galinha durante o lote")
-	check(_coins() == coins - 120, "Extra branca custa 120")
+	check(_coins() == coins - 80, "Terceira galinha custa 80")
 	state.call("dev_advance_time", 900)
 	check(int(state.call("collect", "chicken_coop").get("egg", 0)) == 4, "Lote em andamento rende quatro ovos das duas galinhas alimentadas")
 	state.call("plant", 0, "corn")
 	state.call("dev_finish_timers")
 	state.call("harvest", 0)
-	check(state.call("cook", "eggs") == "", "Novo lote com três galinhas")
+	check(state.call("cook_many", "eggs", 3) == "", "Novo lote com três galinhas")
 	state.call("dev_advance_time", 900)
 	check(int(state.call("collect", "chicken_coop").get("egg", 0)) == 6, "Depois da compra, lote rende por animal")
 	_claim("main_9_eggs")
@@ -244,7 +248,9 @@ func _chain() -> void:
 	coins = _coins()
 	check(state.call("buy_upgrade", "cow_barn") == "", "Comprar curral")
 	check(_coins() == coins - 420, "Curral custa 420")
+	check(state.call("animal_count", "cow_barn") == 0 and state.call("buy_animal", "cow_white") == "", "Curral vazio: a primeira vaca se compra")
 	_claim("main_9_cows")
+	_claim("bloblo_first_cow")
 	_produce("cow_barn", "milk", 1800, "milk", 2)
 	check(_inv("milk") >= 2, "Leite 2 recebido")
 	_claim("bloblo_milk")

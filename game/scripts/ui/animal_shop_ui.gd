@@ -75,6 +75,8 @@ static func build(station_id: String) -> Control:
 		box.add_theme_constant_override("separation", 6)
 		var width := panel_width()
 		box.add_child(_frame(station_id, model, width))
+		if _expansion(station_id) != "":
+			box.add_child(_expand_row(station_id))
 		box.add_child(_board(station_id, width))
 		var tail := Control.new()
 		tail.custom_minimum_size.y = TAB_BAR
@@ -94,9 +96,29 @@ static func animal_ids(station_id: String) -> Array[String]:
 	return ids
 
 
-static func _visible_rows(rows: int) -> int:
+## Ampliação de lugares ainda por comprar quando o abrigo está cheio ("" = não mostra a linha).
+static func _expansion(station_id: String) -> String:
+	if GameState.animal_count(station_id) < GameState.animal_capacity(station_id):
+		return ""
+	var pending := GameState.animal_pending_expansions(station_id)
+	return pending[0] if not pending.is_empty() else ""
+
+
+## Linha "Ampliar": abre a compra de mais lugares (a mesma folha da ampliação do espaço da bandeja).
+static func _expand_row(station_id: String) -> Control:
+	var upgrade_id := _expansion(station_id)
+	var data: Dictionary = Database.progression.upgrades[upgrade_id]
+	var cost := int(data.get("cost", 0))
+	var button := WelcomeSheet._button("Ampliar %s · %d" % [str(Database.stations[station_id].name).to_lower(), cost], false, 240.0, "AnimalExpand", func() -> void:
+		Events.sheet_requested.emit(str(data.name), ProgressionUi.purchase(upgrade_id)))
+	button.set_meta("upgrade", upgrade_id)
+	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	return button
+
+
+static func _visible_rows(rows: int, extra: float = 0.0) -> int:
 	var screen_h := (Engine.get_main_loop() as SceneTree).root.get_visible_rect().size.y
-	var chrome := 128.0 + IN_T + IN_B + BOARD_H + 6.0 + TAB_BAR
+	var chrome := 128.0 + IN_T + IN_B + BOARD_H + 6.0 + TAB_BAR + extra
 	var fit := int(floor((screen_h - chrome + GAP) / (CARD_H + GAP)))
 	return clampi(mini(rows, MAX_ROWS), 1, maxi(1, fit))
 
@@ -173,7 +195,7 @@ static func _overlay(station_id: String, width: float) -> Control:
 static func _grid_area(station_id: String, model: Dictionary, inner_w: float) -> Control:
 	var ids := animal_ids(station_id)
 	var rows := ceili(ids.size() / 2.0)
-	var shown := _visible_rows(rows)
+	var shown := _visible_rows(rows, 50.0 if _expansion(station_id) != "" else 0.0)
 	var needs_bar := rows > shown
 	var bar_w := SellUi.GUTTER if needs_bar else 0.0
 	var card_w := floorf((inner_w - bar_w - GAP) / 2.0)
@@ -243,7 +265,7 @@ static func _card(station_id: String, id: String, card_w: float, figure_factor: 
 	card.add_child(name_label)
 	name_label.position = Vector2(column_x, top)
 	name_label.size = Vector2(text_w, NAME_H)
-	var pill := _lock_pill(animal, error, text_w) if error != "" else _price_pill(int(animal.price), text_w)
+	var pill := _lock_pill(animal, error, text_w, GameState.animal_price(id)) if error != "" else _price_pill(GameState.animal_price(id), text_w)
 	card.add_child(pill)
 	pill.position = Vector2(column_x, top + NAME_H + 3.0)
 	pill.size = Vector2(text_w, PILL_H)
@@ -409,7 +431,7 @@ static func _price_pill(price: int, width: float) -> Control:
 
 
 ## Bloqueado: cadeado + o que falta (produto 3/8 em ícone, ou o motivo curto em até 2 linhas).
-static func _lock_pill(animal: Dictionary, error: String, width: float) -> Control:
+static func _lock_pill(animal: Dictionary, error: String, width: float, price: int) -> Control:
 	var pill := _capsule("LockPill", LOCK_BG, PILL_EDGE, Vector2(width, PILL_H), 2)
 	var row := pill.get_node("Row")
 	var produced: Dictionary = animal.get("requirements", {}).get("produced", {})
@@ -435,7 +457,7 @@ static func _lock_pill(animal: Dictionary, error: String, width: float) -> Contr
 	if error == "Faltam moedas":
 		# Falta dinheiro: o preço que ainda não dá para pagar, com a moeda ao lado do cadeado.
 		row.add_child(SellUi.soft(SellUi.coin(14.0)))
-		var need := MissionUi.text(str(int(animal.price)), 14, Palette.WOOD_CREAM, 3)
+		var need := MissionUi.text(str(price), 14, Palette.WOOD_CREAM, 3)
 		need.name = "LockText"
 		need.autowrap_mode = TextServer.AUTOWRAP_OFF
 		need.custom_minimum_size = Vector2.ZERO

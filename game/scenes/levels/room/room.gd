@@ -2805,9 +2805,22 @@ func _initial_zoom() -> float:
 ## Zoom mínimo: "min_zoom" do JSON ou o menor entre a sala inteira e a abertura (dá para afastar
 ## até ver tudo; o fundo cobre o resto). O máximo é MAX_ZOOM.
 func _min_zoom() -> float:
-	if _room.has("min_zoom"):
-		return minf(float(_room.min_zoom), _initial_zoom())
-	return minf(_fit_zoom(), _initial_zoom())
+	var base := minf(float(_room.min_zoom), _initial_zoom()) if _room.has("min_zoom") else minf(_fit_zoom(), _initial_zoom())
+	if bool(_room.get("zoom_cover", false)):
+		return maxf(base, _cover_zoom())
+	return base
+
+
+## Menor zoom em que a fotografia ainda cobre a tela inteira (`zoom_cover`): afastar além disso mostraria o
+## fundo de céu/grama atrás da foto.
+func _cover_zoom() -> float:
+	var extent := _content.size
+	if _room.has("background_bleed"):
+		var bleed: Array = _room.background_bleed
+		extent += Vector2(bleed[0] + bleed[2], bleed[1] + bleed[3])
+	if extent.x <= 0.0 or extent.y <= 0.0 or size.x <= 0.0 or size.y <= 0.0:
+		return 0.0
+	return maxf(size.x / extent.x, size.y / extent.y)
 
 
 func _show_whole_room() -> void:

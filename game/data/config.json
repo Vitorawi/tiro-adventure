@@ -89,8 +89,12 @@
       "name": "Galinheiro",
       "slots": 1,
       "kind": "animal",
-      "animal_capacity": 3,
-      "week_animal_capacity": 2,
+      "animal_capacity": 2,
+      "capacity_upgrades": {
+        "chicken_coop_2": 2
+      },
+      "animal_prices": [30, 50, 80, 120],
+      "animal_noun": "galinha",
       "action_label": "Alimentar",
       "queue_label": "Fazendo ovos",
       "recipe_label": "Alimentação",
@@ -103,7 +107,12 @@
       "name": "Curral",
       "slots": 1,
       "kind": "animal",
-      "animal_capacity": 3,
+      "animal_capacity": 2,
+      "capacity_upgrades": {
+        "cow_barn_2": 2
+      },
+      "animal_prices": [80, 120, 170, 230],
+      "animal_noun": "vaca",
       "action_label": "Alimentar",
       "queue_label": "Fazendo leite",
       "recipe_label": "Alimentação",
@@ -155,7 +164,7 @@
     "chicken_white": {
       "name": "Galinha branca",
       "station": "chicken_coop",
-      "price": 120,
+      "price_extra": 0,
       "sprite": "res://assets/sprites/areas/farm/chicken.png",
       "legacy": true,
       "map_scale": 0.6
@@ -163,7 +172,7 @@
     "chicken_brown": {
       "name": "Galinha ruiva",
       "station": "chicken_coop",
-      "price": 150,
+      "price_extra": 20,
       "sprite": "res://assets/sprites/areas/farm/chicken_brown.png",
       "map_scale": 0.6,
       "requirements": {
@@ -175,7 +184,7 @@
     "chicken_black": {
       "name": "Galinha preta",
       "station": "chicken_coop",
-      "price": 180,
+      "price_extra": 40,
       "sprite": "res://assets/sprites/areas/farm/chicken_black.png",
       "map_scale": 0.6,
       "requirements": {
@@ -187,7 +196,7 @@
     "cow_white": {
       "name": "Vaca pintadinha",
       "station": "cow_barn",
-      "price": 220,
+      "price_extra": 0,
       "sprite": "res://assets/sprites/areas/farm/cow.png",
       "legacy": true,
       "map_scale": 0.75
@@ -195,7 +204,7 @@
     "cow_brown": {
       "name": "Vaca caramelo",
       "station": "cow_barn",
-      "price": 280,
+      "price_extra": 30,
       "sprite": "res://assets/sprites/areas/farm/cow_brown.png",
       "map_scale": 0.95,
       "requirements": {
@@ -207,7 +216,7 @@
     "cow_spotted": {
       "name": "Vaca malhada",
       "station": "cow_barn",
-      "price": 340,
+      "price_extra": 60,
       "sprite": "res://assets/sprites/areas/farm/cow_spotted.png",
       "map_scale": 0.95,
       "requirements": {

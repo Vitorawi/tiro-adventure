@@ -9,6 +9,8 @@ static var last_recipe := {}
 static var last_material := {}
 ## Quantos lotes o jogador escolheu por receita nesta sessão (Preparar N). Não é salvo e nunca começa produção.
 static var quantity := {}
+## Criações: quantos animais alimentar (padrão = todos que a ração paga); o jogador pode escolher menos e guardar ração.
+static var animal_quantity := {}
 
 
 # --- Estações de produção (fogão, liquidificador, bancada, moinho, queijaria, costura, ateliê) ---
@@ -155,6 +157,9 @@ static func _collect_button(station_id: String, ready: int) -> Button:
 
 ## Quantidade escolhida para a receita, sempre entre 1 e o máximo possível agora.
 static func chosen_count(recipe_id: String) -> int:
+	if _is_animal_recipe(recipe_id):
+		var most := maxi(1, GameState.cook_max(recipe_id))
+		return clampi(int(animal_quantity.get(recipe_id, most)), 1, most)  # padrão: todos que a ração paga
 	return clampi(int(quantity.get(recipe_id, 1)), 1, maxi(1, GameState.cook_max(recipe_id)))
 
 
@@ -180,7 +185,8 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 	title_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	title_box.add_child(title)
 	heading.add_child(title_box)
-	heading.add_child(StationWood.time_pill(TimeText.short(int(GameState.recipe_seconds(recipe_id)) * count)))
+	# Criações: os lotes correm em paralelo, então o tempo é o de um animal, não a soma.
+	heading.add_child(StationWood.time_pill(TimeText.short(int(GameState.recipe_seconds(recipe_id)) * (1 if _is_animal_recipe(recipe_id) else count))))
 	box.add_child(heading)
 	# entra → sai
 	var flow := UiKit.hbox(8)
@@ -216,7 +222,8 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 		actions.add_child(StationWood.board_note(locked, TaskHelp.open.bind("recipe", recipe_id, int(recipe.get("qty", 1)))))
 		return box
 	var most := GameState.cook_max(recipe_id)
-	if most > 1:
+	var herd := _is_animal_recipe(recipe_id)
+	if most > 1 and not herd:
 		actions.add_child(StationWood.stepper(count, most, func(value: int) -> void: _set_count(recipe_id, value)))
 		var done := StationWood.text("Pronto às %s" % GameState.clock_text(GameState.cook_finish_at(recipe_id, count)), 12)
 		done.name = "FinishAt"
@@ -226,7 +233,10 @@ static func recipe_detail(station_id: String, recipe_id: String) -> Control:
 		actions.add_child(StationWood.board_note(error))
 		return box
 	var verb := str(Database.stations.get(station_id, {}).get("action_label", "Fazer"))
-	var action := StepCardUi.go_button(verb if count == 1 else "%s ×%d" % [verb, count], func() -> void: _cook(station_id, recipe_id))
+	var caption := verb if count == 1 else "%s ×%d" % [verb, count]
+	if herd and count > 1:
+		caption = "%s todas (%d)" % [verb, count]
+	var action := StepCardUi.go_button(caption, func() -> void: _cook(station_id, recipe_id))
 	action.name = "Cook"
 	action.set_meta("wood_primary", true)
 	if most <= 1:
@@ -249,19 +259,48 @@ static func _set_count(recipe_id: String, count: int) -> void:
 static func _cook(station_id: String, recipe_id: String) -> void:
 	var count := chosen_count(recipe_id)
 	var before := GameState.station(station_id).queue.size()
+	var targets: Array[int] = []
+	if _is_animal_recipe(recipe_id):
+		targets = GameState.animal_free_slots(station_id).slice(0, count)
 	var reason := GameState.cook_many(recipe_id, count)
 	if reason != "":
 		Events.toast_requested.emit(reason)
 		return
 	quantity[recipe_id] = 1
+	animal_quantity.erase(recipe_id)
 	var tray := ActionTray.current
 	if not is_instance_valid(tray):
 		return
 	last_recipe[station_id] = recipe_id
 	var icon := Database.item_icon(Database.recipe_output(Database.recipes[recipe_id]))
 	var from := tray.item_center(recipe_id)
+	if from == Vector2.ZERO:
+		from = tray.global_position + tray.size / 2.0
 	for i in count:
-		_light_new_slot(tray, station_id, icon, from, before + i)
+		_light_new_slot(tray, station_id, icon, from, targets[i] if not targets.is_empty() else before + i)
+
+
+static func _is_animal_recipe(recipe_id: String) -> bool:
+	return Database.recipes.has(recipe_id) and Database.stations[Database.recipes[recipe_id].station].get("kind", "") == "animal"
+
+
+## Toque no espaço de um animal livre: alimenta só ele com a receita escolhida (ou a primeira liberada).
+static func feed_animal(station_id: String, slot: int) -> void:
+	var recipe_id := str(last_recipe.get(station_id, ""))
+	if recipe_id == "" or not Database.recipes.has(recipe_id):
+		for id in recipe_ids(station_id):
+			if GameState.content_error("recipe", id, Database.recipes[id]) == "":
+				recipe_id = id
+				break
+	var reason := GameState.cook_animal(recipe_id, slot) if recipe_id != "" else "Nada para dar agora"
+	if reason != "":
+		Events.toast_requested.emit(reason)
+		return
+	last_recipe[station_id] = recipe_id
+	var tray := ActionTray.current
+	if is_instance_valid(tray):
+		tray.refresh_detail()
+		_light_new_slot(tray, station_id, Database.item_icon(Database.recipe_output(Database.recipes[recipe_id])), tray.global_position + tray.size / 2.0, slot)
 
 
 ## O cabeçalho se refaz no fim do quadro: espera e acende a bolinha da vaga `index`.
@@ -463,41 +502,225 @@ static func crop_detail(crop_id: String) -> Control:
 
 # --- Criações (galinheiro, curral) ------------------------------------------------------
 
-## Cada animal tem o próprio espaço; produto, tempo, ingredientes e Alimentar seguem o padrão das estações.
-## "Comprar animais" abre a loja diretamente no rodapé, inclusive com o abrigo vazio.
+## Cada animal é uma ficha do cercadinho (livre, produzindo ou pronto) e os lugares livres compram o próximo.
+## Embaixo: linha de informação da ração/produto e UM botão principal na tábua (pegar, alimentar, falta ração...).
+## O seletor de receitas só aparece quando o abrigo tem mais de uma receita liberada.
 static func animal(room: RoomView, station_id: String, anchor: Dictionary) -> ActionTray:
 	var data: Dictionary = Database.stations[station_id]
-	var buy := func() -> void: SheetBuilder.open_animal_shop(station_id)
-	var shop_footer := {"text": "Comprar animais", "name": "BuyAnimals", "action": buy}
-	if GameState.animal_count(station_id) == 0:
-		var empty := UiKit.vbox(6)
-		empty.name = "EmptyShelter"
-		var note := StationWood.text("Abrigo vazio", 20)
-		note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		empty.add_child(note)
-		shop_footer["primary"] = true
-		return ActionTray.open(room, anchor.above, [], {"mode": "pick", "title": str(data.name), "icon": station_icon(station_id), "art": "", "header": empty, "below": anchor.below, "footer_ghost": shop_footer})
+	var ids := recipe_ids(station_id)
 	var entries: Array[Dictionary] = []
-	for id in recipe_ids(station_id):
-		var recipe: Dictionary = Database.recipes[id]
-		entries.append({
-			"id": id,
-			"icon": Database.item_icon(Database.recipe_output(recipe)),
-			"item": Database.recipe_output(recipe),
-			"clock": true,
-			"caption": TimeText.short(int(GameState.recipe_seconds(id))),
-			"caption_fn": func() -> String: return TimeText.short(int(GameState.recipe_seconds(id))),
-			"error": GameState.content_error("recipe", id, recipe),
-			"error_fn": func() -> String: return GameState.content_error("recipe", id, recipe),
-			"missing_fn": func() -> Texture2D: return missing_icon(id),
-		})
+	if ids.size() > 1:
+		for id in ids:
+			var recipe: Dictionary = Database.recipes[id]
+			entries.append({
+				"id": id,
+				"icon": Database.item_icon(Database.recipe_output(recipe)),
+				"item": Database.recipe_output(recipe),
+				"clock": true,
+				"caption": TimeText.short(int(GameState.recipe_seconds(id))),
+				"caption_fn": func() -> String: return TimeText.short(int(GameState.recipe_seconds(id))),
+				"error": GameState.content_error("recipe", id, recipe),
+				"error_fn": func() -> String: return GameState.content_error("recipe", id, recipe),
+				"missing_fn": func() -> Texture2D: return missing_icon(id),
+			})
+	var count_pill := StationWood.inset_box("AnimalCount", Vector4(8, 1, 8, 1))
+	count_pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	count_pill.add_child(StationWood.text("%d/%d" % [GameState.animal_count(station_id), GameState.animal_capacity(station_id)], 16))
 	return ActionTray.open(room, anchor.above, entries, {
-		"mode": "pick", "title": str(data.name), "icon": station_icon(station_id), "art": "", "selected": _first_open(entries),
-		"header": _header(station_id),
-		"detail": func(id: String) -> Control: return recipe_detail(station_id, id),
+		"mode": "pick", "title": str(data.name), "icon": station_icon(station_id), "art": "",
+		"selected": _first_open(entries) if not entries.is_empty() else "",
+		"badge": count_pill,
+		"header": _animal_header(station_id),
+		"detail": func(id: String) -> Control: return animal_detail(station_id, id),
 		"below": anchor.below,
-		"footer_ghost": shop_footer if GameState.animal_count(station_id) < GameState.animal_capacity(station_id) else {},
 	})
+
+
+## Cercadinho vivo (refaz a cada segundo: tempo, anel e pronto). Abrigo vazio: a frase de convite acima das fichas.
+static func _animal_header(station_id: String) -> Control:
+	var box := SheetBuilder.LiveBox.new(func(parent: VBoxContainer) -> void:
+		if GameState.animal_count(station_id) == 0:
+			var note := StationWood.text("Compre sua primeira %s" % str(Database.stations[station_id].get("animal_noun", "criação")), 18)
+			note.name = "EmptyShelter"
+			note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			parent.add_child(note)
+		var pen := StationWood.animal_pen(station_id,
+			func(index: int) -> void: animal_tap(station_id, index),
+			func() -> void: SheetBuilder.open_animal_shop(station_id))
+		parent.add_child(StationWood.tray_strip(pen, "AnimalPenTray", 5)))
+	box.name = "Header"
+	return box
+
+
+## Receita que a bandeja usa: a escolhida na grade, a última usada ou a primeira liberada.
+static func animal_recipe(station_id: String, selected: String = "") -> String:
+	var ids := recipe_ids(station_id)
+	if selected in ids:
+		return selected
+	var last := str(last_recipe.get(station_id, ""))
+	if last in ids:
+		return last
+	for id in ids:
+		if GameState.content_error("recipe", id, Database.recipes[id]) == "":
+			return id
+	return ids[0] if not ids.is_empty() else ""
+
+
+## Ficha tocada: livre alimenta só ele, pronto recolhe, produzindo avisa o tempo que falta.
+static func animal_tap(station_id: String, slot: int) -> void:
+	var entry := GameState.animal_batch(station_id, slot)
+	if entry.is_empty():
+		feed_animal(station_id, slot)
+		return
+	var left := float(entry["ready_at"]) - GameState.now()
+	if left <= 0.0:
+		Events.items_gained.emit(GameState.collect(station_id), 0, Vector2(-1.0, -1.0))
+		return
+	Events.toast_requested.emit("Faltam %s" % TimeText.short(int(ceil(left))))
+
+
+## Detalhe: linha `AnimalInfo` e, em `Actions` (a bandeja leva para a tábua), o botão único `AnimalAction`.
+static func animal_detail(station_id: String, selected: String = "") -> Control:
+	var box := UiKit.vbox(6)
+	box.name = "AnimalDetail"
+	var recipe_id := animal_recipe(station_id, selected)
+	if recipe_id == "":
+		return box
+	box.add_child(_animal_info(station_id, recipe_id))
+	var actions := UiKit.hbox(8)
+	actions.name = "Actions"
+	actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	actions.add_child(_animal_action(station_id, recipe_id))
+	box.add_child(actions)
+	return box
+
+
+static func _animal_info(station_id: String, recipe_id: String) -> Control:
+	var data: Dictionary = Database.stations[station_id]
+	var recipe: Dictionary = Database.recipes[recipe_id]
+	var output: String = Database.recipe_output(recipe)
+	var inputs: Dictionary = GameState.recipe_inputs(recipe_id)
+	var flow := HFlowContainer.new()
+	flow.name = "AnimalInfo"
+	flow.alignment = FlowContainer.ALIGNMENT_CENTER
+	flow.add_theme_constant_override("h_separation", 10)
+	flow.add_theme_constant_override("v_separation", 2)
+	flow.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	flow.mouse_filter = Control.MOUSE_FILTER_PASS
+	var each := UiKit.hbox(3)
+	each.name = "AnimalEach"
+	each.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	each.alignment = BoxContainer.ALIGNMENT_CENTER
+	each.add_child(StationWood.text("Cada %s:" % str(data.get("animal_noun", "criação")), 13))
+	var ration := ""
+	for item: String in inputs:
+		ration = item if ration == "" else ration
+		each.add_child(StationWood.item_pic(item, Database.item_icon(item), 22.0))
+		each.add_child(StationWood.text("×%d" % int(inputs[item]), 13))
+	each.add_child(StationWood.pic("arrow", Vector2(13, 18), "Arrow"))
+	each.add_child(StationWood.item_pic(output, Database.item_icon(output), 22.0))
+	each.add_child(StationWood.text("×%d" % GameState.recipe_quantity(recipe_id), 13))
+	each.add_child(StationWood.pic("clock", Vector2(14, 14), "Clock"))
+	each.add_child(StationWood.text(TimeText.short(int(GameState.recipe_seconds(recipe_id))), 13))
+	flow.add_child(each)
+	if ration != "":
+		var have := GameState.inventory.count(ration)
+		var short := GameState.cook_max(recipe_id) < 1 and not GameState.animal_free_slots(station_id).is_empty()
+		var mine := UiKit.hbox(3)
+		mine.name = "AnimalHave"
+		mine.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		mine.alignment = BoxContainer.ALIGNMENT_CENTER
+		mine.add_child(StationWood.text("Você tem", 13))
+		mine.add_child(StationWood.item_pic(ration, Database.item_icon(ration), 22.0))
+		mine.add_child(StationWood.text("%d" % have, 13, Palette.ALERT_INK if short else Palette.WOOD_INK))
+		flow.add_child(mine)
+	return flow
+
+
+## O botão único da tábua, por prioridade: pegar, alimentar, falta ração, todas comendo, comprar a primeira.
+static func _animal_action(station_id: String, recipe_id: String) -> Control:
+	var data: Dictionary = Database.stations[station_id]
+	var target := GameState.station(station_id)
+	var now := GameState.now()
+	var output: String = Database.recipe_output(Database.recipes[recipe_id])
+	var button: Control
+	var ready_qty := 0
+	var left_min := -1.0
+	for entry: Dictionary in target.queue:
+		var left := float(entry["ready_at"]) - now
+		if left <= 0.0:
+			ready_qty += int(entry.get("qty", 1))
+		else:
+			left_min = left if left_min < 0.0 else minf(left_min, left)
+	var free := GameState.animal_free_slots(station_id)
+	if GameState.animal_count(station_id) == 0:
+		var price := GameState.animal_next_price(station_id, 0)
+		button = StepCardUi.go_button("Comprar %s · %d" % [str(data.get("animal_noun", "criação")), price], func() -> void: SheetBuilder.open_animal_shop(station_id))
+		button.set_meta("wood_primary", true)
+	elif ready_qty > 0:
+		button = StepCardUi.go_button("Pegar %s (%d)" % [Database.item_name(output).to_lower(), ready_qty], func() -> void:
+			Events.items_gained.emit(GameState.collect(station_id), 0, Vector2(-1.0, -1.0)))
+		button.set_meta("wood_primary", true)
+	elif not free.is_empty():
+		var most := GameState.cook_max(recipe_id)
+		if most >= 2:
+			var row := UiKit.hbox(6)
+			row.name = "AnimalActionRow"
+			row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			_fill_feed_row(row, station_id, recipe_id)
+			return row
+		elif most == 1:
+			button = StepCardUi.go_button(str(data.get("action_label", "Alimentar")), func() -> void: _cook(station_id, recipe_id))
+			button.set_meta("wood_primary", true)
+		else:
+			var reason := GameState.cook_many_error(recipe_id, 1)
+			var inputs: Dictionary = GameState.recipe_inputs(recipe_id)
+			var missing := ""
+			for item: String in inputs:
+				if GameState.inventory.count(item) < int(inputs[item]):
+					missing = item
+					break
+			if missing != "" and reason != "" and GameState.content_error("recipe", recipe_id, Database.recipes[recipe_id]) == "":
+				button = StepCardUi.locked_button("Falta %s" % Database.item_name(missing).to_lower(), Database.item_icon(missing), TaskHelp.open.bind("item", missing))
+			else:
+				button = StepCardUi.locked_button(reason if reason != "" else "Nada para dar agora")
+	else:
+		button = StepCardUi.locked_button("Todas estão comendo · %s" % TimeText.short(int(ceil(maxf(left_min, 0.0)))))
+	button.name = "AnimalAction"
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return button
+
+
+## Seletor − N + (começa em todos que a ração paga) e o botão "Alimentar": dá para alimentar só
+## alguns animais e guardar a ração para outra coisa.
+static func _fill_feed_row(row: HBoxContainer, station_id: String, recipe_id: String) -> void:
+	for child in row.get_children():
+		row.remove_child(child)
+		child.queue_free()
+	var most := maxi(1, GameState.cook_max(recipe_id))
+	var n := chosen_count(recipe_id)
+	var change := func(value: int) -> void:
+		animal_quantity[recipe_id] = clampi(value, 1, most)
+		_fill_feed_row(row, station_id, recipe_id)
+	var minus := StationWood.icon_button("minus", Vector2(36, 40), change.bind(n - 1), "Minus")
+	minus.disabled = n <= 1
+	minus.modulate.a = 0.5 if minus.disabled else 1.0
+	row.add_child(minus)
+	var amount := StationWood.text("×%d" % n, 19, Palette.WOOD_CREAM, 4)
+	amount.name = "QuantityValue"
+	amount.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	amount.custom_minimum_size.x = 26.0
+	row.add_child(amount)
+	var plus := StationWood.icon_button("plus", Vector2(36, 40), change.bind(n + 1), "Plus")
+	plus.disabled = n >= most
+	plus.modulate.a = 0.5 if plus.disabled else 1.0
+	row.add_child(plus)
+	var verb := str(Database.stations[station_id].get("action_label", "Alimentar"))
+	var button := StepCardUi.go_button(verb, func() -> void: _cook(station_id, recipe_id))  # o seletor ao lado mostra quantos
+	button.set_meta("wood_primary", true)
+	button.name = "AnimalAction"
+	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(button)
 
 
 static func orchard(room: RoomView, anchor: Dictionary) -> ActionTray:

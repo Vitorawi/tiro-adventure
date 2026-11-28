@@ -699,7 +699,7 @@ func ph_spend(_steps: Array[String]) -> Dictionary:
 	if gs.has_upgrade("farm") and gs.unlocked_plots < int(Database.farm.get("plots", 0)) and gs.plot_cost(gs.unlocked_plots) >= 0 and gs.coins - gs.plot_cost(gs.unlocked_plots) >= reserve and not is_avoided("buyplot"):
 		return _action("buy_plot", {"index": gs.unlocked_plots}, "farm", "buy")
 	for id: String in Database.animals:
-		if gs.buy_animal_error(id) == "" and gs.coins - int(Database.animals[id].price) >= reserve and not is_avoided("animal" + id):
+		if gs.buy_animal_error(id) == "" and gs.coins - gs.animal_price(id) >= reserve and not is_avoided("animal" + id):
 			return _action("buy_animal", {"id": id}, "station:" + str(Database.animals[id].station), "buy")
 	return {}
 
@@ -1451,7 +1451,7 @@ func _pursue_animal(station_id: String) -> Dictionary:
 	for id: String in Database.animals:
 		if str(Database.animals[id].station) == station_id:
 			if gs.buy_animal_error(id) == "Faltam moedas":
-				return earn_coins(int(Database.animals[id].price) - gs.coins, true, 3)
+				return earn_coins(gs.animal_price(id) - gs.coins, true, 3)
 	return _block("animal:" + station_id)
 
 

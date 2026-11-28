@@ -14,6 +14,11 @@ func enqueue(recipe_id: String, seconds: float, now: float) -> void:
 	queue.append({ "recipe": recipe_id, "ready_at": start + seconds })
 
 
+## Lote de abrigo: começa na hora (em paralelo) e guarda o índice do animal.
+func enqueue_parallel(recipe_id: String, seconds: float, now: float, slot: int) -> void:
+	queue.append({ "recipe": recipe_id, "ready_at": now + seconds, "slot": slot })
+
+
 ## Tem receita em preparo (ainda não pronta)?
 func is_busy(now: float) -> bool:
 	for entry in queue:
@@ -59,6 +64,8 @@ func from_dict(data: Dictionary) -> void:
 	queue.clear()
 	for entry: Dictionary in data.get("queue", []):
 		queue.append({ "recipe": str(entry["recipe"]), "ready_at": float(entry["ready_at"]) })
+		if entry.has("slot"):
+			queue.back()["slot"] = int(entry.slot)
 		if entry.has("qty"):
 			queue.back()["qty"] = int(entry.qty)
 		if entry.has("animals"):
